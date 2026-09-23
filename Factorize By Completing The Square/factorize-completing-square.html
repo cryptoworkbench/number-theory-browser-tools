@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factorizing by Completing the Square — Interactive Visualizer</title>
+<style>
+  :root{
+    --bg-1: #0d0f1a;
+    --bg-2: #1a1327;
+    --panel: rgba(255,255,255,0.05);
+    --panel-border: rgba(255,255,255,0.09);
+    --text: #e8ecf7;
+    --text-dim: #9098b5;
+    --accent: #ffb454;
+    --accent-2: #45e0c1;
+    --accent-3: #c792ea;
+    --danger: #ff6b81;
+    --good: #45e0c1;
+    font-size: 15px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background: var(--bg-1);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(255,180,84,0.16), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(199,146,234,0.14), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, rgba(69,224,193,0.09), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment: fixed;
+    min-height:100vh;
+    padding: clamp(12px, 3vw, 32px);
+  }
+
+  .app{
+    max-width: 980px;
+    margin: 0 auto;
+    display:flex;
+    flex-direction:column;
+    gap: 18px;
+  }
+
+  header{ text-align:center; padding: 8px 0 4px; }
+
+  header h1{
+    margin:0;
+    font-size: clamp(1.35rem, 3.2vw, 2.05rem);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    background: linear-gradient(90deg, var(--accent), var(--good) 55%, var(--accent-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  header p{ margin: 8px auto 0; color: var(--text-dim); font-size: 0.92rem; max-width: 640px; line-height: 1.5; }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 16px 18px;
+  }
+
+  .math{
+    text-align:center;
+    font-size: 1.05rem;
+    line-height: 2.1;
+    color: var(--text);
+  }
+  .math .identity{
+    display:inline-block;
+    padding: 4px 14px;
+    margin: 2px 6px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--panel-border);
+    font-variant-numeric: tabular-nums;
+  }
+  .math small{ display:block; color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; }
+
+  .controls{ display:flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; }
+
+  .field{ display:flex; flex-direction:column; gap: 4px; }
+  .field label{ font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+
+  input[type="number"]{
+    width: 150px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 9px 10px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type="number"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,180,84,0.25); }
+
+  .btn-row{ display:flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+
+  button{
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    display:inline-flex;
+    align-items:center;
+    gap: 6px;
+    transition: transform .1s ease, background .15s, border-color .15s, box-shadow .15s;
+    white-space: nowrap;
+  }
+  button:hover{ background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+  button:active{ transform: scale(0.96); }
+  button:disabled{ opacity: 0.4; cursor: not-allowed; transform:none; }
+
+  button.primary{
+    background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    border-color: transparent;
+    color: #1a1327;
+  }
+  button.primary:hover{ filter: brightness(1.08); }
+  button.ghost{ background: transparent; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap: 8px; margin-top: 10px; }
+  .chip{
+    font-size: 0.78rem;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover{ color: var(--text); border-color: var(--accent); background: rgba(255,180,84,0.1); }
+
+  .speed-wrap{ display:flex; align-items:center; gap: 10px; }
+  .speed-wrap input[type="range"]{ width: 120px; accent-color: var(--accent); }
+  .speed-wrap span{ font-size: 0.8rem; color: var(--text-dim); width: 62px; }
+
+  .trail{ font-size: 0.85rem; color: var(--text-dim); text-align:center; min-height: 1.3em; }
+  .trail b{ color: var(--accent); }
+
+  .stats{ display:grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 10px; }
+  .stat{ background: rgba(255,255,255,0.04); border: 1px solid var(--panel-border); border-radius: 12px; padding: 10px 12px; text-align:center; }
+  .stat .label{ font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-dim); }
+  .stat .value{ font-size: 1.2rem; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat.a .value{ color: var(--accent); }
+  .stat.r .value{ color: var(--accent-3); }
+  .stat.hit .value{ color: var(--good); }
+
+  .two-col{ display:grid; grid-template-columns: 1.1fr 1fr; gap: 18px; }
+  @media (max-width: 760px){ .two-col{ grid-template-columns: 1fr; } }
+
+  .table-wrap{ max-height: 320px; overflow-y: auto; border-radius: 12px; }
+  .table-wrap::-webkit-scrollbar{ width: 9px; }
+  .table-wrap::-webkit-scrollbar-track{ background: transparent; }
+  .table-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.15); border-radius: 10px; }
+
+  table.trials{ width:100%; border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+  table.trials thead th{
+    position: sticky; top:0;
+    background: #171226;
+    color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.66rem;
+    padding: 7px 8px; text-align:right; border-bottom: 1px solid var(--panel-border);
+  }
+  table.trials thead th:first-child{ text-align:left; }
+  table.trials td{ padding: 6px 8px; text-align:right; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+  table.trials td:first-child{ text-align:left; color: var(--text-dim); }
+  table.trials tr.fail td.rcell{ color: var(--text-dim); }
+  table.trials tr.success{ background: rgba(69,224,193,0.13); }
+  table.trials tr.success td{ color: var(--good); font-weight: 700; }
+  table.trials tr.flash{ animation: rowFlash .5s ease-out 1; }
+  @keyframes rowFlash{
+    0%{ background: rgba(255,180,84,0.35); }
+    100%{ background: transparent; }
+  }
+
+  .diagram-head{ display:flex; align-items:center; justify-content:space-between; gap: 10px; flex-wrap:wrap; margin-bottom: 6px;}
+  .diagram-head h2{ margin:0; font-size: 0.95rem; color: var(--text); }
+
+  svg.diagram{ width:100%; height: auto; display:block; }
+  .diag-label{ fill: var(--text-dim); font-size: 13px; font-family: inherit; }
+  .diag-label.strong{ fill: var(--text); font-weight: 700; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; font-size: 0.78rem; color: var(--text-dim); margin-top: 8px; }
+  .legend .item{ display:flex; align-items:center; gap: 6px; }
+  .swatch{ width: 13px; height:13px; border-radius: 4px; display:inline-block; border: 1px solid rgba(255,255,255,0.15); }
+  .swatch.r1{ background: var(--accent-2); }
+  .swatch.r2{ background: var(--accent); }
+  .swatch.rm{ background: transparent; border: 1px dashed var(--danger); }
+  .swatch.fin{ background: transparent; border: 2px solid #fff; }
+
+  .banner{ text-align:center; font-size: 0.95rem; color: var(--text-dim); min-height: 1.4em; line-height:1.6; }
+  .banner strong{ color: var(--good); }
+  .banner .err{ color: var(--danger); }
+
+  .result{
+    text-align:center;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .result .factor{
+    display:inline-block;
+    padding: 6px 14px;
+    margin: 3px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--panel-border);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .result .factor:hover{ border-color: var(--accent); background: rgba(255,180,84,0.12); transform: translateY(-1px); }
+  .result .op{ color: var(--text-dim); font-weight: 400; margin: 0 2px; }
+
+  footer{ text-align:center; font-size: 0.72rem; color: var(--text-dim); opacity: 0.6; padding-bottom: 8px; }
+
+  @media (max-width: 480px){
+    .controls{ justify-content:center; }
+    input[type="number"]{ width: 120px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Factorizing by Completing the Square</h1>
+    <p>Fermat's method: every odd number N can be written as a difference of two squares, N = a² − b². Find the right b² to "complete the square" of N, and the factorization (a−b)(a+b) = N falls out — with a picture to prove it.</p>
+  </header>
+
+  <div class="panel math">
+    <span class="identity">N + b² = a²</span>
+    <span class="identity">N = a² − b²</span>
+    <span class="identity">N = (a − b)(a + b)</span>
+    <small>We search a = ⌈√N⌉, ⌈√N⌉+1, … until a² − N is itself a perfect square b².</small>
+  </div>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="field">
+        <label for="nInput">Number to factor (N)</label>
+        <input id="nInput" type="number" min="2" max="2000000" value="8051" />
+      </div>
+      <div class="btn-row">
+        <button id="factorBtn" class="primary">🧩 Factorize</button>
+        <button id="playBtn">▶ Play</button>
+        <button id="stepBtn">⏭ Step</button>
+        <button id="instantBtn" class="ghost">⏩ Instant</button>
+      </div>
+      <div class="speed-wrap">
+        <label style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim);">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="4" />
+        <span id="speedLabel">brisk</span>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="trail" id="trail"></div>
+
+  <div class="panel stats">
+    <div class="stat a"><div class="label">Trying a</div><div class="value" id="statA">—</div></div>
+    <div class="stat"><div class="label">a²</div><div class="value" id="statASq">—</div></div>
+    <div class="stat r"><div class="label">r = a² − N</div><div class="value" id="statR">—</div></div>
+    <div class="stat hit"><div class="label">√r perfect?</div><div class="value" id="statHit">—</div></div>
+    <div class="stat"><div class="label">Trial #</div><div class="value" id="statTrial">0</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="diagram-head"><h2>Search log</h2></div>
+      <div class="table-wrap">
+        <table class="trials">
+          <thead><tr><th>a</th><th>a²</th><th>r = a² − N</th><th>√r</th><th>square?</th></tr></thead>
+          <tbody id="trialsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="diagram-head">
+        <h2>Geometric picture</h2>
+        <button id="replayBtn" class="ghost" disabled>↺ Replay</button>
+      </div>
+      <svg class="diagram" id="diagramSvg" viewBox="0 0 460 400" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend">
+        <span class="item"><span class="swatch r1"></span> stays put (a × (a−b))</span>
+        <span class="item"><span class="swatch r2"></span> slides into place ((a−b) × b)</span>
+        <span class="item"><span class="swatch rm"></span> removed corner (b²)</span>
+        <span class="item"><span class="swatch fin"></span> final (a+b) × (a−b)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="banner" id="banner">Enter an odd number (or any number — even ones get their factors of 2 stripped first) and press Factorize.</div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <footer>All computation runs client-side in your browser. Search is capped at 20,000 trials to stay responsive — some primes with no nearby square will hit that limit.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  const nInput      = $('nInput');
+  const factorBtn    = $('factorBtn');
+  const playBtn       = $('playBtn');
+  const stepBtn       = $('stepBtn');
+  const instantBtn    = $('instantBtn');
+  const replayBtn     = $('replayBtn');
+  const speedInput    = $('speedInput');
+  const speedLabel    = $('speedLabel');
+  const chips         = $('chips');
+  const trail         = $('trail');
+  const trialsBody    = $('trialsBody');
+  const banner        = $('banner');
+  const resultEl      = $('result');
+  const diagramSvg    = $('diagramSvg');
+
+  const statA    = $('statA');
+  const statASq  = $('statASq');
+  const statR    = $('statR');
+  const statHit  = $('statHit');
+  const statTrial= $('statTrial');
+
+  const SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
+  const MAX_ITER = 20000;
+  const MAX_N = 2000000;
+  const MAX_ROWS_DOM = 160;
+
+  const EXAMPLES = [
+    {n: 899,  note: 'closest pair — found in 1 trial'},
+    {n: 8051, note: 'balanced factors, quick find'},
+    {n: 567,  note: 'balanced factors, quick find'},
+    {n: 143,  note: '11 × 13'},
+    {n: 441,  note: 'perfect square, 21 × 21'},
+    {n: 360,  note: 'even — strips 2³ first'},
+    {n: 89,   note: 'prime — only the trivial pair'},
+  ];
+
+  let n = 0, k = 0, M = 0;      // N = 2^k * M, M odd
+  let trials = [];
+  let trialIndex = 0;
+  let playing = false;
+  let rafId = null;
+  let found = null;             // {a,b}
+  let limited = false;
+  let history = [];             // breadcrumb trail
+
+  // ---------------- number theory ----------------
+  function stripTwos(N){
+    let m = N, kk = 0;
+    while (m % 2 === 0 && m > 0){ m /= 2; kk++; }
+    return {k: kk, M: m};
+  }
+
+  function isqrt(x){
+    if (x < 0) return -1;
+    let r = Math.floor(Math.sqrt(x));
+    while (r * r > x) r--;
+    while ((r + 1) * (r + 1) <= x) r++;
+    return r;
+  }
+
+  function isPerfectSquare(x){
+    if (x < 0) return -1;
+    const r = isqrt(x);
+    return (r * r === x) ? r : -1;
+  }
+
+  function isPrimeSimple(x){
+    if (x < 2) return false;
+    if (x % 2 === 0) return x === 2;
+    for (let d = 3; d * d <= x; d += 2){
+      if (x % d === 0) return false;
+    }
+    return true;
+  }
+
+  function buildTrials(m){
+    const list = [];
+    if (m <= 1) return {list, found:null, limited:false};
+    const aMax = Math.floor((m + 1) / 2);
+    let a = Math.ceil(Math.sqrt(m));
+    if (a < 1) a = 1;
+    let foundPair = null;
+    let hitLimit = false;
+    let count = 0;
+    while (a <= aMax){
+      const aSq = a * a;
+      const r = aSq - m;
+      const b = isPerfectSquare(r);
+      const row = {a, aSq, r, b};
+      list.push(row);
+      count++;
+      if (b >= 0){ foundPair = {a, b}; break; }
+      if (count >= MAX_ITER){ hitLimit = true; break; }
+      a++;
+    }
+    return {list, found: foundPair, limited: hitLimit};
+  }
+
+  // ---------------- UI: chips ----------------
+  function buildChips(){
+    chips.innerHTML = '';
+    EXAMPLES.forEach(ex => {
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.textContent = `${ex.n} — ${ex.note}`;
+      c.addEventListener('click', () => { nInput.value = ex.n; startFactorization(true); });
+      chips.appendChild(c);
+    });
+  }
+
+  // ---------------- table rows ----------------
+  function addRow(row, isSuccess){
+    const tr = document.createElement('tr');
+    tr.className = isSuccess ? 'success flash' : 'fail flash';
+    tr.innerHTML = `<td>${row.a.toLocaleString()}</td>` +
+                    `<td>${row.aSq.toLocaleString()}</td>` +
+                    `<td class="rcell">${row.r.toLocaleString()}</td>` +
+                    `<td>${row.b >= 0 ? row.b.toLocaleString() : '—'}</td>` +
+                    `<td>${row.b >= 0 ? '✓ yes' : '✗ no'}</td>`;
+    trialsBody.appendChild(tr);
+    trialsBody.parentElement.scrollTop = trialsBody.parentElement.scrollHeight;
+    while (trialsBody.children.length > MAX_ROWS_DOM){
+      trialsBody.removeChild(trialsBody.firstChild);
+    }
+  }
+
+  function updateStats(row, idx){
+    statA.textContent = row.a.toLocaleString();
+    statASq.textContent = row.aSq.toLocaleString();
+    statR.textContent = row.r.toLocaleString();
+    statHit.textContent = row.b >= 0 ? `yes (${row.b})` : 'no';
+    statTrial.textContent = (idx + 1).toLocaleString();
+  }
+
+  // ---------------- playback ----------------
+  function speedToPerFrame(v){
+    const table = {1:1,2:2,3:4,4:8,5:16,6:35,7:75,8:160,9:400,10:100000};
+    return table[v] || 1;
+  }
+
+  function applyTrial(idx){
+    const row = trials[idx];
+    const isSuccess = (found && idx === trials.length - 1 && row.b >= 0);
+    addRow(row, isSuccess);
+    updateStats(row, idx);
+  }
+
+  function frameStep(){
+    if (!playing) return;
+    const perFrame = speedToPerFrame(parseInt(speedInput.value, 10));
+    let processed = 0;
+    while (processed < perFrame && trialIndex < trials.length){
+      applyTrial(trialIndex);
+      trialIndex++;
+      processed++;
+    }
+    if (trialIndex >= trials.length){
+      finishPlayback();
+      return;
+    }
+    rafId = requestAnimationFrame(frameStep);
+  }
+
+  function play(){
+    if (playing || trialIndex >= trials.length) return;
+    playing = true;
+    playBtn.textContent = '⏸ Pause';
+    stepBtn.disabled = true;
+    rafId = requestAnimationFrame(frameStep);
+  }
+
+  function pause(){
+    playing = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    playBtn.textContent = '▶ Play';
+    stepBtn.disabled = trialIndex >= trials.length;
+  }
+
+  function stepOnce(){
+    if (playing || trialIndex >= trials.length) return;
+    applyTrial(trialIndex);
+    trialIndex++;
+    if (trialIndex >= trials.length) finishPlayback();
+  }
+
+  function instantFinish(){
+    pause();
+    while (trialIndex < trials.length){
+      applyTrial(trialIndex);
+      trialIndex++;
+    }
+    finishPlayback();
+  }
+
+  function finishPlayback(){
+    pause();
+    playBtn.disabled = true;
+    stepBtn.disabled = true;
+    instantBtn.disabled = true;
+    showResult();
+  }
+
+  // ---------------- geometric diagram ----------------
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs){
+    const el = document.createElementNS(SVG_NS, tag);
+    for (const key in attrs) el.setAttribute(key, attrs[key]);
+    return el;
+  }
+
+  let animFrame = null;
+  let autoplayTimer = null;
+  let diagramGen = 0;
+
+  function clearDiagram(){
+    diagramGen++;
+    diagramSvg.innerHTML = '';
+    if (animFrame) cancelAnimationFrame(animFrame);
+    animFrame = null;
+    if (autoplayTimer) clearTimeout(autoplayTimer);
+    autoplayTimer = null;
+    replayBtn.disabled = true;
+  }
+
+  function easeInOutCubic(t){
+    return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2;
+  }
+
+  function buildDiagram(a, b){
+    clearDiagram();
+    const myGen = diagramGen;
+    if (a <= 0) return;
+
+    const VBW = 460, VBH = 400;
+    const X0 = 30, topMargin = 46, rightMargin = 100;
+    const availW = VBW - X0 - rightMargin;
+    const availH = VBH - topMargin - 60;
+    const scale = Math.max(0.001, Math.min(availW / (a + b), availH / a));
+    const Y0 = topMargin;
+    const S = a * scale;
+    const bs = b * scale;
+
+    // ghost of the original a×a square
+    diagramSvg.appendChild(svgEl('rect', {
+      x: X0, y: Y0, width: S, height: S,
+      fill: 'none', stroke: 'rgba(255,255,255,0.22)', 'stroke-width': 1.5, 'stroke-dasharray': '5,4'
+    }));
+
+    // removed corner b×b
+    const removed = svgEl('rect', {
+      x: X0 + S - bs, y: Y0, width: bs, height: bs,
+      fill: 'rgba(255,107,129,0.12)', stroke: 'var(--danger)', 'stroke-width': 1.5, 'stroke-dasharray': '4,3'
+    });
+    diagramSvg.appendChild(removed);
+
+    // R1: bottom strip, stays put — a wide, (a-b) tall
+    const r1 = svgEl('rect', {
+      x: X0, y: Y0 + bs, width: S, height: S - bs,
+      fill: 'rgba(69,224,193,0.45)', stroke: 'var(--accent-2)', 'stroke-width': 1.5, rx: 2
+    });
+    diagramSvg.appendChild(r1);
+
+    // R2: top-left strip, will slide — (a-b) wide, b tall
+    const r2 = svgEl('rect', {
+      x: X0, y: Y0, width: S - bs, height: bs,
+      fill: 'rgba(255,180,84,0.55)', stroke: 'var(--accent)', 'stroke-width': 1.5, rx: 2
+    });
+    diagramSvg.appendChild(r2);
+
+    // labels: a along top, a along left
+    const labelTop = svgEl('text', {x: X0 + S/2, y: Y0 - 10, class: 'diag-label strong', 'text-anchor':'middle'});
+    labelTop.textContent = `a = ${a.toLocaleString()}`;
+    diagramSvg.appendChild(labelTop);
+
+    const labelLeft = svgEl('text', {x: X0 - 10, y: Y0 + S/2, class: 'diag-label strong', 'text-anchor':'end'});
+    labelLeft.textContent = `a`;
+    diagramSvg.appendChild(labelLeft);
+
+    const labelB = svgEl('text', {x: X0 + S - bs/2, y: Y0 + bs/2 + 4, class: 'diag-label', 'text-anchor':'middle'});
+    labelB.textContent = bs > 16 ? `b² = ${(b*b).toLocaleString()}` : '';
+    labelB.setAttribute('fill', 'var(--danger)');
+    diagramSvg.appendChild(labelB);
+
+    const caption = svgEl('text', {x: VBW/2, y: VBH - 12, class: 'diag-label', 'text-anchor':'middle'});
+    caption.textContent = `${a}² − ${b}² = ${((a*a)-(b*b)).toLocaleString()}`;
+    diagramSvg.appendChild(caption);
+
+    if (b === 0){
+      caption.textContent = `${a}² = ${(a*a).toLocaleString()} — N is a perfect square, N = ${a} × ${a}`;
+      replayBtn.disabled = true;
+      return;
+    }
+
+    replayBtn.disabled = false;
+    replayBtn.onclick = () => animateRearrange(a, b, X0, Y0, S, bs, r2, caption, removed, myGen);
+
+    // auto-play once, shortly after drawing
+    autoplayTimer = setTimeout(() => {
+      autoplayTimer = null;
+      animateRearrange(a, b, X0, Y0, S, bs, r2, caption, removed, myGen);
+    }, 500);
+  }
+
+  function animateRearrange(a, b, X0, Y0, S, bs, r2, caption, removed, myGen){
+    if (myGen !== diagramGen) return;
+    if (animFrame) cancelAnimationFrame(animFrame);
+    const start = { x: X0, y: Y0, w: S - bs, h: bs };
+    const end   = { x: X0 + S, y: Y0 + bs, w: bs, h: S - bs };
+    const duration = 900;
+    const t0 = performance.now();
+    removed.setAttribute('opacity', '1');
+
+    function frame(now){
+      if (myGen !== diagramGen) { animFrame = null; return; }
+      const t = Math.min(1, (now - t0) / duration);
+      const e = easeInOutCubic(t);
+      const x = start.x + (end.x - start.x) * e;
+      const y = start.y + (end.y - start.y) * e;
+      const w = start.w + (end.w - start.w) * e;
+      const h = start.h + (end.h - start.h) * e;
+      r2.setAttribute('x', x);
+      r2.setAttribute('y', y);
+      r2.setAttribute('width', w);
+      r2.setAttribute('height', h);
+      removed.setAttribute('opacity', String(1 - 0.75 * e));
+      if (t < 1){
+        animFrame = requestAnimationFrame(frame);
+      } else {
+        // draw final rectangle outline
+        const finalRect = svgEl('rect', {
+          x: X0, y: Y0 + bs, width: S + bs, height: S - bs,
+          fill: 'none', stroke: '#ffffff', 'stroke-width': 2, rx: 3
+        });
+        diagramSvg.appendChild(finalRect);
+        const wLabel = svgEl('text', {x: X0 + (S+bs)/2, y: Y0 + S + 20, class: 'diag-label strong', 'text-anchor':'middle'});
+        wLabel.textContent = `a + b = ${(a+b).toLocaleString()}`;
+        diagramSvg.appendChild(wLabel);
+        const hLabel = svgEl('text', {x: X0 + S + bs + 8, y: Y0 + bs + (S-bs)/2 + 4, class: 'diag-label strong', 'font-size': '12'});
+        hLabel.textContent = `a − b = ${(a-b).toLocaleString()}`;
+        diagramSvg.appendChild(hLabel);
+        caption.textContent = `${a}² − ${b}² = (${a}−${b})(${a}+${b}) = ${(a-b).toLocaleString()} × ${(a+b).toLocaleString()}`;
+        animFrame = null;
+      }
+    }
+    animFrame = requestAnimationFrame(frame);
+  }
+
+  // ---------------- results / banner ----------------
+  function makeFactorChip(value){
+    const span = document.createElement('span');
+    span.className = 'factor';
+    span.textContent = value.toLocaleString();
+    span.title = 'Factor this number further';
+    span.addEventListener('click', () => {
+      if (value < 2) return;
+      nInput.value = value;
+      startFactorization(true);
+    });
+    return span;
+  }
+
+  function showResult(){
+    resultEl.innerHTML = '';
+    if (M <= 1){
+      // N was a pure power of two
+      banner.innerHTML = `N = 2<sup>${k}</sup>. The odd part is 1, so there's no square left to complete — 2 is already prime.`;
+      const line = document.createElement('div');
+      line.appendChild(document.createTextNode(`${n.toLocaleString()} = `));
+      for (let i=0;i<k;i++){
+        if (i>0){ const op=document.createElement('span'); op.className='op'; op.textContent='×'; line.appendChild(op); }
+        line.appendChild(makeFactorChip(2));
+      }
+      resultEl.appendChild(line);
+      buildDiagram(0,0);
+      return;
+    }
+
+    if (!found){
+      banner.innerHTML = `<span class="err">Search limit reached (${MAX_ITER.toLocaleString()} trials)</span> without finding a perfect square. The odd part ${M.toLocaleString()} likely has very unbalanced factors (or is prime) — try a smaller number.`;
+      return;
+    }
+
+    const {a, b} = found;
+    const p = a - b, q = a + b;
+    const trivial = (p === 1);
+    const primeCheck = trivial ? isPrimeSimple(M) : null;
+
+    buildDiagram(a, b);
+
+    if (b === 0){
+      banner.innerHTML = `<strong>${M.toLocaleString()}</strong> is a perfect square: ${a} × ${a}.`;
+    } else if (trivial){
+      banner.innerHTML = `Only the trivial pair (1, ${M.toLocaleString()}) turned up${primeCheck ? ' — <strong>' + M.toLocaleString() + ' is prime</strong>.' : '.'}`;
+    } else {
+      banner.innerHTML = `Found it at trial <strong>${trials.length.toLocaleString()}</strong>: a = ${a.toLocaleString()}, b = ${b.toLocaleString()}.`;
+    }
+
+    // full factorization line: N = 2^k * p * q
+    const line = document.createElement('div');
+    const parts = [];
+    for (let i=0;i<k;i++) parts.push(2);
+    if (p > 1) parts.push(p);
+    parts.push(q);
+
+    line.appendChild(document.createTextNode(`${n.toLocaleString()} = `));
+    parts.forEach((val, idx) => {
+      if (idx>0){ const op=document.createElement('span'); op.className='op'; op.textContent='×'; line.appendChild(op); }
+      line.appendChild(makeFactorChip(val));
+    });
+    resultEl.appendChild(line);
+
+    if (p > 1 && q > 1){
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:0.8rem; font-weight:400; color:var(--text-dim); margin-top:6px;';
+      hint.textContent = 'Click any factor above to run the method on it again.';
+      resultEl.appendChild(hint);
+    }
+  }
+
+  // ---------------- orchestration ----------------
+  function resetUI(){
+    pause();
+    clearDiagram();
+    trialsBody.innerHTML = '';
+    resultEl.innerHTML = '';
+    statA.textContent = '—'; statASq.textContent = '—'; statR.textContent = '—';
+    statHit.textContent = '—'; statTrial.textContent = '0';
+    playBtn.disabled = false; stepBtn.disabled = false; instantBtn.disabled = false;
+    playBtn.textContent = '▶ Play';
+  }
+
+  function renderTrail(){
+    if (history.length <= 1){ trail.textContent = ''; return; }
+    trail.innerHTML = 'Trail: ' + history.map((v,i) => i === history.length-1 ? `<b>${v}</b>` : v).join(' → ');
+  }
+
+  function startFactorization(fromChain){
+    let val = parseInt(nInput.value, 10);
+    if (!Number.isFinite(val) || val < 2){
+      resetUI();
+      banner.innerHTML = `<span class="err">Enter an integer of at least 2.</span>`;
+      return;
+    }
+    if (val > MAX_N){ val = MAX_N; nInput.value = val; }
+
+    if (fromChain){ history.push(val); } else { history = [val]; }
+    renderTrail();
+
+    resetUI();
+    n = val;
+    const stripped = stripTwos(n);
+    k = stripped.k; M = stripped.M;
+
+    if (M <= 1){
+      trials = []; found = null; limited = false;
+      finishPlayback();
+      return;
+    }
+
+    const res = buildTrials(M);
+    trials = res.list;
+    found = res.found;
+    limited = res.limited;
+    trialIndex = 0;
+
+    const kNote = k > 0 ? ` (N = 2<sup>${k}</sup> × ${M.toLocaleString()}, stripping factors of 2 first)` : '';
+    banner.innerHTML = `Searching for a with a² − ${M.toLocaleString()} a perfect square${kNote}…`;
+
+    play();
+  }
+
+  // ---------------- wire up ----------------
+  factorBtn.addEventListener('click', () => startFactorization(false));
+  playBtn.addEventListener('click', () => { playing ? pause() : play(); });
+  stepBtn.addEventListener('click', stepOnce);
+  instantBtn.addEventListener('click', instantFinish);
+
+  speedInput.addEventListener('input', () => {
+    speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  });
+
+  nInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') startFactorization(false);
+  });
+
+  buildChips();
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)];
+  startFactorization(false);
+
+})();
+</script>
+</body>
+</html>
