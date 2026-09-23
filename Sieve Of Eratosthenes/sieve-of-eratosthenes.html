@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('site-theme')==='day'?'day':'night';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','night');}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sieve of Eratosthenes — Interactive Visualizer</title>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
 <style>
   :root{
     --bg-1: #0b0e1a;
@@ -15,6 +18,7 @@
     --accent: #7c9bff;
     --accent-2: #b98bff;
     --prime: #33f5c0;
+    --prime-text: var(--prime);
     --prime-glow: #33f5c0;
     --composite: #3a4160;
     --composite-text: #5b6382;
@@ -23,6 +27,22 @@
     --danger: #ff6b81;
     --cell-min: 40px;
     font-size: 15px;
+  }
+  :root[data-theme="day"]{
+    --bg-1: #fbfaff;
+    --bg-2: #eef1fb;
+    --panel: rgba(15,20,40,0.035);
+    --panel-border: rgba(15,20,40,0.1);
+    --text: #171a24;
+    --text-dim: #5b6178;
+    --accent: #3457c9;
+    --accent-2: #7a45c4;
+    --prime-text: #0f9a80;
+    --composite: #c9cede;
+    --composite-text: #7c8398;
+    --current: #b8780a;
+    --one: #d1447e;
+    --danger: #d6384f;
   }
 
   *{ box-sizing:border-box; }
@@ -38,13 +58,14 @@
 
   body{
     background:
-      radial-gradient(1200px 600px at 15% -10%, rgba(124,155,255,0.18), transparent 60%),
-      radial-gradient(1000px 500px at 110% 10%, rgba(185,139,255,0.15), transparent 55%),
-      radial-gradient(900px 700px at 50% 120%, rgba(51,245,192,0.08), transparent 60%),
+      radial-gradient(1200px 600px at 15% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--accent-2) 15%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--prime) 8%, transparent), transparent 60%),
       linear-gradient(160deg, var(--bg-1), var(--bg-2));
     background-attachment: fixed;
     min-height:100vh;
     padding: clamp(12px, 3vw, 32px);
+    transition: background .25s ease, color .25s ease;
   }
 
   .app{
@@ -55,23 +76,23 @@
     gap: 18px;
   }
 
-  header{
+  .page-header{
     text-align:center;
     padding: 8px 0 4px;
   }
 
-  header h1{
+  .page-header h1{
     margin:0;
     font-size: clamp(1.4rem, 3.2vw, 2.1rem);
     font-weight: 700;
     letter-spacing: 0.5px;
-    background: linear-gradient(90deg, var(--accent), var(--prime) 55%, var(--accent-2));
+    background: linear-gradient(90deg, var(--accent), var(--prime-text) 55%, var(--accent-2));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  header p{
+  .page-header p{
     margin: 6px 0 0;
     color: var(--text-dim);
     font-size: 0.92rem;
@@ -108,7 +129,7 @@
 
   input[type="number"]{
     width: 110px;
-    background: rgba(255,255,255,0.06);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     color: var(--text);
@@ -119,7 +140,7 @@
   }
   input[type="number"]:focus{
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(124,155,255,0.25);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
   }
 
   .btn-row{
@@ -134,7 +155,7 @@
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--text);
-    background: rgba(255,255,255,0.06);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     padding: 8px 14px;
@@ -145,7 +166,7 @@
     transition: transform .1s ease, background .15s, border-color .15s, box-shadow .15s;
     white-space: nowrap;
   }
-  button:hover{ background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+  button:hover{ background: color-mix(in srgb, var(--text) 12%, transparent); border-color: color-mix(in srgb, var(--text) 20%, transparent); }
   button:active{ transform: scale(0.96); }
   button:disabled{ opacity: 0.4; cursor: not-allowed; transform:none; }
 
@@ -180,7 +201,7 @@
   }
 
   .stat{
-    background: rgba(255,255,255,0.04);
+    background: color-mix(in srgb, var(--text) 4%, transparent);
     border: 1px solid var(--panel-border);
     border-radius: 12px;
     padding: 10px 12px;
@@ -199,12 +220,12 @@
     font-variant-numeric: tabular-nums;
   }
   .stat.current .value{ color: var(--current); }
-  .stat.primes .value{ color: var(--prime); }
+  .stat.primes .value{ color: var(--prime-text); }
 
   .progress-track{
     height: 8px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.07);
+    background: color-mix(in srgb, var(--text) 7%, transparent);
     overflow:hidden;
     margin-top: 6px;
   }
@@ -225,7 +246,7 @@
   }
   .grid-container::-webkit-scrollbar{ width: 10px; height:10px; }
   .grid-container::-webkit-scrollbar-track{ background: transparent; }
-  .grid-container::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.15); border-radius: 10px; }
+  .grid-container::-webkit-scrollbar-thumb{ background: color-mix(in srgb, var(--text) 15%, transparent); border-radius: 10px; }
 
   .grid{
     display:grid;
@@ -238,7 +259,7 @@
     content:"";
     position:absolute;
     inset: -20% -20%;
-    background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%);
+    background: linear-gradient(100deg, transparent 40%, color-mix(in srgb, var(--prime) 45%, transparent) 50%, transparent 60%);
     animation: sweep 1.1s ease-out 1;
     pointer-events:none;
   }
@@ -253,8 +274,8 @@
     align-items:center;
     justify-content:center;
     border-radius: 8px;
-    background: rgba(255,255,255,0.045);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: color-mix(in srgb, var(--text) 4.5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
     color: var(--text-dim);
     font-size: clamp(0.6rem, calc(var(--cell-min) * 0.34), 0.95rem);
     font-variant-numeric: tabular-nums;
@@ -266,22 +287,22 @@
 
   .cell.one{
     color: var(--one);
-    border-color: rgba(255,124,176,0.35);
-    background: rgba(255,124,176,0.08);
+    border-color: color-mix(in srgb, var(--one) 35%, transparent);
+    background: color-mix(in srgb, var(--one) 8%, transparent);
   }
 
   .cell.current{
     border-color: var(--current);
     color: var(--current);
-    box-shadow: 0 0 0 2px rgba(255,207,92,0.25), 0 0 14px rgba(255,207,92,0.45);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--current) 25%, transparent), 0 0 14px color-mix(in srgb, var(--current) 45%, transparent);
     transform: scale(1.12);
     z-index: 2;
   }
 
   .cell.composite{
     color: var(--composite-text);
-    background: rgba(255,255,255,0.02);
-    border-color: rgba(255,255,255,0.04);
+    background: color-mix(in srgb, var(--text) 2%, transparent);
+    border-color: color-mix(in srgb, var(--text) 4%, transparent);
   }
   .cell.composite::after{
     content:"";
@@ -297,23 +318,23 @@
     animation: markFlash .45s ease-out 1;
   }
   @keyframes markFlash{
-    0%{ background: rgba(255,107,129,0.55); box-shadow: 0 0 16px rgba(255,107,129,0.6); }
-    100%{ background: rgba(255,255,255,0.02); box-shadow: none; }
+    0%{ background: color-mix(in srgb, var(--danger) 55%, transparent); box-shadow: 0 0 16px color-mix(in srgb, var(--danger) 60%, transparent); }
+    100%{ background: color-mix(in srgb, var(--text) 2%, transparent); box-shadow: none; }
   }
 
   .cell.prime{
     color: #06251d;
     background: linear-gradient(145deg, var(--prime), #7fffdc);
     border-color: transparent;
-    box-shadow: 0 0 10px rgba(51,245,192,0.35);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--prime) 35%, transparent);
     font-weight: 800;
   }
   .cell.prime.pulse{
     animation: primePulse .6s ease-out 1;
   }
   @keyframes primePulse{
-    0%{ box-shadow: 0 0 0 0 rgba(51,245,192,0.75), 0 0 10px rgba(51,245,192,0.35); transform: scale(1.28); }
-    100%{ box-shadow: 0 0 0 14px rgba(51,245,192,0), 0 0 10px rgba(51,245,192,0.35); transform: scale(1); }
+    0%{ box-shadow: 0 0 0 0 color-mix(in srgb, var(--prime) 75%, transparent), 0 0 10px color-mix(in srgb, var(--prime) 35%, transparent); transform: scale(1.28); }
+    100%{ box-shadow: 0 0 0 14px color-mix(in srgb, var(--prime) 0%, transparent), 0 0 10px color-mix(in srgb, var(--prime) 35%, transparent); transform: scale(1); }
   }
 
   .legend{
@@ -327,9 +348,9 @@
   .legend .item{ display:flex; align-items:center; gap: 6px; }
   .swatch{
     width: 14px; height:14px; border-radius: 4px; display:inline-block;
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
   }
-  .swatch.unvisited{ background: rgba(255,255,255,0.045); }
+  .swatch.unvisited{ background: color-mix(in srgb, var(--text) 4.5%, transparent); }
   .swatch.current{ background: var(--current); box-shadow: 0 0 8px var(--current); }
   .swatch.prime{ background: linear-gradient(145deg, var(--prime), #7fffdc); }
   .swatch.composite{ background: var(--composite); }
@@ -341,7 +362,7 @@
     color: var(--text-dim);
     min-height: 1.3em;
   }
-  .banner strong{ color: var(--prime); }
+  .banner strong{ color: var(--prime-text); }
 
   footer{
     text-align:center;
@@ -358,9 +379,30 @@
 </style>
 </head>
 <body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="sieve-of-eratosthenes.html" class="site-nav-link is-active">Sieve of Eratosthenes</a>
+      <a href="../Christmas Trees/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Pizza Slices/pizza-slices.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA Examplifier/rsa-examplifier.html" class="site-nav-link">RSA Examplifier</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
 <div class="app">
 
-  <header>
+  <header class="page-header">
     <h1>Sieve of Eratosthenes</h1>
     <p>Give every natural number its own box — then watch the sieve strike out everything that isn't prime.</p>
   </header>

@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('site-theme')==='day'?'day':'night';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','night');}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Factorizing by Completing the Square — Interactive Visualizer</title>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
 <style>
   :root{
     --bg-1: #0d0f1a;
@@ -17,7 +20,22 @@
     --accent-3: #c792ea;
     --danger: #ff6b81;
     --good: #45e0c1;
+    --table-head-bg: #171226;
     font-size: 15px;
+  }
+  :root[data-theme="day"]{
+    --bg-1: #fbf8ff;
+    --bg-2: #f1e9ff;
+    --panel: rgba(20,10,40,0.035);
+    --panel-border: rgba(20,10,40,0.1);
+    --text: #241f33;
+    --text-dim: #6b6482;
+    --accent: #c97a1f;
+    --accent-2: #0f9a80;
+    --accent-3: #8a4fc4;
+    --danger: #d6384f;
+    --good: #0f9a80;
+    --table-head-bg: #f1eafc;
   }
 
   *{ box-sizing:border-box; }
@@ -33,13 +51,14 @@
 
   body{
     background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(255,180,84,0.16), transparent 60%),
-      radial-gradient(1000px 500px at 110% 10%, rgba(199,146,234,0.14), transparent 55%),
-      radial-gradient(900px 700px at 50% 120%, rgba(69,224,193,0.09), transparent 60%),
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--accent-3) 14%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--accent-2) 9%, transparent), transparent 60%),
       linear-gradient(160deg, var(--bg-1), var(--bg-2));
     background-attachment: fixed;
     min-height:100vh;
     padding: clamp(12px, 3vw, 32px);
+    transition: background .25s ease, color .25s ease;
   }
 
   .app{
@@ -50,9 +69,9 @@
     gap: 18px;
   }
 
-  header{ text-align:center; padding: 8px 0 4px; }
+  .page-header{ text-align:center; padding: 8px 0 4px; }
 
-  header h1{
+  .page-header h1{
     margin:0;
     font-size: clamp(1.35rem, 3.2vw, 2.05rem);
     font-weight: 700;
@@ -63,7 +82,7 @@
     color: transparent;
   }
 
-  header p{ margin: 8px auto 0; color: var(--text-dim); font-size: 0.92rem; max-width: 640px; line-height: 1.5; }
+  .page-header p{ margin: 8px auto 0; color: var(--text-dim); font-size: 0.92rem; max-width: 640px; line-height: 1.5; }
 
   .panel{
     background: var(--panel);
@@ -85,7 +104,7 @@
     padding: 4px 14px;
     margin: 2px 6px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.05);
+    background: color-mix(in srgb, var(--text) 5%, transparent);
     border: 1px solid var(--panel-border);
     font-variant-numeric: tabular-nums;
   }
@@ -98,7 +117,7 @@
 
   input[type="number"]{
     width: 150px;
-    background: rgba(255,255,255,0.06);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     color: var(--text);
@@ -107,7 +126,7 @@
     outline: none;
     transition: border-color .15s, box-shadow .15s;
   }
-  input[type="number"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,180,84,0.25); }
+  input[type="number"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 
   .btn-row{ display:flex; flex-wrap: wrap; gap: 8px; align-items:center; }
 
@@ -116,7 +135,7 @@
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--text);
-    background: rgba(255,255,255,0.06);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     padding: 8px 14px;
@@ -127,7 +146,7 @@
     transition: transform .1s ease, background .15s, border-color .15s, box-shadow .15s;
     white-space: nowrap;
   }
-  button:hover{ background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+  button:hover{ background: color-mix(in srgb, var(--text) 12%, transparent); border-color: color-mix(in srgb, var(--text) 20%, transparent); }
   button:active{ transform: scale(0.96); }
   button:disabled{ opacity: 0.4; cursor: not-allowed; transform:none; }
 
@@ -144,13 +163,13 @@
     font-size: 0.78rem;
     padding: 5px 11px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.05);
+    background: color-mix(in srgb, var(--text) 5%, transparent);
     border: 1px solid var(--panel-border);
     color: var(--text-dim);
     cursor: pointer;
     transition: all .15s;
   }
-  .chip:hover{ color: var(--text); border-color: var(--accent); background: rgba(255,180,84,0.1); }
+  .chip:hover{ color: var(--text); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
   .speed-wrap{ display:flex; align-items:center; gap: 10px; }
   .speed-wrap input[type="range"]{ width: 120px; accent-color: var(--accent); }
@@ -160,7 +179,7 @@
   .trail b{ color: var(--accent); }
 
   .stats{ display:grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 10px; }
-  .stat{ background: rgba(255,255,255,0.04); border: 1px solid var(--panel-border); border-radius: 12px; padding: 10px 12px; text-align:center; }
+  .stat{ background: color-mix(in srgb, var(--text) 4%, transparent); border: 1px solid var(--panel-border); border-radius: 12px; padding: 10px 12px; text-align:center; }
   .stat .label{ font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-dim); }
   .stat .value{ font-size: 1.2rem; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .stat.a .value{ color: var(--accent); }
@@ -173,25 +192,25 @@
   .table-wrap{ max-height: 320px; overflow-y: auto; border-radius: 12px; }
   .table-wrap::-webkit-scrollbar{ width: 9px; }
   .table-wrap::-webkit-scrollbar-track{ background: transparent; }
-  .table-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.15); border-radius: 10px; }
+  .table-wrap::-webkit-scrollbar-thumb{ background: color-mix(in srgb, var(--text) 15%, transparent); border-radius: 10px; }
 
   table.trials{ width:100%; border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
   table.trials thead th{
     position: sticky; top:0;
-    background: #171226;
+    background: var(--table-head-bg);
     color: var(--text-dim);
     text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.66rem;
     padding: 7px 8px; text-align:right; border-bottom: 1px solid var(--panel-border);
   }
   table.trials thead th:first-child{ text-align:left; }
-  table.trials td{ padding: 6px 8px; text-align:right; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+  table.trials td{ padding: 6px 8px; text-align:right; border-bottom: 1px solid color-mix(in srgb, var(--text) 4%, transparent); color: var(--text); }
   table.trials td:first-child{ text-align:left; color: var(--text-dim); }
   table.trials tr.fail td.rcell{ color: var(--text-dim); }
-  table.trials tr.success{ background: rgba(69,224,193,0.13); }
+  table.trials tr.success{ background: color-mix(in srgb, var(--good) 13%, transparent); }
   table.trials tr.success td{ color: var(--good); font-weight: 700; }
   table.trials tr.flash{ animation: rowFlash .5s ease-out 1; }
   @keyframes rowFlash{
-    0%{ background: rgba(255,180,84,0.35); }
+    0%{ background: color-mix(in srgb, var(--accent) 35%, transparent); }
     100%{ background: transparent; }
   }
 
@@ -204,11 +223,11 @@
 
   .legend{ display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; font-size: 0.78rem; color: var(--text-dim); margin-top: 8px; }
   .legend .item{ display:flex; align-items:center; gap: 6px; }
-  .swatch{ width: 13px; height:13px; border-radius: 4px; display:inline-block; border: 1px solid rgba(255,255,255,0.15); }
+  .swatch{ width: 13px; height:13px; border-radius: 4px; display:inline-block; border: 1px solid color-mix(in srgb, var(--text) 15%, transparent); }
   .swatch.r1{ background: var(--accent-2); }
   .swatch.r2{ background: var(--accent); }
   .swatch.rm{ background: transparent; border: 1px dashed var(--danger); }
-  .swatch.fin{ background: transparent; border: 2px solid #fff; }
+  .swatch.fin{ background: transparent; border: 2px solid var(--text); }
 
   .banner{ text-align:center; font-size: 0.95rem; color: var(--text-dim); min-height: 1.4em; line-height:1.6; }
   .banner strong{ color: var(--good); }
@@ -225,12 +244,12 @@
     padding: 6px 14px;
     margin: 3px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.06);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
     border: 1px solid var(--panel-border);
     cursor: pointer;
     transition: all .15s;
   }
-  .result .factor:hover{ border-color: var(--accent); background: rgba(255,180,84,0.12); transform: translateY(-1px); }
+  .result .factor:hover{ border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); transform: translateY(-1px); }
   .result .op{ color: var(--text-dim); font-weight: 400; margin: 0 2px; }
 
   footer{ text-align:center; font-size: 0.72rem; color: var(--text-dim); opacity: 0.6; padding-bottom: 8px; }
@@ -242,9 +261,30 @@
 </style>
 </head>
 <body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Christmas Trees/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="factorize-completing-square.html" class="site-nav-link is-active">Completing the Square</a>
+      <a href="../Pizza Slices/pizza-slices.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA Examplifier/rsa-examplifier.html" class="site-nav-link">RSA Examplifier</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
 <div class="app">
 
-  <header>
+  <header class="page-header">
     <h1>Factorizing by Completing the Square</h1>
     <p>Fermat's method: every odd number N can be written as a difference of two squares, N = a² − b². Find the right b² to "complete the square" of N, and the factorization (a−b)(a+b) = N falls out — with a picture to prove it.</p>
   </header>
@@ -573,27 +613,27 @@
     // ghost of the original a×a square
     diagramSvg.appendChild(svgEl('rect', {
       x: X0, y: Y0, width: S, height: S,
-      fill: 'none', stroke: 'rgba(255,255,255,0.22)', 'stroke-width': 1.5, 'stroke-dasharray': '5,4'
+      fill: 'none', stroke: 'color-mix(in srgb, var(--text) 22%, transparent)', 'stroke-width': 1.5, 'stroke-dasharray': '5,4'
     }));
 
     // removed corner b×b
     const removed = svgEl('rect', {
       x: X0 + S - bs, y: Y0, width: bs, height: bs,
-      fill: 'rgba(255,107,129,0.12)', stroke: 'var(--danger)', 'stroke-width': 1.5, 'stroke-dasharray': '4,3'
+      fill: 'color-mix(in srgb, var(--danger) 12%, transparent)', stroke: 'var(--danger)', 'stroke-width': 1.5, 'stroke-dasharray': '4,3'
     });
     diagramSvg.appendChild(removed);
 
     // R1: bottom strip, stays put — a wide, (a-b) tall
     const r1 = svgEl('rect', {
       x: X0, y: Y0 + bs, width: S, height: S - bs,
-      fill: 'rgba(69,224,193,0.45)', stroke: 'var(--accent-2)', 'stroke-width': 1.5, rx: 2
+      fill: 'color-mix(in srgb, var(--accent-2) 45%, transparent)', stroke: 'var(--accent-2)', 'stroke-width': 1.5, rx: 2
     });
     diagramSvg.appendChild(r1);
 
     // R2: top-left strip, will slide — (a-b) wide, b tall
     const r2 = svgEl('rect', {
       x: X0, y: Y0, width: S - bs, height: bs,
-      fill: 'rgba(255,180,84,0.55)', stroke: 'var(--accent)', 'stroke-width': 1.5, rx: 2
+      fill: 'color-mix(in srgb, var(--accent) 55%, transparent)', stroke: 'var(--accent)', 'stroke-width': 1.5, rx: 2
     });
     diagramSvg.appendChild(r2);
 
@@ -659,7 +699,7 @@
         // draw final rectangle outline
         const finalRect = svgEl('rect', {
           x: X0, y: Y0 + bs, width: S + bs, height: S - bs,
-          fill: 'none', stroke: '#ffffff', 'stroke-width': 2, rx: 3
+          fill: 'none', stroke: 'var(--text)', 'stroke-width': 2, rx: 3
         });
         diagramSvg.appendChild(finalRect);
         const wLabel = svgEl('text', {x: X0 + (S+bs)/2, y: Y0 + S + 20, class: 'diag-label strong', 'text-anchor':'middle'});

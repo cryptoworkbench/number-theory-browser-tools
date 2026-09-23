@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('site-theme')==='day'?'day':'night';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','night');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RSA Examplifier — Bob, Alice &amp; Eve</title>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<style>
+  :root{
+    --bg-1: #0b0f1a;
+    --bg-2: #131a2b;
+    --panel: rgba(255,255,255,0.05);
+    --panel-border: rgba(255,255,255,0.09);
+    --text: #e8ecf7;
+    --text-dim: #92a0c0;
+    --accent: #ffb454;
+    --good: #45e0c1;
+    --bad: #ff5c5c;
+    --bob: #4da6ff;
+    --bob-bg: color-mix(in srgb, var(--bob) 10%, transparent);
+    --alice: #ff7ac6;
+    --alice-bg: color-mix(in srgb, var(--alice) 10%, transparent);
+    --eve: #ff5c5c;
+    --eve-bg: color-mix(in srgb, var(--eve) 10%, transparent);
+    --dlp: #c792ea;
+    --dlp-bg: color-mix(in srgb, var(--dlp) 10%, transparent);
+    --lock-scrim: rgba(10,12,20,0.55);
+    --lock-text: #dbe0f0;
+    --well-label: var(--text-dim);
+    font-size: 15px;
+  }
+  :root[data-theme="day"]{
+    --bg-1: #fbf9ff;
+    --bg-2: #f2eefe;
+    --panel: rgba(15,10,30,0.035);
+    --panel-border: rgba(15,10,30,0.1);
+    --text: #1c1f2c;
+    --text-dim: #5b6178;
+    --well-label: #333844;
+    --accent: #c9871f;
+    --good: #0f9a80;
+    --bad: #d6384f;
+    --bob: #2f6fd1;
+    --alice: #c8388e;
+    --eve: #d6384f;
+    --dlp: #7a45b8;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--bob) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--alice) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--eve) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    padding: clamp(12px, 3vw, 32px);
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; padding: 8px 0 4px; }
+  .page-header h1{
+    margin:0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight:700; letter-spacing:.3px;
+    background: linear-gradient(90deg, var(--bob), var(--alice) 55%, var(--eve));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .page-header p{ color:var(--text-dim); max-width:720px; margin:8px auto 0; line-height:1.55; font-size:.95rem; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .step-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .step-num{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--text) 8%, transparent); font-weight:700; font-size:.85rem; flex:none; }
+  .step-head h2{ margin:0; font-size:1.05rem; }
+  .step-head .sub{ color:var(--text-dim); font-size:.85rem; margin-left:auto; }
+
+  .intro p{ line-height:1.6; color:var(--text-dim); }
+  .intro strong.b{ color:var(--bob); } .intro strong.a{ color:var(--alice); } .intro strong.e{ color:var(--eve); }
+
+  .person-panel{ border-top:3px solid transparent; }
+  .person-panel.bob{ border-top-color:var(--bob); }
+  .person-panel.alice{ border-top-color:var(--alice); }
+
+  .avatar-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .avatar{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; flex:none; }
+  .avatar.bob{ background:var(--bob-bg); border:1px solid var(--bob); }
+  .avatar.alice{ background:var(--alice-bg); border:1px solid var(--alice); }
+  .avatar.eve{ background:var(--eve-bg); border:1px solid var(--eve); }
+  .avatar-row .name{ font-weight:700; font-size:1.05rem; }
+  .avatar-row .name.bob{ color:var(--bob); }
+  .avatar-row .name.alice{ color:var(--alice); }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border); transition:.15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; }
+  button.primary.bob{ background:linear-gradient(90deg,var(--bob),#2a7fe0); color:#04101f; border:none; }
+  button.primary.alice{ background:linear-gradient(90deg,var(--alice),#e0509f); color:#210014; border:none; }
+  button.danger{ background:linear-gradient(90deg,var(--eve),#c93b3b); color:#210000; border:none; }
+  button.ghost{ background:transparent; }
+
+  .error-box{ color:var(--bad); font-size:.85rem; min-height:1.1em; margin-top:2px; }
+
+  .out{ margin-top:16px; display:none; flex-direction:column; gap:14px; }
+  .out.show{ display:flex; }
+
+  .substep{ background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; }
+  .substep h3{ margin:0 0 8px; font-size:.85rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+  .formula{ font-family:'JetBrains Mono','Consolas',monospace; font-size:.98rem; word-break:break-all;
+    background:rgba(0,0,0,0.25); border-radius:8px; padding:10px 12px; line-height:1.6; }
+  .formula .lbl{ color:var(--well-label); }
+  .formula .val{ color:var(--good); }
+
+  table.steps{ width:100%; border-collapse:collapse; font-family:'JetBrains Mono','Consolas',monospace; font-size:.82rem; }
+  table.steps th{ text-align:left; color:var(--text-dim); font-weight:600; padding:5px 8px; border-bottom:1px solid var(--panel-border); }
+  table.steps td{ padding:5px 8px; border-bottom:1px solid color-mix(in srgb, var(--text) 4%, transparent); word-break:break-all; }
+  table.steps tr.win td{ background:color-mix(in srgb, var(--good) 12%, transparent); color:var(--good); font-weight:700; }
+  table.steps tr.fail td{ opacity:.55; }
+  .tbl-wrap{ max-height:260px; overflow:auto; border-radius:8px; }
+
+  .keycards{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px){ .keycards{ grid-template-columns:1fr; } }
+  .keycard{ border-radius:12px; padding:14px; border:1px solid var(--panel-border); }
+  .keycard.pub{ background:color-mix(in srgb, var(--good) 7%, transparent); border-color:color-mix(in srgb, var(--good) 35%, transparent); }
+  .keycard.priv{ background:color-mix(in srgb, var(--bad) 6%, transparent); border-color:color-mix(in srgb, var(--bad) 30%, transparent); }
+  .keycard h4{ margin:0 0 8px; font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; }
+  .keycard.pub h4{ color:var(--good); } .keycard.priv h4{ color:var(--bad); }
+  .keycard .kv{ font-family:'JetBrains Mono',monospace; font-size:.9rem; word-break:break-all; margin-bottom:4px; }
+  .keycard .note{ color:var(--text-dim); font-size:.75rem; margin-top:6px; line-height:1.4; }
+
+  .locked{ opacity:.35; pointer-events:none; user-select:none; filter:grayscale(60%); }
+  .lock-note{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:20px; color:var(--lock-text); font-size:.85rem; background:var(--lock-scrim); z-index:5; }
+  .step.locked .lock-note{ display:flex; }
+  .lock-note{ display:none; }
+
+  .wire-diagram{ display:flex; flex-direction:column; gap:22px; margin:10px 0 16px; }
+  .wire-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .wire-row .who{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:.8rem; color:var(--text-dim); flex:none; }
+  .wire-line{ flex:1; min-width:120px; position:relative; height:34px; display:flex; align-items:center; }
+  .wire-line .track{ height:2px; width:100%; background:repeating-linear-gradient(90deg, var(--text-dim) 0 6px, transparent 6px 12px); }
+  .wire-line .packet{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    background:rgba(0,0,0,0.5); border:1px solid var(--panel-border); border-radius:8px; padding:4px 9px;
+    font-family:monospace; font-size:.78rem; white-space:nowrap; }
+  .eve-tap{ position:absolute; left:50%; top:-26px; transform:translateX(-50%); font-size:1.1rem; }
+
+  .notebook{ background:color-mix(in srgb, var(--eve) 6%, transparent); border:1px dashed var(--eve); border-radius:12px; padding:14px; margin-top:6px; }
+  .notebook h4{ margin:0 0 8px; color:var(--eve); font-size:.85rem; }
+  .notebook .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; font-family:monospace; font-size:.85rem; }
+  .notebook .grid div{ background:rgba(0,0,0,0.25); border-radius:8px; padding:6px 9px; word-break:break-all; }
+  .notebook .never{ margin-top:10px; font-size:.78rem; color:var(--text-dim); }
+
+  .dlp-box{ border:1px solid var(--dlp); background:var(--dlp-bg); border-radius:12px; padding:14px; margin-top:16px; }
+  .dlp-box h3{ margin:0 0 6px; color:var(--dlp); font-size:.9rem; }
+  .dlp-box .tag{ display:inline-block; font-size:.7rem; background:color-mix(in srgb, var(--dlp) 25%, transparent); color:var(--dlp);
+    border-radius:6px; padding:2px 7px; margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase; }
+
+  .result-box{ margin-top:10px; font-size:.88rem; line-height:1.5; background:rgba(0,0,0,0.2); border-radius:8px; padding:10px 12px; }
+  .result-box.win{ border-left:3px solid var(--eve); }
+  .result-box.giveup{ border-left:3px solid var(--good); }
+
+  .msg-flow{ display:flex; flex-direction:column; gap:20px; }
+  .msg-block{ border-radius:12px; border:1px solid var(--panel-border); padding:14px 16px; background:color-mix(in srgb, var(--text) 3%, transparent); }
+  .msg-hint{ font-size:.78rem; color:var(--text-dim); margin-top:2px; }
+  .arrow-note{ text-align:center; color:var(--text-dim); font-size:.85rem; margin:4px 0; }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
+  .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .pillbar span{ background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:20px; padding:3px 10px; font-size:.72rem; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Christmas Trees/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Pizza Slices/pizza-slices.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="rsa-examplifier.html" class="site-nav-link is-active">RSA Examplifier</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <h1>RSA Examplifier</h1>
+    <p>Watch Bob and Alice build RSA keypairs, swap public keys over a wire that Eve is quietly tapping, see exactly what
+      hard math problem stands between Eve and their private keys, then send each other an encrypted message.</p>
+  </header>
+
+  <section class="panel intro">
+    <div class="step-head"><span class="step-num">•</span><h2>How this works</h2></div>
+    <p>You supply two prime numbers for <strong class="b">Bob</strong> and two different prime numbers for
+      <strong class="a">Alice</strong>. This page derives everything else &mdash; the modulus, the totient, the public
+      exponent, the private exponent, all the way down to the extended-Euclidean-algorithm arithmetic. Then their public
+      keys cross a wire that <strong class="e">Eve</strong> is listening on, you'll see exactly what she captures and
+      what hard problem she's stuck with, and finally Bob and Alice trade an actual encrypted message.</p>
+    <p style="margin-bottom:0;">This is <em>textbook RSA</em> for teaching purposes only — no padding scheme (OAEP), no
+      real-world key sizes. Never reuse tiny keys like these for anything real.</p>
+  </section>
+
+  <!-- STEP 1: BOB -->
+  <section class="panel person-panel bob step" id="step-bob">
+    <div class="step-head"><span class="step-num">1</span><h2>Bob generates his RSA keypair</h2>
+      <span class="sub">pick two primes</span></div>
+    <div class="avatar-row"><div class="avatar bob">🧑‍💼</div><div class="name bob">Bob</div></div>
+    <div class="field-row">
+      <div class="field"><label for="bob-p">Prime p</label><input id="bob-p" type="text" inputmode="numeric" value="61"></div>
+      <div class="field"><label for="bob-q">Prime q</label><input id="bob-q" type="text" inputmode="numeric" value="53"></div>
+      <button class="primary bob" id="bob-gen-btn">🔑 Generate Bob's Keypair</button>
+    </div>
+    <div class="error-box" id="bob-error"></div>
+    <div class="out" id="bob-output"></div>
+  </section>
+
+  <!-- STEP 2: ALICE -->
+  <section class="panel person-panel alice step" id="step-alice">
+    <div class="step-head"><span class="step-num">2</span><h2>Alice generates her RSA keypair</h2>
+      <span class="sub">pick two <em>different</em> primes</span></div>
+    <div class="avatar-row"><div class="avatar alice">👩‍💼</div><div class="name alice">Alice</div></div>
+    <div class="field-row">
+      <div class="field"><label for="alice-p">Prime p</label><input id="alice-p" type="text" inputmode="numeric" value="17"></div>
+      <div class="field"><label for="alice-q">Prime q</label><input id="alice-q" type="text" inputmode="numeric" value="23"></div>
+      <button class="primary alice" id="alice-gen-btn">🔑 Generate Alice's Keypair</button>
+    </div>
+    <div class="error-box" id="alice-error"></div>
+    <div class="out" id="alice-output"></div>
+  </section>
+
+  <!-- STEP 3: WIRE -->
+  <section class="panel step locked" id="step-wire">
+    <div class="lock-note">🔒 Generate both Bob's and Alice's keypairs first.</div>
+    <div class="step-head"><span class="step-num">3</span><h2>Public keys cross the wire — Eve is listening</h2></div>
+    <div id="wire-content"></div>
+  </section>
+
+  <!-- STEP 4: EVE -->
+  <section class="panel step locked" id="step-eve">
+    <div class="lock-note">🔒 Generate both keypairs first.</div>
+    <div class="step-head"><span class="step-num">4</span><h2>What Eve is actually up against</h2></div>
+    <div id="eve-content"></div>
+  </section>
+
+  <!-- STEP 5: MESSAGES -->
+  <section class="panel step locked" id="step-messages">
+    <div class="lock-note">🔒 Generate both keypairs first.</div>
+    <div class="step-head"><span class="step-num">5</span><h2>Encrypted correspondence</h2></div>
+    <div id="messages-content"></div>
+  </section>
+
+  <footer>
+    <div>Textbook RSA demo — no OAEP padding, tiny toy-sized keys. For education only.</div>
+    <div class="pillbar"><span>RSA problem ≠ discrete-log problem</span><span>BigInt precision</span><span>Miller–Rabin primality</span></div>
+  </footer>
+</div>
+
+<script>
+'use strict';
+
+/* ---------- BigInt number theory helpers ---------- */
+
+function parseBigIntStrict(str, allowZero){
+  str = (str||'').trim();
+  if(!/^\d+$/.test(str)) throw new Error('not a nonnegative integer');
+  const v = BigInt(str);
+  if(!allowZero && v <= 0n) throw new Error('must be positive');
+  return v;
+}
+
+function fmt(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function bigGcd(a,b){ a = a<0n?-a:a; b = b<0n?-b:b; while(b){ [a,b] = [b, a % b]; } return a; }
+
+function randomBigIntBits(bits){
+  if(bits <= 0) return 0n;
+  let hex = '', remaining = bits;
+  while(remaining > 0){
+    const chunk = Math.min(remaining, 32);
+    const val = Math.floor(Math.random() * Math.pow(2, chunk));
+    hex = val.toString(16) + hex;
+    remaining -= chunk;
+  }
+  return BigInt('0x' + (hex || '0'));
+}
+
+function randomBigIntInRange(min, max){
+  const range = max - min + 1n;
+  const bits = range.toString(2).length;
+  let x;
+  do { x = randomBigIntBits(bits); } while (x >= range);
+  return min + x;
+}
+
+function modPowPlain(base, exp, mod){
+  let result = 1n; base %= mod; if(base<0n) base += mod;
+  while(exp > 0n){ if(exp & 1n) result = (result*base) % mod; exp >>= 1n; base = (base*base) % mod; }
+  return result;
+}
+
+function isPrimeBig(n, rounds){
+  rounds = rounds || 20;
+  if(n < 2n) return false;
+  const small = [2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n];
+  for(const sp of small){ if(n === sp) return true; if(n % sp === 0n) return false; }
+  let d = n - 1n, r = 0n;
+  while(d % 2n === 0n){ d /= 2n; r++; }
+  witness: for(let i=0;i<rounds;i++){
+    const a = randomBigIntInRange(2n, n-2n);
+    let x = modPowPlain(a, d, n);
+    if(x === 1n || x === n-1n) continue;
+    for(let j=0n;j<r-1n;j++){
+      x = (x*x) % n;
+      if(x === n-1n) continue witness;
+    }
+    return false;
+  }
+  return true;
+}
+
+/* Extended Euclidean algorithm, iterative table form: a*x + b*y = gcd(a,b) */
+function extendedGcdSteps(a, b){
+  let old_r=a, r=b, old_s=1n, s=0n, old_t=0n, t=1n;
+  const rows = [{q:null, r:old_r, s:old_s, t:old_t}, {q:null, r:r, s:s, t:t}];
+  while(r !== 0n){
+    const q = old_r / r;
+    const r2 = old_r - q*r, s2 = old_s - q*s, t2 = old_t - q*t;
+    rows.push({q, r:r2, s:s2, t:t2});
+    old_r=r; r=r2; old_s=s; s=s2; old_t=t; t=t2;
+  }
+  return {gcd: old_r, x: old_s, y: old_t, rows};
+}
+
+function chooseE(phi){
+  const candidates = [];
+  const e65537 = 65537n;
+  if(e65537 < phi && bigGcd(e65537, phi) === 1n){
+    candidates.push({e:e65537, ok:true, note:'Standard real-world choice: 65537 = 2¹⁶+1 (prime, few 1-bits → fast)'});
+    return {chosen:e65537, candidates};
+  }
+  candidates.push({e:e65537, ok:false, note: e65537 >= phi ? '65537 ≥ φ(n) — too big for this toy modulus' : 'gcd(65537, φ(n)) ≠ 1'});
+  let cand = 3n, tries = 0;
+  while(tries < 4000 && cand < phi){
+    const g = bigGcd(cand, phi);
+    if(candidates.length < 9) candidates.push({e:cand, ok: g===1n, note: g===1n ? 'coprime with φ(n) ✓' : `gcd(e, φ(n)) = ${g} ✗`});
+    if(g === 1n) return {chosen: cand, candidates};
+    cand += 2n; tries++;
+  }
+  return {chosen:null, candidates};
+}
+
+function modPowSteps(base, exp, mod){
+  let b = base % mod; if(b<0n) b += mod;
+  const bin = exp.toString(2);
+  let result = 1n;
+  const steps = [];
+  for(let i=0;i<bin.length;i++){
+    result = (result*result) % mod;
+    const bit = bin[i];
+    if(bit === '1') result = (result*b) % mod;
+    steps.push({i, bit, resultAfter: result});
+  }
+  return {result, steps, bin};
+}
+
+function bruteFactorEve(n){
+  const start = performance.now();
+  if(n % 2n === 0n) return {factor:2n, tries:1, ms: performance.now()-start, gaveUp:false};
+  const MAX_SAFE = 9007199254740991n;
+  if(n <= MAX_SAFE){
+    const num = Number(n);
+    const limit = Math.floor(Math.sqrt(num));
+    const cap = Math.min(limit, 20000000);
+    let tries = 0;
+    for(let i=3;i<=cap;i+=2){
+      tries++;
+      if(num % i === 0) return {factor: BigInt(i), tries, ms: performance.now()-start, gaveUp:false, sqrtN: limit};
+    }
+    return {factor:null, tries, ms: performance.now()-start, gaveUp: cap < limit, sqrtN: limit};
+  } else {
+    let i=3n, tries=0, cap=200000;
+    while(i*i <= n && tries < cap){
+      if(n % i === 0n) return {factor:i, tries, ms: performance.now()-start, gaveUp:false};
+      i += 2n; tries++;
+    }
+    return {factor:null, tries, ms: performance.now()-start, gaveUp: i*i<=n};
+  }
+}
+
+/* ---------- App state ---------- */
+const State = { bob: null, alice: null };
+
+function generateKeys(id, label){
+  const errBox = document.getElementById(id+'-error');
+  errBox.textContent = '';
+  let p, q;
+  try{ p = parseBigIntStrict(document.getElementById(id+'-p').value); }
+  catch(e){ errBox.textContent = 'Prime p must be a positive whole number.'; return; }
+  try{ q = parseBigIntStrict(document.getElementById(id+'-q').value); }
+  catch(e){ errBox.textContent = 'Prime q must be a positive whole number.'; return; }
+  if(p < 3n || q < 3n){ errBox.textContent = 'Please use odd primes ≥ 3 (this keeps the φ(n) formula well-behaved).'; return; }
+  if(p === q){ errBox.textContent = 'p and q must be different primes — otherwise n = p² and this φ(n) formula no longer applies.'; return; }
+  if(p.toString().length > 60 || q.toString().length > 60){ errBox.textContent = 'Please keep primes under 60 digits so the page stays responsive — this is a teaching demo, not a key generator.'; return; }
+  if(!isPrimeBig(p)){ errBox.textContent = `${fmt(p)} is not prime.`; return; }
+  if(!isPrimeBig(q)){ errBox.textContent = `${fmt(q)} is not prime.`; return; }
+
+  const n = p*q;
+  const phi = (p-1n)*(q-1n);
+  const {chosen:e, candidates} = chooseE(phi);
+  if(e === null){ errBox.textContent = 'Could not find a suitable public exponent for this φ(n) — try different primes.'; return; }
+  const eg = extendedGcdSteps(e, phi);
+  let d = ((eg.x % phi) + phi) % phi;
+
+  State[id] = {id, label, p, q, n, phi, e, d, candidates, egRows: eg.rows};
+  renderKeyOutput(id);
+  checkUnlocks();
+}
+
+function tableRows(rows){
+  return rows.map(r => `<tr class="${r.cls||''}">${r.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+}
+
+function renderKeyOutput(id){
+  const k = State[id];
+  const out = document.getElementById(id+'-output');
+  const colorClass = id;
+
+  // candidate-e table
+  const eRows = k.candidates.map(c => ({
+    cls: c.e === k.e ? 'win' : (c.ok ? '' : 'fail'),
+    cells: [fmt(c.e), c.ok ? '✓' : '✗', c.note]
+  }));
+
+  // extended gcd table
+  const egRows = k.egRows.map((row,idx) => ({
+    cls: idx === k.egRows.length-1 ? 'win' : '',
+    cells: [row.q===null?'—':fmt(row.q), fmt(row.r), fmt(row.s), fmt(row.t)]
+  }));
+
+  out.innerHTML = `
+    <div class="substep">
+      <h3>Composite modulus</h3>
+      <div class="formula"><span class="lbl">n = p × q =</span> ${fmt(k.p)} × ${fmt(k.q)} = <span class="val">${fmt(k.n)}</span></div>
+    </div>
+    <div class="substep">
+      <h3>Euler's totient</h3>
+      <div class="formula"><span class="lbl">φ(n) = (p−1)(q−1) =</span> ${fmt(k.p-1n)} × ${fmt(k.q-1n)} = <span class="val">${fmt(k.phi)}</span></div>
+      <div class="msg-hint">φ(n) counts the integers below n that share no common factor with n — it's the size of the group RSA's exponentiation operates in, and it must stay secret (computing it requires knowing p and q).</div>
+    </div>
+    <div class="substep">
+      <h3>Choosing the public exponent e</h3>
+      <div class="msg-hint" style="margin-bottom:8px;">e must satisfy 1 &lt; e &lt; φ(n) and gcd(e, φ(n)) = 1, so that e has a multiplicative inverse mod φ(n).</div>
+      <div class="tbl-wrap"><table class="steps"><thead><tr><th>e tried</th><th>coprime?</th><th>note</th></tr></thead><tbody>${tableRows(eRows)}</tbody></table></div>
+      <div class="formula" style="margin-top:8px;"><span class="lbl">chosen e =</span> <span class="val">${fmt(k.e)}</span></div>
+    </div>
+    <div class="substep">
+      <h3>Extended Euclidean algorithm → private exponent d</h3>
+      <div class="msg-hint" style="margin-bottom:8px;">Solving e·x + φ(n)·y = gcd(e, φ(n)) = 1 for x gives d ≡ x (mod φ(n)), the modular inverse of e.</div>
+      <div class="tbl-wrap"><table class="steps"><thead><tr><th>q</th><th>r</th><th>s</th><th>t</th></tr></thead><tbody>${tableRows(egRows)}</tbody></table></div>
+      <div class="formula" style="margin-top:8px;">
+        <span class="lbl">d = x mod φ(n) =</span> <span class="val">${fmt(k.d)}</span><br>
+        <span class="lbl">check e·d mod φ(n) =</span> ${fmt((k.e*k.d) % k.phi)} ${((k.e*k.d)%k.phi)===1n?'✓':'✗'}
+      </div>
+    </div>
+    <div class="keycards">
+      <div class="keycard pub">
+        <h4>📢 ${k.label}'s Public Key</h4>
+        <div class="kv">e = ${fmt(k.e)}</div>
+        <div class="kv">n = ${fmt(k.n)}</div>
+        <div class="note">Safe to publish — this is what goes out on the wire.</div>
+      </div>
+      <div class="keycard priv">
+        <h4>🔒 ${k.label}'s Private Key</h4>
+        <div class="kv">d = ${fmt(k.d)}</div>
+        <div class="kv">n = ${fmt(k.n)}</div>
+        <div class="note">p, q, φ(n) and d never leave ${k.label}'s machine.</div>
+      </div>
+    </div>
+  `;
+  out.classList.add('show');
+}
+
+/* ---------- Step 3: wire / Eve's notebook ---------- */
+function renderWire(){
+  const b = State.bob, a = State.alice;
+  document.getElementById('wire-content').innerHTML = `
+    <div class="wire-diagram">
+      <div class="wire-row">
+        <div class="who"><div class="avatar bob">🧑‍💼</div>Bob</div>
+        <div class="wire-line"><div class="eve-tap">🕵️‍♀️ tap</div><div class="track"></div>
+          <div class="packet">(e=${fmt(b.e)}, n=${fmt(b.n)})</div></div>
+        <div class="who"><div class="avatar alice">👩‍💼</div>Alice</div>
+      </div>
+      <div class="wire-row">
+        <div class="who"><div class="avatar alice">👩‍💼</div>Alice</div>
+        <div class="wire-line"><div class="eve-tap">🕵️‍♀️ tap</div><div class="track"></div>
+          <div class="packet">(e=${fmt(a.e)}, n=${fmt(a.n)})</div></div>
+        <div class="who"><div class="avatar bob">🧑‍💼</div>Bob</div>
+      </div>
+    </div>
+    <div class="notebook">
+      <h4>🕵️‍♀️ Eve's notebook — everything she has recorded off the wire</h4>
+      <div class="grid">
+        <div>Bob's e = ${fmt(b.e)}</div>
+        <div>Bob's n = ${fmt(b.n)}</div>
+        <div>Alice's e = ${fmt(a.e)}</div>
+        <div>Alice's n = ${fmt(a.n)}</div>
+      </div>
+      <div class="never">She does <strong>not</strong> have: Bob's p, q, φ(n), d — or Alice's. Those never touched the wire.</div>
+    </div>
+  `;
+}
+
+/* ---------- Step 4: Eve's hard problems ---------- */
+function renderEve(){
+  const b = State.bob, a = State.alice;
+  document.getElementById('eve-content').innerHTML = `
+    <div class="substep">
+      <h3>The real obstacle: the RSA / integer-factorization problem</h3>
+      <p class="msg-hint">To turn Bob's public (e, n) into his private d, Eve needs φ(n) = (p−1)(q−1). The only known way to get
+        φ(n) without already knowing p and q is to <strong>factor n = p × q</strong>. That's the actual problem RSA's
+        security rests on — not a discrete logarithm.</p>
+      <div class="formula">Eve must factor n<sub>Bob</sub> = ${fmt(b.n)} to recover d<sub>Bob</sub>.</div>
+      <button class="danger" id="eve-factor-bob">😈 Let Eve try brute-force factoring n<sub>Bob</sub></button>
+      <div id="eve-factor-bob-result"></div>
+    </div>
+    <div class="substep">
+      <div class="formula">Eve must factor n<sub>Alice</sub> = ${fmt(a.n)} to recover d<sub>Alice</sub>.</div>
+      <button class="danger" id="eve-factor-alice">😈 Let Eve try brute-force factoring n<sub>Alice</sub></button>
+      <div id="eve-factor-alice-result"></div>
+    </div>
+    <div class="dlp-box">
+      <span class="tag">Related but different — not RSA's problem</span>
+      <h3>The Discrete Logarithm Problem</h3>
+      <p class="msg-hint">This is the hard problem behind Diffie–Hellman, ElGamal and DSA — <em>not</em> the one behind RSA. It's
+        included here because the two get confused a lot. Given a prime p, a generator g, and h = g<sup>x</sup> mod p, find x.</p>
+      <div class="formula">g = 5, p = 23, h = 8 &nbsp;→&nbsp; find x such that 5<sup>x</sup> mod 23 = 8</div>
+      <button class="ghost" id="dlp-solve-btn">🔍 Brute-force solve it</button>
+      <div id="dlp-result"></div>
+    </div>
+  `;
+  document.getElementById('eve-factor-bob').addEventListener('click', () => runFactorAttempt('bob'));
+  document.getElementById('eve-factor-alice').addEventListener('click', () => runFactorAttempt('alice'));
+  document.getElementById('dlp-solve-btn').addEventListener('click', runDlpDemo);
+}
+
+function runFactorAttempt(id){
+  const k = State[id];
+  const btn = document.getElementById(`eve-factor-${id}`);
+  btn.disabled = true;
+  setTimeout(() => {
+    const res = bruteFactorEve(k.n);
+    const box = document.getElementById(`eve-factor-${id}-result`);
+    if(res.factor){
+      const other = k.n / res.factor;
+      box.innerHTML = `<div class="result-box win">😈 <strong>Eve wins.</strong> Found factor ${fmt(res.factor)}
+        (so n = ${fmt(res.factor)} × ${fmt(other)}) after ${fmt(BigInt(res.tries))} trial divisions in ${res.ms.toFixed(2)} ms.
+        From here she computes φ(n) = (${fmt(res.factor-1n)})(${fmt(other-1n)}) and inverts e mod φ(n) exactly like ${k.label} did —
+        game over. This only worked because the primes are toy-sized. Real RSA primes are ~150+ digits each, putting trial
+        division (and every known factoring algorithm) permanently out of reach.</div>`;
+    } else {
+      box.innerHTML = `<div class="result-box giveup">🛡️ <strong>Eve gives up.</strong> She tried ${fmt(BigInt(res.tries))} candidate
+        divisors (${res.ms.toFixed(2)} ms) and still hadn't reached √n ≈ ${res.sqrtN ? fmt(BigInt(Math.floor(res.sqrtN))) : '…'}.
+        Even at this toy scale, brute-force factoring is already getting expensive — with real 150+ digit primes it's
+        computationally infeasible with any known algorithm.</div>`;
+    }
+    btn.disabled = false;
+  }, 30);
+}
+
+function runDlpDemo(){
+  const g = 5n, p = 23n, h = 8n;
+  const rows = [];
+  let winX = null;
+  for(let x=1n; x<p-1n; x++){
+    const val = modPowPlain(g, x, p);
+    if(val === h && winX === null) winX = x;
+    rows.push({cls: val===h ? 'win' : '', cells:[fmt(x), `${fmt(g)}^${fmt(x)} mod ${fmt(p)}`, fmt(val)]});
+  }
+  document.getElementById('dlp-result').innerHTML = `
+    <div class="tbl-wrap"><table class="steps"><thead><tr><th>x</th><th>expression</th><th>result</th></tr></thead>
+      <tbody>${tableRows(rows)}</tbody></table></div>
+    <div class="formula" style="margin-top:8px;">x = <span class="val">${fmt(winX)}</span> — found by trying every exponent,
+      because 23 is tiny. With a 2048-bit prime this table would need ~10<sup>600</sup> rows — brute force is hopeless, and even
+      the best known algorithms (index calculus, etc.) remain infeasible at that size.</div>
+  `;
+}
+
+/* ---------- Step 5: message exchange ---------- */
+function checkUnlocks(){
+  const ready = State.bob && State.alice;
+  ['step-wire','step-eve','step-messages'].forEach(id => document.getElementById(id).classList.toggle('locked', !ready));
+  if(ready){ renderWire(); renderEve(); renderMessages(); }
+}
+
+function renderMessages(){
+  const b = State.bob, a = State.alice;
+  document.getElementById('messages-content').innerHTML = `
+    <div class="msg-flow">
+      <div class="msg-block">
+        <div class="avatar-row"><div class="avatar bob">🧑‍💼</div><div class="name bob">Bob → Alice</div></div>
+        <div class="field-row">
+          <div class="field"><label for="msg-bob">Message m (an integer)</label><input id="msg-bob" type="text" inputmode="numeric" value="42"></div>
+          <button class="primary bob" id="send-bob-btn">🔐 Encrypt with Alice's public key &amp; send</button>
+        </div>
+        <div class="msg-hint">Must satisfy 0 ≤ m &lt; n<sub>Alice</sub> = ${fmt(a.n)}. Bob computes c = m<sup>e<sub>Alice</sub></sup> mod n<sub>Alice</sub>.</div>
+        <div class="error-box" id="msg-bob-error"></div>
+        <div id="msg-bob-result"></div>
+      </div>
+      <div class="msg-block">
+        <div class="avatar-row"><div class="avatar alice">👩‍💼</div><div class="name alice">Alice → Bob</div></div>
+        <div class="field-row">
+          <div class="field"><label for="msg-alice">Message m (an integer)</label><input id="msg-alice" type="text" inputmode="numeric" value="17"></div>
+          <button class="primary alice" id="send-alice-btn">🔐 Encrypt with Bob's public key &amp; send</button>
+        </div>
+        <div class="msg-hint">Must satisfy 0 ≤ m &lt; n<sub>Bob</sub> = ${fmt(b.n)}. Alice computes c = m<sup>e<sub>Bob</sub></sup> mod n<sub>Bob</sub>.</div>
+        <div class="error-box" id="msg-alice-error"></div>
+        <div id="msg-alice-result"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('send-bob-btn').addEventListener('click', () => sendMessage('bob','alice'));
+  document.getElementById('send-alice-btn').addEventListener('click', () => sendMessage('alice','bob'));
+}
+
+function renderModPowTable(exp, steps){
+  let rows = steps, truncatedNote = '';
+  if(rows.length > 40){
+    const head = steps.slice(0,10), tail = steps.slice(-10);
+    truncatedNote = `<div class="msg-hint">(showing first 10 and last 10 of ${steps.length} bits of the exponent)</div>`;
+    rows = head.concat(tail);
+  }
+  const body = rows.map(s => `<tr><td>${s.i}</td><td>${s.bit}</td><td>${fmt(s.resultAfter)}</td></tr>`).join('');
+  return `<div class="tbl-wrap"><table class="steps"><thead><tr><th>bit#</th><th>bit</th><th>running value</th></tr></thead>
+    <tbody>${body}</tbody></table></div>${truncatedNote}`;
+}
+
+function sendMessage(fromId, toId){
+  const from = State[fromId], to = State[toId];
+  const errBox = document.getElementById(`msg-${fromId}-error`);
+  errBox.textContent = '';
+  let m;
+  try{ m = parseBigIntStrict(document.getElementById(`msg-${fromId}`).value, true); }
+  catch(e){ errBox.textContent = 'Message must be a nonnegative whole number.'; return; }
+  if(m >= to.n){ errBox.textContent = `Message must be less than n (${fmt(to.n)}) — otherwise the encryption loses information.`; return; }
+
+  const enc = modPowSteps(m, to.e, to.n);
+  const c = enc.result;
+  const dec = modPowSteps(c, to.d, to.n);
+  const recovered = dec.result;
+  const ok = recovered === m;
+
+  document.getElementById(`msg-${fromId}-result`).innerHTML = `
+    <div class="substep">
+      <h3>${from.label} encrypts: c = m<sup>e</sup> mod n</h3>
+      <div class="formula">c = ${fmt(m)}<sup>${fmt(to.e)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(c)}</span></div>
+      ${renderModPowTable(to.e, enc.steps)}
+    </div>
+    <div class="wire-diagram" style="margin:8px 0;">
+      <div class="wire-row">
+        <div class="who"><div class="avatar ${fromId}">${fromId==='bob'?'🧑‍💼':'👩‍💼'}</div>${from.label}</div>
+        <div class="wire-line"><div class="eve-tap">🕵️‍♀️ sees only c</div><div class="track"></div>
+          <div class="packet">c = ${fmt(c)}</div></div>
+        <div class="who"><div class="avatar ${toId}">${toId==='bob'?'🧑‍💼':'👩‍💼'}</div>${to.label}</div>
+      </div>
+    </div>
+    <div class="substep">
+      <h3>${to.label} decrypts: m = c<sup>d</sup> mod n</h3>
+      <div class="formula">m = ${fmt(c)}<sup>${fmt(to.d)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(recovered)}</span></div>
+      ${renderModPowTable(to.d, dec.steps)}
+      <div class="formula" style="margin-top:8px;">Recovered message ${ok ? '✅ matches' : '❌ does NOT match'} the original (${fmt(m)}).</div>
+    </div>
+    <div class="notebook">
+      <h4>🕵️‍♀️ What Eve saw on this exchange</h4>
+      <div class="grid"><div>ciphertext c = ${fmt(c)}</div><div>e = ${fmt(to.e)}</div><div>n = ${fmt(to.n)}</div></div>
+      <div class="never">Without d (which requires factoring n), c<sup>e'</sup> mod n for any e' she guesses will not recover m.</div>
+    </div>
+  `;
+}
+
+document.getElementById('bob-gen-btn').addEventListener('click', () => generateKeys('bob','Bob'));
+document.getElementById('alice-gen-btn').addEventListener('click', () => generateKeys('alice','Alice'));
+</script>
+</body>
+</html>
