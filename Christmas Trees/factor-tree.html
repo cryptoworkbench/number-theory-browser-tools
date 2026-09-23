@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Factor Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine-1:#0b3d24;
+    --pine-2:#12592f;
+    --pine-3:#1c7a3e;
+    --gold:#ffd166;
+    --panel:rgba(10,20,18,0.55);
+    --panel-border:rgba(255,215,102,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% -10%, #12233a 0%, #0a1524 45%, #060c16 100%);
+    color:#f2efe9;
+    font-family:'Poppins', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  #sky{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .star-dot{
+    position:absolute;
+    width:2px; height:2px;
+    background:#fff;
+    border-radius:50%;
+    animation:twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.15;}
+    50%{opacity:1;}
+  }
+  #snow{
+    position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+  }
+  .flake{
+    position:absolute;
+    top:-10%;
+    color:#fff;
+    opacity:.85;
+    user-select:none;
+    animation-name:fall, sway;
+    animation-timing-function:linear, ease-in-out;
+    animation-iteration-count:infinite, infinite;
+    text-shadow:0 0 6px rgba(255,255,255,.5);
+  }
+  @keyframes fall{
+    from{ transform:translateY(-10vh); }
+    to{ transform:translateY(110vh); }
+  }
+  @keyframes sway{
+    0%,100%{ margin-left:0px; }
+    50%{ margin-left:30px; }
+  }
+
+  .wrap{
+    position:relative;
+    z-index:2;
+    max-width:660px;
+    margin:0 auto;
+    padding:36px 20px 80px;
+    text-align:center;
+  }
+  h1{
+    font-family:'Mountains of Christmas', cursive;
+    font-size:clamp(2.2rem, 6vw, 3.4rem);
+    margin:0 0 6px;
+    background:linear-gradient(180deg,#fff5d6,var(--gold));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 2px 18px rgba(255,209,102,.25);
+    letter-spacing:1px;
+  }
+  .subtitle{
+    margin:0 0 26px;
+    color:#c9d3d8;
+    font-weight:300;
+    font-size:.95rem;
+  }
+
+  .controls{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  #numInput{
+    width:200px;
+    padding:12px 16px;
+    border-radius:12px;
+    border:1px solid var(--panel-border);
+    background:rgba(255,255,255,.06);
+    color:#fff;
+    font-size:1.05rem;
+    font-family:'Poppins',sans-serif;
+    text-align:center;
+    outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  #numInput:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(255,209,102,.18);
+  }
+  #goBtn{
+    padding:12px 22px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    color:#0b2013;
+    background:linear-gradient(180deg,#ffe08a,var(--gold));
+    box-shadow:0 6px 18px rgba(255,209,102,.25);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  #goBtn:hover{ transform:translateY(-2px); box-shadow:0 10px 22px rgba(255,209,102,.35); }
+  #goBtn:active{ transform:translateY(0px) scale(.98); }
+
+  .chips{
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:22px;
+  }
+  .chip{
+    padding:6px 14px;
+    border-radius:20px;
+    border:1px solid var(--panel-border);
+    background:rgba(255,255,255,.04);
+    color:#d8e2d8;
+    font-size:.82rem;
+    cursor:pointer;
+    transition:background .15s, color .15s, transform .15s;
+  }
+  .chip:hover{ background:rgba(255,209,102,.15); color:var(--gold); transform:translateY(-1px); }
+
+  .message{
+    min-height:1.4em;
+    margin-bottom:10px;
+    font-size:.95rem;
+    color:#ff9d9d;
+    font-weight:500;
+  }
+  .message.info{ color:#9adcc4; }
+
+  .stage{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:24px;
+    padding:34px 16px 26px;
+    backdrop-filter:blur(6px);
+    min-height:120px;
+  }
+
+  .equation{
+    font-family:'Mountains of Christmas', cursive;
+    font-size:clamp(1.4rem, 4.2vw, 2rem);
+    color:var(--gold);
+    margin-bottom:14px;
+    min-height:1.4em;
+    letter-spacing:.5px;
+  }
+  .equation .fac{
+    display:inline-block;
+    opacity:0;
+    transform:translateY(6px) scale(.92);
+    animation:facIn .45s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes facIn{
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .tree-area{
+    display:flex;
+    justify-content:center;
+    overflow-x:auto;
+    padding:4px 0;
+  }
+  .tree-svg{
+    display:block;
+  }
+
+  .pine-glow{
+    fill:url(#pineGrad);
+    opacity:.55;
+  }
+
+  .edge-line{
+    stroke:rgba(255,255,255,.4);
+    stroke-width:1.8;
+    fill:none;
+    transition:stroke-dashoffset .6s ease;
+  }
+
+  .depth-group{ opacity:0; transition:opacity .4s ease; }
+  .depth-group.show{ opacity:1; }
+
+  .depth-group .node-circle{
+    transform:scale(0);
+    transform-box:fill-box;
+    transform-origin:center;
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .depth-group.show .node-circle{ transform:scale(1); }
+
+  .node-circle.root, .node-circle.internal{
+    fill:#eef7ee;
+    stroke:#2f6b3f;
+    stroke-width:1.4;
+  }
+  .node-circle.one{
+    fill:rgba(255,255,255,.3);
+    stroke:rgba(255,255,255,.45);
+    stroke-width:1;
+  }
+  .node-circle.prime-leaf{
+    fill:var(--gold);
+    stroke:#fff3c4;
+    stroke-width:1.4;
+    filter:drop-shadow(0 0 5px rgba(255,209,102,.85));
+  }
+  .node-text{
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    text-anchor:middle;
+    dominant-baseline:central;
+    fill:#0b2013;
+    pointer-events:none;
+  }
+  .node-text.one{ fill:#0b2013; opacity:.75; }
+
+  .fairy-light{ opacity:0; }
+  .depth-group.show .fairy-light{
+    animation:lightPop .3s ease forwards, blink 1.6s ease-in-out infinite;
+  }
+  @keyframes lightPop{ to{ opacity:1; } }
+  @keyframes blink{
+    0%,100%{ opacity:.5; }
+    50%{ opacity:1; }
+  }
+
+  .trunk-rect{
+    fill:url(#trunkGrad);
+    opacity:0;
+    transition:opacity .5s ease;
+  }
+  .trunk-rect.show{ opacity:1; }
+
+  .tree-star{
+    font-size:0px;
+    fill:var(--gold);
+    opacity:0;
+    transform:scale(0);
+    transform-box:fill-box;
+    transform-origin:center;
+    transition:opacity .3s ease, transform .6s cubic-bezier(.34,1.56,.64,1);
+  }
+  .tree-star.show{
+    opacity:1;
+    transform:scale(1);
+    animation:starGlow 2s ease-in-out .6s infinite;
+  }
+  @keyframes starGlow{
+    0%,100%{ filter:drop-shadow(0 0 4px rgba(255,209,102,.6)); }
+    50%{ filter:drop-shadow(0 0 12px rgba(255,209,102,1)); }
+  }
+
+  .footnote{
+    margin-top:22px;
+    font-size:.78rem;
+    color:#8a97a0;
+  }
+
+  @media (max-width:480px){
+    #numInput{ width:150px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="sky"></div>
+<div id="snow"></div>
+
+<div class="wrap">
+  <h1>🎄 Prime Factor Tree 🎄</h1>
+  <p class="subtitle">Give it a number — it grows a real factor tree, branch by branch.</p>
+
+  <div class="controls">
+    <input id="numInput" type="number" min="1" step="1" max="1000000000000" placeholder="e.g. 60" />
+    <button id="goBtn">Grow the Tree</button>
+  </div>
+
+  <div class="chips">
+    <button class="chip" data-n="2">2</button>
+    <button class="chip" data-n="97">97 (prime)</button>
+    <button class="chip" data-n="60">60</button>
+    <button class="chip" data-n="1024">1024</button>
+    <button class="chip" data-n="9973">9973 (prime)</button>
+    <button class="chip" data-n="2310">2310</button>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <div class="stage">
+    <div id="equation" class="equation"></div>
+    <div id="treeArea" class="tree-area"></div>
+  </div>
+
+  <p class="footnote">Every prime leaf gets one last split of its own: P = P &times; 1.</p>
+</div>
+
+<script>
+(function(){
+  // ---------- Decorative background: starfield ----------
+  const sky = document.getElementById('sky');
+  const starCount = 110;
+  for(let i=0;i<starCount;i++){
+    const s = document.createElement('div');
+    s.className = 'star-dot';
+    s.style.left = (Math.random()*100)+'vw';
+    s.style.top = (Math.random()*100)+'vh';
+    s.style.animationDelay = (Math.random()*3)+'s';
+    s.style.animationDuration = (2+Math.random()*3)+'s';
+    sky.appendChild(s);
+  }
+
+  // ---------- Decorative background: snow ----------
+  const snowLayer = document.getElementById('snow');
+  const flakeCount = 45;
+  for(let i=0;i<flakeCount;i++){
+    const f = document.createElement('div');
+    f.className = 'flake';
+    f.textContent = Math.random() > 0.5 ? '❄' : '❅';
+    const size = 8 + Math.random()*16;
+    f.style.fontSize = size+'px';
+    f.style.left = (Math.random()*100)+'vw';
+    const fallDur = 8 + Math.random()*12;
+    const swayDur = 2 + Math.random()*3;
+    f.style.animationDuration = fallDur+'s, '+swayDur+'s';
+    f.style.animationDelay = (-Math.random()*fallDur)+'s, '+(-Math.random()*swayDur)+'s';
+    f.style.opacity = 0.4 + Math.random()*0.5;
+    snowLayer.appendChild(f);
+  }
+
+  // ---------- Elements ----------
+  const numInput = document.getElementById('numInput');
+  const goBtn = document.getElementById('goBtn');
+  const chips = document.querySelectorAll('.chip');
+  const messageEl = document.getElementById('message');
+  const equationEl = document.getElementById('equation');
+  const treeArea = document.getElementById('treeArea');
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const LIGHT_COLORS = ['#ffd166','#e0403a','#4fd67f','#4f8fd6','#ffffff'];
+
+  let generation = 0;
+
+  // ---------- Number theory ----------
+  function primeFactors(n){
+    const factors = [];
+    let x = n;
+    for(let p=2; p*p<=x; p++){
+      while(x % p === 0){
+        factors.push(p);
+        x = x / p;
+      }
+    }
+    if(x > 1) factors.push(x);
+    return factors;
+  }
+
+  function smallestPrimeFactor(v){
+    for(let p=2; p*p<=v; p++){
+      if(v % p === 0) return p;
+    }
+    return v;
+  }
+
+  function isPrime(v){
+    if(v < 2) return false;
+    for(let p=2; p*p<=v; p++){
+      if(v % p === 0) return false;
+    }
+    return true;
+  }
+
+  // ---------- Build the real recursive factor tree ----------
+  // Matches the classic school "factor tree" diagram:
+  //   60 splits into 2, 30
+  //   2 is prime, so it splits once more into 1, 2 (both terminal)
+  //   30 splits into 2, 15 ... 15 splits into 3, 5 ... 3 and 5 each
+  //   split once more into 1,3 and 1,5.
+  function buildTree(v, depth){
+    if(v === 1){
+      return { value:1, kind:'one', children:[], depth };
+    }
+    if(isPrime(v)){
+      return {
+        value:v,
+        kind: depth === 0 ? 'root' : 'internal',
+        depth,
+        children:[
+          { value:1, kind:'one', children:[], depth:depth+1 },
+          { value:v, kind:'prime-leaf', children:[], depth:depth+1 }
+        ]
+      };
+    }
+    const d = smallestPrimeFactor(v);
+    const cofactor = v / d;
+    return {
+      value:v,
+      kind: depth === 0 ? 'root' : 'internal',
+      depth,
+      children:[ buildTree(d, depth+1), buildTree(cofactor, depth+1) ]
+    };
+  }
+
+  function assignX(node, counter){
+    if(node.children.length === 0){
+      node.x = counter.value;
+      counter.value += 1;
+    } else {
+      node.children.forEach(c=>assignX(c, counter));
+      node.x = (node.children[0].x + node.children[node.children.length-1].x) / 2;
+    }
+  }
+
+  function flatten(node, parent, nodes, edges, maxDepth){
+    nodes.push(node);
+    if(parent) edges.push({ from:parent, to:node });
+    maxDepth.value = Math.max(maxDepth.value, node.depth);
+    node.children.forEach(c=>flatten(c, node, nodes, edges, maxDepth));
+  }
+
+  function pinePath(apexX, apexY, baseY, halfWidth, tiers){
+    const pts = [[apexX, apexY]];
+    for(let t=1;t<=tiers;t++){
+      const y1 = apexY + (baseY-apexY) * ((t-1+0.5)/tiers);
+      const y2 = apexY + (baseY-apexY) * (t/tiers);
+      const w1 = halfWidth * (((t-1+0.5)/tiers) * 0.55 + 0.06);
+      const w2 = halfWidth * (t/tiers);
+      pts.push([apexX + w1, y1]);
+      pts.push([apexX + w2, y2]);
+    }
+    const rightSide = pts.slice(1);
+    const leftSide = rightSide.slice().reverse().map(p=>[apexX - (p[0]-apexX), p[1]]);
+    const all = [pts[0]].concat(rightSide, leftSide);
+    return 'M ' + all.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L ') + ' Z';
+  }
+
+  function setMessage(text, isInfo){
+    messageEl.textContent = text || '';
+    messageEl.classList.toggle('info', !!isInfo);
+  }
+
+  function clearStage(){
+    equationEl.innerHTML = '';
+    treeArea.innerHTML = '';
+  }
+
+  function popEquation(text){
+    equationEl.innerHTML = '';
+    const span = document.createElement('span');
+    span.className = 'fac';
+    span.textContent = text;
+    equationEl.appendChild(span);
+  }
+
+  function svgEl(tag, attrs){
+    const el = document.createElementNS(SVG_NS, tag);
+    for(const k in attrs){ el.setAttribute(k, attrs[k]); }
+    return el;
+  }
+
+  function renderTree(n, topFactors){
+    clearStage();
+    const root = buildTree(n, 0);
+    const counter = { value:0 };
+    assignX(root, counter);
+    const leafCount = Math.max(1, counter.value);
+
+    const nodes = [];
+    const edges = [];
+    const maxDepthBox = { value:0 };
+    flatten(root, null, nodes, edges, maxDepthBox);
+    const maxDepth = maxDepthBox.value;
+
+    const availWidth = treeArea.clientWidth || 560;
+    const containerWidth = Math.max(220, Math.min(600, availWidth - 8));
+    const sidePad = 30;
+    const usableWidth = containerWidth - sidePad*2;
+    const xSpacing = leafCount > 1 ? usableWidth / (leafCount - 1) : 0;
+
+    const topPad = 46;
+    const levelHeight = Math.max(30, Math.min(72, 480 / Math.max(1, maxDepth)));
+    const bottomPad = 46;
+    const svgHeight = topPad + maxDepth*levelHeight + bottomPad;
+
+    function pxX(node){
+      return leafCount > 1 ? sidePad + node.x*xSpacing : containerWidth/2;
+    }
+    function pxY(node){
+      return topPad + node.depth*levelHeight;
+    }
+
+    const radius = Math.max(9, Math.min(19, Math.min(xSpacing*0.42 || 19, levelHeight*0.34)));
+    const oneRadius = Math.max(6, radius*0.62);
+    const fontSize = Math.max(8, radius*0.8);
+    const oneFontSize = Math.max(7, oneRadius*0.85);
+
+    const svg = svgEl('svg', {
+      class:'tree-svg',
+      width: containerWidth,
+      height: svgHeight,
+      viewBox: '0 0 ' + containerWidth + ' ' + svgHeight
+    });
+
+    // gradients
+    const defs = svgEl('defs', {});
+    const pineGrad = svgEl('linearGradient', { id:'pineGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
+    pineGrad.appendChild(svgEl('stop', { offset:'0%', 'stop-color':'#1c7a3e' }));
+    pineGrad.appendChild(svgEl('stop', { offset:'100%', 'stop-color':'#0b3d24' }));
+    defs.appendChild(pineGrad);
+    const trunkGrad = svgEl('linearGradient', { id:'trunkGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
+    trunkGrad.appendChild(svgEl('stop', { offset:'0%', 'stop-color':'#7a4a26' }));
+    trunkGrad.appendChild(svgEl('stop', { offset:'100%', 'stop-color':'#4d2e17' }));
+    defs.appendChild(trunkGrad);
+    svg.appendChild(defs);
+
+    // decorative pine silhouette behind the tree
+    const leafXs = nodes.filter(nd=>nd.children.length===0).map(pxX);
+    const minLeafX = Math.min.apply(null, leafXs);
+    const maxLeafX = Math.max.apply(null, leafXs);
+    const rootX = pxX(root);
+    const halfWidth = Math.max(60, (maxLeafX - minLeafX)/2 + 26);
+    const pineD = pinePath(rootX, topPad-28, svgHeight-bottomPad+10, halfWidth, 5);
+    svg.appendChild(svgEl('path', { d:pineD, class:'pine-glow' }));
+
+    // depth groups (0..maxDepth), each holding its incoming edges/lights + its own nodes
+    const depthGroups = [];
+    for(let d=0; d<=maxDepth; d++){
+      const g = svgEl('g', { class:'depth-group' });
+      svg.appendChild(g);
+      depthGroups.push(g);
+    }
+
+    edges.forEach(edge=>{
+      const x1 = pxX(edge.from), y1 = pxY(edge.from);
+      const x2 = pxX(edge.to), y2 = pxY(edge.to);
+      const len = Math.hypot(x2-x1, y2-y1);
+      const line = svgEl('line', {
+        x1:x1, y1:y1, x2:x2, y2:y2,
+        class:'edge-line'
+      });
+      line.style.strokeDasharray = len;
+      line.style.strokeDashoffset = len;
+      depthGroups[edge.to.depth].appendChild(line);
+
+      const mx = (x1+x2)/2 + (Math.random()*10-5);
+      const my = (y1+y2)/2 + (Math.random()*8-4);
+      const color = LIGHT_COLORS[Math.floor(Math.random()*LIGHT_COLORS.length)];
+      const light = svgEl('circle', {
+        cx:mx, cy:my, r:2.6, fill:color, class:'fairy-light'
+      });
+      light.style.animationDelay = (Math.random()*1.4)+'s';
+      light.style.filter = 'drop-shadow(0 0 4px '+color+')';
+      depthGroups[edge.to.depth].appendChild(light);
+    });
+
+    nodes.forEach(node=>{
+      const x = pxX(node), y = pxY(node);
+      const isOne = node.kind === 'one';
+      const r = isOne ? oneRadius : radius;
+      const fs = isOne ? oneFontSize : fontSize;
+      const circle = svgEl('circle', { cx:x, cy:y, r:r, class:'node-circle '+node.kind });
+      const text = svgEl('text', { x:x, y:y, class:'node-text '+node.kind, 'font-size':fs });
+      text.textContent = node.value;
+      depthGroups[node.depth].appendChild(circle);
+      depthGroups[node.depth].appendChild(text);
+    });
+
+    // trunk + star, drawn in the SVG so they share the same coordinate space
+    const trunkW = Math.max(18, radius*1.6);
+    const trunkH = Math.max(20, levelHeight*0.5);
+    const trunk = svgEl('rect', {
+      x:(rootX-trunkW/2), y:(svgHeight-bottomPad+6),
+      width:trunkW, height:trunkH, rx:4,
+      class:'trunk-rect'
+    });
+    svg.appendChild(trunk);
+
+    const star = svgEl('text', {
+      x:rootX, y:topPad-30,
+      class:'tree-star', 'text-anchor':'middle', 'dominant-baseline':'central'
+    });
+    star.textContent = '✦';
+    svg.appendChild(star);
+
+    treeArea.appendChild(svg);
+
+    // ---------- Staggered reveal, depth by depth ----------
+    const localGen = generation;
+    const perDelay = Math.min(600, Math.max(260, 2400 / Math.max(1, maxDepth)));
+
+    depthGroups.forEach((g, d)=>{
+      setTimeout(()=>{
+        if(localGen !== generation) return;
+        g.classList.add('show');
+        g.querySelectorAll('.edge-line').forEach(line=>{ line.style.strokeDashoffset = '0'; });
+      }, d*perDelay);
+    });
+
+    const finalDelay = maxDepth*perDelay;
+    setTimeout(()=>{
+      if(localGen !== generation) return;
+      trunk.classList.add('show');
+    }, finalDelay + 250);
+
+    setTimeout(()=>{
+      if(localGen !== generation) return;
+      star.setAttribute('font-size', Math.max(22, radius*1.8));
+      star.classList.add('show');
+    }, finalDelay + 550);
+
+    setTimeout(()=>{
+      if(localGen !== generation) return;
+      const isPrimeInput = topFactors.length === 1;
+      popEquation(isPrimeInput ? (n+' = '+n+' × 1') : (n+' = '+topFactors.join(' × ')));
+    }, finalDelay + 250);
+  }
+
+  function factorize(rawValue){
+    generation++;
+    const trimmed = (rawValue || '').toString().trim();
+
+    if(trimmed === ''){
+      clearStage();
+      setMessage('Please enter a number first.');
+      return;
+    }
+
+    const n = Number(trimmed);
+
+    if(!Number.isFinite(n) || !Number.isInteger(n) || n < 1){
+      clearStage();
+      setMessage('Please enter a whole number, 1 or greater.');
+      return;
+    }
+
+    if(n > 1000000000000){
+      clearStage();
+      setMessage('That number is too large for this little tree — try something under 1 trillion.');
+      return;
+    }
+
+    if(n === 1){
+      clearStage();
+      setMessage('1 is neither prime nor composite — it’s just a seed, not a tree yet. 🌱', true);
+      return;
+    }
+
+    const factors = primeFactors(n);
+    const isPrimeInput = factors.length === 1;
+    setMessage(isPrimeInput ? (n + ' is prime — it only splits once, into 1 × ' + n + '.') : (n + ' factors into ' + factors.length + ' primes.'), true);
+    renderTree(n, factors);
+  }
+
+  goBtn.addEventListener('click', ()=> factorize(numInput.value));
+  numInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') factorize(numInput.value);
+  });
+  chips.forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const n = chip.getAttribute('data-n');
+      numInput.value = n;
+      factorize(n);
+    });
+  });
+
+  // Grow an initial example tree on load
+  window.addEventListener('load', ()=>{
+    numInput.value = 60;
+    factorize('60');
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Congruence Wheel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --ink:#15171C;
+    --ink-soft:#63677A;
+    --line:#E4E5EA;
+    --line-strong:#CDCFD8;
+    --accent:#0F6E68;
+    --accent-soft:#DBEFEC;
+    --ring-a:#F4F5F7;
+    --card:#FBFBFC;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B0C0F;
+      --ink:#EDEEF2;
+      --ink-soft:#9A9FB0;
+      --line:#23242B;
+      --line-strong:#34363F;
+      --accent:#3FD9C7;
+      --accent-soft:rgba(63,217,199,.16);
+      --ring-a:#15161B;
+      --card:#111217;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0C0F;
+    --ink:#EDEEF2;
+    --ink-soft:#9A9FB0;
+    --line:#23242B;
+    --line-strong:#34363F;
+    --accent:#3FD9C7;
+    --accent-soft:rgba(63,217,199,.16);
+    --ring-a:#15161B;
+    --card:#111217;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    padding:44px 22px 64px;
+  }
+  .wrap{ max-width:1120px; margin:0 auto; }
+
+  header{ margin-bottom:30px; max-width:68ch; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 12px;
+  }
+  h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    font-size:clamp(30px, 4.4vw, 44px);
+    line-height:1.08;
+    margin:0 0 14px;
+    text-wrap:balance;
+    letter-spacing:-.01em;
+  }
+  .lede{
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  /* controls */
+  .controls{
+    display:flex;
+    gap:36px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    padding:18px 22px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:34px;
+  }
+  .field{ display:flex; flex-direction:column; gap:9px; }
+  .field label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .field .row{ display:flex; align-items:center; gap:12px; }
+  .field input[type="range"]{
+    accent-color:var(--accent);
+    width:200px;
+  }
+  .field .val{
+    font-family:'JetBrains Mono', monospace;
+    font-size:17px;
+    font-weight:600;
+    color:var(--ink);
+    min-width:2.4ch;
+    font-variant-numeric:tabular-nums;
+  }
+  .field input[type="range"]:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+  }
+
+  /* diagram */
+  .diagram-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    margin-bottom:20px;
+  }
+  .diagram-frame{
+    width:100%;
+    max-width:880px;
+  }
+  svg#wheel{ width:100%; height:auto; display:block; overflow:visible; }
+  .wedge-hit{
+    fill:var(--accent-soft);
+    opacity:0;
+    stroke:var(--accent);
+    stroke-width:0;
+    cursor:pointer;
+    transition:opacity .15s ease, stroke-width .15s ease;
+  }
+  .wedge:hover .wedge-hit{ opacity:.45; }
+  .wedge.is-selected .wedge-hit{ opacity:1; stroke-width:1.6; }
+  .wedge:focus-visible{ outline:none; }
+  .wedge:focus-visible .wedge-hit{ opacity:.6; stroke-width:1.6; }
+  .cell-num{
+    font-family:'JetBrains Mono', monospace;
+    font-variant-numeric:tabular-nums;
+    fill:var(--ink);
+    text-anchor:middle;
+    dominant-baseline:central;
+    pointer-events:none;
+  }
+  .wedge.is-selected .cell-num{ fill:var(--accent); font-weight:600; }
+  .ellipsis{
+    fill:var(--ink-soft);
+    text-anchor:middle;
+    dominant-baseline:central;
+    opacity:.55;
+    pointer-events:none;
+  }
+  .center-label{
+    font-family:'JetBrains Mono', monospace;
+    fill:var(--ink-soft);
+    text-anchor:middle;
+    dominant-baseline:central;
+    letter-spacing:.02em;
+  }
+
+  .caption{
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    text-align:center;
+    max-width:62ch;
+    margin:0;
+  }
+  .caption b{ color:var(--accent); font-weight:600; }
+  .caption .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* reference list */
+  .ref{ margin-top:44px; }
+  .ref-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .ref-head h2{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    font-size:19px;
+    margin:0;
+  }
+  .ref-head .count{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .ref-list{
+    list-style:none;
+    margin:0;
+    padding:4px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:2px;
+    max-height:420px;
+    overflow-y:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--card);
+  }
+  .row-btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    background:none;
+    border:none;
+    padding:10px 12px;
+    text-align:left;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    border-radius:7px;
+  }
+  .row-btn:hover{ background:var(--ring-a); }
+  .row-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .row-btn .swatch{
+    width:9px; height:9px; border-radius:2px; flex:none;
+    background:var(--line-strong);
+  }
+  .row-btn.is-selected .swatch{ background:var(--accent); }
+  .row-btn .r-label{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    font-size:13px;
+    color:var(--ink-soft);
+    min-width:4.6ch;
+  }
+  .row-btn.is-selected .r-label{ color:var(--accent); }
+  .row-btn .r-set{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink);
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  footer{
+    margin-top:36px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .wedge-hit{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">partitions of &#8469;</p>
+    <h1>The Congruence Wheel</h1>
+    <p class="lede">Every natural number belongs to exactly one residue class modulo N. This diagram arranges &#8469; as concentric rings &mdash; one ring per multiple of N, one wedge per class &mdash; so the classes stay visibly disjoint and complete.</p>
+  </header>
+
+  <div class="controls">
+    <div class="field">
+      <label for="n-range">N &mdash; modulus</label>
+      <div class="row">
+        <input type="range" id="n-range" min="1" max="60" step="1" value="10" aria-label="Modulus N">
+        <span class="val" id="n-display">10</span>
+      </div>
+    </div>
+    <div class="field">
+      <label for="depth-range">Rings (numbers per class)</label>
+      <div class="row">
+        <input type="range" id="depth-range" min="2" max="10" step="1" value="6" aria-label="Numbers shown per class">
+        <span class="val" id="depth-display">6</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-frame">
+      <svg id="wheel" viewBox="0 0 900 900" role="img" aria-label="Natural numbers arranged as concentric rings partitioned into N residue classes">
+        <g id="wheel-dynamic"></g>
+      </svg>
+    </div>
+    <p class="caption" id="slice-caption" aria-live="polite"></p>
+  </div>
+
+  <div class="ref">
+    <div class="ref-head">
+      <h2>Residue classes</h2>
+      <span class="count" id="ref-count">N = 10</span>
+    </div>
+    <ul class="ref-list" id="ref-list"></ul>
+  </div>
+
+  <footer>
+    <span id="formula-line"></span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var CX = 450, CY = 450;
+  var HOLE_R = 55;
+  var OUTER_R = 400;
+  var LIFT = 0;
+
+  var nRange = document.getElementById('n-range');
+  var depthRange = document.getElementById('depth-range');
+  var nDisplay = document.getElementById('n-display');
+  var depthDisplay = document.getElementById('depth-display');
+  var dynGroup = document.getElementById('wheel-dynamic');
+  var refList = document.getElementById('ref-list');
+  var caption = document.getElementById('slice-caption');
+  var refCount = document.getElementById('ref-count');
+  var formulaLine = document.getElementById('formula-line');
+
+  var state = { N: 10, depth: 6, selected: 0 };
+
+  try{
+    var saved = JSON.parse(localStorage.getItem('congruence-wheel') || 'null');
+    if (saved && saved.N >= 1 && saved.N <= 60) state.N = saved.N;
+    if (saved && saved.depth >= 2 && saved.depth <= 10) state.depth = saved.depth;
+  }catch(e){}
+
+  function polar(r, angleDeg){
+    var a = (angleDeg - 90) * Math.PI / 180;
+    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+  }
+  function svgEl(tag, attrs){
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+  function annularSectorPath(rInner, rOuter, startDeg, endDeg){
+    if (endDeg - startDeg >= 359.999){
+      return 'M ' + (CX - rOuter) + ' ' + CY +
+        ' A ' + rOuter + ' ' + rOuter + ' 0 1 1 ' + (CX + rOuter) + ' ' + CY +
+        ' A ' + rOuter + ' ' + rOuter + ' 0 1 1 ' + (CX - rOuter) + ' ' + CY +
+        ' Z M ' + (CX - rInner) + ' ' + CY +
+        ' A ' + rInner + ' ' + rInner + ' 0 1 0 ' + (CX + rInner) + ' ' + CY +
+        ' A ' + rInner + ' ' + rInner + ' 0 1 0 ' + (CX - rInner) + ' ' + CY + ' Z';
+    }
+    var p1 = polar(rInner, startDeg), p2 = polar(rOuter, startDeg);
+    var p3 = polar(rOuter, endDeg), p4 = polar(rInner, endDeg);
+    var large = (endDeg - startDeg) > 180 ? 1 : 0;
+    return 'M ' + p1[0] + ' ' + p1[1] +
+      ' L ' + p2[0] + ' ' + p2[1] +
+      ' A ' + rOuter + ' ' + rOuter + ' 0 ' + large + ' 1 ' + p3[0] + ' ' + p3[1] +
+      ' L ' + p4[0] + ' ' + p4[1] +
+      ' A ' + rInner + ' ' + rInner + ' 0 ' + large + ' 0 ' + p1[0] + ' ' + p1[1] + ' Z';
+  }
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+  function render(){
+    var N = state.N, depth = state.depth;
+    var wedgeAngle = 360 / N;
+    var wedgeAngleRad = 2 * Math.PI / N;
+    var ringWidth = (OUTER_R - HOLE_R) / depth;
+
+    var maxVal = N * depth - 1;
+    var numDigits = String(maxVal).length;
+    var ring0Mid = HOLE_R + ringWidth * 0.5;
+    var arcLen = (N === 1) ? 999 : ring0Mid * wedgeAngleRad;
+    var tangentialFont = arcLen / (numDigits * 0.66);
+    var radialFont = ringWidth * 0.5;
+    var fontSize = clamp(Math.min(tangentialFont, radialFont), 7, 24);
+
+    dynGroup.innerHTML = '';
+
+    // radial ring bands (zebra, even rings only)
+    for (var k0 = 0; k0 < depth; k0++){
+      if (k0 % 2 !== 0) continue;
+      var midR = HOLE_R + (k0 + 0.5) * ringWidth;
+      dynGroup.appendChild(svgEl('circle', {
+        cx:CX, cy:CY, r:midR, fill:'none',
+        stroke:'var(--ring-a)', 'stroke-width': ringWidth
+      }));
+    }
+
+    // concentric ring boundaries
+    for (var j = 0; j <= depth; j++){
+      var rj = HOLE_R + j * ringWidth;
+      dynGroup.appendChild(svgEl('circle', {
+        cx:CX, cy:CY, r:rj, fill:'none',
+        stroke: (j === 0 || j === depth) ? 'var(--line-strong)' : 'var(--line)',
+        'stroke-width': (j === 0 || j === depth) ? 1.4 : 1
+      }));
+    }
+
+    // radial boundaries
+    if (N > 1){
+      for (var i0 = 0; i0 < N; i0++){
+        var ang = i0 * wedgeAngle;
+        var rp1 = polar(HOLE_R, ang), rp2 = polar(OUTER_R, ang);
+        dynGroup.appendChild(svgEl('line', {
+          x1:rp1[0], y1:rp1[1], x2:rp2[0], y2:rp2[1],
+          stroke:'var(--line)', 'stroke-width':1
+        }));
+      }
+    }
+
+    for (var i = 0; i < N; i++){
+      var startDeg = i * wedgeAngle;
+      var endDeg = startDeg + wedgeAngle;
+      var bisector = startDeg + wedgeAngle / 2;
+      var isSelected = (i === state.selected);
+
+      var g = svgEl('g', {
+        class: 'wedge' + (isSelected ? ' is-selected' : ''),
+        tabindex:'0', role:'button',
+        'aria-pressed': isSelected ? 'true' : 'false',
+        'aria-label': 'Class ' + i + ' modulo ' + N
+      });
+
+      var hit = svgEl('path', {
+        class:'wedge-hit',
+        d: annularSectorPath(HOLE_R, OUTER_R, startDeg, endDeg)
+      });
+      g.appendChild(hit);
+
+      for (var k = 0; k < depth; k++){
+        var rMid = HOLE_R + (k + 0.5) * ringWidth;
+        var pos = polar(rMid, bisector);
+        var value = i + k * N;
+        var rot = bisector;
+        if (rot > 90 && rot < 270) rot += 180;
+        var txt = svgEl('text', {
+          class:'cell-num',
+          x:pos[0], y:pos[1],
+          'font-size': fontSize,
+          transform: 'rotate(' + rot + ' ' + pos[0] + ' ' + pos[1] + ')'
+        });
+        txt.textContent = value;
+        g.appendChild(txt);
+      }
+
+      var ep = polar(OUTER_R + 18, bisector);
+      var erot = bisector;
+      if (erot > 90 && erot < 270) erot += 180;
+      var etxt = svgEl('text', {
+        class:'ellipsis', x:ep[0], y:ep[1],
+        'font-size': 15,
+        transform: 'rotate(' + erot + ' ' + ep[0] + ' ' + ep[1] + ')'
+      });
+      etxt.textContent = '⋯';
+      g.appendChild(etxt);
+
+      (function(idx){
+        g.addEventListener('click', function(){ select(idx); });
+        g.addEventListener('keydown', function(ev){
+          if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); select(idx); }
+        });
+      })(i);
+
+      dynGroup.appendChild(g);
+    }
+
+    var cl = svgEl('text', { class:'center-label', x:CX, y:CY, 'font-size': 16 });
+    cl.textContent = 'mod ' + N;
+    dynGroup.appendChild(cl);
+
+    // reference list
+    refList.innerHTML = '';
+    for (var r0 = 0; r0 < N; r0++){
+      var members = [];
+      for (var k2 = 0; k2 < depth; k2++) members.push(r0 + k2 * N);
+      var li = document.createElement('li');
+      var btn = document.createElement('button');
+      btn.className = 'row-btn' + (r0 === state.selected ? ' is-selected' : '');
+      btn.setAttribute('aria-pressed', r0 === state.selected ? 'true' : 'false');
+
+      var sw = document.createElement('span');
+      sw.className = 'swatch';
+      btn.appendChild(sw);
+
+      var label = document.createElement('span');
+      label.className = 'r-label';
+      label.textContent = '[' + r0 + ']';
+      btn.appendChild(label);
+
+      var setSpan = document.createElement('span');
+      setSpan.className = 'r-set';
+      setSpan.textContent = '{ ' + members.join(', ') + ', … }';
+      btn.appendChild(setSpan);
+
+      (function(idx){
+        btn.addEventListener('click', function(){ select(idx); });
+      })(r0);
+
+      li.appendChild(btn);
+      refList.appendChild(li);
+    }
+
+    refCount.textContent = 'N = ' + N;
+    formulaLine.textContent = 'ℕ/∼ = { [0], [1], …, [' + (N-1) + '] }   where   [r] = { n ∈ ℕ : n mod ' + N + ' = r }';
+    updateCaption();
+  }
+
+  function updateCaption(){
+    var N = state.N, depth = state.depth, s = state.selected;
+    var terms = [];
+    for (var k = 0; k < Math.min(3, depth); k++) terms.push(s + k*N);
+    caption.innerHTML = 'Class <b>[' + s + ']</b> contains every natural number congruent to ' + s + ' (mod ' + N + '): <span class="mono">' + terms.join(', ') + ', …</span> — and nothing else.';
+  }
+
+  function select(idx){
+    state.selected = idx;
+    persist();
+    render();
+  }
+
+  function persist(){
+    try{ localStorage.setItem('congruence-wheel', JSON.stringify({ N: state.N, depth: state.depth })); }catch(e){}
+  }
+
+  nRange.value = state.N;
+  depthRange.value = state.depth;
+  nDisplay.textContent = state.N;
+  depthDisplay.textContent = state.depth;
+
+  nRange.addEventListener('input', function(){
+    state.N = parseInt(nRange.value, 10);
+    if (state.selected >= state.N) state.selected = state.N - 1;
+    nDisplay.textContent = state.N;
+    persist();
+    render();
+  });
+  depthRange.addEventListener('input', function(){
+    state.depth = parseInt(depthRange.value, 10);
+    depthDisplay.textContent = state.depth;
+    persist();
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
