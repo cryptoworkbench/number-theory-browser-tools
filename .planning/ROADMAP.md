@@ -39,7 +39,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Toggling day/night mode re-themes every tool correctly using the unified tokens
   4. Role-specific colors (e.g., RSA's Bob/Alice/Eve, Sieve's prime/composite) still convey the same meaning after unification, derived from the shared palette rather than hardcoded per tool
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/5 plans executed + 1 gap-closure plan
 
 Plans:
 
@@ -48,6 +48,7 @@ Plans:
 - [x] 01-03-PLAN.md — Unify RSA: surfaces plus Bob/Alice/Eve/discrete-log role mapping, fixing the day-mode black washes (wave 2)
 - [x] 01-04-PLAN.md — Unify the Congruence Wheel, the completing-the-square tool and the `index.html` hub (wave 2)
 - [x] 01-05-PLAN.md — Repo-wide palette audit, record the convention for the three tools to come, developer sign-off (wave 3)
+- [ ] 01-06-PLAN.md — Gap closure: un-inset the shared nav header on 4 pages (G-01-1a), add a window.name persistence fallback for theme selection (G-01-1b) (wave 1)
 
 **UI hint**: yes
 
