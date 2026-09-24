@@ -1,34 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-palette-unification
 source: [01-VERIFICATION.md]
 started: 2026-09-24T15:15:00Z
-updated: 2026-09-24T15:15:00Z
+updated: 2026-09-24T15:30:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Developer sign-off on the unified palette (bypassed checkpoints)
-expected: |
-  Open index.html and each of the five tools (Sieve, Factor Tree, Completing-the-Square,
-  Congruence Wheel, RSA Examplifier) in a real browser, toggle day/night on each, and
-  exercise each tool at least once (run the sieve, generate a tree, step a factorization,
-  select a residue class, generate RSA keys and run Eve's attack).
-
-  No element should stay stuck in the other theme's colors; the sticky header should
-  re-theme on all six pages; the seven role meanings (result, input, active, inert, warn,
-  special, alt) should read consistently across every page they appear on — e.g. "the
-  answer" looks like the answer on the Sieve, the Factor Tree and the Completing-the-Square
-  tool, and RSA's Bob/Alice/Eve remain three distinct participants with Eve reading as the
-  adversary.
-
-  This is also the actual subjective judgment this checkpoint exists for: confirm the
-  shared literal palette itself (retiring five distinct bespoke tool palettes — Sieve's
-  blue, the tree's Christmas green/gold, RSA's orange, Pizza's teal, Completing-the-Square's
-  orange — for one shared blue/teal/violet/pink accent and role set) is an acceptable
-  visual-identity change for the site going forward.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -37,24 +17,34 @@ expected: |
   No element stuck in the other theme's colors; header re-themes on all six pages; role
   meanings read consistently across pages; and the developer approves the shared-palette
   visual-identity change itself.
-result: [pending]
+result: issue
+reported: "the menubar still isn't universal across all pages, on homepage and on factor tree it is stuck to the screen edge, but on all the other pages the menubar is an individual thing that is just floating in the middle of the left and right edges, and a little underneath of the top edge. also I want the mode selected to stay persistent across tool navigation. Now it is not persistent across/between pages."
+severity: major
 
 ## Summary
 
 total: 1
 passed: 0
-issues: 0
-pending: 1
+issues: 1
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-None — no functional defects found. This phase's automated verification (4/4 must-haves),
-Nyquist validation, security audit, UI review, and code review all passed, finding and
-fixing four real defects along the way (day-mode contrast issues in the Sieve and Factor
-Tree, a dead CSS variable reference, and a role-token semantic-drift issue — all confirmed
-fixed by an independent phase-goal verification pass). The only open item is procedural:
-this phase's two `checkpoint:human-verify` tasks (01-01 Task 3 and 01-05 Task 3) were
-auto-approved by the autonomous executor rather than reaching an actual developer, so the
-subjective visual-identity sign-off they exist to capture has not yet been made by a human.
+- gap_id: G-01-1a
+  truth: "The shared sticky nav header is consistently full-width/edge-pinned across all six pages, not a shared-chrome inconsistency introduced or left uncaught by this phase's palette work."
+  status: failed
+  reason: "User reported: the menubar still isn't universal across all pages — on the homepage and Factor Tree it is stuck to the screen edge, but on all other pages the menubar is an individual thing floating in the middle of the left/right edges and a bit below the top edge."
+  severity: major
+  test: 1
+  artifacts: []
+  missing: []
+- gap_id: G-01-1b
+  truth: "The day/night theme selection set on one page persists when navigating to another page/tool."
+  status: failed
+  reason: "User reported: I want the mode selected to stay persistent across tool navigation. Now it is not persistent across/between pages."
+  severity: major
+  test: 1
+  artifacts: []
+  missing: []
