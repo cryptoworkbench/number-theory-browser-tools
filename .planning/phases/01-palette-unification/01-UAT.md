@@ -1,14 +1,30 @@
 ---
-status: diagnosed
+status: testing
 phase: 01-palette-unification
 source: [01-VERIFICATION.md]
 started: 2026-09-24T15:15:00Z
-updated: 2026-09-24T15:50:00Z
+updated: 2026-09-24T16:15:00Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 1
+name: Developer sign-off on the unified palette (bypassed checkpoints) — re-check after gap closure
+expected: |
+  Both previously-reported issues are now fixed by gap-closure plan 01-06:
+
+  1. The shared nav header should now render full-width/edge-pinned identically on all six
+     pages (index.html, Sieve, Factor Tree, Completing-the-Square, Congruence Wheel, RSA
+     Examplifier) — no page should show it as an inset/floating card anymore.
+  2. Toggling day/night on one page and navigating to a different tool should now keep the
+     selected theme on the destination page — including in Safari opened via file://, where
+     the underlying bug was localStorage throwing silently with no fallback (now backed by a
+     window.name fallback).
+
+  Please re-open the six pages, toggle day/night, navigate between them, and confirm both
+  fixes hold — and, as before, that you're comfortable with the shared palette itself as the
+  site's visual identity going forward.
+awaiting: user response
 
 ## Tests
 
@@ -17,16 +33,19 @@ expected: |
   No element stuck in the other theme's colors; header re-themes on all six pages; role
   meanings read consistently across pages; and the developer approves the shared-palette
   visual-identity change itself.
-result: issue
-reported: "the menubar still isn't universal across all pages, on homepage and on factor tree it is stuck to the screen edge, but on all the other pages the menubar is an individual thing that is just floating in the middle of the left and right edges, and a little underneath of the top edge. also I want the mode selected to stay persistent across tool navigation. Now it is not persistent across/between pages."
-severity: major
+result: [pending]
+history:
+  - result: issue
+    reported: "the menubar still isn't universal across all pages, on homepage and on factor tree it is stuck to the screen edge, but on all the other pages the menubar is an individual thing that is just floating in the middle of the left and right edges, and a little underneath of the top edge. also I want the mode selected to stay persistent across tool navigation. Now it is not persistent across/between pages."
+    severity: major
+    resolved_by: 01-06-PLAN.md
 
 ## Summary
 
 total: 1
 passed: 0
-issues: 1
-pending: 0
+issues: 0
+pending: 1
 skipped: 0
 blocked: 0
 
@@ -34,7 +53,9 @@ blocked: 0
 
 - gap_id: G-01-1a
   truth: "The shared sticky nav header is consistently full-width/edge-pinned across all six pages, not a shared-chrome inconsistency introduced or left uncaught by this phase's palette work."
-  status: failed
+  status: resolved
+  resolved_by: 01-06-PLAN.md
+  resolved_at: 2026-09-24
   reason: "User reported: the menubar still isn't universal across all pages — on the homepage and Factor Tree it is stuck to the screen edge, but on all other pages the menubar is an individual thing floating in the middle of the left/right edges and a bit below the top edge."
   severity: major
   test: 1
@@ -56,7 +77,9 @@ blocked: 0
   debug_session: ".planning/debug/nav-header-not-full-width.md"
 - gap_id: G-01-1b
   truth: "The day/night theme selection set on one page persists when navigating to another page/tool."
-  status: failed
+  status: resolved
+  resolved_by: 01-06-PLAN.md
+  resolved_at: 2026-09-24
   reason: "User reported: I want the mode selected to stay persistent across tool navigation. Now it is not persistent across/between pages."
   severity: major
   test: 1
