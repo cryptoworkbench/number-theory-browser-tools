@@ -86,40 +86,40 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAL-01 | TBD | Pending |
-| PAL-02 | TBD | Pending |
-| PAL-03 | TBD | Pending |
-| PAL-04 | TBD | Pending |
-| GCD-01 | TBD | Pending |
-| GCD-02 | TBD | Pending |
-| GCD-03 | TBD | Pending |
-| GCD-04 | TBD | Pending |
-| GCD-05 | TBD | Pending |
-| GCD-06 | TBD | Pending |
-| CRT-01 | TBD | Pending |
-| CRT-02 | TBD | Pending |
-| CRT-03 | TBD | Pending |
-| CRT-04 | TBD | Pending |
-| CRT-05 | TBD | Pending |
-| CRT-06 | TBD | Pending |
-| CRT-07 | TBD | Pending |
-| CRT-08 | TBD | Pending |
-| CF-01 | TBD | Pending |
-| CF-02 | TBD | Pending |
-| CF-03 | TBD | Pending |
-| CF-04 | TBD | Pending |
-| CF-05 | TBD | Pending |
-| CF-06 | TBD | Pending |
-| CF-07 | TBD | Pending |
-| CF-08 | TBD | Pending |
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
+| PAL-01 | Phase 1 | Pending |
+| PAL-02 | Phase 1 | Pending |
+| PAL-03 | Phase 1 | Pending |
+| PAL-04 | Phase 1 | Pending |
+| GCD-01 | Phase 2 | Pending |
+| GCD-02 | Phase 2 | Pending |
+| GCD-03 | Phase 2 | Pending |
+| GCD-04 | Phase 2 | Pending |
+| GCD-05 | Phase 2 | Pending |
+| GCD-06 | Phase 2 | Pending |
+| CRT-01 | Phase 3 | Pending |
+| CRT-02 | Phase 3 | Pending |
+| CRT-03 | Phase 3 | Pending |
+| CRT-04 | Phase 3 | Pending |
+| CRT-05 | Phase 3 | Pending |
+| CRT-06 | Phase 3 | Pending |
+| CRT-07 | Phase 3 | Pending |
+| CRT-08 | Phase 3 | Pending |
+| CF-01 | Phase 4 | Pending |
+| CF-02 | Phase 4 | Pending |
+| CF-03 | Phase 4 | Pending |
+| CF-04 | Phase 4 | Pending |
+| CF-05 | Phase 4 | Pending |
+| CF-06 | Phase 4 | Pending |
+| CF-07 | Phase 4 | Pending |
+| CF-08 | Phase 4 | Pending |
+| NAV-01 | Phase 4 | Pending |
+| NAV-02 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0
-- Unmapped: 28 ⚠️ (roadmap creation pending)
+- Mapped to phases: 28
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-24*
-*Last updated: 2026-09-24 after initial definition*
+*Last updated: 2026-09-24 after roadmap creation (traceability mapped to Phases 1-4)*
