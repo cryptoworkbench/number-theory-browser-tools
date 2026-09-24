@@ -9,10 +9,10 @@ Requirements for this milestone (three new number-theory tools + site-wide palet
 
 ### Palette
 
-- [ ] **PAL-01**: All eight tools (five existing + three new) render with one identical, literal color palette — no tool keeps a distinct accent or color scheme
-- [ ] **PAL-02**: Palette tokens are centralized in `assets/` (e.g. `assets/palette.css`) rather than redeclared per-tool, so every tool consumes the same source of truth via `var()`
-- [ ] **PAL-03**: The unified palette preserves the existing day/night theme toggle (`assets/theme.js`), with both modes fully re-themed
-- [ ] **PAL-04**: Colors that carry meaning (e.g. "this is the computed answer," "this is user input") mean the same thing across every tool, even though the literal palette is now shared
+- [x] **PAL-01**: All eight tools (five existing + three new) render with one identical, literal color palette — no tool keeps a distinct accent or color scheme
+- [x] **PAL-02**: Palette tokens are centralized in `assets/` (e.g. `assets/palette.css`) rather than redeclared per-tool, so every tool consumes the same source of truth via `var()`
+- [x] **PAL-03**: The unified palette preserves the existing day/night theme toggle (`assets/theme.js`), with both modes fully re-themed
+- [x] **PAL-04**: Colors that carry meaning (e.g. "this is the computed answer," "this is user input") mean the same thing across every tool, even though the literal palette is now shared
 
 ### Euclidean Algorithm / GCD
 
@@ -86,10 +86,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAL-01 | Phase 1 | Pending |
-| PAL-02 | Phase 1 | Pending |
-| PAL-03 | Phase 1 | Pending |
-| PAL-04 | Phase 1 | Pending |
+| PAL-01 | Phase 1 | Complete |
+| PAL-02 | Phase 1 | Complete |
+| PAL-03 | Phase 1 | Complete |
+| PAL-04 | Phase 1 | Complete |
 | GCD-01 | Phase 2 | Pending |
 | GCD-02 | Phase 2 | Pending |
 | GCD-03 | Phase 2 | Pending |
@@ -116,6 +116,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | NAV-02 | Phase 2 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 28 total
 - Mapped to phases: 28
 - Unmapped: 0 ✓
