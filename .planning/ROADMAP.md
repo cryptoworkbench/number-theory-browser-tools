@@ -39,14 +39,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Toggling day/night mode re-themes every tool correctly using the unified tokens
   4. Role-specific colors (e.g., RSA's Bob/Alice/Eve, Sieve's prime/composite) still convey the same meaning after unification, derived from the shared palette rather than hardcoded per tool
 
-**Plans**: 3/5 plans executed
+**Plans**: 4/5 plans executed
 
 Plans:
 
 - [x] 01-01-PLAN.md — Create `assets/palette.css`, prove it end-to-end on the Sieve, derive the shared nav chrome from it (wave 1, tracer)
 - [x] 01-02-PLAN.md — Unify the factor tree: chrome, diagram role colors, and fairy-light colors moved out of JS (wave 2)
 - [x] 01-03-PLAN.md — Unify RSA: surfaces plus Bob/Alice/Eve/discrete-log role mapping, fixing the day-mode black washes (wave 2)
-- [ ] 01-04-PLAN.md — Unify the Congruence Wheel, the completing-the-square tool and the `index.html` hub (wave 2)
+- [x] 01-04-PLAN.md — Unify the Congruence Wheel, the completing-the-square tool and the `index.html` hub (wave 2)
 - [ ] 01-05-PLAN.md — Repo-wide palette audit, record the convention for the three tools to come, developer sign-off (wave 3)
 
 **UI hint**: yes
@@ -109,7 +109,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Palette Unification | 3/5 | In Progress|  |
+| 1. Palette Unification | 4/5 | In Progress|  |
 | 2. Euclidean Algorithm / GCD Tool | 0/? | Not started | - |
 | 3. Chinese Remainder Theorem Tool | 0/? | Not started | - |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
