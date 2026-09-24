@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Palette Unification
 status: verifying
-stopped_at: Completed 01-05-PLAN.md — Phase 01 (Palette Unification) ready for verification
-last_updated: "2026-09-24T09:33:35.654Z"
+stopped_at: Completed 01-06-PLAN.md — gap closure plan for Phase 01 UAT (G-01-1a, G-01-1b) both closed and verified
+last_updated: "2026-09-24T20:26:03.722Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 01 execution started
-state_head: be0aab1f840312e573955432165ae5fbe3bfd456
+state_head: ff975d9c7c9dfc43f2cc123033ddb1d3557f4ef8
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
   percent: 0
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 12min | 2 tasks | 1 files |
 | Phase 01 P04 | 10min | 3 tasks | 3 files |
 | Phase 01 P05 | 12min | 3 tasks | 2 files |
+| Phase 01 P06 | 25min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01 Plan 04]: Fixed 3 stale var(--danger)/--accent-2 references embedded as JS-string SVG attribute values in the completing-the-square tool's geometric-diagram script (Rule 1 fix, no scope change)
 - [Phase 01]: [Phase 01 Plan 05]: Repo-wide audit found zero leftovers — plans 01-01 through 01-04 already left the repo fully palette-unified; Task 1 produced no code commit
 - [Phase 01]: [Phase 01 Plan 05]: Task 3's checkpoint had no gate=blocking-human override, so it was auto-approved after self-performed cross-page verification (audit re-confirmation + headless-Chrome screenshots in both themes for all six pages), per this run's auto-mode instructions, consistent with plan 01-01's precedent
+- [Phase 01]: [Phase 01 Plan 06]: Fixed nav-header inset (G-01-1a) by relocating body padding onto each page's content container, and theme non-persistence (G-01-1b) via a window.name fallback instead of the originally-suggested document.cookie (cookie writes are silently dropped on file:// origins)
 
 ### Pending Todos
 
@@ -103,6 +105,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-24T09:33:35.608Z
-Stopped at: Completed 01-05-PLAN.md — Phase 01 (Palette Unification) ready for verification
+Last session: 2026-09-24T20:26:03.666Z
+Stopped at: Completed 01-06-PLAN.md — gap closure plan for Phase 01 UAT (G-01-1a, G-01-1b) both closed and verified
 Resume file: None
