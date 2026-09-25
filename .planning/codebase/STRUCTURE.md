@@ -22,7 +22,7 @@ number-theory-browser-tools/
 ├── assets/                          # Shared site infrastructure (CSS, JS)
 │   ├── site.css                     # Header, nav, theme toggle styling
 │   └── theme.js                     # Day/night theme persistence and switching
-├── Christmas Trees/
+├── Factor Tree/
 │   ├── factor-tree.html             # Prime factorization tree visualizer
 │   └── example_prime_factorization   # Example/documentation file (unused in app)
 ├── Factorize By Completing The Square/
@@ -59,7 +59,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - Key files: `site.css` (layout + styling), `theme.js` (day/night mode)
 - Not committed to: Individual tool styling (each tool has inline `<style>`)
 
-**`Christmas Trees/`:**
+**`Factor Tree/`:**
 
 - Purpose: Prime factorization tree visualizer
 - Contains: Single HTML file with all logic, styling, and markup
@@ -105,7 +105,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 **Entry Points:**
 
 - `index.html` — Portal/landing page (main URL on page load)
-- `Christmas Trees/factor-tree.html` — Factor tree tool (opened from portal)
+- `Factor Tree/factor-tree.html` — Factor tree tool (opened from portal)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — Sieve tool
 - `Pizza Slices/pizza-slices.html` — Congruence wheel tool
 - `Factorize By Completing The Square/factorize-completing-square.html` — Completing square tool
@@ -151,7 +151,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 **Files:**
 
 - Tool HTML: kebab-case, descriptive name ending in `-[tool-name].html` (e.g., `sieve-of-eratosthenes.html`)
-- Directories: Title Case with spaces (e.g., `Pizza Slices`, `Christmas Trees`)
+- Directories: Title Case with spaces (e.g., `Pizza Slices`, `Factor Tree`)
   - Rationale: User-facing tool names for discovery; spaces OK because each tool is a self-contained folder
 - Assets: lowercase, descriptive name (e.g., `site.css`, `theme.js`)
 

@@ -19,7 +19,7 @@ There are no npm scripts, test runners, or CLI test commands. Verification is ma
 
 # Open any tool directly in a browser
 
-open "Christmas Trees/factor-tree.html"
+open "Factor Tree/factor-tree.html"
 open "Pizza Slices/pizza-slices.html"
 open "Sieve Of Eratosthenes/sieve-of-eratosthenes.html"
 open "RSA Examplifier/rsa-examplifier.html"
@@ -38,7 +38,7 @@ open "Factorize By Completing The Square/factorize-completing-square.html"
 
 Each tool includes **built-in manual testing controls and example presets** instead of automated tests:
 
-**Factor Tree** (`Christmas Trees/factor-tree.html`):
+**Factor Tree** (`Factor Tree/factor-tree.html`):
 
 - Preset "chip" buttons with example numbers: 2, 97 (prime), 60, 1024, 9973 (prime), 2310
 - Input validation with user-facing error messages

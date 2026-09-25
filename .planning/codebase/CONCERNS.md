@@ -11,7 +11,7 @@ last_mapped_at: 2026-09-23
 **Breaking the single-file-per-tool pattern:**
 
 - Issue: HTML files now import shared CSS and JS (`../assets/site.css`, `../assets/theme.js`), contradicting the self-contained single-file design stated in CLAUDE.md
-- Files: `Christmas Trees/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Pizza Slices/pizza-slices.html`, `RSA Examplifier/rsa-examplifier.html`, `Factorize By Completing The Square/factorize-completing-square.html`
+- Files: `Factor Tree/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Pizza Slices/pizza-slices.html`, `RSA Examplifier/rsa-examplifier.html`, `Factorize By Completing The Square/factorize-completing-square.html`
 - Impact: Tools no longer work in isolation. Moving or copying a tool outside the repo structure breaks it. Development workflow requires managing three files per tool instead of one.
 - Fix approach: Either (a) inline `site.css` and `theme.js` into each HTML file to restore true self-containment, or (b) update CLAUDE.md to document the new shared-assets pattern and commit to maintaining the three-file structure
 
@@ -47,7 +47,7 @@ last_mapped_at: 2026-09-23
 **Regular JavaScript Numbers lose precision above 2^53:**
 
 - Issue: Most tools use `Number` for computation (`primeFactors`, `smallestPrimeFactor`, `isPrime` functions), which silently overflow for integers > 2^53 (≈9 quadrillion)
-- Files: `Christmas Trees/factor-tree.html` (lines 436–462), `Pizza Slices/pizza-slices.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Factorize By Completing The Square/factorize-completing-square.html`
+- Files: `Factor Tree/factor-tree.html` (lines 436–462), `Pizza Slices/pizza-slices.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Factorize By Completing The Square/factorize-completing-square.html`
 - Impact: Inputs in the range ~10¹⁵–10¹⁶ will produce incorrect factorizations silently. User will see wrong prime factors or hang loops. Only `RSA Examplifier/rsa-examplifier.html` uses BigInt and is safe.
 - Current validation: Factor Tree caps input at 1 trillion (10¹²), Completing-the-Square caps at 10⁹. These limits are ad-hoc and not enforced uniformly.
 - Fix approach: Add `Number.isSafeInteger()` checks to all number-theory functions and reject unsafe inputs with a user-facing error message; or migrate all computation functions to BigInt (large change but future-proof)
@@ -76,7 +76,7 @@ last_mapped_at: 2026-09-23
 **Diagrams lack semantic labels for screen readers:**
 
 - Issue: SVG elements (circles, lines, text) in rendered diagrams have no `<title>`, `<desc>`, or ARIA labels
-- Files: `Christmas Trees/factor-tree.html` (SVG render at line 588), `Pizza Slices/pizza-slices.html` (SVG sectors), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (grid cells)
+- Files: `Factor Tree/factor-tree.html` (SVG render at line 588), `Pizza Slices/pizza-slices.html` (SVG sectors), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (grid cells)
 - Impact: Visually impaired users cannot understand the visualizations. No text alternative exists.
 - Fix approach: Add `<title>` elements inside each SVG or use `aria-label` on SVG root; generate structured text descriptions of the diagram state (e.g., "Prime factor tree for 60: root 60 splits into 2 and 30. 2 is prime, shown in gold.")
 
@@ -85,7 +85,7 @@ last_mapped_at: 2026-09-23
 **Partial generation tracking can still cause issues:**
 
 - Issue: Tools use a `generation` counter to skip stale animation callbacks when user restarts mid-animation. However, if an animation is interrupted and a new one starts, old callbacks may corrupt state if they run before being invalidated.
-- Files: `Christmas Trees/factor-tree.html` (line 433, 679-707), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
+- Files: `Factor Tree/factor-tree.html` (line 433, 679-707), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
 - Impact: Rare race condition where two animations overlap, potentially drawing elements twice or in wrong state
 - Current safeguard: Checks `if(localGen !== generation) return` before each async operation
 - Workaround is solid, but edge case remains if timing aligns poorly
@@ -96,7 +96,7 @@ last_mapped_at: 2026-09-23
 **Large SVG rendering with staggered setTimeout:**
 
 - Issue: Depth-by-depth animation reveals use `setTimeout` with per-depth delays (e.g., `depthGroups.forEach((g,d)=>{ setTimeout(..., d*perDelay); })`)
-- Files: `Christmas Trees/factor-tree.html` (lines 682–707)
+- Files: `Factor Tree/factor-tree.html` (lines 682–707)
 - Impact: Deep trees (e.g., 2^20 has 20 levels) create 20 setTimeout calls. Browser event loop can stall. Smooth 60 fps animation may stutter. No user feedback during render.
 - Fix approach: Use `requestAnimationFrame` instead of fixed setTimeout; show a progress indicator or skeleton during render; consider limiting tree depth or using a virtual scroll for very deep trees
 
@@ -105,7 +105,7 @@ last_mapped_at: 2026-09-23
 **Silent failures in SVG render:**
 
 - Issue: SVG creation functions (`svgEl`) have no error handling. If `document.createElementNS` fails (e.g., due to browser quirks), the entire render silently fails with no visible error
-- Files: `Christmas Trees/factor-tree.html` (line 546), `Pizza Slices/pizza-slices.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
+- Files: `Factor Tree/factor-tree.html` (line 546), `Pizza Slices/pizza-slices.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
 - Impact: User sees blank stage and no error message. Difficult to debug.
 - Fix approach: Wrap SVG operations in try-catch; on error, display a message like "SVG rendering failed. Try refreshing the page." in the stage element
 

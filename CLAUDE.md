@@ -10,7 +10,7 @@ A collection of standalone, single-file HTML browser tools that visualize number
 
 Each tool lives in its own top-level directory named after the tool, containing exactly one `.html` file:
 
-- `Christmas Trees/factor-tree.html` — animated prime factor tree (recursive factorization diagram, SVG-rendered)
+- `Factor Tree/factor-tree.html` — animated prime factor tree (recursive factorization diagram, SVG-rendered)
 - `Factorize By Completing The Square/factorize-completing-square.html` — visualizes factoring quadratics via completing-the-square trials
 - `Pizza Slices/pizza-slices.html` — "Congruence Wheel," a modular arithmetic visualizer using pizza-slice sectors
 - `RSA Examplifier/rsa-examplifier.html` — walks through RSA key generation, encryption, and a brute-force factoring attack demo (Bob/Alice/Eve narrative)

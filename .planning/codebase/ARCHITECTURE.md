@@ -53,7 +53,7 @@ last_mapped_at: 2026-09-23
 |-----------|----------------|------|
 | Portal | Discover and navigate to all tools; present metadata | `index.html` |
 | Sieve Tool | Visualize prime-finding algorithm with playback | `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` |
-| Factor Tree Tool | Animate recursive factorization as tree diagram | `Christmas Trees/factor-tree.html` |
+| Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
 | Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Pizza Slices/pizza-slices.html` |
 | RSA Examplifier Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA Examplifier/rsa-examplifier.html` |
@@ -272,7 +272,7 @@ See `Pizza Slices/pizza-slices.html` (562 lines, well-sectioned) as a model.
 
 **Do this instead:** Use a tool-specific localStorage key that's unlikely to collide. Convention: `[tool-name]` in kebab-case.
 
-- Factor Tree: `'factor-tree'` or `'christmas-trees'`
+- Factor Tree: `'factor-tree'`
 - Congruence Wheel: `'congruence-wheel'`
 - RSA Examplifier: `'rsa-examplifier'`
 
