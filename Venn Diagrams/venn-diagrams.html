@@ -92,6 +92,34 @@
     color:var(--role-result-ink);
     border-color:var(--role-active);
   }
+  .prime-chip.is-dragging{
+    opacity:.4;
+    background:var(--role-inert);
+  }
+
+  /* controls */
+  .controls-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:16px;
+  }
+  #clear-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.04em;
+    color:var(--text);
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:8px;
+    padding:8px 14px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  #clear-btn:hover{
+    border-color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 8%, var(--panel));
+  }
+  #clear-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
   /* diagram */
   .diagram-frame{ width:100%; max-width:880px; margin:0 auto; }
@@ -131,7 +159,13 @@
     stroke:var(--role-active);
     stroke-width:2;
   }
+  .region.is-drop-target .region-hit{
+    fill:color-mix(in srgb, var(--role-active) 24%, transparent);
+    stroke:var(--role-active);
+    stroke-width:2;
+  }
 
+  .placed-chip{ cursor:pointer; }
   .placed-chip rect{
     fill:var(--surface);
     stroke:var(--panel-border-strong);
@@ -147,6 +181,12 @@
     dominant-baseline:central;
     pointer-events:none;
   }
+  .placed-chip:hover rect,
+  .placed-chip:focus-visible rect{
+    stroke:var(--role-warn);
+    opacity:.9;
+  }
+  .placed-chip:focus-visible{ outline:none; }
 
   .message{
     min-height:20px;
@@ -155,6 +195,7 @@
     text-align:center;
     margin:14px 0 0;
   }
+  .message.is-warn{ color:var(--role-warn); }
 
   /* products */
   .products-panel{
@@ -193,7 +234,7 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn{ transition:none; }
   }
 </style>
 </head>
@@ -232,6 +273,10 @@
     <h2>Prime picker</h2>
     <p class="picker-hint">Click a prime, then click (or press Enter/Space on) a region to place it there.</p>
     <div id="prime-picker" class="prime-picker"></div>
+  </div>
+
+  <div class="controls-row">
+    <button type="button" id="clear-btn">Clear all</button>
   </div>
 
   <div class="diagram-frame">
@@ -301,11 +346,15 @@
   var R = 190, CY = 250, CXA = 355, CXB = 545, XM = 450;
   var H = Math.sqrt(R * R - ((CXB - CXA) / 2) * ((CXB - CXA) / 2));
 
+  var MAX_PER_REGION = 8;
+  var STORAGE_KEY = 'venn-diagrams';
+
   var picker = document.getElementById('prime-picker');
   var svgRoot = document.getElementById('venn');
   var svgStatic = document.getElementById('venn-static');
   var svgDynamic = document.getElementById('venn-dynamic');
   var messageEl = document.getElementById('message');
+  var clearBtn = document.getElementById('clear-btn');
   var productLeftEl = document.getElementById('product-left');
   var productOverlapEl = document.getElementById('product-overlap');
   var productRightEl = document.getElementById('product-right');
@@ -365,6 +414,21 @@
     g.addEventListener('keydown', function(ev){
       if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); placePrime(key); }
     });
+    g.addEventListener('dragover', function(ev){
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'copy';
+      g.classList.add('is-drop-target');
+    });
+    g.addEventListener('dragleave', function(){
+      g.classList.remove('is-drop-target');
+    });
+    g.addEventListener('drop', function(ev){
+      ev.preventDefault();
+      g.classList.remove('is-drop-target');
+      var value = parseInt(ev.dataTransfer.getData('text/plain'), 10);
+      if (!isPrime(value)) return;
+      placePrime(key, value);
+    });
     return g;
   }
 
@@ -397,8 +461,9 @@
       (contents.length ? contents.join(', ') : 'nothing');
   }
 
-  function setMessage(text){
+  function setMessage(text, isWarn){
     messageEl.textContent = text;
+    messageEl.classList.toggle('is-warn', !!isWarn);
   }
 
   function toggleArm(prime){
@@ -412,14 +477,87 @@
     renderPicker();
   }
 
-  function placePrime(key){
-    if (state.armed === null){
+  function placePrime(key, prime){
+    var value = (prime === undefined) ? state.armed : prime;
+    if (value === null || value === undefined){
       setMessage('Pick a prime from the picker first.');
       return;
     }
-    state.regions[key].push({ id: state.nextId++, p: state.armed });
-    setMessage('Placed ' + state.armed + ' in the ' + REGION_NAMES[key] + ' region.');
+    if (state.regions[key].length >= MAX_PER_REGION){
+      setMessage('The ' + REGION_NAMES[key] + ' region is full — max ' + MAX_PER_REGION + ' primes.', true);
+      return;
+    }
+    state.regions[key].push({ id: state.nextId++, p: value });
+    setMessage('Placed ' + value + ' in the ' + REGION_NAMES[key] + ' region.');
+    persist();
     render();
+  }
+
+  function removeToken(key, id){
+    var list = state.regions[key];
+    for (var i = 0; i < list.length; i++){
+      if (list[i].id === id){
+        var removed = list.splice(i, 1)[0];
+        setMessage('Removed ' + removed.p + ' from the ' + REGION_NAMES[key] + ' region.');
+        break;
+      }
+    }
+    persist();
+    render();
+  }
+
+  function clearAll(){
+    state.regions.left = [];
+    state.regions.overlap = [];
+    state.regions.right = [];
+    state.armed = null;
+    setMessage('Cleared all regions.');
+    persist();
+    render();
+  }
+
+  function persist(){
+    try{
+      var payload = {
+        left: primesOf(state.regions.left),
+        overlap: primesOf(state.regions.overlap),
+        right: primesOf(state.regions.right)
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }catch(e){}
+  }
+
+  function isValidStoredRegion(list){
+    if (!Array.isArray(list)) return false;
+    if (list.length > MAX_PER_REGION) return false;
+    for (var i = 0; i < list.length; i++){
+      if (!isPrime(list[i])) return false;
+    }
+    return true;
+  }
+
+  function restore(){
+    var raw;
+    try{
+      raw = localStorage.getItem(STORAGE_KEY);
+    }catch(e){
+      return false;
+    }
+    if (!raw) return false;
+    var parsed;
+    try{
+      parsed = JSON.parse(raw);
+    }catch(e){
+      return false;
+    }
+    if (!parsed || typeof parsed !== 'object') return false;
+    if (!isValidStoredRegion(parsed.left) || !isValidStoredRegion(parsed.overlap) || !isValidStoredRegion(parsed.right)){
+      return false;
+    }
+    state.regions.left = parsed.left.map(function(p){ return { id: state.nextId++, p: p }; });
+    state.regions.overlap = parsed.overlap.map(function(p){ return { id: state.nextId++, p: p }; });
+    state.regions.right = parsed.right.map(function(p){ return { id: state.nextId++, p: p }; });
+    return true;
   }
 
   function renderPicker(){
@@ -430,8 +568,19 @@
         btn.type = 'button';
         btn.className = 'prime-chip';
         btn.textContent = String(prime);
+        btn.draggable = true;
         btn.setAttribute('aria-pressed', state.armed === prime ? 'true' : 'false');
         btn.addEventListener('click', function(){ toggleArm(prime); });
+        btn.addEventListener('dragstart', function(ev){
+          ev.dataTransfer.setData('text/plain', String(prime));
+          ev.dataTransfer.effectAllowed = 'copy';
+          state.armed = prime;
+          btn.classList.add('is-dragging');
+          setMessage(prime + ' is ready — drop it on (or click) a region.');
+        });
+        btn.addEventListener('dragend', function(){
+          btn.classList.remove('is-dragging');
+        });
         picker.appendChild(btn);
       })(PRIMES[i]);
     }
@@ -458,11 +607,22 @@
         var y = firstRowTop + row * (32 + 8);
         var entry = list[idx];
 
-        var g = svgEl('g', { class: 'placed-chip' });
+        var g = svgEl('g', {
+          class: 'placed-chip',
+          tabindex: '0',
+          role: 'button',
+          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_NAMES[key] + ' region'
+        });
         g.appendChild(svgEl('rect', { x: x, y: y, width: 54, height: 32, rx: 8 }));
         var text = svgEl('text', { x: x + 27, y: y + 16 });
         text.textContent = String(entry.p);
         g.appendChild(text);
+        (function(regionKey, tokenId){
+          g.addEventListener('click', function(){ removeToken(regionKey, tokenId); });
+          g.addEventListener('keydown', function(ev){
+            if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); removeToken(regionKey, tokenId); }
+          });
+        })(key, entry.id);
         svgDynamic.appendChild(g);
       }
     }
@@ -487,12 +647,16 @@
     refreshRegionLabels();
   }
 
+  clearBtn.addEventListener('click', clearAll);
+
   window.addEventListener('load', function(){
     buildStatic();
     buildRegions();
-    state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
-    state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
-    state.regions.right = [ { id: state.nextId++, p: 7 } ];
+    if (!restore()){
+      state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
+      state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
+      state.regions.right = [ { id: state.nextId++, p: 7 } ];
+    }
     render();
   });
 
