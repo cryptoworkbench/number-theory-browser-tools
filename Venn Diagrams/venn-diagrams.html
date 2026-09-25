@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prime Venn Diagram</title>
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg-1);
+    color:var(--text);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+  }
+  .wrap{ max-width:1120px; margin:0 auto; padding:44px 22px 64px; }
+
+  .page-header{ margin-bottom:30px; max-width:68ch; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 12px;
+  }
+  h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    font-size:clamp(30px, 4.4vw, 44px);
+    line-height:1.08;
+    margin:0 0 14px;
+    text-wrap:balance;
+    letter-spacing:-.01em;
+  }
+  .lede{
+    font-size:16px;
+    line-height:1.6;
+    color:var(--text-dim);
+    margin:0;
+  }
+
+  /* prime picker */
+  .picker-panel{
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:18px 22px;
+    margin-bottom:22px;
+    background:var(--panel);
+  }
+  .picker-panel h2{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    font-size:17px;
+    margin:0 0 6px;
+  }
+  .picker-hint{
+    font-size:13.5px;
+    color:var(--text-dim);
+    margin:0 0 14px;
+  }
+  .prime-picker{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .prime-chip{
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    font-weight:600;
+    width:46px;
+    height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    border:1px solid var(--panel-border);
+    background:var(--surface);
+    color:var(--text);
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, opacity .15s ease;
+  }
+  .prime-chip:hover{ border-color:var(--accent); }
+  .prime-chip:focus-visible{ outline:2px solid var(--role-active); outline-offset:2px; }
+  .prime-chip[aria-pressed="true"]{
+    background:var(--role-active);
+    color:var(--role-result-ink);
+    border-color:var(--role-active);
+  }
+
+  /* diagram */
+  .diagram-frame{ width:100%; max-width:880px; margin:0 auto; }
+  svg#venn{ width:100%; height:auto; display:block; overflow:visible; }
+
+  .circle-left{
+    fill:color-mix(in srgb, var(--role-input) 16%, transparent);
+    stroke:var(--role-input);
+    stroke-width:2;
+  }
+  .circle-right{
+    fill:color-mix(in srgb, var(--role-alt) 16%, transparent);
+    stroke:var(--role-alt);
+    stroke-width:2;
+  }
+  .lens-fill{
+    fill:color-mix(in srgb, var(--role-result) 30%, transparent);
+    pointer-events:none;
+  }
+  .region-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    fill:var(--text-dim);
+    text-anchor:middle;
+    pointer-events:none;
+  }
+  .region-hit{
+    fill:transparent;
+    stroke:none;
+    cursor:pointer;
+    transition:fill .15s ease;
+  }
+  .region:hover .region-hit{ fill:color-mix(in srgb, var(--role-active) 10%, transparent); }
+  .region:focus-visible{ outline:none; }
+  .region:focus-visible .region-hit{
+    fill:color-mix(in srgb, var(--role-active) 16%, transparent);
+    stroke:var(--role-active);
+    stroke-width:2;
+  }
+
+  .placed-chip rect{
+    fill:var(--surface);
+    stroke:var(--panel-border-strong);
+    stroke-width:1.4;
+    transition:stroke .15s ease, opacity .15s ease;
+  }
+  .placed-chip text{
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    font-weight:600;
+    fill:var(--text);
+    text-anchor:middle;
+    dominant-baseline:central;
+    pointer-events:none;
+  }
+
+  .message{
+    min-height:20px;
+    font-size:14px;
+    color:var(--text-dim);
+    text-align:center;
+    margin:14px 0 0;
+  }
+
+  /* products */
+  .products-panel{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:22px;
+  }
+  .product-row{
+    flex:1 1 200px;
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:14px 16px;
+    background:var(--surface-alt);
+    text-align:center;
+  }
+  .product-label{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+  .product-value{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:19px;
+    font-weight:600;
+    color:var(--role-result-ink);
+    background:var(--role-result);
+    border-radius:6px;
+    padding:8px 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .prime-chip, .region-hit, .placed-chip rect{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Pizza Slices/pizza-slices.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA Examplifier/rsa-examplifier.html" class="site-nav-link">RSA Examplifier</a>
+      <a href="venn-diagrams.html" class="site-nav-link is-active">Venn Diagrams</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <header class="page-header">
+    <p class="eyebrow">sets &amp; shared factors</p>
+    <h1>Prime Venn Diagram</h1>
+    <p class="lede">Each region below holds a set of primes, and the number underneath it is the product of the primes sitting inside it &mdash; so the overlap is exactly the part two numbers share.</p>
+  </header>
+
+  <div class="picker-panel">
+    <h2>Prime picker</h2>
+    <p class="picker-hint">Click a prime, then click (or press Enter/Space on) a region to place it there.</p>
+    <div id="prime-picker" class="prime-picker"></div>
+  </div>
+
+  <div class="diagram-frame">
+    <svg id="venn" viewBox="0 0 900 520" role="img" aria-label="Two overlapping circles forming three regions holding prime numbers">
+      <g id="venn-static"></g>
+      <g id="venn-dynamic"></g>
+    </svg>
+  </div>
+
+  <p id="message" class="message" aria-live="polite"></p>
+
+  <div class="products-panel">
+    <div class="product-row">
+      <span class="product-label">Left only</span>
+      <span class="product-value" id="product-left"></span>
+    </div>
+    <div class="product-row">
+      <span class="product-label">Both</span>
+      <span class="product-value" id="product-overlap"></span>
+    </div>
+    <div class="product-row">
+      <span class="product-label">Right only</span>
+      <span class="product-value" id="product-right"></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  /* ---------- number theory ---------- */
+
+  function isPrime(n){
+    if (n < 2) return false;
+    if (n % 2 === 0) return n === 2;
+    for (var i = 3; i * i <= n; i += 2){
+      if (n % i === 0) return false;
+    }
+    return true;
+  }
+
+  function productOf(list){
+    var p = 1;
+    for (var i = 0; i < list.length; i++) p *= list[i];
+    return p;
+  }
+
+  function formatProduct(list){
+    if (list.length === 0) return '(empty) = 1';
+    var times = String.fromCharCode(215);
+    return list.join(' ' + times + ' ') + ' = ' + productOf(list);
+  }
+
+  function buildPalette(count){
+    var out = [];
+    var n = 2;
+    while (out.length < count){
+      if (isPrime(n)) out.push(n);
+      n++;
+    }
+    return out;
+  }
+
+  /* ---------- interaction ---------- */
+
+  var R = 190, CY = 250, CXA = 355, CXB = 545, XM = 450;
+  var H = Math.sqrt(R * R - ((CXB - CXA) / 2) * ((CXB - CXA) / 2));
+
+  var picker = document.getElementById('prime-picker');
+  var svgRoot = document.getElementById('venn');
+  var svgStatic = document.getElementById('venn-static');
+  var svgDynamic = document.getElementById('venn-dynamic');
+  var messageEl = document.getElementById('message');
+  var productLeftEl = document.getElementById('product-left');
+  var productOverlapEl = document.getElementById('product-overlap');
+  var productRightEl = document.getElementById('product-right');
+
+  var PRIMES = buildPalette(12);
+  var REGION_NAMES = { left: 'Left only', overlap: 'Both', right: 'Right only' };
+  var REGION_ANCHOR = { left: [275, 250], overlap: [450, 250], right: [625, 250] };
+  var regionEls = { left: null, overlap: null, right: null };
+
+  var state = { regions: { left: [], overlap: [], right: [] }, armed: null, nextId: 1 };
+
+  function svgEl(tag, attrs){
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  function lensPath(){
+    return 'M ' + XM + ' ' + (CY - H) +
+      ' A ' + R + ' ' + R + ' 0 0 1 ' + XM + ' ' + (CY + H) +
+      ' A ' + R + ' ' + R + ' 0 0 1 ' + XM + ' ' + (CY - H) + ' Z';
+  }
+  function leftOnlyPath(){
+    return 'M ' + XM + ' ' + (CY - H) +
+      ' A ' + R + ' ' + R + ' 0 1 0 ' + XM + ' ' + (CY + H) +
+      ' A ' + R + ' ' + R + ' 0 0 1 ' + XM + ' ' + (CY - H) + ' Z';
+  }
+  function rightOnlyPath(){
+    return 'M ' + XM + ' ' + (CY - H) +
+      ' A ' + R + ' ' + R + ' 0 0 1 ' + XM + ' ' + (CY + H) +
+      ' A ' + R + ' ' + R + ' 0 1 0 ' + XM + ' ' + (CY - H) + ' Z';
+  }
+
+  function buildStatic(){
+    svgStatic.appendChild(svgEl('circle', { cx: CXA, cy: CY, r: R, class: 'circle-left' }));
+    svgStatic.appendChild(svgEl('circle', { cx: CXB, cy: CY, r: R, class: 'circle-right' }));
+    svgStatic.appendChild(svgEl('path', { class: 'lens-fill', d: lensPath() }));
+
+    var labelLeft = svgEl('text', { class: 'region-label', x: 275, y: 478 });
+    labelLeft.textContent = 'Left only';
+    svgStatic.appendChild(labelLeft);
+
+    var labelBoth = svgEl('text', { class: 'region-label', x: 450, y: 478 });
+    labelBoth.textContent = 'Both';
+    svgStatic.appendChild(labelBoth);
+
+    var labelRight = svgEl('text', { class: 'region-label', x: 625, y: 478 });
+    labelRight.textContent = 'Right only';
+    svgStatic.appendChild(labelRight);
+  }
+
+  function createRegion(key, pathString){
+    var g = svgEl('g', { class: 'region', tabindex: '0', role: 'button' });
+    var hit = svgEl('path', { class: 'region-hit', d: pathString });
+    g.appendChild(hit);
+    g.addEventListener('click', function(){ placePrime(key); });
+    g.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); placePrime(key); }
+    });
+    return g;
+  }
+
+  function buildRegions(){
+    var left = createRegion('left', leftOnlyPath());
+    left.setAttribute('id', 'region-left');
+    var right = createRegion('right', rightOnlyPath());
+    right.setAttribute('id', 'region-right');
+    var overlap = createRegion('overlap', lensPath());
+    overlap.setAttribute('id', 'region-overlap');
+
+    svgRoot.insertBefore(left, svgDynamic);
+    svgRoot.insertBefore(right, svgDynamic);
+    svgRoot.insertBefore(overlap, svgDynamic);
+
+    regionEls.left = left;
+    regionEls.right = right;
+    regionEls.overlap = overlap;
+  }
+
+  function primesOf(list){
+    var out = [];
+    for (var i = 0; i < list.length; i++) out.push(list[i].p);
+    return out;
+  }
+
+  function regionAriaLabel(key){
+    var contents = primesOf(state.regions[key]);
+    return REGION_NAMES[key] + ' region, currently holding ' +
+      (contents.length ? contents.join(', ') : 'nothing');
+  }
+
+  function setMessage(text){
+    messageEl.textContent = text;
+  }
+
+  function toggleArm(prime){
+    if (state.armed === prime){
+      state.armed = null;
+      setMessage('');
+    } else {
+      state.armed = prime;
+      setMessage(prime + ' is ready — click a region to place it.');
+    }
+    renderPicker();
+  }
+
+  function placePrime(key){
+    if (state.armed === null){
+      setMessage('Pick a prime from the picker first.');
+      return;
+    }
+    state.regions[key].push({ id: state.nextId++, p: state.armed });
+    setMessage('Placed ' + state.armed + ' in the ' + REGION_NAMES[key] + ' region.');
+    render();
+  }
+
+  function renderPicker(){
+    picker.innerHTML = '';
+    for (var i = 0; i < PRIMES.length; i++){
+      (function(prime){
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'prime-chip';
+        btn.textContent = String(prime);
+        btn.setAttribute('aria-pressed', state.armed === prime ? 'true' : 'false');
+        btn.addEventListener('click', function(){ toggleArm(prime); });
+        picker.appendChild(btn);
+      })(PRIMES[i]);
+    }
+  }
+
+  function renderTokens(){
+    svgDynamic.innerHTML = '';
+    var keys = ['left', 'overlap', 'right'];
+    for (var k = 0; k < keys.length; k++){
+      var key = keys[k];
+      var list = state.regions[key];
+      if (list.length === 0) continue;
+      var anchor = REGION_ANCHOR[key];
+      var rows = Math.ceil(list.length / 2);
+      var blockHeight = rows * 32 + (rows - 1) * 8;
+      var firstRowTop = anchor[1] - blockHeight / 2;
+      for (var idx = 0; idx < list.length; idx++){
+        var row = Math.floor(idx / 2);
+        var col = idx % 2;
+        var itemsInRow = Math.min(2, list.length - row * 2);
+        var rowWidth = itemsInRow * 54 + (itemsInRow - 1) * 8;
+        var rowLeft = anchor[0] - rowWidth / 2;
+        var x = rowLeft + col * (54 + 8);
+        var y = firstRowTop + row * (32 + 8);
+        var entry = list[idx];
+
+        var g = svgEl('g', { class: 'placed-chip' });
+        g.appendChild(svgEl('rect', { x: x, y: y, width: 54, height: 32, rx: 8 }));
+        var text = svgEl('text', { x: x + 27, y: y + 16 });
+        text.textContent = String(entry.p);
+        g.appendChild(text);
+        svgDynamic.appendChild(g);
+      }
+    }
+  }
+
+  function renderProducts(){
+    productLeftEl.textContent = formatProduct(primesOf(state.regions.left));
+    productOverlapEl.textContent = formatProduct(primesOf(state.regions.overlap));
+    productRightEl.textContent = formatProduct(primesOf(state.regions.right));
+  }
+
+  function refreshRegionLabels(){
+    regionEls.left.setAttribute('aria-label', regionAriaLabel('left'));
+    regionEls.overlap.setAttribute('aria-label', regionAriaLabel('overlap'));
+    regionEls.right.setAttribute('aria-label', regionAriaLabel('right'));
+  }
+
+  function render(){
+    renderPicker();
+    renderTokens();
+    renderProducts();
+    refreshRegionLabels();
+  }
+
+  window.addEventListener('load', function(){
+    buildStatic();
+    buildRegions();
+    state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
+    state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
+    state.regions.right = [ { id: state.nextId++, p: 7 } ];
+    render();
+  });
+
+})();
+</script>
+</body>
+</html>
