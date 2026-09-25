@@ -95,6 +95,12 @@ None yet.
 - [Phase 3] CRT's combined modulus can overflow `Number` precision even with small individual moduli — implement CRT's core arithmetic in `BigInt` from day one, following the RSA tool's precedent.
 - [Phase 4] Continued Fractions must explicitly label truncation for irrational/decimal inputs (float precision otherwise falsely implies the expansion terminates).
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260925-pbw | Rename Christmas Trees folder to Factor Tree | 2026-09-25 | 018fe19 | [260925-pbw-rename-christmas-trees-folder-to-factor-](./quick/260925-pbw-rename-christmas-trees-folder-to-factor-/) |
+
 ## Deferred Items
 
 Items acknowledged and deferred at milestone close, most recent first:
@@ -108,3 +114,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 Last session: 2026-09-24T20:26:03.666Z
 Stopped at: Completed 01-06-PLAN.md — gap closure plan for Phase 01 UAT (G-01-1a, G-01-1b) both closed and verified
 Resume file: None
+
+Last activity: 2026-09-25 - Completed quick task 260925-pbw: Rename Christmas Trees folder to Factor Tree
