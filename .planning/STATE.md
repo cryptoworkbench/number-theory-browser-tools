@@ -102,6 +102,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260925-pbw | Rename Christmas Trees folder to Factor Tree | 2026-09-25 | 018fe19 | [260925-pbw-rename-christmas-trees-folder-to-factor-](./quick/260925-pbw-rename-christmas-trees-folder-to-factor-/) |
 | 260925-pw2 | Create Venn Diagrams tool (two-circle prime intersection visualizer) | 2026-09-25 | 37e57f3, 1f28927, 9222b06 | [260925-pw2-create-venn-diagrams-tool-two-circle-ven](./quick/260925-pw2-create-venn-diagrams-tool-two-circle-ven/) |
+| 260925-qpp | Fix Venn Diagrams product display format (combined region = factors = product lines, rename overlap to "middle only") | 2026-09-25 | 374d7dd | [260925-qpp-fix-product-display-format-in-venn-diagr](./quick/260925-qpp-fix-product-display-format-in-venn-diagr/) |
 
 ## Deferred Items
 
@@ -114,7 +115,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-25T17:09:03.075Z
-Stopped at: Completed quick task 260925-pw2: Create Venn Diagrams tool (two-circle prime intersection visualizer)
+Stopped at: Completed quick task 260925-qpp: Fix Venn Diagrams product display format
 Resume file: None
 
-Last activity: 2026-09-25 - Completed quick task 260925-pw2: Create Venn Diagrams tool (two-circle prime intersection visualizer)
+Last activity: 2026-09-25 - Completed quick task 260925-qpp: Fix Venn Diagrams product display format
