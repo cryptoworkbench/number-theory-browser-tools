@@ -244,6 +244,12 @@
   <section class="panel">
     <svg id="stageSvg" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" role="img"
       aria-label="Diffie-Hellman key exchange diagram: Alice on the left, Bob on the right, a wire between them tapped by Eve"></svg>
+    <div class="legend">
+      <span class="item"><span class="swatch alice"></span> Alice</span>
+      <span class="item"><span class="swatch bob"></span> Bob</span>
+      <span class="item"><span class="swatch eve"></span> Eve</span>
+      <span class="item"><span class="swatch moving"></span> Value in transit / current step</span>
+    </div>
   </section>
 
   <section class="panel">
@@ -681,9 +687,181 @@ function revealAll(ex){
   }
 }
 
+/* ---------- playback ---------- */
+
+let playing = false;
+let rafId = null;
+let lastAdvance = 0;
+let generation = 0; // bumped on every rebuild/reset so stale rAF callbacks can bail
+let tweenFrame = null;
+
+const SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
+const SPEED_MS = {1:2600,2:2000,3:1500,4:1100,5:800,6:550,7:380,8:250,9:160,10:90};
+
+function easeInOutCubic(t){
+  return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2;
+}
+
+function sendPacket(fromX, toX, y, label, myGen){
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const group = svgEl('g', {class:'packet'});
+  const rect = svgEl('rect', {x:-32, y:-12, width:64, height:24, rx:6});
+  const text = svgEl('text', {x:0, y:4, 'text-anchor':'middle', 'font-size':'11'});
+  text.textContent = label;
+  group.appendChild(rect);
+  group.appendChild(text);
+  stageSvg.appendChild(group);
+
+  function place(x){
+    group.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+  }
+
+  if (reduceMotion){
+    place(toX);
+    if (group.parentNode) group.parentNode.removeChild(group);
+    return;
+  }
+
+  const duration = Math.max(200, (SPEED_MS[parseInt(speedInput.value, 10)] || 800) * 0.8);
+  const t0 = performance.now();
+  place(fromX);
+
+  function frame(now){
+    if (myGen !== generation) { tweenFrame = null; return; } // generation guard: stale rebuild, bail
+    const t = Math.min(1, (now - t0) / duration);
+    const e = easeInOutCubic(t);
+    place(fromX + (toX - fromX) * e);
+    if (t < 1){
+      tweenFrame = requestAnimationFrame(frame);
+    } else {
+      tweenFrame = null;
+      if (group.parentNode) group.parentNode.removeChild(group);
+    }
+  }
+  tweenFrame = requestAnimationFrame(frame);
+}
+
+function advanceOne(){
+  const ex = currentExchange;
+  const step = ex.steps[stepIndex];
+  const myGen = generation;
+  renderStep(step, ex);
+  stepIndex++;
+  if (step.id === 'sendAliceToBob'){
+    sendPacket(300, 600, 120, shortVal(ex.publicAlice), myGen);
+  } else if (step.id === 'sendBobToAlice'){
+    sendPacket(600, 300, 120, shortVal(ex.publicBob), myGen);
+  }
+}
+
+function frameStep(ts){
+  if (!playing) return;
+  if (!lastAdvance) lastAdvance = ts;
+  const dwell = SPEED_MS[parseInt(speedInput.value, 10)] || SPEED_MS[4];
+  if (ts - lastAdvance >= dwell){
+    advanceOne();
+    lastAdvance = ts;
+  }
+  if (!currentExchange || stepIndex >= currentExchange.steps.length){
+    pause();
+    return;
+  }
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function play(){
+  if (playing || !currentExchange || stepIndex >= currentExchange.steps.length) return;
+  playing = true;
+  playBtn.textContent = '⏸ Pause';
+  stepBtn.disabled = true;
+  lastAdvance = 0;
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function pause(){
+  if (!playing){
+    playBtn.textContent = '▶ Play';
+    stepBtn.disabled = !currentExchange || stepIndex >= currentExchange.steps.length;
+    return;
+  }
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = !currentExchange || stepIndex >= currentExchange.steps.length;
+}
+
+function stepOnce(){
+  if (playing || !currentExchange || stepIndex >= currentExchange.steps.length) return;
+  advanceOne();
+  if (stepIndex >= currentExchange.steps.length){
+    stepBtn.disabled = true;
+    playBtn.textContent = '▶ Play';
+  }
+}
+
+function instantFinish(){
+  pause();
+  if (currentExchange) revealAll(currentExchange);
+  stepBtn.disabled = true;
+  playBtn.textContent = '▶ Play';
+}
+
+function resetPlayback(){
+  pause();
+  generation++; // invalidate any in-flight packet tween from the run being abandoned
+  if (tweenFrame) cancelAnimationFrame(tweenFrame);
+  tweenFrame = null;
+  stepIndex = 0;
+  const rows = stageSvg.querySelectorAll('.svg-row');
+  for (let i = 0; i < rows.length; i++){ rows[i].style.opacity = ''; rows[i].classList.remove('is-active'); }
+  mathLog.innerHTML = '';
+  eveNotebook.innerHTML = '';
+  eveProblem.innerHTML = '';
+  eveProblem.hidden = true;
+  aesLine.textContent = '';
+  aesLine.hidden = true;
+  stepBtn.disabled = false;
+  playBtn.textContent = '▶ Play';
+  banner.textContent = 'Ready — press Play to watch the exchange build step by step.';
+}
+
+/* ---------- persistence ---------- */
+
+const STORAGE_KEY = 'diffie-hellman-key-exchange';
+
+function persistState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      p: pInput.value, g: gInput.value, a: aInput.value, b: bInput.value, speed: speedInput.value
+    }));
+  } catch(e){ /* localStorage unavailable (e.g. file:// origin) — silently fall back */ }
+}
+
+function restoreState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (saved.p) pInput.value = saved.p;
+    if (saved.g) gInput.value = saved.g;
+    if (saved.a) aInput.value = saved.a;
+    if (saved.b) bInput.value = saved.b;
+    if (saved.speed) speedInput.value = saved.speed;
+    return true;
+  } catch(e){ return false; }
+}
+
 function rebuild(){
   const parsed = readInputs();
   if (!parsed) return;
+  generation++; // a rebuild abandons the current run; every stale rAF callback checks this
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  if (tweenFrame) cancelAnimationFrame(tweenFrame);
+  tweenFrame = null;
+  playing = false;
+  lastAdvance = 0;
   const ex = buildExchange(parsed.p, parsed.g, parsed.a, parsed.b);
   currentExchange = ex;
   buildStage(ex);
@@ -694,10 +872,21 @@ function rebuild(){
   aesLine.textContent = '';
   aesLine.hidden = true;
   stepIndex = 0;
-  revealAll(ex);
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = false;
+  instantFinish();
+  banner.textContent = 'Full exchange shown below. Press Reset then Play to watch it build step by step.';
+  persistState();
 }
 
 buildBtn.addEventListener('click', rebuild);
+playBtn.addEventListener('click', () => { playing ? pause() : play(); });
+stepBtn.addEventListener('click', stepOnce);
+instantBtn.addEventListener('click', instantFinish);
+resetBtn.addEventListener('click', resetPlayback);
+speedInput.addEventListener('input', () => {
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+});
 
 [pInput, gInput, aInput, bInput].forEach((inp) => {
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') rebuild(); });
@@ -748,10 +937,15 @@ genPrimeBtn.addEventListener('click', () => {
 });
 
 window.addEventListener('load', () => {
-  pInput.value = '23';
-  gInput.value = '5';
-  aInput.value = '6';
-  bInput.value = '15';
+  const restored = restoreState();
+  if (!restored){
+    pInput.value = '23';
+    gInput.value = '5';
+    aInput.value = '6';
+    bInput.value = '15';
+    speedInput.value = '4';
+  }
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
   rebuild();
 });
 
