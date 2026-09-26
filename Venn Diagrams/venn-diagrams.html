@@ -416,15 +416,6 @@
     return a;
   }
 
-  function formatSide(onlyList, sharedList){
-    var segments = [];
-    if (onlyList.length) segments.push(onlyList.join(' * ') + ' (only)');
-    if (sharedList.length) segments.push(sharedList.join(' * ') + ' (shared)');
-    var head = segments.length ? segments.join(' * ') : '(empty)';
-    var total = productOf(onlyList) * productOf(sharedList);
-    return head + ' = ' + total;
-  }
-
   function formatSegments(parts){
     var segments = [];
     var allPrimes = [];
@@ -468,7 +459,7 @@
   var productRightEl = document.getElementById('product-right');
 
   var PRIMES = buildPalette(12);
-  var REGION_NAMES = { left: 'left only', overlap: 'overlap', right: 'right only' };
+  var REGION_NAMES = { left: 'Left \\ Right', overlap: 'Left ∩ Right', right: 'Right \\ Left' };
   var REGION_ANCHOR = { left: [275, 250], overlap: [450, 250], right: [625, 250] };
   var regionEls = { left: null, overlap: null, right: null };
 
@@ -558,13 +549,13 @@
   };
 
   var REGION_NAMES3 = {
-    aOnly: 'A only',
-    bOnly: 'B only',
-    cOnly: 'C only',
-    ab: 'A∩B only',
-    ac: 'A∩C only',
-    bc: 'B∩C only',
-    abc: 'all three'
+    aOnly: 'A \\ (B ∪ C)',
+    bOnly: 'B \\ (A ∪ C)',
+    cOnly: 'C \\ (A ∪ B)',
+    ab: '(A∩B) \\ C',
+    ac: '(A∩C) \\ B',
+    bc: '(B∩C) \\ A',
+    abc: 'A∩B∩C'
   };
 
   var REGION_KEYS3 = ['aOnly', 'bOnly', 'cOnly', 'ab', 'ac', 'bc', 'abc'];
@@ -1025,9 +1016,15 @@
     var leftTotal = productOf(leftOnlyList) * productOf(sharedList);
     var rightTotal = productOf(rightOnlyList) * productOf(sharedList);
 
-    productLeftEl.textContent = 'Left = ' + formatSide(leftOnlyList, sharedList);
+    productLeftEl.textContent = 'Left = ' + formatSegments([
+      { list: leftOnlyList, note: REGION_NAMES.left },
+      { list: sharedList, note: REGION_NAMES.overlap }
+    ]);
     productOverlapEl.textContent = 'Overlap = GCD(' + leftTotal + ', ' + rightTotal + ') = ' + gcd(leftTotal, rightTotal);
-    productRightEl.textContent = 'Right = ' + formatSide(rightOnlyList, sharedList);
+    productRightEl.textContent = 'Right = ' + formatSegments([
+      { list: rightOnlyList, note: REGION_NAMES.right },
+      { list: sharedList, note: REGION_NAMES.overlap }
+    ]);
   }
 
   function refreshRegionLabels(){
@@ -1081,7 +1078,7 @@
 
     if (productAEl){
       productAEl.textContent = 'A = ' + formatSegments([
-        { list: aOnly, note: 'only' },
+        { list: aOnly, note: REGION_NAMES3.aOnly },
         { list: ab, note: 'with B' },
         { list: ac, note: 'with C' },
         { list: abc, note: 'all three' }
@@ -1089,7 +1086,7 @@
     }
     if (productBEl){
       productBEl.textContent = 'B = ' + formatSegments([
-        { list: bOnly, note: 'only' },
+        { list: bOnly, note: REGION_NAMES3.bOnly },
         { list: ab, note: 'with A' },
         { list: bc, note: 'with C' },
         { list: abc, note: 'all three' }
@@ -1097,7 +1094,7 @@
     }
     if (productCEl){
       productCEl.textContent = 'C = ' + formatSegments([
-        { list: cOnly, note: 'only' },
+        { list: cOnly, note: REGION_NAMES3.cOnly },
         { list: ac, note: 'with A' },
         { list: bc, note: 'with B' },
         { list: abc, note: 'all three' }
