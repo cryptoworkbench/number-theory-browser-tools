@@ -47,8 +47,8 @@ Requirements for this milestone (three new number-theory tools + site-wide palet
 
 ### Site Navigation
 
-- [ ] **NAV-01**: `index.html` hub and every tool's shared nav header list all eight tools, with the current tool marked active
-- [ ] **NAV-02**: Each new tool follows the established architecture — one top-level directory, one self-contained `.html` file, inline `<style>`/`<script>`, no external JS dependency beyond Google Fonts
+- [x] **NAV-01**: `index.html` hub and every tool's shared nav header list all eight tools, with the current tool marked active
+- [x] **NAV-02**: Each new tool follows the established architecture — one top-level directory, one self-contained `.html` file, inline `<style>`/`<script>`, no external JS dependency beyond Google Fonts
 
 ## v2 Requirements
 
@@ -112,8 +112,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CF-06 | Phase 4 | Pending |
 | CF-07 | Phase 4 | Pending |
 | CF-08 | Phase 4 | Pending |
-| NAV-01 | Phase 4 | Pending |
-| NAV-02 | Phase 2 | Pending |
+| NAV-01 | Phase 4 | Complete |
+| NAV-02 | Phase 2 | Complete |
 
 **Coverage:**
 
