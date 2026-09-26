@@ -109,6 +109,8 @@
   .svg-row.is-active{ fill:var(--role-active); font-weight:700; }
   .packet rect{ fill:var(--overlay); stroke:var(--panel-border-strong); }
   .packet text{ fill:var(--text); font-family:'JetBrains Mono','Consolas',monospace; }
+  .packet.tapped rect{ fill:var(--role-warn-soft); stroke:var(--role-warn); }
+  .packet.tapped text{ fill:var(--role-warn); }
 
   .substep{ background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; }
   .substep + .substep{ margin-top:10px; }
@@ -467,13 +469,13 @@ function buildStage(ex){
   bobLabel.textContent = 'Bob';
   stageSvg.appendChild(bobLabel);
 
-  stageSvg.appendChild(svgEl('line', {x1:300, y1:120, x2:600, y2:120, stroke:'var(--text-dim)', 'stroke-width':2, 'stroke-dasharray':'6,6'}));
+  stageSvg.appendChild(svgEl('line', {x1:ALICE_X, y1:WIRE_Y, x2:BOB_X, y2:WIRE_Y, stroke:'var(--text-dim)', 'stroke-width':2, 'stroke-dasharray':'6,6'}));
 
-  stageSvg.appendChild(svgEl('rect', {x:330, y:350, width:240, height:80, rx:12, fill:'var(--role-warn-soft)', stroke:'var(--role-warn)', 'stroke-width':2, 'stroke-dasharray':'5,4'}));
+  stageSvg.appendChild(svgEl('rect', {x:330, y:EVE_BOX_TOP, width:240, height:80, rx:12, fill:'var(--role-warn-soft)', stroke:'var(--role-warn)', 'stroke-width':2, 'stroke-dasharray':'5,4'}));
   const eveLabel = svgEl('text', {x:450, y:344, 'text-anchor':'middle', fill:'var(--role-warn)', 'font-weight':'700', 'font-size':'14'});
   eveLabel.textContent = 'Eve — tapping the wire';
   stageSvg.appendChild(eveLabel);
-  stageSvg.appendChild(svgEl('line', {x1:450, y1:120, x2:450, y2:350, stroke:'var(--role-warn)', 'stroke-width':2, 'stroke-dasharray':'4,4'}));
+  stageSvg.appendChild(svgEl('line', {x1:TAP_X, y1:WIRE_Y, x2:TAP_X, y2:EVE_BOX_TOP, stroke:'var(--role-warn)', 'stroke-width':2, 'stroke-dasharray':'4,4'}));
   const tapLabel = svgEl('text', {x:450, y:108, 'text-anchor':'middle', fill:'var(--role-warn)', 'font-size':'13'});
   tapLabel.textContent = '🕵 tap';
   stageSvg.appendChild(tapLabel);
@@ -496,10 +498,10 @@ function buildStage(ex){
   row(635, 240, 'svgBobReceived');
   row(635, 290, 'svgBobSecret');
 
-  row(340, 365, 'svgEveP');
-  row(340, 380, 'svgEveG');
-  row(340, 395, 'svgEveA');
-  row(340, 410, 'svgEveB');
+  row(340, EVE_P_Y, 'svgEveP');
+  row(340, EVE_G_Y, 'svgEveG');
+  row(340, EVE_A_Y, 'svgEveA');
+  row(340, EVE_B_Y, 'svgEveB');
 }
 
 function clearActive(){
@@ -514,16 +516,16 @@ function showRow(id, text){
   el.classList.add('is-active');
 }
 
-function renderNotebook(ex, revealed){
+function renderNotebook(ex){
   const dash = '—';
   eveNotebook.innerHTML =
     '<div class="notebook">' +
       '<h4>Eve’s notebook — everything she has recorded off the wire</h4>' +
       '<div class="grid">' +
-        '<div>p = ' + (revealed.p ? fmt(ex.p) : dash) + '</div>' +
-        '<div>g = ' + (revealed.g ? fmt(ex.g) : dash) + '</div>' +
-        '<div>A = ' + (revealed.a ? fmt(ex.publicAlice) : dash) + '</div>' +
-        '<div>B = ' + (revealed.b ? fmt(ex.publicBob) : dash) + '</div>' +
+        '<div>p = ' + (eveRevealed.p ? fmt(ex.p) : dash) + '</div>' +
+        '<div>g = ' + (eveRevealed.g ? fmt(ex.g) : dash) + '</div>' +
+        '<div>A = ' + (eveRevealed.a ? fmt(ex.publicAlice) : dash) + '</div>' +
+        '<div>B = ' + (eveRevealed.b ? fmt(ex.publicBob) : dash) + '</div>' +
       '</div>' +
       '<div class="never">She does <strong>not</strong> have: Alice’s a, Bob’s b, or the shared secret. Those never touched the wire.</div>' +
     '</div>';
@@ -631,7 +633,7 @@ function appendLogEntry(step, ex){
   mathLog.appendChild(div);
 }
 
-function renderStep(step, ex){
+function renderStep(step, ex, suppressEve){
   clearActive();
   switch(step.id){
     case 'agree':
@@ -639,7 +641,9 @@ function renderStep(step, ex){
       showRow('svgBobPg', 'p=' + shortVal(ex.p) + ', g=' + shortVal(ex.g));
       showRow('svgEveP', 'p = ' + shortVal(ex.p));
       showRow('svgEveG', 'g = ' + shortVal(ex.g));
-      renderNotebook(ex, {p:true, g:true, a:false, b:false});
+      eveRevealed.p = true;
+      eveRevealed.g = true;
+      renderNotebook(ex);
       break;
     case 'alicePicks':
       showRow('svgAliceA', 'a=' + shortVal(ex.a) + ' (never sent)');
@@ -655,13 +659,11 @@ function renderStep(step, ex){
       break;
     case 'sendAliceToBob':
       showRow('svgBobReceived', 'received A=' + shortVal(ex.publicAlice));
-      showRow('svgEveA', 'A = ' + shortVal(ex.publicAlice));
-      renderNotebook(ex, {p:true, g:true, a:true, b:false});
+      if (!suppressEve) recordEveIntercept(ex, 'a');
       break;
     case 'sendBobToAlice':
       showRow('svgAliceReceived', 'received B=' + shortVal(ex.publicBob));
-      showRow('svgEveB', 'B = ' + shortVal(ex.publicBob));
-      renderNotebook(ex, {p:true, g:true, a:true, b:true});
+      if (!suppressEve) recordEveIntercept(ex, 'b');
       break;
     case 'aliceComputesSecret':
       showRow('svgAliceSecret', 'secret=' + shortVal(ex.secretAlice));
@@ -682,7 +684,7 @@ function renderStep(step, ex){
 
 function revealAll(ex){
   while (stepIndex < ex.steps.length){
-    renderStep(ex.steps[stepIndex], ex);
+    renderStep(ex.steps[stepIndex], ex, false);
     stepIndex++;
   }
 }
@@ -693,64 +695,153 @@ let playing = false;
 let rafId = null;
 let lastAdvance = 0;
 let generation = 0; // bumped on every rebuild/reset so stale rAF callbacks can bail
-let tweenFrame = null;
+
+// Every setTimeout id waiting to spawn a delayed (siphoned) packet, and every packet
+// currently in flight (its pending rAF id plus its DOM node) — cancelPackets() below
+// is the single place that tears all of this down at once.
+let pendingTimeouts = new Set();
+let activePackets = [];
+
+// Monotonic record of what Eve has intercepted this run. Flags only ever go from unset
+// to set — resetPlayback()/rebuild() are the only places that clear them — so a notebook
+// render triggered by a late-arriving packet can never un-reveal a value a newer arrival
+// already revealed.
+let eveRevealed = { p:false, g:false, a:false, b:false };
 
 const SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
 const SPEED_MS = {1:2600,2:2000,3:1500,4:1100,5:800,6:550,7:380,8:250,9:160,10:90};
+
+// Stage geometry shared between buildStage()'s drawn lines/rows and the packets that
+// travel along them, so the drawn line and the travelled path can never drift apart.
+const WIRE_Y = 120;
+const ALICE_X = 300;
+const BOB_X = 600;
+const TAP_X = 450;
+const EVE_BOX_TOP = 350;
+const EVE_P_Y = 365;
+const EVE_G_Y = 380;
+const EVE_A_Y = 395;
+const EVE_B_Y = 410;
 
 function easeInOutCubic(t){
   return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2;
 }
 
-function sendPacket(fromX, toX, y, label, myGen){
-  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const group = svgEl('g', {class:'packet'});
-  const rect = svgEl('rect', {x:-32, y:-12, width:64, height:24, rx:6});
-  const text = svgEl('text', {x:0, y:4, 'text-anchor':'middle', 'font-size':'11'});
-  text.textContent = label;
-  group.appendChild(rect);
-  group.appendChild(text);
-  stageSvg.appendChild(group);
+function packetDuration(){
+  return Math.max(200, (SPEED_MS[parseInt(speedInput.value, 10)] || 800) * 0.8);
+}
 
-  function place(x){
-    group.setAttribute('transform', 'translate(' + x + ',' + y + ')');
-  }
+// options: fromX, fromY, toX, toY, label, gen, tapped (bool), delay (ms), duration (ms,
+// defaults to packetDuration()), onArrive (called exactly once, right before the group
+// is removed — on both the animated path and the reduced-motion path).
+function sendPacket(options){
+  const fromX = options.fromX, fromY = options.fromY, toX = options.toX, toY = options.toY;
+  const label = options.label, gen = options.gen, tapped = options.tapped, onArrive = options.onArrive;
+  const duration = options.duration || packetDuration();
 
-  if (reduceMotion){
-    place(toX);
-    if (group.parentNode) group.parentNode.removeChild(group);
-    return;
-  }
+  function launch(){
+    if (gen !== generation) return; // generation guard: run already abandoned, never spawn
 
-  const duration = Math.max(200, (SPEED_MS[parseInt(speedInput.value, 10)] || 800) * 0.8);
-  const t0 = performance.now();
-  place(fromX);
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const group = svgEl('g', {class: tapped ? 'packet tapped' : 'packet'});
+    const rect = svgEl('rect', {x:-32, y:-12, width:64, height:24, rx:6});
+    const text = svgEl('text', {x:0, y:4, 'text-anchor':'middle', 'font-size':'11'});
+    text.textContent = label;
+    group.appendChild(rect);
+    group.appendChild(text);
+    stageSvg.appendChild(group);
 
-  function frame(now){
-    if (myGen !== generation) { tweenFrame = null; return; } // generation guard: stale rebuild, bail
-    const t = Math.min(1, (now - t0) / duration);
-    const e = easeInOutCubic(t);
-    place(fromX + (toX - fromX) * e);
-    if (t < 1){
-      tweenFrame = requestAnimationFrame(frame);
-    } else {
-      tweenFrame = null;
-      if (group.parentNode) group.parentNode.removeChild(group);
+    function place(x, y){
+      group.setAttribute('transform', 'translate(' + x + ',' + y + ')');
     }
+
+    if (reduceMotion){
+      place(toX, toY);
+      if (group.parentNode) group.parentNode.removeChild(group);
+      if (onArrive) onArrive();
+      return;
+    }
+
+    place(fromX, fromY);
+    const entry = { rafId:null, node:group };
+    activePackets.push(entry);
+    let t0 = null;
+
+    function frame(now){
+      if (gen !== generation) { entry.rafId = null; return; } // stale rebuild; cancelPackets() already tore this down
+      if (t0 === null) t0 = now;
+      const t = Math.min(1, (now - t0) / duration);
+      const e = easeInOutCubic(t);
+      place(fromX + (toX - fromX) * e, fromY + (toY - fromY) * e);
+      if (t < 1){
+        entry.rafId = requestAnimationFrame(frame);
+      } else {
+        entry.rafId = null;
+        if (group.parentNode) group.parentNode.removeChild(group);
+        const idx = activePackets.indexOf(entry);
+        if (idx !== -1) activePackets.splice(idx, 1);
+        if (onArrive) onArrive();
+      }
+    }
+    entry.rafId = requestAnimationFrame(frame);
   }
-  tweenFrame = requestAnimationFrame(frame);
+
+  if (options.delay && options.delay > 0){
+    const timeoutId = setTimeout(function(){
+      pendingTimeouts.delete(timeoutId);
+      launch();
+    }, options.delay);
+    pendingTimeouts.add(timeoutId);
+  } else {
+    launch();
+  }
+}
+
+// Tears down every in-flight packet at once: pending spawn timers, pending animation
+// frames, and the DOM nodes themselves. Called from resetPlayback(), rebuild() and
+// instantFinish() so nothing is ever left stranded on the stage or writing into a
+// rebuilt run.
+function cancelPackets(){
+  pendingTimeouts.forEach(function(id){ clearTimeout(id); });
+  pendingTimeouts.clear();
+  for (let i = 0; i < activePackets.length; i++){
+    const p = activePackets[i];
+    if (p.rafId) cancelAnimationFrame(p.rafId);
+    if (p.node && p.node.parentNode) p.node.parentNode.removeChild(p.node);
+  }
+  activePackets.length = 0;
+}
+
+// The only place in the file that reveals Eve's A or B row/notebook line. `which` is
+// 'a' or 'b'.
+function recordEveIntercept(ex, which){
+  if (which === 'a'){
+    eveRevealed.a = true;
+    showRow('svgEveA', 'A = ' + shortVal(ex.publicAlice));
+  } else if (which === 'b'){
+    eveRevealed.b = true;
+    showRow('svgEveB', 'B = ' + shortVal(ex.publicBob));
+  }
+  renderNotebook(ex);
 }
 
 function advanceOne(){
   const ex = currentExchange;
   const step = ex.steps[stepIndex];
   const myGen = generation;
-  renderStep(step, ex);
+  renderStep(step, ex, true);
   stepIndex++;
   if (step.id === 'sendAliceToBob'){
-    sendPacket(300, 600, 120, shortVal(ex.publicAlice), myGen);
+    sendPacket({ fromX:ALICE_X, fromY:WIRE_Y, toX:BOB_X, toY:WIRE_Y, label:shortVal(ex.publicAlice), gen:myGen });
+    const half = packetDuration() / 2;
+    sendPacket({
+      fromX:TAP_X, fromY:WIRE_Y, toX:TAP_X, toY:EVE_A_Y - 4,
+      label:shortVal(ex.publicAlice), gen:myGen, tapped:true,
+      delay:half, duration:half,
+      onArrive:function(){ recordEveIntercept(ex, 'a'); }
+    });
   } else if (step.id === 'sendBobToAlice'){
-    sendPacket(600, 300, 120, shortVal(ex.publicBob), myGen);
+    sendPacket({ fromX:BOB_X, fromY:WIRE_Y, toX:ALICE_X, toY:WIRE_Y, label:shortVal(ex.publicBob), gen:myGen });
   }
 }
 
@@ -805,6 +896,7 @@ function stepOnce(){
 
 function instantFinish(){
   pause();
+  cancelPackets(); // Instant mid-flight must not leave a siphon running into the rebuilt stage
   if (currentExchange) revealAll(currentExchange);
   stepBtn.disabled = true;
   playBtn.textContent = '▶ Play';
@@ -813,9 +905,9 @@ function instantFinish(){
 function resetPlayback(){
   pause();
   generation++; // invalidate any in-flight packet tween from the run being abandoned
-  if (tweenFrame) cancelAnimationFrame(tweenFrame);
-  tweenFrame = null;
+  cancelPackets();
   stepIndex = 0;
+  eveRevealed = { p:false, g:false, a:false, b:false };
   const rows = stageSvg.querySelectorAll('.svg-row');
   for (let i = 0; i < rows.length; i++){ rows[i].style.opacity = ''; rows[i].classList.remove('is-active'); }
   mathLog.innerHTML = '';
@@ -861,10 +953,10 @@ function rebuild(){
   generation++; // a rebuild abandons the current run; every stale rAF callback checks this
   if (rafId) cancelAnimationFrame(rafId);
   rafId = null;
-  if (tweenFrame) cancelAnimationFrame(tweenFrame);
-  tweenFrame = null;
+  cancelPackets();
   playing = false;
   lastAdvance = 0;
+  eveRevealed = { p:false, g:false, a:false, b:false };
   const ex = buildExchange(parsed.p, parsed.g, parsed.a, parsed.b);
   currentExchange = ex;
   buildStage(ex);
