@@ -116,6 +116,12 @@ None yet.
 | 260926-mbm | Extend Venn Diagram tool's prime palette to 26 primes (2-101) | 2026-09-26 | 7249fb0 | .planning/quick/260926-mbm-in-the-venn-diagram-tool-extend-the-palette-of-primes-which |
 | 260926-mbn | Show public exponents visually travel to Eve before recorded in her notebook | 2026-09-26 | 2ade039 | .planning/quick/260926-mbn-in-the-diffie-hellman-key-exchange-tool-when-public-exponent |
 | 260926-mbl | Fix naming incongruencies across tools (Pizza Slices -> Congruence Wheel, Prime Venn Diagram -> Venn Diagram, etc.) | 2026-09-26 | 481d5d0 | .planning/quick/260926-mbl-fix-naming-incongruencies-between-internal-names-ids-comment |
+| 260926-rb7 | Hide Venn Diagram set-theory notation behind native tooltips (title element on captions/regions) | 2026-09-26 | c40c0d8 | .planning/quick/260926-rb7-in-the-venn-diagram-tool-hide-set-theory-notation-e-g-a-b-a |
+| 260926-rb9 | Add SVG/PNG/print-to-PDF export to the Congruence Wheel tool | 2026-09-26 | 633f279 | .planning/quick/260926-rb9-add-png-and-pdf-download-options-to-the-congruence-wheel-too |
+| 260926-rb8 | Add Square And Multiply tool (modular exponentiation bit-ladder visualizer) with playback and RSA cost tie-in | 2026-09-26 | 051b962 | .planning/quick/260926-rb8-add-a-new-tool-page-that-shows-how-the-computer-performs-mod |
+| 260926-rba | Rename RSA Examplifier tool to RSA (dir/file via git mv, all links + living docs repointed) | 2026-09-26 | 03c6083 | .planning/quick/260926-rba-rename-the-rsa-examplifier-tool-to-simply-rsa-internal-file |
+| 260926-rbc | Add Shor's Algorithm tool (classical order-finding stand-in) with hard N<=4096 safeguard | 2026-09-26 | 05efe27 | .planning/quick/260926-rbc-add-a-new-browser-tool-that-explains-and-performs-small-fact |
+| 260926-rbb | Add CRT-assisted decryption toggle to RSA tool's Bob/Alice decrypt sections | 2026-09-26 | b79ce87 | .planning/quick/260926-rbb-in-the-rsa-tool-s-bob-decrypts-alice-decrypts-sections-add-a |
 
 ## Deferred Items
 
