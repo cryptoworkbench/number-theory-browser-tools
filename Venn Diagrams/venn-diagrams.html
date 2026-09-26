@@ -433,18 +433,25 @@
     return a;
   }
 
-  function formatSegments(parts){
-    var segments = [];
-    var allPrimes = [];
-    for (var i = 0; i < parts.length; i++){
-      var list = parts[i].list;
-      if (list.length){
-        segments.push(list.join(' * ') + ' (' + parts[i].note + ')');
-        allPrimes = allPrimes.concat(list);
-      }
+  var FACTOR_LIMIT = 100000;
+
+  function factorize(n){
+    var factors = [];
+    if (n < 2) return factors;
+    while (n % 2 === 0){
+      factors.push(2);
+      n = n / 2;
     }
-    var head = segments.length ? segments.join(' * ') : '(empty)';
-    return head + ' = ' + productOf(allPrimes);
+    var d = 3;
+    while (d * d <= n && d < FACTOR_LIMIT){
+      while (n % d === 0){
+        factors.push(d);
+        n = n / d;
+      }
+      d += 2;
+    }
+    if (n > 1) factors.push(n);
+    return factors;
   }
 
   function buildPalette(count){
@@ -1045,6 +1052,25 @@
     }
   }
 
+  function ascendingSort(list){
+    return list.sort(function(a, b){ return a - b; });
+  }
+
+  function factorTail(factors, product){
+    if (factors.length === 0) return '1';
+    if (factors.length === 1) return String(factors[0]);
+    return factors.join(' * ') + ' = ' + product;
+  }
+
+  function intersectionLine(label, totals, g){
+    var line = label + ' = ' + totals.join(' ∩ ') + ' = ' + g;
+    var gFactors = factorize(g);
+    if (gFactors.length >= 2){
+      line += ' = ' + gFactors.join(' * ');
+    }
+    return line;
+  }
+
   function renderProducts(){
     var leftOnlyList = primesOf(state.regions.left);
     var sharedList = primesOf(state.regions.overlap);
@@ -1053,15 +1079,12 @@
     var leftTotal = productOf(leftOnlyList) * productOf(sharedList);
     var rightTotal = productOf(rightOnlyList) * productOf(sharedList);
 
-    productLeftEl.textContent = 'A = ' + formatSegments([
-      { list: leftOnlyList, note: REGION_NAMES.left },
-      { list: sharedList, note: REGION_NAMES.overlap }
-    ]);
-    productOverlapEl.textContent = REGION_NAMES.overlap + ' = ' + leftTotal + ' ∩ ' + rightTotal + ' = ' + gcd(leftTotal, rightTotal);
-    productRightEl.textContent = 'B = ' + formatSegments([
-      { list: rightOnlyList, note: REGION_NAMES.right },
-      { list: sharedList, note: REGION_NAMES.overlap }
-    ]);
+    var leftFactors = ascendingSort(leftOnlyList.concat(sharedList));
+    var rightFactors = ascendingSort(rightOnlyList.concat(sharedList));
+
+    productLeftEl.textContent = 'A = ' + factorTail(leftFactors, leftTotal);
+    productRightEl.textContent = 'B = ' + factorTail(rightFactors, rightTotal);
+    productOverlapEl.textContent = intersectionLine(REGION_NAMES.overlap, [leftTotal, rightTotal], gcd(leftTotal, rightTotal));
   }
 
   function refreshRegionLabels(){
@@ -1114,41 +1137,29 @@
     var totalC = productOf(cOnly.concat(ac, bc, abc));
 
     if (productAEl){
-      productAEl.textContent = 'A = ' + formatSegments([
-        { list: aOnly, note: REGION_NAMES3.aOnly },
-        { list: ab, note: 'with B' },
-        { list: ac, note: 'with C' },
-        { list: abc, note: 'all three' }
-      ]);
+      var aFactors = ascendingSort(aOnly.concat(ab, ac, abc));
+      productAEl.textContent = 'A = ' + factorTail(aFactors, totalA);
     }
     if (productBEl){
-      productBEl.textContent = 'B = ' + formatSegments([
-        { list: bOnly, note: REGION_NAMES3.bOnly },
-        { list: ab, note: 'with A' },
-        { list: bc, note: 'with C' },
-        { list: abc, note: 'all three' }
-      ]);
+      var bFactors = ascendingSort(bOnly.concat(ab, bc, abc));
+      productBEl.textContent = 'B = ' + factorTail(bFactors, totalB);
     }
     if (productCEl){
-      productCEl.textContent = 'C = ' + formatSegments([
-        { list: cOnly, note: REGION_NAMES3.cOnly },
-        { list: ac, note: 'with A' },
-        { list: bc, note: 'with B' },
-        { list: abc, note: 'all three' }
-      ]);
+      var cFactors = ascendingSort(cOnly.concat(ac, bc, abc));
+      productCEl.textContent = 'C = ' + factorTail(cFactors, totalC);
     }
 
     if (productAbEl){
-      productAbEl.textContent = 'A∩B = ' + totalA + ' ∩ ' + totalB + ' = ' + gcd(totalA, totalB);
+      productAbEl.textContent = intersectionLine('A ∩ B', [totalA, totalB], gcd(totalA, totalB));
     }
     if (productAcEl){
-      productAcEl.textContent = 'A∩C = ' + totalA + ' ∩ ' + totalC + ' = ' + gcd(totalA, totalC);
+      productAcEl.textContent = intersectionLine('A ∩ C', [totalA, totalC], gcd(totalA, totalC));
     }
     if (productBcEl){
-      productBcEl.textContent = 'B∩C = ' + totalB + ' ∩ ' + totalC + ' = ' + gcd(totalB, totalC);
+      productBcEl.textContent = intersectionLine('B ∩ C', [totalB, totalC], gcd(totalB, totalC));
     }
     if (productAbcEl){
-      productAbcEl.textContent = 'A∩B∩C = ' + totalA + ' ∩ ' + totalB + ' ∩ ' + totalC + ' = ' + gcd(gcd(totalA, totalB), totalC);
+      productAbcEl.textContent = intersectionLine('A ∩ B ∩ C', [totalA, totalB, totalC], gcd(gcd(totalA, totalB), totalC));
     }
   }
 
