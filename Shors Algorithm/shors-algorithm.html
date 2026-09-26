@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shor's Algorithm</title>
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-special) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-result) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; padding: 8px 0 4px; }
+  .page-header h1{
+    margin:0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight:700; letter-spacing:.3px;
+    background: linear-gradient(90deg, var(--role-input), var(--role-special) 55%, var(--role-result));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .page-header p{ color:var(--text-dim); max-width:720px; margin:8px auto 0; line-height:1.55; font-size:.95rem; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .step-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .step-num{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--text) 8%, transparent); font-weight:700; font-size:.85rem; flex:none; }
+  .step-head h2{ margin:0; font-size:1.05rem; }
+
+  .intro p{ line-height:1.6; color:var(--text-dim); }
+  .intro strong.q{ color:var(--role-special); }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:linear-gradient(135deg, var(--role-input), var(--role-special)); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:'JetBrains Mono', 'Consolas', monospace; }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+
+  .guard-box{ font-size:.85rem; min-height:1.1em; margin-top:2px; color:var(--role-warn); }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+  .banner strong{ color:var(--role-result); }
+
+  .substep{ background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; }
+  .substep + .substep{ margin-top:10px; }
+  .substep h3{ margin:0 0 8px; font-size:.85rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+  .substep.is-active{ border-color:var(--role-active); }
+  .substep.is-active h3{ color:var(--role-active); }
+  .formula{ font-family:'JetBrains Mono','Consolas',monospace; font-size:.95rem; word-break:break-word;
+    background:var(--overlay); border-radius:8px; padding:10px 12px; line-height:1.6; }
+
+  .attempt-row{ background:color-mix(in srgb, var(--role-inert) 20%, transparent); border:1px dashed var(--role-inert);
+    border-radius:10px; padding:8px 12px; color:var(--role-inert-text); font-size:.85rem; text-decoration:line-through; }
+  .attempt-row + .attempt-row{ margin-top:8px; }
+  .attempt-row .reason{ text-decoration:none; color:var(--role-warn); display:block; margin-top:2px; font-size:.8rem; }
+
+  #orderPanel{ border:1px solid var(--role-special); background:var(--role-special-soft); border-radius:12px; padding:12px 14px; margin-top:8px; }
+  #orderPanel h3{ margin:0 0 6px; color:var(--role-special); font-size:.85rem; text-transform:uppercase; letter-spacing:.4px; }
+  #orderPanel .caption{ font-size:.85rem; color:var(--text-dim); line-height:1.55; margin:0; }
+
+  .verdict-box{ margin-top:6px; font-size:1rem; font-weight:700; color:var(--role-result); }
+  .verdict-box.is-empty{ color:var(--text-dim); font-weight:400; }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
+  .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .pillbar span{ background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:20px; padding:3px 10px; font-size:.72rem; }
+
+  @media (max-width:640px){
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Congruence Wheel/congruence-wheel.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA/rsa.html" class="site-nav-link">RSA</a>
+      <a href="../Venn Diagrams/venn-diagrams.html" class="site-nav-link">Venn Diagram</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link">Square and Multiply</a>
+      <a href="shors-algorithm.html" class="site-nav-link is-active">Shor's Algorithm</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <h1>Shor's Algorithm</h1>
+    <p>Shor's algorithm is the reason RSA is considered mortal: given a real quantum computer, it factors N in time
+      polynomial in log N. There is no quantum computer here, so this page swaps the one genuinely quantum step for
+      an honest classical stand-in and says so at every turn.</p>
+  </header>
+
+  <section class="panel intro">
+    <div class="step-head"><span class="step-num">•</span><h2>How this works</h2></div>
+    <p>Shor's algorithm has five stages: <strong>classical pre-checks</strong> (peel off an even factor, spot a
+      perfect power, or recognize a prime outright), <strong>pick a base</strong> a and take its gcd with N,
+      <strong class="q">find the order</strong> of a mod N — the one truly quantum step, done here on a classical
+      computer instead — a <strong>parity and root check</strong> on that order, and finally
+      <strong>gcd post-processing</strong> that turns the order into two real factors of N.</p>
+    <p style="margin-bottom:0;">Order finding is normally the quantum part: real hardware prepares a superposition,
+      evaluates a^x mod N on every exponent x at once, and reads off the period with quantum phase estimation and an
+      inverse quantum Fourier transform (QFT). This page cannot do that, so it walks a^1, a^2, a^3, ... mod N one
+      multiplication at a time instead — exactly the step real Shor's never has to do classically, and the reason N
+      stays small here.</p>
+  </section>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field"><label for="nInput">N — number to factor</label>
+        <input id="nInput" type="text" inputmode="numeric" min="3" max="4096" value="15"></div>
+      <div class="field"><label for="aInput">Force base a (optional)</label>
+        <input id="aInput" type="text" inputmode="numeric" placeholder="random"></div>
+    </div>
+
+    <div class="chips" id="presetChips"></div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="factorBtn" class="primary">🧮 Factor N</button>
+    </div>
+
+    <div class="guard-box" id="guardBox" data-guard="ok" data-can-run="true"></div>
+  </section>
+
+  <div class="banner" id="banner">Set N and press Factor N.</div>
+
+  <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>Step log</h2></div>
+    <div id="stepLog"></div>
+    <div id="orderPanel" data-sim="classical-stand-in">
+      <h3>Quantum stand-in</h3>
+      <p class="caption">A quantum computer would find this order via quantum phase estimation and an inverse
+        quantum Fourier transform (QFT), evaluating a^x mod N on a superposition of every exponent x at once. This
+        page instead walks the cycle a^1, a^2, a^3, ... mod N classically, one multiplication at a time.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="attemptSection">
+    <div class="step-head"><span class="step-num">•</span><h2>Rejected bases</h2></div>
+    <div id="attemptList"></div>
+  </section>
+
+  <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>Verdict</h2></div>
+    <div class="verdict-box is-empty" id="verdict" data-route="none" data-factors="" data-attempts="0"></div>
+  </section>
+
+  <footer>
+    <div>Shor's algorithm demo — the order-finding step is a classical stand-in for a quantum subroutine. For education only.</div>
+    <div class="pillbar"><span>period finding</span><span>order of a mod N</span><span>quantum phase estimation</span><span>gcd post-processing</span></div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- number theory ---------- */
+
+function limits(){
+  return { N_MAX: 4096, MAX_ORDER_STEPS: 4096, MAX_BASE_ATTEMPTS: 24, CYCLE_RENDER_CAP: 96 };
+}
+
+function parseNStrict(str){
+  var raw = (str === undefined || str === null ? '' : String(str)).trim();
+  var L = limits();
+  if (!/^[0-9]+$/.test(raw)){
+    return { ok:false, guard:'nan', message:'N must be a whole number with digits only.' };
+  }
+  var n = parseInt(raw, 10);
+  if (n < 3){
+    return { ok:false, guard:'too-small', message:'N must be at least 3 — there is nothing to factor below that.' };
+  }
+  if (n > L.N_MAX){
+    return { ok:false, guard:'ceiling', message:'N is capped at ' + L.N_MAX + ' because this page substitutes a ' +
+      'classical cycle walk for the quantum order-finding step: that walk costs up to N modular multiplications ' +
+      'per base attempt, and a faithful simulation of the quantum register would need about N^2 amplitudes ' +
+      '(roughly 16.8 million at N = 4096). Real Shor’s algorithm runs this step on quantum hardware at a cost ' +
+      'polynomial in log N — there is no quantum computer on this page, so larger N is refused.' };
+  }
+  return { ok:true, n:n };
+}
+
+function gcdSmall(a, b){
+  a = Math.abs(a); b = Math.abs(b);
+  while (b){ var t = b; b = a % b; a = t; }
+  return a;
+}
+
+function modPowSmall(a, e, m){
+  var base = ((a % m) + m) % m;
+  var result = 1;
+  var exp = e;
+  while (exp > 0){
+    if (exp % 2 === 1) result = (result * base) % m;
+    exp = Math.floor(exp / 2);
+    base = (base * base) % m;
+  }
+  return result;
+}
+
+function isPrimeSmall(n){
+  if (n < 2) return false;
+  if (n < 4) return true;
+  if (n % 2 === 0) return false;
+  for (var d = 3; d * d <= n; d += 2){
+    if (n % d === 0) return false;
+  }
+  return true;
+}
+
+function ipowSmall(b, e){
+  var r = 1;
+  for (var i = 0; i < e; i++) r *= b;
+  return r;
+}
+
+function perfectPower(n){
+  if (n < 4) return null;
+  var maxExp = Math.floor(Math.log(n) / Math.log(2)) + 1;
+  for (var e = maxExp; e >= 2; e--){
+    var approx = Math.round(Math.pow(n, 1 / e));
+    for (var cand = Math.max(2, approx - 1); cand <= approx + 1; cand++){
+      if (ipowSmall(cand, e) === n) return [cand, e];
+    }
+  }
+  return null;
+}
+
+function multiplicativeOrder(a, n){
+  var L = limits();
+  var base = a % n; if (base < 0) base += n;
+  var x = base;
+  for (var steps = 1; steps <= L.MAX_ORDER_STEPS; steps++){
+    if (x === 1) return steps;
+    x = (x * base) % n;
+  }
+  return -1;
+}
+
+function cycleValues(a, n, r, cap){
+  var count = Math.min(r, cap);
+  var base = a % n; if (base < 0) base += n;
+  var x = base;
+  var out = [];
+  for (var i = 0; i < count; i++){
+    out.push(x);
+    x = (x * base) % n;
+  }
+  return out;
+}
+
+function runShor(n, opts){
+  opts = opts || {};
+  var L = limits();
+  var steps = [];
+  var attempts = [];
+
+  steps.push({ id:'precheck', label:'Classical pre-checks', detail:
+    'Before any order finding: is N even? Is N a perfect power? Is N itself prime? Each of these has a classical ' +
+    'shortcut that needs no quantum step at all.' });
+
+  if (n % 2 === 0){
+    var evenFactors = [2, n / 2].sort(function(x, y){ return x - y; });
+    steps.push({ id:'verdict', label:'Verdict', detail:
+      n + ' is even, so 2 divides it: ' + n + ' = ' + evenFactors[0] + ' x ' + evenFactors[1] + '.' });
+    return { guard:'ok', n:n, route:'even', factors:evenFactors, base:null, r:null, attempts:attempts, steps:steps };
+  }
+
+  var pp = perfectPower(n);
+  if (pp){
+    var b = pp[0], e = pp[1];
+    var ppFactors = [b, ipowSmall(b, e - 1)].sort(function(x, y){ return x - y; });
+    steps.push({ id:'verdict', label:'Verdict', detail:
+      n + ' is a perfect power (' + b + '^' + e + '), so ' + n + ' = ' + ppFactors[0] + ' x ' + ppFactors[1] + '.' });
+    return { guard:'ok', n:n, route:'perfect-power', factors:ppFactors, base:null, r:null, attempts:attempts, steps:steps };
+  }
+
+  if (isPrimeSmall(n)){
+    steps.push({ id:'verdict', label:'Verdict', detail: n + ' is prime — there is nothing to factor.' });
+    return { guard:'ok', n:n, route:'prime', factors:null, base:null, r:null, attempts:attempts, steps:steps };
+  }
+
+  var forcedBases = (opts.bases || []).slice();
+  var rng = opts.rng || Math.random;
+
+  function nextBase(){
+    if (forcedBases.length) return forcedBases.shift();
+    var lo = 2, hi = n - 2;
+    return lo + Math.floor(rng() * (hi - lo + 1));
+  }
+
+  var route = 'exhausted';
+  var factors = null;
+  var successBase = null;
+  var successR = null;
+
+  for (var attemptIdx = 0; attemptIdx < L.MAX_BASE_ATTEMPTS; attemptIdx++){
+    var a = nextBase();
+    steps.push({ id:'pickBase', label:'Pick a base', detail: 'Trying base a = ' + a + '.' });
+
+    var g = gcdSmall(a, n);
+    steps.push({ id:'gcdCheck', label:'Classical gcd check', detail:
+      'gcd(' + a + ', ' + n + ') = ' + g + (g > 1 ? ' — this alone already shares a factor with N.' : ' — coprime, order finding needed.') });
+
+    if (g > 1){
+      var luckyFactors = [g, n / g].sort(function(x, y){ return x - y; });
+      attempts.push({ a:a, g:g, r:null, x:null, outcome:'lucky-gcd' });
+      factors = luckyFactors;
+      successBase = a;
+      route = 'lucky-gcd';
+      steps.push({ id:'factorGcd', label:'Factor recovered', detail:
+        n + ' = ' + luckyFactors[0] + ' x ' + luckyFactors[1] + ' — found directly from the gcd, no order finding needed.' });
+      break;
+    }
+
+    steps.push({ id:'orderFind', sim:true, label:'Find the order of a mod N (quantum stand-in)', detail:
+      'Classically walking a^1, a^2, a^3, ... mod N to find the smallest r with a^r ≡ 1 (mod N). Real hardware ' +
+      'would find r via quantum phase estimation and an inverse quantum Fourier transform (QFT) instead.' });
+    var r = multiplicativeOrder(a, n);
+
+    if (r === -1){
+      attempts.push({ a:a, g:g, r:r, x:null, outcome:'budget' });
+      steps.push({ id:'parityCheck', label:'Order search exhausted', detail:
+        'The order search for a = ' + a + ' exceeded its step budget — trying a new base.' });
+      continue;
+    }
+
+    var isOdd = (r % 2) !== 0;
+    steps.push({ id:'parityCheck', label:'Check the order is even', detail:
+      'r = ' + r + ' is ' + (isOdd ? 'odd — this base cannot be used, retrying with a new base.' : 'even — continuing.') });
+
+    if (isOdd){
+      attempts.push({ a:a, g:g, r:r, x:null, outcome:'odd-order' });
+      continue;
+    }
+
+    var x = modPowSmall(a, r / 2, n);
+    steps.push({ id:'rootCheck', label:'Check the square root of 1', detail:
+      'a^(r/2) mod N = ' + x + (x === n - 1 ? ' = -1 mod N — this base cannot be used, retrying with a new base.' : ' — continuing to gcd post-processing.') });
+
+    if (x === n - 1){
+      attempts.push({ a:a, g:g, r:r, x:x, outcome:'minus-one' });
+      continue;
+    }
+
+    var p1 = gcdSmall(x - 1, n);
+    var p2 = gcdSmall(x + 1, n);
+    var found = [p1, p2].filter(function(v){ return v > 1 && v < n; }).sort(function(v1, v2){ return v1 - v2; });
+
+    if (found.length >= 2 && found[0] * found[1] === n){
+      attempts.push({ a:a, g:g, r:r, x:x, outcome:'success' });
+      factors = [found[0], found[1]];
+      successBase = a;
+      successR = r;
+      route = 'order';
+      steps.push({ id:'factorGcd', label:'Factor via gcd', detail:
+        'gcd(' + (x - 1) + ', ' + n + ') = ' + p1 + ' and gcd(' + (x + 1) + ', ' + n + ') = ' + p2 + ', so ' +
+        n + ' = ' + found[0] + ' x ' + found[1] + '.' });
+      break;
+    }
+    // Mathematically this should not occur once r is even and x != -1 mod N for a composite N
+    // with more than one distinct prime factor (guaranteed by the perfect-power/prime pre-checks
+    // above) — but retry defensively with a new base rather than trust an unproven edge case.
+  }
+
+  steps.push({ id:'verdict', label:'Verdict', detail: factors
+    ? (n + ' = ' + factors[0] + ' x ' + factors[1] + '.')
+    : ('No factor found for ' + n + ' within ' + L.MAX_BASE_ATTEMPTS + ' base attempts.') });
+
+  return { guard:'ok', n:n, route:route, factors:factors, base:successBase, r:successR, attempts:attempts, steps:steps };
+}
+
+/* ---------- state ---------- */
+
+const $ = (id) => document.getElementById(id);
+
+const nInput = $('nInput');
+const aInput = $('aInput');
+const factorBtn = $('factorBtn');
+const guardBox = $('guardBox');
+const banner = $('banner');
+const stepLog = $('stepLog');
+const attemptList = $('attemptList');
+const verdict = $('verdict');
+const presetChips = $('presetChips');
+
+function currentForcedBases(){
+  var raw = (aInput.value || '').trim();
+  if (raw === '' || !/^[0-9]+$/.test(raw)) return null;
+  return [parseInt(raw, 10)];
+}
+
+function applyGuard(parsed){
+  guardBox.setAttribute('data-guard', parsed.ok ? 'ok' : parsed.guard);
+  guardBox.setAttribute('data-can-run', parsed.ok ? 'true' : 'false');
+  guardBox.textContent = parsed.ok ? '' : parsed.message;
+  factorBtn.disabled = !parsed.ok;
+}
+
+function renderEmpty(){
+  stepLog.innerHTML = '';
+  attemptList.innerHTML = '';
+  verdict.setAttribute('data-route', 'none');
+  verdict.setAttribute('data-factors', '');
+  verdict.setAttribute('data-attempts', '0');
+  verdict.classList.add('is-empty');
+  verdict.textContent = 'Enter a valid N to run Shor’s algorithm.';
+  banner.textContent = 'Fix N above before factoring.';
+}
+
+function renderResult(result){
+  stepLog.innerHTML = '';
+  result.steps.forEach(function(step){
+    var div = document.createElement('div');
+    div.className = 'substep';
+    var h3 = document.createElement('h3');
+    h3.textContent = step.label;
+    var f = document.createElement('div');
+    f.className = 'formula';
+    f.textContent = step.detail;
+    div.appendChild(h3);
+    div.appendChild(f);
+    stepLog.appendChild(div);
+  });
+
+  attemptList.innerHTML = '';
+  var rejected = result.attempts.filter(function(att){
+    return att.outcome === 'odd-order' || att.outcome === 'minus-one' || att.outcome === 'budget';
+  });
+  rejected.forEach(function(att){
+    var row = document.createElement('div');
+    row.className = 'attempt-row';
+    var reason = att.outcome === 'odd-order' ? ('order r = ' + att.r + ' is odd')
+      : att.outcome === 'minus-one' ? ('a^(r/2) = ' + att.x + ' ≡ −1 mod N')
+      : 'order search exceeded its step budget';
+    row.textContent = 'Base a = ' + att.a + ' rejected';
+    var span = document.createElement('span');
+    span.className = 'reason';
+    span.textContent = reason + '.';
+    row.appendChild(span);
+    attemptList.appendChild(row);
+  });
+
+  verdict.classList.remove('is-empty');
+  verdict.setAttribute('data-route', result.route);
+  verdict.setAttribute('data-factors', result.factors ? result.factors.join(',') : '');
+  verdict.setAttribute('data-attempts', String(result.attempts.length));
+  if (result.factors){
+    verdict.textContent = result.n + ' = ' + result.factors[0] + ' x ' + result.factors[1];
+  } else if (result.route === 'prime'){
+    verdict.textContent = result.n + ' is prime — nothing to factor.';
+  } else {
+    verdict.textContent = 'No factors found for ' + result.n + ' within the attempt budget.';
+  }
+  banner.textContent = result.factors
+    ? ('Factored ' + result.n + ' into ' + result.factors[0] + ' x ' + result.factors[1] + '.')
+    : (result.route === 'prime' ? (result.n + ' is prime.') : ('Could not factor ' + result.n + ' within the attempt budget.'));
+}
+
+function runAndRender(){
+  var parsed = parseNStrict(nInput.value);
+  applyGuard(parsed);
+  if (!parsed.ok){
+    renderEmpty();
+    return;
+  }
+  var opts = {};
+  var forced = currentForcedBases();
+  if (forced) opts.bases = forced;
+  var result = runShor(parsed.n, opts);
+  renderResult(result);
+}
+
+factorBtn.addEventListener('click', runAndRender);
+[nInput, aInput].forEach(function(inp){
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') runAndRender(); });
+});
+presetChips.addEventListener('click', function(e){
+  var chip = e.target.closest ? e.target.closest('.chip') : null;
+  if (!chip) return;
+  nInput.value = chip.getAttribute('data-n');
+  aInput.value = '';
+  runAndRender();
+});
+
+function parseQueryParams(){
+  var qs = window.location.search || '';
+  var mN = /[?&]n=([^&]*)/.exec(qs);
+  var mA = /[?&]a=([^&]*)/.exec(qs);
+  var out = { n:null, a:null };
+  try { out.n = mN ? decodeURIComponent(mN[1]) : null; } catch(e){ out.n = null; }
+  try { out.a = mA ? decodeURIComponent(mA[1]) : null; } catch(e){ out.a = null; }
+  return out;
+}
+
+window.addEventListener('load', function(){
+  var q = parseQueryParams();
+  if (q.n !== null) nInput.value = q.n;
+  if (q.a !== null && /^[0-9]+$/.test(q.a)) aInput.value = q.a;
+  runAndRender();
+});
+
+})();
+</script>
+</body>
+</html>
