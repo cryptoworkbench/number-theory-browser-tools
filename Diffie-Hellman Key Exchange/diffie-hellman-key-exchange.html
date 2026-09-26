@@ -770,7 +770,10 @@ function frameStep(ts){
 }
 
 function play(){
-  if (playing || !currentExchange || stepIndex >= currentExchange.steps.length) return;
+  if (playing || !currentExchange) return;
+  // A finished run (including the auto-revealed one every rebuild() leaves behind) rewinds
+  // instead of no-op'ing, so Play always plays without needing a manual Reset first.
+  if (stepIndex >= currentExchange.steps.length) resetPlayback();
   playing = true;
   playBtn.textContent = '⏸ Pause';
   stepBtn.disabled = true;
@@ -875,7 +878,7 @@ function rebuild(){
   playBtn.textContent = '▶ Play';
   stepBtn.disabled = false;
   instantFinish();
-  banner.textContent = 'Full exchange shown below. Press Reset then Play to watch it build step by step.';
+  banner.textContent = 'Full exchange shown below. Press Play to watch it build step by step.';
   persistState();
 }
 
