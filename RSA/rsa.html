@@ -357,6 +357,34 @@ function modPowSteps(base, exp, mod){
   return {result, steps, bin};
 }
 
+/* Modular inverse of a mod m, reusing extendedGcdSteps (returns null if no inverse exists). */
+function modInverseBig(a, m){
+  let aa = a % m; if(aa < 0n) aa += m;
+  const eg = extendedGcdSteps(aa, m);
+  if(eg.gcd !== 1n) return null;
+  let x = eg.x % m; if(x < 0n) x += m;
+  return x;
+}
+
+/* CRT-assisted RSA decryption: two half-size exponentiations (mod p, mod q) recombined via
+   Garner's formula instead of one full-size exponentiation mod n. Returns null only if q has
+   no inverse mod p (never happens for distinct primes, but guarded defensively). */
+function crtDecryptSteps(c, d, p, q){
+  const dP = d % (p - 1n);
+  const dQ = d % (q - 1n);
+  const qInv = modInverseBig(q, p);
+  if(qInv === null) return null;
+  let cp = c % p; if(cp < 0n) cp += p;
+  let cq = c % q; if(cq < 0n) cq += q;
+  const m1Obj = modPowSteps(cp, dP, p);
+  const m2Obj = modPowSteps(cq, dQ, q);
+  const m1 = m1Obj.result, m2 = m2Obj.result;
+  let diff = (m1 - m2) % p; if(diff < 0n) diff += p;
+  const h = (qInv * diff) % p;
+  const m = m2 + h * q;
+  return {dP, dQ, qInv, cp, cq, m1, m2, h, m, m1Steps: m1Obj.steps, m2Steps: m2Obj.steps, m1Bin: m1Obj.bin, m2Bin: m2Obj.bin};
+}
+
 function bruteFactorEve(n){
   const start = performance.now();
   if(n % 2n === 0n) return {factor:2n, tries:1, ms: performance.now()-start, gaveUp:false};
@@ -383,6 +411,10 @@ function bruteFactorEve(n){
 
 /* ---------- App state ---------- */
 const State = { bob: null, alice: null };
+/* Keyed by the DECRYPTING party's id, so each decrypt block's CRT toggle and stored
+   exchange are independent of the other exchange. */
+const CrtFlag = { bob: false, alice: false };
+const LastExchange = { bob: null, alice: null };
 
 function generateKeys(id, label){
   const errBox = document.getElementById(id+'-error');
@@ -630,7 +662,7 @@ function renderModPowTable(exp, steps){
 }
 
 function sendMessage(fromId, toId){
-  const from = State[fromId], to = State[toId];
+  const to = State[toId];
   const errBox = document.getElementById(`msg-${fromId}-error`);
   errBox.textContent = '';
   let m;
@@ -640,15 +672,53 @@ function sendMessage(fromId, toId){
 
   const enc = modPowSteps(m, to.e, to.n);
   const c = enc.result;
+  LastExchange[toId] = {fromId, toId, m, c, encSteps: enc.steps};
+  renderExchange(toId);
+}
+
+function renderExchange(toId){
+  const ex = LastExchange[toId];
+  if(!ex) return;
+  const from = State[ex.fromId], to = State[toId];
+  const {fromId, m, c, encSteps} = ex;
+
   const dec = modPowSteps(c, to.d, to.n);
   const recovered = dec.result;
   const ok = recovered === m;
+  const useCrt = CrtFlag[toId];
+
+  let decryptBodyHtml;
+  if(useCrt){
+    const crt = crtDecryptSteps(c, to.d, to.p, to.q);
+    if(crt === null){
+      decryptBodyHtml = `
+        <div class="msg-hint">CRT decryption is unavailable for this keypair (no modular inverse of q mod p) — showing the direct decryption instead.</div>
+        <div class="formula">m = ${fmt(c)}<sup>${fmt(to.d)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(recovered)}</span></div>
+        ${renderModPowTable(to.d, dec.steps)}
+      `;
+    } else {
+      const matchesDirect = crt.m === recovered;
+      const matchesOriginal = crt.m === m;
+      decryptBodyHtml = `
+        <div class="formula">CRT decrypt: m = <span class="val">${fmt(crt.m)}</span></div>
+        <div class="formula" style="margin-top:8px;">
+          matches direct c<sup>d</sup> mod n (${fmt(recovered)}): ${matchesDirect ? '✅' : '❌'}<br>
+          matches original message (${fmt(m)}): ${matchesOriginal ? '✅' : '❌'}
+        </div>
+      `;
+    }
+  } else {
+    decryptBodyHtml = `
+      <div class="formula">m = ${fmt(c)}<sup>${fmt(to.d)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(recovered)}</span></div>
+      ${renderModPowTable(to.d, dec.steps)}
+    `;
+  }
 
   document.getElementById(`msg-${fromId}-result`).innerHTML = `
     <div class="substep">
       <h3>${from.label} encrypts: c = m<sup>e</sup> mod n</h3>
       <div class="formula">c = ${fmt(m)}<sup>${fmt(to.e)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(c)}</span></div>
-      ${renderModPowTable(to.e, enc.steps)}
+      ${renderModPowTable(to.e, encSteps)}
     </div>
     <div class="wire-diagram" style="margin:8px 0;">
       <div class="wire-row">
@@ -660,8 +730,12 @@ function sendMessage(fromId, toId){
     </div>
     <div class="substep">
       <h3>${to.label} decrypts: m = c<sup>d</sup> mod n</h3>
-      <div class="formula">m = ${fmt(c)}<sup>${fmt(to.d)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(recovered)}</span></div>
-      ${renderModPowTable(to.d, dec.steps)}
+      <label class="crt-toggle-row" for="crt-toggle-${toId}">
+        <input type="checkbox" id="crt-toggle-${toId}" ${useCrt ? 'checked' : ''}>
+        <span>Use CRT-assisted decryption</span>
+      </label>
+      <div class="msg-hint">${to.label} still holds p and q from their own key generation — that's what makes this shortcut available.</div>
+      ${decryptBodyHtml}
       <div class="formula" style="margin-top:8px;">Recovered message ${ok ? '✅ matches' : '❌ does NOT match'} the original (${fmt(m)}).</div>
     </div>
     <div class="notebook">
@@ -670,6 +744,11 @@ function sendMessage(fromId, toId){
       <div class="never">Without d (which requires factoring n), c<sup>e'</sup> mod n for any e' she guesses will not recover m.</div>
     </div>
   `;
+
+  document.getElementById(`crt-toggle-${toId}`).addEventListener('change', (evt) => {
+    CrtFlag[toId] = evt.target.checked;
+    renderExchange(toId);
+  });
 }
 
 document.getElementById('bob-gen-btn').addEventListener('click', () => generateKeys('bob','Bob'));
