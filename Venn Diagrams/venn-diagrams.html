@@ -578,7 +578,7 @@
     abc: function(){ return triplePath3(); }
   };
 
-  var REGION_NAMES3 = {
+  var REGION_NOTATION3 = {
     aOnly: 'A \\ (B ∪ C)',
     bOnly: 'B \\ (A ∪ C)',
     cOnly: 'C \\ (A ∪ B)',
@@ -586,6 +586,16 @@
     ac: '(A∩C) \\ B',
     bc: '(B∩C) \\ A',
     abc: 'A∩B∩C'
+  };
+
+  var REGION_CAPTIONS3 = {
+    aOnly: 'A only',
+    bOnly: 'B only',
+    cOnly: 'C only',
+    ab: 'A and B only',
+    ac: 'A and C only',
+    bc: 'B and C only',
+    abc: 'all three'
   };
 
   var REGION_KEYS3 = ['aOnly', 'bOnly', 'cOnly', 'ab', 'ac', 'bc', 'abc'];
@@ -745,7 +755,7 @@
       var rk = REGION_KEYS3[i];
       var anchor = CAPTION_ANCHOR3[rk];
       var label = svgEl('text', { class: 'region-label', x: anchor[0], y: anchor[1] });
-      label.textContent = REGION_NAMES3[rk];
+      label.textContent = REGION_CAPTIONS3[rk];
       svg3Static.appendChild(label);
     }
 
@@ -764,6 +774,7 @@
 
   function createRegion3(key, pathString){
     var g = svgEl('g', { class: 'region', tabindex: '0', role: 'button' });
+    g.appendChild(svgEl('title')).textContent = REGION_NOTATION3[key];
     var hit = svgEl('path', { class: 'region-hit', d: pathString });
     g.appendChild(hit);
     g.addEventListener('click', function(){ placePrime3(key); });
@@ -859,7 +870,7 @@
 
   function regionAriaLabel3(key){
     var contents = primesOf3(key);
-    return REGION_NAMES3[key] + ' region, currently holding ' +
+    return REGION_CAPTIONS3[key] + ' region, currently holding ' +
       (contents.length ? contents.join(', ') : 'nothing');
   }
 
@@ -870,11 +881,11 @@
       return;
     }
     if (state.regions3[key].length >= MAX_PER_REGION3){
-      setMessage('The ' + REGION_NAMES3[key] + ' region is full — max ' + MAX_PER_REGION3 + ' primes.', true);
+      setMessage('The ' + REGION_CAPTIONS3[key] + ' region is full — max ' + MAX_PER_REGION3 + ' primes.', true);
       return;
     }
     state.regions3[key].push({ id: state.nextId++, p: value });
-    setMessage('Placed ' + value + ' in the ' + REGION_NAMES3[key] + ' region.');
+    setMessage('Placed ' + value + ' in the ' + REGION_CAPTIONS3[key] + ' region.');
     persist3();
     render();
   }
@@ -884,7 +895,7 @@
     for (var i = 0; i < list.length; i++){
       if (list[i].id === id){
         var removed = list.splice(i, 1)[0];
-        setMessage('Removed ' + removed.p + ' from the ' + REGION_NAMES3[key] + ' region.');
+        setMessage('Removed ' + removed.p + ' from the ' + REGION_CAPTIONS3[key] + ' region.');
         break;
       }
     }
@@ -1124,7 +1135,7 @@
           class: 'placed-chip chip-compact',
           tabindex: '0',
           role: 'button',
-          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_NAMES3[key] + ' region'
+          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_CAPTIONS3[key] + ' region'
         });
         g.appendChild(svgEl('rect', { x: x, y: y, width: 44, height: 24, rx: 6 }));
         var text = svgEl('text', { x: x + 22, y: y + 12 });
