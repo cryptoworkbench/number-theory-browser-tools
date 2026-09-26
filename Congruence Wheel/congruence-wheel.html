@@ -57,7 +57,7 @@
     margin-bottom:34px;
   }
   .field{ display:flex; flex-direction:column; gap:9px; }
-  .field label{
+  .field label, .field .field-label{
     font-family:'JetBrains Mono', monospace;
     font-size:11px;
     letter-spacing:.08em;
@@ -65,6 +65,33 @@
     color:var(--text-dim);
   }
   .field .row{ display:flex; align-items:center; gap:12px; }
+  .export-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .export-status{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--text-dim);
+  }
+  .export-btn{
+    font: inherit;
+    font-size:.88rem;
+    font-weight:600;
+    color:var(--text);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:8px 14px;
+    cursor:pointer;
+    transition: transform .1s ease, background .15s, border-color .15s;
+  }
+  .export-btn:hover{
+    background: color-mix(in srgb, var(--text) 12%, transparent);
+    border-color: color-mix(in srgb, var(--text) 20%, transparent);
+  }
+  .export-btn:active{ transform:scale(0.96); }
+  .export-btn:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
   .field input[type="range"]{
     accent-color:var(--accent);
     width:200px;
@@ -223,6 +250,8 @@
 
   @media (prefers-reduced-motion: reduce){
     .wedge-hit{ transition:none; }
+    .export-btn{ transition:none; }
+    .export-btn:active{ transform:none; }
   }
 </style>
 </head>
@@ -271,6 +300,13 @@
       <div class="row">
         <input type="range" id="depth-range" min="2" max="10" step="1" value="6" aria-label="Numbers shown per class">
         <span class="val" id="depth-display">6</span>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label" id="export-label">Export</span>
+      <div class="row export-row" role="group" aria-labelledby="export-label">
+        <button type="button" class="export-btn" id="export-svg">Download SVG</button>
+        <span class="export-status" id="export-status" role="status" aria-live="polite"></span>
       </div>
     </div>
   </div>
@@ -512,6 +548,139 @@
 
   function persist(){
     try{ localStorage.setItem('congruence-wheel', JSON.stringify({ N: state.N, depth: state.depth })); }catch(e){}
+  }
+
+  /* ---------- export ---------- */
+
+  var exportStatus = document.getElementById('export-status');
+  var exportSvgBtn = document.getElementById('export-svg');
+
+  function setExportStatus(msg){
+    exportStatus.textContent = msg;
+  }
+
+  function splitAlpha(cssColor){
+    var s = (cssColor == null) ? '' : String(cssColor).trim();
+    if (!s || s === 'none' || s === 'transparent') return { paint: 'none', alpha: 0 };
+    var nums = s.match(/-?[\d.]+/g);
+    if (!nums || !nums.length) return { paint: 'none', alpha: 0 };
+    var isColorFn = /^color/.test(s);
+    var r, g, b, a;
+    if (isColorFn){
+      r = Math.round(parseFloat(nums[0]) * 255);
+      g = Math.round(parseFloat(nums[1]) * 255);
+      b = Math.round(parseFloat(nums[2]) * 255);
+    } else {
+      r = Math.round(parseFloat(nums[0]));
+      g = Math.round(parseFloat(nums[1]));
+      b = Math.round(parseFloat(nums[2]));
+    }
+    a = (nums.length > 3) ? parseFloat(nums[3]) : 1;
+    if (isNaN(a)) a = 1;
+    return { paint: 'rgb(' + r + ',' + g + ',' + b + ')', alpha: a };
+  }
+
+  function buildExportSvg(){
+    var live = document.getElementById('wheel');
+    var clone = live.cloneNode(true);
+    var ls = live.querySelectorAll('*');
+    var cs = clone.querySelectorAll('*');
+    var COPY_PROPS = ['stroke-width', 'opacity', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline', 'letter-spacing'];
+
+    for (var i = 0; i < ls.length; i++){
+      var comp = getComputedStyle(ls[i]);
+      var target = cs[i];
+
+      var fill = splitAlpha(comp.fill);
+      target.setAttribute('fill', fill.paint);
+      if (fill.alpha < 1) target.setAttribute('fill-opacity', String(fill.alpha));
+
+      var stroke = splitAlpha(comp.stroke);
+      target.setAttribute('stroke', stroke.paint);
+      if (stroke.alpha < 1) target.setAttribute('stroke-opacity', String(stroke.alpha));
+
+      for (var p = 0; p < COPY_PROPS.length; p++){
+        var prop = COPY_PROPS[p];
+        var val = comp.getPropertyValue(prop);
+        if (!val || val === 'normal') continue;
+        val = val.replace(/px$/, '');
+        target.setAttribute(prop, val);
+      }
+
+      // A webfont never loads inside a serialized/standalone SVG; fall back
+      // to a portable monospace stack instead of copying the computed value.
+      if (comp.getPropertyValue('font-family')){
+        target.setAttribute('font-family', "'JetBrains Mono', 'Courier New', monospace");
+      }
+    }
+
+    // Wedge-hit pass, after the paint pass so it wins: only the selected
+    // wedge's hit path survives, forced fully opaque; the rest are inert
+    // full-wedge paths that would otherwise bloat the file for nothing.
+    var hits = clone.querySelectorAll('.wedge-hit');
+    for (var h = 0; h < hits.length; h++){
+      var hit = hits[h];
+      var parentG = hit.parentNode;
+      if (parentG && parentG.classList && parentG.classList.contains('is-selected')){
+        hit.setAttribute('opacity', '1');
+      } else if (hit.parentNode){
+        hit.parentNode.removeChild(hit);
+      }
+    }
+
+    // Opaque themed background as the first child, or the export is
+    // transparent and night-theme digits vanish against whatever the
+    // viewer places behind the file.
+    var bgPaint = splitAlpha(getComputedStyle(document.body).backgroundColor).paint;
+    var bg = svgEl('rect', { x: 0, y: 0, width: 900, height: 900, fill: bgPaint });
+    clone.insertBefore(bg, clone.firstChild);
+
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('width', 900);
+    clone.setAttribute('height', 900);
+    clone.removeAttribute('id');
+    clone.removeAttribute('role');
+    clone.removeAttribute('aria-label');
+
+    var focusables = clone.querySelectorAll('[tabindex], [role], [aria-pressed]');
+    for (var f = 0; f < focusables.length; f++){
+      focusables[f].removeAttribute('tabindex');
+      focusables[f].removeAttribute('role');
+      focusables[f].removeAttribute('aria-pressed');
+    }
+
+    var xmlDecl = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n';
+    return xmlDecl + new XMLSerializer().serializeToString(clone);
+  }
+
+  function exportFileName(ext){
+    var raw = 'congruence-wheel-N' + state.N + '-depth' + state.depth + '-class' + state.selected + '.' + ext;
+    return raw.replace(/[^A-Za-z0-9._-]/g, '');
+  }
+
+  function downloadBlob(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
+  }
+
+  if (exportSvgBtn){
+    exportSvgBtn.addEventListener('click', function(){
+      try{
+        var svgSource = buildExportSvg();
+        var blob = new Blob([svgSource], { type: 'image/svg+xml;charset=utf-8' });
+        var filename = exportFileName('svg');
+        downloadBlob(blob, filename);
+        setExportStatus('Saved ' + filename);
+      }catch(e){
+        setExportStatus('SVG export failed — please try again.');
+      }
+    });
   }
 
   nRange.value = state.N;
