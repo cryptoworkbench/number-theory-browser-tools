@@ -22,7 +22,7 @@ There are no npm scripts, test runners, or CLI test commands. Verification is ma
 open "Factor Tree/factor-tree.html"
 open "Congruence Wheel/congruence-wheel.html"
 open "Sieve Of Eratosthenes/sieve-of-eratosthenes.html"
-open "RSA Examplifier/rsa-examplifier.html"
+open "RSA/rsa.html"
 open "Factorize By Completing The Square/factorize-completing-square.html"
 ```
 
@@ -62,7 +62,7 @@ Each tool includes **built-in manual testing controls and example presets** inst
 - Reference list showing residue class members
 - Formula display updating based on selection
 
-**RSA Examplifier** (`RSA Examplifier/rsa-examplifier.html`):
+**RSA** (`RSA/rsa.html`):
 
 - Step-by-step form inputs for Bob's primes (p=61, q=53) and Alice's primes (p=17, q=23)
 - Input validation with error boxes for: non-integer, primes <3, duplicate primes, primes >60 digits
@@ -154,7 +154,7 @@ These functions are considered **correct if the visual output matches expected m
 - [ ] Reference list updates selection state
 - [ ] Day/night theme toggle works
 
-### RSA Examplifier
+### RSA
 
 - [ ] Bob step: enter primes p=61, q=53; button generates keypair
 - [ ] Shows n, φ(n), e candidates, extended GCD table, d computation

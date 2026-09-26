@@ -31,8 +31,8 @@ number-theory-browser-tools/
 ├── Congruence Wheel/
 │   ├── congruence-wheel.html        # Congruence wheel (modular arithmetic)
 │   └── CLAUDE_RESUME_COMMAND        # Session residue (leave as-is)
-├── RSA Examplifier/
-│   ├── rsa-examplifier.html         # RSA key generation + encryption demo
+├── RSA/
+│   ├── rsa.html                     # RSA key generation + encryption demo
 │   └── CLAUDE_RESUME_COMMAND        # Session residue (leave as-is)
 ├── Sieve Of Eratosthenes/
 │   ├── sieve-of-eratosthenes.html   # Prime sieve with playback controls
@@ -80,11 +80,11 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - Key files: `congruence-wheel.html`
 - Concept: User sets modulus N, sees natural numbers arranged as concentric rings partitioned into wedges (residue classes)
 
-**`RSA Examplifier/`:**
+**`RSA/`:**
 
 - Purpose: Step-by-step RSA key generation, encryption, and cryptanalysis
 - Contains: Single HTML file with multi-panel layout for Bob/Alice/Eve narrative
-- Key files: `rsa-examplifier.html`
+- Key files: `rsa.html`
 - Concept: User supplies primes for Bob and Alice, system derives keys, shows Eve's captured public keys and failed attack
 
 **`Sieve Of Eratosthenes/`:**
@@ -109,7 +109,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — Sieve tool
 - `Congruence Wheel/congruence-wheel.html` — Congruence wheel tool
 - `Factorize By Completing The Square/factorize-completing-square.html` — Completing square tool
-- `RSA Examplifier/rsa-examplifier.html` — RSA tool
+- `RSA/rsa.html` — RSA tool
 
 **Configuration:**
 

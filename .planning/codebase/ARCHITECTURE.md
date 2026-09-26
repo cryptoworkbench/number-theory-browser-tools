@@ -23,9 +23,9 @@ last_mapped_at: 2026-09-23
           ▼                     ▼               ▼                  ▼              ▼
 ┌──────────────────────┐ ┌──────────────┐ ┌────────────────┐ ┌──────────┐ ┌─────────────┐
 │  Sieve of           │ │ Factor Tree  │ │ Completing the │ │ Congruence  │ │ RSA         │
-│  Eratosthenes       │ │              │ │ Square         │ │ Wheel       │ │ Examplifier │
-│ `Sieve Of.../       │ │ `Factor      │ │ `Factorize     │ │ `Congruence │ │ `RSA        │
-│  sieve-of-...html` │ │  Tree/...`   │ │  By.../...`    │ │  Wheel/..`  │ │  Exampl.`   │
+│  Eratosthenes       │ │              │ │ Square         │ │ Wheel       │ │             │
+│ `Sieve Of.../       │ │ `Factor      │ │ `Factorize     │ │ `Congruence │ │ `RSA/       │
+│  sieve-of-...html` │ │  Tree/...`   │ │  By.../...`    │ │  Wheel/..`  │ │  rsa.html`  │
 │                    │ │              │ │                │ │             │ │             │
 │ · Animated grid    │ │ · Tree       │ │ · Completing   │ │ · Polar     │ │ · Step-by   │
 │   with playback    │ │   diagram    │ │   square viz   │ │   sectors   │ │   step RSA  │
@@ -56,7 +56,7 @@ last_mapped_at: 2026-09-23
 | Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
 | Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
-| RSA Examplifier Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA Examplifier/rsa-examplifier.html` |
+| RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
 
 ## Pattern Overview
@@ -274,7 +274,7 @@ See `Congruence Wheel/congruence-wheel.html` (562 lines, well-sectioned) as a mo
 
 - Factor Tree: `'factor-tree'`
 - Congruence Wheel: `'congruence-wheel'`
-- RSA Examplifier: `'rsa-examplifier'`
+- RSA: keeps no tool-specific key; persists nothing beyond the shared `site-theme` preference
 
 See `Congruence Wheel/congruence-wheel.html` line 343: `JSON.parse(localStorage.getItem('congruence-wheel') || 'null')` — tool-specific key.
 

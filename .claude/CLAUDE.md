@@ -91,9 +91,9 @@ An educational website of interactive, visualization-led browser tools that make
 
 ## Naming Patterns
 
-- HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa-examplifier.html`
+- HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa.html`
 - Shared assets use kebab-case: `site.css`, `theme.js`
-- Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA Examplifier`
+- Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA`
 - camelCase for all variable declarations: `nRange`, `depthRange`, `dynGroup`, `refList`, `messageEl`
 - Computed geometric constants also camelCase: `wedgeAngle`, `ringWidth`, `levelHeight`
 - DOM elements: `numInput`, `equationEl`, `treeArea`, `generateBtn`, `playBtn`
@@ -198,7 +198,7 @@ An educational website of interactive, visualization-led browser tools that make
 | Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
 | Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
-| RSA Examplifier Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA Examplifier/rsa-examplifier.html` |
+| RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
 
 ## Pattern Overview
@@ -325,7 +325,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 - Factor Tree: `'factor-tree'`
 - Congruence Wheel: `'congruence-wheel'`
-- RSA Examplifier: `'rsa-examplifier'`
+- RSA: keeps no tool-specific key; persists nothing beyond the shared `site-theme` preference
 
 ## Error Handling
 

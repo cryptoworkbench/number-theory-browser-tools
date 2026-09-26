@@ -13,9 +13,9 @@ last_mapped_at: 2026-09-23
 - Service: Google Fonts (`https://fonts.googleapis.com`)
 - What it's used for: Typeface delivery for typography (non-system fonts)
 - Fonts loaded:
-  - `Fraunces` (homepage, Congruence Wheel, RSA Examplifier)
-  - `Source Sans 3` (homepage, Congruence Wheel, RSA Examplifier)
-  - `JetBrains Mono` (homepage, Congruence Wheel, RSA Examplifier)
+  - `Fraunces` (homepage, Congruence Wheel, RSA)
+  - `Source Sans 3` (homepage, Congruence Wheel, RSA)
+  - `JetBrains Mono` (homepage, Congruence Wheel, RSA)
   - `Mountains of Christmas` (Factor Tree tool — seasonal)
   - `Poppins` (Factor Tree, Completing-the-Square tools)
 - Connection: `<link rel="preconnect">` and `<link rel="stylesheet">` tags
