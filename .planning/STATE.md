@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Palette Unification
 status: verifying
-stopped_at: "Completed quick task 260926-ckc: Fix Venn Diagrams tool GCD framing"
-last_updated: "2026-09-26T07:19:33.736Z"
+stopped_at: "Completed quick task 260926-eod: Rename Venn Diagrams region labels to set notation"
+last_updated: "2026-09-26T08:52:43.552Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 01 execution started
-state_head: 61d394756e1554d760de038cf97fea82cdadda8b
+state_head: d0a5d66a9b0b73519b27ac588d3301ad86eb35f0
 progress:
   total_phases: 4
   completed_phases: 0
@@ -86,6 +86,7 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01 Plan 06]: Fixed nav-header inset (G-01-1a) by relocating body padding onto each page's content container, and theme non-persistence (G-01-1b) via a window.name fallback instead of the originally-suggested document.cookie (cookie writes are silently dropped on file:// origins)
 - [Phase 01]: [Quick task 260925-pw2]: Added sixth tool (Venn Diagrams) with drag/click prime placement into two-circle regions, published to hub and all nav headers; NAV-01 remains Pending since two roadmap phases (GCD, Continued Fractions) are still needed to reach all eight tools
 - [Quick task 260926-ckc]: Reframed Venn Diagrams product rows around GCD -- each circle is one number (own-only * shared factors), centre row states GCD(leftTotal, rightTotal) explicitly via a new Euclidean gcd() helper; REGION_NAMES.overlap renamed from "middle only" to "overlap" since the lens now holds shared, not exclusive, factors
+- [Phase 01]: [Quick task 260926-eod]: Renamed Venn Diagrams region dictionaries to set notation (Left \ Right, A \ (B ∪ C), (A∩B) \ C, A∩B∩C), added five persistent per-circle name labels (Left/Right, A/B/C), and replaced every GCD(...) display string with the x ∩ y = value infix (gcd() computation unchanged); deleted the now-redundant formatSide helper
 
 ### Pending Todos
 
@@ -106,6 +107,7 @@ None yet.
 | 260925-qpp | Fix Venn Diagrams product display format (combined region = factors = product lines, rename overlap to "middle only") | 2026-09-25 | 374d7dd | [260925-qpp-fix-product-display-format-in-venn-diagr](./quick/260925-qpp-fix-product-display-format-in-venn-diagr/) |
 | 260926-ckc | Fix Venn Diagrams tool GCD framing (two-part side rows, GCD centre row, reworded lede) | 2026-09-26 | f05993f, 61d3947 | [260926-ckc-fix-venn-diagrams-tool-overlap-region-sh](./quick/260926-ckc-fix-venn-diagrams-tool-overlap-region-sh/) |
 | 260926-dgk | Add three-circle mode to Venn Diagrams tool (mode switch, pairwise + triple GCD regions, per-mode persistence) | 2026-09-26 | 13a8697, b4aa6ae, 148a804 | [260926-dgk-add-a-three-circle-mode-to-the-venn-diag](./quick/260926-dgk-add-a-three-circle-mode-to-the-venn-diag/) |
+| 260926-eod | Rename Venn Diagrams region labels to set notation, add per-circle name labels, replace GCD display with ∩ infix | 2026-09-26 | 3901252, 369baa4, d0a5d66 | [260926-eod-venn-diagrams-rename-region-labels-to-se](./quick/260926-eod-venn-diagrams-rename-region-labels-to-se/) |
 
 ## Deferred Items
 
@@ -117,8 +119,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-26T07:41:29.158Z
-Stopped at: Completed quick task 260926-dgk: Add three-circle mode to Venn Diagrams tool
+Last session: 2026-09-26T08:52:35.602Z
+Stopped at: Completed quick task 260926-eod: Rename Venn Diagrams region labels to set notation
 Resume file: None
 
 Last activity: 2026-09-26 - Completed quick task 260926-dgk: Add three-circle mode to Venn Diagrams tool
