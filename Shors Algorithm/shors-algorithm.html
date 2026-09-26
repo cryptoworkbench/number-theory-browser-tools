@@ -97,12 +97,32 @@
   .attempt-row + .attempt-row{ margin-top:8px; }
   .attempt-row .reason{ text-decoration:none; color:var(--role-warn); display:block; margin-top:2px; font-size:.8rem; }
 
-  #orderPanel{ border:1px solid var(--role-special); background:var(--role-special-soft); border-radius:12px; padding:12px 14px; margin-top:8px; }
+  #orderPanel{ border:1px solid var(--role-special); background:var(--role-special-soft); border-radius:12px; padding:12px 14px; margin-top:8px; transition: box-shadow .2s ease; }
   #orderPanel h3{ margin:0 0 6px; color:var(--role-special); font-size:.85rem; text-transform:uppercase; letter-spacing:.4px; }
   #orderPanel .caption{ font-size:.85rem; color:var(--text-dim); line-height:1.55; margin:0; }
+  #orderPanel.is-active{ box-shadow: 0 0 0 2px var(--role-special) inset; }
 
   .verdict-box{ margin-top:6px; font-size:1rem; font-weight:700; color:var(--role-result); }
   .verdict-box.is-empty{ color:var(--text-dim); font-weight:400; }
+
+  #cycleRing{ width:100%; height:auto; display:block; max-height:520px; }
+  .truncation-note{ text-align:center; font-size:.8rem; color:var(--text-dim); margin:8px 0 0; min-height:1.2em; }
+  .ring-legend{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; font-size:.8rem; color:var(--text-dim); margin-top:10px; }
+  .ring-legend .item{ display:flex; align-items:center; gap:6px; }
+  .ring-legend .swatch{ width:14px; height:14px; border-radius:4px; display:inline-block; border:1px solid var(--panel-border-strong); }
+  .ring-legend .swatch.base{ background:var(--role-input); }
+  .ring-legend .swatch.mid{ background:var(--role-alt); }
+  .ring-legend .swatch.close{ background:var(--role-result); }
+  .ring-legend .swatch.break{ background:var(--role-inert); }
+
+  .explainer{ border:1px solid var(--role-special); background:var(--role-special-soft); }
+  .explainer h3{ margin:0 0 8px; color:var(--role-special); font-size:.9rem; }
+  .explainer p{ margin:0 0 8px; line-height:1.6; color:var(--text-dim); font-size:.88rem; }
+  .explainer p:last-child{ margin-bottom:0; }
+
+  .ceiling-box{ border:1px solid var(--role-warn); background:var(--role-warn-soft); }
+  .ceiling-box h3{ margin:0 0 8px; color:var(--role-warn); font-size:.9rem; }
+  .ceiling-box p{ margin:0; line-height:1.6; color:var(--text-dim); font-size:.88rem; }
 
   footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
   .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
@@ -168,12 +188,32 @@
         <input id="nInput" type="text" inputmode="numeric" min="3" max="4096" value="15"></div>
       <div class="field"><label for="aInput">Force base a (optional)</label>
         <input id="aInput" type="text" inputmode="numeric" placeholder="random"></div>
+      <button id="randomizeBtn" type="button" class="ghost">🎲 Randomize base</button>
     </div>
 
-    <div class="chips" id="presetChips"></div>
+    <div class="chips" id="presetChips">
+      <button type="button" class="chip" data-n="15">N = 15</button>
+      <button type="button" class="chip" data-n="21">N = 21</button>
+      <button type="button" class="chip" data-n="91">N = 91</button>
+      <button type="button" class="chip" data-n="143">N = 143</button>
+      <button type="button" class="chip" data-n="3233">N = 3233 (textbook RSA modulus)</button>
+      <button type="button" class="chip" data-n="3599">N = 3599 (long period)</button>
+    </div>
 
     <div class="btn-row" style="width:100%;">
       <button id="factorBtn" class="primary">🧮 Factor N</button>
+      <button id="playBtn">▶ Play</button>
+      <button id="stepBtn">⏭ Step</button>
+      <button id="instantBtn" class="ghost">⏩ Instant</button>
+      <button id="resetBtn" class="ghost">↺ Reset</button>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:flex-end;">
+      <div class="speed-wrap">
+        <label for="speedInput" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim);">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="4">
+        <span id="speedLabel">brisk</span>
+      </div>
     </div>
 
     <div class="guard-box" id="guardBox" data-guard="ok" data-can-run="true"></div>
@@ -198,8 +238,41 @@
   </section>
 
   <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>The cycle of a mod N</h2></div>
+    <svg id="cycleRing" viewBox="0 0 520 520" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="Ring diagram of the successive powers of the base a modulo N, closing back on 1"
+      data-r="" data-rendered="0" data-truncated="false"></svg>
+    <p class="truncation-note" id="ringCaption"></p>
+    <div class="ring-legend">
+      <span class="item"><span class="swatch base"></span> base a</span>
+      <span class="item"><span class="swatch mid"></span> a^(r/2)</span>
+      <span class="item"><span class="swatch close"></span> closing 1</span>
+      <span class="item"><span class="swatch break"></span> truncation break</span>
+    </div>
+  </section>
+
+  <section class="panel">
     <div class="step-head"><span class="step-num">•</span><h2>Verdict</h2></div>
     <div class="verdict-box is-empty" id="verdict" data-route="none" data-factors="" data-attempts="0"></div>
+  </section>
+
+  <section class="panel explainer">
+    <h3>What the quantum part really does</h3>
+    <p>A real quantum computer prepares a superposition over every candidate exponent x at once, evaluates a^x mod N
+      on all of them in parallel, and then applies an inverse quantum Fourier transform (QFT) to turn the hidden
+      period of that function into a measurable peak. Quantum phase estimation reads that peak, and a continued fraction
+      expansion of the measured phase recovers the exact order r — all at a cost polynomial in log N.</p>
+    <p>This page cannot do any of that. It instead walks the cycle a^1, a^2, a^3, ... mod N one multiplication at a
+      time on an ordinary classical processor — the one thing real quantum hardware never has to do.</p>
+  </section>
+
+  <section class="panel ceiling-box">
+    <h3>Why N stops at 4096</h3>
+    <p>The classical cycle walk above costs up to N modular multiplications per base attempt. A faithful simulation
+      of the quantum register a real device would use needs about N^2 amplitudes — roughly 16,777,216 (16.8 million)
+      at N = 4096. Both of those grow with N itself, while real Shor's algorithm on real quantum hardware grows only
+      with log N. N is capped here at 4096 because there is no quantum computer on this page — not because the
+      arithmetic is hard.</p>
   </section>
 
   <footer>
@@ -358,7 +431,7 @@ function runShor(n, opts){
     steps.push({ id:'pickBase', label:'Pick a base', detail: 'Trying base a = ' + a + '.' });
 
     var g = gcdSmall(a, n);
-    steps.push({ id:'gcdCheck', label:'Classical gcd check', detail:
+    steps.push({ id:'gcdCheck', outcome: g > 1 ? 'lucky-gcd' : null, label:'Classical gcd check', detail:
       'gcd(' + a + ', ' + n + ') = ' + g + (g > 1 ? ' — this alone already shares a factor with N.' : ' — coprime, order finding needed.') });
 
     if (g > 1){
@@ -379,13 +452,13 @@ function runShor(n, opts){
 
     if (r === -1){
       attempts.push({ a:a, g:g, r:r, x:null, outcome:'budget' });
-      steps.push({ id:'parityCheck', label:'Order search exhausted', detail:
+      steps.push({ id:'parityCheck', outcome:'budget', label:'Order search exhausted', detail:
         'The order search for a = ' + a + ' exceeded its step budget — trying a new base.' });
       continue;
     }
 
     var isOdd = (r % 2) !== 0;
-    steps.push({ id:'parityCheck', label:'Check the order is even', detail:
+    steps.push({ id:'parityCheck', outcome: isOdd ? 'odd-order' : null, label:'Check the order is even', detail:
       'r = ' + r + ' is ' + (isOdd ? 'odd — this base cannot be used, retrying with a new base.' : 'even — continuing.') });
 
     if (isOdd){
@@ -394,7 +467,7 @@ function runShor(n, opts){
     }
 
     var x = modPowSmall(a, r / 2, n);
-    steps.push({ id:'rootCheck', label:'Check the square root of 1', detail:
+    steps.push({ id:'rootCheck', outcome: (x === n - 1) ? 'minus-one' : null, label:'Check the square root of 1', detail:
       'a^(r/2) mod N = ' + x + (x === n - 1 ? ' = -1 mod N — this base cannot be used, retrying with a new base.' : ' — continuing to gcd post-processing.') });
 
     if (x === n - 1){
@@ -412,7 +485,7 @@ function runShor(n, opts){
       successBase = a;
       successR = r;
       route = 'order';
-      steps.push({ id:'factorGcd', label:'Factor via gcd', detail:
+      steps.push({ id:'factorGcd', outcome:'success', label:'Factor via gcd', detail:
         'gcd(' + (x - 1) + ', ' + n + ') = ' + p1 + ' and gcd(' + (x + 1) + ', ' + n + ') = ' + p2 + ', so ' +
         n + ' = ' + found[0] + ' x ' + found[1] + '.' });
       break;
@@ -431,17 +504,47 @@ function runShor(n, opts){
 
 /* ---------- state ---------- */
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const key in attrs) el.setAttribute(key, attrs[key]);
+  return el;
+}
+
 const $ = (id) => document.getElementById(id);
 
 const nInput = $('nInput');
 const aInput = $('aInput');
 const factorBtn = $('factorBtn');
+const randomizeBtn = $('randomizeBtn');
 const guardBox = $('guardBox');
 const banner = $('banner');
 const stepLog = $('stepLog');
 const attemptList = $('attemptList');
 const verdict = $('verdict');
 const presetChips = $('presetChips');
+const orderPanel = $('orderPanel');
+const cycleRing = $('cycleRing');
+const ringCaption = $('ringCaption');
+const playBtn = $('playBtn');
+const stepBtn = $('stepBtn');
+const instantBtn = $('instantBtn');
+const resetBtn = $('resetBtn');
+const speedInput = $('speedInput');
+const speedLabel = $('speedLabel');
+
+const SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
+const SPEED_MS = {1:1400,2:1100,3:850,4:650,5:480,6:340,7:230,8:150,9:90,10:50};
+
+const RING_CX = 260, RING_CY = 260, RING_R = 200;
+
+let currentResult = null;
+let stepIndex = 0;
+let attemptCursor = 0;
+let playing = false;
+let rafId = null;
+let lastAdvance = 0;
+let generation = 0; // bumped on every rebuild/reset so a stale rAF callback can bail
 
 function currentForcedBases(){
   var raw = (aInput.value || '').trim();
@@ -457,8 +560,6 @@ function applyGuard(parsed){
 }
 
 function renderEmpty(){
-  stepLog.innerHTML = '';
-  attemptList.innerHTML = '';
   verdict.setAttribute('data-route', 'none');
   verdict.setAttribute('data-factors', '');
   verdict.setAttribute('data-attempts', '0');
@@ -467,39 +568,42 @@ function renderEmpty(){
   banner.textContent = 'Fix N above before factoring.';
 }
 
-function renderResult(result){
+function clearOutputs(){
   stepLog.innerHTML = '';
-  result.steps.forEach(function(step){
-    var div = document.createElement('div');
-    div.className = 'substep';
-    var h3 = document.createElement('h3');
-    h3.textContent = step.label;
-    var f = document.createElement('div');
-    f.className = 'formula';
-    f.textContent = step.detail;
-    div.appendChild(h3);
-    div.appendChild(f);
-    stepLog.appendChild(div);
-  });
-
   attemptList.innerHTML = '';
-  var rejected = result.attempts.filter(function(att){
-    return att.outcome === 'odd-order' || att.outcome === 'minus-one' || att.outcome === 'budget';
-  });
-  rejected.forEach(function(att){
-    var row = document.createElement('div');
-    row.className = 'attempt-row';
-    var reason = att.outcome === 'odd-order' ? ('order r = ' + att.r + ' is odd')
-      : att.outcome === 'minus-one' ? ('a^(r/2) = ' + att.x + ' ≡ −1 mod N')
-      : 'order search exceeded its step budget';
-    row.textContent = 'Base a = ' + att.a + ' rejected';
-    var span = document.createElement('span');
-    span.className = 'reason';
-    span.textContent = reason + '.';
-    row.appendChild(span);
-    attemptList.appendChild(row);
-  });
+  orderPanel.classList.remove('is-active');
+}
 
+function appendStepRow(step){
+  var prevActive = stepLog.querySelector('.substep.is-active');
+  if (prevActive) prevActive.classList.remove('is-active');
+  var div = document.createElement('div');
+  div.className = 'substep is-active';
+  var h3 = document.createElement('h3');
+  h3.textContent = step.label;
+  var f = document.createElement('div');
+  f.className = 'formula';
+  f.textContent = step.detail;
+  div.appendChild(h3);
+  div.appendChild(f);
+  stepLog.appendChild(div);
+}
+
+function appendAttemptRow(att){
+  var row = document.createElement('div');
+  row.className = 'attempt-row';
+  var reason = att.outcome === 'odd-order' ? ('order r = ' + att.r + ' is odd')
+    : att.outcome === 'minus-one' ? ('a^(r/2) = ' + att.x + ' ≡ −1 mod N')
+    : 'order search exceeded its step budget';
+  row.textContent = 'Base a = ' + att.a + ' rejected';
+  var span = document.createElement('span');
+  span.className = 'reason';
+  span.textContent = reason + '.';
+  row.appendChild(span);
+  attemptList.appendChild(row);
+}
+
+function renderVerdict(result){
   verdict.classList.remove('is-empty');
   verdict.setAttribute('data-route', result.route);
   verdict.setAttribute('data-factors', result.factors ? result.factors.join(',') : '');
@@ -511,35 +615,273 @@ function renderResult(result){
   } else {
     verdict.textContent = 'No factors found for ' + result.n + ' within the attempt budget.';
   }
-  banner.textContent = result.factors
-    ? ('Factored ' + result.n + ' into ' + result.factors[0] + ' x ' + result.factors[1] + '.')
-    : (result.route === 'prime' ? (result.n + ' is prime.') : ('Could not factor ' + result.n + ' within the attempt budget.'));
 }
 
-function runAndRender(){
-  var parsed = parseNStrict(nInput.value);
-  applyGuard(parsed);
-  if (!parsed.ok){
-    renderEmpty();
+function polarPoint(cx, cy, r, angleDeg){
+  var a = (angleDeg - 90) * Math.PI / 180;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+function clearRing(){
+  cycleRing.innerHTML = '';
+  cycleRing.setAttribute('data-r', '');
+  cycleRing.setAttribute('data-rendered', '0');
+  cycleRing.setAttribute('data-truncated', 'false');
+  ringCaption.textContent = '';
+}
+
+function buildRing(result){
+  cycleRing.innerHTML = '';
+  var hasCycle = (result.route === 'order') && result.base !== null && result.r !== null;
+  if (!hasCycle){
+    cycleRing.setAttribute('data-r', '');
+    cycleRing.setAttribute('data-rendered', '0');
+    cycleRing.setAttribute('data-truncated', 'false');
+    ringCaption.textContent = result.route === 'lucky-gcd'
+      ? 'No order-finding cycle to draw here — the gcd already revealed a factor, so order finding never ran.'
+      : 'No order-finding cycle to draw for this route.';
     return;
   }
+
+  var L = limits();
+  var values = cycleValues(result.base, result.n, result.r, L.CYCLE_RENDER_CAP);
+  var rendered = values.length;
+  var truncated = result.r > L.CYCLE_RENDER_CAP;
+
+  cycleRing.setAttribute('data-r', String(result.r));
+  cycleRing.setAttribute('data-rendered', String(rendered));
+  cycleRing.setAttribute('data-truncated', truncated ? 'true' : 'false');
+
+  var sweepDeg = truncated ? 300 : 360;
+  var midIndex = (result.r / 2) - 1;
+
+  var pts = [];
+  for (var i = 0; i < rendered; i++){
+    var angle = (sweepDeg * i) / rendered;
+    pts.push(polarPoint(RING_CX, RING_CY, RING_R, angle));
+  }
+
+  for (var j = 0; j < rendered - 1; j++){
+    cycleRing.appendChild(svgEl('line', {
+      x1:pts[j][0], y1:pts[j][1], x2:pts[j+1][0], y2:pts[j+1][1],
+      stroke:'var(--panel-border-strong)', 'stroke-width':1.5
+    }));
+  }
+  if (!truncated){
+    cycleRing.appendChild(svgEl('line', {
+      x1:pts[rendered-1][0], y1:pts[rendered-1][1], x2:pts[0][0], y2:pts[0][1],
+      stroke:'var(--panel-border-strong)', 'stroke-width':1.5
+    }));
+  }
+
+  for (var k = 0; k < rendered; k++){
+    var role = '--text-dim';
+    var radius = 5;
+    if (k === 0){ role = '--role-input'; radius = 7; }
+    else if (!truncated && k === midIndex && midIndex > 0){ role = '--role-alt'; radius = 7; }
+    else if (!truncated && k === rendered - 1){ role = '--role-result'; radius = 7; }
+    cycleRing.appendChild(svgEl('circle', { cx:pts[k][0], cy:pts[k][1], r:radius, fill:'var(' + role + ')' }));
+  }
+
+  if (truncated){
+    var breakPt = polarPoint(RING_CX, RING_CY, RING_R, sweepDeg + 12);
+    cycleRing.appendChild(svgEl('circle', { cx:breakPt[0], cy:breakPt[1], r:6, fill:'var(--role-inert)' }));
+    var breakLabel = svgEl('text', { x:breakPt[0], y:breakPt[1] - 12, 'text-anchor':'middle', 'font-size':'11', fill:'var(--role-inert-text)' });
+    breakLabel.textContent = '⋯ (' + (result.r - rendered) + ' more)';
+    cycleRing.appendChild(breakLabel);
+  }
+
+  ringCaption.textContent = truncated
+    ? ('The true order is r = ' + result.r + '. Only the first ' + rendered + ' values are drawn here — the ring is truncated so the page never renders thousands of nodes.')
+    : ('Order r = ' + result.r + ': the cycle a^1 .. a^r mod N closes back on 1. Highlighted: base a (start), a^(r/2) (whose square root of 1 cracks N), and the closing 1.');
+}
+
+function revealStep(step){
+  appendStepRow(step);
+
+  if (step.id === 'orderFind') orderPanel.classList.add('is-active');
+
+  if (step.outcome === 'odd-order' || step.outcome === 'minus-one' || step.outcome === 'budget'){
+    appendAttemptRow(currentResult.attempts[attemptCursor]);
+    attemptCursor++;
+  } else if (step.outcome === 'lucky-gcd' || step.outcome === 'success'){
+    attemptCursor++;
+  }
+
+  if (step.id === 'verdict'){
+    renderVerdict(currentResult);
+    buildRing(currentResult);
+    orderPanel.classList.remove('is-active');
+  }
+
+  banner.textContent = step.detail;
+}
+
+function revealAll(){
+  while (currentResult && stepIndex < currentResult.steps.length){
+    revealStep(currentResult.steps[stepIndex]);
+    stepIndex++;
+  }
+}
+
+function advanceOne(){
+  if (!currentResult || stepIndex >= currentResult.steps.length) return;
+  revealStep(currentResult.steps[stepIndex]);
+  stepIndex++;
+}
+
+function frameStep(ts, myGen){
+  if (myGen !== generation) return; // stale: a rebuild/reset abandoned this run
+  if (!playing) return;
+  if (!lastAdvance) lastAdvance = ts;
+  var dwell = SPEED_MS[parseInt(speedInput.value, 10)] || SPEED_MS[4];
+  if (ts - lastAdvance >= dwell){
+    advanceOne();
+    lastAdvance = ts;
+  }
+  if (!currentResult || stepIndex >= currentResult.steps.length){
+    pause();
+    return;
+  }
+  rafId = requestAnimationFrame(function(ts2){ frameStep(ts2, myGen); });
+}
+
+function play(){
+  if (playing || !currentResult) return;
+  if (stepIndex >= currentResult.steps.length) resetPlayback();
+  playing = true;
+  playBtn.textContent = '⏸ Pause';
+  stepBtn.disabled = true;
+  lastAdvance = 0;
+  var myGen = generation;
+  rafId = requestAnimationFrame(function(ts){ frameStep(ts, myGen); });
+}
+
+function pause(){
+  if (!playing){
+    playBtn.textContent = '▶ Play';
+    stepBtn.disabled = !currentResult || stepIndex >= currentResult.steps.length;
+    return;
+  }
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = !currentResult || stepIndex >= currentResult.steps.length;
+}
+
+function stepOnce(){
+  if (playing || !currentResult || stepIndex >= currentResult.steps.length) return;
+  advanceOne();
+  if (stepIndex >= currentResult.steps.length){
+    stepBtn.disabled = true;
+    playBtn.textContent = '▶ Play';
+  }
+}
+
+function instantFinish(){
+  pause();
+  if (currentResult) revealAll();
+  stepBtn.disabled = true;
+  playBtn.textContent = '▶ Play';
+}
+
+function resetPlayback(){
+  pause();
+  generation++; // invalidate any in-flight rAF callback from the run being abandoned
+  stepIndex = 0;
+  attemptCursor = 0;
+  clearOutputs();
+  clearRing();
+  verdict.classList.add('is-empty');
+  verdict.setAttribute('data-route', 'none');
+  verdict.setAttribute('data-factors', '');
+  verdict.setAttribute('data-attempts', '0');
+  verdict.textContent = 'Press Play to watch Shor’s algorithm run.';
+  stepBtn.disabled = !currentResult;
+  playBtn.textContent = '▶ Play';
+  banner.textContent = 'Ready — press Play to watch it run step by step.';
+}
+
+/* ---------- persistence ---------- */
+
+const STORAGE_KEY = 'shors-algorithm';
+
+function persistState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ n:nInput.value, a:aInput.value, speed:speedInput.value }));
+  } catch(e){ /* localStorage unavailable (e.g. file:// origin) — silently fall back */ }
+}
+
+function restoreState(){
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    var saved = JSON.parse(raw);
+    if (saved.n !== undefined){
+      var check = parseNStrict(saved.n); // a stored value is untrusted input, not a shortcut past the ceiling
+      nInput.value = check.ok ? String(check.n) : '15';
+    }
+    if (saved.a !== undefined && /^[0-9]*$/.test(String(saved.a))) aInput.value = saved.a;
+    if (saved.speed) speedInput.value = saved.speed;
+    return true;
+  } catch(e){ return false; }
+}
+
+function rebuild(){
+  var parsed = parseNStrict(nInput.value);
+  applyGuard(parsed);
+  generation++;
+  pause();
+  stepIndex = 0;
+  attemptCursor = 0;
+  clearOutputs();
+  clearRing();
+
+  if (!parsed.ok){
+    currentResult = null;
+    renderEmpty();
+    stepBtn.disabled = true;
+    playBtn.textContent = '▶ Play';
+    return;
+  }
+
   var opts = {};
   var forced = currentForcedBases();
   if (forced) opts.bases = forced;
-  var result = runShor(parsed.n, opts);
-  renderResult(result);
+  currentResult = runShor(parsed.n, opts);
+  stepBtn.disabled = false;
+  playBtn.textContent = '▶ Play';
+  instantFinish();
+  persistState();
 }
 
-factorBtn.addEventListener('click', runAndRender);
+factorBtn.addEventListener('click', rebuild);
 [nInput, aInput].forEach(function(inp){
-  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') runAndRender(); });
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') rebuild(); });
 });
 presetChips.addEventListener('click', function(e){
   var chip = e.target.closest ? e.target.closest('.chip') : null;
   if (!chip) return;
   nInput.value = chip.getAttribute('data-n');
   aInput.value = '';
-  runAndRender();
+  rebuild();
+});
+randomizeBtn.addEventListener('click', function(){
+  var parsed = parseNStrict(nInput.value);
+  if (!parsed.ok) return;
+  var lo = 2, hi = parsed.n - 2;
+  var val = lo + Math.floor(Math.random() * (hi - lo + 1));
+  aInput.value = String(val);
+  rebuild();
+});
+playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+stepBtn.addEventListener('click', stepOnce);
+instantBtn.addEventListener('click', instantFinish);
+resetBtn.addEventListener('click', resetPlayback);
+speedInput.addEventListener('input', function(){
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  persistState();
 });
 
 function parseQueryParams(){
@@ -554,9 +896,20 @@ function parseQueryParams(){
 
 window.addEventListener('load', function(){
   var q = parseQueryParams();
-  if (q.n !== null) nInput.value = q.n;
-  if (q.a !== null && /^[0-9]+$/.test(q.a)) aInput.value = q.a;
-  runAndRender();
+  if (q.n !== null){
+    nInput.value = q.n;
+    aInput.value = (q.a !== null && /^[0-9]+$/.test(q.a)) ? q.a : '';
+    if (!speedInput.value) speedInput.value = '4';
+  } else {
+    var restored = restoreState();
+    if (!restored){
+      nInput.value = '15';
+      aInput.value = '';
+      speedInput.value = '4';
+    }
+  }
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  rebuild();
 });
 
 })();
