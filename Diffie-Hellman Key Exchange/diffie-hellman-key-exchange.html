@@ -249,7 +249,7 @@
     <div class="legend">
       <span class="item"><span class="swatch alice"></span> Alice</span>
       <span class="item"><span class="swatch bob"></span> Bob</span>
-      <span class="item"><span class="swatch eve"></span> Eve</span>
+      <span class="item"><span class="swatch eve"></span> Eve, and the copy she siphons down her tap</span>
       <span class="item"><span class="swatch moving"></span> Value in transit / current step</span>
     </div>
   </section>
@@ -386,8 +386,8 @@ function buildExchange(p, g, a, b){
     { id:'bobPicks', owner:'bob', caption:"Bob privately picks an exponent b — it never leaves his side." },
     { id:'aliceComputesPublic', owner:'alice', caption:'Alice computes her public value A = g^a mod p.' },
     { id:'bobComputesPublic', owner:'bob', caption:'Bob computes his public value B = g^b mod p.' },
-    { id:'sendAliceToBob', owner:'wire', caption:"Alice's public value A crosses the wire to Bob — Eve is watching." },
-    { id:'sendBobToAlice', owner:'wire', caption:"Bob's public value B crosses the wire to Alice — Eve is watching." },
+    { id:'sendAliceToBob', owner:'wire', caption:"Alice's public value A crosses the wire to Bob — Eve's tap copies it down into her notebook as it passes." },
+    { id:'sendBobToAlice', owner:'wire', caption:"Bob's public value B crosses the wire to Alice — Eve's tap copies it down into her notebook as it passes." },
     { id:'aliceComputesSecret', owner:'alice', caption:'Alice raises B to her own private exponent: B^a mod p.' },
     { id:'bobComputesSecret', owner:'bob', caption:'Bob raises A to his own private exponent: A^b mod p.' },
     { id:'match', owner:'public', caption:'Both sides land on the exact same shared secret.' }
@@ -842,6 +842,13 @@ function advanceOne(){
     });
   } else if (step.id === 'sendBobToAlice'){
     sendPacket({ fromX:BOB_X, fromY:WIRE_Y, toX:ALICE_X, toY:WIRE_Y, label:shortVal(ex.publicBob), gen:myGen });
+    const half = packetDuration() / 2;
+    sendPacket({
+      fromX:TAP_X, fromY:WIRE_Y, toX:TAP_X, toY:EVE_B_Y - 4,
+      label:shortVal(ex.publicBob), gen:myGen, tapped:true,
+      delay:half, duration:half,
+      onArrive:function(){ recordEveIntercept(ex, 'b'); }
+    });
   }
 }
 
