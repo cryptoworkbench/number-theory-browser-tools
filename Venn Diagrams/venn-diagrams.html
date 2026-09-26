@@ -199,6 +199,7 @@
     text-anchor:middle;
     pointer-events:none;
   }
+  .region-label.is-hoverable{ pointer-events:auto; cursor:help; }
   .circle-name{
     font-family:'JetBrains Mono', monospace;
     font-size:20px;
@@ -487,7 +488,8 @@
   var productRightEl = document.getElementById('product-right');
 
   var PRIMES = buildPalette(26);
-  var REGION_NAMES = { left: 'A \\ B', overlap: 'A ∩ B', right: 'B \\ A' };
+  var REGION_NOTATION = { left: 'A \\ B', overlap: 'A ∩ B', right: 'B \\ A' };
+  var REGION_CAPTIONS = { left: 'A only', overlap: 'both', right: 'B only' };
   var REGION_ANCHOR = { left: [275, 250], overlap: [450, 250], right: [625, 250] };
   var regionEls = { left: null, overlap: null, right: null };
 
@@ -660,16 +662,19 @@
     svgStatic.appendChild(svgEl('circle', { cx: CXB, cy: CY, r: R, class: 'circle-right' }));
     svgStatic.appendChild(svgEl('path', { class: 'lens-fill', d: lensPath() }));
 
-    var labelLeft = svgEl('text', { class: 'region-label', x: 275, y: 478 });
-    labelLeft.textContent = REGION_NAMES.left;
+    var labelLeft = svgEl('text', { class: 'region-label is-hoverable', x: 275, y: 478 });
+    labelLeft.textContent = REGION_CAPTIONS.left;
+    labelLeft.appendChild(svgEl('title')).textContent = REGION_NOTATION.left;
     svgStatic.appendChild(labelLeft);
 
-    var labelOverlap = svgEl('text', { class: 'region-label', x: 450, y: 478 });
-    labelOverlap.textContent = REGION_NAMES.overlap;
+    var labelOverlap = svgEl('text', { class: 'region-label is-hoverable', x: 450, y: 478 });
+    labelOverlap.textContent = REGION_CAPTIONS.overlap;
+    labelOverlap.appendChild(svgEl('title')).textContent = REGION_NOTATION.overlap;
     svgStatic.appendChild(labelOverlap);
 
-    var labelRight = svgEl('text', { class: 'region-label', x: 625, y: 478 });
-    labelRight.textContent = REGION_NAMES.right;
+    var labelRight = svgEl('text', { class: 'region-label is-hoverable', x: 625, y: 478 });
+    labelRight.textContent = REGION_CAPTIONS.right;
+    labelRight.appendChild(svgEl('title')).textContent = REGION_NOTATION.right;
     svgStatic.appendChild(labelRight);
 
     var nameLeft = svgEl('text', { id: 'circle-name-left', class: 'circle-name name-a', x: 325, y: 100 });
@@ -683,6 +688,7 @@
 
   function createRegion(key, pathString){
     var g = svgEl('g', { class: 'region', tabindex: '0', role: 'button' });
+    g.appendChild(svgEl('title')).textContent = REGION_NOTATION[key];
     var hit = svgEl('path', { class: 'region-hit', d: pathString });
     g.appendChild(hit);
     g.addEventListener('click', function(){ placePrime(key); });
@@ -800,7 +806,7 @@
 
   function regionAriaLabel(key){
     var contents = primesOf(state.regions[key]);
-    return REGION_NAMES[key] + ' region, currently holding ' +
+    return REGION_CAPTIONS[key] + ' region, currently holding ' +
       (contents.length ? contents.join(', ') : 'nothing');
   }
 
@@ -827,11 +833,11 @@
       return;
     }
     if (state.regions[key].length >= MAX_PER_REGION){
-      setMessage('The ' + REGION_NAMES[key] + ' region is full — max ' + MAX_PER_REGION + ' primes.', true);
+      setMessage('The ' + REGION_CAPTIONS[key] + ' region is full — max ' + MAX_PER_REGION + ' primes.', true);
       return;
     }
     state.regions[key].push({ id: state.nextId++, p: value });
-    setMessage('Placed ' + value + ' in the ' + REGION_NAMES[key] + ' region.');
+    setMessage('Placed ' + value + ' in the ' + REGION_CAPTIONS[key] + ' region.');
     persist();
     render();
   }
@@ -841,7 +847,7 @@
     for (var i = 0; i < list.length; i++){
       if (list[i].id === id){
         var removed = list.splice(i, 1)[0];
-        setMessage('Removed ' + removed.p + ' from the ' + REGION_NAMES[key] + ' region.');
+        setMessage('Removed ' + removed.p + ' from the ' + REGION_CAPTIONS[key] + ' region.');
         break;
       }
     }
@@ -1042,7 +1048,7 @@
           class: 'placed-chip',
           tabindex: '0',
           role: 'button',
-          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_NAMES[key] + ' region'
+          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_CAPTIONS[key] + ' region'
         });
         g.appendChild(svgEl('rect', { x: x, y: y, width: 54, height: 32, rx: 8 }));
         var text = svgEl('text', { x: x + 27, y: y + 16 });
@@ -1091,7 +1097,7 @@
 
     productLeftEl.textContent = 'A = ' + factorTail(leftFactors, leftTotal);
     productRightEl.textContent = 'B = ' + factorTail(rightFactors, rightTotal);
-    productOverlapEl.textContent = intersectionLine(REGION_NAMES.overlap, [leftTotal, rightTotal], gcd(leftTotal, rightTotal));
+    productOverlapEl.textContent = intersectionLine(REGION_NOTATION.overlap, [leftTotal, rightTotal], gcd(leftTotal, rightTotal));
   }
 
   function refreshRegionLabels(){
