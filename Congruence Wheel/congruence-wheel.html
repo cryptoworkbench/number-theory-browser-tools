@@ -253,6 +253,17 @@
     .export-btn{ transition:none; }
     .export-btn:active{ transform:none; }
   }
+
+  @media print{
+    @page{ margin:14mm; }
+    .site-header, .controls, .ref{ display:none !important; }
+    .wrap{ max-width:none; padding:0; }
+    .diagram-frame{ max-width:120mm; margin:0 auto; }
+    .diagram-wrap{ break-inside:avoid; page-break-inside:avoid; margin-bottom:12px; gap:10px; }
+    footer{ white-space:normal; overflow:visible; margin-top:18px; }
+    .page-header{ margin-bottom:16px; }
+    .lede{ font-size:13px; line-height:1.45; }
+  }
 </style>
 </head>
 <body>
@@ -307,6 +318,7 @@
       <div class="row export-row" role="group" aria-labelledby="export-label">
         <button type="button" class="export-btn" id="export-png">Download PNG</button>
         <button type="button" class="export-btn" id="export-svg">Download SVG</button>
+        <button type="button" class="export-btn" id="export-pdf">Print / Save as PDF</button>
         <span class="export-status" id="export-status" role="status" aria-live="polite"></span>
       </div>
     </div>
@@ -556,6 +568,7 @@
   var exportStatus = document.getElementById('export-status');
   var exportSvgBtn = document.getElementById('export-svg');
   var exportPngBtn = document.getElementById('export-png');
+  var exportPdfBtn = document.getElementById('export-pdf');
 
   function setExportStatus(msg){
     exportStatus.textContent = msg;
@@ -728,6 +741,54 @@
 
   if (exportPngBtn){
     exportPngBtn.addEventListener('click', exportPng);
+  }
+
+  // Idempotent print theme flip. Browsers omit backgrounds from print
+  // output by default, so printing the night theme would put near-white
+  // digits on white paper. Forcing day tokens for the duration of the
+  // print makes the same palette produce dark ink on light paper, with
+  // no literal color anywhere. The attribute is written directly rather
+  // than through theme.js's setTheme(), which persists only from the
+  // toggle's own change handler — so this flip never touches the stored
+  // preference or the toggle's checked state, and the restore is exact.
+  var printPrevTheme = null;
+
+  function flipToPrintTheme(){
+    var root = document.documentElement;
+    if (printPrevTheme === null && root.getAttribute('data-theme') !== 'day'){
+      printPrevTheme = root.getAttribute('data-theme');
+      root.setAttribute('data-theme', 'day');
+    }
+  }
+
+  function restoreTheme(){
+    if (printPrevTheme !== null){
+      document.documentElement.setAttribute('data-theme', printPrevTheme);
+      printPrevTheme = null;
+    }
+  }
+
+  if (exportPdfBtn){
+    exportPdfBtn.addEventListener('click', function(){
+      flipToPrintTheme();
+      setExportStatus('Opening print dialog — choose “Save as PDF” as the destination.');
+      window.print();
+    });
+  }
+
+  window.addEventListener('beforeprint', flipToPrintTheme);
+  window.addEventListener('afterprint', restoreTheme);
+
+  if (window.matchMedia){
+    var printQuery = window.matchMedia('print');
+    var onPrintChange = function(mql){
+      if (!mql.matches) restoreTheme();
+    };
+    if (printQuery.addEventListener){
+      printQuery.addEventListener('change', onPrintChange);
+    } else if (printQuery.addListener){
+      printQuery.addListener(onPrintChange);
+    }
   }
 
   nRange.value = state.N;
