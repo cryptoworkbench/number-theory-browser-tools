@@ -113,6 +113,9 @@ None yet.
 | 260926-f4v | Retire remaining "shared" wording in Venn Diagrams prose and compact page chrome vertically | 2026-09-26 | aa10394, 7007a88 | [260926-f4v-venn-diagrams-tool-follow-up-1-eliminate](./quick/260926-f4v-venn-diagrams-tool-follow-up-1-eliminate/) |
 | 260926-g4b | Rename Venn Diagrams "Left"/"Right" set labels to A/B and replace info boxes with short arithmetic lines | 2026-09-26 | 2a8abd5, 17c0beb | [260926-g4b-venn-diagrams-rename-left-right-set-labe](./quick/260926-g4b-venn-diagrams-rename-left-right-set-labe/) |
 | 260926-jlu | Add Diffie-Hellman Key Exchange browser tool | 2026-09-26 | 6a8d81f, e351348, 7f0317b | [260926-jlu-add-diffie-hellman-key-exchange-browser-](./quick/260926-jlu-add-diffie-hellman-key-exchange-browser-/) |
+| 260926-mbm | Extend Venn Diagram tool's prime palette to 26 primes (2-101) | 2026-09-26 | 7249fb0 | .planning/quick/260926-mbm-in-the-venn-diagram-tool-extend-the-palette-of-primes-which |
+| 260926-mbn | Show public exponents visually travel to Eve before recorded in her notebook | 2026-09-26 | 2ade039 | .planning/quick/260926-mbn-in-the-diffie-hellman-key-exchange-tool-when-public-exponent |
+| 260926-mbl | Fix naming incongruencies across tools (Pizza Slices -> Congruence Wheel, Prime Venn Diagram -> Venn Diagram, etc.) | 2026-09-26 | 481d5d0 | .planning/quick/260926-mbl-fix-naming-incongruencies-between-internal-names-ids-comment |
 
 ## Deferred Items
 
