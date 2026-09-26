@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Palette Unification
 status: verifying
-stopped_at: "Completed quick task 260925-pw2: Create Venn Diagrams tool (two-circle prime intersection visualizer)"
-last_updated: "2026-09-25T17:09:11.658Z"
+stopped_at: "Completed quick task 260926-ckc: Fix Venn Diagrams tool GCD framing"
+last_updated: "2026-09-26T07:19:33.736Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 01 execution started
-state_head: 9222b0625e3887f9e63daeacc8682cc21aef2346
+state_head: 61d394756e1554d760de038cf97fea82cdadda8b
 progress:
   total_phases: 4
   completed_phases: 0
@@ -85,6 +85,7 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01 Plan 05]: Task 3's checkpoint had no gate=blocking-human override, so it was auto-approved after self-performed cross-page verification (audit re-confirmation + headless-Chrome screenshots in both themes for all six pages), per this run's auto-mode instructions, consistent with plan 01-01's precedent
 - [Phase 01]: [Phase 01 Plan 06]: Fixed nav-header inset (G-01-1a) by relocating body padding onto each page's content container, and theme non-persistence (G-01-1b) via a window.name fallback instead of the originally-suggested document.cookie (cookie writes are silently dropped on file:// origins)
 - [Phase 01]: [Quick task 260925-pw2]: Added sixth tool (Venn Diagrams) with drag/click prime placement into two-circle regions, published to hub and all nav headers; NAV-01 remains Pending since two roadmap phases (GCD, Continued Fractions) are still needed to reach all eight tools
+- [Quick task 260926-ckc]: Reframed Venn Diagrams product rows around GCD -- each circle is one number (own-only * shared factors), centre row states GCD(leftTotal, rightTotal) explicitly via a new Euclidean gcd() helper; REGION_NAMES.overlap renamed from "middle only" to "overlap" since the lens now holds shared, not exclusive, factors
 
 ### Pending Todos
 
@@ -103,6 +104,7 @@ None yet.
 | 260925-pbw | Rename Christmas Trees folder to Factor Tree | 2026-09-25 | 018fe19 | [260925-pbw-rename-christmas-trees-folder-to-factor-](./quick/260925-pbw-rename-christmas-trees-folder-to-factor-/) |
 | 260925-pw2 | Create Venn Diagrams tool (two-circle prime intersection visualizer) | 2026-09-25 | 37e57f3, 1f28927, 9222b06 | [260925-pw2-create-venn-diagrams-tool-two-circle-ven](./quick/260925-pw2-create-venn-diagrams-tool-two-circle-ven/) |
 | 260925-qpp | Fix Venn Diagrams product display format (combined region = factors = product lines, rename overlap to "middle only") | 2026-09-25 | 374d7dd | [260925-qpp-fix-product-display-format-in-venn-diagr](./quick/260925-qpp-fix-product-display-format-in-venn-diagr/) |
+| 260926-ckc | Fix Venn Diagrams tool GCD framing (two-part side rows, GCD centre row, reworded lede) | 2026-09-26 | f05993f, 61d3947 | [260926-ckc-fix-venn-diagrams-tool-overlap-region-sh](./quick/260926-ckc-fix-venn-diagrams-tool-overlap-region-sh/) |
 
 ## Deferred Items
 
@@ -114,8 +116,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-25T17:09:03.075Z
-Stopped at: Completed quick task 260925-qpp: Fix Venn Diagrams product display format
+Last session: 2026-09-26T07:18:32.000Z
+Stopped at: Completed quick task 260926-ckc: Fix Venn Diagrams tool GCD framing
 Resume file: None
 
-Last activity: 2026-09-25 - Completed quick task 260925-qpp: Fix Venn Diagrams product display format
+Last activity: 2026-09-26 - Completed quick task 260926-ckc: Fix Venn Diagrams tool GCD framing
