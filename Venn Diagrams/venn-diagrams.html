@@ -313,9 +313,24 @@
     return p;
   }
 
-  function formatProduct(list){
-    if (list.length === 0) return '(empty) = 1';
-    return list.join(' * ') + ' = ' + productOf(list);
+  function gcd(a, b){
+    a = Math.abs(a);
+    b = Math.abs(b);
+    while (b !== 0){
+      var t = a % b;
+      a = b;
+      b = t;
+    }
+    return a;
+  }
+
+  function formatSide(onlyList, sharedList){
+    var segments = [];
+    if (onlyList.length) segments.push(onlyList.join(' * ') + ' (only)');
+    if (sharedList.length) segments.push(sharedList.join(' * ') + ' (shared)');
+    var head = segments.length ? segments.join(' * ') : '(empty)';
+    var total = productOf(onlyList) * productOf(sharedList);
+    return head + ' = ' + total;
   }
 
   function buildPalette(count){
@@ -616,9 +631,16 @@
   }
 
   function renderProducts(){
-    productLeftEl.textContent = REGION_NAMES.left + ' = ' + formatProduct(primesOf(state.regions.left));
-    productOverlapEl.textContent = REGION_NAMES.overlap + ' = ' + formatProduct(primesOf(state.regions.overlap));
-    productRightEl.textContent = REGION_NAMES.right + ' = ' + formatProduct(primesOf(state.regions.right));
+    var leftOnlyList = primesOf(state.regions.left);
+    var sharedList = primesOf(state.regions.overlap);
+    var rightOnlyList = primesOf(state.regions.right);
+
+    var leftTotal = productOf(leftOnlyList) * productOf(sharedList);
+    var rightTotal = productOf(rightOnlyList) * productOf(sharedList);
+
+    productLeftEl.textContent = 'Left = ' + formatSide(leftOnlyList, sharedList);
+    productOverlapEl.textContent = 'Overlap = GCD(' + leftTotal + ', ' + rightTotal + ') = ' + gcd(leftTotal, rightTotal);
+    productRightEl.textContent = 'Right = ' + formatSide(rightOnlyList, sharedList);
   }
 
   function refreshRegionLabels(){
