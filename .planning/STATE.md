@@ -108,6 +108,7 @@ None yet.
 | 260926-ckc | Fix Venn Diagrams tool GCD framing (two-part side rows, GCD centre row, reworded lede) | 2026-09-26 | f05993f, 61d3947 | [260926-ckc-fix-venn-diagrams-tool-overlap-region-sh](./quick/260926-ckc-fix-venn-diagrams-tool-overlap-region-sh/) |
 | 260926-dgk | Add three-circle mode to Venn Diagrams tool (mode switch, pairwise + triple GCD regions, per-mode persistence) | 2026-09-26 | 13a8697, b4aa6ae, 148a804 | [260926-dgk-add-a-three-circle-mode-to-the-venn-diag](./quick/260926-dgk-add-a-three-circle-mode-to-the-venn-diag/) |
 | 260926-eod | Rename Venn Diagrams region labels to set notation, add per-circle name labels, replace GCD display with ∩ infix | 2026-09-26 | 3901252, 369baa4, d0a5d66 | [260926-eod-venn-diagrams-rename-region-labels-to-se](./quick/260926-eod-venn-diagrams-rename-region-labels-to-se/) |
+| 260926-f4v | Retire remaining "shared" wording in Venn Diagrams prose and compact page chrome vertically | 2026-09-26 | aa10394, 7007a88 | [260926-f4v-venn-diagrams-tool-follow-up-1-eliminate](./quick/260926-f4v-venn-diagrams-tool-follow-up-1-eliminate/) |
 
 ## Deferred Items
 
@@ -120,7 +121,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-26T08:52:35.602Z
-Stopped at: Completed quick task 260926-eod: Rename Venn Diagrams region labels to set notation
+Stopped at: Completed quick task 260926-f4v: Venn Diagrams wording + vertical compaction follow-up
 Resume file: None
 
-Last activity: 2026-09-26 - Completed quick task 260926-dgk: Add three-circle mode to Venn Diagrams tool
+Last activity: 2026-09-26 - Completed quick task 260926-f4v: Retire remaining "shared" wording in Venn Diagrams prose and compact page chrome vertically
