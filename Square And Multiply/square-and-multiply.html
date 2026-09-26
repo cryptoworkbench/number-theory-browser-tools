@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Square and Multiply</title>
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-special) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-result) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; padding: 8px 0 4px; }
+  .page-header h1{
+    margin:0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight:700; letter-spacing:.3px;
+    background: linear-gradient(90deg, var(--role-input), var(--role-special) 55%, var(--role-result));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .page-header p{ color:var(--text-dim); max-width:720px; margin:8px auto 0; line-height:1.55; font-size:.95rem; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .step-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .step-num{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--text) 8%, transparent); font-weight:700; font-size:.85rem; flex:none; }
+  .step-head h2{ margin:0; font-size:1.05rem; }
+  .step-head .sub{ color:var(--text-dim); font-size:.85rem; margin-left:auto; }
+
+  .intro p{ line-height:1.6; color:var(--text-dim); }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input, .field select{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent); }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:linear-gradient(135deg, var(--role-input), var(--role-special)); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:'JetBrains Mono', 'Consolas', monospace; }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+
+  .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; margin-top:2px; }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+  .banner strong{ color:var(--role-result); }
+
+  .substep{ background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; }
+  .substep + .substep{ margin-top:10px; }
+  .substep h3{ margin:0 0 8px; font-size:.85rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+  .formula{ font-family:'JetBrains Mono','Consolas',monospace; font-size:.98rem; word-break:break-all;
+    background:var(--overlay); border-radius:8px; padding:10px 12px; line-height:1.6; }
+  .formula .lbl{ color:var(--text-dim); }
+  .formula .val{ color:var(--role-result); }
+
+  .dlp-box{ border:1px solid var(--role-special); background:var(--role-special-soft); border-radius:12px; padding:14px; margin-top:16px; }
+  .dlp-box h3{ margin:0 0 6px; color:var(--role-special); font-size:.9rem; }
+  .dlp-box .tag{ display:inline-block; font-size:.7rem; background:color-mix(in srgb, var(--role-special) 25%, transparent); color:var(--role-special);
+    border-radius:6px; padding:2px 7px; margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase; }
+  .dlp-box a{ color:var(--role-special); }
+
+  .result-box{ margin-top:10px; font-size:.88rem; line-height:1.5; background:var(--overlay); border-radius:8px; padding:10px 12px; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; font-size:.8rem; color:var(--text-dim); margin-top:10px; }
+  .legend .item{ display:flex; align-items:center; gap:6px; }
+  .legend .swatch{ width:14px; height:14px; border-radius:4px; display:inline-block; border:1px solid var(--panel-border-strong); }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
+  .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .pillbar span{ background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:20px; padding:3px 10px; font-size:.72rem; }
+
+  /* ---------- new rules for this tool ---------- */
+
+  #ladderSvg{ width:100%; height:auto; display:block; }
+
+  .ladder-row{ opacity:0; transition:opacity .25s ease; }
+  .ladder-row.is-active rect{ stroke:var(--role-active); stroke-width:2.5; }
+
+  .binary-strip{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-bottom:10px; }
+  .bit{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 10px; border-radius:8px;
+    font-family:'JetBrains Mono','Consolas',monospace; font-size:1rem; font-weight:700; min-width:34px;
+    border:1px solid var(--panel-border); transition:outline-color .2s ease; }
+  .bit.is-one{ background:var(--role-input-soft); color:var(--role-input); border-color:var(--role-input); }
+  .bit.is-zero{ background:var(--role-inert); color:var(--role-inert-text); border-color:var(--role-inert-text); }
+  .bit.is-current{ outline:2px solid var(--role-active); outline-offset:2px; }
+  .bit .place{ font-size:.62rem; font-weight:400; color:var(--text-dim); }
+
+  .cost-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px;
+    font-family:'JetBrains Mono','Consolas',monospace; font-size:.85rem; }
+  .cost-grid div{ background:var(--overlay); border-radius:8px; padding:6px 9px; word-break:break-all; }
+
+  @media (prefers-reduced-motion: reduce){
+    .ladder-row{ transition:none; }
+  }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Congruence Wheel/congruence-wheel.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA Examplifier/rsa-examplifier.html" class="site-nav-link">RSA Examplifier</a>
+      <a href="../Venn Diagrams/venn-diagrams.html" class="site-nav-link">Venn Diagram</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="square-and-multiply.html" class="site-nav-link is-active">Square and Multiply</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <h1>Square and Multiply</h1>
+    <p>This is what a computer really does when it evaluates b<sup>e</sup> mod m — no repeated multiplication, just one
+      squaring per bit of the exponent and an occasional multiply by the base.</p>
+  </header>
+
+  <section class="panel intro">
+    <div class="step-head"><span class="step-num">•</span><h2>How the computer actually does it</h2></div>
+    <p>Raising a number to the e-th power by multiplying it by itself e times is hopeless once e has hundreds of digits —
+      a real RSA exponent would take longer than the age of the universe that way. Instead, the machine reads the
+      exponent in binary and needs only about one squaring per bit, with an extra multiply thrown in only on the bits
+      that are 1. That is the whole trick, and it is the only reason cryptographic-sized arithmetic finishes at all.</p>
+    <p style="margin-bottom:0;">This is the identical loop the RSA and Diffie-Hellman pages on this site call every
+      single time they write b<sup>e</sup> mod m — there it is named <em>modular exponentiation</em> and runs behind the
+      scenes; here it is opened up, one bit at a time.</p>
+  </section>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field"><label for="baseInput">Base b</label><input id="baseInput" type="text" inputmode="numeric" value="7"></div>
+      <div class="field"><label for="expInput">Exponent e</label><input id="expInput" type="text" inputmode="numeric" value="13"></div>
+      <div class="field"><label for="modInput">Modulus m</label><input id="modInput" type="text" inputmode="numeric" value="11"></div>
+    </div>
+
+    <div class="chips" id="presetChips">
+      <button type="button" class="chip" data-base="7" data-exp="13" data-mod="11">b=7, e=13, m=11</button>
+      <button type="button" class="chip" data-base="4" data-exp="13" data-mod="497">b=4, e=13, m=497</button>
+      <button type="button" class="chip" data-base="3" data-exp="65537" data-mod="3233">b=3, e=65537, m=3233</button>
+      <button type="button" class="chip" data-base="1234567" data-exp="4294967296" data-mod="2147483647">b=1234567, e=4294967296, m=2147483647</button>
+    </div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="computeBtn" class="primary">🧮 Compute</button>
+      <button id="playBtn">▶ Play</button>
+      <button id="stepBtn">⏭ Step</button>
+      <button id="instantBtn" class="ghost">⏩ Instant</button>
+      <button id="resetBtn" class="ghost">↺ Reset</button>
+      <button id="randomizeBtn" class="ghost">🎲 Randomize</button>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:flex-end;">
+      <div class="speed-wrap">
+        <label for="speedInput" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim);">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="4">
+        <span id="speedLabel">brisk</span>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+  </section>
+
+  <div class="banner" id="banner">Set b, e and m and press Compute.</div>
+
+  <section class="panel">
+    <div id="binaryStrip" class="binary-strip"></div>
+    <svg id="ladderSvg"></svg>
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--role-input)"></span> Exponent bit (1 = multiply happens)</span>
+      <span class="item"><span class="swatch" style="background:var(--overlay)"></span> Squaring — every row, unconditional</span>
+      <span class="item"><span class="swatch" style="background:var(--role-special)"></span> Multiply by base — only on a 1 bit</span>
+      <span class="item"><span class="swatch" style="background:var(--role-result)"></span> Accumulator / final answer</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>Arithmetic log</h2></div>
+    <div id="mathLog"></div>
+  </section>
+
+  <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>Result</h2></div>
+    <div id="resultLine"></div>
+  </section>
+
+  <section class="panel">
+    <div id="costPanel"></div>
+  </section>
+
+  <footer>
+    <div>Square-and-multiply demo — the algorithm behind every b^e mod m on this site. For education only.</div>
+    <div class="pillbar"><span>binary exponentiation</span><span>one squaring per bit</span><span>BigInt modular arithmetic</span></div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- number theory ---------- */
+
+function parseBigIntStrict(str, allowZero){
+  str = (str||'').trim();
+  if(!/^\d+$/.test(str)) throw new Error('not a nonnegative integer');
+  const v = BigInt(str);
+  if(!allowZero && v <= 0n) throw new Error('must be positive');
+  return v;
+}
+
+function fmt(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function modPowPlain(base, exp, mod){
+  let result = 1n; base %= mod; if(base<0n) base += mod;
+  while(exp > 0n){ if(exp & 1n) result = (result*base) % mod; exp >>= 1n; base = (base*base) % mod; }
+  return result;
+}
+
+function shortVal(x){
+  const s = x.toString();
+  return s.length <= 12 ? s : s.slice(0, 8) + '…';
+}
+
+function popCountBig(n){
+  let x = n < 0n ? -n : n;
+  let count = 0;
+  while (x > 0n){ if (x & 1n) count++; x >>= 1n; }
+  return count;
+}
+
+function squareAndMultiplySteps(base, exp, mod){
+  let b = base % mod;
+  if (b < 0n) b += mod;
+  const bits = exp.toString(2);
+  let acc = 1n;
+  const steps = [];
+  for (let i = 0; i < bits.length; i++){
+    const bit = bits[i] === '1' ? 1 : 0;
+    const place = bits.length - 1 - i;
+    const accBefore = acc;
+    const accSquared = (accBefore * accBefore) % mod;
+    const multiplied = bit === 1;
+    const accAfter = multiplied ? (accSquared * b) % mod : accSquared;
+    steps.push({ index:i, bit:bit, place:place, accBefore:accBefore, accSquared:accSquared, multiplied:multiplied, accAfter:accAfter });
+    acc = accAfter;
+  }
+  const multiplies = popCountBig(exp);
+  return {
+    base: b, exp: exp, mod: mod, bits: bits, steps: steps, result: acc,
+    squarings: bits.length, multiplies: multiplies, totalMuls: bits.length + multiplies,
+    naive: exp > 0n ? exp - 1n : 0n
+  };
+}
+
+function costSummary(exp){
+  const bits = exp.toString(2).length;
+  const squarings = bits;
+  const multiplies = popCountBig(exp);
+  const total = squarings + multiplies;
+  const naive = exp > 0n ? exp - 1n : 0n;
+  const ratio = naive / BigInt(total);
+  const meaningful = naive >= 2n * BigInt(total);
+  return { bits: bits, squarings: squarings, multiplies: multiplies, total: total, naive: naive, ratio: ratio, meaningful: meaningful };
+}
+
+function rsaScaleNote(bits){
+  const squarings = bits;
+  const multiplies = Math.floor(bits / 2);
+  const total = squarings + multiplies;
+  const naiveDigits = (2n ** BigInt(bits) - 1n).toString().length;
+  return { squarings: squarings, multiplies: multiplies, total: total, naiveDigits: naiveDigits };
+}
+
+function binaryExpansionText(exp){
+  if (exp === 0n) return '0 = 0₂ = (no powers of two — anything to the zero power is 1)';
+  const bits = exp.toString(2);
+  const terms = [];
+  for (let i = 0; i < bits.length; i++){
+    if (bits[i] === '1'){
+      const place = bits.length - 1 - i;
+      terms.push(1n << BigInt(place));
+    }
+  }
+  const shown = terms.length <= 12 ? terms : terms.slice(0, 12);
+  let termStr = shown.map(fmt).join(' + ');
+  if (terms.length > 12) termStr += ' + …';
+  return fmt(exp) + ' = ' + bits + '₂ = ' + termStr;
+}
+
+/* ---------- state ---------- */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const key in attrs) el.setAttribute(key, attrs[key]);
+  return el;
+}
+
+const $ = (id) => document.getElementById(id);
+
+const baseInput = $('baseInput');
+const expInput = $('expInput');
+const modInput = $('modInput');
+const computeBtn = $('computeBtn');
+const playBtn = $('playBtn');
+const stepBtn = $('stepBtn');
+const instantBtn = $('instantBtn');
+const resetBtn = $('resetBtn');
+const randomizeBtn = $('randomizeBtn');
+const speedInput = $('speedInput');
+const speedLabel = $('speedLabel');
+const presetChips = $('presetChips');
+const errorBox = $('errorBox');
+const banner = $('banner');
+const binaryStrip = $('binaryStrip');
+const ladderSvg = $('ladderSvg');
+const mathLog = $('mathLog');
+const resultLine = $('resultLine');
+const costPanel = $('costPanel');
+
+let currentRun = null;
+
+function readInputs(){
+  errorBox.textContent = '';
+  let base, exp, mod;
+  try{ base = parseBigIntStrict(baseInput.value, true); }
+  catch(e){ errorBox.textContent = 'Base must be a non-negative whole number.'; return null; }
+  if (base.toString().length > 40){ errorBox.textContent = 'Base must be at most 40 digits — this is a teaching demo, not a key generator.'; return null; }
+  try{ exp = parseBigIntStrict(expInput.value, true); }
+  catch(e){ errorBox.textContent = 'Exponent must be a non-negative whole number.'; return null; }
+  if (exp >= (1n << 64n)){ errorBox.textContent = 'Exponent must be below 2^64 (65 bits) — the ladder would need more rows than a browser tab can render.'; return null; }
+  try{ mod = parseBigIntStrict(modInput.value, true); }
+  catch(e){ errorBox.textContent = 'Modulus must be a non-negative whole number.'; return null; }
+  if (mod < 2n){ errorBox.textContent = 'Modulus must be at least 2 — a modulus of 1 makes every result 0 and is degenerate.'; return null; }
+  if (mod.toString().length > 40){ errorBox.textContent = 'Modulus must be at most 40 digits — this is a teaching demo, not a key generator.'; return null; }
+  return { base: base, exp: exp, mod: mod };
+}
+
+function renderBinaryStrip(run){
+  binaryStrip.innerHTML = '';
+  const bits = run.bits;
+  for (let i = 0; i < bits.length; i++){
+    const place = bits.length - 1 - i;
+    const cell = document.createElement('span');
+    cell.className = 'bit ' + (bits[i] === '1' ? 'is-one' : 'is-zero');
+    cell.title = 'place value 2^' + place;
+    const digit = document.createElement('span');
+    digit.textContent = bits[i];
+    const placeCaption = document.createElement('span');
+    placeCaption.className = 'place';
+    placeCaption.textContent = '2^' + place;
+    cell.appendChild(digit);
+    cell.appendChild(placeCaption);
+    binaryStrip.appendChild(cell);
+  }
+}
+
+function arrow(x1, y1, x2, y2){
+  const g = svgEl('g', {});
+  g.appendChild(svgEl('line', {x1:x1, y1:y1, x2:x2-6, y2:y2, stroke:'var(--text-dim)', 'stroke-width':1.5}));
+  g.appendChild(svgEl('polygon', {points:(x2-8)+','+(y2-5)+' '+x2+','+y2+' '+(x2-8)+','+(y2+5), fill:'var(--text-dim)'}));
+  return g;
+}
+
+function buildLadder(run){
+  ladderSvg.innerHTML = '';
+  const rows = run.steps.length;
+  const tight = rows > 20;
+  const ROW_H = tight ? 38 : 58;
+  const TOP = 100, BOTTOM = 56;
+  const H = TOP + rows * ROW_H + BOTTOM;
+  const valFont = tight ? 11 : 13;
+  ladderSvg.setAttribute('viewBox', '0 0 900 ' + H);
+  ladderSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  ladderSvg.setAttribute('role', 'img');
+  ladderSvg.setAttribute('aria-label', 'Square and multiply ladder: one row per exponent bit, each squaring the accumulator and conditionally multiplying by the base');
+
+  const caption = svgEl('text', {x:450, y:32, 'text-anchor':'middle', 'font-size':13, fill:'var(--text-dim)'});
+  caption.textContent = 'Accumulator starts at 1 — the top (most significant) bit is read first.';
+  ladderSvg.appendChild(caption);
+
+  const headings = [
+    {x:90, label:'exponent bit'},
+    {x:295, label:'squaring'},
+    {x:520, label:'conditional multiply'},
+    {x:775, label:'accumulator'}
+  ];
+  headings.forEach(function(h){
+    const t = svgEl('text', {x:h.x, y:60, 'text-anchor':'middle', 'font-size':12, 'font-weight':700, fill:'var(--text-dim)'});
+    t.textContent = h.label;
+    ladderSvg.appendChild(t);
+  });
+
+  for (let i = 0; i < rows; i++){
+    const step = run.steps[i];
+    const yc = TOP + i * ROW_H;
+    const g = svgEl('g', {class:'ladder-row', id:'smRow' + i});
+
+    const bitRect = svgEl('rect', {x:30, y:yc-20, width:120, height:40, rx:10,
+      fill: step.bit === 1 ? 'var(--role-input-soft)' : 'var(--role-inert)',
+      stroke: step.bit === 1 ? 'var(--role-input)' : 'var(--role-inert-text)', 'stroke-width':1.5});
+    g.appendChild(bitRect);
+    const bitText = svgEl('text', {x:90, y:yc-2, 'text-anchor':'middle', 'font-size':valFont+3, 'font-weight':700,
+      fill: step.bit === 1 ? 'var(--role-input)' : 'var(--role-inert-text)'});
+    bitText.textContent = String(step.bit);
+    g.appendChild(bitText);
+    const bitCaption = svgEl('text', {x:90, y:yc+14, 'text-anchor':'middle', 'font-size':10, fill:'var(--text-dim)'});
+    bitCaption.textContent = 'bit ' + (i+1) + ' of ' + rows + ' — 2^' + step.place;
+    g.appendChild(bitCaption);
+
+    g.appendChild(arrow(150, yc, 210, yc));
+
+    const sqRect = svgEl('rect', {x:210, y:yc-20, width:170, height:40, rx:10, fill:'var(--overlay)', stroke:'var(--panel-border-strong)', 'stroke-width':1.5});
+    g.appendChild(sqRect);
+    const sqText = svgEl('text', {x:295, y:yc+4, 'text-anchor':'middle', 'font-size':valFont, fill:'var(--text)', 'font-family':'JetBrains Mono, Consolas, monospace'});
+    sqText.textContent = shortVal(step.accSquared);
+    g.appendChild(sqText);
+
+    if (step.multiplied){
+      g.appendChild(arrow(380, yc, 430, yc));
+      const mulRect = svgEl('rect', {x:430, y:yc-20, width:180, height:40, rx:10, fill:'var(--role-special-soft)', stroke:'var(--role-special)', 'stroke-width':1.5});
+      g.appendChild(mulRect);
+      const mulText = svgEl('text', {x:520, y:yc+4, 'text-anchor':'middle', 'font-size':valFont, fill:'var(--role-special)', 'font-family':'JetBrains Mono, Consolas, monospace'});
+      mulText.textContent = '× base = ' + shortVal(step.accAfter);
+      g.appendChild(mulText);
+    } else {
+      const skipRect = svgEl('rect', {x:430, y:yc-20, width:180, height:40, rx:10, fill:'none', stroke:'var(--role-inert-text)', 'stroke-width':1.5, 'stroke-dasharray':'5,4'});
+      g.appendChild(skipRect);
+      const skipText = svgEl('text', {x:520, y:yc+4, 'text-anchor':'middle', 'font-size':valFont-1, fill:'var(--role-inert-text)'});
+      skipText.textContent = 'skipped (bit is 0)';
+      g.appendChild(skipText);
+    }
+
+    g.appendChild(arrow(610, yc, 680, yc));
+
+    const isLast = i === rows - 1;
+    const accRect = svgEl('rect', {x:680, y:yc-20, width:190, height:40, rx:10,
+      fill: isLast ? 'var(--role-result-soft)' : 'var(--overlay)',
+      stroke: isLast ? 'var(--role-result)' : 'var(--panel-border-strong)', 'stroke-width': isLast ? 2.5 : 1.5});
+    g.appendChild(accRect);
+    const accText = svgEl('text', {x:775, y:yc+4, 'text-anchor':'middle', 'font-size':valFont, 'font-weight': isLast ? 700 : 400,
+      fill: isLast ? 'var(--role-result)' : 'var(--text)', 'font-family':'JetBrains Mono, Consolas, monospace'});
+    accText.textContent = shortVal(step.accAfter) + (isLast ? ' = answer' : '');
+    g.appendChild(accText);
+
+    ladderSvg.appendChild(g);
+
+    if (i < rows - 1){
+      const nextYc = TOP + (i+1) * ROW_H;
+      const d = 'M 775 ' + (yc+16) + ' L 775 ' + (yc + ROW_H - 22) + ' L 295 ' + (yc + ROW_H - 22) + ' L 295 ' + (nextYc - 16);
+      ladderSvg.appendChild(svgEl('path', {d:d, fill:'none', stroke:'var(--role-result)', 'stroke-width':1.5, 'stroke-dasharray':'3,3'}));
+    }
+  }
+}
+
+function productFormText(run){
+  const bits = run.bits;
+  const parts = [];
+  for (let i = 0; i < bits.length; i++){
+    if (bits[i] === '1'){
+      const place = bits.length - 1 - i;
+      parts.push(fmt(run.base) + '^' + fmt(BigInt(place)));
+    }
+  }
+  return parts.length ? parts.join(' × ') : fmt(run.base) + '^0 = 1';
+}
+
+function renderSetup(run){
+  const div = document.createElement('div');
+  div.className = 'substep';
+  div.innerHTML = '<h3>Setup</h3>' +
+    '<div class="formula"><span class="lbl">base reduced first:</span> ' + fmt(run.rawBase) + ' mod ' + fmt(run.mod) +
+      ' = <span class="val">' + fmt(run.base) + '</span> — this is the value the ladder squares and multiplies by.</div>' +
+    '<div class="formula" style="margin-top:6px;">' + binaryExpansionText(run.exp) + '</div>' +
+    '<div class="formula" style="margin-top:6px;">' + fmt(run.base) + '^' + fmt(run.exp) + ' = ' + productFormText(run) + '</div>' +
+    '<div class="formula" style="margin-top:6px;">The first row squares the accumulator’s starting value of 1, which is a no-op — that is why implementations begin from the leading (most significant) bit.</div>';
+  mathLog.appendChild(div);
+}
+
+function clearActiveRows(){
+  const active = ladderSvg.querySelectorAll('.ladder-row.is-active');
+  for (let i = 0; i < active.length; i++) active[i].classList.remove('is-active');
+}
+
+function renderStep(step, run){
+  clearActiveRows();
+  const rowEl = $('smRow' + step.index);
+  if (rowEl){ rowEl.style.opacity = '1'; rowEl.classList.add('is-active'); }
+
+  const cells = binaryStrip.querySelectorAll('.bit');
+  for (let i = 0; i < cells.length; i++) cells[i].classList.remove('is-current');
+  if (cells[step.index]) cells[step.index].classList.add('is-current');
+
+  const div = document.createElement('div');
+  div.className = 'substep';
+  const total = run.steps.length;
+  let html = '<h3>Bit ' + (step.index+1) + ' of ' + total + ' — digit ' + step.bit + ', place value 2^' + step.place + '</h3>';
+  html += '<div class="formula"><span class="lbl">square:</span> ' + fmt(step.accBefore) + '² mod ' + fmt(run.mod) +
+    ' = <span class="val">' + fmt(step.accSquared) + '</span></div>';
+  if (step.multiplied){
+    html += '<div class="formula" style="margin-top:6px;"><span class="lbl">multiply (bit is 1):</span> ' + fmt(step.accSquared) +
+      ' × ' + fmt(run.base) + ' mod ' + fmt(run.mod) + ' = <span class="val">' + fmt(step.accAfter) + '</span></div>';
+  } else {
+    html += '<div class="formula" style="margin-top:6px;"><span class="lbl">multiply skipped:</span> this bit is 0, so the accumulator passes through unchanged at <span class="val">' + fmt(step.accAfter) + '</span></div>';
+  }
+  div.innerHTML = html;
+  mathLog.appendChild(div);
+
+  banner.textContent = 'Bit ' + (step.index+1) + ' of ' + total + ': square the accumulator' +
+    (step.multiplied ? ', then multiply by the base because this bit is 1.' : ' — multiply skipped because this bit is 0.');
+}
+
+function renderResult(run){
+  const cross = modPowPlain(run.rawBase, run.exp, run.mod);
+  let html = '<div class="formula"><span class="lbl">' + fmt(run.rawBase) + '^' + fmt(run.exp) + ' mod ' + fmt(run.mod) +
+    ' =</span> <span class="val">' + fmt(run.result) + '</span></div>';
+  if (cross === run.result){
+    html += '<div class="result-box">Independent check — a plain left-to-right modular exponentiation loop over the same inputs lands on <strong>' +
+      fmt(cross) + '</strong>, the same answer. ✓</div>';
+  } else {
+    html += '<div class="result-box" style="border-left:3px solid var(--role-warn); color:var(--role-warn);">Cross-check disagreement: the plain loop computed ' +
+      fmt(cross) + ', which does not match the ladder’s ' + fmt(run.result) + '. This indicates a bug.</div>';
+  }
+  resultLine.innerHTML = html;
+}
+
+function revealAll(run){
+  for (let i = 0; i < run.steps.length; i++){
+    renderStep(run.steps[i], run);
+  }
+  renderResult(run);
+}
+
+function rebuild(){
+  const parsed = readInputs();
+  if (!parsed) return;
+  const run = squareAndMultiplySteps(parsed.base, parsed.exp, parsed.mod);
+  run.rawBase = parsed.base;
+  currentRun = run;
+  mathLog.innerHTML = '';
+  resultLine.innerHTML = '';
+  renderBinaryStrip(run);
+  buildLadder(run);
+  renderSetup(run);
+  revealAll(run);
+  banner.textContent = 'Full computation shown below — ' + run.steps.length + ' bit' + (run.steps.length === 1 ? '' : 's') + ' in the exponent.';
+}
+
+computeBtn.addEventListener('click', rebuild);
+
+[baseInput, expInput, modInput].forEach(function(inp){
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') rebuild(); });
+});
+
+const chipButtons = presetChips.querySelectorAll('.chip');
+chipButtons.forEach(function(chip){
+  chip.addEventListener('click', function(){
+    baseInput.value = chip.dataset.base;
+    expInput.value = chip.dataset.exp;
+    modInput.value = chip.dataset.mod;
+    rebuild();
+  });
+});
+
+randomizeBtn.addEventListener('click', function(){
+  const base = BigInt(Math.floor(Math.random() * 1000000)) + 2n;
+  const exp = BigInt(Math.floor(Math.random() * 200000)) + 2n;
+  let mod;
+  try{ mod = parseBigIntStrict(modInput.value, true); }
+  catch(e){ mod = 0n; }
+  if (mod < 2n) mod = 97n;
+  baseInput.value = base.toString();
+  expInput.value = exp.toString();
+  modInput.value = mod.toString();
+  rebuild();
+});
+
+window.addEventListener('load', function(){
+  baseInput.value = '7';
+  expInput.value = '13';
+  modInput.value = '11';
+  rebuild();
+});
+
+})();
+</script>
+</body>
+</html>
