@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;}
+  [hidden]{ display:none !important; }
   body{
     margin:0;
     background:var(--bg-1);
@@ -121,9 +122,35 @@
   }
   #clear-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
+  /* mode switch */
+  .mode-switch{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .mode-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    letter-spacing:.04em;
+    color:var(--text);
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:8px;
+    padding:8px 16px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .mode-btn:hover{ border-color:var(--accent); }
+  .mode-btn:focus-visible{ outline:2px solid var(--role-active); outline-offset:2px; }
+  .mode-btn[aria-pressed="true"]{
+    background:var(--role-active);
+    color:var(--role-result-ink);
+    border-color:var(--role-active);
+  }
+
   /* diagram */
   .diagram-frame{ width:100%; max-width:880px; margin:0 auto; }
-  svg#venn{ width:100%; height:auto; display:block; overflow:visible; }
+  svg#venn, svg#venn3{ width:100%; height:auto; display:block; overflow:visible; }
 
   .circle-left{
     fill:color-mix(in srgb, var(--role-input) 16%, transparent);
@@ -135,8 +162,31 @@
     stroke:var(--role-alt);
     stroke-width:2;
   }
+  .circle-a{
+    fill:color-mix(in srgb, var(--role-input) 16%, transparent);
+    stroke:var(--role-input);
+    stroke-width:2;
+  }
+  .circle-b{
+    fill:color-mix(in srgb, var(--role-alt) 16%, transparent);
+    stroke:var(--role-alt);
+    stroke-width:2;
+  }
+  .circle-c{
+    fill:color-mix(in srgb, var(--role-special) 16%, transparent);
+    stroke:var(--role-special);
+    stroke-width:2;
+  }
   .lens-fill{
     fill:color-mix(in srgb, var(--role-result) 30%, transparent);
+    pointer-events:none;
+  }
+  .overlap-pair-fill{
+    fill:color-mix(in srgb, var(--role-result) 18%, transparent);
+    pointer-events:none;
+  }
+  .overlap-triple-fill{
+    fill:color-mix(in srgb, var(--role-result) 42%, transparent);
     pointer-events:none;
   }
   .region-label{
@@ -187,6 +237,7 @@
     opacity:.9;
   }
   .placed-chip:focus-visible{ outline:none; }
+  .placed-chip.chip-compact text{ font-size:13px; }
 
   .message{
     min-height:20px;
@@ -257,8 +308,14 @@
   <header class="page-header">
     <p class="eyebrow">sets &amp; shared factors</p>
     <h1>Prime Venn Diagram</h1>
-    <p class="lede">The two circles are two numbers, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. The primes in the overlap are the ones both numbers share, so the overlap multiplies to their GCD.</p>
+    <p class="lede" id="lede-two">The two circles are two numbers, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. The primes in the overlap are the ones both numbers share, so the overlap multiplies to their GCD.</p>
+    <p class="lede" id="lede-three" hidden>The three circles are three numbers, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. A prime sitting where two circles overlap is shared by exactly those two, so that whole lens multiplies to their GCD. A prime sitting where all three circles overlap is shared by all three, so the centre multiplies to the GCD of all three numbers.</p>
   </header>
+
+  <div class="mode-switch" role="group" aria-label="Diagram mode">
+    <button type="button" id="mode-two" class="mode-btn" aria-pressed="true">Two circles</button>
+    <button type="button" id="mode-three" class="mode-btn" aria-pressed="false">Three circles</button>
+  </div>
 
   <div class="picker-panel">
     <h2>Prime picker</h2>
@@ -270,16 +327,23 @@
     <button type="button" id="clear-btn">Clear all</button>
   </div>
 
-  <div class="diagram-frame">
+  <div class="diagram-frame" id="frame-two">
     <svg id="venn" viewBox="0 0 900 520" role="img" aria-label="Two overlapping circles forming three regions holding prime numbers">
       <g id="venn-static"></g>
       <g id="venn-dynamic"></g>
     </svg>
   </div>
 
+  <div class="diagram-frame" id="frame-three" hidden>
+    <svg id="venn3" viewBox="0 0 900 700" role="img" aria-label="Three overlapping circles forming seven regions holding prime numbers">
+      <g id="venn3-static"></g>
+      <g id="venn3-dynamic"></g>
+    </svg>
+  </div>
+
   <p id="message" class="message" aria-live="polite"></p>
 
-  <div class="products-panel">
+  <div class="products-panel" id="products-two">
     <div class="product-row">
       <span class="product-value" id="product-left"></span>
     </div>
@@ -288,6 +352,12 @@
     </div>
     <div class="product-row">
       <span class="product-value" id="product-right"></span>
+    </div>
+  </div>
+
+  <div class="products-panel" id="products-three" hidden>
+    <div class="product-row">
+      <span class="product-value" id="product-abc"></span>
     </div>
   </div>
 
@@ -366,7 +436,137 @@
   var REGION_ANCHOR = { left: [275, 250], overlap: [450, 250], right: [625, 250] };
   var regionEls = { left: null, overlap: null, right: null };
 
-  var state = { regions: { left: [], overlap: [], right: [] }, armed: null, nextId: 1 };
+  /* ---------- three-circle mode ---------- */
+
+  var R3 = 190;
+  var CENTERS3 = [
+    { x: 450 - 120 * (Math.sqrt(3) / 2), y: 270 }, // A
+    { x: 450 + 120 * (Math.sqrt(3) / 2), y: 270 }, // B
+    { x: 450, y: 450 }                              // C
+  ];
+
+  function dist3(a, b){
+    var dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function circleIntersections3(c0, c1, r){
+    var dx = c1.x - c0.x, dy = c1.y - c0.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    var mx = (c0.x + c1.x) / 2, my = (c0.y + c1.y) / 2;
+    var h = Math.sqrt(Math.max(0, r * r - (d / 2) * (d / 2)));
+    var ux = -dy / d, uy = dx / d;
+    return [
+      { x: mx + h * ux, y: my + h * uy },
+      { x: mx - h * ux, y: my - h * uy }
+    ];
+  }
+
+  function classifyPair3(i, j){
+    var pts = circleIntersections3(CENTERS3[i], CENTERS3[j], R3);
+    var k = 3 - i - j;
+    var d0 = dist3(pts[0], CENTERS3[k]);
+    var inner = d0 < R3 ? pts[0] : pts[1];
+    var outer = d0 < R3 ? pts[1] : pts[0];
+    return { inner: inner, outer: outer };
+  }
+
+  var IX3 = {};
+  (function(){
+    var pairs = [[0, 1], [1, 2], [0, 2]];
+    for (var p = 0; p < pairs.length; p++){
+      var i = pairs[p][0], j = pairs[p][1];
+      IX3[i + '' + j] = classifyPair3(i, j);
+    }
+  })();
+
+  function pairKey3(i, j){ return Math.min(i, j) + '' + Math.max(i, j); }
+  function outerPt3(i, j){ return IX3[pairKey3(i, j)].outer; }
+  function innerPt3(i, j){ return IX3[pairKey3(i, j)].inner; }
+
+  function arcSeg3(largeArc, sweep, pt){
+    return ' A ' + R3 + ' ' + R3 + ' 0 ' + largeArc + ' ' + sweep + ' ' + pt.x + ' ' + pt.y;
+  }
+
+  function onlyPath3(i){
+    var next = (i + 1) % 3, prev = (i + 2) % 3;
+    var p0 = outerPt3(i, next);
+    var p1 = outerPt3(i, prev);
+    var p2 = innerPt3(next, prev);
+    return 'M ' + p0.x + ' ' + p0.y + arcSeg3(1, 0, p1) + arcSeg3(0, 1, p2) + arcSeg3(0, 1, p0) + ' Z';
+  }
+
+  function pairPath3(i){
+    var j = (i + 1) % 3, k = (i + 2) % 3;
+    var p0 = outerPt3(i, j);
+    var p1 = innerPt3(i, k);
+    var p2 = innerPt3(j, k);
+    return 'M ' + p0.x + ' ' + p0.y + arcSeg3(0, 1, p1) + arcSeg3(0, 0, p2) + arcSeg3(0, 1, p0) + ' Z';
+  }
+
+  function triplePath3(){
+    var p0 = innerPt3(1, 2);
+    var p1 = innerPt3(0, 2);
+    var p2 = innerPt3(0, 1);
+    return 'M ' + p0.x + ' ' + p0.y + arcSeg3(0, 1, p1) + arcSeg3(0, 1, p2) + arcSeg3(0, 1, p0) + ' Z';
+  }
+
+  var REGION_PATH3 = {
+    aOnly: function(){ return onlyPath3(0); },
+    bOnly: function(){ return onlyPath3(1); },
+    cOnly: function(){ return onlyPath3(2); },
+    ab: function(){ return pairPath3(0); },
+    bc: function(){ return pairPath3(1); },
+    ac: function(){ return pairPath3(2); },
+    abc: function(){ return triplePath3(); }
+  };
+
+  var REGION_NAMES3 = {
+    aOnly: 'A only',
+    bOnly: 'B only',
+    cOnly: 'C only',
+    ab: 'A∩B only',
+    ac: 'A∩C only',
+    bc: 'B∩C only',
+    abc: 'all three'
+  };
+
+  var REGION_KEYS3 = ['aOnly', 'bOnly', 'cOnly', 'ab', 'ac', 'bc', 'abc'];
+
+  var CHIP_ANCHOR3 = {
+    aOnly: [281, 232], bOnly: [619, 232], cOnly: [450, 520],
+    ab: [450, 196], ac: [350, 388], bc: [550, 388], abc: [450, 330]
+  };
+  var CAPTION_ANCHOR3 = {
+    aOnly: [281, 152], bOnly: [619, 152], cOnly: [450, 600],
+    ab: [450, 141], ac: [350, 338], bc: [550, 338], abc: [450, 282]
+  };
+
+  var MAX_PER_REGION3 = 3;
+  var MODE_STORAGE_KEY = 'venn-diagrams-mode';
+
+  var svg3Root = document.getElementById('venn3');
+  var svg3Static = document.getElementById('venn3-static');
+  var svg3Dynamic = document.getElementById('venn3-dynamic');
+  var modeTwoBtn = document.getElementById('mode-two');
+  var modeThreeBtn = document.getElementById('mode-three');
+  var ledeTwo = document.getElementById('lede-two');
+  var ledeThree = document.getElementById('lede-three');
+  var frameTwo = document.getElementById('frame-two');
+  var frameThree = document.getElementById('frame-three');
+  var productsTwo = document.getElementById('products-two');
+  var productsThree = document.getElementById('products-three');
+  var productAbcEl = document.getElementById('product-abc');
+
+  var regionEls3 = {};
+
+  function emptyRegions3(){
+    var out = {};
+    for (var i = 0; i < REGION_KEYS3.length; i++) out[REGION_KEYS3[i]] = [];
+    return out;
+  }
+
+  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
 
   function svgEl(tag, attrs){
     var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -451,6 +651,62 @@
     regionEls.overlap = overlap;
   }
 
+  function buildStatic3(){
+    svg3Static.appendChild(svgEl('circle', { cx: CENTERS3[0].x, cy: CENTERS3[0].y, r: R3, class: 'circle-a' }));
+    svg3Static.appendChild(svgEl('circle', { cx: CENTERS3[1].x, cy: CENTERS3[1].y, r: R3, class: 'circle-b' }));
+    svg3Static.appendChild(svgEl('circle', { cx: CENTERS3[2].x, cy: CENTERS3[2].y, r: R3, class: 'circle-c' }));
+
+    var pairKeys = ['ab', 'ac', 'bc'];
+    for (var pk = 0; pk < pairKeys.length; pk++){
+      svg3Static.appendChild(svgEl('path', { class: 'overlap-pair-fill', d: REGION_PATH3[pairKeys[pk]]() }));
+    }
+    svg3Static.appendChild(svgEl('path', { class: 'overlap-triple-fill', d: REGION_PATH3.abc() }));
+
+    for (var i = 0; i < REGION_KEYS3.length; i++){
+      var rk = REGION_KEYS3[i];
+      var anchor = CAPTION_ANCHOR3[rk];
+      var label = svgEl('text', { class: 'region-label', x: anchor[0], y: anchor[1] });
+      label.textContent = REGION_NAMES3[rk];
+      svg3Static.appendChild(label);
+    }
+  }
+
+  function createRegion3(key, pathString){
+    var g = svgEl('g', { class: 'region', tabindex: '0', role: 'button' });
+    var hit = svgEl('path', { class: 'region-hit', d: pathString });
+    g.appendChild(hit);
+    g.addEventListener('click', function(){ placePrime3(key); });
+    g.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); placePrime3(key); }
+    });
+    g.addEventListener('dragover', function(ev){
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'copy';
+      g.classList.add('is-drop-target');
+    });
+    g.addEventListener('dragleave', function(){
+      g.classList.remove('is-drop-target');
+    });
+    g.addEventListener('drop', function(ev){
+      ev.preventDefault();
+      g.classList.remove('is-drop-target');
+      var value = parseInt(ev.dataTransfer.getData('text/plain'), 10);
+      if (!isPrime(value)) return;
+      placePrime3(key, value);
+    });
+    return g;
+  }
+
+  function buildRegions3(){
+    for (var i = 0; i < REGION_KEYS3.length; i++){
+      var key = REGION_KEYS3[i];
+      var region = createRegion3(key, REGION_PATH3[key]());
+      region.setAttribute('id', 'region3-' + key);
+      svg3Root.insertBefore(region, svg3Dynamic);
+      regionEls3[key] = region;
+    }
+  }
+
   function primesOf(list){
     var out = [];
     for (var i = 0; i < list.length; i++) out.push(list[i].p);
@@ -508,13 +764,52 @@
     render();
   }
 
+  function primesOf3(key){ return primesOf(state.regions3[key]); }
+
+  function regionAriaLabel3(key){
+    var contents = primesOf3(key);
+    return REGION_NAMES3[key] + ' region, currently holding ' +
+      (contents.length ? contents.join(', ') : 'nothing');
+  }
+
+  function placePrime3(key, prime){
+    var value = (prime === undefined) ? state.armed : prime;
+    if (value === null || value === undefined){
+      setMessage('Pick a prime from the picker first.');
+      return;
+    }
+    if (state.regions3[key].length >= MAX_PER_REGION3){
+      setMessage('The ' + REGION_NAMES3[key] + ' region is full — max ' + MAX_PER_REGION3 + ' primes.', true);
+      return;
+    }
+    state.regions3[key].push({ id: state.nextId++, p: value });
+    setMessage('Placed ' + value + ' in the ' + REGION_NAMES3[key] + ' region.');
+    render();
+  }
+
+  function removeToken3(key, id){
+    var list = state.regions3[key];
+    for (var i = 0; i < list.length; i++){
+      if (list[i].id === id){
+        var removed = list.splice(i, 1)[0];
+        setMessage('Removed ' + removed.p + ' from the ' + REGION_NAMES3[key] + ' region.');
+        break;
+      }
+    }
+    render();
+  }
+
   function clearAll(){
-    state.regions.left = [];
-    state.regions.overlap = [];
-    state.regions.right = [];
+    if (state.mode === 'three'){
+      state.regions3 = emptyRegions3();
+    } else {
+      state.regions.left = [];
+      state.regions.overlap = [];
+      state.regions.right = [];
+      persist();
+    }
     state.armed = null;
     setMessage('Cleared all regions.');
-    persist();
     render();
   }
 
@@ -649,24 +944,128 @@
     regionEls.right.setAttribute('aria-label', regionAriaLabel('right'));
   }
 
+  function renderTokens3(){
+    svg3Dynamic.innerHTML = '';
+    for (var k = 0; k < REGION_KEYS3.length; k++){
+      var key = REGION_KEYS3[k];
+      var list = state.regions3[key];
+      if (list.length === 0) continue;
+      var anchor = CHIP_ANCHOR3[key];
+      var blockHeight = list.length * 24 + (list.length - 1) * 6;
+      var top = anchor[1] - blockHeight / 2;
+      for (var idx = 0; idx < list.length; idx++){
+        var y = top + idx * (24 + 6);
+        var x = anchor[0] - 22;
+        var entry = list[idx];
+
+        var g = svgEl('g', {
+          class: 'placed-chip chip-compact',
+          tabindex: '0',
+          role: 'button',
+          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_NAMES3[key] + ' region'
+        });
+        g.appendChild(svgEl('rect', { x: x, y: y, width: 44, height: 24, rx: 6 }));
+        var text = svgEl('text', { x: x + 22, y: y + 12 });
+        text.textContent = String(entry.p);
+        g.appendChild(text);
+        (function(regionKey, tokenId){
+          g.addEventListener('click', function(){ removeToken3(regionKey, tokenId); });
+          g.addEventListener('keydown', function(ev){
+            if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); removeToken3(regionKey, tokenId); }
+          });
+        })(key, entry.id);
+        svg3Dynamic.appendChild(g);
+      }
+    }
+  }
+
+  function renderProducts3(){
+    var totalA = productOf(primesOf3('aOnly').concat(primesOf3('ab'), primesOf3('ac'), primesOf3('abc')));
+    var totalB = productOf(primesOf3('bOnly').concat(primesOf3('ab'), primesOf3('bc'), primesOf3('abc')));
+    var totalC = productOf(primesOf3('cOnly').concat(primesOf3('ac'), primesOf3('bc'), primesOf3('abc')));
+    if (productAbcEl){
+      productAbcEl.textContent = 'A∩B∩C = GCD(' + totalA + ', ' + totalB + ', ' + totalC + ') = ' + gcd(gcd(totalA, totalB), totalC);
+    }
+  }
+
+  function refreshRegionLabels3(){
+    for (var i = 0; i < REGION_KEYS3.length; i++){
+      var key = REGION_KEYS3[i];
+      if (regionEls3[key]) regionEls3[key].setAttribute('aria-label', regionAriaLabel3(key));
+    }
+  }
+
   function render(){
     renderPicker();
     renderTokens();
     renderProducts();
     refreshRegionLabels();
+    renderTokens3();
+    renderProducts3();
+    refreshRegionLabels3();
+  }
+
+  function readModeParam(){
+    var m;
+    try{
+      m = /[?&]mode=([^&#]*)/.exec(location.search);
+    }catch(e){
+      return null;
+    }
+    if (!m) return null;
+    var v;
+    try{ v = decodeURIComponent(m[1]); }catch(e){ return null; }
+    return (v === 'two' || v === 'three') ? v : null;
+  }
+
+  function readStoredMode(){
+    try{
+      var v = localStorage.getItem(MODE_STORAGE_KEY);
+      return (v === 'two' || v === 'three') ? v : null;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function setMode(mode){
+    state.mode = mode;
+    var isThree = mode === 'three';
+    if (ledeTwo) ledeTwo.hidden = isThree;
+    if (ledeThree) ledeThree.hidden = !isThree;
+    if (frameTwo) frameTwo.hidden = isThree;
+    if (frameThree) frameThree.hidden = !isThree;
+    if (productsTwo) productsTwo.hidden = isThree;
+    if (productsThree) productsThree.hidden = !isThree;
+    if (modeTwoBtn) modeTwoBtn.setAttribute('aria-pressed', isThree ? 'false' : 'true');
+    if (modeThreeBtn) modeThreeBtn.setAttribute('aria-pressed', isThree ? 'true' : 'false');
+    try{ localStorage.setItem(MODE_STORAGE_KEY, mode); }catch(e){}
+    render();
   }
 
   clearBtn.addEventListener('click', clearAll);
+  if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
+  if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
 
   window.addEventListener('load', function(){
     buildStatic();
     buildRegions();
+    buildStatic3();
+    buildRegions3();
     if (!restore()){
       state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
       state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
       state.regions.right = [ { id: state.nextId++, p: 7 } ];
     }
-    render();
+    state.regions3.aOnly = [ { id: state.nextId++, p: 2 } ];
+    state.regions3.bOnly = [ { id: state.nextId++, p: 3 } ];
+    state.regions3.cOnly = [ { id: state.nextId++, p: 5 } ];
+    state.regions3.ab = [ { id: state.nextId++, p: 7 } ];
+    state.regions3.ac = [ { id: state.nextId++, p: 11 } ];
+    state.regions3.bc = [ { id: state.nextId++, p: 13 } ];
+    state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
+
+    var initialMode = readModeParam() || readStoredMode() || 'two';
+    setMode(initialMode);
   });
 
 })();
