@@ -135,6 +135,18 @@
   .dlp-box .tag{ display:inline-block; font-size:.7rem; background:color-mix(in srgb, var(--role-special) 25%, transparent); color:var(--role-special);
     border-radius:6px; padding:2px 7px; margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase; }
 
+  .crt-toggle-row{ display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--text-dim); margin:6px 0; cursor:pointer; user-select:none; }
+  .crt-toggle-row input[type="checkbox"]{ accent-color:var(--role-special); width:15px; height:15px; }
+  .crt-box{ border:1px solid var(--role-special); background:var(--role-special-soft); border-radius:12px; padding:14px; margin-top:6px; }
+  .crt-box .tag{ display:inline-block; font-size:.7rem; background:color-mix(in srgb, var(--role-special) 25%, transparent); color:var(--role-special);
+    border-radius:6px; padding:2px 7px; margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase; }
+  .crt-box h4{ margin:14px 0 6px; color:var(--role-special); font-size:.82rem; text-transform:uppercase; letter-spacing:.4px; }
+  .crt-box h4:first-of-type{ margin-top:0; }
+  .crt-stage{ margin-top:12px; }
+  .crt-stage:first-child{ margin-top:0; }
+  .crt-check.match{ color:var(--role-result); font-weight:700; }
+  .crt-check.mismatch{ color:var(--role-warn); font-weight:700; }
+
   .result-box{ margin-top:10px; font-size:.88rem; line-height:1.5; background:var(--overlay); border-radius:8px; padding:10px 12px; }
   .result-box.win{ border-left:3px solid var(--role-warn); }
   .result-box.giveup{ border-left:3px solid var(--role-result); }
@@ -699,11 +711,77 @@ function renderExchange(toId){
     } else {
       const matchesDirect = crt.m === recovered;
       const matchesOriginal = crt.m === m;
+      const qInvCheck = (to.q * crt.qInv) % to.p;
+      const dBits = to.d.toString(2).length;
+      const dPBits = crt.m1Bin.length;
+      const dQBits = crt.m2Bin.length;
+      const directSteps = dec.steps.length;
+      const crtSteps = crt.m1Steps.length + crt.m2Steps.length;
       decryptBodyHtml = `
-        <div class="formula">CRT decrypt: m = <span class="val">${fmt(crt.m)}</span></div>
-        <div class="formula" style="margin-top:8px;">
-          matches direct c<sup>d</sup> mod n (${fmt(recovered)}): ${matchesDirect ? '✅' : '❌'}<br>
-          matches original message (${fmt(m)}): ${matchesOriginal ? '✅' : '❌'}
+        <div class="crt-box">
+          <span class="tag">Advanced — the route real RSA implementations actually use</span>
+
+          <div class="crt-stage">
+            <h4>Why only ${to.label} can take this shortcut</h4>
+            <div class="msg-hint">${to.label} still holds p = ${fmt(to.p)} and q = ${fmt(to.q)} from generating this keypair.
+              Eve only ever recorded (e, n) off the wire — turning that into p and q is exactly the factoring problem Step 4 demonstrates.</div>
+          </div>
+
+          <div class="crt-stage">
+            <h4>Precomputation</h4>
+            <div class="formula">
+              <span class="lbl">dP = d mod (p−1) =</span> ${fmt(to.d)} mod ${fmt(to.p-1n)} = <span class="val">${fmt(crt.dP)}</span><br>
+              <span class="lbl">dQ = d mod (q−1) =</span> ${fmt(to.d)} mod ${fmt(to.q-1n)} = <span class="val">${fmt(crt.dQ)}</span><br>
+              <span class="lbl">qInv = q<sup>-1</sup> mod p =</span> <span class="val">${fmt(crt.qInv)}</span>
+            </div>
+            <div class="msg-hint">qInv comes from the same extended Euclidean algorithm the page already used to derive d.</div>
+            <div class="formula" style="margin-top:8px;">
+              check: q · qInv mod p = ${fmt(to.q)} × ${fmt(crt.qInv)} mod ${fmt(to.p)} = ${fmt(qInvCheck)} ${qInvCheck===1n?'✓':'✗'}
+            </div>
+          </div>
+
+          <div class="crt-stage">
+            <h4>Two half-size exponentiations</h4>
+            <div class="formula">m1 = c<sup>dP</sup> mod p = ${fmt(crt.cp)}<sup>${fmt(crt.dP)}</sup> mod ${fmt(to.p)} = <span class="val">${fmt(crt.m1)}</span></div>
+            ${renderModPowTable(crt.dP, crt.m1Steps)}
+            <div class="formula" style="margin-top:8px;">m2 = c<sup>dQ</sup> mod q = ${fmt(crt.cq)}<sup>${fmt(crt.dQ)}</sup> mod ${fmt(to.q)} = <span class="val">${fmt(crt.m2)}</span></div>
+            ${renderModPowTable(crt.dQ, crt.m2Steps)}
+          </div>
+
+          <div class="crt-stage">
+            <h4>Recombination (Garner's formula)</h4>
+            <div class="formula">
+              <span class="lbl">h = qInv·(m1 − m2) mod p =</span> ${fmt(crt.qInv)} × (${fmt(crt.m1)} − ${fmt(crt.m2)}) mod ${fmt(to.p)} = <span class="val">${fmt(crt.h)}</span><br>
+              <span class="lbl">m = m2 + h·q =</span> ${fmt(crt.m2)} + ${fmt(crt.h)} × ${fmt(to.q)} = <span class="val">${fmt(crt.m)}</span>
+            </div>
+          </div>
+
+          <div class="crt-stage">
+            <h4>Same-result cross-check</h4>
+            <div class="formula">
+              direct c<sup>d</sup> mod n = <span class="val">${fmt(recovered)}</span> &nbsp;vs&nbsp; CRT m = <span class="val">${fmt(crt.m)}</span>
+              — <span class="crt-check ${matchesDirect?'match':'mismatch'}">${matchesDirect ? '✅ matches' : '❌ does NOT match'}</span><br>
+              matches original message (${fmt(m)}): <span class="crt-check ${matchesOriginal?'match':'mismatch'}">${matchesOriginal ? '✅ matches' : '❌ does NOT match'}</span>
+            </div>
+          </div>
+
+          <div class="crt-stage">
+            <h4>Why this is faster</h4>
+            <div class="msg-hint">d is ${dBits} bits; dP and dQ are only ${dPBits} and ${dQBits} bits — roughly half. The direct route runs
+              ${fmt(BigInt(directSteps))} square-and-multiply steps over the full-size modulus n; the two CRT halves together run
+              ${fmt(BigInt(crtSteps))} steps combined over half-size moduli p and q. Multiply cost scales with the square of the
+              operand's bit-length, so halving both the exponent and the operand size cuts each multiply to roughly a quarter of
+              the cost — landing at roughly 4x less total work for the identical answer. This is why every production RSA
+              implementation decrypts this way.</div>
+          </div>
+
+          <div class="crt-stage">
+            <h4>Two caveats</h4>
+            <div class="msg-hint">This shortcut assumes gcd(c, n) = 1 — true unless the message happens to share a factor with n.</div>
+            <div class="msg-hint">Real CRT-RSA also verifies the recombined result before releasing it, because a single corrupted
+              half (say, from a hardware fault) leaks p to an attacker — one more safeguard this textbook version skips, in the
+              same spirit as the no-padding disclaimer above.</div>
+          </div>
         </div>
       `;
     }
