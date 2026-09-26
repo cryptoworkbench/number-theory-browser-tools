@@ -355,9 +355,31 @@
     </div>
   </div>
 
-  <div class="products-panel" id="products-three" hidden>
-    <div class="product-row">
-      <span class="product-value" id="product-abc"></span>
+  <div id="products-three" hidden>
+    <div class="products-panel">
+      <div class="product-row">
+        <span class="product-value" id="product-a"></span>
+      </div>
+      <div class="product-row">
+        <span class="product-value" id="product-b"></span>
+      </div>
+      <div class="product-row">
+        <span class="product-value" id="product-c"></span>
+      </div>
+    </div>
+    <div class="products-panel">
+      <div class="product-row">
+        <span class="product-value" id="product-ab"></span>
+      </div>
+      <div class="product-row">
+        <span class="product-value" id="product-ac"></span>
+      </div>
+      <div class="product-row">
+        <span class="product-value" id="product-bc"></span>
+      </div>
+      <div class="product-row">
+        <span class="product-value" id="product-abc"></span>
+      </div>
     </div>
   </div>
 
@@ -401,6 +423,20 @@
     var head = segments.length ? segments.join(' * ') : '(empty)';
     var total = productOf(onlyList) * productOf(sharedList);
     return head + ' = ' + total;
+  }
+
+  function formatSegments(parts){
+    var segments = [];
+    var allPrimes = [];
+    for (var i = 0; i < parts.length; i++){
+      var list = parts[i].list;
+      if (list.length){
+        segments.push(list.join(' * ') + ' (' + parts[i].note + ')');
+        allPrimes = allPrimes.concat(list);
+      }
+    }
+    var head = segments.length ? segments.join(' * ') : '(empty)';
+    return head + ' = ' + productOf(allPrimes);
   }
 
   function buildPalette(count){
@@ -543,6 +579,7 @@
   };
 
   var MAX_PER_REGION3 = 3;
+  var STORAGE_KEY3 = 'venn-diagrams-three';
   var MODE_STORAGE_KEY = 'venn-diagrams-mode';
 
   var svg3Root = document.getElementById('venn3');
@@ -556,6 +593,12 @@
   var frameThree = document.getElementById('frame-three');
   var productsTwo = document.getElementById('products-two');
   var productsThree = document.getElementById('products-three');
+  var productAEl = document.getElementById('product-a');
+  var productBEl = document.getElementById('product-b');
+  var productCEl = document.getElementById('product-c');
+  var productAbEl = document.getElementById('product-ab');
+  var productAcEl = document.getElementById('product-ac');
+  var productBcEl = document.getElementById('product-bc');
   var productAbcEl = document.getElementById('product-abc');
 
   var regionEls3 = {};
@@ -784,6 +827,7 @@
     }
     state.regions3[key].push({ id: state.nextId++, p: value });
     setMessage('Placed ' + value + ' in the ' + REGION_NAMES3[key] + ' region.');
+    persist3();
     render();
   }
 
@@ -796,12 +840,14 @@
         break;
       }
     }
+    persist3();
     render();
   }
 
   function clearAll(){
     if (state.mode === 'three'){
       state.regions3 = emptyRegions3();
+      persist3();
     } else {
       state.regions.left = [];
       state.regions.overlap = [];
@@ -854,6 +900,52 @@
     state.regions.left = parsed.left.map(function(p){ return { id: state.nextId++, p: p }; });
     state.regions.overlap = parsed.overlap.map(function(p){ return { id: state.nextId++, p: p }; });
     state.regions.right = parsed.right.map(function(p){ return { id: state.nextId++, p: p }; });
+    return true;
+  }
+
+  function persist3(){
+    try{
+      var payload = {};
+      for (var i = 0; i < REGION_KEYS3.length; i++){
+        payload[REGION_KEYS3[i]] = primesOf3(REGION_KEYS3[i]);
+      }
+      localStorage.setItem(STORAGE_KEY3, JSON.stringify(payload));
+    }catch(e){}
+  }
+
+  function isValidStoredRegion3(list){
+    if (!Array.isArray(list)) return false;
+    if (list.length > MAX_PER_REGION3) return false;
+    for (var i = 0; i < list.length; i++){
+      if (!isPrime(list[i])) return false;
+    }
+    return true;
+  }
+
+  function restore3(){
+    var raw;
+    try{
+      raw = localStorage.getItem(STORAGE_KEY3);
+    }catch(e){
+      return false;
+    }
+    if (!raw) return false;
+    var parsed;
+    try{
+      parsed = JSON.parse(raw);
+    }catch(e){
+      return false;
+    }
+    if (!parsed || typeof parsed !== 'object') return false;
+    for (var i = 0; i < REGION_KEYS3.length; i++){
+      if (!isValidStoredRegion3(parsed[REGION_KEYS3[i]])) return false;
+    }
+    var next = {};
+    for (var j = 0; j < REGION_KEYS3.length; j++){
+      var key = REGION_KEYS3[j];
+      next[key] = parsed[key].map(function(p){ return { id: state.nextId++, p: p }; });
+    }
+    state.regions3 = next;
     return true;
   }
 
@@ -980,9 +1072,47 @@
   }
 
   function renderProducts3(){
-    var totalA = productOf(primesOf3('aOnly').concat(primesOf3('ab'), primesOf3('ac'), primesOf3('abc')));
-    var totalB = productOf(primesOf3('bOnly').concat(primesOf3('ab'), primesOf3('bc'), primesOf3('abc')));
-    var totalC = productOf(primesOf3('cOnly').concat(primesOf3('ac'), primesOf3('bc'), primesOf3('abc')));
+    var aOnly = primesOf3('aOnly'), bOnly = primesOf3('bOnly'), cOnly = primesOf3('cOnly');
+    var ab = primesOf3('ab'), ac = primesOf3('ac'), bc = primesOf3('bc'), abc = primesOf3('abc');
+
+    var totalA = productOf(aOnly.concat(ab, ac, abc));
+    var totalB = productOf(bOnly.concat(ab, bc, abc));
+    var totalC = productOf(cOnly.concat(ac, bc, abc));
+
+    if (productAEl){
+      productAEl.textContent = 'A = ' + formatSegments([
+        { list: aOnly, note: 'only' },
+        { list: ab, note: 'with B' },
+        { list: ac, note: 'with C' },
+        { list: abc, note: 'all three' }
+      ]);
+    }
+    if (productBEl){
+      productBEl.textContent = 'B = ' + formatSegments([
+        { list: bOnly, note: 'only' },
+        { list: ab, note: 'with A' },
+        { list: bc, note: 'with C' },
+        { list: abc, note: 'all three' }
+      ]);
+    }
+    if (productCEl){
+      productCEl.textContent = 'C = ' + formatSegments([
+        { list: cOnly, note: 'only' },
+        { list: ac, note: 'with A' },
+        { list: bc, note: 'with B' },
+        { list: abc, note: 'all three' }
+      ]);
+    }
+
+    if (productAbEl){
+      productAbEl.textContent = 'A∩B = GCD(' + totalA + ', ' + totalB + ') = ' + gcd(totalA, totalB);
+    }
+    if (productAcEl){
+      productAcEl.textContent = 'A∩C = GCD(' + totalA + ', ' + totalC + ') = ' + gcd(totalA, totalC);
+    }
+    if (productBcEl){
+      productBcEl.textContent = 'B∩C = GCD(' + totalB + ', ' + totalC + ') = ' + gcd(totalB, totalC);
+    }
     if (productAbcEl){
       productAbcEl.textContent = 'A∩B∩C = GCD(' + totalA + ', ' + totalB + ', ' + totalC + ') = ' + gcd(gcd(totalA, totalB), totalC);
     }
@@ -1056,13 +1186,15 @@
       state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
       state.regions.right = [ { id: state.nextId++, p: 7 } ];
     }
-    state.regions3.aOnly = [ { id: state.nextId++, p: 2 } ];
-    state.regions3.bOnly = [ { id: state.nextId++, p: 3 } ];
-    state.regions3.cOnly = [ { id: state.nextId++, p: 5 } ];
-    state.regions3.ab = [ { id: state.nextId++, p: 7 } ];
-    state.regions3.ac = [ { id: state.nextId++, p: 11 } ];
-    state.regions3.bc = [ { id: state.nextId++, p: 13 } ];
-    state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
+    if (!restore3()){
+      state.regions3.aOnly = [ { id: state.nextId++, p: 2 } ];
+      state.regions3.bOnly = [ { id: state.nextId++, p: 3 } ];
+      state.regions3.cOnly = [ { id: state.nextId++, p: 5 } ];
+      state.regions3.ab = [ { id: state.nextId++, p: 7 } ];
+      state.regions3.ac = [ { id: state.nextId++, p: 11 } ];
+      state.regions3.bc = [ { id: state.nextId++, p: 13 } ];
+      state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
+    }
 
     var initialMode = readModeParam() || readStoredMode() || 'two';
     setMode(initialMode);
