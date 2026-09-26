@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diffie-Hellman Key Exchange</title>
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-alt) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-warn) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; padding: 8px 0 4px; }
+  .page-header h1{
+    margin:0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight:700; letter-spacing:.3px;
+    background: linear-gradient(90deg, var(--role-input), var(--role-alt) 55%, var(--role-warn));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .page-header p{ color:var(--text-dim); max-width:720px; margin:8px auto 0; line-height:1.55; font-size:.95rem; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .step-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .step-num{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--text) 8%, transparent); font-weight:700; font-size:.85rem; flex:none; }
+  .step-head h2{ margin:0; font-size:1.05rem; }
+  .step-head .sub{ color:var(--text-dim); font-size:.85rem; margin-left:auto; }
+
+  .intro p{ line-height:1.6; color:var(--text-dim); }
+  .intro strong.a{ color:var(--role-alt); }
+  .intro strong.b{ color:var(--role-input); }
+  .intro strong.e{ color:var(--role-warn); }
+
+  .person-panel{ border-top:3px solid transparent; }
+  .person-panel.alice{ border-top-color:var(--role-alt); }
+  .person-panel.bob{ border-top-color:var(--role-input); }
+
+  .avatar-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .avatar{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; flex:none; }
+  .avatar.alice{ background:var(--role-alt-soft); border:1px solid var(--role-alt); }
+  .avatar.bob{ background:var(--role-input-soft); border:1px solid var(--role-input); }
+  .avatar.eve{ background:var(--role-warn-soft); border:1px solid var(--role-warn); }
+  .avatar-row .name{ font-weight:700; font-size:1.05rem; }
+  .avatar-row .name.alice{ color:var(--role-alt); }
+  .avatar-row .name.bob{ color:var(--role-input); }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input, .field select{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent); }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:linear-gradient(135deg, var(--role-input), var(--role-alt)); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.danger{ background:linear-gradient(135deg, var(--role-warn), var(--role-special)); color:var(--accent-ink); border-color:transparent; }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:'JetBrains Mono', 'Consolas', monospace; }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+
+  .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; margin-top:2px; }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+  .banner strong{ color:var(--role-result); }
+
+  #stageSvg{ width:100%; height:auto; display:block; }
+  .svg-row{ opacity:0; transition:opacity .25s ease, fill .25s ease; font-family:'JetBrains Mono','Consolas',monospace; }
+  .svg-row.is-active{ fill:var(--role-active); font-weight:700; }
+  .packet rect{ fill:var(--overlay); stroke:var(--panel-border-strong); }
+  .packet text{ fill:var(--text); font-family:'JetBrains Mono','Consolas',monospace; }
+
+  .substep{ background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; }
+  .substep + .substep{ margin-top:10px; }
+  .substep h3{ margin:0 0 8px; font-size:.85rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+  .formula{ font-family:'JetBrains Mono','Consolas',monospace; font-size:.98rem; word-break:break-all;
+    background:var(--overlay); border-radius:8px; padding:10px 12px; line-height:1.6; }
+  .formula .lbl{ color:var(--text-dim); }
+  .formula .val{ color:var(--role-result); }
+
+  .notebook{ background:color-mix(in srgb, var(--role-warn) 6%, transparent); border:1px dashed var(--role-warn); border-radius:12px; padding:14px; margin-top:6px; }
+  .notebook h4{ margin:0 0 8px; color:var(--role-warn); font-size:.85rem; }
+  .notebook .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; font-family:monospace; font-size:.85rem; }
+  .notebook .grid div{ background:var(--overlay); border-radius:8px; padding:6px 9px; word-break:break-all; }
+  .notebook .never{ margin-top:10px; font-size:.78rem; color:var(--text-dim); }
+
+  .dlp-box{ border:1px solid var(--role-special); background:var(--role-special-soft); border-radius:12px; padding:14px; margin-top:16px; }
+  .dlp-box h3{ margin:0 0 6px; color:var(--role-special); font-size:.9rem; }
+  .dlp-box .tag{ display:inline-block; font-size:.7rem; background:color-mix(in srgb, var(--role-special) 25%, transparent); color:var(--role-special);
+    border-radius:6px; padding:2px 7px; margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase; }
+
+  .result-box{ margin-top:10px; font-size:.88rem; line-height:1.5; background:var(--overlay); border-radius:8px; padding:10px 12px; }
+  .result-box.win{ border-left:3px solid var(--role-warn); }
+  .result-box.giveup{ border-left:3px solid var(--role-result); }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; font-size:.8rem; color:var(--text-dim); margin-top:10px; }
+  .legend .item{ display:flex; align-items:center; gap:6px; }
+  .legend .swatch{ width:14px; height:14px; border-radius:4px; display:inline-block; border:1px solid var(--panel-border-strong); }
+  .legend .swatch.alice{ background:var(--role-alt); }
+  .legend .swatch.bob{ background:var(--role-input); }
+  .legend .swatch.eve{ background:var(--role-warn); }
+  .legend .swatch.moving{ background:var(--role-active); }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
+  .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .pillbar span{ background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:20px; padding:3px 10px; font-size:.72rem; }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">🔢 Number Theory Tools</a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Pizza Slices/pizza-slices.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA Examplifier/rsa-examplifier.html" class="site-nav-link">RSA Examplifier</a>
+      <a href="../Venn Diagrams/venn-diagrams.html" class="site-nav-link">Venn Diagrams</a>
+      <a href="diffie-hellman-key-exchange.html" class="site-nav-link is-active">Diffie-Hellman</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <h1>Diffie-Hellman Key Exchange</h1>
+    <p>Watch Alice and Bob agree on a shared secret in full view of an eavesdropper — nothing that crosses the wire is
+      secret, yet only the two of them can compute what they land on.</p>
+  </header>
+
+  <section class="panel intro">
+    <div class="step-head"><span class="step-num">•</span><h2>How this works</h2></div>
+    <p><strong class="a">Alice</strong> and <strong class="b">Bob</strong> agree in the open on a prime modulus p and a
+      generator g. Each of them privately picks a secret exponent and uses it to compute a public value from p and g —
+      then they trade only those public values across a wire that <strong class="e">Eve</strong> is tapping. Each side
+      raises the public value it received to its own private exponent, and remarkably, they both land on the exact same
+      number: a shared secret Eve cannot compute from what she intercepted, even though she saw everything that crossed
+      the wire.</p>
+    <p style="margin-bottom:0;">This is a <em>teaching demo</em>: toy-sized parameters, private exponents drawn with
+      <code>Math.random</code> (not a cryptographic random source), and the raw shared secret is displayed here rather
+      than run through a key-derivation function. Never reuse anything on this page for anything real.</p>
+  </section>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field"><label for="pInput">Public prime modulus p</label><input id="pInput" type="text" inputmode="numeric" value="23"></div>
+      <div class="field"><label for="gInput">Generator g</label><input id="gInput" type="text" inputmode="numeric" value="5"></div>
+      <div class="field"><label for="aInput">Alice's private exponent a</label><input id="aInput" type="text" inputmode="numeric" value="6"></div>
+      <div class="field"><label for="bInput">Bob's private exponent b</label><input id="bInput" type="text" inputmode="numeric" value="15"></div>
+    </div>
+
+    <div class="chips" id="presetChips">
+      <button type="button" class="chip" data-p="23" data-g="5" data-a="6" data-b="15">p=23, g=5, a=6, b=15</button>
+      <button type="button" class="chip" data-p="1019" data-g="2" data-a="199" data-b="411">p=1019, g=2, a=199, b=411</button>
+      <button type="button" class="chip" data-p="2147483647" data-g="7" data-a="1234567" data-b="98765431">p=2147483647, g=7, a=1234567, b=98765431</button>
+    </div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="buildBtn" class="primary">🧮 Build exchange</button>
+      <button id="playBtn">▶ Play</button>
+      <button id="stepBtn">⏭ Step</button>
+      <button id="instantBtn" class="ghost">⏩ Instant</button>
+      <button id="resetBtn" class="ghost">↺ Reset</button>
+      <button id="randomSecretsBtn" class="ghost">🎲 Randomize a, b</button>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:flex-end;">
+      <div class="field" style="max-width:160px;">
+        <label for="bitsInput">Safe prime bit size</label>
+        <select id="bitsInput">
+          <option value="16">16-bit</option>
+          <option value="32">32-bit</option>
+          <option value="64">64-bit</option>
+        </select>
+      </div>
+      <button id="genPrimeBtn" class="ghost">🔑 Generate safe prime</button>
+      <div class="speed-wrap">
+        <label for="speedInput" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim);">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="4">
+        <span id="speedLabel">brisk</span>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+  </section>
+
+  <div class="banner" id="banner">Set p, g, a and b and press Build exchange.</div>
+
+  <section class="panel">
+    <svg id="stageSvg" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="Diffie-Hellman key exchange diagram: Alice on the left, Bob on the right, a wire between them tapped by Eve"></svg>
+  </section>
+
+  <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>Arithmetic log</h2></div>
+    <div id="mathLog"></div>
+  </section>
+
+  <section class="panel">
+    <div id="eveNotebook"></div>
+  </section>
+
+  <section class="panel">
+    <div id="eveProblem" hidden></div>
+    <p id="aesLine" hidden></p>
+  </section>
+
+  <footer>
+    <div>Textbook Diffie-Hellman demo — toy-sized parameters, non-cryptographic randomness. For education only.</div>
+    <div class="pillbar"><span>discrete log problem</span><span>BigInt modular exponentiation</span><span>Miller-Rabin primality</span></div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- number theory ---------- */
+
+function parseBigIntStrict(str, allowZero){
+  str = (str||'').trim();
+  if(!/^\d+$/.test(str)) throw new Error('not a nonnegative integer');
+  const v = BigInt(str);
+  if(!allowZero && v <= 0n) throw new Error('must be positive');
+  return v;
+}
+
+function fmt(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function bigGcd(a,b){ a = a<0n?-a:a; b = b<0n?-b:b; while(b){ [a,b] = [b, a % b]; } return a; }
+
+function randomBigIntBits(bits){
+  if(bits <= 0) return 0n;
+  let hex = '', remaining = bits;
+  while(remaining > 0){
+    const chunk = Math.min(remaining, 32);
+    const val = Math.floor(Math.random() * Math.pow(2, chunk));
+    hex = val.toString(16) + hex;
+    remaining -= chunk;
+  }
+  return BigInt('0x' + (hex || '0'));
+}
+
+function randomBigIntInRange(min, max){
+  const range = max - min + 1n;
+  const bits = range.toString(2).length;
+  let x;
+  do { x = randomBigIntBits(bits); } while (x >= range);
+  return min + x;
+}
+
+function modPowPlain(base, exp, mod){
+  let result = 1n; base %= mod; if(base<0n) base += mod;
+  while(exp > 0n){ if(exp & 1n) result = (result*base) % mod; exp >>= 1n; base = (base*base) % mod; }
+  return result;
+}
+
+function isPrimeBig(n, rounds){
+  rounds = rounds || 20;
+  if(n < 2n) return false;
+  const small = [2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n];
+  for(const sp of small){ if(n === sp) return true; if(n % sp === 0n) return false; }
+  let d = n - 1n, r = 0n;
+  while(d % 2n === 0n){ d /= 2n; r++; }
+  witness: for(let i=0;i<rounds;i++){
+    const a = randomBigIntInRange(2n, n-2n);
+    let x = modPowPlain(a, d, n);
+    if(x === 1n || x === n-1n) continue;
+    for(let j=0n;j<r-1n;j++){
+      x = (x*x) % n;
+      if(x === n-1n) continue witness;
+    }
+    return false;
+  }
+  return true;
+}
+
+function factorSmall(n, cap){
+  n = n < 0n ? -n : n;
+  const capB = BigInt(cap);
+  const factors = [];
+  let d = 2n;
+  while (d * d <= n){
+    if (d > capB) return null;
+    if (n % d === 0n){
+      factors.push(d);
+      while (n % d === 0n) n /= d;
+    }
+    d += (d === 2n) ? 1n : 2n;
+  }
+  if (n > 1n) factors.push(n);
+  return factors;
+}
+
+function multiplicativeOrder(g, p){
+  const pm1 = p - 1n;
+  const factors = factorSmall(pm1, 200000);
+  if (factors === null) return null;
+  let order = pm1;
+  for (const q of factors){
+    while (order % q === 0n && modPowPlain(g, order / q, p) === 1n){
+      order /= q;
+    }
+  }
+  return order;
+}
+
+function shortVal(x){
+  const s = x.toString();
+  return s.length <= 12 ? s : s.slice(0, 8) + '…';
+}
+
+function buildExchange(p, g, a, b){
+  const publicAlice = modPowPlain(g, a, p);
+  const publicBob = modPowPlain(g, b, p);
+  const secretAlice = modPowPlain(publicBob, a, p);
+  const secretBob = modPowPlain(publicAlice, b, p);
+  const order = multiplicativeOrder(g, p);
+  const steps = [
+    { id:'agree', owner:'public', caption:'Alice and Bob agree publicly on a prime modulus p and a generator g.' },
+    { id:'alicePicks', owner:'alice', caption:"Alice privately picks an exponent a — it never leaves her side." },
+    { id:'bobPicks', owner:'bob', caption:"Bob privately picks an exponent b — it never leaves his side." },
+    { id:'aliceComputesPublic', owner:'alice', caption:'Alice computes her public value A = g^a mod p.' },
+    { id:'bobComputesPublic', owner:'bob', caption:'Bob computes his public value B = g^b mod p.' },
+    { id:'sendAliceToBob', owner:'wire', caption:"Alice's public value A crosses the wire to Bob — Eve is watching." },
+    { id:'sendBobToAlice', owner:'wire', caption:"Bob's public value B crosses the wire to Alice — Eve is watching." },
+    { id:'aliceComputesSecret', owner:'alice', caption:'Alice raises B to her own private exponent: B^a mod p.' },
+    { id:'bobComputesSecret', owner:'bob', caption:'Bob raises A to his own private exponent: A^b mod p.' },
+    { id:'match', owner:'public', caption:'Both sides land on the exact same shared secret.' }
+  ];
+  return { p, g, a, b, publicAlice, publicBob, secretAlice, secretBob, order, steps };
+}
+
+function aesSentence(secret){
+  return 'Now Alice and Bob can use ' + secret.toString() + ' as the key used for symmetric encryption using an algorithm like AES, Blowfish, etc.';
+}
+
+/* ---------- state ---------- */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const key in attrs) el.setAttribute(key, attrs[key]);
+  return el;
+}
+
+const $ = (id) => document.getElementById(id);
+
+const pInput = $('pInput');
+const gInput = $('gInput');
+const aInput = $('aInput');
+const bInput = $('bInput');
+const buildBtn = $('buildBtn');
+const playBtn = $('playBtn');
+const stepBtn = $('stepBtn');
+const instantBtn = $('instantBtn');
+const resetBtn = $('resetBtn');
+const randomSecretsBtn = $('randomSecretsBtn');
+const bitsInput = $('bitsInput');
+const genPrimeBtn = $('genPrimeBtn');
+const speedInput = $('speedInput');
+const speedLabel = $('speedLabel');
+const presetChips = $('presetChips');
+const errorBox = $('errorBox');
+const banner = $('banner');
+const stageSvg = $('stageSvg');
+const mathLog = $('mathLog');
+const eveNotebook = $('eveNotebook');
+const eveProblem = $('eveProblem');
+const aesLine = $('aesLine');
+
+let currentExchange = null;
+let stepIndex = 0;
+
+function readInputs(){
+  errorBox.textContent = '';
+  let p, g, a, b;
+  try { p = parseBigIntStrict(pInput.value); }
+  catch(e){ errorBox.textContent = 'p must be a positive whole number.'; return null; }
+  if (p.toString().length > 80){ errorBox.textContent = 'p must be at most 80 digits — this is a teaching demo, not a key generator.'; return null; }
+  if (p < 5n){ errorBox.textContent = 'p must be at least 5.'; return null; }
+  if (!isPrimeBig(p)){ errorBox.textContent = fmt(p) + ' is not prime.'; return null; }
+  try { g = parseBigIntStrict(gInput.value); }
+  catch(e){ errorBox.textContent = 'g must be a positive whole number.'; return null; }
+  if (g < 2n || g > p - 2n){ errorBox.textContent = 'g must satisfy 2 ≤ g ≤ p−2 (p−2 = ' + fmt(p-2n) + ').'; return null; }
+  try { a = parseBigIntStrict(aInput.value); }
+  catch(e){ errorBox.textContent = "Alice's exponent a must be a positive whole number."; return null; }
+  if (a < 2n || a > p - 2n){ errorBox.textContent = "Alice's exponent a must satisfy 2 ≤ a ≤ p−2."; return null; }
+  try { b = parseBigIntStrict(bInput.value); }
+  catch(e){ errorBox.textContent = "Bob's exponent b must be a positive whole number."; return null; }
+  if (b < 2n || b > p - 2n){ errorBox.textContent = "Bob's exponent b must satisfy 2 ≤ b ≤ p−2."; return null; }
+  return { p, g, a, b };
+}
+
+function buildStage(ex){
+  stageSvg.innerHTML = '';
+
+  stageSvg.appendChild(svgEl('rect', {x:30, y:40, width:250, height:300, rx:16, fill:'var(--role-alt-soft)', stroke:'var(--role-alt)', 'stroke-width':2}));
+  const aliceLabel = svgEl('text', {x:155, y:26, 'text-anchor':'middle', fill:'var(--role-alt)', 'font-weight':'700', 'font-size':'16'});
+  aliceLabel.textContent = 'Alice';
+  stageSvg.appendChild(aliceLabel);
+
+  stageSvg.appendChild(svgEl('rect', {x:620, y:40, width:250, height:300, rx:16, fill:'var(--role-input-soft)', stroke:'var(--role-input)', 'stroke-width':2}));
+  const bobLabel = svgEl('text', {x:745, y:26, 'text-anchor':'middle', fill:'var(--role-input)', 'font-weight':'700', 'font-size':'16'});
+  bobLabel.textContent = 'Bob';
+  stageSvg.appendChild(bobLabel);
+
+  stageSvg.appendChild(svgEl('line', {x1:300, y1:120, x2:600, y2:120, stroke:'var(--text-dim)', 'stroke-width':2, 'stroke-dasharray':'6,6'}));
+
+  stageSvg.appendChild(svgEl('rect', {x:330, y:350, width:240, height:80, rx:12, fill:'var(--role-warn-soft)', stroke:'var(--role-warn)', 'stroke-width':2, 'stroke-dasharray':'5,4'}));
+  const eveLabel = svgEl('text', {x:450, y:344, 'text-anchor':'middle', fill:'var(--role-warn)', 'font-weight':'700', 'font-size':'14'});
+  eveLabel.textContent = 'Eve — tapping the wire';
+  stageSvg.appendChild(eveLabel);
+  stageSvg.appendChild(svgEl('line', {x1:450, y1:120, x2:450, y2:350, stroke:'var(--role-warn)', 'stroke-width':2, 'stroke-dasharray':'4,4'}));
+  const tapLabel = svgEl('text', {x:450, y:108, 'text-anchor':'middle', fill:'var(--role-warn)', 'font-size':'13'});
+  tapLabel.textContent = '🕵 tap';
+  stageSvg.appendChild(tapLabel);
+
+  function row(x, y, id){
+    const t = svgEl('text', {x:x, y:y, id:id, class:'svg-row', 'font-size':'13', fill:'var(--text)'});
+    stageSvg.appendChild(t);
+    return t;
+  }
+
+  row(45, 90, 'svgAlicePg');
+  row(45, 140, 'svgAliceA');
+  row(45, 190, 'svgAlicePublic');
+  row(45, 240, 'svgAliceReceived');
+  row(45, 290, 'svgAliceSecret');
+
+  row(635, 90, 'svgBobPg');
+  row(635, 140, 'svgBobB');
+  row(635, 190, 'svgBobPublic');
+  row(635, 240, 'svgBobReceived');
+  row(635, 290, 'svgBobSecret');
+
+  row(340, 365, 'svgEveP');
+  row(340, 380, 'svgEveG');
+  row(340, 395, 'svgEveA');
+  row(340, 410, 'svgEveB');
+}
+
+function clearActive(){
+  const active = stageSvg.querySelectorAll('.svg-row.is-active');
+  for (let i = 0; i < active.length; i++) active[i].classList.remove('is-active');
+}
+
+function showRow(id, text){
+  const el = $(id);
+  el.textContent = text;
+  el.style.opacity = '1';
+  el.classList.add('is-active');
+}
+
+function renderNotebook(ex, revealed){
+  const dash = '—';
+  eveNotebook.innerHTML =
+    '<div class="notebook">' +
+      '<h4>Eve’s notebook — everything she has recorded off the wire</h4>' +
+      '<div class="grid">' +
+        '<div>p = ' + (revealed.p ? fmt(ex.p) : dash) + '</div>' +
+        '<div>g = ' + (revealed.g ? fmt(ex.g) : dash) + '</div>' +
+        '<div>A = ' + (revealed.a ? fmt(ex.publicAlice) : dash) + '</div>' +
+        '<div>B = ' + (revealed.b ? fmt(ex.publicBob) : dash) + '</div>' +
+      '</div>' +
+      '<div class="never">She does <strong>not</strong> have: Alice’s a, Bob’s b, or the shared secret. Those never touched the wire.</div>' +
+    '</div>';
+}
+
+function renderEveProblem(ex){
+  eveProblem.innerHTML =
+    '<div class="dlp-box">' +
+      '<span class="tag">What Eve is up against</span>' +
+      '<h3>The discrete logarithm problem</h3>' +
+      '<div class="substep"><div class="formula">Find a such that ' + fmt(ex.g) + '^a mod ' + fmt(ex.p) + ' = ' + fmt(ex.publicAlice) +
+        ' — or b such that ' + fmt(ex.g) + '^b mod ' + fmt(ex.p) + ' = ' + fmt(ex.publicBob) + '.</div></div>' +
+      '<div class="substep"><h3>The computational Diffie-Hellman problem</h3><div class="formula">Given only p = ' + fmt(ex.p) +
+        ', g = ' + fmt(ex.g) + ', A = ' + fmt(ex.publicAlice) + ' and B = ' + fmt(ex.publicBob) +
+        ', compute g<sup>ab</sup> mod p — no easier than the discrete log by any known method, and not known to be equivalent to it either.</div></div>' +
+      '<button class="danger" id="eveDlogBtn" type="button">😈 Let Eve brute-force the discrete log for A</button>' +
+      '<div id="eveDlogResult"></div>' +
+    '</div>';
+  $('eveDlogBtn').addEventListener('click', () => runEveDlog(ex));
+}
+
+function runEveDlog(ex){
+  const resultEl = $('eveDlogResult');
+  const p = ex.p, g = ex.g, target = ex.publicAlice;
+  if (p > 100000n){
+    resultEl.innerHTML = '<div class="result-box giveup">🛡️ Eve gives up. The search space is about ' + fmt(p) +
+      ' candidates — brute force is hopeless at this size.</div>';
+    return;
+  }
+  const start = performance.now();
+  const cap = 2000000;
+  let x = 1n, tries = 0, found = null;
+  const limit = p - 1n;
+  while (x < limit && tries < cap){
+    tries++;
+    if (modPowPlain(g, x, p) === target){ found = x; break; }
+    x++;
+  }
+  const ms = performance.now() - start;
+  if (found !== null){
+    resultEl.innerHTML = '<div class="result-box win">😈 Eve wins. Recovered exponent a = ' + fmt(found) +
+      ' after ' + fmt(BigInt(tries)) + ' trials in ' + ms.toFixed(2) + ' ms.</div>';
+  } else {
+    resultEl.innerHTML = '<div class="result-box giveup">🛡️ Eve gives up after ' + fmt(BigInt(tries)) +
+      ' trials (' + ms.toFixed(2) + ' ms) without finding the exponent.</div>';
+  }
+}
+
+function renderAesLine(ex){
+  aesLine.textContent = aesSentence(ex.secretAlice);
+}
+
+function appendLogEntry(step, ex){
+  const div = document.createElement('div');
+  div.className = 'substep';
+  switch(step.id){
+    case 'agree': {
+      let orderNote;
+      if (ex.order !== null){
+        orderNote = ex.order === (ex.p - 1n)
+          ? 'g generates a subgroup of order ' + fmt(ex.order) + ' — g is a primitive root mod p.'
+          : 'g generates a subgroup of order ' + fmt(ex.order) + ' (out of a group of size ' + fmt(ex.p - 1n) + ').';
+      } else {
+        orderNote = 'The order of g mod p is unknown — p−1 did not fully factor in-browser.';
+      }
+      div.innerHTML = '<h3>Public parameters</h3><div class="formula"><span class="lbl">p =</span> <span class="val">' + fmt(ex.p) +
+        '</span>, <span class="lbl">g =</span> <span class="val">' + fmt(ex.g) + '</span></div>' +
+        '<div class="formula" style="margin-top:8px;">' + orderNote + '</div>';
+      break;
+    }
+    case 'alicePicks':
+      div.innerHTML = '<h3>Alice’s private exponent</h3><div class="formula"><span class="lbl">a =</span> <span class="val">' + fmt(ex.a) + '</span> — kept secret, never sent.</div>';
+      break;
+    case 'bobPicks':
+      div.innerHTML = '<h3>Bob’s private exponent</h3><div class="formula"><span class="lbl">b =</span> <span class="val">' + fmt(ex.b) + '</span> — kept secret, never sent.</div>';
+      break;
+    case 'aliceComputesPublic':
+      div.innerHTML = '<h3>Alice computes her public value</h3><div class="formula"><span class="lbl">A = g^a mod p =</span> ' +
+        fmt(ex.g) + '^' + fmt(ex.a) + ' mod ' + fmt(ex.p) + ' = <span class="val">' + fmt(ex.publicAlice) + '</span></div>';
+      break;
+    case 'bobComputesPublic':
+      div.innerHTML = '<h3>Bob computes his public value</h3><div class="formula"><span class="lbl">B = g^b mod p =</span> ' +
+        fmt(ex.g) + '^' + fmt(ex.b) + ' mod ' + fmt(ex.p) + ' = <span class="val">' + fmt(ex.publicBob) + '</span></div>';
+      break;
+    case 'sendAliceToBob':
+      div.innerHTML = '<h3>A crosses the wire</h3><div class="formula">Alice → Bob: <span class="val">' + fmt(ex.publicAlice) + '</span></div>';
+      break;
+    case 'sendBobToAlice':
+      div.innerHTML = '<h3>B crosses the wire</h3><div class="formula">Bob → Alice: <span class="val">' + fmt(ex.publicBob) + '</span></div>';
+      break;
+    case 'aliceComputesSecret':
+      div.innerHTML = '<h3>Alice computes the shared secret</h3><div class="formula"><span class="lbl">B^a mod p =</span> ' +
+        fmt(ex.publicBob) + '^' + fmt(ex.a) + ' mod ' + fmt(ex.p) + ' = <span class="val">' + fmt(ex.secretAlice) + '</span></div>';
+      break;
+    case 'bobComputesSecret':
+      div.innerHTML = '<h3>Bob computes the shared secret</h3><div class="formula"><span class="lbl">A^b mod p =</span> ' +
+        fmt(ex.publicAlice) + '^' + fmt(ex.b) + ' mod ' + fmt(ex.p) + ' = <span class="val">' + fmt(ex.secretBob) + '</span></div>';
+      break;
+    case 'match':
+      div.innerHTML = '<h3>They agree</h3><div class="formula">Alice’s secret = <span class="val">' + fmt(ex.secretAlice) +
+        '</span> &nbsp;|&nbsp; Bob’s secret = <span class="val">' + fmt(ex.secretBob) + '</span> — ' +
+        (ex.secretAlice === ex.secretBob ? 'match ✓' : 'MISMATCH ✗') + '</div>';
+      break;
+  }
+  mathLog.appendChild(div);
+}
+
+function renderStep(step, ex){
+  clearActive();
+  switch(step.id){
+    case 'agree':
+      showRow('svgAlicePg', 'p=' + shortVal(ex.p) + ', g=' + shortVal(ex.g));
+      showRow('svgBobPg', 'p=' + shortVal(ex.p) + ', g=' + shortVal(ex.g));
+      showRow('svgEveP', 'p = ' + shortVal(ex.p));
+      showRow('svgEveG', 'g = ' + shortVal(ex.g));
+      renderNotebook(ex, {p:true, g:true, a:false, b:false});
+      break;
+    case 'alicePicks':
+      showRow('svgAliceA', 'a=' + shortVal(ex.a) + ' (never sent)');
+      break;
+    case 'bobPicks':
+      showRow('svgBobB', 'b=' + shortVal(ex.b) + ' (never sent)');
+      break;
+    case 'aliceComputesPublic':
+      showRow('svgAlicePublic', 'A=' + shortVal(ex.publicAlice));
+      break;
+    case 'bobComputesPublic':
+      showRow('svgBobPublic', 'B=' + shortVal(ex.publicBob));
+      break;
+    case 'sendAliceToBob':
+      showRow('svgBobReceived', 'received A=' + shortVal(ex.publicAlice));
+      showRow('svgEveA', 'A = ' + shortVal(ex.publicAlice));
+      renderNotebook(ex, {p:true, g:true, a:true, b:false});
+      break;
+    case 'sendBobToAlice':
+      showRow('svgAliceReceived', 'received B=' + shortVal(ex.publicBob));
+      showRow('svgEveB', 'B = ' + shortVal(ex.publicBob));
+      renderNotebook(ex, {p:true, g:true, a:true, b:true});
+      break;
+    case 'aliceComputesSecret':
+      showRow('svgAliceSecret', 'secret=' + shortVal(ex.secretAlice));
+      break;
+    case 'bobComputesSecret':
+      showRow('svgBobSecret', 'secret=' + shortVal(ex.secretBob));
+      break;
+    case 'match':
+      renderEveProblem(ex);
+      renderAesLine(ex);
+      eveProblem.hidden = false;
+      aesLine.hidden = false;
+      break;
+  }
+  appendLogEntry(step, ex);
+  banner.textContent = step.caption;
+}
+
+function revealAll(ex){
+  while (stepIndex < ex.steps.length){
+    renderStep(ex.steps[stepIndex], ex);
+    stepIndex++;
+  }
+}
+
+function rebuild(){
+  const parsed = readInputs();
+  if (!parsed) return;
+  const ex = buildExchange(parsed.p, parsed.g, parsed.a, parsed.b);
+  currentExchange = ex;
+  buildStage(ex);
+  mathLog.innerHTML = '';
+  eveNotebook.innerHTML = '';
+  eveProblem.innerHTML = '';
+  eveProblem.hidden = true;
+  aesLine.textContent = '';
+  aesLine.hidden = true;
+  stepIndex = 0;
+  revealAll(ex);
+}
+
+buildBtn.addEventListener('click', rebuild);
+
+[pInput, gInput, aInput, bInput].forEach((inp) => {
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') rebuild(); });
+});
+
+const chipButtons = presetChips.querySelectorAll('.chip');
+chipButtons.forEach((chip) => {
+  chip.addEventListener('click', () => {
+    pInput.value = chip.dataset.p;
+    gInput.value = chip.dataset.g;
+    aInput.value = chip.dataset.a;
+    bInput.value = chip.dataset.b;
+    rebuild();
+  });
+});
+
+randomSecretsBtn.addEventListener('click', () => {
+  let p;
+  try { p = parseBigIntStrict(pInput.value); }
+  catch(e){ errorBox.textContent = 'Set a valid p first.'; return; }
+  if (p < 5n){ errorBox.textContent = 'Set a valid p first.'; return; }
+  aInput.value = randomBigIntInRange(2n, p - 2n).toString();
+  bInput.value = randomBigIntInRange(2n, p - 2n).toString();
+  rebuild();
+});
+
+genPrimeBtn.addEventListener('click', () => {
+  errorBox.textContent = '';
+  const bits = parseInt(bitsInput.value, 10);
+  const qBits = Math.max(4, bits - 1);
+  let found = null;
+  for (let tries = 0; tries < 4000; tries++){
+    let q = randomBigIntBits(qBits) | 1n;
+    if (q < 3n) q = 3n;
+    if (!isPrimeBig(q)) continue;
+    const p = 2n * q + 1n;
+    if (isPrimeBig(p)){ found = p; break; }
+  }
+  if (found === null){
+    errorBox.textContent = 'Could not find a safe prime of ' + bits + ' bits in 4000 tries — try again.';
+    return;
+  }
+  pInput.value = found.toString();
+  gInput.value = '2';
+  aInput.value = randomBigIntInRange(2n, found - 2n).toString();
+  bInput.value = randomBigIntInRange(2n, found - 2n).toString();
+  rebuild();
+});
+
+window.addEventListener('load', () => {
+  pInput.value = '23';
+  gInput.value = '5';
+  aInput.value = '6';
+  bInput.value = '15';
+  rebuild();
+});
+
+})();
+</script>
+</body>
+</html>
