@@ -305,6 +305,7 @@
     <div class="field">
       <span class="field-label" id="export-label">Export</span>
       <div class="row export-row" role="group" aria-labelledby="export-label">
+        <button type="button" class="export-btn" id="export-png">Download PNG</button>
         <button type="button" class="export-btn" id="export-svg">Download SVG</button>
         <span class="export-status" id="export-status" role="status" aria-live="polite"></span>
       </div>
@@ -554,6 +555,7 @@
 
   var exportStatus = document.getElementById('export-status');
   var exportSvgBtn = document.getElementById('export-svg');
+  var exportPngBtn = document.getElementById('export-png');
 
   function setExportStatus(msg){
     exportStatus.textContent = msg;
@@ -681,6 +683,51 @@
         setExportStatus('SVG export failed — please try again.');
       }
     });
+  }
+
+  function exportPng(){
+    try{
+      var svgSource = buildExportSvg();
+      var dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgSource);
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var canvas = document.createElement('canvas');
+          canvas.width = 1800;
+          canvas.height = 1800;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 1800, 1800);
+          var filename = exportFileName('png');
+          if (canvas.toBlob){
+            canvas.toBlob(function(blob){
+              if (!blob){ setExportStatus('PNG export failed — try Download SVG instead.'); return; }
+              downloadBlob(blob, filename);
+              setExportStatus('Saved ' + filename);
+            }, 'image/png');
+          } else {
+            var a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setExportStatus('Saved ' + filename);
+          }
+        }catch(e){
+          setExportStatus('PNG export failed — try Download SVG instead.');
+        }
+      };
+      img.onerror = function(){
+        setExportStatus('PNG export failed — try Download SVG instead.');
+      };
+      img.src = dataUrl;
+    }catch(e){
+      setExportStatus('PNG export failed — try Download SVG instead.');
+    }
+  }
+
+  if (exportPngBtn){
+    exportPngBtn.addEventListener('click', exportPng);
   }
 
   nRange.value = state.N;
