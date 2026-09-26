@@ -10,9 +10,9 @@ last_mapped_at: 2026-09-23
 
 **Files:**
 
-- HTML tools use kebab-case: `factor-tree.html`, `pizza-slices.html`, `sieve-of-eratosthenes.html`, `rsa-examplifier.html`
+- HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa-examplifier.html`
 - Shared assets use kebab-case: `site.css`, `theme.js`
-- Directory names use Title Case with spaces: `Factor Tree`, `Pizza Slices`, `RSA Examplifier`
+- Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA Examplifier`
 
 **Variables:**
 

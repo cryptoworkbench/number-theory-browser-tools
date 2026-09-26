@@ -28,8 +28,8 @@ number-theory-browser-tools/
 ├── Factorize By Completing The Square/
 │   ├── factorize-completing-square.html  # Fermat's factoring method viz
 │   └── CLAUDE_RESUME_COMMAND        # Session residue (leave as-is)
-├── Pizza Slices/
-│   ├── pizza-slices.html            # Congruence wheel (modular arithmetic)
+├── Congruence Wheel/
+│   ├── congruence-wheel.html        # Congruence wheel (modular arithmetic)
 │   └── CLAUDE_RESUME_COMMAND        # Session residue (leave as-is)
 ├── RSA Examplifier/
 │   ├── rsa-examplifier.html         # RSA key generation + encryption demo
@@ -73,11 +73,11 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - Key files: `factorize-completing-square.html`
 - Concept: User enters a target number N, solver searches for a² − N = b², animates the algebra and geometry
 
-**`Pizza Slices/`:**
+**`Congruence Wheel/`:**
 
 - Purpose: Congruence wheel (modular arithmetic visualizer)
 - Contains: Single HTML file with polar-coordinate SVG rendering
-- Key files: `pizza-slices.html`
+- Key files: `congruence-wheel.html`
 - Concept: User sets modulus N, sees natural numbers arranged as concentric rings partitioned into wedges (residue classes)
 
 **`RSA Examplifier/`:**
@@ -107,7 +107,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - `index.html` — Portal/landing page (main URL on page load)
 - `Factor Tree/factor-tree.html` — Factor tree tool (opened from portal)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — Sieve tool
-- `Pizza Slices/pizza-slices.html` — Congruence wheel tool
+- `Congruence Wheel/congruence-wheel.html` — Congruence wheel tool
 - `Factorize By Completing The Square/factorize-completing-square.html` — Completing square tool
 - `RSA Examplifier/rsa-examplifier.html` — RSA tool
 
@@ -151,7 +151,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 **Files:**
 
 - Tool HTML: kebab-case, descriptive name ending in `-[tool-name].html` (e.g., `sieve-of-eratosthenes.html`)
-- Directories: Title Case with spaces (e.g., `Pizza Slices`, `Factor Tree`)
+- Directories: Title Case with spaces (e.g., `Congruence Wheel`, `Factor Tree`)
   - Rationale: User-facing tool names for discovery; spaces OK because each tool is a self-contained folder
 - Assets: lowercase, descriptive name (e.g., `site.css`, `theme.js`)
 
@@ -183,7 +183,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 
 1. Create new top-level directory: `Quadratic Residues/`
 2. Create single HTML file: `Quadratic Residues/quadratic-residues.html`
-   - Copy structure from an existing tool (e.g., `Pizza Slices/pizza-slices.html`)
+   - Copy structure from an existing tool (e.g., `Congruence Wheel/congruence-wheel.html`)
    - Keep all code inline: `<style>` block + `<script>` IIFE-wrapped
    - Include shared site header/nav markup (copy from any tool)
    - Link shared assets: `<link rel="stylesheet" href="../assets/site.css">`, `<script defer src="../assets/theme.js"></script>`

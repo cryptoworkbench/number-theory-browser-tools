@@ -91,9 +91,9 @@ An educational website of interactive, visualization-led browser tools that make
 
 ## Naming Patterns
 
-- HTML tools use kebab-case: `factor-tree.html`, `pizza-slices.html`, `sieve-of-eratosthenes.html`, `rsa-examplifier.html`
+- HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa-examplifier.html`
 - Shared assets use kebab-case: `site.css`, `theme.js`
-- Directory names use Title Case with spaces: `Factor Tree`, `Pizza Slices`, `RSA Examplifier`
+- Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA Examplifier`
 - camelCase for all variable declarations: `nRange`, `depthRange`, `dynGroup`, `refList`, `messageEl`
 - Computed geometric constants also camelCase: `wedgeAngle`, `ringWidth`, `levelHeight`
 - DOM elements: `numInput`, `equationEl`, `treeArea`, `generateBtn`, `playBtn`
@@ -197,7 +197,7 @@ An educational website of interactive, visualization-led browser tools that make
 | Sieve Tool | Visualize prime-finding algorithm with playback | `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` |
 | Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
 | Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
-| Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Pizza Slices/pizza-slices.html` |
+| Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Examplifier Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA Examplifier/rsa-examplifier.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
 

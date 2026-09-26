@@ -24,8 +24,8 @@ last_mapped_at: 2026-09-23
 ┌──────────────────────┐ ┌──────────────┐ ┌────────────────┐ ┌──────────┐ ┌─────────────┐
 │  Sieve of           │ │ Factor Tree  │ │ Completing the │ │ Congruence  │ │ RSA         │
 │  Eratosthenes       │ │              │ │ Square         │ │ Wheel       │ │ Examplifier │
-│ `Sieve Of.../       │ │ `Christmas   │ │ `Factorize     │ │ `Pizza      │ │ `RSA        │
-│  sieve-of-...html` │ │  Trees/...`  │ │  By.../...`    │ │  Slices/..` │ │  Exampl.`   │
+│ `Sieve Of.../       │ │ `Factor      │ │ `Factorize     │ │ `Congruence │ │ `RSA        │
+│  sieve-of-...html` │ │  Tree/...`   │ │  By.../...`    │ │  Wheel/..`  │ │  Exampl.`   │
 │                    │ │              │ │                │ │             │ │             │
 │ · Animated grid    │ │ · Tree       │ │ · Completing   │ │ · Polar     │ │ · Step-by   │
 │   with playback    │ │   diagram    │ │   square viz   │ │   sectors   │ │   step RSA  │
@@ -55,7 +55,7 @@ last_mapped_at: 2026-09-23
 | Sieve Tool | Visualize prime-finding algorithm with playback | `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` |
 | Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
 | Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
-| Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Pizza Slices/pizza-slices.html` |
+| Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Examplifier Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA Examplifier/rsa-examplifier.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
 
@@ -262,7 +262,7 @@ last_mapped_at: 2026-09-23
 - Event handler wiring (input, button, keyboard)
 - Initialization on DOMContentLoaded
 
-See `Pizza Slices/pizza-slices.html` (562 lines, well-sectioned) as a model.
+See `Congruence Wheel/congruence-wheel.html` (562 lines, well-sectioned) as a model.
 
 ### Architectural Smell: Tight Coupling to localStorage Key Name
 
@@ -276,7 +276,7 @@ See `Pizza Slices/pizza-slices.html` (562 lines, well-sectioned) as a model.
 - Congruence Wheel: `'congruence-wheel'`
 - RSA Examplifier: `'rsa-examplifier'`
 
-See `Pizza Slices/pizza-slices.html` line 343: `JSON.parse(localStorage.getItem('congruence-wheel') || 'null')` — tool-specific key.
+See `Congruence Wheel/congruence-wheel.html` line 343: `JSON.parse(localStorage.getItem('congruence-wheel') || 'null')` — tool-specific key.
 
 ## Error Handling
 

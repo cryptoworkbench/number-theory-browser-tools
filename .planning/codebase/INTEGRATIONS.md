@@ -13,9 +13,9 @@ last_mapped_at: 2026-09-23
 - Service: Google Fonts (`https://fonts.googleapis.com`)
 - What it's used for: Typeface delivery for typography (non-system fonts)
 - Fonts loaded:
-  - `Fraunces` (homepage, Pizza Slices, RSA Examplifier)
-  - `Source Sans 3` (homepage, Pizza Slices, RSA Examplifier)
-  - `JetBrains Mono` (homepage, Pizza Slices, RSA Examplifier)
+  - `Fraunces` (homepage, Congruence Wheel, RSA Examplifier)
+  - `Source Sans 3` (homepage, Congruence Wheel, RSA Examplifier)
+  - `JetBrains Mono` (homepage, Congruence Wheel, RSA Examplifier)
   - `Mountains of Christmas` (Factor Tree tool — seasonal)
   - `Poppins` (Factor Tree, Completing-the-Square tools)
 - Connection: `<link rel="preconnect">` and `<link rel="stylesheet">` tags
@@ -41,7 +41,7 @@ last_mapped_at: 2026-09-23
 
 - `localStorage` (browser-persisted key-value store)
   - `site-theme`: Day/night mode preference (string: `"day"` or `"night"`)
-  - `congruence-wheel`: Pizza Slices tool state (JSON: `{N: number, depth: number}`)
+  - `congruence-wheel`: Congruence Wheel tool state (JSON: `{N: number, depth: number}`)
 - `sessionStorage`: Not used
 - `IndexedDB`: Not used
 - `Cookies`: Not used

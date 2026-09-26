@@ -11,7 +11,7 @@ last_mapped_at: 2026-09-23
 **Breaking the single-file-per-tool pattern:**
 
 - Issue: HTML files now import shared CSS and JS (`../assets/site.css`, `../assets/theme.js`), contradicting the self-contained single-file design stated in CLAUDE.md
-- Files: `Factor Tree/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Pizza Slices/pizza-slices.html`, `RSA Examplifier/rsa-examplifier.html`, `Factorize By Completing The Square/factorize-completing-square.html`
+- Files: `Factor Tree/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Congruence Wheel/congruence-wheel.html`, `RSA Examplifier/rsa-examplifier.html`, `Factorize By Completing The Square/factorize-completing-square.html`
 - Impact: Tools no longer work in isolation. Moving or copying a tool outside the repo structure breaks it. Development workflow requires managing three files per tool instead of one.
 - Fix approach: Either (a) inline `site.css` and `theme.js` into each HTML file to restore true self-containment, or (b) update CLAUDE.md to document the new shared-assets pattern and commit to maintaining the three-file structure
 
@@ -20,7 +20,7 @@ last_mapped_at: 2026-09-23
 **HTML header/nav boilerplate repeated in every file:**
 
 - Issue: Each of 5 HTML tools contains 8–20 lines of identical site header markup (navigation, theme toggle, branding)
-- Files: All tool HTML files (factor-tree.html, sieve-of-eratosthenes.html, pizza-slices.html, rsa-examplifier.html, factorize-completing-square.html)
+- Files: All tool HTML files (factor-tree.html, sieve-of-eratosthenes.html, congruence-wheel.html, rsa-examplifier.html, factorize-completing-square.html)
 - Impact: Site-wide navigation changes require editing 5 files. Easy to miss one and create inconsistency. Changes to nav links break silently if done incompletely.
 - Fix approach: Use a templating step during development (e.g., a build script that injects header into each file), or accept the duplication and add a checklist documenting all files that need nav updates
 
@@ -28,7 +28,7 @@ last_mapped_at: 2026-09-23
 
 **Asset and navigation links assume fixed directory structure:**
 
-- Issue: Links use relative paths like `../assets/site.css`, `../index.html`, `../Pizza Slices/pizza-slices.html`
+- Issue: Links use relative paths like `../assets/site.css`, `../index.html`, `../Congruence Wheel/congruence-wheel.html`
 - Files: All HTML files
 - Impact: Moving tool directories or renaming them breaks all links. Restructuring the repo (e.g., adding a `tools/` subdirectory) requires mass file updates. Testing locally with `file://` URLs and serving via HTTP may have different path resolution.
 - Fix approach: Add `.htaccess` or server config to ensure consistent path handling; or use absolute paths relative to site root (e.g., `/assets/site.css` instead of `../assets/site.css`) if hosting at a known path; or document the exact directory structure as a hard constraint in CLAUDE.md
@@ -47,7 +47,7 @@ last_mapped_at: 2026-09-23
 **Regular JavaScript Numbers lose precision above 2^53:**
 
 - Issue: Most tools use `Number` for computation (`primeFactors`, `smallestPrimeFactor`, `isPrime` functions), which silently overflow for integers > 2^53 (≈9 quadrillion)
-- Files: `Factor Tree/factor-tree.html` (lines 436–462), `Pizza Slices/pizza-slices.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Factorize By Completing The Square/factorize-completing-square.html`
+- Files: `Factor Tree/factor-tree.html` (lines 436–462), `Congruence Wheel/congruence-wheel.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Factorize By Completing The Square/factorize-completing-square.html`
 - Impact: Inputs in the range ~10¹⁵–10¹⁶ will produce incorrect factorizations silently. User will see wrong prime factors or hang loops. Only `RSA Examplifier/rsa-examplifier.html` uses BigInt and is safe.
 - Current validation: Factor Tree caps input at 1 trillion (10¹²), Completing-the-Square caps at 10⁹. These limits are ad-hoc and not enforced uniformly.
 - Fix approach: Add `Number.isSafeInteger()` checks to all number-theory functions and reject unsafe inputs with a user-facing error message; or migrate all computation functions to BigInt (large change but future-proof)
@@ -76,7 +76,7 @@ last_mapped_at: 2026-09-23
 **Diagrams lack semantic labels for screen readers:**
 
 - Issue: SVG elements (circles, lines, text) in rendered diagrams have no `<title>`, `<desc>`, or ARIA labels
-- Files: `Factor Tree/factor-tree.html` (SVG render at line 588), `Pizza Slices/pizza-slices.html` (SVG sectors), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (grid cells)
+- Files: `Factor Tree/factor-tree.html` (SVG render at line 588), `Congruence Wheel/congruence-wheel.html` (SVG sectors), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (grid cells)
 - Impact: Visually impaired users cannot understand the visualizations. No text alternative exists.
 - Fix approach: Add `<title>` elements inside each SVG or use `aria-label` on SVG root; generate structured text descriptions of the diagram state (e.g., "Prime factor tree for 60: root 60 splits into 2 and 30. 2 is prime, shown in gold.")
 
@@ -105,7 +105,7 @@ last_mapped_at: 2026-09-23
 **Silent failures in SVG render:**
 
 - Issue: SVG creation functions (`svgEl`) have no error handling. If `document.createElementNS` fails (e.g., due to browser quirks), the entire render silently fails with no visible error
-- Files: `Factor Tree/factor-tree.html` (line 546), `Pizza Slices/pizza-slices.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
+- Files: `Factor Tree/factor-tree.html` (line 546), `Congruence Wheel/congruence-wheel.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
 - Impact: User sees blank stage and no error message. Difficult to debug.
 - Fix approach: Wrap SVG operations in try-catch; on error, display a message like "SVG rendering failed. Try refreshing the page." in the stage element
 
@@ -114,7 +114,7 @@ last_mapped_at: 2026-09-23
 **innerHTML with computed values (not user-controlled):**
 
 - Issue: Several files use `innerHTML` to inject HTML with template literals: `banner.innerHTML = `Found ${M.toLocaleString()}…``
-- Files: `Factorize By Completing The Square/factorize-completing-square.html` (lines 736, 749, 761, 765, 837), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (line 662), `Pizza Slices/pizza-slices.html` (line 525), `RSA Examplifier/rsa-examplifier.html` (lines 470, 516, 586, 610, 628, 683)
+- Files: `Factorize By Completing The Square/factorize-completing-square.html` (lines 736, 749, 761, 765, 837), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (line 662), `Congruence Wheel/congruence-wheel.html` (line 525), `RSA Examplifier/rsa-examplifier.html` (lines 470, 516, 586, 610, 628, 683)
 - Current status: Safe. Values injected are numbers (M, k, a, b) or localized strings (`toLocaleString()`), never raw user input.
 - Risk: If code is refactored to include user-supplied strings without sanitization, XSS becomes possible.
 - Recommendation: Add a comment near `innerHTML` assignments: `/* Safe: value is numeric, not user input */` to alert future maintainers

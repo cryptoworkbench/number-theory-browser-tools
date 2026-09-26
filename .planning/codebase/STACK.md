@@ -92,7 +92,7 @@ Each tool has its own color palette via `:root` CSS variables, with separate the
 
 - `localStorage` for theme preference (`site-theme` key)
 - Per-tool state persistence in `localStorage`:
-  - Pizza Slices tool: `congruence-wheel` key stores N and depth parameters
+  - Congruence Wheel tool: `congruence-wheel` key stores N and depth parameters
   - No other persistence; other tools recalculate on each use
 
 **No Server-Side Storage:**

@@ -20,7 +20,7 @@ There are no npm scripts, test runners, or CLI test commands. Verification is ma
 # Open any tool directly in a browser
 
 open "Factor Tree/factor-tree.html"
-open "Pizza Slices/pizza-slices.html"
+open "Congruence Wheel/congruence-wheel.html"
 open "Sieve Of Eratosthenes/sieve-of-eratosthenes.html"
 open "RSA Examplifier/rsa-examplifier.html"
 open "Factorize By Completing The Square/factorize-completing-square.html"
@@ -54,7 +54,7 @@ Each tool includes **built-in manual testing controls and example presets** inst
 - Visual state indicators: unvisited, current, prime, composite, one (1)
 - Sound toggle button
 
-**Pizza Slices / Congruence Wheel** (`Pizza Slices/pizza-slices.html`):
+**Congruence Wheel** (`Congruence Wheel/congruence-wheel.html`):
 
 - Modulus N slider (1–60)
 - Rings/depth slider (2–10)
@@ -144,7 +144,7 @@ These functions are considered **correct if the visual output matches expected m
 - [ ] √N boundary displayed correctly
 - [ ] Sound toggle works (audio chime on each prime found)
 
-### Pizza Slices / Congruence Wheel
+### Congruence Wheel
 
 - [ ] Load page; wheel with N=10, depth=6 displays
 - [ ] Drag N slider; wheel regenerates with correct number of wedges
