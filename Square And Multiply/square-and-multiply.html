@@ -378,6 +378,18 @@ const costPanel = $('costPanel');
 
 let currentRun = null;
 
+// Playback state. `generation` is bumped on every rebuild and every reset so a stale
+// setTimeout/rAF callback from an abandoned run can check it and bail rather than write
+// into the ladder that replaced it.
+let playing = false;
+let rafId = null;
+let lastAdvance = 0;
+let stepIndex = 0;
+let generation = 0;
+
+const SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
+const SPEED_MS = {1:2600,2:2000,3:1500,4:1100,5:800,6:550,7:380,8:250,9:160,10:90};
+
 function readInputs(){
   errorBox.textContent = '';
   let base, exp, mod;
@@ -583,15 +595,158 @@ function renderResult(run){
 }
 
 function revealAll(run){
-  for (let i = 0; i < run.steps.length; i++){
-    renderStep(run.steps[i], run);
+  // Walk only the REMAINING steps (from the current stepIndex) so Instant, called after
+  // some rows were already revealed by Play/Step, never re-appends duplicate log entries.
+  while (stepIndex < run.steps.length){
+    renderStep(run.steps[stepIndex], run);
+    stepIndex++;
   }
   renderResult(run);
+}
+
+function renderCostPanel(run){
+  const c = costSummary(run.exp);
+  const rs = rsaScaleNote(2048);
+  let html = '<span class="tag">Why this matters for RSA</span>';
+  html += '<h3>Cost versus naive repeated multiplication</h3>';
+  html += '<div class="cost-grid">' +
+    '<div>Exponent bit length<br><strong>' + fmt(BigInt(c.bits)) + '</strong></div>' +
+    '<div>Squarings<br><strong>' + fmt(BigInt(c.squarings)) + '</strong></div>' +
+    '<div>Multiplies<br><strong>' + fmt(BigInt(c.multiplies)) + '</strong></div>' +
+    '<div>Total modular multiplications<br><strong>' + fmt(BigInt(c.total)) + '</strong></div>' +
+    '<div>Naive repeated multiplication would need<br><strong>' + fmt(c.naive) + '</strong></div>' +
+  '</div>';
+  if (c.meaningful){
+    html += '<p style="margin:10px 0 0;">That is <strong>' + fmt(c.ratio) + '×</strong> fewer modular multiplications than multiplying the base by itself that many times.</p>';
+  } else {
+    html += '<p style="margin:10px 0 0;">At this exponent size the ladder saves almost nothing over naive repeated multiplication — the win only grows large as the exponent grows.</p>';
+  }
+  html += '<p style="margin:10px 0 0;">A 2048-bit RSA exponent of the kind real RSA decryption uses needs about <strong>' + fmt(BigInt(rs.squarings)) +
+    '</strong> squarings plus about <strong>' + fmt(BigInt(rs.multiplies)) + '</strong> multiplies — roughly <strong>' + fmt(BigInt(rs.total)) +
+    '</strong> modular multiplications in total — while multiplying the base by itself that many times would take a number of multiplications ' +
+    fmt(BigInt(rs.naiveDigits)) + ' decimal digits long. That is why the <a href="../RSA Examplifier/rsa-examplifier.html">RSA Examplifier</a> and ' +
+    '<a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html">Diffie-Hellman Key Exchange</a> pages on this site can compute their keys instantly in a browser.</p>';
+  costPanel.innerHTML = '<div class="dlp-box">' + html + '</div>';
+}
+
+/* ---------- playback ---------- */
+
+function advanceOne(){
+  const run = currentRun;
+  const step = run.steps[stepIndex];
+  const myGen = generation;
+  renderStep(step, run);
+  stepIndex++;
+  if (myGen !== generation) return; // abandoned mid-call; nothing further to do
+  if (stepIndex >= run.steps.length) renderResult(run);
+}
+
+function frameStep(ts){
+  if (!playing) return;
+  if (!lastAdvance) lastAdvance = ts;
+  const dwell = SPEED_MS[parseInt(speedInput.value, 10)] || SPEED_MS[4];
+  if (ts - lastAdvance >= dwell){
+    advanceOne();
+    lastAdvance = ts;
+  }
+  if (!currentRun || stepIndex >= currentRun.steps.length){
+    pause();
+    return;
+  }
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function play(){
+  if (playing || !currentRun) return;
+  // A finished run (including the auto-revealed one every rebuild() leaves behind) rewinds
+  // instead of no-op'ing, so Play always plays without needing a manual Reset first.
+  if (stepIndex >= currentRun.steps.length) resetPlayback();
+  playing = true;
+  playBtn.textContent = '⏸ Pause';
+  stepBtn.disabled = true;
+  lastAdvance = 0;
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function pause(){
+  if (!playing){
+    playBtn.textContent = '▶ Play';
+    stepBtn.disabled = !currentRun || stepIndex >= currentRun.steps.length;
+    return;
+  }
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = !currentRun || stepIndex >= currentRun.steps.length;
+}
+
+function stepOnce(){
+  if (playing || !currentRun || stepIndex >= currentRun.steps.length) return;
+  advanceOne();
+  if (stepIndex >= currentRun.steps.length){
+    stepBtn.disabled = true;
+    playBtn.textContent = '▶ Play';
+  }
+}
+
+function instantFinish(){
+  pause();
+  if (currentRun) revealAll(currentRun);
+  stepBtn.disabled = true;
+  playBtn.textContent = '▶ Play';
+}
+
+function resetPlayback(){
+  pause();
+  generation++; // invalidate any in-flight callback from the run being abandoned
+  stepIndex = 0;
+  const rows = ladderSvg.querySelectorAll('.ladder-row');
+  for (let i = 0; i < rows.length; i++){ rows[i].style.opacity = ''; rows[i].classList.remove('is-active'); }
+  const cells = binaryStrip.querySelectorAll('.bit');
+  for (let i = 0; i < cells.length; i++) cells[i].classList.remove('is-current');
+  mathLog.innerHTML = '';
+  resultLine.innerHTML = '';
+  if (currentRun) renderSetup(currentRun);
+  stepBtn.disabled = false;
+  playBtn.textContent = '▶ Play';
+  banner.textContent = 'Ready — press Play to watch the ladder build one bit at a time.';
+}
+
+/* ---------- persistence ---------- */
+
+const STORAGE_KEY = 'square-and-multiply';
+
+function persistState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      base: baseInput.value, exp: expInput.value, mod: modInput.value, speed: speedInput.value
+    }));
+  }catch(e){ /* localStorage unavailable (e.g. file:// origin) — silently fall back */ }
+}
+
+function restoreState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (saved.base) baseInput.value = saved.base;
+    if (saved.exp) expInput.value = saved.exp;
+    if (saved.mod) modInput.value = saved.mod;
+    if (saved.speed) speedInput.value = saved.speed;
+    return true;
+  }catch(e){ return false; }
 }
 
 function rebuild(){
   const parsed = readInputs();
   if (!parsed) return;
+  generation++; // a rebuild abandons the current run; every stale callback checks this
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playing = false;
+  lastAdvance = 0;
+  stepIndex = 0;
   const run = squareAndMultiplySteps(parsed.base, parsed.exp, parsed.mod);
   run.rawBase = parsed.base;
   currentRun = run;
@@ -600,11 +755,22 @@ function rebuild(){
   renderBinaryStrip(run);
   buildLadder(run);
   renderSetup(run);
-  revealAll(run);
-  banner.textContent = 'Full computation shown below — ' + run.steps.length + ' bit' + (run.steps.length === 1 ? '' : 's') + ' in the exponent.';
+  renderCostPanel(run);
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = false;
+  instantFinish();
+  banner.textContent = 'Full computation shown below — ' + run.steps.length + ' bit' + (run.steps.length === 1 ? '' : 's') + ' in the exponent. Press Play to watch it build step by step.';
+  persistState();
 }
 
 computeBtn.addEventListener('click', rebuild);
+playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+stepBtn.addEventListener('click', stepOnce);
+instantBtn.addEventListener('click', instantFinish);
+resetBtn.addEventListener('click', resetPlayback);
+speedInput.addEventListener('input', function(){
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+});
 
 [baseInput, expInput, modInput].forEach(function(inp){
   inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') rebuild(); });
@@ -634,9 +800,14 @@ randomizeBtn.addEventListener('click', function(){
 });
 
 window.addEventListener('load', function(){
-  baseInput.value = '7';
-  expInput.value = '13';
-  modInput.value = '11';
+  const restored = restoreState();
+  if (!restored){
+    baseInput.value = '7';
+    expInput.value = '13';
+    modInput.value = '11';
+    speedInput.value = '4';
+  }
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
   rebuild();
 });
 
