@@ -12,6 +12,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  :root{
+    /* Group-operation slot colors, aliased from the shared semantic roles:
+       --slot-a is the first addend a learner clicks (yellow / --role-active),
+       --slot-b is the second addend (blue / --role-input), and --slot-sum is
+       the resulting class (a+b) mod N (green / --role-result). The *-soft
+       variants tint a marked wedge's fill without a literal color. */
+    --slot-a: var(--role-active);
+    --slot-b: var(--role-input);
+    --slot-sum: var(--role-result);
+    --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
+    --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
+    --slot-sum-soft: color-mix(in srgb, var(--slot-sum) 22%, transparent);
+  }
   *{box-sizing:border-box;}
   body{
     margin:0;
@@ -132,9 +145,12 @@
     transition:opacity .15s ease, stroke-width .15s ease;
   }
   .wedge:hover .wedge-hit{ opacity:.45; }
-  .wedge.is-selected .wedge-hit{ opacity:1; stroke-width:1.6; }
   .wedge:focus-visible{ outline:none; }
   .wedge:focus-visible .wedge-hit{ opacity:.6; stroke-width:1.6; }
+  .wedge.is-a .wedge-hit{ opacity:1; stroke-width:1.6; fill:var(--slot-a-soft); stroke:var(--slot-a); }
+  .wedge.is-b .wedge-hit{ opacity:1; stroke-width:1.6; fill:var(--slot-b-soft); stroke:var(--slot-b); }
+  .wedge.is-sum .wedge-hit{ opacity:1; stroke-width:2.2; fill:var(--slot-sum-soft); stroke:var(--slot-sum); }
+  .wedge.is-multi .wedge-hit{ stroke-dasharray:9 6; }
   .cell-num{
     font-family:'JetBrains Mono', monospace;
     font-variant-numeric:tabular-nums;
@@ -143,7 +159,9 @@
     dominant-baseline:central;
     pointer-events:none;
   }
-  .wedge.is-selected .cell-num{ fill:var(--role-input); font-weight:600; }
+  .wedge.is-a .cell-num{ fill:var(--slot-a); font-weight:600; }
+  .wedge.is-b .cell-num{ fill:var(--slot-b); font-weight:600; }
+  .wedge.is-sum .cell-num{ fill:var(--slot-sum); font-weight:600; }
   .ellipsis{
     fill:var(--text-dim);
     text-anchor:middle;
@@ -169,6 +187,9 @@
   }
   .caption b{ color:var(--accent); font-weight:600; }
   .caption .mono{ font-family:'JetBrains Mono', monospace; }
+  .caption .slot-a{ color:var(--slot-a); font-weight:600; }
+  .caption .slot-b{ color:var(--slot-b); font-weight:600; }
+  .caption .slot-sum{ color:var(--slot-sum); font-weight:600; }
 
   /* reference list */
   .ref{ margin-top:44px; }
@@ -222,7 +243,9 @@
     width:9px; height:9px; border-radius:2px; flex:none;
     background:var(--panel-border-strong);
   }
-  .row-btn.is-selected .swatch{ background:var(--accent); }
+  .row-btn.is-a .swatch{ background:var(--slot-a); }
+  .row-btn.is-b .swatch{ background:var(--slot-b); }
+  .row-btn.is-sum .swatch{ background:var(--slot-sum); }
   .row-btn .r-label{
     font-family:'JetBrains Mono', monospace;
     font-weight:600;
@@ -230,7 +253,9 @@
     color:var(--text-dim);
     min-width:4.6ch;
   }
-  .row-btn.is-selected .r-label{ color:var(--accent); }
+  .row-btn.is-a .r-label{ color:var(--slot-a); }
+  .row-btn.is-b .r-label{ color:var(--slot-b); }
+  .row-btn.is-sum .r-label{ color:var(--slot-sum); }
   .row-btn .r-set{
     font-family:'JetBrains Mono', monospace;
     font-size:12.5px;
@@ -238,6 +263,13 @@
     color:var(--text);
     overflow-x:auto;
     white-space:nowrap;
+  }
+  .row-btn .r-roles{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-dim);
+    margin-left:auto;
+    flex:none;
   }
 
   footer{
@@ -367,7 +399,18 @@
   var refCount = document.getElementById('ref-count');
   var formulaLine = document.getElementById('formula-line');
 
-  var state = { N: 10, depth: 6, selected: 0 };
+  var state = { N: 10, depth: 6, a: 0, b: null, sum: null, awaiting: 'a' };
+
+  var ROLE_WORDS = { a: 'first addend', b: 'second addend', sum: 'sum' };
+  var ROLE_TAGS = { a: 'A', b: 'B', sum: 'A+B' };
+
+  function rolesFor(idx){
+    var roles = [];
+    if (idx === state.a) roles.push('a');
+    if (idx === state.b) roles.push('b');
+    if (idx === state.sum) roles.push('sum');
+    return roles;
+  }
 
   try{
     var saved = JSON.parse(localStorage.getItem('congruence-wheel') || 'null');
@@ -456,13 +499,19 @@
       var startDeg = i * wedgeAngle;
       var endDeg = startDeg + wedgeAngle;
       var bisector = startDeg + wedgeAngle / 2;
-      var isSelected = (i === state.selected);
+      var roles = rolesFor(i);
+      var wedgeClass = 'wedge';
+      for (var ri = 0; ri < roles.length; ri++) wedgeClass += ' is-' + roles[ri];
+      if (roles.length > 1) wedgeClass += ' is-multi';
+      var roleWords = [];
+      for (var rw = 0; rw < roles.length; rw++) roleWords.push(ROLE_WORDS[roles[rw]]);
+      var ariaLabel = 'Equivalence class ' + i + ' modulo ' + N + (roleWords.length ? ', ' + roleWords.join(' and ') : '');
 
       var g = svgEl('g', {
-        class: 'wedge' + (isSelected ? ' is-selected' : ''),
+        class: wedgeClass,
         tabindex:'0', role:'button',
-        'aria-pressed': isSelected ? 'true' : 'false',
-        'aria-label': 'Equivalence class ' + i + ' modulo ' + N
+        'aria-pressed': roles.length ? 'true' : 'false',
+        'aria-label': ariaLabel
       });
 
       var hit = svgEl('path', {
@@ -519,8 +568,12 @@
       for (var k2 = 0; k2 < depth; k2++) members.push(r0 + k2 * N);
       var li = document.createElement('li');
       var btn = document.createElement('button');
-      btn.className = 'row-btn' + (r0 === state.selected ? ' is-selected' : '');
-      btn.setAttribute('aria-pressed', r0 === state.selected ? 'true' : 'false');
+      var rowRoles = rolesFor(r0);
+      var rowClass = 'row-btn';
+      for (var rc = 0; rc < rowRoles.length; rc++) rowClass += ' is-' + rowRoles[rc];
+      if (rowRoles.length > 1) rowClass += ' is-multi';
+      btn.className = rowClass;
+      btn.setAttribute('aria-pressed', rowRoles.length ? 'true' : 'false');
 
       var sw = document.createElement('span');
       sw.className = 'swatch';
@@ -536,6 +589,15 @@
       setSpan.textContent = '{ ' + members.join(', ') + ', … }';
       btn.appendChild(setSpan);
 
+      if (rowRoles.length){
+        var rowTags = [];
+        for (var rt = 0; rt < rowRoles.length; rt++) rowTags.push(ROLE_TAGS[rowRoles[rt]]);
+        var rolesSpan = document.createElement('span');
+        rolesSpan.className = 'r-roles';
+        rolesSpan.textContent = rowTags.join(' · ');
+        btn.appendChild(rolesSpan);
+      }
+
       (function(idx){
         btn.addEventListener('click', function(){ select(idx); });
       })(r0);
@@ -550,14 +612,38 @@
   }
 
   function updateCaption(){
-    var N = state.N, depth = state.depth, s = state.selected;
-    var terms = [];
-    for (var k = 0; k < Math.min(3, depth); k++) terms.push(s + k*N);
-    caption.innerHTML = 'Equivalence class <b>[' + s + ']</b> contains every natural number congruent to ' + s + ' (mod ' + N + '): <span class="mono">' + terms.join(', ') + ', …</span> — and nothing else.';
+    var N = state.N, depth = state.depth;
+    if (state.sum === null){
+      var s = state.a;
+      var terms = [];
+      for (var k = 0; k < Math.min(3, depth); k++) terms.push(s + k*N);
+      var prompt = (state.awaiting === 'a')
+        ? 'Click a wedge or reference row to choose the first addend.'
+        : 'Click a second class — or this same one again — to add to <span class="slot-a">[' + s + ']</span> and reveal the sum.';
+      caption.innerHTML = 'Equivalence class <b>[' + s + ']</b> contains every natural number congruent to ' + s + ' (mod ' + N + '): <span class="mono">' + terms.join(', ') + ', …</span> — and nothing else. ' + prompt;
+    } else {
+      var a = state.a, b = state.b, sum = state.sum;
+      var raw = a + b;
+      var sumTerms = [];
+      for (var k2 = 0; k2 < Math.min(3, depth); k2++) sumTerms.push(sum + k2*N);
+      caption.innerHTML =
+        '<span class="slot-a">[' + a + ']</span> + <span class="slot-b">[' + b + ']</span> = <span class="slot-sum">[' + sum + ']</span> — ' +
+        a + ' + ' + b + ' = ' + raw + ' ≡ ' + sum + ' (mod ' + N + '). ' +
+        'Adding any member of <span class="slot-a">[' + a + ']</span> to any member of <span class="slot-b">[' + b + ']</span> always lands in <span class="slot-sum">[' + sum + ']</span>: <span class="mono">' + sumTerms.join(', ') + ', …</span>';
+    }
   }
 
   function select(idx){
-    state.selected = idx;
+    if (state.sum !== null || state.awaiting === 'a'){
+      state.a = idx;
+      state.b = null;
+      state.sum = null;
+      state.awaiting = 'b';
+    } else {
+      state.b = idx;
+      state.sum = (state.a + idx) % state.N;
+      state.awaiting = 'a';
+    }
     persist();
     render();
   }
@@ -603,7 +689,7 @@
     var clone = live.cloneNode(true);
     var ls = live.querySelectorAll('*');
     var cs = clone.querySelectorAll('*');
-    var COPY_PROPS = ['stroke-width', 'opacity', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline', 'letter-spacing'];
+    var COPY_PROPS = ['stroke-width', 'opacity', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline', 'letter-spacing', 'stroke-dasharray'];
 
     for (var i = 0; i < ls.length; i++){
       var comp = getComputedStyle(ls[i]);
@@ -621,7 +707,10 @@
         var prop = COPY_PROPS[p];
         var val = comp.getPropertyValue(prop);
         if (!val || val === 'normal') continue;
-        val = val.replace(/px$/, '');
+        // Chrome serializes a computed dasharray as comma-separated px values
+        // (e.g. "9px, 6px"); strip both so a multi-value list still reads as
+        // a plain space-separated SVG attribute list ("9 6").
+        val = val.replace(/px/g, '').replace(/,\s*/g, ' ');
         target.setAttribute(prop, val);
       }
 
@@ -632,14 +721,20 @@
       }
     }
 
-    // Wedge-hit pass, after the paint pass so it wins: only the selected
-    // wedge's hit path survives, forced fully opaque; the rest are inert
-    // full-wedge paths that would otherwise bloat the file for nothing.
+    // Wedge-hit pass, after the paint pass so it wins: every marked wedge's
+    // hit path survives (a class can hold up to all three roles at once),
+    // forced fully opaque; the rest are inert full-wedge paths that would
+    // otherwise bloat the file for nothing.
     var hits = clone.querySelectorAll('.wedge-hit');
     for (var h = 0; h < hits.length; h++){
       var hit = hits[h];
       var parentG = hit.parentNode;
-      if (parentG && parentG.classList && parentG.classList.contains('is-selected')){
+      var isMarked = parentG && parentG.classList && (
+        parentG.classList.contains('is-a') ||
+        parentG.classList.contains('is-b') ||
+        parentG.classList.contains('is-sum')
+      );
+      if (isMarked){
         hit.setAttribute('opacity', '1');
       } else if (hit.parentNode){
         hit.parentNode.removeChild(hit);
@@ -672,7 +767,8 @@
   }
 
   function exportFileName(ext){
-    var raw = 'congruence-wheel-N' + state.N + '-depth' + state.depth + '-class' + state.selected + '.' + ext;
+    var raw = 'congruence-wheel-N' + state.N + '-depth' + state.depth + '-a' + state.a +
+      (state.b !== null ? '-b' + state.b + '-sum' + state.sum : '') + '.' + ext;
     return raw.replace(/[^A-Za-z0-9._-]/g, '');
   }
 
@@ -801,7 +897,10 @@
 
   nRange.addEventListener('input', function(){
     state.N = parseInt(nRange.value, 10);
-    if (state.selected >= state.N) state.selected = state.N - 1;
+    if (state.a >= state.N) state.a = state.N - 1;
+    state.b = null;
+    state.sum = null;
+    state.awaiting = 'a';
     nDisplay.textContent = state.N;
     persist();
     render();
