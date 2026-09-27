@@ -230,7 +230,19 @@
     stroke-width:2;
   }
 
-  .placed-chip{ cursor:pointer; }
+  .placed-chip{
+    cursor:grab;
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .placed-chip.is-dragging{
+    cursor:grabbing;
+    opacity:.45;
+  }
+  .placed-chip.is-dragging rect{
+    stroke:var(--role-active);
+  }
   .placed-chip rect{
     fill:var(--surface);
     stroke:var(--panel-border-strong);
@@ -824,6 +836,10 @@
     renderPicker();
   }
 
+  function warnRegionFull(key){
+    setMessage('The ' + REGION_CAPTIONS[key] + ' region is full — max ' + MAX_PER_REGION + ' primes.', true);
+  }
+
   function placePrime(key, prime){
     var value = (prime === undefined) ? state.armed : prime;
     if (value === null || value === undefined){
@@ -831,7 +847,7 @@
       return;
     }
     if (state.regions[key].length >= MAX_PER_REGION){
-      setMessage('The ' + REGION_CAPTIONS[key] + ' region is full — max ' + MAX_PER_REGION + ' primes.', true);
+      warnRegionFull(key);
       return;
     }
     state.regions[key].push({ id: state.nextId++, p: value });
@@ -851,6 +867,119 @@
     }
     persist();
     render();
+  }
+
+  function moveToken(fromKey, toKey, id){
+    if (fromKey === toKey) return;
+    if (state.regions[toKey].length >= MAX_PER_REGION){
+      warnRegionFull(toKey);
+      return;
+    }
+    var fromList = state.regions[fromKey];
+    var entry = null;
+    for (var i = 0; i < fromList.length; i++){
+      if (fromList[i].id === id){
+        entry = fromList.splice(i, 1)[0];
+        break;
+      }
+    }
+    if (!entry) return;
+    state.regions[toKey].push(entry);
+    setMessage('Moved ' + entry.p + ' to the ' + REGION_CAPTIONS[toKey] + ' region.');
+    persist();
+    render();
+  }
+
+  /* ---------- placed-token drag-to-move (mode-agnostic) ---------- */
+
+  var dragSuppressClick = false;
+
+  function regionElementAt(clientX, clientY){
+    var hit = document.elementFromPoint(clientX, clientY);
+    return (hit && hit.closest) ? hit.closest('.region') : null;
+  }
+
+  function keyForRegionEl(ctx, el){
+    if (!el) return null;
+    for (var key in ctx.els){
+      if (ctx.els[key] === el) return key;
+    }
+    return null;
+  }
+
+  function wireTokenDrag(g, ctx, regionKey, tokenId){
+    var startX = 0, startY = 0, scale = 1, dragging = false, dropTargetEl = null;
+    var THRESHOLD = 4;
+
+    function updateDropTarget(clientX, clientY){
+      var region = regionElementAt(clientX, clientY);
+      if (region !== dropTargetEl){
+        if (dropTargetEl) dropTargetEl.classList.remove('is-drop-target');
+        dropTargetEl = region;
+        if (dropTargetEl) dropTargetEl.classList.add('is-drop-target');
+      }
+    }
+
+    function onMove(ev){
+      var dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (!dragging){
+        if (Math.sqrt(dx * dx + dy * dy) <= THRESHOLD) return;
+        dragging = true;
+        ev.preventDefault();
+        g.classList.add('is-dragging');
+        ctx.dynamic.style.pointerEvents = 'none';
+      }
+      ev.preventDefault();
+      g.setAttribute('transform', 'translate(' + (dx * scale) + ',' + (dy * scale) + ')');
+      updateDropTarget(ev.clientX, ev.clientY);
+    }
+
+    function finish(ev, shouldResolve){
+      // Resolve the drop target first, while ctx.dynamic still has
+      // pointer-events:none — otherwise the dragged token (or a sibling
+      // token restored to interactivity below) would hide the region
+      // beneath it from the point-resolution hit test (grounded fact 3).
+      var resolvedKey = (dragging && shouldResolve)
+        ? keyForRegionEl(ctx, regionElementAt(ev.clientX, ev.clientY))
+        : null;
+
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      ctx.dynamic.style.pointerEvents = '';
+      g.classList.remove('is-dragging');
+      g.removeAttribute('transform');
+      if (dropTargetEl){
+        dropTargetEl.classList.remove('is-drop-target');
+        dropTargetEl = null;
+      }
+      var wasDragging = dragging;
+      dragging = false;
+      if (!wasDragging) return;
+      dragSuppressClick = true;
+      if (!resolvedKey) return;
+      ctx.move(regionKey, resolvedKey, tokenId);
+    }
+
+    function onUp(ev){ finish(ev, true); }
+    function onCancel(ev){ finish(ev, false); }
+
+    g.addEventListener('pointerdown', function(ev){
+      if (!ev.isPrimary) return;
+      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+      dragSuppressClick = false;
+      dragging = false;
+      dropTargetEl = null;
+      startX = ev.clientX;
+      startY = ev.clientY;
+      var svg = g.ownerSVGElement;
+      var rectWidth = svg.getBoundingClientRect().width;
+      if (!rectWidth) return;
+      scale = svg.viewBox.baseVal.width / rectWidth;
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onCancel);
+    });
   }
 
   function primesOf3(key){ return primesOf(state.regions3[key]); }
@@ -1053,10 +1182,14 @@
         text.textContent = String(entry.p);
         g.appendChild(text);
         (function(regionKey, tokenId){
-          g.addEventListener('click', function(){ removeToken(regionKey, tokenId); });
+          g.addEventListener('click', function(){
+            if (dragSuppressClick){ dragSuppressClick = false; return; }
+            removeToken(regionKey, tokenId);
+          });
           g.addEventListener('keydown', function(ev){
             if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); removeToken(regionKey, tokenId); }
           });
+          wireTokenDrag(g, { els: regionEls, dynamic: svgDynamic, move: moveToken }, regionKey, tokenId);
         })(key, entry.id);
         svgDynamic.appendChild(g);
       }
