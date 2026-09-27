@@ -338,7 +338,7 @@
   <header class="page-header">
     <p class="eyebrow">partitions of &#8469;</p>
     <h1>The Congruence Wheel</h1>
-    <p class="lede">Every natural number belongs to exactly one equivalence class modulo N. This diagram arranges &#8469; as concentric rings &mdash; one ring per multiple of N, one wedge per class &mdash; so the classes stay visibly disjoint and complete.</p>
+    <p class="lede">Every natural number belongs to exactly one equivalence class modulo N. <span id="mode-note"></span></p>
   </header>
 
   <div class="mode-tabs" role="tablist" aria-label="Group operation">
@@ -384,7 +384,7 @@
 
     <div class="ref">
       <div class="ref-head">
-        <h2>Equivalence classes</h2>
+        <h2 id="ref-heading">Equivalence classes</h2>
         <span class="count" id="ref-count">N = 10</span>
       </div>
       <ul class="ref-list" id="ref-list"></ul>
@@ -413,9 +413,12 @@
   var caption = document.getElementById('wheel-caption');
   var refCount = document.getElementById('ref-count');
   var formulaLine = document.getElementById('formula-line');
+  var modeNote = document.getElementById('mode-note');
+  var refHeading = document.getElementById('ref-heading');
 
   // Per-mode config (D-05): each mode supplies its element list, its binary
-  // operation, the raw (unreduced) value for display, and its identity. The
+  // operation, the raw (unreduced) value for display, its identity, and every
+  // mode-specific string the shared render/caption path speaks. The
   // multiplicative element list IS the group (Z/NZ)* itself (D-02), and that
   // group is closed under multiplication (D-04) — op's result is therefore
   // always a member of elements(N), so no membership/closure check is written.
@@ -424,22 +427,43 @@
       elements: function(N){ var o = []; for (var r = 0; r < N; r++) o.push(r); return o; },
       op: function(a, b, N){ return (a + b) % N; },
       raw: function(a, b){ return a + b; },
-      identity: function(N){ return 0; }
+      identity: function(N){ return 0; },
+      note: 'This diagram arranges ℕ as concentric rings — one ring per multiple of N, one wedge per class — so the classes stay visibly disjoint and complete.',
+      heading: 'Equivalence classes',
+      refCount: function(N, M){ return 'N = ' + N; },
+      formula: function(N, els){ return 'ℕ/∼ = { [0], [1], …, [' + (N - 1) + '] }   where   [r] = { n ∈ ℕ : n mod ' + N + ' = r }'; },
+      words: { a: 'first addend', b: 'second addend', sum: 'sum' },
+      tags: { a: 'A', b: 'B', sum: 'A+B' },
+      sign: '+',
+      verbing: 'Adding',
+      joiner: 'to',
+      promptA: function(){ return 'Click a wedge or reference row to choose the ' + this.words.a + '.'; },
+      promptB: function(aHtml){ return 'Click a second class — or this same one again — to add to ' + aHtml + ' and reveal the sum.'; },
+      slug: ''
     },
     multiplicative: {
       elements: unitsMod,
       op: function(a, b, N){ return (a * b) % N; },
       raw: function(a, b){ return a * b; },
-      identity: function(N){ return 1 % N; }
+      identity: function(N){ return 1 % N; },
+      note: 'Only the φ(N) classes coprime to N get a wedge here — those are exactly the classes with a multiplicative inverse, so they and they alone form a group under multiplication.',
+      heading: 'Unit equivalence classes',
+      refCount: function(N, M){ return 'N = ' + N + ' · φ(' + N + ') = ' + M; },
+      formula: function(N, els){ return '(ℤ/' + N + 'ℤ)* = { [' + els.join('], [') + '] }   ·   identity [' + this.identity(N) + ']   ·   |(ℤ/' + N + 'ℤ)*| = φ(' + N + ') = ' + els.length; },
+      words: { a: 'first factor', b: 'second factor', sum: 'product' },
+      tags: { a: 'A', b: 'B', sum: 'A·B' },
+      sign: '×',
+      verbing: 'Multiplying',
+      joiner: 'by',
+      promptA: function(){ return 'Click a wedge or reference row to choose the ' + this.words.a + '.'; },
+      promptB: function(aHtml){ return 'Click a second class — or this same one again — to multiply with ' + aHtml + ' and reveal the product.'; },
+      slug: '-mult'
     }
   };
 
   var state = { N: 10, depth: 6, mode: 'additive', a: 0, b: null, sum: null, awaiting: 'a' };
 
   function currentMode(){ return MODES[state.mode]; }
-
-  var ROLE_WORDS = { a: 'first addend', b: 'second addend', sum: 'sum' };
-  var ROLE_TAGS = { a: 'A', b: 'B', sum: 'A+B' };
 
   function rolesFor(idx){
     var roles = [];
@@ -492,7 +516,8 @@
 
   function render(){
     var N = state.N, depth = state.depth;
-    var els = currentMode().elements(N);
+    var mode = currentMode();
+    var els = mode.elements(N);
     var M = els.length;
     var wedgeAngle = 360 / M;
     var wedgeAngleRad = 2 * Math.PI / M;
@@ -550,7 +575,7 @@
       for (var ri = 0; ri < roles.length; ri++) wedgeClass += ' is-' + roles[ri];
       if (roles.length > 1) wedgeClass += ' is-multi';
       var roleWords = [];
-      for (var rw = 0; rw < roles.length; rw++) roleWords.push(ROLE_WORDS[roles[rw]]);
+      for (var rw = 0; rw < roles.length; rw++) roleWords.push(mode.words[roles[rw]]);
       var ariaLabel = 'Equivalence class ' + value + ' modulo ' + N + (roleWords.length ? ', ' + roleWords.join(' and ') : '');
 
       var g = svgEl('g', {
@@ -638,7 +663,7 @@
 
       if (rowRoles.length){
         var rowTags = [];
-        for (var rt = 0; rt < rowRoles.length; rt++) rowTags.push(ROLE_TAGS[rowRoles[rt]]);
+        for (var rt = 0; rt < rowRoles.length; rt++) rowTags.push(mode.tags[rowRoles[rt]]);
         var rolesSpan = document.createElement('span');
         rolesSpan.className = 'r-roles';
         rolesSpan.textContent = rowTags.join(' · ');
@@ -653,30 +678,33 @@
       refList.appendChild(li);
     }
 
-    refCount.textContent = 'N = ' + N;
-    formulaLine.textContent = 'ℕ/∼ = { [0], [1], …, [' + (N-1) + '] }   where   [r] = { n ∈ ℕ : n mod ' + N + ' = r }';
+    modeNote.textContent = mode.note;
+    refHeading.textContent = mode.heading;
+    refCount.textContent = mode.refCount(N, M);
+    formulaLine.textContent = mode.formula(N, els);
     updateCaption();
   }
 
   function updateCaption(){
     var N = state.N, depth = state.depth;
+    var mode = currentMode();
     if (state.sum === null){
       var s = state.a;
       var terms = [];
       for (var k = 0; k < Math.min(3, depth); k++) terms.push(s + k*N);
       var prompt = (state.awaiting === 'a')
-        ? 'Click a wedge or reference row to choose the first addend.'
-        : 'Click a second class — or this same one again — to add to <span class="slot-a">[' + s + ']</span> and reveal the sum.';
+        ? (typeof mode.promptA === 'function' ? mode.promptA() : mode.promptA)
+        : mode.promptB('<span class="slot-a">[' + s + ']</span>');
       caption.innerHTML = 'Equivalence class <b>[' + s + ']</b> contains every natural number congruent to ' + s + ' (mod ' + N + '): <span class="mono">' + terms.join(', ') + ', …</span> — and nothing else. ' + prompt;
     } else {
       var a = state.a, b = state.b, sum = state.sum;
-      var raw = a + b;
+      var raw = mode.raw(a, b);
       var sumTerms = [];
       for (var k2 = 0; k2 < Math.min(3, depth); k2++) sumTerms.push(sum + k2*N);
       caption.innerHTML =
-        '<span class="slot-a">[' + a + ']</span> + <span class="slot-b">[' + b + ']</span> = <span class="slot-sum">[' + sum + ']</span> — ' +
-        a + ' + ' + b + ' = ' + raw + ' ≡ ' + sum + ' (mod ' + N + '). ' +
-        'Adding any member of <span class="slot-a">[' + a + ']</span> to any member of <span class="slot-b">[' + b + ']</span> always lands in <span class="slot-sum">[' + sum + ']</span>: <span class="mono">' + sumTerms.join(', ') + ', …</span>';
+        '<span class="slot-a">[' + a + ']</span> ' + mode.sign + ' <span class="slot-b">[' + b + ']</span> = <span class="slot-sum">[' + sum + ']</span> — ' +
+        a + ' ' + mode.sign + ' ' + b + ' = ' + raw + ' ≡ ' + sum + ' (mod ' + N + '). ' +
+        mode.verbing + ' any member of <span class="slot-a">[' + a + ']</span> ' + mode.joiner + ' any member of <span class="slot-b">[' + b + ']</span> always lands in <span class="slot-sum">[' + sum + ']</span>: <span class="mono">' + sumTerms.join(', ') + ', …</span>';
     }
   }
 
@@ -814,7 +842,7 @@
   }
 
   function exportFileName(ext){
-    var raw = 'congruence-wheel-N' + state.N + '-depth' + state.depth + '-a' + state.a +
+    var raw = 'congruence-wheel' + currentMode().slug + '-N' + state.N + '-depth' + state.depth + '-a' + state.a +
       (state.b !== null ? '-b' + state.b + '-sum' + state.sum : '') + '.' + ext;
     return raw.replace(/[^A-Za-z0-9._-]/g, '');
   }
