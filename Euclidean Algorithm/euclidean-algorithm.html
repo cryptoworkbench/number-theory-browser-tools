@@ -160,6 +160,22 @@
   }
   .answer-line:empty{ display:none; }
 
+  /* Identity line is a second landing beat, matching the answer line's type
+     scale, revealed under the same .app.show-ext class as the coefficient
+     columns -- present in the DOM whenever an answer is, hidden by class
+     (not emptiness) until Extended Euclidean mode is on. */
+  .identity-line{
+    display:none;
+    margin-top:10px; padding:12px 16px; border-radius:12px; text-align:center;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.15rem; font-weight:700;
+    color:var(--text);
+    background:var(--slot-ext-soft);
+    border:1px solid var(--slot-ext);
+  }
+  .app.show-ext .identity-line{ display:block; }
+  .identity-coef{ color:var(--slot-ext); }
+  .identity-gcd{ color:var(--slot-answer); }
+
   .caption{ text-align:center; font-size:.78rem; color:var(--text-dim); margin:0; }
 
   /* ---------- geometric (rectangle-tiling) view ---------- */
@@ -285,6 +301,7 @@
     <div id="chain" class="chain"></div>
     <p id="extCaption" class="ext-caption">Each line's <strong>s</strong> and <strong>t</strong> express that line's remainder as a combination of the two original inputs — <code>s·A + t·B = r</code>.</p>
     <div id="answerLine" class="answer-line"></div>
+    <p id="identityLine" class="identity-line"></p>
   </section>
 
   <section class="panel">
@@ -343,6 +360,7 @@ var swapNote = $('swapNote');
 var banner = $('banner');
 var chain = $('chain');
 var answerLine = $('answerLine');
+var identityLine = $('identityLine');
 var tileSvg = $('tileSvg');
 var tileCaption = $('tileCaption');
 var tileNote = $('tileNote');
@@ -435,9 +453,26 @@ function appendStepLine(step, index){
   chain.appendChild(div);
 }
 
+// Parenthesises a negative coefficient, leaves a non-negative one bare, so
+// both sides of the Bezout identity are formatted by the same rule.
+function formatCoef(n){
+  return n < 0 ? '(' + n + ')' : String(n);
+}
+
 function renderAnswer(run){
   answerLine.textContent = 'gcd(' + run.A + ', ' + run.B + ') = ' + run.gcd;
   banner.textContent = 'Done — ' + run.steps.length + ' step' + (run.steps.length === 1 ? '' : 's') + ' to reach the GCD.';
+
+  identityLine.innerHTML =
+    'gcd(' + run.A + ', ' + run.B + ') = ' +
+    '<span class="identity-coef">' + formatCoef(run.s) + '</span>·' + run.A + ' + ' +
+    '<span class="identity-coef">' + formatCoef(run.t) + '</span>·' + run.B + ' = ' +
+    '<span class="identity-gcd">' + run.gcd + '</span>';
+  identityLine.setAttribute('data-a', run.A);
+  identityLine.setAttribute('data-b', run.B);
+  identityLine.setAttribute('data-s', run.s);
+  identityLine.setAttribute('data-t', run.t);
+  identityLine.setAttribute('data-gcd', run.gcd);
 }
 
 /* ---------- geometric view ---------- */
@@ -710,6 +745,7 @@ function resetPlayback(){
   for (k = 0; k < lines.length; k++) lines[k].classList.remove('is-current');
   chain.innerHTML = '';
   answerLine.textContent = '';
+  identityLine.textContent = '';
   clearTiles();
   stepBtn.disabled = false;
   playBtn.textContent = '▶ Play';
