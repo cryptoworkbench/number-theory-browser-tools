@@ -16,11 +16,11 @@ Requirements for this milestone (three new number-theory tools + site-wide palet
 
 ### Euclidean Algorithm / GCD
 
-- [ ] **GCD-01**: User can input two integers (a, b) with validation
-- [ ] **GCD-02**: User can watch an animated step-by-step `(a,b) → (b, a mod b)` reduction trace with playback controls (play/pause/step/instant-finish)
-- [ ] **GCD-03**: User sees the final GCD clearly highlighted at the end of the trace
+- [x] **GCD-01**: User can input two integers (a, b) with validation
+- [x] **GCD-02**: User can watch an animated step-by-step `(a,b) → (b, a mod b)` reduction trace with playback controls (play/pause/step/instant-finish)
+- [x] **GCD-03**: User sees the final GCD clearly highlighted at the end of the trace
 - [x] **GCD-04**: User can pick from preset example pairs (coprime pair, one-is-multiple-of-other, equal pair)
-- [ ] **GCD-05**: User can view a geometric rectangle-tiling visualization alongside the numeric trace (repeatedly cutting the largest square from a shrinking rectangle)
+- [x] **GCD-05**: User can view a geometric rectangle-tiling visualization alongside the numeric trace (repeatedly cutting the largest square from a shrinking rectangle)
 - [x] **GCD-06**: User can toggle an Extended Euclidean / Bézout coefficients mode showing s, t such that `gcd(a,b) = sa + tb`
 
 ### Chinese Remainder Theorem
@@ -90,11 +90,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 | PAL-02 | Phase 1 | Complete |
 | PAL-03 | Phase 1 | Complete |
 | PAL-04 | Phase 1 | Complete |
-| GCD-01 | Phase 2 | Pending |
-| GCD-02 | Phase 2 | Pending |
-| GCD-03 | Phase 2 | Pending |
+| GCD-01 | Phase 2 | Complete |
+| GCD-02 | Phase 2 | Complete |
+| GCD-03 | Phase 2 | Complete |
 | GCD-04 | Phase 2 | Complete |
-| GCD-05 | Phase 2 | Pending |
+| GCD-05 | Phase 2 | Complete |
 | GCD-06 | Phase 2 | Complete |
 | CRT-01 | Phase 3 | Pending |
 | CRT-02 | Phase 3 | Pending |

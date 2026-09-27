@@ -19,8 +19,8 @@ piece end-to-end, matching this project's existing pattern of independently-func
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Palette Unification** - Unify all eight tools under one shared color palette with day/night theming preserved
-- [ ] **Phase 2: Euclidean Algorithm / GCD Tool** - Ship an animated GCD/Euclidean-algorithm visualizer with a geometric rectangle-tiling view and Extended Euclidean mode
+- [x] **Phase 1: Palette Unification** - Unify all eight tools under one shared color palette with day/night theming preserved
+- [x] **Phase 2: Euclidean Algorithm / GCD Tool** - Ship an animated GCD/Euclidean-algorithm visualizer with a geometric rectangle-tiling view and Extended Euclidean mode
 - [ ] **Phase 3: Chinese Remainder Theorem Tool** - Ship an interactive CRT visualizer with coprimality validation, residue-class visuals, and a GCD cross-link
 - [ ] **Phase 4: Continued Fractions Tool** - Ship a continued-fractions visualizer sharing GCD's rectangle-tiling geometry, with nav updated across all eight tools
 
@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Palette Unification | 6/6 | In Progress|  |
-| 2. Euclidean Algorithm / GCD Tool | 4/4 | In Progress|  |
+| 1. Palette Unification | 6/6 | Complete | 2026-09-27 |
+| 2. Euclidean Algorithm / GCD Tool | 4/4 | Complete | 2026-09-27 |
 | 3. Chinese Remainder Theorem Tool | 0/? | Not started | - |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
