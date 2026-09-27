@@ -1,30 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-palette-unification
 source: [01-VERIFICATION.md]
 started: 2026-09-24T15:15:00Z
-updated: 2026-09-24T16:15:00Z
+updated: 2026-09-27T13:00:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Developer sign-off on the unified palette (bypassed checkpoints) — re-check after gap closure
-expected: |
-  Both previously-reported issues are now fixed by gap-closure plan 01-06:
-
-  1. The shared nav header should now render full-width/edge-pinned identically on all six
-     pages (index.html, Sieve, Factor Tree, Completing-the-Square, Congruence Wheel, RSA
-     Examplifier) — no page should show it as an inset/floating card anymore.
-  2. Toggling day/night on one page and navigating to a different tool should now keep the
-     selected theme on the destination page — including in Safari opened via file://, where
-     the underlying bug was localStorage throwing silently with no fallback (now backed by a
-     window.name fallback).
-
-  Please re-open the six pages, toggle day/night, navigate between them, and confirm both
-  fixes hold — and, as before, that you're comfortable with the shared palette itself as the
-  site's visual identity going forward.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -33,19 +17,21 @@ expected: |
   No element stuck in the other theme's colors; header re-themes on all six pages; role
   meanings read consistently across pages; and the developer approves the shared-palette
   visual-identity change itself.
-result: [pending]
+result: pass
 history:
   - result: issue
     reported: "the menubar still isn't universal across all pages, on homepage and on factor tree it is stuck to the screen edge, but on all the other pages the menubar is an individual thing that is just floating in the middle of the left and right edges, and a little underneath of the top edge. also I want the mode selected to stay persistent across tool navigation. Now it is not persistent across/between pages."
     severity: major
     resolved_by: 01-06-PLAN.md
+  - result: pass
+    reported: "Explicit developer decision (2026-09-27, in conversation): skip the formal re-check-in-browser pass and accept the palette as verified. Rationale given: the shared palette has been in continuous, unobjected-to production use across ten+ quick tasks and one additional roadmap-adjacent phase's worth of work since 2026-09-24 (new tools built against it, Congruence Wheel enhancements, nav/favicon work), which is a stronger real-world signal than a single click-through pass would add. Both gap-closure items (G-01-1a header inset, G-01-1b theme persistence) remain resolved per 01-06-PLAN.md."
 
 ## Summary
 
 total: 1
-passed: 0
+passed: 1
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
