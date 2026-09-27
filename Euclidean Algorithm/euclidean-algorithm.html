@@ -20,17 +20,22 @@
        next step's divisor (--role-alt); --slot-answer is the final GCD,
        the landing beat (--role-result); --slot-cap is the geometric view's
        collapsed-tile guard, "the 40-square cap just kicked in"
-       (--role-warn). The *-soft variants tint a value's background
-       without a literal color. */
+       (--role-warn); --slot-ext is the Extended Euclidean mode's optional
+       Bezout coefficient columns and closing identity, "the advanced
+       addition to the base table" (--role-special), distinct from
+       --slot-answer so the two landing beats do not compete. The *-soft
+       variants tint a value's background without a literal color. */
     --slot-a: var(--role-input);
     --slot-b: var(--role-active);
     --slot-r: var(--role-alt);
     --slot-answer: var(--role-result);
     --slot-cap: var(--role-warn);
+    --slot-ext: var(--role-special);
     --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
     --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
     --slot-r-soft: color-mix(in srgb, var(--slot-r) 22%, transparent);
     --slot-cap-soft: color-mix(in srgb, var(--slot-cap) 22%, transparent);
+    --slot-ext-soft: color-mix(in srgb, var(--slot-ext) 22%, transparent);
   }
 
   *{ box-sizing:border-box; }
@@ -103,6 +108,9 @@
   .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
   .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
 
+  .ext-toggle{ display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--text-dim); cursor:pointer; }
+  .ext-toggle input[type="checkbox"]{ accent-color:var(--slot-ext); width:16px; height:16px; cursor:pointer; }
+
   .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
   .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
     color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
@@ -118,6 +126,7 @@
 
   .chain{ display:flex; flex-direction:column; gap:8px; font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.02rem; }
   .eq-line{
+    display:flex; align-items:baseline; flex-wrap:wrap;
     padding:9px 14px; border-radius:10px; background:color-mix(in srgb, var(--text) 4%, transparent);
     border:1px solid var(--panel-border); border-left:3px solid transparent;
     opacity:0; transform:translateY(-4px);
@@ -132,6 +141,13 @@
   .eq-b, .eq-q{ color:var(--slot-b); }
   .eq-r{ color:var(--slot-r); }
   .eq-op{ color:var(--text-dim); font-weight:400; padding:0 3px; }
+
+  .eq-ext{ margin-left:auto; display:none; gap:14px; align-items:baseline; }
+  .app.show-ext .eq-ext{ display:flex; }
+  .eq-s, .eq-t{ display:inline-block; min-width:12ch; text-align:right; color:var(--slot-ext); }
+
+  .ext-caption{ display:none; text-align:center; font-size:.82rem; color:var(--text-dim); margin:10px 0 0; }
+  .app.show-ext .ext-caption{ display:block; }
 
   .chain-note{ color:var(--text-dim); font-size:.92rem; text-align:center; padding:6px 4px; }
 
@@ -252,6 +268,13 @@
         <span id="speedLabel">brisk</span>
       </div>
     </div>
+
+    <div class="field-row" style="width:100%; align-items:center;">
+      <label class="ext-toggle">
+        <input type="checkbox" id="extToggle">
+        <span>Extended Euclidean mode — show the Bézout coefficients <strong>s</strong> and <strong>t</strong></span>
+      </label>
+    </div>
   </section>
 
   <div class="error-box" id="errorBox"></div>
@@ -260,6 +283,7 @@
 
   <section class="panel">
     <div id="chain" class="chain"></div>
+    <p id="extCaption" class="ext-caption">Each line's <strong>s</strong> and <strong>t</strong> express that line's remainder as a combination of the two original inputs — <code>s·A + t·B = r</code>.</p>
     <div id="answerLine" class="answer-line"></div>
   </section>
 
@@ -322,6 +346,8 @@ var answerLine = $('answerLine');
 var tileSvg = $('tileSvg');
 var tileCaption = $('tileCaption');
 var tileNote = $('tileNote');
+var extToggle = $('extToggle');
+var appEl = document.querySelector('.app');
 
 var MAX_INPUT = 1000000;
 
@@ -401,7 +427,11 @@ function appendStepLine(step, index){
     '<span class="eq-op">·</span>' +
     '<span class="eq-num eq-b">' + step.b + '</span>' +
     '<span class="eq-op"> + </span>' +
-    '<span class="eq-num eq-r">' + step.r + '</span>';
+    '<span class="eq-num eq-r">' + step.r + '</span>' +
+    '<span class="eq-ext">' +
+      '<span class="eq-s">s = ' + step.s + '</span>' +
+      '<span class="eq-t">t = ' + step.t + '</span>' +
+    '</span>';
   chain.appendChild(div);
 }
 
@@ -707,6 +737,9 @@ instantBtn.addEventListener('click', instantFinish);
 resetBtn.addEventListener('click', resetPlayback);
 speedInput.addEventListener('input', function(){
   speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+});
+extToggle.addEventListener('change', function(){
+  appEl.classList.toggle('show-ext', extToggle.checked);
 });
 
 [aInput, bInput].forEach(function(inp){
