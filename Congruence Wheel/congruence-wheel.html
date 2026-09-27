@@ -123,6 +123,13 @@
     outline-offset:3px;
   }
 
+  /* mode tabs */
+  .mode-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:22px; border-bottom:1px solid var(--panel-border); }
+  .mode-tab{ font:inherit; font-size:.92rem; font-weight:600; color:var(--text-dim); background:none; border:none; border-bottom:2px solid transparent; border-radius:8px 8px 0 0; padding:10px 16px; cursor:pointer; transition:color .15s, background .15s, border-color .15s; }
+  .mode-tab:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .mode-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .mode-tab.is-active{ color:var(--accent); border-bottom-color:var(--accent); }
+
   /* diagram */
   .diagram-wrap{
     display:flex;
@@ -285,11 +292,12 @@
     .wedge-hit{ transition:none; }
     .export-btn{ transition:none; }
     .export-btn:active{ transform:none; }
+    .mode-tab{ transition:none; }
   }
 
   @media print{
     @page{ margin:14mm; }
-    .site-header, .controls, .ref{ display:none !important; }
+    .site-header, .controls, .ref, .mode-tabs{ display:none !important; }
     .wrap{ max-width:none; padding:0; }
     .diagram-frame{ max-width:120mm; margin:0 auto; }
     .diagram-wrap{ break-inside:avoid; page-break-inside:avoid; margin-bottom:12px; gap:10px; }
@@ -333,6 +341,11 @@
     <p class="lede">Every natural number belongs to exactly one equivalence class modulo N. This diagram arranges &#8469; as concentric rings &mdash; one ring per multiple of N, one wedge per class &mdash; so the classes stay visibly disjoint and complete.</p>
   </header>
 
+  <div class="mode-tabs" role="tablist" aria-label="Group operation">
+    <button type="button" class="mode-tab is-active" role="tab" id="tab-additive" data-mode="additive" aria-selected="true" aria-controls="wheel-panel">Additive Groups</button>
+    <button type="button" class="mode-tab" role="tab" id="tab-multiplicative" data-mode="multiplicative" aria-selected="false" aria-controls="wheel-panel" tabindex="-1">Multiplicative Groups</button>
+  </div>
+
   <div class="controls">
     <div class="field">
       <label for="n-range">N &mdash; modulus</label>
@@ -359,21 +372,23 @@
     </div>
   </div>
 
-  <div class="diagram-wrap">
-    <div class="diagram-frame">
-      <svg id="wheel" viewBox="0 0 900 900" role="img" aria-label="Natural numbers arranged as concentric rings partitioned into N equivalence classes">
-        <g id="wheel-dynamic"></g>
-      </svg>
+  <div id="wheel-panel" role="tabpanel" aria-labelledby="tab-additive">
+    <div class="diagram-wrap">
+      <div class="diagram-frame">
+        <svg id="wheel" viewBox="0 0 900 900" role="img" aria-label="Natural numbers arranged as concentric rings partitioned into N equivalence classes">
+          <g id="wheel-dynamic"></g>
+        </svg>
+      </div>
+      <p class="caption" id="wheel-caption" aria-live="polite"></p>
     </div>
-    <p class="caption" id="wheel-caption" aria-live="polite"></p>
-  </div>
 
-  <div class="ref">
-    <div class="ref-head">
-      <h2>Equivalence classes</h2>
-      <span class="count" id="ref-count">N = 10</span>
+    <div class="ref">
+      <div class="ref-head">
+        <h2>Equivalence classes</h2>
+        <span class="count" id="ref-count">N = 10</span>
+      </div>
+      <ul class="ref-list" id="ref-list"></ul>
     </div>
-    <ul class="ref-list" id="ref-list"></ul>
   </div>
 
   <footer>
@@ -399,7 +414,29 @@
   var refCount = document.getElementById('ref-count');
   var formulaLine = document.getElementById('formula-line');
 
-  var state = { N: 10, depth: 6, a: 0, b: null, sum: null, awaiting: 'a' };
+  // Per-mode config (D-05): each mode supplies its element list, its binary
+  // operation, the raw (unreduced) value for display, and its identity. The
+  // multiplicative element list IS the group (Z/NZ)* itself (D-02), and that
+  // group is closed under multiplication (D-04) — op's result is therefore
+  // always a member of elements(N), so no membership/closure check is written.
+  var MODES = {
+    additive: {
+      elements: function(N){ var o = []; for (var r = 0; r < N; r++) o.push(r); return o; },
+      op: function(a, b, N){ return (a + b) % N; },
+      raw: function(a, b){ return a + b; },
+      identity: function(N){ return 0; }
+    },
+    multiplicative: {
+      elements: unitsMod,
+      op: function(a, b, N){ return (a * b) % N; },
+      raw: function(a, b){ return a * b; },
+      identity: function(N){ return 1 % N; }
+    }
+  };
+
+  var state = { N: 10, depth: 6, mode: 'additive', a: 0, b: null, sum: null, awaiting: 'a' };
+
+  function currentMode(){ return MODES[state.mode]; }
 
   var ROLE_WORDS = { a: 'first addend', b: 'second addend', sum: 'sum' };
   var ROLE_TAGS = { a: 'A', b: 'B', sum: 'A+B' };
@@ -416,7 +453,9 @@
     var saved = JSON.parse(localStorage.getItem('congruence-wheel') || 'null');
     if (saved && saved.N >= 1 && saved.N <= 60) state.N = saved.N;
     if (saved && saved.depth >= 2 && saved.depth <= 10) state.depth = saved.depth;
+    if (saved && (saved.mode === 'additive' || saved.mode === 'multiplicative')) state.mode = saved.mode;
   }catch(e){}
+  state.a = currentMode().identity(state.N);
 
   function polar(r, angleDeg){
     var a = (angleDeg - 90) * Math.PI / 180;
@@ -447,16 +486,22 @@
   }
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
 
+  function gcd(a, b){ while (b){ var t = a % b; a = b; b = t; } return a; }
+  function unitsMod(N){ var out = []; for (var r = 0; r < N; r++) if (gcd(r, N) === 1) out.push(r); return out; }
+  function clampToElements(v, els){ var out = els[0]; for (var i = 0; i < els.length; i++){ if (els[i] <= v) out = els[i]; else break; } return out; }
+
   function render(){
     var N = state.N, depth = state.depth;
-    var wedgeAngle = 360 / N;
-    var wedgeAngleRad = 2 * Math.PI / N;
+    var els = currentMode().elements(N);
+    var M = els.length;
+    var wedgeAngle = 360 / M;
+    var wedgeAngleRad = 2 * Math.PI / M;
     var ringWidth = (OUTER_R - HOLE_R) / depth;
 
-    var maxVal = N * depth - 1;
+    var maxVal = els[M - 1] + (depth - 1) * N;
     var numDigits = String(maxVal).length;
     var ring0Mid = HOLE_R + ringWidth * 0.5;
-    var arcLen = (N === 1) ? 999 : ring0Mid * wedgeAngleRad;
+    var arcLen = (M === 1) ? 999 : ring0Mid * wedgeAngleRad;
     var tangentialFont = arcLen / (numDigits * 0.66);
     var radialFont = ringWidth * 0.5;
     var fontSize = clamp(Math.min(tangentialFont, radialFont), 7, 24);
@@ -484,8 +529,8 @@
     }
 
     // radial boundaries
-    if (N > 1){
-      for (var i0 = 0; i0 < N; i0++){
+    if (M > 1){
+      for (var i0 = 0; i0 < M; i0++){
         var ang = i0 * wedgeAngle;
         var rp1 = polar(HOLE_R, ang), rp2 = polar(OUTER_R, ang);
         dynGroup.appendChild(svgEl('line', {
@@ -495,17 +540,18 @@
       }
     }
 
-    for (var i = 0; i < N; i++){
-      var startDeg = i * wedgeAngle;
+    for (var p = 0; p < M; p++){
+      var value = els[p];
+      var startDeg = p * wedgeAngle;
       var endDeg = startDeg + wedgeAngle;
       var bisector = startDeg + wedgeAngle / 2;
-      var roles = rolesFor(i);
+      var roles = rolesFor(value);
       var wedgeClass = 'wedge';
       for (var ri = 0; ri < roles.length; ri++) wedgeClass += ' is-' + roles[ri];
       if (roles.length > 1) wedgeClass += ' is-multi';
       var roleWords = [];
       for (var rw = 0; rw < roles.length; rw++) roleWords.push(ROLE_WORDS[roles[rw]]);
-      var ariaLabel = 'Equivalence class ' + i + ' modulo ' + N + (roleWords.length ? ', ' + roleWords.join(' and ') : '');
+      var ariaLabel = 'Equivalence class ' + value + ' modulo ' + N + (roleWords.length ? ', ' + roleWords.join(' and ') : '');
 
       var g = svgEl('g', {
         class: wedgeClass,
@@ -523,7 +569,7 @@
       for (var k = 0; k < depth; k++){
         var rMid = HOLE_R + (k + 0.5) * ringWidth;
         var pos = polar(rMid, bisector);
-        var value = i + k * N;
+        var digit = value + k * N;
         var rot = bisector;
         if (rot > 90 && rot < 270) rot += 180;
         var txt = svgEl('text', {
@@ -532,7 +578,7 @@
           'font-size': fontSize,
           transform: 'rotate(' + rot + ' ' + pos[0] + ' ' + pos[1] + ')'
         });
-        txt.textContent = value;
+        txt.textContent = digit;
         g.appendChild(txt);
       }
 
@@ -552,7 +598,7 @@
         g.addEventListener('keydown', function(ev){
           if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); select(idx); }
         });
-      })(i);
+      })(value);
 
       dynGroup.appendChild(g);
     }
@@ -563,7 +609,8 @@
 
     // reference list
     refList.innerHTML = '';
-    for (var r0 = 0; r0 < N; r0++){
+    for (var p2 = 0; p2 < M; p2++){
+      var r0 = els[p2];
       var members = [];
       for (var k2 = 0; k2 < depth; k2++) members.push(r0 + k2 * N);
       var li = document.createElement('li');
@@ -641,7 +688,7 @@
       state.awaiting = 'b';
     } else {
       state.b = idx;
-      state.sum = (state.a + idx) % state.N;
+      state.sum = currentMode().op(state.a, idx, state.N);
       state.awaiting = 'a';
     }
     persist();
@@ -649,7 +696,7 @@
   }
 
   function persist(){
-    try{ localStorage.setItem('congruence-wheel', JSON.stringify({ N: state.N, depth: state.depth })); }catch(e){}
+    try{ localStorage.setItem('congruence-wheel', JSON.stringify({ N: state.N, depth: state.depth, mode: state.mode })); }catch(e){}
   }
 
   /* ---------- export ---------- */
@@ -897,7 +944,7 @@
 
   nRange.addEventListener('input', function(){
     state.N = parseInt(nRange.value, 10);
-    if (state.a >= state.N) state.a = state.N - 1;
+    state.a = clampToElements(state.a, currentMode().elements(state.N));
     state.b = null;
     state.sum = null;
     state.awaiting = 'a';
@@ -912,6 +959,50 @@
     render();
   });
 
+  /* ---------- mode tabs ---------- */
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
+  var wheelPanel = document.getElementById('wheel-panel');
+
+  function syncTabs(){
+    for (var t = 0; t < tabs.length; t++){
+      var tab = tabs[t];
+      var on = tab.getAttribute('data-mode') === state.mode;
+      tab.classList.toggle('is-active', on);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+      if (on) wheelPanel.setAttribute('aria-labelledby', tab.id);
+    }
+  }
+
+  function setMode(id){
+    if (id === state.mode) return;
+    state.mode = id;
+    state.a = currentMode().identity(state.N);
+    state.b = null;
+    state.sum = null;
+    state.awaiting = 'a';
+    syncTabs();
+    persist();
+    render();
+  }
+
+  for (var ti = 0; ti < tabs.length; ti++){
+    (function(tab){
+      tab.addEventListener('click', function(){ setMode(tab.getAttribute('data-mode')); });
+      tab.addEventListener('keydown', function(ev){
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        ev.preventDefault();
+        var idx = tabs.indexOf(tab);
+        var delta = (ev.key === 'ArrowRight') ? 1 : -1;
+        var next = tabs[(idx + delta + tabs.length) % tabs.length];
+        setMode(next.getAttribute('data-mode'));
+        next.focus();
+      });
+    })(tabs[ti]);
+  }
+
+  syncTabs();
   render();
 })();
 </script>
