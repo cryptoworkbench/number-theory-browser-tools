@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Euclidean Algorithm</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Euclidean-algorithm slot colors, aliased from the shared semantic roles:
+       --slot-a is the dividend, the value being operated on this step
+       (--role-input); --slot-b is the divisor, this step's active value
+       (--role-active); --slot-r is the remainder, the value that becomes
+       next step's divisor (--role-alt); --slot-answer is the final GCD,
+       the landing beat (--role-result). The *-soft variants tint a value's
+       background without a literal color. */
+    --slot-a: var(--role-input);
+    --slot-b: var(--role-active);
+    --slot-r: var(--role-alt);
+    --slot-answer: var(--role-result);
+    --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
+    --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
+    --slot-r-soft: color-mix(in srgb, var(--slot-r) 22%, transparent);
+  }
+
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-special) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-result) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; max-width:68ch; margin:8px auto 0; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--accent-2);
+    margin:0 0 10px;
+  }
+  .page-header h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    margin:0 0 12px;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    letter-spacing:-.01em;
+    line-height:1.1;
+  }
+  .lede{ font-size:16px; line-height:1.6; color:var(--text-dim); margin:0 auto; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:linear-gradient(135deg, var(--role-input), var(--role-special)); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; text-align:center; }
+
+  .swap-note{ color:var(--role-special); font-size:.82rem; text-align:center; min-height:1.1em; }
+  .swap-note:empty{ display:none; }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+
+  .chain{ display:flex; flex-direction:column; gap:8px; font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.02rem; }
+  .eq-line{
+    padding:9px 14px; border-radius:10px; background:color-mix(in srgb, var(--text) 4%, transparent);
+    border:1px solid var(--panel-border);
+    opacity:0; transform:translateY(-4px);
+    animation: eqFadeIn .35s ease forwards;
+  }
+  @keyframes eqFadeIn{ to{ opacity:1; transform:translateY(0); } }
+  .eq-num{ font-weight:700; }
+  .eq-a{ color:var(--slot-a); }
+  .eq-b, .eq-q{ color:var(--slot-b); }
+  .eq-r{ color:var(--slot-r); }
+  .eq-op{ color:var(--text-dim); font-weight:400; padding:0 3px; }
+
+  .answer-line{
+    margin-top:14px; padding:12px 16px; border-radius:12px; text-align:center;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.15rem; font-weight:700;
+    color:var(--slot-answer);
+    background:color-mix(in srgb, var(--slot-answer) 14%, transparent);
+    border:1px solid var(--slot-answer);
+  }
+  .answer-line:empty{ display:none; }
+
+  .caption{ text-align:center; font-size:.78rem; color:var(--text-dim); margin:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    .eq-line{ animation:none; opacity:1; transform:none; }
+  }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <text class="brand-icon-digit" x="21" y="26">1</text>
+        <text class="brand-icon-digit" x="43" y="26">2</text>
+        <text class="brand-icon-digit" x="21" y="50">3</text>
+        <text class="brand-icon-digit" x="43" y="50">4</text>
+      </svg>
+      <span class="site-brand-label">Number Theory Tools</span>
+    </a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Congruence Wheel/congruence-wheel.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA/rsa.html" class="site-nav-link">RSA</a>
+      <a href="../Venn Diagrams/venn-diagrams.html" class="site-nav-link">Venn Diagrams</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link">Square and Multiply</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link">Shor's Algorithm</a>
+      <a href="euclidean-algorithm.html" class="site-nav-link is-active">Euclidean Algorithm</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <p class="eyebrow">number theory · euclidean algorithm</p>
+    <h1>Euclidean Algorithm</h1>
+    <p class="lede">Repeatedly replace the pair (a, b) with (b, a mod b) — divide the larger by the smaller and keep only
+      the remainder — and the pair shrinks every step. The moment one side reaches zero, the other side is the greatest
+      common divisor of the two numbers you started with.</p>
+  </header>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field"><label for="aInput">a</label><input id="aInput" type="number" min="0" max="1000000" value="240"></div>
+      <div class="field"><label for="bInput">b</label><input id="bInput" type="number" min="0" max="1000000" value="46"></div>
+    </div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="runBtn" class="primary">Run</button>
+      <button id="playBtn">▶ Play</button>
+      <button id="stepBtn">⏭ Step</button>
+      <button id="instantBtn" class="ghost">⏩ Instant</button>
+      <button id="resetBtn" class="ghost">↺ Reset</button>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:flex-end;">
+      <div class="speed-wrap">
+        <label for="speedInput" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim);">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="4">
+        <span id="speedLabel">brisk</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="error-box" id="errorBox"></div>
+  <div class="swap-note" id="swapNote"></div>
+  <div class="banner" id="banner">Set a and b, then press Run.</div>
+
+  <section class="panel">
+    <div id="chain" class="chain"></div>
+    <div id="answerLine" class="answer-line"></div>
+  </section>
+
+  <p class="caption">Consecutive Fibonacci numbers are the worst case for this algorithm — they force the most division steps for their size.</p>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- math helpers ---------- */
+
+// Forward extended-Euclidean recurrence. Computes q/r alongside the Bezout
+// coefficients s/t in a single forward pass — no back-substitution needed.
+// Returns { steps, gcd, s, t } where gcd === s*a + t*b for the original a,b.
+function euclidSteps(a, b){
+  var steps = [];
+  var r0 = a, r1 = b;
+  var s0 = 1, s1 = 0;
+  var t0 = 0, t1 = 1;
+  while (r1 !== 0){
+    var q = Math.floor(r0 / r1);
+    var r2 = r0 - q * r1;
+    var s2 = s0 - q * s1;
+    var t2 = t0 - q * t1;
+    steps.push({ a: r0, b: r1, q: q, r: r2, s: s2, t: t2 });
+    r0 = r1; r1 = r2;
+    s0 = s1; s1 = s2;
+    t0 = t1; t1 = t2;
+  }
+  return { steps: steps, gcd: r0, s: s0, t: t0 };
+}
+
+/* ---------- DOM references ---------- */
+
+var $ = function(id){ return document.getElementById(id); };
+
+var aInput = $('aInput');
+var bInput = $('bInput');
+var runBtn = $('runBtn');
+var playBtn = $('playBtn');
+var stepBtn = $('stepBtn');
+var instantBtn = $('instantBtn');
+var resetBtn = $('resetBtn');
+var speedInput = $('speedInput');
+var speedLabel = $('speedLabel');
+var errorBox = $('errorBox');
+var swapNote = $('swapNote');
+var banner = $('banner');
+var chain = $('chain');
+var answerLine = $('answerLine');
+
+var MAX_INPUT = 1000000;
+
+var currentRun = null;
+
+// Playback state. `generation` is bumped on every reset so a stale
+// requestAnimationFrame callback from an abandoned run can check it and
+// bail rather than write into a chain that has since been cleared.
+var playing = false;
+var rafId = null;
+var lastAdvance = 0;
+var stepIndex = 0;
+var generation = 0;
+
+var SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
+var SPEED_MS = {1:2600,2:2000,3:1500,4:1100,5:800,6:550,7:380,8:250,9:160,10:90};
+
+/* ---------- input reading ---------- */
+
+function readInputs(){
+  errorBox.textContent = '';
+  swapNote.textContent = '';
+
+  var rawA = aInput.value.trim();
+  var rawB = bInput.value.trim();
+  if (!/^-?\d+$/.test(rawA) || !/^-?\d+$/.test(rawB)){
+    errorBox.textContent = 'Both a and b must be whole numbers.';
+    return null;
+  }
+
+  var a = parseInt(rawA, 10);
+  var b = parseInt(rawB, 10);
+
+  if (a < 0 || b < 0){
+    errorBox.textContent = 'Both a and b must be zero or positive — negative numbers have no defined GCD here.';
+    return null;
+  }
+  if (a === 0 && b === 0){
+    errorBox.textContent = 'gcd(0, 0) is undefined — enter at least one nonzero value.';
+    return null;
+  }
+
+  var clamped = false;
+  if (a > MAX_INPUT){ a = MAX_INPUT; clamped = true; }
+  if (b > MAX_INPUT){ b = MAX_INPUT; clamped = true; }
+  if (clamped){
+    errorBox.textContent = 'Inputs are capped at ' + MAX_INPUT.toLocaleString() + ' — the larger value was clamped down to fit.';
+  }
+
+  var swapped = a < b;
+  var A = swapped ? b : a;
+  var B = swapped ? a : b;
+  if (swapped){
+    swapNote.textContent = 'The larger value leads: entered as (' + a + ', ' + b + '), traced as gcd(' + A + ', ' + B + ') — the GCD is symmetric in its arguments.';
+  }
+
+  return { A: A, B: B };
+}
+
+/* ---------- render ---------- */
+
+function appendStepLine(step){
+  var div = document.createElement('div');
+  div.className = 'eq-line';
+  div.dataset.a = step.a;
+  div.dataset.b = step.b;
+  div.dataset.q = step.q;
+  div.dataset.r = step.r;
+  div.dataset.s = step.s;
+  div.dataset.t = step.t;
+  div.innerHTML =
+    '<span class="eq-num eq-a">' + step.a + '</span>' +
+    '<span class="eq-op"> = </span>' +
+    '<span class="eq-num eq-q">' + step.q + '</span>' +
+    '<span class="eq-op">·</span>' +
+    '<span class="eq-num eq-b">' + step.b + '</span>' +
+    '<span class="eq-op"> + </span>' +
+    '<span class="eq-num eq-r">' + step.r + '</span>';
+  chain.appendChild(div);
+}
+
+function renderAnswer(run){
+  answerLine.textContent = 'gcd(' + run.A + ', ' + run.B + ') = ' + run.gcd;
+  banner.textContent = 'Done — ' + run.steps.length + ' step' + (run.steps.length === 1 ? '' : 's') + ' to reach the GCD.';
+}
+
+/* ---------- playback ---------- */
+
+function advanceOne(){
+  var run = currentRun;
+  var step = run.steps[stepIndex];
+  var myGen = generation;
+  appendStepLine(step);
+  stepIndex++;
+  if (myGen !== generation) return; // abandoned mid-call; nothing further to do
+  if (stepIndex >= run.steps.length) renderAnswer(run);
+}
+
+function revealAll(run){
+  // Walk only the REMAINING steps so Instant, called after some rows were
+  // already revealed by Play/Step, never re-appends duplicate lines.
+  while (stepIndex < run.steps.length){
+    appendStepLine(run.steps[stepIndex]);
+    stepIndex++;
+  }
+  renderAnswer(run);
+}
+
+function frameStep(ts){
+  if (!playing) return;
+  if (!lastAdvance) lastAdvance = ts;
+  var dwell = SPEED_MS[parseInt(speedInput.value, 10)] || SPEED_MS[4];
+  if (ts - lastAdvance >= dwell){
+    advanceOne();
+    lastAdvance = ts;
+  }
+  if (!currentRun || stepIndex >= currentRun.steps.length){
+    pause();
+    return;
+  }
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function play(){
+  if (playing || !currentRun) return;
+  // A finished run rewinds instead of no-op'ing, so Play always plays
+  // without needing a manual Reset first.
+  if (stepIndex >= currentRun.steps.length) resetPlayback();
+  playing = true;
+  playBtn.textContent = '⏸ Pause';
+  stepBtn.disabled = true;
+  lastAdvance = 0;
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function pause(){
+  if (!playing){
+    playBtn.textContent = '▶ Play';
+    stepBtn.disabled = !currentRun || stepIndex >= currentRun.steps.length;
+    return;
+  }
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = !currentRun || stepIndex >= currentRun.steps.length;
+}
+
+function stepOnce(){
+  if (playing || !currentRun || stepIndex >= currentRun.steps.length) return;
+  advanceOne();
+  if (stepIndex >= currentRun.steps.length){
+    stepBtn.disabled = true;
+    playBtn.textContent = '▶ Play';
+  }
+}
+
+function instantFinish(){
+  pause();
+  if (currentRun) revealAll(currentRun);
+  stepBtn.disabled = true;
+  playBtn.textContent = '▶ Play';
+}
+
+function resetPlayback(){
+  pause();
+  generation++; // invalidate any in-flight callback from the run being abandoned
+  stepIndex = 0;
+  chain.innerHTML = '';
+  answerLine.textContent = '';
+  stepBtn.disabled = false;
+  playBtn.textContent = '▶ Play';
+  banner.textContent = 'Ready — press Play to watch the derivation build one line at a time.';
+}
+
+function buildRun(){
+  var inputs = readInputs();
+  if (!inputs) return;
+  var result = euclidSteps(inputs.A, inputs.B);
+  currentRun = {
+    A: inputs.A, B: inputs.B,
+    steps: result.steps, gcd: result.gcd, s: result.s, t: result.t
+  };
+  resetPlayback();
+  instantFinish();
+}
+
+/* ---------- event wiring ---------- */
+
+runBtn.addEventListener('click', buildRun);
+playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+stepBtn.addEventListener('click', stepOnce);
+instantBtn.addEventListener('click', instantFinish);
+resetBtn.addEventListener('click', resetPlayback);
+speedInput.addEventListener('input', function(){
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+});
+
+[aInput, bInput].forEach(function(inp){
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
+});
+
+window.addEventListener('load', function(){
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  buildRun();
+});
+
+})();
+</script>
+</body>
+</html>
