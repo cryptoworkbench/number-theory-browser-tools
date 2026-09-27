@@ -18,15 +18,19 @@
        (--role-input); --slot-b is the divisor, this step's active value
        (--role-active); --slot-r is the remainder, the value that becomes
        next step's divisor (--role-alt); --slot-answer is the final GCD,
-       the landing beat (--role-result). The *-soft variants tint a value's
-       background without a literal color. */
+       the landing beat (--role-result); --slot-cap is the geometric view's
+       collapsed-tile guard, "the 40-square cap just kicked in"
+       (--role-warn). The *-soft variants tint a value's background
+       without a literal color. */
     --slot-a: var(--role-input);
     --slot-b: var(--role-active);
     --slot-r: var(--role-alt);
     --slot-answer: var(--role-result);
+    --slot-cap: var(--role-warn);
     --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
     --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
     --slot-r-soft: color-mix(in srgb, var(--slot-r) 22%, transparent);
+    --slot-cap-soft: color-mix(in srgb, var(--slot-cap) 22%, transparent);
   }
 
   *{ box-sizing:border-box; }
@@ -139,8 +143,26 @@
 
   .caption{ text-align:center; font-size:.78rem; color:var(--text-dim); margin:0; }
 
+  /* ---------- geometric (rectangle-tiling) view ---------- */
+  #tileSvg{ width:100%; height:auto; display:block; }
+
+  @keyframes tileReveal{ from{ opacity:0; } to{ opacity:1; } }
+  .tile, .tile-cap{ animation: tileReveal .3s ease both; }
+
+  .tile-frame{ fill:none; stroke:var(--slot-a); stroke-width:2; }
+  .tile{ fill:var(--slot-b-soft); stroke:var(--slot-b); stroke-width:1.5; }
+  .tile-cap{ fill:var(--slot-cap-soft); stroke:var(--slot-cap); stroke-width:1.5; }
+  .tile-cap-label{ fill:var(--slot-cap); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:13px; font-weight:700; }
+  .leftover{ fill:var(--slot-r-soft); stroke:var(--slot-r); stroke-width:1.5; }
+  .tile-side-label{ fill:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:13px; }
+  .tile-dim-label{ fill:var(--text-dim); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:12px; }
+
+  .tile-note{ color:var(--slot-cap); font-size:.82rem; text-align:center; margin:6px 0 0; }
+  .tile-note:empty{ display:none; }
+
   @media (prefers-reduced-motion: reduce){
     .eq-line{ animation:none; opacity:1; transform:none; }
+    .tile, .tile-cap{ animation:none; opacity:1; }
   }
 
   @media (max-width:640px){
@@ -238,6 +260,13 @@
     <div id="answerLine" class="answer-line"></div>
   </section>
 
+  <section class="panel">
+    <svg id="tileSvg" viewBox="0 0 900 360" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="Rectangle view of the current division step"></svg>
+    <p id="tileCaption" class="caption"></p>
+    <p id="tileNote" class="tile-note"></p>
+  </section>
+
   <p class="caption">Consecutive Fibonacci numbers are the worst case for this algorithm — they force the most division steps for their size.</p>
 
 </div>
@@ -287,6 +316,9 @@ var swapNote = $('swapNote');
 var banner = $('banner');
 var chain = $('chain');
 var answerLine = $('answerLine');
+var tileSvg = $('tileSvg');
+var tileCaption = $('tileCaption');
+var tileNote = $('tileNote');
 
 var MAX_INPUT = 1000000;
 
@@ -371,6 +403,140 @@ function appendStepLine(step){
 function renderAnswer(run){
   answerLine.textContent = 'gcd(' + run.A + ', ' + run.B + ') = ' + run.gcd;
   banner.textContent = 'Done — ' + run.steps.length + ' step' + (run.steps.length === 1 ? '' : 's') + ' to reach the GCD.';
+}
+
+/* ---------- geometric view ---------- */
+
+var SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  var el = document.createElementNS(SVG_NS, tag);
+  for (var key in attrs) el.setAttribute(key, attrs[key]);
+  return el;
+}
+
+// Cap on drawn squares per step (GCD-05 / D-01). The rectangle-tiling
+// metaphor's natural node count is the quotient, which is unbounded
+// independent of step count -- gcd(500000, 2) has a first-step quotient
+// of 250000. Capping at 40 keeps every step's diagram at or under 43
+// total rect nodes (40 squares + 1 collapsed tile + 1 leftover + 1
+// frame), so a huge quotient renders instantly instead of freezing the
+// tab, regardless of input size.
+var TILE_CAP = 40;
+
+var TILE_LEFT = 24, TILE_TOP = 34, TILE_RIGHT = 130, TILE_BOTTOM = 46;
+var TILE_VB_W = 900, TILE_VB_H = 360;
+var TILE_DRAW_W = TILE_VB_W - TILE_LEFT - TILE_RIGHT;
+var TILE_DRAW_H = TILE_VB_H - TILE_TOP - TILE_BOTTOM;
+var TILE_STAGGER_MS = 240;
+var TILE_ARIA_DEFAULT = 'Rectangle view of the current division step';
+
+function clearTiles(){
+  tileSvg.innerHTML = '';
+  tileCaption.textContent = '';
+  tileNote.textContent = '';
+  tileSvg.setAttribute('aria-label', TILE_ARIA_DEFAULT);
+}
+
+// Per-tile reveal stagger, capped at TILE_STAGGER_MS total so the fastest
+// playback dwell (90ms) never leaves a half-revealed diagram behind.
+function tileStaggerDelay(i, total){
+  if (total <= 1) return 0;
+  return Math.min(TILE_STAGGER_MS, i * (TILE_STAGGER_MS / (total - 1)));
+}
+
+// Draws exactly one step's rectangle -- never cumulative across steps,
+// which is what keeps the 43-node bound a bound on the whole diagram.
+function buildTiles(step, index, total){
+  clearTiles();
+  if (!step || !(step.b > 0)) return; // defensive: euclidSteps never emits such a step
+
+  var drawn = Math.min(step.q, TILE_CAP);
+  var capped = step.q > TILE_CAP;
+  var hasLeftover = step.r > 0;
+  // When capped the drawn extent is deliberately narrower than the true
+  // dividend -- honest about the step, not to scale in width. #tileNote
+  // says so explicitly.
+  var extentUnits = (drawn + (capped ? 1 : 0)) * step.b + step.r;
+  var scale = Math.min(TILE_DRAW_W / extentUnits, TILE_DRAW_H / step.b);
+  var tileSize = step.b * scale;
+  var frameW = extentUnits * scale;
+  var totalCols = drawn + (capped ? 1 : 0) + (hasLeftover ? 1 : 0);
+
+  tileSvg.appendChild(svgEl('rect', {
+    'class': 'tile-frame', x: TILE_LEFT, y: TILE_TOP, width: frameW, height: tileSize
+  }));
+
+  var x = TILE_LEFT;
+  var i;
+  for (i = 0; i < drawn; i++){
+    var rect = svgEl('rect', { 'class': 'tile', x: x, y: TILE_TOP, width: tileSize, height: tileSize });
+    rect.style.animationDelay = tileStaggerDelay(i, totalCols) + 'ms';
+    tileSvg.appendChild(rect);
+    if (i === 0 && tileSize >= 28){
+      var sideLabel = svgEl('text', {
+        'class': 'tile-side-label', x: x + tileSize / 2, y: TILE_TOP + tileSize / 2 + 4, 'text-anchor': 'middle'
+      });
+      sideLabel.textContent = String(step.b);
+      tileSvg.appendChild(sideLabel);
+    }
+    x += tileSize;
+  }
+
+  if (capped){
+    var capRect = svgEl('rect', { 'class': 'tile-cap', x: x, y: TILE_TOP, width: tileSize, height: tileSize });
+    capRect.style.animationDelay = tileStaggerDelay(drawn, totalCols) + 'ms';
+    tileSvg.appendChild(capRect);
+    var capLabel = svgEl('text', {
+      'class': 'tile-cap-label', x: x + tileSize / 2, y: TILE_TOP + tileSize / 2 + 4, 'text-anchor': 'middle'
+    });
+    capLabel.textContent = '×' + (step.q - TILE_CAP);
+    tileSvg.appendChild(capLabel);
+    x += tileSize;
+  }
+
+  if (hasLeftover){
+    var leftoverW = step.r * scale;
+    tileSvg.appendChild(svgEl('rect', {
+      'class': 'leftover', x: x, y: TILE_TOP, width: leftoverW, height: tileSize
+    }));
+  }
+
+  var widthLabel = svgEl('text', {
+    'class': 'tile-dim-label', x: TILE_LEFT + frameW / 2, y: TILE_TOP + tileSize + 26, 'text-anchor': 'middle'
+  });
+  widthLabel.textContent = 'a = ' + step.a.toLocaleString();
+  tileSvg.appendChild(widthLabel);
+
+  var heightLabel = svgEl('text', {
+    'class': 'tile-dim-label', x: TILE_LEFT + frameW + 12, y: TILE_TOP + tileSize / 2 + 4
+  });
+  heightLabel.textContent = 'b = ' + step.b.toLocaleString();
+  tileSvg.appendChild(heightLabel);
+
+  var squareWord = step.q === 1 ? 'square' : 'squares';
+  var captionText;
+  if (step.r === 0){
+    captionText = step.a + ' ÷ ' + step.b + ': the rectangle tiles exactly with ' +
+      step.q.toLocaleString() + ' ' + squareWord + ' of side ' + step.b +
+      ' — no leftover, so ' + step.b + ' is the greatest common divisor.';
+  } else {
+    captionText = step.a + ' = ' + step.q.toLocaleString() + '×' + step.b + ' + ' + step.r + ': ' +
+      step.q.toLocaleString() + ' ' + squareWord + ' of side ' + step.b +
+      ' fit, leaving a ' + step.b + '×' + step.r + ' leftover.';
+  }
+  if (typeof index === 'number' && typeof total === 'number'){
+    captionText = 'Step ' + (index + 1) + ' of ' + total + ': ' + captionText;
+  }
+  tileCaption.textContent = captionText;
+  tileSvg.setAttribute('aria-label', captionText);
+
+  if (capped){
+    tileNote.textContent = 'The true quotient is ' + step.q.toLocaleString() + ' — only the first ' +
+      TILE_CAP + ' squares are drawn here; the remaining ' + (step.q - TILE_CAP).toLocaleString() +
+      ' are collapsed into the labelled tile, so the drawn width is not to scale.';
+  } else {
+    tileNote.textContent = '';
+  }
 }
 
 /* ---------- playback ---------- */
@@ -491,6 +657,15 @@ function buildRun(){
   };
   resetPlayback();
   instantFinish();
+  // Temporary hookup for this task's own gate: draw step 0 so every preset
+  // chip's diagram is reachable without playback. Task 2 replaces this with
+  // the full playback-cursor binding (showStep), which lands the diagram on
+  // whichever step is current instead of always step 0.
+  if (currentRun.steps.length > 0){
+    buildTiles(currentRun.steps[0], 0, currentRun.steps.length);
+  } else {
+    clearTiles();
+  }
 }
 
 /* ---------- event wiring ---------- */
