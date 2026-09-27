@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Palette Unification
 status: verifying
-stopped_at: "Completed quick task 260927-feg: Congruence Wheel Multiplicative Groups tab (phi(N) unit-set geometry, per-mode wording)"
-last_updated: "2026-09-27T09:41:24.552Z"
+stopped_at: "Completed quick task 260927-ick: nav-header brand mark now matches favicon.svg on all ten pages"
+last_updated: "2026-09-27T12:08:24.113Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 01 execution started
-state_head: 8f7389cc118106581ec111cd93e99ae2ebe5e893
+state_head: ad36d8c23a5260d29309fb431a34227b26d67d6e
 progress:
   total_phases: 4
   completed_phases: 0
@@ -92,6 +92,7 @@ Recent decisions affecting current work:
 - [Phase 01]: [Quick task 260926-jlu]: Added seventh tool (Diffie-Hellman Key Exchange) with BigInt exchange math, Sieve-style playback engine, and full hub/nav registration; NAV-01 and NAV-02 are now satisfied ahead of the GCD/Continued-Fractions phases
 - [Phase 01]: [Quick task 260927-bpe]: Added assets/favicon.svg (numbered tile, colors copied verbatim from palette.css night/day accent+accent-ink) and wired rel=icon into all ten pages; replaced Congruence Wheel hub card's pizza emoji with an inline two-ring 12-hour clock SVG colored via new .wheel-icon-* var() rules
 - [Phase quick-260927-feg]: [Quick task 260927-feg]: Added Multiplicative Groups tab to Congruence Wheel — phi(N) unit-set wedges via a shared MODES config (element list/op/identity/wording per mode) driving one render()/select()/rolesFor() pipeline; non-units are absent from the wheel entirely (never dimmed), per locked D-02
+- [Phase quick-260927-ick]: [Quick task 260927-ick]: Replaced nav-header brand-mark emoji with an inline SVG twin of assets/favicon.svg on all ten pages (var()-themed .brand-icon-plate/.brand-icon-digit against the palette's accent/accent-ink), so the header mark and the browser-tab favicon read as the same design and the header recolors with the site's day/night toggle
 
 ### Pending Todos
 
@@ -130,6 +131,7 @@ None yet.
 | 260927-cr7 | Rename Venn Diagrams display text to plural, add pointer-drag move for placed primes between regions (both modes), strip plain-language captions from three-circle hover tooltip | 2026-09-27 | 3ee6ea5, 7cfd3a2, 84702c2 | [260927-cr7-venn-diagram-tool-1-rename-the-tool-to-v](./quick/260927-cr7-venn-diagram-tool-1-rename-the-tool-to-v/) |
 | 260927-eel | Congruence Wheel: rename residue class(es) to equivalence class(es); add interactive modular-addition feature (select two classes, highlight yellow/blue, show sum highlighted green) | 2026-09-27 | 4670ad3 | [260927-eel-congruence-wheel-rename-residue-class-es](./quick/260927-eel-congruence-wheel-rename-residue-class-es/) |
 | 260927-feg | Add Multiplicative Groups tab to Congruence Wheel (phi(N) unit-set wedges, shared render/select engine, per-mode wording) | 2026-09-27 | 8f7389c | [260927-feg-congruence-wheel-add-additive-groups-mul](./quick/260927-feg-congruence-wheel-add-additive-groups-mul/) |
+| 260927-ick | Replace nav-header brand emoji with inline SVG twin of favicon.svg (var()-themed plate/digits matching day/night toggle) on all ten pages | 2026-09-27 | ad36d8c | [260927-ick-fix-nav-header-logo-favicon-mismatch-rep](./quick/260927-ick-fix-nav-header-logo-favicon-mismatch-rep/) |
 
 ## Deferred Items
 
@@ -141,8 +143,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T09:41:18.910Z
-Stopped at: Completed quick task 260927-feg: Congruence Wheel Multiplicative Groups tab (phi(N) unit-set geometry, per-mode wording)
+Last session: 2026-09-27T12:08:24.057Z
+Stopped at: Completed quick task 260927-ick: nav-header brand mark now matches favicon.svg on all ten pages
 Resume file: None
 
-Last activity: 2026-09-27 - Completed quick task 260927-feg: Congruence Wheel Multiplicative Groups tab (phi(N) unit-set geometry, per-mode wording)
+Last activity: 2026-09-27 - Completed quick task 260927-ick: nav-header brand mark now matches favicon.svg on all ten pages
