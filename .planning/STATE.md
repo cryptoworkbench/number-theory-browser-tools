@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Palette Unification
 status: verifying
-stopped_at: "Completed quick task 260926-jlu: Diffie-Hellman Key Exchange tool + hub/nav registration"
-last_updated: "2026-09-27T06:15:59.341Z"
+stopped_at: "Completed quick task 260927-bpe: favicon + Congruence Wheel card icon"
+last_updated: "2026-09-27T06:57:13.176Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 01 execution started
-state_head: c9bb9e23c3a5c48db559b71d335e6d0906c4fd96
+state_head: fc82a3da91b45b9134d0c2e3f137398a582337c4
 progress:
   total_phases: 4
   completed_phases: 0
@@ -89,6 +89,7 @@ Recent decisions affecting current work:
 - [Quick task 260926-ckc]: Reframed Venn Diagrams product rows around GCD -- each circle is one number (own-only * shared factors), centre row states GCD(leftTotal, rightTotal) explicitly via a new Euclidean gcd() helper; REGION_NAMES.overlap renamed from "middle only" to "overlap" since the lens now holds shared, not exclusive, factors
 - [Phase 01]: [Quick task 260926-eod]: Renamed Venn Diagrams region dictionaries to set notation (Left \ Right, A \ (B ∪ C), (A∩B) \ C, A∩B∩C), added five persistent per-circle name labels (Left/Right, A/B/C), and replaced every GCD(...) display string with the x ∩ y = value infix (gcd() computation unchanged); deleted the now-redundant formatSide helper
 - [Phase 01]: [Quick task 260926-jlu]: Added seventh tool (Diffie-Hellman Key Exchange) with BigInt exchange math, Sieve-style playback engine, and full hub/nav registration; NAV-01 and NAV-02 are now satisfied ahead of the GCD/Continued-Fractions phases
+- [Phase 01]: [Quick task 260927-bpe]: Added assets/favicon.svg (numbered tile, colors copied verbatim from palette.css night/day accent+accent-ink) and wired rel=icon into all ten pages; replaced Congruence Wheel hub card's pizza emoji with an inline two-ring 12-hour clock SVG colored via new .wheel-icon-* var() rules
 
 ### Pending Todos
 
@@ -123,6 +124,7 @@ None yet.
 | 260926-rbc | Add Shor's Algorithm tool (classical order-finding stand-in) with hard N<=4096 safeguard | 2026-09-26 | 05efe27 | .planning/quick/260926-rbc-add-a-new-browser-tool-that-explains-and-performs-small-fact |
 | 260926-rbb | Add CRT-assisted decryption toggle to RSA tool's Bob/Alice decrypt sections | 2026-09-26 | b79ce87 | .planning/quick/260926-rbb-in-the-rsa-tool-s-bob-decrypts-alice-decrypts-sections-add-a |
 | 19 | In the Venn Diagram tool's three-circle mode, hide the plain-language region captions (A only, A and B only, etc.) behind the region's existing hover tooltip alongside the set-notation, instead of always-visible white text | 2026-09-27 | c9bb9e2 | — |
+| 260927-bpe | Add assets/favicon.svg (numbered tile, colors copied from palette.css) wired into all ten pages; replace Congruence Wheel hub card's pizza emoji with an inline two-ring 12-hour clock SVG | 2026-09-27 | 1bf6efa, 931d975, fc82a3d | [260927-bpe-fix-two-issues-1-the-site-favicon-square](./quick/260927-bpe-fix-two-issues-1-the-site-favicon-square/) |
 
 ## Deferred Items
 
@@ -134,8 +136,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-26T12:59:46.142Z
-Stopped at: Completed quick task 260926-jlu: Diffie-Hellman Key Exchange tool + hub/nav registration
+Last session: 2026-09-27T06:57:11.647Z
+Stopped at: Completed quick task 260927-bpe: favicon + Congruence Wheel card icon
 Resume file: None
 
 Last activity: 2026-09-26 - Completed quick task 260926-jlu: Add Diffie-Hellman Key Exchange browser tool
