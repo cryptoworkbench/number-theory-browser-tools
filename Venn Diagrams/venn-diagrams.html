@@ -990,6 +990,10 @@
       (contents.length ? contents.join(', ') : 'nothing');
   }
 
+  function warnRegionFull3(key){
+    setMessage('The ' + REGION_CAPTIONS3[key] + ' region is full — max ' + MAX_PER_REGION3 + ' primes.', true);
+  }
+
   function placePrime3(key, prime){
     var value = (prime === undefined) ? state.armed : prime;
     if (value === null || value === undefined){
@@ -997,7 +1001,7 @@
       return;
     }
     if (state.regions3[key].length >= MAX_PER_REGION3){
-      setMessage('The ' + REGION_CAPTIONS3[key] + ' region is full — max ' + MAX_PER_REGION3 + ' primes.', true);
+      warnRegionFull3(key);
       return;
     }
     state.regions3[key].push({ id: state.nextId++, p: value });
@@ -1015,6 +1019,27 @@
         break;
       }
     }
+    persist3();
+    render();
+  }
+
+  function moveToken3(fromKey, toKey, id){
+    if (fromKey === toKey) return;
+    if (state.regions3[toKey].length >= MAX_PER_REGION3){
+      warnRegionFull3(toKey);
+      return;
+    }
+    var fromList = state.regions3[fromKey];
+    var entry = null;
+    for (var i = 0; i < fromList.length; i++){
+      if (fromList[i].id === id){
+        entry = fromList.splice(i, 1)[0];
+        break;
+      }
+    }
+    if (!entry) return;
+    state.regions3[toKey].push(entry);
+    setMessage('Moved ' + entry.p + ' to the ' + REGION_CAPTIONS3[toKey] + ' region.');
     persist3();
     render();
   }
@@ -1262,10 +1287,14 @@
         text.textContent = String(entry.p);
         g.appendChild(text);
         (function(regionKey, tokenId){
-          g.addEventListener('click', function(){ removeToken3(regionKey, tokenId); });
+          g.addEventListener('click', function(){
+            if (dragSuppressClick){ dragSuppressClick = false; return; }
+            removeToken3(regionKey, tokenId);
+          });
           g.addEventListener('keydown', function(ev){
             if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); removeToken3(regionKey, tokenId); }
           });
+          wireTokenDrag(g, { els: regionEls3, dynamic: svg3Dynamic, move: moveToken3 }, regionKey, tokenId);
         })(key, entry.id);
         svg3Dynamic.appendChild(g);
       }
