@@ -66,14 +66,14 @@ Plans:
   4. User can toggle an Extended Euclidean/Bézout coefficients mode showing `s, t` such that `gcd(a,b) = sa + tb`
   5. The tool ships as a single self-contained HTML file in its own top-level directory, following the established architecture (inline `<style>`/`<script>`, no external JS dependency beyond Google Fonts)
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans executed
 
 Plans:
 
-- [ ] 02-01-PLAN.md — Tracer: the new page end-to-end (validated input, `euclidSteps`, playback, growing division-algorithm chain, highlighted GCD) plus eleven-page nav and hub registration (wave 1)
-- [ ] 02-02-PLAN.md — Seven preset chips including the `gcd(a, 0)` immediate-termination case, and the two-way Venn Diagrams cross-link (wave 2)
-- [ ] 02-03-PLAN.md — Geometric rectangle-tiling view with the 40-square cap and labelled excess tile, bound to the chain's current step (wave 3)
-- [ ] 02-04-PLAN.md — Extended Euclidean toggle: `s`/`t` columns on the same trace plus the closing Bézout identity, and the phase-wide sweep (wave 4)
+- [x] 02-01-PLAN.md — Tracer: the new page end-to-end (validated input, `euclidSteps`, playback, growing division-algorithm chain, highlighted GCD) plus eleven-page nav and hub registration (wave 1)
+- [x] 02-02-PLAN.md — Seven preset chips including the `gcd(a, 0)` immediate-termination case, and the two-way Venn Diagrams cross-link (wave 2)
+- [x] 02-03-PLAN.md — Geometric rectangle-tiling view with the 40-square cap and labelled excess tile, bound to the chain's current step (wave 3)
+- [x] 02-04-PLAN.md — Extended Euclidean toggle: `s`/`t` columns on the same trace plus the closing Bézout identity, and the phase-wide sweep (wave 4)
 
 **UI hint**: yes
 
@@ -119,6 +119,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Palette Unification | 6/6 | In Progress|  |
-| 2. Euclidean Algorithm / GCD Tool | 0/? | Not started | - |
+| 2. Euclidean Algorithm / GCD Tool | 4/4 | In Progress|  |
 | 3. Chinese Remainder Theorem Tool | 0/? | Not started | - |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
