@@ -10,6 +10,13 @@ Remainder Theorem, and Continued Fractions — in the order that lets each build
 grammar and math logic the previous one established. Each phase ships one independently-working
 piece end-to-end, matching this project's existing pattern of independently-functioning tools.
 
+**Appended milestone (2026-09-27) — Cayley Table Generator:** Phase 5 belongs to a separate,
+narrowly-scoped milestone (see PROJECT.md) and is appended rather than interleaved. It adds one
+new tool — a Cayley (group operation) table generator for ℤ/Nℤ under addition and (ℤ/Nℤ)ˣ under
+multiplication — as the site's first, deliberately narrow step into group theory. It depends only
+on Phase 1's shared palette, so it can be planned and executed independently of the still-pending
+Phase 3 and Phase 4 number-theory work.
+
 ## Phases
 
 **Phase Numbering:**
@@ -23,6 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Euclidean Algorithm / GCD Tool** - Ship an animated GCD/Euclidean-algorithm visualizer with a geometric rectangle-tiling view and Extended Euclidean mode
 - [ ] **Phase 3: Chinese Remainder Theorem Tool** - Ship an interactive CRT visualizer with coprimality validation, residue-class visuals, and a GCD cross-link
 - [ ] **Phase 4: Continued Fractions Tool** - Ship a continued-fractions visualizer sharing GCD's rectangle-tiling geometry, with nav updated across all eight tools
+- [ ] **Phase 5: Cayley Table Generator** - Ship a standalone Cayley (group operation) table generator for additive and multiplicative groups mod N, cross-linked with the Congruence Wheel
 
 ## Phase Details
 
@@ -111,10 +119,29 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 5: Cayley Table Generator
+
+**Goal**: Users can generate and explore a group operation table (Cayley table) for ℤ/Nℤ under addition and (ℤ/Nℤ)ˣ under multiplication, shipped as a new self-contained tool that reads as a close visual/interaction sibling of the Congruence Wheel and uses the table's own structure — identity row/column, diagonal symmetry, self-inverse cells — to teach group properties.
+**Mode:** mvp
+**Depends on**: Phase 1 (shared palette tokens only — independent of Phase 3 and Phase 4, which belong to the number-theory milestone thread)
+**Requirements**: CAYLEY-01, CAYLEY-02, CAYLEY-03, CAYLEY-04, CAYLEY-05, CAYLEY-06, CAYLEY-07, NAV-03
+**Success Criteria** (what must be TRUE):
+
+  1. User can set a modulus N via a validated input and toggle between Additive Group (ℤ/Nℤ — all N elements under `+`) and Multiplicative Group ((ℤ/Nℤ)ˣ — the φ(N) units under `·`) modes, with the operation table redrawing for that mode's own element list and operation, echoing the Congruence Wheel's existing mode-toggle and modulus-input interaction pattern
+  2. User can click any table cell to see the underlying equation spelled out (e.g. `3 + 5 = 8 ≡ 2 (mod 6)`) with that cell's row and column headers simultaneously highlighted
+  3. User can see the identity element's row and column visually distinguished from the rest of the table, and the self-inverse elements (diagonal cells whose value equals the identity) visually highlighted — in both modes
+  4. User can see the table's diagonal symmetry made visible as a commutativity teaching point, with mirrored cell pairs across the main diagonal readable as such in the diagram rather than merely asserted in prose
+  5. User can navigate between the Cayley Table Generator and the Congruence Wheel in both directions, and the tool ships as one self-contained HTML file in its own top-level directory, registered in `index.html` and every page's shared nav header so all eleven tools are listed with the current one marked active
+
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases 1 → 2 → 3 → 4 run in numeric order (number-theory milestone). Phase 5 belongs to the
+appended Cayley Table Generator milestone and depends only on Phase 1, so it may be planned and
+executed at any point after Phase 1 — before, after, or alongside Phases 3 and 4.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -122,3 +149,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Euclidean Algorithm / GCD Tool | 4/4 | Complete | 2026-09-27 |
 | 3. Chinese Remainder Theorem Tool | 0/? | Not started | - |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
+| 5. Cayley Table Generator | 0/? | Not started | - |

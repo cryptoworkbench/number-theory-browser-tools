@@ -4,16 +4,16 @@ current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
 status: not_started
 stopped_at: "Completed 02-04-PLAN.md (Phase 2 fully complete: all four plans 02-01..02-04 executed, phase-wide sweep green)"
-last_updated: "2026-09-27T20:28:55.937Z"
+last_updated: "2026-09-27T20:46:15.094Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 02 execution complete (Euclidean Algorithm / GCD Tool)
 state_head: 08d06b357cf9b438f3df942b1fc68a1b8336bb0e
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 2
   total_plans: 10
   completed_plans: 10
-  percent: 50
+  percent: 40
 ---
 
 # Project State
@@ -32,7 +32,7 @@ Plan: 4 of 4
 Status: Phase complete — all requirements satisfied, phase-wide sweep green
 Last activity: 2026-09-27 — Phase 02 execution complete
 
-Progress: [█████░░░░░] 50%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -100,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase 02]: [Phase 02 Plan 04]: Committed directly to main per this project's own git.branching_strategy=none / workflow.use_worktrees=false config, matching the established pattern of all three prior plans in this phase (config-set override was blocked by the permission classifier)
 - [Phase 02]: [Phase 02 Plan 04]: identityLine's data-* attributes written via explicit setAttribute('data-s', ...) rather than .dataset.s=... so the literal substring is grep-able by the plan's own static verification gate
 - [Phase 02]: Phase complete — shipped `Euclidean Algorithm/euclidean-algorithm.html` (eighth tool), satisfying GCD-01 through GCD-06 and NAV-02; registered across all eleven pages plus a two-way cross-link with Venn Diagrams (D-05); phase-wide sweep green (nav, literal-color, 7-preset behavioral regression, cross-links)
+- [Roadmap 2026-09-27]: Phase 5 (Cayley Table Generator) appended to ROADMAP.md for the new narrowly-scoped Cayley milestone — covers CAYLEY-01..07 + NAV-03, one standalone tool (own top-level directory + one self-contained HTML file, per repo convention), echoing (not sharing code with) the Congruence Wheel's additive/multiplicative mode-toggle and modulus-input pattern, cross-linked with it both ways. Appended after Phase 4, not interleaved: it depends only on Phase 1's shared palette, so it can be planned/executed independently of Phase 3 (CRT) and Phase 4 (Continued Fractions), which remain real unstarted work on the still-open number-theory milestone thread. `current_phase` intentionally left at 03; only `progress.total_phases` (4 → 5, and the derived percent 50% → 40%) moved.
+- [Roadmap 2026-09-27]: Symmetry groups, permutation groups, cosets, and quotient groups stay out of scope for the Cayley milestone (PROJECT.md Out of Scope + explicit user scoping decision) — Phase 5 plans must not drift toward them.
 
 ### Pending Todos
 
@@ -110,6 +112,7 @@ None yet.
 - [Phase 2] GCD's rectangle-tiling view must cap rendered tiles independent of quotient size (a naive `gcd(2, 500000)` could try to render ~250,000 tiles) — design the cap in from the start, per research PITFALLS.md.
 - [Phase 3] CRT's combined modulus can overflow `Number` precision even with small individual moduli — implement CRT's core arithmetic in `BigInt` from day one, following the RSA tool's precedent.
 - [Phase 4] Continued Fractions must explicitly label truncation for irrational/decimal inputs (float precision otherwise falsely implies the expansion terminates).
+- [Phase 5] Cayley table cell count grows as O(N²) (and N×N is the *additive* case, the larger of the two modes) — an unbounded modulus input would render an unreadable and slow grid. Cap N at planning time the way GCD-05's tiling view caps rendered squares.
 
 ### Quick Tasks Completed
 
