@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requirements for this milestone (three new number-theory tools + site-wide palette unification). Each maps to roadmap phases.
+Requirements for the number-theory milestone (three new number-theory tools + site-wide palette unification) plus the Cayley Table Generator milestone (2026-09-27, scoped narrowly to Z/NZ additive/multiplicative groups — see PROJECT.md). Each maps to roadmap phases.
 
 ### Palette
 
@@ -45,10 +45,21 @@ Requirements for this milestone (three new number-theory tools + site-wide palet
 - [ ] **CF-07**: User sees an approximation-error column in the convergents table
 - [ ] **CF-08**: User can navigate from the Continued Fractions tool to the GCD tool
 
+### Cayley Table Generator
+
+- [ ] **CAYLEY-01**: User can set a modulus N via a validated input to generate the group's operation table
+- [ ] **CAYLEY-02**: User can toggle between Additive Group (Z/NZ, all N elements) and Multiplicative Group ((Z/NZ)ˣ, units only — elements coprime to N) modes, changing which elements and operation the table uses, echoing the Congruence Wheel's existing mode-toggle pattern
+- [ ] **CAYLEY-03**: User can click any table cell to see the underlying equation (e.g. `3 + 5 = 8 ≡ 2 (mod 6)`) with that cell's row/column headers highlighted
+- [ ] **CAYLEY-04**: The identity element's row and column are visually distinguished
+- [ ] **CAYLEY-05**: The table visually demonstrates diagonal symmetry (commutativity) as a teaching point
+- [ ] **CAYLEY-06**: Elements that are their own inverse (diagonal cells equal to the identity) are visually highlighted
+- [ ] **CAYLEY-07**: Two-way cross-link between the Cayley Table Generator and the Congruence Wheel tool
+
 ### Site Navigation
 
 - [x] **NAV-01**: `index.html` hub and every tool's shared nav header list all eight tools, with the current tool marked active
 - [x] **NAV-02**: Each new tool follows the established architecture — one top-level directory, one self-contained `.html` file, inline `<style>`/`<script>`, no external JS dependency beyond Google Fonts
+- [ ] **NAV-03**: `index.html` hub and every tool's shared nav header list all eleven tools (including the Cayley Table Generator), with the current tool marked active
 
 ## v2 Requirements
 
@@ -72,7 +83,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Group theory / abstract algebra visualizers (Cayley tables, symmetry groups, cosets, quotient groups) | A future milestone in its own right — needs a distinct visual vocabulary designed deliberately, not bolted onto this number-theory-focused milestone |
+| Group theory / abstract algebra visualizers beyond the Cayley table generator (symmetry groups, cosets, quotient groups, permutation groups) | Still a future milestone in its own right — needs a distinct visual vocabulary designed deliberately; the Cayley table generator itself is now in scope (its own milestone), narrowly limited to Z/NZ additive/multiplicative groups |
 | Arbitrary-precision BigInt GCD for huge numbers | Teaching value is in watching a handful of readable steps; huge numbers produce unreadable walls of steps and degenerate rectangle aspect ratios — cap the input range instead |
 | Arbitrary-precision decimal input for irrationals in Continued Fractions | Finite decimal expansion of an irrational is rational-approximation noise beyond float precision, and falsely implies the expansion terminates — offer curated symbolic irrational presets instead |
 | N > 3 congruence general CRT solver | Past 3 simultaneous residue-class visuals, the diagram stops being readable and becomes a data table — defeats the visualization-led premise |
@@ -114,13 +125,21 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CF-08 | Phase 4 | Pending |
 | NAV-01 | Phase 4 | Complete |
 | NAV-02 | Phase 2 | Complete |
+| CAYLEY-01 | Phase 5 | Pending |
+| CAYLEY-02 | Phase 5 | Pending |
+| CAYLEY-03 | Phase 5 | Pending |
+| CAYLEY-04 | Phase 5 | Pending |
+| CAYLEY-05 | Phase 5 | Pending |
+| CAYLEY-06 | Phase 5 | Pending |
+| CAYLEY-07 | Phase 5 | Pending |
+| NAV-03 | Phase 5 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 28 total
-- Mapped to phases: 28
+- v1 requirements: 36 total
+- Mapped to phases: 36
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-24*
-*Last updated: 2026-09-24 after roadmap creation (traceability mapped to Phases 1-4)*
+*Last updated: 2026-09-27 after scoping the Cayley Table Generator milestone (traceability mapped to Phases 1-5)*
