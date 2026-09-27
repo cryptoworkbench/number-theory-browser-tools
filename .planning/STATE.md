@@ -125,6 +125,7 @@ None yet.
 | 260926-rbb | Add CRT-assisted decryption toggle to RSA tool's Bob/Alice decrypt sections | 2026-09-26 | b79ce87 | .planning/quick/260926-rbb-in-the-rsa-tool-s-bob-decrypts-alice-decrypts-sections-add-a |
 | 19 | In the Venn Diagram tool's three-circle mode, hide the plain-language region captions (A only, A and B only, etc.) behind the region's existing hover tooltip alongside the set-notation, instead of always-visible white text | 2026-09-27 | c9bb9e2 | — |
 | 260927-bpe | Add assets/favicon.svg (numbered tile, colors copied from palette.css) wired into all ten pages; replace Congruence Wheel hub card's pizza emoji with an inline two-ring 12-hour clock SVG | 2026-09-27 | 1bf6efa, 931d975, fc82a3d | [260927-bpe-fix-two-issues-1-the-site-favicon-square](./quick/260927-bpe-fix-two-issues-1-the-site-favicon-square/) |
+| 260927-cr7 | Rename Venn Diagrams display text to plural, add pointer-drag move for placed primes between regions (both modes), strip plain-language captions from three-circle hover tooltip | 2026-09-27 | 3ee6ea5, 7cfd3a2, 84702c2 | [260927-cr7-venn-diagram-tool-1-rename-the-tool-to-v](./quick/260927-cr7-venn-diagram-tool-1-rename-the-tool-to-v/) |
 
 ## Deferred Items
 
@@ -136,8 +137,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T06:57:11.647Z
-Stopped at: Completed quick task 260927-bpe: favicon + Congruence Wheel card icon
+Last session: 2026-09-27T07:37:00.000Z
+Stopped at: Completed quick task 260927-cr7: Venn Diagrams rename, drag-to-move, tooltip fix
 Resume file: None
 
-Last activity: 2026-09-26 - Completed quick task 260926-jlu: Add Diffie-Hellman Key Exchange browser tool
+Last activity: 2026-09-27 - Completed quick task 260927-cr7: Venn Diagrams rename, drag-to-move, tooltip fix
