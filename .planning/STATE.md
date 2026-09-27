@@ -4,10 +4,10 @@ current_phase: 01
 current_phase_name: Palette Unification
 status: verifying
 stopped_at: "Completed quick task 260926-jlu: Diffie-Hellman Key Exchange tool + hub/nav registration"
-last_updated: "2026-09-26T12:59:46.197Z"
+last_updated: "2026-09-27T06:15:59.341Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 01 execution started
-state_head: 7f0317bca7e72329c89d9b3cc9d2908ab14fc487
+state_head: c9bb9e23c3a5c48db559b71d335e6d0906c4fd96
 progress:
   total_phases: 4
   completed_phases: 0
@@ -122,6 +122,7 @@ None yet.
 | 260926-rba | Rename RSA Examplifier tool to RSA (dir/file via git mv, all links + living docs repointed) | 2026-09-26 | 03c6083 | .planning/quick/260926-rba-rename-the-rsa-examplifier-tool-to-simply-rsa-internal-file |
 | 260926-rbc | Add Shor's Algorithm tool (classical order-finding stand-in) with hard N<=4096 safeguard | 2026-09-26 | 05efe27 | .planning/quick/260926-rbc-add-a-new-browser-tool-that-explains-and-performs-small-fact |
 | 260926-rbb | Add CRT-assisted decryption toggle to RSA tool's Bob/Alice decrypt sections | 2026-09-26 | b79ce87 | .planning/quick/260926-rbb-in-the-rsa-tool-s-bob-decrypts-alice-decrypts-sections-add-a |
+| 19 | In the Venn Diagram tool's three-circle mode, hide the plain-language region captions (A only, A and B only, etc.) behind the region's existing hover tooltip alongside the set-notation, instead of always-visible white text | 2026-09-27 | c9bb9e2 | — |
 
 ## Deferred Items
 
