@@ -119,11 +119,14 @@
   .chain{ display:flex; flex-direction:column; gap:8px; font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.02rem; }
   .eq-line{
     padding:9px 14px; border-radius:10px; background:color-mix(in srgb, var(--text) 4%, transparent);
-    border:1px solid var(--panel-border);
+    border:1px solid var(--panel-border); border-left:3px solid transparent;
     opacity:0; transform:translateY(-4px);
     animation: eqFadeIn .35s ease forwards;
+    cursor:pointer;
   }
   @keyframes eqFadeIn{ to{ opacity:1; transform:translateY(0); } }
+  .eq-line.is-current{ background:var(--slot-b-soft); border-left-color:var(--slot-b); }
+  .eq-line:focus-visible{ outline:2px solid var(--slot-b); outline-offset:2px; }
   .eq-num{ font-weight:700; }
   .eq-a{ color:var(--slot-a); }
   .eq-b, .eq-q{ color:var(--slot-b); }
@@ -380,9 +383,11 @@ function readInputs(){
 
 /* ---------- render ---------- */
 
-function appendStepLine(step){
+function appendStepLine(step, index){
   var div = document.createElement('div');
   div.className = 'eq-line';
+  div.tabIndex = 0;
+  div.dataset.index = index;
   div.dataset.a = step.a;
   div.dataset.b = step.b;
   div.dataset.q = step.q;
@@ -539,15 +544,31 @@ function buildTiles(step, index, total){
   }
 }
 
+// One cursor, two views: marks the chain line at index i current and draws
+// its step in the diagram. Clears every line's marker first regardless of
+// whether i turns out valid, so a stale/out-of-range call can never leave a
+// marker on a line and a diagram that no longer belong together.
+function showStep(i){
+  var lines = chain.querySelectorAll('.eq-line');
+  var k;
+  for (k = 0; k < lines.length; k++) lines[k].classList.remove('is-current');
+  if (!currentRun || i < 0 || i >= currentRun.steps.length) return;
+  var target = chain.querySelector('.eq-line[data-index="' + i + '"]');
+  if (target) target.classList.add('is-current');
+  buildTiles(currentRun.steps[i], i, currentRun.steps.length);
+}
+
 /* ---------- playback ---------- */
 
 function advanceOne(){
   var run = currentRun;
   var step = run.steps[stepIndex];
   var myGen = generation;
-  appendStepLine(step);
+  var idx = stepIndex;
+  appendStepLine(step, idx);
   stepIndex++;
   if (myGen !== generation) return; // abandoned mid-call; nothing further to do
+  showStep(idx);
   if (stepIndex >= run.steps.length) renderAnswer(run);
 }
 
@@ -555,7 +576,7 @@ function revealAll(run){
   // Walk only the REMAINING steps so Instant, called after some rows were
   // already revealed by Play/Step, never re-appends duplicate lines.
   while (stepIndex < run.steps.length){
-    appendStepLine(run.steps[stepIndex]);
+    appendStepLine(run.steps[stepIndex], stepIndex);
     stepIndex++;
   }
   // gcd(a, 0) terminates with zero steps, so the chain has nothing to grow —
@@ -631,7 +652,21 @@ function stepOnce(){
 
 function instantFinish(){
   pause();
-  if (currentRun) revealAll(currentRun);
+  if (currentRun){
+    revealAll(currentRun);
+    if (currentRun.steps.length > 0){
+      showStep(currentRun.steps.length - 1);
+    } else {
+      // gcd(a, 0): the chain has no lines and therefore no step for the
+      // diagram to show. Leave it cleared, but land the same kind of
+      // explanatory sentence the chain's own .chain-note gives, so the
+      // panel reads as "nothing to draw, on purpose" rather than broken.
+      clearTiles();
+      var msg = 'There is no rectangle to cut — b is already 0, so the algorithm is already done.';
+      tileCaption.textContent = msg;
+      tileSvg.setAttribute('aria-label', msg);
+    }
+  }
   stepBtn.disabled = true;
   playBtn.textContent = '▶ Play';
 }
@@ -640,8 +675,12 @@ function resetPlayback(){
   pause();
   generation++; // invalidate any in-flight callback from the run being abandoned
   stepIndex = 0;
+  var lines = chain.querySelectorAll('.eq-line');
+  var k;
+  for (k = 0; k < lines.length; k++) lines[k].classList.remove('is-current');
   chain.innerHTML = '';
   answerLine.textContent = '';
+  clearTiles();
   stepBtn.disabled = false;
   playBtn.textContent = '▶ Play';
   banner.textContent = 'Ready — press Play to watch the derivation build one line at a time.';
@@ -657,15 +696,6 @@ function buildRun(){
   };
   resetPlayback();
   instantFinish();
-  // Temporary hookup for this task's own gate: draw step 0 so every preset
-  // chip's diagram is reachable without playback. Task 2 replaces this with
-  // the full playback-cursor binding (showStep), which lands the diagram on
-  // whichever step is current instead of always step 0.
-  if (currentRun.steps.length > 0){
-    buildTiles(currentRun.steps[0], 0, currentRun.steps.length);
-  } else {
-    clearTiles();
-  }
 }
 
 /* ---------- event wiring ---------- */
@@ -681,6 +711,20 @@ speedInput.addEventListener('input', function(){
 
 [aInput, bInput].forEach(function(inp){
   inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
+});
+
+chain.addEventListener('click', function(e){
+  var line = e.target.closest('.eq-line');
+  if (!line) return;
+  pause();
+  showStep(parseInt(line.dataset.index, 10));
+});
+chain.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter') return;
+  var line = e.target.closest('.eq-line');
+  if (!line) return;
+  pause();
+  showStep(parseInt(line.dataset.index, 10));
 });
 
 var presetChips = $('presetChips');
