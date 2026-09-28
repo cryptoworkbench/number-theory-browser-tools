@@ -156,8 +156,19 @@
   }
 
   /* diagram */
-  .diagram-frame{ width:100%; max-width:880px; margin:0 auto; }
-  svg#venn, svg#venn3{ width:100%; height:auto; display:block; overflow:visible; }
+  .diagram-frame{ width:100%; max-width:1040px; margin:0 auto; }
+  .diagram-split{ display:flex; gap:18px; align-items:flex-start; }
+  .diagram-pane{ flex:1 1 0; min-width:0; }
+  .pane-caption{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    text-align:center;
+    margin:0 0 6px;
+  }
+  svg#venn, svg#venn3, svg#venn-composite{ width:100%; height:auto; display:block; overflow:visible; }
 
   .circle-left{
     fill:color-mix(in srgb, var(--role-input) 16%, transparent);
@@ -269,6 +280,22 @@
   .placed-chip:focus-visible{ outline:none; }
   .placed-chip.chip-compact text{ font-size:13px; }
 
+  .composite-chip rect{
+    fill:var(--surface);
+    stroke:var(--panel-border-strong);
+    stroke-width:1.4;
+  }
+  .composite-chip text{
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    font-weight:600;
+    fill:var(--text);
+    text-anchor:middle;
+    dominant-baseline:central;
+    pointer-events:none;
+  }
+  .composite-chip.chip-compact text{ font-size:13px; }
+
   .message{
     min-height:16px;
     font-size:13.5px;
@@ -312,6 +339,10 @@
 
   @media (prefers-reduced-motion: reduce){
     .prime-chip, .region-hit, .placed-chip rect, #clear-btn, .mode-btn{ transition:none; }
+  }
+
+  @media (max-width: 860px){
+    .diagram-split{ flex-direction:column; }
   }
 </style>
 </head>
@@ -377,10 +408,22 @@
   </div>
 
   <div class="diagram-frame" id="frame-two">
-    <svg id="venn" viewBox="0 0 900 520" role="img" aria-label="Two overlapping circles forming three regions holding prime numbers">
-      <g id="venn-static"></g>
-      <g id="venn-dynamic"></g>
-    </svg>
+    <div class="diagram-split">
+      <div class="diagram-pane pane-interactive">
+        <p class="pane-caption">Interactive diagram</p>
+        <svg id="venn" viewBox="0 0 900 520" role="img" aria-label="Two overlapping circles forming three regions holding prime numbers">
+          <g id="venn-static"></g>
+          <g id="venn-dynamic"></g>
+        </svg>
+      </div>
+      <div class="diagram-pane pane-composite">
+        <p class="pane-caption">Region composites</p>
+        <svg id="venn-composite" viewBox="0 0 900 520" role="img" aria-label="Read-only mirror of the two-circle diagram showing each region's composite number, the product of only the primes placed in that region">
+          <g id="venn-composite-static"></g>
+          <g id="venn-composite-dynamic"></g>
+        </svg>
+      </div>
+    </div>
   </div>
 
   <div class="diagram-frame" id="frame-three" hidden>
@@ -511,6 +554,8 @@
   var svgRoot = document.getElementById('venn');
   var svgStatic = document.getElementById('venn-static');
   var svgDynamic = document.getElementById('venn-dynamic');
+  var svgCompositeStatic = document.getElementById('venn-composite-static');
+  var svgCompositeDynamic = document.getElementById('venn-composite-dynamic');
   var messageEl = document.getElementById('message');
   var clearBtn = document.getElementById('clear-btn');
   var productLeftEl = document.getElementById('product-left');
@@ -692,33 +737,33 @@
       ' A ' + R + ' ' + R + ' 0 1 0 ' + XM + ' ' + (CY - H) + ' Z';
   }
 
-  function buildStatic(){
-    svgStatic.appendChild(svgEl('circle', { cx: CXA, cy: CY, r: R, class: 'circle-left' }));
-    svgStatic.appendChild(svgEl('circle', { cx: CXB, cy: CY, r: R, class: 'circle-right' }));
-    svgStatic.appendChild(svgEl('path', { class: 'lens-fill', d: lensPath() }));
+  function buildStatic(target){
+    target.appendChild(svgEl('circle', { cx: CXA, cy: CY, r: R, class: 'circle-left' }));
+    target.appendChild(svgEl('circle', { cx: CXB, cy: CY, r: R, class: 'circle-right' }));
+    target.appendChild(svgEl('path', { class: 'lens-fill', d: lensPath() }));
 
     var labelLeft = svgEl('text', { class: 'region-label is-hoverable', x: 275, y: 478 });
     labelLeft.textContent = REGION_CAPTIONS.left;
     labelLeft.appendChild(svgEl('title')).textContent = REGION_NOTATION.left;
-    svgStatic.appendChild(labelLeft);
+    target.appendChild(labelLeft);
 
     var labelOverlap = svgEl('text', { class: 'region-label is-hoverable', x: 450, y: 478 });
     labelOverlap.textContent = REGION_CAPTIONS.overlap;
     labelOverlap.appendChild(svgEl('title')).textContent = REGION_NOTATION.overlap;
-    svgStatic.appendChild(labelOverlap);
+    target.appendChild(labelOverlap);
 
     var labelRight = svgEl('text', { class: 'region-label is-hoverable', x: 625, y: 478 });
     labelRight.textContent = REGION_CAPTIONS.right;
     labelRight.appendChild(svgEl('title')).textContent = REGION_NOTATION.right;
-    svgStatic.appendChild(labelRight);
+    target.appendChild(labelRight);
 
-    var nameLeft = svgEl('text', { id: 'circle-name-left', class: 'circle-name name-a', x: 325, y: 100 });
+    var nameLeft = svgEl('text', { class: 'circle-name name-a', x: 325, y: 100 });
     nameLeft.textContent = 'A';
-    svgStatic.appendChild(nameLeft);
+    target.appendChild(nameLeft);
 
-    var nameRight = svgEl('text', { id: 'circle-name-right', class: 'circle-name name-b', x: 575, y: 100 });
+    var nameRight = svgEl('text', { class: 'circle-name name-b', x: 575, y: 100 });
     nameRight.textContent = 'B';
-    svgStatic.appendChild(nameRight);
+    target.appendChild(nameRight);
   }
 
   function createRegion(key, pathString){
@@ -1193,6 +1238,36 @@
     }
   }
 
+  function badgeWidth(text, compact){
+    var perChar = compact ? 8 : 10;
+    var pad = compact ? 16 : 20;
+    var base = compact ? 44 : 54;
+    return Math.max(base, text.length * perChar + pad);
+  }
+
+  function appendCompositeBadge(target, anchor, value, notation, compact){
+    var text = String(value);
+    var w = badgeWidth(text, compact);
+    var h = compact ? 24 : 32;
+    var g = svgEl('g', { class: compact ? 'composite-chip chip-compact' : 'composite-chip' });
+    g.appendChild(svgEl('title')).textContent = notation + ' = ' + text;
+    g.appendChild(svgEl('rect', { x: anchor[0] - w / 2, y: anchor[1] - h / 2, width: w, height: h, rx: compact ? 6 : 8 }));
+    var t = svgEl('text', { x: anchor[0], y: anchor[1] });
+    t.textContent = text;
+    g.appendChild(t);
+    target.appendChild(g);
+  }
+
+  function renderComposite(){
+    svgCompositeDynamic.innerHTML = '';
+    var keys = ['left', 'overlap', 'right'];
+    for (var i = 0; i < keys.length; i++){
+      var key = keys[i];
+      var value = productOf(primesOf(state.regions[key]));
+      appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false);
+    }
+  }
+
   function renderTokens(){
     svgDynamic.innerHTML = '';
     var keys = ['left', 'overlap', 'right'];
@@ -1378,6 +1453,7 @@
     renderTokens();
     renderProducts();
     refreshRegionLabels();
+    renderComposite();
     renderTokens3();
     renderProducts3();
     refreshRegionLabels3();
@@ -1490,7 +1566,8 @@
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
 
   window.addEventListener('load', function(){
-    buildStatic();
+    buildStatic(svgStatic);
+    buildStatic(svgCompositeStatic);
     buildRegions();
     buildStatic3();
     buildRegions3();
