@@ -1654,6 +1654,28 @@
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
 
+  /* ---------- live cross-document sync ---------- */
+
+  // A change written by the sibling tool (or any same-origin page) arrives
+  // here as a storage event. Re-read through the shared reader rather than
+  // trusting the event's own payload -- one parsing-and-validation path.
+  // This handler never writes the shared store: a receive-triggered
+  // re-render that wrote back would clobber the sender's value with this
+  // tool's clamped copy and let two open tools ping-pong. Only
+  // state.regions is touched, so the handler is mode-agnostic and safe
+  // while the user is in three-circle mode: render() refreshes both views,
+  // the mode itself is never switched, and regions3 is never read or
+  // written here.
+  window.addEventListener('storage', function(e){
+    if (e.key !== SHARED_AB_KEY) return;
+    var incoming = readSharedAB();
+    if (!incoming) return;
+    var pair = currentPair();
+    if (pair.a === incoming.a && pair.b === incoming.b) return;
+    fillFromNumbers(Math.min(incoming.a, EUCLID_MAX_INPUT), Math.min(incoming.b, EUCLID_MAX_INPUT), 'shared');
+    render();
+  });
+
   window.addEventListener('load', function(){
     buildStatic(svgStatic);
     buildStatic(svgCompositeStatic);

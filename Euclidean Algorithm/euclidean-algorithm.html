@@ -1153,6 +1153,26 @@ chipButtons.forEach(function(chip){
   });
 });
 
+/* ---------- live cross-document sync ---------- */
+
+// A change written by the sibling tool (or any same-origin page) arrives
+// here as a storage event. Re-read through the shared reader rather than
+// trusting the event's own payload -- one parsing-and-validation path. This
+// handler never writes the shared store: a receive-triggered re-render that
+// wrote back would clobber the sender's value with this tool's clamped copy
+// and let two open tools ping-pong.
+window.addEventListener('storage', function(e){
+  if (e.key !== SHARED_AB_KEY) return;
+  var incoming = readSharedAB();
+  if (!incoming) return;
+  var a = Math.min(incoming.a, MAX_INPUT);
+  var b = Math.min(incoming.b, MAX_INPUT);
+  if (a === parseInt(aInput.value, 10) && b === parseInt(bInput.value, 10)) return;
+  aInput.value = a;
+  bInput.value = b;
+  buildRun();
+});
+
 window.addEventListener('load', function(){
   speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
   var abParams = readABParams();
