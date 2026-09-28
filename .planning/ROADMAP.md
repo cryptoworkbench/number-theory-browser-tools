@@ -102,9 +102,13 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-
+**Wave 1**
 - [ ] 03-01-PLAN.md — Tracer: the new page end-to-end (validated congruence fields, pairwise-coprimality gate, span guard, shared-scroll residue strips with the `all agree` row, one authoritative `solveCrt`, generation-guarded scan, Sun Tzu riddle chip) plus thirteen-page nav and hub registration (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-02-PLAN.md — The two-versus-three congruence control with its idempotency and mid-scan guarantees, and the remaining two preset chips including the shares-a-factor case that makes the CRT-02 warning discoverable (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 03-03-PLAN.md — The Extended-Euclidean construction reveal rendered from the same solver record, the one-directional deep link into the Euclidean Algorithm tool's Bézout step via a new `ext` load param, and the phase-wide sweep (wave 3)
 
 **UI hint**: yes
