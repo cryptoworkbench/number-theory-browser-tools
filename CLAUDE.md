@@ -12,7 +12,7 @@ Each tool lives in its own top-level directory named after the tool, containing 
 
 - `Factor Tree/factor-tree.html` — animated prime factor tree (recursive factorization diagram, SVG-rendered)
 - `Fermats Method/fermats-method.html` — visualizes integer factoring via Fermat's method (search for a² − N = b²)
-- `Congruence Wheel/congruence-wheel.html` — "Congruence Wheel," a modular arithmetic visualizer using pizza-slice sectors
+- `Equivalence Wheel/equivalence-wheel.html` — "Equivalence Wheel," a modular arithmetic visualizer using pizza-slice sectors
 - `RSA/rsa.html` — walks through RSA key generation, encryption, and a brute-force factoring attack demo (Bob/Alice/Eve narrative)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — animated sieve grid with playback controls and audio chimes on primes found
 
