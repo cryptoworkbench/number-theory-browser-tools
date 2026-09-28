@@ -4,10 +4,10 @@ current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
 status: not_started
 stopped_at: "Completed 05-03-PLAN.md (Phase 5 fully complete: Cayley Table Generator shipped, phase-wide sweep green)"
-last_updated: "2026-09-28T08:51:07.632Z"
+last_updated: "2026-09-28T13:03:27.271Z"
 last_activity: 2026-09-28
 last_activity_desc: Phase 05 execution complete (Cayley Table Generator)
-state_head: cc6df0c13cb7c117d3337417fe07a148d0ee80c4
+state_head: e35b247408589773e088ac0acf4359c5f4cbca9c
 progress:
   total_phases: 5
   completed_phases: 3
@@ -156,6 +156,7 @@ None yet.
 | 260928-e7e | Fix Euclidean Algorithm Venn cross-link staleness (live a/b field tracking) and default geometric view to Nested squares | 2026-09-28 | 8a2fce1 | [260928-e7e-fix-euclidean-algorithm-xref-link-to-ref](./quick/260928-e7e-fix-euclidean-algorithm-xref-link-to-ref/) |
 | 260928-ep7 | Change the Euclidean Algorithm homepage logo to a miniature of the nested-squares view (a=89, b=55) | 2026-09-28 | cc6df0c | [260928-ep7-change-the-euclidean-algorithm-homepage-](./quick/260928-ep7-change-the-euclidean-algorithm-homepage-/) |
 | 260928-fdz | Reorder the site menubar/nav (and homepage card grid, if it has its own ordering) to this exact order: Home, Sieve of Eratosthenes, Factor Tree, Venn Diagrams, Euclidean Algorithm, Congruence Wheel (i.e. the newly-renamed Equivalence Wheel), Cayley Table, Square and Multiply, Diffie-Hellman, RSA, Fermat's Method (the newly-renamed Completing The Square), Shor's Algorithm. | 2026-09-28 | 40c1da8 | /home/mainaccount/Claude/number-theory-browser-tools/.planning/quick/260928-fdz-reorder-the-site-menubar-nav-and-homepage-card-grid-if-it-ha |
+| 260928-kk8 | Replace the homepage card icon for the Fermat's Method tool with a miniature inline-SVG that echoes N=567 (21x27, from 24^2-567=9=3^2), styled with palette.css tokens | 2026-09-28 | e35b247 | [260928-kk8-replace-the-homepage-card-icon-for-the-f](./quick/260928-kk8-replace-the-homepage-card-icon-for-the-f/) |
 
 ## Deferred Items
 
@@ -171,4 +172,4 @@ Last session: 2026-09-28T01:45:55.427Z
 Stopped at: Completed 05-03-PLAN.md (Cayley Table Generator large-N sizing, cross-link, phase close)
 Resume file: None
 
-Last activity: 2026-09-28 - Completed quick task 260928-ep7: Change the Euclidean Algorithm homepage logo to a miniature of the nested-squares view (a=89, b=55)
+Last activity: 2026-09-28 - Completed quick task 260928-kk8: Replace the homepage card icon for the Fermat's Method tool with a miniature inline-SVG that echoes N=567 (21x27, from 24^2-567=9=3^2), styled with palette.css tokens
