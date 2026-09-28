@@ -26,6 +26,17 @@
     --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
     --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
     --slot-sum-soft: color-mix(in srgb, var(--slot-sum) 22%, transparent);
+
+    /* Plan 05-02 additions. --slot-identity marks the structurally special
+       element (the identity) via --role-special, the palette's "advanced or
+       optional concept" role. --slot-inverse marks a self-inverse element
+       via --role-alt, the "second participant / edge case" role. Both are
+       always-on-screen facts, not transient selection state, so
+       --slot-identity-soft mixes at 14% rather than the 22% the operand
+       washes above use, keeping it quieter than a click selection. */
+    --slot-identity: var(--role-special);
+    --slot-inverse: var(--role-alt);
+    --slot-identity-soft: color-mix(in srgb, var(--slot-identity) 14%, transparent);
   }
 
   *{ box-sizing:border-box; }
@@ -102,6 +113,8 @@
     margin:0;
   }
 
+  .identity-note{ font-size:.8rem; color:var(--text-dim); text-align:center; margin:0; }
+
   /* ---------- Cayley table -- the architectural core ---------- */
   .table-scroll{
     --cell-min: 46px;
@@ -132,6 +145,19 @@
   thead th{ position:sticky; top:0; z-index:2; background:var(--bg-2); }
   tbody th{ position:sticky; left:0; z-index:1; background:var(--bg-2); }
   th.corner{ position:sticky; top:0; left:0; z-index:3; background:var(--bg-2); }
+
+  /* ---------- static identity & self-inverse states (D-04, D-06) ----------
+     Declared before the click-selection rules below: same specificity,
+     source order decides, so a selection wash's `background` beats the
+     identity wash the instant a learner clicks inside the identity's own
+     row/column, while the identity's edge bar and the self-inverse ring --
+     both `box-shadow`, a different property the selection never touches --
+     survive underneath. These two are permanently-on-screen facts, not the
+     transient click state, which is why they are the quieter, earlier rules. */
+  .cayley-table tbody th.is-identity-head{ background:var(--slot-identity-soft); box-shadow: inset 3px 0 0 var(--slot-identity); }
+  .cayley-table thead th.is-identity-head{ background:var(--slot-identity-soft); box-shadow: inset 0 3px 0 var(--slot-identity); }
+  td.cell.in-identity-row, td.cell.in-identity-col{ background:var(--slot-identity-soft); }
+  td.cell.is-self-inverse{ box-shadow: inset 0 0 0 2px var(--slot-inverse); }
 
   /* ---------- click-selection highlight triad (D-03) ---------- */
   tbody th.is-a{ background:var(--slot-a-soft); color:var(--slot-a); }
@@ -212,6 +238,7 @@
   </section>
 
   <p class="group-summary" id="group-summary"></p>
+  <p class="identity-note" id="identity-note"></p>
 
   <section class="panel">
     <div id="table-panel" role="tabpanel" aria-labelledby="tab-additive">
@@ -251,6 +278,9 @@ var MODES = {
     identity: function(N){ return 0; },
     sign: '+',
     words: { a: 'row operand', b: 'column operand', sum: 'sum' },
+    identityWord: 'zero',
+    inverseWord: 'its own negative',
+    symmetryNote: 'a + b and b + a always land in the same class, so the table mirrors itself across the diagonal — click any cell to watch its twin light up on the far side.',
     summary: function(N, els){
       return 'ℤ/' + N + 'ℤ · ' + els.length + ' element' + (els.length === 1 ? '' : 's') + ' · identity [' + this.identity(N) + ']';
     }
@@ -262,6 +292,9 @@ var MODES = {
     identity: function(N){ return 1 % N; },
     sign: '×',
     words: { a: 'row factor', b: 'column factor', sum: 'product' },
+    identityWord: 'one',
+    inverseWord: 'its own reciprocal',
+    symmetryNote: 'a · b and b · a always land in the same class, so the table mirrors itself across the diagonal — click any cell to watch its twin light up on the far side.',
     summary: function(N, els){
       return '(ℤ/' + N + 'ℤ)ˣ · φ(' + N + ') = ' + els.length + ' element' + (els.length === 1 ? '' : 's') + ' · identity [' + this.identity(N) + ']';
     }
@@ -310,6 +343,7 @@ var $ = function(id){ return document.getElementById(id); };
 var nInputEl = $('n-input');
 var nNoteEl = $('n-note');
 var groupSummaryEl = $('group-summary');
+var identityNoteEl = $('identity-note');
 var tablePanelEl = $('table-panel');
 var cayleyTableEl = $('cayley-table');
 var cayleyCaptionEl = $('cayley-caption');
@@ -425,7 +459,10 @@ function buildTable(){
 
   cayleyTableEl.appendChild(frag);
 
+  applyStaticStates(els, M, mode, state.N);
+
   groupSummaryEl.textContent = mode.summary(state.N, els);
+  identityNoteEl.textContent = 'The identity is ' + mode.identityWord + ' — its row and column are marked below.';
 
   var maxIdx = M - 1;
   state.ri = clamp(state.ri === null ? 0 : state.ri, 0, maxIdx);
@@ -433,6 +470,35 @@ function buildTable(){
 
   applyHighlights();
   updateCaption();
+}
+
+/* ---------- static states: identity row/column, self-inverse ring (D-04, D-06) ---------- */
+
+// Runs once per buildTable(), reading the already-built rowHeads/colHeads/
+// cellMatrix arrays in memory -- never a querySelectorAll re-sweep of the
+// table. Identity marking touches exactly the identity's row (M cells) and
+// column (M cells); self-inverse marking touches exactly the M diagonal
+// cells. All O(M), never O(M^2), at the 14,400-cell ceiling.
+function applyStaticStates(els, M, mode, N){
+  var idIdx = els.indexOf(mode.identity(N));
+  if (idIdx === -1) return; // provably unreachable for either mode, but a silent skip beats indexing [-1] mid-build
+
+  if (rowHeads[idIdx]) rowHeads[idIdx].classList.add('is-identity-head');
+  if (colHeads[idIdx]) colHeads[idIdx].classList.add('is-identity-head');
+
+  if (cellMatrix[idIdx]){
+    for (var c = 0; c < M; c++) cellMatrix[idIdx][c].classList.add('in-identity-row');
+  }
+  for (var r = 0; r < M; r++){
+    if (cellMatrix[r] && cellMatrix[r][idIdx]) cellMatrix[r][idIdx].classList.add('in-identity-col');
+  }
+
+  var identityVal = mode.identity(N);
+  for (var d = 0; d < M; d++){
+    var cell = cellMatrix[d] && cellMatrix[d][d];
+    if (!cell) continue;
+    if (parseInt(cell.getAttribute('data-val'), 10) === identityVal) cell.classList.add('is-self-inverse');
+  }
 }
 
 /* ---------- highlight pass ---------- */
