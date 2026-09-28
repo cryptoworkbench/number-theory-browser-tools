@@ -423,6 +423,50 @@ var nestedNote = $('nestedNote');
 
 var MAX_INPUT = 1000000;
 
+/* ---------- shared a/b params ---------- */
+// a and b are ONE setting shared with the sibling Venn Diagram tool's
+// two-circle view -- not a private per-tool value. The cookie mirror exists
+// for the same file:// origin-partitioning reason assets/theme.js documents
+// for its own theme setting. Each tool clamps the shared pair to its own
+// ceiling on read; a clamped read is display-only and is never written back.
+var SHARED_AB_KEY = 'ab-params';
+
+function readSharedAB(){
+  var raw = null;
+  try{
+    var m = new RegExp('(?:^|; *)' + SHARED_AB_KEY + '=([^;]*)').exec(document.cookie || '');
+    if (m) raw = decodeURIComponent(m[1]);
+  }catch(e){}
+  if (raw === null){
+    try{ raw = localStorage.getItem(SHARED_AB_KEY); }catch(e){}
+  }
+  if (!raw) return null;
+  var parsed = null;
+  try{ parsed = JSON.parse(raw); }catch(e){ return null; }
+  if (!parsed || typeof parsed !== 'object') return null;
+  if (typeof parsed.a !== 'number' || !Number.isInteger(parsed.a)) return null;
+  if (typeof parsed.b !== 'number' || !Number.isInteger(parsed.b)) return null;
+  if (parsed.a < 0 || parsed.b < 0) return null;
+  if (parsed.a === 0 && parsed.b === 0) return null;
+  return { a: parsed.a, b: parsed.b };
+}
+
+function writeSharedAB(a, b){
+  var payload = JSON.stringify({ a: a, b: b });
+  var current = readSharedAB();
+  if (current && JSON.stringify({ a: current.a, b: current.b }) === payload) return;
+  try{ localStorage.setItem(SHARED_AB_KEY, payload); }catch(e){}
+  try{
+    document.cookie = SHARED_AB_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax';
+  }catch(e){}
+}
+
+var sharedAB = readSharedAB();
+if (sharedAB){
+  aInput.value = Math.min(sharedAB.a, MAX_INPUT);
+  bInput.value = Math.min(sharedAB.b, MAX_INPUT);
+}
+
 var currentRun = null;
 
 // Playback state. `generation` is bumped on every reset so a stale
@@ -487,16 +531,26 @@ function updateXrefLink(a, b){
 
 // Reads the a/b fields directly, live, in field order -- deliberately NOT
 // routed through readInputs(), whose swap/clamp/error-writing is exactly
-// what a live-typing link must not inherit. Invalid or half-typed input
-// leaves the link at its last valid pair, silently.
-function syncXrefLinkFromFields(){
+// what a live-typing link or a shared-store write must not inherit. Invalid
+// or half-typed input returns null so callers can leave their target alone.
+function readLiveFields(){
   var rawA = aInput.value.trim();
   var rawB = bInput.value.trim();
-  if (!/^-?\d+$/.test(rawA) || !/^-?\d+$/.test(rawB)) return;
+  if (!/^-?\d+$/.test(rawA) || !/^-?\d+$/.test(rawB)) return null;
   var a = parseInt(rawA, 10);
   var b = parseInt(rawB, 10);
-  if (a < 0 || b < 0) return;
-  updateXrefLink(a, b);
+  if (a < 0 || b < 0) return null;
+  return { a: a, b: b };
+}
+
+function syncXrefLinkFromFields(){
+  var f = readLiveFields();
+  if (f) updateXrefLink(f.a, f.b);
+}
+
+function shareFieldsToSharedStore(){
+  var f = readLiveFields();
+  if (f) writeSharedAB(f.a, f.b);
 }
 
 function readABParams(){
@@ -1050,7 +1104,10 @@ extToggle.addEventListener('change', function(){
 
 [aInput, bInput].forEach(function(inp){
   inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
-  inp.addEventListener('input', syncXrefLinkFromFields);
+  inp.addEventListener('input', function(){
+    syncXrefLinkFromFields();
+    shareFieldsToSharedStore();
+  });
 });
 
 chain.addEventListener('click', function(e){
