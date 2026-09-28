@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cayley Table Generator</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Cayley table slot colors, aliased from the shared semantic roles and
+       echoing the Congruence Wheel's own triad so the two sibling tools
+       speak the same color language for the same concepts: --slot-a is the
+       row operand (--role-active), --slot-b is the column operand
+       (--role-input), and --slot-sum is the resulting cell, a+b or a*b
+       reduced mod N (--role-result). The *-soft variants tint a
+       highlighted row/column wash without a literal color. */
+    --slot-a: var(--role-active);
+    --slot-b: var(--role-input);
+    --slot-sum: var(--role-result);
+    --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
+    --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
+    --slot-sum-soft: color-mix(in srgb, var(--slot-sum) 22%, transparent);
+  }
+
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-special) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-result) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; max-width:68ch; margin:8px auto 0; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--accent-2);
+    margin:0 0 10px;
+  }
+  .page-header h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    margin:0 0 12px;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    letter-spacing:-.01em;
+    line-height:1.1;
+  }
+  .lede{ font-size:16px; line-height:1.6; color:var(--text-dim); margin:0 auto; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+    max-width:160px;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .caption{ text-align:center; font-size:.78rem; color:var(--text-dim); margin:0; }
+
+  /* ---------- mode tabs (duplicated from Congruence Wheel) ---------- */
+  .mode-tabs{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; border-bottom:1px solid var(--panel-border); }
+  .mode-tab{ font:inherit; font-size:.92rem; font-weight:600; color:var(--text-dim); background:none; border:none; border-bottom:2px solid transparent; border-radius:8px 8px 0 0; padding:10px 16px; cursor:pointer; transition:color .15s, background .15s, border-color .15s; }
+  .mode-tab:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .mode-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .mode-tab.is-current{ color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* ---------- validation note + group summary ---------- */
+  .n-note{ font-size:.82rem; color:var(--role-warn); min-height:1.1em; margin:6px 0 0; text-align:left; }
+  .n-note:empty{ display:none; }
+
+  .group-summary{
+    font-family:'JetBrains Mono', monospace;
+    font-size:.85rem;
+    color:var(--text-dim);
+    text-align:center;
+    margin:0;
+  }
+
+  /* ---------- Cayley table -- the architectural core ---------- */
+  .table-scroll{
+    --cell-min: 46px;
+    overflow:auto;
+    max-height:70vh;
+    border-radius:14px;
+    border:1px solid var(--panel-border);
+    background:var(--panel);
+  }
+  .table-scroll:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+  .cayley-table{ border-collapse:separate; border-spacing:0; table-layout:fixed; font-family:'JetBrains Mono', monospace; margin:0 auto; }
+  .cayley-table caption{ caption-side:top; text-align:left; padding:10px 12px; font-size:.78rem; color:var(--text-dim); font-family:'Source Sans 3', sans-serif; }
+
+  .cayley-table th, .cayley-table td{
+    width:var(--cell-min); min-width:var(--cell-min); height:var(--cell-min);
+    text-align:center;
+    border-right:1px solid var(--panel-border);
+    border-bottom:1px solid var(--panel-border);
+    font-size: clamp(9px, calc(var(--cell-min) * 0.40), 15px);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .cayley-table th{ color:var(--text-dim); font-weight:600; background:var(--bg-2); }
+  .cayley-table td.cell{ color:var(--text); cursor:pointer; }
+  .cayley-table td.cell:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+  thead th{ position:sticky; top:0; z-index:2; background:var(--bg-2); }
+  tbody th{ position:sticky; left:0; z-index:1; background:var(--bg-2); }
+  th.corner{ position:sticky; top:0; left:0; z-index:3; background:var(--bg-2); }
+
+  /* ---------- click-selection highlight triad (D-03) ---------- */
+  tbody th.is-a{ background:var(--slot-a-soft); color:var(--slot-a); }
+  thead th.is-b{ background:var(--slot-b-soft); color:var(--slot-b); }
+  td.cell.is-a-row{ background:var(--slot-a-soft); }
+  td.cell.is-b-col{ background:var(--slot-b-soft); }
+  td.cell.is-sum{ background:var(--slot-sum); color:var(--role-result-ink); font-weight:700; }
+
+  #cayley-caption .slot-a{ color:var(--slot-a); font-weight:600; }
+  #cayley-caption .slot-b{ color:var(--slot-b); font-weight:600; }
+  #cayley-caption .slot-sum{ color:var(--slot-sum); font-weight:600; }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <text class="brand-icon-digit" x="21" y="26">1</text>
+        <text class="brand-icon-digit" x="43" y="26">2</text>
+        <text class="brand-icon-digit" x="21" y="50">3</text>
+        <text class="brand-icon-digit" x="43" y="50">4</text>
+      </svg>
+      <span class="site-brand-label">Number Theory Tools</span>
+    </a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Factorize By Completing The Square/factorize-completing-square.html" class="site-nav-link">Completing the Square</a>
+      <a href="../Congruence Wheel/congruence-wheel.html" class="site-nav-link">Congruence Wheel</a>
+      <a href="../RSA/rsa.html" class="site-nav-link">RSA</a>
+      <a href="../Venn Diagrams/venn-diagrams.html" class="site-nav-link">Venn Diagrams</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link">Square and Multiply</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link">Shor's Algorithm</a>
+      <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link">Euclidean Algorithm</a>
+      <a href="cayley-table-generator.html" class="site-nav-link is-active">Cayley Table Generator</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <p class="eyebrow">group theory · operation tables</p>
+    <h1>Cayley Table Generator</h1>
+    <p class="lede">A group's entire operation fits in one square table — one row and one column per element, one cell
+      for every result. Every structural fact about that group — its identity, its inverses, its commutativity — sits
+      visibly somewhere in the table's shape.</p>
+  </header>
+
+  <div class="mode-tabs" role="tablist" aria-label="Group operation">
+    <button type="button" class="mode-tab is-current" role="tab" id="tab-additive" data-mode="additive" aria-selected="true" aria-controls="table-panel">Additive Groups</button>
+    <button type="button" class="mode-tab" role="tab" id="tab-multiplicative" data-mode="multiplicative" aria-selected="false" aria-controls="table-panel" tabindex="-1">Multiplicative Groups</button>
+  </div>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field">
+        <label for="n-input">N — modulus</label>
+        <input type="number" id="n-input" min="1" max="120" step="1" value="6">
+      </div>
+    </div>
+    <p class="n-note" id="n-note"></p>
+  </section>
+
+  <p class="group-summary" id="group-summary"></p>
+
+  <section class="panel">
+    <div id="table-panel" role="tabpanel" aria-labelledby="tab-additive">
+      <div id="table-scroll" class="table-scroll" tabindex="0" role="group" aria-label="Cayley table, scrollable">
+        <table id="cayley-table" class="cayley-table"></table>
+      </div>
+    </div>
+    <p class="caption" id="cayley-caption" aria-live="polite"></p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- math helpers ---------- */
+
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+function gcd(a, b){ while (b){ var t = a % b; a = b; b = t; } return a; }
+function unitsMod(N){ var out = []; for (var r = 0; r < N; r++) if (gcd(r, N) === 1) out.push(r); return out; }
+
+/* ---------- MODES config ---------- */
+
+// Practical ceiling on N (D-02's discretion note): additive mode is the
+// worst case at N elements (multiplicative is only phi(N)), so 120 means
+// at most 120x120 = 14,400 <td> plus 241 <th> = 14,641 nodes -- comfortably
+// under the 20,000-node ceiling the Sieve already ships and proves, and
+// exactly double the Congruence Wheel's max="60" so it reads as generous.
+var MAX_N = 120;
+
+var MODES = {
+  additive: {
+    elements: function(N){ var o = []; for (var r = 0; r < N; r++) o.push(r); return o; },
+    op: function(a, b, N){ return (a + b) % N; },
+    raw: function(a, b){ return a + b; },
+    identity: function(N){ return 0; },
+    sign: '+',
+    words: { a: 'row operand', b: 'column operand', sum: 'sum' },
+    summary: function(N, els){
+      return 'ℤ/' + N + 'ℤ · ' + els.length + ' element' + (els.length === 1 ? '' : 's') + ' · identity [' + this.identity(N) + ']';
+    }
+  },
+  multiplicative: {
+    elements: unitsMod,
+    op: function(a, b, N){ return (a * b) % N; },
+    raw: function(a, b){ return a * b; },
+    identity: function(N){ return 1 % N; },
+    sign: '×',
+    words: { a: 'row factor', b: 'column factor', sum: 'product' },
+    summary: function(N, els){
+      return '(ℤ/' + N + 'ℤ)ˣ · φ(' + N + ') = ' + els.length + ' element' + (els.length === 1 ? '' : 's') + ' · identity [' + this.identity(N) + ']';
+    }
+  }
+};
+
+/* ---------- state ---------- */
+
+var state = { N: 6, mode: 'additive', ri: null, ci: null };
+
+// Restore {N, mode} from localStorage inside a try/catch, validating every
+// field before assigning -- a malformed or tampered stored value leaves the
+// defaults standing and never reaches buildTable. Guard shape copied from
+// Congruence Wheel/congruence-wheel.html:486-491.
+try{
+  var saved = JSON.parse(localStorage.getItem('cayley-table') || 'null');
+  if (saved && typeof saved.N === 'number' && Number.isInteger(saved.N) && saved.N >= 1 && saved.N <= MAX_N) state.N = saved.N;
+  if (saved && (saved.mode === 'additive' || saved.mode === 'multiplicative')) state.mode = saved.mode;
+}catch(e){}
+
+function currentMode(){ return MODES[state.mode]; }
+
+// Picks the load-time example deterministically: at the default N=6
+// additive this lands on row 3 / column 5, so the page opens on
+// 3 + 5 = 8 (mod 6) -- the exact equation CAYLEY-03 names -- and always
+// opens off-diagonal when the group has more than one element.
+function defaultSelection(els){
+  var M = els.length;
+  var ri = Math.min(3, M - 1);
+  var ci = Math.min(5, M - 1);
+  if (ri === ci && M > 1) ci = (ri + 1) % M;
+  return { ri: ri, ci: ci };
+}
+
+(function initSelection(){
+  var els = currentMode().elements(state.N);
+  var sel = defaultSelection(els);
+  state.ri = sel.ri;
+  state.ci = sel.ci;
+})();
+
+/* ---------- DOM references ---------- */
+
+var $ = function(id){ return document.getElementById(id); };
+
+var nInputEl = $('n-input');
+var nNoteEl = $('n-note');
+var groupSummaryEl = $('group-summary');
+var tablePanelEl = $('table-panel');
+var cayleyTableEl = $('cayley-table');
+var cayleyCaptionEl = $('cayley-caption');
+var modeTabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
+
+// Table structure state, populated by buildTable() so the highlight pass
+// can reach any row or column in O(M) without querying the DOM.
+var cellMatrix = [];
+var rowHeads = [];
+var colHeads = [];
+var curEls = [];
+var prevRi = null;
+var prevCi = null;
+
+/* ---------- input reading ---------- */
+
+function readN(){
+  var raw = nInputEl.value.trim();
+  if (!/^-?\d+$/.test(raw)){
+    nNoteEl.textContent = 'N must be a whole number — the table stays as it was.';
+    return null;
+  }
+  var v = parseInt(raw, 10);
+  if (v < 1){
+    nNoteEl.textContent = 'N can\'t go below 1 — raised to 1.';
+    v = 1;
+    nInputEl.value = v;
+  } else if (v > MAX_N){
+    nNoteEl.textContent = 'N is capped at ' + MAX_N + ' to keep the table from growing too large — lowered to ' + MAX_N + '.';
+    v = MAX_N;
+    nInputEl.value = v;
+  } else {
+    nNoteEl.textContent = '';
+  }
+  return v;
+}
+
+/* ---------- table build ---------- */
+
+// The expensive path: runs only when N or mode changes. Builds <thead> and
+// <tbody> into a single DocumentFragment before one append -- at the
+// ceiling this is fourteen thousand nodes and appending per-cell would
+// thrash layout. Row headers get scope="row"; column headers get
+// scope="col" -- native table semantics take the place of a hand-rolled
+// ARIA grid.
+function buildTable(){
+  var mode = currentMode();
+  var els = mode.elements(state.N);
+  var M = els.length;
+  curEls = els;
+
+  cayleyTableEl.innerHTML = '';
+  cellMatrix = [];
+  rowHeads = [];
+  colHeads = [];
+  prevRi = null;
+  prevCi = null;
+
+  var frag = document.createDocumentFragment();
+
+  var caption = document.createElement('caption');
+  caption.textContent = 'Cayley table for ' + mode.summary(state.N, els) + ' under ' + mode.sign;
+  frag.appendChild(caption);
+
+  var thead = document.createElement('thead');
+  var headRow = document.createElement('tr');
+  var corner = document.createElement('th');
+  corner.className = 'corner';
+  corner.textContent = mode.sign;
+  headRow.appendChild(corner);
+  for (var ci = 0; ci < M; ci++){
+    var ch = document.createElement('th');
+    ch.className = 'ch';
+    ch.setAttribute('scope', 'col');
+    ch.setAttribute('data-ci', ci);
+    ch.textContent = els[ci];
+    headRow.appendChild(ch);
+    colHeads.push(ch);
+  }
+  thead.appendChild(headRow);
+  frag.appendChild(thead);
+
+  var tbody = document.createElement('tbody');
+  for (var ri = 0; ri < M; ri++){
+    var row = document.createElement('tr');
+    var rh = document.createElement('th');
+    rh.className = 'rh';
+    rh.setAttribute('scope', 'row');
+    rh.setAttribute('data-ri', ri);
+    rh.textContent = els[ri];
+    row.appendChild(rh);
+    rowHeads.push(rh);
+
+    var rowCells = [];
+    for (var cj = 0; cj < M; cj++){
+      var td = document.createElement('td');
+      td.className = 'cell';
+      td.setAttribute('data-ri', ri);
+      td.setAttribute('data-ci', cj);
+      td.setAttribute('data-row', els[ri]);
+      td.setAttribute('data-col', els[cj]);
+      var val = mode.op(els[ri], els[cj], state.N);
+      td.setAttribute('data-val', val);
+      td.textContent = val;
+      td.tabIndex = -1;
+      row.appendChild(td);
+      rowCells.push(td);
+    }
+    cellMatrix.push(rowCells);
+    tbody.appendChild(row);
+  }
+  frag.appendChild(tbody);
+
+  cayleyTableEl.appendChild(frag);
+
+  groupSummaryEl.textContent = mode.summary(state.N, els);
+
+  var maxIdx = M - 1;
+  state.ri = clamp(state.ri === null ? 0 : state.ri, 0, maxIdx);
+  state.ci = clamp(state.ci === null ? 0 : state.ci, 0, maxIdx);
+
+  applyHighlights();
+  updateCaption();
+}
+
+/* ---------- highlight pass ---------- */
+
+// The cheap path: runs on every selection change. Clears only what it
+// previously set, then sets exactly O(M) nodes -- never the whole table.
+function applyHighlights(){
+  if (prevRi !== null && rowHeads[prevRi]) rowHeads[prevRi].classList.remove('is-a');
+  if (prevCi !== null && colHeads[prevCi]) colHeads[prevCi].classList.remove('is-b');
+  if (prevRi !== null && cellMatrix[prevRi]){
+    for (var c = 0; c < cellMatrix[prevRi].length; c++) cellMatrix[prevRi][c].classList.remove('is-a-row');
+  }
+  if (prevCi !== null){
+    for (var r = 0; r < cellMatrix.length; r++){
+      if (cellMatrix[r][prevCi]) cellMatrix[r][prevCi].classList.remove('is-b-col');
+    }
+  }
+  if (prevRi !== null && prevCi !== null && cellMatrix[prevRi] && cellMatrix[prevRi][prevCi]){
+    cellMatrix[prevRi][prevCi].classList.remove('is-sum');
+    cellMatrix[prevRi][prevCi].tabIndex = -1;
+  }
+
+  var ri = state.ri, ci = state.ci;
+  if (ri === null || ci === null || !rowHeads[ri] || !colHeads[ci] || !cellMatrix[ri] || !cellMatrix[ri][ci]) return;
+
+  rowHeads[ri].classList.add('is-a');
+  colHeads[ci].classList.add('is-b');
+  for (var c2 = 0; c2 < cellMatrix[ri].length; c2++) cellMatrix[ri][c2].classList.add('is-a-row');
+  for (var r2 = 0; r2 < cellMatrix.length; r2++) cellMatrix[r2][ci].classList.add('is-b-col');
+  cellMatrix[ri][ci].classList.add('is-sum');
+  cellMatrix[ri][ci].tabIndex = 0;
+
+  prevRi = ri;
+  prevCi = ci;
+}
+
+/* ---------- caption ---------- */
+
+function updateCaption(){
+  var mode = currentMode();
+  var N = state.N;
+  var ri = state.ri, ci = state.ci;
+  if (ri === null || ci === null || !curEls.length){ cayleyCaptionEl.textContent = ''; return; }
+  var a = curEls[ri], b = curEls[ci];
+  var raw = mode.raw(a, b);
+  var val = mode.op(a, b, N);
+  cayleyCaptionEl.innerHTML =
+    '<span class="slot-a">[' + a + ']</span> ' + mode.sign + ' <span class="slot-b">[' + b + ']</span> = <span class="slot-sum">[' + val + ']</span> — ' +
+    a + ' ' + mode.sign + ' ' + b + ' = ' + raw + ' ≡ ' + val + ' (mod ' + N + ').';
+}
+
+function select(ri, ci){
+  state.ri = ri;
+  state.ci = ci;
+  applyHighlights();
+  updateCaption();
+  var td = cellMatrix[ri] && cellMatrix[ri][ci];
+  if (td) td.focus();
+}
+
+/* ---------- persistence ---------- */
+
+function persist(){
+  try{ localStorage.setItem('cayley-table', JSON.stringify({ N: state.N, mode: state.mode })); }catch(e){}
+}
+
+/* ---------- mode tabs ---------- */
+
+function syncTabs(){
+  for (var t = 0; t < modeTabs.length; t++){
+    var tab = modeTabs[t];
+    var on = tab.getAttribute('data-mode') === state.mode;
+    tab.classList.toggle('is-current', on);
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    tab.tabIndex = on ? 0 : -1;
+    if (on) tablePanelEl.setAttribute('aria-labelledby', tab.id);
+  }
+}
+
+function setMode(id){
+  if (id === state.mode) return;
+  state.mode = id;
+  var els = currentMode().elements(state.N);
+  var sel = defaultSelection(els);
+  state.ri = sel.ri;
+  state.ci = sel.ci;
+  syncTabs();
+  persist();
+  buildTable();
+}
+
+// Dedupe guard: #n-input wires both 'input' and 'change' to this function
+// (per spec, so a clamp announces immediately on keystroke and again on
+// blur). Without this guard, an 'input' event that clamps and rewrites
+// nInputEl.value would have its note silently wiped moments later by the
+// 'change' event that follows on blur, re-reading the now-already-valid
+// corrected value -- exactly the "clamp goes silent" bug a cap must never
+// produce. Comparing against the raw string last fully handled (which is
+// the post-clamp value when a clamp just happened) makes a same-value
+// repeat event a no-op instead of a second, note-clearing pass.
+var lastHandledRaw = null;
+
+function regenerate(){
+  var raw = nInputEl.value;
+  if (raw === lastHandledRaw) return;
+  var n = readN();
+  lastHandledRaw = nInputEl.value;
+  if (n === null) return;
+  state.N = n;
+  var els = currentMode().elements(state.N);
+  var sel = defaultSelection(els);
+  state.ri = sel.ri;
+  state.ci = sel.ci;
+  persist();
+  buildTable();
+}
+
+/* ---------- event wiring ---------- */
+
+nInputEl.addEventListener('input', regenerate);
+nInputEl.addEventListener('change', regenerate);
+
+// One delegated click listener resolves the clicked node with closest(),
+// never a per-cell listener -- fourteen thousand listeners is the
+// difference between a page that opens and one that does not.
+cayleyTableEl.addEventListener('click', function(e){
+  var td = e.target.closest('td.cell');
+  if (!td) return;
+  var ri = parseInt(td.getAttribute('data-ri'), 10);
+  var ci = parseInt(td.getAttribute('data-ci'), 10);
+  select(ri, ci);
+});
+
+cayleyTableEl.addEventListener('keydown', function(e){
+  var key = e.key;
+  if (key !== 'ArrowUp' && key !== 'ArrowDown' && key !== 'ArrowLeft' && key !== 'ArrowRight') return;
+  var M = cellMatrix.length;
+  if (!M) return;
+  var ri = state.ri, ci = state.ci;
+  if (key === 'ArrowUp') ri = clamp(ri - 1, 0, M - 1);
+  if (key === 'ArrowDown') ri = clamp(ri + 1, 0, M - 1);
+  if (key === 'ArrowLeft') ci = clamp(ci - 1, 0, M - 1);
+  if (key === 'ArrowRight') ci = clamp(ci + 1, 0, M - 1);
+  e.preventDefault();
+  select(ri, ci);
+});
+
+for (var ti = 0; ti < modeTabs.length; ti++){
+  (function(tab){
+    tab.addEventListener('click', function(){ setMode(tab.getAttribute('data-mode')); });
+    tab.addEventListener('keydown', function(ev){
+      if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+      ev.preventDefault();
+      var idx = modeTabs.indexOf(tab);
+      var delta = (ev.key === 'ArrowRight') ? 1 : -1;
+      var next = modeTabs[(idx + delta + modeTabs.length) % modeTabs.length];
+      setMode(next.getAttribute('data-mode'));
+      next.focus();
+    });
+  })(modeTabs[ti]);
+}
+
+/* ---------- load-time example ---------- */
+
+window.addEventListener('load', function(){
+  syncTabs();
+  buildTable();
+});
+
+})();
+</script>
+</body>
+</html>
