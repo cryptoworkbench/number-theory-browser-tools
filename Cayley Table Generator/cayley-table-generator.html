@@ -308,6 +308,25 @@ function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
 function gcd(a, b){ while (b){ var t = a % b; a = b; b = t; } return a; }
 function unitsMod(N){ var out = []; for (var r = 0; r < N; r++) if (gcd(r, N) === 1) out.push(r); return out; }
 
+/* ---------- sizing: cellMinPx(M) ----------
+   Re-derived, not copied, from Sieve Of Eratosthenes's own cellMinPx(size)
+   breakpoint function -- the Sieve's cell count grows linearly in its
+   input, this table's grows quadratically (M x M), so neither the
+   thresholds nor the floor transfer from that curve to this one.
+   Keyed to M, the *current mode's* element count -- never to N -- because
+   multiplicative mode's table is phi(N) x phi(N), which at N = 120 is
+   32 x 32 against additive's 120 x 120 at the same N. Shrinking the units
+   table to the floor for a modulus it never had 120 elements at would be
+   a bug the learner would feel as a wall of tiny cells for no reason. */
+function cellMinPx(M){
+  if (M <= 12) return 46;
+  if (M <= 20) return 40;
+  if (M <= 32) return 34;
+  if (M <= 48) return 29;
+  if (M <= 72) return 25;
+  return 22;
+}
+
 /* ---------- MODES config ---------- */
 
 // Practical ceiling on N (D-02's discretion note): additive mode is the
@@ -445,6 +464,8 @@ function buildTable(){
   var els = mode.elements(state.N);
   var M = els.length;
   curEls = els;
+
+  document.getElementById('table-scroll').style.setProperty('--cell-min', cellMinPx(M) + 'px');
 
   cayleyTableEl.innerHTML = '';
   cellMatrix = [];
