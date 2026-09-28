@@ -1114,6 +1114,32 @@
     })(tabs[ti]);
   }
 
+  /* ---------- live cross-document sync ---------- */
+
+  // A change written by the sibling tool (or any same-origin page) arrives
+  // here as a storage event. Re-read through readSharedGroup() rather than
+  // trusting e.newValue directly -- one parsing-and-validation path. This
+  // handler never writes the shared store: a receive-triggered re-render
+  // must not write back, or a clamped value would clobber the sender's
+  // setting and two open tools could ping-pong.
+  window.addEventListener('storage', function(e){
+    if (e.key !== SHARED_GROUP_KEY) return;
+    var incoming = readSharedGroup();
+    if (!incoming) return;
+    var n = clamp(incoming.N, 1, WHEEL_MAX_N);
+    if (incoming.mode === state.mode && n === state.N) return;
+    state.mode = incoming.mode;
+    state.N = n;
+    state.a = currentMode().identity(state.N);
+    state.b = null;
+    state.sum = null;
+    state.awaiting = 'a';
+    nRange.value = state.N;
+    nDisplay.textContent = state.N;
+    syncTabs();
+    render();
+  });
+
   syncTabs();
   render();
 })();
