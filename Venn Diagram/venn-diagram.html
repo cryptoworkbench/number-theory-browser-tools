@@ -557,8 +557,24 @@
   var H = Math.sqrt(R * R - ((CXB - CXA) / 2) * ((CXB - CXA) / 2));
 
   var MAX_PER_REGION = 8;
-  // Renaming this key would silently drop a returning user's placed primes.
-  var STORAGE_KEY = 'venn-diagrams';
+  // LEGACY_STORAGE_KEY is read once as a fallback for returning users and is
+  // deliberately left in place.
+  var STORAGE_KEY = 'venn-diagram';
+  var LEGACY_STORAGE_KEY = 'venn-diagrams';
+  function readMigrating(key, legacyKey){
+    try{
+      var v = localStorage.getItem(key);
+      if (v !== null) return v;
+      var legacy = localStorage.getItem(legacyKey);
+      if (legacy !== null){
+        localStorage.setItem(key, legacy);
+        return legacy;
+      }
+      return null;
+    }catch(e){
+      return null;
+    }
+  }
   // Mirrors MAX_INPUT on the Euclidean Algorithm page — must move with it.
   var EUCLID_MAX_INPUT = 1000000;
 
@@ -693,10 +709,13 @@
     ab: [450, 196], ac: [350, 388], bc: [550, 388], abc: [450, 330]
   };
   var MAX_PER_REGION3 = 3;
-  // Renaming these keys would silently reset a returning user's placed
-  // primes and two/three-circle mode choice.
-  var STORAGE_KEY3 = 'venn-diagrams-three';
-  var MODE_STORAGE_KEY = 'venn-diagrams-mode';
+  // The LEGACY_ constants below are read once as a fallback for returning
+  // users, carrying forward their placed primes and two/three-circle mode
+  // choice, and are deliberately left in place.
+  var STORAGE_KEY3 = 'venn-diagram-three';
+  var LEGACY_STORAGE_KEY3 = 'venn-diagrams-three';
+  var MODE_STORAGE_KEY = 'venn-diagram-mode';
+  var LEGACY_MODE_STORAGE_KEY = 'venn-diagrams-mode';
 
   var svg3Root = document.getElementById('venn3');
   var svg3Static = document.getElementById('venn3-static');
@@ -1157,12 +1176,7 @@
   }
 
   function restore(){
-    var raw;
-    try{
-      raw = localStorage.getItem(STORAGE_KEY);
-    }catch(e){
-      return false;
-    }
+    var raw = readMigrating(STORAGE_KEY, LEGACY_STORAGE_KEY);
     if (!raw) return false;
     var parsed;
     try{
@@ -1200,12 +1214,7 @@
   }
 
   function restore3(){
-    var raw;
-    try{
-      raw = localStorage.getItem(STORAGE_KEY3);
-    }catch(e){
-      return false;
-    }
+    var raw = readMigrating(STORAGE_KEY3, LEGACY_STORAGE_KEY3);
     if (!raw) return false;
     var parsed;
     try{
@@ -1562,12 +1571,8 @@
   }
 
   function readStoredMode(){
-    try{
-      var v = localStorage.getItem(MODE_STORAGE_KEY);
-      return (v === 'two' || v === 'three') ? v : null;
-    }catch(e){
-      return null;
-    }
+    var v = readMigrating(MODE_STORAGE_KEY, LEGACY_MODE_STORAGE_KEY);
+    return (v === 'two' || v === 'three') ? v : null;
   }
 
   function setMode(mode){
