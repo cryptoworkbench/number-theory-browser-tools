@@ -37,6 +37,11 @@
     --slot-identity: var(--role-special);
     --slot-inverse: var(--role-alt);
     --slot-identity-soft: color-mix(in srgb, var(--slot-identity) 14%, transparent);
+
+    /* --slot-diag marks the main diagonal as structure, not a value --
+       --role-inert is this palette's structural/inert role, so the axis
+       reads as a quiet guide line rather than a fifth meaning-carrying hue. */
+    --slot-diag: var(--role-inert);
   }
 
   *{ box-sizing:border-box; }
@@ -159,6 +164,27 @@
   td.cell.in-identity-row, td.cell.in-identity-col{ background:var(--slot-identity-soft); }
   td.cell.is-self-inverse{ box-shadow: inset 0 0 0 2px var(--slot-inverse); }
 
+  /* ---------- diagonal axis of symmetry (D-05) ----------
+     A pseudo-element hairline, not a border and not a background -- a
+     fifth, otherwise-unused layer that cannot collide with the background
+     wash, the ring, the fill or the outline. Every cell is square
+     (width === height === --cell-min), so each cell's own corner-to-corner
+     gradient lines up into one continuous diagonal across the whole table. */
+  td.cell.on-diag{ position:relative; }
+  td.cell.on-diag::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background-image: linear-gradient(to bottom right, transparent calc(50% - 1px), var(--slot-diag) 50%, transparent calc(50% + 1px));
+  }
+
+  /* ---------- mirror-twin echo (D-05) ----------
+     A dashed outline, the fourth channel, reusing the selected cell's own
+     --slot-sum hue -- "this is the same answer over there" -- dashed so it
+     reads distinctly from the self-inverse ring's solid inset box-shadow. */
+  td.cell.is-mirror{ outline: 2px dashed var(--slot-sum); outline-offset: -3px; }
+
   /* ---------- click-selection highlight triad (D-03) ---------- */
   tbody th.is-a{ background:var(--slot-a-soft); color:var(--slot-a); }
   thead th.is-b{ background:var(--slot-b-soft); color:var(--slot-b); }
@@ -169,6 +195,18 @@
   #cayley-caption .slot-a{ color:var(--slot-a); font-weight:600; }
   #cayley-caption .slot-b{ color:var(--slot-b); font-weight:600; }
   #cayley-caption .slot-sum{ color:var(--slot-sum); font-weight:600; }
+
+  /* ---------- symmetry note, cell notes, legend ---------- */
+  .symmetry-note{ font-size:.8rem; color:var(--text-dim); text-align:center; margin:0 auto; max-width:64ch; }
+  .cell-notes{ text-align:center; font-size:.78rem; color:var(--text-dim); opacity:.85; margin:4px 0 0; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:12px 22px; justify-content:center; align-items:center; font-size:.8rem; color:var(--text-dim); margin:10px 0 0; padding-top:10px; border-top:1px solid var(--panel-border); }
+  .legend-item{ display:flex; align-items:center; gap:8px; }
+  .legend-swatch{ width:18px; height:18px; border-radius:5px; display:inline-block; flex:none; }
+  .legend-swatch-identity{ background:var(--slot-identity-soft); box-shadow: inset 3px 0 0 var(--slot-identity); }
+  .legend-swatch-inverse{ box-shadow: inset 0 0 0 2px var(--slot-inverse); }
+  .legend-swatch-selected{ background:var(--slot-sum); }
+  .legend-swatch-mirror{ outline: 2px dashed var(--slot-sum); outline-offset: -3px; }
 
   @media (max-width:640px){
     .controls{ justify-content:center; }
@@ -239,6 +277,7 @@
 
   <p class="group-summary" id="group-summary"></p>
   <p class="identity-note" id="identity-note"></p>
+  <p class="symmetry-note" id="symmetry-note"></p>
 
   <section class="panel">
     <div id="table-panel" role="tabpanel" aria-labelledby="tab-additive">
@@ -247,6 +286,14 @@
       </div>
     </div>
     <p class="caption" id="cayley-caption" aria-live="polite"></p>
+    <p class="cell-notes" id="cell-notes" aria-live="polite"></p>
+
+    <div class="legend" id="legend">
+      <div class="legend-item"><span class="legend-swatch legend-swatch-identity" aria-hidden="true"></span>Identity's row &amp; column</div>
+      <div class="legend-item"><span class="legend-swatch legend-swatch-inverse" aria-hidden="true"></span>Own inverse (self-paired)</div>
+      <div class="legend-item"><span class="legend-swatch legend-swatch-selected" aria-hidden="true"></span>Selected cell</div>
+      <div class="legend-item"><span class="legend-swatch legend-swatch-mirror" aria-hidden="true"></span>Mirror twin across the diagonal</div>
+    </div>
   </section>
 
 </div>
@@ -344,9 +391,11 @@ var nInputEl = $('n-input');
 var nNoteEl = $('n-note');
 var groupSummaryEl = $('group-summary');
 var identityNoteEl = $('identity-note');
+var symmetryNoteEl = $('symmetry-note');
 var tablePanelEl = $('table-panel');
 var cayleyTableEl = $('cayley-table');
 var cayleyCaptionEl = $('cayley-caption');
+var cellNotesEl = $('cell-notes');
 var modeTabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
 
 // Table structure state, populated by buildTable() so the highlight pass
@@ -357,6 +406,8 @@ var colHeads = [];
 var curEls = [];
 var prevRi = null;
 var prevCi = null;
+var prevMirRi = null;
+var prevMirCi = null;
 
 /* ---------- input reading ---------- */
 
@@ -401,6 +452,8 @@ function buildTable(){
   colHeads = [];
   prevRi = null;
   prevCi = null;
+  prevMirRi = null;
+  prevMirCi = null;
 
   var frag = document.createDocumentFragment();
 
@@ -463,6 +516,7 @@ function buildTable(){
 
   groupSummaryEl.textContent = mode.summary(state.N, els);
   identityNoteEl.textContent = 'The identity is ' + mode.identityWord + ' — its row and column are marked below.';
+  symmetryNoteEl.textContent = mode.symmetryNote;
 
   var maxIdx = M - 1;
   state.ri = clamp(state.ri === null ? 0 : state.ri, 0, maxIdx);
@@ -470,6 +524,7 @@ function buildTable(){
 
   applyHighlights();
   updateCaption();
+  updateNotes();
 }
 
 /* ---------- static states: identity row/column, self-inverse ring (D-04, D-06) ---------- */
@@ -497,6 +552,7 @@ function applyStaticStates(els, M, mode, N){
   for (var d = 0; d < M; d++){
     var cell = cellMatrix[d] && cellMatrix[d][d];
     if (!cell) continue;
+    cell.classList.add('on-diag'); // D-05: the main diagonal, marked in the same static pass
     if (parseInt(cell.getAttribute('data-val'), 10) === identityVal) cell.classList.add('is-self-inverse');
   }
 }
@@ -520,6 +576,11 @@ function applyHighlights(){
     cellMatrix[prevRi][prevCi].classList.remove('is-sum');
     cellMatrix[prevRi][prevCi].tabIndex = -1;
   }
+  // D-05: clear the previous mirror twin -- cleared from that cell only,
+  // keeping this whole pass O(M) rather than a table-wide sweep.
+  if (prevMirRi !== null && cellMatrix[prevMirRi] && cellMatrix[prevMirRi][prevMirCi]){
+    cellMatrix[prevMirRi][prevMirCi].classList.remove('is-mirror');
+  }
 
   var ri = state.ri, ci = state.ci;
   if (ri === null || ci === null || !rowHeads[ri] || !colHeads[ci] || !cellMatrix[ri] || !cellMatrix[ri][ci]) return;
@@ -533,6 +594,17 @@ function applyHighlights(){
 
   prevRi = ri;
   prevCi = ci;
+
+  // D-05: the transposed cell is the twin, except on the diagonal itself
+  // where a cell is its own twin and no second outline is drawn.
+  if (ri !== ci && cellMatrix[ci] && cellMatrix[ci][ri]){
+    cellMatrix[ci][ri].classList.add('is-mirror');
+    prevMirRi = ci;
+    prevMirCi = ri;
+  } else {
+    prevMirRi = null;
+    prevMirCi = null;
+  }
 }
 
 /* ---------- caption ---------- */
@@ -550,11 +622,40 @@ function updateCaption(){
     a + ' ' + mode.sign + ' ' + b + ' = ' + raw + ' ≡ ' + val + ' (mod ' + N + ').';
 }
 
+// D-05: names the mirror pair (or the diagonal special case) and, when the
+// selected cell is also self-inverse, appends the per-mode inverse wording
+// from Task 1's identityWord/inverseWord fields -- never a hard-coded string.
+function updateNotes(){
+  var mode = currentMode();
+  var N = state.N;
+  var ri = state.ri, ci = state.ci;
+  if (ri === null || ci === null || !curEls.length){ cellNotesEl.textContent = ''; return; }
+  var a = curEls[ri], b = curEls[ci];
+  var val = mode.op(a, b, N);
+
+  var text;
+  if (ri === ci){
+    text = 'This cell sits on the diagonal axis — it is its own twin, with only one equation to state: ' +
+      a + ' ' + mode.sign + ' ' + a + ' = ' + mode.raw(a, a) + ' ≡ ' + val + ' (mod ' + N + ').';
+  } else {
+    var eqAB = a + ' ' + mode.sign + ' ' + b + ' = ' + mode.raw(a, b) + ' ≡ ' + val + ' (mod ' + N + ')';
+    var eqBA = b + ' ' + mode.sign + ' ' + a + ' = ' + mode.raw(b, a) + ' ≡ ' + val + ' (mod ' + N + ')';
+    text = eqAB + ', and ' + eqBA + ' — both land on the same value, so the table is symmetric about its diagonal: the group is commutative.';
+  }
+
+  if (val === mode.identity(N)){
+    text += ' ' + a + ' is ' + mode.inverseWord + ', since its value here is the identity.';
+  }
+
+  cellNotesEl.textContent = text;
+}
+
 function select(ri, ci){
   state.ri = ri;
   state.ci = ci;
   applyHighlights();
   updateCaption();
+  updateNotes();
   var td = cellMatrix[ri] && cellMatrix[ri][ci];
   if (td) td.focus();
 }
