@@ -4,10 +4,10 @@ current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
 status: not_started
 stopped_at: "Completed 05-03-PLAN.md (Phase 5 fully complete: Cayley Table Generator shipped, phase-wide sweep green)"
-last_updated: "2026-09-28T01:45:55.503Z"
+last_updated: "2026-09-28T07:28:33.258Z"
 last_activity: 2026-09-28
 last_activity_desc: Phase 05 execution complete (Cayley Table Generator)
-state_head: 272da6dddfe0a3431489017b322608894c30b742
+state_head: 438a216dfc8ac58aa248a666ffd885b8f4441a26
 progress:
   total_phases: 5
   completed_phases: 3
@@ -151,6 +151,7 @@ None yet.
 | 260927-eel | Congruence Wheel: rename residue class(es) to equivalence class(es); add interactive modular-addition feature (select two classes, highlight yellow/blue, show sum highlighted green) | 2026-09-27 | 4670ad3 | [260927-eel-congruence-wheel-rename-residue-class-es](./quick/260927-eel-congruence-wheel-rename-residue-class-es/) |
 | 260927-feg | Add Multiplicative Groups tab to Congruence Wheel (phi(N) unit-set wedges, shared render/select engine, per-mode wording) | 2026-09-27 | 8f7389c | [260927-feg-congruence-wheel-add-additive-groups-mul](./quick/260927-feg-congruence-wheel-add-additive-groups-mul/) |
 | 260927-ick | Replace nav-header brand emoji with inline SVG twin of favicon.svg (var()-themed plate/digits matching day/night toggle) on all ten pages | 2026-09-27 | ad36d8c | [260927-ick-fix-nav-header-logo-favicon-mismatch-rep](./quick/260927-ick-fix-nav-header-logo-favicon-mismatch-rep/) |
+| 260928-cm6 | Add cross-link URL params from Venn Diagrams 2-circle mode to Euclidean Algorithm A/B inputs, and update the Venn Diagrams homepage card icon to a two-overlapping-circles schematic | 2026-09-28 | 438a216 | [260928-cm6-add-cross-link-url-params-from-venn-diag](./quick/260928-cm6-add-cross-link-url-params-from-venn-diag/) |
 
 ## Deferred Items
 
@@ -166,4 +167,4 @@ Last session: 2026-09-28T01:45:55.427Z
 Stopped at: Completed 05-03-PLAN.md (Cayley Table Generator large-N sizing, cross-link, phase close)
 Resume file: None
 
-Last activity: 2026-09-28 - Phase 05 (Cayley Table Generator) complete: all three plans executed, phase-wide sweep green (182 assertions, zero regressions)
+Last activity: 2026-09-28 - Completed quick task 260928-cm6: Add cross-link URL params from Venn Diagrams 2-circle mode to Euclidean Algorithm A/B inputs, and update the Venn Diagrams homepage card icon to a two-overlapping-circles schematic
