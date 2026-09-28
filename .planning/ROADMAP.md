@@ -99,7 +99,14 @@ Plans:
   4. User can watch an animated brute-force scan land on the simultaneous solution, then reveal an Extended-Euclidean-based construction method as a faster alternative
   5. User can pick preset examples (including a classic "remainders riddle") and navigate from the CRT tool to the GCD tool's modular-inverse step
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+
+- [ ] 03-01-PLAN.md — Tracer: the new page end-to-end (validated congruence fields, pairwise-coprimality gate, span guard, shared-scroll residue strips with the `all agree` row, one authoritative `solveCrt`, generation-guarded scan, Sun Tzu riddle chip) plus thirteen-page nav and hub registration (wave 1)
+- [ ] 03-02-PLAN.md — The two-versus-three congruence control with its idempotency and mid-scan guarantees, and the remaining two preset chips including the shares-a-factor case that makes the CRT-02 warning discoverable (wave 2)
+- [ ] 03-03-PLAN.md — The Extended-Euclidean construction reveal rendered from the same solver record, the one-directional deep link into the Euclidean Algorithm tool's Bézout step via a new `ext` load param, and the phase-wide sweep (wave 3)
+
 **UI hint**: yes
 
 ### Phase 4: Continued Fractions Tool
@@ -154,7 +161,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 |-------|----------------|--------|-----------|
 | 1. Palette Unification | 6/6 | Complete | 2026-09-27 |
 | 2. Euclidean Algorithm / GCD Tool | 4/4 | Complete | 2026-09-27 |
-| 3. Chinese Remainder Theorem Tool | 0/? | Not started | - |
+| 3. Chinese Remainder Theorem Tool | 0/3 | Not started | - |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
 | 5. Cayley Table Generator | 3/3 | In Progress|  |
