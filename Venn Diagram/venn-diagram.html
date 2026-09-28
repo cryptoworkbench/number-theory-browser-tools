@@ -578,6 +578,45 @@
   // Mirrors MAX_INPUT on the Euclidean Algorithm page — must move with it.
   var EUCLID_MAX_INPUT = 1000000;
 
+  /* ---------- shared a/b params ---------- */
+  // a and b are ONE setting shared with the sibling Euclidean Algorithm
+  // page -- not a private per-tool value. The cookie mirror exists for the
+  // same file:// origin-partitioning reason assets/theme.js documents for
+  // its own theme setting. Each tool clamps the shared pair to its own
+  // ceiling on read; a clamped read is display-only and is never written
+  // back.
+  var SHARED_AB_KEY = 'ab-params';
+
+  function readSharedAB(){
+    var raw = null;
+    try{
+      var m = new RegExp('(?:^|; *)' + SHARED_AB_KEY + '=([^;]*)').exec(document.cookie || '');
+      if (m) raw = decodeURIComponent(m[1]);
+    }catch(e){}
+    if (raw === null){
+      try{ raw = localStorage.getItem(SHARED_AB_KEY); }catch(e){}
+    }
+    if (!raw) return null;
+    var parsed = null;
+    try{ parsed = JSON.parse(raw); }catch(e){ return null; }
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (typeof parsed.a !== 'number' || !Number.isInteger(parsed.a)) return null;
+    if (typeof parsed.b !== 'number' || !Number.isInteger(parsed.b)) return null;
+    if (parsed.a < 0 || parsed.b < 0) return null;
+    if (parsed.a === 0 && parsed.b === 0) return null;
+    return { a: parsed.a, b: parsed.b };
+  }
+
+  function writeSharedAB(a, b){
+    var payload = JSON.stringify({ a: a, b: b });
+    var current = readSharedAB();
+    if (current && JSON.stringify({ a: current.a, b: current.b }) === payload) return;
+    try{ localStorage.setItem(SHARED_AB_KEY, payload); }catch(e){}
+    try{
+      document.cookie = SHARED_AB_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax';
+    }catch(e){}
+  }
+
   var picker = document.getElementById('prime-picker');
   var svgRoot = document.getElementById('venn');
   var svgStatic = document.getElementById('venn-static');
@@ -1155,7 +1194,10 @@
     render();
   }
 
-  function persist(){
+  // The private venn-diagram record carries region LAYOUT (which region
+  // each prime sits in) and serves as the cold-start fallback; the shared
+  // ab-params pair is what the sibling tool reads.
+  function persistRegions(){
     try{
       var payload = {
         left: primesOf(state.regions.left),
@@ -1164,6 +1206,12 @@
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }catch(e){}
+  }
+
+  function persist(){
+    persistRegions();
+    var pair = currentPair();
+    writeSharedAB(pair.a, pair.b);
   }
 
   function isValidStoredRegion(list){
@@ -1356,13 +1404,25 @@
     return line;
   }
 
+  // One derivation path for the pair (a, b) that renderProducts() displays
+  // and that the shared store carries -- what gets shared is by
+  // construction the same two numbers shown on screen.
+  function currentPair(){
+    var shared = productOf(primesOf(state.regions.overlap));
+    return {
+      a: productOf(primesOf(state.regions.left)) * shared,
+      b: productOf(primesOf(state.regions.right)) * shared
+    };
+  }
+
   function renderProducts(){
     var leftOnlyList = primesOf(state.regions.left);
     var sharedList = primesOf(state.regions.overlap);
     var rightOnlyList = primesOf(state.regions.right);
 
-    var leftTotal = productOf(leftOnlyList) * productOf(sharedList);
-    var rightTotal = productOf(rightOnlyList) * productOf(sharedList);
+    var pair = currentPair();
+    var leftTotal = pair.a;
+    var rightTotal = pair.b;
 
     var leftFactors = ascendingSort(leftOnlyList.concat(sharedList));
     var rightFactors = ascendingSort(rightOnlyList.concat(sharedList));
@@ -1518,7 +1578,7 @@
     return counts;
   }
 
-  function fillFromNumbers(a, b){
+  function fillFromNumbers(a, b, source){
     var factorsA = factorize(a);
     var factorsB = factorize(b);
     var countsA = countBy(factorsA);
@@ -1550,11 +1610,11 @@
     state.regions.left = leftPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
     state.regions.overlap = overlapPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
     state.regions.right = rightPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
-    persist();
+    if (source === 'url'){ persist(); } else { persistRegions(); }
 
-    var msg = 'Filled from the Euclidean Algorithm page: A = ' + a + ', B = ' + b + '.';
-    if (truncated) msg += ' Some shared prime copies were dropped to fit the ' + MAX_PER_REGION + '-per-region limit.';
-    setMessage(msg, truncated);
+    var msg = source === 'url' ? ('Filled from the Euclidean Algorithm page: A = ' + a + ', B = ' + b + '.') : '';
+    if (truncated) msg += (msg ? ' ' : '') + 'Some shared prime copies were dropped to fit the ' + MAX_PER_REGION + '-per-region limit.';
+    if (msg) setMessage(msg, truncated);
   }
 
   function readModeParam(){
@@ -1594,6 +1654,28 @@
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
 
+  /* ---------- live cross-document sync ---------- */
+
+  // A change written by the sibling tool (or any same-origin page) arrives
+  // here as a storage event. Re-read through the shared reader rather than
+  // trusting the event's own payload -- one parsing-and-validation path.
+  // This handler never writes the shared store: a receive-triggered
+  // re-render that wrote back would clobber the sender's value with this
+  // tool's clamped copy and let two open tools ping-pong. Only
+  // state.regions is touched, so the handler is mode-agnostic and safe
+  // while the user is in three-circle mode: render() refreshes both views,
+  // the mode itself is never switched, and regions3 is never read or
+  // written here.
+  window.addEventListener('storage', function(e){
+    if (e.key !== SHARED_AB_KEY) return;
+    var incoming = readSharedAB();
+    if (!incoming) return;
+    var pair = currentPair();
+    if (pair.a === incoming.a && pair.b === incoming.b) return;
+    fillFromNumbers(Math.min(incoming.a, EUCLID_MAX_INPUT), Math.min(incoming.b, EUCLID_MAX_INPUT), 'shared');
+    render();
+  });
+
   window.addEventListener('load', function(){
     buildStatic(svgStatic);
     buildStatic(svgCompositeStatic);
@@ -1604,11 +1686,29 @@
 
     var abParams = readABParams();
     if (abParams){
-      fillFromNumbers(abParams.a, abParams.b);
-    } else if (!restore()){
-      state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
-      state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
-      state.regions.right = [ { id: state.nextId++, p: 7 } ];
+      fillFromNumbers(abParams.a, abParams.b, 'url');
+    } else {
+      if (!restore()){
+        state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
+        state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
+        state.regions.right = [ { id: state.nextId++, p: 7 } ];
+      }
+      // Reconcile against the shared pair. Precedence: explicit link (above)
+      // > shared pair > private record / hardcoded default. The comparison
+      // uses the UNCLAMPED stored values while the fill uses the clamped
+      // ones -- this page's own pair can legitimately exceed the Euclidean
+      // page's ceiling (several large primes multiply out past a million),
+      // and comparing against the clamped value would make the page
+      // destroy its own layout on every reload. A layout that already
+      // agrees with the shared pair keeps its exact region placement, which
+      // the numeric pair alone cannot express.
+      var sharedAB = readSharedAB();
+      if (sharedAB){
+        var pair = currentPair();
+        if (pair.a !== sharedAB.a || pair.b !== sharedAB.b){
+          fillFromNumbers(Math.min(sharedAB.a, EUCLID_MAX_INPUT), Math.min(sharedAB.b, EUCLID_MAX_INPUT), 'shared');
+        }
+      }
     }
     if (!restore3()){
       state.regions3.aOnly = [ { id: state.nextId++, p: 2 } ];
