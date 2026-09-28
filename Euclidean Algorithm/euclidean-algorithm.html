@@ -485,6 +485,20 @@ function updateXrefLink(a, b){
   xrefLink.href = '../Venn Diagrams/venn-diagrams.html?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
 }
 
+// Reads the a/b fields directly, live, in field order -- deliberately NOT
+// routed through readInputs(), whose swap/clamp/error-writing is exactly
+// what a live-typing link must not inherit. Invalid or half-typed input
+// leaves the link at its last valid pair, silently.
+function syncXrefLinkFromFields(){
+  var rawA = aInput.value.trim();
+  var rawB = bInput.value.trim();
+  if (!/^-?\d+$/.test(rawA) || !/^-?\d+$/.test(rawB)) return;
+  var a = parseInt(rawA, 10);
+  var b = parseInt(rawB, 10);
+  if (a < 0 || b < 0) return;
+  updateXrefLink(a, b);
+}
+
 function readABParams(){
   var ma, mb;
   try{
@@ -1009,7 +1023,7 @@ function resetPlayback(){
 function buildRun(){
   var inputs = readInputs();
   if (!inputs) return;
-  updateXrefLink(inputs.enteredA, inputs.enteredB);
+  syncXrefLinkFromFields();
   var result = euclidSteps(inputs.A, inputs.B);
   currentRun = {
     A: inputs.A, B: inputs.B,
@@ -1036,6 +1050,7 @@ extToggle.addEventListener('change', function(){
 
 [aInput, bInput].forEach(function(inp){
   inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
+  inp.addEventListener('input', syncXrefLinkFromFields);
 });
 
 chain.addEventListener('click', function(e){
