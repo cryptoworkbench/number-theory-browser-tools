@@ -133,11 +133,11 @@ Plans:
   4. User can see the table's diagonal symmetry made visible as a commutativity teaching point, with mirrored cell pairs across the main diagonal readable as such in the diagram rather than merely asserted in prose
   5. User can navigate between the Cayley Table Generator and the Congruence Wheel in both directions, and the tool ships as one self-contained HTML file in its own top-level directory, registered in `index.html` and every page's shared nav header so all eleven tools are listed with the current one marked active
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 
-- [ ] 05-01-PLAN.md — Tracer: the new page end-to-end (validated modulus, duplicated `MODES`/`unitsMod`/`gcd`, semantic `<table>` in a scrolling container with sticky headers, click-and-keyboard cell selection lighting row/column/cell, equation caption) plus twelve-page nav and hub registration (wave 1)
+- [x] 05-01-PLAN.md — Tracer: the new page end-to-end (validated modulus, duplicated `MODES`/`unitsMod`/`gcd`, semantic `<table>` in a scrolling container with sticky headers, click-and-keyboard cell selection lighting row/column/cell, equation caption) plus twelve-page nav and hub registration (wave 1)
 - [ ] 05-02-PLAN.md — The teaching states: identity row/column with a selection-surviving edge bar, self-inverse rings, the diagonal drawn as an axis of symmetry, mirror-twin echo with both equations, and a four-channel legend (wave 2)
 - [ ] 05-03-PLAN.md — D-02's shrink-then-scroll sizing keyed to the mode's element count with a measured ceiling, the two-way Congruence Wheel cross-link, and the phase-wide sweep (wave 3)
 
@@ -156,4 +156,4 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 | 2. Euclidean Algorithm / GCD Tool | 4/4 | Complete | 2026-09-27 |
 | 3. Chinese Remainder Theorem Tool | 0/? | Not started | - |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
-| 5. Cayley Table Generator | 0/3 | Not started | - |
+| 5. Cayley Table Generator | 1/3 | In Progress|  |

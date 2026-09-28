@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
-status: not_started
-stopped_at: "Completed 02-04-PLAN.md (Phase 2 fully complete: all four plans 02-01..02-04 executed, phase-wide sweep green)"
-last_updated: "2026-09-27T20:46:15.094Z"
+status: verifying
+stopped_at: Completed 05-01-PLAN.md (Cayley Table Generator tracer + site-wide nav registration)
+last_updated: "2026-09-28T01:18:44.572Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 02 execution complete (Euclidean Algorithm / GCD Tool)
-state_head: 08d06b357cf9b438f3df942b1fc68a1b8336bb0e
+state_head: a15cd9aa80567a3aa9930e8e5f57230833a44505
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
   percent: 40
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 
 Phase: 02 (Euclidean Algorithm / GCD Tool) — COMPLETE
 Plan: 4 of 4
-Status: Phase complete — all requirements satisfied, phase-wide sweep green
+Status: Phase complete — ready for verification
 Last activity: 2026-09-27 — Phase 02 execution complete
 
 Progress: [████░░░░░░] 40%
@@ -68,6 +68,7 @@ Progress: [████░░░░░░] 40%
 | Phase quick-260927-feg P01 | 25min | 2 tasks | 1 files |
 | Phase 02 P02 | 22min | 2 tasks | 2 files |
 | Phase 02 P04 | 16min | 2 tasks | 1 files |
+| Phase 05 P01 | 26min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase complete — shipped `Euclidean Algorithm/euclidean-algorithm.html` (eighth tool), satisfying GCD-01 through GCD-06 and NAV-02; registered across all eleven pages plus a two-way cross-link with Venn Diagrams (D-05); phase-wide sweep green (nav, literal-color, 7-preset behavioral regression, cross-links)
 - [Roadmap 2026-09-27]: Phase 5 (Cayley Table Generator) appended to ROADMAP.md for the new narrowly-scoped Cayley milestone — covers CAYLEY-01..07 + NAV-03, one standalone tool (own top-level directory + one self-contained HTML file, per repo convention), echoing (not sharing code with) the Congruence Wheel's additive/multiplicative mode-toggle and modulus-input pattern, cross-linked with it both ways. Appended after Phase 4, not interleaved: it depends only on Phase 1's shared palette, so it can be planned/executed independently of Phase 3 (CRT) and Phase 4 (Continued Fractions), which remain real unstarted work on the still-open number-theory milestone thread. `current_phase` intentionally left at 03; only `progress.total_phases` (4 → 5, and the derived percent 50% → 40%) moved.
 - [Roadmap 2026-09-27]: Symmetry groups, permutation groups, cosets, and quotient groups stay out of scope for the Cayley milestone (PROJECT.md Out of Scope + explicit user scoping decision) — Phase 5 plans must not drift toward them.
+- [Phase 05]: [Phase 05 Plan 01]: Renamed mode-tab active-state class from is-active to is-current to resolve an internal conflict in the plan's own static verify gate (duplicate Congruence Wheel mode-tab markup vs. literal is-active count of 1), no functional/label change
+- [Phase 05]: [Phase 05 Plan 01]: Fixed a silent-clamp bug where #n-input's change event re-read an already-clamped value and wiped the clamp note written by the preceding input event; added a lastHandledRaw dedupe guard in regenerate() (Rule 1 fix, no scope change)
 
 ### Pending Todos
 
@@ -153,8 +156,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T20:28:55.869Z
-Stopped at: Completed 02-04-PLAN.md (Phase 2 fully complete: all four plans 02-01..02-04 executed, phase-wide sweep green)
+Last session: 2026-09-28T01:18:44.500Z
+Stopped at: Completed 05-01-PLAN.md (Cayley Table Generator tracer + site-wide nav registration)
 Resume file: None
 
 Last activity: 2026-09-27 - Phase 02 (Euclidean Algorithm / GCD Tool) complete: all four plans executed, phase-wide sweep green

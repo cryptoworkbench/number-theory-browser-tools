@@ -47,9 +47,9 @@ Requirements for the number-theory milestone (three new number-theory tools + si
 
 ### Cayley Table Generator
 
-- [ ] **CAYLEY-01**: User can set a modulus N via a validated input to generate the group's operation table
-- [ ] **CAYLEY-02**: User can toggle between Additive Group (Z/NZ, all N elements) and Multiplicative Group ((Z/NZ)ˣ, units only — elements coprime to N) modes, changing which elements and operation the table uses, echoing the Congruence Wheel's existing mode-toggle pattern
-- [ ] **CAYLEY-03**: User can click any table cell to see the underlying equation (e.g. `3 + 5 = 8 ≡ 2 (mod 6)`) with that cell's row/column headers highlighted
+- [x] **CAYLEY-01**: User can set a modulus N via a validated input to generate the group's operation table
+- [x] **CAYLEY-02**: User can toggle between Additive Group (Z/NZ, all N elements) and Multiplicative Group ((Z/NZ)ˣ, units only — elements coprime to N) modes, changing which elements and operation the table uses, echoing the Congruence Wheel's existing mode-toggle pattern
+- [x] **CAYLEY-03**: User can click any table cell to see the underlying equation (e.g. `3 + 5 = 8 ≡ 2 (mod 6)`) with that cell's row/column headers highlighted
 - [ ] **CAYLEY-04**: The identity element's row and column are visually distinguished
 - [ ] **CAYLEY-05**: The table visually demonstrates diagonal symmetry (commutativity) as a teaching point
 - [ ] **CAYLEY-06**: Elements that are their own inverse (diagonal cells equal to the identity) are visually highlighted
@@ -59,7 +59,7 @@ Requirements for the number-theory milestone (three new number-theory tools + si
 
 - [x] **NAV-01**: `index.html` hub and every tool's shared nav header list all eight tools, with the current tool marked active
 - [x] **NAV-02**: Each new tool follows the established architecture — one top-level directory, one self-contained `.html` file, inline `<style>`/`<script>`, no external JS dependency beyond Google Fonts
-- [ ] **NAV-03**: `index.html` hub and every tool's shared nav header list all eleven tools (including the Cayley Table Generator), with the current tool marked active
+- [x] **NAV-03**: `index.html` hub and every tool's shared nav header list all eleven tools (including the Cayley Table Generator), with the current tool marked active
 
 ## v2 Requirements
 
@@ -125,14 +125,14 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CF-08 | Phase 4 | Pending |
 | NAV-01 | Phase 4 | Complete |
 | NAV-02 | Phase 2 | Complete |
-| CAYLEY-01 | Phase 5 | Pending |
-| CAYLEY-02 | Phase 5 | Pending |
-| CAYLEY-03 | Phase 5 | Pending |
+| CAYLEY-01 | Phase 5 | Complete |
+| CAYLEY-02 | Phase 5 | Complete |
+| CAYLEY-03 | Phase 5 | Complete |
 | CAYLEY-04 | Phase 5 | Pending |
 | CAYLEY-05 | Phase 5 | Pending |
 | CAYLEY-06 | Phase 5 | Pending |
 | CAYLEY-07 | Phase 5 | Pending |
-| NAV-03 | Phase 5 | Pending |
+| NAV-03 | Phase 5 | Complete |
 
 **Coverage:**
 
