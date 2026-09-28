@@ -168,7 +168,7 @@
     text-align:center;
     margin:0 0 6px;
   }
-  svg#venn, svg#venn3, svg#venn-composite{ width:100%; height:auto; display:block; overflow:visible; }
+  svg#venn, svg#venn3, svg#venn-composite, svg#venn3-composite{ width:100%; height:auto; display:block; overflow:visible; }
 
   .circle-left{
     fill:color-mix(in srgb, var(--role-input) 16%, transparent);
@@ -427,10 +427,22 @@
   </div>
 
   <div class="diagram-frame" id="frame-three" hidden>
-    <svg id="venn3" viewBox="0 0 900 700" role="img" aria-label="Three overlapping circles forming seven regions holding prime numbers">
-      <g id="venn3-static"></g>
-      <g id="venn3-dynamic"></g>
-    </svg>
+    <div class="diagram-split">
+      <div class="diagram-pane pane-interactive">
+        <p class="pane-caption">Interactive diagram</p>
+        <svg id="venn3" viewBox="0 0 900 700" role="img" aria-label="Three overlapping circles forming seven regions holding prime numbers">
+          <g id="venn3-static"></g>
+          <g id="venn3-dynamic"></g>
+        </svg>
+      </div>
+      <div class="diagram-pane pane-composite">
+        <p class="pane-caption">Region composites</p>
+        <svg id="venn3-composite" viewBox="0 0 900 700" role="img" aria-label="Read-only mirror of the three-circle diagram showing each region's composite number, the product of only the primes placed in that region">
+          <g id="venn3-composite-static"></g>
+          <g id="venn3-composite-dynamic"></g>
+        </svg>
+      </div>
+    </div>
   </div>
 
   <p id="message" class="message" aria-live="polite"></p>
@@ -689,6 +701,8 @@
   var svg3Root = document.getElementById('venn3');
   var svg3Static = document.getElementById('venn3-static');
   var svg3Dynamic = document.getElementById('venn3-dynamic');
+  var svg3CompositeStatic = document.getElementById('venn3-composite-static');
+  var svg3CompositeDynamic = document.getElementById('venn3-composite-dynamic');
   var modeTwoBtn = document.getElementById('mode-two');
   var modeThreeBtn = document.getElementById('mode-three');
   var ledeTwo = document.getElementById('lede-two');
@@ -810,28 +824,28 @@
     regionEls.overlap = overlap;
   }
 
-  function buildStatic3(){
-    svg3Static.appendChild(svgEl('circle', { cx: CENTERS3[0].x, cy: CENTERS3[0].y, r: R3, class: 'circle-a' }));
-    svg3Static.appendChild(svgEl('circle', { cx: CENTERS3[1].x, cy: CENTERS3[1].y, r: R3, class: 'circle-b' }));
-    svg3Static.appendChild(svgEl('circle', { cx: CENTERS3[2].x, cy: CENTERS3[2].y, r: R3, class: 'circle-c' }));
+  function buildStatic3(target){
+    target.appendChild(svgEl('circle', { cx: CENTERS3[0].x, cy: CENTERS3[0].y, r: R3, class: 'circle-a' }));
+    target.appendChild(svgEl('circle', { cx: CENTERS3[1].x, cy: CENTERS3[1].y, r: R3, class: 'circle-b' }));
+    target.appendChild(svgEl('circle', { cx: CENTERS3[2].x, cy: CENTERS3[2].y, r: R3, class: 'circle-c' }));
 
     var pairKeys = ['ab', 'ac', 'bc'];
     for (var pk = 0; pk < pairKeys.length; pk++){
-      svg3Static.appendChild(svgEl('path', { class: 'overlap-pair-fill', d: REGION_PATH3[pairKeys[pk]]() }));
+      target.appendChild(svgEl('path', { class: 'overlap-pair-fill', d: REGION_PATH3[pairKeys[pk]]() }));
     }
-    svg3Static.appendChild(svgEl('path', { class: 'overlap-triple-fill', d: REGION_PATH3.abc() }));
+    target.appendChild(svgEl('path', { class: 'overlap-triple-fill', d: REGION_PATH3.abc() }));
 
-    var nameA = svgEl('text', { id: 'circle-name-a', class: 'circle-name name-a', x: 206, y: 189 });
+    var nameA = svgEl('text', { class: 'circle-name name-a', x: 206, y: 189 });
     nameA.textContent = 'A';
-    svg3Static.appendChild(nameA);
+    target.appendChild(nameA);
 
-    var nameB = svgEl('text', { id: 'circle-name-b', class: 'circle-name name-b', x: 694, y: 189 });
+    var nameB = svgEl('text', { class: 'circle-name name-b', x: 694, y: 189 });
     nameB.textContent = 'B';
-    svg3Static.appendChild(nameB);
+    target.appendChild(nameB);
 
-    var nameC = svgEl('text', { id: 'circle-name-c', class: 'circle-name name-c', x: 353, y: 547 });
+    var nameC = svgEl('text', { class: 'circle-name name-c', x: 353, y: 547 });
     nameC.textContent = 'C';
-    svg3Static.appendChild(nameC);
+    target.appendChild(nameC);
   }
 
   function createRegion3(key, pathString){
@@ -1367,6 +1381,15 @@
     regionEls.right.setAttribute('aria-label', regionAriaLabel('right'));
   }
 
+  function renderComposite3(){
+    svg3CompositeDynamic.innerHTML = '';
+    for (var i = 0; i < REGION_KEYS3.length; i++){
+      var key = REGION_KEYS3[i];
+      var value = productOf(primesOf(state.regions3[key]));
+      appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true);
+    }
+  }
+
   function renderTokens3(){
     svg3Dynamic.innerHTML = '';
     for (var k = 0; k < REGION_KEYS3.length; k++){
@@ -1457,6 +1480,7 @@
     renderTokens3();
     renderProducts3();
     refreshRegionLabels3();
+    renderComposite3();
   }
 
   function readABParams(){
@@ -1569,7 +1593,8 @@
     buildStatic(svgStatic);
     buildStatic(svgCompositeStatic);
     buildRegions();
-    buildStatic3();
+    buildStatic3(svg3Static);
+    buildStatic3(svg3CompositeStatic);
     buildRegions3();
 
     var abParams = readABParams();
