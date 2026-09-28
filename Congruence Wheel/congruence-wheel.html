@@ -488,12 +488,16 @@
     return roles;
   }
 
+  var WHEEL_MAX_N = 60; // mirrors #n-range's max attribute; inbound N is clamped to this
+
   try{
     var saved = JSON.parse(localStorage.getItem('congruence-wheel') || 'null');
-    if (saved && saved.N >= 1 && saved.N <= 60) state.N = saved.N;
+    if (saved && saved.N >= 1 && saved.N <= WHEEL_MAX_N) state.N = saved.N;
     if (saved && saved.depth >= 2 && saved.depth <= 10) state.depth = saved.depth;
     if (saved && (saved.mode === 'additive' || saved.mode === 'multiplicative')) state.mode = saved.mode;
   }catch(e){}
+  var modeNParams = readModeNParams();
+  if (modeNParams){ state.mode = modeNParams.mode; state.N = clamp(modeNParams.n, 1, WHEEL_MAX_N); persist(); }
   state.a = currentMode().identity(state.N);
 
   function polar(r, angleDeg){
@@ -740,6 +744,27 @@
 
   function persist(){
     try{ localStorage.setItem('congruence-wheel', JSON.stringify({ N: state.N, depth: state.depth, mode: state.mode })); }catch(e){}
+  }
+
+  function readModeNParams(){
+    var mm, mn;
+    try{
+      mm = /[?&]mode=([^&#]*)/.exec(location.search);
+      mn = /[?&]n=([^&#]*)/.exec(location.search);
+    }catch(e){
+      return null;
+    }
+    if (!mm || !mn) return null;
+    var mode, n;
+    try{
+      mode = decodeURIComponent(mm[1]);
+      n = parseInt(decodeURIComponent(mn[1]), 10);
+    }catch(e){
+      return null;
+    }
+    if (mode !== 'additive' && mode !== 'multiplicative') return null;
+    if (!isFinite(n) || n < 1) return null;
+    return { mode: mode, n: n };
   }
 
   /* ---------- export ---------- */
