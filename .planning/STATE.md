@@ -4,10 +4,10 @@ current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
 status: not_started
 stopped_at: "Completed 05-03-PLAN.md (Phase 5 fully complete: Cayley Table Generator shipped, phase-wide sweep green)"
-last_updated: "2026-09-28T07:28:33.258Z"
+last_updated: "2026-09-28T08:05:46.057Z"
 last_activity: 2026-09-28
 last_activity_desc: Phase 05 execution complete (Cayley Table Generator)
-state_head: 438a216dfc8ac58aa248a666ffd885b8f4441a26
+state_head: 17c5c29e71cbcdc080f66587ce0984ebeedac81e
 progress:
   total_phases: 5
   completed_phases: 3
@@ -152,6 +152,7 @@ None yet.
 | 260927-feg | Add Multiplicative Groups tab to Congruence Wheel (phi(N) unit-set wedges, shared render/select engine, per-mode wording) | 2026-09-27 | 8f7389c | [260927-feg-congruence-wheel-add-additive-groups-mul](./quick/260927-feg-congruence-wheel-add-additive-groups-mul/) |
 | 260927-ick | Replace nav-header brand emoji with inline SVG twin of favicon.svg (var()-themed plate/digits matching day/night toggle) on all ten pages | 2026-09-27 | ad36d8c | [260927-ick-fix-nav-header-logo-favicon-mismatch-rep](./quick/260927-ick-fix-nav-header-logo-favicon-mismatch-rep/) |
 | 260928-cm6 | Add cross-link URL params from Venn Diagrams 2-circle mode to Euclidean Algorithm A/B inputs, and update the Venn Diagrams homepage card icon to a two-overlapping-circles schematic | 2026-09-28 | 438a216 | [260928-cm6-add-cross-link-url-params-from-venn-diag](./quick/260928-cm6-add-cross-link-url-params-from-venn-diag/) |
+| 260928-dax | Carry mode+N URL params across the bidirectional Congruence Wheel <-> Cayley Table Generator cross-link (CAYLEY-07) | 2026-09-28 | 17c5c29 | [260928-dax-build-a-bidirectional-cross-link-between](./quick/260928-dax-build-a-bidirectional-cross-link-between/) |
 
 ## Deferred Items
 
@@ -167,4 +168,4 @@ Last session: 2026-09-28T01:45:55.427Z
 Stopped at: Completed 05-03-PLAN.md (Cayley Table Generator large-N sizing, cross-link, phase close)
 Resume file: None
 
-Last activity: 2026-09-28 - Completed quick task 260928-cm6: Add cross-link URL params from Venn Diagrams 2-circle mode to Euclidean Algorithm A/B inputs, and update the Venn Diagrams homepage card icon to a two-overlapping-circles schematic
+Last activity: 2026-09-28 - Completed quick task 260928-dax: Carry mode+N URL params across the bidirectional Congruence Wheel <-> Cayley Table Generator cross-link (CAYLEY-07)
