@@ -53,7 +53,7 @@ Requirements for the number-theory milestone (three new number-theory tools + si
 - [x] **CAYLEY-04**: The identity element's row and column are visually distinguished
 - [x] **CAYLEY-05**: The table visually demonstrates diagonal symmetry (commutativity) as a teaching point
 - [x] **CAYLEY-06**: Elements that are their own inverse (diagonal cells equal to the identity) are visually highlighted
-- [ ] **CAYLEY-07**: Two-way cross-link between the Cayley Table Generator and the Congruence Wheel tool
+- [x] **CAYLEY-07**: Two-way cross-link between the Cayley Table Generator and the Congruence Wheel tool
 
 ### Site Navigation
 
@@ -131,7 +131,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CAYLEY-04 | Phase 5 | Complete |
 | CAYLEY-05 | Phase 5 | Complete |
 | CAYLEY-06 | Phase 5 | Complete |
-| CAYLEY-07 | Phase 5 | Pending |
+| CAYLEY-07 | Phase 5 | Complete |
 | NAV-03 | Phase 5 | Complete |
 
 **Coverage:**

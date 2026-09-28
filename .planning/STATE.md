@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
 status: verifying
-stopped_at: "Completed 05-02-PLAN.md (Cayley Table Generator static teaching states: identity row/column, self-inverse ring, diagonal symmetry mirror echo)"
-last_updated: "2026-09-28T01:30:58.012Z"
+stopped_at: Completed 05-03-PLAN.md (Cayley Table Generator large-N sizing, cross-link, phase close)
+last_updated: "2026-09-28T01:45:55.503Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 02 execution complete (Euclidean Algorithm / GCD Tool)
-state_head: 27700c93d25b882d13758f502908bd50b5ba0f6b
+state_head: 2d54d296b7dfe9867ce21b7b415c132573e77490
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 40
 ---
 
@@ -70,6 +70,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P04 | 16min | 2 tasks | 1 files |
 | Phase 05 P01 | 26min | 2 tasks | 12 files |
 | Phase 05 P02 | 15min | 2 tasks | 1 files |
+| Phase 05 P03 | 25min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 Plan 01]: Fixed a silent-clamp bug where #n-input's change event re-read an already-clamped value and wiped the clamp note written by the preceding input event; added a lastHandledRaw dedupe guard in regenerate() (Rule 1 fix, no scope change)
 - [Phase 05]: [Phase 05 Plan 02]: applyStaticStates extended (not duplicated) to add the on-diag class inside its existing diagonal loop, since Task 2's action required on-diag to be assigned in the same build pass as Task 1's static classes
 - [Phase 05]: [Phase 05 Plan 02]: identityWord/inverseWord/symmetryNote added as plain per-mode string fields on the existing MODES objects (same shape as sign/words/summary), verified behaviorally that mode switching changes the rendered wording
+- [Phase 05]: [Phase 05 Plan 03]: Click-budget harness target corrected from an off-screen cell to a viewport-visible one after instrumentation showed the browser's native focus()-triggered scrollIntoView (not select()/applyHighlights()) accounted for ~228ms of a ~250ms measurement -- test-methodology fix only, no production code changed
+- [Phase 05]: [Phase 05 Plan 03]: Phase 5 (Cayley Table Generator) complete -- CAYLEY-01 through CAYLEY-07 and NAV-03 all satisfied; cellMinPx(M) sizing ladder proven at the N=120 ceiling (build 38-65ms, click 12-25ms, both well under budget), two-way cross-link with the Congruence Wheel shipped, consolidated 182-assertion phase-wide sweep green with zero regressions
 
 ### Pending Todos
 
@@ -159,8 +162,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T01:30:57.893Z
-Stopped at: Completed 05-02-PLAN.md (Cayley Table Generator static teaching states: identity row/column, self-inverse ring, diagonal symmetry mirror echo)
+Last session: 2026-09-28T01:45:55.427Z
+Stopped at: Completed 05-03-PLAN.md (Cayley Table Generator large-N sizing, cross-link, phase close)
 Resume file: None
 
 Last activity: 2026-09-27 - Phase 02 (Euclidean Algorithm / GCD Tool) complete: all four plans executed, phase-wide sweep green
