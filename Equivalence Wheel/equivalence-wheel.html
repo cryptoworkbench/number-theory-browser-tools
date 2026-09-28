@@ -477,6 +477,41 @@
     }
   };
 
+  /* ---------- shared group params ---------- */
+  // Group type and modulus are ONE setting shared with the sibling tool --
+  // not a private per-tool value. The cookie mirror exists for the same
+  // file:// origin-partitioning reason assets/theme.js documents for its own
+  // theme setting. Each tool clamps the shared modulus to its own ceiling on
+  // read; a clamped read is display-only and is never written back.
+  var SHARED_GROUP_KEY = 'group-params';
+
+  function readSharedGroup(){
+    var raw = null;
+    try{
+      var m = new RegExp('(?:^|; *)' + SHARED_GROUP_KEY + '=([^;]*)').exec(document.cookie || '');
+      if (m) raw = decodeURIComponent(m[1]);
+    }catch(e){}
+    if (raw === null){
+      try{ raw = localStorage.getItem(SHARED_GROUP_KEY); }catch(e){}
+    }
+    if (!raw) return null;
+    var parsed = null;
+    try{ parsed = JSON.parse(raw); }catch(e){ return null; }
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (parsed.mode !== 'additive' && parsed.mode !== 'multiplicative') return null;
+    if (typeof parsed.N !== 'number' || !Number.isInteger(parsed.N)) return null;
+    if (parsed.N < 1) return null;
+    return { mode: parsed.mode, N: parsed.N };
+  }
+
+  function writeSharedGroup(mode, n){
+    var payload = JSON.stringify({ mode: mode, N: n });
+    var current = readSharedGroup();
+    if (current && JSON.stringify({ mode: current.mode, N: current.N }) === payload) return;
+    try{ localStorage.setItem(SHARED_GROUP_KEY, payload); }catch(e){}
+    try{ document.cookie = SHARED_GROUP_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax'; }catch(e){}
+  }
+
   var state = { N: 10, depth: 6, mode: 'additive', a: 0, b: null, sum: null, awaiting: 'a' };
 
   function currentMode(){ return MODES[state.mode]; }
@@ -491,12 +526,14 @@
 
   var WHEEL_MAX_N = 60; // mirrors #n-range's max attribute; inbound N is clamped to this
 
+  // Depth is this tool's own unrelated field; group type and modulus no
+  // longer live here -- they come from the shared store below.
   try{
     var saved = JSON.parse(localStorage.getItem('equivalence-wheel') || 'null');
-    if (saved && saved.N >= 1 && saved.N <= WHEEL_MAX_N) state.N = saved.N;
     if (saved && saved.depth >= 2 && saved.depth <= 10) state.depth = saved.depth;
-    if (saved && (saved.mode === 'additive' || saved.mode === 'multiplicative')) state.mode = saved.mode;
   }catch(e){}
+  var sharedGroup = readSharedGroup();
+  if (sharedGroup){ state.mode = sharedGroup.mode; state.N = clamp(sharedGroup.N, 1, WHEEL_MAX_N); }
   var modeNParams = readModeNParams();
   if (modeNParams){ state.mode = modeNParams.mode; state.N = clamp(modeNParams.n, 1, WHEEL_MAX_N); persist(); }
   state.a = currentMode().identity(state.N);
@@ -745,7 +782,8 @@
   }
 
   function persist(){
-    try{ localStorage.setItem('equivalence-wheel', JSON.stringify({ N: state.N, depth: state.depth, mode: state.mode })); }catch(e){}
+    try{ localStorage.setItem('equivalence-wheel', JSON.stringify({ depth: state.depth })); }catch(e){}
+    writeSharedGroup(state.mode, state.N);
   }
   function updateCayleyXref(){
     if (!xrefCayleyEl) return;

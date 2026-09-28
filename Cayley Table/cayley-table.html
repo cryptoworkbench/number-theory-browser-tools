@@ -371,19 +371,51 @@ var MODES = {
   }
 };
 
+/* ---------- shared group params ---------- */
+// Group type and modulus are ONE setting shared with the sibling tool --
+// not a private per-tool value. The cookie mirror exists for the same
+// file:// origin-partitioning reason assets/theme.js documents for its own
+// theme setting. Each tool clamps the shared modulus to its own ceiling on
+// read; a clamped read is display-only and is never written back.
+var SHARED_GROUP_KEY = 'group-params';
+
+function readSharedGroup(){
+  var raw = null;
+  try{
+    var m = new RegExp('(?:^|; *)' + SHARED_GROUP_KEY + '=([^;]*)').exec(document.cookie || '');
+    if (m) raw = decodeURIComponent(m[1]);
+  }catch(e){}
+  if (raw === null){
+    try{ raw = localStorage.getItem(SHARED_GROUP_KEY); }catch(e){}
+  }
+  if (!raw) return null;
+  var parsed = null;
+  try{ parsed = JSON.parse(raw); }catch(e){ return null; }
+  if (!parsed || typeof parsed !== 'object') return null;
+  if (parsed.mode !== 'additive' && parsed.mode !== 'multiplicative') return null;
+  if (typeof parsed.N !== 'number' || !Number.isInteger(parsed.N)) return null;
+  if (parsed.N < 1) return null;
+  return { mode: parsed.mode, N: parsed.N };
+}
+
+function writeSharedGroup(mode, n){
+  var payload = JSON.stringify({ mode: mode, N: n });
+  var current = readSharedGroup();
+  if (current && JSON.stringify({ mode: current.mode, N: current.N }) === payload) return;
+  try{ localStorage.setItem(SHARED_GROUP_KEY, payload); }catch(e){}
+  try{ document.cookie = SHARED_GROUP_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax'; }catch(e){}
+}
+
 /* ---------- state ---------- */
 
 var state = { N: 6, mode: 'additive', ri: null, ci: null };
 
-// Restore {N, mode} from localStorage inside a try/catch, validating every
-// field before assigning -- a malformed or tampered stored value leaves the
-// defaults standing and never reaches buildTable. Guard shape copied from
-// Equivalence Wheel/equivalence-wheel.html:486-491.
-try{
-  var saved = JSON.parse(localStorage.getItem('cayley-table') || 'null');
-  if (saved && typeof saved.N === 'number' && Number.isInteger(saved.N) && saved.N >= 1 && saved.N <= MAX_N) state.N = saved.N;
-  if (saved && (saved.mode === 'additive' || saved.mode === 'multiplicative')) state.mode = saved.mode;
-}catch(e){}
+// Restore {N, mode} from the shared group-params store, clamped to this
+// tool's own ceiling -- readSharedGroup() owns its own validation, so no
+// try/catch is needed here. A clamped read is display-only and is never
+// written back.
+var sharedGroup = readSharedGroup();
+if (sharedGroup){ state.mode = sharedGroup.mode; state.N = clamp(sharedGroup.N, 1, MAX_N); }
 
 function currentMode(){ return MODES[state.mode]; }
 
@@ -690,7 +722,7 @@ function select(ri, ci){
 /* ---------- persistence ---------- */
 
 function persist(){
-  try{ localStorage.setItem('cayley-table', JSON.stringify({ N: state.N, mode: state.mode })); }catch(e){}
+  writeSharedGroup(state.mode, state.N);
 }
 
 function updateWheelXref(){
@@ -821,12 +853,16 @@ window.addEventListener('load', function(){
   if (modeNParams){
     state.mode = modeNParams.mode;
     state.N = clamp(modeNParams.n, 1, MAX_N);
-    nInputEl.value = state.N;
     var sel = defaultSelection(currentMode().elements(state.N));
     state.ri = sel.ri;
     state.ci = sel.ci;
     persist();
   }
+  // Sync the visible #n-input to state.N regardless of source (an explicit
+  // ?mode=&n= link, the shared group-params restore, or the hardcoded HTML
+  // default) -- the field must never show a stale value while state.N (and
+  // therefore the table it drives) has already moved on.
+  nInputEl.value = state.N;
   syncTabs();
   buildTable();
 });
