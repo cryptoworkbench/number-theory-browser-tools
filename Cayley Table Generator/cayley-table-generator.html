@@ -697,6 +697,26 @@ function updateWheelXref(){
   if (!xrefWheelEl) return;
   xrefWheelEl.href = '../Congruence Wheel/congruence-wheel.html?mode=' + encodeURIComponent(state.mode) + '&n=' + encodeURIComponent(state.N);
 }
+function readModeNParams(){
+  var mm, mn;
+  try{
+    mm = /[?&]mode=([^&#]*)/.exec(location.search);
+    mn = /[?&]n=([^&#]*)/.exec(location.search);
+  }catch(e){
+    return null;
+  }
+  if (!mm || !mn) return null;
+  var mode, n;
+  try{
+    mode = decodeURIComponent(mm[1]);
+    n = parseInt(decodeURIComponent(mn[1]), 10);
+  }catch(e){
+    return null;
+  }
+  if (mode !== 'additive' && mode !== 'multiplicative') return null;
+  if (!isFinite(n) || n < 1) return null;
+  return { mode: mode, n: n };
+}
 
 /* ---------- mode tabs ---------- */
 
@@ -797,6 +817,16 @@ for (var ti = 0; ti < modeTabs.length; ti++){
 /* ---------- load-time example ---------- */
 
 window.addEventListener('load', function(){
+  var modeNParams = readModeNParams();
+  if (modeNParams){
+    state.mode = modeNParams.mode;
+    state.N = clamp(modeNParams.n, 1, MAX_N);
+    nInputEl.value = state.N;
+    var sel = defaultSelection(currentMode().elements(state.N));
+    state.ri = sel.ri;
+    state.ci = sel.ci;
+    persist();
+  }
   syncTabs();
   buildTable();
 });
