@@ -359,7 +359,7 @@
     <h1>Venn Diagrams</h1>
     <p class="lede" id="lede-two">The two circles are two numbers A and B, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. A ∩ B holds the primes that belong to both factorizations, so that intersection multiplies out to the largest number dividing both, while A \ B and B \ A hold the primes belonging to just one of them.</p>
     <p class="lede" id="lede-three" hidden>The three circles are three numbers, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. A prime in (A∩B) \ C belongs to A and B but not C, so that whole lens multiplies out to A ∩ B; a prime in A∩B∩C belongs to all three at once, so the centre multiplies out to A ∩ B ∩ C; a prime in A \ (B ∪ C) belongs to A alone.</p>
-    <p class="xref"><a href="../Euclidean Algorithm/euclidean-algorithm.html">The same GCD can also be computed by repeated division &rarr;</a></p>
+    <p class="xref"><a id="xref-euclid" href="../Euclidean Algorithm/euclidean-algorithm.html">The same GCD can also be computed by repeated division &rarr;</a></p>
   </header>
 
   <div class="toolbar">
@@ -504,6 +504,8 @@
   var MAX_PER_REGION = 8;
   // Renaming this key would silently drop a returning user's placed primes.
   var STORAGE_KEY = 'venn-diagrams';
+  // Mirrors MAX_INPUT on the Euclidean Algorithm page — must move with it.
+  var EUCLID_MAX_INPUT = 1000000;
 
   var picker = document.getElementById('prime-picker');
   var svgRoot = document.getElementById('venn');
@@ -514,6 +516,7 @@
   var productLeftEl = document.getElementById('product-left');
   var productOverlapEl = document.getElementById('product-overlap');
   var productRightEl = document.getElementById('product-right');
+  var xrefEuclidEl = document.getElementById('xref-euclid');
 
   var PRIMES = buildPalette(26);
   var REGION_NOTATION = { left: 'A \\ B', overlap: 'A ∩ B', right: 'B \\ A' };
@@ -1269,6 +1272,18 @@
     productLeftEl.textContent = 'A = ' + factorTail(leftFactors, leftTotal);
     productRightEl.textContent = 'B = ' + factorTail(rightFactors, rightTotal);
     productOverlapEl.textContent = intersectionLine(REGION_NOTATION.overlap, [leftTotal, rightTotal], gcd(leftTotal, rightTotal));
+
+    updateEuclidXref(leftTotal, rightTotal);
+  }
+
+  function updateEuclidXref(a, b){
+    if (!xrefEuclidEl) return;
+    var basePath = '../Euclidean Algorithm/euclidean-algorithm.html';
+    if ((a > 1 || b > 1) && a <= EUCLID_MAX_INPUT && b <= EUCLID_MAX_INPUT){
+      xrefEuclidEl.href = basePath + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
+    } else {
+      xrefEuclidEl.href = basePath;
+    }
   }
 
   function refreshRegionLabels(){
@@ -1368,6 +1383,71 @@
     refreshRegionLabels3();
   }
 
+  function readABParams(){
+    var ma, mb;
+    try{
+      ma = /[?&]a=([^&#]*)/.exec(location.search);
+      mb = /[?&]b=([^&#]*)/.exec(location.search);
+    }catch(e){
+      return null;
+    }
+    if (!ma || !mb) return null;
+    var a, b;
+    try{
+      a = parseInt(decodeURIComponent(ma[1]), 10);
+      b = parseInt(decodeURIComponent(mb[1]), 10);
+    }catch(e){
+      return null;
+    }
+    if (!isFinite(a) || !isFinite(b) || a < 0 || b < 0) return null;
+    return { a: a, b: b };
+  }
+
+  function countBy(list){
+    var counts = {};
+    for (var i = 0; i < list.length; i++) counts[list[i]] = (counts[list[i]] || 0) + 1;
+    return counts;
+  }
+
+  function fillFromNumbers(a, b){
+    var factorsA = factorize(a);
+    var factorsB = factorize(b);
+    var countsA = countBy(factorsA);
+    var countsB = countBy(factorsB);
+    var seen = {};
+    var leftPrimes = [], overlapPrimes = [], rightPrimes = [];
+    var allPrimes = factorsA.concat(factorsB);
+    for (var i = 0; i < allPrimes.length; i++){
+      var p = allPrimes[i];
+      if (seen[p]) continue;
+      seen[p] = true;
+      var ca = countsA[p] || 0;
+      var cb = countsB[p] || 0;
+      var shared = Math.min(ca, cb);
+      var s;
+      for (s = 0; s < shared; s++) overlapPrimes.push(p);
+      for (s = 0; s < ca - shared; s++) leftPrimes.push(p);
+      for (s = 0; s < cb - shared; s++) rightPrimes.push(p);
+    }
+    ascendingSort(leftPrimes);
+    ascendingSort(overlapPrimes);
+    ascendingSort(rightPrimes);
+
+    var truncated = false;
+    if (leftPrimes.length > MAX_PER_REGION){ leftPrimes = leftPrimes.slice(0, MAX_PER_REGION); truncated = true; }
+    if (overlapPrimes.length > MAX_PER_REGION){ overlapPrimes = overlapPrimes.slice(0, MAX_PER_REGION); truncated = true; }
+    if (rightPrimes.length > MAX_PER_REGION){ rightPrimes = rightPrimes.slice(0, MAX_PER_REGION); truncated = true; }
+
+    state.regions.left = leftPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
+    state.regions.overlap = overlapPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
+    state.regions.right = rightPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
+    persist();
+
+    var msg = 'Filled from the Euclidean Algorithm page: A = ' + a + ', B = ' + b + '.';
+    if (truncated) msg += ' Some shared prime copies were dropped to fit the ' + MAX_PER_REGION + '-per-region limit.';
+    setMessage(msg, truncated);
+  }
+
   function readModeParam(){
     var m;
     try{
@@ -1414,7 +1494,11 @@
     buildRegions();
     buildStatic3();
     buildRegions3();
-    if (!restore()){
+
+    var abParams = readABParams();
+    if (abParams){
+      fillFromNumbers(abParams.a, abParams.b);
+    } else if (!restore()){
       state.regions.left = [ { id: state.nextId++, p: 2 }, { id: state.nextId++, p: 3 } ];
       state.regions.overlap = [ { id: state.nextId++, p: 5 } ];
       state.regions.right = [ { id: state.nextId++, p: 7 } ];
@@ -1429,7 +1513,7 @@
       state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
     }
 
-    var initialMode = readModeParam() || readStoredMode() || 'two';
+    var initialMode = abParams ? 'two' : (readModeParam() || readStoredMode() || 'two');
     setMode(initialMode);
   });
 

@@ -195,9 +195,40 @@
   .tile-note{ color:var(--slot-cap); font-size:.82rem; text-align:center; margin:6px 0 0; }
   .tile-note:empty{ display:none; }
 
+  /* ---------- geometric (nested-squares / "fractal") view ---------- */
+  .view-toggle{ display:flex; gap:8px; justify-content:center; margin-bottom:12px; }
+  .view-btn[aria-pressed="true"]{
+    background:linear-gradient(135deg, var(--role-input), var(--role-special));
+    color:var(--accent-ink); border-color:transparent;
+  }
+
+  #nestedSvg{ width:100%; height:auto; display:block; }
+
+  .nframe{ fill:none; stroke:var(--text-dim); stroke-width:2; }
+  .nsquare, .ncap{ stroke-width:1.4; animation: tileReveal .3s ease both; cursor:pointer; }
+  .nsquare:focus-visible, .ncap:focus-visible{ outline:2px solid var(--text); outline-offset:-3px; }
+  .nsquare:hover, .ncap:hover{ filter:brightness(1.12); }
+  .ncap{ stroke-dasharray:4 3; }
+  .nsquare.is-current-step, .ncap.is-current-step{ stroke-width:3; filter:brightness(1.2); }
+  /* Categorical cycle by step index (mod 6), not by role-meaning -- each
+     step just needs a color distinct from its neighbors so its run of
+     squares reads as one group in the nested diagram. */
+  .nstep-0{ fill:color-mix(in srgb, var(--role-input) 32%, transparent); stroke:var(--role-input); }
+  .nstep-1{ fill:color-mix(in srgb, var(--role-alt) 32%, transparent); stroke:var(--role-alt); }
+  .nstep-2{ fill:color-mix(in srgb, var(--role-special) 32%, transparent); stroke:var(--role-special); }
+  .nstep-3{ fill:color-mix(in srgb, var(--role-active) 32%, transparent); stroke:var(--role-active); }
+  .nstep-4{ fill:color-mix(in srgb, var(--role-result) 32%, transparent); stroke:var(--role-result); }
+  .nstep-5{ fill:color-mix(in srgb, var(--role-warn) 32%, transparent); stroke:var(--role-warn); }
+  .nside-label{ fill:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:12px; pointer-events:none; }
+  .ncap-label{ fill:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:11px; font-weight:700; text-anchor:middle; pointer-events:none; }
+  .ndim-label{ fill:var(--text-dim); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:12px; pointer-events:none; }
+
+  .nested-note{ color:var(--slot-cap); font-size:.82rem; text-align:center; margin:6px 0 0; }
+  .nested-note:empty{ display:none; }
+
   @media (prefers-reduced-motion: reduce){
     .eq-line{ animation:none; opacity:1; transform:none; }
-    .tile, .tile-cap{ animation:none; opacity:1; }
+    .tile, .tile-cap, .nsquare, .ncap{ animation:none; opacity:1; }
   }
 
   @media (max-width:640px){
@@ -251,7 +282,7 @@
     <p class="lede">Repeatedly replace the pair (a, b) with (b, a mod b) — divide the larger by the smaller and keep only
       the remainder — and the pair shrinks every step. The moment one side reaches zero, the other side is the greatest
       common divisor of the two numbers you started with.</p>
-    <p class="xref"><a href="../Venn Diagrams/venn-diagrams.html">The same GCD can also be seen as the primes the two numbers share &rarr;</a></p>
+    <p class="xref"><a id="xrefLink" href="../Venn Diagrams/venn-diagrams.html">The same GCD can also be seen as the primes the two numbers share &rarr;</a></p>
   </header>
 
   <section class="panel controls">
@@ -306,10 +337,24 @@
   </section>
 
   <section class="panel">
-    <svg id="tileSvg" viewBox="0 0 900 360" preserveAspectRatio="xMidYMid meet" role="img"
-      aria-label="Rectangle view of the current division step"></svg>
-    <p id="tileCaption" class="caption"></p>
-    <p id="tileNote" class="tile-note"></p>
+    <div class="view-toggle" role="group" aria-label="Geometric view mode">
+      <button type="button" id="viewStepBtn" class="view-btn" aria-pressed="true">Single step</button>
+      <button type="button" id="viewNestedBtn" class="view-btn" aria-pressed="false">Nested squares</button>
+    </div>
+
+    <div id="stepView">
+      <svg id="tileSvg" viewBox="0 0 900 360" preserveAspectRatio="xMidYMid meet" role="img"
+        aria-label="Rectangle view of the current division step"></svg>
+      <p id="tileCaption" class="caption"></p>
+      <p id="tileNote" class="tile-note"></p>
+    </div>
+
+    <div id="nestedView" hidden>
+      <svg id="nestedSvg" viewBox="0 0 900 420" preserveAspectRatio="xMidYMid meet" role="img"
+        aria-label="All division steps nested into a single rectangle"></svg>
+      <p id="nestedCaption" class="caption"></p>
+      <p id="nestedNote" class="nested-note"></p>
+    </div>
   </section>
 
   <p class="caption">Consecutive Fibonacci numbers are the worst case for this algorithm — they force the most division steps for their size.</p>
@@ -367,6 +412,14 @@ var tileCaption = $('tileCaption');
 var tileNote = $('tileNote');
 var extToggle = $('extToggle');
 var appEl = document.querySelector('.app');
+var xrefLink = $('xrefLink');
+var viewStepBtn = $('viewStepBtn');
+var viewNestedBtn = $('viewNestedBtn');
+var stepView = $('stepView');
+var nestedView = $('nestedView');
+var nestedSvg = $('nestedSvg');
+var nestedCaption = $('nestedCaption');
+var nestedNote = $('nestedNote');
 
 var MAX_INPUT = 1000000;
 
@@ -380,6 +433,7 @@ var rafId = null;
 var lastAdvance = 0;
 var stepIndex = 0;
 var generation = 0;
+var geomView = 'step';
 
 var SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
 var SPEED_MS = {1:2600,2:2000,3:1500,4:1100,5:800,6:550,7:380,8:250,9:160,10:90};
@@ -423,7 +477,33 @@ function readInputs(){
     swapNote.textContent = 'The larger value leads: entered as (' + a + ', ' + b + '), traced as gcd(' + A + ', ' + B + ') — the GCD is symmetric in its arguments.';
   }
 
-  return { A: A, B: B };
+  return { A: A, B: B, enteredA: a, enteredB: b };
+}
+
+function updateXrefLink(a, b){
+  if (!xrefLink) return;
+  xrefLink.href = '../Venn Diagrams/venn-diagrams.html?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
+}
+
+function readABParams(){
+  var ma, mb;
+  try{
+    ma = /[?&]a=([^&#]*)/.exec(location.search);
+    mb = /[?&]b=([^&#]*)/.exec(location.search);
+  }catch(e){
+    return null;
+  }
+  if (!ma || !mb) return null;
+  var a, b;
+  try{
+    a = parseInt(decodeURIComponent(ma[1]), 10);
+    b = parseInt(decodeURIComponent(mb[1]), 10);
+  }catch(e){
+    return null;
+  }
+  if (!isFinite(a) || !isFinite(b) || a < 0 || b < 0) return null;
+  if (a === 0 && b === 0) return null;
+  return { a: a, b: b };
 }
 
 /* ---------- render ---------- */
@@ -618,10 +698,182 @@ function showStep(i){
   var lines = chain.querySelectorAll('.eq-line');
   var k;
   for (k = 0; k < lines.length; k++) lines[k].classList.remove('is-current');
+  updateNestedHighlight(i);
   if (!currentRun || i < 0 || i >= currentRun.steps.length) return;
   var target = chain.querySelector('.eq-line[data-index="' + i + '"]');
   if (target) target.classList.add('is-current');
   buildTiles(currentRun.steps[i], i, currentRun.steps.length);
+}
+
+/* ---------- geometric view: nested squares ("finite fractal") ---------- */
+
+// Same rectangle-tiling metaphor as buildTiles(), but drawn cumulatively:
+// each step's leftover r×b rectangle becomes the very next step's a×b
+// rectangle, so the whole derivation nests into one A×B rectangle instead
+// of one rectangle per step. Orientation alternates automatically because
+// a leftover is always narrower than it is tall (or vice versa) relative
+// to the run that produced it -- squares go left-to-right along the run's
+// long side, top-to-bottom along the next, and so on, spiraling inward
+// until the final, smallest squares (side = gcd) tile their rectangle
+// exactly with no leftover.
+var NEST_LEFT = 24, NEST_TOP = 24, NEST_RIGHT = 110, NEST_BOTTOM = 44;
+var NEST_VB_W = 900, NEST_VB_H = 420;
+var NEST_DRAW_W = NEST_VB_W - NEST_LEFT - NEST_RIGHT;
+var NEST_DRAW_H = NEST_VB_H - NEST_TOP - NEST_BOTTOM;
+var NEST_ARIA_DEFAULT = 'All division steps nested into a single rectangle';
+
+// Builds the unit-space layout (no pixel scale yet) by walking the same
+// step list buildTiles() uses one at a time, but recursing into each
+// step's leftover instead of stopping after one. Reuses TILE_CAP so a
+// step with an enormous quotient still only ever emits TILE_CAP+1 rects
+// here too, for the same reason buildTiles() caps it.
+function computeNestedLayout(steps){
+  if (!steps || steps.length === 0) return null;
+  var rects = [];
+  var cappedSteps = [];
+
+  function place(i, x, y, w, h, vertical){
+    var step = steps[i];
+    var b = step.b, q = step.q, r = step.r;
+    var drawn = Math.min(q, TILE_CAP);
+    var capped = q > TILE_CAP;
+    if (capped) cappedSteps.push(i);
+    var k, pos, used;
+    if (!vertical){
+      pos = x;
+      for (k = 0; k < drawn; k++){
+        rects.push({ type: 'square', x: pos, y: y, w: b, h: b, step: i, first: k === 0 });
+        pos += b;
+      }
+      if (capped){
+        rects.push({ type: 'cap', x: pos, y: y, w: b, h: b, step: i, extra: q - drawn });
+        pos += b;
+      }
+      used = pos - x;
+      if (r > 0) used += place(i + 1, pos, y, r, h, true).w;
+      return { w: used, h: h };
+    } else {
+      pos = y;
+      for (k = 0; k < drawn; k++){
+        rects.push({ type: 'square', x: x, y: pos, w: b, h: b, step: i, first: k === 0 });
+        pos += b;
+      }
+      if (capped){
+        rects.push({ type: 'cap', x: x, y: pos, w: b, h: b, step: i, extra: q - drawn });
+        pos += b;
+      }
+      used = pos - y;
+      if (r > 0) used += place(i + 1, x, pos, w, r, false).h;
+      return { w: w, h: used };
+    }
+  }
+
+  var top = place(0, 0, 0, steps[0].a, steps[0].b, false);
+  return { rects: rects, width: top.w, height: top.h, cappedSteps: cappedSteps };
+}
+
+function clearNested(){
+  nestedSvg.innerHTML = '';
+  nestedCaption.textContent = '';
+  nestedNote.textContent = '';
+  nestedSvg.setAttribute('aria-label', NEST_ARIA_DEFAULT);
+}
+
+function updateNestedHighlight(i){
+  var nodes = nestedSvg.querySelectorAll('[data-step]');
+  var k;
+  for (k = 0; k < nodes.length; k++){
+    nodes[k].classList.toggle('is-current-step', parseInt(nodes[k].dataset.step, 10) === i);
+  }
+}
+
+function buildNestedView(run){
+  clearNested();
+  if (!run || run.steps.length === 0){
+    var msg = 'There is no rectangle to nest — b is already 0, so the algorithm is already done.';
+    nestedCaption.textContent = msg;
+    nestedSvg.setAttribute('aria-label', msg);
+    return;
+  }
+
+  var layout = computeNestedLayout(run.steps);
+  var scale = Math.min(NEST_DRAW_W / layout.width, NEST_DRAW_H / layout.height);
+
+  nestedSvg.appendChild(svgEl('rect', {
+    'class': 'nframe', x: NEST_LEFT, y: NEST_TOP, width: layout.width * scale, height: layout.height * scale
+  }));
+
+  var total = layout.rects.length;
+  for (var idx = 0; idx < total; idx++){
+    var r = layout.rects[idx];
+    var px = NEST_LEFT + r.x * scale, py = NEST_TOP + r.y * scale;
+    var pw = r.w * scale, ph = r.h * scale;
+    var cls = (r.type === 'cap' ? 'ncap ' : 'nsquare ') + 'nstep-' + (r.step % 6);
+    var rectEl = svgEl('rect', {
+      'class': cls, x: px, y: py, width: pw, height: ph,
+      tabindex: '0', role: 'button', 'data-step': r.step
+    });
+    rectEl.style.animationDelay = tileStaggerDelay(idx, total) + 'ms';
+    rectEl.appendChild(svgEl('title')).textContent =
+      'Step ' + (r.step + 1) + ': ' + run.steps[r.step].a + ' = ' + run.steps[r.step].q + '·' +
+      run.steps[r.step].b + ' + ' + run.steps[r.step].r +
+      (r.type === 'cap' ? ' (' + r.extra.toLocaleString() + ' more squares collapsed here)' : '');
+    nestedSvg.appendChild(rectEl);
+
+    if (r.type === 'cap' && pw >= 34){
+      var capLabel = svgEl('text', {
+        'class': 'ncap-label', x: px + pw / 2, y: py + ph / 2 + 4
+      });
+      capLabel.textContent = '×' + r.extra;
+      nestedSvg.appendChild(capLabel);
+    } else if (r.first && pw >= 22){
+      var sideLabel = svgEl('text', {
+        'class': 'nside-label', x: px + 4, y: py + 13
+      });
+      sideLabel.textContent = String(r.w);
+      nestedSvg.appendChild(sideLabel);
+    }
+  }
+
+  var widthLabel = svgEl('text', {
+    'class': 'ndim-label', x: NEST_LEFT + (layout.width * scale) / 2, y: NEST_TOP + layout.height * scale + 26,
+    'text-anchor': 'middle'
+  });
+  widthLabel.textContent = 'A = ' + run.A.toLocaleString();
+  nestedSvg.appendChild(widthLabel);
+
+  var heightLabel = svgEl('text', {
+    'class': 'ndim-label', x: NEST_LEFT + layout.width * scale + 12, y: NEST_TOP + (layout.height * scale) / 2 + 4
+  });
+  heightLabel.textContent = 'B = ' + run.B.toLocaleString();
+  nestedSvg.appendChild(heightLabel);
+
+  var lastB = run.steps[run.steps.length - 1].b;
+  var captionText = 'gcd(' + run.A + ', ' + run.B + ') = ' + run.gcd + ': all ' + run.steps.length +
+    ' step' + (run.steps.length === 1 ? '' : 's') + ' nest into one ' + run.A + '×' + run.B +
+    ' rectangle — the smallest, ' + lastB + '×' + lastB + ' squares are the greatest common divisor. ' +
+    'Click a square (or a step above) to see how they line up.';
+  nestedCaption.textContent = captionText;
+  nestedSvg.setAttribute('aria-label', captionText);
+
+  if (layout.cappedSteps.length > 0){
+    var stepNums = layout.cappedSteps.map(function(i){ return i + 1; }).join(', ');
+    nestedNote.textContent = 'Step' + (layout.cappedSteps.length === 1 ? ' ' : 's ') + stepNums +
+      (layout.cappedSteps.length === 1 ? ' has' : ' have') + ' a very large quotient — only the first ' +
+      TILE_CAP + ' squares are drawn there, collapsed into a dashed tile, so this diagram is not fully to scale at ' +
+      (layout.cappedSteps.length === 1 ? 'that step' : 'those steps') + '.';
+  } else {
+    nestedNote.textContent = '';
+  }
+}
+
+function setGeomView(mode){
+  geomView = mode;
+  var isNested = mode === 'nested';
+  stepView.hidden = isNested;
+  nestedView.hidden = !isNested;
+  viewStepBtn.setAttribute('aria-pressed', isNested ? 'false' : 'true');
+  viewNestedBtn.setAttribute('aria-pressed', isNested ? 'true' : 'false');
 }
 
 /* ---------- playback ---------- */
@@ -748,6 +1000,7 @@ function resetPlayback(){
   answerLine.textContent = '';
   identityLine.textContent = '';
   clearTiles();
+  updateNestedHighlight(-1);
   stepBtn.disabled = false;
   playBtn.textContent = '▶ Play';
   banner.textContent = 'Ready — press Play to watch the derivation build one line at a time.';
@@ -756,11 +1009,13 @@ function resetPlayback(){
 function buildRun(){
   var inputs = readInputs();
   if (!inputs) return;
+  updateXrefLink(inputs.enteredA, inputs.enteredB);
   var result = euclidSteps(inputs.A, inputs.B);
   currentRun = {
     A: inputs.A, B: inputs.B,
     steps: result.steps, gcd: result.gcd, s: result.s, t: result.t
   };
+  buildNestedView(currentRun);
   resetPlayback();
   instantFinish();
 }
@@ -797,6 +1052,24 @@ chain.addEventListener('keydown', function(e){
   showStep(parseInt(line.dataset.index, 10));
 });
 
+viewStepBtn.addEventListener('click', function(){ setGeomView('step'); });
+viewNestedBtn.addEventListener('click', function(){ setGeomView('nested'); });
+
+nestedSvg.addEventListener('click', function(e){
+  var step = e.target && e.target.dataset ? e.target.dataset.step : undefined;
+  if (step === undefined) return;
+  pause();
+  showStep(parseInt(step, 10));
+});
+nestedSvg.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var step = e.target && e.target.dataset ? e.target.dataset.step : undefined;
+  if (step === undefined) return;
+  e.preventDefault();
+  pause();
+  showStep(parseInt(step, 10));
+});
+
 var presetChips = $('presetChips');
 var chipButtons = presetChips.querySelectorAll('.chip');
 chipButtons.forEach(function(chip){
@@ -809,6 +1082,11 @@ chipButtons.forEach(function(chip){
 
 window.addEventListener('load', function(){
   speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  var abParams = readABParams();
+  if (abParams){
+    aInput.value = abParams.a;
+    bInput.value = abParams.b;
+  }
   buildRun();
 });
 
