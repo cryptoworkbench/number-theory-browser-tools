@@ -22,15 +22,15 @@ last_mapped_at: 2026-09-23
           ├─────────────────────┬───────────────┬──────────────────┬──────────────┐
           ▼                     ▼               ▼                  ▼              ▼
 ┌──────────────────────┐ ┌──────────────┐ ┌────────────────┐ ┌──────────┐ ┌─────────────┐
-│  Sieve of           │ │ Factor Tree  │ │ Completing the │ │ Congruence  │ │ RSA         │
-│  Eratosthenes       │ │              │ │ Square         │ │ Wheel       │ │             │
-│ `Sieve Of.../       │ │ `Factor      │ │ `Factorize     │ │ `Congruence │ │ `RSA/       │
-│  sieve-of-...html` │ │  Tree/...`   │ │  By.../...`    │ │  Wheel/..`  │ │  rsa.html`  │
+│  Sieve of           │ │ Factor Tree  │ │ Fermat's       │ │ Congruence  │ │ RSA         │
+│  Eratosthenes       │ │              │ │ Method         │ │ Wheel       │ │             │
+│ `Sieve Of.../       │ │ `Factor      │ │ `Fermats       │ │ `Congruence │ │ `RSA/       │
+│  sieve-of-...html` │ │  Tree/...`   │ │  Method/...`   │ │  Wheel/..`  │ │  rsa.html`  │
 │                    │ │              │ │                │ │             │ │             │
-│ · Animated grid    │ │ · Tree       │ │ · Completing   │ │ · Polar     │ │ · Step-by   │
-│   with playback    │ │   diagram    │ │   square viz   │ │   sectors   │ │   step RSA  │
-│ · Prime marking    │ │ · Recursive  │ │ · Animation    │ │ · Modular   │ │   flow      │
-│ · Audio chimes     │ │   branches   │ │   controls     │ │   arithmetic│ │ · Bob/Alice │
+│ · Animated grid    │ │ · Tree       │ │ · Fermat's     │ │ · Polar     │ │ · Step-by   │
+│   with playback    │ │   diagram    │ │ factoring      │ │   sectors   │ │   step RSA  │
+│ · Prime marking    │ │ · Recursive  │ │ · Geometric    │ │ · Modular   │ │   flow      │
+│ · Audio chimes     │ │   branches   │ │ picture        │ │   arithmetic│ │ · Bob/Alice │
 └──────────────────────┘ └──────────────┘ └────────────────┘ └──────────────┘ │ · Eve taps  │
          │                      │                │                  │         │   wire     │
          │                      │                │                  │         │ · BigInt   │
@@ -54,7 +54,7 @@ last_mapped_at: 2026-09-23
 | Portal | Discover and navigate to all tools; present metadata | `index.html` |
 | Sieve Tool | Visualize prime-finding algorithm with playback | `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` |
 | Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
-| Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
+| Fermat's Method Tool | Visualize Fermat's factoring method via algebra → geometry | `Fermats Method/fermats-method.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |

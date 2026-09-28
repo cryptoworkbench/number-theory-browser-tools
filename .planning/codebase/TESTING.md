@@ -23,7 +23,7 @@ open "Factor Tree/factor-tree.html"
 open "Congruence Wheel/congruence-wheel.html"
 open "Sieve Of Eratosthenes/sieve-of-eratosthenes.html"
 open "RSA/rsa.html"
-open "Factorize By Completing The Square/factorize-completing-square.html"
+open "Fermats Method/fermats-method.html"
 ```
 
 ## Test File Organization
@@ -71,7 +71,7 @@ Each tool includes **built-in manual testing controls and example presets** inst
 - Locked steps that unlock after dependencies met
 - Eve's brute-force factoring button to demonstrate computational hardness
 
-**Factorize by Completing the Square** (`Factorize By Completing The Square/factorize-completing-square.html`):
+**Fermat's Method** (`Fermats Method/fermats-method.html`):
 
 - Coefficient inputs for quadratic (a·x² + b·x + c)
 - Playback controls and step-through visualization

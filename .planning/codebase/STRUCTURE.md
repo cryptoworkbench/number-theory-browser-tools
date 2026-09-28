@@ -25,8 +25,8 @@ number-theory-browser-tools/
 ├── Factor Tree/
 │   ├── factor-tree.html             # Prime factorization tree visualizer
 │   └── example_prime_factorization   # Example/documentation file (unused in app)
-├── Factorize By Completing The Square/
-│   ├── factorize-completing-square.html  # Fermat's factoring method viz
+├── Fermats Method/
+│   ├── fermats-method.html          # Fermat's factoring method viz
 │   └── CLAUDE_RESUME_COMMAND        # Session residue (leave as-is)
 ├── Congruence Wheel/
 │   ├── congruence-wheel.html        # Congruence wheel (modular arithmetic)
@@ -66,11 +66,11 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - Key files: `factor-tree.html`
 - Concept: User enters a number, sees animated tree where internal nodes branch down to prime leaf nodes
 
-**`Factorize By Completing The Square/`:**
+**`Fermats Method/`:**
 
-- Purpose: Fermat's factoring method via completing-the-square algebra
+- Purpose: Fermat's factoring method — searches for a² − N = b² and turns the algebra into a picture
 - Contains: Single HTML file with animation controls
-- Key files: `factorize-completing-square.html`
+- Key files: `fermats-method.html`
 - Concept: User enters a target number N, solver searches for a² − N = b², animates the algebra and geometry
 
 **`Congruence Wheel/`:**
@@ -108,7 +108,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - `Factor Tree/factor-tree.html` — Factor tree tool (opened from portal)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — Sieve tool
 - `Congruence Wheel/congruence-wheel.html` — Congruence wheel tool
-- `Factorize By Completing The Square/factorize-completing-square.html` — Completing square tool
+- `Fermats Method/fermats-method.html` — Fermat's Method tool
 - `RSA/rsa.html` — RSA tool
 
 **Configuration:**
@@ -121,7 +121,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - Top of each `[tool].html` `<script>` block contains pure number-theory functions
   - `primeFactors(n)` — Recursive factorization (factor-tree.html, sieve-of-eratosthenes.html)
   - `isPrime(n)` — Primality test (multiple tools)
-  - `modPow(base, exp, mod)` — Modular exponentiation (RSA tool, Completing square tool)
+  - `modPow(base, exp, mod)` — Modular exponentiation (RSA tool, Fermat's Method tool)
   - `bigGcd(a, b)` — Extended Euclidean algorithm (RSA tool)
   - `smallestPrimeFactor(n)` — Greedy factorization (multiple tools)
 

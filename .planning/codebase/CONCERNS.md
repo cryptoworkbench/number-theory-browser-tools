@@ -11,7 +11,7 @@ last_mapped_at: 2026-09-23
 **Breaking the single-file-per-tool pattern:**
 
 - Issue: HTML files now import shared CSS and JS (`../assets/site.css`, `../assets/theme.js`), contradicting the self-contained single-file design stated in CLAUDE.md
-- Files: `Factor Tree/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Congruence Wheel/congruence-wheel.html`, `RSA/rsa.html`, `Factorize By Completing The Square/factorize-completing-square.html`
+- Files: `Factor Tree/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Congruence Wheel/congruence-wheel.html`, `RSA/rsa.html`, `Fermats Method/fermats-method.html`
 - Impact: Tools no longer work in isolation. Moving or copying a tool outside the repo structure breaks it. Development workflow requires managing three files per tool instead of one.
 - Fix approach: Either (a) inline `site.css` and `theme.js` into each HTML file to restore true self-containment, or (b) update CLAUDE.md to document the new shared-assets pattern and commit to maintaining the three-file structure
 
@@ -20,7 +20,7 @@ last_mapped_at: 2026-09-23
 **HTML header/nav boilerplate repeated in every file:**
 
 - Issue: Each of 5 HTML tools contains 8–20 lines of identical site header markup (navigation, theme toggle, branding)
-- Files: All tool HTML files (factor-tree.html, sieve-of-eratosthenes.html, congruence-wheel.html, rsa.html, factorize-completing-square.html)
+- Files: All tool HTML files (factor-tree.html, sieve-of-eratosthenes.html, congruence-wheel.html, rsa.html, fermats-method.html)
 - Impact: Site-wide navigation changes require editing 5 files. Easy to miss one and create inconsistency. Changes to nav links break silently if done incompletely.
 - Fix approach: Use a templating step during development (e.g., a build script that injects header into each file), or accept the duplication and add a checklist documenting all files that need nav updates
 
@@ -37,8 +37,8 @@ last_mapped_at: 2026-09-23
 
 **Individual HTML files exceed 800 lines:**
 
-- Issue: `factorize-completing-square.html` (863 lines), `sieve-of-eratosthenes.html` (815 lines) are large monolithic files with inline styles, scripts, and markup all mixed
-- Files: `factorize-completing-square.html`, `sieve-of-eratosthenes.html`
+- Issue: `fermats-method.html` (863 lines), `sieve-of-eratosthenes.html` (815 lines) are large monolithic files with inline styles, scripts, and markup all mixed
+- Files: `fermats-method.html`, `sieve-of-eratosthenes.html`
 - Impact: Harder to locate and fix bugs. Editing one part risks breaking another (no modular isolation). Code review becomes tedious. Browser dev tools can struggle with large inline scripts.
 - Fix approach: No immediate fix (tools are self-contained by design), but document line-count expectations and enforce with a linter if files grow further
 
@@ -47,9 +47,9 @@ last_mapped_at: 2026-09-23
 **Regular JavaScript Numbers lose precision above 2^53:**
 
 - Issue: Most tools use `Number` for computation (`primeFactors`, `smallestPrimeFactor`, `isPrime` functions), which silently overflow for integers > 2^53 (≈9 quadrillion)
-- Files: `Factor Tree/factor-tree.html` (lines 436–462), `Congruence Wheel/congruence-wheel.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Factorize By Completing The Square/factorize-completing-square.html`
+- Files: `Factor Tree/factor-tree.html` (lines 436–462), `Congruence Wheel/congruence-wheel.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Fermats Method/fermats-method.html`
 - Impact: Inputs in the range ~10¹⁵–10¹⁶ will produce incorrect factorizations silently. User will see wrong prime factors or hang loops. Only `RSA/rsa.html` uses BigInt and is safe.
-- Current validation: Factor Tree caps input at 1 trillion (10¹²), Completing-the-Square caps at 10⁹. These limits are ad-hoc and not enforced uniformly.
+- Current validation: Factor Tree caps input at 1 trillion (10¹²), Fermat's Method caps at 10⁹. These limits are ad-hoc and not enforced uniformly.
 - Fix approach: Add `Number.isSafeInteger()` checks to all number-theory functions and reject unsafe inputs with a user-facing error message; or migrate all computation functions to BigInt (large change but future-proof)
 
 ## localStorage Failures in Private Browsing
@@ -66,9 +66,9 @@ last_mapped_at: 2026-09-23
 **Missing protection against compute-intensive inputs:**
 
 - Issue: While basic range checks exist (e.g., < 1 trillion for Factor Tree), no checks prevent inputs that cause long computation or browser freeze
-- Files: Primarily `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (grid size), `Factorize By Completing The Square/factorize-completing-square.html` (trial count with `MAX_ITER`)
+- Files: Primarily `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (grid size), `Fermats Method/fermats-method.html` (trial count with `MAX_ITER`)
 - Impact: User can input 10⁹ for sieve size, freeze browser for minutes
-- Current mitigations: Sieve has `MAX_N = 100000`, Completing-the-Square has `MAX_ITER = 50000`. But no UI constraint on inputs (max attribute exists but not enforced by all controls).
+- Current mitigations: Sieve has `MAX_N = 100000`, Fermat's Method has `MAX_ITER = 50000`. But no UI constraint on inputs (max attribute exists but not enforced by all controls).
 - Fix approach: Add HTML5 `max` attributes to all number inputs; add timeout/abort logic to long-running computations (e.g., "abort sieve search after 5 seconds"); display progress and a cancel button during heavy work
 
 ## SVG Accessibility
@@ -114,7 +114,7 @@ last_mapped_at: 2026-09-23
 **innerHTML with computed values (not user-controlled):**
 
 - Issue: Several files use `innerHTML` to inject HTML with template literals: `banner.innerHTML = `Found ${M.toLocaleString()}…``
-- Files: `Factorize By Completing The Square/factorize-completing-square.html` (lines 736, 749, 761, 765, 837), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (line 662), `Congruence Wheel/congruence-wheel.html` (line 525), `RSA/rsa.html` (lines 470, 516, 586, 610, 628, 683)
+- Files: `Fermats Method/fermats-method.html` (lines 736, 749, 761, 765, 837), `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` (line 662), `Congruence Wheel/congruence-wheel.html` (line 525), `RSA/rsa.html` (lines 470, 516, 586, 610, 628, 683)
 - Current status: Safe. Values injected are numbers (M, k, a, b) or localized strings (`toLocaleString()`), never raw user input.
 - Risk: If code is refactored to include user-supplied strings without sanitization, XSS becomes possible.
 - Recommendation: Add a comment near `innerHTML` assignments: `/* Safe: value is numeric, not user input */` to alert future maintainers
@@ -124,7 +124,7 @@ last_mapped_at: 2026-09-23
 **Memory & computation for large inputs:**
 
 - Sieve grid: Storing 100,000 Boolean values for the sieve grid uses ~100KB, acceptable. But `MAX_N = 100000` is arbitrary; no memory budget defined.
-- Completing-the-Square: Trial loop runs up to 50,000 iterations; each stores `{ a, b, c }` in `trials[]`. At 50K trials, this is a large array. GC may hiccup.
+- Fermat's Method: Trial loop runs up to 50,000 iterations; each stores `{ a, b, c }` in `trials[]`. At 50K trials, this is a large array. GC may hiccup.
 - Factor Tree: Recursive factorization has no depth limit. Input like 2^30 creates a tree with 30 levels, each with up to 2^(30-depth) nodes. Rendering 2^30 node circles will OOM.
 - Fix approach: Add configurable `MAX_DEPTH` limits; bail out early if tree depth exceeds threshold; warn user instead of hanging
 

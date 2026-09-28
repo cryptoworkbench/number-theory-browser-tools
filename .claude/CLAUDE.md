@@ -43,7 +43,7 @@ An educational website of interactive, visualization-led browser tools that make
 - Google Fonts (`https://fonts.googleapis.com`)
 - `document.createElementNS()` for SVG creation
 - `localStorage` for theme preference and tool state persistence
-- `requestAnimationFrame` for animation loops (Sieve tool, Completing-the-Square tool)
+- `requestAnimationFrame` for animation loops (Sieve tool, Fermat's Method tool)
 - `performance.now()` for timing measurements
 - `BigInt` native type (RSA tool for cryptographic calculations)
 
@@ -196,7 +196,7 @@ An educational website of interactive, visualization-led browser tools that make
 | Portal | Discover and navigate to all tools; present metadata | `index.html` |
 | Sieve Tool | Visualize prime-finding algorithm with playback | `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` |
 | Factor Tree Tool | Animate recursive factorization as tree diagram | `Factor Tree/factor-tree.html` |
-| Completing Square Tool | Visualize Fermat's factoring method via algebra → geometry | `Factorize By Completing The Square/factorize-completing-square.html` |
+| Fermat's Method Tool | Visualize Fermat's factoring method via algebra → geometry | `Fermats Method/fermats-method.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |

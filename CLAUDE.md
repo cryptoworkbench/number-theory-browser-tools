@@ -11,7 +11,7 @@ A collection of standalone, single-file HTML browser tools that visualize number
 Each tool lives in its own top-level directory named after the tool, containing exactly one `.html` file:
 
 - `Factor Tree/factor-tree.html` — animated prime factor tree (recursive factorization diagram, SVG-rendered)
-- `Factorize By Completing The Square/factorize-completing-square.html` — visualizes factoring quadratics via completing-the-square trials
+- `Fermats Method/fermats-method.html` — visualizes integer factoring via Fermat's method (search for a² − N = b²)
 - `Congruence Wheel/congruence-wheel.html` — "Congruence Wheel," a modular arithmetic visualizer using pizza-slice sectors
 - `RSA/rsa.html` — walks through RSA key generation, encryption, and a brute-force factoring attack demo (Bob/Alice/Eve narrative)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — animated sieve grid with playback controls and audio chimes on primes found
@@ -28,7 +28,7 @@ Every tool follows the same self-contained single-file structure — no external
    - Pure number-theory functions at the top (e.g. `primeFactors`, `isPrime`, `smallestPrimeFactor`, `bigGcd`, `modPowPlain`, `isPrimeBig`) — these are the actual math and are safe to reuse/reference across tools if porting logic.
    - An `svgEl(tag, attrs)` helper for building SVG elements via `document.createElementNS` (repeated verbatim in most tools) — used for hand-drawn diagrams (trees, sectors, grids) rather than any charting library.
    - A render/build function that lays out geometry (positions, radii, spacing) based on container width, then animates it in with staggered `setTimeout` reveals and CSS transitions/keyframes.
-   - Play/pause/step/instant-finish playback controls (Sieve and Completing-the-Square tools) driven by `requestAnimationFrame`-style loops with a `generation` counter used to invalidate stale animation callbacks when the user restarts mid-animation.
+   - Play/pause/step/instant-finish playback controls (Sieve and Fermat's Method tools) driven by `requestAnimationFrame`-style loops with a `generation` counter used to invalidate stale animation callbacks when the user restarts mid-animation.
    - Event wiring at the bottom (button clicks, Enter key, preset chips) plus a `window.addEventListener('load', ...)` that runs an example on page load.
 4. **External resources**: only Google Fonts (`fonts.googleapis.com`) are loaded via `<link>`; no other CDN or third-party JS dependency is used anywhere in the repo. The RSA tool uses native `BigInt` for large-number arithmetic (key generation, modular exponentiation) — no external crypto library.
 

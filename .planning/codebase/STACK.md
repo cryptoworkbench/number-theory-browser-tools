@@ -48,7 +48,7 @@ last_mapped_at: 2026-09-23
 
 - `document.createElementNS()` for SVG creation
 - `localStorage` for theme preference and tool state persistence
-- `requestAnimationFrame` for animation loops (Sieve tool, Completing-the-Square tool)
+- `requestAnimationFrame` for animation loops (Sieve tool, Fermat's Method tool)
 - `performance.now()` for timing measurements
 - `BigInt` native type (RSA tool for cryptographic calculations)
 

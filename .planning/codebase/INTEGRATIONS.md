@@ -17,7 +17,7 @@ last_mapped_at: 2026-09-23
   - `Source Sans 3` (homepage, Congruence Wheel, RSA)
   - `JetBrains Mono` (homepage, Congruence Wheel, RSA)
   - `Mountains of Christmas` (Factor Tree tool — seasonal)
-  - `Poppins` (Factor Tree, Completing-the-Square tools)
+  - `Poppins` (Factor Tree, Fermat's Method tools)
 - Connection: `<link rel="preconnect">` and `<link rel="stylesheet">` tags
 - Auth: None (public CDN)
 - Fallback: System fonts via font stack (`Georgia`, `monospace`, `sans-serif`)
