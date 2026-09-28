@@ -155,6 +155,7 @@ None yet.
 | 260928-dax | Carry mode+N URL params across the bidirectional Congruence Wheel <-> Cayley Table Generator cross-link (CAYLEY-07) | 2026-09-28 | 17c5c29 | [260928-dax-build-a-bidirectional-cross-link-between](./quick/260928-dax-build-a-bidirectional-cross-link-between/) |
 | 260928-e7e | Fix Euclidean Algorithm Venn cross-link staleness (live a/b field tracking) and default geometric view to Nested squares | 2026-09-28 | 8a2fce1 | [260928-e7e-fix-euclidean-algorithm-xref-link-to-ref](./quick/260928-e7e-fix-euclidean-algorithm-xref-link-to-ref/) |
 | 260928-ep7 | Change the Euclidean Algorithm homepage logo to a miniature of the nested-squares view (a=89, b=55) | 2026-09-28 | cc6df0c | [260928-ep7-change-the-euclidean-algorithm-homepage-](./quick/260928-ep7-change-the-euclidean-algorithm-homepage-/) |
+| 260928-fdz | Reorder the site menubar/nav (and homepage card grid, if it has its own ordering) to this exact order: Home, Sieve of Eratosthenes, Factor Tree, Venn Diagrams, Euclidean Algorithm, Congruence Wheel (i.e. the newly-renamed Equivalence Wheel), Cayley Table, Square and Multiply, Diffie-Hellman, RSA, Fermat's Method (the newly-renamed Completing The Square), Shor's Algorithm. | 2026-09-28 | 40c1da8 | /home/mainaccount/Claude/number-theory-browser-tools/.planning/quick/260928-fdz-reorder-the-site-menubar-nav-and-homepage-card-grid-if-it-ha |
 
 ## Deferred Items
 
