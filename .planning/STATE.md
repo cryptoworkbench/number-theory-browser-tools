@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: Chinese Remainder Theorem Tool
 status: verifying
-stopped_at: Completed 05-01-PLAN.md (Cayley Table Generator tracer + site-wide nav registration)
-last_updated: "2026-09-28T01:18:44.572Z"
+stopped_at: "Completed 05-02-PLAN.md (Cayley Table Generator static teaching states: identity row/column, self-inverse ring, diagonal symmetry mirror echo)"
+last_updated: "2026-09-28T01:30:58.012Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 02 execution complete (Euclidean Algorithm / GCD Tool)
-state_head: a15cd9aa80567a3aa9930e8e5f57230833a44505
+state_head: 27700c93d25b882d13758f502908bd50b5ba0f6b
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 40
 ---
 
@@ -69,6 +69,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P02 | 22min | 2 tasks | 2 files |
 | Phase 02 P04 | 16min | 2 tasks | 1 files |
 | Phase 05 P01 | 26min | 2 tasks | 12 files |
+| Phase 05 P02 | 15min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Roadmap 2026-09-27]: Symmetry groups, permutation groups, cosets, and quotient groups stay out of scope for the Cayley milestone (PROJECT.md Out of Scope + explicit user scoping decision) — Phase 5 plans must not drift toward them.
 - [Phase 05]: [Phase 05 Plan 01]: Renamed mode-tab active-state class from is-active to is-current to resolve an internal conflict in the plan's own static verify gate (duplicate Congruence Wheel mode-tab markup vs. literal is-active count of 1), no functional/label change
 - [Phase 05]: [Phase 05 Plan 01]: Fixed a silent-clamp bug where #n-input's change event re-read an already-clamped value and wiped the clamp note written by the preceding input event; added a lastHandledRaw dedupe guard in regenerate() (Rule 1 fix, no scope change)
+- [Phase 05]: [Phase 05 Plan 02]: applyStaticStates extended (not duplicated) to add the on-diag class inside its existing diagonal loop, since Task 2's action required on-diag to be assigned in the same build pass as Task 1's static classes
+- [Phase 05]: [Phase 05 Plan 02]: identityWord/inverseWord/symmetryNote added as plain per-mode string fields on the existing MODES objects (same shape as sign/words/summary), verified behaviorally that mode switching changes the rendered wording
 
 ### Pending Todos
 
@@ -156,8 +159,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T01:18:44.500Z
-Stopped at: Completed 05-01-PLAN.md (Cayley Table Generator tracer + site-wide nav registration)
+Last session: 2026-09-28T01:30:57.893Z
+Stopped at: Completed 05-02-PLAN.md (Cayley Table Generator static teaching states: identity row/column, self-inverse ring, diagonal symmetry mirror echo)
 Resume file: None
 
 Last activity: 2026-09-27 - Phase 02 (Euclidean Algorithm / GCD Tool) complete: all four plans executed, phase-wide sweep green

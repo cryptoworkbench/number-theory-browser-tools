@@ -50,9 +50,9 @@ Requirements for the number-theory milestone (three new number-theory tools + si
 - [x] **CAYLEY-01**: User can set a modulus N via a validated input to generate the group's operation table
 - [x] **CAYLEY-02**: User can toggle between Additive Group (Z/NZ, all N elements) and Multiplicative Group ((Z/NZ)ˣ, units only — elements coprime to N) modes, changing which elements and operation the table uses, echoing the Congruence Wheel's existing mode-toggle pattern
 - [x] **CAYLEY-03**: User can click any table cell to see the underlying equation (e.g. `3 + 5 = 8 ≡ 2 (mod 6)`) with that cell's row/column headers highlighted
-- [ ] **CAYLEY-04**: The identity element's row and column are visually distinguished
-- [ ] **CAYLEY-05**: The table visually demonstrates diagonal symmetry (commutativity) as a teaching point
-- [ ] **CAYLEY-06**: Elements that are their own inverse (diagonal cells equal to the identity) are visually highlighted
+- [x] **CAYLEY-04**: The identity element's row and column are visually distinguished
+- [x] **CAYLEY-05**: The table visually demonstrates diagonal symmetry (commutativity) as a teaching point
+- [x] **CAYLEY-06**: Elements that are their own inverse (diagonal cells equal to the identity) are visually highlighted
 - [ ] **CAYLEY-07**: Two-way cross-link between the Cayley Table Generator and the Congruence Wheel tool
 
 ### Site Navigation
@@ -128,9 +128,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CAYLEY-01 | Phase 5 | Complete |
 | CAYLEY-02 | Phase 5 | Complete |
 | CAYLEY-03 | Phase 5 | Complete |
-| CAYLEY-04 | Phase 5 | Pending |
-| CAYLEY-05 | Phase 5 | Pending |
-| CAYLEY-06 | Phase 5 | Pending |
+| CAYLEY-04 | Phase 5 | Complete |
+| CAYLEY-05 | Phase 5 | Complete |
+| CAYLEY-06 | Phase 5 | Complete |
 | CAYLEY-07 | Phase 5 | Pending |
 | NAV-03 | Phase 5 | Complete |
 
