@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chinese Remainder Theorem</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Chinese-Remainder-Theorem slot colors, aliased from the shared semantic
+       roles (D-02): --slot-res is a row's plain highlighted cells, the
+       values that satisfy that one congruence (--role-input); --slot-cursor
+       is the brute-force scan's current column while it searches
+       (--role-active); --slot-sol is the landed simultaneous solution
+       column, shared by every congruence row and the "all agree" row once
+       found (--role-result); --slot-warn covers both the pairwise-
+       coprimality guard and the span-ceiling guard (--role-warn); --slot-ext
+       is reserved for plan 03-03's Extended-Euclidean construction reveal
+       (--role-special) and is left unused by this task's markup so that
+       plan only has to consume an alias that already exists. The *-soft
+       variants tint a value's background without a literal color. */
+    --slot-res: var(--role-input);
+    --slot-cursor: var(--role-active);
+    --slot-sol: var(--role-result);
+    --slot-warn: var(--role-warn);
+    --slot-ext: var(--role-special);
+    --slot-res-soft: color-mix(in srgb, var(--slot-res) 22%, transparent);
+    --slot-cursor-soft: color-mix(in srgb, var(--slot-cursor) 22%, transparent);
+    --slot-sol-soft: color-mix(in srgb, var(--slot-sol) 22%, transparent);
+    --slot-warn-soft: color-mix(in srgb, var(--slot-warn) 22%, transparent);
+
+    /* Non-colour local alias: a length, not a hue. Overwritten at runtime,
+       per render, by cellMinPx() via #stripScroll.style.setProperty — this
+       is only the pre-render fallback so the page never renders with an
+       unset custom property before the first buildRun() call completes. */
+    --cell-min: 34px;
+  }
+
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-special) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-result) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; max-width:68ch; margin:8px auto 0; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--accent-2);
+    margin:0 0 10px;
+  }
+  .page-header h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    margin:0 0 12px;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    letter-spacing:-.01em;
+    line-height:1.1;
+  }
+  .lede{ font-size:16px; line-height:1.6; color:var(--text-dim); margin:0 auto; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:110px; }
+  .field label{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem; width:96px;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  .congruence-row{ align-items:flex-end; }
+  .cong-prefix{ font-family:'JetBrains Mono', 'Consolas', monospace; color:var(--text-dim); font-size:1rem; padding-bottom:10px; white-space:nowrap; }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:'JetBrains Mono', 'Consolas', monospace; }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+
+  .error-box{ color:var(--slot-warn); font-size:.85rem; min-height:1.1em; text-align:center; }
+
+  .coprime-note, .span-note{ font-size:.85rem; text-align:center; min-height:1.1em; margin:0; }
+  .coprime-note:empty, .span-note:empty{ display:none; }
+  .coprime-note.is-warn, .span-note.is-warn{ color:var(--slot-warn); }
+  .coprime-note.is-ok{ color:var(--role-result); }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+
+  .caption{ text-align:center; font-size:.78rem; color:var(--text-dim); margin:0; }
+
+  /* ---------- residue-class strips -- the architectural core ---------- */
+  .strip-scroll{
+    overflow-x:auto;
+    overflow-y:hidden;
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+  }
+  .strip-scroll:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+  .strip-body{
+    --label-w: 132px;
+    --cell-gap: 3px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    width:max-content;
+    min-width:100%;
+    padding:2px;
+  }
+
+  .strip-row{ display:grid; column-gap:var(--cell-gap); align-items:center; }
+
+  .strip-label{
+    position:sticky; left:0; z-index:2; background:var(--bg-2);
+    display:flex; align-items:center; padding:0 10px; white-space:nowrap;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.82rem; color:var(--text-dim);
+    border-radius:6px;
+  }
+  .agree-row .strip-label{ color:var(--text); font-weight:600; }
+
+  .strip-cell{
+    width:var(--cell-min); height:var(--cell-min);
+    display:flex; align-items:center; justify-content:center;
+    border-radius:6px;
+    background:color-mix(in srgb, var(--text) 4.5%, transparent);
+    border:1px solid color-mix(in srgb, var(--text) 8%, transparent);
+    color:var(--text-dim);
+    font-variant-numeric:tabular-nums;
+    font-size: clamp(8px, calc(var(--cell-min) * 0.42), 13px);
+    transition: background .2s, border-color .2s, color .2s, box-shadow .2s;
+  }
+
+  .strip-cell.is-residue{ background:var(--slot-res-soft); border-color:var(--slot-res); color:var(--text); }
+  .strip-cell.is-cursor{
+    border-color:var(--slot-cursor); color:var(--slot-cursor);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--slot-cursor) 35%, transparent);
+  }
+  .strip-cell.is-agree{ background:var(--slot-sol-soft); }
+  .strip-cell.is-solution{ background:var(--slot-sol); color:var(--role-result-ink); font-weight:700; border-color:transparent; }
+
+  #stripBody.ticks-only .strip-cell{ font-size:0; }
+
+  .answer-line{
+    margin-top:14px; padding:12px 16px; border-radius:12px; text-align:center;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.15rem; font-weight:700;
+    color:var(--slot-sol);
+    background:var(--slot-sol-soft);
+    border:1px solid var(--slot-sol);
+  }
+  .answer-line:empty{ display:none; }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <text class="brand-icon-digit" x="21" y="26">1</text>
+        <text class="brand-icon-digit" x="43" y="26">2</text>
+        <text class="brand-icon-digit" x="21" y="50">3</text>
+        <text class="brand-icon-digit" x="43" y="50">4</text>
+      </svg>
+      <span class="site-brand-label">Number Theory Tools</span>
+    </a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Venn Diagram/venn-diagram.html" class="site-nav-link">Venn Diagram</a>
+      <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link">Euclidean Algorithm</a>
+      <a href="chinese-remainder-theorem.html" class="site-nav-link is-active">Chinese Remainder Theorem</a>
+      <a href="../Equivalence Wheel/equivalence-wheel.html" class="site-nav-link">Equivalence Wheel</a>
+      <a href="../Cayley Table/cayley-table.html" class="site-nav-link">Cayley Table</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link">Square and Multiply</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="../RSA/rsa.html" class="site-nav-link">RSA</a>
+      <a href="../Fermats Method/fermats-method.html" class="site-nav-link">Fermat's Method</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link">Shor's Algorithm</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <p class="eyebrow">number theory · chinese remainder theorem</p>
+    <h1>Chinese Remainder Theorem</h1>
+    <p class="lede">Each congruence on its own picks out an evenly-spaced family of numbers — every third number, every
+      fifth number, and so on. When the moduli share no common factor, those families cross at exactly one place in
+      every stretch of <code>lcm</code> numbers. That single crossing is the simultaneous solution every row agrees on.</p>
+  </header>
+
+  <section class="panel controls">
+    <div id="congruenceFields" style="width:100%;">
+      <div class="field-row congruence-row" data-row="0">
+        <span class="cong-prefix">x &equiv;</span>
+        <div class="field"><label for="a1">remainder a</label><input id="a1" type="number" min="0" step="1" value="2"></div>
+        <span class="cong-prefix">(mod</span>
+        <div class="field"><label for="m1">modulus m</label><input id="m1" type="number" min="1" max="12" step="1" value="3"></div>
+        <span class="cong-prefix">)</span>
+      </div>
+      <div class="field-row congruence-row" data-row="1">
+        <span class="cong-prefix">x &equiv;</span>
+        <div class="field"><label for="a2">remainder a</label><input id="a2" type="number" min="0" step="1" value="3"></div>
+        <span class="cong-prefix">(mod</span>
+        <div class="field"><label for="m2">modulus m</label><input id="m2" type="number" min="1" max="12" step="1" value="5"></div>
+        <span class="cong-prefix">)</span>
+      </div>
+      <div class="field-row congruence-row" id="row3Fields" data-row="2" hidden>
+        <span class="cong-prefix">x &equiv;</span>
+        <div class="field"><label for="a3">remainder a</label><input id="a3" type="number" min="0" step="1" value="2"></div>
+        <span class="cong-prefix">(mod</span>
+        <div class="field"><label for="m3">modulus m</label><input id="m3" type="number" min="1" max="12" step="1" value="7"></div>
+        <span class="cong-prefix">)</span>
+      </div>
+    </div>
+
+    <div class="chips" id="presetChips">
+      <button type="button" class="chip" data-count="3" data-a1="2" data-m1="3" data-a2="3" data-m2="5" data-a3="2" data-m3="7">2 mod 3 · 3 mod 5 · 2 mod 7 · Sun Tzu's riddle</button>
+    </div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="playBtn">▶ Play</button>
+      <button id="stepBtn">⏭ Step</button>
+      <button id="instantBtn" class="ghost">⏩ Instant</button>
+      <button id="resetBtn" class="ghost">↺ Reset</button>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:flex-end;">
+      <div class="speed-wrap">
+        <label for="speedInput" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim);">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="3">
+        <span id="speedLabel">gentle</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="error-box" id="errorBox"></div>
+  <p class="coprime-note" id="coprimeNote"></p>
+  <p class="span-note" id="spanNote"></p>
+  <div class="banner" id="banner"></div>
+
+  <section class="panel">
+    <div id="stripScroll" class="strip-scroll" tabindex="0" role="group" aria-label="Residue class strips, scrollable">
+      <div id="stripBody" class="strip-body"></div>
+    </div>
+    <p id="answerLine" class="answer-line" aria-live="polite"></p>
+  </section>
+
+  <p class="caption">The answer repeats forever with period <code>lcm(moduli)</code> — the marked column is one representative of an infinite family of solutions.</p>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- math helpers ---------- */
+
+function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v)); }
+
+// Iterative Euclidean remainder loop, same shape proven at
+// Equivalence Wheel/equivalence-wheel.html:570.
+function gcd(a, b){
+  a = Math.abs(a); b = Math.abs(b);
+  while (b){ var t = a % b; a = b; b = t; }
+  return a;
+}
+
+// Folds the list with acc/gcd(acc,m)*m -- dividing before multiplying so the
+// intermediate product never inflates beyond the final lcm itself.
+function lcmOf(list){
+  var acc = 1;
+  for (var i = 0; i < list.length; i++){
+    var m = list[i];
+    acc = acc / gcd(acc, m) * m;
+  }
+  return acc;
+}
+
+// Returns the first [i, j] (i < j, index order) whose gcd is not 1, else
+// null. Index order is the contract: the note names the first offending
+// pair, deterministically, not an arbitrary one.
+function firstNonCoprimePair(moduli){
+  for (var i = 0; i < moduli.length; i++){
+    for (var j = i + 1; j < moduli.length; j++){
+      if (gcd(moduli[i], moduli[j]) !== 1) return [i, j];
+    }
+  }
+  return null;
+}
+
+// Forward extended-Euclidean recurrence (adapted from
+// Euclidean Algorithm/euclidean-algorithm.html's euclidSteps): carries only
+// the r/s columns (no t column needed for a one-sided inverse), then
+// normalises the result into [0, m).
+function modInverse(M, m){
+  var r0 = M, r1 = m;
+  var s0 = 1, s1 = 0;
+  while (r1 !== 0){
+    var q = Math.floor(r0 / r1);
+    var r2 = r0 - q * r1;
+    var s2 = s0 - q * s1;
+    r0 = r1; r1 = r2;
+    s0 = s1; s1 = s2;
+  }
+  return ((s0 % m) + m) % m;
+}
+
+// Standard-form CRT construction. Per congruence: Mi = span / m, yi =
+// modInverse(Mi, m), term = a * Mi * yi. x is the raw sum reduced into
+// [0, span). Plan 03-03 renders exactly these fields, so they are computed
+// once here rather than a second time later.
+function crtConstruct(list){
+  var span = lcmOf(list.map(function(c){ return c.m; }));
+  var terms = [];
+  var sum = 0;
+  for (var i = 0; i < list.length; i++){
+    var c = list[i];
+    var Mi = span / c.m;
+    var yi = modInverse(Mi, c.m);
+    var term = c.a * Mi * yi;
+    terms.push({ a: c.a, m: c.m, Mi: Mi, yi: yi, term: term });
+    sum += term;
+  }
+  var x = ((sum % span) + span) % span;
+  return { span: span, x: x, terms: terms, sum: sum };
+}
+
+// The single authoritative entry point: compute the span with lcmOf,
+// delegate to crtConstruct, and return the answer. Nothing else in this
+// file may compute the answer a second way -- this is the invariant the
+// animated scan is checked against in landSolution().
+function solveCrt(list){
+  var span = lcmOf(list.map(function(c){ return c.m; }));
+  var construction = crtConstruct(list);
+  return { span: span, x: construction.x, terms: construction.terms, sum: construction.sum };
+}
+
+/* ---------- constants ---------- */
+
+var MIN_MODULUS = 1;
+var MAX_MODULUS = 12;
+var MAX_SPAN = 400;
+var MIN_COUNT = 2;
+var MAX_COUNT = 3;
+var CELL_GAP = 3;
+var LABEL_W = 132;
+
+var SPEED_LABELS = {1:'glacial',2:'slow',3:'gentle',4:'brisk',5:'steady',6:'quick',7:'fast',8:'rapid',9:'blazing',10:'instant-ish'};
+var SCAN_DWELL_MS = {1:600, 2:300, 3:140};
+var SCAN_PER_FRAME = {4:2, 5:4, 6:8, 7:20, 8:60, 9:160, 10:100000};
+
+/* ---------- DOM references ---------- */
+
+var $ = function(id){ return document.getElementById(id); };
+
+var row3Fields = $('row3Fields');
+var a1 = $('a1'), m1 = $('m1');
+var a2 = $('a2'), m2 = $('m2');
+var a3 = $('a3'), m3 = $('m3');
+var presetChips = $('presetChips');
+var playBtn = $('playBtn');
+var stepBtn = $('stepBtn');
+var instantBtn = $('instantBtn');
+var resetBtn = $('resetBtn');
+var speedInput = $('speedInput');
+var speedLabel = $('speedLabel');
+var errorBox = $('errorBox');
+var coprimeNote = $('coprimeNote');
+var spanNote = $('spanNote');
+var banner = $('banner');
+var stripScroll = $('stripScroll');
+var stripBody = $('stripBody');
+var answerLine = $('answerLine');
+
+/* ---------- state ---------- */
+
+// Nothing here is persisted to browser storage -- D-08 explicitly rules out
+// a shared store for this tool, the page opens on a worked example every
+// time, and there is no per-tool key to add.
+var state = { count: 2, cells: [], agreeCells: [], run: null, cellMin: 34, span: 0 };
+
+var playing = false;
+var rafId = null;
+var lastAdvance = 0;
+var scanIndex = 0;
+var generation = 0;
+var cursorX = -1;
+var landedX = -1;
+
+/* ---------- input reading ---------- */
+
+// The only place a typed string becomes a number. On any rejection returns
+// null and leaves the existing strips and answer untouched -- a half-typed
+// field must never blank the diagram.
+function readCongruences(){
+  errorBox.textContent = '';
+  var rows = [];
+  for (var i = 0; i < state.count; i++){
+    var idx = i + 1;
+    var aEl = $('a' + idx), mEl = $('m' + idx);
+    var rawM = mEl.value.trim();
+    if (!/^-?\d+$/.test(rawM)){
+      errorBox.textContent = 'Row ' + idx + ': modulus must be a whole number.';
+      return null;
+    }
+    var m = parseInt(rawM, 10);
+    if (m < MIN_MODULUS || m > MAX_MODULUS){
+      errorBox.textContent = 'Row ' + idx + ': modulus must be between ' + MIN_MODULUS + ' and ' + MAX_MODULUS + '.';
+      return null;
+    }
+    var rawA = aEl.value.trim();
+    if (!/^-?\d+$/.test(rawA)){
+      errorBox.textContent = 'Row ' + idx + ': remainder must be a whole number.';
+      return null;
+    }
+    var a = parseInt(rawA, 10);
+    if (a < 0 || a >= m){
+      errorBox.textContent = 'Row ' + idx + ': remainder must be from 0 to ' + (m - 1) + ' for modulus ' + m + '.';
+      return null;
+    }
+    rows.push({ a: a, m: m, idx: idx });
+  }
+  // On success, write each remainder input's max down to its modulus minus
+  // one so the stepper itself teaches the range (03-RESEARCH.md Pitfall 6).
+  for (var k = 0; k < rows.length; k++){
+    $('a' + rows[k].idx).max = String(rows[k].m - 1);
+  }
+  return {
+    list: rows.map(function(r){ return { a: r.a, m: r.m }; }),
+    count: state.count
+  };
+}
+
+/* ---------- guards ---------- */
+
+function coprimeVerdict(moduli){
+  var pair = firstNonCoprimePair(moduli);
+  if (!pair){
+    var span = lcmOf(moduli);
+    coprimeNote.textContent = 'The moduli are pairwise coprime — a standard-form solution exists modulo ' + span + '.';
+    coprimeNote.classList.remove('is-warn');
+    coprimeNote.classList.add('is-ok');
+    return true;
+  }
+  var i = pair[0], j = pair[1];
+  var g = gcd(moduli[i], moduli[j]);
+  coprimeNote.textContent = 'gcd(' + moduli[i] + ', ' + moduli[j] + ') = ' + g + ' — moduli ' + moduli[i] + ' and ' +
+    moduli[j] + ' share a factor, so the standard-form CRT construction’s pairwise-coprime requirement isn’t ' +
+    'met and this tool doesn’t attempt to solve this system.';
+  coprimeNote.classList.remove('is-ok');
+  coprimeNote.classList.add('is-warn');
+  return false;
+}
+
+function spanVerdict(span){
+  if (span > MAX_SPAN){
+    spanNote.textContent = 'The combined period lcm = ' + span + ' is above this tool’s span ceiling of ' +
+      MAX_SPAN + ' — lower one of the moduli to bring it under ' + MAX_SPAN + '.';
+    spanNote.classList.add('is-warn');
+    return false;
+  }
+  spanNote.textContent = '';
+  spanNote.classList.remove('is-warn');
+  return true;
+}
+
+/* ---------- sizing and render ---------- */
+
+// Shrink ladder re-derived for this tool's own cell-count curve (0..400)
+// rather than copied from the Sieve's, whose breakpoints are tuned for up
+// to 20,000 cells.
+function cellMinPx(span){
+  if (span <= 40) return 34;
+  if (span <= 80) return 26;
+  if (span <= 140) return 20;
+  if (span <= 240) return 14;
+  return 10;
+}
+
+// Builds every row into a single DocumentFragment before one append -- the
+// Sieve's build shape, and the reason a 400-column three-congruence strip
+// does not thrash layout.
+function buildStrips(list, span, opts){
+  stripBody.innerHTML = '';
+  state.cells = [];
+  state.agreeCells = [];
+  state.span = span;
+
+  var cellMin = cellMinPx(span);
+  state.cellMin = cellMin;
+  stripScroll.style.setProperty('--cell-min', cellMin + 'px');
+  stripBody.classList.toggle('ticks-only', cellMin < 18);
+
+  var template = 'var(--label-w) repeat(' + span + ', var(--cell-min))';
+  var frag = document.createDocumentFragment();
+
+  for (var r = 0; r < list.length; r++){
+    var cong = list[r];
+    var rowEl = document.createElement('div');
+    rowEl.className = 'strip-row';
+    rowEl.setAttribute('data-row', String(r));
+    rowEl.style.gridTemplateColumns = template;
+
+    var labelEl = document.createElement('div');
+    labelEl.className = 'strip-label';
+    labelEl.textContent = 'x ≡ ' + cong.a + ' (mod ' + cong.m + ')';
+    rowEl.appendChild(labelEl);
+
+    var rowCells = new Array(span);
+    for (var x = 0; x < span; x++){
+      var cellEl = document.createElement('div');
+      cellEl.className = 'strip-cell';
+      cellEl.setAttribute('data-row', String(r));
+      cellEl.setAttribute('data-x', String(x));
+      cellEl.textContent = String(x);
+      if (x % cong.m === cong.a) cellEl.classList.add('is-residue');
+      rowEl.appendChild(cellEl);
+      rowCells[x] = cellEl;
+    }
+    state.cells.push(rowCells);
+    frag.appendChild(rowEl);
+  }
+
+  var agreeRow = document.createElement('div');
+  agreeRow.className = 'strip-row agree-row';
+  agreeRow.setAttribute('data-row', 'agree');
+  agreeRow.style.gridTemplateColumns = template;
+
+  var agreeLabel = document.createElement('div');
+  agreeLabel.className = 'strip-label';
+  agreeLabel.textContent = 'all agree';
+  agreeRow.appendChild(agreeLabel);
+
+  var agreeCells = new Array(span);
+  for (var y = 0; y < span; y++){
+    var ac = document.createElement('div');
+    ac.className = 'strip-cell';
+    ac.setAttribute('data-row', 'agree');
+    ac.setAttribute('data-x', String(y));
+    agreeRow.appendChild(ac);
+    agreeCells[y] = ac;
+  }
+  state.agreeCells = agreeCells;
+  frag.appendChild(agreeRow);
+
+  stripBody.appendChild(frag);
+
+  // `opts.solvable` is informational bookkeeping for callers; this task's
+  // render is identical either way, since each individual congruence's
+  // residue class is still a true picture even when the pairwise-coprime
+  // gate is blocking the solve.
+  return opts && opts.solvable;
+}
+
+// Drives #stripScroll.scrollLeft arithmetically rather than the DOM's
+// scroll-element-into-view convenience method, which Phase 05 plan 03
+// measured at roughly 228ms per call.
+function keepCursorVisible(x){
+  if (!stripScroll) return;
+  var pitch = state.cellMin + CELL_GAP;
+  var targetLeft = LABEL_W + x * pitch;
+  var targetRight = targetLeft + state.cellMin;
+  var viewLeft = stripScroll.scrollLeft;
+  var viewRight = viewLeft + stripScroll.clientWidth;
+  var margin = 40;
+  if (targetLeft < viewLeft + margin){
+    stripScroll.scrollLeft = Math.max(0, targetLeft - margin);
+  } else if (targetRight > viewRight - margin){
+    stripScroll.scrollLeft = targetRight - stripScroll.clientWidth + margin;
+  }
+}
+
+/* ---------- scan ---------- */
+
+function markCursor(x){
+  if (cursorX !== -1 && cursorX !== x){
+    for (var r = 0; r < state.cells.length; r++){
+      var prev = state.cells[r][cursorX];
+      if (prev) prev.classList.remove('is-cursor');
+    }
+    var prevAgree = state.agreeCells[cursorX];
+    if (prevAgree) prevAgree.classList.remove('is-cursor');
+  }
+  cursorX = x;
+  for (var r2 = 0; r2 < state.cells.length; r2++){
+    var cell = state.cells[r2][x];
+    if (cell) cell.classList.add('is-cursor');
+  }
+  var agreeCell = state.agreeCells[x];
+  if (agreeCell) agreeCell.classList.add('is-cursor');
+  keepCursorVisible(x);
+}
+
+function testAt(x){
+  var list = state.run.list;
+  for (var i = 0; i < list.length; i++){
+    if (x % list[i].m !== list[i].a) return false;
+  }
+  return true;
+}
+
+function formatAnswer(x, span){
+  return 'x ≡ ' + x + ' (mod ' + span + ')';
+}
+
+function clearCursor(){
+  if (cursorX === -1) return;
+  for (var r = 0; r < state.cells.length; r++){
+    var c = state.cells[r][cursorX];
+    if (c) c.classList.remove('is-cursor');
+  }
+  var ag = state.agreeCells[cursorX];
+  if (ag) ag.classList.remove('is-cursor');
+  cursorX = -1;
+}
+
+// Marks is-solution on the cell at index x in every congruence row and in
+// the agreement row, clears the cursor, writes the answer, and asserts the
+// landing against state.run.x -- if they differ, a diagnostic sentence is
+// written instead of silently showing the scan's number. One solver, one
+// answer.
+function landSolution(x){
+  pause();
+  clearCursor();
+  for (var r = 0; r < state.cells.length; r++){
+    var cell = state.cells[r][x];
+    if (cell) cell.classList.add('is-solution');
+  }
+  var agreeCell = state.agreeCells[x];
+  if (agreeCell) agreeCell.classList.add('is-solution');
+  landedX = x;
+  answerLine.textContent = formatAnswer(x, state.run.span);
+  if (x !== state.run.x){
+    banner.textContent = 'Diagnostic mismatch: the scan landed at ' + x + ' but the construction computed ' +
+      state.run.x + ' — these must always agree.';
+  } else {
+    banner.textContent = 'Solved — every congruence agrees at x = ' + x + '.';
+  }
+  stepBtn.disabled = true;
+  playBtn.textContent = '▶ Play';
+  keepCursorVisible(x);
+}
+
+// Steps scanIndex forward at most `budget` times. Captures generation at
+// entry and bails the moment it differs, so a callback from an abandoned
+// run can never write into the strip that replaced it. Never advances past
+// span - 1.
+function advanceScan(budget){
+  if (!state.run) return;
+  var myGen = generation;
+  var span = state.run.span;
+  var steps = 0;
+  while (steps < budget && scanIndex < span){
+    if (myGen !== generation) return;
+    var x = scanIndex;
+    markCursor(x);
+    banner.textContent = 'Testing x = ' + x + ' …';
+    if (testAt(x)){
+      var agreeCell = state.agreeCells[x];
+      if (agreeCell) agreeCell.classList.add('is-agree');
+      landSolution(x);
+      return;
+    }
+    scanIndex++;
+    steps++;
+  }
+  if (myGen !== generation) return;
+  if (scanIndex >= span && landedX === -1){
+    banner.textContent = 'Diagnostic: the scan reached the end of the period (' + span +
+      ') without finding an agreement, which should be impossible for a pairwise-coprime system.';
+  }
+}
+
+// Handles both halves of the speed model: speeds 1-3 advance one value once
+// the dwell elapses, speeds 4+ advance a fixed count every animation frame.
+function scanFrame(ts){
+  if (!playing) return;
+  var speed = parseInt(speedInput.value, 10) || 3;
+  if (speed <= 3){
+    if (!lastAdvance) lastAdvance = ts;
+    var dwell = SCAN_DWELL_MS[speed] || SCAN_DWELL_MS[3];
+    if (ts - lastAdvance >= dwell){
+      advanceScan(1);
+      lastAdvance = ts;
+    }
+  } else {
+    var perFrame = SCAN_PER_FRAME[speed] || SCAN_PER_FRAME[4];
+    advanceScan(perFrame);
+  }
+  if (!playing || landedX !== -1) return;
+  rafId = requestAnimationFrame(scanFrame);
+}
+
+function setScanButtonsEnabled(enabled){
+  playBtn.disabled = !enabled;
+  stepBtn.disabled = !enabled;
+  instantBtn.disabled = !enabled;
+  resetBtn.disabled = !enabled;
+}
+
+// A finished run rewinds instead of no-op'ing, so Play always plays without
+// needing a manual Reset first.
+function play(){
+  if (playing || !state.run) return;
+  if (landedX !== -1) resetScan();
+  playing = true;
+  playBtn.textContent = '⏸ Pause';
+  stepBtn.disabled = true;
+  lastAdvance = 0;
+  rafId = requestAnimationFrame(scanFrame);
+}
+
+function pause(){
+  if (!playing){
+    playBtn.textContent = '▶ Play';
+    stepBtn.disabled = !state.run || landedX !== -1;
+    return;
+  }
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playBtn.textContent = '▶ Play';
+  stepBtn.disabled = !state.run || landedX !== -1;
+}
+
+function stepOnce(){
+  if (playing || !state.run || landedX !== -1) return;
+  advanceScan(1);
+}
+
+// Must not iterate: pause, then mark the agreement cell and the solution
+// column at state.run.x directly and write the answer -- O(rows), not
+// O(span).
+function instantFinish(){
+  pause();
+  if (!state.run) return;
+  clearCursor();
+  var x = state.run.x;
+  var agreeCell = state.agreeCells[x];
+  if (agreeCell) agreeCell.classList.add('is-agree');
+  for (var r = 0; r < state.cells.length; r++){
+    var cell = state.cells[r][x];
+    if (cell) cell.classList.add('is-solution');
+  }
+  if (agreeCell) agreeCell.classList.add('is-solution');
+  landedX = x;
+  scanIndex = state.run.span;
+  answerLine.textContent = formatAnswer(x, state.run.span);
+  banner.textContent = 'Solved — every congruence agrees at x = ' + x + '.';
+  stepBtn.disabled = true;
+  playBtn.textContent = '▶ Play';
+  keepCursorVisible(x);
+}
+
+// Pauses, bumps generation to invalidate any in-flight callback, and clears
+// exactly the classes it previously set by walking the remembered marked
+// columns -- not a sweep of the whole strip.
+function resetScan(){
+  pause();
+  generation++;
+  clearCursor();
+  if (landedX !== -1){
+    for (var r = 0; r < state.cells.length; r++){
+      var c = state.cells[r][landedX];
+      if (c) c.classList.remove('is-solution');
+    }
+    var ag = state.agreeCells[landedX];
+    if (ag){ ag.classList.remove('is-solution'); ag.classList.remove('is-agree'); }
+    landedX = -1;
+  }
+  scanIndex = 0;
+  answerLine.textContent = '';
+  banner.textContent = state.run ? 'Ready — press Play to watch the scan search for x.' : '';
+  stepBtn.disabled = !state.run;
+  playBtn.textContent = '▶ Play';
+}
+
+// Pauses and invalidates any in-flight scan without touching the DOM --
+// used at the top of buildRun() before the strip itself gets torn down and
+// rebuilt, so stale bookkeeping never survives into the next render.
+function abortScan(){
+  pause();
+  generation++;
+  cursorX = -1;
+  landedX = -1;
+  scanIndex = 0;
+}
+
+/* ---------- orchestration ---------- */
+
+// The one entry point every input change, preset click and count change
+// routes through.
+function buildRun(){
+  var read = readCongruences();
+  if (!read) return;
+  abortScan();
+
+  var moduli = read.list.map(function(c){ return c.m; });
+  var coprimeOk = coprimeVerdict(moduli);
+  var span = lcmOf(moduli);
+
+  if (!coprimeOk){
+    spanNote.textContent = '';
+    spanNote.classList.remove('is-warn');
+    buildStrips(read.list, span, { solvable: false });
+    answerLine.textContent = '';
+    banner.textContent = '';
+    state.run = null;
+    setScanButtonsEnabled(false);
+    return;
+  }
+
+  var spanOk = spanVerdict(span);
+  if (!spanOk){
+    stripBody.innerHTML = '';
+    state.cells = [];
+    state.agreeCells = [];
+    answerLine.textContent = '';
+    banner.textContent = '';
+    state.run = null;
+    setScanButtonsEnabled(false);
+    return;
+  }
+
+  var solved = solveCrt(read.list);
+  state.run = { list: read.list, span: solved.span, x: solved.x, terms: solved.terms, sum: solved.sum };
+  buildStrips(read.list, span, { solvable: true });
+  resetScan();
+  setScanButtonsEnabled(true);
+  // Every solved build arrives already landed -- the same "run an example
+  // on page load" convention every tool in this repo follows (see
+  // Euclidean Algorithm's buildRun(), which likewise ends in
+  // instantFinish()). Reset then Play is the replay affordance, not the
+  // first-run affordance.
+  instantFinish();
+}
+
+function setCount(n){
+  n = clamp(n, MIN_COUNT, MAX_COUNT);
+  state.count = n;
+  row3Fields.hidden = n < 3;
+  buildRun();
+}
+
+/* ---------- event wiring ---------- */
+
+[a1, m1, a2, m2, a3, m3].forEach(function(inp){
+  inp.addEventListener('input', buildRun);
+  inp.addEventListener('change', buildRun);
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
+});
+
+playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+stepBtn.addEventListener('click', stepOnce);
+instantBtn.addEventListener('click', instantFinish);
+resetBtn.addEventListener('click', resetScan);
+
+speedInput.addEventListener('input', function(){
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+});
+
+var chipButtons = presetChips.querySelectorAll('.chip');
+chipButtons.forEach(function(chip){
+  chip.addEventListener('click', function(){
+    a1.value = chip.dataset.a1;
+    m1.value = chip.dataset.m1;
+    a2.value = chip.dataset.a2;
+    m2.value = chip.dataset.m2;
+    if (chip.dataset.a3 !== undefined) a3.value = chip.dataset.a3;
+    if (chip.dataset.m3 !== undefined) m3.value = chip.dataset.m3;
+    setCount(Number(chip.dataset.count));
+    buildRun();
+  });
+});
+
+window.addEventListener('load', function(){
+  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  buildRun();
+  instantFinish();
+});
+
+})();
+</script>
+</body>
+</html>
