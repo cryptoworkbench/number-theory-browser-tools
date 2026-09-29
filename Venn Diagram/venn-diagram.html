@@ -1140,37 +1140,37 @@
   }
 
   function removeToken(key, id){
-    var list = state.regions[key];
-    for (var i = 0; i < list.length; i++){
-      if (list[i].id === id){
-        var removed = list.splice(i, 1)[0];
-        setMessage('Removed ' + removed.p + ' from the ' + REGION_CAPTIONS[key] + ' region.');
-        break;
+    commitRegions(twoCtx, function(draft){
+      var list = draft[key];
+      for (var i = 0; i < list.length; i++){
+        if (list[i].id === id){
+          var removed = list.splice(i, 1)[0];
+          return 'Removed ' + removed.p + ' from the ' + REGION_CAPTIONS[key] + ' region.';
+        }
       }
-    }
-    persist();
-    render();
+      return null;
+    });
   }
 
   function moveToken(fromKey, toKey, id){
     if (fromKey === toKey) return;
-    if (state.regions[toKey].length >= MAX_PER_REGION){
-      warnRegionFull(toKey);
-      return;
-    }
-    var fromList = state.regions[fromKey];
-    var entry = null;
-    for (var i = 0; i < fromList.length; i++){
-      if (fromList[i].id === id){
-        entry = fromList.splice(i, 1)[0];
-        break;
+    commitRegions(twoCtx, function(draft){
+      if (draft[toKey].length >= MAX_PER_REGION){
+        warnRegionFull(toKey);
+        return null;
       }
-    }
-    if (!entry) return;
-    state.regions[toKey].push(entry);
-    setMessage('Moved ' + entry.p + ' to the ' + REGION_CAPTIONS[toKey] + ' region.');
-    persist();
-    render();
+      var fromList = draft[fromKey];
+      var entry = null;
+      for (var i = 0; i < fromList.length; i++){
+        if (fromList[i].id === id){
+          entry = fromList.splice(i, 1)[0];
+          break;
+        }
+      }
+      if (!entry) return null;
+      draft[toKey].push(entry);
+      return 'Moved ' + entry.p + ' to the ' + REGION_CAPTIONS[toKey] + ' region.';
+    });
   }
 
   /* ---------- placed-token drag-to-move (mode-agnostic) ---------- */
@@ -1283,48 +1283,48 @@
       setMessage('Pick a prime from the picker first.');
       return;
     }
-    if (state.regions3[key].length >= MAX_PER_REGION3){
-      warnRegionFull3(key);
-      return;
-    }
-    state.regions3[key].push({ id: state.nextId++, p: value });
-    setMessage('Placed ' + value + ' in the ' + REGION_CAPTIONS3[key] + ' region.');
-    persist3();
-    render();
+    commitRegions(threeCtx, function(draft){
+      if (draft[key].length >= MAX_PER_REGION3){
+        warnRegionFull3(key);
+        return null;
+      }
+      draft[key].push({ id: state.nextId++, p: value });
+      return 'Placed ' + value + ' in the ' + REGION_CAPTIONS3[key] + ' region.';
+    });
   }
 
   function removeToken3(key, id){
-    var list = state.regions3[key];
-    for (var i = 0; i < list.length; i++){
-      if (list[i].id === id){
-        var removed = list.splice(i, 1)[0];
-        setMessage('Removed ' + removed.p + ' from the ' + REGION_CAPTIONS3[key] + ' region.');
-        break;
+    commitRegions(threeCtx, function(draft){
+      var list = draft[key];
+      for (var i = 0; i < list.length; i++){
+        if (list[i].id === id){
+          var removed = list.splice(i, 1)[0];
+          return 'Removed ' + removed.p + ' from the ' + REGION_CAPTIONS3[key] + ' region.';
+        }
       }
-    }
-    persist3();
-    render();
+      return null;
+    });
   }
 
   function moveToken3(fromKey, toKey, id){
     if (fromKey === toKey) return;
-    if (state.regions3[toKey].length >= MAX_PER_REGION3){
-      warnRegionFull3(toKey);
-      return;
-    }
-    var fromList = state.regions3[fromKey];
-    var entry = null;
-    for (var i = 0; i < fromList.length; i++){
-      if (fromList[i].id === id){
-        entry = fromList.splice(i, 1)[0];
-        break;
+    commitRegions(threeCtx, function(draft){
+      if (draft[toKey].length >= MAX_PER_REGION3){
+        warnRegionFull3(toKey);
+        return null;
       }
-    }
-    if (!entry) return;
-    state.regions3[toKey].push(entry);
-    setMessage('Moved ' + entry.p + ' to the ' + REGION_CAPTIONS3[toKey] + ' region.');
-    persist3();
-    render();
+      var fromList = draft[fromKey];
+      var entry = null;
+      for (var i = 0; i < fromList.length; i++){
+        if (fromList[i].id === id){
+          entry = fromList.splice(i, 1)[0];
+          break;
+        }
+      }
+      if (!entry) return null;
+      draft[toKey].push(entry);
+      return 'Moved ' + entry.p + ' to the ' + REGION_CAPTIONS3[toKey] + ' region.';
+    });
   }
 
   function clearAll(){
