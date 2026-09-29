@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: "Completed quick task 260929-qqt: Venn Diagram A∩B∩C chip now Factor-Tree-only; double-click resolves per visible section"
-last_updated: "2026-09-29T17:45:58.407Z"
+last_updated: "2026-09-29T19:20:14.326Z"
 last_activity: 2026-09-29
 last_activity_desc: "Completed quick task 260929-qqt: the Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section, no scroll); double-click on any previewable chip resolves at click time to whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link"
-state_head: 40929a064b8f7ab32d52f559287e216e5b8ee77f
+state_head: 70fad75c2146522a07887aefa08c8063cb799af3
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-qqt: the Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section, no scroll); double-click on any previewable chip resolves at click time to whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link.
+Last activity: 2026-09-29 - Completed quick task 260929-t2j: In the Factor Tree tool (Factor Tree/factor-tree.html), move the found-factorization result display to the bottom of the output (below the tree diagram), and make it more compact by combining repeated prime factors into exponent notation, showing both the expanded and compact exponent forms.
 
 Progress: [████████░░] 80%
 
@@ -184,6 +184,7 @@ None yet.
 | 260929-p80 | In the Venn Diagram tool's hover thumbnail, replace the global Hover: Euclid squares / Hover: factor tree toolbar toggle with one combined panel that stacks both miniatures, scrollable by wheel and ArrowDown/ArrowUp | 2026-09-29 | 36b7798 | [260929-p80-venn-diagram-tool-replace-the-global-hov](./quick/260929-p80-venn-diagram-tool-replace-the-global-hov/) |
 | 260929-q1o | In the Venn Diagram tool's stacked hover-preview panel, swap section order so Factor Tree is the top/default-visible section and Euclidean Algorithm is revealed by scrolling down | 2026-09-29 | 667ac25 | [260929-q1o-venn-diagram-tool-in-the-stacked-hover-p](./quick/260929-q1o-venn-diagram-tool-in-the-stacked-hover-p/) |
 | 260929-qqt | Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section); double-click on any previewable chip now opens whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link | 2026-09-29 | 40929a0 | [260929-qqt-venn-diagram-factor-tree-abc-centre-chip](./quick/260929-qqt-venn-diagram-factor-tree-abc-centre-chip/) |
+| 260929-t2j | In the Factor Tree tool (Factor Tree/factor-tree.html), move the found-factorization result display to the bottom of the output (below the tree diagram), and make it more compact by combining repeated prime factors into exponent notation, showing both the expanded and compact exponent forms. | 2026-09-29 | 70fad75 | [260929-t2j-in-the-factor-tree-tool-factor-tree-fact](./quick/260929-t2j-in-the-factor-tree-tool-factor-tree-fact/) |
 
 ## Deferred Items
 
