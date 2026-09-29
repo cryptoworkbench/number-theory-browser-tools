@@ -580,57 +580,6 @@ function readCongruences(){
   };
 }
 
-// Inbound seeding, the counterpart to the Euclidean Algorithm page's
-// readABParams/readExtParam: a defensive regex-and-decode read of the query
-// string, wrapped in try/catch, returning null on any absence or throw.
-// Row count is INFERRED from whether a valid third pair is present --
-// there is no count param to read, so the count can never disagree with the
-// rows. Every value is validated against this page's OWN existing modulus-
-// ceiling/floor and remainder-range constants before it is trusted; any
-// failure returns null and seeds nothing, so a partly-valid URL never
-// half-seeds the page.
-function readSeedParams(){
-  function readRaw(name){
-    try{
-      var re = new RegExp('[?&]' + name + '=([^&#]*)');
-      var mm = re.exec(location.search);
-      if (!mm) return null;
-      return decodeURIComponent(mm[1]);
-    }catch(e){
-      return null;
-    }
-  }
-  function readPair(idx){
-    var rawM = readRaw('m' + idx);
-    var rawA = readRaw('a' + idx);
-    if (rawM === null || rawA === null) return null;
-    if (!/^\d+$/.test(rawM) || !/^\d+$/.test(rawA)) return null;
-    var m = parseInt(rawM, 10);
-    var a = parseInt(rawA, 10);
-    if (m < MIN_MODULUS || m > MAX_MODULUS) return null;
-    if (a < 0 || a >= m) return null;
-    return { m: m, a: a };
-  }
-  try{
-    var p1 = readPair(1);
-    var p2 = readPair(2);
-    if (!p1 || !p2) return null;
-    var list = [p1, p2];
-    var raw3m = readRaw('m3'), raw3a = readRaw('a3');
-    var has3 = (raw3m !== null && raw3a !== null);
-    var anyThird = (raw3m !== null || raw3a !== null);
-    if (anyThird && !has3) return null;
-    if (has3){
-      var p3 = readPair(3);
-      if (!p3) return null;
-      list.push(p3);
-    }
-    return list;
-  }catch(e){
-    return null;
-  }
-}
-
 /* ---------- guards ---------- */
 
 function coprimeVerdict(moduli){
@@ -1187,15 +1136,6 @@ chipButtons.forEach(function(chip){
 
 window.addEventListener('load', function(){
   speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
-  var seed = readSeedParams();
-  if (seed){
-    for (var si = 0; si < seed.length; si++){
-      $('m' + (si + 1)).value = String(seed[si].m);
-      $('a' + (si + 1)).value = String(seed[si].a);
-    }
-    state.count = seed.length;
-    row3Fields.hidden = seed.length < 3;
-  }
   syncCountButtons();
   buildRun();
   instantFinish();
