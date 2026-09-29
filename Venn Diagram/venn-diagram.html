@@ -810,6 +810,9 @@
   var LEGACY_STORAGE_KEY3 = 'venn-diagrams-three';
   var MODE_STORAGE_KEY = 'venn-diagram-mode';
   var LEGACY_MODE_STORAGE_KEY = 'venn-diagrams-mode';
+  // Brand-new key -- no legacy name to migrate, so readMigrating is not
+  // involved here.
+  var PREVIEW_MODE_STORAGE_KEY = 'venn-diagram-preview';
 
   var svg3Root = document.getElementById('venn3');
   var svg3Static = document.getElementById('venn3-static');
@@ -1264,6 +1267,23 @@
     layer.appendChild(svgEl('rect', {
       'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
     }));
+
+    // Reachable, not theoretical (a region can hold up to 8 primes as large
+    // as 101): a badge value past FT_MAX_N would make fermatSplit() walk
+    // roughly v/2 candidates on a hover. Bail before any split runs.
+    if (typeof opts.value !== 'number' || !isFinite(opts.value) || opts.value < 1 || opts.value > FT_MAX_N){
+      var overCaption = svgEl('text', {
+        'class': 'np-caption', x: px + NP_W / 2, y: py + NP_H - 18
+      });
+      overCaption.textContent = String(opts.value);
+      layer.appendChild(overCaption);
+      var overHint = svgEl('text', {
+        'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+      });
+      overHint.textContent = 'over 1,000,000 — no balanced tree';
+      layer.appendChild(overHint);
+      return;
+    }
 
     var bx = px + NP_PAD, by = py + NP_PAD;
     var bw = NP_W - 2 * NP_PAD, bh = NP_H - NP_PAD - 34;
@@ -2339,6 +2359,15 @@
     return (v === 'two' || v === 'three') ? v : null;
   }
 
+  // A stored value that is neither known mode (hand-edited or stale) falls
+  // back to the default rather than putting the page in an unrenderable
+  // state.
+  function readStoredPreviewMode(){
+    var v;
+    try{ v = localStorage.getItem(PREVIEW_MODE_STORAGE_KEY); }catch(e){ v = null; }
+    return (v === 'euclid' || v === 'tree') ? v : null;
+  }
+
   function setMode(mode){
     state.mode = mode;
     var isThree = mode === 'three';
@@ -2362,6 +2391,7 @@
     var isTree = mode === 'tree';
     if (previewEuclidBtn) previewEuclidBtn.setAttribute('aria-pressed', isTree ? 'false' : 'true');
     if (previewTreeBtn) previewTreeBtn.setAttribute('aria-pressed', isTree ? 'true' : 'false');
+    try{ localStorage.setItem(PREVIEW_MODE_STORAGE_KEY, mode); }catch(e){}
     hideNestedPreview(previewLayer);
     hideNestedPreview(previewLayer3);
   }
@@ -2446,6 +2476,8 @@
       state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
     }
     canonicalizeOnLoad(threeCtx);
+
+    setPreviewMode(readStoredPreviewMode() || 'euclid');
 
     var initialMode = abParams ? 'two' : (readModeParam() || readStoredMode() || 'two');
     setMode(initialMode);
