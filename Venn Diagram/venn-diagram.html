@@ -1479,6 +1479,39 @@
     persist: persist3
   };
 
+  // One-shot load-time pass so a stored layout written before this feature
+  // (or hand-edited) is corrected before the first paint. isValidStoredRegion
+  // / isValidStoredRegion3 already reject any SINGLE region longer than its
+  // own cap (grounded fact 9), but a widest region (the lens / abc) can still
+  // exceed its cap AFTER simplification, if narrower conflicting regions
+  // collapse into it. On overflow this falls back to the same truncation
+  // remedy fillFromNumbers() already uses for an over-full fill -- slice the
+  // offending region and retry -- bounded so a pathological hand-edited
+  // record can never loop forever or leave state pointing at a null map.
+  function canonicalizeOnLoad(ctx){
+    var result = simplifyRegions(ctx.getRegions(), ctx.keys, ctx.maskOf, ctx.cap);
+    var guard = 0;
+    var truncated = false;
+    while (result.overflow && guard < 10){
+      truncated = true;
+      var regions = ctx.getRegions();
+      var offending = result.overflow;
+      var keepLen = Math.max(0, Math.min(regions[offending].length, ctx.cap) - guard);
+      regions[offending] = regions[offending].slice(0, keepLen);
+      ctx.setRegions(regions);
+      result = simplifyRegions(ctx.getRegions(), ctx.keys, ctx.maskOf, ctx.cap);
+      guard++;
+    }
+    if (result.overflow) return; // unreachable in practice; never assign a null map
+    if (truncated){
+      setMessage('Some shared prime copies were dropped to fit the ' + ctx.cap + '-per-region limit.', true);
+    }
+    if (result.changed || truncated){
+      ctx.setRegions(result.regions);
+      ctx.persist();
+    }
+  }
+
   function renderPicker(){
     picker.innerHTML = '';
     for (var i = 0; i < PRIMES.length; i++){
@@ -1967,6 +2000,14 @@
         }
       }
     }
+    // fillFromNumbers() already emits a canonical two-circle layout by
+    // construction (grounded fact 8: shared = Math.min(ca, cb)), so running
+    // this pass over ITS output is a no-op (result.changed stays false) --
+    // not a redundant second definition of the same rule, just the one path
+    // that also has to correct a restore()'d or hand-edited record. Do not
+    // "fix" this by skipping the call on the url/fillFromNumbers branch.
+    canonicalizeOnLoad(twoCtx);
+
     if (!restore3()){
       state.regions3.aOnly = [ { id: state.nextId++, p: 2 } ];
       state.regions3.bOnly = [ { id: state.nextId++, p: 3 } ];
@@ -1976,6 +2017,7 @@
       state.regions3.bc = [ { id: state.nextId++, p: 13 } ];
       state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
     }
+    canonicalizeOnLoad(threeCtx);
 
     var initialMode = abParams ? 'two' : (readModeParam() || readStoredMode() || 'two');
     setMode(initialMode);
