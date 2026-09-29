@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
-stopped_at: "Completed quick task 260929-p80: Venn Diagram stacked hover-preview panel"
-last_updated: "2026-09-29T16:40:22.490Z"
+stopped_at: "Completed quick task 260929-q1o: swapped Venn Diagram stacked hover-preview section order (Factor Tree first)"
+last_updated: "2026-09-29T16:57:01.745Z"
 last_activity: 2026-09-29
-last_activity_desc: "Completed quick task 260929-p80: replaced the Venn Diagram tool's mutually-exclusive Hover-preview toolbar toggle with one combined, fixed-footprint hover panel stacking the Euclidean nested-squares view and the Balanced factor tree, scrollable by wheel and ArrowDown/ArrowUp"
-state_head: 36b7798757a19375be1dc273a748cf464aa3a5dc
+last_activity_desc: "Completed quick task 260929-q1o: in the Venn Diagram tool's stacked hover-preview panel, swapped section order so Factor Tree is the top/default-visible section and Euclidean Algorithm is revealed by scrolling down"
+state_head: 667ac2586a80cf0b5c52f1fb9fa9fa16ab42431c
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-p80: replaced the Venn Diagram tool's mutually-exclusive Hover-preview toolbar toggle with one combined, fixed-footprint hover panel stacking the Euclidean nested-squares view and the Balanced factor tree, scrollable by wheel and ArrowDown/ArrowUp.
+Last activity: 2026-09-29 - Completed quick task 260929-q1o: in the Venn Diagram tool's stacked hover-preview panel, swapped section order so Factor Tree is the top/default-visible section and Euclidean Algorithm is revealed by scrolling down.
 
 Progress: [████████░░] 80%
 
@@ -182,6 +182,7 @@ None yet.
 | 260929-n8k | Add two modes to the Venn Diagram tool: Mode 2 keeps the existing hover thumbnail behavior unchanged; Mode 1 replaces the hover thumbnail for singly-overlapping regions with a Balanced (Fermat's Method) factor-tree miniature of the hovered number, ported from Factor Tree/factor-tree.html. | 2026-09-29 | 1097329 | [260929-n8k-add-two-modes-to-the-venn-diagram-tool-v](./quick/260929-n8k-add-two-modes-to-the-venn-diagram-tool-v/) |
 | 260929-o99 | In the Venn Diagram tool's 3-circle mode, make the hover thumbnail also appear when the cursor hovers over the region where all 3 circles overlap (the triple-overlap/center region), matching the existing hover thumbnail behavior for other regions. | 2026-09-29 | 4fddad9 | [260929-o99-in-the-venn-diagram-tool-s-3-circle-mode](./quick/260929-o99-in-the-venn-diagram-tool-s-3-circle-mode/) |
 | 260929-p80 | In the Venn Diagram tool's hover thumbnail, replace the global Hover: Euclid squares / Hover: factor tree toolbar toggle with one combined panel that stacks both miniatures, scrollable by wheel and ArrowDown/ArrowUp | 2026-09-29 | 36b7798 | [260929-p80-venn-diagram-tool-replace-the-global-hov](./quick/260929-p80-venn-diagram-tool-replace-the-global-hov/) |
+| 260929-q1o | In the Venn Diagram tool's stacked hover-preview panel, swap section order so Factor Tree is the top/default-visible section and Euclidean Algorithm is revealed by scrolling down | 2026-09-29 | 667ac25 | [260929-q1o-venn-diagram-tool-in-the-stacked-hover-p](./quick/260929-q1o-venn-diagram-tool-in-the-stacked-hover-p/) |
 
 ## Deferred Items
 
@@ -193,8 +194,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T16:40:22.371Z
-Stopped at: Completed quick task 260929-p80: Venn Diagram stacked hover-preview panel
+Last session: 2026-09-29T16:57:01.745Z
+Stopped at: Completed quick task 260929-q1o: swapped Venn Diagram stacked hover-preview section order (Factor Tree first)
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
