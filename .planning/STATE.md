@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: Phase 3 closed out -- 03-03-PLAN.md Task 3 (phase-wide consolidated sweep) re-run and green in a follow-up session after the prior tooling failure cleared; all eight CRT requirements demonstrated in one session, no regression found. Phase 4 has not been planned yet.
-last_updated: "2026-09-29T08:22:33.574Z"
+last_updated: "2026-09-29T09:11:04.975Z"
 last_activity: 2026-09-29
 last_activity_desc: "Phase 03 Plan 03 Task 3: consolidated phase-wide sweep completed (all static/color/nav/collateral/render gates, behavioral harnesses, one-answer-everywhere across 5 systems, 8-requirement walk, no-regression check all green); Phase 3 marked Complete"
-state_head: 2565300be079c9c8f52421fedfff66ccfb8b5e4a
+state_head: c72412e29eea6cedad57e0516c2a48e455cbe3ac
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-dz1: reverted 260929-c11 Task 3 (three-way Venn overlap to Chinese Remainder Theorem deep link, commit f6d6683) per user judgment that the CRT cross-link was mathematically nonsensical; the two-way overlap to Euclidean Algorithm deep link (both 2-circle and 3-circle modes) remains fully intact
+Last activity: 2026-09-29 - Completed quick task 260929-er9: Venn Diagram regions now self-canonicalize on every edit — a mask-based simplifyRegions() collapses a prime present in every exclusive sub-region of an overlap into that overlap region instead (2-circle and full 3-circle lattice), wired through all six placement/removal/move mutators plus the load path for legacy layouts, commit c72412e
 
 Progress: [████████░░] 80%
 
@@ -174,6 +174,7 @@ None yet.
 | 260928-t3t | Add full persistent bidirectional cross-tool sharing between the Euclidean Algorithm tool and the Venn Diagram tool's 2-circle view, matching the pattern just shipped for Cayley Table <-> Equivalence Wheel (commits 8225dd6 and a3d0d24): a shared params store (localStorage + cookie mirror) that both tools read on open and write on every user-initiated change, replacing/reducing each tool's private persisted record for the shared a/b fields. Each tool clamps shared values to its own ceiling on read (display-only, never written back). Add a storage event listener on each page that re-reads and re-renders without persisting. Do not touch the Venn Diagram's 3-circle mode. | 2026-09-28 | eb8f19e | [260928-t3t-add-full-persistent-bidirectional-cross-](./quick/260928-t3t-add-full-persistent-bidirectional-cross-/) |
 | 260929-c11 | Add double-click deep links from Venn Diagram overlap regions to Euclidean Algorithm (2-region overlap, both 2-circle and 3-circle modes) and Chinese Remainder Theorem (3-region overlap, 3-circle mode only) | 2026-09-29 | f6d6683 | [260929-c11-add-double-click-deep-links-from-venn-di](./quick/260929-c11-add-double-click-deep-links-from-venn-di/) |
 | 260929-dz1 | Revert quick task 260929-c11 Task 3 only: remove the three-way Venn overlap to Chinese Remainder Theorem deep link (commit f6d6683), keeping the two-way overlap to Euclidean Algorithm deep link fully intact, per user judgment that the CRT cross-link was mathematically nonsensical | 2026-09-29 | 2565300 | [260929-dz1-revert-quick-task-260929-c11-task-3-only](./quick/260929-dz1-revert-quick-task-260929-c11-task-3-only/) |
+| 260929-er9 | Automatically simplify the Venn Diagram tool at every step: when a prime is placed in multiple regions such that it appears in both exclusive regions implying overlap (e.g. 'A only' and 'B only'), reactively move it so it appears once in the overlap region instead of duplicated, on every edit (add/remove), not just initial generation. | 2026-09-29 | c72412e | [260929-er9-automatically-simplify-the-venn-diagram-](./quick/260929-er9-automatically-simplify-the-venn-diagram-/) |
 
 ## Deferred Items
 
