@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: Phase 3 closed out -- 03-03-PLAN.md Task 3 (phase-wide consolidated sweep) re-run and green in a follow-up session after the prior tooling failure cleared; all eight CRT requirements demonstrated in one session, no regression found. Phase 4 has not been planned yet.
-last_updated: "2026-09-29T14:33:34.412Z"
+last_updated: "2026-09-29T15:20:22.645Z"
 last_activity: 2026-09-29
 last_activity_desc: "Completed quick task 260929-kam: added Euler's Totient Function tool (13th tool) — computes phi(n) manually by walking k=1..n-1, running a live Euclidean algorithm on gcd(n,k) for each k, tallying coprime hits (no closed-form product formula anywhere on the page); Play/Step/Instant playback with preset chips, registered site-wide (index.html hub card + all 14 nav bars), merge commit 63380d3"
-state_head: 7e56c0a3d70df87af4ddb11c686c135290649093
+state_head: 109732961f6dbf4865156875a2eb33c45994270d
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-mhb: Implement the approved plan at /home/mainaccount/.claude/plans/let-s-discuss-i-want-jaunty-puppy.md: add a "Balanced (Fermat's Method)" mode to the Factor Tree tool at Factor Tree/factor-tree.html. Follow the plan precisely (exact line numbers, new functions, CSS, markup, max-N cap of 1,000,000, mode toggle UI, per-mode preset chips). Single-file change, no other files affected.
+Last activity: 2026-09-29 - Completed quick task 260929-n8k: Add two modes to the Venn Diagram tool: Mode 2 keeps the existing hover thumbnail behavior unchanged; Mode 1 replaces the hover thumbnail for singly-overlapping regions with a Balanced (Fermat's Method) factor-tree miniature of the hovered number, ported from Factor Tree/factor-tree.html.
 
 Progress: [████████░░] 80%
 
@@ -178,6 +178,7 @@ None yet.
 | 260929-g19 | Venn Diagram: show a live Euclidean Algorithm nested-squares preview when hovering a linked overlap chip (2-circle overlap and 3-circle pairwise overlaps), replacing the native tooltip with an SVG mini-diagram of the same a/b pair the chip's double-click deep link already encodes; tooltip text preserved verbatim as aria-label | 2026-09-29 | 92fa3d6 | [260929-g19-venn-diagram-show-a-live-euclidean-algor](./quick/260929-g19-venn-diagram-show-a-live-euclidean-algor/) |
 | 260929-kam | Add Euler's Totient Function tool (13th tool): computes phi(n) manually by walking k=1..n-1, running a live Euclidean algorithm on gcd(n,k) for each k, and tallying coprime hits; no closed-form product formula anywhere on the page. Play/Step/Instant playback with preset chips, registered site-wide (index.html hub card + all 14 nav bars). | 2026-09-29 | 63380d3 | [260929-kam-add-a-new-browser-tool-called-euler-s-to](./quick/260929-kam-add-a-new-browser-tool-called-euler-s-to/) |
 | 260929-mhb | Add Balanced (Fermat's Method) mode to Factor Tree tool — mode toggle, even-then-Fermat recursive split (fermatSplit), 1,000,000-cap for balanced mode, per-mode preset chips via event delegation | 2026-09-29 | 7e56c0a | [260929-mhb-implement-the-approved-plan-at-home-main](./quick/260929-mhb-implement-the-approved-plan-at-home-main/) |
+| 260929-n8k | Add two modes to the Venn Diagram tool: Mode 2 keeps the existing hover thumbnail behavior unchanged; Mode 1 replaces the hover thumbnail for singly-overlapping regions with a Balanced (Fermat's Method) factor-tree miniature of the hovered number, ported from Factor Tree/factor-tree.html. | 2026-09-29 | 1097329 | [260929-n8k-add-two-modes-to-the-venn-diagram-tool-v](./quick/260929-n8k-add-two-modes-to-the-venn-diagram-tool-v/) |
 
 ## Deferred Items
 
