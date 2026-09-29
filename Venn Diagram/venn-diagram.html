@@ -466,10 +466,6 @@
       <button type="button" id="mode-two" class="mode-btn" aria-pressed="true">Two circles</button>
       <button type="button" id="mode-three" class="mode-btn" aria-pressed="false">Three circles</button>
     </div>
-    <div class="mode-switch" role="group" aria-label="Hover preview">
-      <button type="button" id="preview-euclid" class="mode-btn" aria-pressed="true">Hover: Euclid squares</button>
-      <button type="button" id="preview-tree" class="mode-btn" aria-pressed="false">Hover: factor tree</button>
-    </div>
     <button type="button" id="clear-btn">Clear all</button>
   </div>
 
@@ -830,9 +826,6 @@
   var LEGACY_STORAGE_KEY3 = 'venn-diagrams-three';
   var MODE_STORAGE_KEY = 'venn-diagram-mode';
   var LEGACY_MODE_STORAGE_KEY = 'venn-diagrams-mode';
-  // Brand-new key -- no legacy name to migrate, so readMigrating is not
-  // involved here.
-  var PREVIEW_MODE_STORAGE_KEY = 'venn-diagram-preview';
 
   var svg3Root = document.getElementById('venn3');
   var svg3Static = document.getElementById('venn3-static');
@@ -842,8 +835,6 @@
   var previewLayer3 = document.getElementById('venn3-preview');
   var modeTwoBtn = document.getElementById('mode-two');
   var modeThreeBtn = document.getElementById('mode-three');
-  var previewEuclidBtn = document.getElementById('preview-euclid');
-  var previewTreeBtn = document.getElementById('preview-tree');
   var ledeTwo = document.getElementById('lede-two');
   var ledeThree = document.getElementById('lede-three');
   var frameTwo = document.getElementById('frame-two');
@@ -1010,7 +1001,7 @@
     return { regions: newLists, moved: moved, changed: changed, overflow: null };
   }
 
-  var state = { mode: 'two', previewMode: 'euclid', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
+  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
 
   function svgEl(tag, attrs){
     var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -2480,15 +2471,6 @@
     return (v === 'two' || v === 'three') ? v : null;
   }
 
-  // A stored value that is neither known mode (hand-edited or stale) falls
-  // back to the default rather than putting the page in an unrenderable
-  // state.
-  function readStoredPreviewMode(){
-    var v;
-    try{ v = localStorage.getItem(PREVIEW_MODE_STORAGE_KEY); }catch(e){ v = null; }
-    return (v === 'euclid' || v === 'tree') ? v : null;
-  }
-
   function setMode(mode){
     state.mode = mode;
     var isThree = mode === 'three';
@@ -2504,24 +2486,9 @@
     render();
   }
 
-  // Governs the hover panel's CONTENTS only -- nothing in the static render
-  // depends on it, so this must NOT call render(). Clears any open panel on
-  // both layers so a flip mid-hover can't leave a stale drawing on screen.
-  function setPreviewMode(mode){
-    state.previewMode = mode;
-    var isTree = mode === 'tree';
-    if (previewEuclidBtn) previewEuclidBtn.setAttribute('aria-pressed', isTree ? 'false' : 'true');
-    if (previewTreeBtn) previewTreeBtn.setAttribute('aria-pressed', isTree ? 'true' : 'false');
-    try{ localStorage.setItem(PREVIEW_MODE_STORAGE_KEY, mode); }catch(e){}
-    hideNestedPreview(previewLayer);
-    hideNestedPreview(previewLayer3);
-  }
-
   clearBtn.addEventListener('click', clearAll);
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
-  if (previewEuclidBtn) previewEuclidBtn.addEventListener('click', function(){ setPreviewMode('euclid'); });
-  if (previewTreeBtn) previewTreeBtn.addEventListener('click', function(){ setPreviewMode('tree'); });
 
   /* ---------- live cross-document sync ---------- */
 
@@ -2597,8 +2564,6 @@
       state.regions3.abc = [ { id: state.nextId++, p: 17 } ];
     }
     canonicalizeOnLoad(threeCtx);
-
-    setPreviewMode(readStoredPreviewMode() || 'euclid');
 
     var initialMode = abParams ? 'two' : (readModeParam() || readStoredMode() || 'two');
     setMode(initialMode);
