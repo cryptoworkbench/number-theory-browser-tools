@@ -345,6 +345,23 @@
   .nested-preview .ft-label.prime-leaf{ fill:var(--role-result-ink); }
   .nested-preview .ft-label.one{ fill:var(--text); opacity:.75; }
 
+  /* Stacked-panel chrome: each section's heading, and the top-right
+     scroll-more affordance (Task 2). Both token-only, per this repo's
+     no-literal-colours rule. */
+  .nested-preview .np-heading{
+    fill:var(--text-dim);
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:11px;
+    text-anchor:start;
+  }
+  .nested-preview .np-scroll-hint{
+    fill:var(--text-dim);
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px;
+    text-anchor:end;
+  }
+
   .message{
     min-height:16px;
     font-size:13.5px;
@@ -1189,18 +1206,24 @@
     for (var i = 0; i < node.children.length; i++) flattenTree(node.children[i], node, nodes, edges, maxDepth);
   }
 
-  /* ---------- Euclidean nested-view preview renderer ---------- */
+  /* ---------- Combined stacked preview renderer ---------- */
+  // Both miniatures live in ONE fixed 268x196 panel, stacked as two 196-tall
+  // sections inside a scrollable, clipped group. The wheel/keyboard handlers
+  // (wired in appendCompositeBadge) move the scroll group between them; the
+  // panel's own visible footprint never changes.
 
   var NP_W = 268, NP_H = 196, NP_PAD = 10, NP_GAP = 26, NP_EDGE = 6;
+  var NP_SECTION_GAP = 10, NP_MAX_SCROLL = NP_H + NP_SECTION_GAP;
 
   function hideNestedPreview(layer){
     if (!layer) return;
     layer.innerHTML = '';
+    layer._npOffset = 0;
   }
 
-  // The anchor-to-panel clamp arithmetic, lifted out of showNestedPreview
-  // unchanged so both preview renderers place their panel identically and
-  // can never drift apart at the viewBox edges.
+  // The anchor-to-panel clamp arithmetic, unchanged: both stacked sections
+  // sit inside the same 268x196 footprint this returns, so the panel can
+  // never grow or drift from where it always placed itself.
   function previewPanelRect(opts){
     var px = opts.anchor[0] + NP_GAP;
     if (px + NP_W > opts.vbW - NP_EDGE) px = opts.anchor[0] - NP_GAP - NP_W;
@@ -1210,88 +1233,85 @@
     return { px: px, py: py };
   }
 
-  function showNestedPreview(layer, opts){
-    hideNestedPreview(layer);
-    if (!layer) return;
+  // Euclidean nested-squares section. Drawn into `host` (the scroll group)
+  // at vertical offset `sy` so a caller can place this section first or
+  // second in the stack. Keeps the original renderer's early-bail behaviour
+  // (empty or degenerate run) but always finishes with a caption, so a bail
+  // here can never blank out the section below it.
+  function drawEuclidSection(host, px, sy, opts){
+    var heading = svgEl('text', { 'class': 'np-heading', x: px + NP_PAD, y: sy + 15 });
+    heading.textContent = 'Euclidean Algorithm';
+    host.appendChild(heading);
+
     var run = euclidSteps(opts.a, opts.b);
-    if (run.steps.length === 0) return;
-    var layout = computeNestedLayout(run.steps);
-    if (!layout || layout.width <= 0 || layout.height <= 0) return;
+    var layout = run.steps.length > 0 ? computeNestedLayout(run.steps) : null;
+    var degenerate = !layout || layout.width <= 0 || layout.height <= 0;
 
-    var panelRect = previewPanelRect(opts);
-    var px = panelRect.px, py = panelRect.py;
+    if (!degenerate){
+      var bx = px + NP_PAD, by = sy + 22;
+      var bw = NP_W - 2 * NP_PAD, bh = NP_H - 56;
+      var scale = Math.min(bw / layout.width, bh / layout.height);
+      var dw = layout.width * scale, dh = layout.height * scale;
+      var ox = bx + (bw - dw) / 2, oy = by + (bh - dh) / 2;
 
-    layer.appendChild(svgEl('rect', {
-      'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
-    }));
-
-    var bx = px + NP_PAD, by = py + NP_PAD;
-    var bw = NP_W - 2 * NP_PAD, bh = NP_H - NP_PAD - 34;
-    var scale = Math.min(bw / layout.width, bh / layout.height);
-    var dw = layout.width * scale, dh = layout.height * scale;
-    var ox = bx + (bw - dw) / 2, oy = by + (bh - dh) / 2;
-
-    layer.appendChild(svgEl('rect', {
-      'class': 'nframe', x: ox, y: oy, width: dw, height: dh
-    }));
-
-    for (var idx = 0; idx < layout.rects.length; idx++){
-      var r = layout.rects[idx];
-      var cls = (r.type === 'cap' ? 'ncap ' : 'nsquare ') + 'nstep-' + (r.step % 6);
-      layer.appendChild(svgEl('rect', {
-        'class': cls,
-        x: ox + r.x * scale, y: oy + r.y * scale,
-        width: r.w * scale, height: r.h * scale
+      host.appendChild(svgEl('rect', {
+        'class': 'nframe', x: ox, y: oy, width: dw, height: dh
       }));
+
+      for (var idx = 0; idx < layout.rects.length; idx++){
+        var r = layout.rects[idx];
+        var cls = (r.type === 'cap' ? 'ncap ' : 'nsquare ') + 'nstep-' + (r.step % 6);
+        host.appendChild(svgEl('rect', {
+          'class': cls,
+          x: ox + r.x * scale, y: oy + r.y * scale,
+          width: r.w * scale, height: r.h * scale
+        }));
+      }
     }
 
     var caption = svgEl('text', {
-      'class': 'np-caption', x: px + NP_W / 2, y: py + NP_H - 18
+      'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
     });
     caption.textContent = 'gcd(' + opts.a + ', ' + opts.b + ') = ' + run.gcd;
-    layer.appendChild(caption);
+    host.appendChild(caption);
 
     if (opts.showHint){
       var hint = svgEl('text', {
-        'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+        'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
       });
       hint.textContent = 'double-click to open the full view →';
-      layer.appendChild(hint);
+      host.appendChild(hint);
     }
   }
 
-  // Balanced (Fermat's Method) factor tree, drawn into the same 268x196
-  // panel showNestedPreview() uses. Redrawn on every hover, so this stays
-  // synchronous and cheap: no gradients, no silhouette, no staggered reveal.
-  function showFactorTreePreview(layer, opts){
-    hideNestedPreview(layer);
-    if (!layer) return;
-    var panelRect = previewPanelRect(opts);
-    var px = panelRect.px, py = panelRect.py;
-
-    layer.appendChild(svgEl('rect', {
-      'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
-    }));
+  // Balanced (Fermat's Method) factor tree section, drawn into the same
+  // scroll group. Preview-only: this tool carries no Factor Tree deep link
+  // anywhere, so unlike the Euclidean section above, this one never draws
+  // a hint line.
+  function drawTreeSection(host, px, sy, opts){
+    var heading = svgEl('text', { 'class': 'np-heading', x: px + NP_PAD, y: sy + 15 });
+    heading.textContent = 'Factor Tree';
+    host.appendChild(heading);
 
     // Reachable, not theoretical (a region can hold up to 8 primes as large
     // as 101): a badge value past FT_MAX_N would make fermatSplit() walk
     // roughly v/2 candidates on a hover. Bail before any split runs.
     if (typeof opts.value !== 'number' || !isFinite(opts.value) || opts.value < 1 || opts.value > FT_MAX_N){
       var overCaption = svgEl('text', {
-        'class': 'np-caption', x: px + NP_W / 2, y: py + NP_H - 18
+        'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
       });
       overCaption.textContent = String(opts.value);
-      layer.appendChild(overCaption);
+      host.appendChild(overCaption);
       var overHint = svgEl('text', {
-        'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+        'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
       });
       overHint.textContent = 'over 1,000,000 — no balanced tree';
-      layer.appendChild(overHint);
+      host.appendChild(overHint);
       return;
     }
 
-    var bx = px + NP_PAD, by = py + NP_PAD;
-    var bw = NP_W - 2 * NP_PAD, bh = NP_H - NP_PAD - 34;
+    var bx = px + NP_PAD, by = sy + 22;
+    var bw = NP_W - 2 * NP_PAD, bh = NP_H - 56;
 
     var tree = buildBalancedTree(opts.value, 0);
     var xCounter = { value: 0 };
@@ -1320,7 +1340,7 @@
 
     for (var e = 0; e < edges.length; e++){
       var edge = edges[e];
-      layer.appendChild(svgEl('line', {
+      host.appendChild(svgEl('line', {
         'class': 'ft-edge',
         x1: treeNodeX(edge.from), y1: treeNodeY(edge.from),
         x2: treeNodeX(edge.to), y2: treeNodeY(edge.to)
@@ -1332,7 +1352,7 @@
       var cx = treeNodeX(node), cy = treeNodeY(node);
       var isOne = node.kind === 'one';
       var nr = isOne ? oneR : r;
-      layer.appendChild(svgEl('circle', {
+      host.appendChild(svgEl('circle', {
         'class': 'ft-node ' + node.kind, cx: cx, cy: cy, r: nr
       }));
       var label = svgEl('text', {
@@ -1340,30 +1360,66 @@
         'font-size': isOne ? oneFs : fs
       });
       label.textContent = String(node.value);
-      layer.appendChild(label);
+      host.appendChild(label);
     }
 
     var caption = svgEl('text', {
-      'class': 'np-caption', x: px + NP_W / 2, y: py + NP_H - 18
+      'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
     });
     caption.textContent = factorTail(factorize(opts.value), opts.value);
-    layer.appendChild(caption);
-
-    if (opts.showHint){
-      var hint = svgEl('text', {
-        'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
-      });
-      hint.textContent = 'double-click for the Euclidean view →';
-      layer.appendChild(hint);
-    }
+    host.appendChild(caption);
   }
 
-  // ONE dispatch point, reading state.previewMode at event time so the
-  // switch never needs a re-render and cannot desync from what is on
-  // screen.
+  // Reads/writes the scroll offset stored directly on the layer node (reset
+  // to 0 by hideNestedPreview above and by the builder below on every fresh
+  // open). Returns false -- and moves nothing -- when no panel is open, so
+  // callers know not to swallow the wheel/key event that triggered them.
+  function scrollNestedPreview(layer, delta){
+    if (!layer) return false;
+    var scroll = layer.querySelector('.np-scroll');
+    if (!scroll) return false;
+    var current = layer._npOffset || 0;
+    var next = Math.min(NP_MAX_SCROLL, Math.max(0, current + delta));
+    layer._npOffset = next;
+    scroll.setAttribute('data-offset', String(next));
+    scroll.setAttribute('transform', 'translate(0, ' + (-next) + ')');
+    return true;
+  }
+
+  // Sole panel builder. Composes both sections into one fixed 268x196
+  // footprint: a clip host (clip-path only, no transform) wraps a scroll
+  // group (transform only, no clip-path) so the clip's own user space is
+  // never dragged along with the scrolled content.
   function showRegionPreview(layer, opts){
-    if (state.previewMode === 'tree') showFactorTreePreview(layer, opts);
-    else showNestedPreview(layer, opts);
+    if (!layer) return;
+    layer.innerHTML = '';
+    layer._npOffset = 0;
+
+    var panelRect = previewPanelRect(opts);
+    var px = panelRect.px, py = panelRect.py;
+
+    layer.appendChild(svgEl('rect', {
+      'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
+    }));
+
+    var clipId = layer.id + '-clip';
+    var clipPath = svgEl('clipPath', { id: clipId });
+    clipPath.appendChild(svgEl('rect', {
+      x: px + 1, y: py + 1, width: NP_W - 2, height: NP_H - 2, rx: 10
+    }));
+    layer.appendChild(clipPath);
+
+    var clipHost = svgEl('g', {});
+    clipHost.setAttribute('clip-path', 'url(#' + clipId + ')');
+    layer.appendChild(clipHost);
+
+    var scroll = svgEl('g', { 'class': 'np-scroll' });
+    scroll.setAttribute('data-offset', '0');
+    scroll.setAttribute('transform', 'translate(0, 0)');
+    clipHost.appendChild(scroll);
+
+    drawEuclidSection(scroll, px, py, opts);
+    drawTreeSection(scroll, px, py + NP_H + NP_SECTION_GAP, opts);
   }
 
   function lensPath(){
@@ -2014,6 +2070,14 @@
       g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
       g.addEventListener('focus', function(){ showRegionPreview(link.previewLayer, previewOpts); });
       g.addEventListener('blur', function(){ hideNestedPreview(link.previewLayer); });
+      // Lives on the chip, not the panel: .nested-preview ignores the
+      // pointer by design (load-bearing, see :310) and the panel sits
+      // NP_GAP away from the chip, so the cursor is over the chip for the
+      // whole hover, never the panel.
+      g.addEventListener('wheel', function(ev){
+        var moved = scrollNestedPreview(link.previewLayer, ev.deltaY);
+        if (moved) ev.preventDefault();
+      }, { passive: false });
     }
     target.appendChild(g);
   }
