@@ -201,6 +201,7 @@
   .caption .slot-a{ color:var(--slot-a); font-weight:600; }
   .caption .slot-b{ color:var(--slot-b); font-weight:600; }
   .caption .slot-sum{ color:var(--slot-sum); font-weight:600; }
+  .caption .slot-warn{ color:var(--role-warn); font-weight:700; }
 
   #iso-readout{
     margin:6px auto 26px;
@@ -352,7 +353,12 @@
     </div>
   </div>
 
-  <div class="wheel-pair">
+  <div class="mode-tabs" role="tablist" aria-label="Right wheel layout">
+    <button type="button" class="mode-tab is-active" role="tab" id="tab-powers" data-layout="powers" aria-selected="true" aria-controls="wheel-pair" tabindex="0">Powers of g</button>
+    <button type="button" class="mode-tab" role="tab" id="tab-numeric" data-layout="numeric" aria-selected="false" aria-controls="wheel-pair" tabindex="-1">Numeric</button>
+  </div>
+
+  <div class="wheel-pair" id="wheel-pair">
     <div class="wheel-col">
       <div class="diagram-frame">
         <svg class="wheel-svg" id="wheel-left" viewBox="0 0 520 520" role="img" aria-label="Elements of the additive group Z mod n">
@@ -636,46 +642,92 @@
 
   /* ---------- render ---------- */
 
-  function rolesForLeft(i){
+  function currentSum(row){
+    if (state.a === null || state.b === null) return null;
+    return (state.a + state.b) % row.n;
+  }
+
+  function rolesForLeft(i, row){
     var roles = [];
     if (state.a === i) roles.push('a');
     if (state.b === i) roles.push('b');
+    var sum = currentSum(row);
+    if (sum !== null && sum === i) roles.push('sum');
     return roles;
   }
-  function rolesForRight(value){
-    // No selection behavior wired yet (Task 1) -- state.a/state.b stay null,
-    // so this always returns an empty role list until Task 2 fills it in.
+  function rolesForRight(value, row){
     var roles = [];
+    if (state.a !== null && imageOf(state.a, row.g, row.m) === value) roles.push('a');
+    if (state.b !== null && imageOf(state.b, row.g, row.m) === value) roles.push('b');
+    var sum = currentSum(row);
+    if (sum !== null && imageOf(sum, row.g, row.m) === value) roles.push('sum');
     return roles;
+  }
+
+  // A pick is always expressed and stored as a left-wheel element k. A click
+  // on the right wheel converts its unit through discreteLog first, so the
+  // two wheels can never disagree about what is selected -- one stored
+  // representation, the right-wheel element is always derived from it.
+  function selectK(k){
+    if (state.b !== null || state.awaiting === 'a'){
+      state.a = k;
+      state.b = null;
+      state.awaiting = 'b';
+    } else {
+      state.b = k;
+      state.awaiting = 'a';
+    }
+    render();
+  }
+
+  // Exact g^k when it fits a safe integer, else null (too large to display
+  // exactly) -- never renders an imprecise "raw" number for large exponents.
+  function rawPowSafe(g, k){
+    var result = 1;
+    for (var i = 0; i < k; i++){
+      result *= g;
+      if (result > Number.MAX_SAFE_INTEGER) return null;
+    }
+    return result;
   }
 
   function render(){
     var row = pairFor(state.m);
     var n = row.n, m = row.m, g = row.g;
-    var powers = powerList(g, m, n);
-    var rightLabels = powers; // Task 1: powers-of-g layout only; Task 2 adds numeric
+    // The right wheel's ordering is the only thing layout changes -- both
+    // orderings are permutations of the same unit set, so the sector count
+    // never changes with layout, and the underlying selection map is the
+    // same map either way (imageOf / discreteLog do not depend on layout).
+    var rightLabels = (state.layout === 'numeric') ? unitsMod(m) : powerList(g, m, n);
 
     renderWheel(leftDyn, n, {
       maxDigits: Math.max(String(n - 1).length, 1),
       getLabel: function(i){ return i; },
       getSecondary: null,
-      getRoles: rolesForLeft,
+      getRoles: function(i){ return rolesForLeft(i, row); },
       getAria: function(i){ return 'Element ' + i + ' of the additive group Z mod ' + n; },
-      centerText: 'mod ' + n
+      centerText: 'mod ' + n,
+      onSelect: function(i){ selectK(i); }
     });
 
     renderWheel(rightDyn, n, {
       maxDigits: Math.max(String(m - 1).length, 1),
       getLabel: function(i){ return rightLabels[i]; },
-      getSecondary: function(i){ return i; },
-      getRoles: function(i){ return rolesForRight(rightLabels[i]); },
-      getAria: function(i){ return 'Element ' + rightLabels[i] + ' of the multiplicative group of units mod ' + m + ', equal to ' + g + ' to the power ' + i + ' mod ' + m; },
-      centerText: 'mod ' + m
+      getSecondary: (state.layout === 'powers') ? function(i){ return i; } : null,
+      getRoles: function(i){ return rolesForRight(rightLabels[i], row); },
+      getAria: function(i){
+        var val = rightLabels[i];
+        var k = discreteLog(val, g, m, n);
+        return 'Element ' + val + ' of the multiplicative group of units mod ' + m + ', equal to ' + g + ' to the power ' + k + ' mod ' + m;
+      },
+      centerText: 'mod ' + m,
+      onSelect: function(i){ selectK(discreteLog(rightLabels[i], g, m, n)); }
     });
 
     pairSelect.value = String(state.m);
     renderPairList();
     updateCaptions(row);
+    updateReadout(row);
 
     formulaLine.textContent = 'Z/' + n + 'Z ≅ (Z/' + m + 'Z)*   via   k ↦ ' + g + '^k mod ' + m + '   (generator g = ' + g + ')';
   }
@@ -683,7 +735,42 @@
   function updateCaptions(row){
     leftCaption.innerHTML = 'The additive group <b>Z/' + row.n + 'Z</b>: the integers 0 through ' + (row.n - 1) + ' under addition mod ' + row.n + '.';
     rightCaption.innerHTML = 'The multiplicative group <b>(Z/' + row.m + 'Z)*</b>: the ' + row.n + ' units mod ' + row.m + ' under multiplication, generated by ' + row.g + '.';
-    isoReadout.textContent = 'Click an element on either wheel to see the correspondence.';
+  }
+
+  function updateReadout(row){
+    var g = row.g, m = row.m, n = row.n;
+
+    if (state.a === null){
+      isoReadout.textContent = 'Click an element on either wheel to see the correspondence.';
+      return;
+    }
+
+    var aVal = imageOf(state.a, g, m);
+    var aRaw = rawPowSafe(g, state.a);
+    var aEq = (aRaw !== null)
+      ? (g + '^' + state.a + ' = ' + aRaw + ' ≡ ' + aVal + ' (mod ' + m + ')')
+      : (g + '^' + state.a + ' ≡ ' + aVal + ' (mod ' + m + ') (too large to show the un-reduced power exactly)');
+
+    if (state.b === null){
+      isoReadout.innerHTML = 'Element <span class="slot-a">[' + state.a + ']</span> on the left corresponds to <span class="slot-a">' + aVal + '</span> on the right: ' +
+        '<span class="mono">' + aEq + '</span>. Click a second element &mdash; or this same one again &mdash; to see the sum and product.';
+      return;
+    }
+
+    var bVal = imageOf(state.b, g, m);
+    var sum = (state.a + state.b) % n;
+    var sumVal = imageOf(sum, g, m);
+    var product = (aVal * bVal) % m;
+    var agree = (product === sumVal);
+
+    isoReadout.innerHTML =
+      '<span class="slot-a">[' + state.a + ']</span> + <span class="slot-b">[' + state.b + ']</span> = <span class="slot-sum">[' + sum + ']</span> on the left ' +
+      '(<span class="mono">' + state.a + ' + ' + state.b + ' = ' + (state.a + state.b) + ' ≡ ' + sum + ' mod ' + n + '</span>) &mdash; ' +
+      '<span class="slot-a">' + aVal + '</span> × <span class="slot-b">' + bVal + '</span> = <span class="slot-sum">' + product + '</span> on the right ' +
+      '(<span class="mono">mod ' + m + '</span>) &mdash; ' +
+      (agree
+        ? ('and ' + product + ' = ' + g + '^' + sum + ' mod ' + m + ' = ' + sumVal + ': the sum’s image equals the product of the images.')
+        : ('<span class="slot-warn">' + product + ' does not equal ' + g + '^' + sum + ' mod ' + m + ' = ' + sumVal + ' &mdash; this pair should never disagree.</span>'));
   }
 
   function renderPairList(){
@@ -745,6 +832,47 @@
     setPair(row.m);
   });
 
+  /* ---------- layout tabs ---------- */
+  // Switching layout preserves the current selection and re-renders (the
+  // underlying k -> imageOf(k) map is layout-independent); switching pair
+  // clears the selection (handled in setPair above).
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
+
+  function syncTabs(){
+    for (var t = 0; t < tabs.length; t++){
+      var tab = tabs[t];
+      var on = tab.getAttribute('data-layout') === state.layout;
+      tab.classList.toggle('is-active', on);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+    }
+  }
+
+  function setLayout(id){
+    if (id === state.layout) return;
+    state.layout = id;
+    persist();
+    syncTabs();
+    render();
+  }
+
+  for (var ti = 0; ti < tabs.length; ti++){
+    (function(tab){
+      tab.addEventListener('click', function(){ setLayout(tab.getAttribute('data-layout')); });
+      tab.addEventListener('keydown', function(ev){
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        ev.preventDefault();
+        var idx = tabs.indexOf(tab);
+        var delta = (ev.key === 'ArrowRight') ? 1 : -1;
+        var next = tabs[(idx + delta + tabs.length) % tabs.length];
+        setLayout(next.getAttribute('data-layout'));
+        next.focus();
+      });
+    })(tabs[ti]);
+  }
+
+  syncTabs();
   render();
 })();
 </script>
