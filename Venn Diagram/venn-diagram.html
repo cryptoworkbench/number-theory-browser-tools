@@ -332,6 +332,16 @@
   .nested-preview .nstep-4{ fill:color-mix(in srgb, var(--role-result) 32%, transparent); stroke:var(--role-result); }
   .nested-preview .nstep-5{ fill:color-mix(in srgb, var(--role-warn) 32%, transparent); stroke:var(--role-warn); }
 
+  /* Balanced (Fermat's Method) factor tree preview -- token-only, scoped
+     under .nested-preview so it cannot leak onto anything else on the page. */
+  .nested-preview .ft-edge{ stroke:var(--text-dim); stroke-width:1.2; }
+  .nested-preview .ft-node.root, .nested-preview .ft-node.internal{ fill:var(--role-input); stroke:var(--role-input); }
+  .nested-preview .ft-node.prime-leaf{ fill:var(--role-result); stroke:var(--role-result); }
+  .nested-preview .ft-node.one{ fill:color-mix(in srgb, var(--role-inert) 55%, transparent); stroke:var(--role-inert); }
+  .nested-preview .ft-label{ font-family:'Poppins', sans-serif; font-weight:700; text-anchor:middle; dominant-baseline:central; fill:var(--accent-ink); pointer-events:none; }
+  .nested-preview .ft-label.prime-leaf{ fill:var(--role-result-ink); }
+  .nested-preview .ft-label.one{ fill:var(--text); opacity:.75; }
+
   .message{
     min-height:16px;
     font-size:13.5px;
@@ -435,6 +445,10 @@
     <div class="mode-switch" role="group" aria-label="Diagram mode">
       <button type="button" id="mode-two" class="mode-btn" aria-pressed="true">Two circles</button>
       <button type="button" id="mode-three" class="mode-btn" aria-pressed="false">Three circles</button>
+    </div>
+    <div class="mode-switch" role="group" aria-label="Hover preview">
+      <button type="button" id="preview-euclid" class="mode-btn" aria-pressed="true">Hover: Euclid squares</button>
+      <button type="button" id="preview-tree" class="mode-btn" aria-pressed="false">Hover: factor tree</button>
     </div>
     <button type="button" id="clear-btn">Clear all</button>
   </div>
@@ -805,6 +819,8 @@
   var previewLayer3 = document.getElementById('venn3-preview');
   var modeTwoBtn = document.getElementById('mode-two');
   var modeThreeBtn = document.getElementById('mode-three');
+  var previewEuclidBtn = document.getElementById('preview-euclid');
+  var previewTreeBtn = document.getElementById('preview-tree');
   var ledeTwo = document.getElementById('lede-two');
   var ledeThree = document.getElementById('lede-three');
   var frameTwo = document.getElementById('frame-two');
@@ -971,7 +987,7 @@
     return { regions: newLists, moved: moved, changed: changed, overflow: null };
   }
 
-  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
+  var state = { mode: 'two', previewMode: 'euclid', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
 
   function svgEl(tag, attrs){
     var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -1055,6 +1071,118 @@
     return { rects: rects, width: top.w, height: top.h, cappedSteps: cappedSteps };
   }
 
+  /* ---------- Balanced (Fermat's Method) factor tree (ported from Factor Tree) ---------- */
+  // isqrt(), isPerfectSquare(), fermatSplit(), buildBalancedTree(),
+  // assignTreeX() and flattenTree() are a deliberate per-file duplication of
+  // the Balanced-mode logic in Factor Tree/factor-tree.html, per CLAUDE.md's
+  // no-shared-JS-module rule for number-theory helpers. Names are suffixed
+  // (Tree/FT_) only to avoid colliding with this page's own helpers --
+  // buildBalancedTree() calls THIS page's own isPrime() above rather than
+  // porting a second copy.
+
+  // Matches the source's MAX_BALANCED_N / FERMAT_MAX_ITER exactly -- a
+  // different ceiling would make this page's tree disagree with the tool it
+  // was ported from.
+  var FT_MAX_N = 1000000;
+  var FT_MAX_ITER = 2000000;
+
+  function isqrt(x){
+    if (x < 0) return -1;
+    var r = Math.floor(Math.sqrt(x));
+    while (r * r > x) r--;
+    while ((r + 1) * (r + 1) <= x) r++;
+    return r;
+  }
+
+  function isPerfectSquare(x){
+    if (x < 0) return -1;
+    var r = isqrt(x);
+    return (r * r === x) ? r : -1;
+  }
+
+  function fermatSplit(v){
+    var aMax = Math.floor((v + 1) / 2);
+    var a = Math.ceil(Math.sqrt(v));
+    var iters = 0;
+    while (a <= aMax){
+      var r = a * a - v;
+      var b = isPerfectSquare(r);
+      iters++;
+      if (b >= 0) return { p: a - b, q: a + b };
+      if (iters >= FT_MAX_ITER) return null; // defensive can't-happen guard only
+      a++;
+    }
+    return null; // can't-happen for odd composite v
+  }
+
+  function smallestFactorOf(v){
+    for (var p = 2; p * p <= v; p++){
+      if (v % p === 0) return p;
+    }
+    return v;
+  }
+
+  // Always the balanced branch -- this port carries no classic mode. Calls
+  // this page's own isPrime() (declared above); a second isPrime() here
+  // would silently shadow it.
+  function buildBalancedTree(v, depth){
+    if (v === 1){
+      return { value: 1, kind: 'one', children: [], depth: depth };
+    }
+    if (isPrime(v)){
+      return {
+        value: v,
+        kind: depth === 0 ? 'root' : 'internal',
+        depth: depth,
+        children: [
+          { value: 1, kind: 'one', children: [], depth: depth + 1 },
+          { value: v, kind: 'prime-leaf', children: [], depth: depth + 1 }
+        ]
+      };
+    }
+    if (v % 2 === 0){
+      return {
+        value: v,
+        kind: depth === 0 ? 'root' : 'internal',
+        depth: depth,
+        children: [ buildBalancedTree(2, depth + 1), buildBalancedTree(v / 2, depth + 1) ]
+      };
+    }
+    var split = fermatSplit(v); // v is odd and composite here
+    var p, q;
+    if (split){
+      p = split.p; q = split.q;
+    } else {
+      // Defensive guard so a hover handler can never throw: fall back to a
+      // smallest-factor split if fermatSplit's iteration cap is ever hit.
+      p = smallestFactorOf(v);
+      q = v / p;
+    }
+    return {
+      value: v,
+      kind: depth === 0 ? 'root' : 'internal',
+      depth: depth,
+      children: [ buildBalancedTree(p, depth + 1), buildBalancedTree(q, depth + 1) ]
+    };
+  }
+
+  function assignTreeX(node, counter){
+    if (node.children.length === 0){
+      node.x = counter.value;
+      counter.value += 1;
+    } else {
+      for (var i = 0; i < node.children.length; i++) assignTreeX(node.children[i], counter);
+      node.x = (node.children[0].x + node.children[node.children.length - 1].x) / 2;
+    }
+  }
+
+  function flattenTree(node, parent, nodes, edges, maxDepth){
+    nodes.push(node);
+    if (parent) edges.push({ from: parent, to: node });
+    maxDepth.value = Math.max(maxDepth.value, node.depth);
+    for (var i = 0; i < node.children.length; i++) flattenTree(node.children[i], node, nodes, edges, maxDepth);
+  }
+
   /* ---------- Euclidean nested-view preview renderer ---------- */
 
   var NP_W = 268, NP_H = 196, NP_PAD = 10, NP_GAP = 26, NP_EDGE = 6;
@@ -1062,6 +1190,18 @@
   function hideNestedPreview(layer){
     if (!layer) return;
     layer.innerHTML = '';
+  }
+
+  // The anchor-to-panel clamp arithmetic, lifted out of showNestedPreview
+  // unchanged so both preview renderers place their panel identically and
+  // can never drift apart at the viewBox edges.
+  function previewPanelRect(opts){
+    var px = opts.anchor[0] + NP_GAP;
+    if (px + NP_W > opts.vbW - NP_EDGE) px = opts.anchor[0] - NP_GAP - NP_W;
+    px = Math.min(Math.max(px, NP_EDGE), opts.vbW - NP_W - NP_EDGE);
+    var py = opts.anchor[1] - NP_H / 2;
+    py = Math.min(Math.max(py, NP_EDGE), opts.vbH - NP_H - NP_EDGE);
+    return { px: px, py: py };
   }
 
   function showNestedPreview(layer, opts){
@@ -1072,11 +1212,8 @@
     var layout = computeNestedLayout(run.steps);
     if (!layout || layout.width <= 0 || layout.height <= 0) return;
 
-    var px = opts.anchor[0] + NP_GAP;
-    if (px + NP_W > opts.vbW - NP_EDGE) px = opts.anchor[0] - NP_GAP - NP_W;
-    px = Math.min(Math.max(px, NP_EDGE), opts.vbW - NP_W - NP_EDGE);
-    var py = opts.anchor[1] - NP_H / 2;
-    py = Math.min(Math.max(py, NP_EDGE), opts.vbH - NP_H - NP_EDGE);
+    var panelRect = previewPanelRect(opts);
+    var px = panelRect.px, py = panelRect.py;
 
     layer.appendChild(svgEl('rect', {
       'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
@@ -1113,6 +1250,93 @@
     });
     hint.textContent = 'double-click to open the full view →';
     layer.appendChild(hint);
+  }
+
+  // Balanced (Fermat's Method) factor tree, drawn into the same 268x196
+  // panel showNestedPreview() uses. Redrawn on every hover, so this stays
+  // synchronous and cheap: no gradients, no silhouette, no staggered reveal.
+  function showFactorTreePreview(layer, opts){
+    hideNestedPreview(layer);
+    if (!layer) return;
+    var panelRect = previewPanelRect(opts);
+    var px = panelRect.px, py = panelRect.py;
+
+    layer.appendChild(svgEl('rect', {
+      'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
+    }));
+
+    var bx = px + NP_PAD, by = py + NP_PAD;
+    var bw = NP_W - 2 * NP_PAD, bh = NP_H - NP_PAD - 34;
+
+    var tree = buildBalancedTree(opts.value, 0);
+    var xCounter = { value: 0 };
+    assignTreeX(tree, xCounter);
+    var nodes = [], edges = [], depthBox = { value: 0 };
+    flattenTree(tree, null, nodes, edges, depthBox);
+    var leafCount = Math.max(1, xCounter.value);
+    var maxDepth = depthBox.value;
+
+    var colSpan = leafCount > 1 ? bw / leafCount : bw;
+    var rowSpan = maxDepth > 0 ? bh / maxDepth : bh;
+    var r = Math.max(4, Math.min(12, Math.min(colSpan * 0.42, rowSpan * 0.40)));
+    var xStep = leafCount > 1 ? (bw - 2 * r) / (leafCount - 1) : 0;
+    var yStep = maxDepth > 0 ? (bh - 2 * r) / maxDepth : 0;
+
+    function treeNodeX(node){
+      return leafCount > 1 ? (bx + r + node.x * xStep) : (bx + bw / 2);
+    }
+    function treeNodeY(node){
+      return by + r + node.depth * yStep;
+    }
+
+    var oneR = Math.max(2.5, r * 0.62);
+    var fs = Math.max(5, r * 0.8);
+    var oneFs = Math.max(4.5, oneR * 0.85);
+
+    for (var e = 0; e < edges.length; e++){
+      var edge = edges[e];
+      layer.appendChild(svgEl('line', {
+        'class': 'ft-edge',
+        x1: treeNodeX(edge.from), y1: treeNodeY(edge.from),
+        x2: treeNodeX(edge.to), y2: treeNodeY(edge.to)
+      }));
+    }
+
+    for (var n = 0; n < nodes.length; n++){
+      var node = nodes[n];
+      var cx = treeNodeX(node), cy = treeNodeY(node);
+      var isOne = node.kind === 'one';
+      var nr = isOne ? oneR : r;
+      layer.appendChild(svgEl('circle', {
+        'class': 'ft-node ' + node.kind, cx: cx, cy: cy, r: nr
+      }));
+      var label = svgEl('text', {
+        'class': 'ft-label ' + node.kind, x: cx, y: cy,
+        'font-size': isOne ? oneFs : fs
+      });
+      label.textContent = String(node.value);
+      layer.appendChild(label);
+    }
+
+    var caption = svgEl('text', {
+      'class': 'np-caption', x: px + NP_W / 2, y: py + NP_H - 18
+    });
+    caption.textContent = factorTail(factorize(opts.value), opts.value);
+    layer.appendChild(caption);
+
+    var hint = svgEl('text', {
+      'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+    });
+    hint.textContent = 'double-click for the Euclidean view →';
+    layer.appendChild(hint);
+  }
+
+  // ONE dispatch point, reading state.previewMode at event time so the
+  // switch never needs a re-render and cannot desync from what is on
+  // screen.
+  function showRegionPreview(layer, opts){
+    if (state.previewMode === 'tree') showFactorTreePreview(layer, opts);
+    else showNestedPreview(layer, opts);
   }
 
   function lensPath(){
@@ -1749,10 +1973,10 @@
       });
     }
     if (hasPreview){
-      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b };
-      g.addEventListener('mouseenter', function(){ showNestedPreview(link.previewLayer, previewOpts); });
+      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value };
+      g.addEventListener('mouseenter', function(){ showRegionPreview(link.previewLayer, previewOpts); });
       g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
-      g.addEventListener('focus', function(){ showNestedPreview(link.previewLayer, previewOpts); });
+      g.addEventListener('focus', function(){ showRegionPreview(link.previewLayer, previewOpts); });
       g.addEventListener('blur', function(){ hideNestedPreview(link.previewLayer); });
     }
     target.appendChild(g);
@@ -2130,9 +2354,23 @@
     render();
   }
 
+  // Governs the hover panel's CONTENTS only -- nothing in the static render
+  // depends on it, so this must NOT call render(). Clears any open panel on
+  // both layers so a flip mid-hover can't leave a stale drawing on screen.
+  function setPreviewMode(mode){
+    state.previewMode = mode;
+    var isTree = mode === 'tree';
+    if (previewEuclidBtn) previewEuclidBtn.setAttribute('aria-pressed', isTree ? 'false' : 'true');
+    if (previewTreeBtn) previewTreeBtn.setAttribute('aria-pressed', isTree ? 'true' : 'false');
+    hideNestedPreview(previewLayer);
+    hideNestedPreview(previewLayer3);
+  }
+
   clearBtn.addEventListener('click', clearAll);
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
+  if (previewEuclidBtn) previewEuclidBtn.addEventListener('click', function(){ setPreviewMode('euclid'); });
+  if (previewTreeBtn) previewTreeBtn.addEventListener('click', function(){ setPreviewMode('tree'); });
 
   /* ---------- live cross-document sync ---------- */
 
