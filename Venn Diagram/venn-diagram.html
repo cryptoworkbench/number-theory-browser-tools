@@ -1457,6 +1457,34 @@
   }
 
   var EUCLID_PATH = '../Euclidean Algorithm/euclidean-algorithm.html';
+  var CRT_PATH = '../Chinese Remainder Theorem/chinese-remainder-theorem.html';
+
+  // Every prime in the abc region divides all three circle totals by
+  // construction, so seeding the CRT moduli with those primes would force
+  // every remainder to zero -- the landed answer would be congruent to the
+  // composite modulo itself, but would DISPLAY as 0, not the composite. To
+  // make the tool reconstruct AND SHOW the composite x, the combined
+  // modulus must strictly exceed x, so this is a fixed pairwise-coprime
+  // basis table, unrelated to the region's own primes. Do not "simplify"
+  // this back into primesOf3('abc') -- that is the degenerate form.
+  var CRT_BASES = [ [3, 4], [4, 5], [5, 7], [7, 11], [3, 5, 7], [4, 5, 7], [5, 7, 8], [5, 7, 11] ];
+
+  function crtHref(x){
+    if (x < 2) return null;
+    for (var i = 0; i < CRT_BASES.length; i++){
+      var basis = CRT_BASES[i];
+      var span = productOf(basis);
+      if (span <= x) continue;
+      var query = '';
+      for (var j = 0; j < basis.length; j++){
+        var m = basis[j];
+        var a = x % m;
+        query += '&m' + (j + 1) + '=' + encodeURIComponent(m) + '&a' + (j + 1) + '=' + encodeURIComponent(a);
+      }
+      return CRT_PATH + '?' + query.slice(1);
+    }
+    return null;
+  }
 
   // The one place that builds a Euclidean Algorithm URL. Returns null when
   // the pair is out of the target tool's range, which is what makes a chip
@@ -1505,6 +1533,9 @@
       if (pairwise){
         var href = euclidHref(triple[pairwise[0]], triple[pairwise[1]]);
         if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm' };
+      } else if (key === 'abc'){
+        var crtUrl = crtHref(productOf(primesOf3('abc')));
+        if (crtUrl) link = { href: crtUrl, label: 'rebuild this number with the Chinese Remainder Theorem' };
       }
       appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, link);
     }
