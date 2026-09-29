@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Euler's Totient Function</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Euler's-totient slot colors, aliased from the shared semantic roles:
+       --slot-modulus is n, the value every k is tested against
+       (--role-input); --slot-k is the k currently under test
+       (--role-active); --slot-coprime is a k that survives the test and
+       gets tallied into phi(n) (--role-result); --slot-eliminated is a k
+       that shares a factor with n, struck out of the count
+       (--role-inert), with its label text on --role-inert-text;
+       --slot-remainder is the remainder that becomes next step's divisor
+       inside a single k's Euclidean chain (--role-alt); --slot-warn is
+       validation/boundary messaging (--role-warn). The *-soft variants
+       tint a value's background without a literal color. */
+    --slot-modulus: var(--role-input);
+    --slot-k: var(--role-active);
+    --slot-coprime: var(--role-result);
+    --slot-eliminated: var(--role-inert);
+    --slot-eliminated-text: var(--role-inert-text);
+    --slot-remainder: var(--role-alt);
+    --slot-warn: var(--role-warn);
+    --slot-modulus-soft: color-mix(in srgb, var(--slot-modulus) 22%, transparent);
+    --slot-k-soft: color-mix(in srgb, var(--slot-k) 22%, transparent);
+    --slot-coprime-soft: color-mix(in srgb, var(--slot-coprime) 22%, transparent);
+    --slot-eliminated-soft: color-mix(in srgb, var(--slot-eliminated) 22%, transparent);
+    --slot-remainder-soft: color-mix(in srgb, var(--slot-remainder) 22%, transparent);
+  }
+
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-input) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-active) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-result) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1040px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; max-width:68ch; margin:8px auto 0; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--accent-2);
+    margin:0 0 10px;
+  }
+  .page-header h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    margin:0 0 12px;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    letter-spacing:-.01em;
+    line-height:1.1;
+  }
+  .lede{ font-size:16px; line-height:1.6; color:var(--text-dim); margin:0 auto; }
+  .xref{ margin:10px 0 0; font-size:13px; }
+  .xref a{ color:var(--slot-modulus); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--slot-modulus) 45%, transparent); }
+  .xref a:hover{ color:var(--slot-coprime); border-bottom-color:color-mix(in srgb, var(--slot-coprime) 45%, transparent); }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:linear-gradient(135deg, var(--slot-modulus), var(--slot-k)); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:'JetBrains Mono', 'Consolas', monospace; }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+
+  .error-box{ color:var(--slot-warn); font-size:.85rem; min-height:1.1em; text-align:center; }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+
+  /* ---------- the k-walk grid ---------- */
+  .k-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--cell-min), 1fr));
+    gap:5px;
+    margin-bottom:10px;
+  }
+  .k-cell{
+    aspect-ratio: 1 / 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--text) 4.5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
+    color: var(--text-dim);
+    font-size: clamp(0.6rem, calc(var(--cell-min) * 0.34), 0.95rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    position: relative;
+    transition: background .25s, border-color .25s, color .25s, box-shadow .25s, transform .15s;
+    user-select:none;
+  }
+  .k-cell.is-current{
+    border-color: var(--slot-k);
+    color: var(--slot-k);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--slot-k) 25%, transparent), 0 0 14px color-mix(in srgb, var(--slot-k) 45%, transparent);
+    transform: scale(1.12);
+    z-index: 2;
+  }
+  .k-cell.is-coprime{
+    color: var(--accent-ink);
+    background: color-mix(in srgb, var(--slot-coprime) 55%, var(--text));
+    border-color: transparent;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--slot-coprime) 35%, transparent);
+    font-weight: 800;
+    cursor:pointer;
+  }
+  .k-cell.is-eliminated{
+    color: var(--slot-eliminated-text);
+    background: color-mix(in srgb, var(--text) 2%, transparent);
+    border-color: color-mix(in srgb, var(--text) 4%, transparent);
+    cursor:pointer;
+  }
+  .k-cell.is-eliminated::after{
+    content:"";
+    position:absolute;
+    inset: 45% 8%;
+    height: 2px;
+    background: var(--slot-warn);
+    opacity: 0.55;
+    transform: rotate(-18deg);
+    border-radius: 2px;
+  }
+  .k-cell:focus-visible{ outline:2px solid var(--slot-k); outline-offset:2px; }
+
+  .chain{ display:flex; flex-direction:column; gap:8px; font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.02rem; }
+  .eq-line{
+    display:flex; align-items:baseline; flex-wrap:wrap;
+    padding:9px 14px; border-radius:10px; background:color-mix(in srgb, var(--text) 4%, transparent);
+    border:1px solid var(--panel-border); border-left:3px solid transparent;
+    opacity:0; transform:translateY(-4px);
+    animation: eqFadeIn .35s ease forwards;
+  }
+  @keyframes eqFadeIn{ to{ opacity:1; transform:translateY(0); } }
+  .eq-num{ font-weight:700; }
+  .eq-a{ color:var(--slot-modulus); }
+  .eq-b, .eq-q{ color:var(--slot-k); }
+  .eq-r{ color:var(--slot-remainder); }
+  .eq-op{ color:var(--text-dim); font-weight:400; padding:0 3px; }
+
+  .progress-line{ text-align:center; font-size:.85rem; color:var(--text-dim); margin:0 0 6px; }
+
+  .tally-line{
+    text-align:center; font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1rem; font-weight:600;
+    color:var(--slot-coprime); margin:0 0 4px;
+  }
+
+  .answer-line{
+    margin-top:6px; padding:12px 16px; border-radius:12px; text-align:center;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.15rem; font-weight:700;
+    color:var(--slot-coprime);
+    background:color-mix(in srgb, var(--slot-coprime) 14%, transparent);
+    border:1px solid var(--slot-coprime);
+  }
+  .answer-line:empty{ display:none; }
+
+  .chain-head{ text-align:center; font-size:.85rem; color:var(--text-dim); margin:0 0 8px; }
+  .verdict-line{ text-align:center; font-size:.88rem; color:var(--text); margin:8px 0 0; min-height:1.2em; }
+
+  .caption{ text-align:center; font-size:.78rem; color:var(--text-dim); margin:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    .eq-line{ animation:none; opacity:1; transform:none; }
+  }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <text class="brand-icon-digit" x="21" y="26">1</text>
+        <text class="brand-icon-digit" x="43" y="26">2</text>
+        <text class="brand-icon-digit" x="21" y="50">3</text>
+        <text class="brand-icon-digit" x="43" y="50">4</text>
+      </svg>
+      <span class="site-brand-label">Number Theory Tools</span>
+    </a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Venn Diagram/venn-diagram.html" class="site-nav-link">Venn Diagram</a>
+      <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link">Euclidean Algorithm</a>
+      <a href="../Chinese Remainder Theorem/chinese-remainder-theorem.html" class="site-nav-link">Chinese Remainder Theorem</a>
+      <a href="../Equivalence Wheel/equivalence-wheel.html" class="site-nav-link">Equivalence Wheel</a>
+      <a href="eulers-totient.html" class="site-nav-link is-active">Euler's Totient</a>
+      <a href="../Cayley Table/cayley-table.html" class="site-nav-link">Cayley Table</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link">Square and Multiply</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="../RSA/rsa.html" class="site-nav-link">RSA</a>
+      <a href="../Fermats Method/fermats-method.html" class="site-nav-link">Fermat's Method</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link">Shor's Algorithm</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <p class="eyebrow">number theory · euler's totient</p>
+    <h1>Euler's Totient Function</h1>
+    <p class="lede">&phi;(n) counts how many of 1 &hellip; n&minus;1 share no factor with n, and this page finds out
+      the only honest way &mdash; by asking the Euclidean algorithm about every single one of them.</p>
+    <p class="xref"><a id="xrefLink" href="../Equivalence Wheel/equivalence-wheel.html?mode=multiplicative&amp;n=12">The same count shows up as the wedges of the multiplicative group mod n &rarr;</a></p>
+  </header>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field"><label for="nInput">n</label><input id="nInput" type="number" min="2" max="1000" value="12"></div>
+    </div>
+
+    <div class="chips" id="presetChips"></div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="runBtn" class="primary">Run</button>
+      <button id="instantBtn" class="ghost">⏩ Instant</button>
+    </div>
+  </section>
+
+  <div class="error-box" id="errorBox"></div>
+  <div class="banner" id="banner">Set n, then press Run.</div>
+
+  <section class="panel">
+    <div id="kGrid" class="k-grid"></div>
+    <p id="progressLine" class="progress-line"></p>
+    <p id="tallyLine" class="tally-line" data-count="0"></p>
+    <div id="answerLine" class="answer-line"></div>
+  </section>
+
+  <section class="panel">
+    <p id="chainHead" class="chain-head"></p>
+    <div id="chain" class="chain"></div>
+    <p id="verdictLine" class="verdict-line"></p>
+  </section>
+
+  <p class="caption">n prime gives &phi;(n) = n&minus;1, because every smaller number misses it &mdash; the chips make that easy to check.</p>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- math helpers ---------- */
+
+// Duplicated from Euclidean Algorithm/euclidean-algorithm.html's euclidSteps,
+// with the Bezout coefficients dropped -- this file has no use for them.
+// Returns { steps, gcd } where steps is one {a, b, q, r} entry per division.
+function euclidStepsFor(a, b){
+  var steps = [];
+  var r0 = a, r1 = b;
+  while (r1 !== 0){
+    var q = Math.floor(r0 / r1);
+    var r2 = r0 - q * r1;
+    steps.push({ a: r0, b: r1, q: q, r: r2 });
+    r0 = r1; r1 = r2;
+  }
+  return { steps: steps, gcd: r0 };
+}
+
+/* ---------- DOM references ---------- */
+
+var $ = function(id){ return document.getElementById(id); };
+
+var nInput = $('nInput');
+var runBtn = $('runBtn');
+var instantBtn = $('instantBtn');
+var errorBox = $('errorBox');
+var banner = $('banner');
+var kGrid = $('kGrid');
+var progressLine = $('progressLine');
+var tallyLine = $('tallyLine');
+var answerLine = $('answerLine');
+var chainHead = $('chainHead');
+var chain = $('chain');
+var verdictLine = $('verdictLine');
+var xrefLink = $('xrefLink');
+var presetChips = $('presetChips');
+
+var MIN_N = 2;
+var MAX_N = 1000;
+
+/* ---------- playback state (generation-guarded, per repo convention) ---------- */
+// `generation` is bumped on every reset so a stale deferred callback from an
+// abandoned run can check it and bail rather than write into a grid/chain
+// that has since been cleared or rebuilt for a different n. Only Task 1's
+// Run/Instant use this file today; the Play/Step/Reset controls this state
+// exists for land in a follow-up edit, without adding any new state.
+var currentN = 0;
+var events = [];
+var stepIndex = 0;
+var coprimeCount = 0;
+var generation = 0;
+var cells = [];
+
+/* ---------- input reading ---------- */
+
+function readN(){
+  errorBox.textContent = '';
+
+  var raw = nInput.value.trim();
+  if (!/^-?\d+$/.test(raw)){
+    errorBox.textContent = 'n must be a whole number.';
+    return null;
+  }
+
+  var n = parseInt(raw, 10);
+
+  if (n < MIN_N){
+    errorBox.textContent = 'n must be at least ' + MIN_N + ' — the walk k = 1 … n−1 needs at least one k to test.';
+    return null;
+  }
+
+  if (n > MAX_N){
+    n = MAX_N;
+    nInput.value = n;
+    errorBox.textContent = 'n is capped at ' + MAX_N.toLocaleString() + ' — the value was clamped down to fit.';
+  }
+
+  return n;
+}
+
+function updateXrefLink(n){
+  if (!xrefLink) return;
+  xrefLink.href = '../Equivalence Wheel/equivalence-wheel.html?mode=multiplicative&n=' + encodeURIComponent(n);
+}
+
+/* ---------- the walk: one source of truth for every event ---------- */
+
+// Flattens the entire k = 1 … n-1 walk into one ordered event list before
+// any rendering happens -- one 'div' event per division line of every k's
+// Euclidean chain, plus one 'verdict' event once that k's gcd is known.
+// Computes nothing else here; in particular this never pre-counts coprimes.
+function buildEvents(n){
+  var evts = [];
+  for (var k = 1; k <= n - 1; k++){
+    var result = euclidStepsFor(n, k);
+    for (var i = 0; i < result.steps.length; i++){
+      evts.push({ type: 'div', k: k, step: result.steps[i], index: i });
+    }
+    evts.push({ type: 'verdict', k: k, gcd: result.gcd, coprime: result.gcd === 1 });
+  }
+  return evts;
+}
+
+function cellMinPx(size){
+  if (size <= 20) return 46;
+  if (size <= 60) return 34;
+  if (size <= 150) return 26;
+  if (size <= 400) return 19;
+  return 14;
+}
+
+function buildGrid(n){
+  kGrid.innerHTML = '';
+  document.documentElement.style.setProperty('--cell-min', cellMinPx(n - 1) + 'px');
+
+  var frag = document.createDocumentFragment();
+  cells = new Array(n);
+  for (var k = 1; k <= n - 1; k++){
+    var div = document.createElement('div');
+    div.className = 'k-cell';
+    div.textContent = k;
+    div.dataset.k = k;
+    frag.appendChild(div);
+    cells[k] = div;
+  }
+  kGrid.appendChild(frag);
+}
+
+/* ---------- applying a single event: the only function that mutates state ---------- */
+
+function appendDivLine(step){
+  var div = document.createElement('div');
+  div.className = 'eq-line';
+  div.innerHTML =
+    '<span class="eq-num eq-a">' + step.a + '</span>' +
+    '<span class="eq-op"> = </span>' +
+    '<span class="eq-num eq-q">' + step.q + '</span>' +
+    '<span class="eq-op">·</span>' +
+    '<span class="eq-num eq-b">' + step.b + '</span>' +
+    '<span class="eq-op"> + </span>' +
+    '<span class="eq-num eq-r">' + step.r + '</span>';
+  chain.appendChild(div);
+}
+
+// The ONLY function that writes a k-cell class, a chain line or the tally.
+// Play, Step and Instant differ only in how many events they hand here.
+function applyEvent(ev){
+  if (ev.type === 'div'){
+    if (ev.index === 0){
+      chain.innerHTML = '';
+      chainHead.textContent = 'Testing k = ' + ev.k + ' — gcd(' + currentN + ', ' + ev.k + ')';
+      verdictLine.textContent = '';
+      var prevCurrent = kGrid.querySelector('.is-current');
+      if (prevCurrent) prevCurrent.classList.remove('is-current');
+      var cell = cells[ev.k];
+      if (cell) cell.classList.add('is-current');
+    }
+    appendDivLine(ev.step);
+  } else if (ev.type === 'verdict'){
+    var kCell = cells[ev.k];
+    if (kCell){
+      kCell.classList.remove('is-current');
+      kCell.classList.add(ev.coprime ? 'is-coprime' : 'is-eliminated');
+    }
+    if (ev.coprime){
+      coprimeCount++;
+      verdictLine.textContent = 'k = ' + ev.k + ' is coprime to ' + currentN + ' — gcd = 1, tallied.';
+    } else {
+      verdictLine.textContent = 'k = ' + ev.k + ' shares a factor with ' + currentN + ' — gcd = ' + ev.gcd + ', eliminated.';
+    }
+    tallyLine.textContent = 'Running coprime count: ' + coprimeCount;
+    tallyLine.setAttribute('data-count', coprimeCount);
+    progressLine.textContent = 'k = ' + ev.k + ' of ' + (currentN - 1) + ' tested.';
+  }
+}
+
+function landAnswer(){
+  answerLine.textContent = 'φ(' + currentN + ') = ' + coprimeCount;
+  answerLine.setAttribute('data-n', currentN);
+  answerLine.setAttribute('data-phi', coprimeCount);
+  banner.textContent = 'Done — ' + (currentN - 1) + ' value' + (currentN - 1 === 1 ? '' : 's') + ' tested, ' + coprimeCount + ' coprime to ' + currentN + '.';
+}
+
+function resetScan(){
+  generation++; // invalidate any in-flight callback from the run being abandoned
+  stepIndex = 0;
+  coprimeCount = 0;
+  for (var k = 1; k < cells.length; k++){
+    if (cells[k]) cells[k].classList.remove('is-current', 'is-coprime', 'is-eliminated');
+  }
+  chain.innerHTML = '';
+  chainHead.textContent = '';
+  verdictLine.textContent = '';
+  answerLine.textContent = '';
+  answerLine.removeAttribute('data-n');
+  answerLine.removeAttribute('data-phi');
+  tallyLine.textContent = '';
+  tallyLine.setAttribute('data-count', '0');
+  progressLine.textContent = '';
+}
+
+// Walks only the REMAINING events, so calling this after some events were
+// already applied by a partial run never re-applies (and never double-
+// tallies) an event that already landed.
+function instantFinish(){
+  while (stepIndex < events.length){
+    applyEvent(events[stepIndex]);
+    stepIndex++;
+  }
+  landAnswer();
+}
+
+function buildRun(){
+  var n = readN();
+  if (n === null) return;
+  currentN = n;
+  updateXrefLink(n);
+  events = buildEvents(n);
+  buildGrid(n);
+  resetScan();
+  instantFinish();
+}
+
+/* ---------- event wiring ---------- */
+
+runBtn.addEventListener('click', buildRun);
+instantBtn.addEventListener('click', instantFinish);
+nInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
+
+window.addEventListener('load', function(){
+  buildRun();
+});
+
+})();
+</script>
+</body>
+</html>
