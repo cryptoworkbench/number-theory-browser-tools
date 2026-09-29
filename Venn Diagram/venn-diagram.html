@@ -1488,12 +1488,25 @@
     regionEls.right.setAttribute('aria-label', regionAriaLabel('right'));
   }
 
+  var PAIRWISE_KEY3 = {
+    ab: ['a', 'b'],
+    ac: ['a', 'c'],
+    bc: ['b', 'c']
+  };
+
   function renderComposite3(){
     svg3CompositeDynamic.innerHTML = '';
+    var triple = currentTriple();
     for (var i = 0; i < REGION_KEYS3.length; i++){
       var key = REGION_KEYS3[i];
       var value = productOf(primesOf(state.regions3[key]));
-      appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, null);
+      var link = null;
+      var pairwise = PAIRWISE_KEY3[key];
+      if (pairwise){
+        var href = euclidHref(triple[pairwise[0]], triple[pairwise[1]]);
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm' };
+      }
+      appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, link);
     }
   }
 
@@ -1536,13 +1549,27 @@
     }
   }
 
+  // One derivation path for the three circle totals in three-circle mode,
+  // mirroring currentPair()'s role for two-circle mode -- what renderProducts3()
+  // displays and what the composite links carry are the same computation.
+  function currentTriple(){
+    var aOnly = primesOf3('aOnly'), bOnly = primesOf3('bOnly'), cOnly = primesOf3('cOnly');
+    var ab = primesOf3('ab'), ac = primesOf3('ac'), bc = primesOf3('bc'), abc = primesOf3('abc');
+    return {
+      a: productOf(aOnly.concat(ab, ac, abc)),
+      b: productOf(bOnly.concat(ab, bc, abc)),
+      c: productOf(cOnly.concat(ac, bc, abc))
+    };
+  }
+
   function renderProducts3(){
     var aOnly = primesOf3('aOnly'), bOnly = primesOf3('bOnly'), cOnly = primesOf3('cOnly');
     var ab = primesOf3('ab'), ac = primesOf3('ac'), bc = primesOf3('bc'), abc = primesOf3('abc');
 
-    var totalA = productOf(aOnly.concat(ab, ac, abc));
-    var totalB = productOf(bOnly.concat(ab, bc, abc));
-    var totalC = productOf(cOnly.concat(ac, bc, abc));
+    var triple = currentTriple();
+    var totalA = triple.a;
+    var totalB = triple.b;
+    var totalC = triple.c;
 
     if (productAEl){
       var aFactors = ascendingSort(aOnly.concat(ab, ac, abc));
