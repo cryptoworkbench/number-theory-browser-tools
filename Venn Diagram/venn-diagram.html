@@ -295,9 +295,12 @@
     pointer-events:none;
   }
   .composite-chip.chip-compact text{ font-size:13px; }
-  .composite-chip.is-linked rect{ cursor:pointer; stroke:var(--role-input); }
-  .composite-chip.is-linked:hover rect{ stroke:var(--role-result); fill:color-mix(in srgb, var(--role-result) 12%, var(--surface)); }
-  .composite-chip.is-linked{ user-select:none; }
+  /* Hover-affordance styling now keys off "has a preview" (is-previewable),
+     not "has a link" (is-linked) -- a chip can preview without linking. */
+  .composite-chip.is-previewable rect{ stroke:var(--role-input); }
+  .composite-chip.is-previewable:hover rect{ stroke:var(--role-result); fill:color-mix(in srgb, var(--role-result) 12%, var(--surface)); }
+  .composite-chip.is-previewable{ cursor:help; user-select:none; }
+  .composite-chip.is-linked{ cursor:pointer; }
 
   /* ---------- Euclidean nested-view preview ---------- */
   /* pointer-events:none is load-bearing, not cosmetic: the panel is
@@ -1963,17 +1966,23 @@
     return Math.max(base, text.length * perChar + pad);
   }
 
+  // `link`'s `href` is optional: a chip (the three-circle A∩B∩C centre chip)
+  // can carry a preview without carrying a cross-tool deep link, so "has a
+  // link" (hasHref) and "has a preview" (hasPreview) are tested separately
+  // rather than both being derived from plain `link` truthiness.
   function appendCompositeBadge(target, anchor, value, notation, compact, key, link){
     var text = String(value);
     var w = badgeWidth(text, compact);
     var h = compact ? 24 : 32;
     var classes = compact ? 'composite-chip chip-compact' : 'composite-chip';
-    if (link) classes += ' is-linked';
+    var hasHref = !!(link && link.href);
+    var hasPreview = !!(link && link.previewLayer);
+    if (hasHref) classes += ' is-linked';
+    if (hasPreview) classes += ' is-previewable';
     var g = svgEl('g', { class: classes });
     g.setAttribute('data-region', key);
     var titleText = notation + ' = ' + text;
-    if (link) titleText += ' — double-click to ' + link.label;
-    var hasPreview = !!(link && link.previewLayer);
+    if (hasHref) titleText += ' — double-click to ' + link.label;
     if (hasPreview){
       g.setAttribute('role', 'img');
       g.setAttribute('aria-label', titleText);
@@ -1985,7 +1994,7 @@
     var t = svgEl('text', { x: anchor[0], y: anchor[1] });
     t.textContent = text;
     g.appendChild(t);
-    if (link){
+    if (hasHref){
       g.setAttribute('data-xref-href', link.href);
       g.addEventListener('dblclick', function(ev){
         ev.preventDefault();
@@ -2116,11 +2125,19 @@
 
   var EUCLID_PATH = '../Euclidean Algorithm/euclidean-algorithm.html';
 
+  // The one range test shared by euclidHref() (which also needs a URL) and
+  // the three-circle centre chip's preview descriptor (which needs no URL
+  // at all) -- kept as a single named predicate so "in range for a link"
+  // and "in range for a preview" can never drift apart.
+  function isEuclidRange(a, b){
+    return (a > 1 || b > 1) && a <= EUCLID_MAX_INPUT && b <= EUCLID_MAX_INPUT;
+  }
+
   // The one place that builds a Euclidean Algorithm URL. Returns null when
   // the pair is out of the target tool's range, which is what makes a chip
   // or the prose anchor unlinked rather than pointed at a broken query.
   function euclidHref(a, b){
-    if (!((a > 1 || b > 1) && a <= EUCLID_MAX_INPUT && b <= EUCLID_MAX_INPUT)) return null;
+    if (!isEuclidRange(a, b)) return null;
     return EUCLID_PATH + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
   }
 
@@ -2164,6 +2181,12 @@
       if (pairwise){
         var href = euclidHref(triple[pairwise[0]], triple[pairwise[1]]);
         if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700 };
+      } else if (key === 'abc'){
+        // The centre chip previews but never links: same left-fold
+        // renderProducts3() uses for its A ∩ B ∩ C row (gcd(gcd(A, B), C)),
+        // so the preview's gcd and the printed row can never disagree.
+        var centreA = gcd(triple.a, triple.b), centreB = triple.c;
+        if (isEuclidRange(centreA, centreB)) link = { href: null, previewLayer: previewLayer3, vbW: 900, vbH: 700, a: centreA, b: centreB };
       }
       appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, link);
     }
