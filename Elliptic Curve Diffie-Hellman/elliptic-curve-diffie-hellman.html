@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme'));}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elliptic Curve Diffie-Hellman</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Group-law explorer slot colors, the same three semantic aliases the
+       Equivalence Wheel and Group Isomorphism already use: first pick,
+       second pick, result. The *-soft variants tint a marked point's ring
+       without a literal color. */
+    --slot-a: var(--role-active);
+    --slot-b: var(--role-input);
+    --slot-sum: var(--role-result);
+    --slot-a-soft: color-mix(in srgb, var(--slot-a) 22%, transparent);
+    --slot-b-soft: color-mix(in srgb, var(--slot-b) 22%, transparent);
+    --slot-sum-soft: color-mix(in srgb, var(--slot-sum) 22%, transparent);
+  }
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; font-size:15px; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--role-alt) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, color-mix(in srgb, var(--role-input) 12%, transparent), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, color-mix(in srgb, var(--role-warn) 8%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); max-width: 1080px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ text-align:center; padding: 8px 0 4px; }
+  .page-header h1{
+    margin:0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight:700; letter-spacing:.3px;
+    background: linear-gradient(90deg, var(--role-alt), var(--role-input) 55%, var(--role-result));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .page-header p{ color:var(--text-dim); max-width:760px; margin:8px auto 0; line-height:1.55; font-size:.95rem; }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:16px; padding:18px 20px;
+    backdrop-filter: blur(6px); position:relative; overflow:hidden; }
+
+  .step-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .step-num{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--text) 8%, transparent); font-weight:700; font-size:.85rem; flex:none; }
+  .step-head h2{ margin:0; font-size:1.05rem; }
+  .step-head .sub{ color:var(--text-dim); font-size:.85rem; margin-left:auto; }
+
+  .intro p{ line-height:1.6; color:var(--text-dim); }
+  .intro strong.alice{ color:var(--role-alt); }
+  .intro strong.bob{ color:var(--role-input); }
+  .intro strong.eve{ color:var(--role-warn); }
+  .intro a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .intro a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input, .field select{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.95rem;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent); }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: transform .1s ease, background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(-1px); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:linear-gradient(135deg, var(--role-input), var(--role-alt)); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.danger{ background:linear-gradient(135deg, var(--role-warn), var(--role-special)); color:var(--accent-ink); border-color:transparent; }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:20px; border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:'JetBrains Mono', 'Consolas', monospace; }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+  .chip.is-caution{ border-color:var(--role-warn); color:var(--role-warn); }
+
+  .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; margin-top:2px; }
+
+  .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+  .banner strong{ color:var(--role-result); }
+
+  #curveSvg{ width:100%; height:auto; display:block; }
+  .lattice-frame{ fill:none; stroke:var(--panel-border-strong); stroke-width:1; }
+  .lattice-tick{ stroke:var(--panel-border); stroke-width:1; }
+  .lattice-tick-label{ fill:var(--text-dim); font-size:9px; font-family:'JetBrains Mono','Consolas',monospace; }
+  .midline{ stroke:var(--text-dim); stroke-width:1.2; stroke-dasharray:5,5; opacity:.55; }
+  .midline-caption{ fill:var(--text-dim); font-size:9.5px; font-family:'JetBrains Mono','Consolas',monospace; }
+  .point-dot{ fill:color-mix(in srgb, var(--text) 45%, transparent); }
+  .point-dot.is-g{ fill:var(--role-special); }
+  .point-dot.is-a{ fill:var(--role-alt); }
+  .point-dot.is-b{ fill:var(--role-input); }
+  .point-dot.is-s{ fill:var(--role-result); }
+  .point-label{ font-family:'JetBrains Mono','Consolas',monospace; font-size:11px; font-weight:700; }
+  .point-label.is-g{ fill:var(--role-special); }
+  .point-label.is-a{ fill:var(--role-alt); }
+  .point-label.is-b{ fill:var(--role-input); }
+  .point-label.is-s{ fill:var(--role-result); }
+  .inf-marker{ fill:color-mix(in srgb, var(--role-result) 25%, transparent); stroke:var(--role-result); stroke-width:1.4; }
+  .inf-label{ fill:var(--role-result); font-family:'JetBrains Mono','Consolas',monospace; font-size:11px; font-weight:700; }
+
+  .substep{ background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; }
+  .substep + .substep{ margin-top:10px; }
+  .substep h3{ margin:0 0 8px; font-size:.85rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+  .formula{ font-family:'JetBrains Mono','Consolas',monospace; font-size:.95rem; word-break:break-all;
+    background:var(--overlay); border-radius:8px; padding:10px 12px; line-height:1.6; }
+  .formula .lbl{ color:var(--text-dim); }
+  .formula .val{ color:var(--role-result); }
+  .formula .warn{ color:var(--role-warn); font-weight:700; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; font-size:.8rem; color:var(--text-dim); margin-top:10px; }
+  .legend .item{ display:flex; align-items:center; gap:6px; }
+  .legend .swatch{ width:14px; height:14px; border-radius:50%; display:inline-block; border:1px solid var(--panel-border-strong); }
+  .legend .swatch.g{ background:var(--role-special); }
+  .legend .swatch.a{ background:var(--role-alt); }
+  .legend .swatch.b{ background:var(--role-input); }
+  .legend .swatch.s{ background:var(--role-result); }
+
+  .ref{ margin-top:6px; }
+  .ref-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .ref-head .count{ font-family:'JetBrains Mono', monospace; font-size:.78rem; color:var(--text-dim); }
+  .ref-list{
+    list-style:none; margin:0; padding:4px; display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:2px;
+    max-height:320px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:10px; background:var(--surface);
+  }
+  .row-btn{ width:100%; display:flex; align-items:center; gap:9px; background:none; border:none; padding:8px 10px;
+    text-align:left; cursor:pointer; color:var(--text); font-family:'JetBrains Mono','Consolas',monospace; font-size:.82rem; border-radius:7px; }
+  .row-btn:hover{ background:var(--surface-alt); }
+  .row-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .row-btn.is-current{ background:color-mix(in srgb, var(--accent) 12%, transparent); }
+  .row-btn .r-k{ color:var(--text-dim); min-width:3.4ch; }
+  .row-btn.is-current .r-k{ color:var(--accent); }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
+  .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .pillbar span{ background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:20px; padding:3px 10px; font-size:.72rem; }
+
+  @media (max-width:640px){
+    .speed-wrap input[type="range"]{ width:100px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .chip, button{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <text class="brand-icon-digit" x="21" y="26">1</text>
+        <text class="brand-icon-digit" x="43" y="26">2</text>
+        <text class="brand-icon-digit" x="21" y="50">3</text>
+        <text class="brand-icon-digit" x="43" y="50">4</text>
+      </svg>
+      <span class="site-brand-label">Number Theory Tools</span>
+    </a>
+    <nav class="site-nav" aria-label="Tools">
+      <a href="../index.html" class="site-nav-link">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link">Factor Tree</a>
+      <a href="../Venn Diagram/venn-diagram.html" class="site-nav-link">Venn Diagram</a>
+      <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link">Euclidean Algorithm</a>
+      <a href="../Chinese Remainder Theorem/chinese-remainder-theorem.html" class="site-nav-link">Chinese Remainder Theorem</a>
+      <a href="../Equivalence Wheel/equivalence-wheel.html" class="site-nav-link">Equivalence Wheel</a>
+      <a href="../Eulers Totient/eulers-totient.html" class="site-nav-link">Euler's Totient</a>
+      <a href="../Cayley Table/cayley-table.html" class="site-nav-link">Cayley Table</a>
+      <a href="../Group Isomorphism/group-isomorphism.html" class="site-nav-link">Group Isomorphism</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link">Square and Multiply</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link">Diffie-Hellman</a>
+      <a href="elliptic-curve-diffie-hellman.html" class="site-nav-link is-active">Elliptic Curve DH</a>
+      <a href="../RSA/rsa.html" class="site-nav-link">RSA</a>
+      <a href="../Fermats Method/fermats-method.html" class="site-nav-link">Fermat's Method</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link">Shor's Algorithm</a>
+    </nav>
+    <label class="theme-switch" title="Toggle day and night mode">
+      <span class="theme-switch-icon" aria-hidden="true">🌙</span>
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode">
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <span class="theme-switch-icon" aria-hidden="true">☀️</span>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <h1>Elliptic Curve Diffie-Hellman</h1>
+    <p>The whole point set of a small elliptic curve over a prime field, plotted as a scatter. Alice and Bob walk across
+      it by scalar multiplication and land on the same point from opposite directions — the same protocol as
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html">Diffie-Hellman Key Exchange</a>, in a
+      group whose elements are points instead of numbers.</p>
+  </header>
+
+  <section class="panel intro">
+    <div class="step-head"><span class="step-num">•</span><h2>How this works</h2></div>
+    <p>A curve <span class="formula" style="display:inline-block; padding:2px 8px;">y² = x³ + ax + b mod p</span> has a
+      set of points that forms a group: pick two points, draw the line through them, and the line meets the curve at
+      exactly one more point — reflect that point across the horizontal midline and you have their sum. Scalar
+      multiplication kG means adding G to itself k times using that construction.
+      <strong class="alice">Alice</strong> picks a private scalar a and computes A = aG; <strong class="bob">Bob</strong>
+      picks b and computes B = bG. They trade A and B in the open, then each multiplies the value they received by
+      their own private scalar — aB and bA land on the exact same point, the shared secret, even though
+      <strong class="eve">Eve</strong> saw A and B cross the wire.</p>
+    <p style="margin-bottom:0;">This is a <em>teaching demo</em>: toy-sized curves (p ≤ 199), private scalars drawn with
+      <code>Math.random</code> (not a cryptographic random source), and the raw shared point is displayed here rather
+      than run through a key-derivation function. Never reuse anything on this page for anything real.</p>
+  </section>
+
+  <section class="panel controls">
+    <div class="field-row">
+      <div class="field"><label for="pInput">Prime modulus p (5 – 199)</label><input id="pInput" type="text" inputmode="numeric" value="29"></div>
+      <div class="field"><label for="aInput">Curve coefficient a</label><input id="aInput" type="text" inputmode="numeric" value="4"></div>
+      <div class="field"><label for="bInput">Curve coefficient b</label><input id="bInput" type="text" inputmode="numeric" value="20"></div>
+    </div>
+    <div class="field-row">
+      <div class="field" style="min-width:220px;"><label for="basePointSelect">Base point G (with its order)</label>
+        <select id="basePointSelect"></select>
+      </div>
+      <div class="field"><label for="kaInput">Alice's private scalar k<sub>A</sub></label><input id="kaInput" type="text" inputmode="numeric" value="8"></div>
+      <div class="field"><label for="kbInput">Bob's private scalar k<sub>B</sub></label><input id="kbInput" type="text" inputmode="numeric" value="15"></div>
+    </div>
+
+    <div class="chips" id="presetChips">
+      <button type="button" class="chip" data-p="29" data-a="4" data-b="20" data-gx="1" data-gy="5" data-ka="8" data-kb="15">p=29, a=4, b=20, G=(1,5)</button>
+      <button type="button" class="chip" data-p="17" data-a="2" data-b="2" data-gx="5" data-gy="1" data-ka="3" data-kb="10">p=17, a=2, b=2, G=(5,1)</button>
+      <button type="button" class="chip" data-p="43" data-a="1" data-b="3" data-gx="2" data-gy="20" data-ka="7" data-kb="13">p=43, a=1, b=3, G=(2,20)</button>
+      <button type="button" class="chip is-caution" data-p="97" data-a="2" data-b="3" data-gx="3" data-gy="6" data-ka="14" data-kb="23">⚠ p=97, a=2, b=3, G=(3,6) — small subgroup</button>
+    </div>
+
+    <div class="btn-row" style="width:100%; justify-content:center;">
+      <button id="buildBtn" class="primary">🧮 Build exchange</button>
+      <button id="randomScalarsBtn" class="ghost">🎲 Randomize private scalars</button>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+  </section>
+
+  <div class="banner" id="banner">Set p, a, b and a base point, then press Build exchange.</div>
+
+  <section class="panel">
+    <svg id="curveSvg" viewBox="0 0 560 560" role="img"
+      aria-label="Scatter plot of every point on the chosen elliptic curve over a prime field, symmetric about a horizontal midline">
+      <g id="curveDynamic"></g>
+    </svg>
+    <div class="legend">
+      <span class="item"><span class="swatch g"></span> G, the base point</span>
+      <span class="item"><span class="swatch a"></span> A = Alice's public value</span>
+      <span class="item"><span class="swatch b"></span> B = Bob's public value</span>
+      <span class="item"><span class="swatch s"></span> Shared secret</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="step-head"><span class="step-num">•</span><h2>Arithmetic log</h2></div>
+    <div id="mathLog"></div>
+  </section>
+
+  <section class="panel">
+    <div class="ref-head"><h2 style="margin:0; font-size:1.05rem;">Multiples of G</h2><span class="count" id="multiplesCount"></span></div>
+    <ul class="ref-list" id="multiplesList"></ul>
+  </section>
+
+  <footer>
+    <div>Elliptic-curve Diffie-Hellman demo — toy-sized curves, non-cryptographic randomness. For education only.</div>
+    <div class="pillbar"><span>elliptic curve group law</span><span>discrete logarithm problem</span><span>Hasse bound</span></div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- math layer ---------- */
+/* Plain Number arithmetic throughout -- every multiply is reduced mod p
+   before the next, no BigInt (grounded fact 9). Duplicated per-file rather
+   than imported per CLAUDE.md's single-file convention. */
+
+var MAX_P = 199;
+
+function mod(x, p){ return ((x % p) + p) % p; }
+
+function isPrimeSmall(n){
+  if (!Number.isInteger(n) || n < 2) return false;
+  if (n < 4) return true;
+  if (n % 2 === 0) return false;
+  for (var d = 3; d * d <= n; d += 2){ if (n % d === 0) return false; }
+  return true;
+}
+
+function modInv(x, p){
+  x = mod(x, p);
+  if (x === 0) return null;
+  var oldR = x, r = p;
+  var oldS = 1, s = 0;
+  while (r !== 0){
+    var q = Math.floor(oldR / r);
+    var tempR = oldR - q * r; oldR = r; r = tempR;
+    var tempS = oldS - q * s; oldS = s; s = tempS;
+  }
+  if (oldR !== 1) return null;
+  return mod(oldS, p);
+}
+
+function isNonSingular(a, b, p){
+  return mod(4 * a * a * a + 27 * b * b, p) !== 0;
+}
+
+function isOnCurve(P, a, b, p){
+  if (P === null) return true;
+  var lhs = mod(P.y * P.y, p);
+  var rhs = mod(P.x * P.x * P.x + a * P.x + b, p);
+  return lhs === rhs;
+}
+
+// O(p): build a map from y^2 mod p to the list of y that produce it, then
+// look up x^3+ax+b mod p once per x. Cross-checked against a naive O(p^2)
+// double loop at planning time (grounded fact 8). Returns affine points
+// only, x-ascending then y-ascending; the point at infinity is represented
+// as null everywhere in this file and is never in this returned array.
+function enumeratePoints(a, b, p){
+  var map = {};
+  for (var y = 0; y < p; y++){
+    var key = mod(y * y, p);
+    if (!map[key]) map[key] = [];
+    map[key].push(y);
+  }
+  var out = [];
+  for (var x = 0; x < p; x++){
+    var rhs = mod(x * x * x + a * x + b, p);
+    var ys = map[rhs];
+    if (ys){
+      for (var i = 0; i < ys.length; i++) out.push({ x: x, y: ys[i] });
+    }
+  }
+  return out;
+}
+
+// The full group law, all four branches present and distinguishable.
+// Doubling is exposed as the P-equals-Q branch, not a separate function, so
+// the plot and the arithmetic can never diverge (key link in the plan).
+function pointAdd(P, Q, a, p){
+  if (P === null) return Q;
+  if (Q === null) return P;
+  if (P.x === Q.x && mod(P.y + Q.y, p) === 0) return null; // vertical: inverse pair
+  var lambda, inv;
+  if (P.x === Q.x && P.y === Q.y){
+    // tangent: slope (3x^2+a) / 2y
+    inv = modInv(2 * P.y, p);
+    if (inv === null) return null;
+    lambda = mod((3 * P.x * P.x + a) * inv, p);
+  } else {
+    // chord: slope (y2-y1) / (x2-x1)
+    inv = modInv(Q.x - P.x, p);
+    if (inv === null) return null;
+    lambda = mod((Q.y - P.y) * inv, p);
+  }
+  var x3 = mod(lambda * lambda - P.x - Q.x, p);
+  var y3 = mod(lambda * (P.x - x3) - P.y, p);
+  return { x: x3, y: y3 };
+}
+
+// double-and-add, routed entirely through pointAdd. k=0 yields infinity.
+function scalarMul(k, P, a, p){
+  var result = null;
+  var addend = P;
+  var kk = k;
+  while (kk > 0){
+    if (kk & 1) result = pointAdd(result, addend, a, p);
+    addend = pointAdd(addend, addend, a, p);
+    kk = Math.floor(kk / 2);
+  }
+  return result;
+}
+
+// least positive k with kP at infinity, by repeated addition, capped at the
+// Hasse bound beyond which it returns null rather than looping.
+function pointOrder(P, a, p){
+  var ceiling = p + 2 * Math.ceil(Math.sqrt(p)) + 2;
+  var current = null;
+  for (var k = 1; k <= ceiling; k++){
+    current = pointAdd(current, P, a, p);
+    if (current === null) return k;
+  }
+  return null;
+}
+
+function pointsEqual(P, Q){
+  if (P === null && Q === null) return true;
+  if (P === null || Q === null) return false;
+  return P.x === Q.x && P.y === Q.y;
+}
+
+function formatPoint(P){
+  return P === null ? '∞' : '(' + P.x + ', ' + P.y + ')';
+}
+
+/* ---------- DOM refs ---------- */
+
+var SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  var el = document.createElementNS(SVG_NS, tag);
+  for (var k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+var $ = function(id){ return document.getElementById(id); };
+
+var pInput = $('pInput'), aInput = $('aInput'), bInput = $('bInput');
+var basePointSelect = $('basePointSelect');
+var kaInput = $('kaInput'), kbInput = $('kbInput');
+var buildBtn = $('buildBtn'), randomScalarsBtn = $('randomScalarsBtn');
+var presetChips = $('presetChips');
+var errorBox = $('errorBox'), banner = $('banner');
+var curveSvg = $('curveSvg'), curveDynamic = $('curveDynamic');
+var mathLog = $('mathLog');
+var multiplesList = $('multiplesList'), multiplesCount = $('multiplesCount');
+
+var currentExchange = null;
+
+/* ---------- geometry ---------- */
+
+var MARGIN = 40, PLOT = 480; // plot square spans [MARGIN, MARGIN+PLOT] in both axes
+
+function screenX(x, p){ return MARGIN + (x + 0.5) / p * PLOT; }
+function screenY(y, p){ return MARGIN + PLOT - (y + 0.5) / p * PLOT; } // field y=0 at bottom
+
+function pointRadius(p){
+  return Math.max(1.6, Math.min(6, PLOT / (2.6 * p)));
+}
+
+function pickTickStep(p){
+  var niceSteps = [1, 2, 5, 10, 20, 25, 50];
+  var target = p / 8;
+  var chosen = niceSteps[0];
+  for (var i = 0; i < niceSteps.length; i++){
+    chosen = niceSteps[i];
+    if (niceSteps[i] >= target) break;
+  }
+  return chosen;
+}
+
+/* ---------- base point options ---------- */
+
+function refreshBasePointOptions(preferredGx, preferredGy){
+  basePointSelect.innerHTML = '';
+  var pRaw = parseInt(pInput.value, 10);
+  var aRaw = parseInt(aInput.value, 10);
+  var bRaw = parseInt(bInput.value, 10);
+  if (!Number.isInteger(pRaw) || pRaw < 5 || pRaw > MAX_P || !isPrimeSmall(pRaw) || !isNonSingular(aRaw, bRaw, pRaw)){
+    return;
+  }
+  var points = enumeratePoints(aRaw, bRaw, pRaw);
+  var withOrders = points.map(function(P){ return { P: P, ord: pointOrder(P, aRaw, pRaw) }; });
+  var maxOrd = 0;
+  for (var i = 0; i < withOrders.length; i++){ if (withOrders[i].ord && withOrders[i].ord > maxOrd) maxOrd = withOrders[i].ord; }
+  var defaultIdx = 0;
+  for (var j = 0; j < withOrders.length; j++){ if (withOrders[j].ord === maxOrd){ defaultIdx = j; break; } }
+  var preferredIdx = -1;
+  if (preferredGx !== undefined && preferredGy !== undefined){
+    for (var k = 0; k < withOrders.length; k++){
+      if (withOrders[k].P.x === preferredGx && withOrders[k].P.y === preferredGy){ preferredIdx = k; break; }
+    }
+  }
+  withOrders.forEach(function(entry, idx){
+    var opt = document.createElement('option');
+    opt.value = entry.P.x + ',' + entry.P.y;
+    opt.textContent = '(' + entry.P.x + ', ' + entry.P.y + ')  order ' + (entry.ord || '?');
+    if (idx === (preferredIdx !== -1 ? preferredIdx : defaultIdx)) opt.selected = true;
+    basePointSelect.appendChild(opt);
+  });
+}
+
+/* ---------- validation ---------- */
+
+function readInputs(){
+  errorBox.textContent = '';
+  var pRaw = pInput.value.trim();
+  if (!/^\d+$/.test(pRaw)){ errorBox.textContent = 'p must be a positive whole number.'; return null; }
+  var p = parseInt(pRaw, 10);
+  if (p < 5 || p > MAX_P){ errorBox.textContent = 'p must be between 5 and ' + MAX_P + '.'; return null; }
+  if (!isPrimeSmall(p)){ errorBox.textContent = p + ' is not prime.'; return null; }
+
+  var aRaw = aInput.value.trim();
+  if (!/^-?\d+$/.test(aRaw)){ errorBox.textContent = 'a must be a whole number.'; return null; }
+  var a = mod(parseInt(aRaw, 10), p);
+
+  var bRaw = bInput.value.trim();
+  if (!/^-?\d+$/.test(bRaw)){ errorBox.textContent = 'b must be a whole number.'; return null; }
+  var b = mod(parseInt(bRaw, 10), p);
+
+  if (!isNonSingular(a, b, p)){ errorBox.textContent = 'This curve is singular (4a³ + 27b² ≡ 0 mod p) — it has no group law.'; return null; }
+
+  var selVal = basePointSelect.value;
+  if (!selVal){ errorBox.textContent = 'No base point is available for this curve yet — check p, a and b.'; return null; }
+  var parts = selVal.split(',');
+  var Gx = parseInt(parts[0], 10), Gy = parseInt(parts[1], 10);
+  var G = { x: Gx, y: Gy };
+  if (!isOnCurve(G, a, b, p)){ errorBox.textContent = 'The chosen base point is not on this curve.'; return null; }
+  var ordG = pointOrder(G, a, p);
+  if (!ordG){ errorBox.textContent = 'Could not determine the order of the base point.'; return null; }
+
+  // Scalars are bounded by the full group order (affine points + infinity),
+  // not by ord(G): on the p=97 small-subgroup preset (grounded fact 7) the
+  // base point (3,6) has ord(G)=5 but the group order is 100, and Alice's
+  // and Bob's scalars (14, 23) are deliberately larger than ord(G) -- the
+  // scalar multiplication still lands correctly (kP is periodic mod
+  // ord(P)), and bounding by ord(G) alone would reject that worked example.
+  var groupOrder = enumeratePoints(a, b, p).length + 1;
+
+  var kaRaw = kaInput.value.trim();
+  if (!/^\d+$/.test(kaRaw)){ errorBox.textContent = "Alice's scalar must be a positive whole number."; return null; }
+  var ka = parseInt(kaRaw, 10);
+  if (ka < 1 || ka > groupOrder - 1){ errorBox.textContent = "Alice's scalar must satisfy 1 ≤ k_A ≤ " + (groupOrder - 1) + '.'; return null; }
+
+  var kbRaw = kbInput.value.trim();
+  if (!/^\d+$/.test(kbRaw)){ errorBox.textContent = "Bob's scalar must be a positive whole number."; return null; }
+  var kb = parseInt(kbRaw, 10);
+  if (kb < 1 || kb > groupOrder - 1){ errorBox.textContent = "Bob's scalar must satisfy 1 ≤ k_B ≤ " + (groupOrder - 1) + '.'; return null; }
+
+  return { p: p, a: a, b: b, G: G, ordG: ordG, ka: ka, kb: kb };
+}
+
+/* ---------- exchange ---------- */
+
+function buildExchange(parsed){
+  var p = parsed.p, a = parsed.a, b = parsed.b, G = parsed.G, ordG = parsed.ordG, ka = parsed.ka, kb = parsed.kb;
+  var points = enumeratePoints(a, b, p);
+  var A = scalarMul(ka, G, a, p);
+  var B = scalarMul(kb, G, a, p);
+  var secretFromB = scalarMul(ka, B, a, p);
+  var secretFromA = scalarMul(kb, A, a, p);
+  var thirdCheck = scalarMul(mod(ka * kb, ordG), G, a, p);
+  var agreeAB = pointsEqual(secretFromB, secretFromA);
+  var agreeThird = pointsEqual(secretFromB, thirdCheck);
+  var multiples = [];
+  for (var k = 1; k <= ordG; k++) multiples.push(scalarMul(k, G, a, p));
+  return {
+    p: p, a: a, b: b, G: G, ordG: ordG, ka: ka, kb: kb,
+    points: points, groupOrder: points.length + 1,
+    A: A, B: B, secretFromB: secretFromB, secretFromA: secretFromA, thirdCheck: thirdCheck,
+    agreeAB: agreeAB, agreeThird: agreeThird, multiples: multiples
+  };
+}
+
+/* ---------- rendering: the point field ---------- */
+
+function renderField(ex){
+  curveDynamic.innerHTML = '';
+  var p = ex.p;
+
+  curveDynamic.appendChild(svgEl('rect', { class: 'lattice-frame', x: MARGIN, y: MARGIN, width: PLOT, height: PLOT }));
+
+  var step = pickTickStep(p);
+  for (var t = 0; t <= p; t += step){
+    if (t >= p) break;
+    var tx = MARGIN + t / p * PLOT;
+    var ty = MARGIN + PLOT - t / p * PLOT;
+    curveDynamic.appendChild(svgEl('line', { class: 'lattice-tick', x1: tx, y1: MARGIN, x2: tx, y2: MARGIN + PLOT }));
+    curveDynamic.appendChild(svgEl('line', { class: 'lattice-tick', x1: MARGIN, y1: ty, x2: MARGIN + PLOT, y2: ty }));
+    var txl = svgEl('text', { class: 'lattice-tick-label', x: tx + 2, y: MARGIN + PLOT + 12 });
+    txl.textContent = String(t);
+    curveDynamic.appendChild(txl);
+    var tyl = svgEl('text', { class: 'lattice-tick-label', x: MARGIN - 18, y: ty + 3 });
+    tyl.textContent = String(t);
+    curveDynamic.appendChild(tyl);
+  }
+
+  var midY = MARGIN + PLOT - (p / 2) / p * PLOT; // = MARGIN + PLOT/2, constant
+  curveDynamic.appendChild(svgEl('line', { class: 'midline', x1: MARGIN, y1: midY, x2: MARGIN + PLOT, y2: midY }));
+  var midCaption = svgEl('text', { class: 'midline-caption', x: MARGIN + PLOT - 4, y: midY - 5, 'text-anchor': 'end' });
+  midCaption.textContent = 'y = p/2 — a point and its mirror (x, p−y) are both solutions';
+  curveDynamic.appendChild(midCaption);
+
+  var r = pointRadius(p);
+  var roleFor = function(P){
+    if (ex.A && pointsEqual(P, ex.A)) return 'a';
+    if (ex.B && pointsEqual(P, ex.B)) return 'b';
+    if (ex.secretFromB && pointsEqual(P, ex.secretFromB)) return 's';
+    if (pointsEqual(P, ex.G)) return 'g';
+    return null;
+  };
+  for (var i = 0; i < ex.points.length; i++){
+    var P = ex.points[i];
+    var role = roleFor(P);
+    var cls = 'point-dot' + (role ? ' is-' + role : '');
+    var dot = svgEl('circle', {
+      class: cls, cx: screenX(P.x, p), cy: screenY(P.y, p), r: role ? r + 1.2 : r,
+      tabindex: '0', role: 'button', 'aria-label': 'Point (' + P.x + ', ' + P.y + ')'
+    });
+    curveDynamic.appendChild(dot);
+    if (role){
+      var lbl = svgEl('text', { class: 'point-label is-' + role, x: screenX(P.x, p) + 6, y: screenY(P.y, p) - 6 });
+      lbl.textContent = role.toUpperCase() + ' (' + P.x + ',' + P.y + ')';
+      curveDynamic.appendChild(lbl);
+    }
+  }
+
+  // point at infinity: distinct off-lattice marker, top-right corner
+  var infX = MARGIN + PLOT + 14, infY = MARGIN - 14;
+  curveDynamic.appendChild(svgEl('path', {
+    class: 'inf-marker',
+    d: 'M ' + infX + ' ' + (infY - 8) + ' L ' + (infX + 8) + ' ' + infY + ' L ' + infX + ' ' + (infY + 8) + ' L ' + (infX - 8) + ' ' + infY + ' Z'
+  }));
+  var infLabel = svgEl('text', { class: 'inf-label', x: infX, y: infY + 22, 'text-anchor': 'middle' });
+  infLabel.textContent = '∞ (identity)';
+  curveDynamic.appendChild(infLabel);
+}
+
+/* ---------- rendering: arithmetic log ---------- */
+
+function fmtPt(P){ return formatPoint(P); }
+
+function renderLog(ex){
+  mathLog.innerHTML = '';
+  function add(title, html){
+    var div = document.createElement('div');
+    div.className = 'substep';
+    div.innerHTML = '<h3>' + title + '</h3>' + html;
+    mathLog.appendChild(div);
+  }
+  add('The curve and its group', '<div class="formula"><span class="lbl">y² = x³ + ' + ex.a + 'x + ' + ex.b + ' mod ' + ex.p +
+    '</span></div><div class="formula" style="margin-top:8px;">Group order (affine points + ∞) = <span class="val">' + ex.groupOrder +
+    '</span>. Base point G = <span class="val">' + fmtPt(ex.G) + '</span>, ord(G) = <span class="val">' + ex.ordG + '</span>.</div>');
+  add("Alice computes her public value", '<div class="formula"><span class="lbl">A = k_A·G =</span> ' + ex.ka + '·' + fmtPt(ex.G) +
+    ' = <span class="val">' + fmtPt(ex.A) + '</span></div>');
+  add("Bob computes his public value", '<div class="formula"><span class="lbl">B = k_B·G =</span> ' + ex.kb + '·' + fmtPt(ex.G) +
+    ' = <span class="val">' + fmtPt(ex.B) + '</span></div>');
+  add('Alice computes the shared secret from B', '<div class="formula"><span class="lbl">k_A·B =</span> ' + ex.ka + '·' + fmtPt(ex.B) +
+    ' = <span class="val">' + fmtPt(ex.secretFromB) + '</span></div>');
+  add('Bob computes the shared secret from A', '<div class="formula"><span class="lbl">k_B·A =</span> ' + ex.kb + '·' + fmtPt(ex.A) +
+    ' = <span class="val">' + fmtPt(ex.secretFromA) + '</span></div>');
+  var agreeText = (ex.agreeAB && ex.agreeThird)
+    ? ('Both sides agree: <span class="val">' + fmtPt(ex.secretFromB) + '</span>. Independent check (k_A·k_B mod ord(G))·G = ' +
+       fmtPt(ex.thirdCheck) + ' — matches.')
+    : '<span class="warn">MISMATCH — the two computed secrets or the third check disagree. This should never happen.</span>';
+  add('They agree', '<div class="formula">' + agreeText + '</div>');
+}
+
+/* ---------- rendering: multiples table ---------- */
+
+function renderMultiples(ex){
+  multiplesList.innerHTML = '';
+  multiplesCount.textContent = ex.ordG + ' multiples (ord(G) = ' + ex.ordG + ')';
+  for (var k = 1; k <= ex.ordG; k++){
+    var P = ex.multiples[k - 1];
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.className = 'row-btn';
+    btn.type = 'button';
+    btn.innerHTML = '<span class="r-k">' + k + 'G</span><span>' + fmtPt(P) + '</span>';
+    (function(pt){
+      btn.addEventListener('click', function(){ highlightPoint(pt); });
+    })(P);
+    li.appendChild(btn);
+    multiplesList.appendChild(li);
+  }
+}
+
+function highlightPoint(P){
+  var dots = curveDynamic.querySelectorAll('.point-dot');
+  for (var i = 0; i < dots.length; i++) dots[i].classList.remove('is-walk');
+  if (P === null) return;
+  var p = currentExchange.p;
+  var cx = screenX(P.x, p), cy = screenY(P.y, p);
+  for (var j = 0; j < dots.length; j++){
+    var dcx = parseFloat(dots[j].getAttribute('cx')), dcy = parseFloat(dots[j].getAttribute('cy'));
+    if (Math.abs(dcx - cx) < 0.5 && Math.abs(dcy - cy) < 0.5){ dots[j].classList.add('is-walk'); break; }
+  }
+}
+
+/* ---------- persistence ---------- */
+
+var STORAGE_KEY = 'elliptic-curve-diffie-hellman';
+
+function persistState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      p: pInput.value, a: aInput.value, b: bInput.value,
+      Gx: currentExchange ? currentExchange.G.x : null, Gy: currentExchange ? currentExchange.G.y : null,
+      ka: kaInput.value, kb: kbInput.value
+    }));
+  } catch (e) { /* localStorage unavailable (e.g. file:// origin) -- silently fall back */ }
+}
+
+function restoreState(){
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
+/* ---------- build / rebuild ---------- */
+
+function rebuild(){
+  var parsed = readInputs();
+  if (!parsed) return false;
+  var ex = buildExchange(parsed);
+  currentExchange = ex;
+  renderField(ex);
+  renderLog(ex);
+  renderMultiples(ex);
+  banner.textContent = 'Curve built. G=' + fmtPt(ex.G) + ', A=' + fmtPt(ex.A) + ', B=' + fmtPt(ex.B) +
+    ', shared secret=' + fmtPt(ex.secretFromB) + '.';
+  persistState();
+  return true;
+}
+
+/* ---------- wiring ---------- */
+
+[pInput, aInput, bInput].forEach(function(inp){
+  inp.addEventListener('input', function(){ refreshBasePointOptions(); });
+});
+
+buildBtn.addEventListener('click', rebuild);
+[pInput, aInput, bInput, kaInput, kbInput].forEach(function(inp){
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') rebuild(); });
+});
+
+var chipButtons = presetChips.querySelectorAll('.chip');
+chipButtons.forEach(function(chip){
+  chip.addEventListener('click', function(){
+    pInput.value = chip.dataset.p;
+    aInput.value = chip.dataset.a;
+    bInput.value = chip.dataset.b;
+    refreshBasePointOptions(parseInt(chip.dataset.gx, 10), parseInt(chip.dataset.gy, 10));
+    kaInput.value = chip.dataset.ka;
+    kbInput.value = chip.dataset.kb;
+    rebuild();
+  });
+});
+
+function randomInt(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
+
+randomScalarsBtn.addEventListener('click', function(){
+  var pRaw = parseInt(pInput.value, 10), aRaw = parseInt(aInput.value, 10), bRaw = parseInt(bInput.value, 10);
+  if (!Number.isInteger(pRaw) || !isPrimeSmall(pRaw) || !isNonSingular(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw)){
+    errorBox.textContent = 'Set a valid curve first.'; return;
+  }
+  var selVal = basePointSelect.value;
+  if (!selVal) { errorBox.textContent = 'Set a valid curve first.'; return; }
+  var parts = selVal.split(',');
+  var G = { x: parseInt(parts[0], 10), y: parseInt(parts[1], 10) };
+  var ordG = pointOrder(G, mod(aRaw, pRaw), pRaw);
+  if (!ordG){ errorBox.textContent = 'Could not determine the base point order.'; return; }
+  var groupOrder = enumeratePoints(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw).length + 1;
+  kaInput.value = String(randomInt(1, groupOrder - 1));
+  kbInput.value = String(randomInt(1, groupOrder - 1));
+  rebuild();
+});
+
+window.addEventListener('load', function(){
+  var restored = restoreState();
+  var fellBack = false;
+  if (restored && restored.p && restored.a !== undefined && restored.b !== undefined){
+    pInput.value = restored.p;
+    aInput.value = restored.a;
+    bInput.value = restored.b;
+    refreshBasePointOptions(restored.Gx, restored.Gy);
+    if (restored.ka) kaInput.value = restored.ka;
+    if (restored.kb) kbInput.value = restored.kb;
+    if (!rebuild()) fellBack = true;
+  } else {
+    fellBack = true;
+  }
+  if (fellBack){
+    pInput.value = '29'; aInput.value = '4'; bInput.value = '20';
+    refreshBasePointOptions(1, 5);
+    kaInput.value = '8'; kbInput.value = '15';
+    rebuild();
+  }
+});
+
+})();
+</script>
+</body>
+</html>
