@@ -34,6 +34,7 @@
     --slot-cursor-soft: color-mix(in srgb, var(--slot-cursor) 22%, transparent);
     --slot-sol-soft: color-mix(in srgb, var(--slot-sol) 22%, transparent);
     --slot-warn-soft: color-mix(in srgb, var(--slot-warn) 22%, transparent);
+    --slot-ext-soft: color-mix(in srgb, var(--slot-ext) 22%, transparent);
 
     /* Non-colour local alias: a length, not a hue. Overwritten at runtime,
        per render, by cellMinPx() via #stripScroll.style.setProperty — this
@@ -212,6 +213,36 @@
   }
   .answer-line:empty{ display:none; }
 
+  /* ---------- Extended-Euclidean construction reveal (CRT-05) ---------- */
+  .ext-toggle{ display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--text-dim); cursor:pointer; }
+  .ext-toggle input[type="checkbox"]{ accent-color:var(--slot-ext); width:16px; height:16px; cursor:pointer; }
+  .ext-toggle input[type="checkbox"]:disabled{ cursor:not-allowed; }
+
+  #constructPanel{ display:none; }
+  .app.show-construct #constructPanel{ display:block; }
+
+  .construct-lede{ font-size:.85rem; line-height:1.5; color:var(--text-dim); margin:0 0 14px; text-align:center; }
+
+  .construct-table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:auto;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:.85rem; }
+  .construct-table th, .construct-table td{ padding:8px 10px; text-align:center; border-bottom:1px solid var(--panel-border); }
+  .construct-table thead th{ color:var(--slot-ext); font-weight:600; text-transform:uppercase; letter-spacing:.04em;
+    font-size:.72rem; border-bottom:1px solid var(--slot-ext); }
+  .construct-table tbody tr:last-child td{ border-bottom:none; }
+
+  .construct-sum{ margin-top:14px; padding:12px 16px; border-radius:12px; text-align:center;
+    font-family:'JetBrains Mono', 'Consolas', monospace; font-size:1.02rem; font-weight:700;
+    color:var(--slot-ext); background:var(--slot-ext-soft); border:1px solid var(--slot-ext); }
+  .construct-sum:empty{ display:none; }
+
+  .xref{ margin:10px 0 0; font-size:13px; }
+  .xref a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .xref a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
+
+  .xref-inline{ margin-left:10px; color:var(--role-input); text-decoration:none;
+    border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); white-space:nowrap; }
+  .xref-inline:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
+
   @media (max-width:640px){
     .controls{ justify-content:center; }
     .speed-wrap input[type="range"]{ width:100px; }
@@ -264,6 +295,7 @@
     <p class="lede">Each congruence on its own picks out an evenly-spaced family of numbers — every third number, every
       fifth number, and so on. When the moduli share no common factor, those families cross at exactly one place in
       every stretch of <code>lcm</code> numbers. That single crossing is the simultaneous solution every row agrees on.</p>
+    <p class="xref"><a id="xrefLink" href="../Euclidean Algorithm/euclidean-algorithm.html?a=5&amp;b=3&amp;ext=1">See the first congruence's modular inverse computed step by step in the Euclidean Algorithm tool &rarr;</a></p>
   </header>
 
   <section class="panel controls">
@@ -315,6 +347,13 @@
         <span id="speedLabel">gentle</span>
       </div>
     </div>
+
+    <div class="field-row" style="width:100%; align-items:center;">
+      <label class="ext-toggle">
+        <input type="checkbox" id="extToggle">
+        <span>Reveal the faster method — build the answer directly with the Extended Euclidean algorithm instead of searching for it</span>
+      </label>
+    </div>
   </section>
 
   <div class="error-box" id="errorBox"></div>
@@ -327,6 +366,24 @@
       <div id="stripBody" class="strip-body"></div>
     </div>
     <p id="answerLine" class="answer-line" aria-live="polite"></p>
+  </section>
+
+  <section class="panel" id="constructPanel">
+    <p class="construct-lede">Split the span into one piece per congruence, invert each piece against its own modulus, scale by that congruence's remainder, add the pieces up, then reduce.</p>
+    <table id="constructTable" class="construct-table">
+      <thead>
+        <tr>
+          <th>i</th>
+          <th>a</th>
+          <th>m</th>
+          <th>M = lcm / m</th>
+          <th>y (inverse)</th>
+          <th>term = a · M · y</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="constructSum" class="construct-sum" aria-live="polite"></p>
   </section>
 
   <p class="caption">The answer repeats forever with period <code>lcm(moduli)</code> — the marked column is one representative of an infinite family of solutions.</p>
@@ -456,6 +513,13 @@ var banner = $('banner');
 var stripScroll = $('stripScroll');
 var stripBody = $('stripBody');
 var answerLine = $('answerLine');
+var extToggle = $('extToggle');
+var appEl = document.querySelector('.app');
+var constructPanel = $('constructPanel');
+var constructTable = $('constructTable');
+var constructBody = constructTable.querySelector('tbody');
+var constructSum = $('constructSum');
+var xrefLink = $('xrefLink');
 
 /* ---------- state ---------- */
 
@@ -871,6 +935,88 @@ function abortScan(){
   scanIndex = 0;
 }
 
+/* ---------- Extended-Euclidean construction reveal (CRT-05, CRT-08) ---------- */
+
+// Sets anchor.href to the Euclidean Algorithm tool's path with a and b (the
+// (Mi, mi) pair whose gcd computation produces that row's modular inverse)
+// plus the extended-mode param, each value passed through
+// encodeURIComponent -- mirrors updateXrefLink in
+// Euclidean Algorithm/euclidean-algorithm.html.
+function updateEuclidXrefLink(anchor, M, m){
+  if (!anchor) return;
+  anchor.href = '../Euclidean Algorithm/euclidean-algorithm.html?a=' + encodeURIComponent(M) +
+    '&b=' + encodeURIComponent(m) + '&ext=1';
+}
+
+// E7/D-05: while the coprimality gate is blocking, a modular inverse of Mi
+// mod mi does not exist -- disable the toggle, force it unchecked (the
+// checkbox's own state is the only thing deciding whether the panel is
+// open, so a forced-unchecked toggle can never leave a stale open panel),
+// remove show-construct, empty the table body, and explain why in one
+// sentence rather than rendering an empty table with headers and no rows.
+function disableConstruction(reasonText){
+  extToggle.disabled = true;
+  extToggle.checked = false;
+  appEl.classList.remove('show-construct');
+  constructBody.innerHTML = '';
+  constructSum.textContent = reasonText;
+}
+
+// Reads run.terms/run.sum/run.span/run.x -- the fields crtConstruct already
+// returns -- and renders them. Computes nothing beyond formatting and the
+// same single reduction crtConstruct already performed, asserted against
+// run.x exactly once (the same one-solver assertion landSolution() makes);
+// on a mismatch a diagnostic sentence is written instead of either number,
+// so a learner is never shown two different answers to one system. Calls
+// no solver helper a second time: crtConstruct and modInverse gain no new
+// call sites from this function.
+function renderConstruction(run){
+  if (!run){ extToggle.disabled = true; constructBody.innerHTML = ''; constructSum.textContent = ''; return; }
+  extToggle.disabled = false;
+  constructBody.innerHTML = '';
+
+  var frag = document.createDocumentFragment();
+  var termStrs = [];
+  for (var i = 0; i < run.terms.length; i++){
+    var t = run.terms[i];
+    var tr = document.createElement('tr');
+    tr.setAttribute('data-row', String(i));
+
+    var tdI = document.createElement('td'); tdI.textContent = String(i + 1); tr.appendChild(tdI);
+    var tdA = document.createElement('td'); tdA.textContent = String(t.a); tr.appendChild(tdA);
+    var tdM = document.createElement('td'); tdM.textContent = String(t.m); tr.appendChild(tdM);
+    var tdMi = document.createElement('td'); tdMi.textContent = run.span + ' / ' + t.m + ' = ' + t.Mi; tr.appendChild(tdMi);
+
+    var tdY = document.createElement('td');
+    tdY.textContent = t.Mi + ' · y ≡ 1 (mod ' + t.m + ') → y = ' + t.yi;
+    var link = document.createElement('a');
+    link.className = 'xref-inline';
+    link.setAttribute('data-row', String(i));
+    link.textContent = 'see the inverse →';
+    updateEuclidXrefLink(link, t.Mi, t.m);
+    tdY.appendChild(link);
+    tr.appendChild(tdY);
+
+    var tdTerm = document.createElement('td');
+    tdTerm.textContent = t.a + ' · ' + t.Mi + ' · ' + t.yi + ' = ' + t.term;
+    tr.appendChild(tdTerm);
+
+    frag.appendChild(tr);
+    termStrs.push(String(t.term));
+  }
+  constructBody.appendChild(frag);
+
+  var reduced = ((run.sum % run.span) + run.span) % run.span;
+  if (reduced !== run.x){
+    constructSum.textContent = 'Diagnostic mismatch: the construction reduces to ' + reduced +
+      ' but the solver computed ' + run.x + ' — these must always agree.';
+  } else {
+    constructSum.textContent = termStrs.join(' + ') + ' = ' + run.sum + ' ≡ ' + run.x + ' (mod ' + run.span + ')';
+  }
+
+  updateEuclidXrefLink(xrefLink, run.terms[0].Mi, run.terms[0].m);
+}
+
 /* ---------- orchestration ---------- */
 
 // The one entry point every input change, preset click and count change
@@ -892,6 +1038,8 @@ function buildRun(){
     banner.textContent = '';
     state.run = null;
     setScanButtonsEnabled(false);
+    disableConstruction('The construction needs each M_i to be invertible modulo its own m_i, which a shared ' +
+      'factor between the moduli makes impossible.');
     return;
   }
 
@@ -904,6 +1052,7 @@ function buildRun(){
     banner.textContent = '';
     state.run = null;
     setScanButtonsEnabled(false);
+    disableConstruction('The construction needs a computed answer, and the span ceiling guard is blocking one.');
     return;
   }
 
@@ -912,6 +1061,7 @@ function buildRun(){
   buildStrips(read.list, span, { solvable: true });
   resetScan();
   setScanButtonsEnabled(true);
+  renderConstruction(state.run);
   // Every solved build arrives already landed -- the same "run an example
   // on page load" convention every tool in this repo follows (see
   // Euclidean Algorithm's buildRun(), which likewise ends in
@@ -956,6 +1106,10 @@ function setCount(n){
 
 countTwoBtn.addEventListener('click', function(){ setCount(2); });
 countThreeBtn.addEventListener('click', function(){ setCount(3); });
+
+extToggle.addEventListener('change', function(){
+  appEl.classList.toggle('show-construct', extToggle.checked);
+});
 
 playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
 stepBtn.addEventListener('click', stepOnce);
