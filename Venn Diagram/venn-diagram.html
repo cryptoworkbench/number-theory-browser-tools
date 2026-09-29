@@ -1858,26 +1858,41 @@
     render();
   }
 
-  // Draws one prime per region without replacement so the fresh layout
-  // never needs simplifyRegions() to resolve a conflict (grounded fact:
-  // PRIMES has 26 entries, well above the widest region set, the seven
-  // three-circle keys).
-  function randomPrimes(count){
-    var pool = PRIMES.slice();
-    var out = [];
-    for (var i = 0; i < count; i++){
-      var idx = Math.floor(Math.random() * pool.length);
-      out.push(pool.splice(idx, 1)[0]);
-    }
-    return out;
+  // Weighted so most regions land on 1-2 primes, some regions come up
+  // empty, and a region occasionally goes as high as 3 -- a real pair (or
+  // triple) of numbers rarely divides its factors one-per-region evenly,
+  // so a flat "always exactly one" pick read as fake. Never exceeds the
+  // region's real cap (8 for two-circle, 3 for three-circle).
+  function randomRegionSize(cap){
+    var r = Math.random();
+    var size = (r < 0.12) ? 0 : (r < 0.55) ? 1 : (r < 0.85) ? 2 : 3;
+    return Math.min(size, cap);
   }
 
   function randomizeDiagram(){
     var ctx = (state.mode === 'three') ? threeCtx : twoCtx;
-    var picks = randomPrimes(ctx.keys.length);
+    // Drawn without replacement ACROSS regions (a prime placed in one
+    // region can't also appear in another, or commitRegions'
+    // simplifyRegions pass would reassign it) but WITH replacement inside
+    // a single region's own list, so a region can repeat its own prime to
+    // model a prime power like p^2.
+    var pool = PRIMES.slice();
     commitRegions(ctx, function(draft){
       for (var i = 0; i < ctx.keys.length; i++){
-        draft[ctx.keys[i]] = [ { id: state.nextId++, p: picks[i] } ];
+        var key = ctx.keys[i];
+        var size = randomRegionSize(ctx.cap);
+        var list = [];
+        for (var j = 0; j < size; j++){
+          var prime;
+          if (list.length && Math.random() < 0.25){
+            prime = list[list.length - 1].p;
+          } else {
+            if (!pool.length) pool = PRIMES.slice();
+            prime = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+          }
+          list.push({ id: state.nextId++, p: prime });
+        }
+        draft[key] = list;
       }
       return 'Randomized the diagram.';
     });
