@@ -295,6 +295,9 @@
     pointer-events:none;
   }
   .composite-chip.chip-compact text{ font-size:13px; }
+  .composite-chip.is-linked rect{ cursor:pointer; stroke:var(--role-input); }
+  .composite-chip.is-linked:hover rect{ stroke:var(--role-result); fill:color-mix(in srgb, var(--role-result) 12%, var(--surface)); }
+  .composite-chip.is-linked{ user-select:none; }
 
   .message{
     min-height:16px;
@@ -1317,26 +1320,44 @@
     return Math.max(base, text.length * perChar + pad);
   }
 
-  function appendCompositeBadge(target, anchor, value, notation, compact){
+  function appendCompositeBadge(target, anchor, value, notation, compact, key, link){
     var text = String(value);
     var w = badgeWidth(text, compact);
     var h = compact ? 24 : 32;
-    var g = svgEl('g', { class: compact ? 'composite-chip chip-compact' : 'composite-chip' });
-    g.appendChild(svgEl('title')).textContent = notation + ' = ' + text;
+    var classes = compact ? 'composite-chip chip-compact' : 'composite-chip';
+    if (link) classes += ' is-linked';
+    var g = svgEl('g', { class: classes });
+    g.setAttribute('data-region', key);
+    var titleText = notation + ' = ' + text;
+    if (link) titleText += ' — double-click to ' + link.label;
+    g.appendChild(svgEl('title')).textContent = titleText;
     g.appendChild(svgEl('rect', { x: anchor[0] - w / 2, y: anchor[1] - h / 2, width: w, height: h, rx: compact ? 6 : 8 }));
     var t = svgEl('text', { x: anchor[0], y: anchor[1] });
     t.textContent = text;
     g.appendChild(t);
+    if (link){
+      g.setAttribute('data-xref-href', link.href);
+      g.addEventListener('dblclick', function(ev){
+        ev.preventDefault();
+        openXref(g.getAttribute('data-xref-href'), link.label);
+      });
+    }
     target.appendChild(g);
   }
 
   function renderComposite(){
     svgCompositeDynamic.innerHTML = '';
     var keys = ['left', 'overlap', 'right'];
+    var pair = currentPair();
     for (var i = 0; i < keys.length; i++){
       var key = keys[i];
       var value = productOf(primesOf(state.regions[key]));
-      appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false);
+      var link = null;
+      if (key === 'overlap'){
+        var href = euclidHref(pair.a, pair.b);
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm' };
+      }
+      appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false, key, link);
     }
   }
 
@@ -1435,14 +1456,30 @@
     updateEuclidXref(leftTotal, rightTotal);
   }
 
+  var EUCLID_PATH = '../Euclidean Algorithm/euclidean-algorithm.html';
+
+  // The one place that builds a Euclidean Algorithm URL. Returns null when
+  // the pair is out of the target tool's range, which is what makes a chip
+  // or the prose anchor unlinked rather than pointed at a broken query.
+  function euclidHref(a, b){
+    if (!((a > 1 || b > 1) && a <= EUCLID_MAX_INPUT && b <= EUCLID_MAX_INPUT)) return null;
+    return EUCLID_PATH + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
+  }
+
+  // Opens a same-origin cross-tool link in a new, opener-less tab, reporting
+  // through the existing message surface rather than adding a new one.
+  function openXref(href, label){
+    var win = window.open(href, '_blank', 'noopener,noreferrer');
+    if (win){
+      setMessage('Opened ' + label + ' in a new tab.');
+    } else {
+      setMessage('Your browser blocked the new tab — allow popups to ' + label + '.', true);
+    }
+  }
+
   function updateEuclidXref(a, b){
     if (!xrefEuclidEl) return;
-    var basePath = '../Euclidean Algorithm/euclidean-algorithm.html';
-    if ((a > 1 || b > 1) && a <= EUCLID_MAX_INPUT && b <= EUCLID_MAX_INPUT){
-      xrefEuclidEl.href = basePath + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
-    } else {
-      xrefEuclidEl.href = basePath;
-    }
+    xrefEuclidEl.href = euclidHref(a, b) || EUCLID_PATH;
   }
 
   function refreshRegionLabels(){
@@ -1456,7 +1493,7 @@
     for (var i = 0; i < REGION_KEYS3.length; i++){
       var key = REGION_KEYS3[i];
       var value = productOf(primesOf(state.regions3[key]));
-      appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true);
+      appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, null);
     }
   }
 
