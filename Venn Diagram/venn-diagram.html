@@ -1251,11 +1251,13 @@
     caption.textContent = 'gcd(' + opts.a + ', ' + opts.b + ') = ' + run.gcd;
     layer.appendChild(caption);
 
-    var hint = svgEl('text', {
-      'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
-    });
-    hint.textContent = 'double-click to open the full view →';
-    layer.appendChild(hint);
+    if (opts.showHint){
+      var hint = svgEl('text', {
+        'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+      });
+      hint.textContent = 'double-click to open the full view →';
+      layer.appendChild(hint);
+    }
   }
 
   // Balanced (Fermat's Method) factor tree, drawn into the same 268x196
@@ -1347,11 +1349,13 @@
     caption.textContent = factorTail(factorize(opts.value), opts.value);
     layer.appendChild(caption);
 
-    var hint = svgEl('text', {
-      'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
-    });
-    hint.textContent = 'double-click for the Euclidean view →';
-    layer.appendChild(hint);
+    if (opts.showHint){
+      var hint = svgEl('text', {
+        'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+      });
+      hint.textContent = 'double-click for the Euclidean view →';
+      layer.appendChild(hint);
+    }
   }
 
   // ONE dispatch point, reading state.previewMode at event time so the
@@ -2002,7 +2006,10 @@
       });
     }
     if (hasPreview){
-      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value };
+      // showHint gates the trailing "double-click to ..." line inside the
+      // preview panel itself -- a chip with no href must never show a hint
+      // that promises a click it does not perform.
+      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref };
       g.addEventListener('mouseenter', function(){ showRegionPreview(link.previewLayer, previewOpts); });
       g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
       g.addEventListener('focus', function(){ showRegionPreview(link.previewLayer, previewOpts); });
