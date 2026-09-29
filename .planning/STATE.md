@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: "Completed quick task 260929-twn: Added Group Isomorphism tool (14th tool) showing Z/nZ vs (Z/mZ)* as paired wheels, registered site-wide"
-last_updated: "2026-09-29T20:14:58.729Z"
+last_updated: "2026-09-29T21:05:53.591Z"
 last_activity: 2026-09-29
 last_activity_desc: "Completed quick task 260929-qqt: the Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section, no scroll); double-click on any previewable chip resolves at click time to whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link"
-state_head: f1d11b83e225c19ddf9d31b8c3b26246f18352d9
+state_head: 4f4ec6e0bc077ebf39163e240667b8710e893236
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-t2j: In the Factor Tree tool (Factor Tree/factor-tree.html), move the found-factorization result display to the bottom of the output (below the tree diagram), and make it more compact by combining repeated prime factors into exponent notation, showing both the expanded and compact exponent forms.
+Last activity: 2026-09-29 - Completed quick task 260929-uzr: Add a new tool that visualizes Elliptic Curve Diffie-Hellman (ECDH) key exchange, following this repo's established single-file tool pattern
 
 Progress: [████████░░] 80%
 
@@ -188,6 +188,7 @@ None yet.
 | 260929-qqt | Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section); double-click on any previewable chip now opens whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link | 2026-09-29 | 40929a0 | [260929-qqt-venn-diagram-factor-tree-abc-centre-chip](./quick/260929-qqt-venn-diagram-factor-tree-abc-centre-chip/) |
 | 260929-t2j | In the Factor Tree tool (Factor Tree/factor-tree.html), move the found-factorization result display to the bottom of the output (below the tree diagram), and make it more compact by combining repeated prime factors into exponent notation, showing both the expanded and compact exponent forms. | 2026-09-29 | 70fad75 | [260929-t2j-in-the-factor-tree-tool-factor-tree-fact](./quick/260929-t2j-in-the-factor-tree-tool-factor-tree-fact/) |
 | 47 | Create a new browser tool illustrating group isomorphism between Z/nZ (additive) and (Z/mZ)* (multiplicative) as two side-by-side wheels | 2026-09-29 | f1d11b8 | .planning/quick/260929-twn-create-a-new-browser-tool-illustrating-g/ |
+| 260929-uzr | Add a new tool that visualizes Elliptic Curve Diffie-Hellman (ECDH) key exchange, following this repo's established single-file tool pattern | 2026-09-29 | 4f4ec6e | [260929-uzr-add-a-new-tool-that-visualizes-elliptic-](./quick/260929-uzr-add-a-new-tool-that-visualizes-elliptic-/) |
 
 ## Deferred Items
 
