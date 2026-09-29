@@ -1210,6 +1210,7 @@
     if (!layer) return;
     layer.innerHTML = '';
     layer._npOffset = 0;
+    layer._npMax = 0;
   }
 
   // The anchor-to-panel clamp arithmetic, unchanged: both stacked sections
@@ -1372,8 +1373,13 @@
     if (!layer) return false;
     var scroll = layer.querySelector('.np-scroll');
     if (!scroll) return false;
+    // A zero (or unset) ceiling -- single-section panel, e.g. the centre
+    // chip -- is what makes this a genuine no-op: nothing moves, no
+    // attribute is written, and the caller's preventDefault() never fires.
+    if (!(layer._npMax > 0)) return false;
+    var max = layer._npMax;
     var current = layer._npOffset || 0;
-    var next = Math.min(NP_MAX_SCROLL, Math.max(0, current + delta));
+    var next = Math.min(max, Math.max(0, current + delta));
     layer._npOffset = next;
     scroll.setAttribute('data-offset', String(next));
     scroll.setAttribute('transform', 'translate(0, ' + (-next) + ')');
@@ -1390,6 +1396,11 @@
     if (!layer) return;
     layer.innerHTML = '';
     layer._npOffset = 0;
+    // Per-layer scroll ceiling: _npMax is what scrollNestedPreview reads to
+    // decide whether a wheel/key event is a real scroll or a genuine no-op.
+    // Zero here (opts.showEuclid false) is what keeps the single-section
+    // centre chip's panel inert to both.
+    layer._npMax = opts.showEuclid ? NP_MAX_SCROLL : 0;
 
     var panelRect = previewPanelRect(opts);
     var px = panelRect.px, py = panelRect.py;
@@ -1415,18 +1426,23 @@
     clipHost.appendChild(scroll);
 
     drawTreeSection(scroll, px, py, opts);
-    drawEuclidSection(scroll, px, py + NP_H + NP_SECTION_GAP, opts);
+    // Both the second section and its scroll affordance are gated on the
+    // same flag, so a panel can never advertise (via the affordance) a
+    // section it did not draw.
+    if (opts.showEuclid){
+      drawEuclidSection(scroll, px, py + NP_H + NP_SECTION_GAP, opts);
 
-    // Top-right, deliberately: the bottom-centre band is already taken by
-    // the caption and, on linked chips, the hint, so an end-anchored node
-    // there would collide with the hint's right edge. Appended to the
-    // layer itself -- NOT the clip host, NOT the scroll group -- so it
-    // never scrolls with the content it is pointing at.
-    var affordance = svgEl('text', {
-      'class': 'np-scroll-hint', x: px + NP_W - NP_PAD, y: py + 15
-    });
-    affordance.textContent = '↓ more';
-    layer.appendChild(affordance);
+      // Top-right, deliberately: the bottom-centre band is already taken by
+      // the caption and, on linked chips, the hint, so an end-anchored node
+      // there would collide with the hint's right edge. Appended to the
+      // layer itself -- NOT the clip host, NOT the scroll group -- so it
+      // never scrolls with the content it is pointing at.
+      var affordance = svgEl('text', {
+        'class': 'np-scroll-hint', x: px + NP_W - NP_PAD, y: py + 15
+      });
+      affordance.textContent = '↓ more';
+      layer.appendChild(affordance);
+    }
   }
 
   function lensPath(){
@@ -2072,7 +2088,7 @@
       // showHint gates the trailing "double-click to ..." line inside the
       // preview panel itself -- a chip with no href must never show a hint
       // that promises a click it does not perform.
-      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref };
+      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref, showEuclid: !!link.showEuclid };
       g.addEventListener('mouseenter', function(){ showRegionPreview(link.previewLayer, previewOpts); });
       g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
       g.addEventListener('focus', function(){ showRegionPreview(link.previewLayer, previewOpts); });
@@ -2111,7 +2127,7 @@
       var link = null;
       if (key === 'overlap'){
         var href = euclidHref(pair.a, pair.b);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520 };
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true };
       }
       appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false, key, link);
     }
@@ -2269,13 +2285,13 @@
       var pairwise = PAIRWISE_KEY3[key];
       if (pairwise){
         var href = euclidHref(triple[pairwise[0]], triple[pairwise[1]]);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700 };
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700, showEuclid: true };
       } else if (key === 'abc'){
         // The centre chip previews but never links: same left-fold
         // renderProducts3() uses for its A ∩ B ∩ C row (gcd(gcd(A, B), C)),
         // so the preview's gcd and the printed row can never disagree.
         var centreA = gcd(triple.a, triple.b), centreB = triple.c;
-        if (isEuclidRange(centreA, centreB)) link = { href: null, previewLayer: previewLayer3, vbW: 900, vbH: 700, a: centreA, b: centreB };
+        if (isEuclidRange(centreA, centreB)) link = { href: null, previewLayer: previewLayer3, vbW: 900, vbH: 700, a: centreA, b: centreB, showEuclid: false };
       }
       appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, link);
     }
