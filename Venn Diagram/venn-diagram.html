@@ -1277,9 +1277,9 @@
   }
 
   // Balanced (Fermat's Method) factor tree section, drawn into the same
-  // scroll group. Preview-only: this tool carries no Factor Tree deep link
-  // anywhere, so unlike the Euclidean section sharing this stack, this one never draws
-  // a hint line.
+  // scroll group. Its hint line (below, gated on opts.treeHref) is drawn
+  // only when the Factor Tree tool link trio actually resolved a URL for
+  // this value -- a section that bailed below can never promise a click.
   function drawTreeSection(host, px, sy, opts){
     var heading = svgEl('text', { 'class': 'np-heading', x: px + NP_PAD, y: sy + 15 });
     heading.textContent = 'Factor Tree';
@@ -1287,8 +1287,10 @@
 
     // Reachable, not theoretical (a region can hold up to 8 primes as large
     // as 101): a badge value past FT_MAX_N would make fermatSplit() walk
-    // roughly v/2 candidates on a hover. Bail before any split runs.
-    if (typeof opts.value !== 'number' || !isFinite(opts.value) || opts.value < 1 || opts.value > FT_MAX_N){
+    // roughly v/2 candidates on a hover. Bail before any split runs. Uses
+    // the same named predicate factorTreeHref() uses, so the bail and the
+    // URL builder can never disagree about what's in range.
+    if (!isFactorTreeRange(opts.value)){
       var overCaption = svgEl('text', {
         'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
       });
@@ -1360,6 +1362,14 @@
     });
     caption.textContent = factorTail(factorize(opts.value), opts.value);
     host.appendChild(caption);
+
+    if (opts.treeHref){
+      var hint = svgEl('text', {
+        'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
+      });
+      hint.textContent = 'double-click to open the full view →';
+      host.appendChild(hint);
+    }
   }
 
   // Reads/writes the scroll offset stored directly on the layer node (reset
@@ -2059,13 +2069,25 @@
     var h = compact ? 24 : 32;
     var classes = compact ? 'composite-chip chip-compact' : 'composite-chip';
     var hasHref = !!(link && link.href);
+    var hasTreeHref = !!(link && link.treeHref);
+    var hasAnyHref = hasHref || hasTreeHref;
     var hasPreview = !!(link && link.previewLayer);
-    if (hasHref) classes += ' is-linked';
+    // Linked-chip affordance follows "carries either target", not the
+    // Euclidean one alone -- the centre chip now has a real click target
+    // (the Factor Tree one) and must get the pointer cursor that goes with
+    // it, or its accessible name would invite a double-click a bare chip
+    // gives no visual cue for.
+    if (hasAnyHref) classes += ' is-linked';
     if (hasPreview) classes += ' is-previewable';
     var g = svgEl('g', { class: classes });
     g.setAttribute('data-region', key);
     var titleText = notation + ' = ' + text;
-    if (hasHref) titleText += ' — double-click to ' + link.label;
+    // Section order on screen: Factor Tree first, Euclidean second -- the
+    // accessible name lists exactly the targets that exist, in that order.
+    var targetLabels = [];
+    if (hasTreeHref) targetLabels.push(FACTOR_TREE_LABEL);
+    if (hasHref) targetLabels.push(link.label);
+    if (targetLabels.length > 0) titleText += ' — double-click to ' + targetLabels.join(' or ');
     if (hasPreview){
       g.setAttribute('role', 'img');
       g.setAttribute('aria-label', titleText);
@@ -2079,16 +2101,37 @@
     g.appendChild(t);
     if (hasHref){
       g.setAttribute('data-xref-href', link.href);
+    }
+    if (hasTreeHref){
+      g.setAttribute('data-xref-tree-href', link.treeHref);
+    }
+    if (hasAnyHref){
       g.addEventListener('dblclick', function(ev){
         ev.preventDefault();
-        openXref(g.getAttribute('data-xref-href'), link.label);
+        // Resolved at click time from the live scroll offset -- reading it
+        // here, not at render time, is the whole mechanism: a value
+        // captured when the chip was drawn would always be zero.
+        var offset = (link.previewLayer && link.previewLayer._npOffset) || 0;
+        var midpoint = NP_MAX_SCROLL / 2;
+        var chosenHref, chosenLabel;
+        if (offset < midpoint){
+          chosenHref = g.getAttribute('data-xref-tree-href');
+          chosenLabel = FACTOR_TREE_LABEL;
+        } else {
+          chosenHref = g.getAttribute('data-xref-href');
+          chosenLabel = link.label;
+        }
+        // A missing target for the section in view is a no-op, never a
+        // fallback to the other tool.
+        if (!chosenHref) return;
+        openXref(chosenHref, chosenLabel);
       });
     }
     if (hasPreview){
       // showHint gates the trailing "double-click to ..." line inside the
-      // preview panel itself -- a chip with no href must never show a hint
-      // that promises a click it does not perform.
-      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref, showEuclid: !!link.showEuclid };
+      // Euclidean section itself -- a chip with no Euclidean href must
+      // never show a hint that promises a click it does not perform.
+      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref, showEuclid: !!link.showEuclid, treeHref: link.treeHref || null };
       g.addEventListener('mouseenter', function(){ showRegionPreview(link.previewLayer, previewOpts); });
       g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
       g.addEventListener('focus', function(){ showRegionPreview(link.previewLayer, previewOpts); });
@@ -2127,7 +2170,7 @@
       var link = null;
       if (key === 'overlap'){
         var href = euclidHref(pair.a, pair.b);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true };
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true, treeHref: factorTreeHref(value) };
       }
       appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false, key, link);
     }
@@ -2246,6 +2289,25 @@
     return EUCLID_PATH + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
   }
 
+  var FACTOR_TREE_PATH = '../Factor Tree/factor-tree.html';
+  var FACTOR_TREE_LABEL = "see this number's Factor Tree";
+
+  // Mirrors isEuclidRange(): the one range test shared by factorTreeHref()
+  // (which also needs a URL) and drawTreeSection's over-cap bail (which
+  // needs no URL at all) -- one named predicate so a hint can never be
+  // drawn in a section that bailed.
+  function isFactorTreeRange(value){
+    return typeof value === 'number' && isFinite(value) && Number.isInteger(value) && value >= 1 && value <= FT_MAX_N;
+  }
+
+  // Mirrors euclidHref(): the one place that builds a Factor Tree URL.
+  // Returns null when the value is out of the target tool's range, which is
+  // what makes a chip unlinked rather than pointed at a broken query.
+  function factorTreeHref(value){
+    if (!isFactorTreeRange(value)) return null;
+    return FACTOR_TREE_PATH + '?n=' + encodeURIComponent(value);
+  }
+
   // Opens a same-origin cross-tool link in a new, opener-less tab, reporting
   // through the existing message surface rather than adding a new one.
   function openXref(href, label){
@@ -2285,13 +2347,15 @@
       var pairwise = PAIRWISE_KEY3[key];
       if (pairwise){
         var href = euclidHref(triple[pairwise[0]], triple[pairwise[1]]);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700, showEuclid: true };
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700, showEuclid: true, treeHref: factorTreeHref(value) };
       } else if (key === 'abc'){
-        // The centre chip previews but never links: same left-fold
-        // renderProducts3() uses for its A ∩ B ∩ C row (gcd(gcd(A, B), C)),
-        // so the preview's gcd and the printed row can never disagree.
+        // The centre chip previews AND links -- but only to the Factor
+        // Tree, never to the Euclidean Algorithm (its gcd(gcd(A,B),C) pair
+        // describes no real two-circle relationship on screen). Same
+        // left-fold renderProducts3() uses for its A ∩ B ∩ C row, so the
+        // preview's gcd and the printed row can never disagree.
         var centreA = gcd(triple.a, triple.b), centreB = triple.c;
-        if (isEuclidRange(centreA, centreB)) link = { href: null, previewLayer: previewLayer3, vbW: 900, vbH: 700, a: centreA, b: centreB, showEuclid: false };
+        if (isEuclidRange(centreA, centreB)) link = { href: null, previewLayer: previewLayer3, vbW: 900, vbH: 700, a: centreA, b: centreB, showEuclid: false, treeHref: factorTreeHref(value) };
       }
       appendCompositeBadge(svg3CompositeDynamic, CHIP_ANCHOR3[key], value, REGION_NOTATION3[key], true, key, link);
     }
