@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Palette Unification** - Unify all eight tools under one shared color palette with day/night theming preserved
 - [x] **Phase 2: Euclidean Algorithm / GCD Tool** - Ship an animated GCD/Euclidean-algorithm visualizer with a geometric rectangle-tiling view and Extended Euclidean mode
-- [ ] **Phase 3: Chinese Remainder Theorem Tool** - Ship an interactive CRT visualizer with coprimality validation, residue-class visuals, and a GCD cross-link
+- [x] **Phase 3: Chinese Remainder Theorem Tool** - Ship an interactive CRT visualizer with coprimality validation, residue-class visuals, and a GCD cross-link
 - [ ] **Phase 4: Continued Fractions Tool** - Ship a continued-fractions visualizer sharing GCD's rectangle-tiling geometry, with nav updated across all eight tools
 - [x] **Phase 5: Cayley Table Generator** - Ship a standalone Cayley (group operation) table generator for additive and multiplicative groups mod N, cross-linked with the Congruence Wheel
 
@@ -99,7 +99,7 @@ Plans:
   4. User can watch an animated brute-force scan land on the simultaneous solution, then reveal an Extended-Euclidean-based construction method as a faster alternative
   5. User can pick preset examples (including a classic "remainders riddle") and navigate from the CRT tool to the GCD tool's modular-inverse step
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed and verified — the consolidated phase-wide sweep (03-03 Task 3), re-run in a follow-up session after the earlier tooling failure cleared, is green: all static/color/nav/collateral/render gates from all three plans, the receiving-end and behavioral harnesses, the one-answer-everywhere check across five systems, the eight-requirement walk, and the no-regression check all pass — see 03-03-SUMMARY.md
 
 Plans:
 **Wave 1**
@@ -109,7 +109,7 @@ Plans:
 - [x] 03-02-PLAN.md — The two-versus-three congruence control with its idempotency and mid-scan guarantees, and the remaining two preset chips including the shares-a-factor case that makes the CRT-02 warning discoverable (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 03-03-PLAN.md — The Extended-Euclidean construction reveal rendered from the same solver record, the one-directional deep link into the Euclidean Algorithm tool's Bézout step via a new `ext` load param, and the phase-wide sweep (wave 3)
+- [x] 03-03-PLAN.md — The Extended-Euclidean construction reveal rendered from the same solver record, the one-directional deep link into the Euclidean Algorithm tool's Bézout step via a new `ext` load param, and the phase-wide consolidated sweep (Task 3, completed in a follow-up session) (wave 3)
 
 **UI hint**: yes
 
@@ -165,7 +165,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 |-------|----------------|--------|-----------|
 | 1. Palette Unification | 6/6 | Complete | 2026-09-27 |
 | 2. Euclidean Algorithm / GCD Tool | 4/4 | Complete | 2026-09-27 |
-| 3. Chinese Remainder Theorem Tool | 2/3 | In Progress|  |
+| 3. Chinese Remainder Theorem Tool | 3/3 | Complete | 2026-09-29 |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
 | 5. Cayley Table Generator | 3/3 | In Progress|  |

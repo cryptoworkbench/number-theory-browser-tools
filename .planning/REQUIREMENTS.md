@@ -29,10 +29,10 @@ Requirements for the number-theory milestone (three new number-theory tools + si
 - [x] **CRT-02**: User receives a clear validation warning if the moduli are not pairwise coprime, rather than a silently wrong answer
 - [x] **CRT-03**: User sees a visual representation of each modulus's residue class, with the simultaneous solution shown as their intersection
 - [x] **CRT-04**: User can watch an animated brute-force scan that finds and lands on the simultaneous solution
-- [ ] **CRT-05**: User can reveal an Extended-Euclidean-based construction method as an advanced/faster alternative to the brute-force scan
+- [x] **CRT-05**: User can reveal an Extended-Euclidean-based construction method as an advanced/faster alternative to the brute-force scan
 - [x] **CRT-06**: User can toggle between 2 and 3 simultaneous congruences
 - [x] **CRT-07**: User can pick preset examples, including a classic "remainders riddle" framing
-- [ ] **CRT-08**: User can navigate from the CRT tool to the GCD tool's modular-inverse step
+- [x] **CRT-08**: User can navigate from the CRT tool to the GCD tool's modular-inverse step
 
 ### Continued Fractions
 
@@ -111,10 +111,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CRT-02 | Phase 3 | Complete |
 | CRT-03 | Phase 3 | Complete |
 | CRT-04 | Phase 3 | Complete |
-| CRT-05 | Phase 3 | Pending |
+| CRT-05 | Phase 3 | Complete |
 | CRT-06 | Phase 3 | Complete |
 | CRT-07 | Phase 3 | Complete |
-| CRT-08 | Phase 3 | Pending |
+| CRT-08 | Phase 3 | Complete |
 | CF-01 | Phase 4 | Pending |
 | CF-02 | Phase 4 | Pending |
 | CF-03 | Phase 4 | Pending |
