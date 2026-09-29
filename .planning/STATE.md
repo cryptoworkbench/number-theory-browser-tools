@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: Phase 3 closed out -- 03-03-PLAN.md Task 3 (phase-wide consolidated sweep) re-run and green in a follow-up session after the prior tooling failure cleared; all eight CRT requirements demonstrated in one session, no regression found. Phase 4 has not been planned yet.
-last_updated: "2026-09-29T12:32:28.520Z"
+last_updated: "2026-09-29T13:14:22.754Z"
 last_activity: 2026-09-29
-last_activity_desc: "Completed quick task 260929-g19: Venn Diagram overlap chips now show a live Euclidean Algorithm nested-squares preview on hover/focus (2-circle overlap chip and all three 3-circle pairwise chips), replacing the native tooltip while preserving its text as aria-label; ported computeNestedLayout()/euclidSteps() verbatim, gated on link.previewLayer, merge commit 92fa3d6"
-state_head: 92fa3d6e99fcd30a380efdcf66d7dee55ad3b338
+last_activity_desc: "Completed quick task 260929-kam: added Euler's Totient Function tool (13th tool) — computes phi(n) manually by walking k=1..n-1, running a live Euclidean algorithm on gcd(n,k) for each k, tallying coprime hits (no closed-form product formula anywhere on the page); Play/Step/Instant playback with preset chips, registered site-wide (index.html hub card + all 14 nav bars), merge commit 63380d3"
+state_head: 63380d39f24a083fefa6021632b2a19304f0e0e1
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-g19: Venn Diagram overlap chips now show a live Euclidean Algorithm nested-squares preview on hover/focus (2-circle overlap chip and all three 3-circle pairwise chips), replacing the native tooltip while preserving its text as aria-label; ported computeNestedLayout()/euclidSteps() verbatim from the Euclidean Algorithm tool, gated on link.previewLayer, merge commit 92fa3d6
+Last activity: 2026-09-29 - Completed quick task 260929-kam: added Euler's Totient Function tool (13th tool) — computes phi(n) manually by walking k=1..n-1, running a live Euclidean algorithm on gcd(n,k) for each k, tallying coprime hits (no closed-form product formula anywhere on the page); Play/Step/Instant playback with preset chips, registered site-wide (index.html hub card + all 14 nav bars), merge commit 63380d3
 
 Progress: [████████░░] 80%
 
@@ -176,6 +176,7 @@ None yet.
 | 260929-dz1 | Revert quick task 260929-c11 Task 3 only: remove the three-way Venn overlap to Chinese Remainder Theorem deep link (commit f6d6683), keeping the two-way overlap to Euclidean Algorithm deep link fully intact, per user judgment that the CRT cross-link was mathematically nonsensical | 2026-09-29 | 2565300 | [260929-dz1-revert-quick-task-260929-c11-task-3-only](./quick/260929-dz1-revert-quick-task-260929-c11-task-3-only/) |
 | 260929-er9 | Automatically simplify the Venn Diagram tool at every step: when a prime is placed in multiple regions such that it appears in both exclusive regions implying overlap (e.g. 'A only' and 'B only'), reactively move it so it appears once in the overlap region instead of duplicated, on every edit (add/remove), not just initial generation. | 2026-09-29 | c72412e | [260929-er9-automatically-simplify-the-venn-diagram-](./quick/260929-er9-automatically-simplify-the-venn-diagram-/) |
 | 260929-g19 | Venn Diagram: show a live Euclidean Algorithm nested-squares preview when hovering a linked overlap chip (2-circle overlap and 3-circle pairwise overlaps), replacing the native tooltip with an SVG mini-diagram of the same a/b pair the chip's double-click deep link already encodes; tooltip text preserved verbatim as aria-label | 2026-09-29 | 92fa3d6 | [260929-g19-venn-diagram-show-a-live-euclidean-algor](./quick/260929-g19-venn-diagram-show-a-live-euclidean-algor/) |
+| 260929-kam | Add Euler's Totient Function tool (13th tool): computes phi(n) manually by walking k=1..n-1, running a live Euclidean algorithm on gcd(n,k) for each k, and tallying coprime hits; no closed-form product formula anywhere on the page. Play/Step/Instant playback with preset chips, registered site-wide (index.html hub card + all 14 nav bars). | 2026-09-29 | 63380d3 | [260929-kam-add-a-new-browser-tool-called-euler-s-to](./quick/260929-kam-add-a-new-browser-tool-called-euler-s-to/) |
 
 ## Deferred Items
 
