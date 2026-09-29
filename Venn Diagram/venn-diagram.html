@@ -299,6 +299,39 @@
   .composite-chip.is-linked:hover rect{ stroke:var(--role-result); fill:color-mix(in srgb, var(--role-result) 12%, var(--surface)); }
   .composite-chip.is-linked{ user-select:none; }
 
+  /* ---------- Euclidean nested-view preview ---------- */
+  /* pointer-events:none is load-bearing, not cosmetic: the panel is
+     anchored beside the chip and can overlap it, and a panel that
+     swallowed the pointer would fire mouseleave on the chip and make
+     the preview flicker itself out of existence. */
+  .nested-preview{ pointer-events:none; }
+  .nested-preview .np-panel{ fill:var(--surface); stroke:var(--role-input); stroke-width:1.5; }
+  .nested-preview .np-caption{
+    fill:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    text-anchor:middle;
+  }
+  .nested-preview .np-hint{
+    fill:var(--text-dim);
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    text-anchor:middle;
+  }
+  .nested-preview .nframe{ fill:none; stroke:var(--text-dim); stroke-width:1.5; }
+  .nested-preview .nsquare, .nested-preview .ncap{ stroke-width:1; }
+  .nested-preview .ncap{ stroke-dasharray:3 2; }
+  /* Categorical cycle by step index (mod 6), not by role-meaning -- ported
+     verbatim from Euclidean Algorithm/euclidean-algorithm.html's .nstep-N
+     rules, scoped under .nested-preview so they cannot leak onto anything
+     else on this page. */
+  .nested-preview .nstep-0{ fill:color-mix(in srgb, var(--role-input) 32%, transparent); stroke:var(--role-input); }
+  .nested-preview .nstep-1{ fill:color-mix(in srgb, var(--role-alt) 32%, transparent); stroke:var(--role-alt); }
+  .nested-preview .nstep-2{ fill:color-mix(in srgb, var(--role-special) 32%, transparent); stroke:var(--role-special); }
+  .nested-preview .nstep-3{ fill:color-mix(in srgb, var(--role-active) 32%, transparent); stroke:var(--role-active); }
+  .nested-preview .nstep-4{ fill:color-mix(in srgb, var(--role-result) 32%, transparent); stroke:var(--role-result); }
+  .nested-preview .nstep-5{ fill:color-mix(in srgb, var(--role-warn) 32%, transparent); stroke:var(--role-warn); }
+
   .message{
     min-height:16px;
     font-size:13.5px;
@@ -425,6 +458,7 @@
         <svg id="venn-composite" viewBox="0 0 900 520" role="img" aria-label="Read-only mirror of the two-circle diagram showing each region's composite number, the product of only the primes placed in that region">
           <g id="venn-composite-static"></g>
           <g id="venn-composite-dynamic"></g>
+          <g id="venn-preview" class="nested-preview"></g>
         </svg>
       </div>
     </div>
@@ -627,6 +661,7 @@
   var svgDynamic = document.getElementById('venn-dynamic');
   var svgCompositeStatic = document.getElementById('venn-composite-static');
   var svgCompositeDynamic = document.getElementById('venn-composite-dynamic');
+  var previewLayer = document.getElementById('venn-preview');
   var messageEl = document.getElementById('message');
   var clearBtn = document.getElementById('clear-btn');
   var productLeftEl = document.getElementById('product-left');
@@ -939,6 +974,142 @@
     var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
     for (var k in attrs) el.setAttribute(k, attrs[k]);
     return el;
+  }
+
+  /* ---------- Euclidean nested-view (ported from the Euclidean Algorithm tool) ---------- */
+  // euclidSteps() and computeNestedLayout() are a deliberate per-file
+  // duplication of the same-named functions in
+  // Euclidean Algorithm/euclidean-algorithm.html, per CLAUDE.md's
+  // no-shared-JS-module rule for number-theory helpers. The two copies
+  // must be kept in step -- computeNestedLayout() in particular is ported
+  // unchanged (apart from the TILE_CAP rename) so this page's miniature is
+  // the same geometry the full tool draws, not a lookalike.
+
+  // Forward-division step walk. Trimmed from the source's extended-Euclid
+  // recurrence -- the Bezout s/t coefficients it also computes are for that
+  // tool's Extended-Euclid panel and are not read by the nested layout.
+  function euclidSteps(a, b){
+    var steps = [];
+    var r0 = a, r1 = b;
+    while (r1 !== 0){
+      var q = Math.floor(r0 / r1);
+      var r2 = r0 - q * r1;
+      steps.push({ a: r0, b: r1, q: q, r: r2 });
+      r0 = r1; r1 = r2;
+    }
+    return { steps: steps, gcd: r0 };
+  }
+
+  // Matches the source's TILE_CAP exactly -- a different cap would make
+  // this miniature disagree with the page it links to.
+  var NEST_TILE_CAP = 40;
+
+  // Builds the unit-space layout (no pixel scale yet) by walking the same
+  // step list one at a time, recursing into each step's leftover. Ported
+  // verbatim from computeNestedLayout() apart from the TILE_CAP rename.
+  function computeNestedLayout(steps){
+    if (!steps || steps.length === 0) return null;
+    var rects = [];
+    var cappedSteps = [];
+
+    function place(i, x, y, w, h, vertical){
+      var step = steps[i];
+      var b = step.b, q = step.q, r = step.r;
+      var drawn = Math.min(q, NEST_TILE_CAP);
+      var capped = q > NEST_TILE_CAP;
+      if (capped) cappedSteps.push(i);
+      var k, pos, used;
+      if (!vertical){
+        pos = x;
+        for (k = 0; k < drawn; k++){
+          rects.push({ type: 'square', x: pos, y: y, w: b, h: b, step: i, first: k === 0 });
+          pos += b;
+        }
+        if (capped){
+          rects.push({ type: 'cap', x: pos, y: y, w: b, h: b, step: i, extra: q - drawn });
+          pos += b;
+        }
+        used = pos - x;
+        if (r > 0) used += place(i + 1, pos, y, r, h, true).w;
+        return { w: used, h: h };
+      } else {
+        pos = y;
+        for (k = 0; k < drawn; k++){
+          rects.push({ type: 'square', x: x, y: pos, w: b, h: b, step: i, first: k === 0 });
+          pos += b;
+        }
+        if (capped){
+          rects.push({ type: 'cap', x: x, y: pos, w: b, h: b, step: i, extra: q - drawn });
+          pos += b;
+        }
+        used = pos - y;
+        if (r > 0) used += place(i + 1, x, pos, w, r, false).h;
+        return { w: w, h: used };
+      }
+    }
+
+    var top = place(0, 0, 0, steps[0].a, steps[0].b, false);
+    return { rects: rects, width: top.w, height: top.h, cappedSteps: cappedSteps };
+  }
+
+  /* ---------- Euclidean nested-view preview renderer ---------- */
+
+  var NP_W = 268, NP_H = 196, NP_PAD = 10, NP_GAP = 26, NP_EDGE = 6;
+
+  function hideNestedPreview(layer){
+    if (!layer) return;
+    layer.innerHTML = '';
+  }
+
+  function showNestedPreview(layer, opts){
+    hideNestedPreview(layer);
+    if (!layer) return;
+    var run = euclidSteps(opts.a, opts.b);
+    if (run.steps.length === 0) return;
+    var layout = computeNestedLayout(run.steps);
+    if (!layout || layout.width <= 0 || layout.height <= 0) return;
+
+    var px = opts.anchor[0] + NP_GAP;
+    if (px + NP_W > opts.vbW - NP_EDGE) px = opts.anchor[0] - NP_GAP - NP_W;
+    px = Math.min(Math.max(px, NP_EDGE), opts.vbW - NP_W - NP_EDGE);
+    var py = opts.anchor[1] - NP_H / 2;
+    py = Math.min(Math.max(py, NP_EDGE), opts.vbH - NP_H - NP_EDGE);
+
+    layer.appendChild(svgEl('rect', {
+      'class': 'np-panel', x: px, y: py, width: NP_W, height: NP_H, rx: 10
+    }));
+
+    var bx = px + NP_PAD, by = py + NP_PAD;
+    var bw = NP_W - 2 * NP_PAD, bh = NP_H - NP_PAD - 34;
+    var scale = Math.min(bw / layout.width, bh / layout.height);
+    var dw = layout.width * scale, dh = layout.height * scale;
+    var ox = bx + (bw - dw) / 2, oy = by + (bh - dh) / 2;
+
+    layer.appendChild(svgEl('rect', {
+      'class': 'nframe', x: ox, y: oy, width: dw, height: dh
+    }));
+
+    for (var idx = 0; idx < layout.rects.length; idx++){
+      var r = layout.rects[idx];
+      var cls = (r.type === 'cap' ? 'ncap ' : 'nsquare ') + 'nstep-' + (r.step % 6);
+      layer.appendChild(svgEl('rect', {
+        'class': cls,
+        x: ox + r.x * scale, y: oy + r.y * scale,
+        width: r.w * scale, height: r.h * scale
+      }));
+    }
+
+    var caption = svgEl('text', {
+      'class': 'np-caption', x: px + NP_W / 2, y: py + NP_H - 18
+    });
+    caption.textContent = 'gcd(' + opts.a + ', ' + opts.b + ') = ' + run.gcd;
+    layer.appendChild(caption);
+
+    var hint = svgEl('text', {
+      'class': 'np-hint', x: px + NP_W / 2, y: py + NP_H - 5
+    });
+    hint.textContent = 'double-click to open the full view →';
+    layer.appendChild(hint);
   }
 
   function lensPath(){
@@ -1555,7 +1726,14 @@
     g.setAttribute('data-region', key);
     var titleText = notation + ' = ' + text;
     if (link) titleText += ' — double-click to ' + link.label;
-    g.appendChild(svgEl('title')).textContent = titleText;
+    var hasPreview = !!(link && link.previewLayer);
+    if (hasPreview){
+      g.setAttribute('role', 'img');
+      g.setAttribute('aria-label', titleText);
+      g.setAttribute('tabindex', '0');
+    } else {
+      g.appendChild(svgEl('title')).textContent = titleText;
+    }
     g.appendChild(svgEl('rect', { x: anchor[0] - w / 2, y: anchor[1] - h / 2, width: w, height: h, rx: compact ? 6 : 8 }));
     var t = svgEl('text', { x: anchor[0], y: anchor[1] });
     t.textContent = text;
@@ -1567,11 +1745,19 @@
         openXref(g.getAttribute('data-xref-href'), link.label);
       });
     }
+    if (hasPreview){
+      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b };
+      g.addEventListener('mouseenter', function(){ showNestedPreview(link.previewLayer, previewOpts); });
+      g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
+      g.addEventListener('focus', function(){ showNestedPreview(link.previewLayer, previewOpts); });
+      g.addEventListener('blur', function(){ hideNestedPreview(link.previewLayer); });
+    }
     target.appendChild(g);
   }
 
   function renderComposite(){
     svgCompositeDynamic.innerHTML = '';
+    hideNestedPreview(previewLayer);
     var keys = ['left', 'overlap', 'right'];
     var pair = currentPair();
     for (var i = 0; i < keys.length; i++){
@@ -1580,7 +1766,7 @@
       var link = null;
       if (key === 'overlap'){
         var href = euclidHref(pair.a, pair.b);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm' };
+        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520 };
       }
       appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false, key, link);
     }
