@@ -370,14 +370,7 @@
     <button id="goBtn">Grow the Tree</button>
   </div>
 
-  <div class="chips">
-    <button class="chip" data-n="2">2</button>
-    <button class="chip" data-n="97">97 (prime)</button>
-    <button class="chip" data-n="60">60</button>
-    <button class="chip" data-n="1024">1024</button>
-    <button class="chip" data-n="9973">9973 (prime)</button>
-    <button class="chip" data-n="2310">2310</button>
-  </div>
+  <div class="chips"></div>
 
   <div id="message" class="message"></div>
 
@@ -425,7 +418,7 @@
   // ---------- Elements ----------
   const numInput = document.getElementById('numInput');
   const goBtn = document.getElementById('goBtn');
-  const chips = document.querySelectorAll('.chip');
+  const chipsContainer = document.querySelector('.chips');
   const messageEl = document.getElementById('message');
   const equationEl = document.getElementById('equation');
   const treeArea = document.getElementById('treeArea');
@@ -439,6 +432,34 @@
   let mode = 'classic';
   const MAX_BALANCED_N = 1000000;
   const FERMAT_MAX_ITER = 2000000;
+
+  const CLASSIC_CHIPS = [
+    { n:2, label:'2' },
+    { n:97, label:'97 (prime)' },
+    { n:60, label:'60' },
+    { n:1024, label:'1024' },
+    { n:9973, label:'9973 (prime)' },
+    { n:2310, label:'2310' }
+  ];
+  const BALANCED_CHIPS = [
+    { n:899, label:'899' },
+    { n:9991, label:'9991' },
+    { n:1024, label:'1024' },
+    { n:29919, label:'29919' },
+    { n:9973, label:'9973 (prime)' }
+  ];
+
+  function renderChips(currentMode){
+    const list = currentMode === 'balanced' ? BALANCED_CHIPS : CLASSIC_CHIPS;
+    chipsContainer.innerHTML = '';
+    list.forEach(chip=>{
+      const btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.setAttribute('data-n', chip.n);
+      btn.textContent = chip.label;
+      chipsContainer.appendChild(btn);
+    });
+  }
 
   // ---------- Number theory ----------
   function primeFactors(n){
@@ -805,12 +826,12 @@
   numInput.addEventListener('keydown', (e)=>{
     if(e.key === 'Enter') factorize(numInput.value);
   });
-  chips.forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      const n = chip.getAttribute('data-n');
-      numInput.value = n;
-      factorize(n);
-    });
+  chipsContainer.addEventListener('click', (e)=>{
+    const chip = e.target.closest('.chip');
+    if(!chip) return;
+    const n = chip.getAttribute('data-n');
+    numInput.value = n;
+    factorize(n);
   });
 
   balancedNote.textContent = 'Balanced mode uses Fermat’s method to find the most evenly-split factor pair at each step, capped at numbers under 1,000,000 to stay instant. Some numbers — like a small prime times a big one — still split unevenly; that’s not a bug, just math.';
@@ -821,11 +842,14 @@
       modeButtons.forEach(b=> b.classList.toggle('is-active', b === btn));
       balancedNote.style.display = mode === 'balanced' ? 'block' : 'none';
       numInput.max = mode === 'balanced' ? MAX_BALANCED_N : 1000000000000;
+      renderChips(mode);
       if(numInput.value !== ''){
         factorize(numInput.value);
       }
     });
   });
+
+  renderChips(mode);
 
   // Grow an initial example tree on load
   window.addEventListener('load', ()=>{
