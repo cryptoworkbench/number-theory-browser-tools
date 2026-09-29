@@ -789,6 +789,150 @@
     return out;
   }
 
+  /* ---------- region canonicalization ---------- */
+
+  // Bit 0 = circle A (or the two-circle "left"), bit 1 = circle B ("right"),
+  // bit 2 = circle C (three-circle mode only). A region's mask names exactly
+  // which circles a prime placed in it divides -- the mask IS the meaning of
+  // the region, so simplifyRegions() below is written once against masks and
+  // knows nothing about two-vs-three circles.
+  var REGION_MASK = { left: 1, overlap: 3, right: 2 };
+  var REGION_MASK3 = { aOnly: 1, bOnly: 2, cOnly: 4, ab: 3, ac: 5, bc: 6, abc: 7 };
+
+  function popcount(m){
+    var c = 0;
+    while (m){ c += (m & 1); m >>= 1; }
+    return c;
+  }
+
+  function cloneRegions(regions, keys){
+    var out = {};
+    for (var i = 0; i < keys.length; i++) out[keys[i]] = regions[keys[i]].slice();
+    return out;
+  }
+
+  // Greedy widest-region-first decomposition of each prime's per-circle
+  // exponent vector -- the same min-of-the-two rule fillFromNumbers() already
+  // applies for two circles (shared = Math.min(ca, cb)), lifted to arbitrary
+  // masks so it works for both modes without knowing which one it is in.
+  function simplifyRegions(regions, keys, maskOf, cap){
+    var i, k, key, mask, list, entry, p, bit;
+
+    // 1. accumulate, per prime, an exponent per circle bit
+    var primeBits = {};
+    for (i = 0; i < keys.length; i++){
+      key = keys[i];
+      mask = maskOf[key];
+      list = regions[key];
+      for (k = 0; k < list.length; k++){
+        entry = list[k];
+        p = entry.p;
+        if (!primeBits[p]) primeBits[p] = { 0: 0, 1: 0, 2: 0 };
+        for (bit = 0; bit < 3; bit++){
+          if (mask & (1 << bit)) primeBits[p][bit]++;
+        }
+      }
+    }
+
+    // 2. widest-mask-first order; Array#sort is stable (ES2019+), so ties
+    // keep their position in `keys` -- and per the mask math, once the
+    // full-overlap count is subtracted at least one circle exponent is 0,
+    // so at most one pairwise region can take a nonzero count: ties among
+    // same-width regions cannot affect the result.
+    var ordered = keys.slice().sort(function(ka, kb){
+      return popcount(maskOf[kb]) - popcount(maskOf[ka]);
+    });
+
+    // 3. per prime, walk `ordered`, assign the min remaining exponent across
+    // the bits its mask touches, then subtract that count from those bits.
+    var targetCounts = {};
+    for (i = 0; i < keys.length; i++) targetCounts[keys[i]] = {};
+
+    var primes = Object.keys(primeBits);
+    for (i = 0; i < primes.length; i++){
+      p = primes[i];
+      var remaining = { 0: primeBits[p][0], 1: primeBits[p][1], 2: primeBits[p][2] };
+      for (k = 0; k < ordered.length; k++){
+        key = ordered[k];
+        mask = maskOf[key];
+        var bits = [];
+        for (bit = 0; bit < 3; bit++){ if (mask & (1 << bit)) bits.push(bit); }
+        var minExp = remaining[bits[0]];
+        for (var b = 1; b < bits.length; b++) minExp = Math.min(minExp, remaining[bits[b]]);
+        if (minExp > 0){
+          targetCounts[key][p] = minExp;
+          for (b = 0; b < bits.length; b++) remaining[bits[b]] -= minExp;
+        }
+      }
+    }
+
+    // 4. cap gate -- refuse whole, before any list is touched
+    for (i = 0; i < keys.length; i++){
+      key = keys[i];
+      var total = 0;
+      for (p in targetCounts[key]) total += targetCounts[key][p];
+      if (total > cap) return { regions: null, moved: null, changed: false, overflow: key };
+    }
+
+    // 5. diff into new lists: keep the first `target` occurrences of each
+    // prime in each region's existing order, release the surplus into a
+    // per-prime pool, then satisfy shortfalls from that pool in `keys`
+    // order. Pooled entries are reused as-is -- no id is ever minted here,
+    // and leftover pooled entries (a canonical count is never more than the
+    // count a prime started with) are simply dropped.
+    var pool = {};
+    var newLists = {};
+    for (i = 0; i < keys.length; i++){
+      key = keys[i];
+      list = regions[key];
+      var keptCount = {};
+      var kept = [];
+      for (k = 0; k < list.length; k++){
+        entry = list[k];
+        p = entry.p;
+        var target = targetCounts[key][p] || 0;
+        var already = keptCount[p] || 0;
+        if (already < target){
+          kept.push(entry);
+          keptCount[p] = already + 1;
+        } else {
+          if (!pool[p]) pool[p] = [];
+          pool[p].push(entry);
+        }
+      }
+      newLists[key] = kept;
+    }
+
+    var moved = [];
+    for (i = 0; i < keys.length; i++){
+      key = keys[i];
+      var have = {};
+      for (k = 0; k < newLists[key].length; k++){
+        var hp = newLists[key][k].p;
+        have[hp] = (have[hp] || 0) + 1;
+      }
+      for (p in targetCounts[key]){
+        var wanted = targetCounts[key][p];
+        var got = have[p] || 0;
+        while (got < wanted){
+          var pulled = pool[p].shift();
+          newLists[key].push(pulled);
+          moved.push({ p: Number(p), to: key });
+          got++;
+        }
+      }
+    }
+
+    var changed = moved.length > 0;
+    if (!changed){
+      for (i = 0; i < keys.length; i++){
+        if (newLists[keys[i]].length !== regions[keys[i]].length){ changed = true; break; }
+      }
+    }
+
+    return { regions: newLists, moved: moved, changed: changed, overflow: null };
+  }
+
   var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
 
   function svgEl(tag, attrs){
@@ -985,14 +1129,14 @@
       setMessage('Pick a prime from the picker first.');
       return;
     }
-    if (state.regions[key].length >= MAX_PER_REGION){
-      warnRegionFull(key);
-      return;
-    }
-    state.regions[key].push({ id: state.nextId++, p: value });
-    setMessage('Placed ' + value + ' in the ' + REGION_CAPTIONS[key] + ' region.');
-    persist();
-    render();
+    commitRegions(twoCtx, function(draft){
+      if (draft[key].length >= MAX_PER_REGION){
+        warnRegionFull(key);
+        return null;
+      }
+      draft[key].push({ id: state.nextId++, p: value });
+      return 'Placed ' + value + ' in the ' + REGION_CAPTIONS[key] + ' region.';
+    });
   }
 
   function removeToken(key, id){
@@ -1286,6 +1430,54 @@
     state.regions3 = next;
     return true;
   }
+
+  /* ---------- check-then-commit wrapper for all six mutators ---------- */
+
+  // Clone -> mutate -> simplify -> commit. This is what makes cap rejection
+  // atomic: a rejected gesture never assigns anything into state.regions /
+  // state.regions3, so there is nothing to undo.
+  function commitRegions(ctx, mutate){
+    var draft = cloneRegions(ctx.getRegions(), ctx.keys);
+    var msg = mutate(draft);
+    if (msg === null) return;
+    var result = simplifyRegions(draft, ctx.keys, ctx.maskOf, ctx.cap);
+    if (result.overflow){
+      ctx.warn(result.overflow);
+      return;
+    }
+    ctx.setRegions(result.regions);
+    if (result.moved.length){
+      var notes = result.moved.map(function(m){
+        return m.p + ' moved to ' + ctx.notation[m.to] + '.';
+      });
+      msg += ' Simplified: ' + notes.join(' ');
+    }
+    setMessage(msg);
+    ctx.persist();
+    render();
+  }
+
+  var twoCtx = {
+    getRegions: function(){ return state.regions; },
+    setRegions: function(r){ state.regions = r; },
+    keys: ['left', 'overlap', 'right'],
+    maskOf: REGION_MASK,
+    cap: MAX_PER_REGION,
+    notation: REGION_NOTATION,
+    warn: warnRegionFull,
+    persist: persist
+  };
+
+  var threeCtx = {
+    getRegions: function(){ return state.regions3; },
+    setRegions: function(r){ state.regions3 = r; },
+    keys: REGION_KEYS3,
+    maskOf: REGION_MASK3,
+    cap: MAX_PER_REGION3,
+    notation: REGION_NOTATION3,
+    warn: warnRegionFull3,
+    persist: persist3
+  };
 
   function renderPicker(){
     picker.innerHTML = '';
