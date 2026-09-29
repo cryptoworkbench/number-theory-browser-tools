@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: Phase 3 closed out -- 03-03-PLAN.md Task 3 (phase-wide consolidated sweep) re-run and green in a follow-up session after the prior tooling failure cleared; all eight CRT requirements demonstrated in one session, no regression found. Phase 4 has not been planned yet.
-last_updated: "2026-09-29T00:00:00Z"
+last_updated: "2026-09-29T07:42:38.990Z"
 last_activity: 2026-09-29
 last_activity_desc: "Phase 03 Plan 03 Task 3: consolidated phase-wide sweep completed (all static/color/nav/collateral/render gates, behavioral harnesses, one-answer-everywhere across 5 systems, 8-requirement walk, no-regression check all green); Phase 3 marked Complete"
-state_head: da21f64
+state_head: f6d6683e454df0287cca9188c6a88643010da6c5
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 — 03-03 Task 3 (phase-wide consolidated sweep) re-run and green; Phase 3 complete
+Last activity: 2026-09-29 - Completed quick task 260929-c11: Add double-click deep links from Venn Diagram overlap regions to Euclidean Algorithm (2-region overlap, both 2-circle and 3-circle modes) and Chinese Remainder Theorem (3-region overlap, 3-circle mode only)
 
 Progress: [████████░░] 80%
 
@@ -172,6 +172,7 @@ None yet.
 | 260928-r1v | Rename tool "Venn Diagrams" -> "Venn Diagram" everywhere in the number-theory-browser-tools repo: directory name, file name if applicable, page title, headings, nav links across all tool pages, index.html card, and any references — both internal identifiers and user-facing text. | 2026-09-28 | f2de48c | .planning/quick/260928-r1v-rename-tool-venn-diagrams-venn-diagram-everywhere-in-the-num |
 | 260928-r1w | Add full persistent, bidirectional, cross-tool sharing between the "Cayley Table" tool and the "Equivalence Wheel" tool for two coupled parameters: group type (additive vs multiplicative) and modulus. Currently each tool tracks these independently in its own localStorage state, so switching tools loses/overrides the other tool's setting (example: setting Equivalence Wheel to additive mod 18, then opening Cayley Table shows modulus 6 / multiplicative group (Z/6Z)^x, unrelated to what was just set). Requirement: changing group type or modulus in either tool must be reflected in the other tool the next time it is opened, and live via the existing cross-tab storage event pattern already used for theme sync in assets/theme.js. Implement via a shared localStorage key read/written by both tools' inline scripts, following the existing per-tool state persistence convention. Keep each tool's math/rendering logic duplicated per-file per repo convention — only the shared parameter state should be centralized, not the algorithms. Preserve each tool's own additional/unrelated state fields. This task depends on task 1 (Cayley Table rename) being done first, since it targets the renamed tool. | 2026-09-28 | a3d0d24 | .planning/quick/260928-r1w-add-full-persistent-bidirectional-cross-tool-sharing-between |
 | 260928-t3t | Add full persistent bidirectional cross-tool sharing between the Euclidean Algorithm tool and the Venn Diagram tool's 2-circle view, matching the pattern just shipped for Cayley Table <-> Equivalence Wheel (commits 8225dd6 and a3d0d24): a shared params store (localStorage + cookie mirror) that both tools read on open and write on every user-initiated change, replacing/reducing each tool's private persisted record for the shared a/b fields. Each tool clamps shared values to its own ceiling on read (display-only, never written back). Add a storage event listener on each page that re-reads and re-renders without persisting. Do not touch the Venn Diagram's 3-circle mode. | 2026-09-28 | eb8f19e | [260928-t3t-add-full-persistent-bidirectional-cross-](./quick/260928-t3t-add-full-persistent-bidirectional-cross-/) |
+| 260929-c11 | Add double-click deep links from Venn Diagram overlap regions to Euclidean Algorithm (2-region overlap, both 2-circle and 3-circle modes) and Chinese Remainder Theorem (3-region overlap, 3-circle mode only) | 2026-09-29 | f6d6683 | [260929-c11-add-double-click-deep-links-from-venn-di](./quick/260929-c11-add-double-click-deep-links-from-venn-di/) |
 
 ## Deferred Items
 
