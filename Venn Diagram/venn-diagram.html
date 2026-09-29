@@ -1374,6 +1374,9 @@
   // to 0 by hideNestedPreview above and by the builder below on every fresh
   // open). Returns false -- and moves nothing -- when no panel is open, so
   // callers know not to swallow the wheel/key event that triggered them.
+  // Also toggles the top-right affordance's visibility -- an attribute, not
+  // a class or inline style, since the node is created and destroyed on
+  // every hover and cannot carry stale state between them.
   function scrollNestedPreview(layer, delta){
     if (!layer) return false;
     var scroll = layer.querySelector('.np-scroll');
@@ -1383,6 +1386,8 @@
     layer._npOffset = next;
     scroll.setAttribute('data-offset', String(next));
     scroll.setAttribute('transform', 'translate(0, ' + (-next) + ')');
+    var affordance = layer.querySelector('.np-scroll-hint');
+    if (affordance) affordance.setAttribute('visibility', next > 0 ? 'hidden' : 'visible');
     return true;
   }
 
@@ -1420,6 +1425,17 @@
 
     drawEuclidSection(scroll, px, py, opts);
     drawTreeSection(scroll, px, py + NP_H + NP_SECTION_GAP, opts);
+
+    // Top-right, deliberately: the bottom-centre band is already taken by
+    // the caption and, on linked chips, the hint, so an end-anchored node
+    // there would collide with the hint's right edge. Appended to the
+    // layer itself -- NOT the clip host, NOT the scroll group -- so it
+    // never scrolls with the content it is pointing at.
+    var affordance = svgEl('text', {
+      'class': 'np-scroll-hint', x: px + NP_W - NP_PAD, y: py + 15
+    });
+    affordance.textContent = '↓ more';
+    layer.appendChild(affordance);
   }
 
   function lensPath(){
@@ -2078,6 +2094,17 @@
         var moved = scrollNestedPreview(link.previewLayer, ev.deltaY);
         if (moved) ev.preventDefault();
       }, { passive: false });
+      // Closes the keyboard gap the wheel alone would leave: a couple of
+      // presses crosses from one section to the other. Any other key
+      // (Tab included) falls through untouched.
+      g.addEventListener('keydown', function(ev){
+        var step = Math.round(NP_H / 4);
+        if (ev.key === 'ArrowDown'){
+          if (scrollNestedPreview(link.previewLayer, step)) ev.preventDefault();
+        } else if (ev.key === 'ArrowUp'){
+          if (scrollNestedPreview(link.previewLayer, -step)) ev.preventDefault();
+        }
+      });
     }
     target.appendChild(g);
   }
