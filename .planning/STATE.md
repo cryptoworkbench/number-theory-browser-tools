@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
-stopped_at: Phase 3 closed out -- 03-03-PLAN.md Task 3 (phase-wide consolidated sweep) re-run and green in a follow-up session after the prior tooling failure cleared; all eight CRT requirements demonstrated in one session, no regression found. Phase 4 has not been planned yet.
-last_updated: "2026-09-29T15:54:21.635Z"
+stopped_at: "Completed quick task 260929-p80: Venn Diagram stacked hover-preview panel"
+last_updated: "2026-09-29T16:40:22.490Z"
 last_activity: 2026-09-29
-last_activity_desc: "Completed quick task 260929-kam: added Euler's Totient Function tool (13th tool) — computes phi(n) manually by walking k=1..n-1, running a live Euclidean algorithm on gcd(n,k) for each k, tallying coprime hits (no closed-form product formula anywhere on the page); Play/Step/Instant playback with preset chips, registered site-wide (index.html hub card + all 14 nav bars), merge commit 63380d3"
-state_head: 4fddad97cb1286ab427b93b0dfd76cc43c0e5a1e
+last_activity_desc: "Completed quick task 260929-p80: replaced the Venn Diagram tool's mutually-exclusive Hover-preview toolbar toggle with one combined, fixed-footprint hover panel stacking the Euclidean nested-squares view and the Balanced factor tree, scrollable by wheel and ArrowDown/ArrowUp"
+state_head: 36b7798757a19375be1dc273a748cf464aa3a5dc
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-o99: In the Venn Diagram tool's 3-circle mode, make the hover thumbnail also appear when the cursor hovers over the region where all 3 circles overlap (the triple-overlap/center region), matching the existing hover thumbnail behavior for other regions.
+Last activity: 2026-09-29 - Completed quick task 260929-p80: replaced the Venn Diagram tool's mutually-exclusive Hover-preview toolbar toggle with one combined, fixed-footprint hover panel stacking the Euclidean nested-squares view and the Balanced factor tree, scrollable by wheel and ArrowDown/ArrowUp.
 
 Progress: [████████░░] 80%
 
@@ -121,6 +121,7 @@ Recent decisions affecting current work:
 - [Phase 03]: [Phase 03 Plan 03]: renderConstruction(run) reads solveCrt's already-computed terms/sum/span/x and performs no new arithmetic beyond formatting plus a single mod-reduction assertion against run.x -- mirrors landSolution()'s one-solver discipline so the construction panel can never disagree with the scan's landed answer
 - [Phase 03]: [Phase 03 Plan 03]: readExtParam() in the Euclidean Algorithm tool mirrors readABParams()'s defensive try/catch shape, comparing for exact string equality against '1'; verified as a 4-line, zero-deletion, byte-identical-when-absent diff
 - [Phase 03]: [Phase 03 Plan 03]: TOOLING FAILURE -- the Bash/shell tool became non-functional partway through Task 3 (the phase-wide consolidated sweep). Tasks 1-2 were fully implemented, verified (headless-Chrome behavioral harnesses, vacuity-checked), and committed (236a18e, da21f64) before the failure. Task 3 itself, the gsd_run CLI state updates, and the final metadata commit could not be executed; STATE.md/ROADMAP.md/REQUIREMENTS.md were updated by hand in this session instead. See 03-03-SUMMARY.md "CRITICAL: Task 3 Not Completed" for full detail and recommended follow-up.
+- [Phase quick-260929-p80]: [Quick task 260929-p80]: Replaced the Venn Diagram tool's mutually-exclusive Hover-preview toolbar toggle with one combined, fixed-footprint (268x196) hover panel that stacks the Euclidean nested-squares view and the Balanced factor tree, scrollable by wheel and ArrowDown/ArrowUp (closing the keyboard gap the approved plan flagged, rather than shipping it as a known limitation); previewMode state/key/reader/setter/listeners deleted outright
 
 ### Pending Todos
 
@@ -180,6 +181,7 @@ None yet.
 | 260929-mhb | Add Balanced (Fermat's Method) mode to Factor Tree tool — mode toggle, even-then-Fermat recursive split (fermatSplit), 1,000,000-cap for balanced mode, per-mode preset chips via event delegation | 2026-09-29 | 7e56c0a | [260929-mhb-implement-the-approved-plan-at-home-main](./quick/260929-mhb-implement-the-approved-plan-at-home-main/) |
 | 260929-n8k | Add two modes to the Venn Diagram tool: Mode 2 keeps the existing hover thumbnail behavior unchanged; Mode 1 replaces the hover thumbnail for singly-overlapping regions with a Balanced (Fermat's Method) factor-tree miniature of the hovered number, ported from Factor Tree/factor-tree.html. | 2026-09-29 | 1097329 | [260929-n8k-add-two-modes-to-the-venn-diagram-tool-v](./quick/260929-n8k-add-two-modes-to-the-venn-diagram-tool-v/) |
 | 260929-o99 | In the Venn Diagram tool's 3-circle mode, make the hover thumbnail also appear when the cursor hovers over the region where all 3 circles overlap (the triple-overlap/center region), matching the existing hover thumbnail behavior for other regions. | 2026-09-29 | 4fddad9 | [260929-o99-in-the-venn-diagram-tool-s-3-circle-mode](./quick/260929-o99-in-the-venn-diagram-tool-s-3-circle-mode/) |
+| 260929-p80 | In the Venn Diagram tool's hover thumbnail, replace the global Hover: Euclid squares / Hover: factor tree toolbar toggle with one combined panel that stacks both miniatures, scrollable by wheel and ArrowDown/ArrowUp | 2026-09-29 | 36b7798 | [260929-p80-venn-diagram-tool-replace-the-global-hov](./quick/260929-p80-venn-diagram-tool-replace-the-global-hov/) |
 
 ## Deferred Items
 
@@ -191,8 +193,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T00:00:00Z
-Stopped at: Phase 3 fully closed -- 03-03-PLAN.md Task 3 (phase-wide consolidated sweep) re-run in a follow-up session and green (see updated 03-03-SUMMARY.md). Phase 4 (Continued Fractions Tool) has not been planned yet.
-Resume file: none -- next step is /gsd-discuss-phase 4 or /gsd-plan-phase 4
+Last session: 2026-09-29T16:40:22.371Z
+Stopped at: Completed quick task 260929-p80: Venn Diagram stacked hover-preview panel
+Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
