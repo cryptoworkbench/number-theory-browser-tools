@@ -1869,6 +1869,46 @@
     return Math.min(size, cap);
   }
 
+  // Which regions multiply together to form each letter's own number --
+  // mirrors currentPair()/currentTriple(). Needed so a randomized draft can
+  // be checked against, and trimmed back into, the range the Euclidean/
+  // Factor-Tree cross-tool links and the region-composite previews require
+  // (both keyed off EUCLID_MAX_INPUT -- see isEuclidRange/isFactorTreeRange):
+  // without this, an unbounded random draft routinely multiplies 4+ primes
+  // into a letter and silently drops every preview/link in the composite
+  // panel, which is the "thumbnails" a user sees vanish.
+  function lettersFor(ctx){
+    return (ctx === threeCtx)
+      ? [ ['aOnly', 'ab', 'ac', 'abc'], ['bOnly', 'ab', 'bc', 'abc'], ['cOnly', 'ac', 'bc', 'abc'] ]
+      : [ ['left', 'overlap'], ['right', 'overlap'] ];
+  }
+
+  function letterTotal(draft, regionKeys){
+    var total = 1;
+    for (var i = 0; i < regionKeys.length; i++) total *= productOf(primesOf(draft[regionKeys[i]]));
+    return total;
+  }
+
+  // Repeatedly drops one random token from whichever region is feeding an
+  // over-limit letter, until every letter is back in range. Terminates
+  // because each removal strictly shrinks that letter's product, and an
+  // empty draft always has every letter total at 1.
+  function shrinkToLinkRange(ctx, draft){
+    var letters = lettersFor(ctx);
+    var guard = 0;
+    while (guard++ < 1000){
+      var offender = null;
+      for (var i = 0; i < letters.length; i++){
+        if (letterTotal(draft, letters[i]) > EUCLID_MAX_INPUT){ offender = letters[i]; break; }
+      }
+      if (!offender) return;
+      var candidates = offender.filter(function(key){ return draft[key].length > 0; });
+      if (!candidates.length) return;
+      var key = candidates[Math.floor(Math.random() * candidates.length)];
+      draft[key].splice(Math.floor(Math.random() * draft[key].length), 1);
+    }
+  }
+
   function randomizeDiagram(){
     var ctx = (state.mode === 'three') ? threeCtx : twoCtx;
     // Drawn without replacement ACROSS regions (a prime placed in one
@@ -1894,6 +1934,7 @@
         }
         draft[key] = list;
       }
+      shrinkToLinkRange(ctx, draft);
       return 'Randomized the diagram.';
     });
   }
