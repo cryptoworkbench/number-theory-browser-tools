@@ -97,6 +97,30 @@
 
   .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
 
+  /* count toggle -- mirrors Venn Diagram's mode-switch two/three-circle
+     control (D-06): pressed state is read from aria-pressed, not a class,
+     so the visual state and the announced state can never drift apart. */
+  .count-toggle{ display:flex; gap:6px; width:100%; margin-bottom:0; }
+  .mode-btn{
+    font-family:'JetBrains Mono', 'Consolas', monospace;
+    font-size:13px;
+    letter-spacing:.04em;
+    color:var(--text);
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:8px;
+    padding:8px 16px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .mode-btn:hover{ border-color:var(--accent); }
+  .mode-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .mode-btn[aria-pressed="true"]{
+    background:var(--role-active);
+    color:var(--role-result-ink);
+    border-color:var(--role-active);
+  }
+
   .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 
   button{ cursor:pointer; border:none; border-radius:10px; padding:10px 16px; font-size:.9rem; font-weight:600;
@@ -243,6 +267,10 @@
   </header>
 
   <section class="panel controls">
+    <div class="count-toggle" role="group" aria-label="Number of congruences">
+      <button type="button" id="countTwoBtn" class="mode-btn" aria-pressed="true">Two congruences</button>
+      <button type="button" id="countThreeBtn" class="mode-btn" aria-pressed="false">Three congruences</button>
+    </div>
     <div id="congruenceFields" style="width:100%;">
       <div class="field-row congruence-row" data-row="0">
         <span class="cong-prefix">x &equiv;</span>
@@ -408,6 +436,7 @@ var SCAN_PER_FRAME = {4:2, 5:4, 6:8, 7:20, 8:60, 9:160, 10:100000};
 var $ = function(id){ return document.getElementById(id); };
 
 var row3Fields = $('row3Fields');
+var countTwoBtn = $('countTwoBtn'), countThreeBtn = $('countThreeBtn');
 var a1 = $('a1'), m1 = $('m1');
 var a2 = $('a2'), m2 = $('m2');
 var a3 = $('a3'), m3 = $('m3');
@@ -889,10 +918,29 @@ function buildRun(){
   instantFinish();
 }
 
+// Writes aria-pressed on both count buttons from state.count in one place,
+// so the two attributes are always set together and can never both read
+// true (or both read false).
+function syncCountButtons(){
+  var isThree = state.count === 3;
+  countTwoBtn.setAttribute('aria-pressed', String(!isThree));
+  countThreeBtn.setAttribute('aria-pressed', String(isThree));
+}
+
 function setCount(n){
   n = clamp(n, MIN_COUNT, MAX_COUNT);
+  // Re-pressing the already-active count is a genuine no-op (E10): return
+  // before touching the hidden attribute, before resetScan() and before
+  // buildRun(), so a landed answer is never disturbed by clicking the
+  // button the learner is already on.
+  if (n === state.count) return;
   state.count = n;
   row3Fields.hidden = n < 3;
+  syncCountButtons();
+  // Cancel any pending animation frame and bump generation before the
+  // replacement strips exist (E11/T-03-04), so a stale callback from the
+  // abandoned scan can never write into the new diagram.
+  resetScan();
   buildRun();
 }
 
@@ -903,6 +951,9 @@ function setCount(n){
   inp.addEventListener('change', buildRun);
   inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
 });
+
+countTwoBtn.addEventListener('click', function(){ setCount(2); });
+countThreeBtn.addEventListener('click', function(){ setCount(3); });
 
 playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
 stepBtn.addEventListener('click', stepOnce);
@@ -929,6 +980,7 @@ chipButtons.forEach(function(chip){
 
 window.addEventListener('load', function(){
   speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  syncCountButtons();
   buildRun();
   instantFinish();
 });
