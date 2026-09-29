@@ -836,13 +836,17 @@
 
   balancedNote.textContent = 'Balanced mode uses Fermat’s method to find the most evenly-split factor pair at each step, capped at numbers under 1,000,000 to stay instant. Some numbers — like a small prime times a big one — still split unevenly; that’s not a bug, just math.';
 
+  function applyMode(targetMode){
+    mode = targetMode;
+    modeButtons.forEach(b=> b.classList.toggle('is-active', b.getAttribute('data-mode') === targetMode));
+    balancedNote.style.display = targetMode === 'balanced' ? 'block' : 'none';
+    numInput.max = targetMode === 'balanced' ? MAX_BALANCED_N : 1000000000000;
+    renderChips(targetMode);
+  }
+
   modeButtons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      mode = btn.getAttribute('data-mode');
-      modeButtons.forEach(b=> b.classList.toggle('is-active', b === btn));
-      balancedNote.style.display = mode === 'balanced' ? 'block' : 'none';
-      numInput.max = mode === 'balanced' ? MAX_BALANCED_N : 1000000000000;
-      renderChips(mode);
+      applyMode(btn.getAttribute('data-mode'));
       if(numInput.value !== ''){
         factorize(numInput.value);
       }
@@ -851,8 +855,35 @@
 
   renderChips(mode);
 
+  // Mirrors readABParams in Euclidean Algorithm/euclidean-algorithm.html: the regex match sits in its own try/catch, the decode+parse sits in a second, and the result is range-tested (against this tool's own Balanced cap) before use. The round-trip string comparison is what rejects fractional strings like "3.5" that parseInt would otherwise silently truncate into a valid-looking integer.
+  function readNParam(){
+    var mn;
+    try{
+      mn = /[?&]n=([^&#]*)/.exec(location.search);
+    }catch(e){
+      return null;
+    }
+    if (!mn) return null;
+    var raw, n;
+    try{
+      raw = decodeURIComponent(mn[1]);
+      n = parseInt(raw, 10);
+    }catch(e){
+      return null;
+    }
+    if (!Number.isFinite(n) || !Number.isInteger(n) || String(n) !== raw || n < 1 || n > MAX_BALANCED_N) return null;
+    return n;
+  }
+
   // Grow an initial example tree on load
   window.addEventListener('load', ()=>{
+    const deepLinkN = readNParam();
+    if(deepLinkN !== null){
+      applyMode('balanced');
+      numInput.value = deepLinkN;
+      factorize(deepLinkN);
+      return;
+    }
     numInput.value = 60;
     factorize('60');
   });
