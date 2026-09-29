@@ -111,7 +111,7 @@
     flex-wrap:wrap;
     margin-bottom:12px;
   }
-  #clear-btn{
+  #clear-btn, #randomize-btn{
     font-family:'JetBrains Mono', monospace;
     font-size:12.5px;
     letter-spacing:.04em;
@@ -123,11 +123,11 @@
     cursor:pointer;
     transition:border-color .15s ease, background .15s ease;
   }
-  #clear-btn:hover{
+  #clear-btn:hover, #randomize-btn:hover{
     border-color:var(--accent);
     background:color-mix(in srgb, var(--accent) 8%, var(--panel));
   }
-  #clear-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  #clear-btn:focus-visible, #randomize-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
   /* mode switch */
   .mode-switch{
@@ -404,7 +404,7 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, .mode-btn{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn{ transition:none; }
   }
 
   @media (max-width: 860px){
@@ -466,6 +466,7 @@
       <button type="button" id="mode-two" class="mode-btn" aria-pressed="true">Two circles</button>
       <button type="button" id="mode-three" class="mode-btn" aria-pressed="false">Three circles</button>
     </div>
+    <button type="button" id="randomize-btn">Randomize</button>
     <button type="button" id="clear-btn">Clear all</button>
   </div>
 
@@ -696,6 +697,7 @@
   var previewLayer = document.getElementById('venn-preview');
   var messageEl = document.getElementById('message');
   var clearBtn = document.getElementById('clear-btn');
+  var randomizeBtn = document.getElementById('randomize-btn');
   var productLeftEl = document.getElementById('product-left');
   var productOverlapEl = document.getElementById('product-overlap');
   var productRightEl = document.getElementById('product-right');
@@ -1856,6 +1858,31 @@
     render();
   }
 
+  // Draws one prime per region without replacement so the fresh layout
+  // never needs simplifyRegions() to resolve a conflict (grounded fact:
+  // PRIMES has 26 entries, well above the widest region set, the seven
+  // three-circle keys).
+  function randomPrimes(count){
+    var pool = PRIMES.slice();
+    var out = [];
+    for (var i = 0; i < count; i++){
+      var idx = Math.floor(Math.random() * pool.length);
+      out.push(pool.splice(idx, 1)[0]);
+    }
+    return out;
+  }
+
+  function randomizeDiagram(){
+    var ctx = (state.mode === 'three') ? threeCtx : twoCtx;
+    var picks = randomPrimes(ctx.keys.length);
+    commitRegions(ctx, function(draft){
+      for (var i = 0; i < ctx.keys.length; i++){
+        draft[ctx.keys[i]] = [ { id: state.nextId++, p: picks[i] } ];
+      }
+      return 'Randomized the diagram.';
+    });
+  }
+
   // The private venn-diagram record carries region LAYOUT (which region
   // each prime sits in) and serves as the cold-start fallback; the shared
   // ab-params pair is what the sibling tool reads.
@@ -2567,6 +2594,7 @@
   }
 
   clearBtn.addEventListener('click', clearAll);
+  randomizeBtn.addEventListener('click', randomizeDiagram);
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
 

@@ -379,6 +379,12 @@
       </div>
     </div>
     <div class="field">
+      <span class="field-label" id="randomize-label">Randomize</span>
+      <div class="row">
+        <button type="button" class="export-btn" id="randomize-btn">New random example</button>
+      </div>
+    </div>
+    <div class="field">
       <span class="field-label" id="export-label">Export</span>
       <div class="row export-row" role="group" aria-labelledby="export-label">
         <button type="button" class="export-btn" id="export-png">Download PNG</button>
@@ -425,6 +431,7 @@
   var depthRange = document.getElementById('depth-range');
   var nDisplay = document.getElementById('n-display');
   var depthDisplay = document.getElementById('depth-display');
+  var randomizeBtn = document.getElementById('randomize-btn');
   var dynGroup = document.getElementById('wheel-dynamic');
   var refList = document.getElementById('ref-list');
   var caption = document.getElementById('wheel-caption');
@@ -1072,6 +1079,26 @@
     persist();
     render();
   });
+
+  function randomInt(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
+
+  function randomize(){
+    state.N = randomInt(2, WHEEL_MAX_N);
+    state.depth = randomInt(2, 10);
+    var els = currentMode().elements(state.N);
+    state.a = els[randomInt(0, els.length - 1)];
+    state.b = null;
+    state.sum = null;
+    state.awaiting = 'a';
+    nRange.value = state.N;
+    depthRange.value = state.depth;
+    nDisplay.textContent = state.N;
+    depthDisplay.textContent = state.depth;
+    persist();
+    render();
+  }
+
+  randomizeBtn.addEventListener('click', randomize);
 
   /* ---------- mode tabs ---------- */
 
