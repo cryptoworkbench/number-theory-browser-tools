@@ -118,6 +118,13 @@ function stripCommentsAndStrings(src) {
         if (src[i] === "`" && depth === 0) { i++; break; }
         if (src[i] === "$" && src[i + 1] === "{") { depth++; i += 2; continue; }
         if (src[i] === "}" && depth > 0) { depth--; i++; continue; }
+        // Inside a ${...} interpolation, the text is live JS, not literal
+        // string data — copy it through so identifier scans (SHADOW,
+        // MISSING-IMPORT, UNUSED-IMPORT) can see calls like `${fn(x)}`.
+        // Outside an interpolation (the literal template text itself), keep
+        // discarding content exactly as for a plain quoted string, only
+        // preserving newlines for line-continuity.
+        if (depth > 0) { out += src[i]; i++; continue; }
         if (src[i] === "\n") out += "\n";
         i++;
       }

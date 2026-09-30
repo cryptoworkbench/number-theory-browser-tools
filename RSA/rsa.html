@@ -338,68 +338,12 @@
   </div>
 </aside>
 
+<script src="../assets/nt-bigint.js"></script>
 <script>
 'use strict';
 
-/* ---------- BigInt number theory helpers ---------- */
-
-function parseBigIntStrict(str, allowZero){
-  str = (str||'').trim();
-  if(!/^\d+$/.test(str)) throw new Error('not a nonnegative integer');
-  const v = BigInt(str);
-  if(!allowZero && v <= 0n) throw new Error('must be positive');
-  return v;
-}
-
-function fmt(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-function bigGcd(a,b){ a = a<0n?-a:a; b = b<0n?-b:b; while(b){ [a,b] = [b, a % b]; } return a; }
-
-function randomBigIntBits(bits){
-  if(bits <= 0) return 0n;
-  let hex = '', remaining = bits;
-  while(remaining > 0){
-    const chunk = Math.min(remaining, 32);
-    const val = Math.floor(Math.random() * Math.pow(2, chunk));
-    hex = val.toString(16) + hex;
-    remaining -= chunk;
-  }
-  return BigInt('0x' + (hex || '0'));
-}
-
-function randomBigIntInRange(min, max){
-  const range = max - min + 1n;
-  const bits = range.toString(2).length;
-  let x;
-  do { x = randomBigIntBits(bits); } while (x >= range);
-  return min + x;
-}
-
-function modPowPlain(base, exp, mod){
-  let result = 1n; base %= mod; if(base<0n) base += mod;
-  while(exp > 0n){ if(exp & 1n) result = (result*base) % mod; exp >>= 1n; base = (base*base) % mod; }
-  return result;
-}
-
-function isPrimeBig(n, rounds){
-  rounds = rounds || 20;
-  if(n < 2n) return false;
-  const small = [2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n];
-  for(const sp of small){ if(n === sp) return true; if(n % sp === 0n) return false; }
-  let d = n - 1n, r = 0n;
-  while(d % 2n === 0n){ d /= 2n; r++; }
-  witness: for(let i=0;i<rounds;i++){
-    const a = randomBigIntInRange(2n, n-2n);
-    let x = modPowPlain(a, d, n);
-    if(x === 1n || x === n-1n) continue;
-    for(let j=0n;j<r-1n;j++){
-      x = (x*x) % n;
-      if(x === n-1n) continue witness;
-    }
-    return false;
-  }
-  return true;
-}
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { bigGcd, fmt, isPrimeBig, modPowPlain, parseBigIntStrict, scratchNum } = NT.bigint;
 
 /* Extended Euclidean algorithm, iterative table form: a*x + b*y = gcd(a,b) */
 function extendedGcdSteps(a, b){
@@ -908,12 +852,6 @@ function renderExchange(toId){
 }
 
 /* ---------- Public-key reference panel ---------- */
-function scratchNum(x){
-  const s = fmt(x);
-  if(s.length <= 30) return s;
-  const digits = x.toString();
-  return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length})`;
-}
 
 /* Read live, rather than trust a flag an observer callback may have last set: a scroll
    position can jump straight from "not yet readable" to "well past" (or back) in a single
