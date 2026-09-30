@@ -365,40 +365,24 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
 <script>
 (function(){
 "use strict";
 
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { isPrime, mod, modInverse, randomInt } = NT.core;
+const { svgEl } = NT.svg;
+
 /* ---------- math layer ---------- */
 /* Plain Number arithmetic throughout -- every multiply is reduced mod p
-   before the next, no BigInt (grounded fact 9). Duplicated per-file rather
-   than imported per CLAUDE.md's single-file convention. */
+   before the next, no BigInt (grounded fact 9). The curve arithmetic below
+   (point enumeration, group law, scalar multiplication, point order) is
+   this tool's own and stays local; only the shared prime/modular helpers
+   above come from NT.core. */
 
 var MAX_P = 199;
-
-function mod(x, p){ return ((x % p) + p) % p; }
-
-function isPrimeSmall(n){
-  if (!Number.isInteger(n) || n < 2) return false;
-  if (n < 4) return true;
-  if (n % 2 === 0) return false;
-  for (var d = 3; d * d <= n; d += 2){ if (n % d === 0) return false; }
-  return true;
-}
-
-function modInv(x, p){
-  x = mod(x, p);
-  if (x === 0) return null;
-  var oldR = x, r = p;
-  var oldS = 1, s = 0;
-  while (r !== 0){
-    var q = Math.floor(oldR / r);
-    var tempR = oldR - q * r; oldR = r; r = tempR;
-    var tempS = oldS - q * s; oldS = s; s = tempS;
-  }
-  if (oldR !== 1) return null;
-  return mod(oldS, p);
-}
 
 function isNonSingular(a, b, p){
   return mod(4 * a * a * a + 27 * b * b, p) !== 0;
@@ -444,12 +428,12 @@ function pointAdd(P, Q, a, p){
   var lambda, inv;
   if (P.x === Q.x && P.y === Q.y){
     // tangent: slope (3x^2+a) / 2y
-    inv = modInv(2 * P.y, p);
+    inv = modInverse(2 * P.y, p);
     if (inv === null) return null;
     lambda = mod((3 * P.x * P.x + a) * inv, p);
   } else {
     // chord: slope (y2-y1) / (x2-x1)
-    inv = modInv(Q.x - P.x, p);
+    inv = modInverse(Q.x - P.x, p);
     if (inv === null) return null;
     lambda = mod((Q.y - P.y) * inv, p);
   }
@@ -495,12 +479,6 @@ function formatPoint(P){
 
 /* ---------- DOM refs ---------- */
 
-var SVG_NS = 'http://www.w3.org/2000/svg';
-function svgEl(tag, attrs){
-  var el = document.createElementNS(SVG_NS, tag);
-  for (var k in attrs) el.setAttribute(k, attrs[k]);
-  return el;
-}
 var $ = function(id){ return document.getElementById(id); };
 
 var pInput = $('pInput'), aInput = $('aInput'), bInput = $('bInput');
@@ -547,7 +525,7 @@ function refreshBasePointOptions(preferredGx, preferredGy){
   var pRaw = parseInt(pInput.value, 10);
   var aRaw = parseInt(aInput.value, 10);
   var bRaw = parseInt(bInput.value, 10);
-  if (!Number.isInteger(pRaw) || pRaw < 5 || pRaw > MAX_P || !isPrimeSmall(pRaw) || !isNonSingular(aRaw, bRaw, pRaw)){
+  if (!Number.isInteger(pRaw) || pRaw < 5 || pRaw > MAX_P || !isPrime(pRaw) || !isNonSingular(aRaw, bRaw, pRaw)){
     return;
   }
   var points = enumeratePoints(aRaw, bRaw, pRaw);
@@ -579,7 +557,7 @@ function readInputs(){
   if (!/^\d+$/.test(pRaw)){ errorBox.textContent = 'p must be a positive whole number.'; return null; }
   var p = parseInt(pRaw, 10);
   if (p < 5 || p > MAX_P){ errorBox.textContent = 'p must be between 5 and ' + MAX_P + '.'; return null; }
-  if (!isPrimeSmall(p)){ errorBox.textContent = p + ' is not prime.'; return null; }
+  if (!isPrime(p)){ errorBox.textContent = p + ' is not prime.'; return null; }
 
   var aRaw = aInput.value.trim();
   if (!/^-?\d+$/.test(aRaw)){ errorBox.textContent = 'a must be a whole number.'; return null; }
@@ -966,9 +944,9 @@ function renderExplorer(){
   var isTangent = (P.x === Q.x && P.y === Q.y);
   var lambda;
   if (isTangent){
-    lambda = mod((3 * P.x * P.x + a) * modInv(2 * P.y, p), p);
+    lambda = mod((3 * P.x * P.x + a) * modInverse(2 * P.y, p), p);
   } else {
-    lambda = mod((Q.y - P.y) * modInv(Q.x - P.x, p), p);
+    lambda = mod((Q.y - P.y) * modInverse(Q.x - P.x, p), p);
   }
   var intercept = mod(P.y - lambda * P.x, p);
 
@@ -1242,11 +1220,9 @@ chipButtons.forEach(function(chip){
   });
 });
 
-function randomInt(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
-
 randomScalarsBtn.addEventListener('click', function(){
   var pRaw = parseInt(pInput.value, 10), aRaw = parseInt(aInput.value, 10), bRaw = parseInt(bInput.value, 10);
-  if (!Number.isInteger(pRaw) || !isPrimeSmall(pRaw) || !isNonSingular(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw)){
+  if (!Number.isInteger(pRaw) || !isPrime(pRaw) || !isNonSingular(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw)){
     errorBox.textContent = 'Set a valid curve first.'; return;
   }
   var selVal = basePointSelect.value;
