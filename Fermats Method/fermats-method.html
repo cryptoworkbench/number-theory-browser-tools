@@ -353,9 +353,15 @@
   <footer>All computation runs client-side in your browser. Search is capped at 20,000 trials to stay responsive — some primes with no nearby square will hit that limit.</footer>
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
 <script>
 (function(){
   "use strict";
+
+  /* ---------- shared helpers (assets/nt-*.js) ---------- */
+  const { isPerfectSquare, isPrime } = NT.core;
+  const { easeInOutCubic, svgEl } = NT.svg;
 
   const $ = (id) => document.getElementById(id);
 
@@ -409,29 +415,6 @@
     let m = N, kk = 0;
     while (m % 2 === 0 && m > 0){ m /= 2; kk++; }
     return {k: kk, M: m};
-  }
-
-  function isqrt(x){
-    if (x < 0) return -1;
-    let r = Math.floor(Math.sqrt(x));
-    while (r * r > x) r--;
-    while ((r + 1) * (r + 1) <= x) r++;
-    return r;
-  }
-
-  function isPerfectSquare(x){
-    if (x < 0) return -1;
-    const r = isqrt(x);
-    return (r * r === x) ? r : -1;
-  }
-
-  function isPrimeSimple(x){
-    if (x < 2) return false;
-    if (x % 2 === 0) return x === 2;
-    for (let d = 3; d * d <= x; d += 2){
-      if (x % d === 0) return false;
-    }
-    return true;
   }
 
   function buildTrials(m){
@@ -563,13 +546,6 @@
   }
 
   // ---------------- geometric diagram ----------------
-  const SVG_NS = 'http://www.w3.org/2000/svg';
-  function svgEl(tag, attrs){
-    const el = document.createElementNS(SVG_NS, tag);
-    for (const key in attrs) el.setAttribute(key, attrs[key]);
-    return el;
-  }
-
   let animFrame = null;
   let autoplayTimer = null;
   let diagramGen = 0;
@@ -582,10 +558,6 @@
     if (autoplayTimer) clearTimeout(autoplayTimer);
     autoplayTimer = null;
     replayBtn.disabled = true;
-  }
-
-  function easeInOutCubic(t){
-    return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2;
   }
 
   function buildDiagram(a, b){
@@ -745,7 +717,7 @@
     const {a, b} = found;
     const p = a - b, q = a + b;
     const trivial = (p === 1);
-    const primeCheck = trivial ? isPrimeSimple(M) : null;
+    const primeCheck = trivial ? isPrime(M) : null;
 
     buildDiagram(a, b);
 
