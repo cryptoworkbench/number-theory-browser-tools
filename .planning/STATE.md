@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Shared JS Module Refactor
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-09-30T20:16:42.623Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-09-30T20:30:23.956Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
-state_head: e6c23e7f041e022c4301cd25e0deb5d342c96b89
+state_head: 59e378b3f36f0c8368030f3296712ba2c54d3579
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
-  completed_plans: 19
+  completed_plans: 20
   percent: 57
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 ## Current Position
 
 Phase: 07 (Shared JS Module Refactor) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
 
@@ -80,6 +80,7 @@ Progress: [██████░░░░] 57%
 | Phase 07 P01 | 95min | 3 tasks | 9 files |
 | Phase 07 P02 | 70min | 3 tasks | 8 files |
 | Phase 07 P03 | 130min | 2 tasks | 9 files |
+| Phase 07 P04 | 12min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 07]: [Phase 07 Plan 03]: assets/nt-bigint.js (9-export) and assets/nt-store.js (11-export) shipped as the repo's third and fourth shared JS logic modules; RSA and Cayley Table migrated onto them with zero browser-observable behavior change
 - [Phase 07]: [Phase 07 Plan 03]: Fixed shadow-check.js's template-literal tokenizer (Rule 1) -- it discarded all text inside a ${...} interpolation, causing scratchNum (called only as ${scratchNum(k.e)}) to be falsely reported UNUSED-IMPORT; the same blind spot would have silently under-detected MISSING-IMPORT on every future phase-7 migration touching this codebase's dominant rendering pattern
 - [Phase 07]: [Phase 07 Plan 03]: readABParams(rejectZeroPair) parameterizes the one genuine behavioral difference between Euclidean Algorithm's and Venn Diagram's URL-param readers (rejecting vs accepting the (0,0) pair) rather than merging it away
+- [Phase 07]: [Phase 07 Plan 04]: Diffie-Hellman's local bigGcd (declared but never called elsewhere in the file) was still deleted during migration rather than left as a dead orphan copy, since NT.bigint.bigGcd is the sole intended definition repo-wide
+- [Phase 07]: [Phase 07 Plan 04]: Diffie-Hellman's browser-diff config reaches the packet-animation and Eve's-notebook states via the synchronous stepBtn path with a 1500ms wait after each wire-crossing step (letting any in-flight packet self-remove) rather than the flaky real-time play/rAF loop plan 07-02 diagnosed; play-control snapshots themselves are still forced through instantBtn per that plan's fix
 
 ### Roadmap Evolution
 
@@ -227,8 +230,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T20:16:42.527Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-09-30T20:30:23.849Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
