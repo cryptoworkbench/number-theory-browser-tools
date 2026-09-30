@@ -228,7 +228,7 @@ last_mapped_at: 2026-09-23
 - **Global state:** Each tool's state lives in a closure-scoped object; no module-level singletons shared between tools. Theme preference stored in `localStorage`.
 - **Circular imports:** No imports; single-file architecture prevents this.
 - **No build step:** All code runs as-is in browser; no transpilation, minification, or bundling.
-- **Dependency isolation:** Each tool is self-contained; math functions duplicated per-file rather than shared (intentional, per CLAUDE.md).
+- **Dependency isolation:** Each tool is self-contained; math functions are duplicated per-file by default, the original single-file rationale. That is no longer a hard constraint — a shared JS logic module under `assets/` is permitted when sharing is the better engineering call.
 - **BigInt support:** RSA tool uses native `BigInt` for key generation and modular exponentiation; requires modern browser (not IE11 or earlier).
 - **SVG rendering:** All diagrams hand-drawn via path/circle/text elements; no charting library (D3, Recharts, etc.).
 
@@ -240,7 +240,7 @@ last_mapped_at: 2026-09-23
 
 **Why it's wrong:** Maintenance burden — if a bug is found in `isPrime`, it must be fixed in multiple places. Inconsistent updates lead to diverging implementations.
 
-**Do this instead:** Per CLAUDE.md philosophy, duplication is *intentional* to keep each tool self-contained without a shared JS module. If you discover a bug in a math function:
+**Do this instead:** Duplication is the historical default, chosen to keep each tool self-contained — it is no longer a hard rule, and extracting a shared JS logic module under `assets/` is allowed when sharing is the better engineering call. While a function is still duplicated, if you discover a bug in one copy:
 
 1. Fix it in the tool file where the bug manifests (`git diff` will show you which file)
 2. Grep for the same function in other tools: `grep -n "function isPrime" */*.html`

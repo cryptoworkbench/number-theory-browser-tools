@@ -77,7 +77,7 @@ last_mapped_at: 2026-09-23
 **No JavaScript imports:**
 
 - Single-file design precludes import/require statements
-- Math utility functions (primeFactors, isPrime, modPow) are duplicated per-file
+- Math utility functions (primeFactors, isPrime, modPow) are duplicated per-file by default; a shared JS logic module under `assets/` is permitted when logic must stay identical across pages
 - SVG helper function `svgEl()` is repeated verbatim across tools
 
 ## Error Handling

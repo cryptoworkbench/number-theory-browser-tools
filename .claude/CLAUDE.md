@@ -11,7 +11,7 @@ An educational website of interactive, visualization-led browser tools that make
 ### Constraints
 
 - **Tech stack**: Vanilla HTML/CSS/JS only, no build tooling, no frameworks — matches every existing tool and keeps each page runnable by opening the file directly.
-- **Architecture**: One top-level directory per tool, one self-contained `.html` file — new tools must match this, not introduce shared JS/CSS modules for logic (shared site chrome in `assets/` is the one intentional exception, already established).
+- **Architecture**: One top-level directory per tool, one self-contained `.html` file — new tools must match this. Shared modules under `assets/` are permitted: site chrome (`palette.css`, `site.css`, `theme.js`) is the long-established case, and a shared JS logic module is allowed too when logic genuinely needs to stay identical across pages (e.g. a site-wide translation dictionary). A tool's own math and rendering logic still defaults to living in that tool's own file.
 - **External resources**: Only Google Fonts via `<link>` — no other CDN or third-party JS dependency, per existing convention.
 
 <!-- GSD:project-end -->
@@ -133,7 +133,7 @@ An educational website of interactive, visualization-led browser tools that make
 - Google Fonts via link tag: `<link href="https://fonts.googleapis.com/css2?family=..." rel="stylesheet">`
 - Theme detection script inline in `<head>` to prevent flash of wrong theme
 - Single-file design precludes import/require statements
-- Math utility functions (primeFactors, isPrime, modPow) are duplicated per-file
+- Math utility functions (primeFactors, isPrime, modPow) are duplicated per-file by default; a shared JS logic module under `assets/` is permitted when logic must stay identical across pages
 - SVG helper function `svgEl()` is repeated verbatim across tools
 
 ## Error Handling
@@ -304,7 +304,7 @@ An educational website of interactive, visualization-led browser tools that make
 - **Global state:** Each tool's state lives in a closure-scoped object; no module-level singletons shared between tools. Theme preference stored in `localStorage`.
 - **Circular imports:** No imports; single-file architecture prevents this.
 - **No build step:** All code runs as-is in browser; no transpilation, minification, or bundling.
-- **Dependency isolation:** Each tool is self-contained; math functions duplicated per-file rather than shared (intentional, per CLAUDE.md).
+- **Dependency isolation:** Each tool is self-contained; math functions are duplicated per-file by default, the original single-file rationale. That is no longer a hard constraint — a shared JS logic module under `assets/` is permitted when sharing is the better engineering call.
 - **BigInt support:** RSA tool uses native `BigInt` for key generation and modular exponentiation; requires modern browser (not IE11 or earlier).
 - **SVG rendering:** All diagrams hand-drawn via path/circle/text elements; no charting library (D3, Recharts, etc.).
 
