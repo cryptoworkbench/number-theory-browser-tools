@@ -131,6 +131,10 @@ Recent decisions affecting current work:
 - [Phase quick-260930-jlm]: [Quick task 260930-jlm]: Retargeted the RSA public-key panel's reveal trigger from whole-section-scrolled-past to the party's own chosen-e line becoming readable (viewport-relative getBoundingClientRect threshold, resize joins scroll on the shared rAF scheduler); no markup/CSS change, single predicate/observer/rect-read preserved
 - [Phase quick-260930-mle]: [Quick task 260930-mle]: Added a pinned, aria-hidden `#dh-scratchpad` reference panel to the Diffie-Hellman tool (RSA's `.pubkey-scratchpad` pattern verbatim, renamed to `.scratchpad`), filled from inside `renderStep` (not `advanceOne`) so it fills correctly through Play/Step/Instant/Build-exchange alike; shows public group (p, g, order(g)) plus Alice's and Bob's public exponentiation results, each revealed at the animation step that first displays it; the shared secret is deliberately never shown there. Mirrored both this new panel and RSA's existing panel to the bottom-right corner (one-token `left`→`right` edit in RSA, same vertical offset).
 
+### Roadmap Evolution
+
+- Phase 6 added: Multi-Language Support — add a language switcher to every page (index.html hub + all tool pages) supporting Dutch, English, German, French, and Spanish, translating UI strings site-wide. Depends only on Phase 1's shared nav/site chrome; independent of Phase 4 (Continued Fractions) and Phase 5 (Cayley Table) content.
+
 ### Pending Todos
 
 None yet.

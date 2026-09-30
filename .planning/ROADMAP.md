@@ -169,3 +169,22 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
 | 5. Cayley Table Generator | 3/3 | In Progress|  |
+
+### Phase 6: Multi-Language Support
+
+**Goal:** Every page on the site (the `index.html` hub and every tool page) offers a language switcher and renders its UI strings in the user's chosen language, supporting Dutch, English, German, French, and Spanish.
+**Mode:** mvp
+**Depends on:** Phase 1 (shared nav/site chrome only — independent of Phase 4's and Phase 5's tool-specific content)
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+
+  1. Every page (hub + every tool) exposes a language switcher control in the shared site chrome
+  2. Switching language re-renders that page's UI strings (labels, buttons, headings, instructional copy) in the selected language without a full page reload where feasible
+  3. All five languages (Dutch, English, German, French, Spanish) are fully translated for every page — no untranslated fallback strings in shipped languages
+  4. The selected language persists across navigation between pages and across browser sessions
+  5. Day/night theming and existing tool functionality are unaffected by the language switch
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 6 to break down)
