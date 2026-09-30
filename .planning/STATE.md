@@ -134,6 +134,8 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 6 added: Multi-Language Support — add a language switcher to every page (index.html hub + all tool pages) supporting Dutch, English, German, French, and Spanish, translating UI strings site-wide. Depends only on Phase 1's shared nav/site chrome; independent of Phase 4 (Continued Fractions) and Phase 5 (Cayley Table) content.
+- Phase 7 added: Shared JS Module Refactor — extract duplicated helpers across all 15 tools into shared classic-script modules under assets/ (single global namespace, file://-safe), reconcile drifted variants, and rewrite current docs to present shared modules as the normal architecture. Git history and archived records untouched.
+- Execution order set 2026-09-30: Phase 7 next, then Phase 4, then Phase 6.
 
 ### Pending Todos
 

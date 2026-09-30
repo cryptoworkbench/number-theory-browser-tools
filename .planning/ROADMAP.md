@@ -161,6 +161,8 @@ Phases 1 → 2 → 3 → 4 run in numeric order (number-theory milestone). Phase
 appended Cayley Table Generator milestone and depends only on Phase 1, so it may be planned and
 executed at any point after Phase 1 — before, after, or alongside Phases 3 and 4.
 
+**Remaining order (set 2026-09-30):** Phase 7 (Shared JS Module Refactor) runs next, then Phase 4, then Phase 6 — so the new tool and the i18n work both build on the shared-module layout.
+
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Palette Unification | 6/6 | Complete | 2026-09-27 |
@@ -188,3 +190,14 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 6 to break down)
+
+### Phase 7: Shared JS Module Refactor
+
+**Goal:** Extract the helpers duplicated across all 15 tools (svgEl, gcd, clamp, isPrime/isPrimeBig, modPowPlain/modPowSmall, bigGcd, modInverse, totient, primeFactors, etc.) into clean shared classic-script modules under `assets/`, attached to a single global namespace (no ES `import`, so every page still runs over `file://`). Reconcile drifted variants (Number vs BigInt, abs/no-abs) per call site. Rewrite the current docs (CLAUDE.md, .claude/CLAUDE.md, .planning/PROJECT.md, .planning/codebase/*) to present shared modules as the normal architecture; git history and archived phase/quick records stay untouched.
+**Success criteria:** every tool loads its shared modules and no longer defines local copies of extracted helpers; zero behavior regressions, verified per tool in a browser; local /code-review clean (user then runs /code-review ultra).
+**Requirements**: TBD
+**Depends on:** None (touches every tool page — do not run concurrently with Phase 4/6 tool edits)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
