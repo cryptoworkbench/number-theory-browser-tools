@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
-stopped_at: "Completed quick task 260930-jlm: retargeted RSA public-key panel reveal trigger from whole-section-scrolled-past to the chosen-e line becoming readable"
-last_updated: "2026-09-30T12:34:50.820Z"
-last_activity: 2026-09-29
-last_activity_desc: "Completed quick task 260929-qqt: the Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section, no scroll); double-click on any previewable chip resolves at click time to whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link"
-state_head: 6fed65cd5f63e253cfb44c35bd3b6bc91f21fc0d
+stopped_at: "Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match"
+last_updated: "2026-09-30T14:52:40.039Z"
+last_activity: 2026-09-30
+last_activity_desc: "Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match"
+state_head: a4ed7f581549bfb6e68eb69e35f17ee18a429689
 progress:
   total_phases: 5
   completed_phases: 4
@@ -129,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase quick-260930-ea7]: Gated appendCompositeBadge()'s hasPreview local with state.thumbsEnabled -- one boolean AND at the single existing derivation point makes OFF genuinely inert everywhere (class, role/tabindex/aria-label vs title, all six listeners) without touching them individually
 - [Phase quick-260930-fnr]: [Quick task 260930-fnr]: Added a pinned, aria-hidden, read-only public-key reference panel to the RSA tool (Bob/Alice e and n only), revealed per party once that party's key-generation section scrolls above the viewport; refactored the scroll-past flag from an IntersectionObserver-only-updated object to a live getBoundingClientRect() read inside a single updateScratchpad(), with the observer plus a rAF-throttled scroll listener both acting only as recompute triggers -- fixes a real staleness bug where an instantaneous scroll jump (Home key, back-to-top control) can skip the observer's threshold-crossing entirely
 - [Phase quick-260930-jlm]: [Quick task 260930-jlm]: Retargeted the RSA public-key panel's reveal trigger from whole-section-scrolled-past to the party's own chosen-e line becoming readable (viewport-relative getBoundingClientRect threshold, resize joins scroll on the shared rAF scheduler); no markup/CSS change, single predicate/observer/rect-read preserved
+- [Phase quick-260930-mle]: [Quick task 260930-mle]: Added a pinned, aria-hidden `#dh-scratchpad` reference panel to the Diffie-Hellman tool (RSA's `.pubkey-scratchpad` pattern verbatim, renamed to `.scratchpad`), filled from inside `renderStep` (not `advanceOne`) so it fills correctly through Play/Step/Instant/Build-exchange alike; shows public group (p, g, order(g)) plus Alice's and Bob's public exponentiation results, each revealed at the animation step that first displays it; the shared secret is deliberately never shown there. Mirrored both this new panel and RSA's existing panel to the bottom-right corner (one-token `left`→`right` edit in RSA, same vertical offset).
 
 ### Pending Todos
 
@@ -197,6 +198,7 @@ None yet.
 | 260930-ea7 | Give the Venn diagram tool a button that switches between modes: one mode has the thumbnail view ON, the other has the thumbnail view OFF. | 2026-09-30 | 5599156 | [260930-ea7-give-the-venn-diagram-tool-a-button-that](./quick/260930-ea7-give-the-venn-diagram-tool-a-button-that/) |
 | 260930-fnr | In the RSA tool, add a pinned, non-editable read-only public-key reference panel (Bob/Alice e and n) revealed once each party's key-generation section scrolls above the viewport | 2026-09-30 | 64bf006 | [260930-fnr-in-the-rsa-tool-add-a-non-editable-scrat](./quick/260930-fnr-in-the-rsa-tool-add-a-non-editable-scrat/) |
 | 260930-jlm | In the RSA tool, change the public-key reference panel's reveal trigger from "whole key-generation section scrolled above the viewport" to "this party's chosen e = ... line has scrolled into readable view" | 2026-09-30 | 6fed65c | [260930-jlm-in-rsa-rsa-html-change-the-public-key-re](./quick/260930-jlm-in-rsa-rsa-html-change-the-public-key-re/) |
+| 260930-mle | Add a scratchpad panel to the Diffie-Hellman Key Exchange tool, modeled on the RSA tool's scratchpad component but positioned on the right side of the page instead of the left. When the animation displays the public multiplicative group, that information appears in this scratchpad. When public exponentiation results appear in the animation, they also appear in the scratchpad. Also updated the RSA tool so its existing scratchpad moves to the right side of the page (same relative vertical position, mirrored to the right). | 2026-09-30 | a4ed7f5 | [260930-mle-add-a-scratchpad-panel-to-the-diffie-hel](./quick/260930-mle-add-a-scratchpad-panel-to-the-diffie-hel/) |
 
 ## Deferred Items
 
@@ -208,8 +210,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T12:34:50.737Z
-Stopped at: Completed quick task 260930-jlm: retargeted RSA public-key panel reveal trigger from whole-section-scrolled-past to the chosen-e line becoming readable
+Last session: 2026-09-30T14:52:40.039Z
+Stopped at: Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
