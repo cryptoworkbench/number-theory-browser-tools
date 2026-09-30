@@ -4,14 +4,14 @@
 
 **Number Theory & Abstract Algebra Browser Tools**
 
-An educational website of interactive, visualization-led browser tools that make number theory, group theory, and abstract algebra intuitive for self-directed math learners. Each tool is a single self-contained HTML page (no build system, no framework) that turns one math concept into a hands-on diagram — a factor tree, a modular-arithmetic wheel, an RSA walkthrough — rather than a wall of text. A shared `index.html` hub and site-wide nav header tie the tools together as one site.
+An educational website of interactive, visualization-led browser tools that make number theory, group theory, and abstract algebra intuitive for self-directed math learners. Each tool is one HTML page (no build system, no framework) built on shared JS modules under `assets/`, turning one math concept into a hands-on diagram — a factor tree, a modular-arithmetic wheel, an RSA walkthrough — rather than a wall of text. A shared `index.html` hub and site-wide nav header tie the tools together as one site.
 
 **Core Value:** Every concept gets a visualization a self-learner can interact with and immediately understand — the diagram teaches, the text supports it.
 
 ### Constraints
 
 - **Tech stack**: Vanilla HTML/CSS/JS only, no build tooling, no frameworks — matches every existing tool and keeps each page runnable by opening the file directly.
-- **Architecture**: One top-level directory per tool, one self-contained `.html` file — new tools must match this. Shared modules under `assets/` are permitted: site chrome (`palette.css`, `site.css`, `theme.js`) is the long-established case, and a shared JS logic module is allowed too when logic genuinely needs to stay identical across pages (e.g. a site-wide translation dictionary). A tool's own math and rendering logic still defaults to living in that tool's own file.
+- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the five `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
 - **External resources**: Only Google Fonts via `<link>` — no other CDN or third-party JS dependency, per existing convention.
 
 <!-- GSD:project-end -->
