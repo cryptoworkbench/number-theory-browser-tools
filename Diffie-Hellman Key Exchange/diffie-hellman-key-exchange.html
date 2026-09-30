@@ -152,6 +152,52 @@
     .controls{ justify-content:center; }
     .speed-wrap input[type="range"]{ width:100px; }
   }
+
+  /* ---------- Public values reference panel ---------- */
+  /* Extra bottom breathing room: without it, a section that has just been filled in can sit
+     close enough to the end of the document that no scroll position exists which pushes it
+     fully above the viewport top on common viewport heights. This also keeps the fixed panel
+     from ever visually sitting over the footer's own text. */
+  .app{ padding-bottom: 240px; }
+  .scratchpad{
+    position:fixed;
+    right:clamp(8px, 2vw, 16px);
+    bottom:clamp(8px, 2vw, 16px);
+    z-index:900;
+    width:min(260px, calc(100vw - 24px));
+    max-height:min(40vh, 220px);
+    overflow:hidden;
+    border-radius:12px;
+    padding:12px 14px;
+    background:var(--surface);
+    border:1px solid color-mix(in srgb, var(--role-result) 35%, transparent);
+    box-shadow:0 8px 24px var(--overlay);
+    pointer-events:none;
+    user-select:none;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(8px);
+    transition:opacity .18s ease, transform .18s ease, visibility .18s ease;
+  }
+  .scratchpad.is-shown{ opacity:1; visibility:visible; transform:none; }
+  .scratch-title{ font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:var(--role-result); margin-bottom:8px; }
+  .scratch-row{ display:none; }
+  .scratch-row.is-shown{ display:block; }
+  .scratch-row.is-shown ~ .scratch-row.is-shown{ margin-top:8px; padding-top:8px; border-top:1px solid var(--panel-border); }
+  .scratch-who{ display:block; font-weight:700; font-size:.85rem; }
+  .scratch-who.group{ color:var(--text-dim); }
+  .scratch-who.bob{ color:var(--role-input); }
+  .scratch-who.alice{ color:var(--role-alt); }
+  .scratch-kv{ display:block; font-family:'JetBrains Mono','Consolas',monospace; font-size:.82rem; color:var(--text); overflow-wrap:anywhere; }
+  @media (max-width:640px){
+    .scratchpad{ width:min(200px, calc(100vw - 24px)); padding:9px 11px; font-size:.92em; }
+  }
+  @media (max-width:380px), (max-height:400px){
+    .scratchpad{ display:none; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scratchpad{ transition:none; transform:none; }
+  }
 </style>
 </head>
 <body>
@@ -292,6 +338,17 @@
   </footer>
 
 </div>
+
+<!-- Duplicates values already announced by the arithmetic log below, so this is aria-hidden to avoid double-announcing them. -->
+<aside id="dh-scratchpad" class="scratchpad" aria-hidden="true">
+  <div class="scratch-title">Public values — for reference</div>
+  <div class="scratch-row" id="scratch-row-group">
+    <span class="scratch-who group">Public group</span>
+    <span class="scratch-kv" id="scratch-group-p"></span>
+    <span class="scratch-kv" id="scratch-group-g"></span>
+    <span class="scratch-kv" id="scratch-group-order"></span>
+  </div>
+</aside>
 
 <script>
 (function(){
@@ -662,6 +719,10 @@ function renderStep(step, ex, suppressEve){
       eveRevealed.p = true;
       eveRevealed.g = true;
       renderNotebook(ex);
+      document.getElementById('scratch-group-p').textContent = 'p = ' + scratchNum(ex.p);
+      document.getElementById('scratch-group-g').textContent = 'g = ' + scratchNum(ex.g);
+      document.getElementById('scratch-group-order').textContent = 'order(g) = ' + (ex.order === null ? 'unknown' : scratchNum(ex.order));
+      showScratchRow('group');
       break;
     case 'alicePicks':
       showRow('svgAliceA', 'a=' + shortVal(ex.a) + ' (never sent)');
@@ -705,6 +766,31 @@ function revealAll(ex){
     renderStep(ex.steps[stepIndex], ex, false);
     stepIndex++;
   }
+}
+
+/* ---------- Public values reference panel ---------- */
+function scratchNum(x){
+  const s = fmt(x);
+  if(s.length <= 30) return s;
+  const digits = x.toString();
+  return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length})`;
+}
+
+function showScratchRow(id){
+  const row = document.getElementById('scratch-row-' + id);
+  if(row) row.classList.add('is-shown');
+  const pad = document.getElementById('dh-scratchpad');
+  if(pad) pad.classList.add('is-shown');
+}
+
+function clearScratchpad(){
+  const pad = document.getElementById('dh-scratchpad');
+  if(!pad) return;
+  pad.classList.remove('is-shown');
+  const rows = pad.querySelectorAll('.scratch-row');
+  for(let i = 0; i < rows.length; i++) rows[i].classList.remove('is-shown');
+  const kvs = pad.querySelectorAll('.scratch-kv');
+  for(let i = 0; i < kvs.length; i++) kvs[i].textContent = '';
 }
 
 /* ---------- playback ---------- */
@@ -941,6 +1027,7 @@ function resetPlayback(){
   eveProblem.hidden = true;
   aesLine.textContent = '';
   aesLine.hidden = true;
+  clearScratchpad();
   stepBtn.disabled = false;
   playBtn.textContent = '▶ Play';
   banner.textContent = 'Ready — press Play to watch the exchange build step by step.';
@@ -991,6 +1078,7 @@ function rebuild(){
   eveProblem.hidden = true;
   aesLine.textContent = '';
   aesLine.hidden = true;
+  clearScratchpad();
   stepIndex = 0;
   playBtn.textContent = '▶ Play';
   stepBtn.disabled = false;
