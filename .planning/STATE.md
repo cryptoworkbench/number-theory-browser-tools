@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Shared JS Module Refactor
 status: executing
-stopped_at: Completed 07-06-PLAN.md
-last_updated: "2026-09-30T21:13:56.105Z"
+stopped_at: Completed 07-07-PLAN.md
+last_updated: "2026-09-30T21:30:01.756Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
-state_head: b08c2e7122929e4ff84aadb071544d6addfb8d2b
+state_head: 4dffad86ae0ca918f3a685d8dbdc2b8e36ca3016
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
-  completed_plans: 22
+  completed_plans: 23
   percent: 57
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 ## Current Position
 
 Phase: 07 (Shared JS Module Refactor) — EXECUTING
-Plan: 7 of 9
+Plan: 8 of 9
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
 
@@ -83,6 +83,7 @@ Progress: [██████░░░░] 57%
 | Phase 07 P04 | 12min | 2 tasks | 4 files |
 | Phase 07 P05 | 50min | 2 tasks | 4 files |
 | Phase 07 P06 | 50min | 3 tasks | 6 files |
+| Phase 07 P07 | 35min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,8 @@ Recent decisions affecting current work:
 - [Phase 07]: [Phase 07 Plan 05]: Dropped the #export-svg browser-diff step for Equivalence Wheel after it hung headless Chrome's download machinery during the mandatory pre-migration --stability proof (a chrome process ran 280+s against a 30s virtual-time-budget) -- deferred export-path verification to plan 07-09's Claude-in-Chrome pass, per the plan's own explicit fallback instruction
 - [Phase 07]: [Phase 07 Plan 05]: Removed gcd from Group Isomorphism's NT.core import block (the plan's literal text listed it) after shadow-check's UNUSED-IMPORT gate flagged it as dead -- unitsMod is now imported directly from NT.core rather than recomputed locally via a local gcd call
 - [Phase 07]: Plan 06: NT.layout ships as the fifth shared JS module (6-export, TILE_CAP/computeNestedLayout/BALANCED_MAX_N/buildFactorTree/assignTreeX/flattenTree), the one module with a load-time NT.core dependency guard; Euclidean Algorithm and Factor Tree migrated onto it with zero browser-observable behavior change, and parity proven against Venn Diagram's still-unmigrated copies ahead of plan 07-07
+- [Phase 07]: [Phase 07 Plan 07]: readABParams() keeps its zero-argument call site at Venn's load handler since NT.store.readABParams(rejectZeroPair) defaults to accepting the (0,0) pair, matching Venn's own pre-migration behavior
+- [Phase 07]: [Phase 07 Plan 07]: Venn Diagram migrated last in the phase and in two passes (leaf helpers/persistence, then the Tier-3 nested-squares/balanced-tree previews onto NT.layout) -- the previews now draw from the exact same code the full Euclidean Algorithm and Factor Tree tools use, closing the Open-Question-1 drift risk; shadow-check --all now exits 0 across all 15 tools
 
 ### Roadmap Evolution
 
@@ -235,8 +238,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T21:13:55.979Z
-Stopped at: Completed 07-06-PLAN.md
+Last session: 2026-09-30T21:30:01.638Z
+Stopped at: Completed 07-07-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
