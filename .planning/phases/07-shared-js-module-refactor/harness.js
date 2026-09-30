@@ -141,6 +141,9 @@ function loadNew(options) {
     }
   }
   vm.createContext(context);
+  if (options.preamble) {
+    vm.runInContext(options.preamble, context);
+  }
   var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js"];
   moduleOrder.forEach(function (fname) {
     var p = path.join(ROOT, "assets", fname);
