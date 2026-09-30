@@ -269,32 +269,17 @@
 
 </div>
 
+<script src="../assets/nt-bigint.js"></script>
+<script src="../assets/nt-svg.js"></script>
 <script>
 (function(){
 "use strict";
 
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { fmt, modPowPlain, parseBigIntStrict, shortVal } = NT.bigint;
+const { svgEl } = NT.svg;
+
 /* ---------- number theory ---------- */
-
-function parseBigIntStrict(str, allowZero){
-  str = (str||'').trim();
-  if(!/^\d+$/.test(str)) throw new Error('not a nonnegative integer');
-  const v = BigInt(str);
-  if(!allowZero && v <= 0n) throw new Error('must be positive');
-  return v;
-}
-
-function fmt(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-function modPowPlain(base, exp, mod){
-  let result = 1n; base %= mod; if(base<0n) base += mod;
-  while(exp > 0n){ if(exp & 1n) result = (result*base) % mod; exp >>= 1n; base = (base*base) % mod; }
-  return result;
-}
-
-function shortVal(x){
-  const s = x.toString();
-  return s.length <= 12 ? s : s.slice(0, 8) + '…';
-}
 
 function popCountBig(n){
   let x = n < 0n ? -n : n;
@@ -363,13 +348,6 @@ function binaryExpansionText(exp){
 }
 
 /* ---------- state ---------- */
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
-function svgEl(tag, attrs){
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const key in attrs) el.setAttribute(key, attrs[key]);
-  return el;
-}
 
 const $ = (id) => document.getElementById(id);
 
