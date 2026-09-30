@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 7
+current_phase: 07
 current_phase_name: Shared JS Module Refactor
-status: ready
-stopped_at: "Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match"
-last_updated: "2026-09-30T18:19:43.243Z"
+status: executing
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-09-30T18:56:32.421Z"
 last_activity: 2026-09-30
-last_activity_desc: "Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match"
-state_head: 86d0d6bd054d339901ecfe81f98ce9ef6bb76275
+last_activity_desc: Phase 07 execution started
+state_head: 103f2e65249879abb84e788463310f1c34e32d2b
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
-  completed_plans: 16
+  completed_plans: 17
   percent: 57
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-24)
 
 **Core value:** Every concept gets a visualization a self-learner can interact with and immediately understand — the diagram teaches, the text supports it.
-**Current focus:** Phase 04 — Continued Fractions Tool
+**Current focus:** Phase 07 — Shared JS Module Refactor
 
 ## Current Position
 
-Phase: 7 (Shared JS Module Refactor) — READY TO EXECUTE
-Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
-Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-30 - Completed quick task 260930-pin: Removed the "no shared JS modules for logic" architectural constraint from project docs (CLAUDE.md, PROJECT.md, codebase map), unblocking a shared translation-dictionary module for the newly-added Phase 6 (Multi-Language Support)
+Phase: 07 (Shared JS Module Refactor) — EXECUTING
+Plan: 2 of 9
+Status: Ready to execute
+Last activity: 2026-09-30 — Phase 07 execution started
 
 Progress: [██████░░░░] 57%
 
@@ -77,6 +77,7 @@ Progress: [██████░░░░] 57%
 | Phase quick-260929-twn P01 | 35min | 3 tasks | 15 files |
 | Phase quick-260930-ea7 P01 | 7min | 2 tasks | 1 files |
 | Phase quick-260930-jlm P01 | 55min | 2 tasks | 1 files |
+| Phase 07 P01 | 95min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,8 @@ Recent decisions affecting current work:
 - [Phase quick-260930-fnr]: [Quick task 260930-fnr]: Added a pinned, aria-hidden, read-only public-key reference panel to the RSA tool (Bob/Alice e and n only), revealed per party once that party's key-generation section scrolls above the viewport; refactored the scroll-past flag from an IntersectionObserver-only-updated object to a live getBoundingClientRect() read inside a single updateScratchpad(), with the observer plus a rAF-throttled scroll listener both acting only as recompute triggers -- fixes a real staleness bug where an instantaneous scroll jump (Home key, back-to-top control) can skip the observer's threshold-crossing entirely
 - [Phase quick-260930-jlm]: [Quick task 260930-jlm]: Retargeted the RSA public-key panel's reveal trigger from whole-section-scrolled-past to the party's own chosen-e line becoming readable (viewport-relative getBoundingClientRect threshold, resize joins scroll on the shared rAF scheduler); no markup/CSS change, single predicate/observer/rect-read preserved
 - [Phase quick-260930-mle]: [Quick task 260930-mle]: Added a pinned, aria-hidden `#dh-scratchpad` reference panel to the Diffie-Hellman tool (RSA's `.pubkey-scratchpad` pattern verbatim, renamed to `.scratchpad`), filled from inside `renderStep` (not `advanceOne`) so it fills correctly through Play/Step/Instant/Build-exchange alike; shows public group (p, g, order(g)) plus Alice's and Bob's public exponentiation results, each revealed at the animation step that first displays it; the shared secret is deliberately never shown there. Mirrored both this new panel and RSA's existing panel to the bottom-right corner (one-token `left`→`right` edit in RSA, same vertical offset).
+- [Phase 07]: [Phase 07 Plan 01]: assets/nt-core.js ships as the repo's first shared JS logic module (16-export frozen NT.core); tracer-proven on Chinese Remainder Theorem, then completed and proven on Euler's Totient, backed by harness.js/shadow-check.js/browser-diff.js
+- [Phase 07]: [Phase 07 Plan 01]: Fixed harness.js's eq()/sameOutcome() cross-realm comparison bug (values from different vm contexts compared unequal via util.isDeepStrictEqual's prototype check) with a normalizeRealm() rebuild (Rule 1 fix, no scope change)
 
 ### Roadmap Evolution
 
@@ -217,8 +220,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T14:52:40.039Z
-Stopped at: Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match
+Last session: 2026-09-30T18:56:05.304Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.

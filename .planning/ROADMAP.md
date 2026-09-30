@@ -197,11 +197,11 @@ Plans:
 **Success criteria:** every tool loads its shared modules and no longer defines local copies of extracted helpers; zero behavior regressions, verified per tool in a browser; local /code-review clean (user then runs /code-review ultra).
 **Requirements**: TBD
 **Depends on:** None (touches every tool page — do not run concurrently with Phase 4/6 tool edits)
-**Plans:** 9 plans
+**Plans:** 1/9 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 07-01-PLAN.md — Tracer: `assets/nt-core.js` (window.NT.core) proven end-to-end on the CRT tool, plus the dev-only verification toolchain (parity harness, shadow-check, headless BASE-vs-new browser differential); complete NT.core and move Euler's Totient onto it
+- [x] 07-01-PLAN.md — Tracer: `assets/nt-core.js` (window.NT.core) proven end-to-end on the CRT tool, plus the dev-only verification toolchain (parity harness, shadow-check, headless BASE-vs-new browser differential); complete NT.core and move Euler's Totient onto it
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 07-02-PLAN.md — `assets/nt-svg.js` (centre-explicit polar geometry, svgEl, easing); Fermat's Method, Shor's Algorithm, ECDH migrated (renamed near-duplicates retired)
