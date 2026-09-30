@@ -394,8 +394,13 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
 <script>
 (function(){
+  const { clamp, randomInt, totient, unitsMod } = NT.core;
+  const { annularSectorPath, polar, svgEl } = NT.svg;
+
   var CX = 260, CY = 260;
   var HOLE_R = 65;
   var OUTER_R = 225;
@@ -403,10 +408,6 @@
   /* ---------- math layer ---------- */
   // Plain Number arithmetic throughout -- the largest intermediate product
   // with MAX_M capped at 100 is 99*99 = 9801, nowhere near needing BigInt.
-
-  function gcd(a, b){ while (b){ var t = a % b; a = b; b = t; } return a; }
-  function unitsMod(m){ var out = []; for (var r = 0; r < m; r++) if (gcd(r, m) === 1) out.push(r); return out; }
-  function totient(m){ return unitsMod(m).length; }
 
   function multOrder(g, m){
     var identity = 1 % m;
@@ -466,37 +467,6 @@
 
   var MAX_M = 100;
   var PAIRS = isoPairs(MAX_M);
-
-  /* ---------- geometry helpers (copied from the Equivalence Wheel) ---------- */
-
-  function polar(r, angleDeg){
-    var a = (angleDeg - 90) * Math.PI / 180;
-    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
-  }
-  function svgEl(tag, attrs){
-    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (var k in attrs) el.setAttribute(k, attrs[k]);
-    return el;
-  }
-  function annularSectorPath(rInner, rOuter, startDeg, endDeg){
-    if (endDeg - startDeg >= 359.999){
-      return 'M ' + (CX - rOuter) + ' ' + CY +
-        ' A ' + rOuter + ' ' + rOuter + ' 0 1 1 ' + (CX + rOuter) + ' ' + CY +
-        ' A ' + rOuter + ' ' + rOuter + ' 0 1 1 ' + (CX - rOuter) + ' ' + CY +
-        ' Z M ' + (CX - rInner) + ' ' + CY +
-        ' A ' + rInner + ' ' + rInner + ' 0 1 0 ' + (CX + rInner) + ' ' + CY +
-        ' A ' + rInner + ' ' + rInner + ' 0 1 0 ' + (CX - rInner) + ' ' + CY + ' Z';
-    }
-    var p1 = polar(rInner, startDeg), p2 = polar(rOuter, startDeg);
-    var p3 = polar(rOuter, endDeg), p4 = polar(rInner, endDeg);
-    var large = (endDeg - startDeg) > 180 ? 1 : 0;
-    return 'M ' + p1[0] + ' ' + p1[1] +
-      ' L ' + p2[0] + ' ' + p2[1] +
-      ' A ' + rOuter + ' ' + rOuter + ' 0 ' + large + ' 1 ' + p3[0] + ' ' + p3[1] +
-      ' L ' + p4[0] + ' ' + p4[1] +
-      ' A ' + rInner + ' ' + rInner + ' 0 ' + large + ' 0 ' + p1[0] + ' ' + p1[1] + ' Z';
-  }
-  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
 
   /* ---------- state and persistence ---------- */
   // m is the ONLY persisted parameter. n, g and the unit list are always
@@ -562,7 +532,7 @@
     if (n > 1){
       for (var i0 = 0; i0 < n; i0++){
         var ang = i0 * wedgeAngle;
-        var rp1 = polar(HOLE_R, ang), rp2 = polar(OUTER_R, ang);
+        var rp1 = polar(CX, CY, HOLE_R, ang), rp2 = polar(CX, CY, OUTER_R, ang);
         dynGroup.appendChild(svgEl('line', {
           x1:rp1[0], y1:rp1[1], x2:rp2[0], y2:rp2[1],
           stroke:'var(--panel-border)', 'stroke-width':1
@@ -595,11 +565,11 @@
 
       var hit = svgEl('path', {
         class:'wedge-hit',
-        d: annularSectorPath(HOLE_R, OUTER_R, startDeg, endDeg)
+        d: annularSectorPath(CX, CY, HOLE_R, OUTER_R, startDeg, endDeg)
       });
       g.appendChild(hit);
 
-      var pos = polar(ringMid, bisector);
+      var pos = polar(CX, CY, ringMid, bisector);
       var rot = bisector;
       if (rot > 90 && rot < 270) rot += 180;
       var txt = svgEl('text', {
@@ -613,7 +583,7 @@
 
       if (opts.getSecondary){
         var secVal = opts.getSecondary(p);
-        var spos = polar(OUTER_R - 20, bisector);
+        var spos = polar(CX, CY, OUTER_R - 20, bisector);
         var srot = bisector;
         if (srot > 90 && srot < 270) srot += 180;
         var stxt = svgEl('text', {
@@ -827,7 +797,6 @@
     setPair(parseInt(pairSelect.value, 10));
   });
 
-  function randomInt(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
   randomizeBtn.addEventListener('click', function(){
     var row = PAIRS[randomInt(0, PAIRS.length - 1)];
     setPair(row.m);
