@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
 stopped_at: "Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match"
-last_updated: "2026-09-30T14:52:40.039Z"
+last_updated: "2026-09-30T16:34:17.833Z"
 last_activity: 2026-09-30
 last_activity_desc: "Completed quick task 260930-mle: added a scratchpad reference panel to the Diffie-Hellman tool (public group + Alice/Bob public values), mirrored to the right edge, and moved RSA's existing panel to match"
-state_head: a4ed7f581549bfb6e68eb69e35f17ee18a429689
+state_head: d44134209bfafa7d808ae72386f69c1fd96487bc
 progress:
   total_phases: 5
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 3 (Chinese Remainder Theorem Tool) — Complete, all 3 plans and the phase-wide sweep verified green
 Plan: 3 of 3 (all tasks done, including the previously-blocked Task 3 consolidated sweep)
 Status: Phase 3 closed. Phase 4 (Continued Fractions Tool) is next and has not yet been planned.
-Last activity: 2026-09-29 - Completed quick task 260929-uzr: Add a new tool that visualizes Elliptic Curve Diffie-Hellman (ECDH) key exchange, following this repo's established single-file tool pattern
+Last activity: 2026-09-30 - Completed quick task 260930-pin: Removed the "no shared JS modules for logic" architectural constraint from project docs (CLAUDE.md, PROJECT.md, codebase map), unblocking a shared translation-dictionary module for the newly-added Phase 6 (Multi-Language Support)
 
 Progress: [████████░░] 80%
 
@@ -203,6 +203,7 @@ None yet.
 | 260930-fnr | In the RSA tool, add a pinned, non-editable read-only public-key reference panel (Bob/Alice e and n) revealed once each party's key-generation section scrolls above the viewport | 2026-09-30 | 64bf006 | [260930-fnr-in-the-rsa-tool-add-a-non-editable-scrat](./quick/260930-fnr-in-the-rsa-tool-add-a-non-editable-scrat/) |
 | 260930-jlm | In the RSA tool, change the public-key reference panel's reveal trigger from "whole key-generation section scrolled above the viewport" to "this party's chosen e = ... line has scrolled into readable view" | 2026-09-30 | 6fed65c | [260930-jlm-in-rsa-rsa-html-change-the-public-key-re](./quick/260930-jlm-in-rsa-rsa-html-change-the-public-key-re/) |
 | 260930-mle | Add a scratchpad panel to the Diffie-Hellman Key Exchange tool, modeled on the RSA tool's scratchpad component but positioned on the right side of the page instead of the left. When the animation displays the public multiplicative group, that information appears in this scratchpad. When public exponentiation results appear in the animation, they also appear in the scratchpad. Also updated the RSA tool so its existing scratchpad moves to the right side of the page (same relative vertical position, mirrored to the right). | 2026-09-30 | a4ed7f5 | [260930-mle-add-a-scratchpad-panel-to-the-diffie-hel](./quick/260930-mle-add-a-scratchpad-panel-to-the-diffie-hel/) |
+| 260930-pin | Remove the "no shared JS modules for logic" architectural constraint from project docs, allowing shared JS logic modules | 2026-09-30 | d441342 | [260930-pin-remove-the-no-shared-js-modules-for-logi](./quick/260930-pin-remove-the-no-shared-js-modules-for-logi/) |
 
 ## Deferred Items
 
