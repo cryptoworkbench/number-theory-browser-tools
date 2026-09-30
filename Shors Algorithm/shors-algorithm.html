@@ -298,9 +298,15 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
 <script>
 (function(){
 "use strict";
+
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { gcd, isPrime, modPowSmall } = NT.core;
+const { polar, svgEl } = NT.svg;
 
 /* ---------- number theory ---------- */
 
@@ -326,34 +332,6 @@ function parseNStrict(str){
       'polynomial in log N — there is no quantum computer on this page, so larger N is refused.' };
   }
   return { ok:true, n:n };
-}
-
-function gcdSmall(a, b){
-  a = Math.abs(a); b = Math.abs(b);
-  while (b){ var t = b; b = a % b; a = t; }
-  return a;
-}
-
-function modPowSmall(a, e, m){
-  var base = ((a % m) + m) % m;
-  var result = 1;
-  var exp = e;
-  while (exp > 0){
-    if (exp % 2 === 1) result = (result * base) % m;
-    exp = Math.floor(exp / 2);
-    base = (base * base) % m;
-  }
-  return result;
-}
-
-function isPrimeSmall(n){
-  if (n < 2) return false;
-  if (n < 4) return true;
-  if (n % 2 === 0) return false;
-  for (var d = 3; d * d <= n; d += 2){
-    if (n % d === 0) return false;
-  }
-  return true;
 }
 
 function ipowSmall(b, e){
@@ -423,7 +401,7 @@ function runShor(n, opts){
     return { guard:'ok', n:n, route:'perfect-power', factors:ppFactors, base:null, r:null, attempts:attempts, steps:steps };
   }
 
-  if (isPrimeSmall(n)){
+  if (isPrime(n)){
     steps.push({ id:'verdict', label:'Verdict', detail: n + ' is prime — there is nothing to factor.' });
     return { guard:'ok', n:n, route:'prime', factors:null, base:null, r:null, attempts:attempts, steps:steps };
   }
@@ -446,7 +424,7 @@ function runShor(n, opts){
     var a = nextBase();
     steps.push({ id:'pickBase', label:'Pick a base', detail: 'Trying base a = ' + a + '.' });
 
-    var g = gcdSmall(a, n);
+    var g = gcd(a, n);
     steps.push({ id:'gcdCheck', outcome: g > 1 ? 'lucky-gcd' : null, label:'Classical gcd check', detail:
       'gcd(' + a + ', ' + n + ') = ' + g + (g > 1 ? ' — this alone already shares a factor with N.' : ' — coprime, order finding needed.') });
 
@@ -491,8 +469,8 @@ function runShor(n, opts){
       continue;
     }
 
-    var p1 = gcdSmall(x - 1, n);
-    var p2 = gcdSmall(x + 1, n);
+    var p1 = gcd(x - 1, n);
+    var p2 = gcd(x + 1, n);
     var found = [p1, p2].filter(function(v){ return v > 1 && v < n; }).sort(function(v1, v2){ return v1 - v2; });
 
     if (found.length >= 2 && found[0] * found[1] === n){
@@ -519,13 +497,6 @@ function runShor(n, opts){
 }
 
 /* ---------- state ---------- */
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
-function svgEl(tag, attrs){
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const key in attrs) el.setAttribute(key, attrs[key]);
-  return el;
-}
 
 const $ = (id) => document.getElementById(id);
 
@@ -633,11 +604,6 @@ function renderVerdict(result){
   }
 }
 
-function polarPoint(cx, cy, r, angleDeg){
-  var a = (angleDeg - 90) * Math.PI / 180;
-  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-}
-
 function clearRing(){
   cycleRing.innerHTML = '';
   cycleRing.setAttribute('data-r', '');
@@ -674,7 +640,7 @@ function buildRing(result){
   var pts = [];
   for (var i = 0; i < rendered; i++){
     var angle = (sweepDeg * i) / rendered;
-    pts.push(polarPoint(RING_CX, RING_CY, RING_R, angle));
+    pts.push(polar(RING_CX, RING_CY, RING_R, angle));
   }
 
   for (var j = 0; j < rendered - 1; j++){
@@ -700,7 +666,7 @@ function buildRing(result){
   }
 
   if (truncated){
-    var breakPt = polarPoint(RING_CX, RING_CY, RING_R, sweepDeg + 12);
+    var breakPt = polar(RING_CX, RING_CY, RING_R, sweepDeg + 12);
     cycleRing.appendChild(svgEl('circle', { cx:breakPt[0], cy:breakPt[1], r:6, fill:'var(--role-inert)' }));
     var breakLabel = svgEl('text', { x:breakPt[0], y:breakPt[1] - 12, 'text-anchor':'middle', 'font-size':'11', fill:'var(--role-inert-text)' });
     breakLabel.textContent = '⋯ (' + (result.r - rendered) + ' more)';
