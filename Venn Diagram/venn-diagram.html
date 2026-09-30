@@ -566,19 +566,18 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
 <script>
 (function(){
 
-  /* ---------- number theory ---------- */
+  /* ---------- shared helpers (assets/nt-*.js) ---------- */
+  const { gcd, isPrime, primeFactors } = NT.core;
+  const { svgEl } = NT.svg;
+  const { SHARED_AB_KEY, readABParams, readMigrating, readSharedAB, writeSharedAB } = NT.store;
 
-  function isPrime(n){
-    if (n < 2) return false;
-    if (n % 2 === 0) return n === 2;
-    for (var i = 3; i * i <= n; i += 2){
-      if (n % i === 0) return false;
-    }
-    return true;
-  }
+  /* ---------- number theory ---------- */
 
   function productOf(list){
     var p = 1;
@@ -586,37 +585,7 @@
     return p;
   }
 
-  function gcd(a, b){
-    a = Math.abs(a);
-    b = Math.abs(b);
-    while (b !== 0){
-      var t = a % b;
-      a = b;
-      b = t;
-    }
-    return a;
-  }
-
   var FACTOR_LIMIT = 100000;
-
-  function factorize(n){
-    var factors = [];
-    if (n < 2) return factors;
-    while (n % 2 === 0){
-      factors.push(2);
-      n = n / 2;
-    }
-    var d = 3;
-    while (d * d <= n && d < FACTOR_LIMIT){
-      while (n % d === 0){
-        factors.push(d);
-        n = n / d;
-      }
-      d += 2;
-    }
-    if (n > 1) factors.push(n);
-    return factors;
-  }
 
   function buildPalette(count){
     var out = [];
@@ -638,61 +607,8 @@
   // deliberately left in place.
   var STORAGE_KEY = 'venn-diagram';
   var LEGACY_STORAGE_KEY = 'venn-diagrams';
-  function readMigrating(key, legacyKey){
-    try{
-      var v = localStorage.getItem(key);
-      if (v !== null) return v;
-      var legacy = localStorage.getItem(legacyKey);
-      if (legacy !== null){
-        localStorage.setItem(key, legacy);
-        return legacy;
-      }
-      return null;
-    }catch(e){
-      return null;
-    }
-  }
   // Mirrors MAX_INPUT on the Euclidean Algorithm page — must move with it.
   var EUCLID_MAX_INPUT = 1000000;
-
-  /* ---------- shared a/b params ---------- */
-  // a and b are ONE setting shared with the sibling Euclidean Algorithm
-  // page -- not a private per-tool value. The cookie mirror exists for the
-  // same file:// origin-partitioning reason assets/theme.js documents for
-  // its own theme setting. Each tool clamps the shared pair to its own
-  // ceiling on read; a clamped read is display-only and is never written
-  // back.
-  var SHARED_AB_KEY = 'ab-params';
-
-  function readSharedAB(){
-    var raw = null;
-    try{
-      var m = new RegExp('(?:^|; *)' + SHARED_AB_KEY + '=([^;]*)').exec(document.cookie || '');
-      if (m) raw = decodeURIComponent(m[1]);
-    }catch(e){}
-    if (raw === null){
-      try{ raw = localStorage.getItem(SHARED_AB_KEY); }catch(e){}
-    }
-    if (!raw) return null;
-    var parsed = null;
-    try{ parsed = JSON.parse(raw); }catch(e){ return null; }
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (typeof parsed.a !== 'number' || !Number.isInteger(parsed.a)) return null;
-    if (typeof parsed.b !== 'number' || !Number.isInteger(parsed.b)) return null;
-    if (parsed.a < 0 || parsed.b < 0) return null;
-    if (parsed.a === 0 && parsed.b === 0) return null;
-    return { a: parsed.a, b: parsed.b };
-  }
-
-  function writeSharedAB(a, b){
-    var payload = JSON.stringify({ a: a, b: b });
-    var current = readSharedAB();
-    if (current && JSON.stringify({ a: current.a, b: current.b }) === payload) return;
-    try{ localStorage.setItem(SHARED_AB_KEY, payload); }catch(e){}
-    try{
-      document.cookie = SHARED_AB_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax';
-    }catch(e){}
-  }
 
   var picker = document.getElementById('prime-picker');
   var svgRoot = document.getElementById('venn');
@@ -1013,12 +929,6 @@
   }
 
   var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true };
-
-  function svgEl(tag, attrs){
-    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (var k in attrs) el.setAttribute(k, attrs[k]);
-    return el;
-  }
 
   /* ---------- Euclidean nested-view (ported from the Euclidean Algorithm tool) ---------- */
   // euclidSteps() and computeNestedLayout() are a deliberate per-file
@@ -1371,7 +1281,7 @@
     var caption = svgEl('text', {
       'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
     });
-    caption.textContent = factorTail(factorize(opts.value), opts.value);
+    caption.textContent = factorTail(primeFactors(opts.value, FACTOR_LIMIT), opts.value);
     host.appendChild(caption);
 
     if (opts.treeHref){
@@ -2326,7 +2236,7 @@
 
   function intersectionLine(label, totals, g){
     var line = label + ' = ' + totals.join(' ∩ ') + ' = ' + g;
-    var gFactors = factorize(g);
+    var gFactors = primeFactors(g, FACTOR_LIMIT);
     if (gFactors.length >= 2){
       line += ' = ' + gFactors.join(' * ');
     }
@@ -2560,26 +2470,6 @@
     renderComposite3();
   }
 
-  function readABParams(){
-    var ma, mb;
-    try{
-      ma = /[?&]a=([^&#]*)/.exec(location.search);
-      mb = /[?&]b=([^&#]*)/.exec(location.search);
-    }catch(e){
-      return null;
-    }
-    if (!ma || !mb) return null;
-    var a, b;
-    try{
-      a = parseInt(decodeURIComponent(ma[1]), 10);
-      b = parseInt(decodeURIComponent(mb[1]), 10);
-    }catch(e){
-      return null;
-    }
-    if (!isFinite(a) || !isFinite(b) || a < 0 || b < 0) return null;
-    return { a: a, b: b };
-  }
-
   function countBy(list){
     var counts = {};
     for (var i = 0; i < list.length; i++) counts[list[i]] = (counts[list[i]] || 0) + 1;
@@ -2587,8 +2477,8 @@
   }
 
   function fillFromNumbers(a, b, source){
-    var factorsA = factorize(a);
-    var factorsB = factorize(b);
+    var factorsA = primeFactors(a, FACTOR_LIMIT);
+    var factorsB = primeFactors(b, FACTOR_LIMIT);
     var countsA = countBy(factorsA);
     var countsB = countBy(factorsB);
     var seen = {};
