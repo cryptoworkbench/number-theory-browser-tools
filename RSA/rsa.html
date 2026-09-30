@@ -195,7 +195,17 @@
   .scratch-row.is-shown ~ .scratch-row.is-shown{ margin-top:8px; padding-top:8px; border-top:1px solid var(--panel-border); }
   .scratch-who{ display:block; font-weight:700; font-size:.85rem; }
   .scratch-who.bob{ color:var(--role-input); }
+  .scratch-who.alice{ color:var(--role-alt); }
   .scratch-kv{ display:block; font-family:'JetBrains Mono','Consolas',monospace; font-size:.82rem; color:var(--text); overflow-wrap:anywhere; }
+  @media (max-width:640px){
+    .pubkey-scratchpad{ width:min(200px, calc(100vw - 24px)); padding:9px 11px; font-size:.92em; }
+  }
+  @media (max-width:380px), (max-height:400px){
+    .pubkey-scratchpad{ display:none; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .pubkey-scratchpad{ transition:none; transform:none; }
+  }
 </style>
 </head>
 <body>
@@ -320,6 +330,11 @@
     <span class="scratch-who bob">Bob</span>
     <span class="scratch-kv" id="scratch-bob-e"></span>
     <span class="scratch-kv" id="scratch-bob-n"></span>
+  </div>
+  <div class="scratch-row" id="scratch-row-alice">
+    <span class="scratch-who alice">Alice</span>
+    <span class="scratch-kv" id="scratch-alice-e"></span>
+    <span class="scratch-kv" id="scratch-alice-n"></span>
   </div>
 </aside>
 
@@ -893,13 +908,24 @@ function renderExchange(toId){
 }
 
 /* ---------- Public-key reference panel ---------- */
-const ScrolledPast = { bob: false, alice: false };
-
 function scratchNum(x){
   const s = fmt(x);
   if(s.length <= 30) return s;
   const digits = x.toString();
-  return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length} digits)`;
+  return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length})`;
+}
+
+/* Read live, rather than trust a flag an observer callback may have last set: a section
+   can jump straight from "on screen" to "fully above" (or back) in a single instantaneous
+   scroll — a Home-key press, a "back to top" control, or this file's own test harness all
+   do this — without the browser ever reporting an intersecting frame in between, so an
+   IntersectionObserver's threshold-crossing callback can go silent right when the state
+   needs to flip. Recomputing from the section's own rect here means the observer only has
+   to tell us "something scrolled", not "which way", so a missed crossing can never leave a
+   stale row on screen. */
+function isScrolledPast(id){
+  const section = document.getElementById('step-' + id);
+  return !!section && section.getBoundingClientRect().bottom <= 0;
 }
 
 function updateScratchpad(){
@@ -908,7 +934,7 @@ function updateScratchpad(){
     const row = document.getElementById(`scratch-row-${id}`);
     if(!row) return;
     const k = State[id];
-    const shown = !!(k && ScrolledPast[id]);
+    const shown = !!(k && isScrolledPast(id));
     row.classList.toggle('is-shown', shown);
     if(shown){
       document.getElementById(`scratch-${id}-e`).textContent = `e = ${scratchNum(k.e)}`;
@@ -921,14 +947,19 @@ function updateScratchpad(){
 
 function initScratchpad(){
   if(typeof IntersectionObserver !== 'function') return;
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const id = entry.target.id.replace('step-','');
-      ScrolledPast[id] = entry.isIntersecting === false && entry.boundingClientRect.bottom <= 0;
-    });
-    updateScratchpad();
-  }, {threshold:0});
+  const observer = new IntersectionObserver(() => updateScratchpad(), {threshold:0});
   observer.observe(document.getElementById('step-bob'));
+  observer.observe(document.getElementById('step-alice'));
+
+  /* Supplements the observer for the same instantaneous-jump case described above: a
+     rAF-throttled scroll listener that calls the same single updateScratchpad(), never
+     re-deriving the predicate itself. */
+  let scratchScrollQueued = false;
+  window.addEventListener('scroll', () => {
+    if(scratchScrollQueued) return;
+    scratchScrollQueued = true;
+    requestAnimationFrame(() => { scratchScrollQueued = false; updateScratchpad(); });
+  }, {passive:true});
 }
 
 document.getElementById('bob-gen-btn').addEventListener('click', () => generateKeys('bob','Bob'));
