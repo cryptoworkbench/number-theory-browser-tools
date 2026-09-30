@@ -8,12 +8,12 @@ last_mapped_at: 2026-09-23
 
 ## Architectural Deviation
 
-**Breaking the single-file-per-tool pattern:**
+**Shared-module coupling across consuming pages:**
 
-- Issue: HTML files now import shared CSS and JS (`../assets/site.css`, `../assets/theme.js`), contradicting the self-contained single-file design stated in CLAUDE.md
-- Files: `Factor Tree/factor-tree.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`, `Congruence Wheel/congruence-wheel.html`, `RSA/rsa.html`, `Fermats Method/fermats-method.html`
-- Impact: Tools no longer work in isolation. Moving or copying a tool outside the repo structure breaks it. Development workflow requires managing three files per tool instead of one.
-- Fix approach: Either (a) inline `site.css` and `theme.js` into each HTML file to restore true self-containment, or (b) update CLAUDE.md to document the new shared-assets pattern and commit to maintaining the three-file structure
+- Issue: A tool's page no longer owns every line of its own logic — `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js` and `assets/nt-layout.js` are shared, so a change to one of these modules changes every page that imports it, all at once
+- Files: Every tool `.html` page that includes one or more `assets/nt-*.js` modules
+- Impact: A signature or behavior change in a shared helper ripples to every consuming tool simultaneously; a bug introduced there is a multi-tool regression, not confined to one page. The `../assets/nt-*.js` relative path is load-bearing — moving a tool directory without preserving that relative depth breaks its includes.
+- Fix approach: Keep shared helpers pure; change a function's signature only together with every calling tool in the same commit; re-run each consuming tool in a browser (or `shadow-check.js --all`) after touching a shared module
 
 ## Code Duplication & Maintainability
 
@@ -40,7 +40,7 @@ last_mapped_at: 2026-09-23
 - Issue: `fermats-method.html` (863 lines), `sieve-of-eratosthenes.html` (815 lines) are large monolithic files with inline styles, scripts, and markup all mixed
 - Files: `fermats-method.html`, `sieve-of-eratosthenes.html`
 - Impact: Harder to locate and fix bugs. Editing one part risks breaking another (no modular isolation). Code review becomes tedious. Browser dev tools can struggle with large inline scripts.
-- Fix approach: No immediate fix (tools are self-contained by design), but document line-count expectations and enforce with a linter if files grow further
+- Fix approach: No immediate fix — tool-specific code stays in the page; shared helpers already live in `assets/`. Document line-count expectations and enforce with a linter if files grow further
 
 ## Number Precision Limits
 
@@ -105,7 +105,7 @@ last_mapped_at: 2026-09-23
 **Silent failures in SVG render:**
 
 - Issue: SVG creation functions (`svgEl`) have no error handling. If `document.createElementNS` fails (e.g., due to browser quirks), the entire render silently fails with no visible error
-- Files: `Factor Tree/factor-tree.html` (line 546), `Congruence Wheel/congruence-wheel.html`, `Sieve Of Eratosthenes/sieve-of-eratosthenes.html`
+- Files: `assets/nt-svg.js` (`svgEl`, used by every tool that imports `NT.svg`)
 - Impact: User sees blank stage and no error message. Difficult to debug.
 - Fix approach: Wrap SVG operations in try-catch; on error, display a message like "SVG rendering failed. Try refreshing the page." in the stage element
 

@@ -19,9 +19,14 @@ number-theory-browser-tools/
 │       ├── STACK.md
 │       ├── INTEGRATIONS.md
 │       └── CONCERNS.md
-├── assets/                          # Shared site infrastructure (CSS, JS)
+├── assets/                          # Shared site infrastructure and JS logic modules
 │   ├── site.css                     # Header, nav, theme toggle styling
-│   └── theme.js                     # Day/night theme persistence and switching
+│   ├── theme.js                     # Day/night theme persistence and switching
+│   ├── nt-core.js                   # NT.core — plain-Number number theory
+│   ├── nt-bigint.js                 # NT.bigint — BigInt-domain number theory
+│   ├── nt-svg.js                    # NT.svg — SVG element/geometry helpers
+│   ├── nt-store.js                  # NT.store — cross-tool shared-state persistence
+│   └── nt-layout.js                 # NT.layout — shared diagram layouts (needs nt-core.js)
 ├── Factor Tree/
 │   ├── factor-tree.html             # Prime factorization tree visualizer
 │   └── example_prime_factorization   # Example/documentation file (unused in app)
@@ -41,7 +46,7 @@ number-theory-browser-tools/
 ├── README.md                        # Project description (minimal)
 └── index.html                       # Portal page: links to all tools
 
-Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
+Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 ```
 
 ## Directory Purposes
@@ -54,9 +59,9 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 
 **`assets/`:**
 
-- Purpose: Shared CSS and JavaScript for site infrastructure (header, nav, theme toggle)
-- Contains: Styling rules for all pages, theme persistence logic
-- Key files: `site.css` (layout + styling), `theme.js` (day/night mode)
+- Purpose: Shared CSS and JavaScript for site infrastructure (header, nav, theme toggle) and shared JS logic used across tools
+- Contains: Styling rules for all pages, theme persistence logic, and the five `nt-*.js` shared logic modules on `window.NT`
+- Key files: `site.css` (layout + styling), `theme.js` (day/night mode), `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js` (shared number theory, BigInt, SVG, shared-state and layout helpers)
 - Not committed to: Individual tool styling (each tool has inline `<style>`)
 
 **`Factor Tree/`:**
@@ -118,12 +123,12 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 
 **Core Logic (Math Functions):**
 
-- Top of each `[tool].html` `<script>` block contains pure number-theory functions
-  - `primeFactors(n)` — Recursive factorization (factor-tree.html, sieve-of-eratosthenes.html)
-  - `isPrime(n)` — Primality test (multiple tools)
-  - `modPow(base, exp, mod)` — Modular exponentiation (RSA tool, Fermat's Method tool)
-  - `bigGcd(a, b)` — Extended Euclidean algorithm (RSA tool)
-  - `smallestPrimeFactor(n)` — Greedy factorization (multiple tools)
+- Number-theory functions come from `assets/nt-core.js` (`NT.core`) and `assets/nt-bigint.js` (`NT.bigint`); each `[tool].html` imports only what it needs via its import block
+  - `primeFactors(n)` — Recursive factorization — `NT.core`
+  - `isPrime(n)` — Primality test — `NT.core`
+  - `modPowPlain(base, exp, mod)` — Modular exponentiation — `NT.bigint`
+  - `bigGcd(a, b)` — Extended Euclidean algorithm — `NT.bigint`
+  - `smallestPrimeFactor(n)` — Greedy factorization — `NT.core`
 
 **Styling (Shared):**
 
@@ -136,10 +141,9 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 
 **SVG & Rendering:**
 
-- Inline `<script>` block in each `[tool].html` contains:
-  - `svgEl(tag, attrs)` — Helper to create SVG elements
+- Inline `<script>` block in each `[tool].html` imports shared helpers (including `svgEl`) from `NT.svg`/`NT.layout` via its import block, and defines only:
   - `render()` or `draw()` — Rebuild visualization from state
-  - Geometry helpers (e.g., `polar(r, angle)`, `treeLayout(...)`)
+  - Tool-specific geometry helpers not already covered by an `NT` import
 
 **Testing:**
 
@@ -152,7 +156,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 
 - Tool HTML: kebab-case, descriptive name ending in `-[tool-name].html` (e.g., `sieve-of-eratosthenes.html`)
 - Directories: Title Case with spaces (e.g., `Congruence Wheel`, `Factor Tree`)
-  - Rationale: User-facing tool names for discovery; spaces OK because each tool is a self-contained folder
+  - Rationale: User-facing tool names for discovery; spaces OK because each tool lives in its own folder
 - Assets: lowercase, descriptive name (e.g., `site.css`, `theme.js`)
 
 **Functions & Variables:**
@@ -182,31 +186,30 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 **New Tool (e.g., "Quadratic Residues Visualizer"):**
 
 1. Create new top-level directory: `Quadratic Residues/`
-2. Create single HTML file: `Quadratic Residues/quadratic-residues.html`
-   - Copy structure from an existing tool (e.g., `Congruence Wheel/congruence-wheel.html`)
-   - Keep all code inline: `<style>` block + `<script>` IIFE-wrapped
+2. Create a single HTML page: `Quadratic Residues/quadratic-residues.html`
+   - Copy structure from an existing tool (e.g., `Equivalence Wheel/equivalence-wheel.html`)
+   - Keep tool-specific code inline: `<style>` block + `<script>` IIFE-wrapped
    - Include shared site header/nav markup (copy from any tool)
    - Link shared assets: `<link rel="stylesheet" href="../assets/site.css">`, `<script defer src="../assets/theme.js"></script>`
-   - Define pure math functions at top of `<script>` (e.g., `legendreSymbol`, `isQuadraticResidue`)
+   - Include the `assets/nt-*.js` modules the tool needs, on their own lines immediately before the inline `<script>`, in the canonical order core, bigint, svg, store, layout
+   - Open the `<script>` with an import block: import shared helpers; define only tool-specific functions (e.g. `legendreSymbol`, `isQuadraticResidue` if no `NT` module already exports them)
    - Define `render()` and state management in closure
    - Wire events at bottom
 3. Add entry to portal: Edit `index.html`, add new `<a class="card">` with link to new tool in grid
-4. Update site nav: Each tool's header nav must list all tools; update `<nav class="site-nav">` in your new tool to include all six tools (see pattern in existing tools)
+4. Update site nav: Each tool's header nav must list all tools; update `<nav class="site-nav">` in your new tool to include every tool (see pattern in existing tools)
 
 **New Math Function (Shared Across Multiple Tools):**
 
-- Do NOT create a separate JS file (breaks single-file philosophy per CLAUDE.md)
-- Add the function to each tool's `<script>` block where it's needed
-- If the function appears in multiple tools:
-  - Place it at the top of each `<script>` block (before render/state)
-  - Use identical implementation (copy-paste is intentional)
-  - Comment referencing the canonical version if applicable
+- Add the function inside the matching `assets/nt-*.js` module's IIFE (a plain-`Number` helper goes in `nt-core.js`, a `BigInt` helper in `nt-bigint.js`, an SVG/geometry helper in `nt-svg.js`, a shared-state helper in `nt-store.js`, a layout helper in `nt-layout.js`)
+- Add it to that module's frozen export object (e.g. `NT.core = Object.freeze({ ..., newFn: newFn });`)
+- Import it in every consuming tool via the import block (`const { ..., newFn } = NT.NAME;`)
+- Never define the function locally in a tool page — a local declaration with the same name would silently shadow the import (`shadow-check.js`'s SHADOW gate flags this)
 
 **New Utility/Helper Function (Tool-Specific):**
 
-- Add to top-level helper section of that tool's `<script>` block, after pure math functions
-- Example: `function clamp(v, lo, hi)` in Congruence Wheel is tool-internal
-- If reused across tools later, copy it to each tool's helper section
+- Add to the top-level helper section of that tool's `<script>` block, after its `NT` import block
+- Example: `cellMinPx(M)` in Cayley Table is tool-internal (re-derived from, not shared with, the Sieve of Eratosthenes's own sizing helper)
+- Once a second tool needs the same helper, move it into the matching `assets/nt-*.js` module's frozen export object and have both tools import it from there
 
 **Bug Fix in Math Function:**
 
@@ -237,11 +240,11 @@ Total: 5 tools (one HTML file each) + 1 portal + 2 shared asset files
 - Purpose: Shared resources loaded by every page
 - Generated: No (hand-written)
 - Committed: Yes (core to app functionality)
-- Contents: `site.css` (styling for header/nav/theme switch), `theme.js` (day/night toggle logic)
+- Contents: `site.css` (styling for header/nav/theme switch), `theme.js` (day/night toggle logic), and the five `nt-*.js` shared logic modules (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`) on `window.NT`
 
 **`[Tool Name]/` directories:**
 
-- Purpose: Isolation of tool code; each tool is independent
+- Purpose: Isolation of tool-specific code; a tool's own rendering, state and playback live here, while helpers shared across tools live in `assets/nt-*.js`
 - Generated: No (hand-written HTML files)
 - Committed: Yes
 - Stray files in each: `CLAUDE_RESUME_COMMAND` or `RESUME_CLAUDES_CHAT` (session artifacts, leave as-is)

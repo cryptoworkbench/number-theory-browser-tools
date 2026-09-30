@@ -10,7 +10,7 @@ last_mapped_at: 2026-09-23
 
 **Status:** No automated test framework in use
 
-**Reason:** Single-file HTML tools designed for manual browser testing. Each tool is a self-contained visualization with no build system, package manager, or CI/CD pipeline.
+**Reason:** HTML tool pages designed for manual browser testing. Each tool is an interactive visualization with no build system, package manager, or CI/CD pipeline; its shared helpers in `assets/nt-*.js` are exercised indirectly through every page that includes them.
 
 **Run Commands:**
 There are no npm scripts, test runners, or CLI test commands. Verification is manual:
