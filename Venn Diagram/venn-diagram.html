@@ -569,13 +569,15 @@
 <script src="../assets/nt-core.js"></script>
 <script src="../assets/nt-svg.js"></script>
 <script src="../assets/nt-store.js"></script>
+<script src="../assets/nt-layout.js"></script>
 <script>
 (function(){
 
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
-  const { gcd, isPrime, primeFactors } = NT.core;
+  const { euclidSteps, gcd, isPrime, primeFactors } = NT.core;
   const { svgEl } = NT.svg;
   const { SHARED_AB_KEY, readABParams, readMigrating, readSharedAB, writeSharedAB } = NT.store;
+  const { BALANCED_MAX_N, assignTreeX, buildFactorTree, computeNestedLayout, flattenTree } = NT.layout;
 
   /* ---------- number theory ---------- */
 
@@ -930,193 +932,15 @@
 
   var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true };
 
-  /* ---------- Euclidean nested-view (ported from the Euclidean Algorithm tool) ---------- */
-  // euclidSteps() and computeNestedLayout() are a deliberate per-file
-  // duplication of the same-named functions in
-  // Euclidean Algorithm/euclidean-algorithm.html, per CLAUDE.md's
-  // no-shared-JS-module rule for number-theory helpers. The two copies
-  // must be kept in step -- computeNestedLayout() in particular is ported
-  // unchanged (apart from the TILE_CAP rename) so this page's miniature is
-  // the same geometry the full tool draws, not a lookalike.
+  /* ---------- Euclidean nested-squares preview ---------- */
+  // Drawn by NT.layout.computeNestedLayout(euclidSteps(a, b).steps) -- the
+  // same layout the full Euclidean Algorithm tool draws, so this miniature
+  // always matches the page its double-click opens.
 
-  // Forward-division step walk. Trimmed from the source's extended-Euclid
-  // recurrence -- the Bezout s/t coefficients it also computes are for that
-  // tool's Extended-Euclid panel and are not read by the nested layout.
-  function euclidSteps(a, b){
-    var steps = [];
-    var r0 = a, r1 = b;
-    while (r1 !== 0){
-      var q = Math.floor(r0 / r1);
-      var r2 = r0 - q * r1;
-      steps.push({ a: r0, b: r1, q: q, r: r2 });
-      r0 = r1; r1 = r2;
-    }
-    return { steps: steps, gcd: r0 };
-  }
-
-  // Matches the source's TILE_CAP exactly -- a different cap would make
-  // this miniature disagree with the page it links to.
-  var NEST_TILE_CAP = 40;
-
-  // Builds the unit-space layout (no pixel scale yet) by walking the same
-  // step list one at a time, recursing into each step's leftover. Ported
-  // verbatim from computeNestedLayout() apart from the TILE_CAP rename.
-  function computeNestedLayout(steps){
-    if (!steps || steps.length === 0) return null;
-    var rects = [];
-    var cappedSteps = [];
-
-    function place(i, x, y, w, h, vertical){
-      var step = steps[i];
-      var b = step.b, q = step.q, r = step.r;
-      var drawn = Math.min(q, NEST_TILE_CAP);
-      var capped = q > NEST_TILE_CAP;
-      if (capped) cappedSteps.push(i);
-      var k, pos, used;
-      if (!vertical){
-        pos = x;
-        for (k = 0; k < drawn; k++){
-          rects.push({ type: 'square', x: pos, y: y, w: b, h: b, step: i, first: k === 0 });
-          pos += b;
-        }
-        if (capped){
-          rects.push({ type: 'cap', x: pos, y: y, w: b, h: b, step: i, extra: q - drawn });
-          pos += b;
-        }
-        used = pos - x;
-        if (r > 0) used += place(i + 1, pos, y, r, h, true).w;
-        return { w: used, h: h };
-      } else {
-        pos = y;
-        for (k = 0; k < drawn; k++){
-          rects.push({ type: 'square', x: x, y: pos, w: b, h: b, step: i, first: k === 0 });
-          pos += b;
-        }
-        if (capped){
-          rects.push({ type: 'cap', x: x, y: pos, w: b, h: b, step: i, extra: q - drawn });
-          pos += b;
-        }
-        used = pos - y;
-        if (r > 0) used += place(i + 1, x, pos, w, r, false).h;
-        return { w: w, h: used };
-      }
-    }
-
-    var top = place(0, 0, 0, steps[0].a, steps[0].b, false);
-    return { rects: rects, width: top.w, height: top.h, cappedSteps: cappedSteps };
-  }
-
-  /* ---------- Balanced (Fermat's Method) factor tree (ported from Factor Tree) ---------- */
-  // isqrt(), isPerfectSquare(), fermatSplit(), buildBalancedTree(),
-  // assignTreeX() and flattenTree() are a deliberate per-file duplication of
-  // the Balanced-mode logic in Factor Tree/factor-tree.html, per CLAUDE.md's
-  // no-shared-JS-module rule for number-theory helpers. Names are suffixed
-  // (Tree/FT_) only to avoid colliding with this page's own helpers --
-  // buildBalancedTree() calls THIS page's own isPrime() above rather than
-  // porting a second copy.
-
-  // Matches the source's MAX_BALANCED_N / FERMAT_MAX_ITER exactly -- a
-  // different ceiling would make this page's tree disagree with the tool it
-  // was ported from.
-  var FT_MAX_N = 1000000;
-  var FT_MAX_ITER = 2000000;
-
-  function isqrt(x){
-    if (x < 0) return -1;
-    var r = Math.floor(Math.sqrt(x));
-    while (r * r > x) r--;
-    while ((r + 1) * (r + 1) <= x) r++;
-    return r;
-  }
-
-  function isPerfectSquare(x){
-    if (x < 0) return -1;
-    var r = isqrt(x);
-    return (r * r === x) ? r : -1;
-  }
-
-  function fermatSplit(v){
-    var aMax = Math.floor((v + 1) / 2);
-    var a = Math.ceil(Math.sqrt(v));
-    var iters = 0;
-    while (a <= aMax){
-      var r = a * a - v;
-      var b = isPerfectSquare(r);
-      iters++;
-      if (b >= 0) return { p: a - b, q: a + b };
-      if (iters >= FT_MAX_ITER) return null; // defensive can't-happen guard only
-      a++;
-    }
-    return null; // can't-happen for odd composite v
-  }
-
-  function smallestFactorOf(v){
-    for (var p = 2; p * p <= v; p++){
-      if (v % p === 0) return p;
-    }
-    return v;
-  }
-
-  // Always the balanced branch -- this port carries no classic mode. Calls
-  // this page's own isPrime() (declared above); a second isPrime() here
-  // would silently shadow it.
-  function buildBalancedTree(v, depth){
-    if (v === 1){
-      return { value: 1, kind: 'one', children: [], depth: depth };
-    }
-    if (isPrime(v)){
-      return {
-        value: v,
-        kind: depth === 0 ? 'root' : 'internal',
-        depth: depth,
-        children: [
-          { value: 1, kind: 'one', children: [], depth: depth + 1 },
-          { value: v, kind: 'prime-leaf', children: [], depth: depth + 1 }
-        ]
-      };
-    }
-    if (v % 2 === 0){
-      return {
-        value: v,
-        kind: depth === 0 ? 'root' : 'internal',
-        depth: depth,
-        children: [ buildBalancedTree(2, depth + 1), buildBalancedTree(v / 2, depth + 1) ]
-      };
-    }
-    var split = fermatSplit(v); // v is odd and composite here
-    var p, q;
-    if (split){
-      p = split.p; q = split.q;
-    } else {
-      // Defensive guard so a hover handler can never throw: fall back to a
-      // smallest-factor split if fermatSplit's iteration cap is ever hit.
-      p = smallestFactorOf(v);
-      q = v / p;
-    }
-    return {
-      value: v,
-      kind: depth === 0 ? 'root' : 'internal',
-      depth: depth,
-      children: [ buildBalancedTree(p, depth + 1), buildBalancedTree(q, depth + 1) ]
-    };
-  }
-
-  function assignTreeX(node, counter){
-    if (node.children.length === 0){
-      node.x = counter.value;
-      counter.value += 1;
-    } else {
-      for (var i = 0; i < node.children.length; i++) assignTreeX(node.children[i], counter);
-      node.x = (node.children[0].x + node.children[node.children.length - 1].x) / 2;
-    }
-  }
-
-  function flattenTree(node, parent, nodes, edges, maxDepth){
-    nodes.push(node);
-    if (parent) edges.push({ from: parent, to: node });
-    maxDepth.value = Math.max(maxDepth.value, node.depth);
-    for (var i = 0; i < node.children.length; i++) flattenTree(node.children[i], node, nodes, edges, maxDepth);
-  }
+  /* ---------- Balanced (Fermat's Method) factor tree preview ---------- */
+  // Drawn by NT.layout.buildFactorTree(value, { balanced: true }) -- the
+  // same balanced-tree builder the full Factor Tree tool draws, so this
+  // miniature always matches the page its double-click opens.
 
   /* ---------- Combined stacked preview renderer ---------- */
   // Both miniatures live in ONE fixed 268x196 panel, stacked as two 196-tall
@@ -1207,7 +1031,7 @@
     host.appendChild(heading);
 
     // Reachable, not theoretical (a region can hold up to 8 primes as large
-    // as 101): a badge value past FT_MAX_N would make fermatSplit() walk
+    // as 101): a badge value past BALANCED_MAX_N would make fermatSplit() walk
     // roughly v/2 candidates on a hover. Bail before any split runs. Uses
     // the same named predicate factorTreeHref() uses, so the bail and the
     // URL builder can never disagree about what's in range.
@@ -1228,7 +1052,7 @@
     var bx = px + NP_PAD, by = sy + 22;
     var bw = NP_W - 2 * NP_PAD, bh = NP_H - 56;
 
-    var tree = buildBalancedTree(opts.value, 0);
+    var tree = buildFactorTree(opts.value, { balanced: true });
     var xCounter = { value: 0 };
     assignTreeX(tree, xCounter);
     var nodes = [], edges = [], depthBox = { value: 0 };
@@ -2299,7 +2123,7 @@
   // needs no URL at all) -- one named predicate so a hint can never be
   // drawn in a section that bailed.
   function isFactorTreeRange(value){
-    return typeof value === 'number' && isFinite(value) && Number.isInteger(value) && value >= 1 && value <= FT_MAX_N;
+    return typeof value === 'number' && isFinite(value) && Number.isInteger(value) && value >= 1 && value <= BALANCED_MAX_N;
   }
 
   // Mirrors euclidHref(): the one place that builds a Factor Tree URL.
