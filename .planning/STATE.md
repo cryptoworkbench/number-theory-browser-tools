@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Shared JS Module Refactor
 status: executing
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-09-30T20:30:23.956Z"
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-09-30T20:51:12.996Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
-state_head: 59e378b3f36f0c8368030f3296712ba2c54d3579
+state_head: b583d189dd136336a3feb7d97b4d5b3b3a816119
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
-  completed_plans: 20
+  completed_plans: 21
   percent: 57
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 ## Current Position
 
 Phase: 07 (Shared JS Module Refactor) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
 
@@ -81,6 +81,7 @@ Progress: [██████░░░░] 57%
 | Phase 07 P02 | 70min | 3 tasks | 8 files |
 | Phase 07 P03 | 130min | 2 tasks | 9 files |
 | Phase 07 P04 | 12min | 2 tasks | 4 files |
+| Phase 07 P05 | 50min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,8 @@ Recent decisions affecting current work:
 - [Phase 07]: [Phase 07 Plan 03]: readABParams(rejectZeroPair) parameterizes the one genuine behavioral difference between Euclidean Algorithm's and Venn Diagram's URL-param readers (rejecting vs accepting the (0,0) pair) rather than merging it away
 - [Phase 07]: [Phase 07 Plan 04]: Diffie-Hellman's local bigGcd (declared but never called elsewhere in the file) was still deleted during migration rather than left as a dead orphan copy, since NT.bigint.bigGcd is the sole intended definition repo-wide
 - [Phase 07]: [Phase 07 Plan 04]: Diffie-Hellman's browser-diff config reaches the packet-animation and Eve's-notebook states via the synchronous stepBtn path with a 1500ms wait after each wire-crossing step (letting any in-flight packet self-remove) rather than the flaky real-time play/rAF loop plan 07-02 diagnosed; play-control snapshots themselves are still forced through instantBtn per that plan's fix
+- [Phase 07]: [Phase 07 Plan 05]: Dropped the #export-svg browser-diff step for Equivalence Wheel after it hung headless Chrome's download machinery during the mandatory pre-migration --stability proof (a chrome process ran 280+s against a 30s virtual-time-budget) -- deferred export-path verification to plan 07-09's Claude-in-Chrome pass, per the plan's own explicit fallback instruction
+- [Phase 07]: [Phase 07 Plan 05]: Removed gcd from Group Isomorphism's NT.core import block (the plan's literal text listed it) after shadow-check's UNUSED-IMPORT gate flagged it as dead -- unitsMod is now imported directly from NT.core rather than recomputed locally via a local gcd call
 
 ### Roadmap Evolution
 
@@ -230,8 +233,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T20:30:23.849Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-09-30T20:51:12.877Z
+Stopped at: Completed 07-05-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
