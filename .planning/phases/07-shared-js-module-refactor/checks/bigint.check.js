@@ -87,24 +87,40 @@ module.exports = function (ctx) {
   });
 
   /* ---------- seeded-random parity: randomBigIntBits/InRange, isPrimeBig ---------- */
+  // Math.random is patched (in both realms) to delegate through a plain host
+  // object held via a global reference — object IDENTITY survives
+  // contextification, so the SAME holder object is readable/writable from
+  // both the host (via oldHolder/newHolder below) and the vm-evaluated code
+  // (via the bare `__mathRandomHolder` global), letting reseed() swap the
+  // active generator with a plain property assignment and no further
+  // vm.runInContext call per test case (a fresh `context.Math` object is
+  // NOT reliably reachable as a host-side property immediately after
+  // vm.createContext — this indirection sidesteps that entirely).
+  var MATH_RANDOM_PATCH = "Math.random = function(){ return __mathRandomHolder.fn(); };";
+
   // OLD: extract RSA's randomBigIntBits/randomBigIntInRange/modPowPlain/isPrimeBig
-  // into ONE shared vm context so Math.random can be reset on it directly
-  // between test cases (avoids re-spawning `git show` per reseed).
-  var oldRand = ctx.loadOld(RSA_PATH, ["randomBigIntBits", "randomBigIntInRange", "modPowPlain", "isPrimeBig"], {});
+  // into ONE shared vm context (avoids re-spawning `git show` per reseed).
+  var oldHolder = { fn: null };
+  var oldRand = ctx.loadOld(RSA_PATH, ["randomBigIntBits", "randomBigIntInRange", "modPowPlain", "isPrimeBig"], {
+    globals: { __mathRandomHolder: oldHolder },
+    preamble: MATH_RANDOM_PATCH
+  });
 
   // NEW: load nt-bigint.js into its own dedicated vm context (not via
-  // ctx.loadNew, which hides the context) so Math.random can be reset on it
-  // the same way, without re-reading the file from disk per reseed.
+  // ctx.loadNew, which hides the context) so the same patch can be applied,
+  // without re-reading the file from disk per reseed.
   var newBigintSrc = fs.readFileSync(path.join(ctx.ROOT, "assets", "nt-bigint.js"), "utf8");
-  var newContext = {};
+  var newHolder = { fn: null };
+  var newContext = { __mathRandomHolder: newHolder };
   newContext.window = newContext;
   vm.createContext(newContext);
+  vm.runInContext(MATH_RANDOM_PATCH, newContext);
   vm.runInContext(newBigintSrc, newContext, { filename: "nt-bigint.js (seeded)" });
   var newSeeded = newContext.NT.bigint;
 
   function reseed(seed) {
-    oldRand.context.Math.random = ctx.seededRandom(seed);
-    newContext.Math.random = ctx.seededRandom(seed);
+    oldHolder.fn = ctx.seededRandom(seed);
+    newHolder.fn = ctx.seededRandom(seed);
   }
 
   var bitsList = [0, 1, 5, 31, 32, 33, 64, 128, 512];
