@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 07
 current_phase_name: Shared JS Module Refactor
 status: executing
-stopped_at: Completed 07-07-PLAN.md
-last_updated: "2026-09-30T21:30:01.756Z"
+stopped_at: Completed 07-08-PLAN.md
+last_updated: "2026-09-30T21:50:38.831Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
-state_head: 4dffad86ae0ca918f3a685d8dbdc2b8e36ca3016
+state_head: 9869e33c46950106d31d938f6fbee7094ff4976f
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
-  completed_plans: 23
+  completed_plans: 24
   percent: 57
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 ## Current Position
 
 Phase: 07 (Shared JS Module Refactor) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
 
@@ -84,6 +84,7 @@ Progress: [██████░░░░] 57%
 | Phase 07 P05 | 50min | 2 tasks | 4 files |
 | Phase 07 P06 | 50min | 3 tasks | 6 files |
 | Phase 07 P07 | 35min | 2 tasks | 2 files |
+| Phase 07 P08 | 45min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,7 @@ Recent decisions affecting current work:
 - [Phase 07]: Plan 06: NT.layout ships as the fifth shared JS module (6-export, TILE_CAP/computeNestedLayout/BALANCED_MAX_N/buildFactorTree/assignTreeX/flattenTree), the one module with a load-time NT.core dependency guard; Euclidean Algorithm and Factor Tree migrated onto it with zero browser-observable behavior change, and parity proven against Venn Diagram's still-unmigrated copies ahead of plan 07-07
 - [Phase 07]: [Phase 07 Plan 07]: readABParams() keeps its zero-argument call site at Venn's load handler since NT.store.readABParams(rejectZeroPair) defaults to accepting the (0,0) pair, matching Venn's own pre-migration behavior
 - [Phase 07]: [Phase 07 Plan 07]: Venn Diagram migrated last in the phase and in two passes (leaf helpers/persistence, then the Tier-3 nested-squares/balanced-tree previews onto NT.layout) -- the previews now draw from the exact same code the full Euclidean Algorithm and Factor Tree tools use, closing the Open-Question-1 drift risk; shadow-check --all now exits 0 across all 15 tools
+- [Phase 07]: [Phase 07 Plan 08]: Rewrote CLAUDE.md, PROJECT.md, .claude/CLAUDE.md and all six .planning/codebase/*.md files so the five assets/nt-*.js modules on window.NT read as the project's normal architecture; shadow-check.js --docs exits 0 with zero DOC-PHRASE/MIRROR-DRIFT findings across all nine files
 
 ### Roadmap Evolution
 
@@ -238,8 +240,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T21:30:01.638Z
-Stopped at: Completed 07-07-PLAN.md
+Last session: 2026-09-30T21:50:38.705Z
+Stopped at: Completed 07-08-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
