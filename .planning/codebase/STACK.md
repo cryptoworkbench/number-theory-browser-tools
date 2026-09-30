@@ -102,12 +102,12 @@ Each tool has its own color palette via `:root` CSS variables, with separate the
 
 ## Performance Characteristics
 
-**Numbers Module (per tool):**
+**Numbers Module (shared):**
 
-- Inline, pure JavaScript number-theory functions (no optimization libraries):
-  - `primeFactors()`, `isPrime()`, `smallestPrimeFactor()` (trial division)
-  - `bigGcd()`, `modPowPlain()` (Euclidean algorithm, modular exponentiation)
-  - `isPrimeBig()` (Miller-Rabin primality test for RSA tool using `BigInt`)
+- Pure JavaScript number-theory functions (no optimization libraries), living in `assets/nt-core.js` (`NT.core`, plain `Number` domain) and `assets/nt-bigint.js` (`NT.bigint`, `BigInt` domain):
+  - `primeFactors()`, `isPrime()`, `smallestPrimeFactor()` (trial division) — `NT.core`
+  - `bigGcd()`, `modPowPlain()` (Euclidean algorithm, modular exponentiation) — `NT.bigint`
+  - `isPrimeBig()` (Miller-Rabin primality test for RSA tool using `BigInt`) — `NT.bigint`
 - Optimized for clarity over performance; suitable for educational visualization
 - Trial division for factorization (no advanced sieves or Pollard's rho)
 

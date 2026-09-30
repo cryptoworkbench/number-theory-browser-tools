@@ -58,15 +58,16 @@ last_mapped_at: 2026-09-23
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
+| Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, and diagram layouts used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js` |
 
 ## Pattern Overview
 
-**Overall:** Self-contained, single-file HTML tools — no build system, no package manager, no external JS dependencies (only Google Fonts).
+**Overall:** HTML tool pages built on shared assets — no build system, no package manager, only Google Fonts as an external dependency.
 
 **Key Characteristics:**
 
-- Each tool is a standalone `.html` file that runs immediately in a browser without a build step
-- All code (HTML, CSS, JavaScript) is contained in a single file
+- Each tool is one `.html` page that runs immediately in a browser without a build step, just by opening it
+- Tool-specific HTML, CSS and JS live in the page; shared helpers come from `assets/nt-*.js`, loaded as classic scripts immediately before the page's own inline script
 - Vanilla JavaScript (ES5+ compatible) with no frameworks or transpilation
 - SVG-rendered diagrams using `document.createElementNS` and manual geometry calculation
 - CSS custom properties (`:root` variables) for theme support (day/night mode)
@@ -99,19 +100,27 @@ last_mapped_at: 2026-09-23
 - Depends on: localStorage API
 - Used by: Every page includes `<link rel="stylesheet" href="../assets/site.css">` and `<script defer src="../assets/theme.js"></script>`
 
+**Shared Modules:**
+
+- Purpose: Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, and diagram layout algorithms used by more than one tool
+- Location: `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, each assigning one frozen object to its own `window.NT` namespace (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`)
+- Contains: the exported functions/constants listed in Key Abstractions below
+- Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded
+- Used by: every tool page that imports one or more `NT.NAME` namespaces via its import block
+
 **Business Logic (Math):**
 
 - Purpose: Number-theory algorithms (primality testing, factorization, modular arithmetic, RSA crypto)
-- Location: Top of each tool's `<script>` block (pure functions like `isPrime`, `primeFactors`, `modPow`)
+- Location: `assets/nt-core.js` (`NT.core` — plain-Number math) and `assets/nt-bigint.js` (`NT.bigint` — BigInt-domain math); a tool imports the functions it needs via the import block at the top of its inline `<script>`
 - Contains: Stateless utility functions for computation
-- Depends on: JavaScript BigInt (RSA tool only) for large number arithmetic
+- Depends on: JavaScript BigInt (`NT.bigint`, used by RSA, Diffie-Hellman Key Exchange, Square and Multiply) for large-number arithmetic
 - Used by: Render functions and event handlers
 
 **Rendering (SVG):**
 
 - Purpose: Geometry calculation and SVG element creation
-- Location: Render functions within each tool's `<script>` (e.g., `render()`, `draw()`)
-- Contains: `svgEl` helper (repeated across tools) for creating SVG elements, layout math (polar coordinates, tree positioning, grid cells)
+- Location: `assets/nt-svg.js` (`NT.svg.svgEl` plus polar/annular-sector geometry) and `assets/nt-layout.js` (`NT.layout`'s nested-squares and factor-tree geometry); render functions within each tool's own `<script>` (e.g., `render()`, `draw()`) consume these and add tool-specific drawing
+- Contains: `NT.svg.svgEl` for creating SVG elements, `NT.svg`/`NT.layout` layout math (polar coordinates, tree positioning, nested-square tiling)
 - Depends on: DOM APIs, browser SVG support
 - Used by: Animation and interactive feedback loops
 
@@ -175,19 +184,20 @@ last_mapped_at: 2026-09-23
 
 ## Key Abstractions
 
-**svgEl(tag, attrs):**
+**NT.svg.svgEl(tag, attrs):**
 
 - Purpose: Create SVG elements without typing `document.createElementNS` repeatedly
 - Examples: `svgEl('circle', {cx:100, cy:100, r:50})`, `svgEl('path', {d:'M0 0 L10 10'})`
 - Pattern: Wrapper around `document.createElementNS('http://www.w3.org/2000/svg', tag)` with batch attribute setting
-- Used by: All tools for diagram construction
+- Used by: Every tool that imports `NT.svg` for diagram construction
 
-**Geometry Helpers (tool-specific):**
+**Geometry Helpers (`NT.svg` / `NT.layout`):**
 
-- `polar(r, angleDeg)` — Convert polar coords to Cartesian for SVG placement
-- `annularSectorPath(...)` — SVG path for pizza-slice wedges
-- `treeLayout(...)` — Recursive positioning for factor tree branches
-- Pattern: Pure functions returning coordinates or path strings; state-agnostic
+- `polar(cx, cy, r, angleDeg)` — Convert polar coords to Cartesian for SVG placement (centre passed explicitly, so any page can use its own)
+- `annularSectorPath(cx, cy, rInner, rOuter, startDeg, endDeg)` — SVG path for pizza-slice wedges
+- `computeNestedLayout(steps, tileCap)` — Euclidean nested-squares tiling geometry
+- `buildFactorTree(v, { balanced, maxIter })` with `assignTreeX`/`flattenTree` — recursive factor-tree structure and layout
+- Pattern: Pure functions returning coordinates, path strings, or plain node/edge data; state-agnostic
 
 **State Object (closure-scoped per tool):**
 
@@ -225,27 +235,31 @@ last_mapped_at: 2026-09-23
 ## Architectural Constraints
 
 - **Threading:** Single-threaded event loop (browser JS standard). Animation via `requestAnimationFrame` and `setTimeout`; no Web Workers used.
-- **Global state:** Each tool's state lives in a closure-scoped object; no module-level singletons shared between tools. Theme preference stored in `localStorage`.
-- **Circular imports:** No imports; single-file architecture prevents this.
+- **Global state:** Each tool's own UI/animation state lives in a closure-scoped object — no tool shares its own state via a module-level singleton. `window.NT` is the one shared global, and each of its sub-namespaces (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`) is frozen after construction; no page may assign to `NT` or to any of its members. Theme preference is stored in `localStorage`.
+- **Module dependency direction:** Tools depend on `NT.*` modules, never the reverse; `nt-layout.js` depends on `nt-core.js` (and throws if loaded without it); no module depends on a tool. No ES modules are used, so every page still works when opened over `file://`.
 - **No build step:** All code runs as-is in browser; no transpilation, minification, or bundling.
-- **Dependency isolation:** Each tool is self-contained; math functions are duplicated per-file by default, the original single-file rationale. That is no longer a hard constraint — a shared JS logic module under `assets/` is permitted when sharing is the better engineering call.
+- **Module boundary:** Each helper exists once, in the matching `assets/nt-*.js` file; a tool includes only the modules whose namespaces it imports.
+- **Load order:** A page's `nt-*.js` `<script src>` tags are plain and non-deferred, placed immediately before its own inline `<script>`, because that inline script calls shared helpers synchronously at IIFE top level (starting with its own import block).
 - **BigInt support:** RSA tool uses native `BigInt` for key generation and modular exponentiation; requires modern browser (not IE11 or earlier).
 - **SVG rendering:** All diagrams hand-drawn via path/circle/text elements; no charting library (D3, Recharts, etc.).
 
 ## Anti-Patterns
 
-### Architectural Smell: Copy-Paste Math Functions
+### Architectural Smell: Shadowing a Shared Helper
 
-**What happens:** Prime-testing, factorization, and GCD functions are duplicated across multiple tool files (e.g., `isPrime` appears in both factor-tree.html and sieve-of-eratosthenes.html).
+**What happens:** A tool declares a local function or variable with the same name as an export it already imports from `NT` (e.g. a local `function clamp(...)` in a page that also runs `const { clamp } = NT.core;`).
 
-**Why it's wrong:** Maintenance burden — if a bug is found in `isPrime`, it must be fixed in multiple places. Inconsistent updates lead to diverging implementations.
+**Why it's wrong:** The local declaration silently shadows the import — the page still runs, but its behavior has quietly diverged from every other tool that calls `NT.core.clamp`, and a fix later landed in `assets/nt-core.js` never reaches this page.
 
-**Do this instead:** Duplication is the historical default, chosen to keep each tool self-contained — it is no longer a hard rule, and extracting a shared JS logic module under `assets/` is allowed when sharing is the better engineering call. While a function is still duplicated, if you discover a bug in one copy:
+**Do this instead:** Fix the behavior once, in the owning `assets/nt-*.js` module, and let every importing tool pick it up automatically. `shadow-check.js`'s SHADOW gate flags a local declaration that shadows an `NT` export.
 
-1. Fix it in the tool file where the bug manifests (`git diff` will show you which file)
-2. Grep for the same function in other tools: `grep -n "function isPrime" */*.html`
-3. Port the fix to all instances with the same change
-4. Cite the bug fix in the commit message to clarify the multi-file edit
+### Architectural Smell: Deferred or Modular Shared-Module Includes
+
+**What happens:** A page includes an `assets/nt-*.js` module with `defer`, `async`, or `type="module"`.
+
+**Why it's wrong:** A tool's inline `<script>` calls shared helpers synchronously at the top of its IIFE, starting with its own import block; a deferred or async module load runs after that point, so the import block throws (`NT` or a namespace is undefined) the first time the page tries to render. `type="module"` additionally breaks the page when opened directly over `file://`, since browsers block ES module imports on that origin.
+
+**Do this instead:** Include every `assets/nt-*.js` module as a plain `<script src>` — no `defer`, no `async`, no `type="module"` — immediately before the tool's own inline script, in the canonical order core, bigint, svg, store, layout.
 
 ### Architectural Smell: Monolithic Tool File (1000+ lines)
 
@@ -255,14 +269,14 @@ last_mapped_at: 2026-09-23
 
 **Do this instead:** Refactor the `<script>` block into logical sections with clear comments and helper functions:
 
-- Math functions at top (e.g., `primeFactors`, `isPrime`)
-- Geometry/layout helpers (e.g., `polar`, `svgEl`)
+- Import block from `NT` (one `const { ... } = NT.NAME;` line per namespace used, first thing in the script)
+- Tool-specific geometry/helper functions not already covered by an `NT` import
 - State initialization and defaults
 - Render functions (rebuild DOM/SVG)
 - Event handler wiring (input, button, keyboard)
 - Initialization on DOMContentLoaded
 
-See `Congruence Wheel/congruence-wheel.html` (562 lines, well-sectioned) as a model.
+See `Equivalence Wheel/equivalence-wheel.html` as a model.
 
 ### Architectural Smell: Tight Coupling to localStorage Key Name
 

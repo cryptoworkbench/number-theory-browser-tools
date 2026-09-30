@@ -76,7 +76,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 ## Performance Characteristics
 
-- Inline, pure JavaScript number-theory functions (no optimization libraries):
+- Pure JavaScript number-theory functions (no optimization libraries), living in `assets/nt-core.js` (`NT.core`, plain `Number` domain) and `assets/nt-bigint.js` (`NT.bigint`, `BigInt` domain):
 - Optimized for clarity over performance; suitable for educational visualization
 - Trial division for factorization (no advanced sieves or Pollard's rho)
 - SVG for all diagrams (hand-drawn via `document.createElementNS`, not canvas)
@@ -92,13 +92,13 @@ An educational website of interactive, visualization-led browser tools that make
 ## Naming Patterns
 
 - HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa.html`
-- Shared assets use kebab-case: `site.css`, `theme.js`
+- Shared assets use kebab-case: `site.css`, `theme.js`, `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`
 - Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA`
 - camelCase for all variable declarations: `nRange`, `depthRange`, `dynGroup`, `refList`, `messageEl`
 - Computed geometric constants also camelCase: `wedgeAngle`, `ringWidth`, `levelHeight`
 - DOM elements: `numInput`, `equationEl`, `treeArea`, `generateBtn`, `playBtn`
 - camelCase for all function names: `primeFactors()`, `smallestPrimeFactor()`, `isPrime()`, `render()`, `select()`, `persist()`
-- Descriptive names indicating purpose: `buildTree()`, `assignX()`, `flatten()`, `pinePath()`, `svgEl()`, `modPowPlain()`, `extendedGcdSteps()`
+- Descriptive names indicating purpose: `buildFactorTree()`, `assignTreeX()`, `flattenTree()`, `pinePath()`, `svgEl()`, `modPowPlain()`, `extendedGcdSteps()`
 - Prefixed with underscore pattern not used; instead, functions are organized by section with comments
 - All caps for module-level constants in some tools: `CX`, `CY`, `HOLE_R`, `OUTER_R`, `LIFT`, `SVG_NS`
 - camelCase for named constant objects: `SPEED_LABELS`, `STORAGE_KEY`, `LIGHT_COLORS`
@@ -110,9 +110,9 @@ An educational website of interactive, visualization-led browser tools that make
 - Indentation: 2 spaces (observed consistently across all files)
 - Line length: No strict limit; lines typically 80-100 characters
 - Semicolons: Present and used consistently
-- All tools are single-file HTML documents
-- Inline `<style>` block in `<head>` (no external CSS except shared `assets/site.css`)
-- Inline `<script>` block at end of `<body>`
+- Each tool is one HTML page; shared JS logic lives in `assets/nt-*.js` (site chrome lives in `assets/site.css`/`assets/theme.js`)
+- Inline `<style>` block in `<head>` (no external CSS except shared `assets/palette.css`/`assets/site.css`)
+- Inline `<script>` block at end of `<body>`, preceded by the `assets/nt-*.js` modules the tool imports
 - IIFE-wrapped main logic: `(function(){ ... })();`
 - Event listeners wired at bottom of IIFE
 - ES6 syntax used in newer tools (const/let, arrow functions, template literals)
@@ -132,9 +132,12 @@ An educational website of interactive, visualization-led browser tools that make
 - Shared theme script (deferred): `<script defer src="../assets/theme.js"></script>`
 - Google Fonts via link tag: `<link href="https://fonts.googleapis.com/css2?family=..." rel="stylesheet">`
 - Theme detection script inline in `<head>` to prevent flash of wrong theme
-- Single-file design precludes import/require statements
-- Math utility functions (primeFactors, isPrime, modPow) are duplicated per-file by default; a shared JS logic module under `assets/` is permitted when logic must stay identical across pages
-- SVG helper function `svgEl()` is repeated verbatim across tools
+- `<script src="../assets/nt-core.js"></script>` — plain, non-deferred, no `type="module"`, so the module runs synchronously before the tool's own script
+- Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout
+- The tool's inline `<script>` opens with an import block, e.g. `const { clamp, randomInt, unitsMod } = NT.core;`
+- Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used
+- Names within an import line are sorted alphabetically
+- A tool never redefines or mutates an `NT` member — `NT` and its namespaces are frozen
 
 ## Error Handling
 
@@ -170,10 +173,10 @@ An educational website of interactive, visualization-led browser tools that make
 
 ## Module Design
 
-- No explicit exports (single-file design)
-- Window-level state sometimes avoided; most state is module-scoped
+- Shared modules export by assigning one frozen object to `window.NT.NAME` (`assets/nt-core.js` → `NT.core`, and so on); tool pages export nothing
+- Window-level state sometimes avoided; most tool-specific state is module-scoped
 - Event listeners and DOM queries use module-scoped variables
-- Not applicable — each tool is a complete, standalone HTML file
+- Not applicable — each tool is its own page plus the `assets/nt-*.js` modules it includes
 
 ## Shared Patterns
 
@@ -200,11 +203,12 @@ An educational website of interactive, visualization-led browser tools that make
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
+| Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, and diagram layouts used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js` |
 
 ## Pattern Overview
 
-- Each tool is a standalone `.html` file that runs immediately in a browser without a build step
-- All code (HTML, CSS, JavaScript) is contained in a single file
+- Each tool is one `.html` page that runs immediately in a browser without a build step, just by opening it
+- Tool-specific HTML, CSS and JS live in the page; shared helpers come from `assets/nt-*.js`, loaded as classic scripts immediately before the page's own inline script
 - Vanilla JavaScript (ES5+ compatible) with no frameworks or transpilation
 - SVG-rendered diagrams using `document.createElementNS` and manual geometry calculation
 - CSS custom properties (`:root` variables) for theme support (day/night mode)
@@ -228,14 +232,19 @@ An educational website of interactive, visualization-led browser tools that make
 - Contains: Sticky header HTML (included in each page's markup), CSS for layout, JavaScript for theme persistence
 - Depends on: localStorage API
 - Used by: Every page includes `<link rel="stylesheet" href="../assets/site.css">` and `<script defer src="../assets/theme.js"></script>`
+- Purpose: Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, and diagram layout algorithms used by more than one tool
+- Location: `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, each assigning one frozen object to its own `window.NT` namespace (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`)
+- Contains: the exported functions/constants listed in Key Abstractions below
+- Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded
+- Used by: every tool page that imports one or more `NT.NAME` namespaces via its import block
 - Purpose: Number-theory algorithms (primality testing, factorization, modular arithmetic, RSA crypto)
-- Location: Top of each tool's `<script>` block (pure functions like `isPrime`, `primeFactors`, `modPow`)
+- Location: `assets/nt-core.js` (`NT.core` — plain-Number math) and `assets/nt-bigint.js` (`NT.bigint` — BigInt-domain math); a tool imports the functions it needs via the import block at the top of its inline `<script>`
 - Contains: Stateless utility functions for computation
-- Depends on: JavaScript BigInt (RSA tool only) for large number arithmetic
+- Depends on: JavaScript BigInt (`NT.bigint`, used by RSA, Diffie-Hellman Key Exchange, Square and Multiply) for large-number arithmetic
 - Used by: Render functions and event handlers
 - Purpose: Geometry calculation and SVG element creation
-- Location: Render functions within each tool's `<script>` (e.g., `render()`, `draw()`)
-- Contains: `svgEl` helper (repeated across tools) for creating SVG elements, layout math (polar coordinates, tree positioning, grid cells)
+- Location: `assets/nt-svg.js` (`NT.svg.svgEl` plus polar/annular-sector geometry) and `assets/nt-layout.js` (`NT.layout`'s nested-squares and factor-tree geometry); render functions within each tool's own `<script>` (e.g., `render()`, `draw()`) consume these and add tool-specific drawing
+- Contains: `NT.svg.svgEl` for creating SVG elements, `NT.svg`/`NT.layout` layout math (polar coordinates, tree positioning, nested-square tiling)
 - Depends on: DOM APIs, browser SVG support
 - Used by: Animation and interactive feedback loops
 - Purpose: Track user inputs, selections, and animation progress
@@ -273,11 +282,12 @@ An educational website of interactive, visualization-led browser tools that make
 - Purpose: Create SVG elements without typing `document.createElementNS` repeatedly
 - Examples: `svgEl('circle', {cx:100, cy:100, r:50})`, `svgEl('path', {d:'M0 0 L10 10'})`
 - Pattern: Wrapper around `document.createElementNS('http://www.w3.org/2000/svg', tag)` with batch attribute setting
-- Used by: All tools for diagram construction
-- `polar(r, angleDeg)` — Convert polar coords to Cartesian for SVG placement
-- `annularSectorPath(...)` — SVG path for pizza-slice wedges
-- `treeLayout(...)` — Recursive positioning for factor tree branches
-- Pattern: Pure functions returning coordinates or path strings; state-agnostic
+- Used by: Every tool that imports `NT.svg` for diagram construction
+- `polar(cx, cy, r, angleDeg)` — Convert polar coords to Cartesian for SVG placement (centre passed explicitly, so any page can use its own)
+- `annularSectorPath(cx, cy, rInner, rOuter, startDeg, endDeg)` — SVG path for pizza-slice wedges
+- `computeNestedLayout(steps, tileCap)` — Euclidean nested-squares tiling geometry
+- `buildFactorTree(v, { balanced, maxIter })` with `assignTreeX`/`flattenTree` — recursive factor-tree structure and layout
+- Pattern: Pure functions returning coordinates, path strings, or plain node/edge data; state-agnostic
 - Structure: `{ paramName: value, ...}` plus `selected: idx` for interactive selections
 - Lifecycle: Initialized at startup (defaults or localStorage), modified on user input, persisted, triggers render
 - Example: `state = { N: 10, depth: 6, selected: 0 }` in Congruence Wheel
@@ -301,21 +311,24 @@ An educational website of interactive, visualization-led browser tools that make
 ## Architectural Constraints
 
 - **Threading:** Single-threaded event loop (browser JS standard). Animation via `requestAnimationFrame` and `setTimeout`; no Web Workers used.
-- **Global state:** Each tool's state lives in a closure-scoped object; no module-level singletons shared between tools. Theme preference stored in `localStorage`.
-- **Circular imports:** No imports; single-file architecture prevents this.
+- **Global state:** Each tool's own UI/animation state lives in a closure-scoped object — no tool shares its own state via a module-level singleton. `window.NT` is the one shared global, and each of its sub-namespaces (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`) is frozen after construction; no page may assign to `NT` or to any of its members. Theme preference is stored in `localStorage`.
+- **Module dependency direction:** Tools depend on `NT.*` modules, never the reverse; `nt-layout.js` depends on `nt-core.js` (and throws if loaded without it); no module depends on a tool. No ES modules are used, so every page still works when opened over `file://`.
 - **No build step:** All code runs as-is in browser; no transpilation, minification, or bundling.
-- **Dependency isolation:** Each tool is self-contained; math functions are duplicated per-file by default, the original single-file rationale. That is no longer a hard constraint — a shared JS logic module under `assets/` is permitted when sharing is the better engineering call.
+- **Module boundary:** Each helper exists once, in the matching `assets/nt-*.js` file; a tool includes only the modules whose namespaces it imports.
+- **Load order:** A page's `nt-*.js` `<script src>` tags are plain and non-deferred, placed immediately before its own inline `<script>`, because that inline script calls shared helpers synchronously at IIFE top level (starting with its own import block).
 - **BigInt support:** RSA tool uses native `BigInt` for key generation and modular exponentiation; requires modern browser (not IE11 or earlier).
 - **SVG rendering:** All diagrams hand-drawn via path/circle/text elements; no charting library (D3, Recharts, etc.).
 
 ## Anti-Patterns
 
-### Architectural Smell: Copy-Paste Math Functions
+### Architectural Smell: Shadowing a Shared Helper
+
+### Architectural Smell: Deferred or Modular Shared-Module Includes
 
 ### Architectural Smell: Monolithic Tool File (1000+ lines)
 
-- Math functions at top (e.g., `primeFactors`, `isPrime`)
-- Geometry/layout helpers (e.g., `polar`, `svgEl`)
+- Import block from `NT` (one `const { ... } = NT.NAME;` line per namespace used, first thing in the script)
+- Tool-specific geometry/helper functions not already covered by an `NT` import
 - State initialization and defaults
 - Render functions (rebuild DOM/SVG)
 - Event handler wiring (input, button, keyboard)

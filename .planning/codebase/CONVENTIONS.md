@@ -11,7 +11,7 @@ last_mapped_at: 2026-09-23
 **Files:**
 
 - HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa.html`
-- Shared assets use kebab-case: `site.css`, `theme.js`
+- Shared assets use kebab-case: `site.css`, `theme.js`, `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`
 - Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA`
 
 **Variables:**
@@ -23,7 +23,7 @@ last_mapped_at: 2026-09-23
 **Functions:**
 
 - camelCase for all function names: `primeFactors()`, `smallestPrimeFactor()`, `isPrime()`, `render()`, `select()`, `persist()`
-- Descriptive names indicating purpose: `buildTree()`, `assignX()`, `flatten()`, `pinePath()`, `svgEl()`, `modPowPlain()`, `extendedGcdSteps()`
+- Descriptive names indicating purpose: `buildFactorTree()`, `assignTreeX()`, `flattenTree()`, `pinePath()`, `svgEl()`, `modPowPlain()`, `extendedGcdSteps()`
 - Prefixed with underscore pattern not used; instead, functions are organized by section with comments
 
 **Constants:**
@@ -43,9 +43,9 @@ last_mapped_at: 2026-09-23
 
 **Structure:**
 
-- All tools are single-file HTML documents
-- Inline `<style>` block in `<head>` (no external CSS except shared `assets/site.css`)
-- Inline `<script>` block at end of `<body>`
+- Each tool is one HTML page; shared JS logic lives in `assets/nt-*.js` (site chrome lives in `assets/site.css`/`assets/theme.js`)
+- Inline `<style>` block in `<head>` (no external CSS except shared `assets/palette.css`/`assets/site.css`)
+- Inline `<script>` block at end of `<body>`, preceded by the `assets/nt-*.js` modules the tool imports
 - IIFE-wrapped main logic: `(function(){ ... })();`
 - Event listeners wired at bottom of IIFE
 
@@ -74,11 +74,17 @@ last_mapped_at: 2026-09-23
 - Google Fonts via link tag: `<link href="https://fonts.googleapis.com/css2?family=..." rel="stylesheet">`
 - Theme detection script inline in `<head>` to prevent flash of wrong theme
 
-**No JavaScript imports:**
+**Shared module includes:**
 
-- Single-file design precludes import/require statements
-- Math utility functions (primeFactors, isPrime, modPow) are duplicated per-file by default; a shared JS logic module under `assets/` is permitted when logic must stay identical across pages
-- SVG helper function `svgEl()` is repeated verbatim across tools
+- `<script src="../assets/nt-core.js"></script>` — plain, non-deferred, no `type="module"`, so the module runs synchronously before the tool's own script
+- Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout
+- The tool's inline `<script>` opens with an import block, e.g. `const { clamp, randomInt, unitsMod } = NT.core;`
+
+**NT import pattern:**
+
+- Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used
+- Names within an import line are sorted alphabetically
+- A tool never redefines or mutates an `NT` member — `NT` and its namespaces are frozen
 
 ## Error Handling
 
@@ -214,13 +220,13 @@ function select(idx){
 
 **Exports:**
 
-- No explicit exports (single-file design)
-- Window-level state sometimes avoided; most state is module-scoped
+- Shared modules export by assigning one frozen object to `window.NT.NAME` (`assets/nt-core.js` → `NT.core`, and so on); tool pages export nothing
+- Window-level state sometimes avoided; most tool-specific state is module-scoped
 - Event listeners and DOM queries use module-scoped variables
 
 **Barrel Files:**
 
-- Not applicable — each tool is a complete, standalone HTML file
+- Not applicable — each tool is its own page plus the `assets/nt-*.js` modules it includes
 
 **Module Scope Pattern:**
 
@@ -252,7 +258,7 @@ function select(idx){
 
 ## Shared Patterns
 
-**SVG Helper (duplicated per-file):**
+**SVG Helper (`NT.svg.svgEl`, `assets/nt-svg.js`):**
 
 ```javascript
 function svgEl(tag, attrs){
@@ -261,6 +267,8 @@ function svgEl(tag, attrs){
   return el;
 }
 ```
+
+**Shared module skeleton:** Every `assets/nt-*.js` file follows the same shape — a classic `(function(){ "use strict"; ... })();` IIFE, `var NT = window.NT = window.NT || {};` to get or create the root, one or more helper function declarations, then a single `NT.NAME = Object.freeze({ ... });` assignment at the end that exports the module's public functions and constants by name.
 
 **Generation Counter (cancellation pattern):**
 Tools with long-running animations use a `generation` counter to invalidate stale callbacks:
