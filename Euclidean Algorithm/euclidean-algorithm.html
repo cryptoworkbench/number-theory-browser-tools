@@ -365,32 +365,19 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
+<script src="../assets/nt-layout.js"></script>
 <script>
 (function(){
 "use strict";
 
-/* ---------- math helpers ---------- */
-
-// Forward extended-Euclidean recurrence. Computes q/r alongside the Bezout
-// coefficients s/t in a single forward pass — no back-substitution needed.
-// Returns { steps, gcd, s, t } where gcd === s*a + t*b for the original a,b.
-function euclidSteps(a, b){
-  var steps = [];
-  var r0 = a, r1 = b;
-  var s0 = 1, s1 = 0;
-  var t0 = 0, t1 = 1;
-  while (r1 !== 0){
-    var q = Math.floor(r0 / r1);
-    var r2 = r0 - q * r1;
-    var s2 = s0 - q * s1;
-    var t2 = t0 - q * t1;
-    steps.push({ a: r0, b: r1, q: q, r: r2, s: s2, t: t2 });
-    r0 = r1; r1 = r2;
-    s0 = s1; s1 = s2;
-    t0 = t1; t1 = t2;
-  }
-  return { steps: steps, gcd: r0, s: s0, t: t0 };
-}
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { euclidSteps } = NT.core;
+const { svgEl } = NT.svg;
+const { SHARED_AB_KEY, readABParams, readSharedAB, writeSharedAB } = NT.store;
+const { TILE_CAP, computeNestedLayout } = NT.layout;
 
 /* ---------- DOM references ---------- */
 
@@ -429,41 +416,10 @@ var MAX_INPUT = 1000000;
 
 /* ---------- shared a/b params ---------- */
 // a and b are ONE setting shared with the sibling Venn Diagram tool's
-// two-circle view -- not a private per-tool value. The cookie mirror exists
-// for the same file:// origin-partitioning reason assets/theme.js documents
-// for its own theme setting. Each tool clamps the shared pair to its own
-// ceiling on read; a clamped read is display-only and is never written back.
-var SHARED_AB_KEY = 'ab-params';
-
-function readSharedAB(){
-  var raw = null;
-  try{
-    var m = new RegExp('(?:^|; *)' + SHARED_AB_KEY + '=([^;]*)').exec(document.cookie || '');
-    if (m) raw = decodeURIComponent(m[1]);
-  }catch(e){}
-  if (raw === null){
-    try{ raw = localStorage.getItem(SHARED_AB_KEY); }catch(e){}
-  }
-  if (!raw) return null;
-  var parsed = null;
-  try{ parsed = JSON.parse(raw); }catch(e){ return null; }
-  if (!parsed || typeof parsed !== 'object') return null;
-  if (typeof parsed.a !== 'number' || !Number.isInteger(parsed.a)) return null;
-  if (typeof parsed.b !== 'number' || !Number.isInteger(parsed.b)) return null;
-  if (parsed.a < 0 || parsed.b < 0) return null;
-  if (parsed.a === 0 && parsed.b === 0) return null;
-  return { a: parsed.a, b: parsed.b };
-}
-
-function writeSharedAB(a, b){
-  var payload = JSON.stringify({ a: a, b: b });
-  var current = readSharedAB();
-  if (current && JSON.stringify({ a: current.a, b: current.b }) === payload) return;
-  try{ localStorage.setItem(SHARED_AB_KEY, payload); }catch(e){}
-  try{
-    document.cookie = SHARED_AB_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax';
-  }catch(e){}
-}
+// two-circle view -- not a private per-tool value, read/written via
+// assets/nt-store.js (SHARED_AB_KEY, readSharedAB, writeSharedAB). Each
+// tool clamps the shared pair to its own ceiling on read; a clamped read
+// is display-only and is never written back.
 
 var sharedAB = readSharedAB();
 if (sharedAB){
@@ -557,28 +513,10 @@ function shareFieldsToSharedStore(){
   if (f) writeSharedAB(f.a, f.b);
 }
 
-function readABParams(){
-  var ma, mb;
-  try{
-    ma = /[?&]a=([^&#]*)/.exec(location.search);
-    mb = /[?&]b=([^&#]*)/.exec(location.search);
-  }catch(e){
-    return null;
-  }
-  if (!ma || !mb) return null;
-  var a, b;
-  try{
-    a = parseInt(decodeURIComponent(ma[1]), 10);
-    b = parseInt(decodeURIComponent(mb[1]), 10);
-  }catch(e){
-    return null;
-  }
-  if (!isFinite(a) || !isFinite(b) || a < 0 || b < 0) return null;
-  if (a === 0 && b === 0) return null;
-  return { a: a, b: b };
-}
-
-// Mirrors readABParams's defensive shape: the regex match and decode both sit inside a try/catch that returns false on any throw, and the result is compared for exact string equality against '1', never tested for truthiness.
+// Mirrors NT.store.readABParams's defensive shape (assets/nt-store.js): the
+// regex match and decode both sit inside a try/catch that returns false on
+// any throw, and the result is compared for exact string equality against
+// '1', never tested for truthiness.
 function readExtParam(){ try{ var me = /[?&]ext=([^&#]*)/.exec(location.search); return !!me && decodeURIComponent(me[1]) === '1'; }catch(e){ return false; } }
 
 /* ---------- render ---------- */
@@ -632,22 +570,6 @@ function renderAnswer(run){
 }
 
 /* ---------- geometric view ---------- */
-
-var SVG_NS = 'http://www.w3.org/2000/svg';
-function svgEl(tag, attrs){
-  var el = document.createElementNS(SVG_NS, tag);
-  for (var key in attrs) el.setAttribute(key, attrs[key]);
-  return el;
-}
-
-// Cap on drawn squares per step (GCD-05 / D-01). The rectangle-tiling
-// metaphor's natural node count is the quotient, which is unbounded
-// independent of step count -- gcd(500000, 2) has a first-step quotient
-// of 250000. Capping at 40 keeps every step's diagram at or under 43
-// total rect nodes (40 squares + 1 collapsed tile + 1 leftover + 1
-// frame), so a huge quotient renders instantly instead of freezing the
-// tab, regardless of input size.
-var TILE_CAP = 40;
 
 var TILE_LEFT = 24, TILE_TOP = 34, TILE_RIGHT = 130, TILE_BOTTOM = 46;
 var TILE_VB_W = 900, TILE_VB_H = 360;
@@ -797,56 +719,6 @@ var NEST_DRAW_W = NEST_VB_W - NEST_LEFT - NEST_RIGHT;
 var NEST_DRAW_H = NEST_VB_H - NEST_TOP - NEST_BOTTOM;
 var NEST_ARIA_DEFAULT = 'All division steps nested into a single rectangle';
 
-// Builds the unit-space layout (no pixel scale yet) by walking the same
-// step list buildTiles() uses one at a time, but recursing into each
-// step's leftover instead of stopping after one. Reuses TILE_CAP so a
-// step with an enormous quotient still only ever emits TILE_CAP+1 rects
-// here too, for the same reason buildTiles() caps it.
-function computeNestedLayout(steps){
-  if (!steps || steps.length === 0) return null;
-  var rects = [];
-  var cappedSteps = [];
-
-  function place(i, x, y, w, h, vertical){
-    var step = steps[i];
-    var b = step.b, q = step.q, r = step.r;
-    var drawn = Math.min(q, TILE_CAP);
-    var capped = q > TILE_CAP;
-    if (capped) cappedSteps.push(i);
-    var k, pos, used;
-    if (!vertical){
-      pos = x;
-      for (k = 0; k < drawn; k++){
-        rects.push({ type: 'square', x: pos, y: y, w: b, h: b, step: i, first: k === 0 });
-        pos += b;
-      }
-      if (capped){
-        rects.push({ type: 'cap', x: pos, y: y, w: b, h: b, step: i, extra: q - drawn });
-        pos += b;
-      }
-      used = pos - x;
-      if (r > 0) used += place(i + 1, pos, y, r, h, true).w;
-      return { w: used, h: h };
-    } else {
-      pos = y;
-      for (k = 0; k < drawn; k++){
-        rects.push({ type: 'square', x: x, y: pos, w: b, h: b, step: i, first: k === 0 });
-        pos += b;
-      }
-      if (capped){
-        rects.push({ type: 'cap', x: x, y: pos, w: b, h: b, step: i, extra: q - drawn });
-        pos += b;
-      }
-      used = pos - y;
-      if (r > 0) used += place(i + 1, x, pos, w, r, false).h;
-      return { w: w, h: used };
-    }
-  }
-
-  var top = place(0, 0, 0, steps[0].a, steps[0].b, false);
-  return { rects: rects, width: top.w, height: top.h, cappedSteps: cappedSteps };
-}
-
 function clearNested(){
   nestedSvg.innerHTML = '';
   nestedCaption.textContent = '';
@@ -871,6 +743,7 @@ function buildNestedView(run){
     return;
   }
 
+  // Shared with Factor Tree and Venn Diagram's hover miniature via NT.layout.
   var layout = computeNestedLayout(run.steps);
   var scale = Math.min(NEST_DRAW_W / layout.width, NEST_DRAW_H / layout.height);
 
@@ -1182,7 +1055,7 @@ window.addEventListener('storage', function(e){
 
 window.addEventListener('load', function(){
   speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
-  var abParams = readABParams();
+  var abParams = readABParams(true);
   if (abParams){
     aInput.value = abParams.a;
     bInput.value = abParams.b;
