@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
-stopped_at: "Completed quick task 260929-twn: Added Group Isomorphism tool (14th tool) showing Z/nZ vs (Z/mZ)* as paired wheels, registered site-wide"
-last_updated: "2026-09-29T21:05:53.591Z"
+stopped_at: "Completed quick task 260930-ea7: Added Thumbnails on/off toolbar switch to the Venn Diagram tool, gated at appendCompositeBadge()'s hasPreview derivation"
+last_updated: "2026-09-30T08:43:28.839Z"
 last_activity: 2026-09-29
 last_activity_desc: "Completed quick task 260929-qqt: the Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section, no scroll); double-click on any previewable chip resolves at click time to whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link"
-state_head: 4f4ec6e0bc077ebf39163e240667b8710e893236
+state_head: 5599156e1d373a75c1e445fd5a642a1ab6fce0a8
 progress:
   total_phases: 5
   completed_phases: 4
@@ -75,6 +75,7 @@ Progress: [████████░░] 80%
 | Phase 03 P02 | 20min | 2 tasks | 1 files |
 | Phase 03 P03 | ~90min (partial) | 2 of 3 tasks | 2 files |
 | Phase quick-260929-twn P01 | 35min | 3 tasks | 15 files |
+| Phase quick-260930-ea7 P01 | 7min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,7 @@ Recent decisions affecting current work:
 - [Phase 03]: [Phase 03 Plan 03]: TOOLING FAILURE -- the Bash/shell tool became non-functional partway through Task 3 (the phase-wide consolidated sweep). Tasks 1-2 were fully implemented, verified (headless-Chrome behavioral harnesses, vacuity-checked), and committed (236a18e, da21f64) before the failure. Task 3 itself, the gsd_run CLI state updates, and the final metadata commit could not be executed; STATE.md/ROADMAP.md/REQUIREMENTS.md were updated by hand in this session instead. See 03-03-SUMMARY.md "CRITICAL: Task 3 Not Completed" for full detail and recommended follow-up.
 - [Phase quick-260929-p80]: [Quick task 260929-p80]: Replaced the Venn Diagram tool's mutually-exclusive Hover-preview toolbar toggle with one combined, fixed-footprint (268x196) hover panel that stacks the Euclidean nested-squares view and the Balanced factor tree, scrollable by wheel and ArrowDown/ArrowUp (closing the keyboard gap the approved plan flagged, rather than shipping it as a known limitation); previewMode state/key/reader/setter/listeners deleted outright
 - [Phase quick-260929-twn]: [Quick task 260929-twn]: Added fourteenth tool (Group Isomorphism) — two single-ring SVG wheels for Z/nZ additive vs (Z/mZ)* multiplicative, all 49 isomorphic pairs up to m=100 derived at runtime via primitiveRoot(m) cyclicity test (no hardcoded classification); two-slot selection navigable from either wheel; registered across all fifteen pages
+- [Phase quick-260930-ea7]: Gated appendCompositeBadge()'s hasPreview local with state.thumbsEnabled -- one boolean AND at the single existing derivation point makes OFF genuinely inert everywhere (class, role/tabindex/aria-label vs title, all six listeners) without touching them individually
 
 ### Pending Todos
 
@@ -189,6 +191,7 @@ None yet.
 | 260929-t2j | In the Factor Tree tool (Factor Tree/factor-tree.html), move the found-factorization result display to the bottom of the output (below the tree diagram), and make it more compact by combining repeated prime factors into exponent notation, showing both the expanded and compact exponent forms. | 2026-09-29 | 70fad75 | [260929-t2j-in-the-factor-tree-tool-factor-tree-fact](./quick/260929-t2j-in-the-factor-tree-tool-factor-tree-fact/) |
 | 47 | Create a new browser tool illustrating group isomorphism between Z/nZ (additive) and (Z/mZ)* (multiplicative) as two side-by-side wheels | 2026-09-29 | f1d11b8 | .planning/quick/260929-twn-create-a-new-browser-tool-illustrating-g/ |
 | 260929-uzr | Add a new tool that visualizes Elliptic Curve Diffie-Hellman (ECDH) key exchange, following this repo's established single-file tool pattern | 2026-09-29 | 4f4ec6e | [260929-uzr-add-a-new-tool-that-visualizes-elliptic-](./quick/260929-uzr-add-a-new-tool-that-visualizes-elliptic-/) |
+| 260930-ea7 | Give the Venn diagram tool a button that switches between modes: one mode has the thumbnail view ON, the other has the thumbnail view OFF. | 2026-09-30 | 5599156 | [260930-ea7-give-the-venn-diagram-tool-a-button-that](./quick/260930-ea7-give-the-venn-diagram-tool-a-button-that/) |
 
 ## Deferred Items
 
@@ -200,8 +203,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T20:14:33.967Z
-Stopped at: Completed quick task 260929-twn: Added Group Isomorphism tool (14th tool) showing Z/nZ vs (Z/mZ)* as paired wheels, registered site-wide
+Last session: 2026-09-30T08:41:47.473Z
+Stopped at: Completed quick task 260930-ea7: Added Thumbnails on/off toolbar switch to the Venn Diagram tool, gated at appendCompositeBadge()'s hasPreview derivation
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
