@@ -468,6 +468,10 @@
       <button type="button" id="mode-two" class="mode-btn" aria-pressed="true">Two circles</button>
       <button type="button" id="mode-three" class="mode-btn" aria-pressed="false">Three circles</button>
     </div>
+    <div class="mode-switch" role="group" aria-label="Hover thumbnails">
+      <button type="button" id="thumbs-on" class="mode-btn" aria-pressed="true">Thumbnails on</button>
+      <button type="button" id="thumbs-off" class="mode-btn" aria-pressed="false">Thumbnails off</button>
+    </div>
     <button type="button" id="randomize-btn">Randomize</button>
     <button type="button" id="clear-btn">Clear all</button>
   </div>
@@ -830,6 +834,7 @@
   var LEGACY_STORAGE_KEY3 = 'venn-diagrams-three';
   var MODE_STORAGE_KEY = 'venn-diagram-mode';
   var LEGACY_MODE_STORAGE_KEY = 'venn-diagrams-mode';
+  var THUMBS_STORAGE_KEY = 'venn-diagram-thumbnails';
 
   var svg3Root = document.getElementById('venn3');
   var svg3Static = document.getElementById('venn3-static');
@@ -839,6 +844,8 @@
   var previewLayer3 = document.getElementById('venn3-preview');
   var modeTwoBtn = document.getElementById('mode-two');
   var modeThreeBtn = document.getElementById('mode-three');
+  var thumbsOnBtn = document.getElementById('thumbs-on');
+  var thumbsOffBtn = document.getElementById('thumbs-off');
   var ledeTwo = document.getElementById('lede-two');
   var ledeThree = document.getElementById('lede-three');
   var frameTwo = document.getElementById('frame-two');
@@ -1005,7 +1012,7 @@
     return { regions: newLists, moved: moved, changed: changed, overflow: null };
   }
 
-  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1 };
+  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true };
 
   function svgEl(tag, attrs){
     var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -2156,7 +2163,7 @@
     var hasHref = !!(link && link.href);
     var hasTreeHref = !!(link && link.treeHref);
     var hasAnyHref = hasHref || hasTreeHref;
-    var hasPreview = !!(link && link.previewLayer);
+    var hasPreview = !!(link && link.previewLayer) && state.thumbsEnabled;
     // Linked-chip affordance follows "carries either target", not the
     // Euclidean one alone -- the centre chip now has a real click target
     // (the Factor Tree one) and must get the pointer cursor that goes with
@@ -2636,6 +2643,32 @@
     return (v === 'two' || v === 'three') ? v : null;
   }
 
+  function readStoredThumbs(){
+    var v;
+    try{ v = localStorage.getItem(THUMBS_STORAGE_KEY); }catch(e){ return true; }
+    // Only the exact stored string for "off" resolves to false -- absent,
+    // unparseable, empty and unrecognised values all come back true so a
+    // hand-edited or hostile value degrades to the working default.
+    return v !== 'off';
+  }
+
+  // Split in two, mirroring setMode()'s shape: applyThumbs() sets state and
+  // the button pair's aria-pressed and persists, without rendering, so
+  // load-time restore can run before setMode()'s own render() instead of
+  // forcing a second full render on every page load. setThumbs() is the
+  // click-driven setter that also renders.
+  function applyThumbs(enabled){
+    state.thumbsEnabled = enabled;
+    if (thumbsOnBtn) thumbsOnBtn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    if (thumbsOffBtn) thumbsOffBtn.setAttribute('aria-pressed', enabled ? 'false' : 'true');
+    try{ localStorage.setItem(THUMBS_STORAGE_KEY, enabled ? 'on' : 'off'); }catch(e){}
+  }
+
+  function setThumbs(enabled){
+    applyThumbs(enabled);
+    render();
+  }
+
   function setMode(mode){
     state.mode = mode;
     var isThree = mode === 'three';
@@ -2655,6 +2688,8 @@
   randomizeBtn.addEventListener('click', randomizeDiagram);
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
+  if (thumbsOnBtn) thumbsOnBtn.addEventListener('click', function(){ setThumbs(true); });
+  if (thumbsOffBtn) thumbsOffBtn.addEventListener('click', function(){ setThumbs(false); });
 
   /* ---------- live cross-document sync ---------- */
 
@@ -2732,6 +2767,7 @@
     canonicalizeOnLoad(threeCtx);
 
     var initialMode = abParams ? 'two' : (readModeParam() || readStoredMode() || 'two');
+    applyThumbs(readStoredThumbs());
     setMode(initialMode);
   });
 
