@@ -324,26 +324,13 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
 <script>
 (function(){
 "use strict";
 
-/* ---------- math helpers ---------- */
-
-// Duplicated from Euclidean Algorithm/euclidean-algorithm.html's euclidSteps,
-// with the Bezout coefficients dropped -- this file has no use for them.
-// Returns { steps, gcd } where steps is one {a, b, q, r} entry per division.
-function euclidStepsFor(a, b){
-  var steps = [];
-  var r0 = a, r1 = b;
-  while (r1 !== 0){
-    var q = Math.floor(r0 / r1);
-    var r2 = r0 - q * r1;
-    steps.push({ a: r0, b: r1, q: q, r: r2 });
-    r0 = r1; r1 = r2;
-  }
-  return { steps: steps, gcd: r0 };
-}
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { euclidSteps } = NT.core;
 
 /* ---------- DOM references ---------- */
 
@@ -431,7 +418,7 @@ function updateXrefLink(n){
 function buildEvents(n){
   var evts = [];
   for (var k = 1; k <= n - 1; k++){
-    var result = euclidStepsFor(n, k);
+    var result = euclidSteps(n, k);
     for (var i = 0; i < result.steps.length; i++){
       evts.push({ type: 'div', k: k, step: result.steps[i], index: i });
     }
@@ -646,7 +633,7 @@ function stepOnce(){
 // Click-to-inspect: re-renders a classified k's own division chain from
 // scratch, without touching any cell's classification or the tally.
 function showKChain(k){
-  var result = euclidStepsFor(currentN, k);
+  var result = euclidSteps(currentN, k);
   chain.innerHTML = '';
   chainHead.textContent = 'Testing k = ' + k + ' — gcd(' + currentN + ', ' + k + ')';
   for (var i = 0; i < result.steps.length; i++){
