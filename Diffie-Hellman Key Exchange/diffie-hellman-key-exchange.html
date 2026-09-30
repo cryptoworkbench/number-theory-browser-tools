@@ -358,69 +358,17 @@
   </div>
 </aside>
 
+<script src="../assets/nt-bigint.js"></script>
+<script src="../assets/nt-svg.js"></script>
 <script>
 (function(){
 "use strict";
 
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { fmt, isPrimeBig, modPowPlain, parseBigIntStrict, randomBigIntBits, randomBigIntInRange, scratchNum, shortVal } = NT.bigint;
+const { easeInOutCubic, svgEl } = NT.svg;
+
 /* ---------- number theory ---------- */
-
-function parseBigIntStrict(str, allowZero){
-  str = (str||'').trim();
-  if(!/^\d+$/.test(str)) throw new Error('not a nonnegative integer');
-  const v = BigInt(str);
-  if(!allowZero && v <= 0n) throw new Error('must be positive');
-  return v;
-}
-
-function fmt(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-function bigGcd(a,b){ a = a<0n?-a:a; b = b<0n?-b:b; while(b){ [a,b] = [b, a % b]; } return a; }
-
-function randomBigIntBits(bits){
-  if(bits <= 0) return 0n;
-  let hex = '', remaining = bits;
-  while(remaining > 0){
-    const chunk = Math.min(remaining, 32);
-    const val = Math.floor(Math.random() * Math.pow(2, chunk));
-    hex = val.toString(16) + hex;
-    remaining -= chunk;
-  }
-  return BigInt('0x' + (hex || '0'));
-}
-
-function randomBigIntInRange(min, max){
-  const range = max - min + 1n;
-  const bits = range.toString(2).length;
-  let x;
-  do { x = randomBigIntBits(bits); } while (x >= range);
-  return min + x;
-}
-
-function modPowPlain(base, exp, mod){
-  let result = 1n; base %= mod; if(base<0n) base += mod;
-  while(exp > 0n){ if(exp & 1n) result = (result*base) % mod; exp >>= 1n; base = (base*base) % mod; }
-  return result;
-}
-
-function isPrimeBig(n, rounds){
-  rounds = rounds || 20;
-  if(n < 2n) return false;
-  const small = [2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n];
-  for(const sp of small){ if(n === sp) return true; if(n % sp === 0n) return false; }
-  let d = n - 1n, r = 0n;
-  while(d % 2n === 0n){ d /= 2n; r++; }
-  witness: for(let i=0;i<rounds;i++){
-    const a = randomBigIntInRange(2n, n-2n);
-    let x = modPowPlain(a, d, n);
-    if(x === 1n || x === n-1n) continue;
-    for(let j=0n;j<r-1n;j++){
-      x = (x*x) % n;
-      if(x === n-1n) continue witness;
-    }
-    return false;
-  }
-  return true;
-}
 
 function factorSmall(n, cap){
   n = n < 0n ? -n : n;
@@ -452,11 +400,6 @@ function multiplicativeOrder(g, p){
   return order;
 }
 
-function shortVal(x){
-  const s = x.toString();
-  return s.length <= 12 ? s : s.slice(0, 8) + '…';
-}
-
 function buildExchange(p, g, a, b){
   const publicAlice = modPowPlain(g, a, p);
   const publicBob = modPowPlain(g, b, p);
@@ -483,13 +426,6 @@ function aesSentence(secret){
 }
 
 /* ---------- state ---------- */
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
-function svgEl(tag, attrs){
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const key in attrs) el.setAttribute(key, attrs[key]);
-  return el;
-}
 
 const $ = (id) => document.getElementById(id);
 
@@ -781,13 +717,6 @@ function revealAll(ex){
 }
 
 /* ---------- Public values reference panel ---------- */
-function scratchNum(x){
-  const s = fmt(x);
-  if(s.length <= 30) return s;
-  const digits = x.toString();
-  return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length})`;
-}
-
 function showScratchRow(id){
   const row = document.getElementById('scratch-row-' + id);
   if(row) row.classList.add('is-shown');
@@ -838,10 +767,6 @@ const EVE_P_Y = 365;
 const EVE_G_Y = 380;
 const EVE_A_Y = 395;
 const EVE_B_Y = 410;
-
-function easeInOutCubic(t){
-  return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2;
-}
 
 function packetDuration(){
   return Math.max(200, (SPEED_MS[parseInt(speedInput.value, 10)] || 800) * 0.8);
