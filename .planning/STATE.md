@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: ready
-stopped_at: "Completed quick task 260930-fnr: Added pinned read-only public-key reference panel to RSA tool (Bob/Alice e and n, scroll-past reveal via IntersectionObserver + live geometry recompute)"
-last_updated: "2026-09-30T10:22:44.126Z"
+stopped_at: "Completed quick task 260930-jlm: retargeted RSA public-key panel reveal trigger from whole-section-scrolled-past to the chosen-e line becoming readable"
+last_updated: "2026-09-30T12:34:50.820Z"
 last_activity: 2026-09-29
 last_activity_desc: "Completed quick task 260929-qqt: the Venn Diagram A∩B∩C centre chip now shows a Factor-Tree-only panel (no Euclidean section, no scroll); double-click on any previewable chip resolves at click time to whichever tool's section is currently scrolled into view, via a new Factor Tree ?n= deep link"
-state_head: 64bf006293c08146af593e2ff3e83e2d1e6315e2
+state_head: 6fed65cd5f63e253cfb44c35bd3b6bc91f21fc0d
 progress:
   total_phases: 5
   completed_phases: 4
@@ -76,6 +76,7 @@ Progress: [████████░░] 80%
 | Phase 03 P03 | ~90min (partial) | 2 of 3 tasks | 2 files |
 | Phase quick-260929-twn P01 | 35min | 3 tasks | 15 files |
 | Phase quick-260930-ea7 P01 | 7min | 2 tasks | 1 files |
+| Phase quick-260930-jlm P01 | 55min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,7 @@ Recent decisions affecting current work:
 - [Phase quick-260929-twn]: [Quick task 260929-twn]: Added fourteenth tool (Group Isomorphism) — two single-ring SVG wheels for Z/nZ additive vs (Z/mZ)* multiplicative, all 49 isomorphic pairs up to m=100 derived at runtime via primitiveRoot(m) cyclicity test (no hardcoded classification); two-slot selection navigable from either wheel; registered across all fifteen pages
 - [Phase quick-260930-ea7]: Gated appendCompositeBadge()'s hasPreview local with state.thumbsEnabled -- one boolean AND at the single existing derivation point makes OFF genuinely inert everywhere (class, role/tabindex/aria-label vs title, all six listeners) without touching them individually
 - [Phase quick-260930-fnr]: [Quick task 260930-fnr]: Added a pinned, aria-hidden, read-only public-key reference panel to the RSA tool (Bob/Alice e and n only), revealed per party once that party's key-generation section scrolls above the viewport; refactored the scroll-past flag from an IntersectionObserver-only-updated object to a live getBoundingClientRect() read inside a single updateScratchpad(), with the observer plus a rAF-throttled scroll listener both acting only as recompute triggers -- fixes a real staleness bug where an instantaneous scroll jump (Home key, back-to-top control) can skip the observer's threshold-crossing entirely
+- [Phase quick-260930-jlm]: [Quick task 260930-jlm]: Retargeted the RSA public-key panel's reveal trigger from whole-section-scrolled-past to the party's own chosen-e line becoming readable (viewport-relative getBoundingClientRect threshold, resize joins scroll on the shared rAF scheduler); no markup/CSS change, single predicate/observer/rect-read preserved
 
 ### Pending Todos
 
@@ -194,6 +196,7 @@ None yet.
 | 260929-uzr | Add a new tool that visualizes Elliptic Curve Diffie-Hellman (ECDH) key exchange, following this repo's established single-file tool pattern | 2026-09-29 | 4f4ec6e | [260929-uzr-add-a-new-tool-that-visualizes-elliptic-](./quick/260929-uzr-add-a-new-tool-that-visualizes-elliptic-/) |
 | 260930-ea7 | Give the Venn diagram tool a button that switches between modes: one mode has the thumbnail view ON, the other has the thumbnail view OFF. | 2026-09-30 | 5599156 | [260930-ea7-give-the-venn-diagram-tool-a-button-that](./quick/260930-ea7-give-the-venn-diagram-tool-a-button-that/) |
 | 260930-fnr | In the RSA tool, add a pinned, non-editable read-only public-key reference panel (Bob/Alice e and n) revealed once each party's key-generation section scrolls above the viewport | 2026-09-30 | 64bf006 | [260930-fnr-in-the-rsa-tool-add-a-non-editable-scrat](./quick/260930-fnr-in-the-rsa-tool-add-a-non-editable-scrat/) |
+| 260930-jlm | In the RSA tool, change the public-key reference panel's reveal trigger from "whole key-generation section scrolled above the viewport" to "this party's chosen e = ... line has scrolled into readable view" | 2026-09-30 | 6fed65c | [260930-jlm-in-rsa-rsa-html-change-the-public-key-re](./quick/260930-jlm-in-rsa-rsa-html-change-the-public-key-re/) |
 
 ## Deferred Items
 
@@ -205,8 +208,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T10:22:35.206Z
-Stopped at: Completed quick task 260930-fnr: Added pinned read-only public-key reference panel to RSA tool (Bob/Alice e and n, scroll-past reveal via IntersectionObserver + live geometry recompute)
+Last session: 2026-09-30T12:34:50.737Z
+Stopped at: Completed quick task 260930-jlm: retargeted RSA public-key panel reveal trigger from whole-section-scrolled-past to the chosen-e line becoming readable
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
