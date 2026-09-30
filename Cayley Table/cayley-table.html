@@ -332,15 +332,15 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-store.js"></script>
 <script>
 (function(){
 "use strict";
 
-/* ---------- math helpers ---------- */
-
-function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
-function gcd(a, b){ while (b){ var t = a % b; a = b; b = t; } return a; }
-function unitsMod(N){ var out = []; for (var r = 0; r < N; r++) if (gcd(r, N) === 1) out.push(r); return out; }
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { clamp, randomInt, unitsMod } = NT.core;
+const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 
 /* ---------- sizing: cellMinPx(M) ----------
    Re-derived, not copied, from Sieve Of Eratosthenes's own cellMinPx(size)
@@ -400,41 +400,6 @@ var MODES = {
     }
   }
 };
-
-/* ---------- shared group params ---------- */
-// Group type and modulus are ONE setting shared with the sibling tool --
-// not a private per-tool value. The cookie mirror exists for the same
-// file:// origin-partitioning reason assets/theme.js documents for its own
-// theme setting. Each tool clamps the shared modulus to its own ceiling on
-// read; a clamped read is display-only and is never written back.
-var SHARED_GROUP_KEY = 'group-params';
-
-function readSharedGroup(){
-  var raw = null;
-  try{
-    var m = new RegExp('(?:^|; *)' + SHARED_GROUP_KEY + '=([^;]*)').exec(document.cookie || '');
-    if (m) raw = decodeURIComponent(m[1]);
-  }catch(e){}
-  if (raw === null){
-    try{ raw = localStorage.getItem(SHARED_GROUP_KEY); }catch(e){}
-  }
-  if (!raw) return null;
-  var parsed = null;
-  try{ parsed = JSON.parse(raw); }catch(e){ return null; }
-  if (!parsed || typeof parsed !== 'object') return null;
-  if (parsed.mode !== 'additive' && parsed.mode !== 'multiplicative') return null;
-  if (typeof parsed.N !== 'number' || !Number.isInteger(parsed.N)) return null;
-  if (parsed.N < 1) return null;
-  return { mode: parsed.mode, N: parsed.N };
-}
-
-function writeSharedGroup(mode, n){
-  var payload = JSON.stringify({ mode: mode, N: n });
-  var current = readSharedGroup();
-  if (current && JSON.stringify({ mode: current.mode, N: current.N }) === payload) return;
-  try{ localStorage.setItem(SHARED_GROUP_KEY, payload); }catch(e){}
-  try{ document.cookie = SHARED_GROUP_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax'; }catch(e){}
-}
 
 /* ---------- state ---------- */
 
@@ -760,27 +725,6 @@ function updateWheelXref(){
   if (!xrefWheelEl) return;
   xrefWheelEl.href = '../Equivalence Wheel/equivalence-wheel.html?mode=' + encodeURIComponent(state.mode) + '&n=' + encodeURIComponent(state.N);
 }
-function readModeNParams(){
-  var mm, mn;
-  try{
-    mm = /[?&]mode=([^&#]*)/.exec(location.search);
-    mn = /[?&]n=([^&#]*)/.exec(location.search);
-  }catch(e){
-    return null;
-  }
-  if (!mm || !mn) return null;
-  var mode, n;
-  try{
-    mode = decodeURIComponent(mm[1]);
-    n = parseInt(decodeURIComponent(mn[1]), 10);
-  }catch(e){
-    return null;
-  }
-  if (mode !== 'additive' && mode !== 'multiplicative') return null;
-  if (!isFinite(n) || n < 1) return null;
-  return { mode: mode, n: n };
-}
-
 /* ---------- mode tabs ---------- */
 
 function syncTabs(){
@@ -831,8 +775,6 @@ function regenerate(){
   persist();
   buildTable();
 }
-
-function randomInt(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
 
 // Caps the randomized N at 24 -- well under MAX_N -- so the table always
 // lands legible-sized, the same size range the load-time example (N=6) sits in.
