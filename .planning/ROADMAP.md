@@ -197,7 +197,24 @@ Plans:
 **Success criteria:** every tool loads its shared modules and no longer defines local copies of extracted helpers; zero behavior regressions, verified per tool in a browser; local /code-review clean (user then runs /code-review ultra).
 **Requirements**: TBD
 **Depends on:** None (touches every tool page — do not run concurrently with Phase 4/6 tool edits)
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 7 to break down)
+**Wave 1**
+- [ ] 07-01-PLAN.md — Tracer: `assets/nt-core.js` (window.NT.core) proven end-to-end on the CRT tool, plus the dev-only verification toolchain (parity harness, shadow-check, headless BASE-vs-new browser differential); complete NT.core and move Euler's Totient onto it
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 07-02-PLAN.md — `assets/nt-svg.js` (centre-explicit polar geometry, svgEl, easing); Fermat's Method, Shor's Algorithm, ECDH migrated (renamed near-duplicates retired)
+- [ ] 07-03-PLAN.md — `assets/nt-bigint.js` + RSA; `assets/nt-store.js` (shared group/a-b settings, deep-link readers, legacy keys) + Cayley Table
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 07-04-PLAN.md — Diffie-Hellman and Square and Multiply onto NT.bigint + NT.svg
+- [ ] 07-05-PLAN.md — Equivalence Wheel and Group Isomorphism onto NT.core + NT.svg (+ NT.store), centre-explicit wheel geometry
+- [ ] 07-06-PLAN.md — `assets/nt-layout.js` (nested-squares layout, factor-tree builder) + Euclidean Algorithm and Factor Tree
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 07-07-PLAN.md — Venn Diagram onto all four modules, its ported nested-squares and balanced-tree previews unified with NT.layout
+- [ ] 07-08-PLAN.md — Rewrite CLAUDE.md, .claude/CLAUDE.md, PROJECT.md and .planning/codebase/*.md for the shared-module architecture
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 07-09-PLAN.md — Phase sweep: all gates across 15 tools + hub, Claude-in-Chrome per-tool pass, local code review and fixes (user then runs /code-review ultra)
