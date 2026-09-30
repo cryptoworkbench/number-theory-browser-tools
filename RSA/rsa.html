@@ -160,6 +160,52 @@
   footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
   .pillbar{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
   .pillbar span{ background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:20px; padding:3px 10px; font-size:.72rem; }
+
+  /* ---------- Public-key reference panel ---------- */
+  /* Extra bottom breathing room: without it, a section that has just been filled in (its
+     derivation tables and public/private cards expanded) can sit close enough to the end of the document
+     that no scroll position exists which pushes it fully above the viewport top on common
+     viewport heights — the scroll-past reveal this panel depends on could never fire. This
+     also keeps the fixed panel from ever visually sitting over the footer's own text. */
+  .app{ padding-bottom: 240px; }
+  .pubkey-scratchpad{
+    position:fixed;
+    left:clamp(8px, 2vw, 16px);
+    bottom:clamp(8px, 2vw, 16px);
+    z-index:900;
+    width:min(260px, calc(100vw - 24px));
+    max-height:min(40vh, 220px);
+    overflow:hidden;
+    border-radius:12px;
+    padding:12px 14px;
+    background:var(--surface);
+    border:1px solid color-mix(in srgb, var(--role-result) 35%, transparent);
+    box-shadow:0 8px 24px var(--overlay);
+    pointer-events:none;
+    user-select:none;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(8px);
+    transition:opacity .18s ease, transform .18s ease, visibility .18s ease;
+  }
+  .pubkey-scratchpad.is-shown{ opacity:1; visibility:visible; transform:none; }
+  .scratch-title{ font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:var(--role-result); margin-bottom:8px; }
+  .scratch-row{ display:none; }
+  .scratch-row.is-shown{ display:block; }
+  .scratch-row.is-shown ~ .scratch-row.is-shown{ margin-top:8px; padding-top:8px; border-top:1px solid var(--panel-border); }
+  .scratch-who{ display:block; font-weight:700; font-size:.85rem; }
+  .scratch-who.bob{ color:var(--role-input); }
+  .scratch-who.alice{ color:var(--role-alt); }
+  .scratch-kv{ display:block; font-family:'JetBrains Mono','Consolas',monospace; font-size:.82rem; color:var(--text); overflow-wrap:anywhere; }
+  @media (max-width:640px){
+    .pubkey-scratchpad{ width:min(200px, calc(100vw - 24px)); padding:9px 11px; font-size:.92em; }
+  }
+  @media (max-width:380px), (max-height:400px){
+    .pubkey-scratchpad{ display:none; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .pubkey-scratchpad{ transition:none; transform:none; }
+  }
 </style>
 </head>
 <body>
@@ -276,6 +322,21 @@
     <div class="pillbar"><span>RSA problem ≠ discrete-log problem</span><span>BigInt precision</span><span>Miller–Rabin primality</span></div>
   </footer>
 </div>
+
+<!-- Duplicates values already in the accessibility tree via the public-key cards above, so this is aria-hidden to avoid double-announcing them. -->
+<aside id="pubkey-scratchpad" class="pubkey-scratchpad" aria-hidden="true">
+  <div class="scratch-title">Public keys — for reference</div>
+  <div class="scratch-row" id="scratch-row-bob">
+    <span class="scratch-who bob">Bob</span>
+    <span class="scratch-kv" id="scratch-bob-e"></span>
+    <span class="scratch-kv" id="scratch-bob-n"></span>
+  </div>
+  <div class="scratch-row" id="scratch-row-alice">
+    <span class="scratch-who alice">Alice</span>
+    <span class="scratch-kv" id="scratch-alice-e"></span>
+    <span class="scratch-kv" id="scratch-alice-n"></span>
+  </div>
+</aside>
 
 <script>
 'use strict';
@@ -532,6 +593,7 @@ function renderKeyOutput(id){
     </div>
   `;
   out.classList.add('show');
+  updateScratchpad();
 }
 
 /* ---------- Step 3: wire / Eve's notebook ---------- */
@@ -845,8 +907,64 @@ function renderExchange(toId){
   });
 }
 
+/* ---------- Public-key reference panel ---------- */
+function scratchNum(x){
+  const s = fmt(x);
+  if(s.length <= 30) return s;
+  const digits = x.toString();
+  return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length})`;
+}
+
+/* Read live, rather than trust a flag an observer callback may have last set: a section
+   can jump straight from "on screen" to "fully above" (or back) in a single instantaneous
+   scroll — a Home-key press, a "back to top" control, or this file's own test harness all
+   do this — without the browser ever reporting an intersecting frame in between, so an
+   IntersectionObserver's threshold-crossing callback can go silent right when the state
+   needs to flip. Recomputing from the section's own rect here means the observer only has
+   to tell us "something scrolled", not "which way", so a missed crossing can never leave a
+   stale row on screen. */
+function isScrolledPast(id){
+  const section = document.getElementById('step-' + id);
+  return !!section && section.getBoundingClientRect().bottom <= 0;
+}
+
+function updateScratchpad(){
+  let anyShown = false;
+  ['bob','alice'].forEach(id => {
+    const row = document.getElementById(`scratch-row-${id}`);
+    if(!row) return;
+    const k = State[id];
+    const shown = !!(k && isScrolledPast(id));
+    row.classList.toggle('is-shown', shown);
+    if(shown){
+      document.getElementById(`scratch-${id}-e`).textContent = `e = ${scratchNum(k.e)}`;
+      document.getElementById(`scratch-${id}-n`).textContent = `n = ${scratchNum(k.n)}`;
+    }
+    if(shown) anyShown = true;
+  });
+  document.getElementById('pubkey-scratchpad').classList.toggle('is-shown', anyShown);
+}
+
+function initScratchpad(){
+  if(typeof IntersectionObserver !== 'function') return;
+  const observer = new IntersectionObserver(() => updateScratchpad(), {threshold:0});
+  observer.observe(document.getElementById('step-bob'));
+  observer.observe(document.getElementById('step-alice'));
+
+  /* Supplements the observer for the same instantaneous-jump case described above: a
+     rAF-throttled scroll listener that calls the same single updateScratchpad(), never
+     re-deriving the predicate itself. */
+  let scratchScrollQueued = false;
+  window.addEventListener('scroll', () => {
+    if(scratchScrollQueued) return;
+    scratchScrollQueued = true;
+    requestAnimationFrame(() => { scratchScrollQueued = false; updateScratchpad(); });
+  }, {passive:true});
+}
+
 document.getElementById('bob-gen-btn').addEventListener('click', () => generateKeys('bob','Bob'));
 document.getElementById('alice-gen-btn').addEventListener('click', () => generateKeys('alice','Alice'));
+initScratchpad();
 </script>
 </body>
 </html>
