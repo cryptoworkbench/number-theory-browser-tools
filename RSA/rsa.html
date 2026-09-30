@@ -566,7 +566,7 @@ function renderKeyOutput(id){
       <h3>Choosing the public exponent e</h3>
       <div class="msg-hint" style="margin-bottom:8px;">e must satisfy 1 &lt; e &lt; φ(n) and gcd(e, φ(n)) = 1, so that e has a multiplicative inverse mod φ(n).</div>
       <div class="tbl-wrap"><table class="steps"><thead><tr><th>e tried</th><th>coprime?</th><th>note</th></tr></thead><tbody>${tableRows(eRows)}</tbody></table></div>
-      <div class="formula" style="margin-top:8px;"><span class="lbl">chosen e =</span> <span class="val">${fmt(k.e)}</span></div>
+      <div class="formula" style="margin-top:8px;" id="${id}-chosen-e"><span class="lbl">chosen e =</span> <span class="val">${fmt(k.e)}</span></div>
     </div>
     <div class="substep">
       <h3>Extended Euclidean algorithm → private exponent d</h3>
@@ -915,17 +915,25 @@ function scratchNum(x){
   return `${digits.slice(0,8)}…${digits.slice(-8)} (${digits.length})`;
 }
 
-/* Read live, rather than trust a flag an observer callback may have last set: a section
-   can jump straight from "on screen" to "fully above" (or back) in a single instantaneous
-   scroll — a Home-key press, a "back to top" control, or this file's own test harness all
-   do this — without the browser ever reporting an intersecting frame in between, so an
-   IntersectionObserver's threshold-crossing callback can go silent right when the state
-   needs to flip. Recomputing from the section's own rect here means the observer only has
+/* Read live, rather than trust a flag an observer callback may have last set: a scroll
+   position can jump straight from "not yet readable" to "well past" (or back) in a single
+   instantaneous scroll — a Home-key press, a "back to top" control, or this file's own test
+   harness all do this — without the browser ever reporting an intersecting frame in
+   between, so an IntersectionObserver's threshold-crossing callback can go silent right
+   when the state needs to flip. Recomputing from the rect here means the observer only has
    to tell us "something scrolled", not "which way", so a missed crossing can never leave a
-   stale row on screen. */
-function isScrolledPast(id){
-  const section = document.getElementById('step-' + id);
-  return !!section && section.getBoundingClientRect().bottom <= 0;
+   stale row on screen. The line itself is looked up fresh by id on every call, never cached,
+   because the party's whole key-output subtree is replaced via innerHTML on every
+   (re)generation, which destroys the previous line node outright — a cached reference would
+   measure a detached node forever. The threshold is viewport-relative rather than a fixed
+   constant, since "readable" means "cleared this much of the visible window", not "cleared
+   some fixed pixel row" — which is also why a bare resize (no scroll) must recompute this. */
+const CHOSEN_E_READ_GUTTER_PX = 24;
+function hasReachedChosenE(id){
+  const line = document.getElementById(id + '-chosen-e');
+  if(!line) return false;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  return line.getBoundingClientRect().bottom <= (viewportHeight - CHOSEN_E_READ_GUTTER_PX);
 }
 
 function updateScratchpad(){
@@ -934,7 +942,7 @@ function updateScratchpad(){
     const row = document.getElementById(`scratch-row-${id}`);
     if(!row) return;
     const k = State[id];
-    const shown = !!(k && isScrolledPast(id));
+    const shown = !!(k && hasReachedChosenE(id));
     row.classList.toggle('is-shown', shown);
     if(shown){
       document.getElementById(`scratch-${id}-e`).textContent = `e = ${scratchNum(k.e)}`;
@@ -952,14 +960,19 @@ function initScratchpad(){
   observer.observe(document.getElementById('step-alice'));
 
   /* Supplements the observer for the same instantaneous-jump case described above: a
-     rAF-throttled scroll listener that calls the same single updateScratchpad(), never
-     re-deriving the predicate itself. */
-  let scratchScrollQueued = false;
-  window.addEventListener('scroll', () => {
-    if(scratchScrollQueued) return;
-    scratchScrollQueued = true;
-    requestAnimationFrame(() => { scratchScrollQueued = false; updateScratchpad(); });
-  }, {passive:true});
+     rAF-throttled scheduler, shared by scroll and resize, that calls the same single
+     updateScratchpad(), never re-deriving the predicate itself. resize joins scroll because
+     the read point is now derived from window.innerHeight — a bare window resize can flip
+     the answer with no scroll event and no change in which sections intersect, a trigger gap
+     the previous fixed threshold never had. */
+  let scratchUpdateQueued = false;
+  function scheduleScratchUpdate(){
+    if(scratchUpdateQueued) return;
+    scratchUpdateQueued = true;
+    requestAnimationFrame(() => { scratchUpdateQueued = false; updateScratchpad(); });
+  }
+  window.addEventListener('scroll', scheduleScratchUpdate, {passive:true});
+  window.addEventListener('resize', scheduleScratchUpdate, {passive:true});
 }
 
 document.getElementById('bob-gen-btn').addEventListener('click', () => generateKeys('bob','Bob'));
