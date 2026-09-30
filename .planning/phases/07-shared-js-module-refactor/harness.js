@@ -236,6 +236,27 @@ function seededRandom(seed) {
 
 /* ---------- assertion helpers (BigInt-safe) ---------- */
 
+// Rebuild a value using THIS realm's Array/Object constructors before
+// comparing. Values crossing from a different vm context (loadOld/loadNew
+// each create their own realm) carry that realm's Array.prototype/
+// Object.prototype, and util.isDeepStrictEqual treats two structurally
+// identical values with different prototypes as unequal. Array.isArray()
+// and Object.keys() are realm-independent, so a manual push/assign
+// rebuild (not .map/spread, which would follow the foreign realm's own
+// species constructor) normalizes both sides into this realm.
+function normalizeRealm(v) {
+  if (v === null || typeof v !== "object") return v;
+  if (Array.isArray(v)) {
+    var out = [];
+    for (var i = 0; i < v.length; i++) out.push(normalizeRealm(v[i]));
+    return out;
+  }
+  var obj = {};
+  var keys = Object.keys(v);
+  for (var j = 0; j < keys.length; j++) obj[keys[j]] = normalizeRealm(v[keys[j]]);
+  return obj;
+}
+
 function safeStringify(v) {
   try {
     return JSON.stringify(v, function (k, val) {
@@ -250,7 +271,7 @@ var CURRENT_CHECK = { name: "unknown", count: 0 };
 
 function eq(label, got, want) {
   CURRENT_CHECK.count++;
-  if (!util.isDeepStrictEqual(got, want)) {
+  if (!util.isDeepStrictEqual(normalizeRealm(got), normalizeRealm(want))) {
     console.log("HARNESS FAIL " + CURRENT_CHECK.name + " " + label + ": expected " +
       safeStringify(want) + " got " + safeStringify(got));
     process.exit(1);
@@ -270,7 +291,7 @@ function sameOutcome(label, fnA, fnB, args) {
   args = args || [];
   var a = runSafe(fnA, args);
   var b = runSafe(fnB, args);
-  if (!util.isDeepStrictEqual(a, b)) {
+  if (!util.isDeepStrictEqual(normalizeRealm(a), normalizeRealm(b))) {
     console.log("HARNESS FAIL " + CURRENT_CHECK.name + " " + label + ": expected " +
       safeStringify(b) + " got " + safeStringify(a));
     process.exit(1);
