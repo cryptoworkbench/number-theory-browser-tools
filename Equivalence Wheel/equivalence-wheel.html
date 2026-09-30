@@ -422,8 +422,15 @@
 
 </div>
 
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
 <script>
 (function(){
+  const { clamp, randomInt, unitsMod } = NT.core;
+  const { annularSectorPath, polar, svgEl } = NT.svg;
+  const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
+
   var CX = 450, CY = 450;
   var HOLE_R = 55;
   var OUTER_R = 400;
@@ -488,41 +495,6 @@
     }
   };
 
-  /* ---------- shared group params ---------- */
-  // Group type and modulus are ONE setting shared with the sibling tool --
-  // not a private per-tool value. The cookie mirror exists for the same
-  // file:// origin-partitioning reason assets/theme.js documents for its own
-  // theme setting. Each tool clamps the shared modulus to its own ceiling on
-  // read; a clamped read is display-only and is never written back.
-  var SHARED_GROUP_KEY = 'group-params';
-
-  function readSharedGroup(){
-    var raw = null;
-    try{
-      var m = new RegExp('(?:^|; *)' + SHARED_GROUP_KEY + '=([^;]*)').exec(document.cookie || '');
-      if (m) raw = decodeURIComponent(m[1]);
-    }catch(e){}
-    if (raw === null){
-      try{ raw = localStorage.getItem(SHARED_GROUP_KEY); }catch(e){}
-    }
-    if (!raw) return null;
-    var parsed = null;
-    try{ parsed = JSON.parse(raw); }catch(e){ return null; }
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (parsed.mode !== 'additive' && parsed.mode !== 'multiplicative') return null;
-    if (typeof parsed.N !== 'number' || !Number.isInteger(parsed.N)) return null;
-    if (parsed.N < 1) return null;
-    return { mode: parsed.mode, N: parsed.N };
-  }
-
-  function writeSharedGroup(mode, n){
-    var payload = JSON.stringify({ mode: mode, N: n });
-    var current = readSharedGroup();
-    if (current && JSON.stringify({ mode: current.mode, N: current.N }) === payload) return;
-    try{ localStorage.setItem(SHARED_GROUP_KEY, payload); }catch(e){}
-    try{ document.cookie = SHARED_GROUP_KEY + '=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax'; }catch(e){}
-  }
-
   var state = { N: 10, depth: 6, mode: 'additive', a: 0, b: null, sum: null, awaiting: 'a' };
 
   function currentMode(){ return MODES[state.mode]; }
@@ -549,37 +521,6 @@
   if (modeNParams){ state.mode = modeNParams.mode; state.N = clamp(modeNParams.n, 1, WHEEL_MAX_N); persist(); }
   state.a = currentMode().identity(state.N);
 
-  function polar(r, angleDeg){
-    var a = (angleDeg - 90) * Math.PI / 180;
-    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
-  }
-  function svgEl(tag, attrs){
-    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (var k in attrs) el.setAttribute(k, attrs[k]);
-    return el;
-  }
-  function annularSectorPath(rInner, rOuter, startDeg, endDeg){
-    if (endDeg - startDeg >= 359.999){
-      return 'M ' + (CX - rOuter) + ' ' + CY +
-        ' A ' + rOuter + ' ' + rOuter + ' 0 1 1 ' + (CX + rOuter) + ' ' + CY +
-        ' A ' + rOuter + ' ' + rOuter + ' 0 1 1 ' + (CX - rOuter) + ' ' + CY +
-        ' Z M ' + (CX - rInner) + ' ' + CY +
-        ' A ' + rInner + ' ' + rInner + ' 0 1 0 ' + (CX + rInner) + ' ' + CY +
-        ' A ' + rInner + ' ' + rInner + ' 0 1 0 ' + (CX - rInner) + ' ' + CY + ' Z';
-    }
-    var p1 = polar(rInner, startDeg), p2 = polar(rOuter, startDeg);
-    var p3 = polar(rOuter, endDeg), p4 = polar(rInner, endDeg);
-    var large = (endDeg - startDeg) > 180 ? 1 : 0;
-    return 'M ' + p1[0] + ' ' + p1[1] +
-      ' L ' + p2[0] + ' ' + p2[1] +
-      ' A ' + rOuter + ' ' + rOuter + ' 0 ' + large + ' 1 ' + p3[0] + ' ' + p3[1] +
-      ' L ' + p4[0] + ' ' + p4[1] +
-      ' A ' + rInner + ' ' + rInner + ' 0 ' + large + ' 0 ' + p1[0] + ' ' + p1[1] + ' Z';
-  }
-  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
-
-  function gcd(a, b){ while (b){ var t = a % b; a = b; b = t; } return a; }
-  function unitsMod(N){ var out = []; for (var r = 0; r < N; r++) if (gcd(r, N) === 1) out.push(r); return out; }
   function clampToElements(v, els){ var out = els[0]; for (var i = 0; i < els.length; i++){ if (els[i] <= v) out = els[i]; else break; } return out; }
 
   function render(){
@@ -625,7 +566,7 @@
     if (M > 1){
       for (var i0 = 0; i0 < M; i0++){
         var ang = i0 * wedgeAngle;
-        var rp1 = polar(HOLE_R, ang), rp2 = polar(OUTER_R, ang);
+        var rp1 = polar(CX, CY, HOLE_R, ang), rp2 = polar(CX, CY, OUTER_R, ang);
         dynGroup.appendChild(svgEl('line', {
           x1:rp1[0], y1:rp1[1], x2:rp2[0], y2:rp2[1],
           stroke:'var(--panel-border)', 'stroke-width':1
@@ -655,13 +596,13 @@
 
       var hit = svgEl('path', {
         class:'wedge-hit',
-        d: annularSectorPath(HOLE_R, OUTER_R, startDeg, endDeg)
+        d: annularSectorPath(CX, CY, HOLE_R, OUTER_R, startDeg, endDeg)
       });
       g.appendChild(hit);
 
       for (var k = 0; k < depth; k++){
         var rMid = HOLE_R + (k + 0.5) * ringWidth;
-        var pos = polar(rMid, bisector);
+        var pos = polar(CX, CY, rMid, bisector);
         var digit = value + k * N;
         var rot = bisector;
         if (rot > 90 && rot < 270) rot += 180;
@@ -675,7 +616,7 @@
         g.appendChild(txt);
       }
 
-      var ep = polar(OUTER_R + 18, bisector);
+      var ep = polar(CX, CY, OUTER_R + 18, bisector);
       var erot = bisector;
       if (erot > 90 && erot < 270) erot += 180;
       var etxt = svgEl('text', {
@@ -799,27 +740,6 @@
   function updateCayleyXref(){
     if (!xrefCayleyEl) return;
     xrefCayleyEl.href = '../Cayley Table/cayley-table.html?mode=' + encodeURIComponent(state.mode) + '&n=' + encodeURIComponent(state.N);
-  }
-
-  function readModeNParams(){
-    var mm, mn;
-    try{
-      mm = /[?&]mode=([^&#]*)/.exec(location.search);
-      mn = /[?&]n=([^&#]*)/.exec(location.search);
-    }catch(e){
-      return null;
-    }
-    if (!mm || !mn) return null;
-    var mode, n;
-    try{
-      mode = decodeURIComponent(mm[1]);
-      n = parseInt(decodeURIComponent(mn[1]), 10);
-    }catch(e){
-      return null;
-    }
-    if (mode !== 'additive' && mode !== 'multiplicative') return null;
-    if (!isFinite(n) || n < 1) return null;
-    return { mode: mode, n: n };
   }
 
   /* ---------- export ---------- */
@@ -1081,8 +1001,6 @@
     persist();
     render();
   });
-
-  function randomInt(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
 
   function randomize(){
     state.N = randomInt(2, WHEEL_MAX_N);
