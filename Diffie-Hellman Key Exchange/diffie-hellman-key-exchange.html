@@ -420,9 +420,10 @@ function buildExchange(p, g, a, b){
   const secretAlice = modPowPlain(publicBob, a, p);
   const secretBob = modPowPlain(publicAlice, b, p);
   const order = multiplicativeOrder(g, p);
-  // Each step's caption is derived at render time from 'dh.step.' + id (see renderStep),
-  // never stored here as pre-rendered English — this is what lets a language switch
-  // re-render the banner for whichever step is current without re-deriving the step list.
+  // Each step's caption is derived at render time from STEP_CAPTION_KEY[id] (see
+  // renderStep), never stored here as pre-rendered English — this is what lets a
+  // language switch re-render the banner for whichever step is current without
+  // re-deriving the step list.
   const steps = [
     { id:'agree', owner:'public' },
     { id:'alicePicks', owner:'alice' },
@@ -467,6 +468,8 @@ const aesLine = $('aesLine');
 
 let currentExchange = null;
 let stepIndex = 0;
+let eveLabelEl = null; // the stage's two prose SVG labels, set by buildStage()
+let tapLabelEl = null; // (plain JS refs — see buildStage for why no DOM id/class)
 let errorState = null; // { key, params } | null — the currently displayed validation error
 let bannerState = null; // { key, params } | null — last message shown in the banner
 
@@ -540,6 +543,11 @@ function buildStage(ex){
   const tapLabel = svgEl('text', {x:450, y:108, 'text-anchor':'middle', fill:'var(--role-warn)', 'font-size':'13'});
   tapLabel.textContent = translate('dh.stageTap');
   stageSvg.appendChild(tapLabel);
+  // Kept as plain JS references (no DOM id/class — either would be a markup change
+  // absent from the pre-phase baseline and would break en-parity) so onLangChange
+  // can retranslate these two prose labels without rebuilding the whole stage.
+  eveLabelEl = eveLabel;
+  tapLabelEl = tapLabel;
 
   function row(x, y, id){
     const t = svgEl('text', {x:x, y:y, id:id, class:'svg-row', 'font-size':'13', fill:'var(--text)'});
@@ -575,6 +583,33 @@ function showRow(id, text){
   el.textContent = text;
   el.style.opacity = '1';
   el.classList.add('is-active');
+}
+
+// Retranslates every stage row's text from ex's data, touching ONLY textContent —
+// never opacity/class — so a language switch never changes which rows are visible
+// or disturbs the exact opacity/style history a row has already accumulated this
+// session. Deliberately unconditional (every row, not just ones <stepIndex): this
+// page's own existing behavior leaves a prior reveal's text sitting invisibly in a
+// row after Reset (resetPlayback resets opacity, not text), so a row's CURRENT text
+// before any switch may already reflect this same exchange's data from an earlier
+// instant-reveal rather than from stepIndex's official progress — retranslating
+// every row unconditionally reproduces that exact legacy quirk in the new language
+// instead of leaving it stuck in whichever language was active when it was set.
+function retranslateAllRows(ex){
+  $('svgAlicePg').textContent = 'p=' + shortVal(ex.p) + ', g=' + shortVal(ex.g);
+  $('svgBobPg').textContent = 'p=' + shortVal(ex.p) + ', g=' + shortVal(ex.g);
+  $('svgEveP').textContent = 'p = ' + shortVal(ex.p);
+  $('svgEveG').textContent = 'g = ' + shortVal(ex.g);
+  $('svgAliceA').textContent = translate('dh.rowPrivateA', { a: shortVal(ex.a) });
+  $('svgBobB').textContent = translate('dh.rowPrivateB', { b: shortVal(ex.b) });
+  $('svgAlicePublic').textContent = 'A=' + shortVal(ex.publicAlice);
+  $('svgBobPublic').textContent = 'B=' + shortVal(ex.publicBob);
+  $('svgBobReceived').textContent = translate('dh.rowReceivedA', { a: shortVal(ex.publicAlice) });
+  $('svgAliceReceived').textContent = translate('dh.rowReceivedB', { b: shortVal(ex.publicBob) });
+  $('svgAliceSecret').textContent = translate('dh.rowSharedSecret', { val: shortVal(ex.secretAlice) });
+  $('svgBobSecret').textContent = translate('dh.rowSharedSecret', { val: shortVal(ex.secretBob) });
+  $('svgEveA').textContent = 'A = ' + shortVal(ex.publicAlice);
+  $('svgEveB').textContent = 'B = ' + shortVal(ex.publicBob);
 }
 
 function renderNotebook(ex){
@@ -693,7 +728,9 @@ function runEveDlog(ex){
 }
 
 function renderAesLine(ex){
-  translateInto(aesLine, 'dh.aesSentence', { 0: fmt(ex.secretAlice) });
+  // Original aesSentence() used secret.toString() (no digit grouping), not fmt() —
+  // preserved here exactly for en-parity byte-identity.
+  translateInto(aesLine, 'dh.aesSentence', { 0: ex.secretAlice.toString() });
 }
 
 function appendLogEntry(step, ex){
@@ -841,19 +878,15 @@ function appendLogEntry(step, ex){
       div.appendChild(h3);
       const f = document.createElement('div');
       f.className = 'formula';
-      const lblA = document.createElement('span'); translateInto(lblA, 'dh.logAliceSecretLabel');
       const valA = document.createElement('span'); valA.className = 'val'; valA.textContent = fmt(ex.secretAlice);
-      const lblB = document.createElement('span'); translateInto(lblB, 'dh.logBobSecretLabel');
       const valB = document.createElement('span'); valB.className = 'val'; valB.textContent = fmt(ex.secretBob);
-      f.appendChild(lblA); f.appendChild(document.createTextNode(' '));
+      // No <span> wrapper around the labels or the match result — matches the
+      // original markup's plain-text concatenation around the two val spans.
+      f.appendChild(document.createTextNode(translate('dh.logAliceSecretLabel') + ' '));
       f.appendChild(valA);
-      f.appendChild(document.createTextNode('  |  '));
-      f.appendChild(lblB); f.appendChild(document.createTextNode(' '));
+      f.appendChild(document.createTextNode('  |  ' + translate('dh.logBobSecretLabel') + ' '));
       f.appendChild(valB);
-      f.appendChild(document.createTextNode(' — '));
-      const matchSpan = document.createElement('span');
-      translateInto(matchSpan, ex.secretAlice === ex.secretBob ? 'dh.logMatchYes' : 'dh.logMatchNo');
-      f.appendChild(matchSpan);
+      f.appendChild(document.createTextNode(' — ' + translate(ex.secretAlice === ex.secretBob ? 'dh.logMatchYes' : 'dh.logMatchNo')));
       div.appendChild(f);
       break;
     }
@@ -879,7 +912,7 @@ function applyStepVisual(step, ex, suppressEve){
       renderNotebook(ex);
       document.getElementById('scratch-group-p').textContent = 'p = ' + scratchNum(ex.p);
       document.getElementById('scratch-group-g').textContent = 'g = ' + scratchNum(ex.g);
-      document.getElementById('scratch-group-order').textContent = 'order(g) = ' + (ex.order === null ? translate('dh.unknown') : scratchNum(ex.order));
+      document.getElementById('scratch-group-order').textContent = translate('dh.orderLabel') + (ex.order === null ? translate('dh.unknown') : scratchNum(ex.order));
       showScratchRow('group');
       break;
     case 'alicePicks':
@@ -922,9 +955,24 @@ function applyStepVisual(step, ex, suppressEve){
   appendLogEntry(step, ex);
 }
 
+// Full dotted keys, one per step id — deliberately not built via a 'dh.step.' + id
+// concatenation (P6 reserves that key-prefix idiom for common.speed.<n> alone).
+const STEP_CAPTION_KEY = {
+  agree: 'dh.step.agree',
+  alicePicks: 'dh.step.alicePicks',
+  bobPicks: 'dh.step.bobPicks',
+  aliceComputesPublic: 'dh.step.aliceComputesPublic',
+  bobComputesPublic: 'dh.step.bobComputesPublic',
+  sendAliceToBob: 'dh.step.sendAliceToBob',
+  sendBobToAlice: 'dh.step.sendBobToAlice',
+  aliceComputesSecret: 'dh.step.aliceComputesSecret',
+  bobComputesSecret: 'dh.step.bobComputesSecret',
+  match: 'dh.step.match'
+};
+
 function renderStep(step, ex, suppressEve){
   applyStepVisual(step, ex, suppressEve);
-  bannerState = { key: 'dh.step.' + step.id, params: null };
+  bannerState = { key: STEP_CAPTION_KEY[step.id], params: null };
   renderBanner();
 }
 
@@ -1313,7 +1361,14 @@ onLangChange(() => {
   const savedStepIndex = stepIndex;
   const savedEveRevealed = Object.assign({}, eveRevealed);
 
-  buildStage(ex);
+  // Retranslate the stage in place — never rebuild it (buildStage would discard
+  // every row's current opacity/style/is-active history, which the switch must
+  // preserve exactly) — then rebuild the log/notebook/problem/AES/scratchpad
+  // panels, which carry no such history (they are always cleanly reset).
+  if (eveLabelEl) eveLabelEl.textContent = translate('dh.stageEveLabel');
+  if (tapLabelEl) tapLabelEl.textContent = translate('dh.stageTap');
+  retranslateAllRows(ex);
+
   mathLog.innerHTML = '';
   eveNotebook.innerHTML = '';
   eveProblem.innerHTML = '';

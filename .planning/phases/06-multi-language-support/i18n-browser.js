@@ -377,6 +377,14 @@ function doLangs(toolRelPath, cfg, mutantKind) {
       for (var si = 0; si < n; si++) {
         var enSeg = enSegments[si], xxSeg = xxSegments[si];
         if (xxSeg === undefined) continue;
+        // A segment made ENTIRELY of the volatile sentinel (one or more repeats,
+        // from a page's own volatile regex spanning text content rather than just
+        // an attribute value — e.g. a <g class="packet">...</g> animation element
+        // whose inner <text> is itself inter-tag text) is never prose: isProse's
+        // all-uppercase-<=5-letters rule does not cover the 8-letter "VOLATILE"
+        // token, which would otherwise false-positive as UNTRANSLATED on every
+        // language (the sentinel is identical in en and xx by construction).
+        if (/^(█VOLATILE█)+$/.test(xxSeg)) continue;
         if (!i18nCheck.isProse(xxSeg)) continue;
         if (xxSeg === enSeg) {
           if (cfg.allowRenderText[xxSeg]) continue;
