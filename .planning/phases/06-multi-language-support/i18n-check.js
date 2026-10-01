@@ -1792,15 +1792,33 @@ function looksLikeCode(str) {
   if (/^[a-z][a-z-]*\s*:\s*[^;]+;?$/.test(str)) return true; // CSS declaration
   // "all-lowercase space/hyphen-separated tokens" (06-02-PLAN.md P10 --literals-js
   // spec): internal identifiers such as CSS class names, event-type tags,
-  // DOM id strings, attribute names — never translated prose. A trailing
-  // run of whitespace is allowed (zero-width to several spaces/newlines),
-  // since this codebase's SVG rendering code concatenates a literal CSS
-  // class token with a trailing space directly onto a computed suffix
-  // (e.g. `'fairy-light '+lightClass`, `'node-circle '+node.kind`).
-  if (/^[a-z][a-z]*(?:[\s-][a-z]+)*\s*$/.test(str)) return true;
+  // DOM id strings, attribute names — never translated prose. Both a leading
+  // AND a trailing run of whitespace are allowed (zero-width to several
+  // spaces/newlines): this codebase's SVG rendering code concatenates a
+  // literal CSS class token with a trailing space directly onto a computed
+  // suffix (e.g. `'fairy-light '+lightClass`), and a leading space directly
+  // onto one (e.g. `wedgeClass += ' is-multi'`).
+  if (/^\s*[a-z][a-z]*(?:[\s-][a-z]+)*\s*$/.test(str)) return true;
   // A dotted i18n key reference (ns.key / ns.sub.key), wherever it sits in
   // the expression (e.g. inside a ternary passed to translate()).
   if (/^[a-z][a-zA-Z0-9]*(\.[A-Za-z0-9_]+)+$/.test(str)) return true;
+  // A string ending in an unmatched "(" is the opening fragment of a
+  // function-call-shaped expression built via concatenation (SVG/CSS
+  // transform or paint functions: 'rotate(' + deg + ')', 'rgb(' + r + ...),
+  // never displayed prose.
+  if (/[A-Za-z]\($/.test(str)) return true;
+  // A MIME-type literal ("image/png", "image/svg+xml;charset=utf-8") —
+  // type/subtype shape, optionally with +suffix or ;param=value segments —
+  // used as a Blob/data-URI type argument, never displayed prose.
+  if (/^[a-z0-9.+-]+\/[a-z0-9.+-]+(;[a-z0-9.+-]+=[a-z0-9.+-]+)*$/i.test(str)) return true;
+  // A URI-scheme-prefixed literal ("data:image/svg+xml;charset=utf-8,",
+  // "mailto:...") — a short all-letter/digit scheme token immediately
+  // followed by ":" with no space right after it (a real prose sentence
+  // never has a bare word immediately followed by ":" then non-whitespace).
+  if (/^[a-z][a-z0-9+.-]{1,15}:[^\s]/.test(str)) return true;
+  // An XML/SVG declaration or markup prolog built as a literal string
+  // (`'<?xml version="1.0" ...?>'`), never displayed prose.
+  if (/^<\?xml[\s>]/.test(str)) return true;
   return false;
 }
 
