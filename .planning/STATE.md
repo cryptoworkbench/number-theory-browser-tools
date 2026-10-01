@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-10-PLAN.md
-last_updated: "2026-10-01T18:31:12.198Z"
+stopped_at: Completed 06-11-PLAN.md
+last_updated: "2026-10-01T19:27:17.589Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: "0be02ba670f169f50903f61f5fb30e81cdb0089c"
+state_head: 832355c5fbb22abe874a753dbf0bb8f3591e5e65
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 35
+  completed_plans: 36
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -96,6 +96,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P08 | 36min | 2 tasks | 3 files |
 | Phase 06 P09 | 22min | 2 tasks | 4 files |
 | Phase 06 P10 | single session | 2 tasks | 3 files |
+| Phase 06 P11 | single session | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -197,6 +198,8 @@ Recent decisions affecting current work:
 - [Phase 06]: ecdh.ordWord fixes a second order(G)-style exact-value collision (ord(G) translated per language; English keeps the literal abbreviation), mirroring 06-09's orderLabel fix
 - [Phase 06]: Point-dot click/keydown handlers now close over the point already in scope instead of parsing it from the displayed aria-label text; pointFromAriaLabel() deleted
 - [Phase 06]: ECDH's onLangChange recomputes eveRevealed via revealedThroughStep() and replays only appendLogEntry/renderEveNotebook, never applyStepVisual itself, since markPointRole/animateWalk are not idempotent
+- [Phase 06]: RSA: qInv (a page-invented camelCase abbreviation, not a real word) resolved via allowSame/allowRenderText exemption rather than a translated-word fix, since there is no linguistic equivalent to translate like order/ord had
+- [Phase 06]: RSA: renderExchange re-invoked directly from onLangChange (pure function of LastExchange/CrtFlag/State); renderEve/renderMessages never re-invoked (they reset EveFactorRes/DlpRes/MsgErrorState) — their Node-param translateInto calls tracked via a page-level EveStaticRefs closure list instead
 
 ### Roadmap Evolution
 
@@ -284,8 +287,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T18:31:12.068Z
-Stopped at: Completed 06-10-PLAN.md
+Last session: 2026-10-01T19:27:17.460Z
+Stopped at: Completed 06-11-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
