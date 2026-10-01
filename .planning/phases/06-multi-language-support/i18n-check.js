@@ -1773,9 +1773,15 @@ function stripJsComments(src) {
 }
 
 // Includes the `$ = (id) => document.getElementById(id)` alias convention
-// used across this codebase's tool pages (incl. the Sieve).
-var TRANSLATE_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(translate|translateInto|bindText)\s*\(\s*(?:[A-Za-z0-9_$]+\s*\?\s*)?$/;
-var DOM_API_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(\$|getElementById|querySelector|querySelectorAll|createElement|createElementNS|addEventListener|setAttribute|getAttribute|removeAttribute|classList\.add|classList\.remove|classList\.toggle|classList\.contains|localStorage\.getItem|localStorage\.setItem|setProperty)\s*\([^)]*$/;
+// used across this codebase's tool pages (incl. the Sieve), AND a direct
+// `document.getElementById(...)` / `el.querySelector(...)` call (used
+// verbatim by several tool pages, e.g. Factor Tree) — the lookback classes
+// below deliberately do NOT exclude "." before the function name, so a
+// preceding object/member-access dot (document., el.) does not block the
+// match; only an actual identifier character immediately before the name
+// (which would make it part of a longer identifier) does.
+var TRANSLATE_CALL_RE = /(?:^|[^A-Za-z0-9_$])(translate|translateInto|bindText)\s*\(\s*(?:[A-Za-z0-9_$]+\s*\?\s*)?$/;
+var DOM_API_CALL_RE = /(?:^|[^A-Za-z0-9_$])(\$|getElementById|querySelector|querySelectorAll|createElement|createElementNS|svgEl|addEventListener|setAttribute|getAttribute|removeAttribute|classList\.add|classList\.remove|classList\.toggle|classList\.contains|localStorage\.getItem|localStorage\.setItem|setProperty)\s*\([^)]*$/;
 // A string immediately preceded by a comparison operator is being tested
 // against (a key name, theme value, event type), not displayed.
 var COMPARISON_RE = /[=!]==?\s*$/;
@@ -1786,8 +1792,12 @@ function looksLikeCode(str) {
   if (/^[a-z][a-z-]*\s*:\s*[^;]+;?$/.test(str)) return true; // CSS declaration
   // "all-lowercase space/hyphen-separated tokens" (06-02-PLAN.md P10 --literals-js
   // spec): internal identifiers such as CSS class names, event-type tags,
-  // DOM id strings, attribute names — never translated prose.
-  if (/^[a-z][a-z]*(?:[\s-][a-z]+)*$/.test(str)) return true;
+  // DOM id strings, attribute names — never translated prose. A trailing
+  // run of whitespace is allowed (zero-width to several spaces/newlines),
+  // since this codebase's SVG rendering code concatenates a literal CSS
+  // class token with a trailing space directly onto a computed suffix
+  // (e.g. `'fairy-light '+lightClass`, `'node-circle '+node.kind`).
+  if (/^[a-z][a-z]*(?:[\s-][a-z]+)*\s*$/.test(str)) return true;
   // A dotted i18n key reference (ns.key / ns.sub.key), wherever it sits in
   // the expression (e.g. inside a ternary passed to translate()).
   if (/^[a-z][a-zA-Z0-9]*(\.[A-Za-z0-9_]+)+$/.test(str)) return true;
