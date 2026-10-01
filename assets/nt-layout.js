@@ -34,9 +34,9 @@
    Consumers (Phase 7, plan 07-06): Euclidean Algorithm, Factor Tree. Plan
    07-07 adds Venn Diagram's hover-miniature consumers of the same layouts.
 
-   NT.layout is frozen after construction — a tool must never assign to NT
-   or to any of its members (shadow-check.js's NS-MUTATION gate enforces
-   this).
+   NT.layout is frozen, and its slot on NT is read-only, after construction —
+   a tool must never assign to NT or to any of its members (shadow-check.js's
+   NS-MUTATION gate enforces this).
 */
 (function () {
   "use strict";
@@ -224,4 +224,7 @@
     flattenTree: flattenTree,
     TILE_CAP: TILE_CAP
   });
+  // NT stays extensible so later modules can add their own namespace, but
+  // this slot is locked: NT.layout can never be reassigned or deleted.
+  Object.defineProperty(NT, 'layout', { writable: false, configurable: false });
 })();

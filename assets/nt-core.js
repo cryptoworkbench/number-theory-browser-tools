@@ -26,9 +26,9 @@
    Totient. Later phase-7 plans extend this list to the remaining tools
    that used to keep a local copy of one of these functions.
 
-   NT.core is frozen after construction — a tool must never assign to NT or
-   to any of its members (shadow-check.js's NS-MUTATION gate enforces
-   this).
+   NT.core is frozen, and its slot on NT is read-only, after construction —
+   a tool must never assign to NT or to any of its members (shadow-check.js's
+   NS-MUTATION gate enforces this).
 */
 (function () {
   "use strict";
@@ -235,4 +235,7 @@
     totient: totient,
     unitsMod: unitsMod
   });
+  // NT stays extensible so later modules can add their own namespace, but
+  // this slot is locked: NT.core can never be reassigned or deleted.
+  Object.defineProperty(NT, 'core', { writable: false, configurable: false });
 })();

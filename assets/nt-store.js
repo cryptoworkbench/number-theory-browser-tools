@@ -44,9 +44,9 @@
    extend this list to Equivalence Wheel, Euclidean Algorithm, Venn
    Diagram and Group Isomorphism.
 
-   NT.store is frozen after construction — a tool must never assign to NT
-   or to any of its members (shadow-check.js's NS-MUTATION gate enforces
-   this).
+   NT.store is frozen, and its slot on NT is read-only, after construction —
+   a tool must never assign to NT or to any of its members (shadow-check.js's
+   NS-MUTATION gate enforces this).
 */
 (function () {
   "use strict";
@@ -209,4 +209,7 @@
     readABParams: readABParams,
     readMigrating: readMigrating
   });
+  // NT stays extensible so later modules can add their own namespace, but
+  // this slot is locked: NT.store can never be reassigned or deleted.
+  Object.defineProperty(NT, 'store', { writable: false, configurable: false });
 })();

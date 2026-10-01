@@ -33,9 +33,9 @@
    keep a local copy of one of these functions, including the two wheel
    tools that require the centre-parameterized polar/annularSectorPath.
 
-   NT.svg is frozen after construction — a tool must never assign to NT or
-   to any of its members (shadow-check.js's NS-MUTATION gate enforces
-   this).
+   NT.svg is frozen, and its slot on NT is read-only, after construction —
+   a tool must never assign to NT or to any of its members (shadow-check.js's
+   NS-MUTATION gate enforces this).
 */
 (function () {
   "use strict";
@@ -103,4 +103,7 @@
     polar: polar,
     svgEl: svgEl
   });
+  // NT stays extensible so later modules can add their own namespace, but
+  // this slot is locked: NT.svg can never be reassigned or deleted.
+  Object.defineProperty(NT, 'svg', { writable: false, configurable: false });
 })();

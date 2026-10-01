@@ -25,9 +25,9 @@
    Consumers (Phase 7, plan 07-03): RSA. Later phase-7 plans extend this
    list to Diffie-Hellman Key Exchange and Square And Multiply.
 
-   NT.bigint is frozen after construction — a tool must never assign to NT
-   or to any of its members (shadow-check.js's NS-MUTATION gate enforces
-   this).
+   NT.bigint is frozen, and its slot on NT is read-only, after construction —
+   a tool must never assign to NT or to any of its members (shadow-check.js's
+   NS-MUTATION gate enforces this).
 */
 (function () {
   "use strict";
@@ -157,4 +157,7 @@
     scratchNum: scratchNum,
     shortVal: shortVal
   });
+  // NT stays extensible so later modules can add their own namespace, but
+  // this slot is locked: NT.bigint can never be reassigned or deleted.
+  Object.defineProperty(NT, 'bigint', { writable: false, configurable: false });
 })();
