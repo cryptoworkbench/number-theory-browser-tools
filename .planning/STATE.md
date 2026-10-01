@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-10-01T12:13:53.407Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-10-01T14:27:49.306Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: 58b7ec759a880abe86513ab18e811055cd03a764
+state_head: 9050709c5642721674fe9bd339c8f0dcfee57135
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 29
+  completed_plans: 30
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -90,6 +90,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P02 | 26min | 3 tasks | 12 files |
 | Phase 06 P03 | single session | 3 tasks | 9 files |
 | Phase 06 P04 | single session | 2 tasks | 7 files |
+| Phase 06 P05 | ~2h (3 sessions, 2 interrupted) | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,8 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 Plan 04]: Cayley Table's dead MODES.words field left unconverted (never referenced anywhere in the script)
 - [Phase 06]: [Phase 06 Plan 04]: symmetryNoteAdditive/Multiplicative kept as two independent literal keys (not one {sign}-templated key) since the pre-existing English source used a literal middle-dot in multiplicative prose that differs from mode.sign's x -- unifying would have changed shipped English text
 - [Phase 06]: [Phase 06 Plan 04]: Both cross-link builders (updateWheelXref/updateCayleyXref) now append &lang= explicitly, mirroring 06-03's Euler's Totient fix for the same decorateLinks-does-not-rescan-JS-set-hrefs gap
+- [Phase 06]: Fermat's Method: fixed an un-clamped elapsed-time fraction in animateRearrange() that could produce opacity>1, and made replayBtn cancel the pending auto-replay timer before starting its own animation (both pre-existing bugs surfaced by exact-snapshot i18n testing)
+- [Phase 06]: i18n-config/fermats-method.json: replaced a play()/pause()-timed mid-search switchPoint with a deterministic stepBtn-driven one, and the after-replay/n-8051 finished-search switchPoint with a dedicated pre-auto-timer snapshot, since rAF-driven and setTimeout-delayed animation state is not byte-reproducible across two separate headless Chrome launches without this
 
 ### Roadmap Evolution
 
@@ -262,8 +265,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T12:13:53.250Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-10-01T14:27:49.171Z
+Stopped at: Completed 06-05-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
