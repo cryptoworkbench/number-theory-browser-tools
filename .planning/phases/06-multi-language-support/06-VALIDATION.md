@@ -112,3 +112,14 @@ Per `workflow.human_verify_mode=end-of-phase`, none of the five rows above (nor 
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** validated — 06-12 Task 3's consolidated sweep (`i18n-check.js --all/--api/--persistence/--smoke`, `i18n-browser.js` on all 16 pages plus 4 Sieve mutants, Phase 7's `harness.js` and `shadow-check.js --all/--docs`) is green in one run; every per-task row above is ✅ green; the five manual-only rows plus 06-12 T3's own `<human-check>` are deferred to end-of-phase UAT by design.
+
+---
+
+## Validation Audit 2026-10-01
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-ran after UAT: `i18n-check.js --all` (all static modes × 16 pages PASS), `--api` (122), `--persistence` (71), `--smoke` (123, mutant detected, cross-session OK), `shadow-check.js --all` (PASS). The five manual-only rows passed in `06-UAT.md` (5/5).
