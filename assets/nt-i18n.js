@@ -1,5 +1,5 @@
 /* NT.i18n — site-wide language dictionaries, lookup, DOM translation and
-   (from Task 3 of this phase) durable persistence.
+   durable persistence.
 
    Why a page needs its own language choice to survive navigation, mirroring
    assets/theme.js's own rationale rather than restating it: these pages are
@@ -11,6 +11,21 @@
    and parameter names, never calling into theme.js or routing through
    NT.store (whose documented scope is sibling-pair tool settings, not a
    site-wide preference).
+
+   Persistence (Task 2 decision: option-a — `site-lang`, a raw two-letter
+   code, owned entirely by this module): resolution at evaluation time is
+   ?lang= beats cookie beats localStorage beats detectDefaultLang(); a value
+   outside SUPPORTED_LANGS in any channel is ignored and the next channel is
+   tried. An explicit choice (the URL/cookie/localStorage value that won at
+   load, or a later setLang()) is written to localStorage first, then to the
+   cookie `site-lang=<code>;path=/;max-age=31536000;samesite=lax`; a
+   detected default is never written. A `storage` event for this module's
+   own key re-applies the new language (html lang, static DOM, links, the
+   select, one change event) without writing storage again, mirroring
+   assets/theme.js's cross-tab sync; events for any other key (including
+   theme.js's own site-theme) are ignored. init() also strips the `lang`
+   query parameter from the address bar once its value has been folded into
+   the durable stores, leaving every other parameter and the hash intact.
 
    Include order: this file is a plain, non-deferred <script src>, placed
    after a page's existing nt-*.js includes (core, bigint, svg, store,
@@ -44,6 +59,7 @@
   var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
+  var LANG_STORAGE_KEY = 'site-lang';
 
   // ---------- namespace registry ----------
   // registry[ns][lang][flatKey] -> string | { one, other }
@@ -61,6 +77,29 @@
     } catch (e) { return null; }
   }
 
+  function fromCookie() {
+    try {
+      var cookie = (typeof document !== 'undefined') ? (document.cookie || '') : '';
+      var m = new RegExp('(?:^|; *)' + LANG_STORAGE_KEY + '=([^;]*)').exec(cookie);
+      return m ? valid(decodeURIComponent(m[1])) : null;
+    } catch (e) { return null; }
+  }
+
+  function fromStorage() {
+    try { return valid(localStorage.getItem(LANG_STORAGE_KEY)); } catch (e) { return null; }
+  }
+
+  // Writes an explicit choice to localStorage first, then the cookie —
+  // mirrors assets/theme.js's persist() channel order and cookie-attribute
+  // string exactly, under this module's own key. A detected default is
+  // never passed here.
+  function persist(lang) {
+    try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) { /* ignore */ }
+    try {
+      document.cookie = LANG_STORAGE_KEY + '=' + lang + ';path=/;max-age=31536000;samesite=lax';
+    } catch (e) { /* ignore */ }
+  }
+
   function detectDefaultLang() {
     var langs = [];
     try {
@@ -76,9 +115,17 @@
     return 'en';
   }
 
-  // Resolution at evaluation time: ?lang= beats detectDefaultLang() in Task
-  // 1; Task 3 inserts cookie -> localStorage between them.
-  var currentLang = fromUrl() || detectDefaultLang();
+  // Resolution at evaluation time: ?lang= beats cookie beats localStorage
+  // beats detectDefaultLang(); a value outside SUPPORTED_LANGS in any
+  // channel is ignored (each reader above returns null for it) and the
+  // next channel is tried. explicitAtLoad records whether the winning
+  // value came from an actual channel (persisted in init()) or merely from
+  // the browser-language default (never persisted).
+  var _urlLangAtLoad = fromUrl();
+  var _cookieLangAtLoad = fromCookie();
+  var _storageLangAtLoad = fromStorage();
+  var explicitAtLoad = !!(_urlLangAtLoad || _cookieLangAtLoad || _storageLangAtLoad);
+  var currentLang = _urlLangAtLoad || _cookieLangAtLoad || _storageLangAtLoad || detectDefaultLang();
 
   function applyHtmlLang(lang) {
     try {
@@ -323,9 +370,12 @@
     }
   }
 
-  function setLang(lang) {
-    if (!valid(lang)) return false;
-    if (lang === currentLang) return true;
+  // Applies an already-validated language: updates the active value, html
+  // lang, static DOM, links and the switcher, then fires exactly one
+  // nt-i18n:change event. Shared by setLang (which persists first) and the
+  // storage listener (which never persists — the write already happened in
+  // the tab that changed it).
+  function applyLang(lang) {
     currentLang = lang;
     applyHtmlLang(lang);
     applyStaticDom(typeof document !== 'undefined' ? document : null);
@@ -337,12 +387,51 @@
     if (typeof window !== 'undefined' && window.dispatchEvent && typeof CustomEvent !== 'undefined') {
       window.dispatchEvent(new CustomEvent('nt-i18n:change', { detail: { lang: lang } }));
     }
+  }
+
+  function setLang(lang) {
+    if (!valid(lang)) return false;
+    if (lang === currentLang) return true;
+    persist(lang);
+    applyLang(lang);
     return true;
+  }
+
+  // ---------- cross-tab sync ----------
+  // Mirrors assets/theme.js's storage listener: react to another tab's
+  // explicit choice for this module's own key, applying it without writing
+  // storage again (the write already happened in the tab that changed it).
+  // Events for any other key — including theme.js's own site-theme — are
+  // ignored.
+  function initStorageListener() {
+    if (typeof window === 'undefined' || !window.addEventListener) return;
+    window.addEventListener('storage', function (e) {
+      if (e.key !== LANG_STORAGE_KEY) return;
+      var next = valid(e.newValue);
+      if (!next || next === currentLang) return;
+      applyLang(next);
+    });
+  }
+
+  // The ?lang= that brought us here has been folded into the durable
+  // stores by init(), so drop it from the address bar — every other query
+  // parameter and the hash are left untouched. Mirrors assets/theme.js's
+  // stripUrlParam() with this module's own LANG_PARAM/regex.
+  function stripUrlParam() {
+    if (!fromUrl()) return;
+    if (typeof window === 'undefined' || !window.history || !history.replaceState) return;
+    try {
+      var search = location.search
+        .replace(new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?', 'g'), '$1')
+        .replace(/[?&]$/, '');
+      history.replaceState(null, '', location.pathname + search + location.hash);
+    } catch (e) { /* ignore */ }
   }
 
   // ---------- init ----------
 
   function init() {
+    if (explicitAtLoad) persist(currentLang);
     applyStaticDom(document);
     decorateLinks(currentLang);
     var select = document.getElementById('lang-switch-select');
@@ -350,6 +439,8 @@
       select.value = currentLang;
       select.addEventListener('change', function () { setLang(select.value); });
     }
+    stripUrlParam();
+    initStorageListener();
   }
 
   if (typeof document !== 'undefined') {
@@ -362,6 +453,7 @@
 
   var NT = (typeof window !== 'undefined') ? (window.NT = window.NT || {}) : {};
   NT.i18n = Object.freeze({
+    LANG_STORAGE_KEY: LANG_STORAGE_KEY,
     SUPPORTED_LANGS: SUPPORTED_LANGS,
     applyStaticDom: applyStaticDom,
     bindText: bindText,

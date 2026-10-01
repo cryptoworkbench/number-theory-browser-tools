@@ -708,7 +708,9 @@ function doApi() {
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
   check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "nl"]);
+  check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
+  check("getLang() initial value is the navigator default", I.getLang(), "en");
 
   var desc = Object.getOwnPropertyDescriptor(ctx.NT, "i18n");
   check("i18n slot non-writable", desc.writable, false);
@@ -734,7 +736,8 @@ function doApi() {
     echo: "value has {x} in it already",
     rich: "You supply {0} primes",
     richReordered: "{1} comes before {0}",
-    titleText: "Hover title"
+    titleText: "Hover title",
+    plain: "Just text, no placeholders"
   };
   var frDict = {
     greet: "Bonjour {name}",
@@ -743,11 +746,13 @@ function doApi() {
   I.register("t", { en: enDict, fr: frDict });
 
   check("translate basic en", I.translate("t.greet", { name: "World" }), "Hello World");
+  check("translate with no params leaves placeholders literal", I.translate("t.greet"), "Hello {name}");
+  check("translate plain template with no placeholders", I.translate("t.plain"), "Just text, no placeholders");
   check("translate unknown ns falls back to key", I.translate("unknown.key"), "unknown.key");
   check("translate unknown key in known ns falls back to key", I.translate("t.nope"), "t.nope");
 
   I.setLang("fr");
-  check("translate falls back to en when fr lacks the key", I.translate("t.count", { count: 5 }), "5 items");
+  check("translate falls back to en when fr lacks the key", I.translate("t.rich", { 0: "two" }), "You supply two primes");
   I.setLang("en");
 
   check("translate __proto__ not resolved via prototype chain", I.translate("t.__proto__"), "t.__proto__");
@@ -838,7 +843,11 @@ function doApi() {
   check("applyStaticDom second visit keeps child1 identity", reorderEl.children[0], childB);
 
   // register validation
-  check("register throws on invalid namespace", (tryCatchMessage(function () { I.register("Bad", { en: {} }); }) || "").indexOf("invalid namespace") !== -1, true);
+  check("register throws on invalid namespace (uppercase start)", (tryCatchMessage(function () { I.register("Bad", { en: {} }); }) || "").indexOf("invalid namespace") !== -1, true);
+  check("register throws on invalid namespace (digit start)", (tryCatchMessage(function () { I.register("1bad", { en: {} }); }) || "").indexOf("invalid namespace") !== -1, true);
+  check("register throws on invalid namespace (hyphenated)", (tryCatchMessage(function () { I.register("bad-ns", { en: {} }); }) || "").indexOf("invalid namespace") !== -1, true);
+  check("register accepts a valid camelCase namespace", tryCatchMessage(function () { I.register("validNs", { en: { k: "v" } }); }), null);
+  check("newly registered namespace is immediately translatable", I.translate("validNs.k"), "v");
   check("register throws on missing en", (tryCatchMessage(function () { I.register("zzz", { fr: {} }); }) || "").indexOf("must have an own 'en'") !== -1, true);
   check("register throws on duplicate namespace", (tryCatchMessage(function () { I.register("t", { en: {} }); }) || "").indexOf("already registered") !== -1, true);
 
@@ -981,10 +990,13 @@ function doPersistence() {
     check("bare vm context (only window) does not throw", threw, null);
   })();
 
-  // A detected default is never persisted.
+  // A detected default is never persisted. _storage._log also records
+  // "get" entries from the read-precedence probes (fromStorage() during
+  // resolution), so only "set" entries count as a write.
   (function () {
     var ctx = loadI18n({ navigator: { languages: ["en-US", "en"] } });
-    check("detected default is not written to storage", ctx._storage._log.length, 0);
+    var storageWrites = ctx._storage._log.filter(function (e) { return e[0] === "set"; });
+    check("detected default is not written to storage", storageWrites.length, 0);
     check("detected default is not written to cookie", ctx._jar._log.length, 0);
   })();
 
