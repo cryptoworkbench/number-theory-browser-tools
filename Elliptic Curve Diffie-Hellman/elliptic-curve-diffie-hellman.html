@@ -388,7 +388,7 @@
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { isPrime, mod, modInverse, randomInt } = NT.core;
 const { svgEl } = NT.svg;
-const { onLangChange, translate } = NT.i18n;
+const { onLangChange, translate, translateInto } = NT.i18n;
 
 /* ---------- math layer ---------- */
 /* Plain Number arithmetic throughout -- every multiply is reduced mod p
@@ -782,46 +782,106 @@ function highlightPoint(P){
 function appendLogEntry(step, ex){
   var div = document.createElement('div');
   div.className = 'substep';
+  var h3, f, f2, lbl, val, valGroupOrder, valG, valOrdG, warn;
   switch (step.id){
     case 'agree':
-      div.innerHTML = '<h3>The curve and its group</h3><div class="formula"><span class="lbl">y² = x³ + ' + ex.a + 'x + ' + ex.b + ' mod ' + ex.p +
-        '</span></div><div class="formula" style="margin-top:8px;">Group order (affine points + ∞) = <span class="val">' + ex.groupOrder +
-        '</span>. Base point G = <span class="val">' + fmtPt(ex.G) + '</span>, ord(G) = <span class="val">' + ex.ordG + '</span>.</div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logAgreeHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl';
+      lbl.textContent = 'y² = x³ + ' + ex.a + 'x + ' + ex.b + ' mod ' + ex.p;
+      f.appendChild(lbl);
+      div.appendChild(f);
+      f2 = document.createElement('div'); f2.className = 'formula'; f2.setAttribute('style', 'margin-top:8px;');
+      valGroupOrder = document.createElement('span'); valGroupOrder.className = 'val'; valGroupOrder.textContent = String(ex.groupOrder);
+      valG = document.createElement('span'); valG.className = 'val'; valG.textContent = fmtPt(ex.G);
+      valOrdG = document.createElement('span'); valOrdG.className = 'val'; valOrdG.textContent = String(ex.ordG);
+      translateInto(f2, 'ecdh.logAgreeGroupFormula', { 0: valGroupOrder, 1: valG, 2: valOrdG, ordWord: translate('ecdh.ordWord') });
+      div.appendChild(f2);
       break;
     case 'alicePicks':
-      div.innerHTML = "<h3>Alice's private scalar</h3><div class=\"formula\"><span class=\"lbl\">k_A =</span> <span class=\"val\">" + ex.ka + '</span> — kept secret, never sent.</div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logAliceScalarHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'k_A =';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = String(ex.ka);
+      translateInto(f, 'ecdh.logScalarFormula', { 0: lbl, 1: val });
+      div.appendChild(f);
       break;
     case 'bobPicks':
-      div.innerHTML = "<h3>Bob's private scalar</h3><div class=\"formula\"><span class=\"lbl\">k_B =</span> <span class=\"val\">" + ex.kb + '</span> — kept secret, never sent.</div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logBobScalarHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'k_B =';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = String(ex.kb);
+      translateInto(f, 'ecdh.logScalarFormula', { 0: lbl, 1: val });
+      div.appendChild(f);
       break;
     case 'aliceComputesA':
-      div.innerHTML = '<h3>Alice computes her public value</h3><div class="formula"><span class="lbl">A = k_A·G =</span> ' + ex.ka + '·' + fmtPt(ex.G) +
-        ' = <span class="val">' + fmtPt(ex.A) + '</span></div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logAlicePublicHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'A = k_A·G =';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.A);
+      f.appendChild(lbl);
+      f.appendChild(document.createTextNode(' ' + ex.ka + '·' + fmtPt(ex.G) + ' = '));
+      f.appendChild(val);
+      div.appendChild(f);
       break;
     case 'bobComputesB':
-      div.innerHTML = '<h3>Bob computes his public value</h3><div class="formula"><span class="lbl">B = k_B·G =</span> ' + ex.kb + '·' + fmtPt(ex.G) +
-        ' = <span class="val">' + fmtPt(ex.B) + '</span></div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logBobPublicHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'B = k_B·G =';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.B);
+      f.appendChild(lbl);
+      f.appendChild(document.createTextNode(' ' + ex.kb + '·' + fmtPt(ex.G) + ' = '));
+      f.appendChild(val);
+      div.appendChild(f);
       break;
     case 'sendA':
-      div.innerHTML = '<h3>A crosses the wire</h3><div class="formula">Alice → Bob: <span class="val">' + fmtPt(ex.A) + '</span></div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logACrossHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.A);
+      f.appendChild(document.createTextNode('Alice → Bob: '));
+      f.appendChild(val);
+      div.appendChild(f);
       break;
     case 'sendB':
-      div.innerHTML = '<h3>B crosses the wire</h3><div class="formula">Bob → Alice: <span class="val">' + fmtPt(ex.B) + '</span></div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logBCrossHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.B);
+      f.appendChild(document.createTextNode('Bob → Alice: '));
+      f.appendChild(val);
+      div.appendChild(f);
       break;
     case 'aliceSecret':
-      div.innerHTML = '<h3>Alice computes the shared secret</h3><div class="formula"><span class="lbl">k_A·B =</span> ' + ex.ka + '·' + fmtPt(ex.B) +
-        ' = <span class="val">' + fmtPt(ex.secretFromB) + '</span></div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logAliceSecretHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'k_A·B =';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.secretFromB);
+      f.appendChild(lbl);
+      f.appendChild(document.createTextNode(' ' + ex.ka + '·' + fmtPt(ex.B) + ' = '));
+      f.appendChild(val);
+      div.appendChild(f);
       break;
     case 'bobSecret':
-      div.innerHTML = '<h3>Bob computes the shared secret</h3><div class="formula"><span class="lbl">k_B·A =</span> ' + ex.kb + '·' + fmtPt(ex.A) +
-        ' = <span class="val">' + fmtPt(ex.secretFromA) + '</span></div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logBobSecretHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'k_B·A =';
+      val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.secretFromA);
+      f.appendChild(lbl);
+      f.appendChild(document.createTextNode(' ' + ex.kb + '·' + fmtPt(ex.A) + ' = '));
+      f.appendChild(val);
+      div.appendChild(f);
       break;
     case 'match':
-      var agreeText = (ex.agreeAB && ex.agreeThird)
-        ? ('Both sides agree: <span class="val">' + fmtPt(ex.secretFromB) + '</span>. Independent check (k_A·k_B mod ord(G))·G = ' +
-           fmtPt(ex.thirdCheck) + ' — matches.')
-        : '<span class="warn">MISMATCH — the two computed secrets or the third check disagree. This should never happen.</span>';
-      div.innerHTML = '<h3>They agree</h3><div class="formula">' + agreeText + '</div>';
+      h3 = document.createElement('h3'); translateInto(h3, 'ecdh.logTheyAgreeHeading'); div.appendChild(h3);
+      f = document.createElement('div'); f.className = 'formula';
+      if (ex.agreeAB && ex.agreeThird){
+        val = document.createElement('span'); val.className = 'val'; val.textContent = fmtPt(ex.secretFromB);
+        translateInto(f, 'ecdh.logMatchAgree', { 0: val, thirdCheck: fmtPt(ex.thirdCheck), ordWord: translate('ecdh.ordWord') });
+      } else {
+        warn = document.createElement('span'); warn.className = 'warn';
+        translateInto(warn, 'ecdh.logMismatch');
+        f.appendChild(warn);
+      }
+      div.appendChild(f);
       break;
   }
   mathLog.appendChild(div);
@@ -831,14 +891,17 @@ function appendLogEntry(step, ex){
 
 function renderMultiples(ex){
   multiplesList.innerHTML = '';
-  multiplesCount.textContent = ex.ordG + ' multiples (ord(G) = ' + ex.ordG + ')';
+  multiplesCount.textContent = translate('ecdh.multiplesCount', { n: ex.ordG, ordWord: translate('ecdh.ordWord') });
   for (var k = 1; k <= ex.ordG; k++){
     var P = ex.multiples[k - 1];
     var li = document.createElement('li');
     var btn = document.createElement('button');
     btn.className = 'row-btn';
     btn.type = 'button';
-    btn.innerHTML = '<span class="r-k">' + k + 'G</span><span>' + fmtPt(P) + '</span>';
+    var rk = document.createElement('span'); rk.className = 'r-k'; rk.textContent = k + 'G';
+    var ptSpan = document.createElement('span'); ptSpan.textContent = fmtPt(P);
+    btn.appendChild(rk);
+    btn.appendChild(ptSpan);
     (function(pt){
       btn.addEventListener('click', function(){ highlightPoint(pt); });
     })(P);
@@ -851,25 +914,67 @@ function renderMultiples(ex){
 
 function renderEveNotebook(ex, revealed){
   var dash = '—';
-  if (!ex){ eveNotebook.innerHTML = ''; return; }
-  eveNotebook.innerHTML =
-    '<div class="notebook">' +
-      '<h4>Eve’s notebook — everything she has recorded off the wire</h4>' +
-      '<div class="grid">' +
-        '<div>curve: ' + (revealed.curve ? ('y²=x³+' + ex.a + 'x+' + ex.b + ' mod ' + ex.p) : dash) + '</div>' +
-        '<div>G = ' + (revealed.curve ? fmtPt(ex.G) : dash) + '</div>' +
-        '<div>A = ' + (revealed.A ? fmtPt(ex.A) : dash) + '</div>' +
-        '<div>B = ' + (revealed.B ? fmtPt(ex.B) : dash) + '</div>' +
-      '</div>' +
-      '<div class="never">She does <strong>not</strong> have: Alice’s k_A, Bob’s k_B, or the shared secret. Those never touched the wire.</div>' +
-    '</div>';
+  eveNotebook.innerHTML = '';
+  if (!ex) return;
+  var div = document.createElement('div');
+  div.className = 'notebook';
+
+  var h4 = document.createElement('h4');
+  translateInto(h4, 'ecdh.notebookHeading');
+  div.appendChild(h4);
+
+  var grid = document.createElement('div');
+  grid.className = 'grid';
+  var curveCell = document.createElement('div');
+  translateInto(curveCell, 'ecdh.notebookCurveLine', { val: revealed.curve ? ('y²=x³+' + ex.a + 'x+' + ex.b + ' mod ' + ex.p) : dash });
+  grid.appendChild(curveCell);
+  var gCell = document.createElement('div'); gCell.textContent = 'G = ' + (revealed.curve ? fmtPt(ex.G) : dash);
+  grid.appendChild(gCell);
+  var aCell = document.createElement('div'); aCell.textContent = 'A = ' + (revealed.A ? fmtPt(ex.A) : dash);
+  grid.appendChild(aCell);
+  var bCell = document.createElement('div'); bCell.textContent = 'B = ' + (revealed.B ? fmtPt(ex.B) : dash);
+  grid.appendChild(bCell);
+  div.appendChild(grid);
+
+  var never = document.createElement('div');
+  never.className = 'never';
+  var notStrong = document.createElement('strong');
+  notStrong.textContent = translate('ecdh.notWord');
+  translateInto(never, 'ecdh.notebookNever', { 0: notStrong });
+  div.appendChild(never);
+
+  eveNotebook.appendChild(div);
+}
+
+function renderEveBruteForceResult(){
+  var resultEl = $('eveBruteForceResult');
+  if (!resultEl) return;
+  resultEl.innerHTML = '';
+  if (!eveBruteForceState) return;
+  var box = document.createElement('div');
+  if (eveBruteForceState.key === 'ecdh.eveGiveupLarge'){
+    box.className = 'result-box giveup';
+    translateInto(box, 'ecdh.eveGiveupLarge', eveBruteForceState.params);
+  } else if (eveBruteForceState.key === 'ecdh.eveWins'){
+    box.className = 'result-box win';
+    var sup = document.createElement('sup');
+    sup.textContent = '128';
+    var params = {};
+    for (var k in eveBruteForceState.params){ if (Object.prototype.hasOwnProperty.call(eveBruteForceState.params, k)) params[k] = eveBruteForceState.params[k]; }
+    params[0] = sup;
+    translateInto(box, 'ecdh.eveWins', params);
+  } else {
+    box.className = 'result-box giveup';
+    translateInto(box, 'ecdh.eveGiveupAfter', eveBruteForceState.params);
+  }
+  resultEl.appendChild(box);
 }
 
 function runEveBruteForce(ex){
-  var resultEl = $('eveBruteForceResult');
   var CEILING = 5000;
   if (ex.ordG > CEILING){
-    resultEl.innerHTML = '<div class="result-box giveup">🛡️ Eve gives up — the search space (' + ex.ordG + ' points) is too large for brute force here.</div>';
+    eveBruteForceState = { key: 'ecdh.eveGiveupLarge', params: { n: ex.ordG } };
+    renderEveBruteForceResult();
     return;
   }
   var start = performance.now();
@@ -881,12 +986,11 @@ function runEveBruteForce(ex){
   }
   var ms = performance.now() - start;
   if (found !== null){
-    resultEl.innerHTML = '<div class="result-box win">😈 Eve wins. Recovered k_A = ' + found + ' after ' + tries +
-      ' point additions in ' + ms.toFixed(2) + ' ms. The same brute-force loop against a real 256-bit curve would need on ' +
-      'the order of 2<sup>128</sup> additions — computationally hopeless.</div>';
+    eveBruteForceState = { key: 'ecdh.eveWins', params: { k: found, tries: tries, ms: ms.toFixed(2) } };
   } else {
-    resultEl.innerHTML = '<div class="result-box giveup">🛡️ Eve searched all ' + tries + ' points without finding a match.</div>';
+    eveBruteForceState = { key: 'ecdh.eveGiveupAfter', params: { tries: tries } };
   }
+  renderEveBruteForceResult();
 }
 
 /* ---------- scalar-multiplication walk ---------- */
@@ -917,7 +1021,11 @@ function animateWalk(k, X, a, p, ordG, role){
   // visualisation of the same arithmetic, never a second claim about it.
   var direct = scalarMul(k, X, a, p);
   if (!pointsEqual(finalPoint, direct)){
-    banner.innerHTML = '<span style="color:var(--role-warn);">Walk/scalarMul mismatch — this should never happen.</span>';
+    banner.innerHTML = '';
+    var warnSpan = document.createElement('span');
+    warnSpan.style.color = 'var(--role-warn)';
+    translateInto(warnSpan, 'ecdh.walkMismatch');
+    banner.appendChild(warnSpan);
   }
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   for (var i = 0; i < hops.length - 1; i++){
@@ -965,16 +1073,19 @@ function renderExplorer(){
   var readout = $('explorerReadout');
   var logEl = $('explorerLog');
   logEl.innerHTML = '';
-  if (!ex){ readout.textContent = 'Build a curve first.'; return; }
+  if (!ex){ readout.textContent = translate('ecdh.explorerBuildFirst'); return; }
   if (explorerState.a === null){
-    readout.textContent = 'Click a point on the field to begin.';
+    readout.textContent = translate('ecdh.explorerClickToBegin');
     return;
   }
   var dotA = findDotForPoint(explorerState.a);
   if (dotA) dotA.classList.add('is-slot-a');
 
   if (explorerState.b === null){
-    readout.innerHTML = 'First pick: <span class="slot-a">' + fmtPt(explorerState.a) + '</span>. Pick a second point (or the same one again to double it).';
+    var slotASpan = document.createElement('span');
+    slotASpan.className = 'slot-a';
+    slotASpan.textContent = fmtPt(explorerState.a);
+    translateInto(readout, 'ecdh.explorerFirstPick', { 0: slotASpan });
     return;
   }
   var dotB = findDotForPoint(explorerState.b);
@@ -986,10 +1097,16 @@ function renderExplorer(){
 
   if (P.x === Q.x && mod(P.y + Q.y, p) === 0){
     drawVerticalColumn(P.x, p);
-    readout.innerHTML = '<span class="slot-a">' + fmtPt(P) + '</span> + <span class="slot-b">' + fmtPt(Q) +
-      '</span> = <span class="slot-sum">∞</span> (vertical line — mirror images sum to the identity).';
-    logEl.innerHTML = '<div class="substep"><h3>Vertical case</h3><div class="formula">x-coordinates match and y-values sum to 0 mod p (' +
-      P.y + ' + ' + Q.y + ' = ' + (P.y + Q.y) + ' ≡ 0 mod ' + p + '). No slope exists — the sum is the point at infinity.</div></div>';
+    var vSA = document.createElement('span'); vSA.className = 'slot-a'; vSA.textContent = fmtPt(P);
+    var vSB = document.createElement('span'); vSB.className = 'slot-b'; vSB.textContent = fmtPt(Q);
+    var vSS = document.createElement('span'); vSS.className = 'slot-sum'; vSS.textContent = '∞';
+    translateInto(readout, 'ecdh.explorerVerticalSum', { 0: vSA, 1: vSB, 2: vSS });
+    var vDiv = document.createElement('div'); vDiv.className = 'substep';
+    var vH3 = document.createElement('h3'); translateInto(vH3, 'ecdh.explorerVerticalHeading');
+    var vF = document.createElement('div'); vF.className = 'formula';
+    translateInto(vF, 'ecdh.explorerVerticalFormula', { py: P.y, qy: Q.y, sum: (P.y + Q.y), p: p });
+    vDiv.appendChild(vH3); vDiv.appendChild(vF);
+    logEl.appendChild(vDiv);
     return;
   }
 
@@ -1036,16 +1153,35 @@ function renderExplorer(){
     }));
   }
 
-  var branchName = isTangent ? 'Tangent' : 'Chord';
-  readout.innerHTML = '<span class="slot-a">' + fmtPt(P) + '</span> + <span class="slot-b">' + fmtPt(Q) + '</span> = <span class="slot-sum">' + fmtPt(sum) + '</span>' +
-    (constructionOk ? '' : ' <span style="color:var(--role-warn); font-weight:700;">construction mismatch — see below</span>');
+  var branchKey = isTangent ? 'ecdh.explorerTangentConstruction' : 'ecdh.explorerChordConstruction';
 
-  logEl.innerHTML = '<div class="substep"><h3>' + branchName + ' construction</h3>' +
-    '<div class="formula">Slope λ = ' + lambda + ', intercept c = ' + intercept + ' — line y = ' + lambda + 'x + ' + intercept + ' mod ' + p + '.</div>' +
-    '<div class="formula" style="margin-top:8px;">Third curve intersection: ' + (third ? fmtPt(third) : 'not found') +
-    '. Reflected across the midline: ' + (mirror ? fmtPt(mirror) : '—') + ' = the sum.</div>' +
-    (constructionOk ? '' : '<div class="formula" style="margin-top:8px; color:var(--role-warn);">The drawn construction does not match pointAdd’s result — this should never happen.</div>') +
-    '</div>';
+  var rA = document.createElement('span'); rA.className = 'slot-a'; rA.textContent = fmtPt(P);
+  var rB = document.createElement('span'); rB.className = 'slot-b'; rB.textContent = fmtPt(Q);
+  var rSum = document.createElement('span'); rSum.className = 'slot-sum'; rSum.textContent = fmtPt(sum);
+  translateInto(readout, 'ecdh.explorerSumLine', { 0: rA, 1: rB, 2: rSum });
+  if (!constructionOk){
+    readout.appendChild(document.createTextNode(' '));
+    var mismatchSpan = document.createElement('span');
+    mismatchSpan.setAttribute('style', 'color:var(--role-warn); font-weight:700;');
+    translateInto(mismatchSpan, 'ecdh.explorerConstructionMismatch');
+    readout.appendChild(mismatchSpan);
+  }
+
+  var cDiv = document.createElement('div'); cDiv.className = 'substep';
+  var cH3 = document.createElement('h3'); translateInto(cH3, branchKey);
+  var cF1 = document.createElement('div'); cF1.className = 'formula';
+  translateInto(cF1, 'ecdh.explorerSlopeFormula', { lambda: lambda, intercept: intercept, p: p });
+  var cF2 = document.createElement('div'); cF2.className = 'formula'; cF2.setAttribute('style', 'margin-top:8px;');
+  var thirdText = third ? fmtPt(third) : translate('ecdh.explorerNotFound');
+  var mirrorText = mirror ? fmtPt(mirror) : '—';
+  translateInto(cF2, 'ecdh.explorerThirdFormula', { third: thirdText, mirror: mirrorText });
+  cDiv.appendChild(cH3); cDiv.appendChild(cF1); cDiv.appendChild(cF2);
+  if (!constructionOk){
+    var cF3 = document.createElement('div'); cF3.className = 'formula'; cF3.setAttribute('style', 'margin-top:8px; color:var(--role-warn);');
+    translateInto(cF3, 'ecdh.explorerConstructionMismatchDetail');
+    cDiv.appendChild(cF3);
+  }
+  logEl.appendChild(cDiv);
 }
 
 /* ---------- persistence ---------- */
@@ -1072,31 +1208,77 @@ function restoreState(){
 
 /* ---------- narrative playback engine ---------- */
 /* Same pattern as Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html
-   (grounded fact 10): SPEED_LABELS/SPEED_MS, a generation counter bumped on
-   every rebuild/reset so a stale timer can never paint into a new run, and
-   Play/Pause/Step/Instant/Reset driving one advanceOne() per narrative step. */
+   (grounded fact 10): a generation counter bumped on every rebuild/reset so a
+   stale timer can never paint into a new run, and Play/Pause/Step/Instant/
+   Reset driving one advanceOne() per narrative step. SPEED_MS stays a plain
+   numeric table (never user-visible); the speed WORD comes from
+   common.speed.<n> via renderSpeedLabel() -- the local speed-word lookup
+   table (06-02 pattern) has been removed. */
 
-var SPEED_LABELS = { 1: 'glacial', 2: 'slow', 3: 'gentle', 4: 'brisk', 5: 'steady', 6: 'quick', 7: 'fast', 8: 'rapid', 9: 'blazing', 10: 'instant-ish' };
 var SPEED_MS = { 1: 2600, 2: 2000, 3: 1500, 4: 1100, 5: 800, 6: 550, 7: 380, 8: 250, 9: 160, 10: 90 };
 
 var STEPS = [
-  { id: 'agree', caption: 'Alice and Bob agree publicly on the curve and the base point G.' },
-  { id: 'alicePicks', caption: "Alice privately picks a scalar k_A — it never leaves her side." },
-  { id: 'bobPicks', caption: "Bob privately picks a scalar k_B — it never leaves his side." },
-  { id: 'aliceComputesA', caption: 'Alice computes her public value A = k_A·G.' },
-  { id: 'bobComputesB', caption: 'Bob computes his public value B = k_B·G.' },
-  { id: 'sendA', caption: "A crosses the wire to Bob — Eve's tap records it." },
-  { id: 'sendB', caption: "B crosses the wire to Alice — Eve's tap records it." },
-  { id: 'aliceSecret', caption: 'Alice computes the shared secret: k_A·B.' },
-  { id: 'bobSecret', caption: 'Bob computes the shared secret: k_B·A.' },
-  { id: 'match', caption: 'Both sides land on the exact same point.' }
+  { id: 'agree' },
+  { id: 'alicePicks' },
+  { id: 'bobPicks' },
+  { id: 'aliceComputesA' },
+  { id: 'bobComputesB' },
+  { id: 'sendA' },
+  { id: 'sendB' },
+  { id: 'aliceSecret' },
+  { id: 'bobSecret' },
+  { id: 'match' }
 ];
+
+// Full dotted keys, one per step id -- deliberately not built via an
+// 'ecdh.step.' + id concatenation (P6 reserves that key-prefix idiom for
+// common.speed.<n> alone).
+var STEP_CAPTION_KEY = {
+  agree: 'ecdh.step.agree',
+  alicePicks: 'ecdh.step.alicePicks',
+  bobPicks: 'ecdh.step.bobPicks',
+  aliceComputesA: 'ecdh.step.aliceComputesA',
+  bobComputesB: 'ecdh.step.bobComputesB',
+  sendA: 'ecdh.step.sendA',
+  sendB: 'ecdh.step.sendB',
+  aliceSecret: 'ecdh.step.aliceSecret',
+  bobSecret: 'ecdh.step.bobSecret',
+  match: 'ecdh.step.match'
+};
 
 var playing = false, rafId = null, lastAdvance = 0, generation = 0;
 var stepIndex = 0;
 var eveRevealed = { curve: false, A: false, B: false };
 
-function renderStep(step, ex){
+function renderPlayPauseLabel(){
+  playBtn.textContent = translate(playing ? 'common.pause' : 'common.play');
+}
+
+function renderSpeedLabel(){
+  speedLabel.textContent = translate('common.speed.' + speedInput.value);
+}
+
+// Recomputes eveRevealed purely from which steps have been passed, with NO
+// field side effects -- used by onLangChange to rebuild the log/notebook
+// without re-calling markPointRole()/animateWalk() (neither is idempotent;
+// each would duplicate a point-label or replay a walk-trail animation).
+function revealedThroughStep(uptoIndex){
+  var revealed = { curve: false, A: false, B: false };
+  for (var i = 0; i < uptoIndex; i++){
+    var id = STEPS[i].id;
+    if (id === 'agree') revealed.curve = true;
+    else if (id === 'sendA') revealed.A = true;
+    else if (id === 'sendB') revealed.B = true;
+  }
+  return revealed;
+}
+
+// Performs every DOM-visual side effect of a step (field role marking, log
+// entry, Eve's notebook reveal) without touching the banner -- the split
+// lets renderStep set bannerState in exactly one place. Only ever called
+// during live advancement (advanceOne/revealAll), never during a language
+// switch's replay -- see onLangChange below for why.
+function applyStepVisual(step, ex){
   switch (step.id){
     case 'agree':
       markPointRole('g', ex.G);
@@ -1123,7 +1305,12 @@ function renderStep(step, ex){
   }
   appendLogEntry(step, ex);
   renderEveNotebook(ex, eveRevealed);
-  banner.textContent = step.caption;
+}
+
+function renderStep(step, ex){
+  applyStepVisual(step, ex);
+  bannerState = { key: STEP_CAPTION_KEY[step.id], params: null };
+  renderBanner();
 }
 
 function advanceOne(){
@@ -1156,7 +1343,7 @@ function play(){
   // A finished run rewinds instead of no-op'ing, so Play always plays.
   if (stepIndex >= STEPS.length) resetPlayback();
   playing = true;
-  playBtn.textContent = '⏸ Pause';
+  renderPlayPauseLabel();
   stepBtn.disabled = true;
   lastAdvance = 0;
   var myGen = generation;
@@ -1165,28 +1352,28 @@ function play(){
 
 function pause(){
   if (!playing){
-    playBtn.textContent = '▶ Play';
+    renderPlayPauseLabel();
     stepBtn.disabled = !currentExchange || stepIndex >= STEPS.length;
     return;
   }
   playing = false;
   if (rafId) cancelAnimationFrame(rafId);
   rafId = null;
-  playBtn.textContent = '▶ Play';
+  renderPlayPauseLabel();
   stepBtn.disabled = !currentExchange || stepIndex >= STEPS.length;
 }
 
 function stepOnce(){
   if (playing || !currentExchange || stepIndex >= STEPS.length) return;
   advanceOne();
-  if (stepIndex >= STEPS.length){ stepBtn.disabled = true; playBtn.textContent = '▶ Play'; }
+  if (stepIndex >= STEPS.length){ stepBtn.disabled = true; renderPlayPauseLabel(); }
 }
 
 function instantFinish(){
   pause();
   if (currentExchange) revealAll(currentExchange);
   stepBtn.disabled = true;
-  playBtn.textContent = '▶ Play';
+  renderPlayPauseLabel();
 }
 
 function resetPlayback(){
@@ -1205,10 +1392,12 @@ function resetPlayback(){
   for (var j = 0; j < labels.length; j++){ if (labels[j].parentNode) labels[j].parentNode.removeChild(labels[j]); }
   mathLog.innerHTML = '';
   renderEveNotebook(currentExchange, eveRevealed);
+  eveBruteForceState = null;
   if ($('eveBruteForceResult')) $('eveBruteForceResult').innerHTML = '';
   stepBtn.disabled = false;
-  playBtn.textContent = '▶ Play';
-  banner.textContent = 'Ready — press Play to watch the exchange build step by step.';
+  renderPlayPauseLabel();
+  bannerState = { key: 'ecdh.bannerReady', params: null };
+  renderBanner();
 }
 
 /* ---------- build / rebuild ---------- */
@@ -1230,9 +1419,10 @@ function rebuild(){
   eveRevealed = { curve: false, A: false, B: false };
   explorerState = { a: null, b: null, awaiting: 'a' };
   renderEveNotebook(ex, eveRevealed);
+  eveBruteForceState = null;
   if ($('eveBruteForceResult')) $('eveBruteForceResult').innerHTML = '';
   renderExplorer();
-  playBtn.textContent = '▶ Play';
+  renderPlayPauseLabel();
   stepBtn.disabled = false;
   instantFinish(); // page is never blank -- the full result shows immediately, Play replays it
   persistState();
@@ -1245,9 +1435,7 @@ playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
 stepBtn.addEventListener('click', stepOnce);
 instantBtn.addEventListener('click', instantFinish);
 resetBtn.addEventListener('click', resetPlayback);
-speedInput.addEventListener('input', function(){
-  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
-});
+speedInput.addEventListener('input', renderSpeedLabel);
 eveBruteForceBtn.addEventListener('click', function(){ if (currentExchange) runEveBruteForce(currentExchange); });
 
 [pInput, aInput, bInput].forEach(function(inp){
@@ -1292,9 +1480,15 @@ randomScalarsBtn.addEventListener('click', function(){
 // Retranslates every JS-owned piece of text in place -- never rebuilding the
 // field (renderField) or the base-point select (refreshBasePointOptions),
 // since either would discard the progressive role markings/explorer
-// highlighting a run has accumulated, or the user's current selection.
-// Task 2 extends this same callback with the log/notebook/brute-force/
-// explorer/banner/error/speed/playback re-rendering.
+// highlighting a run has accumulated, or the user's current selection. The
+// log/notebook/brute-force-result/explorer panels carry no such accumulated
+// history on their own DOM nodes (they are plain re-renders from tracked
+// state), so they are simply rebuilt from that state -- replaying
+// applyStepVisual() up to the current step index via the real role-marking/
+// walk-animation code path (never a second, divergent rendering path),
+// restoring the brute-force result from eveBruteForceState, and re-running
+// renderExplorer() from the untouched explorerState. play/pause state and
+// stepIndex are saved/restored around the replay so neither changes.
 onLangChange(function(){
   dotRegistry.forEach(function(entry){
     entry.el.setAttribute('aria-label', translate('ecdh.pointAriaLabel', { x: entry.P.x, y: entry.P.y }));
@@ -1304,6 +1498,30 @@ onLangChange(function(){
   });
   if (midCaptionEl) midCaptionEl.textContent = translate('ecdh.midlineCaption');
   if (infLabelEl) infLabelEl.textContent = translate('ecdh.infinityLabel');
+
+  renderPlayPauseLabel();
+  renderSpeedLabel();
+  renderError();
+
+  if (!currentExchange) return;
+  var ex = currentExchange;
+
+  // Rebuilds the log and Eve's notebook from tracked state WITHOUT touching
+  // the field's progressive role markings/point-labels/walk trails: unlike
+  // appendLogEntry/renderEveNotebook (plain re-renders with no DOM history
+  // of their own), markPointRole()/animateWalk() are NOT idempotent --
+  // calling them again would append a second, duplicate point-label and
+  // re-trigger a walk-trail animation. revealedThroughStep() recomputes
+  // eveRevealed from the step list alone, with no field side effects.
+  eveRevealed = revealedThroughStep(stepIndex);
+  mathLog.innerHTML = '';
+  for (var i = 0; i < stepIndex; i++){ appendLogEntry(STEPS[i], ex); }
+  renderEveNotebook(ex, eveRevealed);
+
+  renderMultiples(ex);
+  renderEveBruteForceResult();
+  renderExplorer();
+  renderBanner();
 });
 
 window.addEventListener('load', function(){
@@ -1328,7 +1546,7 @@ window.addEventListener('load', function(){
     speedInput.value = '4';
     rebuild();
   }
-  speedLabel.textContent = SPEED_LABELS[parseInt(speedInput.value, 10)] || '';
+  renderSpeedLabel();
 });
 
 })();
