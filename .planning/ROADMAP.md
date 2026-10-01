@@ -197,7 +197,7 @@ Plans:
 **Success criteria:** every tool loads its shared modules and no longer defines local copies of extracted helpers; zero behavior regressions, verified per tool in a browser; local /code-review clean (user then runs /code-review ultra).
 **Requirements**: TBD
 **Depends on:** None (touches every tool page — do not run concurrently with Phase 4/6 tool edits)
-**Plans:** 9/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 **Wave 1**

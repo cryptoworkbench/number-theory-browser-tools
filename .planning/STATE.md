@@ -1,44 +1,44 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 07
-current_phase_name: Shared JS Module Refactor
-status: verifying
-stopped_at: Completed 07-09-PLAN.md
-last_updated: "2026-09-30T22:26:25.517Z"
-last_activity: 2026-09-30
-last_activity_desc: Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
-state_head: 2f796230f95f27b605f52d5bb192929b903ec6f8
+current_phase: 4
+current_phase_name: Continued Fractions Tool
+status: planning
+stopped_at: Phase 07 complete, ready to plan Phase 4
+last_updated: "2026-10-01T08:15:13.984Z"
+last_activity: 2026-10-01
+last_activity_desc: Phase 07 complete, transitioned to Phase 4
+state_head: 69ded8cd8edfcafe97c819e953a085fef56291a9
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
   completed_plans: 25
-  percent: 57
+  percent: 67
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-24)
+See: .planning/PROJECT.md (updated 2026-10-01)
 
 **Core value:** Every concept gets a visualization a self-learner can interact with and immediately understand — the diagram teaches, the text supports it.
-**Current focus:** Phase 07 — Shared JS Module Refactor
+**Current focus:** Phase 4 — Continued Fractions Tool (builds on the phase-7 shared modules: import helpers from `NT.*`, never redefine them)
 
 ## Current Position
 
-Phase: 07 (Shared JS Module Refactor) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-09-30 — Phase 07 plan 2 (NT.svg + Fermat's Method/Shor's Algorithm/ECDH migration) completed
+Phase: 4 — Continued Fractions Tool
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-01 — Phase 07 complete, transitioned to Phase 4
 
-Progress: [██████░░░░] 57%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 9
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -46,7 +46,7 @@ Progress: [██████░░░░] 57%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 07 | 9 | - | - |
 
 **Recent Trend:**
 
@@ -158,6 +158,9 @@ Recent decisions affecting current work:
 - [Phase 07]: [Phase 07 Plan 9]: Claude-in-Chrome tools unavailable this session -- ran the headless fallback across all 16 pages and explicitly recorded (not silently skipped) the four genuinely manual-only behaviors (live cross-tab sync, Venn pointer-drag, Venn double-click navigation, Equivalence Wheel exports) in 07-VALIDATION.md
 - [Phase 07]: [Phase 07 Plan 9]: Phase 7 complete -- code-review skill (effort high, BASE..HEAD, 28 files) returned zero findings; 07-VALIDATION.md signed off with nyquist_compliant: true and all 21 Per-Task rows final; user's own /code-review ultra is the recommended next step
 
+- [Phase 7 close 2026-10-01]: Each `assets/nt-*.js` freezes its namespace and locks its own `NT.<name>` slot with `Object.defineProperty(..., { writable: false, configurable: false })`; `window.NT` itself stays extensible so later modules (e.g. Phase 6's `nt-i18n.js`) can attach. Covered by `checks/namespace.check.js`.
+- [Phase 7 close 2026-10-01]: Cross-tab live-sync handlers read the storage event's `e.newValue` (`readSharedGroup(raw)` / `readSharedAB(raw)`); plain reads stay cookie-first for Firefox's per-file `file://` origins. Fixed a pre-existing race that dropped ~1 in 20 rapid updates.
+
 ### Roadmap Evolution
 
 - Phase 6 added: Multi-Language Support — add a language switcher to every page (index.html hub + all tool pages) supporting Dutch, English, German, French, and Spanish, translating UI strings site-wide. Depends only on Phase 1's shared nav/site chrome; independent of Phase 4 (Continued Fractions) and Phase 5 (Cayley Table) content.
@@ -244,8 +247,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T22:26:25.393Z
-Stopped at: Completed 07-09-PLAN.md
+Last session: 2026-10-01T08:15:47Z
+Stopped at: Phase 07 complete (UAT 5/5, validated, threat-secure, verification passed), ready to plan Phase 4
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.

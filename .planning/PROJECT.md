@@ -55,6 +55,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 | Scope the Cayley table generator milestone narrowly (Z/NZ additive/multiplicative groups only, not the full abstract-algebra bundle) | User explicitly chose the narrow scope over opening the door to symmetry/permutation groups, cosets, and quotient groups in the same milestone | — Pending |
 | Cayley table generator ships as its own tool page, sharing the unit-set math and the group-params setting with the Equivalence Wheel through `NT.core` and `NT.store`, cross-linked both ways | User said "both" when asked separate-vs-paired — read as: its own page per repo convention, but designed as a close visual/interaction sibling with a cross-link, not a merged third tab inside the Equivalence Wheel | — Pending |
 | Shared number-theory, BigInt, SVG, shared-state and layout helpers live in `assets/nt-*.js` classic-script modules on one `window.NT` namespace | One implementation per helper; classic scripts keep every page runnable from `file://` | ✓ Phase 7 |
+| Cross-tab live sync reads the storage event's `newValue`; ordinary reads stay cookie-first | Cookie-first reads are needed for Firefox, where each `file://` page is its own origin, but inside a `storage` handler the cookie can lag the event and silently drop the update | ✓ Phase 7 (found and fixed during UAT; 40/40 rapid updates arrive) |
 
 ## Evolution
 
@@ -74,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-27 after scoping the Cayley table generator milestone*
+*Last updated: 2026-10-01 after Phase 7 (Shared JS Module Refactor)*
