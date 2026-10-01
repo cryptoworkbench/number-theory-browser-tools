@@ -57,8 +57,8 @@ last_mapped_at: 2026-09-23
 | Fermat's Method Tool | Visualize Fermat's factoring method via algebra → geometry | `Fermats Method/fermats-method.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
-| Site Chrome | Sticky header, tool navigation, day/night toggle | `assets/site.css`, `assets/theme.js` |
-| Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, and diagram layouts used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js` |
+| Site Chrome | Sticky header, tool navigation, day/night toggle, language switcher | `assets/site.css`, `assets/theme.js` |
+| Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layouts, and multi-language translation used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js` |
 
 ## Pattern Overview
 
@@ -102,11 +102,19 @@ last_mapped_at: 2026-09-23
 
 **Shared Modules:**
 
-- Purpose: Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, and diagram layout algorithms used by more than one tool
-- Location: `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, each assigning one frozen object to its own `window.NT` namespace (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`)
+- Purpose: Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layout algorithms, and multi-language translation used by more than one tool
+- Location: `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js`, each assigning one frozen object to its own `window.NT` namespace (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`, `NT.i18n`)
 - Contains: the exported functions/constants listed in Key Abstractions below
-- Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded
+- Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, i18n, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded; a page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` translation-data files are included after `nt-i18n.js`, in the same non-deferred style
 - Used by: every tool page that imports one or more `NT.NAME` namespaces via its import block
+
+**i18n Layer:**
+
+- Purpose: Site-wide multi-language translation — language resolution, DOM text binding, durable persistence, and cross-tab/cross-session sync, so a visitor's chosen language follows them across every tool
+- Location: `assets/nt-i18n.js` (`NT.i18n` — the engine: `translate`/`translateInto`/`bindText`/`applyStaticDom`/`setLang`/`getLang`/`onLangChange`/`detectDefaultLang`), the data files under `assets/i18n/` (`site.js`'s shared `site` and `common` namespaces plus one page-specific namespace per tool, e.g. `assets/i18n/sieve-of-eratosthenes.js`; `index.html`'s is `assets/i18n/hub.js`), and the canonical header's `#lang-switch-select` switcher
+- Contains: five supported languages (nl, en, de, fr, es) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
+- Load order: the sixth shared module, included after `nt-layout.js` and before a page's own `assets/i18n/*.js` data files and its inline `<script>`
+- Used by: every tool page; a page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state when the active language changes, without resetting tool state (grid, scan position, playback, selections)
 
 **Business Logic (Math):**
 
@@ -182,6 +190,14 @@ last_mapped_at: 2026-09-23
 - Cross-tab sync via `storage` event listener (theme.js)
 - Pre-render script in `<head>` sets theme before first paint (prevents flash)
 
+### Language Switch Flow
+
+1. **User selects a language** in the header's `#lang-switch-select` → `NT.i18n.setLang(code)`
+2. **Persistence** → an explicit choice is written to `localStorage` under `site-lang` first, then to the cookie `site-lang=<code>;path=/;max-age=31536000;samesite=lax`; a detected browser default is never written
+3. **DOM update** → `applyStaticDom()` re-binds every `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder` element, decorates same-site links with `&lang=`/`?lang=`, and updates `<html lang>`
+4. **Page re-render** → the page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state, without resetting tool state
+5. **Cross-tab sync** → a `storage` event for the `site-lang` key re-applies the language in another open tab, without re-persisting; events for any other key (including `site-theme`) are ignored
+
 ## Key Abstractions
 
 **NT.svg.svgEl(tag, attrs):**
@@ -235,11 +251,11 @@ last_mapped_at: 2026-09-23
 ## Architectural Constraints
 
 - **Threading:** Single-threaded event loop (browser JS standard). Animation via `requestAnimationFrame` and `setTimeout`; no Web Workers used.
-- **Global state:** Each tool's own UI/animation state lives in a closure-scoped object — no tool shares its own state via a module-level singleton. `window.NT` is the one shared global, and each of its sub-namespaces (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`) is frozen after construction; no page may assign to `NT` or to any of its members. Theme preference is stored in `localStorage`.
+- **Global state:** Each tool's own UI/animation state lives in a closure-scoped object — no tool shares its own state via a module-level singleton. `window.NT` is the one shared global, and each of its sub-namespaces (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`, `NT.i18n`) is frozen after construction; no page may assign to `NT` or to any of its members. Theme preference is stored in `localStorage` under `site-theme`; the active language preference is stored under `site-lang` by `NT.i18n`, mirroring the same cookie + localStorage pattern.
 - **Module dependency direction:** Tools depend on `NT.*` modules, never the reverse; `nt-layout.js` depends on `nt-core.js` (and throws if loaded without it); no module depends on a tool. No ES modules are used, so every page still works when opened over `file://`.
 - **No build step:** All code runs as-is in browser; no transpilation, minification, or bundling.
 - **Module boundary:** Each helper exists once, in the matching `assets/nt-*.js` file; a tool includes only the modules whose namespaces it imports.
-- **Load order:** A page's `nt-*.js` `<script src>` tags are plain and non-deferred, placed immediately before its own inline `<script>`, because that inline script calls shared helpers synchronously at IIFE top level (starting with its own import block).
+- **Load order:** A page's `nt-*.js` `<script src>` tags are plain and non-deferred, placed immediately before its own inline `<script>`, because that inline script calls shared helpers synchronously at IIFE top level (starting with its own import block). The canonical order is core, bigint, svg, store, layout, i18n, followed by the page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` data files.
 - **BigInt support:** RSA tool uses native `BigInt` for key generation and modular exponentiation; requires modern browser (not IE11 or earlier).
 - **SVG rendering:** All diagrams hand-drawn via path/circle/text elements; no charting library (D3, Recharts, etc.).
 
@@ -283,6 +299,22 @@ last_mapped_at: 2026-09-23
 - Initialization on DOMContentLoaded
 
 See `Equivalence Wheel/equivalence-wheel.html` as a model.
+
+### Architectural Smell: Concatenating Translated Fragments
+
+**What happens:** A dynamic message is built by concatenating several `translate()` calls, or a `translate()` result with literal English punctuation or connective words (e.g. `translate('a') + ' of ' + translate('b')`).
+
+**Why it's wrong:** Word order, articles and connectives differ per language — a fragment-by-fragment concatenation only reads correctly in English and produces broken grammar in every other language. `06-GLOSSARY.md` and the per-page translation procedure both call this out as the reason every message is a whole-sentence dictionary template.
+
+**Do this instead:** Write one whole-sentence dictionary value per language, with `{0}`/`{name}`-style placeholders for the variable parts, and call `translate()`/`translateInto()` once per message, never concatenating two translated pieces.
+
+### Architectural Smell: Prose via innerHTML
+
+**What happens:** A render function builds a sentence containing translated text by concatenating an HTML string and assigning it to `innerHTML`.
+
+**Why it's wrong:** `NT.i18n`'s rendering rule puts every translated string into the DOM as a text node or via `textContent`/`setAttribute`, never `innerHTML` — a dictionary value is never parsed as markup, and an `innerHTML` builder can't be exempted by the static i18n gates (`i18n-check.js`'s `INNERHTML-PROSE` finding).
+
+**Do this instead:** Build the sentence via DOM construction (`createElement`/`createTextNode`) and `translateInto()` with Node params for any embedded `<strong>`/`<sup>`/`<span>` child, matching the project's long-standing DOM-construction convention for every other dynamic region.
 
 ### Architectural Smell: Tight Coupling to localStorage Key Name
 

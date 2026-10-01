@@ -41,10 +41,11 @@ last_mapped_at: 2026-09-23
 
 - `localStorage` (browser-persisted key-value store)
   - `site-theme`: Day/night mode preference (string: `"day"` or `"night"`)
+  - `site-lang`: Active language preference, owned by `assets/nt-i18n.js` (string: raw two-letter code, one of `"nl"`, `"en"`, `"de"`, `"fr"`, `"es"`); also mirrored to the cookie `site-lang=<code>;path=/;max-age=31536000;samesite=lax` for the same Firefox-`file://`-origin reason `site-theme` is mirrored
   - `congruence-wheel`: Congruence Wheel tool state (JSON: `{N: number, depth: number}`)
 - `sessionStorage`: Not used
 - `IndexedDB`: Not used
-- `Cookies`: Not used
+- `Cookies`: `site-theme` and `site-lang` only, as the same-value mirror of their `localStorage` keys (never a separate value)
 
 **No File Upload/Download:**
 
