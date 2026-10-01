@@ -30,8 +30,8 @@ notes: |
   propagated, saw the old value and returned early. Pre-existing: the read order (cookie, then
   localStorage) and the write order (localStorage, then cookie) are unchanged from BASE (bf658d9). It can
   only occur when cookies work (http hosting); Chrome sets no cookies on file://, so readShared falls back
-  to localStorage there. Not a phase-7 regression — candidate follow-up: write the cookie before
-  localStorage, or read localStorage first inside the storage handler.
+  to localStorage there. Not a phase-7 regression. Fixed in d0a4092: storage handlers now parse the event's
+  newValue instead of re-reading the cookie; re-tested 40/40 rapid updates on each pair (old code: 1 in 20 dropped).
 
 ### 2. Venn Diagram pointer-drag of a placed prime between regions
 expected: The prime moves regions and the product/overlap labels update, matching pre-phase behavior
@@ -49,7 +49,8 @@ notes: |
   double-click opened Euclidean Algorithm ?a=1584&b=4620 with those inputs. No console errors.
   Pre-existing cosmetic bug (unchanged from BASE): openXref() calls window.open(..., 'noopener'), which
   always returns null, so Venn always shows "Your browser blocked the new tab — allow popups…" even
-  though the tab opened.
+  though the tab opened. Fixed in d0a4092: opens without the feature and clears opener (verified
+  window.opener === null); message now reads "Opened a new tab to see this number's Factor Tree."
 
 ### 4. Equivalence Wheel Export SVG, Export PNG, and Print
 expected: Each completes without a console error, same export/print behavior as pre-phase
