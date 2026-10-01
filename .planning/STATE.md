@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-10-01T11:01:29.067Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-10-01T11:36:18.593Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: 0141c6d149f006feff93907717ec97bb31da4bfe
+state_head: 519d80206200311670676eedce7b60341064d7ac
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 27
+  completed_plans: 28
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -88,6 +88,7 @@ Progress: [███████░░░] 71%
 | Phase 07 P09 | 40min | 3 tasks | 2 files |
 | Phase 06 P01 | 33 min | 3 tasks | 6 files |
 | Phase 06 P02 | 26min | 3 tasks | 12 files |
+| Phase 06 P03 | single session | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,9 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 Plan 02]: Created i18n-config/sieve-of-eratosthenes.json one task early (Task 1, not Task 2) as a Rule 3 fix so Task 1's own --literals-markup gate could pass with its three JS-owned static placeholder exemptions, then extended it in Task 2 with switchPoints
 - [Phase 06]: [Phase 06 Plan 02]: i18n-browser.js computes its own BASE (parent of the commit that first added assets/nt-i18n.js), independent of Phase 7's harness.js baseCommit() (parent of nt-core.js's first commit) -- the two phases' pre-phase anchors are different commits
 - [Phase 06]: [Phase 06 Plan 02]: harness.js's loadNew() gained an additive options.exclude list rather than leaving nt-i18n.js unconditionally loaded into every check's vm context -- store.check.js's own precise storage/cookie call-count assertions needed to opt nt-i18n.js out to avoid cross-module log pollution
+- [Phase 06]: Hub card titles preserve the hub's own pre-existing English wording (byte-for-byte) rather than reusing site.nav.* verbatim, per this plan's own Task 1 instructions overriding 06-GLOSSARY.md's general note
+- [Phase 06]: Euler's Totient keeps 'gcd' literal across every language (never ggd/ggT/pgcd/mcd) per 06-GLOSSARY.md section (e)'s math-notation list
+- [Phase 06]: Fixed five shared i18n-check.js/i18n-browser.js gate gaps (DOM-API lookback dot-exclusion, missing svgEl exemption, trailing-space class heuristic, data-i18n-params not stripped for en-parity, en-change mutant hardcoded to sieve.lede) discovered while running the Phase 06-02 gate suite against pages other than the Sieve for the first time
 
 ### Roadmap Evolution
 
@@ -254,8 +258,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T11:01:28.915Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-10-01T11:36:18.441Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
