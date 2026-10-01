@@ -357,7 +357,7 @@
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { bigGcd, fmt, isPrimeBig, modPowPlain, parseBigIntStrict, scratchNum } = NT.bigint;
-const { onLangChange } = NT.i18n;
+const { bindText, onLangChange, translate, translateInto } = NT.i18n;
 
 /* Extended Euclidean algorithm, iterative table form: a*x + b*y = gcd(a,b) */
 function extendedGcdSteps(a, b){
@@ -376,14 +376,14 @@ function chooseE(phi){
   const candidates = [];
   const e65537 = 65537n;
   if(e65537 < phi && bigGcd(e65537, phi) === 1n){
-    candidates.push({e:e65537, ok:true, note:'Standard real-world choice: 65537 = 2¹⁶+1 (prime, few 1-bits → fast)'});
+    candidates.push({e:e65537, ok:true, noteKey:'rsa.noteStandardChoice', noteParams:null});
     return {chosen:e65537, candidates};
   }
-  candidates.push({e:e65537, ok:false, note: e65537 >= phi ? '65537 ≥ φ(n) — too big for this toy modulus' : 'gcd(65537, φ(n)) ≠ 1'});
+  candidates.push({e:e65537, ok:false, noteKey: e65537 >= phi ? 'rsa.noteTooBig' : 'rsa.noteNotCoprime65537', noteParams:null});
   let cand = 3n, tries = 0;
   while(tries < 4000 && cand < phi){
     const g = bigGcd(cand, phi);
-    if(candidates.length < 9) candidates.push({e:cand, ok: g===1n, note: g===1n ? 'coprime with φ(n) ✓' : `gcd(e, φ(n)) = ${g} ✗`});
+    if(candidates.length < 9) candidates.push({e:cand, ok: g===1n, noteKey: g===1n ? 'rsa.noteCoprime' : 'rsa.noteNotCoprime', noteParams: g===1n ? null : {0: fmt(g)}});
     if(g === 1n) return {chosen: cand, candidates};
     cand += 2n; tries++;
   }
@@ -462,25 +462,48 @@ const State = { bob: null, alice: null };
    exchange are independent of the other exchange. */
 const CrtFlag = { bob: false, alice: false };
 const LastExchange = { bob: null, alice: null };
+/* { key, params } | null per id — the currently displayed key-generation validation error. */
+const ErrorState = { bob: null, alice: null };
+/* Plain JS refs (no new DOM id/class — would be a markup change absent from the
+   pre-phase baseline) to the wire notebook's "not" strong child and its wrapper,
+   so a language switch can re-run this one Node-param translateInto without
+   rebuilding the whole wire section. Set each time renderWire() runs. */
+let wireNeverEl = null;
+let wireNotStrongEl = null;
+
+function renderError(id){
+  const errBox = document.getElementById(id+'-error');
+  const st = ErrorState[id];
+  errBox.textContent = st ? translate(st.key, st.params) : '';
+}
+
+function setError(id, key, params){
+  ErrorState[id] = { key, params: params || null };
+  renderError(id);
+}
+
+function clearError(id){
+  ErrorState[id] = null;
+  renderError(id);
+}
 
 function generateKeys(id, label){
-  const errBox = document.getElementById(id+'-error');
-  errBox.textContent = '';
+  clearError(id);
   let p, q;
   try{ p = parseBigIntStrict(document.getElementById(id+'-p').value); }
-  catch(e){ errBox.textContent = 'Prime p must be a positive whole number.'; return; }
+  catch(e){ setError(id, 'rsa.errPrimeInvalid', {0:'p'}); return; }
   try{ q = parseBigIntStrict(document.getElementById(id+'-q').value); }
-  catch(e){ errBox.textContent = 'Prime q must be a positive whole number.'; return; }
-  if(p < 3n || q < 3n){ errBox.textContent = 'Please use odd primes ≥ 3 (this keeps the φ(n) formula well-behaved).'; return; }
-  if(p === q){ errBox.textContent = 'p and q must be different primes — otherwise n = p² and this φ(n) formula no longer applies.'; return; }
-  if(p.toString().length > 60 || q.toString().length > 60){ errBox.textContent = 'Please keep primes under 60 digits so the page stays responsive — this is a teaching demo, not a key generator.'; return; }
-  if(!isPrimeBig(p)){ errBox.textContent = `${fmt(p)} is not prime.`; return; }
-  if(!isPrimeBig(q)){ errBox.textContent = `${fmt(q)} is not prime.`; return; }
+  catch(e){ setError(id, 'rsa.errPrimeInvalid', {0:'q'}); return; }
+  if(p < 3n || q < 3n){ setError(id, 'rsa.errOddPrimes'); return; }
+  if(p === q){ setError(id, 'rsa.errSamePrimes'); return; }
+  if(p.toString().length > 60 || q.toString().length > 60){ setError(id, 'rsa.errTooLong'); return; }
+  if(!isPrimeBig(p)){ setError(id, 'rsa.errNotPrime', {0: fmt(p)}); return; }
+  if(!isPrimeBig(q)){ setError(id, 'rsa.errNotPrime', {0: fmt(q)}); return; }
 
   const n = p*q;
   const phi = (p-1n)*(q-1n);
   const {chosen:e, candidates} = chooseE(phi);
-  if(e === null){ errBox.textContent = 'Could not find a suitable public exponent for this φ(n) — try different primes.'; return; }
+  if(e === null){ setError(id, 'rsa.errNoE'); return; }
   const eg = extendedGcdSteps(e, phi);
   let d = ((eg.x % phi) + phi) % phi;
 
@@ -489,100 +512,238 @@ function generateKeys(id, label){
   checkUnlocks();
 }
 
+// Retained for the still-unconverted Task 3 table builders (runDlpDemo,
+// renderModPowTable), which still build an HTML string. Task 3 replaces their
+// call sites with buildTableBody below and removes this function.
 function tableRows(rows){
   return rows.map(r => `<tr class="${r.cls||''}">${r.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+}
+
+/* Builds a <tbody> from {cls, cells} rows. A cell is either a plain string/Node
+   (notation — never translated) or an {i18nKey, i18nParams} descriptor, rendered
+   via bindText so the cell re-renders itself automatically on a language switch. */
+function buildTableBody(rows){
+  const tbody = document.createElement('tbody');
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.className = r.cls || '';
+    r.cells.forEach(c => {
+      const td = document.createElement('td');
+      if(c && typeof c === 'object' && c.i18nKey){
+        bindText(td, c.i18nKey, c.i18nParams);
+      } else if(c instanceof Node){
+        td.appendChild(c);
+      } else {
+        td.textContent = c;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  return tbody;
 }
 
 function renderKeyOutput(id){
   const k = State[id];
   const out = document.getElementById(id+'-output');
-  const colorClass = id;
+  out.innerHTML = '';
 
-  // candidate-e table
+  // candidate-e table rows
   const eRows = k.candidates.map(c => ({
     cls: c.e === k.e ? 'win' : (c.ok ? '' : 'fail'),
-    cells: [fmt(c.e), c.ok ? '✓' : '✗', c.note]
+    cells: [fmt(c.e), c.ok ? '✓' : '✗', {i18nKey: c.noteKey, i18nParams: c.noteParams}]
   }));
 
-  // extended gcd table
+  // extended gcd table rows (q/r/s/t are notation, never translated)
   const egRows = k.egRows.map((row,idx) => ({
     cls: idx === k.egRows.length-1 ? 'win' : '',
     cells: [row.q===null?'—':fmt(row.q), fmt(row.r), fmt(row.s), fmt(row.t)]
   }));
 
-  out.innerHTML = `
-    <div class="substep">
-      <h3>Composite modulus</h3>
-      <div class="formula"><span class="lbl">n = p × q =</span> ${fmt(k.p)} × ${fmt(k.q)} = <span class="val">${fmt(k.n)}</span></div>
-    </div>
-    <div class="substep">
-      <h3>Euler's totient</h3>
-      <div class="formula"><span class="lbl">φ(n) = (p−1)(q−1) =</span> ${fmt(k.p-1n)} × ${fmt(k.q-1n)} = <span class="val">${fmt(k.phi)}</span></div>
-      <div class="msg-hint">φ(n) counts the integers below n that share no common factor with n — it's the size of the group RSA's exponentiation operates in, and it must stay secret (computing it requires knowing p and q).</div>
-    </div>
-    <div class="substep">
-      <h3>Choosing the public exponent e</h3>
-      <div class="msg-hint" style="margin-bottom:8px;">e must satisfy 1 &lt; e &lt; φ(n) and gcd(e, φ(n)) = 1, so that e has a multiplicative inverse mod φ(n).</div>
-      <div class="tbl-wrap"><table class="steps"><thead><tr><th>e tried</th><th>coprime?</th><th>note</th></tr></thead><tbody>${tableRows(eRows)}</tbody></table></div>
-      <div class="formula" style="margin-top:8px;" id="${id}-chosen-e"><span class="lbl">chosen e =</span> <span class="val">${fmt(k.e)}</span></div>
-    </div>
-    <div class="substep">
-      <h3>Extended Euclidean algorithm → private exponent d</h3>
-      <div class="msg-hint" style="margin-bottom:8px;">Solving e·x + φ(n)·y = gcd(e, φ(n)) = 1 for x gives d ≡ x (mod φ(n)), the modular inverse of e.</div>
-      <div class="tbl-wrap"><table class="steps"><thead><tr><th>q</th><th>r</th><th>s</th><th>t</th></tr></thead><tbody>${tableRows(egRows)}</tbody></table></div>
-      <div class="formula" style="margin-top:8px;">
-        <span class="lbl">d = x mod φ(n) =</span> <span class="val">${fmt(k.d)}</span><br>
-        <span class="lbl">check e·d mod φ(n) =</span> ${fmt((k.e*k.d) % k.phi)} ${((k.e*k.d)%k.phi)===1n?'✓':'✗'}
-      </div>
-    </div>
-    <div class="keycards">
-      <div class="keycard pub">
-        <h4>📢 ${k.label}'s Public Key</h4>
-        <div class="kv">e = ${fmt(k.e)}</div>
-        <div class="kv">n = ${fmt(k.n)}</div>
-        <div class="note">Safe to publish — this is what goes out on the wire.</div>
-      </div>
-      <div class="keycard priv">
-        <h4>🔒 ${k.label}'s Private Key</h4>
-        <div class="kv">d = ${fmt(k.d)}</div>
-        <div class="kv">n = ${fmt(k.n)}</div>
-        <div class="note">p, q, φ(n) and d never leave ${k.label}'s machine.</div>
-      </div>
-    </div>
-  `;
+  // substep: composite modulus
+  const sub1 = document.createElement('div'); sub1.className = 'substep';
+  const h3a = document.createElement('h3'); bindText(h3a, 'rsa.h3CompositeModulus');
+  sub1.appendChild(h3a);
+  const f1 = document.createElement('div'); f1.className = 'formula';
+  const lbl1 = document.createElement('span'); lbl1.className = 'lbl'; lbl1.textContent = 'n = p × q =';
+  const val1 = document.createElement('span'); val1.className = 'val'; val1.textContent = fmt(k.n);
+  f1.appendChild(lbl1);
+  f1.appendChild(document.createTextNode(' ' + fmt(k.p) + ' × ' + fmt(k.q) + ' = '));
+  f1.appendChild(val1);
+  sub1.appendChild(f1);
+  out.appendChild(sub1);
+
+  // substep: Euler's totient
+  const sub2 = document.createElement('div'); sub2.className = 'substep';
+  const h3b = document.createElement('h3'); bindText(h3b, 'rsa.h3EulerTotient');
+  sub2.appendChild(h3b);
+  const f2 = document.createElement('div'); f2.className = 'formula';
+  const lbl2 = document.createElement('span'); lbl2.className = 'lbl'; lbl2.textContent = 'φ(n) = (p−1)(q−1) =';
+  const val2 = document.createElement('span'); val2.className = 'val'; val2.textContent = fmt(k.phi);
+  f2.appendChild(lbl2);
+  f2.appendChild(document.createTextNode(' ' + fmt(k.p-1n) + ' × ' + fmt(k.q-1n) + ' = '));
+  f2.appendChild(val2);
+  sub2.appendChild(f2);
+  const hint2 = document.createElement('div'); hint2.className = 'msg-hint';
+  bindText(hint2, 'rsa.msgHintTotient');
+  sub2.appendChild(hint2);
+  out.appendChild(sub2);
+
+  // substep: choosing the public exponent e
+  const sub3 = document.createElement('div'); sub3.className = 'substep';
+  const h3c = document.createElement('h3'); bindText(h3c, 'rsa.h3ChoosingE');
+  sub3.appendChild(h3c);
+  const hint3 = document.createElement('div'); hint3.className = 'msg-hint'; hint3.setAttribute('style','margin-bottom:8px;');
+  bindText(hint3, 'rsa.msgHintChooseE');
+  sub3.appendChild(hint3);
+  const wrap3 = document.createElement('div'); wrap3.className = 'tbl-wrap';
+  const table3 = document.createElement('table'); table3.className = 'steps';
+  const thead3 = document.createElement('thead'); const trh3 = document.createElement('tr');
+  const th31 = document.createElement('th'); bindText(th31, 'rsa.thETried');
+  const th32 = document.createElement('th'); bindText(th32, 'rsa.thCoprime');
+  const th33 = document.createElement('th'); bindText(th33, 'rsa.thNote');
+  trh3.appendChild(th31); trh3.appendChild(th32); trh3.appendChild(th33);
+  thead3.appendChild(trh3); table3.appendChild(thead3);
+  table3.appendChild(buildTableBody(eRows));
+  wrap3.appendChild(table3);
+  sub3.appendChild(wrap3);
+  const formula3 = document.createElement('div'); formula3.className = 'formula'; formula3.setAttribute('style','margin-top:8px;');
+  formula3.id = id + '-chosen-e';
+  const lbl3 = document.createElement('span'); lbl3.className = 'lbl'; bindText(lbl3, 'rsa.lblChosenE');
+  const val3 = document.createElement('span'); val3.className = 'val'; val3.textContent = fmt(k.e);
+  formula3.appendChild(lbl3);
+  formula3.appendChild(document.createTextNode(' '));
+  formula3.appendChild(val3);
+  sub3.appendChild(formula3);
+  out.appendChild(sub3);
+
+  // substep: extended Euclidean algorithm -> private exponent d
+  const sub4 = document.createElement('div'); sub4.className = 'substep';
+  const h3d = document.createElement('h3'); bindText(h3d, 'rsa.h3ExtendedEuclid');
+  sub4.appendChild(h3d);
+  const hint4 = document.createElement('div'); hint4.className = 'msg-hint'; hint4.setAttribute('style','margin-bottom:8px;');
+  bindText(hint4, 'rsa.msgHintExtendedEuclid');
+  sub4.appendChild(hint4);
+  const wrap4 = document.createElement('div'); wrap4.className = 'tbl-wrap';
+  const table4 = document.createElement('table'); table4.className = 'steps';
+  const thead4 = document.createElement('thead'); const trh4 = document.createElement('tr');
+  ['q','r','s','t'].forEach(letter => { const th = document.createElement('th'); th.textContent = letter; trh4.appendChild(th); });
+  thead4.appendChild(trh4); table4.appendChild(thead4);
+  table4.appendChild(buildTableBody(egRows));
+  wrap4.appendChild(table4);
+  sub4.appendChild(wrap4);
+  const formula4 = document.createElement('div'); formula4.className = 'formula'; formula4.setAttribute('style','margin-top:8px;');
+  const lbl4a = document.createElement('span'); lbl4a.className = 'lbl'; lbl4a.textContent = 'd = x mod φ(n) =';
+  const val4a = document.createElement('span'); val4a.className = 'val'; val4a.textContent = fmt(k.d);
+  formula4.appendChild(lbl4a);
+  formula4.appendChild(document.createTextNode(' '));
+  formula4.appendChild(val4a);
+  formula4.appendChild(document.createElement('br'));
+  const lbl4b = document.createElement('span'); lbl4b.className = 'lbl'; bindText(lbl4b, 'rsa.lblCheck');
+  const checkVal = (k.e*k.d) % k.phi;
+  formula4.appendChild(lbl4b);
+  formula4.appendChild(document.createTextNode(' ' + fmt(checkVal) + ' ' + (checkVal===1n ? '✓' : '✗')));
+  sub4.appendChild(formula4);
+  out.appendChild(sub4);
+
+  // keycards
+  const keycards = document.createElement('div'); keycards.className = 'keycards';
+  const pub = document.createElement('div'); pub.className = 'keycard pub';
+  const hPub = document.createElement('h4'); bindText(hPub, 'rsa.hdrPublicKey', {0: k.label});
+  pub.appendChild(hPub);
+  const kvPubE = document.createElement('div'); kvPubE.className = 'kv'; kvPubE.textContent = 'e = ' + fmt(k.e);
+  pub.appendChild(kvPubE);
+  const kvPubN = document.createElement('div'); kvPubN.className = 'kv'; kvPubN.textContent = 'n = ' + fmt(k.n);
+  pub.appendChild(kvPubN);
+  const notePub = document.createElement('div'); notePub.className = 'note'; bindText(notePub, 'rsa.noteSafeToPublish');
+  pub.appendChild(notePub);
+  keycards.appendChild(pub);
+
+  const priv = document.createElement('div'); priv.className = 'keycard priv';
+  const hPriv = document.createElement('h4'); bindText(hPriv, 'rsa.hdrPrivateKey', {0: k.label});
+  priv.appendChild(hPriv);
+  const kvPrivD = document.createElement('div'); kvPrivD.className = 'kv'; kvPrivD.textContent = 'd = ' + fmt(k.d);
+  priv.appendChild(kvPrivD);
+  const kvPrivN = document.createElement('div'); kvPrivN.className = 'kv'; kvPrivN.textContent = 'n = ' + fmt(k.n);
+  priv.appendChild(kvPrivN);
+  const notePriv = document.createElement('div'); notePriv.className = 'note'; bindText(notePriv, 'rsa.notePrivateNeverLeaves', {0: k.label});
+  priv.appendChild(notePriv);
+  keycards.appendChild(priv);
+
+  out.appendChild(keycards);
   out.classList.add('show');
   updateScratchpad();
 }
 
 /* ---------- Step 3: wire / Eve's notebook ---------- */
+function buildWireRow(fromId, fromName, toId, toName, packetText){
+  const row = document.createElement('div'); row.className = 'wire-row';
+
+  const who1 = document.createElement('div'); who1.className = 'who';
+  const av1 = document.createElement('div'); av1.className = 'avatar ' + fromId; av1.textContent = fromId === 'bob' ? '🧑‍💼' : '👩‍💼';
+  who1.appendChild(av1);
+  who1.appendChild(document.createTextNode(fromName));
+  row.appendChild(who1);
+
+  const wireLine = document.createElement('div'); wireLine.className = 'wire-line';
+  const tap = document.createElement('div'); tap.className = 'eve-tap'; bindText(tap, 'rsa.eveTap');
+  wireLine.appendChild(tap);
+  const track = document.createElement('div'); track.className = 'track';
+  wireLine.appendChild(track);
+  const packet = document.createElement('div'); packet.className = 'packet'; packet.textContent = packetText;
+  wireLine.appendChild(packet);
+  row.appendChild(wireLine);
+
+  const who2 = document.createElement('div'); who2.className = 'who';
+  const av2 = document.createElement('div'); av2.className = 'avatar ' + toId; av2.textContent = toId === 'bob' ? '🧑‍💼' : '👩‍💼';
+  who2.appendChild(av2);
+  who2.appendChild(document.createTextNode(toName));
+  row.appendChild(who2);
+
+  return row;
+}
+
+// Re-renders the wire notebook's one Node-param sentence (the bold "not"). Every
+// other string in renderWire() is bound via bindText and re-renders itself
+// automatically on a language switch; this is the sole exception the onLangChange
+// callback has to re-run explicitly, per the plan's RSA-specific strategy.
+function renderWireNever(){
+  if(!wireNeverEl) return;
+  if(wireNotStrongEl) wireNotStrongEl.textContent = translate('rsa.notWord');
+  translateInto(wireNeverEl, 'rsa.wireNotebookNever', {0: wireNotStrongEl});
+}
+
 function renderWire(){
   const b = State.bob, a = State.alice;
-  document.getElementById('wire-content').innerHTML = `
-    <div class="wire-diagram">
-      <div class="wire-row">
-        <div class="who"><div class="avatar bob">🧑‍💼</div>Bob</div>
-        <div class="wire-line"><div class="eve-tap">🕵️‍♀️ tap</div><div class="track"></div>
-          <div class="packet">(e=${fmt(b.e)}, n=${fmt(b.n)})</div></div>
-        <div class="who"><div class="avatar alice">👩‍💼</div>Alice</div>
-      </div>
-      <div class="wire-row">
-        <div class="who"><div class="avatar alice">👩‍💼</div>Alice</div>
-        <div class="wire-line"><div class="eve-tap">🕵️‍♀️ tap</div><div class="track"></div>
-          <div class="packet">(e=${fmt(a.e)}, n=${fmt(a.n)})</div></div>
-        <div class="who"><div class="avatar bob">🧑‍💼</div>Bob</div>
-      </div>
-    </div>
-    <div class="notebook">
-      <h4>🕵️‍♀️ Eve's notebook — everything she has recorded off the wire</h4>
-      <div class="grid">
-        <div>Bob's e = ${fmt(b.e)}</div>
-        <div>Bob's n = ${fmt(b.n)}</div>
-        <div>Alice's e = ${fmt(a.e)}</div>
-        <div>Alice's n = ${fmt(a.n)}</div>
-      </div>
-      <div class="never">She does <strong>not</strong> have: Bob's p, q, φ(n), d — or Alice's. Those never touched the wire.</div>
-    </div>
-  `;
+  const container = document.getElementById('wire-content');
+  container.innerHTML = '';
+
+  const diagram = document.createElement('div'); diagram.className = 'wire-diagram';
+  diagram.appendChild(buildWireRow('bob', 'Bob', 'alice', 'Alice', '(e=' + fmt(b.e) + ', n=' + fmt(b.n) + ')'));
+  diagram.appendChild(buildWireRow('alice', 'Alice', 'bob', 'Bob', '(e=' + fmt(a.e) + ', n=' + fmt(a.n) + ')'));
+  container.appendChild(diagram);
+
+  const notebook = document.createElement('div'); notebook.className = 'notebook';
+  const h4 = document.createElement('h4'); bindText(h4, 'rsa.notebookHeading');
+  notebook.appendChild(h4);
+
+  const grid = document.createElement('div'); grid.className = 'grid';
+  function gridLine(key, name, val){
+    const cell = document.createElement('div');
+    bindText(cell, key, {0: name, 1: val});
+    grid.appendChild(cell);
+  }
+  gridLine('rsa.wireNotebookE', 'Bob', fmt(b.e));
+  gridLine('rsa.wireNotebookN', 'Bob', fmt(b.n));
+  gridLine('rsa.wireNotebookE', 'Alice', fmt(a.e));
+  gridLine('rsa.wireNotebookN', 'Alice', fmt(a.n));
+  notebook.appendChild(grid);
+
+  wireNeverEl = document.createElement('div'); wireNeverEl.className = 'never';
+  wireNotStrongEl = document.createElement('strong');
+  renderWireNever();
+  notebook.appendChild(wireNeverEl);
+  container.appendChild(notebook);
 }
 
 /* ---------- Step 4: Eve's hard problems ---------- */
@@ -931,13 +1092,18 @@ document.getElementById('bob-gen-btn').addEventListener('click', () => generateK
 document.getElementById('alice-gen-btn').addEventListener('click', () => generateKeys('alice','Alice'));
 initScratchpad();
 
-// One onLangChange registration (P7) for the whole page, extended by Task 2
-// (key generation/wire re-render) and Task 3 (Eve/messages re-render) — static
-// data-i18n markup re-renders on its own via applyStaticDom, so this callback
-// only needs to redo JS-owned text.
+// One onLangChange registration (P7) for the whole page, extended by Task 3
+// (Eve/messages re-render) — static data-i18n markup, and every bindText node
+// renderKeyOutput()/renderWire() created, re-render themselves automatically via
+// applyStaticDom, so this callback only needs to redo: the per-id error message
+// (plain translate(), not bound — mirrors Diffie-Hellman Key Exchange's
+// errorState/renderError precedent) and the wire notebook's one Node-param
+// sentence (renderWireNever — the sole translateInto call in Tasks 1-2).
 onLangChange(function(){
-  // populated further below (Task 2: generateKeys/renderKeyOutput/renderWire;
-  // Task 3: Eve, discrete-log demo, encrypted correspondence)
+  renderError('bob');
+  renderError('alice');
+  renderWireNever();
+  // extended further below (Task 3: Eve, discrete-log demo, encrypted correspondence)
 });
 </script>
 </body>
