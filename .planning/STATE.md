@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-07-PLAN.md
-last_updated: "2026-10-01T16:12:17.405Z"
+stopped_at: Completed 06-08-PLAN.md
+last_updated: "2026-10-01T16:51:55.774Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: b188477b09600bcb8c75057bae842fb84522e7a7
+state_head: f91980a4838c2e663f91bcf04fca948e67d05e6a
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 32
+  completed_plans: 33
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -93,6 +93,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P05 | ~2h (3 sessions, 2 interrupted) | 2 tasks | 5 files |
 | Phase 06 P06 | single session | 2 tasks | 6 files |
 | Phase 06 P07 | single session | 2 tasks | 6 files |
+| Phase 06 P08 | 36min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -185,6 +186,8 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 Plan 07]: Square and Multiply's mulBase template renders '× la base = {0}' in French/Spanish (adding the article) rather than the bare cognate 'base', since the bare cognate made the entire rendered SVG text segment identical to English for every numeral, which the exact-match-only allowRenderText exemption cannot cover
 - [Phase 06]: [Phase 06 Plan 07]: Shor's Algorithm's internal runShor() step-id tokens (pickBase/gcdCheck/factorGcd/orderFind/parityCheck/rootCheck) are exempted via allowLiteral rather than renamed, since i18n-check.js's prose heuristic flags any 3+ letter identifier regardless of camelCase or object-literal position
 - [Phase 06]: [Phase 06 Plan 07]: Both pages track a single {key, params} bannerState (and Shor's Algorithm a parallel verdictState) rather than deriving current text from replaying JS state, so onLangChange's replay loop (banner-free DOM helper) never clobbers whichever message was legitimately last shown
+- [Phase 06]: Phase 06 Plan 08: Task 1 ships no NT.i18n import line since nothing in its own work calls into NT.i18n; the import (getLang/onLangChange/translate/translateInto) is added in Task 2 where real call sites exist
+- [Phase 06]: Phase 06 Plan 08: switchPoints are both two-circle (place-right-29, clear) since i18n-browser's doSwitch() only reads cfg.runs[0], and the three-circle scenario lives in a later run not reachable there
 
 ### Roadmap Evolution
 
@@ -272,8 +275,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T16:12:17.240Z
-Stopped at: Completed 06-07-PLAN.md
+Last session: 2026-10-01T16:51:55.600Z
+Stopped at: Completed 06-08-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
