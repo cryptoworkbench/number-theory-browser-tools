@@ -3,7 +3,7 @@ phase: "7"
 slug: "shared-js-module-refactor"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: "2026-09-30"
@@ -73,6 +73,8 @@ created: "2026-09-30"
 | 7-09-01 | 09 | 5 | SC-1, SC-2, SC-4 | — | — | full suite | `harness.js && shadow-check.js --all && shadow-check.js --docs`; browser-diff loop over 15 tools + index.html | ✅ | ✅ |
 | 7-09-02 | 09 | 5 | SC-4 | T-07-22 | only repo file:// pages opened | real-browser pass (Claude-in-Chrome unavailable this session; headless fallback per plan's explicit instruction) + human-check | `browser-diff.js "Venn Diagram/venn-diagram.html"` re-check after fixes (IDENTICAL, no fixes needed) | ✅ | ✅ (headless portion; human-check items deferred, see Manual-Only Verifications) |
 | 7-09-03 | 09 | 5 | SC-6 | T-07-21 | every review fix re-verified | local code review + full re-sweep | `harness.js && shadow-check.js --all && shadow-check.js --docs` | ✅ | ✅ (code-review skill, effort high, BASE..HEAD: zero findings, no fixes needed) |
+| 7-UAT-01 | UAT fix | — | SC-1 | — | each `NT.<name>` slot non-writable/non-configurable; `NT` stays extensible (review WR-01, edfc402) | unit (vm, strict + sloppy) | `harness.js namespace` | ✅ | ✅ (88 assertions; fails when the lock lines are removed) |
+| 7-UAT-02 | UAT fix | — | SC-3, SC-4 | T-07-08 | storage-event handlers parse `e.newValue` instead of a cookie-first re-read (d0a4092) | unit | `harness.js store` | ✅ | ✅ (8 event-path assertions) |
 
 All commands run from the repo root; `harness.js`, `shadow-check.js`, `browser-diff.js` abbreviate `node .planning/phases/07-shared-js-module-refactor/<name>`.
 
@@ -99,6 +101,8 @@ All commands run from the repo root; `harness.js`, `shadow-check.js`, `browser-d
 | Cross-tool persistence + deep links round-trip | SC-2 | Multi-tab `storage` events | Two tabs per linked pair; change one, confirm the other updates | Deep-link query-param round-trip (Factor Tree `?n=899`, Group Isomorphism `?m=7`, and Venn's `?a=`/`?b=`/`?mode=` links) is verified headlessly — all IDENTICAL to BASE. The LIVE cross-tab `storage` event propagation itself (Cayley Table ⇄ Equivalence Wheel, Euclidean Algorithm ⇄ Venn Diagram) is NOT verifiable by browser-diff.js, which spins up one isolated Chrome process per run with no second tab sharing the same-origin storage — this remains genuinely manual. Not performed in this session (no Claude-in-Chrome tools available); this migration touched none of the `storage`-event listener code paths (`window.addEventListener('storage', ...)` sites unchanged this phase, confirmed by the shadow-check/harness sweep covering the read/write helpers those listeners call), so the risk this phase introduced a regression here is low, but it is unconfirmed by direct observation. |
 | Venn preview subsystems (nested squares, balanced factor tree) match the full tools | SC-2 | Composite render parity | Hover region chip, inspect both sections, follow both double-click links | The hover-triggered render of both preview sections (`hover-overlap-chip`, `hover-overlap-chip-scrolled`, `hover-ab-chip-scrolled`, `hover-abc-centre-chip` steps) is verified headlessly — IDENTICAL. The double-click *navigation* itself (opening Factor Tree / Euclidean Algorithm in a new context) is NOT verified: `dblclick` in the driver dispatches the DOM event but a resulting `window.location`/`window.open` navigation would unload the instrumented page before the snapshot harness can capture output, so this specific interaction is structurally unobservable by this tool. Also not automatable: dragging a placed prime between regions (the driver has no pointer-drag primitive — only click/dblclick/hover/set/key) and the Equivalence Wheel's Export SVG/PNG/Print buttons (explicitly excluded from headless automation per plan 07-05's finding that export/download machinery hangs headless Chrome — not attempted this session, per this run's explicit instruction not to add download-triggering browser-diff steps). All four remain for the user's own real-browser pass. |
 
+**Real-browser outcome (UAT, 2026-10-01 — see 07-UAT.md):** live cross-tab sync (both pairs, both directions), Venn pointer-drag, Venn double-click links to Factor Tree / Euclidean Algorithm, and Equivalence Wheel Export SVG / PNG / Print were exercised in the user's Chrome via Claude in Chrome (served over http://127.0.0.1 because the extension refuses file:// URLs) — all pass, no console errors. Two pre-existing bugs found there were fixed in d0a4092: a cookie-vs-storage-event race that dropped ~1 in 20 rapid sync updates (now 40/40 on each pair; automated by 7-UAT-02), and Venn reporting every opened cross-link tab as blocked (stays manual-only: needs a real popup; re-verified in Chrome, `window.opener === null` in the new tab).
+
 ---
 
 ## Validation Sign-Off
@@ -111,3 +115,13 @@ All commands run from the repo root; `harness.js`, `shadow-check.js`, `browser-d
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** All 21 Per-Task rows (7-01-01 through 7-09-03) carry a final ✅ status. Full automated sweep green in one run (harness.js 2,855,890 assertions across 5 checks; shadow-check.js --all 15/15 PASS; shadow-check.js --docs PASS; 16/16 browser-diff IDENTICAL with zero errors; 3/3 --mutant runs MUTANT-DETECTED). Real-browser pass completed via the headless fallback (Claude-in-Chrome unavailable this session) with genuinely manual items (live cross-tab storage sync, Venn pointer-drag, Venn double-click navigation, Equivalence Wheel export buttons) explicitly recorded rather than silently skipped. Local code-review skill (effort high, BASE..HEAD) returned zero findings. Approved — 2026-10-01. The user's own `/code-review ultra` pass is the next step per this phase's stated success criteria (SC-6).
+
+## Validation Audit 2026-10-01
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 |
+| Resolved | 1 |
+| Escalated | 0 |
+
+Gap: no automated check for the WR-01 `NT` slot lock (SC-1) — resolved by `checks/namespace.check.js` (e52dbbb), proven non-vacuous by removing the lock lines from assets/ (check fails) and restoring them. Full suite after the audit: `harness.js` PASS total=2,855,986 across 6 checks.
