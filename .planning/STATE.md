@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-08-PLAN.md
-last_updated: "2026-10-01T16:51:55.774Z"
+stopped_at: Completed 06-09-PLAN.md
+last_updated: "2026-10-01T17:41:44.276Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: f91980a4838c2e663f91bcf04fca948e67d05e6a
+state_head: d09bee0ddc5369ebbd099fc8fbd76f9170781458
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 33
+  completed_plans: 34
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 9 of 12
+Plan: 10 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -94,6 +94,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P06 | single session | 2 tasks | 6 files |
 | Phase 06 P07 | single session | 2 tasks | 6 files |
 | Phase 06 P08 | 36min | 2 tasks | 3 files |
+| Phase 06 P09 | 22min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,10 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 Plan 07]: Both pages track a single {key, params} bannerState (and Shor's Algorithm a parallel verdictState) rather than deriving current text from replaying JS state, so onLangChange's replay loop (banner-free DOM helper) never clobbers whichever message was legitimately last shown
 - [Phase 06]: Phase 06 Plan 08: Task 1 ships no NT.i18n import line since nothing in its own work calls into NT.i18n; the import (getLang/onLangChange/translate/translateInto) is added in Task 2 where real call sites exist
 - [Phase 06]: Phase 06 Plan 08: switchPoints are both two-circle (place-right-29, clear) since i18n-browser's doSwitch() only reads cfg.runs[0], and the three-circle scenario lives in a later run not reachable there
+- [Phase 06]: [Phase 06 Plan 09]: Eve is kept as the literal English name 'Eve' in every language (never localized to Ève/Eva), matching Alice's established invariant-proper-noun precedent and i18n-check.js's NEUTRAL_TOKENS list
+- [Phase 06]: [Phase 06 Plan 09]: 'order(g) =' is translated per language (dh.orderLabel) rather than kept as invariant notation like gcd/mod — a literal shared prefix made the rendered text identical to English for every numeric order value
+- [Phase 06]: [Phase 06 Plan 09]: Diffie-Hellman's onLangChange retranslates the stage SVG in place (never rebuilds via buildStage) because resetPlayback's pre-existing stale-text-after-reset quirk must be preserved for en-parity, not fixed
+- [Phase 06]: [Phase 06 Plan 09]: Fixed i18n-browser.js's doLangs() to skip a text segment composed entirely of the volatile sentinel before the isProse check — a shared-tooling gap for any future plan whose volatile regex spans displayed text
 
 ### Roadmap Evolution
 
@@ -275,8 +280,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T16:51:55.600Z
-Stopped at: Completed 06-08-PLAN.md
+Last session: 2026-10-01T17:41:44.142Z
+Stopped at: Completed 06-09-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
