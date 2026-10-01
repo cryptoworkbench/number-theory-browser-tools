@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Chinese Remainder Theorem Tool** - Ship an interactive CRT visualizer with coprimality validation, residue-class visuals, and a GCD cross-link
 - [ ] **Phase 4: Continued Fractions Tool** - Ship a continued-fractions visualizer sharing GCD's rectangle-tiling geometry, with nav updated across all eight tools
 - [x] **Phase 5: Cayley Table Generator** - Ship a standalone Cayley (group operation) table generator for additive and multiplicative groups mod N, cross-linked with the Congruence Wheel
-- [ ] **Phase 6: Multi-Language Support** - Add a language switcher to every page (hub + all tools) with Dutch, English, German, French and Spanish UI strings
+- [x] **Phase 6: Multi-Language Support** - Add a language switcher to every page (hub + all tools) with Dutch, English, German, French and Spanish UI strings (completed 2026-10-02)
 - [x] **Phase 7: Shared JS Module Refactor** - Move the helpers duplicated across all 15 tools into shared classic-script modules on `window.NT` (`assets/nt-*.js`) and rewrite the docs around them
 
 ## Phase Details
@@ -172,7 +172,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 | 3. Chinese Remainder Theorem Tool | 3/3 | Complete | 2026-09-29 |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
-| 6. Multi-Language Support | 12/12 | In Progress|  |
+| 6. Multi-Language Support | 12/12 | Complete    | 2026-10-02 |
 | 7. Shared JS Module Refactor | 9/9 | Complete | 2026-10-01 |
 
 ### Phase 6: Multi-Language Support
@@ -189,7 +189,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
   4. The selected language persists across navigation between pages and across browser sessions
   5. Day/night theming and existing tool functionality are unaffected by the language switch
 
-**Plans:** 12/12 plans executed
+**Plans:** 12/12 plans complete
 
 Plans:
 **Wave 1**

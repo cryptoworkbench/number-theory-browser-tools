@@ -1,44 +1,44 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 06
-current_phase_name: Multi-Language Support
-status: verifying
-stopped_at: Completed 06-12-PLAN.md
-last_updated: "2026-10-01T20:21:33.759Z"
-last_activity: 2026-10-01
-last_activity_desc: Phase 06 execution started
-state_head: 617a654a2031a08531c1fce179ba030359c047b7
+current_phase: 4
+current_phase_name: Continued Fractions Tool
+status: planning
+stopped_at: Phase 06 complete, ready to plan Phase 4
+last_updated: "2026-10-01T22:05:02.942Z"
+last_activity: 2026-10-02
+last_activity_desc: Phase 06 complete, transitioned to Phase 4
+state_head: 6217ea91e217252ec585094385ffba428498ef63
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 37
   completed_plans: 37
-  percent: 71
+  percent: 86
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-01)
+See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Every concept gets a visualization a self-learner can interact with and immediately understand — the diagram teaches, the text supports it.
-**Current focus:** Phase 06 — Multi-Language Support
+**Current focus:** Phase 4 — Continued Fractions Tool
 
 ## Current Position
 
-Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 12 of 12
-Status: Phase complete — ready for verification
-Last activity: 2026-10-01 — Phase 06 execution started
+Phase: 4 — Continued Fractions Tool
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-02 — Phase 06 complete, transitioned to Phase 4
 
-Progress: [███████░░░] 71%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 21
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -47,6 +47,7 @@ Progress: [███████░░░] 71%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 07 | 9 | - | - |
+| 06 | 12 | - | - |
 
 **Recent Trend:**
 
@@ -197,6 +198,7 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 Plan 09]: Diffie-Hellman's onLangChange retranslates the stage SVG in place (never rebuilds via buildStage) because resetPlayback's pre-existing stale-text-after-reset quirk must be preserved for en-parity, not fixed
 - [Phase 06]: [Phase 06 Plan 09]: Fixed i18n-browser.js's doLangs() to skip a text segment composed entirely of the volatile sentinel before the isProse check — a shared-tooling gap for any future plan whose volatile regex spans displayed text
 - [Phase 06]: ecdh.ordWord fixes a second order(G)-style exact-value collision (ord(G) translated per language; English keeps the literal abbreviation), mirroring 06-09's orderLabel fix
+- [Phase 6 close 2026-10-02]: UAT 5/5 passed (switcher at 375px, live two-tab sync, Firefox file:// persistence, native-speaker glossary review, Wheel exports / Venn interactions / RSA state across a switch); re-verification passed 6/6; 06-SECURITY.md threats_open: 0 (32/32 closed); 06-UI-REVIEW.md 23/24. `workflow.api_coverage_gate` set to false — its detector false-positived on the phrase "API surface" (NT.i18n's own exports) in 06-01-SUMMARY.md.
 - [Phase 06]: Point-dot click/keydown handlers now close over the point already in scope instead of parsing it from the displayed aria-label text; pointFromAriaLabel() deleted
 - [Phase 06]: ECDH's onLangChange recomputes eveRevealed via revealedThroughStep() and replays only appendLogEntry/renderEveNotebook, never applyStepVisual itself, since markPointRole/animateWalk are not idempotent
 - [Phase 06]: RSA: qInv (a page-invented camelCase abbreviation, not a real word) resolved via allowSame/allowRenderText exemption rather than a translated-word fix, since there is no linguistic equivalent to translate like order/ord had
@@ -216,6 +218,7 @@ None yet.
 
 ### Blockers/Concerns
 
+- [Phase 6] Code-review warnings WR-01 (applyStaticDom rich-template child cache), WR-02 (PARAM_RE non-global vs stripUrlParam global in assets/nt-i18n.js) and WR-03 (no structural guard keeping state-destroying rebuilds out of onLangChange) remain open in 06-REVIEW-DISPOSITION.md — maintenance fragility, no user-visible defect.
 - [Phase 3] **ACTIVE**: `/gsd-execute-phase` plan 03-03's Task 3 (phase-wide consolidated sweep) is blocked -- the Bash/shell tool in the execution environment became non-functional mid-session (every command, including shell no-ops, failed or produced no output across ~20 varied retries). A follow-up session must confirm Bash/shell tooling is working, then re-run Task 3 per `03-03-PLAN.md` before Phase 3 is marked fully complete. SUMMARY.md/STATE.md/ROADMAP.md/REQUIREMENTS.md updates for this plan were applied manually and are uncommitted in the working tree pending that follow-up.
 - [Phase 2] GCD's rectangle-tiling view must cap rendered tiles independent of quotient size (a naive `gcd(2, 500000)` could try to render ~250,000 tiles) — design the cap in from the start, per research PITFALLS.md.
 - [Phase 3] CRT's combined modulus can overflow `Number` precision even with small individual moduli — implement CRT's core arithmetic in `BigInt` from day one, following the RSA tool's precedent.
@@ -290,8 +293,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T20:21:33.627Z
-Stopped at: Completed 06-12-PLAN.md
+Last session: 2026-10-02
+Stopped at: Phase 06 complete, ready to plan Phase 4
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.

@@ -16,6 +16,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 - ✓ Shared site chrome: sticky nav header (`assets/site.css`, `assets/theme.js`) with day/night toggle and a matching inline SVG brand mark (twin of the tab favicon), linking all tools, plus an `index.html` hub — existing
 - ✓ All ten tools share one unified color palette/visual identity via `assets/palette.css`'s `--role-*` semantic layer — Phase 1 (Palette Unification)
 - ✓ Euclidean Algorithm/GCD tool: validated two-integer input, animated numeric trace with playback controls, geometric rectangle-tiling view with a large-quotient cap, Extended Euclidean/Bézout coefficients toggle, preset pairs, two-way cross-link with Venn Diagrams — Phase 2
+- ✓ Every page (hub + all tools) offers a language switcher in the shared header and renders all UI text in Dutch, English, German, French or Spanish; the choice persists across pages and sessions (`site-lang`) and syncs across tabs, with English output byte-identical to before — Phase 6 (Multi-Language Support)
 
 ### Active
 
@@ -76,4 +77,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-01 after Phase 7 (Shared JS Module Refactor)*
+*Last updated: 2026-10-02 after Phase 6 (Multi-Language Support)*
