@@ -163,7 +163,7 @@ Phases 1 → 2 → 3 → 4 run in numeric order (number-theory milestone). Phase
 appended Cayley Table Generator milestone and depends only on Phase 1, so it may be planned and
 executed at any point after Phase 1 — before, after, or alongside Phases 3 and 4.
 
-**Remaining order (set 2026-09-30):** Phase 7 (Shared JS Module Refactor) runs next, then Phase 4, then Phase 6 — so the new tool and the i18n work both build on the shared-module layout.
+**Remaining order (set 2026-09-30, revised 2026-10-01):** Phase 7 (Shared JS Module Refactor) ran first. On 2026-10-01 the user explicitly requested Phase 6 next, so Phase 6 (Multi-Language Support) now runs before Phase 4; Phase 4's Continued Fractions tool is then authored in five languages from the start (its own `assets/i18n/` data file, a `site.nav` entry and hub card keys) rather than retrofitted.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -172,15 +172,15 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 | 3. Chinese Remainder Theorem Tool | 3/3 | Complete | 2026-09-29 |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
-| 6. Multi-Language Support | 0/? | Not started | - |
+| 6. Multi-Language Support | 0/12 | Planned | - |
 | 7. Shared JS Module Refactor | 9/9 | Complete | 2026-10-01 |
 
 ### Phase 6: Multi-Language Support
 
 **Goal:** Every page on the site (the `index.html` hub and every tool page) offers a language switcher and renders its UI strings in the user's chosen language, supporting Dutch, English, German, French, and Spanish.
 **Mode:** mvp
-**Depends on:** Phase 1 (shared nav/site chrome only — independent of Phase 4's and Phase 5's tool-specific content)
-**Requirements**: TBD
+**Depends on:** Phase 1 (shared nav/site chrome only — independent of Phase 4's and Phase 5's tool-specific content); builds on Phase 7's shared-module layout (`assets/nt-i18n.js` is the sixth `NT.*` module)
+**Requirements**: I18N-01, I18N-02, I18N-03, I18N-04, I18N-05, I18N-06
 **Success Criteria** (what must be TRUE):
 
   1. Every page (hub + every tool) exposes a language switcher control in the shared site chrome
@@ -189,10 +189,28 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
   4. The selected language persists across navigation between pages and across browser sessions
   5. Day/night theming and existing tool functionality are unaffected by the language switch
 
-**Plans:** 0 plans
+**Plans:** 12 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 6 to break down)
+**Wave 1**
+- [ ] 06-01-PLAN.md — Tracer: `assets/nt-i18n.js` + `assets/i18n/site.js` + switcher proven end-to-end on the Sieve (static + JS text, re-render, `?lang=` link carry, headless smoke); storage-key decision gate; durable `site-lang` persistence, cross-tab sync, switcher styling, API/persistence unit suites
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 06-02-PLAN.md — Sieve fully translated; shared `common` vocabulary; 06-GLOSSARY.md; static gate suite (i18n-check) and headless runtime gates (i18n-browser: en-parity, langs, switch, layout); shadow-check/harness learn NT.i18n
+
+**Wave 3** *(blocked on Wave 2 completion — nine file-disjoint plans in parallel)*
+- [ ] 06-03-PLAN.md — Hub (index.html), Prime Factor Tree, Euler's Totient
+- [ ] 06-04-PLAN.md — Cayley Table, Equivalence Wheel
+- [ ] 06-05-PLAN.md — Group Isomorphisms, Fermat's Method
+- [ ] 06-06-PLAN.md — Chinese Remainder Theorem, Euclidean Algorithm
+- [ ] 06-07-PLAN.md — Square and Multiply, Shor's Algorithm
+- [ ] 06-08-PLAN.md — Venn Diagram (static interface, then every message/label/tooltip)
+- [ ] 06-09-PLAN.md — Diffie-Hellman Key Exchange (interface and stage, then narrative and Eve)
+- [ ] 06-10-PLAN.md — Elliptic Curve Diffie-Hellman (interface, plot and point selection, then narrative and Eve)
+- [ ] 06-11-PLAN.md — RSA (narrative, key generation and wire, then Eve and correspondence)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 06-12-PLAN.md — Docs rewritten for the i18n layer; consolidated sweep of every gate on all sixteen pages; validation sign-off
 
 ### Phase 7: Shared JS Module Refactor
 
