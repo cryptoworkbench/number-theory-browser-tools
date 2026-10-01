@@ -83,8 +83,8 @@ last_mapped_at: 2026-09-23
 **NT import pattern:**
 
 - Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used
-- Names within an import line are sorted alphabetically
-- A tool never redefines or mutates an `NT` member — `NT` and its namespaces are frozen
+- Names within an import line are sorted by code point, so uppercase constants come first (e.g. `const { SHARED_GROUP_KEY, readModeNParams } = NT.store;`)
+- A tool never redefines or mutates an `NT` member — each namespace object is frozen and its slot on `NT` is read-only
 
 ## Error Handling
 
@@ -268,7 +268,7 @@ function svgEl(tag, attrs){
 }
 ```
 
-**Shared module skeleton:** Every `assets/nt-*.js` file follows the same shape — a classic `(function(){ "use strict"; ... })();` IIFE, `var NT = window.NT = window.NT || {};` to get or create the root, one or more helper function declarations, then a single `NT.NAME = Object.freeze({ ... });` assignment at the end that exports the module's public functions and constants by name.
+**Shared module skeleton:** Every `assets/nt-*.js` file follows the same shape — a classic `(function(){ "use strict"; ... })();` IIFE, `var NT = window.NT = window.NT || {};` to get or create the root, one or more helper function declarations, then a single `NT.NAME = Object.freeze({ ... });` assignment at the end that exports the module's public functions and constants by name, followed by `Object.defineProperty(NT, 'NAME', { writable: false, configurable: false });` to lock that slot. `NT` itself is never frozen, because later modules still have to attach their own namespace to it.
 
 **Generation Counter (cancellation pattern):**
 Tools with long-running animations use a `generation` counter to invalidate stale callbacks:

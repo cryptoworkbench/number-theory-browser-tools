@@ -136,8 +136,8 @@ An educational website of interactive, visualization-led browser tools that make
 - Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout
 - The tool's inline `<script>` opens with an import block, e.g. `const { clamp, randomInt, unitsMod } = NT.core;`
 - Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used
-- Names within an import line are sorted alphabetically
-- A tool never redefines or mutates an `NT` member — `NT` and its namespaces are frozen
+- Names within an import line are sorted by code point, so uppercase constants come first (e.g. `const { SHARED_GROUP_KEY, readModeNParams } = NT.store;`)
+- A tool never redefines or mutates an `NT` member — each namespace object is frozen and its slot on `NT` is read-only
 
 ## Error Handling
 
@@ -323,7 +323,13 @@ An educational website of interactive, visualization-led browser tools that make
 
 ### Architectural Smell: Shadowing a Shared Helper
 
+- Never declare a local function or variable with the same name as an `NT` export the page imports
+- Change shared behavior in the owning `assets/nt-*.js` module, never by overriding it in one tool
+
 ### Architectural Smell: Deferred or Modular Shared-Module Includes
+
+- Include every `assets/nt-*.js` module as a plain `<script src>`: no `defer`, no `async`, no `type="module"`
+- Place the includes immediately before the tool's own inline script, in the order core, bigint, svg, store, layout
 
 ### Architectural Smell: Monolithic Tool File (1000+ lines)
 

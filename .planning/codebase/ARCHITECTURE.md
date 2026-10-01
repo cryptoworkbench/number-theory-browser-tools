@@ -253,6 +253,9 @@ last_mapped_at: 2026-09-23
 
 **Do this instead:** Fix the behavior once, in the owning `assets/nt-*.js` module, and let every importing tool pick it up automatically. `shadow-check.js`'s SHADOW gate flags a local declaration that shadows an `NT` export.
 
+- Never declare a local function or variable with the same name as an `NT` export the page imports
+- Change shared behavior in the owning `assets/nt-*.js` module, never by overriding it in one tool
+
 ### Architectural Smell: Deferred or Modular Shared-Module Includes
 
 **What happens:** A page includes an `assets/nt-*.js` module with `defer`, `async`, or `type="module"`.
@@ -260,6 +263,9 @@ last_mapped_at: 2026-09-23
 **Why it's wrong:** A tool's inline `<script>` calls shared helpers synchronously at the top of its IIFE, starting with its own import block; a deferred or async module load runs after that point, so the import block throws (`NT` or a namespace is undefined) the first time the page tries to render. `type="module"` additionally breaks the page when opened directly over `file://`, since browsers block ES module imports on that origin.
 
 **Do this instead:** Include every `assets/nt-*.js` module as a plain `<script src>` — no `defer`, no `async`, no `type="module"` — immediately before the tool's own inline script, in the canonical order core, bigint, svg, store, layout.
+
+- Include every `assets/nt-*.js` module as a plain `<script src>`: no `defer`, no `async`, no `type="module"`
+- Place the includes immediately before the tool's own inline script, in the order core, bigint, svg, store, layout
 
 ### Architectural Smell: Monolithic Tool File (1000+ lines)
 
