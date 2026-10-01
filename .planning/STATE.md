@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-10-01T11:36:18.593Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-10-01T12:13:53.407Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: 519d80206200311670676eedce7b60341064d7ac
+state_head: 58b7ec759a880abe86513ab18e811055cd03a764
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 28
+  completed_plans: 29
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -89,6 +89,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P01 | 33 min | 3 tasks | 6 files |
 | Phase 06 P02 | 26min | 3 tasks | 12 files |
 | Phase 06 P03 | single session | 3 tasks | 9 files |
+| Phase 06 P04 | single session | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,9 @@ Recent decisions affecting current work:
 - [Phase 06]: Hub card titles preserve the hub's own pre-existing English wording (byte-for-byte) rather than reusing site.nav.* verbatim, per this plan's own Task 1 instructions overriding 06-GLOSSARY.md's general note
 - [Phase 06]: Euler's Totient keeps 'gcd' literal across every language (never ggd/ggT/pgcd/mcd) per 06-GLOSSARY.md section (e)'s math-notation list
 - [Phase 06]: Fixed five shared i18n-check.js/i18n-browser.js gate gaps (DOM-API lookback dot-exclusion, missing svgEl exemption, trailing-space class heuristic, data-i18n-params not stripped for en-parity, en-change mutant hardcoded to sieve.lede) discovered while running the Phase 06-02 gate suite against pages other than the Sieve for the first time
+- [Phase 06]: [Phase 06 Plan 04]: Cayley Table's dead MODES.words field left unconverted (never referenced anywhere in the script)
+- [Phase 06]: [Phase 06 Plan 04]: symmetryNoteAdditive/Multiplicative kept as two independent literal keys (not one {sign}-templated key) since the pre-existing English source used a literal middle-dot in multiplicative prose that differs from mode.sign's x -- unifying would have changed shipped English text
+- [Phase 06]: [Phase 06 Plan 04]: Both cross-link builders (updateWheelXref/updateCayleyXref) now append &lang= explicitly, mirroring 06-03's Euler's Totient fix for the same decorateLinks-does-not-rescan-JS-set-hrefs gap
 
 ### Roadmap Evolution
 
@@ -258,8 +262,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T11:36:18.441Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-10-01T12:13:53.250Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
