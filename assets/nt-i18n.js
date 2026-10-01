@@ -348,7 +348,8 @@
   // independent rewrite passes (theme's ?theme=, this module's ?lang=)
   // never clobber each other.
   function decorateLinks(lang) {
-    if (typeof document === 'undefined') return;
+    if (typeof document === 'undefined' || typeof document.getElementsByTagName !== 'function') return;
+    try {
     var links = document.getElementsByTagName('a');
     for (var i = 0; i < links.length; i++) {
       var href = links[i].getAttribute('href');
@@ -360,6 +361,7 @@
       href += (href.indexOf('?') === -1 ? '?' : '&') + LANG_PARAM + '=' + lang;
       links[i].setAttribute('href', href + hash);
     }
+    } catch (e) { /* ignore — a partial document stub (e.g. a test harness) must never throw */ }
   }
 
   // ---------- setLang / change event ----------
@@ -434,11 +436,15 @@
     if (explicitAtLoad) persist(currentLang);
     applyStaticDom(document);
     decorateLinks(currentLang);
-    var select = document.getElementById('lang-switch-select');
-    if (select) {
-      select.value = currentLang;
-      select.addEventListener('change', function () { setLang(select.value); });
-    }
+    try {
+      var select = (typeof document.getElementById === 'function') ? document.getElementById('lang-switch-select') : null;
+      if (select) {
+        select.value = currentLang;
+        if (typeof select.addEventListener === 'function') {
+          select.addEventListener('change', function () { setLang(select.value); });
+        }
+      }
+    } catch (e) { /* ignore — a partial document stub (e.g. a test harness) must never throw */ }
     stripUrlParam();
     initStorageListener();
   }

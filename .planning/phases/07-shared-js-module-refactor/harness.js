@@ -144,8 +144,10 @@ function loadNew(options) {
   if (options.preamble) {
     vm.runInContext(options.preamble, context);
   }
-  var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js"];
+  var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js", "nt-i18n.js"];
+  var exclude = options.exclude || [];
   moduleOrder.forEach(function (fname) {
+    if (exclude.indexOf(fname) !== -1) return;
     var p = path.join(ROOT, "assets", fname);
     if (!fs.existsSync(p)) return;
     var src = fs.readFileSync(p, "utf8");

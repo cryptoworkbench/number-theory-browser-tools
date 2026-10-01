@@ -14,14 +14,14 @@ var path = require("path");
 module.exports = function (ctx) {
   var NT = ctx.loadNew();
 
-  var moduleNames = ["core", "bigint", "svg", "store", "layout"];
+  var moduleNames = ["core", "bigint", "svg", "store", "layout", "i18n"];
 
   /* ---------- Namespace structure ---------- */
 
-  // Verify all 5 modules exist and NT is still extensible
+  // Verify all 6 modules exist and NT is still extensible
   var ntKeys = Object.keys(NT).sort();
   var expectedKeys = moduleNames.slice().sort();
-  ctx.eq("NT has exactly the 5 module slots", ntKeys, expectedKeys);
+  ctx.eq("NT has exactly the 6 module slots", ntKeys, expectedKeys);
   ctx.eq("NT is extensible", Object.isExtensible(NT), true);
   ctx.eq("NT is not frozen", Object.isFrozen(NT), false);
 
@@ -54,7 +54,7 @@ module.exports = function (ctx) {
   testContext.window = testContext;
   vm.createContext(testContext);
 
-  var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js"];
+  var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js", "nt-i18n.js"];
   var ROOT = ctx.ROOT;
   moduleOrder.forEach(function (fname) {
     var p = path.join(ROOT, "assets", fname);

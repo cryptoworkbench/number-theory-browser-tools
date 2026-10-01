@@ -80,7 +80,7 @@ module.exports = function (ctx) {
     function freshGenericEnv(cookieOpts, storageOpts) {
       var jar = ctx.makeCookieJar(cookieOpts || {});
       var storage = ctx.makeStorage(storageOpts || {});
-      var NTg = ctx.loadNew({ globals: { document: jar.document, localStorage: storage } });
+      var NTg = ctx.loadNew({ globals: { document: jar.document, localStorage: storage }, exclude: ["nt-i18n.js"] });
       return { store: NTg.store, jar: jar, storage: storage };
     }
 
@@ -176,7 +176,7 @@ module.exports = function (ctx) {
     var preamble = keyPreamble(constName, key);
     scenarios.forEach(function (sc) {
       var envNew = buildEnv(key, sc);
-      var newNT = ctx.loadNew({ globals: { document: envNew.document, localStorage: envNew.localStorage } });
+      var newNT = ctx.loadNew({ globals: { document: envNew.document, localStorage: envNew.localStorage }, exclude: ["nt-i18n.js"] });
       var got = newNT.store[readName]();
 
       Object.keys(oldSet).forEach(function (label) {
@@ -266,7 +266,7 @@ module.exports = function (ctx) {
     var isGroup = key === store.SHARED_GROUP_KEY;
     var preamble = isGroup ? keyPreamble("SHARED_GROUP_KEY", key) : keyPreamble("SHARED_AB_KEY", key);
     var envNew = buildEnv(key, sc);
-    var newNT = ctx.loadNew({ globals: { document: envNew.document, localStorage: envNew.localStorage } });
+    var newNT = ctx.loadNew({ globals: { document: envNew.document, localStorage: envNew.localStorage }, exclude: ["nt-i18n.js"] });
     writeCall(newNT.store);
     var newStorageLog = envNew.storage._log, newCookieLog = envNew.jar._log;
 
@@ -384,7 +384,7 @@ module.exports = function (ctx) {
     } else {
       sc.seed(newStorage);
     }
-    var gotNew = ctx.loadNew({ globals: { localStorage: newStorage } }).store.readMigrating("k", "legacy");
+    var gotNew = ctx.loadNew({ globals: { localStorage: newStorage }, exclude: ["nt-i18n.js"] }).store.readMigrating("k", "legacy");
 
     var oldStorage = ctx.makeStorage(sc.storageOpts || {});
     if (sc.storageOpts && sc.storageOpts.throwOnSet) {
@@ -407,7 +407,7 @@ module.exports = function (ctx) {
   (function () {
     var jar = ctx.makeCookieJar({});
     var storage = ctx.makeStorage({});
-    var NTe = ctx.loadNew({ globals: { document: jar.document, localStorage: storage } });
+    var NTe = ctx.loadNew({ globals: { document: jar.document, localStorage: storage }, exclude: ["nt-i18n.js"] });
     jar.document.cookie = "ab-params=" + encodeURIComponent('{"a":144,"b":12}') + ";path=/";
     jar.document.cookie = "group-params=" + encodeURIComponent('{"mode":"additive","N":30}') + ";path=/";
     var cookieWrites = jar._log.length;

@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /* shadow-check.js — dev-only static gate for Phase 7's shared JS module
  * refactor. Never shipped, never referenced by any .html page. Requires
- * ./harness.js for ROOT and loadNew().
+ * ./harness.js for ROOT and loadNew(). Extended in Phase 6 (06-02) to
+ * enforce the same include-order, import-discipline and no-shadowing
+ * rules for NT.i18n (assets/nt-i18n.js) and its per-page
+ * assets/i18n/*.js data includes as for the other five shared modules.
  *
  * Modes:
  *   node shadow-check.js <file>...   check the given tool files; exit 1 on any finding
@@ -34,9 +37,9 @@ function getExportedNames() {
 // locally once it imports the owning namespace; some are not exported by
 // NT.core yet in this plan — they are the future exports later phase-7
 // plans add, watched pre-emptively so a tool doesn't shadow them early).
-var CONSTANT_NAMES = ["SVG_NS", "FERMAT_MAX_ITER", "TILE_CAP", "BALANCED_MAX_N", "SHARED_GROUP_KEY", "SHARED_AB_KEY"];
+var CONSTANT_NAMES = ["SVG_NS", "FERMAT_MAX_ITER", "TILE_CAP", "BALANCED_MAX_N", "SHARED_GROUP_KEY", "SHARED_AB_KEY", "SUPPORTED_LANGS", "LANG_STORAGE_KEY"];
 
-var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout"];
+var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n"];
 
 // Per-file retired-name table (07-RESEARCH.md Name-Collision / Shadowing
 // Risk Summary). Keyed by tool directory name.
@@ -192,12 +195,17 @@ function getIncludes(html) {
   var tags = findScriptTags(html).filter(function (t) { return hasSrc(t.attrs); });
   return tags.map(function (t) {
     var src = attrVal(t.attrs, "src") || "";
-    var ntMatch = /assets\/(nt-[a-z]+)\.js$/.exec(src);
+    // [a-z0-9]+ (not [a-z]+) so "nt-i18n.js" matches — a digit-only module
+    // suffix is unique to i18n among the six shared modules, but the
+    // pattern is written generically rather than special-cased.
+    var ntMatch = /assets\/(nt-[a-z0-9]+)\.js$/.exec(src);
+    var i18nDataMatch = /assets\/i18n\/[a-zA-Z0-9-]+\.js$/.exec(src);
     return {
       src: src,
       index: t.index,
       isNt: !!ntMatch,
       ns: ntMatch ? ntMatch[1].replace(/^nt-/, "") : null,
+      isI18nData: !!i18nDataMatch,
       defer: /\bdefer\b/.test(t.attrs),
       async: /\basync\b/.test(t.attrs),
       isModule: /type\s*=\s*["']module["']/.test(t.attrs)
@@ -245,7 +253,9 @@ function analyzeFile(relPath) {
   }
 
   // ---- imports ----
-  var importRe = /const\s*\{\s*([^}]+)\s*\}\s*=\s*NT\.([A-Za-z]+)\s*;/g;
+  // [A-Za-z0-9]+ (not [A-Za-z]+) so "NT.i18n" — the only digit-bearing
+  // namespace among the six shared modules — matches.
+  var importRe = /const\s*\{\s*([^}]+)\s*\}\s*=\s*NT\.([A-Za-z0-9]+)\s*;/g;
   var imports = [];
   var im;
   while ((im = importRe.exec(stripped))) {
@@ -319,8 +329,10 @@ function analyzeFile(relPath) {
 
   // ---- includes ----
   var ntIncludes = includes.filter(function (i) { return i.isNt; });
+  var i18nDataIncludes = includes.filter(function (i) { return i.isI18nData; });
   var includedNs = {};
   ntIncludes.forEach(function (i) { includedNs[i.ns] = i; });
+  var i18nModuleInclude = includedNs.i18n;
 
   imports.forEach(function (imp) {
     if (!includedNs[imp.ns]) findings.push("INCLUDE-MISSING " + relPath + " NT." + imp.ns);
@@ -329,7 +341,18 @@ function analyzeFile(relPath) {
     findings.push("INCLUDE-MISSING " + relPath + " nt-layout included without nt-core");
   }
 
-  ntIncludes.forEach(function (inc) {
+  // A page's own assets/i18n/<name>.js data includes require nt-i18n.js
+  // and must not sit before it (data registers against NT.i18n.register,
+  // which must already exist).
+  i18nDataIncludes.forEach(function (inc) {
+    if (!i18nModuleInclude) {
+      findings.push("INCLUDE-MISSING " + relPath + " " + inc.src + " present without assets/nt-i18n.js");
+    } else if (inc.index < i18nModuleInclude.index) {
+      findings.push("INCLUDE-ORDER " + relPath + " " + inc.src + " appears before assets/nt-i18n.js");
+    }
+  });
+
+  ntIncludes.concat(i18nDataIncludes).forEach(function (inc) {
     if (inc.defer || inc.async || inc.isModule) {
       findings.push("INCLUDE-DEFERRED " + relPath + " " + inc.src);
     }
@@ -342,17 +365,20 @@ function analyzeFile(relPath) {
       break;
     }
   }
-  // includes must be contiguous and immediately before the tool's own inline script
-  if (ntIncludes.length && inline.length) {
-    var lastInclude = ntIncludes[ntIncludes.length - 1];
+  // includes (nt-*.js, plus any number of contiguous assets/i18n/*.js data
+  // includes after them) must be contiguous and immediately before the
+  // tool's own inline script.
+  var allRelevantIncludes = ntIncludes.concat(i18nDataIncludes).sort(function (a, b) { return a.index - b.index; });
+  if (allRelevantIncludes.length && inline.length) {
+    var lastInclude = allRelevantIncludes[allRelevantIncludes.length - 1];
     var toolScriptIdx = inline[inline.length - 1].index;
     var betweenText = html.slice(lastInclude.index, toolScriptIdx);
     var betweenTags = findScriptTags(betweenText);
     // betweenText includes the lastInclude's own tag; strip it then check gap
     var afterLast = html.slice(lastInclude.index).replace(/^<script[^>]*>\s*<\/script>/i, "");
-    var gapToNextScript = /^\s*(?:<script[^>]*src="[^"]*nt-[a-z]+\.js"[^>]*>\s*<\/script>\s*)*<script(?![^>]*src)/i;
+    var gapToNextScript = /^\s*(?:<script[^>]*src="[^"]*(?:nt-[a-z0-9]+\.js|assets\/i18n\/[a-zA-Z0-9-]+\.js)"[^>]*>\s*<\/script>\s*)*<script(?![^>]*src)/i;
     if (!gapToNextScript.test(afterLast)) {
-      findings.push("INCLUDE-ORDER " + relPath + " nt-*.js includes not immediately before the tool's own script");
+      findings.push("INCLUDE-ORDER " + relPath + " includes not immediately before the tool's own script");
     }
   }
 
@@ -360,6 +386,7 @@ function analyzeFile(relPath) {
   ntIncludes.forEach(function (inc) { usedNsInIncludes[inc.ns] = true; });
   Object.keys(usedNsInIncludes).forEach(function (ns) {
     if (ns === "core" && includedNs.layout) return; // nt-core accompanying nt-layout is allowed unused
+    if (ns === "i18n") return; // nt-i18n.js self-initializes the header/static markup even when nothing is imported from it
     if (!importedNames || !Object.keys(importedNames).some(function (n) { return importedNames[n] === ns; })) {
       findings.push("UNUSED-INCLUDE " + relPath + " NT." + ns);
     }
@@ -369,7 +396,8 @@ function analyzeFile(relPath) {
   includes.forEach(function (inc) {
     var isAllowedTheme = /assets\/theme\.js$/.test(inc.src) && inc.defer;
     var isNtModule = inc.isNt;
-    if (!isAllowedTheme && !isNtModule) {
+    var isI18nData = inc.isI18nData;
+    if (!isAllowedTheme && !isNtModule && !isI18nData) {
       findings.push("EXTERNAL-SCRIPT " + relPath + " " + inc.src);
     }
   });
