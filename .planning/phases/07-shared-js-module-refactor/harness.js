@@ -16,6 +16,7 @@
 "use strict";
 
 var fs = require("fs");
+var os = require("os");
 var path = require("path");
 var vm = require("vm");
 var util = require("util");
@@ -300,6 +301,55 @@ function sameOutcome(label, fnA, fnB, args) {
   }
 }
 
+/* ---------- scratch-dir lifecycle ---------- */
+
+// Every scratch site, Chrome profile and Chrome's own temp output of one
+// process lives under a single /tmp/nt-scratch-<pid>-XXXX root, removed on
+// exit or SIGINT/SIGTERM/SIGHUP. A hard-killed run (SIGKILL, or a killed
+// parent shell) cannot clean up, so the next run sweeps roots whose pid is
+// gone. Headless Chrome otherwise leaves .com.google.Chrome.* and
+// scoped_dir* folders directly in /tmp whenever a run is cut short.
+var SCRATCH_PREFIX = "nt-scratch-";
+var _scratchRoot = null;
+
+function pidAlive(pid) {
+  try { process.kill(pid, 0); return true; } catch (e) { return e.code === "EPERM"; }
+}
+
+function sweepStaleScratch() {
+  var tmp = os.tmpdir();
+  var entries;
+  try { entries = fs.readdirSync(tmp); } catch (e) { return; }
+  entries.forEach(function (name) {
+    var m = /^nt-scratch-(\d+)-/.exec(name);
+    if (!m || pidAlive(Number(m[1]))) return;
+    try { fs.rmSync(path.join(tmp, name), { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  });
+}
+
+function scratchRoot() {
+  if (_scratchRoot) return _scratchRoot;
+  sweepStaleScratch();
+  _scratchRoot = fs.mkdtempSync(path.join(os.tmpdir(), SCRATCH_PREFIX + process.pid + "-"));
+  var clean = function () {
+    try { fs.rmSync(_scratchRoot, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  };
+  process.on("exit", clean);
+  ["SIGINT", "SIGTERM", "SIGHUP"].forEach(function (sig) {
+    process.once(sig, function () { clean(); process.exit(128 + os.constants.signals[sig]); });
+  });
+  return _scratchRoot;
+}
+
+function mkScratch(prefix) {
+  return fs.mkdtempSync(path.join(scratchRoot(), prefix));
+}
+
+// Spawn env for google-chrome: its TMPDIR points inside the scratch root.
+function chromeEnv() {
+  return Object.assign({}, process.env, { TMPDIR: scratchRoot() });
+}
+
 /* ---------- toolkit export ---------- */
 
 var toolkit = {
@@ -316,7 +366,9 @@ var toolkit = {
   makeLocation: makeLocation,
   seededRandom: seededRandom,
   eq: eq,
-  sameOutcome: sameOutcome
+  sameOutcome: sameOutcome,
+  mkScratch: mkScratch,
+  chromeEnv: chromeEnv
 };
 
 module.exports = toolkit;

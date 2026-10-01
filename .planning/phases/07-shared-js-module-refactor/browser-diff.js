@@ -79,11 +79,11 @@ function writeBaseAssets(base, destAssetsDir) {
   });
 }
 
-// Builds a scratch site under os.tmpdir(). The tool file keeps its own
+// Builds a scratch site under harness.mkScratch()'s per-run root. The tool file keeps its own
 // directory name one level below the site root so ../assets resolves
 // unchanged.
 function buildSite(prefix, toolRelPath, useBase, assetsOverrideDir, runConfig, globalConfig, injectMutant) {
-  var siteRoot = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  var siteRoot = harness.mkScratch(prefix);
   var toolDir = path.dirname(toolRelPath);
   var toolFileName = path.basename(toolRelPath);
   var toolAbsDir = path.join(siteRoot, toolDir);
@@ -270,7 +270,7 @@ function instrumentHtml(html, runConfig, globalConfig, injectMutant) {
 /* ---------- Chrome invocation ---------- */
 
 function runChrome(fileUrl, budgetMs) {
-  var profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "p7-bd-profile-"));
+  var profileDir = harness.mkScratch("p7-bd-profile-");
   var args = [
     "--headless=new",
     "--disable-gpu",
@@ -280,7 +280,7 @@ function runChrome(fileUrl, budgetMs) {
     "--dump-dom",
     fileUrl
   ];
-  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024 });
+  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024, env: harness.chromeEnv() });
   try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
   return res.stdout || "";
 }

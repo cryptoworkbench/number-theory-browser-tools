@@ -116,7 +116,7 @@ function injectCustomMutant(html, mutantKind) {
 }
 
 function buildSiteForRun(prefix, toolRelPath, useOld, runConfig, globalConfig, mutantKind) {
-  var siteRoot = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  var siteRoot = harness.mkScratch(prefix);
   var toolDir = path.dirname(toolRelPath);
   var toolFileName = path.basename(toolRelPath);
   var toolAbsDir = path.join(siteRoot, toolDir);
@@ -139,7 +139,7 @@ function cleanupSite(siteRoot) {
 /* ---------- Chrome invocation ---------- */
 
 function runChrome(fileUrl, budgetMs, windowSize) {
-  var profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "i18n-bd-profile-"));
+  var profileDir = harness.mkScratch("i18n-bd-profile-");
   var args = [
     "--headless=new", "--disable-gpu", "--no-sandbox",
     "--user-data-dir=" + profileDir,
@@ -148,7 +148,7 @@ function runChrome(fileUrl, budgetMs, windowSize) {
     "--dump-dom",
     fileUrl
   ];
-  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024 });
+  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024, env: harness.chromeEnv() });
   try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
   return res.stdout || "";
 }

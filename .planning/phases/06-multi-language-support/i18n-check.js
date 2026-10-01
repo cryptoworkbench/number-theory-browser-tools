@@ -249,7 +249,7 @@ function instrumentHtml(html, expectedJson, injectMutant) {
 }
 
 function buildScratchSite(prefix, expectedJson, injectMutant) {
-  var siteRoot = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  var siteRoot = harness.mkScratch(prefix);
   copyDirSync(path.join(ROOT, "assets"), path.join(siteRoot, "assets"));
   var toolDir = path.dirname(TOOL_REL_PATH);
   var toolFile = path.basename(TOOL_REL_PATH);
@@ -275,7 +275,7 @@ function hasChrome() {
 
 function runChrome(fileUrl, budgetMs, profileDir) {
   var ownProfile = !profileDir;
-  if (ownProfile) profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "p6-smoke-profile-"));
+  if (ownProfile) profileDir = harness.mkScratch("p6-smoke-profile-");
   var args = [
     "--headless=new",
     "--disable-gpu",
@@ -285,7 +285,7 @@ function runChrome(fileUrl, budgetMs, profileDir) {
     "--dump-dom",
     fileUrl
   ];
-  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024 });
+  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024, env: harness.chromeEnv() });
   if (ownProfile) { try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) { /* best effort */ } }
   return res.stdout || "";
 }
@@ -409,7 +409,7 @@ function instrumentHtmlCross(html) {
 }
 
 function buildScratchSiteCross(prefix) {
-  var siteRoot = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  var siteRoot = harness.mkScratch(prefix);
   copyDirSync(path.join(ROOT, "assets"), path.join(siteRoot, "assets"));
   var toolDir = path.dirname(TOOL_REL_PATH);
   var toolFile = path.basename(TOOL_REL_PATH);
@@ -430,7 +430,7 @@ function extractCrossAttr(domHtml) {
 
 function runCrossSessionCheck(catalog) {
   var site = buildScratchSiteCross("p6-smoke-cross-");
-  var profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "p6-smoke-cross-profile-"));
+  var profileDir = harness.mkScratch("p6-smoke-cross-profile-");
   var urlWithLang = url.pathToFileURL(site.toolAbsPath).href + "?lang=de";
   var urlPlain = url.pathToFileURL(site.toolAbsPath).href;
   runChrome(urlWithLang, 10000, profileDir);
