@@ -8,11 +8,7 @@ updated: 2026-10-01T00:00:00Z
 
 ## Current Test
 
-number: 5
-name: Triage 07-REVIEW.md's three open findings (WR-01, IN-01, IN-02)
-expected: |
-  Each finding in 07-REVIEW-DISPOSITION.md gets an explicit fixed / skipped / deferred disposition instead of "open".
-awaiting: user response
+[testing complete]
 
 ## Environment for tests 1–4
 
@@ -67,14 +63,23 @@ notes: |
 
 ### 5. Triage 07-REVIEW.md's three open findings (WR-01, IN-01, IN-02)
 expected: Each finding in 07-REVIEW-DISPOSITION.md gets an explicit fixed / skipped / deferred disposition instead of "open"
-result: [pending]
+result: pass
+notes: |
+  All three fixed and recorded in 07-REVIEW-DISPOSITION.md. WR-01 (edfc402): each module now locks its own
+  slot with Object.defineProperty(NT, NAME, { writable: false, configurable: false }) after freezing the
+  namespace; NT stays extensible so later modules can attach. Verified in Node: reassigning or deleting
+  NT.core/NT.svg throws in strict mode and is ignored otherwise; all five namespaces load. harness.js PASS
+  (2,855,890), shadow-check --all PASS, browser-diff IDENTICAL errors=0 on all 16 pages. IN-01/IN-02 (56dd593):
+  import-order rule now says code-point order (all 31 import lines comply), NT-freeze wording corrected,
+  bullets added under both anti-pattern headings in ARCHITECTURE.md and the .claude/CLAUDE.md mirror;
+  shadow-check --docs PASS.
 
 ## Summary
 
 total: 5
-passed: 4
+passed: 5
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

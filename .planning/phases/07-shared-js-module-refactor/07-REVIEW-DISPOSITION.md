@@ -5,17 +5,17 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`window.NT` itself is never frozen — only its sub-namespaces are"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "\".claude/CLAUDE.md\" documents an import-sort convention the files don't follow"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Two new Anti-Pattern headers in `.claude/CLAUDE.md` have no content"
-open: 3
+open: 0
 total: 3
 recorded: 2026-09-30T22:40:10.225Z
 ---
@@ -24,9 +24,9 @@ recorded: 2026-09-30T22:40:10.225Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| WR-01 | warning | fixed | edfc402 |
+| IN-01 | info | fixed | 56dd593 |
+| IN-02 | info | fixed | 56dd593 |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
