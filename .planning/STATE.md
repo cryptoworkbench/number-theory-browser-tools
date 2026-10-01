@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-10-01T14:27:49.306Z"
+stopped_at: Completed 06-06-PLAN.md
+last_updated: "2026-10-01T15:11:24.108Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: 9050709c5642721674fe9bd339c8f0dcfee57135
+state_head: 8b36a0576eda596fcb7e9abf7c99fcfb3b9e7244
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 30
+  completed_plans: 31
   percent: 71
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 6 of 12
+Plan: 7 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
@@ -91,6 +91,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P03 | single session | 3 tasks | 9 files |
 | Phase 06 P04 | single session | 2 tasks | 7 files |
 | Phase 06 P05 | ~2h (3 sessions, 2 interrupted) | 2 tasks | 5 files |
+| Phase 06 P06 | single session | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,8 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 Plan 04]: Both cross-link builders (updateWheelXref/updateCayleyXref) now append &lang= explicitly, mirroring 06-03's Euler's Totient fix for the same decorateLinks-does-not-rescan-JS-set-hrefs gap
 - [Phase 06]: Fermat's Method: fixed an un-clamped elapsed-time fraction in animateRearrange() that could produce opacity>1, and made replayBtn cancel the pending auto-replay timer before starting its own animation (both pre-existing bugs surfaced by exact-snapshot i18n testing)
 - [Phase 06]: i18n-config/fermats-method.json: replaced a play()/pause()-timed mid-search switchPoint with a deterministic stepBtn-driven one, and the after-replay/n-8051 finished-search switchPoint with a dedicated pre-auto-timer snapshot, since rAF-driven and setTimeout-delayed animation state is not byte-reproducible across two separate headless Chrome launches without this
+- [Phase 06]: [Phase 06 Plan 06]: 'the GCD' as a standalone prose noun localizes to each language's own abbreviation (ggd/gcd/ggT/PGCD/mcd) per 06-GLOSSARY.md's core-term table, distinct from 'gcd(a, b)' function-call notation which stays literal everywhere
+- [Phase 06]: [Phase 06 Plan 06]: Euclidean Algorithm's nested-view per-tile SVG tooltips are retranslated by fully rebuilding the nested SVG from currentRun on language switch (buildNestedView + showStep(currentStepIndex)), since nothing else tracks them for re-render
 
 ### Roadmap Evolution
 
@@ -265,8 +268,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T14:27:49.171Z
-Stopped at: Completed 06-05-PLAN.md
+Last session: 2026-10-01T15:11:23.975Z
+Stopped at: Completed 06-06-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
