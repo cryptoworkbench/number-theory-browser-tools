@@ -97,7 +97,14 @@ function writeOldAssets(base, destAssetsDir) {
 var MUTANT_SCRIPTS = {
   "untranslated": "<script>document.addEventListener('DOMContentLoaded', function(){ var p=document.createElement('p'); p.id='i18n-mutant-untranslated'; p.textContent='This sentence is deliberately left in English for the mutant self-test.'; document.body.appendChild(p); });</script>",
   "stale-switch": "<script>document.addEventListener('DOMContentLoaded', function(){ var p=document.createElement('p'); p.id='i18n-mutant-stale'; p.textContent=(window.NT && NT.i18n) ? NT.i18n.translate('site.brand') : ''; document.body.appendChild(p); });</script>",
-  "en-change": "<script>document.addEventListener('DOMContentLoaded', function(){ var el=document.querySelector('[data-i18n=\"sieve.lede\"]'); if (el) el.textContent = el.textContent + ' MUTATED'; });</script>",
+  // Generic across every page (not hardcoded to the Sieve's own
+  // "sieve.lede" key): mutates the first element on the page that carries
+  // ANY data-i18n attribute, which every converted page has at least one
+  // of. Previously hardcoded to '[data-i18n="sieve.lede"]' — a selector
+  // that matches nothing on any page outside the Sieve, so running this
+  // mutant against another page's en-parity always printed
+  // MUTANT-SURVIVED (the mutation silently applied to zero elements).
+  "en-change": "<script>document.addEventListener('DOMContentLoaded', function(){ var el=document.querySelector('[data-i18n]'); if (el) el.textContent = el.textContent + ' MUTATED'; });</script>",
   "overflow": "<script>document.addEventListener('DOMContentLoaded', function(){ if (document.documentElement.lang !== 'en'){ var d=document.createElement('div'); d.id='i18n-mutant-overflow'; d.style.width='2000px'; d.style.height='1px'; document.body.appendChild(d); } });</script>"
 };
 
@@ -236,7 +243,7 @@ function stripLangStorage(snap, key) {
 
 function stripI18nArtifacts(html) {
   var out = html;
-  out = out.replace(/\s*data-i18n(?:-title|-aria-label|-placeholder)?="[^"]*"/g, "");
+  out = out.replace(/\s*data-i18n(?:-title|-aria-label|-placeholder|-params)?="[^"]*"/g, "");
   out = out.replace(/<label class="lang-switch"[^>]*>[\s\S]*?<\/label>/, "");
   // href values are HTML-entity-encoded in the serialized snapshot (& -> &amp;)
   out = out.replace(/href="([^"]*)"/g, function (m, href) {
