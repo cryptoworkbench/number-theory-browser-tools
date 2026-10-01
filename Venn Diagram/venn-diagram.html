@@ -591,6 +591,7 @@
   const { svgEl } = NT.svg;
   const { SHARED_AB_KEY, readABParams, readMigrating, readSharedAB, writeSharedAB } = NT.store;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, computeNestedLayout, flattenTree } = NT.layout;
+  const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
   /* ---------- number theory ---------- */
 
@@ -642,7 +643,11 @@
 
   var PRIMES = buildPalette(26);
   var REGION_NOTATION = { left: 'A \\ B', overlap: 'A ∩ B', right: 'B \\ A' };
-  var REGION_CAPTIONS = { left: 'A only', overlap: 'both', right: 'B only' };
+  // Display-word table (procedure P6): maps a region key to its i18n key,
+  // never to the display word itself -- every reader calls
+  // translate(REGION_CAPTION_KEY[key]) fresh, so a language switch is
+  // automatic wherever this table is consulted.
+  var REGION_CAPTION_KEY = { left: 'venn.caption.left', overlap: 'venn.caption.overlap', right: 'venn.caption.right' };
   var REGION_ANCHOR = { left: [275, 250], overlap: [450, 250], right: [625, 250] };
   var regionEls = { left: null, overlap: null, right: null };
 
@@ -741,14 +746,16 @@
     abc: 'A∩B∩C'
   };
 
-  var REGION_CAPTIONS3 = {
-    aOnly: 'A only',
-    bOnly: 'B only',
-    cOnly: 'C only',
-    ab: 'A and B only',
-    ac: 'A and C only',
-    bc: 'B and C only',
-    abc: 'all three'
+  // See REGION_CAPTION_KEY above -- same table-of-keys pattern for the
+  // three-circle region set.
+  var REGION_CAPTION_KEY3 = {
+    aOnly: 'venn.caption.aOnly',
+    bOnly: 'venn.caption.bOnly',
+    cOnly: 'venn.caption.cOnly',
+    ab: 'venn.caption.ab',
+    ac: 'venn.caption.ac',
+    bc: 'venn.caption.bc',
+    abc: 'venn.caption.abc'
   };
 
   var REGION_KEYS3 = ['aOnly', 'bOnly', 'cOnly', 'ab', 'ac', 'bc', 'abc'];
@@ -943,7 +950,7 @@
     return { regions: newLists, moved: moved, changed: changed, overflow: null };
   }
 
-  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true };
+  var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true, openPreview: null };
 
   /* ---------- Euclidean nested-squares preview ---------- */
   // Drawn by NT.layout.computeNestedLayout(euclidSteps(a, b).steps) -- the
@@ -990,7 +997,7 @@
   // here can never blank out the factor-tree section sharing this stack.
   function drawEuclidSection(host, px, sy, opts){
     var heading = svgEl('text', { 'class': 'np-heading', x: px + NP_PAD, y: sy + 15 });
-    heading.textContent = 'Euclidean Algorithm';
+    heading.textContent = translate('site.nav.euclid');
     host.appendChild(heading);
 
     var run = euclidSteps(opts.a, opts.b);
@@ -1029,7 +1036,7 @@
       var hint = svgEl('text', {
         'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
       });
-      hint.textContent = 'double-click to open the full view →';
+      hint.textContent = translate('venn.label.doubleClickOpen');
       host.appendChild(hint);
     }
   }
@@ -1040,7 +1047,7 @@
   // this value -- a section that bailed below can never promise a click.
   function drawTreeSection(host, px, sy, opts){
     var heading = svgEl('text', { 'class': 'np-heading', x: px + NP_PAD, y: sy + 15 });
-    heading.textContent = 'Factor Tree';
+    heading.textContent = translate('site.nav.factorTree');
     host.appendChild(heading);
 
     // Reachable, not theoretical (a region can hold up to 8 primes as large
@@ -1057,7 +1064,7 @@
       var overHint = svgEl('text', {
         'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
       });
-      overHint.textContent = 'over 1,000,000 — no balanced tree';
+      overHint.textContent = translate('venn.label.overCap');
       host.appendChild(overHint);
       return;
     }
@@ -1125,7 +1132,7 @@
       var hint = svgEl('text', {
         'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
       });
-      hint.textContent = 'double-click to open the full view →';
+      hint.textContent = translate('venn.label.doubleClickOpen');
       host.appendChild(hint);
     }
   }
@@ -1208,7 +1215,7 @@
       var affordance = svgEl('text', {
         'class': 'np-scroll-hint', x: px + NP_W - NP_PAD, y: py + 15
       });
-      affordance.textContent = '↓ more';
+      affordance.textContent = translate('venn.label.scrollMore');
       layer.appendChild(affordance);
     }
   }
@@ -1229,23 +1236,38 @@
       ' A ' + R + ' ' + R + ' 0 1 0 ' + XM + ' ' + (CY - H) + ' Z';
   }
 
+  // buildStatic() runs once per target (the interactive layer and the
+  // composite-mirror layer) at load time, well before any onLangChange
+  // registration exists for them. Each region caption's text sits in its
+  // own dedicated text node (tracked here) rather than relying on
+  // el.textContent, so a later language switch can retranslate the visible
+  // word in place without disturbing the sibling <title> (math notation,
+  // never translated) also living inside the same <text> element.
+  var captionTextNodes = [];
+
   function buildStatic(target){
     target.appendChild(svgEl('circle', { cx: CXA, cy: CY, r: R, class: 'circle-left' }));
     target.appendChild(svgEl('circle', { cx: CXB, cy: CY, r: R, class: 'circle-right' }));
     target.appendChild(svgEl('path', { class: 'lens-fill', d: lensPath() }));
 
     var labelLeft = svgEl('text', { class: 'region-label is-hoverable', x: 275, y: 478 });
-    labelLeft.textContent = REGION_CAPTIONS.left;
+    var leftTextNode = document.createTextNode(translate(REGION_CAPTION_KEY.left));
+    labelLeft.appendChild(leftTextNode);
+    captionTextNodes.push({ node: leftTextNode, key: 'left' });
     labelLeft.appendChild(svgEl('title')).textContent = REGION_NOTATION.left;
     target.appendChild(labelLeft);
 
     var labelOverlap = svgEl('text', { class: 'region-label is-hoverable', x: 450, y: 478 });
-    labelOverlap.textContent = REGION_CAPTIONS.overlap;
+    var overlapTextNode = document.createTextNode(translate(REGION_CAPTION_KEY.overlap));
+    labelOverlap.appendChild(overlapTextNode);
+    captionTextNodes.push({ node: overlapTextNode, key: 'overlap' });
     labelOverlap.appendChild(svgEl('title')).textContent = REGION_NOTATION.overlap;
     target.appendChild(labelOverlap);
 
     var labelRight = svgEl('text', { class: 'region-label is-hoverable', x: 625, y: 478 });
-    labelRight.textContent = REGION_CAPTIONS.right;
+    var rightTextNode = document.createTextNode(translate(REGION_CAPTION_KEY.right));
+    labelRight.appendChild(rightTextNode);
+    captionTextNodes.push({ node: rightTextNode, key: 'right' });
     labelRight.appendChild(svgEl('title')).textContent = REGION_NOTATION.right;
     target.appendChild(labelRight);
 
@@ -1369,36 +1391,61 @@
     return out;
   }
 
-  function regionAriaLabel(key){
-    var contents = primesOf(state.regions[key]);
-    return REGION_CAPTIONS[key] + ' region, currently holding ' +
-      (contents.length ? contents.join(', ') : 'nothing');
+  function retranslateCaptionLabels(){
+    for (var i = 0; i < captionTextNodes.length; i++){
+      var entry = captionTextNodes[i];
+      entry.node.textContent = translate(REGION_CAPTION_KEY[entry.key]);
+    }
   }
 
-  function setMessage(text, isWarn){
-    messageEl.textContent = text;
-    messageEl.classList.toggle('is-warn', !!isWarn);
+  function regionAriaLabel(key){
+    var contents = primesOf(state.regions[key]);
+    return translate('venn.aria.regionHolding', {
+      region: translate(REGION_CAPTION_KEY[key]),
+      contents: contents.length ? contents.join(', ') : translate('venn.aria.nothing')
+    });
+  }
+
+  // messageState holds the raw data behind the message area's last
+  // message (never pre-translated text), so onLangChange can call
+  // renderMessage() again and have every translate() call inside
+  // messageState.paramsFn() naturally pick up the new language.
+  var messageState = null; // { key, paramsFn, warn } | null
+
+  function setMessage(key, paramsFn, isWarn){
+    messageState = key ? { key: key, paramsFn: paramsFn || function(){ return undefined; }, warn: !!isWarn } : null;
+    renderMessage();
+  }
+
+  function renderMessage(){
+    if (!messageState){
+      messageEl.textContent = '';
+      messageEl.classList.remove('is-warn');
+      return;
+    }
+    translateInto(messageEl, messageState.key, messageState.paramsFn());
+    messageEl.classList.toggle('is-warn', messageState.warn);
   }
 
   function toggleArm(prime){
     if (state.armed === prime){
       state.armed = null;
-      setMessage('');
+      setMessage(null);
     } else {
       state.armed = prime;
-      setMessage(prime + ' is ready — click a region to place it.');
+      setMessage('venn.msg.ready', function(){ return { prime: prime }; });
     }
     renderPicker();
   }
 
   function warnRegionFull(key){
-    setMessage('The ' + REGION_CAPTIONS[key] + ' region is full — max ' + MAX_PER_REGION + ' primes.', true);
+    setMessage('venn.msg.regionFull', function(){ return { region: translate(REGION_CAPTION_KEY[key]), max: MAX_PER_REGION }; }, true);
   }
 
   function placePrime(key, prime){
     var value = (prime === undefined) ? state.armed : prime;
     if (value === null || value === undefined){
-      setMessage('Pick a prime from the picker first.');
+      setMessage('venn.msg.pickFirst', null, false);
       return;
     }
     commitRegions(twoCtx, function(draft){
@@ -1407,7 +1454,7 @@
         return null;
       }
       draft[key].push({ id: state.nextId++, p: value });
-      return 'Placed ' + value + ' in the ' + REGION_CAPTIONS[key] + ' region.';
+      return { key: 'venn.msg.placed', paramsFn: function(){ return { prime: value, region: translate(REGION_CAPTION_KEY[key]) }; } };
     });
   }
 
@@ -1417,7 +1464,7 @@
       for (var i = 0; i < list.length; i++){
         if (list[i].id === id){
           var removed = list.splice(i, 1)[0];
-          return 'Removed ' + removed.p + ' from the ' + REGION_CAPTIONS[key] + ' region.';
+          return { key: 'venn.msg.removed', paramsFn: function(){ return { prime: removed.p, region: translate(REGION_CAPTION_KEY[key]) }; } };
         }
       }
       return null;
@@ -1441,7 +1488,7 @@
       }
       if (!entry) return null;
       draft[toKey].push(entry);
-      return 'Moved ' + entry.p + ' to the ' + REGION_CAPTIONS[toKey] + ' region.';
+      return { key: 'venn.msg.moved', paramsFn: function(){ return { prime: entry.p, region: translate(REGION_CAPTION_KEY[toKey]) }; } };
     });
   }
 
@@ -1541,18 +1588,20 @@
 
   function regionAriaLabel3(key){
     var contents = primesOf3(key);
-    return REGION_CAPTIONS3[key] + ' region, currently holding ' +
-      (contents.length ? contents.join(', ') : 'nothing');
+    return translate('venn.aria.regionHolding', {
+      region: translate(REGION_CAPTION_KEY3[key]),
+      contents: contents.length ? contents.join(', ') : translate('venn.aria.nothing')
+    });
   }
 
   function warnRegionFull3(key){
-    setMessage('The ' + REGION_CAPTIONS3[key] + ' region is full — max ' + MAX_PER_REGION3 + ' primes.', true);
+    setMessage('venn.msg.regionFull', function(){ return { region: translate(REGION_CAPTION_KEY3[key]), max: MAX_PER_REGION3 }; }, true);
   }
 
   function placePrime3(key, prime){
     var value = (prime === undefined) ? state.armed : prime;
     if (value === null || value === undefined){
-      setMessage('Pick a prime from the picker first.');
+      setMessage('venn.msg.pickFirst', null, false);
       return;
     }
     commitRegions(threeCtx, function(draft){
@@ -1561,7 +1610,7 @@
         return null;
       }
       draft[key].push({ id: state.nextId++, p: value });
-      return 'Placed ' + value + ' in the ' + REGION_CAPTIONS3[key] + ' region.';
+      return { key: 'venn.msg.placed', paramsFn: function(){ return { prime: value, region: translate(REGION_CAPTION_KEY3[key]) }; } };
     });
   }
 
@@ -1571,7 +1620,7 @@
       for (var i = 0; i < list.length; i++){
         if (list[i].id === id){
           var removed = list.splice(i, 1)[0];
-          return 'Removed ' + removed.p + ' from the ' + REGION_CAPTIONS3[key] + ' region.';
+          return { key: 'venn.msg.removed', paramsFn: function(){ return { prime: removed.p, region: translate(REGION_CAPTION_KEY3[key]) }; } };
         }
       }
       return null;
@@ -1595,7 +1644,7 @@
       }
       if (!entry) return null;
       draft[toKey].push(entry);
-      return 'Moved ' + entry.p + ' to the ' + REGION_CAPTIONS3[toKey] + ' region.';
+      return { key: 'venn.msg.moved', paramsFn: function(){ return { prime: entry.p, region: translate(REGION_CAPTION_KEY3[toKey]) }; } };
     });
   }
 
@@ -1610,7 +1659,7 @@
       persist();
     }
     state.armed = null;
-    setMessage('Cleared all regions.');
+    setMessage('venn.msg.cleared', null, false);
     render();
   }
 
@@ -1691,7 +1740,7 @@
         draft[key] = list;
       }
       shrinkToLinkRange(ctx, draft);
-      return 'Randomized the diagram.';
+      return { key: 'venn.msg.randomized', paramsFn: null };
     });
   }
 
@@ -1791,21 +1840,32 @@
   // state.regions3, so there is nothing to undo.
   function commitRegions(ctx, mutate){
     var draft = cloneRegions(ctx.getRegions(), ctx.keys);
-    var msg = mutate(draft);
-    if (msg === null) return;
+    var spec = mutate(draft);
+    if (spec === null) return;
     var result = simplifyRegions(draft, ctx.keys, ctx.maskOf, ctx.cap);
     if (result.overflow){
       ctx.warn(result.overflow);
       return;
     }
     ctx.setRegions(result.regions);
-    if (result.moved.length){
-      var notes = result.moved.map(function(m){
-        return m.p + ' moved to ' + ctx.notation[m.to] + '.';
-      });
-      msg += ' Simplified: ' + notes.join(' ');
-    }
-    setMessage(msg);
+    var moved = result.moved;
+    var baseParamsFn = spec.paramsFn || function(){ return {}; };
+    // ctx.notation[m.to] is the literal math notation (e.g. "A ∩ B"), never
+    // translated -- the region is already identified unambiguously without
+    // a word, exactly as the pre-i18n message did.
+    var finalParamsFn = function(){
+      var p = baseParamsFn() || {};
+      var notes = '';
+      if (moved.length){
+        var parts = moved.map(function(m){
+          return translate('venn.msg.movedNote', { prime: m.p, notation: ctx.notation[m.to] });
+        });
+        notes = ' ' + translate('venn.msg.simplifiedLabel') + ' ' + parts.join(' ');
+      }
+      p.notes = notes;
+      return p;
+    };
+    setMessage(spec.key, finalParamsFn, false);
     ctx.persist();
     render();
   }
@@ -1857,7 +1917,7 @@
     }
     if (result.overflow) return; // unreachable in practice; never assign a null map
     if (truncated){
-      setMessage('Some shared prime copies were dropped to fit the ' + ctx.cap + '-per-region limit.', true);
+      setMessage('venn.msg.truncated', function(){ return { cap: ctx.cap }; }, true);
     }
     if (result.changed || truncated){
       ctx.setRegions(result.regions);
@@ -1881,7 +1941,7 @@
           ev.dataTransfer.effectAllowed = 'copy';
           state.armed = prime;
           btn.classList.add('is-dragging');
-          setMessage(prime + ' is ready — drop it on (or click) a region.');
+          setMessage('venn.msg.readyDrag', function(){ return { prime: prime }; });
         });
         btn.addEventListener('dragend', function(){
           btn.classList.remove('is-dragging');
@@ -1924,9 +1984,13 @@
     // Section order on screen: Factor Tree first, Euclidean second -- the
     // accessible name lists exactly the targets that exist, in that order.
     var targetLabels = [];
-    if (hasTreeHref) targetLabels.push(FACTOR_TREE_LABEL);
+    if (hasTreeHref) targetLabels.push(factorTreeLabel());
     if (hasHref) targetLabels.push(link.label);
-    if (targetLabels.length > 0) titleText += ' — double-click to ' + targetLabels.join(' or ');
+    if (targetLabels.length === 1){
+      titleText += ' — ' + translate('venn.label.doubleClickToOne', { a: targetLabels[0] });
+    } else if (targetLabels.length === 2){
+      titleText += ' — ' + translate('venn.label.doubleClickToTwo', { a: targetLabels[0], b: targetLabels[1] });
+    }
     if (hasPreview){
       g.setAttribute('role', 'img');
       g.setAttribute('aria-label', titleText);
@@ -1955,7 +2019,7 @@
         var chosenHref, chosenLabel;
         if (offset < midpoint){
           chosenHref = g.getAttribute('data-xref-tree-href');
-          chosenLabel = FACTOR_TREE_LABEL;
+          chosenLabel = factorTreeLabel();
         } else {
           chosenHref = g.getAttribute('data-xref-href');
           chosenLabel = link.label;
@@ -1971,10 +2035,15 @@
       // Euclidean section itself -- a chip with no Euclidean href must
       // never show a hint that promises a click it does not perform.
       var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref, showEuclid: !!link.showEuclid, treeHref: link.treeHref || null };
-      g.addEventListener('mouseenter', function(){ showRegionPreview(link.previewLayer, previewOpts); });
-      g.addEventListener('mouseleave', function(){ hideNestedPreview(link.previewLayer); });
-      g.addEventListener('focus', function(){ showRegionPreview(link.previewLayer, previewOpts); });
-      g.addEventListener('blur', function(){ hideNestedPreview(link.previewLayer); });
+      // Tracked so onLangChange can re-open the same preview after its
+      // rebuild (P7) -- the badge DOM node is destroyed and recreated on
+      // every render(), so "the pointer is still over it" can't be read
+      // back from the DOM; it has to be remembered in state instead.
+      var previewModeTag = (target.id.indexOf('venn3') === 0) ? 'three' : 'two';
+      g.addEventListener('mouseenter', function(){ state.openPreview = { mode: previewModeTag, key: key }; showRegionPreview(link.previewLayer, previewOpts); });
+      g.addEventListener('mouseleave', function(){ state.openPreview = null; hideNestedPreview(link.previewLayer); });
+      g.addEventListener('focus', function(){ state.openPreview = { mode: previewModeTag, key: key }; showRegionPreview(link.previewLayer, previewOpts); });
+      g.addEventListener('blur', function(){ state.openPreview = null; hideNestedPreview(link.previewLayer); });
       // Lives on the chip, not the panel: .nested-preview ignores the
       // pointer by design (load-bearing, see :310) and the panel sits
       // NP_GAP away from the chip, so the cursor is over the chip for the
@@ -2009,7 +2078,7 @@
       var link = null;
       if (key === 'overlap'){
         var href = euclidHref(pair.a, pair.b);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true, treeHref: factorTreeHref(value) };
+        if (href) link = { href: href, label: translate('venn.label.confirmGcd', { tool: translate('site.nav.euclid') }), a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true, treeHref: factorTreeHref(value) };
       }
       appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false, key, link);
     }
@@ -2040,7 +2109,7 @@
           class: 'placed-chip',
           tabindex: '0',
           role: 'button',
-          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_CAPTIONS[key] + ' region'
+          'aria-label': translate('venn.label.removeToken', { prime: entry.p, region: translate(REGION_CAPTION_KEY[key]) })
         });
         g.appendChild(svgEl('rect', { x: x, y: y, width: 54, height: 32, rx: 8 }));
         var text = svgEl('text', { x: x + 27, y: y + 16 });
@@ -2123,13 +2192,19 @@
   // The one place that builds a Euclidean Algorithm URL. Returns null when
   // the pair is out of the target tool's range, which is what makes a chip
   // or the prose anchor unlinked rather than pointed at a broken query.
+  // Carries the active language explicitly -- decorateLinks() only
+  // re-decorates <a> hrefs already in the DOM at the moment it runs, never
+  // a href this script rebuilds afterward (every render() call).
   function euclidHref(a, b){
     if (!isEuclidRange(a, b)) return null;
-    return EUCLID_PATH + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b);
+    return EUCLID_PATH + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b) + '&lang=' + getLang();
   }
 
   var FACTOR_TREE_PATH = '../Factor Tree/factor-tree.html';
-  var FACTOR_TREE_LABEL = "see this number's Factor Tree";
+
+  function factorTreeLabel(){
+    return translate('venn.label.seeFactorTree', { tool: translate('site.nav.factorTree') });
+  }
 
   // Mirrors isEuclidRange(): the one range test shared by factorTreeHref()
   // (which also needs a URL) and drawTreeSection's over-cap bail (which
@@ -2144,7 +2219,7 @@
   // what makes a chip unlinked rather than pointed at a broken query.
   function factorTreeHref(value){
     if (!isFactorTreeRange(value)) return null;
-    return FACTOR_TREE_PATH + '?n=' + encodeURIComponent(value);
+    return FACTOR_TREE_PATH + '?n=' + encodeURIComponent(value) + '&lang=' + getLang();
   }
 
   // Opens a same-origin cross-tool link in a new, opener-less tab, reporting
@@ -2156,15 +2231,15 @@
     var win = window.open(href, '_blank');
     if (win){
       win.opener = null;
-      setMessage('Opened a new tab to ' + label + '.');
+      setMessage('venn.msg.openedTab', function(){ return { target: label }; }, false);
     } else {
-      setMessage('Your browser blocked the new tab — allow popups to ' + label + '.', true);
+      setMessage('venn.msg.blockedTab', function(){ return { target: label }; }, true);
     }
   }
 
   function updateEuclidXref(a, b){
     if (!xrefEuclidEl) return;
-    xrefEuclidEl.href = euclidHref(a, b) || EUCLID_PATH;
+    xrefEuclidEl.href = euclidHref(a, b) || (EUCLID_PATH + '?lang=' + getLang());
   }
 
   function refreshRegionLabels(){
@@ -2190,7 +2265,7 @@
       var pairwise = PAIRWISE_KEY3[key];
       if (pairwise){
         var href = euclidHref(triple[pairwise[0]], triple[pairwise[1]]);
-        if (href) link = { href: href, label: 'confirm this GCD with the Euclidean Algorithm', a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700, showEuclid: true, treeHref: factorTreeHref(value) };
+        if (href) link = { href: href, label: translate('venn.label.confirmGcd', { tool: translate('site.nav.euclid') }), a: triple[pairwise[0]], b: triple[pairwise[1]], previewLayer: previewLayer3, vbW: 900, vbH: 700, showEuclid: true, treeHref: factorTreeHref(value) };
       } else if (key === 'abc'){
         // The centre chip previews AND links -- but only to the Factor
         // Tree, never to the Euclidean Algorithm (its gcd(gcd(A,B),C) pair
@@ -2222,7 +2297,7 @@
           class: 'placed-chip chip-compact',
           tabindex: '0',
           role: 'button',
-          'aria-label': 'Remove ' + entry.p + ' from the ' + REGION_CAPTIONS3[key] + ' region'
+          'aria-label': translate('venn.label.removeToken', { prime: entry.p, region: translate(REGION_CAPTION_KEY3[key]) })
         });
         g.appendChild(svgEl('rect', { x: x, y: y, width: 44, height: 24, rx: 6 }));
         var text = svgEl('text', { x: x + 22, y: y + 12 });
@@ -2351,9 +2426,17 @@
     state.regions.right = rightPrimes.map(function(p){ return { id: state.nextId++, p: p }; });
     if (source === 'url'){ persist(); } else { persistRegions(); }
 
-    var msg = source === 'url' ? ('Filled from the Euclidean Algorithm page: A = ' + a + ', B = ' + b + '.') : '';
-    if (truncated) msg += (msg ? ' ' : '') + 'Some shared prime copies were dropped to fit the ' + MAX_PER_REGION + '-per-region limit.';
-    if (msg) setMessage(msg, truncated);
+    // Each combination is one whole-sentence template (never two messages
+    // spliced together at runtime) -- procedure P6.
+    if (source === 'url' && truncated){
+      setMessage('venn.msg.filledFromUrlTruncated', function(){ return { tool: translate('site.nav.euclid'), a: a, b: b, cap: MAX_PER_REGION }; }, true);
+    } else if (source === 'url'){
+      setMessage('venn.msg.filledFromUrl', function(){ return { tool: translate('site.nav.euclid'), a: a, b: b }; }, false);
+    } else if (truncated){
+      setMessage('venn.msg.truncated', function(){ return { cap: MAX_PER_REGION }; }, true);
+    }
+    // else: nothing to say -- leave whatever message was already showing,
+    // matching the pre-i18n "if (msg) setMessage(...)" falsy no-op.
   }
 
   function readModeParam(){
@@ -2421,6 +2504,33 @@
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
   if (thumbsOnBtn) thumbsOnBtn.addEventListener('click', function(){ setThumbs(true); });
   if (thumbsOffBtn) thumbsOffBtn.addEventListener('click', function(){ setThumbs(false); });
+
+  // ---------- i18n re-render (P7) ----------
+  // One callback, registered once: retranslates the two-circle interactive
+  // layer's caption words (built once at load, never touched by render()),
+  // re-renders the message area from its last structured record, then
+  // fully re-renders the picker/tokens/products/aria-labels/composite
+  // badges -- nothing here resets placed primes, the armed prime, mode or
+  // the thumbnails setting; render() only ever reads state, never mutates
+  // it. render() also hides any open hover preview as a side effect of
+  // rebuilding the composite badges (renderComposite(3) call
+  // hideNestedPreview at the top) -- state.openPreview survived that
+  // rebuild (removing a node from the DOM fires no mouseleave), so the
+  // matching freshly-rebuilt badge is found by its data-region attribute
+  // and the exact same mouseenter handler that would show it on a real
+  // hover is replayed, re-drawing the preview in the new language.
+  function rerenderOnLangChange(){
+    retranslateCaptionLabels();
+    renderMessage();
+    var reopen = state.openPreview;
+    render();
+    if (reopen){
+      var dynamicLayer = (reopen.mode === 'three') ? svg3CompositeDynamic : svgCompositeDynamic;
+      var badge = dynamicLayer.querySelector('[data-region="' + reopen.key + '"]');
+      if (badge) badge.dispatchEvent(new Event('mouseenter'));
+    }
+  }
+  onLangChange(rerenderOnLangChange);
 
   /* ---------- live cross-document sync ---------- */
 
