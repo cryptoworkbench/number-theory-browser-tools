@@ -400,4 +400,24 @@ module.exports = function (ctx) {
     ctx.eq("readMigrating scenario \"" + sc.label + "\"", gotNew, wantOld);
     ctx.eq("readMigrating scenario \"" + sc.label + "\" storage log", newStorage._log, oldStorage._log);
   });
+
+  // Storage-event path: a handler passes e.newValue, which must win over a
+  // cookie that has not caught up with the writing tab yet (the live-sync
+  // race found in the 07 browser UAT).
+  (function () {
+    var jar = ctx.makeCookieJar({});
+    var storage = ctx.makeStorage({});
+    var NTe = ctx.loadNew({ globals: { document: jar.document, localStorage: storage } });
+    jar.document.cookie = "ab-params=" + encodeURIComponent('{"a":144,"b":12}') + ";path=/";
+    jar.document.cookie = "group-params=" + encodeURIComponent('{"mode":"additive","N":30}') + ";path=/";
+    var cookieWrites = jar._log.length;
+    ctx.eq("readSharedAB(): stale cookie still wins on a plain read", NTe.store.readSharedAB(), { a: 144, b: 12 });
+    ctx.eq("readSharedAB(newValue): event value wins over stale cookie", NTe.store.readSharedAB('{"a":144,"b":60}'), { a: 144, b: 60 });
+    ctx.eq("readSharedGroup(newValue): event value wins over stale cookie", NTe.store.readSharedGroup('{"mode":"multiplicative","N":12}'), { mode: "multiplicative", N: 12 });
+    ctx.eq("readSharedAB(newValue): removed key (null) -> null", NTe.store.readSharedAB(null), null);
+    ctx.eq("readSharedAB(newValue): malformed JSON -> null", NTe.store.readSharedAB("{oops"), null);
+    ctx.eq("readSharedAB(newValue): validator still applies", NTe.store.readSharedAB('{"a":0,"b":0}'), null);
+    ctx.eq("readSharedGroup(newValue): validator still applies", NTe.store.readSharedGroup('{"mode":"other","N":5}'), null);
+    ctx.eq("event path writes nothing", [jar._log.length, storage._log.length], [cookieWrites, 0]);
+  })();
 };

@@ -51,12 +51,20 @@
 (function () {
   "use strict";
 
-  // readShared(key, validate): cookie first, then localStorage when no
+  // readShared(key, validate, raw): cookie first, then localStorage when no
   // cookie match; null on an empty raw value or a JSON parse error;
   // otherwise the raw parsed value is handed to validate(), which decides
   // whether it is well-formed and normalizes its shape.
-  function readShared(key, validate) {
-    var raw = null;
+  //
+  // A storage-event handler passes the event's newValue as raw instead.
+  // The event fires as soon as the writing tab sets localStorage, but that
+  // tab sets the cookie right after, and the cookie can reach this tab
+  // later than the event does — so a cookie-first re-read here could still
+  // see the previous value and silently drop the update. The event already
+  // carries the new value, so it is parsed and validated directly.
+  function readShared(key, validate, raw) {
+    if (raw !== undefined) return parseShared(raw, validate);
+    raw = null;
     try {
       var m = new RegExp("(?:^|; *)" + key + "=([^;]*)").exec(document.cookie || "");
       if (m) raw = decodeURIComponent(m[1]);
@@ -64,6 +72,10 @@
     if (raw === null) {
       try { raw = localStorage.getItem(key); } catch (e) { /* ignore */ }
     }
+    return parseShared(raw, validate);
+  }
+
+  function parseShared(raw, validate) {
     if (!raw) return null;
     var parsed = null;
     try { parsed = JSON.parse(raw); } catch (e) { return null; }
@@ -98,8 +110,10 @@
     return { mode: parsed.mode, N: parsed.N };
   }
 
-  function readSharedGroup() {
-    return readShared(SHARED_GROUP_KEY, validateGroup);
+  // readSharedGroup(raw): raw is a storage event's newValue; omit it to read
+  // the store itself.
+  function readSharedGroup(raw) {
+    return readShared(SHARED_GROUP_KEY, validateGroup, raw);
   }
 
   function writeSharedGroup(mode, n) {
@@ -142,8 +156,10 @@
     return { a: parsed.a, b: parsed.b };
   }
 
-  function readSharedAB() {
-    return readShared(SHARED_AB_KEY, validateAB);
+  // readSharedAB(raw): raw is a storage event's newValue; omit it to read
+  // the store itself.
+  function readSharedAB(raw) {
+    return readShared(SHARED_AB_KEY, validateAB, raw);
   }
 
   function writeSharedAB(a, b) {

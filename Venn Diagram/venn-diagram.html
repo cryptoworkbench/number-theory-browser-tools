@@ -2136,10 +2136,14 @@
 
   // Opens a same-origin cross-tool link in a new, opener-less tab, reporting
   // through the existing message surface rather than adding a new one.
+  // Not the 'noopener' feature: with it window.open always returns null,
+  // so a tab that opened fine would be reported as blocked. Clearing
+  // opener afterwards gives the new tab the same isolation.
   function openXref(href, label){
-    var win = window.open(href, '_blank', 'noopener,noreferrer');
+    var win = window.open(href, '_blank');
     if (win){
-      setMessage('Opened ' + label + ' in a new tab.');
+      win.opener = null;
+      setMessage('Opened a new tab to ' + label + '.');
     } else {
       setMessage('Your browser blocked the new tab — allow popups to ' + label + '.', true);
     }
@@ -2419,7 +2423,7 @@
   // written here.
   window.addEventListener('storage', function(e){
     if (e.key !== SHARED_AB_KEY) return;
-    var incoming = readSharedAB();
+    var incoming = readSharedAB(e.newValue);
     if (!incoming) return;
     var pair = currentPair();
     if (pair.a === incoming.a && pair.b === incoming.b) return;
