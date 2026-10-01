@@ -470,6 +470,14 @@ const ErrorState = { bob: null, alice: null };
    rebuilding the whole wire section. Set each time renderWire() runs. */
 let wireNeverEl = null;
 let wireNotStrongEl = null;
+/* Task 3 state — all null until the first user interaction, so renderEve()
+   and renderMessages() (called on key regeneration) can wipe them back to
+   their original "nothing shown yet" state, while onLangChange's re-render
+   calls below are safe no-ops whenever nothing has happened yet. */
+const EveFactorRes = { bob: null, alice: null }; // raw bruteFactorEve() result, or null
+let DlpRes = null; // { winX, rows } once runDlpDemo() has run, else null
+const MsgErrorState = { bob: null, alice: null }; // { key, params } | null, keyed by fromId
+const MsgHintEl = { bob: null, alice: null }; // { el, toName } plain refs set by renderMessages()
 
 function renderError(id){
   const errBox = document.getElementById(id+'-error');
@@ -510,13 +518,6 @@ function generateKeys(id, label){
   State[id] = {id, label, p, q, n, phi, e, d, candidates, egRows: eg.rows};
   renderKeyOutput(id);
   checkUnlocks();
-}
-
-// Retained for the still-unconverted Task 3 table builders (runDlpDemo,
-// renderModPowTable), which still build an HTML string. Task 3 replaces their
-// call sites with buildTableBody below and removes this function.
-function tableRows(rows){
-  return rows.map(r => `<tr class="${r.cls||''}">${r.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
 }
 
 /* Builds a <tbody> from {cls, cells} rows. A cell is either a plain string/Node
@@ -676,7 +677,9 @@ function renderKeyOutput(id){
 }
 
 /* ---------- Step 3: wire / Eve's notebook ---------- */
-function buildWireRow(fromId, fromName, toId, toName, packetText){
+// tapKey defaults to the Step 3 "tap" label; renderExchange (Task 3) passes
+// 'rsa.eveSeesOnlyC' for its own wire row, whose tap text differs.
+function buildWireRow(fromId, fromName, toId, toName, packetText, tapKey){
   const row = document.createElement('div'); row.className = 'wire-row';
 
   const who1 = document.createElement('div'); who1.className = 'who';
@@ -686,7 +689,7 @@ function buildWireRow(fromId, fromName, toId, toName, packetText){
   row.appendChild(who1);
 
   const wireLine = document.createElement('div'); wireLine.className = 'wire-line';
-  const tap = document.createElement('div'); tap.className = 'eve-tap'; bindText(tap, 'rsa.eveTap');
+  const tap = document.createElement('div'); tap.className = 'eve-tap'; bindText(tap, tapKey || 'rsa.eveTap');
   wireLine.appendChild(tap);
   const track = document.createElement('div'); track.className = 'track';
   wireLine.appendChild(track);
@@ -747,33 +750,148 @@ function renderWire(){
 }
 
 /* ---------- Step 4: Eve's hard problems ---------- */
+function renderFactorResultBox(id){
+  const box = document.getElementById(`eve-factor-${id}-result`);
+  if(!box) return;
+  box.innerHTML = '';
+  const res = EveFactorRes[id];
+  if(!res) return;
+  const k = State[id];
+  const wrap = document.createElement('div');
+  if(res.factor){
+    wrap.className = 'result-box win';
+    const strong = document.createElement('strong'); bindText(strong, 'rsa.resWinStrongText');
+    const other = k.n / res.factor;
+    translateInto(wrap, 'rsa.resWinBody', {
+      0: strong, 1: fmt(res.factor), 2: fmt(other), 3: fmt(BigInt(res.tries)),
+      4: res.ms.toFixed(2), 5: fmt(res.factor-1n), 6: fmt(other-1n), 7: k.label
+    });
+  } else {
+    wrap.className = 'result-box giveup';
+    const strong = document.createElement('strong'); bindText(strong, 'rsa.resGiveupStrongText');
+    translateInto(wrap, 'rsa.resGiveupBody', {
+      0: strong, count: res.tries, ms: res.ms.toFixed(2),
+      sqrtN: res.sqrtN ? fmt(BigInt(Math.floor(res.sqrtN))) : '…'
+    });
+  }
+  box.appendChild(wrap);
+}
+
+function renderDlpResultBox(){
+  const resultEl = document.getElementById('dlp-result');
+  if(!resultEl) return;
+  resultEl.innerHTML = '';
+  if(!DlpRes) return;
+  const { winX, rows } = DlpRes;
+
+  const wrap = document.createElement('div'); wrap.className = 'tbl-wrap';
+  const table = document.createElement('table'); table.className = 'steps';
+  const thead = document.createElement('thead'); const trh = document.createElement('tr');
+  const thX = document.createElement('th'); thX.textContent = 'x';
+  const thExpr = document.createElement('th'); bindText(thExpr, 'rsa.thExpression');
+  const thRes = document.createElement('th'); bindText(thRes, 'rsa.thResult');
+  trh.appendChild(thX); trh.appendChild(thExpr); trh.appendChild(thRes);
+  thead.appendChild(trh); table.appendChild(thead);
+  table.appendChild(buildTableBody(rows));
+  wrap.appendChild(table);
+  resultEl.appendChild(wrap);
+
+  const formula = document.createElement('div'); formula.className = 'formula'; formula.setAttribute('style','margin-top:8px;');
+  const valSpan = document.createElement('span'); valSpan.className = 'val'; valSpan.textContent = fmt(winX);
+  const sup600 = document.createElement('sup'); sup600.textContent = '600';
+  translateInto(formula, 'rsa.dlpFoundText', {0: valSpan, 1: sup600});
+  resultEl.appendChild(formula);
+}
+
+// Every translateInto call below takes at least one Node param (a <sub>/<sup>/
+// <em>/<strong> child), so none of them auto-rerenders on a language switch —
+// unlike renderExchange, renderEve() itself must never be re-invoked on a
+// switch (it would wipe EveFactorRes/DlpRes). Each closure pushed here is the
+// page-level {el, key, params-factory} list the plan calls for: it reruns
+// exactly the translateInto call that built it, nothing else, so the sibling
+// result divs and EveFactorRes/DlpRes are never touched.
+let EveStaticRefs = [];
+
+function renderEveStaticRefresh(){
+  EveStaticRefs.forEach(function(fn){ fn(); });
+}
+
 function renderEve(){
   const b = State.bob, a = State.alice;
-  document.getElementById('eve-content').innerHTML = `
-    <div class="substep">
-      <h3>The real obstacle: the RSA / integer-factorization problem</h3>
-      <p class="msg-hint">To turn Bob's public (e, n) into his private d, Eve needs φ(n) = (p−1)(q−1). The only known way to get
-        φ(n) without already knowing p and q is to <strong>factor n = p × q</strong>. That's the actual problem RSA's
-        security rests on — not a discrete logarithm.</p>
-      <div class="formula">Eve must factor n<sub>Bob</sub> = ${fmt(b.n)} to recover d<sub>Bob</sub>.</div>
-      <button class="danger" id="eve-factor-bob">😈 Let Eve try brute-force factoring n<sub>Bob</sub></button>
-      <div id="eve-factor-bob-result"></div>
-    </div>
-    <div class="substep">
-      <div class="formula">Eve must factor n<sub>Alice</sub> = ${fmt(a.n)} to recover d<sub>Alice</sub>.</div>
-      <button class="danger" id="eve-factor-alice">😈 Let Eve try brute-force factoring n<sub>Alice</sub></button>
-      <div id="eve-factor-alice-result"></div>
-    </div>
-    <div class="dlp-box">
-      <span class="tag">Related but different — not RSA's problem</span>
-      <h3>The Discrete Logarithm Problem</h3>
-      <p class="msg-hint">This is the hard problem behind Diffie–Hellman, ElGamal and DSA — <em>not</em> the one behind RSA. It's
-        included here because the two get confused a lot. Given a prime p, a generator g, and h = g<sup>x</sup> mod p, find x.</p>
-      <div class="formula">g = 5, p = 23, h = 8 &nbsp;→&nbsp; find x such that 5<sup>x</sup> mod 23 = 8</div>
-      <button class="ghost" id="dlp-solve-btn">🔍 Brute-force solve it</button>
-      <div id="dlp-result"></div>
-    </div>
-  `;
+  // Regenerating a keypair rebuilds this whole step from scratch, exactly like
+  // before this phase — Eve's results reset. A language switch never calls
+  // renderEve(); it only re-renders already-shown results and this static text
+  // via the functions above/below, so EveFactorRes/DlpRes staying put across a
+  // switch is what makes the results survive it.
+  EveFactorRes.bob = null; EveFactorRes.alice = null; DlpRes = null;
+  EveStaticRefs = [];
+
+  const container = document.getElementById('eve-content');
+  container.innerHTML = '';
+
+  function reRenderable(fn){ fn(); EveStaticRefs.push(fn); }
+
+  function buildFactorSubstep(id, nVal, withIntro){
+    const sub = document.createElement('div'); sub.className = 'substep';
+    if(withIntro){
+      const h3 = document.createElement('h3'); bindText(h3, 'rsa.h3RsaObstacle');
+      sub.appendChild(h3);
+      const p = document.createElement('p'); p.className = 'msg-hint';
+      reRenderable(function(){
+        const strongFactor = document.createElement('strong'); bindText(strongFactor, 'rsa.factorNPQ');
+        translateInto(p, 'rsa.eveNeedsPhi', {0: strongFactor});
+      });
+      sub.appendChild(p);
+    }
+    const name = id === 'bob' ? 'Bob' : 'Alice';
+    const formula = document.createElement('div'); formula.className = 'formula';
+    reRenderable(function(){
+      const subA = document.createElement('sub'); subA.textContent = name;
+      const subB = document.createElement('sub'); subB.textContent = name;
+      translateInto(formula, 'rsa.eveFactorFormula', {0: subA, 1: fmt(nVal), 2: subB});
+    });
+    sub.appendChild(formula);
+
+    const btn = document.createElement('button'); btn.className = 'danger'; btn.id = 'eve-factor-' + id;
+    reRenderable(function(){
+      const subBtn = document.createElement('sub'); subBtn.textContent = name;
+      translateInto(btn, 'rsa.eveFactorBtn', {0: subBtn});
+    });
+    sub.appendChild(btn);
+
+    const resultDiv = document.createElement('div'); resultDiv.id = 'eve-factor-' + id + '-result';
+    sub.appendChild(resultDiv);
+    return sub;
+  }
+
+  container.appendChild(buildFactorSubstep('bob', b.n, true));
+  container.appendChild(buildFactorSubstep('alice', a.n, false));
+
+  const dlpBox = document.createElement('div'); dlpBox.className = 'dlp-box';
+  const tag = document.createElement('span'); tag.className = 'tag'; bindText(tag, 'rsa.dlpTag');
+  dlpBox.appendChild(tag);
+  const h3dlp = document.createElement('h3'); bindText(h3dlp, 'rsa.h3DiscreteLog');
+  dlpBox.appendChild(h3dlp);
+  const pDlp = document.createElement('p'); pDlp.className = 'msg-hint';
+  reRenderable(function(){
+    const emNot = document.createElement('em'); bindText(emNot, 'rsa.notWord');
+    const supX1 = document.createElement('sup'); supX1.textContent = 'x';
+    translateInto(pDlp, 'rsa.dlpIntro', {0: emNot, 1: supX1});
+  });
+  dlpBox.appendChild(pDlp);
+  const formulaDlp = document.createElement('div'); formulaDlp.className = 'formula';
+  reRenderable(function(){
+    const supX2 = document.createElement('sup'); supX2.textContent = 'x';
+    translateInto(formulaDlp, 'rsa.dlpStaticFormula', {0: supX2});
+  });
+  dlpBox.appendChild(formulaDlp);
+  const dlpBtn = document.createElement('button'); dlpBtn.className = 'ghost'; dlpBtn.id = 'dlp-solve-btn';
+  bindText(dlpBtn, 'rsa.dlpSolveBtn');
+  dlpBox.appendChild(dlpBtn);
+  const dlpResultDiv = document.createElement('div'); dlpResultDiv.id = 'dlp-result';
+  dlpBox.appendChild(dlpResultDiv);
+  container.appendChild(dlpBox);
+
   document.getElementById('eve-factor-bob').addEventListener('click', () => runFactorAttempt('bob'));
   document.getElementById('eve-factor-alice').addEventListener('click', () => runFactorAttempt('alice'));
   document.getElementById('dlp-solve-btn').addEventListener('click', runDlpDemo);
@@ -784,21 +902,8 @@ function runFactorAttempt(id){
   const btn = document.getElementById(`eve-factor-${id}`);
   btn.disabled = true;
   setTimeout(() => {
-    const res = bruteFactorEve(k.n);
-    const box = document.getElementById(`eve-factor-${id}-result`);
-    if(res.factor){
-      const other = k.n / res.factor;
-      box.innerHTML = `<div class="result-box win">😈 <strong>Eve wins.</strong> Found factor ${fmt(res.factor)}
-        (so n = ${fmt(res.factor)} × ${fmt(other)}) after ${fmt(BigInt(res.tries))} trial divisions in ${res.ms.toFixed(2)} ms.
-        From here she computes φ(n) = (${fmt(res.factor-1n)})(${fmt(other-1n)}) and inverts e mod φ(n) exactly like ${k.label} did —
-        game over. This only worked because the primes are toy-sized. Real RSA primes are ~150+ digits each, putting trial
-        division (and every known factoring algorithm) permanently out of reach.</div>`;
-    } else {
-      box.innerHTML = `<div class="result-box giveup">🛡️ <strong>Eve gives up.</strong> She tried ${fmt(BigInt(res.tries))} candidate
-        divisors (${res.ms.toFixed(2)} ms) and still hadn't reached √n ≈ ${res.sqrtN ? fmt(BigInt(Math.floor(res.sqrtN))) : '…'}.
-        Even at this toy scale, brute-force factoring is already getting expensive — with real 150+ digit primes it's
-        computationally infeasible with any known algorithm.</div>`;
-    }
+    EveFactorRes[id] = bruteFactorEve(k.n);
+    renderFactorResultBox(id);
     btn.disabled = false;
   }, 30);
 }
@@ -812,13 +917,8 @@ function runDlpDemo(){
     if(val === h && winX === null) winX = x;
     rows.push({cls: val===h ? 'win' : '', cells:[fmt(x), `${fmt(g)}^${fmt(x)} mod ${fmt(p)}`, fmt(val)]});
   }
-  document.getElementById('dlp-result').innerHTML = `
-    <div class="tbl-wrap"><table class="steps"><thead><tr><th>x</th><th>expression</th><th>result</th></tr></thead>
-      <tbody>${tableRows(rows)}</tbody></table></div>
-    <div class="formula" style="margin-top:8px;">x = <span class="val">${fmt(winX)}</span> — found by trying every exponent,
-      because 23 is tiny. With a 2048-bit prime this table would need ~10<sup>600</sup> rows — brute force is hopeless, and even
-      the best known algorithms (index calculus, etc.) remain infeasible at that size.</div>
-  `;
+  DlpRes = { winX, rows };
+  renderDlpResultBox();
 }
 
 /* ---------- Step 5: message exchange ---------- */
@@ -828,56 +928,144 @@ function checkUnlocks(){
   if(ready){ renderWire(); renderEve(); renderMessages(); }
 }
 
+function renderMsgError(fromId){
+  const errBox = document.getElementById(`msg-${fromId}-error`);
+  if(!errBox) return;
+  const st = MsgErrorState[fromId];
+  errBox.textContent = st ? translate(st.key, st.params) : '';
+}
+
+function setMsgError(fromId, key, params){
+  MsgErrorState[fromId] = { key, params: params || null };
+  renderMsgError(fromId);
+}
+
+function clearMsgError(fromId){
+  MsgErrorState[fromId] = null;
+  renderMsgError(fromId);
+}
+
+// Re-renders one message block's rich msg-hint sentence (the only Node-param
+// translateInto call in renderMessages) from the plain ref renderMessages()
+// stored — the sole thing a language switch needs to redo for this block.
+function renderMsgHint(fromId){
+  const ref = MsgHintEl[fromId];
+  if(!ref || !ref.el) return;
+  const toId = fromId === 'bob' ? 'alice' : 'bob';
+  const to = State[toId];
+  if(!to) return;
+  const subA = document.createElement('sub'); subA.textContent = ref.toName;
+  const subB = document.createElement('sub'); subB.textContent = ref.toName;
+  const supMid = document.createElement('sup'); supMid.appendChild(document.createTextNode('e'));
+  const subMid = document.createElement('sub'); subMid.textContent = ref.toName;
+  supMid.appendChild(subMid);
+  const fromLabel = fromId === 'bob' ? 'Bob' : 'Alice';
+  translateInto(ref.el, 'rsa.msgHintBody', {0: subA, 1: fmt(to.n), 2: supMid, 3: subB, 4: fromLabel});
+}
+
 function renderMessages(){
-  const b = State.bob, a = State.alice;
-  document.getElementById('messages-content').innerHTML = `
-    <div class="msg-flow">
-      <div class="msg-block">
-        <div class="avatar-row"><div class="avatar bob">🧑‍💼</div><div class="name bob">Bob → Alice</div></div>
-        <div class="field-row">
-          <div class="field"><label for="msg-bob">Message m (an integer)</label><input id="msg-bob" type="text" inputmode="numeric" value="42"></div>
-          <button class="primary bob" id="send-bob-btn">🔐 Encrypt with Alice's public key &amp; send</button>
-        </div>
-        <div class="msg-hint">Must satisfy 0 ≤ m &lt; n<sub>Alice</sub> = ${fmt(a.n)}. Bob computes c = m<sup>e<sub>Alice</sub></sup> mod n<sub>Alice</sub>.</div>
-        <div class="error-box" id="msg-bob-error"></div>
-        <div id="msg-bob-result"></div>
-      </div>
-      <div class="msg-block">
-        <div class="avatar-row"><div class="avatar alice">👩‍💼</div><div class="name alice">Alice → Bob</div></div>
-        <div class="field-row">
-          <div class="field"><label for="msg-alice">Message m (an integer)</label><input id="msg-alice" type="text" inputmode="numeric" value="17"></div>
-          <button class="primary alice" id="send-alice-btn">🔐 Encrypt with Bob's public key &amp; send</button>
-        </div>
-        <div class="msg-hint">Must satisfy 0 ≤ m &lt; n<sub>Bob</sub> = ${fmt(b.n)}. Alice computes c = m<sup>e<sub>Bob</sub></sup> mod n<sub>Bob</sub>.</div>
-        <div class="error-box" id="msg-alice-error"></div>
-        <div id="msg-alice-result"></div>
-      </div>
-    </div>
-  `;
+  // Regenerating a keypair rebuilds this whole step (and so do its inputs) —
+  // same as before this phase. A language switch never calls renderMessages();
+  // see renderMsgHint/renderMsgError above for what it redoes instead.
+  MsgErrorState.bob = null; MsgErrorState.alice = null;
+
+  const container = document.getElementById('messages-content');
+  container.innerHTML = '';
+
+  function buildMsgBlock(fromId, fromName, toId, toName, defaultValue){
+    const block = document.createElement('div'); block.className = 'msg-block';
+
+    const avatarRow = document.createElement('div'); avatarRow.className = 'avatar-row';
+    const avatar = document.createElement('div'); avatar.className = 'avatar ' + fromId; avatar.textContent = fromId === 'bob' ? '🧑‍💼' : '👩‍💼';
+    avatarRow.appendChild(avatar);
+    const nameDiv = document.createElement('div'); nameDiv.className = 'name ' + fromId;
+    bindText(nameDiv, 'rsa.msgArrowHeading', {0: fromName, 1: toName});
+    avatarRow.appendChild(nameDiv);
+    block.appendChild(avatarRow);
+
+    const fieldRow = document.createElement('div'); fieldRow.className = 'field-row';
+    const field = document.createElement('div'); field.className = 'field';
+    const label = document.createElement('label'); label.setAttribute('for', 'msg-' + fromId);
+    bindText(label, 'rsa.msgLabel');
+    field.appendChild(label);
+    const input = document.createElement('input'); input.id = 'msg-' + fromId; input.type = 'text'; input.setAttribute('inputmode','numeric'); input.setAttribute('value', defaultValue);
+    field.appendChild(input);
+    fieldRow.appendChild(field);
+    const sendBtn = document.createElement('button'); sendBtn.className = 'primary ' + fromId; sendBtn.id = 'send-' + fromId + '-btn';
+    bindText(sendBtn, 'rsa.msgSendBtn', {0: toName});
+    fieldRow.appendChild(sendBtn);
+    block.appendChild(fieldRow);
+
+    const hint = document.createElement('div'); hint.className = 'msg-hint';
+    block.appendChild(hint);
+    MsgHintEl[fromId] = { el: hint, toName: toName };
+    renderMsgHint(fromId);
+
+    const errBox = document.createElement('div'); errBox.className = 'error-box'; errBox.id = 'msg-' + fromId + '-error';
+    block.appendChild(errBox);
+    const resultDiv = document.createElement('div'); resultDiv.id = 'msg-' + fromId + '-result';
+    block.appendChild(resultDiv);
+
+    return block;
+  }
+
+  const flow = document.createElement('div'); flow.className = 'msg-flow';
+  flow.appendChild(buildMsgBlock('bob', 'Bob', 'alice', 'Alice', '42'));
+  flow.appendChild(buildMsgBlock('alice', 'Alice', 'bob', 'Bob', '17'));
+  container.appendChild(flow);
+
   document.getElementById('send-bob-btn').addEventListener('click', () => sendMessage('bob','alice'));
   document.getElementById('send-alice-btn').addEventListener('click', () => sendMessage('alice','bob'));
 }
 
-function renderModPowTable(exp, steps){
-  let rows = steps, truncatedNote = '';
-  if(rows.length > 40){
+// Builds a <tbody>-table-plus-optional-note fragment for a modular-exponentiation
+// step list, reused by every encrypt/decrypt formula below. bit#/bit/running
+// value header words are bound (auto-rerender); the (showing first N…) note's
+// two "10" values stay literal numbers — only the total bit count varies.
+function buildModPowTable(exp, steps){
+  const fragment = document.createDocumentFragment();
+  let rows = steps;
+  const totalBits = steps.length;
+  const showTruncated = rows.length > 40;
+  if(showTruncated){
     const head = steps.slice(0,10), tail = steps.slice(-10);
-    truncatedNote = `<div class="msg-hint">(showing first 10 and last 10 of ${steps.length} bits of the exponent)</div>`;
     rows = head.concat(tail);
   }
-  const body = rows.map(s => `<tr><td>${s.i}</td><td>${s.bit}</td><td>${fmt(s.resultAfter)}</td></tr>`).join('');
-  return `<div class="tbl-wrap"><table class="steps"><thead><tr><th>bit#</th><th>bit</th><th>running value</th></tr></thead>
-    <tbody>${body}</tbody></table></div>${truncatedNote}`;
+  const wrap = document.createElement('div'); wrap.className = 'tbl-wrap';
+  const table = document.createElement('table'); table.className = 'steps';
+  const thead = document.createElement('thead'); const trh = document.createElement('tr');
+  const th1 = document.createElement('th'); bindText(th1, 'rsa.thBitNum');
+  const th2 = document.createElement('th'); bindText(th2, 'rsa.thBit');
+  const th3 = document.createElement('th'); bindText(th3, 'rsa.thRunningValue');
+  trh.appendChild(th1); trh.appendChild(th2); trh.appendChild(th3);
+  thead.appendChild(trh); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  rows.forEach(s => {
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td'); td1.textContent = s.i;
+    const td2 = document.createElement('td'); td2.textContent = s.bit;
+    const td3 = document.createElement('td'); td3.textContent = fmt(s.resultAfter);
+    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  fragment.appendChild(wrap);
+  if(showTruncated){
+    const note = document.createElement('div'); note.className = 'msg-hint';
+    bindText(note, 'rsa.truncatedNote', {0: 10, 1: 10, 2: totalBits});
+    fragment.appendChild(note);
+  }
+  return fragment;
 }
 
 function sendMessage(fromId, toId){
   const to = State[toId];
-  const errBox = document.getElementById(`msg-${fromId}-error`);
-  errBox.textContent = '';
+  clearMsgError(fromId);
   let m;
   try{ m = parseBigIntStrict(document.getElementById(`msg-${fromId}`).value, true); }
-  catch(e){ errBox.textContent = 'Message must be a nonnegative whole number.'; return; }
-  if(m >= to.n){ errBox.textContent = `Message must be less than n (${fmt(to.n)}) — otherwise the encryption loses information.`; return; }
+  catch(e){ setMsgError(fromId, 'rsa.errMsgNotWhole'); return; }
+  if(m >= to.n){ setMsgError(fromId, 'rsa.errMsgTooBig', {0: fmt(to.n)}); return; }
 
   const enc = modPowSteps(m, to.e, to.n);
   const c = enc.result;
@@ -896,15 +1084,23 @@ function renderExchange(toId){
   const ok = recovered === m;
   const useCrt = CrtFlag[toId];
 
-  let decryptBodyHtml;
+  let decryptBodyEl;
   if(useCrt){
     const crt = crtDecryptSteps(c, to.d, to.p, to.q);
     if(crt === null){
-      decryptBodyHtml = `
-        <div class="msg-hint">CRT decryption is unavailable for this keypair (no modular inverse of q mod p) — showing the direct decryption instead.</div>
-        <div class="formula">m = ${fmt(c)}<sup>${fmt(to.d)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(recovered)}</span></div>
-        ${renderModPowTable(to.d, dec.steps)}
-      `;
+      decryptBodyEl = document.createDocumentFragment();
+      const hint = document.createElement('div'); hint.className = 'msg-hint';
+      bindText(hint, 'rsa.crtUnavailable');
+      decryptBodyEl.appendChild(hint);
+      const formula = document.createElement('div'); formula.className = 'formula';
+      const supD = document.createElement('sup'); supD.textContent = fmt(to.d);
+      const valSpan = document.createElement('span'); valSpan.className = 'val'; valSpan.textContent = fmt(recovered);
+      formula.appendChild(document.createTextNode('m = ' + fmt(c)));
+      formula.appendChild(supD);
+      formula.appendChild(document.createTextNode(' mod ' + fmt(to.n) + ' = '));
+      formula.appendChild(valSpan);
+      decryptBodyEl.appendChild(formula);
+      decryptBodyEl.appendChild(buildModPowTable(to.d, dec.steps));
     } else {
       const matchesDirect = crt.m === recovered;
       const matchesOriginal = crt.m === m;
@@ -914,111 +1110,220 @@ function renderExchange(toId){
       const dQBits = crt.m2Bin.length;
       const directSteps = dec.steps.length;
       const crtSteps = crt.m1Steps.length + crt.m2Steps.length;
-      decryptBodyHtml = `
-        <div class="crt-box">
-          <span class="tag">Advanced — the route real RSA implementations actually use</span>
 
-          <div class="crt-stage">
-            <h4>Why only ${to.label} can take this shortcut</h4>
-            <div class="msg-hint">${to.label} still holds p = ${fmt(to.p)} and q = ${fmt(to.q)} from generating this keypair.
-              Eve only ever recorded (e, n) off the wire — turning that into p and q is exactly the factoring problem Step 4 demonstrates.</div>
-          </div>
+      const box = document.createElement('div'); box.className = 'crt-box';
+      const tag = document.createElement('span'); tag.className = 'tag'; bindText(tag, 'rsa.crtAdvancedTag');
+      box.appendChild(tag);
 
-          <div class="crt-stage">
-            <h4>Precomputation</h4>
-            <div class="formula">
-              <span class="lbl">dP = d mod (p−1) =</span> ${fmt(to.d)} mod ${fmt(to.p-1n)} = <span class="val">${fmt(crt.dP)}</span><br>
-              <span class="lbl">dQ = d mod (q−1) =</span> ${fmt(to.d)} mod ${fmt(to.q-1n)} = <span class="val">${fmt(crt.dQ)}</span><br>
-              <span class="lbl">qInv = q<sup>-1</sup> mod p =</span> <span class="val">${fmt(crt.qInv)}</span>
-            </div>
-            <div class="msg-hint">qInv comes from the same extended Euclidean algorithm the page already used to derive d.</div>
-            <div class="formula" style="margin-top:8px;">
-              check: q · qInv mod p = ${fmt(to.q)} × ${fmt(crt.qInv)} mod ${fmt(to.p)} = ${fmt(qInvCheck)} ${qInvCheck===1n?'✓':'✗'}
-            </div>
-          </div>
+      const stage1 = document.createElement('div'); stage1.className = 'crt-stage';
+      const h4a = document.createElement('h4'); bindText(h4a, 'rsa.crtWhyOnlyHeading', {0: to.label});
+      stage1.appendChild(h4a);
+      const hint1 = document.createElement('div'); hint1.className = 'msg-hint';
+      bindText(hint1, 'rsa.crtWhyOnlyBody', {0: to.label, 1: fmt(to.p), 2: fmt(to.q)});
+      stage1.appendChild(hint1);
+      box.appendChild(stage1);
 
-          <div class="crt-stage">
-            <h4>Two half-size exponentiations</h4>
-            <div class="formula">m1 = c<sup>dP</sup> mod p = ${fmt(crt.cp)}<sup>${fmt(crt.dP)}</sup> mod ${fmt(to.p)} = <span class="val">${fmt(crt.m1)}</span></div>
-            ${renderModPowTable(crt.dP, crt.m1Steps)}
-            <div class="formula" style="margin-top:8px;">m2 = c<sup>dQ</sup> mod q = ${fmt(crt.cq)}<sup>${fmt(crt.dQ)}</sup> mod ${fmt(to.q)} = <span class="val">${fmt(crt.m2)}</span></div>
-            ${renderModPowTable(crt.dQ, crt.m2Steps)}
-          </div>
+      const stage2 = document.createElement('div'); stage2.className = 'crt-stage';
+      const h4b = document.createElement('h4'); bindText(h4b, 'rsa.crtPrecomputationHeading');
+      stage2.appendChild(h4b);
+      const formula2 = document.createElement('div'); formula2.className = 'formula';
+      const lblDp = document.createElement('span'); lblDp.className = 'lbl'; lblDp.textContent = 'dP = d mod (p−1) =';
+      const valDp = document.createElement('span'); valDp.className = 'val'; valDp.textContent = fmt(crt.dP);
+      formula2.appendChild(lblDp);
+      formula2.appendChild(document.createTextNode(' ' + fmt(to.d) + ' mod ' + fmt(to.p-1n) + ' = '));
+      formula2.appendChild(valDp);
+      formula2.appendChild(document.createElement('br'));
+      const lblDq = document.createElement('span'); lblDq.className = 'lbl'; lblDq.textContent = 'dQ = d mod (q−1) =';
+      const valDq = document.createElement('span'); valDq.className = 'val'; valDq.textContent = fmt(crt.dQ);
+      formula2.appendChild(lblDq);
+      formula2.appendChild(document.createTextNode(' ' + fmt(to.d) + ' mod ' + fmt(to.q-1n) + ' = '));
+      formula2.appendChild(valDq);
+      formula2.appendChild(document.createElement('br'));
+      // qInv is a camelCase label (like dP/dQ), not a natural-language word —
+      // kept identical in every language (allowSame/allowRenderText, i18n-config).
+      const lblQInvEl = document.createElement('span'); lblQInvEl.className = 'lbl';
+      const supMinus1 = document.createElement('sup'); supMinus1.textContent = '-1';
+      translateInto(lblQInvEl, 'rsa.lblQInv', {0: supMinus1});
+      const valQInv = document.createElement('span'); valQInv.className = 'val'; valQInv.textContent = fmt(crt.qInv);
+      formula2.appendChild(lblQInvEl);
+      formula2.appendChild(document.createTextNode(' '));
+      formula2.appendChild(valQInv);
+      stage2.appendChild(formula2);
+      const hint2 = document.createElement('div'); hint2.className = 'msg-hint'; bindText(hint2, 'rsa.crtQInvComesFrom');
+      stage2.appendChild(hint2);
+      const formula2b = document.createElement('div'); formula2b.className = 'formula'; formula2b.setAttribute('style','margin-top:8px;');
+      translateInto(formula2b, 'rsa.crtCheckQInv', {0: fmt(to.q), 1: fmt(crt.qInv), 2: fmt(to.p), 3: fmt(qInvCheck), 4: (qInvCheck===1n?'✓':'✗')});
+      stage2.appendChild(formula2b);
+      box.appendChild(stage2);
 
-          <div class="crt-stage">
-            <h4>Recombination (Garner's formula)</h4>
-            <div class="formula">
-              <span class="lbl">h = qInv·(m1 − m2) mod p =</span> ${fmt(crt.qInv)} × (${fmt(crt.m1)} − ${fmt(crt.m2)}) mod ${fmt(to.p)} = <span class="val">${fmt(crt.h)}</span><br>
-              <span class="lbl">m = m2 + h·q =</span> ${fmt(crt.m2)} + ${fmt(crt.h)} × ${fmt(to.q)} = <span class="val">${fmt(crt.m)}</span>
-            </div>
-          </div>
+      const stage3 = document.createElement('div'); stage3.className = 'crt-stage';
+      const h4c = document.createElement('h4'); bindText(h4c, 'rsa.crtTwoHalfHeading');
+      stage3.appendChild(h4c);
+      const formula3a = document.createElement('div'); formula3a.className = 'formula';
+      const supDpLbl = document.createElement('sup'); supDpLbl.textContent = 'dP';
+      const valM1 = document.createElement('span'); valM1.className = 'val'; valM1.textContent = fmt(crt.m1);
+      formula3a.appendChild(document.createTextNode('m1 = c'));
+      formula3a.appendChild(supDpLbl);
+      formula3a.appendChild(document.createTextNode(' mod p = ' + fmt(crt.cp)));
+      const supDpVal = document.createElement('sup'); supDpVal.textContent = fmt(crt.dP);
+      formula3a.appendChild(supDpVal);
+      formula3a.appendChild(document.createTextNode(' mod ' + fmt(to.p) + ' = '));
+      formula3a.appendChild(valM1);
+      stage3.appendChild(formula3a);
+      stage3.appendChild(buildModPowTable(crt.dP, crt.m1Steps));
+      const formula3b = document.createElement('div'); formula3b.className = 'formula'; formula3b.setAttribute('style','margin-top:8px;');
+      const supDqLbl = document.createElement('sup'); supDqLbl.textContent = 'dQ';
+      const valM2 = document.createElement('span'); valM2.className = 'val'; valM2.textContent = fmt(crt.m2);
+      formula3b.appendChild(document.createTextNode('m2 = c'));
+      formula3b.appendChild(supDqLbl);
+      formula3b.appendChild(document.createTextNode(' mod q = ' + fmt(crt.cq)));
+      const supDqVal = document.createElement('sup'); supDqVal.textContent = fmt(crt.dQ);
+      formula3b.appendChild(supDqVal);
+      formula3b.appendChild(document.createTextNode(' mod ' + fmt(to.q) + ' = '));
+      formula3b.appendChild(valM2);
+      stage3.appendChild(formula3b);
+      stage3.appendChild(buildModPowTable(crt.dQ, crt.m2Steps));
+      box.appendChild(stage3);
 
-          <div class="crt-stage">
-            <h4>Same-result cross-check</h4>
-            <div class="formula">
-              direct c<sup>d</sup> mod n = <span class="val">${fmt(recovered)}</span> &nbsp;vs&nbsp; CRT m = <span class="val">${fmt(crt.m)}</span>
-              — <span class="crt-check ${matchesDirect?'match':'mismatch'}">${matchesDirect ? '✅ matches' : '❌ does NOT match'}</span><br>
-              matches original message (${fmt(m)}): <span class="crt-check ${matchesOriginal?'match':'mismatch'}">${matchesOriginal ? '✅ matches' : '❌ does NOT match'}</span>
-            </div>
-          </div>
+      const stage4 = document.createElement('div'); stage4.className = 'crt-stage';
+      const h4d = document.createElement('h4'); bindText(h4d, 'rsa.crtRecombinationHeading');
+      stage4.appendChild(h4d);
+      const formula4 = document.createElement('div'); formula4.className = 'formula';
+      const lblH = document.createElement('span'); lblH.className = 'lbl'; lblH.textContent = 'h = qInv·(m1 − m2) mod p =';
+      const valH = document.createElement('span'); valH.className = 'val'; valH.textContent = fmt(crt.h);
+      formula4.appendChild(lblH);
+      formula4.appendChild(document.createTextNode(' ' + fmt(crt.qInv) + ' × (' + fmt(crt.m1) + ' − ' + fmt(crt.m2) + ') mod ' + fmt(to.p) + ' = '));
+      formula4.appendChild(valH);
+      formula4.appendChild(document.createElement('br'));
+      const lblM = document.createElement('span'); lblM.className = 'lbl'; lblM.textContent = 'm = m2 + h·q =';
+      const valM = document.createElement('span'); valM.className = 'val'; valM.textContent = fmt(crt.m);
+      formula4.appendChild(lblM);
+      formula4.appendChild(document.createTextNode(' ' + fmt(crt.m2) + ' + ' + fmt(crt.h) + ' × ' + fmt(to.q) + ' = '));
+      formula4.appendChild(valM);
+      stage4.appendChild(formula4);
+      box.appendChild(stage4);
 
-          <div class="crt-stage">
-            <h4>Why this is faster</h4>
-            <div class="msg-hint">d is ${dBits} bits; dP and dQ are only ${dPBits} and ${dQBits} bits — roughly half. The direct route runs
-              ${fmt(BigInt(directSteps))} square-and-multiply steps over the full-size modulus n; the two CRT halves together run
-              ${fmt(BigInt(crtSteps))} steps combined over half-size moduli p and q. Multiply cost scales with the square of the
-              operand's bit-length, so halving both the exponent and the operand size cuts each multiply to roughly a quarter of
-              the cost — landing at roughly 4x less total work for the identical answer. This is why every production RSA
-              implementation decrypts this way.</div>
-          </div>
+      const stage5 = document.createElement('div'); stage5.className = 'crt-stage';
+      const h4e = document.createElement('h4'); bindText(h4e, 'rsa.crtCrossCheckHeading');
+      stage5.appendChild(h4e);
+      const formula5 = document.createElement('div'); formula5.className = 'formula';
+      const supD2 = document.createElement('sup'); supD2.textContent = 'd';
+      const valRecovered = document.createElement('span'); valRecovered.className = 'val'; valRecovered.textContent = fmt(recovered);
+      const valCrtM = document.createElement('span'); valCrtM.className = 'val'; valCrtM.textContent = fmt(crt.m);
+      translateInto(formula5, 'rsa.crtDirectVsLine', {0: supD2, 1: valRecovered, 2: valCrtM});
+      formula5.appendChild(document.createTextNode(' — '));
+      const checkSpan1 = document.createElement('span'); checkSpan1.className = 'crt-check ' + (matchesDirect ? 'match' : 'mismatch');
+      bindText(checkSpan1, matchesDirect ? 'rsa.matchYes' : 'rsa.matchNo');
+      formula5.appendChild(checkSpan1);
+      formula5.appendChild(document.createElement('br'));
+      // Plain text, no <span> wrapper — matches the original markup exactly
+      // (unlike the two crt-check spans above, which DO have one).
+      formula5.appendChild(document.createTextNode(translate('rsa.crtMatchesOriginalLine', {0: fmt(m)})));
+      formula5.appendChild(document.createTextNode(' '));
+      const checkSpan2 = document.createElement('span'); checkSpan2.className = 'crt-check ' + (matchesOriginal ? 'match' : 'mismatch');
+      bindText(checkSpan2, matchesOriginal ? 'rsa.matchYes' : 'rsa.matchNo');
+      formula5.appendChild(checkSpan2);
+      stage5.appendChild(formula5);
+      box.appendChild(stage5);
 
-          <div class="crt-stage">
-            <h4>Two caveats</h4>
-            <div class="msg-hint">This shortcut assumes gcd(c, n) = 1 — true unless the message happens to share a factor with n.</div>
-            <div class="msg-hint">Real CRT-RSA also verifies the recombined result before releasing it, because a single corrupted
-              half (say, from a hardware fault) leaks p to an attacker — one more safeguard this textbook version skips, in the
-              same spirit as the no-padding disclaimer above.</div>
-          </div>
-        </div>
-      `;
+      const stage6 = document.createElement('div'); stage6.className = 'crt-stage';
+      const h4f = document.createElement('h4'); bindText(h4f, 'rsa.crtWhyFasterHeading');
+      stage6.appendChild(h4f);
+      const hint6 = document.createElement('div'); hint6.className = 'msg-hint';
+      bindText(hint6, 'rsa.crtWhyFasterBody', {0: dBits, 1: dPBits, 2: dQBits, 3: fmt(BigInt(directSteps)), 4: fmt(BigInt(crtSteps))});
+      stage6.appendChild(hint6);
+      box.appendChild(stage6);
+
+      const stage7 = document.createElement('div'); stage7.className = 'crt-stage';
+      const h4g = document.createElement('h4'); bindText(h4g, 'rsa.crtTwoCaveatsHeading');
+      stage7.appendChild(h4g);
+      const hint7a = document.createElement('div'); hint7a.className = 'msg-hint'; bindText(hint7a, 'rsa.crtCaveat1');
+      stage7.appendChild(hint7a);
+      const hint7b = document.createElement('div'); hint7b.className = 'msg-hint'; bindText(hint7b, 'rsa.crtCaveat2');
+      stage7.appendChild(hint7b);
+      box.appendChild(stage7);
+
+      decryptBodyEl = box;
     }
   } else {
-    decryptBodyHtml = `
-      <div class="formula">m = ${fmt(c)}<sup>${fmt(to.d)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(recovered)}</span></div>
-      ${renderModPowTable(to.d, dec.steps)}
-    `;
+    decryptBodyEl = document.createDocumentFragment();
+    const formula = document.createElement('div'); formula.className = 'formula';
+    const supD = document.createElement('sup'); supD.textContent = fmt(to.d);
+    const valSpan = document.createElement('span'); valSpan.className = 'val'; valSpan.textContent = fmt(recovered);
+    formula.appendChild(document.createTextNode('m = ' + fmt(c)));
+    formula.appendChild(supD);
+    formula.appendChild(document.createTextNode(' mod ' + fmt(to.n) + ' = '));
+    formula.appendChild(valSpan);
+    decryptBodyEl.appendChild(formula);
+    decryptBodyEl.appendChild(buildModPowTable(to.d, dec.steps));
   }
 
-  document.getElementById(`msg-${fromId}-result`).innerHTML = `
-    <div class="substep">
-      <h3>${from.label} encrypts: c = m<sup>e</sup> mod n</h3>
-      <div class="formula">c = ${fmt(m)}<sup>${fmt(to.e)}</sup> mod ${fmt(to.n)} = <span class="val">${fmt(c)}</span></div>
-      ${renderModPowTable(to.e, encSteps)}
-    </div>
-    <div class="wire-diagram" style="margin:8px 0;">
-      <div class="wire-row">
-        <div class="who"><div class="avatar ${fromId}">${fromId==='bob'?'🧑‍💼':'👩‍💼'}</div>${from.label}</div>
-        <div class="wire-line"><div class="eve-tap">🕵️‍♀️ sees only c</div><div class="track"></div>
-          <div class="packet">c = ${fmt(c)}</div></div>
-        <div class="who"><div class="avatar ${toId}">${toId==='bob'?'🧑‍💼':'👩‍💼'}</div>${to.label}</div>
-      </div>
-    </div>
-    <div class="substep">
-      <h3>${to.label} decrypts: m = c<sup>d</sup> mod n</h3>
-      <label class="crt-toggle-row" for="crt-toggle-${toId}">
-        <input type="checkbox" id="crt-toggle-${toId}" ${useCrt ? 'checked' : ''}>
-        <span>Use CRT-assisted decryption</span>
-      </label>
-      <div class="msg-hint">${to.label} still holds p and q from their own key generation — that's what makes this shortcut available.</div>
-      ${decryptBodyHtml}
-      <div class="formula" style="margin-top:8px;">Recovered message ${ok ? '✅ matches' : '❌ does NOT match'} the original (${fmt(m)}).</div>
-    </div>
-    <div class="notebook">
-      <h4>🕵️‍♀️ What Eve saw on this exchange</h4>
-      <div class="grid"><div>ciphertext c = ${fmt(c)}</div><div>e = ${fmt(to.e)}</div><div>n = ${fmt(to.n)}</div></div>
-      <div class="never">Without d (which requires factoring n), c<sup>e'</sup> mod n for any e' she guesses will not recover m.</div>
-    </div>
-  `;
+  const resultContainer = document.getElementById(`msg-${fromId}-result`);
+  resultContainer.innerHTML = '';
+
+  const subEnc = document.createElement('div'); subEnc.className = 'substep';
+  const h3Enc = document.createElement('h3');
+  const supE1 = document.createElement('sup'); supE1.textContent = 'e';
+  translateInto(h3Enc, 'rsa.crtEncryptsHeading', {0: from.label, 1: supE1});
+  subEnc.appendChild(h3Enc);
+  const formulaEnc = document.createElement('div'); formulaEnc.className = 'formula';
+  const supEVal = document.createElement('sup'); supEVal.textContent = fmt(to.e);
+  const valCEnc = document.createElement('span'); valCEnc.className = 'val'; valCEnc.textContent = fmt(c);
+  formulaEnc.appendChild(document.createTextNode('c = ' + fmt(m)));
+  formulaEnc.appendChild(supEVal);
+  formulaEnc.appendChild(document.createTextNode(' mod ' + fmt(to.n) + ' = '));
+  formulaEnc.appendChild(valCEnc);
+  subEnc.appendChild(formulaEnc);
+  subEnc.appendChild(buildModPowTable(to.e, encSteps));
+  resultContainer.appendChild(subEnc);
+
+  const wireDiagram = document.createElement('div'); wireDiagram.className = 'wire-diagram'; wireDiagram.setAttribute('style','margin:8px 0;');
+  wireDiagram.appendChild(buildWireRow(fromId, from.label, toId, to.label, 'c = ' + fmt(c), 'rsa.eveSeesOnlyC'));
+  resultContainer.appendChild(wireDiagram);
+
+  const subDec = document.createElement('div'); subDec.className = 'substep';
+  const h3Dec = document.createElement('h3');
+  const supD3 = document.createElement('sup'); supD3.textContent = 'd';
+  translateInto(h3Dec, 'rsa.crtDecryptsHeading', {0: to.label, 1: supD3});
+  subDec.appendChild(h3Dec);
+
+  const toggleLabel = document.createElement('label'); toggleLabel.className = 'crt-toggle-row'; toggleLabel.setAttribute('for', 'crt-toggle-' + toId);
+  const toggleInput = document.createElement('input'); toggleInput.type = 'checkbox'; toggleInput.id = 'crt-toggle-' + toId;
+  if(useCrt) toggleInput.setAttribute('checked', '');
+  toggleLabel.appendChild(toggleInput);
+  const toggleSpan = document.createElement('span'); bindText(toggleSpan, 'rsa.crtToggleLabel');
+  toggleLabel.appendChild(toggleSpan);
+  subDec.appendChild(toggleLabel);
+
+  const hintStill = document.createElement('div'); hintStill.className = 'msg-hint';
+  bindText(hintStill, 'rsa.crtStillHoldsPQ', {0: to.label});
+  subDec.appendChild(hintStill);
+
+  subDec.appendChild(decryptBodyEl);
+
+  const recoveredFormula = document.createElement('div'); recoveredFormula.className = 'formula'; recoveredFormula.setAttribute('style','margin-top:8px;');
+  // No <span> wrapper around the match phrase — matches the original markup's
+  // plain-text concatenation (unlike the crt-check spans above, which DO have one).
+  translateInto(recoveredFormula, 'rsa.recoveredMsgLine', {0: translate(ok ? 'rsa.matchYes' : 'rsa.matchNo'), 1: fmt(m)});
+  subDec.appendChild(recoveredFormula);
+  resultContainer.appendChild(subDec);
+
+  const notebook = document.createElement('div'); notebook.className = 'notebook';
+  const h4Note = document.createElement('h4'); bindText(h4Note, 'rsa.exchangeNotebookHeading');
+  notebook.appendChild(h4Note);
+  const grid = document.createElement('div'); grid.className = 'grid';
+  const cellCipher = document.createElement('div'); bindText(cellCipher, 'rsa.exchangeNotebookCiphertext', {0: fmt(c)});
+  grid.appendChild(cellCipher);
+  const cellE = document.createElement('div'); cellE.textContent = 'e = ' + fmt(to.e);
+  grid.appendChild(cellE);
+  const cellN = document.createElement('div'); cellN.textContent = 'n = ' + fmt(to.n);
+  grid.appendChild(cellN);
+  notebook.appendChild(grid);
+  const never = document.createElement('div'); never.className = 'never';
+  const supEPrime = document.createElement('sup'); supEPrime.textContent = "e'";
+  translateInto(never, 'rsa.exchangeNotebookNever', {0: supEPrime});
+  notebook.appendChild(never);
+  resultContainer.appendChild(notebook);
 
   document.getElementById(`crt-toggle-${toId}`).addEventListener('change', (evt) => {
     CrtFlag[toId] = evt.target.checked;
@@ -1103,7 +1408,25 @@ onLangChange(function(){
   renderError('bob');
   renderError('alice');
   renderWireNever();
-  // extended further below (Task 3: Eve, discrete-log demo, encrypted correspondence)
+  // Eve's static descriptive text (the Node-param translateInto calls renderEve()
+  // built, tracked above since renderEve() itself must never be re-invoked here),
+  // then her attack results (no-op whenever nothing has been attempted yet).
+  renderEveStaticRefresh();
+  renderFactorResultBox('bob');
+  renderFactorResultBox('alice');
+  renderDlpResultBox();
+  // Message blocks: never rebuilt (would reset typed text/inputs) — only the
+  // rich msg-hint sentence and the two error boxes need an explicit re-render.
+  renderMsgHint('bob');
+  renderMsgHint('alice');
+  renderMsgError('bob');
+  renderMsgError('alice');
+  // The encrypted correspondence is purely derived from LastExchange/CrtFlag
+  // (never from anything a switch could disturb), so re-running it is safe —
+  // it recomputes the identical numbers and keeps the CRT toggle's checked
+  // state exactly as renderExchange already does on every toggle change.
+  if(LastExchange.bob) renderExchange('bob');
+  if(LastExchange.alice) renderExchange('alice');
 });
 </script>
 </body>
