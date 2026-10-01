@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-10-01T10:13:38.220Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-10-01T11:01:29.067Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: 99b3d36c4babfc593e1c83aa1258f46633df4880
+state_head: 0141c6d149f006feff93907717ec97bb31da4bfe
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 26
-  percent: 70
+  completed_plans: 27
+  percent: 71
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 ## Current Position
 
 Phase: 06 (Multi-Language Support) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 06 execution started
 
-Progress: [███████░░░] 70%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
@@ -87,6 +87,7 @@ Progress: [███████░░░] 70%
 | Phase 07 P08 | 45min | 3 tasks | 9 files |
 | Phase 07 P09 | 40min | 3 tasks | 2 files |
 | Phase 06 P01 | 33 min | 3 tasks | 6 files |
+| Phase 06 P02 | 26min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Recent decisions affecting current work:
 - [Phase 7 close 2026-10-01]: Cross-tab live-sync handlers read the storage event's `e.newValue` (`readSharedGroup(raw)` / `readSharedAB(raw)`); plain reads stay cookie-first for Firefox's per-file `file://` origins. Fixed a pre-existing race that dropped ~1 in 20 rapid updates.
 - [Phase 06]: [Phase 06 Plan 01] Task 2 decision: persisted site-wide language key is site-lang (raw two-letter code), owned by assets/nt-i18n.js, mirroring assets/theme.js's site-theme pattern exactly (option-a, explicit human selection)
 - [Phase 06]: [Phase 06 Plan 01] TDD RED evidence for Task 3 verified manually via git stash (genuine assertion-level failures confirmed, not crashes) rather than via gsd_run check tdd-red-evidence, since that validator expects TAP output and this project's harness.js-based test convention is not TAP; workflow.tdd_mode is not enabled in this project
+- [Phase 06]: [Phase 06 Plan 02]: Created i18n-config/sieve-of-eratosthenes.json one task early (Task 1, not Task 2) as a Rule 3 fix so Task 1's own --literals-markup gate could pass with its three JS-owned static placeholder exemptions, then extended it in Task 2 with switchPoints
+- [Phase 06]: [Phase 06 Plan 02]: i18n-browser.js computes its own BASE (parent of the commit that first added assets/nt-i18n.js), independent of Phase 7's harness.js baseCommit() (parent of nt-core.js's first commit) -- the two phases' pre-phase anchors are different commits
+- [Phase 06]: [Phase 06 Plan 02]: harness.js's loadNew() gained an additive options.exclude list rather than leaving nt-i18n.js unconditionally loaded into every check's vm context -- store.check.js's own precise storage/cookie call-count assertions needed to opt nt-i18n.js out to avoid cross-module log pollution
 
 ### Roadmap Evolution
 
@@ -250,8 +254,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T10:13:38.077Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-10-01T11:01:28.915Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.

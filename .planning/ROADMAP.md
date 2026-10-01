@@ -172,7 +172,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 | 3. Chinese Remainder Theorem Tool | 3/3 | Complete | 2026-09-29 |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
-| 6. Multi-Language Support | 1/12 | In Progress|  |
+| 6. Multi-Language Support | 2/12 | In Progress|  |
 | 7. Shared JS Module Refactor | 9/9 | Complete | 2026-10-01 |
 
 ### Phase 6: Multi-Language Support
@@ -189,14 +189,14 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
   4. The selected language persists across navigation between pages and across browser sessions
   5. Day/night theming and existing tool functionality are unaffected by the language switch
 
-**Plans:** 1/12 plans executed
+**Plans:** 2/12 plans executed
 
 Plans:
 **Wave 1**
 - [x] 06-01-PLAN.md — Tracer: `assets/nt-i18n.js` + `assets/i18n/site.js` + switcher proven end-to-end on the Sieve (static + JS text, re-render, `?lang=` link carry, headless smoke); storage-key decision gate; durable `site-lang` persistence, cross-tab sync, switcher styling, API/persistence unit suites
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 06-02-PLAN.md — Sieve fully translated; shared `common` vocabulary; 06-GLOSSARY.md; static gate suite (i18n-check) and headless runtime gates (i18n-browser: en-parity, langs, switch, layout); shadow-check/harness learn NT.i18n
+- [x] 06-02-PLAN.md — Sieve fully translated; shared `common` vocabulary; 06-GLOSSARY.md; static gate suite (i18n-check) and headless runtime gates (i18n-browser: en-parity, langs, switch, layout); shadow-check/harness learn NT.i18n
 
 **Wave 3** *(blocked on Wave 2 completion — nine file-disjoint plans in parallel)*
 - [ ] 06-03-PLAN.md — Hub (index.html), Prime Factor Tree, Euler's Totient
