@@ -172,7 +172,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
 | 3. Chinese Remainder Theorem Tool | 3/3 | Complete | 2026-09-29 |
 | 4. Continued Fractions Tool | 0/? | Not started | - |
 | 5. Cayley Table Generator | 3/3 | Complete | 2026-09-28 |
-| 6. Multi-Language Support | 9/12 | In Progress|  |
+| 6. Multi-Language Support | 10/12 | In Progress|  |
 | 7. Shared JS Module Refactor | 9/9 | Complete | 2026-10-01 |
 
 ### Phase 6: Multi-Language Support
@@ -189,7 +189,7 @@ executed at any point after Phase 1 — before, after, or alongside Phases 3 and
   4. The selected language persists across navigation between pages and across browser sessions
   5. Day/night theming and existing tool functionality are unaffected by the language switch
 
-**Plans:** 9/12 plans executed
+**Plans:** 10/12 plans executed
 
 Plans:
 **Wave 1**
@@ -206,7 +206,7 @@ Plans:
 - [x] 06-07-PLAN.md — Square and Multiply, Shor's Algorithm
 - [x] 06-08-PLAN.md — Venn Diagram (static interface, then every message/label/tooltip)
 - [x] 06-09-PLAN.md — Diffie-Hellman Key Exchange (interface and stage, then narrative and Eve)
-- [ ] 06-10-PLAN.md — Elliptic Curve Diffie-Hellman (interface, plot and point selection, then narrative and Eve)
+- [x] 06-10-PLAN.md — Elliptic Curve Diffie-Hellman (interface, plot and point selection, then narrative and Eve)
 - [ ] 06-11-PLAN.md — RSA (narrative, key generation and wire, then Eve and correspondence)
 
 **Wave 4** *(blocked on Wave 3 completion)*
