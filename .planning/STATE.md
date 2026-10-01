@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Multi-Language Support
-status: executing
-stopped_at: Completed 06-11-PLAN.md
-last_updated: "2026-10-01T19:27:17.589Z"
+status: verifying
+stopped_at: Completed 06-12-PLAN.md
+last_updated: "2026-10-01T20:21:33.759Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 06 execution started
-state_head: 832355c5fbb22abe874a753dbf0bb8f3591e5e65
+state_head: 617a654a2031a08531c1fce179ba030359c047b7
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 36
+  completed_plans: 37
   percent: 71
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 
 Phase: 06 (Multi-Language Support) — EXECUTING
 Plan: 12 of 12
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-01 — Phase 06 execution started
 
 Progress: [███████░░░] 71%
@@ -97,6 +97,7 @@ Progress: [███████░░░] 71%
 | Phase 06 P09 | 22min | 2 tasks | 4 files |
 | Phase 06 P10 | single session | 2 tasks | 3 files |
 | Phase 06 P11 | single session | 3 tasks | 3 files |
+| Phase 06-multi-language-support P12 | single session | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,8 @@ Recent decisions affecting current work:
 - [Phase 06]: ECDH's onLangChange recomputes eveRevealed via revealedThroughStep() and replays only appendLogEntry/renderEveNotebook, never applyStepVisual itself, since markPointRole/animateWalk are not idempotent
 - [Phase 06]: RSA: qInv (a page-invented camelCase abbreviation, not a real word) resolved via allowSame/allowRenderText exemption rather than a translated-word fix, since there is no linguistic equivalent to translate like order/ord had
 - [Phase 06]: RSA: renderExchange re-invoked directly from onLangChange (pure function of LastExchange/CrtFlag/State); renderEve/renderMessages never re-invoked (they reset EveFactorRes/DlpRes/MsgErrorState) — their Node-param translateInto calls tracked via a page-level EveStaticRefs closure list instead
+- [Phase 06-multi-language-support]: Project docs (CLAUDE.md, .claude/CLAUDE.md, PROJECT.md, codebase docs) now describe NT.i18n as the sixth shared module and assets/i18n/ as the translation-data directory; shadow-check --docs confirms the GSD mirror stays verbatim-consistent.
+- [Phase 06-multi-language-support]: Consolidated sweep (i18n-check --all/--api/--persistence/--smoke, i18n-browser on all 16 pages + 4 Sieve mutants, Phase 7 harness/shadow-check --all/--docs) passed green with zero fixes needed; 06-VALIDATION.md signed off as validated/nyquist_compliant/wave_0_complete.
 
 ### Roadmap Evolution
 
@@ -287,8 +290,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T19:27:17.460Z
-Stopped at: Completed 06-11-PLAN.md
+Last session: 2026-10-01T20:21:33.627Z
+Stopped at: Completed 06-12-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.

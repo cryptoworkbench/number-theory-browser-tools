@@ -65,12 +65,12 @@ Requirements for the number-theory milestone (three new number-theory tools + si
 
 Added 2026-10-01 for Phase 6 (adopted from 06-RESEARCH.md's proposed I18N-01..06). Languages: Dutch (`nl`), English (`en`), German (`de`), French (`fr`), Spanish (`es`).
 
-- [ ] **I18N-01**: Every page (the `index.html` hub and every tool page) exposes a language switcher in the shared site header — a native select listing the five languages by their own names (Nederlands, English, Deutsch, Français, Español) — and the header markup is identical on every page apart from relative paths and the active link
-- [ ] **I18N-02**: Choosing a language re-renders that page's static and JS-generated UI text in the chosen language immediately, without reloading the page, and without disturbing the tool's current state (inputs, selection, step, playback position)
-- [ ] **I18N-03**: All five languages are fully translated on every page: every dictionary carries exactly the English key set with the same placeholders and plural forms, and no user-visible English string remains when another language is active (proper nouns and math notation excepted)
-- [ ] **I18N-04**: The chosen language persists across navigation between pages (a `?lang=` link parameter) and across browser sessions (one site-wide cookie + localStorage key), follows live in other open tabs, and a first visit defaults to the browser's preferred language when it is one of the five, else English; any `?lang=` or stored value outside the five codes is ignored
-- [ ] **I18N-05**: Switching language causes no functional or theming regression: with English active every page renders exactly as it did before this phase, day/night theming is unaffected, and every tool behaves identically in all five languages
-- [ ] **I18N-06**: `<html lang>` always matches the active language; mathematical numerals and notation are never locale-formatted in any language; translated text is only ever inserted as text (text nodes / `textContent`), never parsed as HTML
+- [x] **I18N-01**: Every page (the `index.html` hub and every tool page) exposes a language switcher in the shared site header — a native select listing the five languages by their own names (Nederlands, English, Deutsch, Français, Español) — and the header markup is identical on every page apart from relative paths and the active link
+- [x] **I18N-02**: Choosing a language re-renders that page's static and JS-generated UI text in the chosen language immediately, without reloading the page, and without disturbing the tool's current state (inputs, selection, step, playback position)
+- [x] **I18N-03**: All five languages are fully translated on every page: every dictionary carries exactly the English key set with the same placeholders and plural forms, and no user-visible English string remains when another language is active (proper nouns and math notation excepted)
+- [x] **I18N-04**: The chosen language persists across navigation between pages (a `?lang=` link parameter) and across browser sessions (one site-wide cookie + localStorage key), follows live in other open tabs, and a first visit defaults to the browser's preferred language when it is one of the five, else English; any `?lang=` or stored value outside the five codes is ignored
+- [x] **I18N-05**: Switching language causes no functional or theming regression: with English active every page renders exactly as it did before this phase, day/night theming is unaffected, and every tool behaves identically in all five languages
+- [x] **I18N-06**: `<html lang>` always matches the active language; mathematical numerals and notation are never locale-formatted in any language; translated text is only ever inserted as text (text nodes / `textContent`), never parsed as HTML
 
 ## v2 Requirements
 
@@ -144,12 +144,12 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CAYLEY-06 | Phase 5 | Complete |
 | CAYLEY-07 | Phase 5 | Complete |
 | NAV-03 | Phase 5 | Complete |
-| I18N-01 | Phase 6 | Pending |
-| I18N-02 | Phase 6 | Pending |
-| I18N-03 | Phase 6 | Pending |
-| I18N-04 | Phase 6 | Pending |
-| I18N-05 | Phase 6 | Pending |
-| I18N-06 | Phase 6 | Pending |
+| I18N-01 | Phase 6 | Complete |
+| I18N-02 | Phase 6 | Complete |
+| I18N-03 | Phase 6 | Complete |
+| I18N-04 | Phase 6 | Complete |
+| I18N-05 | Phase 6 | Complete |
+| I18N-06 | Phase 6 | Complete |
 
 **Coverage:**
 
