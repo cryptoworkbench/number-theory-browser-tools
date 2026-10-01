@@ -125,4 +125,115 @@
       'theme.toggle': 'Alternar entre modo día y modo noche'
     }
   });
+
+  // 'common' — the shared control vocabulary (06-02): playback button
+  // labels and the ten speed words, used verbatim by nine tools
+  // (Chinese Remainder Theorem, Diffie-Hellman Key Exchange, Elliptic
+  // Curve Diffie-Hellman, Euclidean Algorithm, Euler's Totient, Fermat's
+  // Method, Shor's Algorithm, Sieve of Eratosthenes, Square and Multiply),
+  // plus the Additive/Multiplicative Groups mode-tab labels shared by
+  // Cayley Table and the Equivalence Wheel. A per-tool plan references
+  // these as common.* and never duplicates them in its own namespace.
+  NT.i18n.register('common', {
+    nl: {
+      play: '▶ Afspelen',
+      pause: '⏸ Pauzeren',
+      step: '⏭ Stap',
+      instant: '⏩ Direct',
+      reset: '↺ Herstart',
+      speed: 'Snelheid',
+      'speed.1': 'ijzig',
+      'speed.2': 'langzaam',
+      'speed.3': 'zacht',
+      'speed.4': 'kwiek',
+      'speed.5': 'gestaag',
+      'speed.6': 'vlot',
+      'speed.7': 'snel',
+      'speed.8': 'vlug',
+      'speed.9': 'bliksemsnel',
+      'speed.10': 'bijna-direct',
+      additiveGroups: 'Additieve groepen',
+      multiplicativeGroups: 'Multiplicatieve groepen'
+    },
+    en: {
+      play: '▶ Play',
+      pause: '⏸ Pause',
+      step: '⏭ Step',
+      instant: '⏩ Instant',
+      reset: '↺ Reset',
+      speed: 'Speed',
+      'speed.1': 'glacial',
+      'speed.2': 'slow',
+      'speed.3': 'gentle',
+      'speed.4': 'brisk',
+      'speed.5': 'steady',
+      'speed.6': 'quick',
+      'speed.7': 'fast',
+      'speed.8': 'rapid',
+      'speed.9': 'blazing',
+      'speed.10': 'instant-ish',
+      additiveGroups: 'Additive Groups',
+      multiplicativeGroups: 'Multiplicative Groups'
+    },
+    de: {
+      play: '▶ Abspielen',
+      pause: '⏸ Pausieren',
+      step: '⏭ Schritt',
+      instant: '⏩ Sofort',
+      reset: '↺ Zurücksetzen',
+      speed: 'Geschwindigkeit',
+      'speed.1': 'eisig',
+      'speed.2': 'langsam',
+      'speed.3': 'sanft',
+      'speed.4': 'flott',
+      'speed.5': 'stetig',
+      'speed.6': 'zügig',
+      'speed.7': 'schnell',
+      'speed.8': 'rasant',
+      'speed.9': 'rasend',
+      'speed.10': 'fast augenblicklich',
+      additiveGroups: 'Additive Gruppen',
+      multiplicativeGroups: 'Multiplikative Gruppen'
+    },
+    fr: {
+      play: '▶ Lecture',
+      pause: '⏸ Mettre en pause',
+      step: '⏭ Étape',
+      instant: '⏩ Instantané',
+      reset: '↺ Réinitialiser',
+      speed: 'Vitesse',
+      'speed.1': 'glaciaire',
+      'speed.2': 'lent',
+      'speed.3': 'doux',
+      'speed.4': 'vif',
+      'speed.5': 'régulier',
+      'speed.6': 'rapide',
+      'speed.7': 'véloce',
+      'speed.8': 'prompt',
+      'speed.9': 'fulgurant',
+      'speed.10': 'quasi instantané',
+      additiveGroups: 'Groupes additifs',
+      multiplicativeGroups: 'Groupes multiplicatifs'
+    },
+    es: {
+      play: '▶ Reproducir',
+      pause: '⏸ Pausar',
+      step: '⏭ Paso',
+      instant: '⏩ Instantáneo',
+      reset: '↺ Reiniciar',
+      speed: 'Velocidad',
+      'speed.1': 'gélido',
+      'speed.2': 'lento',
+      'speed.3': 'suave',
+      'speed.4': 'ágil',
+      'speed.5': 'constante',
+      'speed.6': 'rápido',
+      'speed.7': 'veloz',
+      'speed.8': 'raudo',
+      'speed.9': 'vertiginoso',
+      'speed.10': 'casi instantáneo',
+      additiveGroups: 'Grupos aditivos',
+      multiplicativeGroups: 'Grupos multiplicativos'
+    }
+  });
 })();

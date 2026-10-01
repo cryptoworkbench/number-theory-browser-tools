@@ -37,7 +37,13 @@ var vm = require("vm");
 var url = require("url");
 var cp = require("child_process");
 
-var ROOT = path.resolve(__dirname, "..", "..", "..");
+// ROOT is overridable via I18N_CHECK_ROOT so the static-mode vacuity proofs
+// (Task 1, 06-02-PLAN.md) can point the whole checker at a scratch site
+// built under os.tmpdir() — never inside the repo — while exercising the
+// exact same code paths used against the real repo.
+var ROOT = process.env.I18N_CHECK_ROOT
+  ? path.resolve(process.env.I18N_CHECK_ROOT)
+  : path.resolve(__dirname, "..", "..", "..");
 
 // Task 2 decision (06-01-PLAN.md): option-a — 'site-lang', a raw two-letter
 // code, owned entirely by assets/nt-i18n.js. Used only to seed/inspect fake
@@ -1091,6 +1097,839 @@ function doPersistence() {
   process.exit(0);
 }
 
+/* =========================================================================
+ * Static modes (06-02 Task 1): --coverage, --literals(-markup|-js), --header
+ * (+ --switcher-present), --includes, --no-locale-number-format, --all,
+ * --report. Shared across every per-page translation plan in wave 3.
+ * ======================================================================= */
+
+/* ---------- page table ---------- */
+
+var PAGES = [
+  { file: "index.html", dataFile: "assets/i18n/hub.js", ns: "hub", slug: "index" },
+  { file: "Sieve Of Eratosthenes/sieve-of-eratosthenes.html", dataFile: "assets/i18n/sieve-of-eratosthenes.js", ns: "sieve", slug: "sieve-of-eratosthenes" },
+  { file: "Factor Tree/factor-tree.html", dataFile: "assets/i18n/factor-tree.js", ns: "factorTree", slug: "factor-tree" },
+  { file: "Venn Diagram/venn-diagram.html", dataFile: "assets/i18n/venn-diagram.js", ns: "venn", slug: "venn-diagram" },
+  { file: "Euclidean Algorithm/euclidean-algorithm.html", dataFile: "assets/i18n/euclidean-algorithm.js", ns: "euclid", slug: "euclidean-algorithm" },
+  { file: "Chinese Remainder Theorem/chinese-remainder-theorem.html", dataFile: "assets/i18n/chinese-remainder-theorem.js", ns: "crt", slug: "chinese-remainder-theorem" },
+  { file: "Equivalence Wheel/equivalence-wheel.html", dataFile: "assets/i18n/equivalence-wheel.js", ns: "wheel", slug: "equivalence-wheel" },
+  { file: "Eulers Totient/eulers-totient.html", dataFile: "assets/i18n/eulers-totient.js", ns: "totient", slug: "eulers-totient" },
+  { file: "Cayley Table/cayley-table.html", dataFile: "assets/i18n/cayley-table.js", ns: "cayley", slug: "cayley-table" },
+  { file: "Group Isomorphism/group-isomorphism.html", dataFile: "assets/i18n/group-isomorphism.js", ns: "iso", slug: "group-isomorphism" },
+  { file: "Square And Multiply/square-and-multiply.html", dataFile: "assets/i18n/square-and-multiply.js", ns: "sqm", slug: "square-and-multiply" },
+  { file: "Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html", dataFile: "assets/i18n/diffie-hellman-key-exchange.js", ns: "dh", slug: "diffie-hellman-key-exchange" },
+  { file: "Elliptic Curve Diffie-Hellman/elliptic-curve-diffie-hellman.html", dataFile: "assets/i18n/elliptic-curve-diffie-hellman.js", ns: "ecdh", slug: "elliptic-curve-diffie-hellman" },
+  { file: "RSA/rsa.html", dataFile: "assets/i18n/rsa.js", ns: "rsa", slug: "rsa" },
+  { file: "Fermats Method/fermats-method.html", dataFile: "assets/i18n/fermats-method.js", ns: "fermat", slug: "fermats-method" },
+  { file: "Shors Algorithm/shors-algorithm.html", dataFile: "assets/i18n/shors-algorithm.js", ns: "shor", slug: "shors-algorithm" }
+];
+
+function pageForFile(relPath) {
+  var norm = relPath.split(path.sep).join("/");
+  for (var i = 0; i < PAGES.length; i++) {
+    if (PAGES[i].file === norm || PAGES[i].file === path.relative(ROOT, relPath).split(path.sep).join("/")) return PAGES[i];
+  }
+  return null;
+}
+
+function slugFromPath(relPath) {
+  var page = pageForFile(relPath);
+  if (page) return page.slug;
+  return path.basename(relPath, path.extname(relPath));
+}
+
+/* ---------- prose rule ---------- */
+
+var NEUTRAL_TOKENS = [
+  // glossary proper nouns (06-GLOSSARY.md section d)
+  "alice", "bob", "eve", "rsa", "diffie", "hellman", "diffie-hellman", "euler", "fermat",
+  "cayley", "venn", "shor", "euclid", "euclides", "euklid", "euclide",
+  "eratosthenes", "eratosthène", "eratosthene", "eratóstenes", "eratostenes",
+  "bézout", "bezout", "sunzi",
+  // the five autonyms (switcher option labels)
+  "nederlands", "english", "deutsch", "français", "francais", "español", "espanol",
+  // math/domain abbreviations
+  "mod", "gcd", "lcm", "max", "min", "log", "exp", "sqrt", "phi"
+];
+var NEUTRAL_SET = {};
+NEUTRAL_TOKENS.forEach(function (t) { NEUTRAL_SET[t.toLowerCase()] = true; });
+
+function isAllUpperWord(w) {
+  return w === w.toUpperCase() && w !== w.toLowerCase();
+}
+
+// isProse(text): a word is a maximal run of Unicode letters (internal
+// apostrophe/hyphen allowed); neutral when in NEUTRAL_TOKENS, all-uppercase
+// with <=5 letters, or <3 letters; text is prose when it holds at least one
+// non-neutral word.
+function isProse(text) {
+  if (typeof text !== "string") return false;
+  var words = text.match(/\p{L}+(?:['’-]\p{L}+)*/gu) || [];
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i];
+    var lower = w.toLowerCase();
+    if (NEUTRAL_SET[lower]) continue;
+    if (isAllUpperWord(w) && w.length <= 5) continue;
+    if (w.length < 3) continue;
+    return true;
+  }
+  return false;
+}
+
+/* ---------- per-page config (allowSame/allowLiteral/allowRenderText/...) ---------- */
+
+function readConfig(slug) {
+  var p = path.join(ROOT, ".planning", "phases", "06-multi-language-support", "i18n-config", slug + ".json");
+  var cfg = {};
+  if (fs.existsSync(p)) {
+    try { cfg = JSON.parse(fs.readFileSync(p, "utf8")); } catch (e) { cfg = {}; }
+  }
+  cfg.allowSame = cfg.allowSame || {};
+  cfg.allowLiteral = cfg.allowLiteral || {};
+  cfg.allowRenderText = cfg.allowRenderText || {};
+  cfg.volatile = cfg.volatile || [];
+  cfg.enParityExceptions = cfg.enParityExceptions || [];
+  cfg.switchPoints = cfg.switchPoints || [];
+  cfg.runs = cfg.runs || null;
+  return cfg;
+}
+
+// SITE_ALLOW_SAME: IDENTICAL-TO-EN exemptions for the shared site/common
+// namespaces (page namespaces use their own page config's allowSame
+// instead). Empty unless a reasoned entry is genuinely needed.
+var SITE_ALLOW_SAME = {};
+
+/* ---------- tolerant HTML tokenizer / tree ---------- */
+
+var VOID_ELEMENTS = { area: 1, base: 1, br: 1, col: 1, embed: 1, hr: 1, img: 1, input: 1, link: 1, meta: 1, param: 1, source: 1, track: 1, wbr: 1 };
+var RAWTEXT_ELEMENTS = { script: 1, style: 1 };
+
+function decodeEntities(s) {
+  return s
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+}
+
+function parseAttrs(attrStr) {
+  var attrs = {};
+  var re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*(?:=\s*("([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+  var m;
+  while ((m = re.exec(attrStr))) {
+    var name = m[1].toLowerCase();
+    var val = m[3] !== undefined ? m[3] : (m[4] !== undefined ? m[4] : (m[5] !== undefined ? m[5] : ""));
+    attrs[name] = val;
+  }
+  return attrs;
+}
+
+// parseHtml(html): returns a root pseudo-element ({tag:'#root', children})
+// whose tree mirrors the document — element nodes {tag, attrs, children,
+// parent, line}, text nodes {type:'text', value, line}, comment nodes
+// {type:'comment', line}. Tolerant: unmatched close tags pop to the nearest
+// matching ancestor; unknown/malformed tags are skipped as text.
+function parseHtml(html) {
+  var pos = 0, len = html.length, line = 1;
+  var root = { tag: "#root", attrs: {}, children: [], parent: null, line: 1 };
+  var stack = [root];
+
+  function advance(n) {
+    for (var i = 0; i < n; i++) { if (html.charCodeAt(pos + i) === 10) line++; }
+    pos += n;
+  }
+  function top() { return stack[stack.length - 1]; }
+
+  while (pos < len) {
+    if (html.charAt(pos) === "<" && html.substr(pos, 4) === "<!--") {
+      var end = html.indexOf("-->", pos);
+      var commentLine = line;
+      if (end === -1) { advance(len - pos); } else { advance(end + 3 - pos); }
+      top().children.push({ type: "comment", line: commentLine });
+      continue;
+    }
+    if (html.charAt(pos) === "<" && html.charAt(pos + 1) === "!") {
+      // doctype or other bang declaration
+      var bangEnd = html.indexOf(">", pos);
+      if (bangEnd === -1) bangEnd = len - 1;
+      advance(bangEnd + 1 - pos);
+      continue;
+    }
+    if (html.charAt(pos) === "<" && /[a-zA-Z]/.test(html.charAt(pos + 1) || "")) {
+      var tagMatch = /^<([a-zA-Z][a-zA-Z0-9-]*)((?:[^>"']|"[^"]*"|'[^']*')*)(\/?)>/.exec(html.slice(pos));
+      if (tagMatch) {
+        var tagLine = line;
+        var tagName = tagMatch[1].toLowerCase();
+        var attrs = parseAttrs(tagMatch[2]);
+        var selfClose = !!tagMatch[3] || !!VOID_ELEMENTS[tagName];
+        advance(tagMatch[0].length);
+        var node = { tag: tagName, attrs: attrs, children: [], parent: top(), line: tagLine };
+        top().children.push(node);
+        if (!selfClose) {
+          if (RAWTEXT_ELEMENTS[tagName]) {
+            var closeRe = new RegExp("</" + tagName + "\\s*>", "i");
+            var rest = html.slice(pos);
+            var closeMatch = closeRe.exec(rest);
+            var rawEnd = closeMatch ? closeMatch.index : rest.length;
+            var rawLine = line;
+            var rawText = rest.slice(0, rawEnd);
+            advance(rawEnd);
+            node.children.push({ type: "text", value: rawText, line: rawLine, raw: true });
+            if (closeMatch) advance(closeMatch[0].length);
+          } else {
+            stack.push(node);
+          }
+        }
+        continue;
+      }
+    }
+    if (html.charAt(pos) === "<" && html.charAt(pos + 1) === "/") {
+      var closeMatch2 = /^<\/([a-zA-Z][a-zA-Z0-9-]*)\s*>/.exec(html.slice(pos));
+      if (closeMatch2) {
+        var closeName = closeMatch2[1].toLowerCase();
+        advance(closeMatch2[0].length);
+        for (var si = stack.length - 1; si > 0; si--) {
+          if (stack[si].tag === closeName) { stack.length = si; break; }
+        }
+        continue;
+      }
+    }
+    var nextLt = html.indexOf("<", pos + 1);
+    if (nextLt === -1) nextLt = len;
+    var textLine = line;
+    var textVal = html.slice(pos, nextLt);
+    advance(textVal.length);
+    top().children.push({ type: "text", value: textVal, line: textLine });
+  }
+  return root;
+}
+
+function walkElements(node, fn) {
+  (node.children || []).forEach(function (child) {
+    if (child.tag) { fn(child); walkElements(child, fn); }
+  });
+}
+
+/* ---------- --header (+ --switcher-present) ---------- */
+
+function extractHeaderHtml(html) {
+  var m = /<header class="site-header">[\s\S]*?<\/header>/.exec(html);
+  return m ? m[0] : null;
+}
+
+function normalizeHeaderHtml(headerHtml, fileDir) {
+  var html = headerHtml.replace(/\bhref="([^"]*)"/g, function (whole, href) {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.charAt(0) === "#" || href === "") return whole;
+    var resolved = path.posix.normalize(path.posix.join(fileDir, href));
+    return 'href="' + resolved + '"';
+  });
+  html = html.replace(/\s+is-active\b/g, "");
+  html = html.replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
+  return html;
+}
+
+function checkSwitcherPresent(relPath, html, findings) {
+  var selects = html.match(/<select\b[^>]*id="lang-switch-select"[^>]*>/g) || [];
+  if (selects.length !== 1) {
+    findings.push("SWITCHER " + relPath + ": expected exactly 1 #lang-switch-select, found " + selects.length);
+  } else {
+    var block = /<select\b[^>]*id="lang-switch-select"[^>]*>([\s\S]*?)<\/select>/.exec(html);
+    var optionsHtml = block ? block[1] : "";
+    var expected = [
+      { value: "nl", lang: "nl", label: "Nederlands" },
+      { value: "en", lang: "en", label: "English" },
+      { value: "de", lang: "de", label: "Deutsch" },
+      { value: "fr", lang: "fr", label: "Français" },
+      { value: "es", lang: "es", label: "Español" }
+    ];
+    var optRe = /<option value="([a-z]{2})" lang="([a-z]{2})"(?: selected)?>([^<]*)<\/option>/g;
+    var found = [], om;
+    while ((om = optRe.exec(optionsHtml))) found.push({ value: om[1], lang: om[2], label: om[3] });
+    if (found.length !== 5) {
+      findings.push("SWITCHER " + relPath + ": expected 5 language options, found " + found.length);
+    } else {
+      expected.forEach(function (exp, i) {
+        var got = found[i];
+        if (!got || got.value !== exp.value || got.lang !== exp.lang || got.label !== exp.label) {
+          findings.push("SWITCHER " + relPath + ": option " + i + " expected " + JSON.stringify(exp) + " got " + JSON.stringify(got));
+        }
+      });
+    }
+  }
+  var navRefs = html.match(/data-i18n="site\.nav\.[A-Za-z]+"/g) || [];
+  if (navRefs.length !== 16) {
+    findings.push("SWITCHER " + relPath + ": expected 16 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
+  }
+}
+
+function checkHeader(targets, opts) {
+  opts = opts || {};
+  var findings = [];
+  var sieveAbs = path.join(ROOT, "Sieve Of Eratosthenes", "sieve-of-eratosthenes.html");
+  var sieveHtml = fs.readFileSync(sieveAbs, "utf8");
+  var sieveHeader = extractHeaderHtml(sieveHtml);
+  var sieveNorm = normalizeHeaderHtml(sieveHeader, "Sieve Of Eratosthenes");
+
+  targets.forEach(function (relPath) {
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    var html = fs.readFileSync(abs, "utf8");
+    var header = extractHeaderHtml(html);
+    if (!header) {
+      findings.push("HEADER-DRIFT " + relPath + ": no <header class=\"site-header\"> block found");
+      return;
+    }
+    var dir = path.isAbsolute(relPath)
+      ? path.dirname(path.relative(ROOT, relPath))
+      : path.dirname(relPath);
+    var norm = normalizeHeaderHtml(header, dir === "." ? "" : dir);
+    if (norm !== sieveNorm) {
+      var i = 0, maxLen = Math.min(norm.length, sieveNorm.length);
+      while (i < maxLen && norm.charAt(i) === sieveNorm.charAt(i)) i++;
+      findings.push("HEADER-DRIFT " + relPath + " at offset " + i + ": " + JSON.stringify(norm.slice(i, i + 80)));
+    }
+    var aTagRe = /<a\s+href="([^"]+)"\s+class="site-nav-link( is-active)?"[^>]*>/g;
+    var activeHrefs = [], am;
+    while ((am = aTagRe.exec(header))) { if (am[2]) activeHrefs.push(am[1]); }
+    if (activeHrefs.length !== 1) {
+      findings.push("ACTIVE-LINK " + relPath + ": expected exactly 1 is-active nav link, found " + activeHrefs.length);
+    } else {
+      var selfBase = path.basename(relPath);
+      var hrefBase = path.basename(activeHrefs[0].split("?")[0].split("#")[0]);
+      if (hrefBase !== selfBase) {
+        findings.push("ACTIVE-LINK " + relPath + ": is-active href " + activeHrefs[0] + " does not resolve to the page itself (" + selfBase + ")");
+      }
+    }
+    if (!opts.headerOnly) checkSwitcherPresent(relPath, html, findings);
+  });
+  return findings;
+}
+
+function checkSwitcherPresentMode(targets) {
+  var findings = [];
+  targets.forEach(function (relPath) {
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    var html = fs.readFileSync(abs, "utf8");
+    checkSwitcherPresent(relPath, html, findings);
+  });
+  return findings;
+}
+
+/* ---------- --includes ---------- */
+
+var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n"];
+
+function checkIncludes(targets) {
+  var findings = [];
+  targets.forEach(function (relPath) {
+    var page = pageForFile(relPath);
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    var html = fs.readFileSync(abs, "utf8");
+    var scriptRe = /<script([^>]*)>([\s\S]*?)<\/script>/gi;
+    var tags = [], m;
+    while ((m = scriptRe.exec(html))) tags.push({ attrs: m[1], index: m.index });
+    var srcTags = tags.filter(function (t) { return /\bsrc\s*=/.test(t.attrs); });
+    var ntTags = srcTags.filter(function (t) { return /assets\/nt-[a-z0-9]+\.js"/.test(t.attrs); });
+    var order = ntTags.map(function (t) { var mm = /assets\/nt-([a-z0-9]+)\.js/.exec(t.attrs); return mm ? mm[1] : null; });
+    var positions = order.map(function (ns) { return CANONICAL_NS_ORDER.indexOf(ns); });
+    for (var i = 1; i < positions.length; i++) {
+      if (positions[i] === -1 || positions[i] < positions[i - 1]) {
+        findings.push("INCLUDE-ORDER " + relPath + ": nt-*.js includes not in canonical order (" + order.join(",") + ")");
+        break;
+      }
+    }
+    if (order.indexOf("i18n") === -1) {
+      findings.push("INCLUDE-MISSING " + relPath + ": assets/nt-i18n.js not included");
+    }
+    var siteJsTags = srcTags.filter(function (t) { return /assets\/i18n\/site\.js"/.test(t.attrs); });
+    if (siteJsTags.length !== 1) {
+      findings.push("INCLUDE-MISSING " + relPath + ": assets/i18n/site.js not included exactly once (found " + siteJsTags.length + ")");
+    }
+    var dataTags = srcTags.filter(function (t) {
+      var mm = /src="([^"]*assets\/i18n\/[a-zA-Z-]+\.js)"/.exec(t.attrs);
+      return mm && !/\/site\.js$/.test(mm[1]);
+    });
+    if (dataTags.length !== 1) {
+      findings.push("INCLUDE-MISSING " + relPath + ": expected exactly 1 page i18n data file include, found " + dataTags.length);
+    } else if (page) {
+      var gotSrc = /src="([^"]+)"/.exec(dataTags[0].attrs)[1];
+      var expectedBase = path.basename(page.dataFile);
+      if (path.basename(gotSrc) !== expectedBase) {
+        findings.push("INCLUDE-MISSING " + relPath + ": page data include " + gotSrc + " does not match expected " + expectedBase);
+      }
+    }
+    var i18nTag = ntTags.filter(function (t) { return /nt-i18n\.js/.test(t.attrs); })[0];
+    if (i18nTag) {
+      if (siteJsTags.length && siteJsTags[0].index < i18nTag.index) {
+        findings.push("INCLUDE-ORDER " + relPath + ": assets/i18n/site.js appears before assets/nt-i18n.js");
+      }
+      if (dataTags.length && dataTags[0].index < i18nTag.index) {
+        findings.push("INCLUDE-ORDER " + relPath + ": page i18n data include appears before assets/nt-i18n.js");
+      }
+    }
+    var inlineTags = tags.filter(function (t) { return !/\bsrc\s*=/.test(t.attrs); });
+    var toolScript = inlineTags[inlineTags.length - 1];
+    if (dataTags.length && toolScript) {
+      var between = html.slice(dataTags[0].index, toolScript.index);
+      var scriptTagsBetween = (between.match(/<script\b/gi) || []).length;
+      // dataTags[0]'s own opening tag is included in `between`; a contiguous,
+      // immediately-adjacent run allows any number of further nt-*.js /
+      // i18n data <script src> tags here, so just require no OTHER inline
+      // (no-src) script sits between the last include and the tool script.
+      var nonSrcBetween = (between.match(/<script(?![^>]*\bsrc=)[^>]*>/gi) || []).length;
+      if (nonSrcBetween > 0) {
+        findings.push("INCLUDE-ORDER " + relPath + ": an inline script sits between the i18n includes and the page's own script");
+      }
+    }
+    srcTags.forEach(function (t) {
+      if (/assets\/(nt-[a-z0-9]+|i18n\/[a-zA-Z-]+)\.js"/.test(t.attrs) && /\bdefer\b|\basync\b|type\s*=\s*["']module["']/.test(t.attrs)) {
+        findings.push("INCLUDE-DEFERRED " + relPath + ": " + t.attrs.trim());
+      }
+    });
+  });
+  return findings;
+}
+
+/* ---------- --no-locale-number-format ---------- */
+
+// Scoped to `targets` (the page args) plus the always-shared assets/*.js and
+// assets/i18n/*.js infrastructure this phase touches — NOT every tool page
+// in the repo. Pre-existing toLocale*String/Intl. usage in an unrelated
+// tool page outside `targets` is a pre-existing condition, out of scope for
+// a per-page gate run (deviation-rules scope boundary); --all still catches
+// every page because resolveTargets() returns the full PAGES list for it.
+function checkNoLocaleFormat(targets) {
+  var findings = [];
+  var files = [];
+  (targets || []).forEach(function (relPath) {
+    files.push(path.isAbsolute(relPath) ? relPath : relPath);
+  });
+  var assetsDir = path.join(ROOT, "assets");
+  if (fs.existsSync(assetsDir)) {
+    fs.readdirSync(assetsDir).filter(function (f) { return /\.js$/.test(f); }).forEach(function (f) { files.push("assets/" + f); });
+  }
+  var i18nDir = path.join(ROOT, "assets", "i18n");
+  if (fs.existsSync(i18nDir)) {
+    fs.readdirSync(i18nDir).filter(function (f) { return /\.js$/.test(f); }).forEach(function (f) { files.push("assets/i18n/" + f); });
+  }
+  files.forEach(function (rel) {
+    var abs = path.isAbsolute(rel) ? rel : path.join(ROOT, rel);
+    if (!fs.existsSync(abs)) return;
+    var src = fs.readFileSync(abs, "utf8");
+    var lines = src.split("\n");
+    lines.forEach(function (line, idx) {
+      if (/toLocale[A-Za-z]*String/.test(line)) {
+        findings.push("LOCALE-FORMAT " + rel + ":" + (idx + 1) + " toLocale*String");
+      }
+      var intlRe = /Intl\.([A-Za-z]+)/g, im;
+      while ((im = intlRe.exec(line))) {
+        if (im[1] !== "PluralRules") {
+          findings.push("LOCALE-FORMAT " + rel + ":" + (idx + 1) + " Intl." + im[1]);
+        }
+      }
+    });
+  });
+  return findings;
+}
+
+/* ---------- --coverage ---------- */
+
+function extractPlaceholders(str) {
+  if (typeof str !== "string") return [];
+  var re = /\{([A-Za-z0-9_]+)\}/g, m, out = [];
+  while ((m = re.exec(str))) { if (out.indexOf(m[1]) === -1) out.push(m[1]); }
+  return out;
+}
+
+function dataFileNsList(file) {
+  var src = fs.readFileSync(file, "utf8");
+  var re = /NT\.i18n\.register\(\s*'([a-zA-Z]+)'/g, m, out = [];
+  while ((m = re.exec(src))) out.push(m[1]);
+  return out;
+}
+
+function checkDictionaries() {
+  var findings = [];
+  var catalog = loadCatalog();
+  var SUPPORTED = ["nl", "en", "de", "fr", "es"];
+
+  // DICT-FILE / DUP-NS
+  var i18nDir = path.join(ROOT, "assets", "i18n");
+  var nsOwners = {};
+  if (fs.existsSync(i18nDir)) {
+    fs.readdirSync(i18nDir).filter(function (f) { return /\.js$/.test(f); }).forEach(function (file) {
+      var nsInFile = dataFileNsList(path.join(i18nDir, file));
+      nsInFile.forEach(function (ns) { nsOwners[ns] = nsOwners[ns] || []; nsOwners[ns].push(file); });
+      if (file === "site.js") {
+        var exp = ["common", "site"];
+        if (nsInFile.slice().sort().join(",") !== exp.join(",")) {
+          findings.push("DICT-FILE assets/i18n/" + file + ": expected [common, site], registers [" + nsInFile.join(",") + "]");
+        }
+      } else {
+        var pageEntry = PAGES.filter(function (p) { return p.dataFile === "assets/i18n/" + file; })[0];
+        if (pageEntry && (nsInFile.length !== 1 || nsInFile[0] !== pageEntry.ns)) {
+          findings.push("DICT-FILE assets/i18n/" + file + ": expected [" + pageEntry.ns + "], registers [" + nsInFile.join(",") + "]");
+        }
+      }
+    });
+  }
+  Object.keys(nsOwners).forEach(function (ns) {
+    if (nsOwners[ns].length > 1) findings.push("DUP-NS " + ns + " registered in " + nsOwners[ns].join(", "));
+  });
+
+  // per-namespace key-set / placeholder / plural / empty / markup / identical-to-en
+  Object.keys(catalog).forEach(function (ns) {
+    var nsDict = catalog[ns];
+    var enDict = nsDict.en || {};
+    var enKeys = Object.keys(enDict).sort();
+    SUPPORTED.forEach(function (lang) {
+      var langDict = nsDict[lang];
+      if (!langDict) { findings.push("LANG-KEYSET " + ns + "." + lang + ": namespace missing this language entirely"); return; }
+      var langKeys = Object.keys(langDict).sort();
+      if (langKeys.join("|") !== enKeys.join("|")) {
+        var missing = enKeys.filter(function (k) { return langKeys.indexOf(k) === -1; });
+        var extra = langKeys.filter(function (k) { return enKeys.indexOf(k) === -1; });
+        findings.push("LANG-KEYSET " + ns + "." + lang + ": missing=[" + missing.join(",") + "] extra=[" + extra.join(",") + "]");
+      }
+    });
+    var allowSame = (ns === "site" || ns === "common") ? SITE_ALLOW_SAME : readConfig(ns === "hub" ? "index" : slugForNs(ns)).allowSame;
+    enKeys.forEach(function (key) {
+      var enEntry = enDict[key];
+      var enIsPlural = enEntry && typeof enEntry === "object";
+      var enPh = enIsPlural ? extractPlaceholders(enEntry.other) : extractPlaceholders(enEntry);
+      SUPPORTED.forEach(function (lang) {
+        var langDict = nsDict[lang];
+        if (!langDict || !(key in langDict)) return; // already reported via LANG-KEYSET
+        var entry = langDict[key];
+        if (enIsPlural) {
+          var shapeOk = entry && typeof entry === "object" && Object.keys(entry).sort().join(",") === "one,other";
+          if (!shapeOk) {
+            findings.push("PLURAL-SHAPE " + ns + "." + key + "." + lang + ": expected {one, other}");
+          } else {
+            ["one", "other"].forEach(function (cat) {
+              if (entry[cat] === "") findings.push("EMPTY-VALUE " + ns + "." + key + "." + cat + "." + lang);
+              if (/<[a-zA-Z/!]/.test(entry[cat])) findings.push("DICT-MARKUP " + ns + "." + key + "." + cat + "." + lang);
+            });
+            var otherPh = extractPlaceholders(entry.other);
+            if (enPh.slice().sort().join(",") !== otherPh.slice().sort().join(",")) {
+              findings.push("PLACEHOLDERS " + ns + "." + key + "." + lang + ": expected [" + enPh.join(",") + "] got [" + otherPh.join(",") + "]");
+            }
+          }
+        } else {
+          if (typeof entry !== "string") { findings.push("PLURAL-SHAPE " + ns + "." + key + "." + lang + ": expected a plain string"); return; }
+          if (entry === "") findings.push("EMPTY-VALUE " + ns + "." + key + "." + lang);
+          if (/<[a-zA-Z/!]/.test(entry)) findings.push("DICT-MARKUP " + ns + "." + key + "." + lang);
+          var ph = extractPlaceholders(entry);
+          if (enPh.slice().sort().join(",") !== ph.slice().sort().join(",")) {
+            findings.push("PLACEHOLDERS " + ns + "." + key + "." + lang + ": expected [" + enPh.join(",") + "] got [" + ph.join(",") + "]");
+          }
+          if (lang !== "en" && entry === enEntry && isProse(entry)) {
+            var allowKey = ns + "." + key;
+            if (!allowSame[allowKey]) findings.push("IDENTICAL-TO-EN " + ns + "." + key + "." + lang);
+          }
+        }
+      });
+    });
+  });
+
+  return { findings: findings, catalog: catalog };
+}
+
+function slugForNs(ns) {
+  var p = PAGES.filter(function (p) { return p.ns === ns; })[0];
+  return p ? p.slug : ns;
+}
+
+function getInlineScriptText(html) {
+  var re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi, m, out = [];
+  while ((m = re.exec(html))) out.push(m[1]);
+  return out.join("\n");
+}
+
+function checkKeyUsage(targets, catalog) {
+  var findings = [];
+  targets.forEach(function (relPath) {
+    var page = pageForFile(relPath);
+    var ownNs = page ? page.ns : null;
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    var html = fs.readFileSync(abs, "utf8");
+    var refs = [];
+    var attrRe = /data-i18n(?:-title|-aria-label|-placeholder)?="([^"]+)"/g, am;
+    while ((am = attrRe.exec(html))) refs.push(am[1]);
+    var scriptText = getInlineScriptText(html);
+    var allowedNsPattern = ["site", "common"].concat(ownNs ? [ownNs] : []).join("|");
+    var litRe = new RegExp("['\"]((?:" + allowedNsPattern + ")\\.[A-Za-z0-9_.]+)['\"]", "g"), lm;
+    while ((lm = litRe.exec(scriptText))) refs.push(lm[1]);
+    // also catch references to a FOREIGN namespace (any other lowercase-dot
+    // identifier pattern) so FOREIGN-NS can be detected from markup refs.
+    var foreignAttrNs = {};
+    refs.forEach(function (ref) {
+      var dot = ref.indexOf(".");
+      if (dot === -1) return;
+      var ns = ref.slice(0, dot);
+      var rest = ref.slice(dot + 1);
+      var isPrefix = ref.charAt(ref.length - 1) === ".";
+      if (ns !== "site" && ns !== "common" && ns !== ownNs) {
+        findings.push("FOREIGN-NS " + relPath + ": " + ref);
+        return;
+      }
+      var enDict = catalog[ns] && catalog[ns].en;
+      if (!enDict) { findings.push("MISSING-KEY " + relPath + ": " + ref + " (namespace not registered)"); return; }
+      var keyToCheck = isPrefix ? rest.slice(0, -1) : rest;
+      if (isPrefix) {
+        var hasPrefixMatch = Object.keys(enDict).some(function (k) { return k === keyToCheck || k.indexOf(keyToCheck + ".") === 0; });
+        if (!hasPrefixMatch) findings.push("MISSING-KEY " + relPath + ": " + ref + " (no key with this prefix)");
+      } else if (!(keyToCheck in enDict)) {
+        findings.push("MISSING-KEY " + relPath + ": " + ref);
+      }
+    });
+  });
+  return findings;
+}
+
+function doCoverage(targets) {
+  var dictResult = checkDictionaries();
+  var findings = dictResult.findings.concat(checkKeyUsage(targets, dictResult.catalog));
+  return findings;
+}
+
+/* ---------- --literals-markup / --literals-js ---------- */
+
+function checkLiteralsMarkup(targets) {
+  var findings = [];
+  targets.forEach(function (relPath) {
+    var slug = slugFromPath(path.isAbsolute(relPath) ? path.basename(path.dirname(relPath)) + "/" + path.basename(relPath) : relPath);
+    var cfg = readConfig(slug);
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    var html = fs.readFileSync(abs, "utf8");
+    var root = parseHtml(html);
+
+    function ancestorIsSwitcherSelect(node) {
+      var cur = node;
+      while (cur) { if (cur.attrs && cur.attrs.id === "lang-switch-select") return true; cur = cur.parent; }
+      return false;
+    }
+    function ancestorAriaHiddenTrue(node) {
+      var cur = node;
+      while (cur) { if (cur.attrs && cur.attrs["aria-hidden"] === "true") return true; cur = cur.parent; }
+      return false;
+    }
+
+    function walk(node) {
+      (node.children || []).forEach(function (child) {
+        if (child.type === "comment") return;
+        if (child.type === "text") {
+          if (node.tag === "script" || node.tag === "style") return;
+          var text = decodeEntities(child.value).trim();
+          if (!text) return;
+          if (!isProse(text)) return;
+          if (ancestorIsSwitcherSelect(node)) return;
+          if (ancestorAriaHiddenTrue(node) && !isProse(text)) return; // neutral-only exemption (redundant: isProse already true here)
+          if (node.attrs && Object.prototype.hasOwnProperty.call(node.attrs, "data-i18n")) return;
+          if (cfg.allowLiteral[text]) return;
+          findings.push("UNTRANSLATED-MARKUP " + relPath + ":" + child.line + " " + JSON.stringify(text));
+        } else if (child.tag) {
+          walk(child);
+        }
+      });
+    }
+    walk(root);
+
+    function walkAttrs(node) {
+      ["title", "aria-label", "placeholder"].forEach(function (attr) {
+        var val = node.attrs && node.attrs[attr];
+        if (val && isProse(val)) {
+          var twin = "data-i18n-" + attr;
+          if (!node.attrs[twin] && !cfg.allowLiteral[val]) {
+            findings.push("UNTRANSLATED-ATTR " + relPath + ":" + node.line + " " + attr + "=" + JSON.stringify(val));
+          }
+        }
+      });
+      (node.children || []).forEach(function (c) { if (c.tag) walkAttrs(c); });
+    }
+    walkAttrs(root);
+  });
+  return findings;
+}
+
+// Strips // and /* */ comments from JS while preserving string/template
+// contents and line structure (newlines kept so offsets stay meaningful).
+function stripJsComments(src) {
+  var out = "", i = 0, n = src.length;
+  while (i < n) {
+    var c = src[i], c2 = src[i + 1];
+    if (c === "/" && c2 === "/") { while (i < n && src[i] !== "\n") i++; continue; }
+    if (c === "/" && c2 === "*") { i += 2; while (i < n && !(src[i] === "*" && src[i + 1] === "/")) { if (src[i] === "\n") out += "\n"; i++; } i += 2; continue; }
+    if (c === '"' || c === "'" || c === "`") {
+      var quote = c; out += c; i++;
+      while (i < n && src[i] !== quote) {
+        if (src[i] === "\\") { out += src[i] + (src[i + 1] || ""); i += 2; continue; }
+        out += src[i]; i++;
+      }
+      if (i < n) { out += src[i]; i++; }
+      continue;
+    }
+    out += c; i++;
+  }
+  return out;
+}
+
+var TRANSLATE_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(translate|translateInto|bindText)\s*\(\s*$/;
+var DOM_API_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(getElementById|querySelector|querySelectorAll|createElement|createElementNS|addEventListener|setAttribute|getAttribute|removeAttribute|classList\.add|classList\.remove|classList\.toggle|classList\.contains|localStorage\.getItem|localStorage\.setItem)\s*\([^)]*$/;
+
+function looksLikeCode(str) {
+  if (/var\(--|:\/\/|=>/.test(str)) return true;
+  if (/^[#.][a-zA-Z]/.test(str)) return true;
+  if (/^[a-z][a-z-]*\s*:\s*[^;]+;?$/.test(str)) return true; // CSS declaration
+  if (/^[a-z][a-z-]*(\s+[a-z-]+)*$/.test(str) && str.indexOf(" ") === -1 && str.length < 3) return true;
+  return false;
+}
+
+function checkLiteralsJs(targets) {
+  var findings = [];
+  targets.forEach(function (relPath) {
+    var slug = slugFromPath(relPath);
+    var cfg = readConfig(slug);
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    var html = fs.readFileSync(abs, "utf8");
+    var scriptText = getInlineScriptText(html);
+    var stripped = stripJsComments(scriptText);
+
+    var strRe = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g, m;
+    while ((m = strRe.exec(stripped))) {
+      var str = m[1] !== undefined ? m[1] : m[2];
+      if (!isProse(str)) continue;
+      if (looksLikeCode(str)) continue;
+      var before = stripped.slice(Math.max(0, m.index - 60), m.index);
+      if (TRANSLATE_CALL_RE.test(before)) continue;
+      if (DOM_API_CALL_RE.test(before)) continue;
+      if (cfg.allowLiteral[str]) continue;
+      var lineNo = stripped.slice(0, m.index).split("\n").length;
+      findings.push("UNTRANSLATED-JS " + relPath + ":" + lineNo + " " + JSON.stringify(str));
+    }
+
+    var ihRe = /\.(innerHTML|outerHTML)\s*=|insertAdjacentHTML\s*\(/g, im;
+    while ((im = ihRe.exec(stripped))) {
+      var depth = 0, j = im.index + im[0].length, end = stripped.length;
+      for (; j < stripped.length; j++) {
+        var ch = stripped[j];
+        if (ch === "(" || ch === "[" || ch === "{") depth++;
+        else if (ch === ")" || ch === "]" || ch === "}") { if (depth === 0) { end = j; break; } depth--; }
+        else if (ch === ";" && depth === 0) { end = j; break; }
+      }
+      var seg = stripped.slice(im.index, end);
+      var hasTranslateCall = /\b(translate|translateInto|bindText)\s*\(/.test(seg);
+      var hasProseLiteral = false;
+      var segStrRe = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g, sm;
+      while ((sm = segStrRe.exec(seg))) {
+        var s2 = sm[1] !== undefined ? sm[1] : sm[2];
+        if (isProse(s2) && !looksLikeCode(s2)) { hasProseLiteral = true; break; }
+      }
+      if (hasTranslateCall || hasProseLiteral) {
+        var lineNo2 = stripped.slice(0, im.index).split("\n").length;
+        findings.push("INNERHTML-PROSE " + relPath + ":" + lineNo2);
+      }
+    }
+  });
+  return findings;
+}
+
+/* ---------- mode dispatch + CLI ---------- */
+
+var MODE_RUNNERS = {
+  "--coverage": doCoverage,
+  "--header": function (t) { return checkHeader(t); },
+  "--switcher-present": checkSwitcherPresentMode,
+  "--includes": checkIncludes,
+  "--no-locale-number-format": checkNoLocaleFormat,
+  "--literals-markup": checkLiteralsMarkup,
+  "--literals-js": checkLiteralsJs
+};
+
+function resolveTargets(fileArgs, allFlag) {
+  if (allFlag) return PAGES.map(function (p) { return p.file; });
+  if (fileArgs.length) return fileArgs;
+  return PAGES.map(function (p) { return p.file; });
+}
+
+function checkNotConverted(targets) {
+  var findings = [];
+  targets.forEach(function (relPath) {
+    var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
+    if (!fs.existsSync(abs)) return;
+    var html = fs.readFileSync(abs, "utf8");
+    if (!/assets\/nt-i18n\.js/.test(html)) {
+      findings.push("NOT-CONVERTED " + relPath);
+    }
+  });
+  return findings;
+}
+
+function runStaticModes(modeNames, targets, reportMode) {
+  var anyFail = false;
+  var allFindings = [];
+  modeNames.forEach(function (modeName) {
+    var runner = MODE_RUNNERS[modeName];
+    var modeFindings;
+    if (modeName === "--literals-markup" || modeName === "--literals-js") {
+      // --literals = both; run as part of the composite below instead.
+      modeFindings = runner(targets);
+    } else if (modeName === "--not-converted") {
+      modeFindings = checkNotConverted(targets);
+    } else {
+      modeFindings = runner(targets);
+    }
+    allFindings = allFindings.concat(modeFindings);
+    var label = modeName.replace(/^--/, "");
+    if (modeFindings.length) {
+      anyFail = true;
+      if (!reportMode) modeFindings.forEach(function (f) { console.log(f); });
+    }
+    if (!reportMode) {
+      if (modeFindings.length === 0) console.log("I18N-CHECK PASS " + label + ": " + targets.length + " page(s)");
+      else console.log("I18N-CHECK FAIL " + label + ": " + modeFindings.length + " finding(s)");
+    }
+  });
+  return { anyFail: anyFail, findings: allFindings };
+}
+
+function doStatic(args) {
+  var reportMode = args.indexOf("--report") !== -1;
+  var allFlag = args.indexOf("--all") !== -1;
+  var knownFlags = ["--coverage", "--literals", "--literals-markup", "--literals-js", "--header", "--switcher-present", "--includes", "--no-locale-number-format", "--all", "--report"];
+  var requestedModes = args.filter(function (a) { return knownFlags.indexOf(a) !== -1 && a !== "--all" && a !== "--report"; });
+  var fileArgs = args.filter(function (a) { return a.indexOf("--") !== 0; });
+  var targets = resolveTargets(fileArgs, allFlag);
+
+  var modesToRun;
+  if (requestedModes.indexOf("--literals") !== -1) {
+    modesToRun = requestedModes.filter(function (m) { return m !== "--literals"; }).concat(["--literals-markup", "--literals-js"]);
+  } else if (requestedModes.length) {
+    modesToRun = requestedModes;
+  } else {
+    // no mode flag + page arguments (or --all alone): run every static mode
+    modesToRun = ["--coverage", "--header", "--includes", "--no-locale-number-format", "--literals-markup", "--literals-js"];
+  }
+  // de-dup while preserving order
+  var seen = {};
+  modesToRun = modesToRun.filter(function (m) { if (seen[m]) return false; seen[m] = true; return true; });
+
+  if (allFlag) {
+    var notConverted = checkNotConverted(targets);
+    if (notConverted.length) {
+      notConverted.forEach(function (f) { console.log(f); });
+      console.log("I18N-CHECK FAIL not-converted: " + notConverted.length + " finding(s)");
+      if (!reportMode) process.exit(1);
+    }
+  }
+
+  var result = runStaticModes(modesToRun, targets, reportMode);
+  if (reportMode) {
+    result.findings.forEach(function (f) { console.log(f); });
+    console.log("I18N-CHECK REPORT " + result.findings.length + " finding(s)");
+    process.exit(0);
+  }
+  process.exit(result.anyFail ? 1 : 0);
+}
+
 /* ---------- entrypoint ---------- */
 
 function main() {
@@ -1098,7 +1937,11 @@ function main() {
   if (args.indexOf("--smoke") !== -1) { doSmoke(); return; }
   if (args.indexOf("--api") !== -1) { doApi(); return; }
   if (args.indexOf("--persistence") !== -1) { doPersistence(); return; }
-  console.log("Usage: node i18n-check.js --smoke | --api | --persistence");
+  var staticFlags = ["--coverage", "--literals", "--literals-markup", "--literals-js", "--header", "--switcher-present", "--includes", "--no-locale-number-format", "--all", "--report"];
+  var hasStaticFlag = args.some(function (a) { return staticFlags.indexOf(a) !== -1; });
+  var hasFileArg = args.some(function (a) { return a.indexOf("--") !== 0; });
+  if (hasStaticFlag || hasFileArg) { doStatic(args); return; }
+  console.log("Usage: node i18n-check.js --smoke | --api | --persistence | [--coverage|--literals|--literals-markup|--literals-js|--header|--switcher-present|--includes|--no-locale-number-format] [--all|<page>...] [--report]");
   process.exit(1);
 }
 
@@ -1106,4 +1949,12 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { ROOT: ROOT, loadCatalog: loadCatalog };
+module.exports = {
+  ROOT: ROOT,
+  loadCatalog: loadCatalog,
+  PAGES: PAGES,
+  NEUTRAL_TOKENS: NEUTRAL_TOKENS,
+  isProse: isProse,
+  readConfig: readConfig,
+  parseHtml: parseHtml
+};
