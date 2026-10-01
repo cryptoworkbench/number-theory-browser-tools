@@ -1,10 +1,12 @@
 ---
 phase: 07-shared-js-module-refactor
-verified: 2026-10-01T00:00:00Z
-status: human_needed
-score: 5/6 must-haves verified
+verified: 2026-10-01T08:30:00Z
+status: passed
+score: 6/6 must-haves verified
 covered_files:
   - ".claude/CLAUDE.md"
+  - ".planning/codebase/ARCHITECTURE.md"
+  - ".planning/codebase/CONVENTIONS.md"
   - ".planning/phases/07-shared-js-module-refactor/07-01-PLAN.md"
   - ".planning/phases/07-shared-js-module-refactor/07-01-SUMMARY.md"
   - ".planning/phases/07-shared-js-module-refactor/07-02-PLAN.md"
@@ -27,45 +29,38 @@ covered_files:
   - ".planning/phases/07-shared-js-module-refactor/07-RESEARCH.md"
   - ".planning/phases/07-shared-js-module-refactor/07-REVIEW-DISPOSITION.md"
   - ".planning/phases/07-shared-js-module-refactor/07-REVIEW.md"
+  - ".planning/phases/07-shared-js-module-refactor/07-SECURITY.md"
+  - ".planning/phases/07-shared-js-module-refactor/07-UAT.md"
   - ".planning/phases/07-shared-js-module-refactor/07-VALIDATION.md"
   - "CLAUDE.md"
+  - "Cayley Table/cayley-table.html"
+  - "Equivalence Wheel/equivalence-wheel.html"
+  - "Euclidean Algorithm/euclidean-algorithm.html"
+  - "Venn Diagram/venn-diagram.html"
   - "assets/nt-bigint.js"
   - "assets/nt-core.js"
   - "assets/nt-layout.js"
   - "assets/nt-store.js"
   - "assets/nt-svg.js"
-covered_digest: "v2:sha256:ba6edef08de0b9425a463a5d700da4145d7b860ba4b1e4eb9f91e9b59ee71cfa"
-behavior_unverified: 1
+covered_digest: "v2:sha256:e7f6e56df3684ffb922e08b51600c16ca963fb3dfe1a40cf1c0f2d67d89b847c"
+behavior_unverified: 0
 overrides_applied: 0
-behavior_unverified_items:
-  - truth: "SC-4 (zero behavior regressions, verified per tool in a browser) — ROADMAP wording requires a real-browser verification, not only a headless differential"
-    test: "Open each of the 15 tools + index.html over file:// in a real Chrome session (or via Claude-in-Chrome/claude-in-chrome tools), read the console for zero errors, and exercise presets/reload/playback per 07-RESEARCH.md's per-tool checklist"
-    expected: "Same behavior as the headless browser-diff already proved structurally (16/16 IDENTICAL, errors=0) — no CSS/rendering-only regression outside the DOM, which the HTML-diff cannot see"
-    why_human: "The 07-09 executor had no Claude-in-Chrome tools available and fell back to headless coverage; this was recorded honestly in 07-VALIDATION.md but the literal real-browser observation was never made in this phase"
-human_verification:
-  - test: "Open Cayley Table and Equivalence Wheel in two file:// tabs; change mode/modulus in one and confirm the other re-renders live via the storage event listener (repeat Euclidean Algorithm ⇄ Venn Diagram for a/b)"
-    expected: "The other tab updates without a reload, same as pre-phase behavior"
-    why_human: "browser-diff.js spins up one isolated Chrome profile per run with no second tab sharing localStorage/cookie state, so live cross-tab `storage` events are structurally unobservable by the automated oracle"
-  - test: "In Venn Diagram, drag a placed prime from one region to another"
-    expected: "The prime moves regions and the product/overlap labels update, matching pre-phase behavior"
-    why_human: "browser-diff.js's driver has no pointer-drag primitive (only click/dblclick/hover/set/key), so this interaction was never exercised this phase"
-  - test: "In Venn Diagram, double-click a previewed value to navigate to Factor Tree / Euclidean Algorithm and confirm the linked value arrives"
-    expected: "Navigation occurs and the target tool loads with the correct deep-linked value"
-    why_human: "A real navigation unloads the instrumented page before browser-diff's snapshot harness can capture output, so this is structurally unobservable by the automated oracle"
-  - test: "In Equivalence Wheel, click Export SVG, Export PNG, and Print and confirm each completes without a console error"
-    expected: "Same export/print behavior as pre-phase"
-    why_human: "Download/export-triggering steps were explicitly excluded from headless automation (07-05's finding that they hang headless Chrome); never exercised this phase"
-  - test: "Triage 07-REVIEW.md's three open findings (WR-01 warning: window.NT container itself is not frozen, only its five sub-namespaces are; IN-01/IN-02 info: two doc nits in .claude/CLAUDE.md) — decide fixed / skipped / deferred for each in 07-REVIEW-DISPOSITION.md"
-    expected: "Each finding gets an explicit disposition other than 'open' before the phase's code-review gate (SC-6) is considered fully closed"
-    why_human: "All three findings are still recorded as 'open' (untriaged) as of this verification; WR-01 is a genuine, independently-confirmed runtime gap (`Object.freeze(NT)` is never called on the shared container, only on each `NT.<name>` sub-object) — low severity but a real deviation from the invariant every module's header comment and .claude/CLAUDE.md both assert"
+re_verification:
+  previous_status: human_needed
+  previous_score: 5/6
+  gaps_closed:
+    - "SC-4: zero behavior regressions, verified per tool in a browser — the four genuinely-manual interactions (live cross-tab storage sync, Venn pointer-drag, Venn double-click cross-tool navigation, Equivalence Wheel export/print) were exercised in the user's real Chrome via Claude in Chrome and recorded in 07-UAT.md (5/5 passed); the headless file:// differential already covered per-tool load/preset/playback parity on all 16 pages in a real (headless) Chrome binary"
+    - "SC-6: local code review clean — all three 07-REVIEW.md findings (WR-01 warning, IN-01/IN-02 info) moved from `open` to `fixed` in 07-REVIEW-DISPOSITION.md, and each fix independently confirmed present and correct in the code/docs (see Observable Truths #6)"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 7: Shared JS Module Refactor Verification Report
 
 **Phase Goal:** Extract the helpers duplicated across all 15 tools into clean shared classic-script modules under `assets/` on a single global namespace (no ES `import`, file://-safe); reconcile drifted variants; rewrite docs to present shared modules as the normal architecture.
 **Verified:** 2026-10-01
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Status:** passed
+**Re-verification:** Yes — after gap closure (previous status `human_needed`, 5/6, dated 2026-10-01T00:00:00Z)
 
 ## Goal Achievement
 
@@ -73,54 +68,54 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | SC-1: every tool that needs a shared helper loads its `nt-*.js` module(s) as a plain, non-deferred `<script>` (file://-safe) | ✓ VERIFIED | Independently re-ran `node harness.js` (2,855,890 assertions, PASS) and `node shadow-check.js --all` (15/15 SHADOW-CHECK PASS, includes INCLUDE-DEFERRED/INCLUDE-ORDER/INCLUDE-MISSING gates) from a clean shell. Grepped all 14 migrated tool pages directly: each has exactly the expected `src="../assets/nt-*.js"` lines with no `defer`/`async`/`type="module"`, immediately paired with a `const { ... } = NT.<ns>;` import block. Sieve of Eratosthenes (the one tool sharing no helper with any other tool) correctly includes zero `nt-*.js` scripts — confirmed by direct grep and by `git diff BASE` on that file being empty. |
-| 2 | SC-2: no tool defines a local copy of an extracted helper (including renamed near-duplicates and Venn's ported preview subsystems) | ✓ VERIFIED | `shadow-check.js --all` (which includes the cross-tool DUP/RENAMED-DUP scan and the per-file RETIRED-NAME table) exits 0 with zero findings, re-run independently. Direct greps for `function svgEl`, `function isPrime`, `function gcd`, `function clamp`, `function modPow`, `function bigGcd`, `function modInverse`, `function totient`, `function primeFactors` across all tool HTML files found no local redeclarations outside RSA's `modInverseBig`/`modPowSteps` (confirmed to be RSA-specific step-tracking visualization functions not duplicated anywhere else — not in the RETIRED-NAME table, correctly out of scope). |
-| 3 | SC-3: drifted variants (Number vs BigInt, abs vs no-abs gcd, clamp ordering, isPrime integer guard, modInverse null/m=1 contract, trimmed euclidSteps, etc.) are reconciled with parity proven against every pre-phase predecessor | ✓ VERIFIED | Independently re-ran `node harness.js` from a clean shell: `HARNESS PASS core: 2712692`, `bigint: 75039`, `layout: 56749`, `store: 302`, `svg: 11108`, `total=2855890`, exit 0 — matches 07-VALIDATION.md's claimed figures exactly (not just trusted from the SUMMARY, re-executed). |
-| 4 | SC-4: zero behavior regressions, verified per tool in a browser | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | Headless differential re-run independently on 5 of 16 pages (CRT, Venn Diagram, RSA, Sieve, index.html) — all print `IDENTICAL ... errors=0`; `--mutant` on Equivalence Wheel prints `MUTANT-DETECTED` (oracle proven live, not vacuous). This proves DOM/storage/cookie parity structurally. However the ROADMAP wording is "verified per tool **in a browser**" — 07-VALIDATION.md and 07-09-SUMMARY.md honestly record that Claude-in-Chrome tools were unavailable to the 07-09 executor, so the literal real-browser pass was never performed; it fell back to the same headless engine used for SC-3/SC-1. See `behavior_unverified_items` and `human_verification`. |
-| 5 | SC-5: current docs (CLAUDE.md, .claude/CLAUDE.md, .planning/PROJECT.md, .planning/codebase/*) present shared modules as the normal architecture; stale in-code comments are gone | ✓ VERIFIED | Independently re-ran `node shadow-check.js --docs` (exits 0, `SHADOW-CHECK PASS --docs`) which audits stale phrases across all doc files plus mirror-consistency between `.claude/CLAUDE.md` and its `.planning/` sources. Direct reads of root `CLAUDE.md`, `.claude/CLAUDE.md`, and `.planning/PROJECT.md` confirm they describe `assets/nt-*.js` / `window.NT` as the current, expected architecture (not an exception or future work). Grep for stale phrases (`single-file design precludes`, `duplicated per-file`, `copy-paste`, `no shared`) in the doc files returned nothing. |
-| 6 | SC-6: local `/code-review` clean (user then runs `/code-review ultra`) | ✓ VERIFIED (with open triage item — see human_verification) | A local code review exists (`07-REVIEW.md`, depth standard, 21 files, 0 critical / 1 warning / 2 info) and independently re-read: no correctness bug, all three findings are either a runtime robustness gap (`window.NT` container itself not frozen — confirmed real by direct inspection of all five `assets/nt-*.js` files: each does `var NT = window.NT = window.NT || {};` and freezes only its own sub-object, never `Object.freeze(NT)`) or doc-accuracy nits. None is a functional regression. However `07-REVIEW-DISPOSITION.md` still records all three as `open` (untriaged) — not `fixed`/`skipped`/`deferred` — so "clean" is true in the sense of "no correctness findings" but not yet true in the sense of "every finding resolved or explicitly accepted." Routed as a human decision rather than silently passed or silently failed. |
+| 1 | SC-1: every tool that needs a shared helper loads its `nt-*.js` module(s) as a plain, non-deferred `<script>` (file://-safe) | ✓ VERIFIED | Re-ran `node harness.js` fresh (total=2855986, all 6 checks PASS including the new `namespace` check) and `node shadow-check.js --all` (15/15 PASS) from a clean shell. No regression from the prior run (2855890 + 88 new namespace-lock assertions + 8 new store event-path assertions = 2855986, arithmetic checks out). |
+| 2 | SC-2: no tool defines a local copy of an extracted helper | ✓ VERIFIED | `shadow-check.js --all` re-run, 15/15 PASS, zero DUP/RENAMED-DUP/RETIRED-NAME findings. No new local helper declarations introduced by the post-verification commits (edfc402, d0a4092 only touch `assets/nt-*.js` internals and the four tools' existing storage-handler/openXref call sites). |
+| 3 | SC-3: drifted variants reconciled with parity proven against every pre-phase predecessor | ✓ VERIFIED | `node harness.js` re-run from a clean shell: `core: 2712692`, `bigint: 75039`, `layout: 56749`, `store: 310` (was 302 — +8 for the new `readSharedGroup(raw)`/`readSharedAB(raw)` event-path assertions in `checks/store.check.js`, confirmed by direct read), `svg: 11108`, `namespace: 88` (new check added for WR-01's fix), `total=2855986`, exit 0. |
+| 4 | SC-4: zero behavior regressions, verified per tool in a browser | ✓ VERIFIED | Two complementary real-browser passes now exist: (a) `browser-diff.js` drives a real (headless) Chrome binary over actual `file://` URLs (confirmed in source: `var url = "file://" + ...`) for structural load/preset/playback parity on all 16 pages — independently spot-re-ran `browser-diff.js` on Euclidean Algorithm post-fix: `IDENTICAL snaps=24 errors=0`, no stray Chrome process left running; (b) `07-UAT.md` (status: complete, 5/5 passed) records the four genuinely-manual interactions actually exercised in the user's real Chrome via Claude in Chrome — live cross-tab sync (Cayley⇄Wheel, Euclidean⇄Venn), Venn pointer-drag, Venn double-click cross-tool navigation, and Equivalence Wheel Export SVG/PNG/Print — with specific, non-generic technical detail (exact values synced, file sizes/signatures of exported SVG/PNG, a real intermittent-drop bug found and then fixed in d0a4092). Served over `http://127.0.0.1` only because the Claude-in-Chrome extension itself refuses `file://` URLs; same origin-isolation semantics, same code paths. This combination — real headless Chrome over file:// for the automatable 16-page matrix, real interactive Chrome for the four truly manual behaviors — satisfies "verified per tool in a browser" in substance, not just in the headless engine already used for the parity proof. |
+| 5 | SC-5: current docs present shared modules as the normal architecture; stale in-code comments are gone | ✓ VERIFIED | `node shadow-check.js --docs` re-run, PASS. Direct read of `.claude/CLAUDE.md`, `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/CONVENTIONS.md` confirms the post-review doc fixes (56dd593) are present and mutually consistent: the import-order rule now reads "sorted by code point, uppercase constants first" and all 31 `const { ... } = NT.*` import lines in the codebase were independently re-checked and do in fact sort that way; the module-skeleton description in CONVENTIONS.md correctly states "`NT` itself is never frozen... `Object.defineProperty(NT, 'NAME', ...)`" matching the actual WR-01 fix; both new Anti-Pattern headings ("Shadowing a Shared Helper") have real bullet content in both the source doc and the `.claude/CLAUDE.md` mirror. |
+| 6 | SC-6: local `/code-review` clean | ✓ VERIFIED | `07-REVIEW-DISPOSITION.md` now shows all three findings (WR-01, IN-01, IN-02) as `fixed` (was `open` at prior verification), each backed by a real commit. Independently confirmed each fix in the code: WR-01 — all five `assets/nt-*.js` files now call `Object.defineProperty(NT, '<name>', { writable: false, configurable: false })` right after freezing their own namespace object (grepped directly), and a new `checks/namespace.check.js` (88 assertions) proves the slots are non-writable/non-configurable, the values frozen, and `NT` itself stays extensible — all green. IN-01/IN-02 — confirmed above under SC-5. The user explicitly chose not to run `/code-review ultra` (diff over its size limit per task notes); that is the user's own optional follow-up named in SC-6's wording, not a phase blocker — the "local" review is independently re-confirmed clean (0 critical, 1 warning now fixed, 2 info now fixed). No `TBD`/`FIXME`/`XXX` markers found in any `assets/nt-*.js` file or the four tool files touched by the post-verification fix commits. |
 
-**Score:** 5/6 truths verified (1 present, behavior-unverified)
+**Score:** 6/6 truths verified (0 present, behavior-unverified)
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `assets/nt-core.js` | NT.core — 16 frozen exports (clamp, euclidSteps, FERMAT_MAX_ITER, fermatSplit, gcd, isPerfectSquare, isPrime, isqrt, mod, modInverse, modPowSmall, primeFactors, randomInt, smallestPrimeFactor, totient, unitsMod) | ✓ VERIFIED | Exists, `Object.freeze` present, parity-proven (2,712,692 assertions), consumed by CRT and Euler's Totient (and by every other tool importing `NT.core`) |
-| `assets/nt-bigint.js` | NT.bigint — BigInt arithmetic/Miller-Rabin/random/format helpers | ✓ VERIFIED | Exists, frozen, parity-proven (75,039 assertions), consumed by RSA, Diffie-Hellman, Square and Multiply |
-| `assets/nt-svg.js` | NT.svg — svgEl, centre-explicit polar geometry, easing | ✓ VERIFIED | Exists, frozen, parity-proven (11,108 assertions); `grep -rln "function svgEl" */*.html` across all 15 tools returns nothing — the shared version is the only one |
-| `assets/nt-store.js` | NT.store — cross-tool shared state, deep-link readers, legacy-key migration | ✓ VERIFIED | Exists, frozen, parity-proven (302 assertions), consumed by Cayley Table, Equivalence Wheel, Venn Diagram, Euclidean Algorithm |
-| `assets/nt-layout.js` | NT.layout — nested-squares layout, factor-tree builder | ✓ VERIFIED | Exists, frozen, parity-proven (56,749 assertions), consumed by Euclidean Algorithm, Factor Tree, Venn Diagram; throws when NT.core absent per contract |
-| `.planning/phases/07-shared-js-module-refactor/harness.js` | Dev-only Node parity harness | ✓ VERIFIED | Present, ran independently, exit 0 |
-| `.planning/phases/07-shared-js-module-refactor/shadow-check.js` | Static gate (shadow/retired-name/import/include hygiene, doc audit) | ✓ VERIFIED | Present, `--all` and `--docs` both re-run independently, exit 0 |
-| `.planning/phases/07-shared-js-module-refactor/browser-diff.js` | Headless-Chrome differential oracle | ✓ VERIFIED | Present, spot-re-run on 5 tools + `--mutant` on one — all as claimed, oracle proven non-vacuous |
+| `assets/nt-core.js` | NT.core — 16 frozen exports | ✓ VERIFIED | Exists, frozen + slot-locked (`Object.defineProperty`), parity-proven (2,712,692 assertions) |
+| `assets/nt-bigint.js` | NT.bigint — BigInt arithmetic/Miller-Rabin/random/format helpers | ✓ VERIFIED | Exists, frozen + slot-locked, parity-proven (75,039 assertions) |
+| `assets/nt-svg.js` | NT.svg — svgEl, centre-explicit polar geometry, easing | ✓ VERIFIED | Exists, frozen + slot-locked, parity-proven (11,108 assertions) |
+| `assets/nt-store.js` | NT.store — cross-tool shared state, deep-link readers, legacy-key migration, now with event-value-safe reads | ✓ VERIFIED | Exists, frozen + slot-locked, parity-proven (310 assertions, +8 for the `d0a4092` event-path fix); `readSharedGroup(raw)`/`readSharedAB(raw)` confirmed called with `e.newValue` from all four consuming tools |
+| `assets/nt-layout.js` | NT.layout — nested-squares layout, factor-tree builder | ✓ VERIFIED | Exists, frozen + slot-locked, parity-proven (56,749 assertions) |
+| `.planning/.../checks/namespace.check.js` | New: validates WR-01's per-slot locking fix | ✓ VERIFIED | Present, 88 assertions, exercises strict/sloppy-mode mutation attempts via `vm` against the actual module files |
+| `.planning/.../harness.js` | Dev-only Node parity harness | ✓ VERIFIED | Re-run fresh, exit 0, total=2855986 |
+| `.planning/.../shadow-check.js` | Static gate (shadow/retired-name/import/include hygiene, doc audit) | ✓ VERIFIED | `--all` and `--docs` both re-run fresh, exit 0 |
+| `.planning/.../browser-diff.js` | Headless-Chrome differential oracle over real `file://` URLs | ✓ VERIFIED | Re-run on Euclidean Algorithm post-fix, `IDENTICAL snaps=24 errors=0`, no leftover Chrome process |
+| `07-UAT.md` | Human-verification record for the 4 manual behaviors + review triage | ✓ VERIFIED | status: complete, 5/5 passed, with concrete per-test technical detail (not generic "looks fine" claims) |
+| `07-REVIEW-DISPOSITION.md` | Triage record for 07-REVIEW.md's 3 findings | ✓ VERIFIED | All 3 now `fixed`, each independently confirmed against the actual code/docs |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|-----|-----|--------|---------|
-| 14 tool pages (all but Sieve) | `assets/nt-*.js` | plain `<script src="../assets/nt-*.js">` immediately before the inline `<script>`, then `const { ... } = NT.<ns>;` | ✓ WIRED | Confirmed by direct grep on every tool file — include + import block present and correctly ordered for all 14 |
-| Sieve of Eratosthenes | (none) | N/A — shares no helper with any tool | ✓ CORRECT (intentional non-link) | `git diff BASE` empty; zero `nt-*.js` includes; tool renders via plain DOM grid cells, no SVG, no shared math helper |
-| `.claude/CLAUDE.md` mirror sections | `.planning/PROJECT.md`, `.planning/codebase/*.md` | mirror-consistency audit | ✓ WIRED | `shadow-check.js --docs` (which includes the MIRROR-DRIFT check) passes with zero findings |
+| 14 tool pages (all but Sieve) | `assets/nt-*.js` | plain `<script src="../assets/nt-*.js">` + `const { ... } = NT.<ns>;` | ✓ WIRED | Re-confirmed by direct grep, import order re-validated against the fixed code-point rule |
+| Cayley Table, Equivalence Wheel, Euclidean Algorithm storage handlers | `assets/nt-store.js` | `readSharedGroup(e.newValue)` / `readSharedAB(e.newValue)` | ✓ WIRED | Grepped each tool file directly: all three pass `e.newValue` into the updated reader, matching `nt-store.js`'s new optional `raw` parameter |
+| Venn Diagram `openXref` | `window.open` | opener-less tab without the `noopener` feature, `win.opener = null` | ✓ WIRED | Grepped `venn-diagram.html` directly: matches the d0a4092 fix description exactly |
+| `.claude/CLAUDE.md` mirror sections | `.planning/codebase/ARCHITECTURE.md`, `CONVENTIONS.md` | mirror-consistency audit | ✓ WIRED | `shadow-check.js --docs` passes; direct reads confirm identical import-order and NT-freeze wording across both the source docs and the mirror |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full parity harness (all 5 modules) | `node harness.js` | `HARNESS PASS total=2855890`, exit 0 | ✓ PASS |
-| Static shadow/duplicate/hygiene gate, all 15 tools | `node shadow-check.js --all` | 15/15 `SHADOW-CHECK PASS`, exit 0 | ✓ PASS |
-| Doc-rewrite audit | `node shadow-check.js --docs` | `SHADOW-CHECK PASS --docs`, exit 0 | ✓ PASS |
-| Headless BASE-vs-working-tree diff, CRT | `node browser-diff.js "Chinese Remainder Theorem/chinese-remainder-theorem.html"` | `IDENTICAL snaps=11 errors=0` | ✓ PASS |
-| Headless BASE-vs-working-tree diff, Venn Diagram | `node browser-diff.js "Venn Diagram/venn-diagram.html"` | `IDENTICAL snaps=30 errors=0` | ✓ PASS |
-| Headless BASE-vs-working-tree diff, RSA | `node browser-diff.js "RSA/rsa.html"` | `IDENTICAL snaps=14 errors=0` | ✓ PASS |
-| Headless BASE-vs-working-tree diff, Sieve | `node browser-diff.js "Sieve Of Eratosthenes/sieve-of-eratosthenes.html"` | `IDENTICAL snaps=11 errors=0` | ✓ PASS |
-| Headless BASE-vs-working-tree diff, hub | `node browser-diff.js "index.html"` | `IDENTICAL snaps=1 errors=0` | ✓ PASS |
-| Oracle non-vacuity (mutant injection) | `node browser-diff.js "Equivalence Wheel/equivalence-wheel.html" --mutant` | `MUTANT-DETECTED equivalence-wheel` | ✓ PASS |
-| Live real-browser session (Claude-in-Chrome / manual) | — | Not performed this phase (tool unavailable to 07-09's executor) | ? SKIP → human_verification |
+| Full parity harness (all 6 checks) | `node harness.js` | `HARNESS PASS total=2855986`, exit 0 | ✓ PASS |
+| Static shadow/duplicate/hygiene gate, all 15 tools | `node shadow-check.js --all` | 15/15 PASS, exit 0 | ✓ PASS |
+| Doc-rewrite audit | `node shadow-check.js --docs` | PASS, exit 0 | ✓ PASS |
+| Headless file:// differential, Euclidean Algorithm (post d0a4092 fix) | `node browser-diff.js "Euclidean Algorithm/euclidean-algorithm.html"` | `IDENTICAL snaps=24 errors=0` | ✓ PASS |
+| No debt markers in touched files | grep `TBD\|FIXME\|XXX` on `assets/nt-*.js` + 4 fixed tool files | no matches | ✓ PASS |
+| No leftover headless Chrome process | `pgrep -af headless` | none from browser-diff | ✓ PASS |
 
 ### Probe Execution
 
-No project-defined `scripts/*/tests/probe-*.sh` exist; this phase's own dev-only toolchain (`harness.js`, `shadow-check.js`, `browser-diff.js`) functions as its probe suite and was executed directly above (Behavioral Spot-Checks), not merely read from SUMMARY claims.
+No project-defined `scripts/*/tests/probe-*.sh` exist; this phase's own dev-only toolchain (`harness.js`, `shadow-check.js`, `browser-diff.js`) functions as its probe suite and was re-executed directly above, not merely read from SUMMARY claims.
 
 ### Requirements Coverage
 
@@ -130,24 +125,23 @@ No REQ-IDs are mapped to Phase 7 in `.planning/REQUIREMENTS.md` (confirmed — n
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `assets/nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js` | container construction line in each | `window.NT` container is never `Object.freeze`'d, only each sub-namespace | ⚠️ Warning (WR-01, already recorded in 07-REVIEW.md, disposition still `open`) | A future script could reassign `window.NT.core = {...}` wholesale (not just mutate a frozen member) with no runtime guard — only `shadow-check.js`'s static `NS-MUTATION` lint catches this in checked-in tool files, not a runtime enforcement. Independently re-confirmed by direct file inspection. |
-| No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers found | — | — | — | Swept all 5 new `assets/nt-*.js` modules, RSA, Cayley Table, both CLAUDE.md files — clean |
+| None | — | — | — | Previously-flagged WR-01 (`window.NT` container unfrozen) is now fixed (per-slot `Object.defineProperty` lock, verified by `namespace.check.js`). No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers found in any file touched since the previous verification. |
 
 ### Human Verification Required
 
-1. **Live cross-tab `storage` sync** — Cayley Table ⇄ Equivalence Wheel (mode/modulus) and Euclidean Algorithm ⇄ Venn Diagram (a/b), two tabs, confirm live re-render without reload. Structurally unobservable by `browser-diff.js` (one isolated Chrome profile per run).
-2. **Venn Diagram pointer-drag** — drag a placed prime between regions; confirm it moves and product/overlap labels update. No drag primitive in the automated driver.
-3. **Venn Diagram double-click navigation** — double-click to open Factor Tree / Euclidean Algorithm with the linked value. A real navigation unloads the page before the snapshot harness captures output.
-4. **Equivalence Wheel export/print** — Export SVG, Export PNG, Print, each without a console error. Explicitly excluded from headless automation (known to hang headless Chrome).
-5. **Triage the 3 open code-review findings** — `07-REVIEW-DISPOSITION.md` still shows WR-01/IN-01/IN-02 as `open`. WR-01 (unfrozen `NT` container) is a real, independently-confirmed low-severity runtime gap; IN-01/IN-02 are doc nits. None blocks correctness, but SC-6 ("local code review clean") is not fully closed until each gets an explicit fixed/skipped/deferred disposition.
+None. The two items that kept the prior verification at `human_needed` are both closed with evidence:
 
-Item 5 is a phase-closure housekeeping item (not a functional defect); items 1-4 are the four behaviors 07-VALIDATION.md itself already named as "genuinely manual" and explicitly did not claim as observed — this report treats them the same way rather than accepting the "auto-approved" note as direct observation, per this verification's instructions.
+1. The four genuinely-manual behaviors (live cross-tab sync, Venn drag, Venn double-click navigation, Equivalence Wheel export/print) were exercised in the user's real Chrome via Claude in Chrome and recorded in `07-UAT.md` with specific, falsifiable technical detail (exact synced values, image signatures/sizes, a real bug found and fixed) — not a generic pass claim.
+2. The three open code-review findings are now explicitly dispositioned `fixed` in `07-REVIEW-DISPOSITION.md`, and each fix was independently re-verified in this pass against the actual source files, not just trusted from the disposition record.
 
 ### Gaps Summary
 
-No FAILED truths and no missing/stub artifacts were found. All re-run automated gates (harness, shadow-check --all, shadow-check --docs, and 6 independent browser-diff spot-checks including a mutant-injection liveness proof) passed cleanly when re-executed from a clean shell, matching the figures claimed in 07-VALIDATION.md rather than merely trusting them. The phase's architectural goal — shared classic-script `assets/nt-*.js` modules on `window.NT`, zero local duplicate helpers, docs rewritten to match — is substantively and verifiably achieved.
+No gaps. Both items that routed the prior verification (2026-10-01T00:00:00Z) to `human_needed` — SC-4's literal real-browser pass and SC-6's untriaged review findings — have been closed with verifiable evidence since that report was written:
 
-What keeps this phase at `human_needed` rather than `passed` is that the ROADMAP's own success-criteria wording ("zero behavior regressions, verified per tool **in a browser**") was not literally satisfied this phase — the real-browser pass fell back to the same headless engine already used for the parity proof, and four specific interactions (cross-tab storage sync, Venn drag, Venn double-click nav, Equivalence Wheel export) remain genuinely unverified by any means. A fifth item — three open, untriaged code-review findings — is a housekeeping gap in SC-6's "clean" claim, not a correctness defect. None of these five items indicates a functional regression was actually introduced; they indicate specific claims of completeness that the codebase and its own artifacts do not yet fully substantiate.
+- **SC-4** closed via `07-UAT.md` (5/5 passed, real Chrome via Claude in Chrome for the 4 interactions `browser-diff.js` cannot drive) plus a fresh independent re-run of `browser-diff.js` confirming no regression from the `d0a4092` storage/openXref fix.
+- **SC-6** closed via `07-REVIEW-DISPOSITION.md` moving WR-01/IN-01/IN-02 from `open` to `fixed`, with each fix independently confirmed present and correct in `assets/nt-*.js`, `.claude/CLAUDE.md`, and the `.planning/codebase/` mirror docs.
+
+All 6 ROADMAP success criteria (SC-1 through SC-6) are now verified with fresh, independently-reproduced evidence (harness total=2855986 matching the task's stated expectation, 15/15 shadow-check, a re-run browser-diff spot-check, and direct source inspection of every commit named in the re-verification brief: edfc402, 56dd593, d0a4092). No regressions were introduced by the fix commits — the parity harness count increased by exactly the number of new assertions added for the two fixes (namespace: +88, store: +8), and all pre-existing checks remained green.
 
 ---
 
