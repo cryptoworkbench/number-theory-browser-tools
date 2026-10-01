@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 6
+current_phase: 06
 current_phase_name: Multi-Language Support
 status: executing
-stopped_at: Phase 07 complete, ready to plan Phase 4
-last_updated: "2026-10-01T09:30:32.102Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-10-01T10:13:38.220Z"
 last_activity: 2026-10-01
-last_activity_desc: Phase 07 complete, transitioned to Phase 4
-state_head: ad72ec5a1efd7754e72c478a40fe4a7274caa67a
+last_activity_desc: Phase 06 execution started
+state_head: 99b3d36c4babfc593e1c83aa1258f46633df4880
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 37
-  completed_plans: 25
-  percent: 68
+  completed_plans: 26
+  percent: 70
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-01)
 
 **Core value:** Every concept gets a visualization a self-learner can interact with and immediately understand — the diagram teaches, the text supports it.
-**Current focus:** Phase 4 — Continued Fractions Tool (builds on the phase-7 shared modules: import helpers from `NT.*`, never redefine them)
+**Current focus:** Phase 06 — Multi-Language Support
 
 ## Current Position
 
-Phase: 6 (Multi-Language Support) — READY TO EXECUTE
-Plan: Not started
+Phase: 06 (Multi-Language Support) — EXECUTING
+Plan: 2 of 12
 Status: Ready to execute
-Last activity: 2026-10-01 — Phase 07 complete, transitioned to Phase 4
+Last activity: 2026-10-01 — Phase 06 execution started
 
-Progress: [███████░░░] 68%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -86,6 +86,7 @@ Progress: [███████░░░] 68%
 | Phase 07 P07 | 35min | 2 tasks | 2 files |
 | Phase 07 P08 | 45min | 3 tasks | 9 files |
 | Phase 07 P09 | 40min | 3 tasks | 2 files |
+| Phase 06 P01 | 33 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,8 @@ Recent decisions affecting current work:
 
 - [Phase 7 close 2026-10-01]: Each `assets/nt-*.js` freezes its namespace and locks its own `NT.<name>` slot with `Object.defineProperty(..., { writable: false, configurable: false })`; `window.NT` itself stays extensible so later modules (e.g. Phase 6's `nt-i18n.js`) can attach. Covered by `checks/namespace.check.js`.
 - [Phase 7 close 2026-10-01]: Cross-tab live-sync handlers read the storage event's `e.newValue` (`readSharedGroup(raw)` / `readSharedAB(raw)`); plain reads stay cookie-first for Firefox's per-file `file://` origins. Fixed a pre-existing race that dropped ~1 in 20 rapid updates.
+- [Phase 06]: [Phase 06 Plan 01] Task 2 decision: persisted site-wide language key is site-lang (raw two-letter code), owned by assets/nt-i18n.js, mirroring assets/theme.js's site-theme pattern exactly (option-a, explicit human selection)
+- [Phase 06]: [Phase 06 Plan 01] TDD RED evidence for Task 3 verified manually via git stash (genuine assertion-level failures confirmed, not crashes) rather than via gsd_run check tdd-red-evidence, since that validator expects TAP output and this project's harness.js-based test convention is not TAP; workflow.tdd_mode is not enabled in this project
 
 ### Roadmap Evolution
 
@@ -247,8 +250,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T08:15:47Z
-Stopped at: Phase 07 complete (UAT 5/5, validated, threat-secure, verification passed), ready to plan Phase 4
+Last session: 2026-10-01T10:13:38.077Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
