@@ -1772,14 +1772,25 @@ function stripJsComments(src) {
   return out;
 }
 
-var TRANSLATE_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(translate|translateInto|bindText)\s*\(\s*$/;
-var DOM_API_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(getElementById|querySelector|querySelectorAll|createElement|createElementNS|addEventListener|setAttribute|getAttribute|removeAttribute|classList\.add|classList\.remove|classList\.toggle|classList\.contains|localStorage\.getItem|localStorage\.setItem)\s*\([^)]*$/;
+// Includes the `$ = (id) => document.getElementById(id)` alias convention
+// used across this codebase's tool pages (incl. the Sieve).
+var TRANSLATE_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(translate|translateInto|bindText)\s*\(\s*(?:[A-Za-z0-9_$]+\s*\?\s*)?$/;
+var DOM_API_CALL_RE = /(?:^|[^A-Za-z0-9_$.])(\$|getElementById|querySelector|querySelectorAll|createElement|createElementNS|addEventListener|setAttribute|getAttribute|removeAttribute|classList\.add|classList\.remove|classList\.toggle|classList\.contains|localStorage\.getItem|localStorage\.setItem|setProperty)\s*\([^)]*$/;
+// A string immediately preceded by a comparison operator is being tested
+// against (a key name, theme value, event type), not displayed.
+var COMPARISON_RE = /[=!]==?\s*$/;
 
 function looksLikeCode(str) {
   if (/var\(--|:\/\/|=>/.test(str)) return true;
-  if (/^[#.][a-zA-Z]/.test(str)) return true;
+  if (/^[#.-]{1,2}[a-zA-Z]/.test(str)) return true; // CSS selector or custom-property name (--foo)
   if (/^[a-z][a-z-]*\s*:\s*[^;]+;?$/.test(str)) return true; // CSS declaration
-  if (/^[a-z][a-z-]*(\s+[a-z-]+)*$/.test(str) && str.indexOf(" ") === -1 && str.length < 3) return true;
+  // "all-lowercase space/hyphen-separated tokens" (06-02-PLAN.md P10 --literals-js
+  // spec): internal identifiers such as CSS class names, event-type tags,
+  // DOM id strings, attribute names — never translated prose.
+  if (/^[a-z][a-z]*(?:[\s-][a-z]+)*$/.test(str)) return true;
+  // A dotted i18n key reference (ns.key / ns.sub.key), wherever it sits in
+  // the expression (e.g. inside a ternary passed to translate()).
+  if (/^[a-z][a-zA-Z0-9]*(\.[A-Za-z0-9_]+)+$/.test(str)) return true;
   return false;
 }
 
@@ -1801,6 +1812,7 @@ function checkLiteralsJs(targets) {
       var before = stripped.slice(Math.max(0, m.index - 60), m.index);
       if (TRANSLATE_CALL_RE.test(before)) continue;
       if (DOM_API_CALL_RE.test(before)) continue;
+      if (COMPARISON_RE.test(before)) continue;
       if (cfg.allowLiteral[str]) continue;
       var lineNo = stripped.slice(0, m.index).split("\n").length;
       findings.push("UNTRANSLATED-JS " + relPath + ":" + lineNo + " " + JSON.stringify(str));
