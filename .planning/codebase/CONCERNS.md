@@ -15,6 +15,30 @@ last_mapped_at: 2026-09-23
 - Impact: A signature or behavior change in a shared helper ripples to every consuming tool simultaneously; a bug introduced there is a multi-tool regression, not confined to one page. The `../assets/nt-*.js` relative path is load-bearing — moving a tool directory without preserving that relative depth breaks its includes.
 - Fix approach: Keep shared helpers pure; change a function's signature only together with every calling tool in the same commit; re-run each consuming tool in a browser (or `shadow-check.js --all`) after touching a shared module
 
+## Multi-Language Support (i18n)
+
+**Every new user-visible string needs five translations:**
+
+- Issue: A page ships in nl/en/de/fr/es; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all five languages leaves a gap
+- Files: Every `assets/i18n/*.js` data file
+- Impact: A missing-language value either renders blank or falls back to English unexpectedly, and the page silently stops being fully translated
+- Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE`) before the gap ships
+- Fix approach: Run `i18n-check.js --coverage` (or `--all`) on the touched page after any dictionary edit; dictionary drift is caught by this gate, not by manual review alone
+
+**Header edits must keep all sixteen copies identical:**
+
+- Issue: Each tool page carries its own copy of the canonical i18n header (brand, 16 `site.nav.*` links, the `#lang-switch-select` language switcher), the same duplication pattern the site's nav/theme-toggle header already has
+- Files: Every tool `.html` page
+- Impact: A header change applied to one page and not copied to the other fifteen produces a `HEADER-DRIFT` finding and an inconsistent navigation experience
+- Fix approach: `i18n-check.js --header --all` catches header drift across every page; copy a header change from one page to all fifteen others in the same commit
+
+**A brief English flash before a non-English language applies is accepted:**
+
+- Issue: A page's static markup renders in English first (before `assets/nt-i18n.js`'s `init()` runs and `applyStaticDom()` re-binds every `data-i18n` element to the resolved language), so a visitor with a non-English preference sees a brief flash of English on load
+- Files: Every tool `.html` page
+- Impact: Cosmetic only — the flash is sub-second and the page settles into the correct language before the visitor can read it; accepted per the phase's own assumption (06-RESEARCH A8)
+- Fix approach: No fix planned — logged as an accepted tradeoff rather than a defect; a future phase could move the language-resolution script earlier (matching the theme-flash-prevention pattern already used for `site-theme`) if it becomes a real UX issue
+
 ## Code Duplication & Maintainability
 
 **HTML header/nav boilerplate repeated in every file:**

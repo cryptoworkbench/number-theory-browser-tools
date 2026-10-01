@@ -308,6 +308,8 @@ See `Equivalence Wheel/equivalence-wheel.html` as a model.
 
 **Do this instead:** Write one whole-sentence dictionary value per language, with `{0}`/`{name}`-style placeholders for the variable parts, and call `translate()`/`translateInto()` once per message, never concatenating two translated pieces.
 
+- Write one whole-sentence dictionary value per language, with `{0}`/`{name}`-style placeholders for the variable parts, and call `translate()`/`translateInto()` once per message, never concatenating two translated pieces.
+
 ### Architectural Smell: Prose via innerHTML
 
 **What happens:** A render function builds a sentence containing translated text by concatenating an HTML string and assigning it to `innerHTML`.
@@ -315,6 +317,8 @@ See `Equivalence Wheel/equivalence-wheel.html` as a model.
 **Why it's wrong:** `NT.i18n`'s rendering rule puts every translated string into the DOM as a text node or via `textContent`/`setAttribute`, never `innerHTML` — a dictionary value is never parsed as markup, and an `innerHTML` builder can't be exempted by the static i18n gates (`i18n-check.js`'s `INNERHTML-PROSE` finding).
 
 **Do this instead:** Build the sentence via DOM construction (`createElement`/`createTextNode`) and `translateInto()` with Node params for any embedded `<strong>`/`<sup>`/`<span>` child, matching the project's long-standing DOM-construction convention for every other dynamic region.
+
+- Build the sentence via DOM construction (`createElement`/`createTextNode`) and `translateInto()` with Node params for any embedded `<strong>`/`<sup>`/`<span>` child, matching the project's long-standing DOM-construction convention for every other dynamic region.
 
 ### Architectural Smell: Tight Coupling to localStorage Key Name
 

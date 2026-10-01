@@ -41,7 +41,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 ## Constraints
 
 - **Tech stack**: Vanilla HTML/CSS/JS only, no build tooling, no frameworks — matches every existing tool and keeps each page runnable by opening the file directly.
-- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the five `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
+- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the six `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`), plus `assets/i18n/` (translation-data files only, one per namespace). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
 - **External resources**: Only Google Fonts via `<link>` — no other CDN or third-party JS dependency, per existing convention.
 
 ## Key Decisions
@@ -56,6 +56,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 | Cayley table generator ships as its own tool page, sharing the unit-set math and the group-params setting with the Equivalence Wheel through `NT.core` and `NT.store`, cross-linked both ways | User said "both" when asked separate-vs-paired — read as: its own page per repo convention, but designed as a close visual/interaction sibling with a cross-link, not a merged third tab inside the Equivalence Wheel | — Pending |
 | Shared number-theory, BigInt, SVG, shared-state and layout helpers live in `assets/nt-*.js` classic-script modules on one `window.NT` namespace | One implementation per helper; classic scripts keep every page runnable from `file://` | ✓ Phase 7 |
 | Cross-tab live sync reads the storage event's `newValue`; ordinary reads stay cookie-first | Cookie-first reads are needed for Firefox, where each `file://` page is its own origin, but inside a `storage` handler the cookie can lag the event and silently drop the update | ✓ Phase 7 (found and fixed during UAT; 40/40 rapid updates arrive) |
+| All sixteen pages ship in five languages (nl/en/de/fr/es) via a sixth shared module, `assets/nt-i18n.js` (`NT.i18n`), with translation data in `assets/i18n/` and the language preference persisted under its own `site-lang` key (cookie + localStorage, mirroring `site-theme`'s pattern exactly rather than coupling to `theme.js` or `NT.store`) | A site-wide preference needs the same three-channel (URL param, cookie, localStorage) durability `site-theme` already has, proven across `file://` origins in Phase 7's UAT; a dedicated key keeps the language choice independent of the theme toggle and of `NT.store`'s sibling-pair tool-settings scope | ✓ Phase 6 |
 
 ## Evolution
 

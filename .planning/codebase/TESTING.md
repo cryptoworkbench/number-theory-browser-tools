@@ -229,6 +229,28 @@ Each tool is tested by:
 - Congruence Wheel: smooth interaction with N=60
 - RSA: key generation instant, brute-force factoring is deliberately slow to show computational hardness
 
+## Multi-Language (i18n) Testing
+
+**Dev-only gate scripts** (Node.js, same spirit as Phase 7's `harness.js`/`shadow-check.js`; not part of the shipped site):
+
+- `.planning/phases/06-multi-language-support/i18n-check.js` — static gates over a page's markup and dictionary data, run per page or across all sixteen with `--all`:
+  - `node i18n-check.js --coverage "<page>"` — dictionary key sets, placeholders, plural shapes, no identical-to-English values
+  - `node i18n-check.js --literals-markup "<page>"` / `--literals-js "<page>"` — untranslated static markup/JS-rendered text
+  - `node i18n-check.js --header "<page>"` / `--switcher-present "<page>"` — canonical header drift, `#lang-switch-select` present
+  - `node i18n-check.js --includes "<page>"` — include order/missing/deferred-script checks for the six `nt-*.js` modules plus the `assets/i18n/*.js` data files
+  - `node i18n-check.js --no-locale-number-format "<page>"` — no `toLocaleString`/`Intl.NumberFormat` anywhere numerals render
+  - `node i18n-check.js --api` / `--persistence` / `--smoke` — unit (Node `vm`) and headless-Chrome checks of `NT.i18n`'s own API, persistence and end-to-end behavior
+  - `node i18n-check.js --all` — every static mode over all sixteen pages; `--report` for a summary count
+- `.planning/phases/06-multi-language-support/i18n-browser.js` — headless-Chrome runtime gates, one page at a time: `--mode en-parity` (English byte-identical to the pre-i18n baseline), `--mode langs` (no untranslated English text survives in nl/de/fr/es), `--mode switch` (a mid-session language switch matches a direct load in that language at the same point), `--mode layout` (no overflow at 375px); run with no `--mode` flag for all four. `--mutant {untranslated,stale-switch,en-change,overflow}` injects a known defect and asserts the gate catches it (self-test of the gate itself).
+- Every headless-Chrome checker run (both scripts) keeps its scratch under a self-cleaning `/tmp/nt-scratch-<pid>-*` root with Chrome's own `TMPDIR` inside it, removed on exit/`SIGINT`/`SIGTERM`/`SIGHUP` and swept by the next run after a `SIGKILL` — no manual cleanup needed between runs.
+
+**Manual language checks** (no automated gate — requires human judgment):
+
+- Switch every language (nl/de/fr/es, plus en) on a sampled page via the header switcher; confirm wording reads naturally and tool names match `06-GLOSSARY.md`
+- Open two tabs on the same page, switch language in one, confirm the other tab follows via the `site-lang` `storage` event
+- Open a page from disk in Firefox (`file://`), choose a non-English language, navigate away and reopen it — confirm the choice persists via the cookie channel (Firefox gives every `file://` document its own origin, so the headless-Chrome gates above can't exercise this)
+- View the header at ~375px width in both day and night themes with German active (the longest language) — confirm the language switcher doesn't overlap or overflow next to the theme toggle
+
 ## Theme Testing
 
 Day/night theme is tested via:
