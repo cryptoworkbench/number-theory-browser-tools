@@ -1,0 +1,290 @@
+/* assets/i18n/euclidean-algorithm.js — the 'euclid' namespace: title,
+   eyebrow, heading, lede, the cross-link text, the seven preset chips,
+   the Run button, the extended-method toggle label, every validation
+   message, the swap note, the banner (incl. a plural "done" message), the
+   zero-step chain note, the extended-caption, the two geometric-view
+   toggle labels, both SVG default aria-labels, both steps' captions and
+   their capped-tile notes (each plural on the quotient's own one/other
+   category), the nested view's empty/capped messages and its own
+   capped-note, the nested tile's tooltip title, and the closing caption,
+   for the Euclidean Algorithm tool, in all five supported languages.
+
+   Classic script, IIFE, "use strict" — its only statement is
+   NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
+   literal in every language per 06-GLOSSARY.md section (e); "the GCD" as
+   a standalone prose noun is localized to each language's own
+   abbreviation (ggd/gcd/ggT/PGCD/mcd) per the glossary's core-term table
+   (row 6, greatest common divisor). Play/Pause, Step, Instant, Reset and
+   Speed live in the shared `common` namespace (assets/i18n/site.js),
+   never duplicated here. Placeholder names ({a}, {b}, {A}, {B}, {q}, {r},
+   {n}, {max}, {index}, {total}, {cap}, {rest}, {step}, {extra},
+   {stepNums}, {gcd}, {lastB}) are identical across all five languages.
+   Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
+   page's own inline <script>.
+*/
+(function () {
+  "use strict";
+
+  NT.i18n.register('euclid', {
+    nl: {
+      title: 'Algoritme van Euclides',
+      eyebrow: 'getaltheorie · algoritme van euclides',
+      heading: 'Algoritme van Euclides',
+      lede: 'Vervang het paar (a, b) herhaaldelijk door (b, a mod b) — deel de grootste door de kleinste en houd alleen de rest over — en het paar wordt elke stap kleiner. Zodra één kant nul bereikt, is de andere kant de grootste gemene deler van de twee getallen waarmee je begon.',
+      xref: 'Diezelfde ggd is ook te zien als de priemfactoren die de twee getallen delen →',
+      chipFiveSteps: '240, 46 · 5 stappen',
+      chipCoprime: '35, 18 · onderling ondeelbaar',
+      chipBDividesA: '144, 12 · b deelt a',
+      chipEqualPair: '36, 36 · gelijk paar',
+      chipAlreadyDone: '17, 0 · al klaar',
+      chipFibonacciWorst: '89, 55 · ergste geval van Fibonacci',
+      chipHugeQuotient: '500000, 2 · enorm quotiënt',
+      run: 'Start',
+      extToggleLabel: 'Uitgebreide Euclidische modus — toon de Bézout-coëfficiënten {0} en {1}',
+      errBothWhole: 'Zowel a als b moeten gehele getallen zijn.',
+      errBothNonNegative: 'Zowel a als b moeten nul of positief zijn — negatieve getallen hebben hier geen gedefinieerde ggd.',
+      errGcdZeroZero: 'gcd(0, 0) is niet gedefinieerd — voer minstens één waarde ongelijk aan nul in.',
+      errClamped: 'Invoer is beperkt tot {max} — de grotere waarde is verlaagd om te passen.',
+      swapNote: 'De grootste waarde gaat voor: ingevoerd als ({a}, {b}), getraceerd als gcd({A}, {B}) — de ggd is symmetrisch in zijn argumenten.',
+      bannerReady: 'Klaar — druk op Afspelen om de afleiding regel voor regel te zien opbouwen.',
+      bannerDone: { one: 'Klaar — {n} stap om tot de ggd te komen.', other: 'Klaar — {n} stappen om tot de ggd te komen.' },
+      chainNoteZero: 'b is al 0, dus er is niets meer te delen — a is al de grootste gemene deler.',
+      extCaption: 'De {0} en {1} van elke regel drukken de rest van die regel uit als een combinatie van de twee oorspronkelijke invoerwaarden — {2}.',
+      viewNested: 'Geneste vierkanten',
+      geomViewGroupLabel: 'Geometrische weergavemodus',
+      viewStep: 'Enkele stap',
+      tileAriaDefault: 'Rechthoekweergave van de huidige delingsstap',
+      nestedAriaDefault: 'Alle delingsstappen genest in één rechthoek',
+      caption: 'Opeenvolgende Fibonacci-getallen zijn het ergste geval voor dit algoritme — ze dwingen voor hun grootte het meeste aantal delingsstappen af.',
+      tileCaptionExact: {
+        one: 'Stap {index} van {total}: {a} ÷ {b}: de rechthoek wordt exact betegeld met {q} vierkant met zijde {b} — geen rest, dus {b} is de grootste gemene deler.',
+        other: 'Stap {index} van {total}: {a} ÷ {b}: de rechthoek wordt exact betegeld met {q} vierkanten met zijde {b} — geen rest, dus {b} is de grootste gemene deler.'
+      },
+      tileCaptionLeftover: {
+        one: 'Stap {index} van {total}: {a} = {q}×{b} + {r}: {q} vierkant met zijde {b} past, met een rest van {b}×{r}.',
+        other: 'Stap {index} van {total}: {a} = {q}×{b} + {r}: {q} vierkanten met zijde {b} passen, met een rest van {b}×{r}.'
+      },
+      tileNoteCapped: 'Het werkelijke quotiënt is {q} — alleen de eerste {cap} vierkanten worden hier getekend; de resterende {rest} zijn samengevoegd in de gelabelde tegel, dus de getekende breedte is niet op schaal.',
+      nestedEmptyMessage: 'Er is geen rechthoek om te nesten — b is al 0, dus het algoritme is al klaar.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: alle {n} stap nest in één {A}×{B}-rechthoek — de kleinste, {lastB}×{lastB} vierkanten zijn de grootste gemene deler. Klik op een vierkant (of een stap hierboven) om te zien hoe ze op elkaar aansluiten.',
+        other: 'gcd({A}, {B}) = {gcd}: alle {n} stappen nesten in één {A}×{B}-rechthoek — de kleinste, {lastB}×{lastB} vierkanten zijn de grootste gemene deler. Klik op een vierkant (of een stap hierboven) om te zien hoe ze op elkaar aansluiten.'
+      },
+      nestedNoteCapped: {
+        one: 'Stap {stepNums} heeft een zeer groot quotiënt — alleen de eerste {cap} vierkanten worden daar getekend, samengevoegd in een gestippelde tegel, dus dit diagram is bij die stap niet volledig op schaal.',
+        other: 'Stappen {stepNums} hebben een zeer groot quotiënt — alleen de eerste {cap} vierkanten worden daar getekend, samengevoegd in een gestippelde tegel, dus dit diagram is bij die stappen niet volledig op schaal.'
+      },
+      nestedTileTitle: 'Stap {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Stap {step}: {a} = {q}·{b} + {r} ({extra} extra vierkanten hier samengevoegd)',
+      tileEmptyMessage: 'Er is geen rechthoek om te snijden — b is al 0, dus het algoritme is al klaar.'
+    },
+    en: {
+      title: 'Euclidean Algorithm',
+      eyebrow: 'number theory · euclidean algorithm',
+      heading: 'Euclidean Algorithm',
+      lede: 'Repeatedly replace the pair (a, b) with (b, a mod b) — divide the larger by the smaller and keep only the remainder — and the pair shrinks every step. The moment one side reaches zero, the other side is the greatest common divisor of the two numbers you started with.',
+      xref: 'The same GCD can also be seen as the primes the two numbers share →',
+      chipFiveSteps: '240, 46 · 5 steps',
+      chipCoprime: '35, 18 · coprime',
+      chipBDividesA: '144, 12 · b divides a',
+      chipEqualPair: '36, 36 · equal pair',
+      chipAlreadyDone: '17, 0 · already done',
+      chipFibonacciWorst: '89, 55 · Fibonacci worst case',
+      chipHugeQuotient: '500000, 2 · huge quotient',
+      run: 'Run',
+      extToggleLabel: 'Extended Euclidean mode — show the Bézout coefficients {0} and {1}',
+      errBothWhole: 'Both a and b must be whole numbers.',
+      errBothNonNegative: 'Both a and b must be zero or positive — negative numbers have no defined GCD here.',
+      errGcdZeroZero: 'gcd(0, 0) is undefined — enter at least one nonzero value.',
+      errClamped: 'Inputs are capped at {max} — the larger value was clamped down to fit.',
+      swapNote: 'The larger value leads: entered as ({a}, {b}), traced as gcd({A}, {B}) — the GCD is symmetric in its arguments.',
+      bannerReady: 'Ready — press Play to watch the derivation build one line at a time.',
+      bannerDone: { one: 'Done — {n} step to reach the GCD.', other: 'Done — {n} steps to reach the GCD.' },
+      chainNoteZero: 'b is already 0, so there is nothing left to divide — a is already the greatest common divisor.',
+      extCaption: "Each line's {0} and {1} express that line's remainder as a combination of the two original inputs — {2}.",
+      viewNested: 'Nested squares',
+      geomViewGroupLabel: 'Geometric view mode',
+      viewStep: 'Single step',
+      tileAriaDefault: 'Rectangle view of the current division step',
+      nestedAriaDefault: 'All division steps nested into a single rectangle',
+      caption: 'Consecutive Fibonacci numbers are the worst case for this algorithm — they force the most division steps for their size.',
+      tileCaptionExact: {
+        one: 'Step {index} of {total}: {a} ÷ {b}: the rectangle tiles exactly with {q} square of side {b} — no leftover, so {b} is the greatest common divisor.',
+        other: 'Step {index} of {total}: {a} ÷ {b}: the rectangle tiles exactly with {q} squares of side {b} — no leftover, so {b} is the greatest common divisor.'
+      },
+      tileCaptionLeftover: {
+        one: 'Step {index} of {total}: {a} = {q}×{b} + {r}: {q} square of side {b} fits, leaving a {b}×{r} leftover.',
+        other: 'Step {index} of {total}: {a} = {q}×{b} + {r}: {q} squares of side {b} fit, leaving a {b}×{r} leftover.'
+      },
+      tileNoteCapped: 'The true quotient is {q} — only the first {cap} squares are drawn here; the remaining {rest} are collapsed into the labelled tile, so the drawn width is not to scale.',
+      nestedEmptyMessage: 'There is no rectangle to nest — b is already 0, so the algorithm is already done.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: all {n} step nest into one {A}×{B} rectangle — the smallest, {lastB}×{lastB} squares are the greatest common divisor. Click a square (or a step above) to see how they line up.',
+        other: 'gcd({A}, {B}) = {gcd}: all {n} steps nest into one {A}×{B} rectangle — the smallest, {lastB}×{lastB} squares are the greatest common divisor. Click a square (or a step above) to see how they line up.'
+      },
+      nestedNoteCapped: {
+        one: 'Step {stepNums} has a very large quotient — only the first {cap} squares are drawn there, collapsed into a dashed tile, so this diagram is not fully to scale at that step.',
+        other: 'Steps {stepNums} have a very large quotient — only the first {cap} squares are drawn there, collapsed into a dashed tile, so this diagram is not fully to scale at those steps.'
+      },
+      nestedTileTitle: 'Step {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Step {step}: {a} = {q}·{b} + {r} ({extra} more squares collapsed here)',
+      tileEmptyMessage: 'There is no rectangle to cut — b is already 0, so the algorithm is already done.'
+    },
+    de: {
+      title: 'Euklidischer Algorithmus',
+      eyebrow: 'zahlentheorie · euklidischer algorithmus',
+      heading: 'Euklidischer Algorithmus',
+      lede: 'Ersetze das Paar (a, b) wiederholt durch (b, a mod b) — teile die größere Zahl durch die kleinere und behalte nur den Rest — und das Paar wird mit jedem Schritt kleiner. Sobald eine Seite null erreicht, ist die andere Seite der größte gemeinsame Teiler der beiden Zahlen, mit denen du begonnen hast.',
+      xref: 'Derselbe ggT lässt sich auch als die Primfaktoren sehen, die sich die beiden Zahlen teilen →',
+      chipFiveSteps: '240, 46 · 5 Schritte',
+      chipCoprime: '35, 18 · teilerfremd',
+      chipBDividesA: '144, 12 · b teilt a',
+      chipEqualPair: '36, 36 · gleiches Paar',
+      chipAlreadyDone: '17, 0 · bereits fertig',
+      chipFibonacciWorst: '89, 55 · Fibonacci-Worst-Case',
+      chipHugeQuotient: '500000, 2 · riesiger Quotient',
+      run: 'Starten',
+      extToggleLabel: 'Erweiterter euklidischer Modus — zeige die Bézout-Koeffizienten {0} und {1}',
+      errBothWhole: 'Sowohl a als auch b müssen ganze Zahlen sein.',
+      errBothNonNegative: 'Sowohl a als auch b müssen null oder positiv sein — negative Zahlen haben hier keinen definierten ggT.',
+      errGcdZeroZero: 'gcd(0, 0) ist nicht definiert — gib mindestens einen Wert ungleich null ein.',
+      errClamped: 'Eingaben sind auf {max} begrenzt — der größere Wert wurde entsprechend verkleinert.',
+      swapNote: 'Der größere Wert führt: eingegeben als ({a}, {b}), verfolgt als gcd({A}, {B}) — der ggT ist symmetrisch in seinen Argumenten.',
+      bannerReady: 'Bereit — drücke Abspielen, um die Herleitung Zeile für Zeile aufbauen zu sehen.',
+      bannerDone: { one: 'Fertig — {n} Schritt, um den ggT zu erreichen.', other: 'Fertig — {n} Schritte, um den ggT zu erreichen.' },
+      chainNoteZero: 'b ist bereits 0, also gibt es nichts mehr zu teilen — a ist bereits der größte gemeinsame Teiler.',
+      extCaption: '{0} und {1} jeder Zeile drücken den Rest dieser Zeile als Kombination der beiden ursprünglichen Eingaben aus — {2}.',
+      viewNested: 'Verschachtelte Quadrate',
+      geomViewGroupLabel: 'Geometrischer Ansichtsmodus',
+      viewStep: 'Einzelner Schritt',
+      tileAriaDefault: 'Rechteckansicht des aktuellen Divisionsschritts',
+      nestedAriaDefault: 'Alle Divisionsschritte in einem einzigen Rechteck verschachtelt',
+      caption: 'Aufeinanderfolgende Fibonacci-Zahlen sind der schlimmste Fall für diesen Algorithmus — sie erzwingen für ihre Größe die meisten Divisionsschritte.',
+      tileCaptionExact: {
+        one: 'Schritt {index} von {total}: {a} ÷ {b}: Das Rechteck wird exakt mit {q} Quadrat der Seitenlänge {b} gekachelt — kein Rest, also ist {b} der größte gemeinsame Teiler.',
+        other: 'Schritt {index} von {total}: {a} ÷ {b}: Das Rechteck wird exakt mit {q} Quadraten der Seitenlänge {b} gekachelt — kein Rest, also ist {b} der größte gemeinsame Teiler.'
+      },
+      tileCaptionLeftover: {
+        one: 'Schritt {index} von {total}: {a} = {q}×{b} + {r}: {q} Quadrat der Seitenlänge {b} passt, es bleibt ein Rest von {b}×{r}.',
+        other: 'Schritt {index} von {total}: {a} = {q}×{b} + {r}: {q} Quadrate der Seitenlänge {b} passen, es bleibt ein Rest von {b}×{r}.'
+      },
+      tileNoteCapped: 'Der tatsächliche Quotient ist {q} — nur die ersten {cap} Quadrate werden hier gezeichnet; die restlichen {rest} sind in die beschriftete Kachel zusammengefasst, daher ist die gezeichnete Breite nicht maßstabsgetreu.',
+      nestedEmptyMessage: 'Es gibt kein Rechteck zum Verschachteln — b ist bereits 0, also ist der Algorithmus bereits fertig.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: Alle {n} Schritt verschachteln sich in ein einziges {A}×{B}-Rechteck — die kleinsten, {lastB}×{lastB}-Quadrate sind der größte gemeinsame Teiler. Klicke auf ein Quadrat (oder einen Schritt oben), um zu sehen, wie sie zusammenpassen.',
+        other: 'gcd({A}, {B}) = {gcd}: Alle {n} Schritte verschachteln sich in ein einziges {A}×{B}-Rechteck — die kleinsten, {lastB}×{lastB}-Quadrate sind der größte gemeinsame Teiler. Klicke auf ein Quadrat (oder einen Schritt oben), um zu sehen, wie sie zusammenpassen.'
+      },
+      nestedNoteCapped: {
+        one: 'Schritt {stepNums} hat einen sehr großen Quotienten — dort werden nur die ersten {cap} Quadrate gezeichnet, zusammengefasst in eine gestrichelte Kachel, daher ist dieses Diagramm bei diesem Schritt nicht vollständig maßstabsgetreu.',
+        other: 'Schritte {stepNums} haben einen sehr großen Quotienten — dort werden nur die ersten {cap} Quadrate gezeichnet, zusammengefasst in eine gestrichelte Kachel, daher ist dieses Diagramm bei diesen Schritten nicht vollständig maßstabsgetreu.'
+      },
+      nestedTileTitle: 'Schritt {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Schritt {step}: {a} = {q}·{b} + {r} ({extra} weitere Quadrate hier zusammengefasst)',
+      tileEmptyMessage: 'Es gibt kein Rechteck zum Schneiden — b ist bereits 0, also ist der Algorithmus bereits fertig.'
+    },
+    fr: {
+      title: "Algorithme d'Euclide",
+      eyebrow: "théorie des nombres · algorithme d'euclide",
+      heading: "Algorithme d'Euclide",
+      lede: "Remplacez de façon répétée la paire (a, b) par (b, a mod b) — divisez le plus grand par le plus petit et ne gardez que le reste — et la paire se réduit à chaque étape. Dès qu'un côté atteint zéro, l'autre côté est le plus grand commun diviseur des deux nombres de départ.",
+      xref: 'Le même PGCD peut aussi se voir comme les facteurs premiers que les deux nombres partagent →',
+      chipFiveSteps: '240, 46 · 5 étapes',
+      chipCoprime: '35, 18 · premiers entre eux',
+      chipBDividesA: '144, 12 · b divise a',
+      chipEqualPair: '36, 36 · paire égale',
+      chipAlreadyDone: '17, 0 · déjà terminé',
+      chipFibonacciWorst: '89, 55 · pire cas de Fibonacci',
+      chipHugeQuotient: '500000, 2 · quotient énorme',
+      run: 'Exécuter',
+      extToggleLabel: "Mode d'Euclide étendu — affichez les coefficients de Bézout {0} et {1}",
+      errBothWhole: 'a et b doivent tous deux être des nombres entiers.',
+      errBothNonNegative: "a et b doivent tous deux être nuls ou positifs — les nombres négatifs n'ont pas de PGCD défini ici.",
+      errGcdZeroZero: "gcd(0, 0) n'est pas défini — entrez au moins une valeur non nulle.",
+      errClamped: 'Les entrées sont limitées à {max} — la valeur la plus grande a été réduite pour correspondre.',
+      swapNote: 'La plus grande valeur passe en tête : saisie comme ({a}, {b}), tracée comme gcd({A}, {B}) — le PGCD est symétrique dans ses arguments.',
+      bannerReady: 'Prêt — appuyez sur Lecture pour regarder la dérivation se construire ligne par ligne.',
+      bannerDone: { one: 'Terminé — {n} étape pour atteindre le PGCD.', other: 'Terminé — {n} étapes pour atteindre le PGCD.' },
+      chainNoteZero: "b est déjà 0, il n'y a donc plus rien à diviser — a est déjà le plus grand commun diviseur.",
+      extCaption: "Les {0} et {1} de chaque ligne expriment le reste de cette ligne comme une combinaison des deux entrées d'origine — {2}.",
+      viewNested: 'Carrés imbriqués',
+      geomViewGroupLabel: 'Mode de vue géométrique',
+      viewStep: 'Étape unique',
+      tileAriaDefault: "Vue en rectangle de l'étape de division actuelle",
+      nestedAriaDefault: 'Toutes les étapes de division imbriquées dans un seul rectangle',
+      caption: "Les nombres de Fibonacci consécutifs sont le pire cas pour cet algorithme — ils imposent le plus grand nombre d'étapes de division pour leur taille.",
+      tileCaptionExact: {
+        one: 'Étape {index} sur {total} : {a} ÷ {b} : le rectangle se pave exactement avec {q} carré de côté {b} — pas de reste, donc {b} est le plus grand commun diviseur.',
+        other: 'Étape {index} sur {total} : {a} ÷ {b} : le rectangle se pave exactement avec {q} carrés de côté {b} — pas de reste, donc {b} est le plus grand commun diviseur.'
+      },
+      tileCaptionLeftover: {
+        one: 'Étape {index} sur {total} : {a} = {q}×{b} + {r} : {q} carré de côté {b} tient, laissant un reste de {b}×{r}.',
+        other: 'Étape {index} sur {total} : {a} = {q}×{b} + {r} : {q} carrés de côté {b} tiennent, laissant un reste de {b}×{r}.'
+      },
+      tileNoteCapped: "Le véritable quotient est {q} — seuls les {cap} premiers carrés sont dessinés ici ; les {rest} restants sont regroupés dans la tuile étiquetée, donc la largeur dessinée n'est pas à l'échelle.",
+      nestedEmptyMessage: "Il n'y a pas de rectangle à imbriquer — b est déjà 0, l'algorithme est donc déjà terminé.",
+      nestedCaption: {
+        one: "gcd({A}, {B}) = {gcd} : les {n} étape s'imbrique en un seul rectangle {A}×{B} — les plus petits carrés, {lastB}×{lastB}, sont le plus grand commun diviseur. Cliquez sur un carré (ou une étape ci-dessus) pour voir comment ils s'alignent.",
+        other: "gcd({A}, {B}) = {gcd} : les {n} étapes s'imbriquent en un seul rectangle {A}×{B} — les plus petits carrés, {lastB}×{lastB}, sont le plus grand commun diviseur. Cliquez sur un carré (ou une étape ci-dessus) pour voir comment ils s'alignent."
+      },
+      nestedNoteCapped: {
+        one: "L'étape {stepNums} a un quotient très grand — seuls les {cap} premiers carrés y sont dessinés, regroupés dans une tuile en pointillés, donc ce diagramme n'est pas entièrement à l'échelle à cette étape.",
+        other: "Les étapes {stepNums} ont un quotient très grand — seuls les {cap} premiers carrés y sont dessinés, regroupés dans une tuile en pointillés, donc ce diagramme n'est pas entièrement à l'échelle à ces étapes."
+      },
+      nestedTileTitle: 'Étape {step} : {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Étape {step} : {a} = {q}·{b} + {r} ({extra} carrés supplémentaires regroupés ici)',
+      tileEmptyMessage: "Il n'y a pas de rectangle à découper — b est déjà 0, l'algorithme est donc déjà terminé."
+    },
+    es: {
+      title: 'Algoritmo de Euclides',
+      eyebrow: 'teoría de números · algoritmo de euclides',
+      heading: 'Algoritmo de Euclides',
+      lede: 'Sustituye repetidamente el par (a, b) por (b, a mod b) — divide el mayor entre el menor y conserva solo el resto — y el par se reduce en cada paso. En el momento en que un lado llega a cero, el otro lado es el máximo común divisor de los dos números con los que empezaste.',
+      xref: 'El mismo mcd también puede verse como los factores primos que comparten los dos números →',
+      chipFiveSteps: '240, 46 · 5 pasos',
+      chipCoprime: '35, 18 · coprimos',
+      chipBDividesA: '144, 12 · b es divisor de a',
+      chipEqualPair: '36, 36 · par igual',
+      chipAlreadyDone: '17, 0 · ya terminado',
+      chipFibonacciWorst: '89, 55 · peor caso de Fibonacci',
+      chipHugeQuotient: '500000, 2 · cociente enorme',
+      run: 'Ejecutar',
+      extToggleLabel: 'Modo de Euclides extendido — muestra los coeficientes de Bézout {0} y {1}',
+      errBothWhole: 'Tanto a como b deben ser números enteros.',
+      errBothNonNegative: 'Tanto a como b deben ser cero o positivos — los números negativos no tienen un mcd definido aquí.',
+      errGcdZeroZero: 'gcd(0, 0) no está definido — introduce al menos un valor distinto de cero.',
+      errClamped: 'Las entradas están limitadas a {max} — el valor mayor se redujo para ajustarse.',
+      swapNote: 'El valor mayor va primero: introducido como ({a}, {b}), trazado como gcd({A}, {B}) — el mcd es simétrico en sus argumentos.',
+      bannerReady: 'Listo — pulsa Reproducir para ver cómo la derivación se construye línea por línea.',
+      bannerDone: { one: 'Listo — {n} paso para llegar al mcd.', other: 'Listo — {n} pasos para llegar al mcd.' },
+      chainNoteZero: 'b ya es 0, así que no queda nada que dividir — a ya es el máximo común divisor.',
+      extCaption: 'Los {0} y {1} de cada línea expresan el resto de esa línea como una combinación de las dos entradas originales — {2}.',
+      viewNested: 'Cuadrados anidados',
+      geomViewGroupLabel: 'Modo de vista geométrica',
+      viewStep: 'Paso único',
+      tileAriaDefault: 'Vista en rectángulo del paso de división actual',
+      nestedAriaDefault: 'Todos los pasos de división anidados en un único rectángulo',
+      caption: 'Los números de Fibonacci consecutivos son el peor caso para este algoritmo — exigen el mayor número de pasos de división para su tamaño.',
+      tileCaptionExact: {
+        one: 'Paso {index} de {total}: {a} ÷ {b}: el rectángulo se cubre exactamente con {q} cuadrado de lado {b} — sin sobrante, así que {b} es el máximo común divisor.',
+        other: 'Paso {index} de {total}: {a} ÷ {b}: el rectángulo se cubre exactamente con {q} cuadrados de lado {b} — sin sobrante, así que {b} es el máximo común divisor.'
+      },
+      tileCaptionLeftover: {
+        one: 'Paso {index} de {total}: {a} = {q}×{b} + {r}: cabe {q} cuadrado de lado {b}, dejando un sobrante de {b}×{r}.',
+        other: 'Paso {index} de {total}: {a} = {q}×{b} + {r}: caben {q} cuadrados de lado {b}, dejando un sobrante de {b}×{r}.'
+      },
+      tileNoteCapped: 'El cociente real es {q} — aquí solo se dibujan los primeros {cap} cuadrados; los {rest} restantes se agrupan en la casilla etiquetada, así que el ancho dibujado no está a escala.',
+      nestedEmptyMessage: 'No hay rectángulo que anidar — b ya es 0, así que el algoritmo ya ha terminado.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: el {n} paso se anida en un único rectángulo {A}×{B} — los cuadrados más pequeños, {lastB}×{lastB}, son el máximo común divisor. Haz clic en un cuadrado (o en un paso de arriba) para ver cómo se alinean.',
+        other: 'gcd({A}, {B}) = {gcd}: los {n} pasos se anidan en un único rectángulo {A}×{B} — los cuadrados más pequeños, {lastB}×{lastB}, son el máximo común divisor. Haz clic en un cuadrado (o en un paso de arriba) para ver cómo se alinean.'
+      },
+      nestedNoteCapped: {
+        one: 'El paso {stepNums} tiene un cociente muy grande — allí solo se dibujan los primeros {cap} cuadrados, agrupados en una casilla discontinua, así que este diagrama no está totalmente a escala en ese paso.',
+        other: 'Los pasos {stepNums} tienen un cociente muy grande — allí solo se dibujan los primeros {cap} cuadrados, agrupados en una casilla discontinua, así que este diagrama no está totalmente a escala en esos pasos.'
+      },
+      nestedTileTitle: 'Paso {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Paso {step}: {a} = {q}·{b} + {r} ({extra} cuadrados más agrupados aquí)',
+      tileEmptyMessage: 'No hay rectángulo que cortar — b ya es 0, así que el algoritmo ya ha terminado.'
+    }
+  });
+})();
