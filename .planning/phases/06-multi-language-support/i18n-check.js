@@ -713,7 +713,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "nl"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "it", "nl"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -887,6 +887,10 @@ function doApi() {
   check("detectDefaultLang(['pt-BR']) -> en (unsupported falls back)", I.detectDefaultLang(), "en");
   ctx.navigator = { languages: ["NL"] };
   check("detectDefaultLang(['NL']) -> nl (case-insensitive)", I.detectDefaultLang(), "nl");
+  ctx.navigator = { languages: ["it-IT", "en"] };
+  check("detectDefaultLang(['it-IT','en']) -> it", I.detectDefaultLang(), "it");
+  ctx.navigator = { languages: ["IT"] };
+  check("detectDefaultLang(['IT']) -> it (case-insensitive)", I.detectDefaultLang(), "it");
   ctx.navigator = { language: "fr-FR" };
   check("detectDefaultLang single navigator.language fallback -> fr", I.detectDefaultLang(), "fr");
   ctx.navigator = undefined;
@@ -962,7 +966,7 @@ function doPersistence() {
   });
 
   // Every supported language round-trips through each individual channel.
-  ["nl", "en", "de", "fr", "es"].forEach(function (lang) {
+  LANG_CODES.forEach(function (lang) {
     var ctxUrl = loadI18n({ search: "?lang=" + lang, navigator: { languages: ["en-US", "en"] } });
     check("channel url resolves '" + lang + "'", ctxUrl.NT.i18n.getLang(), lang);
     var ctxCookie = loadI18n({ cookie: { initial: lang }, navigator: { languages: ["en-US", "en"] } });
@@ -1012,7 +1016,8 @@ function doPersistence() {
   [
     { opts: { search: "?lang=de" }, lang: "de", via: "url" },
     { opts: { cookie: { initial: "fr" } }, lang: "fr", via: "cookie" },
-    { opts: { storage: { initial: "es" } }, lang: "es", via: "storage" }
+    { opts: { storage: { initial: "es" } }, lang: "es", via: "storage" },
+    { opts: { search: "?lang=it" }, lang: "it", via: "url" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1103,6 +1108,24 @@ function doPersistence() {
  * --report. Shared across every per-page translation plan in wave 3.
  * ======================================================================= */
 
+/* ---------- language lists (Q-04, quick task 261002-c77) ---------- */
+
+// LANG_CODES: the six supported codes, switcher order (nl, en, de, fr, es,
+// it). checkDictionaries iterates this instead of a local SUPPORTED list.
+var LANG_CODES = ["nl", "en", "de", "fr", "es", "it"];
+
+// SWITCHER_OPTIONS: the six <option value lang label> entries expected in
+// every page's #lang-switch-select, same order as LANG_CODES, mirroring the
+// literal page markup. checkSwitcherPresent compares against this list.
+var SWITCHER_OPTIONS = [
+  { value: "nl", lang: "nl", label: "Nederlands" },
+  { value: "en", lang: "en", label: "English" },
+  { value: "de", lang: "de", label: "Deutsch" },
+  { value: "fr", lang: "fr", label: "Français" },
+  { value: "es", lang: "es", label: "Español" },
+  { value: "it", lang: "it", label: "Italiano" }
+];
+
 /* ---------- page table ---------- */
 
 var PAGES = [
@@ -1142,12 +1165,12 @@ function slugFromPath(relPath) {
 
 var NEUTRAL_TOKENS = [
   // glossary proper nouns (06-GLOSSARY.md section d)
-  "alice", "bob", "eve", "rsa", "diffie", "hellman", "diffie-hellman", "euler", "fermat",
+  "alice", "bob", "eve", "rsa", "diffie", "hellman", "diffie-hellman", "euler", "eulero", "fermat",
   "cayley", "venn", "shor", "euclid", "euclides", "euklid", "euclide",
-  "eratosthenes", "eratosthène", "eratosthene", "eratóstenes", "eratostenes",
+  "eratosthenes", "eratosthène", "eratosthene", "eratóstenes", "eratostenes", "eratostene",
   "bézout", "bezout", "sunzi",
-  // the five autonyms (switcher option labels)
-  "nederlands", "english", "deutsch", "français", "francais", "español", "espanol",
+  // the six autonyms (switcher option labels)
+  "nederlands", "english", "deutsch", "français", "francais", "español", "espanol", "italiano",
   // math/domain abbreviations
   "mod", "gcd", "lcm", "max", "min", "log", "exp", "sqrt", "phi"
 ];
@@ -1334,18 +1357,12 @@ function checkSwitcherPresent(relPath, html, findings) {
   } else {
     var block = /<select\b[^>]*id="lang-switch-select"[^>]*>([\s\S]*?)<\/select>/.exec(html);
     var optionsHtml = block ? block[1] : "";
-    var expected = [
-      { value: "nl", lang: "nl", label: "Nederlands" },
-      { value: "en", lang: "en", label: "English" },
-      { value: "de", lang: "de", label: "Deutsch" },
-      { value: "fr", lang: "fr", label: "Français" },
-      { value: "es", lang: "es", label: "Español" }
-    ];
+    var expected = SWITCHER_OPTIONS;
     var optRe = /<option value="([a-z]{2})" lang="([a-z]{2})"(?: selected)?>([^<]*)<\/option>/g;
     var found = [], om;
     while ((om = optRe.exec(optionsHtml))) found.push({ value: om[1], lang: om[2], label: om[3] });
-    if (found.length !== 5) {
-      findings.push("SWITCHER " + relPath + ": expected 5 language options, found " + found.length);
+    if (found.length !== SWITCHER_OPTIONS.length) {
+      findings.push("SWITCHER " + relPath + ": expected " + SWITCHER_OPTIONS.length + " language options, found " + found.length);
     } else {
       expected.forEach(function (exp, i) {
         var got = found[i];
@@ -1549,7 +1566,7 @@ function dataFileNsList(file) {
 function checkDictionaries() {
   var findings = [];
   var catalog = loadCatalog();
-  var SUPPORTED = ["nl", "en", "de", "fr", "es"];
+  var SUPPORTED = LANG_CODES;
 
   // DICT-FILE / DUP-NS
   var i18nDir = path.join(ROOT, "assets", "i18n");
@@ -1993,6 +2010,7 @@ module.exports = {
   ROOT: ROOT,
   loadCatalog: loadCatalog,
   PAGES: PAGES,
+  LANG_CODES: LANG_CODES,
   NEUTRAL_TOKENS: NEUTRAL_TOKENS,
   isProse: isProse,
   readConfig: readConfig,

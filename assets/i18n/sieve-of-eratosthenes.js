@@ -1,7 +1,7 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all five supported
+   marker for the Sieve of Eratosthenes tool, in all six supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -145,6 +145,32 @@
       'banner.done': {
         one: 'Se encontró {count} número primo hasta {n} en {time}.',
         other: 'Se encontraron {count} números primos hasta {n} en {time}.'
+      }
+    },
+    it: {
+      title: 'Crivello di Eratostene — Visualizzatore interattivo',
+      heading: 'Crivello di Eratostene',
+      lede: 'Dai a ogni numero naturale la sua casella — poi guarda il crivello eliminare tutto ciò che non è primo.',
+      sizeLabel: 'Dimensione del crivello (N)',
+      generate: '🧮 Genera',
+      'stat.current': 'Attuale',
+      'stat.primesFound': 'Numeri primi trovati',
+      'stat.sqrtBoundary': 'Limite √N',
+      'stat.elapsed': 'Trascorso',
+      'stat.progress': 'Avanzamento',
+      'stat.done': '✓ fatto',
+      'legend.unvisited': '{0} Non visitato',
+      'legend.currentPointer': '{0} Puntatore attuale',
+      'legend.prime': '{0} Primo',
+      'legend.composite': '{0} Eliminato (composto)',
+      'legend.neither': '{0} Nessuno dei due (1)',
+      footer: 'Tutti i calcoli vengono eseguiti lato client nel tuo browser. Nessun numero è stato danneggiato permanentemente — solo eliminato.',
+      'banner.ready': 'Pronto. {n} caselle create — premi Riproduci per setacciare.',
+      'banner.single': 'Solo 1 casella — niente da setacciare.',
+      'banner.reset': 'Reimpostato. {n} caselle ricostruite — premi Riproduci per setacciare.',
+      'banner.done': {
+        one: '{count} numero primo trovato fino a {n} in {time}.',
+        other: '{count} numeri primi trovati fino a {n} in {time}.'
       }
     }
   });

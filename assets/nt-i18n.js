@@ -56,7 +56,7 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';

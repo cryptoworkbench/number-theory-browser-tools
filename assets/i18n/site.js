@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared header chrome
    (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all five supported languages.
+   label and the day/night toggle's label) in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -123,6 +123,28 @@
       'nav.shor': 'Algoritmo de Shor',
       'lang.label': 'Idioma',
       'theme.toggle': 'Alternar entre modo día y modo noche'
+    },
+    it: {
+      brand: 'Strumenti di teoria dei numeri',
+      'nav.label': 'Strumenti',
+      'nav.home': 'Inizio',
+      'nav.sieve': 'Crivello di Eratostene',
+      'nav.factorTree': 'Albero dei fattori',
+      'nav.venn': 'Diagramma di Venn',
+      'nav.euclid': 'Algoritmo di Euclide',
+      'nav.crt': 'Teorema cinese del resto',
+      'nav.wheel': 'Ruota di equivalenza',
+      'nav.totient': 'Funzione φ di Eulero',
+      'nav.cayley': 'Tavola di Cayley',
+      'nav.iso': 'Isomorfismo di gruppi',
+      'nav.sqm': 'Esponenziazione rapida',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH su curve ellittiche',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Metodo di Fermat',
+      'nav.shor': 'Algoritmo di Shor',
+      'lang.label': 'Lingua',
+      'theme.toggle': 'Alterna tra modalità giorno e notte'
     }
   });
 
@@ -234,6 +256,26 @@
       'speed.10': 'casi instantáneo',
       additiveGroups: 'Grupos aditivos',
       multiplicativeGroups: 'Grupos multiplicativos'
+    },
+    it: {
+      play: '▶ Riproduci',
+      pause: '⏸ Pausa',
+      step: '⏭ Passo',
+      instant: '⏩ Istantaneo',
+      reset: '↺ Reimposta',
+      speed: 'Velocità',
+      'speed.1': 'glaciale',
+      'speed.2': 'lento',
+      'speed.3': 'tranquillo',
+      'speed.4': 'vivace',
+      'speed.5': 'costante',
+      'speed.6': 'svelto',
+      'speed.7': 'veloce',
+      'speed.8': 'rapido',
+      'speed.9': 'fulmineo',
+      'speed.10': 'quasi istantaneo',
+      additiveGroups: 'Gruppi additivi',
+      multiplicativeGroups: 'Gruppi moltiplicativi'
     }
   });
 })();

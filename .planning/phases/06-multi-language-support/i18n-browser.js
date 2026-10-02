@@ -14,9 +14,10 @@
  *              i18n-only artifacts (data-i18n* attrs, the lang-switch
  *              element, lang= query params, the site-lang storage/cookie
  *              entry) from NEW — must be byte-identical.
- *   langs      NEW in nl/de/fr/es (+ one extra day-theme run): no errors,
- *              correct <html lang>/theme, no untranslated (English) prose
- *              segment surviving in a non-English run.
+ *   langs      NEW in every non-English supported language (+ one extra
+ *              day-theme run): no errors, correct <html lang>/theme, no
+ *              untranslated (English) prose segment surviving in a
+ *              non-English run.
  *   switch     at each switchPoint, switching language mid-flight (via the
  *              header select + a change event) must produce the exact same
  *              snapshot as loading directly in that language at that point.
@@ -43,6 +44,12 @@ var P7_DIR = path.join(ROOT, ".planning", "phases", "07-shared-js-module-refacto
 var browserDiff = require(path.join(P7_DIR, "browser-diff.js"));
 var harness = require(path.join(P7_DIR, "harness.js"));
 var i18nCheck = require(path.join(__dirname, "i18n-check.js"));
+
+// NON_EN_LANGS (Q-04, quick task 261002-c77): every supported language
+// except English, derived from i18n-check.js's exported LANG_CODES so this
+// file never carries its own separate four/five-language literal. Used by
+// doLangs, doSwitch and doLayout's comparison loop.
+var NON_EN_LANGS = i18nCheck.LANG_CODES.filter(function (l) { return l !== "en"; });
 
 /* ---------- BASE (parent of the commit that first added assets/nt-i18n.js) ---------- */
 
@@ -355,7 +362,7 @@ function doLangs(toolRelPath, cfg, mutantKind) {
   if (enRes.error) { console.log("I18N-BROWSER " + cfg.slug + " langs " + enRes.error + " (en baseline)"); return false; }
   var enSegmentsBySnap = enRes.snaps.map(function (s) { return extractTextSegments(s.html, s.title); });
 
-  var langs = ["nl", "de", "fr", "es"];
+  var langs = NON_EN_LANGS;
   langs.forEach(function (lang) {
     var q = run.query ? run.query + "&lang=" + lang : "?lang=" + lang;
     var r = Object.assign({}, runWithMeta, { query: q });
@@ -401,7 +408,7 @@ function doLangs(toolRelPath, cfg, mutantKind) {
   if (dayRes.error) { console.log("I18N-BROWSER " + cfg.slug + " langs " + dayRes.error + " (day-theme run)"); ok = false; }
   else if (dayRes.meta.theme !== "day") { console.log("I18N-BROWSER " + cfg.slug + " langs day-theme run: meta.theme=" + dayRes.meta.theme + " expected day"); ok = false; }
 
-  if (ok) console.log("I18N-BROWSER " + cfg.slug + " langs PASS snaps=" + enRes.snaps.length + " langs=4");
+  if (ok) console.log("I18N-BROWSER " + cfg.slug + " langs PASS snaps=" + enRes.snaps.length + " langs=" + langs.length);
   return ok;
 }
 
@@ -414,7 +421,7 @@ function doSwitch(toolRelPath, cfg, mutantKind) {
   var switchPoints = (cfg.switchPoints && cfg.switchPoints.length) ? cfg.switchPoints : (labels.length ? [labels[labels.length - 1]] : []);
   if (!switchPoints.length) { console.log("I18N-BROWSER " + cfg.slug + " switch NO-SWITCH-POINTS"); return false; }
 
-  var langs = ["nl", "de", "fr", "es"];
+  var langs = NON_EN_LANGS;
   switchPoints.forEach(function (point) {
     var idx = -1;
     for (var i = 0; i < run.steps.length; i++) {
@@ -460,7 +467,7 @@ function doSwitch(toolRelPath, cfg, mutantKind) {
     });
   });
 
-  if (ok) console.log("I18N-BROWSER " + cfg.slug + " switch PASS points=" + switchPoints.length + " langs=4");
+  if (ok) console.log("I18N-BROWSER " + cfg.slug + " switch PASS points=" + switchPoints.length + " langs=" + langs.length);
   return ok;
 }
 
@@ -470,7 +477,7 @@ function doLayout(toolRelPath, cfg, mutantKind) {
   var ok = true;
   var run = cfg.runs[0];
   var loadSteps = [["snap", "load"], metaStep(true)];
-  var langs = ["en", "nl", "de", "fr", "es"];
+  var langs = ["en"].concat(NON_EN_LANGS);
   var overflow = {};
 
   langs.forEach(function (lang) {
@@ -482,7 +489,7 @@ function doLayout(toolRelPath, cfg, mutantKind) {
   });
 
   var enOverflow = overflow.en || 0;
-  ["nl", "de", "fr", "es"].forEach(function (lang) {
+  NON_EN_LANGS.forEach(function (lang) {
     if (overflow[lang] === undefined) return;
     if (overflow[lang] > enOverflow + 8) {
       console.log("LAYOUT-OVERFLOW " + cfg.slug + " " + lang + " +" + (overflow[lang] - enOverflow) + "px");
