@@ -163,7 +163,7 @@ Phases 1 → 2 → 3 → 4 run in numeric order (number-theory milestone). Phase
 appended Cayley Table Generator milestone and depends only on Phase 1, so it may be planned and
 executed at any point after Phase 1 — before, after, or alongside Phases 3 and 4.
 
-**Remaining order (set 2026-09-30, revised 2026-10-01):** Phase 7 (Shared JS Module Refactor) ran first. On 2026-10-01 the user explicitly requested Phase 6 next, so Phase 6 (Multi-Language Support) now runs before Phase 4; Phase 4's Continued Fractions tool is then authored in seven languages from the start (its own `assets/i18n/` data file, a `site.nav` entry and hub card keys) rather than retrofitted.
+**Remaining order (set 2026-09-30, revised 2026-10-01):** Phase 7 (Shared JS Module Refactor) ran first. On 2026-10-01 the user explicitly requested Phase 6 next, so Phase 6 (Multi-Language Support) now runs before Phase 4; Phase 4's Continued Fractions tool is then authored in nine languages from the start (its own `assets/i18n/` data file, a `site.nav` entry and hub card keys) rather than retrofitted.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|

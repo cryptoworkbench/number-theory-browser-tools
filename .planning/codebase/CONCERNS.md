@@ -17,9 +17,9 @@ last_mapped_at: 2026-09-23
 
 ## Multi-Language Support (i18n)
 
-**Every new user-visible string needs seven translations:**
+**Every new user-visible string needs nine translations:**
 
-- Issue: A page ships in nl/en/de/fr/es/it/pl; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all seven languages leaves a gap
+- Issue: A page ships in nl/en/de/fr/es/it/pl/pt-BR/pt-PT; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all nine languages leaves a gap
 - Files: Every `assets/i18n/*.js` data file
 - Impact: A missing-language value either renders blank or falls back to English unexpectedly, and the page silently stops being fully translated
 - Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE` — Polish plural values must carry `{one, few, many, other}`, every other language `{one, other}`) before the gap ships

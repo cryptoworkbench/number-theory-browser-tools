@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   seven supported languages.
+   nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -233,6 +233,64 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (za duże, aby pokazać nieredukowaną potęgę dokładnie)',
       refCount: '{count} par (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   przez   k ↦ {g}^k mod {m}   (generator g = {g})'
+    },
+    'pt-BR': {
+      title: 'Isomorfismos de grupos',
+      eyebrow: 'duas aritméticas, um só grupo',
+      heading: 'Isomorfismos de grupos',
+      lede: 'Os inteiros mod n sob a adição e as unidades mod m sob a multiplicação podem ser, estruturalmente, exatamente o mesmo grupo — só vestindo uma aritmética diferente. {0}',
+      xref: 'Veja esses dois grupos construídos um por vez →',
+      pairLabel: 'Par isomorfo',
+      pairSelectAriaLabel: 'Escolha um par isomorfo',
+      randomizeLabel: 'Aleatório',
+      randomize: 'Novo exemplo aleatório',
+      tablistLabel: 'Disposição da roda direita',
+      tabPowers: 'Potências de g',
+      tabNumeric: 'Numérico',
+      leftWheelAriaLabel: 'Elementos do grupo aditivo Z mod n',
+      rightWheelAriaLabel: 'Elementos do grupo multiplicativo de unidades mod m',
+      refHeading: 'Pares isomorfos',
+      leftWedgeAriaLabel: 'Elemento {value} do grupo aditivo Z mod {n}',
+      rightWedgeAriaLabel: 'Elemento {value} do grupo multiplicativo de unidades mod {m}, igual a {g} elevado a {k} mod {m}',
+      leftCaption: 'O grupo aditivo {bSpan}: os inteiros de 0 a {max} sob a adição mod {n}.',
+      rightCaption: 'O grupo multiplicativo {bSpan}: as {n} unidades mod {m} sob a multiplicação, gerado por {g}.',
+      readoutPrompt: 'Clique em um elemento em qualquer uma das rodas para ver a correspondência.',
+      readoutOne: 'O elemento {aSlot} à esquerda corresponde a {aValSlot} à direita: {eqSpan}. Clique em um segundo elemento — ou neste mesmo de novo — para ver a soma e o produto.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} à esquerda ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} à direita ({modSpan}) — e {product} = {g}^{sum} mod {m} = {sumVal}: a imagem da soma é igual ao produto das imagens.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} à esquerda ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} à direita ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} não é igual a {g}^{sum} mod {m} = {sumVal} — este par nunca deveria discordar.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (grande demais para mostrar a potência não reduzida com exatidão)',
+      refCount: '{count} pares (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   por meio de   k ↦ {g}^k mod {m}   (gerador g = {g})'
+    },
+    'pt-PT': {
+      title: 'Isomorfismos de grupos',
+      eyebrow: 'duas aritméticas, um só grupo',
+      heading: 'Isomorfismos de grupos',
+      lede: 'Os inteiros mod n sob a adição e as unidades mod m sob a multiplicação podem ser, estruturalmente, exatamente o mesmo grupo — vestem apenas uma aritmética diferente. {0}',
+      xref: 'Vê estes dois grupos construídos um de cada vez →',
+      pairLabel: 'Par isomorfo',
+      pairSelectAriaLabel: 'Escolhe um par isomorfo',
+      randomizeLabel: 'Aleatório',
+      randomize: 'Novo exemplo aleatório',
+      tablistLabel: 'Disposição da roda direita',
+      tabPowers: 'Potências de g',
+      tabNumeric: 'Numérico',
+      leftWheelAriaLabel: 'Elementos do grupo aditivo Z mod n',
+      rightWheelAriaLabel: 'Elementos do grupo multiplicativo de unidades mod m',
+      refHeading: 'Pares isomorfos',
+      leftWedgeAriaLabel: 'Elemento {value} do grupo aditivo Z mod {n}',
+      rightWedgeAriaLabel: 'Elemento {value} do grupo multiplicativo de unidades mod {m}, igual a {g} elevado a {k} mod {m}',
+      leftCaption: 'O grupo aditivo {bSpan}: os inteiros de 0 a {max} sob a adição mod {n}.',
+      rightCaption: 'O grupo multiplicativo {bSpan}: as {n} unidades mod {m} sob a multiplicação, gerado por {g}.',
+      readoutPrompt: 'Clica num elemento em qualquer uma das rodas para ver a correspondência.',
+      readoutOne: 'O elemento {aSlot} à esquerda corresponde a {aValSlot} à direita: {eqSpan}. Clica num segundo elemento — ou neste mesmo outra vez — para ver a soma e o produto.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} à esquerda ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} à direita ({modSpan}) — e {product} = {g}^{sum} mod {m} = {sumVal}: a imagem da soma é igual ao produto das imagens.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} à esquerda ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} à direita ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} não é igual a {g}^{sum} mod {m} = {sumVal} — este par nunca deveria divergir.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (demasiado grande para mostrar a potência não reduzida com exatidão)',
+      refCount: '{count} pares (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   mediante   k ↦ {g}^k mod {m}   (gerador g = {g})'
     }
   });
 })();

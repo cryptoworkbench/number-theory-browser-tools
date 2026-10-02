@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all seven supported languages.
+   tool, in all nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all seven languages. bannerDone is { one, other } in every language
+   all nine languages. bannerDone is { one, other } in every language
    except Polish, which carries the CLDR { one, few, many, other } shape.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
@@ -190,6 +190,54 @@
         other: 'Gotowe — przetestowano {count} wartości, względnie pierwszych z {n}: {phi}.'
       },
       caption: 'Liczba pierwsza n daje φ(n) = n−1, bo każda mniejsza liczba jej nie trafia — chipy pozwalają to łatwo sprawdzić.'
+    },
+    'pt-BR': {
+      title: 'Função φ de Euler',
+      eyebrow: 'teoria dos números · função φ de euler',
+      heading: 'Função φ de Euler',
+      lede: 'φ(n) conta quantos de 1 … n−1 não compartilham nenhum fator com n, e esta página descobre isso do único jeito honesto — perguntando ao algoritmo de Euclides sobre cada um deles.',
+      xref: 'A mesma contagem aparece como os setores do grupo multiplicativo mod n →',
+      chipPrime: '{n} · primo',
+      run: 'Execute',
+      errNotWhole: 'n deve ser um número inteiro.',
+      errTooSmall: 'n deve ser pelo menos {min} — o percurso k = 1 … n−1 precisa de pelo menos um k para testar.',
+      errCapped: 'n está limitado a {max} — o valor foi reduzido para se ajustar.',
+      chainHead: 'Testando k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} é coprimo de {n} — gcd = 1, contabilizado.',
+      verdictEliminated: 'k = {k} compartilha um fator com {n} — gcd = {gcd}, eliminado.',
+      tally: 'Contagem corrente de coprimos: {count}',
+      progress: 'k = {k} de {total} testado.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Pronto — pressione Reproduzir para ver o percurso testar cada k, uma divisão por vez.',
+      bannerDone: {
+        one: 'Concluído — {count} valor testado, {phi} coprimo de {n}.',
+        other: 'Concluído — {count} valores testados, {phi} coprimo de {n}.'
+      },
+      caption: 'n primo dá φ(n) = n−1, porque nenhum número menor o acerta — as fichas facilitam verificar isso.'
+    },
+    'pt-PT': {
+      title: 'Função φ de Euler',
+      eyebrow: 'teoria dos números · função φ de euler',
+      heading: 'Função φ de Euler',
+      lede: 'φ(n) conta quantos de 1 … n−1 não partilham nenhum fator com n, e esta página descobre isso da única forma honesta — perguntando ao algoritmo de Euclides sobre cada um deles.',
+      xref: 'A mesma contagem aparece como os setores do grupo multiplicativo mod n →',
+      chipPrime: '{n} · primo',
+      run: 'Executa',
+      errNotWhole: 'n tem de ser um número inteiro.',
+      errTooSmall: 'n tem de ser pelo menos {min} — o percurso k = 1 … n−1 precisa de pelo menos um k para testar.',
+      errCapped: 'n está limitado a {max} — o valor foi reduzido para se ajustar.',
+      chainHead: 'A testar k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} é coprimo de {n} — gcd = 1, contabilizado.',
+      verdictEliminated: 'k = {k} partilha um fator com {n} — gcd = {gcd}, eliminado.',
+      tally: 'Contagem corrente de coprimos: {count}',
+      progress: 'k = {k} de {total} testado.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Pronto — prime Reproduzir para ver o percurso a testar cada k, uma divisão de cada vez.',
+      bannerDone: {
+        one: 'Concluído — {count} valor testado, {phi} coprimo de {n}.',
+        other: 'Concluído — {count} valores testados, {phi} coprimo de {n}.'
+      },
+      caption: 'n primo dá φ(n) = n−1, porque nenhum número menor o alcança — as fichas facilitam verificar isso.'
     }
   });
 })();

@@ -59,7 +59,7 @@ last_mapped_at: 2026-09-23
 - No environment variables required
 - All configuration via CSS custom properties (`:root` variables)
 - Theme system (day/night mode) persisted in `localStorage` under key `site-theme`
-- Language preference (nl/en/de/fr/es/it/pl) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
+- Language preference (nl/en/de/fr/es/it/pl/pt-BR/pt-PT) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
 - `Intl.PluralRules` is the one `Intl` API this project uses (for pluralizing a dictionary value with a `{one, other}` shape, or `{one, few, many, other}` for Polish); no other `Intl` formatting (number/date/currency) is used — numerals stay plain and locale-independent per I18N-06
 
 **CSS Custom Properties:**
@@ -92,7 +92,7 @@ Each tool has its own color palette via `:root` CSS variables, with separate the
 
 **Client-side Only:**
 
-- `localStorage` for theme preference (`site-theme` key) and language preference (`site-lang` key, a raw two-letter code, same cookie + localStorage pattern as theme)
+- `localStorage` for theme preference (`site-theme` key) and language preference (`site-lang` key, a raw language code, either two-letter or the region-tagged `pt-BR`/`pt-PT`, same cookie + localStorage pattern as theme)
 - Per-tool state persistence in `localStorage`:
   - Congruence Wheel tool: `congruence-wheel` key stores N and depth parameters
   - No other persistence; other tools recalculate on each use

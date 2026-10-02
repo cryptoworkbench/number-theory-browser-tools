@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all seven supported languages.
+   Cayley Table tool, in all nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -302,6 +302,84 @@
       noteDiagonal: 'Ta komórka leży na przekątnej — jest swoim własnym bliźniakiem, z tylko jednym równaniem do podania: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), a {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — obie trafiają na tę samą wartość, więc tabela jest symetryczna względem swojej przekątnej: grupa jest przemienna.',
       selfInverseNote: '{a} jest {word}, ponieważ jego wartość tutaj to element neutralny.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    'pt-BR': {
+      title: 'Tabela de Cayley',
+      eyebrow: 'teoria dos grupos · tabelas de operação',
+      heading: 'Tabela de Cayley',
+      lede: 'Toda a operação de um grupo cabe em uma única tabela quadrada — uma linha e uma coluna por elemento, uma célula para cada resultado. Todo fato estrutural sobre esse grupo — seu elemento neutro, seus inversos, sua comutatividade — está visível em algum lugar na forma da tabela.',
+      xref: 'As mesmas duas operações de grupo, vistas como setores em uma roda em vez de linhas em uma tabela →',
+      tablistLabel: 'Operação do grupo',
+      nLabel: 'N — módulo',
+      randomizeLabel: 'Aleatório',
+      randomize: 'Novo exemplo aleatório',
+      tableScrollLabel: 'Tabela de Cayley, com rolagem',
+      'legend.identity': '{0} Linha e coluna do elemento neutro',
+      'legend.inverse': '{0} Inverso próprio (autopareado)',
+      'legend.selected': '{0} Célula selecionada',
+      'legend.mirror': '{0} Gêmeo espelhado através da diagonal',
+      nNoteNotWhole: 'N deve ser um número inteiro — a tabela permanece como estava.',
+      nNoteTooSmall: 'N não pode ficar abaixo de 1 — elevado para 1.',
+      nNoteCapped: 'N é limitado a {max} para impedir que a tabela cresça demais — reduzido para {max}.',
+      identityWordAdditive: 'zero',
+      identityWordMultiplicative: 'um',
+      inverseWordAdditive: 'o próprio negativo',
+      inverseWordMultiplicative: 'o próprio recíproco',
+      identityNote: 'O elemento neutro é {word} — sua linha e coluna estão marcadas abaixo.',
+      symmetryNoteAdditive: 'a + b e b + a sempre caem na mesma classe, então a tabela se espelha através da diagonal — clique em qualquer célula para ver seu gêmeo se iluminar do outro lado.',
+      symmetryNoteMultiplicative: 'a · b e b · a sempre caem na mesma classe, então a tabela se espelha através da diagonal — clique em qualquer célula para ver seu gêmeo se iluminar do outro lado.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} elemento · elemento neutro [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementos · elemento neutro [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elemento · elemento neutro [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementos · elemento neutro [{id}]'
+      },
+      tableCaption: 'Tabela de Cayley para {summary} sob {sign}',
+      noteDiagonal: 'Esta célula fica no eixo diagonal — ela é seu próprio gêmeo, com apenas uma equação a declarar: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), e {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ambos caem no mesmo valor, então a tabela é simétrica em relação à sua diagonal: o grupo é comutativo.',
+      selfInverseNote: '{a} é {word}, já que seu valor aqui é o elemento neutro.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    'pt-PT': {
+      title: 'Tabela de Cayley',
+      eyebrow: 'teoria dos grupos · tabelas de operação',
+      heading: 'Tabela de Cayley',
+      lede: 'Toda a operação de um grupo cabe numa única tabela quadrada — uma linha e uma coluna por elemento, uma célula para cada resultado. Todo o facto estrutural sobre esse grupo — o seu elemento neutro, os seus inversos, a sua comutatividade — está visível em algum lugar na forma da tabela.',
+      xref: 'As mesmas duas operações de grupo, vistas como setores numa roda em vez de linhas numa tabela →',
+      tablistLabel: 'Operação do grupo',
+      nLabel: 'N — módulo',
+      randomizeLabel: 'Aleatório',
+      randomize: 'Novo exemplo aleatório',
+      tableScrollLabel: 'Tabela de Cayley, com deslocamento',
+      'legend.identity': '{0} Linha e coluna do elemento neutro',
+      'legend.inverse': '{0} Inverso próprio (autoemparelhado)',
+      'legend.selected': '{0} Célula selecionada',
+      'legend.mirror': '{0} Gémeo espelhado através da diagonal',
+      nNoteNotWhole: 'N tem de ser um número inteiro — a tabela permanece como estava.',
+      nNoteTooSmall: 'N não pode ficar abaixo de 1 — elevado para 1.',
+      nNoteCapped: 'N é limitado a {max} para impedir que a tabela cresça demasiado — reduzido para {max}.',
+      identityWordAdditive: 'zero',
+      identityWordMultiplicative: 'um',
+      inverseWordAdditive: 'o seu próprio negativo',
+      inverseWordMultiplicative: 'o seu próprio recíproco',
+      identityNote: 'O elemento neutro é {word} — a sua linha e coluna estão marcadas abaixo.',
+      symmetryNoteAdditive: 'a + b e b + a caem sempre na mesma classe, pelo que a tabela se espelha através da diagonal — clica em qualquer célula para ver o seu gémeo iluminar-se do outro lado.',
+      symmetryNoteMultiplicative: 'a · b e b · a caem sempre na mesma classe, pelo que a tabela se espelha através da diagonal — clica em qualquer célula para ver o seu gémeo iluminar-se do outro lado.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} elemento · elemento neutro [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementos · elemento neutro [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elemento · elemento neutro [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementos · elemento neutro [{id}]'
+      },
+      tableCaption: 'Tabela de Cayley para {summary} sob {sign}',
+      noteDiagonal: 'Esta célula situa-se no eixo diagonal — é o seu próprio gémeo, com apenas uma equação a indicar: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), e {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ambos caem no mesmo valor, pelo que a tabela é simétrica em relação à sua diagonal: o grupo é comutativo.',
+      selfInverseNote: '{a} é {word}, já que o seu valor aqui é o elemento neutro.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

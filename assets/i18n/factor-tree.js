@@ -1,11 +1,11 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
    Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all seven supported languages.
+   Factor Tree tool, in all nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all seven languages. The factorization itself (the equation/tree
+   across all nine languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -154,6 +154,46 @@
       msgPrime: '{n} jest liczbą pierwszą — dzieli się tylko raz, na 1 × {n}.',
       msgFactors: '{n} rozkłada się na {count} czynników pierwszych.',
       chipPrime: '{n} (pierwsza)'
+    },
+    'pt-BR': {
+      title: 'Árvore de fatores primos',
+      heading: '🎄 Árvore de fatores primos 🎄',
+      subtitle: 'Dê a ela um número — ela cresce uma árvore de fatores de verdade, galho por galho.',
+      modeLabel: 'Modo da árvore',
+      modeClassic: 'Clássico',
+      modeBalanced: 'Equilibrado',
+      placeholder: 'ex. 60',
+      grow: 'Faça a árvore crescer',
+      footnote: 'Cada folha prima recebe uma última divisão só sua: P = P × 1.',
+      balancedNote: 'O modo Equilibrado usa o método de Fermat para encontrar o par de fatores mais igualmente dividido em cada etapa, limitado a números abaixo de 1.000.000 para continuar instantâneo. Alguns números — como um primo pequeno multiplicado por um grande — ainda se dividem de forma desigual; isso não é um bug, é só matemática.',
+      msgEmpty: 'Digite um número primeiro.',
+      msgInvalid: 'Digite um número inteiro, 1 ou maior.',
+      msgTooLargeBalanced: 'Esse número é grande demais para o modo Equilibrado — tente algo abaixo de 1.000.000, ou mude para o modo Clássico para números maiores.',
+      msgTooLargeClassic: 'Esse número é grande demais para esta arvorezinha — tente algo abaixo de 1 trilhão.',
+      msgOne: '1 não é primo nem composto — é só uma semente, ainda não uma árvore. 🌱',
+      msgPrime: '{n} é primo — ele só se divide uma vez, em 1 × {n}.',
+      msgFactors: '{n} se fatora em {count} primos.',
+      chipPrime: '{n} (primo)'
+    },
+    'pt-PT': {
+      title: 'Árvore de fatores primos',
+      heading: '🎄 Árvore de fatores primos 🎄',
+      subtitle: 'Dá-lhe um número — ela cresce uma árvore de fatores verdadeira, ramo por ramo.',
+      modeLabel: 'Modo da árvore',
+      modeClassic: 'Clássico',
+      modeBalanced: 'Equilibrado',
+      placeholder: 'p. ex. 60',
+      grow: 'Faz a árvore crescer',
+      footnote: 'Cada folha prima recebe uma última divisão só sua: P = P × 1.',
+      balancedNote: 'O modo Equilibrado usa o método de Fermat para encontrar o par de fatores mais igualmente dividido em cada etapa, limitado a números abaixo de 1.000.000 para se manter instantâneo. Alguns números — como um primo pequeno multiplicado por um grande — continuam a dividir-se de forma desigual; isso não é um erro, é só matemática.',
+      msgEmpty: 'Introduz primeiro um número.',
+      msgInvalid: 'Introduz um número inteiro, 1 ou maior.',
+      msgTooLargeBalanced: 'Esse número é demasiado grande para o modo Equilibrado — tenta algo abaixo de 1.000.000, ou muda para o modo Clássico para números maiores.',
+      msgTooLargeClassic: 'Esse número é demasiado grande para esta arvorezinha — tenta algo abaixo de 1 bilião.',
+      msgOne: '1 não é primo nem composto — é só uma semente, ainda não uma árvore. 🌱',
+      msgPrime: '{n} é primo — ele divide-se apenas uma vez, em 1 × {n}.',
+      msgFactors: '{n} fatoriza-se em {count} primos.',
+      chipPrime: '{n} (primo)'
     }
   });
 })();

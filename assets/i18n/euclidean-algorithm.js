@@ -8,7 +8,7 @@
    or for Polish, one/few/many/other — category), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all seven supported languages.
+   tool, in all nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   seven languages. Must load after assets/nt-i18n.js and
+   nine languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -403,6 +403,110 @@
       nestedTileTitle: 'Krok {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Krok {step}: {a} = {q}·{b} + {r} ({extra} dodatkowych kwadratów połączonych tutaj)',
       tileEmptyMessage: 'Nie ma prostokąta do przecięcia — b jest już równe 0, więc algorytm jest już zakończony.'
+    },
+    'pt-BR': {
+      title: 'Algoritmo de Euclides',
+      eyebrow: 'teoria dos números · algoritmo de euclides',
+      heading: 'Algoritmo de Euclides',
+      lede: 'Substitua repetidamente o par (a, b) por (b, a mod b) — divida o maior pelo menor e mantenha apenas o resto — e o par encolhe a cada etapa. No momento em que um lado chega a zero, o outro lado é o máximo divisor comum dos dois números com que você começou.',
+      xref: 'O mesmo MDC também pode ser visto como os primos que os dois números compartilham →',
+      chipFiveSteps: '240, 46 · 5 etapas',
+      chipCoprime: '35, 18 · coprimos',
+      chipBDividesA: '144, 12 · b divide a',
+      chipEqualPair: '36, 36 · par igual',
+      chipAlreadyDone: '17, 0 · já feito',
+      chipFibonacciWorst: '89, 55 · pior caso de Fibonacci',
+      chipHugeQuotient: '500000, 2 · quociente enorme',
+      run: 'Execute',
+      extToggleLabel: 'Modo euclidiano estendido — mostre os coeficientes de Bézout {0} e {1}',
+      errBothWhole: 'Tanto a quanto b devem ser números inteiros.',
+      errBothNonNegative: 'Tanto a quanto b devem ser zero ou positivos — números negativos não têm um MDC definido aqui.',
+      errGcdZeroZero: 'gcd(0, 0) não é definido — digite pelo menos um valor diferente de zero.',
+      errClamped: 'As entradas são limitadas a {max} — o valor maior foi reduzido para se ajustar.',
+      swapNote: 'O maior valor vem primeiro: digitado como ({a}, {b}), rastreado como gcd({A}, {B}) — o MDC é simétrico em seus argumentos.',
+      bannerReady: 'Pronto — pressione Reproduzir para ver a derivação se construir uma linha por vez.',
+      bannerDone: { one: 'Concluído — {n} etapa para chegar ao MDC.', other: 'Concluído — {n} etapas para chegar ao MDC.' },
+      chainNoteZero: 'b já é 0, então não há mais nada para dividir — a já é o máximo divisor comum.',
+      extCaption: 'O {0} e o {1} de cada linha expressam o resto dessa linha como uma combinação das duas entradas originais — {2}.',
+      viewNested: 'Quadrados aninhados',
+      geomViewGroupLabel: 'Modo de vista geométrica',
+      viewStep: 'Etapa única',
+      tileAriaDefault: 'Vista em retângulo da etapa de divisão atual',
+      nestedAriaDefault: 'Todas as etapas de divisão aninhadas em um único retângulo',
+      caption: 'Números de Fibonacci consecutivos são o pior caso para este algoritmo — eles forçam o maior número de etapas de divisão para seu tamanho.',
+      tileCaptionExact: {
+        one: 'Etapa {index} de {total}: {a} ÷ {b}: o retângulo se cobre exatamente com {q} quadrado de lado {b} — sem sobra, então {b} é o máximo divisor comum.',
+        other: 'Etapa {index} de {total}: {a} ÷ {b}: o retângulo se cobre exatamente com {q} quadrados de lado {b} — sem sobra, então {b} é o máximo divisor comum.'
+      },
+      tileCaptionLeftover: {
+        one: 'Etapa {index} de {total}: {a} = {q}×{b} + {r}: cabe {q} quadrado de lado {b}, deixando uma sobra de {b}×{r}.',
+        other: 'Etapa {index} de {total}: {a} = {q}×{b} + {r}: cabem {q} quadrados de lado {b}, deixando uma sobra de {b}×{r}.'
+      },
+      tileNoteCapped: 'O quociente real é {q} — apenas os primeiros {cap} quadrados são desenhados aqui; os {rest} restantes são agrupados no bloco rotulado, então a largura desenhada não está em escala.',
+      nestedEmptyMessage: 'Não há retângulo para aninhar — b já é 0, então o algoritmo já terminou.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: a única {n} etapa se aninha em um retângulo {A}×{B} — os menores quadrados, {lastB}×{lastB}, são o máximo divisor comum. Clique em um quadrado (ou em uma etapa acima) para ver como eles se alinham.',
+        other: 'gcd({A}, {B}) = {gcd}: todas as {n} etapas se aninham em um retângulo {A}×{B} — os menores quadrados, {lastB}×{lastB}, são o máximo divisor comum. Clique em um quadrado (ou em uma etapa acima) para ver como eles se alinham.'
+      },
+      nestedNoteCapped: {
+        one: 'A etapa {stepNums} tem um quociente muito grande — ali são desenhados apenas os primeiros {cap} quadrados, agrupados em um bloco pontilhado, então este diagrama não está totalmente em escala nessa etapa.',
+        other: 'As etapas {stepNums} têm um quociente muito grande — ali são desenhados apenas os primeiros {cap} quadrados, agrupados em um bloco pontilhado, então este diagrama não está totalmente em escala nessas etapas.'
+      },
+      nestedTileTitle: 'Etapa {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Etapa {step}: {a} = {q}·{b} + {r} ({extra} quadrados adicionais agrupados aqui)',
+      tileEmptyMessage: 'Não há retângulo para cortar — b já é 0, então o algoritmo já terminou.'
+    },
+    'pt-PT': {
+      title: 'Algoritmo de Euclides',
+      eyebrow: 'teoria dos números · algoritmo de euclides',
+      heading: 'Algoritmo de Euclides',
+      lede: 'Substitui repetidamente o par (a, b) por (b, a mod b) — divide o maior pelo menor e mantém apenas o resto — e o par encolhe a cada etapa. No momento em que um lado chega a zero, o outro lado é o máximo divisor comum dos dois números com que começaste.',
+      xref: 'O mesmo m.d.c. também pode ser visto como os primos que os dois números partilham →',
+      chipFiveSteps: '240, 46 · 5 etapas',
+      chipCoprime: '35, 18 · coprimos',
+      chipBDividesA: '144, 12 · b divide a',
+      chipEqualPair: '36, 36 · par igual',
+      chipAlreadyDone: '17, 0 · já feito',
+      chipFibonacciWorst: '89, 55 · pior caso de Fibonacci',
+      chipHugeQuotient: '500000, 2 · quociente enorme',
+      run: 'Executa',
+      extToggleLabel: 'Modo euclidiano estendido — mostra os coeficientes de Bézout {0} e {1}',
+      errBothWhole: 'Tanto a como b têm de ser números inteiros.',
+      errBothNonNegative: 'Tanto a como b têm de ser zero ou positivos — números negativos não têm um m.d.c. definido aqui.',
+      errGcdZeroZero: 'gcd(0, 0) não é definido — introduz pelo menos um valor diferente de zero.',
+      errClamped: 'As entradas são limitadas a {max} — o valor maior foi reduzido para se ajustar.',
+      swapNote: 'O maior valor vem primeiro: introduzido como ({a}, {b}), seguido como gcd({A}, {B}) — o m.d.c. é simétrico nos seus argumentos.',
+      bannerReady: 'Pronto — prime Reproduzir para ver a derivação a construir-se uma linha de cada vez.',
+      bannerDone: { one: 'Concluído — {n} etapa para chegar ao m.d.c.', other: 'Concluído — {n} etapas para chegar ao m.d.c.' },
+      chainNoteZero: 'b já é 0, portanto não resta nada para dividir — a já é o máximo divisor comum.',
+      extCaption: 'O {0} e o {1} de cada linha exprimem o resto dessa linha como uma combinação das duas entradas originais — {2}.',
+      viewNested: 'Quadrados aninhados',
+      geomViewGroupLabel: 'Modo de vista geométrica',
+      viewStep: 'Etapa única',
+      tileAriaDefault: 'Vista em retângulo da etapa de divisão atual',
+      nestedAriaDefault: 'Todas as etapas de divisão aninhadas num único retângulo',
+      caption: 'Números de Fibonacci consecutivos são o pior caso para este algoritmo — forçam o maior número de etapas de divisão para o seu tamanho.',
+      tileCaptionExact: {
+        one: 'Etapa {index} de {total}: {a} ÷ {b}: o retângulo cobre-se exatamente com {q} quadrado de lado {b} — sem sobra, pelo que {b} é o máximo divisor comum.',
+        other: 'Etapa {index} de {total}: {a} ÷ {b}: o retângulo cobre-se exatamente com {q} quadrados de lado {b} — sem sobra, pelo que {b} é o máximo divisor comum.'
+      },
+      tileCaptionLeftover: {
+        one: 'Etapa {index} de {total}: {a} = {q}×{b} + {r}: cabe {q} quadrado de lado {b}, deixando uma sobra de {b}×{r}.',
+        other: 'Etapa {index} de {total}: {a} = {q}×{b} + {r}: cabem {q} quadrados de lado {b}, deixando uma sobra de {b}×{r}.'
+      },
+      tileNoteCapped: 'O quociente real é {q} — apenas os primeiros {cap} quadrados são desenhados aqui; os {rest} restantes são agrupados no bloco rotulado, pelo que a largura desenhada não está à escala.',
+      nestedEmptyMessage: 'Não há retângulo para aninhar — b já é 0, pelo que o algoritmo já terminou.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: a única {n} etapa aninha-se num retângulo {A}×{B} — os quadrados mais pequenos, {lastB}×{lastB}, são o máximo divisor comum. Clica num quadrado (ou numa etapa acima) para ver como se alinham.',
+        other: 'gcd({A}, {B}) = {gcd}: todas as {n} etapas aninham-se num retângulo {A}×{B} — os quadrados mais pequenos, {lastB}×{lastB}, são o máximo divisor comum. Clica num quadrado (ou numa etapa acima) para ver como se alinham.'
+      },
+      nestedNoteCapped: {
+        one: 'A etapa {stepNums} tem um quociente muito grande — ali são desenhados apenas os primeiros {cap} quadrados, agrupados num bloco pontilhado, pelo que este diagrama não está totalmente à escala nessa etapa.',
+        other: 'As etapas {stepNums} têm um quociente muito grande — ali são desenhados apenas os primeiros {cap} quadrados, agrupados num bloco pontilhado, pelo que este diagrama não está totalmente à escala nessas etapas.'
+      },
+      nestedTileTitle: 'Etapa {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Etapa {step}: {a} = {q}·{b} + {r} ({extra} quadrados adicionais agrupados aqui)',
+      tileEmptyMessage: 'Não há retângulo para cortar — b já é 0, pelo que o algoritmo já terminou.'
     }
   });
 })();

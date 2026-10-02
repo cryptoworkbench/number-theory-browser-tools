@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all seven supported languages.
+   tool, in all nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    in the shared `common` namespace (assets/i18n/site.js), never
    duplicated here. Placeholder names ({idx}, {min}, {max}, {m}, {x}, {y},
    {g}, {span}, {landed}, {computed}, {reduced}) are identical across all
-   seven languages. Must load after assets/nt-i18n.js and
+   nine languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -288,6 +288,82 @@
       constructReasonSpanBlocked: 'Konstrukcja potrzebuje obliczonej odpowiedzi, a limit okresu to blokuje.',
       constructSumMismatch: 'Niezgodność diagnostyczna: konstrukcja redukuje się do {reduced}, ale solver obliczył {computed} — te wartości muszą się zawsze zgadzać.',
       seeInverse: 'zobacz odwrotność →'
+    },
+    'pt-BR': {
+      title: 'Teorema chinês do resto',
+      eyebrow: 'teoria dos números · teorema chinês do resto',
+      heading: 'Teorema chinês do resto',
+      lede: 'Cada congruência, por si só, escolhe uma família de números igualmente espaçados — todo terceiro número, todo quinto número, e assim por diante. Quando os módulos não compartilham nenhum fator comum, essas famílias se cruzam em exatamente um ponto em cada trecho de {0} números. Esse único cruzamento é a solução simultânea com a qual toda linha concorda.',
+      xref: 'Veja o inverso modular da primeira congruência calculado passo a passo na ferramenta Algoritmo de Euclides →',
+      countGroupLabel: 'Número de congruências',
+      countTwo: 'Duas congruências',
+      countThree: 'Três congruências',
+      remainderLabel: 'resto a',
+      modulusLabel: 'módulo m',
+      chipSunTzu: "2 mod 3 · 3 mod 5 · 2 mod 7 · enigma de Sun Tzu",
+      chipCoprime: '2 mod 3 · 3 mod 5 · par coprimo',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · compartilha um fator',
+      extToggleLabel: 'Revele o método mais rápido — construa a resposta diretamente com o algoritmo euclidiano estendido em vez de procurá-la',
+      stripGroupLabel: 'Tiras de classes de resíduos, com rolagem',
+      constructLede: 'Divida o período em uma peça por congruência, inverta cada peça em relação ao seu próprio módulo, escale pelo resto dessa congruência, some as peças e depois reduza.',
+      tableHeaderY: 'y (inverso)',
+      tableHeaderTerm: 'termo = a · M · y',
+      caption: 'A resposta se repete para sempre com período {0} — a coluna marcada é um representante de uma família infinita de soluções.',
+      allAgreeLabel: 'todas concordam',
+      errModulusWhole: 'Linha {idx}: o módulo deve ser um número inteiro.',
+      errModulusRange: 'Linha {idx}: o módulo deve estar entre {min} e {max}.',
+      errRemainderWhole: 'Linha {idx}: o resto deve ser um número inteiro.',
+      errRemainderRange: 'Linha {idx}: o resto deve ser de 0 a {max} para o módulo {m}.',
+      coprimeOk: 'Os módulos são coprimos dois a dois — existe uma solução em forma padrão módulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — os módulos {x} e {y} compartilham um fator, então o requisito de coprimalidade dois a dois da construção padrão do Teorema Chinês do Resto não é atendido, e esta ferramenta não tenta resolver este sistema.',
+      spanWarn: 'O período combinado lcm = {span} está acima do limite desta ferramenta de {max} — reduza um dos módulos para ficar abaixo de {max}.',
+      testingX: 'Testando x = {x} …',
+      diagnosticMismatchScan: 'Incompatibilidade de diagnóstico: o escaneamento chegou a {landed}, mas a construção calculou {computed} — esses valores devem sempre coincidir.',
+      solved: 'Resolvido — toda congruência concorda em x = {x}.',
+      diagnosticScanEnd: 'Diagnóstico: o escaneamento chegou ao fim do período ({span}) sem encontrar um acordo, o que deveria ser impossível para um sistema coprimo dois a dois.',
+      readyToScan: 'Pronto — pressione Reproduzir para ver o escaneamento procurar por x.',
+      constructReasonNotCoprime: 'A construção precisa que cada M_i seja invertível módulo seu próprio m_i, o que um fator compartilhado entre os módulos torna impossível.',
+      constructReasonSpanBlocked: 'A construção precisa de uma resposta calculada, e o limite do período está bloqueando isso.',
+      constructSumMismatch: 'Incompatibilidade de diagnóstico: a construção se reduz a {reduced}, mas o solucionador calculou {computed} — esses valores devem sempre coincidir.',
+      seeInverse: 'ver o inverso →'
+    },
+    'pt-PT': {
+      title: 'Teorema chinês dos restos',
+      eyebrow: 'teoria dos números · teorema chinês dos restos',
+      heading: 'Teorema chinês dos restos',
+      lede: 'Cada congruência, por si só, escolhe uma família de números igualmente espaçados — cada terceiro número, cada quinto número, e assim por diante. Quando os módulos não partilham nenhum fator comum, essas famílias cruzam-se em exatamente um ponto em cada trecho de {0} números. Esse único cruzamento é a solução simultânea com a qual todas as linhas concordam.',
+      xref: 'Vê o inverso modular da primeira congruência calculado passo a passo na ferramenta Algoritmo de Euclides →',
+      countGroupLabel: 'Número de congruências',
+      countTwo: 'Duas congruências',
+      countThree: 'Três congruências',
+      remainderLabel: 'resto a',
+      modulusLabel: 'módulo m',
+      chipSunTzu: "2 mod 3 · 3 mod 5 · 2 mod 7 · enigma de Sun Tzu",
+      chipCoprime: '2 mod 3 · 3 mod 5 · par coprimo',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · partilha um fator',
+      extToggleLabel: 'Revela o método mais rápido — constrói a resposta diretamente com o algoritmo euclidiano estendido em vez de a procurares',
+      stripGroupLabel: 'Tiras de classes de resíduos, com deslocamento',
+      constructLede: 'Divide o período numa peça por congruência, inverte cada peça em relação ao seu próprio módulo, escala pelo resto dessa congruência, soma as peças e depois reduz.',
+      tableHeaderY: 'y (inverso)',
+      tableHeaderTerm: 'termo = a · M · y',
+      caption: 'A resposta repete-se para sempre com período {0} — a coluna marcada é um representante de uma família infinita de soluções.',
+      allAgreeLabel: 'todas concordam',
+      errModulusWhole: 'Linha {idx}: o módulo tem de ser um número inteiro.',
+      errModulusRange: 'Linha {idx}: o módulo tem de estar entre {min} e {max}.',
+      errRemainderWhole: 'Linha {idx}: o resto tem de ser um número inteiro.',
+      errRemainderRange: 'Linha {idx}: o resto tem de ser de 0 a {max} para o módulo {m}.',
+      coprimeOk: 'Os módulos são coprimos dois a dois — existe uma solução em forma padrão módulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — os módulos {x} e {y} partilham um fator, pelo que o requisito de coprimalidade dois a dois da construção padrão do Teorema Chinês dos Restos não é cumprido, e esta ferramenta não tenta resolver este sistema.',
+      spanWarn: 'O período combinado lcm = {span} está acima do limite desta ferramenta de {max} — reduz um dos módulos para ficar abaixo de {max}.',
+      testingX: 'A testar x = {x} …',
+      diagnosticMismatchScan: 'Incompatibilidade de diagnóstico: a análise chegou a {landed}, mas a construção calculou {computed} — esses valores têm de coincidir sempre.',
+      solved: 'Resolvido — todas as congruências concordam em x = {x}.',
+      diagnosticScanEnd: 'Diagnóstico: a análise chegou ao fim do período ({span}) sem encontrar um acordo, o que deveria ser impossível para um sistema coprimo dois a dois.',
+      readyToScan: 'Pronto — prime Reproduzir para ver a análise a procurar x.',
+      constructReasonNotCoprime: 'A construção precisa que cada M_i seja invertível módulo o seu próprio m_i, o que um fator partilhado entre os módulos torna impossível.',
+      constructReasonSpanBlocked: 'A construção precisa de uma resposta calculada, e o limite do período está a bloquear isso.',
+      constructSumMismatch: 'Incompatibilidade de diagnóstico: a construção reduz-se a {reduced}, mas o solucionador calculou {computed} — esses valores têm de coincidir sempre.',
+      seeInverse: 'vê o inverso →'
     }
   });
 })();
