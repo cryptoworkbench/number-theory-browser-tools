@@ -45,10 +45,11 @@ var ROOT = process.env.I18N_CHECK_ROOT
   ? path.resolve(process.env.I18N_CHECK_ROOT)
   : path.resolve(__dirname, "..", "..", "..");
 
-// Task 2 decision (06-01-PLAN.md): option-a — 'site-lang', a raw two-letter
-// code, owned entirely by assets/nt-i18n.js. Used only to seed/inspect fake
-// storage in this file's own test scenarios; the production constant lives
-// in assets/nt-i18n.js as NT.i18n.LANG_STORAGE_KEY.
+// Task 2 decision (06-01-PLAN.md): option-a — 'site-lang', a raw language
+// code, either two-letter or the region-tagged pt-BR/pt-PT, owned entirely
+// by assets/nt-i18n.js. Used only to seed/inspect fake storage in this
+// file's own test scenarios; the production constant lives in
+// assets/nt-i18n.js as NT.i18n.LANG_STORAGE_KEY.
 var LANG_KEY = "site-lang";
 
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
@@ -713,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "it", "nl", "pl"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "it", "nl", "pl", "pt-BR", "pt-PT"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -803,6 +804,28 @@ function doApi() {
   check("pl tp.count at 0 selects many", I.translate("tp.count", { count: 0 }), "0 plików");
   check("pl tp.count at 1.5 selects other (fraction)", I.translate("tp.count", { count: 1.5 }), "1.5 pliku");
   check("pl tp.enOnly at 5 falls back to en value (missing many falls back to other)", I.translate("tp.enOnly", { count: 5 }), "5 things");
+
+  // Portuguese's two distinct plural rules (pt-BR's CLDR 'pt' one covers
+  // 0 and 1; pt-PT's own 'one' covers exactly 1), proven against a
+  // synthetic namespace shared by both variants.
+  I.register("tpt", {
+    en: { count: { one: "{count} file", other: "{count} files" } },
+    "pt-BR": { count: { one: "{count} arquivo", other: "{count} arquivos" } },
+    "pt-PT": { count: { one: "{count} ficheiro", other: "{count} ficheiros" } }
+  });
+  check("setLang('pt-BR') returns true (tpt)", I.setLang("pt-BR"), true);
+  check("pt-BR tpt.count at 0 selects one (CLDR pt one covers 0)", I.translate("tpt.count", { count: 0 }), "0 arquivo");
+  check("pt-BR tpt.count at 1 selects one", I.translate("tpt.count", { count: 1 }), "1 arquivo");
+  check("pt-BR tpt.count at 2 selects other", I.translate("tpt.count", { count: 2 }), "2 arquivos");
+  check("pt-BR tpt.count at 1.5 selects one", I.translate("tpt.count", { count: 1.5 }), "1.5 arquivo");
+  check("pt-BR tpt.count at 1000000 selects other (many has no key, falls back to other)", I.translate("tpt.count", { count: 1000000 }), "1000000 arquivos");
+  check("setLang('pt-PT') returns true (tpt)", I.setLang("pt-PT"), true);
+  check("pt-PT tpt.count at 0 selects other", I.translate("tpt.count", { count: 0 }), "0 ficheiros");
+  check("pt-PT tpt.count at 1 selects one", I.translate("tpt.count", { count: 1 }), "1 ficheiro");
+  check("pt-PT tpt.count at 2 selects other", I.translate("tpt.count", { count: 2 }), "2 ficheiros");
+  check("pt-PT tpt.count at 1.5 selects other", I.translate("tpt.count", { count: 1.5 }), "1.5 ficheiros");
+  check("pt-PT tpt.count at 1000000 selects other (many has no key, falls back to other)", I.translate("tpt.count", { count: 1000000 }), "1000000 ficheiros");
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -893,6 +916,12 @@ function doApi() {
   check("setLang(null) returns false", I.setLang(null), false);
   check("setLang(undefined) returns false", I.setLang(undefined), false);
   check("setLang('__proto__') returns false", I.setLang("__proto__"), false);
+  check("setLang('pt') returns false", I.setLang("pt"), false);
+  check("setLang('PT-BR') returns false (case-sensitive)", I.setLang("PT-BR"), false);
+  check("setLang('pt-br') returns false (case-sensitive)", I.setLang("pt-br"), false);
+  check("setLang('pt_BR') returns false", I.setLang("pt_BR"), false);
+  check("setLang('pt-pt') returns false (case-sensitive)", I.setLang("pt-pt"), false);
+  check("setLang(' pt-BR') returns false (no trimming)", I.setLang(" pt-BR"), false);
   check("no change event fired for any invalid setLang call", ctx._changeEvents.length, beforeInvalid);
 
   // setLang: valid transitions across every supported language
@@ -912,7 +941,31 @@ function doApi() {
   ctx.navigator = { languages: ["de-AT", "en"] };
   check("detectDefaultLang(['de-AT','en']) -> de", I.detectDefaultLang(), "de");
   ctx.navigator = { languages: ["pt-BR"] };
-  check("detectDefaultLang(['pt-BR']) -> en (unsupported falls back)", I.detectDefaultLang(), "en");
+  check("detectDefaultLang(['pt-BR']) -> pt-BR", I.detectDefaultLang(), "pt-BR");
+  ctx.navigator = { languages: ["ja-JP"] };
+  check("detectDefaultLang(['ja-JP']) -> en (unsupported falls back)", I.detectDefaultLang(), "en");
+  ctx.navigator = { languages: ["pt-PT", "en"] };
+  check("detectDefaultLang(['pt-PT','en']) -> pt-PT", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["pt-AO"] };
+  check("detectDefaultLang(['pt-AO']) -> pt-PT", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["pt-MZ"] };
+  check("detectDefaultLang(['pt-MZ']) -> pt-PT", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["pt"] };
+  check("detectDefaultLang(['pt']) -> pt-BR (bare pt)", I.detectDefaultLang(), "pt-BR");
+  ctx.navigator = { languages: ["PT-br"] };
+  check("detectDefaultLang(['PT-br']) -> pt-BR (case-insensitive)", I.detectDefaultLang(), "pt-BR");
+  ctx.navigator = { languages: ["pt-pt"] };
+  check("detectDefaultLang(['pt-pt']) -> pt-PT (case-insensitive)", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["pt_PT"] };
+  check("detectDefaultLang(['pt_PT']) -> pt-PT (underscore separator)", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["pt-Latn-PT"] };
+  check("detectDefaultLang(['pt-Latn-PT']) -> pt-PT (script subtag skipped)", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["ja", "pt-PT", "en"] };
+  check("detectDefaultLang(['ja','pt-PT','en']) -> pt-PT (first supported wins)", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["de-AT", "pt-BR"] };
+  check("detectDefaultLang(['de-AT','pt-BR']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
+  ctx.navigator = { languages: ["ptx", "en"] };
+  check("detectDefaultLang(['ptx','en']) -> en (primary subtag must be exactly pt)", I.detectDefaultLang(), "en");
   ctx.navigator = { languages: ["NL"] };
   check("detectDefaultLang(['NL']) -> nl (case-insensitive)", I.detectDefaultLang(), "nl");
   ctx.navigator = { languages: ["it-IT", "en"] };
@@ -947,7 +1000,7 @@ function doApi() {
       a.setAttribute("href", c.href);
       return a;
     });
-    ["de", "fr"].forEach(function (targetLang) {
+    ["de", "fr", "pt-BR", "pt-PT"].forEach(function (targetLang) {
       I2.setLang(targetLang);
       cases.forEach(function (c, i) {
         var href = els[i].getAttribute("href");
@@ -990,7 +1043,15 @@ function doPersistence() {
     { opts: { storage: { initial: "es" } }, want: "es", label: "storage used when url and cookie absent" },
     { opts: { storage: { initial: "xx" } }, want: "en", label: "invalid storage falls through to detected default" },
     { opts: { storage: { initial: "<script>" } }, want: "en", label: "unparseable storage falls through to detected default" },
-    { opts: {}, want: "en", label: "no channel set -> detected default (navigator en)" }
+    { opts: {}, want: "en", label: "no channel set -> detected default (navigator en)" },
+    { opts: { search: "?lang=pt", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url pt (bare, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=pt-br", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url pt-br (region case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=PT-BR", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url PT-BR (language case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=pt_BR", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url pt_BR (underscore) falls through to cookie" },
+    { opts: { cookie: { initial: "pt-br" }, storage: { initial: "es" } }, want: "es", label: "cookie pt-br falls through to storage" },
+    { opts: { storage: { initial: "pt" } }, want: "en", label: "storage pt falls through to detected default" },
+    { opts: { storage: { initial: "pt-pt" } }, want: "en", label: "storage pt-pt falls through to detected default" },
+    { opts: { search: "?lang=pt%2DBR" }, want: "pt-BR", label: "url pt%2DBR decodes to pt-BR" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1050,7 +1111,9 @@ function doPersistence() {
     { opts: { cookie: { initial: "fr" } }, lang: "fr", via: "cookie" },
     { opts: { storage: { initial: "es" } }, lang: "es", via: "storage" },
     { opts: { search: "?lang=it" }, lang: "it", via: "url" },
-    { opts: { cookie: { initial: "pl" } }, lang: "pl", via: "cookie" }
+    { opts: { cookie: { initial: "pl" } }, lang: "pl", via: "cookie" },
+    { opts: { search: "?lang=pt-BR" }, lang: "pt-BR", via: "url" },
+    { opts: { cookie: { initial: "pt-PT" } }, lang: "pt-PT", via: "cookie" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1064,6 +1127,7 @@ function doPersistence() {
     check("explicit (" + scenario.via + ") cookie string has path=/", cookieRaw.indexOf("path=/") !== -1, true);
     check("explicit (" + scenario.via + ") cookie string has max-age=31536000", cookieRaw.indexOf("max-age=31536000") !== -1, true);
     check("explicit (" + scenario.via + ") cookie string has samesite=lax", cookieRaw.indexOf("samesite=lax") !== -1, true);
+    check("explicit (" + scenario.via + ") " + scenario.lang + " cookie string starts with site-lang=" + scenario.lang + ";", cookieRaw.indexOf("cookie:site-lang=" + scenario.lang + ";") === 0, true);
   });
 
   // setLang() also persists: storage first, then cookie.
@@ -1112,6 +1176,15 @@ function doPersistence() {
     ctx._fireStorage(I.LANG_STORAGE_KEY, "fr");
     check("a second distinct storage event still re-applies", ctx._doc.documentElement.lang, "fr");
     check("a second distinct storage event fires one more change event", ctx._changeEvents.length, changeAfterIgnored + 1);
+
+    var changeAfterFr = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "pt-br");
+    check("storage event with region-case-mismatched pt-br is a no-op", ctx._doc.documentElement.lang, "fr");
+    check("storage event with pt-br fires no change event", ctx._changeEvents.length, changeAfterFr);
+
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "pt-PT");
+    check("storage event with pt-PT re-applies html lang", ctx._doc.documentElement.lang, "pt-PT");
+    check("storage event with pt-PT fires one more change event", ctx._changeEvents.length, changeAfterFr + 1);
   })();
 
   // lang= is stripped from the address bar after init(), every other
@@ -1122,7 +1195,9 @@ function doPersistence() {
     { search: "?theme=day&lang=de&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
     { search: "?lang=de&theme=night", pathname: "/y.html", hash: "", calls: 1, want: "/y.html?theme=night" },
     { search: "?n=7", pathname: "/x.html", hash: "", calls: 0, want: null },
-    { search: "", pathname: "/x.html", hash: "", calls: 0, want: null }
+    { search: "", pathname: "/x.html", hash: "", calls: 0, want: null },
+    { search: "?theme=day&lang=pt-BR&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
+    { search: "?lang=pt-br", pathname: "/x.html", hash: "", calls: 0, want: null }
   ].forEach(function (c) {
     var ctx = loadI18n({ search: c.search, pathname: c.pathname, hash: c.hash, navigator: { languages: ["en-US", "en"] } });
     check("stripUrlParam call count for " + JSON.stringify(c.search), ctx.history._calls.length, c.calls);
@@ -1143,11 +1218,12 @@ function doPersistence() {
 
 /* ---------- language lists (Q-04, quick task 261002-c77) ---------- */
 
-// LANG_CODES: the seven supported codes in switcher order — nl, en, de, fr,
-// es, it, pl. checkDictionaries iterates this instead of a local SUPPORTED list.
-var LANG_CODES = ["nl", "en", "de", "fr", "es", "it", "pl"];
+// LANG_CODES: the nine supported codes in switcher order — nl, en, de, fr,
+// es, it, pl, pt-BR, pt-PT. checkDictionaries iterates this instead of a
+// local SUPPORTED list.
+var LANG_CODES = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT"];
 
-// SWITCHER_OPTIONS: the seven <option value lang label> entries expected in
+// SWITCHER_OPTIONS: the nine <option value lang label> entries expected in
 // every page's #lang-switch-select, same order as LANG_CODES, mirroring the
 // literal page markup. checkSwitcherPresent compares against this list.
 var SWITCHER_OPTIONS = [
@@ -1157,15 +1233,17 @@ var SWITCHER_OPTIONS = [
   { value: "fr", lang: "fr", label: "Français" },
   { value: "es", lang: "es", label: "Español" },
   { value: "it", lang: "it", label: "Italiano" },
-  { value: "pl", lang: "pl", label: "Polski" }
+  { value: "pl", lang: "pl", label: "Polski" },
+  { value: "pt-BR", lang: "pt-BR", label: "Português (Brasil)" },
+  { value: "pt-PT", lang: "pt-PT", label: "Português (Portugal)" }
 ];
 
 // PLURAL_EXTRA_CATEGORIES: the CLDR plural categories, beyond English's
 // {one, other}, that a language's plural dictionary values must carry.
 // Deliberately explicit rather than derived from Intl.PluralRules for every
-// language, because CLDR gives fr/es/it a "many" category too (exact
-// multiples of 1,000,000); their values stay {one, other} and the engine
-// falls back to other for that case, so only pl is listed here.
+// language, because CLDR gives fr/es/it/pt-BR/pt-PT a "many" category too
+// (exact multiples of 1,000,000); their values stay {one, other} and the
+// engine falls back to other for that case, so only pl is listed here.
 var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"] };
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
@@ -1218,8 +1296,9 @@ var NEUTRAL_TOKENS = [
   "cayley", "venn", "shor", "euclid", "euclides", "euklid", "euklides", "euclide",
   "eratosthenes", "eratosthène", "eratosthene", "eratóstenes", "eratostenes", "eratostene",
   "bézout", "bezout", "sunzi",
-  // the seven autonyms (switcher option labels)
+  // the nine autonyms (switcher option labels)
   "nederlands", "english", "deutsch", "français", "francais", "español", "espanol", "italiano", "polski",
+  "português", "portugues", "brasil", "portugal",
   // math/domain abbreviations
   "mod", "gcd", "lcm", "max", "min", "log", "exp", "sqrt", "phi"
 ];
@@ -1407,7 +1486,7 @@ function checkSwitcherPresent(relPath, html, findings) {
     var block = /<select\b[^>]*id="lang-switch-select"[^>]*>([\s\S]*?)<\/select>/.exec(html);
     var optionsHtml = block ? block[1] : "";
     var expected = SWITCHER_OPTIONS;
-    var optRe = /<option value="([a-z]{2})" lang="([a-z]{2})"(?: selected)?>([^<]*)<\/option>/g;
+    var optRe = /<option value="([a-z]{2}(?:-[A-Z]{2})?)" lang="([a-z]{2}(?:-[A-Z]{2})?)"(?: selected)?>([^<]*)<\/option>/g;
     var found = [], om;
     while ((om = optRe.exec(optionsHtml))) found.push({ value: om[1], lang: om[2], label: om[3] });
     if (found.length !== SWITCHER_OPTIONS.length) {
@@ -2111,5 +2190,7 @@ module.exports = {
   PLURAL_EXTRA_CATEGORIES: PLURAL_EXTRA_CATEGORIES,
   expectedPluralCategories: expectedPluralCategories,
   checkPluralEntry: checkPluralEntry,
-  pluralCategoryFindings: pluralCategoryFindings
+  pluralCategoryFindings: pluralCategoryFindings,
+  SWITCHER_OPTIONS: SWITCHER_OPTIONS,
+  checkSwitcherPresent: checkSwitcherPresent
 };

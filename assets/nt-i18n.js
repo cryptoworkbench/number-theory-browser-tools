@@ -12,8 +12,9 @@
    NT.store (whose documented scope is sibling-pair tool settings, not a
    site-wide preference).
 
-   Persistence (Task 2 decision: option-a — `site-lang`, a raw two-letter
-   code, owned entirely by this module): resolution at evaluation time is
+   Persistence (Task 2 decision: option-a — `site-lang`, a raw language
+   code, either two-letter or the region-tagged `pt-BR`/`pt-PT`, owned
+   entirely by this module): resolution at evaluation time is
    ?lang= beats cookie beats localStorage beats detectDefaultLang(); a value
    outside SUPPORTED_LANGS in any channel is ignored and the next channel is
    tried. An explicit choice (the URL/cookie/localStorage value that won at
@@ -56,7 +57,7 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';
@@ -109,6 +110,16 @@
       }
     } catch (e) { langs = []; }
     for (var i = 0; i < langs.length; i++) {
+      // Portuguese is region-aware: pt-BR (or bare pt) -> pt-BR, any other region -> pt-PT.
+      var tag = String(langs[i]).toLowerCase();
+      var parts = tag.split(/[-_]/);
+      if (parts[0] === 'pt') {
+        var region = null;
+        for (var j = 1; j < parts.length; j++) {
+          if (/^(?:[a-z]{2}|[0-9]{3})$/.test(parts[j])) { region = parts[j]; break; }
+        }
+        return (!region || region === 'br') ? 'pt-BR' : 'pt-PT';
+      }
       var code = String(langs[i]).slice(0, 2).toLowerCase();
       if (valid(code)) return code;
     }

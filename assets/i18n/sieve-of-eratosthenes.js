@@ -1,14 +1,14 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all seven supported
+   marker for the Sieve of Eratosthenes tool, in all nine supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
    every language except Polish, which carries the CLDR { one, few, many,
    other } shape); every other key is plain text. Placeholder names ({n},
-   {time}, {count}) are identical across all seven languages. legend.*
+   {time}, {count}) are identical across all nine languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Must load after
@@ -201,6 +201,58 @@
         few: 'Znaleziono {count} liczby pierwsze do {n} w {time}.',
         many: 'Znaleziono {count} liczb pierwszych do {n} w {time}.',
         other: 'Znaleziono {count} liczb pierwszych do {n} w {time}.'
+      }
+    },
+    'pt-BR': {
+      title: 'Crivo de Eratóstenes — Visualizador interativo',
+      heading: 'Crivo de Eratóstenes',
+      lede: 'Dê a cada número natural sua própria caixa — depois veja o crivo eliminar tudo o que não é primo.',
+      sizeLabel: 'Tamanho do crivo (N)',
+      generate: '🧮 Gerar',
+      'stat.current': 'Atual',
+      'stat.primesFound': 'Números primos encontrados',
+      'stat.sqrtBoundary': 'Limite √N',
+      'stat.elapsed': 'Tempo decorrido',
+      'stat.progress': 'Progresso',
+      'stat.done': '✓ concluído',
+      'legend.unvisited': '{0} Não visitado',
+      'legend.currentPointer': '{0} Ponteiro atual',
+      'legend.prime': '{0} Primo',
+      'legend.composite': '{0} Eliminado (composto)',
+      'legend.neither': '{0} Nenhum dos dois (1)',
+      footer: 'Todo o cálculo é executado no seu navegador, no lado do cliente. Nenhum número foi danificado permanentemente — apenas eliminado.',
+      'banner.ready': 'Pronto. {n} caixas criadas — pressione Reproduzir para crivar.',
+      'banner.single': 'Apenas 1 caixa — nada para crivar.',
+      'banner.reset': 'Reiniciado. {n} caixas reconstruídas — pressione Reproduzir para crivar.',
+      'banner.done': {
+        one: '{count} número primo encontrado até {n} em {time}.',
+        other: '{count} números primos encontrados até {n} em {time}.'
+      }
+    },
+    'pt-PT': {
+      title: 'Crivo de Eratóstenes — Visualizador interativo',
+      heading: 'Crivo de Eratóstenes',
+      lede: 'Dá a cada número natural a sua própria caixa — depois vê o crivo eliminar tudo o que não é primo.',
+      sizeLabel: 'Tamanho do crivo (N)',
+      generate: '🧮 Gerar',
+      'stat.current': 'Atual',
+      'stat.primesFound': 'Números primos encontrados',
+      'stat.sqrtBoundary': 'Limite √N',
+      'stat.elapsed': 'Tempo decorrido',
+      'stat.progress': 'Progresso',
+      'stat.done': '✓ concluído',
+      'legend.unvisited': '{0} Não visitado',
+      'legend.currentPointer': '{0} Ponteiro atual',
+      'legend.prime': '{0} Primo',
+      'legend.composite': '{0} Eliminado (composto)',
+      'legend.neither': '{0} Nenhum dos dois (1)',
+      footer: 'Todo o cálculo é executado no teu navegador, do lado do cliente. Nenhum número foi danificado permanentemente — apenas eliminado.',
+      'banner.ready': 'Pronto. {n} caixas criadas — prime Reproduzir para crivar.',
+      'banner.single': 'Apenas 1 caixa — nada para crivar.',
+      'banner.reset': 'Reiniciado. {n} caixas reconstruídas — prime Reproduzir para crivar.',
+      'banner.done': {
+        one: '{count} número primo encontrado até {n} em {time}.',
+        other: '{count} números primos encontrados até {n} em {time}.'
       }
     }
   });

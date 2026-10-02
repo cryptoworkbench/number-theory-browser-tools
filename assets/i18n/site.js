@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared header chrome
    (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all seven supported languages.
+   label and the day/night toggle's label) in all nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -167,6 +167,50 @@
       'nav.shor': 'Algorytm Shora',
       'lang.label': 'Język',
       'theme.toggle': 'Przełącz tryb dzienny i nocny'
+    },
+    'pt-BR': {
+      brand: 'Ferramentas de teoria dos números',
+      'nav.label': 'Ferramentas',
+      'nav.home': 'Início',
+      'nav.sieve': 'Crivo de Eratóstenes',
+      'nav.factorTree': 'Árvore de fatores',
+      'nav.venn': 'Diagrama de Venn',
+      'nav.euclid': 'Algoritmo de Euclides',
+      'nav.crt': 'Teorema chinês do resto',
+      'nav.wheel': 'Roda de equivalência',
+      'nav.totient': 'Função φ de Euler',
+      'nav.cayley': 'Tabela de Cayley',
+      'nav.iso': 'Isomorfismo de grupos',
+      'nav.sqm': 'Exponenciação rápida',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH em curvas elípticas',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Método de Fermat',
+      'nav.shor': 'Algoritmo de Shor',
+      'lang.label': 'Idioma',
+      'theme.toggle': 'Alternar entre modo diurno e noturno'
+    },
+    'pt-PT': {
+      brand: 'Ferramentas de teoria dos números',
+      'nav.label': 'Ferramentas',
+      'nav.home': 'Início',
+      'nav.sieve': 'Crivo de Eratóstenes',
+      'nav.factorTree': 'Árvore de fatores',
+      'nav.venn': 'Diagrama de Venn',
+      'nav.euclid': 'Algoritmo de Euclides',
+      'nav.crt': 'Teorema chinês dos restos',
+      'nav.wheel': 'Roda de equivalência',
+      'nav.totient': 'Função φ de Euler',
+      'nav.cayley': 'Tabela de Cayley',
+      'nav.iso': 'Isomorfismo de grupos',
+      'nav.sqm': 'Exponenciação rápida',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH em curvas elípticas',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Método de Fermat',
+      'nav.shor': 'Algoritmo de Shor',
+      'lang.label': 'Idioma',
+      'theme.toggle': 'Alternar entre o modo diurno e o modo noturno'
     }
   });
 
@@ -318,6 +362,46 @@
       'speed.10': 'niemal natychmiastowa',
       additiveGroups: 'Grupy addytywne',
       multiplicativeGroups: 'Grupy multiplikatywne'
+    },
+    'pt-BR': {
+      play: '▶ Reproduzir',
+      pause: '⏸ Pausar',
+      step: '⏭ Passo',
+      instant: '⏩ Instantâneo',
+      reset: '↺ Reiniciar',
+      speed: 'Velocidade',
+      'speed.1': 'gélida',
+      'speed.2': 'lenta',
+      'speed.3': 'suave',
+      'speed.4': 'ágil',
+      'speed.5': 'constante',
+      'speed.6': 'ligeira',
+      'speed.7': 'rápida',
+      'speed.8': 'veloz',
+      'speed.9': 'vertiginosa',
+      'speed.10': 'quase instantânea',
+      additiveGroups: 'Grupos aditivos',
+      multiplicativeGroups: 'Grupos multiplicativos'
+    },
+    'pt-PT': {
+      play: '▶ Reproduzir',
+      pause: '⏸ Pausar',
+      step: '⏭ Passo',
+      instant: '⏩ Instantâneo',
+      reset: '↺ Repor',
+      speed: 'Velocidade',
+      'speed.1': 'gélida',
+      'speed.2': 'lenta',
+      'speed.3': 'suave',
+      'speed.4': 'ágil',
+      'speed.5': 'constante',
+      'speed.6': 'ligeira',
+      'speed.7': 'rápida',
+      'speed.8': 'veloz',
+      'speed.9': 'vertiginosa',
+      'speed.10': 'quase instantânea',
+      additiveGroups: 'Grupos aditivos',
+      multiplicativeGroups: 'Grupos multiplicativos'
     }
   });
 })();
