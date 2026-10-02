@@ -1,6 +1,6 @@
 /* assets/i18n/hub.js — the 'hub' namespace: index.html's page title, hero
    (eyebrow, h1, lede), all fifteen tool cards (card.<id>.title / desc),
-   the shared "Open tool →" link label and the footer, in all six
+   the shared "Open tool →" link label and the footer, in all seven
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -250,6 +250,44 @@
       'card.fermat.desc': 'Il metodo di fattorizzazione di Fermat: cerca a² − N = b², poi guarda l’algebra trasformarsi in un’immagine mentre un quadrato viene riorganizzato in un rettangolo.',
       'card.shor.title': 'Algoritmo di Shor',
       'card.shor.desc': 'Guarda l’algoritmo che rende RSA mortale fattorizzare un numero passo dopo passo — con l’unico passo davvero quantistico, la ricerca dell’ordine, onestamente etichettato come un sostituto classico, motivo per cui N resta piccolo qui.'
+    },
+    pl: {
+      title: 'Narzędzia teorii liczb do przeglądarki',
+      'hero.eyebrow': 'interaktywne · po stronie klienta · zero zależności',
+      'hero.title': 'Teoria liczb, zrobiona do zabawy',
+      'hero.lede': 'Piętnaście małych narzędzi przeglądarkowych do odkrywania liczb pierwszych, faktoryzacji, arytmetyki modularnej, równoczesnych kongruencji, tabel grup i izomorfizmów oraz kryptografii z kluczem publicznym — od arytmetyki modularnej do krzywych eliptycznych — każde to animowana, interaktywna wizualizacja, którą możesz poruszyć, obsłużyć suwakiem i obserwować w działaniu.',
+      openTool: 'Otwórz narzędzie →',
+      footer: 'Wszystkie piętnaście narzędzi działają całkowicie po stronie klienta w twojej przeglądarce — bez etapu budowania, bez serwera, bez śledzenia.',
+      'card.sieve.title': 'Sito Eratostenesa',
+      'card.sieve.desc': 'Daj każdej liczbie naturalnej własne pole, a potem obserwuj, jak sito przekreśla wszystko, co nie jest liczbą pierwszą — z elementami odtwarzania i sygnałem dźwiękowym dla każdej znalezionej liczby pierwszej.',
+      'card.factorTree.title': 'Drzewo czynników pierwszych',
+      'card.factorTree.desc': 'Daj dowolnej liczbie drzewo czynników i obserwuj, jak rośnie, gałąź po gałęzi, aż do swoich pierwszych liści — ozdobione na sezon.',
+      'card.venn.title': 'Diagram Venna',
+      'card.venn.desc': 'Przeciągaj liczby pierwsze do dwóch lub trzech nakładających się okręgów i odczytuj iloczyn każdego obszaru — każde nakładanie się czyta się jako przecięcie, od prostej soczewki ∩ aż do środka, w którym spotykają się wszystkie okręgi.',
+      'card.euclid.title': 'Algorytm Euklidesa',
+      'card.euclid.desc': 'Podziel większą liczbę przez mniejszą, zachowaj tylko resztę i powtarzaj — obserwuj, jak para zmniejsza się krok po kroku w rosnącym łańcuchu równań, aż nie zostanie nic innego niż największy wspólny dzielnik.',
+      'card.crt.title': 'Chińskie twierdzenie o resztach',
+      'card.crt.desc': 'Daj tej samej nieznanej liczbie dwa lub trzy fakty o reszcie — reszta 2 przy dzieleniu przez 3, reszta 3 przy dzieleniu przez 5 — i obserwuj, jak te równomiernie rozłożone rodziny kandydatów przecinają się w jednej liczbie, która spełnia wszystko naraz.',
+      'card.wheel.title': 'Koło równoważności',
+      'card.wheel.desc': 'Każda liczba naturalna należy do dokładnie jednej klasy równoważności modulo N — ułożonych tu jako koncentryczne pierścienie i wycinki, jeden wycinek na klasę.',
+      'card.totient.title': 'Funkcja φ Eulera',
+      'card.totient.desc': 'Policz, ile liczb mniejszych od n nie ma żadnego wspólnego czynnika z n — nie za pomocą wzoru, lecz uruchamiając algorytm Euklidesa dla każdej z nich i licząc, kto przetrwa.',
+      'card.cayley.title': 'Tabela Cayleya',
+      'card.cayley.desc': 'Całe zachowanie grupy mieści się w jednej kwadratowej tabeli — ustaw moduł, przełączaj się między dodawaniem i mnożeniem, i kliknij dowolną komórkę, aby zobaczyć element neutralny, elementy samoodwrotne i symetrię — wszystko widoczne w kształcie siatki.',
+      'card.iso.title': 'Izomorfizmy grup',
+      'card.iso.desc': 'Dwa koła obok siebie — liczby całkowite modulo n z dodawaniem, elementy odwracalne modulo m z mnożeniem — dla każdej pary, w której są, strukturalnie, dokładnie tą samą grupą. Kliknij jedno z kół, aby zobaczyć odpowiedniość na drugim.',
+      'card.sqm.title': 'Szybkie potęgowanie',
+      'card.sqm.desc': 'Maszyna nigdy nie mnoży liczby przez samą siebie miliard razy — odczytuje wykładnik w zapisie dwójkowym i przechodzi przez niego, podnosząc do kwadratu, jedno podniesienie do kwadratu na bit, i tylko dzięki temu arytmetyka w skali RSA w ogóle się kończy.',
+      'card.dh.title': 'Wymiana kluczy Diffiego-Hellmana',
+      'card.dh.desc': 'Obserwuj, jak Alice i Bob budują wspólny sekret w pełni otwarcie, podczas gdy Eve notuje każdy bajt przesyłany linią — a mimo to nie może go odtworzyć.',
+      'card.ecdh.title': 'Diffie-Hellman na krzywych eliptycznych',
+      'card.ecdh.desc': 'Cały zbiór punktów małej krzywej eliptycznej nad ciałem pierwszym, naniesiony jako rozrzut punktów — Alice i Bob przechodzą przez niego za pomocą mnożenia przez skalar i trafiają w ten sam punkt z przeciwnych stron.',
+      'card.rsa.title': 'RSA',
+      'card.rsa.desc': 'Obserwuj, jak Bob i Alice budują pary kluczy RSA, wymieniają się nimi przez linię, którą podsłuchuje Eve, i zobacz, jaki trudny problem matematyczny trzyma ją za drzwiami.',
+      'card.fermat.title': 'Metoda Fermata',
+      'card.fermat.desc': 'Metoda faktoryzacji Fermata: szukaj a² − N = b², a potem obserwuj, jak algebra zmienia się w obraz, gdy kwadrat zostaje przekształcony w prostokąt.',
+      'card.shor.title': 'Algorytm Shora',
+      'card.shor.desc': 'Obserwuj, jak algorytm, który czyni RSA śmiertelnym, faktoryzuje liczbę etap po etapie — z jednym prawdziwie kwantowym krokiem, wyznaczaniem rzędu, szczerze oznaczonym jako klasyczny zamiennik, dlatego N pozostaje tu małe.'
     }
   });
 })();

@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all six supported languages.
+   tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,8 +12,10 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all six languages. Must load after assets/nt-i18n.js and
-   assets/i18n/site.js, before the page's own inline <script>.
+   all seven languages. bannerDone is { one, other } in every language
+   except Polish, which carries the CLDR { one, few, many, other } shape.
+   Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
+   page's own inline <script>.
 */
 (function () {
   "use strict";
@@ -162,6 +164,32 @@
         other: 'Fatto — {count} valori testati, {phi} coprimo con {n}.'
       },
       caption: 'Un numero primo n dà φ(n) = n−1, perché ogni numero più piccolo lo manca — i chip rendono facile verificarlo.'
+    },
+    pl: {
+      title: 'Funkcja φ Eulera',
+      eyebrow: 'teoria liczb · funkcja φ eulera',
+      heading: 'Funkcja φ Eulera',
+      lede: 'φ(n) liczy, ile spośród 1 … n−1 nie ma żadnego wspólnego czynnika z n, a ta strona odkrywa to w jedyny uczciwy sposób — pytając algorytm Euklidesa o każdą z nich po kolei.',
+      xref: 'Ten sam wynik pojawia się jako wycinki grupy multiplikatywnej modulo n →',
+      chipPrime: '{n} · pierwsza',
+      run: 'Uruchom',
+      errNotWhole: 'n musi być liczbą całkowitą.',
+      errTooSmall: 'n musi być co najmniej {min} — przebieg k = 1 … n−1 wymaga co najmniej jednego k do przetestowania.',
+      errCapped: 'n jest ograniczone do {max} — wartość została zmniejszona, aby się zmieścić.',
+      chainHead: 'Testowanie k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} jest względnie pierwsze z {n} — gcd = 1, zaliczone.',
+      verdictEliminated: 'k = {k} ma wspólny czynnik z {n} — gcd = {gcd}, wykluczone.',
+      tally: 'Bieżąca liczba względnie pierwszych: {count}',
+      progress: 'k = {k} z {total} przetestowane.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Gotowe — naciśnij Odtwórz, aby zobaczyć, jak przebieg testuje każde k, jedno dzielenie na raz.',
+      bannerDone: {
+        one: 'Gotowe — przetestowano {count} wartość, względnie pierwszych z {n}: {phi}.',
+        few: 'Gotowe — przetestowano {count} wartości, względnie pierwszych z {n}: {phi}.',
+        many: 'Gotowe — przetestowano {count} wartości, względnie pierwszych z {n}: {phi}.',
+        other: 'Gotowe — przetestowano {count} wartości, względnie pierwszych z {n}: {phi}.'
+      },
+      caption: 'Liczba pierwsza n daje φ(n) = n−1, bo każda mniejsza liczba jej nie trafia — chipy pozwalają to łatwo sprawdzić.'
     }
   });
 })();

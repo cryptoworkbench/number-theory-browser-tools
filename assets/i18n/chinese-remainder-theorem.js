@@ -6,18 +6,18 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all six supported languages.
+   tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
    06-GLOSSARY.md section (e) and are written identically in every
-   language (never translated to ggd/ggT/pgcd/mcd or kgv/kgV/ppcm/mcm).
-   Play/Pause, Step, Instant, Reset and Speed live in the shared `common`
-   namespace (assets/i18n/site.js), never duplicated here. Placeholder
-   names ({idx}, {min}, {max}, {m}, {x}, {y}, {g}, {span}, {landed},
-   {computed}, {reduced}) are identical across all six languages. Must
-   load after assets/nt-i18n.js and assets/i18n/site.js, before the
-   page's own inline <script>.
+   language (never translated to ggd/ggT/pgcd/mcd/NWD or
+   kgv/kgV/ppcm/mcm/NWW). Play/Pause, Step, Instant, Reset and Speed live
+   in the shared `common` namespace (assets/i18n/site.js), never
+   duplicated here. Placeholder names ({idx}, {min}, {max}, {m}, {x}, {y},
+   {g}, {span}, {landed}, {computed}, {reduced}) are identical across all
+   seven languages. Must load after assets/nt-i18n.js and
+   assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
   "use strict";
@@ -250,6 +250,44 @@
       constructReasonSpanBlocked: 'La costruzione ha bisogno di una risposta calcolata, e il limite del periodo lo blocca.',
       constructSumMismatch: 'Discrepanza diagnostica: la costruzione si riduce a {reduced}, ma il risolutore ha calcolato {computed} — questi devono sempre coincidere.',
       seeInverse: 'guarda l’inverso →'
+    },
+    pl: {
+      title: 'Chińskie twierdzenie o resztach',
+      eyebrow: 'teoria liczb · chińskie twierdzenie o resztach',
+      heading: 'Chińskie twierdzenie o resztach',
+      lede: 'Każda kongruencja sama wybiera równomiernie rozłożoną rodzinę liczb — co trzecią liczbę, co piątą liczbę i tak dalej. Gdy moduły nie mają żadnego wspólnego czynnika, te rodziny przecinają się w dokładnie jednym miejscu w każdym odcinku {0} liczb. To jedno przecięcie jest wspólnym rozwiązaniem, na które zgadza się każdy wiersz.',
+      xref: 'Zobacz odwrotność modularną pierwszej kongruencji obliczoną krok po kroku w narzędziu Algorytm Euklidesa →',
+      countGroupLabel: 'Liczba kongruencji',
+      countTwo: 'Dwie kongruencje',
+      countThree: 'Trzy kongruencje',
+      remainderLabel: 'reszta a',
+      modulusLabel: 'moduł m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · zagadka Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · para względnie pierwsza',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · ma wspólny czynnik',
+      extToggleLabel: 'Odkryj szybszą metodę — zbuduj odpowiedź bezpośrednio za pomocą rozszerzonego algorytmu Euklidesa, zamiast jej szukać',
+      stripGroupLabel: 'Pasy klas reszt, przewijalne',
+      constructLede: 'Podziel okres na jeden fragment na kongruencję, odwróć każdy fragment względem jego własnego modułu, przeskaluj go przez resztę tej kongruencji, dodaj fragmenty, a następnie zredukuj.',
+      tableHeaderY: 'y (odwrotność)',
+      tableHeaderTerm: 'wyraz = a · M · y',
+      caption: 'Odpowiedź powtarza się bez końca z okresem {0} — oznaczona kolumna jest jednym przedstawicielem nieskończonej rodziny rozwiązań.',
+      allAgreeLabel: 'wszystkie się zgadzają',
+      errModulusWhole: 'Wiersz {idx}: moduł musi być liczbą całkowitą.',
+      errModulusRange: 'Wiersz {idx}: moduł musi być między {min} a {max}.',
+      errRemainderWhole: 'Wiersz {idx}: reszta musi być liczbą całkowitą.',
+      errRemainderRange: 'Wiersz {idx}: reszta musi wynosić od 0 do {max} dla modułu {m}.',
+      coprimeOk: 'Moduły są parami względnie pierwsze — istnieje rozwiązanie w postaci standardowej modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — moduły {x} i {y} mają wspólny czynnik, więc wymóg parami względnej pierwszości standardowej konstrukcji chińskiego twierdzenia o resztach nie jest spełniony i to narzędzie nie próbuje rozwiązać tego układu.',
+      spanWarn: 'Połączony okres lcm = {span} przekracza limit tego narzędzia równy {max} — zmniejsz jeden z modułów, aby zejść poniżej {max}.',
+      testingX: 'Testowanie x = {x} …',
+      diagnosticMismatchScan: 'Niezgodność diagnostyczna: skan wylądował na {landed}, ale konstrukcja obliczyła {computed} — te wartości muszą się zawsze zgadzać.',
+      solved: 'Rozwiązane — każda kongruencja zgadza się przy x = {x}.',
+      diagnosticScanEnd: 'Diagnoza: skan dotarł do końca okresu ({span}) bez znalezienia zgodności, co powinno być niemożliwe dla układu parami względnie pierwszego.',
+      readyToScan: 'Gotowe — naciśnij Odtwórz, aby obserwować skan szukający x.',
+      constructReasonNotCoprime: 'Konstrukcja wymaga, aby każde M_i było odwracalne modulo swój własny m_i, co wspólny czynnik między modułami uniemożliwia.',
+      constructReasonSpanBlocked: 'Konstrukcja potrzebuje obliczonej odpowiedzi, a limit okresu to blokuje.',
+      constructSumMismatch: 'Niezgodność diagnostyczna: konstrukcja redukuje się do {reduced}, ale solver obliczył {computed} — te wartości muszą się zawsze zgadzać.',
+      seeInverse: 'zobacz odwrotność →'
     }
   });
 })();

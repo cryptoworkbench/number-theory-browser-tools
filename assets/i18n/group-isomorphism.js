@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   six supported languages.
+   seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -204,6 +204,35 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (troppo grande per mostrare esattamente la potenza non ridotta)',
       refCount: '{count} coppie (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   tramite   k ↦ {g}^k mod {m}   (generatore g = {g})'
+    },
+    pl: {
+      title: 'Izomorfizmy grup',
+      eyebrow: 'dwie arytmetyki, jedna grupa',
+      heading: 'Izomorfizmy grup',
+      lede: 'Liczby całkowite modulo n z dodawaniem i elementy odwracalne modulo m z mnożeniem mogą być, strukturalnie, dokładnie tą samą grupą — różni je tylko inna arytmetyka. {0}',
+      xref: 'Zobacz, jak te dwie grupy są budowane jedna po drugiej →',
+      pairLabel: 'Para izomorficzna',
+      pairSelectAriaLabel: 'Wybierz parę izomorficzną',
+      randomizeLabel: 'Losowo',
+      randomize: 'Nowy losowy przykład',
+      tablistLabel: 'Układ prawego koła',
+      tabPowers: 'Potęgi g',
+      tabNumeric: 'Numerycznie',
+      leftWheelAriaLabel: 'Elementy grupy addytywnej Z modulo n',
+      rightWheelAriaLabel: 'Elementy grupy multiplikatywnej elementów odwracalnych modulo m',
+      refHeading: 'Pary izomorficzne',
+      leftWedgeAriaLabel: 'Element {value} grupy addytywnej Z modulo {n}',
+      rightWedgeAriaLabel: 'Element {value} grupy multiplikatywnej elementów odwracalnych modulo {m}, równy {g} do potęgi {k} modulo {m}',
+      leftCaption: 'Grupa addytywna {bSpan}: liczby całkowite od 0 do {max} z dodawaniem modulo {n}.',
+      rightCaption: 'Grupa multiplikatywna {bSpan}: {n} elementów odwracalnych modulo {m} z mnożeniem, generowana przez {g}.',
+      readoutPrompt: 'Kliknij element na jednym z kół, aby zobaczyć odpowiedniość.',
+      readoutOne: 'Element {aSlot} po lewej odpowiada {aValSlot} po prawej: {eqSpan}. Kliknij drugi element — lub ponownie ten sam — aby zobaczyć sumę i iloczyn.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} po lewej ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} po prawej ({modSpan}) — a {product} = {g}^{sum} mod {m} = {sumVal}: obraz sumy jest równy iloczynowi obrazów.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} po lewej ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} po prawej ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} nie jest równe {g}^{sum} mod {m} = {sumVal} — ta para nigdy nie powinna się różnić.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (za duże, aby pokazać nieredukowaną potęgę dokładnie)',
+      refCount: '{count} par (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   przez   k ↦ {g}^k mod {m}   (generator g = {g})'
     }
   });
 })();

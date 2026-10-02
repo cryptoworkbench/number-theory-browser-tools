@@ -3,7 +3,7 @@
    fields, the Randomize and Export controls, the wheel's own aria-label,
    the per-mode note/heading/ref-count/formula strings, the wedge aria
    labels, the equivalence-class/sum captions and the export status
-   messages for the Equivalence Wheel tool, in all six supported
+   messages for the Equivalence Wheel tool, in all seven supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -315,6 +315,54 @@
       exportFailedSvg: 'Esportazione SVG non riuscita — riprova.',
       exportFailedPng: 'Esportazione PNG non riuscita — prova invece Scarica SVG.',
       exportPrintOpening: 'Apertura della finestra di stampa — scegli «Salva come PDF» come destinazione.'
+    },
+    pl: {
+      title: 'Koło równoważności',
+      eyebrow: 'podziały ℕ',
+      heading: 'Koło równoważności',
+      lede: 'Każda liczba naturalna należy do dokładnie jednej klasy równoważności modulo N. {0}',
+      xref: 'Ta sama grupa, odczytana jako pełna tabela działania →',
+      tablistLabel: 'Działanie grupowe',
+      nLabel: 'N — moduł',
+      nRangeLabel: 'Moduł N',
+      ringsLabel: 'Pierścienie (liczby na klasę)',
+      depthRangeLabel: 'Liczby pokazywane na klasę',
+      randomizeLabel: 'Losowo',
+      randomize: 'Nowy losowy przykład',
+      exportLabel: 'Eksport',
+      exportPngBtn: 'Pobierz PNG',
+      exportSvgBtn: 'Pobierz SVG',
+      exportPdfBtn: 'Drukuj / Zapisz jako PDF',
+      svgLabel: 'Liczby naturalne ułożone jako koncentryczne pierścienie, podzielone na N klas równoważności',
+      noteAdditive: 'Ten diagram układa ℕ jako koncentryczne pierścienie — jeden pierścień na każdą wielokrotność N, jeden wycinek na klasę — tak że klasy pozostają widocznie rozłączne i kompletne.',
+      noteMultiplicative: 'Tylko φ(N) klas względnie pierwszych z N dostaje tu wycinek — to są dokładnie te klasy, które mają odwrotność multiplikatywną, więc tylko one tworzą grupę względem mnożenia.',
+      headingAdditive: 'Klasy równoważności',
+      headingMultiplicative: 'Klasy równoważności elementów odwracalnych',
+      refCountAdditive: 'N = {n}',
+      refCountMultiplicative: 'N = {n} · φ({n}) = {m}',
+      formulaAdditive: 'ℕ/∼ = { [0], [1], …, [{nMinus1}] }   gdzie   [r] = { n ∈ ℕ : n mod {n} = r }',
+      formulaMultiplicative: '(ℤ/{n}ℤ)* = { [{els}] }   ·   element neutralny [{id}]   ·   |(ℤ/{n}ℤ)*| = φ({n}) = {m}',
+      roleFirstAddend: 'pierwszy składnik',
+      roleSecondAddend: 'drugi składnik',
+      roleSum: 'suma',
+      roleFirstFactor: 'pierwszy czynnik',
+      roleSecondFactor: 'drugi czynnik',
+      roleProduct: 'iloczyn',
+      and: 'i',
+      wedgeAriaLabel: 'Klasa równoważności {value} modulo {n}',
+      wedgeAriaLabelWithRoles: 'Klasa równoważności {value} modulo {n}, {roles}',
+      verbingAdditive: 'Dodawanie',
+      verbingMultiplicative: 'Mnożenie',
+      joinerAdditive: 'do',
+      joinerMultiplicative: 'przez',
+      classIntroPromptA: 'Klasa równoważności {bSpan} zawiera każdą liczbę naturalną przystającą do {s} (mod {n}): {termsSpan} — i nic innego. Kliknij wycinek lub wiersz odniesienia, aby wybrać {word}.',
+      classIntroPromptBAdditive: 'Klasa równoważności {bSpan} zawiera każdą liczbę naturalną przystającą do {s} (mod {n}): {termsSpan} — i nic innego. Kliknij drugą klasę — lub ponownie tę samą — aby dodać do {aSpan} i odkryć sumę.',
+      classIntroPromptBMultiplicative: 'Klasa równoważności {bSpan} zawiera każdą liczbę naturalną przystającą do {s} (mod {n}): {termsSpan} — i nic innego. Kliknij drugą klasę — lub ponownie tę samą — aby pomnożyć przez {aSpan} i odkryć iloczyn.',
+      sumCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {sum} (mod {n}). {verbing} dowolnego elementu {spanA2} {joiner} dowolnego elementu {spanB2} zawsze trafia w {spanSum2}: {termsSpan}',
+      exportSaved: 'Zapisano: {filename}',
+      exportFailedSvg: 'Eksport SVG nie powiódł się — spróbuj ponownie.',
+      exportFailedPng: 'Eksport PNG nie powiódł się — spróbuj zamiast tego pobrać SVG.',
+      exportPrintOpening: 'Otwieranie okna drukowania — wybierz „Zapisz jako PDF” jako miejsce docelowe.'
     }
   });
 })();

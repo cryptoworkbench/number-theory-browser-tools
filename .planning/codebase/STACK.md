@@ -59,8 +59,8 @@ last_mapped_at: 2026-09-23
 - No environment variables required
 - All configuration via CSS custom properties (`:root` variables)
 - Theme system (day/night mode) persisted in `localStorage` under key `site-theme`
-- Language preference (nl/en/de/fr/es/it) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
-- `Intl.PluralRules` is the one `Intl` API this project uses (for pluralizing a dictionary value with a `{one, other}` shape); no other `Intl` formatting (number/date/currency) is used — numerals stay plain and locale-independent per I18N-06
+- Language preference (nl/en/de/fr/es/it/pl) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
+- `Intl.PluralRules` is the one `Intl` API this project uses (for pluralizing a dictionary value with a `{one, other}` shape, or `{one, few, many, other}` for Polish); no other `Intl` formatting (number/date/currency) is used — numerals stay plain and locale-independent per I18N-06
 
 **CSS Custom Properties:**
 Each tool has its own color palette via `:root` CSS variables, with separate theming for light (`[data-theme="day"]`) and dark (`[data-theme="night"]`) modes:

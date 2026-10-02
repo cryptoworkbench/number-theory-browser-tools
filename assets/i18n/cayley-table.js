@@ -3,11 +3,13 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all six supported languages.
+   Cayley Table tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
-   plural entries ({ one, other }); every other key is plain text. The
+   plural entries ({ one, other } in every language except Polish, which
+   carries the CLDR { one, few, many, other } shape); every other key is
+   plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
    only the prose around them is translated. legend.* values are rich
@@ -257,6 +259,49 @@
       noteDiagonal: 'Questa cella si trova sull’asse diagonale — è il proprio gemello, con una sola equazione da indicare: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), e {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — entrambe finiscono sullo stesso valore, quindi la tabella è simmetrica rispetto alla sua diagonale: il gruppo è commutativo.',
       selfInverseNote: '{a} è {word}, poiché il suo valore qui è l’elemento neutro.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    pl: {
+      title: 'Tabela Cayleya',
+      eyebrow: 'teoria grup · tabele działań',
+      heading: 'Tabela Cayleya',
+      lede: 'Całe działanie grupy mieści się w jednej kwadratowej tabeli — jeden wiersz i jedna kolumna na element, jedna komórka na każdy wynik. Każdy strukturalny fakt o tej grupie — jej element neutralny, jej elementy odwrotne, jej przemienność — jest widoczny gdzieś w kształcie tabeli.',
+      xref: 'Te same dwa działania grupowe, teraz jako wycinki na kole, a nie wiersze w tabeli →',
+      tablistLabel: 'Działanie grupowe',
+      nLabel: 'N — moduł',
+      randomizeLabel: 'Losowo',
+      randomize: 'Nowy losowy przykład',
+      tableScrollLabel: 'Tabela Cayleya, przewijalna',
+      'legend.identity': '{0} Wiersz i kolumna elementu neutralnego',
+      'legend.inverse': '{0} Własna odwrotność (sparowana sama ze sobą)',
+      'legend.selected': '{0} Wybrana komórka',
+      'legend.mirror': '{0} Zwierciadlany bliźniak po przekątnej',
+      nNoteNotWhole: 'N musi być liczbą całkowitą — tabela zostaje taka jak była.',
+      nNoteTooSmall: 'N nie może być mniejsze niż 1 — zwiększono do 1.',
+      nNoteCapped: 'N jest ograniczone do {max}, aby tabela nie stała się za duża — zmniejszono do {max}.',
+      identityWordAdditive: 'zero',
+      identityWordMultiplicative: 'jeden',
+      inverseWordAdditive: 'swoim własnym elementem przeciwnym',
+      inverseWordMultiplicative: 'swoją własną odwrotnością',
+      identityNote: 'Element neutralny to {word} — jego wiersz i kolumna są zaznaczone poniżej.',
+      symmetryNoteAdditive: 'a + b oraz b + a zawsze trafiają do tej samej klasy, więc tabela odzwierciedla się względem przekątnej — kliknij dowolną komórkę, aby zobaczyć, jak jej bliźniak zapala się po drugiej stronie.',
+      symmetryNoteMultiplicative: 'a · b oraz b · a zawsze trafiają do tej samej klasy, więc tabela odzwierciedla się względem przekątnej — kliknij dowolną komórkę, aby zobaczyć, jak jej bliźniak zapala się po drugiej stronie.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} element · element neutralny [{id}]',
+        few: 'ℤ/{n}ℤ · {count} elementy · element neutralny [{id}]',
+        many: 'ℤ/{n}ℤ · {count} elementów · element neutralny [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementów · element neutralny [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} element · element neutralny [{id}]',
+        few: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementy · element neutralny [{id}]',
+        many: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementów · element neutralny [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementów · element neutralny [{id}]'
+      },
+      tableCaption: 'Tabela Cayleya dla {summary} przy działaniu {sign}',
+      noteDiagonal: 'Ta komórka leży na przekątnej — jest swoim własnym bliźniakiem, z tylko jednym równaniem do podania: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), a {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — obie trafiają na tę samą wartość, więc tabela jest symetryczna względem swojej przekątnej: grupa jest przemienna.',
+      selfInverseNote: '{a} jest {word}, ponieważ jego wartość tutaj to element neutralny.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

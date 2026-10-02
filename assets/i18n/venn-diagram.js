@@ -1,7 +1,7 @@
 /* assets/i18n/venn-diagram.js — the 'venn' namespace: title, eyebrow,
    heading, both ledes, the cross-link text, toolbar/mode/thumbnail labels,
    the prime picker heading/hint, the pane captions and the four diagram
-   aria-labels for the Venn Diagram tool's static interface, in all six
+   aria-labels for the Venn Diagram tool's static interface, in all seven
    supported languages. Task 2 extends this same register() call with the
    namespace's dynamic (script-produced) keys.
 
@@ -10,10 +10,10 @@
    inside lede.two/lede.three is language-neutral math and stays literal in
    every language, per 06-GLOSSARY.md section (e). "GCD" as a standalone
    prose noun localizes to each language's own abbreviation (ggd/ggT/PGCD/
-   mcd), per the Euclidean Algorithm plan's precedent — distinct from the
-   literal gcd(a, b) notation elsewhere on this page, which never changes.
-   Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
-   page's own inline <script>.
+   mcd/NWD), per the Euclidean Algorithm plan's precedent — distinct from
+   the literal gcd(a, b) notation elsewhere on this page, which never
+   changes. Must load after assets/nt-i18n.js and assets/i18n/site.js,
+   before the page's own inline <script>.
 */
 (function () {
   "use strict";
@@ -378,6 +378,66 @@
       'label.overCap': 'oltre 1,000,000 — nessun albero bilanciato',
       'label.removeToken': 'Rimuovi {prime} dalla regione {region}',
       'label.scrollMore': '↓ altro'
+    },
+    pl: {
+      title: 'Diagram Venna',
+      heading: 'Diagram Venna',
+      eyebrow: 'przecięcia i różnice zbiorów',
+      'lede.two': 'Dwa okręgi to dwie liczby A i B, każda zapisana jako swój rozkład na czynniki pierwsze — wszystko wewnątrz okręgu daje w iloczynie tę liczbę. A ∩ B zawiera liczby pierwsze należące do obu rozkładów, więc to przecięcie daje w iloczynie największą liczbę dzielącą obie, natomiast A \\ B i B \\ A zawierają liczby pierwsze należące tylko do jednej z nich.',
+      'lede.three': 'Trzy okręgi to trzy liczby, każda zapisana jako swój rozkład na czynniki pierwsze — wszystko wewnątrz okręgu daje w iloczynie tę liczbę. Liczba pierwsza w (A∩B) \\ C należy do A i B, ale nie do C, więc cała ta soczewka daje w iloczynie A ∩ B; liczba pierwsza w A∩B∩C należy do wszystkich trzech naraz, więc środek daje w iloczynie A ∩ B ∩ C; liczba pierwsza w A \\ (B ∪ C) należy tylko do A.',
+      xref: 'Ten sam NWD można też obliczyć przez powtarzane dzielenie →',
+      'toolbar.mode': 'Tryb diagramu',
+      'toolbar.thumbs': 'Miniatury po najechaniu',
+      'mode.two': 'Dwa okręgi',
+      'mode.three': 'Trzy okręgi',
+      'thumbs.on': 'Miniatury włączone',
+      'thumbs.off': 'Miniatury wyłączone',
+      randomize: 'Losowo',
+      clearAll: 'Wyczyść wszystko',
+      'picker.heading': 'Wybór liczb pierwszych',
+      'picker.hint': 'Kliknij liczbę pierwszą, a potem kliknij (lub naciśnij Enter/Spację na) region, aby ją tam umieścić.',
+      'pane.interactive': 'Interaktywny diagram',
+      'pane.composite': 'Liczby złożone dla każdego regionu',
+      'aria.two': 'Dwa nakładające się okręgi tworzące trzy regiony z liczbami pierwszymi',
+      'aria.twoComposite': 'Widok tylko do odczytu diagramu dwóch okręgów pokazujący liczbę złożoną każdego regionu, iloczyn tylko tych liczb pierwszych, które umieszczono w tym regionie',
+      'aria.three': 'Trzy nakładające się okręgi tworzące siedem regionów z liczbami pierwszymi',
+      'aria.threeComposite': 'Widok tylko do odczytu diagramu trzech okręgów pokazujący liczbę złożoną każdego regionu, iloczyn tylko tych liczb pierwszych, które umieszczono w tym regionie',
+      'caption.left': 'tylko A',
+      'caption.overlap': 'obie',
+      'caption.right': 'tylko B',
+      'caption.aOnly': 'tylko A',
+      'caption.bOnly': 'tylko B',
+      'caption.cOnly': 'tylko C',
+      'caption.ab': 'tylko A i B',
+      'caption.ac': 'tylko A i C',
+      'caption.bc': 'tylko B i C',
+      'caption.abc': 'wszystkie trzy',
+      'aria.regionHolding': 'region {region}, obecnie zawiera {contents}',
+      'aria.nothing': 'nic',
+      'msg.ready': '{prime} jest gotowa — kliknij region, aby ją umieścić.',
+      'msg.readyDrag': '{prime} jest gotowa — upuść ją na region (lub kliknij region).',
+      'msg.pickFirst': 'Najpierw wybierz liczbę pierwszą z listy wyboru.',
+      'msg.regionFull': 'Region {region} jest pełny — maksymalnie {max} liczb pierwszych.',
+      'msg.placed': 'Umieszczono {prime} w regionie {region}.{notes}',
+      'msg.removed': 'Usunięto {prime} z regionu {region}.{notes}',
+      'msg.moved': 'Przeniesiono {prime} do regionu {region}.{notes}',
+      'msg.movedNote': 'Przeniesiono {prime} do {notation}.',
+      'msg.simplifiedLabel': 'Uproszczone:',
+      'msg.cleared': 'Wyczyszczono wszystkie regiony.',
+      'msg.randomized': 'Diagram został wypełniony losowo.',
+      'msg.filledFromUrl': 'Wypełniono ze strony {tool}: A = {a}, B = {b}.',
+      'msg.filledFromUrlTruncated': 'Wypełniono ze strony {tool}: A = {a}, B = {b}. Część wspólnych kopii liczb pierwszych usunięto, aby zmieścić się w limicie {cap} na region.',
+      'msg.openedTab': 'Otwarto nową kartę do {target}.',
+      'msg.blockedTab': 'Twoja przeglądarka zablokowała nową kartę — zezwól na wyskakujące okna, aby {target}.',
+      'msg.truncated': 'Część wspólnych kopii liczb pierwszych usunięto, aby zmieścić się w limicie {cap} na region.',
+      'label.confirmGcd': 'potwierdź ten NWD za pomocą {tool}',
+      'label.seeFactorTree': 'zobacz {tool} tej liczby',
+      'label.doubleClickToOne': 'kliknij dwukrotnie, aby {a}',
+      'label.doubleClickToTwo': 'kliknij dwukrotnie, aby {a} lub {b}',
+      'label.doubleClickOpen': 'kliknij dwukrotnie, aby otworzyć pełny widok →',
+      'label.overCap': 'powyżej 1 000 000 — brak zbalansowanego drzewa',
+      'label.removeToken': 'Usuń {prime} z regionu {region}',
+      'label.scrollMore': '↓ więcej'
     }
   });
 })();

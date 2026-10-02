@@ -1,11 +1,11 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
    Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all six supported languages.
+   Factor Tree tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all six languages. The factorization itself (the equation/tree
+   across all seven languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -134,6 +134,26 @@
       msgPrime: '{n} è primo — si divide solo una volta, in 1 × {n}.',
       msgFactors: '{n} si scompone in {count} fattori primi.',
       chipPrime: '{n} (primo)'
+    },
+    pl: {
+      title: 'Drzewo czynników pierwszych',
+      heading: '🎄 Drzewo czynników pierwszych 🎄',
+      subtitle: 'Podaj liczbę — a ono wyrośnie w prawdziwe drzewo czynników, gałąź po gałęzi.',
+      modeLabel: 'Tryb drzewa',
+      modeClassic: 'Klasyczny',
+      modeBalanced: 'Zbalansowany',
+      placeholder: 'np. 60',
+      grow: 'Wyhoduj drzewo',
+      footnote: 'Każdy pierwszy liść dostaje jeszcze jeden, własny, ostatni podział: P = P × 1.',
+      balancedNote: 'Tryb zbalansowany wykorzystuje metodę Fermata, aby znaleźć na każdym kroku najbardziej równo podzieloną parę czynników, ograniczoną do liczb poniżej 1 000 000, aby pozostać natychmiastowy. Niektóre liczby — jak mała liczba pierwsza pomnożona przez dużą — wciąż dzielą się nierówno; to nie błąd, tylko matematyka.',
+      msgEmpty: 'Najpierw wpisz liczbę.',
+      msgInvalid: 'Wpisz liczbę całkowitą, 1 lub większą.',
+      msgTooLargeBalanced: 'Ta liczba jest za duża dla trybu Zbalansowanego — spróbuj czegoś poniżej 1 000 000, albo przełącz się na tryb Klasyczny dla większych liczb.',
+      msgTooLargeClassic: 'Ta liczba jest za duża dla tego małego drzewka — spróbuj czegoś poniżej 1 biliona.',
+      msgOne: '1 nie jest ani liczbą pierwszą, ani złożoną — to po prostu ziarenko, jeszcze nie drzewo. 🌱',
+      msgPrime: '{n} jest liczbą pierwszą — dzieli się tylko raz, na 1 × {n}.',
+      msgFactors: '{n} rozkłada się na {count} czynników pierwszych.',
+      chipPrime: '{n} (pierwsza)'
     }
   });
 })();

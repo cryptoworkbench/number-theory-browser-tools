@@ -4,23 +4,24 @@
    message, the swap note, the banner (incl. a plural "done" message), the
    zero-step chain note, the extended-caption, the two geometric-view
    toggle labels, both SVG default aria-labels, both steps' captions and
-   their capped-tile notes (each plural on the quotient's own one/other
-   category), the nested view's empty/capped messages and its own
-   capped-note, the nested tile's tooltip title, and the closing caption,
-   for the Euclidean Algorithm tool, in all six supported languages.
+   their capped-tile notes (each plural on the quotient's own one/other —
+   or for Polish, one/few/many/other — category), the nested view's
+   empty/capped messages and its own capped-note, the nested tile's
+   tooltip title, and the closing caption, for the Euclidean Algorithm
+   tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
    literal in every language per 06-GLOSSARY.md section (e); "the GCD" as
    a standalone prose noun is localized to each language's own
-   abbreviation (ggd/gcd/ggT/PGCD/mcd) per the glossary's core-term table
-   (row 6, greatest common divisor). Play/Pause, Step, Instant, Reset and
-   Speed live in the shared `common` namespace (assets/i18n/site.js),
-   never duplicated here. Placeholder names ({a}, {b}, {A}, {B}, {q}, {r},
-   {n}, {max}, {index}, {total}, {cap}, {rest}, {step}, {extra},
-   {stepNums}, {gcd}, {lastB}) are identical across all six languages.
-   Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
-   page's own inline <script>.
+   abbreviation (ggd/gcd/ggT/PGCD/mcd/NWD) per the glossary's core-term
+   table (row 6, greatest common divisor). Play/Pause, Step, Instant,
+   Reset and Speed live in the shared `common` namespace
+   (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
+   {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
+   {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
+   seven languages. Must load after assets/nt-i18n.js and
+   assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
   "use strict";
@@ -337,6 +338,71 @@
       nestedTileTitle: 'Passo {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Passo {step}: {a} = {q}·{b} + {r} ({extra} quadrati in più raggruppati qui)',
       tileEmptyMessage: 'Non c’è nessun rettangolo da tagliare — b è già 0, quindi l’algoritmo è già terminato.'
+    },
+    pl: {
+      title: 'Algorytm Euklidesa',
+      eyebrow: 'teoria liczb · algorytm euklidesa',
+      heading: 'Algorytm Euklidesa',
+      lede: 'Zastępuj parę (a, b) wielokrotnie parą (b, a mod b) — dziel większą liczbę przez mniejszą i zachowuj tylko resztę — a para zmniejsza się z każdym krokiem. W chwili, gdy jedna strona dojdzie do zera, druga strona jest największym wspólnym dzielnikiem dwóch liczb, od których zacząłeś.',
+      xref: 'Ten sam NWD można też zobaczyć jako czynniki pierwsze wspólne dla obu liczb →',
+      chipFiveSteps: '240, 46 · 5 kroków',
+      chipCoprime: '35, 18 · względnie pierwsze',
+      chipBDividesA: '144, 12 · b dzieli a',
+      chipEqualPair: '36, 36 · równa para',
+      chipAlreadyDone: '17, 0 · już gotowe',
+      chipFibonacciWorst: '89, 55 · najgorszy przypadek Fibonacciego',
+      chipHugeQuotient: '500000, 2 · ogromny iloraz',
+      run: 'Uruchom',
+      extToggleLabel: 'Rozszerzony tryb Euklidesa — pokaż współczynniki Bézouta {0} i {1}',
+      errBothWhole: 'Zarówno a, jak i b muszą być liczbami całkowitymi.',
+      errBothNonNegative: 'Zarówno a, jak i b muszą być zerem lub liczbą dodatnią — liczby ujemne nie mają tu zdefiniowanego NWD.',
+      errGcdZeroZero: 'gcd(0, 0) nie jest zdefiniowane — wpisz co najmniej jedną wartość różną od zera.',
+      errClamped: 'Dane wejściowe są ograniczone do {max} — większa wartość została zmniejszona, aby się zmieścić.',
+      swapNote: 'Większa wartość idzie pierwsza: wpisana jako ({a}, {b}), śledzona jako gcd({A}, {B}) — NWD jest symetryczny względem swoich argumentów.',
+      bannerReady: 'Gotowe — naciśnij Odtwórz, aby zobaczyć, jak wyprowadzenie buduje się linia po linii.',
+      bannerDone: {
+        one: 'Gotowe — {n} krok do uzyskania NWD.',
+        few: 'Gotowe — {n} kroki do uzyskania NWD.',
+        many: 'Gotowe — {n} kroków do uzyskania NWD.',
+        other: 'Gotowe — {n} kroków do uzyskania NWD.'
+      },
+      chainNoteZero: 'b jest już równe 0, więc nie zostało nic do podzielenia — a jest już największym wspólnym dzielnikiem.',
+      extCaption: '{0} i {1} każdej linii wyrażają resztę tej linii jako kombinację dwóch pierwotnych danych wejściowych — {2}.',
+      viewNested: 'Zagnieżdżone kwadraty',
+      geomViewGroupLabel: 'Tryb widoku geometrycznego',
+      viewStep: 'Pojedynczy krok',
+      tileAriaDefault: 'Widok prostokąta bieżącego kroku dzielenia',
+      nestedAriaDefault: 'Wszystkie kroki dzielenia zagnieżdżone w jednym prostokącie',
+      caption: 'Kolejne liczby Fibonacciego są najgorszym przypadkiem dla tego algorytmu — wymuszają największą liczbę kroków dzielenia względem swojej wielkości.',
+      tileCaptionExact: {
+        one: 'Krok {index} z {total}: {a} ÷ {b}: prostokąt układa się dokładnie w {q} kwadrat o boku {b} — bez reszty, więc {b} to największy wspólny dzielnik.',
+        few: 'Krok {index} z {total}: {a} ÷ {b}: prostokąt układa się dokładnie w {q} kwadraty o boku {b} — bez reszty, więc {b} to największy wspólny dzielnik.',
+        many: 'Krok {index} z {total}: {a} ÷ {b}: prostokąt układa się dokładnie w {q} kwadratów o boku {b} — bez reszty, więc {b} to największy wspólny dzielnik.',
+        other: 'Krok {index} z {total}: {a} ÷ {b}: prostokąt układa się dokładnie w {q} kwadratów o boku {b} — bez reszty, więc {b} to największy wspólny dzielnik.'
+      },
+      tileCaptionLeftover: {
+        one: 'Krok {index} z {total}: {a} = {q}×{b} + {r}: mieści się {q} kwadrat o boku {b}, z resztą {b}×{r}.',
+        few: 'Krok {index} z {total}: {a} = {q}×{b} + {r}: mieszczą się {q} kwadraty o boku {b}, z resztą {b}×{r}.',
+        many: 'Krok {index} z {total}: {a} = {q}×{b} + {r}: mieści się {q} kwadratów o boku {b}, z resztą {b}×{r}.',
+        other: 'Krok {index} z {total}: {a} = {q}×{b} + {r}: mieści się {q} kwadratów o boku {b}, z resztą {b}×{r}.'
+      },
+      tileNoteCapped: 'Rzeczywisty iloraz to {q} — tutaj narysowano tylko pierwsze {cap} kwadratów; pozostałe {rest} połączono w oznaczoną kafelkę, więc narysowana szerokość nie jest w skali.',
+      nestedEmptyMessage: 'Nie ma prostokąta do zagnieżdżenia — b jest już równe 0, więc algorytm jest już zakończony.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: cały {n} krok zagnieżdża się w jednym prostokącie {A}×{B} — najmniejsze kwadraty, {lastB}×{lastB}, to największy wspólny dzielnik. Kliknij kwadrat (lub krok powyżej), aby zobaczyć, jak się układają.',
+        few: 'gcd({A}, {B}) = {gcd}: wszystkie {n} kroki zagnieżdżają się w jednym prostokącie {A}×{B} — najmniejsze kwadraty, {lastB}×{lastB}, to największy wspólny dzielnik. Kliknij kwadrat (lub krok powyżej), aby zobaczyć, jak się układają.',
+        many: 'gcd({A}, {B}) = {gcd}: wszystkie {n} kroków zagnieżdża się w jednym prostokącie {A}×{B} — najmniejsze kwadraty, {lastB}×{lastB}, to największy wspólny dzielnik. Kliknij kwadrat (lub krok powyżej), aby zobaczyć, jak się układają.',
+        other: 'gcd({A}, {B}) = {gcd}: wszystkie {n} kroków zagnieżdża się w jednym prostokącie {A}×{B} — najmniejsze kwadraty, {lastB}×{lastB}, to największy wspólny dzielnik. Kliknij kwadrat (lub krok powyżej), aby zobaczyć, jak się układają.'
+      },
+      nestedNoteCapped: {
+        one: 'Krok {stepNums} ma bardzo duży iloraz — narysowano tam tylko pierwsze {cap} kwadratów, połączone w kafelkę w kropki, więc ten diagram nie jest w pełni w skali przy tym kroku.',
+        few: 'Kroki {stepNums} mają bardzo duży iloraz — narysowano tam tylko pierwsze {cap} kwadratów, połączone w kafelkę w kropki, więc ten diagram nie jest w pełni w skali przy tych krokach.',
+        many: 'Kroki {stepNums} mają bardzo duży iloraz — narysowano tam tylko pierwsze {cap} kwadratów, połączone w kafelkę w kropki, więc ten diagram nie jest w pełni w skali przy tych krokach.',
+        other: 'Kroki {stepNums} mają bardzo duży iloraz — narysowano tam tylko pierwsze {cap} kwadratów, połączone w kafelkę w kropki, więc ten diagram nie jest w pełni w skali przy tych krokach.'
+      },
+      nestedTileTitle: 'Krok {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Krok {step}: {a} = {q}·{b} + {r} ({extra} dodatkowych kwadratów połączonych tutaj)',
+      tileEmptyMessage: 'Nie ma prostokąta do przecięcia — b jest już równe 0, więc algorytm jest już zakończony.'
     }
   });
 })();
