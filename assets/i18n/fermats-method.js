@@ -6,7 +6,7 @@
    and result message (searching, error, power-of-two, limit-reached,
    perfect-square, trivial-pair, trivial-prime, found), the factor chip's
    title, the result hint, the trail prefix, and the footer for the
-   Fermat's Method tool, in all six supported languages.
+   Fermat's Method tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in
@@ -311,6 +311,53 @@
       resultFound: 'Trovato al tentativo {strongTrial}: a = {a}, b = {b}.',
       resultHint: 'Clicca su un fattore sopra per applicare di nuovo il metodo su di esso.',
       trailPrefix: 'Percorso:'
+    },
+    pl: {
+      title: 'Metoda Fermata — interaktywna wizualizacja',
+      heading: 'Metoda Fermata',
+      lede: 'Metoda Fermata: każdą nieparzystą liczbę N można zapisać jako różnicę dwóch kwadratów, N = a² − b². Znajdź odpowiednie b², aby „dopełnić kwadrat” N, i faktoryzacja (a−b)(a+b) = N wyskakuje sama — z obrazem jako dowodem.',
+      mathNote: 'Przeszukujemy a = ⌈√N⌉, ⌈√N⌉+1, … aż a² − N samo stanie się kwadratem doskonałym b².',
+      nLabel: 'Liczba do rozłożenia (N)',
+      factorize: '🧩 Rozłóż',
+      statTryingA: 'Sprawdzane a',
+      statASqLabel: 'a²',
+      statRLabel: 'r = a² − N',
+      statHitLabel: '√r doskonały?',
+      statTrialNumber: 'Próba nr',
+      searchLogHeading: 'Dziennik wyszukiwania',
+      tableSquareHeader: 'kwadrat?',
+      diagramHeading: 'Obraz geometryczny',
+      replay: '↺ Odtwórz ponownie',
+      legendStays: '{0} zostaje na miejscu (a × (a−b))',
+      legendSlides: '{0} wsuwa się na miejsce ((a−b) × b)',
+      legendRemoved: '{0} usunięty narożnik (b²)',
+      legendFinal: '{0} wynik końcowy (a+b) × (a−b)',
+      footer: 'Wszystkie obliczenia wykonywane są po stronie klienta w twojej przeglądarce. Wyszukiwanie jest ograniczone do 20 000 prób, aby pozostać responsywne — niektóre liczby pierwsze bez bliskiego kwadratu dotrą do tego limitu.',
+      'chip.closestPair': 'najbliższa para — znaleziona w 1 próbie',
+      'chip.balancedFactorsQuick': 'zbalansowane czynniki, szybko znalezione',
+      'chip.perfectSquare': 'kwadrat doskonały, {a} × {a}',
+      'chip.evenStrips': 'parzyste — najpierw usuwa {pow}',
+      'chip.primeTrivial': 'liczba pierwsza — tylko trywialna para',
+      cellYes: '✓ tak',
+      cellNo: '✗ nie',
+      statHitYes: 'tak ({b})',
+      statHitNo: 'nie',
+      factorChipTitle: 'Rozłóż tę liczbę dalej',
+      diagramPerfectSquareCaption: '{a}² = {aSq} — N jest kwadratem doskonałym, N = {a} × {a}',
+      errEnterInteger: 'Wpisz liczbę całkowitą co najmniej 2.',
+      searchingPlain: 'Szukanie a takiego, że a² − {m} jest kwadratem doskonałym…',
+      kNote: '(N = 2{kSup} × {m}, najpierw usuwając czynniki 2)',
+      searchingWithK: 'Szukanie a takiego, że a² − {m} jest kwadratem doskonałym {kNoteSpan}…',
+      resultPowerOfTwo: 'N = 2{kSup}. Część nieparzysta to 1, więc nie ma już kwadratu do dopełnienia — 2 jest już liczbą pierwszą.',
+      resultLimitErr: 'Osiągnięto limit wyszukiwania ({iter} prób)',
+      resultLimit: '{errSpan} bez znalezienia kwadratu doskonałego. Część nieparzysta {m} prawdopodobnie ma bardzo niezbalansowane czynniki (albo jest liczbą pierwszą) — spróbuj mniejszej liczby.',
+      resultPerfectSquare: '{strongM} jest kwadratem doskonałym: {a} × {a}.',
+      resultTrivial: 'Pojawiła się tylko trywialna para (1, {m}).',
+      resultPrimeStrong: '{m} jest liczbą pierwszą',
+      resultTrivialPrime: 'Pojawiła się tylko trywialna para (1, {m}) — {strongPrime}.',
+      resultFound: 'Znaleziono w próbie {strongTrial}: a = {a}, b = {b}.',
+      resultHint: 'Kliknij dowolny czynnik powyżej, aby zastosować metodę na nim ponownie.',
+      trailPrefix: 'Trasa:'
     }
   });
 })();

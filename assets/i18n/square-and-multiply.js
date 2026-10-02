@@ -4,8 +4,10 @@
    binary-expansion sentence, the setup/step/result/cost-panel narratives
    (built as DOM nodes and rendered through translateInto — T-06-16/
    T-06-17/T-06-18 pattern, never innerHTML), the banner messages (one of
-   them, bannerComputed, a plural entry), and the ladder's SVG labels, for
-   the Square and Multiply tool, in all six supported languages.
+   them, bannerComputed, a plural entry — { one, other } in every
+   language except Polish, which carries the CLDR { one, few, many,
+   other } shape), and the ladder's SVG labels, for the Square and
+   Multiply tool, in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Pure math notation (b, e, m, the preset chips'
@@ -468,6 +470,82 @@
       accFinalAnswer: '{0} = risposta',
       ladderAriaLabel: 'Scala di elevamento al quadrato e moltiplicazione: una riga per ogni bit dell’esponente, ogni riga eleva al quadrato l’accumulatore e moltiplica condizionatamente per la base',
       bitTitle: 'valore di posizione 2^{place}'
+    },
+    pl: {
+      heading: 'Szybkie potęgowanie',
+      lede: 'To właśnie robi komputer, gdy oblicza b{0} mod m — żadnego powtarzanego mnożenia, tylko jedno podniesienie do kwadratu na bit wykładnika i od czasu do czasu mnożenie przez podstawę.',
+      introHeading: 'Jak komputer naprawdę to robi',
+      introP1: 'Podnoszenie liczby do e-tej potęgi przez mnożenie jej przez samą siebie e razy jest bez szans, gdy e ma setki cyfr — prawdziwy wykładnik RSA zajmowałby w ten sposób dłużej niż wiek wszechświata. Zamiast tego maszyna odczytuje wykładnik w zapisie dwójkowym i potrzebuje tylko około jednego podniesienia do kwadratu na bit, z dodatkowym mnożeniem tylko na bitach równych 1. To jest cały trik i jedyny powód, dla którego arytmetyka w skali kryptograficznej w ogóle się kończy.',
+      introP2: 'To jest dokładnie ta sama pętla, którą strony RSA i Diffie-Hellman na tej stronie wywołują każdym razem, gdy zapisują b{0} mod m — tam nazywa się to {1} i działa w tle; tutaj jest otwarta, bit po bicie.',
+      modularExponentiation: 'potęgowanie modularne',
+      baseLabel: 'Podstawa b',
+      expLabel: 'Wykładnik e',
+      modLabel: 'Moduł m',
+      compute: '🧮 Oblicz',
+      randomize: '🎲 Nowe wartości',
+      logHeading: 'Dziennik obliczeń',
+      resultSectionHeading: 'Wynik',
+      'legend.bit': '{0} Bit wykładnika (1 = następuje mnożenie)',
+      'legend.squaring': '{0} Podnoszenie do kwadratu — każdy wiersz, bezwarunkowo',
+      'legend.multiply': '{0} Mnożenie przez podstawę — tylko przy bicie 1',
+      'legend.accumulator': '{0} Akumulator / wynik końcowy',
+      footer: 'Demo szybkiego potęgowania — algorytm stojący za każdym b^e mod m na tej stronie. Tylko do celów edukacyjnych.',
+      pillBinaryExp: 'potęgowanie binarne',
+      pillOneSquaring: 'jedno podniesienie do kwadratu na bit',
+      pillBigIntModular: 'arytmetyka modularna BigInt',
+      errBaseInvalid: 'Podstawa musi być nieujemną liczbą całkowitą.',
+      errBaseTooLong: 'Podstawa może mieć maksymalnie 40 cyfr — to demo edukacyjne, nie generator kluczy.',
+      errExpInvalid: 'Wykładnik musi być nieujemną liczbą całkowitą.',
+      errExpTooLarge: 'Wykładnik musi być poniżej 2^64 (65 bitów) — ladder potrzebowałby więcej wierszy, niż karta przeglądarki może wyrenderować.',
+      errModInvalid: 'Moduł musi być nieujemną liczbą całkowitą.',
+      errModTooSmall: 'Moduł musi być co najmniej 2 — moduł równy 1 sprawia, że każdy wynik to 0, i jest zdegenerowany.',
+      errModTooLong: 'Moduł może mieć maksymalnie 40 cyfr — to demo edukacyjne, nie generator kluczy.',
+      binaryExpansionZero: '0 = 0₂ = (brak potęg dwójki — cokolwiek do potęgi zero to 1)',
+      setupHeading: 'Przygotowanie',
+      lblBaseReducedFirst: 'podstawa zredukowana najpierw:',
+      setupBaseReduced: '{0} {rawBase} mod {mod} = {1} — to jest wartość, którą ladder podnosi do kwadratu i mnoży.',
+      setupFirstRowNote: 'Pierwszy wiersz podnosi do kwadratu początkową wartość akumulatora równą 1, co jest operacją bez efektu — dlatego implementacje zaczynają od najstarszego bitu.',
+      stepHeading: 'Bit {i} z {total} — cyfra {bit}, wartość pozycyjna 2^{place}',
+      lblSquare: 'podnoszenie do kwadratu:',
+      stepSquareFormula: '{0} {accBefore}² mod {mod} = {1}',
+      lblMultiplyBitOne: 'mnożenie (bit to 1):',
+      stepMultiplyFormula: '{0} {accSquared} × {base} mod {mod} = {1}',
+      lblMultiplySkipped: 'mnożenie pominięte:',
+      stepMultiplySkippedFormula: '{0} ten bit to 0, więc akumulator pozostaje niezmieniony na {1}',
+      bannerStepMultiplied: 'Bit {i} z {total}: podnieś akumulator do kwadratu, a potem pomnóż przez podstawę, bo ten bit to 1.',
+      bannerStepSkipped: 'Bit {i} z {total}: podnieś akumulator do kwadratu — mnożenie pominięte, bo ten bit to 0.',
+      bannerReady: 'Gotowe — naciśnij Odtwórz, aby zobaczyć, jak ladder buduje się bit po bicie.',
+      bannerComputed: {
+        one: 'Pełne obliczenie przedstawione poniżej — {bits} bit w wykładniku. Naciśnij Odtwórz, aby zobaczyć budowanie krok po kroku.',
+        few: 'Pełne obliczenie przedstawione poniżej — {bits} bity w wykładniku. Naciśnij Odtwórz, aby zobaczyć budowanie krok po kroku.',
+        many: 'Pełne obliczenie przedstawione poniżej — {bits} bitów w wykładniku. Naciśnij Odtwórz, aby zobaczyć budowanie krok po kroku.',
+        other: 'Pełne obliczenie przedstawione poniżej — {bits} bitów w wykładniku. Naciśnij Odtwórz, aby zobaczyć budowanie krok po kroku.'
+      },
+      resultMatch: 'Niezależna kontrola — zwykła pętla potęgowania modularnego od lewej do prawej na tych samych danych wejściowych daje {0}, tę samą odpowiedź. ✓',
+      resultMismatch: 'Niezgodność kontrolna: zwykła pętla obliczyła {cross}, co nie zgadza się z {result} laddera. To wskazuje na błąd.',
+      costTag: 'Czemu to ma znaczenie dla RSA',
+      costHeading: 'Koszt względem naiwnego powtarzanego mnożenia',
+      costBitLength: 'Długość wykładnika w bitach',
+      costSquarings: 'Podniesienia do kwadratu',
+      costMultiplies: 'Mnożenia',
+      costTotal: 'Łączna liczba mnożeń modularnych',
+      costNaive: 'Naiwne powtarzane mnożenie wymagałoby',
+      costMeaningful: 'To jest {0} mniej mnożeń modularnych niż mnożenie podstawy przez samą siebie tyle razy.',
+      costNotMeaningful: 'Przy tej wielkości wykładnika ladder nie oszczędza prawie nic względem naiwnego powtarzanego mnożenia — zysk staje się duży tylko wtedy, gdy wykładnik rośnie.',
+      costRsaScale: '2048-bitowy wykładnik RSA, taki jak używa prawdziwe odszyfrowanie RSA, potrzebuje około {0} podniesień do kwadratu plus około {1} mnożeń — łącznie około {2} mnożeń modularnych — podczas gdy mnożenie podstawy przez samą siebie tyle razy wymagałoby liczby mnożeń o długości {digits} cyfr dziesiętnych. Dlatego strony {3} i {4} na tej stronie mogą obliczyć swoje klucze natychmiast w przeglądarce.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'Diffie-Hellman Key Exchange',
+      ladderCaption: 'Akumulator zaczyna się od 1 — najstarszy (najbardziej znaczący) bit jest odczytywany jako pierwszy.',
+      headingBit: 'bit wykładnika',
+      headingSquaring: 'podnoszenie do kwadratu',
+      headingMultiply: 'warunkowe mnożenie',
+      headingAccumulator: 'akumulator',
+      rowBitCaption: 'bit {i} z {rows} — 2^{place}',
+      mulBase: '× podstawa = {0}',
+      skippedBitZero: 'pominięty (bit to 0)',
+      accFinalAnswer: '{0} = odpowiedź',
+      ladderAriaLabel: 'Ladder podnoszenia do kwadratu i mnożenia: jeden wiersz na bit wykładnika, każdy podnosi akumulator do kwadratu i warunkowo mnoży przez podstawę',
+      bitTitle: 'wartość pozycyjna 2^{place}'
     }
   });
 })();
