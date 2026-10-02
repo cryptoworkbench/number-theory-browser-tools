@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-01T22:05:02.942Z"
+last_updated: "2026-10-02T09:05:45.000Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 06 complete, transitioned to Phase 4
-state_head: 6217ea91e217252ec585094385ffba428498ef63
+last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
+state_head: 38b2f1b675b507d6f9ab06e4887804af33e5fc86
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-02 — Phase 06 complete, transitioned to Phase 4
+Last activity: 2026-10-02 — Quick task 261002-c77 complete — Italian added as sixth supported language
 
 Progress: [█████████░] 86%
 
@@ -99,6 +99,7 @@ Progress: [█████████░] 86%
 | Phase 06 P10 | single session | 2 tasks | 3 files |
 | Phase 06 P11 | single session | 3 tasks | 3 files |
 | Phase 06-multi-language-support P12 | single session | 3 tasks | 11 files |
+| Phase quick-261002-c77 P01 | single session | 3 tasks | 52 files |
 
 ## Accumulated Context
 
@@ -205,6 +206,10 @@ Recent decisions affecting current work:
 - [Phase 06]: RSA: renderExchange re-invoked directly from onLangChange (pure function of LastExchange/CrtFlag/State); renderEve/renderMessages never re-invoked (they reset EveFactorRes/DlpRes/MsgErrorState) — their Node-param translateInto calls tracked via a page-level EveStaticRefs closure list instead
 - [Phase 06-multi-language-support]: Project docs (CLAUDE.md, .claude/CLAUDE.md, PROJECT.md, codebase docs) now describe NT.i18n as the sixth shared module and assets/i18n/ as the translation-data directory; shadow-check --docs confirms the GSD mirror stays verbatim-consistent.
 - [Phase 06-multi-language-support]: Consolidated sweep (i18n-check --all/--api/--persistence/--smoke, i18n-browser on all 16 pages + 4 Sieve mutants, Phase 7 harness/shadow-check --all/--docs) passed green with zero fixes needed; 06-VALIDATION.md signed off as validated/nyquist_compliant/wave_0_complete.
+- [Quick task 261002-c77]: Added Italian (`it`) as the sixth supported language site-wide — engine allow-list, a sixth switcher option on all 16 pages, complete Italian dictionaries in all 18 `assets/i18n/*.js` namespaces, six-language gate tooling (`i18n-check.js` LANG_CODES/SWITCHER_OPTIONS, `i18n-browser.js` NON_EN_LANGS), Italian terminology in `06-GLOSSARY.md`, and every living doc bumped from five to six languages; English output stays byte-identical and no existing nl/en/de/fr/es value changed
+- [Quick task 261002-c77]: rsa.js's inline `mcd(...)` function-notation casing normalized to lowercase to match the file's own established nl/fr/es convention for that specific usage, distinct from the standalone-noun `il MCD` capitalization used in euclid.js/venn.js (Rule 1 fix, no scope change)
+- [Quick task 261002-c77]: Three new per-key cognate exemptions added (cayley.identityWordAdditive "zero", rsa.thBit/shor.legendBase "bit"/"base" reason strings extended to name Italian) rather than loosening any existing gate assertion — recorded as deviations in 261002-c77-SUMMARY.md
+- [Quick task 261002-c77]: Translation-quality human-check (native Italian reader review of 06-GLOSSARY.md and 2-3 sampled pages) recorded as pending for end-of-phase/milestone review — not yet performed; does not block this quick task since every automated gate is green
 
 ### Roadmap Evolution
 
@@ -282,6 +287,7 @@ None yet.
 | 260930-jlm | In the RSA tool, change the public-key reference panel's reveal trigger from "whole key-generation section scrolled above the viewport" to "this party's chosen e = ... line has scrolled into readable view" | 2026-09-30 | 6fed65c | [260930-jlm-in-rsa-rsa-html-change-the-public-key-re](./quick/260930-jlm-in-rsa-rsa-html-change-the-public-key-re/) |
 | 260930-mle | Add a scratchpad panel to the Diffie-Hellman Key Exchange tool, modeled on the RSA tool's scratchpad component but positioned on the right side of the page instead of the left. When the animation displays the public multiplicative group, that information appears in this scratchpad. When public exponentiation results appear in the animation, they also appear in the scratchpad. Also updated the RSA tool so its existing scratchpad moves to the right side of the page (same relative vertical position, mirrored to the right). | 2026-09-30 | a4ed7f5 | [260930-mle-add-a-scratchpad-panel-to-the-diffie-hel](./quick/260930-mle-add-a-scratchpad-panel-to-the-diffie-hel/) |
 | 260930-pin | Remove the "no shared JS modules for logic" architectural constraint from project docs, allowing shared JS logic modules | 2026-09-30 | d441342 | [260930-pin-remove-the-no-shared-js-modules-for-logi](./quick/260930-pin-remove-the-no-shared-js-modules-for-logi/) |
+| 261002-c77 | Add Italian (it) as a sixth supported language site-wide — engine allow-list, switcher on all 16 pages, complete dictionaries in all 18 namespaces, six-language gate tooling, glossary and living docs updated | 2026-10-02 | 8e27452, 00db417, 38b2f1b | [261002-c77-add-italian-it-as-a-sixth-supported-lang](./quick/261002-c77-add-italian-it-as-a-sixth-supported-lang/) |
 
 ## Deferred Items
 
@@ -294,7 +300,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-02
-Stopped at: Phase 06 complete, ready to plan Phase 4
+Stopped at: Quick task 261002-c77 complete — Italian added as sixth supported language; ready to plan Phase 4
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
