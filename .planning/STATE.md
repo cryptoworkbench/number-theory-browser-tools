@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-02T12:01:05.894Z"
+last_updated: "2026-10-02T17:46:50.095Z"
 last_activity: 2026-10-02
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 36ae7200356820b0a057d37e83bed87f5f802aa2
+state_head: b9dd62d139b455f25137d003118f29294c9527d9
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-02 - Completed quick task 261002-fmi: Add Polish (pl) as a seventh supported language site-wide
+Last activity: 2026-10-02 - Completed quick task 261002-jh4: Add Brazilian and European Portuguese (pt-BR, pt-PT) site-wide
 
 Progress: [█████████░] 86%
 
@@ -289,6 +289,7 @@ None yet.
 | 260930-pin | Remove the "no shared JS modules for logic" architectural constraint from project docs, allowing shared JS logic modules | 2026-09-30 | d441342 | [260930-pin-remove-the-no-shared-js-modules-for-logi](./quick/260930-pin-remove-the-no-shared-js-modules-for-logi/) |
 | 261002-c77 | Add Italian (it) as a sixth supported language site-wide — engine allow-list, switcher on all 16 pages, complete dictionaries in all 18 namespaces, six-language gate tooling, glossary and living docs updated | 2026-10-02 | 8e27452, 00db417, 38b2f1b | [261002-c77-add-italian-it-as-a-sixth-supported-lang](./quick/261002-c77-add-italian-it-as-a-sixth-supported-lang/) |
 | 261002-fmi | Add Polish (pl) as a seventh supported language site-wide — CLDR plural categories (one/few/many/other) in NT.i18n with byte-identical output for existing languages, switcher on all 16 pages, complete dictionaries in all 18 namespaces, seven-language gates, glossary and living docs updated | 2026-10-02 | 36ae720 | [261002-fmi-add-polish-pl-as-a-seventh-supported-lan](./quick/261002-fmi-add-polish-pl-as-a-seventh-supported-lan/) |
+| 261002-jh4 | Add Brazilian Portuguese (pt-BR) and European Portuguese (pt-PT) as the eighth and ninth supported languages site-wide — region-tagged codes in NT.i18n (exact allow-list, region-aware browser default), switcher on all 16 pages, complete dictionaries for both variants in all 18 namespaces, nine-language gates, glossary and living docs updated | 2026-10-02 | b9dd62d | [261002-jh4-add-brazilian-and-european-portuguese-pt](./quick/261002-jh4-add-brazilian-and-european-portuguese-pt/) |
 
 ## Deferred Items
 
