@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all five supported languages.
+   tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all five languages. Must load after assets/nt-i18n.js and
+   all six languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -138,6 +138,30 @@
         other: 'Listo — {count} valores probados, {phi} coprimo con {n}.'
       },
       caption: 'Un número primo n da φ(n) = n−1, porque todo número menor lo falla — las fichas hacen fácil comprobarlo.'
+    },
+    it: {
+      title: 'Funzione φ di Eulero',
+      eyebrow: 'teoria dei numeri · funzione φ di eulero',
+      heading: 'Funzione φ di Eulero',
+      lede: 'φ(n) conta quanti numeri tra 1 … n−1 non condividono nessun fattore con n, e questa pagina lo scopre nell’unico modo onesto — chiedendo all’algoritmo di Euclide di ciascuno di essi.',
+      xref: 'Lo stesso conteggio ricompare come i settori del gruppo moltiplicativo mod n →',
+      chipPrime: '{n} · primo',
+      run: 'Avvia',
+      errNotWhole: 'n deve essere un numero intero.',
+      errTooSmall: 'n deve essere almeno {min} — il percorso k = 1 … n−1 richiede almeno un k da testare.',
+      errCapped: 'n è limitato a {max} — il valore è stato ridotto per adattarsi.',
+      chainHead: 'Test di k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} è coprimo con {n} — gcd = 1, conteggiato.',
+      verdictEliminated: 'k = {k} condivide un fattore con {n} — gcd = {gcd}, escluso.',
+      tally: 'Conteggio in corso dei coprimi: {count}',
+      progress: 'k = {k} di {total} testato.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Pronto — premi Riproduci per vedere il percorso testare ogni k una divisione alla volta.',
+      bannerDone: {
+        one: 'Fatto — {count} valore testato, {phi} coprimo con {n}.',
+        other: 'Fatto — {count} valori testati, {phi} coprimo con {n}.'
+      },
+      caption: 'Un numero primo n dà φ(n) = n−1, perché ogni numero più piccolo lo manca — i chip rendono facile verificarlo.'
     }
   });
 })();

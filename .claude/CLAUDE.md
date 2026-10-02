@@ -52,7 +52,7 @@ An educational website of interactive, visualization-led browser tools that make
 - No environment variables required
 - All configuration via CSS custom properties (`:root` variables)
 - Theme system (day/night mode) persisted in `localStorage` under key `site-theme`
-- Language preference (nl/en/de/fr/es) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
+- Language preference (nl/en/de/fr/es/it) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
 - `Intl.PluralRules` is the one `Intl` API this project uses (for pluralizing a dictionary value with a `{one, other}` shape); no other `Intl` formatting (number/date/currency) is used — numerals stay plain and locale-independent per I18N-06
 - Background colors: `--bg`, `--bg-1`, `--bg-2`
 - Text colors: `--ink`, `--text`, `--text-dim`
@@ -142,7 +142,7 @@ An educational website of interactive, visualization-led browser tools that make
 - Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used, in the canonical namespace order core, bigint, svg, store, layout, i18n
 - Names within an import line are sorted by code point, so uppercase constants come first (e.g. `const { SHARED_GROUP_KEY, readModeNParams } = NT.store;`)
 - A tool never redefines or mutates an `NT` member — each namespace object is frozen and its slot on `NT` is read-only
-- Every user-visible string comes from a dictionary entry present in all five languages (nl, en, de, fr, es), with English as source of truth
+- Every user-visible string comes from a dictionary entry present in all six languages (nl, en, de, fr, es, it), with English as source of truth
 - Static markup is translated via `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder`/`data-i18n-params` attributes, applied automatically by `applyStaticDom()`
 - Script-rendered text is translated via `translate()`/`translateInto()`/`bindText()`, always as a whole-sentence template (never concatenating two translated fragments) and always landing in the DOM as a text node or via `textContent`/`setAttribute` — never `innerHTML`
 - Numerals are never locale-formatted by language (`NT.bigint.fmt` is the one sanctioned plain-number formatter; thousands-grouping stays literal and identical in every language)
@@ -248,7 +248,7 @@ An educational website of interactive, visualization-led browser tools that make
 - Used by: every tool page that imports one or more `NT.NAME` namespaces via its import block
 - Purpose: Site-wide multi-language translation — language resolution, DOM text binding, durable persistence, and cross-tab/cross-session sync, so a visitor's chosen language follows them across every tool
 - Location: `assets/nt-i18n.js` (`NT.i18n` — the engine: `translate`/`translateInto`/`bindText`/`applyStaticDom`/`setLang`/`getLang`/`onLangChange`/`detectDefaultLang`), the data files under `assets/i18n/` (`site.js`'s shared `site` and `common` namespaces plus one page-specific namespace per tool, e.g. `assets/i18n/sieve-of-eratosthenes.js`; `index.html`'s is `assets/i18n/hub.js`), and the canonical header's `#lang-switch-select` switcher
-- Contains: five supported languages (nl, en, de, fr, es) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
+- Contains: six supported languages (nl, en, de, fr, es, it) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
 - Load order: the sixth shared module, included after `nt-layout.js` and before a page's own `assets/i18n/*.js` data files and its inline `<script>`
 - Used by: every tool page; a page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state when the active language changes, without resetting tool state (grid, scan position, playback, selections)
 - Purpose: Number-theory algorithms (primality testing, factorization, modular arithmetic, RSA crypto)

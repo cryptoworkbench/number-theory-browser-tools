@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   five supported languages.
+   six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -175,6 +175,35 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (demasiado grande para mostrar exactamente la potencia sin reducir)',
       refCount: '{count} pares (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   mediante   k ↦ {g}^k mod {m}   (generador g = {g})'
+    },
+    it: {
+      title: 'Isomorfismi di gruppi',
+      eyebrow: 'due aritmetiche, un solo gruppo',
+      heading: 'Isomorfismi di gruppi',
+      lede: 'Gli interi mod n sotto l’addizione e le unità mod m sotto la moltiplicazione possono essere, strutturalmente, esattamente lo stesso gruppo — indossano solo un’aritmetica diversa. {0}',
+      xref: 'Guarda questi due gruppi costruiti uno alla volta →',
+      pairLabel: 'Coppia isomorfa',
+      pairSelectAriaLabel: 'Scegli una coppia isomorfa',
+      randomizeLabel: 'Casuale',
+      randomize: 'Nuovo esempio casuale',
+      tablistLabel: 'Disposizione della ruota destra',
+      tabPowers: 'Potenze di g',
+      tabNumeric: 'Numerico',
+      leftWheelAriaLabel: 'Elementi del gruppo additivo Z mod n',
+      rightWheelAriaLabel: 'Elementi del gruppo moltiplicativo delle unità mod m',
+      refHeading: 'Coppie isomorfe',
+      leftWedgeAriaLabel: 'Elemento {value} del gruppo additivo Z mod {n}',
+      rightWedgeAriaLabel: 'Elemento {value} del gruppo moltiplicativo delle unità mod {m}, uguale a {g} elevato a {k} mod {m}',
+      leftCaption: 'Il gruppo additivo {bSpan}: gli interi da 0 a {max} sotto l’addizione mod {n}.',
+      rightCaption: 'Il gruppo moltiplicativo {bSpan}: le {n} unità mod {m} sotto la moltiplicazione, generato da {g}.',
+      readoutPrompt: 'Clicca su un elemento di una delle due ruote per vedere la corrispondenza.',
+      readoutOne: 'L’elemento {aSlot} a sinistra corrisponde a {aValSlot} a destra: {eqSpan}. Clicca su un secondo elemento — o di nuovo su questo stesso — per vedere la somma e il prodotto.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} a sinistra ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} a destra ({modSpan}) — e {product} = {g}^{sum} mod {m} = {sumVal}: l’immagine della somma è uguale al prodotto delle immagini.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} a sinistra ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} a destra ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} non è uguale a {g}^{sum} mod {m} = {sumVal} — questa coppia non dovrebbe mai discordare.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (troppo grande per mostrare esattamente la potenza non ridotta)',
+      refCount: '{count} coppie (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   tramite   k ↦ {g}^k mod {m}   (generatore g = {g})'
     }
   });
 })();

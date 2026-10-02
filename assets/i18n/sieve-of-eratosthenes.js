@@ -7,7 +7,7 @@
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other });
    every other key is plain text. Placeholder names ({n}, {time}, {count})
-   are identical across all five languages. legend.* values are rich
+   are identical across all six languages. legend.* values are rich
    templates (the swatch <span> renders as {0}). Play/Pause, Step, Instant
    and Reset live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Must load after assets/nt-i18n.js and

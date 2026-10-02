@@ -3,7 +3,7 @@
    fields, the Randomize and Export controls, the wheel's own aria-label,
    the per-mode note/heading/ref-count/formula strings, the wedge aria
    labels, the equivalence-class/sum captions and the export status
-   messages for the Equivalence Wheel tool, in all five supported
+   messages for the Equivalence Wheel tool, in all six supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -267,6 +267,54 @@
       exportFailedSvg: 'Error al exportar SVG — inténtalo de nuevo.',
       exportFailedPng: 'Error al exportar PNG — prueba Descargar SVG en su lugar.',
       exportPrintOpening: 'Abriendo el cuadro de diálogo de impresión — elige “Guardar como PDF” como destino.'
+    },
+    it: {
+      title: 'La Ruota di equivalenza',
+      eyebrow: 'partizioni di ℕ',
+      heading: 'La Ruota di equivalenza',
+      lede: 'Ogni numero naturale appartiene esattamente a una classe di equivalenza modulo N. {0}',
+      xref: 'Lo stesso gruppo, letto come una tavola delle operazioni completa →',
+      tablistLabel: 'Operazione di gruppo',
+      nLabel: 'N — modulo',
+      nRangeLabel: 'Modulo N',
+      ringsLabel: 'Anelli (numeri per classe)',
+      depthRangeLabel: 'Numeri mostrati per classe',
+      randomizeLabel: 'Casuale',
+      randomize: 'Nuovo esempio casuale',
+      exportLabel: 'Esporta',
+      exportPngBtn: 'Scarica PNG',
+      exportSvgBtn: 'Scarica SVG',
+      exportPdfBtn: 'Stampa / Salva come PDF',
+      svgLabel: 'Numeri naturali disposti come anelli concentrici, divisi in N classi di equivalenza',
+      noteAdditive: 'Questo diagramma dispone ℕ come anelli concentrici — un anello per ogni multiplo di N, un settore per classe — così le classi restano visibilmente disgiunte e complete.',
+      noteMultiplicative: 'Solo le φ(N) classi coprime con N ottengono un settore qui — queste sono esattamente le classi con un inverso moltiplicativo, quindi solo loro formano un gruppo sotto la moltiplicazione.',
+      headingAdditive: 'Classi di equivalenza',
+      headingMultiplicative: 'Classi di equivalenza delle unità',
+      refCountAdditive: 'N = {n}',
+      refCountMultiplicative: 'N = {n} · φ({n}) = {m}',
+      formulaAdditive: 'ℕ/∼ = { [0], [1], …, [{nMinus1}] }   dove   [r] = { n ∈ ℕ : n mod {n} = r }',
+      formulaMultiplicative: '(ℤ/{n}ℤ)* = { [{els}] }   ·   elemento neutro [{id}]   ·   |(ℤ/{n}ℤ)*| = φ({n}) = {m}',
+      roleFirstAddend: 'primo addendo',
+      roleSecondAddend: 'secondo addendo',
+      roleSum: 'somma',
+      roleFirstFactor: 'primo fattore',
+      roleSecondFactor: 'secondo fattore',
+      roleProduct: 'prodotto',
+      and: 'e',
+      wedgeAriaLabel: 'Classe di equivalenza {value} modulo {n}',
+      wedgeAriaLabelWithRoles: 'Classe di equivalenza {value} modulo {n}, {roles}',
+      verbingAdditive: 'Sommare',
+      verbingMultiplicative: 'Moltiplicare',
+      joinerAdditive: 'a',
+      joinerMultiplicative: 'per',
+      classIntroPromptA: 'La classe di equivalenza {bSpan} contiene ogni numero naturale congruente a {s} (mod {n}): {termsSpan} — e nient’altro. Clicca su un settore o una riga di riferimento per scegliere il {word}.',
+      classIntroPromptBAdditive: 'La classe di equivalenza {bSpan} contiene ogni numero naturale congruente a {s} (mod {n}): {termsSpan} — e nient’altro. Clicca su una seconda classe — o di nuovo su questa stessa — per sommarla a {aSpan} e rivelare la somma.',
+      classIntroPromptBMultiplicative: 'La classe di equivalenza {bSpan} contiene ogni numero naturale congruente a {s} (mod {n}): {termsSpan} — e nient’altro. Clicca su una seconda classe — o di nuovo su questa stessa — per moltiplicarla per {aSpan} e rivelare il prodotto.',
+      sumCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {sum} (mod {n}). {verbing} qualsiasi membro di {spanA2} {joiner} qualsiasi membro di {spanB2} cade sempre in {spanSum2}: {termsSpan}',
+      exportSaved: 'Salvato: {filename}',
+      exportFailedSvg: 'Esportazione SVG non riuscita — riprova.',
+      exportFailedPng: 'Esportazione PNG non riuscita — prova invece Scarica SVG.',
+      exportPrintOpening: 'Apertura della finestra di stampa — scegli «Salva come PDF» come destinazione.'
     }
   });
 })();

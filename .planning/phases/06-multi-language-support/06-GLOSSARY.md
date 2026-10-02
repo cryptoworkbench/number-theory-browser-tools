@@ -161,7 +161,7 @@ Confidence tags: `[CITED: source]` traces to 06-RESEARCH.md's Sources section;
 | Eve | Eve | Eve | Ève | Eva | Eve | Kept per the project's narrative convention (see Alice above) — no language-specific substitution; it per Q-03 (quick task 261002-c77). |
 | RSA | RSA | RSA | RSA | RSA | RSA | Acronym, invariant. |
 | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Eponym pair, invariant. |
-| Euler | Euler | Euler | Euler | Euler | Eulero | Invariant spelling in nl/de/fr/es; per-language eponym spelling now extends to it ("Eulero"), per Q-03 (quick task 261002-c77). |
+| Euler | Euler | Euler | Euler | Euler | Eulero | Invariant spelling in nl, de, fr and es; per-language eponym spelling now extends to Italian ("Eulero"), per Q-03 (quick task 261002-c77). |
 | Fermat | Fermat | Fermat | Fermat | Fermat | Fermat | Invariant spelling. |
 | Cayley | Cayley | Cayley | Cayley | Cayley | Cayley | Invariant spelling. |
 | Venn | Venn | Venn | Venn | Venn | Venn | Invariant spelling. |

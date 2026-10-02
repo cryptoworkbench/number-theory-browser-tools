@@ -1110,8 +1110,8 @@ function doPersistence() {
 
 /* ---------- language lists (Q-04, quick task 261002-c77) ---------- */
 
-// LANG_CODES: the six supported codes, switcher order (nl, en, de, fr, es,
-// it). checkDictionaries iterates this instead of a local SUPPORTED list.
+// LANG_CODES: the six supported codes in switcher order — nl, en, de, fr,
+// es, it. checkDictionaries iterates this instead of a local SUPPORTED list.
 var LANG_CODES = ["nl", "en", "de", "fr", "es", "it"];
 
 // SWITCHER_OPTIONS: the six <option value lang label> entries expected in

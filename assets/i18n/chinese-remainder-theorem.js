@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all five supported languages.
+   tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -15,7 +15,7 @@
    Play/Pause, Step, Instant, Reset and Speed live in the shared `common`
    namespace (assets/i18n/site.js), never duplicated here. Placeholder
    names ({idx}, {min}, {max}, {m}, {x}, {y}, {g}, {span}, {landed},
-   {computed}, {reduced}) are identical across all five languages. Must
+   {computed}, {reduced}) are identical across all six languages. Must
    load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -212,6 +212,44 @@
       constructReasonSpanBlocked: 'La construcción necesita una respuesta calculada, y el límite del periodo lo está bloqueando.',
       constructSumMismatch: 'Discrepancia de diagnóstico: la construcción se reduce a {reduced}, pero el solucionador calculó {computed} — deben coincidir siempre.',
       seeInverse: 'ver el inverso →'
+    },
+    it: {
+      title: 'Teorema cinese del resto',
+      eyebrow: 'teoria dei numeri · teorema cinese del resto',
+      heading: 'Teorema cinese del resto',
+      lede: 'Ogni congruenza da sola seleziona una famiglia di numeri equamente distanziati — ogni terzo numero, ogni quinto numero, e così via. Quando i moduli non condividono nessun fattore comune, quelle famiglie si incrociano in esattamente un punto in ogni intervallo di {0} numeri. Quell’unico incrocio è la soluzione simultanea su cui ogni riga concorda.',
+      xref: 'Guarda l’inverso modulare della prima congruenza calcolato passo dopo passo nello strumento Algoritmo di Euclide →',
+      countGroupLabel: 'Numero di congruenze',
+      countTwo: 'Due congruenze',
+      countThree: 'Tre congruenze',
+      remainderLabel: 'resto a',
+      modulusLabel: 'modulo m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · indovinello di Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · coppia coprima',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · condivide un fattore',
+      extToggleLabel: 'Rivela il metodo più rapido — costruisci la risposta direttamente con l’algoritmo di Euclide esteso invece di cercarla',
+      stripGroupLabel: 'Strisce delle classi di resto, scorrevoli',
+      constructLede: 'Dividi il periodo in un pezzo per congruenza, inverti ciascun pezzo rispetto al proprio modulo, scala per il resto di quella congruenza, somma i pezzi, poi riduci.',
+      tableHeaderY: 'y (inverso)',
+      tableHeaderTerm: 'termine = a · M · y',
+      caption: 'La risposta si ripete all’infinito con periodo {0} — la colonna contrassegnata è un rappresentante di una famiglia infinita di soluzioni.',
+      allAgreeLabel: 'tutti concordano',
+      errModulusWhole: 'Riga {idx}: il modulo deve essere un numero intero.',
+      errModulusRange: 'Riga {idx}: il modulo deve essere compreso tra {min} e {max}.',
+      errRemainderWhole: 'Riga {idx}: il resto deve essere un numero intero.',
+      errRemainderRange: 'Riga {idx}: il resto deve andare da 0 a {max} per il modulo {m}.',
+      coprimeOk: 'I moduli sono coprimi a due a due — esiste una soluzione in forma standard modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — i moduli {x} e {y} condividono un fattore, quindi il requisito di coprimalità a due a due della costruzione standard del teorema cinese del resto non è soddisfatto e questo strumento non tenta di risolvere questo sistema.',
+      spanWarn: 'Il periodo combinato lcm = {span} supera il limite massimo di questo strumento di {max} — riduci uno dei moduli per riportarlo sotto {max}.',
+      testingX: 'Test di x = {x} …',
+      diagnosticMismatchScan: 'Discrepanza diagnostica: la scansione si è fermata a {landed}, ma la costruzione ha calcolato {computed} — questi devono sempre coincidere.',
+      solved: 'Risolto — ogni congruenza concorda a x = {x}.',
+      diagnosticScanEnd: 'Diagnosi: la scansione ha raggiunto la fine del periodo ({span}) senza trovare un accordo, il che dovrebbe essere impossibile per un sistema coprimo a due a due.',
+      readyToScan: 'Pronto — premi Riproduci per vedere la scansione cercare x.',
+      constructReasonNotCoprime: 'La costruzione richiede che ogni M_i sia invertibile modulo il proprio m_i, cosa che un fattore condiviso tra i moduli rende impossibile.',
+      constructReasonSpanBlocked: 'La costruzione ha bisogno di una risposta calcolata, e il limite del periodo lo blocca.',
+      constructSumMismatch: 'Discrepanza diagnostica: la costruzione si riduce a {reduced}, ma il risolutore ha calcolato {computed} — questi devono sempre coincidere.',
+      seeInverse: 'guarda l’inverso →'
     }
   });
 })();

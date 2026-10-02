@@ -1,6 +1,6 @@
 /* assets/i18n/hub.js — the 'hub' namespace: index.html's page title, hero
    (eyebrow, h1, lede), all fifteen tool cards (card.<id>.title / desc),
-   the shared "Open tool →" link label and the footer, in all five
+   the shared "Open tool →" link label and the footer, in all six
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -212,6 +212,44 @@
       'card.fermat.desc': 'El método de factorización de Fermat: busca a² − N = b², y mira cómo el álgebra se convierte en una imagen a medida que un cuadrado se reorganiza en un rectángulo.',
       'card.shor.title': 'Algoritmo de Shor',
       'card.shor.desc': 'Mira cómo el algoritmo que hace mortal a RSA factoriza un número paso a paso — con el único paso genuinamente cuántico, la búsqueda de orden, honestamente etiquetado como un sustituto clásico, por lo que N se mantiene pequeño aquí.'
+    },
+    it: {
+      title: 'Strumenti di teoria dei numeri per il browser',
+      'hero.eyebrow': 'interattivo · lato client · zero dipendenze',
+      'hero.title': 'Teoria dei numeri, fatta per giocare',
+      'hero.lede': 'Quindici piccoli strumenti da browser per esplorare i numeri primi, la fattorizzazione, l’aritmetica modulare, le congruenze simultanee, le tavole di gruppo e gli isomorfismi, e la crittografia a chiave pubblica dall’aritmetica modulare alle curve ellittiche — ciascuno un visualizzatore animato e interattivo che puoi modificare, far scorrere con un cursore e guardare funzionare.',
+      openTool: 'Apri lo strumento →',
+      footer: 'Tutti i quindici strumenti funzionano interamente lato client nel tuo browser — nessun passaggio di build, nessun server, nessun tracciamento.',
+      'card.sieve.title': 'Crivello di Eratostene',
+      'card.sieve.desc': 'Dai a ogni numero naturale la sua casella, poi guarda il crivello eliminare tutto ciò che non è primo — con comandi di riproduzione e un suono per ogni numero primo trovato.',
+      'card.factorTree.title': 'Albero dei fattori primi',
+      'card.factorTree.desc': 'Dai un albero dei fattori a un numero qualsiasi e guardalo crescere, ramo per ramo, fino alle sue foglie prime — decorato per le feste.',
+      'card.venn.title': 'Diagramma di Venn',
+      'card.venn.desc': 'Trascina i numeri primi in due o tre cerchi sovrapposti e leggi il prodotto di ciascuna regione — ogni sovrapposizione si legge come un’intersezione, da una semplice lente ∩ fino al centro dove tutti i cerchi si incontrano.',
+      'card.euclid.title': 'Algoritmo di Euclide',
+      'card.euclid.desc': 'Dividi il numero più grande per quello più piccolo, conserva solo il resto, e ripeti — guarda la coppia rimpicciolirsi passo dopo passo in una catena di equazioni crescente, finché non resta altro che il massimo comun divisore.',
+      'card.crt.title': 'Teorema cinese del resto',
+      'card.crt.desc': 'Dai allo stesso numero incognito due o tre fatti sul resto — resto 2 dividendo per 3, resto 3 dividendo per 5 — e guarda come quelle famiglie di candidati equamente distanziate si incrociano nell’unico numero che soddisfa tutto allo stesso tempo.',
+      'card.wheel.title': 'La ruota di equivalenza',
+      'card.wheel.desc': 'Ogni numero naturale appartiene esattamente a una classe di equivalenza modulo N — qui disposte come anelli concentrici e settori, un settore per classe.',
+      'card.totient.title': 'La funzione φ di Eulero',
+      'card.totient.desc': 'Conta quanti numeri sotto n non condividono nessun fattore con n — non con una formula, ma eseguendo l’algoritmo di Euclide su ciascuno di essi e contando chi sopravvive.',
+      'card.cayley.title': 'Tavola di Cayley',
+      'card.cayley.desc': 'L’intero comportamento di un gruppo si racchiude in un’unica tabella quadrata — imposta un modulo, passa dall’addizione alla moltiplicazione, e clicca su una cella per vedere la sua identità, i suoi elementi autoinversi e la sua simmetria, tutto visibile nella forma della griglia.',
+      'card.iso.title': 'Isomorfismi di gruppi',
+      'card.iso.desc': 'Due ruote affiancate — gli interi mod n sotto l’addizione, le unità mod m sotto la moltiplicazione — per ogni coppia in cui sono, strutturalmente, esattamente lo stesso gruppo. Clicca su una delle due ruote per vedere la corrispondenza sull’altra.',
+      'card.sqm.title': 'Esponenziazione rapida',
+      'card.sqm.desc': 'La macchina non moltiplica mai un numero per se stesso un miliardo di volte — legge l’esponente in binario e avanza elevando al quadrato, un’elevazione al quadrato per bit, che è l’unico motivo per cui l’aritmetica in scala RSA arriva mai a terminare.',
+      'card.dh.title': 'Scambio di chiavi Diffie-Hellman',
+      'card.dh.desc': 'Guarda Alice e Bob costruire un segreto condiviso alla luce del sole, mentre Eve annota ogni byte che attraversa la linea — e non riesce comunque a ricostruirlo.',
+      'card.ecdh.title': 'Diffie-Hellman su curva ellittica',
+      'card.ecdh.desc': 'L’intero insieme di punti di una piccola curva ellittica su un campo primo, disegnato come un diagramma a dispersione — Alice e Bob lo percorrono tramite moltiplicazione scalare e arrivano allo stesso punto da direzioni opposte.',
+      'card.rsa.title': 'RSA',
+      'card.rsa.desc': 'Guarda Bob e Alice costruire coppie di chiavi RSA, scambiarle su una linea che Eve sta intercettando, e scopri esattamente quale difficile problema matematico la tiene fuori.',
+      'card.fermat.title': 'Metodo di Fermat',
+      'card.fermat.desc': 'Il metodo di fattorizzazione di Fermat: cerca a² − N = b², poi guarda l’algebra trasformarsi in un’immagine mentre un quadrato viene riorganizzato in un rettangolo.',
+      'card.shor.title': 'Algoritmo di Shor',
+      'card.shor.desc': 'Guarda l’algoritmo che rende RSA mortale fattorizzare un numero passo dopo passo — con l’unico passo davvero quantistico, la ricerca dell’ordine, onestamente etichettato come un sostituto classico, motivo per cui N resta piccolo qui.'
     }
   });
 })();

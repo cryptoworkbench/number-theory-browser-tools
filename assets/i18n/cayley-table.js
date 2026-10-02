@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all five supported languages.
+   Cayley Table tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -218,6 +218,45 @@
       noteDiagonal: 'Esta casilla está sobre el eje diagonal — es su propia gemela, con una sola ecuación que enunciar: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), y {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ambas caen en el mismo valor, así que la tabla es simétrica respecto a su diagonal: el grupo es conmutativo.',
       selfInverseNote: '{a} es {word}, ya que su valor aquí es la identidad.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    it: {
+      title: 'Tavola di Cayley',
+      eyebrow: 'teoria dei gruppi · tavole delle operazioni',
+      heading: 'Tavola di Cayley',
+      lede: 'L’intera operazione di un gruppo si racchiude in un’unica tabella quadrata — una riga e una colonna per elemento, una cella per ogni risultato. Ogni fatto strutturale su quel gruppo — il suo elemento neutro, i suoi inversi, la sua commutatività — è visibile da qualche parte nella forma della tabella.',
+      xref: 'Le stesse due operazioni di gruppo, viste come settori su una ruota invece che righe in una tabella →',
+      tablistLabel: 'Operazione di gruppo',
+      nLabel: 'N — modulo',
+      randomizeLabel: 'Casuale',
+      randomize: 'Nuovo esempio casuale',
+      tableScrollLabel: 'Tavola di Cayley, scorrevole',
+      'legend.identity': '{0} Riga e colonna dell’elemento neutro',
+      'legend.inverse': '{0} Proprio inverso (autoaccoppiato)',
+      'legend.selected': '{0} Cella selezionata',
+      'legend.mirror': '{0} Gemello speculare attraverso la diagonale',
+      nNoteNotWhole: 'N deve essere un numero intero — la tabella resta com’era.',
+      nNoteTooSmall: 'N non può scendere sotto 1 — portato a 1.',
+      nNoteCapped: 'N è limitato a {max} per evitare che la tabella diventi troppo grande — ridotto a {max}.',
+      identityWordAdditive: 'zero',
+      identityWordMultiplicative: 'uno',
+      inverseWordAdditive: 'il proprio opposto',
+      inverseWordMultiplicative: 'il proprio reciproco',
+      identityNote: 'L’elemento neutro è {word} — la sua riga e colonna sono evidenziate qui sotto.',
+      symmetryNoteAdditive: 'a + b e b + a finiscono sempre nella stessa classe, quindi la tabella si riflette su se stessa lungo la diagonale — clicca su una cella qualsiasi per vedere il suo gemello illuminarsi dall’altro lato.',
+      symmetryNoteMultiplicative: 'a · b e b · a finiscono sempre nella stessa classe, quindi la tabella si riflette su se stessa lungo la diagonale — clicca su una cella qualsiasi per vedere il suo gemello illuminarsi dall’altro lato.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} elemento · elemento neutro [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementi · elemento neutro [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elemento · elemento neutro [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementi · elemento neutro [{id}]'
+      },
+      tableCaption: 'Tavola di Cayley per {summary} sotto {sign}',
+      noteDiagonal: 'Questa cella si trova sull’asse diagonale — è il proprio gemello, con una sola equazione da indicare: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), e {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — entrambe finiscono sullo stesso valore, quindi la tabella è simmetrica rispetto alla sua diagonale: il gruppo è commutativo.',
+      selfInverseNote: '{a} è {word}, poiché il suo valore qui è l’elemento neutro.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

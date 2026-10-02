@@ -7,7 +7,7 @@
    their capped-tile notes (each plural on the quotient's own one/other
    category), the nested view's empty/capped messages and its own
    capped-note, the nested tile's tooltip title, and the closing caption,
-   for the Euclidean Algorithm tool, in all five supported languages.
+   for the Euclidean Algorithm tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -18,7 +18,7 @@
    Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({a}, {b}, {A}, {B}, {q}, {r},
    {n}, {max}, {index}, {total}, {cap}, {rest}, {step}, {extra},
-   {stepNums}, {gcd}, {lastB}) are identical across all five languages.
+   {stepNums}, {gcd}, {lastB}) are identical across all six languages.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -285,6 +285,58 @@
       nestedTileTitle: 'Paso {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Paso {step}: {a} = {q}·{b} + {r} ({extra} cuadrados más agrupados aquí)',
       tileEmptyMessage: 'No hay rectángulo que cortar — b ya es 0, así que el algoritmo ya ha terminado.'
+    },
+    it: {
+      title: 'Algoritmo di Euclide',
+      eyebrow: 'teoria dei numeri · algoritmo di euclide',
+      heading: 'Algoritmo di Euclide',
+      lede: 'Sostituisci ripetutamente la coppia (a, b) con (b, a mod b) — dividi il numero più grande per il più piccolo e conserva solo il resto — e la coppia si riduce a ogni passo. Nel momento in cui un lato raggiunge zero, l’altro lato è il massimo comun divisore dei due numeri di partenza.',
+      xref: 'Lo stesso MCD si può vedere anche come i fattori primi che i due numeri condividono →',
+      chipFiveSteps: '240, 46 · 5 passi',
+      chipCoprime: '35, 18 · coprimi',
+      chipBDividesA: '144, 12 · b divide a',
+      chipEqualPair: '36, 36 · coppia uguale',
+      chipAlreadyDone: '17, 0 · già fatto',
+      chipFibonacciWorst: '89, 55 · caso peggiore di Fibonacci',
+      chipHugeQuotient: '500000, 2 · quoziente enorme',
+      run: 'Avvia',
+      extToggleLabel: 'Modalità euclidea estesa — mostra i coefficienti di Bézout {0} e {1}',
+      errBothWhole: 'Sia a che b devono essere numeri interi.',
+      errBothNonNegative: 'Sia a che b devono essere zero o positivi — i numeri negativi non hanno un MCD definito qui.',
+      errGcdZeroZero: 'gcd(0, 0) non è definito — inserisci almeno un valore diverso da zero.',
+      errClamped: 'Gli input sono limitati a {max} — il valore più grande è stato ridotto per adattarsi.',
+      swapNote: 'Il valore più grande viene prima: inserito come ({a}, {b}), tracciato come gcd({A}, {B}) — il MCD è simmetrico nei suoi argomenti.',
+      bannerReady: 'Pronto — premi Riproduci per vedere la derivazione costruirsi riga per riga.',
+      bannerDone: { one: 'Fatto — {n} passo per arrivare al MCD.', other: 'Fatto — {n} passi per arrivare al MCD.' },
+      chainNoteZero: 'b è già 0, quindi non resta nulla da dividere — a è già il massimo comun divisore.',
+      extCaption: '{0} e {1} di ogni riga esprimono il resto di quella riga come combinazione dei due input originali — {2}.',
+      viewNested: 'Quadrati annidati',
+      geomViewGroupLabel: 'Modalità di visualizzazione geometrica',
+      viewStep: 'Passo singolo',
+      tileAriaDefault: 'Vista rettangolare del passo di divisione attuale',
+      nestedAriaDefault: 'Tutti i passi di divisione annidati in un unico rettangolo',
+      caption: 'I numeri di Fibonacci consecutivi sono il caso peggiore per questo algoritmo — impongono il maggior numero di passi di divisione per la loro dimensione.',
+      tileCaptionExact: {
+        one: 'Passo {index} di {total}: {a} ÷ {b}: il rettangolo si copre esattamente con {q} quadrato di lato {b} — nessun resto, quindi {b} è il massimo comun divisore.',
+        other: 'Passo {index} di {total}: {a} ÷ {b}: il rettangolo si copre esattamente con {q} quadrati di lato {b} — nessun resto, quindi {b} è il massimo comun divisore.'
+      },
+      tileCaptionLeftover: {
+        one: 'Passo {index} di {total}: {a} = {q}×{b} + {r}: entra {q} quadrato di lato {b}, con un resto di {b}×{r}.',
+        other: 'Passo {index} di {total}: {a} = {q}×{b} + {r}: entrano {q} quadrati di lato {b}, con un resto di {b}×{r}.'
+      },
+      tileNoteCapped: 'Il quoziente reale è {q} — qui vengono disegnati solo i primi {cap} quadrati; i restanti {rest} sono raggruppati nella tessera etichettata, quindi la larghezza disegnata non è in scala.',
+      nestedEmptyMessage: 'Non c’è nessun rettangolo da annidare — b è già 0, quindi l’algoritmo è già terminato.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: il {n} passo si annida in un unico rettangolo {A}×{B} — i quadrati più piccoli, {lastB}×{lastB}, sono il massimo comun divisore. Clicca su un quadrato (o su un passo sopra) per vedere come si allineano.',
+        other: 'gcd({A}, {B}) = {gcd}: i {n} passi si annidano in un unico rettangolo {A}×{B} — i quadrati più piccoli, {lastB}×{lastB}, sono il massimo comun divisore. Clicca su un quadrato (o su un passo sopra) per vedere come si allineano.'
+      },
+      nestedNoteCapped: {
+        one: 'Il passo {stepNums} ha un quoziente molto grande — lì vengono disegnati solo i primi {cap} quadrati, raggruppati in una tessera punteggiata, quindi questo diagramma non è completamente in scala a quel passo.',
+        other: 'I passi {stepNums} hanno un quoziente molto grande — lì vengono disegnati solo i primi {cap} quadrati, raggruppati in una tessera punteggiata, quindi questo diagramma non è completamente in scala a quei passi.'
+      },
+      nestedTileTitle: 'Passo {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Passo {step}: {a} = {q}·{b} + {r} ({extra} quadrati in più raggruppati qui)',
+      tileEmptyMessage: 'Non c’è nessun rettangolo da tagliare — b è già 0, quindi l’algoritmo è già terminato.'
     }
   });
 })();

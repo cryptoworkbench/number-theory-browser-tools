@@ -1,11 +1,11 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
    Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all five supported languages.
+   Factor Tree tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all five languages. The factorization itself (the equation/tree
+   across all six languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -113,6 +113,26 @@
       msgOne: '1 no es ni primo ni compuesto — es solo una semilla, aún no un árbol. 🌱',
       msgPrime: '{n} es primo — solo se divide una vez, en 1 × {n}.',
       msgFactors: '{n} se descompone en {count} factores primos.',
+      chipPrime: '{n} (primo)'
+    },
+    it: {
+      title: 'Albero dei fattori primi',
+      heading: '🎄 Albero dei fattori primi 🎄',
+      subtitle: 'Dagli un numero — fa crescere un vero albero dei fattori, ramo per ramo.',
+      modeLabel: 'Modalità albero',
+      modeClassic: 'Classica',
+      modeBalanced: 'Bilanciata',
+      placeholder: 'es. 60',
+      grow: 'Fai crescere l’albero',
+      footnote: 'Ogni foglia prima riceve un’ultima scissione tutta sua: P = P × 1.',
+      balancedNote: 'La modalità bilanciata usa il metodo di Fermat per trovare la coppia di fattori più equamente divisa a ogni passo, limitata a numeri sotto 1.000.000 per restare istantanea. Alcuni numeri — come un piccolo numero primo moltiplicato per uno grande — si dividono comunque in modo disuguale; non è un errore, è solo matematica.',
+      msgEmpty: 'Inserisci prima un numero.',
+      msgInvalid: 'Inserisci un numero intero, 1 o maggiore.',
+      msgTooLargeBalanced: 'Quel numero è troppo grande per la modalità Bilanciata — prova qualcosa sotto 1.000.000, o passa alla modalità Classica per numeri più grandi.',
+      msgTooLargeClassic: 'Quel numero è troppo grande per questo piccolo albero — prova qualcosa sotto 1 bilione.',
+      msgOne: '1 non è né primo né composto — è solo un seme, non ancora un albero. 🌱',
+      msgPrime: '{n} è primo — si divide solo una volta, in 1 × {n}.',
+      msgFactors: '{n} si scompone in {count} fattori primi.',
       chipPrime: '{n} (primo)'
     }
   });

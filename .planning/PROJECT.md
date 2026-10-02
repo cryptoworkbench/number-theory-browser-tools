@@ -16,7 +16,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 - ✓ Shared site chrome: sticky nav header (`assets/site.css`, `assets/theme.js`) with day/night toggle and a matching inline SVG brand mark (twin of the tab favicon), linking all tools, plus an `index.html` hub — existing
 - ✓ All ten tools share one unified color palette/visual identity via `assets/palette.css`'s `--role-*` semantic layer — Phase 1 (Palette Unification)
 - ✓ Euclidean Algorithm/GCD tool: validated two-integer input, animated numeric trace with playback controls, geometric rectangle-tiling view with a large-quotient cap, Extended Euclidean/Bézout coefficients toggle, preset pairs, two-way cross-link with Venn Diagrams — Phase 2
-- ✓ Every page (hub + all tools) offers a language switcher in the shared header and renders all UI text in Dutch, English, German, French or Spanish; the choice persists across pages and sessions (`site-lang`) and syncs across tabs, with English output byte-identical to before — Phase 6 (Multi-Language Support)
+- ✓ Every page (hub + all tools) offers a language switcher in the shared header and renders all UI text in Dutch, English, German, French, Spanish or Italian; the choice persists across pages and sessions (`site-lang`) and syncs across tabs, with English output byte-identical to before — Phase 6 (Multi-Language Support); Italian added 2026-10-02 by quick task 261002-c77
 
 ### Active
 
@@ -57,7 +57,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 | Cayley table generator ships as its own tool page, sharing the unit-set math and the group-params setting with the Equivalence Wheel through `NT.core` and `NT.store`, cross-linked both ways | User said "both" when asked separate-vs-paired — read as: its own page per repo convention, but designed as a close visual/interaction sibling with a cross-link, not a merged third tab inside the Equivalence Wheel | — Pending |
 | Shared number-theory, BigInt, SVG, shared-state and layout helpers live in `assets/nt-*.js` classic-script modules on one `window.NT` namespace | One implementation per helper; classic scripts keep every page runnable from `file://` | ✓ Phase 7 |
 | Cross-tab live sync reads the storage event's `newValue`; ordinary reads stay cookie-first | Cookie-first reads are needed for Firefox, where each `file://` page is its own origin, but inside a `storage` handler the cookie can lag the event and silently drop the update | ✓ Phase 7 (found and fixed during UAT; 40/40 rapid updates arrive) |
-| All sixteen pages ship in five languages (nl/en/de/fr/es) via a sixth shared module, `assets/nt-i18n.js` (`NT.i18n`), with translation data in `assets/i18n/` and the language preference persisted under its own `site-lang` key (cookie + localStorage, mirroring `site-theme`'s pattern exactly rather than coupling to `theme.js` or `NT.store`) | A site-wide preference needs the same three-channel (URL param, cookie, localStorage) durability `site-theme` already has, proven across `file://` origins in Phase 7's UAT; a dedicated key keeps the language choice independent of the theme toggle and of `NT.store`'s sibling-pair tool-settings scope | ✓ Phase 6 |
+| All sixteen pages ship in six languages (nl/en/de/fr/es/it) via a sixth shared module, `assets/nt-i18n.js` (`NT.i18n`), with translation data in `assets/i18n/` and the language preference persisted under its own `site-lang` key (cookie + localStorage, mirroring `site-theme`'s pattern exactly rather than coupling to `theme.js` or `NT.store`) | A site-wide preference needs the same three-channel (URL param, cookie, localStorage) durability `site-theme` already has, proven across `file://` origins in Phase 7's UAT; a dedicated key keeps the language choice independent of the theme toggle and of `NT.store`'s sibling-pair tool-settings scope | ✓ Phase 6; Italian added 2026-10-02 by quick task 261002-c77 |
 
 ## Evolution
 
@@ -77,4 +77,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-02 after Phase 6 (Multi-Language Support)*
+*Last updated: 2026-10-02 after quick task 261002-c77 (Italian added as sixth supported language)*
