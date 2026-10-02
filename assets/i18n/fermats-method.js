@@ -6,7 +6,7 @@
    and result message (searching, error, power-of-two, limit-reached,
    perfect-square, trivial-pair, trivial-prime, found), the factor chip's
    title, the result hint, the trail prefix, and the footer for the
-   Fermat's Method tool, in all five supported languages.
+   Fermat's Method tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in
@@ -264,6 +264,53 @@
       resultFound: 'Encontrado en el intento {strongTrial}: a = {a}, b = {b}.',
       resultHint: 'Haz clic en cualquier factor de arriba para aplicar el método de nuevo sobre él.',
       trailPrefix: 'Recorrido:'
+    },
+    it: {
+      title: 'Metodo di Fermat — Visualizzatore interattivo',
+      heading: 'Metodo di Fermat',
+      lede: 'Il metodo di Fermat: ogni numero dispari N può essere scritto come differenza di due quadrati, N = a² − b². Trova il b² giusto per “completare il quadrato” di N, e la fattorizzazione (a−b)(a+b) = N emerge da sé — con un’immagine a dimostrarlo.',
+      mathNote: 'Esploriamo a = ⌈√N⌉, ⌈√N⌉+1, … finché a² − N non è a sua volta un quadrato perfetto b².',
+      nLabel: 'Numero da fattorizzare (N)',
+      factorize: '🧩 Fattorizza',
+      statTryingA: 'Provando a',
+      statASqLabel: 'a²',
+      statRLabel: 'r = a² − N',
+      statHitLabel: '√r perfetto?',
+      statTrialNumber: 'Tentativo n.',
+      searchLogHeading: 'Registro di ricerca',
+      tableSquareHeader: 'quadrato?',
+      diagramHeading: 'Immagine geometrica',
+      replay: '↺ Riproduci di nuovo',
+      legendStays: '{0} resta fermo (a × (a−b))',
+      legendSlides: '{0} scorre al suo posto ((a−b) × b)',
+      legendRemoved: '{0} angolo rimosso (b²)',
+      legendFinal: '{0} finale (a+b) × (a−b)',
+      footer: 'Tutti i calcoli vengono eseguiti lato client nel tuo browser. La ricerca è limitata a 20.000 tentativi per restare reattiva — alcuni numeri primi senza un quadrato vicino raggiungeranno quel limite.',
+      'chip.closestPair': 'coppia più vicina — trovata in 1 tentativo',
+      'chip.balancedFactorsQuick': 'fattori bilanciati, trovati rapidamente',
+      'chip.perfectSquare': 'quadrato perfetto, {a} × {a}',
+      'chip.evenStrips': 'pari — elimina prima {pow}',
+      'chip.primeTrivial': 'primo — solo la coppia triviale',
+      cellYes: '✓ sì',
+      cellNo: '✗ no',
+      statHitYes: 'sì ({b})',
+      statHitNo: 'no',
+      factorChipTitle: 'Fattorizza ulteriormente questo numero',
+      diagramPerfectSquareCaption: '{a}² = {aSq} — N è un quadrato perfetto, N = {a} × {a}',
+      errEnterInteger: 'Inserisci un numero intero di almeno 2.',
+      searchingPlain: 'Ricerca di a con a² − {m} come quadrato perfetto…',
+      kNote: '(N = 2{kSup} × {m}, eliminando prima i fattori di 2)',
+      searchingWithK: 'Ricerca di a con a² − {m} come quadrato perfetto {kNoteSpan}…',
+      resultPowerOfTwo: 'N = 2{kSup}. La parte dispari è 1, quindi non resta nessun quadrato da completare — 2 è già primo.',
+      resultLimitErr: 'Limite di ricerca raggiunto ({iter} tentativi)',
+      resultLimit: '{errSpan} senza trovare un quadrato perfetto. La parte dispari {m} probabilmente ha fattori molto sbilanciati (o è primo) — prova un numero più piccolo.',
+      resultPerfectSquare: '{strongM} è un quadrato perfetto: {a} × {a}.',
+      resultTrivial: 'È emersa solo la coppia triviale (1, {m}).',
+      resultPrimeStrong: '{m} è primo',
+      resultTrivialPrime: 'È emersa solo la coppia triviale (1, {m}) — {strongPrime}.',
+      resultFound: 'Trovato al tentativo {strongTrial}: a = {a}, b = {b}.',
+      resultHint: 'Clicca su un fattore sopra per applicare di nuovo il metodo su di esso.',
+      trailPrefix: 'Percorso:'
     }
   });
 })();

@@ -5,7 +5,7 @@
    (built as DOM nodes and rendered through translateInto — T-06-16/
    T-06-17/T-06-18 pattern, never innerHTML), the banner messages (one of
    them, bannerComputed, a plural entry), and the ladder's SVG labels, for
-   the Square and Multiply tool, in all five supported languages.
+   the Square and Multiply tool, in all six supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Pure math notation (b, e, m, the preset chips'
@@ -394,6 +394,80 @@
       accFinalAnswer: '{0} = resultado',
       ladderAriaLabel: 'Escalera de elevar al cuadrado y multiplicar: una fila por cada bit del exponente, cada fila eleva al cuadrado el acumulador y multiplica condicionalmente por la base',
       bitTitle: 'valor de posición 2^{place}'
+    },
+    it: {
+      heading: 'Esponenziazione rapida',
+      lede: 'Questo è ciò che un computer fa realmente quando calcola b{0} mod m — nessuna moltiplicazione ripetuta, solo un passo di elevamento al quadrato per ogni bit dell’esponente e una moltiplicazione occasionale per la base.',
+      introHeading: 'Come lo fa davvero il computer',
+      introP1: 'Elevare un numero alla potenza e moltiplicandolo per se stesso e volte è senza speranza non appena e ha centinaia di cifre — un vero esponente RSA richiederebbe così più tempo dell’età dell’universo. Invece, la macchina legge l’esponente in binario e ha bisogno solo di circa un passo di elevamento al quadrato per bit, con una moltiplicazione extra solo sui bit che sono 1. Questo è tutto il trucco, ed è l’unico motivo per cui l’aritmetica su scala crittografica arriva mai a terminare.',
+      introP2: 'Questo è esattamente lo stesso ciclo che le pagine RSA e Diffie-Hellman di questo sito richiamano ogni volta che scrivono b{0} mod m — lì si chiama {1} ed è eseguito dietro le quinte; qui viene aperto, un bit alla volta.',
+      modularExponentiation: 'esponenziazione modulare',
+      baseLabel: 'Base b',
+      expLabel: 'Esponente e',
+      modLabel: 'Modulo m',
+      compute: '🧮 Calcola',
+      randomize: '🎲 Nuovi valori',
+      logHeading: 'Registro dei calcoli',
+      resultSectionHeading: 'Risultato',
+      'legend.bit': '{0} Bit dell’esponente (1 = avviene la moltiplicazione)',
+      'legend.squaring': '{0} Elevamento al quadrato — ogni riga, incondizionato',
+      'legend.multiply': '{0} Moltiplicazione per la base — solo su un bit 1',
+      'legend.accumulator': '{0} Accumulatore / risposta finale',
+      footer: 'Demo di elevamento al quadrato e moltiplicazione — l’algoritmo dietro ogni b^e mod m su questo sito. Solo per uso didattico.',
+      pillBinaryExp: 'esponenziazione binaria',
+      pillOneSquaring: 'un elevamento al quadrato per bit',
+      pillBigIntModular: 'aritmetica modulare BigInt',
+      errBaseInvalid: 'La base deve essere un numero intero non negativo.',
+      errBaseTooLong: 'La base deve avere al massimo 40 cifre — questa è una demo didattica, non un generatore di chiavi.',
+      errExpInvalid: 'L’esponente deve essere un numero intero non negativo.',
+      errExpTooLarge: 'L’esponente deve essere inferiore a 2^64 (65 bit) — la scala avrebbe bisogno di più righe di quante una scheda del browser possa visualizzare.',
+      errModInvalid: 'Il modulo deve essere un numero intero non negativo.',
+      errModTooSmall: 'Il modulo deve essere almeno 2 — un modulo di 1 rende ogni risultato 0 ed è degenerato.',
+      errModTooLong: 'Il modulo deve avere al massimo 40 cifre — questa è una demo didattica, non un generatore di chiavi.',
+      binaryExpansionZero: '0 = 0₂ = (nessuna potenza di due — qualsiasi numero elevato alla potenza zero è 1)',
+      setupHeading: 'Preparazione',
+      lblBaseReducedFirst: 'base ridotta prima:',
+      setupBaseReduced: '{0} {rawBase} mod {mod} = {1} — questo è il valore che la scala eleva al quadrato e moltiplica.',
+      setupFirstRowNote: 'La prima riga eleva al quadrato il valore iniziale 1 dell’accumulatore, il che è un’operazione nulla — ecco perché le implementazioni iniziano dal bit più significativo.',
+      stepHeading: 'Bit {i} di {total} — cifra {bit}, valore di posizione 2^{place}',
+      lblSquare: 'elevamento al quadrato:',
+      stepSquareFormula: '{0} {accBefore}² mod {mod} = {1}',
+      lblMultiplyBitOne: 'moltiplicazione (bit è 1):',
+      stepMultiplyFormula: '{0} {accSquared} × {base} mod {mod} = {1}',
+      lblMultiplySkipped: 'moltiplicazione saltata:',
+      stepMultiplySkippedFormula: '{0} questo bit è 0, quindi l’accumulatore resta invariato a {1}',
+      bannerStepMultiplied: 'Bit {i} di {total}: eleva al quadrato l’accumulatore, poi moltiplica per la base perché questo bit è 1.',
+      bannerStepSkipped: 'Bit {i} di {total}: eleva al quadrato l’accumulatore — moltiplicazione saltata perché questo bit è 0.',
+      bannerReady: 'Pronto — premi Riproduci per vedere la scala costruirsi un bit alla volta.',
+      bannerComputed: {
+        one: 'Calcolo completo mostrato sotto — {bits} bit nell’esponente. Premi Riproduci per vedere la costruzione passo dopo passo.',
+        other: 'Calcolo completo mostrato sotto — {bits} bit nell’esponente. Premi Riproduci per vedere la costruzione passo dopo passo.'
+      },
+      resultMatch: 'Verifica indipendente — un normale ciclo di esponenziazione modulare da sinistra a destra sugli stessi input arriva a {0}, la stessa risposta. ✓',
+      resultMismatch: 'Discrepanza nella verifica: il ciclo normale ha calcolato {cross}, che non corrisponde al {result} della scala. Questo indica un errore.',
+      costTag: 'Perché questo conta per RSA',
+      costHeading: 'Costo rispetto alla moltiplicazione ripetuta ingenua',
+      costBitLength: 'Lunghezza in bit dell’esponente',
+      costSquarings: 'Elevamenti al quadrato',
+      costMultiplies: 'Moltiplicazioni',
+      costTotal: 'Totale moltiplicazioni modulari',
+      costNaive: 'La moltiplicazione ripetuta ingenua richiederebbe',
+      costMeaningful: 'Sono {0} moltiplicazioni modulari in meno rispetto a moltiplicare la base per se stessa quel numero di volte.',
+      costNotMeaningful: 'A questa dimensione dell’esponente la scala non fa risparmiare quasi nulla rispetto alla moltiplicazione ripetuta ingenua — il vantaggio diventa grande solo quando l’esponente cresce.',
+      costRsaScale: 'Un esponente RSA a 2048 bit del tipo usato dalla vera decrittazione RSA richiede circa {0} elevamenti al quadrato più circa {1} moltiplicazioni — in totale circa {2} moltiplicazioni modulari — mentre moltiplicare la base per se stessa quel numero di volte richiederebbe un numero di moltiplicazioni lungo {digits} cifre decimali. Ecco perché le pagine {3} e {4} di questo sito possono calcolare le loro chiavi istantaneamente in un browser.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'Diffie-Hellman Key Exchange',
+      ladderCaption: 'L’accumulatore parte da 1 — il bit più alto (più significativo) viene letto per primo.',
+      headingBit: 'bit dell’esponente',
+      headingSquaring: 'elevamento al quadrato',
+      headingMultiply: 'moltiplicazione condizionale',
+      headingAccumulator: 'accumulatore',
+      rowBitCaption: 'bit {i} di {rows} — 2^{place}',
+      mulBase: '× la base = {0}',
+      skippedBitZero: 'saltato (bit è 0)',
+      accFinalAnswer: '{0} = risposta',
+      ladderAriaLabel: 'Scala di elevamento al quadrato e moltiplicazione: una riga per ogni bit dell’esponente, ogni riga eleva al quadrato l’accumulatore e moltiplica condizionatamente per la base',
+      bitTitle: 'valore di posizione 2^{place}'
     }
   });
 })();
