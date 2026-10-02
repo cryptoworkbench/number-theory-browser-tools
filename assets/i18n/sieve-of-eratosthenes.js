@@ -1,14 +1,14 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all nine supported
+   marker for the Sieve of Eratosthenes tool, in all eleven supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
    every language except Polish, which carries the CLDR { one, few, many,
    other } shape); every other key is plain text. Placeholder names ({n},
-   {time}, {count}) are identical across all nine languages. legend.*
+   {time}, {count}) are identical across all eleven languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Must load after
@@ -253,6 +253,58 @@
       'banner.done': {
         one: '{count} número primo encontrado até {n} em {time}.',
         other: '{count} números primos encontrados até {n} em {time}.'
+      }
+    },
+    sv: {
+      title: 'Eratosthenes såll — Interaktiv visualisering',
+      heading: 'Eratosthenes såll',
+      lede: 'Ge varje naturligt tal sin egen ruta — och se hur sållet stryker över allt som inte är primtal.',
+      sizeLabel: 'Sållstorlek (N)',
+      generate: '🧮 Generera',
+      'stat.current': 'Aktuellt',
+      'stat.primesFound': 'Hittade primtal',
+      'stat.sqrtBoundary': '√N-gräns',
+      'stat.elapsed': 'Förlupen tid',
+      'stat.progress': 'Förlopp',
+      'stat.done': '✓ klart',
+      'legend.unvisited': '{0} Obesökt',
+      'legend.currentPointer': '{0} Aktuell pekare',
+      'legend.prime': '{0} Primtal',
+      'legend.composite': '{0} Överstruket (sammansatt)',
+      'legend.neither': '{0} Inget av dem (1)',
+      footer: 'Alla beräkningar sker lokalt i din webbläsare. Inga tal har skadats permanent — bara strukits över.',
+      'banner.ready': 'Klart. {n} rutor skapade — tryck på Spela upp för att sålla.',
+      'banner.single': 'Bara 1 ruta — inget att sålla.',
+      'banner.reset': 'Återställt. {n} rutor återuppbyggda — tryck på Spela upp för att sålla.',
+      'banner.done': {
+        one: 'Hittade {count} primtal upp till {n} på {time}.',
+        other: 'Hittade {count} primtal upp till {n} på {time}.'
+      }
+    },
+    nb: {
+      title: "Eratosthenes' sil — Interaktiv visualisering",
+      heading: "Eratosthenes' sil",
+      lede: 'Gi hvert naturlige tall sin egen rute — og se hvordan silen stryker over alt som ikke er primtall.',
+      sizeLabel: 'Silstørrelse (N)',
+      generate: '🧮 Generer',
+      'stat.current': 'Nåværende',
+      'stat.primesFound': 'Funnet primtall',
+      'stat.sqrtBoundary': '√N-grense',
+      'stat.elapsed': 'Forløpt',
+      'stat.progress': 'Fremdrift',
+      'stat.done': '✓ ferdig',
+      'legend.unvisited': '{0} Ikke besøkt',
+      'legend.currentPointer': '{0} Nåværende peker',
+      'legend.prime': '{0} Primtall',
+      'legend.composite': '{0} Strøket (sammensatt)',
+      'legend.neither': '{0} Ingen av dem (1)',
+      footer: 'Alle beregninger kjører lokalt i nettleseren din. Ingen tall ble skadet permanent — bare strøket.',
+      'banner.ready': 'Klar. {n} ruter opprettet — trykk på Spill av for å sile.',
+      'banner.single': 'Bare 1 rute — ingenting å sile.',
+      'banner.reset': 'Tilbakestilt. {n} ruter gjenoppbygd — trykk på Spill av for å sile.',
+      'banner.done': {
+        one: 'Fant {count} primtall opp til {n} på {time}.',
+        other: 'Fant {count} primtall opp til {n} på {time}.'
       }
     }
   });

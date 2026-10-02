@@ -57,7 +57,7 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';
@@ -120,6 +120,8 @@
         }
         return (!region || region === 'br') ? 'pt-BR' : 'pt-PT';
       }
+      // Norwegian: the legacy macrolanguage tag no (no, no-NO) means Bokmål; nn (Nynorsk) is unsupported and falls through.
+      if (parts[0] === 'no') return 'nb';
       var code = String(langs[i]).slice(0, 2).toLowerCase();
       if (valid(code)) return code;
     }

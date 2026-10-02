@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared header chrome
    (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all nine supported languages.
+   label and the day/night toggle's label) in all eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -211,6 +211,50 @@
       'nav.shor': 'Algoritmo de Shor',
       'lang.label': 'Idioma',
       'theme.toggle': 'Alternar entre o modo diurno e o modo noturno'
+    },
+    sv: {
+      brand: 'Talteoriverktyg',
+      'nav.label': 'Verktyg',
+      'nav.home': 'Hem',
+      'nav.sieve': 'Eratosthenes såll',
+      'nav.factorTree': 'Faktorträd',
+      'nav.venn': 'Venndiagram',
+      'nav.euclid': 'Euklides algoritm',
+      'nav.crt': 'Kinesiska restsatsen',
+      'nav.wheel': 'Ekvivalenshjul',
+      'nav.totient': 'Eulers φ-funktion',
+      'nav.cayley': 'Cayleytabell',
+      'nav.iso': 'Gruppisomorfism',
+      'nav.sqm': 'Kvadrering och multiplikation',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH med elliptiska kurvor',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Fermats metod',
+      'nav.shor': 'Shors algoritm',
+      'lang.label': 'Språk',
+      'theme.toggle': 'Växla mellan dag- och nattläge'
+    },
+    nb: {
+      brand: 'Tallteoriverktøy',
+      'nav.label': 'Verktøy',
+      'nav.home': 'Hjem',
+      'nav.sieve': "Eratosthenes' sil",
+      'nav.factorTree': 'Faktortre',
+      'nav.venn': 'Venndiagram',
+      'nav.euclid': 'Euklids algoritme',
+      'nav.crt': 'Den kinesiske restsetningen',
+      'nav.wheel': 'Ekvivalenshjul',
+      'nav.totient': 'Eulers φ-funksjon',
+      'nav.cayley': 'Cayleytabell',
+      'nav.iso': 'Gruppeisomorfi',
+      'nav.sqm': 'Kvadrering og multiplikasjon',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH med elliptiske kurver',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Fermats metode',
+      'nav.shor': 'Shors algoritme',
+      'lang.label': 'Språk',
+      'theme.toggle': 'Bytt mellom dag- og nattmodus'
     }
   });
 
@@ -402,6 +446,46 @@
       'speed.10': 'quase instantânea',
       additiveGroups: 'Grupos aditivos',
       multiplicativeGroups: 'Grupos multiplicativos'
+    },
+    sv: {
+      play: '▶ Spela upp',
+      pause: '⏸ Pausa',
+      step: '⏭ Steg',
+      instant: '⏩ Direkt',
+      reset: '↺ Återställ',
+      speed: 'Hastighet',
+      'speed.1': 'isande',
+      'speed.2': 'långsam',
+      'speed.3': 'lugn',
+      'speed.4': 'livlig',
+      'speed.5': 'jämn',
+      'speed.6': 'kvick',
+      'speed.7': 'snabb',
+      'speed.8': 'hastig',
+      'speed.9': 'blixtsnabb',
+      'speed.10': 'nästan omedelbar',
+      additiveGroups: 'Additiva grupper',
+      multiplicativeGroups: 'Multiplikativa grupper'
+    },
+    nb: {
+      play: '▶ Spill av',
+      pause: '⏸ Sett på pause',
+      step: '⏭ Steg',
+      instant: '⏩ Straks',
+      reset: '↺ Tilbakestill',
+      speed: 'Hastighet',
+      'speed.1': 'iskald',
+      'speed.2': 'langsom',
+      'speed.3': 'rolig',
+      'speed.4': 'livlig',
+      'speed.5': 'jevn',
+      'speed.6': 'kjapp',
+      'speed.7': 'rask',
+      'speed.8': 'hurtig',
+      'speed.9': 'lynrask',
+      'speed.10': 'nesten øyeblikkelig',
+      additiveGroups: 'Additive grupper',
+      multiplicativeGroups: 'Multiplikative grupper'
     }
   });
 })();
