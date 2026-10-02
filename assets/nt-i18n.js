@@ -56,13 +56,13 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';
 
   // ---------- namespace registry ----------
-  // registry[ns][lang][flatKey] -> string | { one, other }
+  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus few/many for pl
   var registry = {};
 
   function valid(lang) {
@@ -181,14 +181,14 @@
     if (typeof Intl !== 'undefined' && typeof Intl.PluralRules === 'function') {
       try {
         var cat = new Intl.PluralRules(lang).select(count);
-        return cat === 'one' ? 'one' : 'other';
+        return cat;
       } catch (e) { /* fall through to the no-Intl default below */ }
     }
     return count === 1 ? 'one' : 'other';
   }
 
   // resolveTemplate(key, params) -> the raw template string for key,
-  // already plural-selected when the entry is a { one, other } object.
+  // already plural-selected by CLDR category when the entry is a plural object.
   // Falls back current lang -> en -> the key itself (returned unchanged,
   // never substituted).
   function resolveTemplate(key, params) {
@@ -202,7 +202,7 @@
     if (entry && typeof entry === 'object') {
       var count = resolveCount(params);
       var cat = pluralCategory(currentLang, count);
-      var tpl = (cat === 'one' && Object.prototype.hasOwnProperty.call(entry, 'one')) ? entry.one : entry.other;
+      var tpl = Object.prototype.hasOwnProperty.call(entry, cat) ? entry[cat] : entry.other;
       return (typeof tpl === 'string') ? tpl : key;
     }
     return (typeof entry === 'string') ? entry : key;

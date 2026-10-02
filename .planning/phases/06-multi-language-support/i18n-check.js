@@ -90,7 +90,7 @@ function pluralCategoryNode(lang, count) {
   if (typeof Intl !== "undefined" && typeof Intl.PluralRules === "function") {
     try {
       var cat = new Intl.PluralRules(lang).select(count);
-      return cat === "one" ? "one" : "other";
+      return cat;
     } catch (e) { /* fall through */ }
   }
   return count === 1 ? "one" : "other";
@@ -713,7 +713,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "it", "nl"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "it", "nl", "pl"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -778,6 +778,34 @@ function doApi() {
   check("plural en count 30 selects other", I.translate("t.count", { count: 30 }), "30 items");
   var countNode = ctx.document.createTextNode("7");
   check("plural count via a Node's textContent", I.translate("t.count", { count: countNode }), "7 items");
+
+  // Polish's four CLDR categories (one/few/many/other), proven against a
+  // synthetic namespace that also exercises the en-fallback for a key pl
+  // deliberately lacks (enOnly), and fr's own "many" (1,000,000 multiples)
+  // still falling back to other, unchanged from before the engine
+  // generalization.
+  I.register("tp", {
+    en: {
+      count: { one: "{count} file", other: "{count} files" },
+      enOnly: { one: "{count} thing", other: "{count} things" }
+    },
+    pl: {
+      count: { one: "{count} plik", few: "{count} pliki", many: "{count} plików", other: "{count} pliku" }
+    }
+  });
+  check("setLang('pl') returns true", I.setLang("pl"), true);
+  check("pl tp.count at 1 selects one", I.translate("tp.count", { count: 1 }), "1 plik");
+  check("pl tp.count at 2 selects few", I.translate("tp.count", { count: 2 }), "2 pliki");
+  check("pl tp.count at 5 selects many", I.translate("tp.count", { count: 5 }), "5 plików");
+  check("pl tp.count at 22 selects few", I.translate("tp.count", { count: 22 }), "22 pliki");
+  check("pl tp.count at 25 selects many", I.translate("tp.count", { count: 25 }), "25 plików");
+  check("pl tp.count at 12 selects many (teens are many, not few)", I.translate("tp.count", { count: 12 }), "12 plików");
+  check("pl tp.count at 0 selects many", I.translate("tp.count", { count: 0 }), "0 plików");
+  check("pl tp.count at 1.5 selects other (fraction)", I.translate("tp.count", { count: 1.5 }), "1.5 pliku");
+  check("pl tp.enOnly at 5 falls back to en value (missing many falls back to other)", I.translate("tp.enOnly", { count: 5 }), "5 things");
+  I.setLang("fr");
+  check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
+  I.setLang("en");
 
   // translateInto
   var tiEl = ctx.document.createElement("p");
@@ -891,6 +919,10 @@ function doApi() {
   check("detectDefaultLang(['it-IT','en']) -> it", I.detectDefaultLang(), "it");
   ctx.navigator = { languages: ["IT"] };
   check("detectDefaultLang(['IT']) -> it (case-insensitive)", I.detectDefaultLang(), "it");
+  ctx.navigator = { languages: ["pl-PL", "en"] };
+  check("detectDefaultLang(['pl-PL','en']) -> pl", I.detectDefaultLang(), "pl");
+  ctx.navigator = { languages: ["PL"] };
+  check("detectDefaultLang(['PL']) -> pl (case-insensitive)", I.detectDefaultLang(), "pl");
   ctx.navigator = { language: "fr-FR" };
   check("detectDefaultLang single navigator.language fallback -> fr", I.detectDefaultLang(), "fr");
   ctx.navigator = undefined;
@@ -1017,7 +1049,8 @@ function doPersistence() {
     { opts: { search: "?lang=de" }, lang: "de", via: "url" },
     { opts: { cookie: { initial: "fr" } }, lang: "fr", via: "cookie" },
     { opts: { storage: { initial: "es" } }, lang: "es", via: "storage" },
-    { opts: { search: "?lang=it" }, lang: "it", via: "url" }
+    { opts: { search: "?lang=it" }, lang: "it", via: "url" },
+    { opts: { cookie: { initial: "pl" } }, lang: "pl", via: "cookie" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1110,11 +1143,11 @@ function doPersistence() {
 
 /* ---------- language lists (Q-04, quick task 261002-c77) ---------- */
 
-// LANG_CODES: the six supported codes in switcher order — nl, en, de, fr,
-// es, it. checkDictionaries iterates this instead of a local SUPPORTED list.
-var LANG_CODES = ["nl", "en", "de", "fr", "es", "it"];
+// LANG_CODES: the seven supported codes in switcher order — nl, en, de, fr,
+// es, it, pl. checkDictionaries iterates this instead of a local SUPPORTED list.
+var LANG_CODES = ["nl", "en", "de", "fr", "es", "it", "pl"];
 
-// SWITCHER_OPTIONS: the six <option value lang label> entries expected in
+// SWITCHER_OPTIONS: the seven <option value lang label> entries expected in
 // every page's #lang-switch-select, same order as LANG_CODES, mirroring the
 // literal page markup. checkSwitcherPresent compares against this list.
 var SWITCHER_OPTIONS = [
@@ -1123,8 +1156,24 @@ var SWITCHER_OPTIONS = [
   { value: "de", lang: "de", label: "Deutsch" },
   { value: "fr", lang: "fr", label: "Français" },
   { value: "es", lang: "es", label: "Español" },
-  { value: "it", lang: "it", label: "Italiano" }
+  { value: "it", lang: "it", label: "Italiano" },
+  { value: "pl", lang: "pl", label: "Polski" }
 ];
+
+// PLURAL_EXTRA_CATEGORIES: the CLDR plural categories, beyond English's
+// {one, other}, that a language's plural dictionary values must carry.
+// Deliberately explicit rather than derived from Intl.PluralRules for every
+// language, because CLDR gives fr/es/it a "many" category too (exact
+// multiples of 1,000,000); their values stay {one, other} and the engine
+// falls back to other for that case, so only pl is listed here.
+var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"] };
+
+// expectedPluralCategories(lang): sorted {one, other} plus that language's
+// extras — few,many,one,other for pl, one,other for every other language.
+function expectedPluralCategories(lang) {
+  var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
+  return ["one", "other"].concat(extra).sort();
+}
 
 /* ---------- page table ---------- */
 
@@ -1166,11 +1215,11 @@ function slugFromPath(relPath) {
 var NEUTRAL_TOKENS = [
   // glossary proper nouns (06-GLOSSARY.md section d)
   "alice", "bob", "eve", "rsa", "diffie", "hellman", "diffie-hellman", "euler", "eulero", "fermat",
-  "cayley", "venn", "shor", "euclid", "euclides", "euklid", "euclide",
+  "cayley", "venn", "shor", "euclid", "euclides", "euklid", "euklides", "euclide",
   "eratosthenes", "eratosthène", "eratosthene", "eratóstenes", "eratostenes", "eratostene",
   "bézout", "bezout", "sunzi",
-  // the six autonyms (switcher option labels)
-  "nederlands", "english", "deutsch", "français", "francais", "español", "espanol", "italiano",
+  // the seven autonyms (switcher option labels)
+  "nederlands", "english", "deutsch", "français", "francais", "español", "espanol", "italiano", "polski",
   // math/domain abbreviations
   "mod", "gcd", "lcm", "max", "min", "log", "exp", "sqrt", "phi"
 ];
@@ -1563,6 +1612,60 @@ function dataFileNsList(file) {
   return out;
 }
 
+// checkPluralEntry(ns, key, lang, entry, enEntry): the plural-shape,
+// empty-value, markup and placeholder checks for one language's plural
+// value, generalized over expectedPluralCategories(lang) so pl's four
+// forms (one, few, many, other) are checked exactly as strictly as every
+// other language's two (one, other).
+function checkPluralEntry(ns, key, lang, entry, enEntry) {
+  var findings = [];
+  var expected = expectedPluralCategories(lang);
+  var shapeOk = entry && typeof entry === "object" && Object.keys(entry).sort().join(",") === expected.join(",");
+  if (!shapeOk) {
+    findings.push("PLURAL-SHAPE " + ns + "." + key + "." + lang + ": expected {" + expected.join(", ") + "}");
+    return findings;
+  }
+  expected.forEach(function (cat) {
+    if (entry[cat] === "") findings.push("EMPTY-VALUE " + ns + "." + key + "." + cat + "." + lang);
+    if (/<[a-zA-Z/!]/.test(entry[cat])) findings.push("DICT-MARKUP " + ns + "." + key + "." + cat + "." + lang);
+  });
+  var enPh = extractPlaceholders(enEntry.other);
+  var otherPh = extractPlaceholders(entry.other);
+  if (enPh.slice().sort().join(",") !== otherPh.slice().sort().join(",")) {
+    findings.push("PLACEHOLDERS " + ns + "." + key + "." + lang + ": expected [" + enPh.join(",") + "] got [" + otherPh.join(",") + "]");
+  }
+  expected.filter(function (cat) { return cat !== "one" && cat !== "other"; }).forEach(function (cat) {
+    var ph = extractPlaceholders(entry[cat]);
+    if (enPh.slice().sort().join(",") !== ph.slice().sort().join(",")) {
+      findings.push("PLACEHOLDERS " + ns + "." + key + "." + cat + "." + lang + ": expected [" + enPh.join(",") + "] got [" + ph.join(",") + "]");
+    }
+  });
+  return findings;
+}
+
+// pluralCategoryFindings(): for each language in PLURAL_EXTRA_CATEGORIES,
+// prove it is a real LANG_CODES member and that its expected category set
+// matches Intl.PluralRules' own resolvedOptions() exactly — so a Polish
+// category can never be silently omitted or invented.
+function pluralCategoryFindings() {
+  var findings = [];
+  Object.keys(PLURAL_EXTRA_CATEGORIES).forEach(function (lang) {
+    if (LANG_CODES.indexOf(lang) === -1) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": not in LANG_CODES");
+      return;
+    }
+    var expected = expectedPluralCategories(lang);
+    var intlCats = [];
+    try {
+      intlCats = new Intl.PluralRules(lang).resolvedOptions().pluralCategories.slice().sort();
+    } catch (e) { /* leave intlCats empty — will mismatch and be reported */ }
+    if (expected.join(",") !== intlCats.join(",")) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": expected [" + expected.join(", ") + "] but Intl.PluralRules reports [" + intlCats.join(", ") + "]");
+    }
+  });
+  return findings;
+}
+
 function checkDictionaries() {
   var findings = [];
   var catalog = loadCatalog();
@@ -1617,19 +1720,7 @@ function checkDictionaries() {
         if (!langDict || !(key in langDict)) return; // already reported via LANG-KEYSET
         var entry = langDict[key];
         if (enIsPlural) {
-          var shapeOk = entry && typeof entry === "object" && Object.keys(entry).sort().join(",") === "one,other";
-          if (!shapeOk) {
-            findings.push("PLURAL-SHAPE " + ns + "." + key + "." + lang + ": expected {one, other}");
-          } else {
-            ["one", "other"].forEach(function (cat) {
-              if (entry[cat] === "") findings.push("EMPTY-VALUE " + ns + "." + key + "." + cat + "." + lang);
-              if (/<[a-zA-Z/!]/.test(entry[cat])) findings.push("DICT-MARKUP " + ns + "." + key + "." + cat + "." + lang);
-            });
-            var otherPh = extractPlaceholders(entry.other);
-            if (enPh.slice().sort().join(",") !== otherPh.slice().sort().join(",")) {
-              findings.push("PLACEHOLDERS " + ns + "." + key + "." + lang + ": expected [" + enPh.join(",") + "] got [" + otherPh.join(",") + "]");
-            }
-          }
+          findings.push.apply(findings, checkPluralEntry(ns, key, lang, entry, enEntry));
         } else {
           if (typeof entry !== "string") { findings.push("PLURAL-SHAPE " + ns + "." + key + "." + lang + ": expected a plain string"); return; }
           if (entry === "") findings.push("EMPTY-VALUE " + ns + "." + key + "." + lang);
@@ -1646,6 +1737,8 @@ function checkDictionaries() {
       });
     });
   });
+
+  findings.push.apply(findings, pluralCategoryFindings());
 
   return { findings: findings, catalog: catalog };
 }
@@ -2014,5 +2107,9 @@ module.exports = {
   NEUTRAL_TOKENS: NEUTRAL_TOKENS,
   isProse: isProse,
   readConfig: readConfig,
-  parseHtml: parseHtml
+  parseHtml: parseHtml,
+  PLURAL_EXTRA_CATEGORIES: PLURAL_EXTRA_CATEGORIES,
+  expectedPluralCategories: expectedPluralCategories,
+  checkPluralEntry: checkPluralEntry,
+  pluralCategoryFindings: pluralCategoryFindings
 };

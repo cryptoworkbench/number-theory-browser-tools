@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared header chrome
    (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all six supported languages.
+   label and the day/night toggle's label) in all seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -145,6 +145,28 @@
       'nav.shor': 'Algoritmo di Shor',
       'lang.label': 'Lingua',
       'theme.toggle': 'Alterna tra modalità giorno e notte'
+    },
+    pl: {
+      brand: 'Narzędzia teorii liczb',
+      'nav.label': 'Narzędzia',
+      'nav.home': 'Strona główna',
+      'nav.sieve': 'Sito Eratostenesa',
+      'nav.factorTree': 'Drzewo czynników',
+      'nav.venn': 'Diagram Venna',
+      'nav.euclid': 'Algorytm Euklidesa',
+      'nav.crt': 'Chińskie twierdzenie o resztach',
+      'nav.wheel': 'Koło równoważności',
+      'nav.totient': 'Funkcja φ Eulera',
+      'nav.cayley': 'Tabela Cayleya',
+      'nav.iso': 'Izomorfizm grup',
+      'nav.sqm': 'Szybkie potęgowanie',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH na krzywych eliptycznych',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Metoda Fermata',
+      'nav.shor': 'Algorytm Shora',
+      'lang.label': 'Język',
+      'theme.toggle': 'Przełącz tryb dzienny i nocny'
     }
   });
 
@@ -276,6 +298,26 @@
       'speed.10': 'quasi istantaneo',
       additiveGroups: 'Gruppi additivi',
       multiplicativeGroups: 'Gruppi moltiplicativi'
+    },
+    pl: {
+      play: '▶ Odtwórz',
+      pause: '⏸ Pauza',
+      step: '⏭ Krok',
+      instant: '⏩ Natychmiast',
+      reset: '↺ Resetuj',
+      speed: 'Prędkość',
+      'speed.1': 'lodowata',
+      'speed.2': 'wolna',
+      'speed.3': 'łagodna',
+      'speed.4': 'żwawa',
+      'speed.5': 'równa',
+      'speed.6': 'sprawna',
+      'speed.7': 'szybka',
+      'speed.8': 'bardzo szybka',
+      'speed.9': 'błyskawiczna',
+      'speed.10': 'niemal natychmiastowa',
+      additiveGroups: 'Grupy addytywne',
+      multiplicativeGroups: 'Grupy multiplikatywne'
     }
   });
 })();

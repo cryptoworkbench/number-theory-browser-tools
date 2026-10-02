@@ -1,17 +1,19 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all six supported
+   marker for the Sieve of Eratosthenes tool, in all seven supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
-   NT.i18n.register(...). banner.done is a plural entry ({ one, other });
-   every other key is plain text. Placeholder names ({n}, {time}, {count})
-   are identical across all six languages. legend.* values are rich
-   templates (the swatch <span> renders as {0}). Play/Pause, Step, Instant
-   and Reset live in the shared `common` namespace (assets/i18n/site.js),
-   never duplicated here. Must load after assets/nt-i18n.js and
-   assets/i18n/site.js, before the page's own inline <script>.
+   NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
+   every language except Polish, which carries the CLDR { one, few, many,
+   other } shape); every other key is plain text. Placeholder names ({n},
+   {time}, {count}) are identical across all seven languages. legend.*
+   values are rich templates (the swatch <span> renders as {0}). Play/Pause,
+   Step, Instant and Reset live in the shared `common` namespace
+   (assets/i18n/site.js), never duplicated here. Must load after
+   assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
+   <script>.
 */
 (function () {
   "use strict";
@@ -171,6 +173,34 @@
       'banner.done': {
         one: '{count} numero primo trovato fino a {n} in {time}.',
         other: '{count} numeri primi trovati fino a {n} in {time}.'
+      }
+    },
+    pl: {
+      title: 'Sito Eratostenesa — Interaktywna wizualizacja',
+      heading: 'Sito Eratostenesa',
+      lede: 'Daj każdej liczbie naturalnej własne pole — a potem obserwuj, jak sito przekreśla wszystko, co nie jest liczbą pierwszą.',
+      sizeLabel: 'Rozmiar sita (N)',
+      generate: '🧮 Generuj',
+      'stat.current': 'Aktualna',
+      'stat.primesFound': 'Znalezione liczby pierwsze',
+      'stat.sqrtBoundary': 'Granica √N',
+      'stat.elapsed': 'Upłynęło',
+      'stat.progress': 'Postęp',
+      'stat.done': '✓ gotowe',
+      'legend.unvisited': '{0} Nieodwiedzone',
+      'legend.currentPointer': '{0} Aktualny wskaźnik',
+      'legend.prime': '{0} Liczba pierwsza',
+      'legend.composite': '{0} Przekreślona (złożona)',
+      'legend.neither': '{0} Żadne z nich (1)',
+      footer: 'Wszystkie obliczenia wykonywane są po stronie klienta w twojej przeglądarce. Żadna liczba nie została trwale uszkodzona — tylko przekreślona.',
+      'banner.ready': 'Gotowe. Utworzono {n} pól — naciśnij Odtwórz, aby przesiać.',
+      'banner.single': 'Tylko 1 pole — nie ma czego przesiewać.',
+      'banner.reset': 'Zresetowano. Odtworzono {n} pól — naciśnij Odtwórz, aby przesiać.',
+      'banner.done': {
+        one: 'Znaleziono {count} liczbę pierwszą do {n} w {time}.',
+        few: 'Znaleziono {count} liczby pierwsze do {n} w {time}.',
+        many: 'Znaleziono {count} liczb pierwszych do {n} w {time}.',
+        other: 'Znaleziono {count} liczb pierwszych do {n} w {time}.'
       }
     }
   });
