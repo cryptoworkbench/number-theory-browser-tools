@@ -1,14 +1,16 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all eleven supported
+   marker for the Sieve of Eratosthenes tool, in all fourteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
-   every language except Polish, which carries the CLDR { one, few, many,
-   other } shape); every other key is plain text. Placeholder names ({n},
-   {time}, {count}) are identical across all eleven languages. legend.*
+   every language except Polish ({ one, few, many, other }), Romanian
+   ({ one, few, other }) and Latvian ({ zero, one, other }), each the CLDR
+   shape for that language); every other key is plain text. Placeholder
+   names ({n}, {time}, {count}) are identical across all fourteen
+   languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Must load after
@@ -305,6 +307,86 @@
       'banner.done': {
         one: 'Fant {count} primtall opp til {n} på {time}.',
         other: 'Fant {count} primtall opp til {n} på {time}.'
+      }
+    },
+    ro: {
+      title: 'Ciurul lui Eratostene — Vizualizator interactiv',
+      heading: 'Ciurul lui Eratostene',
+      lede: 'Dă fiecărui număr natural propria căsuță — apoi privește cum ciurul elimină tot ce nu este prim.',
+      sizeLabel: 'Dimensiunea ciurului (N)',
+      generate: '🧮 Generează',
+      'stat.current': 'Curent',
+      'stat.primesFound': 'Numere prime găsite',
+      'stat.sqrtBoundary': 'Limita √N',
+      'stat.elapsed': 'Timp scurs',
+      'stat.progress': 'Progres',
+      'stat.done': '✓ terminat',
+      'legend.unvisited': '{0} Nevizitat',
+      'legend.currentPointer': '{0} Indicator curent',
+      'legend.prime': '{0} Prim',
+      'legend.composite': '{0} Eliminat (compus)',
+      'legend.neither': '{0} Niciuna dintre variante (1)',
+      footer: 'Toate calculele se execută local, în browserul tău. Niciun număr nu a fost afectat permanent — doar eliminat.',
+      'banner.ready': 'Pregătit. Căsuțe create: {n} — apasă Redă pentru a cerne.',
+      'banner.single': 'O singură căsuță — nimic de cernut.',
+      'banner.reset': 'Resetat. Căsuțe reconstruite: {n} — apasă Redă pentru a cerne.',
+      'banner.done': {
+        one: 'Am găsit {count} număr prim până la {n} în {time}.',
+        few: 'Am găsit {count} numere prime până la {n} în {time}.',
+        other: 'Am găsit {count} de numere prime până la {n} în {time}.'
+      }
+    },
+    hu: {
+      title: 'Eratoszthenész szitája — Interaktív vizualizáció',
+      heading: 'Eratoszthenész szitája',
+      lede: 'Adj minden természetes számnak saját négyzetet — majd nézd meg, hogyan húzza át a szita mindazt, ami nem prím.',
+      sizeLabel: 'Szita mérete (N)',
+      generate: '🧮 Generálás',
+      'stat.current': 'Aktuális',
+      'stat.primesFound': 'Talált prímszámok',
+      'stat.sqrtBoundary': '√N határ',
+      'stat.elapsed': 'Eltelt idő',
+      'stat.progress': 'Haladás',
+      'stat.done': '✓ kész',
+      'legend.unvisited': '{0} Nem érintett',
+      'legend.currentPointer': '{0} Aktuális mutató',
+      'legend.prime': '{0} Prím',
+      'legend.composite': '{0} Áthúzva (összetett)',
+      'legend.neither': '{0} Egyik sem (1)',
+      footer: 'Minden számítás a böngésződben, kliensoldalon történik. Semmilyen szám nem sérült véglegesen — csak áthúzásra került.',
+      'banner.ready': 'Kész. {n} négyzet létrehozva — nyomd meg a Lejátszás gombot a szűréshez.',
+      'banner.single': 'Csak 1 négyzet — nincs mit szűrni.',
+      'banner.reset': 'Visszaállítva. {n} négyzet újraépítve — nyomd meg a Lejátszás gombot a szűréshez.',
+      'banner.done': {
+        one: '{count} prímszámot találtunk {n}-ig, {time} alatt.',
+        other: '{count} prímszámot találtunk {n}-ig, {time} alatt.'
+      }
+    },
+    lv: {
+      title: 'Eratostena siets — Interaktīvs vizualizētājs',
+      heading: 'Eratostena siets',
+      lede: 'Dod katram naturālajam skaitlim savu lodziņu — un skaties, kā siets izsvītro visu, kas nav pirmskaitlis.',
+      sizeLabel: 'Sieta izmērs (N)',
+      generate: '🧮 Generēt',
+      'stat.current': 'Pašreizējais',
+      'stat.primesFound': 'Atrastie pirmskaitļi',
+      'stat.sqrtBoundary': '√N robeža',
+      'stat.elapsed': 'Pagājis',
+      'stat.progress': 'Virzība',
+      'stat.done': '✓ pabeigts',
+      'legend.unvisited': '{0} Neapmeklēts',
+      'legend.currentPointer': '{0} Pašreizējais rādītājs',
+      'legend.prime': '{0} Pirmskaitlis',
+      'legend.composite': '{0} Izsvītrots (saliktais)',
+      'legend.neither': '{0} Neviens no tiem (1)',
+      footer: 'Visi aprēķini notiek tavā pārlūkā, klienta pusē. Neviens skaitlis nav cietis neatgriezeniski — tikai izsvītrots.',
+      'banner.ready': 'Gatavs. Izveidoti lodziņi: {n} — nospied Atskaņot, lai sietu.',
+      'banner.single': 'Tikai 1 lodziņš — nav ko sietu.',
+      'banner.reset': 'Atiestatīts. Pārbūvēti lodziņi: {n} — nospied Atskaņot, lai sietu.',
+      'banner.done': {
+        zero: 'Atradām {count} pirmskaitļu līdz {n} {time} laikā.',
+        one: 'Atradām {count} pirmskaitli līdz {n} {time} laikā.',
+        other: 'Atradām {count} pirmskaitļus līdz {n} {time} laikā.'
       }
     }
   });

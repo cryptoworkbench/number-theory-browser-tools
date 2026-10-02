@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared header chrome
    (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all eleven supported languages.
+   label and the day/night toggle's label) in all fourteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -255,6 +255,72 @@
       'nav.shor': 'Shors algoritme',
       'lang.label': 'Språk',
       'theme.toggle': 'Bytt mellom dag- og nattmodus'
+    },
+    ro: {
+      brand: 'Instrumente de teoria numerelor',
+      'nav.label': 'Instrumente',
+      'nav.home': 'Acasă',
+      'nav.sieve': 'Ciurul lui Eratostene',
+      'nav.factorTree': 'Arbore de factori',
+      'nav.venn': 'Diagrama Venn',
+      'nav.euclid': 'Algoritmul lui Euclid',
+      'nav.crt': 'Teorema chineză a resturilor',
+      'nav.wheel': 'Roata echivalenței',
+      'nav.totient': 'Funcția φ a lui Euler',
+      'nav.cayley': 'Tabla lui Cayley',
+      'nav.iso': 'Izomorfism de grupuri',
+      'nav.sqm': 'Exponențiere rapidă',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH pe curbe eliptice',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Metoda lui Fermat',
+      'nav.shor': 'Algoritmul lui Shor',
+      'lang.label': 'Limbă',
+      'theme.toggle': 'Comută între modul de zi și cel de noapte'
+    },
+    hu: {
+      brand: 'Számelméleti eszközök',
+      'nav.label': 'Eszközök',
+      'nav.home': 'Kezdőlap',
+      'nav.sieve': 'Eratoszthenész szitája',
+      'nav.factorTree': 'Tényezőfa',
+      'nav.venn': 'Venn-diagram',
+      'nav.euclid': 'Euklideszi algoritmus',
+      'nav.crt': 'Kínai maradéktétel',
+      'nav.wheel': 'Ekvivalenciakerék',
+      'nav.totient': 'Euler-féle φ-függvény',
+      'nav.cayley': 'Cayley-táblázat',
+      'nav.iso': 'Csoportizomorfizmus',
+      'nav.sqm': 'Gyors hatványozás',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'Elliptikus görbés DH',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Fermat-módszer',
+      'nav.shor': 'Shor-algoritmus',
+      'lang.label': 'Nyelv',
+      'theme.toggle': 'Váltás nappali és éjszakai mód között'
+    },
+    lv: {
+      brand: 'Skaitļu teorijas rīki',
+      'nav.label': 'Rīki',
+      'nav.home': 'Sākums',
+      'nav.sieve': 'Eratostena siets',
+      'nav.factorTree': 'Reizinātāju koks',
+      'nav.venn': 'Venna diagramma',
+      'nav.euclid': 'Eiklīda algoritms',
+      'nav.crt': 'Ķīniešu atlikumu teorēma',
+      'nav.wheel': 'Ekvivalences rats',
+      'nav.totient': 'Eilera φ funkcija',
+      'nav.cayley': 'Keilija tabula',
+      'nav.iso': 'Grupu izomorfisms',
+      'nav.sqm': 'Ātrā kāpināšana',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'Eliptisko līkņu DH',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Ferma metode',
+      'nav.shor': 'Šora algoritms',
+      'lang.label': 'Valoda',
+      'theme.toggle': 'Pārslēgt dienas un nakts režīmu'
     }
   });
 
@@ -486,6 +552,66 @@
       'speed.10': 'nesten øyeblikkelig',
       additiveGroups: 'Additive grupper',
       multiplicativeGroups: 'Multiplikative grupper'
+    },
+    ro: {
+      play: '▶ Redă',
+      pause: '⏸ Pauză',
+      step: '⏭ Pas',
+      instant: '⏩ Instantaneu',
+      reset: '↺ Resetează',
+      speed: 'Viteză',
+      'speed.1': 'glacială',
+      'speed.2': 'lentă',
+      'speed.3': 'domoală',
+      'speed.4': 'vioaie',
+      'speed.5': 'constantă',
+      'speed.6': 'sprintenă',
+      'speed.7': 'rapidă',
+      'speed.8': 'foarte rapidă',
+      'speed.9': 'fulgerătoare',
+      'speed.10': 'aproape instantanee',
+      additiveGroups: 'Grupuri aditive',
+      multiplicativeGroups: 'Grupuri multiplicative'
+    },
+    hu: {
+      play: '▶ Lejátszás',
+      pause: '⏸ Szünet',
+      step: '⏭ Lépés',
+      instant: '⏩ Azonnal',
+      reset: '↺ Visszaállítás',
+      speed: 'Sebesség',
+      'speed.1': 'jeges',
+      'speed.2': 'lassú',
+      'speed.3': 'szelíd',
+      'speed.4': 'élénk',
+      'speed.5': 'egyenletes',
+      'speed.6': 'fürge',
+      'speed.7': 'gyors',
+      'speed.8': 'sebes',
+      'speed.9': 'villámgyors',
+      'speed.10': 'szinte azonnali',
+      additiveGroups: 'Additív csoportok',
+      multiplicativeGroups: 'Multiplikatív csoportok'
+    },
+    lv: {
+      play: '▶ Atskaņot',
+      pause: '⏸ Pauze',
+      step: '⏭ Solis',
+      instant: '⏩ Uzreiz',
+      reset: '↺ Atiestatīt',
+      speed: 'Ātrums',
+      'speed.1': 'ledains',
+      'speed.2': 'lēns',
+      'speed.3': 'mierīgs',
+      'speed.4': 'možs',
+      'speed.5': 'vienmērīgs',
+      'speed.6': 'žirgts',
+      'speed.7': 'ātrs',
+      'speed.8': 'straujš',
+      'speed.9': 'zibenīgs',
+      'speed.10': 'gandrīz acumirklīgs',
+      additiveGroups: 'Aditīvās grupas',
+      multiplicativeGroups: 'Multiplikatīvās grupas'
     }
   });
 })();

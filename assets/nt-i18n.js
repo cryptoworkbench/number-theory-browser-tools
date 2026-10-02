@@ -57,13 +57,13 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';
 
   // ---------- namespace registry ----------
-  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus few/many for pl
+  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, few, many) the language uses
   var registry = {};
 
   function valid(lang) {
