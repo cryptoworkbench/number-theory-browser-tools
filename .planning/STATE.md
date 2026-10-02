@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-02T09:05:45.000Z"
+last_updated: "2026-10-02T12:01:05.894Z"
 last_activity: 2026-10-02
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 38b2f1b675b507d6f9ab06e4887804af33e5fc86
+state_head: 36ae7200356820b0a057d37e83bed87f5f802aa2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-02 — Quick task 261002-c77 complete — Italian added as sixth supported language
+Last activity: 2026-10-02 - Completed quick task 261002-fmi: Add Polish (pl) as a seventh supported language site-wide
 
 Progress: [█████████░] 86%
 
@@ -288,6 +288,7 @@ None yet.
 | 260930-mle | Add a scratchpad panel to the Diffie-Hellman Key Exchange tool, modeled on the RSA tool's scratchpad component but positioned on the right side of the page instead of the left. When the animation displays the public multiplicative group, that information appears in this scratchpad. When public exponentiation results appear in the animation, they also appear in the scratchpad. Also updated the RSA tool so its existing scratchpad moves to the right side of the page (same relative vertical position, mirrored to the right). | 2026-09-30 | a4ed7f5 | [260930-mle-add-a-scratchpad-panel-to-the-diffie-hel](./quick/260930-mle-add-a-scratchpad-panel-to-the-diffie-hel/) |
 | 260930-pin | Remove the "no shared JS modules for logic" architectural constraint from project docs, allowing shared JS logic modules | 2026-09-30 | d441342 | [260930-pin-remove-the-no-shared-js-modules-for-logi](./quick/260930-pin-remove-the-no-shared-js-modules-for-logi/) |
 | 261002-c77 | Add Italian (it) as a sixth supported language site-wide — engine allow-list, switcher on all 16 pages, complete dictionaries in all 18 namespaces, six-language gate tooling, glossary and living docs updated | 2026-10-02 | 8e27452, 00db417, 38b2f1b | [261002-c77-add-italian-it-as-a-sixth-supported-lang](./quick/261002-c77-add-italian-it-as-a-sixth-supported-lang/) |
+| 261002-fmi | Add Polish (pl) as a seventh supported language site-wide — CLDR plural categories (one/few/many/other) in NT.i18n with byte-identical output for existing languages, switcher on all 16 pages, complete dictionaries in all 18 namespaces, seven-language gates, glossary and living docs updated | 2026-10-02 | 36ae720 | [261002-fmi-add-polish-pl-as-a-seventh-supported-lan](./quick/261002-fmi-add-polish-pl-as-a-seventh-supported-lan/) |
 
 ## Deferred Items
 
