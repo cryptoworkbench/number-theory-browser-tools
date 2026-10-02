@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all nine supported languages.
+   tool, in all eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all nine languages. bannerDone is { one, other } in every language
+   all eleven languages. bannerDone is { one, other } in every language
    except Polish, which carries the CLDR { one, few, many, other } shape.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
@@ -238,6 +238,54 @@
         other: 'Concluído — {count} valores testados, {phi} coprimo de {n}.'
       },
       caption: 'n primo dá φ(n) = n−1, porque nenhum número menor o alcança — as fichas facilitam verificar isso.'
+    },
+    sv: {
+      title: 'Eulers φ-funktion',
+      eyebrow: 'talteori · eulers φ-funktion',
+      heading: 'Eulers φ-funktion',
+      lede: 'φ(n) räknar hur många av 1 … n−1 som inte delar någon faktor med n, och den här sidan tar reda på det på det enda ärliga sättet — genom att fråga Euklides algoritm om var och en av dem.',
+      xref: 'Samma antal dyker upp som sektorerna i den multiplikativa gruppen mod n →',
+      chipPrime: '{n} · primtal',
+      run: 'Starta',
+      errNotWhole: 'n måste vara ett heltal.',
+      errTooSmall: 'n måste vara minst {min} — vandringen k = 1 … n−1 behöver minst ett k att testa.',
+      errCapped: 'n är begränsat till {max} — värdet klämdes ner för att passa.',
+      chainHead: 'Testar k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} är relativt prima med {n} — gcd = 1, räknas med.',
+      verdictEliminated: 'k = {k} delar en faktor med {n} — gcd = {gcd}, utesluten.',
+      tally: 'Löpande antal relativt prima: {count}',
+      progress: 'k = {k} av {total} testat.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Klar — tryck på Spela upp för att se vandringen testa varje k en delning i taget.',
+      bannerDone: {
+        one: 'Klar — {count} värde testat, {phi} relativt prima med {n}.',
+        other: 'Klar — {count} värden testade, {phi} relativt prima med {n}.'
+      },
+      caption: 'Ett primtal n ger φ(n) = n−1, eftersom varje mindre tal missar det — chipsen gör det lätt att kontrollera.'
+    },
+    nb: {
+      title: 'Eulers φ-funksjon',
+      eyebrow: 'tallteori · eulers φ-funksjon',
+      heading: 'Eulers φ-funksjon',
+      lede: 'φ(n) teller hvor mange av 1 … n−1 som ikke deler noen faktor med n, og denne siden finner det ut på den eneste ærlige måten — ved å spørre Euklids algoritme om hver enkelt av dem.',
+      xref: 'Det samme antallet dukker opp som sektorene i den multiplikative gruppen mod n →',
+      chipPrime: '{n} · primtall',
+      run: 'Start',
+      errNotWhole: 'n må være et helt tall.',
+      errTooSmall: 'n må være minst {min} — gjennomgangen k = 1 … n−1 trenger minst ett k å teste.',
+      errCapped: 'n er begrenset til {max} — verdien ble klemt ned for å passe.',
+      chainHead: 'Tester k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} er innbyrdes primisk med {n} — gcd = 1, talt med.',
+      verdictEliminated: 'k = {k} deler en faktor med {n} — gcd = {gcd}, utelukket.',
+      tally: 'Løpende antall innbyrdes primiske: {count}',
+      progress: 'k = {k} av {total} testet.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Klar — trykk på Spill av for å se gjennomgangen teste hver k én divisjon i gangen.',
+      bannerDone: {
+        one: 'Ferdig — {count} verdi testet, {phi} innbyrdes primisk med {n}.',
+        other: 'Ferdig — {count} verdier testet, {phi} innbyrdes primisk med {n}.'
+      },
+      caption: 'Et primtall n gir φ(n) = n−1, fordi hvert mindre tall ikke treffer det — brikkene gjør det lett å kontrollere.'
     }
   });
 })();

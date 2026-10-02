@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all nine supported languages.
+   tool, in all eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    in the shared `common` namespace (assets/i18n/site.js), never
    duplicated here. Placeholder names ({idx}, {min}, {max}, {m}, {x}, {y},
    {g}, {span}, {landed}, {computed}, {reduced}) are identical across all
-   nine languages. Must load after assets/nt-i18n.js and
+   eleven languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -364,6 +364,82 @@
       constructReasonSpanBlocked: 'A construção precisa de uma resposta calculada, e o limite do período está a bloquear isso.',
       constructSumMismatch: 'Incompatibilidade de diagnóstico: a construção reduz-se a {reduced}, mas o solucionador calculou {computed} — esses valores têm de coincidir sempre.',
       seeInverse: 'vê o inverso →'
+    },
+    sv: {
+      title: 'Kinesiska restsatsen',
+      eyebrow: 'talteori · kinesiska restsatsen',
+      heading: 'Kinesiska restsatsen',
+      lede: 'Varje kongruens väljer för sig en jämnt fördelad familj av tal — vart tredje tal, vart femte tal, och så vidare. När modulerna inte delar någon gemensam faktor korsar dessa familjer varandra på exakt ett ställe i varje sträcka av {0} tal. Den enda korsningen är den samtidiga lösning som varje rad är överens om.',
+      xref: 'Se den första kongruensens modulära invers beräknad steg för steg i verktyget Euklides algoritm →',
+      countGroupLabel: 'Antal kongruenser',
+      countTwo: 'Två kongruenser',
+      countThree: 'Tre kongruenser',
+      remainderLabel: 'rest a',
+      modulusLabel: 'modul m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · Sun Tzus gåta',
+      chipCoprime: '2 mod 3 · 3 mod 5 · relativt prima par',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · delar en faktor',
+      extToggleLabel: 'Avslöja den snabbare metoden — bygg svaret direkt med den utökade euklidiska algoritmen istället för att söka efter det',
+      stripGroupLabel: 'Remsor av restklasser, skrollbara',
+      constructLede: 'Dela upp perioden i en bit per kongruens, invertera varje bit mot sin egen modul, skala med den kongruensens rest, summera bitarna och reducera sedan.',
+      tableHeaderY: 'y (invers)',
+      tableHeaderTerm: 'term = a · M · y',
+      caption: 'Svaret upprepar sig oändligt med period {0} — den markerade kolumnen är en representant för en oändlig familj lösningar.',
+      allAgreeLabel: 'alla överens',
+      errModulusWhole: 'Rad {idx}: modulen måste vara ett heltal.',
+      errModulusRange: 'Rad {idx}: modulen måste vara mellan {min} och {max}.',
+      errRemainderWhole: 'Rad {idx}: resten måste vara ett heltal.',
+      errRemainderRange: 'Rad {idx}: resten måste vara från 0 till {max} för modulen {m}.',
+      coprimeOk: 'Modulerna är parvis relativt prima — en lösning i standardform finns modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — modulerna {x} och {y} delar en faktor, så standardkonstruktionens krav på parvis relativt prima inte är uppfyllt, och detta verktyg försöker inte lösa detta system.',
+      spanWarn: 'Den kombinerade perioden lcm = {span} ligger över verktygets periodtak på {max} — sänk en av modulerna för att komma under {max}.',
+      testingX: 'Testar x = {x} …',
+      diagnosticMismatchScan: 'Diagnostisk avvikelse: sökningen landade på {landed} men konstruktionen beräknade {computed} — dessa måste alltid stämma.',
+      solved: 'Löst — varje kongruens är överens vid x = {x}.',
+      diagnosticScanEnd: 'Diagnos: sökningen nådde slutet av perioden ({span}) utan att hitta en överensstämmelse, vilket borde vara omöjligt för ett parvis relativt prima system.',
+      readyToScan: 'Klar — tryck på Spela upp för att se sökningen leta efter x.',
+      constructReasonNotCoprime: 'Konstruktionen kräver att varje M_i är inverterbar modulo sin egen m_i, vilket en delad faktor mellan modulerna gör omöjligt.',
+      constructReasonSpanBlocked: 'Konstruktionen behöver ett beräknat svar, och periodtakets spärr blockerar det.',
+      constructSumMismatch: 'Diagnostisk avvikelse: konstruktionen reduceras till {reduced} men lösaren beräknade {computed} — dessa måste alltid stämma.',
+      seeInverse: 'se inversen →'
+    },
+    nb: {
+      title: 'Den kinesiske restsetningen',
+      eyebrow: 'tallteori · den kinesiske restsetningen',
+      heading: 'Den kinesiske restsetningen',
+      lede: 'Hver kongruens velger for seg en jevnt fordelt familie av tall — hvert tredje tall, hvert femte tall, og så videre. Når modulene ikke deler noen felles faktor, krysser disse familiene hverandre på nøyaktig ett sted i hver strekning av {0} tall. Den ene krysningen er den samtidige løsningen som hver rad er enig om.',
+      xref: 'Se den første kongruensens modulære invers beregnet steg for steg i verktøyet Euklids algoritme →',
+      countGroupLabel: 'Antall kongruenser',
+      countTwo: 'To kongruenser',
+      countThree: 'Tre kongruenser',
+      remainderLabel: 'rest a',
+      modulusLabel: 'modul m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · Sun Tzus gåte',
+      chipCoprime: '2 mod 3 · 3 mod 5 · innbyrdes primisk par',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · deler en faktor',
+      extToggleLabel: 'Avslør den raskere metoden — bygg svaret direkte med den utvidede euklidiske algoritmen i stedet for å søke etter det',
+      stripGroupLabel: 'Striper av restklasser, rullbare',
+      constructLede: 'Del perioden opp i én del per kongruens, inverter hver del mot sin egen modul, skaler med den kongruensens rest, legg delene sammen, og reduser deretter.',
+      tableHeaderY: 'y (invers)',
+      tableHeaderTerm: 'ledd = a · M · y',
+      caption: 'Svaret gjentar seg for alltid med periode {0} — den markerte kolonnen er én representant for en uendelig familie løsninger.',
+      allAgreeLabel: 'alle enige',
+      errModulusWhole: 'Rad {idx}: modulen må være et helt tall.',
+      errModulusRange: 'Rad {idx}: modulen må være mellom {min} og {max}.',
+      errRemainderWhole: 'Rad {idx}: resten må være et helt tall.',
+      errRemainderRange: 'Rad {idx}: resten må være fra 0 til {max} for modulen {m}.',
+      coprimeOk: 'Modulene er parvis innbyrdes primiske — en løsning i standardform finnes modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — modulene {x} og {y} deler en faktor, så standardkonstruksjonens krav om parvis innbyrdes primiskhet ikke er oppfylt, og dette verktøyet forsøker ikke å løse dette systemet.',
+      spanWarn: 'Den kombinerte perioden lcm = {span} ligger over verktøyets periodetak på {max} — senk en av modulene for å komme under {max}.',
+      testingX: 'Tester x = {x} …',
+      diagnosticMismatchScan: 'Diagnostisk avvik: søket landet på {landed}, men konstruksjonen beregnet {computed} — disse må alltid stemme.',
+      solved: 'Løst — hver kongruens er enig ved x = {x}.',
+      diagnosticScanEnd: 'Diagnose: søket nådde slutten av perioden ({span}) uten å finne en overensstemmelse, noe som skulle være umulig for et parvis innbyrdes primisk system.',
+      readyToScan: 'Klar — trykk på Spill av for å se søket lete etter x.',
+      constructReasonNotCoprime: 'Konstruksjonen krever at hver M_i er inverterbar modulo sin egen m_i, noe en delt faktor mellom modulene gjør umulig.',
+      constructReasonSpanBlocked: 'Konstruksjonen trenger et beregnet svar, og periodetakets sperre blokkerer det.',
+      constructSumMismatch: 'Diagnostisk avvik: konstruksjonen reduseres til {reduced}, men løseren beregnet {computed} — disse må alltid stemme.',
+      seeInverse: 'se inversen →'
     }
   });
 })();

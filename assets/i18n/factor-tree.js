@@ -1,11 +1,11 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
    Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all nine supported languages.
+   Factor Tree tool, in all eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all nine languages. The factorization itself (the equation/tree
+   across all eleven languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -194,6 +194,46 @@
       msgPrime: '{n} é primo — ele divide-se apenas uma vez, em 1 × {n}.',
       msgFactors: '{n} fatoriza-se em {count} primos.',
       chipPrime: '{n} (primo)'
+    },
+    sv: {
+      title: 'Primtalsfaktorträd',
+      heading: '🎄 Primtalsfaktorträd 🎄',
+      subtitle: 'Ge det ett tal — det låter ett riktigt faktorträd växa, gren för gren.',
+      modeLabel: 'Trädläge',
+      modeClassic: 'Klassiskt',
+      modeBalanced: 'Balanserat',
+      placeholder: 't.ex. 60',
+      grow: 'Låt trädet växa',
+      footnote: 'Varje primblad får en sista egen delning: P = P × 1.',
+      balancedNote: 'Balanserat läge använder Fermats metod för att hitta det mest jämnt delade faktorparet vid varje steg, begränsat till tal under 1 000 000 för att hålla sig snabbt. Vissa tal — som ett litet primtal gånger ett stort — delar sig ändå ojämnt; det är inget fel, bara matematik.',
+      msgEmpty: 'Ange ett tal först.',
+      msgInvalid: 'Ange ett heltal, 1 eller större.',
+      msgTooLargeBalanced: 'Det talet är för stort för Balanserat läge — prova något under 1 000 000, eller växla till Klassiskt läge för större tal.',
+      msgTooLargeClassic: 'Det talet är för stort för det här lilla trädet — prova något under 1 biljon.',
+      msgOne: '1 är varken primt eller sammansatt — det är bara ett frö, inget träd ännu. 🌱',
+      msgPrime: '{n} är primt — det delar sig bara en gång, i 1 × {n}.',
+      msgFactors: '{n} delas upp i {count} primfaktorer.',
+      chipPrime: '{n} (primt)'
+    },
+    nb: {
+      title: 'Primtallsfaktortre',
+      heading: '🎄 Primtallsfaktortre 🎄',
+      subtitle: 'Gi det et tall — det lar et ekte faktortre vokse, gren for gren.',
+      modeLabel: 'Tremodus',
+      modeClassic: 'Klassisk',
+      modeBalanced: 'Balansert',
+      placeholder: 'f.eks. 60',
+      grow: 'La treet vokse',
+      footnote: 'Hvert primblad får en siste egen deling: P = P × 1.',
+      balancedNote: 'Balansert modus bruker Fermats metode for å finne det mest jevnt delte faktorparet ved hvert steg, begrenset til tall under 1 000 000 for å holde seg øyeblikkelig. Noen tall — som et lite primtall ganger et stort — deler seg likevel ujevnt; det er ikke en feil, bare matematikk.',
+      msgEmpty: 'Skriv inn et tall først.',
+      msgInvalid: 'Skriv inn et helt tall, 1 eller større.',
+      msgTooLargeBalanced: 'Det tallet er for stort for Balansert modus — prøv noe under 1 000 000, eller bytt til Klassisk modus for større tall.',
+      msgTooLargeClassic: 'Det tallet er for stort for dette lille treet — prøv noe under 1 billion.',
+      msgOne: '1 er verken primtall eller sammensatt — det er bare et frø, ikke et tre ennå. 🌱',
+      msgPrime: '{n} er primtall — det deler seg bare én gang, i 1 × {n}.',
+      msgFactors: '{n} deles opp i {count} primtallsfaktorer.',
+      chipPrime: '{n} (primtall)'
     }
   });
 })();

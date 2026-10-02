@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all nine supported languages.
+   Cayley Table tool, in all eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -380,6 +380,84 @@
       noteDiagonal: 'Esta célula situa-se no eixo diagonal — é o seu próprio gémeo, com apenas uma equação a indicar: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), e {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ambos caem no mesmo valor, pelo que a tabela é simétrica em relação à sua diagonal: o grupo é comutativo.',
       selfInverseNote: '{a} é {word}, já que o seu valor aqui é o elemento neutro.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    sv: {
+      title: 'Cayleytabell',
+      eyebrow: 'grupteori · operationstabeller',
+      heading: 'Cayleytabell',
+      lede: 'En grupps hela operation ryms i en enda kvadratisk tabell — en rad och en kolumn per element, en cell för varje resultat. Varje strukturellt faktum om den gruppen — dess identitet, dess inverser, dess kommutativitet — syns synligt någonstans i tabellens form.',
+      xref: 'Samma två gruppoperationer, nu sedda som sektorer på ett hjul istället för rader i en tabell →',
+      tablistLabel: 'Gruppoperation',
+      nLabel: 'N — modul',
+      randomizeLabel: 'Slumpa',
+      randomize: 'Nytt slumpmässigt exempel',
+      tableScrollLabel: 'Cayleytabell, skrollbar',
+      'legend.identity': '{0} Identitetens rad & kolumn',
+      'legend.inverse': '{0} Egen invers (självparad)',
+      'legend.selected': '{0} Vald cell',
+      'legend.mirror': '{0} Speglingstvilling över diagonalen',
+      nNoteNotWhole: 'N måste vara ett heltal — tabellen förblir som den var.',
+      nNoteTooSmall: 'N kan inte gå under 1 — höjd till 1.',
+      nNoteCapped: 'N är begränsat till {max} för att hålla tabellen från att bli för stor — sänkt till {max}.',
+      identityWordAdditive: 'noll',
+      identityWordMultiplicative: 'ett',
+      inverseWordAdditive: 'sin egen negation',
+      inverseWordMultiplicative: 'sin egen reciprok',
+      identityNote: 'Identiteten är {word} — dess rad och kolumn är markerade nedan.',
+      symmetryNoteAdditive: 'a + b och b + a landar alltid i samma klass, så tabellen speglar sig själv över diagonalen — klicka på en cell för att se dess tvilling tändas på andra sidan.',
+      symmetryNoteMultiplicative: 'a · b och b · a landar alltid i samma klass, så tabellen speglar sig själv över diagonalen — klicka på en cell för att se dess tvilling tändas på andra sidan.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} element · identitet [{id}]',
+        other: 'ℤ/{n}ℤ · {count} element · identitet [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} element · identitet [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} element · identitet [{id}]'
+      },
+      tableCaption: 'Cayleytabell för {summary} under {sign}',
+      noteDiagonal: 'Denna cell ligger på diagonalaxeln — den är sin egen tvilling, med bara en ekvation att ange: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), och {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — båda landar på samma värde, så tabellen är symmetrisk kring sin diagonal: gruppen är kommutativ.',
+      selfInverseNote: '{a} är {word}, eftersom dess värde här är identiteten.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    nb: {
+      title: 'Cayleytabell',
+      eyebrow: 'gruppeteori · operasjonstabeller',
+      heading: 'Cayleytabell',
+      lede: 'En gruppes hele operasjon får plass i én kvadratisk tabell — én rad og én kolonne per element, én celle for hvert resultat. Hvert strukturelt faktum om den gruppen — dens identitet, dens inverser, dens kommutativitet — vises synlig et sted i tabellens form.',
+      xref: 'De samme to gruppeoperasjonene, nå sett som sektorer på et hjul i stedet for rader i en tabell →',
+      tablistLabel: 'Gruppeoperasjon',
+      nLabel: 'N — modul',
+      randomizeLabel: 'Tilfeldig',
+      randomize: 'Nytt tilfeldig eksempel',
+      tableScrollLabel: 'Cayleytabell, rullbar',
+      'legend.identity': '{0} Identitetens rad og kolonne',
+      'legend.inverse': '{0} Egen invers (selvparet)',
+      'legend.selected': '{0} Valgt celle',
+      'legend.mirror': '{0} Speiltvilling over diagonalen',
+      nNoteNotWhole: 'N må være et helt tall — tabellen forblir som den var.',
+      nNoteTooSmall: 'N kan ikke gå under 1 — hevet til 1.',
+      nNoteCapped: 'N er begrenset til {max} for å holde tabellen fra å bli for stor — senket til {max}.',
+      identityWordAdditive: 'null',
+      identityWordMultiplicative: 'én',
+      inverseWordAdditive: 'sin egen negasjon',
+      inverseWordMultiplicative: 'sin egen resiprok',
+      identityNote: 'Identiteten er {word} — raden og kolonnen er merket nedenfor.',
+      symmetryNoteAdditive: 'a + b og b + a lander alltid i samme klasse, så tabellen speiler seg selv over diagonalen — klikk på en celle for å se tvillingen lyse opp på den andre siden.',
+      symmetryNoteMultiplicative: 'a · b og b · a lander alltid i samme klasse, så tabellen speiler seg selv over diagonalen — klikk på en celle for å se tvillingen lyse opp på den andre siden.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} element · identitet [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementer · identitet [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} element · identitet [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementer · identitet [{id}]'
+      },
+      tableCaption: 'Cayleytabell for {summary} under {sign}',
+      noteDiagonal: 'Denne cellen ligger på diagonalaksen — den er sin egen tvilling, med bare én ligning å angi: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), og {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — begge lander på samme verdi, så tabellen er symmetrisk om diagonalen: gruppen er kommutativ.',
+      selfInverseNote: '{a} er {word}, siden verdien her er identiteten.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

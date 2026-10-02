@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   nine supported languages.
+   eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -291,6 +291,64 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (demasiado grande para mostrar a potência não reduzida com exatidão)',
       refCount: '{count} pares (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   mediante   k ↦ {g}^k mod {m}   (gerador g = {g})'
+    },
+    sv: {
+      title: 'Gruppisomorfismer',
+      eyebrow: 'två räknesätt, en grupp',
+      heading: 'Gruppisomorfismer',
+      lede: 'Heltalen mod n under addition och enheterna mod m under multiplikation kan strukturellt vara exakt samma grupp — de bär bara en annan räknejacka. {0}',
+      xref: 'Se dessa två grupper byggas upp en i taget →',
+      pairLabel: 'Isomorft par',
+      pairSelectAriaLabel: 'Välj ett isomorft par',
+      randomizeLabel: 'Slumpa',
+      randomize: 'Nytt slumpmässigt exempel',
+      tablistLabel: 'Högerhjulets layout',
+      tabPowers: 'Potenser av g',
+      tabNumeric: 'Numeriskt',
+      leftWheelAriaLabel: 'Element i den additiva gruppen Z mod n',
+      rightWheelAriaLabel: 'Element i den multiplikativa gruppen av enheter mod m',
+      refHeading: 'Isomorfa par',
+      leftWedgeAriaLabel: 'Element {value} i den additiva gruppen Z mod {n}',
+      rightWedgeAriaLabel: 'Element {value} i den multiplikativa gruppen av enheter mod {m}, lika med {g} upphöjt till {k} mod {m}',
+      leftCaption: 'Den additiva gruppen {bSpan}: heltalen 0 till och med {max} under addition mod {n}.',
+      rightCaption: 'Den multiplikativa gruppen {bSpan}: de {n} enheterna mod {m} under multiplikation, genererad av {g}.',
+      readoutPrompt: 'Klicka på ett element på endera hjulet för att se motsvarigheten.',
+      readoutOne: 'Element {aSlot} till vänster motsvarar {aValSlot} till höger: {eqSpan}. Klicka på ett andra element — eller samma igen — för att se summan och produkten.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} till vänster ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} till höger ({modSpan}) — och {product} = {g}^{sum} mod {m} = {sumVal}: summans bild är lika med produkten av bilderna.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} till vänster ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} till höger ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} är inte lika med {g}^{sum} mod {m} = {sumVal} — detta par borde aldrig skilja sig.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (för stort för att visa den oreducerade potensen exakt)',
+      refCount: '{count} par (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   genom   k ↦ {g}^k mod {m}   (generator g = {g})'
+    },
+    nb: {
+      title: 'Gruppeisomorfier',
+      eyebrow: 'to regnesystemer, én gruppe',
+      heading: 'Gruppeisomorfier',
+      lede: 'Heltallene mod n under addisjon og enhetene mod m under multiplikasjon kan strukturelt være nøyaktig samme gruppe — de bærer bare en annen regnejakke. {0}',
+      xref: 'Se disse to gruppene bygges opp én etter én →',
+      pairLabel: 'Isomorft par',
+      pairSelectAriaLabel: 'Velg et isomorft par',
+      randomizeLabel: 'Tilfeldig',
+      randomize: 'Nytt tilfeldig eksempel',
+      tablistLabel: 'Høyrehjulets visning',
+      tabPowers: 'Potenser av g',
+      tabNumeric: 'Numerisk',
+      leftWheelAriaLabel: 'Elementer i den additive gruppen Z mod n',
+      rightWheelAriaLabel: 'Elementer i den multiplikative gruppen av enheter mod m',
+      refHeading: 'Isomorfe par',
+      leftWedgeAriaLabel: 'Element {value} i den additive gruppen Z mod {n}',
+      rightWedgeAriaLabel: 'Element {value} i den multiplikative gruppen av enheter mod {m}, lik {g} opphøyd i {k} mod {m}',
+      leftCaption: 'Den additive gruppen {bSpan}: heltallene 0 til og med {max} under addisjon mod {n}.',
+      rightCaption: 'Den multiplikative gruppen {bSpan}: de {n} enhetene mod {m} under multiplikasjon, generert av {g}.',
+      readoutPrompt: 'Klikk på et element på et av hjulene for å se korrespondansen.',
+      readoutOne: 'Element {aSlot} til venstre tilsvarer {aValSlot} til høyre: {eqSpan}. Klikk på et annet element — eller samme igjen — for å se summen og produktet.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} til venstre ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} til høyre ({modSpan}) — og {product} = {g}^{sum} mod {m} = {sumVal}: summens bilde er lik produktet av bildene.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} til venstre ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} til høyre ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} er ikke lik {g}^{sum} mod {m} = {sumVal} — dette paret skal aldri være uenig.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (for stort til å vise den ureduserte potensen nøyaktig)',
+      refCount: '{count} par (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   gjennom   k ↦ {g}^k mod {m}   (generator g = {g})'
     }
   });
 })();

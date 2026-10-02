@@ -8,7 +8,7 @@
    or for Polish, one/few/many/other — category), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all nine supported languages.
+   tool, in all eleven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   nine languages. Must load after assets/nt-i18n.js and
+   eleven languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -507,6 +507,110 @@
       nestedTileTitle: 'Etapa {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Etapa {step}: {a} = {q}·{b} + {r} ({extra} quadrados adicionais agrupados aqui)',
       tileEmptyMessage: 'Não há retângulo para cortar — b já é 0, pelo que o algoritmo já terminou.'
+    },
+    sv: {
+      title: 'Euklides algoritm',
+      eyebrow: 'talteori · euklides algoritm',
+      heading: 'Euklides algoritm',
+      lede: 'Ersätt paret (a, b) upprepade gånger med (b, a mod b) — dividera det större med det mindre och behåll bara resten — och paret blir mindre vid varje steg. I det ögonblick en sida når noll är den andra sidan den största gemensamma delaren av de två tal du började med.',
+      xref: 'Samma SGD kan också ses som de primtal de två talen delar →',
+      chipFiveSteps: '240, 46 · 5 steg',
+      chipCoprime: '35, 18 · relativt prima',
+      chipBDividesA: '144, 12 · b delar a',
+      chipEqualPair: '36, 36 · lika par',
+      chipAlreadyDone: '17, 0 · redan klart',
+      chipFibonacciWorst: '89, 55 · Fibonaccis värsta fall',
+      chipHugeQuotient: '500000, 2 · enorm kvot',
+      run: 'Starta',
+      extToggleLabel: 'Utökat euklidiskt läge — visa Bézout-koefficienterna {0} och {1}',
+      errBothWhole: 'Både a och b måste vara heltal.',
+      errBothNonNegative: 'Både a och b måste vara noll eller positiva — negativa tal har ingen definierad SGD här.',
+      errGcdZeroZero: 'gcd(0, 0) är inte definierat — ange minst ett värde skilt från noll.',
+      errClamped: 'Indata är begränsad till {max} — det större värdet klämdes ner för att passa.',
+      swapNote: 'Det större värdet går först: angett som ({a}, {b}), spårat som gcd({A}, {B}) — SGD är symmetrisk i sina argument.',
+      bannerReady: 'Klar — tryck på Spela upp för att se härledningen byggas upp rad för rad.',
+      bannerDone: { one: 'Klar — {n} steg för att nå SGD.', other: 'Klar — {n} steg för att nå SGD.' },
+      chainNoteZero: 'b är redan 0, så det finns inget mer att dividera — a är redan den största gemensamma delaren.',
+      extCaption: 'Varje rads {0} och {1} uttrycker den radens rest som en kombination av de två ursprungliga indatavärdena — {2}.',
+      viewNested: 'Nästlade kvadrater',
+      geomViewGroupLabel: 'Geometriskt visningsläge',
+      viewStep: 'Enskilt steg',
+      tileAriaDefault: 'Rektangelvy av det aktuella divisionssteget',
+      nestedAriaDefault: 'Alla divisionssteg nästlade i en enda rektangel',
+      caption: 'Successiva Fibonacci-tal är det värsta fallet för denna algoritm — de tvingar fram det största antalet divisionssteg för sin storlek.',
+      tileCaptionExact: {
+        one: 'Steg {index} av {total}: {a} ÷ {b}: rektangeln täcks exakt av {q} kvadrat med sidan {b} — ingen rest, så {b} är den största gemensamma delaren.',
+        other: 'Steg {index} av {total}: {a} ÷ {b}: rektangeln täcks exakt av {q} kvadrater med sidan {b} — ingen rest, så {b} är den största gemensamma delaren.'
+      },
+      tileCaptionLeftover: {
+        one: 'Steg {index} av {total}: {a} = {q}×{b} + {r}: {q} kvadrat med sidan {b} får plats, med en rest på {b}×{r}.',
+        other: 'Steg {index} av {total}: {a} = {q}×{b} + {r}: {q} kvadrater med sidan {b} får plats, med en rest på {b}×{r}.'
+      },
+      tileNoteCapped: 'Den verkliga kvoten är {q} — bara de första {cap} kvadraterna ritas här; de återstående {rest} är sammanslagna i den märkta rutan, så den ritade bredden är inte skalenlig.',
+      nestedEmptyMessage: 'Det finns ingen rektangel att nästla — b är redan 0, så algoritmen är redan klar.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: alla {n} steg nästlas i en enda {A}×{B}-rektangel — de minsta, {lastB}×{lastB} kvadraterna, är den största gemensamma delaren. Klicka på en kvadrat (eller ett steg ovan) för att se hur de passar ihop.',
+        other: 'gcd({A}, {B}) = {gcd}: alla {n} steg nästlas i en enda {A}×{B}-rektangel — de minsta, {lastB}×{lastB} kvadraterna, är den största gemensamma delaren. Klicka på en kvadrat (eller ett steg ovan) för att se hur de passar ihop.'
+      },
+      nestedNoteCapped: {
+        one: 'Steget {stepNums} har en mycket stor kvot — bara de första {cap} kvadraterna ritas där, sammanslagna i en streckad ruta, så detta diagram är inte helt skalenligt vid det steget.',
+        other: 'Stegen {stepNums} har en mycket stor kvot — bara de första {cap} kvadraterna ritas där, sammanslagna i en streckad ruta, så detta diagram är inte helt skalenligt vid de stegen.'
+      },
+      nestedTileTitle: 'Steg {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Steg {step}: {a} = {q}·{b} + {r} ({extra} fler kvadrater sammanslagna här)',
+      tileEmptyMessage: 'Det finns ingen rektangel att skära — b är redan 0, så algoritmen är redan klar.'
+    },
+    nb: {
+      title: 'Euklids algoritme',
+      eyebrow: 'tallteori · euklids algoritme',
+      heading: 'Euklids algoritme',
+      lede: 'Erstatt paret (a, b) gjentatte ganger med (b, a mod b) — divider det større med det mindre og behold bare resten — og paret blir mindre for hvert steg. Når en side når null, er den andre siden den største felles divisoren av de to tallene du startet med.',
+      xref: 'Samme SFD kan også ses som primtallene de to tallene deler →',
+      chipFiveSteps: '240, 46 · 5 steg',
+      chipCoprime: '35, 18 · innbyrdes primisk',
+      chipBDividesA: '144, 12 · b deler a',
+      chipEqualPair: '36, 36 · likt par',
+      chipAlreadyDone: '17, 0 · allerede ferdig',
+      chipFibonacciWorst: '89, 55 · Fibonaccis verste tilfelle',
+      chipHugeQuotient: '500000, 2 · enorm kvotient',
+      run: 'Start',
+      extToggleLabel: 'Utvidet euklidisk modus — vis Bézout-koeffisientene {0} og {1}',
+      errBothWhole: 'Både a og b må være hele tall.',
+      errBothNonNegative: 'Både a og b må være null eller positive — negative tall har ingen definert SFD her.',
+      errGcdZeroZero: 'gcd(0, 0) er ikke definert — angi minst én verdi som ikke er null.',
+      errClamped: 'Inndata er begrenset til {max} — den større verdien ble klemt ned for å passe.',
+      swapNote: 'Den større verdien kommer først: angitt som ({a}, {b}), spores som gcd({A}, {B}) — SFD er symmetrisk i sine argumenter.',
+      bannerReady: 'Klar — trykk på Spill av for å se utledningen bygges opp linje for linje.',
+      bannerDone: { one: 'Ferdig — {n} steg for å nå SFD.', other: 'Ferdig — {n} steg for å nå SFD.' },
+      chainNoteZero: 'b er allerede 0, så det er ingenting mer å dividere — a er allerede den største felles divisoren.',
+      extCaption: 'Hver linjes {0} og {1} uttrykker den linjens rest som en kombinasjon av de to opprinnelige inndataverdiene — {2}.',
+      viewNested: 'Nøstede kvadrater',
+      geomViewGroupLabel: 'Geometrisk visningsmodus',
+      viewStep: 'Enkelt steg',
+      tileAriaDefault: 'Rektangelvisning av det aktuelle divisjonssteget',
+      nestedAriaDefault: 'Alle divisjonssteg nøstet i ett rektangel',
+      caption: 'Påfølgende Fibonacci-tall er det verste tilfellet for denne algoritmen — de tvinger frem det høyeste antallet divisjonssteg for sin størrelse.',
+      tileCaptionExact: {
+        one: 'Steg {index} av {total}: {a} ÷ {b}: rektangelet flislegges nøyaktig med {q} kvadrat med side {b} — ingen rest, så {b} er den største felles divisoren.',
+        other: 'Steg {index} av {total}: {a} ÷ {b}: rektangelet flislegges nøyaktig med {q} kvadrater med side {b} — ingen rest, så {b} er den største felles divisoren.'
+      },
+      tileCaptionLeftover: {
+        one: 'Steg {index} av {total}: {a} = {q}×{b} + {r}: {q} kvadrat med side {b} passer, med en rest på {b}×{r}.',
+        other: 'Steg {index} av {total}: {a} = {q}×{b} + {r}: {q} kvadrater med side {b} passer, med en rest på {b}×{r}.'
+      },
+      tileNoteCapped: 'Den faktiske kvotienten er {q} — bare de første {cap} kvadratene er tegnet her; de resterende {rest} er samlet i den merkede flisen, så den tegnede bredden er ikke i skala.',
+      nestedEmptyMessage: 'Det finnes ikke noe rektangel å nøste — b er allerede 0, så algoritmen er allerede ferdig.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: alle {n} steg nøstes i ett {A}×{B}-rektangel — de minste, {lastB}×{lastB} kvadratene, er den største felles divisoren. Klikk på et kvadrat (eller et steg over) for å se hvordan de passer sammen.',
+        other: 'gcd({A}, {B}) = {gcd}: alle {n} steg nøstes i ett {A}×{B}-rektangel — de minste, {lastB}×{lastB} kvadratene, er den største felles divisoren. Klikk på et kvadrat (eller et steg over) for å se hvordan de passer sammen.'
+      },
+      nestedNoteCapped: {
+        one: 'Steget {stepNums} har en svært stor kvotient — bare de første {cap} kvadratene er tegnet der, samlet i en stiplet flis, så dette diagrammet er ikke helt i skala ved det steget.',
+        other: 'Stegene {stepNums} har en svært stor kvotient — bare de første {cap} kvadratene er tegnet der, samlet i en stiplet flis, så dette diagrammet er ikke helt i skala ved de stegene.'
+      },
+      nestedTileTitle: 'Steg {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Steg {step}: {a} = {q}·{b} + {r} ({extra} flere kvadrater samlet her)',
+      tileEmptyMessage: 'Det finnes ikke noe rektangel å kutte — b er allerede 0, så algoritmen er allerede ferdig.'
     }
   });
 })();
