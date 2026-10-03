@@ -187,12 +187,15 @@
    some pages opacity 0.6 or white-space nowrap + overflow-x auto). Because
    .site-footer is a class selector it outranks those element selectors,
    but every property those page rules might set is still declared here
-   explicitly so none of them can leak through. position:relative plus
-   z-index:2 also keep this in-flow footer above Factor Tree's position:
-   fixed decorative #sky/#snow layers (z-index 0/1), while staying below
-   the RSA/Diffie-Hellman fixed panel (900) and the sticky header (1000). */
+   explicitly so none of them can leak through. position:sticky with
+   top:100vh pins this footer to the bottom of its containing block (body)
+   without taking it out of the normal flow, and z-index:2 keeps it above
+   Factor Tree's fixed decorative sky/snow layers (z-index 0/1), while
+   staying below the RSA/Diffie-Hellman fixed panel (900) and the sticky
+   header (1000). */
 .site-footer{
-  position: relative;
+  position: sticky;
+  top: 100vh;
   z-index: 2;
   box-sizing: border-box;
   margin: 0;
@@ -218,6 +221,27 @@
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
+}
+
+/* Screen-only flush guarantee: this footer's bottom edge is always the
+   document's bottom edge, and on a page shorter than the viewport it is
+   also the viewport's bottom edge. A flex or grid body with margin-top:
+   auto on the footer was rejected: an auto-margined flex/grid item sizes
+   itself to fit-content instead of stretching, which shrank some pages'
+   own containers and moved hundreds of unrelated elements in testing. The
+   selector html > body (not a bare body selector) is used because its
+   higher specificity outranks every page's own body min-height rule,
+   several of which never resolve a percentage height; without it this
+   min-height is silently overridden on multiple pages. The rule is screen
+   only because printed pages already hide this footer, so this min-height
+   never affects a printed layout. Rule for pages: never add body padding
+   or margin below the site footer; bottom room a page needs is page-local
+   padding-bottom on .site-footer instead. */
+@media screen{
+  html > body{
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 }
 
 @media print{

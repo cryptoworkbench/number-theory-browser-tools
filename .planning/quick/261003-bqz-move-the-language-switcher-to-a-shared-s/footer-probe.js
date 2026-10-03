@@ -25,6 +25,11 @@
  * Runtime modes (Task 2) are added on top of these; see the Task 2 section
  * below once present.
  *
+ * Updated by quick task 261003-fcr where that task revises this task's own
+ * D-06/D-07 decisions: markup's RESERVE_PAGES delta step (D-06's rule moving
+ * from body to .site-footer), style's expected position (sticky) and the
+ * paddingBottom-per-page split, and NEG-SCRATCH's re-anchored mutation.
+ *
  * Exits 0 only on PASS.
  */
 "use strict";
@@ -100,6 +105,11 @@ var RESERVE_OLD_LINE = "  .app{ padding-bottom: 240px; }";
 var RESERVE_COMMENT_LINE = "  /* The reserve sits on body, below the shared site footer, so at the end of the page this panel (at most 236px: min(40vh, 220px) tall plus a bottom offset of at most 16px) also clears the language switcher in the site footer. */";
 var RESERVE_NEW_LINE = "  body{ padding-bottom: 240px; }";
 
+// Quick task 261003-fcr, D-06: the reserve moves from body into the shared
+// site footer as its own bottom padding, superseding this task's D-07.
+var FCR_RESERVE_COMMENT_LINE = "  /* The reserve sits inside the shared site footer as its bottom padding, so the footer band runs to the bottom edge of the page with nothing below it, while at the end of the page this panel (at most 236px: min(40vh, 220px) tall plus a bottom offset of at most 16px) still clears the language switcher at the top of that band. */";
+var FCR_RESERVE_LINE = "  .site-footer{ padding-bottom: 240px; }";
+
 // Task 2 deviation (D-19 root-cause fix, documented in 261003-bqz-SUMMARY.md):
 // FOOTER-375's true-375px sweep (D-13) surfaced two pre-existing, unrelated
 // responsive bugs on this one page in German specifically — an unbreakable
@@ -153,6 +163,13 @@ function transformPageSrc(relPath, src) {
     var occurrences = finalSrc.split(RESERVE_OLD_LINE).length - 1;
     if (occurrences !== 1) throw new Error(relPath + ": expected exactly 1 occurrence of reserve line, found " + occurrences);
     finalSrc = finalSrc.split(RESERVE_OLD_LINE).join(RESERVE_COMMENT_LINE + "\n" + RESERVE_NEW_LINE);
+
+    // Quick task 261003-fcr, D-06: the reserve moves from body into the
+    // shared site footer as its own bottom padding.
+    var fcrAnchor = RESERVE_COMMENT_LINE + "\n" + RESERVE_NEW_LINE;
+    var fcrOccurrences = finalSrc.split(fcrAnchor).length - 1;
+    if (fcrOccurrences !== 1) throw new Error(relPath + ": expected exactly 1 occurrence of fcr reserve anchor, found " + fcrOccurrences);
+    finalSrc = finalSrc.split(fcrAnchor).join(FCR_RESERVE_COMMENT_LINE + "\n" + FCR_RESERVE_LINE);
   }
 
   if (relPath === GISO_PAGE) {
