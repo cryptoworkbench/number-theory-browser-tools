@@ -51,9 +51,9 @@ line-diagram SVGs, two-column cards.
 ## Verification
 - `i18n-check.js --all`: coverage, header, includes, no-locale-number-format, literals-markup and
   literals-js all PASS on 16 pages. `--smoke` PASS (123 assertions).
-- `i18n-browser.js --mode langs,switch,layout`: PASS on 11 pages (Sieve, Cayley, CRT, DH, ECDH, Wheel,
-  Euclid, Totient, Factor Tree, Fermat, Isomorphism). The run was stopped by the host for low memory
-  before RSA, Shor, Square and Multiply, Venn and the hub; those five still need it.
+- `i18n-browser.js --mode langs,switch,layout`: PASS on all 16 pages. The first background run was
+  stopped by the host for low memory after 11 pages; RSA, Shor, Square and Multiply, Venn and the hub
+  were then run one at a time in the foreground and all passed.
 - Headless screenshots reviewed for all 16 pages (night), Factor Tree/RSA/hub (day), hub at 390px,
   and the open Tools menu in German.
 
