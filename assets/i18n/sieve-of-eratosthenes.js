@@ -22,11 +22,12 @@
 
   NT.i18n.register('sieve', {
     nl: {
+      sound: 'Geluid',
       title: 'Zeef van Eratosthenes — Interactieve visualisatie',
       heading: 'Zeef van Eratosthenes',
       lede: 'Geef elk natuurlijk getal zijn eigen vakje — en kijk hoe de zeef alles doorstreept wat niet priem is.',
       sizeLabel: 'Zeefgrootte (N)',
-      generate: '🧮 Genereer',
+      generate: 'Genereer',
       'stat.current': 'Huidig',
       'stat.primesFound': 'Priemgetallen gevonden',
       'stat.sqrtBoundary': '√N-grens',
@@ -48,11 +49,12 @@
       }
     },
     en: {
+      sound: 'Sound',
       title: 'Sieve of Eratosthenes — Interactive Visualizer',
       heading: 'Sieve of Eratosthenes',
       lede: "Give every natural number its own box — then watch the sieve strike out everything that isn't prime.",
       sizeLabel: 'Sieve size (N)',
-      generate: '🧮 Generate',
+      generate: 'Generate',
       'stat.current': 'Current',
       'stat.primesFound': 'Primes found',
       'stat.sqrtBoundary': '√N boundary',
@@ -74,11 +76,12 @@
       }
     },
     de: {
+      sound: 'Ton',
       title: 'Sieb des Eratosthenes — Interaktive Visualisierung',
       heading: 'Sieb des Eratosthenes',
       lede: 'Gib jeder natürlichen Zahl ihr eigenes Kästchen — und sieh zu, wie das Sieb alles streicht, was nicht prim ist.',
       sizeLabel: 'Siebgröße (N)',
-      generate: '🧮 Erzeugen',
+      generate: 'Erzeugen',
       'stat.current': 'Aktuell',
       'stat.primesFound': 'Gefundene Primzahlen',
       'stat.sqrtBoundary': '√N-Grenze',
@@ -100,11 +103,12 @@
       }
     },
     fr: {
+      sound: 'Son',
       title: "Crible d'Ératosthène — Visualisation interactive",
       heading: "Crible d'Ératosthène",
       lede: "Donnez à chaque entier naturel sa propre case — puis regardez le crible barrer tout ce qui n'est pas premier.",
       sizeLabel: 'Taille du crible (N)',
-      generate: '🧮 Générer',
+      generate: 'Générer',
       'stat.current': 'Actuel',
       'stat.primesFound': 'Nombres premiers trouvés',
       'stat.sqrtBoundary': 'Limite √N',
@@ -126,11 +130,12 @@
       }
     },
     es: {
+      sound: 'Sonido',
       title: 'Criba de Eratóstenes — Visualizador interactivo',
       heading: 'Criba de Eratóstenes',
       lede: 'Dale a cada número natural su propia casilla — y mira cómo la criba tacha todo lo que no es primo.',
       sizeLabel: 'Tamaño de la criba (N)',
-      generate: '🧮 Generar',
+      generate: 'Generar',
       'stat.current': 'Actual',
       'stat.primesFound': 'Números primos encontrados',
       'stat.sqrtBoundary': 'Límite √N',
@@ -152,11 +157,12 @@
       }
     },
     it: {
+      sound: 'Suono',
       title: 'Crivello di Eratostene — Visualizzatore interattivo',
       heading: 'Crivello di Eratostene',
       lede: 'Dai a ogni numero naturale la sua casella — poi guarda il crivello eliminare tutto ciò che non è primo.',
       sizeLabel: 'Dimensione del crivello (N)',
-      generate: '🧮 Genera',
+      generate: 'Genera',
       'stat.current': 'Attuale',
       'stat.primesFound': 'Numeri primi trovati',
       'stat.sqrtBoundary': 'Limite √N',
@@ -178,11 +184,12 @@
       }
     },
     pl: {
+      sound: 'Dźwięk',
       title: 'Sito Eratostenesa — Interaktywna wizualizacja',
       heading: 'Sito Eratostenesa',
       lede: 'Daj każdej liczbie naturalnej własne pole — a potem obserwuj, jak sito przekreśla wszystko, co nie jest liczbą pierwszą.',
       sizeLabel: 'Rozmiar sita (N)',
-      generate: '🧮 Generuj',
+      generate: 'Generuj',
       'stat.current': 'Aktualna',
       'stat.primesFound': 'Znalezione liczby pierwsze',
       'stat.sqrtBoundary': 'Granica √N',
@@ -206,11 +213,12 @@
       }
     },
     'pt-BR': {
+      sound: 'Som',
       title: 'Crivo de Eratóstenes — Visualizador interativo',
       heading: 'Crivo de Eratóstenes',
       lede: 'Dê a cada número natural sua própria caixa — depois veja o crivo eliminar tudo o que não é primo.',
       sizeLabel: 'Tamanho do crivo (N)',
-      generate: '🧮 Gerar',
+      generate: 'Gerar',
       'stat.current': 'Atual',
       'stat.primesFound': 'Números primos encontrados',
       'stat.sqrtBoundary': 'Limite √N',
@@ -232,11 +240,12 @@
       }
     },
     'pt-PT': {
+      sound: 'Som',
       title: 'Crivo de Eratóstenes — Visualizador interativo',
       heading: 'Crivo de Eratóstenes',
       lede: 'Dá a cada número natural a sua própria caixa — depois vê o crivo eliminar tudo o que não é primo.',
       sizeLabel: 'Tamanho do crivo (N)',
-      generate: '🧮 Gerar',
+      generate: 'Gerar',
       'stat.current': 'Atual',
       'stat.primesFound': 'Números primos encontrados',
       'stat.sqrtBoundary': 'Limite √N',
@@ -258,11 +267,12 @@
       }
     },
     sv: {
+      sound: 'Ljud',
       title: 'Eratosthenes såll — Interaktiv visualisering',
       heading: 'Eratosthenes såll',
       lede: 'Ge varje naturligt tal sin egen ruta — och se hur sållet stryker över allt som inte är primtal.',
       sizeLabel: 'Sållstorlek (N)',
-      generate: '🧮 Generera',
+      generate: 'Generera',
       'stat.current': 'Aktuellt',
       'stat.primesFound': 'Hittade primtal',
       'stat.sqrtBoundary': '√N-gräns',
@@ -284,11 +294,12 @@
       }
     },
     nb: {
+      sound: 'Lyd',
       title: "Eratosthenes' sil — Interaktiv visualisering",
       heading: "Eratosthenes' sil",
       lede: 'Gi hvert naturlige tall sin egen rute — og se hvordan silen stryker over alt som ikke er primtall.',
       sizeLabel: 'Silstørrelse (N)',
-      generate: '🧮 Generer',
+      generate: 'Generer',
       'stat.current': 'Nåværende',
       'stat.primesFound': 'Funnet primtall',
       'stat.sqrtBoundary': '√N-grense',
@@ -310,11 +321,12 @@
       }
     },
     ro: {
+      sound: 'Sunet',
       title: 'Ciurul lui Eratostene — Vizualizator interactiv',
       heading: 'Ciurul lui Eratostene',
       lede: 'Dă fiecărui număr natural propria căsuță — apoi privește cum ciurul elimină tot ce nu este prim.',
       sizeLabel: 'Dimensiunea ciurului (N)',
-      generate: '🧮 Generează',
+      generate: 'Generează',
       'stat.current': 'Curent',
       'stat.primesFound': 'Numere prime găsite',
       'stat.sqrtBoundary': 'Limita √N',
@@ -337,11 +349,12 @@
       }
     },
     hu: {
+      sound: 'Hang',
       title: 'Eratoszthenész szitája — Interaktív vizualizáció',
       heading: 'Eratoszthenész szitája',
       lede: 'Adj minden természetes számnak saját négyzetet — majd nézd meg, hogyan húzza át a szita mindazt, ami nem prím.',
       sizeLabel: 'Szita mérete (N)',
-      generate: '🧮 Generálás',
+      generate: 'Generálás',
       'stat.current': 'Aktuális',
       'stat.primesFound': 'Talált prímszámok',
       'stat.sqrtBoundary': '√N határ',
@@ -363,11 +376,12 @@
       }
     },
     lv: {
+      sound: 'Skaņa',
       title: 'Eratostena siets — Interaktīvs vizualizētājs',
       heading: 'Eratostena siets',
       lede: 'Dod katram naturālajam skaitlim savu lodziņu — un skaties, kā siets izsvītro visu, kas nav pirmskaitlis.',
       sizeLabel: 'Sieta izmērs (N)',
-      generate: '🧮 Generēt',
+      generate: 'Generēt',
       'stat.current': 'Pašreizējais',
       'stat.primesFound': 'Atrastie pirmskaitļi',
       'stat.sqrtBoundary': '√N robeža',
@@ -390,11 +404,12 @@
       }
     },
     ru: {
+      sound: 'Звук',
       title: 'Решето Эратосфена — интерактивная визуализация',
       heading: 'Решето Эратосфена',
       lede: 'Дай каждому натуральному числу свою ячейку — и смотри, как решето вычёркивает всё, что не простое.',
       sizeLabel: 'Размер решета (N)',
-      generate: '🧮 Создать',
+      generate: 'Создать',
       'stat.current': 'Текущее',
       'stat.primesFound': 'Найдено простых чисел',
       'stat.sqrtBoundary': 'Граница √N',
@@ -418,11 +433,12 @@
       }
     },
     el: {
+      sound: 'Ήχος',
       title: 'Κόσκινο του Ερατοσθένη — Διαδραστική απεικόνιση',
       heading: 'Κόσκινο του Ερατοσθένη',
       lede: 'Δώσε σε κάθε φυσικό αριθμό το δικό του κουτί — και δες πώς το κόσκινο διαγράφει όλα όσα δεν είναι πρώτα.',
       sizeLabel: 'Μέγεθος κόσκινου (N)',
-      generate: '🧮 Δημιουργία',
+      generate: 'Δημιουργία',
       'stat.current': 'Τρέχον',
       'stat.primesFound': 'Πρώτοι που βρέθηκαν',
       'stat.sqrtBoundary': 'Όριο √N',

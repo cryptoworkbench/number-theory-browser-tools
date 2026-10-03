@@ -1,4 +1,5 @@
-/* Shared day/night toggle behavior. The initial [data-theme] attribute is
+/* Shared site-header behavior: the Tools menu disclosure and the
+   day/night toggle. The initial [data-theme] attribute is
    already set by a tiny inline script in <head> (before first paint); this
    file wires up the visible switch, persists the choice, and keeps tabs in
    sync.
@@ -111,7 +112,41 @@
     }catch(e){}
   }
 
+  /* Tools menu in the site header: one button discloses the nav panel.
+     Escape or a click/focus outside the header closes it; Escape returns
+     focus to the button so keyboard users keep their place. */
+  function initMenu(){
+    var header = document.querySelector('.site-header');
+    var button = header && header.querySelector('.site-menu-toggle');
+    if (!button) return;
+
+    function setOpen(open, refocus){
+      header.classList.toggle('is-menu-open', open);
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open && refocus) button.focus();
+    }
+    function isOpen(){ return button.getAttribute('aria-expanded') === 'true'; }
+
+    button.addEventListener('click', function(){
+      setOpen(!isOpen(), false);
+      if (isOpen()){
+        var first = header.querySelector('.site-nav-link.is-active') || header.querySelector('.site-nav-link');
+        if (first) first.focus();
+      }
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && isOpen()) setOpen(false, true);
+    });
+    document.addEventListener('click', function(e){
+      if (isOpen() && !header.contains(e.target)) setOpen(false, false);
+    });
+    document.addEventListener('focusin', function(e){
+      if (isOpen() && !header.contains(e.target)) setOpen(false, false);
+    });
+  }
+
   function init(){
+    initMenu();
     var theme = readTheme();
     persist(theme);
     stripUrlParam();

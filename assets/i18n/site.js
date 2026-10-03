@@ -1,5 +1,5 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
-   and footer) — brand, nav labels for all sixteen pages, the language
+   and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
    switcher's own label and the day/night toggle's label — in all sixteen
    supported languages.
 
@@ -7,8 +7,8 @@
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
    comment and the NT.i18n contract this phase's plan records): flat keys,
    the identical key set in every language object, plain text values (no
-   markup), numerals/math notation untouched, emoji/glyph prefixes kept as
-   part of the value rather than concatenated in code. Must load after
+   markup), numerals/math notation untouched, no emoji (the
+   text marks ✓ and ✗ are the only glyphs a value carries). Must load after
    assets/nt-i18n.js and before a page's own inline <script>.
 */
 (function () {
@@ -18,6 +18,7 @@
     nl: {
       brand: 'Getaltheorie-tools',
       'nav.label': 'Hulpmiddelen',
+      menu: 'Hulpmiddelen',
       'nav.home': 'Start',
       'nav.sieve': 'Zeef van Eratosthenes',
       'nav.factorTree': 'Factorboom',
@@ -40,6 +41,7 @@
     en: {
       brand: 'Number Theory Tools',
       'nav.label': 'Tools',
+      menu: 'Tools',
       'nav.home': 'Home',
       'nav.sieve': 'Sieve of Eratosthenes',
       'nav.factorTree': 'Factor Tree',
@@ -62,6 +64,7 @@
     de: {
       brand: 'Zahlentheorie-Werkzeuge',
       'nav.label': 'Werkzeuge',
+      menu: 'Werkzeuge',
       'nav.home': 'Startseite',
       'nav.sieve': 'Sieb des Eratosthenes',
       'nav.factorTree': 'Faktorbaum',
@@ -84,6 +87,7 @@
     fr: {
       brand: 'Outils de théorie des nombres',
       'nav.label': 'Outils',
+      menu: 'Outils',
       'nav.home': 'Accueil',
       'nav.sieve': "Crible d'Ératosthène",
       'nav.factorTree': 'Arbre de facteurs',
@@ -106,6 +110,7 @@
     es: {
       brand: 'Herramientas de teoría de números',
       'nav.label': 'Herramientas',
+      menu: 'Herramientas',
       'nav.home': 'Inicio',
       'nav.sieve': 'Criba de Eratóstenes',
       'nav.factorTree': 'Árbol de factores',
@@ -128,6 +133,7 @@
     it: {
       brand: 'Strumenti di teoria dei numeri',
       'nav.label': 'Strumenti',
+      menu: 'Strumenti',
       'nav.home': 'Inizio',
       'nav.sieve': 'Crivello di Eratostene',
       'nav.factorTree': 'Albero dei fattori',
@@ -150,6 +156,7 @@
     pl: {
       brand: 'Narzędzia teorii liczb',
       'nav.label': 'Narzędzia',
+      menu: 'Narzędzia',
       'nav.home': 'Strona główna',
       'nav.sieve': 'Sito Eratostenesa',
       'nav.factorTree': 'Drzewo czynników',
@@ -172,6 +179,7 @@
     'pt-BR': {
       brand: 'Ferramentas de teoria dos números',
       'nav.label': 'Ferramentas',
+      menu: 'Ferramentas',
       'nav.home': 'Início',
       'nav.sieve': 'Crivo de Eratóstenes',
       'nav.factorTree': 'Árvore de fatores',
@@ -194,6 +202,7 @@
     'pt-PT': {
       brand: 'Ferramentas de teoria dos números',
       'nav.label': 'Ferramentas',
+      menu: 'Ferramentas',
       'nav.home': 'Início',
       'nav.sieve': 'Crivo de Eratóstenes',
       'nav.factorTree': 'Árvore de fatores',
@@ -216,6 +225,7 @@
     sv: {
       brand: 'Talteoriverktyg',
       'nav.label': 'Verktyg',
+      menu: 'Verktyg',
       'nav.home': 'Hem',
       'nav.sieve': 'Eratosthenes såll',
       'nav.factorTree': 'Faktorträd',
@@ -238,6 +248,7 @@
     nb: {
       brand: 'Tallteoriverktøy',
       'nav.label': 'Verktøy',
+      menu: 'Verktøy',
       'nav.home': 'Hjem',
       'nav.sieve': "Eratosthenes' sil",
       'nav.factorTree': 'Faktortre',
@@ -260,6 +271,7 @@
     ro: {
       brand: 'Instrumente de teoria numerelor',
       'nav.label': 'Instrumente',
+      menu: 'Instrumente',
       'nav.home': 'Acasă',
       'nav.sieve': 'Ciurul lui Eratostene',
       'nav.factorTree': 'Arbore de factori',
@@ -282,6 +294,7 @@
     hu: {
       brand: 'Számelméleti eszközök',
       'nav.label': 'Eszközök',
+      menu: 'Eszközök',
       'nav.home': 'Kezdőlap',
       'nav.sieve': 'Eratoszthenész szitája',
       'nav.factorTree': 'Tényezőfa',
@@ -304,6 +317,7 @@
     lv: {
       brand: 'Skaitļu teorijas rīki',
       'nav.label': 'Rīki',
+      menu: 'Rīki',
       'nav.home': 'Sākums',
       'nav.sieve': 'Eratostena siets',
       'nav.factorTree': 'Reizinātāju koks',
@@ -326,6 +340,7 @@
     ru: {
       brand: 'Инструменты теории чисел',
       'nav.label': 'Инструменты',
+      menu: 'Инструменты',
       'nav.home': 'Главная',
       'nav.sieve': 'Решето Эратосфена',
       'nav.factorTree': 'Дерево множителей',
@@ -348,6 +363,7 @@
     el: {
       brand: 'Εργαλεία θεωρίας αριθμών',
       'nav.label': 'Εργαλεία',
+      menu: 'Εργαλεία',
       'nav.home': 'Αρχική',
       'nav.sieve': 'Κόσκινο του Ερατοσθένη',
       'nav.factorTree': 'Δέντρο παραγόντων',
@@ -379,11 +395,11 @@
   // these as common.* and never duplicates them in its own namespace.
   NT.i18n.register('common', {
     nl: {
-      play: '▶ Afspelen',
-      pause: '⏸ Pauzeren',
-      step: '⏭ Stap',
-      instant: '⏩ Direct',
-      reset: '↺ Herstart',
+      play: 'Afspelen',
+      pause: 'Pauzeren',
+      step: 'Stap',
+      instant: 'Direct',
+      reset: 'Herstart',
       speed: 'Snelheid',
       'speed.1': 'ijzig',
       'speed.2': 'langzaam',
@@ -399,11 +415,11 @@
       multiplicativeGroups: 'Multiplicatieve groepen'
     },
     en: {
-      play: '▶ Play',
-      pause: '⏸ Pause',
-      step: '⏭ Step',
-      instant: '⏩ Instant',
-      reset: '↺ Reset',
+      play: 'Play',
+      pause: 'Pause',
+      step: 'Step',
+      instant: 'Instant',
+      reset: 'Reset',
       speed: 'Speed',
       'speed.1': 'glacial',
       'speed.2': 'slow',
@@ -419,11 +435,11 @@
       multiplicativeGroups: 'Multiplicative Groups'
     },
     de: {
-      play: '▶ Abspielen',
-      pause: '⏸ Pausieren',
-      step: '⏭ Schritt',
-      instant: '⏩ Sofort',
-      reset: '↺ Zurücksetzen',
+      play: 'Abspielen',
+      pause: 'Pausieren',
+      step: 'Schritt',
+      instant: 'Sofort',
+      reset: 'Zurücksetzen',
       speed: 'Geschwindigkeit',
       'speed.1': 'eisig',
       'speed.2': 'langsam',
@@ -439,11 +455,11 @@
       multiplicativeGroups: 'Multiplikative Gruppen'
     },
     fr: {
-      play: '▶ Lecture',
-      pause: '⏸ Mettre en pause',
-      step: '⏭ Étape',
-      instant: '⏩ Instantané',
-      reset: '↺ Réinitialiser',
+      play: 'Lecture',
+      pause: 'Mettre en pause',
+      step: 'Étape',
+      instant: 'Instantané',
+      reset: 'Réinitialiser',
       speed: 'Vitesse',
       'speed.1': 'glaciaire',
       'speed.2': 'lent',
@@ -459,11 +475,11 @@
       multiplicativeGroups: 'Groupes multiplicatifs'
     },
     es: {
-      play: '▶ Reproducir',
-      pause: '⏸ Pausar',
-      step: '⏭ Paso',
-      instant: '⏩ Instantáneo',
-      reset: '↺ Reiniciar',
+      play: 'Reproducir',
+      pause: 'Pausar',
+      step: 'Paso',
+      instant: 'Instantáneo',
+      reset: 'Reiniciar',
       speed: 'Velocidad',
       'speed.1': 'gélido',
       'speed.2': 'lento',
@@ -479,11 +495,11 @@
       multiplicativeGroups: 'Grupos multiplicativos'
     },
     it: {
-      play: '▶ Riproduci',
-      pause: '⏸ Pausa',
-      step: '⏭ Passo',
-      instant: '⏩ Istantaneo',
-      reset: '↺ Reimposta',
+      play: 'Riproduci',
+      pause: 'Pausa',
+      step: 'Passo',
+      instant: 'Istantaneo',
+      reset: 'Reimposta',
       speed: 'Velocità',
       'speed.1': 'glaciale',
       'speed.2': 'lento',
@@ -499,11 +515,11 @@
       multiplicativeGroups: 'Gruppi moltiplicativi'
     },
     pl: {
-      play: '▶ Odtwórz',
-      pause: '⏸ Pauza',
-      step: '⏭ Krok',
-      instant: '⏩ Natychmiast',
-      reset: '↺ Resetuj',
+      play: 'Odtwórz',
+      pause: 'Pauza',
+      step: 'Krok',
+      instant: 'Natychmiast',
+      reset: 'Resetuj',
       speed: 'Prędkość',
       'speed.1': 'lodowata',
       'speed.2': 'wolna',
@@ -519,11 +535,11 @@
       multiplicativeGroups: 'Grupy multiplikatywne'
     },
     'pt-BR': {
-      play: '▶ Reproduzir',
-      pause: '⏸ Pausar',
-      step: '⏭ Passo',
-      instant: '⏩ Instantâneo',
-      reset: '↺ Reiniciar',
+      play: 'Reproduzir',
+      pause: 'Pausar',
+      step: 'Passo',
+      instant: 'Instantâneo',
+      reset: 'Reiniciar',
       speed: 'Velocidade',
       'speed.1': 'gélida',
       'speed.2': 'lenta',
@@ -539,11 +555,11 @@
       multiplicativeGroups: 'Grupos multiplicativos'
     },
     'pt-PT': {
-      play: '▶ Reproduzir',
-      pause: '⏸ Pausar',
-      step: '⏭ Passo',
-      instant: '⏩ Instantâneo',
-      reset: '↺ Repor',
+      play: 'Reproduzir',
+      pause: 'Pausar',
+      step: 'Passo',
+      instant: 'Instantâneo',
+      reset: 'Repor',
       speed: 'Velocidade',
       'speed.1': 'gélida',
       'speed.2': 'lenta',
@@ -559,11 +575,11 @@
       multiplicativeGroups: 'Grupos multiplicativos'
     },
     sv: {
-      play: '▶ Spela upp',
-      pause: '⏸ Pausa',
-      step: '⏭ Steg',
-      instant: '⏩ Direkt',
-      reset: '↺ Återställ',
+      play: 'Spela upp',
+      pause: 'Pausa',
+      step: 'Steg',
+      instant: 'Direkt',
+      reset: 'Återställ',
       speed: 'Hastighet',
       'speed.1': 'isande',
       'speed.2': 'långsam',
@@ -579,11 +595,11 @@
       multiplicativeGroups: 'Multiplikativa grupper'
     },
     nb: {
-      play: '▶ Spill av',
-      pause: '⏸ Sett på pause',
-      step: '⏭ Steg',
-      instant: '⏩ Straks',
-      reset: '↺ Tilbakestill',
+      play: 'Spill av',
+      pause: 'Sett på pause',
+      step: 'Steg',
+      instant: 'Straks',
+      reset: 'Tilbakestill',
       speed: 'Hastighet',
       'speed.1': 'iskald',
       'speed.2': 'langsom',
@@ -599,11 +615,11 @@
       multiplicativeGroups: 'Multiplikative grupper'
     },
     ro: {
-      play: '▶ Redă',
-      pause: '⏸ Pauză',
-      step: '⏭ Pas',
-      instant: '⏩ Instantaneu',
-      reset: '↺ Resetează',
+      play: 'Redă',
+      pause: 'Pauză',
+      step: 'Pas',
+      instant: 'Instantaneu',
+      reset: 'Resetează',
       speed: 'Viteză',
       'speed.1': 'glacială',
       'speed.2': 'lentă',
@@ -619,11 +635,11 @@
       multiplicativeGroups: 'Grupuri multiplicative'
     },
     hu: {
-      play: '▶ Lejátszás',
-      pause: '⏸ Szünet',
-      step: '⏭ Lépés',
-      instant: '⏩ Azonnal',
-      reset: '↺ Visszaállítás',
+      play: 'Lejátszás',
+      pause: 'Szünet',
+      step: 'Lépés',
+      instant: 'Azonnal',
+      reset: 'Visszaállítás',
       speed: 'Sebesség',
       'speed.1': 'jeges',
       'speed.2': 'lassú',
@@ -639,11 +655,11 @@
       multiplicativeGroups: 'Multiplikatív csoportok'
     },
     lv: {
-      play: '▶ Atskaņot',
-      pause: '⏸ Pauze',
-      step: '⏭ Solis',
-      instant: '⏩ Uzreiz',
-      reset: '↺ Atiestatīt',
+      play: 'Atskaņot',
+      pause: 'Pauze',
+      step: 'Solis',
+      instant: 'Uzreiz',
+      reset: 'Atiestatīt',
       speed: 'Ātrums',
       'speed.1': 'ledains',
       'speed.2': 'lēns',
@@ -659,11 +675,11 @@
       multiplicativeGroups: 'Multiplikatīvās grupas'
     },
     ru: {
-      play: '▶ Пуск',
-      pause: '⏸ Пауза',
-      step: '⏭ Шаг',
-      instant: '⏩ Сразу',
-      reset: '↺ Сброс',
+      play: 'Пуск',
+      pause: 'Пауза',
+      step: 'Шаг',
+      instant: 'Сразу',
+      reset: 'Сброс',
       speed: 'Скорость',
       'speed.1': 'ледяная',
       'speed.2': 'медленная',
@@ -679,11 +695,11 @@
       multiplicativeGroups: 'Мультипликативные группы'
     },
     el: {
-      play: '▶ Έναρξη',
-      pause: '⏸ Παύση',
-      step: '⏭ Βήμα',
-      instant: '⏩ Άμεσα',
-      reset: '↺ Επαναφορά',
+      play: 'Έναρξη',
+      pause: 'Παύση',
+      step: 'Βήμα',
+      instant: 'Άμεσα',
+      reset: 'Επαναφορά',
       speed: 'Ταχύτητα',
       'speed.1': 'παγερή',
       'speed.2': 'αργή',
