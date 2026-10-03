@@ -1644,8 +1644,8 @@ function isProse(text) {
 // language.
 var SCRIPT_LATIN_NOTATION = [
   "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
-  "Hasse", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "aB", "aG", "bA", "bG", "dP", "dQ",
-  "gcd", "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
+  "Fourier", "Garner", "Hasse", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "aB", "aG",
+  "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
 ];
 
 var SCRIPT_RULES = {
