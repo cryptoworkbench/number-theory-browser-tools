@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-03T04:52:00.190Z"
+last_updated: "2026-10-03T08:40:36.527Z"
 last_activity: 2026-10-03
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: c30ae5e3c870087deeeaa0175f9b3abeb8e52e89
+state_head: 46f6c9e6e47fb5e2319f1469be527de511879bf1
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-03 - Completed quick task 261003-57k: Add Russian (ru) and Greek (el) site-wide
+Last activity: 2026-10-03 - Completed quick task 261003-bqz: Move the language switcher into a shared site footer
 
 Progress: [█████████░] 86%
 
@@ -293,6 +293,7 @@ None yet.
 | 261002-s7l | Add Swedish (sv) and Norwegian Bokmål (nb) as the tenth and eleventh supported languages site-wide — switcher on all 16 pages, complete dictionaries in all 18 namespaces, data-driven per-language gate tables, glossary and living docs updated | 2026-10-02 | 59d7c8d | [261002-s7l-add-swedish-sv-and-norwegian-bokmal-nb-a](./quick/261002-s7l-add-swedish-sv-and-norwegian-bokmal-nb-a/) |
 | 261003-0dr | Add Romanian (ro), Hungarian (hu) and Latvian (lv) as the twelfth to fourteenth supported languages site-wide — switcher on all 16 pages, complete dictionaries in all 18 namespaces with CLDR plurals (ro few, lv zero), gate tables, glossary and living docs updated | 2026-10-03 | 184457b | [261003-0dr-add-romanian-ro-hungarian-hu-and-latvian](./quick/261003-0dr-add-romanian-ro-hungarian-hu-and-latvian/) |
 | 261003-57k | Add Russian (ru) and Greek (el) as the fifteenth and sixteenth supported languages site-wide — first non-Latin scripts (system fallback font, no CSS change), switcher on all 16 pages, complete dictionaries in all 18 namespaces with Russian one/few/many/other plurals, new script-correctness gate, glossary and living docs updated | 2026-10-03 | c30ae5e | [261003-57k-add-russian-ru-and-greek-el-as-supported](./quick/261003-57k-add-russian-ru-and-greek-el-as-supported/) |
+| 261003-bqz | Move the language switcher from the header into a shared site footer on all 16 pages — palette-token footer styles, RSA/DH scratchpad clearance, gates and docs updated, true-375px footer probe | 2026-10-03 | 46f6c9e | [261003-bqz-move-the-language-switcher-to-a-shared-s](./quick/261003-bqz-move-the-language-switcher-to-a-shared-s/) |
 
 ## Deferred Items
 
