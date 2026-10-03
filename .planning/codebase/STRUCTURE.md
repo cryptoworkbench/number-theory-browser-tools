@@ -61,7 +61,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 
 **`assets/`:**
 
-- Purpose: Shared CSS and JavaScript for site infrastructure (header, nav, theme toggle, language switcher) and shared JS logic used across tools
+- Purpose: Shared CSS and JavaScript for site infrastructure (header, nav, theme toggle, site footer with the language switcher) and shared JS logic used across tools
 - Contains: Styling rules for all pages, theme persistence logic, the six `nt-*.js` shared logic modules on `window.NT`, and the `i18n/` translation-data directory
 - Key files: `site.css` (layout + styling), `theme.js` (day/night mode), `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js` (shared number theory, BigInt, SVG, shared-state, layout and multi-language-translation helpers); `i18n/site.js` (shared `site`/`common` namespaces) and `i18n/<page-slug>.js` (one per tool, `i18n/hub.js` for `index.html`) hold translation data only
 - Not committed to: Individual tool styling (each tool has inline `<style>`)
@@ -134,7 +134,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 
 **Styling (Shared):**
 
-- `assets/site.css` — Header, nav, theme switch styling (loaded by every page)
+- `assets/site.css` — Header, nav, theme switch, site footer and language switch styling (loaded by every page)
 
 **Styling (Tool-Specific):**
 
@@ -198,7 +198,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
    - Define `render()` and state management in closure
    - Wire events at bottom
 3. Add entry to portal: Edit `index.html`, add new `<a class="card">` with link to new tool in grid, plus `hub.card.<id>.title`/`.desc` keys in `assets/i18n/hub.js` (all sixteen languages)
-4. Update site nav: Each tool's header nav must list all tools via `data-i18n="site.nav.<id>"`; add the new `site.nav.<id>` key to `assets/i18n/site.js` in all sixteen languages, then copy the canonical header (e.g. from the Sieve of Eratosthenes) into the new tool and into every existing tool's nav
+4. Update site nav: Each tool's header nav must list all tools via `data-i18n="site.nav.<id>"`; add the new `site.nav.<id>` key to `assets/i18n/site.js` in all sixteen languages, then copy the canonical header (e.g. from the Sieve of Eratosthenes) into the new tool and into every existing tool's nav. Also copy the canonical site footer, byte-identical, `<footer class="site-footer">`, placed as the last element before the page's scripts
 5. Translate the new tool: write `assets/i18n/<page-slug>.js` with one namespace covering every static and dynamic string in all sixteen languages (English is source of truth); mark static text with `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder`; route dynamic text through `translate()`/`translateInto()`/`bindText()`; wire an `onLangChange` callback that re-renders dynamic text without resetting tool state
 6. Add a row to `.planning/phases/06-multi-language-support/i18n-check.js`'s `PAGES` table so the static/runtime i18n gates cover the new page
 
@@ -244,7 +244,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 - Purpose: Shared resources loaded by every page
 - Generated: No (hand-written)
 - Committed: Yes (core to app functionality)
-- Contents: `site.css` (styling for header/nav/theme switch/language switch), `theme.js` (day/night toggle logic), the six `nt-*.js` shared logic modules (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`) on `window.NT`, and `i18n/` (translation-data files: `site.js` plus one `<page-slug>.js` per tool)
+- Contents: `site.css` (styling for header/nav/theme switch/site footer/language switch), `theme.js` (day/night toggle logic), the six `nt-*.js` shared logic modules (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`) on `window.NT`, and `i18n/` (translation-data files: `site.js` plus one `<page-slug>.js` per tool)
 
 **`[Tool Name]/` directories:**
 

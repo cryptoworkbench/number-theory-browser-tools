@@ -25,12 +25,12 @@ last_mapped_at: 2026-09-23
 - Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE` — Polish and Russian plural values must carry `{one, few, many, other}`, Romanian `{one, few, other}`, Latvian `{zero, one, other}`, every other language `{one, other}`); for Russian and Greek, `--coverage` also reports a word outside the language's own script that is not on `SCRIPT_RULES`' notation allow-list (`SCRIPT-LATIN`/`SCRIPT-MIXED`/`SCRIPT-FOREIGN`/`SCRIPT-MISSING`) before the gap ships
 - Fix approach: Run `i18n-check.js --coverage` (or `--all`) on the touched page after any dictionary edit; dictionary drift is caught by this gate, not by manual review alone
 
-**Header edits must keep all sixteen copies identical:**
+**Header and site-footer edits must keep all sixteen copies identical:**
 
-- Issue: Each tool page carries its own copy of the canonical i18n header (brand, 16 `site.nav.*` links, the `#lang-switch-select` language switcher), the same duplication pattern the site's nav/theme-toggle header already has
+- Issue: Each tool page carries its own copy of the canonical header (brand, 16 `site.nav.*` links) and the canonical site footer (the `#lang-switch-select` switcher), the same duplication pattern the site's nav/theme-toggle header already has
 - Files: Every tool `.html` page
-- Impact: A header change applied to one page and not copied to the other fifteen produces a `HEADER-DRIFT` finding and an inconsistent navigation experience
-- Fix approach: `i18n-check.js --header --all` catches header drift across every page; copy a header change from one page to all fifteen others in the same commit
+- Impact: A header or site-footer change applied to one page and not copied to the other fifteen produces a `HEADER-DRIFT` or `FOOTER-DRIFT` finding and an inconsistent navigation/language-switching experience
+- Fix approach: `i18n-check.js --header --all` catches header and site-footer drift across every page; copy a header or site-footer change from one page to all fifteen others in the same commit
 
 **A brief English flash before a non-English language applies is accepted:**
 

@@ -100,6 +100,19 @@ var RESERVE_OLD_LINE = "  .app{ padding-bottom: 240px; }";
 var RESERVE_COMMENT_LINE = "  /* The reserve sits on body, below the shared site footer, so at the end of the page this panel (at most 236px: min(40vh, 220px) tall plus a bottom offset of at most 16px) also clears the language switcher in the site footer. */";
 var RESERVE_NEW_LINE = "  body{ padding-bottom: 240px; }";
 
+// Task 2 deviation (D-19 root-cause fix, documented in 261003-bqz-SUMMARY.md):
+// FOOTER-375's true-375px sweep (D-13) surfaced two pre-existing, unrelated
+// responsive bugs on this one page in German specifically — an unbreakable
+// compound-word h1 ("Gruppenisomorphismen") and a content-sized <select>
+// with no upper bound — both overflowing the document at a true 375px.
+// Encoded here (rather than loosening MARKUP-EXACT's comparison) so the
+// gate stays byte-exact everywhere except this documented, exact delta.
+var GISO_PAGE = "Group Isomorphism/group-isomorphism.html";
+var GISO_H1_OLD = "    text-wrap:balance;\n    letter-spacing:-.01em;\n  }";
+var GISO_H1_NEW = "    text-wrap:balance;\n    letter-spacing:-.01em;\n    overflow-wrap:break-word;\n  }";
+var GISO_SELECT_OLD = "    padding:8px 10px;\n    min-width:280px;\n  }";
+var GISO_SELECT_NEW = "    padding:8px 10px;\n    min-width:280px;\n    width:100%;\n    max-width:100%;\n  }";
+
 // transformPageSrc(relPath, src): applies the exact D-01/D-02/D-07 transform
 // to a page's full source text. Throws with a descriptive message (never
 // writes anything) if an anchor is missing or appears more than once.
@@ -140,6 +153,13 @@ function transformPageSrc(relPath, src) {
     var occurrences = finalSrc.split(RESERVE_OLD_LINE).length - 1;
     if (occurrences !== 1) throw new Error(relPath + ": expected exactly 1 occurrence of reserve line, found " + occurrences);
     finalSrc = finalSrc.split(RESERVE_OLD_LINE).join(RESERVE_COMMENT_LINE + "\n" + RESERVE_NEW_LINE);
+  }
+
+  if (relPath === GISO_PAGE) {
+    if (finalSrc.split(GISO_H1_OLD).length - 1 !== 1) throw new Error(relPath + ": expected exactly 1 occurrence of the h1 rule anchor");
+    finalSrc = finalSrc.split(GISO_H1_OLD).join(GISO_H1_NEW);
+    if (finalSrc.split(GISO_SELECT_OLD).length - 1 !== 1) throw new Error(relPath + ": expected exactly 1 occurrence of the select rule anchor");
+    finalSrc = finalSrc.split(GISO_SELECT_OLD).join(GISO_SELECT_NEW);
   }
 
   return finalSrc;

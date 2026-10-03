@@ -1,6 +1,7 @@
-/* assets/i18n/site.js — the 'site' namespace: shared header chrome
-   (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all sixteen supported languages.
+/* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
+   and footer) — brand, nav labels for all sixteen pages, the language
+   switcher's own label and the day/night toggle's label — in all sixteen
+   supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
