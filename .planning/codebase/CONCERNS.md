@@ -17,12 +17,12 @@ last_mapped_at: 2026-09-23
 
 ## Multi-Language Support (i18n)
 
-**Every new user-visible string needs eleven translations:**
+**Every new user-visible string needs fourteen translations:**
 
-- Issue: A page ships in nl/en/de/fr/es/it/pl/pt-BR/pt-PT/sv/nb; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all eleven languages leaves a gap
+- Issue: A page ships in nl/en/de/fr/es/it/pl/pt-BR/pt-PT/sv/nb/ro/hu/lv; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all fourteen languages leaves a gap
 - Files: Every `assets/i18n/*.js` data file
 - Impact: A missing-language value either renders blank or falls back to English unexpectedly, and the page silently stops being fully translated
-- Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE` — Polish plural values must carry `{one, few, many, other}`, every other language `{one, other}`) before the gap ships
+- Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE` — Polish plural values must carry `{one, few, many, other}`, Romanian `{one, few, other}`, Latvian `{zero, one, other}`, every other language `{one, other}`) before the gap ships
 - Fix approach: Run `i18n-check.js --coverage` (or `--all`) on the touched page after any dictionary edit; dictionary drift is caught by this gate, not by manual review alone
 
 **Header edits must keep all sixteen copies identical:**

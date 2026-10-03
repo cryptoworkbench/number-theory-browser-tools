@@ -3,13 +3,14 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all eleven supported languages.
+   Cayley Table tool, in all fourteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
-   plural entries ({ one, other } in every language except Polish, which
-   carries the CLDR { one, few, many, other } shape); every other key is
-   plain text. The
+   plural entries ({ one, other } in every language except Polish
+   ({ one, few, many, other }), Romanian ({ one, few, other }) and Latvian
+   ({ zero, one, other }), each the CLDR shape for that language); every
+   other key is plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
    only the prose around them is translated. legend.* values are rich
@@ -458,6 +459,127 @@
       noteDiagonal: 'Denne cellen ligger på diagonalaksen — den er sin egen tvilling, med bare én ligning å angi: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), og {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — begge lander på samme verdi, så tabellen er symmetrisk om diagonalen: gruppen er kommutativ.',
       selfInverseNote: '{a} er {word}, siden verdien her er identiteten.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    ro: {
+      title: 'Tabla lui Cayley',
+      eyebrow: 'teoria grupurilor · tabele de operații',
+      heading: 'Tabla lui Cayley',
+      lede: 'Întreaga operație a unui grup încape într-un singur tabel pătrat — un rând și o coloană pentru fiecare element, o celulă pentru fiecare rezultat. Fiecare fapt structural despre acel grup — elementul neutru, inversele sale, comutativitatea sa — se vede undeva vizibil în forma tabelului.',
+      xref: 'Aceleași două operații de grup, văzute acum ca felii pe o roată în loc de rânduri într-un tabel →',
+      tablistLabel: 'Operația grupului',
+      nLabel: 'N — modul',
+      randomizeLabel: 'Aleatorizează',
+      randomize: 'Exemplu nou aleatoriu',
+      tableScrollLabel: 'Tabla lui Cayley, derulabilă',
+      'legend.identity': '{0} Rândul și coloana elementului neutru',
+      'legend.inverse': '{0} Propriul invers (auto-pereche)',
+      'legend.selected': '{0} Celulă selectată',
+      'legend.mirror': '{0} Pereche-oglindă peste diagonală',
+      nNoteNotWhole: 'N trebuie să fie un număr întreg — tabelul rămâne cum era.',
+      nNoteTooSmall: 'N nu poate fi sub 1 — ridicat la 1.',
+      nNoteCapped: 'N este limitat la {max} pentru ca tabelul să nu devină prea mare — redus la {max}.',
+      identityWordAdditive: 'zero',
+      identityWordMultiplicative: 'unu',
+      inverseWordAdditive: 'propriul său opus',
+      inverseWordMultiplicative: 'propriul său invers',
+      identityNote: 'Elementul neutru este {word} — rândul și coloana sa sunt marcate mai jos.',
+      symmetryNoteAdditive: 'a + b și b + a ajung întotdeauna în aceeași clasă, așadar tabelul se oglindește pe sine peste diagonală — fă clic pe orice celulă pentru a vedea perechea ei luminându-se de partea cealaltă.',
+      symmetryNoteMultiplicative: 'a · b și b · a ajung întotdeauna în aceeași clasă, așadar tabelul se oglindește pe sine peste diagonală — fă clic pe orice celulă pentru a vedea perechea ei luminându-se de partea cealaltă.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} element · identitate [{id}]',
+        few: 'ℤ/{n}ℤ · {count} elemente · identitate [{id}]',
+        other: 'ℤ/{n}ℤ · {count} de elemente · identitate [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} element · identitate [{id}]',
+        few: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elemente · identitate [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} de elemente · identitate [{id}]'
+      },
+      tableCaption: 'Tabla lui Cayley pentru {summary} sub {sign}',
+      noteDiagonal: 'Această celulă se află pe axa diagonală — este propria ei pereche, cu o singură ecuație de enunțat: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), și {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ambele ajung la aceeași valoare, așadar tabelul este simetric față de diagonala sa: grupul este comutativ.',
+      selfInverseNote: '{a} este {word}, pentru că valoarea sa aici este elementul neutru.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    hu: {
+      title: 'Cayley-táblázat',
+      eyebrow: 'csoportelmélet · műveleti táblázatok',
+      heading: 'Cayley-táblázat',
+      lede: 'Egy csoport teljes művelete egyetlen négyzetes táblázatba fér — egy sor és egy oszlop minden elemhez, egy cella minden eredményhez. Minden szerkezeti tény a csoportról — az egységeleme, az inverzei, a kommutativitása — valahol láthatóan ott ül a táblázat alakjában.',
+      xref: 'Ugyanaz a két csoportművelet, most körcikkekként egy keréken, nem sorokként egy táblázatban →',
+      tablistLabel: 'Csoportművelet',
+      nLabel: 'N — modulus',
+      randomizeLabel: 'Véletlenszerű',
+      randomize: 'Új véletlenszerű példa',
+      tableScrollLabel: 'Cayley-táblázat, görgethető',
+      'legend.identity': '{0} Az egységelem sora és oszlopa',
+      'legend.inverse': '{0} Önmagával inverz (önpárosított)',
+      'legend.selected': '{0} Kiválasztott cella',
+      'legend.mirror': '{0} Tükörpár az átlón át',
+      nNoteNotWhole: 'N-nek egész számnak kell lennie — a táblázat marad, ahogy volt.',
+      nNoteTooSmall: 'N nem lehet 1 alatt — felemelve 1-re.',
+      nNoteCapped: 'N felső korlátja {max}, hogy a táblázat ne nőjön túl nagyra — csökkentve {max}-ra.',
+      identityWordAdditive: 'nulla',
+      identityWordMultiplicative: 'egy',
+      inverseWordAdditive: 'a saját ellentéte',
+      inverseWordMultiplicative: 'a saját reciproka',
+      identityNote: 'Az egységelem {word} — a sora és oszlopa alul van megjelölve.',
+      symmetryNoteAdditive: 'a + b és b + a mindig ugyanabba az osztályba kerül, így a táblázat tükrözi önmagát az átlón át — kattints bármelyik cellára, hogy lásd felvillanni a párját a másik oldalon.',
+      symmetryNoteMultiplicative: 'a · b és b · a mindig ugyanabba az osztályba kerül, így a táblázat tükrözi önmagát az átlón át — kattints bármelyik cellára, hogy lásd felvillanni a párját a másik oldalon.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} elem · egységelem [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elem · egységelem [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elem · egységelem [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elem · egységelem [{id}]'
+      },
+      tableCaption: 'Cayley-táblázat {summary}-hoz {sign} alatt',
+      noteDiagonal: 'Ez a cella az átlós tengelyen fekszik — önmaga párja, egyetlen egyenlettel leírva: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), és {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — mindkettő ugyanarra az értékre esik, így a táblázat szimmetrikus az átlójára: a csoport kommutatív.',
+      selfInverseNote: '{a} {word}, mivel az értéke itt az egységelem.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    lv: {
+      title: 'Keilija tabula',
+      eyebrow: 'grupu teorija · darbību tabulas',
+      heading: 'Keilija tabula',
+      lede: 'Visa grupas darbība ietilpst vienā kvadrātveida tabulā — viena rinda un viena kolonna katram elementam, viena šūna katram rezultātam. Katrs strukturālais fakts par šo grupu — tās neitrālais elements, tās inversie, tās komutativitāte — redzami atrodas tabulas formā.',
+      xref: 'Tās pašas divas grupas darbības, tagad redzamas kā sektori ratā, nevis kā rindas tabulā →',
+      tablistLabel: 'Grupas darbība',
+      nLabel: 'N — modulis',
+      randomizeLabel: 'Nejauši',
+      randomize: 'Jauns nejaušs piemērs',
+      tableScrollLabel: 'Keilija tabula, ritināma',
+      'legend.identity': '{0} Neitrālā elementa rinda un kolonna',
+      'legend.inverse': '{0} Pats savs inverss (pats ar sevi sapārots)',
+      'legend.selected': '{0} Izvēlētā šūna',
+      'legend.mirror': '{0} Spoguļpāris pāri diagonālei',
+      nNoteNotWhole: 'N jābūt veselam skaitlim — tabula paliek, kāda bija.',
+      nNoteTooSmall: 'N nevar būt zem 1 — palielināts līdz 1.',
+      nNoteCapped: 'N ir ierobežots līdz {max}, lai tabula nepaliktu pārāk liela — samazināts līdz {max}.',
+      identityWordAdditive: 'nulle',
+      identityWordMultiplicative: 'viens',
+      inverseWordAdditive: 'savs pretstats',
+      inverseWordMultiplicative: 'savs apgrieztais lielums',
+      identityNote: 'Neitrālais elements ir {word} — tā rinda un kolonna ir atzīmētas zemāk.',
+      symmetryNoteAdditive: 'a + b un b + a vienmēr nonāk tajā pašā klasē, tāpēc tabula atspoguļo pati sevi pāri diagonālei — noklikšķini uz jebkuras šūnas, lai redzētu, kā tās pāris iedegas otrā pusē.',
+      symmetryNoteMultiplicative: 'a · b un b · a vienmēr nonāk tajā pašā klasē, tāpēc tabula atspoguļo pati sevi pāri diagonālei — noklikšķini uz jebkuras šūnas, lai redzētu, kā tās pāris iedegas otrā pusē.',
+      summaryAdditive: {
+        zero: 'ℤ/{n}ℤ · {count} elementu · neitrālais elements [{id}]',
+        one: 'ℤ/{n}ℤ · {count} elements · neitrālais elements [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementi · neitrālais elements [{id}]'
+      },
+      summaryMultiplicative: {
+        zero: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementu · neitrālais elements [{id}]',
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elements · neitrālais elements [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementi · neitrālais elements [{id}]'
+      },
+      tableCaption: 'Keilija tabula priekš {summary} ar {sign}',
+      noteDiagonal: 'Šī šūna atrodas uz diagonālās ass — tā ir pati savs pāris, ar tikai vienu vienādojumu: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), un {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — abi nonāk tajā pašā vērtībā, tāpēc tabula ir simetriska attiecībā uz savu diagonāli: grupa ir komutatīva.',
+      selfInverseNote: '{a} ir {word}, jo tā vērtība šeit ir neitrālais elements.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

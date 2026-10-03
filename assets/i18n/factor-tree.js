@@ -1,11 +1,11 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
    Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all eleven supported languages.
+   Factor Tree tool, in all fourteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all eleven languages. The factorization itself (the equation/tree
+   across all fourteen languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -234,6 +234,66 @@
       msgPrime: '{n} er primtall — det deler seg bare én gang, i 1 × {n}.',
       msgFactors: '{n} deles opp i {count} primtallsfaktorer.',
       chipPrime: '{n} (primtall)'
+    },
+    ro: {
+      title: 'Arbore de factori primi',
+      heading: '🎄 Arbore de factori primi 🎄',
+      subtitle: 'Dă-i un număr — face să crească un adevărat arbore de factori, ramură cu ramură.',
+      modeLabel: 'Mod arbore',
+      modeClassic: 'Clasic',
+      modeBalanced: 'Echilibrat',
+      placeholder: 'ex. 60',
+      grow: 'Fă arborele să crească',
+      footnote: 'Fiecare frunză primă primește o ultimă despicare proprie: P = P × 1.',
+      balancedNote: 'Modul Echilibrat folosește metoda lui Fermat pentru a găsi la fiecare pas cea mai echilibrată pereche de factori, limitat la numere sub 1.000.000 pentru a rămâne instantaneu. Unele numere — cum ar fi un număr prim mic înmulțit cu unul mare — se despică totuși neuniform; nu este o eroare, e doar matematică.',
+      msgEmpty: 'Introdu mai întâi un număr.',
+      msgInvalid: 'Introdu un număr întreg, 1 sau mai mare.',
+      msgTooLargeBalanced: 'Acel număr este prea mare pentru modul Echilibrat — încearcă ceva sub 1.000.000, sau comută la modul Clasic pentru numere mai mari.',
+      msgTooLargeClassic: 'Acel număr este prea mare pentru acest arbore mic — încearcă ceva sub 1 trilion.',
+      msgOne: '1 nu este nici prim, nici compus — este doar o sămânță, nu încă un arbore. 🌱',
+      msgPrime: '{n} este prim — se despică o singură dată, în 1 × {n}.',
+      msgFactors: '{n} se descompune în {count} factori primi.',
+      chipPrime: '{n} (prim)'
+    },
+    hu: {
+      title: 'Prímtényezőfa',
+      heading: '🎄 Prímtényezőfa 🎄',
+      subtitle: 'Adj neki egy számot — valódi tényezőfát növel, ágról ágra.',
+      modeLabel: 'Fa módja',
+      modeClassic: 'Klasszikus',
+      modeBalanced: 'Kiegyenlített',
+      placeholder: 'pl. 60',
+      grow: 'Növeld a fát',
+      footnote: 'Minden prímlevél kap még egy utolsó, saját hasítást: P = P × 1.',
+      balancedNote: 'A kiegyenlített mód Fermat módszerét használja, hogy minden lépésnél megtalálja a leginkább egyenletesen szétosztott tényezőpárt, 1 000 000 alatti számokra korlátozva, hogy azonnali maradjon. Néhány szám — például egy kicsi prímszám szorozva egy naggyal — még így is egyenetlenül hasad; ez nem hiba, csak matematika.',
+      msgEmpty: 'Kérlek, adj meg előbb egy számot.',
+      msgInvalid: 'Kérlek, adj meg egy egész számot, 1-et vagy nagyobbat.',
+      msgTooLargeBalanced: 'Ez a szám túl nagy a Kiegyenlített módhoz — próbálj valamit 1 000 000 alatt, vagy válts Klasszikus módra nagyobb számokhoz.',
+      msgTooLargeClassic: 'Ez a szám túl nagy ehhez a kis fához — próbálj valamit 1 billió alatt.',
+      msgOne: 'Az 1 sem nem prím, sem nem összetett — ez csak egy mag, még nem fa. 🌱',
+      msgPrime: '{n} prím — csak egyszer hasad, 1 × {n}-re.',
+      msgFactors: '{n} {count} prímtényezőre bomlik.',
+      chipPrime: '{n} (prím)'
+    },
+    lv: {
+      title: 'Pirmreizinātāju koks',
+      heading: '🎄 Pirmreizinātāju koks 🎄',
+      subtitle: 'Dod tam skaitli — tas izaudzē īstu reizinātāju koku, zaru pēc zara.',
+      modeLabel: 'Koka režīms',
+      modeClassic: 'Klasiskais',
+      modeBalanced: 'Balansētais',
+      placeholder: 'piem. 60',
+      grow: 'Izaudzēt koku',
+      footnote: 'Katra pirmskaitļa lapa saņem vēl vienu, savu pēdējo sadalīšanu: P = P × 1.',
+      balancedNote: 'Balansētais režīms izmanto Ferma metodi, lai katrā solī atrastu visvienmērīgāk sadalīto reizinātāju pāri, ierobežotu līdz skaitļiem zem 1 000 000, lai paliktu uzreiz gatavs. Daži skaitļi — piemēram, mazs pirmskaitlis reizināts ar lielu — joprojām sadalās nevienmērīgi; tā nav kļūda, tikai matemātika.',
+      msgEmpty: 'Vispirms ievadi skaitli.',
+      msgInvalid: 'Ievadi veselu skaitli, 1 vai lielāku.',
+      msgTooLargeBalanced: 'Šis skaitlis ir pārāk liels Balansētajam režīmam — izmēģini kaut ko zem 1 000 000, vai pārslēdzies uz Klasisko režīmu lielākiem skaitļiem.',
+      msgTooLargeClassic: 'Šis skaitlis ir pārāk liels šim mazajam kokam — izmēģini kaut ko zem 1 triljona.',
+      msgOne: '1 nav ne pirmskaitlis, ne saliktais skaitlis — tā ir tikai sēkla, ne vēl koks. 🌱',
+      msgPrime: '{n} ir pirmskaitlis — tas sadalās tikai vienu reizi, 1 × {n}.',
+      msgFactors: '{n} sadalās {count} pirmreizinātājos.',
+      chipPrime: '{n} (pirmskaitlis)'
     }
   });
 })();

@@ -6,17 +6,17 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all eleven supported languages.
+   tool, in all fourteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
    06-GLOSSARY.md section (e) and are written identically in every
-   language (never translated to ggd/ggT/pgcd/mcd/NWD or
-   kgv/kgV/ppcm/mcm/NWW). Play/Pause, Step, Instant, Reset and Speed live
-   in the shared `common` namespace (assets/i18n/site.js), never
-   duplicated here. Placeholder names ({idx}, {min}, {max}, {m}, {x}, {y},
-   {g}, {span}, {landed}, {computed}, {reduced}) are identical across all
-   eleven languages. Must load after assets/nt-i18n.js and
+   language (never translated to ggd/ggT/pgcd/mcd/NWD/cmmdc/lnko/LKD or
+   kgv/kgV/ppcm/mcm/NWW/cmmmc/lkkt/MKD). Play/Pause, Step, Instant, Reset
+   and Speed live in the shared `common` namespace (assets/i18n/site.js),
+   never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
+   {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
+   across all fourteen languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -440,6 +440,120 @@
       constructReasonSpanBlocked: 'Konstruksjonen trenger et beregnet svar, og periodetakets sperre blokkerer det.',
       constructSumMismatch: 'Diagnostisk avvik: konstruksjonen reduseres til {reduced}, men løseren beregnet {computed} — disse må alltid stemme.',
       seeInverse: 'se inversen →'
+    },
+    ro: {
+      title: 'Teorema chineză a resturilor',
+      eyebrow: 'teoria numerelor · teorema chineză a resturilor',
+      heading: 'Teorema chineză a resturilor',
+      lede: 'Fiecare congruență, luată separat, selectează o familie de numere distribuite uniform — fiecare al treilea număr, fiecare al cincilea număr, și așa mai departe. Când modulii nu au niciun factor comun, aceste familii se intersectează exact într-un singur loc, în fiecare interval de {0} numere. Această unică intersecție este soluția simultană pe care o acceptă fiecare rând.',
+      xref: 'Vezi inversul modular al primei congruențe calculat pas cu pas în instrumentul Algoritmul lui Euclid →',
+      countGroupLabel: 'Număr de congruențe',
+      countTwo: 'Două congruențe',
+      countThree: 'Trei congruențe',
+      remainderLabel: 'rest a',
+      modulusLabel: 'modul m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · ghicitoarea lui Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · pereche primă între ele',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · are un factor comun',
+      extToggleLabel: 'Dezvăluie metoda mai rapidă — construiește răspunsul direct cu algoritmul lui Euclid extins, în loc să îl cauți',
+      stripGroupLabel: 'Benzi de clase de resturi, derulabile',
+      constructLede: 'Împarte perioada într-o bucată pentru fiecare congruență, inversează fiecare bucată față de propriul ei modul, scalează cu restul acelei congruențe, adună bucățile, apoi redu.',
+      tableHeaderY: 'y (invers)',
+      tableHeaderTerm: 'termen = a · M · y',
+      caption: 'Răspunsul se repetă la nesfârșit cu perioada {0} — coloana marcată este un reprezentant al unei familii infinite de soluții.',
+      allAgreeLabel: 'toate de acord',
+      errModulusWhole: 'Rândul {idx}: modulul trebuie să fie un număr întreg.',
+      errModulusRange: 'Rândul {idx}: modulul trebuie să fie între {min} și {max}.',
+      errRemainderWhole: 'Rândul {idx}: restul trebuie să fie un număr întreg.',
+      errRemainderRange: 'Rândul {idx}: restul trebuie să fie de la 0 la {max} pentru modulul {m}.',
+      coprimeOk: 'Modulii sunt primi între ei doi câte doi — există o soluție de formă standard modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — modulii {x} și {y} au un factor comun, astfel cerința de a fi primi între ei doi câte doi a construcției standard nu este îndeplinită, iar acest instrument nu încearcă să rezolve acest sistem.',
+      spanWarn: 'Perioada combinată lcm = {span} este peste plafonul acestui instrument de {max} — micșorează unul dintre moduli pentru a ajunge sub {max}.',
+      testingX: 'Se testează x = {x} …',
+      diagnosticMismatchScan: 'Nepotrivire de diagnostic: scanarea a ajuns la {landed}, dar construcția a calculat {computed} — acestea trebuie să coincidă întotdeauna.',
+      solved: 'Rezolvat — fiecare congruență este de acord la x = {x}.',
+      diagnosticScanEnd: 'Diagnostic: scanarea a ajuns la finalul perioadei ({span}) fără să găsească o concordanță, ceea ce ar trebui să fie imposibil pentru un sistem prim între ei doi câte doi.',
+      readyToScan: 'Pregătit — apasă Redă pentru a privi căutarea lui x.',
+      constructReasonNotCoprime: 'Construcția necesită ca fiecare M_i să fie inversabil modulo propriul său m_i, ceea ce un factor comun între moduli face imposibil.',
+      constructReasonSpanBlocked: 'Construcția are nevoie de un răspuns calculat, iar plafonul perioadei blochează acest lucru.',
+      constructSumMismatch: 'Nepotrivire de diagnostic: construcția se reduce la {reduced}, dar rezolvitorul a calculat {computed} — acestea trebuie să coincidă întotdeauna.',
+      seeInverse: 'vezi inversul →'
+    },
+    hu: {
+      title: 'Kínai maradéktétel',
+      eyebrow: 'számelmélet · kínai maradéktétel',
+      heading: 'Kínai maradéktétel',
+      lede: 'Minden kongruencia önmagában egy egyenletesen elosztott számcsaládot választ ki — minden harmadik számot, minden ötödik számot, és így tovább. Ha a moduluszoknak nincs közös osztójuk, ezek a családok pontosan egy helyen metszik egymást minden {0} számos szakaszban. Ez az egyetlen metszéspont az a közös megoldás, amelyben minden sor egyetért.',
+      xref: 'Nézd meg az első kongruencia moduláris inverzét lépésről lépésre kiszámítva az Euklideszi algoritmus eszközben →',
+      countGroupLabel: 'Kongruenciák száma',
+      countTwo: 'Két kongruencia',
+      countThree: 'Három kongruencia',
+      remainderLabel: 'maradék a',
+      modulusLabel: 'modulus m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · Sun Tzu rejtvénye',
+      chipCoprime: '2 mod 3 · 3 mod 5 · relatív prím pár',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · közös osztóval rendelkezik',
+      extToggleLabel: 'Fedd fel a gyorsabb módszert — építsd fel közvetlenül a választ a kiterjesztett euklideszi algoritmussal, keresés helyett',
+      stripGroupLabel: 'Maradékosztály-sávok, görgethetők',
+      constructLede: 'Bontsd fel a periódust egy darabra minden kongruenciához, invertáld minden darabot a saját modulusa szerint, skálázd az adott kongruencia maradékával, add össze a darabokat, majd redukáld.',
+      tableHeaderY: 'y (inverz)',
+      tableHeaderTerm: 'tag = a · M · y',
+      caption: 'A válasz örökké ismétlődik {0} periódussal — a megjelölt oszlop a megoldások végtelen családjának egy képviselője.',
+      allAgreeLabel: 'mindegyik egyetért',
+      errModulusWhole: '{idx}. sor: a modulusnak egész számnak kell lennie.',
+      errModulusRange: '{idx}. sor: a modulusnak {min} és {max} között kell lennie.',
+      errRemainderWhole: '{idx}. sor: a maradéknak egész számnak kell lennie.',
+      errRemainderRange: '{idx}. sor: a maradéknak 0 és {max} között kell lennie a {m} modulushoz.',
+      coprimeOk: 'A moduluszok páronként relatív prímek — létezik standard alakú megoldás modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — a {x} és {y} moduluszok közös osztóval rendelkeznek, így a standard konstrukció páronkénti relatív prím követelménye nem teljesül, és ez az eszköz nem próbálja megoldani ezt a rendszert.',
+      spanWarn: 'Az összevont periódus lcm = {span} meghaladja ennek az eszköznek a {max} felső korlátját — csökkentsd egyik modulust, hogy {max} alá kerülj.',
+      testingX: 'Tesztelés: x = {x} …',
+      diagnosticMismatchScan: 'Diagnosztikai eltérés: a keresés {landed}-nél landolt, de a konstrukció {computed}-et számolt — ezeknek mindig egyezniük kell.',
+      solved: 'Megoldva — minden kongruencia egyetért x = {x}-nél.',
+      diagnosticScanEnd: 'Diagnózis: a keresés elérte a periódus végét ({span}) anélkül, hogy egyezést talált volna, ami egy páronként relatív prím rendszer esetén lehetetlen lenne.',
+      readyToScan: 'Kész — nyomd meg a Lejátszás gombot, hogy lásd az x keresését.',
+      constructReasonNotCoprime: 'A konstrukciónak szüksége van arra, hogy minden M_i invertálható legyen a saját m_i-je szerint, amit a moduluszok közötti közös osztó lehetetlenné tesz.',
+      constructReasonSpanBlocked: 'A konstrukciónak szüksége van egy kiszámított válaszra, és a periódus felső korlátja ezt blokkolja.',
+      constructSumMismatch: 'Diagnosztikai eltérés: a konstrukció {reduced}-re redukálódik, de a megoldó {computed}-et számolt — ezeknek mindig egyezniük kell.',
+      seeInverse: 'nézd meg az inverzet →'
+    },
+    lv: {
+      title: 'Ķīniešu atlikumu teorēma',
+      eyebrow: 'skaitļu teorija · ķīniešu atlikumu teorēma',
+      heading: 'Ķīniešu atlikumu teorēma',
+      lede: 'Katra kongruence pati par sevi izvēlas vienmērīgi izklātu skaitļu saimi — katru trešo skaitli, katru piekto skaitli, un tā tālāk. Kad moduļiem nav kopīga dalītāja, šīs saimes krustojas tieši vienā vietā katrā {0} skaitļu nogrieznī. Šis vienīgais krustpunkts ir vienlaicīgs risinājums, par kuru vienojas katra rinda.',
+      xref: 'Skaties, kā pirmās kongruences modulārā inversija tiek aprēķināta solis pa solim rīkā Eiklīda algoritms →',
+      countGroupLabel: 'Kongruenču skaits',
+      countTwo: 'Divas kongruences',
+      countThree: 'Trīs kongruences',
+      remainderLabel: 'atlikums a',
+      modulusLabel: 'modulis m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · Sun Tzu mīkla',
+      chipCoprime: '2 mod 3 · 3 mod 5 · savstarpēji pirmskaitļu pāris',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · dala kopīgu dalītāju',
+      extToggleLabel: 'Atklāj ātrāku metodi — izveido atbildi tieši ar paplašināto Eiklīda algoritmu, nevis meklē to',
+      stripGroupLabel: 'Atlikumu klašu joslas, ritinātas',
+      constructLede: 'Sadali periodu vienā gabalā katrai kongruencei, apgriez katru gabalu pret savu moduli, mērogo ar tās kongruences atlikumu, saskaiti gabalus, tad reducē.',
+      tableHeaderY: 'y (inversija)',
+      tableHeaderTerm: 'loceklis = a · M · y',
+      caption: 'Atbilde atkārtojas bez gala ar periodu {0} — atzīmētā kolonna ir viens pārstāvis no bezgalīgas risinājumu saimes.',
+      allAgreeLabel: 'visi saskan',
+      errModulusWhole: 'Rinda {idx}: modulim jābūt veselam skaitlim.',
+      errModulusRange: 'Rinda {idx}: modulim jābūt no {min} līdz {max}.',
+      errRemainderWhole: 'Rinda {idx}: atlikumam jābūt veselam skaitlim.',
+      errRemainderRange: 'Rinda {idx}: atlikumam jābūt no 0 līdz {max} modulim {m}.',
+      coprimeOk: 'Moduļi ir pāros savstarpēji pirmskaitļi — standarta formas risinājums eksistē pēc moduļa {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — moduļi {x} un {y} dala kopīgu dalītāju, tāpēc standarta konstrukcijas pāru savstarpējās pirmskaitlības prasība nav izpildīta, un šis rīks nemēģina atrisināt šo sistēmu.',
+      spanWarn: 'Kombinētais periods lcm = {span} ir virs šī rīka griestiem {max} — samazini vienu no moduļiem, lai nokļūtu zem {max}.',
+      testingX: 'Pārbauda x = {x} …',
+      diagnosticMismatchScan: 'Diagnostikas nesakritība: meklēšana nonāca pie {landed}, bet konstrukcija aprēķināja {computed} — tiem vienmēr jāsakrīt.',
+      solved: 'Atrisināts — katra kongruence saskan pie x = {x}.',
+      diagnosticScanEnd: 'Diagnostika: meklēšana sasniedza perioda beigas ({span}), neatrodot sakritību, kam vajadzētu būt neiespējamam pāros savstarpēji pirmskaitļu sistēmai.',
+      readyToScan: 'Gatavs — nospied Atskaņot, lai skatītos, kā meklēšana atrod x.',
+      constructReasonNotCoprime: 'Konstrukcijai nepieciešams, lai katrs M_i būtu invertējams pēc sava m_i, ko kopīgs dalītājs starp moduļiem padara neiespējamu.',
+      constructReasonSpanBlocked: 'Konstrukcijai nepieciešama aprēķināta atbilde, un perioda griesti to bloķē.',
+      constructSumMismatch: 'Diagnostikas nesakritība: konstrukcija reducējas uz {reduced}, bet risinātājs aprēķināja {computed} — tiem vienmēr jāsakrīt.',
+      seeInverse: 'skatīt inversiju →'
     }
   });
 })();

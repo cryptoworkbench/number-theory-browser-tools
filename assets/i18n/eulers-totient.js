@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all eleven supported languages.
+   tool, in all fourteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,8 +12,10 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all eleven languages. bannerDone is { one, other } in every language
-   except Polish, which carries the CLDR { one, few, many, other } shape.
+   all fourteen languages. bannerDone is { one, other } in every language
+   except Polish ({ one, few, many, other }), Romanian ({ one, few, other })
+   and Latvian ({ zero, one, other }), each the CLDR shape for that
+   language.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -286,6 +288,80 @@
         other: 'Ferdig — {count} verdier testet, {phi} innbyrdes primisk med {n}.'
       },
       caption: 'Et primtall n gir φ(n) = n−1, fordi hvert mindre tall ikke treffer det — brikkene gjør det lett å kontrollere.'
+    },
+    ro: {
+      title: 'Funcția φ a lui Euler',
+      eyebrow: 'teoria numerelor · funcția φ a lui Euler',
+      heading: 'Funcția φ a lui Euler',
+      lede: 'φ(n) numără câte dintre 1 … n−1 nu au niciun factor comun cu n, iar această pagină află asta în singurul mod cinstit — întrebând algoritmul lui Euclid despre fiecare dintre ele.',
+      xref: 'Aceeași numărătoare apare ca feliile grupului multiplicativ modulo n →',
+      chipPrime: '{n} · prim',
+      run: 'Rulează',
+      errNotWhole: 'n trebuie să fie un număr întreg.',
+      errTooSmall: 'n trebuie să fie cel puțin {min} — parcurgerea k = 1 … n−1 are nevoie de cel puțin un k de testat.',
+      errCapped: 'n este limitat la {max} — valoarea a fost redusă pentru a se încadra.',
+      chainHead: 'Se testează k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} este relativ prim cu {n} — gcd = 1, numărat.',
+      verdictEliminated: 'k = {k} are un factor comun cu {n} — gcd = {gcd}, exclus.',
+      tally: 'Numărătoare curentă de valori relativ prime: {count}',
+      progress: 'k = {k} din {total} testat.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Pregătit — apasă Redă pentru a privi parcurgerea testând fiecare k, câte o împărțire pe rând.',
+      bannerDone: {
+        one: 'Terminat — {count} valoare testată, {phi} relativ primă cu {n}.',
+        few: 'Terminat — {count} valori testate, {phi} relativ prime cu {n}.',
+        other: 'Terminat — {count} de valori testate, {phi} relativ prime cu {n}.'
+      },
+      caption: 'Un n prim dă φ(n) = n−1, pentru că fiecare număr mai mic îl ratează — jetoanele fac asta ușor de verificat.'
+    },
+    hu: {
+      title: 'Euler-féle φ-függvény',
+      eyebrow: 'számelmélet · euler-féle φ-függvény',
+      heading: 'Euler-féle φ-függvény',
+      lede: 'A φ(n) megszámolja, hány szám van az 1 … n−1 közül, amelynek nincs közös osztója n-nel, és ez az oldal az egyetlen becsületes módon deríti ki ezt — megkérdezve az euklideszi algoritmust mindegyikükről.',
+      xref: 'Ugyanez a szám jelenik meg a mod n multiplikatív csoport körcikkeiként →',
+      chipPrime: '{n} · prím',
+      run: 'Futtatás',
+      errNotWhole: 'n-nek egész számnak kell lennie.',
+      errTooSmall: 'n-nek legalább {min}-nek kell lennie — a k = 1 … n−1 bejárásnak legalább egy tesztelendő k-ra szüksége van.',
+      errCapped: 'n felső korlátja {max} — az érték lecsökkentve, hogy beleférjen.',
+      chainHead: 'Tesztelés: k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} relatív prím {n}-hez — gcd = 1, beszámítva.',
+      verdictEliminated: 'k = {k} közös osztóval rendelkezik {n}-nel — gcd = {gcd}, kizárva.',
+      tally: 'Futó relatív prím szám: {count}',
+      progress: 'k = {k} / {total} tesztelve.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Kész — nyomd meg a Lejátszás gombot, hogy lásd, hogyan tesztel a bejárás minden k-t, egyszerre egy osztással.',
+      bannerDone: {
+        one: 'Kész — {count} érték tesztelve, {phi} relatív prím {n}-hez.',
+        other: 'Kész — {count} érték tesztelve, {phi} relatív prím {n}-hez.'
+      },
+      caption: 'Egy prím n esetén φ(n) = n−1, mert minden kisebb szám elkerüli — a chipek megkönnyítik ennek ellenőrzését.'
+    },
+    lv: {
+      title: 'Eilera φ funkcija',
+      eyebrow: 'skaitļu teorija · eilera φ funkcija',
+      heading: 'Eilera φ funkcija',
+      lede: 'φ(n) saskaita, cik no 1 … n−1 nav kopīga dalītāja ar n, un šī lapa to atklāj vienīgajā godīgajā veidā — jautājot Eiklīda algoritmam par katru no tiem.',
+      xref: 'Tas pats skaits parādās kā multiplikatīvās grupas pēc moduļa n sektori →',
+      chipPrime: '{n} · pirmskaitlis',
+      run: 'Palaist',
+      errNotWhole: 'n jābūt veselam skaitlim.',
+      errTooSmall: 'n jābūt vismaz {min} — gaitai k = 1 … n−1 nepieciešams vismaz viens k pārbaudei.',
+      errCapped: 'n ir ierobežots līdz {max} — vērtība tika samazināta, lai ietilptu.',
+      chainHead: 'Pārbauda k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} ir savstarpēji pirmskaitlis ar {n} — gcd = 1, ieskaitīts.',
+      verdictEliminated: 'k = {k} dala kopīgu dalītāju ar {n} — gcd = {gcd}, izslēgts.',
+      tally: 'Pašreizējais savstarpēji pirmskaitļu skaits: {count}',
+      progress: 'k = {k} no {total} pārbaudīts.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Gatavs — nospied Atskaņot, lai skatītos, kā gaita pārbauda katru k pa vienai dalīšanai reizē.',
+      bannerDone: {
+        zero: 'Pabeigts — pārbaudītas {count} vērtību, {phi} savstarpēji pirmskaitļi ar {n}.',
+        one: 'Pabeigts — pārbaudīta {count} vērtība, {phi} savstarpēji pirmskaitļi ar {n}.',
+        other: 'Pabeigts — pārbaudītas {count} vērtības, {phi} savstarpēji pirmskaitļi ar {n}.'
+      },
+      caption: 'Pirmskaitlis n dod φ(n) = n−1, jo katrs mazāks skaitlis to nesasniedz — žetoni to ļauj viegli pārbaudīt.'
     }
   });
 })();

@@ -4,23 +4,23 @@
    message, the swap note, the banner (incl. a plural "done" message), the
    zero-step chain note, the extended-caption, the two geometric-view
    toggle labels, both SVG default aria-labels, both steps' captions and
-   their capped-tile notes (each plural on the quotient's own one/other —
-   or for Polish, one/few/many/other — category), the nested view's
+   their capped-tile notes (each plural on the quotient's own CLDR
+   category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all eleven supported languages.
+   tool, in all fourteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
    literal in every language per 06-GLOSSARY.md section (e); "the GCD" as
    a standalone prose noun is localized to each language's own
-   abbreviation (ggd/gcd/ggT/PGCD/mcd/NWD) per the glossary's core-term
-   table (row 6, greatest common divisor). Play/Pause, Step, Instant,
-   Reset and Speed live in the shared `common` namespace
+   abbreviation (ggd/gcd/ggT/PGCD/mcd/NWD/cmmdc/lnko/LKD) per the
+   glossary's core-term table (row 6, greatest common divisor). Play/Pause,
+   Step, Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   eleven languages. Must load after assets/nt-i18n.js and
+   fourteen languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -611,6 +611,170 @@
       nestedTileTitle: 'Steg {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Steg {step}: {a} = {q}·{b} + {r} ({extra} flere kvadrater samlet her)',
       tileEmptyMessage: 'Det finnes ikke noe rektangel å kutte — b er allerede 0, så algoritmen er allerede ferdig.'
+    },
+    ro: {
+      title: 'Algoritmul lui Euclid',
+      eyebrow: 'teoria numerelor · algoritmul lui Euclid',
+      heading: 'Algoritmul lui Euclid',
+      lede: 'Înlocuiește în mod repetat perechea (a, b) cu (b, a mod b) — împarte numărul mai mare la cel mai mic și păstrează doar restul — iar perechea se micșorează la fiecare pas. În momentul în care o parte atinge zero, cealaltă parte este cel mai mare divizor comun al celor două numere cu care ai început.',
+      xref: 'Același cmmdc poate fi văzut și ca factorii primi comuni celor două numere →',
+      chipFiveSteps: '240, 46 · 5 pași',
+      chipCoprime: '35, 18 · prime între ele',
+      chipBDividesA: '144, 12 · b îl divide pe a',
+      chipEqualPair: '36, 36 · pereche egală',
+      chipAlreadyDone: '17, 0 · deja terminat',
+      chipFibonacciWorst: '89, 55 · cel mai rău caz Fibonacci',
+      chipHugeQuotient: '500000, 2 · cât enorm',
+      run: 'Rulează',
+      extToggleLabel: 'Mod Euclidian extins — arată coeficienții Bézout {0} și {1}',
+      errBothWhole: 'Atât a cât și b trebuie să fie numere întregi.',
+      errBothNonNegative: 'Atât a cât și b trebuie să fie zero sau pozitive — numerele negative nu au un cmmdc definit aici.',
+      errGcdZeroZero: 'gcd(0, 0) nu este definit — introdu cel puțin o valoare diferită de zero.',
+      errClamped: 'Valorile introduse sunt limitate la {max} — valoarea mai mare a fost redusă pentru a se încadra.',
+      swapNote: 'Valoarea mai mare este în față: introdusă ca ({a}, {b}), urmărită ca gcd({A}, {B}) — cmmdc este simetric în argumentele sale.',
+      bannerReady: 'Pregătit — apasă Redă pentru a privi derivarea construindu-se linie cu linie.',
+      bannerDone: { one: 'Terminat — {n} pas pentru a ajunge la cmmdc.', few: 'Terminat — {n} pași pentru a ajunge la cmmdc.', other: 'Terminat — {n} de pași pentru a ajunge la cmmdc.' },
+      chainNoteZero: 'b este deja 0, așadar nu mai e nimic de împărțit — a este deja cel mai mare divizor comun.',
+      extCaption: '{0} și {1} ale fiecărei linii exprimă restul acelei linii ca o combinație a celor două valori inițiale — {2}.',
+      viewNested: 'Pătrate imbricate',
+      geomViewGroupLabel: 'Mod de vizualizare geometrică',
+      viewStep: 'Pas unic',
+      tileAriaDefault: 'Vizualizare rectangulară a pasului curent de împărțire',
+      nestedAriaDefault: 'Toți pașii de împărțire imbricați într-un singur dreptunghi',
+      caption: 'Numerele Fibonacci consecutive reprezintă cel mai rău caz pentru acest algoritm — ele impun cel mai mare număr de pași de împărțire pentru dimensiunea lor.',
+      tileCaptionExact: {
+        one: 'Pasul {index} din {total}: {a} ÷ {b}: dreptunghiul se pavează exact cu {q} pătrat cu latura {b} — fără rest, așadar {b} este cel mai mare divizor comun.',
+        few: 'Pasul {index} din {total}: {a} ÷ {b}: dreptunghiul se pavează exact cu {q} pătrate cu latura {b} — fără rest, așadar {b} este cel mai mare divizor comun.',
+        other: 'Pasul {index} din {total}: {a} ÷ {b}: dreptunghiul se pavează exact cu {q} de pătrate cu latura {b} — fără rest, așadar {b} este cel mai mare divizor comun.'
+      },
+      tileCaptionLeftover: {
+        one: 'Pasul {index} din {total}: {a} = {q}×{b} + {r}: {q} pătrat cu latura {b} încape, lăsând un rest de {b}×{r}.',
+        few: 'Pasul {index} din {total}: {a} = {q}×{b} + {r}: {q} pătrate cu latura {b} încap, lăsând un rest de {b}×{r}.',
+        other: 'Pasul {index} din {total}: {a} = {q}×{b} + {r}: {q} de pătrate cu latura {b} încap, lăsând un rest de {b}×{r}.'
+      },
+      tileNoteCapped: 'Câtul real este {q} — doar primele {cap} pătrate sunt desenate aici; restul de {rest} sunt comasate în tigla etichetată, așadar lățimea desenată nu este la scară.',
+      nestedEmptyMessage: 'Nu există niciun dreptunghi de imbricat — b este deja 0, așadar algoritmul este deja terminat.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: tot {n} pas se imbrichează într-un singur dreptunghi {A}×{B} — cele mai mici pătrate, {lastB}×{lastB}, sunt cel mai mare divizor comun. Fă clic pe un pătrat (sau pe un pas de mai sus) pentru a vedea cum se aliniază.',
+        few: 'gcd({A}, {B}) = {gcd}: toți {n} pași se imbrichează într-un singur dreptunghi {A}×{B} — cele mai mici pătrate, {lastB}×{lastB}, sunt cel mai mare divizor comun. Fă clic pe un pătrat (sau pe un pas de mai sus) pentru a vedea cum se aliniază.',
+        other: 'gcd({A}, {B}) = {gcd}: toți cei {n} de pași se imbrichează într-un singur dreptunghi {A}×{B} — cele mai mici pătrate, {lastB}×{lastB}, sunt cel mai mare divizor comun. Fă clic pe un pătrat (sau pe un pas de mai sus) pentru a vedea cum se aliniază.'
+      },
+      nestedNoteCapped: {
+        one: 'Pasul {stepNums} are un cât foarte mare — doar primele {cap} pătrate sunt desenate acolo, comasate într-o tiglă punctată, așadar această diagramă nu este complet la scară la acel pas.',
+        few: 'Pașii {stepNums} au un cât foarte mare — doar primele {cap} pătrate sunt desenate acolo, comasate într-o tiglă punctată, așadar această diagramă nu este complet la scară la acei pași.',
+        other: 'Pașii {stepNums} au un cât foarte mare — doar primele {cap} pătrate sunt desenate acolo, comasate într-o tiglă punctată, așadar această diagramă nu este complet la scară la acei pași.'
+      },
+      nestedTileTitle: 'Pasul {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Pasul {step}: {a} = {q}·{b} + {r} ({extra} pătrate suplimentare comasate aici)',
+      tileEmptyMessage: 'Nu există niciun dreptunghi de tăiat — b este deja 0, așadar algoritmul este deja terminat.'
+    },
+    hu: {
+      title: 'Euklideszi algoritmus',
+      eyebrow: 'számelmélet · euklideszi algoritmus',
+      heading: 'Euklideszi algoritmus',
+      lede: 'Ismételten helyettesítsd az (a, b) párt (b, a mod b)-vel — oszd el a nagyobbat a kisebbel, és csak a maradékot tartsd meg —, és a pár minden lépésnél kisebb lesz. Amint egy oldal elér a nullát, a másik oldal a két kezdő szám legnagyobb közös osztója.',
+      xref: 'Ugyanez az lnko a két szám közös prímtényezőiként is látható →',
+      chipFiveSteps: '240, 46 · 5 lépés',
+      chipCoprime: '35, 18 · relatív prímek',
+      chipBDividesA: '144, 12 · b osztja a-t',
+      chipEqualPair: '36, 36 · egyenlő pár',
+      chipAlreadyDone: '17, 0 · már kész',
+      chipFibonacciWorst: '89, 55 · Fibonacci legrosszabb eset',
+      chipHugeQuotient: '500000, 2 · hatalmas hányados',
+      run: 'Futtatás',
+      extToggleLabel: 'Kiterjesztett euklideszi mód — mutassa a Bézout-együtthatókat: {0} és {1}',
+      errBothWhole: 'Mind a-nak, mind b-nek egész számnak kell lennie.',
+      errBothNonNegative: 'Mind a-nak, mind b-nek nullának vagy pozitívnak kell lennie — a negatív számoknak itt nincs definiált lnko-juk.',
+      errGcdZeroZero: 'A gcd(0, 0) nincs definiálva — adj meg legalább egy nullától eltérő értéket.',
+      errClamped: 'A bemenetek felső korlátja {max} — a nagyobb érték lecsökkentve, hogy beleférjen.',
+      swapNote: 'A nagyobb érték áll elöl: ({a}, {b})-ként megadva, gcd({A}, {B})-ként követve — az lnko szimmetrikus az argumentumaiban.',
+      bannerReady: 'Kész — nyomd meg a Lejátszás gombot, hogy lásd a levezetést soronként felépülni.',
+      bannerDone: { one: 'Kész — {n} lépés az lnko eléréséhez.', other: 'Kész — {n} lépés az lnko eléréséhez.' },
+      chainNoteZero: 'b már 0, így nincs több osztandó — a már a legnagyobb közös osztó.',
+      extCaption: 'Minden sor {0} és {1} értéke kifejezi a sor maradékát a két eredeti bemenet kombinációjaként — {2}.',
+      viewNested: 'Egymásba ágyazott négyzetek',
+      geomViewGroupLabel: 'Geometriai nézet módja',
+      viewStep: 'Egyetlen lépés',
+      tileAriaDefault: 'Az aktuális osztási lépés téglalap nézete',
+      nestedAriaDefault: 'Minden osztási lépés egyetlen téglalapba ágyazva',
+      caption: 'Az egymást követő Fibonacci-számok jelentik a legrosszabb esetet ehhez az algoritmushoz — méretükhöz képest a legtöbb osztási lépést kényszerítik ki.',
+      tileCaptionExact: {
+        one: '{index}. lépés / {total}: {a} ÷ {b}: a téglalap pontosan lefedhető {q} darab {b} oldalú négyzettel — nincs maradék, így {b} a legnagyobb közös osztó.',
+        other: '{index}. lépés / {total}: {a} ÷ {b}: a téglalap pontosan lefedhető {q} darab {b} oldalú négyzettel — nincs maradék, így {b} a legnagyobb közös osztó.'
+      },
+      tileCaptionLeftover: {
+        one: '{index}. lépés / {total}: {a} = {q}×{b} + {r}: {q} darab {b} oldalú négyzet fér el, {b}×{r} maradékkal.',
+        other: '{index}. lépés / {total}: {a} = {q}×{b} + {r}: {q} darab {b} oldalú négyzet fér el, {b}×{r} maradékkal.'
+      },
+      tileNoteCapped: 'A valódi hányados {q} — csak az első {cap} négyzet van itt megrajzolva; a maradék {rest} össze van vonva a feliratozott csempében, így a megrajzolt szélesség nem arányos.',
+      nestedEmptyMessage: 'Nincs téglalap, amit egymásba ágyazni — b már 0, így az algoritmus már kész.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: mind {n} lépés egyetlen {A}×{B} téglalapba ágyazódik — a legkisebb, {lastB}×{lastB} négyzetek a legnagyobb közös osztó. Kattints egy négyzetre (vagy egy fenti lépésre), hogy lásd, hogyan illenek egymáshoz.',
+        other: 'gcd({A}, {B}) = {gcd}: mind {n} lépés egyetlen {A}×{B} téglalapba ágyazódik — a legkisebb, {lastB}×{lastB} négyzetek a legnagyobb közös osztó. Kattints egy négyzetre (vagy egy fenti lépésre), hogy lásd, hogyan illenek egymáshoz.'
+      },
+      nestedNoteCapped: {
+        one: 'Ennél a lépésnél ({stepNums}) nagyon nagy a hányados — csak az első {cap} négyzet van ott megrajzolva, egy pontozott csempébe összevonva, így ez a diagram ennél a lépésnél nem teljesen arányos.',
+        other: 'Ezeknél a lépéseknél ({stepNums}) nagyon nagy a hányados — csak az első {cap} négyzet van ott megrajzolva, egy pontozott csempébe összevonva, így ez a diagram ezeknél a lépéseknél nem teljesen arányos.'
+      },
+      nestedTileTitle: '{step}. lépés: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: '{step}. lépés: {a} = {q}·{b} + {r} ({extra} további négyzet összevonva itt)',
+      tileEmptyMessage: 'Nincs téglalap, amit elvágni — b már 0, így az algoritmus már kész.'
+    },
+    lv: {
+      title: 'Eiklīda algoritms',
+      eyebrow: 'skaitļu teorija · Eiklīda algoritms',
+      heading: 'Eiklīda algoritms',
+      lede: 'Atkārtoti aizstāj pāri (a, b) ar (b, a mod b) — dali lielāko ar mazāko un paturi tikai atlikumu — un pāris samazinās ar katru soli. Tiklīdz viena puse sasniedz nulli, otra puse ir lielākais kopīgais dalītājs diviem skaitļiem, ar kuriem sāki.',
+      xref: 'To pašu LKD var redzēt arī kā pirmreizinātājus, kas kopīgi abiem skaitļiem →',
+      chipFiveSteps: '240, 46 · 5 soļi',
+      chipCoprime: '35, 18 · savstarpēji pirmskaitļi',
+      chipBDividesA: '144, 12 · b dala a',
+      chipEqualPair: '36, 36 · vienāds pāris',
+      chipAlreadyDone: '17, 0 · jau gatavs',
+      chipFibonacciWorst: '89, 55 · Fibonači sliktākais gadījums',
+      chipHugeQuotient: '500000, 2 · milzīgs dalījums',
+      run: 'Palaist',
+      extToggleLabel: 'Paplašinātais Eiklīda režīms — rādīt Bezū koeficientus {0} un {1}',
+      errBothWhole: 'Gan a, gan b jābūt veseliem skaitļiem.',
+      errBothNonNegative: 'Gan a, gan b jābūt nullei vai pozitīviem — negatīviem skaitļiem šeit nav definēts LKD.',
+      errGcdZeroZero: 'gcd(0, 0) nav definēts — ievadi vismaz vienu vērtību, kas nav nulle.',
+      errClamped: 'Ievades vērtības ir ierobežotas līdz {max} — lielākā vērtība tika samazināta, lai ietilptu.',
+      swapNote: 'Lielākā vērtība ir pirmā: ievadīta kā ({a}, {b}), izsekota kā gcd({A}, {B}) — LKD ir simetrisks savos argumentos.',
+      bannerReady: 'Gatavs — nospied Atskaņot, lai skatītos, kā izvedums tiek veidots rinda pa rindai.',
+      bannerDone: { zero: 'Pabeigts — {n} soļu, lai sasniegtu LKD.', one: 'Pabeigts — {n} solis, lai sasniegtu LKD.', other: 'Pabeigts — {n} soļi, lai sasniegtu LKD.' },
+      chainNoteZero: 'b jau ir 0, tāpēc nav vairāk ko dalīt — a jau ir lielākais kopīgais dalītājs.',
+      extCaption: 'Katras rindas {0} un {1} izsaka tās rindas atlikumu kā divu sākotnējo ievades vērtību kombināciju — {2}.',
+      viewNested: 'Ligzdoti kvadrāti',
+      geomViewGroupLabel: 'Ģeometriskā skata režīms',
+      viewStep: 'Viens solis',
+      tileAriaDefault: 'Taisnstūra skats pašreizējam dalīšanas solim',
+      nestedAriaDefault: 'Visi dalīšanas soļi ligzdoti vienā taisnstūrī',
+      caption: 'Secīgi Fibonači skaitļi ir sliktākais gadījums šim algoritmam — tie prasa visvairāk dalīšanas soļu attiecībā uz savu lielumu.',
+      tileCaptionExact: {
+        zero: 'Solis {index} no {total}: {a} ÷ {b}: taisnstūrī precīzi ietilpst {q} kvadrātu ar malu {b} — bez atlikuma, tāpēc {b} ir lielākais kopīgais dalītājs.',
+        one: 'Solis {index} no {total}: {a} ÷ {b}: taisnstūrī precīzi ietilpst {q} kvadrāts ar malu {b} — bez atlikuma, tāpēc {b} ir lielākais kopīgais dalītājs.',
+        other: 'Solis {index} no {total}: {a} ÷ {b}: taisnstūrī precīzi ietilpst {q} kvadrāti ar malu {b} — bez atlikuma, tāpēc {b} ir lielākais kopīgais dalītājs.'
+      },
+      tileCaptionLeftover: {
+        zero: 'Solis {index} no {total}: {a} = {q}×{b} + {r}: ietilpst {q} kvadrātu ar malu {b}, paliek atlikums {b}×{r}.',
+        one: 'Solis {index} no {total}: {a} = {q}×{b} + {r}: ietilpst {q} kvadrāts ar malu {b}, paliek atlikums {b}×{r}.',
+        other: 'Solis {index} no {total}: {a} = {q}×{b} + {r}: ietilpst {q} kvadrāti ar malu {b}, paliek atlikums {b}×{r}.'
+      },
+      tileNoteCapped: 'Patiesais dalījums ir {q} — šeit ir attēloti tikai pirmie {cap} kvadrāti; atlikušie {rest} ir sakopoti etiķetētajā laukumā, tāpēc attēlotais platums nav mērogā.',
+      nestedEmptyMessage: 'Nav taisnstūra, ko ligzdot — b jau ir 0, tāpēc algoritms jau ir pabeigts.',
+      nestedCaption: {
+        zero: 'gcd({A}, {B}) = {gcd}: visi {n} soļu ir ligzdoti vienā {A}×{B} taisnstūrī — mazākie, {lastB}×{lastB} kvadrāti, ir lielākais kopīgais dalītājs. Noklikšķini uz kvadrāta (vai soļa augstāk), lai redzētu, kā tie sakrīt.',
+        one: 'gcd({A}, {B}) = {gcd}: viss {n} solis ir ligzdots vienā {A}×{B} taisnstūrī — mazākie, {lastB}×{lastB} kvadrāti, ir lielākais kopīgais dalītājs. Noklikšķini uz kvadrāta (vai soļa augstāk), lai redzētu, kā tie sakrīt.',
+        other: 'gcd({A}, {B}) = {gcd}: visi {n} soļi ir ligzdoti vienā {A}×{B} taisnstūrī — mazākie, {lastB}×{lastB} kvadrāti, ir lielākais kopīgais dalītājs. Noklikšķini uz kvadrāta (vai soļa augstāk), lai redzētu, kā tie sakrīt.'
+      },
+      nestedNoteCapped: {
+        zero: 'Solim {stepNums} ir ļoti liels dalījums — tur ir attēloti tikai pirmie {cap} kvadrāti, sakopoti punktotā laukumā, tāpēc šī diagramma pie tā soļa nav pilnībā mērogā.',
+        one: 'Solim {stepNums} ir ļoti liels dalījums — tur ir attēloti tikai pirmie {cap} kvadrāti, sakopoti punktotā laukumā, tāpēc šī diagramma pie tā soļa nav pilnībā mērogā.',
+        other: 'Soļiem {stepNums} ir ļoti liels dalījums — tur ir attēloti tikai pirmie {cap} kvadrāti, sakopoti punktotā laukumā, tāpēc šī diagramma pie šiem soļiem nav pilnībā mērogā.'
+      },
+      nestedTileTitle: 'Solis {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Solis {step}: {a} = {q}·{b} + {r} ({extra} papildu kvadrāti sakopoti šeit)',
+      tileEmptyMessage: 'Nav taisnstūra, ko sagriezt — b jau ir 0, tāpēc algoritms jau ir pabeigts.'
     }
   });
 })();
