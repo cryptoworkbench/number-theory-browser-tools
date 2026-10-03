@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared header chrome
    (brand, nav labels for all sixteen pages, the language switcher's own
-   label and the day/night toggle's label) in all fourteen supported languages.
+   label and the day/night toggle's label) in all sixteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -321,6 +321,50 @@
       'nav.shor': 'Šora algoritms',
       'lang.label': 'Valoda',
       'theme.toggle': 'Pārslēgt dienas un nakts režīmu'
+    },
+    ru: {
+      brand: 'Инструменты теории чисел',
+      'nav.label': 'Инструменты',
+      'nav.home': 'Главная',
+      'nav.sieve': 'Решето Эратосфена',
+      'nav.factorTree': 'Дерево множителей',
+      'nav.venn': 'Диаграмма Венна',
+      'nav.euclid': 'Алгоритм Евклида',
+      'nav.crt': 'Китайская теорема об остатках',
+      'nav.wheel': 'Колесо эквивалентности',
+      'nav.totient': 'Функция Эйлера',
+      'nav.cayley': 'Таблица Кэли',
+      'nav.iso': 'Изоморфизм групп',
+      'nav.sqm': 'Быстрое возведение в степень',
+      'nav.dh': 'Диффи-Хеллман',
+      'nav.ecdh': 'DH на эллиптических кривых',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Метод Ферма',
+      'nav.shor': 'Алгоритм Шора',
+      'lang.label': 'Язык',
+      'theme.toggle': 'Переключить дневной и ночной режим'
+    },
+    el: {
+      brand: 'Εργαλεία θεωρίας αριθμών',
+      'nav.label': 'Εργαλεία',
+      'nav.home': 'Αρχική',
+      'nav.sieve': 'Κόσκινο του Ερατοσθένη',
+      'nav.factorTree': 'Δέντρο παραγόντων',
+      'nav.venn': 'Διάγραμμα Venn',
+      'nav.euclid': 'Αλγόριθμος του Ευκλείδη',
+      'nav.crt': 'Κινεζικό θεώρημα υπολοίπων',
+      'nav.wheel': 'Τροχός ισοδυναμίας',
+      'nav.totient': 'Συνάρτηση φ του Euler',
+      'nav.cayley': 'Πίνακας Cayley',
+      'nav.iso': 'Ισομορφισμός ομάδων',
+      'nav.sqm': 'Γρήγορη ύψωση σε δύναμη',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH ελλειπτικών καμπυλών',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Μέθοδος του Fermat',
+      'nav.shor': 'Αλγόριθμος του Shor',
+      'lang.label': 'Γλώσσα',
+      'theme.toggle': 'Εναλλαγή ημερήσιας και νυχτερινής λειτουργίας'
     }
   });
 
@@ -612,6 +656,46 @@
       'speed.10': 'gandrīz acumirklīgs',
       additiveGroups: 'Aditīvās grupas',
       multiplicativeGroups: 'Multiplikatīvās grupas'
+    },
+    ru: {
+      play: '▶ Пуск',
+      pause: '⏸ Пауза',
+      step: '⏭ Шаг',
+      instant: '⏩ Сразу',
+      reset: '↺ Сброс',
+      speed: 'Скорость',
+      'speed.1': 'ледяная',
+      'speed.2': 'медленная',
+      'speed.3': 'плавная',
+      'speed.4': 'бодрая',
+      'speed.5': 'ровная',
+      'speed.6': 'живая',
+      'speed.7': 'быстрая',
+      'speed.8': 'стремительная',
+      'speed.9': 'молниеносная',
+      'speed.10': 'почти мгновенная',
+      additiveGroups: 'Аддитивные группы',
+      multiplicativeGroups: 'Мультипликативные группы'
+    },
+    el: {
+      play: '▶ Έναρξη',
+      pause: '⏸ Παύση',
+      step: '⏭ Βήμα',
+      instant: '⏩ Άμεσα',
+      reset: '↺ Επαναφορά',
+      speed: 'Ταχύτητα',
+      'speed.1': 'παγερή',
+      'speed.2': 'αργή',
+      'speed.3': 'ήπια',
+      'speed.4': 'ζωηρή',
+      'speed.5': 'σταθερή',
+      'speed.6': 'γοργή',
+      'speed.7': 'γρήγορη',
+      'speed.8': 'ταχεία',
+      'speed.9': 'αστραπιαία',
+      'speed.10': 'σχεδόν ακαριαία',
+      additiveGroups: 'Προσθετικές ομάδες',
+      multiplicativeGroups: 'Πολλαπλασιαστικές ομάδες'
     }
   });
 })();

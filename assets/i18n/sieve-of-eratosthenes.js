@@ -1,15 +1,15 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all fourteen supported
+   marker for the Sieve of Eratosthenes tool, in all sixteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
-   every language except Polish ({ one, few, many, other }), Romanian
-   ({ one, few, other }) and Latvian ({ zero, one, other }), each the CLDR
-   shape for that language); every other key is plain text. Placeholder
-   names ({n}, {time}, {count}) are identical across all fourteen
+   every language except Polish and Russian ({ one, few, many, other }),
+   Romanian ({ one, few, other }) and Latvian ({ zero, one, other }), each
+   the CLDR shape for that language); every other key is plain text.
+   Placeholder names ({n}, {time}, {count}) are identical across all sixteen
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -387,6 +387,60 @@
         zero: 'Atradām {count} pirmskaitļu līdz {n} {time} laikā.',
         one: 'Atradām {count} pirmskaitli līdz {n} {time} laikā.',
         other: 'Atradām {count} pirmskaitļus līdz {n} {time} laikā.'
+      }
+    },
+    ru: {
+      title: 'Решето Эратосфена — интерактивная визуализация',
+      heading: 'Решето Эратосфена',
+      lede: 'Дай каждому натуральному числу свою ячейку — и смотри, как решето вычёркивает всё, что не простое.',
+      sizeLabel: 'Размер решета (N)',
+      generate: '🧮 Создать',
+      'stat.current': 'Текущее',
+      'stat.primesFound': 'Найдено простых чисел',
+      'stat.sqrtBoundary': 'Граница √N',
+      'stat.elapsed': 'Прошло',
+      'stat.progress': 'Прогресс',
+      'stat.done': '✓ готово',
+      'legend.unvisited': '{0} Не посещено',
+      'legend.currentPointer': '{0} Текущий указатель',
+      'legend.prime': '{0} Простое',
+      'legend.composite': '{0} Вычеркнуто (составное)',
+      'legend.neither': '{0} Ни то ни другое (1)',
+      footer: 'Все вычисления выполняются на стороне клиента, в твоём браузере. Ни одно число не пострадало навсегда — только зачёркнуто.',
+      'banner.ready': 'Готово. Создано ячеек: {n} — нажми «Пуск», чтобы просеивать.',
+      'banner.single': 'Всего 1 ячейка — нечего просеивать.',
+      'banner.reset': 'Сброшено. Пересобрано ячеек: {n} — нажми «Пуск», чтобы просеивать.',
+      'banner.done': {
+        one: 'Найдено {count} простое число до {n} за {time}.',
+        few: 'Найдено {count} простых числа до {n} за {time}.',
+        many: 'Найдено {count} простых чисел до {n} за {time}.',
+        other: 'Найдено {count} простого числа до {n} за {time}.'
+      }
+    },
+    el: {
+      title: 'Κόσκινο του Ερατοσθένη — Διαδραστική απεικόνιση',
+      heading: 'Κόσκινο του Ερατοσθένη',
+      lede: 'Δώσε σε κάθε φυσικό αριθμό το δικό του κουτί — και δες πώς το κόσκινο διαγράφει όλα όσα δεν είναι πρώτα.',
+      sizeLabel: 'Μέγεθος κόσκινου (N)',
+      generate: '🧮 Δημιουργία',
+      'stat.current': 'Τρέχον',
+      'stat.primesFound': 'Πρώτοι που βρέθηκαν',
+      'stat.sqrtBoundary': 'Όριο √N',
+      'stat.elapsed': 'Πέρασε',
+      'stat.progress': 'Πρόοδος',
+      'stat.done': '✓ έτοιμο',
+      'legend.unvisited': '{0} Μη επισκεφθέν',
+      'legend.currentPointer': '{0} Τρέχων δείκτης',
+      'legend.prime': '{0} Πρώτος',
+      'legend.composite': '{0} Διαγραμμένο (σύνθετος)',
+      'legend.neither': '{0} Κανένα από τα δύο (1)',
+      footer: 'Όλοι οι υπολογισμοί εκτελούνται στην πλευρά του πελάτη, στο πρόγραμμα περιήγησής σου. Κανένας αριθμός δεν πάθαινε μόνιμη ζημιά — μόνο διαγραφή.',
+      'banner.ready': 'Έτοιμο. Κελιά που δημιουργήθηκαν: {n} — πάτα «Έναρξη» για να γίνει η διαγραφή.',
+      'banner.single': 'Μόνο 1 κελί — τίποτα για διαγραφή.',
+      'banner.reset': 'Έγινε επαναφορά. Κελιά που ξαναχτίστηκαν: {n} — πάτα «Έναρξη» για να γίνει η διαγραφή.',
+      'banner.done': {
+        one: 'Βρέθηκε {count} πρώτος αριθμός έως το {n} σε {time}.',
+        other: 'Βρέθηκαν {count} πρώτοι αριθμοί έως το {n} σε {time}.'
       }
     }
   });

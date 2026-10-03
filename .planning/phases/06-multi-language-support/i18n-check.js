@@ -714,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "en", "es", "fr", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "sv"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "el", "en", "es", "fr", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sv"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -883,6 +883,38 @@ function doApi() {
   check("lv trhl.count at 1.5 selects other", I.translate("trhl.count", { count: 1.5 }), "1.5 atslēgas");
   check("lv trhl.count at 1000000 selects zero", I.translate("trhl.count", { count: 1000000 }), "1000000 atslēgu");
 
+  // Russian {one, few, many, other} and Greek {one, other} selection,
+  // keyed off a synthetic namespace. The Russian "other" form carries a
+  // marker because Russian "few" and "other" share the genitive-singular
+  // noun form.
+  I.register("trel", {
+    en: { count: { one: "{count} key", other: "{count} keys" } },
+    ru: { count: { one: "{count} ключ", few: "{count} ключа", many: "{count} ключей", other: "{count} ключа (дробное)" } },
+    el: { count: { one: "{count} κλειδί", other: "{count} κλειδιά" } }
+  });
+  check("setLang('ru') returns true (trel)", I.setLang("ru"), true);
+  check("ru trel.count at 0 selects many", I.translate("trel.count", { count: 0 }), "0 ключей");
+  check("ru trel.count at 1 selects one", I.translate("trel.count", { count: 1 }), "1 ключ");
+  check("ru trel.count at 2 selects few", I.translate("trel.count", { count: 2 }), "2 ключа");
+  check("ru trel.count at 4 selects few", I.translate("trel.count", { count: 4 }), "4 ключа");
+  check("ru trel.count at 5 selects many", I.translate("trel.count", { count: 5 }), "5 ключей");
+  check("ru trel.count at 11 selects many", I.translate("trel.count", { count: 11 }), "11 ключей");
+  check("ru trel.count at 12 selects many", I.translate("trel.count", { count: 12 }), "12 ключей");
+  check("ru trel.count at 14 selects many", I.translate("trel.count", { count: 14 }), "14 ключей");
+  check("ru trel.count at 21 selects one", I.translate("trel.count", { count: 21 }), "21 ключ");
+  check("ru trel.count at 22 selects few", I.translate("trel.count", { count: 22 }), "22 ключа");
+  check("ru trel.count at 25 selects many", I.translate("trel.count", { count: 25 }), "25 ключей");
+  check("ru trel.count at 101 selects one", I.translate("trel.count", { count: 101 }), "101 ключ");
+  check("ru trel.count at 111 selects many", I.translate("trel.count", { count: 111 }), "111 ключей");
+  check("ru trel.count at 1.5 selects other", I.translate("trel.count", { count: 1.5 }), "1.5 ключа (дробное)");
+  check("ru trel.count at 1000000 selects many", I.translate("trel.count", { count: 1000000 }), "1000000 ключей");
+  check("setLang('el') returns true (trel)", I.setLang("el"), true);
+  check("el trel.count at 0 selects other", I.translate("trel.count", { count: 0 }), "0 κλειδιά");
+  check("el trel.count at 1 selects one", I.translate("trel.count", { count: 1 }), "1 κλειδί");
+  check("el trel.count at 2 selects other", I.translate("trel.count", { count: 2 }), "2 κλειδιά");
+  check("el trel.count at 1.5 selects other", I.translate("trel.count", { count: 1.5 }), "1.5 κλειδιά");
+  check("el trel.count at 1000000 selects other", I.translate("trel.count", { count: 1000000 }), "1000000 κλειδιά");
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -988,6 +1020,12 @@ function doApi() {
   check("setLang('lv-LV') returns false (region-tagged lv not supported)", I.setLang("lv-LV"), false);
   check("setLang('mo') returns false (deprecated Moldavian tag is not an allow-list code)", I.setLang("mo"), false);
   check("setLang('lt') returns false (Lithuanian not supported)", I.setLang("lt"), false);
+  check("setLang('ru-RU') returns false (region-tagged ru not supported)", I.setLang("ru-RU"), false);
+  check("setLang('el-GR') returns false (region-tagged el not supported)", I.setLang("el-GR"), false);
+  check("setLang('el-polyton') returns false (polytonic Greek variant tag not supported)", I.setLang("el-polyton"), false);
+  check("setLang('gr') returns false (gr is a country code, not a language code)", I.setLang("gr"), false);
+  check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
+  check("setLang('be') returns false (Belarusian not supported)", I.setLang("be"), false);
   I.SUPPORTED_LANGS.forEach(function (lang) {
     var upper = lang.toUpperCase();
     if (upper === lang) return;
@@ -1097,6 +1135,32 @@ function doApi() {
   check("detectDefaultLang(['ja','hu','en']) -> hu (first supported wins)", I.detectDefaultLang(), "hu");
   ctx.navigator = { languages: ["de-AT", "ro"] };
   check("detectDefaultLang(['de-AT','ro']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
+  ctx.navigator = { languages: ["ru-RU"] };
+  check("detectDefaultLang(['ru-RU']) -> ru", I.detectDefaultLang(), "ru");
+  ctx.navigator = { languages: ["ru-UA", "en"] };
+  check("detectDefaultLang(['ru-UA','en']) -> ru", I.detectDefaultLang(), "ru");
+  ctx.navigator = { languages: ["RU"] };
+  check("detectDefaultLang(['RU']) -> ru (case-insensitive)", I.detectDefaultLang(), "ru");
+  ctx.navigator = { languages: ["el-GR"] };
+  check("detectDefaultLang(['el-GR']) -> el", I.detectDefaultLang(), "el");
+  ctx.navigator = { languages: ["EL_gr", "en"] };
+  check("detectDefaultLang(['EL_gr','en']) -> el (case-insensitive, underscore separator)", I.detectDefaultLang(), "el");
+  ctx.navigator = { languages: ["el-CY"] };
+  check("detectDefaultLang(['el-CY']) -> el", I.detectDefaultLang(), "el");
+  ctx.navigator = { languages: ["uk-UA", "ru"] };
+  check("detectDefaultLang(['uk-UA','ru']) -> ru (Ukrainian not supported, falls through)", I.detectDefaultLang(), "ru");
+  ctx.navigator = { languages: ["be", "ru"] };
+  check("detectDefaultLang(['be','ru']) -> ru (Belarusian not supported, falls through)", I.detectDefaultLang(), "ru");
+  ctx.navigator = { languages: ["gr", "en"] };
+  check("detectDefaultLang(['gr','en']) -> en (gr is not a language code)", I.detectDefaultLang(), "en");
+  ctx.navigator = { languages: ["grc", "el"] };
+  check("detectDefaultLang(['grc','el']) -> el (Ancient Greek not supported, falls through)", I.detectDefaultLang(), "el");
+  ctx.navigator = { languages: ["sr-Cyrl-RS", "ru"] };
+  check("detectDefaultLang(['sr-Cyrl-RS','ru']) -> ru (Serbian not supported, falls through)", I.detectDefaultLang(), "ru");
+  ctx.navigator = { languages: ["ja", "el", "en"] };
+  check("detectDefaultLang(['ja','el','en']) -> el (first supported wins)", I.detectDefaultLang(), "el");
+  ctx.navigator = { languages: ["de-AT", "ru"] };
+  check("detectDefaultLang(['de-AT','ru']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
   I.SUPPORTED_LANGS.forEach(function (lang) {
     ctx.navigator = { languages: [lang] };
     check("detectDefaultLang(['" + lang + "']) round-trips to itself", I.detectDefaultLang(), lang);
@@ -1189,7 +1253,13 @@ function doPersistence() {
     { opts: { search: "?lang=mo", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url mo (deprecated Moldavian tag, unsupported) falls through to cookie" },
     { opts: { cookie: { initial: "lv-LV" }, storage: { initial: "es" } }, want: "es", label: "cookie lv-LV falls through to storage" },
     { opts: { storage: { initial: "lt" } }, want: "en", label: "storage lt (Lithuanian, unsupported) falls through to detected default" },
-    { opts: { storage: { initial: "RO" }, navigator: { languages: ["lv-LV", "en"] } }, want: "lv", label: "storage RO falls through to detected lv (navigator lv-LV)" }
+    { opts: { storage: { initial: "RO" }, navigator: { languages: ["lv-LV", "en"] } }, want: "lv", label: "storage RO falls through to detected lv (navigator lv-LV)" },
+    { opts: { search: "?lang=ru-RU", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url ru-RU (region-tagged ru, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=EL", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url EL (case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=gr", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url gr (country code, not a language code) falls through to cookie" },
+    { opts: { cookie: { initial: "el-GR" }, storage: { initial: "es" } }, want: "es", label: "cookie el-GR falls through to storage" },
+    { opts: { storage: { initial: "uk" } }, want: "en", label: "storage uk (Ukrainian, unsupported) falls through to detected default" },
+    { opts: { storage: { initial: "RU" }, navigator: { languages: ["el-GR", "en"] } }, want: "el", label: "storage RU falls through to detected el (navigator el-GR)" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1257,6 +1327,14 @@ function doPersistence() {
     check("detected hu default is not written to cookie", ctx._jar._log.length, 0);
   })();
 
+  (function () {
+    var ctx = loadI18n({ navigator: { languages: ["ru-RU", "en"] } });
+    check("detected ru (navigator ru-RU) resolves to ru", ctx.NT.i18n.getLang(), "ru");
+    var storageWrites = ctx._storage._log.filter(function (e) { return e[0] === "set"; });
+    check("detected ru default is not written to storage", storageWrites.length, 0);
+    check("detected ru default is not written to cookie", ctx._jar._log.length, 0);
+  })();
+
   // An explicit load-time choice IS persisted: localStorage first, then
   // cookie, in the exact theme.js-style attribute string, for every
   // supported language and every winning channel.
@@ -1272,7 +1350,9 @@ function doPersistence() {
     { opts: { cookie: { initial: "nb" } }, lang: "nb", via: "cookie" },
     { opts: { search: "?lang=ro" }, lang: "ro", via: "url" },
     { opts: { cookie: { initial: "hu" } }, lang: "hu", via: "cookie" },
-    { opts: { storage: { initial: "lv" } }, lang: "lv", via: "storage" }
+    { opts: { storage: { initial: "lv" } }, lang: "lv", via: "storage" },
+    { opts: { search: "?lang=ru" }, lang: "ru", via: "url" },
+    { opts: { cookie: { initial: "el" } }, lang: "el", via: "cookie" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1362,6 +1442,15 @@ function doPersistence() {
     ctx._fireStorage(I.LANG_STORAGE_KEY, "lv");
     check("storage event with lv re-applies html lang", ctx._doc.documentElement.lang, "lv");
     check("storage event with lv fires one more change event", ctx._changeEvents.length, changeAfterNb + 1);
+
+    var changeAfterLv = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "EL");
+    check("storage event with the case-mismatched EL is a no-op", ctx._doc.documentElement.lang, "lv");
+    check("storage event with EL fires no change event", ctx._changeEvents.length, changeAfterLv);
+
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ru");
+    check("storage event with ru re-applies html lang", ctx._doc.documentElement.lang, "ru");
+    check("storage event with ru fires one more change event", ctx._changeEvents.length, changeAfterLv + 1);
   })();
 
   // lang= is stripped from the address bar after init(), every other
@@ -1378,7 +1467,9 @@ function doPersistence() {
     { search: "?theme=day&lang=sv&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
     { search: "?lang=no", pathname: "/x.html", hash: "", calls: 0, want: null },
     { search: "?theme=day&lang=hu&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
-    { search: "?lang=ro-RO", pathname: "/x.html", hash: "", calls: 0, want: null }
+    { search: "?lang=ro-RO", pathname: "/x.html", hash: "", calls: 0, want: null },
+    { search: "?theme=day&lang=el&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
+    { search: "?lang=ru-RU", pathname: "/x.html", hash: "", calls: 0, want: null }
   ].forEach(function (c) {
     var ctx = loadI18n({ search: c.search, pathname: c.pathname, hash: c.hash, navigator: { languages: ["en-US", "en"] } });
     check("stripUrlParam call count for " + JSON.stringify(c.search), ctx.history._calls.length, c.calls);
@@ -1417,7 +1508,9 @@ var SWITCHER_OPTIONS = [
   { value: "nb", lang: "nb", label: "Norsk (bokmål)" },
   { value: "ro", lang: "ro", label: "Română" },
   { value: "hu", lang: "hu", label: "Magyar" },
-  { value: "lv", lang: "lv", label: "Latviešu" }
+  { value: "lv", lang: "lv", label: "Latviešu" },
+  { value: "ru", lang: "ru", label: "Русский" },
+  { value: "el", lang: "el", label: "Ελληνικά" }
 ];
 
 // LANG_CODES: derived from SWITCHER_OPTIONS, in the same order.
@@ -1433,10 +1526,10 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // because their "many" category applies only to exact multiples of
 // 1,000,000; their values stay {one, other} and the engine falls back to
 // other for that case.
-var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"] };
+var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"] };
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
-// extras — e.g. few,many,one,other for pl, few,one,other for ro,
+// extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
 // one,other,zero for lv, one,other for every other language.
 function expectedPluralCategories(lang) {
   var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
@@ -1533,6 +1626,92 @@ function isProse(text) {
     return true;
   }
   return false;
+}
+
+/* ---------- script rule (Russian/Greek, the first non-Latin scripts) ---------- */
+
+// Russian and Greek cannot be checked for leftover English by
+// IDENTICAL-TO-EN alone (a half-translated value is not identical to
+// English) or by the Latin-language function-word checks in isProse. This
+// data-driven rule catches a value written in the wrong script, a mixed
+// script, a word from the OTHER new language, or an untranslated English
+// value, while allowing a fixed list of genuine invariant Latin notation.
+// A later non-Latin-script language needs only its own SCRIPT_RULES entry.
+
+// SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic or Greek
+// value may keep — notation, a code identifier, an acronym, or a narrative
+// name present in the English value and kept literal by every existing
+// language.
+var SCRIPT_LATIN_NOTATION = [
+  "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "OAEP",
+  "PDF", "PNG", "QFT", "RSA", "SVG", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
+  "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
+];
+
+var SCRIPT_RULES = {
+  ru: {
+    own: /\p{Script=Cyrillic}/u,
+    foreign: /\p{Script=Greek}{2,}/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
+  el: {
+    own: /\p{Script=Greek}/u,
+    foreign: /\p{Script=Cyrillic}/u,
+    latin: SCRIPT_LATIN_NOTATION.concat([
+      "Bézout", "Cayley", "Diffie", "ElGamal", "Euler", "Fermat", "Hellman",
+      "Miller", "Rabin", "Shor", "Venn", "bit", "ms"
+    ])
+  }
+};
+
+// scriptFindings(id, lang, value, enValue): [] for a language without a
+// SCRIPT_RULES entry. Otherwise, with every {placeholder} replaced by a
+// space in both value and enValue, returns in order: SCRIPT-LATIN for each
+// maximal Latin run (>1 char) not on the language's own latin list,
+// SCRIPT-MIXED for each maximal letter run mixing two or more of
+// Latin/Cyrillic/Greek, SCRIPT-FOREIGN for the first match of the
+// language's `foreign` pattern, and SCRIPT-MISSING when the English value
+// has a translatable Latin word (a run >1 char not on the latin list) but
+// the value carries no letter of its own script at all.
+function scriptFindings(id, lang, value, enValue) {
+  var rule = SCRIPT_RULES[lang];
+  if (!rule) return [];
+  var findings = [];
+  var v = String(value == null ? "" : value).replace(/\{[A-Za-z0-9_]+\}/g, " ");
+  var en = String(enValue == null ? "" : enValue).replace(/\{[A-Za-z0-9_]+\}/g, " ");
+  var latinSet = {};
+  rule.latin.forEach(function (w) { latinSet[w] = true; });
+
+  var latinRuns = v.match(/[A-Za-z]+/g) || [];
+  latinRuns.forEach(function (w) {
+    if (w.length > 1 && !latinSet[w]) {
+      findings.push("SCRIPT-LATIN " + id + "." + lang + ": " + JSON.stringify(w));
+    }
+  });
+
+  var letterRuns = v.match(/\p{L}+/gu) || [];
+  letterRuns.forEach(function (w) {
+    var hasLatin = /[A-Za-z]/.test(w);
+    var hasCyrillic = /\p{Script=Cyrillic}/u.test(w);
+    var hasGreek = /\p{Script=Greek}/u.test(w);
+    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0);
+    if (scriptCount >= 2) {
+      findings.push("SCRIPT-MIXED " + id + "." + lang + ": " + JSON.stringify(w));
+    }
+  });
+
+  var foreignMatch = v.match(rule.foreign);
+  if (foreignMatch) {
+    findings.push("SCRIPT-FOREIGN " + id + "." + lang + ": " + JSON.stringify(foreignMatch[0]));
+  }
+
+  var enLatinRuns = en.match(/[A-Za-z]+/g) || [];
+  var enHasTranslatable = enLatinRuns.some(function (w) { return w.length > 1 && !latinSet[w]; });
+  if (enHasTranslatable && !rule.own.test(v)) {
+    findings.push("SCRIPT-MISSING " + id + "." + lang);
+  }
+
+  return findings;
 }
 
 /* ---------- per-page config (allowSame/allowLiteral/allowRenderText/...) ---------- */
@@ -1902,9 +2081,9 @@ function dataFileNsList(file) {
 // checkPluralEntry(ns, key, lang, entry, enEntry): the plural-shape,
 // empty-value, markup and placeholder checks for one language's plural
 // value, generalized over expectedPluralCategories(lang) so a listed
-// language's extra forms (pl's four: one, few, many, other; ro's three:
-// one, few, other; lv's three: zero, one, other) are checked exactly as
-// strictly as every other language's two (one, other).
+// language's extra forms (pl's and ru's four: one, few, many, other; ro's
+// three: one, few, other; lv's three: zero, one, other) are checked
+// exactly as strictly as every other language's two (one, other).
 function checkPluralEntry(ns, key, lang, entry, enEntry) {
   var findings = [];
   var expected = expectedPluralCategories(lang);
@@ -1937,9 +2116,9 @@ function checkPluralEntry(ns, key, lang, entry, enEntry) {
 // it), a finding naming that category. Covers every LANG_CODES language
 // (not just the ones listed in PLURAL_EXTRA_CATEGORIES), so a future
 // language whose CLDR rules need an extra category for whole counts
-// (Russian few/many) fails until it is listed there, while the
-// millions-only "many" of fr/es/it/pt-BR/pt-PT (which never fires for a
-// whole count in 0..1000) stays unlisted.
+// (Ukrainian would report many and few) fails until it is listed there,
+// while the millions-only "many" of fr/es/it/pt-BR/pt-PT (which never
+// fires for a whole count in 0..1000) stays unlisted.
 function pluralSelectionGaps(lang) {
   var findings = [];
   var rules;
@@ -2044,6 +2223,11 @@ function checkDictionaries() {
         var entry = langDict[key];
         if (enIsPlural) {
           findings.push.apply(findings, checkPluralEntry(ns, key, lang, entry, enEntry));
+          if (entry && typeof entry === "object") {
+            Object.keys(entry).forEach(function (cat) {
+              findings.push.apply(findings, scriptFindings(ns + "." + key + "." + cat, lang, entry[cat], enEntry.other));
+            });
+          }
         } else {
           if (typeof entry !== "string") { findings.push("PLURAL-SHAPE " + ns + "." + key + "." + lang + ": expected a plain string"); return; }
           if (entry === "") findings.push("EMPTY-VALUE " + ns + "." + key + "." + lang);
@@ -2056,6 +2240,7 @@ function checkDictionaries() {
             var allowKey = ns + "." + key;
             if (!allowSame[allowKey]) findings.push("IDENTICAL-TO-EN " + ns + "." + key + "." + lang);
           }
+          findings.push.apply(findings, scriptFindings(ns + "." + key, lang, entry, enEntry));
         }
       });
     });
@@ -2437,5 +2622,7 @@ module.exports = {
   pluralCategoryFindings: pluralCategoryFindings,
   pluralSelectionGaps: pluralSelectionGaps,
   SWITCHER_OPTIONS: SWITCHER_OPTIONS,
-  checkSwitcherPresent: checkSwitcherPresent
+  checkSwitcherPresent: checkSwitcherPresent,
+  SCRIPT_RULES: SCRIPT_RULES,
+  scriptFindings: scriptFindings
 };
