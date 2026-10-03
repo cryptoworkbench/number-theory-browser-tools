@@ -1863,31 +1863,13 @@ function extractSiteFooters(html) {
   return out;
 }
 
-// checkSiteFooter(relPath, html, canonical, findings): byte-exact placement
-// and drift checks for the canonical site footer (D-11). canonical is the
-// Sieve's own single site footer, or null if the Sieve itself lacks one.
-function checkSiteFooter(relPath, html, canonical, findings) {
+// checkNoSiteFooter(relPath, html, findings): quick 261003-nkr moved the
+// language switcher back into the header and retired the site footer, so a
+// page must carry no <footer class="site-footer"> at all.
+function checkNoSiteFooter(relPath, html, findings) {
   var footers = extractSiteFooters(html);
-  if (footers.length !== 1) {
-    findings.push("FOOTER-COUNT " + relPath + ": expected exactly 1 <footer class=\"site-footer\">, found " + footers.length);
-    return;
-  }
-  var footer = footers[0];
-  if (canonical !== null && footer !== canonical) {
-    var i = 0, maxLen = Math.min(footer.length, canonical.length);
-    while (i < maxLen && footer.charAt(i) === canonical.charAt(i)) i++;
-    findings.push("FOOTER-DRIFT " + relPath + " at offset " + i + ": " + JSON.stringify(footer.slice(i, i + 80)));
-  }
-  var afterIdx = html.indexOf(footer) + footer.length;
-  var bodyEndIdx = html.indexOf("</body>", afterIdx);
-  if (bodyEndIdx === -1) {
-    findings.push("FOOTER-POSITION " + relPath + ": no </body> found after the site footer");
-    return;
-  }
-  var tail = html.slice(afterIdx, bodyEndIdx);
-  var stripped = tail.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "").trim();
-  if (stripped.length) {
-    findings.push("FOOTER-POSITION " + relPath + ": only <script> elements may follow the site footer before </body>, found " + JSON.stringify(stripped.slice(0, 80)));
+  if (footers.length) {
+    findings.push("FOOTER-COUNT " + relPath + ": the site footer is retired (switcher lives in the header), found " + footers.length);
   }
 }
 
@@ -1929,13 +1911,10 @@ function checkSwitcherPresent(relPath, html, findings) {
     findings.push("SWITCHER " + relPath + ": expected 16 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
   }
   var header = extractHeaderHtml(html);
-  if (header !== null && header.indexOf("lang-switch") !== -1) {
-    findings.push("SWITCHER-IN-HEADER " + relPath + ": the site header must not contain the language switcher (it lives in the site footer)");
-  }
-  var footers = extractSiteFooters(html);
-  var footerHasSelect = footers.some(function (f) { return /<select\b[^>]*id="lang-switch-select"/.test(f); });
-  if (!footerHasSelect) {
-    findings.push("SWITCHER-NOT-IN-FOOTER " + relPath + ": #lang-switch-select must sit inside <footer class=\"site-footer\">");
+  if (header === null || !/<select\b[^>]*id="lang-switch-select"/.test(header)) {
+    findings.push("SWITCHER-NOT-IN-HEADER " + relPath + ": #lang-switch-select must sit inside <header class=\"site-header\">");
+  } else if (header.indexOf('class="lang-switch"') > header.indexOf('class="theme-switch"')) {
+    findings.push("SWITCHER-ORDER " + relPath + ": the language switcher must sit immediately left of the theme switch");
   }
 }
 
@@ -1946,11 +1925,6 @@ function checkHeader(targets, opts) {
   var sieveHtml = fs.readFileSync(sieveAbs, "utf8");
   var sieveHeader = extractHeaderHtml(sieveHtml);
   var sieveNorm = normalizeHeaderHtml(sieveHeader, "Sieve Of Eratosthenes");
-  var sieveFooters = extractSiteFooters(sieveHtml);
-  var canonicalFooter = sieveFooters.length === 1 ? sieveFooters[0] : null;
-  if (canonicalFooter === null) {
-    findings.push("FOOTER-COUNT Sieve Of Eratosthenes/sieve-of-eratosthenes.html (canonical reference): expected exactly 1 <footer class=\"site-footer\">");
-  }
 
   targets.forEach(function (relPath) {
     var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
@@ -1981,7 +1955,7 @@ function checkHeader(targets, opts) {
         findings.push("ACTIVE-LINK " + relPath + ": is-active href " + activeHrefs[0] + " does not resolve to the page itself (" + selfBase + ")");
       }
     }
-    checkSiteFooter(relPath, html, canonicalFooter, findings);
+    checkNoSiteFooter(relPath, html, findings);
     if (!opts.headerOnly) checkSwitcherPresent(relPath, html, findings);
   });
   return findings;
@@ -2489,6 +2463,9 @@ function looksLikeCode(str) {
   // An XML/SVG declaration or markup prolog built as a literal string
   // (`'<?xml version="1.0" ...?>'`), never displayed prose.
   if (/^<\?xml[\s>]/.test(str)) return true;
+  // A CSS media-feature query passed to matchMedia ("(prefers-color-scheme:
+  // light)"), never displayed prose.
+  if (/^\([a-z-]+:\s*[a-z0-9-]+\)$/.test(str)) return true;
   return false;
 }
 

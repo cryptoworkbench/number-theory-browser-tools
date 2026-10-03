@@ -34,10 +34,19 @@
    window.name is deliberately NOT used as a fallback: browsers reset it to
    "" on cross-origin navigation, and under file_unique_origin every file://
    navigation is cross-origin — so it is cleared by the very hop it would
-   need to survive. */
+   need to survive.
+
+   With no explicit choice in any of those channels the page follows the
+   operating system's prefers-color-scheme and keeps following it live;
+   nothing is persisted and no link is decorated until the visitor flips the
+   toggle, so the OS preference stays in charge on every page. */
 (function(){
   "use strict";
-  var STORAGE_KEY = 'site-theme';
+  /* Explicit choices only. The legacy 'site-theme' key is dropped on load:
+     earlier builds saved the hard-coded 'night' default for every visitor,
+     so a value there cannot be told apart from a real choice. */
+  var STORAGE_KEY = 'site-theme-choice';
+  var LEGACY_KEY = 'site-theme';
   var THEME_PARAM = 'theme';
   var PARAM_RE = new RegExp('([?&])' + THEME_PARAM + '=[^&]*&?');
 
@@ -61,14 +70,33 @@
     try{ return valid(localStorage.getItem(STORAGE_KEY)); }catch(e){ return null; }
   }
 
+  var systemQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+
+  function fromSystem(){
+    return (systemQuery && systemQuery.matches) ? 'day' : 'night';
+  }
+
+  function explicitTheme(){
+    return fromUrl() || fromCookie() || fromStorage();
+  }
+
   function readTheme(){
-    return fromUrl() || fromCookie() || fromStorage() || 'night';
+    return explicitTheme() || fromSystem();
   }
 
   function persist(theme){
     try{ localStorage.setItem(STORAGE_KEY, theme); }catch(e){}
     try{
       document.cookie = STORAGE_KEY + '=' + theme + ';path=/;max-age=31536000;samesite=lax';
+    }catch(e){}
+  }
+
+  function dropLegacy(){
+    try{ localStorage.removeItem(LEGACY_KEY); }catch(e){}
+    try{
+      if (new RegExp('(?:^|; *)' + LEGACY_KEY + '=').test(document.cookie || '')){
+        document.cookie = LEGACY_KEY + '=;path=/;max-age=0;samesite=lax';
+      }
     }catch(e){}
   }
 
@@ -87,15 +115,15 @@
     }
   }
 
-  function applyTheme(theme, input){
+  function applyTheme(theme, input, explicit){
     document.documentElement.setAttribute('data-theme', theme);
     if (input) input.checked = (theme === 'day');
-    decorateLinks(theme);
+    if (explicit) decorateLinks(theme);
   }
 
   function setTheme(theme){
     persist(theme);
-    applyTheme(theme, document.getElementById('theme-switch-input'));
+    applyTheme(theme, document.getElementById('theme-switch-input'), true);
   }
 
   /* The ?theme= that brought us here has been copied into the durable stores,
@@ -147,12 +175,13 @@
 
   function init(){
     initMenu();
-    var theme = readTheme();
-    persist(theme);
+    dropLegacy();
+    var explicit = explicitTheme();
+    if (explicit) persist(explicit);
     stripUrlParam();
 
     var input = document.getElementById('theme-switch-input');
-    applyTheme(theme, input);
+    applyTheme(explicit || fromSystem(), input, !!explicit);
 
     if (input){
       input.addEventListener('change', function(){
@@ -161,9 +190,17 @@
     }
     window.addEventListener('storage', function(e){
       if (e.key === STORAGE_KEY){
-        applyTheme(readTheme(), document.getElementById('theme-switch-input'));
+        var chosen = explicitTheme();
+        applyTheme(chosen || fromSystem(), document.getElementById('theme-switch-input'), !!chosen);
       }
     });
+    if (systemQuery){
+      var follow = function(){
+        if (!explicitTheme()) applyTheme(fromSystem(), document.getElementById('theme-switch-input'), false);
+      };
+      if (systemQuery.addEventListener) systemQuery.addEventListener('change', follow);
+      else if (systemQuery.addListener) systemQuery.addListener(follow);
+    }
   }
 
   if (document.readyState === 'loading'){

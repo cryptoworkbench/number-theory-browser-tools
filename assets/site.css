@@ -1,7 +1,7 @@
-/* Shared site chrome: header (brand, nav, day/night toggle) plus the site
-   footer (language switcher), at the top and bottom of every page.
-   Loaded by every page alongside that page's own <style> block. Header and
-   footer colors derive from assets/palette.css (the single source of color
+/* Shared site chrome: the header (brand, Tools menu, language switcher,
+   day/night toggle) at the top of every page.
+   Loaded by every page alongside that page's own <style> block. Header
+   colors derive from assets/palette.css (the single source of color
    truth for the whole site), so they re-theme automatically via the
    same [data-theme] attribute the palette itself responds to. */
 
@@ -237,15 +237,14 @@
   outline-offset: 2px;
 }
 
-/* Language switcher — the only control in the site footer. It sits
-   centered on its own row at every width, and keeps the header's own
-   tokens (background, border, select styling) so header and footer read
-   as one chrome in both themes. */
+/* Language switcher — sits in the header row, just left of the day/night
+   toggle, styled to match the Tools button beside it. */
 .lang-switch{
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: none;
+  min-width: 0;
   color: var(--st-header-text-dim);
 }
 .lang-switch-icon{
@@ -259,9 +258,10 @@
 .lang-switch select{
   font: inherit;
   font-size: 0.875rem;
-  height: 32px;
+  height: 34px;
+  max-width: 11.5rem;
   color: var(--st-header-text);
-  background: var(--surface);
+  background: transparent;
   border: 1px solid var(--st-header-border);
   border-radius: var(--radius-ctl);
   padding: 0 8px;
@@ -316,73 +316,6 @@ button.icon-btn{
 .icon-btn[aria-pressed="false"] .sound-wave{ display: none; }
 .icon-btn[aria-pressed="true"]{ color: var(--accent); border-color: var(--accent); }
 
-/* Site footer — holds the language switcher only. Ten pages carry their
-   own bare `footer{}` element rule in their own <style> block (margin,
-   padding, font-family, font-size, line-height, color, text-align, and on
-   some pages opacity 0.6 or white-space nowrap + overflow-x auto). Because
-   .site-footer is a class selector it outranks those element selectors,
-   but every property those page rules might set is still declared here
-   explicitly so none of them can leak through. position:sticky with
-   top:100vh pins this footer to the bottom of its containing block (body)
-   without taking it out of the normal flow, and z-index:2 keeps it above
-   Factor Tree's fixed decorative sky/snow layers (z-index 0/1), while
-   staying below the RSA/Diffie-Hellman fixed panel (900) and the sticky
-   header (1000). */
-.site-footer{
-  position: sticky;
-  top: 100vh;
-  z-index: 2;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  background: var(--st-header-bg);
-  border-top: 1px solid var(--st-header-border);
-  color: var(--st-header-text);
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: normal;
-  text-align: center;
-  opacity: 1;
-  white-space: normal;
-  overflow: visible;
-}
-.site-footer-inner{
-  box-sizing: border-box;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-/* Screen-only flush guarantee: this footer's bottom edge is always the
-   document's bottom edge, and on a page shorter than the viewport it is
-   also the viewport's bottom edge. A flex or grid body with margin-top:
-   auto on the footer was rejected: an auto-margined flex/grid item sizes
-   itself to fit-content instead of stretching, which shrank some pages'
-   own containers and moved hundreds of unrelated elements in testing. The
-   selector html > body (not a bare body selector) is used because its
-   higher specificity outranks every page's own body min-height rule,
-   several of which never resolve a percentage height; without it this
-   min-height is silently overridden on multiple pages. The rule is screen
-   only because printed pages already hide this footer, so this min-height
-   never affects a printed layout. Rule for pages: never add body padding
-   or margin below the site footer; bottom room a page needs is page-local
-   padding-bottom on .site-footer instead. */
-@media screen{
-  html > body{
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-}
-
-@media print{
-  .site-footer{ display: none; }
-}
-
 @media (max-width: 760px){
   .site-header-inner{ padding: 0 12px; gap: 6px; }
   .site-nav{
@@ -393,9 +326,14 @@ button.icon-btn{
     grid-auto-flow: row;
   }
 }
+@media (max-width: 560px){
+  .lang-switch-icon{ display: none; }
+  .lang-switch select{ max-width: 8.5rem; }
+}
 @media (max-width: 420px){
   .site-nav{ grid-template-columns: minmax(0, 1fr); }
   .theme-switch-icon{ display: none; }
+  .lang-switch select{ max-width: 6.5rem; }
 }
 @media (prefers-reduced-motion: reduce){
   .site-menu-chevron, .theme-switch-thumb, .site-nav-link, .site-menu-toggle{ transition: none; }

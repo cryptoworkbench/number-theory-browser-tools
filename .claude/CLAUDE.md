@@ -51,7 +51,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 - No environment variables required
 - All configuration via CSS custom properties (`:root` variables)
-- Theme system (day/night mode) persisted in `localStorage` under key `site-theme`
+- Theme system (day/night mode) follows the OS `prefers-color-scheme` by default; an explicit toggle choice is persisted under key `site-theme-choice` (legacy `site-theme` is deleted on load)
 - Language preference (nl/en/de/fr/es/it/pl/pt-BR/pt-PT/sv/nb/ro/hu/lv/ru/el) persisted under key `site-lang`, mirroring the theme preference's cookie + localStorage pattern exactly (same cookie attributes, same URL-param > cookie > localStorage > browser-default read order), owned entirely by `assets/nt-i18n.js`; the `?lang=` URL parameter can override it for one load and is stripped from the address bar after the value is folded into the durable stores
 - `Intl.PluralRules` is the one `Intl` API this project uses (for pluralizing a dictionary value with a `{one, other}` shape, or `{one, few, many, other}` for Polish and Russian, `{one, few, other}` for Romanian or `{zero, one, other}` for Latvian); no other `Intl` formatting (number/date/currency) is used — numerals stay plain and locale-independent per I18N-06
 - Background colors: `--bg`, `--bg-1`, `--bg-2`
@@ -71,7 +71,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 ## Storage
 
-- `localStorage` for theme preference (`site-theme` key) and language preference (`site-lang` key, a raw language code, either two-letter or the region-tagged `pt-BR`/`pt-PT`, same cookie + localStorage pattern as theme)
+- `localStorage` for explicit theme choice (`site-theme-choice` key) and language preference (`site-lang` key, a raw language code, either two-letter or the region-tagged `pt-BR`/`pt-PT`, same cookie + localStorage pattern as theme)
 - Per-tool state persistence in `localStorage`:
 - All calculations are ephemeral
 - No user accounts, sessions, or databases
@@ -211,7 +211,7 @@ An educational website of interactive, visualization-led browser tools that make
 | Fermat's Method Tool | Visualize Fermat's factoring method via algebra → geometry | `Fermats Method/fermats-method.html` |
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
-| Site Chrome | Sticky header (tool navigation, day/night toggle) and site footer (language switcher) | `assets/site.css`, `assets/theme.js` |
+| Site Chrome | Sticky header (tool navigation, language switcher, day/night toggle) | `assets/site.css`, `assets/theme.js` |
 | Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layouts, and multi-language translation used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js` |
 
 ## Pattern Overview
@@ -228,7 +228,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 - Purpose: Landing page and tool discovery
 - Location: `index.html`
-- Contains: Hero text, card grid with links to each tool, shared site header/footer
+- Contains: Hero text, card grid with links to each tool, shared site header
 - Depends on: `assets/site.css`, `assets/theme.js`
 - Used by: User's first entry point; nav from other pages links back here
 - Purpose: Individual tool UI — controls, visualizations, outputs, interactive elements
@@ -236,9 +236,9 @@ An educational website of interactive, visualization-led browser tools that make
 - Contains: Inline `<style>` block with tool-specific CSS + animations, static markup (inputs, buttons, SVG containers), inline `<script>` with logic
 - Depends on: `assets/site.css`, `assets/theme.js`, Google Fonts
 - Used by: Browser navigation directly to tool file
-- Purpose: Consistent header, navigation, theme toggle and language-switcher footer across all pages
+- Purpose: Consistent header, navigation, language switcher and theme toggle across all pages
 - Location: `assets/site.css` (styling), `assets/theme.js` (interactivity)
-- Contains: Sticky header HTML and site footer HTML, both included in each page's markup, CSS for layout, JavaScript for theme persistence
+- Contains: Sticky header HTML included in each page's markup, CSS for layout, JavaScript for theme persistence
 - Depends on: localStorage API
 - Used by: Every page includes `<link rel="stylesheet" href="../assets/site.css">` and `<script defer src="../assets/theme.js"></script>`
 - Purpose: Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layout algorithms, and multi-language translation used by more than one tool
@@ -247,7 +247,7 @@ An educational website of interactive, visualization-led browser tools that make
 - Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, i18n, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded; a page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` translation-data files are included after `nt-i18n.js`, in the same non-deferred style
 - Used by: every tool page that imports one or more `NT.NAME` namespaces via its import block
 - Purpose: Site-wide multi-language translation — language resolution, DOM text binding, durable persistence, and cross-tab/cross-session sync, so a visitor's chosen language follows them across every tool
-- Location: `assets/nt-i18n.js` (`NT.i18n` — the engine: `translate`/`translateInto`/`bindText`/`applyStaticDom`/`setLang`/`getLang`/`onLangChange`/`detectDefaultLang`), the data files under `assets/i18n/` (`site.js`'s shared `site` and `common` namespaces plus one page-specific namespace per tool, e.g. `assets/i18n/sieve-of-eratosthenes.js`; `index.html`'s is `assets/i18n/hub.js`), and the canonical site footer's `#lang-switch-select` switcher
+- Location: `assets/nt-i18n.js` (`NT.i18n` — the engine: `translate`/`translateInto`/`bindText`/`applyStaticDom`/`setLang`/`getLang`/`onLangChange`/`detectDefaultLang`), the data files under `assets/i18n/` (`site.js`'s shared `site` and `common` namespaces plus one page-specific namespace per tool, e.g. `assets/i18n/sieve-of-eratosthenes.js`; `index.html`'s is `assets/i18n/hub.js`), and the canonical site header's `#lang-switch-select` switcher
 - Contains: sixteen supported languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
 - Load order: the sixth shared module, included after `nt-layout.js` and before a page's own `assets/i18n/*.js` data files and its inline `<script>`
 - Used by: every tool page; a page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state when the active language changes, without resetting tool state (grid, scan position, playback, selections)
@@ -293,7 +293,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 ### Language Switch Flow
 
-1. **User selects a language** in the site footer's `#lang-switch-select` → `NT.i18n.setLang(code)`
+1. **User selects a language** in the site header's `#lang-switch-select` → `NT.i18n.setLang(code)`
 2. **Persistence** → an explicit choice is written to `localStorage` under `site-lang` first, then to the cookie `site-lang=<code>;path=/;max-age=31536000;samesite=lax`; a detected browser default is never written
 3. **DOM update** → `applyStaticDom()` re-binds every `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder` element, decorates same-site links with `&lang=`/`?lang=`, and updates `<html lang>`
 4. **Page re-render** → the page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state, without resetting tool state
@@ -374,7 +374,7 @@ An educational website of interactive, visualization-led browser tools that make
 
 - Factor Tree: `'factor-tree'`
 - Congruence Wheel: `'congruence-wheel'`
-- RSA: keeps no tool-specific key; persists nothing beyond the shared `site-theme` preference
+- RSA: keeps no tool-specific key; persists nothing beyond the shared theme preference
 
 ## Error Handling
 

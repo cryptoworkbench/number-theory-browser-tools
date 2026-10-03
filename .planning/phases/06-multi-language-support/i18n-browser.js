@@ -115,7 +115,7 @@ var MUTANT_SCRIPTS = {
   // MUTANT-SURVIVED (the mutation silently applied to zero elements).
   "en-change": "<script>document.addEventListener('DOMContentLoaded', function(){ var el=document.querySelector('[data-i18n]'); if (el) el.textContent = el.textContent + ' MUTATED'; });</script>",
   "overflow": "<script>document.addEventListener('DOMContentLoaded', function(){ if (document.documentElement.lang !== 'en'){ var d=document.createElement('div'); d.id='i18n-mutant-overflow'; d.style.width='2000px'; d.style.height='1px'; document.body.appendChild(d); } });</script>",
-  "footer-extra": "<script>document.addEventListener('DOMContentLoaded', function(){ var inner=document.querySelector('.site-footer-inner'); if (!inner) return; var s=document.createElement('span'); s.id='i18n-mutant-footer-extra'; s.textContent='extra'; inner.appendChild(s); });</script>"
+  "footer-extra": "<script>document.addEventListener('DOMContentLoaded', function(){ var inner=document.querySelector('.lang-switch'); if (!inner) return; var s=document.createElement('span'); s.id='i18n-mutant-footer-extra'; s.textContent='extra'; inner.appendChild(s); });</script>"
 };
 
 function injectCustomMutant(html, mutantKind) {
@@ -251,31 +251,26 @@ function stripLangStorage(snap, key) {
   return Object.assign({}, snap, { storage: storage, cookie: cookie });
 }
 
-// CANONICAL_FOOTER_RE (D-12): matches the canonical site footer only when it
-// holds exactly the canonical switcher shape — nothing else inside it, with
-// the option count taken from i18nCheck.SWITCHER_OPTIONS.length — so a
-// footer carrying extra content (or a switcher placed anywhere else, like
-// back in the header) is left in the snapshot and produces a DIFF. Built
-// once at module level; snapshots are already whitespace-collapsed
-// (`>\s+<` -> `><`) by browser-diff.js's capture script, so this pattern
-// has no whitespace between tags.
-var CANONICAL_FOOTER_RE = new RegExp(
-  '<footer class="site-footer">' +
-  '<div class="site-footer-inner">' +
+// CANONICAL_SWITCHER_RE (D-12, revised by quick 261003-nkr): matches the
+// canonical language-switcher label in the header, holding exactly the
+// canonical select shape with the option count taken from
+// i18nCheck.SWITCHER_OPTIONS.length, so a switcher with extra content is
+// left in the snapshot and produces a DIFF. Snapshots are already
+// whitespace-collapsed (`>\s+<` -> `><`) by browser-diff.js's capture
+// script, so this pattern has no whitespace between tags.
+var CANONICAL_SWITCHER_RE = new RegExp(
   '<label class="lang-switch" title="[^"]*">' +
   '<span class="lang-switch-icon" aria-hidden="true">[^<]*</span>' +
   '<select id="lang-switch-select" aria-label="[^"]*">' +
   '(?:<option value="[^"]*" lang="[^"]*"(?: selected="")?>[^<]*</option>){' + i18nCheck.SWITCHER_OPTIONS.length + '}' +
   '</select>' +
-  '</label>' +
-  '</div>' +
-  '</footer>'
+  '</label>'
 );
 
 function stripI18nArtifacts(html) {
   var out = html;
   out = out.replace(/\s*data-i18n(?:-title|-aria-label|-placeholder|-params)?="[^"]*"/g, "");
-  out = out.replace(CANONICAL_FOOTER_RE, "");
+  out = out.replace(CANONICAL_SWITCHER_RE, "");
   // href values are HTML-entity-encoded in the serialized snapshot (& -> &amp;)
   out = out.replace(/href="([^"]*)"/g, function (m, href) {
     var newHref = href
