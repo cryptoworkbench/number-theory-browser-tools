@@ -134,7 +134,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 
 **Styling (Shared):**
 
-- `assets/site.css` — Header, nav, theme switch, site footer and language switch styling (loaded by every page)
+- `assets/site.css` — Header, nav, theme switch, site footer (a sticky footer, flush with the bottom of the page and of the viewport) and language switch styling (loaded by every page)
 
 **Styling (Tool-Specific):**
 
