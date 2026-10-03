@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-03T10:51:49.791Z"
+last_updated: "2026-10-03T13:44:13.092Z"
 last_activity: 2026-10-03
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 67b63b35ea34759fac11da421e38cc5f3df4dc9a
+state_head: a6da48857dcf3536f6076d3e4fa159a698998580
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-03 - Completed quick task 261003-i23: RSA/DH panel docked above the footer, 240px footer reserve dropped
+Last activity: 2026-10-03 - Completed quick task 261003-kwa: mature visual refinement (calmer palette, one-row header with Tools menu, unified type and controls, no emoji, grouped hub)
 
 Progress: [█████████░] 86%
 
@@ -296,6 +296,7 @@ None yet.
 | 261003-bqz | Move the language switcher from the header into a shared site footer on all 16 pages — palette-token footer styles, RSA/DH scratchpad clearance, gates and docs updated, true-375px footer probe | 2026-10-03 | 46f6c9e | [261003-bqz-move-the-language-switcher-to-a-shared-s](./quick/261003-bqz-move-the-language-switcher-to-a-shared-s/) |
 | 261003-fcr | Fix the site footer so it sits flush at the bottom of the viewport/document on all 16 pages — sticky footer + screen-only body min-height, RSA/DH panel reserve moved inside the footer, flush probe across 5 desktop sizes x 2 themes | 2026-10-03 | 67b63b3 | [261003-fcr-fix-site-footer-so-it-sits-flush-at-the-](./quick/261003-fcr-fix-site-footer-so-it-sits-flush-at-the-/) |
 | 261003-i23 | Drop the 240px footer reserve on RSA/DH (footer was a mostly empty ~300px band); dock the public-values panel in a zero-height sticky wrapper so it rests on the footer's top edge | 2026-10-03 | c722ed8 | [261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-](./quick/261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-/) |
+| 261003-kwa | Mature visual refinement: calmer palette, one-row header with Tools menu, unified type and controls, no emoji, grouped hub | 2026-10-03 | a6da488 | [261003-kwa-mature-visual-refinement-calmer-palette-](./quick/261003-kwa-mature-visual-refinement-calmer-palette-/) |
 
 ## Deferred Items
 
