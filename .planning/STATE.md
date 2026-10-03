@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-03 - Completed quick task 261003-fcr: Site footer sits flush at the bottom of every page
+Last activity: 2026-10-03 - Completed quick task 261003-i23: RSA/DH panel docked above the footer, 240px footer reserve dropped
 
 Progress: [█████████░] 86%
 
@@ -295,6 +295,7 @@ None yet.
 | 261003-57k | Add Russian (ru) and Greek (el) as the fifteenth and sixteenth supported languages site-wide — first non-Latin scripts (system fallback font, no CSS change), switcher on all 16 pages, complete dictionaries in all 18 namespaces with Russian one/few/many/other plurals, new script-correctness gate, glossary and living docs updated | 2026-10-03 | c30ae5e | [261003-57k-add-russian-ru-and-greek-el-as-supported](./quick/261003-57k-add-russian-ru-and-greek-el-as-supported/) |
 | 261003-bqz | Move the language switcher from the header into a shared site footer on all 16 pages — palette-token footer styles, RSA/DH scratchpad clearance, gates and docs updated, true-375px footer probe | 2026-10-03 | 46f6c9e | [261003-bqz-move-the-language-switcher-to-a-shared-s](./quick/261003-bqz-move-the-language-switcher-to-a-shared-s/) |
 | 261003-fcr | Fix the site footer so it sits flush at the bottom of the viewport/document on all 16 pages — sticky footer + screen-only body min-height, RSA/DH panel reserve moved inside the footer, flush probe across 5 desktop sizes x 2 themes | 2026-10-03 | 67b63b3 | [261003-fcr-fix-site-footer-so-it-sits-flush-at-the-](./quick/261003-fcr-fix-site-footer-so-it-sits-flush-at-the-/) |
+| 261003-i23 | Drop the 240px footer reserve on RSA/DH (footer was a mostly empty ~300px band); dock the public-values panel in a zero-height sticky wrapper so it rests on the footer's top edge | 2026-10-03 | c722ed8 | [261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-](./quick/261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-/) |
 
 ## Deferred Items
 
