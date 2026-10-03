@@ -783,20 +783,43 @@ function modeStyle(opts) {
 
   siteInfo.cleanup();
 
-  themes.forEach(function (theme) {
-    var strs = pages.map(function (p) { return JSON.stringify(byTheme[theme][p]); });
-    var uniq = {};
-    strs.forEach(function (s) { uniq[s] = true; });
-    if (Object.keys(uniq).length !== 1) fails.push(theme + ": not all " + pages.length + " pages share one computed-style vector");
+  // Quick task 261003-fcr, D-08b: paddingBottom now legitimately differs by
+  // page (240px on RSA/Diffie-Hellman, 0px elsewhere), so pin it per page
+  // first, then compare the *shared* vector (paddingBottom removed) across
+  // all pages -- that part of the footer's computed style is still one
+  // vector everywhere.
+  pages.forEach(function (relPath) {
+    themes.forEach(function (theme) {
+      var payload = byTheme[theme][relPath];
+      if (!payload) return;
+      var expected = RESERVE_PAGES.indexOf(relPath) !== -1 ? "240px" : "0px";
+      if (payload.paddingBottom !== expected) {
+        fails.push(relPath + " " + theme + ": paddingBottom = " + JSON.stringify(payload.paddingBottom) + " expected " + JSON.stringify(expected));
+      }
+    });
   });
 
-  var night = byTheme.night[pages[0]], day = byTheme.day[pages[0]];
+  function withoutPaddingBottom(payload) {
+    if (!payload) return payload;
+    var copy = {};
+    Object.keys(payload).forEach(function (k) { if (k !== "paddingBottom") copy[k] = payload[k]; });
+    return copy;
+  }
+
+  themes.forEach(function (theme) {
+    var strs = pages.map(function (p) { return JSON.stringify(withoutPaddingBottom(byTheme[theme][p])); });
+    var uniq = {};
+    strs.forEach(function (s) { uniq[s] = true; });
+    if (Object.keys(uniq).length !== 1) fails.push(theme + ": not all " + pages.length + " pages share one shared computed-style vector (paddingBottom excluded)");
+  });
+
+  var night = withoutPaddingBottom(byTheme.night[pages[0]]), day = withoutPaddingBottom(byTheme.day[pages[0]]);
   if (night && day && JSON.stringify(night) === JSON.stringify(day)) fails.push("night vec equals day vec");
 
   if (night) {
     var expect = {
       opacity: "1", whiteSpace: "normal", overflowX: "visible", marginTop: "0px", marginBottom: "0px",
-      textAlign: "center", position: "relative", zIndex: "2", innerJustify: "center", innerMaxWidth: "1180px",
+      textAlign: "center", position: "sticky", zIndex: "2", innerJustify: "center", innerMaxWidth: "1180px",
       langSwitchMarginLeft: "0px"
     };
     Object.keys(expect).forEach(function (k) {
@@ -920,10 +943,13 @@ function modeNeg(opts) {
   try { fs.rmSync(r2, { recursive: true, force: true }); } catch (e) { /* best effort */ }
 
   var r3 = makeScratchCopy("footer-neg-scratch-");
+  // Quick task 261003-fcr, D-08c: re-anchored on the D-06 reserve line
+  // (now `.site-footer{ padding-bottom: 240px; }`), since body no longer
+  // carries the reserve.
   ["RSA/rsa.html", "Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html"].forEach(function (rel) {
     var p = path.join(r3, rel);
     var s = fs.readFileSync(p, "utf8");
-    var mutated = s.replace("  body{ padding-bottom: 240px; }", "  .app{ padding-bottom: 240px; }");
+    var mutated = s.replace("  .site-footer{ padding-bottom: 240px; }", "  .app{ padding-bottom: 240px; }");
     if (mutated === s) throw new Error("NEG-SCRATCH: reserve-line anchor not found in " + rel);
     fs.writeFileSync(p, mutated);
   });
