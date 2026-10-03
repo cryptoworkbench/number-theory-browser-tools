@@ -297,6 +297,7 @@ None yet.
 | 261003-fcr | Fix the site footer so it sits flush at the bottom of the viewport/document on all 16 pages — sticky footer + screen-only body min-height, RSA/DH panel reserve moved inside the footer, flush probe across 5 desktop sizes x 2 themes | 2026-10-03 | 67b63b3 | [261003-fcr-fix-site-footer-so-it-sits-flush-at-the-](./quick/261003-fcr-fix-site-footer-so-it-sits-flush-at-the-/) |
 | 261003-i23 | Drop the 240px footer reserve on RSA/DH (footer was a mostly empty ~300px band); dock the public-values panel in a zero-height sticky wrapper so it rests on the footer's top edge | 2026-10-03 | c722ed8 | [261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-](./quick/261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-/) |
 | 261003-kwa | Mature visual refinement: calmer palette, one-row header with Tools menu, unified type and controls, no emoji, grouped hub | 2026-10-03 | a6da488 | [261003-kwa-mature-visual-refinement-calmer-palette-](./quick/261003-kwa-mature-visual-refinement-calmer-palette-/) |
+| 261003-nkr | Theme follows OS preference, language switcher back in header (site footer retired), intro prose spans full width | 2026-10-03 | e2e5642 | [261003-nkr-theme-follows-system-theme-language-swit](./quick/261003-nkr-theme-follows-system-theme-language-swit/) |
 
 ## Deferred Items
 
@@ -308,8 +309,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02
-Stopped at: Quick task 261002-c77 complete — Italian added as sixth supported language; ready to plan Phase 4
+Last session: 2026-10-03
+Stopped at: Quick task 261003-nkr complete — OS-following theme, header language switcher, full-width prose
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
