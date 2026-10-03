@@ -29,7 +29,6 @@
   NT.i18n.register('euclid', {
     nl: {
       title: 'Algoritme van Euclides',
-      eyebrow: 'getaltheorie · algoritme van euclides',
       heading: 'Algoritme van Euclides',
       lede: 'Vervang het paar (a, b) herhaaldelijk door (b, a mod b) — deel de grootste door de kleinste en houd alleen de rest over — en het paar wordt elke stap kleiner. Zodra één kant nul bereikt, is de andere kant de grootste gemene deler van de twee getallen waarmee je begon.',
       xref: 'Diezelfde ggd is ook te zien als de priemfactoren die de twee getallen delen →',
@@ -81,7 +80,6 @@
     },
     en: {
       title: 'Euclidean Algorithm',
-      eyebrow: 'number theory · euclidean algorithm',
       heading: 'Euclidean Algorithm',
       lede: 'Repeatedly replace the pair (a, b) with (b, a mod b) — divide the larger by the smaller and keep only the remainder — and the pair shrinks every step. The moment one side reaches zero, the other side is the greatest common divisor of the two numbers you started with.',
       xref: 'The same GCD can also be seen as the primes the two numbers share →',
@@ -133,7 +131,6 @@
     },
     de: {
       title: 'Euklidischer Algorithmus',
-      eyebrow: 'zahlentheorie · euklidischer algorithmus',
       heading: 'Euklidischer Algorithmus',
       lede: 'Ersetze das Paar (a, b) wiederholt durch (b, a mod b) — teile die größere Zahl durch die kleinere und behalte nur den Rest — und das Paar wird mit jedem Schritt kleiner. Sobald eine Seite null erreicht, ist die andere Seite der größte gemeinsame Teiler der beiden Zahlen, mit denen du begonnen hast.',
       xref: 'Derselbe ggT lässt sich auch als die Primfaktoren sehen, die sich die beiden Zahlen teilen →',
@@ -185,7 +182,6 @@
     },
     fr: {
       title: "Algorithme d'Euclide",
-      eyebrow: "théorie des nombres · algorithme d'euclide",
       heading: "Algorithme d'Euclide",
       lede: "Remplacez de façon répétée la paire (a, b) par (b, a mod b) — divisez le plus grand par le plus petit et ne gardez que le reste — et la paire se réduit à chaque étape. Dès qu'un côté atteint zéro, l'autre côté est le plus grand commun diviseur des deux nombres de départ.",
       xref: 'Le même PGCD peut aussi se voir comme les facteurs premiers que les deux nombres partagent →',
@@ -237,7 +233,6 @@
     },
     es: {
       title: 'Algoritmo de Euclides',
-      eyebrow: 'teoría de números · algoritmo de euclides',
       heading: 'Algoritmo de Euclides',
       lede: 'Sustituye repetidamente el par (a, b) por (b, a mod b) — divide el mayor entre el menor y conserva solo el resto — y el par se reduce en cada paso. En el momento en que un lado llega a cero, el otro lado es el máximo común divisor de los dos números con los que empezaste.',
       xref: 'El mismo mcd también puede verse como los factores primos que comparten los dos números →',
@@ -289,7 +284,6 @@
     },
     it: {
       title: 'Algoritmo di Euclide',
-      eyebrow: 'teoria dei numeri · algoritmo di euclide',
       heading: 'Algoritmo di Euclide',
       lede: 'Sostituisci ripetutamente la coppia (a, b) con (b, a mod b) — dividi il numero più grande per il più piccolo e conserva solo il resto — e la coppia si riduce a ogni passo. Nel momento in cui un lato raggiunge zero, l’altro lato è il massimo comun divisore dei due numeri di partenza.',
       xref: 'Lo stesso MCD si può vedere anche come i fattori primi che i due numeri condividono →',
@@ -341,7 +335,6 @@
     },
     pl: {
       title: 'Algorytm Euklidesa',
-      eyebrow: 'teoria liczb · algorytm euklidesa',
       heading: 'Algorytm Euklidesa',
       lede: 'Zastępuj parę (a, b) wielokrotnie parą (b, a mod b) — dziel większą liczbę przez mniejszą i zachowuj tylko resztę — a para zmniejsza się z każdym krokiem. W chwili, gdy jedna strona dojdzie do zera, druga strona jest największym wspólnym dzielnikiem dwóch liczb, od których zacząłeś.',
       xref: 'Ten sam NWD można też zobaczyć jako czynniki pierwsze wspólne dla obu liczb →',
@@ -406,7 +399,6 @@
     },
     'pt-BR': {
       title: 'Algoritmo de Euclides',
-      eyebrow: 'teoria dos números · algoritmo de euclides',
       heading: 'Algoritmo de Euclides',
       lede: 'Substitua repetidamente o par (a, b) por (b, a mod b) — divida o maior pelo menor e mantenha apenas o resto — e o par encolhe a cada etapa. No momento em que um lado chega a zero, o outro lado é o máximo divisor comum dos dois números com que você começou.',
       xref: 'O mesmo MDC também pode ser visto como os primos que os dois números compartilham →',
@@ -458,7 +450,6 @@
     },
     'pt-PT': {
       title: 'Algoritmo de Euclides',
-      eyebrow: 'teoria dos números · algoritmo de euclides',
       heading: 'Algoritmo de Euclides',
       lede: 'Substitui repetidamente o par (a, b) por (b, a mod b) — divide o maior pelo menor e mantém apenas o resto — e o par encolhe a cada etapa. No momento em que um lado chega a zero, o outro lado é o máximo divisor comum dos dois números com que começaste.',
       xref: 'O mesmo m.d.c. também pode ser visto como os primos que os dois números partilham →',
@@ -510,7 +501,6 @@
     },
     sv: {
       title: 'Euklides algoritm',
-      eyebrow: 'talteori · euklides algoritm',
       heading: 'Euklides algoritm',
       lede: 'Ersätt paret (a, b) upprepade gånger med (b, a mod b) — dividera det större med det mindre och behåll bara resten — och paret blir mindre vid varje steg. I det ögonblick en sida når noll är den andra sidan den största gemensamma delaren av de två tal du började med.',
       xref: 'Samma SGD kan också ses som de primtal de två talen delar →',
@@ -562,7 +552,6 @@
     },
     nb: {
       title: 'Euklids algoritme',
-      eyebrow: 'tallteori · euklids algoritme',
       heading: 'Euklids algoritme',
       lede: 'Erstatt paret (a, b) gjentatte ganger med (b, a mod b) — divider det større med det mindre og behold bare resten — og paret blir mindre for hvert steg. Når en side når null, er den andre siden den største felles divisoren av de to tallene du startet med.',
       xref: 'Samme SFD kan også ses som primtallene de to tallene deler →',
@@ -614,7 +603,6 @@
     },
     ro: {
       title: 'Algoritmul lui Euclid',
-      eyebrow: 'teoria numerelor · algoritmul lui Euclid',
       heading: 'Algoritmul lui Euclid',
       lede: 'Înlocuiește în mod repetat perechea (a, b) cu (b, a mod b) — împarte numărul mai mare la cel mai mic și păstrează doar restul — iar perechea se micșorează la fiecare pas. În momentul în care o parte atinge zero, cealaltă parte este cel mai mare divizor comun al celor două numere cu care ai început.',
       xref: 'Același cmmdc poate fi văzut și ca factorii primi comuni celor două numere →',
@@ -670,7 +658,6 @@
     },
     hu: {
       title: 'Euklideszi algoritmus',
-      eyebrow: 'számelmélet · euklideszi algoritmus',
       heading: 'Euklideszi algoritmus',
       lede: 'Ismételten helyettesítsd az (a, b) párt (b, a mod b)-vel — oszd el a nagyobbat a kisebbel, és csak a maradékot tartsd meg —, és a pár minden lépésnél kisebb lesz. Amint egy oldal elér a nullát, a másik oldal a két kezdő szám legnagyobb közös osztója.',
       xref: 'Ugyanez az lnko a két szám közös prímtényezőiként is látható →',
@@ -722,7 +709,6 @@
     },
     lv: {
       title: 'Eiklīda algoritms',
-      eyebrow: 'skaitļu teorija · Eiklīda algoritms',
       heading: 'Eiklīda algoritms',
       lede: 'Atkārtoti aizstāj pāri (a, b) ar (b, a mod b) — dali lielāko ar mazāko un paturi tikai atlikumu — un pāris samazinās ar katru soli. Tiklīdz viena puse sasniedz nulli, otra puse ir lielākais kopīgais dalītājs diviem skaitļiem, ar kuriem sāki.',
       xref: 'To pašu LKD var redzēt arī kā pirmreizinātājus, kas kopīgi abiem skaitļiem →',
@@ -778,7 +764,6 @@
     },
     ru: {
       title: 'Алгоритм Евклида',
-      eyebrow: 'теория чисел · алгоритм евклида',
       heading: 'Алгоритм Евклида',
       lede: 'Повторно заменяй пару (a, b) на (b, a mod b) — дели большее на меньшее и оставляй только остаток — и пара уменьшается на каждом шаге. В тот момент, когда одна сторона достигает нуля, другая сторона — наибольший общий делитель двух чисел, с которых ты начал.',
       xref: 'Тот же НОД можно увидеть и как простые множители, общие для обоих чисел →',
@@ -838,7 +823,6 @@
     },
     el: {
       title: 'Αλγόριθμος του Ευκλείδη',
-      eyebrow: 'θεωρία αριθμών · αλγόριθμος του ευκλείδη',
       heading: 'Αλγόριθμος του Ευκλείδη',
       lede: 'Αντικατάστησε επανειλημμένα το ζεύγος (a, b) με το (b, a mod b) — διαίρεσε το μεγαλύτερο με το μικρότερο και κράτησε μόνο το υπόλοιπο — και το ζεύγος μικραίνει σε κάθε βήμα. Τη στιγμή που η μία πλευρά φτάσει στο μηδέν, η άλλη πλευρά είναι ο μέγιστος κοινός διαιρέτης των δύο αριθμών από τους οποίους ξεκίνησες.',
       xref: 'Ο ίδιος ΜΚΔ μπορεί επίσης να φανεί ως οι πρώτοι παράγοντες που μοιράζονται οι δύο αριθμοί →',

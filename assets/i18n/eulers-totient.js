@@ -25,7 +25,6 @@
   NT.i18n.register('totient', {
     nl: {
       title: 'Eulers phi-functie',
-      eyebrow: 'getaltheorie · eulers phi-functie',
       heading: 'Eulers phi-functie',
       lede: 'φ(n) telt hoeveel van 1 … n−1 geen factor met n delen, en deze pagina ontdekt dat op de enige eerlijke manier — door het algoritme van Euclides naar elk van hen afzonderlijk te vragen.',
       xref: 'Diezelfde telling duikt op als de taartpunten van de multiplicatieve groep mod n →',
@@ -49,7 +48,6 @@
     },
     en: {
       title: "Euler's Totient Function",
-      eyebrow: "number theory · euler's totient",
       heading: "Euler's Totient Function",
       lede: 'φ(n) counts how many of 1 … n−1 share no factor with n, and this page finds out the only honest way — by asking the Euclidean algorithm about every single one of them.',
       xref: 'The same count shows up as the wedges of the multiplicative group mod n →',
@@ -73,7 +71,6 @@
     },
     de: {
       title: 'Eulersche Phi-Funktion',
-      eyebrow: 'zahlentheorie · eulersche phi-funktion',
       heading: 'Eulersche Phi-Funktion',
       lede: 'φ(n) zählt, wie viele der Zahlen 1 … n−1 keinen Faktor mit n teilen, und diese Seite findet das auf die einzig ehrliche Weise heraus — indem sie den euklidischen Algorithmus zu jeder einzelnen von ihnen befragt.',
       xref: 'Dieselbe Zählung taucht als die Sektoren der multiplikativen Gruppe mod n wieder auf →',
@@ -97,7 +94,6 @@
     },
     fr: {
       title: "La fonction indicatrice d'Euler",
-      eyebrow: "théorie des nombres · indicatrice d'euler",
       heading: "La fonction indicatrice d'Euler",
       lede: "φ(n) compte combien de nombres parmi 1 … n−1 ne partagent aucun facteur avec n, et cette page le découvre de la seule manière honnête — en interrogeant l'algorithme d'Euclide sur chacun d'eux.",
       xref: 'Le même compte réapparaît comme les secteurs du groupe multiplicatif mod n →',
@@ -121,7 +117,6 @@
     },
     es: {
       title: 'La función φ de Euler',
-      eyebrow: 'teoría de números · función φ de euler',
       heading: 'La función φ de Euler',
       lede: 'φ(n) cuenta cuántos de 1 … n−1 no comparten ningún factor con n, y esta página lo averigua de la única forma honesta — preguntándole al algoritmo de Euclides sobre cada uno de ellos.',
       xref: 'El mismo recuento aparece como los sectores del grupo multiplicativo mod n →',
@@ -145,7 +140,6 @@
     },
     it: {
       title: 'Funzione φ di Eulero',
-      eyebrow: 'teoria dei numeri · funzione φ di eulero',
       heading: 'Funzione φ di Eulero',
       lede: 'φ(n) conta quanti numeri tra 1 … n−1 non condividono nessun fattore con n, e questa pagina lo scopre nell’unico modo onesto — chiedendo all’algoritmo di Euclide di ciascuno di essi.',
       xref: 'Lo stesso conteggio ricompare come i settori del gruppo moltiplicativo mod n →',
@@ -169,7 +163,6 @@
     },
     pl: {
       title: 'Funkcja φ Eulera',
-      eyebrow: 'teoria liczb · funkcja φ eulera',
       heading: 'Funkcja φ Eulera',
       lede: 'φ(n) liczy, ile spośród 1 … n−1 nie ma żadnego wspólnego czynnika z n, a ta strona odkrywa to w jedyny uczciwy sposób — pytając algorytm Euklidesa o każdą z nich po kolei.',
       xref: 'Ten sam wynik pojawia się jako wycinki grupy multiplikatywnej modulo n →',
@@ -195,7 +188,6 @@
     },
     'pt-BR': {
       title: 'Função φ de Euler',
-      eyebrow: 'teoria dos números · função φ de euler',
       heading: 'Função φ de Euler',
       lede: 'φ(n) conta quantos de 1 … n−1 não compartilham nenhum fator com n, e esta página descobre isso do único jeito honesto — perguntando ao algoritmo de Euclides sobre cada um deles.',
       xref: 'A mesma contagem aparece como os setores do grupo multiplicativo mod n →',
@@ -219,7 +211,6 @@
     },
     'pt-PT': {
       title: 'Função φ de Euler',
-      eyebrow: 'teoria dos números · função φ de euler',
       heading: 'Função φ de Euler',
       lede: 'φ(n) conta quantos de 1 … n−1 não partilham nenhum fator com n, e esta página descobre isso da única forma honesta — perguntando ao algoritmo de Euclides sobre cada um deles.',
       xref: 'A mesma contagem aparece como os setores do grupo multiplicativo mod n →',
@@ -243,7 +234,6 @@
     },
     sv: {
       title: 'Eulers φ-funktion',
-      eyebrow: 'talteori · eulers φ-funktion',
       heading: 'Eulers φ-funktion',
       lede: 'φ(n) räknar hur många av 1 … n−1 som inte delar någon faktor med n, och den här sidan tar reda på det på det enda ärliga sättet — genom att fråga Euklides algoritm om var och en av dem.',
       xref: 'Samma antal dyker upp som sektorerna i den multiplikativa gruppen mod n →',
@@ -267,7 +257,6 @@
     },
     nb: {
       title: 'Eulers φ-funksjon',
-      eyebrow: 'tallteori · eulers φ-funksjon',
       heading: 'Eulers φ-funksjon',
       lede: 'φ(n) teller hvor mange av 1 … n−1 som ikke deler noen faktor med n, og denne siden finner det ut på den eneste ærlige måten — ved å spørre Euklids algoritme om hver enkelt av dem.',
       xref: 'Det samme antallet dukker opp som sektorene i den multiplikative gruppen mod n →',
@@ -291,7 +280,6 @@
     },
     ro: {
       title: 'Funcția φ a lui Euler',
-      eyebrow: 'teoria numerelor · funcția φ a lui Euler',
       heading: 'Funcția φ a lui Euler',
       lede: 'φ(n) numără câte dintre 1 … n−1 nu au niciun factor comun cu n, iar această pagină află asta în singurul mod cinstit — întrebând algoritmul lui Euclid despre fiecare dintre ele.',
       xref: 'Aceeași numărătoare apare ca feliile grupului multiplicativ modulo n →',
@@ -316,7 +304,6 @@
     },
     hu: {
       title: 'Euler-féle φ-függvény',
-      eyebrow: 'számelmélet · euler-féle φ-függvény',
       heading: 'Euler-féle φ-függvény',
       lede: 'A φ(n) megszámolja, hány szám van az 1 … n−1 közül, amelynek nincs közös osztója n-nel, és ez az oldal az egyetlen becsületes módon deríti ki ezt — megkérdezve az euklideszi algoritmust mindegyikükről.',
       xref: 'Ugyanez a szám jelenik meg a mod n multiplikatív csoport körcikkeiként →',
@@ -340,7 +327,6 @@
     },
     lv: {
       title: 'Eilera φ funkcija',
-      eyebrow: 'skaitļu teorija · eilera φ funkcija',
       heading: 'Eilera φ funkcija',
       lede: 'φ(n) saskaita, cik no 1 … n−1 nav kopīga dalītāja ar n, un šī lapa to atklāj vienīgajā godīgajā veidā — jautājot Eiklīda algoritmam par katru no tiem.',
       xref: 'Tas pats skaits parādās kā multiplikatīvās grupas pēc moduļa n sektori →',
@@ -365,7 +351,6 @@
     },
     ru: {
       title: 'Функция Эйлера',
-      eyebrow: 'теория чисел · функция эйлера',
       heading: 'Функция Эйлера',
       lede: 'φ(n) считает, сколько чисел из 1 … n−1 не имеют общего делителя с n, и эта страница узнаёт это единственным честным способом — спрашивая алгоритм Евклида про каждое из них.',
       xref: 'То же число появляется как секторы мультипликативной группы по модулю n →',
@@ -391,7 +376,6 @@
     },
     el: {
       title: 'Συνάρτηση φ του Euler',
-      eyebrow: 'θεωρία αριθμών · συνάρτηση φ του Euler',
       heading: 'Συνάρτηση φ του Euler',
       lede: 'Η φ(n) μετρά πόσοι από τους 1 … n−1 δεν έχουν κοινό παράγοντα με το n, και αυτή η σελίδα το βρίσκει με τον μόνο έντιμο τρόπο — ρωτώντας τον αλγόριθμο του Ευκλείδη για καθέναν από αυτούς.',
       xref: 'Το ίδιο πλήθος εμφανίζεται ως οι τομείς της πολλαπλασιαστικής ομάδας mod n →',

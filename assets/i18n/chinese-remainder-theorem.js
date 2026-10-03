@@ -25,7 +25,6 @@
   NT.i18n.register('crt', {
     nl: {
       title: 'Chinese reststelling',
-      eyebrow: 'getaltheorie · chinese reststelling',
       heading: 'Chinese reststelling',
       lede: 'Elke congruentie op zichzelf selecteert een gelijk verdeelde familie van getallen — elk derde getal, elk vijfde getal, enzovoort. Als de moduli geen gemeenschappelijke factor delen, kruisen die families elkaar op precies één plek in elke reeks van {0} getallen. Die ene kruising is de gelijktijdige oplossing waarin elke rij het eens is.',
       xref: 'Bekijk de modulaire inverse van de eerste congruentie stap voor stap berekend in het hulpmiddel Algoritme van Euclides →',
@@ -63,7 +62,6 @@
     },
     en: {
       title: 'Chinese Remainder Theorem',
-      eyebrow: 'number theory · chinese remainder theorem',
       heading: 'Chinese Remainder Theorem',
       lede: 'Each congruence on its own picks out an evenly-spaced family of numbers — every third number, every fifth number, and so on. When the moduli share no common factor, those families cross at exactly one place in every stretch of {0} numbers. That single crossing is the simultaneous solution every row agrees on.',
       xref: "See the first congruence's modular inverse computed step by step in the Euclidean Algorithm tool →",
@@ -101,7 +99,6 @@
     },
     de: {
       title: 'Chinesischer Restsatz',
-      eyebrow: 'zahlentheorie · chinesischer restsatz',
       heading: 'Chinesischer Restsatz',
       lede: 'Jede Kongruenz wählt für sich eine gleichmäßig verteilte Familie von Zahlen aus — jede dritte Zahl, jede fünfte Zahl und so weiter. Wenn die Moduln keinen gemeinsamen Faktor teilen, kreuzen sich diese Familien an genau einer Stelle in jedem Abschnitt von {0} Zahlen. Diese eine Kreuzung ist die gleichzeitige Lösung, der jede Zeile zustimmt.',
       xref: 'Sieh dir das modulare Inverse der ersten Kongruenz Schritt für Schritt im Werkzeug Euklidischer Algorithmus berechnet an →',
@@ -139,7 +136,6 @@
     },
     fr: {
       title: 'Théorème des restes chinois',
-      eyebrow: 'théorie des nombres · théorème des restes chinois',
       heading: 'Théorème des restes chinois',
       lede: "Chaque congruence sélectionne à elle seule une famille de nombres régulièrement espacés — un nombre sur trois, un nombre sur cinq, et ainsi de suite. Lorsque les modules ne partagent aucun facteur commun, ces familles se croisent en exactement un point dans chaque intervalle de {0} nombres. Ce croisement unique est la solution simultanée sur laquelle chaque ligne s'accorde.",
       xref: "Voyez l'inverse modulaire de la première congruence calculé étape par étape dans l'outil Algorithme d'Euclide →",
@@ -177,7 +173,6 @@
     },
     es: {
       title: 'Teorema chino del resto',
-      eyebrow: 'teoría de números · teorema chino del resto',
       heading: 'Teorema chino del resto',
       lede: 'Cada congruencia por sí sola selecciona una familia de números espaciados uniformemente — cada tercer número, cada quinto número, y así sucesivamente. Cuando los módulos no comparten ningún factor común, esas familias se cruzan en exactamente un lugar en cada tramo de {0} números. Ese único cruce es la solución simultánea con la que coincide cada fila.',
       xref: 'Mira el inverso modular de la primera congruencia calculado paso a paso en la herramienta Algoritmo de Euclides →',
@@ -215,7 +210,6 @@
     },
     it: {
       title: 'Teorema cinese del resto',
-      eyebrow: 'teoria dei numeri · teorema cinese del resto',
       heading: 'Teorema cinese del resto',
       lede: 'Ogni congruenza da sola seleziona una famiglia di numeri equamente distanziati — ogni terzo numero, ogni quinto numero, e così via. Quando i moduli non condividono nessun fattore comune, quelle famiglie si incrociano in esattamente un punto in ogni intervallo di {0} numeri. Quell’unico incrocio è la soluzione simultanea su cui ogni riga concorda.',
       xref: 'Guarda l’inverso modulare della prima congruenza calcolato passo dopo passo nello strumento Algoritmo di Euclide →',
@@ -253,7 +247,6 @@
     },
     pl: {
       title: 'Chińskie twierdzenie o resztach',
-      eyebrow: 'teoria liczb · chińskie twierdzenie o resztach',
       heading: 'Chińskie twierdzenie o resztach',
       lede: 'Każda kongruencja sama wybiera równomiernie rozłożoną rodzinę liczb — co trzecią liczbę, co piątą liczbę i tak dalej. Gdy moduły nie mają żadnego wspólnego czynnika, te rodziny przecinają się w dokładnie jednym miejscu w każdym odcinku {0} liczb. To jedno przecięcie jest wspólnym rozwiązaniem, na które zgadza się każdy wiersz.',
       xref: 'Zobacz odwrotność modularną pierwszej kongruencji obliczoną krok po kroku w narzędziu Algorytm Euklidesa →',
@@ -291,7 +284,6 @@
     },
     'pt-BR': {
       title: 'Teorema chinês do resto',
-      eyebrow: 'teoria dos números · teorema chinês do resto',
       heading: 'Teorema chinês do resto',
       lede: 'Cada congruência, por si só, escolhe uma família de números igualmente espaçados — todo terceiro número, todo quinto número, e assim por diante. Quando os módulos não compartilham nenhum fator comum, essas famílias se cruzam em exatamente um ponto em cada trecho de {0} números. Esse único cruzamento é a solução simultânea com a qual toda linha concorda.',
       xref: 'Veja o inverso modular da primeira congruência calculado passo a passo na ferramenta Algoritmo de Euclides →',
@@ -329,7 +321,6 @@
     },
     'pt-PT': {
       title: 'Teorema chinês dos restos',
-      eyebrow: 'teoria dos números · teorema chinês dos restos',
       heading: 'Teorema chinês dos restos',
       lede: 'Cada congruência, por si só, escolhe uma família de números igualmente espaçados — cada terceiro número, cada quinto número, e assim por diante. Quando os módulos não partilham nenhum fator comum, essas famílias cruzam-se em exatamente um ponto em cada trecho de {0} números. Esse único cruzamento é a solução simultânea com a qual todas as linhas concordam.',
       xref: 'Vê o inverso modular da primeira congruência calculado passo a passo na ferramenta Algoritmo de Euclides →',
@@ -367,7 +358,6 @@
     },
     sv: {
       title: 'Kinesiska restsatsen',
-      eyebrow: 'talteori · kinesiska restsatsen',
       heading: 'Kinesiska restsatsen',
       lede: 'Varje kongruens väljer för sig en jämnt fördelad familj av tal — vart tredje tal, vart femte tal, och så vidare. När modulerna inte delar någon gemensam faktor korsar dessa familjer varandra på exakt ett ställe i varje sträcka av {0} tal. Den enda korsningen är den samtidiga lösning som varje rad är överens om.',
       xref: 'Se den första kongruensens modulära invers beräknad steg för steg i verktyget Euklides algoritm →',
@@ -405,7 +395,6 @@
     },
     nb: {
       title: 'Den kinesiske restsetningen',
-      eyebrow: 'tallteori · den kinesiske restsetningen',
       heading: 'Den kinesiske restsetningen',
       lede: 'Hver kongruens velger for seg en jevnt fordelt familie av tall — hvert tredje tall, hvert femte tall, og så videre. Når modulene ikke deler noen felles faktor, krysser disse familiene hverandre på nøyaktig ett sted i hver strekning av {0} tall. Den ene krysningen er den samtidige løsningen som hver rad er enig om.',
       xref: 'Se den første kongruensens modulære invers beregnet steg for steg i verktøyet Euklids algoritme →',
@@ -443,7 +432,6 @@
     },
     ro: {
       title: 'Teorema chineză a resturilor',
-      eyebrow: 'teoria numerelor · teorema chineză a resturilor',
       heading: 'Teorema chineză a resturilor',
       lede: 'Fiecare congruență, luată separat, selectează o familie de numere distribuite uniform — fiecare al treilea număr, fiecare al cincilea număr, și așa mai departe. Când modulii nu au niciun factor comun, aceste familii se intersectează exact într-un singur loc, în fiecare interval de {0} numere. Această unică intersecție este soluția simultană pe care o acceptă fiecare rând.',
       xref: 'Vezi inversul modular al primei congruențe calculat pas cu pas în instrumentul Algoritmul lui Euclid →',
@@ -481,7 +469,6 @@
     },
     hu: {
       title: 'Kínai maradéktétel',
-      eyebrow: 'számelmélet · kínai maradéktétel',
       heading: 'Kínai maradéktétel',
       lede: 'Minden kongruencia önmagában egy egyenletesen elosztott számcsaládot választ ki — minden harmadik számot, minden ötödik számot, és így tovább. Ha a moduluszoknak nincs közös osztójuk, ezek a családok pontosan egy helyen metszik egymást minden {0} számos szakaszban. Ez az egyetlen metszéspont az a közös megoldás, amelyben minden sor egyetért.',
       xref: 'Nézd meg az első kongruencia moduláris inverzét lépésről lépésre kiszámítva az Euklideszi algoritmus eszközben →',
@@ -519,7 +506,6 @@
     },
     lv: {
       title: 'Ķīniešu atlikumu teorēma',
-      eyebrow: 'skaitļu teorija · ķīniešu atlikumu teorēma',
       heading: 'Ķīniešu atlikumu teorēma',
       lede: 'Katra kongruence pati par sevi izvēlas vienmērīgi izklātu skaitļu saimi — katru trešo skaitli, katru piekto skaitli, un tā tālāk. Kad moduļiem nav kopīga dalītāja, šīs saimes krustojas tieši vienā vietā katrā {0} skaitļu nogrieznī. Šis vienīgais krustpunkts ir vienlaicīgs risinājums, par kuru vienojas katra rinda.',
       xref: 'Skaties, kā pirmās kongruences modulārā inversija tiek aprēķināta solis pa solim rīkā Eiklīda algoritms →',
@@ -557,7 +543,6 @@
     },
     ru: {
       title: 'Китайская теорема об остатках',
-      eyebrow: 'теория чисел · китайская теорема об остатках',
       heading: 'Китайская теорема об остатках',
       lede: 'Каждое сравнение само по себе выбирает равномерно расставленное семейство чисел — каждое третье число, каждое пятое число и так далее. Когда модули не имеют общего делителя, эти семейства пересекаются ровно в одном месте в каждом промежутке из {0} чисел. Это единственное пересечение — одновременное решение, с которым согласна каждая строка.',
       xref: 'Смотри, как модульный обратный элемент первого сравнения вычисляется шаг за шагом в инструменте «Алгоритм Евклида» →',
@@ -595,7 +580,6 @@
     },
     el: {
       title: 'Κινεζικό θεώρημα υπολοίπων',
-      eyebrow: 'θεωρία αριθμών · κινεζικό θεώρημα υπολοίπων',
       heading: 'Κινεζικό θεώρημα υπολοίπων',
       lede: 'Κάθε ισοτιμία από μόνη της επιλέγει μια ομοιόμορφα κατανεμημένη οικογένεια αριθμών — κάθε τρίτο αριθμό, κάθε πέμπτο αριθμό, και ούτω καθεξής. Όταν τα μέτρα δεν έχουν κοινό παράγοντα, αυτές οι οικογένειες τέμνονται σε ακριβώς ένα σημείο σε κάθε διάστημα {0} αριθμών. Αυτή η μοναδική τομή είναι η ταυτόχρονη λύση που συμφωνεί κάθε γραμμή.',
       xref: 'Δες τον αντίστροφο ως προς το μέτρο της πρώτης ισοτιμίας να υπολογίζεται βήμα προς βήμα στο εργαλείο Αλγόριθμος του Ευκλείδη →',
