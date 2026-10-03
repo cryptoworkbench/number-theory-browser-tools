@@ -7,19 +7,20 @@
  *
  * Usage:
  *   node i18n-browser.js "<page>" [--mode en-parity,langs,switch,layout]
- *   node i18n-browser.js "<page>" --mutant untranslated|stale-switch|en-change|overflow
+ *   node i18n-browser.js "<page>" --mutant untranslated|stale-switch|en-change|overflow|footer-extra
  *
  * Modes:
  *   en-parity  OLD (pre-nt-i18n BASE) vs NEW with ?lang=en, after stripping
- *              i18n-only artifacts (data-i18n* attrs, the lang-switch
- *              element, lang= query params, the site-lang storage/cookie
+ *              i18n-only artifacts (data-i18n* attrs, the canonical site
+ *              footer — only when it holds nothing but the language
+ *              switcher, lang= query params, the site-lang storage/cookie
  *              entry) from NEW — must be byte-identical.
  *   langs      NEW in every non-English supported language (+ one extra
  *              day-theme run): no errors, correct <html lang>/theme, no
  *              untranslated (English) prose segment surviving in a
  *              non-English run.
  *   switch     at each switchPoint, switching language mid-flight (via the
- *              header select + a change event) must produce the exact same
+ *              footer select + a change event) must produce the exact same
  *              snapshot as loading directly in that language at that point.
  *   layout     375px viewport per language; no language may overflow more
  *              than English + 8px.
@@ -30,6 +31,7 @@
  *   stale-switch  -> targets switch      (injects text that never re-renders)
  *   en-change     -> targets en-parity   (mutates one English text node)
  *   overflow      -> targets layout      (injects a 2000px-wide block)
+ *   footer-extra  -> targets en-parity   (adds extra content inside the site footer)
  */
 "use strict";
 
@@ -112,7 +114,8 @@ var MUTANT_SCRIPTS = {
   // mutant against another page's en-parity always printed
   // MUTANT-SURVIVED (the mutation silently applied to zero elements).
   "en-change": "<script>document.addEventListener('DOMContentLoaded', function(){ var el=document.querySelector('[data-i18n]'); if (el) el.textContent = el.textContent + ' MUTATED'; });</script>",
-  "overflow": "<script>document.addEventListener('DOMContentLoaded', function(){ if (document.documentElement.lang !== 'en'){ var d=document.createElement('div'); d.id='i18n-mutant-overflow'; d.style.width='2000px'; d.style.height='1px'; document.body.appendChild(d); } });</script>"
+  "overflow": "<script>document.addEventListener('DOMContentLoaded', function(){ if (document.documentElement.lang !== 'en'){ var d=document.createElement('div'); d.id='i18n-mutant-overflow'; d.style.width='2000px'; d.style.height='1px'; document.body.appendChild(d); } });</script>",
+  "footer-extra": "<script>document.addEventListener('DOMContentLoaded', function(){ var inner=document.querySelector('.site-footer-inner'); if (!inner) return; var s=document.createElement('span'); s.id='i18n-mutant-footer-extra'; s.textContent='extra'; inner.appendChild(s); });</script>"
 };
 
 function injectCustomMutant(html, mutantKind) {
@@ -248,10 +251,31 @@ function stripLangStorage(snap, key) {
   return Object.assign({}, snap, { storage: storage, cookie: cookie });
 }
 
+// CANONICAL_FOOTER_RE (D-12): matches the canonical site footer only when it
+// holds exactly the canonical switcher shape — nothing else inside it, with
+// the option count taken from i18nCheck.SWITCHER_OPTIONS.length — so a
+// footer carrying extra content (or a switcher placed anywhere else, like
+// back in the header) is left in the snapshot and produces a DIFF. Built
+// once at module level; snapshots are already whitespace-collapsed
+// (`>\s+<` -> `><`) by browser-diff.js's capture script, so this pattern
+// has no whitespace between tags.
+var CANONICAL_FOOTER_RE = new RegExp(
+  '<footer class="site-footer">' +
+  '<div class="site-footer-inner">' +
+  '<label class="lang-switch" title="[^"]*">' +
+  '<span class="lang-switch-icon" aria-hidden="true">[^<]*</span>' +
+  '<select id="lang-switch-select" aria-label="[^"]*">' +
+  '(?:<option value="[^"]*" lang="[^"]*"(?: selected="")?>[^<]*</option>){' + i18nCheck.SWITCHER_OPTIONS.length + '}' +
+  '</select>' +
+  '</label>' +
+  '</div>' +
+  '</footer>'
+);
+
 function stripI18nArtifacts(html) {
   var out = html;
   out = out.replace(/\s*data-i18n(?:-title|-aria-label|-placeholder|-params)?="[^"]*"/g, "");
-  out = out.replace(/<label class="lang-switch"[^>]*>[\s\S]*?<\/label>/, "");
+  out = out.replace(CANONICAL_FOOTER_RE, "");
   // href values are HTML-entity-encoded in the serialized snapshot (& -> &amp;)
   out = out.replace(/href="([^"]*)"/g, function (m, href) {
     var newHref = href
@@ -504,13 +528,13 @@ function doLayout(toolRelPath, cfg, mutantKind) {
 /* ---------- CLI ---------- */
 
 var MODE_FN = { "en-parity": doEnParity, "langs": doLangs, "switch": doSwitch, "layout": doLayout };
-var MUTANT_TARGET_MODE = { "untranslated": "langs", "stale-switch": "switch", "en-change": "en-parity", "overflow": "layout" };
+var MUTANT_TARGET_MODE = { "untranslated": "langs", "stale-switch": "switch", "en-change": "en-parity", "overflow": "layout", "footer-extra": "en-parity" };
 
 function main() {
   var argv = process.argv.slice(2);
   var toolRelPath = argv[0];
   if (!toolRelPath) {
-    console.error('Usage: node i18n-browser.js "<page>" [--mode en-parity,langs,switch,layout] [--mutant untranslated|stale-switch|en-change|overflow]');
+    console.error('Usage: node i18n-browser.js "<page>" [--mode en-parity,langs,switch,layout] [--mutant untranslated|stale-switch|en-change|overflow|footer-extra]');
     process.exit(1);
   }
   var modeArg = null, mutantArg = null;
@@ -529,7 +553,7 @@ function main() {
   if (mutantArg) {
     var targetMode = MUTANT_TARGET_MODE[mutantArg];
     if (!targetMode) {
-      console.error("Unknown mutant kind: " + mutantArg + " (expected untranslated|stale-switch|en-change|overflow)");
+      console.error("Unknown mutant kind: " + mutantArg + " (expected untranslated|stale-switch|en-change|overflow|footer-extra)");
       process.exit(1);
     }
     var passed = MODE_FN[targetMode](toolRelPath, cfg, mutantArg);
@@ -563,4 +587,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { loadRunConfig: loadRunConfig, i18nBase: i18nBase, normalizeForCompare: normalizeForCompare };
+module.exports = { loadRunConfig: loadRunConfig, i18nBase: i18nBase, normalizeForCompare: normalizeForCompare, stripI18nArtifacts: stripI18nArtifacts };

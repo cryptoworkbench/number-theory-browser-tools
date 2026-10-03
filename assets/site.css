@@ -1,6 +1,7 @@
-/* Shared site chrome: header, nav, day/night toggle.
-   Loaded by every page alongside that page's own <style> block. Header
-   colors derive from assets/palette.css (the single source of color
+/* Shared site chrome: header (brand, nav, day/night toggle) plus the site
+   footer (language switcher), at the top and bottom of every page.
+   Loaded by every page alongside that page's own <style> block. Header and
+   footer colors derive from assets/palette.css (the single source of color
    truth for the whole site), so they re-theme automatically via the
    same [data-theme] attribute the palette itself responds to. */
 
@@ -146,15 +147,14 @@
   outline-offset: 2px;
 }
 
-/* Language switcher — sits between the nav and the day/night toggle, same
-   row at every width >760px; the existing 760px breakpoint already moves
-   .site-nav to its own row, so brand + language select + theme toggle keep
-   sharing the first row without a new breakpoint here. */
+/* Language switcher — the only control in the site footer. It sits
+   centered on its own row at every width, and keeps the header's own
+   tokens (background, border, select styling) so header and footer read
+   as one chrome in both themes. */
 .lang-switch{
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: 10px;
   flex: none;
 }
 .lang-switch-icon{
@@ -179,6 +179,49 @@
 .lang-switch select option{
   color: var(--text);
   background: var(--bg-1);
+}
+
+/* Site footer — holds the language switcher only. Ten pages carry their
+   own bare `footer{}` element rule in their own <style> block (margin,
+   padding, font-family, font-size, line-height, color, text-align, and on
+   some pages opacity 0.6 or white-space nowrap + overflow-x auto). Because
+   .site-footer is a class selector it outranks those element selectors,
+   but every property those page rules might set is still declared here
+   explicitly so none of them can leak through. position:relative plus
+   z-index:2 also keep this in-flow footer above Factor Tree's position:
+   fixed decorative #sky/#snow layers (z-index 0/1), while staying below
+   the RSA/Diffie-Hellman fixed panel (900) and the sticky header (1000). */
+.site-footer{
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background: var(--st-header-bg);
+  border-top: 1px solid var(--st-header-border);
+  color: var(--st-header-text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: normal;
+  text-align: center;
+  opacity: 1;
+  white-space: normal;
+  overflow: visible;
+}
+.site-footer-inner{
+  box-sizing: border-box;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+@media print{
+  .site-footer{ display: none; }
 }
 
 @media (max-width: 760px){

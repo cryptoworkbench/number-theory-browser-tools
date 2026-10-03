@@ -1847,11 +1847,48 @@ function walkElements(node, fn) {
   });
 }
 
-/* ---------- --header (+ --switcher-present) ---------- */
+/* ---------- --header (+ --switcher-present, site footer) ---------- */
 
 function extractHeaderHtml(html) {
   var m = /<header class="site-header">[\s\S]*?<\/header>/.exec(html);
   return m ? m[0] : null;
+}
+
+// extractSiteFooters(html): every non-overlapping <footer class="site-footer">
+// start tag through the first following </footer>. Returns [] when none.
+function extractSiteFooters(html) {
+  var re = /<footer class="site-footer">[\s\S]*?<\/footer>/g;
+  var out = [], m;
+  while ((m = re.exec(html))) out.push(m[0]);
+  return out;
+}
+
+// checkSiteFooter(relPath, html, canonical, findings): byte-exact placement
+// and drift checks for the canonical site footer (D-11). canonical is the
+// Sieve's own single site footer, or null if the Sieve itself lacks one.
+function checkSiteFooter(relPath, html, canonical, findings) {
+  var footers = extractSiteFooters(html);
+  if (footers.length !== 1) {
+    findings.push("FOOTER-COUNT " + relPath + ": expected exactly 1 <footer class=\"site-footer\">, found " + footers.length);
+    return;
+  }
+  var footer = footers[0];
+  if (canonical !== null && footer !== canonical) {
+    var i = 0, maxLen = Math.min(footer.length, canonical.length);
+    while (i < maxLen && footer.charAt(i) === canonical.charAt(i)) i++;
+    findings.push("FOOTER-DRIFT " + relPath + " at offset " + i + ": " + JSON.stringify(footer.slice(i, i + 80)));
+  }
+  var afterIdx = html.indexOf(footer) + footer.length;
+  var bodyEndIdx = html.indexOf("</body>", afterIdx);
+  if (bodyEndIdx === -1) {
+    findings.push("FOOTER-POSITION " + relPath + ": no </body> found after the site footer");
+    return;
+  }
+  var tail = html.slice(afterIdx, bodyEndIdx);
+  var stripped = tail.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "").trim();
+  if (stripped.length) {
+    findings.push("FOOTER-POSITION " + relPath + ": only <script> elements may follow the site footer before </body>, found " + JSON.stringify(stripped.slice(0, 80)));
+  }
 }
 
 function normalizeHeaderHtml(headerHtml, fileDir) {
@@ -1891,6 +1928,15 @@ function checkSwitcherPresent(relPath, html, findings) {
   if (navRefs.length !== 16) {
     findings.push("SWITCHER " + relPath + ": expected 16 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
   }
+  var header = extractHeaderHtml(html);
+  if (header !== null && header.indexOf("lang-switch") !== -1) {
+    findings.push("SWITCHER-IN-HEADER " + relPath + ": the site header must not contain the language switcher (it lives in the site footer)");
+  }
+  var footers = extractSiteFooters(html);
+  var footerHasSelect = footers.some(function (f) { return /<select\b[^>]*id="lang-switch-select"/.test(f); });
+  if (!footerHasSelect) {
+    findings.push("SWITCHER-NOT-IN-FOOTER " + relPath + ": #lang-switch-select must sit inside <footer class=\"site-footer\">");
+  }
 }
 
 function checkHeader(targets, opts) {
@@ -1900,6 +1946,11 @@ function checkHeader(targets, opts) {
   var sieveHtml = fs.readFileSync(sieveAbs, "utf8");
   var sieveHeader = extractHeaderHtml(sieveHtml);
   var sieveNorm = normalizeHeaderHtml(sieveHeader, "Sieve Of Eratosthenes");
+  var sieveFooters = extractSiteFooters(sieveHtml);
+  var canonicalFooter = sieveFooters.length === 1 ? sieveFooters[0] : null;
+  if (canonicalFooter === null) {
+    findings.push("FOOTER-COUNT Sieve Of Eratosthenes/sieve-of-eratosthenes.html (canonical reference): expected exactly 1 <footer class=\"site-footer\">");
+  }
 
   targets.forEach(function (relPath) {
     var abs = path.isAbsolute(relPath) ? relPath : path.join(ROOT, relPath);
@@ -1930,6 +1981,7 @@ function checkHeader(targets, opts) {
         findings.push("ACTIVE-LINK " + relPath + ": is-active href " + activeHrefs[0] + " does not resolve to the page itself (" + selfBase + ")");
       }
     }
+    checkSiteFooter(relPath, html, canonicalFooter, findings);
     if (!opts.headerOnly) checkSwitcherPresent(relPath, html, findings);
   });
   return findings;
@@ -2623,6 +2675,8 @@ module.exports = {
   pluralSelectionGaps: pluralSelectionGaps,
   SWITCHER_OPTIONS: SWITCHER_OPTIONS,
   checkSwitcherPresent: checkSwitcherPresent,
+  extractSiteFooters: extractSiteFooters,
+  checkSiteFooter: checkSiteFooter,
   SCRIPT_RULES: SCRIPT_RULES,
   scriptFindings: scriptFindings
 };
