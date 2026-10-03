@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-03T08:40:36.527Z"
+last_updated: "2026-10-03T10:51:49.791Z"
 last_activity: 2026-10-03
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 46f6c9e6e47fb5e2319f1469be527de511879bf1
+state_head: 67b63b35ea34759fac11da421e38cc5f3df4dc9a
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-03 - Completed quick task 261003-bqz: Move the language switcher into a shared site footer
+Last activity: 2026-10-03 - Completed quick task 261003-fcr: Site footer sits flush at the bottom of every page
 
 Progress: [█████████░] 86%
 
@@ -294,6 +294,7 @@ None yet.
 | 261003-0dr | Add Romanian (ro), Hungarian (hu) and Latvian (lv) as the twelfth to fourteenth supported languages site-wide — switcher on all 16 pages, complete dictionaries in all 18 namespaces with CLDR plurals (ro few, lv zero), gate tables, glossary and living docs updated | 2026-10-03 | 184457b | [261003-0dr-add-romanian-ro-hungarian-hu-and-latvian](./quick/261003-0dr-add-romanian-ro-hungarian-hu-and-latvian/) |
 | 261003-57k | Add Russian (ru) and Greek (el) as the fifteenth and sixteenth supported languages site-wide — first non-Latin scripts (system fallback font, no CSS change), switcher on all 16 pages, complete dictionaries in all 18 namespaces with Russian one/few/many/other plurals, new script-correctness gate, glossary and living docs updated | 2026-10-03 | c30ae5e | [261003-57k-add-russian-ru-and-greek-el-as-supported](./quick/261003-57k-add-russian-ru-and-greek-el-as-supported/) |
 | 261003-bqz | Move the language switcher from the header into a shared site footer on all 16 pages — palette-token footer styles, RSA/DH scratchpad clearance, gates and docs updated, true-375px footer probe | 2026-10-03 | 46f6c9e | [261003-bqz-move-the-language-switcher-to-a-shared-s](./quick/261003-bqz-move-the-language-switcher-to-a-shared-s/) |
+| 261003-fcr | Fix the site footer so it sits flush at the bottom of the viewport/document on all 16 pages — sticky footer + screen-only body min-height, RSA/DH panel reserve moved inside the footer, flush probe across 5 desktop sizes x 2 themes | 2026-10-03 | 67b63b3 | [261003-fcr-fix-site-footer-so-it-sits-flush-at-the-](./quick/261003-fcr-fix-site-footer-so-it-sits-flush-at-the-/) |
 
 ## Deferred Items
 
