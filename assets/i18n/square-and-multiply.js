@@ -5,20 +5,26 @@
    (built as DOM nodes and rendered through translateInto — T-06-16/
    T-06-17/T-06-18 pattern, never innerHTML), the banner messages (one of
    them, bannerComputed, a plural entry — { one, other } in every
-   language except Polish, which carries the CLDR { one, few, many,
-   other } shape, Romanian the CLDR { one, few, other } shape and Latvian
-   the CLDR { zero, one, other } shape), and the ladder's SVG labels, for
-   the Square and Multiply tool, in all fourteen supported languages.
+   language except Polish and Russian, which carry the CLDR { one, few,
+   many, other } shape, Romanian the CLDR { one, few, other } shape and
+   Latvian the CLDR { zero, one, other } shape), and the ladder's SVG
+   labels, for the Square and Multiply tool, in all sixteen supported
+   languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Pure math notation (b, e, m, the preset chips'
    "b=7, e=13, m=11" values, the ladder's "2^{place}" labels, the formula
    lines' "mod"/"=" assembly) is written identically in every language per
    06-GLOSSARY.md section (e) and is built directly in the page script with
-   no dictionary key. linkRsa/linkDiffieHellman are proper nouns (RSA is an
-   acronym; Diffie-Hellman is an invariant eponym pair per 06-GLOSSARY.md
-   section (d)) and are kept identical in every language (see
-   i18n-config/square-and-multiply.json allowSame for linkDiffieHellman).
+   no dictionary key. linkRsa is a proper noun (RSA is an acronym) and is
+   kept identical in every language; linkDiffieHellman is kept identical
+   to the Diffie-Hellman Key Exchange tool title in every Latin-script
+   language (Diffie-Hellman is an invariant eponym pair per
+   06-GLOSSARY.md section (d)), while Russian and Greek instead render
+   their own Diffie-Hellman tool title, since the bare English title would
+   otherwise read as untranslated Latin text inside Cyrillic/Greek prose
+   (see i18n-config/square-and-multiply.json allowSame for
+   linkDiffieHellman).
    Play/Step/Instant/Reset/Speed live in the shared `common` namespace
    (assets/i18n/site.js); Compute and Randomize are page-specific keys here.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
@@ -1067,6 +1073,156 @@
       accFinalAnswer: '{0} = atbilde',
       ladderAriaLabel: 'Ātrās kāpināšanas kāpnes: viena rinda katram kāpinātāja bitam, katra kāpina akumulatoru kvadrātā un nosacīti reizina ar bāzi',
       bitTitle: 'vieta 2^{place}'
+    },
+    ru: {
+      heading: 'Быстрое возведение в степень',
+      lede: 'Вот что компьютер на самом деле делает, вычисляя b{0} mod m — никакого повторного умножения, только одно возведение в квадрат на каждый бит показателя степени и иногда умножение на основание.',
+      introHeading: 'Как компьютер делает это на самом деле',
+      introP1: 'Возведение числа в степень e путём умножения его на себя e раз безнадёжно, когда e имеет сотни цифр — настоящий показатель RSA таким способом занял бы больше времени, чем возраст Вселенной. Вместо этого машина считывает показатель в двоичном виде, и ей нужно лишь около одного возведения в квадрат на бит, с дополнительным умножением только на тех битах, что равны 1. Это и есть весь трюк, и это единственная причина, почему арифметика криптографического масштаба вообще заканчивается.',
+      introP2: 'Это тот же самый цикл, который страницы RSA и Диффи-Хеллмана на этом сайте вызывают каждый раз, когда они записывают b{0} mod m — там он называется {1} и работает за кулисами; здесь он раскрыт, бит за битом.',
+      modularExponentiation: 'возведение в степень по модулю',
+      baseLabel: 'Основание b',
+      expLabel: 'Показатель e',
+      modLabel: 'Модуль m',
+      compute: '🧮 Вычислить',
+      randomize: '🎲 Случайно',
+      logHeading: 'Журнал вычислений',
+      resultSectionHeading: 'Результат',
+      'legend.bit': '{0} Бит показателя (1 = происходит умножение)',
+      'legend.squaring': '{0} Возведение в квадрат — каждая строка, безусловно',
+      'legend.multiply': '{0} Умножение на основание — только на бите 1',
+      'legend.accumulator': '{0} Аккумулятор / итоговый ответ',
+      footer: 'Демонстрация быстрого возведения в степень — алгоритм, стоящий за каждым b^e mod m на этом сайте. Только для обучения.',
+      pillBinaryExp: 'двоичное возведение в степень',
+      pillOneSquaring: 'одно возведение в квадрат на бит',
+      pillBigIntModular: 'модульная арифметика BigInt',
+      errBaseInvalid: 'Основание должно быть неотрицательным целым числом.',
+      errBaseTooLong: 'Основание должно содержать не более 40 цифр — это учебная демонстрация, а не генератор ключей.',
+      errExpInvalid: 'Показатель должен быть неотрицательным целым числом.',
+      errExpTooLarge: 'Показатель должен быть меньше 2^64 (65 бит) — лестнице потребовалось бы больше строк, чем может отобразить вкладка браузера.',
+      errModInvalid: 'Модуль должен быть неотрицательным целым числом.',
+      errModTooSmall: 'Модуль должен быть не меньше 2 — модуль 1 делает каждый результат нулевым и является вырожденным.',
+      errModTooLong: 'Модуль должен содержать не более 40 цифр — это учебная демонстрация, а не генератор ключей.',
+      binaryExpansionZero: '0 = 0₂ = (нет степеней двойки — что угодно в нулевой степени равно 1)',
+      setupHeading: 'Подготовка',
+      lblBaseReducedFirst: 'основание сначала приведено:',
+      setupBaseReduced: '{0} {rawBase} mod {mod} = {1} — это значение, которое лестница возводит в квадрат и умножает.',
+      setupFirstRowNote: 'Первая строка возводит в квадрат начальное значение аккумулятора 1, что является пустой операцией — поэтому реализации начинаются со старшего (самого значимого) бита.',
+      stepHeading: 'Бит {i} из {total} — цифра {bit}, разряд 2^{place}',
+      lblSquare: 'возвести в квадрат:',
+      stepSquareFormula: '{0} {accBefore}² mod {mod} = {1}',
+      lblMultiplyBitOne: 'умножить (бит равен 1):',
+      stepMultiplyFormula: '{0} {accSquared} × {base} mod {mod} = {1}',
+      lblMultiplySkipped: 'умножение пропущено:',
+      stepMultiplySkippedFormula: '{0} этот бит равен 0, поэтому аккумулятор проходит без изменений как {1}',
+      bannerStepMultiplied: 'Бит {i} из {total}: возведи аккумулятор в квадрат, затем умножь на основание, потому что этот бит равен 1.',
+      bannerStepSkipped: 'Бит {i} из {total}: возведи аккумулятор в квадрат — умножение пропущено, потому что этот бит равен 0.',
+      bannerReady: 'Готово — нажми «Пуск», чтобы увидеть, как лестница строится бит за битом.',
+      bannerComputed: {
+        one: 'Полное вычисление показано ниже — {bits} бит в показателе. Нажми «Пуск», чтобы увидеть, как оно строится шаг за шагом.',
+        few: 'Полное вычисление показано ниже — {bits} бита в показателе. Нажми «Пуск», чтобы увидеть, как оно строится шаг за шагом.',
+        many: 'Полное вычисление показано ниже — {bits} бит в показателе. Нажми «Пуск», чтобы увидеть, как оно строится шаг за шагом.',
+        other: 'Полное вычисление показано ниже — {bits} бита в показателе. Нажми «Пуск», чтобы увидеть, как оно строится шаг за шагом.'
+      },
+      resultMatch: 'Независимая проверка — простой цикл возведения в степень по модулю слева направо над теми же данными приходит к {0}, тому же ответу. ✓',
+      resultMismatch: 'Несовпадение при перекрёстной проверке: простой цикл вычислил {cross}, что не совпадает с результатом лестницы {result}. Это указывает на ошибку.',
+      costTag: 'Почему это важно для RSA',
+      costHeading: 'Стоимость в сравнении с наивным повторным умножением',
+      costBitLength: 'Длина показателя в битах',
+      costSquarings: 'Возведения в квадрат',
+      costMultiplies: 'Умножения',
+      costTotal: 'Общее число модульных умножений',
+      costNaive: 'Наивному повторному умножению потребовалось бы',
+      costMeaningful: 'Это на {0} модульных умножений меньше, чем умножение основания на себя столько же раз.',
+      costNotMeaningful: 'При таком размере показателя лестница почти ничего не экономит по сравнению с наивным повторным умножением — выигрыш становится большим только с ростом показателя.',
+      costRsaScale: '2048-битный показатель RSA, который использует настоящее расшифрование RSA, требует около {0} возведений в квадрат плюс около {1} умножений — всего примерно {2} модульных умножений — тогда как умножение основания на себя столько же раз заняло бы число умножений длиной {digits} десятичных цифр. Именно поэтому страницы {3} и {4} на этом сайте могут вычислить свои ключи мгновенно в браузере.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'Обмен ключами Диффи-Хеллмана',
+      ladderCaption: 'Аккумулятор начинается с 1 — верхний (самый значимый) бит считывается первым.',
+      headingBit: 'бит показателя',
+      headingSquaring: 'возведение в квадрат',
+      headingMultiply: 'условное умножение',
+      headingAccumulator: 'аккумулятор',
+      rowBitCaption: 'бит {i} из {rows} — 2^{place}',
+      mulBase: '× основание = {0}',
+      skippedBitZero: 'пропущено (бит равен 0)',
+      accFinalAnswer: '{0} = ответ',
+      ladderAriaLabel: 'Лестница быстрого возведения в степень: одна строка на каждый бит показателя, каждая возводит аккумулятор в квадрат и условно умножает на основание',
+      bitTitle: 'разряд 2^{place}'
+    },
+    el: {
+      heading: 'Γρήγορη ύψωση σε δύναμη',
+      lede: 'Αυτό κάνει στην πραγματικότητα ένας υπολογιστής όταν υπολογίζει το b{0} mod m — καθόλου επαναλαμβανόμενος πολλαπλασιασμός, μόνο μία ύψωση στο τετράγωνο ανά bit του εκθέτη και περιστασιακά ένας πολλαπλασιασμός με τη βάση.',
+      introHeading: 'Πώς το κάνει στην πραγματικότητα ο υπολογιστής',
+      introP1: 'Η ύψωση ενός αριθμού στην e-οστή δύναμη πολλαπλασιάζοντάς τον με τον εαυτό του e φορές είναι απελπιστική όταν το e έχει εκατοντάδες ψηφία — ένας πραγματικός εκθέτης RSA έτσι θα χρειαζόταν περισσότερο χρόνο από την ηλικία του σύμπαντος. Αντίθετα, η μηχανή διαβάζει τον εκθέτη σε δυαδική μορφή και χρειάζεται μόνο περίπου μία ύψωση στο τετράγωνο ανά bit, με έναν επιπλέον πολλαπλασιασμό μόνο στα bit που είναι 1. Αυτό είναι όλο το κόλπο, και είναι ο μόνος λόγος που η αριθμητική κρυπτογραφικού μεγέθους τελειώνει καθόλου.',
+      introP2: 'Αυτός είναι ο ίδιος βρόχος που οι σελίδες RSA και Diffie-Hellman σε αυτόν τον ιστότοπο καλούν κάθε φορά που γράφουν b{0} mod m — εκεί ονομάζεται {1} και τρέχει στο παρασκήνιο· εδώ ανοίγεται, bit προς bit.',
+      modularExponentiation: 'ύψωση σε δύναμη κατά μέτρο',
+      baseLabel: 'Βάση b',
+      expLabel: 'Εκθέτης e',
+      modLabel: 'Μέτρο m',
+      compute: '🧮 Υπολογισμός',
+      randomize: '🎲 Τυχαία',
+      logHeading: 'Αρχείο υπολογισμών',
+      resultSectionHeading: 'Αποτέλεσμα',
+      'legend.bit': '{0} bit εκθέτη (1 = γίνεται πολλαπλασιασμός)',
+      'legend.squaring': '{0} Ύψωση στο τετράγωνο — κάθε γραμμή, χωρίς όρο',
+      'legend.multiply': '{0} Πολλαπλασιασμός με τη βάση — μόνο σε bit 1',
+      'legend.accumulator': '{0} Συσσωρευτής / τελική απάντηση',
+      footer: 'Επίδειξη γρήγορης ύψωσης σε δύναμη — ο αλγόριθμος πίσω από κάθε b^e mod m σε αυτόν τον ιστότοπο. Μόνο για εκπαιδευτικούς σκοπούς.',
+      pillBinaryExp: 'δυαδική ύψωση σε δύναμη',
+      pillOneSquaring: 'μία ύψωση στο τετράγωνο ανά bit',
+      pillBigIntModular: 'αριθμητική mod με BigInt',
+      errBaseInvalid: 'Η βάση πρέπει να είναι μη αρνητικός ακέραιος αριθμός.',
+      errBaseTooLong: 'Η βάση πρέπει να έχει το πολύ 40 ψηφία — αυτή είναι εκπαιδευτική επίδειξη, όχι γεννήτρια κλειδιών.',
+      errExpInvalid: 'Ο εκθέτης πρέπει να είναι μη αρνητικός ακέραιος αριθμός.',
+      errExpTooLarge: 'Ο εκθέτης πρέπει να είναι κάτω από 2^64 (65 bit) — η σκάλα θα χρειαζόταν περισσότερες γραμμές από όσες μπορεί να αποδώσει μια καρτέλα προγράμματος περιήγησης.',
+      errModInvalid: 'Το μέτρο πρέπει να είναι μη αρνητικός ακέραιος αριθμός.',
+      errModTooSmall: 'Το μέτρο πρέπει να είναι τουλάχιστον 2 — ένα μέτρο 1 κάνει κάθε αποτέλεσμα 0 και είναι εκφυλισμένο.',
+      errModTooLong: 'Το μέτρο πρέπει να έχει το πολύ 40 ψηφία — αυτή είναι εκπαιδευτική επίδειξη, όχι γεννήτρια κλειδιών.',
+      binaryExpansionZero: '0 = 0₂ = (καμία δύναμη του δύο — οτιδήποτε στη μηδενική δύναμη είναι 1)',
+      setupHeading: 'Προπαρασκευή',
+      lblBaseReducedFirst: 'η βάση ανάγεται πρώτα:',
+      setupBaseReduced: '{0} {rawBase} mod {mod} = {1} — αυτή είναι η τιμή που η σκάλα υψώνει στο τετράγωνο και πολλαπλασιάζει.',
+      setupFirstRowNote: 'Η πρώτη γραμμή υψώνει στο τετράγωνο την αρχική τιμή 1 του συσσωρευτή, που είναι άπρακτη ενέργεια — για αυτό οι υλοποιήσεις ξεκινούν από το πιο σημαντικό bit.',
+      stepHeading: 'Το bit {i} από {total} — ψηφίο {bit}, θέση 2^{place}',
+      lblSquare: 'ύψωση στο τετράγωνο:',
+      stepSquareFormula: '{0} {accBefore}² mod {mod} = {1}',
+      lblMultiplyBitOne: 'πολλαπλασιασμός (το bit είναι 1):',
+      stepMultiplyFormula: '{0} {accSquared} × {base} mod {mod} = {1}',
+      lblMultiplySkipped: 'ο πολλαπλασιασμός παραλείπεται:',
+      stepMultiplySkippedFormula: '{0} αυτό το bit είναι 0, οπότε ο συσσωρευτής περνά αμετάβλητος ως {1}',
+      bannerStepMultiplied: 'Το bit {i} από {total}: ύψωσε τον συσσωρευτή στο τετράγωνο, μετά πολλαπλασίασε με τη βάση επειδή αυτό το bit είναι 1.',
+      bannerStepSkipped: 'Το bit {i} από {total}: ύψωσε τον συσσωρευτή στο τετράγωνο — ο πολλαπλασιασμός παραλείπεται επειδή αυτό το bit είναι 0.',
+      bannerReady: 'Έτοιμο — πάτα «Έναρξη» για να δεις τη σκάλα να χτίζεται bit προς bit.',
+      bannerComputed: {
+        one: 'Ο πλήρης υπολογισμός φαίνεται παρακάτω — {bits} bit στον εκθέτη. Πάτα «Έναρξη» για να τον δεις να χτίζεται βήμα προς βήμα.',
+        other: 'Ο πλήρης υπολογισμός φαίνεται παρακάτω — {bits} bit στον εκθέτη. Πάτα «Έναρξη» για να τον δεις να χτίζεται βήμα προς βήμα.'
+      },
+      resultMatch: 'Ανεξάρτητος έλεγχος — ένας απλός βρόχος ύψωσης σε δύναμη κατά μέτρο από αριστερά προς τα δεξιά πάνω στις ίδιες τιμές καταλήγει στο {0}, την ίδια απάντηση. ✓',
+      resultMismatch: 'Διαφωνία διασταυρωτού ελέγχου: ο απλός βρόχος υπολόγισε {cross}, που δεν ταιριάζει με το {result} της σκάλας. Αυτό υποδεικνύει σφάλμα.',
+      costTag: 'Γιατί αυτό έχει σημασία για το RSA',
+      costHeading: 'Κόστος σε σύγκριση με τον απλοϊκό επαναλαμβανόμενο πολλαπλασιασμό',
+      costBitLength: 'Μήκος εκθέτη σε bit',
+      costSquarings: 'Υψώσεις στο τετράγωνο',
+      costMultiplies: 'Πολλαπλασιασμοί',
+      costTotal: 'Συνολικοί πολλαπλασιασμοί κατά μέτρο',
+      costNaive: 'Ο απλοϊκός επαναλαμβανόμενος πολλαπλασιασμός θα χρειαζόταν',
+      costMeaningful: 'Αυτό είναι {0} λιγότεροι πολλαπλασιασμοί κατά μέτρο από το να πολλαπλασιάσεις τη βάση με τον εαυτό της τόσες φορές.',
+      costNotMeaningful: 'Σε αυτό το μέγεθος εκθέτη η σκάλα δεν εξοικονομεί σχεδόν τίποτα σε σχέση με τον απλοϊκό επαναλαμβανόμενο πολλαπλασιασμό — το όφελος μεγαλώνει μόνο όσο μεγαλώνει ο εκθέτης.',
+      costRsaScale: 'Ένας εκθέτης RSA 2048 bit, όπως χρησιμοποιεί η πραγματική αποκρυπτογράφηση RSA, χρειάζεται περίπου {0} υψώσεις στο τετράγωνο και περίπου {1} πολλαπλασιασμούς — συνολικά περίπου {2} πολλαπλασιασμοί κατά μέτρο — ενώ ο πολλαπλασιασμός της βάσης με τον εαυτό της τόσες φορές θα απαιτούσε έναν αριθμό πολλαπλασιασμών με μήκος {digits} δεκαδικά ψηφία. Για αυτό οι σελίδες {3} και {4} σε αυτόν τον ιστότοπο μπορούν να υπολογίσουν τα κλειδιά τους ακαριαία σε ένα πρόγραμμα περιήγησης.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'Ανταλλαγή κλειδιών Diffie-Hellman',
+      ladderCaption: 'Ο συσσωρευτής ξεκινά από το 1 — το πιο σημαντικό bit διαβάζεται πρώτο.',
+      headingBit: 'bit εκθέτη',
+      headingSquaring: 'ύψωση στο τετράγωνο',
+      headingMultiply: 'υπό όρους πολλαπλασιασμός',
+      headingAccumulator: 'συσσωρευτής',
+      rowBitCaption: 'bit {i} από {rows} — 2^{place}',
+      mulBase: '× βάση = {0}',
+      skippedBitZero: 'παραλείφθηκε (το bit είναι 0)',
+      accFinalAnswer: '{0} = απάντηση',
+      ladderAriaLabel: 'Σκάλα γρήγορης ύψωσης σε δύναμη: μία γραμμή για κάθε bit του εκθέτη, καθεμία υψώνει τον συσσωρευτή στο τετράγωνο και υπό όρους πολλαπλασιάζει με τη βάση',
+      bitTitle: 'θέση 2^{place}'
     }
   });
 })();

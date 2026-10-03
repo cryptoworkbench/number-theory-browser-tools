@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all fourteen supported languages.
+   tool, in all sixteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,10 +12,10 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all fourteen languages. bannerDone is { one, other } in every language
-   except Polish ({ one, few, many, other }), Romanian ({ one, few, other })
-   and Latvian ({ zero, one, other }), each the CLDR shape for that
-   language.
+   all sixteen languages. bannerDone is { one, other } in every language
+   except Polish and Russian ({ one, few, many, other }), Romanian
+   ({ one, few, other }) and Latvian ({ zero, one, other }), each the CLDR
+   shape for that language.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -362,6 +362,56 @@
         other: 'Pabeigts — pārbaudītas {count} vērtības, {phi} savstarpēji pirmskaitļi ar {n}.'
       },
       caption: 'Pirmskaitlis n dod φ(n) = n−1, jo katrs mazāks skaitlis to nesasniedz — žetoni to ļauj viegli pārbaudīt.'
+    },
+    ru: {
+      title: 'Функция Эйлера',
+      eyebrow: 'теория чисел · функция эйлера',
+      heading: 'Функция Эйлера',
+      lede: 'φ(n) считает, сколько чисел из 1 … n−1 не имеют общего делителя с n, и эта страница узнаёт это единственным честным способом — спрашивая алгоритм Евклида про каждое из них.',
+      xref: 'То же число появляется как секторы мультипликативной группы по модулю n →',
+      chipPrime: '{n} · простое',
+      run: 'Запустить',
+      errNotWhole: 'n должно быть целым числом.',
+      errTooSmall: 'n должно быть не меньше {min} — проходу k = 1 … n−1 нужен хотя бы один k для проверки.',
+      errCapped: 'n ограничено до {max} — значение было уменьшено, чтобы вместиться.',
+      chainHead: 'Проверка k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} взаимно просто с {n} — gcd = 1, засчитано.',
+      verdictEliminated: 'k = {k} имеет общий делитель с {n} — gcd = {gcd}, исключено.',
+      tally: 'Текущее число взаимно простых: {count}',
+      progress: 'k = {k} из {total} проверено.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Готово — нажми «Пуск», чтобы увидеть, как проход проверяет каждое k по одному делению за раз.',
+      bannerDone: {
+        one: 'Готово — проверено {count} значение, {phi} взаимно просто с {n}.',
+        few: 'Готово — проверено {count} значения, {phi} взаимно просто с {n}.',
+        many: 'Готово — проверено {count} значений, {phi} взаимно просто с {n}.',
+        other: 'Готово — проверено {count} значения, {phi} взаимно просто с {n}.'
+      },
+      caption: 'Простое n даёт φ(n) = n−1, потому что каждое меньшее число мимо него не делится — фишки позволяют легко это проверить.'
+    },
+    el: {
+      title: 'Συνάρτηση φ του Euler',
+      eyebrow: 'θεωρία αριθμών · συνάρτηση φ του Euler',
+      heading: 'Συνάρτηση φ του Euler',
+      lede: 'Η φ(n) μετρά πόσοι από τους 1 … n−1 δεν έχουν κοινό παράγοντα με το n, και αυτή η σελίδα το βρίσκει με τον μόνο έντιμο τρόπο — ρωτώντας τον αλγόριθμο του Ευκλείδη για καθέναν από αυτούς.',
+      xref: 'Το ίδιο πλήθος εμφανίζεται ως οι τομείς της πολλαπλασιαστικής ομάδας mod n →',
+      chipPrime: '{n} · πρώτος',
+      run: 'Εκτέλεση',
+      errNotWhole: 'Το n πρέπει να είναι ακέραιος αριθμός.',
+      errTooSmall: 'Το n πρέπει να είναι τουλάχιστον {min} — η διαδρομή k = 1 … n−1 χρειάζεται τουλάχιστον ένα k για έλεγχο.',
+      errCapped: 'Το n έχει όριο {max} — η τιμή μειώθηκε για να χωρέσει.',
+      chainHead: 'Έλεγχος k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'Το k = {k} είναι πρώτο ως προς το {n} — gcd = 1, μετρήθηκε.',
+      verdictEliminated: 'Το k = {k} έχει κοινό παράγοντα με το {n} — gcd = {gcd}, αποκλείστηκε.',
+      tally: 'Τρέχον πλήθος πρώτων μεταξύ τους: {count}',
+      progress: 'k = {k} από {total} ελέγχθηκαν.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Έτοιμο — πάτα «Έναρξη» για να δεις τη διαδρομή να ελέγχει κάθε k με μία διαίρεση τη φορά.',
+      bannerDone: {
+        one: 'Έτοιμο — ελέγχθηκε {count} τιμή, {phi} πρώτοι ως προς το {n}.',
+        other: 'Έτοιμο — ελέγχθηκαν {count} τιμές, {phi} πρώτοι ως προς το {n}.'
+      },
+      caption: 'Ο πρώτος n δίνει φ(n) = n−1, επειδή κάθε μικρότερος αριθμός τον προσπερνά — οι ετικέτες το κάνουν εύκολο να το ελέγξεις.'
     }
   });
 })();

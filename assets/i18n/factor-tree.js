@@ -1,11 +1,11 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
    Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all fourteen supported languages.
+   Factor Tree tool, in all sixteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all fourteen languages. The factorization itself (the equation/tree
+   across all sixteen languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -294,6 +294,46 @@
       msgPrime: '{n} ir pirmskaitlis — tas sadalās tikai vienu reizi, 1 × {n}.',
       msgFactors: '{n} sadalās {count} pirmreizinātājos.',
       chipPrime: '{n} (pirmskaitlis)'
+    },
+    ru: {
+      title: 'Дерево простых множителей',
+      heading: '🎄 Дерево простых множителей 🎄',
+      subtitle: 'Дай ему число — и оно вырастит настоящее дерево множителей, ветвь за ветвью.',
+      modeLabel: 'Режим дерева',
+      modeClassic: 'Классический',
+      modeBalanced: 'Сбалансированный',
+      placeholder: 'напр. 60',
+      grow: 'Вырастить дерево',
+      footnote: 'Каждый простой лист получает свой последний раздел: P = P × 1.',
+      balancedNote: 'Сбалансированный режим использует метод Ферма, чтобы на каждом шаге находить наиболее равномерно разделённую пару множителей, с ограничением числами меньше 1 000 000, чтобы оставаться мгновенным. Некоторые числа — например, маленькое простое, умноженное на большое, — всё равно делятся неравномерно; это не ошибка, просто математика.',
+      msgEmpty: 'Сначала введи число.',
+      msgInvalid: 'Введи целое число, 1 или больше.',
+      msgTooLargeBalanced: 'Это число слишком велико для сбалансированного режима — попробуй что-то меньше 1 000 000, или переключись на классический режим для больших чисел.',
+      msgTooLargeClassic: 'Это число слишком велико для этого маленького дерева — попробуй что-то меньше 1 триллиона.',
+      msgOne: '1 — не простое и не составное число, это просто семя, а не дерево. 🌱',
+      msgPrime: '{n} — простое число, оно делится только раз, на 1 × {n}.',
+      msgFactors: '{n} разлагается на {count} простых множителей.',
+      chipPrime: '{n} (простое)'
+    },
+    el: {
+      title: 'Δέντρο πρώτων παραγόντων',
+      heading: '🎄 Δέντρο πρώτων παραγόντων 🎄',
+      subtitle: 'Δώσε του έναν αριθμό — μεγαλώνει ένα πραγματικό δέντρο παραγόντων, κλαδί προς κλαδί.',
+      modeLabel: 'Λειτουργία δέντρου',
+      modeClassic: 'Κλασική',
+      modeBalanced: 'Ισορροπημένη',
+      placeholder: 'π.χ. 60',
+      grow: 'Μεγάλωσε το δέντρο',
+      footnote: 'Κάθε πρώτο φύλλο παίρνει μία τελευταία δική του διαίρεση: P = P × 1.',
+      balancedNote: 'Η ισορροπημένη λειτουργία χρησιμοποιεί τη μέθοδο του Fermat για να βρίσκει σε κάθε βήμα το πιο ομοιόμορφα χωρισμένο ζεύγος παραγόντων, με όριο αριθμούς κάτω από 1.000.000 για να παραμένει άμεση. Μερικοί αριθμοί — όπως ένας μικρός πρώτος επί έναν μεγάλο — εξακολουθούν να χωρίζονται άνισα· αυτό δεν είναι σφάλμα, απλώς μαθηματικά.',
+      msgEmpty: 'Γράψε πρώτα έναν αριθμό.',
+      msgInvalid: 'Γράψε έναν ακέραιο αριθμό, 1 ή μεγαλύτερο.',
+      msgTooLargeBalanced: 'Αυτός ο αριθμός είναι πολύ μεγάλος για την ισορροπημένη λειτουργία — δοκίμασε κάτι κάτω από 1.000.000, ή άλλαξε σε κλασική λειτουργία για μεγαλύτερους αριθμούς.',
+      msgTooLargeClassic: 'Αυτός ο αριθμός είναι πολύ μεγάλος για αυτό το μικρό δέντρο — δοκίμασε κάτι κάτω από 1 τρισεκατομμύριο.',
+      msgOne: 'Το 1 δεν είναι ούτε πρώτος ούτε σύνθετος αριθμός — είναι απλώς ένας σπόρος, όχι ακόμα δέντρο. 🌱',
+      msgPrime: 'Ο {n} είναι πρώτος — διαιρείται μόνο μία φορά, σε 1 × {n}.',
+      msgFactors: 'Ο {n} αναλύεται σε {count} πρώτους παράγοντες.',
+      chipPrime: '{n} (πρώτος)'
     }
   });
 })();

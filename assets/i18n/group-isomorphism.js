@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   fourteen supported languages.
+   sixteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -436,6 +436,64 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (pārāk liels, lai precīzi parādītu nereducēto pakāpi)',
       refCount: '{count} pāri (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   ar   k ↦ {g}^k mod {m}   (ģenerators g = {g})'
+    },
+    ru: {
+      title: 'Изоморфизмы групп',
+      eyebrow: 'две арифметики, одна группа',
+      heading: 'Изоморфизмы групп',
+      lede: 'Целые числа по модулю n при сложении и единицы по модулю m при умножении могут структурно быть одной и той же группой — просто в разной арифметической одежде. {0}',
+      xref: 'Смотри, как эти две группы строятся по одной →',
+      pairLabel: 'Изоморфная пара',
+      pairSelectAriaLabel: 'Выбери изоморфную пару',
+      randomizeLabel: 'Случайно',
+      randomize: 'Новый случайный пример',
+      tablistLabel: 'Раскладка правого колеса',
+      tabPowers: 'Степени g',
+      tabNumeric: 'Числовой',
+      leftWheelAriaLabel: 'Элементы аддитивной группы Z по модулю n',
+      rightWheelAriaLabel: 'Элементы мультипликативной группы единиц по модулю m',
+      refHeading: 'Изоморфные пары',
+      leftWedgeAriaLabel: 'Элемент {value} аддитивной группы Z по модулю {n}',
+      rightWedgeAriaLabel: 'Элемент {value} мультипликативной группы единиц по модулю {m}, равный {g} в степени {k} по модулю {m}',
+      leftCaption: 'Аддитивная группа {bSpan}: целые числа от 0 до {max} при сложении по модулю {n}.',
+      rightCaption: 'Мультипликативная группа {bSpan}: {n} единиц по модулю {m} при умножении, порождённых {g}.',
+      readoutPrompt: 'Щёлкни на элемент на любом колесе, чтобы увидеть соответствие.',
+      readoutOne: 'Элемент {aSlot} слева соответствует {aValSlot} справа: {eqSpan}. Щёлкни на второй элемент — или снова на этот же — чтобы увидеть сумму и произведение.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} слева ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} справа ({modSpan}) — и {product} = {g}^{sum} mod {m} = {sumVal}: образ суммы равен произведению образов.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} слева ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} справа ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} не равно {g}^{sum} mod {m} = {sumVal} — эта пара никогда не должна расходиться.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (слишком велико, чтобы точно показать несокращённую степень)',
+      refCount: '{count} пар (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   через   k ↦ {g}^k mod {m}   (образующий элемент g = {g})'
+    },
+    el: {
+      title: 'Ισομορφισμοί ομάδων',
+      eyebrow: 'δύο αριθμητικές, μία ομάδα',
+      heading: 'Ισομορφισμοί ομάδων',
+      lede: 'Οι ακέραιοι mod n με πρόσθεση και οι μονάδες mod m με πολλαπλασιασμό μπορούν να είναι, δομικά, η ίδια ακριβώς ομάδα — απλώς φορώντας διαφορετική αριθμητική στολή. {0}',
+      xref: 'Δες αυτές τις δύο ομάδες να χτίζονται μία τη φορά →',
+      pairLabel: 'Ισομορφικό ζεύγος',
+      pairSelectAriaLabel: 'Διάλεξε ένα ισομορφικό ζεύγος',
+      randomizeLabel: 'Τυχαία',
+      randomize: 'Νέο τυχαίο παράδειγμα',
+      tablistLabel: 'Διάταξη δεξιού τροχού',
+      tabPowers: 'Δυνάμεις του g',
+      tabNumeric: 'Αριθμητικά',
+      leftWheelAriaLabel: 'Στοιχεία της προσθετικής ομάδας Z mod n',
+      rightWheelAriaLabel: 'Στοιχεία της πολλαπλασιαστικής ομάδας μονάδων mod m',
+      refHeading: 'Ισομορφικά ζεύγη',
+      leftWedgeAriaLabel: 'Στοιχείο {value} της προσθετικής ομάδας Z mod {n}',
+      rightWedgeAriaLabel: 'Στοιχείο {value} της πολλαπλασιαστικής ομάδας μονάδων mod {m}, ίσο με {g} στη δύναμη {k} mod {m}',
+      leftCaption: 'Η προσθετική ομάδα {bSpan}: οι ακέραιοι από 0 έως {max} με πρόσθεση mod {n}.',
+      rightCaption: 'Η πολλαπλασιαστική ομάδα {bSpan}: οι {n} μονάδες mod {m} με πολλαπλασιασμό, παραγόμενες από το {g}.',
+      readoutPrompt: 'Πάτα σε ένα στοιχείο σε έναν από τους δύο τροχούς για να δεις την αντιστοιχία.',
+      readoutOne: 'Το στοιχείο {aSlot} αριστερά αντιστοιχεί στο {aValSlot} δεξιά: {eqSpan}. Πάτα σε ένα δεύτερο στοιχείο — ή ξανά σε αυτό εδώ — για να δεις το άθροισμα και το γινόμενο.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} αριστερά ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} δεξιά ({modSpan}) — και {product} = {g}^{sum} mod {m} = {sumVal}: η εικόνα του αθροίσματος ισούται με το γινόμενο των εικόνων.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} αριστερά ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} δεξιά ({modSpan}) — {warnSpan}',
+      readoutWarn: 'Το {product} δεν ισούται με {g}^{sum} mod {m} = {sumVal} — αυτό το ζεύγος δεν θα έπρεπε ποτέ να διαφωνεί.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (πολύ μεγάλο για να δειχθεί ακριβώς η μη ανηγμένη δύναμη)',
+      refCount: '{count} ζεύγη (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   μέσω   k ↦ {g}^k mod {m}   (γεννήτορας g = {g})'
     }
   });
 })();

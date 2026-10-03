@@ -1643,9 +1643,9 @@ function isProse(text) {
 // name present in the English value and kept literal by every existing
 // language.
 var SCRIPT_LATIN_NOTATION = [
-  "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "OAEP",
-  "PDF", "PNG", "QFT", "RSA", "SVG", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
-  "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
+  "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
+  "Hasse", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "aB", "aG", "bA", "bG", "dP", "dQ",
+  "gcd", "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
 ];
 
 var SCRIPT_RULES = {
@@ -1682,7 +1682,7 @@ function scriptFindings(id, lang, value, enValue) {
   var latinSet = {};
   rule.latin.forEach(function (w) { latinSet[w] = true; });
 
-  var latinRuns = v.match(/[A-Za-z]+/g) || [];
+  var latinRuns = v.match(/\p{Script=Latin}+/gu) || [];
   latinRuns.forEach(function (w) {
     if (w.length > 1 && !latinSet[w]) {
       findings.push("SCRIPT-LATIN " + id + "." + lang + ": " + JSON.stringify(w));
@@ -1691,7 +1691,7 @@ function scriptFindings(id, lang, value, enValue) {
 
   var letterRuns = v.match(/\p{L}+/gu) || [];
   letterRuns.forEach(function (w) {
-    var hasLatin = /[A-Za-z]/.test(w);
+    var hasLatin = /\p{Script=Latin}/u.test(w);
     var hasCyrillic = /\p{Script=Cyrillic}/u.test(w);
     var hasGreek = /\p{Script=Greek}/u.test(w);
     var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0);
@@ -1705,7 +1705,7 @@ function scriptFindings(id, lang, value, enValue) {
     findings.push("SCRIPT-FOREIGN " + id + "." + lang + ": " + JSON.stringify(foreignMatch[0]));
   }
 
-  var enLatinRuns = en.match(/[A-Za-z]+/g) || [];
+  var enLatinRuns = en.match(/\p{Script=Latin}+/gu) || [];
   var enHasTranslatable = enLatinRuns.some(function (w) { return w.length > 1 && !latinSet[w]; });
   if (enHasTranslatable && !rule.own.test(v)) {
     findings.push("SCRIPT-MISSING " + id + "." + lang);

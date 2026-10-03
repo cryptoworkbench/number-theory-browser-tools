@@ -3,14 +3,14 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all fourteen supported languages.
+   Cayley Table tool, in all sixteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
-   plural entries ({ one, other } in every language except Polish
-   ({ one, few, many, other }), Romanian ({ one, few, other }) and Latvian
-   ({ zero, one, other }), each the CLDR shape for that language); every
-   other key is plain text. The
+   plural entries ({ one, other } in every language except Polish and
+   Russian ({ one, few, many, other }), Romanian ({ one, few, other }) and
+   Latvian ({ zero, one, other }), each the CLDR shape for that language);
+   every other key is plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
    only the prose around them is translated. legend.* values are rich
@@ -580,6 +580,88 @@
       noteDiagonal: 'Šī šūna atrodas uz diagonālās ass — tā ir pati savs pāris, ar tikai vienu vienādojumu: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), un {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — abi nonāk tajā pašā vērtībā, tāpēc tabula ir simetriska attiecībā uz savu diagonāli: grupa ir komutatīva.',
       selfInverseNote: '{a} ir {word}, jo tā vērtība šeit ir neitrālais elements.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    ru: {
+      title: 'Таблица Кэли',
+      eyebrow: 'теория групп · таблицы операций',
+      heading: 'Таблица Кэли',
+      lede: 'Вся операция группы помещается в одну квадратную таблицу — одна строка и один столбец на элемент, одна ячейка на каждый результат. Каждый структурный факт об этой группе — её нейтральный элемент, её обратные элементы, её коммутативность — наглядно отражается где-то в форме таблицы.',
+      xref: 'Те же две операции группы, увиденные как секторы на колесе, а не как строки в таблице →',
+      tablistLabel: 'Операция группы',
+      nLabel: 'N — модуль',
+      randomizeLabel: 'Случайно',
+      randomize: 'Новый случайный пример',
+      tableScrollLabel: 'Таблица Кэли, с прокруткой',
+      'legend.identity': '{0} Строка и столбец нейтрального элемента',
+      'legend.inverse': '{0} Самообратный (сам себе пара)',
+      'legend.selected': '{0} Выбранная ячейка',
+      'legend.mirror': '{0} Зеркальный близнец по диагонали',
+      nNoteNotWhole: 'N должно быть целым числом — таблица остаётся прежней.',
+      nNoteTooSmall: 'N не может быть меньше 1 — увеличено до 1.',
+      nNoteCapped: 'N ограничено до {max}, чтобы таблица не становилась слишком большой — уменьшено до {max}.',
+      identityWordAdditive: 'ноль',
+      identityWordMultiplicative: 'один',
+      inverseWordAdditive: 'своим собственным противоположным',
+      inverseWordMultiplicative: 'своим собственным обратным',
+      identityNote: 'Нейтральный элемент — {word} — его строка и столбец отмечены ниже.',
+      symmetryNoteAdditive: 'a + b и b + a всегда попадают в один и тот же класс, поэтому таблица отражает сама себя по диагонали — щёлкни на любую ячейку, чтобы увидеть, как её близнец загорается на другой стороне.',
+      symmetryNoteMultiplicative: 'a · b и b · a всегда попадают в один и тот же класс, поэтому таблица отражает сама себя по диагонали — щёлкни на любую ячейку, чтобы увидеть, как её близнец загорается на другой стороне.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} элемент · нейтральный элемент [{id}]',
+        few: 'ℤ/{n}ℤ · {count} элемента · нейтральный элемент [{id}]',
+        many: 'ℤ/{n}ℤ · {count} элементов · нейтральный элемент [{id}]',
+        other: 'ℤ/{n}ℤ · {count} элемента · нейтральный элемент [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} элемент · нейтральный элемент [{id}]',
+        few: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} элемента · нейтральный элемент [{id}]',
+        many: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} элементов · нейтральный элемент [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} элемента · нейтральный элемент [{id}]'
+      },
+      tableCaption: 'Таблица Кэли для {summary} при {sign}',
+      noteDiagonal: 'Эта ячейка находится на диагональной оси — она сама себе пара, с единственным уравнением: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), и {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — оба дают одно и то же значение, поэтому таблица симметрична относительно своей диагонали: группа коммутативна.',
+      selfInverseNote: '{a} является {word}, поскольку его значение здесь — нейтральный элемент.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    el: {
+      title: 'Πίνακας Cayley',
+      eyebrow: 'θεωρία ομάδων · πίνακες πράξεων',
+      heading: 'Πίνακας Cayley',
+      lede: 'Όλη η πράξη μιας ομάδας χωράει σε έναν τετράγωνο πίνακα — μία γραμμή και μία στήλη ανά στοιχείο, ένα κελί για κάθε αποτέλεσμα. Κάθε δομικό γεγονός για αυτή την ομάδα — το ουδέτερο στοιχείο της, τα αντίστροφα στοιχεία της, η αντιμεταθετικότητά της — φαίνεται κάπου στο σχήμα του πίνακα.',
+      xref: 'Οι ίδιες δύο πράξεις ομάδας, πλέον ως τομείς σε τροχό αντί για γραμμές σε πίνακα →',
+      tablistLabel: 'Πράξη ομάδας',
+      nLabel: 'N — μέτρο',
+      randomizeLabel: 'Τυχαία',
+      randomize: 'Νέο τυχαίο παράδειγμα',
+      tableScrollLabel: 'Πίνακας Cayley, με κύλιση',
+      'legend.identity': '{0} Γραμμή και στήλη του ουδέτερου στοιχείου',
+      'legend.inverse': '{0} Αυτοαντίστροφο (ζευγαρωμένο με τον εαυτό του)',
+      'legend.selected': '{0} Επιλεγμένο κελί',
+      'legend.mirror': '{0} Κατοπτρικό δίδυμο κατά μήκος της διαγωνίου',
+      nNoteNotWhole: 'Το N πρέπει να είναι ακέραιος αριθμός — ο πίνακας παραμένει όπως ήταν.',
+      nNoteTooSmall: 'Το N δεν μπορεί να πέσει κάτω από το 1 — αυξήθηκε σε 1.',
+      nNoteCapped: 'Το N έχει όριο {max} για να μην μεγαλώσει πολύ ο πίνακας — μειώθηκε σε {max}.',
+      identityWordAdditive: 'μηδέν',
+      identityWordMultiplicative: 'ένα',
+      inverseWordAdditive: 'το δικό του αντίθετο',
+      inverseWordMultiplicative: 'το δικό του αντίστροφο',
+      identityNote: 'Το ουδέτερο στοιχείο είναι {word} — η γραμμή και η στήλη του σημειώνονται παρακάτω.',
+      symmetryNoteAdditive: 'Τα a + b και b + a καταλήγουν πάντα στην ίδια κλάση, οπότε ο πίνακας αντανακλά τον εαυτό του κατά μήκος της διαγωνίου — πάτα σε οποιοδήποτε κελί για να δεις το δίδυμό του να ανάβει στην απέναντι πλευρά.',
+      symmetryNoteMultiplicative: 'Τα a · b και b · a καταλήγουν πάντα στην ίδια κλάση, οπότε ο πίνακας αντανακλά τον εαυτό του κατά μήκος της διαγωνίου — πάτα σε οποιοδήποτε κελί για να δεις το δίδυμό του να ανάβει στην απέναντι πλευρά.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} στοιχείο · ουδέτερο στοιχείο [{id}]',
+        other: 'ℤ/{n}ℤ · {count} στοιχεία · ουδέτερο στοιχείο [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} στοιχείο · ουδέτερο στοιχείο [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} στοιχεία · ουδέτερο στοιχείο [{id}]'
+      },
+      tableCaption: 'Πίνακας Cayley για {summary} υπό {sign}',
+      noteDiagonal: 'Αυτό το κελί βρίσκεται στον διαγώνιο άξονα — είναι το δικό του δίδυμο, με μία μόνο εξίσωση: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), και {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — και τα δύο καταλήγουν στην ίδια τιμή, οπότε ο πίνακας είναι συμμετρικός ως προς τη διαγώνιό του: η ομάδα είναι αντιμεταθετική.',
+      selfInverseNote: 'Το {a} είναι {word}, αφού η τιμή του εδώ είναι το ουδέτερο στοιχείο.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });
