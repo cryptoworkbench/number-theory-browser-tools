@@ -543,6 +543,367 @@ function modeCss(opts) {
 
 /* ---------- entrypoint ---------- */
 
+/* ================================================================
+ * Shared runtime helpers (Task 2) — headless-Chrome probes that work
+ * around headless Chrome's ~500px minimum top-level --window-size by
+ * nesting the page under test inside a larger outer window's <iframe>,
+ * sized to the exact target viewport in CSS pixels (D-13). Each run
+ * writes a probe copy of a page next to the original inside the scratch
+ * root, named "<name>.footer-probe.html" — the original page with one
+ * inline <script> inserted before </body>.
+ * ================================================================ */
+
+function resolveSiteRoot(opts, prefix) {
+  if (opts.root) return { root: opts.root, cleanup: function () {} };
+  var root = makeScratchCopy(prefix);
+  return { root: root, cleanup: function () { try { fs.rmSync(root, { recursive: true, force: true }); } catch (e) { /* best effort */ } } };
+}
+
+function runChromeDumpDom(url, budgetMs, windowSize) {
+  var profileDir = harness.mkScratch("footer-probe-profile-");
+  var args = [
+    "--headless=new", "--disable-gpu", "--no-sandbox",
+    "--user-data-dir=" + profileDir,
+    "--virtual-time-budget=" + budgetMs,
+    "--window-size=" + (windowSize || "1280,900"),
+    "--dump-dom",
+    url
+  ];
+  var res = cp.spawnSync("google-chrome", args, { encoding: "utf8", maxBuffer: 200 * 1024 * 1024, env: harness.chromeEnv(), timeout: 90000 });
+  try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  return res.stdout || "";
+}
+
+function unescapeHtmlAttr(s) {
+  return s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
+
+function extractDataM(domHtml) {
+  var m = /<html[^>]*\sdata-m="([^"]*)"/.exec(domHtml);
+  if (!m) return null;
+  try { return JSON.parse(unescapeHtmlAttr(m[1])); } catch (e) { return null; }
+}
+
+function buildProbeCopy(root, relPath, injectedScript) {
+  var abs = path.join(root, relPath);
+  var html = fs.readFileSync(abs, "utf8");
+  var instrumented = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, injectedScript + "</body>") : html + injectedScript;
+  var probeName = path.basename(relPath).replace(/\.html$/, ".footer-probe.html");
+  var probeAbs = path.join(path.dirname(abs), probeName);
+  fs.writeFileSync(probeAbs, instrumented);
+  return probeAbs;
+}
+
+function toFileUrl(absPath) {
+  return "file://" + absPath;
+}
+
+// buildIframeSrc(absPath, query): a URI-encoded file:// URL (spaces and
+// other path characters percent-encoded) suitable for embedding as an
+// <iframe src="..."> attribute value in a wrapper page we author.
+function buildIframeSrc(absPath, query) {
+  var encoded = absPath.split("/").map(function (seg) { return encodeURIComponent(seg); }).join("/");
+  var url = "file://" + encoded;
+  if (query) url += "?" + query;
+  return url;
+}
+
+function escapeAttr(s) {
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function writeWrapperAndRun(root, iframeSrc, iframeWidth, iframeHeight, budgetMs, outerWindowSize) {
+  var wrapperHtml = '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0">' +
+    '<iframe src="' + escapeAttr(iframeSrc) + '" style="border:0;width:' + iframeWidth + 'px;height:' + iframeHeight + 'px;display:block;"></iframe>' +
+    "<script>window.addEventListener('message', function(e){ document.documentElement.setAttribute('data-m', e.data); });</script>" +
+    "</body></html>";
+  var wrapperAbs = path.join(root, "footer-probe-wrap-" + process.pid + "-" + Math.random().toString(36).slice(2) + ".html");
+  fs.writeFileSync(wrapperAbs, wrapperHtml);
+  var dom = runChromeDumpDom(toFileUrl(wrapperAbs), budgetMs, outerWindowSize);
+  try { fs.unlinkSync(wrapperAbs); } catch (e) { /* best effort */ }
+  return extractDataM(dom);
+}
+
+/* ================================================================
+ * w375 mode — FOOTER-375 (D-13): true 375px viewport, en/de/ru/el
+ * ================================================================ */
+
+function w375MetricsScript() {
+  return [
+    "<script>",
+    "setTimeout(function(){",
+    "  var vw = window.innerWidth;",
+    "  var ovf = document.documentElement.scrollWidth - document.documentElement.clientWidth;",
+    "  var hdr = document.querySelector('.site-header');",
+    "  var ftr = document.querySelector('.site-footer');",
+    "  var hdrOvf = hdr ? (hdr.scrollWidth - hdr.clientWidth) : -1;",
+    "  var fOvf = ftr ? (ftr.scrollWidth - ftr.clientWidth) : -1;",
+    "  var hdrH = hdr ? Math.round(hdr.getBoundingClientRect().height) : -1;",
+    "  var fH = ftr ? Math.round(ftr.getBoundingClientRect().height) : -1;",
+    "  var hdrSel = hdr ? hdr.querySelectorAll('select').length : -1;",
+    "  var sel = document.getElementById('lang-switch-select');",
+    "  var inFooter = !!(ftr && sel && ftr.contains(sel));",
+    "  var afterCount = 0;",
+    "  if (ftr) { var n = ftr.nextElementSibling; while(n){ if (n.tagName !== 'SCRIPT') afterCount++; n = n.nextElementSibling; } }",
+    "  var ls = document.querySelector('.site-footer .lang-switch');",
+    "  var lsRect = ls ? ls.getBoundingClientRect() : null;",
+    "  var swL = lsRect ? Math.round(lsRect.left) : -1;",
+    "  var swR = lsRect ? Math.round(lsRect.right) : -1;",
+    "  var parentTag = (ftr && ftr.parentElement) ? ftr.parentElement.tagName : '';",
+    "  var payload = {vw:vw, ovf:ovf, hdrOvf:hdrOvf, fOvf:fOvf, hdrH:hdrH, fH:fH, hdrSel:hdrSel, inFooter:inFooter, after:afterCount, parent:parentTag, swL:swL, swR:swR, lang:document.documentElement.lang};",
+    "  parent.postMessage(JSON.stringify(payload), '*');",
+    "}, 600);",
+    "</script>"
+  ].join("\n");
+}
+
+var W375_LANGS = ["en", "de", "ru", "el"];
+
+function modeW375(opts) {
+  var siteInfo = resolveSiteRoot(opts, "footer-w375-");
+  var root = siteInfo.root;
+  var pages = filterPages(opts.only);
+  var anyFail = false;
+  var runCount = 0;
+
+  pages.forEach(function (relPath) {
+    var probeAbs = buildProbeCopy(root, relPath, w375MetricsScript());
+    W375_LANGS.forEach(function (lang) {
+      var iframeSrc = buildIframeSrc(probeAbs, "lang=" + encodeURIComponent(lang) + "&theme=night");
+      var payload = writeWrapperAndRun(root, iframeSrc, 375, 812, 3000, "1400,1000");
+      runCount++;
+      console.log("FOOTER-375 " + relPath + " " + lang + " " + JSON.stringify(payload));
+      var ok = payload &&
+        payload.vw === 375 && payload.ovf === 0 && payload.hdrOvf === 0 && payload.fOvf === 0 &&
+        payload.hdrSel === 0 && payload.inFooter === true && payload.parent === "BODY" &&
+        payload.after === 0 && payload.swL >= 0 && payload.swR <= 375 && payload.lang === lang;
+      if (!ok) anyFail = true;
+    });
+  });
+
+  siteInfo.cleanup();
+  if (anyFail) { console.log("FOOTER-375 FAIL"); process.exit(1); }
+  console.log("FOOTER-375 PASS " + runCount + " runs");
+  process.exit(0);
+}
+
+/* ================================================================
+ * style mode — STYLE-PARITY (D-04, D-05)
+ * ================================================================ */
+
+function styleMetricsScript() {
+  return [
+    "<script>",
+    "setTimeout(function(){",
+    "  function v(sel, prop){ var el = document.querySelector(sel); if (!el) return null; return getComputedStyle(el).getPropertyValue(prop); }",
+    "  var hdr = document.querySelector('.site-header');",
+    "  var ftr = document.querySelector('.site-footer');",
+    "  var hdrBg = hdr ? getComputedStyle(hdr).backgroundColor : null;",
+    "  var ftrBg = ftr ? getComputedStyle(ftr).backgroundColor : null;",
+    "  var hdrBd = hdr ? getComputedStyle(hdr).borderBottomColor : null;",
+    "  var ftrBd = ftr ? getComputedStyle(ftr).borderTopColor : null;",
+    "  var payload = {",
+    "    bgEq: hdrBg === ftrBg, bdEq: hdrBd === ftrBd,",
+    "    display: v('.site-footer','display'), position: v('.site-footer','position'), zIndex: v('.site-footer','z-index'),",
+    "    marginTop: v('.site-footer','margin-top'), marginBottom: v('.site-footer','margin-bottom'),",
+    "    paddingTop: v('.site-footer','padding-top'), paddingBottom: v('.site-footer','padding-bottom'),",
+    "    borderTopWidth: v('.site-footer','border-top-width'), borderTopStyle: v('.site-footer','border-top-style'),",
+    "    opacity: v('.site-footer','opacity'), whiteSpace: v('.site-footer','white-space'), overflowX: v('.site-footer','overflow-x'),",
+    "    textAlign: v('.site-footer','text-align'), fontFamily: v('.site-footer','font-family'),",
+    "    color: v('.site-footer','color'), backgroundColor: v('.site-footer','background-color'),",
+    "    innerDisplay: v('.site-footer-inner','display'), innerJustify: v('.site-footer-inner','justify-content'),",
+    "    innerMaxWidth: v('.site-footer-inner','max-width'), innerPaddingTop: v('.site-footer-inner','padding-top'),",
+    "    innerPaddingLeft: v('.site-footer-inner','padding-left'), langSwitchMarginLeft: v('.lang-switch','margin-left'),",
+    "    selColor: v('#lang-switch-select','color'), selBg: v('#lang-switch-select','background-color'),",
+    "    selBorderTopColor: v('#lang-switch-select','border-top-color'), selFontFamily: v('#lang-switch-select','font-family')",
+    "  };",
+    "  document.documentElement.setAttribute('data-m', JSON.stringify(payload));",
+    "}, 600);",
+    "</script>"
+  ].join("\n");
+}
+
+function modeStyle(opts) {
+  var siteInfo = resolveSiteRoot(opts, "footer-style-");
+  var root = siteInfo.root;
+  var pages = filterPages(opts.only);
+  var themes = ["night", "day"];
+  var byTheme = { night: {}, day: {} };
+  var fails = [];
+
+  pages.forEach(function (relPath) {
+    var probeAbs = buildProbeCopy(root, relPath, styleMetricsScript());
+    themes.forEach(function (theme) {
+      var url = toFileUrl(probeAbs) + "?lang=en&theme=" + theme;
+      var dom = runChromeDumpDom(url, 3000, "1280,900");
+      var payload = extractDataM(dom);
+      byTheme[theme][relPath] = payload;
+      if (!payload || payload.bgEq !== true || payload.bdEq !== true) {
+        fails.push(relPath + " " + theme + ": bgEq/bdEq false or missing payload");
+      }
+    });
+  });
+
+  siteInfo.cleanup();
+
+  themes.forEach(function (theme) {
+    var strs = pages.map(function (p) { return JSON.stringify(byTheme[theme][p]); });
+    var uniq = {};
+    strs.forEach(function (s) { uniq[s] = true; });
+    if (Object.keys(uniq).length !== 1) fails.push(theme + ": not all " + pages.length + " pages share one computed-style vector");
+  });
+
+  var night = byTheme.night[pages[0]], day = byTheme.day[pages[0]];
+  if (night && day && JSON.stringify(night) === JSON.stringify(day)) fails.push("night vec equals day vec");
+
+  if (night) {
+    var expect = {
+      opacity: "1", whiteSpace: "normal", overflowX: "visible", marginTop: "0px", marginBottom: "0px",
+      textAlign: "center", position: "relative", zIndex: "2", innerJustify: "center", innerMaxWidth: "1180px",
+      langSwitchMarginLeft: "0px"
+    };
+    Object.keys(expect).forEach(function (k) {
+      if (night[k] !== expect[k]) fails.push("night." + k + " = " + JSON.stringify(night[k]) + " expected " + JSON.stringify(expect[k]));
+    });
+    if (!/^system-ui/.test(night.fontFamily || "")) fails.push("footer font-family does not start with system-ui: " + night.fontFamily);
+    if (!/^system-ui/.test(night.selFontFamily || "")) fails.push("select font-family does not start with system-ui: " + night.selFontFamily);
+  }
+
+  if (fails.length) {
+    console.log("STYLE-PARITY FAIL " + JSON.stringify(fails));
+    process.exit(1);
+  }
+  console.log("STYLE-PARITY PASS pages=" + pages.length + " themes=" + themes.length);
+  process.exit(0);
+}
+
+/* ================================================================
+ * scratch mode — SCRATCH-CLEAR (D-07, D-14)
+ * ================================================================ */
+
+var SCRATCH_SIZES = [[390, 800], [420, 800], [520, 800], [700, 900], [1280, 900]];
+var SCRATCH_PAGES = [
+  { rel: "RSA/rsa.html", clicks: ["bob-gen-btn", "alice-gen-btn"], panelId: "pubkey-scratchpad" },
+  { rel: "Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html", clicks: ["instantBtn"], panelId: "dh-scratchpad" }
+];
+
+function scratchMetricsScript(clickIds, panelId) {
+  var clickLines = clickIds.map(function (id) { return "  var el = document.getElementById('" + id + "'); if (el) el.click();"; }).join("\n");
+  return [
+    "<script>",
+    "setTimeout(function(){",
+    clickLines,
+    "}, 600);",
+    "setTimeout(function(){",
+    "  var panel = document.getElementById('" + panelId + "');",
+    "  if (panel) {",
+    "    panel.classList.add('is-shown');",
+    "    var rows = panel.querySelectorAll('.scratch-row');",
+    "    for (var i=0;i<rows.length;i++) rows[i].classList.add('is-shown');",
+    "    var kvs = panel.querySelectorAll('.scratch-kv');",
+    "    var digits = '';",
+    "    for (var d=0; d<60; d++) digits += String(d % 10);",
+    "    for (var k=0;k<kvs.length;k++) kvs[k].textContent = 'n = ' + digits;",
+    "  }",
+    "  window.scrollTo(0, document.documentElement.scrollHeight);",
+    "}, 2100);",
+    "setTimeout(function(){",
+    "  window.scrollBy(0, -1);",
+    "  window.scrollTo(0, document.documentElement.scrollHeight);",
+    "}, 2900);",
+    "setTimeout(function(){",
+    "  var panel = document.getElementById('" + panelId + "');",
+    "  var ls = document.querySelector('.site-footer .lang-switch');",
+    "  var cs = panel ? getComputedStyle(panel) : null;",
+    "  var shown = panel ? (panel.classList.contains('is-shown') && cs.display !== 'none') : false;",
+    "  var padRect = panel ? panel.getBoundingClientRect() : null;",
+    "  var padH = padRect ? padRect.height : 0;",
+    "  var atEnd = Math.abs((window.scrollY + window.innerHeight) - document.documentElement.scrollHeight) <= 2;",
+    "  var lsRect = ls ? ls.getBoundingClientRect() : null;",
+    "  var hit = (padRect && lsRect) ? !(padRect.right < lsRect.left || padRect.left > lsRect.right || padRect.bottom < lsRect.top || padRect.top > lsRect.bottom) : false;",
+    "  var gap = (padRect && lsRect) ? (padRect.top - lsRect.bottom) : null;",
+    "  var payload = { shown: shown?1:0, padH: Math.round(padH), atEnd: atEnd?1:0, hit: hit?1:0, gap: gap===null?null:Math.round(gap) };",
+    "  parent.postMessage(JSON.stringify(payload), '*');",
+    "}, 3700);",
+    "</script>"
+  ].join("\n");
+}
+
+function modeScratch(opts) {
+  var siteInfo = resolveSiteRoot(opts, "footer-scratch-");
+  var root = siteInfo.root;
+  var anyFail = false;
+  var count = 0;
+
+  SCRATCH_PAGES.forEach(function (pcfg) {
+    var probeAbs = buildProbeCopy(root, pcfg.rel, scratchMetricsScript(pcfg.clicks, pcfg.panelId));
+    SCRATCH_SIZES.forEach(function (wh) {
+      var iframeSrc = buildIframeSrc(probeAbs, "lang=en");
+      var payload = writeWrapperAndRun(root, iframeSrc, wh[0], wh[1], 8000, "1400,1000");
+      count++;
+      console.log("SCRATCH-CLEAR " + pcfg.rel + " " + wh[0] + "x" + wh[1] + " " + JSON.stringify(payload));
+      var ok = payload && payload.shown === 1 && payload.padH >= 150 && payload.atEnd === 1 && payload.hit === 0;
+      if (!ok) anyFail = true;
+    });
+  });
+
+  siteInfo.cleanup();
+  if (anyFail) { console.log("SCRATCH-CLEAR FAIL"); process.exit(1); }
+  console.log("SCRATCH-CLEAR PASS " + count + " runs");
+  process.exit(0);
+}
+
+/* ================================================================
+ * neg mode — PROBE-NEG (negative controls)
+ * ================================================================ */
+
+function modeNeg(opts) {
+  var controls = [];
+
+  var r1 = makeScratchCopy("footer-neg-style-");
+  var cssPath = path.join(r1, "assets", "site.css");
+  var cssSrc = fs.readFileSync(cssPath, "utf8");
+  var cssMutated = cssSrc.split("\n").filter(function (l) { return l.trim() !== "opacity: 1;"; }).join("\n");
+  fs.writeFileSync(cssPath, cssMutated);
+  var res1 = cp.spawnSync("node", [__filename, "style", "--root", r1], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  controls.push({ name: "NEG-STYLE", code: res1.status, out: res1.stdout });
+  try { fs.rmSync(r1, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+
+  var r2 = makeScratchCopy("footer-neg-375-");
+  var sievePath = path.join(r2, "Sieve Of Eratosthenes", "sieve-of-eratosthenes.html");
+  var sieveSrc = fs.readFileSync(sievePath, "utf8");
+  var sieveMutated = sieveSrc.replace(
+    '<footer class="site-footer">\n  <div class="site-footer-inner">',
+    '<footer class="site-footer">\n  <div class="site-footer-inner">\n<span style="display:inline-block;width:600px;flex-shrink:0;white-space:nowrap">x</span>'
+  );
+  if (sieveMutated === sieveSrc) throw new Error("NEG-375: inner div anchor not found in scratch Sieve page");
+  fs.writeFileSync(sievePath, sieveMutated);
+  var res2 = cp.spawnSync("node", [__filename, "w375", "--root", r2, "--only", "Sieve Of Eratosthenes"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  controls.push({ name: "NEG-375", code: res2.status, out: res2.stdout });
+  try { fs.rmSync(r2, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+
+  var r3 = makeScratchCopy("footer-neg-scratch-");
+  ["RSA/rsa.html", "Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html"].forEach(function (rel) {
+    var p = path.join(r3, rel);
+    var s = fs.readFileSync(p, "utf8");
+    var mutated = s.replace("  body{ padding-bottom: 240px; }", "  .app{ padding-bottom: 240px; }");
+    if (mutated === s) throw new Error("NEG-SCRATCH: reserve-line anchor not found in " + rel);
+    fs.writeFileSync(p, mutated);
+  });
+  var res3 = cp.spawnSync("node", [__filename, "scratch", "--root", r3], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  controls.push({ name: "NEG-SCRATCH", code: res3.status, out: res3.stdout });
+  try { fs.rmSync(r3, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+
+  var unexpectedlyPassed = controls.filter(function (c) { return c.code === 0; });
+  controls.forEach(function (c) { console.log(c.name + " exit=" + c.code); });
+  if (unexpectedlyPassed.length) {
+    console.log("PROBE-NEG FAIL: " + unexpectedlyPassed.map(function (c) { return c.name; }).join(",") + " unexpectedly passed");
+    process.exit(1);
+  }
+  console.log("PROBE-NEG PASS 3 controls");
+  process.exit(0);
+}
+
 function main() {
   var parsed = parseArgs(process.argv.slice(2));
   var mode = parsed.mode, opts = parsed.opts;
@@ -550,7 +911,11 @@ function main() {
   if (mode === "strip") return modeStrip(opts);
   if (mode === "gate") return modeGate(opts);
   if (mode === "css") return modeCss(opts);
-  console.error("Usage: node footer-probe.js <markup|strip|gate|css> [--base <sha>] [--root <dir>] [--only <substring>]");
+  if (mode === "w375") return modeW375(opts);
+  if (mode === "style") return modeStyle(opts);
+  if (mode === "scratch") return modeScratch(opts);
+  if (mode === "neg") return modeNeg(opts);
+  console.error("Usage: node footer-probe.js <markup|strip|gate|css|w375|style|scratch|neg> [--base <sha>] [--root <dir>] [--only <substring>]");
   process.exit(1);
 }
 
