@@ -21,7 +21,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 26;
+var EXPECTED = 28;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
@@ -202,6 +202,11 @@ function inPage(cfg) {
   function dragDrop(x, y, pt) { ptr("pointerup", document, x, y, pt); }
   function ghosts() { return document.querySelectorAll(".drag-ghost").length; }
   function workCentre() { return centre(document.getElementById("workArea")); }
+  // A point inside the working area but beside every (centred) card.
+  function workEmpty() {
+    var r = document.getElementById("workArea").getBoundingClientRect();
+    return { x: r.left + 6, y: r.top + 6 };
+  }
   function isPrimeNum(n) { if (n < 2) return false; for (var d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; }
 
   function edgeInfo(card) {
@@ -363,8 +368,9 @@ function inPage(cfg) {
     assert(!document.getElementById("clearBtn").disabled, "Clear is disabled");
     visibleCoherent(card);
 
-    dragStart(items()[1], wc.x, wc.y, "touch");
-    dragDrop(wc.x, wc.y, "touch");
+    var we = workEmpty();
+    dragStart(items()[1], we.x, we.y, "touch");
+    dragDrop(we.x, we.y, "touch");
     cs = cards();
     assert(cs.length === 2, "touch drag left " + cs.length + " cards");
     assert(labelOf(shownCircles(cs[1])[0]) === "3", "the touch-dragged card is labelled " + labelOf(shownCircles(cs[1])[0]));
@@ -744,6 +750,43 @@ function inPage(cfg) {
         noErrors("P11");
         return "a circle over the bin tilts its lid open; dropping bins it (mouse and touch) with a message; leaving or Escape keeps it; Delete/Backspace bin the focused circle; the heading reverts to Prime palette";
       });
+    });
+  });
+
+  step("P12 compose", function () {
+    click(document.getElementById("clearBtn"));
+    var we = workEmpty();
+    var seven = itemByText("7"), five = itemByText("5");
+    dragStart(seven, we.x, we.y, "mouse");
+    dragDrop(we.x, we.y, "mouse");
+    var cs = cards();
+    assert(cs.length === 1, cs.length + " cards after dropping 7 into empty space");
+    var card = cs[0];
+    var cc = centre(card);
+    dragStart(five, cc.x, cc.y, "mouse");
+    assert(card.classList.contains("is-drop-target"), "the card under the circle is not highlighted");
+    assert(!document.getElementById("workArea").classList.contains("is-drop-over"), "the working area is highlighted while over a card");
+    dragDrop(cc.x, cc.y, "mouse");
+    pointerClick(five);
+    cs = cards();
+    assert(cs.length === 1, cs.length + " cards after composing 5 into 7, expected 1");
+    card = cs[0];
+    assert(!card.classList.contains("is-drop-target"), "is-drop-target left behind");
+    assert(rootOf(card) && labelOf(rootOf(card)) === "35", "the composed root reads " + (rootOf(card) && labelOf(rootOf(card))));
+    assert(childLabels(card).join() === "5,7", "35's children are " + childLabels(card).join());
+    assert(badgeOf(rootOf(card)).getAttribute("aria-expanded") === "true", "the composed root is folded");
+    var sevenC = circleByLabel(card, "internal", "7");
+    assert(badgeOf(sevenC).getAttribute("aria-expanded") === "false", "the old 7 lost its folded state");
+    assert(eqText(card) === "", "the equation shows while 7 is folded");
+    assert(card.querySelector(".tree-remove").getAttribute("aria-label") === T("removeLabel", { n: 35 }), "remove label is not for 35");
+    click(badgeOf(sevenC));
+    return wait().then(function () {
+      assert(eqText(card) !== "", "the equation did not appear once every split is open");
+      dragStart(itemByText("5"), we.x, we.y, "mouse");
+      dragDrop(we.x, we.y, "mouse");
+      assert(cards().length === 2 && cards()[0] === card, "a drop beside the card did not place a second tree after it");
+      noErrors("P12");
+      return "a circle dropped on a card composes into it (5 on 7 gives 35 with branches 5 and 7, old folds kept, card highlighted mid-drag); beside a card it places its own tree";
     });
   });
 
