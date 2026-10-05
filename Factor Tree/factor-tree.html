@@ -71,6 +71,23 @@
     transition:filter var(--ease-ctl);
   }
   #goBtn:hover{ filter:brightness(1.08); }
+  #randomBtn{
+    height:40px;
+    padding:0 18px;
+    border-radius:var(--radius-ctl);
+    border:1px solid var(--panel-border-strong);
+    background:var(--surface);
+    color:var(--text);
+    cursor:pointer;
+    font-family:var(--font-sans);
+    font-weight:600;
+    font-size:.9375rem;
+    transition:border-color var(--ease-ctl), color var(--ease-ctl);
+  }
+  #randomBtn:hover{
+    border-color:var(--accent);
+    color:var(--accent);
+  }
 
   .chips{
     display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;
@@ -297,6 +314,7 @@
   <div class="controls">
     <input id="numInput" type="number" min="1" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="factorTree.placeholder" />
     <button id="goBtn" data-i18n="factorTree.grow">Grow the Tree</button>
+    <button id="randomBtn" type="button" data-i18n="factorTree.randomize">Randomize</button>
   </div>
 
   <div class="chips"></div>
@@ -320,7 +338,7 @@
 <script>
 (function(){
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
-  const { primeFactors } = NT.core;
+  const { primeFactors, randomInt } = NT.core;
   const { easeInOutCubic, svgEl } = NT.svg;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
@@ -328,6 +346,7 @@
   // ---------- Elements ----------
   const numInput = document.getElementById('numInput');
   const goBtn = document.getElementById('goBtn');
+  const randomBtn = document.getElementById('randomBtn');
   const chipsContainer = document.querySelector('.chips');
   const messageEl = document.getElementById('message');
   const equationEl = document.getElementById('equation');
@@ -340,6 +359,10 @@
   let treeView = null;
   const MIRROR_MS = 450;
   const MIRROR_ARM_AFTER_MS = 700;
+  const RANDOM_MIN = 12;
+  const RANDOM_MAX = 9999;
+  const RANDOM_MIN_FACTORS = 3;
+  const RANDOM_TRIES = 200;
 
   const CLASSIC_CHIPS = [
     { n:2, isPrime:false },
@@ -698,7 +721,25 @@
     renderTree(n, factors);
   }
 
+  // ---------- Randomize ----------
+  function pickRandomN(){
+    const shown = treeView ? treeView.root.value : null;
+    const ok = (n)=> n !== shown && primeFactors(n).length >= RANDOM_MIN_FACTORS;
+    for(let i = 0; i < RANDOM_TRIES; i++){
+      const n = randomInt(RANDOM_MIN, RANDOM_MAX);
+      if(ok(n)) return n;
+    }
+    for(let n = RANDOM_MIN; n <= RANDOM_MAX; n++){
+      if(ok(n)) return n;
+    }
+    return RANDOM_MIN;
+  }
+
   goBtn.addEventListener('click', ()=> factorize(numInput.value));
+  randomBtn.addEventListener('click', ()=>{
+    numInput.value = pickRandomN();
+    factorize(numInput.value);
+  });
   numInput.addEventListener('keydown', (e)=>{
     if(e.key === 'Enter') factorize(numInput.value);
   });

@@ -1,8 +1,8 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
-   subtitle, mode toggle, input placeholder, Grow button, footnote, the
-   Balanced-mode caveat, every validation/result message and the mirror-button
-   label (mirrorLabel, {n}) for the Factor Tree tool, in all sixteen supported
-   languages. title and heading equal site.nav.factorTree in each language.
+   subtitle, mode toggle, input placeholder, Grow button, the Randomize button
+   (randomize), footnote, the Balanced-mode caveat, every validation/result
+   message and the mirror-button label (mirrorLabel, {n}) for the Factor Tree
+   tool, in all sixteen supported languages. title and heading equal site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
@@ -25,6 +25,7 @@
       modeBalanced: 'Gebalanceerd',
       placeholder: 'bijv. 60',
       grow: 'Laat de boom groeien',
+      randomize: 'Willekeurig',
       footnote: 'Elk priemblad krijgt nog één laatste eigen splitsing: P = P × 1.',
       balancedNote: 'Gebalanceerde modus gebruikt de methode van Fermat om bij elke stap het meest gelijkmatig verdeelde factorpaar te vinden, met een maximum van 1.000.000 om snel te blijven. Sommige getallen — zoals een klein priemgetal keer een groot getal — splitsen nog steeds ongelijk; dat is geen fout, gewoon wiskunde.',
       msgEmpty: 'Voer eerst een getal in.',
@@ -46,6 +47,7 @@
       modeBalanced: 'Balanced',
       placeholder: 'e.g. 60',
       grow: 'Grow the Tree',
+      randomize: 'Randomize',
       footnote: 'Every prime leaf gets one last split of its own: P = P × 1.',
       balancedNote: 'Balanced mode uses Fermat’s method to find the most evenly-split factor pair at each step, capped at numbers under 1,000,000 to stay instant. Some numbers — like a small prime times a big one — still split unevenly; that’s not a bug, just math.',
       msgEmpty: 'Please enter a number first.',
@@ -67,6 +69,7 @@
       modeBalanced: 'Ausgeglichen',
       placeholder: 'z. B. 60',
       grow: 'Baum wachsen lassen',
+      randomize: 'Zufällig',
       footnote: 'Jedes Primzahl-Blatt bekommt noch eine letzte eigene Aufspaltung: P = P × 1.',
       balancedNote: 'Der ausgeglichene Modus nutzt Fermats Methode, um bei jedem Schritt das gleichmäßigste Faktorpaar zu finden, begrenzt auf Zahlen unter 1.000.000, um sofort zu bleiben. Manche Zahlen — etwa eine kleine Primzahl mal eine große — spalten sich trotzdem ungleich; das ist kein Fehler, nur Mathematik.',
       msgEmpty: 'Bitte gib zuerst eine Zahl ein.',
@@ -88,6 +91,7 @@
       modeBalanced: 'Équilibré',
       placeholder: 'ex. 60',
       grow: "Faire pousser l'arbre",
+      randomize: 'Aléatoire',
       footnote: 'Chaque feuille première reçoit une toute dernière scission qui lui est propre : P = P × 1.',
       balancedNote: "Le mode équilibré utilise la méthode de Fermat pour trouver la paire de facteurs la plus également répartie à chaque étape, plafonné aux nombres inférieurs à 1 000 000 pour rester instantané. Certains nombres — comme un petit nombre premier multiplié par un grand — se divisent encore de façon inégale ; ce n'est pas un bug, juste des mathématiques.",
       msgEmpty: "Veuillez d'abord saisir un nombre.",
@@ -109,6 +113,7 @@
       modeBalanced: 'Equilibrado',
       placeholder: 'p. ej. 60',
       grow: 'Hacer crecer el árbol',
+      randomize: 'Aleatorio',
       footnote: 'Cada hoja prima recibe una última división propia: P = P × 1.',
       balancedNote: 'El modo equilibrado usa el método de Fermat para encontrar el par de factores más equilibrado en cada paso, limitado a números menores de 1.000.000 para mantenerse instantáneo. Algunos números — como un primo pequeño multiplicado por uno grande — igual se dividen de forma desigual; eso no es un error, es solo matemática.',
       msgEmpty: 'Primero introduce un número.',
@@ -130,6 +135,7 @@
       modeBalanced: 'Bilanciata',
       placeholder: 'es. 60',
       grow: 'Fai crescere l’albero',
+      randomize: 'Casuale',
       footnote: 'Ogni foglia prima riceve un’ultima scissione tutta sua: P = P × 1.',
       balancedNote: 'La modalità bilanciata usa il metodo di Fermat per trovare la coppia di fattori più equamente divisa a ogni passo, limitata a numeri sotto 1.000.000 per restare istantanea. Alcuni numeri — come un piccolo numero primo moltiplicato per uno grande — si dividono comunque in modo disuguale; non è un errore, è solo matematica.',
       msgEmpty: 'Inserisci prima un numero.',
@@ -151,6 +157,7 @@
       modeBalanced: 'Zbalansowany',
       placeholder: 'np. 60',
       grow: 'Wyhoduj drzewo',
+      randomize: 'Losowo',
       footnote: 'Każdy pierwszy liść dostaje jeszcze jeden, własny, ostatni podział: P = P × 1.',
       balancedNote: 'Tryb zbalansowany wykorzystuje metodę Fermata, aby znaleźć na każdym kroku najbardziej równo podzieloną parę czynników, ograniczoną do liczb poniżej 1 000 000, aby pozostać natychmiastowy. Niektóre liczby — jak mała liczba pierwsza pomnożona przez dużą — wciąż dzielą się nierówno; to nie błąd, tylko matematyka.',
       msgEmpty: 'Najpierw wpisz liczbę.',
@@ -172,6 +179,7 @@
       modeBalanced: 'Equilibrado',
       placeholder: 'ex. 60',
       grow: 'Faça a árvore crescer',
+      randomize: 'Aleatório',
       footnote: 'Cada folha prima recebe uma última divisão só sua: P = P × 1.',
       balancedNote: 'O modo Equilibrado usa o método de Fermat para encontrar o par de fatores mais igualmente dividido em cada etapa, limitado a números abaixo de 1.000.000 para continuar instantâneo. Alguns números — como um primo pequeno multiplicado por um grande — ainda se dividem de forma desigual; isso não é um bug, é só matemática.',
       msgEmpty: 'Digite um número primeiro.',
@@ -193,6 +201,7 @@
       modeBalanced: 'Equilibrado',
       placeholder: 'p. ex. 60',
       grow: 'Faz a árvore crescer',
+      randomize: 'Aleatório',
       footnote: 'Cada folha prima recebe uma última divisão só sua: P = P × 1.',
       balancedNote: 'O modo Equilibrado usa o método de Fermat para encontrar o par de fatores mais igualmente dividido em cada etapa, limitado a números abaixo de 1.000.000 para se manter instantâneo. Alguns números — como um primo pequeno multiplicado por um grande — continuam a dividir-se de forma desigual; isso não é um erro, é só matemática.',
       msgEmpty: 'Introduz primeiro um número.',
@@ -214,6 +223,7 @@
       modeBalanced: 'Balanserat',
       placeholder: 't.ex. 60',
       grow: 'Låt trädet växa',
+      randomize: 'Slumpa',
       footnote: 'Varje primblad får en sista egen delning: P = P × 1.',
       balancedNote: 'Balanserat läge använder Fermats metod för att hitta det mest jämnt delade faktorparet vid varje steg, begränsat till tal under 1 000 000 för att hålla sig snabbt. Vissa tal — som ett litet primtal gånger ett stort — delar sig ändå ojämnt; det är inget fel, bara matematik.',
       msgEmpty: 'Ange ett tal först.',
@@ -235,6 +245,7 @@
       modeBalanced: 'Balansert',
       placeholder: 'f.eks. 60',
       grow: 'La treet vokse',
+      randomize: 'Tilfeldig',
       footnote: 'Hvert primblad får en siste egen deling: P = P × 1.',
       balancedNote: 'Balansert modus bruker Fermats metode for å finne det mest jevnt delte faktorparet ved hvert steg, begrenset til tall under 1 000 000 for å holde seg øyeblikkelig. Noen tall — som et lite primtall ganger et stort — deler seg likevel ujevnt; det er ikke en feil, bare matematikk.',
       msgEmpty: 'Skriv inn et tall først.',
@@ -256,6 +267,7 @@
       modeBalanced: 'Echilibrat',
       placeholder: 'ex. 60',
       grow: 'Fă arborele să crească',
+      randomize: 'Aleatorizează',
       footnote: 'Fiecare frunză primă primește o ultimă despicare proprie: P = P × 1.',
       balancedNote: 'Modul Echilibrat folosește metoda lui Fermat pentru a găsi la fiecare pas cea mai echilibrată pereche de factori, limitat la numere sub 1.000.000 pentru a rămâne instantaneu. Unele numere — cum ar fi un număr prim mic înmulțit cu unul mare — se despică totuși neuniform; nu este o eroare, e doar matematică.',
       msgEmpty: 'Introdu mai întâi un număr.',
@@ -277,6 +289,7 @@
       modeBalanced: 'Kiegyenlített',
       placeholder: 'pl. 60',
       grow: 'Növeld a fát',
+      randomize: 'Véletlenszerű',
       footnote: 'Minden prímlevél kap még egy utolsó, saját hasítást: P = P × 1.',
       balancedNote: 'A kiegyenlített mód Fermat módszerét használja, hogy minden lépésnél megtalálja a leginkább egyenletesen szétosztott tényezőpárt, 1 000 000 alatti számokra korlátozva, hogy azonnali maradjon. Néhány szám — például egy kicsi prímszám szorozva egy naggyal — még így is egyenetlenül hasad; ez nem hiba, csak matematika.',
       msgEmpty: 'Kérlek, adj meg előbb egy számot.',
@@ -298,6 +311,7 @@
       modeBalanced: 'Balansētais',
       placeholder: 'piem. 60',
       grow: 'Izaudzēt koku',
+      randomize: 'Nejauši',
       footnote: 'Katra pirmskaitļa lapa saņem vēl vienu, savu pēdējo sadalīšanu: P = P × 1.',
       balancedNote: 'Balansētais režīms izmanto Ferma metodi, lai katrā solī atrastu visvienmērīgāk sadalīto reizinātāju pāri, ierobežotu līdz skaitļiem zem 1 000 000, lai paliktu uzreiz gatavs. Daži skaitļi — piemēram, mazs pirmskaitlis reizināts ar lielu — joprojām sadalās nevienmērīgi; tā nav kļūda, tikai matemātika.',
       msgEmpty: 'Vispirms ievadi skaitli.',
@@ -319,6 +333,7 @@
       modeBalanced: 'Сбалансированный',
       placeholder: 'напр. 60',
       grow: 'Вырастить дерево',
+      randomize: 'Случайно',
       footnote: 'Каждый простой лист получает свой последний раздел: P = P × 1.',
       balancedNote: 'Сбалансированный режим использует метод Ферма, чтобы на каждом шаге находить наиболее равномерно разделённую пару множителей, с ограничением числами меньше 1 000 000, чтобы оставаться мгновенным. Некоторые числа — например, маленькое простое, умноженное на большое, — всё равно делятся неравномерно; это не ошибка, просто математика.',
       msgEmpty: 'Сначала введи число.',
@@ -340,6 +355,7 @@
       modeBalanced: 'Ισορροπημένη',
       placeholder: 'π.χ. 60',
       grow: 'Μεγάλωσε το δέντρο',
+      randomize: 'Τυχαία',
       footnote: 'Κάθε πρώτο φύλλο παίρνει μία τελευταία δική του διαίρεση: P = P × 1.',
       balancedNote: 'Η ισορροπημένη λειτουργία χρησιμοποιεί τη μέθοδο του Fermat για να βρίσκει σε κάθε βήμα το πιο ομοιόμορφα χωρισμένο ζεύγος παραγόντων, με όριο αριθμούς κάτω από 1.000.000 για να παραμένει άμεση. Μερικοί αριθμοί — όπως ένας μικρός πρώτος επί έναν μεγάλο — εξακολουθούν να χωρίζονται άνισα· αυτό δεν είναι σφάλμα, απλώς μαθηματικά.',
       msgEmpty: 'Γράψε πρώτα έναν αριθμό.',
