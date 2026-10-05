@@ -46,7 +46,17 @@
       'banner.done': {
         one: '{count} priemgetal gevonden tot {n} in {time}.',
         other: '{count} priemgetallen gevonden tot {n} in {time}.'
-      }
+      },
+      toPalette: 'Gevonden priemgetallen aan palet toevoegen',
+      'palette.added': {
+        one: '{count} nieuw priemgetal aan het palet toegevoegd — dubbelen overgeslagen: {dupes}.',
+        other: '{count} nieuwe priemgetallen aan het palet toegevoegd — dubbelen overgeslagen: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} nieuw priemgetal toegevoegd — het palet is vol ({max} getallen); niet toegevoegde priemgetallen: {left}.',
+        other: '{count} nieuwe priemgetallen toegevoegd — het palet is vol ({max} getallen); niet toegevoegde priemgetallen: {left}.'
+      },
+      'palette.none': 'Elk gevonden priemgetal staat al in het palet — niets toe te voegen.'
     },
     en: {
       sound: 'Sound',
@@ -73,7 +83,17 @@
       'banner.done': {
         one: 'Found {count} prime up to {n} in {time}.',
         other: 'Found {count} primes up to {n} in {time}.'
-      }
+      },
+      toPalette: 'Add found primes to palette',
+      'palette.added': {
+        one: 'Added {count} new prime to the palette — duplicates skipped: {dupes}.',
+        other: 'Added {count} new primes to the palette — duplicates skipped: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Added {count} new prime — the palette is full ({max} numbers); primes not added: {left}.',
+        other: 'Added {count} new primes — the palette is full ({max} numbers); primes not added: {left}.'
+      },
+      'palette.none': 'Every prime found is already in the palette — nothing to add.'
     },
     de: {
       sound: 'Ton',
@@ -100,7 +120,17 @@
       'banner.done': {
         one: '{count} Primzahl bis {n} gefunden in {time}.',
         other: '{count} Primzahlen bis {n} gefunden in {time}.'
-      }
+      },
+      toPalette: 'Gefundene Primzahlen zur Palette hinzufügen',
+      'palette.added': {
+        one: '{count} neue Primzahl zur Palette hinzugefügt — übersprungene Duplikate: {dupes}.',
+        other: '{count} neue Primzahlen zur Palette hinzugefügt — übersprungene Duplikate: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} neue Primzahl hinzugefügt — die Palette ist voll ({max} Zahlen); nicht hinzugefügte Primzahlen: {left}.',
+        other: '{count} neue Primzahlen hinzugefügt — die Palette ist voll ({max} Zahlen); nicht hinzugefügte Primzahlen: {left}.'
+      },
+      'palette.none': 'Jede gefundene Primzahl ist bereits in der Palette — nichts hinzuzufügen.'
     },
     fr: {
       sound: 'Son',
@@ -127,7 +157,17 @@
       'banner.done': {
         one: '{count} nombre premier trouvé jusqu’à {n} en {time}.',
         other: '{count} nombres premiers trouvés jusqu’à {n} en {time}.'
-      }
+      },
+      toPalette: 'Ajouter les nombres premiers trouvés à la palette',
+      'palette.added': {
+        one: '{count} nouveau nombre premier ajouté à la palette — doublons ignorés : {dupes}.',
+        other: '{count} nouveaux nombres premiers ajoutés à la palette — doublons ignorés : {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} nouveau nombre premier ajouté — la palette est pleine ({max} nombres) ; nombres premiers non ajoutés : {left}.',
+        other: '{count} nouveaux nombres premiers ajoutés — la palette est pleine ({max} nombres) ; nombres premiers non ajoutés : {left}.'
+      },
+      'palette.none': 'Tous les nombres premiers trouvés sont déjà dans la palette — rien à ajouter.'
     },
     es: {
       sound: 'Sonido',
@@ -154,7 +194,17 @@
       'banner.done': {
         one: 'Se encontró {count} número primo hasta {n} en {time}.',
         other: 'Se encontraron {count} números primos hasta {n} en {time}.'
-      }
+      },
+      toPalette: 'Añadir los primos encontrados a la paleta',
+      'palette.added': {
+        one: 'Se añadió {count} primo nuevo a la paleta — duplicados omitidos: {dupes}.',
+        other: 'Se añadieron {count} primos nuevos a la paleta — duplicados omitidos: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Se añadió {count} primo nuevo — la paleta está llena ({max} números); primos no añadidos: {left}.',
+        other: 'Se añadieron {count} primos nuevos — la paleta está llena ({max} números); primos no añadidos: {left}.'
+      },
+      'palette.none': 'Todos los primos encontrados ya están en la paleta — no hay nada que añadir.'
     },
     it: {
       sound: 'Suono',
@@ -181,7 +231,17 @@
       'banner.done': {
         one: '{count} numero primo trovato fino a {n} in {time}.',
         other: '{count} numeri primi trovati fino a {n} in {time}.'
-      }
+      },
+      toPalette: 'Aggiungi i primi trovati alla tavolozza',
+      'palette.added': {
+        one: '{count} nuovo numero primo aggiunto alla tavolozza — duplicati saltati: {dupes}.',
+        other: '{count} nuovi numeri primi aggiunti alla tavolozza — duplicati saltati: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} nuovo numero primo aggiunto — la tavolozza è piena ({max} numeri); numeri primi non aggiunti: {left}.',
+        other: '{count} nuovi numeri primi aggiunti — la tavolozza è piena ({max} numeri); numeri primi non aggiunti: {left}.'
+      },
+      'palette.none': 'Ogni numero primo trovato è già nella tavolozza — niente da aggiungere.'
     },
     pl: {
       sound: 'Dźwięk',
@@ -210,7 +270,21 @@
         few: 'Znaleziono {count} liczby pierwsze do {n} w {time}.',
         many: 'Znaleziono {count} liczb pierwszych do {n} w {time}.',
         other: 'Znaleziono {count} liczb pierwszych do {n} w {time}.'
-      }
+      },
+      toPalette: 'Dodaj znalezione liczby pierwsze do palety',
+      'palette.added': {
+        one: 'Dodano {count} nową liczbę pierwszą do palety — pominięte duplikaty: {dupes}.',
+        few: 'Dodano {count} nowe liczby pierwsze do palety — pominięte duplikaty: {dupes}.',
+        many: 'Dodano {count} nowych liczb pierwszych do palety — pominięte duplikaty: {dupes}.',
+        other: 'Dodano {count} nowej liczby pierwszej do palety — pominięte duplikaty: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Dodano {count} nową liczbę pierwszą — paleta jest pełna ({max} liczb); niedodane liczby pierwsze: {left}.',
+        few: 'Dodano {count} nowe liczby pierwsze — paleta jest pełna ({max} liczb); niedodane liczby pierwsze: {left}.',
+        many: 'Dodano {count} nowych liczb pierwszych — paleta jest pełna ({max} liczb); niedodane liczby pierwsze: {left}.',
+        other: 'Dodano {count} nowej liczby pierwszej — paleta jest pełna ({max} liczb); niedodane liczby pierwsze: {left}.'
+      },
+      'palette.none': 'Każda znaleziona liczba pierwsza jest już w palecie — nie ma czego dodawać.'
     },
     'pt-BR': {
       sound: 'Som',
@@ -237,7 +311,17 @@
       'banner.done': {
         one: '{count} número primo encontrado até {n} em {time}.',
         other: '{count} números primos encontrados até {n} em {time}.'
-      }
+      },
+      toPalette: 'Adicionar os primos encontrados à paleta',
+      'palette.added': {
+        one: '{count} novo primo adicionado à paleta — duplicatas ignoradas: {dupes}.',
+        other: '{count} novos primos adicionados à paleta — duplicatas ignoradas: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} novo primo adicionado — a paleta está cheia ({max} números); primos não adicionados: {left}.',
+        other: '{count} novos primos adicionados — a paleta está cheia ({max} números); primos não adicionados: {left}.'
+      },
+      'palette.none': 'Todos os primos encontrados já estão na paleta — nada a adicionar.'
     },
     'pt-PT': {
       sound: 'Som',
@@ -264,7 +348,17 @@
       'banner.done': {
         one: '{count} número primo encontrado até {n} em {time}.',
         other: '{count} números primos encontrados até {n} em {time}.'
-      }
+      },
+      toPalette: 'Adicionar os primos encontrados à paleta',
+      'palette.added': {
+        one: '{count} novo primo adicionado à paleta — duplicados ignorados: {dupes}.',
+        other: '{count} novos primos adicionados à paleta — duplicados ignorados: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} novo primo adicionado — a paleta está cheia ({max} números); primos não adicionados: {left}.',
+        other: '{count} novos primos adicionados — a paleta está cheia ({max} números); primos não adicionados: {left}.'
+      },
+      'palette.none': 'Todos os primos encontrados já estão na paleta — nada para adicionar.'
     },
     sv: {
       sound: 'Ljud',
@@ -291,7 +385,17 @@
       'banner.done': {
         one: 'Hittade {count} primtal upp till {n} på {time}.',
         other: 'Hittade {count} primtal upp till {n} på {time}.'
-      }
+      },
+      toPalette: 'Lägg till hittade primtal i paletten',
+      'palette.added': {
+        one: '{count} nytt primtal har lagts till i paletten — överhoppade dubbletter: {dupes}.',
+        other: '{count} nya primtal har lagts till i paletten — överhoppade dubbletter: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} nytt primtal har lagts till — paletten är full ({max} tal); primtal som inte lades till: {left}.',
+        other: '{count} nya primtal har lagts till — paletten är full ({max} tal); primtal som inte lades till: {left}.'
+      },
+      'palette.none': 'Alla hittade primtal finns redan i paletten — inget att lägga till.'
     },
     nb: {
       sound: 'Lyd',
@@ -318,7 +422,17 @@
       'banner.done': {
         one: 'Fant {count} primtall opp til {n} på {time}.',
         other: 'Fant {count} primtall opp til {n} på {time}.'
-      }
+      },
+      toPalette: 'Legg til funnede primtall i paletten',
+      'palette.added': {
+        one: '{count} nytt primtall er lagt til i paletten — dubletter hoppet over: {dupes}.',
+        other: '{count} nye primtall er lagt til i paletten — dubletter hoppet over: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} nytt primtall er lagt til — paletten er full ({max} tall); primtall som ikke ble lagt til: {left}.',
+        other: '{count} nye primtall er lagt til — paletten er full ({max} tall); primtall som ikke ble lagt til: {left}.'
+      },
+      'palette.none': 'Alle funnede primtall ligger allerede i paletten — ingenting å legge til.'
     },
     ro: {
       sound: 'Sunet',
@@ -346,7 +460,19 @@
         one: 'Am găsit {count} număr prim până la {n} în {time}.',
         few: 'Am găsit {count} numere prime până la {n} în {time}.',
         other: 'Am găsit {count} de numere prime până la {n} în {time}.'
-      }
+      },
+      toPalette: 'Adaugă numerele prime găsite în paletă',
+      'palette.added': {
+        one: 'Am adăugat {count} număr prim nou în paletă — dubluri omise: {dupes}.',
+        few: 'Am adăugat {count} numere prime noi în paletă — dubluri omise: {dupes}.',
+        other: 'Am adăugat {count} de numere prime noi în paletă — dubluri omise: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Am adăugat {count} număr prim nou — paleta este plină ({max} de numere); numere prime neadăugate: {left}.',
+        few: 'Am adăugat {count} numere prime noi — paleta este plină ({max} de numere); numere prime neadăugate: {left}.',
+        other: 'Am adăugat {count} de numere prime noi — paleta este plină ({max} de numere); numere prime neadăugate: {left}.'
+      },
+      'palette.none': 'Toate numerele prime găsite sunt deja în paletă — nu e nimic de adăugat.'
     },
     hu: {
       sound: 'Hang',
@@ -373,7 +499,17 @@
       'banner.done': {
         one: '{count} prímszámot találtunk {n}-ig, {time} alatt.',
         other: '{count} prímszámot találtunk {n}-ig, {time} alatt.'
-      }
+      },
+      toPalette: 'A talált prímek hozzáadása a palettához',
+      'palette.added': {
+        one: '{count} új prímszám került a palettába — kihagyott duplikátumok: {dupes}.',
+        other: '{count} új prímszám került a palettába — kihagyott duplikátumok: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} új prímszám került a palettába — a paletta megtelt ({max} szám); nem hozzáadott prímszámok: {left}.',
+        other: '{count} új prímszám került a palettába — a paletta megtelt ({max} szám); nem hozzáadott prímszámok: {left}.'
+      },
+      'palette.none': 'Minden talált prímszám már szerepel a palettán — nincs mit hozzáadni.'
     },
     lv: {
       sound: 'Skaņa',
@@ -401,7 +537,19 @@
         zero: 'Atradām {count} pirmskaitļu līdz {n} {time} laikā.',
         one: 'Atradām {count} pirmskaitli līdz {n} {time} laikā.',
         other: 'Atradām {count} pirmskaitļus līdz {n} {time} laikā.'
-      }
+      },
+      toPalette: 'Pievienot atrastos pirmskaitļus paletei',
+      'palette.added': {
+        zero: 'Paletei pievienoti {count} jauno pirmskaitļu — izlaisti dublikāti: {dupes}.',
+        one: 'Paletei pievienots {count} jauns pirmskaitlis — izlaisti dublikāti: {dupes}.',
+        other: 'Paletei pievienoti {count} jauni pirmskaitļi — izlaisti dublikāti: {dupes}.'
+      },
+      'palette.full': {
+        zero: 'Pievienoti {count} jauno pirmskaitļu — palete ir pilna ({max} skaitļu); nepievienotie pirmskaitļi: {left}.',
+        one: 'Pievienots {count} jauns pirmskaitlis — palete ir pilna ({max} skaitļu); nepievienotie pirmskaitļi: {left}.',
+        other: 'Pievienoti {count} jauni pirmskaitļi — palete ir pilna ({max} skaitļu); nepievienotie pirmskaitļi: {left}.'
+      },
+      'palette.none': 'Visi atrastie pirmskaitļi jau ir paletē — nav ko pievienot.'
     },
     ru: {
       sound: 'Звук',
@@ -430,7 +578,21 @@
         few: 'Найдено {count} простых числа до {n} за {time}.',
         many: 'Найдено {count} простых чисел до {n} за {time}.',
         other: 'Найдено {count} простого числа до {n} за {time}.'
-      }
+      },
+      toPalette: 'Добавить найденные простые числа в палитру',
+      'palette.added': {
+        one: 'В палитру добавлено {count} новое простое число — пропущено дубликатов: {dupes}.',
+        few: 'В палитру добавлено {count} новых простых числа — пропущено дубликатов: {dupes}.',
+        many: 'В палитру добавлено {count} новых простых чисел — пропущено дубликатов: {dupes}.',
+        other: 'В палитру добавлено {count} нового простого числа — пропущено дубликатов: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Добавлено {count} новое простое число — палитра заполнена ({max} чисел); не добавлено простых чисел: {left}.',
+        few: 'Добавлено {count} новых простых числа — палитра заполнена ({max} чисел); не добавлено простых чисел: {left}.',
+        many: 'Добавлено {count} новых простых чисел — палитра заполнена ({max} чисел); не добавлено простых чисел: {left}.',
+        other: 'Добавлено {count} нового простого числа — палитра заполнена ({max} чисел); не добавлено простых чисел: {left}.'
+      },
+      'palette.none': 'Все найденные простые числа уже есть в палитре — добавлять нечего.'
     },
     el: {
       sound: 'Ήχος',
@@ -457,7 +619,17 @@
       'banner.done': {
         one: 'Βρέθηκε {count} πρώτος αριθμός έως το {n} σε {time}.',
         other: 'Βρέθηκαν {count} πρώτοι αριθμοί έως το {n} σε {time}.'
-      }
+      },
+      toPalette: 'Προσθήκη των πρώτων που βρέθηκαν στην παλέτα',
+      'palette.added': {
+        one: 'Προστέθηκε {count} νέος πρώτος αριθμός στην παλέτα — διπλότυπα που παραλείφθηκαν: {dupes}.',
+        other: 'Προστέθηκαν {count} νέοι πρώτοι αριθμοί στην παλέτα — διπλότυπα που παραλείφθηκαν: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Προστέθηκε {count} νέος πρώτος αριθμός — η παλέτα είναι γεμάτη ({max} αριθμοί); πρώτοι που δεν προστέθηκαν: {left}.',
+        other: 'Προστέθηκαν {count} νέοι πρώτοι αριθμοί — η παλέτα είναι γεμάτη ({max} αριθμοί); πρώτοι που δεν προστέθηκαν: {left}.'
+      },
+      'palette.none': 'Κάθε πρώτος που βρέθηκε υπάρχει ήδη στην παλέτα — δεν υπάρχει τίποτα να προστεθεί.'
     }
   });
 })();

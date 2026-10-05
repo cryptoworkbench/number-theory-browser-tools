@@ -37,7 +37,7 @@ function getExportedNames() {
 // locally once it imports the owning namespace; some are not exported by
 // NT.core yet in this plan — they are the future exports later phase-7
 // plans add, watched pre-emptively so a tool doesn't shadow them early).
-var CONSTANT_NAMES = ["SVG_NS", "FERMAT_MAX_ITER", "TILE_CAP", "BALANCED_MAX_N", "SHARED_GROUP_KEY", "SHARED_AB_KEY", "SUPPORTED_LANGS", "LANG_STORAGE_KEY"];
+var CONSTANT_NAMES = ["SVG_NS", "FERMAT_MAX_ITER", "TILE_CAP", "BALANCED_MAX_N", "SHARED_GROUP_KEY", "SHARED_AB_KEY", "SHARED_PALETTE_KEY", "SHARED_PALETTE_MAX", "SHARED_PALETTE_MAX_N", "SUPPORTED_LANGS", "LANG_STORAGE_KEY"];
 
 var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n"];
 

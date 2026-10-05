@@ -302,6 +302,18 @@
   }
   .banner strong{ color: var(--role-result); }
 
+  .palette-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+  }
+  .palette-msg{
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
   footer{
     text-align:center;
     font-size: 0.72rem;
@@ -439,6 +451,11 @@
 
   <div class="banner" id="banner">Set a size and press Generate to build the sieve.</div>
 
+  <div class="palette-row">
+    <button id="toPaletteBtn" class="ghost" disabled data-i18n="sieve.toPalette">Add found primes to palette</button>
+    <span id="paletteMsg" class="palette-msg" role="status" aria-live="polite"></span>
+  </div>
+
   <div class="legend">
     <span class="item" data-i18n="sieve.legend.unvisited"><span class="swatch unvisited"></span> Unvisited</span>
     <span class="item" data-i18n="sieve.legend.currentPointer"><span class="swatch current"></span> Current pointer</span>
@@ -450,6 +467,7 @@
   <footer data-i18n="sieve.footer">All computation runs client-side in your browser. No numbers were harmed permanently — only struck.</footer>
 </div>
 
+<script src="../assets/nt-store.js"></script>
 <script src="../assets/nt-i18n.js"></script>
 <script src="../assets/i18n/site.js"></script>
 <script src="../assets/i18n/sieve-of-eratosthenes.js"></script>
@@ -457,6 +475,7 @@
 (function(){
   "use strict";
 
+  const { SHARED_PALETTE_MAX, addToSharedPalette } = NT.store;
   const { onLangChange, translate, translateInto } = NT.i18n;
 
   const $ = (id) => document.getElementById(id);
@@ -468,6 +487,8 @@
   const instantBtn  = $('instantBtn');
   const resetBtn    = $('resetBtn');
   const soundBtn    = $('soundBtn');
+  const toPaletteBtn = $('toPaletteBtn');
+  const paletteMsg  = $('paletteMsg');
   const speedInput  = $('speedInput');
   const speedLabel  = $('speedLabel');
   const grid        = $('grid');
@@ -494,11 +515,18 @@
   let audioCtx = null;
   let bannerState = null;   // { key, params } | null — last message shown in the banner
   let isDone = false;       // true once the current run's 'done' event has applied
+  let foundPrimes = [];     // primes applied so far in the current run, ascending
+  let paletteState = null;  // { key, params } | null — last palette message shown
 
   // ---------- i18n re-render ----------
   function renderBanner(){
     if (!bannerState) return;
     translateInto(banner, bannerState.key, bannerState.params);
+  }
+
+  function renderPaletteMsg(){
+    if (!paletteState){ paletteMsg.textContent = ''; return; }
+    translateInto(paletteMsg, paletteState.key, paletteState.params);
   }
 
   function renderPlayPauseLabel(){
@@ -515,6 +543,7 @@
 
   function rerenderOnLangChange(){
     renderBanner();
+    renderPaletteMsg();
     renderPlayPauseLabel();
     renderSpeedLabel();
     renderDoneMarker();
@@ -651,6 +680,8 @@
           el.addEventListener('animationend', () => el.classList.remove('pulse'), {once:true});
         }
         primesFound++;
+        foundPrimes.push(ev.n);
+        toPaletteBtn.disabled = false;
         statPrimes.textContent = primesFound;
         if (animate) playPrimeChime(ev.n);
         break;
@@ -766,6 +797,10 @@
     currentCellEl = null;
     elapsedBeforePause = 0;
     isDone = false;
+    foundPrimes = [];
+    toPaletteBtn.disabled = true;
+    paletteState = null;
+    renderPaletteMsg();
     statPrimes.textContent = '0';
     statCurrent.textContent = '—';
     statTime.textContent = '0.0s';
@@ -806,6 +841,21 @@
   playBtn.addEventListener('click', () => { playing ? pause() : play(); });
   stepBtn.addEventListener('click', stepOnce);
   instantBtn.addEventListener('click', instantFinish);
+
+  // Merges the primes found so far into the palette shared with Factor Tree
+  // and Venn Diagram (duplicates skipped, the palette's own cap respected)
+  // and says what happened. It never touches the sieve's playback.
+  toPaletteBtn.addEventListener('click', () => {
+    const res = addToSharedPalette(foundPrimes.slice(), true);
+    if (res.overflow > 0){
+      paletteState = { key: 'sieve.palette.full', params: { count: res.added.length, max: SHARED_PALETTE_MAX, left: res.overflow } };
+    } else if (res.added.length > 0){
+      paletteState = { key: 'sieve.palette.added', params: { count: res.added.length, dupes: res.duplicates } };
+    } else {
+      paletteState = { key: 'sieve.palette.none', params: null };
+    }
+    renderPaletteMsg();
+  });
 
   soundBtn.addEventListener('click', () => {
     soundOn = !soundOn;

@@ -24,7 +24,7 @@ var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-modul
 
 // Total scenarios this probe must report; every task that appends scenarios
 // raises it.
-var EXPECTED = 18;
+var EXPECTED = 24;
 
 var PAGES = {
   ft: { dir: "Factor Tree", file: "factor-tree.html" },
@@ -37,7 +37,9 @@ var PAGES = {
 var SEQUENCES = [
   { name: "C", runs: [["ft", "C1a"], ["venn", "C1b"]] },
   { name: "V", runs: [["venn", "V"], ["ft", "V6"]] },
-  { name: "F", runs: [["ft", "F1"]] }
+  { name: "F", runs: [["ft", "F1"]] },
+  { name: "S", runs: [["sieve", "S123"]] },
+  { name: "S4", runs: [["sieve", "S4"], ["ft", "S5a"], ["venn", "S5b"]] }
 ];
 
 var DEFAULT30 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
@@ -381,6 +383,91 @@ function inPage(cfg) {
       assert(storedList().length === 1000, "stored length " + storedList().length);
       noErrors("F1");
       return "a full 1000-entry palette refuses Add with the palette-full message and no circle appears";
+    } }];
+  };
+
+  /* ---- Sieve helpers ---- */
+  var sieveMsg = function () { return document.getElementById("paletteMsg").textContent; };
+  var toPaletteBtn = function () { return document.getElementById("toPaletteBtn"); };
+  function runSieve(size, primeCount) {
+    document.getElementById("sizeInput").value = String(size);
+    document.getElementById("generateBtn").click();
+    document.getElementById("instantBtn").click();
+    return waitFor(function () { return document.getElementById("statPrimes").textContent === String(primeCount); }, 20000)
+      .then(function () { return waitFor(function () { return document.getElementById("statCurrent").textContent === T("sieve.stat.done"); }, 20000); });
+  }
+
+  defs.S123 = function () {
+    return [
+      { name: "S1 sieve-button-and-none", fn: function () {
+        assert(toPaletteBtn().disabled, "button should start disabled");
+        return runSieve(120, 30).then(function () {
+          assert(!toPaletteBtn().disabled, "button should be enabled after the run");
+          toPaletteBtn().click();
+          assert(sieveMsg() === T("sieve.palette.none"), "message reads " + sieveMsg());
+          same(storedList(), DEFAULT30, "store after a no-op merge");
+          noErrors("S1");
+          return "disabled until primes are found; merging 30 primes that are all present says so and changes nothing";
+        });
+      } },
+      { name: "S2 sieve-merge-unique", fn: function () {
+        return runSieve(200, 46).then(function () {
+          assert(!toPaletteBtn().disabled, "button should be enabled");
+          toPaletteBtn().click();
+          assert(sieveMsg() === "Added 16 new primes to the palette — duplicates skipped: 30.", "message reads " + sieveMsg());
+          assert(storedList().length === 46, "stored length " + storedList().length);
+          same(storedList(), plainPrimes(46).filter(function (n) { return n <= 199; }), "stored list");
+          toPaletteBtn().click();
+          assert(sieveMsg() === T("sieve.palette.none"), "second click reads " + sieveMsg());
+          assert(storedList().length === 46, "second click changed the length to " + storedList().length);
+          noErrors("S2");
+          return "16 new primes added with 30 duplicates skipped; a second click adds nothing";
+        });
+      } },
+      { name: "S3 sieve-language-switch-and-reset", fn: function () {
+        return runSieve(250, 53).then(function () {
+          toPaletteBtn().click();
+          assert(sieveMsg() === "Added 7 new primes to the palette — duplicates skipped: 46.", "message reads " + sieveMsg());
+          NT.i18n.setLang("de");
+          var de = NT.i18n.translate("sieve.palette.added", { count: 7, dupes: 46 });
+          assert(sieveMsg() === de && /Primzahlen/.test(de), "German message reads " + sieveMsg());
+          assert(document.getElementById("statPrimes").textContent === "53", "primes found changed");
+          assert(document.querySelectorAll("#grid > *").length === 250, "grid changed");
+          assert(document.getElementById("statCurrent").textContent === NT.i18n.translate("sieve.stat.done"), "done marker changed");
+          document.getElementById("generateBtn").click();
+          assert(sieveMsg() === "", "message survived Generate: " + sieveMsg());
+          assert(toPaletteBtn().disabled, "button should be disabled after Generate");
+          NT.i18n.setLang("en");
+          noErrors("S3");
+          return "the message re-renders in German with sieve state untouched; Generate clears it and disables the button";
+        });
+      } }
+    ];
+  };
+  defs.S4 = function () {
+    return [{ name: "S4 sieve-palette-full", fn: function () {
+      return runSieve(20000, 2262).then(function () {
+        toPaletteBtn().click();
+        assert(sieveMsg() === T("sieve.palette.full", { count: 970, max: 1000, left: 1262 }), "message reads " + sieveMsg());
+        assert(storedList().length === 1000, "stored length " + storedList().length);
+        noErrors("S4");
+        return "N=20000 finds 2262 primes: 970 fit, 1262 are reported as left out, the palette holds 1000";
+      });
+    } }];
+  };
+  var full1000 = function () { return sortedNums(DEFAULT30.concat(plainPrimes(970, 114))).map(String); };
+  defs.S5a = function () {
+    return [{ name: "S5a ft-shows-full-palette", fn: function () {
+      assert(ftItems().length === 1000, "circles: " + ftItems().length);
+      same(ftItems(), full1000(), "Factor Tree circles");
+      return "Factor Tree shows 1000 circles, the default 30 plus the 970 smallest new primes";
+    } }];
+  };
+  defs.S5b = function () {
+    return [{ name: "S5b venn-shows-full-palette", fn: function () {
+      assert(vennChips().length === 1000, "chips: " + vennChips().length);
+      same(vennChips(), full1000(), "Venn chips");
+      return "Venn shows the same 1000 numbers in the same order";
     } }];
   };
 
