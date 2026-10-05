@@ -17,7 +17,7 @@ var url = require("url");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 1;
+var EXPECTED = 7;
 
 var PROBE_BODY = [
   "(function(){",
@@ -73,11 +73,112 @@ var PROBE_BODY = [
   "})();"
 ].join("\n");
 
+var SCEN = [
+  "    var EU2 = '../Euclidean Algorithm/euclidean-algorithm.html?a=30&b=35';",
+  "    var FT = '../Factor Tree/factor-tree.html?n=';",
+  "",
+  "    scenario('S2 two-overlap-top-dblclick', function(){",
+  "      var g = chip('venn-composite-dynamic', 'overlap');",
+  "      reset(g);",
+  "      ev(g, 'mouseenter'); ev(g, 'focus'); ev(g, 'dblclick');",
+  "      var h = lastHref();",
+  "      assert(h.indexOf('../Factor Tree/factor-tree.html?n=5') === 0, 'dblclick opened ' + h);",
+  "      return 'opened ' + h;",
+  "    });",
+  "",
+  "    scenario('S3 two-overlap-keyboard-then-mouse', function(){",
+  "      var g = chip('venn-composite-dynamic', 'overlap');",
+  "      var layer = document.getElementById('venn-preview');",
+  "      reset(g);",
+  "      ev(g, 'focus');",
+  "      for (var i = 0; i < 5; i++) ev(g, 'ArrowDown');",
+  "      assert(layer._npOffset === 206, 'offset after keys is ' + layer._npOffset + ', expected 206');",
+  "      var first = layer.firstChild;",
+  "      ev(g, 'mouseenter');",
+  "      assert(layer._npOffset === 206, 'offset after mouseenter is ' + layer._npOffset + ', expected 206');",
+  "      assert(layer.firstChild === first, 'mouseenter rebuilt the preview panel');",
+  "      ev(g, 'dblclick');",
+  "      var h = lastHref();",
+  "      assert(h.indexOf(EU2) === 0, 'dblclick opened ' + h);",
+  "      return 'offset 206 survived mouseenter, opened ' + h;",
+  "    });",
+  "",
+  "    scenario('S4 two-overlap-hide-semantics', function(){",
+  "      var g = chip('venn-composite-dynamic', 'overlap');",
+  "      var layer = document.getElementById('venn-preview');",
+  "      reset(g);",
+  "      ev(g, 'mouseenter'); ev(g, 'wheel');",
+  "      assert(layer._npOffset === 206, 'offset after wheel is ' + layer._npOffset + ', expected 206');",
+  "      ev(g, 'mouseleave');",
+  "      assert(layer.childNodes.length === 0, 'mouseleave left ' + layer.childNodes.length + ' child nodes');",
+  "      assert(layer._npOwner === null, 'owner after mouseleave is not null');",
+  "      assert(layer._npOffset === 0, 'offset after mouseleave is ' + layer._npOffset);",
+  "      ev(g, 'mouseenter');",
+  "      assert(layer._npOffset === 0, 'fresh hover offset is ' + layer._npOffset + ', expected 0');",
+  "      ev(g, 'mouseleave');",
+  "      ev(g, 'focus'); ev(g, 'blur');",
+  "      assert(layer.childNodes.length === 0, 'blur left ' + layer.childNodes.length + ' child nodes');",
+  "      return 'hide resets owner/offset/children; fresh hover starts at 0';",
+  "    });",
+  "",
+  "    scenario('S5 three-pairwise-scrolled-focus-dblclick', function(){",
+  "      var g = chip('venn3-composite-dynamic', 'ab');",
+  "      var layer = document.getElementById('venn3-preview');",
+  "      reset(g);",
+  "      ev(g, 'mouseenter'); ev(g, 'wheel');",
+  "      assert(layer._npOffset === 206, 'offset after wheel is ' + layer._npOffset + ', expected 206');",
+  "      var first = layer.firstChild;",
+  "      ev(g, 'focus');",
+  "      assert(layer._npOffset === 206, 'offset after focus is ' + layer._npOffset + ', expected 206');",
+  "      assert(layer.firstChild === first, 'focus rebuilt the preview panel');",
+  "      ev(g, 'dblclick');",
+  "      var h = lastHref();",
+  "      assert(h.indexOf('../Euclidean Algorithm/euclidean-algorithm.html?a=') === 0, 'dblclick opened ' + h);",
+  "      return 'offset 206 survived focus, opened ' + h;",
+  "    });",
+  "",
+  "    scenario('S6 three-centre-single-section', function(){",
+  "      var g = chip('venn3-composite-dynamic', 'abc');",
+  "      var layer = document.getElementById('venn3-preview');",
+  "      reset(g);",
+  "      ev(g, 'mouseenter');",
+  "      assert(layer.childNodes.length > 0, 'centre preview not shown');",
+  "      ev(g, 'wheel');",
+  "      assert(layer._npOffset === 0, 'offset after wheel is ' + layer._npOffset + ', expected 0');",
+  "      var first = layer.firstChild;",
+  "      ev(g, 'focus');",
+  "      assert(layer.firstChild === first, 'focus rebuilt the centre preview panel');",
+  "      ev(g, 'dblclick');",
+  "      var h = lastHref();",
+  "      assert(h.indexOf(FT) === 0, 'dblclick opened ' + h);",
+  "      return 'opened ' + h;",
+  "    });",
+  "",
+  "    scenario('S7 lang-switch-replay', function(){",
+  "      var old = chip('venn-composite-dynamic', 'overlap');",
+  "      var layer = document.getElementById('venn-preview');",
+  "      reset(old);",
+  "      ev(old, 'mouseenter');",
+  "      NT.i18n.setLang('de');",
+  "      var g = chip('venn-composite-dynamic', 'overlap');",
+  "      assert(g !== old, 'chip was not rebuilt by the language switch');",
+  "      assert(layer.childNodes.length > 0, 'preview was not replayed after the language switch');",
+  "      assert(layer._npOwner === g, 'owner is not the rebuilt chip');",
+  "      ev(g, 'wheel'); ev(g, 'focus');",
+  "      assert(layer._npOffset === 206, 'offset after wheel+focus is ' + layer._npOffset + ', expected 206');",
+  "      ev(g, 'dblclick');",
+  "      var h = lastHref();",
+  "      assert(h.indexOf('../Euclidean Algorithm/euclidean-algorithm.html?') === 0 && h.indexOf('lang=de') >= 0, 'dblclick opened ' + h);",
+  "      return 'replayed in de, offset 206 survived focus, opened ' + h;",
+  "    });"
+].join("\n");
+
 function buildSite() {
   var siteRoot = harness.mkScratch("dn2-site-");
   fs.cpSync(path.join(ROOT, "assets"), path.join(siteRoot, "assets"), { recursive: true });
   var src = fs.readFileSync(path.join(ROOT, "Venn Diagram", "venn-diagram.html"), "utf8");
-  var markup = '<pre id="dn2-out"></pre>\n<script>\n' + PROBE_BODY + "\n</script>\n";
+  var probe = PROBE_BODY.replace("//__SCENARIOS__", function () { return SCEN; });
+  var markup = '<pre id="dn2-out"></pre>\n<script>\n' + probe + "\n</script>\n";
   var at = src.lastIndexOf("</body>");
   if (at < 0) throw new Error("no closing body tag in venn-diagram.html");
   var page = src.slice(0, at) + markup + src.slice(at);
