@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme-choice=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme-choice'));}catch(e){}}if(!t){try{t=window.matchMedia('(prefers-color-scheme: light)').matches?'day':'night';}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title data-i18n="factorTree.title">Prime Factor Tree</title>
+<title data-i18n="factorTree.title">Factor Tree</title>
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <link rel="stylesheet" href="../assets/palette.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -188,6 +188,18 @@
   }
   .node-text.one{ fill:var(--text); opacity:.75; }
 
+  .mirror-axis{
+    stroke:var(--text-dim);
+    stroke-width:1;
+    stroke-dasharray:3 3;
+    fill:none;
+    opacity:.9;
+    pointer-events:none;
+    animation:axisIn .3s ease-out;
+  }
+  @keyframes axisIn{ from{ opacity:0; } }
+  .node-circle.mirrorable{ cursor:pointer; }
+
 
   .footnote{
     margin-top:22px;
@@ -265,7 +277,7 @@
 
 <div class="wrap">
   <header class="page-header">
-    <h1 data-i18n="factorTree.heading">Prime Factor Tree</h1>
+    <h1 data-i18n="factorTree.heading">Factor Tree</h1>
     <p class="subtitle" data-i18n="factorTree.subtitle">Give it a number — it grows a real factor tree, branch by branch.</p>
   </header>
 
@@ -302,7 +314,7 @@
 (function(){
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { primeFactors } = NT.core;
-  const { svgEl } = NT.svg;
+  const { easeInOutCubic, svgEl } = NT.svg;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
 
@@ -318,6 +330,9 @@
 
   let generation = 0;
   let mode = 'classic';
+  let treeView = null;
+  const MIRROR_MS = 450;
+  const MIRROR_ARM_AFTER_MS = 700;
 
   const CLASSIC_CHIPS = [
     { n:2, isPrime:false },
@@ -385,6 +400,7 @@
   function clearStage(){
     equationEl.innerHTML = '';
     treeArea.innerHTML = '';
+    treeView = null;
   }
 
   function popEquation(lines){
@@ -445,6 +461,7 @@
 
     // depth groups (0..maxDepth): every depth's incoming edges sit in one layer
     // beneath every depth's nodes, so no line ever crosses a node's label
+    const view = { root:root, pxX:pxX, nodeViews:new Map(), edgeViews:[], radius:radius, tweenToken:0 };
     const edgeGroups = [];
     const depthGroups = [];
     for(let d=0; d<=maxDepth; d++){
@@ -469,6 +486,7 @@
       line.style.strokeDasharray = len;
       line.style.strokeDashoffset = len;
       edgeGroups[edge.to.depth].appendChild(line);
+      view.edgeViews.push({ edge:edge, line:line });
     });
 
     nodes.forEach(node=>{
@@ -481,9 +499,11 @@
       text.textContent = node.value;
       depthGroups[node.depth].appendChild(circle);
       depthGroups[node.depth].appendChild(text);
+      view.nodeViews.set(node, { node:node, circle:circle, text:text, axis:null, title:null, pressed:false, px:x, y:y });
     });
 
     treeArea.appendChild(svg);
+    treeView = view;
 
     // ---------- Staggered reveal, depth by depth ----------
     const localGen = generation;
@@ -516,6 +536,99 @@
       }
       popEquation(lines);
     }, finalDelay + 250);
+
+    setTimeout(()=>{
+      if(localGen !== generation) return;
+      armMirrors(view);
+    }, finalDelay + MIRROR_ARM_AFTER_MS);
+  }
+
+  // ---------- Mirror a branch across its circle's vertical line ----------
+  // Once the tree has finished growing, every circle with two children gets a
+  // dashed vertical axis and becomes a button. Activating it reverses the child
+  // order throughout that branch, re-runs the shared assignTreeX layout and
+  // moves every circle/label/axis/edge to its new x.
+  function armMirrors(view){
+    if(view !== treeView) return;
+    view.edgeViews.forEach(ev=>{
+      ev.line.style.strokeDasharray = '';
+      ev.line.style.strokeDashoffset = '';
+    });
+    const half = view.radius + Math.min(7, Math.max(3, view.radius * 0.4));
+    view.nodeViews.forEach(nv=>{
+      if(nv.node.children.length !== 2) return;
+      const axis = svgEl('line', { class:'mirror-axis', x1:nv.px, x2:nv.px, y1:nv.y - half, y2:nv.y + half });
+      nv.circle.parentNode.insertBefore(axis, nv.circle.nextSibling);
+      nv.axis = axis;
+      nv.circle.classList.add('mirrorable');
+      nv.circle.setAttribute('tabindex', '0');
+      nv.circle.setAttribute('role', 'button');
+      nv.circle.setAttribute('aria-pressed', 'false');
+      const title = svgEl('title');
+      title.textContent = translate('factorTree.mirrorLabel', { n: nv.node.value });
+      nv.circle.appendChild(title);
+      nv.title = title;
+      nv.circle.addEventListener('click', ()=>{ mirrorBranch(view, nv); });
+    });
+  }
+
+  function reverseBranch(node){
+    node.children.reverse();
+    node.children.forEach(reverseBranch);
+  }
+
+  function mirrorBranch(view, nv){
+    if(view !== treeView) return;
+    reverseBranch(nv.node);
+    nv.pressed = !nv.pressed;
+    nv.circle.setAttribute('aria-pressed', nv.pressed ? 'true' : 'false');
+    assignTreeX(view.root, { value:0 });
+    moveTree(view);
+  }
+
+  function placeTree(view){
+    view.nodeViews.forEach(nv=>{
+      nv.circle.setAttribute('cx', nv.px);
+      nv.text.setAttribute('x', nv.px);
+      if(nv.axis){
+        nv.axis.setAttribute('x1', nv.px);
+        nv.axis.setAttribute('x2', nv.px);
+      }
+    });
+    view.edgeViews.forEach(ev=>{
+      ev.line.setAttribute('x1', view.nodeViews.get(ev.edge.from).px);
+      ev.line.setAttribute('x2', view.nodeViews.get(ev.edge.to).px);
+    });
+  }
+
+  function moveTree(view){
+    const token = ++view.tweenToken;
+    const from = new Map();
+    const to = new Map();
+    view.nodeViews.forEach((nv, node)=>{
+      from.set(node, nv.px);
+      to.set(node, view.pxX(node));
+    });
+    function snap(){
+      view.nodeViews.forEach((nv, node)=>{ nv.px = to.get(node); });
+      placeTree(view);
+    }
+    const start = performance.now();
+    function frame(now){
+      if(view !== treeView || token !== view.tweenToken) return;
+      const p = Math.min(1, Math.max(0, (now - start) / MIRROR_MS));
+      const e = easeInOutCubic(p);
+      view.nodeViews.forEach((nv, node)=>{
+        nv.px = from.get(node) + (to.get(node) - from.get(node)) * e;
+      });
+      placeTree(view);
+      if(p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    setTimeout(()=>{
+      if(view !== treeView || token !== view.tweenToken) return;
+      snap();
+    }, MIRROR_MS + 60);
   }
 
   function factorize(rawValue){

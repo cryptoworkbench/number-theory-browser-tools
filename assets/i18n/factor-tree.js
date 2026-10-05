@@ -1,7 +1,8 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, footnote, the
-   Balanced-mode caveat and every validation/result message for the Prime
-   Factor Tree tool, in all sixteen supported languages.
+   Balanced-mode caveat, every validation/result message and the mirror-button
+   label (mirrorLabel, {n}) for the Factor Tree tool, in all sixteen supported
+   languages. title and heading equal site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
@@ -16,8 +17,8 @@
 
   NT.i18n.register('factorTree', {
     nl: {
-      title: 'Priemfactorboom',
-      heading: 'Priemfactorboom',
+      title: 'Factorboom',
+      heading: 'Factorboom',
       subtitle: 'Geef een getal — het laat een echte factorboom groeien, tak voor tak.',
       modeLabel: 'Boommodus',
       modeClassic: 'Klassiek',
@@ -33,11 +34,12 @@
       msgOne: '1 is niet priem en niet samengesteld — het is gewoon een zaadje, nog geen boom.',
       msgPrime: '{n} is priem — het splitst maar één keer, in 1 × {n}.',
       msgFactors: '{n} valt uiteen in {count} priemfactoren.',
-      chipPrime: '{n} (priem)'
+      chipPrime: '{n} (priem)',
+      mirrorLabel: 'Spiegel de takken onder {n}'
     },
     en: {
-      title: 'Prime Factor Tree',
-      heading: 'Prime Factor Tree',
+      title: 'Factor Tree',
+      heading: 'Factor Tree',
       subtitle: 'Give it a number — it grows a real factor tree, branch by branch.',
       modeLabel: 'Tree mode',
       modeClassic: 'Classic',
@@ -53,11 +55,12 @@
       msgOne: '1 is neither prime nor composite — it’s just a seed, not a tree yet.',
       msgPrime: '{n} is prime — it only splits once, into 1 × {n}.',
       msgFactors: '{n} factors into {count} primes.',
-      chipPrime: '{n} (prime)'
+      chipPrime: '{n} (prime)',
+      mirrorLabel: 'Mirror the branches below {n}'
     },
     de: {
-      title: 'Primfaktorbaum',
-      heading: 'Primfaktorbaum',
+      title: 'Faktorbaum',
+      heading: 'Faktorbaum',
       subtitle: 'Gib eine Zahl ein — sie lässt einen echten Faktorbaum wachsen, Ast für Ast.',
       modeLabel: 'Baummodus',
       modeClassic: 'Klassisch',
@@ -73,11 +76,12 @@
       msgOne: '1 ist weder prim noch zusammengesetzt — sie ist nur ein Samen, noch kein Baum.',
       msgPrime: '{n} ist prim — sie spaltet sich nur einmal, in 1 × {n}.',
       msgFactors: '{n} zerfällt in {count} Primfaktoren.',
-      chipPrime: '{n} (prim)'
+      chipPrime: '{n} (prim)',
+      mirrorLabel: 'Äste unter {n} spiegeln'
     },
     fr: {
-      title: 'Arbre des facteurs premiers',
-      heading: 'Arbre des facteurs premiers',
+      title: 'Arbre de facteurs',
+      heading: 'Arbre de facteurs',
       subtitle: "Donnez-lui un nombre — il fait pousser un véritable arbre de facteurs, branche par branche.",
       modeLabel: "Mode de l'arbre",
       modeClassic: 'Classique',
@@ -93,11 +97,12 @@
       msgOne: "1 n'est ni premier ni composé — ce n'est qu'une graine, pas encore un arbre.",
       msgPrime: "{n} est premier — il ne se divise qu'une fois, en 1 × {n}.",
       msgFactors: '{n} se décompose en {count} facteurs premiers.',
-      chipPrime: '{n} (premier)'
+      chipPrime: '{n} (premier)',
+      mirrorLabel: 'Retourner en miroir les branches sous {n}'
     },
     es: {
-      title: 'Árbol de factores primos',
-      heading: 'Árbol de factores primos',
+      title: 'Árbol de factores',
+      heading: 'Árbol de factores',
       subtitle: 'Dale un número — hace crecer un árbol de factores real, rama por rama.',
       modeLabel: 'Modo de árbol',
       modeClassic: 'Clásico',
@@ -113,11 +118,12 @@
       msgOne: '1 no es ni primo ni compuesto — es solo una semilla, aún no un árbol.',
       msgPrime: '{n} es primo — solo se divide una vez, en 1 × {n}.',
       msgFactors: '{n} se descompone en {count} factores primos.',
-      chipPrime: '{n} (primo)'
+      chipPrime: '{n} (primo)',
+      mirrorLabel: 'Reflejar las ramas bajo {n}'
     },
     it: {
-      title: 'Albero dei fattori primi',
-      heading: 'Albero dei fattori primi',
+      title: 'Albero dei fattori',
+      heading: 'Albero dei fattori',
       subtitle: 'Dagli un numero — fa crescere un vero albero dei fattori, ramo per ramo.',
       modeLabel: 'Modalità albero',
       modeClassic: 'Classica',
@@ -133,11 +139,12 @@
       msgOne: '1 non è né primo né composto — è solo un seme, non ancora un albero.',
       msgPrime: '{n} è primo — si divide solo una volta, in 1 × {n}.',
       msgFactors: '{n} si scompone in {count} fattori primi.',
-      chipPrime: '{n} (primo)'
+      chipPrime: '{n} (primo)',
+      mirrorLabel: 'Specchia i rami sotto {n}'
     },
     pl: {
-      title: 'Drzewo czynników pierwszych',
-      heading: 'Drzewo czynników pierwszych',
+      title: 'Drzewo czynników',
+      heading: 'Drzewo czynników',
       subtitle: 'Podaj liczbę — a ono wyrośnie w prawdziwe drzewo czynników, gałąź po gałęzi.',
       modeLabel: 'Tryb drzewa',
       modeClassic: 'Klasyczny',
@@ -153,11 +160,12 @@
       msgOne: '1 nie jest ani liczbą pierwszą, ani złożoną — to po prostu ziarenko, jeszcze nie drzewo.',
       msgPrime: '{n} jest liczbą pierwszą — dzieli się tylko raz, na 1 × {n}.',
       msgFactors: '{n} rozkłada się na {count} czynników pierwszych.',
-      chipPrime: '{n} (pierwsza)'
+      chipPrime: '{n} (pierwsza)',
+      mirrorLabel: 'Odbij lustrzanie gałęzie pod {n}'
     },
     'pt-BR': {
-      title: 'Árvore de fatores primos',
-      heading: 'Árvore de fatores primos',
+      title: 'Árvore de fatores',
+      heading: 'Árvore de fatores',
       subtitle: 'Dê a ela um número — ela cresce uma árvore de fatores de verdade, galho por galho.',
       modeLabel: 'Modo da árvore',
       modeClassic: 'Clássico',
@@ -173,11 +181,12 @@
       msgOne: '1 não é primo nem composto — é só uma semente, ainda não uma árvore.',
       msgPrime: '{n} é primo — ele só se divide uma vez, em 1 × {n}.',
       msgFactors: '{n} se fatora em {count} primos.',
-      chipPrime: '{n} (primo)'
+      chipPrime: '{n} (primo)',
+      mirrorLabel: 'Espelhe os galhos abaixo de {n}'
     },
     'pt-PT': {
-      title: 'Árvore de fatores primos',
-      heading: 'Árvore de fatores primos',
+      title: 'Árvore de fatores',
+      heading: 'Árvore de fatores',
       subtitle: 'Dá-lhe um número — ela cresce uma árvore de fatores verdadeira, ramo por ramo.',
       modeLabel: 'Modo da árvore',
       modeClassic: 'Clássico',
@@ -193,11 +202,12 @@
       msgOne: '1 não é primo nem composto — é só uma semente, ainda não uma árvore.',
       msgPrime: '{n} é primo — ele divide-se apenas uma vez, em 1 × {n}.',
       msgFactors: '{n} fatoriza-se em {count} primos.',
-      chipPrime: '{n} (primo)'
+      chipPrime: '{n} (primo)',
+      mirrorLabel: 'Espelha os ramos abaixo de {n}'
     },
     sv: {
-      title: 'Primtalsfaktorträd',
-      heading: 'Primtalsfaktorträd',
+      title: 'Faktorträd',
+      heading: 'Faktorträd',
       subtitle: 'Ge det ett tal — det låter ett riktigt faktorträd växa, gren för gren.',
       modeLabel: 'Trädläge',
       modeClassic: 'Klassiskt',
@@ -213,11 +223,12 @@
       msgOne: '1 är varken primt eller sammansatt — det är bara ett frö, inget träd ännu.',
       msgPrime: '{n} är primt — det delar sig bara en gång, i 1 × {n}.',
       msgFactors: '{n} delas upp i {count} primfaktorer.',
-      chipPrime: '{n} (primt)'
+      chipPrime: '{n} (primt)',
+      mirrorLabel: 'Spegla grenarna under {n}'
     },
     nb: {
-      title: 'Primtallsfaktortre',
-      heading: 'Primtallsfaktortre',
+      title: 'Faktortre',
+      heading: 'Faktortre',
       subtitle: 'Gi det et tall — det lar et ekte faktortre vokse, gren for gren.',
       modeLabel: 'Tremodus',
       modeClassic: 'Klassisk',
@@ -233,11 +244,12 @@
       msgOne: '1 er verken primtall eller sammensatt — det er bare et frø, ikke et tre ennå.',
       msgPrime: '{n} er primtall — det deler seg bare én gang, i 1 × {n}.',
       msgFactors: '{n} deles opp i {count} primtallsfaktorer.',
-      chipPrime: '{n} (primtall)'
+      chipPrime: '{n} (primtall)',
+      mirrorLabel: 'Speil grenene under {n}'
     },
     ro: {
-      title: 'Arbore de factori primi',
-      heading: 'Arbore de factori primi',
+      title: 'Arbore de factori',
+      heading: 'Arbore de factori',
       subtitle: 'Dă-i un număr — face să crească un adevărat arbore de factori, ramură cu ramură.',
       modeLabel: 'Mod arbore',
       modeClassic: 'Clasic',
@@ -253,11 +265,12 @@
       msgOne: '1 nu este nici prim, nici compus — este doar o sămânță, nu încă un arbore.',
       msgPrime: '{n} este prim — se despică o singură dată, în 1 × {n}.',
       msgFactors: '{n} se descompune în {count} factori primi.',
-      chipPrime: '{n} (prim)'
+      chipPrime: '{n} (prim)',
+      mirrorLabel: 'Oglindește ramurile de sub {n}'
     },
     hu: {
-      title: 'Prímtényezőfa',
-      heading: 'Prímtényezőfa',
+      title: 'Tényezőfa',
+      heading: 'Tényezőfa',
       subtitle: 'Adj neki egy számot — valódi tényezőfát növel, ágról ágra.',
       modeLabel: 'Fa módja',
       modeClassic: 'Klasszikus',
@@ -273,11 +286,12 @@
       msgOne: 'Az 1 sem nem prím, sem nem összetett — ez csak egy mag, még nem fa.',
       msgPrime: '{n} prím — csak egyszer hasad, 1 × {n}-re.',
       msgFactors: '{n} {count} prímtényezőre bomlik.',
-      chipPrime: '{n} (prím)'
+      chipPrime: '{n} (prím)',
+      mirrorLabel: 'Tükrözd az ágakat {n} alatt'
     },
     lv: {
-      title: 'Pirmreizinātāju koks',
-      heading: 'Pirmreizinātāju koks',
+      title: 'Reizinātāju koks',
+      heading: 'Reizinātāju koks',
       subtitle: 'Dod tam skaitli — tas izaudzē īstu reizinātāju koku, zaru pēc zara.',
       modeLabel: 'Koka režīms',
       modeClassic: 'Klasiskais',
@@ -293,11 +307,12 @@
       msgOne: '1 nav ne pirmskaitlis, ne saliktais skaitlis — tā ir tikai sēkla, ne vēl koks.',
       msgPrime: '{n} ir pirmskaitlis — tas sadalās tikai vienu reizi, 1 × {n}.',
       msgFactors: '{n} sadalās {count} pirmreizinātājos.',
-      chipPrime: '{n} (pirmskaitlis)'
+      chipPrime: '{n} (pirmskaitlis)',
+      mirrorLabel: 'Spoguļot zarus zem {n}'
     },
     ru: {
-      title: 'Дерево простых множителей',
-      heading: 'Дерево простых множителей',
+      title: 'Дерево множителей',
+      heading: 'Дерево множителей',
       subtitle: 'Дай ему число — и оно вырастит настоящее дерево множителей, ветвь за ветвью.',
       modeLabel: 'Режим дерева',
       modeClassic: 'Классический',
@@ -313,11 +328,12 @@
       msgOne: '1 — не простое и не составное число, это просто семя, а не дерево.',
       msgPrime: '{n} — простое число, оно делится только раз, на 1 × {n}.',
       msgFactors: '{n} разлагается на {count} простых множителей.',
-      chipPrime: '{n} (простое)'
+      chipPrime: '{n} (простое)',
+      mirrorLabel: 'Отразить ветви под {n}'
     },
     el: {
-      title: 'Δέντρο πρώτων παραγόντων',
-      heading: 'Δέντρο πρώτων παραγόντων',
+      title: 'Δέντρο παραγόντων',
+      heading: 'Δέντρο παραγόντων',
       subtitle: 'Δώσε του έναν αριθμό — μεγαλώνει ένα πραγματικό δέντρο παραγόντων, κλαδί προς κλαδί.',
       modeLabel: 'Λειτουργία δέντρου',
       modeClassic: 'Κλασική',
@@ -333,7 +349,8 @@
       msgOne: 'Το 1 δεν είναι ούτε πρώτος ούτε σύνθετος αριθμός — είναι απλώς ένας σπόρος, όχι ακόμα δέντρο.',
       msgPrime: 'Ο {n} είναι πρώτος — διαιρείται μόνο μία φορά, σε 1 × {n}.',
       msgFactors: 'Ο {n} αναλύεται σε {count} πρώτους παράγοντες.',
-      chipPrime: '{n} (πρώτος)'
+      chipPrime: '{n} (πρώτος)',
+      mirrorLabel: 'Καθρέφτισε τα κλαδιά κάτω από το {n}'
     }
   });
 })();
