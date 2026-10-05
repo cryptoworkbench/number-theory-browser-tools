@@ -966,6 +966,7 @@
     layer.innerHTML = '';
     layer._npOffset = 0;
     layer._npMax = 0;
+    layer._npOwner = null;
   }
 
   // The anchor-to-panel clamp arithmetic, unchanged: both stacked sections
@@ -1129,7 +1130,8 @@
 
   // Reads/writes the scroll offset stored directly on the layer node (reset
   // to 0 by hideNestedPreview above and by the builder below on every fresh
-  // open). Returns false -- and moves nothing -- when no panel is open, so
+  // open; re-entering or focusing the chip whose panel is already up is not
+  // a fresh open and keeps the offset). Returns false -- and moves nothing -- when no panel is open, so
   // callers know not to swallow the wheel/key event that triggered them.
   // Also toggles the top-right affordance's visibility -- an attribute, not
   // a class or inline style, since the node is created and destroyed on
@@ -1157,10 +1159,13 @@
   // footprint: a clip host (clip-path only, no transform) wraps a scroll
   // group (transform only, no clip-path) so the clip's own user space is
   // never dragged along with the scrolled content.
-  function showRegionPreview(layer, opts){
+  function showRegionPreview(layer, opts, owner){
     if (!layer) return;
     layer.innerHTML = '';
     layer._npOffset = 0;
+    // The chip whose panel is up: appendCompositeBadge reads it to tell a
+    // re-entry on the same chip from a fresh open.
+    layer._npOwner = owner || null;
     // Per-layer scroll ceiling: _npMax is what scrollNestedPreview reads to
     // decide whether a wheel/key event is a real scroll or a genuine no-op.
     // Zero here (opts.showEuclid false) is what keeps the single-section
@@ -2030,9 +2035,20 @@
       // every render(), so "the pointer is still over it" can't be read
       // back from the DOM; it has to be remembered in state instead.
       var previewModeTag = (target.id.indexOf('venn3') === 0) ? 'three' : 'two';
-      g.addEventListener('mouseenter', function(){ state.openPreview = { mode: previewModeTag, key: key }; showRegionPreview(link.previewLayer, previewOpts); });
+      // A mouse double-click's first mousedown focuses this tabindex=0 chip
+      // while its hovered preview is already up; rebuilding there reset the
+      // scroll offset the dblclick handler reads, so the first double-click
+      // on a panel scrolled to the Euclidean section opened Factor Tree. The
+      // owner guard makes the show path idempotent per chip, and likewise
+      // keeps a keyboard-focused chip's scroll when the mouse then enters it.
+      var showOwnPreview = function(){
+        state.openPreview = { mode: previewModeTag, key: key };
+        if (link.previewLayer._npOwner === g && link.previewLayer.firstChild) return;
+        showRegionPreview(link.previewLayer, previewOpts, g);
+      };
+      g.addEventListener('mouseenter', showOwnPreview);
       g.addEventListener('mouseleave', function(){ state.openPreview = null; hideNestedPreview(link.previewLayer); });
-      g.addEventListener('focus', function(){ state.openPreview = { mode: previewModeTag, key: key }; showRegionPreview(link.previewLayer, previewOpts); });
+      g.addEventListener('focus', showOwnPreview);
       g.addEventListener('blur', function(){ state.openPreview = null; hideNestedPreview(link.previewLayer); });
       // Lives on the chip, not the panel: .nested-preview ignores the
       // pointer by design (load-bearing, see :310) and the panel sits
