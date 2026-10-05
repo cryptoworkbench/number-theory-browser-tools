@@ -40,7 +40,7 @@
     flex-wrap:wrap;
     margin-bottom:12px;
   }
-  #numInput{
+  #addInput{
     width:200px;
     height:40px;
     padding:0 12px;
@@ -53,11 +53,11 @@
     outline:none;
     transition:border-color var(--ease-ctl), box-shadow var(--ease-ctl);
   }
-  #numInput:focus{
+  #addInput:focus{
     border-color:var(--accent);
     box-shadow:var(--ctl-focus);
   }
-  #goBtn{
+  #addBtn{
     height:40px;
     padding:0 18px;
     border-radius:var(--radius-ctl);
@@ -70,7 +70,7 @@
     background:var(--accent);
     transition:filter var(--ease-ctl);
   }
-  #goBtn:hover{ filter:brightness(1.08); }
+  #addBtn:hover{ filter:brightness(1.08); }
   #randomBtn{
     height:40px;
     padding:0 18px;
@@ -88,22 +88,6 @@
     border-color:var(--accent);
     color:var(--accent);
   }
-
-  .chips{
-    display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;
-  }
-  .chip{
-    padding:6px 14px;
-    border-radius:var(--radius-ctl);
-    border:1px solid var(--panel-border);
-    background:var(--panel);
-    color:var(--text-dim);
-    font-size:.82rem;
-    font-family:var(--font-mono);
-    cursor:pointer;
-    transition:background var(--ease-ctl), color var(--ease-ctl);
-  }
-  .chip:hover{ background:var(--accent-soft); color:var(--accent); }
 
   .mode-toggle{ display:flex; gap:0; margin:0 0 10px; width:fit-content;
     border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:2px; background:var(--panel); }
@@ -123,6 +107,64 @@
   }
   .message.info{ color:var(--role-result); }
 
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin:0 0 8px;
+  }
+  .section-title{
+    font-family:var(--font-sans);
+    font-size:.85rem;
+    font-weight:600;
+    color:var(--text-dim);
+    margin:0;
+  }
+
+  .palette{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .palette-item, .drag-ghost{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:44px;
+    height:44px;
+    padding:0 10px;
+    border-radius:22px;
+    border:1px solid var(--role-input);
+    background:var(--role-input);
+    color:var(--accent-ink);
+    font-family:var(--font-sans);
+    font-weight:700;
+    font-size:.9375rem;
+  }
+  .palette-item{
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+    transition:filter var(--ease-ctl);
+  }
+  .palette-item:hover{ filter:brightness(1.08); }
+  .palette-item:focus{ outline:none; }
+  .palette-item:focus-visible{ box-shadow:var(--ctl-focus); }
+  .palette-item.is-new, .tree-card{ animation:cardIn .25s ease-out; }
+  @keyframes cardIn{ from{ opacity:0; transform:scale(.6); } }
+  .drag-ghost{
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:1000;
+    pointer-events:none;
+    opacity:.9;
+    filter:drop-shadow(0 4px 10px var(--scrim));
+  }
+
   .stage{
     background:var(--panel);
     border:1px solid var(--panel-border);
@@ -130,6 +172,70 @@
     padding:28px 16px 22px;
     min-height:120px;
   }
+  .work-area{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:flex-start;
+    gap:12px;
+    min-height:160px;
+    transition:background var(--ease-ctl), border-color var(--ease-ctl);
+  }
+  .work-hint{
+    width:100%;
+    text-align:center;
+    color:var(--text-dim);
+    margin:auto 0;
+  }
+  .work-hint[hidden]{ display:none; }
+  body.is-dragging .work-area{ border-style:dashed; border-color:var(--role-input); }
+  .work-area.is-drop-over{ background:var(--role-input-soft); border-color:var(--accent); }
+
+  .tree-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius-card);
+    padding:28px 8px 10px;
+    max-width:100%;
+  }
+  .tree-card .tree-svg{ display:block; margin:0 auto; }
+  .tree-remove{
+    position:absolute;
+    top:4px;
+    right:4px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:1px solid var(--panel-border);
+    background:var(--surface);
+    color:var(--text-dim);
+    display:grid;
+    place-items:center;
+    padding:0;
+    cursor:pointer;
+    transition:color var(--ease-ctl), border-color var(--ease-ctl);
+  }
+  .tree-remove:hover{ color:var(--role-warn); border-color:var(--role-warn); }
+  .tree-remove:focus{ outline:none; }
+  .tree-remove:focus-visible{ box-shadow:var(--ctl-focus); }
+  .tree-remove svg line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+
+  .clear-btn{
+    height:32px;
+    padding:0 12px;
+    border-radius:var(--radius-ctl);
+    border:1px solid var(--panel-border-strong);
+    background:var(--surface);
+    color:var(--text);
+    cursor:pointer;
+    font-family:var(--font-sans);
+    font-weight:600;
+    font-size:.85rem;
+    transition:border-color var(--ease-ctl), color var(--ease-ctl);
+  }
+  .clear-btn:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+  .clear-btn:disabled{ opacity:.5; cursor:default; }
 
   .equation{
     font-family:var(--font-mono);
@@ -148,16 +254,11 @@
   .equation .fac + .fac{
     margin-top:2px;
   }
+  .tree-equation{ font-size:.95rem; margin-top:6px; min-height:0; }
   @keyframes facIn{
     to{ opacity:1; transform:translateY(0); }
   }
 
-  .tree-area{
-    display:flex;
-    justify-content:center;
-    overflow-x:auto;
-    padding:4px 0;
-  }
   .tree-svg{
     display:block;
   }
@@ -166,19 +267,7 @@
     stroke:var(--text-dim);
     stroke-width:1.8;
     fill:none;
-    transition:stroke-dashoffset .6s ease;
   }
-
-  .depth-group{ opacity:0; transition:opacity .4s ease; }
-  .depth-group.show{ opacity:1; }
-
-  .depth-group .node-circle{
-    transform:scale(0);
-    transform-box:fill-box;
-    transform-origin:center;
-    transition:transform .35s ease-out;
-  }
-  .depth-group.show .node-circle{ transform:scale(1); }
 
   .node-circle.root, .node-circle.internal{
     fill:var(--role-input);
@@ -251,6 +340,8 @@
   @media (prefers-reduced-motion: reduce){
     .mirror-axis{ animation:none; }
     .fold-badge, .fold-ring{ animation:none; }
+    .palette-item.is-new, .tree-card{ animation:none; }
+    .work-area{ transition:none; }
   }
 
 
@@ -261,7 +352,7 @@
   }
 
   @media (max-width:480px){
-    #numInput{ width:150px; }
+    #addInput{ width:150px; }
   }
 </style>
 </head>
@@ -331,7 +422,7 @@
 <div class="wrap">
   <header class="page-header">
     <h1 data-i18n="factorTree.heading">Factor Tree</h1>
-    <p class="subtitle" data-i18n="factorTree.subtitle">Give it a number — it grows a real factor tree, branch by branch.</p>
+    <p class="subtitle" data-i18n="factorTree.subtitle">Add a number to the palette, drag its circle into the working area, then press + to unfold it — branch by branch, down to its prime leaves.</p>
   </header>
 
   <div class="mode-toggle" role="group" aria-label="Tree mode" data-i18n-aria-label="factorTree.modeLabel">
@@ -341,18 +432,24 @@
   <p id="balancedNote" class="mode-caveat" style="display:none"></p>
 
   <div class="controls">
-    <input id="numInput" type="number" min="1" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="factorTree.placeholder" />
-    <button id="goBtn" data-i18n="factorTree.grow">Grow the Tree</button>
+    <input id="addInput" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="factorTree.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="factorTree.addInputLabel" />
+    <button id="addBtn" type="button" data-i18n="factorTree.add">Add</button>
     <button id="randomBtn" type="button" data-i18n="factorTree.randomize">Randomize</button>
   </div>
 
-  <div class="chips"></div>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
 
-  <div id="message" class="message"></div>
+  <div class="section-head">
+    <h2 id="paletteHeading" class="section-title" data-i18n="factorTree.paletteHeading">Circle palette</h2>
+  </div>
+  <div id="palette" class="palette" role="group" aria-labelledby="paletteHeading"></div>
 
-  <div class="stage">
-    <div id="treeArea" class="tree-area"></div>
-    <div id="equation" class="equation"></div>
+  <div class="section-head">
+    <h2 id="workHeading" class="section-title" data-i18n="factorTree.workHeading">Working area</h2>
+    <button id="clearBtn" type="button" class="clear-btn" data-i18n="factorTree.clear" disabled>Clear</button>
+  </div>
+  <div id="workArea" class="stage work-area" role="region" aria-labelledby="workHeading">
+    <p id="workHint" class="work-hint" data-i18n="factorTree.workHint">Drag a circle from the palette here, or click it, then press its + to unfold it.</p>
   </div>
 
   <p class="footnote" data-i18n="factorTree.footnote">Every prime leaf gets one last split of its own: P = P &times; 1.</p>
@@ -367,60 +464,43 @@
 <script>
 (function(){
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
-  const { primeFactors, randomInt } = NT.core;
+  const { isPrime, primeFactors, randomInt } = NT.core;
   const { easeInOutCubic, svgEl } = NT.svg;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
 
   // ---------- Elements ----------
-  const numInput = document.getElementById('numInput');
-  const goBtn = document.getElementById('goBtn');
+  const addInput = document.getElementById('addInput');
+  const addBtn = document.getElementById('addBtn');
   const randomBtn = document.getElementById('randomBtn');
-  const chipsContainer = document.querySelector('.chips');
+  const paletteEl = document.getElementById('palette');
+  const workArea = document.getElementById('workArea');
+  const workHint = document.getElementById('workHint');
+  const clearBtn = document.getElementById('clearBtn');
   const messageEl = document.getElementById('message');
-  const equationEl = document.getElementById('equation');
-  const treeArea = document.getElementById('treeArea');
   const modeButtons = document.querySelectorAll('.mode-btn');
   const balancedNote = document.getElementById('balancedNote');
 
-  let generation = 0;
   let mode = 'classic';
-  let treeView = null;
+  let views = [];
+  let drag = null;
+  let dragJustEnded = false;
   const MIRROR_MS = 450;
   const FOLD_MS = 400;
   const RING_GAP = 3.5;
-  const MIRROR_ARM_AFTER_MS = 700;
   const RANDOM_MIN = 12;
   const RANDOM_MAX = 9999;
   const RANDOM_MIN_FACTORS = 3;
   const RANDOM_TRIES = 200;
+  const PALETTE_PRIMES = 30;
+  const CLASSIC_MAX_N = 1000000000000;
+  const SIDE_PAD = 30;
+  const SPACING_MAX = 56;
+  const DRAG_SLOP = 6;
+  const SIZE_KEY = Object.freeze({});
 
-  const CLASSIC_CHIPS = [
-    { n:2, isPrime:false },
-    { n:97, isPrime:true },
-    { n:60, isPrime:false },
-    { n:1024, isPrime:false },
-    { n:9973, isPrime:true },
-    { n:2310, isPrime:false }
-  ];
-  const BALANCED_CHIPS = [
-    { n:899, isPrime:false },
-    { n:9991, isPrime:false },
-    { n:1024, isPrime:false },
-    { n:29919, isPrime:false },
-    { n:9973, isPrime:true }
-  ];
-
-  function renderChips(currentMode){
-    const list = currentMode === 'balanced' ? BALANCED_CHIPS : CLASSIC_CHIPS;
-    chipsContainer.innerHTML = '';
-    list.forEach(chip=>{
-      const btn = document.createElement('button');
-      btn.className = 'chip';
-      btn.setAttribute('data-n', chip.n);
-      btn.textContent = chip.isPrime ? translate('factorTree.chipPrime', { n: chip.n }) : String(chip.n);
-      chipsContainer.appendChild(btn);
-    });
+  function capFor(m){
+    return m === 'balanced' ? BALANCED_MAX_N : CLASSIC_MAX_N;
   }
 
   // ---------- Text ----------
@@ -458,31 +538,117 @@
     messageEl.classList.toggle('info', lastMessageState.isInfo);
   }
 
-  function clearStage(){
-    equationEl.innerHTML = '';
-    treeArea.innerHTML = '';
-    treeView = null;
-  }
-
-  function popEquation(lines){
-    equationEl.innerHTML = '';
+  function popEquation(el, lines){
+    el.innerHTML = '';
     lines.forEach(text=>{
       const span = document.createElement('span');
       span.className = 'fac';
       span.textContent = text;
-      equationEl.appendChild(span);
+      el.appendChild(span);
     });
   }
 
+  function equationLines(view){
+    const n = view.n;
+    const factors = view.topFactors;
+    if(factors.length === 1) return [n + ' = ' + n + ' × 1'];
+    const lines = [n + ' = ' + factors.join(' × ')];
+    const groups = groupFactors(factors);
+    if(groups.some(g=> g.count > 1)){
+      lines.push(n + ' = ' + exponentText(groups));
+    }
+    return lines;
+  }
+
+  function tooLargeKey(){
+    return mode === 'balanced' ? 'factorTree.msgTooLargeBalanced' : 'factorTree.msgTooLargeClassic';
+  }
+
+  // ---------- Circle palette ----------
+  function labelPaletteItem(item){
+    const label = translate('factorTree.paletteItemLabel', { n: item.getAttribute('data-n') });
+    item.setAttribute('aria-label', label);
+    item.setAttribute('title', label);
+  }
+
+  function addPaletteItem(n, isNew){
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'palette-item' + (isNew ? ' is-new' : '');
+    item.setAttribute('data-n', String(n));
+    item.textContent = String(n);
+    labelPaletteItem(item);
+    paletteEl.appendChild(item);
+    return item;
+  }
+
+  function relabelPalette(){
+    paletteEl.querySelectorAll('.palette-item').forEach(labelPaletteItem);
+  }
+
+  (function prefillPalette(){
+    let found = 0;
+    for(let n = 2; found < PALETTE_PRIMES; n++){
+      if(isPrime(n)){
+        addPaletteItem(n, false);
+        found++;
+      }
+    }
+  })();
+
+  // ---------- Add ----------
+  function addFromInput(){
+    const trimmed = (addInput.value || '').toString().trim();
+    if(trimmed === ''){ setMessage('factorTree.msgEmpty'); return; }
+    if(!/^\d+$/.test(trimmed)){ setMessage('factorTree.msgInvalid'); return; }
+    const n = Number(trimmed);
+    if(n === 0){ setMessage('factorTree.msgInvalid'); return; }
+    if(n === 1){ setMessage('factorTree.msgOne'); return; }
+    if(n > capFor(mode)){ setMessage(tooLargeKey()); return; }
+    addPaletteItem(n, true);
+    setMessage('factorTree.msgAdded', { n: n }, true);
+    addInput.select();
+  }
+
+  addBtn.addEventListener('click', addFromInput);
+  addInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      addFromInput();
+      return;
+    }
+    if(/^[eE+\-.,]$/.test(e.key)) e.preventDefault();
+  });
+  addInput.addEventListener('beforeinput', e=>{
+    if(typeof e.data === 'string' && /\D/.test(e.data)) e.preventDefault();
+  });
+
+  // ---------- Per-tree geometry ----------
+  // The svg is sized to the visible tree: pxX/pxY use a fixed spacing and
+  // level height, and sizeOf() reports the canvas the visible leaves need.
+  function pxX(view, node){ return view.sidePad + node.x * view.spacing; }
+  function pxY(view, node){ return view.topPad + node.depth * view.levelHeight; }
+
+  function sizeOf(view){
+    let visDepth = 0;
+    view.nodeViews.forEach((nv, node)=>{
+      if(!isHidden(view, node) && node.depth > visDepth) visDepth = node.depth;
+    });
+    return {
+      w: 2 * view.sidePad + (view.leafCount - 1) * view.spacing,
+      h: view.topPad + visDepth * view.levelHeight + view.bottomPad
+    };
+  }
+
+  // ---------- Building a card ----------
   // Classic school factor tree (mode === 'classic') or Fermat's-Method
   // Balanced tree (mode === 'balanced'), built by the shared NT.layout
   // builder so this tool and Venn Diagram's hover miniature always agree.
-  function renderTree(n, topFactors){
-    clearStage();
+  function buildCard(n){
     const root = buildFactorTree(n, { balanced: mode === 'balanced' });
     const counter = { value:0 };
     assignTreeX(root, counter);
-    const leafCount = Math.max(1, counter.value);
+    const fullLeaves = Math.max(1, counter.value);
 
     const nodes = [];
     const edges = [];
@@ -490,43 +656,48 @@
     flattenTree(root, null, nodes, edges, maxDepthBox);
     const maxDepth = maxDepthBox.value;
 
-    const availWidth = treeArea.clientWidth || 560;
-    const containerWidth = Math.max(220, Math.min(600, availWidth - 8));
-    const sidePad = 30;
-    const usableWidth = containerWidth - sidePad*2;
-    const xSpacing = leafCount > 1 ? usableWidth / (leafCount - 1) : 0;
-
-    const topPad = 26;
+    const maxSvgWidth = Math.max(200, Math.min(600, (workArea.clientWidth || 600) - 56));
     const levelHeight = Math.max(30, Math.min(72, 480 / Math.max(1, maxDepth)));
-    const bottomPad = 26;
-    const svgHeight = topPad + maxDepth*levelHeight + bottomPad;
-
-    function pxX(node){
-      const leaves = view.leafCount;
-      const spacing = leaves > 1 ? usableWidth / (leaves - 1) : 0;
-      return leaves > 1 ? sidePad + node.x*spacing : containerWidth/2;
-    }
-    function pxY(node){
-      return topPad + node.depth*levelHeight;
-    }
-
-    const radius = Math.max(9, Math.min(19, Math.min(xSpacing*0.42 || 19, levelHeight*0.34)));
-    const oneRadius = Math.max(6, radius*0.62);
-    const fontSize = Math.max(8, radius*0.8);
-    const oneFontSize = Math.max(7, oneRadius*0.85);
-
-    const svg = svgEl('svg', {
-      class:'tree-svg',
-      width: containerWidth,
-      height: svgHeight,
-      viewBox: '0 0 ' + containerWidth + ' ' + svgHeight
-    });
-
-    // depth groups (0..maxDepth): every depth's incoming edges sit in one layer
-    // beneath every depth's nodes, so no line ever crosses a node's label
+    const firstSpacing = fullLeaves > 1 ? Math.min(SPACING_MAX, (maxSvgWidth - 2 * SIDE_PAD) / (fullLeaves - 1)) : SPACING_MAX;
+    const radius = Math.max(9, Math.min(19, Math.min(firstSpacing * 0.42, levelHeight * 0.34)));
+    const oneRadius = Math.max(6, radius * 0.62);
+    const fontSize = Math.max(8, radius * 0.8);
+    const oneFontSize = Math.max(7, oneRadius * 0.85);
     const axisHalf = radius + Math.min(7, Math.max(3, radius * 0.4));
     const badgeR = Math.max(5, Math.min(8, radius * 0.42));
-    const view = { root:root, pxX:pxX, pxY:pxY, nodeViews:new Map(), edgeViews:[], radius:radius, tweenToken:0, leafCount:leafCount, axisHalf:axisHalf, badgeR:badgeR };
+
+    const sidePad = Math.max(SIDE_PAD, Math.ceil(String(n).length * fontSize * 0.31) + 6);
+    const spacing = fullLeaves > 1 ? Math.min(SPACING_MAX, (maxSvgWidth - 2 * sidePad) / (fullLeaves - 1)) : SPACING_MAX;
+    const topPad = 26;
+    const bottomPad = Math.max(26, radius + badgeR + 6);
+
+    const card = document.createElement('div');
+    card.className = 'tree-card';
+    const svg = svgEl('svg', { class:'tree-svg', width:0, height:0, viewBox:'0 0 0 0' });
+    const eqEl = document.createElement('div');
+    eqEl.className = 'equation tree-equation';
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'tree-remove';
+    const xIcon = svgEl('svg', { viewBox:'0 0 12 12', width:12, height:12, 'aria-hidden':'true', focusable:'false' });
+    xIcon.appendChild(svgEl('line', { x1:2.5, y1:2.5, x2:9.5, y2:9.5 }));
+    xIcon.appendChild(svgEl('line', { x1:9.5, y1:2.5, x2:2.5, y2:9.5 }));
+    removeBtn.appendChild(xIcon);
+    card.appendChild(removeBtn);
+    card.appendChild(svg);
+    card.appendChild(eqEl);
+
+    const view = {
+      n:n, root:root, topFactors:primeFactors(n), card:card, svg:svg, eqEl:eqEl, removeBtn:removeBtn,
+      nodeViews:new Map(), edgeViews:[], radius:radius, tweenToken:0, leafCount:fullLeaves,
+      axisHalf:axisHalf, badgeR:badgeR, spacing:spacing, sidePad:sidePad, topPad:topPad,
+      bottomPad:bottomPad, levelHeight:levelHeight, w:0, h:0, live:true, eqShown:false
+    };
+    view.pxX = node=> pxX(view, node);
+    view.pxY = node=> pxY(view, node);
+
+    // every depth's incoming edges sit in one layer beneath every depth's
+    // nodes, so no line ever crosses a node's label
     const edgeGroups = [];
     const depthGroups = [];
     for(let d=0; d<=maxDepth; d++){
@@ -541,91 +712,97 @@
     }
 
     edges.forEach(edge=>{
-      const x1 = pxX(edge.from), y1 = pxY(edge.from);
-      const x2 = pxX(edge.to), y2 = pxY(edge.to);
-      const len = Math.hypot(x2-x1, y2-y1);
-      const line = svgEl('line', {
-        x1:x1, y1:y1, x2:x2, y2:y2,
-        class:'edge-line'
-      });
-      line.style.strokeDasharray = len;
-      line.style.strokeDashoffset = len;
+      const line = svgEl('line', { x1:0, y1:0, x2:0, y2:0, class:'edge-line' });
       edgeGroups[edge.to.depth].appendChild(line);
       view.edgeViews.push({ edge:edge, line:line });
     });
 
     nodes.forEach(node=>{
-      const x = pxX(node), y = pxY(node);
       const isOne = node.kind === 'one';
       const r = isOne ? oneRadius : radius;
       const fs = isOne ? oneFontSize : fontSize;
-      const circle = svgEl('circle', { cx:x, cy:y, r:r, class:'node-circle '+node.kind });
-      const text = svgEl('text', { x:x, y:y, class:'node-text '+node.kind, 'font-size':fs });
+      const circle = svgEl('circle', { cx:0, cy:0, r:r, class:'node-circle '+node.kind });
+      const text = svgEl('text', { x:0, y:0, class:'node-text '+node.kind, 'font-size':fs });
       text.textContent = node.value;
       depthGroups[node.depth].appendChild(circle);
       depthGroups[node.depth].appendChild(text);
       view.nodeViews.set(node, {
         node:node, circle:circle, text:text, axis:null, title:null, pressed:false,
-        px:x, py:y, s:1, o:1, r:r, fs:fs, parent:null, folded:false,
+        px:0, py:0, s:1, o:1, r:r, fs:fs, parent:null, folded:node.children.length > 0,
         ring:null, badge:null, badgeTitle:null, disc:null, glyphH:null, glyphV:null
       });
     });
     edges.forEach(edge=>{ view.nodeViews.get(edge.to).parent = edge.from; });
 
-    treeArea.appendChild(svg);
-    treeView = view;
-
-    // ---------- Staggered reveal, depth by depth ----------
-    const localGen = generation;
-    const perDelay = Math.min(600, Math.max(260, 2400 / Math.max(1, maxDepth)));
-
-    depthGroups.forEach((g, d)=>{
-      setTimeout(()=>{
-        if(localGen !== generation) return;
-        g.classList.add('show');
-        edgeGroups[d].classList.add('show');
-        edgeGroups[d].querySelectorAll('.edge-line').forEach(line=>{ line.style.strokeDashoffset = '0'; });
-      }, d*perDelay);
+    layoutTree(view);
+    const t = finalTargets(view);
+    view.nodeViews.forEach((nv, node)=>{
+      const g = t.get(node);
+      nv.px = g.px; nv.py = g.py; nv.s = g.s; nv.o = g.o;
     });
+    const size = t.get(SIZE_KEY);
+    view.w = size.w;
+    view.h = size.h;
 
-    const finalDelay = maxDepth*perDelay;
-    setTimeout(()=>{
-      if(localGen !== generation) return;
-      const isPrimeInput = topFactors.length === 1;
-      let lines;
-      if(n === 1){
-        lines = ['1'];
-      } else if(isPrimeInput){
-        lines = [n + ' = ' + n + ' × 1'];
-      } else {
-        lines = [n + ' = ' + topFactors.join(' × ')];
-        const groups = groupFactors(topFactors);
-        if(groups.some(g=> g.count > 1)){
-          lines.push(n + ' = ' + exponentText(groups));
-        }
-      }
-      popEquation(lines);
-    }, finalDelay + 250);
+    armMirrors(view);
+    armFolds(view);
+    syncControls(view);
+    placeTree(view);
 
-    setTimeout(()=>{
-      if(localGen !== generation) return;
-      armMirrors(view);
-      armFolds(view);
-      syncControls(view);
-    }, finalDelay + MIRROR_ARM_AFTER_MS);
+    removeBtn.addEventListener('click', ()=>{ removeTree(view); });
+    relabelRemove(view);
+    return view;
+  }
+
+  function relabelRemove(view){
+    const label = translate('factorTree.removeLabel', { n: view.n });
+    view.removeBtn.setAttribute('aria-label', label);
+    view.removeBtn.setAttribute('title', label);
+  }
+
+  function syncWorkState(){
+    workHint.hidden = views.length > 0;
+    clearBtn.disabled = views.length === 0;
+  }
+
+  function killView(view){
+    view.live = false;
+    view.tweenToken++;
+    if(view.card.parentNode) view.card.parentNode.removeChild(view.card);
+  }
+
+  function removeTree(view){
+    const idx = views.indexOf(view);
+    if(idx < 0) return;
+    killView(view);
+    views.splice(idx, 1);
+    syncWorkState();
+  }
+
+  function dropTree(n, opts){
+    if(n > capFor(mode)){
+      setMessage(tooLargeKey());
+      return null;
+    }
+    const view = buildCard(n);
+    workArea.appendChild(view.card);
+    views.push(view);
+    syncWorkState();
+    view.card.scrollIntoView({ block:'nearest' });
+    if(opts && opts.keyboard){
+      const rootView = view.nodeViews.get(view.root);
+      if(rootView.badge) rootView.badge.focus();
+    }
+    return view;
   }
 
   // ---------- Mirror a branch across its circle's vertical line ----------
-  // Once the tree has finished growing, every circle with two children gets a
-  // dashed vertical axis and becomes a button. Activating it reverses the child
-  // order throughout that branch, re-runs the shared assignTreeX layout and
-  // moves every circle/label/axis/edge to its new x.
+  // Every circle with two children gets a dashed vertical axis and becomes a
+  // button while it is unfolded. Activating it reverses the child order
+  // throughout that branch, re-runs the shared assignTreeX layout and moves
+  // every circle/label/axis/edge to its new x.
   function armMirrors(view){
-    if(view !== treeView) return;
-    view.edgeViews.forEach(ev=>{
-      ev.line.style.strokeDasharray = '';
-      ev.line.style.strokeDashoffset = '';
-    });
+    if(!view.live) return;
     view.nodeViews.forEach(nv=>{
       if(nv.node.children.length !== 2) return;
       const axis = svgEl('line', { class:'mirror-axis', x1:nv.px, x2:nv.px, y1:nv.py - view.axisHalf, y2:nv.py + view.axisHalf });
@@ -649,12 +826,12 @@
   }
 
   // ---------- Fold a sub-tree into its circle ----------
-  // Once the tree has grown, every circle with children gets a small round
-  // button on its lower edge. Folding shrinks the whole sub-tree into the
-  // circle, then re-lays out the visible tree with the circle as a leaf;
-  // unfolding opens the space first, then grows the sub-tree back out.
+  // Every circle with children gets a small round button on its lower edge.
+  // Folding shrinks the whole sub-tree into the circle, then re-lays out the
+  // visible tree with the circle as a leaf; unfolding opens the space first,
+  // then grows the sub-tree back out. A freshly placed tree starts folded.
   function armFolds(view){
-    if(view !== treeView) return;
+    if(!view.live) return;
     view.nodeViews.forEach(nv=>{
       if(nv.node.children.length === 0 || nv.badge) return;
       const ring = svgEl('circle', { class:'fold-ring', cx:nv.px, cy:nv.py, r:nv.r + RING_GAP });
@@ -690,7 +867,6 @@
         if(!e.repeat) toggleFold(view, nv);
       });
     });
-    placeTree(view);
   }
 
   function anchorOf(view, node){
@@ -718,8 +894,8 @@
     shadow.children.forEach(copyShadowX);
   }
 
-  // Lay the visible tree out with every folded node as a leaf, so it re-spreads
-  // across the full width; assets/nt-layout.js only ever sees the pruned copy.
+  // Lay the visible tree out with every folded node as a leaf; assets/nt-layout.js
+  // only ever sees the pruned copy.
   function layoutTree(view){
     const shadow = buildShadow(view, view.root);
     const counter = { value:0 };
@@ -731,6 +907,7 @@
   function currentTargets(view){
     const t = new Map();
     view.nodeViews.forEach((nv, node)=>{ t.set(node, { px:nv.px, py:nv.py, s:nv.s, o:nv.o }); });
+    t.set(SIZE_KEY, { w:view.w, h:view.h });
     return t;
   }
 
@@ -744,6 +921,7 @@
         t.set(node, { px:view.pxX(node), py:view.pxY(node), s:1, o:1 });
       }
     });
+    t.set(SIZE_KEY, sizeOf(view));
     return t;
   }
 
@@ -785,13 +963,37 @@
     }
   }
 
+  // The equation and the message appear only while no circle with children
+  // is folded; folding anything clears the equation at once.
+  function updateEquation(view){
+    if(!view.live) return;
+    let allOpen = true;
+    view.nodeViews.forEach(nv=>{
+      if(nv.node.children.length > 0 && nv.folded) allOpen = false;
+    });
+    if(!allOpen){
+      if(view.eqShown){
+        view.eqEl.innerHTML = '';
+        view.eqShown = false;
+      }
+      return;
+    }
+    if(view.eqShown) return;
+    view.eqShown = true;
+    popEquation(view.eqEl, equationLines(view));
+    const isPrimeRoot = view.topFactors.length === 1;
+    setMessage(isPrimeRoot ? 'factorTree.msgPrime' : 'factorTree.msgFactors', isPrimeRoot ? { n:view.n } : { n:view.n, count:view.topFactors.length }, true);
+  }
+
   function toggleFold(view, nv){
-    if(view !== treeView || isHidden(view, nv.node)) return;
+    if(!view.live || isHidden(view, nv.node)) return;
     nv.folded = !nv.folded;
     layoutTree(view);
     syncControls(view);
     const desc = descendantsOf(nv.node, []);
+    const finished = ()=> updateEquation(view);
     if(nv.folded){
+      updateEquation(view);
       animateTree(view, [
         { ms:FOLD_MS, targets:v=>{
           const t = currentTargets(v);
@@ -799,7 +1001,7 @@
           return t;
         } },
         { ms:MIRROR_MS, targets:finalTargets }
-      ]);
+      ], finished);
     } else {
       animateTree(view, [
         { ms:MIRROR_MS, targets:v=>{
@@ -809,7 +1011,7 @@
           return t;
         } },
         { ms:FOLD_MS, targets:finalTargets }
-      ]);
+      ], finished);
     }
   }
 
@@ -819,12 +1021,12 @@
   }
 
   function mirrorBranch(view, nv){
-    if(view !== treeView || nv.folded || isHidden(view, nv.node)) return;
+    if(!view.live || nv.folded || isHidden(view, nv.node)) return;
     reverseBranch(nv.node);
     nv.pressed = !nv.pressed;
     nv.circle.setAttribute('aria-pressed', nv.pressed ? 'true' : 'false');
     layoutTree(view);
-    animateTree(view, [{ ms:MIRROR_MS, targets:finalTargets }]);
+    animateTree(view, [{ ms:MIRROR_MS, targets:finalTargets }], ()=> updateEquation(view));
   }
 
   function opacityText(o){
@@ -832,8 +1034,12 @@
   }
 
   // Writes every circle, label, axis, ring, badge and edge from each node
-  // view's displayed state {px, py, s, o}: position, scale and opacity.
+  // view's displayed state {px, py, s, o}: position, scale and opacity, and
+  // the svg size from view.w/view.h.
   function placeTree(view){
+    view.svg.setAttribute('width', view.w);
+    view.svg.setAttribute('height', view.h);
+    view.svg.setAttribute('viewBox', '0 0 ' + view.w + ' ' + view.h);
     view.nodeViews.forEach(nv=>{
       const shown = nv.o > 0;
       const display = shown ? '' : 'none';
@@ -898,24 +1104,33 @@
   // and targets is evaluated when the phase starts, so a chain always aims at
   // the current model. Each phase finishes exactly once (done flag), whether
   // by its last frame or by its settle timer; a new action bumps tweenToken and
-  // cancels the old chain, starting from whatever is on screen.
-  function animateTree(view, phases){
+  // cancels the old chain, starting from whatever is on screen. onDone runs once
+  // after the last phase, while the chain is still current.
+  function animateTree(view, phases, onDone){
     const token = ++view.tweenToken;
     placeTree(view);
-    const alive = ()=> view === treeView && token === view.tweenToken;
+    const alive = ()=> view.live && token === view.tweenToken;
     function apply(targets){
       view.nodeViews.forEach((nv, node)=>{
         const t = targets.get(node);
         nv.px = t.px; nv.py = t.py; nv.s = t.s; nv.o = t.o;
       });
+      const size = targets.get(SIZE_KEY);
+      view.w = size.w;
+      view.h = size.h;
     }
     if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
       phases.forEach(ph=>{ apply(ph.targets(view)); });
       placeTree(view);
+      if(onDone) onDone();
       return;
     }
     function run(i){
-      if(!alive() || i >= phases.length) return;
+      if(!alive()) return;
+      if(i >= phases.length){
+        if(onDone) onDone();
+        return;
+      }
       const ph = phases[i];
       const to = ph.targets(view);
       const from = currentTargets(view);
@@ -941,6 +1156,9 @@
           nv.s = a.s + (b.s - a.s) * e;
           nv.o = a.o + (b.o - a.o) * e;
         });
+        const sa = from.get(SIZE_KEY), sb = to.get(SIZE_KEY);
+        view.w = sa.w + (sb.w - sa.w) * e;
+        view.h = sa.h + (sb.h - sa.h) * e;
         placeTree(view);
         requestAnimationFrame(frame);
       }
@@ -953,51 +1171,99 @@
     run(0);
   }
 
-  function factorize(rawValue){
-    generation++;
-    const trimmed = (rawValue || '').toString().trim();
-
-    if(trimmed === ''){
-      clearStage();
-      setMessage('factorTree.msgEmpty');
-      return;
-    }
-
-    const n = Number(trimmed);
-
-    if(!Number.isFinite(n) || !Number.isInteger(n) || n < 1){
-      clearStage();
-      setMessage('factorTree.msgInvalid');
-      return;
-    }
-
-    if(mode === 'balanced'){
-      if(n > BALANCED_MAX_N){
-        clearStage();
-        setMessage('factorTree.msgTooLargeBalanced');
-        return;
-      }
-    } else if(n > 1000000000000){
-      clearStage();
-      setMessage('factorTree.msgTooLargeClassic');
-      return;
-    }
-
-    if(n === 1){
-      setMessage('factorTree.msgOne', null, true);
-      renderTree(n, []);
-      return;
-    }
-
-    const factors = primeFactors(n);
-    const isPrimeInput = factors.length === 1;
-    setMessage(isPrimeInput ? 'factorTree.msgPrime' : 'factorTree.msgFactors', isPrimeInput ? { n: n } : { n: n, count: factors.length }, true);
-    renderTree(n, factors);
+  // ---------- Drag a palette circle into the working area ----------
+  // Pointer Events, so mouse, pen and touch all work. The window listeners are
+  // attached per drag, filtered by pointerId and always removed by endDrag.
+  function overWork(x, y){
+    const r = workArea.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
   }
+
+  function endDrag(){
+    window.removeEventListener('pointermove', onDragMove);
+    window.removeEventListener('pointerup', onDragEnd);
+    window.removeEventListener('pointercancel', onDragCancel);
+    window.removeEventListener('keydown', onDragKey);
+    if(drag && drag.ghost && drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost);
+    document.body.classList.remove('is-dragging');
+    workArea.classList.remove('is-drop-over');
+    drag = null;
+  }
+
+  function markDragEnded(){
+    dragJustEnded = true;
+    setTimeout(()=>{ dragJustEnded = false; }, 0);
+  }
+
+  function moveGhost(x, y){
+    const g = drag.ghost;
+    g.style.transform = 'translate(' + (x - g.offsetWidth / 2) + 'px,' + (y - g.offsetHeight / 2) + 'px)';
+  }
+
+  function onDragMove(e){
+    if(!drag || e.pointerId !== drag.pointerId) return;
+    if(!drag.active){
+      if(Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < DRAG_SLOP) return;
+      drag.active = true;
+      const ghost = document.createElement('div');
+      ghost.className = 'drag-ghost';
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.textContent = String(drag.n);
+      document.body.appendChild(ghost);
+      drag.ghost = ghost;
+      document.body.classList.add('is-dragging');
+    }
+    moveGhost(e.clientX, e.clientY);
+    workArea.classList.toggle('is-drop-over', overWork(e.clientX, e.clientY));
+  }
+
+  function onDragEnd(e){
+    if(!drag || e.pointerId !== drag.pointerId) return;
+    const wasActive = drag.active;
+    const n = drag.n;
+    const over = wasActive && overWork(e.clientX, e.clientY);
+    endDrag();
+    if(wasActive) markDragEnded();
+    if(over) dropTree(n);
+  }
+
+  function onDragCancel(e){
+    if(!drag || e.pointerId !== drag.pointerId) return;
+    const wasActive = drag.active;
+    endDrag();
+    if(wasActive) markDragEnded();
+  }
+
+  function onDragKey(e){
+    if(!drag || e.key !== 'Escape') return;
+    const wasActive = drag.active;
+    endDrag();
+    if(wasActive) markDragEnded();
+  }
+
+  paletteEl.addEventListener('pointerdown', e=>{
+    if(drag) return;
+    if(e.button !== 0 || e.isPrimary === false) return;
+    const item = e.target.closest('.palette-item');
+    if(!item) return;
+    e.preventDefault();
+    drag = { item:item, n:Number(item.getAttribute('data-n')), pointerId:e.pointerId, x0:e.clientX, y0:e.clientY, active:false, ghost:null };
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', onDragEnd);
+    window.addEventListener('pointercancel', onDragCancel);
+    window.addEventListener('keydown', onDragKey);
+  });
+
+  // Click, tap, Enter and Space on a palette circle also place a copy.
+  paletteEl.addEventListener('click', e=>{
+    const item = e.target.closest('.palette-item');
+    if(!item || dragJustEnded) return;
+    dropTree(Number(item.getAttribute('data-n')), { keyboard: e.detail === 0 });
+  });
 
   // ---------- Randomize ----------
   function pickRandomN(){
-    const shown = treeView ? treeView.root.value : null;
+    const shown = Number(addInput.value);
     const ok = (n)=> n !== shown && primeFactors(n).length >= RANDOM_MIN_FACTORS;
     for(let i = 0; i < RANDOM_TRIES; i++){
       const n = randomInt(RANDOM_MIN, RANDOM_MAX);
@@ -1009,20 +1275,8 @@
     return RANDOM_MIN;
   }
 
-  goBtn.addEventListener('click', ()=> factorize(numInput.value));
   randomBtn.addEventListener('click', ()=>{
-    numInput.value = pickRandomN();
-    factorize(numInput.value);
-  });
-  numInput.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter') factorize(numInput.value);
-  });
-  chipsContainer.addEventListener('click', (e)=>{
-    const chip = e.target.closest('.chip');
-    if(!chip) return;
-    const n = chip.getAttribute('data-n');
-    numInput.value = n;
-    factorize(n);
+    addInput.value = pickRandomN();
   });
 
   function renderBalancedNote(){
@@ -1034,26 +1288,20 @@
     mode = targetMode;
     modeButtons.forEach(b=> b.classList.toggle('is-active', b.getAttribute('data-mode') === targetMode));
     balancedNote.style.display = targetMode === 'balanced' ? 'block' : 'none';
-    numInput.max = targetMode === 'balanced' ? BALANCED_MAX_N : 1000000000000;
-    renderChips(targetMode);
+    addInput.max = String(capFor(targetMode));
   }
 
   modeButtons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       applyMode(btn.getAttribute('data-mode'));
-      if(numInput.value !== ''){
-        factorize(numInput.value);
-      }
     });
   });
-
-  renderChips(mode);
 
   onLangChange(function(){
     renderMessage();
     renderBalancedNote();
-    renderChips(mode);
-    if(treeView) syncControls(treeView);
+    relabelPalette();
+    views.forEach(syncControls);
   });
 
   // Mirrors NT.store.readABParams's defensive shape (assets/nt-store.js): the regex match sits in its own try/catch, the decode+parse sits in a second, and the result is range-tested (against this tool's own Balanced cap) before use. The round-trip string comparison is what rejects fractional strings like "3.5" that parseInt would otherwise silently truncate into a valid-looking integer.
@@ -1076,17 +1324,13 @@
     return n;
   }
 
-  // Grow an initial example tree on load
+  // The page opens with the 30-prime palette and an empty working area; only a
+  // deep link places a (folded) tree.
   window.addEventListener('load', ()=>{
     const deepLinkN = readNParam();
-    if(deepLinkN !== null){
-      applyMode('balanced');
-      numInput.value = deepLinkN;
-      factorize(deepLinkN);
-      return;
-    }
-    numInput.value = 60;
-    factorize('60');
+    if(deepLinkN === null) return;
+    applyMode('balanced');
+    if(deepLinkN >= 2) dropTree(deepLinkN);
   });
 })();
 </script>
