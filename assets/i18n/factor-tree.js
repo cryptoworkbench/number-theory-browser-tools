@@ -1,7 +1,8 @@
 /* assets/i18n/factor-tree.js — the 'factorTree' namespace: title, heading,
    subtitle, mode toggle, input placeholder, Grow button, the Randomize button
    (randomize), footnote, the Balanced-mode caveat, every validation/result
-   message and the mirror-button label (mirrorLabel, {n}) for the Factor Tree
+   message, the mirror-button label (mirrorLabel, {n}) and the fold/unfold
+   button labels (foldLabel, unfoldLabel, {n}) for the Factor Tree
    tool, in all sixteen supported languages. title and heading equal site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -36,7 +37,9 @@
       msgPrime: '{n} is priem — het splitst maar één keer, in 1 × {n}.',
       msgFactors: '{n} valt uiteen in {count} priemfactoren.',
       chipPrime: '{n} (priem)',
-      mirrorLabel: 'Spiegel de takken onder {n}'
+      mirrorLabel: 'Spiegel de takken onder {n}',
+      foldLabel: 'Vouw de factoren van {n} in',
+      unfoldLabel: 'Vouw de factoren van {n} uit'
     },
     en: {
       title: 'Factor Tree',
@@ -58,7 +61,9 @@
       msgPrime: '{n} is prime — it only splits once, into 1 × {n}.',
       msgFactors: '{n} factors into {count} primes.',
       chipPrime: '{n} (prime)',
-      mirrorLabel: 'Mirror the branches below {n}'
+      mirrorLabel: 'Mirror the branches below {n}',
+      foldLabel: 'Fold the factors of {n}',
+      unfoldLabel: 'Unfold the factors of {n}'
     },
     de: {
       title: 'Faktorbaum',
@@ -80,7 +85,9 @@
       msgPrime: '{n} ist prim — sie spaltet sich nur einmal, in 1 × {n}.',
       msgFactors: '{n} zerfällt in {count} Primfaktoren.',
       chipPrime: '{n} (prim)',
-      mirrorLabel: 'Äste unter {n} spiegeln'
+      mirrorLabel: 'Äste unter {n} spiegeln',
+      foldLabel: 'Faktoren von {n} einklappen',
+      unfoldLabel: 'Faktoren von {n} ausklappen'
     },
     fr: {
       title: 'Arbre de facteurs',
@@ -102,7 +109,9 @@
       msgPrime: "{n} est premier — il ne se divise qu'une fois, en 1 × {n}.",
       msgFactors: '{n} se décompose en {count} facteurs premiers.',
       chipPrime: '{n} (premier)',
-      mirrorLabel: 'Retourner en miroir les branches sous {n}'
+      mirrorLabel: 'Retourner en miroir les branches sous {n}',
+      foldLabel: 'Replier les facteurs de {n}',
+      unfoldLabel: 'Déplier les facteurs de {n}'
     },
     es: {
       title: 'Árbol de factores',
@@ -124,7 +133,9 @@
       msgPrime: '{n} es primo — solo se divide una vez, en 1 × {n}.',
       msgFactors: '{n} se descompone en {count} factores primos.',
       chipPrime: '{n} (primo)',
-      mirrorLabel: 'Reflejar las ramas bajo {n}'
+      mirrorLabel: 'Reflejar las ramas bajo {n}',
+      foldLabel: 'Plegar los factores de {n}',
+      unfoldLabel: 'Desplegar los factores de {n}'
     },
     it: {
       title: 'Albero dei fattori',
@@ -146,7 +157,9 @@
       msgPrime: '{n} è primo — si divide solo una volta, in 1 × {n}.',
       msgFactors: '{n} si scompone in {count} fattori primi.',
       chipPrime: '{n} (primo)',
-      mirrorLabel: 'Specchia i rami sotto {n}'
+      mirrorLabel: 'Specchia i rami sotto {n}',
+      foldLabel: 'Comprimi i fattori di {n}',
+      unfoldLabel: 'Espandi i fattori di {n}'
     },
     pl: {
       title: 'Drzewo czynników',
@@ -168,7 +181,9 @@
       msgPrime: '{n} jest liczbą pierwszą — dzieli się tylko raz, na 1 × {n}.',
       msgFactors: '{n} rozkłada się na {count} czynników pierwszych.',
       chipPrime: '{n} (pierwsza)',
-      mirrorLabel: 'Odbij lustrzanie gałęzie pod {n}'
+      mirrorLabel: 'Odbij lustrzanie gałęzie pod {n}',
+      foldLabel: 'Zwiń czynniki liczby {n}',
+      unfoldLabel: 'Rozwiń czynniki liczby {n}'
     },
     'pt-BR': {
       title: 'Árvore de fatores',
@@ -190,7 +205,9 @@
       msgPrime: '{n} é primo — ele só se divide uma vez, em 1 × {n}.',
       msgFactors: '{n} se fatora em {count} primos.',
       chipPrime: '{n} (primo)',
-      mirrorLabel: 'Espelhe os galhos abaixo de {n}'
+      mirrorLabel: 'Espelhe os galhos abaixo de {n}',
+      foldLabel: 'Recolha os fatores de {n}',
+      unfoldLabel: 'Expanda os fatores de {n}'
     },
     'pt-PT': {
       title: 'Árvore de fatores',
@@ -212,7 +229,9 @@
       msgPrime: '{n} é primo — ele divide-se apenas uma vez, em 1 × {n}.',
       msgFactors: '{n} fatoriza-se em {count} primos.',
       chipPrime: '{n} (primo)',
-      mirrorLabel: 'Espelha os ramos abaixo de {n}'
+      mirrorLabel: 'Espelha os ramos abaixo de {n}',
+      foldLabel: 'Recolhe os fatores de {n}',
+      unfoldLabel: 'Expande os fatores de {n}'
     },
     sv: {
       title: 'Faktorträd',
@@ -234,7 +253,9 @@
       msgPrime: '{n} är primt — det delar sig bara en gång, i 1 × {n}.',
       msgFactors: '{n} delas upp i {count} primfaktorer.',
       chipPrime: '{n} (primt)',
-      mirrorLabel: 'Spegla grenarna under {n}'
+      mirrorLabel: 'Spegla grenarna under {n}',
+      foldLabel: 'Fäll ihop faktorerna för {n}',
+      unfoldLabel: 'Fäll ut faktorerna för {n}'
     },
     nb: {
       title: 'Faktortre',
@@ -256,7 +277,9 @@
       msgPrime: '{n} er primtall — det deler seg bare én gang, i 1 × {n}.',
       msgFactors: '{n} deles opp i {count} primtallsfaktorer.',
       chipPrime: '{n} (primtall)',
-      mirrorLabel: 'Speil grenene under {n}'
+      mirrorLabel: 'Speil grenene under {n}',
+      foldLabel: 'Fold sammen faktorene til {n}',
+      unfoldLabel: 'Fold ut faktorene til {n}'
     },
     ro: {
       title: 'Arbore de factori',
@@ -278,7 +301,9 @@
       msgPrime: '{n} este prim — se despică o singură dată, în 1 × {n}.',
       msgFactors: '{n} se descompune în {count} factori primi.',
       chipPrime: '{n} (prim)',
-      mirrorLabel: 'Oglindește ramurile de sub {n}'
+      mirrorLabel: 'Oglindește ramurile de sub {n}',
+      foldLabel: 'Restrânge factorii lui {n}',
+      unfoldLabel: 'Extinde factorii lui {n}'
     },
     hu: {
       title: 'Tényezőfa',
@@ -300,7 +325,9 @@
       msgPrime: '{n} prím — csak egyszer hasad, 1 × {n}-re.',
       msgFactors: '{n} {count} prímtényezőre bomlik.',
       chipPrime: '{n} (prím)',
-      mirrorLabel: 'Tükrözd az ágakat {n} alatt'
+      mirrorLabel: 'Tükrözd az ágakat {n} alatt',
+      foldLabel: 'Csukd össze {n} tényezőit',
+      unfoldLabel: 'Nyisd ki {n} tényezőit'
     },
     lv: {
       title: 'Reizinātāju koks',
@@ -322,7 +349,9 @@
       msgPrime: '{n} ir pirmskaitlis — tas sadalās tikai vienu reizi, 1 × {n}.',
       msgFactors: '{n} sadalās {count} pirmreizinātājos.',
       chipPrime: '{n} (pirmskaitlis)',
-      mirrorLabel: 'Spoguļot zarus zem {n}'
+      mirrorLabel: 'Spoguļot zarus zem {n}',
+      foldLabel: 'Sakļaut skaitļa {n} reizinātājus',
+      unfoldLabel: 'Izvērst skaitļa {n} reizinātājus'
     },
     ru: {
       title: 'Дерево множителей',
@@ -344,7 +373,9 @@
       msgPrime: '{n} — простое число, оно делится только раз, на 1 × {n}.',
       msgFactors: '{n} разлагается на {count} простых множителей.',
       chipPrime: '{n} (простое)',
-      mirrorLabel: 'Отразить ветви под {n}'
+      mirrorLabel: 'Отразить ветви под {n}',
+      foldLabel: 'Свернуть множители числа {n}',
+      unfoldLabel: 'Развернуть множители числа {n}'
     },
     el: {
       title: 'Δέντρο παραγόντων',
@@ -366,7 +397,9 @@
       msgPrime: 'Ο {n} είναι πρώτος — διαιρείται μόνο μία φορά, σε 1 × {n}.',
       msgFactors: 'Ο {n} αναλύεται σε {count} πρώτους παράγοντες.',
       chipPrime: '{n} (πρώτος)',
-      mirrorLabel: 'Καθρέφτισε τα κλαδιά κάτω από το {n}'
+      mirrorLabel: 'Καθρέφτισε τα κλαδιά κάτω από το {n}',
+      foldLabel: 'Δίπλωσε τους παράγοντες του {n}',
+      unfoldLabel: 'Ξεδίπλωσε τους παράγοντες του {n}'
     }
   });
 })();

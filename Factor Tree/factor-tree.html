@@ -220,8 +220,37 @@
   .node-circle.mirrorable:focus-visible{ stroke:var(--text); stroke-width:2.6; }
   .node-circle.mirrorable:hover + .mirror-axis,
   .node-circle.mirrorable:focus-visible + .mirror-axis{ stroke:var(--text); opacity:1; }
+  .fold-badge{
+    cursor:pointer;
+    animation:axisIn .3s ease-out;
+  }
+  .fold-badge:focus{ outline:none; }
+  .fold-badge-disc{
+    fill:var(--surface);
+    stroke:var(--text-dim);
+    stroke-width:1.2;
+  }
+  .fold-glyph{
+    stroke:var(--text);
+    stroke-width:1.6;
+    stroke-linecap:round;
+    pointer-events:none;
+  }
+  .fold-badge:hover .fold-badge-disc,
+  .fold-badge:hover .fold-glyph{ stroke:var(--accent); }
+  .fold-badge:focus-visible .fold-badge-disc{ stroke:var(--text); stroke-width:2.2; }
+  .fold-badge.is-folded .fold-badge-disc{ stroke:var(--role-input); stroke-width:1.6; }
+  .fold-ring{
+    fill:none;
+    stroke:var(--role-input);
+    stroke-width:1.6;
+    pointer-events:none;
+    animation:axisIn .3s ease-out;
+  }
+  .node-circle.is-folded{ stroke-width:2; }
   @media (prefers-reduced-motion: reduce){
     .mirror-axis{ animation:none; }
+    .fold-badge, .fold-ring{ animation:none; }
   }
 
 
@@ -358,6 +387,8 @@
   let mode = 'classic';
   let treeView = null;
   const MIRROR_MS = 450;
+  const FOLD_MS = 400;
+  const RING_GAP = 3.5;
   const MIRROR_ARM_AFTER_MS = 700;
   const RANDOM_MIN = 12;
   const RANDOM_MAX = 9999;
@@ -471,7 +502,9 @@
     const svgHeight = topPad + maxDepth*levelHeight + bottomPad;
 
     function pxX(node){
-      return leafCount > 1 ? sidePad + node.x*xSpacing : containerWidth/2;
+      const leaves = view.leafCount;
+      const spacing = leaves > 1 ? usableWidth / (leaves - 1) : 0;
+      return leaves > 1 ? sidePad + node.x*spacing : containerWidth/2;
     }
     function pxY(node){
       return topPad + node.depth*levelHeight;
@@ -491,7 +524,9 @@
 
     // depth groups (0..maxDepth): every depth's incoming edges sit in one layer
     // beneath every depth's nodes, so no line ever crosses a node's label
-    const view = { root:root, pxX:pxX, nodeViews:new Map(), edgeViews:[], radius:radius, tweenToken:0 };
+    const axisHalf = radius + Math.min(7, Math.max(3, radius * 0.4));
+    const badgeR = Math.max(5, Math.min(8, radius * 0.42));
+    const view = { root:root, pxX:pxX, pxY:pxY, nodeViews:new Map(), edgeViews:[], radius:radius, tweenToken:0, leafCount:leafCount, axisHalf:axisHalf, badgeR:badgeR };
     const edgeGroups = [];
     const depthGroups = [];
     for(let d=0; d<=maxDepth; d++){
@@ -529,8 +564,13 @@
       text.textContent = node.value;
       depthGroups[node.depth].appendChild(circle);
       depthGroups[node.depth].appendChild(text);
-      view.nodeViews.set(node, { node:node, circle:circle, text:text, axis:null, title:null, pressed:false, px:x, y:y });
+      view.nodeViews.set(node, {
+        node:node, circle:circle, text:text, axis:null, title:null, pressed:false,
+        px:x, py:y, s:1, o:1, r:r, fs:fs, parent:null, folded:false,
+        ring:null, badge:null, badgeTitle:null, disc:null, glyphH:null, glyphV:null
+      });
     });
+    edges.forEach(edge=>{ view.nodeViews.get(edge.to).parent = edge.from; });
 
     treeArea.appendChild(svg);
     treeView = view;
@@ -570,6 +610,8 @@
     setTimeout(()=>{
       if(localGen !== generation) return;
       armMirrors(view);
+      armFolds(view);
+      syncControls(view);
     }, finalDelay + MIRROR_ARM_AFTER_MS);
   }
 
@@ -584,10 +626,9 @@
       ev.line.style.strokeDasharray = '';
       ev.line.style.strokeDashoffset = '';
     });
-    const half = view.radius + Math.min(7, Math.max(3, view.radius * 0.4));
     view.nodeViews.forEach(nv=>{
       if(nv.node.children.length !== 2) return;
-      const axis = svgEl('line', { class:'mirror-axis', x1:nv.px, x2:nv.px, y1:nv.y - half, y2:nv.y + half });
+      const axis = svgEl('line', { class:'mirror-axis', x1:nv.px, x2:nv.px, y1:nv.py - view.axisHalf, y2:nv.py + view.axisHalf });
       nv.circle.parentNode.insertBefore(axis, nv.circle.nextSibling);
       nv.axis = axis;
       nv.circle.classList.add('mirrorable');
@@ -607,11 +648,169 @@
     });
   }
 
-  function relabelMirrors(){
-    if(!treeView) return;
-    treeView.nodeViews.forEach(nv=>{
-      if(nv.title) nv.title.textContent = translate('factorTree.mirrorLabel', { n: nv.node.value });
+  // ---------- Fold a sub-tree into its circle ----------
+  // Once the tree has grown, every circle with children gets a small round
+  // button on its lower edge. Folding shrinks the whole sub-tree into the
+  // circle, then re-lays out the visible tree with the circle as a leaf;
+  // unfolding opens the space first, then grows the sub-tree back out.
+  function armFolds(view){
+    if(view !== treeView) return;
+    view.nodeViews.forEach(nv=>{
+      if(nv.node.children.length === 0 || nv.badge) return;
+      const ring = svgEl('circle', { class:'fold-ring', cx:nv.px, cy:nv.py, r:nv.r + RING_GAP });
+      ring.style.display = 'none';
+      nv.circle.parentNode.insertBefore(ring, nv.circle);
+      nv.ring = ring;
+
+      const badge = svgEl('g', { class:'fold-badge', role:'button', tabindex:'0', 'aria-expanded':'true' });
+      const title = svgEl('title');
+      const disc = svgEl('circle', { class:'fold-badge-disc', cx:nv.px, cy:nv.py + nv.r, r:view.badgeR });
+      const glyphH = svgEl('line', { class:'fold-glyph' });
+      const glyphV = svgEl('line', { class:'fold-glyph fold-glyph-v' });
+      glyphV.style.display = 'none';
+      badge.appendChild(title);
+      badge.appendChild(disc);
+      badge.appendChild(glyphH);
+      badge.appendChild(glyphV);
+      nv.text.parentNode.insertBefore(badge, nv.text.nextSibling);
+      nv.badge = badge;
+      nv.badgeTitle = title;
+      nv.disc = disc;
+      nv.glyphH = glyphH;
+      nv.glyphV = glyphV;
+
+      badge.addEventListener('click', e=>{
+        e.stopPropagation();
+        toggleFold(view, nv);
+      });
+      badge.addEventListener('keydown', e=>{
+        if(e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        e.stopPropagation();
+        if(!e.repeat) toggleFold(view, nv);
+      });
     });
+    placeTree(view);
+  }
+
+  function anchorOf(view, node){
+    let anchor = null;
+    let cur = view.nodeViews.get(node).parent;
+    while(cur){
+      const pv = view.nodeViews.get(cur);
+      if(pv.folded) anchor = cur;
+      cur = pv.parent;
+    }
+    return anchor;
+  }
+
+  function isHidden(view, node){
+    return anchorOf(view, node) !== null;
+  }
+
+  function buildShadow(view, node){
+    const nv = view.nodeViews.get(node);
+    return { node:node, children: nv.folded ? [] : node.children.map(c=> buildShadow(view, c)) };
+  }
+
+  function copyShadowX(shadow){
+    shadow.node.x = shadow.x;
+    shadow.children.forEach(copyShadowX);
+  }
+
+  // Lay the visible tree out with every folded node as a leaf, so it re-spreads
+  // across the full width; assets/nt-layout.js only ever sees the pruned copy.
+  function layoutTree(view){
+    const shadow = buildShadow(view, view.root);
+    const counter = { value:0 };
+    assignTreeX(shadow, counter);
+    copyShadowX(shadow);
+    view.leafCount = Math.max(1, counter.value);
+  }
+
+  function currentTargets(view){
+    const t = new Map();
+    view.nodeViews.forEach((nv, node)=>{ t.set(node, { px:nv.px, py:nv.py, s:nv.s, o:nv.o }); });
+    return t;
+  }
+
+  function finalTargets(view){
+    const t = new Map();
+    view.nodeViews.forEach((nv, node)=>{
+      const anchor = anchorOf(view, node);
+      if(anchor){
+        t.set(node, { px:view.pxX(anchor), py:view.pxY(anchor), s:0, o:0 });
+      } else {
+        t.set(node, { px:view.pxX(node), py:view.pxY(node), s:1, o:1 });
+      }
+    });
+    return t;
+  }
+
+  function descendantsOf(node, acc){
+    node.children.forEach(c=>{ acc.push(c); descendantsOf(c, acc); });
+    return acc;
+  }
+
+  function syncControls(view){
+    view.nodeViews.forEach((nv, node)=>{
+      if(!nv.title && !nv.badge) return;
+      const hidden = isHidden(view, node);
+      nv.circle.classList.toggle('is-folded', nv.folded);
+      if(nv.title){
+        const enabled = !nv.folded && !hidden;
+        nv.circle.classList.toggle('mirrorable', enabled);
+        nv.circle.setAttribute('tabindex', enabled ? '0' : '-1');
+        if(enabled) nv.circle.removeAttribute('aria-disabled');
+        else nv.circle.setAttribute('aria-disabled', 'true');
+        nv.title.textContent = enabled ? translate('factorTree.mirrorLabel', { n: node.value }) : '';
+      }
+      if(nv.badge){
+        const label = translate(nv.folded ? 'factorTree.unfoldLabel' : 'factorTree.foldLabel', { n: node.value });
+        nv.badge.setAttribute('aria-label', label);
+        nv.badgeTitle.textContent = label;
+        nv.badge.setAttribute('aria-expanded', nv.folded ? 'false' : 'true');
+        nv.badge.classList.toggle('is-folded', nv.folded);
+        nv.badge.setAttribute('tabindex', hidden ? '-1' : '0');
+      }
+    });
+    const active = document.activeElement;
+    if(active){
+      view.nodeViews.forEach((nv, node)=>{
+        if(active !== nv.circle && active !== nv.badge) return;
+        const anchor = anchorOf(view, node);
+        const av = anchor ? view.nodeViews.get(anchor) : null;
+        if(av && av.badge) av.badge.focus();
+      });
+    }
+  }
+
+  function toggleFold(view, nv){
+    if(view !== treeView || isHidden(view, nv.node)) return;
+    nv.folded = !nv.folded;
+    layoutTree(view);
+    syncControls(view);
+    const desc = descendantsOf(nv.node, []);
+    if(nv.folded){
+      animateTree(view, [
+        { ms:FOLD_MS, targets:v=>{
+          const t = currentTargets(v);
+          desc.forEach(d=>{ t.set(d, { px:nv.px, py:nv.py, s:0, o:0 }); });
+          return t;
+        } },
+        { ms:MIRROR_MS, targets:finalTargets }
+      ]);
+    } else {
+      animateTree(view, [
+        { ms:MIRROR_MS, targets:v=>{
+          const t = finalTargets(v);
+          const hx = v.pxX(nv.node), hy = v.pxY(nv.node);
+          desc.forEach(d=>{ t.set(d, { px:hx, py:hy, s:0, o:0 }); });
+          return t;
+        } },
+        { ms:FOLD_MS, targets:finalTargets }
+      ]);
+    }
   }
 
   function reverseBranch(node){
@@ -620,63 +819,138 @@
   }
 
   function mirrorBranch(view, nv){
-    if(view !== treeView) return;
+    if(view !== treeView || nv.folded || isHidden(view, nv.node)) return;
     reverseBranch(nv.node);
     nv.pressed = !nv.pressed;
     nv.circle.setAttribute('aria-pressed', nv.pressed ? 'true' : 'false');
-    assignTreeX(view.root, { value:0 });
-    moveTree(view);
+    layoutTree(view);
+    animateTree(view, [{ ms:MIRROR_MS, targets:finalTargets }]);
   }
 
+  function opacityText(o){
+    return o < 1 ? String(o) : '';
+  }
+
+  // Writes every circle, label, axis, ring, badge and edge from each node
+  // view's displayed state {px, py, s, o}: position, scale and opacity.
   function placeTree(view){
     view.nodeViews.forEach(nv=>{
+      const shown = nv.o > 0;
+      const display = shown ? '' : 'none';
+      const r = nv.r * nv.s;
       nv.circle.setAttribute('cx', nv.px);
+      nv.circle.setAttribute('cy', nv.py);
+      nv.circle.setAttribute('r', r);
+      nv.circle.style.display = display;
+      nv.circle.style.opacity = opacityText(nv.o);
       nv.text.setAttribute('x', nv.px);
+      nv.text.setAttribute('y', nv.py);
+      nv.text.setAttribute('font-size', nv.fs * nv.s);
+      nv.text.style.display = display;
+      nv.text.style.opacity = nv.o < 1 ? String(nv.node.kind === 'one' ? nv.o * 0.75 : nv.o) : '';
       if(nv.axis){
+        const half = view.axisHalf * nv.s;
         nv.axis.setAttribute('x1', nv.px);
         nv.axis.setAttribute('x2', nv.px);
+        nv.axis.setAttribute('y1', nv.py - half);
+        nv.axis.setAttribute('y2', nv.py + half);
+        nv.axis.style.display = shown && !nv.folded ? '' : 'none';
+      }
+      if(nv.ring){
+        nv.ring.setAttribute('cx', nv.px);
+        nv.ring.setAttribute('cy', nv.py);
+        nv.ring.setAttribute('r', (nv.r + RING_GAP) * nv.s);
+        nv.ring.style.display = shown && nv.folded ? '' : 'none';
+      }
+      if(nv.badge){
+        const cy = nv.py + r;
+        const br = view.badgeR * nv.s;
+        const h = view.badgeR * 0.55 * nv.s;
+        nv.disc.setAttribute('cx', nv.px);
+        nv.disc.setAttribute('cy', cy);
+        nv.disc.setAttribute('r', br);
+        nv.glyphH.setAttribute('x1', nv.px - h);
+        nv.glyphH.setAttribute('x2', nv.px + h);
+        nv.glyphH.setAttribute('y1', cy);
+        nv.glyphH.setAttribute('y2', cy);
+        nv.glyphV.setAttribute('x1', nv.px);
+        nv.glyphV.setAttribute('x2', nv.px);
+        nv.glyphV.setAttribute('y1', cy - h);
+        nv.glyphV.setAttribute('y2', cy + h);
+        nv.glyphV.style.display = nv.folded ? '' : 'none';
+        nv.badge.style.display = display;
+        nv.badge.style.opacity = opacityText(nv.o);
       }
     });
     view.edgeViews.forEach(ev=>{
-      ev.line.setAttribute('x1', view.nodeViews.get(ev.edge.from).px);
-      ev.line.setAttribute('x2', view.nodeViews.get(ev.edge.to).px);
+      const from = view.nodeViews.get(ev.edge.from);
+      const to = view.nodeViews.get(ev.edge.to);
+      ev.line.setAttribute('x1', from.px);
+      ev.line.setAttribute('y1', from.py);
+      ev.line.setAttribute('x2', to.px);
+      ev.line.setAttribute('y2', to.py);
+      ev.line.style.display = to.o > 0 ? '' : 'none';
+      ev.line.style.opacity = opacityText(to.o);
     });
   }
 
-  function moveTree(view){
+  // One tween engine for mirroring and folding. A phase is { ms, targets(view) }
+  // and targets is evaluated when the phase starts, so a chain always aims at
+  // the current model. Each phase finishes exactly once (done flag), whether
+  // by its last frame or by its settle timer; a new action bumps tweenToken and
+  // cancels the old chain, starting from whatever is on screen.
+  function animateTree(view, phases){
     const token = ++view.tweenToken;
-    const from = new Map();
-    const to = new Map();
-    view.nodeViews.forEach((nv, node)=>{
-      from.set(node, nv.px);
-      to.set(node, view.pxX(node));
-    });
-    function snap(){
-      view.nodeViews.forEach((nv, node)=>{ nv.px = to.get(node); });
-      placeTree(view);
+    placeTree(view);
+    const alive = ()=> view === treeView && token === view.tweenToken;
+    function apply(targets){
+      view.nodeViews.forEach((nv, node)=>{
+        const t = targets.get(node);
+        nv.px = t.px; nv.py = t.py; nv.s = t.s; nv.o = t.o;
+      });
     }
     if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      snap();
+      phases.forEach(ph=>{ apply(ph.targets(view)); });
+      placeTree(view);
       return;
     }
-    let start = null;
-    function frame(now){
-      if(view !== treeView || token !== view.tweenToken) return;
-      if(start === null) start = now;
-      const p = Math.min(1, Math.max(0, (now - start) / MIRROR_MS));
-      const e = easeInOutCubic(p);
-      view.nodeViews.forEach((nv, node)=>{
-        nv.px = from.get(node) + (to.get(node) - from.get(node)) * e;
-      });
-      placeTree(view);
-      if(p < 1) requestAnimationFrame(frame);
+    function run(i){
+      if(!alive() || i >= phases.length) return;
+      const ph = phases[i];
+      const to = ph.targets(view);
+      const from = currentTargets(view);
+      let done = false;
+      let start = null;
+      function finish(){
+        if(done) return;
+        done = true;
+        apply(to);
+        placeTree(view);
+        run(i + 1);
+      }
+      function frame(now){
+        if(done || !alive()) return;
+        if(start === null) start = now;
+        const p = Math.min(1, Math.max(0, (now - start) / ph.ms));
+        if(p >= 1){ finish(); return; }
+        const e = easeInOutCubic(p);
+        view.nodeViews.forEach((nv, node)=>{
+          const a = from.get(node), b = to.get(node);
+          nv.px = a.px + (b.px - a.px) * e;
+          nv.py = a.py + (b.py - a.py) * e;
+          nv.s = a.s + (b.s - a.s) * e;
+          nv.o = a.o + (b.o - a.o) * e;
+        });
+        placeTree(view);
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+      setTimeout(()=>{
+        if(!alive()) return;
+        finish();
+      }, ph.ms + 60);
     }
-    requestAnimationFrame(frame);
-    setTimeout(()=>{
-      if(view !== treeView || token !== view.tweenToken) return;
-      view.tweenToken++; // retire any still-pending frame so it cannot overwrite the snap
-      snap();
-    }, MIRROR_MS + 60);
+    run(0);
   }
 
   function factorize(rawValue){
@@ -779,7 +1053,7 @@
     renderMessage();
     renderBalancedNote();
     renderChips(mode);
-    relabelMirrors();
+    if(treeView) syncControls(treeView);
   });
 
   // Mirrors NT.store.readABParams's defensive shape (assets/nt-store.js): the regex match sits in its own try/catch, the decode+parse sits in a second, and the result is range-tested (against this tool's own Balanced cap) before use. The round-trip string comparison is what rejects fractional strings like "3.5" that parseInt would otherwise silently truncate into a valid-looking integer.
