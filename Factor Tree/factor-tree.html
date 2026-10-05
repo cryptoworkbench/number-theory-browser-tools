@@ -236,6 +236,32 @@
   .clear-btn:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
   .clear-btn:disabled{ opacity:.5; cursor:default; }
 
+  .palette-bin{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    border-radius:var(--radius-ctl);
+    border:1px dashed transparent;
+    color:var(--text-dim);
+    transition:color var(--ease-ctl), background var(--ease-ctl), border-color var(--ease-ctl);
+  }
+  .palette-bin svg{
+    width:26px;
+    height:26px;
+    overflow:visible;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.7;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .bin-lid{ transform-box:fill-box; transform-origin:0% 100%; transition:transform .18s ease-out; }
+  body.is-dragging .palette-bin{ border-color:var(--panel-border-strong); color:var(--text); }
+  body.is-dragging .palette-bin.is-open{ color:var(--role-warn); background:var(--role-warn-soft); border-color:var(--role-warn); }
+  .palette-bin.is-open .bin-lid{ transform:translate(0, -1.5px) rotate(-30deg); }
+
   .equation{
     font-family:var(--font-mono);
     font-size:clamp(1.05rem, 2.6vw, 1.3rem);
@@ -341,6 +367,7 @@
     .fold-badge, .fold-ring{ animation:none; }
     .palette-item.is-new, .tree-card{ animation:none; }
     .work-area{ transition:none; }
+    .bin-lid{ transition:none; }
   }
 
 
@@ -440,6 +467,9 @@
 
   <div class="section-head">
     <h2 id="paletteHeading" class="section-title" data-i18n="factorTree.paletteHeading">Prime palette</h2>
+    <div id="paletteBin" class="palette-bin" role="img" aria-label="Bin: drag a circle here to remove it from the palette" title="Bin: drag a circle here to remove it from the palette" data-i18n-aria-label="factorTree.binLabel" data-i18n-title="factorTree.binLabel">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="bin-lid"><path d="M3 6h18"/><path d="M9 6V4h6v2"/></g><path d="M5.5 6l1 14h11l1-14"/><path d="M10 10v6M14 10v6"/></svg>
+    </div>
   </div>
   <div id="palette" class="palette" role="group" aria-labelledby="paletteHeading"></div>
 
@@ -474,6 +504,7 @@
   const randomBtn = document.getElementById('randomBtn');
   const paletteEl = document.getElementById('palette');
   const paletteHeading = document.getElementById('paletteHeading');
+  const paletteBin = document.getElementById('paletteBin');
   const workArea = document.getElementById('workArea');
   const workHint = document.getElementById('workHint');
   const clearBtn = document.getElementById('clearBtn');
@@ -497,6 +528,7 @@
   const SIDE_PAD = 30;
   const SPACING_MAX = 56;
   const DRAG_SLOP = 6;
+  const BIN_SLOP = 8;
   const SIZE_KEY = Object.freeze({});
 
   function capFor(m){
@@ -576,33 +608,57 @@
     item.type = 'button';
     item.className = 'palette-item' + (isNew ? ' is-new' : '');
     item.setAttribute('data-n', String(n));
+    if(!isPrime(n)) item.setAttribute('data-composite', '');
     item.textContent = String(n);
     labelPaletteItem(item);
     // Keep the palette in ascending order: a new circle lands after any equal
     // value, before the first larger one, and the circles it displaces slide aside.
     const items = Array.prototype.slice.call(paletteEl.querySelectorAll('.palette-item'));
     const next = items.find(other=> Number(other.getAttribute('data-n')) > n) || null;
-    const animate = isNew && typeof Element.prototype.animate === 'function' &&
+    slidePalette(isNew ? items : [], ()=> paletteEl.insertBefore(item, next));
+    if(isNew) item.scrollIntoView({ block:'nearest' });
+    syncPaletteHeading();
+    return item;
+  }
+
+  // Runs change(), then slides each of the given circles from its old spot
+  // to its new one.
+  function slidePalette(items, change){
+    const animate = items.length > 0 && typeof Element.prototype.animate === 'function' &&
       !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     const before = animate ? items.map(other=> other.getBoundingClientRect()) : null;
-    paletteEl.insertBefore(item, next);
-    if(animate){
-      items.forEach((other, i)=>{
-        const after = other.getBoundingClientRect();
-        const dx = before[i].left - after.left, dy = before[i].top - after.top;
-        if(dx || dy){
-          other.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:'none' }],
-            { duration:250, easing:'ease-out' });
-        }
-      });
+    change();
+    if(!animate) return;
+    items.forEach((other, i)=>{
+      const after = other.getBoundingClientRect();
+      const dx = before[i].left - after.left, dy = before[i].top - after.top;
+      if(dx || dy){
+        other.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:'none' }],
+          { duration:250, easing:'ease-out' });
+      }
+    });
+  }
+
+  // The palette is a Prime palette while it holds primes only, and a Number
+  // palette while it holds at least one composite.
+  function syncPaletteHeading(){
+    const key = paletteEl.querySelector('.palette-item[data-composite]') ? 'factorTree.paletteHeadingNumbers' : 'factorTree.paletteHeading';
+    if(paletteHeading.getAttribute('data-i18n') === key) return;
+    paletteHeading.setAttribute('data-i18n', key);
+    paletteHeading.textContent = translate(key);
+  }
+
+  function removePaletteItem(item, keyboard){
+    const items = Array.prototype.slice.call(paletteEl.querySelectorAll('.palette-item'));
+    const i = items.indexOf(item);
+    const rest = items.filter(other=> other !== item);
+    slidePalette(rest, ()=> item.remove());
+    syncPaletteHeading();
+    setMessage('factorTree.msgRemoved', { n: item.getAttribute('data-n') }, true);
+    if(keyboard){
+      const target = items[i + 1] || items[i - 1] || addInput;
+      target.focus();
     }
-    if(isNew) item.scrollIntoView({ block:'nearest' });
-    // The palette starts as primes only; the first composite renames it.
-    if(!isPrime(n) && paletteHeading.getAttribute('data-i18n') !== 'factorTree.paletteHeadingNumbers'){
-      paletteHeading.setAttribute('data-i18n', 'factorTree.paletteHeadingNumbers');
-      paletteHeading.textContent = translate('factorTree.paletteHeadingNumbers');
-    }
-    return item;
   }
 
   function relabelPalette(){
@@ -1231,6 +1287,11 @@
     return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
   }
 
+  function overBin(x, y){
+    const r = paletteBin.getBoundingClientRect();
+    return x >= r.left - BIN_SLOP && x <= r.right + BIN_SLOP && y >= r.top - BIN_SLOP && y <= r.bottom + BIN_SLOP;
+  }
+
   function endDrag(){
     window.removeEventListener('pointermove', onDragMove);
     window.removeEventListener('pointerup', onDragEnd);
@@ -1239,6 +1300,7 @@
     if(drag && drag.ghost && drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost);
     document.body.classList.remove('is-dragging');
     workArea.classList.remove('is-drop-over');
+    paletteBin.classList.remove('is-open');
     drag = null;
   }
 
@@ -1267,16 +1329,20 @@
     }
     moveGhost(e.clientX, e.clientY);
     workArea.classList.toggle('is-drop-over', overWork(e.clientX, e.clientY));
+    paletteBin.classList.toggle('is-open', overBin(e.clientX, e.clientY));
   }
 
   function onDragEnd(e){
     if(!drag || e.pointerId !== drag.pointerId) return;
     const wasActive = drag.active;
     const n = drag.n;
+    const item = drag.item;
     const over = wasActive && overWork(e.clientX, e.clientY);
+    const binned = wasActive && overBin(e.clientX, e.clientY);
     endDrag();
     if(wasActive) markDragEnded();
     if(over) dropTree(n);
+    else if(binned) removePaletteItem(item, false);
   }
 
   function onDragCancel(e){
@@ -1306,9 +1372,15 @@
     window.addEventListener('keydown', onDragKey);
   });
 
-  // A held Enter or Space must not place repeated copies.
+  // A held Enter or Space must not place repeated copies; Delete and
+  // Backspace bin the focused circle, the keyboard path to the bin.
   paletteEl.addEventListener('keydown', e=>{
     if((e.key === 'Enter' || e.key === ' ') && e.repeat) e.preventDefault();
+    const item = e.target.closest('.palette-item');
+    if(item && (e.key === 'Delete' || e.key === 'Backspace') && !e.repeat){
+      e.preventDefault();
+      removePaletteItem(item, true);
+    }
   });
 
   // Click, tap, Enter and Space on a palette circle also place a copy.

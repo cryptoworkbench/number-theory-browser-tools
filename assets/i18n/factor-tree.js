@@ -6,7 +6,8 @@
    workHeading, workHint), the palette-item label (paletteItemLabel, {n}),
    the Clear button (clear), the per-tree remove label (removeLabel, {n}),
    footnote, the Balanced-mode caveat, every validation/result message
-   (including msgAdded, {n}), the mirror-button label (mirrorLabel, {n}) and
+   (including msgAdded and msgRemoved, {n}), the palette bin's label
+   (binLabel), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
    Tree tool, in all sixteen supported languages. title and heading equal
    site.nav.factorTree in each language.
@@ -53,7 +54,9 @@
       workHint: 'Sleep een cirkel uit het palet hierheen, of klik erop, en druk dan op zijn + om hem uit te vouwen.',
       clear: 'Wissen',
       removeLabel: 'Haal {n} uit het werkgebied',
-      msgAdded: '{n} is aan het palet toegevoegd.'
+      msgAdded: '{n} is aan het palet toegevoegd.',
+      msgRemoved: '{n} is uit het palet verwijderd.',
+      binLabel: 'Prullenbak: sleep een cirkel hierheen om hem uit het palet te verwijderen'
     },
     en: {
       title: 'Factor Tree',
@@ -85,7 +88,9 @@
       workHint: 'Drag a circle from the palette here, or click it, then press its + to unfold it.',
       clear: 'Clear',
       removeLabel: 'Remove {n} from the working area',
-      msgAdded: 'Added {n} to the palette.'
+      msgAdded: 'Added {n} to the palette.',
+      msgRemoved: 'Removed {n} from the palette.',
+      binLabel: 'Bin: drag a circle here to remove it from the palette'
     },
     de: {
       title: 'Faktorbaum',
@@ -117,7 +122,9 @@
       workHint: 'Zieh einen Kreis aus der Palette hierher oder klick ihn an, und drück dann auf sein +, um ihn auszuklappen.',
       clear: 'Leeren',
       removeLabel: '{n} von der Arbeitsfläche entfernen',
-      msgAdded: '{n} wurde zur Palette hinzugefügt.'
+      msgAdded: '{n} wurde zur Palette hinzugefügt.',
+      msgRemoved: '{n} wurde aus der Palette entfernt.',
+      binLabel: 'Papierkorb: Zieh einen Kreis hierher, um ihn aus der Palette zu entfernen'
     },
     fr: {
       title: 'Arbre de facteurs',
@@ -149,7 +156,9 @@
       workHint: 'Faites glisser un cercle de la palette jusqu’ici, ou cliquez dessus, puis appuyez sur son + pour le déplier.',
       clear: 'Effacer',
       removeLabel: 'Retirer {n} de la zone de travail',
-      msgAdded: '{n} a été ajouté à la palette.'
+      msgAdded: '{n} a été ajouté à la palette.',
+      msgRemoved: '{n} a été retiré de la palette.',
+      binLabel: 'Corbeille : faites glisser un cercle ici pour le retirer de la palette'
     },
     es: {
       title: 'Árbol de factores',
@@ -181,7 +190,9 @@
       workHint: 'Arrastra aquí un círculo de la paleta, o haz clic en él, y luego pulsa su + para desplegarlo.',
       clear: 'Borrar',
       removeLabel: 'Quitar {n} del área de trabajo',
-      msgAdded: '{n} se ha añadido a la paleta.'
+      msgAdded: '{n} se ha añadido a la paleta.',
+      msgRemoved: '{n} se ha quitado de la paleta.',
+      binLabel: 'Papelera: arrastra aquí un círculo para quitarlo de la paleta'
     },
     it: {
       title: 'Albero dei fattori',
@@ -213,7 +224,9 @@
       workHint: 'Trascina qui un cerchio dalla tavolozza, o fai clic su di esso, poi premi il suo + per espanderlo.',
       clear: 'Svuota',
       removeLabel: 'Togli {n} dall’area di lavoro',
-      msgAdded: '{n} è stato aggiunto alla tavolozza.'
+      msgAdded: '{n} è stato aggiunto alla tavolozza.',
+      msgRemoved: '{n} è stato tolto dalla tavolozza.',
+      binLabel: 'Cestino: trascina qui un cerchio per toglierlo dalla tavolozza'
     },
     pl: {
       title: 'Drzewo czynników',
@@ -245,7 +258,9 @@
       workHint: 'Przeciągnij tutaj koło z palety albo je kliknij, a potem naciśnij jego +, aby je rozwinąć.',
       clear: 'Wyczyść',
       removeLabel: 'Usuń {n} z obszaru roboczego',
-      msgAdded: 'Dodano {n} do palety.'
+      msgAdded: 'Dodano {n} do palety.',
+      msgRemoved: 'Usunięto {n} z palety.',
+      binLabel: 'Kosz: przeciągnij tutaj koło, aby usunąć je z palety'
     },
     'pt-BR': {
       title: 'Árvore de fatores',
@@ -277,7 +292,9 @@
       workHint: 'Arraste um círculo da paleta para cá, ou clique nele, e depois pressione o + dele para expandi-lo.',
       clear: 'Limpar',
       removeLabel: 'Remova {n} da área de trabalho',
-      msgAdded: '{n} foi adicionado à paleta.'
+      msgAdded: '{n} foi adicionado à paleta.',
+      msgRemoved: '{n} foi removido da paleta.',
+      binLabel: 'Lixeira: arraste um círculo para cá para removê-lo da paleta'
     },
     'pt-PT': {
       title: 'Árvore de fatores',
@@ -309,7 +326,9 @@
       workHint: 'Arrasta um círculo da paleta para aqui, ou clica nele, e depois carrega no seu + para o expandir.',
       clear: 'Limpar',
       removeLabel: 'Remove {n} da área de trabalho',
-      msgAdded: '{n} foi adicionado à paleta.'
+      msgAdded: '{n} foi adicionado à paleta.',
+      msgRemoved: '{n} foi removido da paleta.',
+      binLabel: 'Caixote do lixo: arrasta um círculo para aqui para o remover da paleta'
     },
     sv: {
       title: 'Faktorträd',
@@ -341,7 +360,9 @@
       workHint: 'Dra hit en cirkel från paletten, eller klicka på den, och tryck sedan på dess + för att fälla ut den.',
       clear: 'Rensa',
       removeLabel: 'Ta bort {n} från arbetsytan',
-      msgAdded: '{n} har lagts till i paletten.'
+      msgAdded: '{n} har lagts till i paletten.',
+      msgRemoved: '{n} har tagits bort från paletten.',
+      binLabel: 'Papperskorg: dra hit en cirkel för att ta bort den från paletten'
     },
     nb: {
       title: 'Faktortre',
@@ -373,7 +394,9 @@
       workHint: 'Dra en sirkel fra paletten hit, eller klikk på den, og trykk deretter på + under den for å folde den ut.',
       clear: 'Tøm',
       removeLabel: 'Fjern {n} fra arbeidsområdet',
-      msgAdded: '{n} er lagt til i paletten.'
+      msgAdded: '{n} er lagt til i paletten.',
+      msgRemoved: '{n} er fjernet fra paletten.',
+      binLabel: 'Papirkurv: dra en sirkel hit for å fjerne den fra paletten'
     },
     ro: {
       title: 'Arbore de factori',
@@ -405,7 +428,9 @@
       workHint: 'Trage aici un cerc din paletă, sau dă clic pe el, apoi apasă pe + al lui ca să-l extinzi.',
       clear: 'Golește',
       removeLabel: 'Elimină {n} din zona de lucru',
-      msgAdded: '{n} a fost adăugat în paletă.'
+      msgAdded: '{n} a fost adăugat în paletă.',
+      msgRemoved: '{n} a fost eliminat din paletă.',
+      binLabel: 'Coș de gunoi: trage aici un cerc ca să-l elimini din paletă'
     },
     hu: {
       title: 'Tényezőfa',
@@ -437,7 +462,9 @@
       workHint: 'Húzz ide egy kört a palettáról, vagy kattints rá, majd nyomd meg a + gombját a kinyitásához.',
       clear: 'Törlés',
       removeLabel: 'Eltávolítás a munkaterületről: {n}',
-      msgAdded: '{n} bekerült a palettába.'
+      msgAdded: '{n} bekerült a palettába.',
+      msgRemoved: '{n} lekerült a palettáról.',
+      binLabel: 'Kuka: húzz ide egy kört, hogy eltávolítsd a palettáról'
     },
     lv: {
       title: 'Reizinātāju koks',
@@ -469,7 +496,9 @@
       workHint: 'Ievelc šeit apli no paletes vai noklikšķini uz tā, tad nospied tā +, lai to izvērstu.',
       clear: 'Notīrīt',
       removeLabel: 'Noņemt {n} no darba laukuma',
-      msgAdded: '{n} pievienots paletei.'
+      msgAdded: '{n} pievienots paletei.',
+      msgRemoved: '{n} izņemts no paletes.',
+      binLabel: 'Miskaste: ievelc šeit apli, lai to izņemtu no paletes'
     },
     ru: {
       title: 'Дерево множителей',
@@ -501,7 +530,9 @@
       workHint: 'Перетащи сюда круг из палитры или нажми на него, затем нажми его +, чтобы развернуть.',
       clear: 'Очистить',
       removeLabel: 'Убрать {n} из рабочей области',
-      msgAdded: 'Число {n} добавлено в палитру.'
+      msgAdded: 'Число {n} добавлено в палитру.',
+      msgRemoved: 'Число {n} убрано из палитры.',
+      binLabel: 'Корзина: перетащи сюда круг, чтобы убрать его из палитры'
     },
     el: {
       title: 'Δέντρο παραγόντων',
@@ -533,7 +564,9 @@
       workHint: 'Σύρε εδώ έναν κύκλο από την παλέτα ή κάνε κλικ πάνω του και μετά πάτησε το + του για να τον ξεδιπλώσεις.',
       clear: 'Καθαρισμός',
       removeLabel: 'Αφαίρεσε το {n} από την περιοχή εργασίας',
-      msgAdded: 'Το {n} προστέθηκε στην παλέτα.'
+      msgAdded: 'Το {n} προστέθηκε στην παλέτα.',
+      msgRemoved: 'Το {n} αφαιρέθηκε από την παλέτα.',
+      binLabel: 'Κάδος: σύρε εδώ έναν κύκλο για να τον αφαιρέσεις από την παλέτα'
     }
   });
 })();

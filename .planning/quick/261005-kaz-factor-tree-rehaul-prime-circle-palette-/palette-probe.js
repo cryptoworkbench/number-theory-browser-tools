@@ -21,11 +21,11 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 24;
+var EXPECTED = 26;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
-var NEW_KEYS = ["subtitle", "add", "addInputLabel", "paletteHeading", "paletteHeadingNumbers", "paletteItemLabel", "workHeading", "workHint", "clear", "removeLabel", "msgAdded"];
+var NEW_KEYS = ["subtitle", "add", "addInputLabel", "paletteHeading", "paletteHeadingNumbers", "paletteItemLabel", "workHeading", "workHint", "clear", "removeLabel", "msgAdded", "msgRemoved", "binLabel"];
 
 /* ---------- node-side scenarios ---------- */
 
@@ -56,7 +56,7 @@ function runNodeScenarios() {
         nodeAssert(typeof d[k] === "string" && d[k].length > 0, l + " " + k + " missing");
         if (l !== "en") nodeAssert(d[k] !== en[k], l + " " + k + " equals the English text");
       });
-      ["paletteItemLabel", "removeLabel", "msgAdded"].forEach(function (k) {
+      ["paletteItemLabel", "removeLabel", "msgAdded", "msgRemoved"].forEach(function (k) {
         nodeAssert(d[k].indexOf("{n}") >= 0, l + " " + k + " lacks {n}");
       });
       if (l === "ru" || l === "el") {
@@ -68,7 +68,7 @@ function runNodeScenarios() {
         });
       }
     });
-    return "16 languages carry the eleven new/changed keys; {n} slots intact; ru/el in their own script";
+    return "16 languages carry the thirteen new/changed keys; {n} slots intact; ru/el in their own script";
   });
   pass += nodeScenario("N2 dead-keys", function () {
     LANGS.forEach(function (l) {
@@ -693,6 +693,59 @@ function inPage(cfg) {
     });
   });
 
+  step("P11 bin", function () {
+    var bin = document.getElementById("paletteBin");
+    var lid = bin.querySelector(".bin-lid");
+    var head = document.getElementById("paletteHeading");
+    assert(bin.getAttribute("role") === "img" && bin.getAttribute("aria-label") === T("binLabel") && bin.getAttribute("title") === T("binLabel"), "bin label is '" + bin.getAttribute("aria-label") + "'");
+    assert(bin.parentNode === head.parentNode, "the bin is not in the palette heading row");
+    var closedLid = getComputedStyle(lid).transform;
+    var n0 = items().length, c0 = cards().length;
+    var bc = centre(bin);
+    var two = itemByText("2");
+    dragStart(two, bc.x, bc.y, "mouse");
+    assert(bin.classList.contains("is-open"), "the bin did not open with a circle above it");
+    var open = function () { return getComputedStyle(lid).transform; };
+    return (reduced() ? Promise.resolve() : sleep(260)).then(function () {
+      assert(open() !== closedLid && open() !== "none", "the lid did not tilt open: " + open());
+      ptr("pointermove", document, bc.x, bc.y + 200, "mouse");
+      assert(!bin.classList.contains("is-open"), "the bin stayed open after the circle left it");
+      ptr("pointermove", document, bc.x, bc.y, "mouse");
+      dragDrop(bc.x, bc.y, "mouse");
+      assert(!bin.classList.contains("is-open"), "the bin stayed open after the drop");
+      assert(items().length === n0 - 1 && !document.contains(two) && !items().some(function (x) { return x.textContent === "2"; }), "the 2 is still in the palette");
+      assert(cards().length === c0, "binning placed a tree");
+      assert(ghosts() === 0, "a ghost is left behind");
+      assert(msg() === T("msgRemoved", { n: 2 }), "message is '" + msg() + "'");
+      var three = itemByText("3");
+      dragStart(three, bc.x, bc.y, "mouse");
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      dragDrop(bc.x, bc.y, "mouse");
+      assert(document.contains(three) && !bin.classList.contains("is-open"), "Escape over the bin still removed the 3 or left it open");
+      return sleep(20).then(function () {
+        dragStart(three, bc.x, bc.y, "touch");
+        dragDrop(bc.x, bc.y, "touch");
+        assert(!document.contains(three), "a touch drag onto the bin did not remove the 3");
+        assert(head.textContent === T("paletteHeadingNumbers"), "heading is '" + head.textContent + "' with composites left");
+        var comps = items().filter(function (x) { return !isPrimeNum(Number(x.textContent)); });
+        assert(comps.length > 0, "no composites left to bin");
+        comps.forEach(function (x, j) {
+          var list = items(), i = list.indexOf(x);
+          var expectFocus = list[i + 1] || list[i - 1];
+          x.focus();
+          assert(key(x, { key: j % 2 ? "Delete" : "Backspace" }), "Delete/Backspace was not default-prevented");
+          assert(!document.contains(x), x.textContent + " survived Delete");
+          assert(document.activeElement === expectFocus, "focus did not move to the neighbouring circle");
+        });
+        assert(head.textContent === T("paletteHeading"), "binning the last composite left the heading as '" + head.textContent + "'");
+        NT.i18n.setLang("el");
+        assert(bin.getAttribute("aria-label") === T("binLabel") && head.textContent === T("paletteHeading"), "bin label or heading did not follow a language switch");
+        NT.i18n.setLang("en");
+        noErrors("P11");
+        return "a circle over the bin tilts its lid open; dropping bins it (mouse and touch) with a message; leaving or Escape keeps it; Delete/Backspace bin the focused circle; the heading reverts to Prime palette";
+      });
+    });
+  });
 
   var deepSteps = [];
   deepSteps.push({ name: "D1 deep-link", fn: function () {
