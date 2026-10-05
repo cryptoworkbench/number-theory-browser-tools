@@ -20,7 +20,7 @@ var url = require("url");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 7;
+var EXPECTED = 9;
 
 var PROBE_BODY = [
   "(function(){",
@@ -200,14 +200,83 @@ var SCEN = [
   "        msg = 'ab opened ' + g1[0] + '; abc opened ' + g2[0];",
   "      } finally { document.getElementById('mode-two').click(); }",
   "      return msg;",
+  "    });",
+  "",
+  "    scenario('E8 toolbar-order-and-storage', function(){",
+  "      var off = document.getElementById('thumbs-off');",
+  "      var on = document.getElementById('thumbs-on');",
+  "      assert(off && on, 'toggle buttons missing');",
+  "      assert(off.nextElementSibling === on, 'thumbs-off is not immediately followed by thumbs-on');",
+  "      assert(off.textContent === 'Previews off', 'off label is ' + JSON.stringify(off.textContent));",
+  "      assert(on.textContent === 'Previews on', 'on label is ' + JSON.stringify(on.textContent));",
+  "      var label = off.parentNode.getAttribute('aria-label');",
+  "      assert(label === 'Hover previews', 'group aria-label is ' + JSON.stringify(label));",
+  "      var KEY = 'venn-diagram-thumbnails';",
+  "      off.click();",
+  "      try {",
+  "        assert(localStorage.getItem(KEY) === 'off', 'stored value after off is ' + localStorage.getItem(KEY));",
+  "        var g = chip('venn-composite-dynamic', 'overlap');",
+  "        assert(!g.classList.contains('is-previewable'), 'chip still is-previewable with previews off');",
+  "        reset(g);",
+  "        ev(g, 'mouseenter');",
+  "        var cancelled;",
+  "        var got = opened(function(){ cancelled = enter(body); });",
+  "        assert(!cancelled, 'Enter with previews off was cancelled');",
+  "        assert(got.length === 0, 'Enter with previews off opened ' + JSON.stringify(got));",
+  "      } finally { on.click(); }",
+  "      assert(localStorage.getItem(KEY) === 'on', 'stored value after on is ' + localStorage.getItem(KEY));",
+  "      var g2 = chip('venn-composite-dynamic', 'overlap');",
+  "      assert(g2.classList.contains('is-previewable'), 'chip lost is-previewable after previews on');",
+  "      return 'off first, labels and group right, storage key off/on, Enter inert when off';",
+  "    });",
+  "",
+  "    scenario('E9 labels-all-languages', function(){",
+  "      var TABLE = /*__LABELS__*/ {};",
+  "      var bad = [];",
+  "      var n = 0;",
+  "      for (var code in TABLE){",
+  "        NT.i18n.setLang(code);",
+  "        var want = TABLE[code];",
+  "        var off = document.getElementById('thumbs-off');",
+  "        var on = document.getElementById('thumbs-on');",
+  "        var grp = off.parentNode.getAttribute('aria-label');",
+  "        if (grp !== want[0]) bad.push(code + ' group ' + JSON.stringify(grp));",
+  "        if (on.textContent !== want[1]) bad.push(code + ' on ' + JSON.stringify(on.textContent));",
+  "        if (off.textContent !== want[2]) bad.push(code + ' off ' + JSON.stringify(off.textContent));",
+  "        n++;",
+  "      }",
+  "      assert(n === 16, 'checked ' + n + ' languages, expected 16');",
+  "      assert(bad.length === 0, 'mismatches: ' + bad.join('; '));",
+  "      return '16 languages x 3 labels';",
   "    });"
 ].join("\n");
+
+// Expected toggle wording per language: [group aria-label, previews on, previews off].
+var LABELS = {
+  "nl": ["Hover-voorvertoningen", "Voorvertoningen aan", "Voorvertoningen uit"],
+  "en": ["Hover previews", "Previews on", "Previews off"],
+  "de": ["Hover-Vorschau", "Vorschau an", "Vorschau aus"],
+  "fr": ["Aperçus au survol", "Aperçus activés", "Aperçus désactivés"],
+  "es": ["Vistas previas al pasar el cursor", "Vistas previas activadas", "Vistas previas desactivadas"],
+  "it": ["Anteprime al passaggio del cursore", "Anteprime attive", "Anteprime disattivate"],
+  "pl": ["Podgląd po najechaniu", "Podgląd włączony", "Podgląd wyłączony"],
+  "pt-BR": ["Pré-visualizações ao passar o mouse", "Pré-visualizações ativadas", "Pré-visualizações desativadas"],
+  "pt-PT": ["Pré-visualizações ao passar o rato", "Pré-visualizações ativadas", "Pré-visualizações desativadas"],
+  "sv": ["Förhandsvisningar vid hovring", "Förhandsvisningar på", "Förhandsvisningar av"],
+  "nb": ["Forhåndsvisninger ved hover", "Forhåndsvisninger på", "Forhåndsvisninger av"],
+  "ro": ["Previzualizări la survolare", "Previzualizări activate", "Previzualizări dezactivate"],
+  "hu": ["Előnézet rámutatáskor", "Előnézet be", "Előnézet ki"],
+  "lv": ["Priekšskatījumi, pārvietojot kursoru", "Priekšskatījumi ieslēgti", "Priekšskatījumi izslēgti"],
+  "ru": ["Предпросмотр при наведении", "Предпросмотр включён", "Предпросмотр выключен"],
+  "el": ["Προεπισκοπήσεις στο πέρασμα", "Προεπισκοπήσεις ενεργές", "Προεπισκοπήσεις ανενεργές"]
+};
 
 function buildSite() {
   var siteRoot = harness.mkScratch("edj-site-");
   fs.cpSync(path.join(ROOT, "assets"), path.join(siteRoot, "assets"), { recursive: true });
   var src = fs.readFileSync(path.join(ROOT, "Venn Diagram", "venn-diagram.html"), "utf8");
   var probe = PROBE_BODY.replace("//__SCENARIOS__", function () { return SCEN; });
+  probe = probe.replace("/*__LABELS__*/ {}", function () { return JSON.stringify(LABELS); });
   var markup = '<pre id="edj-out"></pre>\n<script>\n' + probe + "\n</script>\n";
   var at = src.lastIndexOf("</body>");
   if (at < 0) throw new Error("no closing body tag in venn-diagram.html");
