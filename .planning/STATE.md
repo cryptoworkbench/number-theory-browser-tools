@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-05T15:46:36.230Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 704780b502fd551d2b6421f7d2ba380f6d051d5e
+state_head: 3e5b5505363747528d2b9d6e1fd3490bbeb9d7b3
 progress:
   total_phases: 7
   completed_phases: 6
@@ -313,6 +313,7 @@ None yet.
 | 77 | Venn Diagram: A ∩ B preview overlaps the factor trees of A and B on their gcd; Factor Tree ?a=&b= deep link | 2026-10-05 | cf89e2c | — |
 | 78 | Factor Tree: prime circles green by default (palette, drag ghost, folded prime node); a prime circle turns blue once unfolded into P × 1 | 2026-10-05 | ac1805f | — |
 | 79 | Factor Tree: dragging a composite circle into the area unfolds it down to its (folded, green) primes; 'working area' renamed to composition/factorization area in every label and tooltip, all 16 languages | 2026-10-05 | 704780b | — |
+| 80 | Factor Tree: switching Classic/Balanced no longer folds the trees — an opened tree is rebuilt open, circles keep the fold of their same-valued circle in the old tree | 2026-10-05 | 3e5b550 | — |
 
 ## Deferred Items
 
