@@ -1131,15 +1131,41 @@
     syncWorkState();
   }
 
-  // A mode switch re-places every tree, fresh and folded, in the new mode;
-  // a tree over the new mode's cap is dropped.
+  // A mode switch re-places every tree in the new mode without folding it:
+  // a tree still folded on its root stays fresh and folded; an opened one
+  // is rebuilt open, each circle keeping the fold of the circle with the
+  // same value in the old tree (open wins a tie). A tree over the new
+  // mode's cap is dropped.
+  function foldsByValue(view){
+    if(view.nodeViews.get(view.root).folded) return null;
+    const byValue = new Map();
+    view.nodeViews.forEach((nv, node)=>{
+      if(node.children.length > 0) byValue.set(node.value, (byValue.get(node.value) !== false) && nv.folded);
+    });
+    return byValue;
+  }
+
+  function reopenedPart(n, byValue){
+    const root = buildFactorTree(n, { balanced: mode === 'balanced' });
+    const folded = new Map();
+    [root].concat(descendantsOf(root, [])).forEach(node=>{
+      folded.set(node, node !== root && node.children.length > 0 && byValue.get(node.value) === true);
+    });
+    return { root:root, folded:folded, pressed:new Set(), fresh:new Set() };
+  }
+
   function rebuildWork(){
-    const specs = views.map(v=> v.overlap ? { a:v.a, b:v.b } : { n:v.n });
+    const specs = views.map(v=> v.overlap ? { a:v.a, b:v.b } : { n:v.n, byValue:foldsByValue(v) });
     clearWork();
     let skipped = false;
     specs.forEach(spec=>{
       if(Math.max(spec.n || 0, spec.a || 0, spec.b || 0) > capFor(mode)){ skipped = true; return; }
-      if(spec.n) dropTree(spec.n);
+      if(spec.n && spec.byValue){
+        const view = buildCard(spec.n, reopenedPart(spec.n, spec.byValue));
+        workArea.appendChild(view.card);
+        views.push(view);
+        syncWorkState();
+      } else if(spec.n) dropTree(spec.n);
       else placeOverlap(spec.a, spec.b);
     });
     if(skipped) setMessage('factorTree.msgTooLargeBalanced');
