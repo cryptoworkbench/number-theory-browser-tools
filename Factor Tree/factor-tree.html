@@ -220,6 +220,24 @@
   .tree-remove:hover{ color:var(--role-warn); border-color:var(--role-warn); }
   .tree-remove:focus{ outline:none; }
   .tree-remove:focus-visible{ box-shadow:var(--ctl-focus); }
+  .tree-card{ cursor:grab; }
+  .tree-card .tree-svg, .tree-card .tree-equation{ cursor:auto; }
+  .tree-card.is-drag-source{ opacity:.45; }
+  .tree-grip{
+    position:absolute;
+    top:4px;
+    left:4px;
+    width:24px;
+    height:24px;
+    display:grid;
+    place-items:center;
+    color:var(--text-dim);
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .tree-grip:hover{ color:var(--text); }
+  .tree-grip circle{ fill:currentColor; }
   .tree-remove svg line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
 
   .clear-btn{
@@ -791,12 +809,19 @@
     xIcon.appendChild(svgEl('line', { x1:2.5, y1:2.5, x2:9.5, y2:9.5 }));
     xIcon.appendChild(svgEl('line', { x1:9.5, y1:2.5, x2:2.5, y2:9.5 }));
     removeBtn.appendChild(xIcon);
+    const grip = document.createElement('div');
+    grip.className = 'tree-grip';
+    grip.setAttribute('role', 'img');
+    const gripIcon = svgEl('svg', { viewBox:'0 0 12 12', width:12, height:12, 'aria-hidden':'true', focusable:'false' });
+    [3, 6, 9].forEach(y=>{ [4, 8].forEach(x=>{ gripIcon.appendChild(svgEl('circle', { cx:x, cy:y, r:1.1 })); }); });
+    grip.appendChild(gripIcon);
+    card.appendChild(grip);
     card.appendChild(removeBtn);
     card.appendChild(svg);
     card.appendChild(eqEl);
 
     const view = {
-      n:n, root:root, topFactors:primeFactors(n), card:card, svg:svg, eqEl:eqEl, removeBtn:removeBtn,
+      n:n, root:root, topFactors:primeFactors(n), card:card, svg:svg, eqEl:eqEl, removeBtn:removeBtn, grip:grip,
       nodeViews:new Map(), edgeViews:[], radius:radius, tweenToken:0, leafCount:fullLeaves,
       axisHalf:axisHalf, badgeR:badgeR, spacing:spacing, sidePad:sidePad, topPad:topPad,
       bottomPad:bottomPad, levelHeight:levelHeight, w:0, h:0, live:true, eqShown:false
@@ -875,6 +900,9 @@
     const label = translate('factorTree.removeLabel', { n: view.n });
     view.removeBtn.setAttribute('aria-label', label);
     view.removeBtn.setAttribute('title', label);
+    const move = translate('factorTree.moveLabel', { n: view.n });
+    view.grip.setAttribute('aria-label', move);
+    view.grip.setAttribute('title', move);
   }
 
   function syncWorkState(){
@@ -935,21 +963,42 @@
     return view;
   }
 
-  // ---------- Compose a circle into a placed tree ----------
-  // Dropping m onto the card of n replaces it, in place, with the tree of
-  // m × n: a new root whose branches are m's own tree (left, open) and n's
-  // tree exactly as it was — folds and mirrors kept. Balanced mode rebuilds
-  // the product's own Fermat tree instead, since a composition is not one.
+  // ---------- Compose trees ----------
+  // Dropping a palette circle m onto the card of n, or the card of m onto
+  // the card of n, replaces the target card, in place, with the tree of
+  // m × n: a new open root whose branches are the two trees exactly as they
+  // were — folds, mirrors and first-unfold kept. A palette circle arrives as
+  // its own tree, fully open; of two cards, the one placed earlier is the
+  // left branch. Balanced mode rebuilds the product's own Fermat tree
+  // instead, since a composition is not one.
   function shiftTree(node){
     node.depth++;
     if(node.kind === 'root') node.kind = 'internal';
     node.children.forEach(shiftTree);
   }
 
-  function composeInto(view, m){
-    const idx = views.indexOf(view);
+  function partOfView(view){
+    const folded = new Map();
+    const pressed = new Set();
+    view.nodeViews.forEach((nv, node)=>{
+      folded.set(node, nv.folded);
+      if(nv.pressed) pressed.add(node);
+    });
+    return { n:view.n, root:view.root, folded:folded, pressed:pressed, fresh:new Set(view.fresh) };
+  }
+
+  function partOfNumber(m){
+    const root = buildFactorTree(m, { balanced:false });
+    const folded = new Map();
+    [root].concat(descendantsOf(root, [])).forEach(node=>{ folded.set(node, false); });
+    return { n:m, root:root, folded:folded, pressed:new Set(), fresh:new Set() };
+  }
+
+  // left and right are thunks so nothing is built or re-depthed until the
+  // product has passed the cap check.
+  function compose(target, n, left, right, source){
+    const idx = views.indexOf(target);
     if(idx < 0) return null;
-    const n = view.n * m;
     if(n > capFor(mode)){
       setMessage(tooLargeKey());
       return null;
@@ -958,27 +1007,38 @@
     if(mode === 'balanced'){
       next = buildCard(n);
     } else {
-      const folded = new Map();
-      const pressed = new Set();
-      view.nodeViews.forEach((nv, node)=>{
-        folded.set(node, nv.folded);
-        if(nv.pressed) pressed.add(node);
-      });
-      const fresh = new Set(view.fresh);
-      const added = buildFactorTree(m, { balanced:false });
-      [added].concat(descendantsOf(added, [])).forEach(node=>{ folded.set(node, false); });
-      shiftTree(added);
-      shiftTree(view.root);
-      const root = { value:n, kind:'root', children:[added, view.root], depth:0 };
+      const a = left(), b = right();
+      shiftTree(a.root);
+      shiftTree(b.root);
+      const root = { value:n, kind:'root', children:[a.root, b.root], depth:0 };
+      const folded = new Map([...a.folded, ...b.folded]);
       folded.set(root, false);
-      next = buildCard(n, { root:root, folded:folded, pressed:pressed, fresh:fresh });
+      next = buildCard(n, {
+        root:root, folded:folded,
+        pressed:new Set([...a.pressed, ...b.pressed]),
+        fresh:new Set([...a.fresh, ...b.fresh])
+      });
     }
-    killView(view);
+    killView(target);
     workArea.insertBefore(next.card, workArea.children[idx + 1] || null);
     views[idx] = next;
+    if(source){
+      killView(source);
+      views.splice(views.indexOf(source), 1);
+    }
     syncWorkState();
     next.card.scrollIntoView({ block:'nearest' });
     return next;
+  }
+
+  function composeInto(view, m){
+    return compose(view, view.n * m, ()=> partOfNumber(m), ()=> partOfView(view), null);
+  }
+
+  function composeViews(source, target){
+    const first = views.indexOf(source) < views.indexOf(target) ? source : target;
+    const second = first === source ? target : source;
+    return compose(target, source.n * target.n, ()=> partOfView(first), ()=> partOfView(second), source);
   }
 
   // ---------- Mirror a branch across its circle's vertical line ----------
@@ -1376,6 +1436,7 @@
   function cardAt(x, y){
     if(!overWork(x, y)) return null;
     return views.find(v=>{
+      if(drag && v === drag.view) return false;
       const r = v.card.getBoundingClientRect();
       return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
     }) || null;
@@ -1399,6 +1460,7 @@
     document.body.classList.remove('is-dragging');
     workArea.classList.remove('is-drop-over');
     markTarget(null);
+    if(drag && drag.view) drag.view.card.classList.remove('is-drag-source');
     paletteBin.classList.remove('is-open');
     drag = null;
   }
@@ -1425,12 +1487,13 @@
       document.body.appendChild(ghost);
       drag.ghost = ghost;
       document.body.classList.add('is-dragging');
+      if(drag.view) drag.view.card.classList.add('is-drag-source');
     }
     moveGhost(e.clientX, e.clientY);
     const target = cardAt(e.clientX, e.clientY);
     markTarget(target);
-    workArea.classList.toggle('is-drop-over', !target && overWork(e.clientX, e.clientY));
-    paletteBin.classList.toggle('is-open', overBin(e.clientX, e.clientY));
+    workArea.classList.toggle('is-drop-over', !target && !drag.view && overWork(e.clientX, e.clientY));
+    if(!drag.view) paletteBin.classList.toggle('is-open', overBin(e.clientX, e.clientY));
   }
 
   function onDragEnd(e){
@@ -1438,11 +1501,16 @@
     const wasActive = drag.active;
     const n = drag.n;
     const item = drag.item;
+    const source = drag.view;
     const over = wasActive && overWork(e.clientX, e.clientY);
     const target = over ? cardAt(e.clientX, e.clientY) : null;
-    const binned = wasActive && overBin(e.clientX, e.clientY);
+    const binned = wasActive && !source && overBin(e.clientX, e.clientY);
     endDrag();
     if(wasActive) markDragEnded();
+    if(source){
+      if(target && source.live) composeViews(source, target);
+      return;
+    }
     if(target) composeInto(target, n);
     else if(over) dropTree(n);
     else if(binned) removePaletteItem(item, false);
@@ -1468,11 +1536,30 @@
     const item = e.target.closest('.palette-item');
     if(!item) return;
     e.preventDefault();
-    drag = { item:item, n:Number(item.getAttribute('data-n')), pointerId:e.pointerId, x0:e.clientX, y0:e.clientY, active:false, ghost:null };
+    startDrag(e, { item:item, view:null, n:Number(item.getAttribute('data-n')) });
+  });
+
+  function startDrag(e, from){
+    drag = { item:from.item, view:from.view, n:from.n, pointerId:e.pointerId, x0:e.clientX, y0:e.clientY, active:false, ghost:null };
     window.addEventListener('pointermove', onDragMove);
     window.addEventListener('pointerup', onDragEnd);
     window.addEventListener('pointercancel', onDragCancel);
     window.addEventListener('keydown', onDragKey);
+  }
+
+  // A placed card is dragged by its grip, or by its own background with a
+  // mouse or pen; the tree and its equation keep their own pointer use.
+  workArea.addEventListener('pointerdown', e=>{
+    if(drag) return;
+    if(e.button !== 0 || e.isPrimary === false) return;
+    const card = e.target.closest('.tree-card');
+    if(!card) return;
+    const onGrip = !!e.target.closest('.tree-grip');
+    if(!onGrip && (e.pointerType === 'touch' || e.target !== card)) return;
+    const view = views.find(v=> v.card === card);
+    if(!view) return;
+    e.preventDefault();
+    startDrag(e, { item:null, view:view, n:view.n });
   });
 
   // A held Enter or Space must not place repeated copies; Delete and

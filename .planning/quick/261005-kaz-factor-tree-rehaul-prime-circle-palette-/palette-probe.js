@@ -21,7 +21,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 28;
+var EXPECTED = 30;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
@@ -787,6 +787,64 @@ function inPage(cfg) {
       assert(cards().length === 2 && cards()[0] === card, "a drop beside the card did not place a second tree after it");
       noErrors("P12");
       return "a circle dropped on a card composes into it (5 on 7 gives 35 with branches 5 and 7, old folds kept, card highlighted mid-drag); beside a card it places its own tree";
+    });
+  });
+
+  step("P13 compose-panels", function () {
+    click(document.getElementById("clearBtn"));
+    var inp = document.getElementById("addInput");
+    ["30", "40"].forEach(function (v) {
+      inp.value = v;
+      click(document.getElementById("addBtn"));
+      pointerClick(itemByText(v));
+    });
+    var cs = cards();
+    assert(cs.length === 2, cs.length + " cards after placing 30 and 40");
+    var thirty = cs[0], forty = cs[1];
+    click(badgeOf(rootOf(thirty)));
+    return wait().then(function () {
+      var grip = forty.querySelector(".tree-grip");
+      assert(grip && grip.getAttribute("aria-label") === T("moveLabel", { n: 40 }) && grip.getAttribute("title") === T("moveLabel", { n: 40 }), "the 40 card's grip label is " + (grip && grip.getAttribute("aria-label")));
+      var bc = centre(document.getElementById("paletteBin"));
+      dragStart(grip, bc.x, bc.y, "mouse");
+      assert(!document.getElementById("paletteBin").classList.contains("is-open"), "a card opened the bin");
+      dragDrop(bc.x, bc.y, "mouse");
+      assert(cards().length === 2, "dropping a card on the bin removed it");
+      var we = workEmpty();
+      dragStart(grip, we.x, we.y, "touch");
+      dragDrop(we.x, we.y, "touch");
+      assert(cards().length === 2 && cards()[1] === forty, "a card dropped on empty space changed the panels");
+      var tc = centre(thirty);
+      dragStart(grip, tc.x, tc.y, "touch");
+      assert(forty.classList.contains("is-drag-source"), "the dragged card is not marked");
+      assert(thirty.classList.contains("is-drop-target"), "the target card is not highlighted");
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      dragDrop(tc.x, tc.y, "touch");
+      assert(cards().length === 2 && !forty.classList.contains("is-drag-source") && !thirty.classList.contains("is-drop-target"), "Escape composed the cards or left a mark");
+      // the 40 card's own top padding (not the tree) drags it with a mouse
+      var fr = forty.getBoundingClientRect();
+      var c0 = { x: fr.left + fr.width / 2, y: fr.top + 3 };
+      ptr("pointerdown", forty, c0.x, c0.y, "mouse");
+      ptr("pointermove", document, c0.x + 3, c0.y, "mouse");
+      ptr("pointermove", document, tc.x, tc.y, "mouse");
+      dragDrop(tc.x, tc.y, "mouse");
+      cs = cards();
+      assert(cs.length === 1 && ghosts() === 0, cs.length + " cards after dropping 40 on 30");
+      var card = cs[0];
+      assert(labelOf(rootOf(card)) === "1200", "the composed root reads " + labelOf(rootOf(card)));
+      var kids = childMap(card).get(rootOf(card)) || [];
+      assert(kids.map(labelOf).join() === "30,40", "1200's children are " + kids.map(labelOf).join());
+      assert(num(kids[0], "cx") < num(kids[1], "cx"), "30 (placed first) is not the left branch");
+      assert(badgeOf(kids[0]).getAttribute("aria-expanded") === "true", "the open 30 tree was folded");
+      assert(badgeOf(kids[1]).getAttribute("aria-expanded") === "false", "the folded 40 tree was opened");
+      assert(card.querySelector(".tree-grip").getAttribute("aria-label") === T("moveLabel", { n: 1200 }), "grip label not for 1200");
+      click(badgeOf(kids[1]));
+      return wait().then(function () {
+        assert(foldedBadges(card).length === 0, "the 40's first + did not unfold it all the way down");
+        assert(eqText(card) !== "", "no equation once 1200 is fully open");
+        noErrors("P13");
+        return "a card dragged by its grip (mouse, touch) or its background onto another composes them: 30 and 40 give 1200 whose branches are the two old trees, earlier card on the left, folds kept; bin, empty space and Escape do nothing";
+      });
     });
   });
 
