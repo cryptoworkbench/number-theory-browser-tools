@@ -19,7 +19,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 7;
+var EXPECTED = 11;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
 
@@ -188,6 +188,76 @@ function inPage(cfg) {
     assert(rootLabel() === String(prev), "root label " + rootLabel() + " vs " + prev);
     return waitFor(function () { return axes().length > 0; }, 8000).then(function () {
       return "30 clicks, " + Object.keys(seen).length + " distinct, last tree finished growing";
+    });
+  });
+
+  function withStub(values, fallback, body) {
+    var orig = Math.random;
+    var calls = 0;
+    Math.random = function () { var v = calls < values.length ? values[calls] : fallback; calls++; return v; };
+    try { return body(function () { return calls; }); }
+    finally { Math.random = orig; }
+  }
+
+  step("R4 mirror-fresh", function () {
+    var tc = twoChild();
+    assert(axes().length === tc.length && tc.length > 0, axes().length + " axes for " + tc.length + " two-child circles");
+    mirrorables().forEach(function (c) { assert(c.getAttribute("aria-pressed") === "false", "a circle starts pressed"); });
+    var root = document.querySelector(".node-circle.root");
+    root.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    return sleep(1500).then(function () {
+      assert(document.querySelector(".node-circle.root").getAttribute("aria-pressed") === "true", "root is not pressed after the click");
+      var old = rootLabel();
+      var v = clickRandom();
+      assert(axes().length === 0, "axes survive the randomize");
+      assert(mirrorables().length === 0, "mirrorable circles survive the randomize");
+      assert(rootLabel() === String(v) && rootLabel() !== old, "root label " + rootLabel() + ", old " + old + ", picked " + v);
+      return waitFor(function () { return axes().length > 0; }, 8000).then(function () {
+        assert(axes().length === twoChild().length, axes().length + " axes for " + twoChild().length + " two-child circles");
+        mirrorables().forEach(function (c) { assert(c.getAttribute("aria-pressed") === "false", "a circle is pressed on the new tree"); });
+        return "new tree starts unmirrored and arms fresh";
+      });
+    });
+  });
+
+  step("R5 balanced-mode", function () {
+    document.querySelector('.mode-btn[data-mode="balanced"]').dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    var v = clickRandom();
+    assert(qualifies(v), v + " does not qualify");
+    assert(document.querySelector('.mode-btn[data-mode="balanced"]').classList.contains("is-active"), "Balanced is no longer active");
+    assert(numInput.max === String(NT.layout.BALANCED_MAX_N), "numInput.max is " + numInput.max);
+    assert(rootLabel() === String(v), "root label " + rootLabel() + " vs " + v);
+    assert(messageEl.textContent === factorsMsg(v), "message is " + messageEl.textContent);
+    return waitFor(function () { return document.querySelector(".equation .fac"); }, 8000).then(function () {
+      assert(same(leafPrimes(), pf(v)), "leaf primes " + leafPrimes() + " vs " + pf(v));
+      document.querySelector('.mode-btn[data-mode="classic"]').dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      return "Balanced mode kept, " + v + " grown";
+    });
+  });
+
+  step("R6 rejection-sampling", function () {
+    numInput.value = "60";
+    document.getElementById("goBtn").dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    assert(rootLabel() === "60", "root label is " + rootLabel());
+    return withStub([r(97), r(91), r(60), r(2310)], r(2310), function (calls) {
+      var v = clickRandom();
+      assert(v === 2310, "picked " + v + ", expected 2310");
+      assert(calls() === 4, "Math.random called " + calls() + " times, expected 4");
+      assert(rootLabel() === "2310", "root label is " + rootLabel());
+      return "prime, semiprime and the shown number rejected; 2310 taken on draw 4";
+    });
+  });
+
+  step("R7 bounded-fallback", function () {
+    return withStub([], r(97), function (calls) {
+      var v = clickRandom();
+      assert(v === 12, "fallback picked " + v + ", expected 12");
+      assert(calls() === 200, "Math.random called " + calls() + " times, expected 200");
+      return "200 draws, then fallback to 12";
+    }) && withStub([], r(97), function () {
+      var v = clickRandom();
+      assert(v === 16, "second fallback picked " + v + ", expected 16");
+      return "fallback skips the shown number: 16";
     });
   });
 
