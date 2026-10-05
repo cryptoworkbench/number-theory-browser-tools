@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T08:31:38.715Z"
+last_updated: "2026-10-05T11:18:38.401Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 8c0859c7ad9ae56ca33eb11bf6a0f296ab0871bc
+state_head: edfdfaaa91dfd9bedfade3abf4c3e29deabd063f
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-05 - Completed quick task 261005-edj: Venn Diagram: Enter opens the previewed chip; rename Thumbnails to Previews and put 'Previews off' first
+Last activity: 2026-10-05 - Completed quick task 261005-hz0: Factor Tree: header reads plain 'Factor Tree'; dashed mirror line through each two-child circle flips its branch on click
 
 Progress: [█████████░] 86%
 
@@ -300,6 +300,7 @@ None yet.
 | 261003-nkr | Theme follows OS preference, language switcher back in header (site footer retired), intro prose spans full width | 2026-10-03 | e2e5642 | [261003-nkr-theme-follows-system-theme-language-swit](./quick/261003-nkr-theme-follows-system-theme-language-swit/) |
 | 261005-dn2 | Venn Diagram: first double-click on a chip whose thumbnail is scrolled to the Euclidean section now opens Euclidean Algorithm (focus no longer rebuilds the open preview) | 2026-10-05 | edfc483 | [261005-dn2-venn-diagram-double-click-on-a-chip-open](./quick/261005-dn2-venn-diagram-double-click-on-a-chip-open/) |
 | 261005-edj | Venn Diagram: Enter opens the previewed chip; rename Thumbnails to Previews and put 'Previews off' first | 2026-10-05 | 8c0859c | [261005-edj-venn-diagram-enter-opens-the-previewed-c](./quick/261005-edj-venn-diagram-enter-opens-the-previewed-c/) |
+| 261005-hz0 | Factor Tree: header reads plain 'Factor Tree'; dashed mirror line through each two-child circle flips its branch on click | 2026-10-05 | edfdfaa | [261005-hz0-factor-tree-drop-prime-from-header-title](./quick/261005-hz0-factor-tree-drop-prime-from-header-title/) |
 
 ## Deferred Items
 
