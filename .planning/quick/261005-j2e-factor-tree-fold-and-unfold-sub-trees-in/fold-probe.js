@@ -20,7 +20,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 6;
+var EXPECTED = 24;
 var EXPECTED_NODE = 2;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
@@ -362,6 +362,189 @@ function inPage(cfg) {
     });
   });
 
+  function clickBadge(i) { click(badgeOf(circles()[i])); }
+  function pressed(i) { return circles()[i].getAttribute("aria-pressed"); }
+  function allIdx() { return circles().map(function (_, i) { return i; }); }
+
+  step("F5 nested-state", function () {
+    var N = indexOfLabel("internal", "30");
+    var M = indexOfLabel("internal", "15");
+    var D30 = descendants(st, N, []);
+    var D15 = descendants(st, M, []);
+    assert(D15.length === 6, "expected 6 descendants of 15, got " + D15.length);
+    var S1 = null;
+    click(circles()[M]);
+    return sleep(1500).then(function () {
+      S1 = geom();
+      assert(pressed(M) === "true", "15 aria-pressed is " + pressed(M));
+      clickBadge(M);
+      return sleep(2000);
+    }).then(function () {
+      clickBadge(N);
+      return sleep(2000);
+    }).then(function () {
+      collapsedInto(N, D30);
+      clickBadge(N);
+      return sleep(2000);
+    }).then(function () {
+      var c15 = circles()[M];
+      assert(shown(c15) && c15.classList.contains("is-folded"), "15 is not shown and folded after unfolding 30");
+      assert(shown(ringOf(c15)), "15's ring is not shown");
+      assert(badgeOf(c15).getAttribute("aria-expanded") === "false", "15's badge is not collapsed");
+      collapsedInto(M, D15);
+      visibleCoherent();
+      clickBadge(M);
+      return sleep(2000);
+    }).then(function () {
+      sameGeom(S1, geom(), "after unfolding 15");
+      assert(pressed(M) === "true", "15 lost its mirrored state");
+      click(circles()[M]);
+      return sleep(1500);
+    }).then(function () {
+      sameGeom(base, geom(), "after un-mirroring 15");
+      return "inner mirror and fold survive folding and unfolding 30; back to baseline";
+    });
+  });
+
+  step("F6 fold-root", function () {
+    var R = indexOfLabel("root", "60");
+    var others = allIdx().filter(function (i) { return i !== R; });
+    var width = num(svg(), "width");
+    clickBadge(R);
+    return sleep(2000).then(function () {
+      var cs = circles();
+      assert(cs.filter(shown).length === 1 && shown(cs[R]), cs.filter(shown).length + " circles shown, expected only the root");
+      collapsedInto(R, others);
+      assert(near(num(cs[R], "cx"), width / 2), "root cx is " + num(cs[R], "cx") + ", expected " + width / 2);
+      assert(shown(ringOf(cs[R])), "the root ring is not shown");
+      assert(!shown(axisOf(cs[R])), "the root axis is still shown");
+      assert(cs[R].getAttribute("tabindex") === "-1", "root tabindex is " + cs[R].getAttribute("tabindex"));
+      assert(equationText() === E0, "the equation changed");
+      clickBadge(R);
+      return sleep(2000);
+    }).then(function () {
+      sameGeom(base, geom(), "after unfolding the root");
+      return "root folds to one centred circle with a ring and unfolds to the baseline";
+    });
+  });
+
+  step("F7 mirror-ancestor-while-folded", function () {
+    var R = indexOfLabel("root", "60");
+    var M = indexOfLabel("internal", "15");
+    var D15 = descendants(st, M, []);
+    clickBadge(M);
+    return sleep(2000).then(function () {
+      click(circles()[R]);
+      return sleep(1500);
+    }).then(function () {
+      visibleCoherent();
+      assert(circles()[M].classList.contains("is-folded"), "15 lost is-folded");
+      collapsedInto(M, D15);
+      assert(pressed(R) === "true", "root aria-pressed is " + pressed(R));
+      clickBadge(M);
+      return sleep(2000);
+    }).then(function () {
+      mirroredAbout(xs(base), xs(geom()), R, allIdx());
+      visibleCoherent();
+      click(circles()[R]);
+      return sleep(1500);
+    }).then(function () {
+      sameGeom(base, geom(), "after un-mirroring the root");
+      return "mirroring an ancestor reflects the folded sub-tree too";
+    });
+  });
+
+  step("F8 keyboard", function () {
+    var N = indexOfLabel("internal", "30");
+    var M = indexOfLabel("internal", "15");
+    var R = indexOfLabel("root", "60");
+    var D30 = descendants(st, N, []);
+    var b = badgeOf(circles()[N]);
+    b.focus();
+    assert(document.activeElement === b, "the fold button did not take focus");
+    assert(key(b, { key: "Enter" }), "Enter was not default-prevented");
+    return sleep(2000).then(function () {
+      collapsedInto(N, D30);
+      assert(pressed(R) === "false" && pressed(N) === "false", "Enter on the badge mirrored a branch");
+      var hiddenBadge = badgeOf(circles()[M]);
+      hiddenBadge.focus();
+      assert(document.activeElement !== hiddenBadge, "a hidden fold button took focus");
+      b.focus();
+      assert(key(b, { key: " " }), "Space was not default-prevented");
+      return sleep(2000);
+    }).then(function () {
+      sameGeom(base, geom(), "after Space");
+      assert(key(b, { key: "Enter", repeat: true }), "repeat Enter was not default-prevented");
+      return sleep(2000);
+    }).then(function () {
+      sameGeom(base, geom(), "after repeat Enter");
+      return "Enter folds, Space unfolds, auto-repeat does nothing, hidden buttons take no focus";
+    });
+  });
+
+  step("F9 lang-keeps-folds", function () {
+    var N = indexOfLabel("internal", "30");
+    var R = indexOfLabel("root", "60");
+    var enUnfold = NT.i18n.translate("factorTree.unfoldLabel", { n: 30 });
+    clickBadge(N);
+    var snap = null;
+    return sleep(2000).then(function () {
+      snap = geom();
+      NT.i18n.setLang("ru");
+      sameGeom(snap, geom(), "after switching to ru");
+      var nb = badgeOf(circles()[N]);
+      assert(nb.getAttribute("aria-expanded") === "false", "30 lost its folded state on language change");
+      var want = NT.i18n.translate("factorTree.unfoldLabel", { n: 30 });
+      assert(nb.getAttribute("aria-label") === want, "ru label is " + nb.getAttribute("aria-label") + ", expected " + want);
+      assert(want !== enUnfold, "the unfold label did not change language");
+      var rootWant = NT.i18n.translate("factorTree.foldLabel", { n: 60 });
+      assert(badgeOf(circles()[R]).getAttribute("aria-label") === rootWant, "root badge label is " + badgeOf(circles()[R]).getAttribute("aria-label"));
+      assert(circles()[N].querySelector("title").textContent === "", "30's mirror title is not empty while folded");
+      var mirrorWant = NT.i18n.translate("factorTree.mirrorLabel", { n: 60 });
+      assert(circles()[R].querySelector("title").textContent === mirrorWant, "root mirror title is " + circles()[R].querySelector("title").textContent);
+      NT.i18n.setLang("en");
+      clickBadge(N);
+      return sleep(2000);
+    }).then(function () {
+      sameGeom(base, geom(), "after unfolding in en");
+      return "folds survive a language change and are re-labelled";
+    });
+  });
+
+  step("F10 rapid-toggle", function () {
+    var N = indexOfLabel("internal", "30");
+    clickBadge(N);
+    clickBadge(N);
+    return sleep(2500).then(function () {
+      sameGeom(base, geom(), "after two rapid toggles");
+      assert(circles().every(shown), "a circle is hidden after a double toggle");
+      assert(badgeOf(circles()[N]).getAttribute("aria-expanded") === "true", "30 is still folded");
+      visibleCoherent();
+      return "double toggle ends unfolded at the baseline";
+    });
+  });
+
+  step("F11 fresh-tree", function () {
+    var N = indexOfLabel("internal", "30");
+    clickBadge(N);
+    click(document.querySelector('.chip[data-n="60"]'));
+    return waitFor(function () { return badges().length === 7; }, 8000).then(function () {
+      badges().forEach(function (b) { assert(b.getAttribute("aria-expanded") === "true", "a fold button is collapsed on a fresh tree"); });
+      assert(rings().every(function (r) { return !shown(r); }), "a ring is shown on a fresh tree");
+      assert(circles().every(shown), "a circle is hidden on a fresh tree");
+      sameGeom(base, geom(), "fresh 60 tree");
+      clickBadge(indexOfLabel("root", "60"));
+      click(document.getElementById("randomBtn"));
+      return waitFor(function () { return badges().length > 0; }, 8000);
+    }).then(function () {
+      badges().forEach(function (b) { assert(b.getAttribute("aria-expanded") === "true", "a fold button is collapsed after Randomize"); });
+      assert(rings().every(function (r) { return !shown(r); }), "a ring is shown after Randomize");
+      assert(circles().every(shown), "a circle is hidden after Randomize");
+      assert(labelOf(document.querySelector(".node-circle.root")) !== "60", "Randomize kept 60");
+      return "a chip and Randomize both build fresh, fully unfolded trees";
+    });
+  });
+
   var chain = Promise.resolve();
   window.addEventListener("load", function () {
     // F1 must observe the page before growth completes, so run it synchronously
@@ -435,6 +618,9 @@ function main() {
   var fail = EXPECTED_NODE - pass;
   var page = buildSite();
   var r = runPage(page, [], "[default] ");
+  pass += r.pass;
+  fail += r.fail;
+  r = runPage(page, ["--force-prefers-reduced-motion"], "[reduced] ");
   pass += r.pass;
   fail += r.fail;
   if (fail > 0 || pass !== EXPECTED) {
