@@ -24,7 +24,7 @@ var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-modul
 
 // Total scenarios this probe must report; every task that appends scenarios
 // raises it.
-var EXPECTED = 11;
+var EXPECTED = 18;
 
 var PAGES = {
   ft: { dir: "Factor Tree", file: "factor-tree.html" },
@@ -35,7 +35,9 @@ var PAGES = {
 // Each sequence runs against its own fresh profile. A run is [page, scenario
 // key]; the key selects the in-page step list.
 var SEQUENCES = [
-  { name: "C", runs: [["ft", "C1a"], ["venn", "C1b"]] }
+  { name: "C", runs: [["ft", "C1a"], ["venn", "C1b"]] },
+  { name: "V", runs: [["venn", "V"], ["ft", "V6"]] },
+  { name: "F", runs: [["ft", "F1"]] }
 ];
 
 var DEFAULT30 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
@@ -235,6 +237,151 @@ function inPage(cfg) {
         return "a storage event re-renders the chips and never writes back; a malformed one is ignored";
       } }
     ];
+  };
+
+  /* ---- Venn helpers ---- */
+  var T = function (key, params) { return NT.i18n.translate(key, params); };
+  var headingText = function () { return document.getElementById("picker-heading").textContent; };
+  function chipNamed(text) {
+    var f = arr(document.querySelectorAll("#prime-picker .prime-chip")).filter(function (c) { return c.textContent === text; });
+    assert(f.length > 0, "no chip " + text);
+    return f[0];
+  }
+  function addViaField(value) {
+    var input = document.getElementById("palette-add-input");
+    input.value = value;
+    document.getElementById("palette-add-btn").click();
+  }
+  // The two-circle layer only: the three-circle layer keeps its own tokens, hidden, in two-circle mode.
+  function placedTexts() { return texts("#venn-dynamic .placed-chip text"); }
+  function dropOn(target, value) {
+    var dt = new DataTransfer();
+    dt.setData("text/plain", value);
+    target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt }));
+    var open = target.classList.contains("is-open");
+    target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+    return open;
+  }
+  function largestPrimeBelow(limit) {
+    for (var n = limit - 1; n > 2; n--) {
+      var ok = true;
+      for (var d = 2; d * d <= n; d++) { if (n % d === 0) { ok = false; break; } }
+      if (ok) return n;
+    }
+    return 2;
+  }
+
+  defs.V = function () {
+    return [
+      { name: "V1 venn-add-field", fn: function () {
+        same(vennChips(), DEFAULT30.map(String), "fresh Venn chips");
+        assert(headingText() === T("venn.picker.heading"), "heading starts as " + headingText());
+        addViaField("77");
+        var want = sortedNums(DEFAULT30.concat([77])).map(String);
+        same(vennChips(), want, "chips after adding 77");
+        assert(msg() === "Added 77 to the palette.", "message reads " + msg());
+        assert(headingText() === T("venn.picker.headingNumbers"), "heading reads " + headingText());
+        [["", "venn.msg.empty"], ["1", "venn.msg.one"], ["0", "venn.msg.invalid"], ["1000000000001", "venn.msg.tooLarge"]].forEach(function (c) {
+          addViaField(c[0]);
+          same(vennChips(), want, "chips after a refused add of '" + c[0] + "'");
+          assert(msg() === T(c[1]), "'" + c[0] + "' message reads " + msg());
+        });
+        noErrors("V1");
+        return "Add inserts 77 in order, flips the heading, and refuses empty, 1, 0 and 1e12+1 with their own messages";
+      } },
+      { name: "V5 venn-chip-colours", fn: function () {
+        var prime = chipNamed("73"), composite = chipNamed("77");
+        assert(prime.className === "prime-chip" && composite.className === "prime-chip", "classes " + prime.className + " / " + composite.className);
+        assert(getComputedStyle(prime).backgroundColor === getComputedStyle(composite).backgroundColor, "different backgrounds");
+        assert(getComputedStyle(prime).color === getComputedStyle(composite).color, "different text colours");
+        return "a prime chip and a composite chip are styled identically (class prime-chip, same colours)";
+      } },
+      { name: "V2 venn-delete-and-bin", fn: function () {
+        var chip = chipNamed("77");
+        chip.focus();
+        chip.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true, cancelable: true }));
+        assert(vennChips().indexOf("77") === -1, "77 still shown");
+        assert(storedList().indexOf(77) === -1, "77 still stored");
+        assert(document.activeElement && document.activeElement.classList.contains("prime-chip"), "focus is on " + (document.activeElement && document.activeElement.tagName));
+        assert(msg() === "Removed 77 from the palette.", "message reads " + msg());
+        addViaField("2");
+        assert(vennChips().filter(function (t) { return t === "2"; }).length === 2, "two 2s expected");
+        var open = dropOn(document.getElementById("palette-bin"), "2");
+        assert(open, "bin did not open on dragover");
+        assert(vennChips().filter(function (t) { return t === "2"; }).length === 1, "exactly one 2 should remain");
+        assert(storedList().filter(function (n) { return n === 2; }).length === 1, "stored list should hold one 2");
+        noErrors("V2");
+        return "Delete removes the focused chip and keeps focus on a chip; dropping a chip on the bin removes exactly one occurrence";
+      } },
+      { name: "V3 venn-composite-placement", fn: function () {
+        addViaField("12");
+        addViaField("1024");
+        addViaField("60");
+        document.getElementById("clear-btn").click();
+        chipNamed("12").click();
+        document.getElementById("region-left").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        same(sortedNums(placedTexts().map(Number)), [2, 2, 3], "two-circle tokens");
+        assert(msg().indexOf("Placed 12 = 2 × 2 × 3 in the") === 0, "message reads " + msg());
+        chipNamed("1024").click();
+        document.getElementById("region-right").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        same(sortedNums(placedTexts().map(Number)), [2, 2, 3], "tokens after the refused 1024");
+        assert(document.getElementById("message").classList.contains("is-warn") && /full/.test(msg()), "no region-full warning: " + msg());
+        document.getElementById("mode-three").click();
+        document.getElementById("clear-btn").click();
+        chipNamed("12").click();
+        document.getElementById("region3-aOnly").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        assert(texts("#venn3-dynamic .placed-chip text").length === 3, "three-circle tokens: " + texts("#venn3-dynamic .placed-chip text").join());
+        chipNamed("60").click();
+        document.getElementById("region3-bOnly").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        assert(texts("#venn3-dynamic .placed-chip text").length === 3, "60 was placed in three-circle mode");
+        assert(/full/.test(msg()), "no region-full warning for 60: " + msg());
+        document.getElementById("mode-two").click();
+        noErrors("V3");
+        return "a composite places as its prime factors in one gesture; over-cap gestures are refused with the region-full warning in both modes";
+      } },
+      { name: "V4 venn-exact-integer-guard", fn: function () {
+        var big = largestPrimeBelow(1000000000000);
+        addViaField(String(big));
+        document.getElementById("clear-btn").click();
+        chipNamed(String(big)).click();
+        document.getElementById("region-left").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        same(placedTexts(), [String(big)], "tokens after the first placement");
+        // a placed chip stays armed, so only arm it again when it is not
+        if (chipNamed(String(big)).getAttribute("aria-pressed") !== "true") chipNamed(String(big)).click();
+        document.getElementById("region-overlap").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        same(placedTexts(), [String(big)], "tokens after the refused second placement");
+        assert(msg() === T("venn.msg.tooLargeExact"), "message reads " + msg());
+        noErrors("V4");
+        return "prime " + big + " places once; a second copy that would push a circle past 2^53 is refused and nothing changes";
+      } }
+    ];
+  };
+  defs.V6 = function () {
+    return [{ name: "V6 ft-shows-venn-edits", fn: function () {
+      var list = storedList();
+      same(ftItems(), list.map(String), "Factor Tree circles vs the stored list");
+      ["12", "60", "1024"].forEach(function (t) { assert(ftItems().indexOf(t) !== -1, t + " missing"); });
+      assert(ftItems().indexOf("77") === -1, "77 should be gone");
+      assert(ftItems().filter(function (t) { return t === "2"; }).length === 1, "exactly one 2 expected");
+      noErrors("V6");
+      return "Factor Tree opens with exactly the palette Venn left behind";
+    } }];
+  };
+  defs.F1 = function () {
+    return [{ name: "F1 ft-palette-full", fn: function () {
+      var list = [];
+      for (var n = 2; n < 1002; n++) list.push(n);
+      NT.store.writeShared(NT.store.SHARED_PALETTE_KEY, list, function (p) { return p; });
+      var before = ftItems().length;
+      var input = document.getElementById("addInput");
+      input.value = "60";
+      document.getElementById("addBtn").click();
+      assert(msg() === T("factorTree.msgPaletteFull", { max: 1000 }), "message reads " + msg());
+      assert(ftItems().length === before, "a circle was added");
+      assert(storedList().length === 1000, "stored length " + storedList().length);
+      noErrors("F1");
+      return "a full 1000-entry palette refuses Add with the palette-full message and no circle appears";
+    } }];
   };
 
   var steps = defs[cfg.run]();

@@ -563,7 +563,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { isPrime, primeFactors, randomInt } = NT.core;
   const { easeInOutCubic, svgEl } = NT.svg;
-  const { SHARED_PALETTE_KEY, addToSharedPalette, loadSharedPalette, readSharedPalette, removeFromSharedPalette } = NT.store;
+  const { SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, addToSharedPalette, loadSharedPalette, readSharedPalette, removeFromSharedPalette } = NT.store;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, buildOverlapTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
 
@@ -795,7 +795,10 @@
     if(n === 1){ setMessage('factorTree.msgOne'); return; }
     if(n > capFor(mode)){ setMessage(tooLargeKey()); return; }
     const res = addToSharedPalette([n], false);
-    if(res.added.length === 0) return;
+    if(res.added.length === 0){
+      if(res.overflow > 0) setMessage('factorTree.msgPaletteFull', { max: SHARED_PALETTE_MAX });
+      return;
+    }
     syncPalette(res.list, true);
     setMessage('factorTree.msgAdded', { n: n }, true);
     addInput.select();

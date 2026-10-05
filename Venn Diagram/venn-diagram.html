@@ -43,8 +43,78 @@
     font-family:var(--font-serif);
     font-weight:600;
     font-size:15px;
+    margin:0;
+  }
+  .picker-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
     margin:0 0 4px;
   }
+  .picker-add{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:0 0 10px;
+  }
+  #palette-add-input{
+    width:200px;
+    height:36px;
+    padding:0 12px;
+    border-radius:var(--radius-ctl);
+    border:1px solid var(--panel-border-strong);
+    background:var(--surface);
+    color:var(--text);
+    font-size:1rem;
+    font-family:var(--font-mono);
+    outline:none;
+    transition:border-color var(--ease-ctl), box-shadow var(--ease-ctl);
+  }
+  #palette-add-input:focus{
+    border-color:var(--accent);
+    box-shadow:var(--ctl-focus);
+  }
+  #palette-add-btn{
+    height:36px;
+    padding:0 18px;
+    border-radius:var(--radius-ctl);
+    border:1px solid transparent;
+    cursor:pointer;
+    font-family:var(--font-sans);
+    font-weight:600;
+    font-size:.9375rem;
+    color:var(--accent-ink);
+    background:var(--accent);
+    transition:filter var(--ease-ctl);
+  }
+  #palette-add-btn:hover{ filter:brightness(1.08); }
+  .palette-bin{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;
+    height:36px;
+    flex:none;
+    border-radius:var(--radius-ctl);
+    border:1px dashed var(--panel-border);
+    color:var(--text-dim);
+    transition:color var(--ease-ctl), background var(--ease-ctl), border-color var(--ease-ctl);
+  }
+  .palette-bin svg{
+    width:24px;
+    height:24px;
+    overflow:visible;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.7;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .bin-lid{ transform-box:fill-box; transform-origin:0% 100%; transition:transform .18s ease-out; }
+  body.is-chip-dragging .palette-bin{ border-color:var(--panel-border-strong); color:var(--text); }
+  .palette-bin.is-open{ color:var(--role-warn); background:var(--role-warn-soft); border-color:var(--role-warn); }
+  .palette-bin.is-open .bin-lid{ transform:translate(0, -1.5px) rotate(-30deg); }
   .picker-hint{
     font-size:12.5px;
     color:var(--text-dim);
@@ -59,8 +129,9 @@
     font-family:var(--font-mono);
     font-size:14px;
     font-weight:600;
-    width:40px;
+    min-width:40px;
     height:38px;
+    padding:0 6px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -379,11 +450,12 @@
   }
 
   @media (max-width: 560px){
-    .prime-chip{ width:44px; height:44px; }
+    .prime-chip{ min-width:44px; height:44px; }
   }
 
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, .palette-bin{ transition:none; }
+    .bin-lid{ transition:none; }
   }
 
   @media (max-width: 860px){
@@ -478,8 +550,17 @@
   </div>
 
   <div class="picker-panel">
-    <h2 data-i18n="venn.picker.heading">Prime picker</h2>
-    <p class="picker-hint" data-i18n="venn.picker.hint">Click a prime, then click (or press Enter/Space on) a region to place it there.</p>
+    <div class="picker-head">
+      <h2 id="picker-heading" data-i18n="venn.picker.heading">Prime palette</h2>
+      <div id="palette-bin" class="palette-bin" role="img" aria-label="Bin: drag a number here to remove it from the palette" title="Bin: drag a number here to remove it from the palette" data-i18n-aria-label="venn.binLabel" data-i18n-title="venn.binLabel">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="bin-lid"><path d="M3 6h18"/><path d="M9 6V4h6v2"/></g><path d="M5.5 6l1 14h11l1-14"/><path d="M10 10v6M14 10v6"/></svg>
+      </div>
+    </div>
+    <p class="picker-hint" data-i18n="venn.picker.hint">Click a number, then click (or press Enter/Space on) a region to place its prime factors there. Drag a number onto the bin, or press Delete on it, to remove it from the palette.</p>
+    <div class="picker-add">
+      <input id="palette-add-input" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="venn.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="venn.addInputLabel" />
+      <button id="palette-add-btn" type="button" data-i18n="venn.add">Add</button>
+    </div>
     <div id="prime-picker" class="prime-picker"></div>
   </div>
 
@@ -580,7 +661,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { euclidSteps, gcd, isPrime, primeFactors } = NT.core;
   const { svgEl } = NT.svg;
-  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, writeSharedAB } = NT.store;
+  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, SHARED_PALETTE_MAX_N, addToSharedPalette, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, removeFromSharedPalette, writeSharedAB } = NT.store;
   const { BALANCED_MAX_N, assignOverlapX, assignTreeX, buildFactorTree, buildOverlapTree, computeNestedLayout, flattenOverlap, flattenTree } = NT.layout;
   const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
@@ -618,6 +699,10 @@
   var EUCLID_MAX_INPUT = 1000000;
 
   var picker = document.getElementById('prime-picker');
+  var pickerHeading = document.getElementById('picker-heading');
+  var paletteBin = document.getElementById('palette-bin');
+  var addInput = document.getElementById('palette-add-input');
+  var addBtn = document.getElementById('palette-add-btn');
   var svgRoot = document.getElementById('venn');
   var svgStatic = document.getElementById('venn-static');
   var svgDynamic = document.getElementById('venn-dynamic');
@@ -1316,7 +1401,7 @@
       ev.preventDefault();
       g.classList.remove('is-drop-target');
       var value = parseInt(ev.dataTransfer.getData('text/plain'), 10);
-      if (!isPrime(value)) return;
+      if (!isPlaceable(value)) return;
       placePrime(key, value);
     });
     return g;
@@ -1384,7 +1469,7 @@
       ev.preventDefault();
       g.classList.remove('is-drop-target');
       var value = parseInt(ev.dataTransfer.getData('text/plain'), 10);
-      if (!isPrime(value)) return;
+      if (!isPlaceable(value)) return;
       placePrime3(key, value);
     });
     return g;
@@ -1457,21 +1542,41 @@
     setMessage('venn.msg.regionFull', function(){ return { region: translate(REGION_CAPTION_KEY[key]), max: MAX_PER_REGION }; }, true);
   }
 
+  // A palette number is placeable when it is a whole number from 2 up to the
+  // palette's own ceiling. A composite is placed as its prime factors.
+  function isPlaceable(value){
+    return Number.isInteger(value) && value >= 2 && value <= SHARED_PALETTE_MAX_N;
+  }
+
+  // Regions hold primes only (the stored-region validators, simplifyRegions,
+  // the products and the gcd all depend on that), so a composite c goes in
+  // as each entry of primeFactors(c), as separate tokens, in ONE commit. The
+  // whole gesture is refused when the region cannot take every factor.
+  function placeNumber(ctx, captionKeys, key, value){
+    var factors = primeFactors(value);
+    commitRegions(ctx, function(draft){
+      if (draft[key].length + factors.length > ctx.cap){
+        ctx.warn(key);
+        return null;
+      }
+      for (var i = 0; i < factors.length; i++) draft[key].push({ id: state.nextId++, p: factors[i] });
+      if (factors.length === 1){
+        return { key: 'venn.msg.placed', paramsFn: function(){ return { prime: value, region: translate(captionKeys[key]) }; } };
+      }
+      return { key: 'venn.msg.placedComposite', paramsFn: function(){
+        return { n: value, factors: factors.join(' × '), region: translate(captionKeys[key]) };
+      } };
+    });
+  }
+
   function placePrime(key, prime){
     var value = (prime === undefined) ? state.armed : prime;
     if (value === null || value === undefined){
       setMessage('venn.msg.pickFirst', null, false);
       return;
     }
-    if (!isPrime(value)) return;
-    commitRegions(twoCtx, function(draft){
-      if (draft[key].length >= MAX_PER_REGION){
-        warnRegionFull(key);
-        return null;
-      }
-      draft[key].push({ id: state.nextId++, p: value });
-      return { key: 'venn.msg.placed', paramsFn: function(){ return { prime: value, region: translate(REGION_CAPTION_KEY[key]) }; } };
-    });
+    if (!isPlaceable(value)) return;
+    placeNumber(twoCtx, REGION_CAPTION_KEY, key, value);
   }
 
   function removeToken(key, id){
@@ -1620,15 +1725,8 @@
       setMessage('venn.msg.pickFirst', null, false);
       return;
     }
-    if (!isPrime(value)) return;
-    commitRegions(threeCtx, function(draft){
-      if (draft[key].length >= MAX_PER_REGION3){
-        warnRegionFull3(key);
-        return null;
-      }
-      draft[key].push({ id: state.nextId++, p: value });
-      return { key: 'venn.msg.placed', paramsFn: function(){ return { prime: value, region: translate(REGION_CAPTION_KEY3[key]) }; } };
-    });
+    if (!isPlaceable(value)) return;
+    placeNumber(threeCtx, REGION_CAPTION_KEY3, key, value);
   }
 
   function removeToken3(key, id){
@@ -1864,6 +1962,18 @@
       ctx.warn(result.overflow);
       return;
     }
+    // Palette numbers reach 1e12, so a few placements could push a circle's
+    // number past the exact-integer range and display garbage. Refuse a
+    // gesture that grows a letter's total beyond it; a shrinking gesture
+    // (removal, clear) is never refused.
+    var letters = lettersFor(ctx);
+    for (var li = 0; li < letters.length; li++){
+      var after = letterTotal(result.regions, letters[li]);
+      if (after > Number.MAX_SAFE_INTEGER && after > letterTotal(ctx.getRegions(), letters[li])){
+        setMessage('venn.msg.tooLargeExact', null, true);
+        return;
+      }
+    }
     ctx.setRegions(result.regions);
     var moved = result.moved;
     var baseParamsFn = spec.paramsFn || function(){ return {}; };
@@ -1942,8 +2052,25 @@
     }
   }
 
+  // primality of a palette number never changes; remember it so re-rendering
+  // a large palette does not redo trial division for every chip.
+  var primeMemo = {};
+  function isPrimeMemo(n){
+    if (!Object.prototype.hasOwnProperty.call(primeMemo, n)) primeMemo[n] = isPrime(n);
+    return primeMemo[n];
+  }
+
+  // The palette is a Prime palette while it holds primes only, and a Number
+  // palette once it holds at least one composite.
+  function syncPickerHeading(){
+    var key = palette.some(function(n){ return !isPrimeMemo(n); }) ? 'venn.picker.headingNumbers' : 'venn.picker.heading';
+    pickerHeading.setAttribute('data-i18n', key);
+    pickerHeading.textContent = translate(key);
+  }
+
   function renderPicker(){
     picker.innerHTML = '';
+    syncPickerHeading();
     for (var i = 0; i < palette.length; i++){
       (function(prime){
         var btn = document.createElement('button');
@@ -1955,9 +2082,10 @@
         btn.addEventListener('click', function(){ toggleArm(prime); });
         btn.addEventListener('dragstart', function(ev){
           ev.dataTransfer.setData('text/plain', String(prime));
-          ev.dataTransfer.effectAllowed = 'copy';
+          ev.dataTransfer.effectAllowed = 'all';
           state.armed = prime;
           btn.classList.add('is-dragging');
+          document.body.classList.add('is-chip-dragging');
           setMessage('venn.msg.readyDrag', function(){ return { prime: prime }; });
         });
         btn.addEventListener('dragend', function(){
@@ -1967,6 +2095,97 @@
       })(palette[i]);
     }
   }
+
+  // The palette is one shared list (NT.store's number-palette, also edited in
+  // Factor Tree and fed by the Sieve of Eratosthenes). Every mutation goes
+  // through NT.store, which re-reads it first; the page then adopts the list
+  // it returns.
+  function adoptPalette(list){
+    palette = list;
+    if (state.armed !== null && palette.indexOf(state.armed) === -1) state.armed = null;
+    renderPicker();
+  }
+
+  function addFromInput(){
+    var trimmed = (addInput.value || '').toString().trim();
+    if (trimmed === ''){ setMessage('venn.msg.empty', null, true); return; }
+    if (!/^\d+$/.test(trimmed)){ setMessage('venn.msg.invalid', null, true); return; }
+    var n = Number(trimmed);
+    if (n === 0){ setMessage('venn.msg.invalid', null, true); return; }
+    if (n === 1){ setMessage('venn.msg.one', null, true); return; }
+    if (n > SHARED_PALETTE_MAX_N){ setMessage('venn.msg.tooLarge', null, true); return; }
+    var res = addToSharedPalette([n], false);
+    if (res.added.length === 0){
+      if (res.overflow > 0) setMessage('venn.msg.paletteFull', function(){ return { max: SHARED_PALETTE_MAX }; }, true);
+      return;
+    }
+    adoptPalette(res.list);
+    setMessage('venn.msg.added', function(){ return { n: n }; }, false);
+    addInput.select();
+  }
+
+  function removeFromPalette(value, focusIndex){
+    var before = palette.length;
+    var list = removeFromSharedPalette(value);
+    adoptPalette(list);
+    if (list.length < before) setMessage('venn.msg.paletteRemoved', function(){ return { n: value }; }, false);
+    if (focusIndex !== undefined){
+      var chips = picker.querySelectorAll('.prime-chip');
+      var target = chips[focusIndex] || chips[focusIndex - 1] || addInput;
+      target.focus();
+    }
+  }
+
+  addBtn.addEventListener('click', addFromInput);
+  addInput.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter'){
+      ev.preventDefault();
+      addFromInput();
+      return;
+    }
+    if (/^[eE+\-.,]$/.test(ev.key)) ev.preventDefault();
+  });
+  addInput.addEventListener('beforeinput', function(ev){
+    if (typeof ev.data === 'string' && /\D/.test(ev.data)) ev.preventDefault();
+  });
+
+  // Delete or Backspace on a focused chip removes it (one press, not
+  // auto-repeat).
+  picker.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Delete' && ev.key !== 'Backspace') return;
+    var chip = ev.target;
+    if (!chip || !chip.classList || !chip.classList.contains('prime-chip')) return;
+    ev.preventDefault();
+    if (ev.repeat) return;
+    var chips = Array.prototype.slice.call(picker.querySelectorAll('.prime-chip'));
+    var index = chips.indexOf(chip);
+    if (index < 0 || index >= palette.length) return;
+    removeFromPalette(palette[index], index);
+  });
+
+  // The bin is an HTML5 drop target for the chips, which already drag with
+  // the number as text/plain.
+  function endChipDrag(){
+    document.body.classList.remove('is-chip-dragging');
+    paletteBin.classList.remove('is-open');
+  }
+  paletteBin.addEventListener('dragover', function(ev){
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = 'move';
+    paletteBin.classList.add('is-open');
+  });
+  paletteBin.addEventListener('dragleave', function(){
+    paletteBin.classList.remove('is-open');
+  });
+  paletteBin.addEventListener('drop', function(ev){
+    ev.preventDefault();
+    endChipDrag();
+    var value = parseInt(ev.dataTransfer.getData('text/plain'), 10);
+    if (!isPlaceable(value)) return;
+    removeFromPalette(value);
+  });
+  document.addEventListener('dragend', endChipDrag, true);
+  document.addEventListener('drop', endChipDrag, true);
 
   function badgeWidth(text, compact){
     var perChar = compact ? 8 : 10;
@@ -2128,13 +2347,16 @@
       var list = state.regions[key];
       if (list.length === 0) continue;
       var anchor = REGION_ANCHOR[key];
-      var rows = Math.ceil(list.length / 2);
+      // Two tokens to a row, unless one is a long number that would run into
+      // its neighbour (a palette number can be up to 12 digits).
+      var perRow = list.some(function(e){ return badgeWidth(String(e.p), false) > 62; }) ? 1 : 2;
+      var rows = Math.ceil(list.length / perRow);
       var blockHeight = rows * 32 + (rows - 1) * 8;
       var firstRowTop = anchor[1] - blockHeight / 2;
       for (var idx = 0; idx < list.length; idx++){
-        var row = Math.floor(idx / 2);
-        var col = idx % 2;
-        var itemsInRow = Math.min(2, list.length - row * 2);
+        var row = Math.floor(idx / perRow);
+        var col = idx % perRow;
+        var itemsInRow = Math.min(perRow, list.length - row * perRow);
         var rowWidth = itemsInRow * 54 + (itemsInRow - 1) * 8;
         var rowLeft = anchor[0] - rowWidth / 2;
         var x = rowLeft + col * (54 + 8);
@@ -2147,7 +2369,8 @@
           role: 'button',
           'aria-label': translate('venn.label.removeToken', { prime: entry.p, region: translate(REGION_CAPTION_KEY[key]) })
         });
-        g.appendChild(svgEl('rect', { x: x, y: y, width: 54, height: 32, rx: 8 }));
+        var tokenW = badgeWidth(String(entry.p), false);
+        g.appendChild(svgEl('rect', { x: x + 27 - tokenW / 2, y: y, width: tokenW, height: 32, rx: 8 }));
         var text = svgEl('text', { x: x + 27, y: y + 16 });
         text.textContent = String(entry.p);
         g.appendChild(text);
@@ -2342,7 +2565,8 @@
           role: 'button',
           'aria-label': translate('venn.label.removeToken', { prime: entry.p, region: translate(REGION_CAPTION_KEY3[key]) })
         });
-        g.appendChild(svgEl('rect', { x: x, y: y, width: 44, height: 24, rx: 6 }));
+        var tokenW3 = badgeWidth(String(entry.p), true);
+        g.appendChild(svgEl('rect', { x: x + 22 - tokenW3 / 2, y: y, width: tokenW3, height: 24, rx: 6 }));
         var text = svgEl('text', { x: x + 22, y: y + 12 });
         text.textContent = String(entry.p);
         g.appendChild(text);
@@ -2613,12 +2837,6 @@
   // written here.
   // The shared number palette (NT.store's number-palette) arrives the same
   // way and is mirrored without being written back.
-  function adoptPalette(list){
-    palette = list;
-    if (state.armed !== null && palette.indexOf(state.armed) === -1) state.armed = null;
-    renderPicker();
-  }
-
   window.addEventListener('pageshow', function(e){
     if (e.persisted) adoptPalette(loadSharedPalette());
   });

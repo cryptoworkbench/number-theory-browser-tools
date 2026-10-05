@@ -64,6 +64,7 @@
       msgCoprime: '{a} en {b} zijn relatief priem — de enige tak die ze delen is 1.',
       msgAdded: '{n} is aan het palet toegevoegd.',
       msgRemoved: '{n} is uit het palet verwijderd.',
+      msgPaletteFull: 'Het palet is vol — er passen maximaal {max} getallen in.',
       binLabel: 'Prullenbak: sleep een cirkel hierheen om hem uit het palet te verwijderen'
     },
     en: {
@@ -102,6 +103,7 @@
       msgCoprime: '{a} and {b} are coprime — the only branch they share is 1.',
       msgAdded: 'Added {n} to the palette.',
       msgRemoved: 'Removed {n} from the palette.',
+      msgPaletteFull: 'The palette is full — it holds at most {max} numbers.',
       binLabel: 'Bin: drag a circle here to remove it from the palette'
     },
     de: {
@@ -140,6 +142,7 @@
       msgCoprime: '{a} und {b} sind teilerfremd — ihr einziger gemeinsamer Ast ist 1.',
       msgAdded: '{n} wurde zur Palette hinzugefügt.',
       msgRemoved: '{n} wurde aus der Palette entfernt.',
+      msgPaletteFull: 'Die Palette ist voll — sie fasst höchstens {max} Zahlen.',
       binLabel: 'Papierkorb: Zieh einen Kreis hierher, um ihn aus der Palette zu entfernen'
     },
     fr: {
@@ -178,6 +181,7 @@
       msgCoprime: '{a} et {b} sont premiers entre eux — la seule branche qu’ils partagent est 1.',
       msgAdded: '{n} a été ajouté à la palette.',
       msgRemoved: '{n} a été retiré de la palette.',
+      msgPaletteFull: 'La palette est pleine — elle contient au maximum {max} nombres.',
       binLabel: 'Corbeille : faites glisser un cercle ici pour le retirer de la palette'
     },
     es: {
@@ -216,6 +220,7 @@
       msgCoprime: '{a} y {b} son coprimos: la única rama que comparten es 1.',
       msgAdded: '{n} se ha añadido a la paleta.',
       msgRemoved: '{n} se ha quitado de la paleta.',
+      msgPaletteFull: 'La paleta está llena — admite como máximo {max} números.',
       binLabel: 'Papelera: arrastra aquí un círculo para quitarlo de la paleta'
     },
     it: {
@@ -254,6 +259,7 @@
       msgCoprime: '{a} e {b} sono coprimi — l’unico ramo che condividono è 1.',
       msgAdded: '{n} è stato aggiunto alla tavolozza.',
       msgRemoved: '{n} è stato tolto dalla tavolozza.',
+      msgPaletteFull: 'La tavolozza è piena — contiene al massimo {max} numeri.',
       binLabel: 'Cestino: trascina qui un cerchio per toglierlo dalla tavolozza'
     },
     pl: {
@@ -292,6 +298,7 @@
       msgCoprime: '{a} i {b} są względnie pierwsze — ich jedyna wspólna gałąź to 1.',
       msgAdded: 'Dodano {n} do palety.',
       msgRemoved: 'Usunięto {n} z palety.',
+      msgPaletteFull: 'Paleta jest pełna — mieści najwyżej {max} liczb.',
       binLabel: 'Kosz: przeciągnij tutaj koło, aby usunąć je z palety'
     },
     'pt-BR': {
@@ -330,6 +337,7 @@
       msgCoprime: '{a} e {b} são primos entre si — o único galho que compartilham é 1.',
       msgAdded: '{n} foi adicionado à paleta.',
       msgRemoved: '{n} foi removido da paleta.',
+      msgPaletteFull: 'A paleta está cheia — comporta no máximo {max} números.',
       binLabel: 'Lixeira: arraste um círculo para cá para removê-lo da paleta'
     },
     'pt-PT': {
@@ -368,6 +376,7 @@
       msgCoprime: '{a} e {b} são primos entre si — o único ramo que partilham é 1.',
       msgAdded: '{n} foi adicionado à paleta.',
       msgRemoved: '{n} foi removido da paleta.',
+      msgPaletteFull: 'A paleta está cheia — cabem no máximo {max} números.',
       binLabel: 'Caixote do lixo: arrasta um círculo para aqui para o remover da paleta'
     },
     sv: {
@@ -406,6 +415,7 @@
       msgCoprime: '{a} och {b} är relativt prima — den enda gren de delar är 1.',
       msgAdded: '{n} har lagts till i paletten.',
       msgRemoved: '{n} har tagits bort från paletten.',
+      msgPaletteFull: 'Paletten är full — den rymmer högst {max} tal.',
       binLabel: 'Papperskorg: dra hit en cirkel för att ta bort den från paletten'
     },
     nb: {
@@ -444,6 +454,7 @@
       msgCoprime: '{a} og {b} er relativt primiske — den eneste grenen de deler, er 1.',
       msgAdded: '{n} er lagt til i paletten.',
       msgRemoved: '{n} er fjernet fra paletten.',
+      msgPaletteFull: 'Paletten er full — den rommer maks {max} tall.',
       binLabel: 'Papirkurv: dra en sirkel hit for å fjerne den fra paletten'
     },
     ro: {
@@ -482,6 +493,7 @@
       msgCoprime: '{a} și {b} sunt prime între ele — singura ramură comună este 1.',
       msgAdded: '{n} a fost adăugat în paletă.',
       msgRemoved: '{n} a fost eliminat din paletă.',
+      msgPaletteFull: 'Paleta este plină — conține cel mult {max} de numere.',
       binLabel: 'Coș de gunoi: trage aici un cerc ca să-l elimini din paletă'
     },
     hu: {
@@ -520,6 +532,7 @@
       msgCoprime: '{a} és {b} relatív prímek — az egyetlen közös águk az 1.',
       msgAdded: '{n} bekerült a palettába.',
       msgRemoved: '{n} lekerült a palettáról.',
+      msgPaletteFull: 'A paletta megtelt — legfeljebb {max} számot tartalmazhat.',
       binLabel: 'Kuka: húzz ide egy kört, hogy eltávolítsd a palettáról'
     },
     lv: {
@@ -558,6 +571,7 @@
       msgCoprime: '{a} un {b} ir savstarpēji pirmskaitļi — to vienīgais kopīgais zars ir 1.',
       msgAdded: '{n} pievienots paletei.',
       msgRemoved: '{n} izņemts no paletes.',
+      msgPaletteFull: 'Palete ir pilna — tajā ietilpst ne vairāk kā {max} skaitļu.',
       binLabel: 'Miskaste: ievelc šeit apli, lai to izņemtu no paletes'
     },
     ru: {
@@ -596,6 +610,7 @@
       msgCoprime: '{a} и {b} взаимно просты — их единственная общая ветвь равна 1.',
       msgAdded: 'Число {n} добавлено в палитру.',
       msgRemoved: 'Число {n} убрано из палитры.',
+      msgPaletteFull: 'Палитра заполнена — в ней помещается не больше {max} чисел.',
       binLabel: 'Корзина: перетащи сюда круг, чтобы убрать его из палитры'
     },
     el: {
@@ -634,6 +649,7 @@
       msgCoprime: 'Οι {a} και {b} είναι πρώτοι μεταξύ τους — ο μόνος κοινός τους κλάδος είναι το 1.',
       msgAdded: 'Το {n} προστέθηκε στην παλέτα.',
       msgRemoved: 'Το {n} αφαιρέθηκε από την παλέτα.',
+      msgPaletteFull: 'Η παλέτα είναι γεμάτη — χωράει το πολύ {max} αριθμούς.',
       binLabel: 'Κάδος: σύρε εδώ έναν κύκλο για να τον αφαιρέσεις από την παλέτα'
     }
   });
