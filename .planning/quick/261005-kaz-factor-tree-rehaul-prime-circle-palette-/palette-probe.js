@@ -3,7 +3,8 @@
  * Dev-only regression probe for quick task 261005-kaz: the Factor Tree
  * rehaul around a circle palette. Prime circles (and any number the user
  * adds) are copied by drag-and-drop or click into a working area, land
- * folded, and are unfolded one split at a time through the + button.
+ * folded; the first + on a fresh tree unfolds it all the way down, and
+ * after that each + opens or closes one split.
  * Never referenced by any page. Node built-ins + the in-repo harness only.
  *
  * Copies assets/ and the Factor Tree page into a scratch site, injects a
@@ -459,7 +460,7 @@ function inPage(cfg) {
   }
   function wait() { return reduced() ? Promise.resolve() : sleep(TW); }
   function childLabels(card) {
-    return shownCircles(card).filter(function (c) { return !c.classList.contains("root"); }).map(labelOf).sort();
+    return (childMap(card).get(rootOf(card)) || []).map(labelOf).sort();
   }
   function sameGeom(a, b, label) {
     assert(a.length === b.length, label + ": circle count " + b.length + ", expected " + a.length);
@@ -469,7 +470,7 @@ function inPage(cfg) {
     return arr(card.querySelectorAll(".fold-badge")).filter(function (x) { return shown(x) && x.getAttribute("aria-expanded") === "false"; });
   }
 
-  step("P5 composite-step-by-step", function () {
+  step("P5 composite-first-unfold", function () {
     pointerClick(itemByText("60"));
     var card = lastCard();
     var root = rootOf(card);
@@ -480,28 +481,9 @@ function inPage(cfg) {
     var wFold = svgW(card);
     click(b);
     var G;
-    var n = 0;
-    function loop() {
-      var f = foldedBadges(card);
-      if (f.length === 0 || n >= 10) return Promise.resolve();
-      click(f[0]);
-      n++;
-      return wait().then(function () { visibleCoherent(card); return loop(); });
-    }
     return wait().then(function () {
-      var vis = shownCircles(card);
-      assert(vis.length === 3, vis.length + " circles shown after the first +, expected 3");
       assert(svgW(card) > wFold, "the card did not grow");
-      vis.filter(function (c) { return c !== root; }).forEach(function (c) {
-        assert(c.classList.contains("internal") && c.classList.contains("is-folded"), labelOf(c) + " is not a folded internal circle");
-        assert(shown(ringOf(c)), "the ring of " + labelOf(c) + " is hidden");
-        assert(badgeOf(c).getAttribute("aria-expanded") === "false", labelOf(c) + " is not folded");
-      });
-      assert(eqText(card) === "", "the equation appeared before the tree was fully unfolded");
-      visibleCoherent(card);
-      return loop();
-    }).then(function () {
-      assert(n === 6, "the unfold loop ran " + n + " times, expected 6");
+      assert(foldedBadges(card).length === 0, foldedBadges(card).length + " circles still folded after the first +");
       assert(shownCircles(card).length === 15, shownCircles(card).length + " circles shown, expected 15");
       assert(cardEdges(card).filter(shown).length === 14, "expected 14 shown edges");
       var bs = arr(card.querySelectorAll(".fold-badge"));
@@ -534,8 +516,23 @@ function inPage(cfg) {
       }).then(function () {
         sameGeom(G, geom(card), "after unfolding 30");
         assert(eqText(card).indexOf("60 = 2 × 2 × 3 × 5") === 0, "the equation did not return: '" + eqText(card) + "'");
+        var kids = childMap(card).get(c30).filter(function (c) { return badgeOf(c); });
+        assert(kids.length > 0, "30 has no internal child");
+        var k = kids[0];
+        click(badgeOf(k));
+        return wait();
+      }).then(function () {
+        click(badgeOf(root));
+        return wait();
+      }).then(function () {
+        click(badgeOf(root));
+        return wait();
+      }).then(function () {
+        assert(foldedBadges(card).length === 1, foldedBadges(card).length + " folded circles after re-unfolding the root, expected 1 (only the first + cascades)");
+        assert(eqText(card) === "", "the equation shows with a circle still folded");
+        visibleCoherent(card);
         noErrors("P5");
-        return "60 unfolds one split per +, 6 more clicks to 15 circles; equation and message only when complete; mirror, fold and unfold restore exact geometry";
+        return "the first + on 60 unfolds all 15 circles at once; equation and message appear; mirror, fold and unfold restore exact geometry; later + presses open one split only";
       });
     });
   });

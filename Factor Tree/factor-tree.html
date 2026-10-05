@@ -762,6 +762,7 @@
     view.w = size.w;
     view.h = size.h;
 
+    view.fresh = true;
     armMirrors(view);
     armFolds(view);
     syncControls(view);
@@ -1025,9 +1026,15 @@
     setMessage(isPrimeRoot ? 'factorTree.msgPrime' : 'factorTree.msgFactors', isPrimeRoot ? { n:view.n } : { n:view.n, count:view.topFactors.length }, true);
   }
 
+  // The first unfold of a freshly placed tree opens every circle beneath it
+  // too, all the way down to the prime leaves.
   function toggleFold(view, nv){
     if(!view.live || isHidden(view, nv.node)) return;
     nv.folded = !nv.folded;
+    if(view.fresh){
+      view.fresh = false;
+      if(!nv.folded) descendantsOf(nv.node, []).forEach(d=>{ view.nodeViews.get(d).folded = false; });
+    }
     layoutTree(view);
     syncControls(view);
     const desc = descendantsOf(nv.node, []);
