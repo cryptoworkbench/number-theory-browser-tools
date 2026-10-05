@@ -20,7 +20,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 10;
+var EXPECTED = 26;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
 
@@ -69,6 +69,15 @@ function runNodeScenarios() {
     nodeAssert(/<title data-i18n="factorTree\.title">Factor Tree<\/title>/.test(src), "<title> fallback is not exactly Factor Tree");
     nodeAssert(/<h1 data-i18n="factorTree\.heading">Factor Tree<\/h1>/.test(src), "<h1> fallback is not exactly Factor Tree");
     return "<title> and <h1> fallbacks read Factor Tree";
+  });
+  pass += nodeScenario("N4 no-literal-colour", function () {
+    var src = fs.readFileSync(path.join(ROOT, "Factor Tree", "factor-tree.html"), "utf8");
+    var style = /<style>([\s\S]*?)<\/style>/.exec(src)[1];
+    var hits = style.split("\n").filter(function (l) { return /mirror/.test(l); });
+    nodeAssert(hits.length > 0, "no style line mentions mirror");
+    var bad = /#[0-9a-fA-F]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\(|\b(?:red|green|blue|black|white|gray|grey|orange|yellow|purple|pink|brown|cyan|magenta|silver|gold|navy|teal)\b/;
+    hits.forEach(function (l) { nodeAssert(!bad.test(l), "literal colour in: " + l.trim()); });
+    return hits.length + " mirror style lines, all colours via var()";
   });
   return pass;
 }
@@ -306,7 +315,90 @@ function inPage(cfg) {
     });
   });
 
-  //__MORE_STEPS__
+  step("C8 keyboard", function () {
+    var root = document.querySelector(".node-circle.root");
+    var old = positions();
+    var ri = circles().indexOf(root);
+    function key(init) {
+      var e = new KeyboardEvent("keydown", Object.assign({ bubbles: true, cancelable: true }, init));
+      return !root.dispatchEvent(e);
+    }
+    root.focus();
+    assert(document.activeElement === root, "the root circle did not take focus");
+    assert(key({ key: "Enter" }), "Enter was not default-prevented");
+    return sleep(1500).then(function () {
+      var now = positions();
+      mirroredAbout(old, now, ri, old.map(function (_, i) { return i; }));
+      assert(now.some(function (x, i) { return Math.abs(x - old[i]) > 1; }), "Enter did not move anything");
+      assert(key({ key: " " }), "Space was not default-prevented");
+      return sleep(1500);
+    }).then(function () {
+      samePositions(old, positions(), "after Space");
+      assert(key({ key: "Enter", repeat: true }), "repeat Enter was not default-prevented");
+      return sleep(1500);
+    }).then(function () {
+      samePositions(old, positions(), "after repeat Enter");
+      return "Enter mirrors, Space restores, auto-repeat does nothing";
+    });
+  });
+
+  step("C9 lang-keeps-flips", function () {
+    var root = document.querySelector(".node-circle.root");
+    click(root);
+    return sleep(1500).then(function () {
+      var snap = positions();
+      NT.i18n.setLang("de");
+      samePositions(snap, positions(), "after switching to de");
+      assert(root.getAttribute("aria-pressed") === "true", "root lost aria-pressed on language change");
+      var t = root.querySelector("title").textContent;
+      var want = NT.i18n.translate("factorTree.mirrorLabel", { n: 60 });
+      assert(t === want, "de title is " + t + ", expected " + want);
+      assert(t !== enLabel, "title did not change language: " + t);
+      NT.i18n.setLang("en");
+      click(root);
+      return sleep(1500);
+    }).then(function () {
+      samePositions(armedBaseline, positions(), "after restoring");
+      return "mirrored branches survive a language change and are re-labelled";
+    });
+  });
+
+  step("C10 rapid-reclick", function () {
+    var root = document.querySelector(".node-circle.root");
+    click(root);
+    click(root);
+    return sleep(1500).then(function () {
+      samePositions(armedBaseline, positions(), "after two rapid clicks");
+      assert(root.getAttribute("aria-pressed") === "false", "root aria-pressed is " + root.getAttribute("aria-pressed"));
+      coherent();
+      return "double-click ends at the original layout";
+    });
+  });
+
+  step("C11 balanced-reset", function () {
+    var root = document.querySelector(".node-circle.root");
+    click(root);
+    return sleep(1500).then(function () {
+      document.querySelector('.mode-btn[data-mode="balanced"]').click();
+      return sleep(300);
+    }).then(function () {
+      return waitFor(function () { return axes().length > 0; }, 8000);
+    }).then(function () {
+      var m = Array.prototype.slice.call(document.querySelectorAll(".node-circle.mirrorable"));
+      assert(m.length > 0, "no mirrorable circles after the mode switch");
+      m.forEach(function (c) { assert(c.getAttribute("aria-pressed") === "false", "a circle is still pressed after the mode switch"); });
+      assert(axes().length === twoChild().length, axes().length + " axes for " + twoChild().length + " two-child circles");
+      var r2 = document.querySelector(".node-circle.root");
+      var old = positions();
+      var ri = circles().indexOf(r2);
+      click(r2);
+      return sleep(1500).then(function () {
+        mirroredAbout(old, positions(), ri, old.map(function (_, i) { return i; }));
+        coherent();
+        return "mode switch starts fresh; Balanced tree mirrors coherently";
+      });
+    });
+  });
 
   var chain = Promise.resolve();
   window.addEventListener("load", function () {
@@ -380,7 +472,10 @@ function main() {
   var pass = runNodeScenarios();
   var fail = EXPECTED_NODE() - pass;
   var page = buildSite();
-  var r = runPage(page, [], "");
+  var r = runPage(page, [], "[default] ");
+  pass += r.pass;
+  fail += r.fail;
+  r = runPage(page, ["--force-prefers-reduced-motion"], "[reduced] ");
   pass += r.pass;
   fail += r.fail;
   if (fail > 0 || pass !== EXPECTED) {
@@ -391,6 +486,6 @@ function main() {
   process.exit(0);
 }
 
-function EXPECTED_NODE() { return 3; }
+function EXPECTED_NODE() { return 4; }
 
 main();
