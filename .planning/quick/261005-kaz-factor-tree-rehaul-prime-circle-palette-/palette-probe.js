@@ -25,7 +25,7 @@ var EXPECTED = 24;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
-var NEW_KEYS = ["subtitle", "add", "addInputLabel", "paletteHeading", "paletteItemLabel", "workHeading", "workHint", "clear", "removeLabel", "msgAdded"];
+var NEW_KEYS = ["subtitle", "add", "addInputLabel", "paletteHeading", "paletteHeadingNumbers", "paletteItemLabel", "workHeading", "workHint", "clear", "removeLabel", "msgAdded"];
 
 /* ---------- node-side scenarios ---------- */
 
@@ -68,7 +68,7 @@ function runNodeScenarios() {
         });
       }
     });
-    return "16 languages carry the ten new/changed keys; {n} slots intact; ru/el in their own script";
+    return "16 languages carry the eleven new/changed keys; {n} slots intact; ru/el in their own script";
   });
   pass += nodeScenario("N2 dead-keys", function () {
     LANGS.forEach(function (l) {
@@ -271,6 +271,8 @@ function inPage(cfg) {
     });
     assert(getComputedStyle(it[0]).touchAction === "none", "touch-action is " + getComputedStyle(it[0]).touchAction);
     assert(cards().length === 0, "a tree is already on the working area");
+    assert(document.getElementById("paletteHeading").textContent === T("paletteHeading"), "the palette heading is '" + document.getElementById("paletteHeading").textContent + "'");
+    assert(document.getElementById("workHeading").textContent === T("workHeading"), "the working-area heading is '" + document.getElementById("workHeading").textContent + "'");
     assert(shown(document.getElementById("workHint")), "the working-area hint is hidden");
     assert(document.getElementById("clearBtn").disabled, "Clear is enabled on an empty area");
     assert(!document.getElementById("numInput") && !document.getElementById("goBtn") && !document.querySelector(".chip"), "an old control still exists");
@@ -300,8 +302,10 @@ function inPage(cfg) {
     ["0", "-4", "3.5", "1e3"].forEach(function (v) { tryAdd(v, T("msgInvalid")); });
     tryAdd("1", T("msgOne"));
     tryAdd("1000000000001", T("msgTooLargeClassic"));
+    assert(document.getElementById("paletteHeading").textContent === T("paletteHeading"), "rejected input renamed the palette");
     inp.value = "10";
     click(addBtn);
+    assert(document.getElementById("paletteHeading").textContent === T("paletteHeadingNumbers"), "a composite did not rename the palette: '" + document.getElementById("paletteHeading").textContent + "'");
     var it = items();
     assert(it.length === 31, "10 gave " + it.length + " items");
     assert(it[4].textContent === "10" && it[3].textContent === "7" && it[5].textContent === "11", "10 did not land between 7 and 11: item 4 reads " + it[4].textContent);
@@ -678,7 +682,7 @@ function inPage(cfg) {
         });
       });
       assert(document.getElementById("workHint").textContent === T("workHint"), "the hint did not change language");
-      assert(document.getElementById("paletteHeading").textContent === T("paletteHeading"), "the palette heading did not change language");
+      assert(document.getElementById("paletteHeading").textContent === T("paletteHeadingNumbers"), "the palette heading did not change language");
       assert(document.getElementById("workHeading").textContent === T("workHeading"), "the working-area heading did not change language");
       assert(document.getElementById("addBtn").textContent === T("add"), "Add did not change language");
       assert(msg() === T("msgPrime", { n: 2 }) && msg() !== enMsg, "the message is '" + msg() + "'");
