@@ -1,5 +1,6 @@
 "use strict";
 /*
+ * SUPERSEDED by quick task 261005-kaz: this probe drives controls the palette rehaul removed; run palette-probe.js instead.
  * Dev-only regression probe for quick task 261005-j2e: every circle with
  * children shows a fold button once the Factor Tree has grown; folding a
  * sub-tree collapses it into its circle and re-spreads the visible tree,

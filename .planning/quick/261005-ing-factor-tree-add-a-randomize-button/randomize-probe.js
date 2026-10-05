@@ -1,5 +1,6 @@
 "use strict";
 /*
+ * SUPERSEDED by quick task 261005-kaz: this probe drives controls the palette rehaul removed; run palette-probe.js instead.
  * Dev-only regression probe for quick task 261005-ing: the Factor Tree input
  * row has a translated Randomize button that grows a random composite (at
  * least three prime factors, never the shown number) through the Go path.

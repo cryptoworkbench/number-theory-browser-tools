@@ -1,5 +1,6 @@
 "use strict";
 /*
+ * SUPERSEDED by quick task 261005-kaz: this probe drives controls the palette rehaul removed; run palette-probe.js instead.
  * Dev-only regression probe for quick task 261005-hz0: the Factor Tree header
  * reads the plain tool name in sixteen languages, and a fully grown tree
  * shows a dashed vertical mirror line through every two-child circle;

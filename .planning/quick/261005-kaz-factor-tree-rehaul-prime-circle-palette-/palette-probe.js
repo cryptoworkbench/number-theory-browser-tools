@@ -20,7 +20,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 13;
+var EXPECTED = 24;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
@@ -390,10 +390,13 @@ function inPage(cfg) {
     var wFold = svgW(card), hFold = svgH(card);
     var b = badgeOf(root);
     click(b);
-    var early = reduced() ? Promise.resolve() : sleep(300).then(function () {
-      assert(svgW(card) > wFold, "svgW is still " + svgW(card) + " 300 ms after the unfold click (folded " + wFold + ")");
+    // Phase 1 of an unfold (space opens, the card grows) ends by ~510 ms at the
+    // latest; rAF frames are not guaranteed under virtual time, so sample after
+    // that settle point rather than mid-tween, while phase 2 is still running.
+    var early = reduced() ? Promise.resolve() : sleep(620).then(function () {
+      assert(svgW(card) > wFold, "svgW is still " + svgW(card) + " 620 ms after the unfold click (folded " + wFold + ")");
     });
-    return early.then(function () { return reduced() ? null : sleep(TW); }).then(function () {
+    return early.then(function () { return reduced() ? null : sleep(TW - 620); }).then(function () {
       var vis = shownCircles(card);
       assert(vis.length === 3, vis.length + " circles shown, expected 3");
       assert(root.classList.contains("root") && labelOf(root) === "2" && fill(root) === getComputedStyle(items()[0]).backgroundColor, "the root is no longer the blue 2");
@@ -687,18 +690,46 @@ function inPage(cfg) {
     });
   });
 
-  //__STEPS__
+
+  var deepSteps = [];
+  deepSteps.push({ name: "D1 deep-link", fn: function () {
+    assert(document.querySelector('.mode-btn[data-mode="balanced"]').classList.contains("is-active"), "Balanced is not the active mode");
+    var it = items();
+    assert(it.length === 31 && it[30].textContent === "45", it.length + " palette items, last " + it[it.length - 1].textContent);
+    var cs = cards();
+    assert(cs.length === 1, cs.length + " cards, expected 1");
+    var card = cs[0];
+    assert(shownCircles(card).length === 1 && labelOf(shownCircles(card)[0]) === "45", "the card does not show a lone 45");
+    assert(badgeOf(rootOf(card)).getAttribute("aria-expanded") === "false", "the 45 is not folded");
+    click(badgeOf(rootOf(card)));
+    return wait().then(function () {
+      assert(childLabels(card).join() === ["5", "9"].join(), "balanced children of 45 are " + childLabels(card).join());
+      noErrors("D1");
+      return "?n=45 opens in Balanced with 45 appended to the palette and placed folded; + splits it 5 x 9";
+    });
+  } });
+  if (/[?&]n=/.test(location.search)) steps = deepSteps;
 
   var chain = Promise.resolve();
   window.addEventListener("load", function () {
     // P1 must observe the page right after its own load handler, so run it
     // synchronously here (this listener runs after the page's).
     var first = steps[0];
-    try { emit("PASS " + first.name + ": " + first.fn()); }
-    catch (e) { emit("FAIL " + first.name + ": " + (e && e.message ? e.message : e)); }
+    try {
+      var res = first.fn();
+      if (res && typeof res.then === "function") {
+        chain = res.then(
+          function (m) { emit("PASS " + first.name + ": " + m); },
+          function (e) { emit("FAIL " + first.name + ": " + (e && e.message ? e.message : e)); }
+        );
+      } else {
+        emit("PASS " + first.name + ": " + res);
+      }
+    } catch (e) { emit("FAIL " + first.name + ": " + (e && e.message ? e.message : e)); }
     steps.slice(1).forEach(function (s) {
       chain = chain.then(function () {
-        return Promise.resolve().then(s.fn).then(
+        // let the page's own zero-delay timers (dragJustEnded) settle between steps
+        return sleep(30).then(s.fn).then(
           function (m) { emit("PASS " + s.name + ": " + m); },
           function (e) { emit("FAIL " + s.name + ": " + (e && e.message ? e.message : e)); }
         );
@@ -761,9 +792,16 @@ function main() {
   var pass = runNodeScenarios();
   var fail = EXPECTED_NODE - pass;
   var page = buildSite();
-  var r = runPage(page, [], "[default] ");
-  pass += r.pass;
-  fail += r.fail;
+  var runs = [
+    { args: [], tag: "[default] ", query: "?lang=en" },
+    { args: ["--force-prefers-reduced-motion"], tag: "[reduced] ", query: "?lang=en" },
+    { args: [], tag: "[deeplink] ", query: "?n=45&lang=en" }
+  ];
+  runs.forEach(function (run) {
+    var r = runPage(page, run.args, run.tag, run.query);
+    pass += r.pass;
+    fail += r.fail;
+  });
   if (fail > 0 || pass !== EXPECTED) {
     console.log("KAZ-PROBE FAIL (" + pass + " pass, " + fail + " fail, expected " + EXPECTED + " scenarios)");
     process.exit(1);
