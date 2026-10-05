@@ -515,7 +515,7 @@
 <div class="wrap">
   <header class="page-header">
     <h1 data-i18n="factorTree.heading">Factor Tree</h1>
-    <p class="subtitle" data-i18n="factorTree.subtitle">Add a number to the palette, drag its circle into the working area, then press + to unfold it — branch by branch, down to its prime leaves.</p>
+    <p class="subtitle" data-i18n="factorTree.subtitle">Add a number to the palette, drag its circle into the composition/factorization area, then press + to unfold it — branch by branch, down to its prime leaves.</p>
   </header>
 
   <div class="mode-toggle" role="group" aria-label="Tree mode" data-i18n-aria-label="factorTree.modeLabel">
@@ -1517,6 +1517,28 @@
     }
   }
 
+  // A composite circle dragged into the area opens straight away, every
+  // composite circle beneath it too, down to the primes; each prime stays
+  // folded on its P = P × 1 split.
+  function unfoldToPrimes(view){
+    view.nodeViews.forEach((nv, node)=>{
+      if(nv.folded && !isPrime(node.value)) nv.folded = false;
+    });
+    view.fresh.clear();
+    layoutTree(view);
+    syncControls(view);
+    const desc = descendantsOf(view.root, []);
+    animateTree(view, [
+      { ms:MIRROR_MS, targets:v=>{
+        const t = finalTargets(v);
+        const hx = v.pxX(view.root), hy = v.pxY(view.root);
+        desc.forEach(d=>{ t.set(d, { px:hx, py:hy, s:0, o:0 }); });
+        return t;
+      } },
+      { ms:FOLD_MS, targets:finalTargets }
+    ], ()=> updateEquation(view));
+  }
+
   function reverseBranch(node){
     node.children.reverse();
     node.children.forEach(reverseBranch);
@@ -1673,11 +1695,11 @@
     run(0);
   }
 
-  // ---------- Drag a palette circle into the working area ----------
+  // ---------- Drag a palette circle into the composition/factorization area ----------
   // Pointer Events, so mouse, pen and touch all work. The window listeners are
   // attached per drag, filtered by pointerId and always removed by endDrag.
   // Over a placed card the drop composes into it; anywhere else in the
-  // working area it places a tree of its own.
+  // composition/factorization area it places a tree of its own, unfolded.
   function overWork(x, y){
     const r = workArea.getBoundingClientRect();
     return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
@@ -1799,7 +1821,10 @@
       return;
     }
     if(target) composeInto(target, n);
-    else if(over) dropTree(n);
+    else if(over){
+      const view = dropTree(n);
+      if(view && !isPrime(n)) unfoldToPrimes(view);
+    }
     else if(binned) removePaletteItem(item, false);
   }
 
@@ -1970,7 +1995,7 @@
     if(!known) addPaletteItem(n, true);
   }
 
-  // The page opens with the 30-prime palette and an empty working area; only a
+  // The page opens with the 30-prime palette and an empty composition/factorization area; only a
   // deep link places a (folded) tree, or two trees overlapping on their gcd.
   window.addEventListener('load', ()=>{
     const deepLinkPair = readPairParams();
