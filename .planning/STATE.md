@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T15:06:27.364Z"
+last_updated: "2026-10-05T15:24:46.000Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: e35bf52a83bb28a6a090461fb3038e9220d0cff1
+state_head: cf89e2c89f2c1f953f1bc841d3890762ec44ad19
 progress:
   total_phases: 7
   completed_phases: 6
@@ -310,6 +310,7 @@ None yet.
 | 74 | Factor Tree: palette circles compose into an existing panel when dropped on it; beside panels they place their own tree | 2026-10-05 | 4aeb1b6 | — |
 | 75 | Factor Tree: drag a panel onto another to compose them (30 and 40 give 1200 with both old trees as branches) | 2026-10-05 | 166a451 | — |
 | 76 | Factor Tree: drop a panel on the right half of another to overlap them on their gcd (84 and 90 share one 6 branch under both roots) | 2026-10-05 | e35bf52 | — |
+| 77 | Venn Diagram: A ∩ B preview overlaps the factor trees of A and B on their gcd; Factor Tree ?a=&b= deep link | 2026-10-05 | cf89e2c | — |
 
 ## Deferred Items
 
