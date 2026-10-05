@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T13:11:53.521Z"
+last_updated: "2026-10-05T13:34:34.834Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: db6a1fa8cc21c48f35ef792dcce1384581c499ca
+state_head: 08f4de175270f0fa1660bb59247f0c3a8e8c3c35
 progress:
   total_phases: 7
   completed_phases: 6
@@ -304,6 +304,7 @@ None yet.
 | 261005-ing | Factor Tree: Randomize button grows a random composite (12-9999, at least 3 prime factors) | 2026-10-05 | 9ac8738 | [261005-ing-factor-tree-add-a-randomize-button](./quick/261005-ing-factor-tree-add-a-randomize-button/) |
 | 261005-j2e | Factor Tree: fold and unfold sub-trees into their circle via a minus/plus badge, animated | 2026-10-05 | be7a5dd | [261005-j2e-factor-tree-fold-and-unfold-sub-trees-in](./quick/261005-j2e-factor-tree-fold-and-unfold-sub-trees-in/) |
 | 261005-kaz | Factor Tree rehaul: prime-circle palette with Add() field, drag-and-drop copies into working area, folded circles unfold via + | 2026-10-05 | db6a1fa | [261005-kaz-factor-tree-rehaul-prime-circle-palette-](./quick/261005-kaz-factor-tree-rehaul-prime-circle-palette-/) |
+| 71 | Factor Tree palette: circles stay sorted ascending; Add inserts at sorted position with displaced circles sliding aside | 2026-10-05 | 08f4de1 | — |
 
 ## Deferred Items
 
