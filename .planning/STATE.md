@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T13:40:18.085Z"
+last_updated: "2026-10-05T14:29:30.803Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 31d381cf947ea182e22a23d1c8a14824cd43f2ba
+state_head: 1243b6550251e8b60626bc576f8f00d577173711
 progress:
   total_phases: 7
   completed_phases: 6
@@ -306,6 +306,7 @@ None yet.
 | 261005-kaz | Factor Tree rehaul: prime-circle palette with Add() field, drag-and-drop copies into working area, folded circles unfold via + | 2026-10-05 | db6a1fa | [261005-kaz-factor-tree-rehaul-prime-circle-palette-](./quick/261005-kaz-factor-tree-rehaul-prime-circle-palette-/) |
 | 71 | Factor Tree palette: circles stay sorted ascending; Add inserts at sorted position with displaced circles sliding aside | 2026-10-05 | 08f4de1 | — |
 | 72 | Factor Tree: first + on a fresh tree unfolds it all the way down | 2026-10-05 | 31d381c | — |
+| 73 | Factor Tree: palette circles persist across site navigation | 2026-10-05 | 1243b65 | — |
 
 ## Deferred Items
 
