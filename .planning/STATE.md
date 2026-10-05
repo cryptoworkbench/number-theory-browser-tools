@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T17:32:46.216Z"
+last_updated: "2026-10-05T17:56:45.218Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 593cffeac868276ad34a0cffd2c424e5c4e15f7a
+state_head: af624244eda11ba7d217d9bf5ca7e0501cbeff96
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-05 - Fast task: Factor Tree composite circle colour → #794a4f
+Last activity: 2026-10-05 - Fast task: Factor Tree gcd overlap Separate button
 
 Progress: [█████████░] 86%
 
@@ -319,6 +319,7 @@ None yet.
 | 261005-pl0 | Universal shared palette for Venn Diagram + Factor Tree (add/delete synced, Venn gains add); Sieve can add found primes to palette without duplicates | 2026-10-05 | 353a154 | [261005-pl0-universal-shared-palette-for-venn-diagra](./quick/261005-pl0-universal-shared-palette-for-venn-diagra/) |
 | 84 | Factor Tree composite circle colour blue → #bb81a3 (--role-composite token) | 2026-10-05 | 4985810 | — |
 | 85 | Factor Tree composite circle colour → #794a4f with white numbers | 2026-10-05 | 593cffe | — |
+| 86 | Factor Tree gcd overlap: Separate button undoes the combine | 2026-10-05 | af62424 | — |
 
 ## Deferred Items
 
