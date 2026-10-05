@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T12:06:40.383Z"
+last_updated: "2026-10-05T13:11:53.521Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: be7a5dd6f1d745e4c746f1255f044ce6801b0955
+state_head: db6a1fa8cc21c48f35ef792dcce1384581c499ca
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-05 - Completed quick task 261005-j2e: Factor Tree: fold and unfold sub-trees into their circle via a minus/plus badge, animated
+Last activity: 2026-10-05 - Completed quick task 261005-kaz: Factor Tree rehaul: prime-circle palette with Add() field, drag-and-drop copies into working area, folded circles unfold via +
 
 Progress: [█████████░] 86%
 
@@ -303,6 +303,7 @@ None yet.
 | 261005-hz0 | Factor Tree: header reads plain 'Factor Tree'; dashed mirror line through each two-child circle flips its branch on click | 2026-10-05 | edfdfaa | [261005-hz0-factor-tree-drop-prime-from-header-title](./quick/261005-hz0-factor-tree-drop-prime-from-header-title/) |
 | 261005-ing | Factor Tree: Randomize button grows a random composite (12-9999, at least 3 prime factors) | 2026-10-05 | 9ac8738 | [261005-ing-factor-tree-add-a-randomize-button](./quick/261005-ing-factor-tree-add-a-randomize-button/) |
 | 261005-j2e | Factor Tree: fold and unfold sub-trees into their circle via a minus/plus badge, animated | 2026-10-05 | be7a5dd | [261005-j2e-factor-tree-fold-and-unfold-sub-trees-in](./quick/261005-j2e-factor-tree-fold-and-unfold-sub-trees-in/) |
+| 261005-kaz | Factor Tree rehaul: prime-circle palette with Add() field, drag-and-drop copies into working area, folded circles unfold via + | 2026-10-05 | db6a1fa | [261005-kaz-factor-tree-rehaul-prime-circle-palette-](./quick/261005-kaz-factor-tree-rehaul-prime-circle-palette-/) |
 
 ## Deferred Items
 
