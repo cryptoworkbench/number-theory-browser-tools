@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T16:56:12.592Z"
+last_updated: "2026-10-05T17:19:04.450Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 353a1542094cf9009d80338f431a1be463f0a89f
+state_head: 498581070359831637b08dc88a3da5e29cea9f6e
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-05 - Completed quick task 261005-pl0: Universal shared palette for Venn Diagram + Factor Tree; Sieve adds found primes to palette
+Last activity: 2026-10-05 - Fast task: Factor Tree composite circle colour → #bb81a3
 
 Progress: [█████████░] 86%
 
@@ -317,6 +317,7 @@ None yet.
 | 81 | Factor Tree: Classic/Balanced switch no longer touches panels already in the composition/factorization area — the mode only affects newly built trees (supersedes 80) | 2026-10-05 | ac91687 | — |
 | 82 | Venn Diagram: three-circle lens chips preview overlapped Factor Trees (like two-circle A ∩ B) | 2026-10-05 | 9acd567 | — |
 | 261005-pl0 | Universal shared palette for Venn Diagram + Factor Tree (add/delete synced, Venn gains add); Sieve can add found primes to palette without duplicates | 2026-10-05 | 353a154 | [261005-pl0-universal-shared-palette-for-venn-diagra](./quick/261005-pl0-universal-shared-palette-for-venn-diagra/) |
+| 84 | Factor Tree composite circle colour blue → #bb81a3 (--role-composite token) | 2026-10-05 | 4985810 | — |
 
 ## Deferred Items
 
