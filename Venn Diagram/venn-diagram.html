@@ -2004,11 +2004,12 @@
       g.setAttribute('data-xref-tree-href', link.treeHref);
     }
     if (hasAnyHref){
-      g.addEventListener('dblclick', function(ev){
-        ev.preventDefault();
-        // Resolved at click time from the live scroll offset -- reading it
-        // here, not at render time, is the whole mechanism: a value
-        // captured when the chip was drawn would always be zero.
+      // Shared by double-click and the page-level Enter listener, so both
+      // always open the same target. The scroll offset is read at activation
+      // time (double-click or Enter), from the live preview layer -- reading
+      // it here, not at render time, is the whole mechanism: a value
+      // captured when the chip was drawn would always be zero.
+      var openSectionInView = function(){
         var offset = (link.previewLayer && link.previewLayer._npOffset) || 0;
         var midpoint = NP_MAX_SCROLL / 2;
         var chosenHref, chosenLabel;
@@ -2023,7 +2024,13 @@
         // fallback to the other tool.
         if (!chosenHref) return;
         openXref(chosenHref, chosenLabel);
+      };
+      g.addEventListener('dblclick', function(ev){
+        ev.preventDefault();
+        openSectionInView();
       });
+      // Called by the page-level Enter listener on the chip whose preview is showing.
+      g._npOpen = openSectionInView;
     }
     if (hasPreview){
       // showHint gates the trailing "double-click to ..." line inside the
@@ -2510,6 +2517,28 @@
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
   if (thumbsOnBtn) thumbsOnBtn.addEventListener('click', function(){ setThumbs(true); });
   if (thumbsOffBtn) thumbsOffBtn.addEventListener('click', function(){ setThumbs(false); });
+
+  // ---------- Enter opens the showing preview ----------
+  // Capture phase so it runs before a focused region's or token's own Enter
+  // listener (and a focused button's native click): while a preview is up,
+  // Enter does exactly one thing -- opens it -- never that plus the
+  // focused control's action. It stays out of the way when no preview is
+  // showing in the active mode, in form controls, with modifiers held, and
+  // during IME composition. Auto-repeat is consumed without opening, so
+  // holding Enter opens at most one tab.
+  document.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Enter') return;
+    if (ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.isComposing) return;
+    var t = ev.target;
+    if (t && typeof t.closest === 'function' && t.closest('input, textarea, select')) return;
+    if (t && t.isContentEditable) return;
+    var layer = state.mode === 'three' ? previewLayer3 : previewLayer;
+    var owner = layer && layer._npOwner;
+    if (!layer || !layer.firstChild || !owner || typeof owner._npOpen !== 'function') return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (!ev.repeat) owner._npOpen();
+  }, true);
 
   // ---------- i18n re-render (P7) ----------
   // One callback, registered once: retranslates the two-circle interactive
