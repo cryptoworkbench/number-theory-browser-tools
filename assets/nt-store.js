@@ -23,7 +23,9 @@
    sibling tool's own setting the next time it reads the shared store.
 
    Key names and payload shapes below (group-params -> {mode, N},
-   ab-params -> {a, b}) are a PERSISTED CONTRACT: pages migrated in
+   ab-params -> {a, b}, number-palette -> an ascending array of integers
+   2..1e12, at most 1000 entries, duplicates allowed, [] valid) are a
+   PERSISTED CONTRACT: pages migrated in
    different phase-7 waves, and browsers holding values written before this
    phase, must keep interoperating. Do not rename a key or reshape a
    payload without a migration plan for existing stored values.
@@ -42,7 +44,15 @@
 
    Consumers (Phase 7, plan 07-03): Cayley Table. Later phase-7 plans
    extend this list to Equivalence Wheel, Euclidean Algorithm, Venn
-   Diagram and Group Isomorphism.
+   Diagram and Group Isomorphism. number-palette is shared by Factor Tree,
+   Venn Diagram and the Sieve of Eratosthenes.
+
+   Cookie size limit: a cookie value holds about 4 KB, so a palette of
+   hundreds of numbers cannot ride the cookie channel. writeShared expires
+   the key's cookie when the encoded payload is too long, and localStorage
+   alone then carries it. Known limitation: on Firefox over file://, where
+   localStorage is per-document, a palette too large for a cookie therefore
+   only syncs within one page's own origin.
 
    NT.store is frozen, and its slot on NT is read-only, after construction —
    a tool must never assign to NT or to any of its members (shadow-check.js's
@@ -82,6 +92,10 @@
     return validate(parsed);
   }
 
+  // A cookie value is limited to about 4 KB; an encoded payload longer than
+  // this is not written as a cookie (see writeShared).
+  var COOKIE_VALUE_MAX = 3800;
+
   // writeShared(key, value, validate): skip writing when the stored value
   // already matches (re-read through readShared/validate — one
   // parsing-and-validation path, so a hand-edited or legacy stored value is
@@ -93,8 +107,15 @@
     var current = readShared(key, validate);
     if (current && JSON.stringify(current) === payload) return;
     try { localStorage.setItem(key, payload); } catch (e) { /* ignore */ }
+    var encoded = encodeURIComponent(payload);
     try {
-      document.cookie = key + "=" + encodeURIComponent(payload) + ";path=/;max-age=31536000;samesite=lax";
+      if (encoded.length > COOKIE_VALUE_MAX) {
+        // Too big for a cookie: expire any older cookie so the cookie-first
+        // read cannot return a stale value, leaving localStorage in charge.
+        document.cookie = key + "=;path=/;max-age=0;samesite=lax";
+      } else {
+        document.cookie = key + "=" + encoded + ";path=/;max-age=31536000;samesite=lax";
+      }
     } catch (e) { /* ignore */ }
   }
 
@@ -193,6 +214,122 @@
     return { a: a, b: b };
   }
 
+  /* ---------- shared number palette (Factor Tree <-> Venn Diagram <-> Sieve of Eratosthenes) ---------- */
+
+  var SHARED_PALETTE_KEY = 'number-palette';
+  var SHARED_PALETTE_MAX = 1000;
+  var SHARED_PALETTE_MAX_N = 1000000000000;
+  var LEGACY_PALETTE_KEY = 'factor-tree-palette';
+  var DEFAULT_PALETTE = Object.freeze([
+    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
+    53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113
+  ]);
+
+  function byValue(a, b) { return a - b; }
+
+  // A sorted copy of a well-formed palette, or null. An empty list is valid:
+  // a visitor may have binned every number.
+  function validatePalette(parsed) {
+    if (!Array.isArray(parsed) || parsed.length > SHARED_PALETTE_MAX) return null;
+    for (var i = 0; i < parsed.length; i++) {
+      var v = parsed[i];
+      if (typeof v !== "number" || !Number.isInteger(v) || v < 2 || v > SHARED_PALETTE_MAX_N) return null;
+    }
+    return parsed.slice().sort(byValue);
+  }
+
+  // readSharedPalette(raw): raw is a storage event's newValue; omit it to
+  // read the store itself.
+  function readSharedPalette(raw) {
+    return readShared(SHARED_PALETTE_KEY, validatePalette, raw);
+  }
+
+  function countOf(list) {
+    var c = {};
+    for (var i = 0; i < list.length; i++) c[list[i]] = (c[list[i]] || 0) + 1;
+    return c;
+  }
+
+  // loadSharedPalette(): the palette, ascending. Falls back to the default
+  // first 30 primes, and carries Factor Tree's old per-tool localStorage key
+  // ('factor-tree-palette') into the shared key once (max-count multiset
+  // merge when both exist), removing the old key afterwards.
+  function loadSharedPalette() {
+    var shared = readShared(SHARED_PALETTE_KEY, validatePalette);
+    var legacy = null;
+    var legacyFound = false;
+    try {
+      var rawLegacy = localStorage.getItem(LEGACY_PALETTE_KEY);
+      if (rawLegacy !== null) {
+        legacyFound = true;
+        legacy = parseShared(rawLegacy, validatePalette);
+      }
+    } catch (e) { /* ignore */ }
+    var result = shared;
+    if (legacy && !shared) {
+      result = legacy;
+    } else if (legacy && shared) {
+      var cs = countOf(shared);
+      var cl = countOf(legacy);
+      var merged = [];
+      Object.keys(cs).concat(Object.keys(cl)).forEach(function (k) {
+        var n = Number(k);
+        if (merged.indexOf(n) !== -1) return;
+        var times = Math.max(cs[k] || 0, cl[k] || 0);
+        for (var t = 0; t < times; t++) merged.push(n);
+      });
+      merged.sort(byValue);
+      result = merged.slice(0, SHARED_PALETTE_MAX);
+    } else if (!shared) {
+      result = DEFAULT_PALETTE.slice();
+    }
+    if (result !== shared) writeShared(SHARED_PALETTE_KEY, result, validatePalette);
+    if (legacyFound) {
+      try { localStorage.removeItem(LEGACY_PALETTE_KEY); } catch (e) { /* ignore */ }
+    }
+    return result.slice();
+  }
+
+  // addToSharedPalette(values, unique): read-modify-write. Returns
+  // { list, added, duplicates, overflow }. With unique truthy a value
+  // already present (or already added in this call) counts as a duplicate;
+  // at the cap a value counts as overflow. Out-of-range values are skipped
+  // silently.
+  function addToSharedPalette(values, unique) {
+    var list = loadSharedPalette();
+    var added = [];
+    var duplicates = 0;
+    var overflow = 0;
+    var seen = unique ? countOf(list) : null;
+    for (var i = 0; i < values.length; i++) {
+      var v = values[i];
+      if (typeof v !== "number" || !Number.isInteger(v) || v < 2 || v > SHARED_PALETTE_MAX_N) continue;
+      if (unique && seen[v]) { duplicates++; continue; }
+      if (list.length >= SHARED_PALETTE_MAX) { overflow++; continue; }
+      var at = list.length;
+      for (var j = 0; j < list.length; j++) {
+        if (list[j] > v) { at = j; break; }
+      }
+      list.splice(at, 0, v);
+      added.push(v);
+      if (unique) seen[v] = 1;
+    }
+    if (added.length > 0) writeShared(SHARED_PALETTE_KEY, list, validatePalette);
+    return { list: list.slice(), added: added, duplicates: duplicates, overflow: overflow };
+  }
+
+  // removeFromSharedPalette(value): read-modify-write removing exactly one
+  // occurrence; returns the resulting list.
+  function removeFromSharedPalette(value) {
+    var list = loadSharedPalette();
+    var at = list.indexOf(value);
+    if (at !== -1) {
+      list.splice(at, 1);
+      writeShared(SHARED_PALETTE_KEY, list, validatePalette);
+    }
+    return list.slice();
+  }
+
   // readMigrating(key, legacyKey): Venn Diagram's legacy-key fallback
   // reader — returns the value under `key`, or copies `legacyKey`'s value
   // forward to `key` (and returns it) when `key` is absent, or null.
@@ -223,7 +360,14 @@
     readSharedAB: readSharedAB,
     writeSharedAB: writeSharedAB,
     readABParams: readABParams,
-    readMigrating: readMigrating
+    readMigrating: readMigrating,
+    SHARED_PALETTE_KEY: SHARED_PALETTE_KEY,
+    SHARED_PALETTE_MAX: SHARED_PALETTE_MAX,
+    SHARED_PALETTE_MAX_N: SHARED_PALETTE_MAX_N,
+    readSharedPalette: readSharedPalette,
+    loadSharedPalette: loadSharedPalette,
+    addToSharedPalette: addToSharedPalette,
+    removeFromSharedPalette: removeFromSharedPalette
   });
   // NT stays extensible so later modules can add their own namespace, but
   // this slot is locked: NT.store can never be reassigned or deleted.

@@ -10,7 +10,10 @@ var vm = require("vm");
 var EXPECTED_KEYS = [
   "SHARED_AB_KEY", "SHARED_GROUP_KEY", "readABParams", "readMigrating",
   "readModeNParams", "readShared", "readSharedAB", "readSharedGroup",
-  "writeShared", "writeSharedAB", "writeSharedGroup"
+  "writeShared", "writeSharedAB", "writeSharedGroup",
+  "SHARED_PALETTE_KEY", "SHARED_PALETTE_MAX", "SHARED_PALETTE_MAX_N",
+  "addToSharedPalette", "loadSharedPalette", "readSharedPalette",
+  "removeFromSharedPalette"
 ];
 
 var CAYLEY_PATH = "Cayley Table/cayley-table.html";

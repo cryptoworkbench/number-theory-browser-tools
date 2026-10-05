@@ -580,7 +580,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { euclidSteps, gcd, isPrime, primeFactors } = NT.core;
   const { svgEl } = NT.svg;
-  const { SHARED_AB_KEY, readABParams, readMigrating, readSharedAB, writeSharedAB } = NT.store;
+  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, writeSharedAB } = NT.store;
   const { BALANCED_MAX_N, assignOverlapX, assignTreeX, buildFactorTree, buildOverlapTree, computeNestedLayout, flattenOverlap, flattenTree } = NT.layout;
   const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
@@ -632,7 +632,11 @@
   var productRightEl = document.getElementById('product-right');
   var xrefEuclidEl = document.getElementById('xref-euclid');
 
+  // PRIMES is only Randomize's own draw pool; the picker shows the shared
+  // number palette (NT.store's number-palette, also edited in Factor Tree and
+  // fed by the Sieve of Eratosthenes), kept ascending, duplicates allowed.
   var PRIMES = buildPalette(26);
+  var palette = loadSharedPalette();
   var REGION_NOTATION = { left: 'A \\ B', overlap: 'A ∩ B', right: 'B \\ A' };
   // Display-word table (procedure P6): maps a region key to its i18n key,
   // never to the display word itself -- every reader calls
@@ -1459,6 +1463,7 @@
       setMessage('venn.msg.pickFirst', null, false);
       return;
     }
+    if (!isPrime(value)) return;
     commitRegions(twoCtx, function(draft){
       if (draft[key].length >= MAX_PER_REGION){
         warnRegionFull(key);
@@ -1615,6 +1620,7 @@
       setMessage('venn.msg.pickFirst', null, false);
       return;
     }
+    if (!isPrime(value)) return;
     commitRegions(threeCtx, function(draft){
       if (draft[key].length >= MAX_PER_REGION3){
         warnRegionFull3(key);
@@ -1938,7 +1944,7 @@
 
   function renderPicker(){
     picker.innerHTML = '';
-    for (var i = 0; i < PRIMES.length; i++){
+    for (var i = 0; i < palette.length; i++){
       (function(prime){
         var btn = document.createElement('button');
         btn.type = 'button';
@@ -1958,7 +1964,7 @@
           btn.classList.remove('is-dragging');
         });
         picker.appendChild(btn);
-      })(PRIMES[i]);
+      })(palette[i]);
     }
   }
 
@@ -2605,7 +2611,24 @@
   // while the user is in three-circle mode: render() refreshes both views,
   // the mode itself is never switched, and regions3 is never read or
   // written here.
+  // The shared number palette (NT.store's number-palette) arrives the same
+  // way and is mirrored without being written back.
+  function adoptPalette(list){
+    palette = list;
+    if (state.armed !== null && palette.indexOf(state.armed) === -1) state.armed = null;
+    renderPicker();
+  }
+
+  window.addEventListener('pageshow', function(e){
+    if (e.persisted) adoptPalette(loadSharedPalette());
+  });
+
   window.addEventListener('storage', function(e){
+    if (e.key === SHARED_PALETTE_KEY){
+      var list = readSharedPalette(e.newValue);
+      if (list) adoptPalette(list);
+      return;
+    }
     if (e.key !== SHARED_AB_KEY) return;
     var incoming = readSharedAB(e.newValue);
     if (!incoming) return;

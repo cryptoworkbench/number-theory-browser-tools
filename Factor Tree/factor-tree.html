@@ -553,6 +553,7 @@
 
 <script src="../assets/nt-core.js"></script>
 <script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
 <script src="../assets/nt-layout.js"></script>
 <script src="../assets/nt-i18n.js"></script>
 <script src="../assets/i18n/site.js"></script>
@@ -562,6 +563,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { isPrime, primeFactors, randomInt } = NT.core;
   const { easeInOutCubic, svgEl } = NT.svg;
+  const { SHARED_PALETTE_KEY, addToSharedPalette, loadSharedPalette, readSharedPalette, removeFromSharedPalette } = NT.store;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, buildOverlapTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
 
@@ -592,9 +594,6 @@
   const RANDOM_MAX = 9999;
   const RANDOM_MIN_FACTORS = 3;
   const RANDOM_TRIES = 200;
-  const PALETTE_PRIMES = 30;
-  const PALETTE_KEY = 'factor-tree-palette';
-  const PALETTE_SAVE_MAX = 1000;
   const CLASSIC_MAX_N = 1000000000000;
   const SIDE_PAD = 30;
   const SPACING_MAX = 56;
@@ -697,7 +696,6 @@
     slidePalette(isNew ? items : [], ()=> paletteEl.insertBefore(item, next));
     if(isNew) item.scrollIntoView({ block:'nearest' });
     syncPaletteHeading();
-    if(isNew) savePalette();
     return item;
   }
 
@@ -734,7 +732,7 @@
     const rest = items.filter(other=> other !== item);
     slidePalette(rest, ()=> item.remove());
     syncPaletteHeading();
-    savePalette();
+    syncPalette(removeFromSharedPalette(Number(item.getAttribute('data-n'))), false);
     setMessage('factorTree.msgRemoved', { n: item.getAttribute('data-n') }, true);
     if(keyboard){
       const target = items[i + 1] || items[i - 1] || addInput;
@@ -746,36 +744,46 @@
     paletteEl.querySelectorAll('.palette-item').forEach(labelPaletteItem);
   }
 
-  // The palette's circles persist under PALETTE_KEY, so an added or binned
-  // circle stays that way across navigation; a missing or malformed value
-  // falls back to the default primes.
-  function savePalette(){
-    const values = Array.prototype.map.call(paletteEl.querySelectorAll('.palette-item'), item=> Number(item.getAttribute('data-n')));
-    try{ localStorage.setItem(PALETTE_KEY, JSON.stringify(values)); }catch(e){}
+  // The palette is one shared list (NT.store's number-palette, also read by
+  // Venn Diagram and the Sieve): this reconciles the circles on the page to
+  // it. Surplus circles go (the last occurrences first), missing ones are
+  // inserted in ascending order, and the insertion animates only when
+  // animate is true and exactly one circle is new.
+  function syncPalette(list, animate){
+    const want = {};
+    list.forEach(n=>{ want[n] = (want[n] || 0) + 1; });
+    const have = {};
+    const items = Array.prototype.slice.call(paletteEl.querySelectorAll('.palette-item'));
+    items.forEach(item=>{
+      const key = item.getAttribute('data-n');
+      have[key] = (have[key] || []).concat([item]);
+    });
+    Object.keys(have).forEach(key=>{
+      const surplus = have[key].length - (want[key] || 0);
+      for(let i = 0; i < surplus; i++) have[key].pop().remove();
+    });
+    const missing = [];
+    Object.keys(want).forEach(key=>{
+      const present = have[key] ? Math.min(have[key].length, want[key]) : 0;
+      for(let i = present; i < want[key]; i++) missing.push(Number(key));
+    });
+    missing.sort((a, b)=> a - b);
+    missing.forEach(n=> addPaletteItem(n, animate && missing.length === 1));
+    syncPaletteHeading();
   }
 
-  function readSavedPalette(){
-    let parsed;
-    try{ parsed = JSON.parse(localStorage.getItem(PALETTE_KEY)); }catch(e){ return null; }
-    if(!Array.isArray(parsed) || parsed.length > PALETTE_SAVE_MAX) return null;
-    const ok = parsed.every(n=> Number.isInteger(n) && n >= 2 && n <= CLASSIC_MAX_N);
-    return ok ? parsed : null;
-  }
+  syncPalette(loadSharedPalette(), false);
 
-  (function prefillPalette(){
-    const saved = readSavedPalette();
-    if(saved){
-      saved.forEach(n=> addPaletteItem(n, false));
-      return;
-    }
-    let found = 0;
-    for(let n = 2; found < PALETTE_PRIMES; n++){
-      if(isPrime(n)){
-        addPaletteItem(n, false);
-        found++;
-      }
-    }
-  })();
+  // Another tab (or tool) changed the shared palette: mirror it without
+  // writing it back, so two open tools never ping-pong.
+  window.addEventListener('storage', e=>{
+    if(e.key !== SHARED_PALETTE_KEY) return;
+    const list = readSharedPalette(e.newValue);
+    if(list) syncPalette(list, false);
+  });
+  window.addEventListener('pageshow', e=>{
+    if(e.persisted) syncPalette(loadSharedPalette(), false);
+  });
 
   // ---------- Add ----------
   function addFromInput(){
@@ -786,7 +794,9 @@
     if(n === 0){ setMessage('factorTree.msgInvalid'); return; }
     if(n === 1){ setMessage('factorTree.msgOne'); return; }
     if(n > capFor(mode)){ setMessage(tooLargeKey()); return; }
-    addPaletteItem(n, true);
+    const res = addToSharedPalette([n], false);
+    if(res.added.length === 0) return;
+    syncPalette(res.list, true);
     setMessage('factorTree.msgAdded', { n: n }, true);
     addInput.select();
   }
@@ -1976,8 +1986,8 @@
 
   function ensurePaletteItem(n){
     if (n < 2) return;
-    const known = Array.prototype.some.call(paletteEl.querySelectorAll('.palette-item'), item=> item.getAttribute('data-n') === String(n));
-    if(!known) addPaletteItem(n, true);
+    const res = addToSharedPalette([n], true);
+    if(res.added.length > 0) syncPalette(res.list, res.added.length === 1);
   }
 
   // The page opens with the 30-prime palette and an empty composition/factorization area; only a
