@@ -229,6 +229,30 @@
   .tree-card .tree-svg, .tree-card .tree-equation{ cursor:auto; }
   .tree-card.is-drag-source{ opacity:.45; }
   .tree-card.is-overlap{ cursor:auto; }
+  .tree-split{
+    position:absolute;
+    top:4px;
+    left:4px;
+    height:24px;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:0 9px 0 7px;
+    border-radius:12px;
+    border:1px solid var(--panel-border);
+    background:var(--surface);
+    color:var(--text-dim);
+    font-family:var(--font-sans);
+    font-weight:600;
+    font-size:.75rem;
+    cursor:pointer;
+    transition:color var(--ease-ctl), border-color var(--ease-ctl);
+  }
+  .tree-split:hover:not(:disabled){ color:var(--role-special); border-color:var(--role-special); }
+  .tree-split:focus{ outline:none; }
+  .tree-split:focus-visible{ box-shadow:var(--ctl-focus); }
+  .tree-split:disabled{ opacity:.5; cursor:default; }
+  .tree-split svg path{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
   .drop-split{
     position:absolute;
     top:0;
@@ -1025,6 +1049,8 @@
     return { g:t.g, G:t.G, twin:twin, twinOf:twinOf, A:t.a, B:B, done:false };
   }
 
+  // animate: true grows both trees out and merges them, false shows them
+  // merged at once, 'split' starts merged and slides them apart again.
   function buildOverlapCard(a, b, animate){
     const o = overlapGraph(a, b);
     const nodes = [];
@@ -1045,7 +1071,11 @@
     });
     drawNodes(view, nodes, edges, maxDepth, m, ()=> false);
 
-    if(!animate){
+    if(animate === 'split'){
+      view.merged = true;
+      layoutTree(view);
+      applyTargets(view, finalTargets(view));
+    } else if(!animate){
       view.merged = true;
       layoutTree(view);
       applyTargets(view, finalTargets(view));
@@ -1070,9 +1100,78 @@
     }
     placeTree(view);
 
+    view.splitBtn = splitButton();
+    shell.card.insertBefore(view.splitBtn, shell.card.firstChild);
+    view.splitBtn.addEventListener('click', ()=>{ splitOverlap(view); });
     view.removeBtn.addEventListener('click', ()=>{ removeTree(view); });
     relabelRemove(view);
     return view;
+  }
+
+  function splitButton(){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tree-split';
+    const icon = svgEl('svg', { viewBox:'0 0 14 12', width:14, height:12, 'aria-hidden':'true', focusable:'false' });
+    icon.appendChild(svgEl('path', { d:'M5.5 6H1.5M3.5 4L1.5 6L3.5 8M8.5 6H12.5M10.5 4L12.5 6L10.5 8M7 2V10' }));
+    btn.appendChild(icon);
+    btn.appendChild(document.createElement('span'));
+    return btn;
+  }
+
+  // ---------- Separate a gcd overlap again ----------
+  // The reverse of the overlap: a fresh copy of the card starts merged, b's
+  // own copy of the g branch lifts off the shared one and b's tree slides
+  // back to the right; then the card gives way, in place, to two ordinary
+  // panels, each fully open, holding exactly the tree it showed in the
+  // overlap (a = (a/g) × g, b = g × (b/g)), with the g branch no longer
+  // highlighted; coprime numbers drop the shared 1.
+  function detachTree(node, depth){
+    const kind = node.kind === 'one' || node.kind === 'prime-leaf' ? node.kind
+      : depth === 0 ? 'root' : 'internal';
+    return { value:node.value, kind:kind, depth:depth,
+      children:node.children.map(c=> detachTree(c, depth + 1)) };
+  }
+
+  function standaloneView(top){
+    const root = detachTree(top, 0);
+    const folded = new Map();
+    [root].concat(descendantsOf(root, [])).forEach(node=>{ folded.set(node, false); });
+    return buildCard(root.value, { root:root, folded:folded, pressed:new Set(), fresh:new Set() });
+  }
+
+  function splitOverlap(view){
+    const idx = views.indexOf(view);
+    if(idx < 0 || !view.live) return;
+    const apart = buildOverlapCard(view.a, view.b, 'split');
+    apart.splitBtn.disabled = true;
+    apart.removeBtn.disabled = true;
+    killView(view);
+    workArea.insertBefore(apart.card, workArea.children[idx + 1] || null);
+    views[idx] = apart;
+    popEquation(apart.eqEl, equationLines(apart));
+    animateTree(apart, [
+      { ms:OVERLAP_HOLD_MS, targets:currentTargets },
+      { ms:OVERLAP_MS, targets:v=>{
+        v.merged = false;
+        layoutTree(v);
+        return finalTargets(v);
+      } }
+    ], ()=>{
+      const at = views.indexOf(apart);
+      if(at < 0) return;
+      const o = apart.overlap;
+      // Coprime numbers only share the 1: each tree is just its own rest.
+      const left = standaloneView(o.g === 1 && o.A.rest ? o.A.rest : o.A.top);
+      const right = standaloneView(o.g === 1 && o.B.rest ? o.B.rest : o.B.top);
+      killView(apart);
+      workArea.insertBefore(left.card, workArea.children[at + 1] || null);
+      workArea.insertBefore(right.card, left.card.nextSibling);
+      views.splice(at, 1, left, right);
+      syncWorkState();
+      setMessage('factorTree.msgSplit', { a:left.n, b:right.n }, true);
+      right.removeBtn.focus();
+    });
   }
 
   // The twin g branch lies exactly on the real one: drop it, hang b's root
@@ -1112,6 +1211,12 @@
       : translate('factorTree.removeLabel', { n: view.n });
     view.removeBtn.setAttribute('aria-label', label);
     view.removeBtn.setAttribute('title', label);
+    if(view.splitBtn){
+      const split = translate('factorTree.splitOverlapLabel', { a: view.a, b: view.b });
+      view.splitBtn.setAttribute('aria-label', split);
+      view.splitBtn.setAttribute('title', split);
+      view.splitBtn.lastChild.textContent = translate('factorTree.splitOverlap');
+    }
     if(!view.grip) return;
     const move = translate('factorTree.moveLabel', { n: view.n });
     view.grip.setAttribute('aria-label', move);
