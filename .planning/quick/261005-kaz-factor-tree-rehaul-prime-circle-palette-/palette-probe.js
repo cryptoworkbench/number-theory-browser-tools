@@ -303,19 +303,21 @@ function inPage(cfg) {
     click(addBtn);
     var it = items();
     assert(it.length === 31, "10 gave " + it.length + " items");
-    assert(it[30].textContent === "10", "last item reads " + it[30].textContent);
-    assert(it[30].getAttribute("aria-label") === T("paletteItemLabel", { n: 10 }), "last item label is " + it[30].getAttribute("aria-label"));
+    assert(it[4].textContent === "10" && it[3].textContent === "7" && it[5].textContent === "11", "10 did not land between 7 and 11: item 4 reads " + it[4].textContent);
+    assert(it[4].getAttribute("aria-label") === T("paletteItemLabel", { n: 10 }), "10's label is " + it[4].getAttribute("aria-label"));
     assert(msg() === T("msgAdded", { n: 10 }), "message is " + msg());
     assert(document.getElementById("message").classList.contains("info"), "msgAdded lacks class info");
-    if (reduced()) assert(getComputedStyle(it[30]).animationName === "none", "the new item still animates under reduced motion: " + getComputedStyle(it[30]).animationName);
+    if (reduced()) assert(getComputedStyle(it[4]).animationName === "none", "the new item still animates under reduced motion: " + getComputedStyle(it[4]).animationName);
     click(addBtn);
-    assert(items().length === 32, "a second 10 gave " + items().length + " items");
+    assert(items().length === 32 && items()[5].textContent === "10" && items()[6].textContent === "11", "a second 10 gave " + items().length + " items, not adjacent to the first");
     inp.value = "60";
     key(inp, { key: "Enter" });
     it = items();
-    assert(it.length === 33 && it[32].textContent === "60", "60 + Enter gave " + it.length + " items, last " + it[32].textContent);
+    assert(it.length === 33 && it[19].textContent === "60" && it[18].textContent === "59" && it[20].textContent === "61", "60 + Enter gave " + it.length + " items, item 19 reads " + it[19].textContent);
+    var vals = it.map(function (x) { return Number(x.textContent); });
+    assert(vals.every(function (v, i) { return i === 0 || vals[i - 1] <= v; }), "palette not ascending: " + vals.join(","));
     noErrors("P2");
-    return "field-left-of-Add, filters, 7 rejections with translated messages, 10 added twice, 60 added with Enter";
+    return "field-left-of-Add, filters, 7 rejections with translated messages, 10 added twice (sorted, adjacent), 60 added with Enter between 59 and 61";
   });
 
   step("P3 drag-drop", function () {
@@ -695,7 +697,7 @@ function inPage(cfg) {
   deepSteps.push({ name: "D1 deep-link", fn: function () {
     assert(document.querySelector('.mode-btn[data-mode="balanced"]').classList.contains("is-active"), "Balanced is not the active mode");
     var it = items();
-    assert(it.length === 31 && it[30].textContent === "45", it.length + " palette items, last " + it[it.length - 1].textContent);
+    assert(it.length === 31 && it[14].textContent === "45" && it[13].textContent === "43" && it[15].textContent === "47", it.length + " palette items, item 14 reads " + it[14].textContent);
     var cs = cards();
     assert(cs.length === 1, cs.length + " cards, expected 1");
     var card = cs[0];

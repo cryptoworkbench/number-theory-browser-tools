@@ -578,7 +578,25 @@
     item.setAttribute('data-n', String(n));
     item.textContent = String(n);
     labelPaletteItem(item);
-    paletteEl.appendChild(item);
+    // Keep the palette in ascending order: a new circle lands after any equal
+    // value, before the first larger one, and the circles it displaces slide aside.
+    const items = Array.prototype.slice.call(paletteEl.querySelectorAll('.palette-item'));
+    const next = items.find(other=> Number(other.getAttribute('data-n')) > n) || null;
+    const animate = isNew && typeof Element.prototype.animate === 'function' &&
+      !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const before = animate ? items.map(other=> other.getBoundingClientRect()) : null;
+    paletteEl.insertBefore(item, next);
+    if(animate){
+      items.forEach((other, i)=>{
+        const after = other.getBoundingClientRect();
+        const dx = before[i].left - after.left, dy = before[i].top - after.top;
+        if(dx || dy){
+          other.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:'none' }],
+            { duration:250, easing:'ease-out' });
+        }
+      });
+    }
+    if(isNew) item.scrollIntoView({ block:'nearest' });
     return item;
   }
 
