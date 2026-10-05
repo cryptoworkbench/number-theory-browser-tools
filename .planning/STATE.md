@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T17:19:04.450Z"
+last_updated: "2026-10-05T17:32:46.216Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 498581070359831637b08dc88a3da5e29cea9f6e
+state_head: 593cffeac868276ad34a0cffd2c424e5c4e15f7a
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-05 - Fast task: Factor Tree composite circle colour → #bb81a3
+Last activity: 2026-10-05 - Fast task: Factor Tree composite circle colour → #794a4f
 
 Progress: [█████████░] 86%
 
@@ -318,6 +318,7 @@ None yet.
 | 82 | Venn Diagram: three-circle lens chips preview overlapped Factor Trees (like two-circle A ∩ B) | 2026-10-05 | 9acd567 | — |
 | 261005-pl0 | Universal shared palette for Venn Diagram + Factor Tree (add/delete synced, Venn gains add); Sieve can add found primes to palette without duplicates | 2026-10-05 | 353a154 | [261005-pl0-universal-shared-palette-for-venn-diagra](./quick/261005-pl0-universal-shared-palette-for-venn-diagra/) |
 | 84 | Factor Tree composite circle colour blue → #bb81a3 (--role-composite token) | 2026-10-05 | 4985810 | — |
+| 85 | Factor Tree composite circle colour → #794a4f with white numbers | 2026-10-05 | 593cffe | — |
 
 ## Deferred Items
 
