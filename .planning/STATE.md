@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-03 - Completed quick task 261003-kwa: mature visual refinement (calmer palette, one-row header with Tools menu, unified type and controls, no emoji, grouped hub)
+Last activity: 2026-10-05 - Completed quick task 261005-dn2: Venn Diagram double-click opens the thumbnail section in view on the first try
 
 Progress: [█████████░] 86%
 
@@ -298,6 +298,7 @@ None yet.
 | 261003-i23 | Drop the 240px footer reserve on RSA/DH (footer was a mostly empty ~300px band); dock the public-values panel in a zero-height sticky wrapper so it rests on the footer's top edge | 2026-10-03 | c722ed8 | [261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-](./quick/261003-i23-drop-the-240px-footer-reserve-on-rsa-dh-/) |
 | 261003-kwa | Mature visual refinement: calmer palette, one-row header with Tools menu, unified type and controls, no emoji, grouped hub | 2026-10-03 | a6da488 | [261003-kwa-mature-visual-refinement-calmer-palette-](./quick/261003-kwa-mature-visual-refinement-calmer-palette-/) |
 | 261003-nkr | Theme follows OS preference, language switcher back in header (site footer retired), intro prose spans full width | 2026-10-03 | e2e5642 | [261003-nkr-theme-follows-system-theme-language-swit](./quick/261003-nkr-theme-follows-system-theme-language-swit/) |
+| 261005-dn2 | Venn Diagram: first double-click on a chip whose thumbnail is scrolled to the Euclidean section now opens Euclidean Algorithm (focus no longer rebuilds the open preview) | 2026-10-05 | edfc483 | [261005-dn2-venn-diagram-double-click-on-a-chip-open](./quick/261005-dn2-venn-diagram-double-click-on-a-chip-open/) |
 
 ## Deferred Items
 
@@ -310,7 +311,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-03
-Stopped at: Quick task 261003-nkr complete — OS-following theme, header language switcher, full-width prose
+Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
 Last activity: 2026-09-29 - 03-03 Task 3 (phase-wide consolidated sweep) completed: all gates from all three plans green, one-answer-everywhere confirmed across 5 systems, all 8 CRT requirements demonstrated, no regression found. Phase 3 marked Complete.
