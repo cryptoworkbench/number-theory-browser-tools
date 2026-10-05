@@ -20,7 +20,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 7;
+var EXPECTED = 13;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
@@ -414,6 +414,276 @@ function inPage(cfg) {
       assert(msg() === T("msgPrime", { n: 2 }), "message is '" + msg() + "'");
       noErrors("P4");
       return "+ on the blue 2 reveals a small gray 1 and a green 2; the card grew; 2 = 2 × 1 and the prime message appear";
+    });
+  });
+
+  function childMap(card) {
+    var m = new Map();
+    edgeInfo(card).forEach(function (e) {
+      if (!m.has(e.from)) m.set(e.from, []);
+      m.get(e.from).push(e.to);
+    });
+    return m;
+  }
+  function descendantsIn(map, c, acc) {
+    (map.get(c) || []).forEach(function (k) { acc.push(k); descendantsIn(map, k, acc); });
+    return acc;
+  }
+  function collapsedInto(card, F, D) {
+    D.forEach(function (c) {
+      assert(!shown(c), "circle " + labelOf(c) + " is still shown inside the folded circle");
+      assert(num(c, "r") <= EPS, "circle " + labelOf(c) + " has r " + num(c, "r"));
+      assert(near(num(c, "cx"), num(F, "cx")) && near(num(c, "cy"), num(F, "cy")), "circle " + labelOf(c) + " is not on the folded centre");
+    });
+  }
+  function mirroredAbout(oldPos, newPos, ref) {
+    oldPos.forEach(function (x, i) {
+      var want = -(x - oldPos[ref]);
+      var got = newPos[i] - newPos[ref];
+      assert(near(got, want), "circle " + i + " offset " + got + " expected " + want);
+    });
+  }
+  function lastCard() { var c = cards(); return c[c.length - 1]; }
+  function itemByText(t) {
+    var f = items().filter(function (b) { return b.textContent === t; });
+    assert(f.length > 0, "no palette item reads " + t);
+    return f[f.length - 1];
+  }
+  function expandedStates(card) {
+    return cardCircles(card).map(function (c) { var b = badgeOf(c); return b ? b.getAttribute("aria-expanded") : "-"; });
+  }
+  function wait() { return reduced() ? Promise.resolve() : sleep(TW); }
+  function childLabels(card) {
+    return shownCircles(card).filter(function (c) { return !c.classList.contains("root"); }).map(labelOf).sort();
+  }
+  function sameGeom(a, b, label) {
+    assert(a.length === b.length, label + ": circle count " + b.length + ", expected " + a.length);
+    a.forEach(function (g, i) { [0, 1, 2].forEach(function (k) { assert(near(g[k], b[i][k]), label + ": circle " + i + " [" + k + "] is " + b[i][k] + ", expected " + g[k]); }); });
+  }
+  function foldedBadges(card) {
+    return arr(card.querySelectorAll(".fold-badge")).filter(function (x) { return shown(x) && x.getAttribute("aria-expanded") === "false"; });
+  }
+
+  step("P5 composite-step-by-step", function () {
+    pointerClick(itemByText("60"));
+    var card = lastCard();
+    var root = rootOf(card);
+    var b = badgeOf(root);
+    assert(shownCircles(card).length === 1 && labelOf(shownCircles(card)[0]) === "60", "the new card does not show a lone 60");
+    assert(b.getAttribute("aria-expanded") === "false", "the 60 is not folded");
+    assert(document.activeElement !== b, "a pointer placement moved focus onto the badge");
+    var wFold = svgW(card);
+    click(b);
+    var G;
+    var n = 0;
+    function loop() {
+      var f = foldedBadges(card);
+      if (f.length === 0 || n >= 10) return Promise.resolve();
+      click(f[0]);
+      n++;
+      return wait().then(function () { visibleCoherent(card); return loop(); });
+    }
+    return wait().then(function () {
+      var vis = shownCircles(card);
+      assert(vis.length === 3, vis.length + " circles shown after the first +, expected 3");
+      assert(svgW(card) > wFold, "the card did not grow");
+      vis.filter(function (c) { return c !== root; }).forEach(function (c) {
+        assert(c.classList.contains("internal") && c.classList.contains("is-folded"), labelOf(c) + " is not a folded internal circle");
+        assert(shown(ringOf(c)), "the ring of " + labelOf(c) + " is hidden");
+        assert(badgeOf(c).getAttribute("aria-expanded") === "false", labelOf(c) + " is not folded");
+      });
+      assert(eqText(card) === "", "the equation appeared before the tree was fully unfolded");
+      visibleCoherent(card);
+      return loop();
+    }).then(function () {
+      assert(n === 6, "the unfold loop ran " + n + " times, expected 6");
+      assert(shownCircles(card).length === 15, shownCircles(card).length + " circles shown, expected 15");
+      assert(cardEdges(card).filter(shown).length === 14, "expected 14 shown edges");
+      var bs = arr(card.querySelectorAll(".fold-badge"));
+      assert(bs.length === 7 && bs.every(function (x) { return x.getAttribute("aria-expanded") === "true"; }), "not all 7 badges are expanded");
+      var fac = arr(card.querySelectorAll(".tree-equation .fac")).map(function (x) { return x.textContent; });
+      assert(fac.length === 2 && fac[0] === "60 = 2 × 2 × 3 × 5" && fac[1] === "60 = 2^2 × 3 × 5", "equation lines are " + JSON.stringify(fac));
+      assert(msg() === T("msgFactors", { n: 60, count: 4 }), "message is '" + msg() + "'");
+      visibleCoherent(card);
+      G = geom(card);
+      click(root);
+      return wait();
+    }).then(function () {
+      mirroredAbout(xs(G), xs(geom(card)), cardCircles(card).indexOf(root));
+      click(root);
+      return wait();
+    }).then(function () {
+      sameGeom(G, geom(card), "after un-mirroring the root");
+      var c30 = circleByLabel(card, "internal", "30");
+      var D = descendantsIn(childMap(card), c30, []);
+      assert(D.length === 10, "30 has " + D.length + " descendants, expected 10");
+      var wFull = svgW(card);
+      click(badgeOf(c30));
+      assert(eqText(card) === "", "the equation stays after folding");
+      return wait().then(function () {
+        collapsedInto(card, c30, D);
+        assert(svgW(card) < wFull, "the card did not shrink: " + svgW(card) + " vs " + wFull);
+        visibleCoherent(card);
+        click(badgeOf(c30));
+        return wait();
+      }).then(function () {
+        sameGeom(G, geom(card), "after unfolding 30");
+        assert(eqText(card).indexOf("60 = 2 × 2 × 3 × 5") === 0, "the equation did not return: '" + eqText(card) + "'");
+        noErrors("P5");
+        return "60 unfolds one split per +, 6 more clicks to 15 circles; equation and message only when complete; mirror, fold and unfold restore exact geometry";
+      });
+    });
+  });
+
+  step("P6 click-and-keyboard-placement", function () {
+    var before = cards().length;
+    itemByText("5").click();
+    var c5 = lastCard();
+    assert(cards().length === before + 1 && labelOf(shownCircles(c5)[0]) === "5", "a keyboard-style click did not place a 5");
+    assert(document.activeElement === badgeOf(rootOf(c5)), "focus is not on the new tree's + button");
+    var seven = itemByText("7");
+    assert(key(seven, { key: "Enter", repeat: true }), "a held Enter was not default-prevented");
+    assert(cards().length === before + 1, "a held key placed a tree");
+    pointerClick(seven);
+    var c7 = lastCard();
+    assert(cards().length === before + 2 && labelOf(shownCircles(c7)[0]) === "7", "a pointer click did not place a 7");
+    assert(document.activeElement !== badgeOf(rootOf(c7)), "a pointer click moved focus onto the badge");
+    noErrors("P6");
+    return "detail-0 click places a tree and focuses its +; held Enter is blocked; a pointer click leaves focus alone";
+  });
+
+  step("P7 multi-tree-remove-clear", function () {
+    var cs = cards();
+    assert(cs.length >= 3, "only " + cs.length + " cards");
+    var A = cs[0], B = cs[1];
+    var gA = geom(A), wA = svgW(A);
+    click(badgeOf(rootOf(B)));
+    return wait().then(function () {
+      sameGeom(gA, geom(A), "unfolding card B moved card A");
+      assert(near(svgW(A), wA), "unfolding card B resized card A");
+      var rb = B.querySelector(".tree-remove");
+      var nB = labelOf(rootOf(B));
+      assert(rb.getAttribute("aria-label") === T("removeLabel", { n: nB }) && rb.getAttribute("title") === T("removeLabel", { n: nB }), "remove button label is " + rb.getAttribute("aria-label"));
+      var count = cards().length;
+      click(rb);
+      assert(cards().length === count - 1 && cards().indexOf(B) < 0 && !document.contains(B), "the card was not removed");
+      var ae = document.activeElement;
+      assert(ae && ae.classList.contains("tree-remove") && cards().some(function (c) { return c.contains(ae); }), "focus did not move to a remaining remove button");
+      var first = cards()[0];
+      click(badgeOf(rootOf(first)));
+      click(first.querySelector(".tree-remove"));
+      return sleep(TW);
+    }).then(function () {
+      noErrors("P7 fold-then-remove");
+      var palette = items().length;
+      click(document.getElementById("clearBtn"));
+      assert(cards().length === 0, cards().length + " cards after Clear");
+      assert(shown(document.getElementById("workHint")), "the hint is hidden after Clear");
+      assert(document.getElementById("clearBtn").disabled, "Clear is still enabled");
+      assert(document.activeElement === items()[0], "focus is not on the first palette item");
+      assert(msg() === "", "the message is '" + msg() + "'");
+      assert(items().length === palette, "Clear changed the palette");
+      noErrors("P7");
+      return "trees are independent; a card removes itself and hands focus on; fold-then-remove is clean; Clear empties the area and keeps the palette";
+    });
+  });
+
+  step("P8 mode-switch", function () {
+    var inp = document.getElementById("addInput");
+    var n0 = items().length;
+    inp.value = "45"; click(document.getElementById("addBtn"));
+    inp.value = "1000003"; click(document.getElementById("addBtn"));
+    assert(items().length === n0 + 2, "adding 45 and 1000003 gave " + items().length + " items");
+    pointerClick(itemByText("45"));
+    var c45 = lastCard();
+    pointerClick(itemByText("1000003"));
+    assert(cards().length === 2, cards().length + " cards, expected 2");
+    click(badgeOf(rootOf(c45)));
+    return wait().then(function () {
+      assert(childLabels(c45).join() === ["15", "3"].sort().join(), "classic children of 45 are " + childLabels(c45).join());
+      click(document.querySelector('.mode-btn[data-mode="balanced"]'));
+      var cs = cards();
+      assert(cs.length === 1 && labelOf(shownCircles(cs[0])[0]) === "45", cs.length + " cards after the switch to Balanced");
+      assert(badgeOf(rootOf(cs[0])).getAttribute("aria-expanded") === "false", "the rebuilt 45 is not folded");
+      assert(msg() === T("msgTooLargeBalanced"), "message is '" + msg() + "'");
+      assert(inp.max === "1000000", "max is " + inp.max);
+      click(badgeOf(rootOf(cs[0])));
+      return wait().then(function () {
+        assert(childLabels(cs[0]).join() === ["5", "9"].join(), "balanced children of 45 are " + childLabels(cs[0]).join());
+        pointerClick(itemByText("1000003"));
+        assert(cards().length === 1, "an over-cap circle was placed in Balanced mode");
+        assert(msg() === T("msgTooLargeBalanced"), "message is '" + msg() + "'");
+        var count = items().length;
+        inp.value = "2000000"; click(document.getElementById("addBtn"));
+        assert(items().length === count, "an over-cap number was added in Balanced mode");
+        assert(msg() === T("msgTooLargeBalanced"), "message is '" + msg() + "'");
+        click(document.querySelector('.mode-btn[data-mode="classic"]'));
+        assert(inp.max === "1000000000000", "max is " + inp.max);
+        var back = cards();
+        assert(back.length === 1 && badgeOf(rootOf(back[0])).getAttribute("aria-expanded") === "false", "the 45 card was not rebuilt folded in Classic");
+        click(document.getElementById("clearBtn"));
+        assert(cards().length === 0, "Clear left cards behind");
+        noErrors("P8");
+        return "Balanced rebuilds folded and drops over-cap trees with a message; 45 splits 3 x 15 then 5 x 9; over-cap Add and placement refused; Classic rebuilds";
+      });
+    });
+  });
+
+  step("P9 randomize", function () {
+    var inp = document.getElementById("addInput");
+    var palette = items().length;
+    inp.value = "";
+    click(document.getElementById("randomBtn"));
+    var v = inp.value;
+    assert(/^\d+$/.test(v), "the field holds '" + v + "'");
+    var n = Number(v);
+    assert(n >= 12 && n <= 9999, n + " is outside [12, 9999]");
+    var f = 0, m = n;
+    for (var d = 2; d * d <= m; d++) while (m % d === 0) { f++; m /= d; }
+    if (m > 1) f++;
+    assert(f >= 3, n + " has only " + f + " prime factors");
+    assert(items().length === palette && cards().length === 0, "Randomize changed the palette or placed a tree");
+    click(document.getElementById("randomBtn"));
+    assert(inp.value !== v, "a second Randomize gave the same value " + v);
+    noErrors("P9");
+    return "Randomize only fills the field with a different 3+-factor number in [12, 9999]";
+  });
+
+  step("P10 language", function () {
+    var enItem = items()[0].getAttribute("aria-label");
+    pointerClick(items()[0]);
+    var cA = lastCard();
+    click(badgeOf(rootOf(cA)));
+    return wait().then(function () {
+      pointerClick(itemByText("60"));
+      var cB = lastCard();
+      var gA = geom(cA), gB = geom(cB), eA = expandedStates(cA), eB = expandedStates(cB);
+      var enMsg = msg();
+      NT.i18n.setLang("ru");
+      sameGeom(gA, geom(cA), "card A moved on a language change");
+      sameGeom(gB, geom(cB), "card B moved on a language change");
+      assert(expandedStates(cA).join() === eA.join() && expandedStates(cB).join() === eB.join(), "a fold state changed on a language change");
+      var ruItem = items()[0].getAttribute("aria-label");
+      assert(ruItem === T("paletteItemLabel", { n: 2 }) && ruItem !== enItem, "palette label is '" + ruItem + "' (en '" + enItem + "')");
+      var rb = cA.querySelector(".tree-remove");
+      assert(rb.getAttribute("aria-label") === T("removeLabel", { n: 2 }), "remove label is '" + rb.getAttribute("aria-label") + "'");
+      [cA, cB].forEach(function (card) {
+        cardCircles(card).forEach(function (c) {
+          var b = badgeOf(c);
+          if (!b) return;
+          var want = T(b.getAttribute("aria-expanded") === "true" ? "foldLabel" : "unfoldLabel", { n: labelOf(c) });
+          assert(b.getAttribute("aria-label") === want, "badge label is '" + b.getAttribute("aria-label") + "', expected '" + want + "'");
+        });
+      });
+      assert(document.getElementById("workHint").textContent === T("workHint"), "the hint did not change language");
+      assert(document.getElementById("paletteHeading").textContent === T("paletteHeading"), "the palette heading did not change language");
+      assert(document.getElementById("workHeading").textContent === T("workHeading"), "the working-area heading did not change language");
+      assert(document.getElementById("addBtn").textContent === T("add"), "Add did not change language");
+      assert(msg() === T("msgPrime", { n: 2 }) && msg() !== enMsg, "the message is '" + msg() + "'");
+      NT.i18n.setLang("en");
+      click(document.getElementById("clearBtn"));
+      noErrors("P10");
+      return "a language switch relabels palette, remove buttons, badges, headings, hint and message without moving or folding anything";
     });
   });
 

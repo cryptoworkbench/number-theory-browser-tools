@@ -777,6 +777,28 @@
     killView(view);
     views.splice(idx, 1);
     syncWorkState();
+    const next = views[idx] || views[idx - 1];
+    const target = next ? next.removeBtn : paletteEl.querySelector('.palette-item');
+    if(target) target.focus();
+  }
+
+  function clearWork(){
+    views.forEach(killView);
+    views = [];
+    syncWorkState();
+  }
+
+  // A mode switch re-places every tree, fresh and folded, in the new mode;
+  // a tree over the new mode's cap is dropped.
+  function rebuildWork(){
+    const ns = views.map(v=> v.n);
+    clearWork();
+    let skipped = false;
+    ns.forEach(n=>{
+      if(n > capFor(mode)){ skipped = true; return; }
+      dropTree(n);
+    });
+    if(skipped) setMessage('factorTree.msgTooLargeBalanced');
   }
 
   function dropTree(n, opts){
@@ -1254,6 +1276,11 @@
     window.addEventListener('keydown', onDragKey);
   });
 
+  // A held Enter or Space must not place repeated copies.
+  paletteEl.addEventListener('keydown', e=>{
+    if((e.key === 'Enter' || e.key === ' ') && e.repeat) e.preventDefault();
+  });
+
   // Click, tap, Enter and Space on a palette circle also place a copy.
   paletteEl.addEventListener('click', e=>{
     const item = e.target.closest('.palette-item');
@@ -1279,6 +1306,13 @@
     addInput.value = pickRandomN();
   });
 
+  clearBtn.addEventListener('click', ()=>{
+    clearWork();
+    setMessage(null);
+    const first = paletteEl.querySelector('.palette-item');
+    if(first) first.focus();
+  });
+
   function renderBalancedNote(){
     balancedNote.textContent = translate('factorTree.balancedNote');
   }
@@ -1294,6 +1328,7 @@
   modeButtons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       applyMode(btn.getAttribute('data-mode'));
+      rebuildWork();
     });
   });
 
@@ -1301,7 +1336,7 @@
     renderMessage();
     renderBalancedNote();
     relabelPalette();
-    views.forEach(syncControls);
+    views.forEach(v=>{ syncControls(v); relabelRemove(v); });
   });
 
   // Mirrors NT.store.readABParams's defensive shape (assets/nt-store.js): the regex match sits in its own try/catch, the decode+parse sits in a second, and the result is range-tested (against this tool's own Balanced cap) before use. The round-trip string comparison is what rejects fractional strings like "3.5" that parseInt would otherwise silently truncate into a valid-looking integer.
