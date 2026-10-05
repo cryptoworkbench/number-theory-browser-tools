@@ -1,5 +1,6 @@
 ---
 phase: quick-260926-mbl
+status: complete
 plan: 01
 subsystem: ui
 tags: [html, static-site, naming, refactor, git-mv]
@@ -12,7 +13,7 @@ requires:
     provides: Diffie-Hellman Eve travel animation (edits diffie-hellman-key-exchange.html mid-file, distinct region from this plan's nav edits)
 provides:
   - Canonical singular "Venn Diagram" label across all eight pages (title, h1, hub card, all nav links)
-  - "Pizza Slices/pizza-slices.html" renamed via git mv to "Congruence Wheel/congruence-wheel.html" with tracked history preserved
+  - '"Pizza Slices/pizza-slices.html" renamed via git mv to "Congruence Wheel/congruence-wheel.html" with tracked history preserved'
   - All nine in-repo hrefs pointing at the Congruence Wheel repointed to the new path
   - Caption element id renamed slice-caption -> wheel-caption in both markup and script
   - Living docs (CLAUDE.md, .claude/CLAUDE.md, .planning/codebase/*.md) repathed to the new location

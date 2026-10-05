@@ -1,8 +1,8 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "the menubar still isn't universal across all pages, on homepage and on factor tree it is stuck to the screen edge, but on all the other pages the menubar is an individual thing that is just floating in the middle of the left and right edges, and a little underneath of the top edge."
 created: 2026-09-24T15:07:08+02:00
-updated: 2026-09-24T15:12:00+02:00
+updated: 2026-10-05T10:30:00+02:00
 goal: find_root_cause_only
 gap_id: G-01-1a
 bug_class: Bohrbug (fully deterministic, reproduces 6/6 on every load)
@@ -13,7 +13,7 @@ bug_class: Bohrbug (fully deterministic, reproduces 6/6 on every load)
 hypothesis: CONFIRMED — `.site-header` is a normal in-flow block child of `<body>`, so page-level `body{padding}` (present on exactly the 4 "floating" pages, absent on the 2 "edge-pinned" pages) insets it.
 test: Measured `.site-header` getBoundingClientRect() vs computed `body` padding on all six pages in headless Chrome at 1280px.
 expecting: header.left === body.padding-left and header.top === body.padding-top on every page.
-next_action: none — diagnosis complete, returning to caller (diagnose-only mode, no fix applied)
+next_action: none — fixed by f59cff0 (plan 01-06), re-verified 2026-10-05; session closed
 
 reasoning_checkpoint:
   hypothesis: "The shared `.site-header` is full-bleed only when its containing block is full-bleed. It is a direct in-flow child of <body>, so any `padding` on <body> shrinks and offsets it. Four pages set body padding in their own <style> block; two do not — producing exactly the reported 2-vs-4 split."
@@ -169,6 +169,12 @@ fix_direction: |
   Related but SEPARATE: gap G-01-1b (theme not persisting across pages) is a different defect in
   assets/theme.js and is NOT caused by this issue. It was not investigated in this session.
 
-fix: [not applied — diagnose-only mode]
-verification: [not applied — diagnose-only mode]
-files_changed: []
+fix: |
+  Applied by plan 01-06, commit f59cff0 ("un-inset shared nav header on 4 pages by relocating
+  body padding (G-01-1a)") — the preferred strategy above: each affected page's body padding moved
+  onto its own `.app`/`.wrap` content container, leaving `<body>` unpadded on every page.
+verification: |
+  2026-10-05 re-check in headless Chrome at 1280px across all 16 current pages (hub + 15 tools):
+  `.site-header` measured left=0 top=0 width=1265 (= full client width) on every page; no page sets
+  padding on `<body>`. Symptom no longer reproducible.
+files_changed: ["Sieve Of Eratosthenes/sieve-of-eratosthenes.html", "Factorize By Completing The Square/factorize-completing-square.html", "RSA Examplifier/rsa-examplifier.html", "Pizza Slices/pizza-slices.html"]
