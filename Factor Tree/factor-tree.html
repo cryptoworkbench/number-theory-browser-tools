@@ -524,6 +524,8 @@
   const RANDOM_MIN_FACTORS = 3;
   const RANDOM_TRIES = 200;
   const PALETTE_PRIMES = 30;
+  const PALETTE_KEY = 'factor-tree-palette';
+  const PALETTE_SAVE_MAX = 1000;
   const CLASSIC_MAX_N = 1000000000000;
   const SIDE_PAD = 30;
   const SPACING_MAX = 56;
@@ -618,6 +620,7 @@
     slidePalette(isNew ? items : [], ()=> paletteEl.insertBefore(item, next));
     if(isNew) item.scrollIntoView({ block:'nearest' });
     syncPaletteHeading();
+    if(isNew) savePalette();
     return item;
   }
 
@@ -654,6 +657,7 @@
     const rest = items.filter(other=> other !== item);
     slidePalette(rest, ()=> item.remove());
     syncPaletteHeading();
+    savePalette();
     setMessage('factorTree.msgRemoved', { n: item.getAttribute('data-n') }, true);
     if(keyboard){
       const target = items[i + 1] || items[i - 1] || addInput;
@@ -665,7 +669,28 @@
     paletteEl.querySelectorAll('.palette-item').forEach(labelPaletteItem);
   }
 
+  // The palette's circles persist under PALETTE_KEY, so an added or binned
+  // circle stays that way across navigation; a missing or malformed value
+  // falls back to the default primes.
+  function savePalette(){
+    const values = Array.prototype.map.call(paletteEl.querySelectorAll('.palette-item'), item=> Number(item.getAttribute('data-n')));
+    try{ localStorage.setItem(PALETTE_KEY, JSON.stringify(values)); }catch(e){}
+  }
+
+  function readSavedPalette(){
+    let parsed;
+    try{ parsed = JSON.parse(localStorage.getItem(PALETTE_KEY)); }catch(e){ return null; }
+    if(!Array.isArray(parsed) || parsed.length > PALETTE_SAVE_MAX) return null;
+    const ok = parsed.every(n=> Number.isInteger(n) && n >= 2 && n <= CLASSIC_MAX_N);
+    return ok ? parsed : null;
+  }
+
   (function prefillPalette(){
+    const saved = readSavedPalette();
+    if(saved){
+      saved.forEach(n=> addPaletteItem(n, false));
+      return;
+    }
     let found = 0;
     for(let n = 2; found < PALETTE_PRIMES; n++){
       if(isPrime(n)){
