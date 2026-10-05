@@ -17,7 +17,7 @@ var url = require("url");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 7;
+var EXPECTED = 8;
 
 var PROBE_BODY = [
   "(function(){",
@@ -82,7 +82,7 @@ var SCEN = [
   "      reset(g);",
   "      ev(g, 'mouseenter'); ev(g, 'focus'); ev(g, 'dblclick');",
   "      var h = lastHref();",
-  "      assert(h.indexOf('../Factor Tree/factor-tree.html?n=5') === 0, 'dblclick opened ' + h);",
+  "      assert(h.indexOf('../Factor Tree/factor-tree.html?a=30&b=35') === 0, 'dblclick opened ' + h);",
   "      return 'opened ' + h;",
   "    });",
   "",
@@ -170,6 +170,33 @@ var SCEN = [
   "      var h = lastHref();",
   "      assert(h.indexOf('../Euclidean Algorithm/euclidean-algorithm.html?') === 0 && h.indexOf('lang=de') >= 0, 'dblclick opened ' + h);",
   "      return 'replayed in de, offset 206 survived focus, opened ' + h;",
+  "    });",
+  "",
+  "    scenario('S8 two-overlap-tree-preview', function(){",
+  "      var g = chip('venn-composite-dynamic', 'overlap');",
+  "      var layer = document.getElementById('venn-preview');",
+  "      reset(g);",
+  "      ev(g, 'mouseenter');",
+  "      function label(c){ var t = c.nextElementSibling; return t ? t.textContent : ''; }",
+  "      var nodes = Array.prototype.slice.call(layer.querySelectorAll('.ft-node'));",
+  "      var roots = nodes.filter(function(c){ return c.classList.contains('root'); }).map(label);",
+  "      var shared = nodes.filter(function(c){ return c.classList.contains('shared'); }).map(label);",
+  "      assert(roots.join() === '30,35', 'preview roots are ' + roots.join());",
+  "      assert(shared.join() === '5', 'shared circles are ' + shared.join());",
+  "      var all = nodes.map(label);",
+  "      assert(all.indexOf('6') >= 0 && all.indexOf('7') >= 0, 'rest branches 6 and 7 missing: ' + all.join());",
+  "      assert(all.filter(function(v){ return v === '5'; }).length === 2, 'the shared 5 branch is drawn more than once: ' + all.join());",
+  "      var caps = Array.prototype.slice.call(layer.querySelectorAll('.np-caption')).map(function(t){ return t.textContent; });",
+  "      assert(caps[0] === 'gcd(30, 35) = 5', 'tree caption is ' + caps[0]);",
+  "      var want = NT.i18n.translate('venn.label.overlapFactorTrees', { tool: NT.i18n.translate('site.nav.factorTree') });",
+  "      assert(g.getAttribute('aria-label').indexOf(want) >= 0, 'chip label lacks the overlap target: ' + g.getAttribute('aria-label'));",
+  "      reset(g);",
+  "      var g3 = chip('venn3-composite-dynamic', 'ab');",
+  "      ev(g3, 'mouseenter');",
+  "      var l3 = document.getElementById('venn3-preview');",
+  "      assert(l3.querySelectorAll('.ft-node.shared').length === 0 && l3.querySelectorAll('.ft-node.root').length === 1, 'three-circle ab preview changed');",
+  "      reset(g3);",
+  "      return 'A ∩ B preview draws 30 and 35 over one shared 5 (with 6 and 7 beside it), caption gcd(30, 35) = 5; three-circle chips unchanged';",
   "    });"
 ].join("\n");
 

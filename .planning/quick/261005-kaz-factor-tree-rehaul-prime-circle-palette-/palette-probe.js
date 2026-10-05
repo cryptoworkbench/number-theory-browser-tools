@@ -21,7 +21,7 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 32;
+var EXPECTED = 33;
 var EXPECTED_NODE = 3;
 
 var LANGS = ["nl", "en", "de", "fr", "es", "it", "pl", "pt-BR", "pt-PT", "sv", "nb", "ro", "hu", "lv", "ru", "el"];
@@ -973,6 +973,25 @@ function inPage(cfg) {
     });
   } });
   if (/[?&]n=/.test(location.search)) steps = deepSteps;
+  var pairSteps = [];
+  pairSteps.push({ name: "D2 deep-link-pair", fn: function () {
+    assert(document.querySelector('.mode-btn[data-mode="balanced"]').classList.contains("is-active"), "Balanced is not the active mode");
+    assert(items().some(function (b) { return b.textContent === "30"; }) && items().some(function (b) { return b.textContent === "35"; }), "30 and 35 were not added to the palette");
+    var cs = cards();
+    assert(cs.length === 1 && cs[0].classList.contains("is-overlap"), cs.length + " cards, expected one overlap card");
+    var card = cs[0];
+    return settle().then(function () {
+      var roots = arr(card.querySelectorAll(".node-circle.root")).filter(shown);
+      var sh = sharedOf(card).filter(shown);
+      assert(roots.map(labelOf).join() === "30,35", "roots read " + roots.map(labelOf).join());
+      assert(sh.length === 1 && labelOf(sh[0]) === "5" && sharedOf(card).length === 1, "shared circles: " + sharedOf(card).map(labelOf).join());
+      assert(eqText(card) === "30 = 6 × 5" + "35 = 5 × 7" + "gcd(30, 35) = 5", "equation reads " + eqText(card));
+      visibleCoherent(card);
+      noErrors("D2");
+      return "?a=30&b=35 opens in Balanced with 30 and 35 in the palette and their trees overlapped on a shared 5";
+    });
+  } });
+  if (/[?&]a=/.test(location.search)) steps = pairSteps;
 
   var chain = Promise.resolve();
   window.addEventListener("load", function () {
@@ -1059,7 +1078,8 @@ function main() {
   var runs = [
     { args: [], tag: "[default] ", query: "?lang=en" },
     { args: ["--force-prefers-reduced-motion"], tag: "[reduced] ", query: "?lang=en" },
-    { args: [], tag: "[deeplink] ", query: "?n=45&lang=en" }
+    { args: [], tag: "[deeplink] ", query: "?n=45&lang=en" },
+    { args: [], tag: "[pairlink] ", query: "?a=30&b=35&lang=en" }
   ];
   runs.forEach(function (run) {
     var r = runPage(page, run.args, run.tag, run.query);

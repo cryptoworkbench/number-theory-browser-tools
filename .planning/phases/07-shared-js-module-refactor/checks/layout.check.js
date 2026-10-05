@@ -11,8 +11,9 @@ var fs = require("fs");
 var path = require("path");
 
 var EXPECTED_KEYS = [
-  "assignTreeX", "BALANCED_MAX_N", "buildFactorTree", "computeNestedLayout",
-  "flattenTree", "TILE_CAP"
+  "assignOverlapX", "assignTreeX", "BALANCED_MAX_N", "buildFactorTree",
+  "buildOverlapTree", "computeNestedLayout", "flattenOverlap", "flattenTree",
+  "TILE_CAP"
 ];
 
 var EA_PATH = "Euclidean Algorithm/euclidean-algorithm.html";

@@ -551,9 +551,9 @@
 <script>
 (function(){
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
-  const { gcd, isPrime, primeFactors, randomInt } = NT.core;
+  const { isPrime, primeFactors, randomInt } = NT.core;
   const { easeInOutCubic, svgEl } = NT.svg;
-  const { BALANCED_MAX_N, assignTreeX, buildFactorTree, flattenTree } = NT.layout;
+  const { BALANCED_MAX_N, assignTreeX, buildFactorTree, buildOverlapTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
 
   // ---------- Elements ----------
@@ -978,13 +978,8 @@
   // copy of the g branch lies exactly on a's, and the copy is dropped: one
   // shared, highlighted g branch heads the sub-tree both numbers have in
   // common. A number equal to g has no split of its own — it is the shared
-  // circle. Coprime numbers share a single 1.
-  function subTree(m, depth){
-    const root = buildFactorTree(m, { balanced: mode === 'balanced' });
-    for(let i = 0; i < depth; i++) shiftTree(root);
-    return root;
-  }
-
+  // circle. Coprime numbers share a single 1. The overlapped shape comes
+  // from NT.layout.buildOverlapTree, the same one Venn Diagram previews.
   function cloneTree(node, twinOf){
     const copy = { value:node.value, kind:node.kind, depth:node.depth, shared:node.shared,
       children:node.children.map(c=> cloneTree(c, twinOf)) };
@@ -992,19 +987,15 @@
     return copy;
   }
 
+  // b's side starts on its own copy (twin) of the shared branch, so the two
+  // trees can stand apart before they merge.
   function overlapGraph(a, b){
-    const g = gcd(a, b);
-    const G = subTree(g, a === g && b === g ? 0 : 1);
-    G.shared = true;
+    const t = buildOverlapTree(a, b, { balanced: mode === 'balanced' });
     const twinOf = new Map();
-    const twin = cloneTree(G, twinOf);
-    function side(x, own, restFirst){
-      if(x === g) return { root:null, rest:null, top:own };
-      const rest = subTree(x / g, 1);
-      const root = { value:x, kind:'root', depth:0, children: restFirst ? [rest, own] : [own, rest] };
-      return { root:root, rest:rest, top:root };
-    }
-    return { g:g, G:G, twin:twin, twinOf:twinOf, A:side(a, G, true), B:side(b, twin, false), done:false };
+    const twin = cloneTree(t.G, twinOf);
+    const B = { root:t.b.root, rest:t.b.rest, top:t.b.root || twin };
+    if(B.root) B.root.children = B.root.children.map(c=> c === t.G ? twin : c);
+    return { g:t.g, G:t.G, twin:twin, twinOf:twinOf, A:t.a, B:B, done:false };
   }
 
   function buildOverlapCard(a, b, animate){
@@ -1159,8 +1150,8 @@
     return view;
   }
 
-  function placeOverlap(a, b){
-    const view = buildOverlapCard(a, b, false);
+  function placeOverlap(a, b, animate){
+    const view = buildOverlapCard(a, b, !!animate);
     workArea.appendChild(view.card);
     views.push(view);
     syncWorkState();
@@ -1934,9 +1925,49 @@
     return n;
   }
 
+  // ?a=&b= (Venn Diagram's A ∩ B preview links here): the same checks as
+  // readNParam for each number, and a pair of two 1s has nothing to show.
+  function readPairParams(){
+    var ma, mb;
+    try{
+      ma = /[?&]a=([^&#]*)/.exec(location.search);
+      mb = /[?&]b=([^&#]*)/.exec(location.search);
+    }catch(e){
+      return null;
+    }
+    if (!ma || !mb) return null;
+    var pair = [ma[1], mb[1]].map(function(text){
+      var raw, n;
+      try{
+        raw = decodeURIComponent(text);
+        n = parseInt(raw, 10);
+      }catch(e){
+        return null;
+      }
+      if (!Number.isFinite(n) || !Number.isInteger(n) || String(n) !== raw || n < 1 || n > BALANCED_MAX_N) return null;
+      return n;
+    });
+    if (pair[0] === null || pair[1] === null || (pair[0] === 1 && pair[1] === 1)) return null;
+    return { a: pair[0], b: pair[1] };
+  }
+
+  function ensurePaletteItem(n){
+    if (n < 2) return;
+    const known = Array.prototype.some.call(paletteEl.querySelectorAll('.palette-item'), item=> item.getAttribute('data-n') === String(n));
+    if(!known) addPaletteItem(n, true);
+  }
+
   // The page opens with the 30-prime palette and an empty working area; only a
-  // deep link places a (folded) tree.
+  // deep link places a (folded) tree, or two trees overlapping on their gcd.
   window.addEventListener('load', ()=>{
+    const deepLinkPair = readPairParams();
+    if(deepLinkPair !== null){
+      applyMode('balanced');
+      ensurePaletteItem(deepLinkPair.a);
+      ensurePaletteItem(deepLinkPair.b);
+      placeOverlap(deepLinkPair.a, deepLinkPair.b, true);
+      return;
+    }
     const deepLinkN = readNParam();
     if(deepLinkN === null) return;
     applyMode('balanced');
@@ -1944,8 +1975,7 @@
       setMessage('factorTree.msgOne', null, true);
       return;
     }
-    const known = Array.prototype.some.call(paletteEl.querySelectorAll('.palette-item'), item=> item.getAttribute('data-n') === String(deepLinkN));
-    if(!known) addPaletteItem(deepLinkN, true);
+    ensurePaletteItem(deepLinkN);
     dropTree(deepLinkN);
   });
 })();

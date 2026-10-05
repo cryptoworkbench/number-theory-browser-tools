@@ -319,6 +319,7 @@
   .nested-preview .ft-node.root, .nested-preview .ft-node.internal{ fill:var(--role-input); stroke:var(--role-input); }
   .nested-preview .ft-node.prime-leaf{ fill:var(--role-result); stroke:var(--role-result); }
   .nested-preview .ft-node.one{ fill:color-mix(in srgb, var(--role-inert) 55%, transparent); stroke:var(--role-inert); }
+  .nested-preview .ft-node.shared{ stroke:var(--role-active); stroke-width:2.5; }
   .nested-preview .ft-label{ font-family:var(--font-sans); font-weight:700; text-anchor:middle; dominant-baseline:central; fill:var(--accent-ink); pointer-events:none; }
   .nested-preview .ft-label.prime-leaf{ fill:var(--role-result-ink); }
   .nested-preview .ft-label.one{ fill:var(--text); opacity:.75; }
@@ -580,7 +581,7 @@
   const { euclidSteps, gcd, isPrime, primeFactors } = NT.core;
   const { svgEl } = NT.svg;
   const { SHARED_AB_KEY, readABParams, readMigrating, readSharedAB, writeSharedAB } = NT.store;
-  const { BALANCED_MAX_N, assignTreeX, buildFactorTree, computeNestedLayout, flattenTree } = NT.layout;
+  const { BALANCED_MAX_N, assignOverlapX, assignTreeX, buildFactorTree, buildOverlapTree, computeNestedLayout, flattenOverlap, flattenTree } = NT.layout;
   const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
   /* ---------- number theory ---------- */
@@ -950,7 +951,10 @@
   /* ---------- Balanced (Fermat's Method) factor tree preview ---------- */
   // Drawn by NT.layout.buildFactorTree(value, { balanced: true }) -- the
   // same balanced-tree builder the full Factor Tree tool draws, so this
-  // miniature always matches the page its double-click opens.
+  // miniature always matches the page its double-click opens. The
+  // two-circle A ∩ B chip instead draws A's and B's trees overlapped on
+  // their gcd (NT.layout.buildOverlapTree, balanced), the panel Factor
+  // Tree's ?a=&b= deep link opens.
 
   /* ---------- Combined stacked preview renderer ---------- */
   // Both miniatures live in ONE fixed 268x196 panel, stacked as two 196-tall
@@ -1046,11 +1050,14 @@
     // roughly v/2 candidates on a hover. Bail before any split runs. Uses
     // the same named predicate factorTreeHref() uses, so the bail and the
     // URL builder can never disagree about what's in range.
-    if (!isFactorTreeRange(opts.value)){
+    var inRange = opts.overlapTree
+      ? isFactorTreeRange(opts.a) && isFactorTreeRange(opts.b)
+      : isFactorTreeRange(opts.value);
+    if (!inRange){
       var overCaption = svgEl('text', {
         'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
       });
-      overCaption.textContent = String(opts.value);
+      overCaption.textContent = opts.overlapTree ? 'gcd(' + opts.a + ', ' + opts.b + ')' : String(opts.value);
       host.appendChild(overCaption);
       var overHint = svgEl('text', {
         'class': 'np-hint', x: px + NP_W / 2, y: sy + NP_H - 5
@@ -1063,11 +1070,18 @@
     var bx = px + NP_PAD, by = sy + 22;
     var bw = NP_W - 2 * NP_PAD, bh = NP_H - 56;
 
-    var tree = buildFactorTree(opts.value, { balanced: true });
     var xCounter = { value: 0 };
-    assignTreeX(tree, xCounter);
     var nodes = [], edges = [], depthBox = { value: 0 };
-    flattenTree(tree, null, nodes, edges, depthBox);
+    var overlap = null;
+    if (opts.overlapTree){
+      overlap = buildOverlapTree(opts.a, opts.b, { balanced: true });
+      assignOverlapX(overlap, xCounter);
+      flattenOverlap(overlap, nodes, edges, depthBox);
+    } else {
+      var tree = buildFactorTree(opts.value, { balanced: true });
+      assignTreeX(tree, xCounter);
+      flattenTree(tree, null, nodes, edges, depthBox);
+    }
     var leafCount = Math.max(1, xCounter.value);
     var maxDepth = depthBox.value;
 
@@ -1103,7 +1117,7 @@
       var isOne = node.kind === 'one';
       var nr = isOne ? oneR : r;
       host.appendChild(svgEl('circle', {
-        'class': 'ft-node ' + node.kind, cx: cx, cy: cy, r: nr
+        'class': 'ft-node ' + node.kind + (node.shared ? ' shared' : ''), cx: cx, cy: cy, r: nr
       }));
       var label = svgEl('text', {
         'class': 'ft-label ' + node.kind, x: cx, y: cy,
@@ -1116,7 +1130,9 @@
     var caption = svgEl('text', {
       'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
     });
-    caption.textContent = factorTail(primeFactors(opts.value, FACTOR_LIMIT), opts.value);
+    caption.textContent = overlap
+      ? 'gcd(' + opts.a + ', ' + opts.b + ') = ' + overlap.g
+      : factorTail(primeFactors(opts.value, FACTOR_LIMIT), opts.value);
     host.appendChild(caption);
 
     if (opts.treeHref){
@@ -1979,7 +1995,8 @@
     // Section order on screen: Factor Tree first, Euclidean second -- the
     // accessible name lists exactly the targets that exist, in that order.
     var targetLabels = [];
-    if (hasTreeHref) targetLabels.push(factorTreeLabel());
+    var treeLabel = (link && link.treeLabel) || factorTreeLabel();
+    if (hasTreeHref) targetLabels.push(treeLabel);
     if (hasHref) targetLabels.push(link.label);
     if (targetLabels.length === 1){
       titleText += ' — ' + translate('venn.label.doubleClickToOne', { a: targetLabels[0] });
@@ -2015,7 +2032,7 @@
         var chosenHref, chosenLabel;
         if (offset < midpoint){
           chosenHref = g.getAttribute('data-xref-tree-href');
-          chosenLabel = factorTreeLabel();
+          chosenLabel = treeLabel;
         } else {
           chosenHref = g.getAttribute('data-xref-href');
           chosenLabel = link.label;
@@ -2036,7 +2053,7 @@
       // showHint gates the trailing "double-click to ..." line inside the
       // Euclidean section itself -- a chip with no Euclidean href must
       // never show a hint that promises a click it does not perform.
-      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref, showEuclid: !!link.showEuclid, treeHref: link.treeHref || null };
+      var previewOpts = { anchor: anchor, vbW: link.vbW, vbH: link.vbH, a: link.a, b: link.b, value: value, showHint: hasHref, showEuclid: !!link.showEuclid, treeHref: link.treeHref || null, overlapTree: !!link.overlapTree };
       // Tracked so onLangChange can re-open the same preview after its
       // rebuild (P7) -- the badge DOM node is destroyed and recreated on
       // every render(), so "the pointer is still over it" can't be read
@@ -2091,7 +2108,7 @@
       var link = null;
       if (key === 'overlap'){
         var href = euclidHref(pair.a, pair.b);
-        if (href) link = { href: href, label: translate('venn.label.confirmGcd', { tool: translate('site.nav.euclid') }), a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true, treeHref: factorTreeHref(value) };
+        if (href) link = { href: href, label: translate('venn.label.confirmGcd', { tool: translate('site.nav.euclid') }), a: pair.a, b: pair.b, previewLayer: previewLayer, vbW: 900, vbH: 520, showEuclid: true, overlapTree: true, treeHref: factorTreeOverlapHref(pair.a, pair.b), treeLabel: translate('venn.label.overlapFactorTrees', { tool: translate('site.nav.factorTree') }) };
       }
       appendCompositeBadge(svgCompositeDynamic, REGION_ANCHOR[key], value, REGION_NOTATION[key], false, key, link);
     }
@@ -2233,6 +2250,13 @@
   function factorTreeHref(value){
     if (!isFactorTreeRange(value)) return null;
     return FACTOR_TREE_PATH + '?n=' + encodeURIComponent(value) + '&lang=' + getLang();
+  }
+
+  // The two-circle A ∩ B chip's Factor Tree target: both numbers' trees
+  // overlapped on their gcd. Null when either is out of the tool's range.
+  function factorTreeOverlapHref(a, b){
+    if (!isFactorTreeRange(a) || !isFactorTreeRange(b) || (a === 1 && b === 1)) return null;
+    return FACTOR_TREE_PATH + '?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b) + '&lang=' + getLang();
   }
 
   // Opens a same-origin cross-tool link in a new, opener-less tab, reporting

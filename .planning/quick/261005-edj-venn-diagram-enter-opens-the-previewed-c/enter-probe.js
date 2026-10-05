@@ -72,7 +72,7 @@ var PROBE_BODY = [
 
 var SCEN = [
   "    var EU2 = '../Euclidean Algorithm/euclidean-algorithm.html?a=30&b=35';",
-  "    var FT5 = '../Factor Tree/factor-tree.html?n=5';",
+  "    var FT_AB = '../Factor Tree/factor-tree.html?a=30&b=35';",
   "    var EU = '../Euclidean Algorithm/euclidean-algorithm.html?a=';",
   "    var FT = '../Factor Tree/factor-tree.html?n=';",
   "    var body = document.body;",
@@ -84,7 +84,7 @@ var SCEN = [
   "      var cancelled;",
   "      var got = opened(function(){ cancelled = enter(body); });",
   "      assert(cancelled, 'Enter on body was not cancelled');",
-  "      assert(got.length === 1 && got[0].indexOf(FT5) === 0, 'Enter opened ' + JSON.stringify(got));",
+  "      assert(got.length === 1 && got[0].indexOf(FT_AB) === 0, 'Enter opened ' + JSON.stringify(got));",
   "      reset(g);",
   "      return 'opened ' + got[0];",
   "    });",
@@ -170,7 +170,7 @@ var SCEN = [
   "        gotRepeat = opened(function(){ repeatCancelled = enter(body, { repeat: true }); });",
   "      } finally { region.removeEventListener('keydown', probeListener); reset(g); }",
   "      assert(cancelled, 'Enter on the region was not cancelled');",
-  "      assert(got.length === 1 && got[0].indexOf(FT5) === 0, 'Enter on the region opened ' + JSON.stringify(got));",
+  "      assert(got.length === 1 && got[0].indexOf(FT_AB) === 0, 'Enter on the region opened ' + JSON.stringify(got));",
   "      assert(!reached, 'the region keydown listener still saw Enter');",
   "      assert(repeatCancelled, 'repeat Enter was not cancelled');",
   "      assert(gotRepeat.length === 0, 'repeat Enter opened ' + JSON.stringify(gotRepeat));",

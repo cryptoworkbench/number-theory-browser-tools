@@ -5,7 +5,8 @@
    duplicated per-tool: the Euclidean Algorithm's rectangle-tiling "nested
    squares" geometry (computeNestedLayout), and the classic-school /
    Fermat's-Method-balanced recursive factor tree (buildFactorTree,
-   assignTreeX, flattenTree). These layouts are what the full Euclidean
+   assignTreeX, flattenTree), plus the gcd overlap of two such trees
+   (buildOverlapTree, assignOverlapX, flattenOverlap). These layouts are what the full Euclidean
    Algorithm and Factor Tree tools draw AND what Venn Diagram's hover
    miniatures draw, so previews and tools always agree on the geometry —
    nodes/rects are unit-space data only; scaling to pixels and drawing the
@@ -18,8 +19,8 @@
    over file://, where ES module imports are blocked by CORS.
 
    Dependency: this is the one shared module with a load-time dependency —
-   it calls NT.core.isPrime, NT.core.smallestPrimeFactor, NT.core.fermatSplit
-   and reads NT.core.FERMAT_MAX_ITER, captured once at load time. A page
+   it calls NT.core.isPrime, NT.core.smallestPrimeFactor, NT.core.fermatSplit,
+   NT.core.gcd and reads NT.core.FERMAT_MAX_ITER, captured once at load time. A page
    that includes nt-layout.js MUST include nt-core.js first, or this file
    throws a descriptive Error immediately.
 
@@ -51,6 +52,7 @@
   var coreSmallestPrimeFactor = NT.core.smallestPrimeFactor;
   var coreFermatSplit = NT.core.fermatSplit;
   var coreFermatMaxIter = NT.core.FERMAT_MAX_ITER;
+  var coreGcd = NT.core.gcd;
 
   /* ---------- Euclidean nested-squares layout ---------- */
 
@@ -123,7 +125,9 @@
   var BALANCED_MAX_N = 1000000;
 
   // buildFactorTree(v, options): options.balanced (default false),
-  // options.maxIter (default NT.core.FERMAT_MAX_ITER). Reproduces Factor
+  // options.maxIter (default NT.core.FERMAT_MAX_ITER), options.depth (the
+  // depth of the returned node, default 0 -- a tree started below the top
+  // has no 'root' kind anywhere). Reproduces Factor
   // Tree's buildTree exactly: value 1 gives a 'one' leaf; a prime gives a
   // node whose children are a 'one' leaf and a 'prime-leaf' of the same
   // value; kind is 'root' at depth 0, else 'internal'. In balanced mode an
@@ -191,7 +195,54 @@
       };
     }
 
-    return node(v, 0);
+    return node(v, options.depth || 0);
+  }
+
+  // buildOverlapTree(a, b, options): the trees of a and b overlapped on
+  // g = gcd(a, b). Each number with x !== g is a root whose two children
+  // are the tree of x/g and the one shared tree of g (marked shared: true):
+  // a's rest on the left of g, b's rest on the right, so the shared branch
+  // sits between them. A number equal to g has no root of its own -- its
+  // top is the shared tree itself; when a === b the shared tree is the
+  // only tree and starts at depth 0. options as for buildFactorTree.
+  // Returns { g, G, a: side, b: side }, side = { root, rest, top }.
+  function buildOverlapTree(a, b, options) {
+    options = options || {};
+    var sub = function (v, depth) {
+      return buildFactorTree(v, { balanced: options.balanced, maxIter: options.maxIter, depth: depth });
+    };
+    var g = coreGcd(a, b);
+    var G = sub(g, a === g && b === g ? 0 : 1);
+    G.shared = true;
+    function side(x, restFirst) {
+      if (x === g) return { root: null, rest: null, top: G };
+      var rest = sub(x / g, 1);
+      var root = { value: x, kind: 'root', children: restFirst ? [rest, G] : [G, rest], depth: 0 };
+      return { root: root, rest: rest, top: root };
+    }
+    return { g: g, G: G, a: side(a, true), b: side(b, false) };
+  }
+
+  // assignOverlapX(overlap, counter): one leaf row for a's rest, the shared
+  // branch and b's rest, in that order; each root sits midway over its
+  // two parts. counter.value ends as the leaf count.
+  function assignOverlapX(overlap, counter) {
+    var parts = [overlap.a.rest, overlap.G, overlap.b.rest].filter(Boolean);
+    assignTreeX({ children: parts }, counter);
+    if (overlap.a.root) overlap.a.root.x = (overlap.a.rest.x + overlap.G.x) / 2;
+    if (overlap.b.root) overlap.b.root.x = (overlap.G.x + overlap.b.rest.x) / 2;
+  }
+
+  // flattenOverlap(overlap, nodes, edges, maxDepth): like flattenTree, with
+  // every node of the shared branch listed once and an edge to it from
+  // each root that has one.
+  function flattenOverlap(overlap, nodes, edges, maxDepth) {
+    flattenTree(overlap.a.top, null, nodes, edges, maxDepth);
+    var bRoot = overlap.b.root;
+    if (!bRoot) return;
+    nodes.push(bRoot);
+    edges.push({ from: bRoot, to: overlap.G });
+    flattenTree(overlap.b.rest, bRoot, nodes, edges, maxDepth);
   }
 
   // assignTreeX(node, counter): leaves get consecutive x positions in
@@ -217,10 +268,13 @@
   }
 
   NT.layout = Object.freeze({
+    assignOverlapX: assignOverlapX,
     assignTreeX: assignTreeX,
     BALANCED_MAX_N: BALANCED_MAX_N,
     buildFactorTree: buildFactorTree,
+    buildOverlapTree: buildOverlapTree,
     computeNestedLayout: computeNestedLayout,
+    flattenOverlap: flattenOverlap,
     flattenTree: flattenTree,
     TILE_CAP: TILE_CAP
   });
