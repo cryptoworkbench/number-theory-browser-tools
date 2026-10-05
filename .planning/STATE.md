@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-05T15:46:36.230Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: ac1805ffa14ad562e6e8db69e8c6fbacffefa52d
+state_head: 704780b502fd551d2b6421f7d2ba380f6d051d5e
 progress:
   total_phases: 7
   completed_phases: 6
@@ -312,6 +312,7 @@ None yet.
 | 76 | Factor Tree: drop a panel on the right half of another to overlap them on their gcd (84 and 90 share one 6 branch under both roots) | 2026-10-05 | e35bf52 | — |
 | 77 | Venn Diagram: A ∩ B preview overlaps the factor trees of A and B on their gcd; Factor Tree ?a=&b= deep link | 2026-10-05 | cf89e2c | — |
 | 78 | Factor Tree: prime circles green by default (palette, drag ghost, folded prime node); a prime circle turns blue once unfolded into P × 1 | 2026-10-05 | ac1805f | — |
+| 79 | Factor Tree: dragging a composite circle into the area unfolds it down to its (folded, green) primes; 'working area' renamed to composition/factorization area in every label and tooltip, all 16 languages | 2026-10-05 | 704780b | — |
 
 ## Deferred Items
 
