@@ -26,8 +26,8 @@ var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-modul
 // Both modes drive the Factor Tree page: drag builds a pair by dropping a
 // panel on another's gcd half, link opens the ?a=&b= deep link.
 var PAGES = {
-  drag: { dir: "Factor Tree", file: "factor-tree.html", query: "?lang=en", expected: 6 },
-  link: { dir: "Factor Tree", file: "factor-tree.html", query: "?a=12&b=18&lang=en", expected: 0 }
+  drag: { dir: "Factor Tree", file: "factor-tree.html", query: "?lang=en", expected: 15 },
+  link: { dir: "Factor Tree", file: "factor-tree.html", query: "?a=12&b=18&lang=en", expected: 2 }
 };
 
 // Same evaluation i18n-check.js's loadCatalog() does.
@@ -205,6 +205,37 @@ function inPage(cfg) {
     ok(getComputedStyle(lens).display !== "none", what + " lens displayed");
   }
 
+  function fire(el, type, extra) {
+    el.dispatchEvent(new MouseEvent(type, Object.assign({ bubbles: true, cancelable: true }, extra || {})));
+  }
+  function badgesOf(card) { return qa(card, ".fold-badge"); }
+  function expandedOf(card) { return badgesOf(card).map(function (b) { return b.getAttribute("aria-expanded"); }); }
+  function pressedOf(card) { return qa(card, "[aria-pressed]").map(function (c) { return c.getAttribute("aria-pressed"); }); }
+  function badgeOfCircle(circle) {
+    var el = circle.nextElementSibling;
+    for (var i = 0; i < 4 && el; i++, el = el.nextElementSibling) {
+      if (el.classList.contains("fold-badge")) return el;
+    }
+    throw new Error("no fold badge beside a circle");
+  }
+  function sharedCircle(card) { return card.querySelector(".node-circle.shared"); }
+  // Visible labels strictly below the shared circle, in x order: with a prime
+  // rest folded on its split, every one of them belongs to the g sub-tree.
+  function belowShared(card) {
+    var sy = Number(sharedCircle(card).getAttribute("cy"));
+    return qa(card, ".node-text").filter(function (t) {
+      return t.style.display !== "none" && Number(t.getAttribute("y")) > sy + 0.5;
+    }).map(function (t) { return [Number(t.getAttribute("x")), Number(t.getAttribute("y")), t.textContent]; })
+      .sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; })
+      .map(function (a) { return a[2]; });
+  }
+  function joined(pair) { return wait(2500).then(function () { ok(pair.classList.contains("is-tinted"), "pair tinted"); }); }
+  function stateOf(pair) {
+    return halves(pair).map(function (h) { return { exp: expandedOf(h), pr: pressedOf(h), t: textsOf(h) }; });
+  }
+  function settled(ms) { return wait(ms || 1500); }
+  var undoW = $("workUndoBtn"), redoW = $("workRedoBtn");
+
   function dragRun() {
     var chain = Promise.resolve();
     function add(name, fn) { chain = chain.then(function () { return scenario(name, fn); }); }
@@ -241,8 +272,13 @@ function inPage(cfg) {
     });
 
     add("T3 night theme colours: yellow, blue, green", function () {
+      var prev = document.documentElement.getAttribute("data-theme");
       document.documentElement.setAttribute("data-theme", "night");
-      return wait(500).then(function () { checkColours(pair, "night"); });
+      return wait(300).then(function () {
+        checkColours(pair, "night");
+        if (prev === null) document.documentElement.removeAttribute("data-theme");
+        else document.documentElement.setAttribute("data-theme", prev);
+      });
     });
 
     add("T4 geometry: g on g, lens on the intersection, trees on top", function () {
@@ -284,10 +320,257 @@ function inPage(cfg) {
       });
     });
 
+
+    add("E1 glue: folding a circle keeps g on g frame by frame", function () {
+      var p = makePair(72, 60);
+      return joined(p).then(function () {
+        var left = halves(p)[0];
+        var widthBefore = rect(left).width;
+        var sixes = qa(left, ".node-text").filter(function (t) { return t.textContent === "6"; })
+          .sort(function (a, b) { return Number(a.getAttribute("x")) - Number(b.getAttribute("x")); });
+        var badge = sixes[0].nextElementSibling;
+        ok(badge && badge.classList.contains("fold-badge"), "the left 6 has a fold badge");
+        fire(badge, "click");
+        return wait(200).then(function () {
+          alignedWithin(p, 1, "mid-tween");
+          lensMatches(p, 2, "mid-tween");
+          return wait(1500);
+        }).then(function () {
+          alignedWithin(p, 1, "after the fold");
+          lensMatches(p, 2, "after the fold");
+          ok(rect(halves(p)[0]).width < widthBefore - 1, "the left panel got narrower");
+          eq(eqLines(p), [], "equation cleared while a circle is folded");
+        });
+      });
+    });
+
+    add("E2 mirror of the g branch acts on both copies, one undo step", function () {
+      var p = makePair(24, 60);
+      return joined(p).then(function () {
+        var h = halves(p);
+        var before = belowShared(h[0]);
+        eq(belowShared(h[1]), before, "same g sub-tree in both panels at the start");
+        fire(sharedCircle(h[0]), "click");
+        return wait(1200).then(function () {
+          eq([sharedCircle(h[0]).getAttribute("aria-pressed"), sharedCircle(h[1]).getAttribute("aria-pressed")], ["true", "true"], "both pressed");
+          var after = belowShared(h[0]);
+          ok(JSON.stringify(after) !== JSON.stringify(before), "the order changed: " + before + " -> " + after);
+          eq(belowShared(h[1]), after, "same mirrored order in both panels");
+          alignedWithin(p, 1, "after the mirror");
+          undoW.click();
+          var q = pairs()[0], h2 = halves(q);
+          eq([sharedCircle(h2[0]).getAttribute("aria-pressed"), sharedCircle(h2[1]).getAttribute("aria-pressed")], ["false", "false"], "one undo unpresses both");
+          eq(belowShared(h2[0]), before, "left order restored");
+          eq(belowShared(h2[1]), before, "right order restored");
+        });
+      });
+    });
+
+    add("E3 folding the shared circle of the right panel folds both copies", function () {
+      var p = makePair(24, 60);
+      return joined(p).then(function () {
+        var h = halves(p);
+        ok(eqLines(p).length > 0, "equation shown while everything is open");
+        fire(badgeOfCircle(sharedCircle(h[1])), "click");
+        return wait(1300).then(function () {
+          eq([badgeOfCircle(sharedCircle(h[0])).getAttribute("aria-expanded"), badgeOfCircle(sharedCircle(h[1])).getAttribute("aria-expanded")], ["false", "false"], "both folded");
+          alignedWithin(p, 1, "folded");
+          eq(eqLines(p), [], "equation cleared");
+          fire(badgeOfCircle(sharedCircle(h[1])), "click");
+          return wait(1500);
+        }).then(function () {
+          eq([badgeOfCircle(sharedCircle(h[0])).getAttribute("aria-expanded"), badgeOfCircle(sharedCircle(h[1])).getAttribute("aria-expanded")], ["true", "true"], "both open again");
+          alignedWithin(p, 1, "unfolded");
+          ok(eqLines(p).length > 0, "equation back");
+        });
+      });
+    });
+
+    add("E4 undo and redo restore a joined pair at once", function () {
+      var p = makePair(72, 60);
+      return joined(p).then(function () {
+        var linesBefore = eqLines(p);
+        eq(linesBefore[linesBefore.length - 1], "gcd(72, 60) = 12", "equation shown");
+        $("clearBtn").click();
+        eq(qa(document, "#workArea .tree-card").length, 0, "cleared");
+        undoW.click();
+        var q = pairs()[0];
+        ok(q && q.classList.contains("is-tinted"), "restored pair is tinted at once");
+        alignedWithin(q, 1, "restored");
+        lensMatches(q, 2, "restored");
+        eq(eqLines(q), linesBefore, "equation shown again");
+        // fold a composite circle, Clear, undo
+        var left = halves(q)[0];
+        var six = qa(left, ".node-text").filter(function (t) { return t.textContent === "6"; })
+          .sort(function (a, b) { return Number(a.getAttribute("x")) - Number(b.getAttribute("x")); })[0];
+        fire(six.nextElementSibling, "click");
+        return wait(1500).then(function () {
+          var st = stateOf(q);
+          $("clearBtn").click();
+          undoW.click();
+          var r = pairs()[0];
+          eq(stateOf(r), st, "fold and press lists per panel");
+          ok(r.classList.contains("is-tinted"), "tinted");
+          alignedWithin(r, 1, "restored with a fold");
+          redoW.click();
+          eq(qa(document, "#workArea .tree-card").length, 0, "redo empties the area");
+          undoW.click();
+          eq(pairs().length, 1, "undo brings it back");
+          var s2 = pairs()[0];
+          s2.querySelector(".tree-split").click();
+          undoW.click();
+          return wait(2200).then(function () {
+            eq(pairs().length, 1, "one pair");
+            eq(halves(pairs()[0]).length, 2, "two panels");
+            eq(qa(document, "#workArea .tree-card").length, 2, "no stray panel");
+          });
+        });
+      });
+    });
+
+    add("E5 the x removes both panels, undo restores them aligned", function () {
+      var p = makePair(72, 60);
+      return joined(p).then(function () {
+        p.querySelector(".tree-remove").click();
+        eq(pairs().length, 0, "pair gone");
+        eq(qa(document, "#workArea .tree-card").length, 0, "no panel left");
+        undoW.click();
+        var q = pairs()[0];
+        ok(q, "pair back");
+        alignedWithin(q, 1, "restored");
+      });
+    });
+
+    add("E6 the pair is not draggable and takes no drop", function () {
+      var p = makePair(72, 60);
+      return joined(p).then(function () {
+        addNumber(5);
+        place(5);
+        var h = halves(p), card = h[0];
+        var base = { pointerId: 9, isPrimary: true, pointerType: "mouse", bubbles: true, cancelable: true, button: 0 };
+        var c = centreOf(card);
+        card.dispatchEvent(new PointerEvent("pointerdown", Object.assign({ clientX: rect(card).left + 3, clientY: c.y }, base)));
+        window.dispatchEvent(new PointerEvent("pointermove", Object.assign({ clientX: c.x + 80, clientY: c.y + 40 }, base)));
+        window.dispatchEvent(new PointerEvent("pointermove", Object.assign({ clientX: c.x + 200, clientY: c.y + 80 }, base)));
+        eq(document.querySelectorAll(".drag-ghost").length, 0, "no ghost");
+        ok(!document.body.classList.contains("is-dragging"), "not dragging");
+        window.dispatchEvent(new PointerEvent("pointerup", Object.assign({ clientX: c.x + 200, clientY: c.y + 80 }, base)));
+        var standalone = qa(document, "#workArea > .tree-card");
+        eq(standalone.length, 1, "one standalone panel");
+        eq(rootText(standalone[0]), "5", "it is the 5");
+        dropOn(standalone[0], h[1], 0.75);
+        eq(pairs().length, 1, "still one pair");
+        eq(halves(pairs()[0]).map(rootText), ["72", "60"], "pair unchanged");
+        eq(qa(document, "#workArea > .tree-card").map(rootText), ["5"], "the 5 stayed alone");
+        // the page ignores palette clicks until the drag's own timeout has run
+        return wait(50);
+      });
+    });
+
+    add("E7 a language switch relabels without resetting the pair", function () {
+      var p = makePair(72, 60);
+      return joined(p).then(function () {
+        var left = halves(p)[0];
+        var six = qa(left, ".node-text").filter(function (t) { return t.textContent === "6"; })
+          .sort(function (a, b) { return Number(a.getAttribute("x")) - Number(b.getAttribute("x")); })[0];
+        fire(six.nextElementSibling, "click");
+        return wait(1500).then(function () {
+          var st = stateOf(p);
+          var openBadge = badgesOf(left).filter(function (b) { return b.getAttribute("aria-expanded") === "true"; })[0];
+          var n = openBadge.previousElementSibling.textContent;
+          NT.i18n.setLang("nl");
+          eq(p.querySelector(".tree-split").lastChild.textContent, NL.splitOverlap, "nl Separate text");
+          eq(p.querySelector(".tree-remove").getAttribute("aria-label"), fmt(NL.removeOverlapLabel, { a: 72, b: 60 }), "nl x label");
+          eq(p.querySelector(".tree-split").getAttribute("aria-label"), fmt(NL.splitOverlapLabel, { a: 72, b: 60 }), "nl Separate label");
+          eq(openBadge.getAttribute("aria-label"), fmt(NL.foldLabel, { n: n }), "nl fold badge label");
+          ok(pairs()[0] === p, "same pair element");
+          ok(p.classList.contains("is-tinted"), "still tinted");
+          alignedWithin(p, 1, "after the language switch");
+          eq(stateOf(p), st, "folds and presses kept");
+          NT.i18n.setLang("en");
+          eq(p.querySelector(".tree-split").lastChild.textContent, EN.splitOverlap, "en Separate text");
+        });
+      });
+    });
+
+    add("E8 day theme colours", function () {
+      var p = makePair(72, 60);
+      return joined(p).then(function () {
+        var prev = document.documentElement.getAttribute("data-theme");
+        document.documentElement.setAttribute("data-theme", "day");
+        return wait(400).then(function () {
+          checkColours(p, "day");
+          if (prev === null) document.documentElement.removeAttribute("data-theme");
+          else document.documentElement.setAttribute("data-theme", prev);
+        });
+      });
+    });
+
+    add("E9 divides, coprime and equal shapes", function () {
+      var p = makePair(6, 12);
+      return joined(p).then(function () {
+        alignedWithin(p, 1, "(6, 12)");
+        lensMatches(p, 2, "(6, 12)");
+        eq(eqLines(p), ["12 = 6 × 2", "gcd(6, 12) = 6"], "(6, 12) equation");
+        var q = makePair(8, 15);
+        return joined(q).then(function () {
+          alignedWithin(q, 1, "(8, 15)");
+          eq(halves(q).map(function (h) { return sharedCircle(h).nextElementSibling && qa(h, ".node-text").filter(function (t) {
+            return t.getAttribute("x") === sharedCircle(h).getAttribute("cx") && t.getAttribute("y") === sharedCircle(h).getAttribute("cy");
+          })[0].textContent; }), ["1", "1"], "the shared circles are the 1s");
+          ok(eqLines(q).indexOf("gcd(8, 15) = 1") !== -1, "coprime equation");
+          eq($("message").textContent, fmt(EN.msgCoprime, { a: 8, b: 15 }), "coprime message");
+          var r = makePair(12, 12);
+          return joined(r).then(function () {
+            alignedWithin(r, 1, "(12, 12)");
+            r.scrollIntoView({ block: "center" });
+            [".tree-split", ".tree-remove"].forEach(function (sel) {
+              var b = r.querySelector(sel), c = centreOf(b);
+              var hit = document.elementFromPoint(c.x, c.y);
+              ok(hit && hit.closest(sel) === b, sel + " is on top of the lens at full overlap");
+            });
+          });
+        });
+      });
+    });
+
     return chain;
   }
 
-  function linkRun() { return Promise.resolve(); }
+  function linkRun() {
+    var chain = Promise.resolve();
+    function add(name, fn) { chain = chain.then(function () { return scenario(name, fn); }); }
+    var before;
+
+    add("L1 deep link builds a pair that is not an undo step", function () {
+      eq(pairs().length, 1, "one pair");
+      ok(undoW.disabled && redoW.disabled, "work undo and redo disabled");
+      return wait(2500).then(function () {
+        var p = pairs()[0];
+        ok(p.classList.contains("is-tinted"), "tinted");
+        ok(overlaps(p), "joined");
+        alignedWithin(p, 1, "deep link");
+        ok(undoW.disabled, "still not an undo step");
+        before = halves(p).map(textsOf);
+        eq(eqLines(p)[eqLines(p).length - 1], "gcd(12, 18) = 6", "equation");
+      });
+    });
+
+    add("L2 Separate then Undo keeps the Balanced shape", function () {
+      pairs()[0].querySelector(".tree-split").click();
+      return wait(2200).then(function () {
+        eq(pairs().length, 0, "no pair");
+        eq(cards().map(rootText), ["12", "18"], "two standalone panels");
+        undoW.click();
+        var p = pairs()[0];
+        ok(p, "pair restored");
+        eq(halves(p).map(textsOf), before, "same shape");
+        alignedWithin(p, 1, "restored");
+      });
+    });
+
+    return chain;
+  }
 
   var RUNNERS = { drag: dragRun, link: linkRun };
 
