@@ -56,13 +56,13 @@
   .picker-add{
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:10px;
     flex-wrap:wrap;
     margin:0 0 10px;
   }
   #palette-add-input{
     width:200px;
-    height:36px;
+    height:40px;
     padding:0 12px;
     border-radius:var(--radius-ctl);
     border:1px solid var(--panel-border-strong);
@@ -78,7 +78,7 @@
     box-shadow:var(--ctl-focus);
   }
   #palette-add-btn{
-    height:36px;
+    height:40px;
     padding:0 18px;
     border-radius:var(--radius-ctl);
     border:1px solid transparent;
@@ -91,6 +91,23 @@
     transition:filter var(--ease-ctl);
   }
   #palette-add-btn:hover{ filter:brightness(1.08); }
+  #palette-random-btn{
+    height:40px;
+    padding:0 18px;
+    border-radius:var(--radius-ctl);
+    border:1px solid var(--panel-border-strong);
+    background:var(--surface);
+    color:var(--text);
+    cursor:pointer;
+    font-family:var(--font-sans);
+    font-weight:600;
+    font-size:.9375rem;
+    transition:border-color var(--ease-ctl), color var(--ease-ctl);
+  }
+  #palette-random-btn:hover{
+    border-color:var(--accent);
+    color:var(--accent);
+  }
   .palette-tools{ display:flex; align-items:center; gap:4px; }
   .palette-bin, .palette-empty-btn{
     display:inline-flex;
@@ -127,39 +144,48 @@
     color:var(--text-dim);
     margin:0 0 8px;
   }
+  /* Every column is as wide as the widest chip (--palette-cell, written
+     by JS), so 2-, 3- and 4-digit chips still line up in columns. */
   .prime-picker{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, var(--palette-cell, 44px));
+    justify-items:center;
+    gap:8px;
+    margin:0;
   }
   .prime-chip{
-    font-family:var(--font-mono);
-    font-size:14px;
-    font-weight:600;
-    min-width:40px;
-    height:38px;
-    padding:0 6px;
-    display:flex;
+    display:inline-flex;
     align-items:center;
     justify-content:center;
-    border-radius:8px;
-    border:1px solid var(--panel-border);
-    background:var(--surface);
-    color:var(--text);
-    cursor:pointer;
-    transition:background .15s ease, border-color .15s ease, opacity .15s ease;
+    min-width:44px;
+    height:44px;
+    padding:0 10px;
+    border-radius:22px;
+    border:1px solid var(--role-composite);
+    background:var(--role-composite);
+    color:var(--role-composite-ink);
+    font-family:var(--font-sans);
+    font-weight:700;
+    font-size:.9375rem;
+    font-variant-numeric:tabular-nums;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-select:none;
+    transition:filter var(--ease-ctl);
   }
-  .prime-chip:hover{ border-color:var(--accent); }
-  .prime-chip:focus-visible{ outline:2px solid var(--role-active); outline-offset:2px; }
-  .prime-chip[aria-pressed="true"]{
-    background:var(--role-active);
-    color:var(--role-result-ink);
-    border-color:var(--role-active);
+  .prime-chip:not([data-composite]){
+    border-color:var(--role-result);
+    background:var(--role-result);
+    color:var(--accent-ink);
   }
-  .prime-chip.is-dragging{
-    opacity:.4;
-    background:var(--role-inert);
+  .prime-chip:hover{ filter:brightness(1.08); }
+  .prime-chip:focus{ outline:none; }
+  .prime-chip:focus-visible{ box-shadow:var(--ctl-focus); }
+  .prime-chip[aria-pressed="true"], .prime-chip[aria-pressed="true"]:focus{
+    outline:2px solid var(--role-active);
+    outline-offset:2px;
   }
+  .prime-chip.is-dragging{ opacity:.4; }
 
   /* controls */
   .toolbar{
@@ -456,12 +482,8 @@
     padding:6px 6px;
   }
 
-  @media (max-width: 560px){
-    .prime-chip{ min-width:44px; height:44px; }
-  }
-
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, .palette-bin, .palette-empty-btn{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn{ transition:none; }
     .bin-lid{ transition:none; }
   }
 
@@ -572,6 +594,7 @@
     <div class="picker-add">
       <input id="palette-add-input" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="venn.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="venn.addInputLabel" />
       <button id="palette-add-btn" type="button" data-i18n="venn.add">Add</button>
+      <button id="palette-random-btn" type="button" data-i18n="venn.paletteRandomize">Randomize</button>
     </div>
     <div id="prime-picker" class="prime-picker"></div>
   </div>
@@ -671,7 +694,7 @@
 (function(){
 
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
-  const { euclidSteps, gcd, isPrime, primeFactors } = NT.core;
+  const { euclidSteps, gcd, isPrime, primeFactors, randomInt } = NT.core;
   const { svgEl } = NT.svg;
   const { SHARED_AB_KEY, SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, SHARED_PALETTE_MAX_N, addToSharedPalette, clearSharedPalette, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, removeFromSharedPalette, writeSharedAB } = NT.store;
   const { BALANCED_MAX_N, assignOverlapX, assignTreeX, buildFactorTree, buildOverlapTree, computeNestedLayout, flattenOverlap, flattenTree } = NT.layout;
@@ -709,6 +732,10 @@
   var LEGACY_STORAGE_KEY = 'venn-diagrams';
   // Mirrors MAX_INPUT on the Euclidean Algorithm page — must move with it.
   var EUCLID_MAX_INPUT = 1000000;
+  var PALETTE_RANDOM_MIN = 12;
+  var PALETTE_RANDOM_MAX = 9999;
+  var PALETTE_RANDOM_MIN_FACTORS = 3;
+  var PALETTE_RANDOM_TRIES = 200;
 
   var picker = document.getElementById('prime-picker');
   var pickerHeading = document.getElementById('picker-heading');
@@ -716,6 +743,7 @@
   var paletteEmptyBtn = document.getElementById('palette-empty-btn');
   var addInput = document.getElementById('palette-add-input');
   var addBtn = document.getElementById('palette-add-btn');
+  var paletteRandomBtn = document.getElementById('palette-random-btn');
   var svgRoot = document.getElementById('venn');
   var svgStatic = document.getElementById('venn-static');
   var svgDynamic = document.getElementById('venn-dynamic');
@@ -2082,6 +2110,14 @@
     paletteEmptyBtn.disabled = palette.length === 0;
   }
 
+  // Widens every palette column to the widest chip, so the rows line up.
+  function sizePickerCells(){
+    var w = 44;
+    var chips = picker.querySelectorAll('.prime-chip');
+    for (var i = 0; i < chips.length; i++) w = Math.max(w, chips[i].offsetWidth);
+    picker.style.setProperty('--palette-cell', w + 'px');
+  }
+
   function renderPicker(){
     picker.innerHTML = '';
     syncPickerHeading();
@@ -2090,6 +2126,7 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'prime-chip';
+        if (!isPrimeMemo(prime)) btn.setAttribute('data-composite', '');
         btn.textContent = String(prime);
         btn.draggable = true;
         btn.setAttribute('aria-pressed', state.armed === prime ? 'true' : 'false');
@@ -2108,7 +2145,9 @@
         picker.appendChild(btn);
       })(palette[i]);
     }
+    sizePickerCells();
   }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizePickerCells);
 
   // The palette is one shared list (NT.store's number-palette, also edited in
   // Factor Tree and fed by the Sieve of Eratosthenes). Every mutation goes
@@ -2151,6 +2190,23 @@
   }
 
   addBtn.addEventListener('click', addFromInput);
+  // Randomize only fills the add field with a number that has at least three
+  // prime factors (counted with multiplicity); it never adds anything.
+  function pickRandomN(){
+    var shown = Number(addInput.value);
+    function ok(n){ return n !== shown && primeFactors(n).length >= PALETTE_RANDOM_MIN_FACTORS; }
+    for (var i = 0; i < PALETTE_RANDOM_TRIES; i++){
+      var n = randomInt(PALETTE_RANDOM_MIN, PALETTE_RANDOM_MAX);
+      if (ok(n)) return n;
+    }
+    for (var m = PALETTE_RANDOM_MIN; m <= PALETTE_RANDOM_MAX; m++){
+      if (ok(m)) return m;
+    }
+    return PALETTE_RANDOM_MIN;
+  }
+  paletteRandomBtn.addEventListener('click', function(){
+    addInput.value = pickRandomN();
+  });
   paletteEmptyBtn.addEventListener('click', function(){
     adoptPalette(clearSharedPalette());
     setMessage('venn.msg.paletteEmptied', null, false);

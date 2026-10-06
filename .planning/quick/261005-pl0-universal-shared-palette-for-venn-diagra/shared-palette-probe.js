@@ -27,7 +27,7 @@ var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-modul
 
 // Total scenarios this probe must report; every task that appends scenarios
 // raises it.
-var EXPECTED = 26;
+var EXPECTED = 28;
 
 var PAGES = {
   ft: { dir: "Factor Tree", file: "factor-tree.html" },
@@ -253,6 +253,23 @@ function inPage(cfg) {
     assert(f.length > 0, "no chip " + text);
     return f[0];
   }
+  // Resolves a CSS custom property to its computed colour via a throwaway span inside .picker-panel.
+  function token(name) {
+    var span = document.createElement("span");
+    span.style.color = "var(" + name + ")";
+    document.querySelector(".picker-panel").appendChild(span);
+    var v = getComputedStyle(span).color;
+    span.remove();
+    return v;
+  }
+  function tokenBg(name) {
+    var span = document.createElement("span");
+    span.style.backgroundColor = "var(" + name + ")";
+    document.querySelector(".picker-panel").appendChild(span);
+    var v = getComputedStyle(span).backgroundColor;
+    span.remove();
+    return v;
+  }
   function addViaField(value) {
     var input = document.getElementById("palette-add-input");
     input.value = value;
@@ -295,12 +312,16 @@ function inPage(cfg) {
         noErrors("V1");
         return "Add inserts 77 in order, flips the heading, and refuses empty, 1, 0 and 1e12+1 with their own messages";
       } },
-      { name: "V5 venn-chip-colours", fn: function () {
+      { name: "V5 venn-chip-colours-prime-vs-composite", fn: function () {
         var prime = chipNamed("73"), composite = chipNamed("77");
         assert(prime.className === "prime-chip" && composite.className === "prime-chip", "classes " + prime.className + " / " + composite.className);
-        assert(getComputedStyle(prime).backgroundColor === getComputedStyle(composite).backgroundColor, "different backgrounds");
-        assert(getComputedStyle(prime).color === getComputedStyle(composite).color, "different text colours");
-        return "a prime chip and a composite chip are styled identically (class prime-chip, same colours)";
+        assert(!prime.hasAttribute("data-composite"), "73 carries data-composite");
+        assert(composite.hasAttribute("data-composite"), "77 lacks data-composite");
+        var ps = getComputedStyle(prime), cs = getComputedStyle(composite);
+        assert(ps.backgroundColor !== cs.backgroundColor, "the same background on a prime and a composite chip");
+        assert(ps.backgroundColor === tokenBg("--role-result") && ps.color === token("--accent-ink"), "prime chip colours " + ps.backgroundColor + " / " + ps.color);
+        assert(cs.backgroundColor === tokenBg("--role-composite") && cs.color === token("--role-composite-ink"), "composite chip colours " + cs.backgroundColor + " / " + cs.color);
+        return "a prime chip is --role-result on --accent-ink; a composite chip (data-composite) is --role-composite on --role-composite-ink";
       } },
       { name: "V2 venn-delete-and-bin", fn: function () {
         var chip = chipNamed("77");
@@ -518,6 +539,69 @@ function inPage(cfg) {
         NT.i18n.setLang("en");
         noErrors("U2");
         return "Delete all empties store and chips, clears the armed chip, says so, focuses the field and disables itself";
+      } },
+      { name: "U3 venn-chip-look-grid-armed", fn: function () {
+        // U2 left the palette holding only 7; refill it through the Add field so the store follows.
+        DEFAULT30.forEach(function (p) { if (p !== 7) addViaField(String(p)); });
+        var picker = document.getElementById("prime-picker");
+        assert(getComputedStyle(picker).display === "grid", "picker display " + getComputedStyle(picker).display);
+        function chips() { return arr(document.querySelectorAll("#prime-picker .prime-chip")); }
+        chips().forEach(function (c) {
+          var cs = getComputedStyle(c);
+          assert(c.offsetHeight === 44, "chip " + c.textContent + " height " + c.offsetHeight);
+          assert(cs.borderTopLeftRadius === "22px", "chip " + c.textContent + " radius " + cs.borderTopLeftRadius);
+        });
+        addViaField("1024");
+        var widest = Math.max.apply(null, chips().map(function (c) { return c.offsetWidth; }));
+        var cell = picker.style.getPropertyValue("--palette-cell");
+        assert(cell === widest + "px" && widest > 44, "--palette-cell " + cell + " vs widest " + widest);
+        var all = chips();
+        var top0 = all[0].getBoundingClientRect().top;
+        var cols = all.filter(function (c) { return c.getBoundingClientRect().top === top0; }).length;
+        assert(cols > 1 && all.length > cols, "cols " + cols + " of " + all.length);
+        function cx(c) { var r = c.getBoundingClientRect(); return Math.round(r.left + r.width / 2); }
+        for (var i = 0; i + cols < all.length; i++) assert(cx(all[i]) === cx(all[i + cols]), "chip " + i + " and " + (i + cols) + " are not in one column");
+        var bg = getComputedStyle(chipNamed("5")).backgroundColor;
+        chipNamed("5").click();
+        var armed = chipNamed("5"), as = getComputedStyle(armed);
+        assert(armed.getAttribute("aria-pressed") === "true", "5 was not armed");
+        assert(as.backgroundColor === bg, "armed background changed " + bg + " -> " + as.backgroundColor);
+        assert(as.outlineStyle !== "none" && as.outlineColor === token("--role-active"), "armed outline " + as.outlineStyle + " " + as.outlineColor);
+        chipNamed("5").click();
+        assert(getComputedStyle(chipNamed("5")).outlineStyle === "none", "outline remained after disarming");
+        var big = chipNamed("1024");
+        big.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }));
+        var bs = getComputedStyle(chipNamed("1024"));
+        assert(chipNamed("1024").classList.contains("is-dragging"), "no is-dragging");
+        assert(parseFloat(bs.opacity) < 1, "opacity " + bs.opacity);
+        assert(bs.backgroundColor === tokenBg("--role-composite"), "dragging background " + bs.backgroundColor);
+        chipNamed("1024").dispatchEvent(new DragEvent("dragend", { bubbles: true, cancelable: true }));
+        noErrors("U3");
+        return "grid of 44px pills in aligned columns; armed = gold ring over an unchanged fill; dragging = faded, fill kept";
+      } },
+      { name: "U4 venn-palette-randomize", fn: function () {
+        var rb = document.getElementById("palette-random-btn"), input = document.getElementById("palette-add-input");
+        assert(rb.previousElementSibling === document.getElementById("palette-add-btn"), "Randomize does not follow Add");
+        assert(Math.round(rb.getBoundingClientRect().height) === 40, "height " + rb.getBoundingClientRect().height);
+        assert(rb.textContent === T("venn.paletteRandomize"), "text " + rb.textContent);
+        function factors(n) { var c = 0; for (var d = 2; d * d <= n; d++) while (n % d === 0) { n /= d; c++; } return c + (n > 1 ? 1 : 0); }
+        var chipsBefore = vennChips(), storedBefore = storedList(), placedBefore = placedTexts();
+        var prev = input.value;
+        for (var i = 0; i < 25; i++) {
+          rb.click();
+          var v = input.value, n = Number(v);
+          assert(/^\d+$/.test(v) && n >= 12 && n <= 9999, "value " + v);
+          assert(factors(n) >= 3, v + " has fewer than three prime factors");
+          assert(v !== prev, "value repeated: " + v);
+          prev = v;
+        }
+        same(vennChips(), chipsBefore, "chips after Randomize");
+        same(storedList(), storedBefore, "stored list after Randomize");
+        same(placedTexts(), placedBefore, "placed chips after Randomize");
+        document.getElementById("palette-add-btn").click();
+        assert(chipNamed(prev).hasAttribute("data-composite"), "the added " + prev + " is not a composite chip");
+        noErrors("U4");
+        return "25 clicks fill the field with 12..9999 numbers of 3+ prime factors, never repeating, adding nothing; Add then makes a composite chip";
       } }
     ];
   };
