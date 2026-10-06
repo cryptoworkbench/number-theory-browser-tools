@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-06T12:51:39.796Z"
+last_updated: "2026-10-06T12:57:00.613Z"
 last_activity: 2026-10-06
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 9eebaa9e9e52d2ea6aab8e36c567204cdca9c6b2
+state_head: 0452d87bdd47b71027087a39e3cbf83a30949bca
 progress:
   total_phases: 7
   completed_phases: 6
@@ -339,6 +339,7 @@ None yet.
 | 103 | Venn Diagram: overlap-tree hover preview no longer unfolds the P = P × 1 layer | 2026-10-06 | 01651b6 | — |
 | 261006-ibm | Add prime picker popover (date-picker style, scrollable) to RSA and Diffie-Hellman | 2026-10-06 | 71603a1 | [261006-ibm-add-prime-picker-popover-date-picker-sty](./quick/261006-ibm-add-prime-picker-popover-date-picker-sty/) |
 | 261006-keu | Palette in Factor Tree and Venn Diagram: bin and Delete-all icons moved onto the Add row | 2026-10-06 | 9eebaa9 | [261006-keu-palette-in-factor-tree-and-venn-diagram-](./quick/261006-keu-palette-in-factor-tree-and-venn-diagram-/) |
+| 106 | Palette bin stretches from Randomize to Delete all (icon centred) in Factor Tree and Venn Diagram | 2026-10-06 | 0452d87 | — |
 
 ## Deferred Items
 
