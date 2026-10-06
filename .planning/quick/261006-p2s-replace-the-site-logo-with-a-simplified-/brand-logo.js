@@ -3,12 +3,15 @@
  * never referenced by any .html page. Uses only Node built-ins.
  *
  *   node brand-logo.js --swap            replace the header brand block in all 16 pages
+ *   node brand-logo.js --shots           headless-Chrome evidence PNGs next to this script
  *   node brand-logo.js --check [scope]   BRAND-LOGO PASS/FAIL lines (scope: header | favicon)
  */
 "use strict";
 
 var fs = require("fs");
 var path = require("path");
+var cp = require("child_process");
+var url = require("url");
 
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 
@@ -141,7 +144,48 @@ function checkFavicon() {
   var want = [cssVar(palNight, "accent"), cssVar(palNight, "accent-ink"), cssVar(palDay, "accent"), cssVar(palDay, "accent-ink")];
   report("favicon-palette-sync", got.join("|") === want.join("|") && got.indexOf(null) < 0,
     "favicon " + got.join(",") + " vs palette " + want.join(","));
+  var commentBody = comment.replace(/^\s*<!--/, "").replace(/-->\s*$/, "");
+  report("favicon-xml-wellformed", commentBody.indexOf("--") < 0, "double hyphen inside the XML comment makes the SVG unparseable");
   report("favicon-comment", !/1-2-3-4/.test(comment) && !/digits/.test(comment), "old numbered-tile wording in comment");
+}
+
+/* ---------- --shots ---------- */
+
+function shoot(harness, target, pageUrl, size) {
+  var profileDir = harness.mkScratch("p2s-shot-profile-");
+  cp.spawnSync("google-chrome", [
+    "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
+    "--force-device-scale-factor=2", "--user-data-dir=" + profileDir,
+    "--virtual-time-budget=4000", "--window-size=" + size,
+    "--screenshot=" + target, pageUrl
+  ], { encoding: "utf8", timeout: 120000, env: harness.chromeEnv() });
+  try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  var ok = fs.existsSync(target) && fs.statSync(target).size > 0;
+  console.log((ok ? "wrote " : "FAILED ") + target);
+  return ok;
+}
+
+function shots() {
+  var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
+  var ok = true;
+  var hub = url.pathToFileURL(path.join(ROOT, "index.html")).href;
+  ["night", "day"].forEach(function (theme) {
+    var target = path.join(__dirname, "header-" + theme + ".png");
+    ok = shoot(harness, target, hub + "?theme=" + theme + "&lang=en", "1280,140") && ok;
+  });
+  var favUrl = url.pathToFileURL(path.join(ROOT, "assets", "favicon.svg")).href;
+  var strip = function (bg) {
+    return '<div style="background:' + bg + ';padding:12px;display:flex;gap:16px;align-items:center">' +
+      [16, 22, 32, 64].map(function (n) {
+        return '<img src="' + favUrl + '" width="' + n + '" height="' + n + '">';
+      }).join("") + "</div>";
+  };
+  var scratch = harness.mkScratch("p2s-favicon-page-");
+  var page = path.join(scratch, "preview.html");
+  fs.writeFileSync(page, '<!doctype html><meta charset="utf-8"><body style="margin:0">' + strip("#f3f3f3") + strip("#1e1f24") + "</body>");
+  ok = shoot(harness, path.join(__dirname, "favicon-sizes.png"), url.pathToFileURL(page).href, "420,200") && ok;
+  try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  process.exit(ok ? 0 : 1);
 }
 
 /* ---------- Main ---------- */
@@ -150,12 +194,13 @@ function main() {
   var mode = process.argv[2];
   var scope = process.argv[3];
   if (mode === "--swap") return swap();
+  if (mode === "--shots") return shots();
   if (mode === "--check") {
     if (!scope || scope === "header") checkHeader();
     if (!scope || scope === "favicon") checkFavicon();
     process.exit(failed ? 1 : 0);
   }
-  console.error("usage: brand-logo.js --swap | --check [header|favicon]");
+  console.error("usage: brand-logo.js --swap | --shots | --check [header|favicon]");
   process.exit(2);
 }
 
