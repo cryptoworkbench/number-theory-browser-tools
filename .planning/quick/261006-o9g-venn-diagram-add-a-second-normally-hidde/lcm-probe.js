@@ -28,8 +28,8 @@ var VENN_FILE = "venn-diagram.html";
 
 // Each run is one deep link into the two-circle diagram.
 var PAGES = {
-  share: { query: "?a=12&b=18&lang=en", expected: 9, a: "12", b: "18", g: "6" },
-  coprime: { query: "?a=10&b=21&lang=en", expected: 3, a: "10", b: "21", g: "1" },
+  share: { query: "?a=12&b=18&lang=en", expected: 11, a: "12", b: "18", g: "6" },
+  coprime: { query: "?a=10&b=21&lang=en", expected: 4, a: "10", b: "21", g: "1" },
   big: { query: "?a=999510067897129&b=998810375875079&lang=en", expected: 3, a: "999510067897129", b: "998810375875079", g: "99991" }
 };
 
@@ -216,7 +216,35 @@ function inPage(cfg) {
         return wait(5000).then(function () { eq(stage(), "3", "stage after replay autoplay"); });
       });
     }).then(function () {
-      /*SVG-SHARE*/
+      return scenario("S9 svg-stage3", function () {
+        eq(stage(), "3", "at stage 3");
+        eq(qa(document, "#lcm-svg .lcm-chip").length, 6, "chips");
+        eq(qa(document, "#lcm-svg .lcm-chip.is-shared").length, 4, "shared chips");
+        eq(qa(document, "#lcm-svg .lcm-chip.is-cancelled").length, 2, "cancelled chips");
+        eq($("lcm-union").style.opacity, "1", "union opacity");
+        ok($("lcm-circle-a").style.transform.indexOf("380px") >= 0, "circle A joined: " + $("lcm-circle-a").style.transform);
+        ok($("lcm-circle-b").style.transform.indexOf("520px") >= 0, "circle B joined: " + $("lcm-circle-b").style.transform);
+        eq(text("lcm-headline"), "lcm(A, B) = 36", "headline");
+        eq(text("lcm-gcd-label"), "gcd(A, B) = 6", "gcd label");
+      });
+    }).then(function () {
+      return scenario("S10 svg-stage2-1", function () {
+        $("lcm-prev").click();
+        eq(stage(), "2", "stage 2");
+        eq(qa(document, "#lcm-svg .lcm-chip.is-cancelled").length, 2, "cancelled at stage 2");
+        eq($("lcm-union").style.opacity, "0", "union hidden at stage 2");
+        ok($("lcm-circle-a").style.transform.indexOf("230px") >= 0, "circle A apart: " + $("lcm-circle-a").style.transform);
+        eq(text("lcm-headline"), "(A \u00d7 B) \u00f7 gcd(A, B) = 216 \u00f7 6", "stage 2 headline");
+        eq($("lcm-gcd").style.opacity, "1", "gcd box shown at stage 2");
+        $("lcm-prev").click();
+        eq(stage(), "1", "stage 1");
+        eq(qa(document, "#lcm-svg .lcm-chip.is-cancelled").length, 0, "cancelled at stage 1");
+        eq($("lcm-gcd").style.opacity, "0", "gcd box hidden at stage 1");
+        eq(text("lcm-headline"), "A \u00d7 B = 12 \u00d7 18 = 216", "stage 1 headline");
+        eq(text("lcm-name-a"), "A = 12", "name A");
+        eq(text("lcm-name-b"), "B = 18", "name B");
+      });
+    }).then(function () {
       return noErrors("SE no-errors");
     });
   }
@@ -238,7 +266,16 @@ function inPage(cfg) {
         });
       });
     }).then(function () {
-      /*SVG-COPRIME*/
+      return scenario("C3 svg-coprime", function () {
+        eq(stage(), "3", "at stage 3");
+        eq(qa(document, "#lcm-svg .lcm-chip").length, 4, "chips");
+        eq(qa(document, "#lcm-svg .lcm-chip.is-shared").length, 0, "shared chips");
+        eq(qa(document, "#lcm-svg .lcm-chip.is-cancelled").length, 0, "cancelled chips");
+        eq(text("lcm-gcd-label"), "gcd(A, B) = 1", "gcd label");
+        var one = qa(document, "#lcm-svg .lcm-gcd-one");
+        ok(one.length === 1 && one[0].textContent.trim() === "1", "gcd box shows 1");
+      });
+    }).then(function () {
       return noErrors("CE no-errors");
     });
   }

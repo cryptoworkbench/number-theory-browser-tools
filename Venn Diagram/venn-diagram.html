@@ -533,9 +533,66 @@
     overflow-wrap:anywhere;
   }
   #lcm-formula{ color:var(--text-dim); }
+  .lcm-move{ transition:transform .8s ease, opacity .5s ease; }
+  .lcm-fade{ transition:opacity .5s ease; }
+  #lcm-svg.is-instant .lcm-move, #lcm-svg.is-instant .lcm-fade, #lcm-svg.is-instant .lcm-strike{ transition:none; }
+  .lcm-chip rect{
+    fill:var(--surface);
+    stroke:var(--panel-border-strong);
+    stroke-width:1.4;
+  }
+  .lcm-chip.from-a rect{ stroke:var(--role-input); }
+  .lcm-chip.from-b rect{ stroke:var(--role-alt); }
+  .lcm-chip.is-shared rect{
+    fill:color-mix(in srgb, var(--role-result) 22%, var(--surface));
+    stroke:var(--role-result);
+    stroke-width:2;
+  }
+  .lcm-chip text{
+    font-family:var(--font-mono);
+    font-size:13px;
+    font-weight:600;
+    fill:var(--text);
+    text-anchor:middle;
+    dominant-baseline:central;
+  }
+  .lcm-strike{
+    stroke:var(--role-warn);
+    stroke-width:2;
+    opacity:0;
+    transition:opacity .4s ease;
+  }
+  .lcm-chip.is-cancelled{ opacity:.5; }
+  .lcm-chip.is-cancelled .lcm-strike{ opacity:1; }
+  .lcm-union{
+    fill:none;
+    stroke:var(--role-result);
+    stroke-width:4;
+  }
+  .lcm-gcd-frame{
+    fill:none;
+    stroke:var(--role-result);
+    stroke-width:1.5;
+    stroke-dasharray:5 4;
+  }
+  .lcm-gcd-label, .lcm-gcd-one{
+    font-family:var(--font-mono);
+    font-size:15px;
+    fill:var(--text-dim);
+    text-anchor:middle;
+    dominant-baseline:central;
+  }
+  .lcm-headline{
+    font-family:var(--font-mono);
+    font-size:18px;
+    font-weight:600;
+    fill:var(--text);
+    text-anchor:middle;
+    dominant-baseline:central;
+  }
 
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .lcm-btn, .lcm-toggle, .lcm-chevron, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn, .history-btn{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .lcm-btn, .lcm-toggle, .lcm-chevron, .lcm-move, .lcm-fade, .lcm-strike, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn, .history-btn{ transition:none; }
     .bin-lid{ transition:none; }
   }
 
@@ -1174,7 +1231,14 @@
   // LCM / GCD fold: three stages, stepped by the buttons or auto-played once on open.
   var LCM_STAGES = 3;
   var LCM_HOLD_MS = 1800;
-  var lcmView = { open: false, stage: 1, gen: 0, sig: null, data: null };
+  var lcmView = { open: false, stage: 1, gen: 0, sig: null, data: null, items: null };
+  // Stage geometry: circles apart (stages 1-2) then joined (stage 3), all in the 900-wide viewBox.
+  var LCM_R = 150, LCM_CY = 230;
+  var LCM_APART = [230, 670], LCM_JOINED = [380, 520];
+  var LCM_HEAD_Y = 28, LCM_NAME_Y = LCM_CY - LCM_R - 14, LCM_GCD_Y = 420;
+  var LCM_OWN_DX = 75, LCM_SHARED_DX = 70;
+  var LCM_GROUP_W = 110, LCM_GCD_W = 420;
+  var LCM_CHIP_H = 24, LCM_CHIP_GAP = 6;
 
   var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true, openPreview: null };
 
@@ -2974,6 +3038,152 @@
     };
   }
 
+  // One [x, y] centre per chip: a row-major grid no wider than maxW, centred on (cx, cy).
+  function lcmGrid(widths, cx, cy, maxW){
+    var n = widths.length;
+    if (n === 0) return [];
+    var cellW = Math.max.apply(null, widths);
+    var cols = n;
+    while (cols > 1 && cols * cellW + (cols - 1) * LCM_CHIP_GAP > maxW) cols--;
+    var rows = Math.ceil(n / cols);
+    var top = cy - (rows * LCM_CHIP_H + (rows - 1) * LCM_CHIP_GAP) / 2;
+    var out = [];
+    for (var i = 0; i < n; i++){
+      var r = Math.floor(i / cols), c = i % cols;
+      var inRow = Math.min(cols, n - r * cols);
+      var rowW = inRow * cellW + (inRow - 1) * LCM_CHIP_GAP;
+      out.push([
+        cx - rowW / 2 + cellW / 2 + c * (cellW + LCM_CHIP_GAP),
+        top + r * (LCM_CHIP_H + LCM_CHIP_GAP) + LCM_CHIP_H / 2
+      ]);
+    }
+    return out;
+  }
+
+  function lcmArcPath(cx, cy, large, sweep){
+    var h = Math.sqrt(LCM_R * LCM_R - Math.pow((LCM_JOINED[1] - LCM_JOINED[0]) / 2, 2));
+    return 'M ' + cx + ' ' + (cy - h) +
+      ' A ' + LCM_R + ' ' + LCM_R + ' 0 ' + large + ' ' + sweep + ' ' + cx + ' ' + (cy + h) +
+      ' A ' + LCM_R + ' ' + LCM_R + ' 0 ' + large + ' ' + sweep + ' ' + cx + ' ' + (cy - h) + ' Z';
+  }
+
+  function lcmChipEl(p, cls){
+    var w = badgeWidth(String(p), true);
+    var g = svgEl('g', { 'class': 'lcm-chip lcm-move ' + cls });
+    g.appendChild(svgEl('rect', { x: -w / 2, y: -LCM_CHIP_H / 2, width: w, height: LCM_CHIP_H, rx: 6 }));
+    var t = svgEl('text', { x: 0, y: 0 });
+    t.textContent = String(p);
+    g.appendChild(t);
+    g.appendChild(svgEl('line', { 'class': 'lcm-strike', x1: -w / 2 + 4, y1: 0, x2: w / 2 - 4, y2: 0 }));
+    return g;
+  }
+
+  function buildLcmSvg(d){
+    lcmSvg.replaceChildren();
+    var items = lcmView.items = [];
+    function add(el, at, show, cancelAt){
+      lcmSvg.appendChild(el);
+      items.push({ el: el, at: at, show: show, cancelAt: cancelAt || null });
+      return el;
+    }
+    var midX = (LCM_JOINED[0] + LCM_JOINED[1]) / 2;
+
+    add(svgEl('path', { id: 'lcm-lens', 'class': 'lens-fill lcm-fade', d: lcmArcPath(midX, LCM_CY, 0, 0) }), null, [0, 0, 1]);
+
+    var ga = svgEl('g', { id: 'lcm-circle-a', 'class': 'lcm-move' });
+    ga.appendChild(svgEl('circle', { cx: 0, cy: 0, r: LCM_R, 'class': 'circle-left' }));
+    add(ga, [[LCM_APART[0], LCM_CY], [LCM_APART[0], LCM_CY], [LCM_JOINED[0], LCM_CY]], null);
+    var gb = svgEl('g', { id: 'lcm-circle-b', 'class': 'lcm-move' });
+    gb.appendChild(svgEl('circle', { cx: 0, cy: 0, r: LCM_R, 'class': 'circle-right' }));
+    add(gb, [[LCM_APART[1], LCM_CY], [LCM_APART[1], LCM_CY], [LCM_JOINED[1], LCM_CY]], null);
+
+    add(svgEl('path', { id: 'lcm-union', 'class': 'lcm-union lcm-fade', d: lcmArcPath(midX, LCM_CY, 1, 0) }), null, [0, 0, 1]);
+
+    var times = svgEl('text', { id: 'lcm-times', 'class': 'lcm-headline lcm-fade', x: midX, y: LCM_CY });
+    times.textContent = '×';
+    add(times, null, [1, 1, 0]);
+
+    var nameA = svgEl('text', { id: 'lcm-name-a', 'class': 'circle-name name-a lcm-move', x: 0, y: 0 });
+    nameA.textContent = 'A = ' + String(d.a);
+    add(nameA, [[LCM_APART[0], LCM_NAME_Y], [LCM_APART[0], LCM_NAME_Y], [LCM_JOINED[0] - 60, LCM_NAME_Y]], null);
+    var nameB = svgEl('text', { id: 'lcm-name-b', 'class': 'circle-name name-b lcm-move', x: 0, y: 0 });
+    nameB.textContent = 'B = ' + String(d.b);
+    add(nameB, [[LCM_APART[1], LCM_NAME_Y], [LCM_APART[1], LCM_NAME_Y], [LCM_JOINED[1] + 60, LCM_NAME_Y]], null);
+
+    // The dashed gcd box holds B's copy of the shared primes (stages 2-3).
+    var sharedW = d.shared.map(function(p){ return badgeWidth(String(p), true); });
+    var gcdPos = lcmGrid(sharedW, midX, LCM_GCD_Y, LCM_GCD_W);
+    var boxMinX = midX, boxMaxX = midX, boxMinY = LCM_GCD_Y - LCM_CHIP_H / 2, boxMaxY = LCM_GCD_Y + LCM_CHIP_H / 2;
+    if (gcdPos.length){
+      boxMinX = Infinity; boxMaxX = -Infinity; boxMinY = Infinity; boxMaxY = -Infinity;
+      gcdPos.forEach(function(pt, i){
+        boxMinX = Math.min(boxMinX, pt[0] - sharedW[i] / 2);
+        boxMaxX = Math.max(boxMaxX, pt[0] + sharedW[i] / 2);
+        boxMinY = Math.min(boxMinY, pt[1] - LCM_CHIP_H / 2);
+        boxMaxY = Math.max(boxMaxY, pt[1] + LCM_CHIP_H / 2);
+      });
+    }
+    var boxW = Math.max(60, boxMaxX - boxMinX + 16);
+    var boxH = boxMaxY - boxMinY + 16;
+    var gcdG = svgEl('g', { id: 'lcm-gcd', 'class': 'lcm-fade' });
+    gcdG.appendChild(svgEl('rect', { 'class': 'lcm-gcd-frame', x: midX - boxW / 2, y: boxMinY - 8, width: boxW, height: boxH, rx: 6 }));
+    var labelY = boxMaxY + 8 + 22;
+    var gcdLabel = svgEl('text', { id: 'lcm-gcd-label', 'class': 'lcm-gcd-label', x: midX, y: labelY });
+    gcdLabel.textContent = 'gcd(A, B) = ' + String(d.g);
+    gcdG.appendChild(gcdLabel);
+    if (d.shared.length === 0){
+      var one = svgEl('text', { 'class': 'lcm-gcd-one', x: midX, y: LCM_GCD_Y });
+      one.textContent = '1';
+      gcdG.appendChild(one);
+    }
+    add(gcdG, null, [0, 1, 1]);
+
+    function chipGroup(primes, cls, at1, at3, maxW, cancelAt){
+      var widths = primes.map(function(p){ return badgeWidth(String(p), true); });
+      var g1 = lcmGrid(widths, at1[0], at1[1], maxW);
+      var g3 = lcmGrid(widths, at3[0], at3[1], maxW);
+      primes.forEach(function(p, i){
+        var el = lcmChipEl(p, cls);
+        if (cancelAt) el.style.transitionDelay = (i * 90) + 'ms';
+        add(el, [g1[i], g1[i], g3[i]], null, cancelAt);
+      });
+    }
+    chipGroup(d.left, 'from-a', [LCM_APART[0] - LCM_OWN_DX, LCM_CY], [LCM_JOINED[0] - LCM_OWN_DX, LCM_CY], LCM_GROUP_W);
+    chipGroup(d.shared, 'from-a is-shared', [LCM_APART[0] + LCM_SHARED_DX, LCM_CY], [LCM_JOINED[0] + LCM_SHARED_DX, LCM_CY], LCM_GROUP_W);
+    chipGroup(d.right, 'from-b', [LCM_APART[1] + LCM_OWN_DX, LCM_CY], [LCM_JOINED[1] + LCM_OWN_DX, LCM_CY], LCM_GROUP_W);
+    // B's shared copy: inside circle B at stage 1, lifted into the gcd box (and struck) from stage 2.
+    var bs1 = lcmGrid(sharedW, LCM_APART[1] - LCM_SHARED_DX, LCM_CY, LCM_GROUP_W);
+    d.shared.forEach(function(p, i){
+      var el = lcmChipEl(p, 'from-b is-shared');
+      el.style.transitionDelay = (i * 90) + 'ms';
+      add(el, [bs1[i], gcdPos[i], gcdPos[i]], null, 2);
+    });
+
+    var head = svgEl('text', { id: 'lcm-headline', 'class': 'lcm-headline', x: midX, y: LCM_HEAD_Y });
+    lcmSvg.appendChild(head);
+
+    lcmSvg.setAttribute('viewBox', '0 0 900 ' + Math.max(470, labelY + 14));
+  }
+
+  function applyLcmStage(stage, instant){
+    var d = lcmView.data;
+    if (!d || d.empty || !lcmView.items) return;
+    if (instant) lcmSvg.classList.add('is-instant');
+    lcmView.items.forEach(function(it){
+      if (it.at) it.el.style.transform = 'translate(' + it.at[stage - 1][0] + 'px, ' + it.at[stage - 1][1] + 'px)';
+      if (it.show) it.el.style.opacity = String(it.show[stage - 1]);
+      if (it.cancelAt) it.el.classList.toggle('is-cancelled', stage >= it.cancelAt);
+    });
+    var head = document.getElementById('lcm-headline');
+    if (stage === 1) head.textContent = 'A × B = ' + d.a + ' × ' + d.b + ' = ' + d.product;
+    else if (stage === 2) head.textContent = '(A × B) ÷ gcd(A, B) = ' + d.product + ' ÷ ' + d.g;
+    else head.textContent = 'lcm(A, B) = ' + d.lcmValue;
+    if (instant){
+      lcmSvg.getBoundingClientRect();
+      lcmSvg.classList.remove('is-instant');
+    }
+  }
+
   function renderLcmText(){
     var d = lcmView.data;
     if (!d || d.empty) return;
@@ -2996,6 +3206,16 @@
       lcmNumbersEl.textContent = 'lcm(' + d.a + ', ' + d.b + ') = (' + d.a + ' × ' + d.b + ') ÷ ' + d.g +
         ' = ' + d.product + ' ÷ ' + d.g + ' = ' + d.lcmValue;
     }
+    var sig = JSON.stringify([d.left, d.shared, d.right]);
+    // Rebuild the SVG only when the diagram's primes changed, so an unrelated
+    // render() (arming a number, a language switch) never snaps a running animation.
+    if (sig !== lcmView.sig){
+      lcmView.sig = sig;
+      if (!d.empty){
+        buildLcmSvg(d);
+        applyLcmStage(lcmView.stage, true);
+      }
+    }
     renderLcmText();
   }
 
@@ -3004,6 +3224,7 @@
     lcmView.stage = stage;
     lcmFold.setAttribute('data-stage', String(stage));
     renderLcmText();
+    applyLcmStage(stage, instant);
   }
 
   function playLcm(){
