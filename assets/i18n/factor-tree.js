@@ -33,6 +33,7 @@
     nl: {
       title: 'Factorboom',
       heading: 'Factorboom',
+      eyebrow: 'priemgetallen en deelbaarheid',
       subtitle: 'Voeg een getal toe aan het palet, sleep de cirkel naar het samenstellings-/factorisatiegebied en druk op + om hem uit te vouwen — tak voor tak, tot aan zijn priembladeren.',
       modeLabel: 'Boommodus',
       modeClassic: 'Klassiek',
@@ -77,6 +78,7 @@
     en: {
       title: 'Factor Tree',
       heading: 'Factor Tree',
+      eyebrow: 'primes and divisibility',
       subtitle: 'Add a number to the palette, drag its circle into the composition/factorization area, then press + to unfold it — branch by branch, down to its prime leaves.',
       modeLabel: 'Tree mode',
       modeClassic: 'Classic',
@@ -121,6 +123,7 @@
     de: {
       title: 'Faktorbaum',
       heading: 'Faktorbaum',
+      eyebrow: 'Primzahlen und Teilbarkeit',
       subtitle: 'Füge eine Zahl zur Palette hinzu, zieh ihren Kreis in den Zusammensetzungs-/Faktorisierungsbereich und drück auf +, um ihn auszuklappen — Ast für Ast, bis zu den Primblättern.',
       modeLabel: 'Baummodus',
       modeClassic: 'Klassisch',
@@ -165,6 +168,7 @@
     fr: {
       title: 'Arbre de facteurs',
       heading: 'Arbre de facteurs',
+      eyebrow: 'nombres premiers et divisibilité',
       subtitle: 'Ajoutez un nombre à la palette, faites glisser son cercle dans la zone de composition/factorisation, puis appuyez sur + pour le déplier — branche par branche, jusqu’à ses feuilles premières.',
       modeLabel: "Mode de l'arbre",
       modeClassic: 'Classique',
@@ -209,6 +213,7 @@
     es: {
       title: 'Árbol de factores',
       heading: 'Árbol de factores',
+      eyebrow: 'números primos y divisibilidad',
       subtitle: 'Añade un número a la paleta, arrastra su círculo al área de composición/factorización y pulsa + para desplegarlo — rama por rama, hasta sus hojas primas.',
       modeLabel: 'Modo de árbol',
       modeClassic: 'Clásico',
@@ -253,6 +258,7 @@
     it: {
       title: 'Albero dei fattori',
       heading: 'Albero dei fattori',
+      eyebrow: 'numeri primi e divisibilità',
       subtitle: 'Aggiungi un numero alla tavolozza, trascina il suo cerchio nell’area di composizione/fattorizzazione e premi + per espanderlo — ramo per ramo, fino alle sue foglie prime.',
       modeLabel: 'Modalità albero',
       modeClassic: 'Classica',
@@ -297,6 +303,7 @@
     pl: {
       title: 'Drzewo czynników',
       heading: 'Drzewo czynników',
+      eyebrow: 'liczby pierwsze i podzielność',
       subtitle: 'Dodaj liczbę do palety, przeciągnij jej koło do obszaru składania/faktoryzacji i naciśnij +, aby je rozwinąć — gałąź po gałęzi, aż do liści pierwszych.',
       modeLabel: 'Tryb drzewa',
       modeClassic: 'Klasyczny',
@@ -341,6 +348,7 @@
     'pt-BR': {
       title: 'Árvore de fatores',
       heading: 'Árvore de fatores',
+      eyebrow: 'números primos e divisibilidade',
       subtitle: 'Adicione um número à paleta, arraste o círculo dele para a área de composição/fatoração e pressione + para expandi-lo — galho por galho, até as folhas primas.',
       modeLabel: 'Modo da árvore',
       modeClassic: 'Clássico',
@@ -385,6 +393,7 @@
     'pt-PT': {
       title: 'Árvore de fatores',
       heading: 'Árvore de fatores',
+      eyebrow: 'números primos e divisibilidade',
       subtitle: 'Adiciona um número à paleta, arrasta o seu círculo para a área de composição/fatorização e carrega em + para o expandir — ramo por ramo, até às folhas primas.',
       modeLabel: 'Modo da árvore',
       modeClassic: 'Clássico',
@@ -429,6 +438,7 @@
     sv: {
       title: 'Faktorträd',
       heading: 'Faktorträd',
+      eyebrow: 'primtal och delbarhet',
       subtitle: 'Lägg till ett tal i paletten, dra dess cirkel till sammansättnings-/faktoriseringsytan och tryck på + för att fälla ut den — gren för gren, ända ner till primtalsbladen.',
       modeLabel: 'Trädläge',
       modeClassic: 'Klassiskt',
@@ -473,6 +483,7 @@
     nb: {
       title: 'Faktortre',
       heading: 'Faktortre',
+      eyebrow: 'primtall og delelighet',
       subtitle: 'Legg til et tall i paletten, dra sirkelen til sammensetnings-/faktoriseringsområdet og trykk på + for å folde den ut — gren for gren, helt ned til primtallsbladene.',
       modeLabel: 'Tremodus',
       modeClassic: 'Klassisk',
@@ -517,6 +528,7 @@
     ro: {
       title: 'Arbore de factori',
       heading: 'Arbore de factori',
+      eyebrow: 'numere prime și divizibilitate',
       subtitle: 'Adaugă un număr în paletă, trage cercul lui în zona de compunere/factorizare și apasă + ca să-l extinzi — ramură cu ramură, până la frunzele prime.',
       modeLabel: 'Mod arbore',
       modeClassic: 'Clasic',
@@ -561,6 +573,7 @@
     hu: {
       title: 'Tényezőfa',
       heading: 'Tényezőfa',
+      eyebrow: 'prímszámok és oszthatóság',
       subtitle: 'Adj hozzá egy számot a palettához, húzd a körét az összetételi/faktorizációs területre, majd nyomd meg a + gombot a kinyitásához — ágról ágra, egészen a prímlevelekig.',
       modeLabel: 'Fa módja',
       modeClassic: 'Klasszikus',
@@ -605,6 +618,7 @@
     lv: {
       title: 'Reizinātāju koks',
       heading: 'Reizinātāju koks',
+      eyebrow: 'pirmskaitļi un dalāmība',
       subtitle: 'Pievieno skaitli paletei, ievelc tā apli sastādīšanas/faktorizācijas laukumā un nospied +, lai to izvērstu — zaru pēc zara, līdz pat pirmskaitļu lapām.',
       modeLabel: 'Koka režīms',
       modeClassic: 'Klasiskais',
@@ -649,6 +663,7 @@
     ru: {
       title: 'Дерево множителей',
       heading: 'Дерево множителей',
+      eyebrow: 'простые числа и делимость',
       subtitle: 'Добавь число в палитру, перетащи его круг в область композиции/факторизации и нажми +, чтобы развернуть его — ветвь за ветвью, до простых листьев.',
       modeLabel: 'Режим дерева',
       modeClassic: 'Классический',
@@ -693,6 +708,7 @@
     el: {
       title: 'Δέντρο παραγόντων',
       heading: 'Δέντρο παραγόντων',
+      eyebrow: 'πρώτοι αριθμοί και διαιρετότητα',
       subtitle: 'Πρόσθεσε έναν αριθμό στην παλέτα, σύρε τον κύκλο του στην περιοχή σύνθεσης/παραγοντοποίησης και πάτησε + για να τον ξεδιπλώσεις — κλαδί προς κλαδί, μέχρι τα πρώτα φύλλα του.',
       modeLabel: 'Λειτουργία δέντρου',
       modeClassic: 'Κλασική',
