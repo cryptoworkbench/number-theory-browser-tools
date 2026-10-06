@@ -17,7 +17,8 @@
  *   B3  no horizontal overflow
  *   B4  each diagram: fills its parent's content width, and is no taller than
  *       max(80% of the viewport height, its native viewBox height)
- *   B5  (venn) #frame-two fills its parent's content width
+ *   B5  (venn) #frame-two fills its parent's content width, or max(1040px, 205vh)
+ *       where that bound is smaller
  * Optional diagrams (SKIP when hidden in the default state): euclid #tileSvg,
  * venn #venn-composite.
  */
@@ -155,7 +156,11 @@ function inPage(cfg) {
       else {
         var fw = f.getBoundingClientRect().width;
         var pcw = contentW(f.parentElement);
-        rep(fw >= pcw - 1, "B5 " + cfg.frameSel + " width " + Math.round(fw) + " vs parent content width " + Math.round(pcw));
+        // The frame may only be narrower than its parent where the 205vh bound
+        // binds (headless Chrome's innerHeight is below the 1000px window height).
+        var want = Math.min(pcw, Math.max(1040, 2.05 * ch));
+        rep(fw >= want - 1, "B5 " + cfg.frameSel + " width " + Math.round(fw) + " vs expected " + Math.round(want) +
+          " (parent content width " + Math.round(pcw) + ", innerHeight " + ch + ")");
       }
     }
     out.setAttribute("data-done", "1");
