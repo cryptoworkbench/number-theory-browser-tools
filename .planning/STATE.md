@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-06T14:57:35.991Z"
+last_updated: "2026-10-06T15:56:03.128Z"
 last_activity: 2026-10-06
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 52ee40cf0673beeb92433aa8eeaed5bfd12f9c79
+state_head: c2cc98313fbed42e41b937a9effca0663c750e1a
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-06 - Completed quick task 261006-moy: Factor Tree gcd panels overlap (yellow, blue, green) instead of merging
+Last activity: 2026-10-06 - Completed quick task 261006-o9g: Venn Diagram folded LCM/GCD section, lcm(A, B) = (A × B) ÷ gcd(A, B)
 
 Progress: [█████████░] 86%
 
@@ -343,6 +343,7 @@ None yet.
 | 107 | Palette circles shrink so the palette stays at most 270px tall in Factor Tree and Venn Diagram | 2026-10-06 | 0cf5caa | — |
 | 261006-l6v | Undo and Redo buttons for the number palette and the working areas in Factor Tree and Venn Diagram | 2026-10-06 | 026090d | [261006-l6v-add-redo-and-undo-buttons-to-the-number-](./quick/261006-l6v-add-redo-and-undo-buttons-to-the-number-/) |
 | 261006-moy | Factor Tree gcd: panels overlap (yellow left, blue right, green overlap) instead of merging; Separate un-tints and slides apart | 2026-10-06 | 52ee40c | [261006-moy-factor-tree-gcd-panels-overlap-yellow-bl](./quick/261006-moy-factor-tree-gcd-panels-overlap-yellow-bl/) |
+| 261006-o9g | Venn Diagram: folded LCM/GCD section visualizing lcm(A, B) = (A × B) ÷ gcd(A, B) | 2026-10-06 | c2cc983 | [261006-o9g-venn-diagram-add-a-second-normally-hidde](./quick/261006-o9g-venn-diagram-add-a-second-normally-hidde/) |
 
 ## Deferred Items
 
@@ -358,4 +359,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-06 - Completed quick task 261006-moy: Factor Tree gcd panels overlap (yellow, blue, green) instead of merging
+Last activity: 2026-10-06 - Completed quick task 261006-o9g: Venn Diagram folded LCM/GCD section, lcm(A, B) = (A × B) ÷ gcd(A, B)
