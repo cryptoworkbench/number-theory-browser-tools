@@ -376,6 +376,9 @@
   .history-btn:focus{ outline:none; }
   .history-btn:focus-visible{ box-shadow:var(--ctl-focus); }
   .history-btn:disabled{ opacity:.4; cursor:default; }
+  .work-tools{ display:flex; align-items:center; gap:6px; }
+  .work-tools .history-btn{ width:32px; height:32px; }
+  .work-tools .history-btn svg{ width:20px; height:20px; }
   .palette-bin svg, .palette-empty-btn svg, .history-btn svg{
     width:26px;
     height:26px;
@@ -629,7 +632,15 @@
 
   <div class="section-head">
     <h2 id="workHeading" class="section-title" data-i18n="factorTree.workHeading">Composition/factorization area</h2>
-    <button id="clearBtn" type="button" class="clear-btn" data-i18n="factorTree.clear" disabled>Clear</button>
+    <div class="work-tools">
+      <button id="clearBtn" type="button" class="clear-btn" data-i18n="factorTree.clear" disabled>Clear</button>
+      <button id="workUndoBtn" type="button" class="history-btn" disabled aria-label="Undo" title="Undo" aria-keyshortcuts="Control+Z Meta+Z" data-i18n-aria-label="common.undoWork" data-i18n-title="common.undoWork">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button id="workRedoBtn" type="button" class="history-btn" disabled aria-label="Redo" title="Redo" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y" data-i18n-aria-label="common.redoWork" data-i18n-title="common.redoWork">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
+    </div>
   </div>
   <div id="workArea" class="stage work-area" role="region" aria-labelledby="workHeading">
     <p id="workHint" class="work-hint" data-i18n="factorTree.workHint">Drag-and-drop a composite number to factorize it, or drag-and-drop prime numbers to build a composite number.</p>
@@ -669,6 +680,8 @@
   const workArea = document.getElementById('workArea');
   const workHint = document.getElementById('workHint');
   const clearBtn = document.getElementById('clearBtn');
+  const workUndoBtn = document.getElementById('workUndoBtn');
+  const workRedoBtn = document.getElementById('workRedoBtn');
   const messageEl = document.getElementById('message');
   const modeButtons = document.querySelectorAll('.mode-btn');
   const balancedNote = document.getElementById('balancedNote');
@@ -678,6 +691,7 @@
   const HISTORY_MAX = 100;
   let paletteList = [];
   const paletteHistory = { undo:[], redo:[] };
+  const workHistory = { undo:[], redo:[] };
   let drag = null;
   let dragJustEnded = false;
   const MIRROR_MS = 450;
@@ -922,6 +936,8 @@
   function syncHistoryButtons(){
     paletteUndoBtn.disabled = paletteHistory.undo.length === 0;
     paletteRedoBtn.disabled = paletteHistory.redo.length === 0;
+    workUndoBtn.disabled = workHistory.undo.length === 0;
+    workRedoBtn.disabled = workHistory.redo.length === 0;
   }
 
   function pushCapped(stack, snapshot){
@@ -1192,7 +1208,7 @@
     placeTree(view);
     if(prebuilt) updateEquation(view);
 
-    view.removeBtn.addEventListener('click', ()=>{ removeTree(view); });
+    view.removeBtn.addEventListener('click', ()=>{ trackWork(()=> removeTree(view)); });
     relabelRemove(view);
     return view;
   }
@@ -1216,8 +1232,8 @@
 
   // b's side starts on its own copy (twin) of the shared branch, so the two
   // trees can stand apart before they merge.
-  function overlapGraph(a, b){
-    const t = buildOverlapTree(a, b, { balanced: mode === 'balanced' });
+  function overlapGraph(a, b, balanced){
+    const t = buildOverlapTree(a, b, { balanced: balanced });
     const twinOf = new Map();
     const twin = cloneTree(t.G, twinOf);
     const B = { root:t.b.root, rest:t.b.rest, top:t.b.root || twin };
@@ -1227,8 +1243,11 @@
 
   // animate: true grows both trees out and merges them, false shows them
   // merged at once, 'split' starts merged and slides them apart again.
-  function buildOverlapCard(a, b, animate){
-    const o = overlapGraph(a, b);
+  // balanced defaults to the page's current mode; a restored card passes the
+  // flag it was originally built with, since an overlap's shape depends on it.
+  function buildOverlapCard(a, b, animate, balanced){
+    if(balanced === undefined) balanced = mode === 'balanced';
+    const o = overlapGraph(a, b, balanced);
     const nodes = [];
     const edges = [];
     const maxDepthBox = { value:0 };
@@ -1242,7 +1261,7 @@
     const shell = cardShell(false);
     shell.card.classList.add('is-overlap');
     const view = newView(shell, m, {
-      a:a, b:b, g:o.g, overlap:o, merged:false, fresh:new Set(),
+      a:a, b:b, g:o.g, overlap:o, merged:false, fresh:new Set(), balanced:balanced,
       locked:new Set([o.A.root, o.B.root].filter(Boolean))
     });
     // Each prime stays folded on its P = P × 1 split: the 1 × P layer adds
@@ -1280,8 +1299,8 @@
 
     view.splitBtn = splitButton();
     shell.card.insertBefore(view.splitBtn, shell.card.firstChild);
-    view.splitBtn.addEventListener('click', ()=>{ splitOverlap(view); });
-    view.removeBtn.addEventListener('click', ()=>{ removeTree(view); });
+    view.splitBtn.addEventListener('click', ()=>{ trackWork(()=> splitOverlap(view)); });
+    view.removeBtn.addEventListener('click', ()=>{ trackWork(()=> removeTree(view)); });
     relabelRemove(view);
     return view;
   }
@@ -1318,10 +1337,16 @@
     return buildCard(root.value, { root:root, folded:folded, pressed:new Set(), fresh:new Set() });
   }
 
+  // Coprime numbers only share the 1: each tree is just its own rest.
+  function splitHalves(o){
+    return [o.g === 1 && o.A.rest ? o.A.rest : o.A.top, o.g === 1 && o.B.rest ? o.B.rest : o.B.top];
+  }
+
   function splitOverlap(view){
     const idx = views.indexOf(view);
     if(idx < 0 || !view.live) return;
-    const apart = buildOverlapCard(view.a, view.b, 'split');
+    const apart = buildOverlapCard(view.a, view.b, 'split', view.balanced);
+    apart.splitting = true;
     apart.splitBtn.disabled = true;
     apart.removeBtn.disabled = true;
     killView(view);
@@ -1338,10 +1363,9 @@
     ], ()=>{
       const at = views.indexOf(apart);
       if(at < 0) return;
-      const o = apart.overlap;
-      // Coprime numbers only share the 1: each tree is just its own rest.
-      const left = standaloneView(o.g === 1 && o.A.rest ? o.A.rest : o.A.top);
-      const right = standaloneView(o.g === 1 && o.B.rest ? o.B.rest : o.B.top);
+      const halves = splitHalves(apart.overlap);
+      const left = standaloneView(halves[0]);
+      const right = standaloneView(halves[1]);
       killView(apart);
       workArea.insertBefore(left.card, workArea.children[at + 1] || null);
       workArea.insertBefore(right.card, left.card.nextSibling);
@@ -1453,6 +1477,151 @@
     syncWorkState();
     return view;
   }
+
+  // ---------- Undo / Redo of the composition/factorization area ----------
+  // A snapshot is a JSON string encoding every card: for a regular card its
+  // number and tree (each node's value, kind, depth, fold, mirror and
+  // first-unfold flags, children in their current order), for a gcd overlap
+  // its two numbers, balanced flag and, once merged, every circle's fold and
+  // mirror state. A card mid-split is encoded as the two standalone trees
+  // the split ends in. Strings are parsed fresh on every restore, so a stored
+  // snapshot never aliases a live tree.
+  function encodeNode(node, flagsOf){
+    const flags = flagsOf(node);
+    return { v:node.value, k:node.kind, d:node.depth, f:flags.f, p:flags.p, r:flags.r,
+      c:node.children.map(c=> encodeNode(c, flagsOf)) };
+  }
+
+  function encodeView(view){
+    if(view.overlap && view.splitting){
+      return splitHalves(view.overlap).map(top=>{
+        const root = detachTree(top, 0);
+        return { n:root.value, tree:encodeNode(root, ()=> ({ f:false, p:false, r:false })) };
+      });
+    }
+    if(view.overlap){
+      const entry = { a:view.a, b:view.b, bal:view.balanced };
+      if(view.overlap.done){
+        entry.folds = [];
+        entry.presses = [];
+        view.nodeViews.forEach(nv=>{
+          entry.folds.push(nv.folded);
+          entry.presses.push(!!nv.pressed);
+        });
+      }
+      return [entry];
+    }
+    return [{ n:view.n, tree:encodeNode(view.root, node=>{
+      const nv = view.nodeViews.get(node);
+      return { f:nv.folded, p:!!nv.pressed, r:view.fresh.has(node) };
+    }) }];
+  }
+
+  function snapshotWork(){
+    return JSON.stringify(views.map(encodeView).reduce((all, part)=> all.concat(part), []));
+  }
+
+  function decodeNode(entry, folded, pressed, fresh){
+    const node = { value:entry.v, kind:entry.k, depth:entry.d, children:[] };
+    node.children = entry.c.map(c=> decodeNode(c, folded, pressed, fresh));
+    folded.set(node, entry.f);
+    if(entry.p) pressed.add(node);
+    if(entry.r) fresh.add(node);
+    return node;
+  }
+
+  function decodeView(entry){
+    if(entry.tree){
+      const folded = new Map();
+      const pressed = new Set();
+      const fresh = new Set();
+      const root = decodeNode(entry.tree, folded, pressed, fresh);
+      return buildCard(entry.n, { root:root, folded:folded, pressed:pressed, fresh:fresh });
+    }
+    const view = buildOverlapCard(entry.a, entry.b, false, entry.bal);
+    if(entry.folds && entry.folds.length === view.nodeViews.size){
+      let i = 0;
+      view.nodeViews.forEach(nv=>{
+        nv.folded = entry.folds[i];
+        if(entry.presses[i] && nv.title){
+          // Reversals commute, so applying each net-pressed circle once
+          // rebuilds the child order the card had.
+          reverseBranch(nv.node);
+          nv.pressed = true;
+          nv.circle.setAttribute('aria-pressed', 'true');
+        }
+        i++;
+      });
+      layoutTree(view);
+      applyTargets(view, finalTargets(view));
+      syncControls(view);
+      placeTree(view);
+      updateEquation(view);
+    }
+    return view;
+  }
+
+  function restoreWork(json){
+    views.forEach(killView);
+    views = [];
+    JSON.parse(json).forEach(entry=>{
+      const view = decodeView(entry);
+      workArea.appendChild(view.card);
+      views.push(view);
+    });
+    syncWorkState();
+    setMessage(null);
+  }
+
+  function pushWork(stack, snapshot){
+    stack.push(snapshot);
+    if(stack.length > HISTORY_MAX) stack.shift();
+  }
+
+  // before is the snapshot taken ahead of a gesture; a gesture that changed
+  // nothing (a refused drop, the bin branch of a drag) is not an undo step.
+  function recordWork(before){
+    if(before === snapshotWork()) return;
+    pushWork(workHistory.undo, before);
+    workHistory.redo.length = 0;
+    syncHistoryButtons();
+  }
+
+  function trackWork(gesture){
+    const before = snapshotWork();
+    const result = gesture();
+    recordWork(before);
+    return result;
+  }
+
+  function stepWork(from, to, button, partner){
+    if(drag || from.length === 0) return;
+    pushWork(to, snapshotWork());
+    restoreWork(from.pop());
+    syncHistoryButtons();
+    if(button.disabled) partner.focus();
+  }
+
+  function undoWork(){ stepWork(workHistory.undo, workHistory.redo, workUndoBtn, workRedoBtn); }
+  function redoWork(){ stepWork(workHistory.redo, workHistory.undo, workRedoBtn, workUndoBtn); }
+  workUndoBtn.addEventListener('click', undoWork);
+  workRedoBtn.addEventListener('click', redoWork);
+
+  // Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes the area; typing in
+  // a field keeps the browser's own text undo.
+  document.addEventListener('keydown', e=>{
+    if(!(e.ctrlKey || e.metaKey) || e.altKey || e.isComposing || drag) return;
+    const t = e.target;
+    if(t && (t.isContentEditable || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
+    const k = String(e.key).toLowerCase();
+    if(k === 'z' && !e.shiftKey){
+      e.preventDefault();
+      undoWork();
+    } else if((k === 'z' && e.shiftKey) || (k === 'y' && e.ctrlKey)){
+      e.preventDefault();
+      redoWork();
+    }
+  });
 
   // ---------- Compose trees ----------
   // Dropping a palette circle m onto the card of n, or the card of m onto
@@ -1573,11 +1742,11 @@
       title.textContent = translate('factorTree.mirrorLabel', { n: nv.node.value });
       nv.circle.appendChild(title);
       nv.title = title;
-      nv.circle.addEventListener('click', ()=>{ mirrorBranch(view, nv); });
+      nv.circle.addEventListener('click', ()=>{ trackWork(()=> mirrorBranch(view, nv)); });
       nv.circle.addEventListener('keydown', e=>{
         if(e.key !== 'Enter' && e.key !== ' ') return;
         e.preventDefault();
-        if(!e.repeat) mirrorBranch(view, nv);
+        if(!e.repeat) trackWork(()=> mirrorBranch(view, nv));
       });
     });
   }
@@ -1615,13 +1784,13 @@
 
       badge.addEventListener('click', e=>{
         e.stopPropagation();
-        toggleFold(view, nv);
+        trackWork(()=> toggleFold(view, nv));
       });
       badge.addEventListener('keydown', e=>{
         if(e.key !== 'Enter' && e.key !== ' ') return;
         e.preventDefault();
         e.stopPropagation();
-        if(!e.repeat) toggleFold(view, nv);
+        if(!e.repeat) trackWork(()=> toggleFold(view, nv));
       });
     });
   }
@@ -2099,19 +2268,21 @@
     const half = source && target ? halfAt(target, e.clientX) : null;
     endDrag();
     if(wasActive) markDragEnded();
-    if(source){
-      if(target && source.live){
-        if(half === 'gcd') overlapViews(source, target);
-        else composeViews(source, target);
+    trackWork(()=>{
+      if(source){
+        if(target && source.live){
+          if(half === 'gcd') overlapViews(source, target);
+          else composeViews(source, target);
+        }
+        return;
       }
-      return;
-    }
-    if(target) composeInto(target, n);
-    else if(over){
-      const view = dropTree(n);
-      if(view && !isPrime(n)) unfoldToPrimes(view);
-    }
-    else if(binned) removePaletteItem(item, false);
+      if(target) composeInto(target, n);
+      else if(over){
+        const view = dropTree(n);
+        if(view && !isPrime(n)) unfoldToPrimes(view);
+      }
+      else if(binned) removePaletteItem(item, false);
+    });
   }
 
   function onDragCancel(e){
@@ -2175,7 +2346,7 @@
   paletteEl.addEventListener('click', e=>{
     const item = e.target.closest('.palette-item');
     if(!item || dragJustEnded) return;
-    dropTree(Number(item.getAttribute('data-n')), { keyboard: e.detail === 0 });
+    trackWork(()=> dropTree(Number(item.getAttribute('data-n')), { keyboard: e.detail === 0 }));
   });
 
   // ---------- Randomize ----------
@@ -2205,7 +2376,7 @@
   });
 
   clearBtn.addEventListener('click', ()=>{
-    clearWork();
+    trackWork(clearWork);
     setMessage(null);
     const first = paletteEl.querySelector('.palette-item');
     if(first) first.focus();

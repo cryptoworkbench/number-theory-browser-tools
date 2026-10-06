@@ -26,7 +26,8 @@ var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-modul
 
 // Pages this probe knows about; Tasks 2 and 3 register ftpair and venn.
 var PAGES = {
-  ft: { dir: "Factor Tree", file: "factor-tree.html", query: "?lang=en", expected: 9 }
+  ft: { dir: "Factor Tree", file: "factor-tree.html", query: "?lang=en", expected: 18 },
+  ftpair: { dir: "Factor Tree", file: "factor-tree.html", query: "?a=12&b=18&lang=en", expected: 3 }
 };
 
 // Same evaluation i18n-check.js's loadCatalog() does (requiring i18n-check.js
@@ -109,6 +110,53 @@ function inPage(cfg) {
   }
   function storageEvent(raw) {
     window.dispatchEvent(new StorageEvent("storage", { key: "number-palette", newValue: raw }));
+  }
+
+
+  /* ----- Factor Tree work-area helpers ----- */
+  function cards() { return Array.prototype.slice.call(document.querySelectorAll("#workArea .tree-card")); }
+  function rootTexts() {
+    return cards().map(function (c) { return c.querySelector(".node-text").textContent; });
+  }
+  function setPalette(list) {
+    NT.store.writeSharedPalette(list);
+    storageEvent(JSON.stringify(list));
+  }
+  function circleOf(n) {
+    var cs = circles().filter(function (c) { return Number(c.getAttribute("data-n")) === n; });
+    if (!cs.length) throw new Error("no palette circle " + n);
+    return cs[0];
+  }
+  function place(n) { circleOf(n).click(); }
+  function fire(el, type, extra) {
+    el.dispatchEvent(new MouseEvent(type, Object.assign({ bubbles: true, cancelable: true }, extra || {})));
+  }
+  function badgesOf(card) { return Array.prototype.slice.call(card.querySelectorAll(".fold-badge")); }
+  function expandedOf(card) { return badgesOf(card).map(function (b) { return b.getAttribute("aria-expanded"); }); }
+  function visibleCircles(card) {
+    return Array.prototype.filter.call(card.querySelectorAll(".node-circle"), function (c) { return c.style.display !== "none"; }).length;
+  }
+  function labelOrder(card) {
+    var ts = Array.prototype.filter.call(card.querySelectorAll(".node-text"), function (t) { return t.style.display !== "none"; });
+    return ts.map(function (t) { return [Number(t.getAttribute("x")), Number(t.getAttribute("y")), t.textContent]; })
+      .sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; })
+      .map(function (a) { return a[2]; });
+  }
+  function resetCards() {
+    var clear = $("clearBtn");
+    if (!clear.disabled) clear.click();
+    eq(cards().length, 0, "work area emptied");
+  }
+  function key(k, extra, target) {
+    (target || document.body).dispatchEvent(new KeyboardEvent("keydown", Object.assign({ key: k, bubbles: true, cancelable: true }, extra || {})));
+  }
+  function drag(fromEl, toEl) {
+    var a = center(fromEl), b = center(toEl);
+    var base = { pointerId: 7, isPrimary: true, pointerType: "mouse", bubbles: true, cancelable: true, button: 0 };
+    fromEl.dispatchEvent(new PointerEvent("pointerdown", Object.assign({ clientX: a.x, clientY: a.y }, base)));
+    window.dispatchEvent(new PointerEvent("pointermove", Object.assign({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 }, base)));
+    window.dispatchEvent(new PointerEvent("pointermove", Object.assign({ clientX: b.x, clientY: b.y }, base)));
+    window.dispatchEvent(new PointerEvent("pointerup", Object.assign({ clientX: b.x, clientY: b.y }, base)));
   }
 
   function ftRun() {
@@ -263,10 +311,247 @@ function inPage(cfg) {
       });
     });
 
+    var undoW = $("workUndoBtn"), redoW = $("workRedoBtn");
+
+    add("W1 work button row", function () {
+      var tools = $("clearBtn").parentElement;
+      ok(tools.classList.contains("work-tools"), "Clear sits in .work-tools");
+      eq(Array.prototype.map.call(tools.children, function (c) { return c.id; }), ["clearBtn", "workUndoBtn", "workRedoBtn"], "work-tools children");
+      eq(tools.parentElement.children.length, 2, "section-head keeps two children");
+      var clearC = center($("clearBtn"));
+      [[undoW, "undoWork"], [redoW, "redoWork"]].forEach(function (pair) {
+        var b = pair[0], c = center(b);
+        eq(b.getAttribute("type"), "button", b.id + " type");
+        ok(Math.abs(c.w - 32) < 0.6 && Math.abs(c.h - 32) < 0.6, b.id + " is 32x32, got " + c.w + "x" + c.h);
+        ok(Math.abs(c.y - clearC.y) <= 1, b.id + " centred with Clear");
+        ok(b.disabled, b.id + " disabled at load");
+        eq(getComputedStyle(b).opacity, "0.4", b.id + " disabled opacity");
+        eq(labelsOf(b), { aria: EN[pair[1]], title: EN[pair[1]] }, b.id + " labels");
+        eq(b.getAttribute("data-i18n-aria-label"), "common." + pair[1], b.id + " aria key");
+        eq(b.getAttribute("data-i18n-title"), "common." + pair[1], b.id + " title key");
+        ok(!!b.querySelector("svg"), b.id + " has an svg");
+      });
+      eq(undoW.getAttribute("aria-keyshortcuts"), "Control+Z Meta+Z", "undo shortcuts");
+      eq(redoW.getAttribute("aria-keyshortcuts"), "Control+Shift+Z Meta+Shift+Z Control+Y", "redo shortcuts");
+    });
+
+    add("W2 place, undo, redo", function () {
+      setPalette([2, 3, 5, 12, 18]);
+      place(12);
+      eq(cards().length, 1, "one card");
+      ok(!undoW.disabled && redoW.disabled, "undo on, redo off");
+      var eqBefore = document.querySelector(".tree-equation").textContent;
+      undoW.click();
+      eq(cards().length, 0, "no cards after undo");
+      ok(!$("workHint").hidden, "hint visible");
+      ok($("clearBtn").disabled, "Clear disabled");
+      ok(undoW.disabled && !redoW.disabled, "undo off, redo on");
+      redoW.click();
+      eq(rootTexts(), ["12"], "root 12 after redo");
+      eq(document.querySelector(".tree-equation").textContent, eqBefore, "equation text");
+      ok($("workHint").hidden, "hint hidden again");
+    });
+
+    add("W3 fold toggle, undo, redo", function () {
+      resetCards();
+      place(12);
+      var card = cards()[0];
+      var badge = badgesOf(card)[0];
+      eq(badge.getAttribute("aria-expanded"), "false", "starts folded");
+      eq(visibleCircles(card), 1, "one visible circle");
+      fire(badge, "click");
+      return wait(1100).then(function () {
+        var open = visibleCircles(cards()[0]);
+        ok(open > 1, "unfolded shows more circles");
+        eq(badgesOf(cards()[0])[0].getAttribute("aria-expanded"), "true", "expanded");
+        undoW.click();
+        card = cards()[0];
+        eq(badgesOf(card)[0].getAttribute("aria-expanded"), "false", "undo restores folded");
+        eq(visibleCircles(card), 1, "undo restores visible count");
+        fire(badgesOf(card)[0], "click");
+        return wait(1100).then(function () {
+          eq(visibleCircles(cards()[0]), open, "first-unfold state restored: all open again");
+          undoW.click();
+          redoW.click();
+          eq(badgesOf(cards()[0])[0].getAttribute("aria-expanded"), "true", "redo re-applies the toggle");
+          eq(visibleCircles(cards()[0]), open, "redo visible count");
+        });
+      });
+    });
+
+    add("W4 mirror, undo, redo", function () {
+      resetCards();
+      place(12);
+      fire(badgesOf(cards()[0])[0], "click");
+      return wait(1100).then(function () {
+        var card = cards()[0];
+        var l0 = labelOrder(card);
+        var mirror = card.querySelector(".node-circle[role=button]");
+        eq(mirror.getAttribute("aria-pressed"), "false", "starts unpressed");
+        fire(mirror, "click");
+        return wait(700).then(function () {
+          var card1 = cards()[0];
+          var l1 = labelOrder(card1);
+          ok(JSON.stringify(l1) !== JSON.stringify(l0), "mirroring changed the order");
+          eq(card1.querySelector(".node-circle[role=button]").getAttribute("aria-pressed"), "true", "pressed");
+          undoW.click();
+          var card2 = cards()[0];
+          eq(card2.querySelector(".node-circle[role=button]").getAttribute("aria-pressed"), "false", "undo unpressed");
+          eq(labelOrder(card2), l0, "undo restores the order");
+          redoW.click();
+          var card3 = cards()[0];
+          eq(card3.querySelector(".node-circle[role=button]").getAttribute("aria-pressed"), "true", "redo pressed");
+          eq(labelOrder(card3), l1, "redo re-applies the order");
+        });
+      });
+    });
+
+    add("W5 compose by pointer drag, undo", function () {
+      resetCards();
+      place(12);
+      var before = { roots: rootTexts(), open: expandedOf(cards()[0]), vis: visibleCircles(cards()[0]) };
+      var pal = circleNs();
+      drag(circleOf(5), cards()[0]);
+      eq(rootTexts(), ["60"], "composed 60");
+      eq(circleNs(), pal, "palette untouched by the drag");
+      undoW.click();
+      eq(rootTexts(), before.roots, "12 card back");
+      eq(expandedOf(cards()[0]), before.open, "fold state back");
+      eq(visibleCircles(cards()[0]), before.vis, "visible circles back");
+      redoW.click();
+      eq(rootTexts(), ["60"], "redo composes again");
+      // markDragEnded swallows palette clicks until the next task.
+      return wait(30);
+    });
+
+    add("W6 remove one of two, undo", function () {
+      resetCards();
+      place(12);
+      place(18);
+      eq(rootTexts(), ["12", "18"], "two cards");
+      cards()[0].querySelector(".tree-remove").click();
+      eq(rootTexts(), ["18"], "first removed");
+      undoW.click();
+      eq(rootTexts(), ["12", "18"], "both back in order");
+    });
+
+    add("W7 Clear, undo, new gesture empties redo", function () {
+      resetCards();
+      place(12);
+      place(18);
+      fire(badgesOf(cards()[0])[0], "click");
+      return wait(1100).then(function () {
+        var states = cards().map(expandedOf);
+        ok(JSON.stringify(states[0]) !== JSON.stringify(states[1]), "cards differ in fold state");
+        $("clearBtn").click();
+        eq(cards().length, 0, "cleared");
+        undoW.click();
+        eq(rootTexts(), ["12", "18"], "both back");
+        eq(cards().map(expandedOf), states, "fold states back");
+        place(5);
+        ok(redoW.disabled, "redo disabled after a new gesture");
+      });
+    });
+
+    add("W8 keyboard shortcuts", function () {
+      resetCards();
+      place(12);
+      var pal = circleNs();
+      key("z", { ctrlKey: true });
+      eq(cards().length, 0, "Ctrl+Z undoes");
+      key("Z", { ctrlKey: true, shiftKey: true });
+      eq(cards().length, 1, "Ctrl+Shift+Z redoes");
+      key("z", { metaKey: true });
+      eq(cards().length, 0, "Meta+Z undoes");
+      key("y", { ctrlKey: true });
+      eq(cards().length, 1, "Ctrl+Y redoes");
+      $("addInput").focus();
+      key("z", { ctrlKey: true }, $("addInput"));
+      eq(cards().length, 1, "ignored while the number input has focus");
+      document.activeElement.blur();
+      eq(circleNs(), pal, "work shortcuts never touch the palette");
+      addNumber(7);
+      var cardsBefore = rootTexts();
+      var workUndoState = undoW.disabled, workRedoState = redoW.disabled;
+      ok(!undoP.disabled, "palette undo available");
+      undoP.click();
+      eq(rootTexts(), cardsBefore, "palette undo never touches the cards");
+      eq([undoW.disabled, redoW.disabled], [workUndoState, workRedoState], "work stacks untouched by palette undo");
+    });
+
+    add("W9 language relabels the work pair", function () {
+      var cardsBefore = rootTexts();
+      var states = [undoW.disabled, redoW.disabled];
+      NT.i18n.setLang("de");
+      eq(labelsOf(undoW), { aria: DE.undoWork, title: DE.undoWork }, "de undo labels");
+      eq(labelsOf(redoW), { aria: DE.redoWork, title: DE.redoWork }, "de redo labels");
+      eq([undoW.disabled, redoW.disabled], states, "disabled states kept");
+      eq(rootTexts(), cardsBefore, "cards untouched");
+      NT.i18n.setLang("en");
+      eq(labelsOf(undoW), { aria: EN.undoWork, title: EN.undoWork }, "en undo labels");
+    });
+
     return chain;
   }
 
-  var RUNNERS = { ft: ftRun };
+  function ftpairRun() {
+    var undoW = $("workUndoBtn"), redoW = $("workRedoBtn");
+    var chain = Promise.resolve();
+    function add(name, fn) { chain = chain.then(function () { return scenario(name, fn); }); }
+    function overlapCards() { return document.querySelectorAll("#workArea .tree-card.is-overlap").length; }
+
+    add("P1 deep-linked overlap is not an undo step", function () {
+      return wait(2500).then(function () {
+        eq(overlapCards(), 1, "one overlap card");
+        ok(undoW.disabled && redoW.disabled, "work undo and redo disabled");
+      });
+    });
+
+    add("P2 overlap fold, Clear, undo", function () {
+      var card = cards()[0];
+      var badges = badgesOf(card);
+      var idx = -1;
+      badges.forEach(function (b, i) { if (idx < 0 && b.getAttribute("aria-expanded") === "false") idx = i; });
+      ok(idx >= 0, "a folded prime split exists");
+      fire(badges[idx], "click");
+      return wait(1100).then(function () {
+        var after = expandedOf(cards()[0]);
+        eq(after[idx], "true", "toggled open");
+        ok(!undoW.disabled, "undo enabled by the toggle");
+        $("clearBtn").click();
+        eq(cards().length, 0, "cleared");
+        undoW.click();
+        eq(overlapCards(), 1, "overlap card back");
+        eq(cards().length, 1, "exactly one card");
+        ok(cards()[0].querySelector(".tree-equation").textContent.indexOf("gcd(12, 18) = 6") !== -1, "equation shows the gcd");
+        eq(expandedOf(cards()[0]), after, "fold states match");
+      });
+    });
+
+    add("P3 split, undo, redo, split then undo at once", function () {
+      cards()[0].querySelector(".tree-split").click();
+      return wait(2200).then(function () {
+        eq(rootTexts(), ["12", "18"], "two cards after the split");
+        eq(overlapCards(), 0, "no overlap card left");
+        undoW.click();
+        eq(overlapCards(), 1, "undo restores the overlap");
+        eq(cards().length, 1, "only the overlap card");
+        redoW.click();
+        eq(rootTexts(), ["12", "18"], "redo gives two cards");
+        undoW.click();
+        cards()[0].querySelector(".tree-split").click();
+        undoW.click();
+        return wait(2200);
+      }).then(function () {
+        eq(overlapCards(), 1, "overlap card survives");
+        eq(cards().length, 1, "no stray cards after the animation window");
+      });
+    });
+
+    return chain;
+  }
+
+  var RUNNERS = { ft: ftRun, ftpair: ftpairRun };
 
   window.addEventListener("load", function () {
     setTimeout(function () {
