@@ -22,21 +22,19 @@
   }
   .wrap{ margin:0 auto; padding:20px 22px 20px; }
 
-  .page-header{ margin-bottom:14px; }
+  .page-header{ margin-bottom:24px; }
   .eyebrow{ font-size:.875rem; font-weight:600; color:var(--text-dim); margin:0 0 8px; }
   .eyebrow::first-letter{ text-transform:uppercase; }
   h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.75rem, 3.4vw, 2.375rem); line-height:1.12; letter-spacing:-.012em; margin:0; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
-  .lede{ font-size:1.0625rem; line-height:1.6; color:var(--text-dim); margin:10px 0 0; max-width:72ch; }
-  .xref{ margin:10px 0 0; font-size:13px; }
-  .xref a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
-  .xref a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
+  .lede{ font-size:1.0625rem; line-height:1.6; color:var(--text-dim); margin:10px 0 0; }
 
   /* prime picker */
   .picker-panel{
     border:1px solid var(--panel-border);
     border-radius:10px;
     padding:10px 14px;
-    margin-bottom:12px;
+    /* Same room under the palette as on the Factor Tree (12px + its status line + 10px). */
+    margin-bottom:43px;
     background:var(--panel);
   }
   .picker-panel h2{
@@ -142,7 +140,7 @@
   .picker-hint{
     font-size:12.5px;
     color:var(--text-dim);
-    margin:0 0 8px;
+    margin:0 0 16px;
   }
   /* Every column is as wide as the widest chip (--palette-cell, written
      by JS), so 2-, 3- and 4-digit chips still line up in columns. */
@@ -196,11 +194,12 @@
   .toolbar{
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:12px;
+    gap:12px 20px;
     flex-wrap:wrap;
-    margin-bottom:12px;
+    margin-bottom:18px;
   }
+  /* Diagram actions sit together at the right, apart from the view switches. */
+  #randomize-btn{ margin-left:auto; }
   #clear-btn, #randomize-btn{
     font-family:var(--font-sans);
     font-size:14px;
@@ -246,7 +245,8 @@
   }
 
   /* diagram */
-  .diagram-frame{ width:100%; max-width:max(1040px, 205vh); margin:0 auto; }
+  /* 1.5x the old two-pane cap, so each of the three panes keeps the size cap it had with two */
+  .diagram-frame{ width:100%; max-width:max(1560px, 308vh); margin:0 auto; }
   .diagram-split{ display:flex; gap:18px; align-items:flex-start; }
   .diagram-pane{ flex:1 1 0; min-width:0; }
   .pane-caption{
@@ -255,7 +255,7 @@
     text-align:center;
     margin:0 0 6px;
   }
-  svg#venn, svg#venn3, svg#venn-composite, svg#venn3-composite{ width:100%; height:auto; display:block; overflow:visible; }
+  svg#venn, svg#venn3, svg#venn-composite, svg#venn3-composite, svg#venn-circles, svg#venn3-circles{ width:100%; height:auto; display:block; overflow:visible; }
 
   .circle-left{
     fill:color-mix(in srgb, var(--role-input) 16%, transparent);
@@ -492,8 +492,17 @@
     .bin-lid{ transition:none; }
   }
 
+  @media (max-width: 1500px){
+    .diagram-frame{ max-width:max(1040px, 205vh); }
+    .diagram-split{ flex-wrap:wrap; }
+    .diagram-pane{ flex:1 1 calc(50% - 9px); }
+    .diagram-pane.pane-circles{ flex-grow:0; margin-inline:auto; }
+  }
+
   @media (max-width: 860px){
     .diagram-split{ flex-direction:column; }
+    .diagram-pane{ flex:0 0 auto; width:100%; }
+    .diagram-pane.pane-circles{ margin-inline:0; }
   }
 </style>
 </head>
@@ -567,8 +576,28 @@
     <h1 data-i18n="venn.heading">Venn Diagram</h1>
     <p class="lede" id="lede-two" data-i18n="venn.lede.two">The two circles are two numbers A and B, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. A ∩ B holds the primes that belong to both factorizations, so that intersection multiplies out to the largest number dividing both, while A \ B and B \ A hold the primes belonging to just one of them.</p>
     <p class="lede" id="lede-three" hidden data-i18n="venn.lede.three">The three circles are three numbers, each written out as its prime factorization &mdash; everything inside a circle multiplies to that number. A prime in (A∩B) \ C belongs to A and B but not C, so that whole lens multiplies out to A ∩ B; a prime in A∩B∩C belongs to all three at once, so the centre multiplies out to A ∩ B ∩ C; a prime in A \ (B ∪ C) belongs to A alone.</p>
-    <p class="xref"><a id="xref-euclid" href="../Euclidean Algorithm/euclidean-algorithm.html" data-i18n="venn.xref">The same GCD can also be computed by repeated division &rarr;</a></p>
   </header>
+
+  <div class="picker-panel">
+    <div class="picker-head">
+      <h2 id="picker-heading" data-i18n="venn.picker.heading">Prime palette</h2>
+      <div class="palette-tools">
+        <div id="palette-bin" class="palette-bin" role="img" aria-label="Bin: drag a number here to remove it from the palette" title="Bin: drag a number here to remove it from the palette" data-i18n-aria-label="venn.binLabel" data-i18n-title="venn.binLabel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="bin-lid"><path d="M3 6h18"/><path d="M9 6V4h6v2"/></g><path d="M5.5 6l1 14h11l1-14"/><path d="M10 10v6M14 10v6"/></svg>
+        </div>
+        <button id="palette-empty-btn" type="button" class="palette-empty-btn" aria-label="Delete all: empty the palette" title="Delete all: empty the palette" data-i18n-aria-label="venn.emptyPaletteLabel" data-i18n-title="venn.emptyPaletteLabel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.5 15.5V6.5h9.5l2.5 3.5v5.5"/><path d="M12.5 9.5v3M15.5 9.5v3M18.5 9.5v3"/><path d="M9.5 9.5H6L2.5 12.5v3h1.5M8 15.5h7.5M19.5 15.5h2"/><path d="M5 12.5h3"/><circle cx="6" cy="17" r="2"/><circle cx="17.5" cy="17" r="2"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="picker-add">
+      <input id="palette-add-input" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="venn.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="venn.addInputLabel" />
+      <button id="palette-add-btn" type="button" data-i18n="venn.add">Add</button>
+      <button id="palette-random-btn" type="button" data-i18n="venn.paletteRandomize">Randomize</button>
+    </div>
+    <div id="prime-picker" class="prime-picker"></div>
+    <p id="palette-empty-note" class="palette-empty-note" data-i18n="common.paletteEmptySieve" hidden>Use the tool '<a id="palette-sieve-link" href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html"></a>' to add primes to this palette.</p>
+  </div>
 
   <div class="toolbar">
     <div class="mode-switch" role="group" aria-label="Diagram mode" data-i18n-aria-label="venn.toolbar.mode">
@@ -583,27 +612,7 @@
     <button type="button" id="clear-btn" data-i18n="venn.clearAll">Clear all</button>
   </div>
 
-  <div class="picker-panel">
-    <div class="picker-head">
-      <h2 id="picker-heading" data-i18n="venn.picker.heading">Prime palette</h2>
-      <div class="palette-tools">
-        <div id="palette-bin" class="palette-bin" role="img" aria-label="Bin: drag a number here to remove it from the palette" title="Bin: drag a number here to remove it from the palette" data-i18n-aria-label="venn.binLabel" data-i18n-title="venn.binLabel">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="bin-lid"><path d="M3 6h18"/><path d="M9 6V4h6v2"/></g><path d="M5.5 6l1 14h11l1-14"/><path d="M10 10v6M14 10v6"/></svg>
-        </div>
-        <button id="palette-empty-btn" type="button" class="palette-empty-btn" aria-label="Delete all: empty the palette" title="Delete all: empty the palette" data-i18n-aria-label="venn.emptyPaletteLabel" data-i18n-title="venn.emptyPaletteLabel">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.5 15.5V6.5h9.5l2.5 3.5v5.5"/><path d="M12.5 9.5v3M15.5 9.5v3M18.5 9.5v3"/><path d="M9.5 9.5H6L2.5 12.5v3h1.5M8 15.5h7.5M19.5 15.5h2"/><path d="M5 12.5h3"/><circle cx="6" cy="17" r="2"/><circle cx="17.5" cy="17" r="2"/></svg>
-        </button>
-      </div>
-    </div>
-    <p class="picker-hint" data-i18n="venn.picker.hint">Click a number, then click (or press Enter/Space on) a region to place its prime factors there. Drag a number onto the bin, or press Delete on it, to remove it from the palette.</p>
-    <div class="picker-add">
-      <input id="palette-add-input" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="venn.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="venn.addInputLabel" />
-      <button id="palette-add-btn" type="button" data-i18n="venn.add">Add</button>
-      <button id="palette-random-btn" type="button" data-i18n="venn.paletteRandomize">Randomize</button>
-    </div>
-    <div id="prime-picker" class="prime-picker"></div>
-    <p id="palette-empty-note" class="palette-empty-note" data-i18n="common.paletteEmptySieve" hidden>Use the tool '<a id="palette-sieve-link" href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html"></a>' to add primes to this palette.</p>
-  </div>
+  <p class="picker-hint" data-i18n="venn.picker.hint">Click a number, then click (or press Enter/Space on) a region to place its prime factors there. Drag a number onto the bin, or press Delete on it, to remove it from the palette.</p>
 
   <div class="diagram-frame" id="frame-two">
     <div class="diagram-split">
@@ -620,6 +629,14 @@
           <g id="venn-composite-static"></g>
           <g id="venn-composite-dynamic"></g>
           <g id="venn-preview" class="nested-preview"></g>
+        </svg>
+      </div>
+      <div class="diagram-pane pane-circles">
+        <p class="pane-caption" data-i18n="venn.pane.circleComposite">Circle composites</p>
+        <svg id="venn-circles" viewBox="0 0 900 520" role="img" aria-label="Read-only view of the two circles drawn apart with no overlap, each showing only that circle's composite number, the product of every prime anywhere in that circle" data-i18n-aria-label="venn.aria.twoCircleComposite">
+          <g id="venn-circles-static"></g>
+          <g id="venn-circles-dynamic"></g>
+          <g id="venn-circles-preview" class="nested-preview"></g>
         </svg>
       </div>
     </div>
@@ -640,6 +657,14 @@
           <g id="venn3-composite-static"></g>
           <g id="venn3-composite-dynamic"></g>
           <g id="venn3-preview" class="nested-preview"></g>
+        </svg>
+      </div>
+      <div class="diagram-pane pane-circles">
+        <p class="pane-caption" data-i18n="venn.pane.circleComposite">Circle composites</p>
+        <svg id="venn3-circles" viewBox="0 0 900 700" role="img" aria-label="Read-only view of the three circles drawn apart with no overlap, each showing only that circle's composite number, the product of every prime anywhere in that circle" data-i18n-aria-label="venn.aria.threeCircleComposite">
+          <g id="venn3-circles-static"></g>
+          <g id="venn3-circles-dynamic"></g>
+          <g id="venn3-circles-preview" class="nested-preview"></g>
         </svg>
       </div>
     </div>
@@ -732,6 +757,8 @@
   var H = Math.sqrt(R * R - ((CXB - CXA) / 2) * ((CXB - CXA) / 2));
 
   var MAX_PER_REGION = 8;
+  // Circle composites pane: the two circles drawn apart (40-unit gap).
+  var SEP_R = R, SEP_CX = [240, 660], SEP_CY = CY;
   // LEGACY_STORAGE_KEY is read once as a fallback for returning users and is
   // deliberately left in place.
   var STORAGE_KEY = 'venn-diagram';
@@ -758,13 +785,15 @@
   var svgCompositeStatic = document.getElementById('venn-composite-static');
   var svgCompositeDynamic = document.getElementById('venn-composite-dynamic');
   var previewLayer = document.getElementById('venn-preview');
+  var svgCirclesStatic = document.getElementById('venn-circles-static');
+  var svgCirclesDynamic = document.getElementById('venn-circles-dynamic');
+  var circlesPreviewLayer = document.getElementById('venn-circles-preview');
   var messageEl = document.getElementById('message');
   var clearBtn = document.getElementById('clear-btn');
   var randomizeBtn = document.getElementById('randomize-btn');
   var productLeftEl = document.getElementById('product-left');
   var productOverlapEl = document.getElementById('product-overlap');
   var productRightEl = document.getElementById('product-right');
-  var xrefEuclidEl = document.getElementById('xref-euclid');
 
   // PRIMES is only Randomize's own draw pool; the picker shows the shared
   // number palette (NT.store's number-palette, also edited in Factor Tree and
@@ -787,6 +816,14 @@
     { x: 450 - 120 * (Math.sqrt(3) / 2), y: 270 }, // A
     { x: 450 + 120 * (Math.sqrt(3) / 2), y: 270 }, // B
     { x: 450, y: 450 }                              // C
+  ];
+  // Circle composites pane: A, B and C pulled apart into a triangle (every
+  // pair of centres 350 apart, more than 2 * SEP_R3 + 30, so no overlap).
+  var SEP_R3 = 160;
+  var SEP_CENTERS3 = [
+    { x: 275, y: 185 },
+    { x: 625, y: 185 },
+    { x: 450, y: 185 + 175 * Math.sqrt(3) }
   ];
 
   function dist3(a, b){
@@ -909,6 +946,9 @@
   var svg3CompositeStatic = document.getElementById('venn3-composite-static');
   var svg3CompositeDynamic = document.getElementById('venn3-composite-dynamic');
   var previewLayer3 = document.getElementById('venn3-preview');
+  var svg3CirclesStatic = document.getElementById('venn3-circles-static');
+  var svg3CirclesDynamic = document.getElementById('venn3-circles-dynamic');
+  var circlesPreviewLayer3 = document.getElementById('venn3-circles-preview');
   var modeTwoBtn = document.getElementById('mode-two');
   var modeThreeBtn = document.getElementById('mode-three');
   var thumbsOnBtn = document.getElementById('thumbs-on');
@@ -1427,6 +1467,19 @@
     var nameRight = svgEl('text', { class: 'circle-name name-b', x: 575, y: 100 });
     nameRight.textContent = 'B';
     target.appendChild(nameRight);
+  }
+
+  // Circle composites pane: the circles pulled apart, no overlap fill and no
+  // region labels -- each circle just holds its own primes and composite.
+  function buildCircleStatic(target){
+    target.appendChild(svgEl('circle', { cx: SEP_CX[0], cy: SEP_CY, r: SEP_R, class: 'circle-left' }));
+    target.appendChild(svgEl('circle', { cx: SEP_CX[1], cy: SEP_CY, r: SEP_R, class: 'circle-right' }));
+    var nameA = svgEl('text', { class: 'circle-name name-a', x: SEP_CX[0], y: SEP_CY - SEP_R + 40 });
+    nameA.textContent = 'A';
+    target.appendChild(nameA);
+    var nameB = svgEl('text', { class: 'circle-name name-b', x: SEP_CX[1], y: SEP_CY - SEP_R + 40 });
+    nameB.textContent = 'B';
+    target.appendChild(nameB);
   }
 
   function createRegion(key, pathString){
@@ -2423,6 +2476,58 @@
     }
   }
 
+  // The preview link for a circle badge: Factor Tree only, like the
+  // three-circle A∩B∩C centre chip; null when the value is out of range.
+  function circleLink(value, layer, vbH){
+    var treeHref = value > 1 ? factorTreeHref(value) : null;
+    if (!treeHref) return null;
+    return { href: null, previewLayer: layer, vbW: 900, vbH: vbH, showEuclid: false, treeHref: treeHref };
+  }
+
+  function renderCircleComposite(){
+    svgCirclesDynamic.innerHTML = '';
+    hideNestedPreview(circlesPreviewLayer);
+    var pair = currentPair();
+    var sets = [
+      { key: 'circle-a', notation: 'A', cx: SEP_CX[0], value: pair.a },
+      { key: 'circle-b', notation: 'B', cx: SEP_CX[1], value: pair.b }
+    ];
+    for (var i = 0; i < sets.length; i++){
+      var c = sets[i];
+      appendCompositeBadge(svgCirclesDynamic, [c.cx, SEP_CY], c.value, c.notation, false, c.key, circleLink(c.value, circlesPreviewLayer, 520));
+    }
+  }
+
+  function buildCircleStatic3(target){
+    var classes = ['circle-a', 'circle-b', 'circle-c'];
+    var nameClasses = ['name-a', 'name-b', 'name-c'];
+    var names = ['A', 'B', 'C'];
+    for (var i = 0; i < SEP_CENTERS3.length; i++){
+      target.appendChild(svgEl('circle', { cx: SEP_CENTERS3[i].x, cy: SEP_CENTERS3[i].y, r: SEP_R3, class: classes[i] }));
+    }
+    for (var j = 0; j < SEP_CENTERS3.length; j++){
+      var name = svgEl('text', { class: 'circle-name ' + nameClasses[j], x: SEP_CENTERS3[j].x, y: SEP_CENTERS3[j].y - SEP_R3 + 36 });
+      name.textContent = names[j];
+      target.appendChild(name);
+    }
+  }
+
+  function renderCircleComposite3(){
+    svg3CirclesDynamic.innerHTML = '';
+    hideNestedPreview(circlesPreviewLayer3);
+    var triple = currentTriple();
+    var sets = [
+      { key: 'circle-a', notation: 'A', value: triple.a },
+      { key: 'circle-b', notation: 'B', value: triple.b },
+      { key: 'circle-c', notation: 'C', value: triple.c }
+    ];
+    for (var i = 0; i < sets.length; i++){
+      var c = sets[i];
+      var centre = SEP_CENTERS3[i];
+      appendCompositeBadge(svg3CirclesDynamic, [centre.x, centre.y], c.value, c.notation, false, c.key, circleLink(c.value, circlesPreviewLayer3, 700));
+    }
+  }
+
   function renderTokens(){
     svgDynamic.innerHTML = '';
     var keys = ['left', 'overlap', 'right'];
@@ -2518,8 +2623,6 @@
     productLeftEl.textContent = 'A = ' + factorTail(leftFactors, leftTotal);
     productRightEl.textContent = 'B = ' + factorTail(rightFactors, rightTotal);
     productOverlapEl.textContent = intersectionLine(REGION_NOTATION.overlap, [leftTotal, rightTotal], gcd(leftTotal, rightTotal));
-
-    updateEuclidXref(leftTotal, rightTotal);
   }
 
   var EUCLID_PATH = '../Euclidean Algorithm/euclidean-algorithm.html';
@@ -2585,11 +2688,6 @@
     } else {
       setMessage('venn.msg.blockedTab', function(){ return { target: label }; }, true);
     }
-  }
-
-  function updateEuclidXref(a, b){
-    if (!xrefEuclidEl) return;
-    xrefEuclidEl.href = euclidHref(a, b) || (EUCLID_PATH + '?lang=' + getLang());
   }
 
   function refreshRegionLabels(){
@@ -2731,10 +2829,12 @@
     renderProducts();
     refreshRegionLabels();
     renderComposite();
+    renderCircleComposite();
     renderTokens3();
     renderProducts3();
     refreshRegionLabels3();
     renderComposite3();
+    renderCircleComposite3();
   }
 
   function countBy(list){
@@ -2872,9 +2972,19 @@
       if (/^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName)) return;
     }
     if (t && t.isContentEditable) return;
-    var layer = state.mode === 'three' ? previewLayer3 : previewLayer;
-    var owner = layer && layer._npOwner;
-    if (!layer || !layer.firstChild || !owner || typeof owner._npOpen !== 'function') return;
+    // The active mode's two preview layers: Region composites, then Circle composites.
+    var candidates = state.mode === 'three' ? [previewLayer3, circlesPreviewLayer3] : [previewLayer, circlesPreviewLayer];
+    var layer = null, owner = null;
+    for (var c = 0; c < candidates.length; c++){
+      var cand = candidates[c];
+      var candOwner = cand && cand._npOwner;
+      if (cand && cand.firstChild && candOwner && typeof candOwner._npOpen === 'function'){
+        layer = cand;
+        owner = candOwner;
+        break;
+      }
+    }
+    if (!layer) return;
     ev.preventDefault();
     ev.stopPropagation();
     if (!ev.repeat) owner._npOpen();
@@ -2893,7 +3003,8 @@
   // rebuild (removing a node from the DOM fires no mouseleave), so the
   // matching freshly-rebuilt badge is found by its data-region attribute
   // and the exact same mouseenter handler that would show it on a real
-  // hover is replayed, re-drawing the preview in the new language.
+  // hover is replayed, re-drawing the preview in the new language. The
+  // Circle composites badges (circle-a/b/c) are looked up the same way.
   // The Sieve link takes the nav's own wording; it is not data-i18n-bound,
   // so the header's nav-link count stays exact.
   function labelSieveLink(){
@@ -2908,8 +3019,11 @@
     var reopen = state.openPreview;
     render();
     if (reopen){
-      var dynamicLayer = (reopen.mode === 'three') ? svg3CompositeDynamic : svgCompositeDynamic;
-      var badge = dynamicLayer.querySelector('[data-region="' + reopen.key + '"]');
+      var dynamicLayers = (reopen.mode === 'three') ? [svg3CompositeDynamic, svg3CirclesDynamic] : [svgCompositeDynamic, svgCirclesDynamic];
+      var badge = null;
+      for (var d = 0; d < dynamicLayers.length && !badge; d++){
+        badge = dynamicLayers[d].querySelector('[data-region="' + reopen.key + '"]');
+      }
       if (badge) badge.dispatchEvent(new Event('mouseenter'));
     }
   }
@@ -2951,9 +3065,11 @@
   window.addEventListener('load', function(){
     buildStatic(svgStatic);
     buildStatic(svgCompositeStatic);
+    buildCircleStatic(svgCirclesStatic);
     buildRegions();
     buildStatic3(svg3Static);
     buildStatic3(svg3CompositeStatic);
+    buildCircleStatic3(svg3CirclesStatic);
     buildRegions3();
 
     var abParams = readABParams();

@@ -88,14 +88,24 @@
     color:var(--accent);
   }
 
-  .mode-toggle{ display:flex; gap:0; margin:0 0 10px; width:fit-content;
-    border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:2px; background:var(--panel); }
-  .mode-btn{ border:none; background:transparent; color:var(--text-dim); padding:6px 14px;
-    border-radius:4px; font-family:var(--font-sans); font-size:.85rem; font-weight:600;
-    cursor:pointer; transition:background .15s, color .15s; }
-  .mode-btn.is-active{ background:var(--accent); color:var(--accent-ink); }
-  .mode-btn:hover:not(.is-active){ color:var(--accent); }
-  .mode-caveat{ margin:0 0 14px; font-size:.78rem; color:var(--text-dim); }
+  /* Same switch as the Venn Diagram's: separate buttons, pressed one filled. */
+  .mode-toggle{ display:flex; gap:6px; margin:0 0 18px; }
+  .mode-btn{
+    font-family:var(--font-sans);
+    font-size:14px;
+    font-weight:600;
+    color:var(--text-dim);
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius-ctl);
+    padding:8px 14px;
+    cursor:pointer;
+    transition:background var(--ease-ctl), border-color var(--ease-ctl), color var(--ease-ctl);
+  }
+  .mode-btn:hover{ border-color:var(--panel-border-strong); color:var(--text); }
+  .mode-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .mode-btn[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .mode-caveat{ margin:-10px 0 18px; font-size:.78rem; color:var(--text-dim); }
 
   .message{
     min-height:1.4em;
@@ -131,6 +141,17 @@
     margin-bottom:22px;
   }
   .palette:empty{ margin-bottom:0; }
+  /* Same panel as the Venn Diagram's prime palette. */
+  .palette-panel{
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:10px 14px;
+    margin-bottom:12px;
+    background:var(--panel);
+  }
+  .palette-panel .palette{ margin-bottom:0; }
+  .palette-panel .palette-empty-note{ margin:0; font-size:13px; }
+  .palette-panel .controls{ align-items:center; margin:0 0 10px; }
   /* Shown while the shared palette is empty: points at the Sieve, which
      feeds the palette its primes. */
   .palette-empty-note{ margin:0 0 22px; font-size:.9rem; color:var(--text-dim); }
@@ -560,20 +581,7 @@
     <p class="subtitle" data-i18n="factorTree.subtitle">Add a number to the palette, drag its circle into the composition/factorization area, then press + to unfold it — branch by branch, down to its prime leaves.</p>
   </header>
 
-  <div class="mode-toggle" role="group" aria-label="Tree mode" data-i18n-aria-label="factorTree.modeLabel">
-    <button type="button" class="mode-btn is-active" data-mode="classic" data-i18n="factorTree.modeClassic">Classic</button>
-    <button type="button" class="mode-btn" data-mode="balanced" data-i18n="factorTree.modeBalanced">Balanced</button>
-  </div>
-  <p id="balancedNote" class="mode-caveat" style="display:none"></p>
-
-  <div class="controls">
-    <input id="addInput" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="factorTree.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="factorTree.addInputLabel" />
-    <button id="addBtn" type="button" data-i18n="factorTree.add">Add</button>
-    <button id="randomBtn" type="button" data-i18n="factorTree.randomize">Randomize</button>
-  </div>
-
-  <div id="message" class="message" role="status" aria-live="polite"></div>
-
+  <div class="palette-panel">
   <div class="section-head">
     <h2 id="paletteHeading" class="section-title" data-i18n="factorTree.paletteHeading">Prime palette</h2>
     <div class="palette-tools">
@@ -585,8 +593,22 @@
     </button>
     </div>
   </div>
+  <div class="controls">
+    <input id="addInput" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="factorTree.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="factorTree.addInputLabel" />
+    <button id="addBtn" type="button" data-i18n="factorTree.add">Add</button>
+    <button id="randomBtn" type="button" data-i18n="factorTree.randomize">Randomize</button>
+  </div>
   <div id="palette" class="palette" role="group" aria-labelledby="paletteHeading"></div>
   <p id="paletteEmptyNote" class="palette-empty-note" data-i18n="common.paletteEmptySieve" hidden>Use the tool '<a id="paletteSieveLink" href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html"></a>' to add primes to this palette.</p>
+  </div>
+
+  <div id="message" class="message" role="status" aria-live="polite"></div>
+
+  <div class="mode-toggle" role="group" aria-label="Tree mode" data-i18n-aria-label="factorTree.modeLabel">
+    <button type="button" class="mode-btn" aria-pressed="true" data-mode="classic" data-i18n="factorTree.modeClassic">Classic</button>
+    <button type="button" class="mode-btn" aria-pressed="false" data-mode="balanced" data-i18n="factorTree.modeBalanced">Balanced</button>
+  </div>
+  <p id="balancedNote" class="mode-caveat" style="display:none"></p>
 
   <div class="section-head">
     <h2 id="workHeading" class="section-title" data-i18n="factorTree.workHeading">Composition/factorization area</h2>
@@ -2086,7 +2108,7 @@
 
   function applyMode(targetMode){
     mode = targetMode;
-    modeButtons.forEach(b=> b.classList.toggle('is-active', b.getAttribute('data-mode') === targetMode));
+    modeButtons.forEach(b=> b.setAttribute('aria-pressed', b.getAttribute('data-mode') === targetMode ? 'true' : 'false'));
     balancedNote.style.display = targetMode === 'balanced' ? 'block' : 'none';
     addInput.max = String(capFor(targetMode));
   }
