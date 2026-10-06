@@ -24,10 +24,11 @@ var vm = require("vm");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-// Pages this probe knows about; Tasks 2 and 3 register ftpair and venn.
+// Pages this probe knows about (ftpair reuses the Factor Tree file with a deep link).
 var PAGES = {
   ft: { dir: "Factor Tree", file: "factor-tree.html", query: "?lang=en", expected: 18 },
-  ftpair: { dir: "Factor Tree", file: "factor-tree.html", query: "?a=12&b=18&lang=en", expected: 3 }
+  ftpair: { dir: "Factor Tree", file: "factor-tree.html", query: "?a=12&b=18&lang=en", expected: 3 },
+  venn: { dir: "Venn Diagram", file: "venn-diagram.html", query: "?lang=en", expected: 10 }
 };
 
 // Same evaluation i18n-check.js's loadCatalog() does (requiring i18n-check.js
@@ -551,7 +552,235 @@ function inPage(cfg) {
     return chain;
   }
 
-  var RUNNERS = { ft: ftRun, ftpair: ftpairRun };
+
+  function vennRun() {
+    var undoP = $("palette-undo-btn"), redoP = $("palette-redo-btn");
+    var undoW = $("work-undo-btn"), redoW = $("work-redo-btn");
+    var chain = Promise.resolve();
+    function add(name, fn) { chain = chain.then(function () { return scenario(name, fn); }); }
+
+    function chipNs() {
+      return Array.prototype.map.call(document.querySelectorAll("#prime-picker .prime-chip"), function (c) { return Number(c.textContent); });
+    }
+    function chipByN(n) {
+      var cs = document.querySelectorAll("#prime-picker .prime-chip");
+      for (var i = 0; i < cs.length; i++) if (Number(cs[i].textContent) === n) return cs[i];
+      throw new Error("no palette chip " + n);
+    }
+    function placedCount(id) { return document.querySelectorAll("#" + id + " .placed-chip").length; }
+    function placedTexts(id) {
+      return Array.prototype.map.call(document.querySelectorAll("#" + id + " .placed-chip text"), function (t) { return t.textContent; });
+    }
+    function palAdd(n) { $("palette-add-input").value = String(n); $("palette-add-btn").click(); }
+    function setPal(list) { NT.store.writeSharedPalette(list); storageEvent(JSON.stringify(list)); }
+    function regionByTitle(rootId, title) {
+      var rs = document.querySelectorAll("#" + rootId + " .region");
+      for (var i = 0; i < rs.length; i++) if (rs[i].querySelector("title").textContent === title) return rs[i];
+      throw new Error("no region " + title);
+    }
+    function placeVia(rootId, title, n) {
+      chipByN(n).click();
+      regionByTitle(rootId, title).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    }
+    function recordOf(k) { return localStorage.getItem(k); }
+    // How many undo steps are stacked; the stacks are restored afterwards.
+    function depth() {
+      var n = 0;
+      while (!undoW.disabled && n < 300) { undoW.click(); n++; }
+      for (var i = 0; i < n; i++) redoW.click();
+      return n;
+    }
+
+    add("V1 button rows", function () {
+      var tools = document.querySelector(".picker-add .palette-tools");
+      eq(Array.prototype.map.call(tools.children, function (c) { return c.id; }),
+        ["palette-bin", "palette-empty-btn", "palette-undo-btn", "palette-redo-btn"], "palette-tools children");
+      var inC = center($("palette-add-input"));
+      [[undoP, "undoPalette"], [redoP, "redoPalette"]].forEach(function (pair) {
+        var b = pair[0], c = center(b);
+        ok(Math.abs(c.w - 40) < 0.6 && Math.abs(c.h - 40) < 0.6, b.id + " is 40x40, got " + c.w + "x" + c.h);
+        ok(Math.abs(c.y - inC.y) <= 1, b.id + " centred with the add input");
+        eq(labelsOf(b), { aria: EN[pair[1]], title: EN[pair[1]] }, b.id + " labels");
+      });
+      var clear = $("clear-btn"), pairBox = clear.nextElementSibling;
+      ok(pairBox && pairBox.classList.contains("history-pair"), ".history-pair follows #clear-btn");
+      eq(pairBox.parentElement.classList.contains("toolbar"), true, "pair sits in the toolbar");
+      eq(Array.prototype.map.call(pairBox.children, function (c) { return c.id; }), ["work-undo-btn", "work-redo-btn"], "pair children");
+      var clearC = center(clear);
+      [[undoW, "undoWork"], [redoW, "redoWork"]].forEach(function (pair) {
+        var b = pair[0], c = center(b);
+        ok(Math.abs(c.w - 36) < 0.6 && Math.abs(c.h - 36) < 0.6, b.id + " is 36x36, got " + c.w + "x" + c.h);
+        ok(Math.abs(c.y - clearC.y) <= 1, b.id + " centred with Clear all");
+        eq(labelsOf(b), { aria: EN[pair[1]], title: EN[pair[1]] }, b.id + " labels");
+      });
+      [undoP, redoP, undoW, redoW].forEach(function (b) {
+        eq(b.getAttribute("type"), "button", b.id + " type");
+        ok(b.disabled, b.id + " disabled at load");
+        eq(getComputedStyle(b).opacity, "0.4", b.id + " opacity");
+        ok(!!b.querySelector("svg"), b.id + " svg");
+        ok(!!b.getAttribute("data-i18n-aria-label") && !!b.getAttribute("data-i18n-title"), b.id + " i18n attributes");
+      });
+      eq(undoW.getAttribute("aria-keyshortcuts"), "Control+Z Meta+Z", "undo shortcuts");
+      eq(redoW.getAttribute("aria-keyshortcuts"), "Control+Shift+Z Meta+Shift+Z Control+Y", "redo shortcuts");
+    });
+
+    add("V2 palette add, undo, redo", function () {
+      var before = chipNs();
+      palAdd(60);
+      eq(chipNs().filter(function (n) { return n === 60; }).length, 1, "60 added");
+      ok(!undoP.disabled && redoP.disabled, "undo on, redo off");
+      undoP.click();
+      eq(chipNs(), before, "chips after undo");
+      eq(storedPalette(), before, "store after undo");
+      ok(undoP.disabled && !redoP.disabled, "undo off, redo on");
+      redoP.click();
+      eq(chipNs().indexOf(60) !== -1, true, "60 back after redo");
+      eq(storedPalette().indexOf(60) !== -1, true, "60 back in the store");
+    });
+
+    add("V3 bin drop, Delete key and Delete all undone", function () {
+      var before = chipNs(), stored = storedPalette();
+      var dt = new DataTransfer();
+      dt.setData("text/plain", "60");
+      $("palette-bin").dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+      eq(chipNs().indexOf(60), -1, "60 binned");
+      undoP.click();
+      eq(chipNs(), before, "bin drop undone");
+      eq(storedPalette(), stored, "store after bin undo");
+      var first = document.querySelector("#prime-picker .prime-chip");
+      first.focus();
+      first.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true, cancelable: true }));
+      eq(chipNs().length, before.length - 1, "Delete removed one");
+      undoP.click();
+      eq(chipNs(), before, "Delete undone");
+      $("palette-empty-btn").click();
+      eq(chipNs().length, 0, "Delete all");
+      undoP.click();
+      eq(chipNs(), before, "Delete all undone");
+      eq(storedPalette(), stored, "store after Delete all undo");
+    });
+
+    add("V4 storage event resets palette history", function () {
+      ok(!undoP.disabled || !redoP.disabled, "palette history non-empty first");
+      setPal([2, 3, 5, 11, 13]);
+      eq(chipNs(), [2, 3, 5, 11, 13], "incoming list shown");
+      ok(undoP.disabled && redoP.disabled, "both disabled");
+    });
+
+    add("V5 place by region click, undo, redo", function () {
+      var beforeCount = placedCount("venn-dynamic");
+      // Nothing is persisted until the first change, so the default layout is
+      // what an Undo restores (and now writes).
+      var beforeRec = recordOf("venn-diagram") || JSON.stringify({ left: [2, 3], overlap: [5], right: [7] });
+      placeVia("venn", "A ∩ B", 11);
+      eq(placedCount("venn-dynamic"), beforeCount + 1, "chip placed");
+      var afterRec = recordOf("venn-diagram");
+      ok(afterRec !== beforeRec, "record changed");
+      ok(!undoW.disabled && redoW.disabled, "work undo on, redo off");
+      undoW.click();
+      eq(placedCount("venn-dynamic"), beforeCount, "chip gone after undo");
+      eq(recordOf("venn-diagram"), beforeRec, "record restored");
+      redoW.click();
+      eq(placedCount("venn-dynamic"), beforeCount + 1, "chip back after redo");
+      eq(recordOf("venn-diagram"), afterRec, "record re-applied");
+    });
+
+    add("V6 Clear all and Randomize undone; empty Clear records nothing", function () {
+      var rec = recordOf("venn-diagram");
+      var tokens = placedTexts("venn-dynamic");
+      $("clear-btn").click();
+      eq(placedCount("venn-dynamic"), 0, "cleared");
+      undoW.click();
+      eq(recordOf("venn-diagram"), rec, "Clear all undone");
+      eq(placedTexts("venn-dynamic"), tokens, "every token back");
+      var tries = 0, changed = false, after;
+      while (!changed && tries < 6) {
+        $("randomize-btn").click();
+        after = recordOf("venn-diagram");
+        changed = after !== rec;
+        tries++;
+        if (!changed) continue;
+        undoW.click();
+        eq(recordOf("venn-diagram"), rec, "Randomize undone to the exact previous primes");
+      }
+      ok(changed, "Randomize changed the layout");
+      $("clear-btn").click();
+      var d1 = depth();
+      $("clear-btn").click();
+      eq(depth(), d1, "Clear all on an empty diagram records nothing");
+    });
+
+    add("V7 three-circle mode keeps its own history", function () {
+      var twoStates = [undoW.disabled, redoW.disabled], twoRec = recordOf("venn-diagram");
+      ok(!twoStates[0], "two-circle undo is on");
+      $("mode-three").click();
+      ok(undoW.disabled && redoW.disabled, "three-circle work pair disabled");
+      var three0 = recordOf("venn-diagram-three");
+      var n0 = placedCount("venn3-dynamic");
+      // A prime the three-circle layout does not use yet, so no simplification
+      // moves it.
+      var used = placedTexts("venn3-dynamic").map(Number);
+      var pick = [29, 31, 37, 41, 43, 47].filter(function (p) { return used.indexOf(p) === -1; })[0];
+      setPal([2, 3, pick]);
+      placeVia("frame-three", "A \\ (B ∪ C)", pick);
+      eq(placedCount("venn3-dynamic"), n0 + 1, "placed in three mode (" + $("message").textContent + ")");
+      var three1 = recordOf("venn-diagram-three");
+      ok(three1 !== three0, "three-circle record changed");
+      eq(recordOf("venn-diagram"), twoRec, "two-circle record untouched");
+      undoW.click();
+      eq(placedCount("venn3-dynamic"), n0, "three-circle chip count restored");
+      eq(recordOf("venn-diagram"), twoRec, "two-circle record still untouched");
+      $("mode-two").click();
+      eq([undoW.disabled, redoW.disabled], twoStates, "two-circle stack state shown again");
+    });
+
+    add("V8 keyboard shortcuts", function () {
+      setPal([2, 3, 5, 11]);
+      var n0 = placedCount("venn-dynamic");
+      placeVia("venn", "B \\ A", 11);
+      eq(placedCount("venn-dynamic"), n0 + 1, "placed");
+      key("z", { ctrlKey: true });
+      eq(placedCount("venn-dynamic"), n0, "Ctrl+Z undoes");
+      key("Z", { ctrlKey: true, shiftKey: true });
+      eq(placedCount("venn-dynamic"), n0 + 1, "Ctrl+Shift+Z redoes");
+      key("z", { metaKey: true });
+      eq(placedCount("venn-dynamic"), n0, "Meta+Z undoes");
+      key("y", { ctrlKey: true });
+      eq(placedCount("venn-dynamic"), n0 + 1, "Ctrl+Y redoes");
+      var pal = chipNs();
+      $("palette-add-input").focus();
+      key("z", { ctrlKey: true }, $("palette-add-input"));
+      eq(placedCount("venn-dynamic"), n0 + 1, "ignored inside the add input");
+      eq(chipNs(), pal, "palette untouched by work shortcuts");
+      document.activeElement.blur();
+    });
+
+    add("V9 ab-params storage event resets the two-circle history", function () {
+      ok(!undoW.disabled, "two-circle undo on first");
+      NT.store.writeSharedAB(12, 18);
+      window.dispatchEvent(new StorageEvent("storage", { key: "ab-params", newValue: localStorage.getItem("ab-params") }));
+      ok(undoW.disabled && redoW.disabled, "work pair disabled");
+      eq(placedTexts("venn-dynamic").sort(), ["2", "2", "3", "3"], "layout matches 12 and 18");
+    });
+
+    add("V10 language relabels all four buttons", function () {
+      var states = [undoP.disabled, redoP.disabled, undoW.disabled, redoW.disabled];
+      palAdd(17);
+      states = [undoP.disabled, redoP.disabled, undoW.disabled, redoW.disabled];
+      NT.i18n.setLang("de");
+      eq(labelsOf(undoP), { aria: DE.undoPalette, title: DE.undoPalette }, "de palette undo");
+      eq(labelsOf(redoP), { aria: DE.redoPalette, title: DE.redoPalette }, "de palette redo");
+      eq(labelsOf(undoW), { aria: DE.undoWork, title: DE.undoWork }, "de work undo");
+      eq(labelsOf(redoW), { aria: DE.redoWork, title: DE.redoWork }, "de work redo");
+      eq([undoP.disabled, redoP.disabled, undoW.disabled, redoW.disabled], states, "disabled states kept");
+      NT.i18n.setLang("en");
+      eq(labelsOf(undoW), { aria: EN.undoWork, title: EN.undoWork }, "en work undo");
+    });
+
+    return chain;
+  }
+
+  var RUNNERS = { ft: ftRun, ftpair: ftpairRun, venn: vennRun };
 
   window.addEventListener("load", function () {
     setTimeout(function () {

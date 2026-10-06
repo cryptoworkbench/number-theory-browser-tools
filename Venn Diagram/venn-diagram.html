@@ -110,7 +110,7 @@
   /* In the add row the bin stretches from Randomize to Delete all, icon centred. */
   .picker-add .palette-tools{ flex:1 1 120px; }
   .picker-add .palette-bin{ flex:1 1 auto; width:auto; }
-  .palette-bin, .palette-empty-btn{
+  .palette-bin, .palette-empty-btn, .history-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -126,7 +126,15 @@
   .palette-empty-btn:focus{ outline:none; }
   .palette-empty-btn:focus-visible{ box-shadow:var(--ctl-focus); }
   .palette-empty-btn:disabled{ opacity:.4; cursor:default; }
-  .palette-bin svg, .palette-empty-btn svg{
+  .history-btn{ background:none; padding:0; cursor:pointer; }
+  .history-btn:hover:not(:disabled){ color:var(--accent); background:var(--accent-soft); }
+  .history-btn:focus{ outline:none; }
+  .history-btn:focus-visible{ box-shadow:var(--ctl-focus); }
+  .history-btn:disabled{ opacity:.4; cursor:default; }
+  .history-pair{ display:flex; align-items:center; gap:4px; }
+  .history-pair .history-btn{ width:36px; height:36px; }
+  .history-pair .history-btn svg{ width:20px; height:20px; }
+  .palette-bin svg, .palette-empty-btn svg, .history-btn svg{
     width:26px;
     height:26px;
     overflow:visible;
@@ -465,7 +473,7 @@
   .message.is-warn{ color:var(--role-warn); }
 
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn, .history-btn{ transition:none; }
     .bin-lid{ transition:none; }
   }
 
@@ -570,6 +578,12 @@
         <button id="palette-empty-btn" type="button" class="palette-empty-btn" aria-label="Delete all: empty the palette" title="Delete all: empty the palette" data-i18n-aria-label="venn.emptyPaletteLabel" data-i18n-title="venn.emptyPaletteLabel">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.5 15.5V6.5h9.5l2.5 3.5v5.5"/><path d="M12.5 9.5v3M15.5 9.5v3M18.5 9.5v3"/><path d="M9.5 9.5H6L2.5 12.5v3h1.5M8 15.5h7.5M19.5 15.5h2"/><path d="M5 12.5h3"/><circle cx="6" cy="17" r="2"/><circle cx="17.5" cy="17" r="2"/></svg>
         </button>
+        <button id="palette-undo-btn" type="button" class="history-btn" disabled aria-label="Undo palette change" title="Undo palette change" data-i18n-aria-label="common.undoPalette" data-i18n-title="common.undoPalette">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        </button>
+        <button id="palette-redo-btn" type="button" class="history-btn" disabled aria-label="Redo palette change" title="Redo palette change" data-i18n-aria-label="common.redoPalette" data-i18n-title="common.redoPalette">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+        </button>
       </div>
     </div>
     <div id="prime-picker" class="prime-picker"></div>
@@ -587,6 +601,14 @@
     </div>
     <button type="button" id="randomize-btn" data-i18n="venn.randomize">Randomize</button>
     <button type="button" id="clear-btn" data-i18n="venn.clearAll">Clear all</button>
+    <div class="history-pair">
+      <button id="work-undo-btn" type="button" class="history-btn" disabled aria-label="Undo" title="Undo" aria-keyshortcuts="Control+Z Meta+Z" data-i18n-aria-label="common.undoWork" data-i18n-title="common.undoWork">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button id="work-redo-btn" type="button" class="history-btn" disabled aria-label="Redo" title="Redo" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y" data-i18n-aria-label="common.redoWork" data-i18n-title="common.redoWork">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
+    </div>
   </div>
 
   <p class="picker-hint" data-i18n="venn.picker.hint">Click a number, then click (or press Enter/Space on) a region to place its prime factors there. Drag a number onto the bin, or press Delete on it, to remove it from the palette.</p>
@@ -664,7 +686,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { euclidSteps, gcd, isPrime, primeFactors, randomInt } = NT.core;
   const { svgEl } = NT.svg;
-  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, SHARED_PALETTE_MAX_N, addToSharedPalette, clearSharedPalette, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, removeFromSharedPalette, writeSharedAB } = NT.store;
+  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, SHARED_PALETTE_MAX_N, addToSharedPalette, clearSharedPalette, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, removeFromSharedPalette, writeSharedAB, writeSharedPalette } = NT.store;
   const { BALANCED_MAX_N, assignOverlapX, assignTreeX, buildFactorTree, buildOverlapTree, computeNestedLayout, flattenOverlap, flattenTree } = NT.layout;
   const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
@@ -711,6 +733,10 @@
   var pickerHeading = document.getElementById('picker-heading');
   var paletteBin = document.getElementById('palette-bin');
   var paletteEmptyBtn = document.getElementById('palette-empty-btn');
+  var paletteUndoBtn = document.getElementById('palette-undo-btn');
+  var paletteRedoBtn = document.getElementById('palette-redo-btn');
+  var workUndoBtn = document.getElementById('work-undo-btn');
+  var workRedoBtn = document.getElementById('work-redo-btn');
   var paletteEmptyNote = document.getElementById('palette-empty-note');
   var paletteSieveLink = document.getElementById('palette-sieve-link');
   var addInput = document.getElementById('palette-add-input');
@@ -734,6 +760,10 @@
   // fed by the Sieve of Eratosthenes), kept ascending, duplicates allowed.
   var PRIMES = buildPalette(26);
   var palette = loadSharedPalette();
+  // Undo/Redo stacks, in memory for this page load only: the palette's hold
+  // number lists; each circle mode's own diagram history lives on its ctx.
+  var HISTORY_MAX = 100;
+  var paletteHistory = { undo: [], redo: [] };
   var REGION_NOTATION = { left: 'A \\ B', overlap: 'A ∩ B', right: 'B \\ A' };
   // Display-word table (procedure P6): maps a region key to its i18n key,
   // never to the display word itself -- every reader calls
@@ -1809,6 +1839,8 @@
   }
 
   function clearAll(){
+    var ctx = activeCtx();
+    var beforeRegions = cloneRegions(ctx.getRegions(), ctx.keys);
     if (state.mode === 'three'){
       state.regions3 = emptyRegions3();
       persist3();
@@ -1818,6 +1850,7 @@
       state.regions.right = [];
       persist();
     }
+    recordDiagram(ctx, beforeRegions);
     state.armed = null;
     setMessage('venn.msg.cleared', null, false);
     render();
@@ -2019,7 +2052,9 @@
         return;
       }
     }
+    var beforeRegions = cloneRegions(ctx.getRegions(), ctx.keys);
     ctx.setRegions(result.regions);
+    recordDiagram(ctx, beforeRegions);
     var moved = result.moved;
     var baseParamsFn = spec.paramsFn || function(){ return {}; };
     // ctx.notation[m.to] is the literal math notation (e.g. "A ∩ B"), never
@@ -2050,7 +2085,8 @@
     cap: MAX_PER_REGION,
     notation: REGION_NOTATION,
     warn: warnRegionFull,
-    persist: persist
+    persist: persist,
+    history: { undo: [], redo: [] }
   };
 
   var threeCtx = {
@@ -2061,8 +2097,90 @@
     cap: MAX_PER_REGION3,
     notation: REGION_NOTATION3,
     warn: warnRegionFull3,
-    persist: persist3
+    persist: persist3,
+    history: { undo: [], redo: [] }
   };
+
+  /* ---------- Undo / Redo of the diagram and the palette ---------- */
+
+  function activeCtx(){
+    return state.mode === 'three' ? threeCtx : twoCtx;
+  }
+
+  function syncHistoryButtons(){
+    var ctx = activeCtx();
+    paletteUndoBtn.disabled = paletteHistory.undo.length === 0;
+    paletteRedoBtn.disabled = paletteHistory.redo.length === 0;
+    workUndoBtn.disabled = ctx.history.undo.length === 0;
+    workRedoBtn.disabled = ctx.history.redo.length === 0;
+  }
+
+  function regionsDiffer(a, b, keys){
+    for (var i = 0; i < keys.length; i++){
+      if (primesOf(a[keys[i]]).join(',') !== primesOf(b[keys[i]]).join(',')) return true;
+    }
+    return false;
+  }
+
+  // before is a clone of the active layout taken ahead of a gesture; one that
+  // changed no prime is not an undo step.
+  function recordDiagram(ctx, before){
+    if (!regionsDiffer(before, ctx.getRegions(), ctx.keys)) return;
+    ctx.history.undo.push(before);
+    if (ctx.history.undo.length > HISTORY_MAX) ctx.history.undo.shift();
+    ctx.history.redo.length = 0;
+    syncHistoryButtons();
+  }
+
+  function stepDiagram(undoing){
+    var ctx = activeCtx();
+    var from = undoing ? ctx.history.undo : ctx.history.redo;
+    var to = undoing ? ctx.history.redo : ctx.history.undo;
+    if (!from.length) return;
+    to.push(cloneRegions(ctx.getRegions(), ctx.keys));
+    if (to.length > HISTORY_MAX) to.shift();
+    ctx.setRegions(cloneRegions(from.pop(), ctx.keys));
+    ctx.persist();
+    setMessage(null);
+    render();
+    syncHistoryButtons();
+    if ((undoing ? workUndoBtn : workRedoBtn).disabled) (undoing ? workRedoBtn : workUndoBtn).focus();
+  }
+
+  function sameNumbers(a, b){
+    return a.join(',') === b.join(',');
+  }
+
+  // before is the palette list taken ahead of a gesture, recorded once the
+  // page has adopted the result; a gesture that changed nothing is skipped.
+  function recordPalette(before){
+    if (sameNumbers(before, palette)) return;
+    paletteHistory.undo.push(before);
+    if (paletteHistory.undo.length > HISTORY_MAX) paletteHistory.undo.shift();
+    paletteHistory.redo.length = 0;
+    syncHistoryButtons();
+  }
+
+  function clearPaletteHistory(){
+    paletteHistory.undo.length = 0;
+    paletteHistory.redo.length = 0;
+    syncHistoryButtons();
+  }
+
+  // Undo and Redo restore a snapshot through NT.store.writeSharedPalette,
+  // then the page adopts the list the store returns.
+  function stepPalette(undoing){
+    var from = undoing ? paletteHistory.undo : paletteHistory.redo;
+    var to = undoing ? paletteHistory.redo : paletteHistory.undo;
+    if (!from.length) return;
+    to.push(palette.slice());
+    if (to.length > HISTORY_MAX) to.shift();
+    var list = writeSharedPalette(from.pop());
+    if (list) adoptPalette(list);
+    setMessage(null);
+    syncHistoryButtons();
+    if ((undoing ? paletteUndoBtn : paletteRedoBtn).disabled) (undoing ? paletteRedoBtn : paletteUndoBtn).focus();
+  }
 
   // One-shot load-time pass so a stored layout written before this feature
   // (or hand-edited) is corrected before the first paint. isValidStoredRegion
@@ -2193,20 +2311,24 @@
     if (n === 0){ setMessage('venn.msg.invalid', null, true); return; }
     if (n === 1){ setMessage('venn.msg.one', null, true); return; }
     if (n > SHARED_PALETTE_MAX_N){ setMessage('venn.msg.tooLarge', null, true); return; }
+    var before = palette.slice();
     var res = addToSharedPalette([n], false);
     if (res.added.length === 0){
       if (res.overflow > 0) setMessage('venn.msg.paletteFull', function(){ return { max: SHARED_PALETTE_MAX }; }, true);
       return;
     }
     adoptPalette(res.list);
+    recordPalette(before);
     setMessage('venn.msg.added', function(){ return { n: n }; }, false);
     addInput.select();
   }
 
   function removeFromPalette(value, focusIndex){
     var before = palette.length;
+    var beforeList = palette.slice();
     var list = removeFromSharedPalette(value);
     adoptPalette(list);
+    recordPalette(beforeList);
     if (list.length < before) setMessage('venn.msg.paletteRemoved', function(){ return { n: value }; }, false);
     if (focusIndex !== undefined){
       var chips = picker.querySelectorAll('.prime-chip');
@@ -2234,7 +2356,9 @@
     addInput.value = pickRandomN();
   });
   paletteEmptyBtn.addEventListener('click', function(){
+    var before = palette.slice();
     adoptPalette(clearSharedPalette());
+    recordPalette(before);
     setMessage('venn.msg.paletteEmptied', null, false);
     addInput.focus();
   });
@@ -2844,9 +2968,29 @@
     if (modeThreeBtn) modeThreeBtn.setAttribute('aria-pressed', isThree ? 'true' : 'false');
     try{ localStorage.setItem(MODE_STORAGE_KEY, mode); }catch(e){}
     render();
+    syncHistoryButtons();
   }
 
   clearBtn.addEventListener('click', clearAll);
+  paletteUndoBtn.addEventListener('click', function(){ stepPalette(true); });
+  paletteRedoBtn.addEventListener('click', function(){ stepPalette(false); });
+  workUndoBtn.addEventListener('click', function(){ stepDiagram(true); });
+  workRedoBtn.addEventListener('click', function(){ stepDiagram(false); });
+  // Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes the diagram; typing
+  // in a field keeps the browser's own text undo.
+  document.addEventListener('keydown', function(ev){
+    if (!(ev.ctrlKey || ev.metaKey) || ev.altKey || ev.isComposing) return;
+    var t = ev.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    var k = String(ev.key).toLowerCase();
+    if (k === 'z' && !ev.shiftKey){
+      ev.preventDefault();
+      stepDiagram(true);
+    } else if ((k === 'z' && ev.shiftKey) || (k === 'y' && ev.ctrlKey)){
+      ev.preventDefault();
+      stepDiagram(false);
+    }
+  });
   randomizeBtn.addEventListener('click', randomizeDiagram);
   if (modeTwoBtn) modeTwoBtn.addEventListener('click', function(){ setMode('two'); });
   if (modeThreeBtn) modeThreeBtn.addEventListener('click', function(){ setMode('three'); });
@@ -2941,13 +3085,20 @@
   // The shared number palette (NT.store's number-palette) arrives the same
   // way and is mirrored without being written back.
   window.addEventListener('pageshow', function(e){
-    if (e.persisted) adoptPalette(loadSharedPalette());
+    if (!e.persisted) return;
+    var reloaded = loadSharedPalette();
+    var changed = !sameNumbers(reloaded, palette);
+    adoptPalette(reloaded);
+    if (changed) clearPaletteHistory();
   });
 
   window.addEventListener('storage', function(e){
     if (e.key === SHARED_PALETTE_KEY){
       var list = readSharedPalette(e.newValue);
-      if (list) adoptPalette(list);
+      if (list){
+        adoptPalette(list);
+        clearPaletteHistory();
+      }
       return;
     }
     if (e.key !== SHARED_AB_KEY) return;
@@ -2956,6 +3107,9 @@
     var pair = currentPair();
     if (pair.a === incoming.a && pair.b === incoming.b) return;
     fillFromNumbers(Math.min(incoming.a, EUCLID_MAX_INPUT), Math.min(incoming.b, EUCLID_MAX_INPUT), 'shared');
+    twoCtx.history.undo.length = 0;
+    twoCtx.history.redo.length = 0;
+    syncHistoryButtons();
     render();
   });
 
