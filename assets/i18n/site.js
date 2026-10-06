@@ -415,7 +415,9 @@
       'speed.10': 'bijna-direct',
       additiveGroups: 'Additieve groepen',
       multiplicativeGroups: 'Multiplicatieve groepen',
-      paletteEmptySieve: 'Gebruik de tool ‘{0}’ om priemgetallen aan dit palet toe te voegen.'
+      paletteEmptySieve: 'Gebruik de tool ‘{0}’ om priemgetallen aan dit palet toe te voegen.',
+      primePickerOpen: 'Kies een priemgetal uit het palet',
+      primePickerHeading: 'Kies een priemgetal'
     },
     en: {
       play: 'Play',
@@ -436,7 +438,9 @@
       'speed.10': 'instant-ish',
       additiveGroups: 'Additive Groups',
       multiplicativeGroups: 'Multiplicative Groups',
-      paletteEmptySieve: "Use the tool '{0}' to add primes to this palette."
+      paletteEmptySieve: "Use the tool '{0}' to add primes to this palette.",
+      primePickerOpen: 'Pick a prime from the palette',
+      primePickerHeading: 'Pick a prime'
     },
     de: {
       play: 'Abspielen',
@@ -457,7 +461,9 @@
       'speed.10': 'fast augenblicklich',
       additiveGroups: 'Additive Gruppen',
       multiplicativeGroups: 'Multiplikative Gruppen',
-      paletteEmptySieve: 'Nutze das Werkzeug „{0}“, um dieser Palette Primzahlen hinzuzufügen.'
+      paletteEmptySieve: 'Nutze das Werkzeug „{0}“, um dieser Palette Primzahlen hinzuzufügen.',
+      primePickerOpen: 'Wähle eine Primzahl aus der Palette',
+      primePickerHeading: 'Wähle eine Primzahl'
     },
     fr: {
       play: 'Lecture',
@@ -478,7 +484,9 @@
       'speed.10': 'quasi instantané',
       additiveGroups: 'Groupes additifs',
       multiplicativeGroups: 'Groupes multiplicatifs',
-      paletteEmptySieve: 'Utilisez l’outil « {0} » pour ajouter des nombres premiers à cette palette.'
+      paletteEmptySieve: 'Utilisez l’outil « {0} » pour ajouter des nombres premiers à cette palette.',
+      primePickerOpen: 'Choisissez un nombre premier dans la palette',
+      primePickerHeading: 'Choisissez un nombre premier'
     },
     es: {
       play: 'Reproducir',
@@ -499,7 +507,9 @@
       'speed.10': 'casi instantáneo',
       additiveGroups: 'Grupos aditivos',
       multiplicativeGroups: 'Grupos multiplicativos',
-      paletteEmptySieve: 'Usa la herramienta «{0}» para añadir números primos a esta paleta.'
+      paletteEmptySieve: 'Usa la herramienta «{0}» para añadir números primos a esta paleta.',
+      primePickerOpen: 'Elige un número primo de la paleta',
+      primePickerHeading: 'Elige un número primo'
     },
     it: {
       play: 'Riproduci',
@@ -520,7 +530,9 @@
       'speed.10': 'quasi istantaneo',
       additiveGroups: 'Gruppi additivi',
       multiplicativeGroups: 'Gruppi moltiplicativi',
-      paletteEmptySieve: 'Usa lo strumento «{0}» per aggiungere numeri primi a questa tavolozza.'
+      paletteEmptySieve: 'Usa lo strumento «{0}» per aggiungere numeri primi a questa tavolozza.',
+      primePickerOpen: 'Scegli un numero primo dalla tavolozza',
+      primePickerHeading: 'Scegli un numero primo'
     },
     pl: {
       play: 'Odtwórz',
@@ -541,7 +553,9 @@
       'speed.10': 'niemal natychmiastowa',
       additiveGroups: 'Grupy addytywne',
       multiplicativeGroups: 'Grupy multiplikatywne',
-      paletteEmptySieve: 'Użyj narzędzia „{0}”, aby dodać liczby pierwsze do tej palety.'
+      paletteEmptySieve: 'Użyj narzędzia „{0}”, aby dodać liczby pierwsze do tej palety.',
+      primePickerOpen: 'Wybierz liczbę pierwszą z palety',
+      primePickerHeading: 'Wybierz liczbę pierwszą'
     },
     'pt-BR': {
       play: 'Reproduzir',
@@ -562,7 +576,9 @@
       'speed.10': 'quase instantânea',
       additiveGroups: 'Grupos aditivos',
       multiplicativeGroups: 'Grupos multiplicativos',
-      paletteEmptySieve: 'Use a ferramenta “{0}” para adicionar números primos a esta paleta.'
+      paletteEmptySieve: 'Use a ferramenta “{0}” para adicionar números primos a esta paleta.',
+      primePickerOpen: 'Escolha um número primo da paleta',
+      primePickerHeading: 'Escolha um número primo'
     },
     'pt-PT': {
       play: 'Reproduzir',
@@ -583,7 +599,9 @@
       'speed.10': 'quase instantânea',
       additiveGroups: 'Grupos aditivos',
       multiplicativeGroups: 'Grupos multiplicativos',
-      paletteEmptySieve: 'Usa a ferramenta «{0}» para adicionar números primos a esta paleta.'
+      paletteEmptySieve: 'Usa a ferramenta «{0}» para adicionar números primos a esta paleta.',
+      primePickerOpen: 'Escolhe um número primo da paleta',
+      primePickerHeading: 'Escolhe um número primo'
     },
     sv: {
       play: 'Spela upp',
@@ -604,7 +622,9 @@
       'speed.10': 'nästan omedelbar',
       additiveGroups: 'Additiva grupper',
       multiplicativeGroups: 'Multiplikativa grupper',
-      paletteEmptySieve: 'Använd verktyget ”{0}” för att lägga till primtal i den här paletten.'
+      paletteEmptySieve: 'Använd verktyget ”{0}” för att lägga till primtal i den här paletten.',
+      primePickerOpen: 'Välj ett primtal ur paletten',
+      primePickerHeading: 'Välj ett primtal'
     },
     nb: {
       play: 'Spill av',
@@ -625,7 +645,9 @@
       'speed.10': 'nesten øyeblikkelig',
       additiveGroups: 'Additive grupper',
       multiplicativeGroups: 'Multiplikative grupper',
-      paletteEmptySieve: 'Bruk verktøyet «{0}» for å legge til primtall i denne paletten.'
+      paletteEmptySieve: 'Bruk verktøyet «{0}» for å legge til primtall i denne paletten.',
+      primePickerOpen: 'Velg et primtall fra paletten',
+      primePickerHeading: 'Velg et primtall'
     },
     ro: {
       play: 'Redă',
@@ -646,7 +668,9 @@
       'speed.10': 'aproape instantanee',
       additiveGroups: 'Grupuri aditive',
       multiplicativeGroups: 'Grupuri multiplicative',
-      paletteEmptySieve: 'Folosește instrumentul „{0}” ca să adaugi numere prime în această paletă.'
+      paletteEmptySieve: 'Folosește instrumentul „{0}” ca să adaugi numere prime în această paletă.',
+      primePickerOpen: 'Alege un număr prim din paletă',
+      primePickerHeading: 'Alege un număr prim'
     },
     hu: {
       play: 'Lejátszás',
@@ -667,7 +691,9 @@
       'speed.10': 'szinte azonnali',
       additiveGroups: 'Additív csoportok',
       multiplicativeGroups: 'Multiplikatív csoportok',
-      paletteEmptySieve: 'Az „{0}” eszközzel adhatsz prímszámokat ehhez a palettához.'
+      paletteEmptySieve: 'Az „{0}” eszközzel adhatsz prímszámokat ehhez a palettához.',
+      primePickerOpen: 'Válassz egy prímszámot a palettáról',
+      primePickerHeading: 'Válassz egy prímszámot'
     },
     lv: {
       play: 'Atskaņot',
@@ -688,7 +714,9 @@
       'speed.10': 'gandrīz acumirklīgs',
       additiveGroups: 'Aditīvās grupas',
       multiplicativeGroups: 'Multiplikatīvās grupas',
-      paletteEmptySieve: 'Izmanto rīku “{0}”, lai pievienotu šai paletei pirmskaitļus.'
+      paletteEmptySieve: 'Izmanto rīku “{0}”, lai pievienotu šai paletei pirmskaitļus.',
+      primePickerOpen: 'Izvēlies pirmskaitli no paletes',
+      primePickerHeading: 'Izvēlies pirmskaitli'
     },
     ru: {
       play: 'Пуск',
@@ -709,7 +737,9 @@
       'speed.10': 'почти мгновенная',
       additiveGroups: 'Аддитивные группы',
       multiplicativeGroups: 'Мультипликативные группы',
-      paletteEmptySieve: 'Используй инструмент «{0}», чтобы добавить простые числа в эту палитру.'
+      paletteEmptySieve: 'Используй инструмент «{0}», чтобы добавить простые числа в эту палитру.',
+      primePickerOpen: 'Выбери простое число из палитры',
+      primePickerHeading: 'Выбери простое число'
     },
     el: {
       play: 'Έναρξη',
@@ -730,7 +760,9 @@
       'speed.10': 'σχεδόν ακαριαία',
       additiveGroups: 'Προσθετικές ομάδες',
       multiplicativeGroups: 'Πολλαπλασιαστικές ομάδες',
-      paletteEmptySieve: 'Χρησιμοποίησε το εργαλείο «{0}» για να προσθέσεις πρώτους αριθμούς σε αυτή την παλέτα.'
+      paletteEmptySieve: 'Χρησιμοποίησε το εργαλείο «{0}» για να προσθέσεις πρώτους αριθμούς σε αυτή την παλέτα.',
+      primePickerOpen: 'Διάλεξε έναν πρώτο αριθμό από την παλέτα',
+      primePickerHeading: 'Διάλεξε έναν πρώτο αριθμό'
     }
   });
 })();

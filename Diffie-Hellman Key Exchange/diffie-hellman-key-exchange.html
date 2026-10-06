@@ -274,7 +274,7 @@
 
   <section class="panel controls">
     <div class="field-row" style="width:100%;">
-      <div class="field"><label for="pInput" data-i18n="dh.pLabel">Public prime modulus p</label><input id="pInput" type="text" inputmode="numeric" value="23"></div>
+      <div class="field"><label for="pInput" data-i18n="dh.pLabel">Public prime modulus p</label><div class="prime-pop-field"><input id="pInput" type="text" inputmode="numeric" value="23"><button type="button" class="prime-pop-trigger" id="pPickBtn" aria-label="Pick a prime from the palette" data-i18n-aria-label="common.primePickerOpen" title="Pick a prime from the palette" data-i18n-title="common.primePickerOpen"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="4" cy="7" r="2.4"/><circle cx="10" cy="7" r="2.4"/><circle cx="16" cy="7" r="2.4"/><circle cx="4" cy="13" r="2.4"/><circle cx="10" cy="13" r="2.4"/><circle cx="16" cy="13" r="2.4"/></svg></button></div></div>
       <div class="field"><label for="gInput" data-i18n="dh.gLabel">Generator g</label><input id="gInput" type="text" inputmode="numeric" value="5"></div>
       <div class="field"><label for="aInput" data-i18n="dh.aLabel">Alice's private exponent a</label><input id="aInput" type="text" inputmode="numeric" value="6"></div>
       <div class="field"><label for="bInput" data-i18n="dh.bLabel">Bob's private exponent b</label><input id="bInput" type="text" inputmode="numeric" value="15"></div>
@@ -372,7 +372,9 @@
 
 <script src="../assets/nt-bigint.js"></script>
 <script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
 <script src="../assets/nt-i18n.js"></script>
+<script src="../assets/nt-picker.js"></script>
 <script src="../assets/i18n/site.js"></script>
 <script src="../assets/i18n/diffie-hellman-key-exchange.js"></script>
 <script>
@@ -383,6 +385,7 @@
 const { fmt, isPrimeBig, modPowPlain, parseBigIntStrict, randomBigIntBits, randomBigIntInRange, scratchNum, shortVal } = NT.bigint;
 const { easeInOutCubic, svgEl } = NT.svg;
 const { onLangChange, translate, translateInto } = NT.i18n;
+const { attachPrimePicker } = NT.picker;
 
 /* ---------- number theory ---------- */
 
@@ -1304,6 +1307,9 @@ speedInput.addEventListener('input', renderSpeedLabel);
 [pInput, gInput, aInput, bInput].forEach((inp) => {
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') rebuild(); });
 });
+
+// DH's p must be >= 5 (dh.errPTooSmall), and a pick commits like a preset chip.
+attachPrimePicker(pInput, $('pPickBtn'), { min: 5, onPick: rebuild });
 
 const chipButtons = presetChips.querySelectorAll('.chip');
 chipButtons.forEach((chip) => {
