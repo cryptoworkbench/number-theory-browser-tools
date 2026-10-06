@@ -6,6 +6,8 @@
  * Quick task 261006-dso extended the probe with sequence U (Venn palette head,
  * Delete all, chip look and palette Randomize) and flipped V5 to the new
  * prime/composite colour logic.
+ * Quick task 261006-keu moved the bin and Delete all into the add row on both
+ * pages: U1 now asserts the add-row placement.
  * Never referenced by any page. Node built-ins + the in-repo harness only.
  *
  * Node side: evaluates assets/nt-store.js in a vm context with the harness's
@@ -496,28 +498,39 @@ function inPage(cfg) {
     } }];
   };
 
-  /* U: quick task 261006-dso -- Venn's palette adopts Factor Tree's palette head and tools */
+  /* U: quick task 261006-dso -- Venn's palette adopts Factor Tree's palette head and tools; 261006-keu moved the tools into the add row */
   defs.U = function () {
     var rect = function (el) { return el.getBoundingClientRect(); };
     return [
-      { name: "U1 venn-palette-head", fn: function () {
-        var tools = document.querySelector(".picker-head .palette-tools");
-        assert(tools, "no .picker-head .palette-tools");
+      { name: "U1 venn-palette-tools-row", fn: function () {
+        var tools = document.querySelector(".picker-add .palette-tools");
+        assert(tools, "no .picker-add .palette-tools");
         var kids = arr(tools.children).map(function (c) { return c.id; });
         same(kids, ["palette-bin", "palette-empty-btn"], "palette-tools children");
-        assert(!document.querySelector(".picker-add #palette-bin"), "the bin is still inside .picker-add");
+        var addRow = document.querySelector(".picker-add");
+        assert(addRow.lastElementChild === tools, "the tools are not the add row's last child");
+        assert(tools.previousElementSibling && tools.previousElementSibling.id === "palette-random-btn", "the tools do not follow Randomize");
+        assert(document.querySelector(".picker-head").children.length === 1, "the heading row holds " + document.querySelector(".picker-head").children.length + " children");
+        assert(!document.querySelector(".picker-head .palette-tools"), "the tools are still in .picker-head");
         var bin = document.getElementById("palette-bin"), btn = document.getElementById("palette-empty-btn");
+        var controls = ["palette-add-input", "palette-add-btn", "palette-random-btn"].map(function (id) { return document.getElementById(id); });
+        function cy(r) { return r.top + r.height / 2; }
         [bin, btn].forEach(function (el) {
           var r = rect(el);
           assert(Math.round(r.width) === 40 && Math.round(r.height) === 40, el.id + " is " + r.width + "x" + r.height);
+          controls.forEach(function (c) {
+            assert(Math.abs(cy(r) - cy(rect(c))) <= 1, el.id + " is not vertically centred with " + c.id);
+          });
         });
-        assert(rect(tools).left >= rect(document.getElementById("picker-heading")).right, "tools are not right of the heading");
+        var tr = rect(tools), ar = rect(addRow), rr = rect(document.getElementById("palette-random-btn"));
+        assert(Math.abs(tr.right - ar.right) <= 1, "tools right " + tr.right + " vs add row right " + ar.right);
+        assert(tr.left > rr.right, "tools (" + tr.left + ") touch Randomize (" + rr.right + ")");
         assert(btn.getAttribute("aria-label") === T("venn.emptyPaletteLabel"), "aria-label " + btn.getAttribute("aria-label"));
         assert(btn.getAttribute("title") === T("venn.emptyPaletteLabel"), "title " + btn.getAttribute("title"));
         assert(btn.querySelector("svg"), "no svg in the Delete-all button");
         assert(!btn.disabled, "Delete all is disabled on a full palette");
         noErrors("U1");
-        return "heading left; bin and garbage-truck Delete all (both 40x40) on the right, translated label";
+        return "bin and garbage-truck Delete all (both 40x40) at the right end of the add row, centred with the input and buttons; heading row holds only the heading; translated label";
       } },
       { name: "U2 venn-delete-all", fn: function () {
         chipNamed("7").click();
