@@ -11,6 +11,7 @@
  * through a <pre> in the dumped DOM.
  *
  * Usage: node lcm-probe.js [share|coprime|big|all]   (default all)
+ *        node lcm-probe.js --shots   (writes lcm-day.png and lcm-night.png here)
  */
 
 var fs = require("fs");
@@ -422,7 +423,56 @@ function runPage(siteRoot, port, key, str) {
   return { pass: pass, fail: fail };
 }
 
+// --shots: open the fold at A=12, B=18 and screenshot stage 3 in both themes.
+// Headless virtual time does not advance CSS transitions, so the shots page
+// switches them off; the autoplay timers still run inside the time budget.
+function writeShotsPage(siteRoot) {
+  var src = fs.readFileSync(path.join(ROOT, VENN_DIR, VENN_FILE), "utf8");
+  var script = "<script>(" + function () {
+    var st = document.createElement("style");
+    st.textContent = "*, *::before, *::after { transition: none !important; animation: none !important; }";
+    document.head.appendChild(st);
+    window.addEventListener("load", function () {
+      setTimeout(function () { document.getElementById("lcm-toggle").click(); }, 300);
+    });
+  }.toString() + ")();</script>\n";
+  var at = src.lastIndexOf("</body>");
+  if (at < 0) throw new Error("no closing body tag in " + VENN_FILE);
+  fs.writeFileSync(path.join(siteRoot, VENN_DIR, "shots.html"), src.slice(0, at) + script + src.slice(at));
+}
+
+async function shots() {
+  var siteRoot = buildSite();
+  writeShotsPage(siteRoot);
+  var port = await freePort();
+  var server = cp.spawn("python3", ["-m", "http.server", String(port), "--bind", "127.0.0.1", "--directory", siteRoot], { stdio: "ignore" });
+  process.on("exit", function () { try { server.kill("SIGKILL"); } catch (e) { /* already gone */ } });
+  var failed = false;
+  try {
+    await waitForServer(port, 50);
+    ["day", "night"].forEach(function (theme) {
+      var profileDir = harness.mkScratch("o9g-shot-profile-");
+      var target = path.join(__dirname, "lcm-" + theme + ".png");
+      var url = "http://127.0.0.1:" + port + "/" + encodeURIComponent(VENN_DIR) + "/shots.html?a=12&b=18&lang=en&theme=" + theme;
+      cp.spawnSync("google-chrome", [
+        "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
+        "--user-data-dir=" + profileDir, "--virtual-time-budget=10000",
+        "--window-size=1280,2600", "--screenshot=" + target, url
+      ], { encoding: "utf8", timeout: 120000, env: harness.chromeEnv() });
+      try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+      var ok = fs.existsSync(target) && fs.statSync(target).size > 0;
+      console.log((ok ? "wrote " : "FAILED ") + target);
+      if (!ok) failed = true;
+    });
+  } finally {
+    try { server.kill("SIGTERM"); } catch (e) { /* already gone */ }
+    try { fs.rmSync(siteRoot, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  }
+  process.exit(failed ? 1 : 0);
+}
+
 async function main() {
+  if (process.argv[2] === "--shots") return shots();
   var which = process.argv[2] || "all";
   var keys = which === "all" ? Object.keys(PAGES) : [which];
   keys.forEach(function (k) {
