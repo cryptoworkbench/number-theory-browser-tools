@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-05T17:56:45.218Z"
+last_updated: "2026-10-06T07:00:11.415Z"
 last_activity: 2026-10-05
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: af624244eda11ba7d217d9bf5ca7e0501cbeff96
+state_head: 17a5f79a3f477cb77916dd8be4f56f8eaf9cee75
 progress:
   total_phases: 7
   completed_phases: 6
@@ -320,6 +320,7 @@ None yet.
 | 84 | Factor Tree composite circle colour blue → #bb81a3 (--role-composite token) | 2026-10-05 | 4985810 | — |
 | 85 | Factor Tree composite circle colour → #794a4f with white numbers | 2026-10-05 | 593cffe | — |
 | 86 | Factor Tree gcd overlap: Separate button undoes the combine | 2026-10-05 | af62424 | — |
+| 87 | Factor Tree composites back to blue; Sieve legend 'Struck (composite)' swatch uses the same blue | 2026-10-06 | 17a5f79 | — |
 
 ## Deferred Items
 
