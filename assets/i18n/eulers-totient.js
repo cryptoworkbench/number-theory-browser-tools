@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all sixteen supported languages.
+   tool, in all seventeen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,10 +12,10 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all sixteen languages. bannerDone is { one, other } in every language
+   all seventeen languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
-   ({ one, few, other }) and Latvian ({ zero, one, other }), each the CLDR
-   shape for that language.
+   ({ one, few, other }), Latvian ({ zero, one, other }) and Hebrew
+   ({ one, two, other }), each the CLDR shape for that language.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -396,6 +396,30 @@
         other: 'Έτοιμο — ελέγχθηκαν {count} τιμές, {phi} πρώτοι ως προς το {n}.'
       },
       caption: 'Ο πρώτος n δίνει φ(n) = n−1, επειδή κάθε μικρότερος αριθμός τον προσπερνά — οι ετικέτες το κάνουν εύκολο να το ελέγξεις.'
+    },
+    he: {
+      title: 'פונקציית φ של אוילר',
+      heading: 'פונקציית φ של אוילר',
+      lede: '\u2066φ(n)\u2069 סופרת כמה מבין \u20661 … n−1\u2069 אינם חולקים גורם עם n, והדף הזה מגלה זאת בדרך הישרה היחידה — בשאלת האלגוריתם של אוקלידס על כל אחד מהם בנפרד.',
+      xref: 'אותה ספירה מופיעה גם כפלחי החבורה הכפלית מודולו n ←',
+      chipPrime: '{n} · ראשוני',
+      run: 'הרצה',
+      errNotWhole: 'n חייב להיות מספר שלם.',
+      errTooSmall: 'n חייב להיות לפחות {min} — הסריקה \u2066k = 1 … n−1\u2069 צריכה לפחות k אחד לבדיקה.',
+      errCapped: 'n מוגבל ל-{max} — הערך הוקטן כך שיתאים.',
+      chainHead: 'בודקים \u2066k = {k}\u2069 — \u2066gcd({n}, {k})\u2069',
+      verdictCoprime: '\u2066k = {k}\u2069 זר ל-{n} — \u2066gcd = 1\u2069, נספר.',
+      verdictEliminated: '\u2066k = {k}\u2069 חולק גורם משותף עם {n} — \u2066gcd = {gcd}\u2069, נפסל.',
+      tally: 'ספירה מצטברת של זרים: {count}',
+      progress: 'נבדק \u2066k = {k}\u2069 מתוך {total}.',
+      answer: '\u2066φ({n}) = {phi}\u2069',
+      bannerReady: 'מוכן — לחצו על הפעלה כדי לצפות כיצד הסריקה בודקת כל k בחלוקה אחת בכל פעם.',
+      bannerDone: {
+        one: 'הסתיים — נבדק {count} ערך, מתוכם {phi} זרים ל-{n}.',
+        two: 'הסתיים — נבדקו {count} ערכים, מתוכם {phi} זרים ל-{n}.',
+        other: 'הסתיים — נבדקו {count} ערכים, מתוכם {phi} זרים ל-{n}.'
+      },
+      caption: 'כאשר n ראשוני מתקבל \u2066φ(n) = n−1\u2069, כי לכל מספר קטן ממנו אין איתו גורם משותף — כפתורי הדוגמה מקלים על הבדיקה.'
     }
   });
 })();

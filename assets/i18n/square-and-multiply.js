@@ -6,9 +6,10 @@
    T-06-17/T-06-18 pattern, never innerHTML), the banner messages (one of
    them, bannerComputed, a plural entry — { one, other } in every
    language except Polish and Russian, which carry the CLDR { one, few,
-   many, other } shape, Romanian the CLDR { one, few, other } shape and
-   Latvian the CLDR { zero, one, other } shape), and the ladder's SVG
-   labels, for the Square and Multiply tool, in all sixteen supported
+   many, other } shape, Romanian the CLDR { one, few, other } shape,
+   Latvian the CLDR { zero, one, other } shape and Hebrew the CLDR
+   { one, two, other } shape), and the ladder's SVG
+   labels, for the Square and Multiply tool, in all seventeen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1223,6 +1224,81 @@
       accFinalAnswer: '{0} = απάντηση',
       ladderAriaLabel: 'Σκάλα γρήγορης ύψωσης σε δύναμη: μία γραμμή για κάθε bit του εκθέτη, καθεμία υψώνει τον συσσωρευτή στο τετράγωνο και υπό όρους πολλαπλασιάζει με τη βάση',
       bitTitle: 'θέση 2^{place}'
+    },
+    he: {
+      heading: 'העלאה בריבוע וכפל',
+      lede: 'זה מה שמחשב עושה באמת כשהוא מחשב \u2066b{0} mod m\u2069 — בלי כפל חוזר, רק העלאה אחת בריבוע לכל ביט של המעריך וכפל מדי פעם בבסיס.',
+      introHeading: 'איך המחשב עושה זאת בפועל',
+      introP1: 'העלאת מספר בחזקה e על ידי הכפלתו בעצמו e פעמים היא חסרת סיכוי כשלמעריך יש מאות ספרות — מעריך אמיתי של RSA היה לוקח יותר מגילו של היקום בדרך הזו. במקום זאת המכונה קוראת את המעריך בבסיס בינרי וצריכה רק העלאה אחת בריבוע לכל ביט, עם כפל נוסף רק בביטים שערכם 1. זה כל הטריק, וזו הסיבה היחידה לכך שחשבון בגודל קריפטוגרפי מסתיים בכלל.',
+      introP2: 'זו בדיוק אותה לולאה שדפי RSA ודיפי-הלמן באתר הזה קוראים לה בכל פעם שהם כותבים \u2066b{0} mod m\u2069 — שם היא נקראת {1} ופועלת מאחורי הקלעים; כאן היא נפתחת, ביט אחר ביט.',
+      modularExponentiation: 'העלאה בחזקה מודולרית',
+      baseLabel: 'בסיס b',
+      expLabel: 'מעריך e',
+      modLabel: 'מודולוס m',
+      compute: 'חישוב',
+      randomize: 'אקראי',
+      logHeading: 'יומן חשבוני',
+      resultSectionHeading: 'תוצאה',
+      'legend.bit': '{0} ביט של המעריך (1 = מתבצע כפל)',
+      'legend.squaring': '{0} העלאה בריבוע — בכל שורה, ללא תנאי',
+      'legend.multiply': '{0} כפל בבסיס — רק בביט שערכו 1',
+      'legend.accumulator': '{0} צובר / התשובה הסופית',
+      footer: 'הדגמת העלאה בריבוע וכפל — האלגוריתם שמאחורי כל \u2066b^e mod m\u2069 באתר זה. למטרות לימוד בלבד.',
+      pillBinaryExp: 'העלאה בחזקה בינרית',
+      pillOneSquaring: 'ריבוע אחד לכל ביט',
+      pillBigIntModular: 'חשבון מודולרי עם BigInt',
+      errBaseInvalid: 'הבסיס חייב להיות מספר שלם אי-שלילי.',
+      errBaseTooLong: 'הבסיס יכול להכיל לכל היותר 40 ספרות — זו הדגמת לימוד, לא מחולל מפתחות.',
+      errExpInvalid: 'המעריך חייב להיות מספר שלם אי-שלילי.',
+      errExpTooLarge: 'המעריך חייב להיות קטן מ-\u20662^64\u2069 (65 ביטים) — הסולם ידרוש יותר שורות ממה שלשונית דפדפן יכולה להציג.',
+      errModInvalid: 'המודולוס חייב להיות מספר שלם אי-שלילי.',
+      errModTooSmall: 'המודולוס חייב להיות לפחות 2 — מודולוס 1 הופך כל תוצאה ל-0 ולכן הוא מנוון.',
+      errModTooLong: 'המודולוס יכול להכיל לכל היותר 40 ספרות — זו הדגמת לימוד, לא מחולל מפתחות.',
+      binaryExpansionZero: '\u20660 = 0₂\u2069 = \u2067(אין חזקות של שתיים — כל מספר בחזקת אפס הוא 1)\u2069',
+      setupHeading: 'הכנה',
+      lblBaseReducedFirst: 'הבסיס מצומצם תחילה:',
+      setupBaseReduced: '{0} \u2066{rawBase} mod {mod} = {1}\u2069 — זהו הערך שהסולם מעלה בריבוע וכופל בו.',
+      setupFirstRowNote: 'השורה הראשונה מעלה בריבוע את ערך ההתחלה של הצובר, 1, וזה אינו משנה דבר — ולכן מימושים מתחילים מהביט המוביל (המשמעותי ביותר).',
+      stepHeading: 'ביט {i} מתוך {total} — ספרה {bit}, ערך מקום \u20662^{place}\u2069',
+      lblSquare: 'העלאה בריבוע:',
+      stepSquareFormula: '{0} \u2066{accBefore}² mod {mod} = {1}\u2069',
+      lblMultiplyBitOne: 'כפל (הביט הוא 1):',
+      stepMultiplyFormula: '{0} \u2066{accSquared} × {base} mod {mod} = {1}\u2069',
+      lblMultiplySkipped: 'הכפל דולג:',
+      stepMultiplySkippedFormula: '{0} הביט הזה הוא 0, ולכן הצובר עובר ללא שינוי ונשאר {1}',
+      bannerStepMultiplied: 'ביט {i} מתוך {total}: מעלים את הצובר בריבוע, ואז כופלים בבסיס כי הביט הזה הוא 1.',
+      bannerStepSkipped: 'ביט {i} מתוך {total}: מעלים את הצובר בריבוע — הכפל דולג כי הביט הזה הוא 0.',
+      bannerReady: 'מוכן — לחצו על הפעלה כדי לצפות בסולם נבנה ביט אחר ביט.',
+      bannerComputed: {
+        one: 'החישוב המלא מוצג להלן — {bits} ביט במעריך. לחצו על הפעלה כדי לצפות בו נבנה צעד אחר צעד.',
+        two: 'החישוב המלא מוצג להלן — {bits} ביטים במעריך. לחצו על הפעלה כדי לצפות בו נבנה צעד אחר צעד.',
+        other: 'החישוב המלא מוצג להלן — {bits} ביטים במעריך. לחצו על הפעלה כדי לצפות בו נבנה צעד אחר צעד.'
+      },
+      resultMatch: 'בדיקה בלתי תלויה — לולאה רגילה של העלאה בחזקה מודולרית משמאל לימין על אותם קלטים מגיעה ל-{0}, אותה תשובה. ✓',
+      resultMismatch: 'אי-התאמה בבדיקה הצולבת: הלולאה הרגילה חישבה {cross}, שאינו תואם ל-{result} של הסולם. זה מצביע על באג.',
+      costTag: 'למה זה חשוב ל-RSA',
+      costHeading: 'עלות לעומת כפל חוזר נאיבי',
+      costBitLength: 'אורך המעריך בביטים',
+      costSquarings: 'העלאות בריבוע',
+      costMultiplies: 'כפלים',
+      costTotal: 'סך כל הכפלים המודולריים',
+      costNaive: 'כפל חוזר נאיבי היה דורש',
+      costMeaningful: 'זה \u2066{0}\u2069 פחות כפלים מודולריים מאשר כפל הבסיס בעצמו כל כך הרבה פעמים.',
+      costNotMeaningful: 'בגודל מעריך כזה הסולם כמעט אינו חוסך דבר לעומת כפל חוזר נאיבי — היתרון גדל רק ככל שהמעריך גדל.',
+      costRsaScale: 'מעריך RSA של 2048 ביט, מהסוג שבו משתמש פענוח RSA אמיתי, דורש כ-{0} העלאות בריבוע ועוד כ-{1} כפלים — בסך הכול כ-{2} כפלים מודולריים — בעוד שכפל הבסיס בעצמו כל כך הרבה פעמים היה דורש מספר כפלים באורך {digits} ספרות עשרוניות. זו הסיבה שהדפים {3} ו-{4} באתר הזה יכולים לחשב את המפתחות שלהם מיידית בדפדפן.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'החלפת מפתחות דיפי-הלמן',
+      ladderCaption: 'הצובר מתחיל ב-1 — הביט העליון (המשמעותי ביותר) נקרא ראשון.',
+      headingBit: 'ביט של המעריך',
+      headingSquaring: 'העלאה בריבוע',
+      headingMultiply: 'כפל מותנה',
+      headingAccumulator: 'צובר',
+      rowBitCaption: 'ביט {i} מתוך {rows} — \u20662^{place}\u2069',
+      mulBase: '× \u2067בסיס\u2069 = {0}',
+      skippedBitZero: 'דולג — הביט הוא 0',
+      accFinalAnswer: '{0} = התשובה',
+      ladderAriaLabel: 'סולם של העלאה בריבוע וכפל: שורה אחת לכל ביט של המעריך, בכל שורה הצובר מועלה בריבוע ונכפל בבסיס בהתאם לתנאי',
+      bitTitle: 'ערך מקום \u20662^{place}\u2069'
     }
   });
 })();

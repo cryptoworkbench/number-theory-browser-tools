@@ -3,7 +3,7 @@
    fields, the Randomize and Export controls, the wheel's own aria-label,
    the per-mode note/heading/ref-count/formula strings, the wedge aria
    labels, the equivalence-class/sum captions and the export status
-   messages for the Equivalence Wheel tool, in all sixteen supported
+   messages for the Equivalence Wheel tool, in all seventeen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -795,6 +795,54 @@
       exportFailedSvg: 'Η εξαγωγή SVG απέτυχε — δοκίμασε ξανά.',
       exportFailedPng: 'Η εξαγωγή PNG απέτυχε — δοκίμασε λήψη SVG.',
       exportPrintOpening: 'Ανοίγει ο διάλογος εκτύπωσης — επίλεξε «Αποθήκευση ως PDF» ως προορισμό.'
+    },
+    he: {
+      title: 'גלגל השקילות',
+      eyebrow: 'חלוקות של ℕ',
+      heading: 'גלגל השקילות',
+      lede: 'כל מספר טבעי שייך בדיוק למחלקת שקילות אחת מודולו N. {0}',
+      xref: 'אותה חבורה, כפי שהיא נקראת כטבלת פעולה מלאה ←',
+      tablistLabel: 'פעולת החבורה',
+      nLabel: 'N — מודולוס',
+      nRangeLabel: 'מודולוס N',
+      ringsLabel: 'טבעות (מספרים בכל מחלקה)',
+      depthRangeLabel: 'מספרים שמוצגים בכל מחלקה',
+      randomizeLabel: 'אקראי',
+      randomize: 'דוגמה אקראית חדשה',
+      exportLabel: 'ייצוא',
+      exportPngBtn: 'הורדת PNG',
+      exportSvgBtn: 'הורדת SVG',
+      exportPdfBtn: 'הדפסה / שמירה כ-PDF',
+      svgLabel: 'מספרים טבעיים מסודרים כטבעות קונצנטריות המחולקות ל-N מחלקות שקילות',
+      noteAdditive: 'דיאגרמה זו מסדרת את ℕ כטבעות קונצנטריות — טבעת אחת לכל כפולה של N, ופלח אחד לכל מחלקה — כך שהמחלקות נשארות זרות זו לזו ושלמות לעין.',
+      noteMultiplicative: 'רק \u2066φ(N)\u2069 המחלקות הזרות ל-N מקבלות כאן פלח — אלה בדיוק המחלקות שיש להן הופכי כפלי, ולכן רק הן יוצרות חבורה ביחס לכפל.',
+      headingAdditive: 'מחלקות שקילות',
+      headingMultiplicative: 'מחלקות שקילות הפיכות',
+      refCountAdditive: '\u2066N = {n}\u2069',
+      refCountMultiplicative: '\u2066N = {n} · φ({n}) = {m}\u2069',
+      formulaAdditive: '\u2066ℕ/∼ = { [0], [1], …, [{nMinus1}] }\u2069   כאשר   \u2066[r] = { n ∈ ℕ : n mod {n} = r }\u2069',
+      formulaMultiplicative: '\u2066(ℤ/{n}ℤ)* = { [{els}] }\u2069   ·   איבר היחידה \u2066[{id}]\u2069   ·   \u2066|(ℤ/{n}ℤ)*| = φ({n}) = {m}\u2069',
+      roleFirstAddend: 'מחובר ראשון',
+      roleSecondAddend: 'מחובר שני',
+      roleSum: 'סכום',
+      roleFirstFactor: 'גורם ראשון',
+      roleSecondFactor: 'גורם שני',
+      roleProduct: 'מכפלה',
+      and: 'וגם',
+      wedgeAriaLabel: 'מחלקת שקילות {value} מודולו {n}',
+      wedgeAriaLabelWithRoles: 'מחלקת שקילות {value} מודולו {n}, {roles}',
+      verbingAdditive: 'חיבור',
+      verbingMultiplicative: 'כפל',
+      joinerAdditive: 'עם',
+      joinerMultiplicative: 'עם',
+      classIntroPromptA: 'מחלקת השקילות {bSpan} כוללת כל מספר טבעי השקול ל-{s} \u2066(mod {n})\u2069: \u2066{termsSpan}\u2069 — ושום דבר נוסף. לחצו על פלח או על שורת ייחוס כדי לבחור {word}.',
+      classIntroPromptBAdditive: 'מחלקת השקילות {bSpan} כוללת כל מספר טבעי השקול ל-{s} \u2066(mod {n})\u2069: \u2066{termsSpan}\u2069 — ושום דבר נוסף. לחצו על מחלקה שנייה — או שוב על אותה מחלקה — כדי לחבר אותה ל-{aSpan} ולגלות את הסכום.',
+      classIntroPromptBMultiplicative: 'מחלקת השקילות {bSpan} כוללת כל מספר טבעי השקול ל-{s} \u2066(mod {n})\u2069: \u2066{termsSpan}\u2069 — ושום דבר נוסף. לחצו על מחלקה שנייה — או שוב על אותה מחלקה — כדי לכפול אותה ב-{aSpan} ולגלות את המכפלה.',
+      sumCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {sum} (mod {n})\u2069. {verbing} כל איבר של {spanA2} {joiner} כל איבר של {spanB2} נותן תמיד איבר של {spanSum2}: \u2066{termsSpan}\u2069',
+      exportSaved: 'נשמר \u2066{filename}\u2069',
+      exportFailedSvg: 'ייצוא ה-SVG נכשל — נסו שוב.',
+      exportFailedPng: 'ייצוא ה-PNG נכשל — נסו להוריד SVG במקום.',
+      exportPrintOpening: 'נפתח חלון ההדפסה — בחרו "שמירה כ-PDF" כיעד.'
     }
   });
 })();

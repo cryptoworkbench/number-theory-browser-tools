@@ -3,13 +3,14 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all sixteen supported languages.
+   Cayley Table tool, in all seventeen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
    plural entries ({ one, other } in every language except Polish and
-   Russian ({ one, few, many, other }), Romanian ({ one, few, other }) and
-   Latvian ({ zero, one, other }), each the CLDR shape for that language);
+   Russian ({ one, few, many, other }), Romanian ({ one, few, other }),
+   Latvian ({ zero, one, other }) and Hebrew ({ one, two, other }), each
+   the CLDR shape for that language);
    every other key is plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
@@ -663,6 +664,47 @@
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), και {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — και τα δύο καταλήγουν στην ίδια τιμή, οπότε ο πίνακας είναι συμμετρικός ως προς τη διαγώνιό του: η ομάδα είναι αντιμεταθετική.',
       selfInverseNote: 'Το {a} είναι {word}, αφού η τιμή του εδώ είναι το ουδέτερο στοιχείο.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    he: {
+      title: 'טבלת קיילי',
+      eyebrow: 'תורת החבורות · טבלאות פעולה',
+      heading: 'טבלת קיילי',
+      lede: 'כל הפעולה של חבורה נכנסת בטבלה ריבועית אחת — שורה ועמודה לכל איבר, ותא לכל תוצאה. כל עובדה מבנית על החבורה — איבר היחידה שלה, ההופכיים שלה, הקומוטטיביות שלה — נראית לעין איפשהו בצורת הטבלה.',
+      xref: 'אותן שתי פעולות חבורה, כפי שהן נראות כפלחים על גלגל ולא כשורות בטבלה ←',
+      tablistLabel: 'פעולת החבורה',
+      nLabel: 'N — מודולוס',
+      randomizeLabel: 'אקראי',
+      randomize: 'דוגמה אקראית חדשה',
+      tableScrollLabel: 'טבלת קיילי, ניתנת לגלילה',
+      'legend.identity': '{0} השורה והעמודה של איבר היחידה',
+      'legend.inverse': '{0} הופכי של עצמו (מזווג עם עצמו)',
+      'legend.selected': '{0} התא שנבחר',
+      'legend.mirror': '{0} התאום בהשתקפות לאורך האלכסון',
+      nNoteNotWhole: 'N חייב להיות מספר שלם — הטבלה נשארת כפי שהייתה.',
+      nNoteTooSmall: 'N אינו יכול לרדת מתחת ל-1 — הועלה ל-1.',
+      nNoteCapped: 'N מוגבל ל-{max} כדי שהטבלה לא תגדל יתר על המידה — הורד ל-{max}.',
+      identityWordAdditive: 'אפס',
+      identityWordMultiplicative: 'אחד',
+      inverseWordAdditive: 'הנגדי של עצמו',
+      inverseWordMultiplicative: 'ההופכי של עצמו',
+      identityNote: 'איבר היחידה הוא {word} — השורה והעמודה שלו מסומנות למטה.',
+      symmetryNoteAdditive: '\u2066a + b\u2069 ו-\u2066b + a\u2069 תמיד נופלים באותה מחלקה, ולכן הטבלה משתקפת לאורך האלכסון — לחצו על תא כלשהו כדי לראות את התאום שלו נדלק בצד השני.',
+      symmetryNoteMultiplicative: '\u2066a · b\u2069 ו-\u2066b · a\u2069 תמיד נופלים באותה מחלקה, ולכן הטבלה משתקפת לאורך האלכסון — לחצו על תא כלשהו כדי לראות את התאום שלו נדלק בצד השני.',
+      summaryAdditive: {
+        one: '\u2066ℤ/{n}ℤ\u2069 · {count} איבר · איבר היחידה \u2066[{id}]\u2069',
+        two: '\u2066ℤ/{n}ℤ\u2069 · {count} איברים · איבר היחידה \u2066[{id}]\u2069',
+        other: '\u2066ℤ/{n}ℤ\u2069 · {count} איברים · איבר היחידה \u2066[{id}]\u2069'
+      },
+      summaryMultiplicative: {
+        one: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 איבר · איבר היחידה \u2066[{id}]\u2069',
+        two: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 איברים · איבר היחידה \u2066[{id}]\u2069',
+        other: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 איברים · איבר היחידה \u2066[{id}]\u2069'
+      },
+      tableCaption: 'טבלת קיילי של {summary} ביחס ל-\u2066{sign}\u2069',
+      noteDiagonal: 'התא הזה נמצא על ציר האלכסון — הוא התאום של עצמו, ויש לו משוואה אחת בלבד לנסח: \u2066{a} {sign} {a} = {raw} ≡ {val} (mod {n})\u2069.',
+      noteCommutative: '\u2066{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})\u2069, וגם \u2066{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})\u2069 — שתיהן נופלות על אותו ערך, ולכן הטבלה סימטרית ביחס לאלכסון שלה: החבורה קומוטטיבית.',
+      selfInverseNote: '{a} הוא {word}, שכן ערכו כאן הוא איבר היחידה.',
+      equationCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).\u2069'
     }
   });
 })();

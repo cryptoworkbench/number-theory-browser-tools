@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   sixteen supported languages.
+   seventeen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -494,6 +494,35 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (πολύ μεγάλο για να δειχθεί ακριβώς η μη ανηγμένη δύναμη)',
       refCount: '{count} ζεύγη (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   μέσω   k ↦ {g}^k mod {m}   (γεννήτορας g = {g})'
+    },
+    he: {
+      title: 'איזומורפיזמים של חבורות',
+      eyebrow: 'שתי אריתמטיקות, חבורה אחת',
+      heading: 'איזומורפיזמים של חבורות',
+      lede: 'המספרים השלמים מודולו n תחת חיבור והאיברים ההפיכים מודולו m תחת כפל יכולים להיות, מבחינה מבנית, בדיוק אותה חבורה — רק עם חשבון שונה. {0}',
+      xref: 'ראו את שתי החבורות האלה נבנות אחת אחת ←',
+      pairLabel: 'זוג איזומורפי',
+      pairSelectAriaLabel: 'בחירת זוג איזומורפי',
+      randomizeLabel: 'אקראי',
+      randomize: 'דוגמה אקראית חדשה',
+      tablistLabel: 'פריסת הגלגל הימני',
+      tabPowers: 'חזקות של g',
+      tabNumeric: 'מספרי',
+      leftWheelAriaLabel: 'איברי החבורה החיבורית \u2066Z mod n\u2069',
+      rightWheelAriaLabel: 'איברי החבורה הכפלית של היחידות מודולו m',
+      refHeading: 'זוגות איזומורפיים',
+      leftWedgeAriaLabel: 'איבר {value} של החבורה החיבורית \u2066Z mod {n}\u2069',
+      rightWedgeAriaLabel: 'איבר {value} של החבורה הכפלית של היחידות מודולו {m}, השווה ל-{g} בחזקת {k} מודולו {m}',
+      leftCaption: 'החבורה החיבורית \u2066{bSpan}\u2069: המספרים השלמים מ-0 עד {max} תחת חיבור מודולו {n}.',
+      rightCaption: 'החבורה הכפלית \u2066{bSpan}\u2069: {n} היחידות מודולו {m} תחת כפל, שנוצרות על ידי {g}.',
+      readoutPrompt: 'לחצו על איבר באחד הגלגלים כדי לראות את ההתאמה.',
+      readoutOne: 'האיבר {aSlot} בגלגל השמאלי מתאים ל-{aValSlot} בגלגל הימני: \u2066{eqSpan}\u2069. לחצו על איבר שני — או שוב על אותו איבר — כדי לראות את הסכום והמכפלה.',
+      readoutBothAgree: '\u2066{spanA} + {spanB} = {spanSum}\u2069 בגלגל השמאלי (\u2066{eqLeft}\u2069) — \u2066{aValSpan} × {bValSpan} = {productSpan}\u2069 בגלגל הימני (\u2066{modSpan}\u2069) — וגם \u2066{product} = {g}^{sum} mod {m} = {sumVal}\u2069: התמונה של הסכום שווה למכפלת התמונות.',
+      readoutBothDisagree: '\u2066{spanA} + {spanB} = {spanSum}\u2069 בגלגל השמאלי (\u2066{eqLeft}\u2069) — \u2066{aValSpan} × {bValSpan} = {productSpan}\u2069 בגלגל הימני (\u2066{modSpan}\u2069) — {warnSpan}',
+      readoutWarn: '\u2066{product}\u2069 אינו שווה ל-\u2066{g}^{sum} mod {m} = {sumVal}\u2069 — זוג כזה לעולם לא אמור לסתור את עצמו.',
+      eqTooLarge: '\u2066{g}^{a} ≡ {val} (mod {m})\u2069 (גדול מכדי להציג במדויק את החזקה לפני הצמצום)',
+      refCount: '{count} זוגות (\u2066m ≤ {max}\u2069)',
+      formula: '\u2066Z/{n}Z ≅ (Z/{m}Z)*\u2069   באמצעות   \u2066k ↦ {g}^k mod {m}\u2069   (יוצר \u2066g = {g}\u2069)'
     }
   });
 })();
