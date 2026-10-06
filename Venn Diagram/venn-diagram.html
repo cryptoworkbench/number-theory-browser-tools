@@ -153,6 +153,11 @@
     gap:8px;
     margin:0;
   }
+  /* Shown while the shared palette is empty: points at the Sieve, which
+     feeds the palette its primes. */
+  .palette-empty-note{ margin:0; font-size:13px; color:var(--text-dim); }
+  .palette-empty-note a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .palette-empty-note a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
   .prime-chip{
     display:inline-flex;
     align-items:center;
@@ -597,6 +602,7 @@
       <button id="palette-random-btn" type="button" data-i18n="venn.paletteRandomize">Randomize</button>
     </div>
     <div id="prime-picker" class="prime-picker"></div>
+    <p id="palette-empty-note" class="palette-empty-note" data-i18n="common.paletteEmptySieve" hidden>Use the tool '<a id="palette-sieve-link" href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html"></a>' to add primes to this palette.</p>
   </div>
 
   <div class="diagram-frame" id="frame-two">
@@ -741,6 +747,8 @@
   var pickerHeading = document.getElementById('picker-heading');
   var paletteBin = document.getElementById('palette-bin');
   var paletteEmptyBtn = document.getElementById('palette-empty-btn');
+  var paletteEmptyNote = document.getElementById('palette-empty-note');
+  var paletteSieveLink = document.getElementById('palette-sieve-link');
   var addInput = document.getElementById('palette-add-input');
   var addBtn = document.getElementById('palette-add-btn');
   var paletteRandomBtn = document.getElementById('palette-random-btn');
@@ -2108,6 +2116,7 @@
     pickerHeading.setAttribute('data-i18n', key);
     pickerHeading.textContent = translate(key);
     paletteEmptyBtn.disabled = palette.length === 0;
+    paletteEmptyNote.hidden = palette.length !== 0;
   }
 
   // Widens every palette column to the widest chip, so the rows line up.
@@ -2885,8 +2894,16 @@
   // matching freshly-rebuilt badge is found by its data-region attribute
   // and the exact same mouseenter handler that would show it on a real
   // hover is replayed, re-drawing the preview in the new language.
+  // The Sieve link takes the nav's own wording; it is not data-i18n-bound,
+  // so the header's nav-link count stays exact.
+  function labelSieveLink(){
+    paletteSieveLink.textContent = translate('site.nav.sieve');
+  }
+  labelSieveLink();
+
   function rerenderOnLangChange(){
     retranslateCaptionLabels();
+    labelSieveLink();
     renderMessage();
     var reopen = state.openPreview;
     render();

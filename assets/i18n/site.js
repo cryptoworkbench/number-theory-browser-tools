@@ -391,7 +391,9 @@
   // Curve Diffie-Hellman, Euclidean Algorithm, Euler's Totient, Fermat's
   // Method, Shor's Algorithm, Sieve of Eratosthenes, Square and Multiply),
   // plus the Additive/Multiplicative Groups mode-tab labels shared by
-  // Cayley Table and the Equivalence Wheel. A per-tool plan references
+  // Cayley Table and the Equivalence Wheel, and the empty-palette pointer
+  // to the Sieve ({0} is the nav link) shared by Factor Tree and the Venn
+  // Diagram. A per-tool plan references
   // these as common.* and never duplicates them in its own namespace.
   NT.i18n.register('common', {
     nl: {
@@ -412,7 +414,8 @@
       'speed.9': 'bliksemsnel',
       'speed.10': 'bijna-direct',
       additiveGroups: 'Additieve groepen',
-      multiplicativeGroups: 'Multiplicatieve groepen'
+      multiplicativeGroups: 'Multiplicatieve groepen',
+      paletteEmptySieve: 'Gebruik de tool ‘{0}’ om priemgetallen aan dit palet toe te voegen.'
     },
     en: {
       play: 'Play',
@@ -432,7 +435,8 @@
       'speed.9': 'blazing',
       'speed.10': 'instant-ish',
       additiveGroups: 'Additive Groups',
-      multiplicativeGroups: 'Multiplicative Groups'
+      multiplicativeGroups: 'Multiplicative Groups',
+      paletteEmptySieve: "Use the tool '{0}' to add primes to this palette."
     },
     de: {
       play: 'Abspielen',
@@ -452,7 +456,8 @@
       'speed.9': 'rasend',
       'speed.10': 'fast augenblicklich',
       additiveGroups: 'Additive Gruppen',
-      multiplicativeGroups: 'Multiplikative Gruppen'
+      multiplicativeGroups: 'Multiplikative Gruppen',
+      paletteEmptySieve: 'Nutze das Werkzeug „{0}“, um dieser Palette Primzahlen hinzuzufügen.'
     },
     fr: {
       play: 'Lecture',
@@ -472,7 +477,8 @@
       'speed.9': 'fulgurant',
       'speed.10': 'quasi instantané',
       additiveGroups: 'Groupes additifs',
-      multiplicativeGroups: 'Groupes multiplicatifs'
+      multiplicativeGroups: 'Groupes multiplicatifs',
+      paletteEmptySieve: 'Utilisez l’outil « {0} » pour ajouter des nombres premiers à cette palette.'
     },
     es: {
       play: 'Reproducir',
@@ -492,7 +498,8 @@
       'speed.9': 'vertiginoso',
       'speed.10': 'casi instantáneo',
       additiveGroups: 'Grupos aditivos',
-      multiplicativeGroups: 'Grupos multiplicativos'
+      multiplicativeGroups: 'Grupos multiplicativos',
+      paletteEmptySieve: 'Usa la herramienta «{0}» para añadir números primos a esta paleta.'
     },
     it: {
       play: 'Riproduci',
@@ -512,7 +519,8 @@
       'speed.9': 'fulmineo',
       'speed.10': 'quasi istantaneo',
       additiveGroups: 'Gruppi additivi',
-      multiplicativeGroups: 'Gruppi moltiplicativi'
+      multiplicativeGroups: 'Gruppi moltiplicativi',
+      paletteEmptySieve: 'Usa lo strumento «{0}» per aggiungere numeri primi a questa tavolozza.'
     },
     pl: {
       play: 'Odtwórz',
@@ -532,7 +540,8 @@
       'speed.9': 'błyskawiczna',
       'speed.10': 'niemal natychmiastowa',
       additiveGroups: 'Grupy addytywne',
-      multiplicativeGroups: 'Grupy multiplikatywne'
+      multiplicativeGroups: 'Grupy multiplikatywne',
+      paletteEmptySieve: 'Użyj narzędzia „{0}”, aby dodać liczby pierwsze do tej palety.'
     },
     'pt-BR': {
       play: 'Reproduzir',
@@ -552,7 +561,8 @@
       'speed.9': 'vertiginosa',
       'speed.10': 'quase instantânea',
       additiveGroups: 'Grupos aditivos',
-      multiplicativeGroups: 'Grupos multiplicativos'
+      multiplicativeGroups: 'Grupos multiplicativos',
+      paletteEmptySieve: 'Use a ferramenta “{0}” para adicionar números primos a esta paleta.'
     },
     'pt-PT': {
       play: 'Reproduzir',
@@ -572,7 +582,8 @@
       'speed.9': 'vertiginosa',
       'speed.10': 'quase instantânea',
       additiveGroups: 'Grupos aditivos',
-      multiplicativeGroups: 'Grupos multiplicativos'
+      multiplicativeGroups: 'Grupos multiplicativos',
+      paletteEmptySieve: 'Usa a ferramenta «{0}» para adicionar números primos a esta paleta.'
     },
     sv: {
       play: 'Spela upp',
@@ -592,7 +603,8 @@
       'speed.9': 'blixtsnabb',
       'speed.10': 'nästan omedelbar',
       additiveGroups: 'Additiva grupper',
-      multiplicativeGroups: 'Multiplikativa grupper'
+      multiplicativeGroups: 'Multiplikativa grupper',
+      paletteEmptySieve: 'Använd verktyget ”{0}” för att lägga till primtal i den här paletten.'
     },
     nb: {
       play: 'Spill av',
@@ -612,7 +624,8 @@
       'speed.9': 'lynrask',
       'speed.10': 'nesten øyeblikkelig',
       additiveGroups: 'Additive grupper',
-      multiplicativeGroups: 'Multiplikative grupper'
+      multiplicativeGroups: 'Multiplikative grupper',
+      paletteEmptySieve: 'Bruk verktøyet «{0}» for å legge til primtall i denne paletten.'
     },
     ro: {
       play: 'Redă',
@@ -632,7 +645,8 @@
       'speed.9': 'fulgerătoare',
       'speed.10': 'aproape instantanee',
       additiveGroups: 'Grupuri aditive',
-      multiplicativeGroups: 'Grupuri multiplicative'
+      multiplicativeGroups: 'Grupuri multiplicative',
+      paletteEmptySieve: 'Folosește instrumentul „{0}” ca să adaugi numere prime în această paletă.'
     },
     hu: {
       play: 'Lejátszás',
@@ -652,7 +666,8 @@
       'speed.9': 'villámgyors',
       'speed.10': 'szinte azonnali',
       additiveGroups: 'Additív csoportok',
-      multiplicativeGroups: 'Multiplikatív csoportok'
+      multiplicativeGroups: 'Multiplikatív csoportok',
+      paletteEmptySieve: 'Az „{0}” eszközzel adhatsz prímszámokat ehhez a palettához.'
     },
     lv: {
       play: 'Atskaņot',
@@ -672,7 +687,8 @@
       'speed.9': 'zibenīgs',
       'speed.10': 'gandrīz acumirklīgs',
       additiveGroups: 'Aditīvās grupas',
-      multiplicativeGroups: 'Multiplikatīvās grupas'
+      multiplicativeGroups: 'Multiplikatīvās grupas',
+      paletteEmptySieve: 'Izmanto rīku “{0}”, lai pievienotu šai paletei pirmskaitļus.'
     },
     ru: {
       play: 'Пуск',
@@ -692,7 +708,8 @@
       'speed.9': 'молниеносная',
       'speed.10': 'почти мгновенная',
       additiveGroups: 'Аддитивные группы',
-      multiplicativeGroups: 'Мультипликативные группы'
+      multiplicativeGroups: 'Мультипликативные группы',
+      paletteEmptySieve: 'Используй инструмент «{0}», чтобы добавить простые числа в эту палитру.'
     },
     el: {
       play: 'Έναρξη',
@@ -712,7 +729,8 @@
       'speed.9': 'αστραπιαία',
       'speed.10': 'σχεδόν ακαριαία',
       additiveGroups: 'Προσθετικές ομάδες',
-      multiplicativeGroups: 'Πολλαπλασιαστικές ομάδες'
+      multiplicativeGroups: 'Πολλαπλασιαστικές ομάδες',
+      paletteEmptySieve: 'Χρησιμοποίησε το εργαλείο «{0}» για να προσθέσεις πρώτους αριθμούς σε αυτή την παλέτα.'
     }
   });
 })();

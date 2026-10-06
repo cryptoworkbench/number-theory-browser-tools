@@ -130,6 +130,12 @@
     gap:8px;
     margin-bottom:22px;
   }
+  .palette:empty{ margin-bottom:0; }
+  /* Shown while the shared palette is empty: points at the Sieve, which
+     feeds the palette its primes. */
+  .palette-empty-note{ margin:0 0 22px; font-size:.9rem; color:var(--text-dim); }
+  .palette-empty-note a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .palette-empty-note a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
   .palette-item, .drag-ghost{
     display:inline-flex;
     align-items:center;
@@ -580,6 +586,7 @@
     </div>
   </div>
   <div id="palette" class="palette" role="group" aria-labelledby="paletteHeading"></div>
+  <p id="paletteEmptyNote" class="palette-empty-note" data-i18n="common.paletteEmptySieve" hidden>Use the tool '<a id="paletteSieveLink" href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html"></a>' to add primes to this palette.</p>
 
   <div class="section-head">
     <h2 id="workHeading" class="section-title" data-i18n="factorTree.workHeading">Composition/factorization area</h2>
@@ -616,6 +623,8 @@
   const paletteHeading = document.getElementById('paletteHeading');
   const paletteBin = document.getElementById('paletteBin');
   const paletteEmptyBtn = document.getElementById('paletteEmptyBtn');
+  const paletteEmptyNote = document.getElementById('paletteEmptyNote');
+  const paletteSieveLink = document.getElementById('paletteSieveLink');
   const workArea = document.getElementById('workArea');
   const workHint = document.getElementById('workHint');
   const clearBtn = document.getElementById('clearBtn');
@@ -774,6 +783,7 @@
   function syncPaletteHeading(){
     const key = paletteEl.querySelector('.palette-item[data-composite]') ? 'factorTree.paletteHeadingNumbers' : 'factorTree.paletteHeading';
     paletteEmptyBtn.disabled = !paletteEl.querySelector('.palette-item');
+    paletteEmptyNote.hidden = !paletteEmptyBtn.disabled;
     if(paletteHeading.getAttribute('data-i18n') === key) return;
     paletteHeading.setAttribute('data-i18n', key);
     paletteHeading.textContent = translate(key);
@@ -795,6 +805,13 @@
       target.focus();
     }
   }
+
+  // The Sieve link takes the nav's own wording; it is not data-i18n-bound,
+  // so the header's nav-link count stays exact.
+  function labelSieveLink(){
+    paletteSieveLink.textContent = translate('site.nav.sieve');
+  }
+  labelSieveLink();
 
   function relabelPalette(){
     paletteEl.querySelectorAll('.palette-item').forEach(labelPaletteItem);
@@ -2084,6 +2101,7 @@
     renderMessage();
     renderBalancedNote();
     relabelPalette();
+    labelSieveLink();
     views.forEach(v=>{ syncControls(v); relabelRemove(v); });
   });
 
