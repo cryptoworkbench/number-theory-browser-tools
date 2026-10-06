@@ -262,7 +262,6 @@
   .tree-card{ cursor:grab; }
   .tree-card .tree-svg, .tree-card .tree-equation{ cursor:auto; }
   .tree-card.is-drag-source{ opacity:.45; }
-  .tree-card.is-overlap{ cursor:auto; }
   .tree-split{
     position:absolute;
     top:4px;
@@ -287,6 +286,53 @@
   .tree-split:focus-visible{ box-shadow:var(--ctl-focus); }
   .tree-split:disabled{ opacity:.5; cursor:default; }
   .tree-split svg path{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  /* gcd pair: two overlapping panels glued into one unit. As on Equivalence
+     Wheel's slots, the left panel is yellow (--role-active), the right panel
+     blue (--role-input) and the part they share green (--role-result). The
+     aliases mix each role into the opaque --surface so the stacked panels
+     stay opaque, and the overlap is painted as its own layer (.pair-lens)
+     instead of being blended, so it is green in both themes. The panels are
+     not stacking contexts: both trees paint above both backgrounds and the
+     lens. */
+  .tree-pair{
+    --pair-a-bg: color-mix(in srgb, var(--role-active) 28%, var(--surface));
+    --pair-b-bg: color-mix(in srgb, var(--role-input) 28%, var(--surface));
+    --pair-ab-bg: color-mix(in srgb, var(--role-result) 28%, var(--surface));
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    max-width:100%;
+    animation:pairIn .25s ease-out;
+  }
+  @keyframes pairIn{ from{ opacity:0; } }
+  .tree-pair-row{
+    position:relative;
+    isolation:isolate;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .tree-pair .tree-card{
+    flex:none;
+    max-width:none;
+    cursor:auto;
+    animation:none;
+    transition:background-color .25s ease, border-color .25s ease;
+  }
+  .tree-pair.is-tinted .pair-a{ background-color:var(--pair-a-bg); border-color:var(--role-active); }
+  .tree-pair.is-tinted .pair-b{ background-color:var(--pair-b-bg); border-color:var(--role-input); }
+  .pair-lens{
+    position:absolute;
+    z-index:1;
+    pointer-events:none;
+    background:var(--pair-ab-bg);
+    border-radius:var(--radius-card);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .tree-pair.is-tinted .pair-lens{ opacity:1; }
+  .tree-pair .tree-svg{ position:relative; z-index:2; }
+  .tree-pair .tree-split, .tree-pair .tree-remove{ z-index:3; }
   .drop-split{
     position:absolute;
     top:0;
@@ -509,6 +555,8 @@
     .mirror-axis{ animation:none; }
     .fold-badge, .fold-ring{ animation:none; }
     .palette-item.is-new, .tree-card{ animation:none; }
+    .tree-pair{ animation:none; }
+    .tree-pair .tree-card, .pair-lens{ transition:none; }
     .work-area{ transition:none; }
     .drop-half{ transition:none; }
     .bin-lid{ transition:none; }
@@ -760,7 +808,7 @@
   }
 
   function equationLines(view){
-    if(view.overlap){
+    if(view.halves){
       const a = view.a, b = view.b, g = view.g;
       const lines = [];
       if(a !== g) lines.push(a + ' = ' + (a / g) + ' × ' + g);
@@ -1078,7 +1126,7 @@
   }
 
   // The card, its svg, equation and remove button, plus a drag grip unless
-  // the card cannot be dragged (a gcd overlap).
+  // the card cannot be dragged (a half of a gcd pair).
   function cardShell(withGrip){
     const card = document.createElement('div');
     card.className = 'tree-card';
@@ -1114,7 +1162,7 @@
       nodeViews:new Map(), edgeViews:[], radius:m.radius, tweenToken:0, leafCount:1,
       axisHalf:m.axisHalf, badgeR:m.badgeR, spacing:m.spacing, sidePad:m.sidePad, topPad:m.topPad,
       bottomPad:m.bottomPad, levelHeight:m.levelHeight, w:0, h:0, live:true, eqShown:false,
-      overlap:null, locked:null
+      gcdPair:null, locked:null
     }, fields);
     view.pxX = node=> pxX(view, node);
     view.pxY = node=> pxY(view, node);
@@ -1214,95 +1262,141 @@
   }
 
   // ---------- Overlap two trees on their gcd ----------
-  // Dropping a card on the right half of another builds one card with both
-  // numbers as roots: a = (a/g) × g on the left, b = g × (b/g) on the right,
-  // g = gcd(a, b). Each tree first grows out side by side in that shape,
-  // its g branch facing the other tree, then b's tree slides left until its
-  // copy of the g branch lies exactly on a's, and the copy is dropped: one
-  // shared, highlighted g branch heads the sub-tree both numbers have in
-  // common. A number equal to g has no split of its own — it is the shared
-  // circle. Coprime numbers share a single 1. The overlapped shape comes
-  // from NT.layout.buildOverlapTree, the same one Venn Diagram previews.
-  function cloneTree(node, twinOf){
+  // Dropping a card on the right half of another turns the two cards into a
+  // gcd pair: two panels, each holding its own tree in the shape that faces
+  // the other one, a = (a/g) × g on the left with its g branch on the right
+  // and b = g × (b/g) on the right with its g branch on the left,
+  // g = gcd(a, b). Nothing merges. Each tree grows out, the left panel turns
+  // yellow and the right one blue, then the right panel slides left until
+  // its g branch lies exactly on the left one's; the part where the panels
+  // overlap is green. From then on the panels are glued: the pair is one
+  // slot of the area, and whenever either tree changes shape the right panel
+  // follows (alignPair), so the two g branches stay on top of each other. A
+  // number equal to g has no split of its own — it is the shared circle.
+  // Coprime numbers share a single 1. The shape comes from
+  // NT.layout.buildOverlapTree, the same one Venn Diagram previews.
+  function cloneTree(node, twin){
     const copy = { value:node.value, kind:node.kind, depth:node.depth, shared:node.shared,
-      children:node.children.map(c=> cloneTree(c, twinOf)) };
-    twinOf.set(copy, node);
+      children:node.children.map(c=> cloneTree(c, twin)) };
+    twin.set(copy, node);
+    twin.set(node, copy);
     return copy;
   }
 
-  // b's side starts on its own copy (twin) of the shared branch, so the two
-  // trees can stand apart before they merge.
-  function overlapGraph(a, b, balanced){
-    const t = buildOverlapTree(a, b, { balanced: balanced });
-    const twinOf = new Map();
-    const twin = cloneTree(t.G, twinOf);
-    const B = { root:t.b.root, rest:t.b.rest, top:t.b.root || twin };
-    if(B.root) B.root.children = B.root.children.map(c=> c === t.G ? twin : c);
-    return { g:t.g, G:t.G, twin:twin, twinOf:twinOf, A:t.a, B:B, done:false };
+  function prefersReducedMotion(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
-  // animate: true grows both trees out and merges them, false shows them
-  // merged at once, 'split' starts merged and slides them apart again.
-  // balanced defaults to the page's current mode; a restored card passes the
-  // flag it was originally built with, since an overlap's shape depends on it.
-  function buildOverlapCard(a, b, animate, balanced){
-    if(balanced === undefined) balanced = mode === 'balanced';
-    const o = overlapGraph(a, b, balanced);
+  function pairSide(top){
+    const counter = { value:0 };
+    assignTreeX(top, counter);
     const nodes = [];
     const edges = [];
-    const maxDepthBox = { value:0 };
-    flattenTree(o.A.top, null, nodes, edges, maxDepthBox);
-    flattenTree(o.B.top, null, nodes, edges, maxDepthBox);
-    const maxDepth = maxDepthBox.value;
-    const counter = { value:0 };
-    assignTreeX({ children:[o.A.top, o.B.top] }, counter);
+    const depthBox = { value:0 };
+    flattenTree(top, null, nodes, edges, depthBox);
+    return { top:top, leaves:Math.max(1, counter.value), nodes:nodes, edges:edges, maxDepth:depthBox.value };
+  }
 
-    const m = cardMetrics(Math.max(a, b), Math.max(1, counter.value), maxDepth);
-    const shell = cardShell(false);
-    shell.card.classList.add('is-overlap');
-    const view = newView(shell, m, {
-      a:a, b:b, g:o.g, overlap:o, merged:false, fresh:new Set(), balanced:balanced,
-      locked:new Set([o.A.root, o.B.root].filter(Boolean))
-    });
-    // Each prime stays folded on its P = P × 1 split: the 1 × P layer adds
-    // nothing to the gcd picture.
-    drawNodes(view, nodes, edges, maxDepth, m, node=> node.children.some(c=> c.kind === 'prime-leaf'));
+  // animate true grows both trees out, tints the panels and slides them
+  // together; false shows the joined pair at once. balanced defaults to the
+  // page's current mode; a restored pair passes the flag it was originally
+  // built with, since its shape depends on it. The returned pair is one
+  // entry of views: it has no tree of its own, only halves [left, right].
+  function buildGcdPair(a, b, animate, balanced){
+    if(balanced === undefined) balanced = mode === 'balanced';
+    const t = buildOverlapTree(a, b, { balanced:balanced });
+    // b's panel gets its own copy of the g branch; twin maps each g circle
+    // to its copy and back.
+    const twin = new Map();
+    const copy = cloneTree(t.G, twin);
+    if(t.b.root) t.b.root.children = t.b.root.children.map(c=> c === t.G ? copy : c);
+    const sides = [pairSide(t.a.top), pairSide(t.b.root || copy)];
+    const shared = [t.G, copy];
+    const rests = [t.a.rest, t.b.rest];
+    const maxDepth = Math.max(sides[0].maxDepth, sides[1].maxDepth);
+    const m = cardMetrics(Math.max(a, b), sides[0].leaves + sides[1].leaves + 1, maxDepth);
 
-    if(animate === 'split'){
-      view.merged = true;
-      layoutTree(view);
-      applyTargets(view, finalTargets(view));
-    } else if(!animate){
-      view.merged = true;
-      layoutTree(view);
-      applyTargets(view, finalTargets(view));
-      mergeOverlap(view);
-    } else {
-      layoutTree(view);
-      const t = finalTargets(view);
-      [o.A.top, o.B.top].forEach(top=>{
-        const at = t.get(top);
-        descendantsOf(top, []).forEach(d=>{ t.set(d, { px:at.px, py:at.py, s:0, o:0 }); });
+    const P = {
+      a:a, b:b, g:t.g, balanced:balanced, twin:twin, halves:[], join:0, mx:0, myL:0, myR:0,
+      state:'joining', live:true, tweenToken:0, eqShown:false
+    };
+    P.halves = sides.map((side, i)=>{
+      const shell = cardShell(false);
+      shell.card.classList.add(i === 0 ? 'pair-a' : 'pair-b');
+      shell.card.removeChild(shell.eqEl);
+      const view = newView(shell, m, {
+        n:side.top.value, root:side.top, topFactors:primeFactors(side.top.value), leafCount:side.leaves,
+        gcdPair:P, fresh:new Set(), rest:rests[i], shared:shared[i],
+        locked:new Set(side.top === shared[i] ? [] : [side.top])
       });
-      applyTargets(view, t);
-      animateTree(view, [
-        { ms:FOLD_MS, targets:finalTargets },
-        { ms:OVERLAP_HOLD_MS, targets:currentTargets },
-        { ms:OVERLAP_MS, targets:v=>{
-          v.merged = true;
-          layoutTree(v);
-          return finalTargets(v);
-        } }
-      ], ()=> mergeOverlap(view));
-    }
-    placeTree(view);
+      // Each prime stays folded on its P = P × 1 split: the 1 × P layer adds
+      // nothing to the gcd picture.
+      drawNodes(view, side.nodes, side.edges, side.maxDepth, m, node=> node.children.some(c=> c.kind === 'prime-leaf'));
+      layoutTree(view);
+      applyTargets(view, finalTargets(view));
+      armMirrors(view);
+      armFolds(view);
+      syncControls(view);
+      placeTree(view);
+      return view;
+    });
+    const L = P.halves[0], R = P.halves[1];
 
-    view.splitBtn = splitButton();
-    shell.card.insertBefore(view.splitBtn, shell.card.firstChild);
-    view.splitBtn.addEventListener('click', ()=>{ trackWork(()=> splitOverlap(view)); });
-    view.removeBtn.addEventListener('click', ()=>{ trackWork(()=> removeTree(view)); });
-    relabelRemove(view);
-    return view;
+    P.card = document.createElement('div');
+    P.card.className = 'tree-pair';
+    P.row = document.createElement('div');
+    P.row.className = 'tree-pair-row';
+    P.lens = document.createElement('div');
+    P.lens.className = 'pair-lens';
+    P.lens.setAttribute('aria-hidden', 'true');
+    P.eqEl = document.createElement('div');
+    P.eqEl.className = 'equation tree-equation pair-equation';
+    // The Separate pill sits on the pair's outer left corner, the × on its
+    // outer right corner.
+    L.card.removeChild(L.removeBtn);
+    P.removeBtn = R.removeBtn;
+    P.splitBtn = splitButton();
+    L.card.insertBefore(P.splitBtn, L.card.firstChild);
+    P.row.appendChild(L.card);
+    P.row.appendChild(R.card);
+    P.row.appendChild(P.lens);
+    P.card.appendChild(P.row);
+    P.card.appendChild(P.eqEl);
+    P.splitBtn.addEventListener('click', ()=>{ trackWork(()=> separatePair(P)); });
+    P.removeBtn.addEventListener('click', ()=>{ trackWork(()=> removeTree(P)); });
+    relabelRemove(P);
+
+    if(animate && !prefersReducedMotion()){
+      P.halves.forEach(h=>{
+        const t0 = finalTargets(h);
+        const at = t0.get(h.root);
+        descendantsOf(h.root, []).forEach(d=>{ t0.set(d, { px:at.px, py:at.py, s:0, o:0 }); });
+        applyTargets(h, t0);
+        animateTree(h, [{ ms:FOLD_MS, targets:finalTargets }]);
+      });
+      // The colours come first; only then do the panels slide together.
+      const token = ++P.tweenToken;
+      const current = ()=> P.live && token === P.tweenToken;
+      setTimeout(()=>{
+        if(!current()) return;
+        P.card.classList.add('is-tinted');
+        setTimeout(()=>{
+          if(!current()) return;
+          tweenJoin(P, 1, OVERLAP_MS, ()=> finishJoin(P));
+        }, OVERLAP_HOLD_MS);
+      }, FOLD_MS);
+    } else {
+      P.card.classList.add('is-tinted');
+      P.join = 1;
+      finishJoin(P);
+    }
+    return P;
+  }
+
+  function finishJoin(P){
+    if(!P.live) return;
+    P.state = 'joined';
+    updatePairEquation(P);
   }
 
   function splitButton(){
@@ -1316,13 +1410,91 @@
     return btn;
   }
 
-  // ---------- Separate a gcd overlap again ----------
-  // The reverse of the overlap: a fresh copy of the card starts merged, b's
-  // own copy of the g branch lifts off the shared one and b's tree slides
-  // back to the right; then the card gives way, in place, to two ordinary
-  // panels, each fully open, holding exactly the tree it showed in the
-  // overlap (a = (a/g) × g, b = g × (b/g)), with the g branch no longer
-  // highlighted; coprime numbers drop the shared 1.
+  // ---------- Keep the pair glued ----------
+  // alignPair places the right panel so its g circle lies exactly on the
+  // left panel's, scaled by P.join (0 = the panels stand apart, 1 = joined),
+  // and sizes the green lens to the part where the two panels overlap. It
+  // runs after every frame of either tree's tween, which is what glues the
+  // panels together. The margins it sets are the only offsets the panels
+  // ever have; a measured circle position minus the margin applied now is
+  // its natural position.
+  function alignPair(P){
+    if(!P.live || P.halves.length < 2 || !P.card.isConnected) return;
+    const L = P.halves[0], R = P.halves[1];
+    const rowRect = P.row.getBoundingClientRect();
+    const centreOf = h=>{
+      const nv = h.nodeViews.get(h.shared);
+      const r = h.svg.getBoundingClientRect();
+      return { x:r.left - rowRect.left + nv.px, y:r.top - rowRect.top + nv.py };
+    };
+    const cl = centreOf(L), cr = centreOf(R);
+    const dx = cl.x - (cr.x - P.mx);
+    const dy = (cl.y - P.myL) - (cr.y - P.myR);
+    P.mx = P.join * dx;
+    P.myL = dy < 0 ? P.join * -dy : 0;
+    P.myR = dy > 0 ? P.join * dy : 0;
+    R.card.style.marginLeft = P.mx + 'px';
+    L.card.style.marginTop = P.myL + 'px';
+    R.card.style.marginTop = P.myR + 'px';
+
+    const rr = P.row.getBoundingClientRect();
+    const lr = L.card.getBoundingClientRect();
+    const sr = R.card.getBoundingClientRect();
+    const x0 = Math.max(lr.left, sr.left) - rr.left + 1;
+    const x1 = Math.min(lr.right, sr.right) - rr.left - 1;
+    const y0 = Math.max(lr.top, sr.top) - rr.top + 1;
+    const y1 = Math.min(lr.bottom, sr.bottom) - rr.top - 1;
+    if(x1 <= x0 || y1 <= y0){
+      P.lens.style.display = 'none';
+      return;
+    }
+    P.lens.style.display = '';
+    P.lens.style.left = x0 + 'px';
+    P.lens.style.top = y0 + 'px';
+    P.lens.style.width = (x1 - x0) + 'px';
+    P.lens.style.height = (y1 - y0) + 'px';
+  }
+
+  // Eases P.join from where it is to the given value (frame by frame
+  // through alignPair); a newer tween or a Separate cancels the old one.
+  function tweenJoin(P, to, ms, onDone){
+    const token = ++P.tweenToken;
+    const alive = ()=> P.live && token === P.tweenToken;
+    const from = P.join;
+    let done = false;
+    let start = null;
+    function finish(){
+      if(done) return;
+      done = true;
+      P.join = to;
+      alignPair(P);
+      if(onDone) onDone();
+    }
+    if(prefersReducedMotion() || from === to){
+      finish();
+      return;
+    }
+    function frame(now){
+      if(done || !alive()) return;
+      if(start === null) start = now;
+      const p = Math.min(1, Math.max(0, (now - start) / ms));
+      if(p >= 1){ finish(); return; }
+      P.join = from + (to - from) * easeInOutCubic(p);
+      alignPair(P);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    setTimeout(()=>{
+      if(!alive()) return;
+      finish();
+    }, ms + 60);
+  }
+
+  // ---------- Separate a gcd pair again ----------
+  // The colours go first, then the panels slide apart, and the pair gives
+  // way, in place, to two ordinary panels, each fully open, holding exactly
+  // the tree it showed (a = (a/g) × g, b = g × (b/g)), with the g branch no
+  // longer highlighted; coprime numbers drop the shared 1.
   function detachTree(node, depth){
     const kind = node.kind === 'one' || node.kind === 'prime-leaf' ? node.kind
       : depth === 0 ? 'root' : 'internal';
@@ -1338,77 +1510,45 @@
   }
 
   // Coprime numbers only share the 1: each tree is just its own rest.
-  function splitHalves(o){
-    return [o.g === 1 && o.A.rest ? o.A.rest : o.A.top, o.g === 1 && o.B.rest ? o.B.rest : o.B.top];
+  function splitTops(P){
+    return P.halves.map(h=> P.g === 1 && h.rest ? h.rest : h.root);
   }
 
-  function splitOverlap(view){
-    const idx = views.indexOf(view);
-    if(idx < 0 || !view.live) return;
-    const apart = buildOverlapCard(view.a, view.b, 'split', view.balanced);
-    apart.splitting = true;
-    apart.splitBtn.disabled = true;
-    apart.removeBtn.disabled = true;
-    killView(view);
-    workArea.insertBefore(apart.card, workArea.children[idx + 1] || null);
-    views[idx] = apart;
-    popEquation(apart.eqEl, equationLines(apart));
-    animateTree(apart, [
-      { ms:OVERLAP_HOLD_MS, targets:currentTargets },
-      { ms:OVERLAP_MS, targets:v=>{
-        v.merged = false;
-        layoutTree(v);
-        return finalTargets(v);
-      } }
-    ], ()=>{
-      const at = views.indexOf(apart);
+  function separatePair(P){
+    if(views.indexOf(P) < 0 || !P.live || P.state === 'separating') return;
+    P.state = 'separating';
+    const token = ++P.tweenToken;
+    P.splitBtn.disabled = true;
+    P.removeBtn.disabled = true;
+    P.card.classList.remove('is-tinted');
+    function finish(){
+      const at = views.indexOf(P);
       if(at < 0) return;
-      const halves = splitHalves(apart.overlap);
-      const left = standaloneView(halves[0]);
-      const right = standaloneView(halves[1]);
-      killView(apart);
-      workArea.insertBefore(left.card, workArea.children[at + 1] || null);
-      workArea.insertBefore(right.card, left.card.nextSibling);
+      const tops = splitTops(P);
+      const left = standaloneView(tops[0]);
+      const right = standaloneView(tops[1]);
+      workArea.insertBefore(left.card, P.card);
+      workArea.insertBefore(right.card, P.card);
+      killView(P);
       views.splice(at, 1, left, right);
       syncWorkState();
       setMessage('factorTree.msgSplit', { a:left.n, b:right.n }, true);
       right.removeBtn.focus();
-    });
-  }
-
-  // The twin g branch lies exactly on the real one: drop it, hang b's root
-  // on the real g, and arm folds and mirrors everywhere below the two roots.
-  function mergeOverlap(view){
-    const o = view.overlap;
-    if(!view.live || o.done) return;
-    o.done = true;
-    o.twinOf.forEach((real, twin)=>{
-      const nv = view.nodeViews.get(twin);
-      nv.circle.remove();
-      nv.text.remove();
-      view.nodeViews.delete(twin);
-    });
-    view.edgeViews = view.edgeViews.filter(ev=>{
-      if(!o.twinOf.has(ev.edge.to)) return true;
-      if(ev.edge.to === o.twin){
-        ev.edge.to = o.G;
-        return true;
-      }
-      ev.line.remove();
-      return false;
-    });
-    if(o.B.root) o.B.root.children = o.B.root.children.map(c=> c === o.twin ? o.G : c);
-    const gv = view.nodeViews.get(o.G);
-    gv.parent = o.A.root || o.B.root;
-    armMirrors(view);
-    armFolds(view);
-    syncControls(view);
-    placeTree(view);
-    updateEquation(view);
+    }
+    if(prefersReducedMotion()){
+      P.join = 0;
+      alignPair(P);
+      finish();
+      return;
+    }
+    setTimeout(()=>{
+      if(!P.live || token !== P.tweenToken) return;
+      tweenJoin(P, 0, OVERLAP_MS, finish);
+    }, OVERLAP_HOLD_MS);
   }
 
   function relabelRemove(view){
-    const label = view.overlap
+    const label = view.halves
       ? translate('factorTree.removeOverlapLabel', { a: view.a, b: view.b })
       : translate('factorTree.removeLabel', { n: view.n });
     view.removeBtn.setAttribute('aria-label', label);
@@ -1433,6 +1573,7 @@
   function killView(view){
     view.live = false;
     view.tweenToken++;
+    if(view.halves) view.halves.forEach(h=>{ h.live = false; h.tweenToken++; });
     if(view.card.parentNode) view.card.parentNode.removeChild(view.card);
   }
 
@@ -1470,22 +1611,23 @@
     return view;
   }
 
-  function placeOverlap(a, b, animate){
-    const view = buildOverlapCard(a, b, !!animate);
+  function placePair(a, b, animate){
+    const view = buildGcdPair(a, b, !!animate);
     workArea.appendChild(view.card);
     views.push(view);
     syncWorkState();
+    alignPair(view);
     return view;
   }
 
   // ---------- Undo / Redo of the composition/factorization area ----------
   // A snapshot is a JSON string encoding every card: for a regular card its
   // number and tree (each node's value, kind, depth, fold, mirror and
-  // first-unfold flags, children in their current order), for a gcd overlap
-  // its two numbers, balanced flag and, once merged, every circle's fold and
-  // mirror state. A card mid-split is encoded as the two standalone trees
-  // the split ends in. Strings are parsed fresh on every restore, so a stored
-  // snapshot never aliases a live tree.
+  // first-unfold flags, children in their current order), for a gcd pair its
+  // two numbers, balanced flag and every circle's fold and mirror state in
+  // both panels. A pair mid-separation is encoded as the two standalone trees
+  // the separation ends in. Strings are parsed fresh on every restore, so a
+  // stored snapshot never aliases a live tree.
   function encodeNode(node, flagsOf){
     const flags = flagsOf(node);
     return { v:node.value, k:node.kind, d:node.depth, f:flags.f, p:flags.p, r:flags.r,
@@ -1493,22 +1635,20 @@
   }
 
   function encodeView(view){
-    if(view.overlap && view.splitting){
-      return splitHalves(view.overlap).map(top=>{
+    if(view.halves && view.state === 'separating'){
+      return splitTops(view).map(top=>{
         const root = detachTree(top, 0);
         return { n:root.value, tree:encodeNode(root, ()=> ({ f:false, p:false, r:false })) };
       });
     }
-    if(view.overlap){
-      const entry = { a:view.a, b:view.b, bal:view.balanced };
-      if(view.overlap.done){
-        entry.folds = [];
-        entry.presses = [];
-        view.nodeViews.forEach(nv=>{
+    if(view.halves){
+      const entry = { a:view.a, b:view.b, bal:view.balanced, folds:[], presses:[] };
+      view.halves.forEach(h=>{
+        h.nodeViews.forEach(nv=>{
           entry.folds.push(nv.folded);
           entry.presses.push(!!nv.pressed);
         });
-      }
+      });
       return [entry];
     }
     return [{ n:view.n, tree:encodeNode(view.root, node=>{
@@ -1538,27 +1678,29 @@
       const root = decodeNode(entry.tree, folded, pressed, fresh);
       return buildCard(entry.n, { root:root, folded:folded, pressed:pressed, fresh:fresh });
     }
-    const view = buildOverlapCard(entry.a, entry.b, false, entry.bal);
-    if(entry.folds && entry.folds.length === view.nodeViews.size){
+    const pair = buildGcdPair(entry.a, entry.b, false, entry.bal);
+    if(entry.folds && entry.folds.length === pair.halves[0].nodeViews.size + pair.halves[1].nodeViews.size){
       let i = 0;
-      view.nodeViews.forEach(nv=>{
-        nv.folded = entry.folds[i];
-        if(entry.presses[i] && nv.title){
-          // Reversals commute, so applying each net-pressed circle once
-          // rebuilds the child order the card had.
-          reverseBranch(nv.node);
-          nv.pressed = true;
-          nv.circle.setAttribute('aria-pressed', 'true');
-        }
-        i++;
+      pair.halves.forEach(h=>{
+        h.nodeViews.forEach(nv=>{
+          nv.folded = entry.folds[i];
+          if(entry.presses[i] && nv.title){
+            // Reversals commute, so applying each net-pressed circle once
+            // rebuilds the child order the panel had.
+            reverseBranch(nv.node);
+            nv.pressed = true;
+            nv.circle.setAttribute('aria-pressed', 'true');
+          }
+          i++;
+        });
+        layoutTree(h);
+        applyTargets(h, finalTargets(h));
+        syncControls(h);
+        placeTree(h);
       });
-      layoutTree(view);
-      applyTargets(view, finalTargets(view));
-      syncControls(view);
-      placeTree(view);
-      updateEquation(view);
+      updatePairEquation(pair);
     }
-    return view;
+    return pair;
   }
 
   function restoreWork(json){
@@ -1568,6 +1710,7 @@
       const view = decodeView(entry);
       workArea.appendChild(view.card);
       views.push(view);
+      if(view.halves) alignPair(view);
     });
     syncWorkState();
     setMessage(null);
@@ -1705,19 +1848,20 @@
     return compose(target, source.n * target.n, ()=> partOfView(p.first), ()=> partOfView(p.second), source);
   }
 
-  // The gcd overlap takes the target's place; the panel placed earlier
+  // The gcd pair takes the target's place; the panel placed earlier
   // stays on the left, as in composeViews.
   function overlapViews(source, target){
     const idx = views.indexOf(target);
     if(idx < 0 || !source.live) return null;
     const p = pairOf(source, target);
-    const next = buildOverlapCard(p.first.n, p.second.n, true);
+    const next = buildGcdPair(p.first.n, p.second.n, true);
     killView(target);
     workArea.insertBefore(next.card, workArea.children[idx + 1] || null);
     views[idx] = next;
     killView(source);
     views.splice(views.indexOf(source), 1);
     syncWorkState();
+    alignPair(next);
     next.card.scrollIntoView({ block:'nearest' });
     return next;
   }
@@ -1820,27 +1964,13 @@
     shadow.children.forEach(copyShadowX);
   }
 
-  // A gcd overlap lays out its two trees side by side under a hidden root
-  // until they merge; merged, the hidden root holds a's rest, the shared g
-  // branch and b's rest, and each number's root sits over its two parts.
-  function overlapShadow(view){
-    const o = view.overlap;
-    const parts = view.merged ? [o.A.rest, o.G, o.B.rest].filter(Boolean) : [o.A.top, o.B.top];
-    return { node:null, children:parts.map(p=> buildShadow(view, p)) };
-  }
-
   // Lay the visible tree out with every folded node as a leaf; assets/nt-layout.js
   // only ever sees the pruned copy.
   function layoutTree(view){
-    const shadow = view.overlap ? overlapShadow(view) : buildShadow(view, view.root);
+    const shadow = buildShadow(view, view.root);
     const counter = { value:0 };
     assignTreeX(shadow, counter);
     copyShadowX(shadow);
-    if(view.overlap && view.merged){
-      const o = view.overlap;
-      if(o.A.root) o.A.root.x = (o.A.rest.x + o.G.x) / 2;
-      if(o.B.root) o.B.root.x = (o.G.x + o.B.rest.x) / 2;
-    }
     view.leafCount = Math.max(1, counter.value);
   }
 
@@ -1853,14 +1983,12 @@
 
   function finalTargets(view){
     const t = new Map();
-    const twinOf = view.overlap && view.merged ? view.overlap.twinOf : null;
     view.nodeViews.forEach((nv, node)=>{
-      const at = twinOf && twinOf.has(node) ? twinOf.get(node) : node;
-      const anchor = anchorOf(view, at);
+      const anchor = anchorOf(view, node);
       if(anchor){
         t.set(node, { px:view.pxX(anchor), py:view.pxY(anchor), s:0, o:0 });
       } else {
-        t.set(node, { px:view.pxX(at), py:view.pxY(at), s:1, o:1 });
+        t.set(node, { px:view.pxX(node), py:view.pxY(node), s:1, o:1 });
       }
     });
     t.set(SIZE_KEY, sizeOf(view));
@@ -1908,13 +2036,16 @@
   }
 
   // The equation and the message appear only while no circle with children
-  // is folded; folding anything clears the equation at once. A gcd overlap
-  // ignores primes folded on their P = P × 1 split.
+  // is folded; folding anything clears the equation at once.
   function updateEquation(view){
     if(!view.live) return;
+    if(view.gcdPair){
+      updatePairEquation(view.gcdPair);
+      return;
+    }
     let allOpen = true;
     view.nodeViews.forEach(nv=>{
-      if(nv.node.children.length > 0 && nv.folded && !(view.overlap && nv.node.children.some(c=> c.kind === 'prime-leaf'))) allOpen = false;
+      if(nv.node.children.length > 0 && nv.folded) allOpen = false;
     });
     if(!allOpen){
       if(view.eqShown){
@@ -1926,20 +2057,53 @@
     if(view.eqShown) return;
     view.eqShown = true;
     popEquation(view.eqEl, equationLines(view));
-    if(view.overlap){
-      if(view.g === 1) setMessage('factorTree.msgCoprime', { a:view.a, b:view.b }, true);
-      else setMessage('factorTree.msgGcd', { a:view.a, b:view.b, g:view.g }, true);
-      return;
-    }
     const isPrimeRoot = view.topFactors.length === 1;
     setMessage(isPrimeRoot ? 'factorTree.msgPrime' : 'factorTree.msgFactors', isPrimeRoot ? { n:view.n } : { n:view.n, count:view.topFactors.length }, true);
+  }
+
+  // A gcd pair shows one equation block under both panels, once the panels
+  // are joined and every circle is open; primes folded on their P = P × 1
+  // split don't count.
+  function updatePairEquation(P){
+    if(!P.live || P.state !== 'joined') return;
+    let allOpen = true;
+    P.halves.forEach(h=>{
+      h.nodeViews.forEach(nv=>{
+        if(nv.node.children.length > 0 && nv.folded && !nv.node.children.some(c=> c.kind === 'prime-leaf')) allOpen = false;
+      });
+    });
+    if(!allOpen){
+      if(P.eqShown){
+        P.eqEl.textContent = '';
+        P.eqShown = false;
+      }
+      return;
+    }
+    if(P.eqShown) return;
+    P.eqShown = true;
+    popEquation(P.eqEl, equationLines(P));
+    if(P.g === 1) setMessage('factorTree.msgCoprime', { a:P.a, b:P.b }, true);
+    else setMessage('factorTree.msgGcd', { a:P.a, b:P.b, g:P.g }, true);
+  }
+
+  // The g branch exists twice in a gcd pair, once in each panel: an action on
+  // a circle of one copy is repeated on the other copy, in the same gesture.
+  function twinOf(view, nv){
+    const P = view.gcdPair;
+    if(!P) return null;
+    const other = P.halves[0] === view ? P.halves[1] : P.halves[0];
+    const node = P.twin.get(nv.node);
+    const tnv = node ? other.nodeViews.get(node) : null;
+    return tnv ? { view:other, nv:tnv } : null;
   }
 
   // The first unfold of a freshly placed tree opens every circle beneath it
   // too, all the way down to the prime leaves; a tree composed into a bigger
   // one keeps that first-unfold behaviour on its own root (view.fresh).
-  function toggleFold(view, nv){
+  function toggleFold(view, nv, fromTwin){
     if(!view.live || isHidden(view, nv.node)) return;
+    const was = nv.folded;
+    const tw = fromTwin ? null : twinOf(view, nv);
     nv.folded = !nv.folded;
     if(view.fresh.has(nv.node)){
       view.fresh.delete(nv.node);
@@ -1970,6 +2134,7 @@
         { ms:FOLD_MS, targets:finalTargets }
       ], finished);
     }
+    if(tw && tw.nv.folded === was) toggleFold(tw.view, tw.nv, true);
   }
 
   // A composite circle dragged into the area opens straight away, every
@@ -1999,13 +2164,16 @@
     node.children.forEach(reverseBranch);
   }
 
-  function mirrorBranch(view, nv){
+  function mirrorBranch(view, nv, fromTwin){
     if(!view.live || nv.folded || isHidden(view, nv.node)) return;
+    const was = nv.pressed;
+    const tw = fromTwin ? null : twinOf(view, nv);
     reverseBranch(nv.node);
     nv.pressed = !nv.pressed;
     nv.circle.setAttribute('aria-pressed', nv.pressed ? 'true' : 'false');
     layoutTree(view);
     animateTree(view, [{ ms:MIRROR_MS, targets:finalTargets }], ()=> updateEquation(view));
+    if(tw && !tw.nv.folded && tw.nv.pressed === was) mirrorBranch(tw.view, tw.nv, true);
   }
 
   function opacityText(o){
@@ -2077,6 +2245,7 @@
       ev.line.style.display = to.o > 0 ? '' : 'none';
       ev.line.style.opacity = opacityText(to.o);
     });
+    if(view.gcdPair) alignPair(view.gcdPair);
   }
 
   // One tween engine for mirroring and folding. A phase is { ms, targets(view) }
@@ -2163,7 +2332,7 @@
   function cardAt(x, y){
     if(!overWork(x, y)) return null;
     return views.find(v=>{
-      if((drag && v === drag.view) || v.overlap) return false;
+      if((drag && v === drag.view) || v.halves) return false;
       const r = v.card.getBoundingClientRect();
       return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
     }) || null;
@@ -2326,7 +2495,7 @@
     const onGrip = !!e.target.closest('.tree-grip');
     if(!onGrip && (e.pointerType === 'touch' || e.target !== card)) return;
     const view = views.find(v=> v.card === card);
-    if(!view || view.overlap) return;
+    if(!view) return;
     e.preventDefault();
     startDrag(e, { item:null, view:view, n:view.n });
   });
@@ -2405,7 +2574,10 @@
     renderBalancedNote();
     relabelPalette();
     labelSieveLink();
-    views.forEach(v=>{ syncControls(v); relabelRemove(v); });
+    views.forEach(v=>{
+      (v.halves || [v]).forEach(syncControls);
+      relabelRemove(v);
+    });
   });
 
   // Mirrors NT.store.readABParams's defensive shape (assets/nt-store.js): the regex match sits in its own try/catch, the decode+parse sits in a second, and the result is range-tested (against this tool's own Balanced cap) before use. The round-trip string comparison is what rejects fractional strings like "3.5" that parseInt would otherwise silently truncate into a valid-looking integer.
@@ -2461,14 +2633,14 @@
   }
 
   // The page opens with the 30-prime palette and an empty composition/factorization area; only a
-  // deep link places a (folded) tree, or two trees overlapping on their gcd.
+  // deep link places a (folded) tree, or two panels overlapping on their gcd.
   window.addEventListener('load', ()=>{
     const deepLinkPair = readPairParams();
     if(deepLinkPair !== null){
       applyMode('balanced');
       ensurePaletteItem(deepLinkPair.a);
       ensurePaletteItem(deepLinkPair.b);
-      placeOverlap(deepLinkPair.a, deepLinkPair.b, true);
+      placePair(deepLinkPair.a, deepLinkPair.b, true);
       return;
     }
     const deepLinkN = readNParam();
