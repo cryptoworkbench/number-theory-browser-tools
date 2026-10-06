@@ -412,7 +412,7 @@ function shot(siteRoot, pageKey, theme, outFile) {
       for (var d = 2; d * d <= n; d++) if (n % d === 0) { q = false; break; }
       if (q) primes.push(n);
     }
-    primes.push(999999999989, 1000000007, 4, 6, 9);
+    primes.push(7919, 7927, 104729, 4, 6, 9);
     primes.sort(function (a, b) { return a - b; });
     var raw = JSON.stringify(primes);
     try { localStorage.setItem("number-palette", raw); } catch (e) { /* ignore */ }
