@@ -1,15 +1,16 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all sixteen supported
+   marker for the Sieve of Eratosthenes tool, in all seventeen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
    every language except Polish and Russian ({ one, few, many, other }),
-   Romanian ({ one, few, other }) and Latvian ({ zero, one, other }), each
+   Romanian ({ one, few, other }), Latvian ({ zero, one, other }) and
+   Hebrew ({ one, two, other }), each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all sixteen
+   Placeholder names ({n}, {time}, {count}) are identical across all seventeen
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -646,6 +647,47 @@
         other: 'Προστέθηκαν {count} νέοι πρώτοι αριθμοί — η παλέτα είναι γεμάτη ({max} αριθμοί); πρώτοι που δεν προστέθηκαν: {left}.'
       },
       'palette.none': 'Κάθε πρώτος που βρέθηκε υπάρχει ήδη στην παλέτα — δεν υπάρχει τίποτα να προστεθεί.'
+    },
+    he: {
+      sound: 'צליל',
+      title: 'הנפה של ארטוסתנס — המחשה אינטראקטיבית',
+      heading: 'הנפה של ארטוסתנס',
+      eyebrow: 'מספרים ראשוניים והתחלקות',
+      lede: 'תנו לכל מספר טבעי תיבה משלו — וצפו כיצד הנפה מוחקת כל מה שאינו ראשוני.',
+      sizeLabel: 'גודל הנפה (N)',
+      generate: 'יצירה',
+      'stat.current': 'נוכחי',
+      'stat.primesFound': 'ראשוניים שנמצאו',
+      'stat.sqrtBoundary': 'גבול \u2066√N\u2069',
+      'stat.elapsed': 'זמן שחלף',
+      'stat.progress': 'התקדמות',
+      'stat.done': '✓ הושלם',
+      'legend.unvisited': '{0} טרם נבדק',
+      'legend.currentPointer': '{0} המצביע הנוכחי',
+      'legend.prime': '{0} ראשוני',
+      'legend.composite': '{0} נחצה (פריק)',
+      'legend.neither': '{0} לא זה ולא זה (1)',
+      footer: 'כל החישובים מתבצעים בצד הלקוח, בדפדפן שלכם. אף מספר לא ניזוק לצמיתות — רק נחצה.',
+      'banner.ready': 'מוכן. נוצרו {n} תיבות — לחצו על הפעלה כדי לנפות.',
+      'banner.single': 'תיבה אחת בלבד — אין מה לנפות.',
+      'banner.reset': 'אופס. נבנו מחדש {n} תיבות — לחצו על הפעלה כדי לנפות.',
+      'banner.done': {
+        one: 'נמצא {count} מספר ראשוני עד {n} תוך {time}.',
+        two: 'נמצאו {count} מספרים ראשוניים עד {n} תוך {time}.',
+        other: 'נמצאו {count} מספרים ראשוניים עד {n} תוך {time}.'
+      },
+      toPalette: 'הוספת הראשוניים שנמצאו לפלטה',
+      'palette.added': {
+        one: 'נוסף {count} ראשוני חדש לפלטה — כפילויות שדולגו: {dupes}.',
+        two: 'נוספו {count} ראשוניים חדשים לפלטה — כפילויות שדולגו: {dupes}.',
+        other: 'נוספו {count} ראשוניים חדשים לפלטה — כפילויות שדולגו: {dupes}.'
+      },
+      'palette.full': {
+        one: 'נוסף {count} ראשוני חדש — הפלטה מלאה ({max} מספרים); ראשוניים שלא נוספו: {left}.',
+        two: 'נוספו {count} ראשוניים חדשים — הפלטה מלאה ({max} מספרים); ראשוניים שלא נוספו: {left}.',
+        other: 'נוספו {count} ראשוניים חדשים — הפלטה מלאה ({max} מספרים); ראשוניים שלא נוספו: {left}.'
+      },
+      'palette.none': 'כל הראשוניים שנמצאו כבר נמצאים בפלטה — אין מה להוסיף.'
     }
   });
 })();

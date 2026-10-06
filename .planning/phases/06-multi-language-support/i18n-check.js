@@ -714,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "el", "en", "es", "fr", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sv"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "el", "en", "es", "fr", "he", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sv"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -915,6 +915,18 @@ function doApi() {
   check("el trel.count at 1.5 selects other", I.translate("trel.count", { count: 1.5 }), "1.5 κλειδιά");
   check("el trel.count at 1000000 selects other", I.translate("trel.count", { count: 1000000 }), "1000000 κλειδιά");
 
+  // Hebrew {one, two, other}: 1 selects one, 2 selects two, everything else other.
+  I.register("trhe", {
+    en: { count: { one: "{count} key", other: "{count} keys" } },
+    he: { count: { one: "{count} one", two: "{count} two", other: "{count} other" } }
+  });
+  check("setLang('he') returns true (trhe)", I.setLang("he"), true);
+  check("he trhe.count at 1 selects one", I.translate("trhe.count", { count: 1 }), "1 one");
+  check("he trhe.count at 2 selects two", I.translate("trhe.count", { count: 2 }), "2 two");
+  [0, 3, 10, 20, 1000000].forEach(function (n) {
+    check("he trhe.count at " + n + " selects other", I.translate("trhe.count", { count: n }), n + " other");
+  });
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -1024,6 +1036,9 @@ function doApi() {
   check("setLang('el-GR') returns false (region-tagged el not supported)", I.setLang("el-GR"), false);
   check("setLang('el-polyton') returns false (polytonic Greek variant tag not supported)", I.setLang("el-polyton"), false);
   check("setLang('gr') returns false (gr is a country code, not a language code)", I.setLang("gr"), false);
+  check("setLang('iw') returns false (legacy Hebrew tag is not an allow-list code)", I.setLang("iw"), false);
+  check("setLang('he-IL') returns false (region-tagged he not supported)", I.setLang("he-IL"), false);
+  check("setLang('HE') returns false (case-sensitive)", I.setLang("HE"), false);
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
   check("setLang('be') returns false (Belarusian not supported)", I.setLang("be"), false);
   I.SUPPORTED_LANGS.forEach(function (lang) {
@@ -1040,6 +1055,7 @@ function doApi() {
     if (lang === prevLang) return;
     check("setLang('" + lang + "') returns true", I.setLang(lang), true);
     check("html lang updated to '" + lang + "'", ctx._doc.documentElement.lang, lang);
+    check("html dir after setLang('" + lang + "') is rtl exactly for RTL_LANGS, else absent", ctx._doc.documentElement.getAttribute("dir"), RTL_LANGS.indexOf(lang) !== -1 ? "rtl" : null);
     check("getLang() reflects '" + lang + "'", I.getLang(), lang);
     check("exactly one change event for '" + lang + "'", ctx._changeEvents.length, cnt + 1);
     check("re-setting '" + lang + "' returns true with no new event", I.setLang(lang), true);
@@ -1161,6 +1177,19 @@ function doApi() {
   check("detectDefaultLang(['ja','el','en']) -> el (first supported wins)", I.detectDefaultLang(), "el");
   ctx.navigator = { languages: ["de-AT", "ru"] };
   check("detectDefaultLang(['de-AT','ru']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
+  [
+    [["he-IL"], "he", "he-IL"],
+    [["HE"], "he", "HE (case-insensitive)"],
+    [["iw"], "he", "iw (legacy Hebrew tag)"],
+    [["iw-IL"], "he", "iw-IL (legacy tag with region)"],
+    [["IW_il", "en"], "he", "IW_il (case-insensitive, underscore separator)"],
+    [["yi", "he"], "he", "yi,he (Yiddish unsupported, falls through)"],
+    [["ji", "en"], "en", "ji,en (legacy Yiddish tag not mapped)"],
+    [["he-IL", "en"], "he", "he-IL,en (first supported wins)"]
+  ].forEach(function (c) {
+    ctx.navigator = { languages: c[0] };
+    check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
+  });
   I.SUPPORTED_LANGS.forEach(function (lang) {
     ctx.navigator = { languages: [lang] };
     check("detectDefaultLang(['" + lang + "']) round-trips to itself", I.detectDefaultLang(), lang);
@@ -1259,7 +1288,13 @@ function doPersistence() {
     { opts: { search: "?lang=gr", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url gr (country code, not a language code) falls through to cookie" },
     { opts: { cookie: { initial: "el-GR" }, storage: { initial: "es" } }, want: "es", label: "cookie el-GR falls through to storage" },
     { opts: { storage: { initial: "uk" } }, want: "en", label: "storage uk (Ukrainian, unsupported) falls through to detected default" },
-    { opts: { storage: { initial: "RU" }, navigator: { languages: ["el-GR", "en"] } }, want: "el", label: "storage RU falls through to detected el (navigator el-GR)" }
+    { opts: { storage: { initial: "RU" }, navigator: { languages: ["el-GR", "en"] } }, want: "el", label: "storage RU falls through to detected el (navigator el-GR)" },
+    { opts: { search: "?lang=iw", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url iw (legacy Hebrew tag, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=he-IL", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url he-IL (region-tagged he, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=HE", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url HE (case mismatch) falls through to cookie" },
+    { opts: { cookie: { initial: "iw" }, storage: { initial: "es" } }, want: "es", label: "cookie iw falls through to storage" },
+    { opts: { storage: { initial: "iw" }, navigator: { languages: ["iw-IL", "en"] } }, want: "he", label: "storage iw falls through to detected he (navigator iw-IL)" },
+    { opts: { search: "?lang=he", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "he", label: "url he beats cookie and storage" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1275,6 +1310,18 @@ function doPersistence() {
     var ctxStorage = loadI18n({ storage: { initial: lang }, navigator: { languages: ["en-US", "en"] } });
     check("channel storage resolves '" + lang + "'", ctxStorage.NT.i18n.getLang(), lang);
   });
+
+  // Right-to-left: html dir="rtl" is applied at evaluation time while
+  // Hebrew is the active language, and never present for any other language.
+  (function () {
+    var heCtx = loadI18n({ search: "?lang=he", navigator: { languages: ["en-US", "en"] } });
+    check("?lang=he load sets html lang", heCtx._doc.documentElement.lang, "he");
+    check("?lang=he load sets html dir rtl", heCtx._doc.documentElement.getAttribute("dir"), "rtl");
+    var enCtx = loadI18n({ navigator: { languages: ["en-US", "en"] } });
+    check("plain English load leaves html dir absent", enCtx._doc.documentElement.getAttribute("dir"), null);
+    var deCtx = loadI18n({ search: "?lang=de", navigator: { languages: ["en-US", "en"] } });
+    check("?lang=de load leaves html dir absent", deCtx._doc.documentElement.getAttribute("dir"), null);
+  })();
 
   // Throwing cookie/localStorage channels never throw out of the module,
   // at load or when a later explicit choice tries to persist.
@@ -1451,6 +1498,20 @@ function doPersistence() {
     ctx._fireStorage(I.LANG_STORAGE_KEY, "ru");
     check("storage event with ru re-applies html lang", ctx._doc.documentElement.lang, "ru");
     check("storage event with ru fires one more change event", ctx._changeEvents.length, changeAfterLv + 1);
+    check("storage event with ru leaves html dir absent", ctx._doc.documentElement.getAttribute("dir"), null);
+
+    var changeAfterRu = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "iw");
+    check("storage event with the legacy iw tag is a no-op", ctx._doc.documentElement.lang, "ru");
+    check("storage event with iw fires no change event", ctx._changeEvents.length, changeAfterRu);
+
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "he");
+    check("storage event with he re-applies html lang", ctx._doc.documentElement.lang, "he");
+    check("storage event with he sets html dir rtl", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+    check("storage event with he fires one more change event", ctx._changeEvents.length, changeAfterRu + 1);
+
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
+    check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
 
   // lang= is stripped from the address bar after init(), every other
@@ -1510,8 +1571,14 @@ var SWITCHER_OPTIONS = [
   { value: "hu", lang: "hu", label: "Magyar" },
   { value: "lv", lang: "lv", label: "Latviešu" },
   { value: "ru", lang: "ru", label: "Русский" },
-  { value: "el", lang: "el", label: "Ελληνικά" }
+  { value: "el", lang: "el", label: "Ελληνικά" },
+  { value: "he", lang: "he", label: "עברית" }
 ];
+
+// RTL_LANGS: the languages written right to left. Mirrors assets/nt-i18n.js's
+// internal RTL set; the two are tied together by the --api assertion that
+// html dir is "rtl" after setLang exactly for these codes and absent otherwise.
+var RTL_LANGS = ["he"];
 
 // LANG_CODES: derived from SWITCHER_OPTIONS, in the same order.
 // checkDictionaries iterates this instead of a local SUPPORTED list.
@@ -1521,16 +1588,16 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // {one, other}, that a language's plural dictionary values must carry.
 // Deliberately explicit rather than derived from Intl.PluralRules for every
 // language: the table lists every language whose CLDR rules select an extra
-// category for some whole count, and each entry must equal Intl.PluralRules'
-// own category set for that language. fr/es/it/pt-BR/pt-PT stay unlisted
+// category for some whole count (Hebrew adds "two": one, two, other), and
+// each entry must equal Intl.PluralRules' own category set for that language. fr/es/it/pt-BR/pt-PT stay unlisted
 // because their "many" category applies only to exact multiples of
 // 1,000,000; their values stay {one, other} and the engine falls back to
 // other for that case.
-var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"] };
+var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"] };
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
 // extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
-// one,other,zero for lv, one,other for every other language.
+// one,other,zero for lv, one,other,two for he, one,other for every other language.
 function expectedPluralCategories(lang) {
   var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
   return ["one", "other"].concat(extra).sort();
@@ -1628,9 +1695,9 @@ function isProse(text) {
   return false;
 }
 
-/* ---------- script rule (Russian/Greek, the first non-Latin scripts) ---------- */
+/* ---------- script rule (Russian, Greek and Hebrew, the non-Latin scripts) ---------- */
 
-// Russian and Greek cannot be checked for leftover English by
+// Russian, Greek and Hebrew cannot be checked for leftover English by
 // IDENTICAL-TO-EN alone (a half-translated value is not identical to
 // English) or by the Latin-language function-word checks in isProse. This
 // data-driven rule catches a value written in the wrong script, a mixed
@@ -1638,8 +1705,8 @@ function isProse(text) {
 // value, while allowing a fixed list of genuine invariant Latin notation.
 // A later non-Latin-script language needs only its own SCRIPT_RULES entry.
 
-// SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic or Greek
-// value may keep — notation, a code identifier, an acronym, or a narrative
+// SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic, Greek or
+// Hebrew value may keep — notation, a code identifier, an acronym, or a narrative
 // name present in the English value and kept literal by every existing
 // language.
 var SCRIPT_LATIN_NOTATION = [
@@ -1651,16 +1718,25 @@ var SCRIPT_LATIN_NOTATION = [
 var SCRIPT_RULES = {
   ru: {
     own: /\p{Script=Cyrillic}/u,
-    foreign: /\p{Script=Greek}{2,}/u,
+    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   el: {
     own: /\p{Script=Greek}/u,
-    foreign: /\p{Script=Cyrillic}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}/u,
     latin: SCRIPT_LATIN_NOTATION.concat([
       "Bézout", "Cayley", "Diffie", "ElGamal", "Euler", "Fermat", "Hellman",
       "Miller", "Rabin", "Shor", "Venn", "bit", "ms"
     ])
+  },
+  // Hebrew: any Cyrillic letter or a run of two or more Greek letters is
+  // foreign (a single Greek letter such as phi stays legal, exactly like ru).
+  // Eponyms are transliterated into Hebrew script, so the base notation
+  // list is reused without el's eponym extension.
+  he: {
+    own: /\p{Script=Hebrew}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}/u,
+    latin: SCRIPT_LATIN_NOTATION
   }
 };
 
@@ -1669,7 +1745,7 @@ var SCRIPT_RULES = {
 // space in both value and enValue, returns in order: SCRIPT-LATIN for each
 // maximal Latin run (>1 char) not on the language's own latin list,
 // SCRIPT-MIXED for each maximal letter run mixing two or more of
-// Latin/Cyrillic/Greek, SCRIPT-FOREIGN for the first match of the
+// Latin/Cyrillic/Greek/Hebrew, SCRIPT-FOREIGN for the first match of the
 // language's `foreign` pattern, and SCRIPT-MISSING when the English value
 // has a translatable Latin word (a run >1 char not on the latin list) but
 // the value carries no letter of its own script at all.
@@ -1694,7 +1770,8 @@ function scriptFindings(id, lang, value, enValue) {
     var hasLatin = /\p{Script=Latin}/u.test(w);
     var hasCyrillic = /\p{Script=Cyrillic}/u.test(w);
     var hasGreek = /\p{Script=Greek}/u.test(w);
-    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0);
+    var hasHebrew = /\p{Script=Hebrew}/u.test(w);
+    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0) + (hasHebrew ? 1 : 0);
     if (scriptCount >= 2) {
       findings.push("SCRIPT-MIXED " + id + "." + lang + ": " + JSON.stringify(w));
     }
@@ -1711,6 +1788,51 @@ function scriptFindings(id, lang, value, enValue) {
     findings.push("SCRIPT-MISSING " + id + "." + lang);
   }
 
+  return findings;
+}
+
+/* ---------- bidi rules (right-to-left languages) ---------- */
+
+// bidiFindings(id, lang, value): an array of findings about Unicode
+// bidirectional-control hygiene in one dictionary value.
+//   BIDI-CONTROL    the value contains an embedding/override control
+//                   (U+202A..U+202E); only isolates (U+2066..U+2069) are used.
+//   BIDI-UNBALANCED a U+2069 closes nothing, or an isolate initiator
+//                   (U+2066, U+2067, U+2068) is left open.
+//   BIDI-FORMULA    (RTL_LANGS only) a numeric formula sits outside any
+//                   isolate. A numeric formula inside a right-to-left
+//                   paragraph is reordered by the Unicode bidi algorithm
+//                   (48 = 2 x 18 + 12 would display reversed) unless it is
+//                   wrapped in U+2066 ... U+2069. Checked after removing every
+//                   complete isolate span (innermost first, until stable) and
+//                   replacing each {placeholder} with 0: a digit, optional
+//                   spaces, one operator (= != == < > <= >= + - minus x / dot
+//                   * / ^, or the word mod not followed by a letter), optional
+//                   spaces, then a digit or an opening parenthesis; or an
+//                   opening parenthesis followed by digits, a comma and
+//                   another digit (a coordinate or argument tuple).
+var BIDI_FORMULA_RE = /\d\s*(?:[=\u2260\u2261\u2262<>\u2264\u2265+\-\u2212\u00d7\u00f7\u00b7*\/^]|mod(?!\p{L}))\s*[\d(]|\(\s*\d+\s*,\s*\d/u;
+function bidiFindings(id, lang, value) {
+  var findings = [];
+  var v = String(value == null ? "" : value);
+  if (/[\u202a-\u202e]/.test(v)) findings.push("BIDI-CONTROL " + id + "." + lang);
+  var depth = 0, unbalanced = false;
+  for (var i = 0; i < v.length; i++) {
+    var c = v.charCodeAt(i);
+    if (c === 0x2066 || c === 0x2067 || c === 0x2068) depth++;
+    else if (c === 0x2069) { if (depth === 0) unbalanced = true; else depth--; }
+  }
+  if (unbalanced || depth !== 0) findings.push("BIDI-UNBALANCED " + id + "." + lang);
+  if (RTL_LANGS.indexOf(lang) !== -1) {
+    var rest = v, prev;
+    do {
+      prev = rest;
+      rest = rest.replace(/[\u2066-\u2068][^\u2066-\u2069]*\u2069/g, " ");
+    } while (rest !== prev);
+    rest = rest.replace(/\{[A-Za-z0-9_]+\}/g, "0");
+    var m = BIDI_FORMULA_RE.exec(rest);
+    if (m) findings.push("BIDI-FORMULA " + id + "." + lang + ": " + JSON.stringify(m[0]));
+  }
   return findings;
 }
 
@@ -2204,6 +2326,12 @@ function checkDictionaries() {
   var nsOwners = {};
   if (fs.existsSync(i18nDir)) {
     fs.readdirSync(i18nDir).filter(function (f) { return /\.js$/.test(f); }).forEach(function (file) {
+      // BIDI-RAW: a literal invisible bidi character in a data file is
+      // invisible in review; it must be written as a \u escape instead.
+      var rawBidi = /[\u200e\u200f\u202a-\u202e\u2066-\u2069]/.exec(fs.readFileSync(path.join(i18nDir, file), "utf8"));
+      if (rawBidi) {
+        findings.push("BIDI-RAW assets/i18n/" + file + ": U+" + ("0000" + rawBidi[0].charCodeAt(0).toString(16).toUpperCase()).slice(-4));
+      }
       var nsInFile = dataFileNsList(path.join(i18nDir, file));
       nsInFile.forEach(function (ns) { nsOwners[ns] = nsOwners[ns] || []; nsOwners[ns].push(file); });
       if (file === "site.js") {
@@ -2252,6 +2380,7 @@ function checkDictionaries() {
           if (entry && typeof entry === "object") {
             Object.keys(entry).forEach(function (cat) {
               findings.push.apply(findings, scriptFindings(ns + "." + key + "." + cat, lang, entry[cat], enEntry.other));
+              findings.push.apply(findings, bidiFindings(ns + "." + key + "." + cat, lang, entry[cat]));
             });
           }
         } else {
@@ -2267,6 +2396,7 @@ function checkDictionaries() {
             if (!allowSame[allowKey]) findings.push("IDENTICAL-TO-EN " + ns + "." + key + "." + lang);
           }
           findings.push.apply(findings, scriptFindings(ns + "." + key, lang, entry, enEntry));
+          findings.push.apply(findings, bidiFindings(ns + "." + key, lang, entry));
         }
       });
     });
@@ -2653,7 +2783,9 @@ module.exports = {
   SWITCHER_OPTIONS: SWITCHER_OPTIONS,
   checkSwitcherPresent: checkSwitcherPresent,
   extractSiteFooters: extractSiteFooters,
-  checkSiteFooter: checkSiteFooter,
+  checkNoSiteFooter: checkNoSiteFooter,
+  RTL_LANGS: RTL_LANGS,
   SCRIPT_RULES: SCRIPT_RULES,
-  scriptFindings: scriptFindings
+  scriptFindings: scriptFindings,
+  bidiFindings: bidiFindings
 };

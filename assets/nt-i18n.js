@@ -39,6 +39,12 @@
    Dictionary values and URL/param input are therefore never parsed as
    markup.
 
+   Right-to-left: Hebrew is the one right-to-left language. applyHtmlLang sets
+   dir="rtl" on <html> next to lang while it is active and removes the dir
+   attribute for every other language, so the other pages' DOM is unchanged.
+   assets/site.css and each page's own :root[dir="rtl"] rule keep diagrams,
+   formulas, number grids and numerals left-to-right.
+
    Numerals are never locale-formatted here or by any dictionary entry —
    math output (RSA moduli, GCD results, Cayley table entries, ...) keeps
    its existing toString()/NT.bigint formatting byte-identical in every
@@ -57,13 +63,16 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he']);
+  // The right-to-left languages (internal, not exported): applyHtmlLang sets
+  // dir="rtl" on <html> while one of them is active.
+  var RTL_LANGS = Object.freeze(['he']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';
 
   // ---------- namespace registry ----------
-  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, few, many) the language uses
+  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, two, few, many) the language uses
   var registry = {};
 
   function valid(lang) {
@@ -122,6 +131,8 @@
       }
       // Norwegian: the legacy macrolanguage tag no (no, no-NO) means Bokmål; nn (Nynorsk) is unsupported and falls through.
       if (parts[0] === 'no') return 'nb';
+      // Hebrew: iw is the withdrawn ISO 639 code for Hebrew, still sent by some older stacks; map it to he.
+      if (parts[0] === 'iw') return 'he';
       var code = String(langs[i]).slice(0, 2).toLowerCase();
       if (valid(code)) return code;
     }
@@ -144,6 +155,8 @@
     try {
       if (typeof document !== 'undefined' && document.documentElement) {
         document.documentElement.lang = lang;
+        if (RTL_LANGS.indexOf(lang) !== -1) document.documentElement.setAttribute('dir', 'rtl');
+        else document.documentElement.removeAttribute('dir');
       }
     } catch (e) { /* ignore */ }
   }

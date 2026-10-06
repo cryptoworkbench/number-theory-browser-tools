@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all sixteen
+   switcher's own label and the day/night toggle's label — in all seventeen
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -382,6 +382,29 @@
       'nav.shor': 'Αλγόριθμος του Shor',
       'lang.label': 'Γλώσσα',
       'theme.toggle': 'Εναλλαγή ημερήσιας και νυχτερινής λειτουργίας'
+    },
+    he: {
+      brand: 'כלי תורת המספרים',
+      'nav.label': 'כלים',
+      menu: 'כלים',
+      'nav.home': 'דף הבית',
+      'nav.sieve': 'הנפה של ארטוסתנס',
+      'nav.factorTree': 'עץ גורמים',
+      'nav.venn': 'דיאגרמת ון',
+      'nav.euclid': 'האלגוריתם של אוקלידס',
+      'nav.crt': 'משפט השאריות הסיני',
+      'nav.wheel': 'גלגל השקילות',
+      'nav.totient': 'פונקציית φ של אוילר',
+      'nav.cayley': 'טבלת קיילי',
+      'nav.iso': 'איזומורפיזם של חבורות',
+      'nav.sqm': 'העלאה בריבוע וכפל',
+      'nav.dh': 'דיפי-הלמן',
+      'nav.ecdh': 'דיפי-הלמן בעקומים אליפטיים',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'שיטת פרמה',
+      'nav.shor': 'האלגוריתם של שור',
+      'lang.label': 'שפה',
+      'theme.toggle': 'מעבר בין מצב יום ללילה'
     }
   });
 
@@ -828,6 +851,33 @@
       redoPalette: 'Επανάληψη αλλαγής παλέτας',
       undoWork: 'Αναίρεση',
       redoWork: 'Επανάληψη'
+    },
+    he: {
+      play: 'הפעלה',
+      pause: 'השהיה',
+      step: 'צעד',
+      instant: 'מיידי',
+      reset: 'איפוס',
+      speed: 'מהירות',
+      'speed.1': 'קרחונית',
+      'speed.2': 'איטית',
+      'speed.3': 'רכה',
+      'speed.4': 'ערנית',
+      'speed.5': 'יציבה',
+      'speed.6': 'זריזה',
+      'speed.7': 'מהירה',
+      'speed.8': 'מהירה מאוד',
+      'speed.9': 'בוערת',
+      'speed.10': 'כמעט מיידית',
+      additiveGroups: 'חבורות חיבוריות',
+      multiplicativeGroups: 'חבורות כפליות',
+      paletteEmptySieve: 'השתמשו בכלי "{0}" כדי להוסיף מספרים ראשוניים לפלטה זו.',
+      primePickerOpen: 'בחירת מספר ראשוני מהפלטה',
+      primePickerHeading: 'בחירת מספר ראשוני',
+      undoPalette: 'ביטול שינוי הפלטה',
+      redoPalette: 'שחזור שינוי הפלטה',
+      undoWork: 'ביטול',
+      redoWork: 'ביצוע חוזר'
     }
   });
 })();
