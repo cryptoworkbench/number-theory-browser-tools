@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-06T07:25:21.897Z"
-last_activity: 2026-10-05
+last_updated: "2026-10-06T07:28:43.005Z"
+last_activity: 2026-10-06
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 4d4ea8dab237b90140859556c9979bffac48868d
+state_head: 3d6fded5e63dfe6bc52f32053de94013d5e83cc2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -323,6 +323,7 @@ None yet.
 | 87 | Factor Tree composites back to blue; Sieve legend 'Struck (composite)' swatch uses the same blue | 2026-10-06 | 17a5f79 | — |
 | 88 | Sieve struck composite cells solid blue, matching the legend and Factor Tree | 2026-10-06 | bf6aaa2 | — |
 | 261006-cmy | Every tool page and the hub use the full page width like Factor Tree | 2026-10-06 | 4d4ea8d | [261006-cmy-make-every-tool-page-and-the-hub-use-the](./quick/261006-cmy-make-every-tool-page-and-the-hub-use-the/) |
+| 90 | Site header spans the full page width to line up with the full-width tool pages | 2026-10-06 | 3d6fded | — |
 
 ## Deferred Items
 
