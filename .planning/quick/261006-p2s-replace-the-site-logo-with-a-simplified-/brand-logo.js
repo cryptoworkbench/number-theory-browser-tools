@@ -3,7 +3,7 @@
  * never referenced by any .html page. Uses only Node built-ins.
  *
  *   node brand-logo.js --swap            replace the header brand block in all 16 pages
- *   node brand-logo.js --check [scope]   BRAND-LOGO PASS/FAIL lines (scope: header)
+ *   node brand-logo.js --check [scope]   BRAND-LOGO PASS/FAIL lines (scope: header | favicon)
  */
 "use strict";
 
@@ -108,6 +108,42 @@ function checkHeader() {
     region === "" ? "region not found" : (colorLit ? "literal colour found" : "non-var paint: " + badPaint.join("; ")));
 }
 
+/* ---------- --check favicon ---------- */
+
+function cssVar(block, name) {
+  var m = block.match(new RegExp("--" + name + "\\s*:\\s*([^;]+);"));
+  return m ? m[1].trim() : null;
+}
+
+function checkFavicon() {
+  var fav = read("assets/favicon.svg");
+  var pal = read("assets/palette.css");
+  var childLines = NEW_BLOCK.split("\n").map(function (l) { return l.trim(); }).filter(function (l) {
+    return /^<(?:rect|path) class="brand-icon-/.test(l);
+  });
+  var favLines = fav.split("\n").map(function (l) { return l.trim(); }).filter(function (l) {
+    return /^<(?:rect|path) class="brand-icon-/.test(l);
+  });
+  report("favicon-shapes", JSON.stringify(childLines) === JSON.stringify(favLines),
+    "favicon shape lines differ from the header block children");
+  var svgStart = fav.indexOf("<svg");
+  var comment = fav.slice(0, svgStart);
+  report("favicon-no-text-or-retired-class", !/<text\b/.test(fav) && fav.indexOf(RETIRED_CLASS) < 0,
+    "text element or retired class present");
+  var dayAt = pal.indexOf(':root[data-theme="day"]{');
+  var nightAt = pal.indexOf(":root{");
+  var palNight = pal.slice(nightAt, dayAt);
+  var palDay = pal.slice(dayAt);
+  var mediaAt = fav.indexOf("@media");
+  var favDefault = fav.slice(fav.indexOf(":root {"), mediaAt);
+  var favLight = fav.slice(mediaAt);
+  var got = [cssVar(favDefault, "plate"), cssVar(favDefault, "ink"), cssVar(favLight, "plate"), cssVar(favLight, "ink")];
+  var want = [cssVar(palNight, "accent"), cssVar(palNight, "accent-ink"), cssVar(palDay, "accent"), cssVar(palDay, "accent-ink")];
+  report("favicon-palette-sync", got.join("|") === want.join("|") && got.indexOf(null) < 0,
+    "favicon " + got.join(",") + " vs palette " + want.join(","));
+  report("favicon-comment", !/1-2-3-4/.test(comment) && !/digits/.test(comment), "old numbered-tile wording in comment");
+}
+
 /* ---------- Main ---------- */
 
 function main() {
@@ -116,9 +152,10 @@ function main() {
   if (mode === "--swap") return swap();
   if (mode === "--check") {
     if (!scope || scope === "header") checkHeader();
+    if (!scope || scope === "favicon") checkFavicon();
     process.exit(failed ? 1 : 0);
   }
-  console.error("usage: brand-logo.js --swap | --check [header]");
+  console.error("usage: brand-logo.js --swap | --check [header|favicon]");
   process.exit(2);
 }
 
