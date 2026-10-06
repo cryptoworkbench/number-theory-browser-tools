@@ -459,34 +459,6 @@
   }
   .message.is-warn{ color:var(--role-warn); }
 
-  /* products */
-  .products-panel{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    justify-content:center;
-    margin-top:12px;
-  }
-  .product-row{
-    flex:1 1 200px;
-    border:1px solid var(--panel-border);
-    border-radius:10px;
-    padding:8px 10px;
-    background:var(--surface-alt);
-    text-align:center;
-  }
-  .product-value{
-    display:block;
-    font-family:var(--font-mono);
-    font-size:15px;
-    font-weight:600;
-    line-height:1.35;
-    color:var(--role-result-ink);
-    background:var(--role-result);
-    border-radius:6px;
-    padding:6px 6px;
-  }
-
   @media (prefers-reduced-motion: reduce){
     .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn{ transition:none; }
     .bin-lid{ transition:none; }
@@ -672,46 +644,6 @@
 
   <p id="message" class="message" aria-live="polite"></p>
 
-  <div class="products-panel" id="products-two">
-    <div class="product-row">
-      <span class="product-value" id="product-left"></span>
-    </div>
-    <div class="product-row">
-      <span class="product-value" id="product-overlap"></span>
-    </div>
-    <div class="product-row">
-      <span class="product-value" id="product-right"></span>
-    </div>
-  </div>
-
-  <div id="products-three" hidden>
-    <div class="products-panel">
-      <div class="product-row">
-        <span class="product-value" id="product-a"></span>
-      </div>
-      <div class="product-row">
-        <span class="product-value" id="product-b"></span>
-      </div>
-      <div class="product-row">
-        <span class="product-value" id="product-c"></span>
-      </div>
-    </div>
-    <div class="products-panel">
-      <div class="product-row">
-        <span class="product-value" id="product-ab"></span>
-      </div>
-      <div class="product-row">
-        <span class="product-value" id="product-ac"></span>
-      </div>
-      <div class="product-row">
-        <span class="product-value" id="product-bc"></span>
-      </div>
-      <div class="product-row">
-        <span class="product-value" id="product-abc"></span>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <script src="../assets/nt-core.js"></script>
@@ -791,9 +723,6 @@
   var messageEl = document.getElementById('message');
   var clearBtn = document.getElementById('clear-btn');
   var randomizeBtn = document.getElementById('randomize-btn');
-  var productLeftEl = document.getElementById('product-left');
-  var productOverlapEl = document.getElementById('product-overlap');
-  var productRightEl = document.getElementById('product-right');
 
   // PRIMES is only Randomize's own draw pool; the picker shows the shared
   // number palette (NT.store's number-palette, also edited in Factor Tree and
@@ -957,15 +886,6 @@
   var ledeThree = document.getElementById('lede-three');
   var frameTwo = document.getElementById('frame-two');
   var frameThree = document.getElementById('frame-three');
-  var productsTwo = document.getElementById('products-two');
-  var productsThree = document.getElementById('products-three');
-  var productAEl = document.getElementById('product-a');
-  var productBEl = document.getElementById('product-b');
-  var productCEl = document.getElementById('product-c');
-  var productAbEl = document.getElementById('product-ab');
-  var productAcEl = document.getElementById('product-ac');
-  var productBcEl = document.getElementById('product-bc');
-  var productAbcEl = document.getElementById('product-abc');
 
   var regionEls3 = {};
 
@@ -2588,16 +2508,7 @@
     return factors.join(' * ') + ' = ' + product;
   }
 
-  function intersectionLine(label, totals, g){
-    var line = label + ' = ' + totals.join(' ∩ ') + ' = ' + g;
-    var gFactors = primeFactors(g, FACTOR_LIMIT);
-    if (gFactors.length >= 2){
-      line += ' = ' + gFactors.join(' * ');
-    }
-    return line;
-  }
-
-  // One derivation path for the pair (a, b) that renderProducts() displays
+  // One derivation path for the pair (a, b) that the composite panes show
   // and that the shared store carries -- what gets shared is by
   // construction the same two numbers shown on screen.
   function currentPair(){
@@ -2606,23 +2517,6 @@
       a: productOf(primesOf(state.regions.left)) * shared,
       b: productOf(primesOf(state.regions.right)) * shared
     };
-  }
-
-  function renderProducts(){
-    var leftOnlyList = primesOf(state.regions.left);
-    var sharedList = primesOf(state.regions.overlap);
-    var rightOnlyList = primesOf(state.regions.right);
-
-    var pair = currentPair();
-    var leftTotal = pair.a;
-    var rightTotal = pair.b;
-
-    var leftFactors = ascendingSort(leftOnlyList.concat(sharedList));
-    var rightFactors = ascendingSort(rightOnlyList.concat(sharedList));
-
-    productLeftEl.textContent = 'A = ' + factorTail(leftFactors, leftTotal);
-    productRightEl.textContent = 'B = ' + factorTail(rightFactors, rightTotal);
-    productOverlapEl.textContent = intersectionLine(REGION_NOTATION.overlap, [leftTotal, rightTotal], gcd(leftTotal, rightTotal));
   }
 
   var EUCLID_PATH = '../Euclidean Algorithm/euclidean-algorithm.html';
@@ -2717,9 +2611,8 @@
       } else if (key === 'abc'){
         // The centre chip previews AND links -- but only to the Factor
         // Tree, never to the Euclidean Algorithm (its gcd(gcd(A,B),C) pair
-        // describes no real two-circle relationship on screen). Same
-        // left-fold renderProducts3() uses for its A ∩ B ∩ C row, so the
-        // preview's gcd and the printed row can never disagree.
+        // describes no real two-circle relationship on screen). The
+        // left-fold gcd(gcd(A,B),C) is the centre region's A ∩ B ∩ C.
         var centreA = gcd(triple.a, triple.b), centreB = triple.c;
         if (isEuclidRange(centreA, centreB)) link = { href: null, previewLayer: previewLayer3, vbW: 900, vbH: 700, a: centreA, b: centreB, showEuclid: false, treeHref: factorTreeHref(value) };
       }
@@ -2768,8 +2661,8 @@
   }
 
   // One derivation path for the three circle totals in three-circle mode,
-  // mirroring currentPair()'s role for two-circle mode -- what renderProducts3()
-  // displays and what the composite links carry are the same computation.
+  // mirroring currentPair()'s role for two-circle mode -- what the composite
+  // panes show and what the composite links carry are the same computation.
   function currentTriple(){
     var aOnly = primesOf3('aOnly'), bOnly = primesOf3('bOnly'), cOnly = primesOf3('cOnly');
     var ab = primesOf3('ab'), ac = primesOf3('ac'), bc = primesOf3('bc'), abc = primesOf3('abc');
@@ -2778,42 +2671,6 @@
       b: productOf(bOnly.concat(ab, bc, abc)),
       c: productOf(cOnly.concat(ac, bc, abc))
     };
-  }
-
-  function renderProducts3(){
-    var aOnly = primesOf3('aOnly'), bOnly = primesOf3('bOnly'), cOnly = primesOf3('cOnly');
-    var ab = primesOf3('ab'), ac = primesOf3('ac'), bc = primesOf3('bc'), abc = primesOf3('abc');
-
-    var triple = currentTriple();
-    var totalA = triple.a;
-    var totalB = triple.b;
-    var totalC = triple.c;
-
-    if (productAEl){
-      var aFactors = ascendingSort(aOnly.concat(ab, ac, abc));
-      productAEl.textContent = 'A = ' + factorTail(aFactors, totalA);
-    }
-    if (productBEl){
-      var bFactors = ascendingSort(bOnly.concat(ab, bc, abc));
-      productBEl.textContent = 'B = ' + factorTail(bFactors, totalB);
-    }
-    if (productCEl){
-      var cFactors = ascendingSort(cOnly.concat(ac, bc, abc));
-      productCEl.textContent = 'C = ' + factorTail(cFactors, totalC);
-    }
-
-    if (productAbEl){
-      productAbEl.textContent = intersectionLine('A ∩ B', [totalA, totalB], gcd(totalA, totalB));
-    }
-    if (productAcEl){
-      productAcEl.textContent = intersectionLine('A ∩ C', [totalA, totalC], gcd(totalA, totalC));
-    }
-    if (productBcEl){
-      productBcEl.textContent = intersectionLine('B ∩ C', [totalB, totalC], gcd(totalB, totalC));
-    }
-    if (productAbcEl){
-      productAbcEl.textContent = intersectionLine('A ∩ B ∩ C', [totalA, totalB, totalC], gcd(gcd(totalA, totalB), totalC));
-    }
   }
 
   function refreshRegionLabels3(){
@@ -2826,12 +2683,10 @@
   function render(){
     renderPicker();
     renderTokens();
-    renderProducts();
     refreshRegionLabels();
     renderComposite();
     renderCircleComposite();
     renderTokens3();
-    renderProducts3();
     refreshRegionLabels3();
     renderComposite3();
     renderCircleComposite3();
@@ -2941,8 +2796,6 @@
     if (ledeThree) ledeThree.hidden = !isThree;
     if (frameTwo) frameTwo.hidden = isThree;
     if (frameThree) frameThree.hidden = !isThree;
-    if (productsTwo) productsTwo.hidden = isThree;
-    if (productsThree) productsThree.hidden = !isThree;
     if (modeTwoBtn) modeTwoBtn.setAttribute('aria-pressed', isThree ? 'false' : 'true');
     if (modeThreeBtn) modeThreeBtn.setAttribute('aria-pressed', isThree ? 'true' : 'false');
     try{ localStorage.setItem(MODE_STORAGE_KEY, mode); }catch(e){}
