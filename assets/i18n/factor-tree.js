@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all sixteen supported languages. title and heading equal
+   Tree tool, in all seventeen supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all sixteen languages. The factorization itself (the equation/tree
+   across all seventeen languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -749,6 +749,51 @@
       binLabel: 'Κάδος: σύρε εδώ έναν κύκλο για να τον αφαιρέσεις από την παλέτα',
       emptyPaletteLabel: 'Διαγραφή όλων: άδειασμα της παλέτας',
       msgPaletteEmptied: 'Η παλέτα άδειασε.'
+    },
+    he: {
+      title: 'עץ גורמים',
+      heading: 'עץ גורמים',
+      eyebrow: 'מספרים ראשוניים והתחלקות',
+      subtitle: 'הוסיפו מספר לפלטה, גררו את העיגול שלו אל אזור ההרכבה/הפירוק, ואז לחצו על + כדי לפתוח אותו — ענף אחר ענף, עד עליו הראשוניים.',
+      modeLabel: 'מצב העץ',
+      modeClassic: 'קלאסי',
+      modeBalanced: 'מאוזן',
+      placeholder: 'למשל 60',
+      randomize: 'אקראי',
+      footnote: 'כל עלה ראשוני מקבל פיצול אחרון משלו: \u2066P = P × 1\u2069.',
+      balancedNote: 'המצב המאוזן משתמש בשיטת פרמה כדי למצוא בכל שלב את זוג הגורמים המאוזן ביותר, ומוגבל למספרים קטנים מ-1,000,000 כדי להישאר מיידי. מספרים מסוימים — כמו ראשוני קטן כפול ראשוני גדול — עדיין מתפצלים בצורה לא שווה; זה לא באג, זו פשוט מתמטיקה.',
+      msgEmpty: 'אנא הזינו מספר תחילה.',
+      msgInvalid: 'אנא הזינו מספר שלם, 1 או גדול יותר.',
+      msgTooLargeBalanced: 'המספר גדול מדי למצב המאוזן — נסו מספר קטן מ-1,000,000, או עברו למצב הקלאסי עבור מספרים גדולים יותר.',
+      msgTooLargeClassic: 'המספר גדול מדי לעץ הקטן הזה — נסו מספר קטן מטריליון.',
+      msgOne: '1 אינו ראשוני ואינו פריק — הוא רק זרע, עדיין לא עץ.',
+      msgPrime: '{n} הוא ראשוני — הוא מתפצל רק פעם אחת, ל-\u20661 × {n}\u2069.',
+      msgFactors: '{n} מתפרק ל-{count} ראשוניים.',
+      mirrorLabel: 'שיקוף הענפים שמתחת ל-{n}',
+      foldLabel: 'כיווץ הגורמים של {n}',
+      unfoldLabel: 'הרחבת הגורמים של {n}',
+      add: 'הוספה',
+      addInputLabel: 'מספר להוספה לפלטה',
+      paletteHeading: 'פלטת ראשוניים',
+      paletteHeadingNumbers: 'פלטת מספרים',
+      paletteItemLabel: 'הצבת {n} באזור ההרכבה/הפירוק',
+      workHeading: 'אזור הרכבה/פירוק',
+      workHint: 'גררו ושחררו מספר פריק כדי לפרק אותו לגורמים, או גררו ושחררו מספרים ראשוניים כדי לבנות מספר פריק.',
+      clear: 'ניקוי',
+      removeLabel: 'הסרת {n} מאזור ההרכבה/הפירוק',
+      moveLabel: 'גררו את הלוח הזה אל לוח אחר: החצי השמאלי מכפיל את {n} במספר שלו, והחצי הימני חופף את המחלק המשותף המקסימלי שלהם',
+      removeOverlapLabel: 'הסרת החפיפה של {a} ו-{b} מאזור ההרכבה/הפירוק',
+      splitOverlap: 'הפרדה',
+      splitOverlapLabel: 'הפרדה מחדש של העצים של {a} ו-{b}',
+      msgGcd: '{a} ו-{b} חולקים את הענף {g} — המחלק המשותף המקסימלי שלהם.',
+      msgCoprime: '{a} ו-{b} זרים זה לזה — הענף היחיד שהם חולקים הוא 1.',
+      msgSplit: '{a} ו-{b} הם שוב עצים נפרדים.',
+      msgAdded: '{n} נוסף לפלטה.',
+      msgRemoved: '{n} הוסר מהפלטה.',
+      msgPaletteFull: 'הפלטה מלאה — היא מכילה לכל היותר {max} מספרים.',
+      binLabel: 'פח: גררו עיגול לכאן כדי להסיר אותו מהפלטה',
+      emptyPaletteLabel: 'מחיקת הכול: ריקון הפלטה',
+      msgPaletteEmptied: 'הפלטה רוקנה.'
     }
   });
 })();

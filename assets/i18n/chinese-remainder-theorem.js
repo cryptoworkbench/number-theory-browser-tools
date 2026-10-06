@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all sixteen supported languages.
+   tool, in all seventeen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all sixteen languages. Must load after assets/nt-i18n.js and
+   across all seventeen languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -614,6 +614,43 @@
       constructReasonSpanBlocked: 'Η κατασκευή χρειάζεται μια υπολογισμένη απάντηση, και το όριο περιόδου το μπλοκάρει.',
       constructSumMismatch: 'Διαγνωστική αναντιστοιχία: η κατασκευή ανάγεται σε {reduced}, αλλά ο επιλυτής υπολόγισε {computed} — αυτά πρέπει πάντα να συμφωνούν.',
       seeInverse: 'δες τον αντίστροφο →'
+    },
+    he: {
+      title: 'משפט השאריות הסיני',
+      heading: 'משפט השאריות הסיני',
+      lede: 'כל שקילות בפני עצמה בוחרת משפחה של מספרים במרווחים שווים — כל מספר שלישי, כל מספר חמישי, וכן הלאה. כאשר למודולוסים אין גורם משותף, המשפחות האלה נחתכות בדיוק במקום אחד בכל קטע של {0} מספרים. החיתוך היחיד הזה הוא הפתרון המשותף שכל השורות מסכימות עליו.',
+      xref: 'ראו את ההופכי המודולרי של השקילות הראשונה מחושב צעד אחר צעד בכלי האלגוריתם של אוקלידס ←',
+      countGroupLabel: 'מספר השקילויות',
+      countTwo: 'שתי שקילויות',
+      countThree: 'שלוש שקילויות',
+      remainderLabel: 'שארית a',
+      modulusLabel: 'מודולוס m',
+      chipSunTzu: '\u20662 mod 3 · 3 mod 5 · 2 mod 7\u2069 · החידה של סון דזה',
+      chipCoprime: '\u20662 mod 3 · 3 mod 5\u2069 · זוג זר',
+      chipSharesFactor: '\u20662 mod 4 · 3 mod 6\u2069 · חולקים גורם',
+      extToggleLabel: 'חשיפת השיטה המהירה יותר — בנו את התשובה ישירות באמצעות האלגוריתם האוקלידי המורחב במקום לחפש אותה',
+      stripGroupLabel: 'רצועות של מחלקות שארית, ניתנות לגלילה',
+      constructLede: 'חלקו את הטווח לחלק אחד לכל שקילות, הפכו כל חלק ביחס למודולוס שלו, הכפילו בשארית של אותה שקילות, חברו את החלקים ואז צמצמו.',
+      tableHeaderY: 'y (הופכי)',
+      tableHeaderTerm: '\u2066איבר = a · M · y\u2069',
+      caption: 'התשובה חוזרת לנצח עם מחזור {0} — העמודה המסומנת היא נציג אחד של משפחה אינסופית של פתרונות.',
+      allAgreeLabel: 'כולם מסכימים',
+      errModulusWhole: 'שורה {idx}: המודולוס חייב להיות מספר שלם.',
+      errModulusRange: 'שורה {idx}: המודולוס חייב להיות בין {min} ל-{max}.',
+      errRemainderWhole: 'שורה {idx}: השארית חייבת להיות מספר שלם.',
+      errRemainderRange: 'שורה {idx}: השארית חייבת להיות בין 0 ל-{max} עבור מודולוס {m}.',
+      coprimeOk: 'המודולוסים זרים בזוגות — קיים פתרון בצורה סטנדרטית מודולו {span}.',
+      coprimeWarn: '\u2066gcd({x}, {y}) = {g}\u2069 — למודולוסים {x} ו-{y} יש גורם משותף, ולכן דרישת הזרות בזוגות של בניית ה-CRT הסטנדרטית אינה מתקיימת, והכלי הזה אינו מנסה לפתור מערכת כזו.',
+      spanWarn: 'המחזור המשולב \u2066lcm = {span}\u2069 גבוה ממגבלת הטווח של הכלי, {max} — הקטינו את אחד המודולוסים כדי להביא אותו מתחת ל-{max}.',
+      testingX: 'בודקים \u2066x = {x}\u2069 …',
+      diagnosticMismatchScan: 'אי-התאמה אבחונית: הסריקה נחתה על {landed} אך הבנייה חישבה {computed} — אלה חייבים תמיד להסכים.',
+      solved: 'נפתר — כל השקילויות מסכימות ב-\u2066x = {x}\u2069.',
+      diagnosticScanEnd: 'אבחון: הסריקה הגיעה לסוף המחזור ({span}) מבלי למצוא הסכמה, מה שאמור להיות בלתי אפשרי במערכת זרה בזוגות.',
+      readyToScan: 'מוכן — לחצו על הפעלה כדי לצפות בסריקה מחפשת את x.',
+      constructReasonNotCoprime: 'הבנייה דורשת שכל \u2066M_i\u2069 יהיה הפיך מודולו ה-\u2066m_i\u2069 שלו, וגורם משותף בין המודולוסים הופך זאת לבלתי אפשרי.',
+      constructReasonSpanBlocked: 'הבנייה דורשת תשובה מחושבת, ומנגנון ההגנה של מגבלת הטווח חוסם אותה.',
+      constructSumMismatch: 'אי-התאמה אבחונית: הבנייה מצטמצמת ל-{reduced} אך הפותר חישב {computed} — אלה חייבים תמיד להסכים.',
+      seeInverse: 'ראו את ההופכי ←'
     }
   });
 })();

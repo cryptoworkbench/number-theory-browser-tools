@@ -6,7 +6,7 @@
    and result message (searching, error, power-of-two, limit-reached,
    perfect-square, trivial-pair, trivial-prime, found), the factor chip's
    title, the result hint, the trail prefix, and the footer for the
-   Fermat's Method tool, in all sixteen supported languages.
+   Fermat's Method tool, in all seventeen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in
@@ -781,6 +781,53 @@
       resultFound: 'Βρέθηκε στη δοκιμή {strongTrial}: a = {a}, b = {b}.',
       resultHint: 'Πάτα σε οποιονδήποτε παράγοντα παραπάνω για να τρέξεις ξανά τη μέθοδο σε αυτόν.',
       trailPrefix: 'Διαδρομή:'
+    },
+    he: {
+      title: 'שיטת פרמה — המחשה אינטראקטיבית',
+      heading: 'שיטת פרמה',
+      lede: 'שיטת פרמה: כל מספר אי-זוגי N אפשר לכתוב כהפרש של שני ריבועים, \u2066N = a² − b²\u2069. מצאו את \u2066b²\u2069 הנכון כדי "להשלים ריבוע" של N, והפירוק \u2066(a−b)(a+b) = N\u2069 נופל החוצה — עם תמונה שמוכיחה אותו.',
+      mathNote: 'אנו מחפשים \u2066a = ⌈√N⌉, ⌈√N⌉+1, …\u2069 עד ש-\u2066a² − N\u2069 עצמו הוא ריבוע שלם \u2066b²\u2069.',
+      nLabel: 'מספר לפירוק (N)',
+      factorize: 'פירוק',
+      statTryingA: 'בודקים את a',
+      statASqLabel: 'a²',
+      statRLabel: 'r = a² − N',
+      statHitLabel: '\u2066√r\u2069 שלם?',
+      statTrialNumber: 'ניסיון #',
+      searchLogHeading: 'יומן החיפוש',
+      tableSquareHeader: 'ריבוע?',
+      diagramHeading: 'תמונה גאומטרית',
+      replay: 'הפעלה חוזרת',
+      legendStays: '{0} נשאר במקומו (\u2066a × (a−b)\u2069)',
+      legendSlides: '{0} מחליק למקומו (\u2066(a−b) × b\u2069)',
+      legendRemoved: '{0} פינה שהוסרה (\u2066b²\u2069)',
+      legendFinal: '{0} סופי \u2066(a+b) × (a−b)\u2069',
+      footer: 'כל החישובים מתבצעים בצד הלקוח, בדפדפן שלכם. החיפוש מוגבל ל-20,000 ניסיונות כדי להישאר מגיב — חלק מהמספרים הראשוניים שאין להם ריבוע קרוב יגיעו למגבלה הזו.',
+      'chip.closestPair': 'הזוג הקרוב ביותר — נמצא בניסיון אחד',
+      'chip.balancedFactorsQuick': 'גורמים מאוזנים, מציאה מהירה',
+      'chip.perfectSquare': 'ריבוע שלם, \u2066{a} × {a}\u2069',
+      'chip.evenStrips': 'זוגי — מסירים קודם את {pow}',
+      'chip.primeTrivial': 'ראשוני — רק הזוג הטריוויאלי',
+      cellYes: '✓ כן',
+      cellNo: '✗ לא',
+      statHitYes: 'כן ({b})',
+      statHitNo: 'לא',
+      factorChipTitle: 'פירוק נוסף של המספר הזה',
+      diagramPerfectSquareCaption: '\u2066{a}² = {aSq}\u2069 — N הוא ריבוע שלם, \u2066N = {a} × {a}\u2069',
+      errEnterInteger: 'הזינו מספר שלם של לפחות 2.',
+      searchingPlain: 'מחפשים a כך ש-\u2066a² − {m}\u2069 הוא ריבוע שלם…',
+      kNote: '(\u2066N = 2{kSup} × {m}\u2069, תוך הסרה ראשונה של גורמי 2)',
+      searchingWithK: 'מחפשים a כך ש-\u2066a² − {m}\u2069 הוא ריבוע שלם {kNoteSpan}…',
+      resultPowerOfTwo: '\u2066N = 2{kSup}\u2069. החלק האי-זוגי הוא 1, ולכן לא נשאר ריבוע להשלמה — 2 כבר ראשוני.',
+      resultLimitErr: 'הגעה למגבלת החיפוש ({iter} ניסיונות)',
+      resultLimit: '{errSpan} מבלי למצוא ריבוע שלם. לחלק האי-זוגי {m} כנראה יש גורמים לא מאוזנים במיוחד (או שהוא ראשוני) — נסו מספר קטן יותר.',
+      resultPerfectSquare: '{strongM} הוא ריבוע שלם: \u2066{a} × {a}\u2069.',
+      resultTrivial: 'נמצא רק הזוג הטריוויאלי \u2066(1, {m})\u2069.',
+      resultPrimeStrong: '{m} הוא ראשוני',
+      resultTrivialPrime: 'נמצא רק הזוג הטריוויאלי \u2066(1, {m})\u2069 — {strongPrime}.',
+      resultFound: 'נמצא בניסיון {strongTrial}: \u2066a = {a}, b = {b}\u2069.',
+      resultHint: 'לחצו על כל גורם שלמעלה כדי להריץ עליו שוב את השיטה.',
+      trailPrefix: 'מסלול:'
     }
   });
 })();
