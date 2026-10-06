@@ -1973,7 +1973,7 @@ function checkSwitcherPresentMode(targets) {
 
 /* ---------- --includes ---------- */
 
-var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n"];
+var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n", "picker"];
 
 function checkIncludes(targets) {
   var findings = [];

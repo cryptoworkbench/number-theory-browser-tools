@@ -39,7 +39,7 @@ function getExportedNames() {
 // plans add, watched pre-emptively so a tool doesn't shadow them early).
 var CONSTANT_NAMES = ["SVG_NS", "FERMAT_MAX_ITER", "TILE_CAP", "BALANCED_MAX_N", "SHARED_GROUP_KEY", "SHARED_AB_KEY", "SHARED_PALETTE_KEY", "SHARED_PALETTE_MAX", "SHARED_PALETTE_MAX_N", "SUPPORTED_LANGS", "LANG_STORAGE_KEY"];
 
-var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n"];
+var CANONICAL_NS_ORDER = ["core", "bigint", "svg", "store", "layout", "i18n", "picker"];
 
 // Per-file retired-name table (07-RESEARCH.md Name-Collision / Shadowing
 // Risk Summary). Keyed by tool directory name.
@@ -196,7 +196,7 @@ function getIncludes(html) {
   return tags.map(function (t) {
     var src = attrVal(t.attrs, "src") || "";
     // [a-z0-9]+ (not [a-z]+) so "nt-i18n.js" matches — a digit-only module
-    // suffix is unique to i18n among the six shared modules, but the
+    // suffix is unique to i18n among the shared modules, but the
     // pattern is written generically rather than special-cased.
     var ntMatch = /assets\/(nt-[a-z0-9]+)\.js$/.exec(src);
     var i18nDataMatch = /assets\/i18n\/[a-zA-Z0-9-]+\.js$/.exec(src);
@@ -254,7 +254,7 @@ function analyzeFile(relPath) {
 
   // ---- imports ----
   // [A-Za-z0-9]+ (not [A-Za-z]+) so "NT.i18n" — the only digit-bearing
-  // namespace among the six shared modules — matches.
+  // namespace among the shared modules — matches.
   var importRe = /const\s*\{\s*([^}]+)\s*\}\s*=\s*NT\.([A-Za-z0-9]+)\s*;/g;
   var imports = [];
   var im;
@@ -340,6 +340,11 @@ function analyzeFile(relPath) {
   if (includedNs.layout && !includedNs.core) {
     findings.push("INCLUDE-MISSING " + relPath + " nt-layout included without nt-core");
   }
+  if (includedNs.picker) {
+    ["bigint", "store", "i18n"].forEach(function (dep) {
+      if (!includedNs[dep]) findings.push("INCLUDE-MISSING " + relPath + " nt-picker included without nt-" + dep);
+    });
+  }
 
   // A page's own assets/i18n/<name>.js data includes require nt-i18n.js
   // and must not sit before it (data registers against NT.i18n.register,
@@ -386,6 +391,7 @@ function analyzeFile(relPath) {
   ntIncludes.forEach(function (inc) { usedNsInIncludes[inc.ns] = true; });
   Object.keys(usedNsInIncludes).forEach(function (ns) {
     if (ns === "core" && includedNs.layout) return; // nt-core accompanying nt-layout is allowed unused
+    if ((ns === "bigint" || ns === "store") && includedNs.picker) return; // nt-picker.js calls into these itself
     if (ns === "i18n") return; // nt-i18n.js self-initializes the header/static markup even when nothing is imported from it
     if (!importedNames || !Object.keys(importedNames).some(function (n) { return importedNames[n] === ns; })) {
       findings.push("UNUSED-INCLUDE " + relPath + " NT." + ns);

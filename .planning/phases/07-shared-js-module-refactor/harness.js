@@ -145,7 +145,7 @@ function loadNew(options) {
   if (options.preamble) {
     vm.runInContext(options.preamble, context);
   }
-  var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js", "nt-i18n.js"];
+  var moduleOrder = ["nt-core.js", "nt-bigint.js", "nt-svg.js", "nt-store.js", "nt-layout.js", "nt-i18n.js", "nt-picker.js"];
   var exclude = options.exclude || [];
   moduleOrder.forEach(function (fname) {
     if (exclude.indexOf(fname) !== -1) return;

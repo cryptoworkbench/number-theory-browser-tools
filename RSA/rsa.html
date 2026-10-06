@@ -285,8 +285,8 @@
       <span class="sub" data-i18n="rsa.step1Sub">pick two primes</span></div>
     <div class="avatar-row"><div class="avatar bob" aria-hidden="true"></div><div class="name bob">Bob</div></div>
     <div class="field-row">
-      <div class="field"><label for="bob-p" data-i18n="rsa.primePLabel">Prime p</label><input id="bob-p" type="text" inputmode="numeric" value="61"></div>
-      <div class="field"><label for="bob-q" data-i18n="rsa.primeQLabel">Prime q</label><input id="bob-q" type="text" inputmode="numeric" value="53"></div>
+      <div class="field"><label for="bob-p" data-i18n="rsa.primePLabel">Prime p</label><div class="prime-pop-field"><input id="bob-p" type="text" inputmode="numeric" value="61"><button type="button" class="prime-pop-trigger" id="bob-p-pick" aria-label="Pick a prime from the palette" data-i18n-aria-label="common.primePickerOpen" title="Pick a prime from the palette" data-i18n-title="common.primePickerOpen"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="4" cy="7" r="2.4"/><circle cx="10" cy="7" r="2.4"/><circle cx="16" cy="7" r="2.4"/><circle cx="4" cy="13" r="2.4"/><circle cx="10" cy="13" r="2.4"/><circle cx="16" cy="13" r="2.4"/></svg></button></div></div>
+      <div class="field"><label for="bob-q" data-i18n="rsa.primeQLabel">Prime q</label><div class="prime-pop-field"><input id="bob-q" type="text" inputmode="numeric" value="53"><button type="button" class="prime-pop-trigger" id="bob-q-pick" aria-label="Pick a prime from the palette" data-i18n-aria-label="common.primePickerOpen" title="Pick a prime from the palette" data-i18n-title="common.primePickerOpen"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="4" cy="7" r="2.4"/><circle cx="10" cy="7" r="2.4"/><circle cx="16" cy="7" r="2.4"/><circle cx="4" cy="13" r="2.4"/><circle cx="10" cy="13" r="2.4"/><circle cx="16" cy="13" r="2.4"/></svg></button></div></div>
       <button class="primary bob" id="bob-gen-btn" data-i18n="rsa.genKeypairBtn" data-i18n-params='{"0":"Bob"}'>Generate Bob's Keypair</button>
     </div>
     <div class="error-box" id="bob-error"></div>
@@ -299,8 +299,8 @@
       <span class="sub" data-i18n="rsa.step2Sub">pick two <em data-i18n="rsa.differentWord">different</em> primes</span></div>
     <div class="avatar-row"><div class="avatar alice" aria-hidden="true"></div><div class="name alice">Alice</div></div>
     <div class="field-row">
-      <div class="field"><label for="alice-p" data-i18n="rsa.primePLabel">Prime p</label><input id="alice-p" type="text" inputmode="numeric" value="17"></div>
-      <div class="field"><label for="alice-q" data-i18n="rsa.primeQLabel">Prime q</label><input id="alice-q" type="text" inputmode="numeric" value="23"></div>
+      <div class="field"><label for="alice-p" data-i18n="rsa.primePLabel">Prime p</label><div class="prime-pop-field"><input id="alice-p" type="text" inputmode="numeric" value="17"><button type="button" class="prime-pop-trigger" id="alice-p-pick" aria-label="Pick a prime from the palette" data-i18n-aria-label="common.primePickerOpen" title="Pick a prime from the palette" data-i18n-title="common.primePickerOpen"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="4" cy="7" r="2.4"/><circle cx="10" cy="7" r="2.4"/><circle cx="16" cy="7" r="2.4"/><circle cx="4" cy="13" r="2.4"/><circle cx="10" cy="13" r="2.4"/><circle cx="16" cy="13" r="2.4"/></svg></button></div></div>
+      <div class="field"><label for="alice-q" data-i18n="rsa.primeQLabel">Prime q</label><div class="prime-pop-field"><input id="alice-q" type="text" inputmode="numeric" value="23"><button type="button" class="prime-pop-trigger" id="alice-q-pick" aria-label="Pick a prime from the palette" data-i18n-aria-label="common.primePickerOpen" title="Pick a prime from the palette" data-i18n-title="common.primePickerOpen"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="4" cy="7" r="2.4"/><circle cx="10" cy="7" r="2.4"/><circle cx="16" cy="7" r="2.4"/><circle cx="4" cy="13" r="2.4"/><circle cx="10" cy="13" r="2.4"/><circle cx="16" cy="13" r="2.4"/></svg></button></div></div>
       <button class="primary alice" id="alice-gen-btn" data-i18n="rsa.genKeypairBtn" data-i18n-params='{"0":"Alice"}'>Generate Alice's Keypair</button>
     </div>
     <div class="error-box" id="alice-error"></div>
@@ -352,7 +352,9 @@
 </div>
 
 <script src="../assets/nt-bigint.js"></script>
+<script src="../assets/nt-store.js"></script>
 <script src="../assets/nt-i18n.js"></script>
+<script src="../assets/nt-picker.js"></script>
 <script src="../assets/i18n/site.js"></script>
 <script src="../assets/i18n/rsa.js"></script>
 <script>
@@ -361,6 +363,7 @@
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { bigGcd, fmt, isPrimeBig, modPowPlain, parseBigIntStrict, scratchNum } = NT.bigint;
 const { bindText, onLangChange, translate, translateInto } = NT.i18n;
+const { attachPrimePicker } = NT.picker;
 
 /* Extended Euclidean algorithm, iterative table form: a*x + b*y = gcd(a,b) */
 function extendedGcdSteps(a, b){
@@ -1398,6 +1401,11 @@ function initScratchpad(){
 
 document.getElementById('bob-gen-btn').addEventListener('click', () => generateKeys('bob','Bob'));
 document.getElementById('alice-gen-btn').addEventListener('click', () => generateKeys('alice','Alice'));
+
+// RSA needs odd primes >= 3 (rsa.errOddPrimes); Generate stays the commit action, so there is no onPick.
+['bob-p', 'bob-q', 'alice-p', 'alice-q'].forEach((id) => {
+  attachPrimePicker(document.getElementById(id), document.getElementById(id + '-pick'), { min: 3 });
+});
 initScratchpad();
 
 // One onLangChange registration (P7) for the whole page, extended by Task 3
