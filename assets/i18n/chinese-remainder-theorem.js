@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all seventeen supported languages.
+   tool, in all eighteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all seventeen languages. Must load after assets/nt-i18n.js and
+   across all eighteen languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -651,6 +651,43 @@
       constructReasonSpanBlocked: 'הבנייה דורשת תשובה מחושבת, ומנגנון ההגנה של מגבלת הטווח חוסם אותה.',
       constructSumMismatch: 'אי-התאמה אבחונית: הבנייה מצטמצמת ל-{reduced} אך הפותר חישב {computed} — אלה חייבים תמיד להסכים.',
       seeInverse: 'ראו את ההופכי ←'
+    },
+    hi: {
+      title: 'चीनी शेषफल प्रमेय',
+      heading: 'चीनी शेषफल प्रमेय',
+      lede: 'हर सर्वांगसमता अपने-आप में समान अंतराल वाली संख्याओं का एक परिवार चुनती है — हर तीसरी संख्या, हर पाँचवीं संख्या, और इसी तरह। जब मापांकों में कोई उभयनिष्ठ गुणनखंड नहीं होता, तब ये परिवार हर {0} संख्याओं के विस्तार में ठीक एक जगह मिलते हैं। वही एकल मिलन-बिंदु वह युगपत हल है जिस पर हर पंक्ति सहमत होती है।',
+      xref: 'पहली सर्वांगसमता का मापांकीय प्रतिलोम चरण-दर-चरण कैसे निकाला जाता है, यह यूक्लिड के एल्गोरिथ्म उपकरण में देखें →',
+      countGroupLabel: 'सर्वांगसमताओं की संख्या',
+      countTwo: 'दो सर्वांगसमताएँ',
+      countThree: 'तीन सर्वांगसमताएँ',
+      remainderLabel: 'शेषफल a',
+      modulusLabel: 'मापांक m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · सुन त्ज़ु की पहेली',
+      chipCoprime: '2 mod 3 · 3 mod 5 · सह-अभाज्य जोड़ी',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · एक गुणनखंड साझा',
+      extToggleLabel: 'तेज़ विधि दिखाएँ — उत्तर को खोजने के बजाय विस्तारित यूक्लिड एल्गोरिथ्म से सीधे बनाएँ',
+      stripGroupLabel: 'अवशेष वर्ग पट्टियाँ, स्क्रॉल करने योग्य',
+      constructLede: 'विस्तार को हर सर्वांगसमता के लिए एक टुकड़े में बाँटें, हर टुकड़े का उसके अपने मापांक के सापेक्ष प्रतिलोम लें, उस सर्वांगसमता के शेषफल से गुणा करें, सभी टुकड़े जोड़ें, फिर मापांक के सापेक्ष घटाएँ।',
+      tableHeaderY: 'y (प्रतिलोम)',
+      tableHeaderTerm: 'पद = a · M · y',
+      caption: 'उत्तर {0} के आवर्त के साथ हमेशा दोहराता रहता है — चिह्नित स्तंभ हलों के एक अनंत परिवार का एक प्रतिनिधि है।',
+      allAgreeLabel: 'सब सहमत',
+      errModulusWhole: 'पंक्ति {idx}: मापांक पूर्ण संख्या होना चाहिए।',
+      errModulusRange: 'पंक्ति {idx}: मापांक {min} और {max} के बीच होना चाहिए।',
+      errRemainderWhole: 'पंक्ति {idx}: शेषफल पूर्ण संख्या होना चाहिए।',
+      errRemainderRange: 'पंक्ति {idx}: मापांक {m} के लिए शेषफल 0 से {max} तक होना चाहिए।',
+      coprimeOk: 'मापांक युग्मानुसार सह-अभाज्य हैं — मापांक {span} के सापेक्ष मानक रूप का एक हल मौजूद है।',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — मापांक {x} और {y} एक गुणनखंड साझा करते हैं, इसलिए मानक रूप की CRT रचना की युग्मानुसार सह-अभाज्य होने की शर्त पूरी नहीं होती और यह उपकरण इस निकाय को हल करने का प्रयास नहीं करता।',
+      spanWarn: 'संयुक्त आवर्त lcm = {span} इस उपकरण की विस्तार-सीमा {max} से ऊपर है — उसे {max} से नीचे लाने के लिए किसी एक मापांक को घटाएँ।',
+      testingX: 'x = {x} जाँचा जा रहा है …',
+      diagnosticMismatchScan: 'जाँच में असंगति: स्कैन {landed} पर पहुँचा पर रचना ने {computed} निकाला — इन्हें हमेशा बराबर होना चाहिए।',
+      solved: 'हल हुआ — x = {x} पर हर सर्वांगसमता सहमत है।',
+      diagnosticScanEnd: 'जाँच: स्कैन बिना कोई मेल पाए आवर्त ({span}) के अंत तक पहुँच गया, जो युग्मानुसार सह-अभाज्य निकाय के लिए असंभव होना चाहिए।',
+      readyToScan: 'तैयार — x की खोज करता स्कैन देखने के लिए "चलाएँ" दबाएँ।',
+      constructReasonNotCoprime: 'रचना के लिए हर M_i का अपने m_i के सापेक्ष प्रतिलोम होना ज़रूरी है, जिसे मापांकों के बीच कोई साझा गुणनखंड असंभव बना देता है।',
+      constructReasonSpanBlocked: 'रचना के लिए एक परिकलित उत्तर चाहिए, और विस्तार-सीमा की रोक उसे बाधित कर रही है।',
+      constructSumMismatch: 'जाँच में असंगति: रचना {reduced} पर घटती है पर हलकर्ता ने {computed} निकाला — इन्हें हमेशा बराबर होना चाहिए।',
+      seeInverse: 'प्रतिलोम देखें →'
     }
   });
 })();

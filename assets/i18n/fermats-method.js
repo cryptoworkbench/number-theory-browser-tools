@@ -6,7 +6,7 @@
    and result message (searching, error, power-of-two, limit-reached,
    perfect-square, trivial-pair, trivial-prime, found), the factor chip's
    title, the result hint, the trail prefix, and the footer for the
-   Fermat's Method tool, in all seventeen supported languages.
+   Fermat's Method tool, in all eighteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in
@@ -828,6 +828,53 @@
       resultFound: 'נמצא בניסיון {strongTrial}: \u2066a = {a}, b = {b}\u2069.',
       resultHint: 'לחצו על כל גורם שלמעלה כדי להריץ עליו שוב את השיטה.',
       trailPrefix: 'מסלול:'
+    },
+    hi: {
+      title: 'फ़र्मा की विधि — इंटरैक्टिव विज़ुअलाइज़र',
+      heading: 'फ़र्मा की विधि',
+      lede: 'फ़र्मा की विधि: हर विषम संख्या N को दो वर्गों के अंतर के रूप में लिखा जा सकता है, N = a² − b²। N का "वर्ग पूरा करने" के लिए सही b² खोजें, और गुणनखंडन (a−b)(a+b) = N अपने आप निकल आता है — साथ में उसे सिद्ध करता एक चित्र भी।',
+      mathNote: 'हम a = ⌈√N⌉, ⌈√N⌉+1, … तब तक खोजते हैं जब तक a² − N स्वयं पूर्ण वर्ग b² न बन जाए।',
+      nLabel: 'गुणनखंड करने के लिए संख्या (N)',
+      factorize: 'गुणनखंड करें',
+      statTryingA: 'आज़माया जा रहा a',
+      statASqLabel: 'a²',
+      statRLabel: 'r = a² − N',
+      statHitLabel: '√r पूर्ण वर्ग?',
+      statTrialNumber: 'परीक्षण #',
+      searchLogHeading: 'खोज लॉग',
+      tableSquareHeader: 'वर्ग?',
+      diagramHeading: 'ज्यामितीय चित्र',
+      replay: 'फिर से चलाएँ',
+      legendStays: '{0} अपनी जगह रहता है (a × (a−b))',
+      legendSlides: '{0} अपनी जगह खिसकता है ((a−b) × b)',
+      legendRemoved: '{0} हटाया गया कोना (b²)',
+      legendFinal: '{0} अंतिम (a+b) × (a−b)',
+      footer: 'सारी गणना आपके ब्राउज़र में ही चलती है। खोज को प्रतिक्रियाशील रखने के लिए 20,000 परीक्षणों पर सीमित है — जिन अभाज्य संख्याओं के पास कोई निकट वर्ग नहीं होता, वे इस सीमा तक पहुँच जाएँगी।',
+      'chip.closestPair': 'सबसे निकट जोड़ी — 1 परीक्षण में मिली',
+      'chip.balancedFactorsQuick': 'संतुलित गुणनखंड, झट से मिलते हैं',
+      'chip.perfectSquare': 'पूर्ण वर्ग, {a} × {a}',
+      'chip.evenStrips': 'सम — पहले {pow} अलग किया जाता है',
+      'chip.primeTrivial': 'अभाज्य — केवल तुच्छ जोड़ी',
+      cellYes: '✓ हाँ',
+      cellNo: '✗ नहीं',
+      statHitYes: 'हाँ ({b})',
+      statHitNo: 'नहीं',
+      factorChipTitle: 'इस संख्या का और गुणनखंडन करें',
+      diagramPerfectSquareCaption: '{a}² = {aSq} — N एक पूर्ण वर्ग है, N = {a} × {a}',
+      errEnterInteger: 'कम से कम 2 का कोई पूर्णांक दर्ज करें।',
+      searchingPlain: 'वह a खोजा जा रहा है जिसके लिए a² − {m} पूर्ण वर्ग हो…',
+      kNote: '(N = 2{kSup} × {m}, पहले 2 के गुणनखंड हटाकर)',
+      searchingWithK: 'वह a खोजा जा रहा है जिसके लिए a² − {m} पूर्ण वर्ग हो {kNoteSpan}…',
+      resultPowerOfTwo: 'N = 2{kSup}। विषम भाग 1 है, इसलिए पूरा करने के लिए कोई वर्ग नहीं बचा — 2 पहले से ही अभाज्य है।',
+      resultLimitErr: 'खोज की सीमा पूरी हो गई ({iter} परीक्षण)',
+      resultLimit: '{errSpan} और कोई पूर्ण वर्ग नहीं मिला। विषम भाग {m} के गुणनखंड संभवतः बहुत असंतुलित हैं (या वह अभाज्य है) — कोई छोटी संख्या आज़माएँ।',
+      resultPerfectSquare: '{strongM} एक पूर्ण वर्ग है: {a} × {a}।',
+      resultTrivial: 'केवल तुच्छ जोड़ी (1, {m}) मिली।',
+      resultPrimeStrong: '{m} अभाज्य है',
+      resultTrivialPrime: 'केवल तुच्छ जोड़ी (1, {m}) मिली — {strongPrime}।',
+      resultFound: 'परीक्षण {strongTrial} पर मिल गया: a = {a}, b = {b}।',
+      resultHint: 'इस विधि को उस पर फिर से चलाने के लिए ऊपर दिए किसी भी गुणनखंड पर क्लिक करें।',
+      trailPrefix: 'पथ:'
     }
   });
 })();

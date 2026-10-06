@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all seventeen supported languages.
+   tool, in all eighteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   seventeen languages. Must load after assets/nt-i18n.js and
+   eighteen languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -930,6 +930,45 @@
       nestedTileTitle: 'צעד {step}: \u2066{a} = {q}·{b} + {r}\u2069',
       nestedTileTitleCapped: 'צעד {step}: \u2066{a} = {q}·{b} + {r}\u2069 ({extra} ריבועים נוספים מכווצים כאן)',
       tileEmptyMessage: 'אין מלבן לחיתוך — b כבר שווה ל-0, ולכן האלגוריתם כבר הסתיים.'
+    },
+    hi: {
+      title: 'यूक्लिड का एल्गोरिथ्म',
+      heading: 'यूक्लिड का एल्गोरिथ्म',
+      lede: 'जोड़ी (a, b) को बार-बार (b, a mod b) से बदलें — बड़ी संख्या को छोटी से भाग दें और केवल शेषफल रखें — और हर चरण में जोड़ी सिकुड़ती जाती है। जिस क्षण एक पक्ष शून्य पर पहुँचता है, दूसरा पक्ष उन दोनों संख्याओं का महत्तम समापवर्तक होता है जिनसे आपने शुरुआत की थी।',
+      xref: 'वही महत्तम समापवर्तक उन अभाज्य संख्याओं के रूप में भी देखा जा सकता है जो दोनों संख्याओं में साझा हैं →',
+      chipFiveSteps: '240, 46 · 5 चरण',
+      chipCoprime: '35, 18 · सह-अभाज्य',
+      chipBDividesA: '144, 12 · b, a को विभाजित करता है',
+      chipEqualPair: '36, 36 · बराबर जोड़ी',
+      chipAlreadyDone: '17, 0 · पहले से पूर्ण',
+      chipFibonacciWorst: '89, 55 · फ़िबोनाची की सबसे बुरी स्थिति',
+      chipHugeQuotient: '500000, 2 · बहुत बड़ा भागफल',
+      run: 'शुरू करें',
+      extToggleLabel: 'विस्तारित यूक्लिड मोड — बेज़ू गुणांक {0} और {1} दिखाएँ',
+      errBothWhole: 'a और b दोनों पूर्ण संख्याएँ होनी चाहिए।',
+      errBothNonNegative: 'a और b दोनों शून्य या धनात्मक होने चाहिए — यहाँ ऋणात्मक संख्याओं का महत्तम समापवर्तक परिभाषित नहीं है।',
+      errGcdZeroZero: 'gcd(0, 0) अपरिभाषित है — कम से कम एक अशून्य मान दर्ज करें।',
+      errClamped: 'इनपुट अधिकतम {max} तक सीमित हैं — बड़े मान को घटाकर सीमा में कर दिया गया।',
+      swapNote: 'बड़ा मान पहले रखा जाता है: ({a}, {b}) के रूप में दर्ज किया गया, gcd({A}, {B}) के रूप में चलाया गया — महत्तम समापवर्तक अपने तर्कों में सममित है।',
+      bannerReady: 'तैयार — व्युत्पत्ति को एक-एक पंक्ति करके बनते देखने के लिए "चलाएँ" दबाएँ।',
+      bannerDone: { one: 'पूर्ण — महत्तम समापवर्तक तक पहुँचने में {n} चरण लगा।', other: 'पूर्ण — महत्तम समापवर्तक तक पहुँचने में {n} चरण लगे।' },
+      chainNoteZero: 'b पहले से ही 0 है, इसलिए भाग देने को कुछ बचा नहीं — a पहले से ही महत्तम समापवर्तक है।',
+      extCaption: 'हर पंक्ति के {0} और {1} उस पंक्ति के शेषफल को दोनों मूल इनपुट के एक संयोजन के रूप में व्यक्त करते हैं — {2}।',
+      viewNested: 'समाए हुए वर्ग',
+      geomViewGroupLabel: 'ज्यामितीय दृश्य मोड',
+      viewStep: 'एकल चरण',
+      tileAriaDefault: 'वर्तमान भाग-चरण का आयत दृश्य',
+      nestedAriaDefault: 'सभी भाग-चरण एक ही आयत में समाए हुए',
+      caption: 'लगातार फ़िबोनाची संख्याएँ इस एल्गोरिथ्म के लिए सबसे बुरी स्थिति हैं — वे अपने आकार के हिसाब से सबसे अधिक भाग-चरण करवाती हैं।',
+      tileCaptionExact: { one: '{total} में से चरण {index}: {a} ÷ {b}: आयत भुजा {b} के {q} वर्ग से बिल्कुल ढक जाता है — कुछ नहीं बचता, इसलिए {b} महत्तम समापवर्तक है।', other: '{total} में से चरण {index}: {a} ÷ {b}: आयत भुजा {b} के {q} वर्गों से बिल्कुल ढक जाता है — कुछ नहीं बचता, इसलिए {b} महत्तम समापवर्तक है।' },
+      tileCaptionLeftover: { one: '{total} में से चरण {index}: {a} = {q}×{b} + {r}: भुजा {b} का {q} वर्ग समाता है, और {b}×{r} का बचा हुआ भाग रह जाता है।', other: '{total} में से चरण {index}: {a} = {q}×{b} + {r}: भुजा {b} के {q} वर्ग समाते हैं, और {b}×{r} का बचा हुआ भाग रह जाता है।' },
+      tileNoteCapped: 'वास्तविक भागफल {q} है — यहाँ केवल पहले {cap} वर्ग बनाए गए हैं; शेष {rest} नामांकित टाइल में समेट दिए गए हैं, इसलिए खींची गई चौड़ाई पैमाने के अनुसार नहीं है।',
+      nestedEmptyMessage: 'समाने के लिए कोई आयत नहीं है — b पहले से ही 0 है, इसलिए एल्गोरिथ्म पहले ही पूरा हो चुका है।',
+      nestedCaption: { one: 'gcd({A}, {B}) = {gcd}: {n} चरण एक {A}×{B} आयत में समा जाता है — सबसे छोटे, {lastB}×{lastB} वर्ग ही महत्तम समापवर्तक हैं। किसी वर्ग पर (या ऊपर किसी चरण पर) क्लिक करके देखें कि वे कैसे बैठते हैं।', other: 'gcd({A}, {B}) = {gcd}: सभी {n} चरण एक {A}×{B} आयत में समा जाते हैं — सबसे छोटे, {lastB}×{lastB} वर्ग ही महत्तम समापवर्तक हैं। किसी वर्ग पर (या ऊपर किसी चरण पर) क्लिक करके देखें कि वे कैसे बैठते हैं।' },
+      nestedNoteCapped: { one: 'चरण {stepNums} का भागफल बहुत बड़ा है — वहाँ केवल पहले {cap} वर्ग बनाए गए हैं, जिन्हें एक डैश वाली टाइल में समेट दिया गया है, इसलिए उस चरण पर यह आरेख पूरी तरह पैमाने के अनुसार नहीं है।', other: 'चरण {stepNums} के भागफल बहुत बड़े हैं — वहाँ केवल पहले {cap} वर्ग बनाए गए हैं, जिन्हें एक डैश वाली टाइल में समेट दिया गया है, इसलिए उन चरणों पर यह आरेख पूरी तरह पैमाने के अनुसार नहीं है।' },
+      nestedTileTitle: 'चरण {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'चरण {step}: {a} = {q}·{b} + {r} (यहाँ {extra} और वर्ग समेटे गए)',
+      tileEmptyMessage: 'काटने के लिए कोई आयत नहीं है — b पहले से ही 0 है, इसलिए एल्गोरिथ्म पहले ही पूरा हो चुका है।'
     }
   });
 })();

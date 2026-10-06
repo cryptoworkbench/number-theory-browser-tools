@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all seventeen supported languages. title and heading equal
+   Tree tool, in all eighteen supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all seventeen languages. The factorization itself (the equation/tree
+   across all eighteen languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -794,6 +794,51 @@
       binLabel: 'פח: גררו עיגול לכאן כדי להסיר אותו מהפלטה',
       emptyPaletteLabel: 'מחיקת הכול: ריקון הפלטה',
       msgPaletteEmptied: 'הפלטה רוקנה.'
+    },
+    hi: {
+      title: 'गुणनखंड वृक्ष',
+      heading: 'गुणनखंड वृक्ष',
+      eyebrow: 'अभाज्य संख्याएँ और विभाज्यता',
+      subtitle: 'पैलेट में कोई संख्या जोड़ें, उसके वृत्त को संयोजन/गुणनखंडन क्षेत्र में खींचें, फिर + दबाएँ और उसे शाखा-दर-शाखा खुलते देखें — उसके अभाज्य पत्तों तक।',
+      modeLabel: 'वृक्ष मोड',
+      modeClassic: 'क्लासिक',
+      modeBalanced: 'संतुलित',
+      placeholder: 'उदा. 60',
+      randomize: 'यादृच्छिक बनाएँ',
+      footnote: 'हर अभाज्य पत्ता अपना एक आख़िरी विभाजन पाता है: P = P × 1।',
+      balancedNote: 'संतुलित मोड हर चरण पर सबसे समान रूप से बँटी गुणनखंड जोड़ी खोजने के लिए फ़र्मा की विधि का उपयोग करता है, और इसे तुरंत चलाए रखने के लिए 1,000,000 से छोटी संख्याओं तक सीमित रखा गया है। कुछ संख्याएँ — जैसे एक छोटी अभाज्य संख्या गुणा एक बड़ी — फिर भी असमान रूप से बँटती हैं; यह कोई बग नहीं, बस गणित है।',
+      msgEmpty: 'कृपया पहले कोई संख्या दर्ज करें।',
+      msgInvalid: 'कृपया 1 या उससे बड़ी कोई पूर्ण संख्या दर्ज करें।',
+      msgTooLargeBalanced: 'यह संख्या संतुलित मोड के लिए बहुत बड़ी है — 1,000,000 से छोटी कोई संख्या आज़माएँ, या बड़ी संख्याओं के लिए क्लासिक मोड पर जाएँ।',
+      msgTooLargeClassic: 'यह संख्या इस छोटे वृक्ष के लिए बहुत बड़ी है — 1 ट्रिलियन से कम कोई संख्या आज़माएँ।',
+      msgOne: '1 न अभाज्य है न भाज्य — यह बस एक बीज है, अभी वृक्ष नहीं।',
+      msgPrime: '{n} अभाज्य है — यह केवल एक बार बँटती है, 1 × {n} में।',
+      msgFactors: '{n} को {count} अभाज्य संख्याओं में गुणनखंडित किया जाता है।',
+      mirrorLabel: '{n} के नीचे की शाखाओं को प्रतिबिंबित करें',
+      foldLabel: '{n} के गुणनखंड समेटें',
+      unfoldLabel: '{n} के गुणनखंड खोलें',
+      add: 'जोड़ें',
+      addInputLabel: 'पैलेट में जोड़ने के लिए संख्या',
+      paletteHeading: 'अभाज्य पैलेट',
+      paletteHeadingNumbers: 'संख्या पैलेट',
+      paletteItemLabel: '{n} को संयोजन/गुणनखंडन क्षेत्र में रखें',
+      workHeading: 'संयोजन/गुणनखंडन क्षेत्र',
+      workHint: 'किसी भाज्य संख्या को गुणनखंडित करने के लिए उसे खींचकर छोड़ें, या भाज्य संख्या बनाने के लिए अभाज्य संख्याओं को खींचकर छोड़ें।',
+      clear: 'साफ़ करें',
+      removeLabel: '{n} को संयोजन/गुणनखंडन क्षेत्र से हटाएँ',
+      moveLabel: 'इस पैनल को किसी दूसरे पर खींचें: बायाँ आधा भाग {n} को उसकी संख्या से गुणा करता है, दायाँ आधा भाग उनके महत्तम समापवर्तक पर उन्हें एक-दूसरे पर चढ़ाता है',
+      removeOverlapLabel: '{a} और {b} का अधिव्यापन संयोजन/गुणनखंडन क्षेत्र से हटाएँ',
+      splitOverlap: 'अलग करें',
+      splitOverlapLabel: '{a} और {b} के वृक्षों को फिर से अलग करें',
+      msgGcd: '{a} और {b} की शाखा {g} साझा है — यही उनका महत्तम समापवर्तक है।',
+      msgCoprime: '{a} और {b} सह-अभाज्य हैं — उनकी एकमात्र साझा शाखा 1 है।',
+      msgSplit: '{a} और {b} के वृक्ष फिर से अलग-अलग हैं।',
+      msgAdded: '{n} को पैलेट में जोड़ा गया।',
+      msgRemoved: '{n} को पैलेट से हटाया गया।',
+      msgPaletteFull: 'पैलेट भर गया है — इसमें अधिकतम {max} संख्याएँ रह सकती हैं।',
+      binLabel: 'कूड़ेदान: किसी वृत्त को पैलेट से हटाने के लिए उसे यहाँ खींचें',
+      emptyPaletteLabel: 'सब हटाएँ: पैलेट खाली करें',
+      msgPaletteEmptied: 'पैलेट खाली कर दिया गया।'
     }
   });
 })();
