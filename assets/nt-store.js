@@ -336,6 +336,17 @@
     return [];
   }
 
+  // writeSharedPalette(values): replaces the whole palette with a validated
+  // list (the page's Undo/Redo restore a snapshot through this). A malformed
+  // list writes nothing and returns null; otherwise returns the sorted list
+  // that was written. The persisted shape is unchanged.
+  function writeSharedPalette(values) {
+    var list = validatePalette(values);
+    if (list === null) return null;
+    writeShared(SHARED_PALETTE_KEY, list, validatePalette);
+    return list.slice();
+  }
+
   // readMigrating(key, legacyKey): Venn Diagram's legacy-key fallback
   // reader — returns the value under `key`, or copies `legacyKey`'s value
   // forward to `key` (and returns it) when `key` is absent, or null.
@@ -374,7 +385,8 @@
     loadSharedPalette: loadSharedPalette,
     addToSharedPalette: addToSharedPalette,
     removeFromSharedPalette: removeFromSharedPalette,
-    clearSharedPalette: clearSharedPalette
+    clearSharedPalette: clearSharedPalette,
+    writeSharedPalette: writeSharedPalette
   });
   // NT stays extensible so later modules can add their own namespace, but
   // this slot is locked: NT.store can never be reassigned or deleted.

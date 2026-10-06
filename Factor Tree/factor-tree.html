@@ -355,7 +355,7 @@
   /* In the add row the bin stretches from Randomize to Delete all, icon centred. */
   .palette-panel .controls .palette-tools{ flex:1 1 120px; }
   .palette-panel .controls .palette-bin{ flex:1 1 auto; width:auto; }
-  .palette-bin, .palette-empty-btn{
+  .palette-bin, .palette-empty-btn, .history-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -371,7 +371,12 @@
   .palette-empty-btn:focus{ outline:none; }
   .palette-empty-btn:focus-visible{ box-shadow:var(--ctl-focus); }
   .palette-empty-btn:disabled{ opacity:.4; cursor:default; }
-  .palette-bin svg, .palette-empty-btn svg{
+  .history-btn{ background:none; padding:0; cursor:pointer; }
+  .history-btn:hover:not(:disabled){ color:var(--accent); background:var(--accent-soft); }
+  .history-btn:focus{ outline:none; }
+  .history-btn:focus-visible{ box-shadow:var(--ctl-focus); }
+  .history-btn:disabled{ opacity:.4; cursor:default; }
+  .palette-bin svg, .palette-empty-btn svg, .history-btn svg{
     width:26px;
     height:26px;
     overflow:visible;
@@ -602,6 +607,12 @@
       <button id="paletteEmptyBtn" type="button" class="palette-empty-btn" aria-label="Delete all: empty the palette" title="Delete all: empty the palette" data-i18n-aria-label="factorTree.emptyPaletteLabel" data-i18n-title="factorTree.emptyPaletteLabel">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.5 15.5V6.5h9.5l2.5 3.5v5.5"/><path d="M12.5 9.5v3M15.5 9.5v3M18.5 9.5v3"/><path d="M9.5 9.5H6L2.5 12.5v3h1.5M8 15.5h7.5M19.5 15.5h2"/><path d="M5 12.5h3"/><circle cx="6" cy="17" r="2"/><circle cx="17.5" cy="17" r="2"/></svg>
       </button>
+      <button id="paletteUndoBtn" type="button" class="history-btn" disabled aria-label="Undo palette change" title="Undo palette change" data-i18n-aria-label="common.undoPalette" data-i18n-title="common.undoPalette">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button id="paletteRedoBtn" type="button" class="history-btn" disabled aria-label="Redo palette change" title="Redo palette change" data-i18n-aria-label="common.redoPalette" data-i18n-title="common.redoPalette">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
     </div>
   </div>
   <div id="palette" class="palette" role="group" aria-labelledby="paletteHeading"></div>
@@ -639,7 +650,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { isPrime, primeFactors, randomInt } = NT.core;
   const { easeInOutCubic, svgEl } = NT.svg;
-  const { SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, addToSharedPalette, clearSharedPalette, loadSharedPalette, readSharedPalette, removeFromSharedPalette } = NT.store;
+  const { SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, addToSharedPalette, clearSharedPalette, loadSharedPalette, readSharedPalette, removeFromSharedPalette, writeSharedPalette } = NT.store;
   const { BALANCED_MAX_N, assignTreeX, buildFactorTree, buildOverlapTree, flattenTree } = NT.layout;
   const { onLangChange, translate } = NT.i18n;
 
@@ -651,6 +662,8 @@
   const paletteHeading = document.getElementById('paletteHeading');
   const paletteBin = document.getElementById('paletteBin');
   const paletteEmptyBtn = document.getElementById('paletteEmptyBtn');
+  const paletteUndoBtn = document.getElementById('paletteUndoBtn');
+  const paletteRedoBtn = document.getElementById('paletteRedoBtn');
   const paletteEmptyNote = document.getElementById('paletteEmptyNote');
   const paletteSieveLink = document.getElementById('paletteSieveLink');
   const workArea = document.getElementById('workArea');
@@ -662,6 +675,9 @@
 
   let mode = 'classic';
   let views = [];
+  const HISTORY_MAX = 100;
+  let paletteList = [];
+  const paletteHistory = { undo:[], redo:[] };
   let drag = null;
   let dragJustEnded = false;
   const MIRROR_MS = 450;
@@ -840,6 +856,7 @@
   }
 
   function removePaletteItem(item, keyboard){
+    const before = paletteList.slice();
     const items = Array.prototype.slice.call(paletteEl.querySelectorAll('.palette-item'));
     const i = items.indexOf(item);
     const rest = items.filter(other=> other !== item);
@@ -849,6 +866,7 @@
     });
     syncPaletteHeading();
     syncPalette(removeFromSharedPalette(Number(item.getAttribute('data-n'))), false);
+    recordPalette(before);
     setMessage('factorTree.msgRemoved', { n: item.getAttribute('data-n') }, true);
     if(keyboard){
       const target = items[i + 1] || items[i - 1] || addInput;
@@ -894,7 +912,58 @@
     missing.forEach(n=> addPaletteItem(n, animate && missing.length === 1));
     sizePaletteCells();
     syncPaletteHeading();
+    paletteList = list.slice();
   }
+
+  // ---------- Undo / Redo of the palette ----------
+  // Snapshots are the palette's ascending number list, held in memory for
+  // this page load only. Undo and Redo restore one through
+  // NT.store.writeSharedPalette, then reconcile the circles to it.
+  function syncHistoryButtons(){
+    paletteUndoBtn.disabled = paletteHistory.undo.length === 0;
+    paletteRedoBtn.disabled = paletteHistory.redo.length === 0;
+  }
+
+  function pushCapped(stack, snapshot){
+    stack.push(snapshot);
+    if(stack.length > HISTORY_MAX) stack.shift();
+  }
+
+  function sameList(a, b){
+    return a.length === b.length && a.every((v, i)=> v === b[i]);
+  }
+
+  // Called after a palette gesture has synced: before is the list as it was
+  // beforehand. A gesture that changed nothing is not an undo step.
+  function recordPalette(before){
+    if(sameList(before, paletteList)) return;
+    pushCapped(paletteHistory.undo, before);
+    paletteHistory.redo.length = 0;
+    syncHistoryButtons();
+  }
+
+  function clearPaletteHistory(){
+    paletteHistory.undo.length = 0;
+    paletteHistory.redo.length = 0;
+    syncHistoryButtons();
+  }
+
+  function stepPalette(from, to, button, partner){
+    if(from.length === 0) return;
+    pushCapped(to, paletteList.slice());
+    const list = writeSharedPalette(from.pop());
+    if(list) syncPalette(list, false);
+    setMessage(null);
+    syncHistoryButtons();
+    if(button.disabled) partner.focus();
+  }
+
+  paletteUndoBtn.addEventListener('click', ()=>{
+    stepPalette(paletteHistory.undo, paletteHistory.redo, paletteUndoBtn, paletteRedoBtn);
+  });
+  paletteRedoBtn.addEventListener('click', ()=>{
+    stepPalette(paletteHistory.redo, paletteHistory.undo, paletteRedoBtn, paletteUndoBtn);
+  });
 
   syncPalette(loadSharedPalette(), false);
   if(document.fonts) document.fonts.ready.then(sizePaletteCells);
@@ -904,10 +973,16 @@
   window.addEventListener('storage', e=>{
     if(e.key !== SHARED_PALETTE_KEY) return;
     const list = readSharedPalette(e.newValue);
-    if(list) syncPalette(list, false);
+    if(!list) return;
+    syncPalette(list, false);
+    clearPaletteHistory();
   });
   window.addEventListener('pageshow', e=>{
-    if(e.persisted) syncPalette(loadSharedPalette(), false);
+    if(!e.persisted) return;
+    const list = loadSharedPalette();
+    const changed = !sameList(list, paletteList);
+    syncPalette(list, false);
+    if(changed) clearPaletteHistory();
   });
 
   // ---------- Add ----------
@@ -919,12 +994,14 @@
     if(n === 0){ setMessage('factorTree.msgInvalid'); return; }
     if(n === 1){ setMessage('factorTree.msgOne'); return; }
     if(n > capFor(mode)){ setMessage(tooLargeKey()); return; }
+    const before = paletteList.slice();
     const res = addToSharedPalette([n], false);
     if(res.added.length === 0){
       if(res.overflow > 0) setMessage('factorTree.msgPaletteFull', { max: SHARED_PALETTE_MAX });
       return;
     }
     syncPalette(res.list, true);
+    recordPalette(before);
     setMessage('factorTree.msgAdded', { n: n }, true);
     addInput.select();
   }
@@ -2120,7 +2197,9 @@
   });
 
   paletteEmptyBtn.addEventListener('click', ()=>{
+    const before = paletteList.slice();
     syncPalette(clearSharedPalette(), false);
+    recordPalette(before);
     setMessage('factorTree.msgPaletteEmptied', null, true);
     addInput.focus();
   });

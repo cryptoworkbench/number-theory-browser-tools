@@ -9,6 +9,8 @@
  * Quick task 261006-keu moved the bin and Delete all into the add row on both
  * pages: U1 now asserts the add-row placement, and sequence K (K1) asserts
  * Factor Tree's.
+ * Quick task 261006-l6v added the palette Undo and Redo buttons after Delete all
+ * on both pages: K1 (Factor Tree) and U1 (Venn) list the four-child row.
  * Never referenced by any page. Node built-ins + the in-repo harness only.
  *
  * Node side: evaluates assets/nt-store.js in a vm context with the harness's
@@ -632,7 +634,7 @@ function inPage(cfg) {
       { name: "K1 ft-palette-tools-row", fn: function () {
         var tools = document.querySelector(".palette-panel .controls .palette-tools");
         assert(tools, "no .palette-panel .controls .palette-tools");
-        same(arr(tools.children).map(function (c) { return c.id; }), ["paletteBin", "paletteEmptyBtn"], "palette-tools children");
+        same(arr(tools.children).map(function (c) { return c.id; }), ["paletteBin", "paletteEmptyBtn", "paletteUndoBtn", "paletteRedoBtn"], "palette-tools children");
         var row = document.querySelector(".palette-panel .controls");
         assert(row.lastElementChild === tools, "the tools are not the add row's last child");
         assert(tools.previousElementSibling && tools.previousElementSibling.id === "randomBtn", "the tools do not follow Randomize");
@@ -661,7 +663,7 @@ function inPage(cfg) {
         assert(btn.getAttribute("title") === T("factorTree.emptyPaletteLabel"), "title " + btn.getAttribute("title"));
         assert(!btn.disabled, "Delete all is disabled on a full palette");
         noErrors("K1");
-        return "bin stretching from Randomize to the 40x40 Delete all at the right end of Factor Tree's add row, bin icon centred, centred with the input and buttons; heading row holds only the heading";
+        return "bin stretching from Randomize to the 40x40 Delete all, followed by the Undo and Redo palette buttons at the right end of Factor Tree's add row, bin icon centred, centred with the input and buttons; heading row holds only the heading";
       } }
     ];
   };

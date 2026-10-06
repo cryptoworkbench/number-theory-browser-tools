@@ -393,7 +393,8 @@
   // plus the Additive/Multiplicative Groups mode-tab labels shared by
   // Cayley Table and the Equivalence Wheel, and the empty-palette pointer
   // to the Sieve ({0} is the nav link) shared by Factor Tree and the Venn
-  // Diagram. A per-tool plan references
+  // Diagram, and the four Undo/Redo labels (palette and working area)
+  // shared by Factor Tree and the Venn Diagram. A per-tool plan references
   // these as common.* and never duplicates them in its own namespace.
   NT.i18n.register('common', {
     nl: {
@@ -417,7 +418,11 @@
       multiplicativeGroups: 'Multiplicatieve groepen',
       paletteEmptySieve: 'Gebruik de tool ‘{0}’ om priemgetallen aan dit palet toe te voegen.',
       primePickerOpen: 'Kies een priemgetal uit het palet',
-      primePickerHeading: 'Kies een priemgetal'
+      primePickerHeading: 'Kies een priemgetal',
+      undoPalette: 'Wijziging in het palet ongedaan maken',
+      redoPalette: 'Wijziging in het palet opnieuw uitvoeren',
+      undoWork: 'Ongedaan maken',
+      redoWork: 'Opnieuw uitvoeren'
     },
     en: {
       play: 'Play',
@@ -440,7 +445,11 @@
       multiplicativeGroups: 'Multiplicative Groups',
       paletteEmptySieve: "Use the tool '{0}' to add primes to this palette.",
       primePickerOpen: 'Pick a prime from the palette',
-      primePickerHeading: 'Pick a prime'
+      primePickerHeading: 'Pick a prime',
+      undoPalette: 'Undo palette change',
+      redoPalette: 'Redo palette change',
+      undoWork: 'Undo',
+      redoWork: 'Redo'
     },
     de: {
       play: 'Abspielen',
@@ -463,7 +472,11 @@
       multiplicativeGroups: 'Multiplikative Gruppen',
       paletteEmptySieve: 'Nutze das Werkzeug „{0}“, um dieser Palette Primzahlen hinzuzufügen.',
       primePickerOpen: 'Wähle eine Primzahl aus der Palette',
-      primePickerHeading: 'Wähle eine Primzahl'
+      primePickerHeading: 'Wähle eine Primzahl',
+      undoPalette: 'Änderung an der Palette rückgängig machen',
+      redoPalette: 'Änderung an der Palette wiederherstellen',
+      undoWork: 'Rückgängig machen',
+      redoWork: 'Wiederherstellen'
     },
     fr: {
       play: 'Lecture',
@@ -486,7 +499,11 @@
       multiplicativeGroups: 'Groupes multiplicatifs',
       paletteEmptySieve: 'Utilisez l’outil « {0} » pour ajouter des nombres premiers à cette palette.',
       primePickerOpen: 'Choisissez un nombre premier dans la palette',
-      primePickerHeading: 'Choisissez un nombre premier'
+      primePickerHeading: 'Choisissez un nombre premier',
+      undoPalette: 'Annuler la modification de la palette',
+      redoPalette: 'Rétablir la modification de la palette',
+      undoWork: 'Annuler',
+      redoWork: 'Rétablir'
     },
     es: {
       play: 'Reproducir',
@@ -509,7 +526,11 @@
       multiplicativeGroups: 'Grupos multiplicativos',
       paletteEmptySieve: 'Usa la herramienta «{0}» para añadir números primos a esta paleta.',
       primePickerOpen: 'Elige un número primo de la paleta',
-      primePickerHeading: 'Elige un número primo'
+      primePickerHeading: 'Elige un número primo',
+      undoPalette: 'Deshacer el cambio en la paleta',
+      redoPalette: 'Rehacer el cambio en la paleta',
+      undoWork: 'Deshacer',
+      redoWork: 'Rehacer'
     },
     it: {
       play: 'Riproduci',
@@ -532,7 +553,11 @@
       multiplicativeGroups: 'Gruppi moltiplicativi',
       paletteEmptySieve: 'Usa lo strumento «{0}» per aggiungere numeri primi a questa tavolozza.',
       primePickerOpen: 'Scegli un numero primo dalla tavolozza',
-      primePickerHeading: 'Scegli un numero primo'
+      primePickerHeading: 'Scegli un numero primo',
+      undoPalette: 'Annulla la modifica alla tavolozza',
+      redoPalette: 'Ripeti la modifica alla tavolozza',
+      undoWork: 'Annulla',
+      redoWork: 'Ripeti'
     },
     pl: {
       play: 'Odtwórz',
@@ -555,7 +580,11 @@
       multiplicativeGroups: 'Grupy multiplikatywne',
       paletteEmptySieve: 'Użyj narzędzia „{0}”, aby dodać liczby pierwsze do tej palety.',
       primePickerOpen: 'Wybierz liczbę pierwszą z palety',
-      primePickerHeading: 'Wybierz liczbę pierwszą'
+      primePickerHeading: 'Wybierz liczbę pierwszą',
+      undoPalette: 'Cofnij zmianę palety',
+      redoPalette: 'Ponów zmianę palety',
+      undoWork: 'Cofnij',
+      redoWork: 'Ponów'
     },
     'pt-BR': {
       play: 'Reproduzir',
@@ -578,7 +607,11 @@
       multiplicativeGroups: 'Grupos multiplicativos',
       paletteEmptySieve: 'Use a ferramenta “{0}” para adicionar números primos a esta paleta.',
       primePickerOpen: 'Escolha um número primo da paleta',
-      primePickerHeading: 'Escolha um número primo'
+      primePickerHeading: 'Escolha um número primo',
+      undoPalette: 'Desfazer a alteração na paleta',
+      redoPalette: 'Refazer a alteração na paleta',
+      undoWork: 'Desfazer',
+      redoWork: 'Refazer'
     },
     'pt-PT': {
       play: 'Reproduzir',
@@ -601,7 +634,11 @@
       multiplicativeGroups: 'Grupos multiplicativos',
       paletteEmptySieve: 'Usa a ferramenta «{0}» para adicionar números primos a esta paleta.',
       primePickerOpen: 'Escolhe um número primo da paleta',
-      primePickerHeading: 'Escolhe um número primo'
+      primePickerHeading: 'Escolhe um número primo',
+      undoPalette: 'Anular a alteração na paleta',
+      redoPalette: 'Refazer a alteração na paleta',
+      undoWork: 'Anular',
+      redoWork: 'Refazer'
     },
     sv: {
       play: 'Spela upp',
@@ -624,7 +661,11 @@
       multiplicativeGroups: 'Multiplikativa grupper',
       paletteEmptySieve: 'Använd verktyget ”{0}” för att lägga till primtal i den här paletten.',
       primePickerOpen: 'Välj ett primtal ur paletten',
-      primePickerHeading: 'Välj ett primtal'
+      primePickerHeading: 'Välj ett primtal',
+      undoPalette: 'Ångra ändringen i paletten',
+      redoPalette: 'Gör om ändringen i paletten',
+      undoWork: 'Ångra',
+      redoWork: 'Gör om'
     },
     nb: {
       play: 'Spill av',
@@ -647,7 +688,11 @@
       multiplicativeGroups: 'Multiplikative grupper',
       paletteEmptySieve: 'Bruk verktøyet «{0}» for å legge til primtall i denne paletten.',
       primePickerOpen: 'Velg et primtall fra paletten',
-      primePickerHeading: 'Velg et primtall'
+      primePickerHeading: 'Velg et primtall',
+      undoPalette: 'Angre endringen i paletten',
+      redoPalette: 'Gjør om endringen i paletten',
+      undoWork: 'Angre',
+      redoWork: 'Gjør om'
     },
     ro: {
       play: 'Redă',
@@ -670,7 +715,11 @@
       multiplicativeGroups: 'Grupuri multiplicative',
       paletteEmptySieve: 'Folosește instrumentul „{0}” ca să adaugi numere prime în această paletă.',
       primePickerOpen: 'Alege un număr prim din paletă',
-      primePickerHeading: 'Alege un număr prim'
+      primePickerHeading: 'Alege un număr prim',
+      undoPalette: 'Anulează modificarea paletei',
+      redoPalette: 'Refă modificarea paletei',
+      undoWork: 'Anulează',
+      redoWork: 'Refă'
     },
     hu: {
       play: 'Lejátszás',
@@ -693,7 +742,11 @@
       multiplicativeGroups: 'Multiplikatív csoportok',
       paletteEmptySieve: 'Az „{0}” eszközzel adhatsz prímszámokat ehhez a palettához.',
       primePickerOpen: 'Válassz egy prímszámot a palettáról',
-      primePickerHeading: 'Válassz egy prímszámot'
+      primePickerHeading: 'Válassz egy prímszámot',
+      undoPalette: 'A paletta módosításának visszavonása',
+      redoPalette: 'A paletta módosításának ismétlése',
+      undoWork: 'Visszavonás',
+      redoWork: 'Ismétlés'
     },
     lv: {
       play: 'Atskaņot',
@@ -716,7 +769,11 @@
       multiplicativeGroups: 'Multiplikatīvās grupas',
       paletteEmptySieve: 'Izmanto rīku “{0}”, lai pievienotu šai paletei pirmskaitļus.',
       primePickerOpen: 'Izvēlies pirmskaitli no paletes',
-      primePickerHeading: 'Izvēlies pirmskaitli'
+      primePickerHeading: 'Izvēlies pirmskaitli',
+      undoPalette: 'Atsaukt paletes izmaiņas',
+      redoPalette: 'Atkārtot paletes izmaiņas',
+      undoWork: 'Atsaukt',
+      redoWork: 'Atkārtot'
     },
     ru: {
       play: 'Пуск',
@@ -739,7 +796,11 @@
       multiplicativeGroups: 'Мультипликативные группы',
       paletteEmptySieve: 'Используй инструмент «{0}», чтобы добавить простые числа в эту палитру.',
       primePickerOpen: 'Выбери простое число из палитры',
-      primePickerHeading: 'Выбери простое число'
+      primePickerHeading: 'Выбери простое число',
+      undoPalette: 'Отменить изменение палитры',
+      redoPalette: 'Повторить изменение палитры',
+      undoWork: 'Отменить',
+      redoWork: 'Повторить'
     },
     el: {
       play: 'Έναρξη',
@@ -762,7 +823,11 @@
       multiplicativeGroups: 'Πολλαπλασιαστικές ομάδες',
       paletteEmptySieve: 'Χρησιμοποίησε το εργαλείο «{0}» για να προσθέσεις πρώτους αριθμούς σε αυτή την παλέτα.',
       primePickerOpen: 'Διάλεξε έναν πρώτο αριθμό από την παλέτα',
-      primePickerHeading: 'Διάλεξε έναν πρώτο αριθμό'
+      primePickerHeading: 'Διάλεξε έναν πρώτο αριθμό',
+      undoPalette: 'Αναίρεση αλλαγής παλέτας',
+      redoPalette: 'Επανάληψη αλλαγής παλέτας',
+      undoWork: 'Αναίρεση',
+      redoWork: 'Επανάληψη'
     }
   });
 })();
