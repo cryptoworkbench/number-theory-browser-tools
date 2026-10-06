@@ -865,6 +865,9 @@ function inPage(cfg) {
   // at least one zero-delay tick, so the page's dragJustEnded clears
   function settle() { return sleep(reduced() ? 30 : 2600); }
   function sharedOf(card) { return arr(card.querySelectorAll(".node-circle.shared")); }
+  // A gcd pair is one .tree-pair holding two .tree-card panels.
+  function pairsIn() { return arr(document.querySelectorAll("#workArea > .tree-pair")); }
+  function halvesOf(pair) { return arr(pair.querySelectorAll(".tree-pair-row > .tree-card")); }
   function parentsOf(card, c) { return edgeInfo(card).filter(function (e) { return e.to === c; }).map(function (e) { return e.from; }); }
 
   step("P14 gcd-overlap", function () {
@@ -885,73 +888,79 @@ function inPage(cfg) {
     assert(g.classList.contains("is-active") && !mul.classList.contains("is-active"), "the right half is not the active one");
     dragDrop(R.x, R.y, "mouse");
     cs = cards();
-    assert(cs.length === 1 && ghosts() === 0 && !document.querySelector(".drop-split"), cs.length + " cards / leftover split after the gcd drop");
-    var card = cs[0];
-    assert(card.classList.contains("is-overlap") && !card.querySelector(".tree-grip"), "the overlap card is not marked or still has a grip");
-    assert(card.querySelector(".tree-remove").getAttribute("aria-label") === T("removeOverlapLabel", { a: 84, b: 90 }), "remove label is " + card.querySelector(".tree-remove").getAttribute("aria-label"));
+    assert(pairsIn().length === 1 && cs.length === 2 && ghosts() === 0 && !document.querySelector(".drop-split"), pairsIn().length + " pairs / " + cs.length + " panels / leftover split after the gcd drop");
+    var pair = pairsIn()[0];
+    var hs = halvesOf(pair);
+    assert(hs.length === 2 && !pair.querySelector(".tree-grip"), "the gcd pair is not two panels without a grip");
+    assert(pair.querySelector(".tree-remove").getAttribute("aria-label") === T("removeOverlapLabel", { a: 84, b: 90 }), "remove label is " + pair.querySelector(".tree-remove").getAttribute("aria-label"));
     return settle().then(function () {
-      var roots = arr(card.querySelectorAll(".node-circle.root")).filter(shown);
-      assert(roots.map(labelOf).join() === "84,90" && num(roots[0], "cx") < num(roots[1], "cx"), "roots read " + roots.map(labelOf).join());
-      var sh = sharedOf(card).filter(shown);
-      assert(sharedOf(card).length === 1 && sh.length === 1 && labelOf(sh[0]) === "6", "shared circles: " + sharedOf(card).map(labelOf).join());
-      assert(parentsOf(card, sh[0]).map(labelOf).sort().join() === "84,90", "6 hangs from " + parentsOf(card, sh[0]).map(labelOf).join());
-      assert((childMap(card).get(sh[0]) || []).map(labelOf).sort().join() === "2,3", "6's children are wrong");
-      var r84 = (childMap(card).get(roots[0]) || []).map(labelOf).join();
-      var r90 = (childMap(card).get(roots[1]) || []).map(labelOf).join();
+      assert(labelOf(rootOf(hs[0])) === "84" && labelOf(rootOf(hs[1])) === "90", "roots read " + labelOf(rootOf(hs[0])) + "," + labelOf(rootOf(hs[1])));
+      hs.forEach(function (h, i) {
+        var sh = sharedOf(h).filter(shown);
+        assert(sharedOf(h).length === 1 && sh.length === 1 && labelOf(sh[0]) === "6", "shared circles of panel " + i + ": " + sharedOf(h).map(labelOf).join());
+        assert(parentsOf(h, sh[0]).map(labelOf).join() === (i ? "90" : "84"), "6 hangs from " + parentsOf(h, sh[0]).map(labelOf).join());
+        assert((childMap(h).get(sh[0]) || []).map(labelOf).sort().join() === "2,3", "6's children are wrong in panel " + i);
+        assert(!badgeOf(rootOf(h)), "a root of the pair can be folded");
+        assert(badgeOf(sh[0]), "the shared 6 has no fold badge");
+        visibleCoherent(h);
+      });
+      var r84 = (childMap(hs[0]).get(rootOf(hs[0])) || []).map(labelOf).join();
+      var r90 = (childMap(hs[1]).get(rootOf(hs[1])) || []).map(labelOf).join();
       assert(r84 === "14,6" && r90 === "6,15", "84 splits " + r84 + ", 90 splits " + r90);
-      assert(!badgeOf(roots[0]) && !badgeOf(roots[1]), "a root of the overlap can be folded");
-      assert(badgeOf(sh[0]), "the shared 6 has no fold badge");
-      visibleCoherent(card);
-      var eq = eqText(card);
+      var eq = eqText(pair);
       assert(eq === "84 = 14 × 6" + "90 = 6 × 15" + "gcd(84, 90) = 6", "equation reads " + eq);
       assert(msg() === T("msgGcd", { a: 84, b: 90, g: 6 }), "message is " + msg());
 
       placeNumbers(["9", "10"]);
       cs = cards();
-      var p = halfPoint(cs[1], 0.8);
-      dragStart(cs[2].querySelector(".tree-grip"), p.x, p.y, "touch");
+      var p = halfPoint(cs[2], 0.8);
+      dragStart(cs[3].querySelector(".tree-grip"), p.x, p.y, "touch");
       dragDrop(p.x, p.y, "touch");
       return settle();
     }).then(function () {
       cs = cards();
-      assert(cs.length === 2, cs.length + " cards after overlapping 9 and 10");
-      var c = cs[1];
-      var sh = sharedOf(c).filter(shown);
-      assert(sh.length === 1 && labelOf(sh[0]) === "1" && sh[0].classList.contains("one"), "coprime shared circle is " + sh.map(labelOf).join());
+      assert(pairsIn().length === 2 && cs.length === 4, pairsIn().length + " pairs / " + cs.length + " panels after overlapping 9 and 10");
+      halvesOf(pairsIn()[1]).forEach(function (h) {
+        var sh = sharedOf(h).filter(shown);
+        assert(sh.length === 1 && labelOf(sh[0]) === "1" && sh[0].classList.contains("one"), "coprime shared circle is " + sh.map(labelOf).join());
+      });
       assert(msg() === T("msgCoprime", { a: 9, b: 10 }), "message is " + msg());
 
       placeNumbers(["12", "36"]);
       cs = cards();
-      var p = halfPoint(cs[3], 0.8);
-      dragStart(cs[2].querySelector(".tree-grip"), p.x, p.y, "mouse");
+      var p = halfPoint(cs[5], 0.8);
+      dragStart(cs[4].querySelector(".tree-grip"), p.x, p.y, "mouse");
       dragDrop(p.x, p.y, "mouse");
       return settle();
     }).then(function () {
-      cs = cards();
-      var c = cs[2];
+      var c = pairsIn()[2];
+      assert(pairsIn().length === 3 && c, pairsIn().length + " pairs after overlapping 12 and 36");
       var roots = arr(c.querySelectorAll(".node-circle.root")).filter(shown);
-      var sh = sharedOf(c).filter(shown);
-      assert(roots.map(labelOf).join() === "36" && sh.length === 1 && labelOf(sh[0]) === "12", "12 | 36 gives roots " + roots.map(labelOf).join() + " shared " + sh.map(labelOf).join());
+      halvesOf(c).forEach(function (h) {
+        var sh = sharedOf(h).filter(shown);
+        assert(sh.length === 1 && labelOf(sh[0]) === "12", "12 | 36 gives roots " + roots.map(labelOf).join() + " shared " + sh.map(labelOf).join());
+        visibleCoherent(h);
+      });
+      assert(roots.map(labelOf).join() === "36", "12 | 36 gives roots " + roots.map(labelOf).join());
       assert(eqText(c) === "36 = 12 × 3" + "gcd(12, 36) = 12", "equation reads " + eqText(c));
-      visibleCoherent(c);
 
       placeNumbers(["4", "6"]);
       cs = cards();
-      var p = halfPoint(cs[3], 0.2);
-      dragStart(cs[4].querySelector(".tree-grip"), p.x, p.y, "mouse");
+      var p = halfPoint(cs[6], 0.2);
+      dragStart(cs[7].querySelector(".tree-grip"), p.x, p.y, "mouse");
       dragDrop(p.x, p.y, "mouse");
       cs = cards();
-      assert(cs.length === 4 && labelOf(rootOf(cs[3])) === "24", "the left half no longer multiplies 4 and 6");
+      assert(cs.length === 7 && labelOf(rootOf(cs[6])) === "24", "the left half no longer multiplies 4 and 6");
 
       click(document.querySelector('.mode-btn[data-mode="balanced"]'));
       cs = cards();
-      assert(cs.length === 4, cs.length + " cards after the mode switch");
-      assert([0, 1, 2].map(function (i) { return sharedOf(cs[i]).map(labelOf).join(); }).join("|") === "6|1|12", "overlaps did not survive the mode switch");
-      assert(eqText(cs[0]) === "84 = 14 × 6" + "90 = 6 × 15" + "gcd(84, 90) = 6", "rebuilt equation reads " + eqText(cs[0]));
+      assert(cs.length === 7, cs.length + " panels after the mode switch");
+      assert(pairsIn().map(function (q) { return halvesOf(q).map(function (h) { return sharedOf(h).map(labelOf).join(); }).join("/"); }).join("|") === "6/6|1/1|12/12", "pairs did not survive the mode switch");
+      assert(eqText(pairsIn()[0]) === "84 = 14 × 6" + "90 = 6 × 15" + "gcd(84, 90) = 6", "rebuilt equation reads " + eqText(pairsIn()[0]));
       click(document.querySelector('.mode-btn[data-mode="classic"]'));
       click(document.getElementById("clearBtn"));
       noErrors("P14");
-      return "a card dragged over another splits it into a × b (left) and gcd(a, b) (right); the right half overlaps 84 and 90 on one shared 6 (2 × 3) under both roots, 9 and 10 share a 1, 36 hangs on 12, the left half still multiplies, a mode switch rebuilds the overlaps";
+      return "a card dragged over another splits it into a × b (left) and gcd(a, b) (right); the right half turns the two cards into a glued pair of panels on one shared 6 (2 × 3) under both roots, 9 and 10 share a 1, 36 hangs on 12, the left half still multiplies, a mode switch keeps the pairs";
     });
   });
 
@@ -978,17 +987,19 @@ function inPage(cfg) {
     assert(document.querySelector('.mode-btn[data-mode="balanced"]').classList.contains("is-active"), "Balanced is not the active mode");
     assert(items().some(function (b) { return b.textContent === "30"; }) && items().some(function (b) { return b.textContent === "35"; }), "30 and 35 were not added to the palette");
     var cs = cards();
-    assert(cs.length === 1 && cs[0].classList.contains("is-overlap"), cs.length + " cards, expected one overlap card");
-    var card = cs[0];
+    assert(pairsIn().length === 1 && cs.length === 2, pairsIn().length + " pairs / " + cs.length + " panels, expected one gcd pair");
+    var card = pairsIn()[0];
     return settle().then(function () {
-      var roots = arr(card.querySelectorAll(".node-circle.root")).filter(shown);
-      var sh = sharedOf(card).filter(shown);
-      assert(roots.map(labelOf).join() === "30,35", "roots read " + roots.map(labelOf).join());
-      assert(sh.length === 1 && labelOf(sh[0]) === "5" && sharedOf(card).length === 1, "shared circles: " + sharedOf(card).map(labelOf).join());
+      var hs = halvesOf(card);
+      assert(labelOf(rootOf(hs[0])) === "30" && labelOf(rootOf(hs[1])) === "35", "roots read " + labelOf(rootOf(hs[0])) + "," + labelOf(rootOf(hs[1])));
+      hs.forEach(function (h) {
+        var sh = sharedOf(h).filter(shown);
+        assert(sh.length === 1 && labelOf(sh[0]) === "5" && sharedOf(h).length === 1, "shared circles: " + sharedOf(h).map(labelOf).join());
+        visibleCoherent(h);
+      });
       assert(eqText(card) === "30 = 6 × 5" + "35 = 5 × 7" + "gcd(30, 35) = 5", "equation reads " + eqText(card));
-      visibleCoherent(card);
       noErrors("D2");
-      return "?a=30&b=35 opens in Balanced with 30 and 35 in the palette and their trees overlapped on a shared 5";
+      return "?a=30&b=35 opens in Balanced with 30 and 35 in the palette and their trees as two panels overlapping on a shared 5";
     });
   } });
   if (/[?&]a=/.test(location.search)) steps = pairSteps;

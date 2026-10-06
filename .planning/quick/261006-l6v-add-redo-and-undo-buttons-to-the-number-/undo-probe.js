@@ -499,11 +499,12 @@ function inPage(cfg) {
     var undoW = $("workUndoBtn"), redoW = $("workRedoBtn");
     var chain = Promise.resolve();
     function add(name, fn) { chain = chain.then(function () { return scenario(name, fn); }); }
-    function overlapCards() { return document.querySelectorAll("#workArea .tree-card.is-overlap").length; }
+    function overlapCards() { return document.querySelectorAll("#workArea .tree-pair").length; }
 
     add("P1 deep-linked overlap is not an undo step", function () {
       return wait(2500).then(function () {
-        eq(overlapCards(), 1, "one overlap card");
+        eq(overlapCards(), 1, "one gcd pair");
+        eq(cards().length, 2, "two panels in it");
         ok(undoW.disabled && redoW.disabled, "work undo and redo disabled");
       });
     });
@@ -522,9 +523,9 @@ function inPage(cfg) {
         $("clearBtn").click();
         eq(cards().length, 0, "cleared");
         undoW.click();
-        eq(overlapCards(), 1, "overlap card back");
-        eq(cards().length, 1, "exactly one card");
-        ok(cards()[0].querySelector(".tree-equation").textContent.indexOf("gcd(12, 18) = 6") !== -1, "equation shows the gcd");
+        eq(overlapCards(), 1, "gcd pair back");
+        eq(cards().length, 2, "exactly its two panels");
+        ok(document.querySelector("#workArea .pair-equation").textContent.indexOf("gcd(12, 18) = 6") !== -1, "equation shows the gcd");
         eq(expandedOf(cards()[0]), after, "fold states match");
       });
     });
@@ -533,10 +534,10 @@ function inPage(cfg) {
       cards()[0].querySelector(".tree-split").click();
       return wait(2200).then(function () {
         eq(rootTexts(), ["12", "18"], "two cards after the split");
-        eq(overlapCards(), 0, "no overlap card left");
+        eq(overlapCards(), 0, "no gcd pair left");
         undoW.click();
-        eq(overlapCards(), 1, "undo restores the overlap");
-        eq(cards().length, 1, "only the overlap card");
+        eq(overlapCards(), 1, "undo restores the pair");
+        eq(cards().length, 2, "only the pair's two panels");
         redoW.click();
         eq(rootTexts(), ["12", "18"], "redo gives two cards");
         undoW.click();
@@ -544,8 +545,8 @@ function inPage(cfg) {
         undoW.click();
         return wait(2200);
       }).then(function () {
-        eq(overlapCards(), 1, "overlap card survives");
-        eq(cards().length, 1, "no stray cards after the animation window");
+        eq(overlapCards(), 1, "gcd pair survives");
+        eq(cards().length, 2, "no stray cards after the animation window");
       });
     });
 
