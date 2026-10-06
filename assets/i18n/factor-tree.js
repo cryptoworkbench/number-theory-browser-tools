@@ -12,7 +12,8 @@
    {a}, {b}, {g}; msgCoprime, {a}, {b}; msgSplit, {a}, {b}),
    footnote, the Balanced-mode caveat, every validation/result message
    (including msgAdded and msgRemoved, {n}), the palette bin's label
-   (binLabel), the mirror-button label (mirrorLabel, {n}) and
+   (binLabel), the Delete-all button (emptyPaletteLabel) and its message
+   (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
    Tree tool, in all sixteen supported languages. title and heading equal
    site.nav.factorTree in each language.
@@ -69,7 +70,9 @@
       msgAdded: '{n} is aan het palet toegevoegd.',
       msgRemoved: '{n} is uit het palet verwijderd.',
       msgPaletteFull: 'Het palet is vol — er passen maximaal {max} getallen in.',
-      binLabel: 'Prullenbak: sleep een cirkel hierheen om hem uit het palet te verwijderen'
+      binLabel: 'Prullenbak: sleep een cirkel hierheen om hem uit het palet te verwijderen',
+      emptyPaletteLabel: 'Alles verwijderen: maak het palet leeg',
+      msgPaletteEmptied: 'Het palet is leeggemaakt.'
     },
     en: {
       title: 'Factor Tree',
@@ -111,7 +114,9 @@
       msgAdded: 'Added {n} to the palette.',
       msgRemoved: 'Removed {n} from the palette.',
       msgPaletteFull: 'The palette is full — it holds at most {max} numbers.',
-      binLabel: 'Bin: drag a circle here to remove it from the palette'
+      binLabel: 'Bin: drag a circle here to remove it from the palette',
+      emptyPaletteLabel: 'Delete all: empty the palette',
+      msgPaletteEmptied: 'Emptied the palette.'
     },
     de: {
       title: 'Faktorbaum',
@@ -153,7 +158,9 @@
       msgAdded: '{n} wurde zur Palette hinzugefügt.',
       msgRemoved: '{n} wurde aus der Palette entfernt.',
       msgPaletteFull: 'Die Palette ist voll — sie fasst höchstens {max} Zahlen.',
-      binLabel: 'Papierkorb: Zieh einen Kreis hierher, um ihn aus der Palette zu entfernen'
+      binLabel: 'Papierkorb: Zieh einen Kreis hierher, um ihn aus der Palette zu entfernen',
+      emptyPaletteLabel: 'Alles löschen: die Palette leeren',
+      msgPaletteEmptied: 'Die Palette wurde geleert.'
     },
     fr: {
       title: 'Arbre de facteurs',
@@ -195,7 +202,9 @@
       msgAdded: '{n} a été ajouté à la palette.',
       msgRemoved: '{n} a été retiré de la palette.',
       msgPaletteFull: 'La palette est pleine — elle contient au maximum {max} nombres.',
-      binLabel: 'Corbeille : faites glisser un cercle ici pour le retirer de la palette'
+      binLabel: 'Corbeille : faites glisser un cercle ici pour le retirer de la palette',
+      emptyPaletteLabel: 'Tout supprimer : vider la palette',
+      msgPaletteEmptied: 'La palette a été vidée.'
     },
     es: {
       title: 'Árbol de factores',
@@ -237,7 +246,9 @@
       msgAdded: '{n} se ha añadido a la paleta.',
       msgRemoved: '{n} se ha quitado de la paleta.',
       msgPaletteFull: 'La paleta está llena — admite como máximo {max} números.',
-      binLabel: 'Papelera: arrastra aquí un círculo para quitarlo de la paleta'
+      binLabel: 'Papelera: arrastra aquí un círculo para quitarlo de la paleta',
+      emptyPaletteLabel: 'Borrar todo: vaciar la paleta',
+      msgPaletteEmptied: 'Se ha vaciado la paleta.'
     },
     it: {
       title: 'Albero dei fattori',
@@ -279,7 +290,9 @@
       msgAdded: '{n} è stato aggiunto alla tavolozza.',
       msgRemoved: '{n} è stato tolto dalla tavolozza.',
       msgPaletteFull: 'La tavolozza è piena — contiene al massimo {max} numeri.',
-      binLabel: 'Cestino: trascina qui un cerchio per toglierlo dalla tavolozza'
+      binLabel: 'Cestino: trascina qui un cerchio per toglierlo dalla tavolozza',
+      emptyPaletteLabel: 'Elimina tutto: svuota la tavolozza',
+      msgPaletteEmptied: 'La tavolozza è stata svuotata.'
     },
     pl: {
       title: 'Drzewo czynników',
@@ -321,7 +334,9 @@
       msgAdded: 'Dodano {n} do palety.',
       msgRemoved: 'Usunięto {n} z palety.',
       msgPaletteFull: 'Paleta jest pełna — mieści najwyżej {max} liczb.',
-      binLabel: 'Kosz: przeciągnij tutaj koło, aby usunąć je z palety'
+      binLabel: 'Kosz: przeciągnij tutaj koło, aby usunąć je z palety',
+      emptyPaletteLabel: 'Usuń wszystko: opróżnij paletę',
+      msgPaletteEmptied: 'Paleta została opróżniona.'
     },
     'pt-BR': {
       title: 'Árvore de fatores',
@@ -363,7 +378,9 @@
       msgAdded: '{n} foi adicionado à paleta.',
       msgRemoved: '{n} foi removido da paleta.',
       msgPaletteFull: 'A paleta está cheia — comporta no máximo {max} números.',
-      binLabel: 'Lixeira: arraste um círculo para cá para removê-lo da paleta'
+      binLabel: 'Lixeira: arraste um círculo para cá para removê-lo da paleta',
+      emptyPaletteLabel: 'Excluir tudo: esvaziar a paleta',
+      msgPaletteEmptied: 'A paleta foi esvaziada.'
     },
     'pt-PT': {
       title: 'Árvore de fatores',
@@ -405,7 +422,9 @@
       msgAdded: '{n} foi adicionado à paleta.',
       msgRemoved: '{n} foi removido da paleta.',
       msgPaletteFull: 'A paleta está cheia — cabem no máximo {max} números.',
-      binLabel: 'Caixote do lixo: arrasta um círculo para aqui para o remover da paleta'
+      binLabel: 'Caixote do lixo: arrasta um círculo para aqui para o remover da paleta',
+      emptyPaletteLabel: 'Eliminar tudo: esvaziar a paleta',
+      msgPaletteEmptied: 'A paleta foi esvaziada.'
     },
     sv: {
       title: 'Faktorträd',
@@ -447,7 +466,9 @@
       msgAdded: '{n} har lagts till i paletten.',
       msgRemoved: '{n} har tagits bort från paletten.',
       msgPaletteFull: 'Paletten är full — den rymmer högst {max} tal.',
-      binLabel: 'Papperskorg: dra hit en cirkel för att ta bort den från paletten'
+      binLabel: 'Papperskorg: dra hit en cirkel för att ta bort den från paletten',
+      emptyPaletteLabel: 'Ta bort alla: töm paletten',
+      msgPaletteEmptied: 'Paletten har tömts.'
     },
     nb: {
       title: 'Faktortre',
@@ -489,7 +510,9 @@
       msgAdded: '{n} er lagt til i paletten.',
       msgRemoved: '{n} er fjernet fra paletten.',
       msgPaletteFull: 'Paletten er full — den rommer maks {max} tall.',
-      binLabel: 'Papirkurv: dra en sirkel hit for å fjerne den fra paletten'
+      binLabel: 'Papirkurv: dra en sirkel hit for å fjerne den fra paletten',
+      emptyPaletteLabel: 'Slett alle: tøm paletten',
+      msgPaletteEmptied: 'Paletten er tømt.'
     },
     ro: {
       title: 'Arbore de factori',
@@ -531,7 +554,9 @@
       msgAdded: '{n} a fost adăugat în paletă.',
       msgRemoved: '{n} a fost eliminat din paletă.',
       msgPaletteFull: 'Paleta este plină — conține cel mult {max} de numere.',
-      binLabel: 'Coș de gunoi: trage aici un cerc ca să-l elimini din paletă'
+      binLabel: 'Coș de gunoi: trage aici un cerc ca să-l elimini din paletă',
+      emptyPaletteLabel: 'Șterge tot: golește paleta',
+      msgPaletteEmptied: 'Paleta a fost golită.'
     },
     hu: {
       title: 'Tényezőfa',
@@ -573,7 +598,9 @@
       msgAdded: '{n} bekerült a palettába.',
       msgRemoved: '{n} lekerült a palettáról.',
       msgPaletteFull: 'A paletta megtelt — legfeljebb {max} számot tartalmazhat.',
-      binLabel: 'Kuka: húzz ide egy kört, hogy eltávolítsd a palettáról'
+      binLabel: 'Kuka: húzz ide egy kört, hogy eltávolítsd a palettáról',
+      emptyPaletteLabel: 'Összes törlése: a paletta kiürítése',
+      msgPaletteEmptied: 'A paletta kiürült.'
     },
     lv: {
       title: 'Reizinātāju koks',
@@ -615,7 +642,9 @@
       msgAdded: '{n} pievienots paletei.',
       msgRemoved: '{n} izņemts no paletes.',
       msgPaletteFull: 'Palete ir pilna — tajā ietilpst ne vairāk kā {max} skaitļu.',
-      binLabel: 'Miskaste: ievelc šeit apli, lai to izņemtu no paletes'
+      binLabel: 'Miskaste: ievelc šeit apli, lai to izņemtu no paletes',
+      emptyPaletteLabel: 'Dzēst visu: iztukšot paleti',
+      msgPaletteEmptied: 'Palete ir iztukšota.'
     },
     ru: {
       title: 'Дерево множителей',
@@ -657,7 +686,9 @@
       msgAdded: 'Число {n} добавлено в палитру.',
       msgRemoved: 'Число {n} убрано из палитры.',
       msgPaletteFull: 'Палитра заполнена — в ней помещается не больше {max} чисел.',
-      binLabel: 'Корзина: перетащи сюда круг, чтобы убрать его из палитры'
+      binLabel: 'Корзина: перетащи сюда круг, чтобы убрать его из палитры',
+      emptyPaletteLabel: 'Удалить всё: очистить палитру',
+      msgPaletteEmptied: 'Палитра очищена.'
     },
     el: {
       title: 'Δέντρο παραγόντων',
@@ -699,7 +730,9 @@
       msgAdded: 'Το {n} προστέθηκε στην παλέτα.',
       msgRemoved: 'Το {n} αφαιρέθηκε από την παλέτα.',
       msgPaletteFull: 'Η παλέτα είναι γεμάτη — χωράει το πολύ {max} αριθμούς.',
-      binLabel: 'Κάδος: σύρε εδώ έναν κύκλο για να τον αφαιρέσεις από την παλέτα'
+      binLabel: 'Κάδος: σύρε εδώ έναν κύκλο για να τον αφαιρέσεις από την παλέτα',
+      emptyPaletteLabel: 'Διαγραφή όλων: άδειασμα της παλέτας',
+      msgPaletteEmptied: 'Η παλέτα άδειασε.'
     }
   });
 })();

@@ -330,6 +330,12 @@
     return list.slice();
   }
 
+  // clearSharedPalette(): empties the palette; returns the (empty) list.
+  function clearSharedPalette() {
+    writeShared(SHARED_PALETTE_KEY, [], validatePalette);
+    return [];
+  }
+
   // readMigrating(key, legacyKey): Venn Diagram's legacy-key fallback
   // reader — returns the value under `key`, or copies `legacyKey`'s value
   // forward to `key` (and returns it) when `key` is absent, or null.
@@ -367,7 +373,8 @@
     readSharedPalette: readSharedPalette,
     loadSharedPalette: loadSharedPalette,
     addToSharedPalette: addToSharedPalette,
-    removeFromSharedPalette: removeFromSharedPalette
+    removeFromSharedPalette: removeFromSharedPalette,
+    clearSharedPalette: clearSharedPalette
   });
   // NT stays extensible so later modules can add their own namespace, but
   // this slot is locked: NT.store can never be reassigned or deleted.
