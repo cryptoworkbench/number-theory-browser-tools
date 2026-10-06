@@ -28,6 +28,7 @@ number-theory-browser-tools/
 │   ├── nt-store.js                  # NT.store — cross-tool shared-state persistence
 │   ├── nt-layout.js                 # NT.layout — shared diagram layouts (needs nt-core.js)
 │   ├── nt-i18n.js                   # NT.i18n — the sixth shared module: multi-language translation engine
+│   ├── nt-picker.js                 # NT.picker — the seventh shared module: shared-palette prime-picker popover (needs nt-bigint, nt-store, nt-i18n)
 │   └── i18n/                        # Translation-data files: site.js (site/common namespaces), hub.js, <page-slug>.js x 14
 ├── Factor Tree/
 │   ├── factor-tree.html             # Prime factorization tree visualizer
@@ -62,8 +63,8 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 **`assets/`:**
 
 - Purpose: Shared CSS and JavaScript for site infrastructure (header, nav, theme toggle, site footer with the language switcher) and shared JS logic used across tools
-- Contains: Styling rules for all pages, theme persistence logic, the six `nt-*.js` shared logic modules on `window.NT`, and the `i18n/` translation-data directory
-- Key files: `site.css` (layout + styling), `theme.js` (day/night mode), `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js` (shared number theory, BigInt, SVG, shared-state, layout and multi-language-translation helpers); `i18n/site.js` (shared `site`/`common` namespaces) and `i18n/<page-slug>.js` (one per tool, `i18n/hub.js` for `index.html`) hold translation data only
+- Contains: Styling rules for all pages, theme persistence logic, the seven `nt-*.js` shared logic modules on `window.NT`, and the `i18n/` translation-data directory
+- Key files: `site.css` (layout + styling), `theme.js` (day/night mode), `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`, `nt-picker.js` (shared number theory, BigInt, SVG, shared-state, layout, multi-language-translation and prime-picker helpers); `i18n/site.js` (shared `site`/`common` namespaces) and `i18n/<page-slug>.js` (one per tool, `i18n/hub.js` for `index.html`) hold translation data only
 - Not committed to: Individual tool styling (each tool has inline `<style>`)
 
 **`Factor Tree/`:**
@@ -193,7 +194,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
    - Keep tool-specific code inline: `<style>` block + `<script>` IIFE-wrapped
    - Include shared site header/nav markup (copy from any tool)
    - Link shared assets: `<link rel="stylesheet" href="../assets/site.css">`, `<script defer src="../assets/theme.js"></script>`
-   - Include the `assets/nt-*.js` modules the tool needs, on their own lines immediately before the inline `<script>`, in the canonical order core, bigint, svg, store, layout, i18n, followed by `assets/i18n/site.js` and the new page's own `assets/i18n/<page-slug>.js` data file
+   - Include the `assets/nt-*.js` modules the tool needs, on their own lines immediately before the inline `<script>`, in the canonical order core, bigint, svg, store, layout, i18n, picker, followed by `assets/i18n/site.js` and the new page's own `assets/i18n/<page-slug>.js` data file
    - Open the `<script>` with an import block: import shared helpers; define only tool-specific functions (e.g. `legendreSymbol`, `isQuadraticResidue` if no `NT` module already exports them)
    - Define `render()` and state management in closure
    - Wire events at bottom
@@ -244,7 +245,7 @@ Total: 5 tools (one HTML file each) + 1 portal + 7 shared asset files
 - Purpose: Shared resources loaded by every page
 - Generated: No (hand-written)
 - Committed: Yes (core to app functionality)
-- Contents: `site.css` (styling for header/nav/theme switch/site footer/language switch), `theme.js` (day/night toggle logic), the six `nt-*.js` shared logic modules (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`) on `window.NT`, and `i18n/` (translation-data files: `site.js` plus one `<page-slug>.js` per tool)
+- Contents: `site.css` (styling for header/nav/theme switch/site footer/language switch), `theme.js` (day/night toggle logic), the seven `nt-*.js` shared logic modules (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`, `nt-picker.js`) on `window.NT`, and `i18n/` (translation-data files: `site.js` plus one `<page-slug>.js` per tool)
 
 **`[Tool Name]/` directories:**
 

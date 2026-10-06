@@ -11,7 +11,7 @@ last_mapped_at: 2026-09-23
 **Files:**
 
 - HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa.html`
-- Shared assets use kebab-case: `site.css`, `theme.js`, `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`
+- Shared assets use kebab-case: `site.css`, `theme.js`, `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`, `nt-picker.js`
 - Translation-data files use kebab-case under `assets/i18n/`: `site.js` (shared `site`/`common` namespaces), `hub.js` (`index.html`), and `assets/i18n/<page-slug>.js` — one per tool, matching the tool's own HTML filename
 - Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA`
 
@@ -78,13 +78,13 @@ last_mapped_at: 2026-09-23
 **Shared module includes:**
 
 - `<script src="../assets/nt-core.js"></script>` — plain, non-deferred, no `type="module"`, so the module runs synchronously before the tool's own script
-- Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout, i18n
+- Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout, i18n, picker
 - `nt-i18n.js` is followed by the data files `assets/i18n/site.js` and the page's own `assets/i18n/<page-slug>.js` (`assets/i18n/hub.js` for `index.html`), each a plain, non-deferred `<script src>` in that order, before the tool's own inline `<script>`
 - The tool's inline `<script>` opens with an import block, e.g. `const { clamp, randomInt, unitsMod } = NT.core;`
 
 **NT import pattern:**
 
-- Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used, in the canonical namespace order core, bigint, svg, store, layout, i18n
+- Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used, in the canonical namespace order core, bigint, svg, store, layout, i18n, picker
 - Names within an import line are sorted by code point, so uppercase constants come first (e.g. `const { SHARED_GROUP_KEY, readModeNParams } = NT.store;`)
 - A tool never redefines or mutates an `NT` member — each namespace object is frozen and its slot on `NT` is read-only
 

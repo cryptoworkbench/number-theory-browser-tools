@@ -42,7 +42,7 @@ Every concept gets a visualization a self-learner can interact with and immediat
 ## Constraints
 
 - **Tech stack**: Vanilla HTML/CSS/JS only, no build tooling, no frameworks — matches every existing tool and keeps each page runnable by opening the file directly.
-- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the six `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`), plus `assets/i18n/` (translation-data files only, one per namespace). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
+- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the seven `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`, `nt-picker.js`), plus `assets/i18n/` (translation-data files only, one per namespace). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
 - **External resources**: Only Google Fonts via `<link>` — no other CDN or third-party JS dependency, per existing convention.
 
 ## Key Decisions

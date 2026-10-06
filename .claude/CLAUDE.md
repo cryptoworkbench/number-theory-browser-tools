@@ -11,7 +11,7 @@ An educational website of interactive, visualization-led browser tools that make
 ### Constraints
 
 - **Tech stack**: Vanilla HTML/CSS/JS only, no build tooling, no frameworks — matches every existing tool and keeps each page runnable by opening the file directly.
-- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the six `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`), plus `assets/i18n/` (translation-data files only, one per namespace). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
+- **Architecture**: One top-level directory and one `.html` page per tool. Shared code lives in `assets/` — site chrome (`palette.css`, `site.css`, `theme.js`) and the seven `nt-*.js` logic modules on `window.NT` (`nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`, `nt-picker.js`), plus `assets/i18n/` (translation-data files only, one per namespace). A tool's own rendering, state and playback live in its page; a helper shared across tools lives in the matching module.
 - **External resources**: Only Google Fonts via `<link>` — no other CDN or third-party JS dependency, per existing convention.
 
 <!-- GSD:project-end -->
@@ -94,7 +94,7 @@ An educational website of interactive, visualization-led browser tools that make
 ## Naming Patterns
 
 - HTML tools use kebab-case: `factor-tree.html`, `congruence-wheel.html`, `sieve-of-eratosthenes.html`, `rsa.html`
-- Shared assets use kebab-case: `site.css`, `theme.js`, `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`
+- Shared assets use kebab-case: `site.css`, `theme.js`, `nt-core.js`, `nt-bigint.js`, `nt-svg.js`, `nt-store.js`, `nt-layout.js`, `nt-i18n.js`, `nt-picker.js`
 - Translation-data files use kebab-case under `assets/i18n/`: `site.js` (shared `site`/`common` namespaces), `hub.js` (`index.html`), and `assets/i18n/<page-slug>.js` — one per tool, matching the tool's own HTML filename
 - Directory names use Title Case with spaces: `Factor Tree`, `Congruence Wheel`, `RSA`
 - camelCase for all variable declarations: `nRange`, `depthRange`, `dynGroup`, `refList`, `messageEl`
@@ -136,10 +136,10 @@ An educational website of interactive, visualization-led browser tools that make
 - Google Fonts via link tag: `<link href="https://fonts.googleapis.com/css2?family=..." rel="stylesheet">`
 - Theme detection script inline in `<head>` to prevent flash of wrong theme
 - `<script src="../assets/nt-core.js"></script>` — plain, non-deferred, no `type="module"`, so the module runs synchronously before the tool's own script
-- Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout, i18n
+- Each needed module is included on its own line, immediately before the tool's own inline `<script>` at the end of `<body>`, in the canonical order core, bigint, svg, store, layout, i18n, picker
 - `nt-i18n.js` is followed by the data files `assets/i18n/site.js` and the page's own `assets/i18n/<page-slug>.js` (`assets/i18n/hub.js` for `index.html`), each a plain, non-deferred `<script src>` in that order, before the tool's own inline `<script>`
 - The tool's inline `<script>` opens with an import block, e.g. `const { clamp, randomInt, unitsMod } = NT.core;`
-- Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used, in the canonical namespace order core, bigint, svg, store, layout, i18n
+- Shared helpers come from `NT` via the import block, one `const { ... } = NT.NAME;` line per namespace used, in the canonical namespace order core, bigint, svg, store, layout, i18n, picker
 - Names within an import line are sorted by code point, so uppercase constants come first (e.g. `const { SHARED_GROUP_KEY, readModeNParams } = NT.store;`)
 - A tool never redefines or mutates an `NT` member — each namespace object is frozen and its slot on `NT` is read-only
 - Every user-visible string comes from a dictionary entry present in all sixteen languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el), with English as source of truth
@@ -212,7 +212,7 @@ An educational website of interactive, visualization-led browser tools that make
 | Congruence Wheel Tool | Display modular arithmetic partitions as polar sectors | `Congruence Wheel/congruence-wheel.html` |
 | RSA Tool | Walk through RSA key generation, encryption, and cryptanalysis | `RSA/rsa.html` |
 | Site Chrome | Sticky header (tool navigation, language switcher, day/night toggle) | `assets/site.css`, `assets/theme.js` |
-| Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layouts, and multi-language translation used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js` |
+| Shared Logic Modules | Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layouts, multi-language translation, and the shared-palette prime-picker popover used by every consuming tool | `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js`, `assets/nt-picker.js` |
 
 ## Pattern Overview
 
@@ -242,14 +242,14 @@ An educational website of interactive, visualization-led browser tools that make
 - Depends on: localStorage API
 - Used by: Every page includes `<link rel="stylesheet" href="../assets/site.css">` and `<script defer src="../assets/theme.js"></script>`
 - Purpose: Number theory, BigInt arithmetic, SVG element/geometry helpers, cross-tool shared state, diagram layout algorithms, and multi-language translation used by more than one tool
-- Location: `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js`, each assigning one frozen object to its own `window.NT` namespace (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`, `NT.i18n`)
+- Location: `assets/nt-core.js`, `assets/nt-bigint.js`, `assets/nt-svg.js`, `assets/nt-store.js`, `assets/nt-layout.js`, `assets/nt-i18n.js`, `assets/nt-picker.js`, each assigning one frozen object to its own `window.NT` namespace (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`, `NT.i18n`, `NT.picker`)
 - Contains: the exported functions/constants listed in Key Abstractions below
-- Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, i18n, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded; a page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` translation-data files are included after `nt-i18n.js`, in the same non-deferred style
+- Load order: plain, non-deferred `<script src>` tags in the canonical order core, bigint, svg, store, layout, i18n, picker, included immediately before a tool's own inline `<script>`; `nt-layout.js` requires `nt-core.js` to already be loaded; a page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` translation-data files are included after `nt-i18n.js`, in the same non-deferred style
 - Used by: every tool page that imports one or more `NT.NAME` namespaces via its import block
 - Purpose: Site-wide multi-language translation — language resolution, DOM text binding, durable persistence, and cross-tab/cross-session sync, so a visitor's chosen language follows them across every tool
 - Location: `assets/nt-i18n.js` (`NT.i18n` — the engine: `translate`/`translateInto`/`bindText`/`applyStaticDom`/`setLang`/`getLang`/`onLangChange`/`detectDefaultLang`), the data files under `assets/i18n/` (`site.js`'s shared `site` and `common` namespaces plus one page-specific namespace per tool, e.g. `assets/i18n/sieve-of-eratosthenes.js`; `index.html`'s is `assets/i18n/hub.js`), and the canonical site header's `#lang-switch-select` switcher
 - Contains: sixteen supported languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
-- Load order: the sixth shared module, included after `nt-layout.js` and before a page's own `assets/i18n/*.js` data files and its inline `<script>`
+- Load order: the sixth shared module, included after `nt-layout.js`, before `nt-picker.js` when a page uses it, and before a page's own `assets/i18n/*.js` data files and its inline `<script>`
 - Used by: every tool page; a page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state when the active language changes, without resetting tool state (grid, scan position, playback, selections)
 - Purpose: Number-theory algorithms (primality testing, factorization, modular arithmetic, RSA crypto)
 - Location: `assets/nt-core.js` (`NT.core` — plain-Number math) and `assets/nt-bigint.js` (`NT.bigint` — BigInt-domain math); a tool imports the functions it needs via the import block at the top of its inline `<script>`
@@ -333,11 +333,11 @@ An educational website of interactive, visualization-led browser tools that make
 ## Architectural Constraints
 
 - **Threading:** Single-threaded event loop (browser JS standard). Animation via `requestAnimationFrame` and `setTimeout`; no Web Workers used.
-- **Global state:** Each tool's own UI/animation state lives in a closure-scoped object — no tool shares its own state via a module-level singleton. `window.NT` is the one shared global, and each of its sub-namespaces (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`, `NT.i18n`) is frozen after construction; no page may assign to `NT` or to any of its members. Theme preference is stored in `localStorage` under `site-theme`; the active language preference is stored under `site-lang` by `NT.i18n`, mirroring the same cookie + localStorage pattern.
-- **Module dependency direction:** Tools depend on `NT.*` modules, never the reverse; `nt-layout.js` depends on `nt-core.js` (and throws if loaded without it); no module depends on a tool. No ES modules are used, so every page still works when opened over `file://`.
+- **Global state:** Each tool's own UI/animation state lives in a closure-scoped object — no tool shares its own state via a module-level singleton. `window.NT` is the one shared global, and each of its sub-namespaces (`NT.core`, `NT.bigint`, `NT.svg`, `NT.store`, `NT.layout`, `NT.i18n`, `NT.picker`) is frozen after construction; no page may assign to `NT` or to any of its members. Theme preference is stored in `localStorage` under `site-theme`; the active language preference is stored under `site-lang` by `NT.i18n`, mirroring the same cookie + localStorage pattern.
+- **Module dependency direction:** Tools depend on `NT.*` modules, never the reverse; `nt-layout.js` depends on `nt-core.js` (and throws if loaded without it); `nt-picker.js` depends on `nt-bigint.js`, `nt-store.js` and `nt-i18n.js`, and `attachPrimePicker` throws if they are absent; no module depends on a tool. No ES modules are used, so every page still works when opened over `file://`.
 - **No build step:** All code runs as-is in browser; no transpilation, minification, or bundling.
 - **Module boundary:** Each helper exists once, in the matching `assets/nt-*.js` file; a tool includes only the modules whose namespaces it imports.
-- **Load order:** A page's `nt-*.js` `<script src>` tags are plain and non-deferred, placed immediately before its own inline `<script>`, because that inline script calls shared helpers synchronously at IIFE top level (starting with its own import block). The canonical order is core, bigint, svg, store, layout, i18n, followed by the page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` data files.
+- **Load order:** A page's `nt-*.js` `<script src>` tags are plain and non-deferred, placed immediately before its own inline `<script>`, because that inline script calls shared helpers synchronously at IIFE top level (starting with its own import block). The canonical order is core, bigint, svg, store, layout, i18n, picker, followed by the page's own `assets/i18n/site.js` and `assets/i18n/<page-slug>.js` data files.
 - **BigInt support:** RSA tool uses native `BigInt` for key generation and modular exponentiation; requires modern browser (not IE11 or earlier).
 - **SVG rendering:** All diagrams hand-drawn via path/circle/text elements; no charting library (D3, Recharts, etc.).
 
