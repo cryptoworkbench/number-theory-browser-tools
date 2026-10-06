@@ -7,7 +7,8 @@
  * Delete all, chip look and palette Randomize) and flipped V5 to the new
  * prime/composite colour logic.
  * Quick task 261006-keu moved the bin and Delete all into the add row on both
- * pages: U1 now asserts the add-row placement.
+ * pages: U1 now asserts the add-row placement, and sequence K (K1) asserts
+ * Factor Tree's.
  * Never referenced by any page. Node built-ins + the in-repo harness only.
  *
  * Node side: evaluates assets/nt-store.js in a vm context with the harness's
@@ -29,7 +30,7 @@ var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-modul
 
 // Total scenarios this probe must report; every task that appends scenarios
 // raises it.
-var EXPECTED = 28;
+var EXPECTED = 29;
 
 var PAGES = {
   ft: { dir: "Factor Tree", file: "factor-tree.html" },
@@ -45,7 +46,8 @@ var SEQUENCES = [
   { name: "F", runs: [["ft", "F1"]] },
   { name: "S", runs: [["sieve", "S123"]] },
   { name: "S4", runs: [["sieve", "S4"], ["ft", "S5a"], ["venn", "S5b"]] },
-  { name: "U", runs: [["venn", "U"]] }
+  { name: "U", runs: [["venn", "U"]] },
+  { name: "K", runs: [["ft", "K"]] }
 ];
 
 var DEFAULT30 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
@@ -615,6 +617,43 @@ function inPage(cfg) {
         assert(chipNamed(prev).hasAttribute("data-composite"), "the added " + prev + " is not a composite chip");
         noErrors("U4");
         return "25 clicks fill the field with 12..9999 numbers of 3+ prime factors, never repeating, adding nothing; Add then makes a composite chip";
+      } }
+    ];
+  };
+
+  /* K: quick task 261006-keu -- Factor Tree's bin and Delete all sit in the palette's add row */
+  defs.K = function () {
+    var rect = function (el) { return el.getBoundingClientRect(); };
+    return [
+      { name: "K1 ft-palette-tools-row", fn: function () {
+        var tools = document.querySelector(".palette-panel .controls .palette-tools");
+        assert(tools, "no .palette-panel .controls .palette-tools");
+        same(arr(tools.children).map(function (c) { return c.id; }), ["paletteBin", "paletteEmptyBtn"], "palette-tools children");
+        var row = document.querySelector(".palette-panel .controls");
+        assert(row.lastElementChild === tools, "the tools are not the add row's last child");
+        assert(tools.previousElementSibling && tools.previousElementSibling.id === "randomBtn", "the tools do not follow Randomize");
+        var headRow = document.getElementById("paletteHeading").parentElement;
+        assert(headRow.children.length === 1, "the heading row holds " + headRow.children.length + " children");
+        var bin = document.getElementById("paletteBin"), btn = document.getElementById("paletteEmptyBtn");
+        var controls = ["addInput", "addBtn", "randomBtn"].map(function (id) { return document.getElementById(id); });
+        function cy(r) { return r.top + r.height / 2; }
+        [bin, btn].forEach(function (el) {
+          var r = rect(el);
+          assert(Math.round(r.width) === 40 && Math.round(r.height) === 40, el.id + " is " + r.width + "x" + r.height);
+          controls.forEach(function (c) {
+            assert(Math.abs(cy(r) - cy(rect(c))) <= 1, el.id + " is not vertically centred with " + c.id);
+          });
+        });
+        var tr = rect(tools), cr = rect(row), rr = rect(document.getElementById("randomBtn"));
+        assert(Math.abs(tr.right - cr.right) <= 1, "tools right " + tr.right + " vs add row right " + cr.right);
+        assert(tr.left > rr.right, "tools (" + tr.left + ") touch Randomize (" + rr.right + ")");
+        assert(bin.getAttribute("aria-label") === T("factorTree.binLabel"), "bin aria-label " + bin.getAttribute("aria-label"));
+        assert(bin.getAttribute("title") === T("factorTree.binLabel"), "bin title " + bin.getAttribute("title"));
+        assert(btn.getAttribute("aria-label") === T("factorTree.emptyPaletteLabel"), "aria-label " + btn.getAttribute("aria-label"));
+        assert(btn.getAttribute("title") === T("factorTree.emptyPaletteLabel"), "title " + btn.getAttribute("title"));
+        assert(!btn.disabled, "Delete all is disabled on a full palette");
+        noErrors("K1");
+        return "bin and Delete all (both 40x40) at the right end of Factor Tree's add row, centred with the input and buttons; heading row holds only the heading";
       } }
     ];
   };
