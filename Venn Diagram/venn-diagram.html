@@ -146,12 +146,14 @@
     margin:0 0 16px;
   }
   /* Every column is as wide as the widest chip (--palette-cell, written
-     by JS), so 2-, 3- and 4-digit chips still line up in columns. */
+     by JS), so 2-, 3- and 4-digit chips still line up in columns.
+     --palette-scale (written by JS) shrinks the chips once they would
+     stack taller than 270px. */
   .prime-picker{
     display:grid;
     grid-template-columns:repeat(auto-fill, var(--palette-cell, 44px));
     justify-items:center;
-    gap:8px;
+    gap:calc(8px * var(--palette-scale, 1));
     margin:0;
   }
   /* Shown while the shared palette is empty: points at the Sieve, which
@@ -163,16 +165,16 @@
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    min-width:44px;
-    height:44px;
-    padding:0 10px;
-    border-radius:22px;
+    min-width:calc(44px * var(--palette-scale, 1));
+    height:calc(44px * var(--palette-scale, 1));
+    padding:0 calc(10px * var(--palette-scale, 1));
+    border-radius:calc(22px * var(--palette-scale, 1));
     border:1px solid var(--role-composite);
     background:var(--role-composite);
     color:var(--role-composite-ink);
     font-family:var(--font-sans);
     font-weight:700;
-    font-size:.9375rem;
+    font-size:calc(.9375rem * var(--palette-scale, 1));
     font-variant-numeric:tabular-nums;
     cursor:grab;
     user-select:none;
@@ -2113,13 +2115,34 @@
     paletteEmptyNote.hidden = palette.length !== 0;
   }
 
-  // Widens every palette column to the widest chip, so the rows line up.
+  // Widens every palette column to the widest chip, so the rows line up,
+  // then shrinks the chips as little as needed to keep the stack within
+  // PALETTE_MAX_HEIGHT (down to PALETTE_MIN_SCALE).
+  var PALETTE_MAX_HEIGHT = 270;
+  var PALETTE_MIN_SCALE = 0.25;
   function sizePickerCells(){
-    var w = 44;
     var chips = picker.querySelectorAll('.prime-chip');
-    for (var i = 0; i < chips.length; i++) w = Math.max(w, chips[i].offsetWidth);
-    picker.style.setProperty('--palette-cell', w + 'px');
+    function fits(scale){
+      picker.style.setProperty('--palette-scale', String(scale));
+      var w = 44 * scale;
+      for (var i = 0; i < chips.length; i++) w = Math.max(w, chips[i].offsetWidth);
+      picker.style.setProperty('--palette-cell', w + 'px');
+      return picker.offsetHeight <= PALETTE_MAX_HEIGHT;
+    }
+    if (fits(1)) return;
+    var lo = PALETTE_MIN_SCALE, hi = 1;
+    for (var i = 0; i < 8; i++){
+      var mid = (lo + hi) / 2;
+      if (fits(mid)) lo = mid; else hi = mid;
+    }
+    fits(lo);
   }
+  var pickerWidth = 0;
+  window.addEventListener('resize', function(){
+    if (picker.clientWidth === pickerWidth) return;
+    pickerWidth = picker.clientWidth;
+    sizePickerCells();
+  });
 
   function renderPicker(){
     picker.innerHTML = '';

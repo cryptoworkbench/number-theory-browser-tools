@@ -132,12 +132,14 @@
   }
 
   /* Every column is as wide as the widest circle (--palette-cell, written
-     by JS), so 2-, 3- and 4-digit circles still line up in columns. */
+     by JS), so 2-, 3- and 4-digit circles still line up in columns.
+     --palette-scale (written by JS) shrinks the circles once they would
+     stack taller than 270px. */
   .palette{
     display:grid;
     grid-template-columns:repeat(auto-fill, var(--palette-cell, 44px));
     justify-items:center;
-    gap:8px;
+    gap:calc(8px * var(--palette-scale, 1));
     margin-bottom:22px;
   }
   .palette:empty{ margin-bottom:0; }
@@ -162,16 +164,16 @@
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    min-width:44px;
-    height:44px;
-    padding:0 10px;
-    border-radius:22px;
+    min-width:calc(44px * var(--palette-scale, 1));
+    height:calc(44px * var(--palette-scale, 1));
+    padding:0 calc(10px * var(--palette-scale, 1));
+    border-radius:calc(22px * var(--palette-scale, 1));
     border:1px solid var(--role-composite);
     background:var(--role-composite);
     color:var(--role-composite-ink);
     font-family:var(--font-sans);
     font-weight:700;
-    font-size:.9375rem;
+    font-size:calc(.9375rem * var(--palette-scale, 1));
     font-variant-numeric:tabular-nums;
   }
   .palette-item:not([data-composite]), .drag-ghost.is-prime{
@@ -797,12 +799,34 @@
     });
   }
 
-  // Widens every palette column to the widest circle, so the rows line up.
+  // Widens every palette column to the widest circle, so the rows line up,
+  // then shrinks the circles as little as needed to keep the stack within
+  // PALETTE_MAX_HEIGHT (down to PALETTE_MIN_SCALE).
+  const PALETTE_MAX_HEIGHT = 270;
+  const PALETTE_MIN_SCALE = 0.25;
   function sizePaletteCells(){
-    let w = 44;
-    paletteEl.querySelectorAll('.palette-item').forEach(item=>{ w = Math.max(w, item.offsetWidth); });
-    paletteEl.style.setProperty('--palette-cell', w + 'px');
+    const items = paletteEl.querySelectorAll('.palette-item');
+    const fits = scale=>{
+      paletteEl.style.setProperty('--palette-scale', String(scale));
+      let w = 44 * scale;
+      items.forEach(item=>{ w = Math.max(w, item.offsetWidth); });
+      paletteEl.style.setProperty('--palette-cell', w + 'px');
+      return paletteEl.offsetHeight <= PALETTE_MAX_HEIGHT;
+    };
+    if(fits(1)) return;
+    let lo = PALETTE_MIN_SCALE, hi = 1;
+    for(let i = 0; i < 8; i++){
+      const mid = (lo + hi) / 2;
+      if(fits(mid)) lo = mid; else hi = mid;
+    }
+    fits(lo);
   }
+  let paletteWidth = 0;
+  window.addEventListener('resize', ()=>{
+    if(paletteEl.clientWidth === paletteWidth) return;
+    paletteWidth = paletteEl.clientWidth;
+    sizePaletteCells();
+  });
 
   // The palette is a Prime palette while it holds primes only, and a Number
   // palette while it holds at least one composite.
