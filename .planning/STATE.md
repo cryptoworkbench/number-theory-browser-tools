@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-06T16:20:57.135Z"
+last_updated: "2026-10-06T18:57:05.089Z"
 last_activity: 2026-10-06
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: da8947e14e555eb1984e4ac374548df3a8a51884
+state_head: 472a6a263e49f6a0827f0b0aaccd30a517a271f7
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-06 - Completed quick task 261006-p2s: Replace the site logo with a simplified Cayley-table mark
+Last activity: 2026-10-06 - Completed quick task 261006-pks: Add Hebrew (he) as the seventeenth supported language site-wide, with RTL support
 
 Progress: [█████████░] 86%
 
@@ -346,6 +346,7 @@ None yet.
 | 261006-o9g | Venn Diagram: folded LCM/GCD section visualizing lcm(A, B) = (A × B) ÷ gcd(A, B) | 2026-10-06 | c2cc983 | [261006-o9g-venn-diagram-add-a-second-normally-hidde](./quick/261006-o9g-venn-diagram-add-a-second-normally-hidde/) |
 | 261006-p2s | Replace the site logo with a simplified Cayley-table mark | 2026-10-06 | ed81120 | [261006-p2s-replace-the-site-logo-with-a-simplified-](./quick/261006-p2s-replace-the-site-logo-with-a-simplified-/) |
 | 112 | Sieve of Eratosthenes: category line above title, margins match Venn Diagram/Factor Tree | 2026-10-06 | da8947e | — |
+| 261006-pks | Add Hebrew (he) as the seventeenth supported language site-wide, with RTL support | 2026-10-06 | 472a6a2 | [261006-pks-add-hebrew-he-as-the-seventeenth-support](./quick/261006-pks-add-hebrew-he-as-the-seventeenth-support/) |
 
 ## Deferred Items
 
@@ -361,4 +362,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-06 - Completed quick task 261006-p2s: Replace the site logo with a simplified Cayley-table mark
+Last activity: 2026-10-06 - Completed quick task 261006-pks: Add Hebrew (he) as the seventeenth supported language site-wide, with RTL support
