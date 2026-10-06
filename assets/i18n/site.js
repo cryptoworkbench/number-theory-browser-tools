@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all seventeen
+   switcher's own label and the day/night toggle's label — in all eighteen
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -405,6 +405,29 @@
       'nav.shor': 'האלגוריתם של שור',
       'lang.label': 'שפה',
       'theme.toggle': 'מעבר בין מצב יום ללילה'
+    },
+    hi: {
+      brand: 'संख्या सिद्धांत के उपकरण',
+      'nav.label': 'उपकरण',
+      menu: 'उपकरण',
+      'nav.home': 'मुखपृष्ठ',
+      'nav.sieve': 'एराटोस्थनीज़ की छलनी',
+      'nav.factorTree': 'गुणनखंड वृक्ष',
+      'nav.venn': 'वेन आरेख',
+      'nav.euclid': 'यूक्लिड का एल्गोरिथ्म',
+      'nav.crt': 'चीनी शेषफल प्रमेय',
+      'nav.wheel': 'तुल्यता चक्र',
+      'nav.totient': 'ऑयलर का φ फलन',
+      'nav.cayley': 'केली सारणी',
+      'nav.iso': 'समूह तुल्याकारिता',
+      'nav.sqm': 'वर्ग और गुणा',
+      'nav.dh': 'डिफ़ी-हेलमैन',
+      'nav.ecdh': 'दीर्घवृत्तीय वक्र DH',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'फ़र्मा की विधि',
+      'nav.shor': 'शोर का एल्गोरिथ्म',
+      'lang.label': 'भाषा',
+      'theme.toggle': 'दिन और रात का मोड बदलें'
     }
   });
 
@@ -878,6 +901,33 @@
       redoPalette: 'שחזור שינוי הפלטה',
       undoWork: 'ביטול',
       redoWork: 'ביצוע חוזר'
+    },
+    hi: {
+      play: 'चलाएँ',
+      pause: 'रोकें',
+      step: 'चरण',
+      instant: 'तुरंत',
+      reset: 'रीसेट',
+      speed: 'गति',
+      'speed.1': 'बर्फ़ीली',
+      'speed.2': 'धीमी',
+      'speed.3': 'सौम्य',
+      'speed.4': 'फुर्तीली',
+      'speed.5': 'स्थिर',
+      'speed.6': 'चुस्त',
+      'speed.7': 'तेज़',
+      'speed.8': 'द्रुत',
+      'speed.9': 'बिजली-सी',
+      'speed.10': 'लगभग तुरंत',
+      additiveGroups: 'योगात्मक समूह',
+      multiplicativeGroups: 'गुणात्मक समूह',
+      paletteEmptySieve: 'इस पैलेट में अभाज्य संख्याएँ जोड़ने के लिए "{0}" उपकरण का उपयोग करें।',
+      primePickerOpen: 'पैलेट से एक अभाज्य संख्या चुनें',
+      primePickerHeading: 'एक अभाज्य संख्या चुनें',
+      undoPalette: 'पैलेट में किया गया बदलाव पूर्ववत करें',
+      redoPalette: 'पैलेट में किया गया बदलाव फिर से लागू करें',
+      undoWork: 'पूर्ववत करें',
+      redoWork: 'फिर से करें'
     }
   });
 })();

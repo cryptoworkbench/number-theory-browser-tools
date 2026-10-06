@@ -63,7 +63,7 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi']);
   // The right-to-left languages (internal, not exported): applyHtmlLang sets
   // dir="rtl" on <html> while one of them is active.
   var RTL_LANGS = Object.freeze(['he']);

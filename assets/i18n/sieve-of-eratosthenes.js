@@ -1,7 +1,7 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all seventeen supported
+   marker for the Sieve of Eratosthenes tool, in all eighteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -10,7 +10,7 @@
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }) and
    Hebrew ({ one, two, other }), each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all seventeen
+   Placeholder names ({n}, {time}, {count}) are identical across all eighteen
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -688,6 +688,44 @@
         other: 'נוספו {count} ראשוניים חדשים — הפלטה מלאה ({max} מספרים); ראשוניים שלא נוספו: {left}.'
       },
       'palette.none': 'כל הראשוניים שנמצאו כבר נמצאים בפלטה — אין מה להוסיף.'
+    },
+    hi: {
+      sound: 'ध्वनि',
+      title: 'एराटोस्थनीज़ की छलनी — इंटरैक्टिव विज़ुअलाइज़र',
+      heading: 'एराटोस्थनीज़ की छलनी',
+      eyebrow: 'अभाज्य संख्याएँ और विभाज्यता',
+      lede: 'हर प्राकृतिक संख्या को उसका अपना खाना दें — फिर देखें कि छलनी हर उस संख्या को कैसे काट देती है जो अभाज्य नहीं है।',
+      sizeLabel: 'छलनी का आकार (N)',
+      generate: 'बनाएँ',
+      'stat.current': 'वर्तमान',
+      'stat.primesFound': 'मिली अभाज्य संख्याएँ',
+      'stat.sqrtBoundary': '√N सीमा',
+      'stat.elapsed': 'बीता समय',
+      'stat.progress': 'प्रगति',
+      'stat.done': '✓ पूर्ण',
+      'legend.unvisited': '{0} अनदेखा',
+      'legend.currentPointer': '{0} वर्तमान संकेतक',
+      'legend.prime': '{0} अभाज्य',
+      'legend.composite': '{0} कटी हुई (भाज्य)',
+      'legend.neither': '{0} इनमें से कोई नहीं (1)',
+      footer: 'सारी गणना आपके ब्राउज़र में ही होती है। किसी भी संख्या को स्थायी नुकसान नहीं पहुँचा — बस वे कट गईं।',
+      'banner.ready': 'तैयार। {n} खाने बन गए — छलनी चलाने के लिए "चलाएँ" दबाएँ।',
+      'banner.single': 'केवल 1 खाना — छानने के लिए कुछ नहीं है।',
+      'banner.reset': 'रीसेट हुआ। {n} खाने फिर से बनाए गए — छलनी चलाने के लिए "चलाएँ" दबाएँ।',
+      'banner.done': {
+        one: '{time} में {n} तक {count} अभाज्य संख्या मिली।',
+        other: '{time} में {n} तक {count} अभाज्य संख्याएँ मिलीं।'
+      },
+      toPalette: 'मिली अभाज्य संख्याएँ पैलेट में जोड़ें',
+      'palette.added': {
+        one: 'पैलेट में {count} नई अभाज्य संख्या जुड़ी — छोड़ी गई दोहराई संख्याएँ: {dupes}।',
+        other: 'पैलेट में {count} नई अभाज्य संख्याएँ जुड़ीं — छोड़ी गई दोहराई संख्याएँ: {dupes}।'
+      },
+      'palette.full': {
+        one: 'पैलेट में {count} नई अभाज्य संख्या जुड़ी — पैलेट भर गया है (अधिकतम {max} संख्याएँ); न जोड़ी गई अभाज्य संख्याएँ: {left}।',
+        other: 'पैलेट में {count} नई अभाज्य संख्याएँ जुड़ीं — पैलेट भर गया है (अधिकतम {max} संख्याएँ); न जोड़ी गई अभाज्य संख्याएँ: {left}।'
+      },
+      'palette.none': 'मिली हर अभाज्य संख्या पहले से पैलेट में है — जोड़ने के लिए कुछ नहीं है।'
     }
   });
 })();
