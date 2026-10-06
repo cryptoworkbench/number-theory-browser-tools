@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-06T12:57:00.613Z"
 last_activity: 2026-10-06
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: 0452d87bdd47b71027087a39e3cbf83a30949bca
+state_head: 0cf5caa3cc501c955e02449e958e741d8ee24d52
 progress:
   total_phases: 7
   completed_phases: 6
@@ -340,6 +340,7 @@ None yet.
 | 261006-ibm | Add prime picker popover (date-picker style, scrollable) to RSA and Diffie-Hellman | 2026-10-06 | 71603a1 | [261006-ibm-add-prime-picker-popover-date-picker-sty](./quick/261006-ibm-add-prime-picker-popover-date-picker-sty/) |
 | 261006-keu | Palette in Factor Tree and Venn Diagram: bin and Delete-all icons moved onto the Add row | 2026-10-06 | 9eebaa9 | [261006-keu-palette-in-factor-tree-and-venn-diagram-](./quick/261006-keu-palette-in-factor-tree-and-venn-diagram-/) |
 | 106 | Palette bin stretches from Randomize to Delete all (icon centred) in Factor Tree and Venn Diagram | 2026-10-06 | 0452d87 | — |
+| 107 | Palette circles shrink so the palette stays at most 270px tall in Factor Tree and Venn Diagram | 2026-10-06 | 0cf5caa | — |
 
 ## Deferred Items
 
