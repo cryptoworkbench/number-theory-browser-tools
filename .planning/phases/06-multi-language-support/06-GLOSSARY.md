@@ -316,8 +316,15 @@ considered translation-complete.
   SCRIPT-MIXED / SCRIPT-FOREIGN / SCRIPT-MISSING. No `dir` attribute, no
   `:root[dir="rtl"]` rule and no bidi isolate or mark appears anywhere for Hindi. Hindi text
   renders in the browser's system fallback font (L-FONT): no Google Fonts `<link>`,
-  `@font-face` or `font-family` change is made for it. Added 2026-10-06 by quick task
-  261006-vpp.
+  `@font-face` or `font-family` change is made for it. Cross-batch conventions settled
+  in Task 5: Randomize is यादृच्छिक करें; a "demo" is a प्रदर्शन; "use" is always उपयोग
+  (never इस्तेमाल / प्रयोग); "function" is फलन; English "whole number" is पूर्ण संख्या
+  and "integer" is पूर्णांक; "real" is असली; an `{verbing}`-style slot is filled with a
+  noun plus a conjunction (Wheel's `verbingAdditive` योग / `verbingMultiplicative`
+  गुणनफल with `joiner*` और) and `{ordWord}` / `{word}` slots take a bare noun (कोटि),
+  so the surrounding frame needs no gender or case agreement; identical English strings
+  on the DH and ECDH pages carry identical Hindi. See the "Hindi supplementary terms"
+  table after (c). Added 2026-10-06 by quick task 261006-vpp.
 
 ---
 
@@ -483,6 +490,131 @@ state, plural) — for example "המפתח הפרטי" for "private key". All `[
 | Miller–Rabin | מילר-רבין | DH, RSA |
 | diagram | דיאגרמה (תרשים only in תרשים פיזור) | all |
 | extended Euclidean algorithm | האלגוריתם האוקלידי המורחב | CRT, Euclid, RSA |
+
+### Hindi supplementary terms (added 2026-10-06 by quick task 261006-vpp, Tasks 2-4, unified in Task 5)
+
+Terms chosen while translating the pages in parallel, after the cross-batch unification
+pass; the hi column of the table above holds citation forms (a few — "order of an element",
+"cyclic group", "binary expansion", "square / multiply step", "plaintext" — appear in the
+UI only inflected or as their parts: कोटि, चक्र, द्विआधारी, वर्ग / गुणा, संदेश), and the
+shipped values inflect them. One Hindi rendering per English concept across all 18
+namespaces. All `[ASSUMED]`.
+
+| Term (en) | hi | Used in |
+|---|---|---|
+| palette | पैलेट | common, Sieve, Factor Tree, Venn |
+| box / cell (grid) | खाना | Hub, Sieve, Cayley |
+| residue (class strips) | अवशेष (अवशेष वर्ग पट्टियाँ) | CRT |
+| unit (group element) | इकाई | Hub, Wheel, Isomorphism |
+| cryptography / cryptographic | क्रिप्टोग्राफ़ी / क्रिप्टोग्राफ़िक | Hub, Square and Multiply, DH, ECDH |
+| Randomize (button) | यादृच्छिक करें | Factor Tree, Venn, Wheel, Cayley, Isomorphism, Square and Multiply, DH, ECDH, Shor |
+| composition/factorization area | संयोजन/गुणनखंडन क्षेत्र | Factor Tree |
+| bin (trash) | कूड़ेदान | Factor Tree, Venn |
+| clear / clear all | साफ़ करें / सब साफ़ करें | Factor Tree, Venn |
+| wedge (wheel sector) | फाँक | Hub, Wheel, Totient, Cayley |
+| overlap (noun) | अधिव्यापन | Factor Tree, Venn |
+| overlap region | उभयनिष्ठ भाग | Hub |
+| intersection | प्रतिच्छेदन | Hub, Venn, ECDH |
+| union | संघ | Venn |
+| set difference | समुच्चय अंतर | Venn |
+| simultaneous (solution) | युगपत हल | Hub, CRT |
+| pairwise coprime | युग्मानुसार सह-अभाज्य | CRT |
+| system (of congruences) | निकाय | CRT |
+| construction (CRT) | रचना | CRT, ECDH |
+| span | विस्तार | CRT |
+| tile | टाइल | Euclid |
+| leftover | बचा हुआ भाग | Euclid |
+| nested squares | समाए हुए वर्ग | Euclid |
+| Bézout coefficients | बेज़ू गुणांक | Euclid |
+| derivation | व्युत्पत्ति | Euclid, DH, ECDH |
+| diagnostic mismatch | जाँच में असंगति | CRT |
+| scan | स्कैन | CRT |
+| Run (button, distinct from Play) | शुरू करें | Euclid |
+| Compute / Run (Totient, Square and Multiply) | गणना करें | Totient, Square and Multiply |
+| trivial pair | तुच्छ जोड़ी | Fermat |
+| trail | पथ | Fermat |
+| search log | खोज लॉग | Fermat |
+| trial | परीक्षण | Fermat, RSA |
+| keys Enter / Space / Delete | एंटर / स्पेस / डिलीट | Venn |
+| concentric ring (wheel) | संकेंद्री छल्ला | Hub, Wheel |
+| addend | योज्य | Wheel |
+| sum | योगफल | Wheel |
+| product | गुणनफल | Hub, Venn, Wheel, Isomorphism |
+| factor (in a multiplication) | गुणक | Wheel |
+| its own negative / reciprocal | अपना ही योगात्मक प्रतिलोम / अपना ही गुणात्मक प्रतिलोम | Cayley |
+| image (of an element) | प्रतिबिंब | Factor Tree, Venn, Cayley, Isomorphism, ECDH |
+| correspondence | अनुरूपता | Isomorphism |
+| accumulator | संचायक | Square and Multiply |
+| ladder | सीढ़ी | Square and Multiply |
+| place value | स्थानीय मान | Square and Multiply |
+| non-negative | अऋणात्मक | Square and Multiply, RSA |
+| eavesdropper | छिपकर सुनने वाला | DH |
+| wire tap | टैप / टैपिंग | DH, ECDH, RSA |
+| parameters | प्राचल | DH |
+| subgroup | उपसमूह | DH, ECDH |
+| search space | खोज-क्षेत्र | DH, ECDH |
+| Export / dialog | निर्यात / संवाद | Wheel |
+| teaching demo / demo | शिक्षण प्रदर्शन / प्रदर्शन | Square and Multiply, DH, ECDH, RSA |
+| key-derivation function | कुंजी-व्युत्पत्ति फलन | DH, ECDH |
+| key exchange | कुंजी विनिमय | Hub, Square and Multiply, DH, ECDH |
+| scatter plot | प्रकीर्ण आलेख | Hub, ECDH |
+| singular (curve) | विलक्षण | ECDH |
+| tangent / chord | स्पर्श रेखा / जीवा | ECDH |
+| slope / intercept | ढलान / अंतःखंड | ECDH |
+| midline | मध्य रेखा | ECDH |
+| ord / order (of a point, element) | कोटि | Hub, DH, ECDH, Shor |
+| textbook RSA | पाठ्यपुस्तकीय RSA | RSA, Shor |
+| extended Euclidean algorithm | विस्तारित यूक्लिडीय एल्गोरिथ्म | RSA |
+| trial division | परीक्षण-भाग | RSA |
+| candidate divisor | उम्मीदवार भाजक | RSA |
+| index calculus | सूचकांक कलन | RSA |
+| recombination | पुनर्संयोजन | RSA |
+| precomputation | पूर्व-गणना | RSA |
+| Garner's formula | गार्नर का सूत्र | RSA |
+| operand | ऑपरेंड | RSA |
+| classical | क्लासिकल | Hub, Shor |
+| quantum | क्वांटम | Hub, Shor |
+| superposition | अध्यारोपण | Shor |
+| phase estimation | कला आकलन | Shor |
+| inverse QFT | प्रतिलोम क्वांटम फ़ूरिये रूपांतरण | Shor |
+| perfect power | पूर्ण घात | Shor |
+| pre-checks | पूर्व-जाँच | Shor |
+| post-processing | पश्च-प्रसंस्करण | Shor |
+| parity | समता | Shor |
+| stand-in | विकल्प | Hub, Shor |
+| cycle walk | चक्र-भ्रमण | Shor |
+| ring diagram (Shor) | छल्ला आरेख | Shor |
+| truncation | काट-छाँट | Shor |
+| amplitude | आयाम | Shor |
+| whole number / integer | पूर्ण संख्या / पूर्णांक | Hub, Factor Tree, Venn, Euclid, CRT, Fermat, Totient, Cayley, Isomorphism, Square and Multiply, DH, ECDH, RSA, Shor |
+| use / used | उपयोग | common, Factor Tree, Square and Multiply, DH, ECDH, RSA, Shor |
+| function | फलन | site, Hub, Totient, DH, ECDH, RSA, Shor |
+| Classic (factor-tree mode, distinct from "classical") | क्लासिक | Factor Tree |
+| factorize (verb, button / label) | गुणनखंडन करें | Fermat, Shor |
+| real (opposed to toy) vs. actual / genuine | असली vs. वास्तविक | RSA, DH, Shor, Euclid |
+
+Unification decisions (Task 5; the left form was shipped by one batch and replaced by the
+right one site-wide): Randomize यादृच्छिक बनाएँ → यादृच्छिक करें; demo डेमो → प्रदर्शन
+("teaching demo" शिक्षण प्रदर्शन everywhere); इस्तेमाल / प्रयोग / प्रयुक्त → उपयोग;
+फ़ंक्शन → फलन (the key-derivation function is कुंजी-व्युत्पत्ति फलन in both DH and
+ECDH); "whole number" पूर्णांक → पूर्ण संख्या (पूर्णांक is kept only for English
+"integer"); "real" वास्तविक → असली where the English says real / toy-versus-real;
+cryptography कूटविज्ञान → क्रिप्टोग्राफ़ी (the family क्रिप्टोग्राफ़ी / क्रिप्टोग्राफ़िक);
+"its own reciprocal" व्युत्क्रम → अपना ही गुणात्मक प्रतिलोम and "inverse QFT" व्युत्क्रम →
+प्रतिलोम (प्रतिलोम is the one word for inverse); visual rings वलय → छल्ला (Wheel, Hub and
+Shor's ring diagram; वलय is reserved for the algebraic ring); "order finding" कोटि-खोज →
+कोटि ज्ञात करना (the English "order search" stays कोटि की खोज); non-negative ऋणेतर →
+अऋणात्मक; valid वैध → मान्य; toy-sized खिलौना-आकार के → खिलौने के आकार के; "remainder"
+शेष → शेषफल in the hub card; "stand-in" प्रतिस्थापन → विकल्प; "Group Isomorphisms" in the
+hub card plural → समूह तुल्याकारिता (the page and nav form). Identical English strings in
+the DH and ECDH pages (`bannerReady`, `notebookHeading`, the `log*CrossHeading` and
+`logTheyAgreeHeading` headings, `eveBruteForceBtn`, `logHeading`) now carry identical Hindi.
+Checked and kept: gcd / lcm spelled out in prose and म.स. only in Shor's pill and step
+labels; घातांक (exponent) vs. घात (power); Euclid "Run" शुरू करें and Totient / Square
+and Multiply "Compute" गणना करें label different actions and neither collides with
+Play (चलाएँ); wedge फाँक (Hub, Wheel, Totient, Cayley); residue अवशेष (CRT's residue
+class strips; the remainder of a division is शेषफल); cell / box खाना (Sieve, Cayley,
+Hub).
 
 ---
 
