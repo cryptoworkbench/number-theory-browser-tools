@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   seventeen supported languages.
+   eighteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -523,6 +523,35 @@
       eqTooLarge: '\u2066{g}^{a} ≡ {val} (mod {m})\u2069 (גדול מכדי להציג במדויק את החזקה לפני הצמצום)',
       refCount: '{count} זוגות (\u2066m ≤ {max}\u2069)',
       formula: '\u2066Z/{n}Z ≅ (Z/{m}Z)*\u2069   באמצעות   \u2066k ↦ {g}^k mod {m}\u2069   (יוצר \u2066g = {g}\u2069)'
+    },
+    hi: {
+      title: 'समूह तुल्याकारिता',
+      eyebrow: 'दो अंकगणित, एक समूह',
+      heading: 'समूह तुल्याकारिता',
+      lede: 'योग के अंतर्गत मापांक n के पूर्णांक और गुणन के अंतर्गत मापांक m की इकाइयाँ संरचना की दृष्टि से ठीक एक ही समूह हो सकती हैं — बस अंकगणित का रूप अलग होता है। {0}',
+      xref: 'इन दोनों समूहों को एक-एक करके बनते देखें →',
+      pairLabel: 'तुल्याकारी युग्म',
+      pairSelectAriaLabel: 'एक तुल्याकारी युग्म चुनें',
+      randomizeLabel: 'यादृच्छिक करें',
+      randomize: 'नया यादृच्छिक उदाहरण',
+      tablistLabel: 'दाएँ चक्र का विन्यास',
+      tabPowers: 'g की घातें',
+      tabNumeric: 'संख्यात्मक',
+      leftWheelAriaLabel: 'योगात्मक समूह Z mod n के अवयव',
+      rightWheelAriaLabel: 'मापांक m की इकाइयों के गुणात्मक समूह के अवयव',
+      refHeading: 'तुल्याकारी युग्म',
+      leftWedgeAriaLabel: 'योगात्मक समूह Z mod {n} का अवयव {value}',
+      rightWedgeAriaLabel: 'मापांक {m} की इकाइयों के गुणात्मक समूह का अवयव {value}, जो मापांक {m} में {g} की घात {k} के बराबर है',
+      leftCaption: 'योगात्मक समूह {bSpan}: मापांक {n} वाले योग के अंतर्गत 0 से {max} तक के पूर्णांक।',
+      rightCaption: 'गुणात्मक समूह {bSpan}: गुणन के अंतर्गत मापांक {m} की {n} इकाइयाँ, जिनका जनक {g} है।',
+      readoutPrompt: 'अनुरूपता देखने के लिए किसी भी चक्र पर एक अवयव पर क्लिक करें।',
+      readoutOne: 'बाईं ओर का अवयव {aSlot} दाईं ओर के {aValSlot} के अनुरूप है: {eqSpan}। योग और गुणनफल देखने के लिए दूसरे अवयव पर क्लिक करें — या इसी पर दोबारा।',
+      readoutBothAgree: 'बाईं ओर {spanA} + {spanB} = {spanSum} ({eqLeft}) — दाईं ओर {aValSpan} × {bValSpan} = {productSpan} ({modSpan}) — और {product} = {g}^{sum} mod {m} = {sumVal}: योग का प्रतिबिंब प्रतिबिंबों के गुणनफल के बराबर है।',
+      readoutBothDisagree: 'बाईं ओर {spanA} + {spanB} = {spanSum} ({eqLeft}) — दाईं ओर {aValSpan} × {bValSpan} = {productSpan} ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product}, {g}^{sum} mod {m} = {sumVal} के बराबर नहीं है — इस युग्म में कभी असहमति नहीं होनी चाहिए।',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (अघटित घात इतनी बड़ी है कि उसे ठीक-ठीक नहीं दिखाया जा सकता)',
+      refCount: '{count} युग्म (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   द्वारा   k ↦ {g}^k mod {m}   (जनक g = {g})'
     }
   });
 })();

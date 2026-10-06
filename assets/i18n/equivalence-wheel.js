@@ -3,7 +3,7 @@
    fields, the Randomize and Export controls, the wheel's own aria-label,
    the per-mode note/heading/ref-count/formula strings, the wedge aria
    labels, the equivalence-class/sum captions and the export status
-   messages for the Equivalence Wheel tool, in all seventeen supported
+   messages for the Equivalence Wheel tool, in all eighteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -843,6 +843,54 @@
       exportFailedSvg: 'ייצוא ה-SVG נכשל — נסו שוב.',
       exportFailedPng: 'ייצוא ה-PNG נכשל — נסו להוריד SVG במקום.',
       exportPrintOpening: 'נפתח חלון ההדפסה — בחרו "שמירה כ-PDF" כיעד.'
+    },
+    hi: {
+      title: 'तुल्यता चक्र',
+      eyebrow: 'ℕ के विभाजन',
+      heading: 'तुल्यता चक्र',
+      lede: 'हर प्राकृतिक संख्या मापांक N के सापेक्ष ठीक एक तुल्यता वर्ग में आती है। {0}',
+      xref: 'यही समूह, एक पूर्ण संक्रिया सारणी के रूप में →',
+      tablistLabel: 'समूह संक्रिया',
+      nLabel: 'N — मापांक',
+      nRangeLabel: 'मापांक N',
+      ringsLabel: 'छल्ले (प्रति वर्ग संख्याएँ)',
+      depthRangeLabel: 'प्रति वर्ग दिखाई गई संख्याएँ',
+      randomizeLabel: 'यादृच्छिक करें',
+      randomize: 'नया यादृच्छिक उदाहरण',
+      exportLabel: 'निर्यात',
+      exportPngBtn: 'PNG डाउनलोड करें',
+      exportSvgBtn: 'SVG डाउनलोड करें',
+      exportPdfBtn: 'प्रिंट करें / PDF के रूप में सहेजें',
+      svgLabel: 'संकेंद्री छल्लों में सजी प्राकृतिक संख्याएँ, जो N तुल्यता वर्गों में बँटी हैं',
+      noteAdditive: 'यह आरेख ℕ को संकेंद्री छल्लों के रूप में सजाता है — N के हर गुणज के लिए एक छल्ला और हर वर्ग के लिए एक फाँक — ताकि वर्ग साफ़ तौर पर परस्पर असंयुक्त और पूर्ण दिखें।',
+      noteMultiplicative: 'यहाँ केवल N से सह-अभाज्य φ(N) वर्गों को फाँक मिलती है — ये ठीक वही वर्ग हैं जिनका गुणात्मक प्रतिलोम होता है, इसलिए गुणन के अंतर्गत केवल यही मिलकर एक समूह बनाते हैं।',
+      headingAdditive: 'तुल्यता वर्ग',
+      headingMultiplicative: 'इकाई तुल्यता वर्ग',
+      refCountAdditive: 'N = {n}',
+      refCountMultiplicative: 'N = {n} · φ({n}) = {m}',
+      formulaAdditive: 'ℕ/∼ = { [0], [1], …, [{nMinus1}] }   जहाँ   [r] = { n ∈ ℕ : n mod {n} = r }',
+      formulaMultiplicative: '(ℤ/{n}ℤ)* = { [{els}] }   ·   तत्समक [{id}]   ·   |(ℤ/{n}ℤ)*| = φ({n}) = {m}',
+      roleFirstAddend: 'पहला योज्य',
+      roleSecondAddend: 'दूसरा योज्य',
+      roleSum: 'योगफल',
+      roleFirstFactor: 'पहला गुणक',
+      roleSecondFactor: 'दूसरा गुणक',
+      roleProduct: 'गुणनफल',
+      and: 'और',
+      wedgeAriaLabel: 'मापांक {n} के सापेक्ष तुल्यता वर्ग {value}',
+      wedgeAriaLabelWithRoles: 'मापांक {n} के सापेक्ष तुल्यता वर्ग {value}, {roles}',
+      verbingAdditive: 'योग',
+      verbingMultiplicative: 'गुणनफल',
+      joinerAdditive: 'और',
+      joinerMultiplicative: 'और',
+      classIntroPromptA: 'तुल्यता वर्ग {bSpan} में वे सभी प्राकृतिक संख्याएँ आती हैं जो {s} (mod {n}) के सर्वांगसम हैं: {termsSpan} — और कुछ नहीं। {word} चुनने के लिए किसी फाँक या संदर्भ पंक्ति पर क्लिक करें।',
+      classIntroPromptBAdditive: 'तुल्यता वर्ग {bSpan} में वे सभी प्राकृतिक संख्याएँ आती हैं जो {s} (mod {n}) के सर्वांगसम हैं: {termsSpan} — और कुछ नहीं। {aSpan} में जोड़ने और योगफल देखने के लिए दूसरे वर्ग पर क्लिक करें — या इसी वर्ग पर दोबारा।',
+      classIntroPromptBMultiplicative: 'तुल्यता वर्ग {bSpan} में वे सभी प्राकृतिक संख्याएँ आती हैं जो {s} (mod {n}) के सर्वांगसम हैं: {termsSpan} — और कुछ नहीं। {aSpan} से गुणा करने और गुणनफल देखने के लिए दूसरे वर्ग पर क्लिक करें — या इसी वर्ग पर दोबारा।',
+      sumCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {sum} (mod {n})। {spanA2} के किसी भी सदस्य {joiner} {spanB2} के किसी भी सदस्य का {verbing} हमेशा {spanSum2} में ही आता है: {termsSpan}',
+      exportSaved: 'फ़ाइल {filename} सहेजी गई',
+      exportFailedSvg: 'SVG निर्यात विफल रहा — कृपया फिर से प्रयास करें।',
+      exportFailedPng: 'PNG निर्यात विफल रहा — इसकी जगह "SVG डाउनलोड करें" आज़माएँ।',
+      exportPrintOpening: 'प्रिंट संवाद खुल रहा है — गंतव्य के रूप में "PDF के रूप में सहेजें" चुनें।'
     }
   });
 })();

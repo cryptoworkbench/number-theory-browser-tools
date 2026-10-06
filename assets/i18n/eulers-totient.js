@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all seventeen supported languages.
+   tool, in all eighteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all seventeen languages. bannerDone is { one, other } in every language
+   all eighteen languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }) and Hebrew
    ({ one, two, other }), each the CLDR shape for that language.
@@ -420,6 +420,29 @@
         other: 'הסתיים — נבדקו {count} ערכים, מתוכם {phi} זרים ל-{n}.'
       },
       caption: 'כאשר n ראשוני מתקבל \u2066φ(n) = n−1\u2069, כי לכל מספר קטן ממנו אין איתו גורם משותף — כפתורי הדוגמה מקלים על הבדיקה.'
+    },
+    hi: {
+      title: 'ऑयलर का φ फलन',
+      heading: 'ऑयलर का φ फलन',
+      lede: 'φ(n) गिनता है कि 1 … n−1 में से कितनी संख्याओं का n के साथ कोई साझा गुणनखंड नहीं है, और यह पृष्ठ इसे एकमात्र ईमानदार तरीके से पता लगाता है — हर एक संख्या के बारे में यूक्लिड के एल्गोरिथ्म से पूछकर।',
+      xref: 'यही गिनती मापांक n के गुणात्मक समूह की फाँकों के रूप में भी दिखाई देती है →',
+      chipPrime: '{n} · अभाज्य',
+      run: 'गणना करें',
+      errNotWhole: 'n एक पूर्णांक होना चाहिए।',
+      errTooSmall: 'n कम से कम {min} होना चाहिए — k = 1 … n−1 की क्रमिक जाँच के लिए परखने को कम से कम एक k चाहिए।',
+      errCapped: 'n की अधिकतम सीमा {max} है — मान को घटाकर सीमा में रखा गया है।',
+      chainHead: 'k = {k} की जाँच — gcd({n}, {k})',
+      verdictCoprime: 'k = {k}, {n} से सह-अभाज्य है — gcd = 1, गिनती में जोड़ा गया।',
+      verdictEliminated: 'k = {k} का {n} के साथ साझा गुणनखंड है — gcd = {gcd}, हटाया गया।',
+      tally: 'अब तक की सह-अभाज्य गिनती: {count}',
+      progress: '{total} में से k = {k} की जाँच हो चुकी।',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'तैयार — "चलाएँ" दबाएँ और देखें कि क्रमिक जाँच हर k को एक-एक भाग-चरण में कैसे परखती है।',
+      bannerDone: {
+        one: 'पूर्ण — {count} मान की जाँच हुई, {n} से सह-अभाज्य मानों की संख्या: {phi}।',
+        other: 'पूर्ण — {count} मानों की जाँच हुई, {n} से सह-अभाज्य मानों की संख्या: {phi}।'
+      },
+      caption: 'n अभाज्य हो तो φ(n) = n−1 मिलता है, क्योंकि उससे छोटी हर संख्या n के साथ कोई गुणनखंड साझा नहीं करती — उदाहरण वाले बटन इसे जाँचना आसान बना देते हैं।'
     }
   });
 })();

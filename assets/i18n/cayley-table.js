@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all seventeen supported languages.
+   Cayley Table tool, in all eighteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -705,6 +705,45 @@
       noteCommutative: '\u2066{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})\u2069, וגם \u2066{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})\u2069 — שתיהן נופלות על אותו ערך, ולכן הטבלה סימטרית ביחס לאלכסון שלה: החבורה קומוטטיבית.',
       selfInverseNote: '{a} הוא {word}, שכן ערכו כאן הוא איבר היחידה.',
       equationCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).\u2069'
+    },
+    hi: {
+      title: 'केली सारणी',
+      eyebrow: 'समूह सिद्धांत · संक्रिया सारणियाँ',
+      heading: 'केली सारणी',
+      lede: 'किसी समूह की पूरी संक्रिया एक वर्गाकार सारणी में समा जाती है — हर अवयव के लिए एक पंक्ति और एक स्तंभ, और हर परिणाम के लिए एक खाना। उस समूह का हर संरचनात्मक तथ्य — उसका तत्समक, उसके प्रतिलोम, उसकी क्रमविनिमेयता — सारणी के आकार में कहीं न कहीं साफ़ दिखाई देता है।',
+      xref: 'यही दो समूह संक्रियाएँ, सारणी की पंक्तियों की जगह चक्र पर फाँकों के रूप में →',
+      tablistLabel: 'समूह संक्रिया',
+      nLabel: 'N — मापांक',
+      randomizeLabel: 'यादृच्छिक करें',
+      randomize: 'नया यादृच्छिक उदाहरण',
+      tableScrollLabel: 'केली सारणी, स्क्रॉल की जा सकने वाली',
+      'legend.identity': '{0} तत्समक की पंक्ति और स्तंभ',
+      'legend.inverse': '{0} स्वयं का प्रतिलोम (स्वयं से युग्मित)',
+      'legend.selected': '{0} चुना हुआ खाना',
+      'legend.mirror': '{0} विकर्ण के पार दर्पण-जुड़वाँ खाना',
+      nNoteNotWhole: 'N एक पूर्णांक होना चाहिए — सारणी पहले जैसी ही रहती है।',
+      nNoteTooSmall: 'N, 1 से नीचे नहीं जा सकता — बढ़ाकर 1 किया गया।',
+      nNoteCapped: 'सारणी को बहुत बड़ी होने से रोकने के लिए N की अधिकतम सीमा {max} है — घटाकर {max} किया गया।',
+      identityWordAdditive: 'शून्य',
+      identityWordMultiplicative: 'एक',
+      inverseWordAdditive: 'अपना ही योगात्मक प्रतिलोम',
+      inverseWordMultiplicative: 'अपना ही व्युत्क्रम',
+      identityNote: 'तत्समक अवयव {word} है — इसकी पंक्ति और स्तंभ नीचे चिह्नित हैं।',
+      symmetryNoteAdditive: 'a + b और b + a हमेशा एक ही वर्ग में पहुँचते हैं, इसलिए सारणी विकर्ण के आर-पार स्वयं का प्रतिबिंब होती है — किसी भी खाने पर क्लिक करके देखें कि दूसरी ओर उसका जुड़वाँ कैसे चमक उठता है।',
+      symmetryNoteMultiplicative: 'a · b और b · a हमेशा एक ही वर्ग में पहुँचते हैं, इसलिए सारणी विकर्ण के आर-पार स्वयं का प्रतिबिंब होती है — किसी भी खाने पर क्लिक करके देखें कि दूसरी ओर उसका जुड़वाँ कैसे चमक उठता है।',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} अवयव · तत्समक [{id}]',
+        other: 'ℤ/{n}ℤ · {count} अवयव · तत्समक [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} अवयव · तत्समक [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} अवयव · तत्समक [{id}]'
+      },
+      tableCaption: '{sign} के अंतर्गत {summary} की केली सारणी',
+      noteDiagonal: 'यह खाना विकर्ण अक्ष पर है — यह स्वयं अपना जुड़वाँ है, इसलिए लिखने के लिए केवल एक समीकरण है: {a} {sign} {a} = {raw} ≡ {val} (mod {n})।',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), और {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — दोनों एक ही मान पर पहुँचते हैं, इसलिए सारणी अपने विकर्ण के सापेक्ष सममित है: समूह क्रमविनिमेय है।',
+      selfInverseNote: '{a} {word} है, क्योंकि यहाँ इसका मान तत्समक है।',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n})।'
     }
   });
 })();
