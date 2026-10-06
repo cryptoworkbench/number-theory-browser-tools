@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-06T08:57:27.333Z"
+last_updated: "2026-10-06T10:57:58.109Z"
 last_activity: 2026-10-06
 last_activity_desc: Quick task 261002-c77 complete — Italian added as sixth supported language
-state_head: d011f92991f09284a58b2820ef795c6765f9211b
+state_head: 1bddbe5708f8668aee3b30938d64251aaf723fe9
 progress:
   total_phases: 7
   completed_phases: 6
@@ -334,6 +334,7 @@ None yet.
 | 98 | Empty shared palette (Factor Tree + Venn Diagram) links to the Sieve of Eratosthenes | 2026-10-06 | d049ce3 | — |
 | 99 | Sieve of Eratosthenes prime cells become circles matching the shared palette | 2026-10-06 | 92298d5 | — |
 | 100 | Sieve of Eratosthenes draws a grid of circles instead of boxes | 2026-10-06 | d011f92 | — |
+| 101 | Venn Diagram: remove the green summary rows below both 2- and 3-circle modes | 2026-10-06 | 1bddbe5 | — |
 
 ## Deferred Items
 
