@@ -1,7 +1,8 @@
 /* assets/i18n/venn-diagram.js — the 'venn' namespace: title, eyebrow,
    heading, both ledes, the cross-link text, toolbar/mode/preview-toggle labels,
    the prime picker heading/hint, the three pane captions and the six diagram
-   aria-labels for the Venn Diagram tool's static interface, in all sixteen
+   aria-labels for the Venn Diagram tool's static interface, plus the LCM/GCD
+   fold's toggle, hint, step and caption texts (the lcm.* keys), in all sixteen
    supported languages. Task 2 extends this same register() call with the
    namespace's dynamic (script-produced) keys.
 
@@ -97,7 +98,19 @@
       'label.doubleClickOpen': 'dubbelklik om de volledige weergave te openen →',
       'label.overCap': 'boven 1,000,000 — geen gebalanceerde boom',
       'label.removeToken': 'Verwijder {prime} uit de regio {region}',
-      'label.scrollMore': '↓ meer'
+      'label.scrollMore': '↓ meer',
+      'lcm.toggle': 'Kleinste gemene veelvoud en grootste gemene deler',
+      'lcm.empty': 'Plaats priemgetallen in het diagram hierboven om te zien hoe lcm(A, B) wordt opgebouwd uit gcd(A, B).',
+      'lcm.aria': 'Animatie in drie stappen: de cirkels A en B los van elkaar getekend met de gedeelde priemgetallen in beide, één exemplaar van de gedeelde priemgetallen weggedeeld als gcd(A, B), en daarna de cirkels samengevoegd tot een Venndiagram waarvan de vereniging vermenigvuldigt tot lcm(A, B)',
+      'lcm.stepOf': 'Stap {n} van {total}',
+      'lcm.prev': 'Vorige stap',
+      'lcm.next': 'Volgende stap',
+      'lcm.replay': 'Opnieuw afspelen',
+      'lcm.stage1': 'A × B vermenigvuldigt elk priemgetal van A met elk priemgetal van B, dus elk priemgetal in A ∩ B wordt twee keer geteld: één keer in elke cirkel.',
+      'lcm.stage1Coprime': 'A × B vermenigvuldigt elk priemgetal van A met elk priemgetal van B. A en B hebben geen priemgetal gemeen, dus er wordt geen priemgetal twee keer geteld.',
+      'lcm.stage2': 'Delen door gcd(A, B) = {gcd}, het product van de gedeelde priemgetallen, haalt een van de twee exemplaren weg.',
+      'lcm.stage2Coprime': 'A en B hebben geen priemgetal gemeen, dus gcd(A, B) = 1 en delen daardoor haalt niets weg.',
+      'lcm.stage3': 'Wat overblijft bevat elk priemgetal van A of B precies één keer: de vereniging van de twee cirkels, waarvan het product lcm(A, B) = {lcm} is.'
     },
     en: {
       title: 'Venn Diagram',
@@ -177,7 +190,19 @@
       'label.doubleClickOpen': 'double-click to open the full view →',
       'label.overCap': 'over 1,000,000 — no balanced tree',
       'label.removeToken': 'Remove {prime} from the {region} region',
-      'label.scrollMore': '↓ more'
+      'label.scrollMore': '↓ more',
+      'lcm.toggle': 'Least common multiple and greatest common divisor',
+      'lcm.empty': 'Place primes in the diagram above to see lcm(A, B) built from gcd(A, B).',
+      'lcm.aria': 'Three-step animation: circles A and B drawn apart with the shared primes in both, one copy of the shared primes divided out as gcd(A, B), then the circles joined into a Venn diagram whose union multiplies to lcm(A, B)',
+      'lcm.stepOf': 'Step {n} of {total}',
+      'lcm.prev': 'Previous step',
+      'lcm.next': 'Next step',
+      'lcm.replay': 'Replay',
+      'lcm.stage1': 'A × B multiplies every prime of A by every prime of B, so each prime in A ∩ B is counted twice: once in each circle.',
+      'lcm.stage1Coprime': 'A × B multiplies every prime of A by every prime of B. A and B share no prime, so no prime is counted twice.',
+      'lcm.stage2': 'Dividing by gcd(A, B) = {gcd}, the product of the shared primes, takes away one of the two copies.',
+      'lcm.stage2Coprime': 'A and B share no prime, so gcd(A, B) = 1 and dividing by it takes nothing away.',
+      'lcm.stage3': 'What is left holds every prime of A or B exactly once: the union of the two circles, whose product is lcm(A, B) = {lcm}.'
     },
     de: {
       title: 'Venn-Diagramm',
@@ -257,7 +282,19 @@
       'label.doubleClickOpen': 'Doppelklick, um die vollständige Ansicht zu öffnen →',
       'label.overCap': 'über 1,000,000 — kein ausgeglichener Baum',
       'label.removeToken': '{prime} aus dem Bereich {region} entfernen',
-      'label.scrollMore': '↓ mehr'
+      'label.scrollMore': '↓ mehr',
+      'lcm.toggle': 'Kleinstes gemeinsames Vielfaches und größter gemeinsamer Teiler',
+      'lcm.empty': 'Platziere Primzahlen im Diagramm oben, um zu sehen, wie lcm(A, B) aus gcd(A, B) entsteht.',
+      'lcm.aria': 'Animation in drei Schritten: die Kreise A und B getrennt gezeichnet, mit den gemeinsamen Primzahlen in beiden, dann eine Kopie der gemeinsamen Primzahlen als gcd(A, B) herausgeteilt, schließlich die Kreise zu einem Venn-Diagramm vereint, dessen Vereinigung multipliziert lcm(A, B) ergibt',
+      'lcm.stepOf': 'Schritt {n} von {total}',
+      'lcm.prev': 'Vorheriger Schritt',
+      'lcm.next': 'Nächster Schritt',
+      'lcm.replay': 'Erneut abspielen',
+      'lcm.stage1': 'A × B multipliziert jede Primzahl von A mit jeder Primzahl von B, daher wird jede Primzahl in A ∩ B doppelt gezählt: einmal in jedem Kreis.',
+      'lcm.stage1Coprime': 'A × B multipliziert jede Primzahl von A mit jeder Primzahl von B. A und B haben keine Primzahl gemeinsam, daher wird keine Primzahl doppelt gezählt.',
+      'lcm.stage2': 'Die Division durch gcd(A, B) = {gcd}, das Produkt der gemeinsamen Primzahlen, nimmt eine der beiden Kopien weg.',
+      'lcm.stage2Coprime': 'A und B haben keine Primzahl gemeinsam, also ist gcd(A, B) = 1, und die Division durch 1 nimmt nichts weg.',
+      'lcm.stage3': 'Was übrig bleibt, enthält jede Primzahl von A oder B genau einmal: die Vereinigung der beiden Kreise, deren Produkt lcm(A, B) = {lcm} ist.'
     },
     fr: {
       title: 'Diagramme de Venn',
@@ -337,7 +374,19 @@
       'label.doubleClickOpen': 'double-cliquez pour ouvrir la vue complète →',
       'label.overCap': 'au-delà de 1,000,000 — pas d’arbre équilibré',
       'label.removeToken': 'Retirer {prime} de la région {region}',
-      'label.scrollMore': '↓ plus'
+      'label.scrollMore': '↓ plus',
+      'lcm.toggle': 'Plus petit commun multiple et plus grand commun diviseur',
+      'lcm.empty': 'Placez des nombres premiers dans le diagramme ci-dessus pour voir lcm(A, B) construit à partir de gcd(A, B).',
+      'lcm.aria': 'Animation en trois étapes : les cercles A et B dessinés séparément avec les nombres premiers communs dans les deux, un exemplaire des nombres premiers communs retiré par division comme gcd(A, B), puis les cercles réunis en un diagramme de Venn dont l’union a pour produit lcm(A, B)',
+      'lcm.stepOf': 'Étape {n} sur {total}',
+      'lcm.prev': 'Étape précédente',
+      'lcm.next': 'Étape suivante',
+      'lcm.replay': 'Rejouer',
+      'lcm.stage1': 'A × B multiplie chaque nombre premier de A par chaque nombre premier de B, donc chaque nombre premier de A ∩ B est compté deux fois : une fois dans chaque cercle.',
+      'lcm.stage1Coprime': 'A × B multiplie chaque nombre premier de A par chaque nombre premier de B. A et B n’ont aucun nombre premier en commun, donc aucun nombre premier n’est compté deux fois.',
+      'lcm.stage2': 'Diviser par gcd(A, B) = {gcd}, le produit des nombres premiers communs, retire l’un des deux exemplaires.',
+      'lcm.stage2Coprime': 'A et B n’ont aucun nombre premier en commun, donc gcd(A, B) = 1 et diviser par 1 ne retire rien.',
+      'lcm.stage3': 'Ce qui reste contient chaque nombre premier de A ou de B exactement une fois : l’union des deux cercles, dont le produit est lcm(A, B) = {lcm}.'
     },
     es: {
       title: 'Diagrama de Venn',
@@ -417,7 +466,19 @@
       'label.doubleClickOpen': 'haz doble clic para abrir la vista completa →',
       'label.overCap': 'por encima de 1,000,000 — sin árbol equilibrado',
       'label.removeToken': 'Eliminar {prime} de la región {region}',
-      'label.scrollMore': '↓ más'
+      'label.scrollMore': '↓ más',
+      'lcm.toggle': 'Mínimo común múltiplo y máximo común divisor',
+      'lcm.empty': 'Coloca números primos en el diagrama de arriba para ver cómo se construye lcm(A, B) a partir de gcd(A, B).',
+      'lcm.aria': 'Animación en tres pasos: los círculos A y B dibujados por separado con los primos compartidos en ambos, una copia de los primos compartidos eliminada al dividir por gcd(A, B), y luego los círculos unidos en un diagrama de Venn cuya unión tiene por producto lcm(A, B)',
+      'lcm.stepOf': 'Paso {n} de {total}',
+      'lcm.prev': 'Paso anterior',
+      'lcm.next': 'Paso siguiente',
+      'lcm.replay': 'Repetir',
+      'lcm.stage1': 'A × B multiplica cada primo de A por cada primo de B, así que cada primo de A ∩ B se cuenta dos veces: una en cada círculo.',
+      'lcm.stage1Coprime': 'A × B multiplica cada primo de A por cada primo de B. A y B no comparten ningún primo, así que ningún primo se cuenta dos veces.',
+      'lcm.stage2': 'Dividir por gcd(A, B) = {gcd}, el producto de los primos compartidos, quita una de las dos copias.',
+      'lcm.stage2Coprime': 'A y B no comparten ningún primo, así que gcd(A, B) = 1 y dividir por 1 no quita nada.',
+      'lcm.stage3': 'Lo que queda contiene cada primo de A o de B exactamente una vez: la unión de los dos círculos, cuyo producto es lcm(A, B) = {lcm}.'
     },
     it: {
       title: 'Diagramma di Venn',
@@ -497,7 +558,19 @@
       'label.doubleClickOpen': 'doppio clic per aprire la vista completa →',
       'label.overCap': 'oltre 1,000,000 — nessun albero bilanciato',
       'label.removeToken': 'Rimuovi {prime} dalla regione {region}',
-      'label.scrollMore': '↓ altro'
+      'label.scrollMore': '↓ altro',
+      'lcm.toggle': 'Minimo comune multiplo e massimo comun divisore',
+      'lcm.empty': 'Inserisci dei numeri primi nel diagramma qui sopra per vedere lcm(A, B) costruito a partire da gcd(A, B).',
+      'lcm.aria': 'Animazione in tre passi: i cerchi A e B disegnati separati con i primi condivisi in entrambi, una copia dei primi condivisi eliminata dividendo per gcd(A, B), poi i cerchi uniti in un diagramma di Venn la cui unione ha per prodotto lcm(A, B)',
+      'lcm.stepOf': 'Passo {n} di {total}',
+      'lcm.prev': 'Passo precedente',
+      'lcm.next': 'Passo successivo',
+      'lcm.replay': 'Riproduci di nuovo',
+      'lcm.stage1': 'A × B moltiplica ogni primo di A per ogni primo di B, quindi ogni primo in A ∩ B viene contato due volte: una in ciascun cerchio.',
+      'lcm.stage1Coprime': 'A × B moltiplica ogni primo di A per ogni primo di B. A e B non hanno primi in comune, quindi nessun primo viene contato due volte.',
+      'lcm.stage2': 'Dividere per gcd(A, B) = {gcd}, il prodotto dei primi condivisi, toglie una delle due copie.',
+      'lcm.stage2Coprime': 'A e B non hanno primi in comune, quindi gcd(A, B) = 1 e dividere per 1 non toglie nulla.',
+      'lcm.stage3': 'Ciò che resta contiene ogni primo di A o di B esattamente una volta: l’unione dei due cerchi, il cui prodotto è lcm(A, B) = {lcm}.'
     },
     pl: {
       title: 'Diagram Venna',
@@ -577,7 +650,19 @@
       'label.doubleClickOpen': 'kliknij dwukrotnie, aby otworzyć pełny widok →',
       'label.overCap': 'powyżej 1 000 000 — brak zbalansowanego drzewa',
       'label.removeToken': 'Usuń {prime} z regionu {region}',
-      'label.scrollMore': '↓ więcej'
+      'label.scrollMore': '↓ więcej',
+      'lcm.toggle': 'Najmniejsza wspólna wielokrotność i największy wspólny dzielnik',
+      'lcm.empty': 'Umieść liczby pierwsze w diagramie powyżej, aby zobaczyć, jak lcm(A, B) powstaje z gcd(A, B).',
+      'lcm.aria': 'Animacja w trzech krokach: okręgi A i B narysowane osobno, ze wspólnymi liczbami pierwszymi w obu, jedna kopia wspólnych liczb pierwszych usunięta przez dzielenie przez gcd(A, B), a potem okręgi połączone w diagram Venna, którego suma ma iloczyn lcm(A, B)',
+      'lcm.stepOf': 'Krok {n} z {total}',
+      'lcm.prev': 'Poprzedni krok',
+      'lcm.next': 'Następny krok',
+      'lcm.replay': 'Odtwórz ponownie',
+      'lcm.stage1': 'A × B mnoży każdą liczbę pierwszą z A przez każdą liczbę pierwszą z B, więc każda liczba pierwsza w A ∩ B jest liczona dwa razy: raz w każdym okręgu.',
+      'lcm.stage1Coprime': 'A × B mnoży każdą liczbę pierwszą z A przez każdą liczbę pierwszą z B. A i B nie mają wspólnej liczby pierwszej, więc żadna liczba pierwsza nie jest liczona dwa razy.',
+      'lcm.stage2': 'Dzielenie przez gcd(A, B) = {gcd}, czyli iloczyn wspólnych liczb pierwszych, usuwa jedną z dwóch kopii.',
+      'lcm.stage2Coprime': 'A i B nie mają wspólnej liczby pierwszej, więc gcd(A, B) = 1, a dzielenie przez 1 niczego nie usuwa.',
+      'lcm.stage3': 'To, co zostaje, zawiera każdą liczbę pierwszą z A lub B dokładnie raz: sumę obu okręgów, której iloczyn to lcm(A, B) = {lcm}.'
     },
     'pt-BR': {
       title: 'Diagrama de Venn',
@@ -657,7 +742,19 @@
       'label.doubleClickOpen': 'clique duas vezes para abrir a visão completa →',
       'label.overCap': 'acima de 1.000.000 — sem árvore equilibrada',
       'label.removeToken': 'Remover {prime} da região {region}',
-      'label.scrollMore': '↓ mais'
+      'label.scrollMore': '↓ mais',
+      'lcm.toggle': 'Mínimo múltiplo comum e máximo divisor comum',
+      'lcm.empty': 'Coloque primos no diagrama acima para ver lcm(A, B) construído a partir de gcd(A, B).',
+      'lcm.aria': 'Animação em três passos: os círculos A e B desenhados separados, com os primos compartilhados em ambos, uma cópia dos primos compartilhados removida ao dividir por gcd(A, B), e depois os círculos unidos em um diagrama de Venn cuja união tem produto lcm(A, B)',
+      'lcm.stepOf': 'Passo {n} de {total}',
+      'lcm.prev': 'Passo anterior',
+      'lcm.next': 'Próximo passo',
+      'lcm.replay': 'Repetir',
+      'lcm.stage1': 'A × B multiplica cada primo de A por cada primo de B, então cada primo em A ∩ B é contado duas vezes: uma em cada círculo.',
+      'lcm.stage1Coprime': 'A × B multiplica cada primo de A por cada primo de B. A e B não compartilham nenhum primo, então nenhum primo é contado duas vezes.',
+      'lcm.stage2': 'Dividir por gcd(A, B) = {gcd}, o produto dos primos compartilhados, retira uma das duas cópias.',
+      'lcm.stage2Coprime': 'A e B não compartilham nenhum primo, então gcd(A, B) = 1 e dividir por 1 não retira nada.',
+      'lcm.stage3': 'O que sobra contém cada primo de A ou de B exatamente uma vez: a união dos dois círculos, cujo produto é lcm(A, B) = {lcm}.'
     },
     'pt-PT': {
       title: 'Diagrama de Venn',
@@ -737,7 +834,19 @@
       'label.doubleClickOpen': 'faz duplo clique para abrir a vista completa →',
       'label.overCap': 'acima de 1.000.000 — sem árvore equilibrada',
       'label.removeToken': 'Remover {prime} da região {region}',
-      'label.scrollMore': '↓ mais'
+      'label.scrollMore': '↓ mais',
+      'lcm.toggle': 'Mínimo múltiplo comum e máximo divisor comum',
+      'lcm.empty': 'Coloque primos no diagrama acima para ver lcm(A, B) construído a partir de gcd(A, B).',
+      'lcm.aria': 'Animação em três passos: os círculos A e B desenhados separados, com os primos partilhados em ambos, uma cópia dos primos partilhados retirada ao dividir por gcd(A, B), e depois os círculos unidos num diagrama de Venn cuja união tem produto lcm(A, B)',
+      'lcm.stepOf': 'Passo {n} de {total}',
+      'lcm.prev': 'Passo anterior',
+      'lcm.next': 'Passo seguinte',
+      'lcm.replay': 'Repetir',
+      'lcm.stage1': 'A × B multiplica cada primo de A por cada primo de B, por isso cada primo em A ∩ B é contado duas vezes: uma em cada círculo.',
+      'lcm.stage1Coprime': 'A × B multiplica cada primo de A por cada primo de B. A e B não partilham nenhum primo, por isso nenhum primo é contado duas vezes.',
+      'lcm.stage2': 'Dividir por gcd(A, B) = {gcd}, o produto dos primos partilhados, retira uma das duas cópias.',
+      'lcm.stage2Coprime': 'A e B não partilham nenhum primo, por isso gcd(A, B) = 1 e dividir por 1 não retira nada.',
+      'lcm.stage3': 'O que sobra contém cada primo de A ou de B exatamente uma vez: a união dos dois círculos, cujo produto é lcm(A, B) = {lcm}.'
     },
     sv: {
       title: 'Venndiagram',
@@ -817,7 +926,19 @@
       'label.doubleClickOpen': 'dubbelklicka för att öppna hela vyn →',
       'label.overCap': 'över 1 000 000 — inget balanserat träd',
       'label.removeToken': 'Ta bort {prime} från regionen {region}',
-      'label.scrollMore': '↓ mer'
+      'label.scrollMore': '↓ mer',
+      'lcm.toggle': 'Minsta gemensamma multipel och största gemensamma delare',
+      'lcm.empty': 'Placera primtal i diagrammet ovan för att se hur lcm(A, B) byggs upp av gcd(A, B).',
+      'lcm.aria': 'Animation i tre steg: cirklarna A och B ritade isär med de gemensamma primtalen i båda, en kopia av de gemensamma primtalen bortdelad som gcd(A, B), och därefter cirklarna sammanfogade till ett Venndiagram vars union har produkten lcm(A, B)',
+      'lcm.stepOf': 'Steg {n} av {total}',
+      'lcm.prev': 'Föregående steg',
+      'lcm.next': 'Nästa steg',
+      'lcm.replay': 'Spela upp igen',
+      'lcm.stage1': 'A × B multiplicerar varje primtal i A med varje primtal i B, så varje primtal i A ∩ B räknas två gånger: en gång i varje cirkel.',
+      'lcm.stage1Coprime': 'A × B multiplicerar varje primtal i A med varje primtal i B. A och B har inget primtal gemensamt, så inget primtal räknas två gånger.',
+      'lcm.stage2': 'Att dividera med gcd(A, B) = {gcd}, produkten av de gemensamma primtalen, tar bort en av de två kopiorna.',
+      'lcm.stage2Coprime': 'A och B har inget primtal gemensamt, så gcd(A, B) = 1 och att dividera med 1 tar inte bort något.',
+      'lcm.stage3': 'Det som blir kvar innehåller varje primtal i A eller B exakt en gång: unionen av de två cirklarna, vars produkt är lcm(A, B) = {lcm}.'
     },
     nb: {
       title: 'Venndiagram',
@@ -897,7 +1018,19 @@
       'label.doubleClickOpen': 'dobbeltklikk for å åpne hele visningen →',
       'label.overCap': 'over 1 000 000 — ikke noe balansert tre',
       'label.removeToken': 'Fjern {prime} fra regionen {region}',
-      'label.scrollMore': '↓ mer'
+      'label.scrollMore': '↓ mer',
+      'lcm.toggle': 'Minste felles multiplum og største felles divisor',
+      'lcm.empty': 'Plasser primtall i diagrammet ovenfor for å se hvordan lcm(A, B) bygges opp av gcd(A, B).',
+      'lcm.aria': 'Animasjon i tre trinn: sirklene A og B tegnet fra hverandre med de felles primtallene i begge, én kopi av de felles primtallene delt bort som gcd(A, B), og deretter sirklene slått sammen til et Venn-diagram der unionen har produktet lcm(A, B)',
+      'lcm.stepOf': 'Trinn {n} av {total}',
+      'lcm.prev': 'Forrige trinn',
+      'lcm.next': 'Neste trinn',
+      'lcm.replay': 'Spill av igjen',
+      'lcm.stage1': 'A × B multipliserer hvert primtall i A med hvert primtall i B, så hvert primtall i A ∩ B telles to ganger: én gang i hver sirkel.',
+      'lcm.stage1Coprime': 'A × B multipliserer hvert primtall i A med hvert primtall i B. A og B har ingen felles primtall, så ingen primtall telles to ganger.',
+      'lcm.stage2': 'Å dividere med gcd(A, B) = {gcd}, produktet av de felles primtallene, fjerner én av de to kopiene.',
+      'lcm.stage2Coprime': 'A og B har ingen felles primtall, så gcd(A, B) = 1 og å dividere med 1 fjerner ingenting.',
+      'lcm.stage3': 'Det som er igjen inneholder hvert primtall i A eller B nøyaktig én gang: unionen av de to sirklene, der produktet er lcm(A, B) = {lcm}.'
     },
     ro: {
       title: 'Diagrama Venn',
@@ -977,7 +1110,19 @@
       'label.doubleClickOpen': 'fă dublu clic pentru a deschide vizualizarea completă →',
       'label.overCap': 'peste 1.000.000 — fără arbore echilibrat',
       'label.removeToken': 'Elimină {prime} din regiunea {region}',
-      'label.scrollMore': '↓ mai mult'
+      'label.scrollMore': '↓ mai mult',
+      'lcm.toggle': 'Cel mai mic multiplu comun și cel mai mare divizor comun',
+      'lcm.empty': 'Așază numere prime în diagrama de mai sus pentru a vedea cum se construiește lcm(A, B) din gcd(A, B).',
+      'lcm.aria': 'Animație în trei pași: cercurile A și B desenate separat, cu numerele prime comune în amândouă, o copie a numerelor prime comune scoasă prin împărțire la gcd(A, B), apoi cercurile unite într-o diagramă Venn a cărei reuniune are produsul lcm(A, B)',
+      'lcm.stepOf': 'Pasul {n} din {total}',
+      'lcm.prev': 'Pasul anterior',
+      'lcm.next': 'Pasul următor',
+      'lcm.replay': 'Redă din nou',
+      'lcm.stage1': 'A × B înmulțește fiecare număr prim din A cu fiecare număr prim din B, deci fiecare număr prim din A ∩ B este numărat de două ori: o dată în fiecare cerc.',
+      'lcm.stage1Coprime': 'A × B înmulțește fiecare număr prim din A cu fiecare număr prim din B. A și B nu au niciun număr prim comun, deci niciun număr prim nu este numărat de două ori.',
+      'lcm.stage2': 'Împărțirea la gcd(A, B) = {gcd}, produsul numerelor prime comune, elimină una dintre cele două copii.',
+      'lcm.stage2Coprime': 'A și B nu au niciun număr prim comun, deci gcd(A, B) = 1, iar împărțirea la 1 nu elimină nimic.',
+      'lcm.stage3': 'Ce rămâne conține fiecare număr prim din A sau B exact o dată: reuniunea celor două cercuri, al cărei produs este lcm(A, B) = {lcm}.'
     },
     hu: {
       title: 'Venn-diagram',
@@ -1057,7 +1202,19 @@
       'label.doubleClickOpen': 'kattints duplán a teljes nézet megnyitásához →',
       'label.overCap': '1 000 000 felett — nincs kiegyenlített fa',
       'label.removeToken': '{prime} eltávolítása a {region} régióból',
-      'label.scrollMore': '↓ több'
+      'label.scrollMore': '↓ több',
+      'lcm.toggle': 'Legkisebb közös többszörös és legnagyobb közös osztó',
+      'lcm.empty': 'Helyezz prímszámokat a fenti diagramba, és nézd meg, hogyan jön létre az lcm(A, B) a gcd(A, B) segítségével.',
+      'lcm.aria': 'Háromlépéses animáció: az A és B kör egymástól elválasztva, a közös prímszámokkal mindkettőben, a közös prímszámok egyik példánya gcd(A, B) szerinti osztással kivéve, majd a körök Venn-diagrammá egyesítve, amelynek uniója szorzata lcm(A, B)',
+      'lcm.stepOf': 'Lépés: {n} / {total}',
+      'lcm.prev': 'Előző lépés',
+      'lcm.next': 'Következő lépés',
+      'lcm.replay': 'Újrajátszás',
+      'lcm.stage1': 'A × B az A minden prímszámát megszorozza a B minden prímszámával, ezért az A ∩ B minden prímszáma kétszer számít: egyszer az egyik, egyszer a másik körben.',
+      'lcm.stage1Coprime': 'A × B az A minden prímszámát megszorozza a B minden prímszámával. A-nak és B-nek nincs közös prímszáma, ezért egyetlen prímszám sem számít kétszer.',
+      'lcm.stage2': 'A közös prímszámok szorzatával, gcd(A, B) = {gcd} értékkel osztva az egyik példány kiesik a kettő közül.',
+      'lcm.stage2Coprime': 'A-nak és B-nek nincs közös prímszáma, ezért gcd(A, B) = 1, és az 1-gyel osztás nem vesz el semmit.',
+      'lcm.stage3': 'Ami megmarad, az A és B minden prímszámát pontosan egyszer tartalmazza: a két kör uniója, amelynek szorzata lcm(A, B) = {lcm}.'
     },
     lv: {
       title: 'Venna diagramma',
@@ -1137,7 +1294,19 @@
       'label.doubleClickOpen': 'veic dubultklikšķi, lai atvērtu pilnu skatu →',
       'label.overCap': 'virs 1 000 000 — nav balansēta koka',
       'label.removeToken': 'Noņemt {prime} no reģiona {region}',
-      'label.scrollMore': '↓ vairāk'
+      'label.scrollMore': '↓ vairāk',
+      'lcm.toggle': 'Mazākais kopīgais dalāmais un lielākais kopīgais dalītājs',
+      'lcm.empty': 'Ievieto pirmskaitļus augšējā diagrammā, lai redzētu, kā lcm(A, B) tiek veidots no gcd(A, B).',
+      'lcm.aria': 'Trīs soļu animācija: apļi A un B uzzīmēti atsevišķi ar kopīgajiem pirmskaitļiem abos, viena kopīgo pirmskaitļu kopija izdalīta kā gcd(A, B), pēc tam apļi apvienoti Venna diagrammā, kuras apvienojuma reizinājums ir lcm(A, B)',
+      'lcm.stepOf': '{n}. solis no {total}',
+      'lcm.prev': 'Iepriekšējais solis',
+      'lcm.next': 'Nākamais solis',
+      'lcm.replay': 'Atskaņot vēlreiz',
+      'lcm.stage1': 'A × B reizina katru A pirmskaitli ar katru B pirmskaitli, tāpēc katrs A ∩ B pirmskaitlis tiek skaitīts divreiz: vienu reizi katrā aplī.',
+      'lcm.stage1Coprime': 'A × B reizina katru A pirmskaitli ar katru B pirmskaitli. A un B nav kopīgu pirmskaitļu, tāpēc neviens pirmskaitlis netiek skaitīts divreiz.',
+      'lcm.stage2': 'Dalīšana ar gcd(A, B) = {gcd}, kopīgo pirmskaitļu reizinājumu, noņem vienu no divām kopijām.',
+      'lcm.stage2Coprime': 'A un B nav kopīgu pirmskaitļu, tāpēc gcd(A, B) = 1, un dalīšana ar 1 neko nenoņem.',
+      'lcm.stage3': 'Atlikušais satur katru A vai B pirmskaitli tieši vienreiz: abu apļu apvienojumu, kura reizinājums ir lcm(A, B) = {lcm}.'
     },
     ru: {
       title: 'Диаграмма Венна',
@@ -1217,7 +1386,19 @@
       'label.doubleClickOpen': 'дважды щёлкни, чтобы открыть полный вид →',
       'label.overCap': 'больше 1 000 000 — без сбалансированного дерева',
       'label.removeToken': 'Удалить {prime} из области {region}',
-      'label.scrollMore': '↓ ещё'
+      'label.scrollMore': '↓ ещё',
+      'lcm.toggle': 'Наименьшее общее кратное и наибольший общий делитель',
+      'lcm.empty': 'Поместите простые числа в диаграмму выше, чтобы увидеть, как lcm(A, B) строится из gcd(A, B).',
+      'lcm.aria': 'Анимация в три шага: круги A и B нарисованы раздельно, общие простые числа есть в обоих, одна копия общих простых чисел вынесена делением на gcd(A, B), затем круги объединены в диаграмму Венна, произведение объединения которой равно lcm(A, B)',
+      'lcm.stepOf': 'Шаг {n} из {total}',
+      'lcm.prev': 'Предыдущий шаг',
+      'lcm.next': 'Следующий шаг',
+      'lcm.replay': 'Повторить',
+      'lcm.stage1': 'A × B умножает каждое простое число из A на каждое простое число из B, поэтому каждое простое число из A ∩ B учитывается дважды: по разу в каждом круге.',
+      'lcm.stage1Coprime': 'A × B умножает каждое простое число из A на каждое простое число из B. У A и B нет общих простых чисел, поэтому ни одно простое число не учитывается дважды.',
+      'lcm.stage2': 'Деление на gcd(A, B) = {gcd}, произведение общих простых чисел, убирает одну из двух копий.',
+      'lcm.stage2Coprime': 'У A и B нет общих простых чисел, поэтому gcd(A, B) = 1, и деление на 1 ничего не убирает.',
+      'lcm.stage3': 'Остаётся каждое простое число из A или B ровно по одному разу: объединение двух кругов, произведение которого равно lcm(A, B) = {lcm}.'
     },
     el: {
       title: 'Διάγραμμα Venn',
@@ -1297,7 +1478,19 @@
       'label.doubleClickOpen': 'κάνε διπλό κλικ για να ανοίξεις την πλήρη προβολή →',
       'label.overCap': 'πάνω από 1.000.000 — χωρίς ισορροπημένο δέντρο',
       'label.removeToken': 'Αφαίρεση {prime} από την περιοχή {region}',
-      'label.scrollMore': '↓ περισσότερα'
+      'label.scrollMore': '↓ περισσότερα',
+      'lcm.toggle': 'Ελάχιστο κοινό πολλαπλάσιο και μέγιστος κοινός διαιρέτης',
+      'lcm.empty': 'Τοποθετήστε πρώτους αριθμούς στο παραπάνω διάγραμμα για να δείτε πώς χτίζεται το lcm(A, B) από το gcd(A, B).',
+      'lcm.aria': 'Κίνηση τριών βημάτων: οι κύκλοι A και B σχεδιασμένοι χωριστά με τους κοινούς πρώτους αριθμούς και στους δύο, ένα αντίγραφο των κοινών πρώτων αριθμών αφαιρείται με διαίρεση με το gcd(A, B), και μετά οι κύκλοι ενώνονται σε διάγραμμα Venn, του οποίου η ένωση έχει γινόμενο lcm(A, B)',
+      'lcm.stepOf': 'Βήμα {n} από {total}',
+      'lcm.prev': 'Προηγούμενο βήμα',
+      'lcm.next': 'Επόμενο βήμα',
+      'lcm.replay': 'Επανάληψη',
+      'lcm.stage1': 'Το A × B πολλαπλασιάζει κάθε πρώτο αριθμό του A με κάθε πρώτο αριθμό του B, άρα κάθε πρώτος αριθμός του A ∩ B μετράται δύο φορές: μία σε κάθε κύκλο.',
+      'lcm.stage1Coprime': 'Το A × B πολλαπλασιάζει κάθε πρώτο αριθμό του A με κάθε πρώτο αριθμό του B. Τα A και B δεν έχουν κοινό πρώτο αριθμό, άρα κανένας πρώτος αριθμός δεν μετράται δύο φορές.',
+      'lcm.stage2': 'Η διαίρεση με το gcd(A, B) = {gcd}, το γινόμενο των κοινών πρώτων αριθμών, αφαιρεί ένα από τα δύο αντίγραφα.',
+      'lcm.stage2Coprime': 'Τα A και B δεν έχουν κοινό πρώτο αριθμό, άρα gcd(A, B) = 1 και η διαίρεση με το 1 δεν αφαιρεί τίποτα.',
+      'lcm.stage3': 'Ό,τι απομένει περιέχει κάθε πρώτο αριθμό του A ή του B ακριβώς μία φορά: την ένωση των δύο κύκλων, της οποίας το γινόμενο είναι lcm(A, B) = {lcm}.'
     }
   });
 })();

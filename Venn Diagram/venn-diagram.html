@@ -213,7 +213,7 @@
   }
   /* Diagram actions sit together at the right, apart from the view switches. */
   #randomize-btn{ margin-left:auto; }
-  #clear-btn, #randomize-btn{
+  #clear-btn, #randomize-btn, .lcm-btn{
     font-family:var(--font-sans);
     font-size:14px;
     font-weight:600;
@@ -225,11 +225,13 @@
     cursor:pointer;
     transition:border-color var(--ease-ctl), background var(--ease-ctl);
   }
-  #clear-btn:hover, #randomize-btn:hover{
+  #clear-btn:hover, #randomize-btn:hover, .lcm-btn:hover{
     border-color:var(--accent);
     background:color-mix(in srgb, var(--accent) 8%, var(--panel));
   }
-  #clear-btn:focus-visible, #randomize-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  #clear-btn:focus-visible, #randomize-btn:focus-visible, .lcm-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .lcm-btn:disabled{ opacity:.45; cursor:default; }
+  .lcm-btn:disabled:hover{ border-color:var(--panel-border); background:var(--panel); }
 
   /* mode switch */
   .mode-switch{
@@ -472,8 +474,68 @@
   }
   .message.is-warn{ color:var(--role-warn); }
 
+  /* LCM / GCD fold (two-circle mode): a normally collapsed explainer under the diagram */
+  .lcm-fold{ max-width:960px; margin:20px auto 0; }
+  .lcm-fold[hidden], .lcm-fold [hidden]{ display:none; }
+  .lcm-toggle{
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px 12px;
+    text-align:start;
+    padding:10px 14px;
+    font-family:var(--font-sans);
+    font-size:15px;
+    font-weight:600;
+    color:var(--text);
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius-ctl);
+    cursor:pointer;
+    transition:border-color var(--ease-ctl), background var(--ease-ctl);
+  }
+  .lcm-toggle:hover, .lcm-toggle:focus-visible{
+    border-color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 8%, var(--panel));
+  }
+  .lcm-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .lcm-chevron{
+    width:14px;
+    height:14px;
+    flex:none;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2.2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    transition:transform .2s ease;
+  }
+  .lcm-toggle[aria-expanded="true"] .lcm-chevron{ transform:rotate(90deg); }
+  .lcm-toggle-formula{
+    margin-inline-start:auto;
+    font-family:var(--font-mono);
+    font-weight:500;
+    color:var(--text-dim);
+  }
+  .lcm-body{ padding-top:12px; }
+  .lcm-empty{ font-size:14px; color:var(--text-dim); text-align:center; }
+  .lcm-step{ font-size:12px; font-weight:600; color:var(--text-dim); text-align:center; margin:0 0 4px; }
+  .lcm-caption{ font-size:14.5px; color:var(--text); text-align:center; max-width:72ch; margin:0 auto 8px; min-height:2.6em; }
+  svg#lcm-svg{ width:100%; height:auto; display:block; overflow:visible; }
+  .lcm-controls{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:8px 0; }
+  .lcm-equation{
+    font-family:var(--font-mono);
+    font-size:15px;
+    color:var(--text);
+    text-align:center;
+    margin:6px 0 0;
+    overflow-wrap:anywhere;
+  }
+  #lcm-formula{ color:var(--text-dim); }
+
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn, .history-btn{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .lcm-btn, .lcm-toggle, .lcm-chevron, .mode-btn, #palette-add-input, #palette-add-btn, #palette-random-btn, .palette-bin, .palette-empty-btn, .history-btn{ transition:none; }
     .bin-lid{ transition:none; }
   }
 
@@ -670,6 +732,29 @@
   </div>
 
   <p id="message" class="message" aria-live="polite"></p>
+
+  <div id="lcm-fold" class="lcm-fold" data-stage="1">
+    <button type="button" id="lcm-toggle" class="lcm-toggle" aria-expanded="false" aria-controls="lcm-body">
+      <svg class="lcm-chevron" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3l5 5-5 5"/></svg>
+      <span id="lcm-toggle-title" data-i18n="venn.lcm.toggle">Least common multiple and greatest common divisor</span>
+      <span class="lcm-toggle-formula">lcm(A, B) = (A × B) ÷ gcd(A, B)</span>
+    </button>
+    <div id="lcm-body" class="lcm-body" hidden>
+      <p id="lcm-empty" class="lcm-empty" data-i18n="venn.lcm.empty" hidden>Place primes in the diagram above to see lcm(A, B) built from gcd(A, B).</p>
+      <div id="lcm-content">
+        <p id="lcm-step" class="lcm-step"></p>
+        <p id="lcm-caption" class="lcm-caption" aria-live="polite"></p>
+        <svg id="lcm-svg" viewBox="0 0 900 470" role="img" aria-label="Three-step animation: circles A and B drawn apart with the shared primes in both, one copy of the shared primes divided out as gcd(A, B), then the circles joined into a Venn diagram whose union multiplies to lcm(A, B)" data-i18n-aria-label="venn.lcm.aria"></svg>
+        <div class="lcm-controls">
+          <button type="button" id="lcm-prev" class="lcm-btn" data-i18n="venn.lcm.prev">Previous step</button>
+          <button type="button" id="lcm-next" class="lcm-btn" data-i18n="venn.lcm.next">Next step</button>
+          <button type="button" id="lcm-replay" class="lcm-btn" data-i18n="venn.lcm.replay">Replay</button>
+        </div>
+        <p id="lcm-formula" class="lcm-equation">lcm(A, B) = (A × B) ÷ gcd(A, B)</p>
+        <p id="lcm-numbers" class="lcm-equation"></p>
+      </div>
+    </div>
+  </div>
 
 </div>
 
@@ -921,6 +1006,18 @@
   var ledeThree = document.getElementById('lede-three');
   var frameTwo = document.getElementById('frame-two');
   var frameThree = document.getElementById('frame-three');
+  var lcmFold = document.getElementById('lcm-fold');
+  var lcmToggle = document.getElementById('lcm-toggle');
+  var lcmBody = document.getElementById('lcm-body');
+  var lcmEmpty = document.getElementById('lcm-empty');
+  var lcmContent = document.getElementById('lcm-content');
+  var lcmStepEl = document.getElementById('lcm-step');
+  var lcmCaptionEl = document.getElementById('lcm-caption');
+  var lcmSvg = document.getElementById('lcm-svg');
+  var lcmPrevBtn = document.getElementById('lcm-prev');
+  var lcmNextBtn = document.getElementById('lcm-next');
+  var lcmReplayBtn = document.getElementById('lcm-replay');
+  var lcmNumbersEl = document.getElementById('lcm-numbers');
 
   var regionEls3 = {};
 
@@ -1073,6 +1170,11 @@
 
     return { regions: newLists, moved: moved, changed: changed, overflow: null };
   }
+
+  // LCM / GCD fold: three stages, stepped by the buttons or auto-played once on open.
+  var LCM_STAGES = 3;
+  var LCM_HOLD_MS = 1800;
+  var lcmView = { open: false, stage: 1, gen: 0, sig: null, data: null };
 
   var state = { mode: 'two', regions: { left: [], overlap: [], right: [] }, regions3: emptyRegions3(), armed: null, nextId: 1, thumbsEnabled: true, openPreview: null };
 
@@ -2848,12 +2950,90 @@
     }
   }
 
+  /* ---------- LCM / GCD fold ---------- */
+
+  function productOfBig(list){
+    var p = 1n;
+    for (var i = 0; i < list.length; i++) p *= BigInt(list[i]);
+    return p;
+  }
+
+  // Same region lists currentPair() reads, in BigInt because A x B passes 2^53 well inside the palette's range.
+  function lcmData(){
+    var left = ascendingSort(primesOf(state.regions.left));
+    var shared = ascendingSort(primesOf(state.regions.overlap));
+    var right = ascendingSort(primesOf(state.regions.right));
+    var g = productOfBig(shared);
+    var a = productOfBig(left) * g;
+    var b = productOfBig(right) * g;
+    var product = a * b;
+    return {
+      left: left, shared: shared, right: right,
+      g: g, a: a, b: b, product: product, lcmValue: product / g,
+      empty: left.length + shared.length + right.length === 0
+    };
+  }
+
+  function renderLcmText(){
+    var d = lcmView.data;
+    if (!d || d.empty) return;
+    var stage = lcmView.stage;
+    translateInto(lcmStepEl, 'venn.lcm.stepOf', { n: String(stage), total: String(LCM_STAGES) });
+    var coprime = d.g === 1n;
+    if (stage === 1) translateInto(lcmCaptionEl, coprime ? 'venn.lcm.stage1Coprime' : 'venn.lcm.stage1');
+    else if (stage === 2) translateInto(lcmCaptionEl, coprime ? 'venn.lcm.stage2Coprime' : 'venn.lcm.stage2', { gcd: String(d.g) });
+    else translateInto(lcmCaptionEl, 'venn.lcm.stage3', { lcm: String(d.lcmValue) });
+    lcmPrevBtn.disabled = stage === 1;
+    lcmNextBtn.disabled = stage === LCM_STAGES;
+  }
+
+  function renderLcm(){
+    var d = lcmData();
+    lcmView.data = d;
+    lcmEmpty.hidden = !d.empty;
+    lcmContent.hidden = d.empty;
+    if (!d.empty){
+      lcmNumbersEl.textContent = 'lcm(' + d.a + ', ' + d.b + ') = (' + d.a + ' × ' + d.b + ') ÷ ' + d.g +
+        ' = ' + d.product + ' ÷ ' + d.g + ' = ' + d.lcmValue;
+    }
+    renderLcmText();
+  }
+
+  function goLcmStage(stage, instant){
+    stage = Math.max(1, Math.min(LCM_STAGES, stage));
+    lcmView.stage = stage;
+    lcmFold.setAttribute('data-stage', String(stage));
+    renderLcmText();
+  }
+
+  function playLcm(){
+    var gen = ++lcmView.gen;
+    goLcmStage(1, true);
+    setTimeout(function(){
+      if (gen !== lcmView.gen) return;
+      goLcmStage(2, false);
+      setTimeout(function(){
+        if (gen !== lcmView.gen) return;
+        goLcmStage(3, false);
+      }, LCM_HOLD_MS);
+    }, LCM_HOLD_MS);
+  }
+
+  function setLcmOpen(open){
+    lcmView.open = open;
+    lcmToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    lcmBody.hidden = !open;
+    if (open) playLcm();
+    else lcmView.gen++;
+  }
+
   function render(){
     renderPicker();
     renderTokens();
     refreshRegionLabels();
     renderComposite();
     renderCircleComposite();
+    renderLcm();
     renderTokens3();
     refreshRegionLabels3();
     renderComposite3();
@@ -2964,6 +3144,8 @@
     if (ledeThree) ledeThree.hidden = !isThree;
     if (frameTwo) frameTwo.hidden = isThree;
     if (frameThree) frameThree.hidden = !isThree;
+    if (lcmFold) lcmFold.hidden = isThree;
+    if (isThree) lcmView.gen++;
     if (modeTwoBtn) modeTwoBtn.setAttribute('aria-pressed', isThree ? 'false' : 'true');
     if (modeThreeBtn) modeThreeBtn.setAttribute('aria-pressed', isThree ? 'true' : 'false');
     try{ localStorage.setItem(MODE_STORAGE_KEY, mode); }catch(e){}
@@ -2971,6 +3153,10 @@
     syncHistoryButtons();
   }
 
+  lcmToggle.addEventListener('click', function(){ setLcmOpen(!lcmView.open); });
+  lcmPrevBtn.addEventListener('click', function(){ lcmView.gen++; goLcmStage(lcmView.stage - 1, false); });
+  lcmNextBtn.addEventListener('click', function(){ lcmView.gen++; goLcmStage(lcmView.stage + 1, false); });
+  lcmReplayBtn.addEventListener('click', playLcm);
   clearBtn.addEventListener('click', clearAll);
   paletteUndoBtn.addEventListener('click', function(){ stepPalette(true); });
   paletteRedoBtn.addEventListener('click', function(){ stepPalette(false); });
@@ -3053,6 +3239,8 @@
   }
   labelSieveLink();
 
+  // The LCM fold's step label and caption re-translate here (render() ->
+  // renderLcm()) without resetting its stage or open state.
   function rerenderOnLangChange(){
     retranslateCaptionLabels();
     labelSieveLink();
