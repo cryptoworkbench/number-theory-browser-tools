@@ -1134,6 +1134,21 @@
     }
   }
 
+  // Turns every prime split (P = P × 1) in the overlap into a prime leaf.
+  // All splits are found before any is folded, so a folded child never
+  // makes its parent look like a split.
+  function foldPrimeSplits(overlap){
+    var splits = [];
+    (function find(node){
+      if (node.children.some(function(c){ return c.kind === 'prime-leaf'; })) splits.push(node);
+      else node.children.forEach(find);
+    })({ children: [overlap.a.top, overlap.b.top] });
+    splits.forEach(function(node){
+      node.children = [];
+      node.kind = 'prime-leaf';
+    });
+  }
+
   // Balanced (Fermat's Method) factor tree section, drawn into the same
   // scroll group. Its hint line (below, gated on opts.treeHref) is drawn
   // only when the Factor Tree tool link trio actually resolved a URL for
@@ -1173,6 +1188,9 @@
     var overlap = null;
     if (opts.overlapTree){
       overlap = buildOverlapTree(opts.a, opts.b, { balanced: true });
+      // As on the Factor Tree's gcd overlap, each prime stays folded on its
+      // P = P × 1 split: it is drawn as the prime leaf it ends in.
+      foldPrimeSplits(overlap);
       assignOverlapX(overlap, xCounter);
       flattenOverlap(overlap, nodes, edges, depthBox);
     } else {
