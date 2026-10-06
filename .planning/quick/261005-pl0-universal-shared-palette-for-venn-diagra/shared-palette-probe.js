@@ -519,7 +519,7 @@ function inPage(cfg) {
         function cy(r) { return r.top + r.height / 2; }
         [bin, btn].forEach(function (el) {
           var r = rect(el);
-          assert(Math.round(r.width) === 40 && Math.round(r.height) === 40, el.id + " is " + r.width + "x" + r.height);
+          assert(Math.round(r.height) === 40 && Math.round(r.width) >= 40, el.id + " is " + r.width + "x" + r.height);
           controls.forEach(function (c) {
             assert(Math.abs(cy(r) - cy(rect(c))) <= 1, el.id + " is not vertically centred with " + c.id);
           });
@@ -527,12 +527,16 @@ function inPage(cfg) {
         var tr = rect(tools), ar = rect(addRow), rr = rect(document.getElementById("palette-random-btn"));
         assert(Math.abs(tr.right - ar.right) <= 1, "tools right " + tr.right + " vs add row right " + ar.right);
         assert(tr.left > rr.right, "tools (" + tr.left + ") touch Randomize (" + rr.right + ")");
+        var br = rect(bin), er = rect(btn), ir = rect(bin.querySelector("svg"));
+        assert(Math.abs(br.left - (rr.right + 10)) <= 1 && Math.abs(br.right - (er.left - 4)) <= 1, "bin " + br.left + ".." + br.right + " does not span Randomize to Delete all");
+        assert(Math.round(er.width) === 40, "Delete all is " + er.width + " wide");
+        assert(Math.abs((ir.left + ir.right) / 2 - (br.left + br.right) / 2) <= 1, "bin icon is not centred");
         assert(btn.getAttribute("aria-label") === T("venn.emptyPaletteLabel"), "aria-label " + btn.getAttribute("aria-label"));
         assert(btn.getAttribute("title") === T("venn.emptyPaletteLabel"), "title " + btn.getAttribute("title"));
         assert(btn.querySelector("svg"), "no svg in the Delete-all button");
         assert(!btn.disabled, "Delete all is disabled on a full palette");
         noErrors("U1");
-        return "bin and garbage-truck Delete all (both 40x40) at the right end of the add row, centred with the input and buttons; heading row holds only the heading; translated label";
+        return "bin stretching from Randomize to the 40x40 garbage-truck Delete all at the right end of the add row, bin icon centred, centred with the input and buttons; heading row holds only the heading; translated label";
       } },
       { name: "U2 venn-delete-all", fn: function () {
         chipNamed("7").click();
@@ -639,7 +643,7 @@ function inPage(cfg) {
         function cy(r) { return r.top + r.height / 2; }
         [bin, btn].forEach(function (el) {
           var r = rect(el);
-          assert(Math.round(r.width) === 40 && Math.round(r.height) === 40, el.id + " is " + r.width + "x" + r.height);
+          assert(Math.round(r.height) === 40 && Math.round(r.width) >= 40, el.id + " is " + r.width + "x" + r.height);
           controls.forEach(function (c) {
             assert(Math.abs(cy(r) - cy(rect(c))) <= 1, el.id + " is not vertically centred with " + c.id);
           });
@@ -647,13 +651,17 @@ function inPage(cfg) {
         var tr = rect(tools), cr = rect(row), rr = rect(document.getElementById("randomBtn"));
         assert(Math.abs(tr.right - cr.right) <= 1, "tools right " + tr.right + " vs add row right " + cr.right);
         assert(tr.left > rr.right, "tools (" + tr.left + ") touch Randomize (" + rr.right + ")");
+        var br = rect(bin), er = rect(btn), ir = rect(bin.querySelector("svg"));
+        assert(Math.abs(br.left - (rr.right + 10)) <= 1 && Math.abs(br.right - (er.left - 4)) <= 1, "bin " + br.left + ".." + br.right + " does not span Randomize to Delete all");
+        assert(Math.round(er.width) === 40, "Delete all is " + er.width + " wide");
+        assert(Math.abs((ir.left + ir.right) / 2 - (br.left + br.right) / 2) <= 1, "bin icon is not centred");
         assert(bin.getAttribute("aria-label") === T("factorTree.binLabel"), "bin aria-label " + bin.getAttribute("aria-label"));
         assert(bin.getAttribute("title") === T("factorTree.binLabel"), "bin title " + bin.getAttribute("title"));
         assert(btn.getAttribute("aria-label") === T("factorTree.emptyPaletteLabel"), "aria-label " + btn.getAttribute("aria-label"));
         assert(btn.getAttribute("title") === T("factorTree.emptyPaletteLabel"), "title " + btn.getAttribute("title"));
         assert(!btn.disabled, "Delete all is disabled on a full palette");
         noErrors("K1");
-        return "bin and Delete all (both 40x40) at the right end of Factor Tree's add row, centred with the input and buttons; heading row holds only the heading";
+        return "bin stretching from Randomize to the 40x40 Delete all at the right end of Factor Tree's add row, bin icon centred, centred with the input and buttons; heading row holds only the heading";
       } }
     ];
   };
