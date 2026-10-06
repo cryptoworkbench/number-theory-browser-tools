@@ -232,6 +232,33 @@ considered translation-complete.
   (L-FONT): no Google Fonts `<link>`, `@font-face` or `font-family` change is made for
   it. Added 2026-10-06 by quick task 261006-pks.
 
+  Hebrew conventions consolidated 2026-10-06 from the parallel Tasks 2-4 of quick task
+  261006-pks (all `[ASSUMED]`):
+  - Hebrew phrases inside a box that is forced left-to-right (a formula box, a
+    `direction: ltr` island) are wrapped in U+2067 RIGHT-TO-LEFT ISOLATE … U+2069 (RLI…PDI,
+    written as `\u2067` and `\u2069`) so the Hebrew words keep their own order inside the
+    LTR box.
+  - When a numeric formula ends a sentence, the final period sits inside the formula's
+    `\u2066…\u2069` isolate (the period would otherwise jump to the wrong edge of the
+    sentence in a right-to-left paragraph).
+  - A `{word}` slot (a placeholder that receives a noun from a dictionary or from the
+    page) takes the indefinite noun form, because the template cannot agree gender or
+    definiteness with a value it does not know.
+  - Units after a numeral: bit is ביט (plural ביטים after a placeholder or in a plural
+    sentence, singular ביט right after a written number: "2048 ביט"; never סיבית/סיביות);
+    millisecond is אלפיות שנייה (never מילישניות). Miller–Rabin is מילר-רבין written with the
+    same dash the English value uses in that file (the Diffie-Hellman file's ASCII hyphen,
+    the RSA file's en dash). "Diagram" is דיאגרמה everywhere; תרשים is kept only inside תרשים
+    פיזור (scatter plot). Extended Euclid is האלגוריתם האוקלידי המורחב.
+  - gcd/lcm abbreviation rule: the prose noun is always the full phrase המחלק המשותף
+    המקסימלי / הכפולה המשותפת המינימלית. The recognised Israeli school abbreviation ממ״מ
+    (gcd; lcm is כמ״מ) is kept only where the label is space-constrained — a pill, a step
+    label or a table heading — which is exactly Shor's `pillGcdPostProcessing`,
+    `stepGcdCheckLabel` and `stepFactorViaGcdLabel`. Running prose (including the Shor
+    detail and ring captions and the intro's `strongGcdPostProcessing`) spells the phrase out.
+  - Venn link labels are written as infinitives so they can sit inside the shared frame
+    "לחצו פעמיים כדי {a}" (double-click to {a}).
+
 ---
 
 ## (b) Tool names
@@ -342,6 +369,57 @@ how it/pl already render rows like "generator / primitive root"). The sv/nb colu
 | 51 | preset / example | voorbeeld | Beispiel | exemple | ejemplo | esempio | przykład | exemplo | exemplo | exempel | eksempel | exemplu | példa | piemērs | пример | παράδειγμα | דוגמה | `[ASSUMED]` |
 | 52 | step (playback) | stap | Schritt | étape | paso | passo | krok | passo | passo | steg | steg | pas | lépés | solis | шаг | βήμα | צעד | `[ASSUMED]` — matches `common.step` |
 | 53 | playback | afspelen | Wiedergabe | lecture | reproducción | riproduzione | odtwarzanie | reprodução | reprodução | uppspelning | avspilling | redare | lejátszás | atskaņošana | воспроизведение | αναπαραγωγή | הפעלה | `[ASSUMED]` |
+
+### Hebrew supplementary terms (added 2026-10-06 by quick task 261006-pks, Tasks 2-4)
+
+Terms chosen while translating the pages in parallel; the he column of the table above
+holds the citation forms, and the shipped values inflect them (definite ה-, construct
+state, plural) — for example "המפתח הפרטי" for "private key". All `[ASSUMED]`.
+
+| Term (en) | he | Used in |
+|---|---|---|
+| gcd / lcm (prose) | המחלק המשותף המקסימלי / הכפולה המשותפת המינימלית (ממ״מ / כמ״מ only in space-constrained labels) | Euclid, Venn, Totient, Factor Tree, Shor |
+| Fibonacci | פיבונאצ׳י | Euclid |
+| Venn regions | A בלבד / משותף / משותף לשלושתם / A ו-B בלבד | Venn |
+| "in the tool X" | בכלי {tool} | Venn, CRT |
+| nested squares | ריבועים מקוננים | Euclid |
+| tile | אריח | Euclid |
+| bin (delete target) | פח | Venn |
+| Run (button) | הרצה | Euclid, Totient |
+| Bézout coefficients | מקדמי בזו | Euclid |
+| keyboard keys Enter / Space / Delete | אנטר / רווח / מחיקה | Venn |
+| "fifteen tools" | חמישה עשר כלים | Hub |
+| equivalence class | מחלקת שקילות | Wheel |
+| wedge | פלח | Wheel, Cayley, Totient |
+| concentric ring | טבעת קונצנטרית | Wheel |
+| addend | מחובר | Totient, Wheel |
+| accumulator | צובר | Square and Multiply |
+| ladder | סולם | Square and Multiply |
+| modular exponentiation | העלאה בחזקה מודולרית | Square and Multiply, DH |
+| exponent | מעריך | Square and Multiply, DH, RSA |
+| squaring | העלאה בריבוע | Square and Multiply |
+| eavesdropper | מצותת (Eve: מצותתת) | DH, ECDH |
+| subgroup | תת-חבורה | Cayley, Isomorphism |
+| primitive root | שורש פרימיטיבי | Isomorphism, DH |
+| bit / millisecond | ביט / אלפיות שנייה | Square and Multiply, DH, ECDH, RSA |
+| scalar multiplication | כפל בסקלר | ECDH |
+| base point | נקודת בסיס | ECDH |
+| point at infinity | הנקודה באינסוף | ECDH |
+| tangent / chord / slope | משיק / מיתר / שיפוע | ECDH |
+| Hasse bound | חסם האסה | ECDH |
+| discrete log | לוגריתם דיסקרטי | ECDH, RSA |
+| brute force | כוח גס | DH, ECDH, RSA |
+| tap (on the wire) | האזנה | DH, ECDH |
+| notebook | מחברת | RSA |
+| superposition | סופרפוזיציה | Shor |
+| order / period | סדר / מחזור | Shor |
+| continued fraction | שבר משולב | Shor |
+| padding scheme | סכמת ריפוד | RSA |
+| ElGamal | אל-גמאל | RSA |
+| trial division | חלוקת ניסיון | RSA |
+| Miller–Rabin | מילר-רבין | DH, RSA |
+| diagram | דיאגרמה (תרשים only in תרשים פיזור) | all |
+| extended Euclidean algorithm | האלגוריתם האוקלידי המורחב | CRT, Euclid, RSA |
 
 ---
 

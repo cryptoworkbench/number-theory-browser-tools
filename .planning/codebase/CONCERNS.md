@@ -17,12 +17,12 @@ last_mapped_at: 2026-09-23
 
 ## Multi-Language Support (i18n)
 
-**Every new user-visible string needs sixteen translations:**
+**Every new user-visible string needs seventeen translations:**
 
-- Issue: A page ships in nl/en/de/fr/es/it/pl/pt-BR/pt-PT/sv/nb/ro/hu/lv/ru/el; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all sixteen languages leaves a gap
+- Issue: A page ships in nl/en/de/fr/es/it/pl/pt-BR/pt-PT/sv/nb/ro/hu/lv/ru/el/he; adding a string to a page's `assets/i18n/<page-slug>.js` dictionary (or to the shared `site`/`common` namespaces in `assets/i18n/site.js`) without a value in all seventeen languages leaves a gap
 - Files: Every `assets/i18n/*.js` data file
 - Impact: A missing-language value either renders blank or falls back to English unexpectedly, and the page silently stops being fully translated
-- Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE` — Polish and Russian plural values must carry `{one, few, many, other}`, Romanian `{one, few, other}`, Latvian `{zero, one, other}`, every other language `{one, other}`); for Russian and Greek, `--coverage` also reports a word outside the language's own script that is not on `SCRIPT_RULES`' notation allow-list (`SCRIPT-LATIN`/`SCRIPT-MIXED`/`SCRIPT-FOREIGN`/`SCRIPT-MISSING`) before the gap ships
+- Current mitigation: `.planning/phases/06-multi-language-support/i18n-check.js --coverage` catches a dictionary key missing from any supported language (`LANG-KEYSET`), a placeholder mismatch (`PLACEHOLDERS`), and a plural-shape mismatch (`PLURAL-SHAPE` — Polish and Russian plural values must carry `{one, few, many, other}`, Romanian `{one, few, other}`, Latvian `{zero, one, other}`, Hebrew `{one, two, other}`, every other language `{one, other}`); for Russian, Greek and Hebrew, `--coverage` also reports a word outside the language's own script that is not on `SCRIPT_RULES`' notation allow-list (`SCRIPT-LATIN`/`SCRIPT-MIXED`/`SCRIPT-FOREIGN`/`SCRIPT-MISSING`), and for every Hebrew value an unisolated numeric formula or a stray bidi control (`BIDI-FORMULA`/`BIDI-CONTROL`/`BIDI-UNBALANCED`/`BIDI-RAW`), before the gap ships
 - Fix approach: Run `i18n-check.js --coverage` (or `--all`) on the touched page after any dictionary edit; dictionary drift is caught by this gate, not by manual review alone
 
 **Header and site-footer edits must keep all sixteen copies identical:**
