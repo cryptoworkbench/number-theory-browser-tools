@@ -40,17 +40,18 @@
     background:var(--panel);
   }
   .picker-panel h2{
-    font-family:var(--font-serif);
+    font-family:var(--font-sans);
+    font-size:.85rem;
     font-weight:600;
-    font-size:15px;
+    color:var(--text-dim);
     margin:0;
   }
   .picker-head{
     display:flex;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
     gap:10px;
-    margin:0 0 4px;
+    margin:0 0 8px;
   }
   .picker-add{
     display:flex;
@@ -90,21 +91,26 @@
     transition:filter var(--ease-ctl);
   }
   #palette-add-btn:hover{ filter:brightness(1.08); }
-  .palette-bin{
+  .palette-tools{ display:flex; align-items:center; gap:4px; }
+  .palette-bin, .palette-empty-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    width:36px;
-    height:36px;
-    flex:none;
+    width:40px;
+    height:40px;
     border-radius:var(--radius-ctl);
-    border:1px dashed var(--panel-border);
+    border:1px dashed transparent;
     color:var(--text-dim);
     transition:color var(--ease-ctl), background var(--ease-ctl), border-color var(--ease-ctl);
   }
-  .palette-bin svg{
-    width:24px;
-    height:24px;
+  .palette-empty-btn{ background:none; padding:0; cursor:pointer; }
+  .palette-empty-btn:hover:not(:disabled){ color:var(--role-warn); background:var(--role-warn-soft); }
+  .palette-empty-btn:focus{ outline:none; }
+  .palette-empty-btn:focus-visible{ box-shadow:var(--ctl-focus); }
+  .palette-empty-btn:disabled{ opacity:.4; cursor:default; }
+  .palette-bin svg, .palette-empty-btn svg{
+    width:26px;
+    height:26px;
     overflow:visible;
     fill:none;
     stroke:currentColor;
@@ -455,7 +461,7 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, .palette-bin{ transition:none; }
+    .prime-chip, .region-hit, .placed-chip rect, #clear-btn, #randomize-btn, .mode-btn, #palette-add-input, #palette-add-btn, .palette-bin, .palette-empty-btn{ transition:none; }
     .bin-lid{ transition:none; }
   }
 
@@ -553,14 +559,19 @@
   <div class="picker-panel">
     <div class="picker-head">
       <h2 id="picker-heading" data-i18n="venn.picker.heading">Prime palette</h2>
+      <div class="palette-tools">
+        <div id="palette-bin" class="palette-bin" role="img" aria-label="Bin: drag a number here to remove it from the palette" title="Bin: drag a number here to remove it from the palette" data-i18n-aria-label="venn.binLabel" data-i18n-title="venn.binLabel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="bin-lid"><path d="M3 6h18"/><path d="M9 6V4h6v2"/></g><path d="M5.5 6l1 14h11l1-14"/><path d="M10 10v6M14 10v6"/></svg>
+        </div>
+        <button id="palette-empty-btn" type="button" class="palette-empty-btn" aria-label="Delete all: empty the palette" title="Delete all: empty the palette" data-i18n-aria-label="venn.emptyPaletteLabel" data-i18n-title="venn.emptyPaletteLabel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.5 15.5V6.5h9.5l2.5 3.5v5.5"/><path d="M12.5 9.5v3M15.5 9.5v3M18.5 9.5v3"/><path d="M9.5 9.5H6L2.5 12.5v3h1.5M8 15.5h7.5M19.5 15.5h2"/><path d="M5 12.5h3"/><circle cx="6" cy="17" r="2"/><circle cx="17.5" cy="17" r="2"/></svg>
+        </button>
+      </div>
     </div>
     <p class="picker-hint" data-i18n="venn.picker.hint">Click a number, then click (or press Enter/Space on) a region to place its prime factors there. Drag a number onto the bin, or press Delete on it, to remove it from the palette.</p>
     <div class="picker-add">
       <input id="palette-add-input" type="number" inputmode="numeric" pattern="[0-9]*" min="2" step="1" max="1000000000000" placeholder="e.g. 60" data-i18n-placeholder="venn.placeholder" aria-label="Number to add to the palette" data-i18n-aria-label="venn.addInputLabel" />
       <button id="palette-add-btn" type="button" data-i18n="venn.add">Add</button>
-      <div id="palette-bin" class="palette-bin" role="img" aria-label="Bin: drag a number here to remove it from the palette" title="Bin: drag a number here to remove it from the palette" data-i18n-aria-label="venn.binLabel" data-i18n-title="venn.binLabel">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="bin-lid"><path d="M3 6h18"/><path d="M9 6V4h6v2"/></g><path d="M5.5 6l1 14h11l1-14"/><path d="M10 10v6M14 10v6"/></svg>
-      </div>
     </div>
     <div id="prime-picker" class="prime-picker"></div>
   </div>
@@ -662,7 +673,7 @@
   /* ---------- shared helpers (assets/nt-*.js) ---------- */
   const { euclidSteps, gcd, isPrime, primeFactors } = NT.core;
   const { svgEl } = NT.svg;
-  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, SHARED_PALETTE_MAX_N, addToSharedPalette, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, removeFromSharedPalette, writeSharedAB } = NT.store;
+  const { SHARED_AB_KEY, SHARED_PALETTE_KEY, SHARED_PALETTE_MAX, SHARED_PALETTE_MAX_N, addToSharedPalette, clearSharedPalette, loadSharedPalette, readABParams, readMigrating, readSharedAB, readSharedPalette, removeFromSharedPalette, writeSharedAB } = NT.store;
   const { BALANCED_MAX_N, assignOverlapX, assignTreeX, buildFactorTree, buildOverlapTree, computeNestedLayout, flattenOverlap, flattenTree } = NT.layout;
   const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
@@ -702,6 +713,7 @@
   var picker = document.getElementById('prime-picker');
   var pickerHeading = document.getElementById('picker-heading');
   var paletteBin = document.getElementById('palette-bin');
+  var paletteEmptyBtn = document.getElementById('palette-empty-btn');
   var addInput = document.getElementById('palette-add-input');
   var addBtn = document.getElementById('palette-add-btn');
   var svgRoot = document.getElementById('venn');
@@ -2067,6 +2079,7 @@
     var key = palette.some(function(n){ return !isPrimeMemo(n); }) ? 'venn.picker.headingNumbers' : 'venn.picker.heading';
     pickerHeading.setAttribute('data-i18n', key);
     pickerHeading.textContent = translate(key);
+    paletteEmptyBtn.disabled = palette.length === 0;
   }
 
   function renderPicker(){
@@ -2138,6 +2151,11 @@
   }
 
   addBtn.addEventListener('click', addFromInput);
+  paletteEmptyBtn.addEventListener('click', function(){
+    adoptPalette(clearSharedPalette());
+    setMessage('venn.msg.paletteEmptied', null, false);
+    addInput.focus();
+  });
   addInput.addEventListener('keydown', function(ev){
     if (ev.key === 'Enter'){
       ev.preventDefault();
