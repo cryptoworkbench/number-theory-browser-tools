@@ -1140,7 +1140,9 @@
       a:a, b:b, g:o.g, overlap:o, merged:false, fresh:new Set(),
       locked:new Set([o.A.root, o.B.root].filter(Boolean))
     });
-    drawNodes(view, nodes, edges, maxDepth, m, ()=> false);
+    // Each prime stays folded on its P = P × 1 split: the 1 × P layer adds
+    // nothing to the gcd picture.
+    drawNodes(view, nodes, edges, maxDepth, m, node=> node.children.some(c=> c.kind === 'prime-leaf'));
 
     if(animate === 'split'){
       view.merged = true;
@@ -1632,12 +1634,13 @@
   }
 
   // The equation and the message appear only while no circle with children
-  // is folded; folding anything clears the equation at once.
+  // is folded; folding anything clears the equation at once. A gcd overlap
+  // ignores primes folded on their P = P × 1 split.
   function updateEquation(view){
     if(!view.live) return;
     let allOpen = true;
     view.nodeViews.forEach(nv=>{
-      if(nv.node.children.length > 0 && nv.folded) allOpen = false;
+      if(nv.node.children.length > 0 && nv.folded && !(view.overlap && nv.node.children.some(c=> c.kind === 'prime-leaf'))) allOpen = false;
     });
     if(!allOpen){
       if(view.eqShown){
