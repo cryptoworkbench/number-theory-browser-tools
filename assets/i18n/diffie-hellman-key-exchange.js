@@ -1529,7 +1529,7 @@
       bitsLabel: 'גודל הראשוני הבטוח (ביטים)',
       bitOption: '{n} ביט',
       genSafePrime: 'יצירת ראשוני בטוח',
-      stageAriaLabel: 'תרשים החלפת מפתחות דיפי-הלמן: Alice משמאל, Bob מימין, וביניהם חוט ש-Eve מצותתת לו',
+      stageAriaLabel: 'דיאגרמת החלפת מפתחות דיפי-הלמן: Alice משמאל, Bob מימין, וביניהם חוט ש-Eve מצותתת לו',
       legendAlice: '{0} Alice',
       legendBob: '{0} Bob',
       legendEve: '{0} Eve, והעותק שהיא שואבת דרך ההאזנה שלה',
