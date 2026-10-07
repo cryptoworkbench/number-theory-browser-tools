@@ -112,7 +112,7 @@ last_mapped_at: 2026-09-23
 
 - Purpose: Site-wide multi-language translation — language resolution, DOM text binding, durable persistence, and cross-tab/cross-session sync, so a visitor's chosen language follows them across every tool
 - Location: `assets/nt-i18n.js` (`NT.i18n` — the engine: `translate`/`translateInto`/`bindText`/`applyStaticDom`/`setLang`/`getLang`/`onLangChange`/`detectDefaultLang`), the data files under `assets/i18n/` (`site.js`'s shared `site` and `common` namespaces plus one page-specific namespace per tool, e.g. `assets/i18n/sieve-of-eratosthenes.js`; `index.html`'s is `assets/i18n/hub.js`), and the canonical site footer's `#lang-switch-select` switcher
-- Contains: eighteen supported languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el, he, hi) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
+- Contains: nineteen supported languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el, he, hi, ar) with English as source of truth; every user-visible string reaches the DOM as a `data-i18n`-bound text node or via `translate()`/`translateInto()`/`bindText()`, never `innerHTML`
 - Load order: the sixth shared module, included after `nt-layout.js`, before `nt-picker.js` when a page uses it, and before a page's own `assets/i18n/*.js` data files and its inline `<script>`
 - Used by: every tool page; a page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state when the active language changes, without resetting tool state (grid, scan position, playback, selections)
 
@@ -194,7 +194,7 @@ last_mapped_at: 2026-09-23
 
 1. **User selects a language** in the site footer's `#lang-switch-select` → `NT.i18n.setLang(code)`
 2. **Persistence** → an explicit choice is written to `localStorage` under `site-lang` first, then to the cookie `site-lang=<code>;path=/;max-age=31536000;samesite=lax`; a detected browser default is never written
-3. **DOM update** → `applyStaticDom()` re-binds every `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder` element, decorates same-site links with `&lang=`/`?lang=`, and updates `<html lang>` (plus `dir="rtl"` while Hebrew is active, removed for every other language)
+3. **DOM update** → `applyStaticDom()` re-binds every `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder` element, decorates same-site links with `&lang=`/`?lang=`, and updates `<html lang>` (plus `dir="rtl"` while Hebrew or Arabic is active, removed for every other language)
 4. **Page re-render** → the page's own `onLangChange` callback re-renders its dynamic text (messages, banners, captions) from tracked state, without resetting tool state
 5. **Cross-tab sync** → a `storage` event for the `site-lang` key re-applies the language in another open tab, without re-persisting; events for any other key (including `site-theme`) are ignored
 
