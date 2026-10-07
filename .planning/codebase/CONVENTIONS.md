@@ -90,10 +90,10 @@ last_mapped_at: 2026-09-23
 
 **Translation conventions (`NT.i18n`):**
 
-- Every user-visible string comes from a dictionary entry present in all nineteen languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el, he, hi, ar), with English as source of truth
+- Every user-visible string comes from a dictionary entry present in all twenty-one languages (nl, en, de, fr, es, it, pl, pt-BR, pt-PT, sv, nb, ro, hu, lv, ru, el, he, hi, ar, sq, sw), with English as source of truth
 - Static markup is translated via `data-i18n`/`data-i18n-attr`/`data-i18n-placeholder`/`data-i18n-params` attributes, applied automatically by `applyStaticDom()`
 - Script-rendered text is translated via `translate()`/`translateInto()`/`bindText()`, always as a whole-sentence template (never concatenating two translated fragments) and always landing in the DOM as a text node or via `textContent`/`setAttribute` — never `innerHTML`
-- Numerals are never locale-formatted by language (`NT.bigint.fmt` is the one sanctioned plain-number formatter; thousands-grouping stays literal and identical in every language)
+- Numerals are never locale-formatted by language (`NT.bigint.fmt` is the one sanctioned plain-number formatter; thousands-grouping stays literal and identical in every language; Hindi, Arabic, Albanian and Swahili values carry exactly their English value's numerals — DIGIT-PARITY — never Albanian's space grouping or comma decimal)
 - A page's `onLangChange` callback re-renders its own dynamic text when the active language changes, without resetting tool state (grid, scan position, playback, selections)
 
 ## Error Handling
