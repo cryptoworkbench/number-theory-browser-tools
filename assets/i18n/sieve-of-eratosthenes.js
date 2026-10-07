@@ -1,16 +1,16 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all eighteen supported
+   marker for the Sieve of Eratosthenes tool, in all nineteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
    every language except Polish and Russian ({ one, few, many, other }),
-   Romanian ({ one, few, other }), Latvian ({ zero, one, other }) and
-   Hebrew ({ one, two, other }), each
+   Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
+   Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }), each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all eighteen
+   Placeholder names ({n}, {time}, {count}) are identical across all nineteen
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -726,6 +726,56 @@
         other: 'पैलेट में {count} नई अभाज्य संख्याएँ जुड़ीं — पैलेट भर गया है (अधिकतम {max} संख्याएँ); न जोड़ी गई अभाज्य संख्याएँ: {left}।'
       },
       'palette.none': 'मिली हर अभाज्य संख्या पहले से पैलेट में है — जोड़ने के लिए कुछ नहीं है।'
+    },
+    ar: {
+      sound: 'الصوت',
+      title: 'غربال إراتوستينس — عرض تفاعلي',
+      heading: 'غربال إراتوستينس',
+      eyebrow: 'الأعداد الأولية والقابلية للقسمة',
+      lede: 'امنح كل عدد طبيعي مربعه الخاص — ثم شاهد الغربال وهو يشطب كل ما ليس أوليا.',
+      sizeLabel: 'حجم الغربال (N)',
+      generate: 'إنشاء',
+      'stat.current': 'الحالي',
+      'stat.primesFound': 'الأعداد الأولية المكتشفة',
+      'stat.sqrtBoundary': 'حد \u2066√N\u2069',
+      'stat.elapsed': 'الزمن المنقضي',
+      'stat.progress': 'التقدم',
+      'stat.done': '✓ اكتمل',
+      'legend.unvisited': '{0} غير مفحوص بعد',
+      'legend.currentPointer': '{0} المؤشر الحالي',
+      'legend.prime': '{0} عدد أولي',
+      'legend.composite': '{0} مشطوب (عدد مؤلف)',
+      'legend.neither': '{0} لا هذا ولا ذاك (1)',
+      footer: 'تتم جميع الحسابات في متصفحك على جانب العميل. لم يتضرر أي عدد بشكل دائم — بل جرى شطبه فقط.',
+      'banner.ready': 'جاهز. عدد المربعات المنشأة: {n} — اضغط على تشغيل لبدء الغربلة.',
+      'banner.single': '1 مربع فقط — لا شيء للغربلة.',
+      'banner.reset': 'إعادة تعيين. عدد المربعات المعاد بناؤها: {n} — اضغط على تشغيل لبدء الغربلة.',
+      'banner.done': {
+        zero: 'تم العثور على {count} أعداد أولية حتى {n} خلال {time}.',
+        one: 'تم العثور على {count} عدد أولي حتى {n} خلال {time}.',
+        two: 'تم العثور على {count} عددين أوليين حتى {n} خلال {time}.',
+        few: 'تم العثور على {count} أعداد أولية حتى {n} خلال {time}.',
+        many: 'تم العثور على {count} عددا أوليا حتى {n} خلال {time}.',
+        other: 'تم العثور على {count} عدد أولي حتى {n} خلال {time}.'
+      },
+      toPalette: 'إضافة الأعداد الأولية المكتشفة إلى اللوحة',
+      'palette.added': {
+        zero: 'تمت إضافة {count} أعداد أولية جديدة إلى اللوحة — التكرارات المتجاوزة: {dupes}.',
+        one: 'تمت إضافة {count} عدد أولي جديد إلى اللوحة — التكرارات المتجاوزة: {dupes}.',
+        two: 'تمت إضافة {count} عددين أوليين جديدين إلى اللوحة — التكرارات المتجاوزة: {dupes}.',
+        few: 'تمت إضافة {count} أعداد أولية جديدة إلى اللوحة — التكرارات المتجاوزة: {dupes}.',
+        many: 'تمت إضافة {count} عددا أوليا جديدا إلى اللوحة — التكرارات المتجاوزة: {dupes}.',
+        other: 'تمت إضافة {count} عدد أولي جديد إلى اللوحة — التكرارات المتجاوزة: {dupes}.'
+      },
+      'palette.full': {
+        zero: 'تمت إضافة {count} أعداد أولية جديدة — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.',
+        one: 'تمت إضافة {count} عدد أولي جديد — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.',
+        two: 'تمت إضافة {count} عددين أوليين جديدين — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.',
+        few: 'تمت إضافة {count} أعداد أولية جديدة — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.',
+        many: 'تمت إضافة {count} عددا أوليا جديدا — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.',
+        other: 'تمت إضافة {count} عدد أولي جديد — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.'
+      },
+      'palette.none': 'كل الأعداد الأولية المكتشفة موجودة بالفعل في اللوحة — لا شيء لإضافته.'
     }
   });
 })();

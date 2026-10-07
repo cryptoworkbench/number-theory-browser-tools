@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all eighteen
+   switcher's own label and the day/night toggle's label — in all nineteen
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -428,6 +428,29 @@
       'nav.shor': 'शोर का एल्गोरिथ्म',
       'lang.label': 'भाषा',
       'theme.toggle': 'दिन और रात का मोड बदलें'
+    },
+    ar: {
+      brand: 'أدوات نظرية الأعداد',
+      'nav.label': 'الأدوات',
+      menu: 'الأدوات',
+      'nav.home': 'الصفحة الرئيسية',
+      'nav.sieve': 'غربال إراتوستينس',
+      'nav.factorTree': 'شجرة العوامل',
+      'nav.venn': 'مخطط فن',
+      'nav.euclid': 'خوارزمية إقليدس',
+      'nav.crt': 'مبرهنة الباقي الصينية',
+      'nav.wheel': 'عجلة التكافؤ',
+      'nav.totient': 'دالة φ لأويلر',
+      'nav.cayley': 'جدول كايلي',
+      'nav.iso': 'تماثل الزمر',
+      'nav.sqm': 'التربيع والضرب',
+      'nav.dh': 'ديفي-هيلمان',
+      'nav.ecdh': 'ديفي-هيلمان بالمنحنيات الإهليلجية',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'طريقة فيرما',
+      'nav.shor': 'خوارزمية شور',
+      'lang.label': 'اللغة',
+      'theme.toggle': 'التبديل بين الوضع النهاري والليلي'
     }
   });
 
@@ -928,6 +951,33 @@
       redoPalette: 'पैलेट में किया गया बदलाव फिर से लागू करें',
       undoWork: 'पूर्ववत करें',
       redoWork: 'फिर से करें'
+    },
+    ar: {
+      play: 'تشغيل',
+      pause: 'إيقاف مؤقت',
+      step: 'خطوة',
+      instant: 'فوري',
+      reset: 'إعادة تعيين',
+      speed: 'السرعة',
+      'speed.1': 'جليدية',
+      'speed.2': 'بطيئة',
+      'speed.3': 'هادئة',
+      'speed.4': 'نشطة',
+      'speed.5': 'ثابتة',
+      'speed.6': 'سريعة',
+      'speed.7': 'سريعة جدا',
+      'speed.8': 'خاطفة',
+      'speed.9': 'نارية',
+      'speed.10': 'شبه فورية',
+      additiveGroups: 'الزمر الجمعية',
+      multiplicativeGroups: 'الزمر الضربية',
+      paletteEmptySieve: 'استخدم الأداة "{0}" لإضافة أعداد أولية إلى هذه اللوحة.',
+      primePickerOpen: 'اختر عددا أوليا من اللوحة',
+      primePickerHeading: 'اختر عددا أوليا',
+      undoPalette: 'التراجع عن تغيير اللوحة',
+      redoPalette: 'إعادة تغيير اللوحة',
+      undoWork: 'تراجع',
+      redoWork: 'إعادة'
     }
   });
 })();

@@ -39,9 +39,10 @@
    Dictionary values and URL/param input are therefore never parsed as
    markup.
 
-   Right-to-left: Hebrew is the one right-to-left language. applyHtmlLang sets
-   dir="rtl" on <html> next to lang while it is active and removes the dir
-   attribute for every other language, so the other pages' DOM is unchanged.
+   Right-to-left: Hebrew and Arabic are the right-to-left languages.
+   applyHtmlLang sets dir="rtl" on <html> next to lang while either is active
+   and removes the dir attribute for every other language, so the other
+   pages' DOM is unchanged.
    assets/site.css and each page's own :root[dir="rtl"] rule keep diagrams,
    formulas, number grids and numerals left-to-right.
 
@@ -63,10 +64,10 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi']);
-  // The right-to-left languages (internal, not exported): applyHtmlLang sets
-  // dir="rtl" on <html> while one of them is active.
-  var RTL_LANGS = Object.freeze(['he']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar']);
+  // The right-to-left languages, Hebrew and Arabic (internal, not exported):
+  // applyHtmlLang sets dir="rtl" on <html> while one of them is active.
+  var RTL_LANGS = Object.freeze(['he', 'ar']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';

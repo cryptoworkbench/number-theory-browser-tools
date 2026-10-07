@@ -714,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sv"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sv"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -942,6 +942,23 @@ function doApi() {
   check("after he then hi, html lang is hi", (I.setLang("he"), I.setLang("hi"), ctx._doc.documentElement.lang), "hi");
   check("after he then hi, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
 
+  // Arabic {zero, one, two, few, many, other}: Intl.PluralRules('ar') selects zero at 0, one at 1,
+  // two at 2, few at n % 100 in 3..10, many at n % 100 in 11..99 and other for everything else.
+  I.register("trar", {
+    en: { count: { one: "{count} key", other: "{count} keys" } },
+    ar: { count: { zero: "{count} zero", one: "{count} one", two: "{count} two", few: "{count} few", many: "{count} many", other: "{count} other" } }
+  });
+  check("setLang('ar') returns true (trar)", I.setLang("ar"), true);
+  [[0, "zero"], [1, "one"], [2, "two"], [3, "few"], [10, "few"], [103, "few"], [11, "many"], [99, "many"], [111, "many"],
+   [100, "other"], [101, "other"], [102, "other"], [1.5, "other"], [1000000, "other"]].forEach(function (pair) {
+    check("ar trar.count at " + pair[0] + " selects " + pair[1], I.translate("trar.count", { count: pair[0] }), pair[0] + " " + pair[1]);
+  });
+  check("after hi then ar, html lang is ar", (I.setLang("hi"), I.setLang("ar"), ctx._doc.documentElement.lang), "ar");
+  check("after hi then ar, html dir attribute is rtl", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+  check("after ar then he, html dir attribute stays rtl", (I.setLang("he"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  check("after he then ar, html lang is ar", (I.setLang("ar"), ctx._doc.documentElement.lang), "ar");
+  check("after ar then en, html dir attribute is absent", (I.setLang("en"), ctx._doc.documentElement.getAttribute("dir")), null);
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -1056,6 +1073,10 @@ function doApi() {
   check("setLang('HE') returns false (case-sensitive)", I.setLang("HE"), false);
   check("setLang('hi-IN') returns false (region-tagged hi not supported)", I.setLang("hi-IN"), false);
   check("setLang('HI') returns false (case-sensitive)", I.setLang("HI"), false);
+  check("setLang('ar-EG') returns false (region-tagged ar not supported)", I.setLang("ar-EG"), false);
+  check("setLang('ar-SA') returns false (region-tagged ar not supported)", I.setLang("ar-SA"), false);
+  check("setLang('AR') returns false (case-sensitive)", I.setLang("AR"), false);
+  check("setLang('ara') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("ara"), false);
   check("setLang('hin') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("hin"), false);
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
   check("setLang('be') returns false (Belarusian not supported)", I.setLang("be"), false);
@@ -1211,7 +1232,15 @@ function doApi() {
     [["ur-IN", "hi"], "hi", "ur-IN,hi (Urdu unsupported, falls through)"],
     [["mr-IN", "hi"], "hi", "mr-IN,hi (Marathi unsupported, falls through)"],
     [["ne", "en"], "en", "ne,en (Nepali not mapped)"],
-    [["en-IN", "hi"], "en", "en-IN,hi (Indian English stays English)"]
+    [["en-IN", "hi"], "en", "en-IN,hi (Indian English stays English)"],
+    [["ar"], "ar", "ar"],
+    [["ar-EG"], "ar", "ar-EG"],
+    [["AR_sa", "en"], "ar", "AR_sa (case-insensitive, underscore separator)"],
+    [["ar-001"], "ar", "ar-001 (UN M.49 region)"],
+    [["fa-IR", "ar"], "ar", "fa-IR,ar (Persian unsupported, falls through)"],
+    [["ur-PK", "en"], "en", "ur-PK,en (Urdu not mapped)"],
+    [["en-AE", "ar"], "en", "en-AE,ar (English in the UAE stays English)"],
+    [["he-IL", "ar"], "he", "he-IL,ar (first supported wins)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1326,7 +1355,13 @@ function doPersistence() {
     { opts: { cookie: { initial: "HI" }, storage: { initial: "es" } }, want: "es", label: "cookie HI falls through to storage" },
     { opts: { storage: { initial: "hin" } }, want: "en", label: "storage hin (ISO 639-3 tag, unsupported) falls through to detected default" },
     { opts: { search: "?lang=hi", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "hi", label: "url hi beats cookie and storage" },
-    { opts: { storage: { initial: "hi-IN" }, navigator: { languages: ["hi-IN", "en"] } }, want: "hi", label: "storage hi-IN falls through to detected hi (navigator hi-IN)" }
+    { opts: { storage: { initial: "hi-IN" }, navigator: { languages: ["hi-IN", "en"] } }, want: "hi", label: "storage hi-IN falls through to detected hi (navigator hi-IN)" },
+    { opts: { search: "?lang=ar-EG", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url ar-EG (region-tagged ar, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=AR", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url AR (case mismatch) falls through to cookie" },
+    { opts: { cookie: { initial: "AR" }, storage: { initial: "es" } }, want: "es", label: "cookie AR falls through to storage" },
+    { opts: { storage: { initial: "ara" } }, want: "en", label: "storage ara (ISO 639-2 tag, unsupported) falls through to detected default" },
+    { opts: { search: "?lang=ar", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "ar", label: "url ar beats cookie and storage" },
+    { opts: { storage: { initial: "ar-EG" }, navigator: { languages: ["ar-EG", "en"] } }, want: "ar", label: "storage ar-EG falls through to detected ar (navigator ar-EG)" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1352,6 +1387,9 @@ function doPersistence() {
     var hiCtx = loadI18n({ search: "?lang=hi", navigator: { languages: ["en-US", "en"] } });
     check("?lang=hi load sets html lang", hiCtx._doc.documentElement.lang, "hi");
     check("?lang=hi load leaves html dir absent", hiCtx._doc.documentElement.getAttribute("dir"), null);
+    var arCtx = loadI18n({ search: "?lang=ar", navigator: { languages: ["en-US", "en"] } });
+    check("?lang=ar load sets html lang", arCtx._doc.documentElement.lang, "ar");
+    check("?lang=ar load sets html dir rtl", arCtx._doc.documentElement.getAttribute("dir"), "rtl");
     var enCtx = loadI18n({ navigator: { languages: ["en-US", "en"] } });
     check("plain English load leaves html dir absent", enCtx._doc.documentElement.getAttribute("dir"), null);
     var deCtx = loadI18n({ search: "?lang=de", navigator: { languages: ["en-US", "en"] } });
@@ -1556,6 +1594,23 @@ function doPersistence() {
     check("storage event with the region-tagged hi-IN is a no-op", ctx._doc.documentElement.lang, "hi");
     check("storage event with hi-IN fires no change event", ctx._changeEvents.length, changeAfterHi);
 
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ar");
+    check("storage event with ar while hi is active re-applies html lang", ctx._doc.documentElement.lang, "ar");
+    check("storage event with ar while hi is active sets html dir rtl", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+    check("storage event with ar fires one more change event", ctx._changeEvents.length, changeAfterHi + 1);
+
+    var changeAfterAr = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "he");
+    check("storage event with he while ar is active re-applies html lang", ctx._doc.documentElement.lang, "he");
+    check("storage event with he while ar is active keeps html dir rtl", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+    check("storage event with he while ar is active fires one more change event", ctx._changeEvents.length, changeAfterAr + 1);
+
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ar");
+    var changeAfterAr2 = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ar-EG");
+    check("storage event with the region-tagged ar-EG is a no-op", ctx._doc.documentElement.lang, "ar");
+    check("storage event with ar-EG fires no change event", ctx._changeEvents.length, changeAfterAr2);
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -1619,13 +1674,15 @@ var SWITCHER_OPTIONS = [
   { value: "ru", lang: "ru", label: "Русский" },
   { value: "el", lang: "el", label: "Ελληνικά" },
   { value: "he", lang: "he", label: "עברית" },
-  { value: "hi", lang: "hi", label: "हिन्दी" }
+  { value: "hi", lang: "hi", label: "हिन्दी" },
+  { value: "ar", lang: "ar", label: "العربية" }
 ];
 
-// RTL_LANGS: the languages written right to left. Mirrors assets/nt-i18n.js's
-// internal RTL set; the two are tied together by the --api assertion that
-// html dir is "rtl" after setLang exactly for these codes and absent otherwise.
-var RTL_LANGS = ["he"];
+// RTL_LANGS: the languages written right to left, Hebrew and Arabic. Mirrors
+// assets/nt-i18n.js's internal RTL set; the two are tied together by the --api
+// assertion that html dir is "rtl" after setLang exactly for these codes and
+// absent otherwise.
+var RTL_LANGS = ["he", "ar"];
 
 // LANG_CODES: derived from SWITCHER_OPTIONS, in the same order.
 // checkDictionaries iterates this instead of a local SUPPORTED list.
@@ -1635,18 +1692,20 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // {one, other}, that a language's plural dictionary values must carry.
 // Deliberately explicit rather than derived from Intl.PluralRules for every
 // language: the table lists every language whose CLDR rules select an extra
-// category for some whole count (Hebrew adds "two": one, two, other), and
+// category for some whole count (Hebrew adds "two": one, two, other; Arabic adds
+// zero, two, few and many: zero, one, two, few, many, other), and
 // each entry must equal Intl.PluralRules' own category set for that language. fr/es/it/pt-BR/pt-PT stay unlisted
 // because their "many" category applies only to exact multiples of
 // 1,000,000; their values stay {one, other} and the engine falls back to
 // other for that case. Hindi (hi) is unlisted too: it uses English's
 // {one, other} set, although its one also covers 0 and 0.5 (CLDR "i = 0 or
 // n = 1"), so a Hindi one form must read correctly for 0 as well as 1.
-var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"] };
+var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"], ar: ["zero", "two", "few", "many"] };
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
 // extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
-// one,other,zero for lv, one,other,two for he, one,other for every other language.
+// one,other,zero for lv, one,other,two for he, few,many,one,other,two,zero for ar,
+// one,other for every other language.
 function expectedPluralCategories(lang) {
   var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
   return ["one", "other"].concat(extra).sort();
@@ -1744,9 +1803,9 @@ function isProse(text) {
   return false;
 }
 
-/* ---------- script rule (Russian, Greek, Hebrew and Hindi, the non-Latin scripts) ---------- */
+/* ---------- script rule (Russian, Greek, Hebrew, Hindi and Arabic, the non-Latin scripts) ---------- */
 
-// Russian, Greek, Hebrew and Hindi cannot be checked for leftover English by
+// Russian, Greek, Hebrew, Hindi and Arabic cannot be checked for leftover English by
 // IDENTICAL-TO-EN alone (a half-translated value is not identical to
 // English) or by the Latin-language function-word checks in isProse. This
 // data-driven rule catches a value written in the wrong script, a mixed
@@ -1755,7 +1814,7 @@ function isProse(text) {
 // A later non-Latin-script language needs only its own SCRIPT_RULES entry.
 
 // SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic, Greek,
-// Hebrew or Devanagari value may keep — notation, a code identifier, an acronym, or a narrative
+// Hebrew, Devanagari or Arabic value may keep — notation, a code identifier, an acronym, or a narrative
 // name present in the English value and kept literal by every existing
 // language.
 var SCRIPT_LATIN_NOTATION = [
@@ -1767,12 +1826,12 @@ var SCRIPT_LATIN_NOTATION = [
 var SCRIPT_RULES = {
   ru: {
     own: /\p{Script=Cyrillic}/u,
-    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}|\p{Script=Devanagari}/u,
+    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   el: {
     own: /\p{Script=Greek}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}/u,
     latin: SCRIPT_LATIN_NOTATION.concat([
       "Bézout", "Cayley", "Diffie", "ElGamal", "Euler", "Fermat", "Hellman",
       "Miller", "Rabin", "Shor", "Venn", "bit", "ms"
@@ -1784,7 +1843,7 @@ var SCRIPT_RULES = {
   // list is reused without el's eponym extension.
   he: {
     own: /\p{Script=Hebrew}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}|\p{Script=Devanagari}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}|\p{Script=Devanagari}|\p{Script=Arabic}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Hindi (Devanagari, left to right): own needs a Devanagari LETTER (the
@@ -1794,7 +1853,18 @@ var SCRIPT_RULES = {
   // reused without el's eponym extension.
   hi: {
     own: /(?=\p{L})\p{Script=Devanagari}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
+  // Arabic (right to left): own needs an Arabic LETTER (the lookahead keeps
+  // Arabic-Indic digits and signs from counting), any Cyrillic, Hebrew or
+  // Devanagari letter or a run of two or more Greek letters is foreign (a
+  // single Greek letter such as phi stays legal, exactly like ru, he and hi).
+  // Eponyms are transliterated into Arabic script, so the base notation list
+  // is reused without el's eponym extension.
+  ar: {
+    own: /(?=\p{L})\p{Script=Arabic}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}/u,
     latin: SCRIPT_LATIN_NOTATION
   }
 };
@@ -1804,7 +1874,7 @@ var SCRIPT_RULES = {
 // space in both value and enValue, returns in order: SCRIPT-LATIN for each
 // maximal Latin run (>1 char) not on the language's own latin list,
 // SCRIPT-MIXED for each maximal letter run mixing two or more of
-// Latin/Cyrillic/Greek/Hebrew/Devanagari, SCRIPT-FOREIGN for the first match of the
+// Latin/Cyrillic/Greek/Hebrew/Devanagari/Arabic, SCRIPT-FOREIGN for the first match of the
 // language's `foreign` pattern, and SCRIPT-MISSING when the English value
 // has a translatable Latin word (a run >1 char not on the latin list) but
 // the value carries no letter of its own script at all.
@@ -1826,7 +1896,8 @@ function scriptFindings(id, lang, value, enValue) {
 
   // A word is a run of letters AND combining marks: Devanagari vowel signs and
   // the virama are marks (\p{M}), so \p{L}+ alone would split a Hindi word at
-  // every matra and never see a Latin letter glued to one.
+  // every matra and never see a Latin letter glued to one; the run likewise
+  // includes Arabic harakat (marks) and tatweel (a modifier letter).
   var letterRuns = v.match(/[\p{L}\p{M}]+/gu) || [];
   letterRuns.forEach(function (w) {
     var hasLatin = /\p{Script=Latin}/u.test(w);
@@ -1834,7 +1905,11 @@ function scriptFindings(id, lang, value, enValue) {
     var hasGreek = /\p{Script=Greek}/u.test(w);
     var hasHebrew = /\p{Script=Hebrew}/u.test(w);
     var hasDevanagari = /\p{Script=Devanagari}/u.test(w);
-    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0) + (hasHebrew ? 1 : 0) + (hasDevanagari ? 1 : 0);
+    // Arabic is tested with Script_Extensions: harakat are Script=Inherited and
+    // tatweel is Script=Common, both with Script_Extensions Arabic, so the
+    // extension property keeps a Latin letter glued through one of them visible.
+    var hasArabic = /\p{Script_Extensions=Arabic}/u.test(w);
+    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0) + (hasHebrew ? 1 : 0) + (hasDevanagari ? 1 : 0) + (hasArabic ? 1 : 0);
     if (scriptCount >= 2) {
       findings.push("SCRIPT-MIXED " + id + "." + lang + ": " + JSON.stringify(w));
     }
@@ -1854,7 +1929,12 @@ function scriptFindings(id, lang, value, enValue) {
   return findings;
 }
 
-/* ---------- bidi rules (right-to-left languages) ---------- */
+/* ---------- bidi rules (right-to-left languages: Hebrew and Arabic) ---------- */
+
+// RTL_LANGS drives BIDI-FORMULA, so Hebrew and Arabic share one rule. Arabic
+// letters are bidi class AL, which turns following European digits into
+// Arabic-number type: an unwrapped "48 = 2 x 18 + 12" reverses exactly as in
+// Hebrew, and a tight "7-3" reverses too, so the same regex covers both.
 
 // bidiFindings(id, lang, value): an array of findings about Unicode
 // bidirectional-control hygiene in one dictionary value.
@@ -1899,22 +1979,43 @@ function bidiFindings(id, lang, value) {
   return findings;
 }
 
-/* ---------- character hygiene and digit parity (every language / Hindi) ---------- */
+/* ---------- character hygiene and digit parity (every language / Hindi and Arabic) ---------- */
 
 // charFindings(id, lang, value): character-level hygiene for one dictionary
 // value in any language.
 //   NATIVE-DIGIT  the first decimal digit outside ASCII 0-9 (Devanagari
-//                 U+0966..U+096F or any other native digit): numerals stay
-//                 ASCII and locale-independent in every language.
+//                 U+0966..U+096F, Arabic-Indic U+0660..U+0669, Extended
+//                 Arabic-Indic U+06F0..U+06F9 or any other native digit):
+//                 numerals stay ASCII and locale-independent in every language.
+//   NATIVE-SEPARATOR  the first Arabic decimal or thousands separator
+//                 (U+066B, U+066C): a numeral keeps its English "." and ",".
+//   TASHKEEL      any Arabic vowel mark or superscript alef (U+064B..U+065F,
+//                 U+0670): Arabic values are unvocalized, so every word has one
+//                 byte form and glossary greps and term unification match.
+//   TATWEEL       U+0640 (kashida): a typographic stretch, never part of a word.
+//   PRESENTATION-FORM  U+FB50..U+FDFF or U+FE70..U+FEFC: legacy glyph codes that
+//                 defeat search; letters are written in their base form.
+//   ARABIC-LETTER the first Arabic-script letter outside U+0621..U+063A and
+//                 U+0641..U+064A that is not a presentation form: Persian/Urdu
+//                 look-alikes (a Persian yeh for yeh, keheh for kaf) are
+//                 invisible in review but break searches.
 //   ZERO-WIDTH    U+200B..U+200D, U+2060 or U+FEFF: invisible in review, so
 //                 a stray joiner or space could never be spotted by eye.
 //   NOT-NFC       the value differs from its NFC normalization: NFC keeps a
-//                 nukta letter in one byte form, so glossary greps match.
+//                 nukta letter or an Arabic madda/hamza in one byte form, so
+//                 glossary greps match.
 function charFindings(id, lang, value) {
   var findings = [];
   var v = String(value == null ? "" : value);
   var native = /(?![0-9])\p{Nd}/u.exec(v);
   if (native) findings.push("NATIVE-DIGIT " + id + "." + lang + ": " + JSON.stringify(native[0]));
+  var separator = /[\u066b\u066c]/.exec(v);
+  if (separator) findings.push("NATIVE-SEPARATOR " + id + "." + lang + ": " + JSON.stringify(separator[0]));
+  if (/[\u064b-\u065f\u0670]/.test(v)) findings.push("TASHKEEL " + id + "." + lang);
+  if (/\u0640/.test(v)) findings.push("TATWEEL " + id + "." + lang);
+  if (/[\ufb50-\ufdff\ufe70-\ufefc]/.test(v)) findings.push("PRESENTATION-FORM " + id + "." + lang);
+  var arabicLetter = /(?![\u0621-\u063a\u0641-\u064a\ufb50-\ufdff\ufe70-\ufefc])(?=\p{L})\p{Script=Arabic}/u.exec(v);
+  if (arabicLetter) findings.push("ARABIC-LETTER " + id + "." + lang + ": " + JSON.stringify(arabicLetter[0]));
   if (/[\u200b-\u200d\u2060\ufeff]/.test(v)) findings.push("ZERO-WIDTH " + id + "." + lang);
   if (v !== v.normalize("NFC")) findings.push("NOT-NFC " + id + "." + lang);
   return findings;
@@ -1923,8 +2024,8 @@ function charFindings(id, lang, value) {
 // DIGIT_PARITY_LANGS: the languages whose values must carry exactly their
 // English value's numerals. Languages added before this rule keep a few
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
-// is why the list starts with Hindi only.
-var DIGIT_PARITY_LANGS = ["hi"];
+// is why the list holds only the languages added after the rule existed.
+var DIGIT_PARITY_LANGS = ["hi", "ar"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space
@@ -2336,7 +2437,8 @@ function dataFileNsList(file) {
 // empty-value, markup and placeholder checks for one language's plural
 // value, generalized over expectedPluralCategories(lang) so a listed
 // language's extra forms (pl's and ru's four: one, few, many, other; ro's
-// three: one, few, other; lv's three: zero, one, other) are checked
+// three: one, few, other; lv's three: zero, one, other; he's three: one, two,
+// other; ar's six: zero, one, two, few, many, other) are checked
 // exactly as strictly as every other language's two (one, other).
 function checkPluralEntry(ns, key, lang, entry, enEntry) {
   var findings = [];
