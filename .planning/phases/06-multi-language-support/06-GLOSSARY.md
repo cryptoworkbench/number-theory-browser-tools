@@ -709,6 +709,105 @@ Play (चलाएँ); wedge फाँक (Hub, Wheel, Totient, Cayley); residu
 class strips; the remainder of a division is शेषफल); cell / box खाना (Sieve, Cayley,
 Hub).
 
+
+### Arabic supplementary terms (added 2026-10-07 by quick task 261007-fhx, Tasks 2-4, unified in Task 5)
+
+Terms chosen while translating the pages in parallel (Tasks 2-4 listed them as "Terms
+coined:" in their commit messages), after the cross-batch unification pass; the ar column of
+the (c) table holds citation forms and the shipped values inflect them (definite ال-,
+construct state, dual and plural). One Arabic rendering per English concept across all 18
+namespaces; each row below was verified present by script in the namespaces named. All
+`[ASSUMED]`.
+
+| Term (en) | ar | Used in |
+|---|---|---|
+| box (Sieve grid cell) | مربع | Cayley, Euclid, Fermat, Hub, RSA, Sieve |
+| cell (Cayley table) | خلية | Cayley, Hub |
+| unit (invertible element) | القابلة للعكس | Wheel, Isomorphism, Hub |
+| residue class strips | شرائط أصناف الباقي | CRT |
+| clear / clear all | مسح الكل | Venn |
+| undo / redo | تراجع | common |
+| palette (number palette) | اللوحة | Factor Tree, Sieve, common, Venn |
+| bin (delete target) | السلة | Factor Tree, Venn |
+| composition/factorization area | منطقة التركيب/التحليل | Factor Tree |
+| region (Venn) | المنطقة | Venn |
+| lens (A ∩ B) | عدسة | Hub, Venn |
+| union | اتحاد | Venn |
+| intersection | التقاطع | CRT, Venn |
+| nested squares | مربعات متداخلة | Euclid |
+| collapsed tile | بلاطة | Euclid |
+| Bézout coefficients | معاملات بيزو | Euclid |
+| extended Euclidean algorithm | خوارزمية إقليدس الممتدة | CRT, RSA |
+| pairwise coprime | أولية فيما بينها مثنى مثنى | CRT |
+| span (CRT) | المدى | CRT |
+| trial | المحاولة | Wheel, Fermat, Shor |
+| search log | سجل البحث | Fermat |
+| geometric picture | صورة هندسية | Fermat |
+| Randomize | توليد عشوائي | Cayley, Diffie-Hellman, Wheel, Factor Tree, Isomorphism, Square and Multiply, Venn |
+| Run (button) | تنفيذ | Euclid, Totient |
+| trivial pair | الزوج البديهي | Fermat |
+| slider | شريط تمرير | Hub |
+| keyboard keys Enter / Space / Delete | مفتاح الإدخال | Venn |
+| addend | المضاف | Wheel |
+| sum | المجموع | ECDH, Wheel, Isomorphism, Square and Multiply |
+| product | حاصل الضرب | Wheel, Isomorphism |
+| first / second factor | العامل الأول | Wheel |
+| adding (verbing) | جمع | ECDH, Wheel, Isomorphism, Hub |
+| multiplying (verbing) | ضرب | ECDH, Wheel, Isomorphism, Hub, RSA, Shor, site, Square and Multiply, Venn |
+| wedge | قطاع | Wheel, Hub |
+| concentric rings | حلقات متحدة المركز | Wheel |
+| reference row | صف مرجعي | Wheel |
+| own negative | معكوس نفسه الجمعي | Cayley |
+| own reciprocal | معكوس نفسه الضربي | Cayley |
+| subgroup | زمرة جزئية | Diffie-Hellman, ECDH |
+| diagonal | القطر | Cayley |
+| accumulator | المراكم | Square and Multiply |
+| ladder | السلم | Square and Multiply |
+| squaring | التربيع | Hub, RSA, site, Square and Multiply |
+| scalar (private scalar) | عددا قياسيا | ECDH |
+| public values | القيم العامة | Diffie-Hellman |
+| tap (on the wire) | وصلة التنصت | Diffie-Hellman, RSA |
+| notebook (Eve's) | دفتر | Diffie-Hellman, ECDH, RSA |
+| safe prime | عدد أولي آمن | Diffie-Hellman |
+| primitive root | جذر بدائي | Diffie-Hellman |
+| scatter plot | مخطط نقطي | ECDH, Hub |
+| singular curve | شاذ | ECDH |
+| tangent | المماس | ECDH |
+| chord | الوتر | ECDH |
+| slope | الميل | ECDH |
+| base point | نقطة الأساس | ECDH |
+| Hasse bound | حد هاسه | ECDH |
+| textbook RSA | RSA بصيغتها الدراسية | RSA |
+| padding scheme | مخطط حشو | RSA |
+| trial division | القسمة التجريبية | RSA |
+| Garner's formula | صيغة غارنر | RSA |
+| continued fraction | الكسر المستمر | Shor |
+| quantum phase estimation | تقدير الطور الكمومي | Shor |
+| inverse quantum Fourier transform | تحويل فورييه الكمومي العكسي | Shor |
+| superposition | تراكب | Shor |
+| quantum stand-in | البديل الكمومي | Shor |
+| order finding | إيجاد الرتبة | Hub, Shor |
+| classical pre-checks | الفحوص الكلاسيكية المسبقة | Shor |
+| amplitudes | السعات | Shor |
+| hardware | العتاد | RSA, Shor |
+| step budget | ميزانية | Shor |
+
+Conventions settled across the batches: a frame and the word fed into its slot are written
+together so no agreement is needed — Wheel's `{word}` and the role words after "لاختيار" are
+definite nouns (المضاف الأول، العامل الأول، المجموع، حاصل الضرب), its `{verbing}` / `{joiner}`
+pairs are the verbal nouns جمع … إلى and ضرب … في, Cayley's `{word}` takes the definite
+nouns الصفر / الواحد and the construct phrases معكوس نفسه الجمعي / الضربي, ECDH's `{ordWord}`
+is the bare noun رتبة inside its LTR isolate, and the Venn link labels fill the frame
+"انقر نقرا مزدوجا من أجل {a}" (a free word, never the proclitic لـ on a placeholder); a slot
+whose count is unknown is written as "عددها {n}" / "عدد … : {n}" instead of a noun that would
+need a number-dependent form; Arabic phrases inside an LTR-forced formula box take U+2067 …
+U+2069 exactly where the he value does (sqm `mulBase` and `binaryExpansionZero`, dh
+`logSecretExpFormula`, `logAliceSecretLabel`, `logBobSecretLabel`); the keyboard keys Enter,
+Space and Delete are spelled out as مفتاح الإدخال / المسافة / الحذف (a Latin key name would
+break the script rule); the English "→" in "Open tool →" style links and in "→ fast" asides
+becomes ←; identical English strings on the DH and ECDH pages carry identical Arabic
+("Arithmetic log" is سجل العمليات الحسابية everywhere).
+
 ---
 
 ## (d) Proper nouns (kept, conventional eponym spelling)
