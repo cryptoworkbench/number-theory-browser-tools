@@ -3,7 +3,7 @@
    fields, the Randomize and Export controls, the wheel's own aria-label,
    the per-mode note/heading/ref-count/formula strings, the wedge aria
    labels, the equivalence-class/sum captions and the export status
-   messages for the Equivalence Wheel tool, in all twenty-four supported
+   messages for the Equivalence Wheel tool, in all twenty-five supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1179,6 +1179,54 @@
       exportFailedSvg: 'SVG 내보내기에 실패했습니다. 다시 시도하세요.',
       exportFailedPng: 'PNG 내보내기에 실패했습니다. 대신 SVG 다운로드를 시도하세요.',
       exportPrintOpening: '인쇄 대화상자를 여는 중입니다. 대상으로 “PDF로 저장”을 선택하세요.'
+    },
+    id: {
+      title: 'Roda Ekuivalensi',
+      eyebrow: 'partisi ℕ',
+      heading: 'Roda Ekuivalensi',
+      lede: 'Setiap bilangan asli termasuk tepat satu kelas ekuivalensi modulo N. {0}',
+      xref: 'Grup yang sama, dibaca sebagai tabel operasi lengkap →',
+      tablistLabel: 'Operasi grup',
+      nLabel: 'N — modulus',
+      nRangeLabel: 'Modulus N',
+      ringsLabel: 'Cincin (bilangan per kelas)',
+      depthRangeLabel: 'Bilangan yang ditampilkan per kelas',
+      randomizeLabel: 'Acak',
+      randomize: 'Contoh acak baru',
+      exportLabel: 'Ekspor',
+      exportPngBtn: 'Unduh PNG',
+      exportSvgBtn: 'Unduh SVG',
+      exportPdfBtn: 'Cetak / Simpan sebagai PDF',
+      svgLabel: 'Bilangan asli disusun sebagai cincin konsentris yang dipartisi menjadi N kelas ekuivalensi',
+      noteAdditive: 'Diagram ini menyusun ℕ sebagai cincin konsentris — satu cincin untuk setiap kelipatan N, satu juring untuk setiap kelas — sehingga kelas-kelasnya tetap terlihat saling lepas dan lengkap.',
+      noteMultiplicative: 'Hanya φ(N) kelas yang relatif prima terhadap N yang mendapat juring di sini — itulah tepatnya kelas yang memiliki invers perkalian, sehingga hanya merekalah yang membentuk grup terhadap perkalian.',
+      headingAdditive: 'Kelas ekuivalensi',
+      headingMultiplicative: 'Kelas ekuivalensi unit',
+      refCountAdditive: 'N = {n}',
+      refCountMultiplicative: 'N = {n} · φ({n}) = {m}',
+      formulaAdditive: 'ℕ/∼ = { [0], [1], …, [{nMinus1}] }   dengan   [r] = { n ∈ ℕ : n mod {n} = r }',
+      formulaMultiplicative: '(ℤ/{n}ℤ)* = { [{els}] }   ·   identitas [{id}]   ·   |(ℤ/{n}ℤ)*| = φ({n}) = {m}',
+      roleFirstAddend: 'suku pertama',
+      roleSecondAddend: 'suku kedua',
+      roleSum: 'jumlah',
+      roleFirstFactor: 'faktor pertama',
+      roleSecondFactor: 'faktor kedua',
+      roleProduct: 'hasil kali',
+      and: 'dan',
+      wedgeAriaLabel: 'Kelas ekuivalensi {value} modulo {n}',
+      wedgeAriaLabelWithRoles: 'Kelas ekuivalensi {value} modulo {n}, {roles}',
+      verbingAdditive: 'Menjumlahkan',
+      verbingMultiplicative: 'Mengalikan',
+      joinerAdditive: 'dengan',
+      joinerMultiplicative: 'dengan',
+      classIntroPromptA: 'Kelas ekuivalensi {bSpan} memuat setiap bilangan asli yang kongruen dengan {s} (mod {n}): {termsSpan} — dan tidak ada yang lain. Klik sebuah juring atau baris acuan untuk memilih {word}.',
+      classIntroPromptBAdditive: 'Kelas ekuivalensi {bSpan} memuat setiap bilangan asli yang kongruen dengan {s} (mod {n}): {termsSpan} — dan tidak ada yang lain. Klik kelas kedua — atau kelas yang sama lagi — untuk dijumlahkan dengan kelas {aSpan} dan menampilkan jumlahnya.',
+      classIntroPromptBMultiplicative: 'Kelas ekuivalensi {bSpan} memuat setiap bilangan asli yang kongruen dengan {s} (mod {n}): {termsSpan} — dan tidak ada yang lain. Klik kelas kedua — atau kelas yang sama lagi — untuk dikalikan dengan kelas {aSpan} dan menampilkan hasil kalinya.',
+      sumCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {sum} (mod {n}). {verbing} anggota mana pun dari kelas {spanA2} {joiner} anggota mana pun dari kelas {spanB2} selalu menghasilkan anggota kelas {spanSum2}: {termsSpan}',
+      exportSaved: '{filename} disimpan',
+      exportFailedSvg: 'Ekspor SVG gagal — silakan coba lagi.',
+      exportFailedPng: 'Ekspor PNG gagal — coba Unduh SVG sebagai gantinya.',
+      exportPrintOpening: 'Membuka dialog cetak — pilih “Simpan sebagai PDF” sebagai tujuannya.'
     }
   });
 })();

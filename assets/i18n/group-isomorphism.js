@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   twenty-four supported languages.
+   twenty-five supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -726,6 +726,35 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (거듭제곱을 줄이기 전의 값은 너무 커서 정확히 표시할 수 없음)',
       refCount: '{count}쌍 (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   경유   k ↦ {g}^k mod {m}   (생성원 g = {g})'
+    },
+    id: {
+      title: 'Isomorfisme Grup',
+      eyebrow: 'dua aritmetika, satu grup',
+      heading: 'Isomorfisme Grup',
+      lede: 'Bilangan bulat mod n dengan penjumlahan dan unit mod m dengan perkalian bisa, secara struktural, merupakan grup yang persis sama — hanya mengenakan aritmetika yang berbeda. {0}',
+      xref: 'Lihat kedua grup ini dibangun satu per satu →',
+      pairLabel: 'Pasangan isomorfik',
+      pairSelectAriaLabel: 'Pilih pasangan isomorfik',
+      randomizeLabel: 'Acak',
+      randomize: 'Contoh acak baru',
+      tablistLabel: 'Tata letak roda kanan',
+      tabPowers: 'Pangkat g',
+      tabNumeric: 'Numerik',
+      leftWheelAriaLabel: 'Elemen grup aditif Z mod n',
+      rightWheelAriaLabel: 'Elemen grup multiplikatif unit mod m',
+      refHeading: 'Pasangan isomorfik',
+      leftWedgeAriaLabel: 'Elemen {value} dari grup aditif Z mod {n}',
+      rightWedgeAriaLabel: 'Elemen {value} dari grup multiplikatif unit mod {m}, sama dengan {g} pangkat {k} mod {m}',
+      leftCaption: 'Grup aditif {bSpan}: bilangan bulat 0 sampai {max} dengan penjumlahan mod {n}.',
+      rightCaption: 'Grup multiplikatif {bSpan}: {n} unit mod {m} dengan perkalian, dibangkitkan oleh {g}.',
+      readoutPrompt: 'Klik sebuah elemen pada salah satu roda untuk melihat padanannya.',
+      readoutOne: 'Elemen {aSlot} di kiri berpadanan dengan {aValSlot} di kanan: {eqSpan}. Klik elemen kedua — atau elemen yang sama lagi — untuk melihat jumlah dan hasil kalinya.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} di kiri ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} di kanan ({modSpan}) — dan {product} = {g}^{sum} mod {m} = {sumVal}: bayangan jumlah sama dengan hasil kali bayangan.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} di kiri ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} di kanan ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} tidak sama dengan {g}^{sum} mod {m} = {sumVal} — pasangan ini seharusnya tidak pernah berbeda.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (terlalu besar untuk menampilkan pangkat yang belum direduksi secara tepat)',
+      refCount: '{count} pasangan (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   melalui   k ↦ {g}^k mod {m}   (pembangkit g = {g})'
     }
   });
 })();

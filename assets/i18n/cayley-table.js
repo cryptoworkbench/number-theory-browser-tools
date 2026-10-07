@@ -3,15 +3,14 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all twenty-four supported languages.
+   Cayley Table tool, in all twenty-five supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
    plural entries ({ one, other } in every language except Polish and
    Russian ({ one, few, many, other }), Romanian ({ one, few, other }),
    Latvian ({ zero, one, other }), Hebrew ({ one, two, other }) and Arabic
-   ({ zero, one, two, few, many, other }) and { other } alone in Chinese,
-   Japanese and Korean, each the CLDR shape for that language);
+   ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each the CLDR shape for that language);
    every other key is plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
@@ -980,6 +979,43 @@
       noteDiagonal: '이 칸은 대각선 위에 있어 자기 자신이 쌍둥이이므로, 적을 등식은 하나뿐입니다: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), 그리고 {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — 두 식은 같은 값이 되므로 표는 대각선을 기준으로 대칭이며, 이 군은 가환입니다.',
       selfInverseNote: '{a} 값은 “{word}”입니다. 여기서의 값이 항등원이기 때문입니다.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    id: {
+      title: 'Tabel Cayley',
+      eyebrow: 'teori grup · tabel operasi',
+      heading: 'Tabel Cayley',
+      lede: 'Seluruh operasi sebuah grup muat dalam satu tabel persegi — satu baris dan satu kolom untuk setiap elemen, satu sel untuk setiap hasil. Setiap fakta struktural tentang grup itu — elemen identitasnya, inversnya, sifat komutatifnya — terlihat di suatu tempat pada bentuk tabel.',
+      xref: 'Dua operasi grup yang sama, dilihat sebagai juring pada sebuah roda, bukan baris dalam sebuah tabel →',
+      tablistLabel: 'Operasi grup',
+      nLabel: 'N — modulus',
+      randomizeLabel: 'Acak',
+      randomize: 'Contoh acak baru',
+      tableScrollLabel: 'Tabel Cayley, dapat digulir',
+      'legend.identity': '{0} Baris & kolom elemen identitas',
+      'legend.inverse': '{0} Invers dirinya sendiri (berpasangan sendiri)',
+      'legend.selected': '{0} Sel terpilih',
+      'legend.mirror': '{0} Kembaran cermin di seberang diagonal',
+      nNoteNotWhole: 'N harus berupa bilangan bulat — tabel tetap seperti semula.',
+      nNoteTooSmall: 'N tidak boleh kurang dari 1 — dinaikkan menjadi 1.',
+      nNoteCapped: 'N dibatasi hingga {max} agar tabel tidak menjadi terlalu besar — diturunkan menjadi {max}.',
+      identityWordAdditive: 'nol',
+      identityWordMultiplicative: 'satu',
+      inverseWordAdditive: 'negatif dirinya sendiri',
+      inverseWordMultiplicative: 'kebalikan dirinya sendiri',
+      identityNote: 'Elemen identitas adalah {word} — baris dan kolomnya ditandai di bawah.',
+      symmetryNoteAdditive: 'a + b dan b + a selalu jatuh di kelas yang sama, sehingga tabel mencerminkan dirinya sendiri di seberang diagonal — klik sel mana pun untuk melihat kembarannya menyala di sisi seberang.',
+      symmetryNoteMultiplicative: 'a · b dan b · a selalu jatuh di kelas yang sama, sehingga tabel mencerminkan dirinya sendiri di seberang diagonal — klik sel mana pun untuk melihat kembarannya menyala di sisi seberang.',
+      summaryAdditive: {
+        other: 'ℤ/{n}ℤ · {count} elemen · identitas [{id}]'
+      },
+      summaryMultiplicative: {
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elemen · identitas [{id}]'
+      },
+      tableCaption: 'Tabel Cayley untuk {summary} dengan operasi {sign}',
+      noteDiagonal: 'Sel ini berada pada sumbu diagonal — ia kembaran dirinya sendiri, dengan hanya satu persamaan untuk dinyatakan: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), dan {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — keduanya bernilai sama, sehingga tabel simetris terhadap diagonalnya: grup ini komutatif.',
+      selfInverseNote: '{a} adalah {word}, karena nilainya di sini adalah elemen identitas.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

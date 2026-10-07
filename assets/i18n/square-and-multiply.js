@@ -10,8 +10,8 @@
    Latvian the CLDR { zero, one, other } shape, Hebrew the CLDR
    { one, two, other } shape and Arabic the CLDR { zero, one, two, few,
    many, other } shape, and Chinese, Japanese and Korean the CLDR { other }
-   shape alone), and the ladder's SVG
-   labels, for the Square and Multiply tool, in all twenty-four supported
+   shape alone, as does Indonesian), and the ladder's SVG
+   labels, for the Square and Multiply tool, in all twenty-five supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1820,6 +1820,79 @@
       accFinalAnswer: '{0} = 답',
       ladderAriaLabel: '제곱-곱셈 사다리: 지수 비트마다 한 행이며, 각 행은 누산기를 제곱하고 조건에 따라 밑을 곱합니다',
       bitTitle: '자릿값 2^{place}'
+    },
+    id: {
+      heading: 'Kuadratkan dan Kalikan',
+      lede: 'Inilah yang sebenarnya dilakukan komputer saat menghitung b{0} mod m — tanpa perkalian berulang, hanya satu kuadrat untuk setiap bit eksponen dan sesekali perkalian dengan basis.',
+      introHeading: 'Cara komputer sebenarnya melakukannya',
+      introP1: 'Memangkatkan sebuah bilangan ke pangkat ke-e dengan mengalikannya dengan dirinya sendiri sebanyak e kali tidak mungkin dilakukan begitu e memiliki ratusan digit — eksponen RSA yang sebenarnya akan membutuhkan waktu lebih lama daripada usia alam semesta dengan cara itu. Sebagai gantinya, mesin membaca eksponen dalam biner dan hanya membutuhkan sekitar satu kuadrat per bit, dengan tambahan perkalian hanya pada bit yang bernilai 1. Itulah seluruh triknya, dan itulah satu-satunya alasan aritmetika berukuran kriptografi bisa selesai sama sekali.',
+      introP2: 'Inilah perulangan yang identik dengan yang dipanggil oleh halaman RSA dan Diffie-Hellman di situs ini setiap kali menuliskan b{0} mod m — di sana ia bernama {1} dan berjalan di balik layar; di sini ia dibuka, satu bit demi satu bit.',
+      modularExponentiation: 'perpangkatan modular',
+      baseLabel: 'Basis b',
+      expLabel: 'Eksponen e',
+      modLabel: 'Modulus m',
+      compute: 'Hitung',
+      randomize: 'Acak',
+      logHeading: 'Catatan aritmetika',
+      resultSectionHeading: 'Hasil',
+      'legend.bit': '{0} Bit eksponen (1 = perkalian terjadi)',
+      'legend.squaring': '{0} Kuadrat — setiap baris, tanpa syarat',
+      'legend.multiply': '{0} Kalikan dengan basis — hanya pada bit 1',
+      'legend.accumulator': '{0} Akumulator / jawaban akhir',
+      footer: 'Demo kuadratkan-dan-kalikan — algoritma di balik setiap b^e mod m di situs ini. Hanya untuk keperluan pendidikan.',
+      pillBinaryExp: 'perpangkatan biner',
+      pillOneSquaring: 'satu kuadrat per bit',
+      pillBigIntModular: 'aritmetika modular BigInt',
+      errBaseInvalid: 'Basis harus berupa bilangan bulat tak negatif.',
+      errBaseTooLong: 'Basis paling banyak 40 digit — ini demo pengajaran, bukan pembuat kunci.',
+      errExpInvalid: 'Eksponen harus berupa bilangan bulat tak negatif.',
+      errExpTooLarge: 'Eksponen harus di bawah 2^64 (65 bit) — tangga akan membutuhkan lebih banyak baris daripada yang dapat ditampilkan oleh sebuah tab peramban.',
+      errModInvalid: 'Modulus harus berupa bilangan bulat tak negatif.',
+      errModTooSmall: 'Modulus harus minimal 2 — modulus 1 membuat setiap hasil menjadi 0 dan merupakan kasus degenerat.',
+      errModTooLong: 'Modulus paling banyak 40 digit — ini demo pengajaran, bukan pembuat kunci.',
+      binaryExpansionZero: '0 = 0₂ = (tanpa pangkat dua — bilangan apa pun pangkat nol adalah 1)',
+      setupHeading: 'Penyiapan',
+      lblBaseReducedFirst: 'basis direduksi lebih dahulu:',
+      setupBaseReduced: '{0} {rawBase} mod {mod} = {1} — inilah nilai yang dikuadratkan dan dikalikan pada tangga.',
+      setupFirstRowNote: 'Pada baris pertama, nilai awal akumulator yaitu 1 dikuadratkan, yang tidak berpengaruh apa pun — itulah sebabnya implementasi dimulai dari bit terdepan (paling signifikan).',
+      stepHeading: 'Bit {i} dari {total} — digit {bit}, nilai tempat 2^{place}',
+      lblSquare: 'kuadrat:',
+      stepSquareFormula: '{0} {accBefore}² mod {mod} = {1}',
+      lblMultiplyBitOne: 'kalikan (bit bernilai 1):',
+      stepMultiplyFormula: '{0} {accSquared} × {base} mod {mod} = {1}',
+      lblMultiplySkipped: 'perkalian dilewati:',
+      stepMultiplySkippedFormula: '{0} bit ini 0, sehingga akumulator diteruskan tanpa berubah pada {1}',
+      bannerStepMultiplied: 'Bit {i} dari {total}: kuadratkan akumulator, lalu kalikan dengan basis karena bit ini 1.',
+      bannerStepSkipped: 'Bit {i} dari {total}: kuadratkan akumulator — perkalian dilewati karena bit ini 0.',
+      bannerReady: 'Siap — tekan Putar untuk melihat tangga dibangun satu bit demi satu bit.',
+      bannerComputed: {
+        other: 'Perhitungan lengkap ditampilkan di bawah — {bits} bit pada eksponen. Tekan Putar untuk melihatnya dibangun langkah demi langkah.'
+      },
+      resultMatch: 'Pemeriksaan independen — perulangan perpangkatan modular biasa dari kiri ke kanan atas masukan yang sama menghasilkan {0}, jawaban yang sama. ✓',
+      resultMismatch: 'Ketidaksesuaian pemeriksaan silang: perulangan biasa menghitung {cross}, yang tidak cocok dengan {result} milik tangga. Ini menunjukkan adanya kesalahan.',
+      costTag: 'Mengapa ini penting bagi RSA',
+      costHeading: 'Biaya dibandingkan perkalian berulang yang naif',
+      costBitLength: 'Panjang bit eksponen',
+      costSquarings: 'Kuadrat',
+      costMultiplies: 'Perkalian',
+      costTotal: 'Total perkalian modular',
+      costNaive: 'Perkalian berulang yang naif akan membutuhkan',
+      costMeaningful: 'Itu {0} perkalian modular lebih sedikit daripada mengalikan basis dengan dirinya sendiri sebanyak itu.',
+      costNotMeaningful: 'Pada ukuran eksponen ini tangga nyaris tidak menghemat apa pun dibandingkan perkalian berulang yang naif — keunggulannya baru membesar seiring bertambahnya eksponen.',
+      costRsaScale: 'Eksponen RSA 2048 bit seperti yang digunakan dekripsi RSA sungguhan membutuhkan sekitar {0} kuadrat ditambah sekitar {1} perkalian — kira-kira {2} perkalian modular secara keseluruhan — sedangkan mengalikan basis dengan dirinya sendiri sebanyak itu akan membutuhkan sejumlah perkalian yang panjangnya {digits} digit desimal. Itulah sebabnya halaman {3} dan {4} di situs ini dapat menghitung kunci mereka seketika di peramban.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'Diffie-Hellman Key Exchange',
+      ladderCaption: 'Akumulator dimulai dari 1 — bit teratas (paling signifikan) dibaca lebih dahulu.',
+      headingBit: 'bit eksponen',
+      headingSquaring: 'kuadrat',
+      headingMultiply: 'perkalian bersyarat',
+      headingAccumulator: 'akumulator',
+      rowBitCaption: 'bit {i} dari {rows} — 2^{place}',
+      mulBase: '× basis = {0}',
+      skippedBitZero: 'dilewati (bit bernilai 0)',
+      accFinalAnswer: '{0} = jawaban',
+      ladderAriaLabel: 'Tangga kuadratkan dan kalikan: satu baris per bit eksponen, setiap baris menghitung kuadrat akumulator dan secara bersyarat mengalikannya dengan basis',
+      bitTitle: 'nilai tempat 2^{place}'
     }
   });
 })();

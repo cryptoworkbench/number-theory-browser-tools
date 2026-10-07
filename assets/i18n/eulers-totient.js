@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all twenty-four supported languages.
+   tool, in all twenty-five supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,11 +12,10 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all twenty-four languages. bannerDone is { one, other } in every language
+   all twenty-five languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
-   ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese,
-   Japanese and Korean, each the CLDR shape for that language.
+   ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each the CLDR shape for that language.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -583,6 +582,28 @@
         other: '완료: 값 {count}개를 시험했고, 그중 {phi}개가 n = {n}에 대해 서로소였습니다.'
       },
       caption: 'n이 소수이면 φ(n) = n−1입니다. 더 작은 모든 수가 n과 공통 인수를 갖지 않기 때문이며, 예시 버튼으로 쉽게 확인할 수 있습니다.'
+    },
+    id: {
+      title: 'Fungsi φ Euler',
+      heading: 'Fungsi φ Euler',
+      lede: 'φ(n) menghitung berapa banyak bilangan dari 1 … n−1 yang tidak memiliki faktor persekutuan dengan n, dan halaman ini mencari tahunya dengan satu-satunya cara yang jujur — dengan bertanya kepada algoritma Euklides tentang setiap bilangan itu satu per satu.',
+      xref: 'Hitungan yang sama muncul sebagai juring grup multiplikatif mod n →',
+      chipPrime: '{n} · prima',
+      run: 'Jalankan',
+      errNotWhole: 'n harus berupa bilangan bulat.',
+      errTooSmall: 'n harus minimal {min} — penelusuran k = 1 … n−1 membutuhkan setidaknya satu k untuk diuji.',
+      errCapped: 'n dibatasi hingga {max} — nilainya diturunkan agar muat.',
+      chainHead: 'Menguji k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} relatif prima dengan {n} — gcd = 1, dihitung.',
+      verdictEliminated: 'k = {k} memiliki faktor persekutuan dengan {n} — gcd = {gcd}, dieliminasi.',
+      tally: 'Hitungan relatif prima sejauh ini: {count}',
+      progress: 'k = {k} dari {total} telah diuji.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Siap — tekan Putar untuk melihat penelusuran menguji setiap k satu pembagian demi satu pembagian.',
+      bannerDone: {
+        other: 'Selesai — {count} nilai diuji, {phi} relatif prima dengan {n}.'
+      },
+      caption: 'n prima menghasilkan φ(n) = n−1, karena setiap bilangan yang lebih kecil relatif prima terhadapnya — tombol contoh membuat hal itu mudah diperiksa.'
     }
   });
 })();
