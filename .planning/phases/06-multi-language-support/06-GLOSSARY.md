@@ -37,6 +37,9 @@ considered translation-complete.
 | Arabic (ar) `[ASSUMED]` | Modern Standard Arabic (فصحى), second-person **masculine singular** imperative (the convention of Arabic software UIs) | Imperatives for instructions (اختر، انقر، أدخل، اسحب، اضغط، جرب، شاهد، اكتب); verbal nouns for buttons, toggles and action names (تشغيل، إيقاف مؤقت، إعادة تعيين، إنشاء، مسح، تراجع، إعادة); validation messages state the problem descriptively (يجب أن يكون …). Never a dialect. Added 2026-10-07 by quick task 261007-fhx. |
 | Albanian (sq) `[ASSUMED]` | Formal second-person **plural (ju)** for instructions (the convention of Albanian software UIs); short singular imperatives for buttons | Instructions: zgjidhni, klikoni, shtypni, shkruani, futni, shihni, provoni, tërhiqni, zhvendosni; buttons and toggles: Luaj, Rivendos, Gjenero, Fshi, Shto, Eksporto, Zhbëj, Ribëj; validation messages state the problem (… duhet të jetë …); status banners use the passive or first-person plural (U gjetën …, Gjetëm …). Standard Albanian (gjuha standarde, Tosk-based). Added 2026-10-07 by quick task 261007-k4o. |
 | Swahili (sw) `[ASSUMED]` | Singular imperative (the convention of Swahili software UIs) | Instructions and buttons: bofya, chagua, ingiza, andika, tazama, jaribu, buruta, bonyeza, sogeza; Cheza, Sitisha, Weka upya, Tengeneza, Futa, Ongeza, Hamisha, Tendua, Rudia; validation messages state the problem (… lazima iwe …); status banners use the perfect or stative (Zimepatikana …, Imekamilika). Kiswahili sanifu (Standard Swahili), no Sheng, no English code-mixing. Added 2026-10-07 by quick task 261007-k4o. |
+| Chinese (zh) `[ASSUMED]` | Simplified Chinese; second person **你** only when a pronoun is needed; plain imperatives for instructions | Instructions: 点击、选择、输入、拖动、按、查看、试试; buttons as verbs or verb-object phrases (播放、暂停、重置、生成、清空、添加、撤销、重做); validation states the problem (请输入……, ……必须是……); status banners in the perfective (已找到……, 已完成). Added 2026-10-07 by quick task 261007-pbf. |
+| Japanese (ja) `[ASSUMED]` | Polite **です・ます** style, no あなた | Instructions 〜してください (クリックしてください、選択してください、入力してください、ドラッグしてください、押してください、試してください); buttons as nouns (再生、一時停止、リセット、生成、クリア、追加); validation …を入力してください / …である必要があります; status …が見つかりました / 完了しました. Added 2026-10-07 by quick task 261007-pbf. |
+| Korean (ko) `[ASSUMED]` | Formal polite **합니다체** for prose and status, polite **-세요** for instructions, no 당신 | Instructions: 클릭하세요, 선택하세요, 입력하세요, 드래그하세요, 누르세요, 시도해 보세요; buttons as nouns (재생, 일시 정지, 초기화, 생성, 지우기, 추가); validation …해야 합니다; status …합니다 / …했습니다. Added 2026-10-07 by quick task 261007-pbf. |
 
 ### Punctuation per language
 
@@ -516,6 +519,144 @@ considered translation-complete.
   webfonts, no font change. Direction (L-LTR): left to right; sw is not in RTL_LANGS and its
   values carry no bidi isolate, mark or embedding. Tool names (D-TOOLS) are the sw column of (b);
   core terms (D-TERMS) the sw column of (c). Added 2026-10-07 by quick task 261007-k4o.
+- **Chinese (zh) `[ASSUMED]`:** Simplified Chinese (Mandarin, mainland standard), a
+  left-to-right language written in Han characters and rendered in the browser's system
+  fallback font; label 中文 (L-ZH). English is the source of truth (L-SOURCE): every value is
+  translated from its en entry, never derived from the Japanese or Korean block. Script
+  (L-SCRIPT): Han characters plus CJK punctuation; apart from the notation allow-list in
+  `i18n-check.js`'s `SCRIPT_RULES` (mod, gcd/lcm where a key keeps them literal, single-letter
+  variables, acronyms such as RSA, code identifiers, Alice/Bob/Eve) every word is Han — no
+  kana, no Hangul, no katakana middle dot or prolonged sound mark (SCRIPT-FOREIGN,
+  SCRIPT-LATIN, SCRIPT-MISSING); the checker tokenises by script runs, never by whitespace,
+  because Chinese is written without spaces between words. Simplified forms only: Traditional
+  forms and Japanese shinjitai whose Simplified form differs (HAN_FORM_FORBIDDEN.zh, e.g. 質
+  數 圖 單 図 実) are HAN-FORM findings (D-HANFORM). Detection: every Chinese browser tag (zh,
+  zh-CN, zh-SG, zh-Hans, zh-TW, zh-HK, zh-Hant, zh-Hant-TW; any case, `-` or `_`) resolves to
+  zh, so Traditional-script readers get Simplified Chinese rather than English; the code
+  allow-list for `setLang`, `?lang=` and storage stays exact and case-sensitive (zh-CN, zh-Hans
+  and ZH are rejected there). Register (D-REGISTER-zh): second person 你 only when a pronoun is
+  needed at all; instructions as plain imperatives (点击、选择、输入、拖动、按、查看、试试);
+  buttons as verbs or verb-object phrases (播放、暂停、重置、生成、清空、添加、撤销、重做);
+  validation states the problem (请输入……, ……必须是……); status banners in the perfective
+  (已找到……, 已完成). Punctuation (D-PUNCT): prose uses full-width ，。：；？！（） and the
+  enumeration comma 、, quotes “…” (U+201C, U+201D), ellipsis …… (two U+2026) and the dash ——
+  (two U+2014, no spaces) for an English " — "; an ASCII `, . ; : ? !` never directly follows a
+  Han character (CJK-ASCII-PUNCT); formulas, numerals, coordinate/argument tuples and a
+  parenthetical whose content is only Latin letters, digits, placeholders or operators keep
+  ASCII punctuation and ASCII parentheses (FULLWIDTH-FORMULA); the playback glyphs and legend
+  slots ({0} Prime, ▶ Play) keep their space as in English. Spacing (D-SPACING): exactly one
+  ASCII space between a Han character and an adjacent Latin or Greek letter, ASCII digit or
+  {placeholder}, on both sides (使用 RSA 加密, 第 {index} 步, 欧拉 φ 函数, 2048 位), and none
+  next to full-width punctuation (ZH-SPACING). Plurals (L-PLURAL, D-COUNTERS): Chinese has the
+  single CLDR category `other` (`Intl.PluralRules('zh')` reports only `other`), so a plural
+  value is `{other}` alone, keeping every placeholder, and that one form reads correctly for 0,
+  1 and any count: numeral + classifier + noun ({count} 个素数, {count} 步, {n} 位, {count} 次,
+  {n} 毫秒). Numerals (L-DIGITS, D-NUMWORDS): ASCII digits only with English's comma grouping
+  and dot decimal — no full-width digit, no CJK numeral in place of an English digit, no
+  万/亿 myriad grouping after a digit; every value carries exactly its English value's numerals
+  (DIGIT-PARITY, NATIVE-DIGIT, CJK-MYRIAD); where English writes a quantity in words, Chinese
+  uses words (十亿次, 数百位, 数千个节点, 二进制); the English "1 trillion" is "1 万亿", the
+  only scale word allowed after a digit. Names (D-NAMES): Alice, Bob, Eve, acronyms (RSA, AES,
+  DH, CRT, QFT, ECDH, OAEP, DSA), code identifiers and file formats stay Latin; eponyms are
+  written in Han (埃拉托斯特尼, 欧几里得, 欧拉, 费马, 凯莱, 维恩, 秀尔, 迪菲-赫尔曼, 米勒-拉宾,
+  贝祖, 孙子, 哈塞, 加纳, 傅里叶, 斐波那契, 埃尔加马尔), name pairs joined by an ASCII
+  hyphen-minus; pronoun 她 for Alice and Eve, 他 for Bob. gcd/lcm (D-GCD): `gcd(` and `lcm(`
+  stay literal inside formulas; the prose nouns are 最大公约数 / 最小公倍数. Modulus (D-MOD):
+  `mod` stays literal; modulus 模数, "modulo n" 模 n (在模 n 下), modular 模. Keyboard names
+  and units (D-KEYS): 回车键, 空格键, 毫秒, 位. Spellings never used (D-AVOID): 质数, 质因数,
+  质因子, 互质, 模反元素, 演算法, 位元 (except inside 单位元), 比特, 金钥, 函式, 程式, 资讯,
+  预设, 讯息, 迪菲赫尔曼, 迪菲·赫尔曼, 文氏图, 肖尔, 凯利, 费尔马, 欧几里德, 埃拉托色尼 —
+  the chosen forms are the zh columns of (b), (c) and (d). Identical-to-English (D-SAME): no
+  value equals its English value except the four pure formula templates exempt in
+  `i18n-config`. Direction (L-LTR): zh is not in RTL_LANGS and its values carry no isolate,
+  bidi mark or embedding. Font (L-FONT): the system fallback font — no font link, `@font-face`
+  or `font-family` change; while zh is active `<em>` is upright bold instead of a synthesized
+  oblique (`assets/site.css`, D-CJK-EM). Tool names (D-TOOLS) are the zh column of (b); core
+  terms (D-TERMS) the zh column of (c). Added 2026-10-07 by quick task 261007-pbf.
+- **Japanese (ja) `[ASSUMED]`:** a left-to-right language written in kanji (shinjitai),
+  hiragana and katakana, rendered in the browser's system fallback font; label 日本語
+  (L-JAKO). English is the source of truth (L-SOURCE): every value is translated from its en
+  entry, never derived from the Chinese block. Script (L-SCRIPT): Han, Hiragana and Katakana
+  including the prolonged sound mark ー and the middle dot ・; apart from the notation
+  allow-list (mod, gcd/lcm where kept literal, single-letter variables, acronyms, code
+  identifiers, Alice/Bob/Eve) every word is Japanese — no Hangul (SCRIPT-FOREIGN) — and the
+  checker tokenises by script runs because Japanese is unspaced. Japanese forms only: the
+  Simplified-only forms whose shinjitai differs (HAN_FORM_FORBIDDEN.ja, e.g. 图, 关,
+  钥) are HAN-FORM findings (D-HANFORM). Detection: ja, ja-JP and JA_jp (any region, any case,
+  `-` or `_`) resolve to ja; the code allow-list stays exact and case-sensitive. Register
+  (D-REGISTER-ja): です・ます style for prose and messages; instructions 〜してください
+  (クリックしてください、選択してください、入力してください、ドラッグしてください、押してください、試してください);
+  buttons as nouns (再生、一時停止、リセット、生成、クリア、追加); validation …を入力してください
+  / …である必要があります; status …が見つかりました / 完了しました; no あなた. Punctuation (D-PUNCT):
+  prose uses 、 and 。, full-width ：？！（）, quotes 「…」 (nested 『…』), ellipsis …… and the dash ——;
+  an ASCII `, . ; : ? !` never directly follows a Japanese character (CJK-ASCII-PUNCT);
+  formulas, numerals, tuples and Latin/number-only parentheticals keep ASCII punctuation and
+  parentheses (FULLWIDTH-FORMULA); the playback glyphs and legend slots keep their space as in
+  English. Spacing (D-SPACING): no space between a Japanese character (kanji, kana, ー) and an
+  adjacent Latin or Greek letter, digit or placeholder (RSAの公開鍵, {count}個, オイラーのφ関数,
+  JA-SPACING); spaces between two Latin tokens and around operators inside formulas stay as in
+  English. Plurals (L-PLURAL, D-COUNTERS): `Intl.PluralRules('ja')` reports only `other`, so a
+  plural value is `{other}` alone and reads correctly for every count ({count}個の素数,
+  {count}ステップ, {n}ビット, {count}回, {n}ミリ秒). Numerals (L-DIGITS, D-NUMWORDS): ASCII digits
+  only, exactly the English value's numerals (DIGIT-PARITY), no CJK numeral in place of a
+  digit, no 万/億 grouping after a digit; quantities in words stay words (十億回, 数百桁,
+  数千個のノード, 二進); "1 trillion" is "1兆", the only scale word allowed after a digit.
+  Names (D-NAMES): Alice, Bob, Eve, acronyms, code identifiers and file formats stay Latin;
+  eponyms in katakana or kanji (エラトステネス, ユークリッド, オイラー, フェルマー, ケイリー, ベン,
+  ショア, ディフィー・ヘルマン, ミラー・ラビン, ベズー, 孫子, ハッセ, ガーナー, フーリエ,
+  フィボナッチ, エルガマル), name pairs joined by the katakana middle dot ・; no pronouns
+  (自分の). gcd/lcm (D-GCD): literal inside formulas; prose nouns 最大公約数 / 最小公倍数.
+  Modulus (D-MOD): `mod` stays literal; modulus 法, "modulo n" nを法として, modular モジュラ.
+  Keyboard names and units (D-KEYS): エンターキー, スペースキー, ミリ秒, ビット. Spellings never
+  used (D-AVOID): 函数, 算法 (except inside 計算法), 復号化, モジュロ, プライム, キーペア,
+  秘密キー, 公開キー, ディフィーヘルマン, ユークリッド互除法, エラトステネスのふるい, ケーリー,
+  フェルマ (without ー), オイラ (without ー), ショアー — the chosen forms are the ja columns of
+  (b), (c) and (d). Identical-to-English (D-SAME), direction (L-LTR: not in RTL_LANGS, no
+  bidi controls) and font (L-FONT: system fallback font, upright-bold `<em>` per D-CJK-EM) as
+  for zh. Tool names (D-TOOLS) are the ja column of (b); core terms (D-TERMS) the ja column of
+  (c). Added 2026-10-07 by quick task 261007-pbf.
+- **Korean (ko) `[ASSUMED]`:** a left-to-right language written in Hangul only (no hanja, no
+  kana) with spaces between words, rendered in the browser's system fallback font; label
+  한국어 (L-JAKO). English is the source of truth (L-SOURCE): every value is translated from
+  its en entry, never derived from the Chinese or Japanese block. Script (L-SCRIPT): Hangul;
+  apart from the notation allow-list (mod, gcd/lcm where kept literal, single-letter
+  variables, acronyms, code identifiers, Alice/Bob/Eve) every word is Hangul — Han, kana, the
+  katakana middle dot and prolonged sound mark are SCRIPT-FOREIGN; a Latin token with an
+  attached particle (RSA를, 12단계) is correct text, so SCRIPT-MIXED does not count the CJK
+  scripts. Detection: ko, ko-KR and KO_kp resolve to ko; the allow-list stays exact and
+  case-sensitive. Register (D-REGISTER-ko): 합니다체 for prose, messages and status (…합니다,
+  …했습니다); instructions in the polite -세요 form (클릭하세요, 선택하세요, 입력하세요, 드래그하세요,
+  누르세요, 시도해 보세요); buttons as nouns (재생, 일시 정지, 초기화, 생성, 지우기, 추가);
+  validation …해야 합니다; no 당신. Punctuation (D-PUNCT): Western punctuation exactly like
+  English (. , ? ! : ; ( ) and " — " with spaces, quotes “…”, ellipsis …) and never a
+  full-width or CJK punctuation mark (FULLWIDTH-FORM). Spacing (D-SPACING, D-PARTICLES-ko):
+  standard Korean word spacing; particles, the copula and counters attach directly to the
+  preceding word, Latin token, digit or placeholder (RSA를, 12단계, {count}개); a
+  sound-dependent particle (은/는, 이/가, 을/를, 와/과, (으)로) is never attached directly to a
+  placeholder, whose final sound is unknown (KO-PARTICLE) — a noun after the placeholder
+  carries it ({n} 값을, {count}단계를) or an invariant particle is used (의, 에, 에서, 에게, 도,
+  만, 까지, 부터, 보다); 을(를) is not used; after a literal Latin token the particle follows
+  its Korean reading (Alice 앨리스, Eve 이브, RSA, DH, ECDH, CRT, QFT and the letters p q e d g
+  a b x y k G A B take 가/는/를/와/로; Bob 밥 and the letters n m N r l take 이/은/을/과/으로).
+  Plurals (L-PLURAL, D-COUNTERS): `Intl.PluralRules('ko')` reports only `other`, so a plural
+  value is `{other}` alone and reads correctly for every count (소수 {count}개, {count}단계,
+  {n}비트, {count}번, {n}밀리초). Numerals (L-DIGITS, D-NUMWORDS): ASCII digits only, exactly the
+  English value's numerals (DIGIT-PARITY), no 만/억 grouping after a digit; quantities in words
+  stay words (십억 번, 수백 자리, 수천 개의 노드, 이진); "1 trillion" is "1조". Names
+  (D-NAMES): Alice, Bob, Eve, acronyms, code identifiers and file formats stay Latin; eponyms in
+  Hangul (에라토스테네스, 유클리드, 오일러, 페르마, 케일리, 벤, 쇼어, 디피-헬먼, 밀러-라빈, 베주,
+  손자, 하세, 가너, 푸리에, 피보나치, 엘가말), name pairs joined by an ASCII hyphen-minus; no
+  pronouns (자신의). gcd/lcm (D-GCD): literal inside formulas; prose nouns 최대공약수 /
+  최소공배수. Modulus (D-MOD): `mod` stays literal; modulus 법, "modulo n" n을 법으로 하여,
+  modular 모듈러. Keyboard names and units (D-KEYS): 엔터 키, 스페이스 키, 밀리초, 비트.
+  Spellings never used (D-AVOID): 프라임, 알고리듬, 디피헬먼, 디피-헬만, 공개키, 개인키, 비밀키,
+  모듈로, 에라토스테네스 체 (without 의), 유클리드 알고리즘 — the chosen forms are the ko
+  columns of (b), (c) and (d). Identical-to-English (D-SAME) and direction (L-LTR) as for zh.
+  Font (L-FONT): the system fallback font; `<em>` is upright bold (D-CJK-EM) and, while ko is
+  active, `assets/site.css` sets `word-break: keep-all` with `overflow-wrap: break-word`
+  (D-KO-BREAK) so Korean wraps between words, never inside them. Tool names (D-TOOLS) are the
+  ko column of (b); core terms (D-TERMS) the ko column of (c). Added 2026-10-07 by quick task
+  261007-pbf.
 
 ---
 
@@ -536,26 +677,27 @@ The `sv`/`nb` columns (`[ASSUMED]`) were added 2026-10-02 by quick task 261002-s
 (`[ASSUMED]`) was added 2026-10-06 by quick task 261006-vpp. The `ar` column (`[ASSUMED]`) was
 added 2026-10-07 by quick task 261007-fhx. The `sq` and `sw` columns (`[ASSUMED]`) were
 added 2026-10-07 by quick task 261007-k4o; the `hi`, `ar`, `sq` and `sw` columns equal the
-`site.nav.*` values in `assets/i18n/site.js` exactly.
+`site.nav.*` values in `assets/i18n/site.js` exactly. The `zh`, `ja` and `ko` columns (`[ASSUMED]`) were
+added 2026-10-07 by quick task 261007-pbf and equal the `site.nav.*` values exactly.
 
-| id | File | en (site.nav / page h1) | nl | de | fr | es | it | pl | pt-BR | pt-PT | sv | nb | ro | hu | lv | ru | el | he | hi | ar | sq | sw |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| home | index.html | Home | Start | Startseite | Accueil | Inicio | Inizio | Strona główna | Início | Início | Hem | Hjem | Acasă | Kezdőlap | Главная | Αρχική | Sākums | דף הבית | मुखपृष्ठ | الصفحة الرئيسية | Kreu | Mwanzo |
-| sieve | Sieve Of Eratosthenes/sieve-of-eratosthenes.html | Sieve of Eratosthenes | Zeef van Eratosthenes | Sieb des Eratosthenes | Crible d'Ératosthène | Criba de Eratóstenes | Crivello di Eratostene | Sito Eratostenesa | Crivo de Eratóstenes | Crivo de Eratóstenes | Eratosthenes såll | Eratosthenes' sil | Ciurul lui Eratostene | Eratoszthenész szitája | Решето Эратосфена | Κόσκινο του Ερατοσθένη | Eratostena siets | הנפה של ארטוסתנס | एराटोस्थनीज़ की छलनी | غربال إراتوستينس | Sita e Eratostenit | Chujio la Eratosthenes |
-| factorTree | Factor Tree/factor-tree.html | Factor Tree | Factorboom | Faktorbaum | Arbre de facteurs | Árbol de factores | Albero dei fattori | Drzewo czynników | Árvore de fatores | Árvore de fatores | Faktorträd | Faktortre | Arbore de factori | Tényezőfa | Дерево множителей | Δέντρο παραγόντων | Reizinātāju koks | עץ גורמים | गुणनखंड वृक्ष | شجرة العوامل | Pema e faktorëve | Mti wa vigawo |
-| venn | Venn Diagram/venn-diagram.html | Venn Diagram | Venndiagram | Venn-Diagramm | Diagramme de Venn | Diagrama de Venn | Diagramma di Venn | Diagram Venna | Diagrama de Venn | Diagrama de Venn | Venndiagram | Venndiagram | Diagrama Venn | Venn-diagram | Диаграмма Венна | Διάγραμμα Venn | Venna diagramma | דיאגרמת ון | वेन आरेख | مخطط فن | Diagrami Venn | Mchoro wa Venn |
-| euclid | Euclidean Algorithm/euclidean-algorithm.html | Euclidean Algorithm | Algoritme van Euclides | Euklidischer Algorithmus | Algorithme d'Euclide | Algoritmo de Euclides | Algoritmo di Euclide | Algorytm Euklidesa | Algoritmo de Euclides | Algoritmo de Euclides | Euklides algoritm | Euklids algoritme | Algoritmul lui Euclid | Euklideszi algoritmus | Алгоритм Евклида | Αλγόριθμος του Ευκλείδη | Eiklīda algoritms | האלגוריתם של אוקלידס | यूक्लिड का एल्गोरिथ्म | خوارزمية إقليدس | Algoritmi i Euklidit | Algorithimu ya Euclid |
-| crt | Chinese Remainder Theorem/chinese-remainder-theorem.html | Chinese Remainder Theorem | Chinese reststelling | Chinesischer Restsatz | Théorème des restes chinois | Teorema chino del resto | Teorema cinese del resto | Chińskie twierdzenie o resztach | Teorema chinês do resto / Teorema chinês dos restos | Teorema chinês do resto / Teorema chinês dos restos | Kinesiska restsatsen | Den kinesiske restsetningen | Teorema chineză a resturilor | Kínai maradéktétel | Китайская теорема об остатках | Κινεζικό θεώρημα υπολοίπων | Ķīniešu atlikumu teorēma | משפט השאריות הסיני | चीनी शेषफल प्रमेय | مبرهنة الباقي الصينية | Teorema kineze e mbetjeve | Nadharia ya mabaki ya Kichina |
-| wheel | Equivalence Wheel/equivalence-wheel.html | Equivalence Wheel | Equivalentiewiel | Äquivalenzrad | Roue d'équivalence | Rueda de equivalencia | Ruota di equivalenza | Koło równoważności | Roda de equivalência | Roda de equivalência | Ekvivalenshjul | Ekvivalenshjul | Roata echivalenței | Ekvivalenciakerék | Колесо эквивалентности | Τροχός ισοδυναμίας | Ekvivalences rats | גלגל השקילות | तुल्यता चक्र | عجلة التكافؤ | Rrota e ekuivalencës | Gurudumu la usawa |
-| totient | Eulers Totient/eulers-totient.html | Euler's Totient | Eulers phi-functie | Eulersche Phi-Funktion | Indicatrice d'Euler | Función φ de Euler | Funzione φ di Eulero | Funkcja φ Eulera | Função φ de Euler | Função φ de Euler | Eulers φ-funktion | Eulers φ-funksjon | Funcția φ a lui Euler | Euler-féle φ-függvény | Функция Эйлера | Συνάρτηση φ του Euler | Eilera φ funkcija | פונקציית φ של אוילר | ऑयलर का φ फलन | دالة φ لأويلر | Funksioni φ i Eulerit | Kitendakazi φ cha Euler |
-| cayley | Cayley Table/cayley-table.html | Cayley Table | Cayleytabel | Cayley-Tafel | Table de Cayley | Tabla de Cayley | Tavola di Cayley | Tabela Cayleya | Tabela de Cayley | Tabela de Cayley | Cayleytabell | Cayleytabell | Tabla lui Cayley | Cayley-táblázat | Таблица Кэли | Πίνακας Cayley | Keilija tabula | טבלת קיילי | केली सारणी | جدول كايلي | Tabela e Cayley-t | Jedwali la Cayley |
-| iso | Group Isomorphism/group-isomorphism.html | Group Isomorphism | Groepsisomorfisme | Gruppenisomorphismus | Isomorphisme de groupes | Isomorfismo de grupos | Isomorfismo di gruppi | Izomorfizm grup | Isomorfismo de grupos | Isomorfismo de grupos | Gruppisomorfism | Gruppeisomorfi | Izomorfism de grupuri | Csoportizomorfizmus | Изоморфизм групп | Ισομορφισμός ομάδων | Grupu izomorfisms | איזומורפיזם של חבורות | समूह तुल्याकारिता | تماثل الزمر | Izomorfizmi i grupeve | Isomofizimu ya makundi |
-| sqm | Square And Multiply/square-and-multiply.html | Square and Multiply | Kwadrateren en vermenigvuldigen | Quadrieren und Multiplizieren | Exponentiation rapide | Exponenciación rápida | Esponenziazione rapida | Szybkie potęgowanie | Exponenciação rápida | Exponenciação rápida | Kvadrering och multiplikation | Kvadrering og multiplikasjon | Exponențiere rapidă | Gyors hatványozás | Быстрое возведение в степень | Γρήγορη ύψωση σε δύναμη | Ātrā kāpināšana | העלאה בריבוע וכפל | वर्ग और गुणा | التربيع والضرب | Ngritja në katror dhe shumëzimi | Mraba na kuzidisha |
-| dh | Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Диффи-Хеллман | Diffie-Hellman | Diffie-Hellman | דיפי-הלמן | डिफ़ी-हेलमैन | ديفي-هيلمان | Diffie-Hellman | Diffie-Hellman |
-| ecdh | Elliptic Curve Diffie-Hellman/elliptic-curve-diffie-hellman.html | Elliptic Curve DH | Elliptische-krommen-DH | Elliptische-Kurven-DH | DH sur courbes elliptiques | DH de curva elíptica | DH su curve ellittiche | DH na krzywych eliptycznych | DH em curvas elípticas | DH em curvas elípticas | DH med elliptiska kurvor | DH med elliptiske kurver | DH pe curbe eliptice | Elliptikus görbés DH | DH на эллиптических кривых | DH ελλειπτικών καμπυλών | Eliptisko līkņu DH | דיפי-הלמן בעקומים אליפטיים | दीर्घवृत्तीय वक्र DH | ديفي-هيلمان بالمنحنيات الإهليلجية | DH me kurba eliptike | DH kwa mikunjo duaradufu |
-| rsa | RSA/rsa.html | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA |
-| fermat | Fermats Method/fermats-method.html | Fermat's Method | Methode van Fermat | Fermat-Methode | Méthode de Fermat | Método de Fermat | Metodo di Fermat | Metoda Fermata | Método de Fermat | Método de Fermat | Fermats metod | Fermats metode | Metoda lui Fermat | Fermat-módszer | Метод Ферма | Μέθοδος του Fermat | Ferma metode | שיטת פרמה | फ़र्मा की विधि | طريقة فيرما | Metoda e Fermatit | Mbinu ya Fermat |
-| shor | Shors Algorithm/shors-algorithm.html | Shor's Algorithm | Algoritme van Shor | Shor-Algorithmus | Algorithme de Shor | Algoritmo de Shor | Algoritmo di Shor | Algorytm Shora | Algoritmo de Shor | Algoritmo de Shor | Shors algoritm | Shors algoritme | Algoritmul lui Shor | Shor-algoritmus | Алгоритм Шора | Αλγόριθμος του Shor | Šora algoritms | האלגוריתם של שור | शोर का एल्गोरिथ्म | خوارزمية شور | Algoritmi i Shorit | Algorithimu ya Shor |
+| id | File | en (site.nav / page h1) | nl | de | fr | es | it | pl | pt-BR | pt-PT | sv | nb | ro | hu | lv | ru | el | he | hi | ar | sq | sw | zh | ja | ko |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| home | index.html | Home | Start | Startseite | Accueil | Inicio | Inizio | Strona główna | Início | Início | Hem | Hjem | Acasă | Kezdőlap | Главная | Αρχική | Sākums | דף הבית | मुखपृष्ठ | الصفحة الرئيسية | Kreu | Mwanzo | 首页 | ホーム | 홈 |
+| sieve | Sieve Of Eratosthenes/sieve-of-eratosthenes.html | Sieve of Eratosthenes | Zeef van Eratosthenes | Sieb des Eratosthenes | Crible d'Ératosthène | Criba de Eratóstenes | Crivello di Eratostene | Sito Eratostenesa | Crivo de Eratóstenes | Crivo de Eratóstenes | Eratosthenes såll | Eratosthenes' sil | Ciurul lui Eratostene | Eratoszthenész szitája | Решето Эратосфена | Κόσκινο του Ερατοσθένη | Eratostena siets | הנפה של ארטוסתנס | एराटोस्थनीज़ की छलनी | غربال إراتوستينس | Sita e Eratostenit | Chujio la Eratosthenes | 埃拉托斯特尼筛法 | エラトステネスの篩 | 에라토스테네스의 체 |
+| factorTree | Factor Tree/factor-tree.html | Factor Tree | Factorboom | Faktorbaum | Arbre de facteurs | Árbol de factores | Albero dei fattori | Drzewo czynników | Árvore de fatores | Árvore de fatores | Faktorträd | Faktortre | Arbore de factori | Tényezőfa | Дерево множителей | Δέντρο παραγόντων | Reizinātāju koks | עץ גורמים | गुणनखंड वृक्ष | شجرة العوامل | Pema e faktorëve | Mti wa vigawo | 因数树 | 因数の木 | 인수 나무 |
+| venn | Venn Diagram/venn-diagram.html | Venn Diagram | Venndiagram | Venn-Diagramm | Diagramme de Venn | Diagrama de Venn | Diagramma di Venn | Diagram Venna | Diagrama de Venn | Diagrama de Venn | Venndiagram | Venndiagram | Diagrama Venn | Venn-diagram | Диаграмма Венна | Διάγραμμα Venn | Venna diagramma | דיאגרמת ון | वेन आरेख | مخطط فن | Diagrami Venn | Mchoro wa Venn | 维恩图 | ベン図 | 벤 다이어그램 |
+| euclid | Euclidean Algorithm/euclidean-algorithm.html | Euclidean Algorithm | Algoritme van Euclides | Euklidischer Algorithmus | Algorithme d'Euclide | Algoritmo de Euclides | Algoritmo di Euclide | Algorytm Euklidesa | Algoritmo de Euclides | Algoritmo de Euclides | Euklides algoritm | Euklids algoritme | Algoritmul lui Euclid | Euklideszi algoritmus | Алгоритм Евклида | Αλγόριθμος του Ευκλείδη | Eiklīda algoritms | האלגוריתם של אוקלידס | यूक्लिड का एल्गोरिथ्म | خوارزمية إقليدس | Algoritmi i Euklidit | Algorithimu ya Euclid | 欧几里得算法 | ユークリッドの互除法 | 유클리드 호제법 |
+| crt | Chinese Remainder Theorem/chinese-remainder-theorem.html | Chinese Remainder Theorem | Chinese reststelling | Chinesischer Restsatz | Théorème des restes chinois | Teorema chino del resto | Teorema cinese del resto | Chińskie twierdzenie o resztach | Teorema chinês do resto / Teorema chinês dos restos | Teorema chinês do resto / Teorema chinês dos restos | Kinesiska restsatsen | Den kinesiske restsetningen | Teorema chineză a resturilor | Kínai maradéktétel | Китайская теорема об остатках | Κινεζικό θεώρημα υπολοίπων | Ķīniešu atlikumu teorēma | משפט השאריות הסיני | चीनी शेषफल प्रमेय | مبرهنة الباقي الصينية | Teorema kineze e mbetjeve | Nadharia ya mabaki ya Kichina | 中国剩余定理 | 中国剰余定理 | 중국인의 나머지 정리 |
+| wheel | Equivalence Wheel/equivalence-wheel.html | Equivalence Wheel | Equivalentiewiel | Äquivalenzrad | Roue d'équivalence | Rueda de equivalencia | Ruota di equivalenza | Koło równoważności | Roda de equivalência | Roda de equivalência | Ekvivalenshjul | Ekvivalenshjul | Roata echivalenței | Ekvivalenciakerék | Колесо эквивалентности | Τροχός ισοδυναμίας | Ekvivalences rats | גלגל השקילות | तुल्यता चक्र | عجلة التكافؤ | Rrota e ekuivalencës | Gurudumu la usawa | 等价轮 | 同値の輪 | 동치 바퀴 |
+| totient | Eulers Totient/eulers-totient.html | Euler's Totient | Eulers phi-functie | Eulersche Phi-Funktion | Indicatrice d'Euler | Función φ de Euler | Funzione φ di Eulero | Funkcja φ Eulera | Função φ de Euler | Função φ de Euler | Eulers φ-funktion | Eulers φ-funksjon | Funcția φ a lui Euler | Euler-féle φ-függvény | Функция Эйлера | Συνάρτηση φ του Euler | Eilera φ funkcija | פונקציית φ של אוילר | ऑयलर का φ फलन | دالة φ لأويلر | Funksioni φ i Eulerit | Kitendakazi φ cha Euler | 欧拉 φ 函数 | オイラーのφ関数 | 오일러 φ 함수 |
+| cayley | Cayley Table/cayley-table.html | Cayley Table | Cayleytabel | Cayley-Tafel | Table de Cayley | Tabla de Cayley | Tavola di Cayley | Tabela Cayleya | Tabela de Cayley | Tabela de Cayley | Cayleytabell | Cayleytabell | Tabla lui Cayley | Cayley-táblázat | Таблица Кэли | Πίνακας Cayley | Keilija tabula | טבלת קיילי | केली सारणी | جدول كايلي | Tabela e Cayley-t | Jedwali la Cayley | 凯莱表 | ケイリー表 | 케일리 표 |
+| iso | Group Isomorphism/group-isomorphism.html | Group Isomorphism | Groepsisomorfisme | Gruppenisomorphismus | Isomorphisme de groupes | Isomorfismo de grupos | Isomorfismo di gruppi | Izomorfizm grup | Isomorfismo de grupos | Isomorfismo de grupos | Gruppisomorfism | Gruppeisomorfi | Izomorfism de grupuri | Csoportizomorfizmus | Изоморфизм групп | Ισομορφισμός ομάδων | Grupu izomorfisms | איזומורפיזם של חבורות | समूह तुल्याकारिता | تماثل الزمر | Izomorfizmi i grupeve | Isomofizimu ya makundi | 群同构 | 群の同型 | 군 동형 |
+| sqm | Square And Multiply/square-and-multiply.html | Square and Multiply | Kwadrateren en vermenigvuldigen | Quadrieren und Multiplizieren | Exponentiation rapide | Exponenciación rápida | Esponenziazione rapida | Szybkie potęgowanie | Exponenciação rápida | Exponenciação rápida | Kvadrering och multiplikation | Kvadrering og multiplikasjon | Exponențiere rapidă | Gyors hatványozás | Быстрое возведение в степень | Γρήγορη ύψωση σε δύναμη | Ātrā kāpināšana | העלאה בריבוע וכפל | वर्ग और गुणा | التربيع والضرب | Ngritja në katror dhe shumëzimi | Mraba na kuzidisha | 平方-乘算法 | 繰り返し二乗法 | 제곱-곱셈 알고리즘 |
+| dh | Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Diffie-Hellman | Диффи-Хеллман | Diffie-Hellman | Diffie-Hellman | דיפי-הלמן | डिफ़ी-हेलमैन | ديفي-هيلمان | Diffie-Hellman | Diffie-Hellman | 迪菲-赫尔曼 | ディフィー・ヘルマン | 디피-헬먼 |
+| ecdh | Elliptic Curve Diffie-Hellman/elliptic-curve-diffie-hellman.html | Elliptic Curve DH | Elliptische-krommen-DH | Elliptische-Kurven-DH | DH sur courbes elliptiques | DH de curva elíptica | DH su curve ellittiche | DH na krzywych eliptycznych | DH em curvas elípticas | DH em curvas elípticas | DH med elliptiska kurvor | DH med elliptiske kurver | DH pe curbe eliptice | Elliptikus görbés DH | DH на эллиптических кривых | DH ελλειπτικών καμπυλών | Eliptisko līkņu DH | דיפי-הלמן בעקומים אליפטיים | दीर्घवृत्तीय वक्र DH | ديفي-هيلمان بالمنحنيات الإهليلجية | DH me kurba eliptike | DH kwa mikunjo duaradufu | 椭圆曲线 DH | 楕円曲線DH | 타원 곡선 DH |
+| rsa | RSA/rsa.html | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA | RSA |
+| fermat | Fermats Method/fermats-method.html | Fermat's Method | Methode van Fermat | Fermat-Methode | Méthode de Fermat | Método de Fermat | Metodo di Fermat | Metoda Fermata | Método de Fermat | Método de Fermat | Fermats metod | Fermats metode | Metoda lui Fermat | Fermat-módszer | Метод Ферма | Μέθοδος του Fermat | Ferma metode | שיטת פרמה | फ़र्मा की विधि | طريقة فيرما | Metoda e Fermatit | Mbinu ya Fermat | 费马分解法 | フェルマー法 | 페르마 인수분해법 |
+| shor | Shors Algorithm/shors-algorithm.html | Shor's Algorithm | Algoritme van Shor | Shor-Algorithmus | Algorithme de Shor | Algoritmo de Shor | Algoritmo di Shor | Algorytm Shora | Algoritmo de Shor | Algoritmo de Shor | Shors algoritm | Shors algoritme | Algoritmul lui Shor | Shor-algoritmus | Алгоритм Шора | Αλγόριθμος του Shor | Šora algoritms | האלגוריתם של שור | शोर का एल्गोरिथ्म | خوارزمية شور | Algoritmi i Shorit | Algorithimu ya Shor | 秀尔算法 | ショアのアルゴリズム | 쇼어 알고리즘 |
 
 (`nav.dh` and `nav.rsa` are identical in every language by design — proper nouns/acronyms
 only, which the project's prose rule treats as neutral; `--coverage`'s IDENTICAL-TO-EN
@@ -1007,7 +1149,7 @@ and are never flagged by IDENTICAL-TO-EN.
 
 ## (e) Numerals and notation (06-01-PLAN assumption A7)
 
-Numerals are **never** locale-formatted in any of the twenty-one languages. Existing
+Numerals are **never** locale-formatted in any of the twenty-four languages. Existing
 `toString()`/`NT.bigint.fmt` output (comma-grouped thousands, `.` decimal point where
 applicable) stays byte-identical in every language — French/German/Dutch/Italian/Polish/
 Portuguese/Swedish/Norwegian/Romanian/Hungarian/Latvian conventions that would normally
@@ -1018,7 +1160,7 @@ results, Cayley table entries, CF convergents), not locale-formatted quantities.
 this: a `toLocale…String` call or an `Intl.` constructor other than `Intl.PluralRules`
 anywhere in a page's inline script or any `assets/*.js`/`assets/i18n/*.js` file is a
 LOCALE-FORMAT finding. Mathematical notation (×, ÷, ², √, ≡, mod, gcd, lcm, →, ≤, ≥) is
-written identically in all twenty-one languages — these are the twenty-one autonyms' shared
+written identically in all twenty-four languages — these are the twenty-four autonyms' shared
 symbolic vocabulary, not natural-language text. Brazilian and European Portuguese (both
 added 2026-10-02 by quick task 261002-jh4) are no exception: neither variant's own
 national separator convention (Brazil's comma-decimal, Portugal's comma-decimal) applies
@@ -1045,6 +1187,7 @@ its words are checked by the same SCRIPT-* findings plus the BIDI-* findings.
 Hindi (added 2026-10-06 by quick task 261006-vpp) is the first Devanagari-script language, writes ASCII digits only with the same comma grouping and dot decimal as English (no Devanagari digits, no lakh/crore grouping) and carries exactly its English value's numerals (NATIVE-DIGIT, DIGIT-PARITY).
 Arabic (added 2026-10-07 by quick task 261007-fhx) is the second right-to-left language and the first Arabic-script one, writes ASCII digits only with the same comma grouping and dot decimal as English (no Arabic-Indic digits, no ٫ or ٬, no Arabic comma inside a numeral), carries exactly its English value's numerals (NATIVE-DIGIT, NATIVE-SEPARATOR, DIGIT-PARITY) and keeps notation left-to-right through the same isolates and `dir="rtl"` CSS as Hebrew.
 Albanian and Swahili (added 2026-10-07 by quick task 261007-k4o) are left-to-right Latin-script languages that write ASCII digits with the same comma grouping and dot decimal as English (never Albanian's space grouping or comma decimal), carry exactly their English value's numerals (DIGIT-PARITY; the first Latin-script languages in DIGIT_PARITY_LANGS) and need no isolates.
+Chinese, Japanese and Korean (added 2026-10-07 by quick task 261007-pbf) are left-to-right CJK languages that write ASCII digits with the same comma grouping and dot decimal as English, never full-width digits, CJK numerals in place of English digits or myriad (万/億/만/억) grouping, carry exactly their English value's numerals (DIGIT-PARITY), keep formulas in ASCII (FULLWIDTH-FORMULA) and need no isolates.
 
 ---
 
@@ -1060,19 +1203,19 @@ columns were added 2026-10-03 by quick task 261003-0dr. The ru/el columns were a
 2026-10-03 by quick task 261003-57k. The he column was added 2026-10-06 by quick task
 261006-pks. The hi column was added 2026-10-06 by quick task 261006-vpp. The ar column was
 added 2026-10-07 by quick task 261007-fhx. The sq and sw columns were added 2026-10-07 by quick
-task 261007-k4o.
+task 261007-k4o. The zh, ja and ko columns were added 2026-10-07 by quick task 261007-pbf.
 
-| key | Pages using it | en | nl | de | fr | es | it | pl | pt-BR | pt-PT | sv | nb | ro | hu | lv | ru | el | he | hi | ar | sq | sw |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| common.play | Chinese Remainder Theorem, Diffie-Hellman Key Exchange, Elliptic Curve Diffie-Hellman, Euclidean Algorithm, Euler's Totient, Fermat's Method, Shor's Algorithm, Sieve of Eratosthenes, Square and Multiply | ▶ Play | ▶ Afspelen | ▶ Abspielen | ▶ Lecture | ▶ Reproducir | ▶ Riproduci | ▶ Odtwórz | ▶ Reproduzir | ▶ Reproduzir | ▶ Spela upp | ▶ Spill av | ▶ Redă | ▶ Lejátszás | ▶ Atskaņot | ▶ Пуск | ▶ Έναρξη | ▶ הפעלה | ▶ चलाएँ | ▶ تشغيل | ▶ Luaj | ▶ Cheza |
-| common.pause | (same 9) | ⏸ Pause | ⏸ Pauzeren | ⏸ Pausieren | ⏸ Mettre en pause | ⏸ Pausar | ⏸ Pausa | ⏸ Pauza | ⏸ Pausar | ⏸ Pausar | ⏸ Pausa | ⏸ Sett på pause | ⏸ Pauză | ⏸ Szünet | ⏸ Pauze | ⏸ Пауза | ⏸ Παύση | ⏸ השהיה | ⏸ रोकें | ⏸ إيقاف مؤقت | ⏸ Pauzë | ⏸ Sitisha |
-| common.step | (same 9) | ⏭ Step | ⏭ Stap | ⏭ Schritt | ⏭ Étape | ⏭ Paso | ⏭ Passo | ⏭ Krok | ⏭ Passo | ⏭ Passo | ⏭ Steg | ⏭ Steg | ⏭ Pas | ⏭ Lépés | ⏭ Solis | ⏭ Шаг | ⏭ Βήμα | ⏭ צעד | ⏭ चरण | ⏭ خطوة | ⏭ Hap | ⏭ Hatua |
-| common.instant | (same 9) | ⏩ Instant | ⏩ Direct | ⏩ Sofort | ⏩ Instantané | ⏩ Instantáneo | ⏩ Istantaneo | ⏩ Natychmiast | ⏩ Instantâneo | ⏩ Instantâneo | ⏩ Direkt | ⏩ Straks | ⏩ Instantaneu | ⏩ Azonnal | ⏩ Uzreiz | ⏩ Сразу | ⏩ Άμεσα | ⏩ מיידי | ⏩ तुरंत | ⏩ فوري | ⏩ Menjëherë | ⏩ Papo hapo |
-| common.reset | (same 9) | ↺ Reset | ↺ Herstart | ↺ Zurücksetzen | ↺ Réinitialiser | ↺ Reiniciar | ↺ Reimposta | ↺ Resetuj | ↺ Reiniciar | ↺ Repor | ↺ Återställ | ↺ Tilbakestill | ↺ Resetează | ↺ Visszaállítás | ↺ Atiestatīt | ↺ Сброс | ↺ Επαναφορά | ↺ איפוס | ↺ रीसेट | ↺ إعادة تعيين | ↺ Rivendos | ↺ Weka upya |
-| common.speed | (same 9) | Speed | Snelheid | Geschwindigkeit | Vitesse | Velocidad | Velocità | Prędkość | Velocidade | Velocidade | Hastighet | Hastighet | Viteză | Sebesség | Ātrums | Скорость | Ταχύτητα | מהירות | गति | السرعة | Shpejtësia | Kasi |
-| common.speed.1 … common.speed.10 | (same 9) | glacial … instant-ish | ijzig … bijna-direct | eisig … fast augenblicklich | glaciaire … quasi instantané | gélido … casi instantáneo | glaciale … quasi istantaneo | lodowata … niemal natychmiastowa | gélida … quase instantânea | gélida … quase instantânea | isande … nästan omedelbar | iskald … nesten øyeblikkelig | glacială … aproape instantanee | jeges … szinte azonnali | ledains … gandrīz acumirklīgs | ледяная … почти мгновенная | παγερή … σχεδόν ακαριαία | קרחונית … כמעט מיידית | बर्फ़ीली … लगभग तुरंत | جليدية … شبه فورية | i ngadaltë shumë … pothuajse i çastit | ya polepole sana … karibu papo hapo |
-| common.additiveGroups | Cayley Table, Equivalence Wheel | Additive Groups | Additieve groepen | Additive Gruppen | Groupes additifs | Grupos aditivos | Gruppi additivi | Grupy addytywne | Grupos aditivos | Grupos aditivos | Additiva grupper | Additive grupper | Grupuri aditive | Additív csoportok | Aditīvās grupas | Аддитивные группы | Προσθετικές ομάδες | חבורות חיבוריות | योगात्मक समूह | الزمر الجمعية | Grupet aditive | Makundi ya kujumlisha |
-| common.multiplicativeGroups | Cayley Table, Equivalence Wheel | Multiplicative Groups | Multiplicatieve groepen | Multiplikative Gruppen | Groupes multiplicatifs | Grupos multiplicativos | Gruppi moltiplicativi | Grupy multiplikatywne | Grupos multiplicativos | Grupos multiplicativos | Multiplikativa grupper | Multiplikative grupper | Grupuri multiplicative | Multiplikatív csoportok | Multiplikatīvās grupas | Мультипликативные группы | Πολλαπλασιαστικές ομάδες | חבורות כפליות | गुणात्मक समूह | الزمر الضربية | Grupet shumëzuese | Makundi ya kuzidisha |
+| key | Pages using it | en | nl | de | fr | es | it | pl | pt-BR | pt-PT | sv | nb | ro | hu | lv | ru | el | he | hi | ar | sq | sw | zh | ja | ko |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| common.play | Chinese Remainder Theorem, Diffie-Hellman Key Exchange, Elliptic Curve Diffie-Hellman, Euclidean Algorithm, Euler's Totient, Fermat's Method, Shor's Algorithm, Sieve of Eratosthenes, Square and Multiply | ▶ Play | ▶ Afspelen | ▶ Abspielen | ▶ Lecture | ▶ Reproducir | ▶ Riproduci | ▶ Odtwórz | ▶ Reproduzir | ▶ Reproduzir | ▶ Spela upp | ▶ Spill av | ▶ Redă | ▶ Lejátszás | ▶ Atskaņot | ▶ Пуск | ▶ Έναρξη | ▶ הפעלה | ▶ चलाएँ | ▶ تشغيل | ▶ Luaj | ▶ Cheza | ▶ 播放 | ▶ 再生 | ▶ 재생 |
+| common.pause | (same 9) | ⏸ Pause | ⏸ Pauzeren | ⏸ Pausieren | ⏸ Mettre en pause | ⏸ Pausar | ⏸ Pausa | ⏸ Pauza | ⏸ Pausar | ⏸ Pausar | ⏸ Pausa | ⏸ Sett på pause | ⏸ Pauză | ⏸ Szünet | ⏸ Pauze | ⏸ Пауза | ⏸ Παύση | ⏸ השהיה | ⏸ रोकें | ⏸ إيقاف مؤقت | ⏸ Pauzë | ⏸ Sitisha | ⏸ 暂停 | ⏸ 一時停止 | ⏸ 일시 정지 |
+| common.step | (same 9) | ⏭ Step | ⏭ Stap | ⏭ Schritt | ⏭ Étape | ⏭ Paso | ⏭ Passo | ⏭ Krok | ⏭ Passo | ⏭ Passo | ⏭ Steg | ⏭ Steg | ⏭ Pas | ⏭ Lépés | ⏭ Solis | ⏭ Шаг | ⏭ Βήμα | ⏭ צעד | ⏭ चरण | ⏭ خطوة | ⏭ Hap | ⏭ Hatua | ⏭ 单步 | ⏭ ステップ | ⏭ 단계 |
+| common.instant | (same 9) | ⏩ Instant | ⏩ Direct | ⏩ Sofort | ⏩ Instantané | ⏩ Instantáneo | ⏩ Istantaneo | ⏩ Natychmiast | ⏩ Instantâneo | ⏩ Instantâneo | ⏩ Direkt | ⏩ Straks | ⏩ Instantaneu | ⏩ Azonnal | ⏩ Uzreiz | ⏩ Сразу | ⏩ Άμεσα | ⏩ מיידי | ⏩ तुरंत | ⏩ فوري | ⏩ Menjëherë | ⏩ Papo hapo | ⏩ 立即完成 | ⏩ 即時完了 | ⏩ 즉시 완료 |
+| common.reset | (same 9) | ↺ Reset | ↺ Herstart | ↺ Zurücksetzen | ↺ Réinitialiser | ↺ Reiniciar | ↺ Reimposta | ↺ Resetuj | ↺ Reiniciar | ↺ Repor | ↺ Återställ | ↺ Tilbakestill | ↺ Resetează | ↺ Visszaállítás | ↺ Atiestatīt | ↺ Сброс | ↺ Επαναφορά | ↺ איפוס | ↺ रीसेट | ↺ إعادة تعيين | ↺ Rivendos | ↺ Weka upya | ↺ 重置 | ↺ リセット | ↺ 초기화 |
+| common.speed | (same 9) | Speed | Snelheid | Geschwindigkeit | Vitesse | Velocidad | Velocità | Prędkość | Velocidade | Velocidade | Hastighet | Hastighet | Viteză | Sebesség | Ātrums | Скорость | Ταχύτητα | מהירות | गति | السرعة | Shpejtësia | Kasi | 速度 | 速度 | 속도 |
+| common.speed.1 … common.speed.10 | (same 9) | glacial … instant-ish | ijzig … bijna-direct | eisig … fast augenblicklich | glaciaire … quasi instantané | gélido … casi instantáneo | glaciale … quasi istantaneo | lodowata … niemal natychmiastowa | gélida … quase instantânea | gélida … quase instantânea | isande … nästan omedelbar | iskald … nesten øyeblikkelig | glacială … aproape instantanee | jeges … szinte azonnali | ledains … gandrīz acumirklīgs | ледяная … почти мгновенная | παγερή … σχεδόν ακαριαία | קרחונית … כמעט מיידית | बर्फ़ीली … लगभग तुरंत | جليدية … شبه فورية | i ngadaltë shumë … pothuajse i çastit | ya polepole sana … karibu papo hapo | 极慢 … 近乎瞬间 | 極めて遅い … ほぼ瞬時 | 매우 느림 … 거의 즉시 |
+| common.additiveGroups | Cayley Table, Equivalence Wheel | Additive Groups | Additieve groepen | Additive Gruppen | Groupes additifs | Grupos aditivos | Gruppi additivi | Grupy addytywne | Grupos aditivos | Grupos aditivos | Additiva grupper | Additive grupper | Grupuri aditive | Additív csoportok | Aditīvās grupas | Аддитивные группы | Προσθετικές ομάδες | חבורות חיבוריות | योगात्मक समूह | الزمر الجمعية | Grupet aditive | Makundi ya kujumlisha | 加法群 | 加法群 | 덧셈군 |
+| common.multiplicativeGroups | Cayley Table, Equivalence Wheel | Multiplicative Groups | Multiplicatieve groepen | Multiplikative Gruppen | Groupes multiplicatifs | Grupos multiplicativos | Gruppi moltiplicativi | Grupy multiplikatywne | Grupos multiplicativos | Grupos multiplicativos | Multiplikativa grupper | Multiplikative grupper | Grupuri multiplicative | Multiplikatív csoportok | Multiplikatīvās grupas | Мультипликативные группы | Πολλαπλασιαστικές ομάδες | חבורות כפליות | गुणात्मक समूह | الزمر الضربية | Grupet shumëzuese | Makundi ya kuzidisha | 乘法群 | 乗法群 | 곱셈군 |
 
 (The full speed-word table is in `assets/i18n/site.js`; this row is a pointer, not a
 duplicate source of truth.)

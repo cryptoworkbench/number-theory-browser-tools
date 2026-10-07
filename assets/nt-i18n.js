@@ -64,7 +64,7 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko']);
   // The right-to-left languages, Hebrew and Arabic (internal, not exported):
   // applyHtmlLang sets dir="rtl" on <html> while one of them is active.
   var RTL_LANGS = Object.freeze(['he', 'ar']);
@@ -73,7 +73,7 @@
   var LANG_STORAGE_KEY = 'site-lang';
 
   // ---------- namespace registry ----------
-  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, two, few, many) the language uses
+  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, two, few, many) the language uses, or { other } alone for a language with a single category (zh, ja, ko)
   var registry = {};
 
   function valid(lang) {

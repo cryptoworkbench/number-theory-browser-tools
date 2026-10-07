@@ -714,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "ja", "ko", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zh"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -979,6 +979,31 @@ function doApi() {
   check("after sw then ar, html dir attribute is rtl", (I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
   I.setLang("en");
 
+  // Chinese, Japanese and Korean have the single CLDR category other: a plural value is { other } alone
+  // and that one form is rendered for every count (0, 1, 2, 1.5, 21, 100 and 1000000 alike).
+  I.register("trcjk", {
+    en: { count: { one: "{count} one", other: "{count} other" } },
+    zh: { count: { other: "{count} other" } },
+    ja: { count: { other: "{count} other" } },
+    ko: { count: { other: "{count} other" } }
+  });
+  ["zh", "ja", "ko"].forEach(function (L) {
+    check("setLang('" + L + "') returns true (trcjk)", I.setLang(L), true);
+    [0, 1, 2, 1.5, 21, 100, 1000000].forEach(function (n) {
+      check(L + " trcjk.count at " + n + " selects other", I.translate("trcjk.count", { count: n }), n + " other");
+    });
+  });
+  // zh, ja and ko are left to right: switching to them from a right-to-left language removes dir.
+  check("after ar then zh, html lang is zh", (I.setLang("ar"), I.setLang("zh"), ctx._doc.documentElement.lang), "zh");
+  check("after ar then zh, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after he then ja, html lang is ja", (I.setLang("he"), I.setLang("ja"), ctx._doc.documentElement.lang), "ja");
+  check("after he then ja, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after ar then ko, html lang is ko", (I.setLang("ar"), I.setLang("ko"), ctx._doc.documentElement.lang), "ko");
+  check("after ar then ko, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after ko then he, html dir attribute is rtl", (I.setLang("he"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  check("after zh then ar, html dir attribute is rtl", (I.setLang("zh"), I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  I.setLang("en");
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -1104,6 +1129,9 @@ function doApi() {
   check("setLang('SW') returns false (case-sensitive)", I.setLang("SW"), false);
   check("setLang('swa') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("swa"), false);
   check("setLang('swh') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("swh"), false);
+  ["zh-CN", "zh-TW", "zh-Hans", "zh-Hant", "ZH", "Zh", "zho", "chi", "cmn", "ja-JP", "JA", "jpn", "ko-KR", "KO", "kor"].forEach(function (code) {
+    check("setLang('" + code + "') returns false (exact, case-sensitive allow-list: only zh, ja and ko)", I.setLang(code), false);
+  });
   check("setLang('ara') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("ara"), false);
   check("setLang('hin') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("hin"), false);
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
@@ -1134,8 +1162,8 @@ function doApi() {
   check("detectDefaultLang(['de-AT','en']) -> de", I.detectDefaultLang(), "de");
   ctx.navigator = { languages: ["pt-BR"] };
   check("detectDefaultLang(['pt-BR']) -> pt-BR", I.detectDefaultLang(), "pt-BR");
-  ctx.navigator = { languages: ["ja-JP"] };
-  check("detectDefaultLang(['ja-JP']) -> en (unsupported falls back)", I.detectDefaultLang(), "en");
+  ctx.navigator = { languages: ["th-TH"] };
+  check("detectDefaultLang(['th-TH']) -> en (unsupported falls back)", I.detectDefaultLang(), "en");
   ctx.navigator = { languages: ["pt-PT", "en"] };
   check("detectDefaultLang(['pt-PT','en']) -> pt-PT", I.detectDefaultLang(), "pt-PT");
   ctx.navigator = { languages: ["pt-AO"] };
@@ -1152,8 +1180,8 @@ function doApi() {
   check("detectDefaultLang(['pt_PT']) -> pt-PT (underscore separator)", I.detectDefaultLang(), "pt-PT");
   ctx.navigator = { languages: ["pt-Latn-PT"] };
   check("detectDefaultLang(['pt-Latn-PT']) -> pt-PT (script subtag skipped)", I.detectDefaultLang(), "pt-PT");
-  ctx.navigator = { languages: ["ja", "pt-PT", "en"] };
-  check("detectDefaultLang(['ja','pt-PT','en']) -> pt-PT (first supported wins)", I.detectDefaultLang(), "pt-PT");
+  ctx.navigator = { languages: ["th", "pt-PT", "en"] };
+  check("detectDefaultLang(['th','pt-PT','en']) -> pt-PT (first supported wins)", I.detectDefaultLang(), "pt-PT");
   ctx.navigator = { languages: ["de-AT", "pt-BR"] };
   check("detectDefaultLang(['de-AT','pt-BR']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
   ctx.navigator = { languages: ["ptx", "en"] };
@@ -1190,8 +1218,8 @@ function doApi() {
   check("detectDefaultLang(['nn','en']) -> en (Nynorsk not supported)", I.detectDefaultLang(), "en");
   ctx.navigator = { languages: ["nor", "en"] };
   check("detectDefaultLang(['nor','en']) -> en (primary subtag must be exactly no)", I.detectDefaultLang(), "en");
-  ctx.navigator = { languages: ["ja", "no", "en"] };
-  check("detectDefaultLang(['ja','no','en']) -> nb (first supported wins)", I.detectDefaultLang(), "nb");
+  ctx.navigator = { languages: ["th", "no", "en"] };
+  check("detectDefaultLang(['th','no','en']) -> nb (first supported wins)", I.detectDefaultLang(), "nb");
   ctx.navigator = { languages: ["de-AT", "sv"] };
   check("detectDefaultLang(['de-AT','sv']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
   ctx.navigator = { languages: ["ro-RO"] };
@@ -1214,8 +1242,8 @@ function doApi() {
   check("detectDefaultLang(['lt-LT','lv']) -> lv (Lithuanian not supported, falls through)", I.detectDefaultLang(), "lv");
   ctx.navigator = { languages: ["ltg", "lv"] };
   check("detectDefaultLang(['ltg','lv']) -> lv (Latgalian not supported, falls through)", I.detectDefaultLang(), "lv");
-  ctx.navigator = { languages: ["ja", "hu", "en"] };
-  check("detectDefaultLang(['ja','hu','en']) -> hu (first supported wins)", I.detectDefaultLang(), "hu");
+  ctx.navigator = { languages: ["th", "hu", "en"] };
+  check("detectDefaultLang(['th','hu','en']) -> hu (first supported wins)", I.detectDefaultLang(), "hu");
   ctx.navigator = { languages: ["de-AT", "ro"] };
   check("detectDefaultLang(['de-AT','ro']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
   ctx.navigator = { languages: ["ru-RU"] };
@@ -1240,8 +1268,8 @@ function doApi() {
   check("detectDefaultLang(['grc','el']) -> el (Ancient Greek not supported, falls through)", I.detectDefaultLang(), "el");
   ctx.navigator = { languages: ["sr-Cyrl-RS", "ru"] };
   check("detectDefaultLang(['sr-Cyrl-RS','ru']) -> ru (Serbian not supported, falls through)", I.detectDefaultLang(), "ru");
-  ctx.navigator = { languages: ["ja", "el", "en"] };
-  check("detectDefaultLang(['ja','el','en']) -> el (first supported wins)", I.detectDefaultLang(), "el");
+  ctx.navigator = { languages: ["th", "el", "en"] };
+  check("detectDefaultLang(['th','el','en']) -> el (first supported wins)", I.detectDefaultLang(), "el");
   ctx.navigator = { languages: ["de-AT", "ru"] };
   check("detectDefaultLang(['de-AT','ru']) -> de (earlier preference wins)", I.detectDefaultLang(), "de");
   [
@@ -1283,7 +1311,32 @@ function doApi() {
     [["swh", "en"], "sw", "swh,en (ISO 639-3 Swahili, two-letter prefix)"],
     [["en-KE", "sw"], "en", "en-KE,sw (Kenyan English stays English)"],
     [["he-IL", "sq"], "he", "he-IL,sq (first supported wins)"],
-    [["sq-AL", "sw-KE"], "sq", "sq-AL,sw-KE (first supported wins)"]
+    [["sq-AL", "sw-KE"], "sq", "sq-AL,sw-KE (first supported wins)"],
+    [["zh"], "zh", "zh"],
+    [["zh-CN"], "zh", "zh-CN"],
+    [["ZH_tw", "en"], "zh", "ZH_tw (case-insensitive, underscore separator)"],
+    [["zh-Hant-TW"], "zh", "zh-Hant-TW (Traditional script tag resolves to Simplified zh)"],
+    [["zh-Hans-SG"], "zh", "zh-Hans-SG"],
+    [["zh-HK"], "zh", "zh-HK (Traditional region resolves to Simplified zh)"],
+    [["zh_Hant_MO"], "zh", "zh_Hant_MO (underscore separator, script and region subtags)"],
+    [["zho", "en"], "zh", "zho,en (ISO 639-2 Chinese, two-letter prefix)"],
+    [["yue-HK", "zh-HK"], "zh", "yue-HK,zh-HK (Cantonese unsupported, falls through)"],
+    [["cmn-Hans-CN", "en"], "en", "cmn-Hans-CN,en (ISO 639-3 Mandarin tag does not start with zh)"],
+    [["en-SG", "zh"], "en", "en-SG,zh (Singapore English stays English)"],
+    [["ja"], "ja", "ja"],
+    [["ja-JP"], "ja", "ja-JP"],
+    [["JA_jp", "en"], "ja", "JA_jp (case-insensitive, underscore separator)"],
+    [["jpn", "en"], "en", "jpn,en (ISO 639-2 Japanese does not start with ja, falls through)"],
+    [["th", "ja"], "ja", "th,ja (Thai unsupported, falls through)"],
+    [["ko"], "ko", "ko"],
+    [["ko-KR"], "ko", "ko-KR"],
+    [["KO_kp", "en"], "ko", "KO_kp (case-insensitive, underscore separator)"],
+    [["kor", "en"], "ko", "kor,en (ISO 639-2 Korean, two-letter prefix)"],
+    [["zh-TW", "ko"], "zh", "zh-TW,ko (first supported wins)"],
+    [["he-IL", "ko"], "he", "he-IL,ko (first supported wins)"],
+    [["pt-BR", "zh"], "pt-BR", "pt-BR,zh (first supported wins)"],
+    [["no", "ja"], "nb", "no,ja (legacy Norwegian tag maps to nb, first supported wins)"],
+    [["iw", "ko"], "he", "iw,ko (legacy Hebrew tag maps to he, first supported wins)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1412,7 +1465,19 @@ function doPersistence() {
     { opts: { cookie: { initial: "SW" }, storage: { initial: "es" } }, want: "es", label: "cookie SW falls through to storage" },
     { opts: { storage: { initial: "swa" } }, want: "en", label: "storage swa (ISO 639-2 tag, unsupported) falls through to detected default" },
     { opts: { storage: { initial: "sw-KE" }, navigator: { languages: ["sw-KE", "en"] } }, want: "sw", label: "storage sw-KE falls through to detected sw (navigator sw-KE)" },
-    { opts: { storage: { initial: "sq-AL" }, navigator: { languages: ["sq-AL", "en"] } }, want: "sq", label: "storage sq-AL falls through to detected sq (navigator sq-AL)" }
+    { opts: { storage: { initial: "sq-AL" }, navigator: { languages: ["sq-AL", "en"] } }, want: "sq", label: "storage sq-AL falls through to detected sq (navigator sq-AL)" },
+    { opts: { search: "?lang=zh", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "zh", label: "url zh beats cookie and storage" },
+    { opts: { search: "?lang=ja", cookie: { initial: "ko" }, storage: { initial: "zh" } }, want: "ja", label: "url ja beats a cookie of ko and a stored zh" },
+    { opts: { search: "?lang=ko", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "ko", label: "url ko beats cookie and storage" },
+    { opts: { search: "?lang=zh-CN", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url zh-CN (region-tagged zh, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=ja-JP", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url ja-JP (region-tagged ja, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=ko-KR", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url ko-KR (region-tagged ko, unsupported) falls through to cookie" },
+    { opts: { cookie: { initial: "ZH" }, storage: { initial: "es" } }, want: "es", label: "cookie ZH falls through to storage" },
+    { opts: { cookie: { initial: "JA" }, storage: { initial: "es" } }, want: "es", label: "cookie JA falls through to storage" },
+    { opts: { cookie: { initial: "ko" }, storage: { initial: "es" } }, want: "ko", label: "cookie ko beats storage" },
+    { opts: { storage: { initial: "zh-Hans" }, navigator: { languages: ["zh-TW", "en"] } }, want: "zh", label: "storage zh-Hans falls through to detected zh (navigator zh-TW)" },
+    { opts: { storage: { initial: "ko-KR" }, navigator: { languages: ["ko-KR", "en"] } }, want: "ko", label: "storage ko-KR falls through to detected ko (navigator ko-KR)" },
+    { opts: { storage: { initial: "jpn" } }, want: "en", label: "storage jpn (ISO 639-2 tag, unsupported) falls through to detected default" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1447,6 +1512,11 @@ function doPersistence() {
     var swCtx = loadI18n({ search: "?lang=sw", navigator: { languages: ["en-US", "en"] } });
     check("?lang=sw load sets html lang", swCtx._doc.documentElement.lang, "sw");
     check("?lang=sw load leaves html dir absent", swCtx._doc.documentElement.getAttribute("dir"), null);
+    ["zh", "ja", "ko"].forEach(function (L) {
+      var cjkCtx = loadI18n({ search: "?lang=" + L, navigator: { languages: ["en-US", "en"] } });
+      check("?lang=" + L + " load sets html lang", cjkCtx._doc.documentElement.lang, L);
+      check("?lang=" + L + " load leaves html dir absent", cjkCtx._doc.documentElement.getAttribute("dir"), null);
+    });
     var enCtx = loadI18n({ navigator: { languages: ["en-US", "en"] } });
     check("plain English load leaves html dir absent", enCtx._doc.documentElement.getAttribute("dir"), null);
     var deCtx = loadI18n({ search: "?lang=de", navigator: { languages: ["en-US", "en"] } });
@@ -1686,6 +1756,21 @@ function doPersistence() {
     ctx._fireStorage(I.LANG_STORAGE_KEY, "sw-KE");
     check("storage event with the region-tagged sw-KE is a no-op", ctx._changeEvents.length, changeAfterSw);
 
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ar");
+    var changeBeforeJa = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ja");
+    check("storage event with ja while ar is active re-applies html lang", ctx._doc.documentElement.lang, "ja");
+    check("storage event with ja while ar is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with ja fires one more change event", ctx._changeEvents.length, changeBeforeJa + 1);
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "he");
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ko");
+    check("storage event with ko while he is active re-applies html lang", ctx._doc.documentElement.lang, "ko");
+    check("storage event with ko while he is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    var changeAfterKo = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "zh-CN");
+    check("storage event with the region-tagged zh-CN is a no-op", ctx._doc.documentElement.lang, "ko");
+    check("storage event with zh-CN fires no change event", ctx._changeEvents.length, changeAfterKo);
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -1752,7 +1837,10 @@ var SWITCHER_OPTIONS = [
   { value: "hi", lang: "hi", label: "हिन्दी" },
   { value: "ar", lang: "ar", label: "العربية" },
   { value: "sq", lang: "sq", label: "Shqip" },
-  { value: "sw", lang: "sw", label: "Kiswahili" }
+  { value: "sw", lang: "sw", label: "Kiswahili" },
+  { value: "zh", lang: "zh", label: "中文" },
+  { value: "ja", lang: "ja", label: "日本語" },
+  { value: "ko", lang: "ko", label: "한국어" }
 ];
 
 // RTL_LANGS: the languages written right to left, Hebrew and Arabic. Mirrors
@@ -1779,13 +1867,22 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // n = 1"), so a Hindi one form must read correctly for 0 as well as 1.
 // Albanian (sq) and Swahili (sw) are unlisted as well: they use English's
 // {one, other} set, where 0 and fractions select other (unlike Hindi's one).
+// Chinese, Japanese and Korean have the single category other and are listed in
+// PLURAL_OTHER_ONLY_LANGS instead: their plural values are { other } alone.
 var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"], ar: ["zero", "two", "few", "many"] };
+
+// PLURAL_OTHER_ONLY_LANGS: the languages whose CLDR rules have the single
+// category other (Chinese, Japanese, Korean: no grammatical number). Their
+// plural dictionary values are { other } alone, and that one form must read
+// correctly for every count (0, 1 and any other).
+var PLURAL_OTHER_ONLY_LANGS = ["zh", "ja", "ko"];
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
 // extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
 // one,other,zero for lv, one,other,two for he, few,many,one,other,two,zero for ar,
-// one,other for every other language.
+// other for zh, ja and ko, one,other for every other language.
 function expectedPluralCategories(lang) {
+  if (PLURAL_OTHER_ONLY_LANGS.indexOf(lang) !== -1) return ["other"];
   var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
   return ["one", "other"].concat(extra).sort();
 }
@@ -1882,18 +1979,21 @@ function isProse(text) {
   return false;
 }
 
-/* ---------- script rule (Russian, Greek, Hebrew, Hindi and Arabic, the non-Latin scripts) ---------- */
+/* ---------- script rule (Russian, Greek, Hebrew, Hindi, Arabic, Chinese, Japanese and Korean, the non-Latin scripts) ---------- */
 
-// Russian, Greek, Hebrew, Hindi and Arabic cannot be checked for leftover English by
+// Russian, Greek, Hebrew, Hindi, Arabic, Chinese, Japanese and Korean cannot be checked for leftover English by
 // IDENTICAL-TO-EN alone (a half-translated value is not identical to
 // English) or by the Latin-language function-word checks in isProse. This
 // data-driven rule catches a value written in the wrong script, a mixed
 // script, a word from the OTHER new language, or an untranslated English
 // value, while allowing a fixed list of genuine invariant Latin notation.
 // A later non-Latin-script language needs only its own SCRIPT_RULES entry.
+// Every rule tokenises by script runs (\p{Script=...}), never by whitespace:
+// Chinese and Japanese are written without spaces between words, so an English
+// leftover can sit glued to Han or kana text.
 
 // SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic, Greek,
-// Hebrew, Devanagari or Arabic value may keep — notation, a code identifier, an acronym, or a narrative
+// Hebrew, Devanagari, Arabic, Han, kana or Hangul value may keep — notation, a code identifier, an acronym, or a narrative
 // name present in the English value and kept literal by every existing
 // language.
 var SCRIPT_LATIN_NOTATION = [
@@ -1905,12 +2005,12 @@ var SCRIPT_LATIN_NOTATION = [
 var SCRIPT_RULES = {
   ru: {
     own: /\p{Script=Cyrillic}/u,
-    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}/u,
+    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   el: {
     own: /\p{Script=Greek}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
     latin: SCRIPT_LATIN_NOTATION.concat([
       "Bézout", "Cayley", "Diffie", "ElGamal", "Euler", "Fermat", "Hellman",
       "Miller", "Rabin", "Shor", "Venn", "bit", "ms"
@@ -1922,7 +2022,7 @@ var SCRIPT_RULES = {
   // list is reused without el's eponym extension.
   he: {
     own: /\p{Script=Hebrew}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}|\p{Script=Devanagari}|\p{Script=Arabic}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Hindi (Devanagari, left to right): own needs a Devanagari LETTER (the
@@ -1932,7 +2032,7 @@ var SCRIPT_RULES = {
   // reused without el's eponym extension.
   hi: {
     own: /(?=\p{L})\p{Script=Devanagari}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Arabic (right to left): own needs an Arabic LETTER (the lookahead keeps
@@ -1943,7 +2043,36 @@ var SCRIPT_RULES = {
   // is reused without el's eponym extension.
   ar: {
     own: /(?=\p{L})\p{Script=Arabic}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
+  // Chinese (Simplified, left to right): own is a Han character. Any
+  // Cyrillic, Hebrew, Devanagari, Arabic, Hiragana, Katakana or Hangul letter,
+  // a run of two or more Greek letters (a single phi stays legal) and the
+  // katakana middle dot and prolonged sound mark (U+30FB, U+30FC: Script=Common,
+  // so named explicitly) are foreign. Eponyms are written in Han, so the base
+  // notation list is reused.
+  zh: {
+    own: /\p{Script=Han}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Greek}{2,}|[\u30fb\u30fc]/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
+  // Japanese (left to right): own is a Han, Hiragana or Katakana character
+  // (the prolonged sound mark and middle dot are Script=Common and are simply
+  // allowed). Cyrillic, Hebrew, Devanagari, Arabic, Hangul or a run of two or
+  // more Greek letters is foreign. Simplified-only Han forms are caught
+  // separately by cjkFindings (HAN-FORM).
+  ja: {
+    own: /\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Hangul}|\p{Script=Greek}{2,}/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
+  // Korean (left to right): own is a Hangul character. Han (no hanja), kana,
+  // the katakana middle dot and prolonged sound mark, Cyrillic, Hebrew,
+  // Devanagari, Arabic or a run of two or more Greek letters is foreign.
+  ko: {
+    own: /\p{Script=Hangul}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Greek}{2,}|[\u30fb\u30fc]/u,
     latin: SCRIPT_LATIN_NOTATION
   }
 };
@@ -1953,7 +2082,11 @@ var SCRIPT_RULES = {
 // space in both value and enValue, returns in order: SCRIPT-LATIN for each
 // maximal Latin run (>1 char) not on the language's own latin list,
 // SCRIPT-MIXED for each maximal letter run mixing two or more of
-// Latin/Cyrillic/Greek/Hebrew/Devanagari/Arabic, SCRIPT-FOREIGN for the first match of the
+// Latin/Cyrillic/Greek/Hebrew/Devanagari/Arabic (the CJK scripts are deliberately
+// not counted: Chinese and Japanese are unspaced and Korean attaches particles
+// to Latin tokens, so "RSA加密", "RSAの鍵" and "RSA를" are correct text whose
+// letter runs mix Latin with a CJK script; SCRIPT-LATIN already finds an English
+// leftover inside such text because it extracts Latin runs by script), SCRIPT-FOREIGN for the first match of the
 // language's `foreign` pattern, and SCRIPT-MISSING when the English value
 // has a translatable Latin word (a run >1 char not on the latin list) but
 // the value carries no letter of its own script at all.
@@ -2078,11 +2211,21 @@ function bidiFindings(id, lang, value) {
 //                 U+0641..U+064A that is not a presentation form: Persian/Urdu
 //                 look-alikes (a Persian yeh for yeh, keheh for kaf) are
 //                 invisible in review but break searches.
+//   FULLWIDTH-FORM  the first character in U+3000..U+303F or U+FF01..U+FFEF
+//                 (CJK symbols and punctuation, full-width and half-width forms:
+//                 ideographic space, full-width digits, letters and operators,
+//                 half-width katakana, wave dash, 〇): the CJK languages keep
+//                 digits, Latin letters, operators and spaces in ASCII. For zh
+//                 and ja only, the prose punctuation in CJK_PUNCT_ALLOWED is
+//                 legal, and for ja also the iteration mark U+3005; Korean uses
+//                 Western punctuation and allows none. A full-width digit is
+//                 reported by NATIVE-DIGIT as well.
 //   ZERO-WIDTH    U+200B..U+200D, U+2060 or U+FEFF: invisible in review, so
 //                 a stray joiner or space could never be spotted by eye.
 //   NOT-NFC       the value differs from its NFC normalization: NFC keeps a
 //                 nukta letter or an Arabic madda/hamza in one byte form, so
 //                 glossary greps match.
+var CJK_PUNCT_ALLOWED = "\u3001\u3002\u3008\u3009\u300a\u300b\u300c\u300d\u300e\u300f\u3010\u3011\u3014\u3015\uff01\uff08\uff09\uff0c\uff1a\uff1b\uff1f";
 function charFindings(id, lang, value) {
   var findings = [];
   var v = String(value == null ? "" : value);
@@ -2095,6 +2238,12 @@ function charFindings(id, lang, value) {
   if (/[\ufb50-\ufdff\ufe70-\ufefc]/.test(v)) findings.push("PRESENTATION-FORM " + id + "." + lang);
   var arabicLetter = /(?![\u0621-\u063a\u0641-\u064a\ufb50-\ufdff\ufe70-\ufefc])(?=\p{L})\p{Script=Arabic}/u.exec(v);
   if (arabicLetter) findings.push("ARABIC-LETTER " + id + "." + lang + ": " + JSON.stringify(arabicLetter[0]));
+  var wideRe = /[\u3000-\u303f\uff01-\uffef]/g, wideMatch, wideBad = null;
+  while ((wideMatch = wideRe.exec(v))) {
+    var wideOk = ((lang === "zh" || lang === "ja") && CJK_PUNCT_ALLOWED.indexOf(wideMatch[0]) !== -1) || (lang === "ja" && wideMatch[0] === "\u3005");
+    if (!wideOk) { wideBad = wideMatch[0]; break; }
+  }
+  if (wideBad) findings.push("FULLWIDTH-FORM " + id + "." + lang + ": " + JSON.stringify(wideBad));
   if (/[\u200b-\u200d\u2060\ufeff]/.test(v)) findings.push("ZERO-WIDTH " + id + "." + lang);
   if (v !== v.normalize("NFC")) findings.push("NOT-NFC " + id + "." + lang);
   return findings;
@@ -2104,8 +2253,8 @@ function charFindings(id, lang, value) {
 // English value's numerals. Languages added before this rule keep a few
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
 // is why the list holds only the languages added after the rule existed
-// (Hindi, Arabic, Albanian and Swahili).
-var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw"];
+// (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese and Korean).
+var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space
@@ -2121,6 +2270,66 @@ function digitParityFindings(id, lang, value, enValue) {
   var got = tokens(value), want = tokens(enValue);
   if (got.join("|") === want.join("|")) return [];
   return ["DIGIT-PARITY " + id + "." + lang + ": en [" + want.join(", ") + "] vs [" + got.join(", ") + "]"];
+}
+
+// CJK_LANGS: the three CJK languages (left to right, system fallback font,
+// no plural inflection) that cjkFindings checks.
+var CJK_LANGS = ["zh", "ja", "ko"];
+
+// HAN_FORM_FORBIDDEN: the Han characters most likely to slip in from the wrong
+// standard. zh lists Traditional forms and Japanese shinjitai whose Simplified
+// form differs; ja lists Simplified-only forms whose shinjitai differs.
+// Characters shared by both standards (数 点 会 来 与 余 将 学 里 欧 号 条 当) are
+// deliberately absent. Korean has no entry (no hanja at all: SCRIPT-FOREIGN).
+var HAN_FORM_FORBIDDEN = {
+  zh: "們這個時對說為進設計鑰碼圖樹質無從選擇顯輸結鍵實現點擊開關變層類單給經錯誤運發應構換環輪線圓題頁兩幾費際間門問認識證書長東車見觀規則數與會來號條歐餘裡後図実関発対説択単変経歩剰円両応証読転続検",
+  ja: "们这个时对说为进设计钥码图树质无从选择显输结键实现击开关变层类单给经错误运剩发乘应构换环轮线圆题页步两几费际间门问认识证书长东车见观规则么吗"
+};
+
+// cjkFindings(id, lang, value, enValue): [] outside CJK_LANGS. Otherwise, in order:
+//   FULLWIDTH-FORMULA  a full-width comma, colon or semicolon (U+FF0C, U+FF1A,
+//                      U+FF1B) between two ASCII digits (a ratio, a tuple, a
+//                      list of numbers), or a full-width parenthesis pair
+//                      whose content holds no Han, kana or Hangul letter (a
+//                      formula, tuple or Latin-only parenthetical): those keep
+//                      ASCII punctuation and ASCII parentheses.
+//   CJK-MYRIAD         an ASCII digit followed (optional whitespace) by one of
+//                      十 百 千 万 萬 亿 億 兆 십 백 천 만 억 조: numerals are never
+//                      regrouped by myriad, unless the English value has a digit,
+//                      whitespace and million, billion or trillion (the scale
+//                      word 1 trillion is 1 万亿, 1兆 and 1조).
+//   HAN-FORM           the first character of the value found in
+//                      HAN_FORM_FORBIDDEN[lang] (zh and ja only): a Traditional
+//                      or shinjitai form in Chinese, a Simplified-only form in
+//                      Japanese.
+function cjkFindings(id, lang, value, enValue) {
+  if (CJK_LANGS.indexOf(lang) === -1) return [];
+  var findings = [];
+  var v = String(value == null ? "" : value);
+  var en = String(enValue == null ? "" : enValue);
+  var tag = id + "." + lang;
+  var tuple = /[0-9]\s*[\uff0c\uff1a\uff1b]\s*[0-9]/.exec(v);
+  if (tuple) findings.push("FULLWIDTH-FORMULA " + tag + ": " + JSON.stringify(tuple[0]));
+  var parenRe = /\uff08([^\uff08\uff09]*)\uff09/g, pm;
+  while ((pm = parenRe.exec(v))) {
+    if (!/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(pm[1])) {
+      findings.push("FULLWIDTH-FORMULA " + tag + ": " + JSON.stringify(pm[0]));
+    }
+  }
+  var myriad = /[0-9]\s*[十百千万萬亿億兆십백천만억조]/.exec(v);
+  if (myriad && !/[0-9]\s+(?:million|billion|trillion)/.test(en)) {
+    findings.push("CJK-MYRIAD " + tag + ": " + JSON.stringify(myriad[0]));
+  }
+  var forbidden = HAN_FORM_FORBIDDEN[lang];
+  if (forbidden) {
+    for (var i = 0; i < v.length; i++) {
+      if (forbidden.indexOf(v[i]) !== -1) {
+        findings.push("HAN-FORM " + tag + ": " + JSON.stringify(v[i]));
+        break;
+      }
+    }
+  }
+  return findings;
 }
 
 /* ---------- per-page config (allowSame/allowLiteral/allowRenderText/...) ---------- */
@@ -2519,7 +2728,9 @@ function dataFileNsList(file) {
 // language's extra forms (pl's and ru's four: one, few, many, other; ro's
 // three: one, few, other; lv's three: zero, one, other; he's three: one, two,
 // other; ar's six: zero, one, two, few, many, other) are checked
-// exactly as strictly as every other language's two (one, other).
+// exactly as strictly as every other language's two (one, other), and the
+// single-category languages zh, ja and ko (PLURAL_OTHER_ONLY_LANGS) must carry
+// the { other } shape alone.
 function checkPluralEntry(ns, key, lang, entry, enEntry) {
   var findings = [];
   var expected = expectedPluralCategories(lang);
@@ -2598,6 +2809,23 @@ function pluralCategoryFindings() {
       findings.push("PLURAL-CATEGORIES " + lang + ": expected [" + expected.join(", ") + "] but Intl.PluralRules reports [" + intlCats.join(", ") + "]");
     }
   });
+  PLURAL_OTHER_ONLY_LANGS.forEach(function (lang) {
+    if (LANG_CODES.indexOf(lang) === -1) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": not in LANG_CODES");
+      return;
+    }
+    if (PLURAL_EXTRA_CATEGORIES[lang]) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": listed in both PLURAL_OTHER_ONLY_LANGS and PLURAL_EXTRA_CATEGORIES");
+      return;
+    }
+    var intlCats = [];
+    try {
+      intlCats = new Intl.PluralRules(lang).resolvedOptions().pluralCategories.slice().sort();
+    } catch (e) { /* leave intlCats empty — will mismatch and be reported */ }
+    if (intlCats.join(",") !== "other") {
+      findings.push("PLURAL-CATEGORIES " + lang + ": expected [other] but Intl.PluralRules reports [" + intlCats.join(", ") + "]");
+    }
+  });
   LANG_CODES.forEach(function (lang) {
     findings.push.apply(findings, pluralSelectionGaps(lang));
   });
@@ -2671,6 +2899,7 @@ function checkDictionaries() {
               findings.push.apply(findings, bidiFindings(ns + "." + key + "." + cat, lang, entry[cat]));
               findings.push.apply(findings, charFindings(ns + "." + key + "." + cat, lang, entry[cat]));
               findings.push.apply(findings, digitParityFindings(ns + "." + key + "." + cat, lang, entry[cat], typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other));
+              findings.push.apply(findings, cjkFindings(ns + "." + key + "." + cat, lang, entry[cat], typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other));
             });
           }
         } else {
@@ -2689,6 +2918,7 @@ function checkDictionaries() {
           findings.push.apply(findings, bidiFindings(ns + "." + key, lang, entry));
           findings.push.apply(findings, charFindings(ns + "." + key, lang, entry));
           findings.push.apply(findings, digitParityFindings(ns + "." + key, lang, entry, enEntry));
+          findings.push.apply(findings, cjkFindings(ns + "." + key, lang, entry, enEntry));
         }
       });
     });
@@ -3068,6 +3298,7 @@ module.exports = {
   readConfig: readConfig,
   parseHtml: parseHtml,
   PLURAL_EXTRA_CATEGORIES: PLURAL_EXTRA_CATEGORIES,
+  PLURAL_OTHER_ONLY_LANGS: PLURAL_OTHER_ONLY_LANGS,
   expectedPluralCategories: expectedPluralCategories,
   checkPluralEntry: checkPluralEntry,
   pluralCategoryFindings: pluralCategoryFindings,
@@ -3082,5 +3313,8 @@ module.exports = {
   bidiFindings: bidiFindings,
   charFindings: charFindings,
   digitParityFindings: digitParityFindings,
-  DIGIT_PARITY_LANGS: DIGIT_PARITY_LANGS
+  DIGIT_PARITY_LANGS: DIGIT_PARITY_LANGS,
+  CJK_LANGS: CJK_LANGS,
+  HAN_FORM_FORBIDDEN: HAN_FORM_FORBIDDEN,
+  cjkFindings: cjkFindings
 };

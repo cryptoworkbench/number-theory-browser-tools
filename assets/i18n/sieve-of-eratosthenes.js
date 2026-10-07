@@ -1,16 +1,16 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all twenty-one supported
+   marker for the Sieve of Eratosthenes tool, in all twenty-four supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
    every language except Polish and Russian ({ one, few, many, other }),
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
-   Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }), each
+   Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese and Korean, each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all twenty-one
+   Placeholder names ({n}, {time}, {count}) are identical across all twenty-four
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -852,6 +852,111 @@
         other: 'Namba tasa mpya {count} zimeongezwa — paleti imejaa (namba {max}); namba tasa ambazo hazikuongezwa: {left}.'
       },
       'palette.none': 'Kila namba tasa iliyopatikana tayari iko kwenye paleti — hakuna cha kuongeza.'
+    },
+    zh: {
+      sound: '声音',
+      title: '埃拉托斯特尼筛法——交互式可视化工具',
+      heading: '埃拉托斯特尼筛法',
+      eyebrow: '素数与整除性',
+      lede: '给每个自然数一个属于它自己的格子——然后看筛法把所有不是素数的数划掉。',
+      sizeLabel: '筛的大小 (N)',
+      generate: '生成',
+      'stat.current': '当前',
+      'stat.primesFound': '已找到的素数',
+      'stat.sqrtBoundary': '√N 边界',
+      'stat.elapsed': '已用时间',
+      'stat.progress': '进度',
+      'stat.done': '✓ 完成',
+      'legend.unvisited': '{0} 未访问',
+      'legend.currentPointer': '{0} 当前指针',
+      'legend.prime': '{0} 素数',
+      'legend.composite': '{0} 已划掉（合数）',
+      'legend.neither': '{0} 两者都不是 (1)',
+      footer: '所有计算都在你的浏览器中本地运行。没有任何数字被永久损坏——只是被划掉了。',
+      'banner.ready': '已就绪。已创建 {n} 个格子——点击“播放”开始筛选。',
+      'banner.single': '只有 1 个格子——没有可筛的内容。',
+      'banner.reset': '已重置。已重新生成 {n} 个格子——点击“播放”开始筛选。',
+      'banner.done': {
+        other: '已在 {time} 内找到 {n} 以内的 {count} 个素数。'
+      },
+      toPalette: '将找到的素数添加到调色板',
+      'palette.added': {
+        other: '已将 {count} 个新素数添加到调色板——已跳过重复项：{dupes}。'
+      },
+      'palette.full': {
+        other: '已添加 {count} 个新素数——调色板已满（{max} 个数）；未添加的素数：{left}。'
+      },
+      'palette.none': '找到的每个素数都已在调色板中——没有可添加的。'
+    },
+    ja: {
+      sound: 'サウンド',
+      title: 'エラトステネスの篩——インタラクティブビジュアライザー',
+      heading: 'エラトステネスの篩',
+      eyebrow: '素数と割り切れること',
+      lede: 'すべての自然数にそれぞれのマスを用意して、篩が素数でないものを次々に消していく様子を見てみましょう。',
+      sizeLabel: '篩の大きさ(N)',
+      generate: '生成',
+      'stat.current': '現在',
+      'stat.primesFound': '見つかった素数',
+      'stat.sqrtBoundary': '√Nの境界',
+      'stat.elapsed': '経過時間',
+      'stat.progress': '進行状況',
+      'stat.done': '✓ 完了',
+      'legend.unvisited': '{0} 未訪問',
+      'legend.currentPointer': '{0} 現在のポインタ',
+      'legend.prime': '{0} 素数',
+      'legend.composite': '{0} 消去済み（合成数）',
+      'legend.neither': '{0} どちらでもない(1)',
+      footer: 'すべての計算はお使いのブラウザ上で行われます。永久に失われた数はありません。消されただけです。',
+      'banner.ready': '準備ができました。{n}個のマスを作成しました。「再生」を押して篩を始めてください。',
+      'banner.single': 'マスが1個だけなので、篩にかけるものはありません。',
+      'banner.reset': 'リセットしました。{n}個のマスを作り直しました。「再生」を押して篩を始めてください。',
+      'banner.done': {
+        other: '{time}で、{n}までの素数が{count}個見つかりました。'
+      },
+      toPalette: '見つかった素数をパレットに追加',
+      'palette.added': {
+        other: '新しい素数{count}個をパレットに追加しました。重複してスキップしたもの：{dupes}。'
+      },
+      'palette.full': {
+        other: '新しい素数{count}個を追加しました。パレットがいっぱいです（{max}個）。追加できなかった素数：{left}。'
+      },
+      'palette.none': '見つかった素数はすべてパレットに入っています。追加するものはありません。'
+    },
+    ko: {
+      sound: '소리',
+      title: '에라토스테네스의 체 — 인터랙티브 시각화 도구',
+      heading: '에라토스테네스의 체',
+      eyebrow: '소수와 나누어떨어짐',
+      lede: '모든 자연수에 각자의 칸을 준 다음, 체가 소수가 아닌 수를 모두 지워 나가는 모습을 지켜보세요.',
+      sizeLabel: '체의 크기 (N)',
+      generate: '생성',
+      'stat.current': '현재',
+      'stat.primesFound': '찾은 소수',
+      'stat.sqrtBoundary': '√N 경계',
+      'stat.elapsed': '경과 시간',
+      'stat.progress': '진행률',
+      'stat.done': '✓ 완료',
+      'legend.unvisited': '{0} 미방문',
+      'legend.currentPointer': '{0} 현재 포인터',
+      'legend.prime': '{0} 소수',
+      'legend.composite': '{0} 지워짐 (합성수)',
+      'legend.neither': '{0} 둘 다 아님 (1)',
+      footer: '모든 계산은 브라우저 안에서 실행됩니다. 영구적으로 손상된 숫자는 없습니다. 지워졌을 뿐입니다.',
+      'banner.ready': '준비되었습니다. 칸 {n}개를 만들었습니다. “재생”을 눌러 체질을 시작하세요.',
+      'banner.single': '칸이 1개뿐이라 체로 거를 것이 없습니다.',
+      'banner.reset': '초기화했습니다. 칸 {n}개를 다시 만들었습니다. “재생”을 눌러 체질을 시작하세요.',
+      'banner.done': {
+        other: '{time} 만에 {n} 이하의 소수 {count}개를 찾았습니다.'
+      },
+      toPalette: '찾은 소수를 팔레트에 추가',
+      'palette.added': {
+        other: '새 소수 {count}개를 팔레트에 추가했습니다. 건너뛴 중복: {dupes}.'
+      },
+      'palette.full': {
+        other: '새 소수 {count}개를 추가했습니다. 팔레트가 가득 찼습니다 (최대 {max}개). 추가하지 못한 소수: {left}.'
+      },
+      'palette.none': '찾은 소수가 모두 이미 팔레트에 있어 추가할 것이 없습니다.'
     }
   });
 })();
