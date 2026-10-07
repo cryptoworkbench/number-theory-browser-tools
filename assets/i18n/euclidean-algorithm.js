@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all nineteen supported languages.
+   tool, in all twenty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   nineteen languages. Must load after assets/nt-i18n.js and
+   twenty-one languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1043,6 +1043,114 @@
       nestedTileTitle: 'الخطوة {step}: \u2066{a} = {q}·{b} + {r}\u2069',
       nestedTileTitleCapped: 'الخطوة {step}: \u2066{a} = {q}·{b} + {r}\u2069 (عدد المربعات الإضافية المطوية هنا: {extra})',
       tileEmptyMessage: 'لا يوجد مستطيل لتقطيعه — b يساوي 0 بالفعل، ولذلك اكتملت الخوارزمية.'
+    },
+    sq: {
+      title: 'Algoritmi i Euklidit',
+      heading: 'Algoritmi i Euklidit',
+      lede: 'Zëvendësoni vazhdimisht çiftin (a, b) me (b, a mod b) — pjesëtoni numrin më të madh me më të voglin dhe mbani vetëm mbetjen — dhe çifti zvogëlohet në çdo hap. Në çastin kur njëra anë arrin zero, ana tjetër është pjesëtuesi më i madh i përbashkët i dy numrave me të cilët filluat.',
+      xref: 'I njëjti PMP mund të shihet edhe si numrat e thjeshtë që ndajnë dy numrat →',
+      chipFiveSteps: '240, 46 · 5 hapa',
+      chipCoprime: '35, 18 · relativisht të thjeshtë',
+      chipBDividesA: '144, 12 · b e pjesëton a',
+      chipEqualPair: '36, 36 · çift i barabartë',
+      chipAlreadyDone: '17, 0 · tashmë përfunduar',
+      chipFibonacciWorst: '89, 55 · rasti më i keq Fibonacci',
+      chipHugeQuotient: '500000, 2 · herës shumë i madh',
+      run: 'Ekzekuto',
+      extToggleLabel: 'Mënyra e zgjeruar e Euklidit — shfaq koeficientët Bézout {0} dhe {1}',
+      errBothWhole: 'Edhe a, edhe b duhet të jenë numra të plotë.',
+      errBothNonNegative: 'Edhe a, edhe b duhet të jenë zero ose pozitivë — numrat negativë nuk kanë PMP të përcaktuar këtu.',
+      errGcdZeroZero: 'gcd(0, 0) është i papërcaktuar — shkruani të paktën një vlerë jozero.',
+      errClamped: 'Të dhënat kufizohen në {max} — vlera më e madhe u ul që të përshtatet.',
+      swapNote: 'Vlera më e madhe shkon e para: u fut si ({a}, {b}), u gjurmua si gcd({A}, {B}) — PMP është simetrik ndaj argumenteve të tij.',
+      bannerReady: 'Gati — shtypni Luaj për të parë se si ndërtohet nxjerrja, një rresht pas tjetrit.',
+      bannerDone: {
+        one: 'U krye — {n} hap për të arritur te PMP.',
+        other: 'U krye — {n} hapa për të arritur te PMP.'
+      },
+      chainNoteZero: 'b është tashmë 0, ndaj nuk ka asgjë më për të pjesëtuar — a është tashmë pjesëtuesi më i madh i përbashkët.',
+      extCaption: '{0} dhe {1} e secilit rresht e shprehin mbetjen e atij rreshti si kombinim të dy të dhënave origjinale — {2}.',
+      viewNested: 'Katrorë të futur',
+      geomViewGroupLabel: 'Mënyra e pamjes gjeometrike',
+      viewStep: 'Hap i vetëm',
+      tileAriaDefault: 'Pamja drejtkëndore e hapit aktual të pjesëtimit',
+      nestedAriaDefault: 'Të gjithë hapat e pjesëtimit të futur në një drejtkëndësh të vetëm',
+      caption: 'Numrat Fibonacci të njëpasnjëshëm janë rasti më i keq për këtë algoritëm — ata e detyrojnë numrin më të madh të hapave të pjesëtimit për madhësinë e tyre.',
+      tileCaptionExact: {
+        one: 'Hapi {index} nga {total}: {a} ÷ {b}: drejtkëndëshi mbulohet saktësisht me {q} katror me brinjë {b} — pa mbetje, ndaj {b} është pjesëtuesi më i madh i përbashkët.',
+        other: 'Hapi {index} nga {total}: {a} ÷ {b}: drejtkëndëshi mbulohet saktësisht me {q} katrorë me brinjë {b} — pa mbetje, ndaj {b} është pjesëtuesi më i madh i përbashkët.'
+      },
+      tileCaptionLeftover: {
+        one: 'Hapi {index} nga {total}: {a} = {q}×{b} + {r}: {q} katror me brinjë {b} futet, duke lënë një mbetje {b}×{r}.',
+        other: 'Hapi {index} nga {total}: {a} = {q}×{b} + {r}: {q} katrorë me brinjë {b} futen, duke lënë një mbetje {b}×{r}.'
+      },
+      tileNoteCapped: 'Herësi i vërtetë është {q} — këtu vizatohen vetëm {cap} katrorët e parë; katrorët e tjerë, në numër {rest}, janë palosur në pllakën e etiketuar, ndaj gjerësia e vizatuar nuk është në shkallë.',
+      nestedEmptyMessage: 'Nuk ka asnjë drejtkëndësh për të futur — b është tashmë 0, ndaj algoritmi ka përfunduar.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: {n} hap futet në një drejtkëndësh {A}×{B} — katrorët më të vegjël, {lastB}×{lastB}, janë pjesëtuesi më i madh i përbashkët. Klikoni një katror (ose një hap më sipër) për të parë si përshtaten.',
+        other: 'gcd({A}, {B}) = {gcd}: të gjithë {n} hapat futen në një drejtkëndësh {A}×{B} — katrorët më të vegjël, {lastB}×{lastB}, janë pjesëtuesi më i madh i përbashkët. Klikoni një katror (ose një hap më sipër) për të parë si përshtaten.'
+      },
+      nestedNoteCapped: {
+        one: 'Hapi {stepNums} ka një herës shumë të madh — aty vizatohen vetëm {cap} katrorët e parë, të palosur në një pllakë me vija të ndërprera, ndaj ky diagram nuk është plotësisht në shkallë në atë hap.',
+        other: 'Hapat {stepNums} kanë një herës shumë të madh — aty vizatohen vetëm {cap} katrorët e parë, të palosur në një pllakë me vija të ndërprera, ndaj ky diagram nuk është plotësisht në shkallë në ato hapa.'
+      },
+      nestedTileTitle: 'Hapi {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Hapi {step}: {a} = {q}·{b} + {r} ({extra} katrorë të tjerë të palosur këtu)',
+      tileEmptyMessage: 'Nuk ka asnjë drejtkëndësh për të prerë — b është tashmë 0, ndaj algoritmi ka përfunduar.'
+    },
+    sw: {
+      title: 'Algorithimu ya Euclid',
+      heading: 'Algorithimu ya Euclid',
+      lede: 'Badilisha jozi (a, b) mara kwa mara kuwa (b, a mod b) — gawanya kubwa kwa ndogo na weka baki pekee — na jozi hupungua kila hatua. Wakati upande mmoja unapofikia sifuri, upande mwingine ndio kigawo kikubwa cha shirika cha namba mbili ulizoanza nazo.',
+      xref: 'KKS hiyo hiyo inaweza pia kuonekana kama namba tasa ambazo namba hizo mbili zinashiriki →',
+      chipFiveSteps: '240, 46 · hatua 5',
+      chipCoprime: '35, 18 · tasa baina yao',
+      chipBDividesA: '144, 12 · b inagawanya a',
+      chipEqualPair: '36, 36 · jozi sawa',
+      chipAlreadyDone: '17, 0 · tayari imekamilika',
+      chipFibonacciWorst: '89, 55 · hali mbaya zaidi ya Fibonacci',
+      chipHugeQuotient: '500000, 2 · mgawo mkubwa sana',
+      run: 'Endesha',
+      extToggleLabel: 'Hali ya Euclid iliyopanuliwa — onyesha vigawo vya Bézout {0} na {1}',
+      errBothWhole: 'Zote mbili, a na b, lazima ziwe namba kamili.',
+      errBothNonNegative: 'Zote mbili, a na b, lazima ziwe sifuri au chanya — namba hasi hazina KKS iliyofafanuliwa hapa.',
+      errGcdZeroZero: 'gcd(0, 0) haijafafanuliwa — ingiza angalau thamani moja isiyo sifuri.',
+      errClamped: 'Thamani zilizoingizwa zinawekewa kikomo cha {max} — thamani kubwa zaidi ilipunguzwa ili itoshee.',
+      swapNote: 'Thamani kubwa zaidi inaongoza: iliingizwa kama ({a}, {b}), ikafuatiliwa kama gcd({A}, {B}) — KKS ni linganifu katika hoja zake.',
+      bannerReady: 'Tayari — bonyeza Cheza ili kutazama utokeaji ukijengwa mstari mmoja baada ya mwingine.',
+      bannerDone: {
+        one: 'Imekamilika — hatua {n} kufikia KKS.',
+        other: 'Imekamilika — hatua {n} kufikia KKS.'
+      },
+      chainNoteZero: 'b tayari ni 0, kwa hiyo hakuna kilichobaki cha kugawanya — a tayari ni kigawo kikubwa cha shirika.',
+      extCaption: '{0} na {1} ya kila mstari huonyesha baki la mstari huo kama mchanganyiko wa ingizo mbili za awali — {2}.',
+      viewNested: 'Miraba iliyoingiliana',
+      geomViewGroupLabel: 'Hali ya mwonekano wa kijiometri',
+      viewStep: 'Hatua moja',
+      tileAriaDefault: 'Mwonekano wa mstatili wa hatua ya sasa ya mgawanyo',
+      nestedAriaDefault: 'Hatua zote za mgawanyo zimeingizwa ndani ya mstatili mmoja',
+      caption: 'Namba za Fibonacci zinazofuatana ndizo hali mbaya zaidi kwa algorithimu hii — zinalazimisha hatua nyingi zaidi za mgawanyo kwa ukubwa wake.',
+      tileCaptionExact: {
+        one: 'Hatua ya {index} kati ya {total}: {a} ÷ {b}: mstatili unajazwa kikamilifu na mraba {q} wa upande {b} — hakuna kilichobaki, kwa hiyo {b} ni kigawo kikubwa cha shirika.',
+        other: 'Hatua ya {index} kati ya {total}: {a} ÷ {b}: mstatili unajazwa kikamilifu na miraba {q} ya upande {b} — hakuna kilichobaki, kwa hiyo {b} ni kigawo kikubwa cha shirika.'
+      },
+      tileCaptionLeftover: {
+        one: 'Hatua ya {index} kati ya {total}: {a} = {q}×{b} + {r}: mraba {q} wa upande {b} unatosha, ukiacha mabaki ya {b}×{r}.',
+        other: 'Hatua ya {index} kati ya {total}: {a} = {q}×{b} + {r}: miraba {q} ya upande {b} inatosha, ikiacha mabaki ya {b}×{r}.'
+      },
+      tileNoteCapped: 'Mgawo halisi ni {q} — ni miraba {cap} ya kwanza tu iliyochorwa hapa; miraba {rest} iliyobaki imekunjwa kwenye kigae kilichoandikwa, kwa hiyo upana uliochorwa si kwa kipimo.',
+      nestedEmptyMessage: 'Hakuna mstatili wa kuingiza — b tayari ni 0, kwa hiyo algorithimu tayari imekamilika.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: hatua {n} imeingia kwenye mstatili mmoja wa {A}×{B} — miraba midogo zaidi, {lastB}×{lastB}, ndiyo kigawo kikubwa cha shirika. Bofya mraba (au hatua iliyo juu) kuona jinsi zinavyolingana.',
+        other: 'gcd({A}, {B}) = {gcd}: hatua zote {n} zimeingia kwenye mstatili mmoja wa {A}×{B} — miraba midogo zaidi, {lastB}×{lastB}, ndiyo kigawo kikubwa cha shirika. Bofya mraba (au hatua iliyo juu) kuona jinsi zinavyolingana.'
+      },
+      nestedNoteCapped: {
+        one: 'Hatua ya {stepNums} ina mgawo mkubwa sana — ni miraba {cap} ya kwanza tu iliyochorwa pale, imekunjwa kwenye kigae chenye mistari iliyokatika, kwa hiyo mchoro huu si kwa kipimo kamili katika hatua hiyo.',
+        other: 'Hatua za {stepNums} zina mgawo mkubwa sana — ni miraba {cap} ya kwanza tu iliyochorwa pale, imekunjwa kwenye kigae chenye mistari iliyokatika, kwa hiyo mchoro huu si kwa kipimo kamili katika hatua hizo.'
+      },
+      nestedTileTitle: 'Hatua {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Hatua {step}: {a} = {q}·{b} + {r} (miraba {extra} zaidi imekunjwa hapa)',
+      tileEmptyMessage: 'Hakuna mstatili wa kukata — b tayari ni 0, kwa hiyo algorithimu tayari imekamilika.'
     }
   });
 })();

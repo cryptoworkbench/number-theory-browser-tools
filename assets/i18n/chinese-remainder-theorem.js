@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all nineteen supported languages.
+   tool, in all twenty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all nineteen languages. Must load after assets/nt-i18n.js and
+   across all twenty-one languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -725,6 +725,80 @@
       constructReasonSpanBlocked: 'يتطلب البناء جوابا محسوبا، وحارس الحد الأقصى للمدى يمنع ظهوره.',
       constructSumMismatch: 'عدم تطابق تشخيصي: يختزل البناء إلى {reduced} بينما حسبت أداة الحل {computed} — ويجب أن يتفقا دائما.',
       seeInverse: 'اطلع على المعكوس ←'
+    },
+    sq: {
+      title: 'Teorema kineze e mbetjeve',
+      heading: 'Teorema kineze e mbetjeve',
+      lede: 'Çdo kongruencë më vete zgjedh një familje numrash me largësi të barabartë — çdo numër i tretë, çdo numër i pestë, e kështu me radhë. Kur modulet nuk kanë asnjë faktor të përbashkët, ato familje kryqëzohen saktësisht në një vend në çdo shtrirje prej {0} numrash. Ai kryqëzim i vetëm është zgjidhja e njëkohshme që e pranon çdo rresht.',
+      xref: 'Shihni të anasjelltin modular të kongruencës së parë, të llogaritur hap pas hapi në mjetin „Algoritmi i Euklidit“ →',
+      countGroupLabel: 'Numri i kongruencave',
+      countTwo: 'Dy kongruenca',
+      countThree: 'Tri kongruenca',
+      remainderLabel: 'mbetja a',
+      modulusLabel: 'moduli m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · gjëegjëza e Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · çift relativisht i thjeshtë',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · kanë faktor të përbashkët',
+      extToggleLabel: 'Zbuloni metodën më të shpejtë — ndërtoni përgjigjen drejtpërdrejt me algoritmin e zgjeruar të Euklidit në vend që ta kërkoni',
+      stripGroupLabel: 'Shirita të klasave të mbetjeve, me rrëshqitje',
+      constructLede: 'Ndajeni shtrirjen në një pjesë për çdo kongruencë, gjeni të anasjelltin e secilës pjesë sipas modulit të vet, shumëzojeni me mbetjen e asaj kongruence, mblidhini pjesët, pastaj reduktojeni.',
+      tableHeaderY: 'y (i anasjellti)',
+      tableHeaderTerm: 'termi = a · M · y',
+      caption: 'Përgjigja përsëritet përgjithmonë me periodë {0} — kolona e shënuar është një përfaqësues i një familjeje të pafundme zgjidhjesh.',
+      allAgreeLabel: 'të gjitha pajtohen',
+      errModulusWhole: 'Rreshti {idx}: moduli duhet të jetë numër i plotë.',
+      errModulusRange: 'Rreshti {idx}: moduli duhet të jetë mes {min} dhe {max}.',
+      errRemainderWhole: 'Rreshti {idx}: mbetja duhet të jetë numër i plotë.',
+      errRemainderRange: 'Rreshti {idx}: mbetja duhet të jetë nga 0 deri në {max} për modulin {m}.',
+      coprimeOk: 'Modulet janë dy e nga dy relativisht të thjeshtë — ekziston një zgjidhje në trajtë standarde sipas modulit {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — modulet {x} dhe {y} kanë një faktor të përbashkët, ndaj kërkesa e ndërtimit standard të teoremës kineze të mbetjeve, që modulet të jenë dy e nga dy relativisht të thjeshtë, nuk plotësohet dhe ky mjet nuk përpiqet ta zgjidhë këtë sistem.',
+      spanWarn: 'Perioda e kombinuar lcm = {span} është mbi kufirin e shtrirjes së këtij mjeti prej {max} — ulni njërin nga modulet që ta sillni nën {max}.',
+      testingX: 'Po testohet x = {x} …',
+      diagnosticMismatchScan: 'Mospërputhje diagnostikuese: skanimi arriti te {landed}, por ndërtimi llogariti {computed} — këto duhet të përputhen gjithmonë.',
+      solved: 'U zgjidh — çdo kongruencë pajtohet te x = {x}.',
+      diagnosticScanEnd: 'Diagnostikim: skanimi arriti në fund të periodës ({span}) pa gjetur një pajtim, gjë që duhet të jetë e pamundur për një sistem dy e nga dy relativisht të thjeshtë.',
+      readyToScan: 'Gati — shtypni Luaj për të parë skanimin që kërkon x.',
+      constructReasonNotCoprime: 'Ndërtimi kërkon që çdo M_i të jetë i kthyeshëm sipas modulit të vet m_i, gjë që një faktor i përbashkët mes moduleve e bën të pamundur.',
+      constructReasonSpanBlocked: 'Ndërtimi ka nevojë për një përgjigje të llogaritur, dhe mbrojtja e kufirit të shtrirjes po e bllokon një të tillë.',
+      constructSumMismatch: 'Mospërputhje diagnostikuese: ndërtimi reduktohet në {reduced}, por zgjidhësi llogariti {computed} — këto duhet të përputhen gjithmonë.',
+      seeInverse: 'shihni të anasjelltin →'
+    },
+    sw: {
+      title: 'Nadharia ya mabaki ya Kichina',
+      heading: 'Nadharia ya mabaki ya Kichina',
+      lede: 'Kila ulinganifu peke yake huchagua familia ya namba zenye nafasi sawa — kila namba ya tatu, kila namba ya tano, na kadhalika. Wakati moduli hazina kigawo cha pamoja, familia hizo hukutana mahali pamoja hasa katika kila kipande cha namba {0}. Makutano hayo moja ndiyo suluhisho la wakati mmoja ambalo kila safu inakubaliana nalo.',
+      xref: 'Tazama kinyume cha moduli cha ulinganifu wa kwanza kikikokotolewa hatua kwa hatua katika zana ya Algorithimu ya Euclid →',
+      countGroupLabel: 'Idadi ya ulinganifu',
+      countTwo: 'Ulinganifu mbili',
+      countThree: 'Ulinganifu tatu',
+      remainderLabel: 'baki a',
+      modulusLabel: 'moduli m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · kitendawili cha Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · jozi tasa baina yao',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · zinashiriki kigawo',
+      extToggleLabel: 'Funua mbinu ya haraka zaidi — jenga jibu moja kwa moja kwa algorithimu ya Euclid iliyopanuliwa badala ya kulitafuta',
+      stripGroupLabel: 'Michirizi ya matabaka ya baki, inayoweza kusogezwa',
+      constructLede: 'Gawanya kipindi katika kipande kimoja kwa kila ulinganifu, pata kinyume cha kila kipande kwa moduli yake yenyewe, kizidishe kwa baki la ulinganifu huo, jumlisha vipande, kisha punguza.',
+      tableHeaderY: 'y (kinyume)',
+      tableHeaderTerm: 'neno = a · M · y',
+      caption: 'Jibu hujirudia milele kwa kipindi {0} — safu iliyoalamishwa ni mwakilishi mmoja wa familia isiyo na kikomo ya suluhisho.',
+      allAgreeLabel: 'zote zinakubaliana',
+      errModulusWhole: 'Safu {idx}: moduli lazima iwe namba kamili.',
+      errModulusRange: 'Safu {idx}: moduli lazima iwe kati ya {min} na {max}.',
+      errRemainderWhole: 'Safu {idx}: baki lazima liwe namba kamili.',
+      errRemainderRange: 'Safu {idx}: baki lazima liwe kuanzia 0 hadi {max} kwa moduli {m}.',
+      coprimeOk: 'Moduli ni tasa baina yao wawili wawili — suluhisho la umbo la kawaida lipo kwa moduli {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — moduli {x} na {y} zinashiriki kigawo, kwa hiyo sharti la ujenzi wa kawaida wa nadharia hii kwamba moduli ziwe tasa baina yao wawili wawili halijatimizwa na zana hii haijaribu kutatua mfumo huu.',
+      spanWarn: 'Kipindi kilichounganishwa lcm = {span} kiko juu ya kikomo cha kipindi cha zana hii cha {max} — punguza moja ya moduli ili kukileta chini ya {max}.',
+      testingX: 'Inajaribu x = {x} …',
+      diagnosticMismatchScan: 'Kutolingana kwa uchunguzi: skani ilitua kwenye {landed} lakini ujenzi ulikokotoa {computed} — hivi lazima zilingane kila wakati.',
+      solved: 'Imetatuliwa — kila ulinganifu unakubaliana kwenye x = {x}.',
+      diagnosticScanEnd: 'Uchunguzi: skani ilifika mwisho wa kipindi ({span}) bila kupata mkubaliano, jambo ambalo haliwezekani kwa mfumo wa moduli tasa baina yao wawili wawili.',
+      readyToScan: 'Tayari — bonyeza Cheza ili kutazama skani ikitafuta x.',
+      constructReasonNotCoprime: 'Ujenzi unahitaji kila M_i iwe na kinyume kwa moduli yake yenyewe m_i, jambo ambalo kigawo cha pamoja kati ya moduli hukifanya kuwa lisilowezekana.',
+      constructReasonSpanBlocked: 'Ujenzi unahitaji jibu lililokokotolewa, na kinga ya kikomo cha kipindi inalizuia.',
+      constructSumMismatch: 'Kutolingana kwa uchunguzi: ujenzi unapunguzwa kuwa {reduced} lakini kitatuzi kilikokotoa {computed} — hivi lazima zilingane kila wakati.',
+      seeInverse: 'tazama kinyume →'
     }
   });
 })();

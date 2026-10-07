@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all nineteen supported languages. title and heading equal
+   Tree tool, in all twenty-one supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all nineteen languages. The factorization itself (the equation/tree
+   across all twenty-one languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -884,6 +884,96 @@
       binLabel: 'السلة: اسحب دائرة إلى هنا لإزالتها من اللوحة',
       emptyPaletteLabel: 'حذف الكل: تفريغ اللوحة',
       msgPaletteEmptied: 'تم تفريغ اللوحة.'
+    },
+    sq: {
+      title: 'Pema e faktorëve',
+      heading: 'Pema e faktorëve',
+      eyebrow: 'numrat e thjeshtë dhe pjesëtueshmëria',
+      subtitle: 'Shtoni një numër në paletë, tërhiqeni rrethin e tij në zonën e kompozimit/faktorizimit, pastaj shtypni + për ta shpalosur — degë pas dege, deri te gjethet e thjeshta.',
+      modeLabel: 'Mënyra e pemës',
+      modeClassic: 'Klasike',
+      modeBalanced: 'E balancuar',
+      placeholder: 'p.sh. 60',
+      randomize: 'Rastësisht',
+      footnote: 'Çdo gjethe e thjeshtë merr edhe një ndarje të fundit: P = P × 1.',
+      balancedNote: 'Mënyra e balancuar përdor metodën e Fermatit për të gjetur çiftin e faktorëve me ndarjen më të barabartë në çdo hap, e kufizuar te numrat nën 1,000,000 që të mbetet e çastit. Disa numra — si një numër i thjeshtë i vogël shumëzuar me një të madh — ndahen prapëseprapë në mënyrë të pabarabartë; kjo nuk është defekt, është thjesht matematikë.',
+      msgEmpty: 'Ju lutemi shkruani fillimisht një numër.',
+      msgInvalid: 'Ju lutemi shkruani një numër të plotë, 1 ose më të madh.',
+      msgTooLargeBalanced: 'Ky numër është shumë i madh për mënyrën e balancuar — provoni diçka nën 1,000,000 ose kaloni te mënyra klasike për numra më të mëdhenj.',
+      msgTooLargeClassic: 'Ky numër është shumë i madh për këtë pemë të vogël — provoni diçka nën 1 trilion.',
+      msgOne: '1 nuk është as numër i thjeshtë, as i përbërë — është thjesht një farë, ende jo një pemë.',
+      msgPrime: '{n} është numër i thjeshtë — ndahet vetëm një herë, në 1 × {n}.',
+      msgFactors: '{n} faktorizohet në {count} faktorë të thjeshtë.',
+      mirrorLabel: 'Pasqyroni degët poshtë numrit {n}',
+      foldLabel: 'Palosni faktorët e numrit {n}',
+      unfoldLabel: 'Shpalosni faktorët e numrit {n}',
+      add: 'Shto',
+      addInputLabel: 'Numri që do të shtohet në paletë',
+      paletteHeading: 'Paleta e numrave të thjeshtë',
+      paletteHeadingNumbers: 'Paleta e numrave',
+      paletteItemLabel: 'Vendosni numrin {n} në zonën e kompozimit/faktorizimit',
+      workHeading: 'Zona e kompozimit/faktorizimit',
+      workHint: 'Tërhiqni e lëshoni një numër të përbërë për ta faktorizuar, ose tërhiqni e lëshoni numra të thjeshtë për të ndërtuar një numër të përbërë.',
+      clear: 'Pastro',
+      removeLabel: 'Hiqni numrin {n} nga zona e kompozimit/faktorizimit',
+      moveLabel: 'Tërhiqni këtë panel mbi një tjetër: gjysma e majtë e shumëzon numrin {n} me numrin e tij, gjysma e djathtë mbivendos pjesëtuesin e tyre më të madh të përbashkët',
+      removeOverlapLabel: 'Hiqni mbivendosjen e numrave {a} dhe {b} nga zona e kompozimit/faktorizimit',
+      splitOverlap: 'Ndaj',
+      splitOverlapLabel: 'Ndani sërish pemët e numrave {a} dhe {b}',
+      msgGcd: '{a} dhe {b} ndajnë degën {g} — pjesëtuesin e tyre më të madh të përbashkët.',
+      msgCoprime: '{a} dhe {b} janë relativisht të thjeshtë — e vetmja degë që ndajnë është 1.',
+      msgSplit: '{a} dhe {b} janë sërish pemë të ndara.',
+      msgAdded: 'Numri {n} u shtua në paletë.',
+      msgRemoved: 'Numri {n} u hoq nga paleta.',
+      msgPaletteFull: 'Paleta është plot — mban më së shumti {max} numra.',
+      binLabel: 'Koshi: tërhiqni një rreth këtu për ta hequr nga paleta',
+      emptyPaletteLabel: 'Fshi të gjitha: zbraze paletën',
+      msgPaletteEmptied: 'Paleta u zbraz.'
+    },
+    sw: {
+      title: 'Mti wa vigawo',
+      heading: 'Mti wa vigawo',
+      eyebrow: 'namba tasa na ugawanyikaji',
+      subtitle: 'Ongeza namba kwenye paleti, buruta duara lake hadi eneo la utunzi/uchanganuzi wa vigawo, kisha bonyeza + ili kuifunua — tawi kwa tawi, hadi kufikia majani yake ya namba tasa.',
+      modeLabel: 'Hali ya mti',
+      modeClassic: 'Ya kawaida',
+      modeBalanced: 'Iliyosawazishwa',
+      placeholder: 'mf. 60',
+      randomize: 'Nasibu',
+      footnote: 'Kila jani la namba tasa hupata mgawanyo mmoja wa mwisho wake: P = P × 1.',
+      balancedNote: 'Hali iliyosawazishwa hutumia mbinu ya Fermat kupata jozi ya vigawo iliyogawanyika kwa usawa zaidi katika kila hatua, ikiwekewa kikomo kwa namba chini ya 1,000,000 ili ibaki ya papo hapo. Baadhi ya namba — kama namba tasa ndogo mara kubwa — bado hugawanyika kwa kutolingana; hilo si hitilafu, ni hisabati tu.',
+      msgEmpty: 'Tafadhali ingiza namba kwanza.',
+      msgInvalid: 'Tafadhali ingiza namba kamili, 1 au zaidi.',
+      msgTooLargeBalanced: 'Namba hiyo ni kubwa mno kwa hali iliyosawazishwa — jaribu kitu chini ya 1,000,000, au badilisha uende hali ya kawaida kwa namba kubwa zaidi.',
+      msgTooLargeClassic: 'Namba hiyo ni kubwa mno kwa mti huu mdogo — jaribu kitu chini ya trilioni 1.',
+      msgOne: '1 si namba tasa wala shirikishi — ni mbegu tu, bado si mti.',
+      msgPrime: '{n} ni namba tasa — hugawanyika mara moja tu, kuwa 1 × {n}.',
+      msgFactors: '{n} inachanganuliwa kuwa vigawo tasa {count}.',
+      mirrorLabel: 'Fanya taswira ya kioo ya matawi chini ya {n}',
+      foldLabel: 'Kunja vigawo vya {n}',
+      unfoldLabel: 'Kunjua vigawo vya {n}',
+      add: 'Ongeza',
+      addInputLabel: 'Namba ya kuongeza kwenye paleti',
+      paletteHeading: 'Paleti ya namba tasa',
+      paletteHeadingNumbers: 'Paleti ya namba',
+      paletteItemLabel: 'Weka {n} kwenye eneo la utunzi/uchanganuzi wa vigawo',
+      workHeading: 'Eneo la utunzi/uchanganuzi wa vigawo',
+      workHint: 'Buruta na uachie namba shirikishi ili kuichanganua vigawo, au buruta na uachie namba tasa ili kujenga namba shirikishi.',
+      clear: 'Futa',
+      removeLabel: 'Ondoa {n} kwenye eneo la utunzi/uchanganuzi wa vigawo',
+      moveLabel: 'Buruta paneli hii hadi nyingine: nusu ya kushoto huzidisha {n} kwa namba yake, nusu ya kulia hupishanisha kigawo chao kikubwa cha shirika',
+      removeOverlapLabel: 'Ondoa mpishano wa {a} na {b} kwenye eneo la utunzi/uchanganuzi wa vigawo',
+      splitOverlap: 'Tenganisha',
+      splitOverlapLabel: 'Tenganisha tena miti ya {a} na {b}',
+      msgGcd: '{a} na {b} zinashiriki tawi {g} — kigawo chao kikubwa cha shirika.',
+      msgCoprime: '{a} na {b} ni tasa baina yao — tawi pekee linaloshirikiwa ni 1.',
+      msgSplit: '{a} na {b} ni miti tofauti tena.',
+      msgAdded: 'Namba {n} imeongezwa kwenye paleti.',
+      msgRemoved: 'Namba {n} imeondolewa kwenye paleti.',
+      msgPaletteFull: 'Paleti imejaa — inabeba namba {max} kwa upeo.',
+      binLabel: 'Pipa: buruta duara hapa ili kuliondoa kwenye paleti',
+      emptyPaletteLabel: 'Futa zote: ondoa kila kitu kwenye paleti',
+      msgPaletteEmptied: 'Paleti imefutwa yote.'
     }
   });
 })();
