@@ -2199,7 +2199,7 @@
       errPTooSmall: 'p는 5 이상이어야 합니다.',
       errPNotPrime: '{p} 값은 소수가 아닙니다.',
       errGInvalid: 'g는 양의 정수여야 합니다.',
-      errGRange: 'g는 2 ≤ g ≤ p−2 (p−2 = {pm2})를 만족해야 합니다.',
+      errGRange: 'g는 2 ≤ g ≤ p−2 (p−2 = {pm2}) 조건을 만족해야 합니다.',
       errAInvalid: 'Alice의 지수 a는 양의 정수여야 합니다.',
       errARange: 'Alice의 지수 a는 2 ≤ a ≤ p−2를 만족해야 합니다.',
       errBInvalid: 'Bob의 지수 b는 양의 정수여야 합니다.',

@@ -2815,7 +2815,7 @@
       msgHintChooseE: 'e는 1 < e < φ(n)이고 gcd(e, φ(n)) = 1이어야 합니다. 그래야 e가 φ(n)에 대한 곱셈 역원을 가집니다.',
       lblChosenE: '선택한 e =',
       h3ExtendedEuclid: '확장 유클리드 호제법 → 개인 지수 d',
-      msgHintExtendedEuclid: 'e·x + φ(n)·y = gcd(e, φ(n)) = 1을 x에 대해 풀면 d ≡ x (mod φ(n))가 되며, 이것이 e의 모듈러 역원입니다.',
+      msgHintExtendedEuclid: 'e·x + φ(n)·y = gcd(e, φ(n)) = 1을 x에 대해 풀면 d ≡ x (mod φ(n))이 되며, 이것이 e의 모듈러 역원입니다.',
       lblCheck: '검산 e·d mod φ(n) =',
       hdrPublicKey: '{0}의 공개 키',
       noteSafeToPublish: '공개해도 안전합니다. 회선으로 나가는 것이 바로 이것입니다.',
@@ -2828,7 +2828,7 @@
       notWord: '아닙니다',
       wireNotebookNever: 'Bob의 p, q, φ(n), d, 그리고 Alice의 것들은 Eve가 가진 것이 {0}. 이것들은 회선에 닿은 적이 없습니다.',
       h3RsaObstacle: '진짜 장애물: RSA / 정수 인수분해 문제',
-      eveNeedsPhi: 'Bob의 공개 키 (e, n)를 개인 키 d로 바꾸려면 Eve에게 φ(n) = (p−1)(q−1)이 필요합니다. p와 q를 모르는 상태에서 φ(n)을 얻는 알려진 유일한 방법은 {0}입니다. RSA의 보안이 실제로 의지하는 문제는 이것이며, 이산 로그가 아닙니다.',
+      eveNeedsPhi: 'Bob의 공개 키 (e, n)을 개인 키 d로 바꾸려면 Eve에게 φ(n) = (p−1)(q−1)이 필요합니다. p와 q를 모르는 상태에서 φ(n)을 얻는 알려진 유일한 방법은 {0}입니다. RSA의 보안이 실제로 의지하는 문제는 이것이며, 이산 로그가 아닙니다.',
       factorNPQ: 'n = p × q를 인수분해하는 것',
       eveFactorFormula: 'Eve가 d{2} 값을 복구하려면 n{0} = {1} 값을 인수분해해야 합니다.',
       eveFactorBtn: 'Eve가 n{0}의 무차별 대입 인수분해를 시도하게 하기',
@@ -2838,7 +2838,7 @@
       dlpStaticFormula: 'g = 5, p = 23, h = 8  →  5{0} mod 23 = 8인 x 찾기',
       dlpSolveBtn: '무차별 대입으로 풀기',
       resWinStrongText: 'Eve가 이겼습니다.',
-      resWinBody: '{0} 시험 나눗셈을 {3}번 하여 {4} 밀리초 만에 인수 {1} 값을 찾았습니다 (따라서 n = {1} × {2}). 여기서부터 Eve는 {7} 쪽이 했던 것과 똑같이 φ(n) = ({5})({6})을 계산하고 e의 mod φ(n) 역원을 구합니다. 이것으로 끝입니다. 이것이 통한 것은 소수가 장난감 크기이기 때문일 뿐입니다. 실제 RSA의 소수는 각각 150자리 이상이어서 시험 나눗셈(그리고 알려진 모든 인수분해 알고리즘)이 영원히 닿을 수 없습니다.',
+      resWinBody: '{0} 시험 나눗셈을 {3}번 하여 {4} 밀리초 만에 인수 {1} 값을 찾았습니다 (따라서 n = {1} × {2}). 여기서부터 Eve는 {7} 쪽이 했던 것과 똑같이 φ(n) = ({5})({6}) 값을 계산하고 e의 mod φ(n) 역원을 구합니다. 이것으로 끝입니다. 이것이 통한 것은 소수가 장난감 크기이기 때문일 뿐입니다. 실제 RSA의 소수는 각각 150자리 이상이어서 시험 나눗셈(그리고 알려진 모든 인수분해 알고리즘)이 영원히 닿을 수 없습니다.',
       resGiveupStrongText: 'Eve가 포기합니다.',
       resGiveupBody: {
         other: '{0} 후보 약수 {count}개({ms} 밀리초)를 시도했지만 아직 √n ≈ {sqrtN}에 도달하지 못했습니다. 이 장난감 규모에서도 무차별 대입 인수분해는 이미 비싸지고 있으며, 실제 150자리 이상의 소수에서는 알려진 어떤 알고리즘으로도 계산적으로 불가능합니다.'
@@ -2883,7 +2883,7 @@
       recoveredMsgLine: '복원된 메시지와 원래 메시지 ({1})의 비교: {0}.',
       exchangeNotebookHeading: 'Eve가 이 교환에서 본 것',
       exchangeNotebookCiphertext: '암호문 c = {0}',
-      exchangeNotebookNever: "d(얻으려면 n의 인수분해가 필요함)가 없으면, Eve가 추측한 어떤 e'로도 c{0} mod n은 m을 복구하지 못합니다.",
+      exchangeNotebookNever: "d(얻으려면 n의 인수분해가 필요함)이 없으면, Eve가 추측한 어떤 e'로도 c{0} mod n은 m을 복구하지 못합니다.",
       eveSeesOnlyC: 'Eve가 보는 것은 c뿐'
     }
   });
