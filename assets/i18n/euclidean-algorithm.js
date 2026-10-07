@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all twenty-one supported languages.
+   tool, in all twenty-four supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   twenty-one languages. Must load after assets/nt-i18n.js and
+   twenty-four languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1151,6 +1151,153 @@
       nestedTileTitle: 'Hatua {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Hatua {step}: {a} = {q}·{b} + {r} (miraba {extra} zaidi imekunjwa hapa)',
       tileEmptyMessage: 'Hakuna mstatili wa kukata — b tayari ni 0, kwa hiyo algorithimu tayari imekamilika.'
+    },
+    zh: {
+      title: '欧几里得算法',
+      heading: '欧几里得算法',
+      lede: '反复把数对 (a, b) 替换为 (b, a mod b)——用较大的数除以较小的数，只保留余数——数对每一步都会缩小。一旦其中一个数变为零，另一个数就是你最初那两个数的最大公约数。',
+      xref: '同一个最大公约数也可以看成两个数共有的素数 →',
+      chipFiveSteps: '240, 46 · 5 步',
+      chipCoprime: '35, 18 · 互素',
+      chipBDividesA: '144, 12 · b 整除 a',
+      chipEqualPair: '36, 36 · 相等的一对',
+      chipAlreadyDone: '17, 0 · 已经完成',
+      chipFibonacciWorst: '89, 55 · 斐波那契最坏情形',
+      chipHugeQuotient: '500000, 2 · 巨大的商',
+      run: '运行',
+      extToggleLabel: '扩展欧几里得模式——显示贝祖系数 {0} 和 {1}',
+      errBothWhole: 'a 和 b 都必须是整数。',
+      errBothNonNegative: 'a 和 b 都必须是零或正数——负数在这里没有定义的最大公约数。',
+      errGcdZeroZero: 'gcd(0, 0) 没有定义——请至少输入一个非零值。',
+      errClamped: '输入值上限为 {max}——较大的值已被下调以适应上限。',
+      swapNote: '较大的值在前：输入为 ({a}, {b})，按 gcd({A}, {B}) 追踪——最大公约数在其参数中是对称的。',
+      bannerReady: '就绪——点击“播放”，一次一行地观看推导过程。',
+      bannerDone: {
+        other: '完成——共 {n} 步即得到最大公约数。'
+      },
+      chainNoteZero: 'b 已经是 0，所以没有可除的了——a 就是最大公约数。',
+      extCaption: '每一行的 {0} 和 {1} 把该行的余数表示为两个原始输入的组合——{2}。',
+      viewNested: '嵌套正方形',
+      geomViewGroupLabel: '几何视图模式',
+      viewStep: '单步',
+      tileAriaDefault: '当前除法步骤的矩形视图',
+      nestedAriaDefault: '所有除法步骤嵌套成一个矩形',
+      caption: '连续的斐波那契数是该算法的最坏情形——就其大小而言，它们迫使除法步骤最多。',
+      tileCaptionExact: {
+        other: '第 {index} 步，共 {total} 步：{a} ÷ {b}：矩形恰好被 {q} 个边长为 {b} 的正方形铺满——没有剩余，所以 {b} 就是最大公约数。'
+      },
+      tileCaptionLeftover: {
+        other: '第 {index} 步，共 {total} 步：{a} = {q}×{b} + {r}：放入了 {q} 个边长为 {b} 的正方形，剩下一个 {b}×{r} 的矩形。'
+      },
+      tileNoteCapped: '真实的商是 {q}——这里只画出了前 {cap} 个正方形；其余 {rest} 个被折叠进带标签的方块，因此所画的宽度不是按比例的。',
+      nestedEmptyMessage: '没有可嵌套的矩形——b 已经是 0，所以算法已经完成。',
+      nestedCaption: {
+        other: 'gcd({A}, {B}) = {gcd}：全部 {n} 步嵌套成一个 {A}×{B} 的矩形——最小的 {lastB}×{lastB} 正方形就是最大公约数。点击一个正方形（或上方的某一步），查看它们如何对齐。'
+      },
+      nestedNoteCapped: {
+        other: '第 {stepNums} 步的商非常大——那里只画出了前 {cap} 个正方形，折叠成一个虚线方块，因此在这些步骤中该图并不完全按比例。'
+      },
+      nestedTileTitle: '第 {step} 步：{a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: '第 {step} 步：{a} = {q}·{b} + {r}（此处折叠了另外 {extra} 个正方形）',
+      tileEmptyMessage: '没有可切割的矩形——b 已经是 0，所以算法已经完成。'
+    },
+    ja: {
+      title: 'ユークリッドの互除法',
+      heading: 'ユークリッドの互除法',
+      lede: 'ペア(a, b)を(b, a mod b)に繰り返し置き換えます。つまり大きいほうを小さいほうで割って余りだけを残すと、ペアは一段ごとに小さくなります。片方が零になった瞬間、もう片方が最初の二つの数の最大公約数です。',
+      xref: '同じ最大公約数は、二つの数が共有する素数としても見られます →',
+      chipFiveSteps: '240, 46 · 5ステップ',
+      chipCoprime: '35, 18 · 互いに素',
+      chipBDividesA: '144, 12 · bがaを割り切る',
+      chipEqualPair: '36, 36 · 等しいペア',
+      chipAlreadyDone: '17, 0 · すでに完了',
+      chipFibonacciWorst: '89, 55 · フィボナッチの最悪ケース',
+      chipHugeQuotient: '500000, 2 · 非常に大きな商',
+      run: '実行',
+      extToggleLabel: '拡張ユークリッドモード：ベズー係数{0}と{1}を表示',
+      errBothWhole: 'aとbはどちらも整数でなければなりません。',
+      errBothNonNegative: 'aとbはどちらも零以上でなければなりません。負の数はここでは最大公約数が定義されません。',
+      errGcdZeroZero: 'gcd(0, 0)は定義されません。少なくとも一方にゼロでない値を入力してください。',
+      errClamped: '入力は{max}までに制限されます。大きいほうの値は収まるよう切り下げられました。',
+      swapNote: '大きいほうを先にします：({a}, {b})と入力されましたが、gcd({A}, {B})として追跡します。最大公約数は引数について対称です。',
+      bannerReady: '準備完了。「再生」を押すと、導出が一行ずつ組み上がっていきます。',
+      bannerDone: {
+        other: '完了：最大公約数に{n}ステップで到達しました。'
+      },
+      chainNoteZero: 'bはすでに0なので、割るものはもう残っていません。aがそのまま最大公約数です。',
+      extCaption: '各行の{0}と{1}は、その行の余りを元の二つの入力の組み合わせとして表します：{2}。',
+      viewNested: '入れ子の正方形',
+      geomViewGroupLabel: '幾何学的表示モード',
+      viewStep: '単一ステップ',
+      tileAriaDefault: '現在の割り算ステップの長方形ビュー',
+      nestedAriaDefault: 'すべての割り算ステップを一つの長方形に入れ子にした図',
+      caption: '連続するフィボナッチ数はこのアルゴリズムにとって最悪のケースで、大きさのわりに最も多くの割り算ステップを強いられます。',
+      tileCaptionExact: {
+        other: '{total}ステップ中{index}ステップ目：{a} ÷ {b}：長方形は一辺{b}の正方形{q}個でちょうど敷き詰められます。余りはないので、{b}が最大公約数です。'
+      },
+      tileCaptionLeftover: {
+        other: '{total}ステップ中{index}ステップ目：{a} = {q}×{b} + {r}：一辺{b}の正方形が{q}個入り、{b}×{r}の余りが残ります。'
+      },
+      tileNoteCapped: '本当の商は{q}ですが、ここでは最初の{cap}個の正方形だけを描いています。残りの{rest}個はラベル付きのタイルにまとめられているため、描かれた幅は縮尺どおりではありません。',
+      nestedEmptyMessage: '入れ子にする長方形がありません。bがすでに0なので、アルゴリズムはもう終わっています。',
+      nestedCaption: {
+        other: 'gcd({A}, {B}) = {gcd}：{n}ステップすべてが一つの{A}×{B}の長方形に入れ子になります。最小の{lastB}×{lastB}の正方形が最大公約数です。正方形（または上のステップ）をクリックすると、それらがどう並ぶかが見えます。'
+      },
+      nestedNoteCapped: {
+        other: 'ステップ{stepNums}は商が非常に大きいため、そこでは最初の{cap}個の正方形だけを破線のタイルにまとめて描いています。そのため、これらのステップではこの図は完全には縮尺どおりではありません。'
+      },
+      nestedTileTitle: 'ステップ{step}：{a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'ステップ{step}：{a} = {q}·{b} + {r}（ここにさらに{extra}個の正方形をまとめています）',
+      tileEmptyMessage: '切り分ける長方形がありません。bがすでに0なので、アルゴリズムはもう終わっています。'
+    },
+    ko: {
+      title: '유클리드 호제법',
+      heading: '유클리드 호제법',
+      lede: '쌍 (a, b)를 (b, a mod b)로 계속 바꿉니다. 큰 수를 작은 수로 나누어 나머지만 남기면, 쌍은 한 단계마다 줄어듭니다. 한쪽이 영이 되는 순간, 다른 쪽이 처음 두 수의 최대공약수입니다.',
+      xref: '같은 최대공약수는 두 수가 공유하는 소수로도 볼 수 있습니다 →',
+      chipFiveSteps: '240, 46 · 5단계',
+      chipCoprime: '35, 18 · 서로소',
+      chipBDividesA: '144, 12 · b가 a를 나눔',
+      chipEqualPair: '36, 36 · 같은 쌍',
+      chipAlreadyDone: '17, 0 · 이미 완료',
+      chipFibonacciWorst: '89, 55 · 피보나치 최악의 경우',
+      chipHugeQuotient: '500000, 2 · 매우 큰 몫',
+      run: '실행',
+      extToggleLabel: '확장 유클리드 모드 — 베주 계수 {0}, {1} 표시',
+      errBothWhole: 'a와 b는 모두 정수여야 합니다.',
+      errBothNonNegative: 'a와 b는 모두 영 이상이어야 합니다. 음수는 여기서 최대공약수가 정의되지 않습니다.',
+      errGcdZeroZero: 'gcd(0, 0)은 정의되지 않습니다. 영이 아닌 값을 하나 이상 입력하세요.',
+      errClamped: '입력은 최대 {max}까지입니다. 더 큰 값은 범위에 맞게 줄였습니다.',
+      swapNote: '큰 값이 앞에 옵니다. 입력은 ({a}, {b})였고, gcd({A}, {B})로 추적합니다. 최대공약수는 인수의 순서에 관계없이 같습니다.',
+      bannerReady: '준비되었습니다. “재생”을 눌러 유도 과정이 한 줄씩 만들어지는 모습을 지켜보세요.',
+      bannerDone: {
+        other: '완료: 최대공약수에 도달하기까지 {n}단계가 걸렸습니다.'
+      },
+      chainNoteZero: 'b가 이미 0이어서 더 나눌 것이 없습니다. a가 곧 최대공약수입니다.',
+      extCaption: '각 줄의 {0}, {1} 값이 그 줄의 나머지를 처음 두 입력의 조합으로 나타냅니다: {2}.',
+      viewNested: '중첩 정사각형',
+      geomViewGroupLabel: '기하학적 보기 모드',
+      viewStep: '단일 단계',
+      tileAriaDefault: '현재 나눗셈 단계의 직사각형 보기',
+      nestedAriaDefault: '모든 나눗셈 단계를 하나의 직사각형에 중첩한 보기',
+      caption: '연속된 피보나치 수는 이 알고리즘의 최악의 경우로, 크기에 비해 가장 많은 나눗셈 단계가 필요합니다.',
+      tileCaptionExact: {
+        other: '{total}단계 중 {index}단계: {a} ÷ {b}: 직사각형은 한 변이 {b}인 정사각형 {q}개로 정확히 채워집니다. 남는 것이 없으므로 {b} 값이 최대공약수입니다.'
+      },
+      tileCaptionLeftover: {
+        other: '{total}단계 중 {index}단계: {a} = {q}×{b} + {r}: 한 변이 {b}인 정사각형 {q}개가 들어가고 {b}×{r} 크기가 남습니다.'
+      },
+      tileNoteCapped: '실제 몫은 {q}이지만 여기서는 처음 {cap}개의 정사각형만 그렸습니다. 나머지 {rest}개는 이름표가 붙은 타일 하나로 접혀 있으므로, 그려진 너비는 축척에 맞지 않습니다.',
+      nestedEmptyMessage: '중첩할 직사각형이 없습니다. b가 이미 0이므로 알고리즘이 이미 끝났습니다.',
+      nestedCaption: {
+        other: 'gcd({A}, {B}) = {gcd}: {n}단계 전체가 하나의 {A}×{B} 직사각형에 중첩됩니다. 가장 작은 {lastB}×{lastB} 정사각형이 최대공약수입니다. 정사각형(또는 위의 단계)을 클릭하면 어떻게 맞물리는지 볼 수 있습니다.'
+      },
+      nestedNoteCapped: {
+        other: '단계 {stepNums}의 몫은 매우 커서, 그곳에서는 처음 {cap}개의 정사각형만 점선 타일 하나로 접어 그렸으므로 이 단계에서는 다이어그램이 완전한 축척이 아닙니다.'
+      },
+      nestedTileTitle: '단계 {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: '단계 {step}: {a} = {q}·{b} + {r} (여기에 정사각형 {extra}개가 더 접혀 있음)',
+      tileEmptyMessage: '자를 직사각형이 없습니다. b가 이미 0이므로 알고리즘이 이미 끝났습니다.'
     }
   });
 })();

@@ -3,15 +3,15 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all twenty-one supported languages.
+   Cayley Table tool, in all twenty-four supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
    plural entries ({ one, other } in every language except Polish and
    Russian ({ one, few, many, other }), Romanian ({ one, few, other }),
    Latvian ({ zero, one, other }), Hebrew ({ one, two, other }) and Arabic
-   ({ zero, one, two, few, many, other }), each the CLDR shape for that
-   language);
+   ({ zero, one, two, few, many, other }) and { other } alone in Chinese,
+   Japanese and Korean, each the CLDR shape for that language);
    every other key is plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
@@ -869,6 +869,117 @@
       noteDiagonal: 'Seli hii iko kwenye mhimili wa mshazari — ni pacha wa yenyewe, ikiwa na mlinganyo mmoja tu wa kutaja: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), na {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — zote mbili hutua kwenye thamani ile ile, kwa hiyo jedwali ni linganifu kuhusu mshazari wake: kundi ni badilifu.',
       selfInverseNote: 'Namba {a} ni {word}, kwa sababu thamani yake hapa ni kipengele cha utambulisho.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    zh: {
+      title: '凯莱表',
+      eyebrow: '群论 · 运算表',
+      heading: '凯莱表',
+      lede: '一个群的全部运算都能放进一张方表——每个元素对应一行和一列，每个结果对应一个单元格。关于这个群的每一条结构性事实——它的单位元、它的逆元、它的交换性——都以可见的方式体现在表的形状里。',
+      xref: '同样的两种群运算，以轮上的扇形而不是表中的行来呈现 →',
+      tablistLabel: '群运算',
+      nLabel: 'N——模数',
+      randomizeLabel: '随机',
+      randomize: '新的随机示例',
+      tableScrollLabel: '凯莱表，可滚动',
+      'legend.identity': '{0} 单位元所在的行和列',
+      'legend.inverse': '{0} 自逆元（自配对）',
+      'legend.selected': '{0} 选中的单元格',
+      'legend.mirror': '{0} 对角线对面的镜像孪生格',
+      nNoteNotWhole: 'N 必须是整数——表保持原样。',
+      nNoteTooSmall: 'N 不能小于 1——已提高到 1。',
+      nNoteCapped: 'N 的上限为 {max}，以免表变得过大——已降低到 {max}。',
+      identityWordAdditive: '零',
+      identityWordMultiplicative: '一',
+      inverseWordAdditive: '它自己的相反数',
+      inverseWordMultiplicative: '它自己的倒数',
+      identityNote: '单位元是“{word}”——它所在的行和列已在下方标出。',
+      symmetryNoteAdditive: 'a + b 和 b + a 总是落在同一个类中，所以表关于对角线对称——点击任意一个单元格，就能看到它的孪生格在对面亮起。',
+      symmetryNoteMultiplicative: 'a · b 和 b · a 总是落在同一个类中，所以表关于对角线对称——点击任意一个单元格，就能看到它的孪生格在对面亮起。',
+      summaryAdditive: {
+        other: 'ℤ/{n}ℤ · {count} 个元素 · 单位元 [{id}]'
+      },
+      summaryMultiplicative: {
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} 个元素 · 单位元 [{id}]'
+      },
+      tableCaption: '{summary} 在 {sign} 下的凯莱表',
+      noteDiagonal: '这个单元格位于对角线上——它就是它自己的孪生格，只需写出一个等式：{a} {sign} {a} = {raw} ≡ {val} (mod {n})。',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})，并且 {b} {sign} {a} = {rawBA} ≡ {val} (mod {n})——两者得到同一个值，所以表关于对角线对称：这个群是交换的。',
+      selfInverseNote: '{a} 是“{word}”，因为它在这里的值是单位元。',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    ja: {
+      title: 'ケイリー表',
+      eyebrow: '群論・演算表',
+      heading: 'ケイリー表',
+      lede: '群の演算のすべては一枚の正方形の表に収まります。要素ごとに一つの行と一つの列があり、結果ごとに一つのセルがあります。その群についての構造上の事実はすべて、単位元も、逆元も、可換性も、表の形のどこかにはっきりと現れます。',
+      xref: '同じ二つの群の演算を、表の行ではなく輪の上の扇形として見る →',
+      tablistLabel: '群の演算',
+      nLabel: 'N：法',
+      randomizeLabel: 'ランダム',
+      randomize: '新しいランダムな例',
+      tableScrollLabel: 'ケイリー表（スクロール可能）',
+      'legend.identity': '{0} 単位元の行と列',
+      'legend.inverse': '{0} 自分自身が逆元（自己対応）',
+      'legend.selected': '{0} 選択中のセル',
+      'legend.mirror': '{0} 対角線をはさんだ鏡像の相棒',
+      nNoteNotWhole: 'Nは整数でなければなりません。表はそのままです。',
+      nNoteTooSmall: 'Nは1未満にできません。1に引き上げました。',
+      nNoteCapped: 'Nは表が大きくなりすぎないよう{max}までに制限されています。{max}に下げました。',
+      identityWordAdditive: 'ゼロ',
+      identityWordMultiplicative: '一',
+      inverseWordAdditive: '自分自身の符号反転',
+      inverseWordMultiplicative: '自分自身の逆数',
+      identityNote: '単位元は「{word}」です。その行と列は下に示されています。',
+      symmetryNoteAdditive: 'a + bとb + aは必ず同じ類に入るので、表は対角線について対称です。セルをクリックすると、反対側でその相棒が光る様子を見られます。',
+      symmetryNoteMultiplicative: 'a · bとb · aは必ず同じ類に入るので、表は対角線について対称です。セルをクリックすると、反対側でその相棒が光る様子を見られます。',
+      summaryAdditive: {
+        other: 'ℤ/{n}ℤ · {count}個の要素 · 単位元 [{id}]'
+      },
+      summaryMultiplicative: {
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count}個の要素 · 単位元 [{id}]'
+      },
+      tableCaption: '{sign}による{summary}のケイリー表',
+      noteDiagonal: 'このセルは対角線上にあります。自分自身が相棒なので、述べる等式は一つだけです：{a} {sign} {a} = {raw} ≡ {val} (mod {n})。',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})、かつ{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})です。どちらも同じ値になるので、表は対角線について対称で、この群は可換です。',
+      selfInverseNote: '{a}は「{word}」です。ここでの値が単位元だからです。',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    ko: {
+      title: '케일리 표',
+      eyebrow: '군론 · 연산표',
+      heading: '케일리 표',
+      lede: '군의 모든 연산은 하나의 정사각형 표에 담깁니다. 원소마다 행 하나와 열 하나가 있고, 결과마다 칸 하나가 있습니다. 그 군에 관한 모든 구조적 사실, 곧 항등원, 역원, 가환성이 표의 모양 어딘가에 눈에 보이게 나타납니다.',
+      xref: '같은 두 군 연산을 표의 행이 아니라 바퀴 위의 부채꼴로 보기 →',
+      tablistLabel: '군 연산',
+      nLabel: 'N — 법',
+      randomizeLabel: '무작위',
+      randomize: '새 무작위 예시',
+      tableScrollLabel: '케일리 표, 스크롤 가능',
+      'legend.identity': '{0} 항등원의 행과 열',
+      'legend.inverse': '{0} 자기 자신이 역원 (자기 짝)',
+      'legend.selected': '{0} 선택한 칸',
+      'legend.mirror': '{0} 대각선 맞은편의 거울 쌍둥이',
+      nNoteNotWhole: 'N은 정수여야 합니다. 표는 그대로 유지됩니다.',
+      nNoteTooSmall: 'N은 1 미만이 될 수 없어 1로 올렸습니다.',
+      nNoteCapped: '표가 너무 커지지 않도록 N은 최대 {max}까지이며, {max} 이하로 낮췄습니다.',
+      identityWordAdditive: '영',
+      identityWordMultiplicative: '일',
+      inverseWordAdditive: '자기 자신의 음수',
+      inverseWordMultiplicative: '자기 자신의 역수',
+      identityNote: '항등원은 “{word}”입니다. 그 행과 열은 아래에 표시되어 있습니다.',
+      symmetryNoteAdditive: 'a + b와 b + a는 항상 같은 류에 들어가므로 표는 대각선을 기준으로 대칭입니다. 아무 칸이나 클릭하면 맞은편에서 그 쌍둥이 칸이 켜지는 것을 볼 수 있습니다.',
+      symmetryNoteMultiplicative: 'a · b와 b · a는 항상 같은 류에 들어가므로 표는 대각선을 기준으로 대칭입니다. 아무 칸이나 클릭하면 맞은편에서 그 쌍둥이 칸이 켜지는 것을 볼 수 있습니다.',
+      summaryAdditive: {
+        other: 'ℤ/{n}ℤ · 원소 {count}개 · 항등원 [{id}]'
+      },
+      summaryMultiplicative: {
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = 원소 {count}개 · 항등원 [{id}]'
+      },
+      tableCaption: '{sign}에 대한 {summary}의 케일리 표',
+      noteDiagonal: '이 칸은 대각선 위에 있어 자기 자신이 쌍둥이이므로, 적을 등식은 하나뿐입니다: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), 그리고 {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — 두 식은 같은 값이 되므로 표는 대각선을 기준으로 대칭이며, 이 군은 가환입니다.',
+      selfInverseNote: '{a} 값은 “{word}”입니다. 여기서의 값이 항등원이기 때문입니다.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });

@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all twenty-one supported languages.
+   tool, in all twenty-four supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all twenty-one languages. Must load after assets/nt-i18n.js and
+   across all twenty-four languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -799,6 +799,117 @@
       constructReasonSpanBlocked: 'Ujenzi unahitaji jibu lililokokotolewa, na kinga ya kikomo cha kipindi inalizuia.',
       constructSumMismatch: 'Kutolingana kwa uchunguzi: ujenzi unapunguzwa kuwa {reduced} lakini kitatuzi kilikokotoa {computed} — hivi lazima zilingane kila wakati.',
       seeInverse: 'tazama kinyume →'
+    },
+    zh: {
+      title: '中国剩余定理',
+      heading: '中国剩余定理',
+      lede: '每个同余式单独就能挑出一族等间距的数——每三个数取一个、每五个数取一个，等等。当各个模数没有公因数时，这些族在每一段 {0} 个数中恰好相交于一处。这个唯一的交点就是每一行都认同的联立解。',
+      xref: '在“欧几里得算法”工具中逐步查看第一个同余式的模逆元是如何算出的 →',
+      countGroupLabel: '同余式的个数',
+      countTwo: '两个同余式',
+      countThree: '三个同余式',
+      remainderLabel: '余数 a',
+      modulusLabel: '模数 m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · 孙子的谜题',
+      chipCoprime: '2 mod 3 · 3 mod 5 · 互素的一对',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · 有公因数',
+      extToggleLabel: '展示更快的方法——用扩展欧几里得算法直接构造答案，而不是去搜索它',
+      stripGroupLabel: '剩余类条带，可滚动',
+      constructLede: '为每个同余式各分出一份，对每一份按它自己的模数求逆，乘以该同余式的余数，把各份相加，然后取模约化。',
+      tableHeaderY: 'y (逆元)',
+      tableHeaderTerm: '项 = a · M · y',
+      caption: '答案以周期 {0} 永远重复——标出的那一列是无限多个解中的一个代表。',
+      allAgreeLabel: '全部一致',
+      errModulusWhole: '第 {idx} 行：模数必须是整数。',
+      errModulusRange: '第 {idx} 行：模数必须在 {min} 和 {max} 之间。',
+      errRemainderWhole: '第 {idx} 行：余数必须是整数。',
+      errRemainderRange: '第 {idx} 行：对于模数 {m}，余数必须在 0 到 {max} 之间。',
+      coprimeOk: '各模数两两互素——存在模 {span} 的标准形式解。',
+      coprimeWarn: 'gcd({x}, {y}) = {g}——模数 {x} 和 {y} 有公因数，不满足标准形式中国剩余定理构造所要求的两两互素，因此本工具不尝试求解这个方程组。',
+      spanWarn: '合并后的周期 lcm = {span} 超过了本工具的跨度上限 {max}——请减小其中一个模数，使其低于 {max}。',
+      testingX: '正在测试 x = {x} ……',
+      diagnosticMismatchScan: '诊断不一致：扫描停在 {landed}，但构造法算出的是 {computed}——这两者必须始终一致。',
+      solved: '已求解——所有同余式在 x = {x} 处一致。',
+      diagnosticScanEnd: '诊断：扫描走完了整个周期 ({span}) 仍没有找到一致处，而对于两两互素的方程组这是不可能的。',
+      readyToScan: '就绪——点击“播放”，观看扫描搜索 x。',
+      constructReasonNotCoprime: '该构造要求每个 M_i 在其自己的 m_i 下可逆，而各模数之间的公因数使这不可能。',
+      constructReasonSpanBlocked: '该构造需要一个已计算出的答案，而跨度上限保护正在阻止它。',
+      constructSumMismatch: '诊断不一致：构造法约化为 {reduced}，但求解器算出的是 {computed}——这两者必须始终一致。',
+      seeInverse: '查看逆元 →'
+    },
+    ja: {
+      title: '中国剰余定理',
+      heading: '中国剰余定理',
+      lede: '一つ一つの合同式は、等間隔に並ぶ数の族、つまり三つおきの数、五つおきの数などを取り出します。法が共通の因数を持たなければ、これらの族は{0}個の数ごとの区間のどこか一か所でちょうど交わります。この唯一の交点が、すべての行が一致する連立解です。',
+      xref: '最初の合同式のモジュラ逆元をステップごとに計算する様子を「ユークリッドの互除法」ツールで見る →',
+      countGroupLabel: '合同式の数',
+      countTwo: '二つの合同式',
+      countThree: '三つの合同式',
+      remainderLabel: '余りa',
+      modulusLabel: '法m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · 孫子の謎',
+      chipCoprime: '2 mod 3 · 3 mod 5 · 互いに素な組',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · 因数を共有',
+      extToggleLabel: 'より速い方法を表示：答えを探す代わりに、拡張ユークリッドの互除法で直接答えを組み立てます',
+      stripGroupLabel: '剰余類のストリップ（スクロール可能）',
+      constructLede: '範囲を合同式ごとに一つの部分に分け、それぞれを自分の法に対して逆元をとり、その合同式の余りを掛け、部分を足し合わせてから、簡約します。',
+      tableHeaderY: 'y(逆元)',
+      tableHeaderTerm: '項 = a · M · y',
+      caption: '答えは周期{0}で永遠に繰り返されます。印のついた列は、無限に続く解の族の代表の一つです。',
+      allAgreeLabel: 'すべて一致',
+      errModulusWhole: '{idx}行目：法は整数でなければなりません。',
+      errModulusRange: '{idx}行目：法は{min}から{max}の間でなければなりません。',
+      errRemainderWhole: '{idx}行目：余りは整数でなければなりません。',
+      errRemainderRange: '{idx}行目：法{m}に対して、余りは0から{max}でなければなりません。',
+      coprimeOk: '法はどの二つも互いに素です。法{span}での標準形の解が存在します。',
+      coprimeWarn: 'gcd({x}, {y}) = {g}：法{x}と{y}は因数を共有しているため、標準形の中国剰余定理の構成が要求する「どの二つも互いに素」という条件を満たしません。このツールはこの連立方程式を解こうとしません。',
+      spanWarn: '合成した周期lcm = {span}が、このツールの範囲の上限{max}を超えています。法のどれかを小さくして、{max}以下にしてください。',
+      testingX: 'x = {x}を試しています……',
+      diagnosticMismatchScan: '診断の不一致：スキャンは{landed}で止まりましたが、構成では{computed}が計算されました。この二つは必ず一致するはずです。',
+      solved: '解けました：すべての合同式がx = {x}で一致しています。',
+      diagnosticScanEnd: '診断：スキャンは周期の終わり({span})に達しても一致する値を見つけられませんでした。どの二つも互いに素な連立式ではあり得ないことです。',
+      readyToScan: '準備完了。「再生」を押すと、スキャンがxを探す様子を見られます。',
+      constructReasonNotCoprime: 'この構成では、各M_iがそれ自身のm_iを法として逆元を持つ必要がありますが、法の間に共通の因数があるとそれは不可能になります。',
+      constructReasonSpanBlocked: 'この構成には計算済みの答えが必要ですが、範囲の上限ガードがそれを妨げています。',
+      constructSumMismatch: '診断の不一致：構成は{reduced}に簡約されましたが、ソルバーは{computed}を計算しました。この二つは必ず一致するはずです。',
+      seeInverse: '逆元を見る →'
+    },
+    ko: {
+      title: '중국인의 나머지 정리',
+      heading: '중국인의 나머지 정리',
+      lede: '각 합동식은 그 자체로 같은 간격으로 늘어선 수의 무리를 골라냅니다. 세 번째마다 하나, 다섯 번째마다 하나 같은 식입니다. 법들에 공통 인수가 없으면, 이 무리들은 {0}개의 수로 이루어진 모든 구간에서 정확히 한 곳에서 만납니다. 그 하나뿐인 교점이 모든 행이 일치하는 연립 해입니다.',
+      xref: '첫 번째 합동식의 모듈러 역원을 단계별로 계산하는 과정을 “유클리드 호제법” 도구에서 보기 →',
+      countGroupLabel: '합동식의 개수',
+      countTwo: '합동식 두 개',
+      countThree: '합동식 세 개',
+      remainderLabel: '나머지 a',
+      modulusLabel: '법 m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · 손자의 수수께끼',
+      chipCoprime: '2 mod 3 · 3 mod 5 · 서로소인 쌍',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · 공통 인수 있음',
+      extToggleLabel: '더 빠른 방법 보기 — 답을 찾아 헤매는 대신 확장 유클리드 호제법으로 답을 직접 만듭니다',
+      stripGroupLabel: '잉여류 띠, 스크롤 가능',
+      constructLede: '구간을 합동식마다 한 조각씩 나누고, 각 조각의 역원을 자기 자신의 법에 대해 구한 뒤, 그 합동식의 나머지를 곱하고, 조각들을 모두 더한 다음 법으로 줄입니다.',
+      tableHeaderY: 'y (역원)',
+      tableHeaderTerm: '항 = a · M · y',
+      caption: '답은 {0} 주기로 영원히 반복되며, 표시된 열은 무한히 많은 해 중 하나의 대표입니다.',
+      allAgreeLabel: '모두 일치',
+      errModulusWhole: '{idx}행: 법은 정수여야 합니다.',
+      errModulusRange: '{idx}행: 법은 {min} 이상 {max} 이하여야 합니다.',
+      errRemainderWhole: '{idx}행: 나머지는 정수여야 합니다.',
+      errRemainderRange: '{idx}행: 법 {m}에 대해 나머지는 0 이상 {max} 이하여야 합니다.',
+      coprimeOk: '법들은 쌍마다 서로소입니다. 법 {span}에 대한 표준형 해가 존재합니다.',
+      coprimeWarn: 'gcd({x}, {y}) = {g}: 법 {x} 및 {y}에는 공통 인수가 있으므로, 표준형 중국인의 나머지 정리 구성이 요구하는 쌍별 서로소 조건을 만족하지 않으며 이 도구는 이 연립방정식을 풀려고 시도하지 않습니다.',
+      spanWarn: '합친 주기 lcm = {span} 값이 이 도구의 범위 상한 {max} 값을 넘습니다. 법 중 하나를 줄여 {max} 이하로 만드세요.',
+      testingX: 'x = {x} 시험 중…',
+      diagnosticMismatchScan: '진단 불일치: 스캔은 {landed}에서 멈췄지만 구성은 {computed} 값을 계산했습니다. 이 둘은 항상 일치해야 합니다.',
+      solved: '해결: 모든 합동식이 x = {x}에서 일치합니다.',
+      diagnosticScanEnd: '진단: 스캔이 주기의 끝 ({span})까지 갔지만 일치하는 값을 찾지 못했습니다. 쌍마다 서로소인 연립식에서는 있을 수 없는 일입니다.',
+      readyToScan: '준비되었습니다. “재생”을 눌러 스캔이 x를 찾는 모습을 지켜보세요.',
+      constructReasonNotCoprime: '이 구성은 각 M_i가 자기 자신의 m_i에 대해 역원을 가져야 하는데, 법들 사이에 공통 인수가 있으면 그것이 불가능해집니다.',
+      constructReasonSpanBlocked: '이 구성에는 계산된 답이 필요한데, 범위 상한 보호 장치가 이를 막고 있습니다.',
+      constructSumMismatch: '진단 불일치: 구성을 줄이면 {reduced} 값이 되지만 풀이기는 {computed} 값을 계산했습니다. 이 둘은 항상 일치해야 합니다.',
+      seeInverse: '역원 보기 →'
     }
   });
 })();

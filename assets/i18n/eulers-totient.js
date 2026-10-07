@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all twenty-one supported languages.
+   tool, in all twenty-four supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,11 +12,11 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all twenty-one languages. bannerDone is { one, other } in every language
+   all twenty-four languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
-   ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }),
-   each the CLDR shape for that language.
+   ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese,
+   Japanese and Korean, each the CLDR shape for that language.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -517,6 +517,72 @@
         other: 'Imekamilika — thamani {count} zimejaribiwa; zisizo na kigawo cha pamoja na {n} ni {phi}.'
       },
       caption: 'n inapokuwa namba tasa, φ(n) = n−1, kwa sababu kila namba ndogo zaidi haina kigawo cha pamoja nayo — vitufe vya mfano hurahisisha kuthibitisha hilo.'
+    },
+    zh: {
+      title: '欧拉 φ 函数',
+      heading: '欧拉 φ 函数',
+      lede: 'φ(n)统计 1 … n−1 中有多少个数与 n 没有公因数，而本页用唯一诚实的办法来求出——对其中的每一个数都去问一问欧几里得算法。',
+      xref: '同样的计数也出现为模 n 乘法群的扇形 →',
+      chipPrime: '{n} · 素数',
+      run: '运行',
+      errNotWhole: 'n 必须是整数。',
+      errTooSmall: 'n 至少为 {min}——遍历 k = 1 … n−1 至少需要一个 k 来测试。',
+      errCapped: 'n 的上限为 {max}——该值已被下调以适应上限。',
+      chainHead: '测试 k = {k}——gcd({n}, {k})',
+      verdictCoprime: 'k = {k} 与 {n} 互素——gcd = 1，已计入。',
+      verdictEliminated: 'k = {k} 与 {n} 有公因数——gcd = {gcd}，已排除。',
+      tally: '当前互素计数：{count}',
+      progress: '已测试 k = {k}（共 {total} 个）。',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: '就绪——点击“播放”，观看遍历一次除一步地测试每个 k。',
+      bannerDone: {
+        other: '完成——已测试 {count} 个值，其中 {phi} 个与 {n} 互素。'
+      },
+      caption: 'n 为素数时 φ(n) = n−1，因为每个更小的数都与它没有公因数——这些示例按钮让验证变得很容易。'
+    },
+    ja: {
+      title: 'オイラーのφ関数',
+      heading: 'オイラーのφ関数',
+      lede: 'φ(n)は、1 … n−1のうちnと共通の因数を持たないものがいくつあるかを数えます。このページでは、その一つ一つについてユークリッドの互除法に尋ねるという、唯一の正直な方法で調べます。',
+      xref: '同じ個数が、nを法とする乗法群の扇形としても現れます →',
+      chipPrime: '{n} · 素数',
+      run: '実行',
+      errNotWhole: 'nは整数でなければなりません。',
+      errTooSmall: 'nは{min}以上でなければなりません。k = 1 … n−1と順に調べるには、少なくとも一つのkが必要です。',
+      errCapped: 'nは{max}までに制限されます。値は収まるよう切り下げられました。',
+      chainHead: 'k = {k}を調べる：gcd({n}, {k})',
+      verdictCoprime: 'k = {k}は{n}と互いに素です。gcd = 1なので、集計します。',
+      verdictEliminated: 'k = {k}は{n}と因数を共有しています。gcd = {gcd}なので、除外します。',
+      tally: '互いに素な数の現在の個数：{count}',
+      progress: '{total}個中、k = {k}まで検査しました。',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: '準備完了。「再生」を押すと、各kを一回の割り算ずつ調べていく様子を見られます。',
+      bannerDone: {
+        other: '完了：{count}個の値を調べ、そのうち{phi}個が{n}と互いに素でした。'
+      },
+      caption: 'nが素数のとき、φ(n) = n−1です。それより小さい数はどれもnと共通の因数を持たないからで、例のボタンで簡単に確かめられます。'
+    },
+    ko: {
+      title: '오일러 φ 함수',
+      heading: '오일러 φ 함수',
+      lede: 'φ(n)은 1 … n−1 중 n과 공통 인수가 없는 수가 몇 개인지 세는 값이며, 이 페이지는 그 하나하나에 대해 유클리드 호제법에 물어보는 유일하게 정직한 방법으로 이를 알아냅니다.',
+      xref: '같은 개수가 n을 법으로 하는 곱셈군의 부채꼴로도 나타납니다 →',
+      chipPrime: '{n} · 소수',
+      run: '실행',
+      errNotWhole: 'n은 정수여야 합니다.',
+      errTooSmall: 'n은 최소 {min} 이상이어야 합니다. k = 1 … n−1을 차례로 조사하려면 시험할 k가 적어도 하나 필요합니다.',
+      errCapped: 'n은 최대 {max}까지입니다. 값을 범위에 맞게 줄였습니다.',
+      chainHead: 'k = {k} 시험: gcd({n}, {k})',
+      verdictCoprime: 'k = {k}, n = {n}: 서로소(gcd = 1)이므로 집계에 포함합니다.',
+      verdictEliminated: 'k = {k}, n = {n}: 공통 인수가 있으므로(gcd = {gcd}) 제외합니다.',
+      tally: '지금까지의 서로소 개수: {count}',
+      progress: '{total}개 중 k = {k}까지 시험했습니다.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: '준비되었습니다. “재생”을 눌러 각 k를 나눗셈 한 번씩 시험하는 과정을 지켜보세요.',
+      bannerDone: {
+        other: '완료: 값 {count}개를 시험했고, 그중 {phi}개가 n = {n}에 대해 서로소였습니다.'
+      },
+      caption: 'n이 소수이면 φ(n) = n−1입니다. 더 작은 모든 수가 n과 공통 인수를 갖지 않기 때문이며, 예시 버튼으로 쉽게 확인할 수 있습니다.'
     }
   });
 })();
