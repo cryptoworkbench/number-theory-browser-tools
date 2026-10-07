@@ -714,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sv"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -959,6 +959,26 @@ function doApi() {
   check("after he then ar, html lang is ar", (I.setLang("ar"), ctx._doc.documentElement.lang), "ar");
   check("after ar then en, html dir attribute is absent", (I.setLang("en"), ctx._doc.documentElement.getAttribute("dir")), null);
 
+  // Albanian and Swahili {one, other}: Intl.PluralRules('sq') / ('sw') select one at exactly 1 and
+  // other for 0, 2, 1.5, 21, 100 and 1000000 (unlike Hindi and French, 0 is other).
+  I.register("trsqsw", {
+    en: { count: { one: "{count} key", other: "{count} keys" } },
+    sq: { count: { one: "{count} one", other: "{count} other" } },
+    sw: { count: { one: "{count} one", other: "{count} other" } }
+  });
+  ["sq", "sw"].forEach(function (L) {
+    check("setLang('" + L + "') returns true (trsqsw)", I.setLang(L), true);
+    [[0, "other"], [1, "one"], [2, "other"], [1.5, "other"], [21, "other"], [100, "other"], [1000000, "other"]].forEach(function (pair) {
+      check(L + " trsqsw.count at " + pair[0] + " selects " + pair[1], I.translate("trsqsw.count", { count: pair[0] }), pair[0] + " " + pair[1]);
+    });
+  });
+  check("after ar then sq, html lang is sq", (I.setLang("ar"), I.setLang("sq"), ctx._doc.documentElement.lang), "sq");
+  check("after ar then sq, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after he then sw, html lang is sw", (I.setLang("he"), I.setLang("sw"), ctx._doc.documentElement.lang), "sw");
+  check("after he then sw, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after sw then ar, html dir attribute is rtl", (I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  I.setLang("en");
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -1076,6 +1096,14 @@ function doApi() {
   check("setLang('ar-EG') returns false (region-tagged ar not supported)", I.setLang("ar-EG"), false);
   check("setLang('ar-SA') returns false (region-tagged ar not supported)", I.setLang("ar-SA"), false);
   check("setLang('AR') returns false (case-sensitive)", I.setLang("AR"), false);
+  check("setLang('sq-AL') returns false (region-tagged sq not supported)", I.setLang("sq-AL"), false);
+  check("setLang('SQ') returns false (case-sensitive)", I.setLang("SQ"), false);
+  check("setLang('sqi') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("sqi"), false);
+  check("setLang('alb') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("alb"), false);
+  check("setLang('sw-KE') returns false (region-tagged sw not supported)", I.setLang("sw-KE"), false);
+  check("setLang('SW') returns false (case-sensitive)", I.setLang("SW"), false);
+  check("setLang('swa') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("swa"), false);
+  check("setLang('swh') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("swh"), false);
   check("setLang('ara') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("ara"), false);
   check("setLang('hin') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("hin"), false);
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
@@ -1240,7 +1268,22 @@ function doApi() {
     [["fa-IR", "ar"], "ar", "fa-IR,ar (Persian unsupported, falls through)"],
     [["ur-PK", "en"], "en", "ur-PK,en (Urdu not mapped)"],
     [["en-AE", "ar"], "en", "en-AE,ar (English in the UAE stays English)"],
-    [["he-IL", "ar"], "he", "he-IL,ar (first supported wins)"]
+    [["he-IL", "ar"], "he", "he-IL,ar (first supported wins)"],
+    [["sq"], "sq", "sq"],
+    [["sq-AL"], "sq", "sq-AL"],
+    [["SQ_xk", "en"], "sq", "SQ_xk (case-insensitive, underscore separator)"],
+    [["sq-MK"], "sq", "sq-MK"],
+    [["sqi", "en"], "sq", "sqi,en (ISO 639-2 Albanian, two-letter prefix)"],
+    [["aln", "sq"], "sq", "aln,sq (Gheg Albanian unsupported, falls through)"],
+    [["als", "en"], "en", "als,en (Tosk/Alemannic tag not mapped)"],
+    [["sw"], "sw", "sw"],
+    [["sw-KE"], "sw", "sw-KE"],
+    [["SW_tz", "en"], "sw", "SW_tz (case-insensitive, underscore separator)"],
+    [["sw-CD"], "sw", "sw-CD"],
+    [["swh", "en"], "sw", "swh,en (ISO 639-3 Swahili, two-letter prefix)"],
+    [["en-KE", "sw"], "en", "en-KE,sw (Kenyan English stays English)"],
+    [["he-IL", "sq"], "he", "he-IL,sq (first supported wins)"],
+    [["sq-AL", "sw-KE"], "sq", "sq-AL,sw-KE (first supported wins)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1361,7 +1404,15 @@ function doPersistence() {
     { opts: { cookie: { initial: "AR" }, storage: { initial: "es" } }, want: "es", label: "cookie AR falls through to storage" },
     { opts: { storage: { initial: "ara" } }, want: "en", label: "storage ara (ISO 639-2 tag, unsupported) falls through to detected default" },
     { opts: { search: "?lang=ar", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "ar", label: "url ar beats cookie and storage" },
-    { opts: { storage: { initial: "ar-EG" }, navigator: { languages: ["ar-EG", "en"] } }, want: "ar", label: "storage ar-EG falls through to detected ar (navigator ar-EG)" }
+    { opts: { storage: { initial: "ar-EG" }, navigator: { languages: ["ar-EG", "en"] } }, want: "ar", label: "storage ar-EG falls through to detected ar (navigator ar-EG)" },
+    { opts: { search: "?lang=sq", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "sq", label: "url sq beats cookie and storage" },
+    { opts: { search: "?lang=sq-AL", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url sq-AL (region-tagged sq, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=SQ", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url SQ (case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=sw", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "sw", label: "url sw beats cookie and storage" },
+    { opts: { cookie: { initial: "SW" }, storage: { initial: "es" } }, want: "es", label: "cookie SW falls through to storage" },
+    { opts: { storage: { initial: "swa" } }, want: "en", label: "storage swa (ISO 639-2 tag, unsupported) falls through to detected default" },
+    { opts: { storage: { initial: "sw-KE" }, navigator: { languages: ["sw-KE", "en"] } }, want: "sw", label: "storage sw-KE falls through to detected sw (navigator sw-KE)" },
+    { opts: { storage: { initial: "sq-AL" }, navigator: { languages: ["sq-AL", "en"] } }, want: "sq", label: "storage sq-AL falls through to detected sq (navigator sq-AL)" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1390,6 +1441,12 @@ function doPersistence() {
     var arCtx = loadI18n({ search: "?lang=ar", navigator: { languages: ["en-US", "en"] } });
     check("?lang=ar load sets html lang", arCtx._doc.documentElement.lang, "ar");
     check("?lang=ar load sets html dir rtl", arCtx._doc.documentElement.getAttribute("dir"), "rtl");
+    var sqCtx = loadI18n({ search: "?lang=sq", navigator: { languages: ["en-US", "en"] } });
+    check("?lang=sq load sets html lang", sqCtx._doc.documentElement.lang, "sq");
+    check("?lang=sq load leaves html dir absent", sqCtx._doc.documentElement.getAttribute("dir"), null);
+    var swCtx = loadI18n({ search: "?lang=sw", navigator: { languages: ["en-US", "en"] } });
+    check("?lang=sw load sets html lang", swCtx._doc.documentElement.lang, "sw");
+    check("?lang=sw load leaves html dir absent", swCtx._doc.documentElement.getAttribute("dir"), null);
     var enCtx = loadI18n({ navigator: { languages: ["en-US", "en"] } });
     check("plain English load leaves html dir absent", enCtx._doc.documentElement.getAttribute("dir"), null);
     var deCtx = loadI18n({ search: "?lang=de", navigator: { languages: ["en-US", "en"] } });
@@ -1611,6 +1668,24 @@ function doPersistence() {
     check("storage event with the region-tagged ar-EG is a no-op", ctx._doc.documentElement.lang, "ar");
     check("storage event with ar-EG fires no change event", ctx._changeEvents.length, changeAfterAr2);
 
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "sq");
+    check("storage event with sq while ar is active re-applies html lang", ctx._doc.documentElement.lang, "sq");
+    check("storage event with sq while ar is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with sq fires one more change event", ctx._changeEvents.length, changeAfterAr2 + 1);
+
+    var changeAfterSq = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "sq-AL");
+    check("storage event with the region-tagged sq-AL is a no-op", ctx._doc.documentElement.lang, "sq");
+    check("storage event with sq-AL fires no change event", ctx._changeEvents.length, changeAfterSq);
+
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "he");
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "sw");
+    check("storage event with sw while he is active re-applies html lang", ctx._doc.documentElement.lang, "sw");
+    check("storage event with sw while he is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    var changeAfterSw = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "sw-KE");
+    check("storage event with the region-tagged sw-KE is a no-op", ctx._changeEvents.length, changeAfterSw);
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -1675,7 +1750,9 @@ var SWITCHER_OPTIONS = [
   { value: "el", lang: "el", label: "Ελληνικά" },
   { value: "he", lang: "he", label: "עברית" },
   { value: "hi", lang: "hi", label: "हिन्दी" },
-  { value: "ar", lang: "ar", label: "العربية" }
+  { value: "ar", lang: "ar", label: "العربية" },
+  { value: "sq", lang: "sq", label: "Shqip" },
+  { value: "sw", lang: "sw", label: "Kiswahili" }
 ];
 
 // RTL_LANGS: the languages written right to left, Hebrew and Arabic. Mirrors
@@ -1700,6 +1777,8 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // other for that case. Hindi (hi) is unlisted too: it uses English's
 // {one, other} set, although its one also covers 0 and 0.5 (CLDR "i = 0 or
 // n = 1"), so a Hindi one form must read correctly for 0 as well as 1.
+// Albanian (sq) and Swahili (sw) are unlisted as well: they use English's
+// {one, other} set, where 0 and fractions select other (unlike Hindi's one).
 var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"], ar: ["zero", "two", "few", "many"] };
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
@@ -1979,7 +2058,7 @@ function bidiFindings(id, lang, value) {
   return findings;
 }
 
-/* ---------- character hygiene and digit parity (every language / Hindi and Arabic) ---------- */
+/* ---------- character hygiene and digit parity (every language / the languages added after the rule) ---------- */
 
 // charFindings(id, lang, value): character-level hygiene for one dictionary
 // value in any language.
@@ -2024,8 +2103,9 @@ function charFindings(id, lang, value) {
 // DIGIT_PARITY_LANGS: the languages whose values must carry exactly their
 // English value's numerals. Languages added before this rule keep a few
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
-// is why the list holds only the languages added after the rule existed.
-var DIGIT_PARITY_LANGS = ["hi", "ar"];
+// is why the list holds only the languages added after the rule existed
+// (Hindi, Arabic, Albanian and Swahili).
+var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space

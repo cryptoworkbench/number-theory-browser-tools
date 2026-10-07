@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all nineteen
+   switcher's own label and the day/night toggle's label — in all twenty-one
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -451,6 +451,52 @@
       'nav.shor': 'خوارزمية شور',
       'lang.label': 'اللغة',
       'theme.toggle': 'التبديل بين الوضع النهاري والليلي'
+    },
+    sq: {
+      brand: 'Mjete të teorisë së numrave',
+      'nav.label': 'Mjetet',
+      menu: 'Mjetet',
+      'nav.home': 'Kreu',
+      'nav.sieve': 'Sita e Eratostenit',
+      'nav.factorTree': 'Pema e faktorëve',
+      'nav.venn': 'Diagrami Venn',
+      'nav.euclid': 'Algoritmi i Euklidit',
+      'nav.crt': 'Teorema kineze e mbetjeve',
+      'nav.wheel': 'Rrota e ekuivalencës',
+      'nav.totient': 'Funksioni φ i Eulerit',
+      'nav.cayley': 'Tabela e Cayley-t',
+      'nav.iso': 'Izomorfizmi i grupeve',
+      'nav.sqm': 'Ngritja në katror dhe shumëzimi',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH me kurba eliptike',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Metoda e Fermatit',
+      'nav.shor': 'Algoritmi i Shorit',
+      'lang.label': 'Gjuha',
+      'theme.toggle': 'Ndërro mes modalitetit të ditës dhe atij të natës'
+    },
+    sw: {
+      brand: 'Zana za nadharia ya namba',
+      'nav.label': 'Zana',
+      menu: 'Zana',
+      'nav.home': 'Mwanzo',
+      'nav.sieve': 'Chujio la Eratosthenes',
+      'nav.factorTree': 'Mti wa vigawo',
+      'nav.venn': 'Mchoro wa Venn',
+      'nav.euclid': 'Algorithimu ya Euclid',
+      'nav.crt': 'Nadharia ya mabaki ya Kichina',
+      'nav.wheel': 'Gurudumu la usawa',
+      'nav.totient': 'Kitendakazi φ cha Euler',
+      'nav.cayley': 'Jedwali la Cayley',
+      'nav.iso': 'Isomofizimu ya makundi',
+      'nav.sqm': 'Mraba na kuzidisha',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH kwa mikunjo duaradufu',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Mbinu ya Fermat',
+      'nav.shor': 'Algorithimu ya Shor',
+      'lang.label': 'Lugha',
+      'theme.toggle': 'Badilisha kati ya hali ya mchana na ya usiku'
     }
   });
 
@@ -978,6 +1024,60 @@
       redoPalette: 'إعادة تغيير اللوحة',
       undoWork: 'تراجع',
       redoWork: 'إعادة'
+    },
+    sq: {
+      play: 'Luaj',
+      pause: 'Pauzë',
+      step: 'Hap',
+      instant: 'Menjëherë',
+      reset: 'Rivendos',
+      speed: 'Shpejtësia',
+      'speed.1': 'e akullt',
+      'speed.2': 'e ngadaltë',
+      'speed.3': 'e qetë',
+      'speed.4': 'e gjallë',
+      'speed.5': 'e qëndrueshme',
+      'speed.6': 'e shpejtë',
+      'speed.7': 'shumë e shpejtë',
+      'speed.8': 'e vrullshme',
+      'speed.9': 'e zjarrtë',
+      'speed.10': 'pothuajse e menjëhershme',
+      additiveGroups: 'Grupet aditive',
+      multiplicativeGroups: 'Grupet shumëzuese',
+      paletteEmptySieve: 'Përdorni mjetin „{0}“ për të shtuar numra të thjeshtë në këtë paletë.',
+      primePickerOpen: 'Zgjidhni një numër të thjeshtë nga paleta',
+      primePickerHeading: 'Zgjidhni një numër të thjeshtë',
+      undoPalette: 'Zhbëj ndryshimin e paletës',
+      redoPalette: 'Ribëj ndryshimin e paletës',
+      undoWork: 'Zhbëj',
+      redoWork: 'Ribëj'
+    },
+    sw: {
+      play: 'Cheza',
+      pause: 'Sitisha',
+      step: 'Hatua',
+      instant: 'Papo hapo',
+      reset: 'Weka upya',
+      speed: 'Kasi',
+      'speed.1': 'ya barafu',
+      'speed.2': 'ya polepole',
+      'speed.3': 'ya upole',
+      'speed.4': 'ya uchangamfu',
+      'speed.5': 'ya kudumu',
+      'speed.6': 'ya haraka',
+      'speed.7': 'ya juu',
+      'speed.8': 'ya mbio',
+      'speed.9': 'ya umeme',
+      'speed.10': 'karibu papo hapo',
+      additiveGroups: 'Makundi ya kujumlisha',
+      multiplicativeGroups: 'Makundi ya kuzidisha',
+      paletteEmptySieve: 'Tumia zana ya “{0}” kuongeza namba tasa kwenye paleti hii.',
+      primePickerOpen: 'Chagua namba tasa kutoka kwenye paleti',
+      primePickerHeading: 'Chagua namba tasa',
+      undoPalette: 'Tendua badiliko la paleti',
+      redoPalette: 'Rudia badiliko la paleti',
+      undoWork: 'Tendua',
+      redoWork: 'Rudia'
     }
   });
 })();

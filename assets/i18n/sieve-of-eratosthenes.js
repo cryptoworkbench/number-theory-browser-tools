@@ -1,7 +1,7 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all nineteen supported
+   marker for the Sieve of Eratosthenes tool, in all twenty-one supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -10,7 +10,7 @@
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
    Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }), each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all nineteen
+   Placeholder names ({n}, {time}, {count}) are identical across all twenty-one
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -776,6 +776,82 @@
         other: 'تمت إضافة {count} عدد أولي جديد — اللوحة ممتلئة (سعتها القصوى {max})؛ الأعداد الأولية غير المضافة: {left}.'
       },
       'palette.none': 'كل الأعداد الأولية المكتشفة موجودة بالفعل في اللوحة — لا شيء لإضافته.'
+    },
+    sq: {
+      sound: 'Zëri',
+      title: 'Sita e Eratostenit — Vizualizues interaktiv',
+      heading: 'Sita e Eratostenit',
+      eyebrow: 'numrat e thjeshtë dhe pjesëtueshmëria',
+      lede: 'Jepini çdo numri natyror kutinë e tij — pastaj shikoni se si sita kryqëzon gjithçka që nuk është numër i thjeshtë.',
+      sizeLabel: 'Madhësia e sitës (N)',
+      generate: 'Gjenero',
+      'stat.current': 'Aktuali',
+      'stat.primesFound': 'Numra të thjeshtë të gjetur',
+      'stat.sqrtBoundary': 'Kufiri √N',
+      'stat.elapsed': 'Koha e kaluar',
+      'stat.progress': 'Përparimi',
+      'stat.done': '✓ përfundoi',
+      'legend.unvisited': '{0} I pavizituar',
+      'legend.currentPointer': '{0} Treguesi aktual',
+      'legend.prime': '{0} Numër i thjeshtë',
+      'legend.composite': '{0} I kryqëzuar (numër i përbërë)',
+      'legend.neither': '{0} Asnjëri nga dy (1)',
+      footer: 'E gjithë llogaritja kryhet në shfletuesin tuaj, nga ana e klientit. Asnjë numër nuk u dëmtua përgjithmonë — u kryqëzua vetëm.',
+      'banner.ready': 'Gati. U krijuan {n} kuti — shtypni Luaj për të filluar sitjen.',
+      'banner.single': 'Vetëm 1 kuti — nuk ka çfarë të situet.',
+      'banner.reset': 'U rivendos. U rindërtuan {n} kuti — shtypni Luaj për të filluar sitjen.',
+      'banner.done': {
+        one: 'U gjet {count} numër i thjeshtë deri në {n} brenda {time}.',
+        other: 'U gjetën {count} numra të thjeshtë deri në {n} brenda {time}.'
+      },
+      toPalette: 'Shto numrat e thjeshtë të gjetur në paletë',
+      'palette.added': {
+        one: 'U shtua {count} numër i ri i thjeshtë në paletë — dublikatat e anashkaluara: {dupes}.',
+        other: 'U shtuan {count} numra të rinj të thjeshtë në paletë — dublikatat e anashkaluara: {dupes}.'
+      },
+      'palette.full': {
+        one: 'U shtua {count} numër i ri i thjeshtë — paleta është plot ({max} numra); numrat e thjeshtë të pashtuar: {left}.',
+        other: 'U shtuan {count} numra të rinj të thjeshtë — paleta është plot ({max} numra); numrat e thjeshtë të pashtuar: {left}.'
+      },
+      'palette.none': 'Çdo numër i thjeshtë i gjetur është tashmë në paletë — nuk ka çfarë të shtohet.'
+    },
+    sw: {
+      sound: 'Sauti',
+      title: 'Chujio la Eratosthenes — Kionyeshi shirikishi',
+      heading: 'Chujio la Eratosthenes',
+      eyebrow: 'namba tasa na ugawanyikaji',
+      lede: 'Ipe kila namba asilia kisanduku chake — kisha tazama chujio likifuta kila kitu ambacho si namba tasa.',
+      sizeLabel: 'Ukubwa wa chujio (N)',
+      generate: 'Tengeneza',
+      'stat.current': 'Ya sasa',
+      'stat.primesFound': 'Namba tasa zilizopatikana',
+      'stat.sqrtBoundary': 'Mpaka wa √N',
+      'stat.elapsed': 'Muda uliopita',
+      'stat.progress': 'Maendeleo',
+      'stat.done': '✓ imekamilika',
+      'legend.unvisited': '{0} Haijatembelewa',
+      'legend.currentPointer': '{0} Kielekezi cha sasa',
+      'legend.prime': '{0} Namba tasa',
+      'legend.composite': '{0} Imefutwa (namba shirikishi)',
+      'legend.neither': '{0} Hakuna kati ya hizo mbili (1)',
+      footer: 'Hesabu zote hufanyika upande wa mteja ndani ya kivinjari chako. Hakuna namba iliyoharibiwa kabisa — zimefutwa tu.',
+      'banner.ready': 'Tayari. Visanduku {n} vimeundwa — bonyeza Cheza ili kuanza kuchuja.',
+      'banner.single': 'Kisanduku 1 tu — hakuna cha kuchuja.',
+      'banner.reset': 'Imewekwa upya. Visanduku {n} vimejengwa upya — bonyeza Cheza ili kuanza kuchuja.',
+      'banner.done': {
+        one: 'Namba tasa {count} imepatikana hadi {n} ndani ya {time}.',
+        other: 'Namba tasa {count} zimepatikana hadi {n} ndani ya {time}.'
+      },
+      toPalette: 'Ongeza namba tasa zilizopatikana kwenye paleti',
+      'palette.added': {
+        one: 'Namba tasa mpya {count} imeongezwa kwenye paleti — nakala zilizorukwa: {dupes}.',
+        other: 'Namba tasa mpya {count} zimeongezwa kwenye paleti — nakala zilizorukwa: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Namba tasa mpya {count} imeongezwa — paleti imejaa (namba {max}); namba tasa ambazo hazikuongezwa: {left}.',
+        other: 'Namba tasa mpya {count} zimeongezwa — paleti imejaa (namba {max}); namba tasa ambazo hazikuongezwa: {left}.'
+      },
+      'palette.none': 'Kila namba tasa iliyopatikana tayari iko kwenye paleti — hakuna cha kuongeza.'
     }
   });
 })();
