@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all twenty-four
+   switcher's own label and the day/night toggle's label — in all twenty-five
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -566,6 +566,29 @@
       'nav.shor': '쇼어 알고리즘',
       'lang.label': '언어',
       'theme.toggle': '낮 모드와 밤 모드 전환'
+    },
+    id: {
+      brand: 'Alat Teori Bilangan',
+      'nav.label': 'Alat',
+      menu: 'Alat',
+      'nav.home': 'Beranda',
+      'nav.sieve': 'Saringan Eratosthenes',
+      'nav.factorTree': 'Pohon Faktor',
+      'nav.venn': 'Diagram Venn',
+      'nav.euclid': 'Algoritma Euklides',
+      'nav.crt': 'Teorema Sisa Tiongkok',
+      'nav.wheel': 'Roda Ekuivalensi',
+      'nav.totient': 'Fungsi φ Euler',
+      'nav.cayley': 'Tabel Cayley',
+      'nav.iso': 'Isomorfisme Grup',
+      'nav.sqm': 'Kuadratkan dan Kalikan',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH Kurva Eliptik',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Metode Fermat',
+      'nav.shor': 'Algoritma Shor',
+      'lang.label': 'Bahasa',
+      'theme.toggle': 'Beralih antara mode siang dan malam'
     }
   });
 
@@ -1228,6 +1251,33 @@
       redoPalette: '팔레트 변경 다시 실행',
       undoWork: '실행 취소',
       redoWork: '다시 실행'
+    },
+    id: {
+      play: 'Putar',
+      pause: 'Jeda',
+      step: 'Langkah',
+      instant: 'Seketika',
+      reset: 'Atur ulang',
+      speed: 'Kecepatan',
+      'speed.1': 'sangat lambat',
+      'speed.2': 'lambat',
+      'speed.3': 'santai',
+      'speed.4': 'lincah',
+      'speed.5': 'stabil',
+      'speed.6': 'gesit',
+      'speed.7': 'cepat',
+      'speed.8': 'sangat cepat',
+      'speed.9': 'kilat',
+      'speed.10': 'hampir seketika',
+      additiveGroups: 'Grup Aditif',
+      multiplicativeGroups: 'Grup Multiplikatif',
+      paletteEmptySieve: 'Gunakan alat “{0}” untuk menambahkan bilangan prima ke palet ini.',
+      primePickerOpen: 'Pilih bilangan prima dari palet',
+      primePickerHeading: 'Pilih bilangan prima',
+      undoPalette: 'Urungkan perubahan palet',
+      redoPalette: 'Ulangi perubahan palet',
+      undoWork: 'Urungkan',
+      redoWork: 'Ulangi'
     }
   });
 })();

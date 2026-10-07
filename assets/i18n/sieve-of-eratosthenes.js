@@ -1,16 +1,16 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all twenty-four supported
+   marker for the Sieve of Eratosthenes tool, in all twenty-five supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). banner.done is a plural entry ({ one, other } in
    every language except Polish and Russian ({ one, few, many, other }),
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
-   Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese and Korean, each
+   Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all twenty-four
+   Placeholder names ({n}, {time}, {count}) are identical across all twenty-five
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -957,6 +957,41 @@
         other: '새 소수 {count}개를 추가했습니다. 팔레트가 가득 찼습니다 (최대 {max}개). 추가하지 못한 소수: {left}.'
       },
       'palette.none': '찾은 소수가 모두 이미 팔레트에 있어 추가할 것이 없습니다.'
+    },
+    id: {
+      sound: 'Suara',
+      title: 'Saringan Eratosthenes — Visualisasi Interaktif',
+      heading: 'Saringan Eratosthenes',
+      eyebrow: 'bilangan prima dan keterbagian',
+      lede: 'Beri setiap bilangan asli kotaknya sendiri — lalu saksikan saringan mencoret semua bilangan yang bukan prima.',
+      sizeLabel: 'Ukuran saringan (N)',
+      generate: 'Buat',
+      'stat.current': 'Saat ini',
+      'stat.primesFound': 'Bilangan prima ditemukan',
+      'stat.sqrtBoundary': 'Batas √N',
+      'stat.elapsed': 'Waktu berlalu',
+      'stat.progress': 'Kemajuan',
+      'stat.done': '✓ selesai',
+      'legend.unvisited': '{0} Belum dikunjungi',
+      'legend.currentPointer': '{0} Penunjuk saat ini',
+      'legend.prime': '{0} Prima',
+      'legend.composite': '{0} Dicoret (komposit)',
+      'legend.neither': '{0} Bukan keduanya (1)',
+      footer: 'Semua perhitungan berjalan di peramban Anda. Tidak ada bilangan yang rusak secara permanen — hanya dicoret.',
+      'banner.ready': 'Siap. {n} kotak telah dibuat — tekan Putar untuk menyaring.',
+      'banner.single': 'Hanya 1 kotak — tidak ada yang perlu disaring.',
+      'banner.reset': 'Diatur ulang. {n} kotak dibuat kembali — tekan Putar untuk menyaring.',
+      'banner.done': {
+        other: 'Ditemukan {count} bilangan prima hingga {n} dalam {time}.'
+      },
+      toPalette: 'Tambahkan bilangan prima yang ditemukan ke palet',
+      'palette.added': {
+        other: '{count} bilangan prima baru ditambahkan ke palet — duplikat dilewati: {dupes}.'
+      },
+      'palette.full': {
+        other: '{count} bilangan prima baru ditambahkan — palet penuh ({max} bilangan); bilangan prima yang tidak ditambahkan: {left}.'
+      },
+      'palette.none': 'Semua bilangan prima yang ditemukan sudah ada di palet — tidak ada yang perlu ditambahkan.'
     }
   });
 })();

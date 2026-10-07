@@ -64,7 +64,7 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko', 'id']);
   // The right-to-left languages, Hebrew and Arabic (internal, not exported):
   // applyHtmlLang sets dir="rtl" on <html> while one of them is active.
   var RTL_LANGS = Object.freeze(['he', 'ar']);
@@ -73,7 +73,7 @@
   var LANG_STORAGE_KEY = 'site-lang';
 
   // ---------- namespace registry ----------
-  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, two, few, many) the language uses, or { other } alone for a language with a single category (zh, ja, ko)
+  // registry[ns][lang][flatKey] -> string | a CLDR plural-category object { one, other }, plus whichever extra CLDR categories (zero, two, few, many) the language uses, or { other } alone for a language with a single category (zh, ja, ko, id)
   var registry = {};
 
   function valid(lang) {
@@ -134,6 +134,8 @@
       if (parts[0] === 'no') return 'nb';
       // Hebrew: iw is the withdrawn ISO 639 code for Hebrew, still sent by some older stacks; map it to he.
       if (parts[0] === 'iw') return 'he';
+      // Indonesian: in is the withdrawn ISO 639 code for Indonesian, still sent by some older stacks; map it to id.
+      if (parts[0] === 'in') return 'id';
       var code = String(langs[i]).slice(0, 2).toLowerCase();
       if (valid(code)) return code;
     }

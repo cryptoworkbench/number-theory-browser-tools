@@ -714,7 +714,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "it", "ja", "ko", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zh"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zh"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -1004,6 +1004,24 @@ function doApi() {
   check("after zh then ar, html dir attribute is rtl", (I.setLang("zh"), I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
   I.setLang("en");
 
+  // Indonesian has the single CLDR category other: a plural value is { other } alone and that one form
+  // is rendered for every count (0, 1, 2, 1.5, 21, 100 and 1000000 alike).
+  I.register("trid", {
+    en: { count: { one: "{count} one", other: "{count} other" } },
+    id: { count: { other: "{count} other" } }
+  });
+  check("setLang('id') returns true (trid)", I.setLang("id"), true);
+  [0, 1, 2, 1.5, 21, 100, 1000000].forEach(function (n) {
+    check("id trid.count at " + n + " selects other", I.translate("trid.count", { count: n }), n + " other");
+  });
+  // id is left to right: switching to it from a right-to-left language removes dir, and back to ar sets it.
+  check("after ar then id, html lang is id", (I.setLang("ar"), I.setLang("id"), ctx._doc.documentElement.lang), "id");
+  check("after ar then id, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after he then id, html lang is id", (I.setLang("he"), I.setLang("id"), ctx._doc.documentElement.lang), "id");
+  check("after he then id, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after id then ar, html dir attribute is rtl", (I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  I.setLang("en");
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -1131,6 +1149,9 @@ function doApi() {
   check("setLang('swh') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("swh"), false);
   ["zh-CN", "zh-TW", "zh-Hans", "zh-Hant", "ZH", "Zh", "zho", "chi", "cmn", "ja-JP", "JA", "jpn", "ko-KR", "KO", "kor"].forEach(function (code) {
     check("setLang('" + code + "') returns false (exact, case-sensitive allow-list: only zh, ja and ko)", I.setLang(code), false);
+  });
+  ["in", "in-ID", "IN", "id-ID", "ID", "Id", "ind", "msa", "ms", "ms-MY"].forEach(function (code) {
+    check("setLang('" + code + "') returns false (exact, case-sensitive allow-list: only id; in is a detection-only legacy tag)", I.setLang(code), false);
   });
   check("setLang('ara') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("ara"), false);
   check("setLang('hin') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("hin"), false);
@@ -1336,7 +1357,28 @@ function doApi() {
     [["he-IL", "ko"], "he", "he-IL,ko (first supported wins)"],
     [["pt-BR", "zh"], "pt-BR", "pt-BR,zh (first supported wins)"],
     [["no", "ja"], "nb", "no,ja (legacy Norwegian tag maps to nb, first supported wins)"],
-    [["iw", "ko"], "he", "iw,ko (legacy Hebrew tag maps to he, first supported wins)"]
+    [["iw", "ko"], "he", "iw,ko (legacy Hebrew tag maps to he, first supported wins)"],
+    [["id"], "id", "id"],
+    [["id-ID"], "id", "id-ID"],
+    [["ID_id", "en"], "id", "ID_id (case-insensitive, underscore separator)"],
+    [["in"], "id", "in (legacy Indonesian tag)"],
+    [["in-ID"], "id", "in-ID (legacy Indonesian tag with region)"],
+    [["IN_id", "en"], "id", "IN_id (legacy tag, case-insensitive, underscore separator)"],
+    [["in", "ko"], "id", "in,ko (legacy Indonesian tag maps to id, first supported wins)"],
+    [["inh", "en"], "en", "inh,en (Ingush: the legacy in branch tests the whole first subtag, falls through)"],
+    [["inh-RU", "id"], "id", "inh-RU,id (Ingush falls through to the next preference)"],
+    [["ind", "en"], "en", "ind,en (ISO 639-2/3 Indonesian does not start with id, falls through)"],
+    [["ms-MY", "id"], "id", "ms-MY,id (Malay unsupported, falls through)"],
+    [["ms", "en"], "en", "ms,en (Malay not mapped)"],
+    [["jv-ID", "id"], "id", "jv-ID,id (Javanese unsupported, falls through)"],
+    [["su", "en"], "en", "su,en (Sundanese not mapped)"],
+    [["en-ID", "id"], "en", "en-ID,id (Indonesian English stays English)"],
+    [["th", "in"], "id", "th,in (Thai unsupported, legacy Indonesian tag next)"],
+    [["iw", "id"], "he", "iw,id (legacy Hebrew tag wins as first preference)"],
+    [["no", "in"], "nb", "no,in (legacy Norwegian tag wins as first preference)"],
+    [["pt-BR", "id"], "pt-BR", "pt-BR,id (first supported wins)"],
+    [["zh-TW", "id"], "zh", "zh-TW,id (first supported wins)"],
+    [["he-IL", "in"], "he", "he-IL,in (first supported wins)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1477,7 +1519,18 @@ function doPersistence() {
     { opts: { cookie: { initial: "ko" }, storage: { initial: "es" } }, want: "ko", label: "cookie ko beats storage" },
     { opts: { storage: { initial: "zh-Hans" }, navigator: { languages: ["zh-TW", "en"] } }, want: "zh", label: "storage zh-Hans falls through to detected zh (navigator zh-TW)" },
     { opts: { storage: { initial: "ko-KR" }, navigator: { languages: ["ko-KR", "en"] } }, want: "ko", label: "storage ko-KR falls through to detected ko (navigator ko-KR)" },
-    { opts: { storage: { initial: "jpn" } }, want: "en", label: "storage jpn (ISO 639-2 tag, unsupported) falls through to detected default" }
+    { opts: { storage: { initial: "jpn" } }, want: "en", label: "storage jpn (ISO 639-2 tag, unsupported) falls through to detected default" },
+    { opts: { search: "?lang=id", cookie: { initial: "ko" }, storage: { initial: "zh" } }, want: "id", label: "url id beats a cookie of ko and a stored zh" },
+    { opts: { search: "?lang=in", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url in (legacy Indonesian tag, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=in-ID", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url in-ID (unsupported) falls through to cookie" },
+    { opts: { search: "?lang=id-ID", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url id-ID (region-tagged id, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=ID", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url ID (case mismatch) falls through to cookie" },
+    { opts: { cookie: { initial: "in" }, storage: { initial: "es" } }, want: "es", label: "cookie in falls through to storage" },
+    { opts: { cookie: { initial: "ID" }, storage: { initial: "es" } }, want: "es", label: "cookie ID falls through to storage" },
+    { opts: { cookie: { initial: "id" }, storage: { initial: "es" } }, want: "id", label: "cookie id beats storage" },
+    { opts: { storage: { initial: "in" }, navigator: { languages: ["in-ID", "en"] } }, want: "id", label: "storage in falls through to detected id (navigator in-ID)" },
+    { opts: { storage: { initial: "id-ID" }, navigator: { languages: ["id-ID", "en"] } }, want: "id", label: "storage id-ID falls through to detected id (navigator id-ID)" },
+    { opts: { storage: { initial: "ind" } }, want: "en", label: "storage ind (ISO 639-2/3 tag, unsupported) falls through to detected default" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1771,6 +1824,19 @@ function doPersistence() {
     check("storage event with the region-tagged zh-CN is a no-op", ctx._doc.documentElement.lang, "ko");
     check("storage event with zh-CN fires no change event", ctx._changeEvents.length, changeAfterKo);
 
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ar");
+    var changeBeforeId = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "id");
+    check("storage event with id while ar is active re-applies html lang", ctx._doc.documentElement.lang, "id");
+    check("storage event with id while ar is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with id fires one more change event", ctx._changeEvents.length, changeBeforeId + 1);
+    var changeAfterId = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "in");
+    check("storage event with the legacy in tag is a no-op", ctx._doc.documentElement.lang, "id");
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ID");
+    check("storage event with the upper-cased ID is a no-op", ctx._doc.documentElement.lang, "id");
+    check("storage events with in and ID fire no change event", ctx._changeEvents.length, changeAfterId);
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -1840,7 +1906,8 @@ var SWITCHER_OPTIONS = [
   { value: "sw", lang: "sw", label: "Kiswahili" },
   { value: "zh", lang: "zh", label: "中文" },
   { value: "ja", lang: "ja", label: "日本語" },
-  { value: "ko", lang: "ko", label: "한국어" }
+  { value: "ko", lang: "ko", label: "한국어" },
+  { value: "id", lang: "id", label: "Bahasa Indonesia" }
 ];
 
 // RTL_LANGS: the languages written right to left, Hebrew and Arabic. Mirrors
@@ -1867,20 +1934,22 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // n = 1"), so a Hindi one form must read correctly for 0 as well as 1.
 // Albanian (sq) and Swahili (sw) are unlisted as well: they use English's
 // {one, other} set, where 0 and fractions select other (unlike Hindi's one).
-// Chinese, Japanese and Korean have the single category other and are listed in
+// Chinese, Japanese, Korean and Indonesian have the single category other and are listed in
 // PLURAL_OTHER_ONLY_LANGS instead: their plural values are { other } alone.
 var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"], ar: ["zero", "two", "few", "many"] };
 
 // PLURAL_OTHER_ONLY_LANGS: the languages whose CLDR rules have the single
-// category other (Chinese, Japanese, Korean: no grammatical number). Their
+// category other (Chinese, Japanese, Korean, Indonesian: no grammatical number
+// after a numeral; Indonesian marks plurality only by reduplication, which never
+// follows a count). Their
 // plural dictionary values are { other } alone, and that one form must read
 // correctly for every count (0, 1 and any other).
-var PLURAL_OTHER_ONLY_LANGS = ["zh", "ja", "ko"];
+var PLURAL_OTHER_ONLY_LANGS = ["zh", "ja", "ko", "id"];
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
 // extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
 // one,other,zero for lv, one,other,two for he, few,many,one,other,two,zero for ar,
-// other for zh, ja and ko, one,other for every other language.
+// other for zh, ja, ko and id, one,other for every other language.
 function expectedPluralCategories(lang) {
   if (PLURAL_OTHER_ONLY_LANGS.indexOf(lang) !== -1) return ["other"];
   var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
@@ -2253,8 +2322,8 @@ function charFindings(id, lang, value) {
 // English value's numerals. Languages added before this rule keep a few
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
 // is why the list holds only the languages added after the rule existed
-// (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese and Korean).
-var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko"];
+// (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese, Korean and Indonesian).
+var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space
@@ -2729,7 +2798,7 @@ function dataFileNsList(file) {
 // three: one, few, other; lv's three: zero, one, other; he's three: one, two,
 // other; ar's six: zero, one, two, few, many, other) are checked
 // exactly as strictly as every other language's two (one, other), and the
-// single-category languages zh, ja and ko (PLURAL_OTHER_ONLY_LANGS) must carry
+// single-category languages zh, ja, ko and id (PLURAL_OTHER_ONLY_LANGS) must carry
 // the { other } shape alone.
 function checkPluralEntry(ns, key, lang, entry, enEntry) {
   var findings = [];
