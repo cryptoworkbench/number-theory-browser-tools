@@ -3,14 +3,15 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all eighteen supported languages.
+   Cayley Table tool, in all nineteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
    plural entries ({ one, other } in every language except Polish and
    Russian ({ one, few, many, other }), Romanian ({ one, few, other }),
-   Latvian ({ zero, one, other }) and Hebrew ({ one, two, other }), each
-   the CLDR shape for that language);
+   Latvian ({ zero, one, other }), Hebrew ({ one, two, other }) and Arabic
+   ({ zero, one, two, few, many, other }), each the CLDR shape for that
+   language);
    every other key is plain text. The
    operation signs (+, ×, ·) and all notation (ℤ/Nℤ, φ(N), ≡, mod) are
    written identically in every language per 06-GLOSSARY.md section (e) —
@@ -744,6 +745,53 @@
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), और {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — दोनों एक ही मान पर पहुँचते हैं, इसलिए सारणी अपने विकर्ण के सापेक्ष सममित है: समूह क्रमविनिमेय है।',
       selfInverseNote: '{a} {word} है, क्योंकि यहाँ इसका मान तत्समक है।',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n})।'
+    },
+    ar: {
+      title: 'جدول كايلي',
+      eyebrow: 'نظرية الزمر · جداول العمليات',
+      heading: 'جدول كايلي',
+      lede: 'تتسع عملية الزمرة كلها في جدول مربع واحد — صف واحد وعمود واحد لكل عنصر، وخلية لكل نتيجة. وكل حقيقة بنيوية عن تلك الزمرة — عنصرها المحايد ومعكوساتها وتبديليتها — تظهر بوضوح في مكان ما من شكل الجدول.',
+      xref: 'عمليتا الزمرة نفسهما، مرئيتين كقطاعات على عجلة بدلا من صفوف في جدول ←',
+      tablistLabel: 'عملية الزمرة',
+      nLabel: 'N — المقياس',
+      randomizeLabel: 'توليد عشوائي',
+      randomize: 'مثال عشوائي جديد',
+      tableScrollLabel: 'جدول كايلي، قابل للتمرير',
+      'legend.identity': '{0} صف العنصر المحايد وعموده',
+      'legend.inverse': '{0} معكوس نفسه (مزدوج مع نفسه)',
+      'legend.selected': '{0} الخلية المحددة',
+      'legend.mirror': '{0} التوأم المنعكس عبر القطر',
+      nNoteNotWhole: 'يجب أن يكون N عددا صحيحا — يبقى الجدول كما كان.',
+      nNoteTooSmall: 'لا يمكن أن يقل N عن 1 — تم رفعه إلى 1.',
+      nNoteCapped: 'N محدود بالقيمة {max} لئلا يكبر الجدول أكثر من اللازم — تم خفضه إلى {max}.',
+      identityWordAdditive: 'الصفر',
+      identityWordMultiplicative: 'الواحد',
+      inverseWordAdditive: 'معكوس نفسه الجمعي',
+      inverseWordMultiplicative: 'معكوس نفسه الضربي',
+      identityNote: 'العنصر المحايد هو {word} — صفه وعموده معلمان أدناه.',
+      symmetryNoteAdditive: '\u2066a + b\u2069 و \u2066b + a\u2069 يقعان دائما في الصنف نفسه، ولذلك يعكس الجدول نفسه حول القطر — انقر على أي خلية لترى توأمها يضيء في الجهة المقابلة.',
+      symmetryNoteMultiplicative: '\u2066a · b\u2069 و \u2066b · a\u2069 يقعان دائما في الصنف نفسه، ولذلك يعكس الجدول نفسه حول القطر — انقر على أي خلية لترى توأمها يضيء في الجهة المقابلة.',
+      summaryAdditive: {
+        zero: '\u2066ℤ/{n}ℤ\u2069 · {count} عناصر · العنصر المحايد \u2066[{id}]\u2069',
+        one: '\u2066ℤ/{n}ℤ\u2069 · {count} عنصر · العنصر المحايد \u2066[{id}]\u2069',
+        two: '\u2066ℤ/{n}ℤ\u2069 · {count} عنصران · العنصر المحايد \u2066[{id}]\u2069',
+        few: '\u2066ℤ/{n}ℤ\u2069 · {count} عناصر · العنصر المحايد \u2066[{id}]\u2069',
+        many: '\u2066ℤ/{n}ℤ\u2069 · {count} عنصرا · العنصر المحايد \u2066[{id}]\u2069',
+        other: '\u2066ℤ/{n}ℤ\u2069 · {count} عنصر · العنصر المحايد \u2066[{id}]\u2069'
+      },
+      summaryMultiplicative: {
+        zero: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 عناصر · العنصر المحايد \u2066[{id}]\u2069',
+        one: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 عنصر · العنصر المحايد \u2066[{id}]\u2069',
+        two: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 عنصران · العنصر المحايد \u2066[{id}]\u2069',
+        few: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 عناصر · العنصر المحايد \u2066[{id}]\u2069',
+        many: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 عنصرا · العنصر المحايد \u2066[{id}]\u2069',
+        other: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 عنصر · العنصر المحايد \u2066[{id}]\u2069'
+      },
+      tableCaption: 'جدول كايلي الخاص بالزمرة {summary} تحت العملية \u2066{sign}\u2069',
+      noteDiagonal: 'تقع هذه الخلية على القطر — فهي توأم نفسها، ولها معادلة واحدة فقط تذكر: \u2066{a} {sign} {a} = {raw} ≡ {val} (mod {n})\u2069.',
+      noteCommutative: '\u2066{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})\u2069، وكذلك \u2066{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})\u2069 — كلتاهما تقع على القيمة نفسها، ولذلك فالجدول متناظر حول قطره: الزمرة تبديلية.',
+      selfInverseNote: '{a} هو {word}، لأن قيمته هنا هي العنصر المحايد.',
+      equationCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).\u2069'
     }
   });
 })();

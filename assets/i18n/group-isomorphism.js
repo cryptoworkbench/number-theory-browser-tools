@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   eighteen supported languages.
+   nineteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -552,6 +552,35 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (अघटित घात इतनी बड़ी है कि उसे ठीक-ठीक नहीं दिखाया जा सकता)',
       refCount: '{count} युग्म (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   द्वारा   k ↦ {g}^k mod {m}   (जनक g = {g})'
+    },
+    ar: {
+      title: 'تماثل الزمر',
+      eyebrow: 'حسابان اثنان، وزمرة واحدة',
+      heading: 'تماثل الزمر',
+      lede: 'يمكن أن تكون الأعداد الصحيحة بمقياس n تحت الجمع والعناصر القابلة للعكس بمقياس m تحت الضرب هي الزمرة نفسها تماما من حيث البنية — لكن بحساب مختلف. {0}',
+      xref: 'شاهد هاتين الزمرتين وهما تبنيان واحدة تلو الأخرى ←',
+      pairLabel: 'زوج متماثل',
+      pairSelectAriaLabel: 'اختر زوجا متماثلا',
+      randomizeLabel: 'توليد عشوائي',
+      randomize: 'مثال عشوائي جديد',
+      tablistLabel: 'تخطيط العجلة اليمنى',
+      tabPowers: 'قوى g',
+      tabNumeric: 'عددي',
+      leftWheelAriaLabel: 'عناصر الزمرة الجمعية \u2066Z mod n\u2069',
+      rightWheelAriaLabel: 'عناصر الزمرة الضربية للعناصر القابلة للعكس بمقياس m',
+      refHeading: 'الأزواج المتماثلة',
+      leftWedgeAriaLabel: 'العنصر {value} من الزمرة الجمعية \u2066Z mod {n}\u2069',
+      rightWedgeAriaLabel: 'العنصر {value} من الزمرة الضربية للعناصر القابلة للعكس بمقياس {m}، ويساوي {g} أس {k} بمقياس {m}',
+      leftCaption: 'الزمرة الجمعية \u2066{bSpan}\u2069: الأعداد الصحيحة من 0 إلى {max} تحت الجمع بمقياس {n}.',
+      rightCaption: 'الزمرة الضربية \u2066{bSpan}\u2069: العناصر القابلة للعكس بمقياس {m} وعددها {n} تحت الضرب، ويولدها {g}.',
+      readoutPrompt: 'انقر على عنصر في أي من العجلتين لترى التقابل.',
+      readoutOne: 'العنصر {aSlot} في العجلة اليسرى يقابل {aValSlot} في العجلة اليمنى: \u2066{eqSpan}\u2069. انقر على عنصر ثان — أو على العنصر نفسه مرة أخرى — لترى المجموع وحاصل الضرب.',
+      readoutBothAgree: '\u2066{spanA} + {spanB} = {spanSum}\u2069 في العجلة اليسرى (\u2066{eqLeft}\u2069) — \u2066{aValSpan} × {bValSpan} = {productSpan}\u2069 في العجلة اليمنى (\u2066{modSpan}\u2069) — وكذلك \u2066{product} = {g}^{sum} mod {m} = {sumVal}\u2069: صورة المجموع تساوي حاصل ضرب الصورتين.',
+      readoutBothDisagree: '\u2066{spanA} + {spanB} = {spanSum}\u2069 في العجلة اليسرى (\u2066{eqLeft}\u2069) — \u2066{aValSpan} × {bValSpan} = {productSpan}\u2069 في العجلة اليمنى (\u2066{modSpan}\u2069) — {warnSpan}',
+      readoutWarn: '\u2066{product}\u2069 لا يساوي \u2066{g}^{sum} mod {m} = {sumVal}\u2069 — لا ينبغي أن يختلف هذا الزوج عن نفسه أبدا.',
+      eqTooLarge: '\u2066{g}^{a} ≡ {val} (mod {m})\u2069 (أكبر من أن تعرض القوة غير المختزلة بدقة)',
+      refCount: 'عدد الأزواج: {count} (\u2066m ≤ {max}\u2069)',
+      formula: '\u2066Z/{n}Z ≅ (Z/{m}Z)*\u2069   عبر   \u2066k ↦ {g}^k mod {m}\u2069   (المولد \u2066g = {g}\u2069)'
     }
   });
 })();

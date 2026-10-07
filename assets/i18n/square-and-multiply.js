@@ -7,9 +7,10 @@
    them, bannerComputed, a plural entry — { one, other } in every
    language except Polish and Russian, which carry the CLDR { one, few,
    many, other } shape, Romanian the CLDR { one, few, other } shape,
-   Latvian the CLDR { zero, one, other } shape and Hebrew the CLDR
-   { one, two, other } shape), and the ladder's SVG
-   labels, for the Square and Multiply tool, in all eighteen supported
+   Latvian the CLDR { zero, one, other } shape, Hebrew the CLDR
+   { one, two, other } shape and Arabic the CLDR { zero, one, two, few,
+   many, other } shape), and the ladder's SVG
+   labels, for the Square and Multiply tool, in all nineteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1373,6 +1374,84 @@
       accFinalAnswer: '{0} = उत्तर',
       ladderAriaLabel: 'वर्ग और गुणा की सीढ़ी: घातांक के हर बिट के लिए एक पंक्ति, जो संचायक का वर्ग करती है और शर्त के अनुसार आधार से गुणा करती है',
       bitTitle: 'स्थानीय मान 2^{place}'
+    },
+    ar: {
+      heading: 'التربيع والضرب',
+      lede: 'هذا ما يفعله الحاسوب حقا عندما يحسب \u2066b{0} mod m\u2069 — بلا ضرب متكرر، بل تربيعا واحدا لكل بت من الأس وضربا في الأساس بين حين وآخر.',
+      introHeading: 'كيف يفعل الحاسوب ذلك فعليا',
+      introP1: 'رفع عدد إلى القوة e بضربه في نفسه e مرة أمر ميؤوس منه حين يضم الأس مئات الأرقام — فالأس الحقيقي في RSA كان سيستغرق بهذه الطريقة أكثر من عمر الكون. وبدلا من ذلك تقرأ الآلة الأس بالنظام الثنائي ولا تحتاج إلا إلى تربيع واحد تقريبا لكل بت، مع ضرب إضافي لا يضاف إلا عند البتات التي قيمتها 1. هذه هي الحيلة كلها، وهي السبب الوحيد في أن الحسابات بحجم التشفير تنتهي أصلا.',
+      introP2: 'هذه هي الحلقة نفسها بالضبط التي تستدعيها صفحتا RSA وديفي-هيلمان في هذا الموقع في كل مرة تكتبان فيها \u2066b{0} mod m\u2069 — وهناك تسمى {1} وتعمل خلف الكواليس؛ أما هنا فتفتح بتا بعد بت.',
+      modularExponentiation: 'الرفع النمطي إلى قوة',
+      baseLabel: 'الأساس b',
+      expLabel: 'الأس e',
+      modLabel: 'المقياس m',
+      compute: 'حساب',
+      randomize: 'توليد عشوائي',
+      logHeading: 'سجل العمليات الحسابية',
+      resultSectionHeading: 'النتيجة',
+      'legend.bit': '{0} بت الأس (1 = يحدث ضرب)',
+      'legend.squaring': '{0} التربيع — في كل صف، دون شرط',
+      'legend.multiply': '{0} الضرب في الأساس — عند البت 1 فقط',
+      'legend.accumulator': '{0} المراكم / الجواب النهائي',
+      footer: 'عرض توضيحي للتربيع والضرب — الخوارزمية الكامنة وراء كل \u2066b^e mod m\u2069 في هذا الموقع. للأغراض التعليمية فقط.',
+      pillBinaryExp: 'الرفع الثنائي إلى قوة',
+      pillOneSquaring: 'تربيع واحد لكل بت',
+      pillBigIntModular: 'حساب نمطي باستخدام BigInt',
+      errBaseInvalid: 'يجب أن يكون الأساس عددا صحيحا غير سالب.',
+      errBaseTooLong: 'يجب ألا يزيد الأساس على 40 رقما — هذا عرض تعليمي وليس مولد مفاتيح.',
+      errExpInvalid: 'يجب أن يكون الأس عددا صحيحا غير سالب.',
+      errExpTooLarge: 'يجب أن يكون الأس أصغر من \u20662^64\u2069 (65 بتا) — فالسلم سيحتاج إلى صفوف أكثر مما تستطيع علامة تبويب في المتصفح عرضه.',
+      errModInvalid: 'يجب أن يكون المقياس عددا صحيحا غير سالب.',
+      errModTooSmall: 'يجب ألا يقل المقياس عن 2 — فالمقياس 1 يجعل كل نتيجة 0 وهو حالة منحلة.',
+      errModTooLong: 'يجب ألا يزيد المقياس على 40 رقما — هذا عرض تعليمي وليس مولد مفاتيح.',
+      binaryExpansionZero: '\u20660 = 0₂\u2069 = \u2067(لا توجد قوى للعدد اثنين — أي عدد مرفوع إلى القوة صفر يساوي 1)\u2069',
+      setupHeading: 'الإعداد',
+      lblBaseReducedFirst: 'الأساس بعد اختزاله أولا:',
+      setupBaseReduced: '{0} \u2066{rawBase} mod {mod} = {1}\u2069 — هذه هي القيمة التي يربعها السلم ويضرب فيها.',
+      setupFirstRowNote: 'يربع الصف الأول القيمة الابتدائية للمراكم وهي 1، وهذا لا يغير شيئا — ولهذا تبدأ التطبيقات من البت الأول (الأكثر أهمية).',
+      stepHeading: 'البت {i} من {total} — الرقم {bit}، وقيمة المنزلة \u20662^{place}\u2069',
+      lblSquare: 'التربيع:',
+      stepSquareFormula: '{0} \u2066{accBefore}² mod {mod} = {1}\u2069',
+      lblMultiplyBitOne: 'الضرب (البت هو 1):',
+      stepMultiplyFormula: '{0} \u2066{accSquared} × {base} mod {mod} = {1}\u2069',
+      lblMultiplySkipped: 'تم تخطي الضرب:',
+      stepMultiplySkippedFormula: '{0} هذا البت هو 0، ولذلك يمر المراكم دون تغيير ويبقى {1}',
+      bannerStepMultiplied: 'البت {i} من {total}: نربع المراكم، ثم نضرب في الأساس لأن هذا البت هو 1.',
+      bannerStepSkipped: 'البت {i} من {total}: نربع المراكم — تم تخطي الضرب لأن هذا البت هو 0.',
+      bannerReady: 'جاهز — اضغط على تشغيل لمشاهدة السلم وهو يبنى بتا بعد بت.',
+      bannerComputed: {
+        zero: 'الحساب الكامل معروض أدناه — {bits} بتات في الأس. اضغط على تشغيل لمشاهدته وهو يبنى خطوة بخطوة.',
+        one: 'الحساب الكامل معروض أدناه — {bits} بت في الأس. اضغط على تشغيل لمشاهدته وهو يبنى خطوة بخطوة.',
+        two: 'الحساب الكامل معروض أدناه — {bits} بتان في الأس. اضغط على تشغيل لمشاهدته وهو يبنى خطوة بخطوة.',
+        few: 'الحساب الكامل معروض أدناه — {bits} بتات في الأس. اضغط على تشغيل لمشاهدته وهو يبنى خطوة بخطوة.',
+        many: 'الحساب الكامل معروض أدناه — {bits} بتا في الأس. اضغط على تشغيل لمشاهدته وهو يبنى خطوة بخطوة.',
+        other: 'الحساب الكامل معروض أدناه — {bits} بت في الأس. اضغط على تشغيل لمشاهدته وهو يبنى خطوة بخطوة.'
+      },
+      resultMatch: 'تحقق مستقل — حلقة رفع نمطي إلى قوة عادية من اليسار إلى اليمين على المدخلات نفسها تصل إلى {0}، وهو الجواب نفسه. ✓',
+      resultMismatch: 'اختلاف في التحقق المتقاطع: حسبت الحلقة العادية {cross}، وهو لا يطابق {result} الذي حسبه السلم. هذا يدل على وجود خطأ برمجي.',
+      costTag: 'لماذا يهم هذا في RSA',
+      costHeading: 'الكلفة مقارنة بالضرب المتكرر الساذج',
+      costBitLength: 'طول الأس بالبتات',
+      costSquarings: 'عمليات التربيع',
+      costMultiplies: 'عمليات الضرب',
+      costTotal: 'إجمالي عمليات الضرب النمطي',
+      costNaive: 'كان الضرب المتكرر الساذج سيحتاج إلى',
+      costMeaningful: 'أي أقل بمقدار \u2066{0}\u2069 من عمليات الضرب النمطي مقارنة بضرب الأساس في نفسه هذا العدد من المرات.',
+      costNotMeaningful: 'عند هذا الحجم من الأس لا يوفر السلم شيئا يذكر مقارنة بالضرب المتكرر الساذج — فالمكسب لا يكبر إلا مع كبر الأس.',
+      costRsaScale: 'أس RSA بطول 2048 بتا من النوع الذي يستخدمه فك تشفير RSA الحقيقي يحتاج إلى نحو {0} من عمليات التربيع وإلى نحو {1} من عمليات الضرب — أي نحو {2} من عمليات الضرب النمطي في المجموع — بينما يحتاج ضرب الأساس في نفسه هذا العدد من المرات إلى عدد من عمليات الضرب طوله {digits} من الأرقام العشرية. ولهذا تستطيع صفحتا {3} و {4} في هذا الموقع حساب مفاتيحهما فورا في المتصفح.',
+      linkRsa: 'RSA',
+      linkDiffieHellman: 'تبادل مفاتيح ديفي-هيلمان',
+      ladderCaption: 'يبدأ المراكم من 1 — ويقرأ البت العلوي (الأكثر أهمية) أولا.',
+      headingBit: 'بت الأس',
+      headingSquaring: 'التربيع',
+      headingMultiply: 'الضرب الشرطي',
+      headingAccumulator: 'المراكم',
+      rowBitCaption: 'البت {i} من {rows} — \u20662^{place}\u2069',
+      mulBase: '× \u2067الأساس\u2069 = {0}',
+      skippedBitZero: 'تم التخطي (البت هو 0)',
+      accFinalAnswer: '{0} = الجواب',
+      ladderAriaLabel: 'سلم التربيع والضرب: صف واحد لكل بت من الأس، يربع كل صف المراكم ويضربه في الأساس بشرط',
+      bitTitle: 'قيمة المنزلة \u20662^{place}\u2069'
     }
   });
 })();

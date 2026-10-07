@@ -3,7 +3,7 @@
    fields, the Randomize and Export controls, the wheel's own aria-label,
    the per-mode note/heading/ref-count/formula strings, the wedge aria
    labels, the equivalence-class/sum captions and the export status
-   messages for the Equivalence Wheel tool, in all eighteen supported
+   messages for the Equivalence Wheel tool, in all nineteen supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -891,6 +891,54 @@
       exportFailedSvg: 'SVG निर्यात विफल रहा — कृपया फिर से प्रयास करें।',
       exportFailedPng: 'PNG निर्यात विफल रहा — इसकी जगह "SVG डाउनलोड करें" आज़माएँ।',
       exportPrintOpening: 'प्रिंट संवाद खुल रहा है — गंतव्य के रूप में "PDF के रूप में सहेजें" चुनें।'
+    },
+    ar: {
+      title: 'عجلة التكافؤ',
+      eyebrow: 'تجزيئات ℕ',
+      heading: 'عجلة التكافؤ',
+      lede: 'ينتمي كل عدد طبيعي إلى صنف تكافؤ واحد بالضبط بمقياس N. {0}',
+      xref: 'الزمرة نفسها، مقروءة كجدول عملية كامل ←',
+      tablistLabel: 'عملية الزمرة',
+      nLabel: 'N — المقياس',
+      nRangeLabel: 'المقياس N',
+      ringsLabel: 'الحلقات (الأعداد في كل صنف)',
+      depthRangeLabel: 'الأعداد المعروضة في كل صنف',
+      randomizeLabel: 'توليد عشوائي',
+      randomize: 'مثال عشوائي جديد',
+      exportLabel: 'تصدير',
+      exportPngBtn: 'تنزيل PNG',
+      exportSvgBtn: 'تنزيل SVG',
+      exportPdfBtn: 'طباعة / حفظ بصيغة PDF',
+      svgLabel: 'الأعداد الطبيعية مرتبة في حلقات متحدة المركز مقسمة إلى أصناف تكافؤ عددها N',
+      noteAdditive: 'يرتب هذا المخطط ℕ في حلقات متحدة المركز — حلقة واحدة لكل مضاعف للعدد N، وقطاع واحد لكل صنف — فتبقى الأصناف منفصلة وكاملة بوضوح.',
+      noteMultiplicative: 'لا ينال قطاعا هنا سوى \u2066φ(N)\u2069 من الأصناف الأولية بالنسبة إلى N — فهذه بالضبط الأصناف التي لها معكوس ضربي، ولذلك فهي وحدها تشكل زمرة تحت الضرب.',
+      headingAdditive: 'أصناف التكافؤ',
+      headingMultiplicative: 'أصناف التكافؤ القابلة للعكس',
+      refCountAdditive: '\u2066N = {n}\u2069',
+      refCountMultiplicative: '\u2066N = {n} · φ({n}) = {m}\u2069',
+      formulaAdditive: '\u2066ℕ/∼ = { [0], [1], …, [{nMinus1}] }\u2069   حيث   \u2066[r] = { n ∈ ℕ : n mod {n} = r }\u2069',
+      formulaMultiplicative: '\u2066(ℤ/{n}ℤ)* = { [{els}] }\u2069   ·   العنصر المحايد \u2066[{id}]\u2069   ·   \u2066|(ℤ/{n}ℤ)*| = φ({n}) = {m}\u2069',
+      roleFirstAddend: 'المضاف الأول',
+      roleSecondAddend: 'المضاف الثاني',
+      roleSum: 'المجموع',
+      roleFirstFactor: 'العامل الأول',
+      roleSecondFactor: 'العامل الثاني',
+      roleProduct: 'حاصل الضرب',
+      and: 'و',
+      wedgeAriaLabel: 'صنف التكافؤ {value} بمقياس {n}',
+      wedgeAriaLabelWithRoles: 'صنف التكافؤ {value} بمقياس {n}، {roles}',
+      verbingAdditive: 'جمع',
+      verbingMultiplicative: 'ضرب',
+      joinerAdditive: 'إلى',
+      joinerMultiplicative: 'في',
+      classIntroPromptA: 'يضم صنف التكافؤ {bSpan} كل عدد طبيعي يطابق {s} \u2066(mod {n})\u2069: \u2066{termsSpan}\u2069 — ولا شيء غير ذلك. انقر على قطاع أو على صف مرجعي لاختيار {word}.',
+      classIntroPromptBAdditive: 'يضم صنف التكافؤ {bSpan} كل عدد طبيعي يطابق {s} \u2066(mod {n})\u2069: \u2066{termsSpan}\u2069 — ولا شيء غير ذلك. انقر على صنف ثان — أو على الصنف نفسه مرة أخرى — لجمعه إلى {aSpan} وإظهار المجموع.',
+      classIntroPromptBMultiplicative: 'يضم صنف التكافؤ {bSpan} كل عدد طبيعي يطابق {s} \u2066(mod {n})\u2069: \u2066{termsSpan}\u2069 — ولا شيء غير ذلك. انقر على صنف ثان — أو على الصنف نفسه مرة أخرى — لضربه في {aSpan} وإظهار حاصل الضرب.',
+      sumCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {sum} (mod {n})\u2069. {verbing} أي عنصر من {spanA2} {joiner} أي عنصر من {spanB2} يعطي دائما عنصرا من {spanSum2}: \u2066{termsSpan}\u2069',
+      exportSaved: 'تم حفظ \u2066{filename}\u2069',
+      exportFailedSvg: 'فشل تصدير SVG — يرجى المحاولة مرة أخرى.',
+      exportFailedPng: 'فشل تصدير PNG — جرب تنزيل SVG بدلا من ذلك.',
+      exportPrintOpening: 'يتم فتح نافذة الطباعة — اختر "حفظ بصيغة PDF" وجهة لها.'
     }
   });
 })();

@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all eighteen supported languages.
+   tool, in all nineteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,10 +12,11 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all eighteen languages. bannerDone is { one, other } in every language
+   all nineteen languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
-   ({ one, few, other }), Latvian ({ zero, one, other }) and Hebrew
-   ({ one, two, other }), each the CLDR shape for that language.
+   ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
+   ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }),
+   each the CLDR shape for that language.
    Must load after assets/nt-i18n.js and assets/i18n/site.js, before the
    page's own inline <script>.
 */
@@ -443,6 +444,33 @@
         other: 'पूर्ण — {count} मानों की जाँच हुई, {n} से सह-अभाज्य मानों की संख्या: {phi}।'
       },
       caption: 'n अभाज्य हो तो φ(n) = n−1 मिलता है, क्योंकि उससे छोटी हर संख्या n के साथ कोई गुणनखंड साझा नहीं करती — उदाहरण वाले बटन इसे जाँचना आसान बना देते हैं।'
+    },
+    ar: {
+      title: 'دالة φ لأويلر',
+      heading: 'دالة φ لأويلر',
+      lede: 'تحصي \u2066φ(n)\u2069 كم عددا من \u20661 … n−1\u2069 لا يشترك مع n في أي عامل، وتكتشف هذه الصفحة ذلك بالطريقة الصادقة الوحيدة — بسؤال خوارزمية إقليدس عن كل واحد منها على حدة.',
+      xref: 'يظهر العدد نفسه أيضا بوصفه قطاعات الزمرة الضربية بمقياس n ←',
+      chipPrime: '{n} · عدد أولي',
+      run: 'تنفيذ',
+      errNotWhole: 'يجب أن يكون n عددا صحيحا.',
+      errTooSmall: 'يجب ألا يقل n عن {min} — يحتاج المسح \u2066k = 1 … n−1\u2069 إلى قيمة واحدة على الأقل من k لاختبارها.',
+      errCapped: 'n محدود بالقيمة {max} — تم خفض القيمة لتناسب ذلك.',
+      chainHead: 'نختبر \u2066k = {k}\u2069 — \u2066gcd({n}, {k})\u2069',
+      verdictCoprime: '\u2066k = {k}\u2069 أولي مع {n} — \u2066gcd = 1\u2069، تم احتسابه.',
+      verdictEliminated: '\u2066k = {k}\u2069 يشترك مع {n} في عامل — \u2066gcd = {gcd}\u2069، تم استبعاده.',
+      tally: 'الحصيلة التراكمية للأعداد الأولية مع n: {count}',
+      progress: 'تم اختبار \u2066k = {k}\u2069 من {total}.',
+      answer: '\u2066φ({n}) = {phi}\u2069',
+      bannerReady: 'جاهز — اضغط على تشغيل لمشاهدة المسح وهو يختبر كل k بقسمة واحدة في كل مرة.',
+      bannerDone: {
+        zero: 'اكتمل — تم اختبار {count} قيم، منها {phi} أولية مع {n}.',
+        one: 'اكتمل — تم اختبار {count} قيمة، منها {phi} أولية مع {n}.',
+        two: 'اكتمل — تم اختبار {count} قيمتين، منها {phi} أولية مع {n}.',
+        few: 'اكتمل — تم اختبار {count} قيم، منها {phi} أولية مع {n}.',
+        many: 'اكتمل — تم اختبار {count} قيمة، منها {phi} أولية مع {n}.',
+        other: 'اكتمل — تم اختبار {count} قيمة، منها {phi} أولية مع {n}.'
+      },
+      caption: 'عندما يكون n عددا أوليا يكون \u2066φ(n) = n−1\u2069 لأن كل عدد أصغر منه لا يشترك معه في أي عامل — وأزرار الأمثلة تجعل التحقق من ذلك سهلا.'
     }
   });
 })();
