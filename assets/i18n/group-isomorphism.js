@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   nineteen supported languages.
+   twenty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -581,6 +581,64 @@
       eqTooLarge: '\u2066{g}^{a} ≡ {val} (mod {m})\u2069 (أكبر من أن تعرض القوة غير المختزلة بدقة)',
       refCount: 'عدد الأزواج: {count} (\u2066m ≤ {max}\u2069)',
       formula: '\u2066Z/{n}Z ≅ (Z/{m}Z)*\u2069   عبر   \u2066k ↦ {g}^k mod {m}\u2069   (المولد \u2066g = {g}\u2069)'
+    },
+    sq: {
+      title: 'Izomorfizmat e grupeve',
+      eyebrow: 'dy aritmetika, një grup',
+      heading: 'Izomorfizmat e grupeve',
+      lede: 'Numrat e plotë mod n me mbledhjen dhe njësitë mod m me shumëzimin mund të jenë, strukturalisht, saktësisht i njëjti grup — vetëm se me një aritmetikë tjetër. {0}',
+      xref: 'Shihni se si ndërtohen këta dy grupe një nga një →',
+      pairLabel: 'Çifti izomorf',
+      pairSelectAriaLabel: 'Zgjidhni një çift izomorf',
+      randomizeLabel: 'Rastësisht',
+      randomize: 'Shembull i ri i rastësishëm',
+      tablistLabel: 'Paraqitja e rrotës së djathtë',
+      tabPowers: 'Fuqitë e g',
+      tabNumeric: 'Numerike',
+      leftWheelAriaLabel: 'Elementet e grupit aditiv Z mod n',
+      rightWheelAriaLabel: 'Elementet e grupit shumëzues të njësive mod m',
+      refHeading: 'Çiftet izomorfë',
+      leftWedgeAriaLabel: 'Elementi {value} i grupit aditiv Z mod {n}',
+      rightWedgeAriaLabel: 'Elementi {value} i grupit shumëzues të njësive mod {m}, i barabartë me {g} në fuqinë {k} mod {m}',
+      leftCaption: 'Grupi aditiv {bSpan}: numrat e plotë nga 0 deri në {max} me mbledhjen mod {n}.',
+      rightCaption: 'Grupi shumëzues {bSpan}: {n} njësi mod {m} me shumëzimin, të gjeneruara nga {g}.',
+      readoutPrompt: 'Klikoni një element në cilëndo rrotë për të parë korrespondencën.',
+      readoutOne: 'Elementi {aSlot} në të majtë i përgjigjet vlerës {aValSlot} në të djathtë: {eqSpan}. Klikoni një element të dytë — ose këtë të njëjtin sërish — për të parë shumën dhe prodhimin.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} në të majtë ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} në të djathtë ({modSpan}) — dhe {product} = {g}^{sum} mod {m} = {sumVal}: imazhi i shumës është i barabartë me prodhimin e imazheve.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} në të majtë ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} në të djathtë ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} nuk është i barabartë me {g}^{sum} mod {m} = {sumVal} — ky çift nuk duhet të bjerë kurrë në kundërshti.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (shumë i madh për ta shfaqur saktësisht fuqinë e pareduktuar)',
+      refCount: '{count} çifte (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   përmes   k ↦ {g}^k mod {m}   (gjeneratori g = {g})'
+    },
+    sw: {
+      title: 'Isomofizimu za makundi',
+      eyebrow: 'hesabu mbili, kundi moja',
+      heading: 'Isomofizimu za makundi',
+      lede: 'Namba kamili mod n kwa kujumlisha na vipengele vinavyogeuzika mod m kwa kuzidisha vinaweza kuwa, kimuundo, kundi lile lile kabisa — likivaa hesabu tofauti tu. {0}',
+      xref: 'Tazama makundi haya mawili yakijengwa moja baada ya jingine →',
+      pairLabel: 'Jozi isomofiki',
+      pairSelectAriaLabel: 'Chagua jozi isomofiki',
+      randomizeLabel: 'Nasibu',
+      randomize: 'Mfano mpya wa nasibu',
+      tablistLabel: 'Mpangilio wa gurudumu la kulia',
+      tabPowers: 'Vipeo vya g',
+      tabNumeric: 'Namba',
+      leftWheelAriaLabel: 'Vipengele vya kundi la kujumlisha Z mod n',
+      rightWheelAriaLabel: 'Vipengele vya kundi la kuzidisha la vipengele vinavyogeuzika mod m',
+      refHeading: 'Jozi isomofiki',
+      leftWedgeAriaLabel: 'Kipengele {value} cha kundi la kujumlisha Z mod {n}',
+      rightWedgeAriaLabel: 'Kipengele {value} cha kundi la kuzidisha la vipengele vinavyogeuzika mod {m}, sawa na {g} kwa kipeo {k} mod {m}',
+      leftCaption: 'Kundi la kujumlisha {bSpan}: namba kamili 0 hadi {max} chini ya kujumlisha mod {n}.',
+      rightCaption: 'Kundi la kuzidisha {bSpan}: vipengele {n} vinavyogeuzika mod {m} chini ya kuzidisha, vinavyozalishwa na {g}.',
+      readoutPrompt: 'Bofya kipengele kwenye gurudumu lolote kuona mwandamano.',
+      readoutOne: 'Kipengele {aSlot} upande wa kushoto kinalingana na {aValSlot} upande wa kulia: {eqSpan}. Bofya kipengele cha pili — au hicho hicho tena — kuona jumla na zao.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} upande wa kushoto ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} upande wa kulia ({modSpan}) — na {product} = {g}^{sum} mod {m} = {sumVal}: taswira ya jumla ni sawa na zao la taswira.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} upande wa kushoto ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} upande wa kulia ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} si sawa na {g}^{sum} mod {m} = {sumVal} — jozi hii haipaswi kamwe kutofautiana.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (kubwa mno kuonyesha kipeo ambacho hakijapunguzwa kwa usahihi)',
+      refCount: 'jozi {count} (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   kupitia   k ↦ {g}^k mod {m}   (kizalishi g = {g})'
     }
   });
 })();

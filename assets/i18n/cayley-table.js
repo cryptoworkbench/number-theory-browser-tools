@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all nineteen supported languages.
+   Cayley Table tool, in all twenty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -792,6 +792,84 @@
       noteCommutative: '\u2066{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})\u2069، وكذلك \u2066{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})\u2069 — كلتاهما تقع على القيمة نفسها، ولذلك فالجدول متناظر حول قطره: الزمرة تبديلية.',
       selfInverseNote: '{a} هو {word}، لأن قيمته هنا هي العنصر المحايد.',
       equationCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).\u2069'
+    },
+    sq: {
+      title: 'Tabela e Cayley-t',
+      eyebrow: 'teoria e grupeve · tabelat e veprimit',
+      heading: 'Tabela e Cayley-t',
+      lede: 'I gjithë veprimi i një grupi futet në një tabelë katrore — një rresht dhe një kolonë për çdo element, një qelizë për çdo rezultat. Çdo fakt strukturor për atë grup — elementi i tij neutral, të anasjelltët, komutativiteti — qëndron i dukshëm diku në formën e tabelës.',
+      xref: 'Të njëjtat dy veprime grupi, të parë si fetë në një rrotë në vend të rreshtave në një tabelë →',
+      tablistLabel: 'Veprimi i grupit',
+      nLabel: 'N — moduli',
+      randomizeLabel: 'Rastësisht',
+      randomize: 'Shembull i ri i rastësishëm',
+      tableScrollLabel: 'Tabela e Cayley-t, me rrëshqitje',
+      'legend.identity': '{0} Rreshti dhe kolona e elementit neutral',
+      'legend.inverse': '{0} I anasjellti i vetes (i çiftuar me veten)',
+      'legend.selected': '{0} Qeliza e zgjedhur',
+      'legend.mirror': '{0} Binjaku pasqyrë në anën tjetër të diagonales',
+      nNoteNotWhole: 'N duhet të jetë numër i plotë — tabela mbetet siç ishte.',
+      nNoteTooSmall: 'N nuk mund të bjerë nën 1 — u ngrit në 1.',
+      nNoteCapped: 'N kufizohet në {max} që tabela të mos rritet shumë — u ul në {max}.',
+      identityWordAdditive: 'zero',
+      identityWordMultiplicative: 'një',
+      inverseWordAdditive: 'negativi i vetvetes',
+      inverseWordMultiplicative: 'reciproku i vetvetes',
+      identityNote: 'Elementi neutral është {word} — rreshti dhe kolona e tij janë shënuar më poshtë.',
+      symmetryNoteAdditive: 'a + b dhe b + a bien gjithmonë në të njëjtën klasë, ndaj tabela pasqyrohet përtej diagonales — klikoni çdo qelizë për të parë binjakun e saj të ndriçohet në anën e kundërt.',
+      symmetryNoteMultiplicative: 'a · b dhe b · a bien gjithmonë në të njëjtën klasë, ndaj tabela pasqyrohet përtej diagonales — klikoni çdo qelizë për të parë binjakun e saj të ndriçohet në anën e kundërt.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} element · elementi neutral është [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elemente · elementi neutral është [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} element · elementi neutral është [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elemente · elementi neutral është [{id}]'
+      },
+      tableCaption: 'Tabela e Cayley-t për {summary} me veprimin {sign}',
+      noteDiagonal: 'Kjo qelizë ndodhet në boshtin diagonal — është binjaku i vetvetes, me vetëm një ekuacion për të shprehur: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), dhe {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — të dyja bien në të njëjtën vlerë, ndaj tabela është simetrike përtej diagonales: grupi është komutativ.',
+      selfInverseNote: 'Numri {a} është {word}, sepse vlera e tij këtu është elementi neutral.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    sw: {
+      title: 'Jedwali la Cayley',
+      eyebrow: 'nadharia ya makundi · majedwali ya operesheni',
+      heading: 'Jedwali la Cayley',
+      lede: 'Operesheni nzima ya kundi inatoshea kwenye jedwali moja la mraba — safu mlalo moja na safu wima moja kwa kila kipengele, seli moja kwa kila matokeo. Kila ukweli wa kimuundo kuhusu kundi hilo — kipengele chake cha utambulisho, vinyume vyake, ubadilifu wake — upo wazi mahali fulani katika umbo la jedwali.',
+      xref: 'Operesheni zile zile mbili za kundi, zikionekana kama vipande kwenye gurudumu badala ya safu kwenye jedwali →',
+      tablistLabel: 'Operesheni ya kundi',
+      nLabel: 'N — moduli',
+      randomizeLabel: 'Nasibu',
+      randomize: 'Mfano mpya wa nasibu',
+      tableScrollLabel: 'Jedwali la Cayley, linaloweza kusogezwa',
+      'legend.identity': '{0} Safu mlalo na safu wima ya kipengele cha utambulisho',
+      'legend.inverse': '{0} Kinyume cha chenyewe (kimeoanishwa na chenyewe)',
+      'legend.selected': '{0} Seli iliyochaguliwa',
+      'legend.mirror': '{0} Pacha wa kioo upande wa pili wa mshazari',
+      nNoteNotWhole: 'N lazima iwe namba kamili — jedwali linabaki kama lilivyokuwa.',
+      nNoteTooSmall: 'N haiwezi kushuka chini ya 1 — imeinuliwa hadi 1.',
+      nNoteCapped: 'N ina kikomo cha {max} ili jedwali lisikue kupita kiasi — imepunguzwa hadi {max}.',
+      identityWordAdditive: 'sifuri',
+      identityWordMultiplicative: 'moja',
+      inverseWordAdditive: 'hasi yake yenyewe',
+      inverseWordMultiplicative: 'kinyume chake cha kuzidisha',
+      identityNote: 'Kipengele cha utambulisho ni {word} — safu mlalo na safu wima yake zimealamishwa hapa chini.',
+      symmetryNoteAdditive: 'a + b na b + a daima hutua katika tabaka moja, kwa hiyo jedwali hujiakisi kuvuka mshazari — bofya seli yoyote kuona pacha wake akiwaka upande wa pili.',
+      symmetryNoteMultiplicative: 'a · b na b · a daima hutua katika tabaka moja, kwa hiyo jedwali hujiakisi kuvuka mshazari — bofya seli yoyote kuona pacha wake akiwaka upande wa pili.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · kipengele {count} · kipengele cha utambulisho [{id}]',
+        other: 'ℤ/{n}ℤ · vipengele {count} · kipengele cha utambulisho [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = kipengele {count} · kipengele cha utambulisho [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = vipengele {count} · kipengele cha utambulisho [{id}]'
+      },
+      tableCaption: 'Jedwali la Cayley la {summary} chini ya {sign}',
+      noteDiagonal: 'Seli hii iko kwenye mhimili wa mshazari — ni pacha wa yenyewe, ikiwa na mlinganyo mmoja tu wa kutaja: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), na {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — zote mbili hutua kwenye thamani ile ile, kwa hiyo jedwali ni linganifu kuhusu mshazari wake: kundi ni badilifu.',
+      selfInverseNote: 'Namba {a} ni {word}, kwa sababu thamani yake hapa ni kipengele cha utambulisho.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });
 })();

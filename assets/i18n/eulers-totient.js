@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all nineteen supported languages.
+   tool, in all twenty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all nineteen languages. bannerDone is { one, other } in every language
+   all twenty-one languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
    ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }),
@@ -471,6 +471,52 @@
         other: 'اكتمل — تم اختبار {count} قيمة، منها {phi} أولية مع {n}.'
       },
       caption: 'عندما يكون n عددا أوليا يكون \u2066φ(n) = n−1\u2069 لأن كل عدد أصغر منه لا يشترك معه في أي عامل — وأزرار الأمثلة تجعل التحقق من ذلك سهلا.'
+    },
+    sq: {
+      title: 'Funksioni φ i Eulerit',
+      heading: 'Funksioni φ i Eulerit',
+      lede: 'φ(n) numëron sa nga 1 … n−1 nuk kanë faktor të përbashkët me n, dhe kjo faqe e zbulon në mënyrën e vetme të ndershme — duke e pyetur algoritmin e Euklidit për secilin prej tyre veç e veç.',
+      xref: 'I njëjti numërim shfaqet si fetat e grupit shumëzues mod n →',
+      chipPrime: '{n} · i thjeshtë',
+      run: 'Ekzekuto',
+      errNotWhole: 'n duhet të jetë numër i plotë.',
+      errTooSmall: 'n duhet të jetë të paktën {min} — ecja k = 1 … n−1 ka nevojë për të paktën një k për ta testuar.',
+      errCapped: 'n kufizohet në {max} — vlera u ul që të përshtatet.',
+      chainHead: 'Po testohet k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} është relativisht i thjeshtë me {n} — gcd = 1, u numërua.',
+      verdictEliminated: 'k = {k} ka faktor të përbashkët me {n} — gcd = {gcd}, u eliminua.',
+      tally: 'Numërimi deri tani i relativisht të thjeshtëve: {count}',
+      progress: 'Testuar k = {k} nga {total}.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Gati — shtypni Luaj për të parë ecjen që teston secilin k, një pjesëtim në herë.',
+      bannerDone: {
+        one: 'U krye — {count} vlerë e testuar, {phi} relativisht të thjeshta me {n}.',
+        other: 'U krye — {count} vlera të testuara, {phi} relativisht të thjeshta me {n}.'
+      },
+      caption: 'Kur n është i thjeshtë, φ(n) = n−1, sepse çdo numër më i vogël nuk ka faktor të përbashkët me të — çipat e bëjnë këtë të lehtë për ta kontrolluar.'
+    },
+    sw: {
+      title: 'Kitendakazi φ cha Euler',
+      heading: 'Kitendakazi φ cha Euler',
+      lede: 'φ(n) huhesabu ni ngapi kati ya 1 … n−1 hazina kigawo cha pamoja na n, na ukurasa huu hugundua kwa njia pekee ya uaminifu — kwa kuuliza algorithimu ya Euclid kuhusu kila moja yao.',
+      xref: 'Hesabu hiyo hiyo huonekana kama vipande vya kundi la kuzidisha mod n →',
+      chipPrime: '{n} · namba tasa',
+      run: 'Endesha',
+      errNotWhole: 'n lazima iwe namba kamili.',
+      errTooSmall: 'n lazima iwe angalau {min} — mwendo k = 1 … n−1 unahitaji angalau k moja ya kujaribu.',
+      errCapped: 'n ina kikomo cha {max} — thamani ilipunguzwa ili itoshee.',
+      chainHead: 'Inajaribu k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} haina kigawo cha pamoja na {n} — gcd = 1, imehesabiwa.',
+      verdictEliminated: 'k = {k} inashiriki kigawo na {n} — gcd = {gcd}, imeondolewa.',
+      tally: 'Idadi ya sasa ya zisizo na kigawo cha pamoja: {count}',
+      progress: 'k = {k} kati ya {total} imejaribiwa.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Tayari — bonyeza Cheza ili kutazama mwendo ukijaribu kila k kwa mgawanyo mmoja kwa wakati.',
+      bannerDone: {
+        one: 'Imekamilika — thamani {count} imejaribiwa; zisizo na kigawo cha pamoja na {n} ni {phi}.',
+        other: 'Imekamilika — thamani {count} zimejaribiwa; zisizo na kigawo cha pamoja na {n} ni {phi}.'
+      },
+      caption: 'n inapokuwa namba tasa, φ(n) = n−1, kwa sababu kila namba ndogo zaidi haina kigawo cha pamoja nayo — vitufe vya mfano hurahisisha kuthibitisha hilo.'
     }
   });
 })();
