@@ -6,7 +6,7 @@
    and result message (searching, error, power-of-two, limit-reached,
    perfect-square, trivial-pair, trivial-prime, found), the factor chip's
    title, the result hint, the trail prefix, and the footer for the
-   Fermat's Method tool, in all twenty-four supported languages.
+   Fermat's Method tool, in all twenty-five supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in
@@ -1157,6 +1157,53 @@
       resultFound: '{strongTrial}번째 시도에서 찾았습니다: a = {a}, b = {b}.',
       resultHint: '위의 인수를 클릭하면 그 수에 이 방법을 다시 실행합니다.',
       trailPrefix: '경로:'
+    },
+    id: {
+      title: 'Metode Fermat — Visualisasi Interaktif',
+      heading: 'Metode Fermat',
+      lede: 'Metode Fermat: setiap bilangan ganjil N dapat ditulis sebagai selisih dua kuadrat, N = a² − b². Temukan b² yang tepat untuk “melengkapkan kuadrat” N, maka faktorisasi (a−b)(a+b) = N akan terungkap — lengkap dengan gambar sebagai buktinya.',
+      mathNote: 'Kita mencari a = ⌈√N⌉, ⌈√N⌉+1, … sampai a² − N sendiri menjadi kuadrat sempurna b².',
+      nLabel: 'Bilangan yang difaktorkan (N)',
+      factorize: 'Faktorkan',
+      statTryingA: 'Mencoba a',
+      statASqLabel: 'a²',
+      statRLabel: 'r = a² − N',
+      statHitLabel: '√r sempurna?',
+      statTrialNumber: 'Percobaan #',
+      searchLogHeading: 'Catatan pencarian',
+      tableSquareHeader: 'kuadrat?',
+      diagramHeading: 'Gambar geometris',
+      replay: 'Putar ulang',
+      legendStays: '{0} tetap di tempat (a × (a−b))',
+      legendSlides: '{0} bergeser ke posisinya ((a−b) × b)',
+      legendRemoved: '{0} sudut yang dibuang (b²)',
+      legendFinal: '{0} akhir (a+b) × (a−b)',
+      footer: 'Semua perhitungan berjalan di peramban Anda. Pencarian dibatasi hingga 20,000 percobaan agar tetap responsif — beberapa bilangan prima tanpa kuadrat di dekatnya akan mencapai batas itu.',
+      'chip.closestPair': 'pasangan terdekat — ditemukan dalam 1 percobaan',
+      'chip.balancedFactorsQuick': 'faktor seimbang, cepat ditemukan',
+      'chip.perfectSquare': 'kuadrat sempurna, {a} × {a}',
+      'chip.evenStrips': 'genap — {pow} dikeluarkan dahulu',
+      'chip.primeTrivial': 'prima — hanya pasangan trivial',
+      cellYes: '✓ ya',
+      cellNo: '✗ tidak',
+      statHitYes: 'ya ({b})',
+      statHitNo: 'tidak',
+      factorChipTitle: 'Faktorkan bilangan ini lebih lanjut',
+      diagramPerfectSquareCaption: '{a}² = {aSq} — N adalah kuadrat sempurna, N = {a} × {a}',
+      errEnterInteger: 'Masukkan bilangan bulat minimal 2.',
+      searchingPlain: 'Mencari a dengan a² − {m} kuadrat sempurna…',
+      kNote: '(N = 2{kSup} × {m}, faktor 2 dikeluarkan dahulu)',
+      searchingWithK: 'Mencari a dengan a² − {m} kuadrat sempurna {kNoteSpan}…',
+      resultPowerOfTwo: 'N = 2{kSup}. Bagian ganjilnya 1, sehingga tidak ada lagi kuadrat yang perlu dilengkapi — 2 sudah prima.',
+      resultLimitErr: 'Batas pencarian tercapai ({iter} percobaan)',
+      resultLimit: '{errSpan} tanpa menemukan kuadrat sempurna. Bagian ganjil {m} kemungkinan besar memiliki faktor yang sangat tidak seimbang (atau prima) — coba bilangan yang lebih kecil.',
+      resultPerfectSquare: '{strongM} adalah kuadrat sempurna: {a} × {a}.',
+      resultTrivial: 'Hanya pasangan trivial (1, {m}) yang muncul.',
+      resultPrimeStrong: '{m} adalah bilangan prima',
+      resultTrivialPrime: 'Hanya pasangan trivial (1, {m}) yang muncul — {strongPrime}.',
+      resultFound: 'Ditemukan pada percobaan {strongTrial}: a = {a}, b = {b}.',
+      resultHint: 'Klik faktor mana pun di atas untuk menjalankan metode itu lagi padanya.',
+      trailPrefix: 'Jejak:'
     }
   });
 })();

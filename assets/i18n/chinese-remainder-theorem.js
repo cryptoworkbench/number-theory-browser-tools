@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all twenty-four supported languages.
+   tool, in all twenty-five supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all twenty-four languages. Must load after assets/nt-i18n.js and
+   across all twenty-five languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -910,6 +910,43 @@
       constructReasonSpanBlocked: '이 구성에는 계산된 답이 필요한데, 범위 상한 보호 장치가 이를 막고 있습니다.',
       constructSumMismatch: '진단 불일치: 구성을 줄이면 {reduced} 값이 되지만 풀이기는 {computed} 값을 계산했습니다. 이 둘은 항상 일치해야 합니다.',
       seeInverse: '역원 보기 →'
+    },
+    id: {
+      title: 'Teorema Sisa Tiongkok',
+      heading: 'Teorema Sisa Tiongkok',
+      lede: 'Setiap kongruensi dengan sendirinya memilih keluarga bilangan yang berjarak sama — setiap bilangan ketiga, setiap bilangan kelima, dan seterusnya. Ketika modulus tidak memiliki faktor persekutuan, keluarga-keluarga itu bersilangan di tepat satu tempat dalam setiap rentang {0} bilangan. Satu persilangan itulah solusi simultan yang disepakati setiap baris.',
+      xref: 'Lihat invers modular dari kongruensi pertama dihitung langkah demi langkah di alat Algoritma Euklides →',
+      countGroupLabel: 'Jumlah kongruensi',
+      countTwo: 'Dua kongruensi',
+      countThree: 'Tiga kongruensi',
+      remainderLabel: 'sisa a',
+      modulusLabel: 'modulus m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · teka-teki Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · pasangan relatif prima',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · memiliki faktor bersama',
+      extToggleLabel: 'Tampilkan metode yang lebih cepat — bangun jawaban secara langsung dengan algoritma Euklides yang diperluas, bukan dengan mencarinya',
+      stripGroupLabel: 'Pita kelas residu, dapat digulir',
+      constructLede: 'Bagi rentang menjadi satu bagian untuk setiap kongruensi, cari invers setiap bagian terhadap modulusnya sendiri, kalikan dengan sisa kongruensi itu, jumlahkan semua bagian, lalu reduksi hasilnya.',
+      tableHeaderY: 'y (invers)',
+      tableHeaderTerm: 'suku = a · M · y',
+      caption: 'Jawabannya berulang selamanya dengan periode {0} — kolom bertanda adalah satu wakil dari keluarga solusi yang tak terhingga.',
+      allAgreeLabel: 'semua sepakat',
+      errModulusWhole: 'Baris {idx}: modulus harus berupa bilangan bulat.',
+      errModulusRange: 'Baris {idx}: modulus harus di antara {min} dan {max}.',
+      errRemainderWhole: 'Baris {idx}: sisa harus berupa bilangan bulat.',
+      errRemainderRange: 'Baris {idx}: sisa harus dari 0 hingga {max} untuk modulus {m}.',
+      coprimeOk: 'Semua modulus relatif prima secara berpasangan — ada solusi bentuk standar modulo {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — modulus {x} dan {y} memiliki faktor bersama, sehingga syarat relatif prima berpasangan dari konstruksi CRT bentuk standar tidak terpenuhi dan alat ini tidak mencoba menyelesaikan sistem ini.',
+      spanWarn: 'Periode gabungan lcm = {span} melebihi batas atas rentang alat ini sebesar {max} — turunkan salah satu modulus agar berada di bawah {max}.',
+      testingX: 'Menguji x = {x} …',
+      diagnosticMismatchScan: 'Ketidakcocokan diagnostik: pemindaian berhenti di {landed} tetapi konstruksi menghitung {computed} — keduanya harus selalu sama.',
+      solved: 'Selesai — setiap kongruensi sepakat pada x = {x}.',
+      diagnosticScanEnd: 'Diagnostik: pemindaian mencapai akhir periode ({span}) tanpa menemukan kesepakatan, yang seharusnya mustahil untuk sistem yang relatif prima berpasangan.',
+      readyToScan: 'Siap — tekan Putar untuk melihat pemindaian mencari x.',
+      constructReasonNotCoprime: 'Konstruksi mengharuskan setiap M_i memiliki invers modulo m_i miliknya sendiri, yang menjadi mustahil jika modulus memiliki faktor bersama.',
+      constructReasonSpanBlocked: 'Konstruksi membutuhkan jawaban yang telah dihitung, dan batas atas rentang sedang menghalanginya.',
+      constructSumMismatch: 'Ketidakcocokan diagnostik: konstruksi tereduksi menjadi {reduced} tetapi penyelesai menghitung {computed} — keduanya harus selalu sama.',
+      seeInverse: 'lihat invers →'
     }
   });
 })();

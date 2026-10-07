@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all twenty-four supported languages.
+   tool, in all twenty-five supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   twenty-four languages. Must load after assets/nt-i18n.js and
+   twenty-five languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1298,6 +1298,55 @@
       nestedTileTitle: '단계 {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: '단계 {step}: {a} = {q}·{b} + {r} (여기에 정사각형 {extra}개가 더 접혀 있음)',
       tileEmptyMessage: '자를 직사각형이 없습니다. b가 이미 0이므로 알고리즘이 이미 끝났습니다.'
+    },
+    id: {
+      title: 'Algoritma Euklides',
+      heading: 'Algoritma Euklides',
+      lede: 'Ganti pasangan (a, b) berulang kali dengan (b, a mod b) — bagi bilangan yang lebih besar dengan yang lebih kecil dan simpan hanya sisanya — dan pasangan itu menyusut pada setiap langkah. Begitu salah satu sisi mencapai nol, sisi lainnya adalah faktor persekutuan terbesar dari kedua bilangan awal tersebut.',
+      xref: 'FPB yang sama juga dapat dilihat sebagai bilangan prima yang dimiliki bersama oleh kedua bilangan →',
+      chipFiveSteps: '240, 46 · 5 langkah',
+      chipCoprime: '35, 18 · relatif prima',
+      chipBDividesA: '144, 12 · b membagi a',
+      chipEqualPair: '36, 36 · pasangan sama',
+      chipAlreadyDone: '17, 0 · sudah selesai',
+      chipFibonacciWorst: '89, 55 · kasus terburuk Fibonacci',
+      chipHugeQuotient: '500000, 2 · hasil bagi sangat besar',
+      run: 'Jalankan',
+      extToggleLabel: 'Mode Euklides yang diperluas — tampilkan koefisien Bézout {0} dan {1}',
+      errBothWhole: 'Kedua nilai a dan b harus berupa bilangan bulat.',
+      errBothNonNegative: 'Kedua nilai a dan b harus nol atau positif — bilangan negatif tidak memiliki FPB yang terdefinisi di sini.',
+      errGcdZeroZero: 'gcd(0, 0) tidak terdefinisi — masukkan setidaknya satu nilai bukan nol.',
+      errClamped: 'Masukan dibatasi hingga {max} — nilai yang lebih besar diturunkan agar muat.',
+      swapNote: 'Nilai yang lebih besar didahulukan: dimasukkan sebagai ({a}, {b}), ditelusuri sebagai gcd({A}, {B}) — FPB bersifat simetris terhadap argumennya.',
+      bannerReady: 'Siap — tekan Putar untuk melihat penurunan dibangun baris demi baris.',
+      bannerDone: {
+        other: 'Selesai — {n} langkah untuk mencapai FPB.'
+      },
+      chainNoteZero: 'b sudah 0, jadi tidak ada lagi yang perlu dibagi — a sudah merupakan faktor persekutuan terbesar.',
+      extCaption: '{0} dan {1} pada setiap baris menyatakan sisa baris itu sebagai kombinasi dari kedua masukan awal — {2}.',
+      viewNested: 'Persegi bersarang',
+      geomViewGroupLabel: 'Mode tampilan geometris',
+      viewStep: 'Satu langkah',
+      tileAriaDefault: 'Tampilan persegi panjang untuk langkah pembagian saat ini',
+      nestedAriaDefault: 'Semua langkah pembagian yang bersarang dalam satu persegi panjang',
+      caption: 'Bilangan Fibonacci berurutan adalah kasus terburuk bagi algoritma ini — bilangan itu memaksa langkah pembagian paling banyak untuk ukurannya.',
+      tileCaptionExact: {
+        other: 'Langkah {index} dari {total}: {a} ÷ {b}: persegi panjang ditutupi tepat oleh {q} persegi bersisi {b} — tanpa sisa, sehingga {b} adalah faktor persekutuan terbesar.'
+      },
+      tileCaptionLeftover: {
+        other: 'Langkah {index} dari {total}: {a} = {q}×{b} + {r}: {q} persegi bersisi {b} muat, menyisakan sisa {b}×{r}.'
+      },
+      tileNoteCapped: 'Hasil bagi sebenarnya adalah {q} — hanya {cap} persegi pertama yang digambar di sini; {rest} persegi sisanya diciutkan ke dalam ubin berlabel, sehingga lebar gambar tidak sesuai skala.',
+      nestedEmptyMessage: 'Tidak ada persegi panjang untuk disarangkan — b sudah 0, jadi algoritma sudah selesai.',
+      nestedCaption: {
+        other: 'gcd({A}, {B}) = {gcd}: seluruh {n} langkah bersarang dalam satu persegi panjang {A}×{B} — persegi terkecil, {lastB}×{lastB}, adalah faktor persekutuan terbesar. Klik sebuah persegi (atau sebuah langkah di atas) untuk melihat bagaimana semuanya tersusun.'
+      },
+      nestedNoteCapped: {
+        other: 'Langkah {stepNums} memiliki hasil bagi yang sangat besar — hanya {cap} persegi pertama yang digambar di sana, diciutkan ke dalam ubin putus-putus, sehingga diagram ini tidak sepenuhnya sesuai skala pada langkah tersebut.'
+      },
+      nestedTileTitle: 'Langkah {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Langkah {step}: {a} = {q}·{b} + {r} ({extra} persegi lagi diciutkan di sini)',
+      tileEmptyMessage: 'Tidak ada persegi panjang untuk dipotong — b sudah 0, jadi algoritma sudah selesai.'
     }
   });
 })();

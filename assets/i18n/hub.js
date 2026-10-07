@@ -1,6 +1,6 @@
 /* assets/i18n/hub.js — the 'hub' namespace: index.html's page title, hero
    (eyebrow, h1, lede), all fifteen tool cards (card.<id>.title / desc),
-   the shared "Open tool →" link label and the footer, in all twenty-four
+   the shared "Open tool →" link label and the footer, in all twenty-five
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -957,6 +957,45 @@
       'card.fermat.desc': '페르마의 인수분해법입니다. a² − N = b² 형태의 식을 만족하는 값을 찾고, 정사각형이 직사각형으로 재배열되면서 대수가 그림으로 바뀌는 모습을 지켜보세요.',
       'card.shor.title': '쇼어 알고리즘',
       'card.shor.desc': 'RSA를 깨뜨릴 수 있는 알고리즘이 수를 단계별로 인수분해하는 모습을 지켜보세요. 진정으로 양자적인 단계인 위수 찾기는 고전적 대용품임을 솔직하게 표시했으며, 그래서 여기서는 N을 작게 유지합니다.'
+    },
+    id: {
+      title: 'Alat Peramban Teori Bilangan',
+      'hero.title': 'Teori bilangan, divisualisasikan',
+      'group.primes': 'Bilangan prima dan keterbagian',
+      'group.modular': 'Aritmetika modular dan grup',
+      'group.crypto': 'Kriptografi dan faktorisasi',
+      'hero.lede': 'Lima belas alat peramban mungil untuk menjelajahi bilangan prima, faktorisasi, aritmetika modular, kongruensi simultan, tabel grup dan isomorfisme, serta kriptografi kunci publik dari aritmetika modular hingga kurva eliptik — masing-masing berupa visualisasi animasi interaktif yang bisa Anda otak-atik, atur dengan penggeser, dan saksikan cara kerjanya.',
+      footer: 'Semua lima belas alat berjalan sepenuhnya di peramban Anda — tanpa tahap kompilasi, tanpa server, tanpa pelacakan.',
+      'card.sieve.title': 'Saringan Eratosthenes',
+      'card.sieve.desc': 'Beri setiap bilangan asli kotaknya sendiri, lalu saksikan saringan mencoret semua yang bukan prima — lengkap dengan kontrol pemutaran dan denting nada untuk setiap bilangan prima yang ditemukan.',
+      'card.factorTree.title': 'Pohon Faktor',
+      'card.factorTree.desc': 'Beri sebuah bilangan pohon faktor dan saksikan pohon itu tumbuh cabang demi cabang hingga mencapai daun-daunnya yang berupa bilangan prima.',
+      'card.venn.title': 'Diagram Venn',
+      'card.venn.desc': 'Seret bilangan prima ke dalam dua atau tiga lingkaran yang saling tumpang tindih dan baca hasil kali setiap daerah — setiap bagian yang tumpang tindih terbaca sebagai irisan, mulai dari lensa ∩ sederhana hingga bagian tengah tempat semua lingkaran bertemu.',
+      'card.euclid.title': 'Algoritma Euklides',
+      'card.euclid.desc': 'Bagi bilangan yang lebih besar dengan yang lebih kecil, simpan hanya sisanya, lalu ulangi — saksikan pasangan itu menyusut langkah demi langkah dalam rantai persamaan yang terus memanjang hingga yang tersisa hanyalah faktor persekutuan terbesar (FPB).',
+      'card.crt.title': 'Teorema Sisa Tiongkok',
+      'card.crt.desc': 'Beri satu bilangan tak diketahui yang sama dua atau tiga fakta sisa — sisa 2 jika dibagi 3, sisa 3 jika dibagi 5 — lalu saksikan keluarga kandidat yang berjarak sama itu bersilangan di satu bilangan yang memenuhi semuanya sekaligus.',
+      'card.wheel.title': 'Roda Ekuivalensi',
+      'card.wheel.desc': 'Setiap bilangan asli termasuk tepat satu kelas ekuivalensi modulo N — di sini disusun sebagai cincin konsentris dan juring, satu juring untuk setiap kelas.',
+      'card.totient.title': 'Fungsi φ Euler',
+      'card.totient.desc': 'Hitung berapa banyak bilangan di bawah n yang tidak memiliki faktor persekutuan dengan n — bukan dengan rumus, melainkan dengan menjalankan algoritma Euklides terhadap setiap bilangan itu satu per satu dan mencatat mana yang lolos.',
+      'card.cayley.title': 'Tabel Cayley',
+      'card.cayley.desc': 'Seluruh perilaku sebuah grup muat dalam satu tabel persegi — tetapkan modulus, beralih antara penjumlahan dan perkalian, lalu klik sel mana pun untuk melihat elemen identitasnya, elemen yang menjadi inversnya sendiri, dan simetrinya, semuanya tampak jelas pada bentuk kisi.',
+      'card.iso.title': 'Isomorfisme Grup',
+      'card.iso.desc': 'Dua roda berdampingan — bilangan bulat mod n dengan penjumlahan, unit mod m dengan perkalian — untuk setiap pasangan yang secara struktural merupakan grup yang persis sama. Klik salah satu roda untuk melihat padanannya pada roda yang lain.',
+      'card.sqm.title': 'Kuadratkan dan Kalikan',
+      'card.sqm.desc': 'Mesin tidak pernah mengalikan sebuah bilangan dengan dirinya sendiri satu miliar kali — ia membaca eksponen dalam biner lalu menurunkannya dengan kuadrat berulang, satu kuadrat untuk setiap bit, dan hanya itulah alasan perhitungan sebesar RSA bisa selesai sama sekali.',
+      'card.dh.title': 'Pertukaran Kunci Diffie-Hellman',
+      'card.dh.desc': 'Saksikan Alice dan Bob membangun rahasia bersama secara terbuka sementara Eve merekam setiap byte yang melintasi saluran — dan tetap tidak bisa merekonstruksinya.',
+      'card.ecdh.title': 'Diffie-Hellman Kurva Eliptik',
+      'card.ecdh.desc': 'Seluruh himpunan titik sebuah kurva eliptik kecil atas lapangan prima, digambar sebagai diagram pencar — Alice dan Bob menelusurinya dengan perkalian skalar dan tiba di titik yang sama dari arah berlawanan.',
+      'card.rsa.title': 'RSA',
+      'card.rsa.desc': 'Saksikan Bob dan Alice membangun pasangan kunci RSA, saling bertukar lewat saluran yang disadap Eve, dan lihat persis masalah matematika sulit apa yang membuat Eve tetap terkunci di luar.',
+      'card.fermat.title': 'Metode Fermat',
+      'card.fermat.desc': 'Metode faktorisasi Fermat: cari a² − N = b², lalu saksikan aljabar berubah menjadi gambar saat sebuah persegi disusun ulang menjadi persegi panjang.',
+      'card.shor.title': 'Algoritma Shor',
+      'card.shor.desc': 'Saksikan algoritma yang membuat RSA bisa ditembus memfaktorkan sebuah bilangan tahap demi tahap — dengan satu-satunya langkah yang benar-benar kuantum, pencarian orde, yang diberi label jujur sebagai pengganti klasik, itulah sebabnya N tetap kecil di sini.'
     }
   });
 })();

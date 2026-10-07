@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all twenty-four supported languages. title and heading equal
+   Tree tool, in all twenty-five supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all twenty-four languages. The factorization itself (the equation/tree
+   across all twenty-five languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -1109,6 +1109,51 @@
       binLabel: '휴지통: 원을 여기로 끌어다 놓으면 팔레트에서 제거됩니다',
       emptyPaletteLabel: '모두 삭제: 팔레트 비우기',
       msgPaletteEmptied: '팔레트를 비웠습니다.'
+    },
+    id: {
+      title: 'Pohon Faktor',
+      heading: 'Pohon Faktor',
+      eyebrow: 'bilangan prima dan keterbagian',
+      subtitle: 'Tambahkan sebuah bilangan ke palet, seret lingkarannya ke area komposisi/faktorisasi, lalu tekan + untuk membukanya — cabang demi cabang, hingga ke daun-daun primanya.',
+      modeLabel: 'Mode pohon',
+      modeClassic: 'Klasik',
+      modeBalanced: 'Seimbang',
+      placeholder: 'mis. 60',
+      randomize: 'Acak',
+      footnote: 'Setiap daun prima mendapat satu pemecahan terakhir miliknya sendiri: P = P × 1.',
+      balancedNote: 'Mode Seimbang memakai metode Fermat untuk menemukan pasangan faktor yang terbagi paling merata pada setiap langkah, dibatasi pada bilangan di bawah 1,000,000 agar tetap cepat. Beberapa bilangan — seperti bilangan prima kecil dikali bilangan besar — tetap terbagi tidak merata; itu bukan kesalahan, hanya matematika.',
+      msgEmpty: 'Silakan masukkan bilangan terlebih dahulu.',
+      msgInvalid: 'Silakan masukkan bilangan bulat yang bernilai 1 atau lebih.',
+      msgTooLargeBalanced: 'Bilangan itu terlalu besar untuk mode Seimbang — coba bilangan di bawah 1,000,000, atau beralih ke mode Klasik untuk bilangan yang lebih besar.',
+      msgTooLargeClassic: 'Bilangan itu terlalu besar untuk pohon mungil ini — coba bilangan di bawah 1 triliun.',
+      msgOne: '1 bukan bilangan prima maupun bilangan komposit — ia hanya benih, belum menjadi pohon.',
+      msgPrime: '{n} adalah bilangan prima — ia hanya terpecah satu kali, menjadi 1 × {n}.',
+      msgFactors: '{n} difaktorkan menjadi {count} bilangan prima.',
+      mirrorLabel: 'Cerminkan cabang di bawah {n}',
+      foldLabel: 'Lipat faktor {n}',
+      unfoldLabel: 'Buka lipatan faktor {n}',
+      add: 'Tambah',
+      addInputLabel: 'Bilangan yang ditambahkan ke palet',
+      paletteHeading: 'Palet bilangan prima',
+      paletteHeadingNumbers: 'Palet bilangan',
+      paletteItemLabel: 'Letakkan {n} di area komposisi/faktorisasi',
+      workHeading: 'Area komposisi/faktorisasi',
+      workHint: 'Seret dan lepas bilangan komposit untuk memfaktorkannya, atau seret dan lepas bilangan prima untuk membangun bilangan komposit.',
+      clear: 'Bersihkan',
+      removeLabel: 'Hapus {n} dari area komposisi/faktorisasi',
+      moveLabel: 'Seret panel ini ke panel lain: separuh kiri mengalikan {n} dengan bilangan panel itu, separuh kanan membuat faktor persekutuan terbesar keduanya saling tumpang tindih',
+      removeOverlapLabel: 'Hapus bagian tumpang tindih {a} dan {b} dari area komposisi/faktorisasi',
+      splitOverlap: 'Pisahkan',
+      splitOverlapLabel: 'Pisahkan lagi pohon {a} dan {b}',
+      msgGcd: '{a} dan {b} berbagi cabang {g} — faktor persekutuan terbesar keduanya.',
+      msgCoprime: '{a} dan {b} relatif prima — satu-satunya cabang yang mereka bagi adalah 1.',
+      msgSplit: '{a} dan {b} kembali menjadi pohon yang terpisah.',
+      msgAdded: '{n} ditambahkan ke palet.',
+      msgRemoved: '{n} dihapus dari palet.',
+      msgPaletteFull: 'Palet sudah penuh — hanya dapat memuat paling banyak {max} bilangan.',
+      binLabel: 'Tempat sampah: seret lingkaran ke sini untuk menghapusnya dari palet',
+      emptyPaletteLabel: 'Hapus semua: kosongkan palet',
+      msgPaletteEmptied: 'Palet dikosongkan.'
     }
   });
 })();
