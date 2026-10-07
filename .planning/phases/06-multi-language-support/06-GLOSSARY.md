@@ -604,7 +604,7 @@ filled.
 | 20 | unit (group element) | eenheid | Einheit | unité | unidad | unità | element odwracalny | unidade (elemento invertível) | unidade (elemento invertível) | enhet (inverterbart element) | enhet (invertibelt element) | element inversabil (unitate) | invertálható elem (egység) | invertējams elements (vienība) | обратимый элемент | αντιστρέψιμο στοιχείο | איבר הפיך | इकाई (प्रतिलोमीय अवयव) | عنصر وحدة | element i kthyeshëm (njësi) | kipengele kinachogeuzika | `[ASSUMED]` |
 | 21 | identity element | identiteitselement / neutraal element | neutrales Element | élément neutre | elemento neutro | elemento neutro | element neutralny | elemento neutro (identidade) | elemento neutro (identidade) | neutralt element (identitetselement) | nøytralt element (identitetselement) | element neutru (element identitate) | egységelem (neutrális elem) | neitrālais elements (vienības elements) | нейтральный элемент | ουδέτερο στοιχείο | איבר היחידה (איבר ניטרלי) | तत्समक अवयव | العنصر المحايد | elementi neutral | kipengele cha utambulisho | `[ASSUMED]` |
 | 22 | inverse (element) | inverse | Inverses | inverse | inverso | inverso | element odwrotny | inverso (elemento inverso) | inverso (elemento inverso) | invers (inverst element) | invers (inverst element) | invers (element invers) | inverz (inverz elem) | inverss (inversais elements) | обратный элемент | αντίστροφο στοιχείο | איבר הופכי | प्रतिलोम | المعكوس | i anasjellti (elementi i anasjelltë) | kinyume | `[ASSUMED]` |
-| 23 | order of an element | orde van een element | Ordnung eines Elements | ordre d'un élément | orden de un elemento | ordine di un elemento | rząd elementu | ordem de um elemento | ordem de um elemento | ordning (ett elements ordning) | orden (et elements orden) | ordinul unui element | elem rendje | elementa kārta | порядок элемента | τάξη στοιχείου | סדר של איבר | अवयव की कोटि | الرتبة | rendi i një elementi | daraja ya kipengele | `[ASSUMED]` |
+| 23 | order of an element | orde van een element | Ordnung eines Elements | ordre d'un élément | orden de un elemento | ordine di un elemento | rząd elementu | ordem de um elemento | ordem de um elemento | ordning (ett elements ordning) | orden (et elements orden) | ordinul unui element | elem rendje | elementa kārta | порядок элемента | τάξη στοιχείου | סדר של איבר | अवयव की कोटि | الرتبة | rendi i një elementi | daraja la kipengele | `[ASSUMED]` |
 | 24 | generator / primitive root | voortbrenger / primitieve wortel | Erzeuger / primitive Wurzel | générateur / racine primitive | generador / raíz primitiva | generatore / radice primitiva | generator / pierwiastek pierwotny | gerador / raiz primitiva | gerador / raiz primitiva | generator / primitiv rot | generator / primitiv rot | generator / rădăcină primitivă | generátor / primitív gyök | ģenerators / primitīvā sakne | образующий элемент / первообразный корень | γεννήτορας / πρωταρχική ρίζα | יוצר / שורש פרימיטיבי | जनक / आदिम मूल | المولد / الجذر البدائي | gjeneratori / rrënja primitive | kizalishi / mzizi wa awali | `[ASSUMED]` |
 | 25 | cyclic group | cyclische groep | zyklische Gruppe | groupe cyclique | grupo cíclico | gruppo ciclico | grupa cykliczna | grupo cíclico | grupo cíclico | cyklisk grupp | syklisk gruppe | grup ciclic | ciklikus csoport | cikliskā grupa | циклическая группа | κυκλική ομάδα | חבורה ציקלית | चक्रीय समूह | زمرة دورية | grup ciklik | kundi la mzunguko | `[ASSUMED]` |
 | 26 | isomorphism | isomorfisme | Isomorphismus | isomorphisme | isomorfismo | isomorfismo | izomorfizm | isomorfismo | isomorfismo | isomorfism | isomorfi | izomorfism | izomorfizmus | izomorfisms | изоморфизм | ισομορφισμός | איזומורפיזם | तुल्याकारिता | تماثل | izomorfizëm | isomofizimu | `[ASSUMED]` |
@@ -910,6 +910,60 @@ Space and Delete are spelled out as مفتاح الإدخال / المسافة /
 break the script rule); the English "→" in "Open tool →" style links and in "→ fast" asides
 becomes ←; identical English strings on the DH and ECDH pages carry identical Arabic
 ("Arithmetic log" is سجل العمليات الحسابية everywhere).
+
+### Albanian and Swahili supplementary terms (added 2026-10-07 by quick task 261007-k4o, Tasks 2-4, unified in Task 5)
+
+Terms chosen while translating the pages in batches (Tasks 2-4 listed them as "Terms coined:"
+in their commit messages), after the cross-batch unification pass; the sq and sw columns of the
+(c) table hold citation forms and the shipped values inflect them (Albanian definiteness, case
+and plural; Swahili noun-class agreement). One Albanian and one Swahili rendering per English
+concept across all 18 namespaces; each row below was verified present by script in the
+namespaces named. The even/odd pair follows D-AVOID: Swahili never writes the rejected spelling
+"shufwa" (the plan reserves it for "even" and bans it as a rendering of "composite"), so "even"
+is rendered as the clause "inagawanyika kwa mbili"; Swahili "witiri" is "odd". All `[ASSUMED]`.
+
+| Term (en) | sq | sw | Used in |
+|---|---|---|---|
+| number palette | paleta e numrave | paleti ya namba | Factor Tree, Venn, common |
+| region (diagram zone) | zonë | eneo | Venn |
+| lens (the A ∩ B shape) | thjerrëz | lenzi | Hub, Venn |
+| wedge | fetë | kipande | Wheel, Hub |
+| circle (Venn) | rreth | duara | Venn, Hub |
+| bin (palette trash) | koshi (i mbeturinave) | pipa | Factor Tree, Venn |
+| odd number | numër tek | namba witiri | Fermat, RSA |
+| even number | numër çift | inagawanyika kwa mbili | Fermat, Shor |
+| trivial pair | çifti trivial | jozi dhahiri | Fermat |
+| complete the square | plotësoj katrorin | kukamilisha mraba | Fermat |
+| tile (Euclid rectangle tiling) | pllakë | kigae | Euclid |
+| nested squares | katrorë të futur | miraba iliyoingiliana | Euclid |
+| Bézout coefficients | koeficientët Bézout | vigawo vya Bézout | Euclid |
+| quotient | herës | mgawo | Euclid |
+| fold / unfold (factor tree) | palos / shpalos | kunja / kunjua | Factor Tree |
+| union / intersection | bashkim / prerje | muungano / makutano | Venn |
+| ladder (Square and Multiply) | shkallë | ngazi | Square and Multiply |
+| accumulator | akumulator | kikusanyaji | Square and Multiply |
+| preset chip | çip | kitufe cha mfano | Totient |
+| teaching demo | demonstrim mësimor | onyesho la kufundishia | Diffie-Hellman, ECDH, Square and Multiply |
+| toy-sized | në përmasa lodre | ukubwa wa kuchezea | Diffie-Hellman, ECDH, RSA |
+| keypair | çifti i çelësave | jozi ya funguo | RSA, Hub |
+| tap (eavesdropper's) | përgjim | kinasa | Diffie-Hellman, ECDH, RSA |
+| notebook (Eve's) | fletore | daftari | Diffie-Hellman, ECDH, RSA |
+| safe prime | numër i thjeshtë i sigurt | namba tasa salama | Diffie-Hellman |
+| discrete logarithm | logaritëm diskret | logarithimu diskreti | Diffie-Hellman, ECDH, RSA |
+| Hasse bound | kufiri Hasse | kikomo cha Hasse | ECDH |
+| tangent / chord construction | ndërtimi me tangjente / me kordë | ujenzi wa tanjenti / wa kamba | ECDH |
+| slope / intercept | pjerrësia / prerja | mteremko / kikatiza | ECDH |
+| scalar | skalar | skala | ECDH |
+| base point | pika bazë | nukta ya msingi | ECDH |
+| singular curve | kurbë singulare | mkunjo singula | ECDH |
+| superposition | superpozicion | mchanganyiko wa hali | Shor |
+| quantum phase estimation | vlerësim kuantik i fazës | makadirio ya awamu ya kikwanta | Shor |
+| continued fraction | thyesë (e) vazhduar | sehemu endelevu | Shor |
+| Fourier transform (inverse quantum) | transformim i anasjellë kuantik Fourier | mageuzi ya Fourier ya kikwanta ya kinyume | Shor |
+| Garner's formula | formula e Garner | fomula ya Garner | RSA |
+| padding | mbushje | padding | RSA |
+| textbook RSA | RSA shkollor | RSA ya kitabuni | RSA |
+| trial division | pjesëtim provë | mgawanyo wa majaribio | RSA |
 
 ---
 
