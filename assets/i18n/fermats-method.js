@@ -6,7 +6,7 @@
    and result message (searching, error, power-of-two, limit-reached,
    perfect-square, trivial-pair, trivial-prime, found), the factor chip's
    title, the result hint, the trail prefix, and the footer for the
-   Fermat's Method tool, in all eighteen supported languages.
+   Fermat's Method tool, in all nineteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in
@@ -875,6 +875,53 @@
       resultFound: 'परीक्षण {strongTrial} पर मिल गया: a = {a}, b = {b}।',
       resultHint: 'इस विधि को उस पर फिर से चलाने के लिए ऊपर दिए किसी भी गुणनखंड पर क्लिक करें।',
       trailPrefix: 'पथ:'
+    },
+    ar: {
+      title: 'طريقة فيرما — عرض تفاعلي',
+      heading: 'طريقة فيرما',
+      lede: 'طريقة فيرما: يمكن كتابة كل عدد فردي N على هيئة فرق بين مربعين، \u2066N = a² − b²\u2069. جد \u2066b²\u2069 المناسب من أجل "إكمال المربع" للعدد N، ويتساقط التحليل \u2066(a−b)(a+b) = N\u2069 من تلقاء نفسه — مع صورة تثبته.',
+      mathNote: 'نبحث عن \u2066a = ⌈√N⌉, ⌈√N⌉+1, …\u2069 حتى يصبح \u2066a² − N\u2069 نفسه مربعا كاملا \u2066b²\u2069.',
+      nLabel: 'العدد المراد تحليله (N)',
+      factorize: 'تحليل',
+      statTryingA: 'نجرب a',
+      statASqLabel: 'a²',
+      statRLabel: 'r = a² − N',
+      statHitLabel: '\u2066√r\u2069 كامل؟',
+      statTrialNumber: 'المحاولة #',
+      searchLogHeading: 'سجل البحث',
+      tableSquareHeader: 'مربع؟',
+      diagramHeading: 'صورة هندسية',
+      replay: 'إعادة التشغيل',
+      legendStays: '{0} يبقى في مكانه (\u2066a × (a−b)\u2069)',
+      legendSlides: '{0} ينزلق إلى مكانه (\u2066(a−b) × b\u2069)',
+      legendRemoved: '{0} الركن المزال (\u2066b²\u2069)',
+      legendFinal: '{0} النهائي \u2066(a+b) × (a−b)\u2069',
+      footer: 'تتم جميع الحسابات في متصفحك على جانب العميل. البحث محدود بحد أقصى 20,000 محاولة ليبقى متجاوبا — وبعض الأعداد الأولية التي لا يوجد قربها مربع ستبلغ هذا الحد.',
+      'chip.closestPair': 'أقرب زوج — وجد عند المحاولة 1',
+      'chip.balancedFactorsQuick': 'عوامل متوازنة، إيجاد سريع',
+      'chip.perfectSquare': 'مربع كامل، \u2066{a} × {a}\u2069',
+      'chip.evenStrips': 'زوجي — تزال أولا {pow}',
+      'chip.primeTrivial': 'أولي — الزوج البديهي فقط',
+      cellYes: '✓ نعم',
+      cellNo: '✗ لا',
+      statHitYes: 'نعم ({b})',
+      statHitNo: 'لا',
+      factorChipTitle: 'حلل هذا العدد أكثر',
+      diagramPerfectSquareCaption: '\u2066{a}² = {aSq}\u2069 — N مربع كامل، \u2066N = {a} × {a}\u2069',
+      errEnterInteger: 'أدخل عددا صحيحا لا يقل عن 2.',
+      searchingPlain: 'نبحث عن a بحيث يكون \u2066a² − {m}\u2069 مربعا كاملا…',
+      kNote: '(\u2066N = 2{kSup} × {m}\u2069، مع إزالة عوامل 2 أولا)',
+      searchingWithK: 'نبحث عن a بحيث يكون \u2066a² − {m}\u2069 مربعا كاملا {kNoteSpan}…',
+      resultPowerOfTwo: '\u2066N = 2{kSup}\u2069. الجزء الفردي هو 1، ولذلك لا يتبقى مربع يمكن إكماله — فالعدد 2 أولي بالفعل.',
+      resultLimitErr: 'بلغنا حد البحث ({iter} محاولة)',
+      resultLimit: '{errSpan} دون العثور على مربع كامل. الأرجح أن للجزء الفردي {m} عوامل غير متوازنة إطلاقا (أو أنه أولي) — جرب عددا أصغر.',
+      resultPerfectSquare: '{strongM} مربع كامل: \u2066{a} × {a}\u2069.',
+      resultTrivial: 'لم يظهر سوى الزوج البديهي \u2066(1, {m})\u2069.',
+      resultPrimeStrong: '{m} عدد أولي',
+      resultTrivialPrime: 'لم يظهر سوى الزوج البديهي \u2066(1, {m})\u2069 — {strongPrime}.',
+      resultFound: 'عثر عليه عند المحاولة {strongTrial}: \u2066a = {a}, b = {b}\u2069.',
+      resultHint: 'انقر على أي عامل أعلاه لتشغيل الطريقة عليه مرة أخرى.',
+      trailPrefix: 'المسار:'
     }
   });
 })();

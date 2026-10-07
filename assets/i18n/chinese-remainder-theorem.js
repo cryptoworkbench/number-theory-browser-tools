@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all eighteen supported languages.
+   tool, in all nineteen supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all eighteen languages. Must load after assets/nt-i18n.js and
+   across all nineteen languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -688,6 +688,43 @@
       constructReasonSpanBlocked: 'रचना के लिए एक परिकलित उत्तर चाहिए, और विस्तार-सीमा की रोक उसे बाधित कर रही है।',
       constructSumMismatch: 'जाँच में असंगति: रचना {reduced} पर घटती है पर हलकर्ता ने {computed} निकाला — इन्हें हमेशा बराबर होना चाहिए।',
       seeInverse: 'प्रतिलोम देखें →'
+    },
+    ar: {
+      title: 'مبرهنة الباقي الصينية',
+      heading: 'مبرهنة الباقي الصينية',
+      lede: 'كل تطابق بمفرده يحدد عائلة من الأعداد متباعدة بانتظام — كل عدد ثالث، وكل عدد خامس، وهكذا. وحين لا تشترك المقاييس في أي عامل مشترك، تتقاطع هذه العائلات في موضع واحد بالضبط في كل مقطع عدد أعداده {0}. هذا التقاطع الوحيد هو الحل المشترك الآني الذي تتفق عليه كل الصفوف.',
+      xref: 'شاهد المعكوس النمطي للتطابق الأول محسوبا خطوة بخطوة في أداة خوارزمية إقليدس ←',
+      countGroupLabel: 'عدد التطابقات',
+      countTwo: 'تطابقان',
+      countThree: 'ثلاثة تطابقات',
+      remainderLabel: 'الباقي a',
+      modulusLabel: 'المقياس m',
+      chipSunTzu: '\u20662 mod 3 · 3 mod 5 · 2 mod 7\u2069 · لغز صن تزو',
+      chipCoprime: '\u20662 mod 3 · 3 mod 5\u2069 · زوج أولي فيما بينهما',
+      chipSharesFactor: '\u20662 mod 4 · 3 mod 6\u2069 · يشتركان في عامل',
+      extToggleLabel: 'اكشف الطريقة الأسرع — ابن الجواب مباشرة بخوارزمية إقليدس الممتدة بدلا من البحث عنه',
+      stripGroupLabel: 'شرائط أصناف الباقي، قابلة للتمرير',
+      constructLede: 'قسم المدى إلى قطعة واحدة لكل تطابق، واعكس كل قطعة بالنسبة إلى مقياسها الخاص، واضربها في باقي ذلك التطابق، ثم اجمع القطع، ثم اختزل.',
+      tableHeaderY: 'y (المعكوس)',
+      tableHeaderTerm: '\u2066الحد = a · M · y\u2069',
+      caption: 'يتكرر الجواب إلى الأبد بدورة {0} — والعمود المعلم هو ممثل واحد لعائلة لا نهائية من الحلول.',
+      allAgreeLabel: 'الكل متفق',
+      errModulusWhole: 'الصف {idx}: يجب أن يكون المقياس عددا صحيحا.',
+      errModulusRange: 'الصف {idx}: يجب أن يكون المقياس بين {min} و {max}.',
+      errRemainderWhole: 'الصف {idx}: يجب أن يكون الباقي عددا صحيحا.',
+      errRemainderRange: 'الصف {idx}: يجب أن يكون الباقي من 0 إلى {max} للمقياس {m}.',
+      coprimeOk: 'المقاييس أولية فيما بينها مثنى مثنى — يوجد حل بالصورة القياسية بمقياس {span}.',
+      coprimeWarn: '\u2066gcd({x}, {y}) = {g}\u2069 — المقياسان {x} و {y} يشتركان في عامل، ولذلك لا يتحقق شرط كون المقاييس أولية فيما بينها مثنى مثنى في بناء مبرهنة الباقي الصينية بصورتها القياسية، ولا تحاول هذه الأداة حل هذا النظام.',
+      spanWarn: 'الدورة المشتركة \u2066lcm = {span}\u2069 أكبر من الحد الأقصى لمدى هذه الأداة وهو {max} — خفض أحد المقاييس لتنزل به دون {max}.',
+      testingX: 'اختبار \u2066x = {x}\u2069 …',
+      diagnosticMismatchScan: 'عدم تطابق تشخيصي: انتهى المسح عند {landed} بينما حسب البناء {computed} — ويجب أن يتفقا دائما.',
+      solved: 'تم الحل — كل التطابقات متفقة عند \u2066x = {x}\u2069.',
+      diagnosticScanEnd: 'تشخيص: بلغ المسح نهاية الدورة ({span}) دون أن يجد اتفاقا، وهو أمر يجب أن يكون مستحيلا في نظام مقاييسه أولية فيما بينها مثنى مثنى.',
+      readyToScan: 'جاهز — اضغط على تشغيل لمشاهدة المسح وهو يبحث عن x.',
+      constructReasonNotCoprime: 'يتطلب البناء أن يكون كل \u2066M_i\u2069 قابلا للعكس بمقياس \u2066m_i\u2069 الخاص به، وهذا يستحيل حين يوجد عامل مشترك بين المقاييس.',
+      constructReasonSpanBlocked: 'يتطلب البناء جوابا محسوبا، وحارس الحد الأقصى للمدى يمنع ظهوره.',
+      constructSumMismatch: 'عدم تطابق تشخيصي: يختزل البناء إلى {reduced} بينما حسبت أداة الحل {computed} — ويجب أن يتفقا دائما.',
+      seeInverse: 'اطلع على المعكوس ←'
     }
   });
 })();

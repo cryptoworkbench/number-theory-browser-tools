@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all eighteen supported languages. title and heading equal
+   Tree tool, in all nineteen supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all eighteen languages. The factorization itself (the equation/tree
+   across all nineteen languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -839,6 +839,51 @@
       binLabel: 'कूड़ेदान: किसी वृत्त को पैलेट से हटाने के लिए उसे यहाँ खींचें',
       emptyPaletteLabel: 'सब हटाएँ: पैलेट खाली करें',
       msgPaletteEmptied: 'पैलेट खाली कर दिया गया।'
+    },
+    ar: {
+      title: 'شجرة العوامل',
+      heading: 'شجرة العوامل',
+      eyebrow: 'الأعداد الأولية والقابلية للقسمة',
+      subtitle: 'أضف عددا إلى اللوحة، واسحب دائرته إلى منطقة التركيب/التحليل، ثم اضغط + لفتحه — فرعا بعد فرع حتى تصل إلى أوراقه الأولية.',
+      modeLabel: 'وضع الشجرة',
+      modeClassic: 'كلاسيكي',
+      modeBalanced: 'متوازن',
+      placeholder: 'مثلا 60',
+      randomize: 'توليد عشوائي',
+      footnote: 'كل ورقة أولية تنال انقساما أخيرا خاصا بها: \u2066P = P × 1\u2069.',
+      balancedNote: 'يستخدم الوضع المتوازن طريقة فيرما لإيجاد زوج العوامل الأكثر توازنا في كل خطوة، وهو محدود بالأعداد الأصغر من 1,000,000 ليبقى فوريا. وبعض الأعداد — مثل عدد أولي صغير مضروب في عدد أولي كبير — تنقسم رغم ذلك بشكل غير متكافئ؛ وهذا ليس خطأ برمجيا، بل هو الرياضيات فحسب.',
+      msgEmpty: 'يرجى إدخال عدد أولا.',
+      msgInvalid: 'يرجى إدخال عدد صحيح، 1 أو أكبر.',
+      msgTooLargeBalanced: 'هذا العدد كبير جدا على الوضع المتوازن — جرب عددا أصغر من 1,000,000، أو انتقل إلى الوضع الكلاسيكي للأعداد الأكبر.',
+      msgTooLargeClassic: 'هذا العدد كبير جدا على هذه الشجرة الصغيرة — جرب عددا أصغر من 1 تريليون.',
+      msgOne: '1 ليس أوليا ولا مؤلفا — إنه مجرد بذرة وليس شجرة بعد.',
+      msgPrime: '{n} عدد أولي — ينقسم مرة واحدة فقط، إلى \u20661 × {n}\u2069.',
+      msgFactors: '{n} يتحلل إلى عوامل أولية عددها {count}.',
+      mirrorLabel: 'عكس الفروع الواقعة أسفل {n}',
+      foldLabel: 'طي عوامل {n}',
+      unfoldLabel: 'فتح عوامل {n}',
+      add: 'إضافة',
+      addInputLabel: 'العدد المراد إضافته إلى اللوحة',
+      paletteHeading: 'لوحة الأعداد الأولية',
+      paletteHeadingNumbers: 'لوحة الأعداد',
+      paletteItemLabel: 'وضع {n} في منطقة التركيب/التحليل',
+      workHeading: 'منطقة التركيب/التحليل',
+      workHint: 'اسحب وأفلت عددا مؤلفا لتحليله إلى عوامل، أو اسحب وأفلت أعدادا أولية لبناء عدد مؤلف.',
+      clear: 'مسح',
+      removeLabel: 'إزالة {n} من منطقة التركيب/التحليل',
+      moveLabel: 'اسحب هذه اللوحة فوق لوحة أخرى: النصف الأيسر يضرب {n} في عددها، والنصف الأيمن يجعل القاسم المشترك الأكبر بينهما متداخلا',
+      removeOverlapLabel: 'إزالة تداخل {a} و {b} من منطقة التركيب/التحليل',
+      splitOverlap: 'فصل',
+      splitOverlapLabel: 'فصل شجرتي {a} و {b} من جديد',
+      msgGcd: '{a} و {b} يتشاركان الفرع {g} — وهو القاسم المشترك الأكبر بينهما.',
+      msgCoprime: '{a} و {b} أوليان فيما بينهما — الفرع الوحيد الذي يتشاركانه هو 1.',
+      msgSplit: '{a} و {b} شجرتان منفصلتان من جديد.',
+      msgAdded: 'تمت إضافة {n} إلى اللوحة.',
+      msgRemoved: 'تمت إزالة {n} من اللوحة.',
+      msgPaletteFull: 'اللوحة ممتلئة — الحد الأقصى لعدد الأعداد فيها هو {max}.',
+      binLabel: 'السلة: اسحب دائرة إلى هنا لإزالتها من اللوحة',
+      emptyPaletteLabel: 'حذف الكل: تفريغ اللوحة',
+      msgPaletteEmptied: 'تم تفريغ اللوحة.'
     }
   });
 })();
