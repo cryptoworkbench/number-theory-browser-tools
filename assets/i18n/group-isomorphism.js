@@ -899,7 +899,7 @@
       readoutWarn: '{product} न समानः {g}^{sum} mod {m} = {sumVal} — इदं युग्मं कदापि न विसंवदेत्।',
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (अलघूकृतं घातं यथार्थं दर्शयितुम् अतिबृहत्)',
       refCount: '{count} युग्मानि (m ≤ {max})',
-      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   द्वारा   k ↦ {g}^k mod {m}   (जनकः g = {g})'
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   उपायेन   k ↦ {g}^k mod {m}   (जनकः g = {g})'
     },
     la: {
       title: 'Isomorphismus gregum',
