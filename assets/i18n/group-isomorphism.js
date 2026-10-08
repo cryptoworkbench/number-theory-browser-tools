@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   twenty-nine supported languages.
+   thirty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -871,6 +871,64 @@
       eqTooLarge: '\u2066{g}^{a} ≡ {val} (mod {m})\u2069 (زۆر گەورەیە بۆ پیشاندانی توانی کەمنەکراوی ورد)',
       refCount: 'ژمارەی جووتەکان: {count} (\u2066m ≤ {max}\u2069)',
       formula: '\u2066Z/{n}Z ≅ (Z/{m}Z)*\u2069   لە ڕێگەی   \u2066k ↦ {g}^k mod {m}\u2069   (بەرھەمھێنەر \u2066g = {g}\u2069)'
+    },
+    sa: {
+      title: 'समूहसमरूपता',
+      eyebrow: 'द्वे गणिते, एकः समूहः',
+      heading: 'समूहसमरूपता',
+      lede: 'योगे मापाङ्कम् n अनुसृत्य पूर्णाङ्काः गुणने मापाङ्कम् m अनुसृत्य एककानि च संरचनायाः दृष्ट्या सम्यक् एकः एव समूहः भवितुम् अर्हन्ति — भिन्नं गणितं केवलं धारयन्तः। {0}',
+      xref: 'इमौ द्वौ समूहौ एकैकशः निर्मीयमानौ पश्यतु →',
+      pairLabel: 'समरूपं युग्मम्',
+      pairSelectAriaLabel: 'समरूपं युग्मं चिनोतु',
+      randomizeLabel: 'यादृच्छिकं चिनोतु',
+      randomize: 'नूतनं यादृच्छिकम् उदाहरणम्',
+      tablistLabel: 'दक्षिणचक्रस्य विन्यासः',
+      tabPowers: 'g-घाताः',
+      tabNumeric: 'सङ्ख्यात्मकम्',
+      leftWheelAriaLabel: 'योगात्मकसमूहस्य Z मापाङ्कम् n अनुसृत्य अवयवाः',
+      rightWheelAriaLabel: 'मापाङ्कम् m अनुसृत्य एककानां गुणनात्मकसमूहस्य अवयवाः',
+      refHeading: 'समरूपाणि युग्मानि',
+      leftWedgeAriaLabel: 'अवयवः {value} योगात्मकसमूहस्य Z मापाङ्कम् {n} अनुसृत्य',
+      rightWedgeAriaLabel: 'अवयवः {value} मापाङ्कम् {m} अनुसृत्य एककानां गुणनात्मकसमूहस्य, घातः {k} इत्यस्य {g} इति मापाङ्कम् {m} अनुसृत्य समानः',
+      leftCaption: 'योगात्मकसमूहः {bSpan}: योगे मापाङ्कम् {n} अनुसृत्य 0 तः {max} पर्यन्ताः पूर्णाङ्काः।',
+      rightCaption: 'गुणनात्मकसमूहः {bSpan}: गुणने मापाङ्कम् {m} अनुसृत्य {n} एककानि, जनकेन {g} जनितानि।',
+      readoutPrompt: 'कस्मिन् अपि चक्रे अवयवं नुदतु, तत्संवादं द्रष्टुम्।',
+      readoutOne: 'वामे अवयवः {aSlot} दक्षिणे अवयवेन {aValSlot} सह संवदति: {eqSpan}। द्वितीयम् अवयवं — अथवा पुनः एतमेव — नुदतु, योगफलं गुणनफलं च द्रष्टुम्।',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} वामे ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} दक्षिणे ({modSpan}) — तथा {product} = {g}^{sum} mod {m} = {sumVal}: योगफलस्य प्रतिबिम्बं प्रतिबिम्बानां गुणनफलेन समानम्।',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} वामे ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} दक्षिणे ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} न समानः {g}^{sum} mod {m} = {sumVal} — इदं युग्मं कदापि न विसंवदेत्।',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (अलघूकृतं घातं यथार्थं दर्शयितुम् अतिबृहत्)',
+      refCount: '{count} युग्मानि (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   द्वारा   k ↦ {g}^k mod {m}   (जनकः g = {g})'
+    },
+    la: {
+      title: 'Isomorphismus gregum',
+      eyebrow: 'duae arithmeticae, unus grex',
+      heading: 'Isomorphismus gregum',
+      lede: 'Numeri integri modulo n sub additione et unitates modulo m sub multiplicatione structura idem grex esse possunt — arithmetica diversa tantum induti. {0}',
+      xref: 'Vide hos duos greges singillatim constructos →',
+      pairLabel: 'Par isomorphum',
+      pairSelectAriaLabel: 'Par isomorphum elige',
+      randomizeLabel: 'Fortuito elige',
+      randomize: 'Novum exemplum fortuitum',
+      tablistLabel: 'Dispositio rotae dextrae',
+      tabPowers: 'Potestates ipsius g',
+      tabNumeric: 'Numerica',
+      leftWheelAriaLabel: 'Elementa gregis additivi Z modulo n',
+      rightWheelAriaLabel: 'Elementa gregis multiplicativi unitatum modulo m',
+      refHeading: 'Paria isomorpha',
+      leftWedgeAriaLabel: 'Elementum {value} gregis additivi Z modulo {n}',
+      rightWedgeAriaLabel: 'Elementum {value} gregis multiplicativi unitatum modulo {m}, aequale {g} ad potestatem {k} modulo {m}',
+      leftCaption: 'Grex additivus {bSpan}: numeri integri a 0 usque ad {max} sub additione modulo {n}.',
+      rightCaption: 'Grex multiplicativus {bSpan}: {n} unitates modulo {m} sub multiplicatione, a generatore {g} generatae.',
+      readoutPrompt: 'Preme elementum in utravis rota ut correspondentiam videas.',
+      readoutOne: 'Elementum {aSlot} in sinistra elemento {aValSlot} in dextra respondet: {eqSpan}. Preme alterum elementum — aut hoc ipsum iterum — ut summam et productum videas.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} in sinistra ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} in dextra ({modSpan}) — et {product} = {g}^{sum} mod {m} = {sumVal}: imago summae aequalis est producto imaginum.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} in sinistra ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} in dextra ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} non aequalis est {g}^{sum} mod {m} = {sumVal} — hoc par numquam dissentire debet.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (nimis magnum ad potestatem non reductam exacte ostendendam)',
+      refCount: '{count} paria (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   per   k ↦ {g}^k mod {m}   (generator g = {g})'
     }
   });
 })();

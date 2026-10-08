@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all twenty-nine supported languages.
+   Cayley Table tool, in all thirty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -1173,6 +1173,86 @@
       noteCommutative: '\u2066{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})\u2069، و ھەروەھا \u2066{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})\u2069 — ھەردووکیان لەسەر ھەمان بەھا دەکەون، بۆیە خشتەکە لە ڕووی ھێڵە لارییەکەیەوە ھاوتەریبە: گرووپەکە ئاڵوگۆڕپێکراوە.',
       selfInverseNote: '{a} یەکسانە بە {word}، چونکە بەھاکەی لێرە توخمی بێلایەنە.',
       equationCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).\u2069'
+    },
+    sa: {
+      title: 'केली-सारणी',
+      eyebrow: 'समूहसिद्धान्तः · सङ्क्रियासारण्यः',
+      heading: 'केली-सारणी',
+      lede: 'समूहस्य सम्पूर्णा सङ्क्रिया एकस्यां वर्गसारण्यां समाविशति — प्रत्येकस्य अवयवस्य कृते एका पङ्क्तिः एकः स्तम्भः च, प्रत्येकस्य फलस्य कृते एकः कोष्ठः। समूहस्य प्रत्येकं संरचनात्मकं तथ्यम् — तस्य तत्समकावयवः, तस्य प्रतिलोमाः, तस्य क्रमविनिमेयत्वम् — सारण्याः आकारे कुत्रचित् दृश्यते।',
+      xref: 'ते एव द्वे समूहसङ्क्रिये, सारण्याः पङ्क्तीनां स्थाने चक्रे त्रिज्याखण्डरूपेण दृष्टे →',
+      tablistLabel: 'समूहसङ्क्रिया',
+      nLabel: 'N — मापाङ्कः',
+      randomizeLabel: 'यादृच्छिकं चिनोतु',
+      randomize: 'नूतनं यादृच्छिकम् उदाहरणम्',
+      tableScrollLabel: 'केली-सारणी, सर्पणयोग्या',
+      'legend.identity': '{0} तत्समकावयवस्य पङ्क्तिः स्तम्भः च',
+      'legend.inverse': '{0} स्वप्रतिलोमः (स्वयुग्मितः)',
+      'legend.selected': '{0} चितः कोष्ठः',
+      'legend.mirror': '{0} कर्णस्य परतः प्रतिबिम्बयमलः',
+      nNoteNotWhole: 'N पूर्णाङ्कः भवेत् — सारणी पूर्ववत् तिष्ठति।',
+      nNoteTooSmall: 'N 1 अधः गन्तुं न शक्नोति — 1 पर्यन्तं वर्धितः।',
+      nNoteCapped: 'N अधिकतमम् {max} इति सीमितः यतः सारणी अतिबृहती न भवेत् — {max} पर्यन्तं न्यूनीकृतः।',
+      identityWordAdditive: 'शून्यम्',
+      identityWordMultiplicative: 'एकम्',
+      inverseWordAdditive: 'स्वस्य ऋणम्',
+      inverseWordMultiplicative: 'स्वस्य व्युत्क्रमः',
+      identityNote: 'तत्समकावयवः {word} अस्ति — तस्य पङ्क्तिः स्तम्भः च अधः चिह्नितौ।',
+      symmetryNoteAdditive: 'a + b तथा b + a सदा एकस्मिन् एव वर्गे पततः, अतः सारणी कर्णं प्रति स्वयं प्रतिबिम्बति — कमपि कोष्ठं नुदतु, परस्मिन् पार्श्वे तस्य यमलः कथं दीप्यते इति पश्यतु।',
+      symmetryNoteMultiplicative: 'a · b तथा b · a सदा एकस्मिन् एव वर्गे पततः, अतः सारणी कर्णं प्रति स्वयं प्रतिबिम्बति — कमपि कोष्ठं नुदतु, परस्मिन् पार्श्वे तस्य यमलः कथं दीप्यते इति पश्यतु।',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} अवयवः · तत्समकावयवः [{id}]',
+        two: 'ℤ/{n}ℤ · {count} अवयवौ · तत्समकावयवः [{id}]',
+        other: 'ℤ/{n}ℤ · {count} अवयवाः · तत्समकावयवः [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} अवयवः · तत्समकावयवः [{id}]',
+        two: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} अवयवौ · तत्समकावयवः [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} अवयवाः · तत्समकावयवः [{id}]'
+      },
+      tableCaption: 'केली-सारणी — {summary}, सङ्क्रिया {sign}',
+      noteDiagonal: 'एषः कोष्ठः कर्णाक्षे तिष्ठति — सः स्वयम् एव स्वस्य यमलः, केवलम् एकं समीकरणं वक्तव्यम्: {a} {sign} {a} = {raw} ≡ {val} (mod {n})।',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), तथा {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — उभे समानं मूल्यं प्राप्नुतः, अतः सारणी स्वकर्णं प्रति सममिता: समूहः क्रमविनिमेयः।',
+      selfInverseNote: 'सङ्ख्या {a} {word} अस्ति, यतः अत्र तस्याः मूल्यं तत्समकावयवः।',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n})।'
+    },
+    la: {
+      title: 'Tabula Cayleiana',
+      eyebrow: 'theoria gregum · tabulae operationis',
+      heading: 'Tabula Cayleiana',
+      lede: 'Tota operatio gregis in unam tabulam quadratam cadit — una linea et una columna pro quoque elemento, una cella pro quoque eventu. Omne factum structurale de eo grege — elementum eius neutrum, inversa eius, commutativitas eius — alicubi in forma tabulae visibiliter sedet.',
+      xref: 'Eaedem duae operationes gregis, ut sectores in rota loco linearum in tabula visae →',
+      tablistLabel: 'Operatio gregis',
+      nLabel: 'N — modulus',
+      randomizeLabel: 'Fortuito elige',
+      randomize: 'Novum exemplum fortuitum',
+      tableScrollLabel: 'Tabula Cayleiana, volubilis',
+      'legend.identity': '{0} Linea et columna elementi neutri',
+      'legend.inverse': '{0} Inversum sibi ipsi (sibi par)',
+      'legend.selected': '{0} Cella electa',
+      'legend.mirror': '{0} Gemellus speculi trans diagonalem',
+      nNoteNotWhole: 'N numerus integer esse debet — tabula manet ut erat.',
+      nNoteTooSmall: 'N infra 1 ire non potest — ad 1 auctus.',
+      nNoteCapped: 'N ad {max} limitatur ne tabula nimis crescat — ad {max} reductus.',
+      identityWordAdditive: 'zerum',
+      identityWordMultiplicative: 'unum',
+      inverseWordAdditive: 'suum negativum',
+      inverseWordMultiplicative: 'suum reciprocum',
+      identityNote: 'Elementum neutrum est {word} — linea et columna eius infra notantur.',
+      symmetryNoteAdditive: 'a + b et b + a semper in eandem classem cadunt, itaque tabula se ipsam trans diagonalem reflectit — preme quamlibet cellam ut gemellum eius in parte opposita collucere spectes.',
+      symmetryNoteMultiplicative: 'a · b et b · a semper in eandem classem cadunt, itaque tabula se ipsam trans diagonalem reflectit — preme quamlibet cellam ut gemellum eius in parte opposita collucere spectes.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} elementum · elementum neutrum [{id}]',
+        other: 'ℤ/{n}ℤ · {count} elementa · elementum neutrum [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementum · elementum neutrum [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} elementa · elementum neutrum [{id}]'
+      },
+      tableCaption: 'Tabula Cayleiana pro {summary} sub {sign}',
+      noteDiagonal: 'Haec cella in axe diagonali sita est — ipsa sibi gemella est, una tantum aequatione enuntianda: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), et {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ambo in eundem valorem cadunt, itaque tabula circa diagonalem suam symmetrica est: grex commutativus est.',
+      selfInverseNote: '{a} est {word}, quoniam valor eius hic elementum neutrum est.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });
 })();

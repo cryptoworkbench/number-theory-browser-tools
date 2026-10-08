@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all twenty-nine supported languages.
+   tool, in all thirty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all twenty-nine languages. bannerDone is { one, other } in every language
+   all thirty-one languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
    ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each the CLDR shape for that language.
@@ -696,6 +696,53 @@
         other: 'تەواو بوو — {count} بەھا تاقی کرانەوە، {phi} لەگەڵ {n} سەرەتاییە لە نێوان خۆیاندا.'
       },
       caption: 'کاتێک n سەرەتایی بێت \u2066φ(n) = n−1\u2069 دەدات، چونکە ھەموو ژمارەیەکی بچووکتر لێی دوور دەکەوێتەوە — دوگمەکانی نموونە ئەمە ئاسان دەکەن بۆ پشکنین.'
+    },
+    sa: {
+      title: 'ओयलरस्य φ फलनम्',
+      heading: 'ओयलरस्य φ फलनम्',
+      lede: 'φ(n) गणयति 1 … n−1 मध्ये कियत्यः सङ्ख्याः सङ्ख्यया n सह साधारणं गुणनखण्डं न धारयन्ति, इदं पृष्ठं च एकम् एव सत्यं मार्गम् अनुसृत्य ज्ञापयति — तासु प्रत्येकस्याः विषये यूक्लिड-कलनविधिं पृष्ट्वा।',
+      xref: 'सा एव सङ्ख्या गुणनात्मकसमूहस्य मापाङ्कम् n अनुसृत्य त्रिज्याखण्डरूपेण दृश्यते →',
+      chipPrime: '{n} · अभाज्यः',
+      run: 'चालयतु',
+      errNotWhole: 'n पूर्णाङ्कः भवेत्।',
+      errTooSmall: 'n न्यूनातिन्यूनम् {min} भवेत् — अनुक्रमणाय k = 1 … n−1 परीक्षणाय न्यूनतमम् एकं k आवश्यकम्।',
+      errCapped: 'n अधिकतमम् {max} इत्येव सीमितः — मूल्यं तावत् न्यूनीकृतम्।',
+      chainHead: 'k = {k} परीक्ष्यते — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} सङ्ख्यां {n} प्रति सहाभाज्यः — gcd = 1, गणनायां योजितः।',
+      verdictEliminated: 'k = {k} सङ्ख्यया {n} सह गुणनखण्डं साधारणं धारयति — gcd = {gcd}, निरस्तः।',
+      tally: 'चलन्ती सहाभाज्यगणना: {count}',
+      progress: '{total} मध्ये k = {k} परीक्षितः।',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'सज्जम् — अनुक्रमणं प्रत्येकं k एकैकं विभाजनेन कथं परीक्षते इति द्रष्टुं "चालनम्" इति नुदतु।',
+      bannerDone: {
+        one: 'समाप्तम् — {count} मूल्यं परीक्षितम्, {phi} सङ्ख्यां {n} प्रति सहाभाज्यानि।',
+        two: 'समाप्तम् — {count} मूल्ये परीक्षिते, {phi} सङ्ख्यां {n} प्रति सहाभाज्यानि।',
+        other: 'समाप्तम् — {count} मूल्यानि परीक्षितानि, {phi} सङ्ख्यां {n} प्रति सहाभाज्यानि।'
+      },
+      caption: 'n अभाज्ये सति φ(n) = n−1, यतः प्रत्येका लघुतरा सङ्ख्या तं न प्राप्नोति — उदाहरणानि तत् परीक्षितुं सुगमं कुर्वन्ति।'
+    },
+    la: {
+      title: 'Functio φ Euleri',
+      heading: 'Functio φ Euleri',
+      lede: 'φ(n) numerat quot ex 1 … n−1 cum n nullum factorem communem habeant, et haec pagina id unico modo sincero reperit — algorithmum Euclideum de singulis eorum interrogando.',
+      xref: 'Idem numerus ut sectores gregis multiplicativi modulo n apparet →',
+      chipPrime: '{n} · primus',
+      run: 'Exsequere',
+      errNotWhole: 'n numerus integer esse debet.',
+      errTooSmall: 'n saltem {min} esse debet — ambulatio k = 1 … n−1 saltem unum k ad probandum requirit.',
+      errCapped: 'n ad {max} limitatur — valor ad id reductus est.',
+      chainHead: 'Probatur k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} et {n} inter se primi sunt — gcd = 1, numeratum.',
+      verdictEliminated: 'k = {k} cum {n} factorem communem habet — gcd = {gcd}, eliminatum.',
+      tally: 'Numeratio currens inter se primorum: {count}',
+      progress: 'k = {k} ex {total} probatum.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Paratum — preme «Perge» ut ambulationem spectes quae quemque k una divisione probat.',
+      bannerDone: {
+        one: 'Factum — {count} valor probatus, {phi} cum {n} inter se primi.',
+        other: 'Factum — {count} valores probati, {phi} cum {n} inter se primi.'
+      },
+      caption: 'n primus φ(n) = n−1 dat, quia omnis numerus minor eum non attingit — exempla id facile probandum faciunt.'
     }
   });
 })();
