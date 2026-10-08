@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all twenty-seven supported languages.
+   tool, in all twenty-nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   twenty-seven languages. Must load after assets/nt-i18n.js and
+   twenty-nine languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1455,6 +1455,114 @@
       nestedTileTitle: 'ⴰⵙⵓⵔⵉⴼ {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'ⴰⵙⵓⵔⵉⴼ {step}: {a} = {q}·{b} + {r} ({extra} ⵏ ⵉⵎⴽⴽⵓⵥⵏ ⵏⵏⵉⴹⴻⵏ ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴷⴰⴳⵉ)',
       tileEmptyMessage: 'ⵓⵔ ⵉⵍⵍⵉ ⵓⵕⴽⵜⴰⵏⴳⵍ ⴰⴷ ⵉⵜⵜⵡⴰⵇⵟⵄ — b ⴷ 0 ⵖⵉⵍⴰⴷ, ⴷⵖⴰ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵉⴽⵎⵎⵍ ⵖⵉⵍⴰⴷ.'
+    },
+    ku: {
+      title: 'Algorîtma Euklîd',
+      heading: 'Algorîtma Euklîd',
+      lede: 'Cotê (a, b) dubare bi (b, a mod b) biguherîne — yê mezintir li yê biçûktir dabeş bike û tenê bermayiyê bihêle — û cot di her gavê de piçûk dibe. Gava ku yek alî digihîje sifirê, aliyê din dabeşkerê hevpar ê herî mezin ê her du hejmarên ku te pê dest pê kir e.',
+      xref: 'Heman dabeşkerê hevpar ê herî mezin dikare wekî hejmarên seretayî yên ku her du hejmar parve dikin jî were dîtin →',
+      chipFiveSteps: '240, 46 · 5 gav',
+      chipCoprime: '35, 18 · ji hev seretayî',
+      chipBDividesA: '144, 12 · b a dabeş dike',
+      chipEqualPair: '36, 36 · cota wekhev',
+      chipAlreadyDone: '17, 0 · jixwe qediya',
+      chipFibonacciWorst: '89, 55 · rewşa herî xirab a Fibonacci',
+      chipHugeQuotient: '500000, 2 · encama dabeşkirinê ya gelek mezin',
+      run: 'Bimeşîne',
+      extToggleLabel: 'Moda Euklîd a berfireh — hevkarên Bézout {0} û {1} nîşan bide',
+      errBothWhole: 'Divê her du a û b hejmarên tam bin.',
+      errBothNonNegative: 'Divê her du a û b sifir an erênî bin — hejmarên neyînî li vir dabeşkerê hevpar ê herî mezin yê diyarkirî nînin.',
+      errGcdZeroZero: 'gcd(0, 0) nehatiye diyarkirin — herî kêm yek nirxa ne sifir binivîse.',
+      errClamped: 'Têketin heta {max} hatine sînorkirin — nirxa mezintir hate daxistin da ku bi cih bibe.',
+      swapNote: 'Nirxa mezintir pêşî tê: wekî ({a}, {b}) hate nivîsandin, wekî gcd({A}, {B}) hate şopandin — dabeşkerê hevpar ê herî mezin di argumanên xwe de hevseng e.',
+      bannerReady: 'Amade ye — li Lêxe bitikîne da ku bibînî ka jêderxistin rêz bi rêz çawa ava dibe.',
+      bannerDone: {
+        one: 'Qediya — {n} gav ji bo gihîştina dabeşkerê hevpar ê herî mezin.',
+        other: 'Qediya — {n} gav ji bo gihîştina dabeşkerê hevpar ê herî mezin.'
+      },
+      chainNoteZero: 'b jixwe 0 ye, ji ber vê tiştek nemaye ku were dabeşkirin — a jixwe dabeşkerê hevpar ê herî mezin e.',
+      extCaption: '{0} û {1} ji bo her rêzekê bermayiya wê rêzê wekî tevhevokeke ji her du têketinên bingehîn nîşan didin — {2}.',
+      viewNested: 'Çargoşeyên di nav hev de',
+      geomViewGroupLabel: 'Moda dîmena geometrîk',
+      viewStep: 'Gava tekane',
+      tileAriaDefault: 'Dîmena çargoşeya dirêj a gava dabeşkirinê ya heyî',
+      nestedAriaDefault: 'Hemû gavên dabeşkirinê di nav yek çargoşeya dirêj de',
+      caption: 'Hejmarên Fibonacci yên li pey hev ji bo vê algorîtmê rewşa herî xirab e — ew ji bo mezinahiya xwe herî zêde gavên dabeşkirinê neçar dikin.',
+      tileCaptionExact: {
+        one: 'Gava {index} ji {total}: {a} ÷ {b}: çargoşeya dirêj bi tam {q} çargoşe, her yek bi alî {b}, tê pêçan — tiştek namîne, ji ber vê {b} dabeşkerê hevpar ê herî mezin e.',
+        other: 'Gava {index} ji {total}: {a} ÷ {b}: çargoşeya dirêj bi tam {q} çargoşe, her yek bi alî {b}, tê pêçan — tiştek namîne, ji ber vê {b} dabeşkerê hevpar ê herî mezin e.'
+      },
+      tileCaptionLeftover: {
+        one: 'Gava {index} ji {total}: {a} = {q}×{b} + {r}: {q} çargoşe, her yek bi alî {b}, cih digire, û çargoşeyeke dirêj a {b}×{r} dimîne.',
+        other: 'Gava {index} ji {total}: {a} = {q}×{b} + {r}: {q} çargoşe, her yek bi alî {b}, cih digire, û çargoşeyeke dirêj a {b}×{r} dimîne.'
+      },
+      tileNoteCapped: 'Encama rastîn a dabeşkirinê {q} e — li vir tenê {cap} çargoşeyên pêşîn têne xêzkirin; {rest} yên mayî di perçeya bi etîket de hatine pêçan, ji ber vê firehiya xêzkirî ne bi pîvana rast e.',
+      nestedEmptyMessage: 'Çargoşeyeke dirêj tune ku di nav hev de were danîn — b jixwe 0 ye, ji ber vê algorîtm jixwe qediya.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: hemû {n} gav di nav yek çargoşeya dirêj a {A}×{B} de hêlîn dibin — çargoşeyên herî biçûk, {lastB}×{lastB}, dabeşkerê hevpar ê herî mezin in. Li çargoşeyekê (an li gavekê li jor) bitikîne da ku bibînî ka çawa li ser hev rêz dibin.',
+        other: 'gcd({A}, {B}) = {gcd}: hemû {n} gav di nav yek çargoşeya dirêj a {A}×{B} de hêlîn dibin — çargoşeyên herî biçûk, {lastB}×{lastB}, dabeşkerê hevpar ê herî mezin in. Li çargoşeyekê (an li gavekê li jor) bitikîne da ku bibînî ka çawa li ser hev rêz dibin.'
+      },
+      nestedNoteCapped: {
+        one: 'Gava {stepNums} encameke dabeşkirinê ya gelek mezin heye — li wir tenê {cap} çargoşeyên pêşîn têne xêzkirin, di perçeyeke xêzkirî de hatine pêçan, ji ber vê ev diyagram di wê gavê de bi tevahî ne bi pîvanê ye.',
+        other: 'Gavên {stepNums} encameke dabeşkirinê ya gelek mezin heye — li wir tenê {cap} çargoşeyên pêşîn têne xêzkirin, di perçeyeke xêzkirî de hatine pêçan, ji ber vê ev diyagram di wan gavan de bi tevahî ne bi pîvanê ye.'
+      },
+      nestedTileTitle: 'Gav {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Gav {step}: {a} = {q}·{b} + {r} ({extra} çargoşeyên din li vir hatine pêçan)',
+      tileEmptyMessage: 'Çargoşeyeke dirêj tune ku were birîn — b jixwe 0 ye, ji ber vê algorîtm jixwe qediya.'
+    },
+    ckb: {
+      title: 'ئەلگۆریتمی ئیقلیدس',
+      heading: 'ئەلگۆریتمی ئیقلیدس',
+      lede: 'جووتی \u2066(a, b)\u2069 دووبارە بگۆڕە بە \u2066(b, a mod b)\u2069 — گەورەکە بەسەر بچووکەکەدا دابەش بکە و تەنیا پاشماوەکە بھێڵەوە — و جووتەکە لە ھەر ھەنگاوێکدا بچووک دەبێتەوە. ئەو کاتەی یەک لایەن دەگاتە سفر، لایەنی تر گەورەترین دابەشکەری ھاوبەشی ئەو دوو ژمارەیەیە کە پێی دەستت پێکرد.',
+      xref: 'ھەمان گەورەترین دابەشکەری ھاوبەش دەکرێت وەک ئەو ژمارە سەرەتاییانە ببینرێت کە ھەردوو ژمارەکە ھاوبەشن تێیاندا ←',
+      chipFiveSteps: '\u2066240, 46\u2069 · 5 ھەنگاو',
+      chipCoprime: '\u206635, 18\u2069 · سەرەتایی لە نێوان خۆیاندا',
+      chipBDividesA: '\u2066144, 12\u2069 · b دابەشی a دەکات',
+      chipEqualPair: '\u206636, 36\u2069 · جووتی یەکسان',
+      chipAlreadyDone: '\u206617, 0\u2069 · پێشتر تەواو بووە',
+      chipFibonacciWorst: '\u206689, 55\u2069 · خراپترین حاڵەتی فیبۆناچی',
+      chipHugeQuotient: '\u2066500000, 2\u2069 · ئەنجامی دابەشکردنی زۆر گەورە',
+      run: 'بەڕێوەبردن',
+      extToggleLabel: 'دۆخی ئیقلیدسی فراوان — ھاوکۆڵکەکانی بێزۆ {0} و {1} پیشان بدە',
+      errBothWhole: 'دەبێت ھەردوو a و b ژمارەی تەواو بن.',
+      errBothNonNegative: 'دەبێت ھەردوو a و b سفر یان ئەرێنی بن — ژمارەی نەرێنی لێرە گەورەترین دابەشکەری ھاوبەشی دیاریکراویان نییە.',
+      errGcdZeroZero: '\u2066gcd(0, 0)\u2069 پێناسە نەکراوە — لانیکەم یەک بەھای نایەکسان لەگەڵ سفر بنووسە.',
+      errClamped: 'ژمارە نووسراوەکان بە {max} سنووردار کراون — بەھا گەورەکە کەمکرایەوە بۆ ئەوەی بگونجێت.',
+      swapNote: 'بەھا گەورەکە یەکەم دێت: وەک \u2066({a}, {b})\u2069 نووسرا، وەک \u2066gcd({A}, {B})\u2069 شوێنکەوتنی کرا — گەورەترین دابەشکەری ھاوبەش لە ئارگیومێنتەکانیدا ھاوتەریبە.',
+      bannerReady: 'ئامادەیە — کرتە لە لێدان بکە بۆ ئەوەی سەیری دروستبوونی دەرھێنان بکەیت، دێڕ بە دێڕ.',
+      bannerDone: {
+        one: 'تەواو بوو — {n} ھەنگاو بۆ گەیشتن بە گەورەترین دابەشکەری ھاوبەش.',
+        other: 'تەواو بوو — {n} ھەنگاو بۆ گەیشتن بە گەورەترین دابەشکەری ھاوبەش.'
+      },
+      chainNoteZero: 'b پێشتر یەکسانە بە 0، بۆیە شتێک نەماوە بۆ دابەشکردن — a پێشتر گەورەترین دابەشکەری ھاوبەشە.',
+      extCaption: '{0} و {1} بۆ ھەر دێڕێک پاشماوەی ئەو دێڕە وەک تێکەڵەیەک لە دوو نووسراوە ڕەسەنەکە دەردەبڕن — {2}.',
+      viewNested: 'چوارگۆشە لە ناو یەکدا',
+      geomViewGroupLabel: 'دۆخی بینینی ئەندازەیی',
+      viewStep: 'ھەنگاوی تاک',
+      tileAriaDefault: 'بینینی لاکێشەیی ھەنگاوی دابەشکردنی ئێستا',
+      nestedAriaDefault: 'ھەموو ھەنگاوەکانی دابەشکردن لە ناو یەک لاکێشەدا',
+      caption: 'ژمارەکانی فیبۆناچی کە یەک لە دوای یەکن خراپترین حاڵەتن بۆ ئەم ئەلگۆریتمە — بۆ قەبارەی خۆیان زۆرترین ھەنگاوی دابەشکردن ناچار دەکەن.',
+      tileCaptionExact: {
+        one: 'ھەنگاوی {index} لە {total}: \u2066{a} ÷ {b}\u2069: لاکێشەکە بە تەواوی بە {q} چوارگۆشە، ھەریەکەیان لایەکی {b}، دادەپۆشرێت — ھیچ نامێنێت، بۆیە {b} گەورەترین دابەشکەری ھاوبەشە.',
+        other: 'ھەنگاوی {index} لە {total}: \u2066{a} ÷ {b}\u2069: لاکێشەکە بە تەواوی بە {q} چوارگۆشە، ھەریەکەیان لایەکی {b}، دادەپۆشرێت — ھیچ نامێنێت، بۆیە {b} گەورەترین دابەشکەری ھاوبەشە.'
+      },
+      tileCaptionLeftover: {
+        one: 'ھەنگاوی {index} لە {total}: \u2066{a} = {q}×{b} + {r}\u2069: {q} چوارگۆشە، ھەریەکەیان لایەکی {b}، دەگونجێت، و لاکێشەیەکی \u2066{b}×{r}\u2069 دەمێنێتەوە.',
+        other: 'ھەنگاوی {index} لە {total}: \u2066{a} = {q}×{b} + {r}\u2069: {q} چوارگۆشە، ھەریەکەیان لایەکی {b}، دەگونجێت، و لاکێشەیەکی \u2066{b}×{r}\u2069 دەمێنێتەوە.'
+      },
+      tileNoteCapped: 'ئەنجامی ڕاستەقینەی دابەشکردن ئەمەیە: {q} — تەنیا یەکەم {cap} چوارگۆشە لێرە کێشراون؛ ئەوانی ماوە ({rest}) لە ناو پارچە نیشانکراوەکەدا کۆکراونەتەوە، بۆیە پانی کێشراو بە پێوانە نییە.',
+      nestedEmptyMessage: 'ھیچ لاکێشەیەک نییە بۆ ناوی یەکدا دانان — b پێشتر یەکسانە بە 0، بۆیە ئەلگۆریتمەکە پێشتر تەواو بووە.',
+      nestedCaption: {
+        one: '\u2066gcd({A}, {B}) = {gcd}\u2069: ھەموو {n} ھەنگاو لە ناو یەک لاکێشەی \u2066{A}×{B}\u2069 دا دەچنە ناو یەک — بچووکترین چوارگۆشەکان، \u2066{lastB}×{lastB}\u2069، گەورەترین دابەشکەری ھاوبەشن. کرتە لە چوارگۆشەیەک (یان ھەنگاوێک لە سەرەوە) بکە بۆ ئەوەی ببینیت چۆن ڕیز دەبن.',
+        other: '\u2066gcd({A}, {B}) = {gcd}\u2069: ھەموو {n} ھەنگاو لە ناو یەک لاکێشەی \u2066{A}×{B}\u2069 دا دەچنە ناو یەک — بچووکترین چوارگۆشەکان، \u2066{lastB}×{lastB}\u2069، گەورەترین دابەشکەری ھاوبەشن. کرتە لە چوارگۆشەیەک (یان ھەنگاوێک لە سەرەوە) بکە بۆ ئەوەی ببینیت چۆن ڕیز دەبن.'
+      },
+      nestedNoteCapped: {
+        one: 'ھەنگاوی {stepNums} ئەنجامی دابەشکردنێکی زۆر گەورەی ھەیە — لەوێ تەنیا یەکەم {cap} چوارگۆشە کێشراون و لە ناو پارچەیەکی پچڕپچڕدا کۆکراونەتەوە، بۆیە ئەم ھێڵکارییە لەو ھەنگاوەدا بە تەواوی بە پێوانە نییە.',
+        other: 'ھەنگاوەکانی {stepNums} ئەنجامی دابەشکردنێکی زۆر گەورەیان ھەیە — لەوێ تەنیا یەکەم {cap} چوارگۆشە کێشراون و لە ناو پارچەیەکی پچڕپچڕدا کۆکراونەتەوە، بۆیە ئەم ھێڵکارییە لەو ھەنگاوانەدا بە تەواوی بە پێوانە نییە.'
+      },
+      nestedTileTitle: 'ھەنگاوی {step}: \u2066{a} = {q}·{b} + {r}\u2069',
+      nestedTileTitleCapped: 'ھەنگاوی {step}: \u2066{a} = {q}·{b} + {r}\u2069 (ژمارەی چوارگۆشە زیادەکانی کۆکراوە لێرە: {extra})',
+      tileEmptyMessage: 'ھیچ لاکێشەیەک نییە بۆ بڕین — b پێشتر یەکسانە بە 0، بۆیە ئەلگۆریتمەکە پێشتر تەواو بووە.'
     }
   });
 })();

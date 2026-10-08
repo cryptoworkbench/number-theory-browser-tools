@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all twenty-seven supported languages. title and heading equal
+   Tree tool, in all twenty-nine supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all twenty-seven languages. The factorization itself (the equation/tree
+   across all twenty-nine languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -1244,6 +1244,96 @@
       binLabel: 'ⵜⴰⵣⴱⴰⵍⵜ: ⵣⵣⵓⵣⵔ ⵢⴰⵜ ⵜⵡⵔⴻⵔⵔⴰⵢⵜ ⵖⵔ ⴷⴰⴳⵉ ⴱⴰⵛ ⴰⴷ ⵜⵜ ⵜⴽⴽⵙⵜ ⵙⴳ ⵜⴱⴰⵍⵉⵜⵜ',
       emptyPaletteLabel: 'ⴽⴽⴻⵙ ⴰⴽⴽ: ⵙⴼⴻⴹ ⵜⴰⴱⴰⵍⵉⵜⵜ',
       msgPaletteEmptied: 'ⵉⵜⵜⵓⵙⴼⴻⴹ ⵜⴱⴰⵍⵉⵜⵜ.'
+    },
+    ku: {
+      title: 'Dara faktoran',
+      heading: 'Dara faktoran',
+      eyebrow: 'hejmarên seretayî û dabeşbûn',
+      subtitle: 'Hejmarekê li paletê zêde bike, çembera wê bikişîne nav qada pêkhatin/faktorkirinê, paşê + bitikîne da ku wê veke — şax bi şax, heta pelên wê yên seretayî.',
+      modeLabel: 'Moda darê',
+      modeClassic: 'Klasîk',
+      modeBalanced: 'Hevseng',
+      placeholder: 'mînak 60',
+      randomize: 'Rasthatî',
+      footnote: 'Her pelê seretayî yek dabeşkirina dawîn a xwe digire: P = P × 1.',
+      balancedNote: 'Moda hevseng bi rêbaza Fermat di her gavê de cotê faktoran ê herî wekhev dabeşbûyî dibîne, ji bo ku yekser bimîne tenê heta hejmarên di bin 1,000,000 de. Hin hejmar — wekî hejmareke seretayî ya biçûk ku bi ya mezin re were lêkdan — dîsa jî ne wekhev dabeş dibin; ev ne xeletî ye, tenê matematîk e.',
+      msgEmpty: 'Divê pêşî hejmarek were nivîsandin.',
+      msgInvalid: 'Divê hejmareke tam, 1 an mezintir, were nivîsandin.',
+      msgTooLargeBalanced: 'Ev hejmar ji bo Moda hevseng pir mezin e — tiştekî di bin 1,000,000 de biceribîne, an ji bo hejmarên mezintir Moda klasîk hilbijêre.',
+      msgTooLargeClassic: 'Ev hejmar ji bo vê darê biçûk pir mezin e — tiştekî di bin 1 trîlyon de biceribîne.',
+      msgOne: '1 ne seretayî ye ne jî hevedudanî — ew tenê tov e, hê ne dar e.',
+      msgPrime: '{n} seretayî ye — tenê carekê dabeş dibe, di 1 × {n} de.',
+      msgFactors: '{n} li {count} hejmarên seretayî tê faktorkirin.',
+      mirrorLabel: 'Şaxên di bin {n} de neynik bike',
+      foldLabel: 'Faktorên {n} bipêçe',
+      unfoldLabel: 'Faktorên {n} veke',
+      add: 'Zêde bike',
+      addInputLabel: 'Hejmara ku li paletê were zêdekirin',
+      paletteHeading: 'Paleta hejmarên seretayî',
+      paletteHeadingNumbers: 'Paleta hejmaran',
+      paletteItemLabel: '{n} deyne qada pêkhatin/faktorkirinê',
+      workHeading: 'Qada pêkhatin/faktorkirinê',
+      workHint: 'Hejmareke hevedudanî bikişîne û berde da ku wê faktor bikî, an jî hejmarên seretayî bikişîne û berde da ku hejmareke hevedudanî ava bikî.',
+      clear: 'Paqij bike',
+      removeLabel: '{n} ji qada pêkhatin/faktorkirinê jê bibe',
+      moveLabel: 'Vê panelê bikişîne ser yeke din: nîvê çepê {n} bi hejmara wê re lêk dide, nîvê rastê dabeşkerê wan ê hevpar ê herî mezin li hev dixe',
+      removeOverlapLabel: 'Hevgirtina {a} û {b} ji qada pêkhatin/faktorkirinê jê bibe',
+      splitOverlap: 'Ji hev veqetîne',
+      splitOverlapLabel: 'Darên {a} û {b} dîsa ji hev veqetîne',
+      msgGcd: '{a} û {b} şaxa {g} parve dikin — dabeşkerê wan ê hevpar ê herî mezin.',
+      msgCoprime: '{a} û {b} ji hev seretayî ne — tenê şaxa ku parve dikin 1 e.',
+      msgSplit: '{a} û {b} dîsa darên ji hev cuda ne.',
+      msgAdded: '{n} li paletê hate zêdekirin.',
+      msgRemoved: '{n} ji paletê hate rakirin.',
+      msgPaletteFull: 'Palet tijî ye — herî zêde {max} hejmaran digire.',
+      binLabel: 'Çopdank: çemberekê bikişîne vir da ku ji paletê were rakirin',
+      emptyPaletteLabel: 'Hemûyan jê bibe: paletê vala bike',
+      msgPaletteEmptied: 'Palet hate valakirin.'
+    },
+    ckb: {
+      title: 'داری ھۆکارەکان',
+      heading: 'داری ھۆکارەکان',
+      eyebrow: 'ژمارە سەرەتاییەکان و دابەشبوون',
+      subtitle: 'ژمارەیەک بۆ پالێت زیاد بکە، بازنەکەی ڕابکێشە بۆ ناو ناوچەی پێکھێنان/شیکردنەوە، ئینجا کرتە لە + بکە بۆ ئەوەی بیکەیتەوە — لق بە لق، تا گەلا سەرەتاییەکانی.',
+      modeLabel: 'دۆخی دار',
+      modeClassic: 'کلاسیک',
+      modeBalanced: 'ھاوسەنگ',
+      placeholder: 'نموونە 60',
+      randomize: 'ھەڕەمەکی',
+      footnote: 'ھەر گەلایەکی سەرەتایی دابەشکردنێکی کۆتایی تایبەت بە خۆی وەردەگرێت: \u2066P = P × 1\u2069.',
+      balancedNote: 'دۆخی ھاوسەنگ ڕێگای فێرما بەکاردەھێنێت بۆ دۆزینەوەی ئەو جووتە ھۆکارەی کە یەکسانترین دابەشکردنی ھەیە لە ھەر ھەنگاوێکدا، و بۆ ئەوەی دەستبەجێ بمێنێتەوە تەنیا بۆ ژمارەکانی ژێر 1,000,000 دیاری کراوە. ھەندێک ژمارە — وەک ژمارەیەکی سەرەتایی بچووک لێکدراو لە گەورەیەک — ھێشتا بە نایەکسانی دابەش دەبن؛ ئەمە کێشە نییە، تەنیا بیرکارییە.',
+      msgEmpty: 'دەبێت سەرەتا ژمارەیەک بنووسیت.',
+      msgInvalid: 'دەبێت ژمارەیەکی تەواو بنووسیت، 1 یان گەورەتر.',
+      msgTooLargeBalanced: 'ئەم ژمارەیە بۆ دۆخی ھاوسەنگ زۆر گەورەیە — شتێک لە ژێر 1,000,000 تاقی بکەرەوە، یان بۆ ژمارەی گەورەتر دۆخی کلاسیک ھەڵبژێرە.',
+      msgTooLargeClassic: 'ئەم ژمارەیە بۆ ئەم دارە بچووکە زۆر گەورەیە — شتێک لە ژێر 1 تریلیۆن تاقی بکەرەوە.',
+      msgOne: '1 نە سەرەتاییە نە لێکدراو — تەنیا توویەکە، ھێشتا دار نییە.',
+      msgPrime: '{n} سەرەتاییە — تەنیا یەک جار دابەش دەبێت، بۆ \u20661 × {n}\u2069.',
+      msgFactors: '{n} دەکرێتە {count} ھۆکاری سەرەتایی.',
+      mirrorLabel: 'لقەکانی ژێر {n} ئاوێنە بکە',
+      foldLabel: 'ھۆکارەکانی {n} دابخە',
+      unfoldLabel: 'ھۆکارەکانی {n} بکەرەوە',
+      add: 'زیاد بکە',
+      addInputLabel: 'ئەو ژمارەیەی بۆ پالێت زیاد دەکرێت',
+      paletteHeading: 'پالێتی ژمارە سەرەتاییەکان',
+      paletteHeadingNumbers: 'پالێتی ژمارەکان',
+      paletteItemLabel: '{n} بخەرە ناو ناوچەی پێکھێنان/شیکردنەوە',
+      workHeading: 'ناوچەی پێکھێنان/شیکردنەوە',
+      workHint: 'ژمارەیەکی لێکدراو ڕابکێشە و دایبنێ بۆ ئەوەی بیکەیتە ھۆکار، یان ژمارە سەرەتاییەکان ڕابکێشە و دایانبنێ بۆ دروستکردنی ژمارەیەکی لێکدراو.',
+      clear: 'پاک بکەرەوە',
+      removeLabel: '{n} لە ناوچەی پێکھێنان/شیکردنەوە لابە',
+      moveLabel: 'ئەم پانێڵە ڕابکێشە بۆ سەر یەکێکی تر: نیوەی چەپ {n} لێک دەدات لەگەڵ ژمارەکەی، نیوەی ڕاست گەورەترین دابەشکەری ھاوبەشیان بەسەر یەکدا دەخات',
+      removeOverlapLabel: 'یەکتربڕینی {a} و {b} لە ناوچەی پێکھێنان/شیکردنەوە لابە',
+      splitOverlap: 'جیا بکەرەوە',
+      splitOverlapLabel: 'دارەکانی {a} و {b} دووبارە جیا بکەرەوە',
+      msgGcd: '{a} و {b} لقی {g} دابەش دەکەن — گەورەترین دابەشکەری ھاوبەشیان.',
+      msgCoprime: '{a} و {b} سەرەتایین لە نێوان خۆیاندا — تاکە لقی ھاوبەشیان ئەمەیە: 1.',
+      msgSplit: '{a} و {b} دووبارە دوو داری جیاوازن.',
+      msgAdded: '{n} بۆ پالێت زیاد کرا.',
+      msgRemoved: '{n} لە پالێت لابرا.',
+      msgPaletteFull: 'پالێت پڕە — زۆرترین {max} ژمارە دەگرێت.',
+      binLabel: 'زبڵدان: بازنەیەک ڕابکێشە بۆ ئێرە بۆ لابردنی لە پالێت',
+      emptyPaletteLabel: 'سڕینەوەی ھەموو: پالێت بەتاڵ بکە',
+      msgPaletteEmptied: 'پالێت بەتاڵ کرا.'
     }
   });
 })();

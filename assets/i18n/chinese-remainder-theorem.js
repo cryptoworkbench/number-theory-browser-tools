@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all twenty-seven supported languages.
+   tool, in all twenty-nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all twenty-seven languages. Must load after assets/nt-i18n.js and
+   across all twenty-nine languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1021,6 +1021,80 @@
       constructReasonSpanBlocked: 'ⴰⵙⵏⵓⵍⴼⵓ ⵉⵅⵚⵚⴰ ⵢⴰⵜ ⵜⵉⴼⵔⴰⵜ ⵉⵜⵜⵡⴰⵙⵙⵉⴹⵏ, ⴷⵖⴰ ⵍⵃⴰⵊⵉⵣ ⵏ ⵜⵉⵍⴰⵙ ⵏ ⵜⴰⵍⵍⵉⵜ ⴰⵔ ⵉⵙⵙⴷⴷ ⵢⴰⵜ.',
       constructSumMismatch: 'ⵜⴰⵎⴳⴰⵍⵜ ⵏ ⴷⵉⵢⴰⴳⵏⵓⵙⵜⵉⴽ: ⴰⵙⵏⵓⵍⴼⵓ ⴰⵔ ⵉⵏⵇⵙ ⴰⵔ {reduced} ⵎⴰⵛⴰ ⴰⵍⵍⴰⵍ ⵏ ⵜⵉⴼⵔⴰⵜ ⵉⵙⵙⵉⴹⵏ {computed} — ⵉⵅⵚⵚⴰ ⴰⴷ ⵜⵜⵡⴰⴼⵇⵏ ⴷⵉⵎⴰ.',
       seeInverse: 'ⵥⵔ ⴰⵎⴳⴰⵍ →'
+    },
+    ku: {
+      title: 'Teorema bermayiyan a çînî',
+      heading: 'Teorema bermayiyan a çînî',
+      lede: 'Her lihevhatinek bi tena xwe malbateke hejmaran a bi dûrahiyên wekhev hildibijêre — her hejmara sêyem, her hejmara pêncem, û bi vî awayî. Dema ku modul tu faktorê hevpar nîne, ew malbat li her rêzeyeke {0} hejmaran de tam li yek cihî dikevin hev. Ew hevgirtina tekane çareseriya hevdem e ku her rêz li ser lihev dike.',
+      xref: 'Berevajiya modulî ya lihevhatina yekem gav bi gav di amûra Algorîtma Euklîd de bibîne →',
+      countGroupLabel: 'Hejmara lihevhatinan',
+      countTwo: 'Du lihevhatin',
+      countThree: 'Sê lihevhatin',
+      remainderLabel: 'bermayî a',
+      modulusLabel: 'modul m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · mamika Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · cota ji hev seretayî',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · faktorekî hevpar parve dikin',
+      extToggleLabel: 'Rêbaza zûtir eşkere bike — bersivê rasterast bi algorîtma Euklîd a berfireh ava bike li şûna ku lê bigerî',
+      stripGroupLabel: 'Şeritên çînên bermayiyê, ên ku dikarin werin gerandin',
+      constructLede: 'Dirêjahiyê ji bo her lihevhatinekê li perçeyekê dabeş bike, her perçe li gorî modulê wê berevajî bike, bi bermayiya wê lihevhatinê re lêk bide, perçeyan li hev zêde bike, paşê kêm bike.',
+      tableHeaderY: 'y (berevajî)',
+      tableHeaderTerm: 'endam = a · M · y',
+      caption: 'Bersiv her û her bi dewra {0} dubare dibe — stûna nîşankirî nûnerekî ji malbateke bêdawî ya çareseriyan e.',
+      allAgreeLabel: 'hemû li hev dikin',
+      errModulusWhole: 'Rêza {idx}: divê modul hejmareke tam be.',
+      errModulusRange: 'Rêza {idx}: divê modul di navbera {min} û {max} de be.',
+      errRemainderWhole: 'Rêza {idx}: divê bermayî hejmareke tam be.',
+      errRemainderRange: 'Rêza {idx}: divê bermayî ji 0 heta {max} be ji bo modulê {m}.',
+      coprimeOk: 'Modul du bi du ji hev seretayî ne — çareseriyeke bi forma standard heye li gorî modulê {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — modulên {x} û {y} faktorekî parve dikin, ji ber vê şerta du bi du ji hev seretayî ya avakirina standard a CRT nayê bicîhanîn û ev amûr naceribîne vê pergalê çareser bike.',
+      spanWarn: 'Dewra hevbeş lcm = {span} ji sînorê jorîn ê vê amûrê ({max}) mezintir e — yek ji modulan kêm bike da ku bikeve bin {max}.',
+      testingX: 'Ceribandina x = {x} …',
+      diagnosticMismatchScan: 'Nelihevhatina teşhîsê: gerîn li {landed} sekinî lê avakirin {computed} hesab kir — divê ev her dem li hev bikin.',
+      solved: 'Çareser bû — her lihevhatin li x = {x} li hev dike.',
+      diagnosticScanEnd: 'Teşhîs: gerîn gihîşt dawiya dewrê ({span}) bêyî ku lihevhatinek bibîne, ku ji bo pergalek du bi du ji hev seretayî divê ne gengaz be.',
+      readyToScan: 'Amade ye — li Lêxe bitikîne da ku temaşe bikî ka gerîn çawa li x digere.',
+      constructReasonNotCoprime: 'Avakirin hewce dike ku her M_i li gorî m_i ya xwe berevajîkirî be, ku faktorekî hevpar di navbera modulan de wê ne gengaz dike.',
+      constructReasonSpanBlocked: 'Avakirin bersivekî hesabkirî hewce dike, û parastvanê sînorê jorîn yek asteng dike.',
+      constructSumMismatch: 'Nelihevhatina teşhîsê: avakirin dibe {reduced} lê çareserker {computed} hesab kir — divê ev her dem li hev bikin.',
+      seeInverse: 'berevajî bibîne →'
+    },
+    ckb: {
+      title: 'تیۆرەمی پاشماوەی چینی',
+      heading: 'تیۆرەمی پاشماوەی چینی',
+      lede: 'ھەر ھاوتاییەک بە تەنیا بنەماڵەیەکی ژمارەی بە دووری یەکسان ھەڵدەبژێرێت — ھەر ژمارەی سێیەم، ھەر ژمارەی پێنجەم، و ھەروەھا. کاتێک مۆدیولەکان ھیچ ھۆکارێکی ھاوبەشیان نەبێت، ئەو بنەماڵانە لە ھەر بەشێکدا کە {0} ژمارە دەگرێت لە تەنیا یەک شوێندا یەک دەگرنەوە. ئەو یەکگرتنە تاکە چارەسەری ھاوکاتە کە ھەموو دێڕەکان لەسەری ڕێک دەکەون.',
+      xref: 'پێچەوانەی مۆدیولی ھاوتایی یەکەم ھەنگاو بە ھەنگاو لە ئامرازی ئەلگۆریتمی ئیقلیدس ببینە ←',
+      countGroupLabel: 'ژمارەی ھاوتاییەکان',
+      countTwo: 'دوو ھاوتایی',
+      countThree: 'سێ ھاوتایی',
+      remainderLabel: 'پاشماوە a',
+      modulusLabel: 'مۆدیول m',
+      chipSunTzu: '\u20662 mod 3 · 3 mod 5 · 2 mod 7\u2069 · مەتەڵی سون تزو',
+      chipCoprime: '\u20662 mod 3 · 3 mod 5\u2069 · جووتی سەرەتایی لە نێوان خۆیاندا',
+      chipSharesFactor: '\u20662 mod 4 · 3 mod 6\u2069 · ھۆکارێکی ھاوبەشیان ھەیە',
+      extToggleLabel: 'ڕێگا خێراترەکە ئاشکرا بکە — وەڵامەکە ڕاستەوخۆ بە ئەلگۆریتمی ئیقلیدسی فراوان دروست بکە لەجیاتی گەڕان بەدوایدا.',
+      stripGroupLabel: 'ڕیزەکانی پۆلی پاشماوە، جووڵاو بە سکرۆڵ',
+      constructLede: 'درێژییەکە بۆ ھەر ھاوتاییەک بکە بە پارچەیەک، ھەر پارچەیەک بەپێی مۆدیولی خۆی پێچەوانە بکە، بە پاشماوەی ئەو ھاوتاییە لێکی بدە، پارچەکان کۆ بکەرەوە، ئینجا کەمی بکەرەوە.',
+      tableHeaderY: 'y (پێچەوانە)',
+      tableHeaderTerm: '\u2066ئەندام = a · M · y\u2069',
+      caption: 'وەڵامەکە بۆ ھەمیشە بە خولی {0} دووبارە دەبێتەوە — ستوونە نیشانکراوەکە نوێنەرێکە لە بنەماڵەیەکی بێکۆتایی چارەسەرەکان.',
+      allAgreeLabel: 'ھەموو ڕێک دەکەون',
+      errModulusWhole: 'دێڕی {idx}: دەبێت مۆدیول ژمارەیەکی تەواو بێت.',
+      errModulusRange: 'دێڕی {idx}: دەبێت مۆدیول لە نێوان {min} و {max} دا بێت.',
+      errRemainderWhole: 'دێڕی {idx}: دەبێت پاشماوە ژمارەیەکی تەواو بێت.',
+      errRemainderRange: 'دێڕی {idx}: دەبێت پاشماوە لە 0 تا {max} بێت بۆ مۆدیولی {m}.',
+      coprimeOk: 'مۆدیولەکان جووت جووت سەرەتایین لە نێوان خۆیاندا — چارەسەرێکی ستانداردی ھەیە بە مۆدیولی {span}.',
+      coprimeWarn: '\u2066gcd({x}, {y}) = {g}\u2069 — مۆدیولەکانی {x} و {y} ھۆکارێکی ھاوبەشیان ھەیە، بۆیە مەرجی جووت جووت سەرەتایی بوونی نێوانیان لە دروستکردنی ستانداردی CRT جێبەجێ نەکراوە و ئەم ئامرازە ھەوڵ نادات ئەم سیستەمە چارەسەر بکات.',
+      spanWarn: 'خولی تێکەڵ \u2066lcm = {span}\u2069 لە سنووری سەرووی ئەم ئامرازە ({max}) گەورەترە — یەکێک لە مۆدیولەکان کەم بکەرەوە بۆ ئەوەی بێتە ژێر {max}.',
+      testingX: 'تاقیکردنەوەی \u2066x = {x}\u2069 …',
+      diagnosticMismatchScan: 'ناکۆکی دەستنیشانکردن: گەڕانەکە گەیشتە {landed}، بەڵام دروستکردنەکە ئەمەی ژمارد: {computed} — دەبێت ئەمانە ھەمیشە ڕێک بکەون.',
+      solved: 'چارەسەر کرا — ھەموو ھاوتاییەکان لە \u2066x = {x}\u2069 دا ڕێک دەکەون.',
+      diagnosticScanEnd: 'دەستنیشانکردن: گەڕانەکە گەیشتە کۆتایی خولەکە ({span}) بێ ئەوەی ڕێککەوتنێک بدۆزێتەوە، کە بۆ سیستەمێکی جووت جووت سەرەتایی دەبێت مەحاڵ بێت.',
+      readyToScan: 'ئامادەیە — کرتە لە لێدان بکە بۆ ئەوەی سەیر بکەیت چۆن گەڕانەکە بەدوای x دەگەڕێت.',
+      constructReasonNotCoprime: 'دروستکردنەکە پێویستی بەوەیە ھەر \u2066M_i\u2069 لەگەڵ مۆدیولی خۆی، واتە \u2066m_i\u2069، پێچەوانەکراو بێت، ئەمەش بە بوونی ھۆکارێکی ھاوبەش لە نێوان مۆدیولەکاندا مەحاڵ دەبێت.',
+      constructReasonSpanBlocked: 'دروستکردنەکە وەڵامێکی ژمێردراو پێویستە، و پارێزەری سنووری سەرەوە ڕێگری لێ دەکات.',
+      constructSumMismatch: 'ناکۆکی دەستنیشانکردن: دروستکردنەکە دەگاتە {reduced} بەڵام چارەسەرکەر ئەمەی ژمارد: {computed} — دەبێت ئەمانە ھەمیشە ڕێک بکەون.',
+      seeInverse: 'پێچەوانەکە ببینە ←'
     }
   });
 })();
