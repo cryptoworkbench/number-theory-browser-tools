@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all twenty-seven supported languages.
+   tool, in all twenty-nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all twenty-seven languages. bannerDone is { one, other } in every language
+   all twenty-nine languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
    ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each the CLDR shape for that language.
@@ -650,6 +650,52 @@
         other: 'ⵉⴽⵎⵎⵍ — ⵉⵜⵜⵡⴰⴽⴰⵢⴰⴷ {count} ⵏ ⵉⵣⴰⵍⵏ, {phi} ⴳⵙⵏ ⴷ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⴷ {n}.'
       },
       caption: 'ⵜⵉⵛⴽⵉ n ⴷ ⴰⵎⵏⵣⵓ, φ(n) = n−1, ⴰⵛⴽⵓ ⵢⴰⵍ ⴰⵎⴹⴰⵏ ⴰⵎⵥⵥⴰⵏ ⴰⵔ ⵜ ⵉⵅⵚⵚ — ⵉⵎⴷⵢⴰⵜⵏ ⴰⴷ ⴰⵔ ⵙⵙⴼⵙⵙⵓⵏ ⴰⴽⴰⵢⴰⴷ.'
+    },
+    ku: {
+      title: 'Fonksiyona φ ya Euler',
+      heading: 'Fonksiyona φ ya Euler',
+      lede: 'φ(n) dihejmêre ka çend ji 1 … n−1 bi n re tu faktor parve nakin, û ev rûpel bi tenê rêya rast vê dibîne — bi pirsîna ji algorîtma Euklîd li ser her yekê ji wan.',
+      xref: 'Heman jimar wekî perçeyên grûpa lêkdanê ya mod n xuya dibe →',
+      chipPrime: '{n} · seretayî',
+      run: 'Bimeşîne',
+      errNotWhole: 'Divê n hejmareke tam be.',
+      errTooSmall: 'Divê n herî kêm {min} be — gerîna k = 1 … n−1 herî kêm yek k hewce dike ku were ceribandin.',
+      errCapped: 'n heta {max} hatiye sînorkirin — nirx hate daxistin da ku bi cih bibe.',
+      chainHead: 'Ceribandina k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} bi {n} re ji hev seretayî ye — gcd = 1, hate hejmartin.',
+      verdictEliminated: 'k = {k} bi {n} re faktorekî parve dike — gcd = {gcd}, hate derxistin.',
+      tally: 'Hejmara heyî ya ji hev seretayî: {count}',
+      progress: 'k = {k} ji {total} hate ceribandin.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Amade ye — li Lêxe bitikîne da ku temaşe bikî ka gerîn her k bi yek dabeşkirinê çawa diceribîne.',
+      bannerDone: {
+        one: 'Qediya — {count} nirx hate ceribandin, {phi} bi {n} re ji hev seretayî ne.',
+        other: 'Qediya — {count} nirx hatin ceribandin, {phi} bi {n} re ji hev seretayî ne.'
+      },
+      caption: 'Dema n seretayî be φ(n) = n−1 dide, ji ber ku her hejmara biçûktir wê ji dest dide — bişkojkên mînakan vê kontrolkirinê hêsan dikin.'
+    },
+    ckb: {
+      title: 'فەنکشنی ئۆیلەر φ',
+      heading: 'فەنکشنی ئۆیلەر φ',
+      lede: '\u2066φ(n)\u2069 دەژمێرێت چەند ژمارە لە \u20661 … n−1\u2069 ھیچ ھۆکارێکیان لەگەڵ n دابەش ناکەن، و ئەم پەڕەیە بە تاکە ڕێگای ڕاستگۆیانە دەیدۆزێتەوە — بە پرسیارکردن لە ئەلگۆریتمی ئیقلیدس دەربارەی ھەر یەکێکیان.',
+      xref: 'ھەمان ژمارە وەک پارچەکانی گرووپی لێکدان بە مۆدیولی n دەردەکەوێت ←',
+      chipPrime: '{n} · سەرەتایی',
+      run: 'بەڕێوەبردن',
+      errNotWhole: 'دەبێت n ژمارەیەکی تەواو بێت.',
+      errTooSmall: 'دەبێت n لانیکەم {min} بێت — گەڕانی \u2066k = 1 … n−1\u2069 پێویستی بە لانیکەم یەک k ھەیە بۆ تاقیکردنەوە.',
+      errCapped: 'n بە {max} سنووردار کراوە — بەھاکە کەمکرایەوە بۆ ئەوەی بگونجێت.',
+      chainHead: 'تاقیکردنەوەی \u2066k = {k}\u2069 — \u2066gcd({n}, {k})\u2069',
+      verdictCoprime: '\u2066k = {k}\u2069 لەگەڵ {n} سەرەتاییە لە نێوان خۆیاندا — \u2066gcd = 1\u2069، ژمێردرا.',
+      verdictEliminated: '\u2066k = {k}\u2069 ھۆکارێکی ھاوبەشی لەگەڵ {n} ھەیە — \u2066gcd = {gcd}\u2069، دەرکرا.',
+      tally: 'ژمارەی سەرەتایی لە نێوان خۆیاندا تا ئێستا: {count}',
+      progress: '\u2066k = {k}\u2069 لە {total} تاقی کرایەوە.',
+      answer: '\u2066φ({n}) = {phi}\u2069',
+      bannerReady: 'ئامادەیە — کرتە لە لێدان بکە بۆ ئەوەی سەیر بکەیت چۆن گەڕانەکە ھەر k بە یەک دابەشکردن تاقی دەکاتەوە.',
+      bannerDone: {
+        one: 'تەواو بوو — {count} بەھا تاقی کرایەوە، {phi} لەگەڵ {n} سەرەتاییە لە نێوان خۆیاندا.',
+        other: 'تەواو بوو — {count} بەھا تاقی کرانەوە، {phi} لەگەڵ {n} سەرەتاییە لە نێوان خۆیاندا.'
+      },
+      caption: 'کاتێک n سەرەتایی بێت \u2066φ(n) = n−1\u2069 دەدات، چونکە ھەموو ژمارەیەکی بچووکتر لێی دوور دەکەوێتەوە — دوگمەکانی نموونە ئەمە ئاسان دەکەن بۆ پشکنین.'
     }
   });
 })();

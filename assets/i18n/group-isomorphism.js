@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   twenty-seven supported languages.
+   twenty-nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -813,6 +813,64 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (ⴰⵎⵇⵔⴰⵏ ⴱⴰⵀⵔⴰ ⵉ ⵓⵙⴽⴰⵏ ⵏ ⵜⵣⵎⵔⵜ ⵡⴰⵔ ⵏⵇⵙ ⵙ ⵚⵚⵃ)',
       refCount: '{count} ⵏ ⵜⵉⵢⵓⴳⵉⵡⵉⵏ (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   ⵙ   k ↦ {g}^k mod {m}   (ⴰⵎⵙⵏⵓⵍⴼⵓ g = {g})'
+    },
+    ku: {
+      title: 'Îzomorfîzma grûpan',
+      eyebrow: 'du hesab, yek grûp',
+      heading: 'Îzomorfîzma grûpan',
+      lede: 'Hejmarên tam yên mod n di bin lêzêdekirinê de û yekîneyên mod m di bin lêkdanê de dikarin, ji hêla avahiyê ve, tam heman grûp bin — tenê bi hesabeke cuda. {0}',
+      xref: 'Bibîne ka ev du grûp yek bi yek çawa têne avakirin →',
+      pairLabel: 'Cota îzomorf',
+      pairSelectAriaLabel: 'Cotek îzomorf hilbijêre',
+      randomizeLabel: 'Rasthatî',
+      randomize: 'Mînaka rasthatî ya nû',
+      tablistLabel: 'Rêzkirina çerxa rastê',
+      tabPowers: 'Hêzên g',
+      tabNumeric: 'Hejmarî',
+      leftWheelAriaLabel: 'Hêmanên grûpa lêzêdekirinê Z mod n',
+      rightWheelAriaLabel: 'Hêmanên grûpa lêkdanê ya yekîneyan mod m',
+      refHeading: 'Cotên îzomorf',
+      leftWedgeAriaLabel: 'Hêmana {value} ya grûpa lêzêdekirinê Z mod {n}',
+      rightWedgeAriaLabel: 'Hêmana {value} ya grûpa lêkdanê ya yekîneyan mod {m}, wekhev bi {g} bi hêza {k} mod {m}',
+      leftCaption: 'Grûpa lêzêdekirinê {bSpan}: hejmarên tam ji 0 heta {max} di bin lêzêdekirina mod {n} de.',
+      rightCaption: 'Grûpa lêkdanê {bSpan}: {n} yekîneyên mod {m} di bin lêkdanê de, ku ji aliyê {g} ve têne çêkirin.',
+      readoutPrompt: 'Li hêmanekê li ser her du çerxan bitikîne da ku têkiliyê bibînî.',
+      readoutOne: 'Hêmana {aSlot} li çepê bi {aValSlot} li rastê re têkildar e: {eqSpan}. Li hêmaneke duyem — an dîsa li heman hêmanê — bitikîne da ku encama lêzêdekirinê û encama lêkdanê bibînî.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} li çepê ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} li rastê ({modSpan}) — û {product} = {g}^{sum} mod {m} = {sumVal}: wêneya encama lêzêdekirinê bi encama lêkdanê ya wêneyan re wekhev e.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} li çepê ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} li rastê ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} bi {g}^{sum} mod {m} = {sumVal} re ne wekhev e — divê ev cot tu carî ne li hev bibe.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (pir mezin e ji bo nîşandana hêza nekêmkirî ya rast)',
+      refCount: '{count} cot (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   bi   k ↦ {g}^k mod {m}   (çêker g = {g})'
+    },
+    ckb: {
+      title: 'ئیزۆمۆرفیزمی گرووپەکان',
+      eyebrow: 'دوو ژمێریاری، یەک گرووپ',
+      heading: 'ئیزۆمۆرفیزمی گرووپەکان',
+      lede: 'ژمارە تەواوەکانی mod n لە ژێر کۆکردنەوەدا و یەکەکانی mod m لە ژێر لێکداندا دەتوانن، لە ڕووی پێکھاتەوە، دەقیقەن ھەمان گرووپ بن — تەنیا بە ژمێریارییەکی جیاواز. {0}',
+      xref: 'ببینە ئەم دوو گرووپە چۆن یەک بە یەک دروست دەکرێن ←',
+      pairLabel: 'جووتی ئیزۆمۆرف',
+      pairSelectAriaLabel: 'جووتێکی ئیزۆمۆرف ھەڵبژێرە',
+      randomizeLabel: 'ھەڕەمەکی',
+      randomize: 'نموونەی ھەڕەمەکی نوێ',
+      tablistLabel: 'ڕیزکردنی چەرخی ڕاست',
+      tabPowers: 'تواناکانی g',
+      tabNumeric: 'ژمارەیی',
+      leftWheelAriaLabel: 'توخمەکانی گرووپی کۆکردنەوەی \u2066Z mod n\u2069',
+      rightWheelAriaLabel: 'توخمەکانی گرووپی لێکدانی یەکەکان بە مۆدیولی m',
+      refHeading: 'جووتە ئیزۆمۆرفەکان',
+      leftWedgeAriaLabel: 'توخمی {value} لە گرووپی کۆکردنەوەی \u2066Z mod {n}\u2069',
+      rightWedgeAriaLabel: 'توخمی {value} لە گرووپی لێکدانی یەکەکان بە مۆدیولی {m}، یەکسان بە {g} بە توانی {k} بە مۆدیولی {m}',
+      leftCaption: 'گرووپی کۆکردنەوەی \u2066{bSpan}\u2069: ژمارە تەواوەکان لە 0 تا {max} لە ژێر کۆکردنەوەدا بە مۆدیولی {n}.',
+      rightCaption: 'گرووپی لێکدانی \u2066{bSpan}\u2069: {n} یەکەی بە مۆدیولی {m} لە ژێر لێکداندا، کە {g} بەرھەمیان دەھێنێت.',
+      readoutPrompt: 'کرتە لە توخمێک بکە لەسەر ھەر یەکێک لە چەرخەکان بۆ بینینی ھاوتاکەی.',
+      readoutOne: 'توخمی {aSlot} لە لای چەپ ھاوتایە لەگەڵ {aValSlot} لە لای ڕاست: \u2066{eqSpan}\u2069. کرتە لە توخمێکی دووەم بکە — یان ھەمان توخم دووبارە — بۆ بینینی کۆ و ئەنجامی لێکدان.',
+      readoutBothAgree: '\u2066{spanA} + {spanB} = {spanSum}\u2069 لە لای چەپ (\u2066{eqLeft}\u2069) — \u2066{aValSpan} × {bValSpan} = {productSpan}\u2069 لە لای ڕاست (\u2066{modSpan}\u2069) — و ھەروەھا \u2066{product} = {g}^{sum} mod {m} = {sumVal}\u2069: وێنەی کۆ یەکسانە بە ئەنجامی لێکدانی وێنەکان.',
+      readoutBothDisagree: '\u2066{spanA} + {spanB} = {spanSum}\u2069 لە لای چەپ (\u2066{eqLeft}\u2069) — \u2066{aValSpan} × {bValSpan} = {productSpan}\u2069 لە لای ڕاست (\u2066{modSpan}\u2069) — {warnSpan}',
+      readoutWarn: '\u2066{product}\u2069 یەکسان نییە بە \u2066{g}^{sum} mod {m} = {sumVal}\u2069 — ئەم جووتە نابێت ھەرگیز ناکۆک بێت.',
+      eqTooLarge: '\u2066{g}^{a} ≡ {val} (mod {m})\u2069 (زۆر گەورەیە بۆ پیشاندانی توانی کەمنەکراوی ورد)',
+      refCount: 'ژمارەی جووتەکان: {count} (\u2066m ≤ {max}\u2069)',
+      formula: '\u2066Z/{n}Z ≅ (Z/{m}Z)*\u2069   لە ڕێگەی   \u2066k ↦ {g}^k mod {m}\u2069   (بەرھەمھێنەر \u2066g = {g}\u2069)'
     }
   });
 })();

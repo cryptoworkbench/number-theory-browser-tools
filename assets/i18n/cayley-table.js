@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all twenty-seven supported languages.
+   Cayley Table tool, in all twenty-nine supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -1095,6 +1095,84 @@
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), ⴷ {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ⵙⵉⵏ ⴰⵔ ⵢⴰⵡⴻⴹⵏ ⵖ ⵢⴰⵏ ⵓⵣⴰⵍ, ⴷⵖⴰ ⵜⴰⴼⵍⵡⵉⵜ ⵜⵎⵙⴰⵡⴰ ⵖⴼ ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ ⵏⵏⴻⵙ: ⵜⴰⴳⵔⴰⵡⵜ ⵜⴰⵎⵙⵏⴼⴰⵍⵜ.',
       selfInverseNote: '{a} ⴷ {word}, ⴰⵛⴽⵓ ⴰⵣⴰⵍ ⵏⵏⴻⵙ ⴷⴰⴳⵉ ⴷ ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    ku: {
+      title: 'Tabloya Cayley',
+      eyebrow: 'teoriya grûpan · tabloyên operasyonê',
+      heading: 'Tabloya Cayley',
+      lede: 'Tevahiya operasyona grûpekê di yek tabloyeke çargoşe de cih digire — ji bo her hêmanekê yek rêz û yek stûn, ji bo her encamekê yek şane. Her rastiyeke avahiyî ya derbarê wê grûpê de — hêmana wê ya bêalî, berevajiyên wê, cihguhêrbariya wê — bi awayekî diyar li cihekî di şeklê tabloyê de ye.',
+      xref: 'Heman du operasyonên grûpê, wekî perçeyên li ser çerxekê li şûna rêzên di tabloyekê de tên dîtin →',
+      tablistLabel: 'Operasyona grûpê',
+      nLabel: 'N — modul',
+      randomizeLabel: 'Rasthatî',
+      randomize: 'Mînaka rasthatî ya nû',
+      tableScrollLabel: 'Tabloya Cayley, ku dikare were gerandin',
+      'legend.identity': '{0} Rêz û stûna hêmana bêalî',
+      'legend.inverse': '{0} Berevajiya xwe (bi xwe re hevcot)',
+      'legend.selected': '{0} Şaneya hilbijartî',
+      'legend.mirror': '{0} Cêwiya neynikî li aliyê din ê xeta diagonal',
+      nNoteNotWhole: 'Divê N hejmareke tam be — tablo wekî ku bû dimîne.',
+      nNoteTooSmall: 'N nikare ji 1 kêmtir be — bû 1.',
+      nNoteCapped: 'N heta {max} hatiye sînorkirin da ku tablo pir mezin nebe — hate daxistin ber bi {max}.',
+      identityWordAdditive: 'sifir',
+      identityWordMultiplicative: 'yek',
+      inverseWordAdditive: 'neyîniya xwe',
+      inverseWordMultiplicative: 'berevajiya xwe',
+      identityNote: 'Hêmana bêalî {word} e — rêz û stûna wê li jêr hatine nîşankirin.',
+      symmetryNoteAdditive: 'a + b û b + a her dem di heman çînê de dikevin, ji ber vê tablo li ser xeta diagonal xwe neynik dike — li her şaneyekê bitikîne da ku temaşe bikî ka cêwiya wê li aliyê din çawa ronî dibe.',
+      symmetryNoteMultiplicative: 'a · b û b · a her dem di heman çînê de dikevin, ji ber vê tablo li ser xeta diagonal xwe neynik dike — li her şaneyekê bitikîne da ku temaşe bikî ka cêwiya wê li aliyê din çawa ronî dibe.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} hêman · hêmana bêalî [{id}]',
+        other: 'ℤ/{n}ℤ · {count} hêman · hêmana bêalî [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} hêman · hêmana bêalî [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} hêman · hêmana bêalî [{id}]'
+      },
+      tableCaption: 'Tabloya Cayley ji bo {summary} di bin {sign} de',
+      noteDiagonal: 'Ev şane li ser eksena diagonal e — ew cêwiya xwe ye, û tenê yek hevkêşe heye ku were gotin: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), û {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — herdu li ser heman nirxê dikevin, ji ber vê tablo li ser xeta xwe ya diagonal hevseng e: grûp cihguhêrbar e.',
+      selfInverseNote: '{a} {word} e, ji ber ku nirxa wê li vir hêmana bêalî ye.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    ckb: {
+      title: 'خشتەی کەیلی',
+      eyebrow: 'تیۆری گرووپ · خشتەکانی کردار',
+      heading: 'خشتەی کەیلی',
+      lede: 'تەواوی کرداری گرووپێک لە یەک خشتەی چوارگۆشەدا جێ دەبێتەوە — بۆ ھەر توخمێک یەک دێڕ و یەک ستوون، بۆ ھەر ئەنجامێک یەک خانە. ھەموو ڕاستییەکی پێکھاتەیی دەربارەی ئەو گرووپە — توخمی بێلایەنی، پێچەوانەکانی، ئاڵوگۆڕپێکراوییەکەی — بە ڕوونی لە شوێنێک لە شێوەی خشتەکەدا ھەیە.',
+      xref: 'ھەمان دوو کرداری گرووپ، وەک پارچەکانی سەر چەرخێک لەبری دێڕەکانی خشتەیەک دەبینرێن ←',
+      tablistLabel: 'کرداری گرووپ',
+      nLabel: 'N — مۆدیول',
+      randomizeLabel: 'ھەڕەمەکی',
+      randomize: 'نموونەی ھەڕەمەکی نوێ',
+      tableScrollLabel: 'خشتەی کەیلی، جووڵاو بە سکرۆڵ',
+      'legend.identity': '{0} دێڕ و ستوونی توخمی بێلایەن',
+      'legend.inverse': '{0} پێچەوانەی خۆی (خۆ-جووت)',
+      'legend.selected': '{0} خانەی ھەڵبژێردراو',
+      'legend.mirror': '{0} دووانەی ئاوێنەیی لەلای ئەودیوی ھێڵی لاری',
+      nNoteNotWhole: 'دەبێت N ژمارەیەکی تەواو بێت — خشتەکە وەک خۆی دەمێنێتەوە.',
+      nNoteTooSmall: 'N ناتوانێت لە 1 کەمتر بێت — کرا بە 1.',
+      nNoteCapped: 'N بە {max} سنووردار کراوە بۆ ئەوەی خشتەکە زۆر گەورە نەبێت — کەمکرایەوە بۆ {max}.',
+      identityWordAdditive: 'سفر',
+      identityWordMultiplicative: 'یەک',
+      inverseWordAdditive: 'نەرێنیی خۆی',
+      inverseWordMultiplicative: 'پێچەوانەی خۆی',
+      identityNote: 'توخمی بێلایەن ئەمەیە: {word} — دێڕ و ستوونەکەی لە خوارەوە نیشان کراون.',
+      symmetryNoteAdditive: '\u2066a + b\u2069 و \u2066b + a\u2069 ھەمیشە لە ھەمان پۆلدا دەکەون، بۆیە خشتەکە خۆی بەسەر ھێڵی لاریدا ئاوێنە دەکات — کرتە لە ھەر خانەیەک بکە بۆ ئەوەی سەیر بکەیت چۆن دووانەکەی لەو لاوەی تر ڕووناک دەبێتەوە.',
+      symmetryNoteMultiplicative: '\u2066a · b\u2069 و \u2066b · a\u2069 ھەمیشە لە ھەمان پۆلدا دەکەون، بۆیە خشتەکە خۆی بەسەر ھێڵی لاریدا ئاوێنە دەکات — کرتە لە ھەر خانەیەک بکە بۆ ئەوەی سەیر بکەیت چۆن دووانەکەی لەو لاوەی تر ڕووناک دەبێتەوە.',
+      summaryAdditive: {
+        one: '\u2066ℤ/{n}ℤ\u2069 · {count} توخم · توخمی بێلایەن \u2066[{id}]\u2069',
+        other: '\u2066ℤ/{n}ℤ\u2069 · {count} توخم · توخمی بێلایەن \u2066[{id}]\u2069'
+      },
+      summaryMultiplicative: {
+        one: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 توخم · توخمی بێلایەن \u2066[{id}]\u2069',
+        other: '\u2066(ℤ/{n}ℤ)ˣ · φ({n}) = {count}\u2069 توخم · توخمی بێلایەن \u2066[{id}]\u2069'
+      },
+      tableCaption: 'خشتەی کەیلی بۆ گرووپی {summary} لە ژێر کرداری \u2066{sign}\u2069',
+      noteDiagonal: 'ئەم خانەیە لەسەر تەوەری لارییە — دووانەی خۆیەتی، و تەنیا یەک ھاوکێشەی ھەیە بۆ گوتن: \u2066{a} {sign} {a} = {raw} ≡ {val} (mod {n})\u2069.',
+      noteCommutative: '\u2066{a} {sign} {b} = {rawAB} ≡ {val} (mod {n})\u2069، و ھەروەھا \u2066{b} {sign} {a} = {rawBA} ≡ {val} (mod {n})\u2069 — ھەردووکیان لەسەر ھەمان بەھا دەکەون، بۆیە خشتەکە لە ڕووی ھێڵە لارییەکەیەوە ھاوتەریبە: گرووپەکە ئاڵوگۆڕپێکراوە.',
+      selfInverseNote: '{a} یەکسانە بە {word}، چونکە بەھاکەی لێرە توخمی بێلایەنە.',
+      equationCaption: '\u2066{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).\u2069'
     }
   });
 })();
