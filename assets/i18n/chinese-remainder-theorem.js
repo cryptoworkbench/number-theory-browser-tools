@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all twenty-five supported languages.
+   tool, in all twenty-seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all twenty-five languages. Must load after assets/nt-i18n.js and
+   across all twenty-seven languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -947,6 +947,80 @@
       constructReasonSpanBlocked: 'Konstruksi membutuhkan jawaban yang telah dihitung, dan batas atas rentang sedang menghalanginya.',
       constructSumMismatch: 'Ketidakcocokan diagnostik: konstruksi tereduksi menjadi {reduced} tetapi penyelesai menghitung {computed} — keduanya harus selalu sama.',
       seeInverse: 'lihat invers →'
+    },
+    'zgh-Latn': {
+      title: 'Askkud aṣinwi n uqqimu',
+      heading: 'Askkud aṣinwi n uqqimu',
+      lede: 'Yal agdu ɣ iman nnes ar ifk tagrumma n imḍanen g tallit tamsawat — yal wis kraḍ, yal wis smmus, d tayyat. Ticki imuḍulan ur mcrikn ula yan ufaktur, tigrumin ad ar ttmlalnt ɣ yan umkan kigan g yal tallit n {0} n imḍanen. Timlalt yat ad d tifrat ayd ttwafqn akk isaṭrn.',
+      xref: 'Ẓr amgal amuḍulan n ugdu amzwaru ittwassiḍn asurif s usurif g allal Alguritm n Uklid →',
+      countGroupLabel: 'Acḥal n igdan',
+      countTwo: 'Sin igdan',
+      countThree: 'Kraḍ n igdan',
+      remainderLabel: 'aqqimu a',
+      modulusLabel: 'amuḍul m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · tamsalt n Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · tayuga n imnza gr asn',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · ar mcrikn yan ufaktur',
+      extToggleLabel: 'Ssken tarrayt tazrbt ugar — snlf tifrat s alguritm n Uklid ittwasmqqrn war anadi',
+      stripGroupLabel: 'Ixṭṭn n tiggayin n uqqimu, ittwazzuzzrn',
+      constructLede: 'Bḍu tallit s yan uḥbbu i yal agdu, ssiḍn amgal amuḍulan n yal uḥbbu s umuḍul nnes, sgut s uqqimu n ugdu ad, rnu iḥbbuyn, dɣa nqs.',
+      tableHeaderY: 'y (amgal)',
+      tableHeaderTerm: 'aḥdd = a · M · y',
+      caption: 'Tifrat ar tales i dima s tallit {0} — akulun ittwasɛyyn d yan umsmmal n tgrumma war tilas n tifrin.',
+      allAgreeLabel: 'akk ttwafqn',
+      errModulusWhole: 'Asaṭr {idx}: amuḍul ixṣṣa ad yili d ummid.',
+      errModulusRange: 'Asaṭr {idx}: amuḍul ixṣṣa ad yili gr {min} d {max}.',
+      errRemainderWhole: 'Asaṭr {idx}: aqqimu ixṣṣa ad yili d ummid.',
+      errRemainderRange: 'Asaṭr {idx}: aqqimu ixṣṣa ad yili sg 0 ar {max} i umuḍul {m}.',
+      coprimeOk: 'Imuḍulan d imnza gr asn s snat snat — illa yat tifrat s umuḍul {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — imuḍulan {x} d {y} mcrikn yan ufaktur, dɣa ixṣṣa n imnza gr asn s snat snat n usnulfu amzwaru n CRT ur ittwakml, dɣa allal ad ur ittɛrrḍ ad d yaf tifrat i sistim ad.',
+      spanWarn: 'Tallit tamunt lcm = {span} tɛdda tilas n tallit n allal ad, {max} — ssnqs yan gr imuḍulan bac ad tili ddu n {max}.',
+      testingX: 'Akayad n x = {x} …',
+      diagnosticMismatchScan: 'Tamgalt n diyagnustik: anadi iwḍ ar {landed} maca asnulfu issiḍn {computed} — ixṣṣa ad ttwafqn dima.',
+      solved: 'Ittwaḥl — akk igdan ar ttwafqn ɣ x = {x}.',
+      diagnosticScanEnd: 'Diyagnustik: anadi iwḍ ar taggara n tallit ({span}) war ad d yaf amwafq, aya ur izmr ad iga i sistim n imnza gr asn s snat snat.',
+      readyToScan: 'Ihegga — sit ɣf Urar bac ad tẓrt anadi ɣf x.',
+      constructReasonNotCoprime: 'Asnulfu ixṣṣa ad yili yal M_i ittwamgal s umuḍul m_i nnes, aya ur ittili ticki yan ufaktur imcrik gr imuḍulan.',
+      constructReasonSpanBlocked: 'Asnulfu ixṣṣa yat tifrat ittwassiḍn, dɣa lḥajiz n tilas n tallit ar issdd yat.',
+      constructSumMismatch: 'Tamgalt n diyagnustik: asnulfu ar inqs ar {reduced} maca allal n tifrat issiḍn {computed} — ixṣṣa ad ttwafqn dima.',
+      seeInverse: 'ẓr amgal →'
+    },
+    'zgh-Tfng': {
+      title: 'ⴰⵙⴽⴽⵓⴷ ⴰⵚⵉⵏⵡⵉ ⵏ ⵓⵇⵇⵉⵎⵓ',
+      heading: 'ⴰⵙⴽⴽⵓⴷ ⴰⵚⵉⵏⵡⵉ ⵏ ⵓⵇⵇⵉⵎⵓ',
+      lede: 'ⵢⴰⵍ ⴰⴳⴷⵓ ⵖ ⵉⵎⴰⵏ ⵏⵏⴻⵙ ⴰⵔ ⵉⴼⴽ ⵜⴰⴳⵔⵓⵎⵎⴰ ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⴳ ⵜⴰⵍⵍⵉⵜ ⵜⴰⵎⵙⴰⵡⴰⵜ — ⵢⴰⵍ ⵡⵉⵙ ⴽⵔⴰⴹ, ⵢⴰⵍ ⵡⵉⵙ ⵙⵎⵎⵓⵙ, ⴷ ⵜⴰⵢⵢⴰⵜ. ⵜⵉⵛⴽⵉ ⵉⵎⵓⴹⵓⵍⴰⵏ ⵓⵔ ⵎⵛⵔⵉⴽⵏ ⵓⵍⴰ ⵢⴰⵏ ⵓⴼⴰⴽⵜⵓⵔ, ⵜⵉⴳⵔⵓⵎⵉⵏ ⴰⴷ ⴰⵔ ⵜⵜⵎⵍⴰⵍⵏⵜ ⵖ ⵢⴰⵏ ⵓⵎⴽⴰⵏ ⴽⵉⴳⴰⵏ ⴳ ⵢⴰⵍ ⵜⴰⵍⵍⵉⵜ ⵏ {0} ⵏ ⵉⵎⴹⴰⵏⴻⵏ. ⵜⵉⵎⵍⴰⵍⵜ ⵢⴰⵜ ⴰⴷ ⴷ ⵜⵉⴼⵔⴰⵜ ⴰⵢⴷ ⵜⵜⵡⴰⴼⵇⵏ ⴰⴽⴽ ⵉⵙⴰⵟⵔⵏ.',
+      xref: 'ⵥⵔ ⴰⵎⴳⴰⵍ ⴰⵎⵓⴹⵓⵍⴰⵏ ⵏ ⵓⴳⴷⵓ ⴰⵎⵣⵡⴰⵔⵓ ⵉⵜⵜⵡⴰⵙⵙⵉⴹⵏ ⴰⵙⵓⵔⵉⴼ ⵙ ⵓⵙⵓⵔⵉⴼ ⴳ ⴰⵍⵍⴰⵍ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵓⴽⵍⵉⴷ →',
+      countGroupLabel: 'ⴰⵛⵃⴰⵍ ⵏ ⵉⴳⴷⴰⵏ',
+      countTwo: 'ⵙⵉⵏ ⵉⴳⴷⴰⵏ',
+      countThree: 'ⴽⵔⴰⴹ ⵏ ⵉⴳⴷⴰⵏ',
+      remainderLabel: 'ⴰⵇⵇⵉⵎⵓ a',
+      modulusLabel: 'ⴰⵎⵓⴹⵓⵍ m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · ⵜⴰⵎⵙⴰⵍⵜ ⵏ ⵙⵓⵏ ⵜⵣⵓ',
+      chipCoprime: '2 mod 3 · 3 mod 5 · ⵜⴰⵢⵓⴳⴰ ⵏ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · ⴰⵔ ⵎⵛⵔⵉⴽⵏ ⵢⴰⵏ ⵓⴼⴰⴽⵜⵓⵔ',
+      extToggleLabel: 'ⵙⵙⴽⴻⵏ ⵜⴰⵔⵔⴰⵢⵜ ⵜⴰⵣⵔⴱⵜ ⵓⴳⴰⵔ — ⵙⵏⵍⴼ ⵜⵉⴼⵔⴰⵜ ⵙ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵓⴽⵍⵉⴷ ⵉⵜⵜⵡⴰⵙⵎⵇⵇⵔⵏ ⵡⴰⵔ ⴰⵏⴰⴷⵉ',
+      stripGroupLabel: 'ⵉⵅⵟⵟⵏ ⵏ ⵜⵉⴳⴳⴰⵢⵉⵏ ⵏ ⵓⵇⵇⵉⵎⵓ, ⵉⵜⵜⵡⴰⵣⵣⵓⵣⵣⵔⵏ',
+      constructLede: 'ⴱⴹⵓ ⵜⴰⵍⵍⵉⵜ ⵙ ⵢⴰⵏ ⵓⵃⴱⴱⵓ ⵉ ⵢⴰⵍ ⴰⴳⴷⵓ, ⵙⵙⵉⴹⵏ ⴰⵎⴳⴰⵍ ⴰⵎⵓⴹⵓⵍⴰⵏ ⵏ ⵢⴰⵍ ⵓⵃⴱⴱⵓ ⵙ ⵓⵎⵓⴹⵓⵍ ⵏⵏⴻⵙ, ⵙⴳⵓⵜ ⵙ ⵓⵇⵇⵉⵎⵓ ⵏ ⵓⴳⴷⵓ ⴰⴷ, ⵔⵏⵓ ⵉⵃⴱⴱⵓⵢⵏ, ⴷⵖⴰ ⵏⵇⵙ.',
+      tableHeaderY: 'y (ⴰⵎⴳⴰⵍ)',
+      tableHeaderTerm: 'ⴰⵃⴷⴷ = a · M · y',
+      caption: 'ⵜⵉⴼⵔⴰⵜ ⴰⵔ ⵜⴰⵍⴻⵙ ⵉ ⴷⵉⵎⴰ ⵙ ⵜⴰⵍⵍⵉⵜ {0} — ⴰⴽⵓⵍⵓⵏ ⵉⵜⵜⵡⴰⵙⵄⵢⵢⵏ ⴷ ⵢⴰⵏ ⵓⵎⵙⵎⵎⴰⵍ ⵏ ⵜⴳⵔⵓⵎⵎⴰ ⵡⴰⵔ ⵜⵉⵍⴰⵙ ⵏ ⵜⵉⴼⵔⵉⵏ.',
+      allAgreeLabel: 'ⴰⴽⴽ ⵜⵜⵡⴰⴼⵇⵏ',
+      errModulusWhole: 'ⴰⵙⴰⵟⵔ {idx}: ⴰⵎⵓⴹⵓⵍ ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⴷ ⵓⵎⵎⵉⴷ.',
+      errModulusRange: 'ⴰⵙⴰⵟⵔ {idx}: ⴰⵎⵓⴹⵓⵍ ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⴳⵔ {min} ⴷ {max}.',
+      errRemainderWhole: 'ⴰⵙⴰⵟⵔ {idx}: ⴰⵇⵇⵉⵎⵓ ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⴷ ⵓⵎⵎⵉⴷ.',
+      errRemainderRange: 'ⴰⵙⴰⵟⵔ {idx}: ⴰⵇⵇⵉⵎⵓ ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⵙⴳ 0 ⴰⵔ {max} ⵉ ⵓⵎⵓⴹⵓⵍ {m}.',
+      coprimeOk: 'ⵉⵎⵓⴹⵓⵍⴰⵏ ⴷ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⵙ ⵙⵏⴰⵜ ⵙⵏⴰⵜ — ⵉⵍⵍⴰ ⵢⴰⵜ ⵜⵉⴼⵔⴰⵜ ⵙ ⵓⵎⵓⴹⵓⵍ {span}.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — ⵉⵎⵓⴹⵓⵍⴰⵏ {x} ⴷ {y} ⵎⵛⵔⵉⴽⵏ ⵢⴰⵏ ⵓⴼⴰⴽⵜⵓⵔ, ⴷⵖⴰ ⵉⵅⵚⵚⴰ ⵏ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⵙ ⵙⵏⴰⵜ ⵙⵏⴰⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ ⴰⵎⵣⵡⴰⵔⵓ ⵏ CRT ⵓⵔ ⵉⵜⵜⵡⴰⴽⵎⵍ, ⴷⵖⴰ ⴰⵍⵍⴰⵍ ⴰⴷ ⵓⵔ ⵉⵜⵜⵄⵔⵔⴹ ⴰⴷ ⴷ ⵢⴰⴼ ⵜⵉⴼⵔⴰⵜ ⵉ ⵙⵉⵙⵜⵉⵎ ⴰⴷ.',
+      spanWarn: 'ⵜⴰⵍⵍⵉⵜ ⵜⴰⵎⵓⵏⵜ lcm = {span} ⵜⵄⴷⴷⴰ ⵜⵉⵍⴰⵙ ⵏ ⵜⴰⵍⵍⵉⵜ ⵏ ⴰⵍⵍⴰⵍ ⴰⴷ, {max} — ⵙⵙⵏⵇⵙ ⵢⴰⵏ ⴳⵔ ⵉⵎⵓⴹⵓⵍⴰⵏ ⴱⴰⵛ ⴰⴷ ⵜⵉⵍⵉ ⴷⴷⵓ ⵏ {max}.',
+      testingX: 'ⴰⴽⴰⵢⴰⴷ ⵏ x = {x} …',
+      diagnosticMismatchScan: 'ⵜⴰⵎⴳⴰⵍⵜ ⵏ ⴷⵉⵢⴰⴳⵏⵓⵙⵜⵉⴽ: ⴰⵏⴰⴷⵉ ⵉⵡⴹ ⴰⵔ {landed} ⵎⴰⵛⴰ ⴰⵙⵏⵓⵍⴼⵓ ⵉⵙⵙⵉⴹⵏ {computed} — ⵉⵅⵚⵚⴰ ⴰⴷ ⵜⵜⵡⴰⴼⵇⵏ ⴷⵉⵎⴰ.',
+      solved: 'ⵉⵜⵜⵡⴰⵃⵍ — ⴰⴽⴽ ⵉⴳⴷⴰⵏ ⴰⵔ ⵜⵜⵡⴰⴼⵇⵏ ⵖ x = {x}.',
+      diagnosticScanEnd: 'ⴷⵉⵢⴰⴳⵏⵓⵙⵜⵉⴽ: ⴰⵏⴰⴷⵉ ⵉⵡⴹ ⴰⵔ ⵜⴰⴳⴳⴰⵔⴰ ⵏ ⵜⴰⵍⵍⵉⵜ ({span}) ⵡⴰⵔ ⴰⴷ ⴷ ⵢⴰⴼ ⴰⵎⵡⴰⴼⵇ, ⴰⵢⴰ ⵓⵔ ⵉⵣⵎⵔ ⴰⴷ ⵉⴳⴰ ⵉ ⵙⵉⵙⵜⵉⵎ ⵏ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⵙ ⵙⵏⴰⵜ ⵙⵏⴰⵜ.',
+      readyToScan: 'ⵉⵀⴻⴳⴳⴰ — ⵙⵉⵜ ⵖⴼ ⵓⵔⴰⵔ ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵏⴰⴷⵉ ⵖⴼ x.',
+      constructReasonNotCoprime: 'ⴰⵙⵏⵓⵍⴼⵓ ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⵢⴰⵍ M_i ⵉⵜⵜⵡⴰⵎⴳⴰⵍ ⵙ ⵓⵎⵓⴹⵓⵍ m_i ⵏⵏⴻⵙ, ⴰⵢⴰ ⵓⵔ ⵉⵜⵜⵉⵍⵉ ⵜⵉⵛⴽⵉ ⵢⴰⵏ ⵓⴼⴰⴽⵜⵓⵔ ⵉⵎⵛⵔⵉⴽ ⴳⵔ ⵉⵎⵓⴹⵓⵍⴰⵏ.',
+      constructReasonSpanBlocked: 'ⴰⵙⵏⵓⵍⴼⵓ ⵉⵅⵚⵚⴰ ⵢⴰⵜ ⵜⵉⴼⵔⴰⵜ ⵉⵜⵜⵡⴰⵙⵙⵉⴹⵏ, ⴷⵖⴰ ⵍⵃⴰⵊⵉⵣ ⵏ ⵜⵉⵍⴰⵙ ⵏ ⵜⴰⵍⵍⵉⵜ ⴰⵔ ⵉⵙⵙⴷⴷ ⵢⴰⵜ.',
+      constructSumMismatch: 'ⵜⴰⵎⴳⴰⵍⵜ ⵏ ⴷⵉⵢⴰⴳⵏⵓⵙⵜⵉⴽ: ⴰⵙⵏⵓⵍⴼⵓ ⴰⵔ ⵉⵏⵇⵙ ⴰⵔ {reduced} ⵎⴰⵛⴰ ⴰⵍⵍⴰⵍ ⵏ ⵜⵉⴼⵔⴰⵜ ⵉⵙⵙⵉⴹⵏ {computed} — ⵉⵅⵚⵚⴰ ⴰⴷ ⵜⵜⵡⴰⴼⵇⵏ ⴷⵉⵎⴰ.',
+      seeInverse: 'ⵥⵔ ⴰⵎⴳⴰⵍ →'
     }
   });
 })();

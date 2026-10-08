@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all twenty-five supported languages. title and heading equal
+   Tree tool, in all twenty-seven supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all twenty-five languages. The factorization itself (the equation/tree
+   across all twenty-seven languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -1154,6 +1154,96 @@
       binLabel: 'Tempat sampah: seret lingkaran ke sini untuk menghapusnya dari palet',
       emptyPaletteLabel: 'Hapus semua: kosongkan palet',
       msgPaletteEmptied: 'Palet dikosongkan.'
+    },
+    'zgh-Latn': {
+      title: 'Aseklu n ifakturn',
+      heading: 'Aseklu n ifakturn',
+      eyebrow: 'imḍanen imnza d ubḍu',
+      subtitle: 'Rnu yan umḍan i tbalitt, zzuzr tawrerrayt nnes ɣr tmnaḍt n usnulfu/asfaktr, dɣa sit ɣf + bac ad t tldit — tarmmt s tarmmt, ar ifakturn imnza.',
+      modeLabel: 'Askil n useklu',
+      modeClassic: 'Aklasik',
+      modeBalanced: 'Amsawa',
+      placeholder: 's umdya 60',
+      randomize: 'S ugacur',
+      footnote: 'Yal amnzu g useklu ar ibḍa tikkelt taggarut: P = P × 1.',
+      balancedNote: 'Askil Amsawa ar issmrs tarrayt n Firma bac ad yaf tayuga n ifakturn ittubḍan s ssawa ɣ yal asurif, ɣ imḍanen ddu n 1,000,000 kigan bac ad qqimn dɣya. Kra n imḍanen — am yan umḍan amnzu amẓẓan s yan umqqran — ar ttubḍan s war ssawa; ayad ur d tuccḍa, d tusnakt kigan.',
+      msgEmpty: 'Ara yan umḍan zzat.',
+      msgInvalid: 'Ara yan ummid, ur d ddu n 1.',
+      msgTooLargeBalanced: 'Amḍan ad amqran bahra i uskil Amsawa — ɛrḍ yan ddu n 1,000,000, nɣ snfl ar uskil Aklasik i imḍanen imqqranen.',
+      msgTooLargeClassic: 'Amḍan ad amqran bahra i useklu amẓẓan ad — ɛrḍ yan ddu n 1 trilyun.',
+      msgOne: '1 ur d amnzu ur d uddis — d tazrart kigan, mazal ur d aseklu.',
+      msgPrime: '{n} d amnzu — ar ittubḍa tikkelt kigan, ɣr 1 × {n}.',
+      msgFactors: 'Asfaktr n amḍan {n}: {count} n imḍanen imnza.',
+      mirrorLabel: 'Ssmgal tarmmin ddu n amḍan {n}',
+      foldLabel: 'Mdl ifakturn n amḍan {n}',
+      unfoldLabel: 'Ldi ifakturn n amḍan {n}',
+      add: 'Rnu',
+      addInputLabel: 'Amḍan ad ittwarnu i tbalitt',
+      paletteHeading: 'Tabalitt n imḍanen imnza',
+      paletteHeadingNumbers: 'Tabalitt n imḍanen',
+      paletteItemLabel: 'Sbdd amḍan {n} ɣ tmnaḍt n usnulfu/asfaktr',
+      workHeading: 'Tamnaḍt n usnulfu/asfaktr',
+      workHint: 'Zzuzr yan umḍan uddis bac ad t tsfaktrt, nɣ zzuzr imḍanen imnza bac ad tsnlft yan umḍan uddis.',
+      clear: 'Sfeḍ',
+      removeLabel: 'Kkes amḍan {n} sg tmnaḍt n usnulfu/asfaktr',
+      moveLabel: 'Zzuzr tafaratt ad ɣf tayyat: anuṣ azelmaḍ ar isgut amḍan {n} s umḍan nnes, anuṣ afasi ar issmlal anbḍay amqran amcrik nsn',
+      removeOverlapLabel: 'Kkes timlalt n imḍanen {a} d {b} sg tmnaḍt n usnulfu/asfaktr',
+      splitOverlap: 'Bḍu',
+      splitOverlapLabel: 'Bḍu iseklan n imḍanen {a} d {b} tikkelt nniḍen',
+      msgGcd: '{a} d {b} ar mcrikn tarmmt {g} — anbḍay nsn amqran amcrik.',
+      msgCoprime: '{a} d {b} d imnza gr asn — tarmmt kigan ayd ar mcrikn d 1.',
+      msgSplit: '{a} d {b} d iseklan imfrdn tikkelt nniḍen.',
+      msgAdded: 'Ittwarnu {n} i tbalitt.',
+      msgRemoved: 'Ittwakks {n} sg tbalitt.',
+      msgPaletteFull: 'Tbalitt tmla — tsɛ ar {max} n imḍanen ɣas.',
+      binLabel: 'Tazbalt: zzuzr yat twrerrayt ɣr dagi bac ad tt tkkst sg tbalitt',
+      emptyPaletteLabel: 'Kkes akk: sfeḍ tabalitt',
+      msgPaletteEmptied: 'Ittusfeḍ tbalitt.'
+    },
+    'zgh-Tfng': {
+      title: 'ⴰⵙⴻⴽⵍⵓ ⵏ ⵉⴼⴰⴽⵜⵓⵔⵏ',
+      heading: 'ⴰⵙⴻⴽⵍⵓ ⵏ ⵉⴼⴰⴽⵜⵓⵔⵏ',
+      eyebrow: 'ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⴷ ⵓⴱⴹⵓ',
+      subtitle: 'ⵔⵏⵓ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⵉ ⵜⴱⴰⵍⵉⵜⵜ, ⵣⵣⵓⵣⵔ ⵜⴰⵡⵔⴻⵔⵔⴰⵢⵜ ⵏⵏⴻⵙ ⵖⵔ ⵜⵎⵏⴰⴹⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ/ⴰⵙⴼⴰⴽⵜⵔ, ⴷⵖⴰ ⵙⵉⵜ ⵖⴼ + ⴱⴰⵛ ⴰⴷ ⵜ ⵜⵍⴷⵉⵜ — ⵜⴰⵔⵎⵎⵜ ⵙ ⵜⴰⵔⵎⵎⵜ, ⴰⵔ ⵉⴼⴰⴽⵜⵓⵔⵏ ⵉⵎⵏⵣⴰ.',
+      modeLabel: 'ⴰⵙⴽⵉⵍ ⵏ ⵓⵙⴻⴽⵍⵓ',
+      modeClassic: 'ⴰⴽⵍⴰⵙⵉⴽ',
+      modeBalanced: 'ⴰⵎⵙⴰⵡⴰ',
+      placeholder: 'ⵙ ⵓⵎⴷⵢⴰ 60',
+      randomize: 'ⵙ ⵓⴳⴰⵛⵓⵔ',
+      footnote: 'ⵢⴰⵍ ⴰⵎⵏⵣⵓ ⴳ ⵓⵙⴻⴽⵍⵓ ⴰⵔ ⵉⴱⴹⴰ ⵜⵉⴽⴽⴻⵍⵜ ⵜⴰⴳⴳⴰⵔⵓⵜ: P = P × 1.',
+      balancedNote: 'ⴰⵙⴽⵉⵍ ⴰⵎⵙⴰⵡⴰ ⴰⵔ ⵉⵙⵙⵎⵔⵙ ⵜⴰⵔⵔⴰⵢⵜ ⵏ ⴼⵉⵔⵎⴰ ⴱⴰⵛ ⴰⴷ ⵢⴰⴼ ⵜⴰⵢⵓⴳⴰ ⵏ ⵉⴼⴰⴽⵜⵓⵔⵏ ⵉⵜⵜⵓⴱⴹⴰⵏ ⵙ ⵙⵙⴰⵡⴰ ⵖ ⵢⴰⵍ ⴰⵙⵓⵔⵉⴼ, ⵖ ⵉⵎⴹⴰⵏⴻⵏ ⴷⴷⵓ ⵏ 1,000,000 ⴽⵉⴳⴰⵏ ⴱⴰⵛ ⴰⴷ ⵇⵇⵉⵎⵏ ⴷⵖⵢⴰ. ⴽⵔⴰ ⵏ ⵉⵎⴹⴰⵏⴻⵏ — ⴰⵎ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⵎⵥⵥⴰⵏ ⵙ ⵢⴰⵏ ⵓⵎⵇⵇⵔⴰⵏ — ⴰⵔ ⵜⵜⵓⴱⴹⴰⵏ ⵙ ⵡⴰⵔ ⵙⵙⴰⵡⴰ; ⴰⵢⴰⴷ ⵓⵔ ⴷ ⵜⵓⵛⵛⴹⴰ, ⴷ ⵜⵓⵙⵏⴰⴽⵜ ⴽⵉⴳⴰⵏ.',
+      msgEmpty: 'ⴰⵔⴰ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⵣⵣⴰⵜ.',
+      msgInvalid: 'ⴰⵔⴰ ⵢⴰⵏ ⵓⵎⵎⵉⴷ, ⵓⵔ ⴷ ⴷⴷⵓ ⵏ 1.',
+      msgTooLargeBalanced: 'ⴰⵎⴹⴰⵏ ⴰⴷ ⴰⵎⵇⵔⴰⵏ ⴱⴰⵀⵔⴰ ⵉ ⵓⵙⴽⵉⵍ ⴰⵎⵙⴰⵡⴰ — ⵄⵔⴹ ⵢⴰⵏ ⴷⴷⵓ ⵏ 1,000,000, ⵏⵖ ⵙⵏⴼⵍ ⴰⵔ ⵓⵙⴽⵉⵍ ⴰⴽⵍⴰⵙⵉⴽ ⵉ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵇⵇⵔⴰⵏⴻⵏ.',
+      msgTooLargeClassic: 'ⴰⵎⴹⴰⵏ ⴰⴷ ⴰⵎⵇⵔⴰⵏ ⴱⴰⵀⵔⴰ ⵉ ⵓⵙⴻⴽⵍⵓ ⴰⵎⵥⵥⴰⵏ ⴰⴷ — ⵄⵔⴹ ⵢⴰⵏ ⴷⴷⵓ ⵏ 1 ⵜⵔⵉⵍⵢⵓⵏ.',
+      msgOne: '1 ⵓⵔ ⴷ ⴰⵎⵏⵣⵓ ⵓⵔ ⴷ ⵓⴷⴷⵉⵙ — ⴷ ⵜⴰⵣⵔⴰⵔⵜ ⴽⵉⴳⴰⵏ, ⵎⴰⵣⴰⵍ ⵓⵔ ⴷ ⴰⵙⴻⴽⵍⵓ.',
+      msgPrime: '{n} ⴷ ⴰⵎⵏⵣⵓ — ⴰⵔ ⵉⵜⵜⵓⴱⴹⴰ ⵜⵉⴽⴽⴻⵍⵜ ⴽⵉⴳⴰⵏ, ⵖⵔ 1 × {n}.',
+      msgFactors: 'ⴰⵙⴼⴰⴽⵜⵔ ⵏ ⴰⵎⴹⴰⵏ {n}: {count} ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ.',
+      mirrorLabel: 'ⵙⵙⵎⴳⴰⵍ ⵜⴰⵔⵎⵎⵉⵏ ⴷⴷⵓ ⵏ ⴰⵎⴹⴰⵏ {n}',
+      foldLabel: 'ⵎⴷⵍ ⵉⴼⴰⴽⵜⵓⵔⵏ ⵏ ⴰⵎⴹⴰⵏ {n}',
+      unfoldLabel: 'ⵍⴷⵉ ⵉⴼⴰⴽⵜⵓⵔⵏ ⵏ ⴰⵎⴹⴰⵏ {n}',
+      add: 'ⵔⵏⵓ',
+      addInputLabel: 'ⴰⵎⴹⴰⵏ ⴰⴷ ⵉⵜⵜⵡⴰⵔⵏⵓ ⵉ ⵜⴱⴰⵍⵉⵜⵜ',
+      paletteHeading: 'ⵜⴰⴱⴰⵍⵉⵜⵜ ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ',
+      paletteHeadingNumbers: 'ⵜⴰⴱⴰⵍⵉⵜⵜ ⵏ ⵉⵎⴹⴰⵏⴻⵏ',
+      paletteItemLabel: 'ⵙⴱⴷⴷ ⴰⵎⴹⴰⵏ {n} ⵖ ⵜⵎⵏⴰⴹⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ/ⴰⵙⴼⴰⴽⵜⵔ',
+      workHeading: 'ⵜⴰⵎⵏⴰⴹⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ/ⴰⵙⴼⴰⴽⵜⵔ',
+      workHint: 'ⵣⵣⵓⵣⵔ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⵓⴷⴷⵉⵙ ⴱⴰⵛ ⴰⴷ ⵜ ⵜⵙⴼⴰⴽⵜⵔⵜ, ⵏⵖ ⵣⵣⵓⵣⵔ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⴱⴰⵛ ⴰⴷ ⵜⵙⵏⵍⴼⵜ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⵓⴷⴷⵉⵙ.',
+      clear: 'ⵙⴼⴻⴹ',
+      removeLabel: 'ⴽⴽⴻⵙ ⴰⵎⴹⴰⵏ {n} ⵙⴳ ⵜⵎⵏⴰⴹⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ/ⴰⵙⴼⴰⴽⵜⵔ',
+      moveLabel: 'ⵣⵣⵓⵣⵔ ⵜⴰⴼⴰⵔⴰⵜⵜ ⴰⴷ ⵖⴼ ⵜⴰⵢⵢⴰⵜ: ⴰⵏⵓⵚ ⴰⵣⴻⵍⵎⴰⴹ ⴰⵔ ⵉⵙⴳⵓⵜ ⴰⵎⴹⴰⵏ {n} ⵙ ⵓⵎⴹⴰⵏ ⵏⵏⴻⵙ, ⴰⵏⵓⵚ ⴰⴼⴰⵙⵉ ⴰⵔ ⵉⵙⵙⵎⵍⴰⵍ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ ⵏⵙⵏ',
+      removeOverlapLabel: 'ⴽⴽⴻⵙ ⵜⵉⵎⵍⴰⵍⵜ ⵏ ⵉⵎⴹⴰⵏⴻⵏ {a} ⴷ {b} ⵙⴳ ⵜⵎⵏⴰⴹⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ/ⴰⵙⴼⴰⴽⵜⵔ',
+      splitOverlap: 'ⴱⴹⵓ',
+      splitOverlapLabel: 'ⴱⴹⵓ ⵉⵙⴻⴽⵍⴰⵏ ⵏ ⵉⵎⴹⴰⵏⴻⵏ {a} ⴷ {b} ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ',
+      msgGcd: '{a} ⴷ {b} ⴰⵔ ⵎⵛⵔⵉⴽⵏ ⵜⴰⵔⵎⵎⵜ {g} — ⴰⵏⴱⴹⴰⵢ ⵏⵙⵏ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ.',
+      msgCoprime: '{a} ⴷ {b} ⴷ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ — ⵜⴰⵔⵎⵎⵜ ⴽⵉⴳⴰⵏ ⴰⵢⴷ ⴰⵔ ⵎⵛⵔⵉⴽⵏ ⴷ 1.',
+      msgSplit: '{a} ⴷ {b} ⴷ ⵉⵙⴻⴽⵍⴰⵏ ⵉⵎⴼⵔⴷⵏ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.',
+      msgAdded: 'ⵉⵜⵜⵡⴰⵔⵏⵓ {n} ⵉ ⵜⴱⴰⵍⵉⵜⵜ.',
+      msgRemoved: 'ⵉⵜⵜⵡⴰⴽⴽⵙ {n} ⵙⴳ ⵜⴱⴰⵍⵉⵜⵜ.',
+      msgPaletteFull: 'ⵜⴱⴰⵍⵉⵜⵜ ⵜⵎⵍⴰ — ⵜⵙⵄ ⴰⵔ {max} ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵖⴰⵙ.',
+      binLabel: 'ⵜⴰⵣⴱⴰⵍⵜ: ⵣⵣⵓⵣⵔ ⵢⴰⵜ ⵜⵡⵔⴻⵔⵔⴰⵢⵜ ⵖⵔ ⴷⴰⴳⵉ ⴱⴰⵛ ⴰⴷ ⵜⵜ ⵜⴽⴽⵙⵜ ⵙⴳ ⵜⴱⴰⵍⵉⵜⵜ',
+      emptyPaletteLabel: 'ⴽⴽⴻⵙ ⴰⴽⴽ: ⵙⴼⴻⴹ ⵜⴰⴱⴰⵍⵉⵜⵜ',
+      msgPaletteEmptied: 'ⵉⵜⵜⵓⵙⴼⴻⴹ ⵜⴱⴰⵍⵉⵜⵜ.'
     }
   });
 })();

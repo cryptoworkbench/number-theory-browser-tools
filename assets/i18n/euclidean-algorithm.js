@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all twenty-five supported languages.
+   tool, in all twenty-seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   twenty-five languages. Must load after assets/nt-i18n.js and
+   twenty-seven languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1347,6 +1347,114 @@
       nestedTileTitle: 'Langkah {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Langkah {step}: {a} = {q}·{b} + {r} ({extra} persegi lagi diciutkan di sini)',
       tileEmptyMessage: 'Tidak ada persegi panjang untuk dipotong — b sudah 0, jadi algoritma sudah selesai.'
+    },
+    'zgh-Latn': {
+      title: 'Alguritm n Uklid',
+      heading: 'Alguritm n Uklid',
+      lede: 'Ales snfl tayuga (a, b) s (b, a mod b) — bḍu amqran ɣf umẓẓan, dɣa qqim kigan aqqimu — dɣa tayuga ar ttnqqs yal asurif. Ticki ar yaweḍ yat tama ar ẓiru, tama nniḍen d anbḍay amqran amcrik n sin n imḍanen ayd ibdan s.',
+      xref: 'Anbḍay amqran amcrik ad izmr ad ittwaẓr am imḍanen imnza ayd mcrikn sin n imḍanen →',
+      chipFiveSteps: '240, 46 · 5 n isurifn',
+      chipCoprime: '35, 18 · imnza gr asn',
+      chipBDividesA: '144, 12 · b ibḍa a',
+      chipEqualPair: '36, 36 · tayuga tamsawat',
+      chipAlreadyDone: '17, 0 · ikmml ɣilad',
+      chipFibonacciWorst: '89, 55 · aṭas n isurifn: Fibunači',
+      chipHugeQuotient: '500000, 2 · tayafut tamqrant bahra',
+      run: 'Ssiḍn',
+      extToggleLabel: 'Askil n Uklid ittwasmqqrn — ssken ikufisyanen n Bizu {0} d {1}',
+      errBothWhole: 'Ixṣṣa ad ilin a d b d ummiden.',
+      errBothNonNegative: 'Ixṣṣa ad ilin a d b d ẓiru nɣ imujibn — imḍanen imsalibn ur sɛin anbḍay amqran amcrik dagi.',
+      errGcdZeroZero: 'gcd(0, 0) ur illi — ara yan uzal ur d ẓiru nɣ ugar.',
+      errClamped: 'Tilas n ayn ittwarun d {max} — azal amqran ittwanqs bac ad iqqim ɣ tilas.',
+      swapNote: 'Azal amqran ar izwar: ittwaru am ({a}, {b}), ittwaḍfar am gcd({A}, {B}) — anbḍay amqran amcrik ur ibddl ɣf urdr n sin imḍanen.',
+      bannerReady: 'Ihegga — sit ɣf Urar bac ad tẓrt amek ar ittnulfu uḥsab asaṭr s usaṭr.',
+      bannerDone: {
+        one: 'Ikmml — {n} usurif bac ad yaweḍ ɣr anbḍay amqran amcrik.',
+        other: 'Ikmml — {n} n isurifn bac ad yaweḍ ɣr anbḍay amqran amcrik.'
+      },
+      chainNoteZero: 'b d 0 ɣilad, dɣa ur illi ayn ad ittubḍa — a d anbḍay amqran amcrik ɣilad.',
+      extCaption: '{0} d {1} n yal asaṭr ar sskn aqqimu n usaṭr ad am tamsmunt n sin n imḍanen imzwura — {2}.',
+      viewNested: 'Imkkuẓn ittwaɣlfn',
+      geomViewGroupLabel: 'Askil n tmuɣli n tgiyumitri',
+      viewStep: 'Asurif yat',
+      tileAriaDefault: 'Tamuɣli n uṛktangl n usurif n ubḍu ɣilad',
+      nestedAriaDefault: 'Akk isurifn n ubḍu ittwaɣlfn g yan uṛktangl',
+      caption: 'Imḍanen n Fibunači imḍfarn ar ggn aṭas n isurifn n ubḍu s tmqqrant nsn, ɣ alguritm ad.',
+      tileCaptionExact: {
+        one: 'Asurif {index} sg {total}: {a} ÷ {b}: aṛktangl ittwammla s ṣṣḥ s {q} umkkuẓ n tama {b} — war aqqimu, dɣa {b} d anbḍay amqran amcrik.',
+        other: 'Asurif {index} sg {total}: {a} ÷ {b}: aṛktangl ittwammla s ṣṣḥ s {q} n imkkuẓn n tama {b} — war aqqimu, dɣa {b} d anbḍay amqran amcrik.'
+      },
+      tileCaptionLeftover: {
+        one: 'Asurif {index} sg {total}: {a} = {q}×{b} + {r}: {q} umkkuẓ n tama {b} ar yddu, dɣa iqqim aqqimu {b}×{r}.',
+        other: 'Asurif {index} sg {total}: {a} = {q}×{b} + {r}: {q} n imkkuẓn n tama {b} ar ddun, dɣa iqqim aqqimu {b}×{r}.'
+      },
+      tileNoteCapped: 'Tayafut tṣṣḥt d {q} — {cap} imkkuẓn imzwura kigan ittwaru dagi; {rest} imqqimn ittwamdln g tazlijt ittwasmmi, dɣa tama ittwaru ur tddu s lmqyas.',
+      nestedEmptyMessage: 'Ur illi uṛktangl ad ittwaɣlf — b d 0 ɣilad, dɣa alguritm ikmml ɣilad.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: akk {n} usurif ɣlfn g yan uṛktangl {A}×{B} — imkkuẓn imẓẓin akk, {lastB}×{lastB}, d anbḍay amqran amcrik. Sit ɣf yan umkkuẓ (nɣ yan usurif afella) bac ad tẓrt amek ar ttwaqqnn.',
+        other: 'gcd({A}, {B}) = {gcd}: akk {n} n isurifn ɣlfn g yan uṛktangl {A}×{B} — imkkuẓn imẓẓin akk, {lastB}×{lastB}, d anbḍay amqran amcrik. Sit ɣf yan umkkuẓ (nɣ yan usurif afella) bac ad tẓrt amek ar ttwaqqnn.'
+      },
+      nestedNoteCapped: {
+        one: 'Asurif {stepNums} ɣr tayafut tamqrant bahra — {cap} imkkuẓn imzwura kigan ittwaru dagi, ittwamdln g tazlijt n ixṭṭn, dɣa umskan ad ur ittṣṣḥ s lmqyas g usurif ad.',
+        other: 'Isurifn {stepNums} sɛin tayafut tamqrant bahra — {cap} imkkuẓn imzwura kigan ittwaru dagi, ittwamdln g tazlijt n ixṭṭn, dɣa umskan ad ur ittṣṣḥ s lmqyas g isurifn ad.'
+      },
+      nestedTileTitle: 'Asurif {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Asurif {step}: {a} = {q}·{b} + {r} ({extra} n imkkuẓn nniḍen ittwamdln dagi)',
+      tileEmptyMessage: 'Ur illi uṛktangl ad ittwaqṭɛ — b d 0 ɣilad, dɣa alguritm ikmml ɣilad.'
+    },
+    'zgh-Tfng': {
+      title: 'ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵓⴽⵍⵉⴷ',
+      heading: 'ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵓⴽⵍⵉⴷ',
+      lede: 'ⴰⵍⴻⵙ ⵙⵏⴼⵍ ⵜⴰⵢⵓⴳⴰ (a, b) ⵙ (b, a mod b) — ⴱⴹⵓ ⴰⵎⵇⵔⴰⵏ ⵖⴼ ⵓⵎⵥⵥⴰⵏ, ⴷⵖⴰ ⵇⵇⵉⵎ ⴽⵉⴳⴰⵏ ⴰⵇⵇⵉⵎⵓ — ⴷⵖⴰ ⵜⴰⵢⵓⴳⴰ ⴰⵔ ⵜⵜⵏⵇⵇⵙ ⵢⴰⵍ ⴰⵙⵓⵔⵉⴼ. ⵜⵉⵛⴽⵉ ⴰⵔ ⵢⴰⵡⴻⴹ ⵢⴰⵜ ⵜⴰⵎⴰ ⴰⵔ ⵥⵉⵔⵓ, ⵜⴰⵎⴰ ⵏⵏⵉⴹⴻⵏ ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ ⵏ ⵙⵉⵏ ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⴰⵢⴷ ⵉⴱⴷⴰⵏ ⵙ.',
+      xref: 'ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ ⴰⴷ ⵉⵣⵎⵔ ⴰⴷ ⵉⵜⵜⵡⴰⵥⵔ ⴰⵎ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⴰⵢⴷ ⵎⵛⵔⵉⴽⵏ ⵙⵉⵏ ⵏ ⵉⵎⴹⴰⵏⴻⵏ →',
+      chipFiveSteps: '240, 46 · 5 ⵏ ⵉⵙⵓⵔⵉⴼⵏ',
+      chipCoprime: '35, 18 · ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ',
+      chipBDividesA: '144, 12 · b ⵉⴱⴹⴰ a',
+      chipEqualPair: '36, 36 · ⵜⴰⵢⵓⴳⴰ ⵜⴰⵎⵙⴰⵡⴰⵜ',
+      chipAlreadyDone: '17, 0 · ⵉⴽⵎⵎⵍ ⵖⵉⵍⴰⴷ',
+      chipFibonacciWorst: '89, 55 · ⴰⵟⴰⵙ ⵏ ⵉⵙⵓⵔⵉⴼⵏ: ⴼⵉⴱⵓⵏⴰⵞⵉ',
+      chipHugeQuotient: '500000, 2 · ⵜⴰⵢⴰⴼⵓⵜ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ',
+      run: 'ⵙⵙⵉⴹⵏ',
+      extToggleLabel: 'ⴰⵙⴽⵉⵍ ⵏ ⵓⴽⵍⵉⴷ ⵉⵜⵜⵡⴰⵙⵎⵇⵇⵔⵏ — ⵙⵙⴽⴻⵏ ⵉⴽⵓⴼⵉⵙⵢⴰⵏⴻⵏ ⵏ ⴱⵉⵣⵓ {0} ⴷ {1}',
+      errBothWhole: 'ⵉⵅⵚⵚⴰ ⴰⴷ ⵉⵍⵉⵏ a ⴷ b ⴷ ⵓⵎⵎⵉⴷⴻⵏ.',
+      errBothNonNegative: 'ⵉⵅⵚⵚⴰ ⴰⴷ ⵉⵍⵉⵏ a ⴷ b ⴷ ⵥⵉⵔⵓ ⵏⵖ ⵉⵎⵓⵊⵉⴱⵏ — ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵙⴰⵍⵉⴱⵏ ⵓⵔ ⵙⵄⵉⵏ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ ⴷⴰⴳⵉ.',
+      errGcdZeroZero: 'gcd(0, 0) ⵓⵔ ⵉⵍⵍⵉ — ⴰⵔⴰ ⵢⴰⵏ ⵓⵣⴰⵍ ⵓⵔ ⴷ ⵥⵉⵔⵓ ⵏⵖ ⵓⴳⴰⵔ.',
+      errClamped: 'ⵜⵉⵍⴰⵙ ⵏ ⴰⵢⵏ ⵉⵜⵜⵡⴰⵔⵓⵏ ⴷ {max} — ⴰⵣⴰⵍ ⴰⵎⵇⵔⴰⵏ ⵉⵜⵜⵡⴰⵏⵇⵙ ⴱⴰⵛ ⴰⴷ ⵉⵇⵇⵉⵎ ⵖ ⵜⵉⵍⴰⵙ.',
+      swapNote: 'ⴰⵣⴰⵍ ⴰⵎⵇⵔⴰⵏ ⴰⵔ ⵉⵣⵡⴰⵔ: ⵉⵜⵜⵡⴰⵔⵓ ⴰⵎ ({a}, {b}), ⵉⵜⵜⵡⴰⴹⴼⴰⵔ ⴰⵎ gcd({A}, {B}) — ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ ⵓⵔ ⵉⴱⴷⴷⵍ ⵖⴼ ⵓⵔⴷⵔ ⵏ ⵙⵉⵏ ⵉⵎⴹⴰⵏⴻⵏ.',
+      bannerReady: 'ⵉⵀⴻⴳⴳⴰ — ⵙⵉⵜ ⵖⴼ ⵓⵔⴰⵔ ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⴻⴽ ⴰⵔ ⵉⵜⵜⵏⵓⵍⴼⵓ ⵓⵃⵙⴰⴱ ⴰⵙⴰⵟⵔ ⵙ ⵓⵙⴰⵟⵔ.',
+      bannerDone: {
+        one: 'ⵉⴽⵎⵎⵍ — {n} ⵓⵙⵓⵔⵉⴼ ⴱⴰⵛ ⴰⴷ ⵢⴰⵡⴻⴹ ⵖⵔ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ.',
+        other: 'ⵉⴽⵎⵎⵍ — {n} ⵏ ⵉⵙⵓⵔⵉⴼⵏ ⴱⴰⵛ ⴰⴷ ⵢⴰⵡⴻⴹ ⵖⵔ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ.'
+      },
+      chainNoteZero: 'b ⴷ 0 ⵖⵉⵍⴰⴷ, ⴷⵖⴰ ⵓⵔ ⵉⵍⵍⵉ ⴰⵢⵏ ⴰⴷ ⵉⵜⵜⵓⴱⴹⴰ — a ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ ⵖⵉⵍⴰⴷ.',
+      extCaption: '{0} ⴷ {1} ⵏ ⵢⴰⵍ ⴰⵙⴰⵟⵔ ⴰⵔ ⵙⵙⴽⵏ ⴰⵇⵇⵉⵎⵓ ⵏ ⵓⵙⴰⵟⵔ ⴰⴷ ⴰⵎ ⵜⴰⵎⵙⵎⵓⵏⵜ ⵏ ⵙⵉⵏ ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵣⵡⵓⵔⴰ — {2}.',
+      viewNested: 'ⵉⵎⴽⴽⵓⵥⵏ ⵉⵜⵜⵡⴰⵖⵍⴼⵏ',
+      geomViewGroupLabel: 'ⴰⵙⴽⵉⵍ ⵏ ⵜⵎⵓⵖⵍⵉ ⵏ ⵜⴳⵉⵢⵓⵎⵉⵜⵔⵉ',
+      viewStep: 'ⴰⵙⵓⵔⵉⴼ ⵢⴰⵜ',
+      tileAriaDefault: 'ⵜⴰⵎⵓⵖⵍⵉ ⵏ ⵓⵕⴽⵜⴰⵏⴳⵍ ⵏ ⵓⵙⵓⵔⵉⴼ ⵏ ⵓⴱⴹⵓ ⵖⵉⵍⴰⴷ',
+      nestedAriaDefault: 'ⴰⴽⴽ ⵉⵙⵓⵔⵉⴼⵏ ⵏ ⵓⴱⴹⵓ ⵉⵜⵜⵡⴰⵖⵍⴼⵏ ⴳ ⵢⴰⵏ ⵓⵕⴽⵜⴰⵏⴳⵍ',
+      caption: 'ⵉⵎⴹⴰⵏⴻⵏ ⵏ ⴼⵉⴱⵓⵏⴰⵞⵉ ⵉⵎⴹⴼⴰⵔⵏ ⴰⵔ ⴳⴳⵏ ⴰⵟⴰⵙ ⵏ ⵉⵙⵓⵔⵉⴼⵏ ⵏ ⵓⴱⴹⵓ ⵙ ⵜⵎⵇⵇⵔⴰⵏⵜ ⵏⵙⵏ, ⵖ ⴰⵍⴳⵓⵔⵉⵜⵎ ⴰⴷ.',
+      tileCaptionExact: {
+        one: 'ⴰⵙⵓⵔⵉⴼ {index} ⵙⴳ {total}: {a} ÷ {b}: ⴰⵕⴽⵜⴰⵏⴳⵍ ⵉⵜⵜⵡⴰⵎⵎⵍⴰ ⵙ ⵚⵚⵃ ⵙ {q} ⵓⵎⴽⴽⵓⵥ ⵏ ⵜⴰⵎⴰ {b} — ⵡⴰⵔ ⴰⵇⵇⵉⵎⵓ, ⴷⵖⴰ {b} ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ.',
+        other: 'ⴰⵙⵓⵔⵉⴼ {index} ⵙⴳ {total}: {a} ÷ {b}: ⴰⵕⴽⵜⴰⵏⴳⵍ ⵉⵜⵜⵡⴰⵎⵎⵍⴰ ⵙ ⵚⵚⵃ ⵙ {q} ⵏ ⵉⵎⴽⴽⵓⵥⵏ ⵏ ⵜⴰⵎⴰ {b} — ⵡⴰⵔ ⴰⵇⵇⵉⵎⵓ, ⴷⵖⴰ {b} ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ.'
+      },
+      tileCaptionLeftover: {
+        one: 'ⴰⵙⵓⵔⵉⴼ {index} ⵙⴳ {total}: {a} = {q}×{b} + {r}: {q} ⵓⵎⴽⴽⵓⵥ ⵏ ⵜⴰⵎⴰ {b} ⴰⵔ ⵢⴷⴷⵓ, ⴷⵖⴰ ⵉⵇⵇⵉⵎ ⴰⵇⵇⵉⵎⵓ {b}×{r}.',
+        other: 'ⴰⵙⵓⵔⵉⴼ {index} ⵙⴳ {total}: {a} = {q}×{b} + {r}: {q} ⵏ ⵉⵎⴽⴽⵓⵥⵏ ⵏ ⵜⴰⵎⴰ {b} ⴰⵔ ⴷⴷⵓⵏ, ⴷⵖⴰ ⵉⵇⵇⵉⵎ ⴰⵇⵇⵉⵎⵓ {b}×{r}.'
+      },
+      tileNoteCapped: 'ⵜⴰⵢⴰⴼⵓⵜ ⵜⵚⵚⵃⵜ ⴷ {q} — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ; {rest} ⵉⵎⵇⵇⵉⵎⵏ ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵉⵜⵜⵡⴰⵙⵎⵎⵉ, ⴷⵖⴰ ⵜⴰⵎⴰ ⵉⵜⵜⵡⴰⵔⵓ ⵓⵔ ⵜⴷⴷⵓ ⵙ ⵍⵎⵇⵢⴰⵙ.',
+      nestedEmptyMessage: 'ⵓⵔ ⵉⵍⵍⵉ ⵓⵕⴽⵜⴰⵏⴳⵍ ⴰⴷ ⵉⵜⵜⵡⴰⵖⵍⴼ — b ⴷ 0 ⵖⵉⵍⴰⴷ, ⴷⵖⴰ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵉⴽⵎⵎⵍ ⵖⵉⵍⴰⴷ.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: ⴰⴽⴽ {n} ⵓⵙⵓⵔⵉⴼ ⵖⵍⴼⵏ ⴳ ⵢⴰⵏ ⵓⵕⴽⵜⴰⵏⴳⵍ {A}×{B} — ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵥⵥⵉⵏ ⴰⴽⴽ, {lastB}×{lastB}, ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ. ⵙⵉⵜ ⵖⴼ ⵢⴰⵏ ⵓⵎⴽⴽⵓⵥ (ⵏⵖ ⵢⴰⵏ ⵓⵙⵓⵔⵉⴼ ⴰⴼⴻⵍⵍⴰ) ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⴻⴽ ⴰⵔ ⵜⵜⵡⴰⵇⵇⵏⵏ.',
+        other: 'gcd({A}, {B}) = {gcd}: ⴰⴽⴽ {n} ⵏ ⵉⵙⵓⵔⵉⴼⵏ ⵖⵍⴼⵏ ⴳ ⵢⴰⵏ ⵓⵕⴽⵜⴰⵏⴳⵍ {A}×{B} — ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵥⵥⵉⵏ ⴰⴽⴽ, {lastB}×{lastB}, ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ. ⵙⵉⵜ ⵖⴼ ⵢⴰⵏ ⵓⵎⴽⴽⵓⵥ (ⵏⵖ ⵢⴰⵏ ⵓⵙⵓⵔⵉⴼ ⴰⴼⴻⵍⵍⴰ) ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⴻⴽ ⴰⵔ ⵜⵜⵡⴰⵇⵇⵏⵏ.'
+      },
+      nestedNoteCapped: {
+        one: 'ⴰⵙⵓⵔⵉⴼ {stepNums} ⵖⵔ ⵜⴰⵢⴰⴼⵓⵜ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ, ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵏ ⵉⵅⵟⵟⵏ, ⴷⵖⴰ ⵓⵎⵙⴽⴰⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵚⵚⵃ ⵙ ⵍⵎⵇⵢⴰⵙ ⴳ ⵓⵙⵓⵔⵉⴼ ⴰⴷ.',
+        other: 'ⵉⵙⵓⵔⵉⴼⵏ {stepNums} ⵙⵄⵉⵏ ⵜⴰⵢⴰⴼⵓⵜ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ, ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵏ ⵉⵅⵟⵟⵏ, ⴷⵖⴰ ⵓⵎⵙⴽⴰⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵚⵚⵃ ⵙ ⵍⵎⵇⵢⴰⵙ ⴳ ⵉⵙⵓⵔⵉⴼⵏ ⴰⴷ.'
+      },
+      nestedTileTitle: 'ⴰⵙⵓⵔⵉⴼ {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'ⴰⵙⵓⵔⵉⴼ {step}: {a} = {q}·{b} + {r} ({extra} ⵏ ⵉⵎⴽⴽⵓⵥⵏ ⵏⵏⵉⴹⴻⵏ ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴷⴰⴳⵉ)',
+      tileEmptyMessage: 'ⵓⵔ ⵉⵍⵍⵉ ⵓⵕⴽⵜⴰⵏⴳⵍ ⴰⴷ ⵉⵜⵜⵡⴰⵇⵟⵄ — b ⴷ 0 ⵖⵉⵍⴰⴷ, ⴷⵖⴰ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵉⴽⵎⵎⵍ ⵖⵉⵍⴰⴷ.'
     }
   });
 })();
