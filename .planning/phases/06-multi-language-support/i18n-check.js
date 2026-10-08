@@ -46,8 +46,8 @@ var ROOT = process.env.I18N_CHECK_ROOT
   : path.resolve(__dirname, "..", "..", "..");
 
 // Task 2 decision (06-01-PLAN.md): option-a — 'site-lang', a raw language
-// code, either two-letter, the region-tagged pt-BR/pt-PT or the script-tagged
-// zgh-Latn/zgh-Tfng, owned entirely by assets/nt-i18n.js. Used only to seed/inspect fake storage in this
+// code, either two-letter, the three-letter ckb, the region-tagged pt-BR/pt-PT
+// or the script-tagged zgh-Latn/zgh-Tfng, owned entirely by assets/nt-i18n.js. Used only to seed/inspect fake storage in this
 // file's own test scenarios; the production constant lives in
 // assets/nt-i18n.js as NT.i18n.LANG_STORAGE_KEY.
 var LANG_KEY = "site-lang";
@@ -717,7 +717,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zgh-Latn", "zgh-Tfng", "zh"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "ckb", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "ku", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zgh-Latn", "zgh-Tfng", "zh"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -1040,6 +1040,25 @@ function doApi() {
   check("html lang follows zgh-Latn to zgh-Tfng", ctx._doc.documentElement.lang, "zgh-Tfng");
   I.setLang("en");
 
+  // Kurdish: ku (Kurmanji) is left to right, ckb (Sorani) is right to left like he and ar; both set the full code in html lang.
+  check("setLang('ckb') returns true", I.setLang("ckb"), true);
+  check("html lang is ckb", ctx._doc.documentElement.lang, "ckb");
+  check("html dir attribute is rtl for ckb", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+  ["zgh-Latn", "he", "ar"].forEach(function (from) {
+    check("after " + from + " then ckb, html lang is ckb", (I.setLang(from), I.setLang("ckb"), ctx._doc.documentElement.lang), "ckb");
+    check("after " + from + " then ckb, html dir attribute is rtl", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+  });
+  check("after ckb then ku, html lang is ku", (I.setLang("ckb"), I.setLang("ku"), ctx._doc.documentElement.lang), "ku");
+  check("after ckb then ku, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after ku then ckb, html dir attribute is rtl", (I.setLang("ckb"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  check("after ckb then en, html dir attribute is absent", (I.setLang("en"), ctx._doc.documentElement.getAttribute("dir")), null);
+  check("setLang('ku') returns true", I.setLang("ku"), true);
+  check("html lang is ku", ctx._doc.documentElement.lang, "ku");
+  check("html dir attribute is absent for ku", ctx._doc.documentElement.getAttribute("dir"), null);
+  check("after ar then ku, html dir attribute is absent", (I.setLang("ar"), I.setLang("ku"), ctx._doc.documentElement.getAttribute("dir")), null);
+  check("after he then ku, html dir attribute is absent", (I.setLang("he"), I.setLang("ku"), ctx._doc.documentElement.getAttribute("dir")), null);
+  I.setLang("en");
+
   // Standard Moroccan Tamazight has no CLDR plural data (Intl.PluralRules falls back to the runtime's default
   // locale for it), so NT.i18n selects one for exactly 1 and other otherwise, with the real Intl, an Intl whose
   // PluralRules behaves like a Russian default locale, and no Intl at all.
@@ -1059,6 +1078,25 @@ function doApi() {
       check("setLang('" + L + "') returns true (trzgh, " + v[0] + ")", ZI.setLang(L), true);
       [0, 1, 2, 1.5, 11, 21, 100, 1000000].forEach(function (n) {
         check(L + " trzgh.count at " + n + " selects " + (n === 1 ? "one" : "other") + " with " + v[0], ZI.translate("trzgh.count", { count: n }), n + (n === 1 ? " one" : " other"));
+      });
+    });
+  });
+
+  // Kurdish {one, other}: Intl.PluralRules has CLDR data for ku and ckb (one for exactly 1, other for 0, 2, 1.5, 21,
+  // 100 and 1000000), also under a Russian default locale; the same selections must hold with no Intl at all.
+  [["the real Intl", {}], ["no Intl", { Intl: null }]].forEach(function (v) {
+    var kctx = loadI18n(Object.assign({ navigator: { languages: ["en-US", "en"] } }, v[1]));
+    var KI = kctx.NT.i18n;
+    if (v[0] === "no Intl") check("the no-Intl context really has no Intl (Kurdish)", vm.runInContext("typeof Intl", kctx), "undefined");
+    KI.register("trku", {
+      en: { count: { one: "{count} one", other: "{count} other" } },
+      ku: { count: { one: "{count} one", other: "{count} other" } },
+      ckb: { count: { one: "{count} one", other: "{count} other" } }
+    });
+    ["ku", "ckb"].forEach(function (L) {
+      check("setLang('" + L + "') returns true (trku, " + v[0] + ")", KI.setLang(L), true);
+      [0, 1, 2, 1.5, 11, 21, 100, 1000000].forEach(function (n) {
+        check(L + " trku.count at " + n + " selects " + (n === 1 ? "one" : "other") + " with " + v[0], KI.translate("trku.count", { count: n }), n + (n === 1 ? " one" : " other"));
       });
     });
   });
@@ -1198,6 +1236,9 @@ function doApi() {
   check("setLang('hin') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("hin"), false);
   ["zgh", "zgh-latn", "zgh-LATN", "ZGH-Latn", "Zgh-Latn", "zgh-tfng", "zgh-TFNG", "zgh_Latn", "zgh_Tfng", "zgh-Latn-MA", "zgh-MA", "zgh-Tifinagh", "zgh-Latin", "tzm", "tzm-Latn", "ber", "kab", "shi", "Latn", "Tfng", " zgh-Latn", "zgh-Latn ", "zgh-Tfng\n"].forEach(function (code) {
     check("setLang(" + JSON.stringify(code) + ") returns false (exact, case-sensitive allow-list: only the script-tagged zgh-Latn and zgh-Tfng)", I.setLang(code), false);
+  });
+  ["KU", "Ku", "kU", "CKB", "Ckb", "ckB", "kmr", "kur", "ku-TR", "ku-Latn", "ku-Arab", "ckb-IQ", "ckb-Arab", "ckb_IQ", "sdh", "lki", " ku", "ku ", "ckb\n", "kurmanci", "sorani"].forEach(function (code) {
+    check("setLang(" + JSON.stringify(code) + ") returns false (exact, case-sensitive allow-list: only ku and the three-letter ckb)", I.setLang(code), false);
   });
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
   check("setLang('be') returns false (Belarusian not supported)", I.setLang("be"), false);
@@ -1471,7 +1512,59 @@ function doApi() {
     [["zgh", "in"], "zgh-Tfng", "zgh,in (zgh wins as first preference)"],
     [["pt-BR", "zgh"], "pt-BR", "pt-BR,zgh (first supported wins)"],
     [["iw", "zgh-Latn"], "he", "iw,zgh-Latn (legacy Hebrew tag wins as first preference)"],
-    [["th", "zgh-Latn"], "zgh-Latn", "th,zgh-Latn (Thai unsupported, falls through)"]
+    [["th", "zgh-Latn"], "zgh-Latn", "th,zgh-Latn (Thai unsupported, falls through)"],
+    [["ckb"], "ckb", "ckb (Central Kurdish, Sorani)"],
+    [["ckb-IQ"], "ckb", "ckb-IQ"],
+    [["ckb-IR"], "ckb", "ckb-IR"],
+    [["CKB_iq"], "ckb", "CKB_iq (case-insensitive, underscore separator)"],
+    [["ckb-Arab"], "ckb", "ckb-Arab"],
+    [["ckb-Arab-IQ"], "ckb", "ckb-Arab-IQ"],
+    [["ckb-Latn"], "ckb", "ckb-Latn (any ckb tag is Sorani, a recorded collision)"],
+    [["Ckb-iQ", "en"], "ckb", "Ckb-iQ,en (mixed case)"],
+    [["ku-Arab"], "ckb", "ku-Arab (Kurdish in Arabic script -> ckb)"],
+    [["ku-Arab-IQ"], "ckb", "ku-Arab-IQ (Kurdish in Arabic script -> ckb)"],
+    [["KU_arab"], "ckb", "KU_arab (case-insensitive, underscore separator)"],
+    [["ku-arab-ir"], "ckb", "ku-arab-ir (lowercase)"],
+    [["Ku-ARAB", "en"], "ckb", "Ku-ARAB,en (mixed case)"],
+    [["fa-IR", "ckb"], "ckb", "fa-IR,ckb (Persian unsupported, falls through to ckb)"],
+    [["sdh", "ku-Arab"], "ckb", "sdh,ku-Arab (Southern Kurdish falls through to the next preference)"],
+    [["ku"], "ku", "ku (Northern Kurdish, Kurmanji)"],
+    [["ku-TR"], "ku", "ku-TR"],
+    [["KU_tr"], "ku", "KU_tr (case-insensitive, underscore separator)"],
+    [["ku-Latn"], "ku", "ku-Latn"],
+    [["ku-Latn-TR"], "ku", "ku-Latn-TR"],
+    [["ku-IQ"], "ku", "ku-IQ (no Arab script subtag -> ku)"],
+    [["ku-IR"], "ku", "ku-IR"],
+    [["ku-SY"], "ku", "ku-SY"],
+    [["kmr"], "ku", "kmr (ISO 639-3 Northern Kurdish -> ku)"],
+    [["kmr-TR"], "ku", "kmr-TR (ISO 639-3 Northern Kurdish -> ku)"],
+    [["KMR_latn"], "ku", "KMR_latn (case-insensitive, underscore separator)"],
+    [["kmr-Arab"], "ku", "kmr-Arab (kmr is always Kurmanji, a recorded collision)"],
+    [["tr-TR", "ku"], "ku", "tr-TR,ku (Turkish unsupported, falls through)"],
+    [["ku", "ckb"], "ku", "ku,ckb (first supported wins)"],
+    [["ckb", "ar"], "ckb", "ckb,ar (first supported wins)"],
+    [["kur"], "ku", "kur (ISO 639-2 Kurdish reaches ku through the two-letter prefix)"],
+    [["kur-Arab"], "ku", "kur-Arab (only the ku primary subtag is checked for Arab, a recorded collision)"],
+    [["kum", "en"], "ku", "kum,en (Kumyk reaches ku through the two-letter prefix, a recorded collision)"],
+    [["kua"], "ku", "kua (Kuanyama reaches ku through the two-letter prefix, a recorded collision)"],
+    [["sdh", "en"], "en", "sdh,en (Southern Kurdish is not mapped)"],
+    [["sdh-IR"], "en", "sdh-IR (Southern Kurdish is not mapped)"],
+    [["lki", "en"], "en", "lki,en (Laki is not mapped)"],
+    [["ck", "en"], "en", "ck,en (not a supported code)"],
+    [["ckbx", "en"], "en", "ckbx,en (the new branch tests the whole first subtag)"],
+    [["kmrx", "en"], "en", "kmrx,en (the new branch tests the whole first subtag)"],
+    [["k", "en"], "en", "k,en (not a supported code)"],
+    [["en-IQ", "ckb"], "en", "en-IQ,ckb (first supported wins)"],
+    [["ar-IQ", "ckb"], "ar", "ar-IQ,ckb (first supported wins)"],
+    [["he", "ckb"], "he", "he,ckb (first supported wins)"],
+    [["zgh", "ku"], "zgh-Tfng", "zgh,ku (first supported wins)"],
+    [["iw", "ku-Arab"], "he", "iw,ku-Arab (legacy Hebrew tag wins as first preference)"],
+    [["id", "ku"], "id", "id,ku (first supported wins)"],
+    [["in", "ckb"], "id", "in,ckb (legacy Indonesian tag wins as first preference)"],
+    [["pt", "ku"], "pt-BR", "pt,ku (first supported wins)"],
+    [["no-NO", "ckb"], "nb", "no-NO,ckb (legacy Norwegian tag wins as first preference)"],
+    [["ko-KR"], "ko", "ko-KR (Korean unchanged)"],
+    [["kok", "en"], "ko", "kok,en (Konkani reaches ko through the two-letter prefix, unchanged)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1504,7 +1597,7 @@ function doApi() {
       a.setAttribute("href", c.href);
       return a;
     });
-    ["de", "fr", "pt-BR", "pt-PT", "zgh-Latn"].forEach(function (targetLang) {
+    ["de", "fr", "pt-BR", "pt-PT", "zgh-Latn", "ku", "ckb"].forEach(function (targetLang) {
       I2.setLang(targetLang);
       cases.forEach(function (c, i) {
         var href = els[i].getAttribute("href");
@@ -1637,7 +1730,22 @@ function doPersistence() {
     { opts: { cookie: { initial: "zgh-Tfng" }, storage: { initial: "es" } }, want: "zgh-Tfng", label: "cookie zgh-Tfng beats storage" },
     { opts: { storage: { initial: "zgh-Latn" } }, want: "zgh-Latn", label: "storage zgh-Latn used when url and cookie absent" },
     { opts: { storage: { initial: "zgh" }, navigator: { languages: ["tzm-Latn", "en"] } }, want: "zgh-Latn", label: "storage zgh falls through to detected zgh-Latn (navigator tzm-Latn)" },
-    { opts: { storage: { initial: "zgh" } }, want: "en", label: "storage zgh falls through to detected default" }
+    { opts: { storage: { initial: "zgh" } }, want: "en", label: "storage zgh falls through to detected default" },
+    { opts: { search: "?lang=ckb" }, want: "ckb", label: "url ckb" },
+    { opts: { search: "?lang=ku" }, want: "ku", label: "url ku" },
+    { opts: { search: "?lang=ku", cookie: { initial: "ckb" }, storage: { initial: "ar" } }, want: "ku", label: "url ku beats a cookie of ckb and a stored ar" },
+    { opts: { search: "?lang=ckb", cookie: { initial: "ku" }, storage: { initial: "he" } }, want: "ckb", label: "url ckb beats a cookie of ku and a stored he" },
+    { opts: { search: "?lang=CKB", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url CKB (case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=ckb-IQ", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url ckb-IQ (unsupported) falls through to cookie" },
+    { opts: { search: "?lang=kmr", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url kmr (unsupported) falls through to cookie" },
+    { opts: { search: "?lang=ku-TR", navigator: { languages: ["ku-Arab-IQ"] } }, want: "ckb", label: "url ku-TR (unsupported) falls through to the detected ckb" },
+    { opts: { cookie: { initial: "KU" }, storage: { initial: "es" } }, want: "es", label: "cookie KU falls through to storage" },
+    { opts: { cookie: { initial: "kmr" }, storage: { initial: "es" } }, want: "es", label: "cookie kmr falls through to storage" },
+    { opts: { cookie: { initial: "ckb" }, storage: { initial: "es" } }, want: "ckb", label: "cookie ckb beats storage" },
+    { opts: { cookie: { initial: "ku" }, storage: { initial: "es" } }, want: "ku", label: "cookie ku beats storage" },
+    { opts: { storage: { initial: "ckb" } }, want: "ckb", label: "storage ckb used when url and cookie absent" },
+    { opts: { storage: { initial: "ku" } }, want: "ku", label: "storage ku used when url and cookie absent" },
+    { opts: { storage: { initial: "ckb-IQ" } }, want: "en", label: "storage ckb-IQ falls through to detected default" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1762,7 +1870,11 @@ function doPersistence() {
     { opts: { cookie: { initial: "el" } }, lang: "el", via: "cookie" },
     { opts: { search: "?lang=zgh-Tfng" }, lang: "zgh-Tfng", via: "url" },
     { opts: { cookie: { initial: "zgh-Latn" } }, lang: "zgh-Latn", via: "cookie" },
-    { opts: { storage: { initial: "zgh-Tfng" } }, lang: "zgh-Tfng", via: "storage" }
+    { opts: { storage: { initial: "zgh-Tfng" } }, lang: "zgh-Tfng", via: "storage" },
+    { opts: { search: "?lang=ku" }, lang: "ku", via: "url" },
+    { opts: { cookie: { initial: "ckb" } }, lang: "ckb", via: "cookie" },
+    { opts: { search: "?lang=ckb" }, lang: "ckb", via: "url" },
+    { opts: { storage: { initial: "ku" } }, lang: "ku", via: "storage" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1962,6 +2074,25 @@ function doPersistence() {
     ctx._fireStorage(I.LANG_STORAGE_KEY, "zgh-Latn");
     check("storage event with zgh-Latn re-applies html lang", ctx._doc.documentElement.lang, "zgh-Latn");
 
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "zgh-Latn");
+    var changeBeforeCkb = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ckb");
+    check("storage event with ckb while zgh-Latn is active re-applies html lang", ctx._doc.documentElement.lang, "ckb");
+    check("storage event with ckb while zgh-Latn is active sets html dir rtl", ctx._doc.documentElement.getAttribute("dir"), "rtl");
+    check("storage event with ckb fires one more change event", ctx._changeEvents.length, changeBeforeCkb + 1);
+    var changeBeforeKu = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ku");
+    check("storage event with ku while ckb is active re-applies html lang", ctx._doc.documentElement.lang, "ku");
+    check("storage event with ku while ckb is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with ku fires one more change event", ctx._changeEvents.length, changeBeforeKu + 1);
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ckb");
+    var changeAfterKurdish = ctx._changeEvents.length;
+    ["KU", "kmr", "ckb-IQ"].forEach(function (bad) {
+      ctx._fireStorage(I.LANG_STORAGE_KEY, bad);
+      check("storage event with " + bad + " is a no-op", ctx._doc.documentElement.lang, "ckb");
+    });
+    check("storage events with KU, kmr and ckb-IQ fire no change event", ctx._changeEvents.length, changeAfterKurdish);
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -1985,7 +2116,10 @@ function doPersistence() {
     { search: "?lang=ru-RU", pathname: "/x.html", hash: "", calls: 0, want: null },
     { search: "?theme=day&lang=zgh-Latn&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
     { search: "?lang=zgh-Tfng", pathname: "/x.html", hash: "", calls: 1, want: "/x.html" },
-    { search: "?lang=zgh-latn", pathname: "/x.html", hash: "", calls: 0, want: null }
+    { search: "?lang=zgh-latn", pathname: "/x.html", hash: "", calls: 0, want: null },
+    { search: "?theme=day&lang=ckb&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
+    { search: "?lang=ku", pathname: "/x.html", hash: "", calls: 1, want: "/x.html" },
+    { search: "?lang=ckb-IQ", pathname: "/x.html", hash: "", calls: 0, want: null }
   ].forEach(function (c) {
     var ctx = loadI18n({ search: c.search, pathname: c.pathname, hash: c.hash, navigator: { languages: ["en-US", "en"] } });
     check("stripUrlParam call count for " + JSON.stringify(c.search), ctx.history._calls.length, c.calls);
@@ -2037,14 +2171,16 @@ var SWITCHER_OPTIONS = [
   { value: "ko", lang: "ko", label: "한국어" },
   { value: "id", lang: "id", label: "Bahasa Indonesia" },
   { value: "zgh-Latn", lang: "zgh-Latn", label: "Tamazi\u0263t" },
-  { value: "zgh-Tfng", lang: "zgh-Tfng", label: "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c" }
+  { value: "zgh-Tfng", lang: "zgh-Tfng", label: "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c" },
+  { value: "ku", lang: "ku", label: "Kurmancî" },
+  { value: "ckb", lang: "ckb", label: "کوردی" }
 ];
 
-// RTL_LANGS: the languages written right to left, Hebrew and Arabic. Mirrors
+// RTL_LANGS: the languages written right to left, Hebrew, Arabic and Sorani Kurdish. Mirrors
 // assets/nt-i18n.js's internal RTL set; the two are tied together by the --api
 // assertion that html dir is "rtl" after setLang exactly for these codes and
 // absent otherwise.
-var RTL_LANGS = ["he", "ar"];
+var RTL_LANGS = ["he", "ar", "ckb"];
 
 // LANG_CODES: derived from SWITCHER_OPTIONS, in the same order.
 // checkDictionaries iterates this instead of a local SUPPORTED list.
@@ -2064,6 +2200,7 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // n = 1"), so a Hindi one form must read correctly for 0 as well as 1.
 // Albanian (sq) and Swahili (sw) are unlisted as well: they use English's
 // {one, other} set, where 0 and fractions select other (unlike Hindi's one).
+// Kurmanji (ku) and Sorani (ckb) are unlisted too: they use {one, other} with Intl.PluralRules' own CLDR data (one for exactly 1).
 // Chinese, Japanese, Korean and Indonesian have the single category other and are listed in
 // PLURAL_OTHER_ONLY_LANGS instead: their plural values are { other } alone.
 var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"], ar: ["zero", "two", "few", "many"] };
@@ -2200,7 +2337,9 @@ function isProse(text) {
 // leftover can sit glued to Han or kana text. Tifinagh joins every other
 // rule's foreign pattern (a Tifinagh letter in a ru, el, he, hi, ar, zh, ja or
 // ko value is SCRIPT-FOREIGN); Standard Moroccan Tamazight in Latin script
-// (zgh-Latn) has no entry here: zghLatinFindings checks its IRCAM letters.
+// (zgh-Latn) has no entry here: zghLatinFindings checks its IRCAM letters, and
+// Kurmanji Kurdish (ku, Latin Hawar alphabet) has none either: kuLetterFindings
+// checks its letters. Sorani Kurdish (ckb) has an entry like Arabic's.
 
 // SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic, Greek,
 // Hebrew, Devanagari, Arabic, Han, kana or Hangul value may keep — notation, a code identifier, an acronym, or a narrative
@@ -2330,6 +2469,14 @@ var SCRIPT_RULES = {
     foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
+  // Sorani Kurdish (right to left, Kurdish Arabic-based alphabet): the same rule as Arabic (own needs an Arabic-script
+  // LETTER, the same foreign scripts, the base notation list). Eponyms are written in Sorani script; the letters
+  // themselves are checked by charFindings's per-language ARABIC-LETTER rule (CKB_LETTERS).
+  ckb: {
+    own: /(?=\p{L})\p{Script=Arabic}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
   // Chinese (Simplified, left to right): own is a Han character. Any
   // Cyrillic, Hebrew, Devanagari, Arabic, Hiragana, Katakana or Hangul letter,
   // a run of two or more Greek letters (a single phi stays legal) and the
@@ -2434,9 +2581,9 @@ function scriptFindings(id, lang, value, enValue) {
   return findings;
 }
 
-/* ---------- bidi rules (right-to-left languages: Hebrew and Arabic) ---------- */
+/* ---------- bidi rules (right-to-left languages: Hebrew, Arabic and Sorani Kurdish) ---------- */
 
-// RTL_LANGS drives BIDI-FORMULA, so Hebrew and Arabic share one rule. Arabic
+// RTL_LANGS drives BIDI-FORMULA, so Hebrew, Arabic and Sorani Kurdish share one rule. Arabic-script
 // letters are bidi class AL, which turns following European digits into
 // Arabic-number type: an unwrapped "48 = 2 x 18 + 12" reverses exactly as in
 // Hebrew, and a tight "7-3" reverses too, so the same regex covers both.
@@ -2447,7 +2594,7 @@ function scriptFindings(id, lang, value, enValue) {
 //                   (U+202A..U+202E); only isolates (U+2066..U+2069) are used.
 //   BIDI-UNBALANCED a U+2069 closes nothing, or an isolate initiator
 //                   (U+2066, U+2067, U+2068) is left open.
-//   BIDI-FORMULA    (RTL_LANGS only) a numeric formula sits outside any
+//   BIDI-FORMULA    (RTL_LANGS only: he, ar, ckb) a numeric formula sits outside any
 //                   isolate. A numeric formula inside a right-to-left
 //                   paragraph is reordered by the Unicode bidi algorithm
 //                   (48 = 2 x 18 + 12 would display reversed) unless it is
@@ -2500,10 +2647,16 @@ function bidiFindings(id, lang, value) {
 //   TATWEEL       U+0640 (kashida): a typographic stretch, never part of a word.
 //   PRESENTATION-FORM  U+FB50..U+FDFF or U+FE70..U+FEFC: legacy glyph codes that
 //                 defeat search; letters are written in their base form.
-//   ARABIC-LETTER the first Arabic-script letter outside U+0621..U+063A and
-//                 U+0641..U+064A that is not a presentation form: Persian/Urdu
+//   ARABIC-LETTER per language. For ckb (Sorani Kurdish): the first Arabic-script
+//                 letter outside the 33 letters of CKB_LETTERS, so the Arabic
+//                 look-alikes (kaf, yeh, alef maksura, teh marbuta, heh and the
+//                 Arabic-only consonants and hamza seats) are caught and the
+//                 message names the Kurdish letter to write. For every other
+//                 language: the first Arabic-script letter outside U+0621..U+063A
+//                 and U+0641..U+064A that is not a presentation form: Persian/Urdu
 //                 look-alikes (a Persian yeh for yeh, keheh for kaf) are
-//                 invisible in review but break searches.
+//                 invisible in review but break searches (Arabic still rejects
+//                 the Kurdish forms).
 //   FULLWIDTH-FORM  the first character in U+3000..U+303F or U+FF01..U+FFEF
 //                 (CJK symbols and punctuation, full-width and half-width forms:
 //                 ideographic space, full-width digits, letters and operators,
@@ -2518,6 +2671,22 @@ function bidiFindings(id, lang, value) {
 //   NOT-NFC       the value differs from its NFC normalization: NFC keeps a
 //                 nukta letter or an Arabic madda/hamza in one byte form, so
 //                 glossary greps match.
+// CKB_LETTERS: the 33 letters of the Sorani Kurdish (Arabic-based) alphabet, built from code points:
+// hamza seat, alef, beh, peh, teh, jeem, tcheh, hah, khah, dal, reh, rreh, zain, jeh, seen, sheen, ain, ghain, feh,
+// veh, qaf, keheh (Kurdish k, not Arabic kaf), gaf, lam, lam with small v, meem, noon, heh doachashmee (h, not
+// Arabic heh), ae (e, not teh marbuta), waw, oe, farsi yeh (not Arabic yeh or alef maksura) and yeh with small v.
+var CKB_LETTERS = [0x626, 0x627, 0x628, 0x67E, 0x62A, 0x62C, 0x686, 0x62D, 0x62E, 0x62F, 0x631, 0x695, 0x632, 0x698,
+  0x633, 0x634, 0x639, 0x63A, 0x641, 0x6A4, 0x642, 0x6A9, 0x6AF, 0x644, 0x6B5, 0x645, 0x646, 0x6BE, 0x6D5, 0x648,
+  0x6C6, 0x6CC, 0x6CE].map(function (c) { return String.fromCodePoint(c); }).join("");
+// CKB_FIX: the Kurdish letter to write instead of an Arabic look-alike (code point -> advice).
+var CKB_FIX = { 0x643: "U+06A9", 0x64A: "U+06CC", 0x649: "U+06CC", 0x647: "U+06BE for h or U+06D5 for e", 0x629: "U+06D5",
+  0x6C0: "U+06D5", 0x623: "U+0626 or U+0627", 0x625: "U+0626 or U+0627", 0x622: "U+0626 then U+0627", 0x624: "U+0648",
+  0x621: "U+0626", 0x62B: "U+0633", 0x630: "U+0632", 0x635: "U+0633", 0x636: "U+0632", 0x637: "U+062A", 0x638: "U+0632" };
+function ckbLetterMatch(v) {
+  var re = /(?=\p{L})\p{Script=Arabic}/gu, m;
+  while ((m = re.exec(v))) if (CKB_LETTERS.indexOf(m[0]) === -1) return m;
+  return null;
+}
 var CJK_PUNCT_ALLOWED = "\u3001\u3002\u3008\u3009\u300a\u300b\u300c\u300d\u300e\u300f\u3010\u3011\u3014\u3015\uff01\uff08\uff09\uff0c\uff1a\uff1b\uff1f";
 function charFindings(id, lang, value) {
   var findings = [];
@@ -2529,8 +2698,11 @@ function charFindings(id, lang, value) {
   if (/[\u064b-\u065f\u0670]/.test(v)) findings.push("TASHKEEL " + id + "." + lang);
   if (/\u0640/.test(v)) findings.push("TATWEEL " + id + "." + lang);
   if (/[\ufb50-\ufdff\ufe70-\ufefc]/.test(v)) findings.push("PRESENTATION-FORM " + id + "." + lang);
-  var arabicLetter = /(?![\u0621-\u063a\u0641-\u064a\ufb50-\ufdff\ufe70-\ufefc])(?=\p{L})\p{Script=Arabic}/u.exec(v);
-  if (arabicLetter) findings.push("ARABIC-LETTER " + id + "." + lang + ": " + JSON.stringify(arabicLetter[0]));
+  var arabicLetter = lang === "ckb" ? ckbLetterMatch(v) : /(?![\u0621-\u063a\u0641-\u064a\ufb50-\ufdff\ufe70-\ufefc])(?=\p{L})\p{Script=Arabic}/u.exec(v);
+  if (arabicLetter) {
+    var arabicFix = lang === "ckb" ? CKB_FIX[arabicLetter[0].codePointAt(0)] : null;
+    findings.push("ARABIC-LETTER " + id + "." + lang + ": " + JSON.stringify(arabicLetter[0]) + (arabicFix ? " (write " + arabicFix + ")" : ""));
+  }
   var wideRe = /[\u3000-\u303f\uff01-\uffef]/g, wideMatch, wideBad = null;
   while ((wideMatch = wideRe.exec(v))) {
     var wideOk = ((lang === "zh" || lang === "ja") && CJK_PUNCT_ALLOWED.indexOf(wideMatch[0]) !== -1) || (lang === "ja" && wideMatch[0] === "\u3005");
@@ -2547,8 +2719,8 @@ function charFindings(id, lang, value) {
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
 // is why the list holds only the languages added after the rule existed
 // (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese, Korean, Indonesian and
-// Standard Moroccan Tamazight in both scripts).
-var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id", "zgh-Latn", "zgh-Tfng"];
+// Standard Moroccan Tamazight in both scripts, Kurmanji and Sorani Kurdish).
+var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id", "zgh-Latn", "zgh-Tfng", "ku", "ckb"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space
@@ -2564,6 +2736,28 @@ function digitParityFindings(id, lang, value, enValue) {
   var got = tokens(value), want = tokens(enValue);
   if (got.join("|") === want.join("|")) return [];
   return ["DIGIT-PARITY " + id + "." + lang + ": en [" + want.join(", ") + "] vs [" + got.join(", ") + "]"];
+}
+
+/* ---------- Kurmanji Kurdish: the Latin Hawar alphabet ---------- */
+
+// kuLetterFindings(id, lang, value, enValue): [] for any language but ku or a non-string value. Otherwise
+// KU-LETTER for the first letter that is not an ASCII letter, not one of the precomposed Hawar letters
+// c-cedilla, e-circumflex, i-circumflex, s-cedilla and u-circumflex (either case), not the totient phi and
+// not present in the English value (an eponym such as Bezout's e-acute): Turkish dotless i, g-breve, Romanian
+// s-comma, Cyrillic and every other non-Hawar letter are rejected. Built from code points, never escapes.
+var KU_EXTRA_LETTERS = [0xE7, 0xEA, 0xEE, 0x15F, 0xFB, 0xC7, 0xCA, 0xCE, 0x15E, 0xDB].map(function (c) { return String.fromCodePoint(c); }).join("");
+var KU_PHI = String.fromCodePoint(0x3C6);
+function kuLetterFindings(id, lang, value, enValue) {
+  if (lang !== "ku" || typeof value !== "string") return [];
+  var enSet = {};
+  Array.from(String(enValue == null ? "" : enValue)).forEach(function (ch) { enSet[ch] = true; });
+  var chars = Array.from(value);
+  for (var i = 0; i < chars.length; i++) {
+    var ch = chars[i];
+    if (!/\p{L}/u.test(ch) || /[A-Za-z]/.test(ch) || KU_EXTRA_LETTERS.indexOf(ch) !== -1 || ch === KU_PHI || enSet[ch]) continue;
+    return ["KU-LETTER " + id + "." + lang + ": " + JSON.stringify(ch) + " (U+" + ("0000" + ch.codePointAt(0).toString(16)).slice(-4).toUpperCase() + ") is not a Kurmanji letter and not in the English value"];
+  }
+  return [];
 }
 
 /* ---------- Standard Moroccan Tamazight: IRCAM Latin letters, transliteration, notation parity ---------- */
@@ -3330,6 +3524,7 @@ function checkDictionaries() {
               findings.push.apply(findings, cjkFindings(ns + "." + key + "." + cat, lang, entry[cat], typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other));
               var zghPlainEn = typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other;
               findings.push.apply(findings, zghLatinFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
+              findings.push.apply(findings, kuLetterFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
               var zghLatnForm = nsDict["zgh-Latn"] && nsDict["zgh-Latn"][key];
               if (zghLatnForm && typeof zghLatnForm === "object") findings.push.apply(findings, zghTransliterationFindings(ns + "." + key + "." + cat, lang, entry[cat], zghLatnForm[cat], zghPlainEn));
             });
@@ -3352,6 +3547,7 @@ function checkDictionaries() {
           findings.push.apply(findings, digitParityFindings(ns + "." + key, lang, entry, enEntry));
           findings.push.apply(findings, cjkFindings(ns + "." + key, lang, entry, enEntry));
           findings.push.apply(findings, zghLatinFindings(ns + "." + key, lang, entry, enEntry));
+          findings.push.apply(findings, kuLetterFindings(ns + "." + key, lang, entry, enEntry));
           if (nsDict["zgh-Latn"] && typeof nsDict["zgh-Latn"][key] === "string") findings.push.apply(findings, zghTransliterationFindings(ns + "." + key, lang, entry, nsDict["zgh-Latn"][key], enEntry));
         }
       });
@@ -3756,5 +3952,7 @@ module.exports = {
   ZGH_KEEP: ZGH_KEEP,
   zghTransliterate: zghTransliterate,
   zghLatinFindings: zghLatinFindings,
-  zghTransliterationFindings: zghTransliterationFindings
+  zghTransliterationFindings: zghTransliterationFindings,
+  kuLetterFindings: kuLetterFindings,
+  CKB_LETTERS: CKB_LETTERS
 };

@@ -13,8 +13,9 @@
    site-wide preference).
 
    Persistence (Task 2 decision: option-a — `site-lang`, a raw language
-   code, either two-letter, the region-tagged `pt-BR`/`pt-PT` or the
-   script-tagged `zgh-Latn`/`zgh-Tfng`, owned entirely by this module):
+   code, either two-letter, the three-letter `ckb`, the region-tagged
+   `pt-BR`/`pt-PT` or the script-tagged `zgh-Latn`/`zgh-Tfng`, owned entirely
+   by this module):
    resolution at evaluation time is
    ?lang= beats cookie beats localStorage beats detectDefaultLang(); a value
    outside SUPPORTED_LANGS in any channel is ignored and the next channel is
@@ -40,10 +41,10 @@
    Dictionary values and URL/param input are therefore never parsed as
    markup.
 
-   Right-to-left: Hebrew and Arabic are the right-to-left languages.
-   applyHtmlLang sets dir="rtl" on <html> next to lang while either is active
-   and removes the dir attribute for every other language, so the other
-   pages' DOM is unchanged.
+   Right-to-left: Hebrew, Arabic and Sorani Kurdish are the right-to-left
+   languages. applyHtmlLang sets dir="rtl" on <html> next to lang while one of
+   them is active and removes the dir attribute for every other language, so
+   the other pages' DOM is unchanged.
    assets/site.css and each page's own :root[dir="rtl"] rule keep diagrams,
    formulas, number grids and numerals left-to-right.
 
@@ -65,10 +66,10 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko', 'id', 'zgh-Latn', 'zgh-Tfng']);
-  // The right-to-left languages, Hebrew and Arabic (internal, not exported):
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko', 'id', 'zgh-Latn', 'zgh-Tfng', 'ku', 'ckb']);
+  // The right-to-left languages, Hebrew, Arabic and Sorani Kurdish (internal, not exported):
   // applyHtmlLang sets dir="rtl" on <html> while one of them is active.
-  var RTL_LANGS = Object.freeze(['he', 'ar']);
+  var RTL_LANGS = Object.freeze(['he', 'ar', 'ckb']);
   // Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng) has no CLDR plural data: Intl.PluralRules falls back to the runtime's default locale for it (fr selects one for 0, ru for 21, ja never), so pluralCategory selects one for exactly 1 and other otherwise (internal, not exported).
   var FIXED_PLURAL_LANGS = Object.freeze(['zgh-Latn', 'zgh-Tfng']);
   var LANG_PARAM = 'lang';
@@ -141,6 +142,9 @@
       if (parts[0] === 'in') return 'id';
       // Tamazight: zgh (Standard Moroccan), tzm (Central Atlas) and ber (Berber) map to zgh-Latn when a Latn script subtag is present and to zgh-Tfng (Tifinagh, the official script of zgh) otherwise; kab, shi and rif are not mapped.
       if (parts[0] === 'zgh' || parts[0] === 'tzm' || parts[0] === 'ber') return parts.indexOf('latn') !== -1 ? 'zgh-Latn' : 'zgh-Tfng';
+      // Kurdish: ckb (Central Kurdish, Sorani) and a ku tag with an Arab script subtag map to ckb, kmr (Northern Kurdish, Kurmanji) maps to ku, and every other ku tag reaches ku through the two-letter fallback below; sdh and lki are not mapped.
+      if (parts[0] === 'ckb' || (parts[0] === 'ku' && parts.indexOf('arab') !== -1)) return 'ckb';
+      if (parts[0] === 'kmr') return 'ku';
       var code = String(langs[i]).slice(0, 2).toLowerCase();
       if (valid(code)) return code;
     }

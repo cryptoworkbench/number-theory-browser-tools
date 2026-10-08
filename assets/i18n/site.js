@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all twenty-seven
+   switcher's own label and the day/night toggle's label — in all twenty-nine
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -635,6 +635,52 @@
       'nav.shor': 'ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵛⵓⵔ',
       'lang.label': 'ⵜⵓⵜⵍⴰⵢⵜ',
       'theme.toggle': 'ⵙⵏⴼⵍ ⴳⵔ ⵜⵎⵓⵖⵍⵉ ⵏ ⵓⵣⴰⵍ ⴷ ⵜⵎⵓⵖⵍⵉ ⵏ ⵢⵉⴹ'
+    },
+    ku: {
+      brand: 'Amûrên teoriya hejmaran',
+      'nav.label': 'Amûr',
+      menu: 'Amûr',
+      'nav.home': 'Destpêk',
+      'nav.sieve': 'Bêjinga Eratosthenes',
+      'nav.factorTree': 'Dara faktoran',
+      'nav.venn': 'Diyagrama Venn',
+      'nav.euclid': 'Algorîtma Euklîd',
+      'nav.crt': 'Teorema bermayiyan a çînî',
+      'nav.wheel': 'Çerxa wekheviyê',
+      'nav.totient': 'Fonksiyona φ ya Euler',
+      'nav.cayley': 'Tabloya Cayley',
+      'nav.iso': 'Îzomorfîzma grûpan',
+      'nav.sqm': 'Çargoşekirin û lêkdan',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH bi kevana elîptîk',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Rêbaza Fermat',
+      'nav.shor': 'Algorîtma Shor',
+      'lang.label': 'Ziman',
+      'theme.toggle': 'Moda rojê û şevê biguherîne'
+    },
+    ckb: {
+      brand: 'ئامرازەکانی تیۆری ژمارە',
+      'nav.label': 'ئامرازەکان',
+      menu: 'ئامرازەکان',
+      'nav.home': 'سەرەکی',
+      'nav.sieve': 'بێژنگی ئێراتۆستینس',
+      'nav.factorTree': 'داری ھۆکارەکان',
+      'nav.venn': 'ھێڵکاری ڤێن',
+      'nav.euclid': 'ئەلگۆریتمی ئیقلیدس',
+      'nav.crt': 'تیۆرەمی پاشماوەی چینی',
+      'nav.wheel': 'چەرخی یەکسانی',
+      'nav.totient': 'فەنکشنی ئۆیلەر φ',
+      'nav.cayley': 'خشتەی کەیلی',
+      'nav.iso': 'ئیزۆمۆرفیزمی گرووپەکان',
+      'nav.sqm': 'دووجاکردن و لێکدان',
+      'nav.dh': 'دیفی-ھێلمان',
+      'nav.ecdh': 'دیفی-ھێلمان بە چەماوەی ئیلیپتیکی',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'ڕێگای فێرما',
+      'nav.shor': 'ئەلگۆریتمی شۆر',
+      'lang.label': 'زمان',
+      'theme.toggle': 'گۆڕین لە نێوان دۆخی ڕۆژ و دۆخی شەو'
     }
   });
 
@@ -1378,6 +1424,60 @@
       redoPalette: 'ⴰⵍⴻⵙ ⴰⵙⵏⴼⵍ ⵏ ⵜⴱⴰⵍⵉⵜⵜ',
       undoWork: 'ⵙⴼⵙⵅ',
       redoWork: 'ⴰⵍⴻⵙ'
+    },
+    ku: {
+      play: 'Lêxe',
+      pause: 'Rawestîne',
+      step: 'Gav',
+      instant: 'Yekser',
+      reset: 'Ji nû ve',
+      speed: 'Lez',
+      'speed.1': 'cemidî',
+      'speed.2': 'hêdî',
+      'speed.3': 'nerm',
+      'speed.4': 'çalak',
+      'speed.5': 'domdar',
+      'speed.6': 'zû',
+      'speed.7': 'bilez',
+      'speed.8': 'lezgîn',
+      'speed.9': 'birûskî',
+      'speed.10': 'hema yekser',
+      additiveGroups: 'Grûpên lêzêdekirinê',
+      multiplicativeGroups: 'Grûpên lêkdanê',
+      paletteEmptySieve: 'Amûra «{0}» bi kar bîne da ku hejmarên seretayî li vê paletê zêde bikî.',
+      primePickerOpen: 'Ji paletê hejmareke seretayî hilbijêre',
+      primePickerHeading: 'Hejmareke seretayî hilbijêre',
+      undoPalette: 'Guhertina paletê betal bike',
+      redoPalette: 'Guhertina paletê dîsa bike',
+      undoWork: 'Betal bike',
+      redoWork: 'Dîsa bike'
+    },
+    ckb: {
+      play: 'لێدان',
+      pause: 'ڕاگرتن',
+      step: 'ھەنگاو',
+      instant: 'دەستبەجێ',
+      reset: 'ڕێکخستنەوە',
+      speed: 'خێرایی',
+      'speed.1': 'بەستوو',
+      'speed.2': 'ھێواش',
+      'speed.3': 'نەرم',
+      'speed.4': 'چالاک',
+      'speed.5': 'جێگیر',
+      'speed.6': 'خێرا',
+      'speed.7': 'زۆر خێرا',
+      'speed.8': 'تیژ',
+      'speed.9': 'بروسکەیی',
+      'speed.10': 'نزیکەی دەستبەجێ',
+      additiveGroups: 'گرووپەکانی کۆکردنەوە',
+      multiplicativeGroups: 'گرووپەکانی لێکدان',
+      paletteEmptySieve: 'ئامرازی «{0}» بەکاربھێنە بۆ زیادکردنی ژمارە سەرەتاییەکان بۆ ئەم پالێتە.',
+      primePickerOpen: 'ژمارەیەکی سەرەتایی لە پالێتەکە ھەڵبژێرە',
+      primePickerHeading: 'ژمارەیەکی سەرەتایی ھەڵبژێرە',
+      undoPalette: 'پاشگەزبوونەوە لە گۆڕینی پالێت',
+      redoPalette: 'دووبارەکردنەوەی گۆڕینی پالێت',
+      undoWork: 'پاشگەزبوونەوە',
+      redoWork: 'دووبارەکردنەوە'
     }
   });
 })();

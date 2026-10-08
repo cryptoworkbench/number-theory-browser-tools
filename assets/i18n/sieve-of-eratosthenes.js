@@ -1,7 +1,7 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all twenty-seven supported
+   marker for the Sieve of Eratosthenes tool, in all twenty-nine supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -10,7 +10,7 @@
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
    Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all twenty-seven
+   Placeholder names ({n}, {time}, {count}) are identical across all twenty-nine
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -1068,6 +1068,82 @@
         other: 'ⵉⵜⵜⵡⴰⵔⵏⵓ {count} ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ — ⵜⴱⴰⵍⵉⵜⵜ ⵜⵎⵍⴰ ({max} ⵏ ⵉⵎⴹⴰⵏⴻⵏ); ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵓⵔ ⵉⵜⵜⵡⴰⵔⵏⵓⵏ: {left}.'
       },
       'palette.none': 'ⴰⴽⴽ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵜⵜⵡⴰⴼⴰⵏ ⵍⵍⴰⵏ ⴳ ⵜⴱⴰⵍⵉⵜⵜ — ⵓⵔ ⵉⵍⵍⵉ ⴰⵢⵏ ⴰⴷ ⵉⵜⵜⵡⴰⵔⵏⵓ.'
+    },
+    ku: {
+      sound: 'Deng',
+      title: 'Bêjinga Eratosthenes — Dîmenkirina înteraktîf',
+      heading: 'Bêjinga Eratosthenes',
+      eyebrow: 'hejmarên seretayî û dabeşbûn',
+      lede: 'Ji her hejmareke xwezayî re qutiyek çêke — paşê temaşe bike ka bêjing çawa her tiştê ku ne seretayî ye xet dike.',
+      sizeLabel: 'Mezinahiya bêjingê (N)',
+      generate: 'Çêke',
+      'stat.current': 'Heyî',
+      'stat.primesFound': 'Hejmarên seretayî yên hatine dîtin',
+      'stat.sqrtBoundary': 'Sînorê √N',
+      'stat.elapsed': 'Dema derbasbûyî',
+      'stat.progress': 'Pêşveçûn',
+      'stat.done': '✓ qediya',
+      'legend.unvisited': '{0} Hê nehatiye serdan',
+      'legend.currentPointer': '{0} Nîşandera heyî',
+      'legend.prime': '{0} Seretayî',
+      'legend.composite': '{0} Xetkirî (hevedudanî)',
+      'legend.neither': '{0} Ne ev ne jî ew (1)',
+      footer: 'Hemû hesab li aliyê bikarhêner, di geroka te de, tên kirin. Tu hejmar bi awayekî mayînde zirar nedît — tenê hate xetkirin.',
+      'banner.ready': 'Amade ye. {n} qutî hatin çêkirin — ji bo bêjingkirinê li Lêxe bitikîne.',
+      'banner.single': 'Tenê 1 qutî heye — tiştek tuneye ku were bêjingkirin.',
+      'banner.reset': 'Ji nû ve hate sazkirin. {n} qutî dîsa hatin çêkirin — ji bo bêjingkirinê li Lêxe bitikîne.',
+      'banner.done': {
+        one: 'Heta {n} di {time} de {count} hejmara seretayî hate dîtin.',
+        other: 'Heta {n} di {time} de {count} hejmarên seretayî hatin dîtin.'
+      },
+      toPalette: 'Hejmarên seretayî yên hatine dîtin li paletê zêde bike',
+      'palette.added': {
+        one: '{count} hejmara seretayî a nû li paletê hate zêdekirin — dubare hatin derbaskirin: {dupes}.',
+        other: '{count} hejmarên seretayî yên nû li paletê hatin zêdekirin — dubare hatin derbaskirin: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} hejmara seretayî a nû hate zêdekirin — palet tijî ye ({max} hejmar); hejmarên seretayî yên nehatine zêdekirin: {left}.',
+        other: '{count} hejmarên seretayî yên nû hatin zêdekirin — palet tijî ye ({max} hejmar); hejmarên seretayî yên nehatine zêdekirin: {left}.'
+      },
+      'palette.none': 'Hemû hejmarên seretayî yên hatine dîtin jixwe di paletê de ne — tiştek tuneye ku were zêdekirin.'
+    },
+    ckb: {
+      sound: 'دەنگ',
+      title: 'بێژنگی ئێراتۆستینس — پیشاندانی کارلێککەر',
+      heading: 'بێژنگی ئێراتۆستینس',
+      eyebrow: 'ژمارە سەرەتاییەکان و دابەشبوون',
+      lede: 'بۆ ھەر ژمارەیەکی سروشتی خانەیەکی تایبەت دروست بکە — ئینجا سەیر بکە چۆن بێژنگەکە ھەموو ئەوەی سەرەتایی نییە خەت دەکێشێت بەسەریدا.',
+      sizeLabel: 'قەبارەی بێژنگ (N)',
+      generate: 'دروستکردن',
+      'stat.current': 'ئێستا',
+      'stat.primesFound': 'ژمارە سەرەتایی دۆزراوەکان',
+      'stat.sqrtBoundary': 'سنووری \u2066√N\u2069',
+      'stat.elapsed': 'کاتی تێپەڕبوو',
+      'stat.progress': 'پێشکەوتن',
+      'stat.done': '✓ تەواو بوو',
+      'legend.unvisited': '{0} نەپشکنراو',
+      'legend.currentPointer': '{0} نیشاندەری ئێستا',
+      'legend.prime': '{0} سەرەتایی',
+      'legend.composite': '{0} خەتی بەسەردا ھێنراو (لێکدراو)',
+      'legend.neither': '{0} نە ئەمە نە ئەوە (1)',
+      footer: 'ھەموو ژماردنەکان لە ڕێگای وێبگەڕەکەتەوە و لە لای بەکارھێنەر ئەنجام دەدرێن. ھیچ ژمارەیەک بە شێوەیەکی ھەمیشەیی زیانی نەبینی — تەنیا خەتی بەسەردا ھێنرا.',
+      'banner.ready': 'ئامادەیە. {n} خانە دروست کران — بۆ بێژنگکردن کرتە لە لێدان بکە.',
+      'banner.single': 'تەنیا 1 خانە ھەیە — شتێک نییە بۆ بێژنگکردن.',
+      'banner.reset': 'ڕێکخرایەوە. {n} خانە لە نوێوە دروست کرانەوە — بۆ بێژنگکردن کرتە لە لێدان بکە.',
+      'banner.done': {
+        one: 'تا {n} لە {time} {count} ژمارەی سەرەتایی دۆزرایەوە.',
+        other: 'تا {n} لە {time} {count} ژمارەی سەرەتایی دۆزرانەوە.'
+      },
+      toPalette: 'زیادکردنی ژمارە سەرەتاییە دۆزراوەکان بۆ پالێت',
+      'palette.added': {
+        one: '{count} ژمارەی سەرەتایی نوێ بۆ پالێت زیاد کرا — دووبارەکان بازدران: {dupes}.',
+        other: '{count} ژمارەی سەرەتایی نوێ بۆ پالێت زیاد کران — دووبارەکان بازدران: {dupes}.'
+      },
+      'palette.full': {
+        one: '{count} ژمارەی سەرەتایی نوێ زیاد کرا — پالێت پڕە ({max} ژمارە)؛ ژمارە سەرەتاییە زیادنەکراوەکان: {left}.',
+        other: '{count} ژمارەی سەرەتایی نوێ زیاد کران — پالێت پڕە ({max} ژمارە)؛ ژمارە سەرەتاییە زیادنەکراوەکان: {left}.'
+      },
+      'palette.none': 'ھەموو ژمارە سەرەتاییە دۆزراوەکان پێشتر لە پالێتەکەدان — شتێک نییە بۆ زیادکردن.'
     }
   });
 })();
