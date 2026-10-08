@@ -1359,7 +1359,7 @@
       chipEqualPair: '36, 36 · tayuga tamsawat',
       chipAlreadyDone: '17, 0 · ikmml ɣilad',
       chipFibonacciWorst: '89, 55 · aṭas n isurifn: Fibunači',
-      chipHugeQuotient: '500000, 2 · tayafut tamqrant bahra',
+      chipHugeQuotient: '500000, 2 · tayafut n ubḍu tamqrant bahra',
       run: 'Ssiḍn',
       extToggleLabel: 'Askil n Uklid ittwasmqqrn — ssken ikufisyanen n Bizu {0} d {1}',
       errBothWhole: 'Ixṣṣa ad ilin a d b d ummiden.',
@@ -1388,15 +1388,15 @@
         one: 'Asurif {index} sg {total}: {a} = {q}×{b} + {r}: {q} umkkuẓ n tama {b} ar yddu, dɣa iqqim aqqimu {b}×{r}.',
         other: 'Asurif {index} sg {total}: {a} = {q}×{b} + {r}: {q} n imkkuẓn n tama {b} ar ddun, dɣa iqqim aqqimu {b}×{r}.'
       },
-      tileNoteCapped: 'Tayafut tṣṣḥt d {q} — {cap} imkkuẓn imzwura kigan ittwaru dagi; {rest} imqqimn ittwamdln g tazlijt ittwasmmi, dɣa tama ittwaru ur tddu s lmqyas.',
+      tileNoteCapped: 'Tayafut n ubḍu tṣṣḥt d {q} — {cap} imkkuẓn imzwura kigan ittwaru dagi; {rest} imqqimn ittwamdln g tazlijt ittwasmmi, dɣa tama ittwaru ur tddu s lmqyas.',
       nestedEmptyMessage: 'Ur illi uṛktangl ad ittwaɣlf — b d 0 ɣilad, dɣa alguritm ikmml ɣilad.',
       nestedCaption: {
         one: 'gcd({A}, {B}) = {gcd}: akk {n} usurif ɣlfn g yan uṛktangl {A}×{B} — imkkuẓn imẓẓin akk, {lastB}×{lastB}, d anbḍay amqran amcrik. Sit ɣf yan umkkuẓ (nɣ yan usurif afella) bac ad tẓrt amek ar ttwaqqnn.',
         other: 'gcd({A}, {B}) = {gcd}: akk {n} n isurifn ɣlfn g yan uṛktangl {A}×{B} — imkkuẓn imẓẓin akk, {lastB}×{lastB}, d anbḍay amqran amcrik. Sit ɣf yan umkkuẓ (nɣ yan usurif afella) bac ad tẓrt amek ar ttwaqqnn.'
       },
       nestedNoteCapped: {
-        one: 'Asurif {stepNums} ɣr tayafut tamqrant bahra — {cap} imkkuẓn imzwura kigan ittwaru dagi, ittwamdln g tazlijt n ixṭṭn, dɣa umskan ad ur ittṣṣḥ s lmqyas g usurif ad.',
-        other: 'Isurifn {stepNums} sɛin tayafut tamqrant bahra — {cap} imkkuẓn imzwura kigan ittwaru dagi, ittwamdln g tazlijt n ixṭṭn, dɣa umskan ad ur ittṣṣḥ s lmqyas g isurifn ad.'
+        one: 'Asurif {stepNums} ɣr tayafut n ubḍu tamqrant bahra — {cap} imkkuẓn imzwura kigan ittwaru dagi, ittwamdln g tazlijt n ixṭṭn, dɣa umskan ad ur ittṣṣḥ s lmqyas g usurif ad.',
+        other: 'Isurifn {stepNums} sɛin tayafut n ubḍu tamqrant bahra — {cap} imkkuẓn imzwura kigan ittwaru dagi, ittwamdln g tazlijt n ixṭṭn, dɣa umskan ad ur ittṣṣḥ s lmqyas g isurifn ad.'
       },
       nestedTileTitle: 'Asurif {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'Asurif {step}: {a} = {q}·{b} + {r} ({extra} n imkkuẓn nniḍen ittwamdln dagi)',
@@ -1413,7 +1413,7 @@
       chipEqualPair: '36, 36 · ⵜⴰⵢⵓⴳⴰ ⵜⴰⵎⵙⴰⵡⴰⵜ',
       chipAlreadyDone: '17, 0 · ⵉⴽⵎⵎⵍ ⵖⵉⵍⴰⴷ',
       chipFibonacciWorst: '89, 55 · ⴰⵟⴰⵙ ⵏ ⵉⵙⵓⵔⵉⴼⵏ: ⴼⵉⴱⵓⵏⴰⵞⵉ',
-      chipHugeQuotient: '500000, 2 · ⵜⴰⵢⴰⴼⵓⵜ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ',
+      chipHugeQuotient: '500000, 2 · ⵜⴰⵢⴰⴼⵓⵜ ⵏ ⵓⴱⴹⵓ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ',
       run: 'ⵙⵙⵉⴹⵏ',
       extToggleLabel: 'ⴰⵙⴽⵉⵍ ⵏ ⵓⴽⵍⵉⴷ ⵉⵜⵜⵡⴰⵙⵎⵇⵇⵔⵏ — ⵙⵙⴽⴻⵏ ⵉⴽⵓⴼⵉⵙⵢⴰⵏⴻⵏ ⵏ ⴱⵉⵣⵓ {0} ⴷ {1}',
       errBothWhole: 'ⵉⵅⵚⵚⴰ ⴰⴷ ⵉⵍⵉⵏ a ⴷ b ⴷ ⵓⵎⵎⵉⴷⴻⵏ.',
@@ -1442,15 +1442,15 @@
         one: 'ⴰⵙⵓⵔⵉⴼ {index} ⵙⴳ {total}: {a} = {q}×{b} + {r}: {q} ⵓⵎⴽⴽⵓⵥ ⵏ ⵜⴰⵎⴰ {b} ⴰⵔ ⵢⴷⴷⵓ, ⴷⵖⴰ ⵉⵇⵇⵉⵎ ⴰⵇⵇⵉⵎⵓ {b}×{r}.',
         other: 'ⴰⵙⵓⵔⵉⴼ {index} ⵙⴳ {total}: {a} = {q}×{b} + {r}: {q} ⵏ ⵉⵎⴽⴽⵓⵥⵏ ⵏ ⵜⴰⵎⴰ {b} ⴰⵔ ⴷⴷⵓⵏ, ⴷⵖⴰ ⵉⵇⵇⵉⵎ ⴰⵇⵇⵉⵎⵓ {b}×{r}.'
       },
-      tileNoteCapped: 'ⵜⴰⵢⴰⴼⵓⵜ ⵜⵚⵚⵃⵜ ⴷ {q} — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ; {rest} ⵉⵎⵇⵇⵉⵎⵏ ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵉⵜⵜⵡⴰⵙⵎⵎⵉ, ⴷⵖⴰ ⵜⴰⵎⴰ ⵉⵜⵜⵡⴰⵔⵓ ⵓⵔ ⵜⴷⴷⵓ ⵙ ⵍⵎⵇⵢⴰⵙ.',
+      tileNoteCapped: 'ⵜⴰⵢⴰⴼⵓⵜ ⵏ ⵓⴱⴹⵓ ⵜⵚⵚⵃⵜ ⴷ {q} — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ; {rest} ⵉⵎⵇⵇⵉⵎⵏ ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵉⵜⵜⵡⴰⵙⵎⵎⵉ, ⴷⵖⴰ ⵜⴰⵎⴰ ⵉⵜⵜⵡⴰⵔⵓ ⵓⵔ ⵜⴷⴷⵓ ⵙ ⵍⵎⵇⵢⴰⵙ.',
       nestedEmptyMessage: 'ⵓⵔ ⵉⵍⵍⵉ ⵓⵕⴽⵜⴰⵏⴳⵍ ⴰⴷ ⵉⵜⵜⵡⴰⵖⵍⴼ — b ⴷ 0 ⵖⵉⵍⴰⴷ, ⴷⵖⴰ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵉⴽⵎⵎⵍ ⵖⵉⵍⴰⴷ.',
       nestedCaption: {
         one: 'gcd({A}, {B}) = {gcd}: ⴰⴽⴽ {n} ⵓⵙⵓⵔⵉⴼ ⵖⵍⴼⵏ ⴳ ⵢⴰⵏ ⵓⵕⴽⵜⴰⵏⴳⵍ {A}×{B} — ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵥⵥⵉⵏ ⴰⴽⴽ, {lastB}×{lastB}, ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ. ⵙⵉⵜ ⵖⴼ ⵢⴰⵏ ⵓⵎⴽⴽⵓⵥ (ⵏⵖ ⵢⴰⵏ ⵓⵙⵓⵔⵉⴼ ⴰⴼⴻⵍⵍⴰ) ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⴻⴽ ⴰⵔ ⵜⵜⵡⴰⵇⵇⵏⵏ.',
         other: 'gcd({A}, {B}) = {gcd}: ⴰⴽⴽ {n} ⵏ ⵉⵙⵓⵔⵉⴼⵏ ⵖⵍⴼⵏ ⴳ ⵢⴰⵏ ⵓⵕⴽⵜⴰⵏⴳⵍ {A}×{B} — ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵥⵥⵉⵏ ⴰⴽⴽ, {lastB}×{lastB}, ⴷ ⴰⵏⴱⴹⴰⵢ ⴰⵎⵇⵔⴰⵏ ⴰⵎⵛⵔⵉⴽ. ⵙⵉⵜ ⵖⴼ ⵢⴰⵏ ⵓⵎⴽⴽⵓⵥ (ⵏⵖ ⵢⴰⵏ ⵓⵙⵓⵔⵉⴼ ⴰⴼⴻⵍⵍⴰ) ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⴻⴽ ⴰⵔ ⵜⵜⵡⴰⵇⵇⵏⵏ.'
       },
       nestedNoteCapped: {
-        one: 'ⴰⵙⵓⵔⵉⴼ {stepNums} ⵖⵔ ⵜⴰⵢⴰⴼⵓⵜ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ, ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵏ ⵉⵅⵟⵟⵏ, ⴷⵖⴰ ⵓⵎⵙⴽⴰⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵚⵚⵃ ⵙ ⵍⵎⵇⵢⴰⵙ ⴳ ⵓⵙⵓⵔⵉⴼ ⴰⴷ.',
-        other: 'ⵉⵙⵓⵔⵉⴼⵏ {stepNums} ⵙⵄⵉⵏ ⵜⴰⵢⴰⴼⵓⵜ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ, ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵏ ⵉⵅⵟⵟⵏ, ⴷⵖⴰ ⵓⵎⵙⴽⴰⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵚⵚⵃ ⵙ ⵍⵎⵇⵢⴰⵙ ⴳ ⵉⵙⵓⵔⵉⴼⵏ ⴰⴷ.'
+        one: 'ⴰⵙⵓⵔⵉⴼ {stepNums} ⵖⵔ ⵜⴰⵢⴰⴼⵓⵜ ⵏ ⵓⴱⴹⵓ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ, ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵏ ⵉⵅⵟⵟⵏ, ⴷⵖⴰ ⵓⵎⵙⴽⴰⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵚⵚⵃ ⵙ ⵍⵎⵇⵢⴰⵙ ⴳ ⵓⵙⵓⵔⵉⴼ ⴰⴷ.',
+        other: 'ⵉⵙⵓⵔⵉⴼⵏ {stepNums} ⵙⵄⵉⵏ ⵜⴰⵢⴰⴼⵓⵜ ⵏ ⵓⴱⴹⵓ ⵜⴰⵎⵇⵔⴰⵏⵜ ⴱⴰⵀⵔⴰ — {cap} ⵉⵎⴽⴽⵓⵥⵏ ⵉⵎⵣⵡⵓⵔⴰ ⴽⵉⴳⴰⵏ ⵉⵜⵜⵡⴰⵔⵓ ⴷⴰⴳⵉ, ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴳ ⵜⴰⵣⵍⵉⵊⵜ ⵏ ⵉⵅⵟⵟⵏ, ⴷⵖⴰ ⵓⵎⵙⴽⴰⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵚⵚⵃ ⵙ ⵍⵎⵇⵢⴰⵙ ⴳ ⵉⵙⵓⵔⵉⴼⵏ ⴰⴷ.'
       },
       nestedTileTitle: 'ⴰⵙⵓⵔⵉⴼ {step}: {a} = {q}·{b} + {r}',
       nestedTileTitleCapped: 'ⴰⵙⵓⵔⵉⴼ {step}: {a} = {q}·{b} + {r} ({extra} ⵏ ⵉⵎⴽⴽⵓⵥⵏ ⵏⵏⵉⴹⴻⵏ ⵉⵜⵜⵡⴰⵎⴷⵍⵏ ⴷⴰⴳⵉ)',

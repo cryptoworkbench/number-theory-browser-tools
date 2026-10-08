@@ -1371,6 +1371,137 @@ Domain terms the pinned D-TERMS list did not cover, as coined while translating 
 | order search (budget) | anggaran langkah | shor | `[ASSUMED]` |
 | read-only | hanya baca | venn | `[ASSUMED]` |
 
+### Standard Moroccan Tamazight supplementary terms (added 2026-10-08 by quick task 261008-e2j, Tasks 2-4, unified in Task 5)
+
+Domain terms the pinned D-TERMS list did not cover, plus its "also" terms, as written while translating the 16 pages. One zgh-Latn rendering per English term, verified to occur in the named namespaces (annexed-state forms are marked in the English column); the `zgh-Tfng` cell is the IRCAM transliteration of the cell beside it. `[CITED]` = attested on zgh.wikipedia.org (the article on prime numbers and its math glossary); every other term is `[ASSUMED]`: a neologism built from attested roots, or a French or Arabic term adapted to IRCAM letters where no Tamazight term was found. A native review of this vocabulary is recommended.
+
+| Term (en) | zgh-Latn | zgh-Tfng | Namespaces | Confidence |
+|---|---|---|---|---|
+| theorem | askkud | ⴰⵙⴽⴽⵓⴷ | crt, hub, site | `[CITED]` |
+| mathematics | tusnakt | ⵜⵓⵙⵏⴰⴽⵜ | factorTree, hub, rsa | `[CITED]` |
+| theory | tiẓri | ⵜⵉⵥⵔⵉ | cayley, hub, site | `[CITED]` |
+| number | amḍan | ⴰⵎⴹⴰⵏ | wheel, totient, factorTree, fermat, hub, rsa, shor, sieve, venn | `[CITED]` |
+| natural (number) | agaman | ⴰⴳⴰⵎⴰⵏ | wheel, hub, sieve | `[CITED]` |
+| set | tagrumma | ⵜⴰⴳⵔⵓⵎⵎⴰ | crt, ecdh, hub | `[CITED]` |
+| union | tamunt | ⵜⴰⵎⵓⵏⵜ | crt, venn | `[CITED]` |
+| sum | timrnit | ⵜⵉⵎⵔⵏⵉⵜ | ecdh, wheel, iso | `[CITED]` |
+| product | afaris | ⴰⴼⴰⵔⵉⵙ | wheel, hub, venn | `[CITED]` |
+| value | azal | ⴰⵣⴰⵍ | cayley, dh, ecdh, euclid, totient, factorTree, rsa, sqm | `[CITED]` |
+| diagram | amskan | ⴰⵎⵙⴽⴰⵏ | dh, wheel, hub, shor, site, venn | `[CITED]` |
+| formula | tanfalit | ⵜⴰⵏⴼⴰⵍⵉⵜ | hub, rsa | `[CITED]` |
+| circle | tawrerrayt | ⵜⴰⵡⵔⴻⵔⵔⴰⵢⵜ | cayley, wheel, factorTree, iso, hub, site | `[CITED]` |
+| region | tamnaḍt | ⵜⴰⵎⵏⴰⴹⵜ | dh, ecdh, factorTree, hub, venn | `[CITED]` |
+| verify | ssidt | ⵙⵙⵉⴷⵜ | ecdh, rsa, venn | `[CITED]` |
+| test (n.) | akayad | ⴰⴽⴰⵢⴰⴷ | crt, dh, ecdh, totient, rsa, shor, sqm | `[CITED]` |
+| speed | timmri | ⵜⵉⵎⵎⵔⵉ | common | `[CITED]` |
+| zero | ẓiru | ⵥⵉⵔⵓ | cayley, euclid, sqm | `[CITED]` |
+| digit | azwil | ⴰⵣⵡⵉⵍ | sqm | `[CITED]` |
+| algorithm | alguritm | ⴰⵍⴳⵓⵔⵉⵜⵎ | crt, dh, euclid, totient, hub, rsa, shor, site, sqm | `[ASSUMED]` |
+| palette | tabalitt | ⵜⴰⴱⴰⵍⵉⵜⵜ | factorTree, venn | `[ASSUMED]` |
+| order (of an element) | urdr | ⵓⵔⴷⵔ | dh, ecdh, euclid, hub, shor | `[ASSUMED]` |
+| random | agacur | ⴰⴳⴰⵛⵓⵔ | dh, ecdh | `[ASSUMED]` |
+| message | izn | ⵉⵣⵏ | rsa | `[ASSUMED]` |
+| bit | abit | ⴰⴱⵉⵜ | hub, rsa, sqm | `[ASSUMED]` |
+| tool | allal | ⴰⵍⵍⴰⵍ | crt, hub, site, common, venn | `[ASSUMED]` |
+| tree | aseklu | ⴰⵙⴻⴽⵍⵓ | factorTree, hub, site, venn | `[ASSUMED]` |
+| multiplication | asgut | ⴰⵙⴳⵓⵜ | ecdh, wheel, rsa, sqm | `[ASSUMED]` |
+| division | abḍu | ⴰⴱⴹⵓ | fermat, rsa, shor, venn | `[ASSUMED]` |
+| multiple | amsgut | ⴰⵎⵙⴳⵓⵜ | wheel, venn | `[ASSUMED]` |
+| browser | brawzr | ⴱⵔⴰⵡⵣⵔ | dh, fermat, hub, sieve, sqm, venn | `[ASSUMED]` |
+| box (grid cell) | tankult | ⵜⴰⵏⴽⵓⵍⵜ | hub, sieve | `[ASSUMED]` |
+| sound | ṣṣut | ⵚⵚⵓⵜ | hub, sieve | `[ASSUMED]` |
+| slider | slaydr | ⵙⵍⴰⵢⴷⵔ | hub | `[ASSUMED]` |
+| page (web) | tasna | ⵜⴰⵙⵏⴰ | dh, ecdh, totient, rsa, shor, venn | `[ASSUMED]` |
+| site (annexed state usmkan) | usmkan | ⵓⵙⵎⴽⴰⵏ | sqm | `[ASSUMED]` |
+| visualizer / show | asskan | ⴰⵙⵙⴽⴰⵏ | fermat, hub, sieve | `[ASSUMED]` |
+| animated | animi | ⴰⵏⵉⵎⵉ | hub | `[ASSUMED]` |
+| interactive | intiraktif | ⵉⵏⵜⵉⵔⴰⴽⵜⵉⴼ | fermat, sieve, venn | `[ASSUMED]` |
+| mode | askil | ⴰⵙⴽⵉⵍ | euclid, factorTree, iso, venn | `[ASSUMED]` |
+| Classic (mode) | aklasik | ⴰⴽⵍⴰⵙⵉⴽ | dh, factorTree, hub, rsa, shor | `[ASSUMED]` |
+| Balanced (mode) | amsawa | ⴰⵎⵙⴰⵡⴰ | crt, ecdh, euclid, factorTree, iso, hub, rsa, sqm, venn | `[ASSUMED]` |
+| branch | tarmmt | ⵜⴰⵔⵎⵎⵜ | factorTree, hub | `[ASSUMED]` |
+| composition/factorization area | tamnaḍt n usnulfu/asfaktr | ⵜⴰⵎⵏⴰⴹⵜ ⵏ ⵓⵙⵏⵓⵍⴼⵓ/ⴰⵙⴼⴰⴽⵜⵔ | factorTree | `[ASSUMED]` |
+| panel | tafaratt | ⵜⴰⴼⴰⵔⴰⵜⵜ | factorTree | `[ASSUMED]` |
+| half | anuṣ | ⴰⵏⵓⵚ | factorTree, rsa | `[ASSUMED]` |
+| overlap (n.) | timlalt | ⵜⵉⵎⵍⴰⵍⵜ | crt, ecdh, factorTree, venn | `[ASSUMED]` |
+| bin | tazbalt | ⵜⴰⵣⴱⴰⵍⵜ | factorTree, venn | `[ASSUMED]` |
+| set difference | ifrqn | ⵉⴼⵔⵇⵏ | venn | `[ASSUMED]` |
+| hover previews | timuɣliwin zdat | ⵜⵉⵎⵓⵖⵍⵉⵡⵉⵏ ⵣⴷⴰⵜ | venn | `[ASSUMED]` |
+| read-only | i uɣuri kigan | ⵉ ⵓⵖⵓⵔⵉ ⴽⵉⴳⴰⵏ | venn | `[ASSUMED]` |
+| popup windows | tifnṭṛin | ⵜⵉⴼⵏⵟⵕⵉⵏ | venn | `[ASSUMED]` |
+| tab (browser) | unglit | ⵓⵏⴳⵍⵉⵜ | sqm, venn | `[ASSUMED]` |
+| odd | afrdi | ⴰⴼⵔⴷⵉ | cayley, ecdh, wheel, fermat, iso, hub, shor | `[ASSUMED]` |
+| even | azuji | ⴰⵣⵓⵊⵉ | fermat, shor | `[ASSUMED]` |
+| trivial | tarifyal | ⵜⴰⵔⵉⴼⵢⴰⵍ | fermat | `[ASSUMED]` |
+| geometric picture | tugna n tgiyumitri | ⵜⵓⴳⵏⴰ ⵏ ⵜⴳⵉⵢⵓⵎⵉⵜⵔⵉ | fermat | `[ASSUMED]` |
+| perfect power (annexed tzmrt) | tzmrt tummidt | ⵜⵣⵎⵔⵜ ⵜⵓⵎⵎⵉⴷⵜ | shor | `[ASSUMED]` |
+| extended (Euclidean) | ittwasmqqrn | ⵉⵜⵜⵡⴰⵙⵎⵇⵇⵔⵏ | crt, euclid, rsa | `[ASSUMED]` |
+| coefficient | ikufisyan | ⵉⴽⵓⴼⵉⵙⵢⴰⵏ | ecdh, euclid | `[ASSUMED]` |
+| rectangle | aṛktangl | ⴰⵕⴽⵜⴰⵏⴳⵍ | euclid | `[ASSUMED]` |
+| tile | tazlijt | ⵜⴰⵣⵍⵉⵊⵜ | euclid | `[ASSUMED]` |
+| negative | amsalib | ⴰⵎⵙⴰⵍⵉⴱ | cayley, rsa, sqm | `[ASSUMED]` |
+| positive | amujib | ⴰⵎⵓⵊⵉⴱ | dh, ecdh, rsa | `[ASSUMED]` |
+| line (of working) | asaṭr | ⴰⵙⴰⵟⵔ | cayley, crt, euclid, sqm | `[ASSUMED]` |
+| derivation | uḥsab | ⵓⵃⵙⴰⴱ | euclid | `[ASSUMED]` |
+| congruences | igdan | ⵉⴳⴷⴰⵏ | crt, hub | `[ASSUMED]` |
+| strip | ixṭṭn | ⵉⵅⵟⵟⵏ | crt, euclid | `[ASSUMED]` |
+| column | akulun | ⴰⴽⵓⵍⵓⵏ | crt | `[ASSUMED]` |
+| term (of a sum) | aḥdd | ⴰⵃⴷⴷ | crt | `[ASSUMED]` |
+| representative (annexed umsmmal) | umsmmal | ⵓⵎⵙⵎⵎⴰⵍ | crt | `[ASSUMED]` |
+| diagnostic | diyagnustik | ⴷⵉⵢⴰⴳⵏⵓⵙⵜⵉⴽ | crt | `[ASSUMED]` |
+| system | sistim | ⵙⵉⵙⵜⵉⵎ | crt | `[ASSUMED]` |
+| piece | uḥbbu | ⵓⵃⴱⴱⵓ | crt | `[ASSUMED]` |
+| guard / barrier | lḥajiz | ⵍⵃⴰⵊⵉⵣ | crt, hub, rsa | `[ASSUMED]` |
+| ring | twririn | ⵜⵡⵔⵉⵔⵉⵏ | wheel, hub | `[ASSUMED]` |
+| export | ssufɣ | ⵙⵙⵓⴼⵖ | wheel, rsa | `[ASSUMED]` |
+| download | sider | ⵙⵉⴷⴻⵔ | wheel | `[ASSUMED]` |
+| print | ssuɣ | ⵙⵙⵓⵖ | wheel, sieve, common | `[ASSUMED]` |
+| save | ḥfḍ | ⵃⴼⴹ | wheel | `[ASSUMED]` |
+| reference | lmrjaɛ | ⵍⵎⵔⵊⴰⵄ | dh, wheel, rsa | `[ASSUMED]` |
+| addend | amsmrni | ⴰⵎⵙⵎⵔⵏⵉ | wheel | `[ASSUMED]` |
+| mirror | asmgal | ⴰⵙⵎⴳⴰⵍ | cayley, ecdh, venn | `[ASSUMED]` |
+| twin | tawtmt | ⵜⴰⵡⵜⵎⵜ | cayley | `[ASSUMED]` |
+| diagonal | tdyagunalt | ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ | cayley | `[ASSUMED]` |
+| equation | tmsawit | ⵜⵎⵙⴰⵡⵉⵜ | cayley, ecdh | `[ASSUMED]` |
+| accumulator | amsmmunt | ⴰⵎⵙⵎⵎⵓⵏⵜ | sqm | `[ASSUMED]` |
+| ladder | asllum | ⴰⵙⵍⵍⵓⵎ | sqm | `[ASSUMED]` |
+| naive | abṣit | ⴰⴱⵚⵉⵜ | sqm | `[ASSUMED]` |
+| cost | lkulfa | ⵍⴽⵓⵍⴼⴰ | rsa, shor, sqm | `[ASSUMED]` |
+| gain | taṛbbiḥt | ⵜⴰⵕⴱⴱⵉⵃⵜ | sqm | `[ASSUMED]` |
+| eavesdropper (annexed umsmmaɛ) | umsmmaɛ | ⵓⵎⵙⵎⵎⴰⵄ | dh | `[ASSUMED]` |
+| tap | tmmdlt | ⵜⵎⵎⴷⵍⵜ | dh, ecdh, rsa | `[ASSUMED]` |
+| notebook | tkrrasa | ⵜⴽⵔⵔⴰⵙⴰ | dh, ecdh, rsa | `[ASSUMED]` |
+| copy | tanusxa | ⵜⴰⵏⵓⵙⵅⴰ | dh | `[ASSUMED]` |
+| safe prime | amnzu amin | ⴰⵎⵏⵣⵓ ⴰⵎⵉⵏ | dh | `[ASSUMED]` |
+| symmetric | asimitri | ⴰⵙⵉⵎⵉⵜⵔⵉ | dh | `[ASSUMED]` |
+| teaching demo | amdya n usɣuri | ⴰⵎⴷⵢⴰ ⵏ ⵓⵙⵖⵓⵔⵉ | dh, ecdh, rsa, sqm | `[ASSUMED]` |
+| setup | tuheggit | ⵜⵓⵀⴻⴳⴳⵉⵜ | sqm | `[ASSUMED]` |
+| pair | tayuga | ⵜⴰⵢⵓⴳⴰ | crt, euclid, factorTree, fermat, iso, hub, rsa | `[ASSUMED]` |
+| isomorphic | tamsalɣt | ⵜⴰⵎⵙⴰⵍⵖⵜ | iso | `[ASSUMED]` |
+| quantum | aquntum | ⴰⵇⵓⵏⵜⵓⵎ | hub, shor | `[ASSUMED]` |
+| stand-in (classical) | amsbddl | ⴰⵎⵙⴱⴷⴷⵍ | hub, shor | `[ASSUMED]` |
+| superposition | asurbuzisyun | ⴰⵙⵓⵔⴱⵓⵣⵉⵙⵢⵓⵏ | shor | `[ASSUMED]` |
+| estimation (phase) | asttimasyun | ⴰⵙⵜⵜⵉⵎⴰⵙⵢⵓⵏ | shor | `[ASSUMED]` |
+| register (quantum, annexed umsjjl) | umsjjl | ⵓⵎⵙⵊⵊⵍ | shor | `[ASSUMED]` |
+| amplitude | tamblitudin | ⵜⴰⵎⴱⵍⵉⵜⵓⴷⵉⵏ | shor | `[ASSUMED]` |
+| simulation | asimulasyun | ⴰⵙⵉⵎⵓⵍⴰⵙⵢⵓⵏ | shor | `[ASSUMED]` |
+| polynomial | bulinumyalt | ⴱⵓⵍⵉⵏⵓⵎⵢⴰⵍⵜ | shor | `[ASSUMED]` |
+| peak | aqmmu | ⴰⵇⵎⵎⵓ | shor | `[ASSUMED]` |
+| continued fraction | kasr imtwaṣil | ⴽⴰⵙⵔ ⵉⵎⵜⵡⴰⵚⵉⵍ | shor | `[ASSUMED]` |
+| slope | uẓɣl | ⵓⵥⵖⵍ | ecdh | `[ASSUMED]` |
+| tangent | tanjant | ⵜⴰⵏⵊⴰⵏⵜ | ecdh | `[ASSUMED]` |
+| chord | uwtr | ⵓⵡⵜⵔ | ecdh | `[ASSUMED]` |
+| coordinates | ikurdunayn | ⵉⴽⵓⵔⴷⵓⵏⴰⵢⵏ | ecdh | `[ASSUMED]` |
+| singular (curve) | tasngulyirt | ⵜⴰⵙⵏⴳⵓⵍⵢⵉⵔⵜ | ecdh | `[ASSUMED]` |
+| verdict | lqrar | ⵍⵇⵔⴰⵔ | shor | `[ASSUMED]` |
+| padding | asmmla | ⴰⵙⵎⵎⵍⴰ | rsa, venn | `[ASSUMED]` |
+| hard (problem) | tɛṣibt | ⵜⵄⵚⵉⴱⵜ | rsa | `[ASSUMED]` |
+| different | imxtalfn | ⵉⵎⵅⵜⴰⵍⴼⵏ | rsa | `[ASSUMED]` |
+| attacker (annexed umhajim) | umhajim | ⵓⵎⵀⴰⵊⵉⵎ | rsa | `[ASSUMED]` |
+| security | laman | ⵍⴰⵎⴰⵏ | rsa | `[ASSUMED]` |
+| note (remark) | tamlaḥḍa | ⵜⴰⵎⵍⴰⵃⴹⴰ | rsa | `[ASSUMED]` |
+| scalar | askalir | ⴰⵙⴽⴰⵍⵉⵔ | ecdh, hub | `[ASSUMED]` |
+| scalar (private) | amusli | ⴰⵎⵓⵙⵍⵉ | ecdh | `[ASSUMED]` |
 
 ---
 
