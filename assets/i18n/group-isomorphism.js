@@ -5,7 +5,7 @@
    the correspondence readout (all three states: no selection, one element,
    both elements agreeing or disagreeing), the reference-list heading and
    count, and the bottom formula line for the Group Isomorphism tool, in all
-   twenty-five supported languages.
+   twenty-seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Every key is plain text (no plural entries in this
@@ -755,6 +755,64 @@
       eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (terlalu besar untuk menampilkan pangkat yang belum direduksi secara tepat)',
       refCount: '{count} pasangan (m ≤ {max})',
       formula: 'Z/{n}Z ≅ (Z/{m}Z)*   melalui   k ↦ {g}^k mod {m}   (pembangkit g = {g})'
+    },
+    'zgh-Latn': {
+      title: 'Amsalɣ n tgrawin',
+      eyebrow: 'sin n usiḍn, yat tgrawt',
+      heading: 'Amsalɣ n tgrawin',
+      lede: 'Imḍanen ummiden s umuḍul n s usmrni d tiyuwnin s umuḍul m s usgut izmrn ad ilin, g tuddsa, d tagrawt yat s ukk — ɣas asiḍn ar ibddl. {0}',
+      xref: 'Ẓr sin tgrawin ad ittwanlfn yat s yat →',
+      pairLabel: 'Tayuga tamsalɣt',
+      pairSelectAriaLabel: 'Sti yat tayuga tamsalɣt',
+      randomizeLabel: 'S ugacur',
+      randomize: 'Amdya amaynu s ugacur',
+      tablistLabel: 'Askil n tawrerrayt tafasit',
+      tabPowers: 'Tizmrin n g',
+      tabNumeric: 'S imḍanen',
+      leftWheelAriaLabel: 'Ifrdisn n tgrawt n usmrni Z s umuḍul n',
+      rightWheelAriaLabel: 'Ifrdisn n tgrawt n usgut n tiyuwnin s umuḍul m',
+      refHeading: 'Tiyugiwin timsalɣin',
+      leftWedgeAriaLabel: 'Afrdis {value} n tgrawt n usmrni Z s umuḍul {n}',
+      rightWedgeAriaLabel: 'Afrdis {value} n tgrawt n usgut n tiyuwnin s umuḍul {m}, iga {g} s tzmrt {k} s umuḍul {m}',
+      leftCaption: 'Tagrawt n usmrni {bSpan}: imḍanen ummiden sg 0 ar {max} s usmrni s umuḍul {n}.',
+      rightCaption: 'Tagrawt n usgut {bSpan}: {n} n tiyuwnin s umuḍul {m} s usgut, ittwasnlfn s {g}.',
+      readoutPrompt: 'Sit ɣf yan ufrdis ɣ yal tawrerrayt bac ad tẓrt amsawal.',
+      readoutOne: 'Afrdis {aSlot} ɣ uzelmaḍ ar imsawal d {aValSlot} ɣ ufasi: {eqSpan}. Sit ɣf yan ufrdis wis sin — nɣ ɣf t tikkelt nniḍen — bac ad tẓrt timrnit d ufaris.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} ɣ uzelmaḍ ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} ɣ ufasi ({modSpan}) — d {product} = {g}^{sum} mod {m} = {sumVal}: tugna n timrnit tmsawa d ufaris n tugniwin.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} ɣ uzelmaḍ ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} ɣ ufasi ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} ur isawa {g}^{sum} mod {m} = {sumVal} — tayuga tad ur ilaq ad ttmgalnt dima.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (amqran bahra i uskan n tzmrt war nqs s ṣṣḥ)',
+      refCount: '{count} n tiyugiwin (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   s   k ↦ {g}^k mod {m}   (amsnulfu g = {g})'
+    },
+    'zgh-Tfng': {
+      title: 'ⴰⵎⵙⴰⵍⵖ ⵏ ⵜⴳⵔⴰⵡⵉⵏ',
+      eyebrow: 'ⵙⵉⵏ ⵏ ⵓⵙⵉⴹⵏ, ⵢⴰⵜ ⵜⴳⵔⴰⵡⵜ',
+      heading: 'ⴰⵎⵙⴰⵍⵖ ⵏ ⵜⴳⵔⴰⵡⵉⵏ',
+      lede: 'ⵉⵎⴹⴰⵏⴻⵏ ⵓⵎⵎⵉⴷⴻⵏ ⵙ ⵓⵎⵓⴹⵓⵍ n ⵙ ⵓⵙⵎⵔⵏⵉ ⴷ ⵜⵉⵢⵓⵡⵏⵉⵏ ⵙ ⵓⵎⵓⴹⵓⵍ m ⵙ ⵓⵙⴳⵓⵜ ⵉⵣⵎⵔⵏ ⴰⴷ ⵉⵍⵉⵏ, ⴳ ⵜⵓⴷⴷⵙⴰ, ⴷ ⵜⴰⴳⵔⴰⵡⵜ ⵢⴰⵜ ⵙ ⵓⴽⴽ — ⵖⴰⵙ ⴰⵙⵉⴹⵏ ⴰⵔ ⵉⴱⴷⴷⵍ. {0}',
+      xref: 'ⵥⵔ ⵙⵉⵏ ⵜⴳⵔⴰⵡⵉⵏ ⴰⴷ ⵉⵜⵜⵡⴰⵏⵍⴼⵏ ⵢⴰⵜ ⵙ ⵢⴰⵜ →',
+      pairLabel: 'ⵜⴰⵢⵓⴳⴰ ⵜⴰⵎⵙⴰⵍⵖⵜ',
+      pairSelectAriaLabel: 'ⵙⵜⵉ ⵢⴰⵜ ⵜⴰⵢⵓⴳⴰ ⵜⴰⵎⵙⴰⵍⵖⵜ',
+      randomizeLabel: 'ⵙ ⵓⴳⴰⵛⵓⵔ',
+      randomize: 'ⴰⵎⴷⵢⴰ ⴰⵎⴰⵢⵏⵓ ⵙ ⵓⴳⴰⵛⵓⵔ',
+      tablistLabel: 'ⴰⵙⴽⵉⵍ ⵏ ⵜⴰⵡⵔⴻⵔⵔⴰⵢⵜ ⵜⴰⴼⴰⵙⵉⵜ',
+      tabPowers: 'ⵜⵉⵣⵎⵔⵉⵏ ⵏ g',
+      tabNumeric: 'ⵙ ⵉⵎⴹⴰⵏⴻⵏ',
+      leftWheelAriaLabel: 'ⵉⴼⵔⴷⵉⵙⵏ ⵏ ⵜⴳⵔⴰⵡⵜ ⵏ ⵓⵙⵎⵔⵏⵉ Z ⵙ ⵓⵎⵓⴹⵓⵍ n',
+      rightWheelAriaLabel: 'ⵉⴼⵔⴷⵉⵙⵏ ⵏ ⵜⴳⵔⴰⵡⵜ ⵏ ⵓⵙⴳⵓⵜ ⵏ ⵜⵉⵢⵓⵡⵏⵉⵏ ⵙ ⵓⵎⵓⴹⵓⵍ m',
+      refHeading: 'ⵜⵉⵢⵓⴳⵉⵡⵉⵏ ⵜⵉⵎⵙⴰⵍⵖⵉⵏ',
+      leftWedgeAriaLabel: 'ⴰⴼⵔⴷⵉⵙ {value} ⵏ ⵜⴳⵔⴰⵡⵜ ⵏ ⵓⵙⵎⵔⵏⵉ Z ⵙ ⵓⵎⵓⴹⵓⵍ {n}',
+      rightWedgeAriaLabel: 'ⴰⴼⵔⴷⵉⵙ {value} ⵏ ⵜⴳⵔⴰⵡⵜ ⵏ ⵓⵙⴳⵓⵜ ⵏ ⵜⵉⵢⵓⵡⵏⵉⵏ ⵙ ⵓⵎⵓⴹⵓⵍ {m}, ⵉⴳⴰ {g} ⵙ ⵜⵣⵎⵔⵜ {k} ⵙ ⵓⵎⵓⴹⵓⵍ {m}',
+      leftCaption: 'ⵜⴰⴳⵔⴰⵡⵜ ⵏ ⵓⵙⵎⵔⵏⵉ {bSpan}: ⵉⵎⴹⴰⵏⴻⵏ ⵓⵎⵎⵉⴷⴻⵏ ⵙⴳ 0 ⴰⵔ {max} ⵙ ⵓⵙⵎⵔⵏⵉ ⵙ ⵓⵎⵓⴹⵓⵍ {n}.',
+      rightCaption: 'ⵜⴰⴳⵔⴰⵡⵜ ⵏ ⵓⵙⴳⵓⵜ {bSpan}: {n} ⵏ ⵜⵉⵢⵓⵡⵏⵉⵏ ⵙ ⵓⵎⵓⴹⵓⵍ {m} ⵙ ⵓⵙⴳⵓⵜ, ⵉⵜⵜⵡⴰⵙⵏⵍⴼⵏ ⵙ {g}.',
+      readoutPrompt: 'ⵙⵉⵜ ⵖⴼ ⵢⴰⵏ ⵓⴼⵔⴷⵉⵙ ⵖ ⵢⴰⵍ ⵜⴰⵡⵔⴻⵔⵔⴰⵢⵜ ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⵙⴰⵡⴰⵍ.',
+      readoutOne: 'ⴰⴼⵔⴷⵉⵙ {aSlot} ⵖ ⵓⵣⴻⵍⵎⴰⴹ ⴰⵔ ⵉⵎⵙⴰⵡⴰⵍ ⴷ {aValSlot} ⵖ ⵓⴼⴰⵙⵉ: {eqSpan}. ⵙⵉⵜ ⵖⴼ ⵢⴰⵏ ⵓⴼⵔⴷⵉⵙ ⵡⵉⵙ ⵙⵉⵏ — ⵏⵖ ⵖⴼ ⵜ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ — ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⵜⵉⵎⵔⵏⵉⵜ ⴷ ⵓⴼⴰⵔⵉⵙ.',
+      readoutBothAgree: '{spanA} + {spanB} = {spanSum} ⵖ ⵓⵣⴻⵍⵎⴰⴹ ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} ⵖ ⵓⴼⴰⵙⵉ ({modSpan}) — ⴷ {product} = {g}^{sum} mod {m} = {sumVal}: ⵜⵓⴳⵏⴰ ⵏ ⵜⵉⵎⵔⵏⵉⵜ ⵜⵎⵙⴰⵡⴰ ⴷ ⵓⴼⴰⵔⵉⵙ ⵏ ⵜⵓⴳⵏⵉⵡⵉⵏ.',
+      readoutBothDisagree: '{spanA} + {spanB} = {spanSum} ⵖ ⵓⵣⴻⵍⵎⴰⴹ ({eqLeft}) — {aValSpan} × {bValSpan} = {productSpan} ⵖ ⵓⴼⴰⵙⵉ ({modSpan}) — {warnSpan}',
+      readoutWarn: '{product} ⵓⵔ ⵉⵙⴰⵡⴰ {g}^{sum} mod {m} = {sumVal} — ⵜⴰⵢⵓⴳⴰ ⵜⴰⴷ ⵓⵔ ⵉⵍⴰⵇ ⴰⴷ ⵜⵜⵎⴳⴰⵍⵏⵜ ⴷⵉⵎⴰ.',
+      eqTooLarge: '{g}^{a} ≡ {val} (mod {m}) (ⴰⵎⵇⵔⴰⵏ ⴱⴰⵀⵔⴰ ⵉ ⵓⵙⴽⴰⵏ ⵏ ⵜⵣⵎⵔⵜ ⵡⴰⵔ ⵏⵇⵙ ⵙ ⵚⵚⵃ)',
+      refCount: '{count} ⵏ ⵜⵉⵢⵓⴳⵉⵡⵉⵏ (m ≤ {max})',
+      formula: 'Z/{n}Z ≅ (Z/{m}Z)*   ⵙ   k ↦ {g}^k mod {m}   (ⴰⵎⵙⵏⵓⵍⴼⵓ g = {g})'
     }
   });
 })();

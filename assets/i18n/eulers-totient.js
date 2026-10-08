@@ -3,7 +3,7 @@
    Run button, every validation/error message, the k-walk's chain head,
    verdict lines, progress/tally/answer lines, the banner (including a
    plural "done" message) and the closing caption for the Euler's Totient
-   tool, in all twenty-five supported languages.
+   tool, in all twenty-seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" is mathematical notation per
@@ -12,7 +12,7 @@
    Instant, Reset and Speed live in the shared `common` namespace
    (assets/i18n/site.js), never duplicated here. Placeholder names ({k},
    {n}, {min}, {max}, {count}, {total}, {phi}, {gcd}) are identical across
-   all twenty-five languages. bannerDone is { one, other } in every language
+   all twenty-seven languages. bannerDone is { one, other } in every language
    except Polish and Russian ({ one, few, many, other }), Romanian
    ({ one, few, other }), Latvian ({ zero, one, other }), Hebrew
    ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each the CLDR shape for that language.
@@ -604,6 +604,52 @@
         other: 'Selesai — {count} nilai diuji, {phi} relatif prima dengan {n}.'
       },
       caption: 'n prima menghasilkan φ(n) = n−1, karena setiap bilangan yang lebih kecil relatif prima terhadapnya — tombol contoh membuat hal itu mudah diperiksa.'
+    },
+    'zgh-Latn': {
+      title: 'Tasɣnt φ n Ulir',
+      heading: 'Tasɣnt φ n Ulir',
+      lede: 'φ(n) ar iḥsb acḥal gr 1 … n−1 ur mcrikn afaktur d n, dɣa tasna ad ar d tafa s yan abrid kigan aṣṣḥiḥ — s usuter n alguritm n Uklid ɣf yal yan gsn.',
+      xref: 'Acḥal yat ar d ittwaskan am tigdurin n tgrawt n usgut s umuḍul n →',
+      chipPrime: '{n} · amnzu',
+      run: 'Ssiḍn',
+      errNotWhole: 'n ixṣṣa ad yili d ummid.',
+      errTooSmall: 'n ixṣṣa ad yili {min} nɣ ugar — tikli k = 1 … n−1 ixṣṣa yan k nɣ ugar bac ad ittwakayad.',
+      errCapped: 'Amḍan n ur izmr ad ɛdda {max} — azal ittwanqs ar tilas.',
+      chainHead: 'Akayad n k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} d {n} imnza gr asn — gcd = 1, ittwaḥsb.',
+      verdictEliminated: 'k = {k} d {n} mcrikn yan ufaktur — gcd = {gcd}, ittwakks.',
+      tally: 'Aḥsab n imnza gr asn ɣilad: {count}',
+      progress: 'k = {k} sg {total} ittwakayad.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'Ihegga — sit ɣf Urar bac ad tẓrt amek ar ittakayad yal k, yan ubḍu ɣ tikkelt.',
+      bannerDone: {
+        one: 'Ikmml — ittwakayad {count} azal, {phi} gsn d imnza gr asn d {n}.',
+        other: 'Ikmml — ittwakayad {count} n izaln, {phi} gsn d imnza gr asn d {n}.'
+      },
+      caption: 'Ticki n d amnzu, φ(n) = n−1, acku yal amḍan amẓẓan ar t ixṣṣ — imdyatn ad ar ssfssun akayad.'
+    },
+    'zgh-Tfng': {
+      title: 'ⵜⴰⵙⵖⵏⵜ φ ⵏ ⵓⵍⵉⵔ',
+      heading: 'ⵜⴰⵙⵖⵏⵜ φ ⵏ ⵓⵍⵉⵔ',
+      lede: 'φ(n) ⴰⵔ ⵉⵃⵙⴱ ⴰⵛⵃⴰⵍ ⴳⵔ 1 … n−1 ⵓⵔ ⵎⵛⵔⵉⴽⵏ ⴰⴼⴰⴽⵜⵓⵔ ⴷ n, ⴷⵖⴰ ⵜⴰⵙⵏⴰ ⴰⴷ ⴰⵔ ⴷ ⵜⴰⴼⴰ ⵙ ⵢⴰⵏ ⴰⴱⵔⵉⴷ ⴽⵉⴳⴰⵏ ⴰⵚⵚⵃⵉⵃ — ⵙ ⵓⵙⵓⵜⴻⵔ ⵏ ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵓⴽⵍⵉⴷ ⵖⴼ ⵢⴰⵍ ⵢⴰⵏ ⴳⵙⵏ.',
+      xref: 'ⴰⵛⵃⴰⵍ ⵢⴰⵜ ⴰⵔ ⴷ ⵉⵜⵜⵡⴰⵙⴽⴰⵏ ⴰⵎ ⵜⵉⴳⴷⵓⵔⵉⵏ ⵏ ⵜⴳⵔⴰⵡⵜ ⵏ ⵓⵙⴳⵓⵜ ⵙ ⵓⵎⵓⴹⵓⵍ n →',
+      chipPrime: '{n} · ⴰⵎⵏⵣⵓ',
+      run: 'ⵙⵙⵉⴹⵏ',
+      errNotWhole: 'n ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⴷ ⵓⵎⵎⵉⴷ.',
+      errTooSmall: 'n ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ {min} ⵏⵖ ⵓⴳⴰⵔ — ⵜⵉⴽⵍⵉ k = 1 … n−1 ⵉⵅⵚⵚⴰ ⵢⴰⵏ k ⵏⵖ ⵓⴳⴰⵔ ⴱⴰⵛ ⴰⴷ ⵉⵜⵜⵡⴰⴽⴰⵢⴰⴷ.',
+      errCapped: 'ⴰⵎⴹⴰⵏ n ⵓⵔ ⵉⵣⵎⵔ ⴰⴷ ⵄⴷⴷⴰ {max} — ⴰⵣⴰⵍ ⵉⵜⵜⵡⴰⵏⵇⵙ ⴰⵔ ⵜⵉⵍⴰⵙ.',
+      chainHead: 'ⴰⴽⴰⵢⴰⴷ ⵏ k = {k} — gcd({n}, {k})',
+      verdictCoprime: 'k = {k} ⴷ {n} ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ — gcd = 1, ⵉⵜⵜⵡⴰⵃⵙⴱ.',
+      verdictEliminated: 'k = {k} ⴷ {n} ⵎⵛⵔⵉⴽⵏ ⵢⴰⵏ ⵓⴼⴰⴽⵜⵓⵔ — gcd = {gcd}, ⵉⵜⵜⵡⴰⴽⴽⵙ.',
+      tally: 'ⴰⵃⵙⴰⴱ ⵏ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⵖⵉⵍⴰⴷ: {count}',
+      progress: 'k = {k} ⵙⴳ {total} ⵉⵜⵜⵡⴰⴽⴰⵢⴰⴷ.',
+      answer: 'φ({n}) = {phi}',
+      bannerReady: 'ⵉⵀⴻⴳⴳⴰ — ⵙⵉⵜ ⵖⴼ ⵓⵔⴰⵔ ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⴰⵎⴻⴽ ⴰⵔ ⵉⵜⵜⴰⴽⴰⵢⴰⴷ ⵢⴰⵍ k, ⵢⴰⵏ ⵓⴱⴹⵓ ⵖ ⵜⵉⴽⴽⴻⵍⵜ.',
+      bannerDone: {
+        one: 'ⵉⴽⵎⵎⵍ — ⵉⵜⵜⵡⴰⴽⴰⵢⴰⴷ {count} ⴰⵣⴰⵍ, {phi} ⴳⵙⵏ ⴷ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⴷ {n}.',
+        other: 'ⵉⴽⵎⵎⵍ — ⵉⵜⵜⵡⴰⴽⴰⵢⴰⴷ {count} ⵏ ⵉⵣⴰⵍⵏ, {phi} ⴳⵙⵏ ⴷ ⵉⵎⵏⵣⴰ ⴳⵔ ⴰⵙⵏ ⴷ {n}.'
+      },
+      caption: 'ⵜⵉⵛⴽⵉ n ⴷ ⴰⵎⵏⵣⵓ, φ(n) = n−1, ⴰⵛⴽⵓ ⵢⴰⵍ ⴰⵎⴹⴰⵏ ⴰⵎⵥⵥⴰⵏ ⴰⵔ ⵜ ⵉⵅⵚⵚ — ⵉⵎⴷⵢⴰⵜⵏ ⴰⴷ ⴰⵔ ⵙⵙⴼⵙⵙⵓⵏ ⴰⴽⴰⵢⴰⴷ.'
     }
   });
 })();

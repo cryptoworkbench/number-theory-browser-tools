@@ -3,7 +3,7 @@
    and Randomize control, the table-scroll label, the four legend items, the
    validation note, the group summary / identity / symmetry notes, the
    table caption, the equation caption and the per-cell notes for the
-   Cayley Table tool, in all twenty-five supported languages.
+   Cayley Table tool, in all twenty-seven supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). summaryAdditive and summaryMultiplicative are
@@ -1016,6 +1016,84 @@
       noteDiagonal: 'Sel ini berada pada sumbu diagonal — ia kembaran dirinya sendiri, dengan hanya satu persamaan untuk dinyatakan: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
       noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), dan {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — keduanya bernilai sama, sehingga tabel simetris terhadap diagonalnya: grup ini komutatif.',
       selfInverseNote: '{a} adalah {word}, karena nilainya di sini adalah elemen identitas.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    'zgh-Latn': {
+      title: 'Taflwit n Kayli',
+      eyebrow: 'tiẓri n tgrawin · tiflwiyin n tmhlt',
+      heading: 'Taflwit n Kayli',
+      lede: 'Tamhlt tummidt n tgrawt ar tqqim ɣ yat taflwit tamkkuẓt — yat n usaṭr d yat n ukulun i yal afrdis, yat tiɣzt i yal tayafut. Yal ayn n tuddsa n tgrawt ad — afrdis arawsan nnes, imgalnin nnes, amsnfal nnes — ar ittwaẓr ɣ yan umkan g talɣa n tflwit.',
+      xref: 'Sin tmhlin n tgrawt yat, ittwaẓrn am tigdurin ɣf tawrerrayt, war isaṭrn g taflwit →',
+      tablistLabel: 'Tamhlt n tgrawt',
+      nLabel: 'N — amuḍul',
+      randomizeLabel: 'S ugacur',
+      randomize: 'Amdya amaynu s ugacur',
+      tableScrollLabel: 'Taflwit n Kayli, ittwazzuzzr',
+      'legend.identity': '{0} Asaṭr d ukulun n ufrdis arawsan',
+      'legend.inverse': '{0} Amgal n iman nnes (yuga d iman nnes)',
+      'legend.selected': '{0} Tiɣzt ittwasti',
+      'legend.mirror': '{0} Asmgal nnes ɣf tdyagunalt',
+      nNoteNotWhole: 'N ixṣṣa ad yili d ummid — taflwit tqqim am zzat.',
+      nNoteTooSmall: 'N ur izmr ad ddu n 1 — ittwakkr ar 1.',
+      nNoteCapped: 'Tilas n N d {max} bac ad ur tmqqr taflwit bahra — ittwanqs ar {max}.',
+      identityWordAdditive: 'ẓiru',
+      identityWordMultiplicative: 'yan',
+      inverseWordAdditive: 'amsalib n iman nnes',
+      inverseWordMultiplicative: 'amgal n iman nnes',
+      identityNote: 'Afrdis arawsan d {word} — asaṭr d ukulun nnes ittwaskn ddaw.',
+      symmetryNoteAdditive: 'a + b d b + a ar yaweḍn dima ɣ yat taggayt, dɣa taflwit ar tsmgal iman nnes ɣf tdyagunalt — sit ɣf yal tiɣzt bac ad tẓrt tawtmt nnes ar tcɛl ɣ tama nniḍen.',
+      symmetryNoteMultiplicative: 'a · b d b · a ar yaweḍn dima ɣ yat taggayt, dɣa taflwit ar tsmgal iman nnes ɣf tdyagunalt — sit ɣf yal tiɣzt bac ad tẓrt tawtmt nnes ar tcɛl ɣ tama nniḍen.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} afrdis · afrdis arawsan [{id}]',
+        other: 'ℤ/{n}ℤ · {count} n ifrdisn · afrdis arawsan [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} afrdis · afrdis arawsan [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} n ifrdisn · afrdis arawsan [{id}]'
+      },
+      tableCaption: 'Taflwit n Kayli i {summary} s {sign}',
+      noteDiagonal: 'Tiɣzt ad tella ɣf tdyagunalt — d tawtmt n iman nnes, s yat tmsawit kigan ar ittwaru: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), d {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — sin ar yaweḍn ɣ yan uzal, dɣa taflwit tmsawa ɣf tdyagunalt nnes: tagrawt tamsnfalt.',
+      selfInverseNote: '{a} d {word}, acku azal nnes dagi d afrdis arawsan.',
+      equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
+    },
+    'zgh-Tfng': {
+      title: 'ⵜⴰⴼⵍⵡⵉⵜ ⵏ ⴽⴰⵢⵍⵉ',
+      eyebrow: 'ⵜⵉⵥⵔⵉ ⵏ ⵜⴳⵔⴰⵡⵉⵏ · ⵜⵉⴼⵍⵡⵉⵢⵉⵏ ⵏ ⵜⵎⵀⵍⵜ',
+      heading: 'ⵜⴰⴼⵍⵡⵉⵜ ⵏ ⴽⴰⵢⵍⵉ',
+      lede: 'ⵜⴰⵎⵀⵍⵜ ⵜⵓⵎⵎⵉⴷⵜ ⵏ ⵜⴳⵔⴰⵡⵜ ⴰⵔ ⵜⵇⵇⵉⵎ ⵖ ⵢⴰⵜ ⵜⴰⴼⵍⵡⵉⵜ ⵜⴰⵎⴽⴽⵓⵥⵜ — ⵢⴰⵜ ⵏ ⵓⵙⴰⵟⵔ ⴷ ⵢⴰⵜ ⵏ ⵓⴽⵓⵍⵓⵏ ⵉ ⵢⴰⵍ ⴰⴼⵔⴷⵉⵙ, ⵢⴰⵜ ⵜⵉⵖⵣⵜ ⵉ ⵢⴰⵍ ⵜⴰⵢⴰⴼⵓⵜ. ⵢⴰⵍ ⴰⵢⵏ ⵏ ⵜⵓⴷⴷⵙⴰ ⵏ ⵜⴳⵔⴰⵡⵜ ⴰⴷ — ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ ⵏⵏⴻⵙ, ⵉⵎⴳⴰⵍⵏⵉⵏ ⵏⵏⴻⵙ, ⴰⵎⵙⵏⴼⴰⵍ ⵏⵏⴻⵙ — ⴰⵔ ⵉⵜⵜⵡⴰⵥⵔ ⵖ ⵢⴰⵏ ⵓⵎⴽⴰⵏ ⴳ ⵜⴰⵍⵖⴰ ⵏ ⵜⴼⵍⵡⵉⵜ.',
+      xref: 'ⵙⵉⵏ ⵜⵎⵀⵍⵉⵏ ⵏ ⵜⴳⵔⴰⵡⵜ ⵢⴰⵜ, ⵉⵜⵜⵡⴰⵥⵔⵏ ⴰⵎ ⵜⵉⴳⴷⵓⵔⵉⵏ ⵖⴼ ⵜⴰⵡⵔⴻⵔⵔⴰⵢⵜ, ⵡⴰⵔ ⵉⵙⴰⵟⵔⵏ ⴳ ⵜⴰⴼⵍⵡⵉⵜ →',
+      tablistLabel: 'ⵜⴰⵎⵀⵍⵜ ⵏ ⵜⴳⵔⴰⵡⵜ',
+      nLabel: 'N — ⴰⵎⵓⴹⵓⵍ',
+      randomizeLabel: 'ⵙ ⵓⴳⴰⵛⵓⵔ',
+      randomize: 'ⴰⵎⴷⵢⴰ ⴰⵎⴰⵢⵏⵓ ⵙ ⵓⴳⴰⵛⵓⵔ',
+      tableScrollLabel: 'ⵜⴰⴼⵍⵡⵉⵜ ⵏ ⴽⴰⵢⵍⵉ, ⵉⵜⵜⵡⴰⵣⵣⵓⵣⵣⵔ',
+      'legend.identity': '{0} ⴰⵙⴰⵟⵔ ⴷ ⵓⴽⵓⵍⵓⵏ ⵏ ⵓⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ',
+      'legend.inverse': '{0} ⴰⵎⴳⴰⵍ ⵏ ⵉⵎⴰⵏ ⵏⵏⴻⵙ (ⵢⵓⴳⴰ ⴷ ⵉⵎⴰⵏ ⵏⵏⴻⵙ)',
+      'legend.selected': '{0} ⵜⵉⵖⵣⵜ ⵉⵜⵜⵡⴰⵙⵜⵉ',
+      'legend.mirror': '{0} ⴰⵙⵎⴳⴰⵍ ⵏⵏⴻⵙ ⵖⴼ ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ',
+      nNoteNotWhole: 'N ⵉⵅⵚⵚⴰ ⴰⴷ ⵢⵉⵍⵉ ⴷ ⵓⵎⵎⵉⴷ — ⵜⴰⴼⵍⵡⵉⵜ ⵜⵇⵇⵉⵎ ⴰⵎ ⵣⵣⴰⵜ.',
+      nNoteTooSmall: 'N ⵓⵔ ⵉⵣⵎⵔ ⴰⴷ ⴷⴷⵓ ⵏ 1 — ⵉⵜⵜⵡⴰⴽⴽⵔ ⴰⵔ 1.',
+      nNoteCapped: 'ⵜⵉⵍⴰⵙ ⵏ N ⴷ {max} ⴱⴰⵛ ⴰⴷ ⵓⵔ ⵜⵎⵇⵇⵔ ⵜⴰⴼⵍⵡⵉⵜ ⴱⴰⵀⵔⴰ — ⵉⵜⵜⵡⴰⵏⵇⵙ ⴰⵔ {max}.',
+      identityWordAdditive: 'ⵥⵉⵔⵓ',
+      identityWordMultiplicative: 'ⵢⴰⵏ',
+      inverseWordAdditive: 'ⴰⵎⵙⴰⵍⵉⴱ ⵏ ⵉⵎⴰⵏ ⵏⵏⴻⵙ',
+      inverseWordMultiplicative: 'ⴰⵎⴳⴰⵍ ⵏ ⵉⵎⴰⵏ ⵏⵏⴻⵙ',
+      identityNote: 'ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ ⴷ {word} — ⴰⵙⴰⵟⵔ ⴷ ⵓⴽⵓⵍⵓⵏ ⵏⵏⴻⵙ ⵉⵜⵜⵡⴰⵙⴽⵏ ⴷⴷⴰⵡ.',
+      symmetryNoteAdditive: 'a + b ⴷ b + a ⴰⵔ ⵢⴰⵡⴻⴹⵏ ⴷⵉⵎⴰ ⵖ ⵢⴰⵜ ⵜⴰⴳⴳⴰⵢⵜ, ⴷⵖⴰ ⵜⴰⴼⵍⵡⵉⵜ ⴰⵔ ⵜⵙⵎⴳⴰⵍ ⵉⵎⴰⵏ ⵏⵏⴻⵙ ⵖⴼ ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ — ⵙⵉⵜ ⵖⴼ ⵢⴰⵍ ⵜⵉⵖⵣⵜ ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⵜⴰⵡⵜⵎⵜ ⵏⵏⴻⵙ ⴰⵔ ⵜⵛⵄⵍ ⵖ ⵜⴰⵎⴰ ⵏⵏⵉⴹⴻⵏ.',
+      symmetryNoteMultiplicative: 'a · b ⴷ b · a ⴰⵔ ⵢⴰⵡⴻⴹⵏ ⴷⵉⵎⴰ ⵖ ⵢⴰⵜ ⵜⴰⴳⴳⴰⵢⵜ, ⴷⵖⴰ ⵜⴰⴼⵍⵡⵉⵜ ⴰⵔ ⵜⵙⵎⴳⴰⵍ ⵉⵎⴰⵏ ⵏⵏⴻⵙ ⵖⴼ ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ — ⵙⵉⵜ ⵖⴼ ⵢⴰⵍ ⵜⵉⵖⵣⵜ ⴱⴰⵛ ⴰⴷ ⵜⵥⵔⵜ ⵜⴰⵡⵜⵎⵜ ⵏⵏⴻⵙ ⴰⵔ ⵜⵛⵄⵍ ⵖ ⵜⴰⵎⴰ ⵏⵏⵉⴹⴻⵏ.',
+      summaryAdditive: {
+        one: 'ℤ/{n}ℤ · {count} ⴰⴼⵔⴷⵉⵙ · ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ [{id}]',
+        other: 'ℤ/{n}ℤ · {count} ⵏ ⵉⴼⵔⴷⵉⵙⵏ · ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ [{id}]'
+      },
+      summaryMultiplicative: {
+        one: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} ⴰⴼⵔⴷⵉⵙ · ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ [{id}]',
+        other: '(ℤ/{n}ℤ)ˣ · φ({n}) = {count} ⵏ ⵉⴼⵔⴷⵉⵙⵏ · ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ [{id}]'
+      },
+      tableCaption: 'ⵜⴰⴼⵍⵡⵉⵜ ⵏ ⴽⴰⵢⵍⵉ ⵉ {summary} ⵙ {sign}',
+      noteDiagonal: 'ⵜⵉⵖⵣⵜ ⴰⴷ ⵜⴻⵍⵍⴰ ⵖⴼ ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ — ⴷ ⵜⴰⵡⵜⵎⵜ ⵏ ⵉⵎⴰⵏ ⵏⵏⴻⵙ, ⵙ ⵢⴰⵜ ⵜⵎⵙⴰⵡⵉⵜ ⴽⵉⴳⴰⵏ ⴰⵔ ⵉⵜⵜⵡⴰⵔⵓ: {a} {sign} {a} = {raw} ≡ {val} (mod {n}).',
+      noteCommutative: '{a} {sign} {b} = {rawAB} ≡ {val} (mod {n}), ⴷ {b} {sign} {a} = {rawBA} ≡ {val} (mod {n}) — ⵙⵉⵏ ⴰⵔ ⵢⴰⵡⴻⴹⵏ ⵖ ⵢⴰⵏ ⵓⵣⴰⵍ, ⴷⵖⴰ ⵜⴰⴼⵍⵡⵉⵜ ⵜⵎⵙⴰⵡⴰ ⵖⴼ ⵜⴷⵢⴰⴳⵓⵏⴰⵍⵜ ⵏⵏⴻⵙ: ⵜⴰⴳⵔⴰⵡⵜ ⵜⴰⵎⵙⵏⴼⴰⵍⵜ.',
+      selfInverseNote: '{a} ⴷ {word}, ⴰⵛⴽⵓ ⴰⵣⴰⵍ ⵏⵏⴻⵙ ⴷⴰⴳⵉ ⴷ ⴰⴼⵔⴷⵉⵙ ⴰⵔⴰⵡⵙⴰⵏ.',
       equationCaption: '{spanA} {sign} {spanB} = {spanSum} — {a} {sign} {b} = {raw} ≡ {val} (mod {n}).'
     }
   });
