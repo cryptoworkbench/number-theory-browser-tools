@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all twenty-five
+   switcher's own label and the day/night toggle's label — in all twenty-seven
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -589,6 +589,52 @@
       'nav.shor': 'Algoritma Shor',
       'lang.label': 'Bahasa',
       'theme.toggle': 'Beralih antara mode siang dan malam'
+    },
+    'zgh-Latn': {
+      brand: 'Allaln n tiẓri n imḍanen',
+      'nav.label': 'Allaln',
+      menu: 'Allaln',
+      'nav.home': 'Asnubg',
+      'nav.sieve': 'Aɣrbal n Iratustin',
+      'nav.factorTree': 'Aseklu n ifakturn',
+      'nav.venn': 'Amskan n Fin',
+      'nav.euclid': 'Alguritm n Uklid',
+      'nav.crt': 'Askkud aṣinwi n uqqimu',
+      'nav.wheel': 'Tawrerrayt n ugdu',
+      'nav.totient': 'Tasɣnt φ n Ulir',
+      'nav.cayley': 'Taflwit n Kayli',
+      'nav.iso': 'Amsalɣ n tgrawin',
+      'nav.sqm': 'Askkuẓ d usgut',
+      'nav.dh': 'Difi-Hilman',
+      'nav.ecdh': 'DH n tzligt tilibtikt',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Tarrayt n Firma',
+      'nav.shor': 'Alguritm n Cur',
+      'lang.label': 'Tutlayt',
+      'theme.toggle': 'Snfl gr tmuɣli n uzal d tmuɣli n yiḍ'
+    },
+    'zgh-Tfng': {
+      brand: 'ⴰⵍⵍⴰⵍⵏ ⵏ ⵜⵉⵥⵔⵉ ⵏ ⵉⵎⴹⴰⵏⴻⵏ',
+      'nav.label': 'ⴰⵍⵍⴰⵍⵏ',
+      menu: 'ⴰⵍⵍⴰⵍⵏ',
+      'nav.home': 'ⴰⵙⵏⵓⴱⴳ',
+      'nav.sieve': 'ⴰⵖⵔⴱⴰⵍ ⵏ ⵉⵔⴰⵜⵓⵙⵜⵉⵏ',
+      'nav.factorTree': 'ⴰⵙⴻⴽⵍⵓ ⵏ ⵉⴼⴰⴽⵜⵓⵔⵏ',
+      'nav.venn': 'ⴰⵎⵙⴽⴰⵏ ⵏ ⴼⵉⵏ',
+      'nav.euclid': 'ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵓⴽⵍⵉⴷ',
+      'nav.crt': 'ⴰⵙⴽⴽⵓⴷ ⴰⵚⵉⵏⵡⵉ ⵏ ⵓⵇⵇⵉⵎⵓ',
+      'nav.wheel': 'ⵜⴰⵡⵔⴻⵔⵔⴰⵢⵜ ⵏ ⵓⴳⴷⵓ',
+      'nav.totient': 'ⵜⴰⵙⵖⵏⵜ φ ⵏ ⵓⵍⵉⵔ',
+      'nav.cayley': 'ⵜⴰⴼⵍⵡⵉⵜ ⵏ ⴽⴰⵢⵍⵉ',
+      'nav.iso': 'ⴰⵎⵙⴰⵍⵖ ⵏ ⵜⴳⵔⴰⵡⵉⵏ',
+      'nav.sqm': 'ⴰⵙⴽⴽⵓⵥ ⴷ ⵓⵙⴳⵓⵜ',
+      'nav.dh': 'ⴷⵉⴼⵉ-ⵀⵉⵍⵎⴰⵏ',
+      'nav.ecdh': 'DH ⵏ ⵜⵣⵍⵉⴳⵜ ⵜⵉⵍⵉⴱⵜⵉⴽⵜ',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'ⵜⴰⵔⵔⴰⵢⵜ ⵏ ⴼⵉⵔⵎⴰ',
+      'nav.shor': 'ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵛⵓⵔ',
+      'lang.label': 'ⵜⵓⵜⵍⴰⵢⵜ',
+      'theme.toggle': 'ⵙⵏⴼⵍ ⴳⵔ ⵜⵎⵓⵖⵍⵉ ⵏ ⵓⵣⴰⵍ ⴷ ⵜⵎⵓⵖⵍⵉ ⵏ ⵢⵉⴹ'
     }
   });
 
@@ -1278,6 +1324,60 @@
       redoPalette: 'Ulangi perubahan palet',
       undoWork: 'Urungkan',
       redoWork: 'Ulangi'
+    },
+    'zgh-Latn': {
+      play: 'Urar',
+      pause: 'Sgunfu',
+      step: 'Asurif',
+      instant: 'Dɣya',
+      reset: 'Ssuɣl',
+      speed: 'Timmri',
+      'speed.1': 'iẓẓayn bahra',
+      'speed.2': 'iẓẓayn',
+      'speed.3': 's lmhl',
+      'speed.4': 'ifssusn',
+      'speed.5': 'ammas',
+      'speed.6': 'izrbn ddrus',
+      'speed.7': 'izrbn',
+      'speed.8': 'izrbn bahra',
+      'speed.9': 'zund abrrq',
+      'speed.10': 'qrib dɣya',
+      additiveGroups: 'Tigrawin n usmrni',
+      multiplicativeGroups: 'Tigrawin n usgut',
+      paletteEmptySieve: 'Smrs allal «{0}» bac ad trnut imḍanen imnza ɣ tbalitt ad.',
+      primePickerOpen: 'Sti yan umḍan amnzu sg tbalitt',
+      primePickerHeading: 'Sti yan umḍan amnzu',
+      undoPalette: 'Sfsx asnfl n tbalitt',
+      redoPalette: 'Ales asnfl n tbalitt',
+      undoWork: 'Sfsx',
+      redoWork: 'Ales'
+    },
+    'zgh-Tfng': {
+      play: 'ⵓⵔⴰⵔ',
+      pause: 'ⵙⴳⵓⵏⴼⵓ',
+      step: 'ⴰⵙⵓⵔⵉⴼ',
+      instant: 'ⴷⵖⵢⴰ',
+      reset: 'ⵙⵙⵓⵖⵍ',
+      speed: 'ⵜⵉⵎⵎⵔⵉ',
+      'speed.1': 'ⵉⵥⵥⴰⵢⵏ ⴱⴰⵀⵔⴰ',
+      'speed.2': 'ⵉⵥⵥⴰⵢⵏ',
+      'speed.3': 'ⵙ ⵍⵎⵀⵍ',
+      'speed.4': 'ⵉⴼⵙⵙⵓⵙⵏ',
+      'speed.5': 'ⴰⵎⵎⴰⵙ',
+      'speed.6': 'ⵉⵣⵔⴱⵏ ⴷⴷⵔⵓⵙ',
+      'speed.7': 'ⵉⵣⵔⴱⵏ',
+      'speed.8': 'ⵉⵣⵔⴱⵏ ⴱⴰⵀⵔⴰ',
+      'speed.9': 'ⵣⵓⵏⴷ ⴰⴱⵔⵔⵇ',
+      'speed.10': 'ⵇⵔⵉⴱ ⴷⵖⵢⴰ',
+      additiveGroups: 'ⵜⵉⴳⵔⴰⵡⵉⵏ ⵏ ⵓⵙⵎⵔⵏⵉ',
+      multiplicativeGroups: 'ⵜⵉⴳⵔⴰⵡⵉⵏ ⵏ ⵓⵙⴳⵓⵜ',
+      paletteEmptySieve: 'ⵙⵎⵔⵙ ⴰⵍⵍⴰⵍ «{0}» ⴱⴰⵛ ⴰⴷ ⵜⵔⵏⵓⵜ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵖ ⵜⴱⴰⵍⵉⵜⵜ ⴰⴷ.',
+      primePickerOpen: 'ⵙⵜⵉ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⵙⴳ ⵜⴱⴰⵍⵉⵜⵜ',
+      primePickerHeading: 'ⵙⵜⵉ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ',
+      undoPalette: 'ⵙⴼⵙⵅ ⴰⵙⵏⴼⵍ ⵏ ⵜⴱⴰⵍⵉⵜⵜ',
+      redoPalette: 'ⴰⵍⴻⵙ ⴰⵙⵏⴼⵍ ⵏ ⵜⴱⴰⵍⵉⵜⵜ',
+      undoWork: 'ⵙⴼⵙⵅ',
+      redoWork: 'ⴰⵍⴻⵙ'
     }
   });
 })();

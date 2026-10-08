@@ -46,8 +46,8 @@ var ROOT = process.env.I18N_CHECK_ROOT
   : path.resolve(__dirname, "..", "..", "..");
 
 // Task 2 decision (06-01-PLAN.md): option-a — 'site-lang', a raw language
-// code, either two-letter or the region-tagged pt-BR/pt-PT, owned entirely
-// by assets/nt-i18n.js. Used only to seed/inspect fake storage in this
+// code, either two-letter, the region-tagged pt-BR/pt-PT or the script-tagged
+// zgh-Latn/zgh-Tfng, owned entirely by assets/nt-i18n.js. Used only to seed/inspect fake storage in this
 // file's own test scenarios; the production constant lives in
 // assets/nt-i18n.js as NT.i18n.LANG_STORAGE_KEY.
 var LANG_KEY = "site-lang";
@@ -622,6 +622,8 @@ function loadI18n(opts) {
   opts = opts || {};
   var context = {};
   context.window = context;
+  // opts.Intl: an own Intl property replaces the context's Intl (a stub); null deletes it (no Intl at all).
+  if (Object.prototype.hasOwnProperty.call(opts, "Intl") && opts.Intl !== null) context.Intl = opts.Intl;
   var doc = createFakeDocument();
   var cookieOpts = opts.cookie || {};
   var jar = attachCookieJar(doc, { throwOnGet: cookieOpts.throwOnGet, throwOnSet: cookieOpts.throwOnSet });
@@ -678,6 +680,7 @@ function loadI18n(opts) {
   context.CustomEvent = function (type, init) { this.type = type; this.detail = init && init.detail; };
 
   vm.createContext(context);
+  if (Object.prototype.hasOwnProperty.call(opts, "Intl") && opts.Intl === null) vm.runInContext("delete globalThis.Intl;", context);
   context.addEventListener("nt-i18n:change", function (e) { context._changeEvents.push(e.detail.lang); });
 
   var src = fs.readFileSync(path.join(ROOT, "assets", "nt-i18n.js"), "utf8");
@@ -714,7 +717,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zh"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zgh-Latn", "zgh-Tfng", "zh"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -1022,6 +1025,44 @@ function doApi() {
   check("after id then ar, html dir attribute is rtl", (I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
   I.setLang("en");
 
+  // Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng): both codes are left to right and set the full code in html lang.
+  ["zgh-Latn", "zgh-Tfng"].forEach(function (L) {
+    check("setLang('" + L + "') returns true", I.setLang(L), true);
+    check("html lang is the full code " + L, ctx._doc.documentElement.lang, L);
+    check("html dir attribute is absent for " + L, ctx._doc.documentElement.getAttribute("dir"), null);
+    check("after ar then " + L + ", html lang is " + L, (I.setLang("ar"), I.setLang(L), ctx._doc.documentElement.lang), L);
+    check("after ar then " + L + ", html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("after he then " + L + ", html lang is " + L, (I.setLang("he"), I.setLang(L), ctx._doc.documentElement.lang), L);
+    check("after he then " + L + ", html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("after " + L + " then ar, html dir attribute is rtl", (I.setLang("ar"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  });
+  check("setLang from zgh-Latn to zgh-Tfng returns true", (I.setLang("zgh-Latn"), I.setLang("zgh-Tfng")), true);
+  check("html lang follows zgh-Latn to zgh-Tfng", ctx._doc.documentElement.lang, "zgh-Tfng");
+  I.setLang("en");
+
+  // Standard Moroccan Tamazight has no CLDR plural data (Intl.PluralRules falls back to the runtime's default
+  // locale for it), so NT.i18n selects one for exactly 1 and other otherwise, with the real Intl, an Intl whose
+  // PluralRules behaves like a Russian default locale, and no Intl at all.
+  function RuStubRules() {}
+  RuStubRules.prototype.select = function (n) { return n === 1 ? "other" : (n === 0 || n === 21 || n === 1.5 ? "one" : (n === 2 ? "few" : "many")); };
+  RuStubRules.prototype.resolvedOptions = function () { return { locale: "ru", pluralCategories: ["few", "many", "one", "other"] }; };
+  [["the real Intl", {}], ["a stubbed Russian-like Intl", { Intl: { PluralRules: RuStubRules } }], ["no Intl", { Intl: null }]].forEach(function (v) {
+    var zctx = loadI18n(Object.assign({ navigator: { languages: ["en-US", "en"] } }, v[1]));
+    var ZI = zctx.NT.i18n;
+    if (v[0] === "no Intl") check("the no-Intl context really has no Intl", vm.runInContext("typeof Intl", zctx), "undefined");
+    ZI.register("trzgh", {
+      en: { count: { one: "{count} one", other: "{count} other" } },
+      "zgh-Latn": { count: { one: "{count} one", other: "{count} other" } },
+      "zgh-Tfng": { count: { one: "{count} one", other: "{count} other" } }
+    });
+    ["zgh-Latn", "zgh-Tfng"].forEach(function (L) {
+      check("setLang('" + L + "') returns true (trzgh, " + v[0] + ")", ZI.setLang(L), true);
+      [0, 1, 2, 1.5, 11, 21, 100, 1000000].forEach(function (n) {
+        check(L + " trzgh.count at " + n + " selects " + (n === 1 ? "one" : "other") + " with " + v[0], ZI.translate("trzgh.count", { count: n }), n + (n === 1 ? " one" : " other"));
+      });
+    });
+  });
+
   I.setLang("fr");
   check("fr t.count at 1000000 still falls back to other (fr's CLDR many unchanged)", I.translate("t.count", { count: 1000000 }), "1000000 trucs");
   I.setLang("en");
@@ -1155,6 +1196,9 @@ function doApi() {
   });
   check("setLang('ara') returns false (ISO 639-2 tag is not an allow-list code)", I.setLang("ara"), false);
   check("setLang('hin') returns false (ISO 639-3 tag is not an allow-list code)", I.setLang("hin"), false);
+  ["zgh", "zgh-latn", "zgh-LATN", "ZGH-Latn", "Zgh-Latn", "zgh-tfng", "zgh-TFNG", "zgh_Latn", "zgh_Tfng", "zgh-Latn-MA", "zgh-MA", "zgh-Tifinagh", "zgh-Latin", "tzm", "tzm-Latn", "ber", "kab", "shi", "Latn", "Tfng", " zgh-Latn", "zgh-Latn ", "zgh-Tfng\n"].forEach(function (code) {
+    check("setLang(" + JSON.stringify(code) + ") returns false (exact, case-sensitive allow-list: only the script-tagged zgh-Latn and zgh-Tfng)", I.setLang(code), false);
+  });
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
   check("setLang('be') returns false (Belarusian not supported)", I.setLang("be"), false);
   I.SUPPORTED_LANGS.forEach(function (lang) {
@@ -1378,7 +1422,56 @@ function doApi() {
     [["no", "in"], "nb", "no,in (legacy Norwegian tag wins as first preference)"],
     [["pt-BR", "id"], "pt-BR", "pt-BR,id (first supported wins)"],
     [["zh-TW", "id"], "zh", "zh-TW,id (first supported wins)"],
-    [["he-IL", "in"], "he", "he-IL,in (first supported wins)"]
+    [["he-IL", "in"], "he", "he-IL,in (first supported wins)"],
+    [["zgh"], "zgh-Tfng", "zgh (Standard Moroccan Tamazight, Tifinagh is the official script)"],
+    [["zgh-MA"], "zgh-Tfng", "zgh-MA (no script subtag -> Tifinagh)"],
+    [["zgh-Tfng"], "zgh-Tfng", "zgh-Tfng"],
+    [["zgh-Tfng-MA"], "zgh-Tfng", "zgh-Tfng-MA"],
+    [["ZGH_tfng"], "zgh-Tfng", "ZGH_tfng (case-insensitive, underscore separator)"],
+    [["zgh-Arab"], "zgh-Tfng", "zgh-Arab (a non-Latn script subtag -> Tifinagh)"],
+    [["zgh-Latn"], "zgh-Latn", "zgh-Latn"],
+    [["zgh-Latn-MA"], "zgh-Latn", "zgh-Latn-MA"],
+    [["ZGH_LATN", "en"], "zgh-Latn", "ZGH_LATN (case-insensitive, underscore separator)"],
+    [["zgh_latn_ma"], "zgh-Latn", "zgh_latn_ma (lowercase, underscores)"],
+    [["Zgh-lAtN"], "zgh-Latn", "Zgh-lAtN (mixed case)"],
+    [["tzm"], "zgh-Tfng", "tzm (Central Atlas Tamazight -> Tifinagh)"],
+    [["tzm-MA"], "zgh-Tfng", "tzm-MA"],
+    [["tzm-Latn", "en"], "zgh-Latn", "tzm-Latn,en (Central Atlas tag with a Latn subtag -> zgh-Latn)"],
+    [["TZM_latn"], "zgh-Latn", "TZM_latn (case-insensitive, underscore separator)"],
+    [["tzm-Arab"], "zgh-Tfng", "tzm-Arab"],
+    [["ber"], "zgh-Tfng", "ber (collective Berber tag -> zgh-Tfng)"],
+    [["BER-MA"], "zgh-Tfng", "BER-MA"],
+    [["ber-DZ"], "zgh-Tfng", "ber-DZ (collective Berber tag -> zgh-Tfng)"],
+    [["ber-Latn"], "zgh-Latn", "ber-Latn"],
+    [["kab", "en"], "en", "kab,en (Kabyle is not mapped)"],
+    [["kab-DZ"], "en", "kab-DZ (Kabyle is not mapped)"],
+    [["kab-Latn", "en"], "en", "kab-Latn,en (Kabyle is not mapped)"],
+    [["kab", "tzm"], "zgh-Tfng", "kab,tzm (Kabyle falls through to the next preference)"],
+    [["shi", "en"], "en", "shi,en (Tashelhit is not mapped)"],
+    [["shi-Latn"], "en", "shi-Latn (Tashelhit is not mapped)"],
+    [["shi-Tfng"], "en", "shi-Tfng (Tashelhit is not mapped)"],
+    [["shi", "ber-Latn"], "zgh-Latn", "shi,ber-Latn (Tashelhit falls through to the next preference)"],
+    [["rif", "en"], "en", "rif,en (Tarifit is not mapped)"],
+    [["rif-Latn"], "en", "rif-Latn (Tarifit is not mapped)"],
+    [["zg", "en"], "en", "zg,en (the two-letter slice of a zgh-like tag is not a supported code)"],
+    [["zgx", "en"], "en", "zgx,en (the new branch tests the whole first subtag)"],
+    [["zghx", "en"], "en", "zghx,en (the new branch tests the whole first subtag)"],
+    [["tz", "en"], "en", "tz,en (not a supported code)"],
+    [["tzmx"], "en", "tzmx (the new branch tests the whole first subtag)"],
+    [["be", "en"], "en", "be,en (Belarusian not supported)"],
+    [["bem", "en"], "en", "bem,en (Bemba not supported)"],
+    [["berx", "en"], "en", "berx,en (the new branch tests the whole first subtag)"],
+    [["Latn"], "en", "Latn (a script subtag alone is not a language)"],
+    [["Tfng"], "en", "Tfng (a script subtag alone is not a language)"],
+    [["en-MA", "zgh"], "en", "en-MA,zgh (first supported wins)"],
+    [["fr-MA", "zgh"], "fr", "fr-MA,zgh (first supported wins)"],
+    [["ar-MA", "zgh"], "ar", "ar-MA,zgh (first supported wins)"],
+    [["id", "zgh"], "id", "id,zgh (first supported wins)"],
+    [["in", "zgh"], "id", "in,zgh (legacy Indonesian tag wins as first preference)"],
+    [["zgh", "in"], "zgh-Tfng", "zgh,in (zgh wins as first preference)"],
+    [["pt-BR", "zgh"], "pt-BR", "pt-BR,zgh (first supported wins)"],
+    [["iw", "zgh-Latn"], "he", "iw,zgh-Latn (legacy Hebrew tag wins as first preference)"],
+    [["th", "zgh-Latn"], "zgh-Latn", "th,zgh-Latn (Thai unsupported, falls through)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1411,7 +1504,7 @@ function doApi() {
       a.setAttribute("href", c.href);
       return a;
     });
-    ["de", "fr", "pt-BR", "pt-PT"].forEach(function (targetLang) {
+    ["de", "fr", "pt-BR", "pt-PT", "zgh-Latn"].forEach(function (targetLang) {
       I2.setLang(targetLang);
       cases.forEach(function (c, i) {
         var href = els[i].getAttribute("href");
@@ -1530,7 +1623,21 @@ function doPersistence() {
     { opts: { cookie: { initial: "id" }, storage: { initial: "es" } }, want: "id", label: "cookie id beats storage" },
     { opts: { storage: { initial: "in" }, navigator: { languages: ["in-ID", "en"] } }, want: "id", label: "storage in falls through to detected id (navigator in-ID)" },
     { opts: { storage: { initial: "id-ID" }, navigator: { languages: ["id-ID", "en"] } }, want: "id", label: "storage id-ID falls through to detected id (navigator id-ID)" },
-    { opts: { storage: { initial: "ind" } }, want: "en", label: "storage ind (ISO 639-2/3 tag, unsupported) falls through to detected default" }
+    { opts: { storage: { initial: "ind" } }, want: "en", label: "storage ind (ISO 639-2/3 tag, unsupported) falls through to detected default" },
+    { opts: { search: "?lang=zgh-Tfng" }, want: "zgh-Tfng", label: "url zgh-Tfng" },
+    { opts: { search: "?lang=zgh-Latn" }, want: "zgh-Latn", label: "url zgh-Latn" },
+    { opts: { search: "?lang=zgh%2DTfng" }, want: "zgh-Tfng", label: "url zgh%2DTfng decodes to zgh-Tfng" },
+    { opts: { search: "?lang=zgh-Latn", cookie: { initial: "zgh-Tfng" }, storage: { initial: "ko" } }, want: "zgh-Latn", label: "url zgh-Latn beats a cookie of zgh-Tfng and a stored ko" },
+    { opts: { search: "?lang=zgh-latn", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url zgh-latn (case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=zgh", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url zgh (bare, unsupported) falls through to cookie" },
+    { opts: { search: "?lang=zgh-Latn-MA", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url zgh-Latn-MA (unsupported) falls through to cookie" },
+    { opts: { search: "?lang=tzm", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url tzm (detection-only tag, unsupported) falls through to cookie" },
+    { opts: { cookie: { initial: "zgh-TFNG" }, storage: { initial: "es" } }, want: "es", label: "cookie zgh-TFNG falls through to storage" },
+    { opts: { cookie: { initial: "zgh" }, storage: { initial: "es" } }, want: "es", label: "cookie zgh falls through to storage" },
+    { opts: { cookie: { initial: "zgh-Tfng" }, storage: { initial: "es" } }, want: "zgh-Tfng", label: "cookie zgh-Tfng beats storage" },
+    { opts: { storage: { initial: "zgh-Latn" } }, want: "zgh-Latn", label: "storage zgh-Latn used when url and cookie absent" },
+    { opts: { storage: { initial: "zgh" }, navigator: { languages: ["tzm-Latn", "en"] } }, want: "zgh-Latn", label: "storage zgh falls through to detected zgh-Latn (navigator tzm-Latn)" },
+    { opts: { storage: { initial: "zgh" } }, want: "en", label: "storage zgh falls through to detected default" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1652,7 +1759,10 @@ function doPersistence() {
     { opts: { cookie: { initial: "hu" } }, lang: "hu", via: "cookie" },
     { opts: { storage: { initial: "lv" } }, lang: "lv", via: "storage" },
     { opts: { search: "?lang=ru" }, lang: "ru", via: "url" },
-    { opts: { cookie: { initial: "el" } }, lang: "el", via: "cookie" }
+    { opts: { cookie: { initial: "el" } }, lang: "el", via: "cookie" },
+    { opts: { search: "?lang=zgh-Tfng" }, lang: "zgh-Tfng", via: "url" },
+    { opts: { cookie: { initial: "zgh-Latn" } }, lang: "zgh-Latn", via: "cookie" },
+    { opts: { storage: { initial: "zgh-Tfng" } }, lang: "zgh-Tfng", via: "storage" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1837,6 +1947,21 @@ function doPersistence() {
     check("storage event with the upper-cased ID is a no-op", ctx._doc.documentElement.lang, "id");
     check("storage events with in and ID fire no change event", ctx._changeEvents.length, changeAfterId);
 
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "ar");
+    var changeBeforeZgh = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "zgh-Tfng");
+    check("storage event with zgh-Tfng while ar is active re-applies html lang", ctx._doc.documentElement.lang, "zgh-Tfng");
+    check("storage event with zgh-Tfng while ar is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with zgh-Tfng fires one more change event", ctx._changeEvents.length, changeBeforeZgh + 1);
+    var changeAfterZgh = ctx._changeEvents.length;
+    ["zgh-tfng", "zgh", "tzm"].forEach(function (bad) {
+      ctx._fireStorage(I.LANG_STORAGE_KEY, bad);
+      check("storage event with " + bad + " is a no-op", ctx._doc.documentElement.lang, "zgh-Tfng");
+    });
+    check("storage events with zgh-tfng, zgh and tzm fire no change event", ctx._changeEvents.length, changeAfterZgh);
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "zgh-Latn");
+    check("storage event with zgh-Latn re-applies html lang", ctx._doc.documentElement.lang, "zgh-Latn");
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -1857,7 +1982,10 @@ function doPersistence() {
     { search: "?theme=day&lang=hu&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
     { search: "?lang=ro-RO", pathname: "/x.html", hash: "", calls: 0, want: null },
     { search: "?theme=day&lang=el&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
-    { search: "?lang=ru-RU", pathname: "/x.html", hash: "", calls: 0, want: null }
+    { search: "?lang=ru-RU", pathname: "/x.html", hash: "", calls: 0, want: null },
+    { search: "?theme=day&lang=zgh-Latn&n=7", pathname: "/x.html", hash: "#k", calls: 1, want: "/x.html?theme=day&n=7#k" },
+    { search: "?lang=zgh-Tfng", pathname: "/x.html", hash: "", calls: 1, want: "/x.html" },
+    { search: "?lang=zgh-latn", pathname: "/x.html", hash: "", calls: 0, want: null }
   ].forEach(function (c) {
     var ctx = loadI18n({ search: c.search, pathname: c.pathname, hash: c.hash, navigator: { languages: ["en-US", "en"] } });
     check("stripUrlParam call count for " + JSON.stringify(c.search), ctx.history._calls.length, c.calls);
@@ -1907,7 +2035,9 @@ var SWITCHER_OPTIONS = [
   { value: "zh", lang: "zh", label: "中文" },
   { value: "ja", lang: "ja", label: "日本語" },
   { value: "ko", lang: "ko", label: "한국어" },
-  { value: "id", lang: "id", label: "Bahasa Indonesia" }
+  { value: "id", lang: "id", label: "Bahasa Indonesia" },
+  { value: "zgh-Latn", lang: "zgh-Latn", label: "Tamazi\u0263t" },
+  { value: "zgh-Tfng", lang: "zgh-Tfng", label: "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c" }
 ];
 
 // RTL_LANGS: the languages written right to left, Hebrew and Arabic. Mirrors
@@ -1946,10 +2076,18 @@ var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], 
 // correctly for every count (0, 1 and any other).
 var PLURAL_OTHER_ONLY_LANGS = ["zh", "ja", "ko", "id"];
 
+// FIXED_PLURAL_LANGS: Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng). Mirrors
+// assets/nt-i18n.js's internal list: languages without CLDR plural data, for
+// which NT.i18n itself selects one for exactly 1 and other otherwise, because
+// Intl.PluralRules would fall back to the runtime's default locale (fr selects
+// one for 0, ru for 21). Their plural values are { one, other }.
+var FIXED_PLURAL_LANGS = ["zgh-Latn", "zgh-Tfng"];
+
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
 // extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
 // one,other,zero for lv, one,other,two for he, few,many,one,other,two,zero for ar,
-// other for zh, ja, ko and id, one,other for every other language.
+// other for zh, ja, ko and id, one,other for every other language (the fixed-rule
+// zgh-Latn and zgh-Tfng included: one for exactly 1, other for everything else).
 function expectedPluralCategories(lang) {
   if (PLURAL_OTHER_ONLY_LANGS.indexOf(lang) !== -1) return ["other"];
   var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
@@ -2048,9 +2186,9 @@ function isProse(text) {
   return false;
 }
 
-/* ---------- script rule (Russian, Greek, Hebrew, Hindi, Arabic, Chinese, Japanese and Korean, the non-Latin scripts) ---------- */
+/* ---------- script rule (Russian, Greek, Hebrew, Hindi, Arabic, Chinese, Japanese, Korean and Tifinagh, the non-Latin scripts) ---------- */
 
-// Russian, Greek, Hebrew, Hindi, Arabic, Chinese, Japanese and Korean cannot be checked for leftover English by
+// Russian, Greek, Hebrew, Hindi, Arabic, Chinese, Japanese, Korean and Tifinagh Tamazight cannot be checked for leftover English by
 // IDENTICAL-TO-EN alone (a half-translated value is not identical to
 // English) or by the Latin-language function-word checks in isProse. This
 // data-driven rule catches a value written in the wrong script, a mixed
@@ -2059,7 +2197,10 @@ function isProse(text) {
 // A later non-Latin-script language needs only its own SCRIPT_RULES entry.
 // Every rule tokenises by script runs (\p{Script=...}), never by whitespace:
 // Chinese and Japanese are written without spaces between words, so an English
-// leftover can sit glued to Han or kana text.
+// leftover can sit glued to Han or kana text. Tifinagh joins every other
+// rule's foreign pattern (a Tifinagh letter in a ru, el, he, hi, ar, zh, ja or
+// ko value is SCRIPT-FOREIGN); Standard Moroccan Tamazight in Latin script
+// (zgh-Latn) has no entry here: zghLatinFindings checks its IRCAM letters.
 
 // SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic, Greek,
 // Hebrew, Devanagari, Arabic, Han, kana or Hangul value may keep — notation, a code identifier, an acronym, or a narrative
@@ -2071,15 +2212,89 @@ var SCRIPT_LATIN_NOTATION = [
   "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
 ];
 
+// ---------- Standard Moroccan Tamazight (IRCAM standard, ISO 639-3 zgh) ----------
+// zgh-Latn is the IRCAM Latin transcription (switcher label Tamaziɣt); zgh-Tfng is
+// the same text in IRCAM Tifinagh, derived from it letter by letter. The table maps
+// each lowercase IRCAM Latin letter (precomposed ḍ ḥ ṛ ṣ ṭ ẓ, ɛ U+025B, ɣ U+0263)
+// to its Tifinagh letter; the labialization mark ʷ (U+02B7, only after g or k) maps to
+// U+2D6F. Written with \u escapes so the file holds no look-alike or invisible character.
+var ZGH_LATN_TO_TFNG = Object.freeze({
+  "a": "\u2d30",
+  "b": "\u2d31",
+  "c": "\u2d5b",
+  "\u010d": "\u2d5e",
+  "d": "\u2d37",
+  "\u1e0d": "\u2d39",
+  "e": "\u2d3b",
+  "\u025b": "\u2d44",
+  "f": "\u2d3c",
+  "g": "\u2d33",
+  "\u01e7": "\u2d35",
+  "\u0263": "\u2d56",
+  "h": "\u2d40",
+  "\u1e25": "\u2d43",
+  "i": "\u2d49",
+  "j": "\u2d4a",
+  "k": "\u2d3d",
+  "l": "\u2d4d",
+  "m": "\u2d4e",
+  "n": "\u2d4f",
+  "q": "\u2d47",
+  "r": "\u2d54",
+  "\u1e5b": "\u2d55",
+  "s": "\u2d59",
+  "\u1e63": "\u2d5a",
+  "t": "\u2d5c",
+  "\u1e6d": "\u2d5f",
+  "u": "\u2d53",
+  "w": "\u2d61",
+  "x": "\u2d45",
+  "y": "\u2d62",
+  "z": "\u2d63",
+  "\u1e93": "\u2d65",
+  "\u02b7": "\u2d6f"
+});
+
+// ZGH_KEEP: the Latin tokens kept verbatim in both scripts (notation, acronyms, code
+// identifiers, the narrative names Alice/Bob/Eve, the unit ms and the key-cap names
+// Delete/Enter/Space). Equal to SCRIPT_LATIN_NOTATION without its four eponyms
+// (Fibonacci, Fourier, Garner, Hasse are adapted to IRCAM Latin) plus those four.
+var ZGH_KEEP = [
+  "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Delete", "Enter", "Eve",
+  "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "Space", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
+  "kG", "lcm", "log", "mod", "ms", "pointAdd", "qInv", "scalarMul"
+];
+var ZGH_KEEP_SET = {};
+ZGH_KEEP.forEach(function (w) { ZGH_KEEP_SET[w] = true; });
+
+var ZGH_LAB_LATN = "ʷ";   // MODIFIER LETTER SMALL W (gʷ, kʷ)
+var ZGH_LAB_TFNG = "ⵯ";   // TIFINAGH MODIFIER LETTER LABIALIZATION MARK
+var ZGH_PHI = "φ";        // GREEK SMALL LETTER PHI, the totient symbol, always allowed
+
+// The IRCAM Latin letters that are not plain ASCII, upper and lower case: a Latin value
+// in zgh-Tfng must not carry them (they have a Tifinagh letter), and ʷ belongs to g and k.
+var ZGH_SPECIAL_LATIN = "ɛƐɣƔčČǧǦḍḌḥḤṛṚṣṢṭṬẓẒʷ";
+var ZGH_TFNG_LETTERS = Object.keys(ZGH_LATN_TO_TFNG).filter(function (k) { return k !== ZGH_LAB_LATN; }).map(function (k) { return ZGH_LATN_TO_TFNG[k]; }).join("");
+var ZGH_TFNG_OK = {};
+Object.keys(ZGH_LATN_TO_TFNG).forEach(function (k) { ZGH_TFNG_OK[ZGH_LATN_TO_TFNG[k]] = true; });
+
+// The zgh-Tfng script rule: Tifinagh is its own script; foreign is every other non-Latin script, a
+// run of two or more Greek letters, any special IRCAM Latin letter, any Tifinagh character
+// outside the IRCAM set (this includes U+2D7F, the consonant joiner) and the labialization
+// mark anywhere but directly after Tifinagh g or k.
+var ZGH_TFNG_FOREIGN = new RegExp(
+  "\\p{Script=Cyrillic}|\\p{Script=Hebrew}|\\p{Script=Devanagari}|\\p{Script=Arabic}|\\p{Script=Han}|\\p{Script=Hiragana}|\\p{Script=Katakana}|\\p{Script=Hangul}|\\p{Script=Greek}{2,}" +
+  "|[" + ZGH_SPECIAL_LATIN + "]|(?![" + ZGH_TFNG_LETTERS + ZGH_LAB_TFNG + "])\\p{Script=Tifinagh}|(?<![" + ZGH_LATN_TO_TFNG.g + ZGH_LATN_TO_TFNG.k + "])" + ZGH_LAB_TFNG, "u");
+
 var SCRIPT_RULES = {
   ru: {
     own: /\p{Script=Cyrillic}/u,
-    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
+    foreign: /\p{Script=Greek}{2,}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   el: {
     own: /\p{Script=Greek}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION.concat([
       "Bézout", "Cayley", "Diffie", "ElGamal", "Euler", "Fermat", "Hellman",
       "Miller", "Rabin", "Shor", "Venn", "bit", "ms"
@@ -2091,7 +2306,7 @@ var SCRIPT_RULES = {
   // list is reused without el's eponym extension.
   he: {
     own: /\p{Script=Hebrew}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Greek}{2,}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Hindi (Devanagari, left to right): own needs a Devanagari LETTER (the
@@ -2101,7 +2316,7 @@ var SCRIPT_RULES = {
   // reused without el's eponym extension.
   hi: {
     own: /(?=\p{L})\p{Script=Devanagari}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Arabic (right to left): own needs an Arabic LETTER (the lookahead keeps
@@ -2112,7 +2327,7 @@ var SCRIPT_RULES = {
   // is reused without el's eponym extension.
   ar: {
     own: /(?=\p{L})\p{Script=Arabic}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Greek}{2,}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Chinese (Simplified, left to right): own is a Han character. Any
@@ -2123,7 +2338,7 @@ var SCRIPT_RULES = {
   // notation list is reused.
   zh: {
     own: /\p{Script=Han}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Greek}{2,}|[\u30fb\u30fc]/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Greek}{2,}|[\u30fb\u30fc]|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Japanese (left to right): own is a Han, Hiragana or Katakana character
@@ -2133,7 +2348,7 @@ var SCRIPT_RULES = {
   // separately by cjkFindings (HAN-FORM).
   ja: {
     own: /\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Hangul}|\p{Script=Greek}{2,}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Hangul}|\p{Script=Greek}{2,}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
   },
   // Korean (left to right): own is a Hangul character. Han (no hanja), kana,
@@ -2141,8 +2356,16 @@ var SCRIPT_RULES = {
   // Devanagari, Arabic or a run of two or more Greek letters is foreign.
   ko: {
     own: /\p{Script=Hangul}/u,
-    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Greek}{2,}|[\u30fb\u30fc]/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Devanagari}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Greek}{2,}|[\u30fb\u30fc]|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
+  },
+  // Standard Moroccan Tamazight in IRCAM Tifinagh (left to right): own is a Tifinagh letter; the Latin
+  // tokens it may keep are ZGH_KEEP (Alice/Bob/Eve, acronyms, code identifiers, notation words); single
+  // Latin letters are notation and are checked by zghTransliterationFindings (ZGH-NOTATION).
+  "zgh-Tfng": {
+    own: /\p{Script=Tifinagh}/u,
+    foreign: ZGH_TFNG_FOREIGN,
+    latin: ZGH_KEEP
   }
 };
 
@@ -2151,7 +2374,7 @@ var SCRIPT_RULES = {
 // space in both value and enValue, returns in order: SCRIPT-LATIN for each
 // maximal Latin run (>1 char) not on the language's own latin list,
 // SCRIPT-MIXED for each maximal letter run mixing two or more of
-// Latin/Cyrillic/Greek/Hebrew/Devanagari/Arabic (the CJK scripts are deliberately
+// Latin/Cyrillic/Greek/Hebrew/Devanagari/Arabic/Tifinagh (the CJK scripts are deliberately
 // not counted: Chinese and Japanese are unspaced and Korean attaches particles
 // to Latin tokens, so "RSA加密", "RSAの鍵" and "RSA를" are correct text whose
 // letter runs mix Latin with a CJK script; SCRIPT-LATIN already finds an English
@@ -2190,7 +2413,8 @@ function scriptFindings(id, lang, value, enValue) {
     // tatweel is Script=Common, both with Script_Extensions Arabic, so the
     // extension property keeps a Latin letter glued through one of them visible.
     var hasArabic = /\p{Script_Extensions=Arabic}/u.test(w);
-    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0) + (hasHebrew ? 1 : 0) + (hasDevanagari ? 1 : 0) + (hasArabic ? 1 : 0);
+    var hasTifinagh = /\p{Script=Tifinagh}/u.test(w);
+    var scriptCount = (hasLatin ? 1 : 0) + (hasCyrillic ? 1 : 0) + (hasGreek ? 1 : 0) + (hasHebrew ? 1 : 0) + (hasDevanagari ? 1 : 0) + (hasArabic ? 1 : 0) + (hasTifinagh ? 1 : 0);
     if (scriptCount >= 2) {
       findings.push("SCRIPT-MIXED " + id + "." + lang + ": " + JSON.stringify(w));
     }
@@ -2322,8 +2546,9 @@ function charFindings(id, lang, value) {
 // English value's numerals. Languages added before this rule keep a few
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
 // is why the list holds only the languages added after the rule existed
-// (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese, Korean and Indonesian).
-var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id"];
+// (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese, Korean, Indonesian and
+// Standard Moroccan Tamazight in both scripts).
+var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id", "zgh-Latn", "zgh-Tfng"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space
@@ -2339,6 +2564,123 @@ function digitParityFindings(id, lang, value, enValue) {
   var got = tokens(value), want = tokens(enValue);
   if (got.join("|") === want.join("|")) return [];
   return ["DIGIT-PARITY " + id + "." + lang + ": en [" + want.join(", ") + "] vs [" + got.join(", ") + "]"];
+}
+
+/* ---------- Standard Moroccan Tamazight: IRCAM Latin letters, transliteration, notation parity ---------- */
+
+// zgh-Tfng is never written by hand: it is the IRCAM transliteration of the zgh-Latn value of the
+// same key and plural category. zghLatinFindings keeps zgh-Latn inside the IRCAM Latin letters;
+// zghTransliterationFindings keeps zgh-Tfng equal to the transliteration of zgh-Latn. Both work on
+// segments: a {placeholder}, a run of letters and marks, or any other single character.
+function zghSegments(s) {
+  var re = /\{[A-Za-z0-9_]+\}|[\p{L}\p{M}]+|[\s\S]/gu, out = [], m, str = String(s == null ? "" : s);
+  while ((m = re.exec(str)) !== null) {
+    var v = m[0];
+    out.push({ t: /^\{[A-Za-z0-9_]+\}$/.test(v) ? "ph" : (/^[\p{L}\p{M}]/u.test(v) ? "run" : "ch"), v: v });
+  }
+  return out;
+}
+function zghStripPh(s) { return String(s == null ? "" : s).replace(/\{[A-Za-z0-9_]+\}/g, " "); }
+
+// zghIrcamRun(run): every letter (case-folded) is an IRCAM Latin letter, and ʷ only follows g or k.
+function zghIrcamRun(run) {
+  var c = Array.from(String(run).toLowerCase());
+  if (!c.length) return false;
+  for (var i = 0; i < c.length; i++) {
+    if (!ZGH_LATN_TO_TFNG[c[i]]) return false;
+    if (c[i] === ZGH_LAB_LATN && (i === 0 || (c[i - 1] !== "g" && c[i - 1] !== "k"))) return false;
+  }
+  return true;
+}
+
+// zghTransliterate(run): a ZGH_KEEP token, or a run holding any letter outside the IRCAM Latin
+// alphabet (notation such as p, φ, ℤₙ), is copied unchanged; every other run is mapped letter by
+// letter (Tifinagh has no case).
+function zghTransliterate(run) {
+  if (ZGH_KEEP_SET[run]) return run;
+  if (!zghIrcamRun(run)) return run;
+  return Array.from(String(run).toLowerCase()).map(function (ch) { return ZGH_LATN_TO_TFNG[ch]; }).join("");
+}
+
+// zghEnglishSingles(en): the multiset of single Latin letters standing alone in the English value
+// (placeholders removed, e.g./i.e. removed, a letter touching an apostrophe such as possessive s
+// or n't ignored). These are the notation letters.
+function zghEnglishSingles(en) {
+  var s = zghStripPh(en).replace(/\b[eE]\.g\.|\b[iI]\.e\./g, " ");
+  var segs = zghSegments(s), out = {};
+  segs.forEach(function (g, i) {
+    if (g.t !== "run" || Array.from(g.v).length !== 1 || !/\p{Script=Latin}/u.test(g.v)) return;
+    var p = segs[i - 1], q = segs[i + 1];
+    if ((p && /['’]/.test(p.v)) || (q && /['’]/.test(q.v))) return;
+    out[g.v] = (out[g.v] || 0) + 1;
+  });
+  return out;
+}
+function zghLatinSingles(tfng) {
+  var out = {};
+  zghSegments(zghStripPh(tfng)).forEach(function (g) {
+    if (g.t === "run" && Array.from(g.v).length === 1 && /\p{Script=Latin}/u.test(g.v)) out[g.v] = (out[g.v] || 0) + 1;
+  });
+  return out;
+}
+
+// zghLatinFindings(id, lang, value, enValue): ZGH-LETTER for a zgh-Latn value — a word with a
+// letter outside the IRCAM Latin alphabet (o, p, v, Greek look-alikes), Tifinagh inside a Latin
+// value, or an acronym not on the keep list. [] for any other language or a non-string value.
+function zghLatinFindings(id, lang, value, enValue) {
+  if (lang !== "zgh-Latn" || typeof value !== "string") return [];
+  var f = [], enRuns = {};
+  zghSegments(zghStripPh(enValue)).forEach(function (g) { if (g.t === "run") enRuns[g.v] = true; });
+  zghSegments(zghStripPh(value)).forEach(function (g) {
+    if (g.t !== "run") return;
+    var r = g.v;
+    if (ZGH_KEEP_SET[r]) return;
+    if (/\p{Script=Tifinagh}/u.test(r)) { f.push("ZGH-LETTER " + id + "." + lang + ": Tifinagh inside a Latin-script value " + JSON.stringify(r)); return; }
+    var n = Array.from(r).length;
+    if (n === 1) {
+      if (ZGH_LATN_TO_TFNG[r.toLowerCase()] && r !== ZGH_LAB_LATN) return;
+      if (r === ZGH_PHI) return;
+      if (enRuns[r]) return;
+      f.push("ZGH-LETTER " + id + "." + lang + ": " + JSON.stringify(r) + " is not an IRCAM Latin letter and not a notation letter of the English value");
+      return;
+    }
+    if (r === r.toUpperCase() && r !== r.toLowerCase()) { f.push("ZGH-LETTER " + id + "." + lang + ": acronym " + JSON.stringify(r) + " is not on the keep list (translate it)"); return; }
+    if (zghIrcamRun(r)) return;
+    if (enRuns[r] && !/[A-Za-z]/.test(r)) return;
+    f.push("ZGH-LETTER " + id + "." + lang + ": " + JSON.stringify(r) + " holds a letter outside the IRCAM Latin alphabet");
+  });
+  return f;
+}
+
+// zghTransliterationFindings(id, lang, value, latnValue, enValue): for a zgh-Tfng value,
+// ZGH-TRANSLIT when it is not the transliteration of the zgh-Latn value of the same key and plural
+// category (only the first misaligned segment is reported), and ZGH-NOTATION when the single Latin
+// letters it keeps differ from the notation letters of the English value (a/A may be fewer: English
+// uses them as the article). [] for any other language or a non-string value.
+function zghTransliterationFindings(id, lang, value, latnValue, enValue) {
+  if (lang !== "zgh-Tfng" || typeof value !== "string" || typeof latnValue !== "string") return [];
+  var f = [];
+  var A = zghSegments(latnValue), B = zghSegments(value);
+  if (A.length !== B.length) {
+    f.push("ZGH-TRANSLIT " + id + "." + lang + ": " + A.length + " segments in zgh-Latn vs " + B.length + " in zgh-Tfng");
+  } else {
+    for (var i = 0; i < A.length; i++) {
+      var a = A[i], b = B[i];
+      var ok = a.t === b.t && (a.t !== "run" ? a.v === b.v : (b.v === zghTransliterate(a.v) || (Array.from(a.v).length === 1 && b.v === a.v)));
+      if (!ok) {
+        f.push("ZGH-TRANSLIT " + id + "." + lang + ": " + JSON.stringify(a.v) + " -> " + JSON.stringify(b.v) + " (want " + JSON.stringify(a.t === "run" ? zghTransliterate(a.v) : a.v) + ")");
+        break;
+      }
+    }
+  }
+  var E = zghEnglishSingles(enValue), T = zghLatinSingles(value), keys = {};
+  Object.keys(E).concat(Object.keys(T)).forEach(function (k) { keys[k] = true; });
+  Object.keys(keys).sort().forEach(function (X) {
+    var e = E[X] || 0, t = T[X] || 0;
+    var wrong = (X === "a" || X === "A") ? t > e : t !== e;
+    if (wrong) f.push("ZGH-NOTATION " + id + "." + lang + ": notation letter " + JSON.stringify(X) + " appears " + e + "x in en but " + t + "x as Latin in zgh-Tfng");
+  });
+  return f;
 }
 
 // CJK_LANGS: the three CJK languages (left to right, system fallback font,
@@ -2579,7 +2921,7 @@ function checkSwitcherPresent(relPath, html, findings) {
     var block = /<select\b[^>]*id="lang-switch-select"[^>]*>([\s\S]*?)<\/select>/.exec(html);
     var optionsHtml = block ? block[1] : "";
     var expected = SWITCHER_OPTIONS;
-    var optRe = /<option value="([a-z]{2}(?:-[A-Z]{2})?)" lang="([a-z]{2}(?:-[A-Z]{2})?)"(?: selected)?>([^<]*)<\/option>/g;
+    var optRe = /<option value="([a-z]{2,3}(?:-[A-Z]{2}|-[A-Z][a-z]{3})?)" lang="([a-z]{2,3}(?:-[A-Z]{2}|-[A-Z][a-z]{3})?)"(?: selected)?>([^<]*)<\/option>/g;
     var found = [], om;
     while ((om = optRe.exec(optionsHtml))) found.push({ value: om[1], lang: om[2], label: om[3] });
     if (found.length !== SWITCHER_OPTIONS.length) {
@@ -2837,6 +3179,8 @@ function checkPluralEntry(ns, key, lang, entry, enEntry) {
 // fires for a whole count in 0..1000) stays unlisted.
 function pluralSelectionGaps(lang) {
   var findings = [];
+  // The engine fixes the rule itself for these (FIXED_PLURAL_LANGS): Intl is never asked.
+  if (FIXED_PLURAL_LANGS.indexOf(lang) !== -1) return findings;
   var rules;
   try {
     rules = new Intl.PluralRules(lang);
@@ -2893,6 +3237,21 @@ function pluralCategoryFindings() {
     } catch (e) { /* leave intlCats empty — will mismatch and be reported */ }
     if (intlCats.join(",") !== "other") {
       findings.push("PLURAL-CATEGORIES " + lang + ": expected [other] but Intl.PluralRules reports [" + intlCats.join(", ") + "]");
+    }
+  });
+  FIXED_PLURAL_LANGS.forEach(function (lang) {
+    if (LANG_CODES.indexOf(lang) === -1) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": not in LANG_CODES");
+      return;
+    }
+    if (PLURAL_EXTRA_CATEGORIES[lang] || PLURAL_OTHER_ONLY_LANGS.indexOf(lang) !== -1) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": listed in FIXED_PLURAL_LANGS and also in PLURAL_EXTRA_CATEGORIES or PLURAL_OTHER_ONLY_LANGS");
+      return;
+    }
+    var supported = [];
+    try { supported = Intl.PluralRules.supportedLocalesOf([lang]); } catch (e) { supported = []; }
+    if (supported.length) {
+      findings.push("PLURAL-CATEGORIES " + lang + ": Intl now has plural data for it; revisit FIXED_PLURAL_LANGS");
     }
   });
   LANG_CODES.forEach(function (lang) {
@@ -2969,6 +3328,10 @@ function checkDictionaries() {
               findings.push.apply(findings, charFindings(ns + "." + key + "." + cat, lang, entry[cat]));
               findings.push.apply(findings, digitParityFindings(ns + "." + key + "." + cat, lang, entry[cat], typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other));
               findings.push.apply(findings, cjkFindings(ns + "." + key + "." + cat, lang, entry[cat], typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other));
+              var zghPlainEn = typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other;
+              findings.push.apply(findings, zghLatinFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
+              var zghLatnForm = nsDict["zgh-Latn"] && nsDict["zgh-Latn"][key];
+              if (zghLatnForm && typeof zghLatnForm === "object") findings.push.apply(findings, zghTransliterationFindings(ns + "." + key + "." + cat, lang, entry[cat], zghLatnForm[cat], zghPlainEn));
             });
           }
         } else {
@@ -2988,6 +3351,8 @@ function checkDictionaries() {
           findings.push.apply(findings, charFindings(ns + "." + key, lang, entry));
           findings.push.apply(findings, digitParityFindings(ns + "." + key, lang, entry, enEntry));
           findings.push.apply(findings, cjkFindings(ns + "." + key, lang, entry, enEntry));
+          findings.push.apply(findings, zghLatinFindings(ns + "." + key, lang, entry, enEntry));
+          if (nsDict["zgh-Latn"] && typeof nsDict["zgh-Latn"][key] === "string") findings.push.apply(findings, zghTransliterationFindings(ns + "." + key, lang, entry, nsDict["zgh-Latn"][key], enEntry));
         }
       });
     });
@@ -3368,6 +3733,7 @@ module.exports = {
   parseHtml: parseHtml,
   PLURAL_EXTRA_CATEGORIES: PLURAL_EXTRA_CATEGORIES,
   PLURAL_OTHER_ONLY_LANGS: PLURAL_OTHER_ONLY_LANGS,
+  FIXED_PLURAL_LANGS: FIXED_PLURAL_LANGS,
   expectedPluralCategories: expectedPluralCategories,
   checkPluralEntry: checkPluralEntry,
   pluralCategoryFindings: pluralCategoryFindings,
@@ -3385,5 +3751,10 @@ module.exports = {
   DIGIT_PARITY_LANGS: DIGIT_PARITY_LANGS,
   CJK_LANGS: CJK_LANGS,
   HAN_FORM_FORBIDDEN: HAN_FORM_FORBIDDEN,
-  cjkFindings: cjkFindings
+  cjkFindings: cjkFindings,
+  ZGH_LATN_TO_TFNG: ZGH_LATN_TO_TFNG,
+  ZGH_KEEP: ZGH_KEEP,
+  zghTransliterate: zghTransliterate,
+  zghLatinFindings: zghLatinFindings,
+  zghTransliterationFindings: zghTransliterationFindings
 };

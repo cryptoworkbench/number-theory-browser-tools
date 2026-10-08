@@ -1,7 +1,7 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all twenty-five supported
+   marker for the Sieve of Eratosthenes tool, in all twenty-seven supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -10,7 +10,7 @@
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
    Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all twenty-five
+   Placeholder names ({n}, {time}, {count}) are identical across all twenty-seven
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -992,6 +992,82 @@
         other: '{count} bilangan prima baru ditambahkan — palet penuh ({max} bilangan); bilangan prima yang tidak ditambahkan: {left}.'
       },
       'palette.none': 'Semua bilangan prima yang ditemukan sudah ada di palet — tidak ada yang perlu ditambahkan.'
+    },
+    'zgh-Latn': {
+      sound: 'Ṣṣut',
+      title: 'Aɣrbal n Iratustin — Asskan intiraktif',
+      heading: 'Aɣrbal n Iratustin',
+      eyebrow: 'imḍanen imnza d ubḍu',
+      lede: 'Fk i yal amḍan agaman tankult is, dɣa ẓr amek ar ikkes uɣrbal akk ayn ur illin d amnzu.',
+      sizeLabel: 'Tamqrant n uɣrbal (N)',
+      generate: 'Sker',
+      'stat.current': 'Ɣilad',
+      'stat.primesFound': 'Imḍanen imnza ittwafan',
+      'stat.sqrtBoundary': 'Tilas n √N',
+      'stat.elapsed': 'Tallit iɛddan',
+      'stat.progress': 'Tikli',
+      'stat.done': '✓ ikmml',
+      'legend.unvisited': '{0} Ur ittwazur',
+      'legend.currentPointer': '{0} Tanqqiḍt n ɣilad',
+      'legend.prime': '{0} Amnzu',
+      'legend.composite': '{0} Ittwakks (uddis)',
+      'legend.neither': '{0} Ur d amnzu ur d uddis (1)',
+      footer: 'Akk ussiḍn ar ikkr g brawzr. Ur ittwaxsr yan umḍan i dima — ar ittwakks kigan.',
+      'banner.ready': 'Ihegga. Ittwarnu {n} n tinkulin — sit ɣf Urar bac ad tɣrblt.',
+      'banner.single': '1 tankult kigan — ur illi ayn ad tɣrblt.',
+      'banner.reset': 'Ittwassuɣl. Ittwarnu {n} n tinkulin tikkelt nniḍen — sit ɣf Urar bac ad tɣrblt.',
+      'banner.done': {
+        one: 'Ittwafa {count} umḍan amnzu ar {n} g {time}.',
+        other: 'Ittwafan {count} n imḍanen imnza ar {n} g {time}.'
+      },
+      toPalette: 'Rnu imḍanen imnza ittwafan i tbalitt',
+      'palette.added': {
+        one: 'Ittwarnu {count} umḍan amnzu amaynu i tbalitt — ittwaɛdda ayn illan g tbalitt: {dupes}.',
+        other: 'Ittwarnu {count} n imḍanen imnza imaynuten i tbalitt — ittwaɛdda ayn illan g tbalitt: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Ittwarnu {count} umḍan amnzu amaynu — tbalitt tmla ({max} n imḍanen); imḍanen imnza ur ittwarnun: {left}.',
+        other: 'Ittwarnu {count} n imḍanen imnza imaynuten — tbalitt tmla ({max} n imḍanen); imḍanen imnza ur ittwarnun: {left}.'
+      },
+      'palette.none': 'Akk imḍanen imnza ittwafan llan g tbalitt — ur illi ayn ad ittwarnu.'
+    },
+    'zgh-Tfng': {
+      sound: 'ⵚⵚⵓⵜ',
+      title: 'ⴰⵖⵔⴱⴰⵍ ⵏ ⵉⵔⴰⵜⵓⵙⵜⵉⵏ — ⴰⵙⵙⴽⴰⵏ ⵉⵏⵜⵉⵔⴰⴽⵜⵉⴼ',
+      heading: 'ⴰⵖⵔⴱⴰⵍ ⵏ ⵉⵔⴰⵜⵓⵙⵜⵉⵏ',
+      eyebrow: 'ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⴷ ⵓⴱⴹⵓ',
+      lede: 'ⴼⴽ ⵉ ⵢⴰⵍ ⴰⵎⴹⴰⵏ ⴰⴳⴰⵎⴰⵏ ⵜⴰⵏⴽⵓⵍⵜ ⵉⵙ, ⴷⵖⴰ ⵥⵔ ⴰⵎⴻⴽ ⴰⵔ ⵉⴽⴽⴻⵙ ⵓⵖⵔⴱⴰⵍ ⴰⴽⴽ ⴰⵢⵏ ⵓⵔ ⵉⵍⵍⵉⵏ ⴷ ⴰⵎⵏⵣⵓ.',
+      sizeLabel: 'ⵜⴰⵎⵇⵔⴰⵏⵜ ⵏ ⵓⵖⵔⴱⴰⵍ (N)',
+      generate: 'ⵙⴽⴻⵔ',
+      'stat.current': 'ⵖⵉⵍⴰⴷ',
+      'stat.primesFound': 'ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵜⵜⵡⴰⴼⴰⵏ',
+      'stat.sqrtBoundary': 'ⵜⵉⵍⴰⵙ ⵏ √N',
+      'stat.elapsed': 'ⵜⴰⵍⵍⵉⵜ ⵉⵄⴷⴷⴰⵏ',
+      'stat.progress': 'ⵜⵉⴽⵍⵉ',
+      'stat.done': '✓ ⵉⴽⵎⵎⵍ',
+      'legend.unvisited': '{0} ⵓⵔ ⵉⵜⵜⵡⴰⵣⵓⵔ',
+      'legend.currentPointer': '{0} ⵜⴰⵏⵇⵇⵉⴹⵜ ⵏ ⵖⵉⵍⴰⴷ',
+      'legend.prime': '{0} ⴰⵎⵏⵣⵓ',
+      'legend.composite': '{0} ⵉⵜⵜⵡⴰⴽⴽⵙ (ⵓⴷⴷⵉⵙ)',
+      'legend.neither': '{0} ⵓⵔ ⴷ ⴰⵎⵏⵣⵓ ⵓⵔ ⴷ ⵓⴷⴷⵉⵙ (1)',
+      footer: 'ⴰⴽⴽ ⵓⵙⵙⵉⴹⵏ ⴰⵔ ⵉⴽⴽⵔ ⴳ ⴱⵔⴰⵡⵣⵔ. ⵓⵔ ⵉⵜⵜⵡⴰⵅⵙⵔ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⵉ ⴷⵉⵎⴰ — ⴰⵔ ⵉⵜⵜⵡⴰⴽⴽⵙ ⴽⵉⴳⴰⵏ.',
+      'banner.ready': 'ⵉⵀⴻⴳⴳⴰ. ⵉⵜⵜⵡⴰⵔⵏⵓ {n} ⵏ ⵜⵉⵏⴽⵓⵍⵉⵏ — ⵙⵉⵜ ⵖⴼ ⵓⵔⴰⵔ ⴱⴰⵛ ⴰⴷ ⵜⵖⵔⴱⵍⵜ.',
+      'banner.single': '1 ⵜⴰⵏⴽⵓⵍⵜ ⴽⵉⴳⴰⵏ — ⵓⵔ ⵉⵍⵍⵉ ⴰⵢⵏ ⴰⴷ ⵜⵖⵔⴱⵍⵜ.',
+      'banner.reset': 'ⵉⵜⵜⵡⴰⵙⵙⵓⵖⵍ. ⵉⵜⵜⵡⴰⵔⵏⵓ {n} ⵏ ⵜⵉⵏⴽⵓⵍⵉⵏ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ — ⵙⵉⵜ ⵖⴼ ⵓⵔⴰⵔ ⴱⴰⵛ ⴰⴷ ⵜⵖⵔⴱⵍⵜ.',
+      'banner.done': {
+        one: 'ⵉⵜⵜⵡⴰⴼⴰ {count} ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⵔ {n} ⴳ {time}.',
+        other: 'ⵉⵜⵜⵡⴰⴼⴰⵏ {count} ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⴰⵔ {n} ⴳ {time}.'
+      },
+      toPalette: 'ⵔⵏⵓ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵜⵜⵡⴰⴼⴰⵏ ⵉ ⵜⴱⴰⵍⵉⵜⵜ',
+      'palette.added': {
+        one: 'ⵉⵜⵜⵡⴰⵔⵏⵓ {count} ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⵎⴰⵢⵏⵓ ⵉ ⵜⴱⴰⵍⵉⵜⵜ — ⵉⵜⵜⵡⴰⵄⴷⴷⴰ ⴰⵢⵏ ⵉⵍⵍⴰⵏ ⴳ ⵜⴱⴰⵍⵉⵜⵜ: {dupes}.',
+        other: 'ⵉⵜⵜⵡⴰⵔⵏⵓ {count} ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ ⵉ ⵜⴱⴰⵍⵉⵜⵜ — ⵉⵜⵜⵡⴰⵄⴷⴷⴰ ⴰⵢⵏ ⵉⵍⵍⴰⵏ ⴳ ⵜⴱⴰⵍⵉⵜⵜ: {dupes}.'
+      },
+      'palette.full': {
+        one: 'ⵉⵜⵜⵡⴰⵔⵏⵓ {count} ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⵎⴰⵢⵏⵓ — ⵜⴱⴰⵍⵉⵜⵜ ⵜⵎⵍⴰ ({max} ⵏ ⵉⵎⴹⴰⵏⴻⵏ); ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵓⵔ ⵉⵜⵜⵡⴰⵔⵏⵓⵏ: {left}.',
+        other: 'ⵉⵜⵜⵡⴰⵔⵏⵓ {count} ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ — ⵜⴱⴰⵍⵉⵜⵜ ⵜⵎⵍⴰ ({max} ⵏ ⵉⵎⴹⴰⵏⴻⵏ); ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵓⵔ ⵉⵜⵜⵡⴰⵔⵏⵓⵏ: {left}.'
+      },
+      'palette.none': 'ⴰⴽⴽ ⵉⵎⴹⴰⵏⴻⵏ ⵉⵎⵏⵣⴰ ⵉⵜⵜⵡⴰⴼⴰⵏ ⵍⵍⴰⵏ ⴳ ⵜⴱⴰⵍⵉⵜⵜ — ⵓⵔ ⵉⵍⵍⵉ ⴰⵢⵏ ⴰⴷ ⵉⵜⵜⵡⴰⵔⵏⵓ.'
     }
   });
 })();
