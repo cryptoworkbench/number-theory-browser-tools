@@ -1231,6 +1231,81 @@ Domain terms the pinned D-TERMS list did not cover, as coined while translating 
 | perfect power | 完全幂 | 完全べき | 완전 거듭제곱 | shor | `[ASSUMED]` |
 | order search (budget) | 求阶搜索 | 位数の探索 | 위수 탐색 | shor | `[ASSUMED]` |
 
+### Indonesian supplementary terms (added 2026-10-08 by quick task 261008-0h2, Tasks 2-4, unified in Task 5)
+
+Domain terms the pinned D-TERMS list did not cover, as coined while translating the 16 pages. One standard Indonesian rendering per English term, verified to occur in the named namespaces. The "also" terms of D-TERMS (algorithm, theorem, function, number, palette, order, random, key, message, bit) come first. All `[ASSUMED]`.
+
+| Term (en) | id | Namespaces | Confidence |
+|---|---|---|---|
+| algorithm | algoritma | crt, dh, euclid, totient, hub, rsa, shor, site, sqm | `[ASSUMED]` |
+| theorem | teorema | crt, hub, site | `[ASSUMED]` |
+| function (totient function) | fungsi | dh, ecdh, totient, hub, rsa, shor, site | `[ASSUMED]` |
+| number | bilangan | cayley, crt, dh, ecdh, wheel, euclid, totient, factorTree, fermat, iso, hub, rsa, shor, sieve, site, common, sqm, venn | `[ASSUMED]` |
+| palette | palet | factorTree, sieve, common, venn | `[ASSUMED]` |
+| order (ordWord, {ordWord}(G)) | orde | dh, ecdh, hub, shor | `[ASSUMED]` |
+| random | acak | cayley, dh, ecdh, wheel, factorTree, iso, hub, shor, sqm, venn | `[ASSUMED]` |
+| key | kunci | dh, ecdh, hub, rsa, sqm | `[ASSUMED]` |
+| message | pesan | rsa | `[ASSUMED]` |
+| bit | bit | dh, ecdh, hub, rsa, sqm | `[ASSUMED]` |
+| composition/factorization area | area komposisi/faktorisasi | factorTree | `[ASSUMED]` |
+| region (Venn) | daerah | hub, venn | `[ASSUMED]` |
+| lens (Venn overlap) | lensa | hub, venn | `[ASSUMED]` |
+| intersection | irisan | hub, venn | `[ASSUMED]` |
+| union | gabungan | crt, rsa, venn | `[ASSUMED]` |
+| set difference | selisih himpunan | venn | `[ASSUMED]` |
+| bin (delete target) | tempat sampah | factorTree, venn | `[ASSUMED]` |
+| Classic mode | Klasik | factorTree, hub, shor | `[ASSUMED]` |
+| Balanced mode | Seimbang | factorTree, fermat, venn | `[ASSUMED]` |
+| hover previews | pratinjau saat disorot | venn | `[ASSUMED]` |
+| complete the square | melengkapkan kuadrat | fermat | `[ASSUMED]` |
+| trial (Fermat) | percobaan | dh, fermat, rsa, shor | `[ASSUMED]` |
+| search log | catatan pencarian | fermat | `[ASSUMED]` |
+| trivial pair | pasangan trivial | fermat | `[ASSUMED]` |
+| trail | jejak | fermat | `[ASSUMED]` |
+| wedge | juring | cayley, wheel, totient, hub | `[ASSUMED]` |
+| concentric ring | cincin konsentris | wheel, hub | `[ASSUMED]` |
+| addend | suku | wheel | `[ASSUMED]` |
+| nested squares | persegi bersarang | euclid | `[ASSUMED]` |
+| tile | ubin | euclid | `[ASSUMED]` |
+| Bézout coefficients | koefisien Bézout | euclid | `[ASSUMED]` |
+| residue class strips | pita kelas residu | crt | `[ASSUMED]` |
+| mirror twin (Cayley cell) | kembaran cermin | cayley | `[ASSUMED]` |
+| accumulator | akumulator | sqm | `[ASSUMED]` |
+| ladder | tangga | sqm | `[ASSUMED]` |
+| safe prime | bilangan prima aman | dh | `[ASSUMED]` |
+| subgroup | subgrup | dh, ecdh | `[ASSUMED]` |
+| eavesdrop / tap (the wire) | menyadap / sadapan | dh, ecdh, rsa | `[ASSUMED]` |
+| wire (the channel) | saluran | dh, ecdh, hub, rsa | `[ASSUMED]` |
+| notebook (Eve's) | buku catatan | dh, ecdh, rsa | `[ASSUMED]` |
+| key-derivation function | fungsi penurunan kunci | dh, ecdh | `[ASSUMED]` |
+| scalar | skalar | ecdh, hub | `[ASSUMED]` |
+| base point | titik basis | ecdh | `[ASSUMED]` |
+| Hasse bound | batas Hasse | ecdh | `[ASSUMED]` |
+| group law | hukum grup | ecdh | `[ASSUMED]` |
+| affine point | titik afin | ecdh | `[ASSUMED]` |
+| midline | garis tengah | ecdh | `[ASSUMED]` |
+| prime field | lapangan prima | ecdh, hub | `[ASSUMED]` |
+| scatter plot | diagram pencar | ecdh, hub | `[ASSUMED]` |
+| tangent / chord | garis singgung / tali busur | ecdh | `[ASSUMED]` |
+| slope / intercept | gradien / titik potong | ecdh | `[ASSUMED]` |
+| teaching demo | demo pengajaran | dh, ecdh, rsa, sqm | `[ASSUMED]` |
+| symmetric encryption | enkripsi simetris | dh | `[ASSUMED]` |
+| textbook RSA | RSA versi buku teks | dh, rsa, shor | `[ASSUMED]` |
+| trial division | pembagian percobaan | rsa | `[ASSUMED]` |
+| padding | pengisian | rsa | `[ASSUMED]` |
+| integer factorization | faktorisasi bilangan bulat | rsa | `[ASSUMED]` |
+| recombination (CRT) | penggabungan ulang | rsa | `[ASSUMED]` |
+| precomputation | perhitungan awal | rsa | `[ASSUMED]` |
+| Garner's formula | rumus Garner | rsa | `[ASSUMED]` |
+| superposition | superposisi | shor | `[ASSUMED]` |
+| quantum phase estimation | estimasi fase kuantum | shor | `[ASSUMED]` |
+| inverse quantum Fourier transform | transformasi Fourier kuantum invers | shor | `[ASSUMED]` |
+| continued fraction | pecahan berlanjut | shor | `[ASSUMED]` |
+| stand-in (classical) | pengganti | hub, shor | `[ASSUMED]` |
+| perfect power | pangkat sempurna | shor | `[ASSUMED]` |
+| order search (budget) | anggaran langkah | shor | `[ASSUMED]` |
+| read-only | hanya baca | venn | `[ASSUMED]` |
+
 
 ---
 

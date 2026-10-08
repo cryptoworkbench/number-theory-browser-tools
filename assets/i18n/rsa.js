@@ -2959,7 +2959,7 @@
       resWinBody: '{0} Ditemukan faktor {1} (jadi n = {1} × {2}) setelah {3} pembagian percobaan dalam {4} ms. Dari sini ia menghitung φ(n) = ({5})({6}) dan membalik e mod φ(n) persis seperti yang dilakukan {7} — permainan selesai. Ini hanya berhasil karena bilangan primanya berukuran mainan. Bilangan prima RSA sungguhan masing-masing ~150+ digit, sehingga pembagian percobaan (dan setiap algoritma faktorisasi yang dikenal) berada di luar jangkauan untuk selamanya.',
       resGiveupStrongText: 'Eve menyerah.',
       resGiveupBody: {
-        other: '{0} Ia mencoba {count} kandidat pembagi ({ms} ms) dan masih belum mencapai √n ≈ {sqrtN}. Bahkan pada skala mainan ini, pemfaktoran menyeluruh sudah mulai mahal — dengan bilangan prima sungguhan sepanjang 150+ digit, hal itu mustahil secara komputasi dengan algoritma apa pun yang dikenal.'
+        other: '{0} Ia mencoba {count} kandidat pembagi ({ms} ms) dan masih belum mencapai √n ≈ {sqrtN}. Bahkan pada skala mainan ini, faktorisasi menyeluruh sudah mulai mahal — dengan bilangan prima sungguhan sepanjang 150+ digit, hal itu mustahil secara komputasi dengan algoritma apa pun yang dikenal.'
       },
       thExpression: 'ekspresi',
       thResult: 'hasil',
@@ -3001,7 +3001,7 @@
       recoveredMsgLine: 'Pesan yang dipulihkan {0} dengan pesan asli ({1}).',
       exchangeNotebookHeading: 'Apa yang dilihat Eve pada pertukaran ini',
       exchangeNotebookCiphertext: 'cipherteks c = {0}',
-      exchangeNotebookNever: 'Tanpa d (yang membutuhkan pemfaktoran n), c{0} mod n untuk e\' apa pun yang ia tebak tidak akan memulihkan m.',
+      exchangeNotebookNever: 'Tanpa d (yang membutuhkan faktorisasi n), c{0} mod n untuk e\' apa pun yang ia tebak tidak akan memulihkan m.',
       eveSeesOnlyC: 'Eve hanya melihat c'
     }
   });
