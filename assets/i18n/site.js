@@ -1,6 +1,6 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
    and footer) — brand, the Tools menu button, nav labels for all sixteen pages, the language
-   switcher's own label and the day/night toggle's label — in all twenty-nine
+   switcher's own label and the day/night toggle's label — in all thirty-one
    supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -681,6 +681,52 @@
       'nav.shor': 'ئەلگۆریتمی شۆر',
       'lang.label': 'زمان',
       'theme.toggle': 'گۆڕین لە نێوان دۆخی ڕۆژ و دۆخی شەو'
+    },
+    sa: {
+      brand: 'सङ्ख्यासिद्धान्तस्य साधनानि',
+      'nav.label': 'साधनानि',
+      menu: 'साधनानि',
+      'nav.home': 'मुखपृष्ठम्',
+      'nav.sieve': 'एरातोस्थेनीस-चालनी',
+      'nav.factorTree': 'गुणनखण्डवृक्षः',
+      'nav.venn': 'वेन-आरेखः',
+      'nav.euclid': 'यूक्लिड-कलनविधिः',
+      'nav.crt': 'चीनीयशेषप्रमेयम्',
+      'nav.wheel': 'तुल्यताचक्रम्',
+      'nav.totient': 'ओयलरस्य φ फलनम्',
+      'nav.cayley': 'केली-सारणी',
+      'nav.iso': 'समूहसमरूपता',
+      'nav.sqm': 'वर्गकरणं गुणनं च',
+      'nav.dh': 'डिफी-हेलमन',
+      'nav.ecdh': 'दीर्घवृत्तीयवक्र-DH',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'फर्मा-विधिः',
+      'nav.shor': 'शोर-कलनविधिः',
+      'lang.label': 'भाषा',
+      'theme.toggle': 'दिनरात्रिप्रकारं परिवर्तयतु'
+    },
+    la: {
+      brand: 'Instrumenta theoriae numerorum',
+      'nav.label': 'Instrumenta',
+      menu: 'Instrumenta',
+      'nav.home': 'Pagina prima',
+      'nav.sieve': 'Cribrum Eratosthenis',
+      'nav.factorTree': 'Arbor factorum',
+      'nav.venn': 'Diagramma Vennianum',
+      'nav.euclid': 'Algorithmus Euclideus',
+      'nav.crt': 'Theorema Sinicum de residuis',
+      'nav.wheel': 'Rota aequivalentiae',
+      'nav.totient': 'Functio φ Euleri',
+      'nav.cayley': 'Tabula Cayleiana',
+      'nav.iso': 'Isomorphismus gregum',
+      'nav.sqm': 'Quadratio et multiplicatio',
+      'nav.dh': 'Diffie-Hellman',
+      'nav.ecdh': 'DH in curvis ellipticis',
+      'nav.rsa': 'RSA',
+      'nav.fermat': 'Methodus Fermatiana',
+      'nav.shor': 'Algorithmus Shorianus',
+      'lang.label': 'Lingua',
+      'theme.toggle': 'Inter modum diurnum et nocturnum muta'
     }
   });
 
@@ -1478,6 +1524,60 @@
       redoPalette: 'دووبارەکردنەوەی گۆڕینی پالێت',
       undoWork: 'پاشگەزبوونەوە',
       redoWork: 'دووبارەکردنەوە'
+    },
+    sa: {
+      play: 'चालनम्',
+      pause: 'विरामः',
+      step: 'पदम्',
+      instant: 'तत्क्षणम्',
+      reset: 'पुनःस्थापनम्',
+      speed: 'वेगः',
+      'speed.1': 'हिमनदीवत्',
+      'speed.2': 'मन्दः',
+      'speed.3': 'मृदुः',
+      'speed.4': 'चपलः',
+      'speed.5': 'स्थिरः',
+      'speed.6': 'क्षिप्रः',
+      'speed.7': 'द्रुतः',
+      'speed.8': 'त्वरितः',
+      'speed.9': 'विद्युद्वत्',
+      'speed.10': 'प्रायः तात्क्षणिकः',
+      additiveGroups: 'योगात्मकसमूहाः',
+      multiplicativeGroups: 'गुणनात्मकसमूहाः',
+      paletteEmptySieve: 'अस्मिन् फलके अभाज्यसङ्ख्याः योजयितुं "{0}" इति साधनम् उपयोजयतु।',
+      primePickerOpen: 'फलकात् एकाम् अभाज्यसङ्ख्यां चिनोतु',
+      primePickerHeading: 'अभाज्यसङ्ख्यां चिनोतु',
+      undoPalette: 'फलकपरिवर्तनं निवर्तयतु',
+      redoPalette: 'फलकपरिवर्तनं पुनः करोतु',
+      undoWork: 'निवर्तयतु',
+      redoWork: 'पुनः करोतु'
+    },
+    la: {
+      play: 'Perge',
+      pause: 'Intermitte',
+      step: 'Gradus',
+      instant: 'Statim',
+      reset: 'Restitue',
+      speed: 'Celeritas',
+      'speed.1': 'glacialis',
+      'speed.2': 'lenta',
+      'speed.3': 'placida',
+      'speed.4': 'alacris',
+      'speed.5': 'constans',
+      'speed.6': 'velox',
+      'speed.7': 'celeris',
+      'speed.8': 'rapida',
+      'speed.9': 'fulminea',
+      'speed.10': 'paene statim',
+      additiveGroups: 'Greges additivi',
+      multiplicativeGroups: 'Greges multiplicativi',
+      paletteEmptySieve: 'Instrumento «{0}» utere ut numeros primos huic tabellae addas.',
+      primePickerOpen: 'Numerum primum e tabella elige',
+      primePickerHeading: 'Numerum primum elige',
+      undoPalette: 'Mutationem tabellae rescinde',
+      redoPalette: 'Mutationem tabellae repete',
+      undoWork: 'Rescinde',
+      redoWork: 'Repete'
     }
   });
 })();

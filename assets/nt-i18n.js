@@ -66,12 +66,14 @@
 (function () {
   "use strict";
 
-  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko', 'id', 'zgh-Latn', 'zgh-Tfng', 'ku', 'ckb']);
+  var SUPPORTED_LANGS = Object.freeze(['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'pt-BR', 'pt-PT', 'sv', 'nb', 'ro', 'hu', 'lv', 'ru', 'el', 'he', 'hi', 'ar', 'sq', 'sw', 'zh', 'ja', 'ko', 'id', 'zgh-Latn', 'zgh-Tfng', 'ku', 'ckb', 'sa', 'la']);
   // The right-to-left languages, Hebrew, Arabic and Sorani Kurdish (internal, not exported):
   // applyHtmlLang sets dir="rtl" on <html> while one of them is active.
   var RTL_LANGS = Object.freeze(['he', 'ar', 'ckb']);
-  // Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng) has no CLDR plural data: Intl.PluralRules falls back to the runtime's default locale for it (fr selects one for 0, ru for 21, ja never), so pluralCategory selects one for exactly 1 and other otherwise (internal, not exported).
-  var FIXED_PLURAL_LANGS = Object.freeze(['zgh-Latn', 'zgh-Tfng']);
+  // Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng), Sanskrit (sa) and Latin (la) have no CLDR plural data: Intl.PluralRules falls back to the runtime's default locale for them (fr selects one for 0, ru for 21, ja never), so pluralCategory selects one for exactly 1 and other otherwise (internal, not exported).
+  var FIXED_PLURAL_LANGS = Object.freeze(['zgh-Latn', 'zgh-Tfng', 'sa', 'la']);
+  // Sanskrit (sa) has a grammatical dual: for it pluralCategory also selects two for exactly 2 (internal, not exported).
+  var FIXED_DUAL_LANGS = Object.freeze(['sa']);
   var LANG_PARAM = 'lang';
   var PARAM_RE = new RegExp('([?&])' + LANG_PARAM + '=[^&]*&?');
   var LANG_STORAGE_KEY = 'site-lang';
@@ -216,7 +218,7 @@
   }
 
   function pluralCategory(lang, count) {
-    if (FIXED_PLURAL_LANGS.indexOf(lang) !== -1) return count === 1 ? 'one' : 'other';
+    if (FIXED_PLURAL_LANGS.indexOf(lang) !== -1) return count === 1 ? 'one' : ((count === 2 && FIXED_DUAL_LANGS.indexOf(lang) !== -1) ? 'two' : 'other');
     if (typeof Intl !== 'undefined' && typeof Intl.PluralRules === 'function') {
       try {
         var cat = new Intl.PluralRules(lang).select(count);

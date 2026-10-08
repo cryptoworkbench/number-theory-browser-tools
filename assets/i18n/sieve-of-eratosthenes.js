@@ -1,7 +1,7 @@
 /* assets/i18n/sieve-of-eratosthenes.js — the 'sieve' namespace: title,
    heading, lede, the banner messages, the control-panel static strings
    (size label, Generate button, stats, legend, footer) and the finished
-   marker for the Sieve of Eratosthenes tool, in all twenty-nine supported
+   marker for the Sieve of Eratosthenes tool, in all thirty-one supported
    languages.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -10,7 +10,7 @@
    Romanian ({ one, few, other }), Latvian ({ zero, one, other }),
    Hebrew ({ one, two, other }) and Arabic ({ zero, one, two, few, many, other }) and { other } alone in Chinese, Japanese, Korean and Indonesian, each
    the CLDR shape for that language); every other key is plain text.
-   Placeholder names ({n}, {time}, {count}) are identical across all twenty-nine
+   Placeholder names ({n}, {time}, {count}) are identical across all thirty-one
    languages. legend.*
    values are rich templates (the swatch <span> renders as {0}). Play/Pause,
    Step, Instant and Reset live in the shared `common` namespace
@@ -1144,6 +1144,85 @@
         other: '{count} ژمارەی سەرەتایی نوێ زیاد کران — پالێت پڕە ({max} ژمارە)؛ ژمارە سەرەتاییە زیادنەکراوەکان: {left}.'
       },
       'palette.none': 'ھەموو ژمارە سەرەتاییە دۆزراوەکان پێشتر لە پالێتەکەدان — شتێک نییە بۆ زیادکردن.'
+    },
+    sa: {
+      sound: 'ध्वनिः',
+      title: 'एरातोस्थेनीस-चालनी — संवादात्मकं दृश्यप्रदर्शनम्',
+      heading: 'एरातोस्थेनीस-चालनी',
+      eyebrow: 'अभाज्यसङ्ख्याः विभाज्यता च',
+      lede: 'प्रत्येकं प्राकृतसङ्ख्यायै स्वकीयं कोष्ठं ददातु — ततः याः सङ्ख्याः अभाज्याः न सन्ति ताः सर्वाः चालनी कथं छिनत्ति इति पश्यतु।',
+      sizeLabel: 'चालन्याः आकारः (N)',
+      generate: 'रचयतु',
+      'stat.current': 'वर्तमानः',
+      'stat.primesFound': 'प्राप्ताः अभाज्यसङ्ख्याः',
+      'stat.sqrtBoundary': '√N सीमा',
+      'stat.elapsed': 'व्यतीतः कालः',
+      'stat.progress': 'प्रगतिः',
+      'stat.done': '✓ समाप्तम्',
+      'legend.unvisited': '{0} अनवलोकितम्',
+      'legend.currentPointer': '{0} वर्तमानः सूचकः',
+      'legend.prime': '{0} अभाज्यसङ्ख्या',
+      'legend.composite': '{0} छिन्ना (संयुक्तसङ्ख्या)',
+      'legend.neither': '{0} न अभाज्यं न संयुक्तम् (1)',
+      footer: 'सर्वा गणना स्वीये जालदर्शके एव चलति। काः अपि सङ्ख्याः स्थायिरूपेण क्षताः न जाताः — केवलं छिन्नाः।',
+      'banner.ready': 'सज्जम्। {n} कोष्ठाः रचिताः — चालनीप्रक्रियां प्रारब्धुं "चालनम्" इति नुदतु।',
+      'banner.single': 'केवलम् 1 कोष्ठः — चालनीयं किमपि नास्ति।',
+      'banner.reset': 'पुनःस्थापितम्। {n} कोष्ठाः पुनः रचिताः — चालनीप्रक्रियां प्रारब्धुं "चालनम्" इति नुदतु।',
+      'banner.done': {
+        one: '{time} मध्ये {n} पर्यन्तम् {count} अभाज्यसङ्ख्या प्राप्ता।',
+        two: '{time} मध्ये {n} पर्यन्तम् {count} अभाज्यसङ्ख्ये प्राप्ते।',
+        other: '{time} मध्ये {n} पर्यन्तम् {count} अभाज्यसङ्ख्याः प्राप्ताः।'
+      },
+      toPalette: 'प्राप्ताः अभाज्यसङ्ख्याः फलके योजयतु',
+      'palette.added': {
+        one: 'फलके {count} नूतना अभाज्यसङ्ख्या योजिता — त्यक्ताः पुनरावृत्ताः — {dupes}।',
+        two: 'फलके {count} नूतने अभाज्यसङ्ख्ये योजिते — त्यक्ताः पुनरावृत्ताः — {dupes}।',
+        other: 'फलके {count} नूतनाः अभाज्यसङ्ख्याः योजिताः — त्यक्ताः पुनरावृत्ताः — {dupes}।'
+      },
+      'palette.full': {
+        one: '{count} नूतना अभाज्यसङ्ख्या योजिता — फलकं पूर्णम् ({max} सङ्ख्याः); अयोजिताः अभाज्यसङ्ख्याः — {left}।',
+        two: '{count} नूतने अभाज्यसङ्ख्ये योजिते — फलकं पूर्णम् ({max} सङ्ख्याः); अयोजिताः अभाज्यसङ्ख्याः — {left}।',
+        other: '{count} नूतनाः अभाज्यसङ्ख्याः योजिताः — फलकं पूर्णम् ({max} सङ्ख्याः); अयोजिताः अभाज्यसङ्ख्याः — {left}।'
+      },
+      'palette.none': 'प्राप्ताः सर्वाः अभाज्यसङ्ख्याः फलके पूर्वमेव सन्ति — योजनीयं किमपि नास्ति।'
+    },
+    la: {
+      sound: 'Sonus',
+      title: 'Cribrum Eratosthenis — Visualizatio interactiva',
+      heading: 'Cribrum Eratosthenis',
+      eyebrow: 'numeri primi et divisibilitas',
+      lede: 'Da cuique numero naturali suam cellam — deinde specta quomodo cribrum omnes numeros qui primi non sunt deleat.',
+      sizeLabel: 'Magnitudo cribri (N)',
+      generate: 'Genera',
+      'stat.current': 'Praesens',
+      'stat.primesFound': 'Numeri primi inventi',
+      'stat.sqrtBoundary': 'Limes √N',
+      'stat.elapsed': 'Tempus elapsum',
+      'stat.progress': 'Progressus',
+      'stat.done': '✓ factum',
+      'legend.unvisited': '{0} Non visitatum',
+      'legend.currentPointer': '{0} Index praesens',
+      'legend.prime': '{0} Primus',
+      'legend.composite': '{0} Deletus (compositus)',
+      'legend.neither': '{0} Neutrum (1)',
+      footer: 'Omnis computatio in navigatro tuo peragitur. Nulli numeri perpetuo laesi sunt — tantum deleti.',
+      'banner.ready': 'Paratum. {n} cellae creatae — preme «Perge» ut cribrum incipiat.',
+      'banner.single': 'Tantum 1 cella — nihil est quod cribretur.',
+      'banner.reset': 'Restitutum. {n} cellae iterum creatae — preme «Perge» ut cribrum incipiat.',
+      'banner.done': {
+        one: 'Inventus est {count} numerus primus usque ad {n} in {time}.',
+        other: 'Inventi sunt {count} numeri primi usque ad {n} in {time}.'
+      },
+      toPalette: 'Adde numeros primos inventos ad tabellam',
+      'palette.added': {
+        one: 'Additus est {count} numerus primus novus ad tabellam — duplicata omissa: {dupes}.',
+        other: 'Additi sunt {count} numeri primi novi ad tabellam — duplicata omissa: {dupes}.'
+      },
+      'palette.full': {
+        one: 'Additus est {count} numerus primus novus — tabella plena est ({max} numeri); numeri primi non additi: {left}.',
+        other: 'Additi sunt {count} numeri primi novi — tabella plena est ({max} numeri); numeri primi non additi: {left}.'
+      },
+      'palette.none': 'Omnes numeri primi inventi iam in tabella sunt — nihil addendum est.'
     }
   });
 })();

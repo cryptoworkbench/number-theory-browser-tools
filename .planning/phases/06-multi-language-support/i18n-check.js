@@ -717,7 +717,7 @@ function doApi() {
   ].sort();
   check("export key set", Object.keys(I).sort(), expectedKeys);
   check("LANG_STORAGE_KEY value", I.LANG_STORAGE_KEY, "site-lang");
-  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "ckb", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "ku", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sq", "sv", "sw", "zgh-Latn", "zgh-Tfng", "zh"]);
+  check("SUPPORTED_LANGS value", I.SUPPORTED_LANGS.slice().sort(), ["ar", "ckb", "de", "el", "en", "es", "fr", "he", "hi", "hu", "id", "it", "ja", "ko", "ku", "la", "lv", "nb", "nl", "pl", "pt-BR", "pt-PT", "ro", "ru", "sa", "sq", "sv", "sw", "zgh-Latn", "zgh-Tfng", "zh"]);
   check("SUPPORTED_LANGS is frozen", Object.isFrozen(I.SUPPORTED_LANGS), true);
   check("NT.i18n is frozen", Object.isFrozen(I), true);
   check("getLang() initial value is the navigator default", I.getLang(), "en");
@@ -1059,6 +1059,21 @@ function doApi() {
   check("after he then ku, html dir attribute is absent", (I.setLang("he"), I.setLang("ku"), ctx._doc.documentElement.getAttribute("dir")), null);
   I.setLang("en");
 
+  // Sanskrit (sa) and Latin (la) are left to right: the plain two-letter code goes into html lang and no dir attribute is set.
+  ["sa", "la"].forEach(function (L) {
+    check("setLang('" + L + "') returns true", I.setLang(L), true);
+    check("html lang is " + L, ctx._doc.documentElement.lang, L);
+    check("html dir attribute is absent for " + L, ctx._doc.documentElement.getAttribute("dir"), null);
+    ["ckb", "he", "ar"].forEach(function (from) {
+      check("after " + from + " then " + L + ", html lang is " + L, (I.setLang(from), I.setLang(L), ctx._doc.documentElement.lang), L);
+      check("after " + from + " then " + L + ", html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+    });
+    check("after " + L + " then ckb, html dir attribute is rtl", (I.setLang("ckb"), ctx._doc.documentElement.getAttribute("dir")), "rtl");
+  });
+  check("after sa then la, html lang is la", (I.setLang("sa"), I.setLang("la"), ctx._doc.documentElement.lang), "la");
+  check("after sa then la, html dir attribute is absent", ctx._doc.documentElement.getAttribute("dir"), null);
+  I.setLang("en");
+
   // Standard Moroccan Tamazight has no CLDR plural data (Intl.PluralRules falls back to the runtime's default
   // locale for it), so NT.i18n selects one for exactly 1 and other otherwise, with the real Intl, an Intl whose
   // PluralRules behaves like a Russian default locale, and no Intl at all.
@@ -1080,6 +1095,33 @@ function doApi() {
         check(L + " trzgh.count at " + n + " selects " + (n === 1 ? "one" : "other") + " with " + v[0], ZI.translate("trzgh.count", { count: n }), n + (n === 1 ? " one" : " other"));
       });
     });
+  });
+
+  // Sanskrit (sa) and Latin (la) have no CLDR plural data either: Latin selects one for exactly 1 and other otherwise;
+  // Sanskrit also selects two for exactly 2 (its grammatical dual); the same with the real Intl, a Russian-like Intl and no Intl.
+  [["the real Intl", {}], ["a stubbed Russian-like Intl", { Intl: { PluralRules: RuStubRules } }], ["no Intl", { Intl: null }]].forEach(function (v) {
+    var sctx = loadI18n(Object.assign({ navigator: { languages: ["en-US", "en"] } }, v[1]));
+    var SI = sctx.NT.i18n;
+    if (v[0] === "no Intl") check("the no-Intl context really has no Intl (Sanskrit and Latin)", vm.runInContext("typeof Intl", sctx), "undefined");
+    SI.register("trsala", {
+      en: { count: { one: "{count} one", other: "{count} other" } },
+      sa: { count: { one: "{count} one", two: "{count} two", other: "{count} other" } },
+      la: { count: { one: "{count} one", other: "{count} other" } }
+    });
+    ["sa", "la"].forEach(function (L) {
+      check("setLang('" + L + "') returns true (trsala, " + v[0] + ")", SI.setLang(L), true);
+      [0, 1, 1.5, 2, 2.5, 3, 11, 21, 22, 100, 1000000, "1", "2"].forEach(function (n) {
+        var num = Number(n);
+        var cat = num === 1 ? "one" : (num === 2 && L === "sa" ? "two" : "other");
+        check(L + " trsala.count at " + JSON.stringify(n) + " selects " + cat + " with " + v[0], SI.translate("trsala.count", { count: n }), n + " " + cat);
+      });
+    });
+    SI.register("trsalazgh", {
+      en: { count: { one: "{count} one", other: "{count} other" } },
+      "zgh-Latn": { count: { one: "{count} one", other: "{count} other" } }
+    });
+    SI.setLang("zgh-Latn");
+    check("zgh-Latn trsalazgh.count at 2 still selects other with " + v[0], SI.translate("trsalazgh.count", { count: 2 }), "2 other");
   });
 
   // Kurdish {one, other}: Intl.PluralRules has CLDR data for ku and ckb (one for exactly 1, other for 0, 2, 1.5, 21,
@@ -1239,6 +1281,9 @@ function doApi() {
   });
   ["KU", "Ku", "kU", "CKB", "Ckb", "ckB", "kmr", "kur", "ku-TR", "ku-Latn", "ku-Arab", "ckb-IQ", "ckb-Arab", "ckb_IQ", "sdh", "lki", " ku", "ku ", "ckb\n", "kurmanci", "sorani"].forEach(function (code) {
     check("setLang(" + JSON.stringify(code) + ") returns false (exact, case-sensitive allow-list: only ku and the three-letter ckb)", I.setLang(code), false);
+  });
+  ["SA", "Sa", "sA", "LA", "La", "lA", "san", "lat", "sa-IN", "sa_IN", "sa-Deva", "la-VA", "la-Latn", " sa", "la ", "sa\n", "sanskrit", "latina", "Latina", "संस्कृतम्"].forEach(function (code) {
+    check("setLang(" + JSON.stringify(code) + ") returns false (exact, case-sensitive allow-list: only the two-letter sa and la)", I.setLang(code), false);
   });
   check("setLang('uk') returns false (Ukrainian not supported)", I.setLang("uk"), false);
   check("setLang('be') returns false (Belarusian not supported)", I.setLang("be"), false);
@@ -1502,7 +1547,8 @@ function doApi() {
     [["be", "en"], "en", "be,en (Belarusian not supported)"],
     [["bem", "en"], "en", "bem,en (Bemba not supported)"],
     [["berx", "en"], "en", "berx,en (the new branch tests the whole first subtag)"],
-    [["Latn"], "en", "Latn (a script subtag alone is not a language)"],
+    [["Latn"], "la", "Latn (a script subtag alone reaches la through the two-letter prefix, a recorded collision)"],
+    [["Cyrl", "en"], "en", "Cyrl,en (a script subtag alone is not a language)"],
     [["Tfng"], "en", "Tfng (a script subtag alone is not a language)"],
     [["en-MA", "zgh"], "en", "en-MA,zgh (first supported wins)"],
     [["fr-MA", "zgh"], "fr", "fr-MA,zgh (first supported wins)"],
@@ -1564,7 +1610,57 @@ function doApi() {
     [["pt", "ku"], "pt-BR", "pt,ku (first supported wins)"],
     [["no-NO", "ckb"], "nb", "no-NO,ckb (legacy Norwegian tag wins as first preference)"],
     [["ko-KR"], "ko", "ko-KR (Korean unchanged)"],
-    [["kok", "en"], "ko", "kok,en (Konkani reaches ko through the two-letter prefix, unchanged)"]
+    [["kok", "en"], "ko", "kok,en (Konkani reaches ko through the two-letter prefix, unchanged)"],
+    [["sa"], "sa", "sa (Sanskrit)"],
+    [["sa-IN"], "sa", "sa-IN"],
+    [["SA_in"], "sa", "SA_in (case-insensitive, underscore separator)"],
+    [["Sa-IN", "en"], "sa", "Sa-IN,en (mixed case)"],
+    [["sa-Deva"], "sa", "sa-Deva"],
+    [["sa-Deva-IN"], "sa", "sa-Deva-IN"],
+    [["san"], "sa", "san (ISO 639-2 Sanskrit reaches sa through the two-letter prefix)"],
+    [["san-IN"], "sa", "san-IN"],
+    [["ne-NP", "sa"], "sa", "ne-NP,sa (Nepali unsupported, falls through to sa)"],
+    [["mr-IN", "sa"], "sa", "mr-IN,sa (Marathi unsupported, falls through to sa)"],
+    [["sa", "hi"], "sa", "sa,hi (first supported wins)"],
+    [["hi-IN", "sa"], "hi", "hi-IN,sa (first supported wins)"],
+    [["en-IN", "sa"], "en", "en-IN,sa (first supported wins)"],
+    [["sat"], "sa", "sat (Santali reaches sa through the two-letter prefix, a recorded collision)"],
+    [["sah"], "sa", "sah (Yakut reaches sa through the two-letter prefix, a recorded collision)"],
+    [["sad", "en"], "sa", "sad,en (Sandawe reaches sa through the two-letter prefix, a recorded collision)"],
+    [["sag"], "sa", "sag (Sango reaches sa through the two-letter prefix, a recorded collision)"],
+    [["sas"], "sa", "sas (Sasak reaches sa through the two-letter prefix, a recorded collision)"],
+    [["saq"], "sa", "saq (Samburu reaches sa through the two-letter prefix, a recorded collision)"],
+    [["la"], "la", "la (Latin)"],
+    [["la-VA"], "la", "la-VA"],
+    [["LA_va"], "la", "LA_va (case-insensitive, underscore separator)"],
+    [["La-va", "en"], "la", "La-va,en (mixed case)"],
+    [["la-IT"], "la", "la-IT"],
+    [["la-Latn"], "la", "la-Latn"],
+    [["lat"], "la", "lat (ISO 639-2 Latin reaches la through the two-letter prefix)"],
+    [["la", "it"], "la", "la,it (first supported wins)"],
+    [["it-VA", "la"], "it", "it-VA,la (first supported wins)"],
+    [["en-VA", "la"], "en", "en-VA,la (first supported wins)"],
+    [["va", "la"], "la", "va,la (Venetian unsupported, falls through to la)"],
+    [["lad"], "la", "lad (Ladino reaches la through the two-letter prefix, a recorded collision)"],
+    [["lag"], "la", "lag (Langi reaches la through the two-letter prefix, a recorded collision)"],
+    [["lah"], "la", "lah (Lahnda reaches la through the two-letter prefix, a recorded collision)"],
+    [["lam", "en"], "la", "lam,en (Lamba reaches la through the two-letter prefix, a recorded collision)"],
+    [["lav"], "la", "lav (the ISO 639-2 code of Latvian reaches la through the two-letter prefix, a recorded collision; browsers send lv)"],
+    [["lv"], "lv", "lv (Latvian unchanged)"],
+    [["lv-LV"], "lv", "lv-LV (Latvian unchanged)"],
+    [["hi-IN"], "hi", "hi-IN (Hindi unchanged)"],
+    [["it-IT"], "it", "it-IT (Italian unchanged)"],
+    [["sq"], "sq", "sq (Albanian unchanged)"],
+    [["sv-SE"], "sv", "sv-SE (Swedish unchanged)"],
+    [["sw"], "sw", "sw (Swahili unchanged)"],
+    [["s", "en"], "en", "s,en (not a supported code)"],
+    [["l", "en"], "en", "l,en (not a supported code)"],
+    [["ckb", "sa"], "ckb", "ckb,sa (first supported wins)"],
+    [["ku", "la"], "ku", "ku,la (first supported wins)"],
+    [["zgh", "sa"], "zgh-Tfng", "zgh,sa (first supported wins)"],
+    [["iw", "la"], "he", "iw,la (legacy Hebrew tag wins as first preference)"],
+    [["no-NO", "sa"], "nb", "no-NO,sa (legacy Norwegian tag wins as first preference)"],
+    [["pt", "la"], "pt-BR", "pt,la (first supported wins)"]
   ].forEach(function (c) {
     ctx.navigator = { languages: c[0] };
     check("detectDefaultLang(" + JSON.stringify(c[0]) + ") -> " + c[1] + " [" + c[2] + "]", I.detectDefaultLang(), c[1]);
@@ -1597,7 +1693,7 @@ function doApi() {
       a.setAttribute("href", c.href);
       return a;
     });
-    ["de", "fr", "pt-BR", "pt-PT", "zgh-Latn", "ku", "ckb"].forEach(function (targetLang) {
+    ["de", "fr", "pt-BR", "pt-PT", "zgh-Latn", "ku", "ckb", "sa", "la"].forEach(function (targetLang) {
       I2.setLang(targetLang);
       cases.forEach(function (c, i) {
         var href = els[i].getAttribute("href");
@@ -1745,7 +1841,23 @@ function doPersistence() {
     { opts: { cookie: { initial: "ku" }, storage: { initial: "es" } }, want: "ku", label: "cookie ku beats storage" },
     { opts: { storage: { initial: "ckb" } }, want: "ckb", label: "storage ckb used when url and cookie absent" },
     { opts: { storage: { initial: "ku" } }, want: "ku", label: "storage ku used when url and cookie absent" },
-    { opts: { storage: { initial: "ckb-IQ" } }, want: "en", label: "storage ckb-IQ falls through to detected default" }
+    { opts: { storage: { initial: "ckb-IQ" } }, want: "en", label: "storage ckb-IQ falls through to detected default" },
+    { opts: { search: "?lang=sa" }, want: "sa", label: "url sa" },
+    { opts: { search: "?lang=la" }, want: "la", label: "url la" },
+    { opts: { search: "?lang=la", cookie: { initial: "sa" }, storage: { initial: "ckb" } }, want: "la", label: "url la beats a cookie of sa and a stored ckb" },
+    { opts: { search: "?lang=sa", cookie: { initial: "la" }, storage: { initial: "he" } }, want: "sa", label: "url sa beats a cookie of la and a stored he" },
+    { opts: { search: "?lang=SA", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url SA (case mismatch) falls through to cookie" },
+    { opts: { search: "?lang=san", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url san (unsupported) falls through to cookie" },
+    { opts: { search: "?lang=sa-IN", navigator: { languages: ["la-VA"] } }, want: "la", label: "url sa-IN (unsupported) falls through to the detected la" },
+    { opts: { search: "?lang=la-VA", cookie: { initial: "fr" }, storage: { initial: "es" } }, want: "fr", label: "url la-VA (unsupported) falls through to cookie" },
+    { opts: { cookie: { initial: "LA" }, storage: { initial: "es" } }, want: "es", label: "cookie LA falls through to storage" },
+    { opts: { cookie: { initial: "san" }, storage: { initial: "es" } }, want: "es", label: "cookie san falls through to storage" },
+    { opts: { cookie: { initial: "sa" }, storage: { initial: "es" } }, want: "sa", label: "cookie sa beats storage" },
+    { opts: { cookie: { initial: "la" }, storage: { initial: "es" } }, want: "la", label: "cookie la beats storage" },
+    { opts: { storage: { initial: "sa" } }, want: "sa", label: "storage sa used when url and cookie absent" },
+    { opts: { storage: { initial: "la" } }, want: "la", label: "storage la used when url and cookie absent" },
+    { opts: { storage: { initial: "sa-IN" } }, want: "en", label: "storage sa-IN falls through to detected default" },
+    { opts: { storage: { initial: "lat" } }, want: "en", label: "storage lat falls through to detected default" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -1874,7 +1986,11 @@ function doPersistence() {
     { opts: { search: "?lang=ku" }, lang: "ku", via: "url" },
     { opts: { cookie: { initial: "ckb" } }, lang: "ckb", via: "cookie" },
     { opts: { search: "?lang=ckb" }, lang: "ckb", via: "url" },
-    { opts: { storage: { initial: "ku" } }, lang: "ku", via: "storage" }
+    { opts: { storage: { initial: "ku" } }, lang: "ku", via: "storage" },
+    { opts: { search: "?lang=sa" }, lang: "sa", via: "url" },
+    { opts: { cookie: { initial: "la" } }, lang: "la", via: "cookie" },
+    { opts: { search: "?lang=la" }, lang: "la", via: "url" },
+    { opts: { storage: { initial: "sa" } }, lang: "sa", via: "storage" }
   ].forEach(function (scenario) {
     var opts = Object.assign({ navigator: { languages: ["en-US", "en"] } }, scenario.opts);
     var ctx = loadI18n(opts);
@@ -2093,6 +2209,24 @@ function doPersistence() {
     });
     check("storage events with KU, kmr and ckb-IQ fire no change event", ctx._changeEvents.length, changeAfterKurdish);
 
+    // Sanskrit and Latin: a valid code re-applies html lang and removes dir; case variants and ISO 639-2 or region tags are no-ops.
+    var changeBeforeSa = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "sa");
+    check("storage event with sa while ckb is active re-applies html lang", ctx._doc.documentElement.lang, "sa");
+    check("storage event with sa while ckb is active removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with sa fires one more change event", ctx._changeEvents.length, changeBeforeSa + 1);
+    var changeBeforeLa = ctx._changeEvents.length;
+    ctx._fireStorage(I.LANG_STORAGE_KEY, "la");
+    check("storage event with la while sa is active re-applies html lang", ctx._doc.documentElement.lang, "la");
+    check("storage event with la while sa is active leaves html dir absent", ctx._doc.documentElement.getAttribute("dir"), null);
+    check("storage event with la fires one more change event", ctx._changeEvents.length, changeBeforeLa + 1);
+    var changeAfterSala = ctx._changeEvents.length;
+    ["SA", "san", "la-VA"].forEach(function (bad) {
+      ctx._fireStorage(I.LANG_STORAGE_KEY, bad);
+      check("storage event with " + bad + " is a no-op", ctx._doc.documentElement.lang, "la");
+    });
+    check("storage events with SA, san and la-VA fire no change event", ctx._changeEvents.length, changeAfterSala);
+
     ctx._fireStorage(I.LANG_STORAGE_KEY, "de");
     check("storage event back to de removes html dir", ctx._doc.documentElement.getAttribute("dir"), null);
   })();
@@ -2173,7 +2307,9 @@ var SWITCHER_OPTIONS = [
   { value: "zgh-Latn", lang: "zgh-Latn", label: "Tamazi\u0263t" },
   { value: "zgh-Tfng", lang: "zgh-Tfng", label: "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c" },
   { value: "ku", lang: "ku", label: "Kurmancî" },
-  { value: "ckb", lang: "ckb", label: "کوردی" }
+  { value: "ckb", lang: "ckb", label: "کوردی" },
+  { value: "sa", lang: "sa", label: "संस्कृतम्" },
+  { value: "la", lang: "la", label: "Latina" }
 ];
 
 // RTL_LANGS: the languages written right to left, Hebrew, Arabic and Sorani Kurdish. Mirrors
@@ -2201,6 +2337,7 @@ var LANG_CODES = SWITCHER_OPTIONS.map(function (o) { return o.value; });
 // Albanian (sq) and Swahili (sw) are unlisted as well: they use English's
 // {one, other} set, where 0 and fractions select other (unlike Hindi's one).
 // Kurmanji (ku) and Sorani (ckb) are unlisted too: they use {one, other} with Intl.PluralRules' own CLDR data (one for exactly 1).
+// Sanskrit (sa, { one, two, other }, engine-fixed) and Latin (la, { one, other }) are unlisted as well: Intl has no data for either, see FIXED_PLURAL_LANGS.
 // Chinese, Japanese, Korean and Indonesian have the single category other and are listed in
 // PLURAL_OTHER_ONLY_LANGS instead: their plural values are { other } alone.
 var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], ru: ["few", "many"], he: ["two"], ar: ["zero", "two", "few", "many"] };
@@ -2213,21 +2350,26 @@ var PLURAL_EXTRA_CATEGORIES = { pl: ["few", "many"], ro: ["few"], lv: ["zero"], 
 // correctly for every count (0, 1 and any other).
 var PLURAL_OTHER_ONLY_LANGS = ["zh", "ja", "ko", "id"];
 
-// FIXED_PLURAL_LANGS: Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng). Mirrors
+// FIXED_PLURAL_LANGS: Standard Moroccan Tamazight (zgh-Latn, zgh-Tfng), Sanskrit (sa) and Latin (la). Mirrors
 // assets/nt-i18n.js's internal list: languages without CLDR plural data, for
 // which NT.i18n itself selects one for exactly 1 and other otherwise, because
 // Intl.PluralRules would fall back to the runtime's default locale (fr selects
-// one for 0, ru for 21). Their plural values are { one, other }.
-var FIXED_PLURAL_LANGS = ["zgh-Latn", "zgh-Tfng"];
+// one for 0, ru for 21). Their plural values are { one, other }, except Sanskrit's (see FIXED_DUAL_LANGS).
+var FIXED_PLURAL_LANGS = ["zgh-Latn", "zgh-Tfng", "sa", "la"];
+
+// FIXED_DUAL_LANGS: Sanskrit (sa). Mirrors assets/nt-i18n.js's internal list: the FIXED_PLURAL_LANGS languages with a
+// grammatical dual, for which NT.i18n also selects two for exactly 2, so their plural values are { one, two, other }.
+var FIXED_DUAL_LANGS = ["sa"];
 
 // expectedPluralCategories(lang): sorted {one, other} plus that language's
 // extras — e.g. few,many,one,other for pl and ru, few,one,other for ro,
 // one,other,zero for lv, one,other,two for he, few,many,one,other,two,zero for ar,
-// other for zh, ja, ko and id, one,other for every other language (the fixed-rule
-// zgh-Latn and zgh-Tfng included: one for exactly 1, other for everything else).
+// other for zh, ja, ko and id, one,other,two for sa, one,other for every other language (the fixed-rule
+// zgh-Latn and zgh-Tfng included: one for exactly 1, other for everything else). Latin (la) is one,other as well;
+// Sanskrit (sa) is one,other,two (engine-fixed: one for exactly 1, two for exactly 2, other otherwise).
 function expectedPluralCategories(lang) {
   if (PLURAL_OTHER_ONLY_LANGS.indexOf(lang) !== -1) return ["other"];
-  var extra = PLURAL_EXTRA_CATEGORIES[lang] || [];
+  var extra = (PLURAL_EXTRA_CATEGORIES[lang] || []).concat(FIXED_DUAL_LANGS.indexOf(lang) !== -1 ? ["two"] : []);
   return ["one", "other"].concat(extra).sort();
 }
 
@@ -2339,7 +2481,8 @@ function isProse(text) {
 // ko value is SCRIPT-FOREIGN); Standard Moroccan Tamazight in Latin script
 // (zgh-Latn) has no entry here: zghLatinFindings checks its IRCAM letters, and
 // Kurmanji Kurdish (ku, Latin Hawar alphabet) has none either: kuLetterFindings
-// checks its letters. Sorani Kurdish (ckb) has an entry like Arabic's.
+// checks its letters. Sorani Kurdish (ckb) has an entry like Arabic's. Sanskrit (sa) has an entry like Hindi's
+// (saLetterFindings checks its Devanagari repertoire); Latin (la) has none: laLetterFindings checks its letters.
 
 // SCRIPT_LATIN_NOTATION: every multi-letter Latin token a Cyrillic, Greek,
 // Hebrew, Devanagari, Arabic, Han, kana or Hangul value may keep — notation, a code identifier, an acronym, or a narrative
@@ -2454,6 +2597,14 @@ var SCRIPT_RULES = {
   // Eponyms are transliterated into Devanagari, so the base notation list is
   // reused without el's eponym extension.
   hi: {
+    own: /(?=\p{L})\p{Script=Devanagari}/u,
+    foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
+    latin: SCRIPT_LATIN_NOTATION
+  },
+  // Sanskrit (sa, Devanagari, left to right): exactly Hindi's rule (own = a Devanagari letter, same foreign
+  // scripts, base notation list); eponyms are written in Devanagari without nukta. The letters themselves
+  // (no nukta, candra vowel, candrabindu, Vedic accent) are checked by saLetterFindings.
+  sa: {
     own: /(?=\p{L})\p{Script=Devanagari}/u,
     foreign: /\p{Script=Cyrillic}|\p{Script=Hebrew}|\p{Script=Greek}{2,}|\p{Script=Arabic}|\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Tifinagh}/u,
     latin: SCRIPT_LATIN_NOTATION
@@ -2719,8 +2870,8 @@ function charFindings(id, lang, value) {
 // legitimate rewordings (a numeral written as a word, Russian's 16,8), which
 // is why the list holds only the languages added after the rule existed
 // (Hindi, Arabic, Albanian, Swahili, Chinese, Japanese, Korean, Indonesian and
-// Standard Moroccan Tamazight in both scripts, Kurmanji and Sorani Kurdish).
-var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id", "zgh-Latn", "zgh-Tfng", "ku", "ckb"];
+// Standard Moroccan Tamazight in both scripts, Kurmanji and Sorani Kurdish, Sanskrit and Latin).
+var DIGIT_PARITY_LANGS = ["hi", "ar", "sq", "sw", "zh", "ja", "ko", "id", "zgh-Latn", "zgh-Tfng", "ku", "ckb", "sa", "la"];
 
 // digitParityFindings(id, lang, value, enValue): [] for a language outside
 // DIGIT_PARITY_LANGS. Otherwise, with every {placeholder} replaced by a space
@@ -2758,6 +2909,73 @@ function kuLetterFindings(id, lang, value, enValue) {
     return ["KU-LETTER " + id + "." + lang + ": " + JSON.stringify(ch) + " (U+" + ("0000" + ch.codePointAt(0).toString(16)).slice(-4).toUpperCase() + ") is not a Kurmanji letter and not in the English value"];
   }
   return [];
+}
+
+/* ---------- Sanskrit (Devanagari) and Latin (ASCII letters) ---------- */
+
+// saLetterFindings(id, lang, value, enValue): [] for any language but sa or a non-string value. Otherwise
+// SA-LETTER for the first character with Script_Extensions=Devanagari that is not a decimal digit (NATIVE-DIGIT
+// reports those) and not in the Sanskrit repertoire: anusvara, visarga, the vowels a..lr (vocalic r, rr, l, ll
+// included), e, ai, o, au, the consonants ka..ha without the nukta letters, nnna, rra, lla and llla, the
+// avagraha, the vowel signs aa..rr, e, ai, o, au, the vocalic signs l and ll, the virama and the dandas. Hindi's
+// extras are rejected: nukta and the nukta letters, the candra and short e/o, the candrabindu, lla, the om sign,
+// the Vedic accents and the abbreviation sign. And SA-DANDA when a danda (U+0964) or double danda (U+0965) has
+// whitespace before it or anything but whitespace, a placeholder or the end of the value after it: the danda ends
+// a prose sentence and never stands inside a formula. Built from code points, never escapes.
+function saRange(a, b) { var out = []; for (var c = a; c <= b; c++) out.push(c); return out; }
+var SA_REPERTOIRE = [0x902, 0x903].concat(saRange(0x905, 0x90C), [0x90F, 0x910, 0x913, 0x914], saRange(0x915, 0x928),
+  saRange(0x92A, 0x930), [0x932], saRange(0x935, 0x939), [0x93D], saRange(0x93E, 0x944), [0x947, 0x948, 0x94B, 0x94C, 0x94D],
+  saRange(0x960, 0x963), [0x964, 0x965]).map(function (c) { return String.fromCodePoint(c); }).join("");
+var SA_DANDAS = String.fromCodePoint(0x964) + String.fromCodePoint(0x965);
+var SA_DANDA_BAD = new RegExp("\\s[" + SA_DANDAS + "]|[" + SA_DANDAS + "](?![\\s{]|$)");
+function saLetterFix(c) {
+  if (c === 0x93C || (c >= 0x958 && c <= 0x95F)) return "a nukta (Hindi/Urdu spelling) is not Sanskrit: write the plain letter";
+  if ([0x911, 0x949, 0x912, 0x94A, 0x90D, 0x945, 0x90E, 0x946].indexOf(c) !== -1) return "Sanskrit has no candra or short e/o: write the plain vowel";
+  if (c === 0x901) return "the candrabindu is Hindi spelling here: write the anusvara or the class nasal";
+  if (c === 0x933) return "Classical Sanskrit writes U+0932";
+  if (c === 0x950) return "write the word, not the om sign";
+  if (c === 0x970) return "no abbreviation sign: write the word in full";
+  if (c >= 0x951 && c <= 0x954) return "no Vedic accent marks";
+  return "";
+}
+function saLetterFindings(id, lang, value, enValue) {
+  if (lang !== "sa" || typeof value !== "string") return [];
+  var findings = [];
+  var chars = Array.from(value);
+  for (var i = 0; i < chars.length; i++) {
+    var ch = chars[i];
+    if (!/\p{scx=Devanagari}/u.test(ch) || /\p{Nd}/u.test(ch) || SA_REPERTOIRE.indexOf(ch) !== -1) continue;
+    var c = ch.codePointAt(0), fix = saLetterFix(c);
+    findings.push("SA-LETTER " + id + "." + lang + ": " + JSON.stringify(ch) + " (U+" + ("0000" + c.toString(16)).slice(-4).toUpperCase() + ") is not in the Sanskrit Devanagari repertoire" + (fix ? "; " + fix : ""));
+    break;
+  }
+  if (SA_DANDA_BAD.test(value)) findings.push("SA-DANDA " + id + "." + lang + ": a danda ends a prose sentence: no space before it, only a space, a placeholder or the end of the value after it, never inside a formula");
+  return findings;
+}
+
+// laLetterFindings(id, lang, value, enValue): [] for any language but la or a non-string value. Otherwise
+// LA-LETTER for the first letter that is not an ASCII letter, not the totient phi and not present in the English
+// value (an eponym such as Bezout's e-acute): macrons, ligatures, accents and every other non-ASCII letter are
+// rejected. And LA-J for the first word containing j or J that is not a word of the English value (consonantal
+// i is written i in modern Neo-Latin: iam, maior, eius).
+var LA_PHI = String.fromCodePoint(0x3C6);
+function laLetterFindings(id, lang, value, enValue) {
+  if (lang !== "la" || typeof value !== "string") return [];
+  var findings = [];
+  var enSet = {};
+  Array.from(String(enValue == null ? "" : enValue)).forEach(function (ch) { enSet[ch] = true; });
+  var chars = Array.from(value);
+  for (var i = 0; i < chars.length; i++) {
+    var ch = chars[i];
+    if (!/\p{L}/u.test(ch) || /[A-Za-z]/.test(ch) || ch === LA_PHI || enSet[ch]) continue;
+    findings.push("LA-LETTER " + id + "." + lang + ": " + JSON.stringify(ch) + " (U+" + ("0000" + ch.codePointAt(0).toString(16)).slice(-4).toUpperCase() + ") is not an ASCII letter and not in the English value (no macrons, ligatures or accents)");
+    break;
+  }
+  var enWords = {};
+  (String(enValue == null ? "" : enValue).match(/[\p{L}\p{N}_]+/gu) || []).forEach(function (w) { enWords[w] = true; });
+  var jw = (value.match(/[\p{L}\p{N}_]*[jJ][\p{L}\p{N}_]*/gu) || []).filter(function (w) { return !enWords[w]; });
+  if (jw.length) findings.push("LA-J " + id + "." + lang + ": " + JSON.stringify(jw[0]) + " (consonantal i is written i: iam, maior, eius)");
+  return findings;
 }
 
 /* ---------- Standard Moroccan Tamazight: IRCAM Latin letters, transliteration, notation parity ---------- */
@@ -3335,7 +3553,7 @@ function dataFileNsList(file) {
 // other; ar's six: zero, one, two, few, many, other) are checked
 // exactly as strictly as every other language's two (one, other), and the
 // single-category languages zh, ja, ko and id (PLURAL_OTHER_ONLY_LANGS) must carry
-// the { other } shape alone.
+// the { other } shape alone. Sanskrit (sa) is checked as { one, two, other } (engine-fixed dual) and Latin (la) as { one, other }.
 function checkPluralEntry(ns, key, lang, entry, enEntry) {
   var findings = [];
   var expected = expectedPluralCategories(lang);
@@ -3448,6 +3666,9 @@ function pluralCategoryFindings() {
       findings.push("PLURAL-CATEGORIES " + lang + ": Intl now has plural data for it; revisit FIXED_PLURAL_LANGS");
     }
   });
+  FIXED_DUAL_LANGS.forEach(function (lang) {
+    if (FIXED_PLURAL_LANGS.indexOf(lang) === -1) findings.push("PLURAL-CATEGORIES " + lang + ": listed in FIXED_DUAL_LANGS but not in FIXED_PLURAL_LANGS");
+  });
   LANG_CODES.forEach(function (lang) {
     findings.push.apply(findings, pluralSelectionGaps(lang));
   });
@@ -3525,6 +3746,8 @@ function checkDictionaries() {
               var zghPlainEn = typeof enEntry[cat] === "string" ? enEntry[cat] : enEntry.other;
               findings.push.apply(findings, zghLatinFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
               findings.push.apply(findings, kuLetterFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
+              findings.push.apply(findings, saLetterFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
+              findings.push.apply(findings, laLetterFindings(ns + "." + key + "." + cat, lang, entry[cat], zghPlainEn));
               var zghLatnForm = nsDict["zgh-Latn"] && nsDict["zgh-Latn"][key];
               if (zghLatnForm && typeof zghLatnForm === "object") findings.push.apply(findings, zghTransliterationFindings(ns + "." + key + "." + cat, lang, entry[cat], zghLatnForm[cat], zghPlainEn));
             });
@@ -3548,6 +3771,8 @@ function checkDictionaries() {
           findings.push.apply(findings, cjkFindings(ns + "." + key, lang, entry, enEntry));
           findings.push.apply(findings, zghLatinFindings(ns + "." + key, lang, entry, enEntry));
           findings.push.apply(findings, kuLetterFindings(ns + "." + key, lang, entry, enEntry));
+          findings.push.apply(findings, saLetterFindings(ns + "." + key, lang, entry, enEntry));
+          findings.push.apply(findings, laLetterFindings(ns + "." + key, lang, entry, enEntry));
           if (nsDict["zgh-Latn"] && typeof nsDict["zgh-Latn"][key] === "string") findings.push.apply(findings, zghTransliterationFindings(ns + "." + key, lang, entry, nsDict["zgh-Latn"][key], enEntry));
         }
       });
@@ -3930,6 +4155,7 @@ module.exports = {
   PLURAL_EXTRA_CATEGORIES: PLURAL_EXTRA_CATEGORIES,
   PLURAL_OTHER_ONLY_LANGS: PLURAL_OTHER_ONLY_LANGS,
   FIXED_PLURAL_LANGS: FIXED_PLURAL_LANGS,
+  FIXED_DUAL_LANGS: FIXED_DUAL_LANGS,
   expectedPluralCategories: expectedPluralCategories,
   checkPluralEntry: checkPluralEntry,
   pluralCategoryFindings: pluralCategoryFindings,
@@ -3954,5 +4180,7 @@ module.exports = {
   zghLatinFindings: zghLatinFindings,
   zghTransliterationFindings: zghTransliterationFindings,
   kuLetterFindings: kuLetterFindings,
+  saLetterFindings: saLetterFindings,
+  laLetterFindings: laLetterFindings,
   CKB_LETTERS: CKB_LETTERS
 };
