@@ -1507,6 +1507,53 @@ Domain terms the pinned D-TERMS list did not cover, plus its "also" terms, as wr
 | scalar | askalir | ⴰⵙⴽⴰⵍⵉⵔ | ecdh, hub | `[ASSUMED]` |
 | scalar (private) | amusli | ⴰⵎⵓⵙⵍⵉ | ecdh | `[ASSUMED]` |
 
+
+### Kurdish supplementary terms (Kurmanji and Sorani; added 2026-10-08 by quick task 261008-k7u, Tasks 2-4, unified in Task 5)
+
+Domain terms the pinned D-TERMS list did not cover, plus its "also" terms, as written while translating the 16 pages. One ku (Kurmanji, Latin Hawar alphabet) and one ckb (Sorani, Kurdish Arabic-based alphabet) rendering per English term, verified to occur in the named namespaces; both are `[ASSUMED]` (no term was checked against a published Kurdish glossary, and no native reader has reviewed them).
+
+| Term (en) | ku | ckb | Namespaces | Confidence |
+|---|---|---|---|---|
+| visualized (picture, "in pictures") | bi dîmen | بە وێنە | hub | `[ASSUMED]` |
+| cryptography | krîptografî | کریپتۆگرافی | dh, ecdh, hub | `[ASSUMED]` |
+| arithmetic | hesaba modulî | ژمێریاری مۆدیولی | hub, sqm | `[ASSUMED]` |
+| simultaneous | hevdem | ھاوکات | crt, hub | `[ASSUMED]` |
+| set (collection of elements) | kom | کۆمەڵە | ecdh, hub, venn | `[ASSUMED]` |
+| rectangle | çargoşeya dirêj | لاکێشە | euclid, hub | `[ASSUMED]` |
+| square (shape) | çargoşe | چوارگۆشە | cayley, euclid, hub | `[ASSUMED]` |
+| squaring | çargoşekirin | دووجاکردن | hub, rsa, site, sqm | `[ASSUMED]` |
+| nested (squares) | di nav hev de | لە ناو یەکدا | euclid | `[ASSUMED]` |
+| composition/factorization area | qada pêkhatin/faktorkirinê | ناوچەی پێکھێنان/شیکردنەوە | factorTree | `[ASSUMED]` |
+| bin (palette trash) | çopdank | زبڵدان | factorTree, venn | `[ASSUMED]` |
+| trial | ceribandin | تاقیکردنەوە | crt, dh, ecdh, totient, fermat, rsa | `[ASSUMED]` |
+| trivial pair | cota sade | جووتە سادەکە | fermat | `[ASSUMED]` |
+| odd (number) | tak | تاک | fermat, rsa, shor | `[ASSUMED]` |
+| even (number) | cot | جووت | cayley, crt, euclid, factorTree, fermat, iso | `[ASSUMED]` |
+| coefficient | hevkar | ھاوکۆڵکە | ecdh, euclid | `[ASSUMED]` |
+| riddle | mamik | مەتەڵ | crt | `[ASSUMED]` |
+| diagnostic | teşhîs | دەستنیشانکردن | crt | `[ASSUMED]` |
+| pairwise coprime | du bi du ji hev seretayî | جووت جووت سەرەتایی | crt | `[ASSUMED]` |
+| accumulator | berhevker | کۆکەرەوە | sqm | `[ASSUMED]` |
+| subgroup | binegrûp | ژێرگرووپ | dh, ecdh | `[ASSUMED]` |
+| diagonal | diagonal | ھێڵی لاری | cayley | `[ASSUMED]` |
+| ladder | nêrdewan | پەیژە | sqm | `[ASSUMED]` |
+| wedge | perçe | پارچە | cayley, crt, wheel, euclid, totient, hub | `[ASSUMED]` |
+| notebook | defter | دەفتەر | dh, ecdh, rsa | `[ASSUMED]` |
+| tap, eavesdrop | guhdarî | گوێگرتن | dh, ecdh, rsa | `[ASSUMED]` |
+| safe prime | ewle | پارێزراو | dh | `[ASSUMED]` |
+| scalar | skalar | سکالار | ecdh, hub | `[ASSUMED]` |
+| slope | meyl | لاری | ecdh | `[ASSUMED]` |
+| key exchange / exchange | danûstandin | ئاڵوگۆڕ | dh, ecdh, hub, rsa, sqm | `[ASSUMED]` |
+| scatter | belavok | پەرشبوونەوە | ecdh, hub | `[ASSUMED]` |
+| positive | erênî | ئەرێنی | dh, ecdh, euclid, rsa | `[ASSUMED]` |
+| negative | neyînî | نەرێنی | euclid, rsa, sqm | `[ASSUMED]` |
+| superposition | serhevdanîn | سوپەرپۆزیشن | shor | `[ASSUMED]` |
+| attacker | êrîşkar | ھێرشکار | rsa | `[ASSUMED]` |
+| mirror | neynik | ئاوێنە | cayley, ecdh, factorTree, venn | `[ASSUMED]` |
+| member of a class | endam | ئەندام | crt, wheel | `[ASSUMED]` |
+| quantum | kuantûmî | کوانتەمی | hub, shor | `[ASSUMED]` |
+| period | dewr | خول | crt, shor | `[ASSUMED]` |
+
 ---
 
 ## (d) Proper nouns (kept, conventional eponym spelling)
