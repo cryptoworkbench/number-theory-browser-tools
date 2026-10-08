@@ -8,7 +8,7 @@
    category set for that language), the nested view's
    empty/capped messages and its own capped-note, the nested tile's
    tooltip title, and the closing caption, for the Euclidean Algorithm
-   tool, in all twenty-nine supported languages.
+   tool, in all thirty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd(a, b)" as a function-call notation stays
@@ -20,7 +20,7 @@
    (assets/i18n/site.js), never duplicated here. Placeholder names ({a},
    {b}, {A}, {B}, {q}, {r}, {n}, {max}, {index}, {total}, {cap}, {rest},
    {step}, {extra}, {stepNums}, {gcd}, {lastB}) are identical across all
-   twenty-nine languages. Must load after assets/nt-i18n.js and
+   thirty-one languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1563,6 +1563,119 @@
       nestedTileTitle: 'ھەنگاوی {step}: \u2066{a} = {q}·{b} + {r}\u2069',
       nestedTileTitleCapped: 'ھەنگاوی {step}: \u2066{a} = {q}·{b} + {r}\u2069 (ژمارەی چوارگۆشە زیادەکانی کۆکراوە لێرە: {extra})',
       tileEmptyMessage: 'ھیچ لاکێشەیەک نییە بۆ بڕین — b پێشتر یەکسانە بە 0، بۆیە ئەلگۆریتمەکە پێشتر تەواو بووە.'
+    },
+    sa: {
+      title: 'यूक्लिड-कलनविधिः',
+      heading: 'यूक्लिड-कलनविधिः',
+      lede: 'युग्मस्य (a, b) स्थाने पुनः पुनः (b, a mod b) स्थापयतु — बृहत्तरां सङ्ख्यां लघुतरया विभजतु, केवलं च शेषं रक्षतु — ततः प्रतिपदं युग्मं ह्रसति। यस्मिन् क्षणे एकः पक्षः शून्यं प्राप्नोति, अपरः पक्षः प्रारब्धयोः द्वयोः सङ्ख्ययोः महत्तमसमापवर्तकः भवति।',
+      xref: 'स एव महत्तमसमापवर्तकः द्वयोः सङ्ख्ययोः साधारणानाम् अभाज्यानां रूपेण अपि द्रष्टुं शक्यः →',
+      chipFiveSteps: '240, 46 · 5 पदानि',
+      chipCoprime: '35, 18 · सहाभाज्य',
+      chipBDividesA: '144, 12 · b इति a इत्येतं विभजति',
+      chipEqualPair: '36, 36 · समं युग्मम्',
+      chipAlreadyDone: '17, 0 · पूर्वमेव समाप्तम्',
+      chipFibonacciWorst: '89, 55 · फिबोनाची दुष्टतमः प्रसङ्गः',
+      chipHugeQuotient: '500000, 2 · विशाला लब्धिः',
+      run: 'चालयतु',
+      extToggleLabel: 'विस्तृत-यूक्लिड-प्रकारः — बेजू-गुणकौ {0} तथा {1} दर्शयतु',
+      errBothWhole: 'a तथा b उभौ पूर्णाङ्कौ भवेताम्।',
+      errBothNonNegative: 'a तथा b उभौ शून्यम् अथवा धनात्मकौ भवेताम् — ऋणसङ्ख्यानां कृते अत्र महत्तमसमापवर्तकः परिभाषितः नास्ति।',
+      errGcdZeroZero: 'gcd(0, 0) अपरिभाषितम् — न्यूनतमम् एकम् अशून्यं मूल्यं लिखतु।',
+      errClamped: 'निवेशानाम् अधिकतमा सीमा {max} अस्ति — बृहत्तरं मूल्यं तावत् न्यूनीकृतम्।',
+      swapNote: 'बृहत्तरं मूल्यं प्रथमं तिष्ठति: ({a}, {b}) इति लिखितम्, gcd({A}, {B}) इति अनुसृतम् — महत्तमसमापवर्तकः तयोः क्रमे सममितः।',
+      bannerReady: 'सज्जम् — व्युत्पत्तिः पङ्क्तिशः कथं निर्मीयते इति द्रष्टुं "चालनम्" इति नुदतु।',
+      bannerDone: {
+        one: 'समाप्तम् — महत्तमसमापवर्तकं प्राप्तुम् {n} पदम्।',
+        two: 'समाप्तम् — महत्तमसमापवर्तकं प्राप्तुम् {n} पदे।',
+        other: 'समाप्तम् — महत्तमसमापवर्तकं प्राप्तुम् {n} पदानि।'
+      },
+      chainNoteZero: 'b पूर्वमेव 0 अस्ति, अतः विभाजनीयं किमपि नास्ति — a पूर्वमेव महत्तमसमापवर्तकः।',
+      extCaption: 'प्रत्येकस्याः पङ्क्तेः {0} तथा {1} तस्याः पङ्क्तेः शेषं मूलयोः द्वयोः निवेशयोः संयोगरूपेण व्यक्तं कुरुतः — {2}।',
+      viewNested: 'अन्तर्गुम्फिताः वर्गाः',
+      geomViewGroupLabel: 'ज्यामितीयदृश्यप्रकारः',
+      viewStep: 'एकं पदम्',
+      tileAriaDefault: 'वर्तमानस्य विभाजनपदस्य आयतदृश्यम्',
+      nestedAriaDefault: 'सर्वाणि विभाजनपदानि एकस्मिन् आयते अन्तर्गुम्फितानि',
+      caption: 'क्रमागताः फिबोनाची-सङ्ख्याः अस्य कलनविधेः दुष्टतमः प्रसङ्गः — ताः स्वस्य परिमाणे अधिकतमानि विभाजनपदानि अपेक्षन्ते।',
+      tileCaptionExact: {
+        one: '{total} मध्ये पदम् {index}: {a} ÷ {b}: आयतः {q} वर्गेण, यस्य भुजः {b}, यथार्थं पूर्यते — अवशेषः नास्ति, अतः {b} महत्तमसमापवर्तकः।',
+        two: '{total} मध्ये पदम् {index}: {a} ÷ {b}: आयतः {q} वर्गाभ्यां, ययोः भुजः {b}, यथार्थं पूर्यते — अवशेषः नास्ति, अतः {b} महत्तमसमापवर्तकः।',
+        other: '{total} मध्ये पदम् {index}: {a} ÷ {b}: आयतः {q} वर्गैः, येषां भुजः {b}, यथार्थं पूर्यते — अवशेषः नास्ति, अतः {b} महत्तमसमापवर्तकः।'
+      },
+      tileCaptionLeftover: {
+        one: '{total} मध्ये पदम् {index}: {a} = {q}×{b} + {r}: {q} वर्गः, यस्य भुजः {b}, समाविशति, शेषः {b}×{r} आयतः अवशिष्यते।',
+        two: '{total} मध्ये पदम् {index}: {a} = {q}×{b} + {r}: {q} वर्गौ, ययोः भुजः {b}, समाविशतः, शेषः {b}×{r} आयतः अवशिष्यते।',
+        other: '{total} मध्ये पदम् {index}: {a} = {q}×{b} + {r}: {q} वर्गाः, येषां भुजः {b}, समाविशन्ति, शेषः {b}×{r} आयतः अवशिष्यते।'
+      },
+      tileNoteCapped: 'यथार्थः लब्धिः {q} अस्ति — अत्र केवलं प्रथमाः {cap} वर्गाः आलिखिताः; शेषाः {rest} नामाङ्किते खण्डे सङ्कोचिताः, अतः आलिखितः विस्तारः मानानुसारः न।',
+      nestedEmptyMessage: 'अन्तर्गुम्फनीयः आयतः नास्ति — b पूर्वमेव 0 अस्ति, अतः कलनविधिः पूर्वमेव समाप्तः।',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: सर्वम् {n} पदम् एकस्मिन् {A}×{B} आयते अन्तर्गुम्फितम् — लघुतमाः {lastB}×{lastB} वर्गाः महत्तमसमापवर्तकं निर्दिशन्ति। ते कथं सम्पङ्क्तिताः इति द्रष्टुं वर्गं (अथवा उपरि पदं) नुदतु।',
+        two: 'gcd({A}, {B}) = {gcd}: सर्वे {n} पदे एकस्मिन् {A}×{B} आयते अन्तर्गुम्फिते — लघुतमाः {lastB}×{lastB} वर्गाः महत्तमसमापवर्तकं निर्दिशन्ति। ते कथं सम्पङ्क्तिताः इति द्रष्टुं वर्गं (अथवा उपरि पदं) नुदतु।',
+        other: 'gcd({A}, {B}) = {gcd}: सर्वाणि {n} पदानि एकस्मिन् {A}×{B} आयते अन्तर्गुम्फितानि — लघुतमाः {lastB}×{lastB} वर्गाः महत्तमसमापवर्तकं निर्दिशन्ति। ते कथं सम्पङ्क्तिताः इति द्रष्टुं वर्गं (अथवा उपरि पदं) नुदतु।'
+      },
+      nestedNoteCapped: {
+        one: 'पदम् {stepNums}: लब्धिः अतीव बृहती — तत्र केवलं प्रथमाः {cap} वर्गाः आलिखिताः, छिन्नरेखायुक्ते खण्डे सङ्कोचिताः, अतः तस्मिन् पदे अयम् आरेखः पूर्णतया मानानुसारः न।',
+        two: 'पदे {stepNums}: लब्धी अतीव बृहत्यौ — तत्र केवलं प्रथमाः {cap} वर्गाः आलिखिताः, छिन्नरेखायुक्ते खण्डे सङ्कोचिताः, अतः तयोः पदयोः अयम् आरेखः पूर्णतया मानानुसारः न।',
+        other: 'पदानि {stepNums}: लब्धयः अतीव बृहत्यः — तत्र केवलं प्रथमाः {cap} वर्गाः आलिखिताः, छिन्नरेखायुक्ते खण्डे सङ्कोचिताः, अतः तेषु पदेषु अयम् आरेखः पूर्णतया मानानुसारः न।'
+      },
+      nestedTileTitle: 'पदम् {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'पदम् {step}: {a} = {q}·{b} + {r} (अत्र अपरे {extra} वर्गाः सङ्कोचिताः)',
+      tileEmptyMessage: 'छेदनीयः आयतः नास्ति — b पूर्वमेव 0 अस्ति, अतः कलनविधिः पूर्वमेव समाप्तः।'
+    },
+    la: {
+      title: 'Algorithmus Euclideus',
+      heading: 'Algorithmus Euclideus',
+      lede: 'Par (a, b) iterum atque iterum per (b, a mod b) muta — maiorem per minorem divide et residuum tantum serva — et par singulis gradibus contrahitur. Simulac alterum latus ad zerum pervenit, alterum est divisor communis maximus duorum numerorum a quibus incepisti.',
+      xref: 'Idem divisor communis maximus etiam ut numeri primi quos duo numeri communes habent videri potest →',
+      chipFiveSteps: '240, 46 · 5 gradus',
+      chipCoprime: '35, 18 · inter se primi',
+      chipBDividesA: '144, 12 · b dividit a',
+      chipEqualPair: '36, 36 · par aequale',
+      chipAlreadyDone: '17, 0 · iam factum',
+      chipFibonacciWorst: '89, 55 · Fibonacci casus pessimus',
+      chipHugeQuotient: '500000, 2 · quotiens ingens',
+      run: 'Exsequere',
+      extToggleLabel: 'Modus Euclideus extensus — ostende coefficientes Bézout {0} et {1}',
+      errBothWhole: 'Tam a quam b numeri integri esse debent.',
+      errBothNonNegative: 'Tam a quam b zerum aut positivi esse debent — numeri negativi hic divisorem communem maximum definitum non habent.',
+      errGcdZeroZero: 'gcd(0, 0) non definitum est — saltem unum valorem non zerum inscribe.',
+      errClamped: 'Ingressus ad {max} limitantur — valor maior ad id reductus est.',
+      swapNote: 'Maior valor primus est: ut ({a}, {b}) inscriptum, ut gcd({A}, {B}) secutum — divisor communis maximus in argumentis suis symmetricus est.',
+      bannerReady: 'Paratum — preme «Perge» ut derivationem lineam post lineam construi spectes.',
+      bannerDone: {
+        one: 'Factum — {n} gradus ad divisorem communem maximum attingendum.',
+        other: 'Factum — {n} gradus ad divisorem communem maximum attingendum.'
+      },
+      chainNoteZero: 'b iam 0 est, itaque nihil dividendum relinquitur — a iam divisor communis maximus est.',
+      extCaption: '{0} et {1} cuiusque lineae residuum illius lineae ut combinationem duorum ingressuum originalium exprimunt — {2}.',
+      viewNested: 'Quadrata inclusa',
+      geomViewGroupLabel: 'Modus visus geometricus',
+      viewStep: 'Gradus singulus',
+      tileAriaDefault: 'Species rectangularis gradus divisionis praesentis',
+      nestedAriaDefault: 'Omnes gradus divisionis in unum rectangulum inclusi',
+      caption: 'Numeri Fibonacci consecutivi casus pessimus huius algorithmi sunt — pro magnitudine sua plurimos gradus divisionis exigunt.',
+      tileCaptionExact: {
+        one: 'Gradus {index} ex {total}: {a} ÷ {b}: rectangulum exacte tegitur {q} quadrato lateris {b} — nihil relinquitur, itaque {b} est divisor communis maximus.',
+        other: 'Gradus {index} ex {total}: {a} ÷ {b}: rectangulum exacte tegitur {q} quadratis lateris {b} — nihil relinquitur, itaque {b} est divisor communis maximus.'
+      },
+      tileCaptionLeftover: {
+        one: 'Gradus {index} ex {total}: {a} = {q}×{b} + {r}: {q} quadratum lateris {b} capitur, residuo {b}×{r} relicto.',
+        other: 'Gradus {index} ex {total}: {a} = {q}×{b} + {r}: {q} quadrata lateris {b} capiuntur, residuo {b}×{r} relicto.'
+      },
+      tileNoteCapped: 'Verus quotiens est {q} — hic primi tantum {cap} quadrata delineantur; reliqua {rest} in tessella inscripta complicantur, itaque latitudo delineata ad scalam non est.',
+      nestedEmptyMessage: 'Nullum rectangulum includendum est — b iam 0 est, itaque algorithmus iam factus est.',
+      nestedCaption: {
+        one: 'gcd({A}, {B}) = {gcd}: omnis {n} gradus in unum rectangulum {A}×{B} inclusus — minima quadrata {lastB}×{lastB} divisorem communem maximum sunt. Preme quadratum (aut gradum supra) ut videas quomodo inter se coordinentur.',
+        other: 'gcd({A}, {B}) = {gcd}: omnes {n} gradus in unum rectangulum {A}×{B} inclusi — minima quadrata {lastB}×{lastB} divisorem communem maximum sunt. Preme quadratum (aut gradum supra) ut videas quomodo inter se coordinentur.'
+      },
+      nestedNoteCapped: {
+        one: 'Gradus {stepNums} quotientem valde magnum habet — ibi primi tantum {cap} quadrata delineantur, in tessellam lineis interruptis complicata, itaque hoc diagramma in illo gradu non plene ad scalam est.',
+        other: 'Gradus {stepNums} quotientes valde magnos habent — ibi primi tantum {cap} quadrata delineantur, in tessellam lineis interruptis complicata, itaque hoc diagramma in illis gradibus non plene ad scalam est.'
+      },
+      nestedTileTitle: 'Gradus {step}: {a} = {q}·{b} + {r}',
+      nestedTileTitleCapped: 'Gradus {step}: {a} = {q}·{b} + {r} (hic {extra} quadrata ulteriora complicata)',
+      tileEmptyMessage: 'Nullum rectangulum secandum est — b iam 0 est, itaque algorithmus iam factus est.'
     }
   });
 })();

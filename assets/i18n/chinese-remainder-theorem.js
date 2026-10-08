@@ -6,7 +6,7 @@
    the scan produces, the "all agree" row label, the construction panel's
    lede/table headers/per-row inverse link and its diagnostic/blocked
    messages, and the closing caption, for the Chinese Remainder Theorem
-   tool, in all twenty-nine supported languages.
+   tool, in all thirty-one supported languages.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). "gcd" and "lcm" are mathematical notation per
@@ -16,7 +16,7 @@
    and Speed live in the shared `common` namespace (assets/i18n/site.js),
    never duplicated here. Placeholder names ({idx}, {min}, {max}, {m},
    {x}, {y}, {g}, {span}, {landed}, {computed}, {reduced}) are identical
-   across all twenty-nine languages. Must load after assets/nt-i18n.js and
+   across all thirty-one languages. Must load after assets/nt-i18n.js and
    assets/i18n/site.js, before the page's own inline <script>.
 */
 (function () {
@@ -1095,6 +1095,80 @@
       constructReasonSpanBlocked: 'دروستکردنەکە وەڵامێکی ژمێردراو پێویستە، و پارێزەری سنووری سەرەوە ڕێگری لێ دەکات.',
       constructSumMismatch: 'ناکۆکی دەستنیشانکردن: دروستکردنەکە دەگاتە {reduced} بەڵام چارەسەرکەر ئەمەی ژمارد: {computed} — دەبێت ئەمانە ھەمیشە ڕێک بکەون.',
       seeInverse: 'پێچەوانەکە ببینە ←'
+    },
+    sa: {
+      title: 'चीनीयशेषप्रमेयम्',
+      heading: 'चीनीयशेषप्रमेयम्',
+      lede: 'प्रत्येका सर्वाङ्गसमता स्वयं समदूरस्थानां सङ्ख्यानां कुलं चिनोति — प्रत्येकां तृतीयां सङ्ख्यां, प्रत्येकां पञ्चमीं सङ्ख्यां, इत्यादि। यदा मापाङ्काः साधारणं गुणनखण्डं न धारयन्ति, तदा तानि कुलानि {0} सङ्ख्यानां प्रत्येकस्मिन् विस्तारे सम्यक् एकस्मिन् स्थाने मिलन्ति। सः एकः सङ्गमः युगपत् समाधानम्, यस्मिन् प्रत्येका पङ्क्तिः सम्मता भवति।',
+      xref: 'प्रथमायाः सर्वाङ्गसमतायाः मापाङ्कीयप्रतिलोमं पदशः गणितं यूक्लिड-कलनविधिः इति साधने पश्यतु →',
+      countGroupLabel: 'सर्वाङ्गसमतानां सङ्ख्या',
+      countTwo: 'द्वे सर्वाङ्गसमते',
+      countThree: 'तिस्रः सर्वाङ्गसमताः',
+      remainderLabel: 'शेषः a',
+      modulusLabel: 'मापाङ्कः m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · सुन त्सु-प्रहेलिका',
+      chipCoprime: '2 mod 3 · 3 mod 5 · सहाभाज्ययुग्मम्',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · साधारणः गुणनखण्डः अस्ति',
+      extToggleLabel: 'शीघ्रतरां विधिं प्रकाशयतु — अन्वेषणस्य स्थाने विस्तृत-यूक्लिड-कलनविधिना उत्तरं साक्षात् रचयतु',
+      stripGroupLabel: 'शेषवर्गपट्ट्यः, सर्पणयोग्याः',
+      constructLede: 'विस्तारं प्रतिसर्वाङ्गसमतम् एकं खण्डं कृत्वा विभजतु, प्रत्येकं खण्डं स्वस्य मापाङ्केन प्रतिलोमं करोतु, तस्याः सर्वाङ्गसमतायाः शेषेण गुणयतु, खण्डान् योजयतु, ततः लघूकरोतु।',
+      tableHeaderY: 'y (प्रतिलोमः)',
+      tableHeaderTerm: 'योज्यपदम् = a · M · y',
+      caption: 'उत्तरम् आवर्तेन {0} अनन्तकालं पुनरावर्तते — चिह्नितः स्तम्भः समाधानानाम् अनन्तकुलस्य एकः प्रतिनिधिः।',
+      allAgreeLabel: 'सर्वे सम्मताः',
+      errModulusWhole: 'पङ्क्तिः {idx}: मापाङ्कः पूर्णाङ्कः भवेत्।',
+      errModulusRange: 'पङ्क्तिः {idx}: मापाङ्कः {min} तः {max} पर्यन्तं भवेत्।',
+      errRemainderWhole: 'पङ्क्तिः {idx}: शेषः पूर्णाङ्कः भवेत्।',
+      errRemainderRange: 'पङ्क्तिः {idx}: मापाङ्कस्य {m} कृते शेषः 0 तः {max} पर्यन्तं भवेत्।',
+      coprimeOk: 'मापाङ्काः द्वयोः द्वयोः सहाभाज्याः — मापाङ्कम् {span} अनुसृत्य मानकरूपं समाधानम् अस्ति।',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — मापाङ्कौ {x} तथा {y} गुणनखण्डं साधारणं धारयतः, अतः मानकरूपस्य CRT-रचनायाः द्वयोः द्वयोः सहाभाज्यत्वम् इति आवश्यकता न पूर्यते, एतत् साधनं च इमां प्रणालीं समाधातुं न प्रयतते।',
+      spanWarn: 'संयुक्तः आवर्तः lcm = {span} अस्य साधनस्य विस्तारसीमां {max} अतिक्रामति — तं {max} अधः आनेतुं कमपि एकं मापाङ्कं न्यूनीकरोतु।',
+      testingX: 'x = {x} परीक्ष्यते …',
+      diagnosticMismatchScan: 'निदान-विसङ्गतम्: अन्वेषणस्य परिणामः {landed}, रचनायाः परिणामः {computed} — एतौ सदा समौ भवेताम्।',
+      solved: 'समाधानं प्राप्तम् — प्रत्येका सर्वाङ्गसमता x = {x} इति स्थाने सम्मता।',
+      diagnosticScanEnd: 'निदानम्: अन्वेषणम् आवर्तस्य ({span}) अन्तं प्राप्य अपि सम्मतिं न अलभत, यत् द्वयोः द्वयोः सहाभाज्यायाः प्रणाल्याः कृते असम्भवं स्यात्।',
+      readyToScan: 'सज्जम् — x अन्वेष्यमाणं द्रष्टुं "चालनम्" इति नुदतु।',
+      constructReasonNotCoprime: 'रचनायै प्रत्येकं M_i स्वस्य m_i मापाङ्कम् अनुसृत्य प्रतिलोमयोग्यं भवेत्, यत् मापाङ्कानां साधारणः गुणनखण्डः असम्भवं करोति।',
+      constructReasonSpanBlocked: 'रचनायै गणितम् उत्तरम् आवश्यकम्, विस्तारसीमारक्षकः च तत् अवरुणद्धि।',
+      constructSumMismatch: 'निदान-विसङ्गतम्: रचनायाः लघूकृतं फलं {reduced}, समाधायकस्य फलं {computed} — एते सदा समे भवेताम्।',
+      seeInverse: 'प्रतिलोमं पश्यतु →'
+    },
+    la: {
+      title: 'Theorema Sinicum de residuis',
+      heading: 'Theorema Sinicum de residuis',
+      lede: 'Quaeque congruentia per se familiam numerorum aequaliter distantium eligit — omnem tertium numerum, omnem quintum numerum, et ita porro. Cum moduli nullum factorem communem habent, hae familiae in omni spatio {0} numerorum in uno loco tantum sese secant. Illa intersectio unica est solutio simultanea in qua omnis linea consentit.',
+      xref: 'Vide inversum modulare primae congruentiae gradatim computatum in instrumento Algorithmi Euclidei →',
+      countGroupLabel: 'Numerus congruentiarum',
+      countTwo: 'Duae congruentiae',
+      countThree: 'Tres congruentiae',
+      remainderLabel: 'residuum a',
+      modulusLabel: 'modulus m',
+      chipSunTzu: '2 mod 3 · 3 mod 5 · 2 mod 7 · aenigma Sun Tzu',
+      chipCoprime: '2 mod 3 · 3 mod 5 · par inter se primorum',
+      chipSharesFactor: '2 mod 4 · 3 mod 6 · factorem communem habent',
+      extToggleLabel: 'Revela methodum celeriorem — responsum directe algorithmo Euclideo extenso construe, non quaerendo',
+      stripGroupLabel: 'Fasciae classium residuorum, volubiles',
+      constructLede: 'Divide spatium in unam partem pro congruentia, quamque partem contra modulum suum inverte, per residuum illius congruentiae multiplica, partes adde, deinde reduc.',
+      tableHeaderY: 'y (inversum)',
+      tableHeaderTerm: 'terminus = a · M · y',
+      caption: 'Responsum in aeternum cum periodo {0} repetitur — columna notata unus repraesentans familiae infinitae solutionum est.',
+      allAgreeLabel: 'omnia congruunt',
+      errModulusWhole: 'Linea {idx}: modulus numerus integer esse debet.',
+      errModulusRange: 'Linea {idx}: modulus inter {min} et {max} esse debet.',
+      errRemainderWhole: 'Linea {idx}: residuum numerus integer esse debet.',
+      errRemainderRange: 'Linea {idx}: pro modulo {m} residuum a 0 ad {max} esse debet.',
+      coprimeOk: 'Moduli bini inter se primi sunt — solutio formae normalis modulo {span} exstat.',
+      coprimeWarn: 'gcd({x}, {y}) = {g} — moduli {x} et {y} factorem communem habent, itaque exigentia constructionis CRT formae normalis, ut moduli bini inter se primi sint, non impletur et hoc instrumentum hoc systema solvere non conatur.',
+      spanWarn: 'Periodus coniuncta lcm = {span} limitem spatii huius instrumenti {max} excedit — unum e modulis minue ut sub {max} veniat.',
+      testingX: 'Probatur x = {x} …',
+      diagnosticMismatchScan: 'Dissensio diagnostica: quaestio ad {landed} pervenit sed constructio {computed} computavit — haec semper congruere debent.',
+      solved: 'Solutum — omnis congruentia in x = {x} congruit.',
+      diagnosticScanEnd: 'Diagnosis: quaestio ad finem periodi ({span}) pervenit sine consensu invento, quod pro systemate binis inter se primis impossibile esse debet.',
+      readyToScan: 'Paratum — preme «Perge» ut quaestionem ipsius x spectes.',
+      constructReasonNotCoprime: 'Constructio postulat ut quodque M_i modulo suo m_i invertibile sit, quod factor communis inter modulos impossibile facit.',
+      constructReasonSpanBlocked: 'Constructio responsum computatum postulat, et custos limitis spatii id impedit.',
+      constructSumMismatch: 'Dissensio diagnostica: constructio ad {reduced} reducitur sed solutor {computed} computavit — haec semper congruere debent.',
+      seeInverse: 'vide inversum →'
     }
   });
 })();

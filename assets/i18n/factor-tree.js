@@ -15,12 +15,12 @@
    (binLabel), the Delete-all button (emptyPaletteLabel) and its message
    (msgPaletteEmptied), the mirror-button label (mirrorLabel, {n}) and
    the fold/unfold button labels (foldLabel, unfoldLabel, {n}) for the Factor
-   Tree tool, in all twenty-nine supported languages. title and heading equal
+   Tree tool, in all thirty-one supported languages. title and heading equal
    site.nav.factorTree in each language.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Placeholder names ({n}, {count}) are identical
-   across all twenty-nine languages. The factorization itself (the equation/tree
+   across all thirty-one languages. The factorization itself (the equation/tree
    numerals and × symbol) is math notation and carries no key — only the
    English-prose parts of each message are translated. Must load after
    assets/nt-i18n.js and assets/i18n/site.js, before the page's own inline
@@ -1334,6 +1334,96 @@
       binLabel: 'زبڵدان: بازنەیەک ڕابکێشە بۆ ئێرە بۆ لابردنی لە پالێت',
       emptyPaletteLabel: 'سڕینەوەی ھەموو: پالێت بەتاڵ بکە',
       msgPaletteEmptied: 'پالێت بەتاڵ کرا.'
+    },
+    sa: {
+      title: 'गुणनखण्डवृक्षः',
+      heading: 'गुणनखण्डवृक्षः',
+      eyebrow: 'अभाज्यसङ्ख्याः विभाज्यता च',
+      subtitle: 'फलके सङ्ख्यां योजयतु, तस्याः वृत्तं रचना-गुणनखण्डनक्षेत्रे कर्षतु, ततः तस्याः प्रसारणाय + नुदतु — शाखया शाखया, अभाज्यपर्णपर्यन्तम्।',
+      modeLabel: 'वृक्षप्रकारः',
+      modeClassic: 'शास्त्रीयः',
+      modeBalanced: 'सन्तुलितः',
+      placeholder: 'यथा 60',
+      randomize: 'यादृच्छिकं चिनोतु',
+      footnote: 'प्रत्येकम् अभाज्यपर्णम् एकं चरमं स्वकीयं विभाजनं प्राप्नोति: P = P × 1।',
+      balancedNote: 'सन्तुलितप्रकारः प्रतिपदं समतमं गुणनखण्डयुग्मं ज्ञातुं फर्मा-विधिम् उपयोजयति; तत्क्षणफलार्थं सः 1,000,000 तः न्यूनासु सङ्ख्यासु सीमितः। काश्चन सङ्ख्याः — यथा लघ्वी अभाज्यसङ्ख्या बृहत्या गुणिता — तथापि असमं विभज्यन्ते; एषः दोषः न, केवलं गणितम्।',
+      msgEmpty: 'कृपया प्रथमं सङ्ख्यां लिखतु।',
+      msgInvalid: 'कृपया 1 अथवा तस्मात् अधिकं पूर्णाङ्कं लिखतु।',
+      msgTooLargeBalanced: 'एषा सङ्ख्या सन्तुलितप्रकारस्य कृते अतिबृहती — 1,000,000 तः न्यूनां सङ्ख्यां परीक्षताम्, अथवा बृहत्तराणां सङ्ख्यानां कृते शास्त्रीयप्रकारं चिनोतु।',
+      msgTooLargeClassic: 'एषा सङ्ख्या अस्य लघुवृक्षस्य कृते अतिबृहती — 1 लक्षकोटेः न्यूनां सङ्ख्यां परीक्षताम्।',
+      msgOne: '1 न अभाज्यं न संयुक्तम् — एतत् केवलं बीजम्, अद्यापि वृक्षः न।',
+      msgPrime: 'सङ्ख्या {n} अभाज्या — सा केवलम् एकवारं विभज्यते, 1 × {n} इति।',
+      msgFactors: 'सङ्ख्या {n} {count} अभाज्यसङ्ख्याभिः निर्मिता।',
+      mirrorLabel: 'सङ्ख्यायाः {n} अधः शाखाः प्रतिबिम्बयतु',
+      foldLabel: 'सङ्ख्यायाः {n} गुणनखण्डान् सङ्कोचयतु',
+      unfoldLabel: 'सङ्ख्यायाः {n} गुणनखण्डान् विस्तारयतु',
+      add: 'योजयतु',
+      addInputLabel: 'फलके योजनीया सङ्ख्या',
+      paletteHeading: 'अभाज्यसङ्ख्याफलकम्',
+      paletteHeadingNumbers: 'सङ्ख्याफलकम्',
+      paletteItemLabel: 'सङ्ख्या {n} रचना-गुणनखण्डनक्षेत्रे स्थापयतु',
+      workHeading: 'रचना-गुणनखण्डनक्षेत्रम्',
+      workHint: 'गुणनखण्डनाय संयुक्तसङ्ख्यां कर्षित्वा मुञ्चतु, अथवा संयुक्तसङ्ख्यां रचयितुम् अभाज्यसङ्ख्याः कर्षित्वा मुञ्चतु।',
+      clear: 'मार्जयतु',
+      removeLabel: 'सङ्ख्या {n} रचना-गुणनखण्डनक्षेत्रात् अपनयतु',
+      moveLabel: 'इदं पटलम् अन्यस्मिन् पटले कर्षतु: वामार्धः सङ्ख्यां {n} तस्य सङ्ख्यया गुणयति, दक्षिणार्धः तयोः महत्तमसमापवर्तकम् अध्यारोपयति',
+      removeOverlapLabel: 'सङ्ख्ययोः {a} तथा {b} अध्यारोपं रचना-गुणनखण्डनक्षेत्रात् अपनयतु',
+      splitOverlap: 'पृथक् करोतु',
+      splitOverlapLabel: 'सङ्ख्ययोः {a} तथा {b} वृक्षौ पुनः पृथक् करोतु',
+      msgGcd: 'सङ्ख्ययोः {a} तथा {b} शाखा {g} सामान्या — अयं तयोः महत्तमसमापवर्तकः।',
+      msgCoprime: 'सङ्ख्ये {a} तथा {b} सहाभाज्ये — तयोः सामान्या एकमात्रा शाखा 1 अस्ति।',
+      msgSplit: 'सङ्ख्ययोः {a} तथा {b} वृक्षौ पुनः पृथक् स्तः।',
+      msgAdded: 'सङ्ख्या {n} फलके योजिता।',
+      msgRemoved: 'सङ्ख्या {n} फलकात् अपनीता।',
+      msgPaletteFull: 'फलकं पूर्णम् — अधिकतमम् {max} सङ्ख्याः धारयति।',
+      binLabel: 'त्यागपात्रम्: फलकात् अपनेतुं वृत्तम् अत्र कर्षतु',
+      emptyPaletteLabel: 'सर्वम् अपनयतु: फलकं रिक्तं करोतु',
+      msgPaletteEmptied: 'फलकं रिक्तीकृतम्।'
+    },
+    la: {
+      title: 'Arbor factorum',
+      heading: 'Arbor factorum',
+      eyebrow: 'numeri primi et divisibilitas',
+      subtitle: 'Adde numerum ad tabellam, trahe circulum eius in aream compositionis et resolutionis, deinde preme + ut explicetur — ramus post ramum, usque ad folia prima.',
+      modeLabel: 'Modus arboris',
+      modeClassic: 'Classicus',
+      modeBalanced: 'Aequilibratus',
+      placeholder: 'e.g. 60',
+      randomize: 'Fortuito elige',
+      footnote: 'Omne folium primum ultimam suam divisionem accipit: P = P × 1.',
+      balancedNote: 'Modus aequilibratus methodo Fermatiana utitur ut in unoquoque gradu par factorum aequalissime divisum inveniat, ad numeros infra 1,000,000 limitatus ut statim respondeat. Quidam numeri — velut parvus primus per magnum multiplicatus — tamen inaequaliter dividuntur; hoc non est mendum, sed mathematica tantum.',
+      msgEmpty: 'Prius numerum inscribe, quaeso.',
+      msgInvalid: 'Numerum integrum, 1 vel maiorem, inscribe.',
+      msgTooLargeBalanced: 'Hic numerus nimis magnus est pro modo aequilibrato — tempta numerum infra 1,000,000, aut modum classicum elige pro numeris maioribus.',
+      msgTooLargeClassic: 'Hic numerus nimis magnus est pro hac arbore parva — tempta numerum infra 1 billionem.',
+      msgOne: '1 nec primus nec compositus est — semen tantum est, nondum arbor.',
+      msgPrime: 'Numerus {n} primus est — semel tantum dividitur, in 1 × {n}.',
+      msgFactors: 'Numerus {n} in {count} factores primos resolvitur.',
+      mirrorLabel: 'Ramos infra numerum {n} reflecte',
+      foldLabel: 'Factores numeri {n} complica',
+      unfoldLabel: 'Factores numeri {n} explica',
+      add: 'Adde',
+      addInputLabel: 'Numerus tabellae addendus',
+      paletteHeading: 'Tabella numerorum primorum',
+      paletteHeadingNumbers: 'Tabella numerorum',
+      paletteItemLabel: 'Numerum {n} in aream compositionis et resolutionis pone',
+      workHeading: 'Area compositionis et resolutionis',
+      workHint: 'Numerum compositum trahe et demitte ut in factores resolvatur, aut numeros primos trahe et demitte ut numerus compositus construatur.',
+      clear: 'Purga',
+      removeLabel: 'Numerum {n} ex area compositionis et resolutionis aufer',
+      moveLabel: 'Hanc tesseram in aliam trahe: dimidium sinistrum numerum {n} per numerum eius multiplicat, dimidium dextrum divisorem communem maximum eorum superponit',
+      removeOverlapLabel: 'Superpositionem numerorum {a} et {b} ex area compositionis et resolutionis aufer',
+      splitOverlap: 'Separa',
+      splitOverlapLabel: 'Arbores numerorum {a} et {b} iterum separa',
+      msgGcd: 'Numeri {a} et {b} ramum {g} communem habent — divisorem eorum communem maximum.',
+      msgCoprime: 'Numeri {a} et {b} inter se primi sunt — unicus ramus eis communis est 1.',
+      msgSplit: 'Arbores numerorum {a} et {b} iterum separatae sunt.',
+      msgAdded: 'Numerus {n} tabellae additus est.',
+      msgRemoved: 'Numerus {n} e tabella ablatus est.',
+      msgPaletteFull: 'Tabella plena est — maximum {max} numeros capit.',
+      binLabel: 'Corbis: trahe circulum huc ut e tabella auferatur',
+      emptyPaletteLabel: 'Dele omnia: tabellam vacua',
+      msgPaletteEmptied: 'Tabella vacuata est.'
     }
   });
 })();
