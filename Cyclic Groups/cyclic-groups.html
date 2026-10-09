@@ -88,6 +88,10 @@
      whose knob sits on the top corner for off, the bottom-left one for
      counterclockwise and the bottom-right one for clockwise. Each corner is
      a radio button, so the arrow keys move the knob too. */
+  /* The mirror button flips the ring each press; it shows no state of its
+     own, so which way the forward arrows turn is the only tell. */
+  .mirror-btn{ position:absolute; top:10px; right:12px; z-index:1; display:inline-flex; align-items:center; gap:6px; padding:5px 10px; font-size:.85rem; }
+  .mirror-btn svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linejoin:round; }
   .auto-rotate{ position:absolute; top:10px; left:12px; z-index:1; display:inline-flex; align-items:center; gap:8px; font-size:.85rem; color:var(--text-dim); user-select:none; -webkit-user-select:none; }
   .tri{ position:relative; width:44px; height:40px; flex:0 0 auto; }
   .tri-track{ position:absolute; inset:0; width:44px; height:40px; overflow:visible; }
@@ -173,6 +177,8 @@
   .layout-switch button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .subgroup-row:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
   .subgroup-row:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .arrow-options{ margin:0 0 14px; }
+  .identity-note{ color:var(--text-dim); font-size:.92rem; margin:0; }
   .coset-btn{ width:100%; }
   /* For a generator the button says why there is nothing to explore, in
      plain text rather than grayed out. */
@@ -398,6 +404,7 @@
           </span>
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
         </div>
+        <button type="button" class="action-btn mirror-btn" id="mirror-btn" title="Mirror the ring across its vertical middle" data-i18n-title="cyclicGroups.mirrorTitle"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 1.5v13M6 4 1.5 12H6ZM10 4l4.5 8H10Z"/></svg><span data-i18n="cyclicGroups.mirror">Mirror</span></button>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
@@ -422,10 +429,6 @@
           <input type="number" id="n-input" min="2" max="100" step="1" value="12">
         </div>
         <div class="field">
-          <label for="gen-select" data-i18n="cyclicGroups.genLabel">Element</label>
-          <select id="gen-select"></select>
-        </div>
-        <div class="field">
           <label id="rot-label" data-i18n="cyclicGroups.rotateLabel">Rotation — drag the ring</label>
           <div class="rotate-row" role="group" aria-labelledby="rot-label">
             <button type="button" class="action-btn" id="rot-back" aria-label="Rotate one bead counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one bead counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
@@ -434,36 +437,49 @@
             <button type="button" class="link-btn" id="rot-reset" style="margin:0 0 0 6px" data-i18n="cyclicGroups.rotateReset">Reset</button>
           </div>
         </div>
-        <button type="button" class="action-btn coset-btn" id="coset-btn" aria-expanded="false" aria-controls="coset-controls">Explore cosets</button>
-        <div class="coset-controls" id="coset-controls" hidden>
-          <div class="btn-row">
-            <button type="button" class="action-btn is-primary" id="coset-play">Play</button>
-            <button type="button" class="action-btn" id="coset-step" data-i18n="common.step">Step</button>
-            <button type="button" class="action-btn" id="coset-instant" data-i18n="common.instant">Instant</button>
-            <button type="button" class="action-btn" id="coset-reset" data-i18n="common.reset">Reset</button>
-          </div>
-          <div class="speed-wrap">
-            <label for="coset-speed" data-i18n="common.speed">Speed</label>
-            <input id="coset-speed" type="range" min="1" max="10" value="4">
-            <span id="coset-speed-label">brisk</span>
-          </div>
-        </div>
         <p class="n-note" id="n-note"></p>
         <ul class="facts in-group" id="facts"></ul>
         <p class="hint" id="hint"></p>
         <p class="hint" id="hint-inverse" hidden></p>
       </section>
 
+      <section class="panel">
+        <h2 data-i18n="cyclicGroups.subgroupHeading">Subgroup</h2>
+        <div class="field">
+          <label for="gen-select" data-i18n="cyclicGroups.genLabel">Element</label>
+          <select id="gen-select"></select>
+        </div>
+        <p class="identity-note" id="identity-note" hidden data-i18n="cyclicGroups.identityOnly">The identity element only produces itself</p>
+        <div id="subgroup-options">
+          <div class="arrow-options">
+          <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option><option value="neither" data-i18n="cyclicGroups.sideNeither">Neither</option></select></div>
+          <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow color" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow color" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Enable backwards path</label></div>
+          <div class="combine-key" id="combine-key" hidden>
+            <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-inner"></span></div>
+            <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-outer"></span></div>
+          </div>
+          <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colors manually</label></div>
+          <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colors</button>
+          </div>
+          <button type="button" class="action-btn coset-btn" id="coset-btn" aria-expanded="false" aria-controls="coset-controls">Explore cosets</button>
+          <div class="coset-controls" id="coset-controls" hidden>
+            <div class="btn-row">
+              <button type="button" class="action-btn is-primary" id="coset-play">Play</button>
+              <button type="button" class="action-btn" id="coset-step" data-i18n="common.step">Step</button>
+              <button type="button" class="action-btn" id="coset-instant" data-i18n="common.instant">Instant</button>
+              <button type="button" class="action-btn" id="coset-reset" data-i18n="common.reset">Reset</button>
+            </div>
+            <div class="speed-wrap">
+              <label for="coset-speed" data-i18n="common.speed">Speed</label>
+              <input id="coset-speed" type="range" min="1" max="10" value="4">
+              <span id="coset-speed-label">brisk</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="panel" id="layers-panel">
         <h2 data-i18n="cyclicGroups.layersHeading">Layers</h2>
-        <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" data-i18n="cyclicGroups.layerElement">Arrows: combine with the element</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option><option value="neither" data-i18n="cyclicGroups.sideNeither">Neither</option></select></div>
-        <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow color" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow color" data-i18n-title="cyclicGroups.colorInverse"><label for="side-inv" data-i18n="cyclicGroups.layerInverse">Arrows: combine with its inverse</label><select class="side-select" id="side-inv"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option><option value="neither" data-i18n="cyclicGroups.sideNeither">Neither</option></select></div>
-        <div class="combine-key" id="combine-key" hidden>
-          <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-inner"></span></div>
-          <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-outer"></span></div>
-        </div>
-        <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colors manually</label></div>
-        <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colors</button>
         <div class="check"><input type="checkbox" id="layer-colors" checked><label for="layer-colors" data-i18n="cyclicGroups.layerColors">Bead colors</label></div>
         <div class="field color-by">
           <label for="colorby-select" data-i18n="cyclicGroups.colorByLabel">Color beads by</label>
@@ -532,11 +548,16 @@ var FLAGS = ['cord', 'guide', 'colors', 'orders', 'bygen'];
 // by its inverse.
 // colorBy picks what the bead colors mean: 'order' (element order) or
 // 'inverse' (an element and its inverse share a color).
-// elSide and invSide put the walk by h and the walk by h⁻¹ 'inside' or
-// 'outside' the ring, both on one side if wanted, or hide it ('neither').
+// elSide puts the forward walk, by h, 'inside' or 'outside' the ring, or
+// hides it ('neither'). backward adds the walk by h⁻¹, always on the other
+// side (outside when the forward walk is hidden): see invSide().
+// dir is the way the beads count round the ring, and so the way the forward
+// walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Mirror
+// button flips it.
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside', 'neither'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', invSide: 'outside', orders: false, bygen: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
+var DIRS = ['cw', 'ccw'];
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -589,7 +610,10 @@ var legendEl = $('legend');
 var legendHeadingEl = $('legend-heading');
 var colorBySelectEl = $('colorby-select');
 var sideElEl = $('side-el');
-var sideInvEl = $('side-inv');
+var sideElLabelEl = $('side-el-label');
+var backwardEl = $('backward');
+var identityNoteEl = $('identity-note');
+var subgroupOptionsEl = $('subgroup-options');
 var bygenRowEl = $('bygen-row');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
@@ -831,7 +855,7 @@ function arrangeBy(G){
 // ring; an inner hump bulges off the straight chord between its beads,
 // toward the center, so the inner walk never reads as a plain polygon.
 function humpSteps(walk, place, m, scale){
-  var step = 360 / m;
+  var step = dirSign() * 360 / m;
   var k = walk.length;
   var out = [];
   for (var s = 0; s < k; s++){
@@ -938,13 +962,13 @@ function drawRing(parent, G, beads, box, paint){
   var beadR = beadRadius(m, box.R);
   var place = {};
   beads.forEach(function(a, i){ place[a] = i; });
-  function at(i){ return polar(box.cx, box.cy, box.R, 360 * i / m); }
+  function at(i){ return polar(box.cx, box.cy, box.R, dirSign() * 360 * i / m); }
 
   var ring = svgEl('g', { 'class': coset ? 'ring is-coset' : 'ring' });
   if (state.guide) ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
   if (m > 1 && mirrorShown(G)){
     // Through the identity, wherever the turn has put it.
-    var axisAt = 360 * place[G.identity] / m;
+    var axisAt = dirSign() * 360 * place[G.identity] / m;
     var axisA = polar(box.cx, box.cy, box.R + beadR + 6, axisAt);
     var axisB = polar(box.cx, box.cy, box.R + beadR + 6, axisAt + 180);
     ring.appendChild(svgEl('line', {
@@ -971,7 +995,7 @@ function drawRing(parent, G, beads, box, paint){
   if (k > 1){
     var width = num(Math.max(1, Math.min(2.4, 44 / k + 0.7)));
     var walks = [];
-    var shared = state.elSide === state.invSide;
+    var shared = state.elSide === invSide();
     // The walks from one start; past marks a coset already stepped past.
     var walksFrom = function(start, past){
       var tag = past ? ' is-past' : '';
@@ -980,7 +1004,7 @@ function drawRing(parent, G, beads, box, paint){
         return;
       }
       if (state.elSide !== 'neither') walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1 });
-      if (state.invSide !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: state.invSide, scale: !shared ? 1 : state.invSide === 'inside' ? -1 : SHARED_SCALE });
+      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
     walksFrom(coset ? coset.start : G.identity, false);
@@ -1016,7 +1040,7 @@ function drawRing(parent, G, beads, box, paint){
 
   if (state.orders && m <= 60 && beadR >= 7){
     beads.forEach(function(a, i){
-      var p = polar(box.cx, box.cy, outerEdge + 15, 360 * i / m);
+      var p = polar(box.cx, box.cy, outerEdge + 15, dirSign() * 360 * i / m);
       var label = svgEl('text', { 'class': 'order-label', x: num(p[0]), y: num(p[1]) });
       label.textContent = String(G.orders[a]);
       ring.appendChild(label);
@@ -1035,7 +1059,7 @@ function drawText(cls, x, y, text){
 
 // The ring shrinks whenever a shown walk runs outside it.
 function ringBox(){
-  var out = state.elSide === 'outside' || state.invSide === 'outside';
+  var out = state.elSide === 'outside' || invSide() === 'outside';
   return out ? RING_OUTER : RING;
 }
 
@@ -1091,17 +1115,26 @@ function syncGenerators(G){
   genSelectEl.value = String(state.gen);
 }
 
+// The backwards walk's side: opposite the forward walk's, or hidden.
+function invSide(){
+  if (!state.backward) return 'neither';
+  return state.elSide === 'outside' ? 'inside' : 'outside';
+}
+
+// +1 when the beads count clockwise, -1 when they count counterclockwise.
+function dirSign(){ return state.dir === 'ccw' ? -1 : 1; }
+
 // A self-inverse element (other than the identity) walks the same path
 // either way, so with both walks shown it is drawn once, on the element's
 // side, in the mixed color.
 function mergedWalks(G){
   var h = shownGen(G);
-  return G.orders[h] === 2 && state.elSide !== 'neither' && state.invSide !== 'neither';
+  return G.orders[h] === 2 && state.elSide !== 'neither' && invSide() !== 'neither';
 }
 
 function renderCombineKey(G){
   var h = shownGen(G);
-  var on = G.orders[h] > 1 && (state.elSide !== 'neither' || state.invSide !== 'neither');
+  var on = G.orders[h] > 1 && (state.elSide !== 'neither' || invSide() !== 'neither');
   combineKeyEl.hidden = !on;
   if (!on) return;
   var params = { h: h, hinv: G.inv[h], n: G.n, start: coset ? coset.start : G.identity };
@@ -1112,13 +1145,13 @@ function renderCombineKey(G){
   var byInv = add ? 'cyclicGroups.combineInverseAdd' : 'cyclicGroups.combineInverseMul';
   function where(side){ return translate(side === 'inside' ? 'cyclicGroups.whereInside' : 'cyclicGroups.whereOutside'); }
   innerEl.textContent = translate(byH, Object.assign({ where: where(state.elSide) }, params));
-  outerEl.textContent = translate(byInv, Object.assign({ where: where(state.invSide) }, params));
+  outerEl.textContent = translate(byInv, Object.assign({ where: where(invSide()) }, params));
   var merged = mergedWalks(G);
   if (merged) outerEl.textContent = translate('cyclicGroups.combineSelfInverse', params);
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged);
   innerEl.parentNode.hidden = state.elSide === 'neither';
-  outerEl.parentNode.hidden = state.invSide === 'neither';
+  outerEl.parentNode.hidden = invSide() === 'neither';
 }
 
 function codeNode(text){
@@ -1233,7 +1266,7 @@ ringSvgEl.addEventListener('pointermove', function(e){
   turning.swept += d;
   spinAngle(turning.swept);
   var m = drawn.G.order;
-  var near = state.rot - Math.round(turning.swept / (360 / m));
+  var near = state.rot - dirSign() * Math.round(turning.swept / (360 / m));
   rotValueEl.textContent = String(((near % m) + m) % m);
 });
 function endTurn(e){
@@ -1241,7 +1274,7 @@ function endTurn(e){
   var swept = turning.swept;
   turning = null;
   ringSvgEl.classList.remove('is-turning');
-  var steps = -Math.round(swept / (360 / drawn.G.order));
+  var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
   if (reducedMotion && reducedMotion.matches){
     if (!setRotChanged(state.rot + steps)) redrawRing();
     return;
@@ -1274,8 +1307,9 @@ function spinFrame(ts){
   if (!spin) return;
   if (spin.t0 === null) spin.t0 = ts;
   var t = Math.min(1, (ts - spin.t0) / SPIN_MS);
-  // rot going up brings the next bead to the top: a counterclockwise turn.
-  var target = -spin.steps * 360 / drawn.G.order;
+  // rot going up brings the next bead to the top: a counterclockwise turn
+  // when the beads count clockwise, a clockwise one when they don't.
+  var target = -dirSign() * spin.steps * 360 / drawn.G.order;
   spin.now = spin.from + (target - spin.from) * easeInOutCubic(t);
   spinAngle(spin.now);
   if (t < 1){ spin.id = requestAnimationFrame(spinFrame); return; }
@@ -1337,8 +1371,8 @@ function autoFrame(ts){
   var step = 360 / drawn.G.order;
   autoAngle += (state.autoRotate === 'cw' ? 1 : -1) * AUTO_DEG_PER_S * dt / 1000;
   var steps = 0;
-  while (autoAngle <= -step){ autoAngle += step; steps++; }
-  while (autoAngle >= step){ autoAngle -= step; steps--; }
+  while (autoAngle <= -step){ autoAngle += step; steps += dirSign(); }
+  while (autoAngle >= step){ autoAngle -= step; steps -= dirSign(); }
   if (!steps || !setRotChanged(state.rot + steps)) spinAngle(autoAngle);
 }
 
@@ -1367,8 +1401,8 @@ autoRotateEl.addEventListener('change', function(e){
   if (drawn) mirrorToUrl(drawn.G);
 });
 
-$('rot-back').addEventListener('click', function(){ turnBy(1); });
-$('rot-fwd').addEventListener('click', function(){ turnBy(-1); });
+$('rot-back').addEventListener('click', function(){ turnBy(dirSign()); });
+$('rot-fwd').addEventListener('click', function(){ turnBy(-dirSign()); });
 $('rot-reset').addEventListener('click', turnHome);
 
 /* ---------- coset animation ---------- */
@@ -1601,6 +1635,7 @@ function renderFacts(G, factors){
     ? translate('cyclicGroups.factGeneratorsCount', { count: G.generators.length, order: G.order })
     : translate('cyclicGroups.factGeneratorsNone'));
   addFact('cyclicGroups.fact.structure', G.cyclic ? 'Z/' + G.order : factorNotation(factors));
+  sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
 
   var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
   if (labelsDropped) hintEl.textContent = translate('cyclicGroups.hint.noLabels');
@@ -1703,7 +1738,9 @@ function mirrorToUrl(G){
     q.delete('chords');
     q.delete('outer');
     q.set('elside', state.elSide);
-    q.set('invside', state.invSide);
+    q.delete('invside');
+    q.set('back', state.backward ? '1' : '0');
+    q.set('dir', state.dir);
     if (state.autoRotate !== 'off') q.set('autorotate', state.autoRotate);
     else q.delete('autorotate');
     if (state.subLayout === 'list') q.set('sublayout', 'list');
@@ -1809,6 +1846,10 @@ function render(){
   colorBySelectEl.disabled = !state.colors;
   renderNotice(G, factors);
   renderFacts(G, factors);
+  // The identity generates only itself: nothing to walk, nothing to coset.
+  var isIdentity = state.gen === G.identity;
+  identityNoteEl.hidden = !isIdentity;
+  subgroupOptionsEl.hidden = isIdentity;
   renderSubgroups(G);
   renderLegend(G, classes, pairing);
   renderNNote();
@@ -1835,7 +1876,7 @@ function syncControls(){
   FLAGS.forEach(function(name){ $('layer-' + name).checked = state[name]; });
   colorBySelectEl.value = state.colorBy;
   sideElEl.value = state.elSide;
-  sideInvEl.value = state.invSide;
+  backwardEl.checked = state.backward;
   syncSubLayout();
   syncAutoRotate();
   syncTabs();
@@ -1915,7 +1956,8 @@ function exportName(){
   parts.push('el', state.gen);
   if (state.rot) parts.push('rot', state.rot);
   if (state.colors && state.colorBy === 'inverse') parts.push('inverses');
-  if (state.elSide !== 'inside' || state.invSide !== 'outside') parts.push('arrows', state.elSide, state.invSide);
+  if (state.elSide !== 'inside' || !state.backward) parts.push('arrows', state.elSide, state.backward ? 'back' : 'noback');
+  if (state.dir === 'ccw') parts.push('ccw');
   return parts.join('-') + '.png';
 }
 
@@ -1992,9 +2034,12 @@ sideElEl.addEventListener('change', function(){
   state.elSide = sideElEl.value;
   render();
 });
-sideInvEl.addEventListener('change', function(){
-  if (SIDES.indexOf(sideInvEl.value) === -1) return;
-  state.invSide = sideInvEl.value;
+backwardEl.addEventListener('change', function(){
+  state.backward = backwardEl.checked;
+  render();
+});
+$('mirror-btn').addEventListener('click', function(){
+  state.dir = state.dir === 'ccw' ? 'cw' : 'ccw';
   render();
 });
 ARROW_COLORS.forEach(function(c){
@@ -2087,9 +2132,12 @@ onLangChange(render);
   if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
   // Links from before the side menus hid a walk with chords=0 or outer=0.
   if (query.get('chords') === '0') state.elSide = 'neither';
-  if (query.get('outer') === '0') state.invSide = 'neither';
+  // and from before the backwards checkbox with invside=neither.
+  if (query.get('outer') === '0' || query.get('invside') === 'neither') state.backward = false;
   if (SIDES.indexOf(query.get('elside')) !== -1) state.elSide = query.get('elside');
-  if (SIDES.indexOf(query.get('invside')) !== -1) state.invSide = query.get('invside');
+  if (query.get('back') === '0') state.backward = false;
+  else if (query.get('back') === '1') state.backward = true;
+  if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
     var v = '#' + String(query.get(c.param) || '').toLowerCase();
