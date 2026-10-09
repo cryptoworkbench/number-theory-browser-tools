@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-09T17:06:42.870Z"
 last_activity: 2026-10-09
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d385e3a644c540a0884d1f8c669e19cce198e586
+state_head: 166ed13f32d13a7face7ea20fb173bbdf3db72ac
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-09 - Completed quick task 129: Cyclic Groups generator rows read the way the ring counts
+Last activity: 2026-10-09 - Completed quick task 130: Cyclic Groups generator rows list repeated-combining order
 
 Progress: [█████████░] 86%
 
@@ -363,6 +363,7 @@ None yet.
 | 127 | Cyclic Groups: option to rotate the selected generator to the top of the ring | 2026-10-09 | 5efebeb | — |
 | 128 | Cyclic Groups: subgroup rows past halfway read the other way round (no longer mirrored) | 2026-10-09 | 9aba4fa | — |
 | 129 | Cyclic Groups: generator rows (whole ring) always read the way the ring counts | 2026-10-09 | d385e3a | — |
+| 130 | Cyclic Groups: generator rows list members in repeated-combining order (supersedes 129) | 2026-10-09 | 166ed13 | — |
 
 ## Deferred Items
 
@@ -378,4 +379,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-09 - Completed quick task 129: Cyclic Groups generator rows read the way the ring counts
+Last activity: 2026-10-09 - Completed quick task 130: Cyclic Groups generator rows list repeated-combining order
