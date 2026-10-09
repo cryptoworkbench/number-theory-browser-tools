@@ -59,9 +59,23 @@
   .mode-tab.is-current{ color:var(--accent); border-bottom-color:var(--accent); }
 
   /* ---------- layout: diagram on the left, controls on the right ---------- */
+  /* The subgroup list sits under the diagram, the controls to the right of
+     both. Beside the controls, the diagram and the list form one column a
+     window tall (less the 53px site bar, which is pinned too) that stays
+     pinned while the controls scroll, so both can
+     always be seen: the list takes what its rows need, up to 45% of the
+     column, and scrolls inside beyond that; the diagram scales into the
+     rest. Stacked on a narrow screen, everything takes its natural size. */
   .layout{ display:grid; grid-template-columns:minmax(0, 1fr) 340px; gap:24px; align-items:start; }
   .stage{ min-width:0; display:flex; flex-direction:column; gap:18px; }
   .side{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+  @media (min-width: 901px){
+    .stage{ position:sticky; top:69px; height:calc(100vh - 85px); }
+    .diagram-frame{ flex:1 1 0; min-height:0; display:flex; }
+    svg.ring-svg{ flex:1 1 auto; height:100%; min-height:0; }
+    .stage > .subgroups-panel{ flex:0 0 auto; max-height:45%; min-height:0; display:flex; flex-direction:column; }
+    .subgroups-panel .subgroups{ max-height:none; flex:1 1 auto; min-height:0; }
+  }
   @media (max-width: 900px){
     .layout{ grid-template-columns:1fr; }
   }
@@ -69,8 +83,33 @@
   .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); padding:16px 18px; position:relative; }
   .panel h2{ font-size:.78rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); margin:0 0 12px; }
 
-  .diagram-frame{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); padding:14px; }
+  .diagram-frame{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); padding:14px; position:relative; }
+  /* The auto-rotate control, in the diagram's top-left corner: a triangle
+     whose knob sits on the top corner for off, the bottom-left one for
+     counterclockwise and the bottom-right one for clockwise. Each corner is
+     a radio button, so the arrow keys move the knob too. */
+  .auto-rotate{ position:absolute; top:10px; left:12px; z-index:1; display:inline-flex; align-items:center; gap:8px; font-size:.85rem; color:var(--text-dim); user-select:none; -webkit-user-select:none; }
+  .tri{ position:relative; width:44px; height:40px; flex:0 0 auto; }
+  .tri-track{ position:absolute; inset:0; width:44px; height:40px; overflow:visible; }
+  .tri-track path{ fill:color-mix(in srgb, var(--text) 6%, transparent); stroke:color-mix(in srgb, var(--text) 28%, transparent); stroke-width:2; stroke-linejoin:round; }
+  .tri[data-at="ccw"] .tri-track path, .tri[data-at="cw"] .tri-track path{ stroke:var(--accent); }
+  .tri-stop{ position:absolute; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; cursor:pointer; }
+  .tri-stop input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+  .tri-stop:hover::after{ content:""; position:absolute; inset:3px; border-radius:50%; background:color-mix(in srgb, var(--text) 12%, transparent); }
+  .tri-stop.at-off, .tri-knob{ left:22px; top:7px; }
+  .tri-stop.at-ccw, .tri[data-at="ccw"] .tri-knob{ left:7px; top:33px; }
+  .tri-stop.at-cw, .tri[data-at="cw"] .tri-knob{ left:37px; top:33px; }
+  .tri-knob{ position:absolute; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:var(--panel); border:1px solid color-mix(in srgb, var(--text) 30%, transparent); box-shadow:0 1px 2px rgba(0,0,0,.25); pointer-events:none; transition:left .2s ease, top .2s ease, background .2s; }
+  .tri[data-at="ccw"] .tri-knob, .tri[data-at="cw"] .tri-knob{ background:var(--accent); border-color:transparent; }
+  .tri:has(input:focus-visible) .tri-knob{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ .tri-knob{ transition:none; } }
   svg.ring-svg{ width:100%; height:auto; display:block; overflow:visible; }
+  /* The necklace turns under a drag, one bead at a time. */
+  svg.ring-svg{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  svg.ring-svg.is-turning{ cursor:grabbing; }
+  .rotate-row{ display:flex; align-items:center; gap:6px; }
+  .rotate-row .action-btn{ padding:6px 12px; }
+  .rotate-value{ font-family:var(--font-mono); font-size:.9rem; min-width:2.5em; text-align:center; }
 
   /* ---------- group controls ---------- */
   .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
@@ -84,6 +123,9 @@
   }
   .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
+  /* The open list is drawn by the browser on its own light background, so it
+     needs an opaque themed fill or the night-theme text is unreadable. */
+  .field select option{ color:var(--text); background:var(--bg-1); }
   .n-note{ font-size:.82rem; color:var(--role-warn); margin:8px 0 0; }
   .n-note:empty{ display:none; }
 
@@ -92,12 +134,58 @@
   .check:last-child{ margin-bottom:0; }
   .check input{ margin:3px 0 0; flex:none; accent-color:var(--accent); }
   .check label{ cursor:pointer; }
+  /* Rarely changed layers, folded away. */
+  .extra-options{ margin:10px 0 0; }
+  .extra-options summary{ cursor:pointer; font-size:.88rem; color:var(--text-dim); padding:2px 0; width:max-content; }
+  .extra-options summary:hover{ color:var(--text); }
+  .extra-options summary:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+  .extra-options[open] summary{ margin-bottom:8px; }
   .check.is-off label{ color:var(--text-dim); opacity:.55; cursor:not-allowed; }
 
   /* ---------- facts, hint, legend ---------- */
   .facts{ list-style:none; margin:0; padding:0; }
   .facts li{ display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-bottom:1px dotted var(--panel-border); font-size:.92rem; }
   .facts li:last-child{ border-bottom:none; }
+
+  /* ---------- subgroups list ---------- */
+  /* One row per element: the subgroup it generates, its members in the
+     order the element reaches them, in as many columns as fit. A row is a button that selects that
+     element; the selected one is highlighted. Long groups scroll. */
+  .subgroups{ list-style:none; margin:0; padding:0; max-height:420px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); column-gap:12px; align-content:start; }
+  .subgroup-row{
+    display:block; width:100%; text-align:left; font:inherit; font-family:var(--font-mono); font-size:.88rem;
+    color:var(--text); background:none; border:none; border-radius:var(--radius-ctl);
+    padding:4px 8px; cursor:pointer; overflow-wrap:anywhere; line-height:1.5;
+  }
+  /* The list layout: one row per line, ruled between. */
+  .subgroups.is-list{ grid-template-columns:1fr; }
+  .subgroups.is-list li + li{ border-top:1px dotted var(--panel-border); }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
+  .panel-head h2{ margin:0; }
+  .layout-switch{ display:inline-flex; border:1px solid var(--panel-border); border-radius:8px; overflow:hidden; flex:0 0 auto; }
+  .layout-switch button{ display:flex; align-items:center; color:var(--text-dim); background:none; border:none; padding:5px 8px; cursor:pointer; }
+  .layout-switch svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+  .layout-switch button + button{ border-left:1px solid var(--panel-border); }
+  .layout-switch button:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .layout-switch button[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); }
+  .layout-switch button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .subgroup-row:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .subgroup-row:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .coset-btn{ width:100%; }
+  /* For a generator the button says why there is nothing to explore, in
+     plain text rather than grayed out. */
+  .coset-btn.is-generator:disabled, .coset-btn.is-generator:disabled:hover{ opacity:1; cursor:default; color:var(--text-dim); font-weight:500; background:none; border-style:dashed; }
+  /* The coset playback controls, the same set the other tools use. */
+  .coset-controls{ margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+  .coset-controls[hidden]{ display:none; }
+  .coset-controls .btn-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .coset-controls .btn-row .action-btn{ flex:1 1 auto; padding:7px 10px; }
+  .coset-controls .action-btn.is-primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+  .coset-controls .action-btn.is-primary:hover{ filter:brightness(1.08); }
+  .speed-wrap{ display:flex; align-items:center; gap:10px; font-size:.82rem; color:var(--text-dim); }
+  .speed-wrap input[type="range"]{ flex:1 1 auto; min-width:0; accent-color:var(--accent); }
+  .speed-wrap span{ width:70px; }
+  .subgroup-row.is-current{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
   .fact-label{ color:var(--text-dim); }
   .fact-value{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right; }
   .hint{ color:var(--text-dim); font-size:.85rem; line-height:1.5; margin:10px 0 0; }
@@ -107,6 +195,32 @@
   .legend-item{ display:flex; align-items:center; gap:10px; font-size:.9rem; }
   .legend-swatch{ width:16px; height:16px; border-radius:50%; flex:none; background:var(--ord, var(--text-dim)); border:1px solid color-mix(in srgb, var(--text) 25%, transparent); }
   .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
+  /* Inverse-pair key: one compact chip per pair, wrapping, with the
+     self-inverse row on a line of its own. */
+  .legend.is-pairs{ flex-direction:row; flex-wrap:wrap; gap:7px 16px; }
+  .legend.is-pairs .legend-item.is-self{ flex-basis:100%; }
+  .legend-pair{ font-size:.9rem; font-variant-numeric:tabular-nums; }
+  .color-by{ margin:2px 0 10px 25px; }
+  .color-by select{ font-family:var(--font-sans); padding:7px 10px; }
+  .combine-key{ margin:0 0 10px 25px; display:flex; flex-direction:column; gap:6px; font-size:.84rem; color:var(--text-dim); line-height:1.4; }
+  .combine-key-item[hidden]{ display:none; }
+  .combine-key-item{ display:flex; align-items:flex-start; gap:9px; }
+  .combine-key-swatch{ flex:none; width:20px; height:0; margin-top:.6em; border-top:2.5px solid var(--arrow-in, var(--role-active)); }
+  .combine-key-swatch.is-outer{ border-top-color:var(--arrow-out, var(--role-input)); }
+  .combine-key-swatch.is-both{ border-top-color:var(--arrow-both); }
+  .combine-key-swatch.is-none{ visibility:hidden; }
+  /* Arrow colors: yellow (--role-active) for the walk by the element and
+     blue (--role-input) for the walk by its inverse, unless "Choose arrow colors manually" is on. Then a picker sits
+     just after each arrow checkbox, at the left of the row so the browser's
+     color popup, anchored to the picker, opens with room to its right; a
+     pick is written at runtime as --arrow-in or --arrow-out on .app, which
+     every arrow and key swatch reads. */
+  .check input.arrow-color{ margin:0; width:30px; height:22px; padding:0 2px; border:1px solid var(--panel-border); border-radius:6px; background:var(--panel); cursor:pointer; }
+  .check select.side-select{ margin-left:auto; flex:none; font-family:var(--font-sans); font-size:.86rem; padding:2px 6px; }
+  .check input.arrow-color:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .link-btn{ font:inherit; font-size:.82rem; color:var(--role-input); background:none; border:none; padding:0; margin:0 0 10px 25px; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  .link-btn:hover{ color:var(--role-result); }
+  .link-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
   /* ---------- notice for a group with no generator ---------- */
   .notice{ border-color:color-mix(in srgb, var(--role-special) 55%, var(--panel-border)); background:color-mix(in srgb, var(--role-special) 7%, var(--panel)); }
@@ -123,14 +237,33 @@
   }
   .action-btn:hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
   .action-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .action-btn:disabled, .action-btn:disabled:hover{ opacity:.45; cursor:not-allowed; background:none; border-color:var(--panel-border); }
   .export-status{ font-size:.82rem; color:var(--text-dim); margin:8px 0 0; min-height:1.1em; overflow-wrap:anywhere; }
 
   /* ---------- the necklace ---------- */
+  /* An arrow's color follows its walk (by the element or by its inverse),
+     not the side of the ring it is drawn on. */
+  .walk-el{ --walk:var(--arrow-in, var(--role-active)); }
+  .walk-inv{ --walk:var(--arrow-out, var(--role-input)); }
+  /* A self-inverse element's two walks coincide and are drawn once, in a
+     mix of both colors, which the script writes as --arrow-both on .app. */
+  .walk-both{ --walk:var(--arrow-both); }
+  .outer-arc{ fill:none; stroke:var(--walk); stroke-linecap:round; stroke-linejoin:round; opacity:.9; }
+  .outer-arrow{ fill:var(--walk); stroke:none; }
+  .mirror-axis{ stroke:var(--text-dim); stroke-width:1.5; stroke-dasharray:6 6; opacity:.7; }
   .guide{ fill:none; stroke:color-mix(in srgb, var(--text-dim) 28%, transparent); stroke-width:1; }
   .cord{ fill:none; stroke:color-mix(in srgb, var(--text-dim) 50%, transparent); stroke-linejoin:round; }
-  .chord{ fill:none; stroke:var(--role-active); stroke-linejoin:round; stroke-linecap:round; opacity:.9; }
-  .chord-arrow{ fill:var(--role-active); stroke:none; }
+  .chord{ fill:none; stroke:var(--walk); stroke-linejoin:round; stroke-linecap:round; opacity:.9; }
+  .chord-arrow{ fill:var(--walk); stroke:none; }
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
+  /* Coset animation: beads outside the coset shown fade back, and each
+     coset's walk fades in as it is drawn. */
+  .bead.is-dim, .bead-label.is-dim{ opacity:.22; }
+  .ring.is-coset :is(.walk-el, .walk-inv, .walk-both):not(.is-past){ animation:coset-in .25s ease-out; }
+  @keyframes coset-in{ from{ opacity:0; } }
+  @media (prefers-reduced-motion: reduce){ .ring.is-coset :is(.walk-el, .walk-inv, .walk-both){ animation:none; } }
+  /* Cosets already stepped past keep their walks, faded. */
+  .ring.is-coset .is-past{ opacity:.28; }
   .bead.is-identity{ stroke:var(--text); }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .order-label{ fill:var(--text-dim); font-family:var(--font-mono); font-size:12px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
@@ -146,7 +279,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select, .notice code, .fact-value, .legend-count){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select, .notice code, .fact-value, .legend-count, .legend-pair){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -176,6 +309,7 @@
       <a href="../Factor Tree/factor-tree.html" class="site-nav-link" data-i18n="site.nav.factorTree">Factor Tree</a>
       <a href="../Venn Diagram/venn-diagram.html" class="site-nav-link" data-i18n="site.nav.venn">Venn Diagram</a>
       <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link" data-i18n="site.nav.euclid">Euclidean Algorithm</a>
+      <a href="../Least Common Multiple/least-common-multiple.html" class="site-nav-link" data-i18n="site.nav.lcm">Least Common Multiple</a>
       <a href="../Chinese Remainder Theorem/chinese-remainder-theorem.html" class="site-nav-link" data-i18n="site.nav.crt">Chinese Remainder Theorem</a>
       <a href="../Equivalence Wheel/equivalence-wheel.html" class="site-nav-link" data-i18n="site.nav.wheel">Equivalence Wheel</a>
       <a href="../Eulers Totient/eulers-totient.html" class="site-nav-link" data-i18n="site.nav.totient">Euler's Totient</a>
@@ -252,10 +386,30 @@
     <div class="stage" id="ring-panel" role="tabpanel" aria-labelledby="tab-additive">
       <section class="panel notice" id="notice" role="note" hidden></section>
       <div class="diagram-frame">
+        <div class="auto-rotate" role="radiogroup" aria-labelledby="auto-rotate-label">
+          <span class="tri" id="auto-rotate" data-at="off">
+            <svg class="tri-track" viewBox="0 0 44 40" aria-hidden="true" focusable="false"><path d="M22 7 L37 33 L7 33 Z"/></svg>
+            <label class="tri-stop at-off" title="Off" data-i18n-title="cyclicGroups.autoRotateOff"><input type="radio" name="autorotate" value="off" checked aria-label="Off" data-i18n-aria-label="cyclicGroups.autoRotateOff"></label>
+            <label class="tri-stop at-ccw" title="Counterclockwise" data-i18n-title="cyclicGroups.autoRotateCcw"><input type="radio" name="autorotate" value="ccw" aria-label="Counterclockwise" data-i18n-aria-label="cyclicGroups.autoRotateCcw"></label>
+            <label class="tri-stop at-cw" title="Clockwise" data-i18n-title="cyclicGroups.autoRotateCw"><input type="radio" name="autorotate" value="cw" aria-label="Clockwise" data-i18n-aria-label="cyclicGroups.autoRotateCw"></label>
+            <span class="tri-knob" aria-hidden="true"></span>
+          </span>
+          <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
+        </div>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
       </div>
+      <section class="panel subgroups-panel">
+        <div class="panel-head">
+          <h2 data-i18n="cyclicGroups.subgroupsHeading">Subgroup generated by each element</h2>
+          <div class="layout-switch" role="group" aria-label="Layout" data-i18n-aria-label="cyclicGroups.subLayoutLabel">
+            <button type="button" id="sub-list" data-layout="list" aria-pressed="false" aria-label="List" title="List" data-i18n-aria-label="cyclicGroups.subLayoutList" data-i18n-title="cyclicGroups.subLayoutList"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg></button>
+            <button type="button" id="sub-grid" data-layout="grid" aria-pressed="true" aria-label="Grid" title="Grid" data-i18n-aria-label="cyclicGroups.subLayoutGrid" data-i18n-title="cyclicGroups.subLayoutGrid"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></button>
+          </div>
+        </div>
+        <ul class="subgroups" id="subgroups"></ul>
+      </section>
     </div>
 
     <aside class="side">
@@ -266,29 +420,71 @@
           <input type="number" id="n-input" min="2" max="100" step="1" value="12">
         </div>
         <div class="field">
-          <label for="gen-select" data-i18n="cyclicGroups.genLabel">Generator</label>
+          <label for="gen-select" data-i18n="cyclicGroups.genLabel">Element</label>
           <select id="gen-select"></select>
+        </div>
+        <div class="field">
+          <label id="rot-label" data-i18n="cyclicGroups.rotateLabel">Rotation — drag the ring</label>
+          <div class="rotate-row" role="group" aria-labelledby="rot-label">
+            <button type="button" class="action-btn" id="rot-back" aria-label="Rotate one bead counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one bead counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
+            <output class="rotate-value" id="rot-value">0</output>
+            <button type="button" class="action-btn" id="rot-fwd" aria-label="Rotate one bead clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one bead clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
+            <button type="button" class="link-btn" id="rot-reset" style="margin:0 0 0 6px" data-i18n="cyclicGroups.rotateReset">Reset</button>
+          </div>
+        </div>
+        <button type="button" class="action-btn coset-btn" id="coset-btn" aria-expanded="false" aria-controls="coset-controls">Explore cosets</button>
+        <div class="coset-controls" id="coset-controls" hidden>
+          <div class="btn-row">
+            <button type="button" class="action-btn is-primary" id="coset-play">Play</button>
+            <button type="button" class="action-btn" id="coset-step" data-i18n="common.step">Step</button>
+            <button type="button" class="action-btn" id="coset-instant" data-i18n="common.instant">Instant</button>
+            <button type="button" class="action-btn" id="coset-reset" data-i18n="common.reset">Reset</button>
+          </div>
+          <div class="speed-wrap">
+            <label for="coset-speed" data-i18n="common.speed">Speed</label>
+            <input id="coset-speed" type="range" min="1" max="10" value="4">
+            <span id="coset-speed-label">brisk</span>
+          </div>
         </div>
         <p class="n-note" id="n-note"></p>
       </section>
 
       <section class="panel" id="layers-panel">
         <h2 data-i18n="cyclicGroups.layersHeading">Layers</h2>
-        <div class="check"><input type="checkbox" id="layer-cord" checked><label for="layer-cord" data-i18n="cyclicGroups.layerCord">Outer cord</label></div>
-        <div class="check"><input type="checkbox" id="layer-chords" checked><label for="layer-chords" data-i18n="cyclicGroups.layerChords">Generator chords</label></div>
-        <div class="check"><input type="checkbox" id="layer-colors" checked><label for="layer-colors" data-i18n="cyclicGroups.layerColors">Subgroup colors</label></div>
+        <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" data-i18n="cyclicGroups.layerElement">Arrows: combine with the element</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option><option value="neither" data-i18n="cyclicGroups.sideNeither">Neither</option></select></div>
+        <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow color" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow color" data-i18n-title="cyclicGroups.colorInverse"><label for="side-inv" data-i18n="cyclicGroups.layerInverse">Arrows: combine with its inverse</label><select class="side-select" id="side-inv"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option><option value="neither" data-i18n="cyclicGroups.sideNeither">Neither</option></select></div>
+        <div class="combine-key" id="combine-key" hidden>
+          <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-inner"></span></div>
+          <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-outer"></span></div>
+        </div>
+        <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colors manually</label></div>
+        <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colors</button>
+        <div class="check"><input type="checkbox" id="layer-colors" checked><label for="layer-colors" data-i18n="cyclicGroups.layerColors">Bead colors</label></div>
+        <div class="field color-by">
+          <label for="colorby-select" data-i18n="cyclicGroups.colorByLabel">Color beads by</label>
+          <select id="colorby-select">
+            <option value="order" data-i18n="cyclicGroups.colorByOrder">Element order</option>
+            <option value="inverse" data-i18n="cyclicGroups.colorByInverse">Inverse pairs</option>
+          </select>
+        </div>
         <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
         <div class="check" id="bygen-row"><input type="checkbox" id="layer-bygen"><label for="layer-bygen" data-i18n="cyclicGroups.layerBygen">Arrange beads by generator powers</label></div>
+        <details class="extra-options">
+          <summary data-i18n="cyclicGroups.extraOptions">Show extra options</summary>
+          <div class="check"><input type="checkbox" id="layer-cord" checked><label for="layer-cord" data-i18n="cyclicGroups.layerCord">Show corresponding polygon</label></div>
+          <div class="check"><input type="checkbox" id="layer-guide" checked><label for="layer-guide" data-i18n="cyclicGroups.layerGuide">Show connecting circle</label></div>
+        </details>
       </section>
 
       <section class="panel">
         <h2 data-i18n="cyclicGroups.factsHeading">This group</h2>
         <ul class="facts" id="facts"></ul>
         <p class="hint" id="hint"></p>
+        <p class="hint" id="hint-inverse" hidden></p>
       </section>
 
       <section class="panel">
-        <h2 data-i18n="cyclicGroups.legendHeading">Color key: element order</h2>
+        <h2 id="legend-heading">Color key: subgroup cardinality</h2>
         <div class="legend" id="legend"></div>
       </section>
 
@@ -312,8 +508,8 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { clamp, primeFactors, unitsMod } = NT.core;
-const { polar, svgEl } = NT.svg;
+const { clamp, gcd, primeFactors, unitsMod } = NT.core;
+const { easeInOutCubic, polar, svgEl } = NT.svg;
 const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
@@ -321,20 +517,46 @@ const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 var MIN_N = 2;
 var MAX_N = 100;
 
-// The necklace canvas: a 760-wide box. A single necklace is square, with the
-// ring centred a little below the middle so the title has room above and the
-// footnote below; the factor rings of a non-cyclic group use a taller box.
+// The necklace canvas: a 760-wide square box, with the ring centred a little
+// below the middle so the title has room above and the footnote below.
 var SIZE = 760;
 var RING = { cx: 380, cy: 388, R: 285 };
+// With the outer arrows on, the ring shrinks to leave room for the curves
+// that run outside it.
+var RING_OUTER = { cx: 380, cy: 395, R: 238 };
 
-// The five layers double as the URL parameter names and, with the layer-
+// The layers double as the URL parameter names and, with the layer-
 // prefix, as the checkbox ids.
-var FLAGS = ['cord', 'chords', 'colors', 'orders', 'bygen'];
+var FLAGS = ['cord', 'guide', 'colors', 'orders', 'bygen'];
 
 /* ---------- state ---------- */
-// gen is remembered while the current group has no generator, so a visit to a
-// non-cyclic modulus and back does not forget the learner's choice.
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, chords: true, colors: true, orders: false, bygen: false };
+// gen is the chosen element h: the inner arrows walk by h, the outer arrows
+// by its inverse.
+// colorBy picks what the bead colors mean: 'order' (element order) or
+// 'inverse' (an element and its inverse share a color).
+// elSide and invSide put the walk by h and the walk by h⁻¹ 'inside' or
+// 'outside' the ring, both on one side if wanted, or hide it ('neither').
+var COLOR_BY = ['order', 'inverse'];
+var SIDES = ['inside', 'outside', 'neither'];
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', invSide: 'outside', orders: false, bygen: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
+
+// subLayout lays the subgroup rows out in columns ('grid') or one per line
+// ('list').
+var SUB_LAYOUTS = ['grid', 'list'];
+// rot is how many beads the necklace is turned: the bead at the top is the
+// rot-th one of the arrangement, and every subgroup row starts rot steps
+// into its walk (g^rot, written additively rot·g), wrapping round, like
+// group_examplifier's horizontal offset.
+
+// The two arrow color pickers, used only while customColors is on: the state
+// key each writes, the custom property it sets on .app, the theme role it
+// falls back to (yellow for the element, blue for its inverse), and its URL parameter (the
+// hex digits without the #). Picks are remembered while the option is off.
+var ARROW_COLORS = [
+  { key: 'inColor', prop: '--arrow-in', role: '--role-active', param: 'incolor', id: 'color-inner' },
+  { key: 'outColor', prop: '--arrow-out', role: '--role-input', param: 'outcolor', id: 'color-outer' }
+];
+var HEX_COLOR = /^#[0-9a-f]{6}$/;
 
 /* ---------- DOM references ---------- */
 var $ = function(id){ return document.getElementById(id); };
@@ -346,9 +568,35 @@ var ringDynamicEl = $('ring-dynamic');
 var ringPanelEl = $('ring-panel');
 var noticeEl = $('notice');
 var factsEl = $('facts');
+var subgroupsEl = $('subgroups');
+var cosetBtnEl = $('coset-btn');
+var rotValueEl = $('rot-value');
+cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCosets(); });
+subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
+var subLayoutEls = [$('sub-list'), $('sub-grid')];
+function syncSubLayout(){
+  subgroupsEl.classList.toggle('is-list', state.subLayout === 'list');
+  subLayoutEls.forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-layout') === state.subLayout ? 'true' : 'false'); });
+}
+subLayoutEls.forEach(function(b){
+  b.addEventListener('click', function(){
+    state.subLayout = b.getAttribute('data-layout');
+    syncSubLayout();
+    if (drawn) mirrorToUrl(drawn.G);
+  });
+});
 var hintEl = $('hint');
+var hintInverseEl = $('hint-inverse');
 var legendEl = $('legend');
+var legendHeadingEl = $('legend-heading');
+var colorBySelectEl = $('colorby-select');
+var sideElEl = $('side-el');
+var sideInvEl = $('side-inv');
 var bygenRowEl = $('bygen-row');
+var combineKeyEl = $('combine-key');
+var appEl = document.querySelector('.app');
+var colorResetEl = $('color-reset');
+var customColorsEl = $('custom-colors');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -397,15 +645,23 @@ function buildGroup(mode, n){
     if (steps === G.order) G.generators.push(a);
     if (steps > G.longest) G.longest = steps;
   });
+  G.inv = {};
+  els.forEach(function(a){
+    for (var i = 0; i < els.length; i++){
+      if (G.combine(a, els[i]) === identity){ G.inv[a] = els[i]; break; }
+    }
+  });
   G.cyclic = G.generators.length > 0;
   return G;
 }
 
 // One lap: identity, then the identity stepped by gen once, twice, and so on
 // for len elements.
-function lap(G, gen, len){
-  var seq = [G.identity];
-  var x = G.identity;
+// The walk start, start∘gen, start∘gen∘gen, ... of len steps; start is the
+// identity unless given.
+function lap(G, gen, len, start){
+  var x = start === undefined ? G.identity : start;
+  var seq = [x];
   for (var k = 1; k < len; k++){
     x = G.combine(x, gen);
     seq.push(x);
@@ -434,6 +690,62 @@ function orderClasses(groupOrder){
   });
   return map;
 }
+
+// The six role hues in wheel order (red, gold, green, blue, purple, pink).
+// A pair color is a point on that wheel: two neighbouring roles mixed in
+// oklch, so every pair color is built from palette tokens and follows the
+// day/night theme like the order colors do.
+var PAIR_WHEEL = ['--role-warn', '--role-active', '--role-result', '--role-input', '--role-special', '--role-alt'];
+
+function wheelColor(t){
+  var pos = t * PAIR_WHEEL.length;
+  var seg = Math.floor(pos) % PAIR_WHEEL.length;
+  var share = Math.round((1 - (pos - Math.floor(pos))) * 100);
+  var next = PAIR_WHEEL[(seg + 1) % PAIR_WHEEL.length];
+  return 'color-mix(in oklch, var(' + PAIR_WHEEL[seg] + ') ' + share + '%, var(' + next + '))';
+}
+
+// Every element's inverse, the elements that are their own inverse, and the
+// remaining elements as pairs {a, a^-1} listed by their smaller member. Pair
+// k sits at k times the golden ratio around the wheel, so pairs that follow
+// each other (and so sit side by side on the additive ring) never get
+// neighbouring hues.
+function inversePairs(G){
+  var inv = G.inv;
+  var selfInverse = [];
+  var pairs = [];
+  var color = {};
+  G.els.forEach(function(a){
+    if (inv[a] === a) selfInverse.push(a);
+    else if (a < inv[a]){
+      var t = (pairs.length * 0.6180339887) % 1;
+      color[a] = color[inv[a]] = wheelColor(t);
+      pairs.push([a, inv[a]]);
+    }
+  });
+  return { inv: inv, selfInverse: selfInverse, pairs: pairs, color: color };
+}
+
+// How one bead is painted: a color class and, for an inverse pair, an inline
+// --ord built from the role tokens. Self-inverse elements stay quiet
+// (--text-dim) in the inverse view, the identity among them.
+function beadPainter(G, classes, pairing){
+  return function(a){
+    if (!state.colors) return { cls: 'ord-id', style: null };
+    if (state.colorBy === 'inverse'){
+      return pairing.color[a] ? { cls: '', style: '--ord: ' + pairing.color[a] } : { cls: 'ord-id', style: null };
+    }
+    return { cls: classes[G.orders[a]], style: null };
+  };
+}
+
+// Inverting g^k negates the exponent, so wherever a ring places beads by
+// exponent (additive Z/n, generator-power order) an
+// element and its inverse are mirror images across the vertical axis. A
+// multiplicative group in plain numeric order is the one view where that
+// fails: there the mirror pairs a with n - a, its negative.
+function mirrorHolds(G){ return G.mode === 'additive' || (G.cyclic && state.bygen); }
+function mirrorShown(G){ return state.colors && state.colorBy === 'inverse' && mirrorHolds(G); }
 
 // Smallest x in 0..n-1 that is g modulo q and 1 modulo the rest of n. Such an
 // x has, in (Z/n)*, the same order that g has in (Z/q)*.
@@ -493,20 +805,155 @@ function whyNotCyclicKey(n){
 
 function num(v){ return Math.round(v * 1000) / 1000; }
 
+function arrowHead(cls, x, y, heading, size){
+  var tip = [x + size * Math.cos(heading), y + size * Math.sin(heading)];
+  var left = [x + size * Math.cos(heading + 2.5), y + size * Math.sin(heading + 2.5)];
+  var right = [x + size * Math.cos(heading - 2.5), y + size * Math.sin(heading - 2.5)];
+  return svgEl('path', {
+    'class': cls,
+    d: 'M ' + num(tip[0]) + ' ' + num(tip[1]) + ' L ' + num(left[0]) + ' ' + num(left[1]) +
+       ' L ' + num(right[0]) + ' ' + num(right[1]) + ' Z'
+  });
+}
+
 function beadRadius(m, R){ return Math.max(3.5, Math.min(21, 1.5 * R / m)); }
 
-// One ring of beads. beads is the element at each position, in ring order;
-// step is the element the chords walk by. The chord path and the arrowheads
-// sit under the beads, the labels over them.
-function drawRing(parent, G, beads, step, box, classes){
+// The element the arrows walk by, and the generator the beads are arranged
+// by when "generator powers" is on: the chosen element if it generates the
+// group, otherwise the smallest generator.
+function arrangeBy(G){
+  return G.generators.indexOf(state.gen) !== -1 ? state.gen : G.generators[0];
+}
+
+// Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
+// edge, bulges to its peak halfway, and comes back into its target, turning
+// the short way round. Its shape depends only on how far it turns, so steps
+// of the same size draw identical curves, and humps that overlap cross each
+// other instead of hiding one another. An outer hump bulges away from the
+// ring; an inner hump bulges off the straight chord between its beads,
+// toward the center, so the inner walk never reads as a plain polygon.
+function humpSteps(walk, place, m, scale){
+  var step = 360 / m;
+  var k = walk.length;
+  var out = [];
+  for (var s = 0; s < k; s++){
+    var a0 = step * place[walk[s]];
+    var d = ((step * (place[walk[(s + 1) % k]] - place[walk[s]])) % 360 + 540) % 360 - 180;
+    if (d <= -179.999) d = 180;
+    out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, Math.abs(d) * 0.4)) });
+  }
+  return out;
+}
+
+// The point a fraction f of the way along hump h. Outer humps follow the
+// ring outward; inner humps follow the chord, pushed toward the center by
+// INNER_BULGE of the chord's length, but by no more than a third of the chord's
+// distance from the center, so long steps don't pile their arrowheads up
+// there. A half turn, whose chord runs through the center, still bows by
+// INNER_MIN. The center lies to the right of a clockwise chord and to the
+// left of a counterclockwise one, which also gives the half turn its side.
+// A negative scale bows an inner hump the other way, away from the center,
+// but only so far that it stays inside the beads.
+var INNER_BULGE = 0.14;
+var INNER_MIN = 24;
+// The inverse walk's hump height, relative to the element walk's, when both
+// walks are drawn outside.
+var SHARED_SCALE = 0.5;
+function humpPoint(box, foot, side, h, f){
+  if (side > 0) return polar(box.cx, box.cy, foot + h.peak * Math.sin(Math.PI * f), h.a0 + h.d * f);
+  var p0 = polar(box.cx, box.cy, foot, h.a0);
+  var p1 = polar(box.cx, box.cy, foot, h.a0 + h.d);
+  var dx = p1[0] - p0[0], dy = p1[1] - p0[1];
+  var len = Math.hypot(dx, dy);
+  var mid = foot * Math.cos(Math.abs(h.d) * Math.PI / 360);
+  var bulge = Math.abs(h.scale) * Math.min(INNER_BULGE * len, Math.max(INNER_MIN, 0.35 * mid));
+  if (h.scale < 0) bulge = -Math.min(bulge, 0.8 * (foot - mid));
+  var turn = h.d > 0 ? 1 : -1;
+  var b = bulge / len * Math.sin(Math.PI * f);
+  return [p0[0] + dx * f - turn * dy * b, p0[1] + dy * f + turn * dx * b];
+}
+
+function humpPath(box, foot, side, h, first){
+  var samples = Math.max(16, Math.ceil(Math.abs(h.d)));
+  var path = '';
+  for (var t = first ? 0 : 1; t <= samples; t++){
+    var q = humpPoint(box, foot, side, h, t / samples);
+    path += (t ? ' L ' : 'M ') + num(q[0]) + ' ' + num(q[1]);
+  }
+  return path;
+}
+
+// The arrowhead sits at the peak, pointing along the hump's direction there.
+function humpArrow(cls, box, foot, side, h, size){
+  var pm = humpPoint(box, foot, side, h, 0.5);
+  var a = humpPoint(box, foot, side, h, 0.49), b = humpPoint(box, foot, side, h, 0.51);
+  return arrowHead(cls, pm[0], pm[1], Math.atan2(b[1] - a[1], b[0] - a[0]), size);
+}
+
+// A walk is e -> g -> g∘g -> ... -> e for g = h or g = h⁻¹. It visits
+// exactly the subgroup h generates, so for an element that is not a
+// generator part of the ring stays unvisited. cls ('walk-el', 'walk-inv' or
+// 'walk-both') gives its color. The two walks join the same pairs of beads
+// in opposite directions, so when they share a side, scale keeps the
+// inverse walk off the element's: inside it bows the other way (-1),
+// outside it runs at SHARED_SCALE height.
+
+// A walk inside the ring, as one closed chain of humps.
+function drawInner(ring, walk, cls, scale, place, box, beadR, m, width){
+  var k = walk.length;
+  var foot = box.R - beadR;
+  var steps = humpSteps(walk, place, m, scale);
+  var group = svgEl('g', { 'class': cls });
+  var d = '';
+  steps.forEach(function(h, s){ d += (s ? ' ' : '') + humpPath(box, foot, -1, h, s === 0); });
+  group.appendChild(svgEl('path', { 'class': 'chord', d: d, 'data-seq': walk.join(' '), 'stroke-width': width }));
+  if (k <= 60){
+    var size = Math.max(3, Math.min(7, 90 / k));
+    steps.forEach(function(h){ group.appendChild(humpArrow('chord-arrow', box, foot, -1, h, size)); });
+  }
+  ring.appendChild(group);
+}
+
+// A walk outside the ring, one hump per step. Returns the outermost radius
+// used.
+function drawOuter(ring, walk, cls, scale, place, box, beadR, m, width){
+  var k = walk.length;
+  var foot = box.R + beadR;
+  var size = Math.max(3, Math.min(7, 90 / k));
+  var peakMax = 0;
+  var group = svgEl('g', { 'class': 'outer-walk ' + cls, 'data-seq': walk.join(' ') });
+  humpSteps(walk, place, m, scale).forEach(function(h){
+    peakMax = Math.max(peakMax, h.peak);
+    group.appendChild(svgEl('path', {
+      'class': 'outer-arc', 'stroke-width': width, 'data-from': h.from, 'data-to': h.to, d: humpPath(box, foot, 1, h, true)
+    }));
+    if (k <= 60) group.appendChild(humpArrow('outer-arrow', box, foot, 1, h, size));
+  });
+  ring.appendChild(group);
+  return foot + peakMax;
+}
+
+// The ring of beads. beads is the element at each position, clockwise from
+// the top. The arrows sit under the beads, the labels over them.
+function drawRing(parent, G, beads, box, paint){
   var m = beads.length;
   var beadR = beadRadius(m, box.R);
   var place = {};
   beads.forEach(function(a, i){ place[a] = i; });
   function at(i){ return polar(box.cx, box.cy, box.R, 360 * i / m); }
 
-  var ring = svgEl('g', { 'class': 'ring' });
-  ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
+  var ring = svgEl('g', { 'class': coset ? 'ring is-coset' : 'ring' });
+  if (state.guide) ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
+  if (m > 1 && mirrorShown(G)){
+    // Through the identity, wherever the turn has put it.
+    var axisAt = 360 * place[G.identity] / m;
+    var axisA = polar(box.cx, box.cy, box.R + beadR + 6, axisAt);
+    var axisB = polar(box.cx, box.cy, box.R + beadR + 6, axisAt + 180);
+    ring.appendChild(svgEl('line', {
+      'class': 'mirror-axis',
+      x1: num(axisA[0]), y1: num(axisA[1]), x2: num(axisB[0]), y2: num(axisB[1])
+    }));
+  }
 
   if (state.cord && m > 1){
     var pts = [];
@@ -520,45 +967,42 @@ function drawRing(parent, G, beads, step, box, classes){
     }));
   }
 
-  if (state.chords && m > 1){
-    var seq = lap(G, step, m);
-    var d = '';
-    for (var k = 0; k <= m; k++){
-      var q = at(place[seq[k % m]]);
-      d += (k ? ' L ' : 'M ') + num(q[0]) + ' ' + num(q[1]);
-    }
-    ring.appendChild(svgEl('path', {
-      'class': 'chord', d: d, 'data-seq': seq.join(' '),
-      'stroke-width': num(Math.max(1, Math.min(2.4, 44 / m + 0.7)))
-    }));
-    if (m <= 60){
-      var size = Math.max(3, Math.min(7, 90 / m));
-      for (var s = 0; s < m; s++){
-        var from = at(place[seq[s]]);
-        var to = at(place[seq[(s + 1) % m]]);
-        var ax = from[0] + (to[0] - from[0]) * 0.58;
-        var ay = from[1] + (to[1] - from[1]) * 0.58;
-        var heading = Math.atan2(to[1] - from[1], to[0] - from[0]);
-        var tip = [ax + size * Math.cos(heading), ay + size * Math.sin(heading)];
-        var left = [ax + size * Math.cos(heading + 2.5), ay + size * Math.sin(heading + 2.5)];
-        var right = [ax + size * Math.cos(heading - 2.5), ay + size * Math.sin(heading - 2.5)];
-        ring.appendChild(svgEl('path', {
-          'class': 'chord-arrow',
-          d: 'M ' + num(tip[0]) + ' ' + num(tip[1]) + ' L ' + num(left[0]) + ' ' + num(left[1]) +
-             ' L ' + num(right[0]) + ' ' + num(right[1]) + ' Z'
-        }));
+  var h = shownGen(G);
+  var k = G.orders[h];
+  var outerEdge = box.R + beadR;
+  if (k > 1){
+    var width = num(Math.max(1, Math.min(2.4, 44 / k + 0.7)));
+    var walks = [];
+    var shared = state.elSide === state.invSide;
+    // The walks from one start; past marks a coset already stepped past.
+    var walksFrom = function(start, past){
+      var tag = past ? ' is-past' : '';
+      if (mergedWalks(G)){
+        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1 });
+        return;
       }
-    }
+      if (state.elSide !== 'neither') walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1 });
+      if (state.invSide !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: state.invSide, scale: !shared ? 1 : state.invSide === 'inside' ? -1 : SHARED_SCALE });
+    };
+    if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
+    walksFrom(coset ? coset.start : G.identity, false);
+    walks.forEach(function(w){
+      if (w.side === 'outside') outerEdge = Math.max(outerEdge, drawOuter(ring, w.walk, w.cls, w.scale, place, box, beadR, m, width));
+    });
+    walks.forEach(function(w){
+      if (w.side === 'inside') drawInner(ring, w.walk, w.cls, w.scale, place, box, beadR, m, width);
+    });
   }
 
   beads.forEach(function(a, i){
     var p = at(i);
-    var colorClass = state.colors ? classes[G.orders[a]] : 'ord-id';
+    var look = paint(a);
     var attrs = {
-      'class': 'bead ' + colorClass + (a === G.identity ? ' is-identity' : ''),
+      'class': 'bead ' + look.cls + (a === G.identity ? ' is-identity' : '') + (coset && !coset.members[a] ? ' is-dim' : ''),
       cx: num(p[0]), cy: num(p[1]), r: num(beadR),
       'data-el': a, 'data-order': G.orders[a]
     };
+    if (look.style) attrs.style = look.style;
     if (a === G.identity) attrs['stroke-width'] = 3;
     ring.appendChild(svgEl('circle', attrs));
   });
@@ -566,7 +1010,7 @@ function drawRing(parent, G, beads, step, box, classes){
   if (beadR >= 9){
     beads.forEach(function(a, i){
       var p = at(i);
-      var label = svgEl('text', { 'class': 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(beadR * 1.05) });
+      var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(beadR * 1.05) });
       label.textContent = String(a);
       ring.appendChild(label);
     });
@@ -574,7 +1018,7 @@ function drawRing(parent, G, beads, step, box, classes){
 
   if (state.orders && m <= 60 && beadR >= 7){
     beads.forEach(function(a, i){
-      var p = polar(box.cx, box.cy, box.R + beadR + 15, 360 * i / m);
+      var p = polar(box.cx, box.cy, outerEdge + 15, 360 * i / m);
       var label = svgEl('text', { 'class': 'order-label', x: num(p[0]), y: num(p[1]) });
       label.textContent = String(G.orders[a]);
       ring.appendChild(label);
@@ -591,74 +1035,92 @@ function drawText(cls, x, y, text){
   return t;
 }
 
-// A cyclic group: one necklace.
-function drawNecklace(G, classes){
+// The ring shrinks whenever a shown walk runs outside it.
+function ringBox(){
+  var out = state.elSide === 'outside' || state.invSide === 'outside';
+  return out ? RING_OUTER : RING;
+}
+
+// Every group is one necklace, beads clockwise from the top in numeric order
+// like a clock face, or by powers of a generator when that option is on.
+function drawNecklace(G, paint){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
-  ringDynamicEl.appendChild(drawText('ring-title', SIZE / 2, 44,
-    translate('cyclicGroups.ringTitle', { group: G.label, g: state.gen, order: G.order })));
-  var beads = state.bygen ? lap(G, state.gen, G.order) : G.els.slice();
-  drawRing(ringDynamicEl, G, beads, state.gen, RING, classes);
+  ringDynamicEl.appendChild(drawText('ring-title', SIZE / 2, 44, coset
+    ? translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul',
+        { a: coset.start, h: shownGen(G), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).join(', ') + '}' })
+    : translate('cyclicGroups.ringTitle', { group: G.label, h: shownGen(G), k: G.orders[shownGen(G)] })));
+  // In Z/n the coset count follows from |⟨h⟩| = n / gcd(n, h), worked out
+  // with this n and h under the title while the cosets play.
+  if (coset){
+    var progress = translate('cyclicGroups.cosetProgress', { i: coset.past.length + 1, count: cosetRun.starts.length });
+    if (G.mode === 'additive'){
+      var h = shownGen(G), d = gcd(G.n, h), size = G.n / d;
+      progress = translate('cyclicGroups.cosetCountAdd', { n: G.n, h: h, d: d, size: size, count: G.n / size }) + ' · ' + progress;
+    }
+    ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, 72, progress));
+  }
+  var beads = turned(G.cyclic && state.bygen ? lap(G, arrangeBy(G), G.order) : G.els.slice());
+  drawRing(ringDynamicEl, G, beads, ringBox(), paint);
   var noteKey = state.orders ? 'cyclicGroups.ringFootnoteOrders' : 'cyclicGroups.ringFootnote';
   ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate(noteKey, { id: G.identity })));
 }
 
-// A group with no generator: one ring per cyclic factor, up to two a row.
-function drawFactorRings(G, classes, factors){
-  var cols = Math.min(factors.length, 2);
-  var rows = Math.ceil(factors.length / cols);
-  var cellW = SIZE / cols;
-  var cellH = 320;
-  var height = 96 + rows * cellH + 46;
-  ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + height);
-
-  ringDynamicEl.appendChild(drawText('ring-title', SIZE / 2, 42,
-    translate('cyclicGroups.notCyclicTitle', { group: G.label })));
-  ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, 74,
-    translate('cyclicGroups.builtFrom', { factors: factorNotation(factors) })));
-
-  factors.forEach(function(f, i){
-    var row = Math.floor(i / cols);
-    var inRow = Math.min(cols, factors.length - row * cols);
-    var box = {
-      cx: (SIZE - inRow * cellW) / 2 + (i % cols) * cellW + cellW / 2,
-      cy: 96 + row * cellH + cellH / 2 - 16,
-      R: Math.min(cellW, cellH) * 0.33 * Math.min(1, 0.5 + f.order * 0.09)
-    };
-    var ring = drawRing(ringDynamicEl, G, lap(G, f.gen, f.order), f.gen, box, classes);
-    ring.setAttribute('class', 'ring factor-ring');
-    ring.setAttribute('data-order', f.order);
-    ring.setAttribute('data-gen', f.gen);
-    ringDynamicEl.appendChild(drawText('ring-label', box.cx, box.cy + box.R + 44,
-      translate('cyclicGroups.factorRingLabel', { order: f.order, g: f.gen })));
-  });
-
-  ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, height - 16,
-    translate('cyclicGroups.factorFootnote', { group: G.label, n: G.n })));
+// A list started rot places in, wrapping round: the necklace's beads, or a
+// subgroup row's walk.
+function turned(list){
+  var r = ((state.rot % list.length) + list.length) % list.length;
+  return list.slice(r).concat(list.slice(0, r));
 }
 
 /* ---------- side panels ---------- */
 
+// The element dropdown lists every element, generators marked. The choice is
+// remembered across groups while it is still an element of the new group.
 function syncGenerators(G){
   genSelectEl.replaceChildren();
-  if (!G.cyclic){
-    var none = document.createElement('option');
-    none.textContent = translate('cyclicGroups.genNone');
-    none.disabled = true;
-    none.selected = true;
-    genSelectEl.appendChild(none);
-    genSelectEl.disabled = true;
-    return;
-  }
-  genSelectEl.disabled = false;
-  var key = G.mode === 'additive' ? 'cyclicGroups.genOptionAdditive' : 'cyclicGroups.genOptionMultiplicative';
-  G.generators.forEach(function(g){
+  var genKey = G.mode === 'additive' ? 'cyclicGroups.genOptionAdditive' : 'cyclicGroups.genOptionMultiplicative';
+  G.els.forEach(function(a){
     var opt = document.createElement('option');
-    opt.value = String(g);
-    opt.textContent = translate(key, { g: g });
+    opt.value = String(a);
+    if (a === G.identity) opt.textContent = translate('cyclicGroups.genOptionIdentity', { g: a });
+    else if (G.generators.indexOf(a) !== -1) opt.textContent = translate(genKey, { g: a });
+    else opt.textContent = translate('cyclicGroups.genOptionOrder', { g: a, order: G.orders[a] });
     genSelectEl.appendChild(opt);
   });
-  if (G.generators.indexOf(state.gen) === -1) state.gen = G.generators[0];
+  if (G.els.indexOf(state.gen) === -1){
+    state.gen = G.cyclic ? G.generators[0] : (G.els.length > 1 ? G.els[1] : G.identity);
+  }
   genSelectEl.value = String(state.gen);
+}
+
+// A self-inverse element (other than the identity) walks the same path
+// either way, so with both walks shown it is drawn once, on the element's
+// side, in the mixed color.
+function mergedWalks(G){
+  var h = shownGen(G);
+  return G.orders[h] === 2 && state.elSide !== 'neither' && state.invSide !== 'neither';
+}
+
+function renderCombineKey(G){
+  var h = shownGen(G);
+  var on = G.orders[h] > 1 && (state.elSide !== 'neither' || state.invSide !== 'neither');
+  combineKeyEl.hidden = !on;
+  if (!on) return;
+  var params = { h: h, hinv: G.inv[h], n: G.n, start: coset ? coset.start : G.identity };
+  var add = G.mode === 'additive';
+  var innerEl = $('combine-key-inner');
+  var outerEl = $('combine-key-outer');
+  var byH = add ? 'cyclicGroups.combineElementAdd' : 'cyclicGroups.combineElementMul';
+  var byInv = add ? 'cyclicGroups.combineInverseAdd' : 'cyclicGroups.combineInverseMul';
+  function where(side){ return translate(side === 'inside' ? 'cyclicGroups.whereInside' : 'cyclicGroups.whereOutside'); }
+  innerEl.textContent = translate(byH, Object.assign({ where: where(state.elSide) }, params));
+  outerEl.textContent = translate(byInv, Object.assign({ where: where(state.invSide) }, params));
+  var merged = mergedWalks(G);
+  if (merged) outerEl.textContent = translate('cyclicGroups.combineSelfInverse', params);
+  innerEl.previousSibling.classList.toggle('is-both', merged);
+  outerEl.previousSibling.classList.toggle('is-none', merged);
+  innerEl.parentNode.hidden = state.elSide === 'neither';
+  outerEl.parentNode.hidden = state.invSide === 'neither';
 }
 
 function codeNode(text){
@@ -689,6 +1151,436 @@ function renderNotice(G, factors){
   noticeEl.appendChild(rule);
 }
 
+// The element whose arrows are drawn: the one whose subgroup row the pointer
+// (or keyboard focus) is on, else the selected one. Only the arrows, the
+// ring title and the arrow key follow a preview; the beads stay put.
+var preview = null;
+function shownGen(G){
+  return preview !== null && G.els.indexOf(preview) !== -1 ? preview : state.gen;
+}
+var drawn = null;
+function redrawRing(){
+  ringDynamicEl.replaceChildren();
+  drawNecklace(drawn.G, drawn.paint);
+  renderCombineKey(drawn.G);
+  if (spin) spinAngle(spin.now);
+  else if (turning) spinAngle(turning.swept);
+  else if (autoAngle) spinAngle(autoAngle);
+}
+function setPreview(g){
+  if (g === preview || !drawn || coset) return;
+  preview = g;
+  redrawRing();
+}
+
+/* ---------- turning the necklace ---------- */
+
+// Turning only moves the beads and the start of each subgroup row, so it
+// redraws those and leaves the controls, a preview and a running coset
+// animation alone.
+function setRot(r){ setRotChanged(r); }
+// setRot, reporting whether rot changed (and so the ring was redrawn).
+function setRotChanged(r){
+  if (!drawn) return false;
+  var m = drawn.G.order;
+  r = ((r % m) + m) % m;
+  if (r === state.rot) return false;
+  state.rot = r;
+  rotValueEl.textContent = String(r);
+  redrawRing();
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+  return true;
+}
+
+// The pointer's angle around the ring's center, in degrees clockwise from
+// the top (the way polar counts), or null too near the center to steer by.
+function pointerAngle(e){
+  var ctm = ringSvgEl.getScreenCTM();
+  if (!ctm) return null;
+  var pt = ringSvgEl.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  var p = pt.matrixTransform(ctm.inverse());
+  var box = ringBox();
+  var dx = p.x - box.cx, dy = p.y - box.cy;
+  if (Math.hypot(dx, dy) < box.R * 0.15) return null;
+  return Math.atan2(dx, -dy) * 180 / Math.PI;
+}
+
+// A drag turns the drawn ring smoothly with the pointer, and on release it
+// eases on to the nearest bead and lands there like a button turn. Turning
+// clockwise brings the bead before the top one up, so rot goes down; the
+// rotation readout follows the bead nearest the top during the drag.
+var turning = null; // { id, last, swept } while a drag is on
+ringSvgEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0 || !drawn) return;
+  finishSpin();
+  var a = pointerAngle(e);
+  if (a === null) return;
+  turning = { id: e.pointerId, last: a, swept: autoAngle };
+  autoAngle = 0;
+  ringSvgEl.setPointerCapture(e.pointerId);
+  ringSvgEl.classList.add('is-turning');
+  e.preventDefault();
+});
+ringSvgEl.addEventListener('pointermove', function(e){
+  if (!turning || e.pointerId !== turning.id) return;
+  var a = pointerAngle(e);
+  if (a === null) return;
+  var d = a - turning.last;
+  if (d > 180) d -= 360;
+  if (d < -180) d += 360;
+  turning.last = a;
+  turning.swept += d;
+  spinAngle(turning.swept);
+  var m = drawn.G.order;
+  var near = state.rot - Math.round(turning.swept / (360 / m));
+  rotValueEl.textContent = String(((near % m) + m) % m);
+});
+function endTurn(e){
+  if (!turning || e.pointerId !== turning.id) return;
+  var swept = turning.swept;
+  turning = null;
+  ringSvgEl.classList.remove('is-turning');
+  var steps = -Math.round(swept / (360 / drawn.G.order));
+  if (reducedMotion && reducedMotion.matches){
+    if (!setRotChanged(state.rot + steps)) redrawRing();
+    return;
+  }
+  spin = { steps: steps, from: swept, now: swept, t0: null };
+  spin.id = requestAnimationFrame(spinFrame);
+}
+ringSvgEl.addEventListener('pointerup', endTurn);
+ringSvgEl.addEventListener('pointercancel', endTurn);
+// The buttons turn the ring as an animation: the drawn ring spins (its
+// labels counter-spun to stay upright) and, once it arrives, is redrawn in
+// the new arrangement with the subgroup rows following. Clicks during a
+// turn add to it. spin is the turn under way: the steps it adds to rot, the
+// angle it started from, the angle it is at and when it (re)started.
+var SPIN_MS = 450;
+var spin = null;
+var reducedMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+
+function spinAngle(angle){
+  var ring = ringDynamicEl.querySelector('.ring');
+  if (!ring) return;
+  var box = ringBox();
+  ring.setAttribute('transform', 'rotate(' + num(angle) + ' ' + box.cx + ' ' + box.cy + ')');
+  ring.querySelectorAll('.bead-label, .order-label').forEach(function(t){
+    t.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + t.getAttribute('x') + ' ' + t.getAttribute('y') + ')');
+  });
+}
+
+function spinFrame(ts){
+  if (!spin) return;
+  if (spin.t0 === null) spin.t0 = ts;
+  var t = Math.min(1, (ts - spin.t0) / SPIN_MS);
+  // rot going up brings the next bead to the top: a counterclockwise turn.
+  var target = -spin.steps * 360 / drawn.G.order;
+  spin.now = spin.from + (target - spin.from) * easeInOutCubic(t);
+  spinAngle(spin.now);
+  if (t < 1){ spin.id = requestAnimationFrame(spinFrame); return; }
+  finishSpin();
+}
+
+// Lands a turn under way on its end position at once.
+function finishSpin(){
+  if (!spin) return;
+  cancelAnimationFrame(spin.id);
+  var steps = spin.steps;
+  spin = null;
+  if (!setRotChanged(state.rot + steps)) redrawRing();
+}
+
+function turnBy(steps){
+  if (!drawn || !steps) return;
+  if (reducedMotion && reducedMotion.matches){ setRot(state.rot + steps); return; }
+  if (spin){
+    cancelAnimationFrame(spin.id);
+    spin.steps += steps;
+    spin.from = spin.now;
+  } else {
+    spin = { steps: steps, from: autoAngle, now: autoAngle };
+    autoAngle = 0;
+  }
+  spin.t0 = null;
+  spin.id = requestAnimationFrame(spinFrame);
+}
+
+// Reset turns back the short way round.
+function turnHome(){
+  if (!drawn) return;
+  var m = drawn.G.order;
+  var at = (((state.rot + (spin ? spin.steps : 0)) % m) + m) % m;
+  turnBy(at > m / 2 ? m - at : -at);
+}
+
+// Auto-rotate turns the ring by itself, slowly and steadily, AUTO_DEG_PER_S
+// degrees a second: counterclockwise ('ccw') rot counts up and every
+// subgroup row moves on one place each time a bead reaches the top;
+// clockwise ('cw') it counts down. 'off' stops it. autoAngle is how
+// far the drawn ring has turned past the last bead it landed on. A drag or
+// a button turn takes over from where the ring is, and auto-rotate carries
+// on once it has landed.
+var AUTO_DEG_PER_S = 12;
+var autoAngle = 0;
+var autoId = null;
+var autoLast = null;
+var AUTO_ROTATE = ['off', 'ccw', 'cw'];
+var autoRotateEl = $('auto-rotate');
+var autoStopEls = Array.prototype.slice.call(autoRotateEl.querySelectorAll('input'));
+
+function autoFrame(ts){
+  autoId = requestAnimationFrame(autoFrame);
+  var dt = autoLast === null ? 0 : Math.min(100, ts - autoLast);
+  autoLast = ts;
+  if (!drawn || spin || turning) return;
+  var step = 360 / drawn.G.order;
+  autoAngle += (state.autoRotate === 'cw' ? 1 : -1) * AUTO_DEG_PER_S * dt / 1000;
+  var steps = 0;
+  while (autoAngle <= -step){ autoAngle += step; steps++; }
+  while (autoAngle >= step){ autoAngle -= step; steps--; }
+  if (!steps || !setRotChanged(state.rot + steps)) spinAngle(autoAngle);
+}
+
+function syncAutoRotate(){
+  var on = state.autoRotate !== 'off';
+  autoRotateEl.setAttribute('data-at', state.autoRotate);
+  autoStopEls.forEach(function(r){ r.checked = r.value === state.autoRotate; });
+  if (on && autoId === null){
+    autoLast = null;
+    autoId = requestAnimationFrame(autoFrame);
+  } else if (!on && autoId !== null){
+    cancelAnimationFrame(autoId);
+    autoId = null;
+    // Ease on to the nearest bead rather than stopping between two.
+    if (autoAngle && drawn && !spin && !turning){
+      var steps = -Math.round(autoAngle / (360 / drawn.G.order));
+      spin = { steps: steps, from: autoAngle, now: autoAngle, t0: null };
+      autoAngle = 0;
+      spin.id = requestAnimationFrame(spinFrame);
+    }
+  }
+}
+autoRotateEl.addEventListener('change', function(e){
+  state.autoRotate = e.target.value;
+  syncAutoRotate();
+  if (drawn) mirrorToUrl(drawn.G);
+});
+
+$('rot-back').addEventListener('click', function(){ turnBy(1); });
+$('rot-fwd').addEventListener('click', function(){ turnBy(-1); });
+$('rot-reset').addEventListener('click', turnHome);
+
+/* ---------- coset animation ---------- */
+
+// "Explore cosets" opens the playback controls on the first coset, paused: the
+// user steps through the rest, or presses Play to have them step by
+// themselves. The run walks through the cosets of
+// the subgroup the selected element generates, one per step, each walked
+// from the coset's smallest element instead of the identity. A coset once
+// shown stays: its beads lit, its walks faded, so the last step (or Instant)
+// shows the whole group split into cosets. Beads in no coset shown yet are
+// dimmed. Each step dwells SPEED_MS at the chosen speed, the same scale the
+// other tools play at. cosetRun is the open run: the element, every coset's
+// starting element, how many are shown and whether it is playing. coset is
+// what the ring draws from it: the current start, the earlier ones and the
+// members of all shown.
+var SPEED_MS = {1:2600,2:2000,3:1500,4:1100,5:800,6:550,7:380,8:250,9:160,10:90};
+var cosetRun = null;
+var coset = null;
+var cosetTimer = null;
+var cosetControlsEl = $('coset-controls');
+var cosetPlayEl = $('coset-play');
+var cosetStepEl = $('coset-step');
+var cosetInstantEl = $('coset-instant');
+var cosetSpeedEl = $('coset-speed');
+
+// There is something to show only when ⟨h⟩ is a proper subgroup with a walk
+// to draw: not the identity's {e}, whose cosets are single beads, and not
+// the whole group, which is its own only coset.
+function hasCosets(G){
+  var k = G.orders[state.gen];
+  return k > 1 && k < G.order;
+}
+
+function cosetStarts(G, h){
+  var seen = {};
+  var starts = [];
+  G.els.forEach(function(a){
+    if (seen[a]) return;
+    starts.push(a);
+    lap(G, h, G.orders[h], a).forEach(function(x){ seen[x] = true; });
+  });
+  return starts;
+}
+
+// Shows the first shown cosets of the run and syncs the controls.
+function showCosets(shown){
+  var G = drawn.G;
+  var h = cosetRun.h;
+  var starts = cosetRun.starts;
+  cosetRun.shown = shown;
+  var members = {};
+  starts.slice(0, shown).forEach(function(a){
+    lap(G, h, G.orders[h], a).forEach(function(x){ members[x] = true; });
+  });
+  coset = { start: starts[shown - 1], past: starts.slice(0, shown - 1), members: members };
+  redrawRing();
+  syncCosetControls();
+}
+
+// The button opens or closes a run; with nothing to explore it is disabled,
+// and for a generator, whose subgroup is the whole group, it says so.
+function syncCosetButton(){
+  var G = drawn && drawn.G;
+  var generator = !cosetRun && !!G && G.orders[state.gen] === G.order && G.order > 1;
+  cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
+  cosetBtnEl.classList.toggle('is-generator', generator);
+  cosetBtnEl.textContent = cosetRun ? translate('cyclicGroups.cosetHide')
+    : generator ? translate('cyclicGroups.cosetNoneGenerator', { g: state.gen })
+    : translate('cyclicGroups.cosetButton');
+}
+
+function syncCosetControls(){
+  var open = cosetRun !== null;
+  var done = open && cosetRun.shown >= cosetRun.starts.length;
+  cosetControlsEl.hidden = !open;
+  cosetBtnEl.setAttribute('aria-expanded', open ? 'true' : 'false');
+  syncCosetButton();
+  cosetPlayEl.textContent = translate(open && cosetRun.playing ? 'common.pause' : 'common.play');
+  cosetStepEl.disabled = !open || cosetRun.playing || done;
+  cosetInstantEl.disabled = !open || done;
+  $('coset-speed-label').textContent = translate('common.speed.' + cosetSpeedEl.value);
+}
+
+function openCosets(){
+  if (!drawn || cosetRun || !hasCosets(drawn.G)) return;
+  setPreview(null);
+  cosetRun = { h: state.gen, starts: cosetStarts(drawn.G, state.gen), shown: 1, playing: false };
+  showCosets(1);
+}
+
+function playCosets(){
+  if (!cosetRun || cosetRun.playing) return;
+  // A finished run rewinds instead of doing nothing, so Play always plays.
+  if (cosetRun.shown >= cosetRun.starts.length) showCosets(1);
+  cosetRun.playing = true;
+  syncCosetControls();
+  (function tick(){
+    cosetTimer = setTimeout(function(){
+      if (!cosetRun || !cosetRun.playing) return;
+      showCosets(cosetRun.shown + 1);
+      if (cosetRun.shown >= cosetRun.starts.length) pauseCosets();
+      else tick();
+    }, SPEED_MS[cosetSpeedEl.value] || SPEED_MS[4]);
+  })();
+}
+
+function pauseCosets(){
+  if (!cosetRun) return;
+  clearTimeout(cosetTimer);
+  cosetRun.playing = false;
+  syncCosetControls();
+}
+
+cosetPlayEl.addEventListener('click', function(){
+  if (cosetRun && cosetRun.playing) pauseCosets(); else playCosets();
+});
+cosetStepEl.addEventListener('click', function(){
+  if (!cosetRun || cosetRun.playing || cosetRun.shown >= cosetRun.starts.length) return;
+  showCosets(cosetRun.shown + 1);
+});
+cosetInstantEl.addEventListener('click', function(){
+  if (!cosetRun) return;
+  pauseCosets();
+  showCosets(cosetRun.starts.length);
+});
+$('coset-reset').addEventListener('click', function(){
+  if (!cosetRun) return;
+  pauseCosets();
+  showCosets(1);
+});
+cosetSpeedEl.addEventListener('input', syncCosetControls);
+
+// Closes the run and its controls; render() calls it first, so any control
+// change closes it.
+function stopCosets(){
+  clearTimeout(cosetTimer);
+  var was = coset !== null;
+  cosetRun = null;
+  coset = null;
+  syncCosetControls();
+  syncCosetButton();
+  if (was) redrawRing();
+}
+
+// ⟨g⟩ = {e, g, g∘g, ...} for every element g, in the order g reaches them.
+// Rebuilding the rows keeps keyboard focus on the list: when a row had it,
+// the selected element's row takes it over.
+function renderSubgroups(G){
+  var hadFocus = subgroupsEl.contains(document.activeElement);
+  subgroupsEl.replaceChildren();
+  G.els.forEach(function(g){
+    var li = document.createElement('li');
+    var row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'subgroup-row' + (g === state.gen ? ' is-current' : '');
+    row.setAttribute('aria-pressed', g === state.gen ? 'true' : 'false');
+    row.textContent = '⟨' + g + '⟩ = {' + turned(lap(G, g, G.orders[g])).join(', ') + '}';
+    row.addEventListener('click', function(){
+      state.gen = g;
+      render();
+      focusCurrentRow();
+    });
+    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
+    row.addEventListener('focus', function(){ setPreview(g); });
+    row.addEventListener('blur', function(){ setPreview(null); });
+    li.appendChild(row);
+    subgroupsEl.appendChild(li);
+  });
+  if (hadFocus) focusCurrentRow();
+}
+
+function focusCurrentRow(){
+  var row = subgroupsEl.querySelector('.subgroup-row.is-current');
+  if (!row) return;
+  row.focus({ preventScroll: true });
+  row.scrollIntoView({ block: 'nearest' });
+}
+
+// While the arrow keys drive the list, the rows rebuilding and scrolling
+// under a resting pointer make the browser report it entering whatever row
+// lands there; that must not preview over the keyboard's choice. keyNav
+// holds hover previews off until the pointer really moves.
+var keyNav = false;
+var pointerAt = null;
+document.addEventListener('mousemove', function(e){
+  var moved = pointerAt !== null && (pointerAt.x !== e.screenX || pointerAt.y !== e.screenY);
+  pointerAt = { x: e.screenX, y: e.screenY };
+  if (!keyNav || !moved) return;
+  keyNav = false;
+  var row = e.target.closest && e.target.closest('.subgroup-row');
+  if (row) row.dispatchEvent(new MouseEvent('mouseenter'));
+});
+
+// In the list layout, once a row has focus (a click gives it one), the up
+// and down arrow keys select the element of the row above or below.
+subgroupsEl.addEventListener('keydown', function(e){
+  if (state.subLayout !== 'list' || !drawn) return;
+  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  var els = drawn.G.els;
+  var i = els.indexOf(state.gen) + (e.key === 'ArrowDown' ? 1 : -1);
+  e.preventDefault();
+  if (i < 0 || i >= els.length) return;
+  keyNav = true;
+  state.gen = els[i];
+  render();
+  focusCurrentRow();
+});
+
 function addFact(labelKey, value){
   var li = document.createElement('li');
   var label = document.createElement('span');
@@ -712,16 +1604,54 @@ function renderFacts(G, factors){
     : translate('cyclicGroups.factGeneratorsNone'));
   addFact('cyclicGroups.fact.structure', G.cyclic ? 'Z/' + G.order : factorNotation(factors));
 
-  var labelsDropped = G.cyclic && beadRadius(G.order, RING.R) < 9;
-  if (!G.cyclic) hintEl.textContent = translate('cyclicGroups.hint.notCyclic');
-  else if (labelsDropped) hintEl.textContent = translate('cyclicGroups.hint.noLabels');
+  var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
+  if (labelsDropped) hintEl.textContent = translate('cyclicGroups.hint.noLabels');
+  else if (!G.cyclic) hintEl.textContent = translate('cyclicGroups.hint.notCyclic');
   else if (G.mode === 'multiplicative') hintEl.textContent = translate('cyclicGroups.hint.multiplicative', { n: G.n, g: state.gen });
   else hintEl.textContent = translate('cyclicGroups.hint.additive', { n: G.n, g: state.gen });
+
+  var inverseView = state.colors && state.colorBy === 'inverse';
+  hintInverseEl.hidden = !inverseView;
+  hintInverseEl.textContent = inverseView
+    ? translate(mirrorHolds(G) ? 'cyclicGroups.hint.mirror' : G.cyclic ? 'cyclicGroups.hint.mirrorOff' : 'cyclicGroups.hint.mirrorOffSorted')
+    : '';
 }
 
-function renderLegend(G, classes){
+function legendItem(swatchClass, swatchStyle, text, textClass){
+  var item = document.createElement('div');
+  item.className = 'legend-item';
+  var swatch = document.createElement('span');
+  swatch.className = 'legend-swatch ' + swatchClass;
+  if (swatchStyle) swatch.setAttribute('style', swatchStyle);
+  var label = document.createElement('span');
+  label.className = textClass;
+  label.textContent = text;
+  item.appendChild(swatch);
+  item.appendChild(label);
+  return item;
+}
+
+function renderInverseLegend(pairing){
+  var self = legendItem('ord-id', null,
+    translate('cyclicGroups.legendSelfInverse', { list: pairing.selfInverse.join(', ') }), 'legend-order');
+  self.classList.add('is-self');
+  self.setAttribute('data-self-inverse', pairing.selfInverse.join(' '));
+  legendEl.appendChild(self);
+  pairing.pairs.forEach(function(pr){
+    var item = legendItem('', '--ord: ' + pairing.color[pr[0]],
+      translate('cyclicGroups.legendPair', { a: pr[0], b: pr[1] }), 'legend-pair');
+    item.setAttribute('data-pair', pr[0] + ' ' + pr[1]);
+    legendEl.appendChild(item);
+  });
+}
+
+function renderLegend(G, classes, pairing){
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
+  var inverse = state.colorBy === 'inverse';
+  legendEl.classList.toggle('is-pairs', inverse);
+  legendHeadingEl.textContent = translate(inverse ? 'cyclicGroups.legendHeadingInverse' : 'cyclicGroups.legendHeading');
+  if (inverse){ renderInverseLegend(pairing); return; }
   var counts = {};
   G.els.forEach(function(a){ counts[G.orders[a]] = (counts[G.orders[a]] || 0) + 1; });
   Object.keys(counts).map(Number).sort(function(a, b){ return a - b; }).forEach(function(o){
@@ -736,7 +1666,7 @@ function renderLegend(G, classes){
     text.textContent = translate('cyclicGroups.legendOrder', { order: o });
     var count = document.createElement('span');
     count.className = 'legend-count';
-    count.textContent = translate('cyclicGroups.legendBeads', { count: counts[o] });
+    count.textContent = translate('cyclicGroups.legendSubgroups', { count: counts[o] });
     item.appendChild(swatch);
     item.appendChild(text);
     item.appendChild(count);
@@ -763,11 +1693,94 @@ function mirrorToUrl(G){
     var q = new URLSearchParams(location.search);
     q.set('mode', state.mode);
     q.set('n', String(state.n));
-    if (G.cyclic) q.set('gen', String(state.gen));
-    else q.delete('gen');
+    q.set('gen', String(state.gen));
     FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
+    if (state.customColors) q.set('customcolors', '1');
+    else q.delete('customcolors');
+    ARROW_COLORS.forEach(function(c){
+      if (state.customColors && state[c.key]) q.set(c.param, state[c.key].slice(1));
+      else q.delete(c.param);
+    });
+    q.set('colorby', state.colorBy);
+    q.delete('chords');
+    q.delete('outer');
+    q.set('elside', state.elSide);
+    q.set('invside', state.invSide);
+    if (state.autoRotate !== 'off') q.set('autorotate', state.autoRotate);
+    else q.delete('autorotate');
+    if (state.subLayout === 'list') q.set('sublayout', 'list');
+    else q.delete('sublayout');
+    if (state.rot) q.set('rot', String(state.rot));
+    else q.delete('rot');
     history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
   } catch (e) { /* the address bar is a convenience, never a requirement */ }
+}
+
+/* ---------- arrow colors ---------- */
+
+// A theme role resolved to #rrggbb, for the picker's starting value: the
+// browser resolves the token on a throwaway element and reports rgb().
+function roleHex(role){
+  var probe = document.createElement('span');
+  probe.style.color = 'var(' + role + ')';
+  probe.hidden = true;
+  appEl.appendChild(probe);
+  var rgb = getComputedStyle(probe).color.match(/\d+(\.\d+)?/g) || ['0', '0', '0'];
+  appEl.removeChild(probe);
+  return '#' + rgb.slice(0, 3).map(function(v){
+    return ('0' + Math.round(parseFloat(v)).toString(16)).slice(-2);
+  }).join('');
+}
+
+// Apply the picked colors while customColors is on (otherwise clear them,
+// falling back to yellow and blue), show the pickers only then, and show
+// each picker the color its arrows actually have.
+function syncArrowColors(){
+  ARROW_COLORS.forEach(function(c){
+    var picked = state.customColors && state[c.key];
+    if (picked) appEl.style.setProperty(c.prop, picked);
+    else appEl.style.removeProperty(c.prop);
+    $(c.id).hidden = !state.customColors;
+    $(c.id).value = picked || roleHex(c.role);
+  });
+  appEl.style.setProperty('--arrow-both', mixPaint($(ARROW_COLORS[0].id).value, $(ARROW_COLORS[1].id).value));
+  customColorsEl.checked = state.customColors;
+  colorResetEl.hidden = !state.customColors || (!state.inColor && !state.outColor);
+}
+
+// The two arrow colors mixed the way paints mix: hues average on the
+// painter's red-yellow-blue wheel (so yellow and blue give green, red and
+// blue violet), saturation and lightness average as they are.
+var RYB_HUES = [[0, 0], [30, 60], [60, 120], [120, 180], [240, 240], [360, 360]];
+function mapHue(hue, from, to){
+  for (var i = 1; i < RYB_HUES.length; i++){
+    var a = RYB_HUES[i - 1], b = RYB_HUES[i];
+    if (hue <= b[from]) return a[to] + (hue - a[from]) * (b[to] - a[to]) / (b[from] - a[from]);
+  }
+  return hue;
+}
+function hexToHsl(hex){
+  var c = [1, 3, 5].map(function(i){ return parseInt(hex.slice(i, i + 2), 16) / 255; });
+  var max = Math.max.apply(null, c), min = Math.min.apply(null, c), l = (max + min) / 2, d = max - min;
+  if (!d) return [0, 0, l];
+  var hue = max === c[0] ? ((c[1] - c[2]) / d + 6) % 6 : max === c[1] ? (c[2] - c[0]) / d + 2 : (c[0] - c[1]) / d + 4;
+  return [hue * 60, d / (1 - Math.abs(2 * l - 1)), l];
+}
+function hslToHex(hsl){
+  var k = function(n){ return (n + hsl[0] / 30) % 12; };
+  var a = hsl[1] * Math.min(hsl[2], 1 - hsl[2]);
+  return '#' + [0, 8, 4].map(function(n){
+    var v = hsl[2] - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+    return ('0' + Math.round(v * 255).toString(16)).slice(-2);
+  }).join('');
+}
+function mixPaint(hexA, hexB){
+  var a = hexToHsl(hexA), b = hexToHsl(hexB);
+  var ha = mapHue(a[0], 0, 1), hb = mapHue(b[0], 0, 1);
+  if (Math.abs(ha - hb) > 180) (ha < hb ? ha += 360 : hb += 360);
+  // A gray has no hue to contribute, so the other color's hue is kept.
+  var hue = !a[1] ? hb : !b[1] ? ha : (ha + hb) / 2;
+  return hslToHex([mapHue(hue % 360, 1, 0), (a[1] + b[1]) / 2, (a[2] + b[2]) / 2]);
 }
 
 /* ---------- render ---------- */
@@ -775,19 +1788,31 @@ function mirrorToUrl(G){
 function render(){
   var G = buildGroup(state.mode, state.n);
   var classes = orderClasses(G.order);
+  var pairing = inversePairs(G);
+  var paint = beadPainter(G, classes, pairing);
   var factors = G.cyclic ? [] : unitFactors(G.n);
 
+  stopCosets();
+  if (spin){ cancelAnimationFrame(spin.id); spin = null; }
   syncGenerators(G);
+  state.rot = ((state.rot % G.order) + G.order) % G.order;
+  rotValueEl.textContent = String(state.rot);
+  preview = null;
+  drawn = { G: G, paint: paint };
   ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
   ringDynamicEl.replaceChildren();
-  if (G.cyclic) drawNecklace(G, classes);
-  else drawFactorRings(G, classes, factors);
+  drawNecklace(G, paint);
 
   bygenRowEl.classList.toggle('is-off', !G.cyclic);
+  renderCombineKey(G);
+  syncCosetButton();
+  syncArrowColors();
   $('layer-bygen').disabled = !G.cyclic;
+  colorBySelectEl.disabled = !state.colors;
   renderNotice(G, factors);
   renderFacts(G, factors);
-  renderLegend(G, classes);
+  renderSubgroups(G);
+  renderLegend(G, classes, pairing);
   renderNNote();
   renderExportStatus();
   syncCayleyLink();
@@ -810,6 +1835,11 @@ function syncTabs(){
 function syncControls(){
   nInputEl.value = state.n;
   FLAGS.forEach(function(name){ $('layer-' + name).checked = state[name]; });
+  colorBySelectEl.value = state.colorBy;
+  sideElEl.value = state.elSide;
+  sideInvEl.value = state.invSide;
+  syncSubLayout();
+  syncAutoRotate();
   syncTabs();
 }
 
@@ -839,7 +1869,7 @@ function applyTypedN(raw){
 
 /* ---------- ring PNG export ---------- */
 
-var PAINT_PROPS = ['fill', 'stroke', 'stroke-width', 'stroke-linejoin', 'stroke-linecap', 'opacity', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline'];
+var PAINT_PROPS = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linejoin', 'stroke-linecap', 'opacity', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline'];
 
 // The webfonts never load inside a standalone image, so text falls back to a
 // portable stack chosen by the generic family the page resolved. Family names
@@ -884,8 +1914,10 @@ function snapshotRing(){
 function exportName(){
   var tail = state.mode === 'additive' ? 'add' : 'mul';
   var parts = ['cyclic-group', tail, state.n];
-  if (buildGroup(state.mode, state.n).cyclic) parts.push('gen', state.gen);
-  else parts.push('factors');
+  parts.push('el', state.gen);
+  if (state.rot) parts.push('rot', state.rot);
+  if (state.colors && state.colorBy === 'inverse') parts.push('inverses');
+  if (state.elSide !== 'inside' || state.invSide !== 'outside') parts.push('arrows', state.elSide, state.invSide);
   return parts.join('-') + '.png';
 }
 
@@ -952,6 +1984,41 @@ FLAGS.forEach(function(name){
     render();
   });
 });
+colorBySelectEl.addEventListener('change', function(){
+  if (COLOR_BY.indexOf(colorBySelectEl.value) === -1) return;
+  state.colorBy = colorBySelectEl.value;
+  render();
+});
+sideElEl.addEventListener('change', function(){
+  if (SIDES.indexOf(sideElEl.value) === -1) return;
+  state.elSide = sideElEl.value;
+  render();
+});
+sideInvEl.addEventListener('change', function(){
+  if (SIDES.indexOf(sideInvEl.value) === -1) return;
+  state.invSide = sideInvEl.value;
+  render();
+});
+ARROW_COLORS.forEach(function(c){
+  $(c.id).addEventListener('input', function(){
+    var v = $(c.id).value.toLowerCase();
+    if (!HEX_COLOR.test(v)) return;
+    state[c.key] = v;
+    render();
+  });
+});
+customColorsEl.addEventListener('change', function(){
+  state.customColors = customColorsEl.checked;
+  render();
+});
+colorResetEl.addEventListener('click', function(){
+  state.inColor = null;
+  state.outColor = null;
+  render();
+});
+// A day/night switch changes the theme colors, so pickers still on the
+// theme default show the new ones.
+new MutationObserver(syncArrowColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 exportBtnEl.addEventListener('click', exportRingPng);
 
 for (var ti = 0; ti < modeTabs.length; ti++){
@@ -997,7 +2064,7 @@ onLangChange(render);
 
 // Load order: an explicit ?mode=&n= link wins and is shared on; otherwise the
 // shared group, display-only (a clamped read is never written back); otherwise
-// the defaults. The generator and the five layers come from the query string
+// the defaults. The generator and the layers come from the query string
 // alone: a generator only if it really generates the group, a layer only on
 // exactly 0 or 1.
 (function loadState(){
@@ -1019,8 +2086,25 @@ onLangChange(render);
     if (raw === '0') state[name] = false;
     else if (raw === '1') state[name] = true;
   });
+  if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
+  // Links from before the side menus hid a walk with chords=0 or outer=0.
+  if (query.get('chords') === '0') state.elSide = 'neither';
+  if (query.get('outer') === '0') state.invSide = 'neither';
+  if (SIDES.indexOf(query.get('elside')) !== -1) state.elSide = query.get('elside');
+  if (SIDES.indexOf(query.get('invside')) !== -1) state.invSide = query.get('invside');
+  state.customColors = query.get('customcolors') === '1';
+  ARROW_COLORS.forEach(function(c){
+    var v = '#' + String(query.get(c.param) || '').toLowerCase();
+    if (HEX_COLOR.test(v)) state[c.key] = v;
+  });
+  // autorotate=1 is from before the direction choice: counterclockwise.
+  var auto = query.get('autorotate') === '1' ? 'ccw' : query.get('autorotate');
+  if (AUTO_ROTATE.indexOf(auto) !== -1) state.autoRotate = auto;
+  if (SUB_LAYOUTS.indexOf(query.get('sublayout')) !== -1) state.subLayout = query.get('sublayout');
+  var rot = parseInt(query.get('rot'), 10);
+  if (isFinite(rot)) state.rot = rot;
   var wanted = parseInt(query.get('gen'), 10);
-  if (isFinite(wanted) && buildGroup(state.mode, state.n).generators.indexOf(wanted) !== -1) state.gen = wanted;
+  if (isFinite(wanted) && buildGroup(state.mode, state.n).els.indexOf(wanted) !== -1) state.gen = wanted;
 })();
 
 syncControls();
