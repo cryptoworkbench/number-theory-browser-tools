@@ -131,23 +131,19 @@ var BODIES = {
       var seq = chords[0].getAttribute("data-seq");
       P.assert(seq === "0 5 10 3 8 1 6 11 4 9 2 7", "data-seq is " + seq);
       var cp = P.chordPoints(chords[0]);
-      P.assert(cp.segs === 12, "chord has " + cp.segs + " segments");
       var first = cp.pts[0], last = cp.pts[cp.pts.length - 1];
       P.assert(P.near(first[0], last[0]) && P.near(first[1], last[1]), "chord does not return to its start");
-      var seen = {};
-      for (var i = 0; i < 12; i++) {
-        var hit = -1;
-        for (var b = 0; b < bs.length; b++) {
-          var c = P.centre(bs[b]);
-          if (P.near(c[0], cp.pts[i][0]) && P.near(c[1], cp.pts[i][1])) { hit = b; break; }
-        }
-        P.assert(hit >= 0, "chord vertex " + i + " touches no bead");
-        seen[hit] = true;
-      }
-      P.assert(Object.keys(seen).length === 12, "chord vertices touch " + Object.keys(seen).length + " distinct beads");
+      // The inner chain of humps touches every bead it visits at the bead's edge.
+      var touched = 0;
+      bs.forEach(function (b) {
+        var c = P.centre(b), r = parseFloat(b.getAttribute("r"));
+        var hit = cp.pts.some(function (pt) { return Math.abs(Math.hypot(pt[0] - c[0], pt[1] - c[1]) - r) < 0.6; });
+        if (hit) touched++;
+      });
+      P.assert(touched === 12, "the inner arrows touch " + touched + " beads");
       var arrows = P.all("#ring-dynamic .chord-arrow").length;
       P.assert(arrows === 12, "expected 12 arrowheads, found " + arrows);
-      return "12 beads, data-seq " + seq + ", 12 segments closing, all 12 vertices on distinct beads, 12 arrows";
+      return "12 beads, data-seq " + seq + ", one closed chain of humps touching all 12 beads, 12 arrows";
     });
   },
 
@@ -194,22 +190,28 @@ var BODIES = {
         for (var n = 2; n <= 100; n++) {
           P.setN(n);
           var want = brute(mode, n);
-          var opts = P.genOptions();
-          var sel = P.$("gen-select");
-          if (want.length === 0) {
-            P.assert(sel.disabled, mode + " n=" + n + ": select should be disabled");
-            P.assert(opts.length === 1, mode + " n=" + n + ": expected one option, found " + opts.length);
-            P.assert(P.all("#gen-select option")[0].textContent === "none (not cyclic)", mode + " n=" + n + ": option text is " + P.all("#gen-select option")[0].textContent);
-          } else {
-            P.assert(!sel.disabled, mode + " n=" + n + ": select should be enabled");
-            P.assert(opts.join(",") === want.join(","), mode + " n=" + n + ": options " + opts.join(",") + " != brute force " + want.join(","));
-            cyclic++;
+          var els = [];
+          for (var a = 0; a < n; a++) {
+            if (mode === "additive") { els.push(String(a)); continue; }
+            var x = a, y = n;
+            while (y) { var t = x % y; x = y; y = t; }
+            if (x === 1) els.push(String(a));
           }
+          if (mode === "multiplicative" && n === 2) els = ["1"];
+          var opts = P.genOptions();
+          P.assert(!P.$("gen-select").disabled, mode + " n=" + n + ": select should be enabled");
+          P.assert(opts.join(",") === els.join(","), mode + " n=" + n + ": options " + opts.join(",") + " != elements " + els.join(","));
+          var marked = P.all("#gen-select option").filter(function (o) { return /\((generator|primitive root)\)$/.test(o.textContent); })
+            .map(function (o) { return parseInt(o.value, 10); });
+          // The trivial group (Z/2)* = {1}: its one element is labelled the identity.
+          var wantMarked = want.filter(function (g) { return !(mode === "multiplicative" && g === 1); });
+          P.assert(marked.join(",") === wantMarked.join(","), mode + " n=" + n + ": marked " + marked.join(",") + " != brute force " + wantMarked.join(","));
+          if (want.length) cyclic++;
           groups++;
         }
       });
       P.assert(groups === 198, "covered " + groups + " groups");
-      return groups + " groups checked (" + cyclic + " cyclic, " + (groups - cyclic) + " not), option lists equal the brute-force generators";
+      return groups + " groups checked (" + cyclic + " cyclic, " + (groups - cyclic) + " not): every element listed, exactly the brute-force generators marked";
     });
   },
 
@@ -253,11 +255,15 @@ var BODIES = {
       var cp = P.chordPoints(P.all("#ring-dynamic .chord")[0]);
       var cord = P.cordPoints();
       P.assert(cord.length === 12, "cord has " + cord.length + " vertices");
-      for (var i = 0; i < 12; i++) {
-        P.assert(P.samePoint(cp.pts[i], cord[i]), "chord vertex " + i + " is not cord vertex " + i);
-      }
+      // Walking by the generator now steps to the next bead: every hump stays
+      // inside the ring, between neighbouring beads.
+      var g = P.all("#ring-dynamic .guide")[0];
+      var cx = parseFloat(g.getAttribute("cx")), cy = parseFloat(g.getAttribute("cy")), R = parseFloat(g.getAttribute("r"));
+      cp.pts.forEach(function (pt, i) {
+        P.assert(Math.hypot(pt[0] - cx, pt[1] - cy) < R, "chord point " + i + " lies outside the ring");
+      });
       P.setLayer("bygen", false);
-      return "beads " + els + "; chord vertices equal cord vertices";
+      return "beads " + els + "; the inner arrows stay inside the ring";
     });
     P.scenario("L4", function () {
       P.setLayer("chords", false);
@@ -303,23 +309,21 @@ var BODIES = {
       if (distinctOddPrimes(n) !== 1) return false;  // 1, or two or more odd primes
       return pw === 1 || pw === 2;
     }
-    function ringSets() {
-      return P.all("#ring-dynamic .factor-ring").map(function (g) {
-        return P.sortedNums(P.all(".bead", g).map(function (b) { return parseInt(b.getAttribute("data-el"), 10); }));
-      });
+    function chooseEl(h) {
+      var sel = P.$("gen-select");
+      sel.value = String(h);
+      P.fire(sel, "change");
     }
-    function showFactors(mode, n) {
-      P.setMode(mode);
-      P.setN(n);
-      return ringSets();
+    function beadEls() {
+      return P.beads().map(function (b) { return parseInt(b.getAttribute("data-el"), 10); });
     }
 
     P.scenario("U1", function () {
       var q = P.search();
-      var want = { mode: "additive", n: "12", gen: "5", cord: "1", chords: "1", colors: "1", orders: "0", bygen: "0" };
+      var want = { mode: "additive", n: "12", gen: "5", cord: "1", guide: "1", chords: "1", outer: "1", colors: "1", orders: "0", bygen: "0" };
       Object.keys(want).forEach(function (k) { P.assert(q[k] === want[k], "?" + k + "=" + q[k] + ", expected " + want[k]); });
       Object.keys(q).forEach(function (k) { P.assert(!/tbl|table/i.test(k), "table-like parameter " + k); });
-      return "location.search carries mode, n, gen and the five flags: " + location.search;
+      return "location.search carries mode, n, gen and the seven flags: " + location.search;
     });
 
     P.scenario("P1", function () {
@@ -349,35 +353,49 @@ var BODIES = {
       P.assert(document.querySelectorAll("table").length === 0, "a table element exists");
       P.assert(document.querySelectorAll("canvas").length === 0, "a canvas element exists");
       var boxes = P.all("#layers-panel input[type=checkbox]");
-      P.assert(boxes.length === 5, "Layers panel has " + boxes.length + " checkboxes");
+      P.assert(boxes.length === 8, "Layers panel has " + boxes.length + " checkboxes");
       var ids = boxes.map(function (b) { return b.id; }).join(",");
-      P.assert(ids === "layer-cord,layer-chords,layer-colors,layer-orders,layer-bygen", "checkbox ids " + ids);
-      return "no table, no canvas, five Layers checkboxes (" + ids + ")";
+      P.assert(ids === "layer-cord,layer-guide,layer-chords,layer-outer,custom-colors,layer-colors,layer-orders,layer-bygen", "checkbox ids " + ids);
+      return "no table, no canvas, eight Layers checkboxes (" + ids + ")";
     });
 
     P.scenario("F1", function () {
-      var sets = showFactors("multiplicative", 8);
-      P.assert(sets.length === 2, "expected 2 factor rings, found " + sets.length);
-      P.assert(sets[0].join() === "1,7" && sets[1].join() === "1,5", "ring sets " + JSON.stringify(sets));
+      P.setMode("multiplicative");
+      P.setN(8);
+      P.assert(beadEls().join() === "1,3,5,7", "beads " + beadEls().join());
+      P.assert(P.all("#ring-dynamic .ring").length === 1, "expected one ring");
       var notice = P.$("notice");
       P.assert(!notice.hidden && getComputedStyle(notice).display !== "none", "notice is not visible");
-      P.assert(P.$("gen-select").disabled, "select is not disabled");
-      P.assert(P.all("#gen-select option").length === 1, "select has more than one option");
+      P.assert(!P.$("gen-select").disabled, "select is disabled");
+      P.assert(P.genOptions().join() === "1,3,5,7", "options " + P.genOptions().join());
       P.assert(P.$("layer-bygen").disabled, "arrange-by-generator is not disabled");
-      return "rings {1,7} {1,5}, notice shown, select disabled";
+      return "(Z/8)*: one clock ring 1,3,5,7, notice shown, every element selectable";
     });
+
     P.scenario("F2", function () {
-      var sets = showFactors("multiplicative", 15);
-      P.assert(sets.length === 2, "expected 2 factor rings, found " + sets.length);
-      P.assert(sets[0].join() === "1,11" && sets[1].join() === "1,4,7,13", "ring sets " + JSON.stringify(sets));
-      var seqs = P.all("#ring-dynamic .factor-ring .chord").map(function (c) { return c.getAttribute("data-seq"); });
-      P.assert(seqs.join("|") === "1 11|1 7 4 13", "walks " + seqs.join("|"));
-      return "rings {1,11} and {1,7,4,13}, walks " + seqs.join(" / ");
+      P.setMode("multiplicative");
+      P.setN(15);
+      chooseEl(2);
+      var inner = P.all("#ring-dynamic .chord").map(function (c) { return c.getAttribute("data-seq"); });
+      var outer = P.all("#ring-dynamic .outer-walk").map(function (c) { return c.getAttribute("data-seq"); });
+      P.assert(inner.join("|") === "1 2 4 8", "inner walk " + inner.join("|"));
+      P.assert(outer.join("|") === "1 8 4 2", "outer walk " + outer.join("|"));
+      P.assert(P.all("#ring-dynamic .outer-arc").length === 4, "outer arcs " + P.all("#ring-dynamic .outer-arc").length);
+      return "(Z/15)*, element 2: inner walk 1 2 4 8, outer walk by 8 is 1 8 4 2";
     });
+
     P.scenario("F3", function () {
-      var sets = showFactors("multiplicative", 24);
-      P.assert(sets.length === 3, "expected 3 factor rings, found " + sets.length);
-      return "three rings: " + JSON.stringify(sets);
+      P.setMode("additive");
+      P.setN(12);
+      chooseEl(4);
+      var inner = P.all("#ring-dynamic .chord")[0].getAttribute("data-seq");
+      var outer = P.all("#ring-dynamic .outer-walk")[0].getAttribute("data-seq");
+      P.assert(inner === "0 4 8" && outer === "0 8 4", "walks " + inner + " / " + outer);
+      chooseEl(0);
+      P.assert(P.all("#ring-dynamic .chord, #ring-dynamic .outer-arc").length === 0, "identity drew arrows");
+      P.assert(P.$("combine-key").hidden, "key shown for the identity");
+      chooseEl(5);
+      return "Z/12: element 4 walks 0 4 8 (outer 0 8 4); the identity draws no arrows";
     });
 
     P.scenario("F4", function () {
@@ -386,30 +404,11 @@ var BODIES = {
       for (var n = 2; n <= 100; n++) {
         P.setN(n);
         var cyclic = isCyclicModulus(n);
-        var rings = P.all("#ring-dynamic .factor-ring");
-        var select = P.$("gen-select");
-        P.assert(cyclic === !select.disabled, "n=" + n + ": cyclic classification " + cyclic + " disagrees with the select");
-        if (cyclic) { P.assert(rings.length === 0, "n=" + n + ": cyclic group drew factor rings"); continue; }
-        checked++;
         var units = unitsOf(n);
-        var prodOrders = 1;
-        rings.forEach(function (g) {
-          var ord = parseInt(g.getAttribute("data-order"), 10);
-          var gen = parseInt(g.getAttribute("data-gen"), 10);
-          var beadsIn = P.all(".bead", g).length;
-          P.assert(beadsIn === ord, "n=" + n + ": ring of order " + ord + " has " + beadsIn + " beads");
-          P.assert(isOrderOf(n, gen) === ord, "n=" + n + ": generator " + gen + " has order " + isOrderOf(n, gen) + ", ring says " + ord);
-          prodOrders *= ord;
-        });
-        P.assert(prodOrders === units.length, "n=" + n + ": factor orders multiply to " + prodOrders + ", phi is " + units.length);
-        var products = [1];
-        rings.forEach(function (g) {
-          var els = P.all(".bead", g).map(function (b) { return parseInt(b.getAttribute("data-el"), 10); });
-          var next = [];
-          products.forEach(function (p) { els.forEach(function (e) { next.push((p * e) % n); }); });
-          products = next;
-        });
-        P.assert(P.sortedNums(products).join() === units.join(), "n=" + n + ": one bead per ring does not cover every unit exactly once");
+        P.assert(beadEls().join() === units.join(), "n=" + n + ": beads are not the units in clock order");
+        P.assert(P.$("notice").hidden === cyclic, "n=" + n + ": notice visibility disagrees with cyclic " + cyclic);
+        if (cyclic) continue;
+        checked++;
         var texts = P.all("#notice p").map(function (p) { return p.textContent; });
         var odd = oddPartOf(n);
         var want = odd === 1 ? "Why: n = " + n + " is a power of 2 above 4."
@@ -420,7 +419,7 @@ var BODIES = {
         P.assert(texts.length === 3, "n=" + n + ": notice has " + texts.length + " paragraphs");
       }
       P.assert(checked === 50, "non-cyclic moduli checked: " + checked);
-      return checked + " non-cyclic (Z/n)*, n <= 100: factor orders multiply to phi, each generator has its ring's order, one bead per ring covers every unit once, one matching reason";
+      return checked + " non-cyclic (Z/n)*, n <= 100: one clock ring of every unit, one matching reason";
     });
 
     P.scenario("L1-all", function () {
@@ -520,8 +519,8 @@ var BODIES = {
         P.assert(blobs.length === 1 && names.length === 1, blobs.length + " blobs, " + names.length + " downloads");
         P.assert(blobs[0].type === "image/png", "blob type " + blobs[0].type);
         P.assert(blobs[0].size > 2000, "blob is only " + blobs[0].size + " bytes");
-        P.assert(names[0] === "cyclic-group-add-60-gen-7.png", "file name " + names[0]);
-        P.assert(P.$("export-status").textContent === "Saved cyclic-group-add-60-gen-7.png.", "status " + P.$("export-status").textContent);
+        P.assert(names[0] === "cyclic-group-add-60-el-7.png", "file name " + names[0]);
+        P.assert(P.$("export-status").textContent === "Saved cyclic-group-add-60-el-7.png.", "status " + P.$("export-status").textContent);
         return new Promise(function (resolve, reject) {
           var img = new Image();
           img.onload = function () { resolve(img); };
@@ -598,13 +597,13 @@ var BODIES = {
       var tab = P.$("tab-additive").textContent;
       P.assert(tab !== "Additive Groups" && tab.length > 0, "tab still reads " + tab);
       P.assert(P.beads().length === 12, "expected 12 beads, found " + P.beads().length);
-      P.assert(/^Z\/12 · generator 5 · order 12$/.test(document.querySelector("#ring-dynamic .ring-title").textContent), "title " + document.querySelector("#ring-dynamic .ring-title").textContent);
+      P.assert(/^Z\/12 · element 5 of order 12$/.test(document.querySelector("#ring-dynamic .ring-title").textContent), "title " + document.querySelector("#ring-dynamic .ring-title").textContent);
       P.assert(P.$("n-input").parentNode.querySelector("label").textContent === "n — modulus", "label fell through to " + P.$("n-input").parentNode.querySelector("label").textContent);
       P.setMode("multiplicative");
       P.setN(15);
       P.assert(rawKeyHits().length === 0, "raw keys after the non-cyclic render: " + rawKeyHits().join(" | "));
-      P.assert(/not cyclic/.test(document.querySelector("#ring-dynamic .ring-title").textContent), "factor title is English");
-      return "fr: no raw keys, nav link falls back to 'Cyclic Groups', tab reads '" + tab + "', 12 beads, factor view also clean";
+      P.assert(/^\(Z\/15\)\* · element/.test(document.querySelector("#ring-dynamic .ring-title").textContent), "non-cyclic title " + document.querySelector("#ring-dynamic .ring-title").textContent);
+      return "fr: no raw keys, nav link falls back to 'Cyclic Groups', tab reads '" + tab + "', 12 beads, non-cyclic view also clean";
     });
   },
 
@@ -640,9 +639,9 @@ var BODIES = {
       P.assert(P.beads().length === 12, "expected 12 beads, found " + P.beads().length);
       P.setMode("multiplicative");
       P.setN(24);
-      P.assert(P.all("#ring-dynamic .factor-ring").length === 3, "factor rings did not render in RTL");
+      P.assert(P.beads().length === 8, "(Z/24)* ring did not render in RTL");
       P.assert(rawKeyHits().length === 0, "raw keys after the non-cyclic render: " + rawKeyHits().join(" | "));
-      return "ar: lang ar, dir rtl, ring svg, n input and select are ltr, no raw keys, 12 beads, 3 factor rings for (Z/24)*";
+      return "ar: lang ar, dir rtl, ring svg, n input and select are ltr, no raw keys, 12 beads, 8 beads for (Z/24)*";
     });
   },
 

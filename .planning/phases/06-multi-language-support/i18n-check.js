@@ -360,8 +360,8 @@ function buildExpected(catalog, navHrefs) {
     throw new Error("buildExpected: de.heading is identical to en.heading — cross-session probe would be vacuous");
   }
 
-  if (!navHrefs || navHrefs.length !== 17) {
-    throw new Error("buildExpected: expected 17 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
+  if (!navHrefs || navHrefs.length !== 18) {
+    throw new Error("buildExpected: expected 18 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
   }
 
   return { en: en, fr: fr, es: es, de: de, rawTemplates: rawTemplates, navHrefs: navHrefs };
@@ -2381,6 +2381,7 @@ var PAGES = [
   { file: "Factor Tree/factor-tree.html", dataFile: "assets/i18n/factor-tree.js", ns: "factorTree", slug: "factor-tree" },
   { file: "Venn Diagram/venn-diagram.html", dataFile: "assets/i18n/venn-diagram.js", ns: "venn", slug: "venn-diagram" },
   { file: "Euclidean Algorithm/euclidean-algorithm.html", dataFile: "assets/i18n/euclidean-algorithm.js", ns: "euclid", slug: "euclidean-algorithm" },
+  { file: "Least Common Multiple/least-common-multiple.html", dataFile: "assets/i18n/least-common-multiple.js", ns: "lcm", slug: "least-common-multiple" },
   { file: "Chinese Remainder Theorem/chinese-remainder-theorem.html", dataFile: "assets/i18n/chinese-remainder-theorem.js", ns: "crt", slug: "chinese-remainder-theorem" },
   { file: "Equivalence Wheel/equivalence-wheel.html", dataFile: "assets/i18n/equivalence-wheel.js", ns: "wheel", slug: "equivalence-wheel" },
   { file: "Eulers Totient/eulers-totient.html", dataFile: "assets/i18n/eulers-totient.js", ns: "totient", slug: "eulers-totient" },
@@ -3349,8 +3350,8 @@ function checkSwitcherPresent(relPath, html, findings) {
     }
   }
   var navRefs = html.match(/data-i18n="site\.nav\.[A-Za-z]+"/g) || [];
-  if (navRefs.length !== 17) {
-    findings.push("SWITCHER " + relPath + ": expected 17 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
+  if (navRefs.length !== 18) {
+    findings.push("SWITCHER " + relPath + ": expected 18 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
   }
   var header = extractHeaderHtml(html);
   if (header === null || !/<select\b[^>]*id="lang-switch-select"/.test(header)) {
