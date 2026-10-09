@@ -58,6 +58,7 @@
       colorElement: 'Element arrow color',
       colorInverse: 'Inverse arrow color',
       colorReset: 'Reset arrow colors',
+      genTop: 'Rotate the selected generator to the top',
       swapColors: 'Swap forward and backward path colors',
       customColors: 'Choose arrow colors manually',
       layerColors: 'Element colors',

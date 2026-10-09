@@ -496,6 +496,7 @@
           <label for="gen-select" data-i18n="cyclicGroups.genLabel">Subgroup visualized</label>
           <select id="gen-select"></select>
         </div>
+        <div class="check" id="gen-top-row"><input type="checkbox" id="gen-top"><label for="gen-top" data-i18n="cyclicGroups.genTop">Rotate the selected generator to the top</label></div>
         <p class="identity-note" id="identity-note" hidden data-i18n="cyclicGroups.identityOnly">The identity element only produces itself</p>
         <div id="subgroup-options">
           <div class="arrow-options" id="arrow-options">
@@ -581,7 +582,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, genTop: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -650,6 +651,7 @@ var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
 var customColorsEl = $('custom-colors');
 var swapColorsEl = $('swap-colors');
+var genTopEl = $('gen-top');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -1398,6 +1400,25 @@ function turnBy(steps){
   spin.id = requestAnimationFrame(spinFrame);
 }
 
+// Selecting an element redraws everything. With genTop on, the ring then
+// turns the short way round until that element's bead sits at the top,
+// carrying on from a turn still under way rather than jumping back.
+function selectGen(g){
+  var carry = spin && { steps: spin.steps, now: spin.now };
+  state.gen = g;
+  render();
+  if (!state.genTop || !drawn) return;
+  var m = drawn.G.order;
+  var at = state.rot + (carry ? carry.steps : 0);
+  var d = ((((arrangement(drawn.G).indexOf(g) - at) % m) + m) % m);
+  if (carry){
+    spinAngle(carry.now);
+    spin = { steps: carry.steps, from: carry.now, now: carry.now, t0: null };
+    spin.id = requestAnimationFrame(spinFrame);
+  }
+  turnBy(d > m / 2 ? d - m : d);
+}
+
 // Reset turns back the short way round.
 function turnHome(){
   if (!drawn) return;
@@ -1673,8 +1694,7 @@ function renderSubgroups(G){
     row.setAttribute('aria-pressed', g === state.gen ? 'true' : 'false');
     row.textContent = '⟨' + g + '⟩ = {' + rowMembers(G, g, beads).join(', ') + '}';
     row.addEventListener('click', function(){
-      state.gen = g;
-      render();
+      selectGen(g);
       focusCurrentRow();
     });
     row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
@@ -1719,8 +1739,7 @@ subgroupsEl.addEventListener('keydown', function(e){
   e.preventDefault();
   if (i < 0 || i >= els.length) return;
   keyNav = true;
-  state.gen = els[i];
-  render();
+  selectGen(els[i]);
   focusCurrentRow();
 });
 
@@ -1840,6 +1859,8 @@ function mirrorToUrl(G){
     q.set('n', String(state.n));
     q.set('gen', String(state.gen));
     FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
+    if (state.genTop) q.set('gentop', '1');
+    else q.delete('gentop');
     if (state.swapColors) q.set('swapcolors', '1');
     else q.delete('swapcolors');
     if (state.customColors) q.set('customcolors', '1');
@@ -1967,6 +1988,7 @@ function render(){
   renderCombineKey(G);
   syncCosetButton();
   syncArrowColors();
+  genTopEl.checked = state.genTop;
   $('layer-bygen').disabled = !G.cyclic;
   colorBySelectEl.disabled = !state.colors;
   renderNotice(G, factors);
@@ -2142,8 +2164,7 @@ nInputEl.addEventListener('change', function(){
 genSelectEl.addEventListener('change', function(){
   var g = parseInt(genSelectEl.value, 10);
   if (!isFinite(g)) return;
-  state.gen = g;
-  render();
+  selectGen(g);
 });
 FLAGS.forEach(function(name){
   $('layer-' + name).addEventListener('change', function(){
@@ -2184,6 +2205,10 @@ ARROW_COLORS.forEach(function(c, i){
     state[arrowSource(i).key] = v;
     render();
   });
+});
+genTopEl.addEventListener('change', function(){
+  state.genTop = genTopEl.checked;
+  if (drawn) mirrorToUrl(drawn.G);
 });
 swapColorsEl.addEventListener('change', function(){
   state.swapColors = swapColorsEl.checked;
@@ -2276,6 +2301,7 @@ onLangChange(render);
   if (query.get('back') === '0') state.backward = false;
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
+  state.genTop = query.get('gentop') === '1';
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
