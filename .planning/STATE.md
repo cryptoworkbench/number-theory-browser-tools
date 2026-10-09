@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-09T07:14:05.820Z"
-last_activity: 2026-10-08
+last_updated: "2026-10-09T08:03:47.028Z"
+last_activity: 2026-10-09
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 1ab903ecf8efa99a05c3e89fd1807f2de45bbce6
+state_head: 30ba49d98cb51a12ef2046994085ee448da36a1b
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-09 - Completed quick task 261009-c7x: Update the 'Factor Tree' preview in 'Venn Diagram' to reflect the way that 'Factor Tree' currently displays the GCD
+Last activity: 2026-10-09 - Completed quick task 261009-d21: Integrate the cyclic groups necklace visualizer as a new site tool (without its Cayley table), English only
 
 Progress: [█████████░] 86%
 
@@ -356,6 +356,7 @@ None yet.
 | 261008-k7u | Add Kurdish: Kurmanji (ku, Latin) and Sorani (ckb, Arabic script, RTL) as the twenty-eighth and twenty-ninth supported languages | 2026-10-08 | 0edcec0 | [261008-k7u-add-kurdish-kurmanji-ku-latin-and-sorani](./quick/261008-k7u-add-kurdish-kurmanji-ku-latin-and-sorani/) |
 | 261008-qz1 | Add Sanskrit (sa) and Latin (la) as the thirtieth and thirty-first supported languages | 2026-10-08 | f727137 | [261008-qz1-add-sanskrit-sa-and-latin-la-as-the-thir](./quick/261008-qz1-add-sanskrit-sa-and-latin-la-as-the-thir/) |
 | 261009-c7x | Update the 'Factor Tree' preview in 'Venn Diagram' to reflect the way that 'Factor Tree' currently displays the GCD | 2026-10-09 | 1ab903e | [261009-c7x-update-the-factor-tree-preview-in-venn-d](./quick/261009-c7x-update-the-factor-tree-preview-in-venn-d/) |
+| 261009-d21 | Integrate the cyclic groups necklace visualizer as a new site tool (without its Cayley table), English only | 2026-10-09 | 30ba49d | [261009-d21-integrate-the-cyclic-groups-necklace-vis](./quick/261009-d21-integrate-the-cyclic-groups-necklace-vis/) |
 
 ## Deferred Items
 
@@ -371,4 +372,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-09 - Completed quick task 261009-c7x: Update the 'Factor Tree' preview in 'Venn Diagram' to reflect the way that 'Factor Tree' currently displays the GCD
+Last activity: 2026-10-09 - Completed quick task 261009-d21: Integrate the cyclic groups necklace visualizer as a new site tool (without its Cayley table), English only
