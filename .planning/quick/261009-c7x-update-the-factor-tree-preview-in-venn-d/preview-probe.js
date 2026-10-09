@@ -191,6 +191,11 @@ function inPage(RUN, CASES) {
 /* ---------- run bodies (also serialised into the page) ---------- */
 
 var CASES = {
+  // --shots: just open the A ∩ B preview and leave it up for the screenshot.
+  shot: function (P) {
+    P.hover("venn-composite-dynamic", "overlap");
+  },
+
   base: function (P) {
     // Serialise the three single-value / centre previews, for byte identity
     // with the baseline commit.
@@ -558,8 +563,19 @@ function main() {
 }
 
 function shots() {
-  console.log("--shots not implemented yet");
-  process.exit(1);
+  var failed = false;
+  ["day", "night"].forEach(function (theme) {
+    var file = buildPage(worktreeHtml(), "shot", "<style>#c7x-out, #c7x-ser{ display:none; }</style>\n");
+    var dest = path.join(__dirname, "preview-" + theme + ".png");
+    try { fs.rmSync(dest, { force: true }); } catch (e) { /* none yet */ }
+    runChrome(pageUrl(file, "?a=72&b=60&lang=en&theme=" + theme), [
+      "--hide-scrollbars", "--force-device-scale-factor=2", "--screenshot=" + dest, "--window-size=1280,1000", "--virtual-time-budget=3000"
+    ]);
+    var ok = fs.existsSync(dest) && fs.statSync(dest).size > 0;
+    console.log((ok ? "wrote " : "FAILED to write ") + dest);
+    if (!ok) failed = true;
+  });
+  process.exit(failed ? 1 : 0);
 }
 
 main();

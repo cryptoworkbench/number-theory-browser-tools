@@ -185,18 +185,18 @@ var SCEN = [
   "      assert(shared.join() === '5', 'shared circles are ' + shared.join());",
   "      var all = nodes.map(label);",
   "      assert(all.indexOf('6') >= 0 && all.indexOf('7') >= 0, 'rest branches 6 and 7 missing: ' + all.join());",
-  "      assert(all.filter(function(v){ return v === '5'; }).length === 2, 'the shared 5 branch is drawn more than once: ' + all.join());",
+  "      assert(all.filter(function(v){ return v === '5'; }).length === 1, 'the shared 5 branch is not drawn exactly once: ' + all.join());",
   "      var caps = Array.prototype.slice.call(layer.querySelectorAll('.np-caption')).map(function(t){ return t.textContent; });",
-  "      assert(caps[0] === 'gcd(30, 35) = 5', 'tree caption is ' + caps[0]);",
+  "      assert(caps[0] === '30 = 6 × 5' && caps[1] === '35 = 5 × 7' && caps[2] === 'gcd(30, 35) = 5', 'tree captions are ' + caps.slice(0, 3).join(' | '));",
   "      var want = NT.i18n.translate('venn.label.overlapFactorTrees', { tool: NT.i18n.translate('site.nav.factorTree') });",
   "      assert(g.getAttribute('aria-label').indexOf(want) >= 0, 'chip label lacks the overlap target: ' + g.getAttribute('aria-label'));",
   "      reset(g);",
   "      var g3 = chip('venn3-composite-dynamic', 'ab');",
   "      ev(g3, 'mouseenter');",
   "      var l3 = document.getElementById('venn3-preview');",
-  "      assert(l3.querySelectorAll('.ft-node.shared').length === 0 && l3.querySelectorAll('.ft-node.root').length === 1, 'three-circle ab preview changed');",
+  "      assert(l3.querySelectorAll('.ft-node.shared').length === 1 && l3.querySelectorAll('.ft-node.root').length === 2 && l3.querySelectorAll('.ft-pair-lens').length === 1, 'three-circle ab preview is not a gcd pair');",
   "      reset(g3);",
-  "      return 'A ∩ B preview draws 30 and 35 over one shared 5 (with 6 and 7 beside it), caption gcd(30, 35) = 5; three-circle chips unchanged';",
+  "      return 'A ∩ B preview draws the gcd pair: 30 and 35 on yellow and blue panels over one shared 5 (with 6 and 7 beside it), captions 30 = 6 × 5, 35 = 5 × 7, gcd(30, 35) = 5; the three-circle ab chip draws a pair too';",
   "    });"
 ].join("\n");
 
