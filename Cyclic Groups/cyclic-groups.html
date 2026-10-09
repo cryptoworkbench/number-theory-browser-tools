@@ -502,6 +502,7 @@
           <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
           <div class="check" id="dir-row"><label for="dir-select" data-i18n="cyclicGroups.dirLabel">Forward direction</label><select class="side-select" id="dir-select"><option value="cw" data-i18n="cyclicGroups.dirCw">Clockwise</option><option value="ccw" data-i18n="cyclicGroups.dirCcw">Counterclockwise</option></select></div>
           <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow color" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow color" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Disable backwards path</label></div>
+          <div class="check" id="swap-colors-row"><input type="checkbox" id="swap-colors"><label for="swap-colors" data-i18n="cyclicGroups.swapColors">Swap forward and backward path colors</label></div>
           <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colors manually</label></div>
           <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colors</button>
           </div>
@@ -580,7 +581,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -594,6 +595,8 @@ var SUB_LAYOUTS = ['grid', 'list'];
 // key each writes, the custom property it sets on .app, the theme role it
 // falls back to (yellow for the element, blue for its inverse), and its URL parameter (the
 // hex digits without the #). Picks are remembered while the option is off.
+// swapColors exchanges the two: the forward walk takes the inverse walk's
+// color (picked or default) and the other way round.
 var ARROW_COLORS = [
   { key: 'inColor', prop: '--arrow-in', role: '--role-active', param: 'incolor', id: 'color-inner' },
   { key: 'outColor', prop: '--arrow-out', role: '--role-input', param: 'outcolor', id: 'color-outer' }
@@ -646,6 +649,7 @@ var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
 var customColorsEl = $('custom-colors');
+var swapColorsEl = $('swap-colors');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -1836,6 +1840,8 @@ function mirrorToUrl(G){
     q.set('n', String(state.n));
     q.set('gen', String(state.gen));
     FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
+    if (state.swapColors) q.set('swapcolors', '1');
+    else q.delete('swapcolors');
     if (state.customColors) q.set('customcolors', '1');
     else q.delete('customcolors');
     ARROW_COLORS.forEach(function(c){
@@ -1875,17 +1881,25 @@ function roleHex(role){
   }).join('');
 }
 
+// The color entry a picker's arrows take: its own, or the other one while
+// swapColors is on.
+function arrowSource(i){ return ARROW_COLORS[state.swapColors ? 1 - i : i]; }
+
 // Apply the picked colors while customColors is on (otherwise clear them,
-// falling back to yellow and blue), show the pickers only then, and show
-// each picker the color its arrows actually have.
+// falling back to yellow and blue), exchanged while swapColors is on, show
+// the pickers only then, and show each picker the color its arrows
+// actually have.
 function syncArrowColors(){
-  ARROW_COLORS.forEach(function(c){
-    var picked = state.customColors && state[c.key];
+  ARROW_COLORS.forEach(function(c, i){
+    var src = arrowSource(i);
+    var picked = state.customColors && state[src.key];
     if (picked) appEl.style.setProperty(c.prop, picked);
+    else if (src !== c) appEl.style.setProperty(c.prop, 'var(' + src.role + ')');
     else appEl.style.removeProperty(c.prop);
     $(c.id).hidden = !state.customColors;
-    $(c.id).value = picked || roleHex(c.role);
+    $(c.id).value = picked || roleHex(src.role);
   });
+  swapColorsEl.checked = state.swapColors;
   appEl.style.setProperty('--arrow-both', mixPaint($(ARROW_COLORS[0].id).value, $(ARROW_COLORS[1].id).value));
   customColorsEl.checked = state.customColors;
   colorResetEl.hidden = !state.customColors || (!state.inColor && !state.outColor);
@@ -2070,6 +2084,7 @@ function exportName(){
   if (state.colors && state.colorBy === 'inverse') parts.push('inverses');
   if (state.elSide !== 'inside' || !state.backward) parts.push('arrows', state.elSide, state.backward ? 'back' : 'noback');
   if (state.dir === 'ccw') parts.push('ccw');
+  if (state.swapColors) parts.push('swapped');
   return parts.join('-') + '.png';
 }
 
@@ -2162,13 +2177,17 @@ dirSelectEl.addEventListener('change', function(){
   state.dir = dirSelectEl.value;
   render();
 });
-ARROW_COLORS.forEach(function(c){
+ARROW_COLORS.forEach(function(c, i){
   $(c.id).addEventListener('input', function(){
     var v = $(c.id).value.toLowerCase();
     if (!HEX_COLOR.test(v)) return;
-    state[c.key] = v;
+    state[arrowSource(i).key] = v;
     render();
   });
+});
+swapColorsEl.addEventListener('change', function(){
+  state.swapColors = swapColorsEl.checked;
+  render();
 });
 customColorsEl.addEventListener('change', function(){
   state.customColors = customColorsEl.checked;
@@ -2257,6 +2276,7 @@ onLangChange(render);
   if (query.get('back') === '0') state.backward = false;
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
+  state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
     var v = '#' + String(query.get(c.param) || '').toLowerCase();

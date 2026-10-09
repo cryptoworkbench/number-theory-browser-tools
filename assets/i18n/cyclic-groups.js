@@ -58,6 +58,7 @@
       colorElement: 'Element arrow color',
       colorInverse: 'Inverse arrow color',
       colorReset: 'Reset arrow colors',
+      swapColors: 'Swap forward and backward path colors',
       customColors: 'Choose arrow colors manually',
       layerColors: 'Element colors',
       colorByLabel: 'Color elements by',
