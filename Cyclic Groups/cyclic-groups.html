@@ -130,7 +130,8 @@
   .stage.is-resizing{ user-select:none; -webkit-user-select:none; }
   .rotate-row{ display:flex; align-items:center; gap:6px; }
   .rotate-row .action-btn{ padding:6px 12px; }
-  .rotate-value{ font-family:var(--font-mono); font-size:.9rem; min-width:2.5em; text-align:center; }
+  .rotate-value{ font-family:var(--font-mono); font-size:.9rem; width:3.2em; text-align:center; padding:4px 2px; border:1px solid var(--panel-border); border-radius:6px; background:var(--panel); color:var(--text); }
+  .rotate-value:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
 
   /* ---------- group controls ---------- */
   .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
@@ -430,7 +431,7 @@
           <label id="rot-label" data-i18n="cyclicGroups.rotateLabel">Rotation — drag the ring</label>
           <div class="rotate-row" role="group" aria-labelledby="rot-label">
             <button type="button" class="action-btn" id="rot-back" aria-label="Rotate one element counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one element counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
-            <output class="rotate-value" id="rot-value">0</output>
+            <input type="text" class="rotate-value" id="rot-value" value="0" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Rotation in steps" data-i18n-aria-label="cyclicGroups.rotateValue">
             <button type="button" class="action-btn" id="rot-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
             <button type="button" class="link-btn" id="rot-reset" style="margin:0 0 0 6px" data-i18n="cyclicGroups.rotateReset">Reset</button>
           </div>
@@ -1234,13 +1235,36 @@ function setPreview(g){
 // animation alone.
 function setRot(r){ setRotChanged(r); }
 // setRot, reporting whether rot changed (and so the ring was redrawn).
+// The rotation field shows rot, but leaves alone what is being typed in it.
+function showRot(r){
+  if (document.activeElement !== rotValueEl) rotValueEl.value = String(r);
+}
+// Typing a number of steps there and pressing Enter (or leaving the field)
+// turns the ring to it the short way round; anything that isn't a whole
+// number puts the current value back, and Escape does too.
+function applyRotInput(){
+  var text = rotValueEl.value.trim();
+  if (!drawn || !/^-?\d+$/.test(text)){ rotValueEl.value = String(state.rot); return; }
+  var v = parseInt(text, 10);
+  var m = drawn.G.order;
+  var at = (((state.rot + (spin ? spin.steps : 0)) % m) + m) % m;
+  var d = ((((v - at) % m) + m) % m);
+  rotValueEl.value = String(((v % m) + m) % m);
+  turnBy(d > m / 2 ? d - m : d);
+}
+rotValueEl.addEventListener('keydown', function(e){
+  if (e.key === 'Enter'){ e.preventDefault(); applyRotInput(); rotValueEl.select(); }
+  else if (e.key === 'Escape'){ rotValueEl.value = String(state.rot); rotValueEl.blur(); }
+});
+rotValueEl.addEventListener('change', applyRotInput);
+
 function setRotChanged(r){
   if (!drawn) return false;
   var m = drawn.G.order;
   r = ((r % m) + m) % m;
   if (r === state.rot) return false;
   state.rot = r;
-  rotValueEl.textContent = String(r);
+  showRot(r);
   redrawRing();
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
@@ -1290,7 +1314,7 @@ ringSvgEl.addEventListener('pointermove', function(e){
   spinAngle(turning.swept);
   var m = drawn.G.order;
   var near = state.rot - dirSign() * Math.round(turning.swept / (360 / m));
-  rotValueEl.textContent = String(((near % m) + m) % m);
+  showRot(((near % m) + m) % m);
 });
 function endTurn(e){
   if (!turning || e.pointerId !== turning.id) return;
@@ -1908,7 +1932,7 @@ function render(){
   if (spin){ cancelAnimationFrame(spin.id); spin = null; }
   syncGenerators(G);
   state.rot = ((state.rot % G.order) + G.order) % G.order;
-  rotValueEl.textContent = String(state.rot);
+  showRot(state.rot);
   preview = null;
   drawn = { G: G, paint: paint };
   ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
