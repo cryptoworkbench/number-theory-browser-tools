@@ -589,11 +589,10 @@ var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: t
 // ('list').
 var SUB_LAYOUTS = ['grid', 'list'];
 // rot is how many beads the necklace is turned: the bead at the top is the
-// rot-th one of the arrangement, and every subgroup row starts rot steps
-// into its walk (g^rot, written additively rot·g), wrapping round, like
-// group_examplifier's horizontal offset.
-// autoShift starts every subgroup row at its first member from the top bead
-// going the forward direction, instead of at the member nearest the top.
+// rot-th one of the arrangement.
+// The subgroup rows stay fixed while the ring turns, each starting at the
+// identity, unless autoShift is on: then every row starts at its first
+// member from the top bead going the forward direction.
 
 // The two arrow color pickers, used only while customColors is on: the state
 // key each writes, the custom property it sets on .app, the theme role it
@@ -1674,6 +1673,8 @@ function stopCosets(){
 // bead at the top: ⟨7⟩ in Z/12 reads 0, 7, 2, 9, … The row starts at the
 // member nearest the top; ties go to the one it reads first. With autoShift
 // on it starts at the first member from the top going forward instead.
+// renderSubgroups passes the unturned beads while autoShift is off, so the
+// top is the arrangement's first bead, the identity.
 function rowMembers(G, g, beads){
   var m = beads.length;
   if (G.orders[g] === m) return lap(G, g, m, beads[0]);
@@ -1698,7 +1699,7 @@ function rowMembers(G, g, beads){
 function renderSubgroups(G){
   var hadFocus = subgroupsEl.contains(document.activeElement);
   subgroupsEl.replaceChildren();
-  var beads = turned(arrangement(G));
+  var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
   G.els.forEach(function(g){
     var li = document.createElement('li');
     var row = document.createElement('button');
