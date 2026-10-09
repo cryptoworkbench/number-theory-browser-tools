@@ -1,10 +1,11 @@
 /* assets/i18n/site.js — the 'site' namespace: shared site chrome (header
-   and footer) — brand, the Tools menu button, nav labels for all seventeen pages, the language
+   and footer) — brand, the Tools menu button, nav labels for all eighteen pages, the language
    switcher's own label and the day/night toggle's label — in all thirty-one
    supported languages. The one exception is the Cyclic Groups label
    (nav.cyclicGroups), which is English-only for now by the user's decision
    (quick task 261009-d21): the other thirty languages fall back to the en
-   value through NT.i18n until their translations are added.
+   value through NT.i18n until their translations are added. The Least
+   Common Multiple label (nav.lcm) follows the same English-only rule.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
@@ -55,6 +56,7 @@
       'nav.totient': "Euler's Totient",
       'nav.cayley': 'Cayley Table',
       'nav.cyclicGroups': 'Cyclic Groups',
+      'nav.lcm': 'Least Common Multiple',
       'nav.iso': 'Group Isomorphism',
       'nav.sqm': 'Square and Multiply',
       'nav.dh': 'Diffie-Hellman',

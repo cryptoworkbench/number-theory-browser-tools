@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme-choice=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme-choice'));}catch(e){}}if(!t){try{t=window.matchMedia('(prefers-color-scheme: light)').matches?'day':'night';}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="lcm.title">Least Common Multiple — Stacking Squares</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Least-common-multiple slot colors, aliased from the shared semantic
+       roles: --slot-a is the a-tower and its multiples (--role-input),
+       --slot-b is the b-tower and its multiples (--role-alt), the same two
+       roles the Euclidean Algorithm gives its dividend and remainder;
+       --slot-next is the ghost square marking where the next square lands,
+       this step's active value (--role-active); --slot-answer is the height
+       where the towers meet, the landing beat (--role-result); --slot-grid
+       is the optional gcd grid, the shared unit both towers are built from
+       (--role-special). The *-soft variants tint a value's background
+       without a literal color. */
+    --slot-a: var(--role-input);
+    --slot-b: var(--role-alt);
+    --slot-next: var(--role-active);
+    --slot-answer: var(--role-result);
+    --slot-grid: var(--role-special);
+    --slot-a-soft: color-mix(in srgb, var(--slot-a) 26%, transparent);
+    --slot-b-soft: color-mix(in srgb, var(--slot-b) 26%, transparent);
+    --slot-next-soft: color-mix(in srgb, var(--slot-next) 14%, transparent);
+    --slot-answer-soft: color-mix(in srgb, var(--slot-answer) 14%, transparent);
+  }
+
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:var(--font-sans); font-size:16px; }
+
+  body{
+    background: var(--bg-1);
+    background-attachment:fixed;
+    min-height:100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .app{ padding: clamp(12px, 3vw, 32px); margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ margin:4px 0 0; }
+  .page-header h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.75rem, 3.4vw, 2.375rem); line-height:1.12; letter-spacing:-.012em; margin:0; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
+  .lede{ font-size:1.0625rem; line-height:1.6; color:var(--text-dim); margin:10px 0 0; max-width:72ch; }
+  .xref{ margin:10px 0 0; font-size:13px; }
+  .xref a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .xref a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); padding:18px 20px; position:relative; overflow:hidden; }
+  .panel-title{ font-family:var(--font-serif); font-weight:600; font-size:1.15rem; margin:0 0 12px; color:var(--text); }
+
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:6px; }
+  .field{ display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input{
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl);
+    padding:9px 11px; color:var(--text); font-family:var(--font-mono); font-size:.95rem;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+
+  .controls{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+
+  .btn-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+  button{ cursor:pointer; border:none; border-radius:var(--radius-ctl); padding:8px 14px; font-size:.875rem; font-weight:600;
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); border:1px solid var(--panel-border);
+    font-family:inherit; transition: background .15s, border-color .15s; }
+  button:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); }
+  button:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  button.primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+  button.primary:hover:not(:disabled){ filter:brightness(1.08); }
+  button.ghost{ background:transparent; }
+
+  .speed-wrap{ display:flex; align-items:center; gap:10px; }
+  .speed-wrap input[type="range"]{ width:130px; accent-color:var(--accent); }
+  .speed-wrap span{ font-size:.8rem; color:var(--text-dim); width:70px; }
+
+  .grid-toggle{ display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--text-dim); cursor:pointer; }
+  .grid-toggle input[type="checkbox"]{ accent-color:var(--slot-grid); width:16px; height:16px; cursor:pointer; }
+
+  .chips{ display:flex; gap:8px; flex-wrap:wrap; width:100%; }
+  .chip{ padding:6px 14px; border-radius:var(--radius-ctl); border:1px solid var(--panel-border); background:var(--panel);
+    color:var(--text-dim); font-size:.8rem; cursor:pointer; transition:background .15s, color .15s, transform .15s;
+    font-family:var(--font-mono); }
+  .chip:hover{ background:var(--accent-soft); color:var(--accent); }
+
+  .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; text-align:center; }
+  .error-box:empty{ min-height:0; }
+
+  .banner{ text-align:center; font-size:.9rem; color:var(--text-dim); min-height:1.3em; }
+
+  .caption{ text-align:center; font-size:.8rem; color:var(--text-dim); margin:6px 0 0; }
+  .tower-note{ color:var(--slot-grid); font-size:.8rem; text-align:center; margin:4px 0 0; }
+  .tower-note:empty{ display:none; }
+
+  /* ---------- tower diagram ---------- */
+  #towerSvg{ width:100%; height:auto; display:block; max-height:max(72vh, 360px); }
+
+  @keyframes sqDrop{ from{ opacity:0; transform:translateY(-14px); } to{ opacity:1; transform:translateY(0); } }
+  .sq{ stroke-width:1.4; }
+  .sq.is-new{ animation: sqDrop .28s ease-out both; }
+  .sq-a, .col-a{ fill:var(--slot-a-soft); stroke:var(--slot-a); }
+  .sq-b, .col-b{ fill:var(--slot-b-soft); stroke:var(--slot-b); }
+  .col-a, .col-b{ stroke-width:1.4; }
+  .sq.is-meet{ stroke:var(--slot-answer); stroke-width:2.4; }
+  .ghost{ fill:var(--slot-next-soft); stroke:var(--slot-next); stroke-width:1.6; stroke-dasharray:5 4; }
+  .ground{ stroke:var(--text-dim); stroke-width:2; }
+  .ggrid{ stroke:var(--slot-grid); stroke-width:.8; opacity:.55; stroke-dasharray:2 3; }
+  .lcm-line{ stroke:var(--slot-answer); stroke-width:2.2; stroke-dasharray:8 5; }
+  .lcm-label{ fill:var(--slot-answer); font-family:var(--font-mono); font-size:14px; font-weight:700; }
+  .tick-label{ fill:var(--text-dim); font-family:var(--font-mono); font-size:11px; }
+  .tick-label-a{ fill:var(--slot-a); }
+  .tick-label-b{ fill:var(--slot-b); }
+  .side-label{ fill:var(--text); font-family:var(--font-mono); font-size:13px; font-weight:600; text-anchor:middle; pointer-events:none; }
+  .base-label{ font-family:var(--font-mono); font-size:13px; font-weight:700; text-anchor:middle; }
+  .base-label-a{ fill:var(--slot-a); }
+  .base-label-b{ fill:var(--slot-b); }
+  .height-label{ font-family:var(--font-mono); font-size:13px; font-weight:700; text-anchor:middle; }
+  .height-label-a{ fill:var(--slot-a); }
+  .height-label-b{ fill:var(--slot-b); }
+
+  /* ---------- race log ---------- */
+  .race-log{ display:flex; flex-direction:column; gap:10px; }
+  .race-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; }
+  .race-label{ font-size:.8rem; color:var(--text-dim); min-width:11em; font-family:var(--font-mono); }
+  .race-chips{ display:flex; flex-wrap:wrap; gap:5px; font-family:var(--font-mono); font-size:.88rem; }
+  .mchip{ padding:3px 8px; border-radius:7px; border:1px solid var(--panel-border); }
+  .race-row-a .mchip{ color:var(--slot-a); background:color-mix(in srgb, var(--slot-a) 10%, transparent); }
+  .race-row-b .mchip{ color:var(--slot-b); background:color-mix(in srgb, var(--slot-b) 10%, transparent); }
+  .mchip.is-latest{ border-color:var(--slot-next); box-shadow:0 0 0 1px var(--slot-next); }
+  .mchip.is-meet{ color:var(--slot-answer); background:var(--slot-answer-soft); border-color:var(--slot-answer); font-weight:700; }
+  .mchip-gap{ color:var(--text-dim); padding:3px 2px; }
+
+  .answer-line{
+    margin-top:14px; padding:12px 16px; border-radius:12px; text-align:center;
+    font-family:var(--font-mono); font-size:1.15rem; font-weight:700;
+    color:var(--slot-answer); background:var(--slot-answer-soft); border:1px solid var(--slot-answer);
+  }
+  .answer-line:empty{ display:none; }
+  .identity-line{ margin:10px 0 0; text-align:center; font-family:var(--font-mono); font-size:1rem; color:var(--text); }
+  .identity-line:empty{ display:none; }
+  .identity-note{ margin:8px auto 0; text-align:center; font-size:.85rem; color:var(--text-dim); max-width:72ch; line-height:1.5; }
+  .identity-note:empty{ display:none; }
+
+  /* ---------- least common denominator ---------- */
+  .lcd-intro{ margin:0 0 12px; font-size:.92rem; color:var(--text-dim); line-height:1.55; max-width:72ch; }
+  .lcd-fields{ max-width:420px; }
+  .lcd-math{ display:flex; flex-direction:column; gap:12px; margin-top:8px; font-family:var(--font-mono); font-size:1.05rem; }
+  .lcd-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .lcd-op{ color:var(--text-dim); }
+  .lcd-word{ color:var(--text-dim); font-family:var(--font-sans); font-size:.85rem; }
+  .frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1.15; }
+  .frac-num{ padding:0 4px 2px; }
+  .frac-den{ padding:2px 4px 0; border-top:1.5px solid currentColor; }
+  .frac-a{ color:var(--slot-a); }
+  .frac-b{ color:var(--slot-b); }
+  .frac-l{ color:var(--slot-answer); font-weight:700; }
+  .frac-plain{ color:var(--text); }
+
+  @media (prefers-reduced-motion: reduce){
+    .sq.is-new{ animation:none; }
+  }
+
+  @media (max-width:640px){
+    .controls{ justify-content:center; }
+    .speed-wrap input[type="range"]{ width:100px; }
+    .race-label{ min-width:0; width:100%; }
+  }
+
+  /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the a and b number
+     fields, the race log's multiples, the answer and identity lines and the
+     fraction arithmetic are numbers and equations, so they read left to
+     right exactly as in English. */
+  :root[dir="rtl"] :is(.field-row, .race-chips, .answer-line, .identity-line, .lcd-math){
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <rect class="brand-icon-head" x="12" y="12" width="40" height="10"/>
+        <rect class="brand-icon-head" x="12" y="22" width="10" height="30"/>
+        <rect class="brand-icon-diag" x="22" y="22" width="10" height="10"/>
+        <rect class="brand-icon-diag" x="32" y="32" width="10" height="10"/>
+        <rect class="brand-icon-diag" x="42" y="42" width="10" height="10"/>
+        <path class="brand-icon-grid" d="M22 12V52M32 12V52M42 12V52M12 22H52M12 32H52M12 42H52"/>
+        <rect class="brand-icon-frame" x="12" y="12" width="40" height="40"/>
+      </svg>
+      <span class="site-brand-label" data-i18n="site.brand">Number Theory Tools</span>
+    </a>
+    <button type="button" class="site-menu-toggle" aria-expanded="false" aria-controls="site-nav"><span data-i18n="site.menu">Tools</span><svg class="site-menu-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3 4.5l3 3 3-3"/></svg></button>
+    <nav class="site-nav" id="site-nav" aria-label="Tools" data-i18n-aria-label="site.nav.label">
+      <a href="../index.html" class="site-nav-link" data-i18n="site.nav.home">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link" data-i18n="site.nav.sieve">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link" data-i18n="site.nav.factorTree">Factor Tree</a>
+      <a href="../Venn Diagram/venn-diagram.html" class="site-nav-link" data-i18n="site.nav.venn">Venn Diagram</a>
+      <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link" data-i18n="site.nav.euclid">Euclidean Algorithm</a>
+      <a href="least-common-multiple.html" class="site-nav-link is-active" data-i18n="site.nav.lcm">Least Common Multiple</a>
+      <a href="../Chinese Remainder Theorem/chinese-remainder-theorem.html" class="site-nav-link" data-i18n="site.nav.crt">Chinese Remainder Theorem</a>
+      <a href="../Equivalence Wheel/equivalence-wheel.html" class="site-nav-link" data-i18n="site.nav.wheel">Equivalence Wheel</a>
+      <a href="../Eulers Totient/eulers-totient.html" class="site-nav-link" data-i18n="site.nav.totient">Euler's Totient</a>
+      <a href="../Cayley Table/cayley-table.html" class="site-nav-link" data-i18n="site.nav.cayley">Cayley Table</a>
+      <a href="../Cyclic Groups/cyclic-groups.html" class="site-nav-link" data-i18n="site.nav.cyclicGroups">Cyclic Groups</a>
+      <a href="../Group Isomorphism/group-isomorphism.html" class="site-nav-link" data-i18n="site.nav.iso">Group Isomorphism</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link" data-i18n="site.nav.sqm">Square and Multiply</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link" data-i18n="site.nav.dh">Diffie-Hellman</a>
+      <a href="../Elliptic Curve Diffie-Hellman/elliptic-curve-diffie-hellman.html" class="site-nav-link" data-i18n="site.nav.ecdh">Elliptic Curve DH</a>
+      <a href="../RSA/rsa.html" class="site-nav-link" data-i18n="site.nav.rsa">RSA</a>
+      <a href="../Fermats Method/fermats-method.html" class="site-nav-link" data-i18n="site.nav.fermat">Fermat's Method</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link" data-i18n="site.nav.shor">Shor's Algorithm</a>
+    </nav>
+    <label class="lang-switch" title="Language" data-i18n-title="site.lang.label">
+      <svg class="lang-switch-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3"/><ellipse cx="8" cy="8" rx="2.7" ry="6.3"/><path d="M1.9 6h12.2M1.9 10h12.2"/></svg>
+      <select id="lang-switch-select" aria-label="Language" data-i18n-aria-label="site.lang.label">
+        <option value="nl" lang="nl">Nederlands</option>
+        <option value="en" lang="en" selected>English</option>
+        <option value="de" lang="de">Deutsch</option>
+        <option value="fr" lang="fr">Français</option>
+        <option value="es" lang="es">Español</option>
+        <option value="it" lang="it">Italiano</option>
+        <option value="pl" lang="pl">Polski</option>
+        <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
+        <option value="pt-PT" lang="pt-PT">Português (Portugal)</option>
+        <option value="sv" lang="sv">Svenska</option>
+        <option value="nb" lang="nb">Norsk (bokmål)</option>
+        <option value="ro" lang="ro">Română</option>
+        <option value="hu" lang="hu">Magyar</option>
+        <option value="lv" lang="lv">Latviešu</option>
+        <option value="ru" lang="ru">Русский</option>
+        <option value="el" lang="el">Ελληνικά</option>
+        <option value="he" lang="he">עברית</option>
+        <option value="hi" lang="hi">हिन्दी</option>
+        <option value="ar" lang="ar">العربية</option>
+        <option value="sq" lang="sq">Shqip</option>
+        <option value="sw" lang="sw">Kiswahili</option>
+        <option value="zh" lang="zh">中文</option>
+        <option value="ja" lang="ja">日本語</option>
+        <option value="ko" lang="ko">한국어</option>
+        <option value="id" lang="id">Bahasa Indonesia</option>
+        <option value="zgh-Latn" lang="zgh-Latn">Tamaziɣt</option>
+        <option value="zgh-Tfng" lang="zgh-Tfng">ⵜⴰⵎⴰⵣⵉⵖⵜ</option>
+        <option value="ku" lang="ku">Kurmancî</option>
+        <option value="ckb" lang="ckb">کوردی</option>
+        <option value="sa" lang="sa">संस्कृतम्</option>
+        <option value="la" lang="la">Latina</option>
+      </select>
+    </label>
+    <label class="theme-switch" title="Toggle day and night mode" data-i18n-title="site.theme.toggle">
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode" data-i18n-aria-label="site.theme.toggle">
+      <svg class="theme-switch-icon theme-switch-icon-moon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1z"/></svg>
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <svg class="theme-switch-icon theme-switch-icon-sun" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="2.9"/><path d="M8 1.3v1.6M8 13.1v1.6M1.3 8h1.6M13.1 8h1.6M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M3.3 12.7l1.1-1.1M11.6 4.4l1.1-1.1"/></svg>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <h1 data-i18n="lcm.heading">Least Common Multiple</h1>
+    <p class="lede" data-i18n="lcm.lede">Stack squares of side a in one tower and squares of side b in another, always adding the next square to whichever tower is shorter. The first height both towers reach together is the least common multiple of a and b — and the least common denominator of any two fractions over a and b.</p>
+    <p class="xref"><a id="xrefLink" href="../Euclidean Algorithm/euclidean-algorithm.html" data-i18n="lcm.xref">The towers meet at a·b / gcd(a, b) — watch that gcd come out of the Euclidean algorithm &rarr;</a></p>
+  </header>
+
+  <section class="panel controls">
+    <div class="field-row" style="width:100%;">
+      <div class="field"><label for="aInput">a</label><input id="aInput" type="number" min="1" max="1000000" value="4"></div>
+      <div class="field"><label for="bInput">b</label><input id="bInput" type="number" min="1" max="1000000" value="6"></div>
+    </div>
+
+    <div class="chips" id="presetChips">
+      <button type="button" class="chip" data-a="4" data-b="6" data-i18n="lcm.chipClassic">4, 6 · the classic</button>
+      <button type="button" class="chip" data-a="6" data-b="10" data-i18n="lcm.chipShareTwo">6, 10 · share a 2</button>
+      <button type="button" class="chip" data-a="7" data-b="9" data-i18n="lcm.chipCoprime">7, 9 · coprime: lcm = a·b</button>
+      <button type="button" class="chip" data-a="5" data-b="15" data-i18n="lcm.chipMultiple">5, 15 · b is a multiple of a</button>
+      <button type="button" class="chip" data-a="12" data-b="18" data-i18n="lcm.chipTwelveEighteen">12, 18 · share a 6</button>
+      <button type="button" class="chip" data-a="8" data-b="8" data-i18n="lcm.chipEqual">8, 8 · equal pair</button>
+      <button type="button" class="chip" data-a="21" data-b="34" data-i18n="lcm.chipLong">21, 34 · long race</button>
+    </div>
+
+    <div class="btn-row" style="width:100%;">
+      <button id="runBtn" class="primary" data-i18n="lcm.run">Run</button>
+      <button id="playBtn" data-i18n="common.play">Play</button>
+      <button id="stepBtn" data-i18n="common.step">Step</button>
+      <button id="instantBtn" class="ghost" data-i18n="common.instant">Instant</button>
+      <button id="resetBtn" class="ghost" data-i18n="common.reset">Reset</button>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:flex-end;">
+      <div class="speed-wrap">
+        <label for="speedInput" style="font-size:.8125rem; color:var(--text-dim);" data-i18n="common.speed">Speed</label>
+        <input id="speedInput" type="range" min="1" max="10" value="5">
+        <span id="speedLabel">brisk</span>
+      </div>
+    </div>
+
+    <div class="field-row" style="width:100%; align-items:center;">
+      <label class="grid-toggle">
+        <input type="checkbox" id="gridToggle">
+        <span data-i18n="lcm.gcdGridLabel">Show the gcd grid — the common unit both towers are built from</span>
+      </label>
+    </div>
+  </section>
+
+  <div class="error-box" id="errorBox"></div>
+  <div class="banner" id="banner">Press Play or Step to start stacking squares.</div>
+
+  <section class="panel">
+    <svg id="towerSvg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="Two towers of stacked squares growing until they reach the same height" data-i18n-aria-label="lcm.towersAria"></svg>
+    <p id="towerCaption" class="caption"></p>
+    <p id="towerNote" class="tower-note"></p>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title" data-i18n="lcm.logHeading">The race, as multiples</h2>
+    <div class="race-log">
+      <div class="race-row race-row-a"><span class="race-label" id="logLabelA"></span><div class="race-chips" id="logChipsA"></div></div>
+      <div class="race-row race-row-b"><span class="race-label" id="logLabelB"></span><div class="race-chips" id="logChipsB"></div></div>
+    </div>
+    <div id="answerLine" class="answer-line"></div>
+    <p id="identityLine" class="identity-line"></p>
+    <p id="identityNote" class="identity-note"></p>
+  </section>
+
+  <section class="panel" id="lcdPanel">
+    <h2 class="panel-title" data-i18n="lcm.lcdHeading">Least common denominator</h2>
+    <p id="lcdIntro" class="lcd-intro"></p>
+    <div class="field-row lcd-fields">
+      <div class="field"><label for="pInput" data-i18n="lcm.lcdNumA">numerator over a</label><input id="pInput" type="number" value="1"></div>
+      <div class="field"><label for="qInput" data-i18n="lcm.lcdNumB">numerator over b</label><input id="qInput" type="number" value="1"></div>
+    </div>
+    <div id="lcdError" class="error-box"></div>
+    <div id="lcdMath" class="lcd-math"></div>
+  </section>
+
+</div>
+
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-bigint.js"></script>
+<script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
+<script src="../assets/nt-i18n.js"></script>
+<script src="../assets/i18n/site.js"></script>
+<script src="../assets/i18n/least-common-multiple.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { gcd } = NT.core;
+const { fmt } = NT.bigint;
+const { svgEl } = NT.svg;
+const { SHARED_AB_KEY, readABParams, readSharedAB, writeSharedAB } = NT.store;
+const { getLang, onLangChange, translate } = NT.i18n;
+
+/* ---------- DOM references ---------- */
+
+var $ = function(id){ return document.getElementById(id); };
+
+var aInput = $('aInput');
+var bInput = $('bInput');
+var pInput = $('pInput');
+var qInput = $('qInput');
+var runBtn = $('runBtn');
+var playBtn = $('playBtn');
+var stepBtn = $('stepBtn');
+var instantBtn = $('instantBtn');
+var resetBtn = $('resetBtn');
+var speedInput = $('speedInput');
+var speedLabel = $('speedLabel');
+var gridToggle = $('gridToggle');
+var errorBox = $('errorBox');
+var banner = $('banner');
+var towerSvg = $('towerSvg');
+var towerCaption = $('towerCaption');
+var towerNote = $('towerNote');
+var logLabelA = $('logLabelA');
+var logLabelB = $('logLabelB');
+var logChipsA = $('logChipsA');
+var logChipsB = $('logChipsB');
+var answerLine = $('answerLine');
+var identityLine = $('identityLine');
+var identityNote = $('identityNote');
+var lcdIntro = $('lcdIntro');
+var lcdError = $('lcdError');
+var lcdMath = $('lcdMath');
+var xrefLink = $('xrefLink');
+
+// Same ceiling as the Euclidean Algorithm, the sibling tool this one shares
+// its a/b pair with, so a pair typed there always fits here unclamped.
+var MAX_INPUT = 1000000;
+var MAX_NUMERATOR = 1000000;
+
+/* ---------- shared a/b params ---------- */
+// a and b are ONE setting shared with the Euclidean Algorithm and the Venn
+// Diagram's two-circle view, read/written via assets/nt-store.js. A read is
+// clamped to this tool's own ceiling for display only and never written
+// back.
+
+var sharedAB = readSharedAB();
+if (sharedAB){
+  aInput.value = Math.min(sharedAB.a, MAX_INPUT);
+  bInput.value = Math.min(sharedAB.b, MAX_INPUT);
+}
+
+// The run: a, b, their gcd and lcm, the square counts na = L/a and
+// nb = L/b, and `order`, the tower (0 = a, 1 = b) each successive square
+// is stacked on -- always the shorter tower, the a-tower on a tie. Built
+// once per Run; playback only moves `placed` along it.
+var currentRun = null;
+
+// Playback state. `generation` is bumped on every reset so a stale
+// requestAnimationFrame callback from an abandoned run can check it and
+// bail instead of drawing into a diagram that has since been cleared.
+var playing = false;
+var rafId = null;
+var lastAdvance = 0;
+var placed = 0;
+var generation = 0;
+
+var SPEED_MS = {1:2000,2:1500,3:1100,4:800,5:560,6:400,7:280,8:190,9:120,10:70};
+// A long race (21, 34 is 55 squares; 999, 1000 is 1999) would take minutes
+// one square per tick, so playback places a chunk per tick sized to finish
+// in about this many ticks.
+var TARGET_TICKS = 60;
+
+// Below this side length, in viewBox units, a square is drawn as part of a
+// solid column instead of on its own.
+var MIN_SQUARE = 3;
+// Below this spacing the gcd grid is not drawn at all.
+var MIN_GRID = 4;
+
+// i18n re-render state: each tracks the last thing a translated dynamic
+// element showed as a {key, params} pair (or null for empty), so
+// onLangChange can redraw exactly that text without touching playback.
+var bannerState = null;
+var errorState = null;
+var lcdErrorState = null;
+var captionState = null;
+var noteStates = [];
+
+function renderTracked(el, state){
+  el.textContent = state ? translate(state.key, state.params) : '';
+}
+
+function renderBanner(){ renderTracked(banner, bannerState); }
+function renderError(){ renderTracked(errorBox, errorState); }
+function renderLcdError(){ renderTracked(lcdError, lcdErrorState); }
+function renderCaption(){ renderTracked(towerCaption, captionState); }
+function renderNotes(){
+  towerNote.textContent = noteStates.map(function(s){ return translate(s.key, s.params); }).join(' ');
+}
+
+/* ---------- input reading ---------- */
+
+function readInputs(){
+  errorState = null;
+  var rawA = aInput.value.trim();
+  var rawB = bInput.value.trim();
+  if (!/^-?\d+$/.test(rawA) || !/^-?\d+$/.test(rawB)){
+    errorState = { key: 'lcm.errBothWhole', params: {} };
+    renderError();
+    return null;
+  }
+  var a = parseInt(rawA, 10);
+  var b = parseInt(rawB, 10);
+  if (a < 1 || b < 1){
+    errorState = { key: 'lcm.errPositive', params: {} };
+    renderError();
+    return null;
+  }
+  if (a > MAX_INPUT || b > MAX_INPUT){
+    a = Math.min(a, MAX_INPUT);
+    b = Math.min(b, MAX_INPUT);
+    errorState = { key: 'lcm.errClamped', params: { max: fmt(MAX_INPUT) } };
+  }
+  renderError();
+  return { a: a, b: b };
+}
+
+// Reads the a/b fields directly, live -- deliberately not through
+// readInputs(), whose clamp/error-writing a live-typing link or a
+// shared-store write must not inherit. Invalid input returns null.
+function readLiveFields(){
+  var rawA = aInput.value.trim();
+  var rawB = bInput.value.trim();
+  if (!/^-?\d+$/.test(rawA) || !/^-?\d+$/.test(rawB)) return null;
+  var a = parseInt(rawA, 10);
+  var b = parseInt(rawB, 10);
+  if (a < 0 || b < 0) return null;
+  return { a: a, b: b };
+}
+
+// Appends &lang= itself: nt-i18n.js's decorateLinks() only re-scans links
+// at load/setLang time, never an href the page's script sets afterward.
+function syncXrefLinkFromFields(){
+  var f = readLiveFields();
+  if (!f || !xrefLink) return;
+  xrefLink.href = '../Euclidean Algorithm/euclidean-algorithm.html?a=' + encodeURIComponent(f.a) +
+    '&b=' + encodeURIComponent(f.b) + '&lang=' + getLang();
+}
+
+function shareFieldsToSharedStore(){
+  var f = readLiveFields();
+  if (f) writeSharedAB(f.a, f.b);
+}
+
+/* ---------- the race ---------- */
+
+function buildOrder(a, b, total){
+  var order = new Uint8Array(total);
+  var ha = 0, hb = 0;
+  for (var i = 0; i < total; i++){
+    if (ha <= hb){ order[i] = 0; ha += a; }
+    else { order[i] = 1; hb += b; }
+  }
+  return order;
+}
+
+// Square counts on each tower after the first n squares of the order.
+function countsAt(run, n){
+  var ca = 0;
+  for (var i = 0; i < n; i++) if (run.order[i] === 0) ca++;
+  return { ca: ca, cb: n - ca };
+}
+
+function makeRun(a, b){
+  var g = gcd(a, b);
+  var L = (a / g) * b;
+  var na = L / a, nb = L / b;
+  return { a: a, b: b, g: g, L: L, na: na, nb: nb, total: na + nb, order: buildOrder(a, b, na + nb) };
+}
+
+/* ---------- tower diagram ---------- */
+
+var VB_W = 900, VB_H = 560;
+var GROUND_Y = 512;
+var DRAW_H = 450;
+var DRAW_W = 620;
+var TOWER_GAP = 90;
+
+function towerGeometry(run){
+  var s = Math.min(DRAW_H / run.L, DRAW_W / (run.a + run.b));
+  var wa = run.a * s, wb = run.b * s;
+  var total = wa + TOWER_GAP + wb;
+  var xa = (VB_W - total) / 2 + 30;
+  return { s: s, xa: xa, xb: xa + wa + TOWER_GAP, wa: wa, wb: wb };
+}
+
+function drawTower(geo, x, w, side, count, cls, newest, meet){
+  var s = geo.s;
+  var px = side * s;
+  if (px < MIN_SQUARE){
+    if (count > 0){
+      towerSvg.appendChild(svgEl('rect', {
+        'class': 'col col-' + cls, x: x, y: GROUND_Y - count * px, width: w, height: count * px
+      }));
+    }
+    return false;
+  }
+  for (var k = 0; k < count; k++){
+    var y = GROUND_Y - (k + 1) * px;
+    var c = 'sq sq-' + cls;
+    if (k === count - 1 && newest) c += ' is-new';
+    if (k === count - 1 && meet) c += ' is-meet';
+    towerSvg.appendChild(svgEl('rect', { 'class': c, x: x, y: y, width: w, height: px }));
+    if (k === 0 && px >= 24){
+      var lbl = svgEl('text', { 'class': 'side-label', x: x + w / 2, y: y + px / 2 + 5 });
+      lbl.textContent = String(side);
+      towerSvg.appendChild(lbl);
+    }
+    // A ruler of multiples: each square's top edge labelled with its
+    // height, on the outer side of its tower, while there is room for it.
+    if (px >= 15 && !(meet && k === count - 1)){
+      var tick = svgEl('text', {
+        'class': 'tick-label tick-label-' + cls,
+        x: cls === 'a' ? x - 6 : x + w + 6, y: y + 4,
+        'text-anchor': cls === 'a' ? 'end' : 'start'
+      });
+      tick.textContent = fmt((k + 1) * side);
+      towerSvg.appendChild(tick);
+    }
+  }
+  return true;
+}
+
+function drawTowers(newestTower){
+  towerSvg.innerHTML = '';
+  noteStates = [];
+  var run = currentRun;
+  if (!run){ captionState = null; renderCaption(); renderNotes(); return; }
+
+  var geo = towerGeometry(run);
+  var c = countsAt(run, placed);
+  var ha = c.ca * run.a, hb = c.cb * run.b;
+  var done = placed >= run.total;
+
+  // gcd grid underneath everything else.
+  if (gridToggle.checked){
+    var gs = run.g * geo.s;
+    var lines = run.L / run.g;
+    if (gs >= MIN_GRID && lines <= 300){
+      for (var i = 1; i <= lines; i++){
+        var gy = GROUND_Y - i * gs;
+        towerSvg.appendChild(svgEl('line', {
+          'class': 'ggrid', x1: geo.xa - 4, x2: geo.xb + geo.wb + 4, y1: gy, y2: gy
+        }));
+      }
+      noteStates.push({ key: 'lcm.noteGrid', params: { a: fmt(run.a), b: fmt(run.b), g: fmt(run.g) } });
+    } else {
+      noteStates.push({ key: 'lcm.noteGridHidden', params: { a: fmt(run.a), b: fmt(run.b), g: fmt(run.g) } });
+    }
+  }
+
+  towerSvg.appendChild(svgEl('line', {
+    'class': 'ground', x1: geo.xa - 40, x2: geo.xb + geo.wb + 40, y1: GROUND_Y, y2: GROUND_Y
+  }));
+
+  var drewA = drawTower(geo, geo.xa, geo.wa, run.a, c.ca, 'a', newestTower === 0, done);
+  var drewB = drawTower(geo, geo.xb, geo.wb, run.b, c.cb, 'b', newestTower === 1, done);
+  if (!drewA || !drewB) noteStates.push({ key: 'lcm.noteSolid', params: {} });
+
+  // Ghost square where the next square will land, on the shorter tower.
+  if (!done){
+    var next = run.order[placed];
+    var side = next === 0 ? run.a : run.b;
+    var gpx = side * geo.s;
+    var gh = next === 0 ? ha : hb;
+    towerSvg.appendChild(svgEl('rect', {
+      'class': 'ghost',
+      x: next === 0 ? geo.xa : geo.xb, y: GROUND_Y - gh * geo.s - gpx,
+      width: next === 0 ? geo.wa : geo.wb, height: Math.max(gpx, 1.5)
+    }));
+  }
+
+  // Current heights above each tower, the square count and side below.
+  // The tower about to grow carries its label above the ghost square.
+  [[0, geo.xa, geo.wa, ha, c.ca, run.a], [1, geo.xb, geo.wb, hb, c.cb, run.b]].forEach(function(t){
+    var cls = t[0] === 0 ? 'a' : 'b';
+    if (!done){
+      var lift = run.order[placed] === t[0] ? t[5] * geo.s : 0;
+      var hl = svgEl('text', { 'class': 'height-label height-label-' + cls, x: t[1] + t[2] / 2, y: GROUND_Y - t[3] * geo.s - lift - 10 });
+      hl.textContent = fmt(t[3]);
+      towerSvg.appendChild(hl);
+    }
+    var bl = svgEl('text', { 'class': 'base-label base-label-' + cls, x: t[1] + t[2] / 2, y: GROUND_Y + 26 });
+    bl.textContent = fmt(t[4]) + ' × ' + fmt(t[5]);
+    towerSvg.appendChild(bl);
+  });
+
+  if (done){
+    var ly = GROUND_Y - run.L * geo.s;
+    var lx = Math.max(8, geo.xa - 150);
+    towerSvg.appendChild(svgEl('line', {
+      'class': 'lcm-line', x1: lx, x2: Math.min(VB_W - 4, geo.xb + geo.wb + 24), y1: ly, y2: ly
+    }));
+    var ll = svgEl('text', { 'class': 'lcm-label', x: lx, y: ly - 9 });
+    ll.textContent = 'lcm = ' + fmt(run.L);
+    towerSvg.appendChild(ll);
+  }
+
+  captionState = { key: 'lcm.captionTowers', params: {
+    a: run.a, b: run.b, ca: fmt(c.ca), cb: fmt(c.cb), ha: fmt(ha), hb: fmt(hb), count: placed
+  } };
+  renderCaption();
+  renderNotes();
+}
+
+/* ---------- race log (multiples) ---------- */
+
+var LOG_HEAD = 3, LOG_TAIL = 14;
+
+function chip(text, cls){
+  var span = document.createElement('span');
+  span.className = cls;
+  span.textContent = text;
+  return span;
+}
+
+function fillLogRow(el, side, count, latest, meet){
+  el.textContent = '';
+  var show = [];
+  var k;
+  if (count <= LOG_HEAD + LOG_TAIL + 1){
+    for (k = 1; k <= count; k++) show.push(k);
+  } else {
+    for (k = 1; k <= LOG_HEAD; k++) show.push(k);
+    show.push(0);
+    for (k = count - LOG_TAIL + 1; k <= count; k++) show.push(k);
+  }
+  show.forEach(function(m){
+    if (m === 0){ el.appendChild(chip('…', 'mchip-gap')); return; }
+    var cls = 'mchip';
+    if (m === count && meet) cls += ' is-meet';
+    else if (m === count && latest) cls += ' is-latest';
+    el.appendChild(chip(fmt(m * side), cls));
+  });
+}
+
+function renderLog(newestTower){
+  var run = currentRun;
+  if (!run){
+    logLabelA.textContent = ''; logLabelB.textContent = '';
+    logChipsA.textContent = ''; logChipsB.textContent = '';
+    return;
+  }
+  logLabelA.textContent = translate('lcm.logRowA', { a: run.a });
+  logLabelB.textContent = translate('lcm.logRowB', { b: run.b });
+  var c = countsAt(run, placed);
+  var done = placed >= run.total;
+  fillLogRow(logChipsA, run.a, c.ca, newestTower === 0, done);
+  fillLogRow(logChipsB, run.b, c.cb, newestTower === 1, done);
+}
+
+/* ---------- answer, identity and least common denominator ---------- */
+
+function renderAnswer(){
+  var run = currentRun;
+  answerLine.textContent = '';
+  identityLine.textContent = '';
+  identityNote.textContent = '';
+  if (!run || placed < run.total) return;
+  var A = fmt(run.a), B = fmt(run.b);
+  answerLine.textContent = 'lcm(' + A + ', ' + B + ') = ' + fmt(run.L) +
+    ' = ' + fmt(run.na) + ' × ' + A + ' = ' + fmt(run.nb) + ' × ' + B;
+  identityLine.textContent = 'gcd(' + A + ', ' + B + ') · lcm(' + A + ', ' + B + ') = ' +
+    fmt(run.g) + ' · ' + fmt(run.L) + ' = ' + fmt(run.a * run.b) + ' = ' + A + ' · ' + B;
+  identityNote.textContent = translate('lcm.identityNote', identityParams(run));
+}
+
+function identityParams(run){
+  return { g: run.g, a: run.a, b: run.b, a1: fmt(run.a / run.g), b1: fmt(run.b / run.g), L: fmt(run.L) };
+}
+
+function frac(num, den, cls){
+  var f = document.createElement('span');
+  f.className = 'frac ' + cls;
+  f.appendChild(chip(num, 'frac-num'));
+  f.appendChild(chip(den, 'frac-den'));
+  return f;
+}
+
+function lcdRow(parts){
+  var row = document.createElement('div');
+  row.className = 'lcd-row';
+  parts.forEach(function(p){ row.appendChild(p); });
+  return row;
+}
+
+function op(text){ return chip(text, 'lcd-op'); }
+
+function readNumerator(input){
+  var raw = input.value.trim();
+  if (!/^-?\d+$/.test(raw)) return null;
+  var v = parseInt(raw, 10);
+  return Math.max(-MAX_NUMERATOR, Math.min(MAX_NUMERATOR, v));
+}
+
+function renderLcd(){
+  var run = currentRun;
+  lcdMath.textContent = '';
+  lcdErrorState = null;
+  if (!run){ lcdIntro.textContent = ''; renderLcdError(); return; }
+  lcdIntro.textContent = translate('lcm.lcdIntro', { a: run.a, b: run.b, L: fmt(run.L) });
+  var p = readNumerator(pInput), q = readNumerator(qInput);
+  if (p === null || q === null){
+    lcdErrorState = { key: 'lcm.errNumerators', params: {} };
+    renderLcdError();
+    return;
+  }
+  renderLcdError();
+  var L = run.L;
+  var X = p * run.na, Y = q * run.nb;
+  lcdMath.appendChild(lcdRow([
+    frac(String(p), String(run.a), 'frac-a'), op('='),
+    frac(p + ' × ' + fmt(run.na), run.a + ' × ' + fmt(run.na), 'frac-plain'), op('='),
+    frac(fmt(X), fmt(L), 'frac-l')
+  ]));
+  lcdMath.appendChild(lcdRow([
+    frac(String(q), String(run.b), 'frac-b'), op('='),
+    frac(q + ' × ' + fmt(run.nb), run.b + ' × ' + fmt(run.nb), 'frac-plain'), op('='),
+    frac(fmt(Y), fmt(L), 'frac-l')
+  ]));
+  var S = X + Y;
+  var sumParts = [
+    frac(String(p), String(run.a), 'frac-a'), op('+'), frac(String(q), String(run.b), 'frac-b'), op('='),
+    frac(fmt(X), fmt(L), 'frac-l'), op('+'), frac(fmt(Y), fmt(L), 'frac-l'), op('='),
+    frac(fmt(S), fmt(L), 'frac-l')
+  ];
+  var d = S === 0 ? L : gcd(Math.abs(S), L);
+  var simplified = document.createElement('span');
+  simplified.className = 'lcd-word';
+  if (d > 1){
+    simplified.textContent = translate('lcm.lcdSimplified');
+    sumParts.push(simplified);
+    sumParts.push(frac(fmt(S / d), fmt(L / d), 'frac-plain'));
+  } else {
+    simplified.textContent = '(' + translate('lcm.lcdNoSimplify') + ')';
+    sumParts.push(simplified);
+  }
+  lcdMath.appendChild(lcdRow(sumParts));
+}
+
+/* ---------- banner ---------- */
+
+function updateBanner(){
+  var run = currentRun;
+  if (!run){ bannerState = null; renderBanner(); return; }
+  if (placed >= run.total){
+    bannerState = { key: 'lcm.bannerDone', params: { a: run.a, b: run.b, L: fmt(run.L) } };
+  } else if (placed === 0){
+    bannerState = { key: 'lcm.bannerReady', params: {} };
+  } else {
+    var c = countsAt(run, placed);
+    var params = { a: run.a, b: run.b, ha: fmt(c.ca * run.a), hb: fmt(c.cb * run.b) };
+    bannerState = { key: run.order[placed] === 0 ? 'lcm.bannerNextA' : 'lcm.bannerNextB', params: params };
+  }
+  renderBanner();
+}
+
+function renderAll(newestTower){
+  drawTowers(newestTower);
+  renderLog(newestTower);
+  renderAnswer();
+  updateBanner();
+  stepBtn.disabled = playing || !currentRun || placed >= currentRun.total;
+}
+
+/* ---------- playback ---------- */
+
+function advance(n){
+  var run = currentRun;
+  if (!run || placed >= run.total) return;
+  var target = Math.min(run.total, placed + n);
+  var newest = run.order[target - 1];
+  placed = target;
+  renderAll(n === 1 ? newest : -1);
+}
+
+function frameStep(ts){
+  if (!playing) return;
+  var myGen = generation;
+  if (!lastAdvance) lastAdvance = ts;
+  var dwell = SPEED_MS[parseInt(speedInput.value, 10)] || SPEED_MS[5];
+  if (ts - lastAdvance >= dwell){
+    var chunk = Math.max(1, Math.ceil(currentRun.total / TARGET_TICKS));
+    advance(chunk);
+    lastAdvance = ts;
+  }
+  if (myGen !== generation) return;
+  if (!currentRun || placed >= currentRun.total){
+    pause();
+    return;
+  }
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function play(){
+  if (playing || !currentRun) return;
+  // A finished run rewinds instead of no-op'ing, so Play always plays.
+  if (placed >= currentRun.total) resetPlayback();
+  playing = true;
+  playBtn.textContent = translate('common.pause');
+  stepBtn.disabled = true;
+  lastAdvance = 0;
+  rafId = requestAnimationFrame(frameStep);
+}
+
+function pause(){
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  playBtn.textContent = translate('common.play');
+  stepBtn.disabled = !currentRun || placed >= currentRun.total;
+}
+
+function stepOnce(){
+  if (playing || !currentRun) return;
+  advance(1);
+}
+
+function instantFinish(){
+  pause();
+  if (!currentRun) return;
+  placed = currentRun.total;
+  renderAll(-1);
+}
+
+function resetPlayback(){
+  pause();
+  generation++;
+  placed = 0;
+  renderAll(-1);
+}
+
+function buildRun(){
+  var inputs = readInputs();
+  if (!inputs) return;
+  syncXrefLinkFromFields();
+  currentRun = makeRun(inputs.a, inputs.b);
+  renderLcd();
+  resetPlayback();
+  instantFinish();
+}
+
+/* ---------- event wiring ---------- */
+
+runBtn.addEventListener('click', buildRun);
+playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+stepBtn.addEventListener('click', stepOnce);
+instantBtn.addEventListener('click', instantFinish);
+resetBtn.addEventListener('click', resetPlayback);
+speedInput.addEventListener('input', function(){
+  speedLabel.textContent = translate('common.speed.' + speedInput.value);
+});
+gridToggle.addEventListener('change', function(){ drawTowers(-1); });
+
+[aInput, bInput].forEach(function(inp){
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') buildRun(); });
+  inp.addEventListener('input', function(){
+    syncXrefLinkFromFields();
+    shareFieldsToSharedStore();
+  });
+});
+[pInput, qInput].forEach(function(inp){
+  inp.addEventListener('input', renderLcd);
+});
+
+$('presetChips').querySelectorAll('.chip').forEach(function(chipBtn){
+  chipBtn.addEventListener('click', function(){
+    aInput.value = chipBtn.dataset.a;
+    bInput.value = chipBtn.dataset.b;
+    shareFieldsToSharedStore();
+    buildRun();
+  });
+});
+
+/* ---------- live cross-document sync ---------- */
+
+// A pair written by a sibling tool arrives as a storage event. Re-read it
+// through the shared reader, and never write back from here, so two open
+// tools cannot ping-pong a clamped value.
+window.addEventListener('storage', function(e){
+  if (e.key !== SHARED_AB_KEY) return;
+  var incoming = readSharedAB(e.newValue);
+  if (!incoming) return;
+  var a = Math.min(incoming.a, MAX_INPUT);
+  var b = Math.min(incoming.b, MAX_INPUT);
+  if (a === parseInt(aInput.value, 10) && b === parseInt(bInput.value, 10)) return;
+  aInput.value = a;
+  bInput.value = b;
+  buildRun();
+});
+
+/* ---------- i18n re-render ---------- */
+
+// Re-renders every JS-owned translated text without restarting the race,
+// touching play/pause or replaying the newest square's drop animation.
+function rerenderOnLangChange(){
+  speedLabel.textContent = translate('common.speed.' + speedInput.value);
+  playBtn.textContent = translate(playing ? 'common.pause' : 'common.play');
+  renderError();
+  renderBanner();
+  renderCaption();
+  renderNotes();
+  syncXrefLinkFromFields();
+  if (currentRun){
+    renderLog(-1);
+    renderAnswer();
+    renderLcd();
+  }
+}
+
+onLangChange(rerenderOnLangChange);
+
+window.addEventListener('load', function(){
+  speedLabel.textContent = translate('common.speed.' + speedInput.value);
+  var abParams = readABParams(true);
+  if (abParams){
+    aInput.value = abParams.a;
+    bInput.value = abParams.b;
+    shareFieldsToSharedStore();
+  }
+  buildRun();
+});
+
+})();
+</script>
+</body>
+</html>

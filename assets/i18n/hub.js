@@ -1,7 +1,7 @@
 /* assets/i18n/hub.js — the 'hub' namespace: index.html's page title, hero
-   (eyebrow, h1, lede), all sixteen tool cards (card.<id>.title / desc),
+   (eyebrow, h1, lede), all seventeen tool cards (card.<id>.title / desc),
    the shared "Open tool →" link label and the footer, in all thirty-one
-   supported languages. The cyclicGroups card and the "sixteen tools" wording
+   supported languages. The cyclicGroups and lcm cards and the "seventeen tools" wording
    of the English lede and footer are English-only for now, by the user's
    decision (quick task 261009-d21): the other thirty languages fall back to
    the en value for the card keys through NT.i18n and keep their "fifteen"
@@ -12,7 +12,7 @@
    comment and the NT.i18n contract): flat keys, the identical key set in
    every language object, plain text values (no markup), numerals/math
    notation untouched. Card ids match the page table in 06-02-PLAN.md
-   (sieve, factorTree, venn, euclid, crt, wheel, totient, cayley, cyclicGroups,
+   (sieve, factorTree, venn, euclid, lcm, crt, wheel, totient, cayley, cyclicGroups,
    iso, sqm, dh, ecdh, rsa, fermat, shor) in the hub's own card-grid order. Card
    title values are the hub's own pre-existing English wording (which in
    several cases differs from site.nav.* — e.g. "The Equivalence Wheel"
@@ -71,8 +71,8 @@
       'group.primes': 'Primes and divisibility',
       'group.modular': 'Modular arithmetic and groups',
       'group.crypto': 'Cryptography and factoring',
-      'hero.lede': "Sixteen small browser tools for exploring primes, factorization, modular arithmetic, simultaneous congruences, group tables and isomorphisms, and public-key cryptography from modular arithmetic to elliptic curves — each one an animated, hands-on visualizer you can nudge, drag a slider on, and watch work.",
-      footer: 'All sixteen tools run entirely client-side in your browser — no build step, no server, no tracking.',
+      'hero.lede': "Seventeen small browser tools for exploring primes, factorization, modular arithmetic, simultaneous congruences, group tables and isomorphisms, and public-key cryptography from modular arithmetic to elliptic curves — each one an animated, hands-on visualizer you can nudge, drag a slider on, and watch work.",
+      footer: 'All seventeen tools run entirely client-side in your browser — no build step, no server, no tracking.',
       'card.sieve.title': 'Sieve of Eratosthenes',
       'card.sieve.desc': "Give every natural number its own box, then watch the sieve strike out everything that isn't prime — with playback controls and a chime for every prime found.",
       'card.factorTree.title': 'Factor Tree',
@@ -89,6 +89,8 @@
       'card.totient.desc': 'Count how many numbers below n share no factor with n — not with a formula, but by running the Euclidean algorithm against every single one of them and tallying who survives.',
       'card.cayley.title': 'Cayley Table',
       'card.cayley.desc': "A group's entire behavior fits in one square table — set a modulus, flip between addition and multiplication, and click any cell to see its identity, its self-inverse elements, and its symmetry all sitting visibly in the grid's shape.",
+      'card.lcm.title': 'Least Common Multiple',
+      'card.lcm.desc': 'Stack squares of side a in one tower and side b in another, always growing the shorter one — the first height both towers reach together is the least common multiple, and the least common denominator of fractions over a and b.',
       'card.cyclicGroups.title': 'Cyclic Group Necklace',
       'card.cyclicGroups.desc': 'Every element of a group becomes a bead on a ring; step by a generator and the chords trace a star that touches every bead — and when no single element can reach them all, the group splits into the smaller rings it is built from.',
       'card.iso.title': 'Group Isomorphisms',
