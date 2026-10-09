@@ -53,7 +53,6 @@
       mirrorTitle: 'Mirror the ring across its vertical middle',
       sideInside: 'Inside',
       sideOutside: 'Outside',
-      sideNeither: 'Neither',
       colorElement: 'Element arrow color',
       colorInverse: 'Inverse arrow color',
       colorReset: 'Reset arrow colors',

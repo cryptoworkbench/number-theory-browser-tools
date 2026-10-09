@@ -470,7 +470,7 @@
         <p class="identity-note" id="identity-note" hidden data-i18n="cyclicGroups.identityOnly">The identity element only produces itself</p>
         <div id="subgroup-options">
           <div class="arrow-options">
-          <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option><option value="neither" data-i18n="cyclicGroups.sideNeither">Neither</option></select></div>
+          <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
           <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow color" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow color" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Enable backwards path</label></div>
           <div class="combine-key" id="combine-key" hidden>
             <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-inner"></span></div>
@@ -566,14 +566,13 @@ var FLAGS = ['cord', 'guide', 'colors', 'orders', 'bygen'];
 // by its inverse.
 // colorBy picks what the bead colors mean: 'order' (element order) or
 // 'inverse' (an element and its inverse share a color).
-// elSide puts the forward walk, by h, 'inside' or 'outside' the ring, or
-// hides it ('neither'). backward adds the walk by h⁻¹, always on the other
-// side (outside when the forward walk is hidden): see invSide().
+// elSide puts the forward walk, by h, 'inside' or 'outside' the ring.
+// backward adds the walk by h⁻¹, always on the other side: see invSide().
 // dir is the way the beads count round the ring, and so the way the forward
 // walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Mirror
 // button flips it.
 var COLOR_BY = ['order', 'inverse'];
-var SIDES = ['inside', 'outside', 'neither'];
+var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
 var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
 
@@ -1023,7 +1022,7 @@ function drawRing(parent, G, beads, box, paint){
         walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1 });
         return;
       }
-      if (state.elSide !== 'neither') walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1 });
+      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1 });
       if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
@@ -1155,12 +1154,12 @@ function dirSign(){ return state.dir === 'ccw' ? -1 : 1; }
 // side, in the mixed color.
 function mergedWalks(G){
   var h = shownGen(G);
-  return G.orders[h] === 2 && state.elSide !== 'neither' && invSide() !== 'neither';
+  return G.orders[h] === 2 && invSide() !== 'neither';
 }
 
 function renderCombineKey(G){
   var h = shownGen(G);
-  var on = G.orders[h] > 1 && (state.elSide !== 'neither' || invSide() !== 'neither');
+  var on = G.orders[h] > 1;
   combineKeyEl.hidden = !on;
   if (!on) return;
   var params = { h: h, hinv: G.inv[h], n: G.n, start: coset ? coset.start : G.identity };
@@ -1176,7 +1175,6 @@ function renderCombineKey(G){
   if (merged) outerEl.textContent = translate('cyclicGroups.combineSelfInverse', params);
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged);
-  innerEl.parentNode.hidden = state.elSide === 'neither';
   outerEl.parentNode.hidden = invSide() === 'neither';
 }
 
@@ -2210,9 +2208,8 @@ onLangChange(render);
     else if (raw === '1') state[name] = true;
   });
   if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
-  // Links from before the side menus hid a walk with chords=0 or outer=0.
-  if (query.get('chords') === '0') state.elSide = 'neither';
-  // and from before the backwards checkbox with invside=neither.
+  // Links from before the side menus hid the inverse walk with outer=0, and
+  // from before the backwards checkbox with invside=neither.
   if (query.get('outer') === '0' || query.get('invside') === 'neither') state.backward = false;
   if (SIDES.indexOf(query.get('elside')) !== -1) state.elSide = query.get('elside');
   if (query.get('back') === '0') state.backward = false;
