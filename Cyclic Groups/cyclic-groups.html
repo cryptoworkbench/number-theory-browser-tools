@@ -453,6 +453,7 @@
             <button type="button" id="sub-grid" data-layout="grid" aria-pressed="true" aria-label="Grid" title="Grid" data-i18n-aria-label="cyclicGroups.subLayoutGrid" data-i18n-title="cyclicGroups.subLayoutGrid"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></button>
           </div>
         </div>
+        <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         <ul class="subgroups" id="subgroups"></ul>
       </section>
     </div>
@@ -582,7 +583,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, genTop: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -591,6 +592,8 @@ var SUB_LAYOUTS = ['grid', 'list'];
 // rot-th one of the arrangement, and every subgroup row starts rot steps
 // into its walk (g^rot, written additively rot·g), wrapping round, like
 // group_examplifier's horizontal offset.
+// autoShift starts every subgroup row at its first member from the top bead
+// going the forward direction, instead of at the member nearest the top.
 
 // The two arrow color pickers, used only while customColors is on: the state
 // key each writes, the custom property it sets on .app, the theme role it
@@ -652,6 +655,7 @@ var colorResetEl = $('color-reset');
 var customColorsEl = $('custom-colors');
 var swapColorsEl = $('swap-colors');
 var genTopEl = $('gen-top');
+var autoShiftEl = $('auto-shift');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -1668,7 +1672,8 @@ function stopCosets(){
 // 0, 9, 6, 3. A generator's row is the whole ring, so instead it reads
 // the order repeated combining with g reaches the members in, from the
 // bead at the top: ⟨7⟩ in Z/12 reads 0, 7, 2, 9, … The row starts at the
-// member nearest the top; ties go to the one it reads first.
+// member nearest the top; ties go to the one it reads first. With autoShift
+// on it starts at the first member from the top going forward instead.
 function rowMembers(G, g, beads){
   var m = beads.length;
   if (G.orders[g] === m) return lap(G, g, m, beads[0]);
@@ -1680,7 +1685,7 @@ function rowMembers(G, g, beads){
   var start = 0, best = Infinity;
   members.forEach(function(a){
     var i = place[a];
-    var key = Math.min(i, m - i) * 2 + ((back ? i < m / 2 : i > m / 2) ? 1 : 0);
+    var key = state.autoShift ? i : Math.min(i, m - i) * 2 + ((back ? i < m / 2 : i > m / 2) ? 1 : 0);
     if (key < best){ best = key; start = i; }
   });
   return members.sort(function(a, b){
@@ -1869,6 +1874,8 @@ function mirrorToUrl(G){
     FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
     if (state.genTop) q.set('gentop', '1');
     else q.delete('gentop');
+    if (state.autoShift) q.set('autoshift', '1');
+    else q.delete('autoshift');
     if (state.swapColors) q.set('swapcolors', '1');
     else q.delete('swapcolors');
     if (state.customColors) q.set('customcolors', '1');
@@ -1997,6 +2004,7 @@ function render(){
   syncCosetButton();
   syncArrowColors();
   genTopEl.checked = state.genTop;
+  autoShiftEl.checked = state.autoShift;
   $('layer-bygen').disabled = !G.cyclic;
   colorBySelectEl.disabled = !state.colors;
   renderNotice(G, factors);
@@ -2218,6 +2226,12 @@ genTopEl.addEventListener('change', function(){
   state.genTop = genTopEl.checked;
   if (drawn) mirrorToUrl(drawn.G);
 });
+autoShiftEl.addEventListener('change', function(){
+  state.autoShift = autoShiftEl.checked;
+  if (!drawn) return;
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+});
 swapColorsEl.addEventListener('change', function(){
   state.swapColors = swapColorsEl.checked;
   render();
@@ -2310,6 +2324,7 @@ onLangChange(render);
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.genTop = query.get('gentop') === '1';
+  state.autoShift = query.get('autoshift') === '1';
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
