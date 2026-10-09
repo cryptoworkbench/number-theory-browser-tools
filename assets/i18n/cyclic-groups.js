@@ -39,7 +39,7 @@
       subgroupHeading: 'Subgroup',
       identityOnly: 'The identity element only produces itself',
       nLabel: 'n — modulus',
-      genLabel: 'Element',
+      genLabel: 'Subgroup displayed',
       nNoteClamped: 'n runs from 2 to 100, so the diagram shows n = {n}.',
       layersHeading: 'Layers',
       extraOptions: 'Show extra options',
