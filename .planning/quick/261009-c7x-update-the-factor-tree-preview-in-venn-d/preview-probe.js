@@ -128,7 +128,7 @@ function inPage(RUN, CASES) {
   function checkFit(layer) {
     var o = panelOrigin(layer);
     var xLo = o.x + 10 - 0.5, xHi = o.x + 258 + 0.5, yLo = o.y + 22 - 0.5;
-    var items = all(layer, ".ft-pair, .ft-pair-lens, .ft-node, .ft-edge");
+    var items = all(layer, ".ft-pair, .ft-pair-lens, .ft-node, .ft-fold-ring, .ft-edge");
     var maxBottom = -Infinity;
     items.forEach(function (el) {
       var r = rectOf(el);
@@ -156,6 +156,27 @@ function inPage(RUN, CASES) {
     checkPanels: checkPanels, checkLens: checkLens, checkFit: checkFit, checkCaptionStep: checkCaptionStep,
     circleCentre: circleCentre, chip: chip, ev: ev, errors: errors
   };
+  // P1, P3 and P4 together, for the runs that only vary the input pair.
+  P.stdPanels = function (layer, treeLines) {
+    var panels;
+    scenario("P1 panels", function () {
+      panels = checkPanels(layer);
+      return "one ft-pair-a, ft-pair-b, ft-pair-lens, all before the first edge";
+    });
+    scenario("P3 lens", function () { checkLens(panels); return "lens is the inset intersection"; });
+    scenario("P4 fit", function () {
+      var msg = checkFit(layer);
+      checkCaptionStep(layer, treeLines);
+      return msg;
+    });
+    return panels;
+  };
+  P.expectCaptions = function (layer, want) {
+    var caps = captions(layer).join(" | ");
+    assert(caps === want, "captions are: " + caps);
+    return caps;
+  };
+  P.strokeWidth = function (el) { return parseFloat(cs(el, "strokeWidth")); };
 
   window.addEventListener("load", function () {
     CASES[RUN](P);
@@ -186,6 +207,95 @@ var CASES = {
       });
       document.getElementById("c7x-ser").textContent = parts.join("\n----\n");
       return "serialised " + parts.length + " layers";
+    });
+  },
+
+  r2: function (P) {
+    var layer = document.getElementById("venn-preview");
+    P.hover("venn-composite-dynamic", "overlap");
+    var panels = P.stdPanels(layer, 3);
+    P.scenario("R2 captions", function () {
+      return P.expectCaptions(layer, "72 = 6 × 12 | 60 = 12 × 5 | gcd(72, 60) = 12 | gcd(72, 60) = 12");
+    });
+    P.scenario("R2 rings-and-shared", function () {
+      var rings = P.all(layer, ".ft-fold-ring");
+      P.assert(rings.length === 6, "expected 6 fold rings, found " + rings.length);
+      P.assert(P.all(layer, ".ft-node.prime-leaf").length === 6, "expected 6 prime circles");
+      var shared = P.one(layer, ".ft-node.shared");
+      P.assert(P.label(shared) === "12", "shared circle is " + P.label(shared));
+      var ref = P.refStyle(layer, "stroke:var(--role-active)");
+      P.assert(P.cs(shared, "stroke") === ref.stroke, "composite shared stroke is not --role-active");
+      P.assert(P.cs(shared, "filter") !== "none", "shared circle has no glow");
+      P.assert(P.strokeWidth(shared) === 2.5, "shared stroke width is " + P.strokeWidth(shared));
+      return "6 rings; shared 12 stroked --role-active with glow, width 2.5";
+    });
+    P.scenario("R2 sides", function () {
+      var ra = P.rectOf(panels.a), rb = P.rectOf(panels.b);
+      P.assert(!P.centreIn(P.circleByLabel(layer, "5")[0], ra), "the 5 is inside the yellow panel");
+      var sixes = P.circleByLabel(layer, "6").sort(function (x, y) { return P.circleCentre(x).y - P.circleCentre(y).y; });
+      P.assert(!P.centreIn(sixes[0], rb), "a's 6 is inside the blue panel");
+      return "5 off the yellow panel, a's 6 off the blue panel";
+    });
+  },
+
+  r3: function (P) {
+    var layer = document.getElementById("venn-preview");
+    P.hover("venn-composite-dynamic", "overlap");
+    var panels = P.stdPanels(layer, 2);
+    P.scenario("R3 shape", function () {
+      P.expectCaptions(layer, "36 = 12 × 3 | gcd(12, 36) = 12 | gcd(12, 36) = 12");
+      var roots = P.all(layer, ".ft-node.root");
+      P.assert(roots.length === 1 && P.label(roots[0]) === "36", "roots: " + roots.map(P.label).join());
+      var ra = P.rectOf(panels.a), rb = P.rectOf(panels.b), rl = P.rectOf(panels.lens);
+      P.assert(P.inside(ra, rb), "the yellow panel is not within the blue panel");
+      P.assert(P.sameRect(rl, { x0: ra.x0 + 1, y0: ra.y0 + 1, x1: ra.x1 - 1, y1: ra.y1 - 1 }), "lens is not the yellow panel inset by 1");
+      return "one root 36, yellow within blue, lens = yellow inset 1";
+    });
+  },
+
+  r4: function (P) {
+    var layer = document.getElementById("venn-preview");
+    P.hover("venn-composite-dynamic", "overlap");
+    var panels = P.stdPanels(layer, 3);
+    P.scenario("R4 coprime", function () {
+      P.expectCaptions(layer, "35 = 35 × 1 | 12 = 1 × 12 | gcd(35, 12) = 1 | gcd(35, 12) = 1");
+      var ones = P.all(layer, ".ft-node.one");
+      P.assert(ones.length === 1, "expected one 1 circle, found " + ones.length);
+      var one = ones[0];
+      P.assert(one.classList.contains("shared") && P.label(one) === "1", "the 1 is not the shared circle");
+      P.assert(P.inside(P.rectOf(one), P.rectOf(panels.lens)), "the shared 1 is not inside the lens");
+      var ref = P.refStyle(layer, "stroke:var(--role-active)");
+      P.assert(P.cs(one, "stroke") === ref.stroke, "shared 1 is not stroked --role-active");
+      P.assert(P.cs(one, "filter") !== "none", "shared 1 has no glow");
+      return "single shared 1 in the lens, stroked --role-active with glow";
+    });
+  },
+
+  r5: function (P) {
+    var layer = document.getElementById("venn-preview");
+    P.hover("venn-composite-dynamic", "overlap");
+    var panels = P.stdPanels(layer, 1);
+    P.scenario("R5 equal", function () {
+      P.expectCaptions(layer, "gcd(36, 36) = 36 | gcd(36, 36) = 36");
+      var ra = P.rectOf(panels.a), rb = P.rectOf(panels.b), rl = P.rectOf(panels.lens);
+      P.assert(P.sameRect(ra, rb), "the two panels differ");
+      P.assert(P.sameRect(rl, { x0: ra.x0 + 1, y0: ra.y0 + 1, x1: ra.x1 - 1, y1: ra.y1 - 1 }), "lens is not the panel inset by 1");
+      var shared = P.one(layer, ".ft-node.shared");
+      P.assert(P.label(shared) === "36", "shared circle is " + P.label(shared));
+      return "identical panels, lens = panel inset 1, shared 36";
+    });
+  },
+
+  r6: function (P) {
+    var layer = document.getElementById("venn-preview");
+    P.hover("venn-composite-dynamic", "overlap");
+    P.scenario("R6 rtl", function () {
+      P.assert(document.documentElement.dir === "rtl", "dir is '" + document.documentElement.dir + "'");
+      return "dir=rtl";
+    });
+    P.stdPanels(layer, 3);
+    P.scenario("R6 captions", function () {
+      return P.expectCaptions(layer, "30 = 6 × 5 | 35 = 5 × 7 | gcd(30, 35) = 5 | gcd(30, 35) = 5");
     });
   },
 
@@ -236,6 +346,63 @@ var CASES = {
       P.assert(P.cs(l, "fill") === yl.fill && P.cs(l, "stroke") === yl.stroke, "lens colours differ");
       return "panel and lens colours equal the Factor Tree expressions";
     });
+    P.scenario("R1 rings", function () {
+      var rings = P.all(layer, ".ft-fold-ring");
+      P.assert(rings.length === 4, "expected 4 fold rings, found " + rings.length);
+      var ref = P.refStyle(layer, "stroke:var(--role-composite)");
+      var order = P.all(layer, "*");
+      var primes = P.all(layer, ".ft-node.prime-leaf");
+      P.assert(primes.length === 4, "expected 4 prime circles, found " + primes.length);
+      rings.forEach(function (ring) {
+        var rc = P.circleCentre(ring);
+        var mates = primes.filter(function (c) {
+          var cc = P.circleCentre(c);
+          return P.near(cc.x, rc.x, 0.01) && P.near(cc.y, rc.y, 0.01);
+        });
+        P.assert(mates.length === 1, "a ring is concentric with " + mates.length + " prime circles");
+        var gap = parseFloat(ring.getAttribute("r")) - parseFloat(mates[0].getAttribute("r"));
+        P.assert(gap >= 1.5 && gap <= 2.5, "ring gap is " + gap);
+        P.assert(P.cs(ring, "stroke") === ref.stroke, "ring stroke differs from --role-composite");
+        P.assert(order.indexOf(ring) < order.indexOf(mates[0]), "a ring is drawn after its circle");
+      });
+      return "4 concentric rings, gap 1.5-2.5, --role-composite stroke, drawn before their circles";
+    });
+    P.scenario("R1 shared-prime", function () {
+      var shared = P.one(layer, ".ft-node.shared");
+      var plain = P.circleByLabel(layer, "2", ".ft-node.prime-leaf")[0];
+      P.assert(P.cs(shared, "stroke") === P.cs(plain, "stroke"), "shared prime keeps its own outline: " + P.cs(shared, "stroke") + " vs " + P.cs(plain, "stroke"));
+      P.assert(P.cs(shared, "filter") !== "none", "shared prime has no glow");
+      P.assert(P.strokeWidth(shared) === 2.5, "shared stroke width is " + P.strokeWidth(shared));
+      return "shared 5 keeps the prime outline, with the width and glow";
+    });
+    P.scenario("R1 composite-tokens", function () {
+      var fill = P.refStyle(layer, "fill:var(--role-composite)").fill;
+      var ink = P.refStyle(layer, "fill:var(--role-composite-ink)").fill;
+      var circles = P.all(layer, ".ft-node.root, .ft-node.internal");
+      P.assert(circles.length >= 2, "no composite circles");
+      circles.forEach(function (c) {
+        P.assert(P.cs(c, "fill") === fill, "composite fill differs");
+        P.assert(P.cs(c.nextElementSibling, "fill") === ink, "composite label ink differs");
+      });
+      return circles.length + " composite circles use --role-composite / --role-composite-ink";
+    });
+    P.scenario("R1 pairwise-chip", function () {
+      P.reset(P.chip("venn-composite-dynamic", "overlap"));
+      // The three-circle frame is hidden (so unmeasurable) until its mode is on.
+      document.getElementById("mode-three").click();
+      P.hover("venn3-composite-dynamic", "ab");
+      var l3 = document.getElementById("venn3-preview");
+      P.checkPanels(l3);
+      var caps = P.captions(l3);
+      var treeLines = caps.length - 1;
+      P.assert(treeLines >= 1 && treeLines <= 3, "tree caption lines: " + treeLines);
+      P.assert(/^gcd\(\d+, \d+\) = \d+$/.test(caps[treeLines - 1]), "last tree caption is " + caps[treeLines - 1]);
+      var msg = P.checkFit(l3);
+      P.checkLens({ a: P.one(l3, ".ft-pair-a"), b: P.one(l3, ".ft-pair-b"), lens: P.one(l3, ".ft-pair-lens") });
+      P.reset(P.chip("venn3-composite-dynamic", "ab"));
+      document.getElementById("mode-two").click();
+      return caps.join(" | ") + "; " + msg;
+    });
     P.scenario("P7 single", function () {
       P.reset(P.chip("venn-composite-dynamic", "overlap"));
       P.hover("venn-circles-dynamic", "circle-a");
@@ -250,14 +417,24 @@ var CASES = {
   }
 };
 
-var RUN_ORDER = ["base", "r1"];
+var RUN_ORDER = ["base", "r1", "r2", "r3", "r4", "r5", "r6"];
 var RUN_QUERY = {
   base: "?a=30&b=35&lang=en",
-  r1: "?a=30&b=35&lang=en"
+  r1: "?a=30&b=35&lang=en",
+  r2: "?a=72&b=60&lang=en",
+  r3: "?a=12&b=36&lang=en",
+  r4: "?a=35&b=12&lang=en",
+  r5: "?a=36&b=36&lang=en",
+  r6: "?a=30&b=35&lang=ar"
 };
 var EXPECT = {
   base: ["B0", "Z"],
-  r1: ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "Z"]
+  r1: ["P1", "P2", "P3", "P4", "P5", "P6", "R1 rings", "R1 shared-prime", "R1 composite-tokens", "R1 pairwise-chip", "P7", "Z"],
+  r2: ["P1", "P3", "P4", "R2 captions", "R2 rings-and-shared", "R2 sides", "Z"],
+  r3: ["P1", "P3", "P4", "R3 shape", "Z"],
+  r4: ["P1", "P3", "P4", "R4 coprime", "Z"],
+  r5: ["P1", "P3", "P4", "R5 equal", "Z"],
+  r6: ["R6 rtl", "P1", "P3", "P4", "R6 captions", "Z"]
 };
 
 /* ---------- node-side runner ---------- */

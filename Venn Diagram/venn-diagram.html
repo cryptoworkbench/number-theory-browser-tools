@@ -440,12 +440,17 @@
   /* Balanced (Fermat's Method) factor tree preview -- token-only, scoped
      under .nested-preview so it cannot leak onto anything else on the page. */
   .nested-preview .ft-edge{ stroke:var(--text-dim); stroke-width:1.2; }
-  .nested-preview .ft-node.root, .nested-preview .ft-node.internal{ fill:var(--role-input); stroke:var(--role-input); }
+  .nested-preview .ft-node.root, .nested-preview .ft-node.internal{ fill:var(--role-composite); stroke:var(--role-composite); }
   .nested-preview .ft-node.prime-leaf{ fill:var(--role-result); stroke:var(--role-result); }
   .nested-preview .ft-node.one{ fill:color-mix(in srgb, var(--role-inert) 55%, transparent); stroke:var(--role-inert); }
-  .nested-preview .ft-node.shared{ stroke:var(--role-active); stroke-width:2.5; }
+  .nested-preview .ft-node.shared{ stroke:var(--role-active); stroke-width:2.5; filter:drop-shadow(0 0 3px color-mix(in srgb, var(--role-active) 60%, transparent)); }
+  /* As in Factor Tree, a folded prime's own outline outranks the shared ring
+     colour; the shared width and glow above still apply. */
+  .nested-preview .ft-node.prime-leaf.shared{ stroke:var(--role-result); }
+  .nested-preview .ft-fold-ring{ fill:none; stroke:var(--role-composite); stroke-width:1.1; }
   .nested-preview .ft-label{ font-family:var(--font-sans); font-weight:700; text-anchor:middle; dominant-baseline:central; fill:var(--accent-ink); pointer-events:none; }
   .nested-preview .ft-label.prime-leaf{ fill:var(--role-result-ink); }
+  .nested-preview .ft-label.root, .nested-preview .ft-label.internal{ fill:var(--role-composite-ink); }
   .nested-preview .ft-label.one{ fill:var(--text); opacity:.75; }
 
   /* The A ∩ B pair preview mirrors Factor Tree's gcd pair: a's panel tinted
@@ -1400,7 +1405,8 @@
 
   // Turns every prime split (P = P × 1) in the overlap into a prime leaf.
   // All splits are found before any is folded, so a folded child never
-  // makes its parent look like a split.
+  // makes its parent look like a split. A folded node is marked so it is
+  // drawn with Factor Tree's fold ring.
   function foldPrimeSplits(overlap){
     var splits = [];
     (function find(node){
@@ -1410,6 +1416,7 @@
     splits.forEach(function(node){
       node.children = [];
       node.kind = 'prime-leaf';
+      node.folded = true;
     });
   }
 
@@ -1491,6 +1498,7 @@
     var oneR = Math.max(2.5, r * 0.62);
     var fs = Math.max(5, r * 0.8);
     var oneFs = Math.max(4.5, oneR * 0.85);
+    var ringGap = Math.max(1.5, r * 0.18);
 
     if (overlap){
       // The panel spanning exactly one number's tree, top-aligned at the
@@ -1540,6 +1548,11 @@
       var cx = treeNodeX(node), cy = treeNodeY(node);
       var isOne = node.kind === 'one';
       var nr = isOne ? oneR : r;
+      if (node.folded){
+        host.appendChild(svgEl('circle', {
+          'class': 'ft-fold-ring', cx: cx, cy: cy, r: nr + ringGap
+        }));
+      }
       host.appendChild(svgEl('circle', {
         'class': 'ft-node ' + node.kind + (node.shared ? ' shared' : ''), cx: cx, cy: cy, r: nr
       }));
