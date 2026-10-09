@@ -12,6 +12,27 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Element-order colors. Each class sets one local alias, --ord, built
+        only from var()/color-mix() of the shared --role-* tokens, so the
+        beads, the legend swatches and the day/night themes all stay on the
+        palette. Identity is quiet (--text-dim), the generators are the
+        "answer" hue (--role-result), and the divisors in between walk the
+        remaining roles, ascending. Every one of these is light at night and
+        deep by day, like the role layer itself, so --accent-ink stays
+        readable on all of them. */
+  .ord-id{ --ord: var(--text-dim); }
+  .ord-gen{ --ord: var(--role-result); }
+  .ord-m1{ --ord: var(--role-input); }
+  .ord-m2{ --ord: var(--role-active); }
+  .ord-m3{ --ord: var(--role-alt); }
+  .ord-m4{ --ord: var(--role-special); }
+  .ord-m5{ --ord: color-mix(in srgb, var(--role-input) 50%, var(--role-result)); }
+  .ord-m6{ --ord: color-mix(in srgb, var(--role-active) 50%, var(--role-alt)); }
+  .ord-m7{ --ord: color-mix(in srgb, var(--role-special) 50%, var(--role-input)); }
+  .ord-m8{ --ord: color-mix(in srgb, var(--role-active) 50%, var(--role-result)); }
+  .ord-m9{ --ord: color-mix(in srgb, var(--role-alt) 50%, var(--role-special)); }
+  .ord-m10{ --ord: var(--role-warn); }
+
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
 
@@ -26,6 +47,9 @@
   .eyebrow::first-letter{ text-transform:uppercase; }
   .page-header h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.75rem, 3.4vw, 2.375rem); line-height:1.12; letter-spacing:-.012em; margin:0; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
   .lede{ font-size:1.0625rem; line-height:1.6; color:var(--text-dim); margin:10px 0 0; max-width:72ch; }
+  .xref{ margin:10px 0 0; font-size:13px; }
+  .xref a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .xref a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
 
   /* ---------- mode tabs (same pattern as Cayley Table) ---------- */
   .mode-tabs{ display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--panel-border); }
@@ -60,6 +84,46 @@
   }
   .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
+  .n-note{ font-size:.82rem; color:var(--role-warn); margin:8px 0 0; }
+  .n-note:empty{ display:none; }
+
+  /* ---------- layer toggles ---------- */
+  .check{ display:flex; align-items:flex-start; gap:9px; margin-bottom:8px; font-size:.92rem; }
+  .check:last-child{ margin-bottom:0; }
+  .check input{ margin:3px 0 0; flex:none; accent-color:var(--accent); }
+  .check label{ cursor:pointer; }
+  .check.is-off label{ color:var(--text-dim); opacity:.55; cursor:not-allowed; }
+
+  /* ---------- facts, hint, legend ---------- */
+  .facts{ list-style:none; margin:0; padding:0; }
+  .facts li{ display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-bottom:1px dotted var(--panel-border); font-size:.92rem; }
+  .facts li:last-child{ border-bottom:none; }
+  .fact-label{ color:var(--text-dim); }
+  .fact-value{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right; }
+  .hint{ color:var(--text-dim); font-size:.85rem; line-height:1.5; margin:10px 0 0; }
+
+  .legend{ display:flex; flex-direction:column; gap:7px; transition:opacity .15s; }
+  .legend.is-off{ opacity:.45; }
+  .legend-item{ display:flex; align-items:center; gap:10px; font-size:.9rem; }
+  .legend-swatch{ width:16px; height:16px; border-radius:50%; flex:none; background:var(--ord, var(--text-dim)); border:1px solid color-mix(in srgb, var(--text) 25%, transparent); }
+  .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
+
+  /* ---------- notice for a group with no generator ---------- */
+  .notice{ border-color:color-mix(in srgb, var(--role-special) 55%, var(--panel-border)); background:color-mix(in srgb, var(--role-special) 7%, var(--panel)); }
+  .notice h2{ font-family:var(--font-serif); font-size:1.15rem; font-weight:600; letter-spacing:0; text-transform:none; color:var(--role-special); margin:0 0 8px; }
+  .notice p{ margin:8px 0; line-height:1.55; font-size:.95rem; }
+  .notice code, .fact-value code{ font-family:var(--font-mono); font-size:.9em; background:color-mix(in srgb, var(--text) 8%, transparent); padding:1px 5px; border-radius:4px; }
+
+  /* ---------- export ---------- */
+  .action-btn{
+    font:inherit; font-size:.88rem; font-weight:600; color:var(--text);
+    background:color-mix(in srgb, var(--text) 6%, transparent);
+    border:1px solid var(--panel-border); border-radius:10px; padding:9px 14px; cursor:pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .action-btn:hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
+  .action-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .export-status{ font-size:.82rem; color:var(--text-dim); margin:8px 0 0; min-height:1.1em; overflow-wrap:anywhere; }
 
   /* ---------- the necklace ---------- */
   .guide{ fill:none; stroke:color-mix(in srgb, var(--text-dim) 28%, transparent); stroke-width:1; }
@@ -69,13 +133,20 @@
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
   .bead.is-identity{ stroke:var(--text); }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+  .order-label{ fill:var(--text-dim); font-family:var(--font-mono); font-size:12px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .ring-title{ fill:var(--text); font-family:var(--font-serif); font-size:25px; font-weight:600; text-anchor:middle; }
+  .ring-sub{ fill:var(--accent); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
+  .ring-label{ fill:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600; text-anchor:middle; }
   .ring-note{ fill:var(--text-dim); font-family:var(--font-sans); font-size:13px; text-anchor:middle; }
+
+  @media (prefers-reduced-motion: reduce){
+    .mode-tab, .action-btn, .legend, body{ transition:none; }
+  }
 
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select, .notice code, .fact-value, .legend-count){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -169,6 +240,7 @@
     <p class="eyebrow" data-i18n="cyclicGroups.eyebrow">group theory · generators and orbits</p>
     <h1 data-i18n="cyclicGroups.heading">Cyclic Group Necklace</h1>
     <p class="lede" data-i18n="cyclicGroups.lede">Pick a group. Every element becomes a bead on a ring, equally spaced. Walking by the generator draws the chords, and a generator that reaches every bead is what makes the group cyclic. Groups with no such element are split into the rings they are built from.</p>
+    <p class="xref"><a id="xref-cayley" href="../Cayley Table/cayley-table.html" data-i18n="cyclicGroups.xref">See this group's full operation table in the Cayley Table &rarr;</a></p>
   </header>
 
   <div class="mode-tabs" role="tablist" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.tablistLabel">
@@ -178,6 +250,7 @@
 
   <div class="layout">
     <div class="stage" id="ring-panel" role="tabpanel" aria-labelledby="tab-additive">
+      <section class="panel notice" id="notice" role="note" hidden></section>
       <div class="diagram-frame">
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
@@ -196,6 +269,32 @@
           <label for="gen-select" data-i18n="cyclicGroups.genLabel">Generator</label>
           <select id="gen-select"></select>
         </div>
+        <p class="n-note" id="n-note"></p>
+      </section>
+
+      <section class="panel" id="layers-panel">
+        <h2 data-i18n="cyclicGroups.layersHeading">Layers</h2>
+        <div class="check"><input type="checkbox" id="layer-cord" checked><label for="layer-cord" data-i18n="cyclicGroups.layerCord">Outer cord</label></div>
+        <div class="check"><input type="checkbox" id="layer-chords" checked><label for="layer-chords" data-i18n="cyclicGroups.layerChords">Generator chords</label></div>
+        <div class="check"><input type="checkbox" id="layer-colors" checked><label for="layer-colors" data-i18n="cyclicGroups.layerColors">Subgroup colors</label></div>
+        <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
+        <div class="check" id="bygen-row"><input type="checkbox" id="layer-bygen"><label for="layer-bygen" data-i18n="cyclicGroups.layerBygen">Arrange beads by generator powers</label></div>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="cyclicGroups.factsHeading">This group</h2>
+        <ul class="facts" id="facts"></ul>
+        <p class="hint" id="hint"></p>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="cyclicGroups.legendHeading">Color key: element order</h2>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="panel">
+        <button type="button" class="action-btn" id="export-png" data-i18n="cyclicGroups.exportPng">Download ring PNG</button>
+        <p class="export-status" id="export-status" aria-live="polite"></p>
       </section>
     </aside>
   </div>
@@ -213,46 +312,53 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { clamp, unitsMod } = NT.core;
+const { clamp, primeFactors, unitsMod } = NT.core;
 const { polar, svgEl } = NT.svg;
-const { readModeNParams } = NT.store;
-const { onLangChange, translate } = NT.i18n;
+const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
+const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
 /* ---------- constants ---------- */
 var MIN_N = 2;
 var MAX_N = 100;
 
-// The necklace canvas: a 760 x 760 box, ring centred a little below the
-// middle so the title has room above and the footnote below.
+// The necklace canvas: a 760-wide box. A single necklace is square, with the
+// ring centred a little below the middle so the title has room above and the
+// footnote below; the factor rings of a non-cyclic group use a taller box.
 var SIZE = 760;
 var RING = { cx: 380, cy: 388, R: 285 };
+
+// The five layers double as the URL parameter names and, with the layer-
+// prefix, as the checkbox ids.
+var FLAGS = ['cord', 'chords', 'colors', 'orders', 'bygen'];
 
 /* ---------- state ---------- */
 // gen is remembered while the current group has no generator, so a visit to a
 // non-cyclic modulus and back does not forget the learner's choice.
-var state = { mode: 'additive', n: 12, gen: 5 };
-
-// A ?mode=&n= deep link (the shape Cayley Table and Equivalence Wheel use)
-// replaces the default group; ?gen= is honored later by syncGenerators only
-// when it is a real generator of that group.
-(function readLink(){
-  var link = readModeNParams();
-  if (link){
-    state.mode = link.mode;
-    state.n = clamp(link.n, MIN_N, MAX_N);
-  }
-  var g = parseInt(new URLSearchParams(location.search).get('gen'), 10);
-  if (isFinite(g)) state.gen = g;
-})();
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, chords: true, colors: true, orders: false, bygen: false };
 
 /* ---------- DOM references ---------- */
 var $ = function(id){ return document.getElementById(id); };
 var nInputEl = $('n-input');
+var nNoteEl = $('n-note');
 var genSelectEl = $('gen-select');
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
 var ringPanelEl = $('ring-panel');
+var noticeEl = $('notice');
+var factsEl = $('facts');
+var hintEl = $('hint');
+var legendEl = $('legend');
+var bygenRowEl = $('bygen-row');
+var cayleyLinkEl = $('xref-cayley');
+var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
+var exportBtnEl = $('export-png');
+var exportStatusEl = $('export-status');
 var modeTabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
+
+// What the last typed n said and what the last export said, tracked so a
+// language switch can re-say them without redoing the work.
+var nNoteShown = false;
+var lastExport = null; // { key, params } | null
 
 /* ---------- group maths (page-specific) ---------- */
 
@@ -277,7 +383,8 @@ function buildGroup(mode, n){
     label: multiplicative ? '(Z/' + n + ')*' : 'Z/' + n,
     combine: function(a, b){ return multiplicative ? (a * b) % n : (a + b) % n; },
     orders: {},
-    generators: []
+    generators: [],
+    longest: 1
   };
   els.forEach(function(a){
     var x = a;
@@ -288,6 +395,7 @@ function buildGroup(mode, n){
     }
     G.orders[a] = steps;
     if (steps === G.order) G.generators.push(a);
+    if (steps > G.longest) G.longest = steps;
   });
   G.cyclic = G.generators.length > 0;
   return G;
@@ -305,13 +413,94 @@ function lap(G, gen, len){
   return seq;
 }
 
+function divisorsOf(m){
+  var out = [];
+  for (var d = 1; d <= m; d++) if (m % d === 0) out.push(d);
+  return out;
+}
+
+// One CSS class per element order present in a group: the identity's order
+// 1 is --text-dim, an order equal to the group order (the generators) is the
+// result hue, and the divisors in between take ord-m1, ord-m2, ... ascending.
+// A group of order 1 has only the identity, which keeps ord-id. At most ten
+// middle divisors occur for n up to 100.
+function orderClasses(groupOrder){
+  var map = {};
+  var middle = 0;
+  divisorsOf(groupOrder).forEach(function(d){
+    if (d === 1) map[d] = 'ord-id';
+    else if (d === groupOrder) map[d] = 'ord-gen';
+    else { middle++; map[d] = 'ord-m' + middle; }
+  });
+  return map;
+}
+
+// Smallest x in 0..n-1 that is g modulo q and 1 modulo the rest of n. Such an
+// x has, in (Z/n)*, the same order that g has in (Z/q)*.
+function liftToModulus(g, q, n){
+  var rest = n / q;
+  for (var x = 0; x < n; x++){
+    if (x % q === g % q && x % rest === 1 % rest) return x;
+  }
+  return 1;
+}
+
+// The cyclic factors (Z/n)* is built from, each with a generator that is a
+// real unit mod n. Odd prime power p^k: one factor of order p^(k-1)(p-1),
+// generated by the smallest element of maximal order. Factor 2: none.
+// Factor 4: one factor of order 2 generated by 3. Factor 2^k, k >= 3: a
+// factor of order 2 generated by -1 and a factor of order 2^(k-2) by 5.
+function unitFactors(n){
+  var powers = [];
+  primeFactors(n).forEach(function(p){
+    var last = powers[powers.length - 1];
+    if (last && last.p === p) last.k++;
+    else powers.push({ p: p, k: 1 });
+  });
+  var parts = [];
+  powers.forEach(function(f){
+    var q = Math.pow(f.p, f.k);
+    if (f.p === 2){
+      if (f.k === 2) parts.push({ q: q, order: 2, g: 3 });
+      else if (f.k >= 3){
+        parts.push({ q: q, order: 2, g: q - 1 });
+        parts.push({ q: q, order: Math.pow(2, f.k - 2), g: 5 });
+      }
+      return;
+    }
+    var sub = buildGroup('multiplicative', q);
+    parts.push({ q: q, order: sub.order, g: sub.generators[0] });
+  });
+  return parts.map(function(pt){
+    return { order: pt.order, gen: liftToModulus(pt.g, pt.q, n) };
+  });
+}
+
+function factorNotation(factors){
+  return factors.map(function(f){ return 'Z/' + f.order; }).join(' × ');
+}
+
+// Exactly one reason why (Z/n)* has no generator, as a dictionary key.
+function whyNotCyclicKey(n){
+  var odd = n;
+  while (odd % 2 === 0) odd /= 2;
+  if (odd === 1) return 'cyclicGroups.notice.whyPowerOfTwo';
+  if (n % 4 === 0) return 'cyclicGroups.notice.whyFourAndOdd';
+  return 'cyclicGroups.notice.whyTwoOddPrimes';
+}
+
 /* ---------- drawing ---------- */
 
 function num(v){ return Math.round(v * 1000) / 1000; }
 
-function drawRing(parent, G, beads, gen, box){
+function beadRadius(m, R){ return Math.max(3.5, Math.min(21, 1.5 * R / m)); }
+
+// One ring of beads. beads is the element at each position, in ring order;
+// step is the element the chords walk by. The chord path and the arrowheads
+// sit under the beads, the labels over them.
+function drawRing(parent, G, beads, step, box, classes){
   var m = beads.length;
-  var beadR = Math.max(3.5, Math.min(21, 1.5 * box.R / m));
+  var beadR = beadRadius(m, box.R);
   var place = {};
   beads.forEach(function(a, i){ place[a] = i; });
   function at(i){ return polar(box.cx, box.cy, box.R, 360 * i / m); }
@@ -319,7 +508,7 @@ function drawRing(parent, G, beads, gen, box){
   var ring = svgEl('g', { 'class': 'ring' });
   ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
 
-  if (m > 1){
+  if (state.cord && m > 1){
     var pts = [];
     for (var i = 0; i < m; i++){
       var p = at(i);
@@ -331,8 +520,8 @@ function drawRing(parent, G, beads, gen, box){
     }));
   }
 
-  if (m > 1){
-    var seq = lap(G, gen, m);
+  if (state.chords && m > 1){
+    var seq = lap(G, step, m);
     var d = '';
     for (var k = 0; k <= m; k++){
       var q = at(place[seq[k % m]]);
@@ -364,8 +553,12 @@ function drawRing(parent, G, beads, gen, box){
 
   beads.forEach(function(a, i){
     var p = at(i);
-    var cls = 'bead' + (a === G.identity ? ' is-identity' : '');
-    var attrs = { 'class': cls, cx: num(p[0]), cy: num(p[1]), r: num(beadR), 'data-el': a, 'data-order': G.orders[a] };
+    var colorClass = state.colors ? classes[G.orders[a]] : 'ord-id';
+    var attrs = {
+      'class': 'bead ' + colorClass + (a === G.identity ? ' is-identity' : ''),
+      cx: num(p[0]), cy: num(p[1]), r: num(beadR),
+      'data-el': a, 'data-order': G.orders[a]
+    };
     if (a === G.identity) attrs['stroke-width'] = 3;
     ring.appendChild(svgEl('circle', attrs));
   });
@@ -379,7 +572,17 @@ function drawRing(parent, G, beads, gen, box){
     });
   }
 
+  if (state.orders && m <= 60 && beadR >= 7){
+    beads.forEach(function(a, i){
+      var p = polar(box.cx, box.cy, box.R + beadR + 15, 360 * i / m);
+      var label = svgEl('text', { 'class': 'order-label', x: num(p[0]), y: num(p[1]) });
+      label.textContent = String(G.orders[a]);
+      ring.appendChild(label);
+    });
+  }
+
   parent.appendChild(ring);
+  return ring;
 }
 
 function drawText(cls, x, y, text){
@@ -388,18 +591,52 @@ function drawText(cls, x, y, text){
   return t;
 }
 
-function drawNecklace(G){
+// A cyclic group: one necklace.
+function drawNecklace(G, classes){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
-  ringDynamicEl.replaceChildren();
-  if (!G.cyclic) return;
   ringDynamicEl.appendChild(drawText('ring-title', SIZE / 2, 44,
     translate('cyclicGroups.ringTitle', { group: G.label, g: state.gen, order: G.order })));
-  drawRing(ringDynamicEl, G, G.els.slice(), state.gen, RING);
-  ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14,
-    translate('cyclicGroups.ringFootnote', { id: G.identity })));
+  var beads = state.bygen ? lap(G, state.gen, G.order) : G.els.slice();
+  drawRing(ringDynamicEl, G, beads, state.gen, RING, classes);
+  var noteKey = state.orders ? 'cyclicGroups.ringFootnoteOrders' : 'cyclicGroups.ringFootnote';
+  ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate(noteKey, { id: G.identity })));
 }
 
-/* ---------- generator select ---------- */
+// A group with no generator: one ring per cyclic factor, up to two a row.
+function drawFactorRings(G, classes, factors){
+  var cols = Math.min(factors.length, 2);
+  var rows = Math.ceil(factors.length / cols);
+  var cellW = SIZE / cols;
+  var cellH = 320;
+  var height = 96 + rows * cellH + 46;
+  ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + height);
+
+  ringDynamicEl.appendChild(drawText('ring-title', SIZE / 2, 42,
+    translate('cyclicGroups.notCyclicTitle', { group: G.label })));
+  ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, 74,
+    translate('cyclicGroups.builtFrom', { factors: factorNotation(factors) })));
+
+  factors.forEach(function(f, i){
+    var row = Math.floor(i / cols);
+    var inRow = Math.min(cols, factors.length - row * cols);
+    var box = {
+      cx: (SIZE - inRow * cellW) / 2 + (i % cols) * cellW + cellW / 2,
+      cy: 96 + row * cellH + cellH / 2 - 16,
+      R: Math.min(cellW, cellH) * 0.33 * Math.min(1, 0.5 + f.order * 0.09)
+    };
+    var ring = drawRing(ringDynamicEl, G, lap(G, f.gen, f.order), f.gen, box, classes);
+    ring.setAttribute('class', 'ring factor-ring');
+    ring.setAttribute('data-order', f.order);
+    ring.setAttribute('data-gen', f.gen);
+    ringDynamicEl.appendChild(drawText('ring-label', box.cx, box.cy + box.R + 44,
+      translate('cyclicGroups.factorRingLabel', { order: f.order, g: f.gen })));
+  });
+
+  ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, height - 16,
+    translate('cyclicGroups.factorFootnote', { group: G.label, n: G.n })));
+}
+
+/* ---------- side panels ---------- */
 
 function syncGenerators(G){
   genSelectEl.replaceChildren();
@@ -424,16 +661,140 @@ function syncGenerators(G){
   genSelectEl.value = String(state.gen);
 }
 
+function codeNode(text){
+  var code = document.createElement('code');
+  code.textContent = String(text);
+  return code;
+}
+
+// The explanation for a multiplicative group with no generator. Each sentence
+// is one whole template; notation and numbers go in as <code> nodes.
+function renderNotice(G, factors){
+  noticeEl.replaceChildren();
+  noticeEl.hidden = G.cyclic;
+  if (G.cyclic) return;
+  var heading = document.createElement('h2');
+  translateInto(heading, 'cyclicGroups.notice.heading', { group: codeNode(G.label) });
+  var body = document.createElement('p');
+  translateInto(body, 'cyclicGroups.notice.body', {
+    count: codeNode(G.order), longest: codeNode(G.longest), factors: codeNode(factorNotation(factors))
+  });
+  var why = document.createElement('p');
+  translateInto(why, whyNotCyclicKey(G.n), { n: codeNode(G.n) });
+  var rule = document.createElement('p');
+  translateInto(rule, 'cyclicGroups.notice.rule');
+  noticeEl.appendChild(heading);
+  noticeEl.appendChild(body);
+  noticeEl.appendChild(why);
+  noticeEl.appendChild(rule);
+}
+
+function addFact(labelKey, value){
+  var li = document.createElement('li');
+  var label = document.createElement('span');
+  label.className = 'fact-label';
+  label.textContent = translate(labelKey);
+  var val = document.createElement('span');
+  val.className = 'fact-value';
+  val.textContent = value;
+  li.appendChild(label);
+  li.appendChild(val);
+  factsEl.appendChild(li);
+}
+
+function renderFacts(G, factors){
+  factsEl.replaceChildren();
+  addFact('cyclicGroups.fact.group', G.label);
+  addFact('cyclicGroups.fact.elements', String(G.order));
+  addFact('cyclicGroups.fact.identity', String(G.identity));
+  addFact('cyclicGroups.fact.generators', G.cyclic
+    ? translate('cyclicGroups.factGeneratorsCount', { count: G.generators.length, order: G.order })
+    : translate('cyclicGroups.factGeneratorsNone'));
+  addFact('cyclicGroups.fact.structure', G.cyclic ? 'Z/' + G.order : factorNotation(factors));
+
+  var labelsDropped = G.cyclic && beadRadius(G.order, RING.R) < 9;
+  if (!G.cyclic) hintEl.textContent = translate('cyclicGroups.hint.notCyclic');
+  else if (labelsDropped) hintEl.textContent = translate('cyclicGroups.hint.noLabels');
+  else if (G.mode === 'multiplicative') hintEl.textContent = translate('cyclicGroups.hint.multiplicative', { n: G.n, g: state.gen });
+  else hintEl.textContent = translate('cyclicGroups.hint.additive', { n: G.n, g: state.gen });
+}
+
+function renderLegend(G, classes){
+  legendEl.replaceChildren();
+  legendEl.classList.toggle('is-off', !state.colors);
+  var counts = {};
+  G.els.forEach(function(a){ counts[G.orders[a]] = (counts[G.orders[a]] || 0) + 1; });
+  Object.keys(counts).map(Number).sort(function(a, b){ return a - b; }).forEach(function(o){
+    var item = document.createElement('div');
+    item.className = 'legend-item';
+    item.setAttribute('data-order', o);
+    item.setAttribute('data-count', counts[o]);
+    var swatch = document.createElement('span');
+    swatch.className = 'legend-swatch ' + classes[o];
+    var text = document.createElement('span');
+    text.className = 'legend-order';
+    text.textContent = translate('cyclicGroups.legendOrder', { order: o });
+    var count = document.createElement('span');
+    count.className = 'legend-count';
+    count.textContent = translate('cyclicGroups.legendBeads', { count: counts[o] });
+    item.appendChild(swatch);
+    item.appendChild(text);
+    item.appendChild(count);
+    legendEl.appendChild(item);
+  });
+}
+
+function renderNNote(){
+  nNoteEl.textContent = nNoteShown ? translate('cyclicGroups.nNoteClamped', { n: state.n }) : '';
+}
+
+// The Cayley Table opens on the same group; the language rides along the way
+// every other same-site link carries it. The link's own markup supplies the
+// path, so only the query is rebuilt here.
+function syncCayleyLink(){
+  var query = new URLSearchParams({ mode: state.mode, n: String(state.n), lang: getLang() });
+  cayleyLinkEl.href = cayleyPath + '?' + query.toString();
+}
+
+// Mirror every control into the address bar, keeping foreign parameters
+// (theme, for one) where they are. A throttled or blocked write is skipped.
+function mirrorToUrl(G){
+  try {
+    var q = new URLSearchParams(location.search);
+    q.set('mode', state.mode);
+    q.set('n', String(state.n));
+    if (G.cyclic) q.set('gen', String(state.gen));
+    else q.delete('gen');
+    FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
+    history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
+  } catch (e) { /* the address bar is a convenience, never a requirement */ }
+}
+
 /* ---------- render ---------- */
 
 function render(){
   var G = buildGroup(state.mode, state.n);
+  var classes = orderClasses(G.order);
+  var factors = G.cyclic ? [] : unitFactors(G.n);
+
   syncGenerators(G);
   ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
-  drawNecklace(G);
+  ringDynamicEl.replaceChildren();
+  if (G.cyclic) drawNecklace(G, classes);
+  else drawFactorRings(G, classes, factors);
+
+  bygenRowEl.classList.toggle('is-off', !G.cyclic);
+  $('layer-bygen').disabled = !G.cyclic;
+  renderNotice(G, factors);
+  renderFacts(G, factors);
+  renderLegend(G, classes);
+  renderNNote();
+  renderExportStatus();
+  syncCayleyLink();
+  mirrorToUrl(G);
 }
 
-/* ---------- mode tabs ---------- */
+/* ---------- controls <-> state ---------- */
 
 function syncTabs(){
   for (var t = 0; t < modeTabs.length; t++){
@@ -446,26 +807,138 @@ function syncTabs(){
   }
 }
 
+function syncControls(){
+  nInputEl.value = state.n;
+  FLAGS.forEach(function(name){ $('layer-' + name).checked = state[name]; });
+  syncTabs();
+}
+
+// The shared group-params store is the contract with Cayley Table and
+// Equivalence Wheel: a user-initiated mode or n change writes it, a received
+// change (storage event) never does.
+function persistGroup(){
+  writeSharedGroup(state.mode, state.n);
+}
+
 function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
   syncTabs();
+  persistGroup();
   render();
+}
+
+function applyTypedN(raw){
+  var v = parseInt(raw, 10);
+  if (!isFinite(v)) return;
+  state.n = clamp(v, MIN_N, MAX_N);
+  nNoteShown = state.n !== v;
+  persistGroup();
+  render();
+}
+
+/* ---------- ring PNG export ---------- */
+
+var PAINT_PROPS = ['fill', 'stroke', 'stroke-width', 'stroke-linejoin', 'stroke-linecap', 'opacity', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline'];
+
+// The webfonts never load inside a standalone image, so text falls back to a
+// portable stack chosen by the generic family the page resolved. Family names
+// are case-insensitive, so the stacks are written as plain lowercase lists.
+function portableFont(resolved){
+  if (/monospace\s*$/.test(resolved)) return ['courier new', 'courier', 'monospace'].join(', ');
+  if (/sans-serif\s*$/.test(resolved)) return ['arial', 'helvetica', 'sans-serif'].join(', ');
+  return ['georgia', 'times new roman', 'serif'].join(', ');
+}
+
+// A standalone copy of the live ring: every element carries the paint the
+// browser resolved for it (so the active theme's tokens are baked in), under
+// an opaque background in the page's own background color.
+function snapshotRing(){
+  var clone = ringSvgEl.cloneNode(true);
+  var liveNodes = ringSvgEl.querySelectorAll('*');
+  var cloneNodes = clone.querySelectorAll('*');
+  for (var i = 0; i < liveNodes.length; i++){
+    var resolved = getComputedStyle(liveNodes[i]);
+    for (var p = 0; p < PAINT_PROPS.length; p++){
+      var value = resolved.getPropertyValue(PAINT_PROPS[p]);
+      if (value) cloneNodes[i].setAttribute(PAINT_PROPS[p], value);
+    }
+    if (liveNodes[i].tagName.toLowerCase() === 'text'){
+      cloneNodes[i].setAttribute('font-family', portableFont(resolved.getPropertyValue('font-family')));
+    }
+  }
+  var box = ringSvgEl.viewBox.baseVal;
+  clone.insertBefore(svgEl('rect', {
+    x: 0, y: 0, width: box.width, height: box.height,
+    fill: getComputedStyle(document.body).backgroundColor
+  }), clone.firstChild);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', box.width);
+  clone.setAttribute('height', box.height);
+  clone.removeAttribute('id');
+  clone.removeAttribute('role');
+  clone.removeAttribute('aria-label');
+  return { markup: new XMLSerializer().serializeToString(clone), width: box.width, height: box.height };
+}
+
+function exportName(){
+  var tail = state.mode === 'additive' ? 'add' : 'mul';
+  var parts = ['cyclic-group', tail, state.n];
+  if (buildGroup(state.mode, state.n).cyclic) parts.push('gen', state.gen);
+  else parts.push('factors');
+  return parts.join('-') + '.png';
+}
+
+function renderExportStatus(){
+  exportStatusEl.textContent = lastExport ? translate(lastExport.key, lastExport.params) : '';
+}
+
+function noteExport(key, params){
+  lastExport = { key: key, params: params || null };
+  renderExportStatus();
+}
+
+function saveBlob(blob, filename){
+  var href = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = href;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function(){ URL.revokeObjectURL(href); }, 0);
+}
+
+function exportRingPng(){
+  var failed = function(){ noteExport('cyclicGroups.exportFailed'); };
+  try {
+    var shot = snapshotRing();
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var surface = document.createElement('canvas');
+        surface.width = shot.width * 2;
+        surface.height = shot.height * 2;
+        surface.getContext('2d').drawImage(img, 0, 0, surface.width, surface.height);
+        var filename = exportName();
+        surface.toBlob(function(blob){
+          if (!blob){ failed(); return; }
+          saveBlob(blob, filename);
+          noteExport('cyclicGroups.exportSaved', { filename: filename });
+        }, 'image/png');
+      } catch (e) { failed(); }
+    };
+    img.onerror = failed;
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(shot.markup);
+  } catch (e) { failed(); }
 }
 
 /* ---------- event wiring ---------- */
 
-nInputEl.addEventListener('input', function(){
-  var v = parseInt(nInputEl.value, 10);
-  if (!isFinite(v)) return;
-  state.n = clamp(v, MIN_N, MAX_N);
-  render();
-});
+nInputEl.addEventListener('input', function(){ applyTypedN(nInputEl.value); });
 nInputEl.addEventListener('change', function(){
-  var v = parseInt(nInputEl.value, 10);
-  state.n = clamp(isFinite(v) ? v : state.n, MIN_N, MAX_N);
+  applyTypedN(nInputEl.value);
   nInputEl.value = state.n;
-  render();
 });
 genSelectEl.addEventListener('change', function(){
   var g = parseInt(genSelectEl.value, 10);
@@ -473,6 +946,13 @@ genSelectEl.addEventListener('change', function(){
   state.gen = g;
   render();
 });
+FLAGS.forEach(function(name){
+  $('layer-' + name).addEventListener('change', function(){
+    state[name] = $('layer-' + name).checked;
+    render();
+  });
+});
+exportBtnEl.addEventListener('click', exportRingPng);
 
 for (var ti = 0; ti < modeTabs.length; ti++){
   (function(tab){
@@ -489,16 +969,61 @@ for (var ti = 0; ti < modeTabs.length; ti++){
   })(modeTabs[ti]);
 }
 
+// A change written by a sibling tool (or another tab) arrives as a storage
+// event. Re-read through readSharedGroup so there is one parsing and
+// validation path. This handler never writes the store: a received change
+// must not be written back, or two open tools could ping-pong.
+window.addEventListener('storage', function(e){
+  if (e.key !== SHARED_GROUP_KEY) return;
+  var incoming = readSharedGroup(e.newValue);
+  if (!incoming) return;
+  var n = clamp(incoming.N, MIN_N, MAX_N);
+  if (incoming.mode === state.mode && n === state.n) return;
+  state.mode = incoming.mode;
+  state.n = n;
+  nNoteShown = false;
+  syncControls();
+  render();
+});
+
 /* ---------- i18n re-render ---------- */
 
 // Re-renders every JS-owned piece of text from the current state; no state
-// changes, so the generator choice and the typed n survive a language switch.
+// changes, so the generator choice, the layers and the typed n survive a
+// language switch.
 onLangChange(render);
 
 /* ---------- start ---------- */
 
-nInputEl.value = state.n;
-syncTabs();
+// Load order: an explicit ?mode=&n= link wins and is shared on; otherwise the
+// shared group, display-only (a clamped read is never written back); otherwise
+// the defaults. The generator and the five layers come from the query string
+// alone: a generator only if it really generates the group, a layer only on
+// exactly 0 or 1.
+(function loadState(){
+  var link = readModeNParams();
+  if (link){
+    state.mode = link.mode;
+    state.n = clamp(link.n, MIN_N, MAX_N);
+    persistGroup();
+  } else {
+    var shared = readSharedGroup();
+    if (shared){
+      state.mode = shared.mode;
+      state.n = clamp(shared.N, MIN_N, MAX_N);
+    }
+  }
+  var query = new URLSearchParams(location.search);
+  FLAGS.forEach(function(name){
+    var raw = query.get(name);
+    if (raw === '0') state[name] = false;
+    else if (raw === '1') state[name] = true;
+  });
+  var wanted = parseInt(query.get('gen'), 10);
+  if (isFinite(wanted) && buildGroup(state.mode, state.n).generators.indexOf(wanted) !== -1) state.gen = wanted;
+})();
+
+syncControls();
 render();
 
 })();
