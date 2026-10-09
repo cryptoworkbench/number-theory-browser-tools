@@ -105,7 +105,7 @@
       'hint.noLabels': 'The elements are too small for number labels here; the pattern still shows.',
       'hint.multiplicative': 'The elements are the numbers below {n} that share no factor with it. Stepping means multiplying by {g} mod {n}.',
       'hint.additive': 'Stepping means adding {g} mod {n}.',
-      'hint.mirror': 'Inverses mirror each other across the dashed axis through the identity; an element on the axis is its own inverse.',
+      'hint.mirror': 'Inverses mirror each other across the dashed axis through the identity; the element on the axis is its own inverse.',
       'hint.mirrorOffSorted': 'The elements are sorted by value, so inverses do not mirror here.',
       'hint.mirrorOff': 'In this order the elements are sorted by value, so inverses do not mirror. Turn on “Arrange elements by generator powers” to see them mirror across the axis through the identity.',
       legendHeading: 'Color key: subgroup cardinality',
