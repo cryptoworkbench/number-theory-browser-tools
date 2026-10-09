@@ -106,7 +106,7 @@
       'hint.mirrorOffSorted': 'The elements are sorted by value, so inverses do not mirror here.',
       'hint.mirrorOff': 'In this order the elements are sorted by value, so inverses do not mirror. Turn on “Arrange elements by generator powers” to see them mirror across the axis through the identity.',
       legendHeading: 'Color key: subgroup cardinality',
-      legendOrder: 'Subgroup cardinality of {order}',
+      legendOrder: 'Subgroup’s cardinality: {order}',
       legendSubgroups: { one: '{count} subgroup', other: '{count} subgroups' },
       legendHeadingInverse: 'Color key: inverse pairs',
       legendSelfInverse: 'own inverse: {list}',
