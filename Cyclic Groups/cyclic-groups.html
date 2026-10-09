@@ -288,11 +288,12 @@
   .chord-arrow{ fill:var(--walk); stroke:none; }
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
   /* Coset animation: beads outside the coset shown fade back, and each
-     coset's walk fades in as it is drawn. */
+     coset's walk fades in as it is drawn — only on the step that brings it
+     in (.is-coset-new), not on every redraw a turn of the ring makes. */
   .bead.is-dim, .bead-label.is-dim{ opacity:.22; }
-  .ring.is-coset :is(.walk-el, .walk-inv, .walk-both):not(.is-past){ animation:coset-in .25s ease-out; }
+  .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both):not(.is-past){ animation:coset-in .25s ease-out; }
   @keyframes coset-in{ from{ opacity:0; } }
-  @media (prefers-reduced-motion: reduce){ .ring.is-coset :is(.walk-el, .walk-inv, .walk-both){ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both){ animation:none; } }
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
   .bead.is-identity{ stroke:var(--text); }
@@ -1000,7 +1001,7 @@ function drawRing(parent, G, beads, box, paint){
   beads.forEach(function(a, i){ place[a] = i; });
   function at(i){ return polar(box.cx, box.cy, box.R, dirSign() * 360 * i / m); }
 
-  var ring = svgEl('g', { 'class': coset ? 'ring is-coset' : 'ring' });
+  var ring = svgEl('g', { 'class': coset ? 'ring is-coset' + (coset.fresh ? ' is-coset-new' : '') : 'ring' });
   if (state.guide) ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
   if (m > 1 && mirrorShown(G)){
     // Through the identity, wherever the turn has put it.
@@ -1574,8 +1575,11 @@ function showCosets(shown){
   starts.slice(0, shown).forEach(function(a){
     lap(G, h, G.orders[h], a).forEach(function(x){ members[x] = true; });
   });
-  coset = { start: starts[shown - 1], past: starts.slice(0, shown - 1), members: members };
+  // fresh fades the new walks in on this draw only; the redraws a turn of
+  // the ring makes afterwards leave them be.
+  coset = { start: starts[shown - 1], past: starts.slice(0, shown - 1), members: members, fresh: true };
   redrawRing();
+  coset.fresh = false;
   syncCosetControls();
 }
 
