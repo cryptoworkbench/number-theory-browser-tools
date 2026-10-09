@@ -1115,10 +1115,15 @@ function drawNecklace(G, paint){
     }
     ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, progressY, progress));
   }
-  var beads = turned(G.cyclic && state.bygen ? lap(G, arrangeBy(G), G.order) : G.els.slice());
+  var beads = turned(arrangement(G));
   drawRing(ringDynamicEl, G, beads, ringBox(), paint);
   var noteKey = state.orders ? 'cyclicGroups.ringFootnoteOrders' : 'cyclicGroups.ringFootnote';
   ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate(noteKey, { id: G.identity })));
+}
+
+// The beads before any turn: numeric order, or powers of a generator.
+function arrangement(G){
+  return G.cyclic && state.bygen ? lap(G, arrangeBy(G), G.order) : G.els.slice();
 }
 
 // A list started rot places in, wrapping round: the necklace's beads, or a
@@ -1655,7 +1660,7 @@ function rowMembers(G, g, beads){
 function renderSubgroups(G){
   var hadFocus = subgroupsEl.contains(document.activeElement);
   subgroupsEl.replaceChildren();
-  var beads = turned(G.cyclic && state.bygen ? lap(G, arrangeBy(G), G.order) : G.els.slice());
+  var beads = turned(arrangement(G));
   G.els.forEach(function(g){
     var li = document.createElement('li');
     var row = document.createElement('button');
@@ -2145,8 +2150,15 @@ backwardEl.addEventListener('change', function(){
   state.backward = !backwardEl.checked;
   render();
 });
+// Flipping the direction keeps the identity where it is: it sits p - rot
+// places round from the top, p its place in the arrangement, so the new
+// rot is 2p - rot. A turn still under way counts as finished.
 dirSelectEl.addEventListener('change', function(){
-  if (DIRS.indexOf(dirSelectEl.value) === -1) return;
+  if (DIRS.indexOf(dirSelectEl.value) === -1 || dirSelectEl.value === state.dir) return;
+  if (drawn){
+    var at = state.rot + (spin ? spin.steps : 0);
+    state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - at;
+  }
   state.dir = dirSelectEl.value;
   render();
 });
