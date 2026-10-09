@@ -88,8 +88,8 @@
      whose knob sits on the top corner for off, the bottom-left one for
      counterclockwise and the bottom-right one for clockwise. Each corner is
      a radio button, so the arrow keys move the knob too. */
-  /* The mirror button flips the ring each press; it shows no state of its
-     own, so which way the forward arrows turn is the only tell. */
+  /* The mirror button flips which way the arrows turn each press; it shows
+     no state of its own, so which way the forward arrows turn is the only tell. */
   .mirror-btn{ position:absolute; top:10px; right:12px; z-index:1; display:inline-flex; align-items:center; gap:6px; padding:5px 10px; font-size:.85rem; }
   .mirror-btn svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linejoin:round; }
   .auto-rotate{ position:absolute; top:10px; left:12px; z-index:1; display:inline-flex; align-items:center; gap:8px; font-size:.85rem; color:var(--text-dim); user-select:none; -webkit-user-select:none; }
@@ -431,7 +431,7 @@
           </span>
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
         </div>
-        <button type="button" class="action-btn mirror-btn" id="mirror-btn" title="Mirror the ring across its vertical middle" data-i18n-title="cyclicGroups.mirrorTitle"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 1.5v13M6 4 1.5 12H6ZM10 4l4.5 8H10Z"/></svg><span data-i18n="cyclicGroups.mirror">Mirror</span></button>
+        <button type="button" class="action-btn mirror-btn" id="mirror-btn" title="Reverse which way the arrows turn" data-i18n-title="cyclicGroups.mirrorTitle"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 1.5v13M6 4 1.5 12H6ZM10 4l4.5 8H10Z"/></svg><span data-i18n="cyclicGroups.mirror">Mirror</span></button>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
@@ -578,9 +578,9 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 // 'inverse' (an element and its inverse share a color).
 // elSide puts the forward walk, by h, 'inside' or 'outside' the ring.
 // backward adds the walk by h⁻¹, always on the other side: see invSide().
-// dir is the way the beads count round the ring, and so the way the forward
-// walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Mirror
-// button flips it.
+// dir is the way the forward walk turns: 'cw' (clockwise, like a clock
+// face) or 'ccw'; the backward walk turns the other way. The beads always
+// count clockwise. The Mirror button flips it.
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
@@ -879,19 +879,19 @@ function arrangeBy(G){
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
 // edge, bulges to its peak halfway, and comes back into its target, turning
-// the short way round. Its shape depends only on how far it turns, so steps
+// the way its walk turns (turn: +1 clockwise, -1 counterclockwise), the long
+// way round if need be. Its shape depends only on how far it turns, so steps
 // of the same size draw identical curves, and humps that overlap cross each
 // other instead of hiding one another. An outer hump bulges away from the
 // ring; an inner hump bulges off the straight chord between its beads,
 // toward the center, so the inner walk never reads as a plain polygon.
-function humpSteps(walk, place, m, scale){
-  var step = dirSign() * 360 / m;
+function humpSteps(walk, place, m, scale, turn){
+  var step = 360 / m;
   var k = walk.length;
   var out = [];
   for (var s = 0; s < k; s++){
     var a0 = step * place[walk[s]];
-    var d = ((step * (place[walk[(s + 1) % k]] - place[walk[s]])) % 360 + 540) % 360 - 180;
-    if (d <= -179.999) d = 180;
+    var d = turn * (((turn * step * (place[walk[(s + 1) % k]] - place[walk[s]])) % 360 + 360) % 360);
     out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, Math.abs(d) * 0.4)) });
   }
   return out;
@@ -903,7 +903,8 @@ function humpSteps(walk, place, m, scale){
 // distance from the center, so long steps don't pile their arrowheads up
 // there. A half turn, whose chord runs through the center, still bows by
 // INNER_MIN. The center lies to the right of a clockwise chord and to the
-// left of a counterclockwise one, which also gives the half turn its side.
+// left of a counterclockwise one, which also gives the half turn its side;
+// a hump the long way round bows to the same side as the short way would.
 // A negative scale bows an inner hump the other way, away from the center,
 // but only so far that it stays inside the beads.
 var INNER_BULGE = 0.14;
@@ -917,10 +918,11 @@ function humpPoint(box, foot, side, h, f){
   var p1 = polar(box.cx, box.cy, foot, h.a0 + h.d);
   var dx = p1[0] - p0[0], dy = p1[1] - p0[1];
   var len = Math.hypot(dx, dy);
-  var mid = foot * Math.cos(Math.abs(h.d) * Math.PI / 360);
+  var short = Math.abs(h.d) > 180 ? h.d - (h.d > 0 ? 360 : -360) : h.d;
+  var mid = foot * Math.cos(Math.abs(short) * Math.PI / 360);
   var bulge = Math.abs(h.scale) * Math.min(INNER_BULGE * len, Math.max(INNER_MIN, 0.35 * mid));
   if (h.scale < 0) bulge = -Math.min(bulge, 0.8 * (foot - mid));
-  var turn = h.d > 0 ? 1 : -1;
+  var turn = short > 0 ? 1 : -1;
   var b = bulge / len * Math.sin(Math.PI * f);
   return [p0[0] + dx * f - turn * dy * b, p0[1] + dy * f + turn * dx * b];
 }
@@ -951,10 +953,10 @@ function humpArrow(cls, box, foot, side, h, size){
 // outside it runs at SHARED_SCALE height.
 
 // A walk inside the ring, as one closed chain of humps.
-function drawInner(ring, walk, cls, scale, place, box, beadR, m, width){
+function drawInner(ring, walk, cls, scale, turn, place, box, beadR, m, width){
   var k = walk.length;
   var foot = box.R - beadR;
-  var steps = humpSteps(walk, place, m, scale);
+  var steps = humpSteps(walk, place, m, scale, turn);
   var group = svgEl('g', { 'class': cls });
   var d = '';
   steps.forEach(function(h, s){ d += (s ? ' ' : '') + humpPath(box, foot, -1, h, s === 0); });
@@ -968,13 +970,13 @@ function drawInner(ring, walk, cls, scale, place, box, beadR, m, width){
 
 // A walk outside the ring, one hump per step. Returns the outermost radius
 // used.
-function drawOuter(ring, walk, cls, scale, place, box, beadR, m, width){
+function drawOuter(ring, walk, cls, scale, turn, place, box, beadR, m, width){
   var k = walk.length;
   var foot = box.R + beadR;
   var size = Math.max(3, Math.min(7, 90 / k));
   var peakMax = 0;
   var group = svgEl('g', { 'class': 'outer-walk ' + cls, 'data-seq': walk.join(' ') });
-  humpSteps(walk, place, m, scale).forEach(function(h){
+  humpSteps(walk, place, m, scale, turn).forEach(function(h){
     peakMax = Math.max(peakMax, h.peak);
     group.appendChild(svgEl('path', {
       'class': 'outer-arc', 'stroke-width': width, 'data-from': h.from, 'data-to': h.to, d: humpPath(box, foot, 1, h, true)
@@ -992,13 +994,13 @@ function drawRing(parent, G, beads, box, paint){
   var beadR = beadRadius(m, box.R);
   var place = {};
   beads.forEach(function(a, i){ place[a] = i; });
-  function at(i){ return polar(box.cx, box.cy, box.R, dirSign() * 360 * i / m); }
+  function at(i){ return polar(box.cx, box.cy, box.R, 360 * i / m); }
 
   var ring = svgEl('g', { 'class': coset ? 'ring is-coset' : 'ring' });
   if (state.guide) ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
   if (m > 1 && mirrorShown(G)){
     // Through the identity, wherever the turn has put it.
-    var axisAt = dirSign() * 360 * place[G.identity] / m;
+    var axisAt = 360 * place[G.identity] / m;
     var axisA = polar(box.cx, box.cy, box.R + beadR + 6, axisAt);
     var axisB = polar(box.cx, box.cy, box.R + beadR + 6, axisAt + 180);
     ring.appendChild(svgEl('line', {
@@ -1030,19 +1032,19 @@ function drawRing(parent, G, beads, box, paint){
     var walksFrom = function(start, past){
       var tag = past ? ' is-past' : '';
       if (mergedWalks(G)){
-        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1 });
+        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, turn: dirSign() });
         return;
       }
-      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1 });
-      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE });
+      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, turn: dirSign() });
+      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, turn: -dirSign() });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
     walksFrom(coset ? coset.start : G.identity, false);
     walks.forEach(function(w){
-      if (w.side === 'outside') outerEdge = Math.max(outerEdge, drawOuter(ring, w.walk, w.cls, w.scale, place, box, beadR, m, width));
+      if (w.side === 'outside') outerEdge = Math.max(outerEdge, drawOuter(ring, w.walk, w.cls, w.scale, w.turn, place, box, beadR, m, width));
     });
     walks.forEach(function(w){
-      if (w.side === 'inside') drawInner(ring, w.walk, w.cls, w.scale, place, box, beadR, m, width);
+      if (w.side === 'inside') drawInner(ring, w.walk, w.cls, w.scale, w.turn, place, box, beadR, m, width);
     });
   }
 
@@ -1070,7 +1072,7 @@ function drawRing(parent, G, beads, box, paint){
 
   if (state.orders && m <= 60 && beadR >= 7){
     beads.forEach(function(a, i){
-      var p = polar(box.cx, box.cy, outerEdge + 15, dirSign() * 360 * i / m);
+      var p = polar(box.cx, box.cy, outerEdge + 15, 360 * i / m);
       var label = svgEl('text', { 'class': 'order-label', x: num(p[0]), y: num(p[1]) });
       label.textContent = String(G.orders[a]);
       ring.appendChild(label);
@@ -1155,7 +1157,7 @@ function invSide(){
   return state.elSide === 'outside' ? 'inside' : 'outside';
 }
 
-// +1 when the beads count clockwise, -1 when they count counterclockwise.
+// +1 when the forward walk turns clockwise, -1 when it turns counterclockwise.
 function dirSign(){ return state.dir === 'ccw' ? -1 : 1; }
 
 // A self-inverse element (other than the identity) walks the same path
@@ -1318,7 +1320,7 @@ ringSvgEl.addEventListener('pointermove', function(e){
   turning.swept += d;
   spinAngle(turning.swept);
   var m = drawn.G.order;
-  var near = state.rot - dirSign() * Math.round(turning.swept / (360 / m));
+  var near = state.rot - Math.round(turning.swept / (360 / m));
   showRot(((near % m) + m) % m);
 });
 function endTurn(e){
@@ -1326,7 +1328,7 @@ function endTurn(e){
   var swept = turning.swept;
   turning = null;
   ringSvgEl.classList.remove('is-turning');
-  var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
+  var steps = -Math.round(swept / (360 / drawn.G.order));
   if (reducedMotion && reducedMotion.matches){
     if (!setRotChanged(state.rot + steps)) redrawRing();
     return;
@@ -1359,9 +1361,8 @@ function spinFrame(ts){
   if (!spin) return;
   if (spin.t0 === null) spin.t0 = ts;
   var t = Math.min(1, (ts - spin.t0) / SPIN_MS);
-  // rot going up brings the next bead to the top: a counterclockwise turn
-  // when the beads count clockwise, a clockwise one when they don't.
-  var target = -dirSign() * spin.steps * 360 / drawn.G.order;
+  // rot going up brings the next bead to the top: a counterclockwise turn.
+  var target = -spin.steps * 360 / drawn.G.order;
   spin.now = spin.from + (target - spin.from) * easeInOutCubic(t);
   spinAngle(spin.now);
   if (t < 1){ spin.id = requestAnimationFrame(spinFrame); return; }
@@ -1423,8 +1424,8 @@ function autoFrame(ts){
   var step = 360 / drawn.G.order;
   autoAngle += (state.autoRotate === 'cw' ? 1 : -1) * AUTO_DEG_PER_S * dt / 1000;
   var steps = 0;
-  while (autoAngle <= -step){ autoAngle += step; steps += dirSign(); }
-  while (autoAngle >= step){ autoAngle -= step; steps -= dirSign(); }
+  while (autoAngle <= -step){ autoAngle += step; steps += 1; }
+  while (autoAngle >= step){ autoAngle -= step; steps -= 1; }
   if (!steps || !setRotChanged(state.rot + steps)) spinAngle(autoAngle);
 }
 
@@ -1487,8 +1488,8 @@ resizeGripEl.addEventListener('dblclick', function(){
   diagramFrameEl.style.removeProperty('--frame-h');
 });
 
-$('rot-back').addEventListener('click', function(){ turnBy(dirSign()); });
-$('rot-fwd').addEventListener('click', function(){ turnBy(-dirSign()); });
+$('rot-back').addEventListener('click', function(){ turnBy(1); });
+$('rot-fwd').addEventListener('click', function(){ turnBy(-1); });
 $('rot-reset').addEventListener('click', turnHome);
 
 /* ---------- coset animation ---------- */
@@ -1635,7 +1636,7 @@ function stopCosets(){
 }
 
 // ⟨g⟩ for every element g, its members read around the ring the way the
-// ring counts (clockwise, or counterclockwise while mirrored), starting at
+// ring counts (clockwise), starting at
 // the member nearest the top; ties go to the one the ring counts to first.
 function rowMembers(G, g, beads){
   var m = beads.length;
