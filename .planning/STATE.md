@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-09 - Completed quick task 130: Cyclic Groups generator rows list repeated-combining order
+Last activity: 2026-10-09 - Completed quick task 131: Cyclic Groups automatically shift cyclic subgroups toggle
 
 Progress: [█████████░] 86%
 
@@ -364,6 +364,7 @@ None yet.
 | 128 | Cyclic Groups: subgroup rows past halfway read the other way round (no longer mirrored) | 2026-10-09 | 9aba4fa | — |
 | 129 | Cyclic Groups: generator rows (whole ring) always read the way the ring counts | 2026-10-09 | d385e3a | — |
 | 130 | Cyclic Groups: generator rows list members in repeated-combining order (supersedes 129) | 2026-10-09 | 166ed13 | — |
+| 131 | Cyclic Groups: "Automatically shift cyclic subgroups" toggle starts each subgroup row at its first member forward from the top | 2026-10-09 | 370962c | — |
 
 ## Deferred Items
 
@@ -379,4 +380,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-09 - Completed quick task 130: Cyclic Groups generator rows list repeated-combining order
+Last activity: 2026-10-09 - Completed quick task 131: Cyclic Groups automatically shift cyclic subgroups toggle
