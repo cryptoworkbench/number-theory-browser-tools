@@ -448,6 +448,18 @@
   .nested-preview .ft-label.prime-leaf{ fill:var(--role-result-ink); }
   .nested-preview .ft-label.one{ fill:var(--text); opacity:.75; }
 
+  /* The A ∩ B pair preview mirrors Factor Tree's gcd pair: a's panel tinted
+     yellow, b's blue, their overlap green. Local aliases built only from
+     var()/color-mix(), identical to Factor Tree's .tree-pair aliases. */
+  .nested-preview{
+    --pair-a-bg:color-mix(in srgb, var(--role-active) 28%, var(--surface));
+    --pair-b-bg:color-mix(in srgb, var(--role-input) 28%, var(--surface));
+    --pair-ab-bg:color-mix(in srgb, var(--role-result) 28%, var(--surface));
+  }
+  .nested-preview .ft-pair-a{ fill:var(--pair-a-bg); stroke:var(--role-active); stroke-width:1; }
+  .nested-preview .ft-pair-b{ fill:var(--pair-b-bg); stroke:var(--role-input); stroke-width:1; }
+  .nested-preview .ft-pair-lens{ fill:var(--pair-ab-bg); stroke:none; }
+
   /* Stacked-panel chrome: each section's heading, and the top-right
      scroll-more affordance (Task 2). Both token-only, per this repo's
      no-literal-colours rule. */
@@ -1285,9 +1297,12 @@
   // Drawn by NT.layout.buildFactorTree(value, { balanced: true }) -- the
   // same balanced-tree builder the full Factor Tree tool draws, so this
   // miniature always matches the page its double-click opens. The
-  // two-circle A ∩ B chip instead draws A's and B's trees overlapped on
-  // their gcd (NT.layout.buildOverlapTree, balanced), the panel Factor
-  // Tree's ?a=&b= deep link opens.
+  // two-circle A ∩ B chip and the three-circle pairwise chips instead draw
+  // Factor Tree's gcd pair (NT.layout.buildOverlapTree, balanced): a's tree
+  // on a yellow panel, b's on a blue one, overlapped on their shared g
+  // branch with the overlap green, primes folded on their P = P × 1 split,
+  // and the pair's equation lines underneath. That is what the ?a=&b= deep
+  // link opens.
 
   /* ---------- Combined stacked preview renderer ---------- */
   // Both miniatures live in ONE fixed 268x196 panel, stacked as two 196-tall
@@ -1297,6 +1312,9 @@
 
   var NP_W = 268, NP_H = 196, NP_PAD = 10, NP_GAP = 26, NP_EDGE = 6;
   var NP_SECTION_GAP = 10, NP_MAX_SCROLL = NP_H + NP_SECTION_GAP;
+  // NP_LINE is the caption line step; FT_PANEL_GAP the gap between an
+  // outermost circle and the edge of its pair panel.
+  var NP_LINE = 14, FT_PANEL_GAP = 7;
 
   function hideNestedPreview(layer){
     if (!layer) return;
@@ -1369,6 +1387,17 @@
     }
   }
 
+  // The equation lines Factor Tree prints under a gcd pair: a = (a/g) × g and
+  // b = g × (b/g), each left out when that number is g itself, then gcd.
+  // Plain notation, not prose, so it is not translated.
+  function gcdEquationLines(a, b, g){
+    var lines = [];
+    if (a !== g) lines.push(a + ' = ' + (a / g) + ' × ' + g);
+    if (b !== g) lines.push(b + ' = ' + g + ' × ' + (b / g));
+    lines.push('gcd(' + a + ', ' + b + ') = ' + g);
+    return lines;
+  }
+
   // Turns every prime split (P = P × 1) in the overlap into a prime leaf.
   // All splits are found before any is folded, so a folded child never
   // makes its parent look like a split.
@@ -1433,25 +1462,69 @@
       assignTreeX(tree, xCounter);
       flattenTree(tree, null, nodes, edges, depthBox);
     }
+    var captionLines = overlap
+      ? gcdEquationLines(opts.a, opts.b, overlap.g)
+      : [factorTail(primeFactors(opts.value, FACTOR_LIMIT), opts.value)];
+    // Each extra caption line takes NP_LINE off the tree box, and the pair
+    // keeps FT_PANEL_GAP free around its outermost circles for the panels.
+    bh = bh - NP_LINE * (captionLines.length - 1);
+    var inset = overlap ? FT_PANEL_GAP : 0;
+    var tx = bx + inset, ty = by + inset;
+    var tw = bw - 2 * inset, th = bh - 2 * inset;
+
     var leafCount = Math.max(1, xCounter.value);
     var maxDepth = depthBox.value;
 
-    var colSpan = leafCount > 1 ? bw / leafCount : bw;
-    var rowSpan = maxDepth > 0 ? bh / maxDepth : bh;
+    var colSpan = leafCount > 1 ? tw / leafCount : tw;
+    var rowSpan = maxDepth > 0 ? th / maxDepth : th;
     var r = Math.max(4, Math.min(12, Math.min(colSpan * 0.42, rowSpan * 0.40)));
-    var xStep = leafCount > 1 ? (bw - 2 * r) / (leafCount - 1) : 0;
-    var yStep = maxDepth > 0 ? (bh - 2 * r) / maxDepth : 0;
+    var xStep = leafCount > 1 ? (tw - 2 * r) / (leafCount - 1) : 0;
+    var yStep = maxDepth > 0 ? (th - 2 * r) / maxDepth : 0;
 
     function treeNodeX(node){
-      return leafCount > 1 ? (bx + r + node.x * xStep) : (bx + bw / 2);
+      return leafCount > 1 ? (tx + r + node.x * xStep) : (tx + tw / 2);
     }
     function treeNodeY(node){
-      return by + r + node.depth * yStep;
+      return ty + r + node.depth * yStep;
     }
 
     var oneR = Math.max(2.5, r * 0.62);
     var fs = Math.max(5, r * 0.8);
     var oneFs = Math.max(4.5, oneR * 0.85);
+
+    if (overlap){
+      // The panel spanning exactly one number's tree, top-aligned at the
+      // root row of the box and as deep as that tree alone.
+      var panelRect = function(top){
+        var minX = Infinity, maxX = -Infinity, maxY = -Infinity;
+        (function walk(node){
+          var nx = treeNodeX(node), ny = treeNodeY(node);
+          if (nx < minX) minX = nx;
+          if (nx > maxX) maxX = nx;
+          if (ny > maxY) maxY = ny;
+          node.children.forEach(walk);
+        })(top);
+        return {
+          x0: minX - r - FT_PANEL_GAP, x1: maxX + r + FT_PANEL_GAP,
+          y0: by, y1: maxY + r + FT_PANEL_GAP
+        };
+      };
+      var pa = panelRect(overlap.a.top), pb = panelRect(overlap.b.top);
+      [['ft-pair ft-pair-a', pa], ['ft-pair ft-pair-b', pb]].forEach(function(item){
+        host.appendChild(svgEl('rect', {
+          'class': item[0], x: item[1].x0, y: item[1].y0,
+          width: item[1].x1 - item[1].x0, height: item[1].y1 - item[1].y0, rx: 6
+        }));
+      });
+      // The overlap, inset by 1 as Factor Tree's alignPair insets its lens.
+      var lx0 = Math.max(pa.x0, pb.x0) + 1, lx1 = Math.min(pa.x1, pb.x1) - 1;
+      var ly0 = Math.max(pa.y0, pb.y0) + 1, ly1 = Math.min(pa.y1, pb.y1) - 1;
+      if (lx1 > lx0 && ly1 > ly0){
+        host.appendChild(svgEl('rect', {
+          'class': 'ft-pair-lens', x: lx0, y: ly0, width: lx1 - lx0, height: ly1 - ly0, rx: 5
+        }));
+      }
+    }
 
     for (var e = 0; e < edges.length; e++){
       var edge = edges[e];
@@ -1478,13 +1551,14 @@
       host.appendChild(label);
     }
 
-    var caption = svgEl('text', {
-      'class': 'np-caption', x: px + NP_W / 2, y: sy + NP_H - 18
-    });
-    caption.textContent = overlap
-      ? 'gcd(' + opts.a + ', ' + opts.b + ') = ' + overlap.g
-      : factorTail(primeFactors(opts.value, FACTOR_LIMIT), opts.value);
-    host.appendChild(caption);
+    for (var ci = 0; ci < captionLines.length; ci++){
+      var caption = svgEl('text', {
+        'class': 'np-caption', x: px + NP_W / 2,
+        y: sy + NP_H - 18 - NP_LINE * (captionLines.length - 1 - ci)
+      });
+      caption.textContent = captionLines[ci];
+      host.appendChild(caption);
+    }
 
     if (opts.treeHref){
       var hint = svgEl('text', {
