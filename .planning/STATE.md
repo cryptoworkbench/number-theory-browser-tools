@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-09T17:03:29.684Z"
+last_updated: "2026-10-09T17:06:42.870Z"
 last_activity: 2026-10-09
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 66815f4d700b39b68b177190874e6fa41d4154cb
+state_head: 9a3f45938541894dde9f74cdc31f0cc1acc5bf8b
 progress:
   total_phases: 7
   completed_phases: 6
@@ -358,6 +358,7 @@ None yet.
 | 261009-c7x | Update the 'Factor Tree' preview in 'Venn Diagram' to reflect the way that 'Factor Tree' currently displays the GCD | 2026-10-09 | 1ab903e | [261009-c7x-update-the-factor-tree-preview-in-venn-d](./quick/261009-c7x-update-the-factor-tree-preview-in-venn-d/) |
 | 261009-d21 | Integrate the cyclic groups necklace visualizer as a new site tool (without its Cayley table), English only | 2026-10-09 | 30ba49d | [261009-d21-integrate-the-cyclic-groups-necklace-vis](./quick/261009-d21-integrate-the-cyclic-groups-necklace-vis/) |
 | 124 | Cyclic Groups: replace Mirror button with Forward direction (clockwise/counterclockwise) menu | 2026-10-09 | 66815f4 | — |
+| 125 | Cyclic Groups: keep identity in place when Forward direction flips (adjust rotation) | 2026-10-09 | 9a3f459 | — |
 
 ## Deferred Items
 
