@@ -53,6 +53,7 @@
       layerElementTitle: 'To step is to combine the current element with {g}',
       layerBackward: 'Enable backwards path',
       mirror: 'Mirror',
+      resizeTitle: 'Drag to resize; double-click to reset',
       mirrorTitle: 'Mirror the ring across its vertical middle',
       sideInside: 'Inside',
       sideOutside: 'Outside',

@@ -116,6 +116,18 @@
   @media (max-width: 640px){
     .rotate-ctl{ position:static; margin-top:8px; }
   }
+  /* The resize grip in the diagram's bottom-right corner. Once dragged, the
+     column stops being pinned to the window and the diagram takes the size
+     the grip left it at, as wide as the column at most; a double-click
+     gives the automatic size back. */
+  .resize-grip{ position:absolute; right:3px; bottom:3px; z-index:2; width:18px; height:18px; cursor:nwse-resize; touch-action:none;
+    background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
+  .resize-grip:hover, .stage.is-resizing .resize-grip{ opacity:1; }
+  .stage.is-sized{ position:static; height:auto; }
+  .stage.is-sized .diagram-frame{ flex:none; display:flex; flex-direction:column; box-sizing:border-box; width:var(--frame-w); height:var(--frame-h); max-width:100%; }
+  .stage.is-sized svg.ring-svg{ flex:1 1 0; width:100%; height:auto; min-height:0; }
+  .stage.is-sized .subgroups-panel .subgroups{ max-height:420px; }
+  .stage.is-resizing{ user-select:none; -webkit-user-select:none; }
   .rotate-row{ display:flex; align-items:center; gap:6px; }
   .rotate-row .action-btn{ padding:6px 12px; }
   .rotate-value{ font-family:var(--font-mono); font-size:.9rem; min-width:2.5em; text-align:center; }
@@ -398,7 +410,7 @@
   <div class="layout">
     <div class="stage" id="ring-panel" role="tabpanel" aria-labelledby="tab-additive">
       <section class="panel notice" id="notice" role="note" hidden></section>
-      <div class="diagram-frame">
+      <div class="diagram-frame" id="diagram-frame">
         <div class="auto-rotate" role="radiogroup" aria-labelledby="auto-rotate-label">
           <span class="tri" id="auto-rotate" data-at="off">
             <svg class="tri-track" viewBox="0 0 44 40" aria-hidden="true" focusable="false"><path d="M22 7 L37 33 L7 33 Z"/></svg>
@@ -413,6 +425,7 @@
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
+        <div class="resize-grip" id="resize-grip" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-hidden="true"></div>
         <div class="rotate-ctl">
           <label id="rot-label" data-i18n="cyclicGroups.rotateLabel">Rotation — drag the ring</label>
           <div class="rotate-row" role="group" aria-labelledby="rot-label">
@@ -590,6 +603,8 @@ var genSelectEl = $('gen-select');
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
 var ringPanelEl = $('ring-panel');
+var diagramFrameEl = $('diagram-frame');
+var resizeGripEl = $('resize-grip');
 var noticeEl = $('notice');
 var factsEl = $('facts');
 var subgroupsEl = $('subgroups');
@@ -1413,6 +1428,40 @@ autoRotateEl.addEventListener('change', function(e){
   state.autoRotate = e.target.value;
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
+});
+
+// Dragging the grip sizes the diagram: no narrower or shorter than
+// FRAME_MIN, no wider than its column. Double-clicking it unsizes it.
+var FRAME_MIN = 300;
+var sizing = null; // { id, x, y, w, h } while the grip is dragged
+resizeGripEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0) return;
+  var r = diagramFrameEl.getBoundingClientRect();
+  sizing = { id: e.pointerId, x: e.clientX, y: e.clientY, w: r.width, h: r.height };
+  resizeGripEl.setPointerCapture(e.pointerId);
+  ringPanelEl.classList.add('is-resizing');
+  e.preventDefault();
+});
+resizeGripEl.addEventListener('pointermove', function(e){
+  if (!sizing || e.pointerId !== sizing.id) return;
+  var maxW = ringPanelEl.clientWidth;
+  var w = Math.max(FRAME_MIN, Math.min(maxW, sizing.w + e.clientX - sizing.x));
+  var h = Math.max(FRAME_MIN, sizing.h + e.clientY - sizing.y);
+  diagramFrameEl.style.setProperty('--frame-w', Math.round(w) + 'px');
+  diagramFrameEl.style.setProperty('--frame-h', Math.round(h) + 'px');
+  ringPanelEl.classList.add('is-sized');
+});
+function endSizing(e){
+  if (!sizing || e.pointerId !== sizing.id) return;
+  sizing = null;
+  ringPanelEl.classList.remove('is-resizing');
+}
+resizeGripEl.addEventListener('pointerup', endSizing);
+resizeGripEl.addEventListener('pointercancel', endSizing);
+resizeGripEl.addEventListener('dblclick', function(){
+  ringPanelEl.classList.remove('is-sized');
+  diagramFrameEl.style.removeProperty('--frame-w');
+  diagramFrameEl.style.removeProperty('--frame-h');
 });
 
 $('rot-back').addEventListener('click', function(){ turnBy(dirSign()); });
