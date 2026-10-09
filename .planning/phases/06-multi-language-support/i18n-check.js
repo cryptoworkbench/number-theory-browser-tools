@@ -360,8 +360,8 @@ function buildExpected(catalog, navHrefs) {
     throw new Error("buildExpected: de.heading is identical to en.heading — cross-session probe would be vacuous");
   }
 
-  if (!navHrefs || navHrefs.length !== 16) {
-    throw new Error("buildExpected: expected 16 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
+  if (!navHrefs || navHrefs.length !== 17) {
+    throw new Error("buildExpected: expected 17 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
   }
 
   return { en: en, fr: fr, es: es, de: de, rawTemplates: rawTemplates, navHrefs: navHrefs };
@@ -3349,8 +3349,8 @@ function checkSwitcherPresent(relPath, html, findings) {
     }
   }
   var navRefs = html.match(/data-i18n="site\.nav\.[A-Za-z]+"/g) || [];
-  if (navRefs.length !== 16) {
-    findings.push("SWITCHER " + relPath + ": expected 16 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
+  if (navRefs.length !== 17) {
+    findings.push("SWITCHER " + relPath + ": expected 17 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
   }
   var header = extractHeaderHtml(html);
   if (header === null || !/<select\b[^>]*id="lang-switch-select"/.test(header)) {

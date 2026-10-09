@@ -1,15 +1,19 @@
 /* assets/i18n/hub.js — the 'hub' namespace: index.html's page title, hero
-   (eyebrow, h1, lede), all fifteen tool cards (card.<id>.title / desc),
+   (eyebrow, h1, lede), all sixteen tool cards (card.<id>.title / desc),
    the shared "Open tool →" link label and the footer, in all thirty-one
-   supported languages.
+   supported languages. The cyclicGroups card and the "sixteen tools" wording
+   of the English lede and footer are English-only for now, by the user's
+   decision (quick task 261009-d21): the other thirty languages fall back to
+   the en value for the card keys through NT.i18n and keep their "fifteen"
+   lede and footer wording until their translations are updated.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). Dictionary rules (see assets/nt-i18n.js's header
    comment and the NT.i18n contract): flat keys, the identical key set in
    every language object, plain text values (no markup), numerals/math
    notation untouched. Card ids match the page table in 06-02-PLAN.md
-   (sieve, factorTree, venn, euclid, crt, wheel, totient, cayley, iso, sqm,
-   dh, ecdh, rsa, fermat, shor) in the hub's own card-grid order. Card
+   (sieve, factorTree, venn, euclid, crt, wheel, totient, cayley, cyclicGroups,
+   iso, sqm, dh, ecdh, rsa, fermat, shor) in the hub's own card-grid order. Card
    title values are the hub's own pre-existing English wording (which in
    several cases differs from site.nav.* — e.g. "The Equivalence Wheel"
    vs. "Equivalence Wheel", "Group Isomorphisms" vs. "Group Isomorphism") — P4's "English values
@@ -67,8 +71,8 @@
       'group.primes': 'Primes and divisibility',
       'group.modular': 'Modular arithmetic and groups',
       'group.crypto': 'Cryptography and factoring',
-      'hero.lede': "Fifteen small browser tools for exploring primes, factorization, modular arithmetic, simultaneous congruences, group tables and isomorphisms, and public-key cryptography from modular arithmetic to elliptic curves — each one an animated, hands-on visualizer you can nudge, drag a slider on, and watch work.",
-      footer: 'All fifteen tools run entirely client-side in your browser — no build step, no server, no tracking.',
+      'hero.lede': "Sixteen small browser tools for exploring primes, factorization, modular arithmetic, simultaneous congruences, group tables and isomorphisms, and public-key cryptography from modular arithmetic to elliptic curves — each one an animated, hands-on visualizer you can nudge, drag a slider on, and watch work.",
+      footer: 'All sixteen tools run entirely client-side in your browser — no build step, no server, no tracking.',
       'card.sieve.title': 'Sieve of Eratosthenes',
       'card.sieve.desc': "Give every natural number its own box, then watch the sieve strike out everything that isn't prime — with playback controls and a chime for every prime found.",
       'card.factorTree.title': 'Factor Tree',
@@ -85,6 +89,8 @@
       'card.totient.desc': 'Count how many numbers below n share no factor with n — not with a formula, but by running the Euclidean algorithm against every single one of them and tallying who survives.',
       'card.cayley.title': 'Cayley Table',
       'card.cayley.desc': "A group's entire behavior fits in one square table — set a modulus, flip between addition and multiplication, and click any cell to see its identity, its self-inverse elements, and its symmetry all sitting visibly in the grid's shape.",
+      'card.cyclicGroups.title': 'Cyclic Group Necklace',
+      'card.cyclicGroups.desc': 'Every element of a group becomes a bead on a ring; step by a generator and the chords trace a star that touches every bead — and when no single element can reach them all, the group splits into the smaller rings it is built from.',
       'card.iso.title': 'Group Isomorphisms',
       'card.iso.desc': 'Two side-by-side wheels — the integers mod n under addition, the units mod m under multiplication — for every pair where they are, structurally, the exact same group. Click either wheel to see the correspondence on the other.',
       'card.sqm.title': 'Square and Multiply',

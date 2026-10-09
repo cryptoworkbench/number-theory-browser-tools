@@ -567,6 +567,113 @@ var BODIES = {
       P.assert(P.beads().length === beadsBefore, "bead count changed");
       return "fr: mode, n, gen and flags unchanged (" + after + ")";
     });
+  },
+
+  // French and Arabic: English fallback, never a raw key.
+  r1: function (P) {
+    function rawKeyHits() {
+      var re = /\b(?:cyclicGroups|site\.nav|common|hub)\.[A-Za-z]/;
+      var hits = [];
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      var node;
+      while ((node = walker.nextNode())) {
+        var tag = node.parentNode.nodeName;
+        if (tag === "SCRIPT" || tag === "STYLE") continue;
+        if (re.test(node.nodeValue)) hits.push(node.nodeValue.slice(0, 60));
+      }
+      P.all("*").forEach(function (el) {
+        ["title", "aria-label", "placeholder", "alt"].forEach(function (a) {
+          var v = el.getAttribute(a);
+          if (v && re.test(v)) hits.push(a + "=" + v);
+        });
+      });
+      return hits;
+    }
+    P.scenario("R1", function () {
+      P.assert(document.documentElement.lang === "fr", "html lang is " + document.documentElement.lang);
+      var hits = rawKeyHits();
+      P.assert(hits.length === 0, "raw keys on the page: " + hits.join(" | "));
+      var nav = document.querySelector('a[data-i18n="site.nav.cyclicGroups"]');
+      P.assert(nav && nav.textContent === "Cyclic Groups", "nav link reads " + (nav && nav.textContent));
+      var tab = P.$("tab-additive").textContent;
+      P.assert(tab !== "Additive Groups" && tab.length > 0, "tab still reads " + tab);
+      P.assert(P.beads().length === 12, "expected 12 beads, found " + P.beads().length);
+      P.assert(/^Z\/12 · generator 5 · order 12$/.test(document.querySelector("#ring-dynamic .ring-title").textContent), "title " + document.querySelector("#ring-dynamic .ring-title").textContent);
+      P.assert(P.$("n-input").parentNode.querySelector("label").textContent === "n — modulus", "label fell through to " + P.$("n-input").parentNode.querySelector("label").textContent);
+      P.setMode("multiplicative");
+      P.setN(15);
+      P.assert(rawKeyHits().length === 0, "raw keys after the non-cyclic render: " + rawKeyHits().join(" | "));
+      P.assert(/not cyclic/.test(document.querySelector("#ring-dynamic .ring-title").textContent), "factor title is English");
+      return "fr: no raw keys, nav link falls back to 'Cyclic Groups', tab reads '" + tab + "', 12 beads, factor view also clean";
+    });
+  },
+
+  r2: function (P) {
+    function rawKeyHits() {
+      var re = /\b(?:cyclicGroups|site\.nav|common|hub)\.[A-Za-z]/;
+      var hits = [];
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      var node;
+      while ((node = walker.nextNode())) {
+        var tag = node.parentNode.nodeName;
+        if (tag === "SCRIPT" || tag === "STYLE") continue;
+        if (re.test(node.nodeValue)) hits.push(node.nodeValue.slice(0, 60));
+      }
+      P.all("*").forEach(function (el) {
+        ["title", "aria-label", "placeholder", "alt"].forEach(function (a) {
+          var v = el.getAttribute(a);
+          if (v && re.test(v)) hits.push(a + "=" + v);
+        });
+      });
+      return hits;
+    }
+    P.scenario("R2", function () {
+      P.assert(document.documentElement.lang === "ar", "html lang is " + document.documentElement.lang);
+      P.assert(document.documentElement.dir === "rtl", "html dir is '" + document.documentElement.dir + "'");
+      P.assert(getComputedStyle(P.$("ring-svg")).direction === "ltr", "ring svg direction is " + getComputedStyle(P.$("ring-svg")).direction);
+      P.assert(getComputedStyle(P.$("n-input")).direction === "ltr", "n input direction is " + getComputedStyle(P.$("n-input")).direction);
+      P.assert(getComputedStyle(P.$("gen-select")).direction === "ltr", "generator select direction is " + getComputedStyle(P.$("gen-select")).direction);
+      var hits = rawKeyHits();
+      P.assert(hits.length === 0, "raw keys on the page: " + hits.join(" | "));
+      var nav = document.querySelector('a[data-i18n="site.nav.cyclicGroups"]');
+      P.assert(nav && nav.textContent === "Cyclic Groups", "nav link reads " + (nav && nav.textContent));
+      P.assert(P.beads().length === 12, "expected 12 beads, found " + P.beads().length);
+      P.setMode("multiplicative");
+      P.setN(24);
+      P.assert(P.all("#ring-dynamic .factor-ring").length === 3, "factor rings did not render in RTL");
+      P.assert(rawKeyHits().length === 0, "raw keys after the non-cyclic render: " + rawKeyHits().join(" | "));
+      return "ar: lang ar, dir rtl, ring svg, n input and select are ltr, no raw keys, 12 beads, 3 factor rings for (Z/24)*";
+    });
+  },
+
+  // The hub (index.html), loaded in French.
+  h1: function (P) {
+    P.scenario("H1", function () {
+      var cards = P.all("a.card");
+      var hits = cards.filter(function (c) { return (c.getAttribute("href") || "").indexOf("Cyclic Groups/cyclic-groups.html") === 0; });
+      P.assert(hits.length === 1, "expected exactly one Cyclic Groups card, found " + hits.length);
+      var at = cards.indexOf(hits[0]);
+      var prev = cards[at - 1] && cards[at - 1].getAttribute("href");
+      var next = cards[at + 1] && cards[at + 1].getAttribute("href");
+      P.assert(/^Cayley Table\/cayley-table\.html/.test(prev || ""), "previous card is " + prev);
+      P.assert(/^Group Isomorphism\/group-isomorphism\.html/.test(next || ""), "next card is " + next);
+      var h3 = hits[0].querySelector("h3").textContent;
+      var desc = hits[0].querySelector("p").textContent;
+      P.assert(h3 === "Cyclic Group Necklace", "card title is " + h3);
+      P.assert(desc.length > 40 && !/^hub\./.test(desc), "card description is " + desc);
+      P.assert(document.documentElement.lang === "fr", "html lang is " + document.documentElement.lang);
+      var nav = P.all(".site-nav .site-nav-link");
+      P.assert(nav.length === 17, "nav has " + nav.length + " links");
+      var cyc = nav.filter(function (a) { return a.getAttribute("data-i18n") === "site.nav.cyclicGroups"; });
+      P.assert(cyc.length === 1 && cyc[0].textContent === "Cyclic Groups", "nav entry reads " + (cyc[0] && cyc[0].textContent));
+      var navIdx = nav.indexOf(cyc[0]);
+      P.assert(nav[navIdx - 1].getAttribute("data-i18n") === "site.nav.cayley" && nav[navIdx + 1].getAttribute("data-i18n") === "site.nav.iso", "nav slot is not between Cayley Table and Group Isomorphism");
+      var lede = document.querySelector('[data-i18n="hub.hero.lede"]').textContent;
+      P.assert(!/^hub\./.test(lede), "hero lede is a raw key");
+      var grid = hits[0].parentNode;
+      P.assert(grid.parentNode.querySelector("h2").getAttribute("data-i18n") === "hub.group.modular", "card is not in the modular grid");
+      return "one card between Cayley Table and Group Isomorphism in the modular grid, title '" + h3 + "', 17 nav links, nav slot after the Cayley link";
+    });
   }
 };
 
@@ -581,7 +688,10 @@ var LOADS = {
   b: { sel: "t2", query: "?lang=en" },
   c: { sel: "t2", query: "?mode=additive&n=12&gen=5&cord=0&chords=1&colors=0&orders=1&bygen=1&lang=en" },
   d: { sel: "t2", query: "?mode=additive&n=60&gen=7&lang=en" },
-  e: { sel: "t2", query: "?lang=en" }
+  e: { sel: "t2", query: "?lang=en" },
+  r1: { sel: "t3", query: "?mode=additive&n=12&gen=5&lang=fr" },
+  r2: { sel: "t3", query: "?mode=additive&n=12&gen=5&lang=ar" },
+  h1: { sel: "t3", query: "?lang=fr", page: "index.html" }
 };
 
 /* ---------- node-side scenarios ---------- */
@@ -669,13 +779,83 @@ function n2() {
     : "FAIL N2 keys: " + problems.join("; ")];
 }
 
-var NODE_SCENARIOS = { t2: [n1, n2] };
+// G1: the i18n gate reports exactly the expected English-only findings.
+function g1() {
+  var gate = require(path.join(ROOT, ".planning", "phases", "06-multi-language-support", "i18n-check.js"));
+  var others = gate.LANG_CODES.filter(function (l) { return l !== "en"; });
+  var res = cp.spawnSync("node", [path.join(ROOT, ".planning", "phases", "06-multi-language-support", "i18n-check.js"), "--coverage", "--all", "--report"], {
+    cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024
+  });
+  var rows = (res.stdout || "").split("\n").filter(function (l) { return l.length > 0; });
+  var summary = rows.filter(function (l) { return /^I18N-CHECK REPORT /.test(l); });
+  var findings = rows.filter(function (l) { return !/^I18N-CHECK /.test(l); });
+  var problems = [];
+  if (summary.join("|") !== "I18N-CHECK REPORT 90 finding(s)") problems.push("summary is " + JSON.stringify(summary));
+  if (findings.length !== 90) problems.push(findings.length + " finding lines");
+  var groups = [
+    { name: "cyclicGroups", re: /^LANG-KEYSET cyclicGroups\.([A-Za-z-]+): namespace missing this language entirely$/ },
+    { name: "site", re: /^LANG-KEYSET site\.([A-Za-z-]+): missing=\[nav\.cyclicGroups\] extra=\[\]$/ },
+    { name: "hub", re: /^LANG-KEYSET hub\.([A-Za-z-]+): missing=\[card\.cyclicGroups\.desc,card\.cyclicGroups\.title\] extra=\[\]$/ }
+  ];
+  var matched = 0;
+  groups.forEach(function (g) {
+    var langs = [];
+    findings.forEach(function (l) { var m = g.re.exec(l); if (m) langs.push(m[1]); });
+    matched += langs.length;
+    var sorted = langs.slice().sort().join();
+    if (sorted !== others.slice().sort().join()) problems.push(g.name + " covers [" + sorted + "], expected the 30 non-en languages");
+  });
+  if (matched !== 90) problems.push(matched + " of the finding lines match the three expected shapes");
+  return [problems.length === 0
+    ? "PASS G1 i18n-gate: I18N-CHECK REPORT 90 finding(s) = 30 cyclicGroups + 30 site + 30 hub LANG-KEYSET lines, one per non-English language each, nothing else"
+    : "FAIL G1 i18n-gate: " + problems.join("; ")];
+}
+
+// S0: the untracked source folder is exactly as found: fingerprint, still
+// untracked, never committed. The fingerprint is the sha256 of the
+// path-sorted sha256sum listing, as `sort -z | xargs -0 sha256sum | sha256sum`
+// computes it over "cyclic groups/".
+var SOURCE_FOLDER = "cyclic groups";
+var SOURCE_FINGERPRINT = "1daac0057ee94a1511adba9f2eccd35f3b2cadb403530a80fb0f2bef676277dc";
+
+function listFiles(dir) {
+  var out = [];
+  fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).forEach(function (d) {
+    var rel = dir + "/" + d.name;
+    if (d.isDirectory()) out = out.concat(listFiles(rel));
+    else out.push(rel);
+  });
+  return out;
+}
+
+function s0() {
+  var problems = [];
+  var collator = new Intl.Collator("en");
+  var files = listFiles(SOURCE_FOLDER).sort(collator.compare);
+  var listing = files.map(function (f) {
+    return crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, f))).digest("hex") + "  " + f + "\n";
+  }).join("");
+  var fingerprint = crypto.createHash("sha256").update(listing).digest("hex");
+  if (fingerprint !== SOURCE_FINGERPRINT) problems.push("fingerprint is " + fingerprint);
+  var status = cp.spawnSync("git", ["status", "--porcelain", "--", SOURCE_FOLDER], { cwd: ROOT, encoding: "utf8" }).stdout.trim();
+  if (status !== '?? "cyclic groups/"') problems.push("git status reports " + JSON.stringify(status));
+  var tracked = cp.spawnSync("git", ["ls-files", "--", SOURCE_FOLDER], { cwd: ROOT, encoding: "utf8" }).stdout.trim();
+  if (tracked !== "") problems.push("tracked files: " + tracked);
+  var log = cp.spawnSync("git", ["log", "--oneline", "--all", "--", SOURCE_FOLDER], { cwd: ROOT, encoding: "utf8" }).stdout.trim();
+  if (log !== "") problems.push("commits touch the folder: " + log);
+  return [problems.length === 0
+    ? "PASS S0 source-folder: " + files.length + " files, fingerprint " + fingerprint.slice(0, 12) + "... unchanged, still untracked, no commit touches it"
+    : "FAIL S0 source-folder: " + problems.join("; ")];
+}
+
+var NODE_SCENARIOS = { t2: [n1, n2], t3: [g1, s0] };
 
 var EXPECT = {
   t1: ["S1", "S2", "S3", "Z"],
-  t2: ["L1", "L1-all", "L2", "L3", "L4", "F1", "F2", "F3", "F4", "U1", "U2", "U3 clamp", "P1", "P2", "X1", "E1", "C1", "I1", "N1 colors", "N1 sinks", "N2", "Z"]
+  t2: ["L1", "L1-all", "L2", "L3", "L4", "F1", "F2", "F3", "F4", "U1", "U2", "U3 clamp", "P1", "P2", "X1", "E1", "C1", "I1", "N1 colors", "N1 sinks", "N2", "Z"],
+  t3: ["R1", "R2", "H1", "G1", "S0", "Z"]
 };
-var RUN_ORDER = ["t1", "t2"];
+var RUN_ORDER = ["t1", "t2", "t3"];
 
 /* ---------- node-side runner ---------- */
 
@@ -683,19 +863,21 @@ var ERROR_TRAP = '<script>window.__d21Errors=[];window.addEventListener("error",
 
 function fnSource(fn) { return fn.toString(); }
 
-function buildPage(srcHtml, load, extra) {
+function buildPage(srcHtml, load, extra, relPage) {
   var siteRoot = harness.mkScratch("d21-site-");
   fs.cpSync(path.join(ROOT, "assets"), path.join(siteRoot, "assets"), { recursive: true });
-  var bodiesSrc = "{" + Object.keys(BODIES).map(function (k) { return JSON.stringify(k) + ":" + fnSource(BODIES[k]); }).join(",") + "}";
-  var script = "(" + fnSource(inPage) + ")(" + JSON.stringify(load) + "," + bodiesSrc + ");";
-  var markup = '<pre id="d21-out"></pre>\n<script>\n' + script + "\n</script>\n" + (extra || "");
-  var page = srcHtml.replace("<head>", "<head>\n" + ERROR_TRAP);
+  var markup = extra || "";
+  if (load) {
+    var bodiesSrc = "{" + Object.keys(BODIES).map(function (k) { return JSON.stringify(k) + ":" + fnSource(BODIES[k]); }).join(",") + "}";
+    var script = "(" + fnSource(inPage) + ")(" + JSON.stringify(load) + "," + bodiesSrc + ");";
+    markup = '<pre id="d21-out"></pre>\n<script>\n' + script + "\n</script>\n" + markup;
+  }
+  var page = load ? srcHtml.replace("<head>", "<head>\n" + ERROR_TRAP) : srcHtml;
   var at = page.lastIndexOf("</body>");
   if (at < 0) throw new Error("no closing body tag in the page");
   page = page.slice(0, at) + markup + page.slice(at);
-  var destDir = path.join(siteRoot, "Cyclic Groups");
-  fs.mkdirSync(destDir, { recursive: true });
-  var dest = path.join(destDir, "cyclic-groups.html");
+  var dest = path.join(siteRoot, relPage || PAGE_REL);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.writeFileSync(dest, page);
   return { file: dest, siteRoot: siteRoot };
 }
@@ -727,7 +909,8 @@ function grabPre(dom, id) {
 function pageUrl(file, query) { return url.pathToFileURL(file).href + query; }
 
 function runLoad(load) {
-  var built = buildPage(fs.readFileSync(PAGE_FILE, "utf8"), load);
+  var rel = LOADS[load].page || PAGE_REL;
+  var built = buildPage(fs.readFileSync(path.join(ROOT, rel), "utf8"), load, "", rel);
   var dom = runChrome(pageUrl(built.file, LOADS[load].query));
   var out = grabPre(dom, "d21-out");
   if (process.env.D21_DUMP === load) fs.writeFileSync(process.env.D21_DUMP_FILE || "/dev/stderr", dom);
@@ -771,9 +954,31 @@ function main() {
   process.exit(0);
 }
 
+// --shots: day and night pictures of the Z/12 star and of (Z/15)*, at
+// 1280 x 1500 and device scale 2 so the whole diagram and the side panels
+// fit (at 1280 x 1000 the header and page title push the ring off the bottom).
 function shots() {
-  console.log("shots: not implemented yet");
-  process.exit(1);
+  var QUICK = __dirname;
+  var targets = [
+    { name: "cyclic", query: "?mode=additive&n=12&gen=5" },
+    { name: "factors", query: "?mode=multiplicative&n=15" }
+  ];
+  var failed = false;
+  targets.forEach(function (t) {
+    ["day", "night"].forEach(function (theme) {
+      var built = buildPage(fs.readFileSync(PAGE_FILE, "utf8"), "", "", PAGE_REL);
+      var dest = path.join(QUICK, t.name + "-" + theme + ".png");
+      try { fs.rmSync(dest, { force: true }); } catch (e) { /* none yet */ }
+      runChrome(pageUrl(built.file, t.query + "&theme=" + theme + "&lang=en"), [
+        "--hide-scrollbars", "--force-device-scale-factor=2", "--screenshot=" + dest, "--window-size=1280,1500", "--virtual-time-budget=3000"
+      ]);
+      try { fs.rmSync(built.siteRoot, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+      var ok = fs.existsSync(dest) && fs.statSync(dest).size > 0;
+      console.log((ok ? "wrote " : "FAILED to write ") + dest);
+      if (!ok) failed = true;
+    });
+  });
+  process.exit(failed ? 1 : 0);
 }
 
 main();
