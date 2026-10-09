@@ -1608,22 +1608,23 @@ function stopCosets(){
   if (was) redrawRing();
 }
 
-// ⟨g⟩ for every element g, written as a walk that starts at the member
-// nearest the top of the ring (ties go to the one the ring counts to first)
-// and steps by g, or by g⁻¹ while the ring is mirrored, so the row reads the
-// way the ring is set to count.
-function rowWalk(G, g, beads){
+// ⟨g⟩ for every element g, its members read around the ring the way the
+// ring counts (clockwise, or counterclockwise while mirrored), starting at
+// the member nearest the top; ties go to the one the ring counts to first.
+function rowMembers(G, g, beads){
   var m = beads.length;
   var place = {};
   beads.forEach(function(a, i){ place[a] = i; });
-  var k = G.orders[g];
-  var start = G.identity, best = Infinity;
-  lap(G, g, k).forEach(function(a){
+  var members = lap(G, g, G.orders[g]);
+  var start = 0, best = Infinity;
+  members.forEach(function(a){
     var i = place[a];
     var key = Math.min(i, m - i) * 2 + (i > m / 2 ? 1 : 0);
-    if (key < best){ best = key; start = a; }
+    if (key < best){ best = key; start = i; }
   });
-  return lap(G, dirSign() > 0 ? g : G.inv[g], k, start);
+  return members.sort(function(a, b){
+    return ((place[a] - start + m) % m) - ((place[b] - start + m) % m);
+  });
 }
 
 // Rebuilding the rows keeps keyboard focus on the list: when a row had it,
@@ -1638,7 +1639,7 @@ function renderSubgroups(G){
     row.type = 'button';
     row.className = 'subgroup-row' + (g === state.gen ? ' is-current' : '');
     row.setAttribute('aria-pressed', g === state.gen ? 'true' : 'false');
-    row.textContent = '⟨' + g + '⟩ = {' + rowWalk(G, g, beads).join(', ') + '}';
+    row.textContent = '⟨' + g + '⟩ = {' + rowMembers(G, g, beads).join(', ') + '}';
     row.addEventListener('click', function(){
       state.gen = g;
       render();
