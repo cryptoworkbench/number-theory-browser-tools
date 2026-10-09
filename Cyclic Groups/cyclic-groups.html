@@ -1665,14 +1665,16 @@ function stopCosets(){
 // steps from the identity: the way the ring counts (clockwise, or
 // counterclockwise when that is the forward direction), or the other way
 // round when g lies more than halfway round, so ⟨9⟩ in Z/12 reads
-// 0, 9, 6, 3. A generator's row is the whole ring, so it always reads the
-// way the ring counts. The row starts at the member nearest the top; ties
-// go to the one it reads first.
+// 0, 9, 6, 3. A generator's row is the whole ring, so instead it reads
+// the order repeated combining with g reaches the members in, from the
+// bead at the top: ⟨7⟩ in Z/12 reads 0, 7, 2, 9, … The row starts at the
+// member nearest the top; ties go to the one it reads first.
 function rowMembers(G, g, beads){
   var m = beads.length;
+  if (G.orders[g] === m) return lap(G, g, m, beads[0]);
   var place = {};
   beads.forEach(function(a, i){ place[a] = i; });
-  var back = G.orders[g] < m && ((place[g] - place[G.identity] + m) % m) > m / 2;
+  var back = ((place[g] - place[G.identity] + m) % m) > m / 2;
   var s = back ? -1 : 1;
   var members = lap(G, g, G.orders[g]);
   var start = 0, best = Infinity;
