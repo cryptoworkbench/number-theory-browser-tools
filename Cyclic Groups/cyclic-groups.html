@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme-choice=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme-choice'));}catch(e){}}if(!t){try{t=window.matchMedia('(prefers-color-scheme: light)').matches?'day':'night';}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="cyclicGroups.title">Cyclic Groups — Necklace Visualizer</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/palette.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../assets/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
+    font-family:var(--font-sans); font-size:16px; }
+  body{ min-height:100vh; transition: background .25s ease, color .25s ease; }
+
+  .app{ padding: clamp(12px, 3vw, 32px); margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+
+  .page-header{ margin:4px 0 0; }
+  .eyebrow{ font-size:.875rem; font-weight:600; color:var(--text-dim); margin:0 0 8px; }
+  .eyebrow::first-letter{ text-transform:uppercase; }
+  .page-header h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.75rem, 3.4vw, 2.375rem); line-height:1.12; letter-spacing:-.012em; margin:0; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
+  .lede{ font-size:1.0625rem; line-height:1.6; color:var(--text-dim); margin:10px 0 0; max-width:72ch; }
+
+  /* ---------- mode tabs (same pattern as Cayley Table) ---------- */
+  .mode-tabs{ display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--panel-border); }
+  .mode-tab{ font:inherit; font-size:.92rem; font-weight:600; color:var(--text-dim); background:none; border:none; border-bottom:2px solid transparent; border-radius:8px 8px 0 0; padding:10px 16px; cursor:pointer; transition:color .15s, background .15s, border-color .15s; }
+  .mode-tab:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .mode-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .mode-tab.is-current{ color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* ---------- layout: diagram on the left, controls on the right ---------- */
+  .layout{ display:grid; grid-template-columns:minmax(0, 1fr) 340px; gap:24px; align-items:start; }
+  .stage{ min-width:0; display:flex; flex-direction:column; gap:18px; }
+  .side{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+  @media (max-width: 900px){
+    .layout{ grid-template-columns:1fr; }
+  }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); padding:16px 18px; position:relative; }
+  .panel h2{ font-size:.78rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); margin:0 0 12px; }
+
+  .diagram-frame{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); padding:14px; }
+  svg.ring-svg{ width:100%; height:auto; display:block; overflow:visible; }
+
+  /* ---------- group controls ---------- */
+  .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{ font-size:.78rem; color:var(--text-dim); }
+  .field input, .field select{
+    font:inherit; font-family:var(--font-mono); font-size:.95rem;
+    background:color-mix(in srgb, var(--text) 6%, transparent);
+    border:1px solid var(--panel-border); border-radius:var(--radius-ctl);
+    padding:9px 11px; color:var(--text); width:100%;
+  }
+  .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .field select:disabled{ opacity:.6; cursor:not-allowed; }
+
+  /* ---------- the necklace ---------- */
+  .guide{ fill:none; stroke:color-mix(in srgb, var(--text-dim) 28%, transparent); stroke-width:1; }
+  .cord{ fill:none; stroke:color-mix(in srgb, var(--text-dim) 50%, transparent); stroke-linejoin:round; }
+  .chord{ fill:none; stroke:var(--role-active); stroke-linejoin:round; stroke-linecap:round; opacity:.9; }
+  .chord-arrow{ fill:var(--role-active); stroke:none; }
+  .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
+  .bead.is-identity{ stroke:var(--text); }
+  .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+  .ring-title{ fill:var(--text); font-family:var(--font-serif); font-size:25px; font-weight:600; text-anchor:middle; }
+  .ring-note{ fill:var(--text-dim); font-family:var(--font-sans); font-size:13px; text-anchor:middle; }
+
+  /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
+     input, the generator select and the notation spans hold numbers and
+     group notation, so they read left to right exactly as in English. */
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select){
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-brand" href="../index.html">
+      <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <rect class="brand-icon-plate" x="2" y="2" width="60" height="60" rx="14"/>
+        <rect class="brand-icon-head" x="12" y="12" width="40" height="10"/>
+        <rect class="brand-icon-head" x="12" y="22" width="10" height="30"/>
+        <rect class="brand-icon-diag" x="22" y="22" width="10" height="10"/>
+        <rect class="brand-icon-diag" x="32" y="32" width="10" height="10"/>
+        <rect class="brand-icon-diag" x="42" y="42" width="10" height="10"/>
+        <path class="brand-icon-grid" d="M22 12V52M32 12V52M42 12V52M12 22H52M12 32H52M12 42H52"/>
+        <rect class="brand-icon-frame" x="12" y="12" width="40" height="40"/>
+      </svg>
+      <span class="site-brand-label" data-i18n="site.brand">Number Theory Tools</span>
+    </a>
+    <button type="button" class="site-menu-toggle" aria-expanded="false" aria-controls="site-nav"><span data-i18n="site.menu">Tools</span><svg class="site-menu-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3 4.5l3 3 3-3"/></svg></button>
+    <nav class="site-nav" id="site-nav" aria-label="Tools" data-i18n-aria-label="site.nav.label">
+      <a href="../index.html" class="site-nav-link" data-i18n="site.nav.home">Home</a>
+      <a href="../Sieve Of Eratosthenes/sieve-of-eratosthenes.html" class="site-nav-link" data-i18n="site.nav.sieve">Sieve of Eratosthenes</a>
+      <a href="../Factor Tree/factor-tree.html" class="site-nav-link" data-i18n="site.nav.factorTree">Factor Tree</a>
+      <a href="../Venn Diagram/venn-diagram.html" class="site-nav-link" data-i18n="site.nav.venn">Venn Diagram</a>
+      <a href="../Euclidean Algorithm/euclidean-algorithm.html" class="site-nav-link" data-i18n="site.nav.euclid">Euclidean Algorithm</a>
+      <a href="../Chinese Remainder Theorem/chinese-remainder-theorem.html" class="site-nav-link" data-i18n="site.nav.crt">Chinese Remainder Theorem</a>
+      <a href="../Equivalence Wheel/equivalence-wheel.html" class="site-nav-link" data-i18n="site.nav.wheel">Equivalence Wheel</a>
+      <a href="../Eulers Totient/eulers-totient.html" class="site-nav-link" data-i18n="site.nav.totient">Euler's Totient</a>
+      <a href="../Cayley Table/cayley-table.html" class="site-nav-link" data-i18n="site.nav.cayley">Cayley Table</a>
+      <a href="cyclic-groups.html" class="site-nav-link is-active" data-i18n="site.nav.cyclicGroups">Cyclic Groups</a>
+      <a href="../Group Isomorphism/group-isomorphism.html" class="site-nav-link" data-i18n="site.nav.iso">Group Isomorphism</a>
+      <a href="../Square And Multiply/square-and-multiply.html" class="site-nav-link" data-i18n="site.nav.sqm">Square and Multiply</a>
+      <a href="../Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html" class="site-nav-link" data-i18n="site.nav.dh">Diffie-Hellman</a>
+      <a href="../Elliptic Curve Diffie-Hellman/elliptic-curve-diffie-hellman.html" class="site-nav-link" data-i18n="site.nav.ecdh">Elliptic Curve DH</a>
+      <a href="../RSA/rsa.html" class="site-nav-link" data-i18n="site.nav.rsa">RSA</a>
+      <a href="../Fermats Method/fermats-method.html" class="site-nav-link" data-i18n="site.nav.fermat">Fermat's Method</a>
+      <a href="../Shors Algorithm/shors-algorithm.html" class="site-nav-link" data-i18n="site.nav.shor">Shor's Algorithm</a>
+    </nav>
+    <label class="lang-switch" title="Language" data-i18n-title="site.lang.label">
+      <svg class="lang-switch-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3"/><ellipse cx="8" cy="8" rx="2.7" ry="6.3"/><path d="M1.9 6h12.2M1.9 10h12.2"/></svg>
+      <select id="lang-switch-select" aria-label="Language" data-i18n-aria-label="site.lang.label">
+        <option value="nl" lang="nl">Nederlands</option>
+        <option value="en" lang="en" selected>English</option>
+        <option value="de" lang="de">Deutsch</option>
+        <option value="fr" lang="fr">Français</option>
+        <option value="es" lang="es">Español</option>
+        <option value="it" lang="it">Italiano</option>
+        <option value="pl" lang="pl">Polski</option>
+        <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
+        <option value="pt-PT" lang="pt-PT">Português (Portugal)</option>
+        <option value="sv" lang="sv">Svenska</option>
+        <option value="nb" lang="nb">Norsk (bokmål)</option>
+        <option value="ro" lang="ro">Română</option>
+        <option value="hu" lang="hu">Magyar</option>
+        <option value="lv" lang="lv">Latviešu</option>
+        <option value="ru" lang="ru">Русский</option>
+        <option value="el" lang="el">Ελληνικά</option>
+        <option value="he" lang="he">עברית</option>
+        <option value="hi" lang="hi">हिन्दी</option>
+        <option value="ar" lang="ar">العربية</option>
+        <option value="sq" lang="sq">Shqip</option>
+        <option value="sw" lang="sw">Kiswahili</option>
+        <option value="zh" lang="zh">中文</option>
+        <option value="ja" lang="ja">日本語</option>
+        <option value="ko" lang="ko">한국어</option>
+        <option value="id" lang="id">Bahasa Indonesia</option>
+        <option value="zgh-Latn" lang="zgh-Latn">Tamaziɣt</option>
+        <option value="zgh-Tfng" lang="zgh-Tfng">ⵜⴰⵎⴰⵣⵉⵖⵜ</option>
+        <option value="ku" lang="ku">Kurmancî</option>
+        <option value="ckb" lang="ckb">کوردی</option>
+        <option value="sa" lang="sa">संस्कृतम्</option>
+        <option value="la" lang="la">Latina</option>
+      </select>
+    </label>
+    <label class="theme-switch" title="Toggle day and night mode" data-i18n-title="site.theme.toggle">
+      <input type="checkbox" id="theme-switch-input" aria-label="Toggle day and night mode" data-i18n-aria-label="site.theme.toggle">
+      <svg class="theme-switch-icon theme-switch-icon-moon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1z"/></svg>
+      <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      <svg class="theme-switch-icon theme-switch-icon-sun" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="2.9"/><path d="M8 1.3v1.6M8 13.1v1.6M1.3 8h1.6M13.1 8h1.6M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M3.3 12.7l1.1-1.1M11.6 4.4l1.1-1.1"/></svg>
+    </label>
+  </div>
+</header>
+
+<div class="app">
+
+  <header class="page-header">
+    <p class="eyebrow" data-i18n="cyclicGroups.eyebrow">group theory · generators and orbits</p>
+    <h1 data-i18n="cyclicGroups.heading">Cyclic Group Necklace</h1>
+    <p class="lede" data-i18n="cyclicGroups.lede">Pick a group. Every element becomes a bead on a ring, equally spaced. Walking by the generator draws the chords, and a generator that reaches every bead is what makes the group cyclic. Groups with no such element are split into the rings they are built from.</p>
+  </header>
+
+  <div class="mode-tabs" role="tablist" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.tablistLabel">
+    <button type="button" class="mode-tab is-current" role="tab" id="tab-additive" data-mode="additive" aria-selected="true" aria-controls="ring-panel" data-i18n="common.additiveGroups">Additive Groups</button>
+    <button type="button" class="mode-tab" role="tab" id="tab-multiplicative" data-mode="multiplicative" aria-selected="false" aria-controls="ring-panel" tabindex="-1" data-i18n="common.multiplicativeGroups">Multiplicative Groups</button>
+  </div>
+
+  <div class="layout">
+    <div class="stage" id="ring-panel" role="tabpanel" aria-labelledby="tab-additive">
+      <div class="diagram-frame">
+        <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
+          <g id="ring-dynamic"></g>
+        </svg>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
+        <div class="field">
+          <label for="n-input" data-i18n="cyclicGroups.nLabel">n — modulus</label>
+          <input type="number" id="n-input" min="2" max="100" step="1" value="12">
+        </div>
+        <div class="field">
+          <label for="gen-select" data-i18n="cyclicGroups.genLabel">Generator</label>
+          <select id="gen-select"></select>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+</div>
+
+<script src="../assets/nt-core.js"></script>
+<script src="../assets/nt-svg.js"></script>
+<script src="../assets/nt-store.js"></script>
+<script src="../assets/nt-i18n.js"></script>
+<script src="../assets/i18n/site.js"></script>
+<script src="../assets/i18n/cyclic-groups.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- shared helpers (assets/nt-*.js) ---------- */
+const { clamp, unitsMod } = NT.core;
+const { polar, svgEl } = NT.svg;
+const { readModeNParams } = NT.store;
+const { onLangChange, translate } = NT.i18n;
+
+/* ---------- constants ---------- */
+var MIN_N = 2;
+var MAX_N = 100;
+
+// The necklace canvas: a 760 x 760 box, ring centred a little below the
+// middle so the title has room above and the footnote below.
+var SIZE = 760;
+var RING = { cx: 380, cy: 388, R: 285 };
+
+/* ---------- state ---------- */
+// gen is remembered while the current group has no generator, so a visit to a
+// non-cyclic modulus and back does not forget the learner's choice.
+var state = { mode: 'additive', n: 12, gen: 5 };
+
+// A ?mode=&n= deep link (the shape Cayley Table and Equivalence Wheel use)
+// replaces the default group; ?gen= is honored later by syncGenerators only
+// when it is a real generator of that group.
+(function readLink(){
+  var link = readModeNParams();
+  if (link){
+    state.mode = link.mode;
+    state.n = clamp(link.n, MIN_N, MAX_N);
+  }
+  var g = parseInt(new URLSearchParams(location.search).get('gen'), 10);
+  if (isFinite(g)) state.gen = g;
+})();
+
+/* ---------- DOM references ---------- */
+var $ = function(id){ return document.getElementById(id); };
+var nInputEl = $('n-input');
+var genSelectEl = $('gen-select');
+var ringSvgEl = $('ring-svg');
+var ringDynamicEl = $('ring-dynamic');
+var ringPanelEl = $('ring-panel');
+var modeTabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
+
+/* ---------- group maths (page-specific) ---------- */
+
+// A group object: its elements, identity, operation, order, a per-element
+// order map and the elements whose order equals the group order. Every other
+// fact (cyclic or not, which elements are generators) derives from that map.
+function buildGroup(mode, n){
+  var multiplicative = mode === 'multiplicative';
+  var els = [];
+  if (multiplicative){
+    els = unitsMod(n);
+  } else {
+    for (var i = 0; i < n; i++) els.push(i);
+  }
+  var identity = multiplicative ? 1 : 0;
+  var G = {
+    mode: mode,
+    n: n,
+    els: els,
+    identity: identity,
+    order: els.length,
+    label: multiplicative ? '(Z/' + n + ')*' : 'Z/' + n,
+    combine: function(a, b){ return multiplicative ? (a * b) % n : (a + b) % n; },
+    orders: {},
+    generators: []
+  };
+  els.forEach(function(a){
+    var x = a;
+    var steps = 1;
+    while (x !== identity){
+      x = G.combine(x, a);
+      steps++;
+    }
+    G.orders[a] = steps;
+    if (steps === G.order) G.generators.push(a);
+  });
+  G.cyclic = G.generators.length > 0;
+  return G;
+}
+
+// One lap: identity, then the identity stepped by gen once, twice, and so on
+// for len elements.
+function lap(G, gen, len){
+  var seq = [G.identity];
+  var x = G.identity;
+  for (var k = 1; k < len; k++){
+    x = G.combine(x, gen);
+    seq.push(x);
+  }
+  return seq;
+}
+
+/* ---------- drawing ---------- */
+
+function num(v){ return Math.round(v * 1000) / 1000; }
+
+function drawRing(parent, G, beads, gen, box){
+  var m = beads.length;
+  var beadR = Math.max(3.5, Math.min(21, 1.5 * box.R / m));
+  var place = {};
+  beads.forEach(function(a, i){ place[a] = i; });
+  function at(i){ return polar(box.cx, box.cy, box.R, 360 * i / m); }
+
+  var ring = svgEl('g', { 'class': 'ring' });
+  ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
+
+  if (m > 1){
+    var pts = [];
+    for (var i = 0; i < m; i++){
+      var p = at(i);
+      pts.push(num(p[0]) + ',' + num(p[1]));
+    }
+    ring.appendChild(svgEl('polygon', {
+      'class': 'cord', points: pts.join(' '),
+      'stroke-width': num(Math.max(1.5, beadR * 0.28))
+    }));
+  }
+
+  if (m > 1){
+    var seq = lap(G, gen, m);
+    var d = '';
+    for (var k = 0; k <= m; k++){
+      var q = at(place[seq[k % m]]);
+      d += (k ? ' L ' : 'M ') + num(q[0]) + ' ' + num(q[1]);
+    }
+    ring.appendChild(svgEl('path', {
+      'class': 'chord', d: d, 'data-seq': seq.join(' '),
+      'stroke-width': num(Math.max(1, Math.min(2.4, 44 / m + 0.7)))
+    }));
+    if (m <= 60){
+      var size = Math.max(3, Math.min(7, 90 / m));
+      for (var s = 0; s < m; s++){
+        var from = at(place[seq[s]]);
+        var to = at(place[seq[(s + 1) % m]]);
+        var ax = from[0] + (to[0] - from[0]) * 0.58;
+        var ay = from[1] + (to[1] - from[1]) * 0.58;
+        var heading = Math.atan2(to[1] - from[1], to[0] - from[0]);
+        var tip = [ax + size * Math.cos(heading), ay + size * Math.sin(heading)];
+        var left = [ax + size * Math.cos(heading + 2.5), ay + size * Math.sin(heading + 2.5)];
+        var right = [ax + size * Math.cos(heading - 2.5), ay + size * Math.sin(heading - 2.5)];
+        ring.appendChild(svgEl('path', {
+          'class': 'chord-arrow',
+          d: 'M ' + num(tip[0]) + ' ' + num(tip[1]) + ' L ' + num(left[0]) + ' ' + num(left[1]) +
+             ' L ' + num(right[0]) + ' ' + num(right[1]) + ' Z'
+        }));
+      }
+    }
+  }
+
+  beads.forEach(function(a, i){
+    var p = at(i);
+    var cls = 'bead' + (a === G.identity ? ' is-identity' : '');
+    var attrs = { 'class': cls, cx: num(p[0]), cy: num(p[1]), r: num(beadR), 'data-el': a, 'data-order': G.orders[a] };
+    if (a === G.identity) attrs['stroke-width'] = 3;
+    ring.appendChild(svgEl('circle', attrs));
+  });
+
+  if (beadR >= 9){
+    beads.forEach(function(a, i){
+      var p = at(i);
+      var label = svgEl('text', { 'class': 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(beadR * 1.05) });
+      label.textContent = String(a);
+      ring.appendChild(label);
+    });
+  }
+
+  parent.appendChild(ring);
+}
+
+function drawText(cls, x, y, text){
+  var t = svgEl('text', { 'class': cls, x: x, y: y });
+  t.textContent = text;
+  return t;
+}
+
+function drawNecklace(G){
+  ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
+  ringDynamicEl.replaceChildren();
+  if (!G.cyclic) return;
+  ringDynamicEl.appendChild(drawText('ring-title', SIZE / 2, 44,
+    translate('cyclicGroups.ringTitle', { group: G.label, g: state.gen, order: G.order })));
+  drawRing(ringDynamicEl, G, G.els.slice(), state.gen, RING);
+  ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14,
+    translate('cyclicGroups.ringFootnote', { id: G.identity })));
+}
+
+/* ---------- generator select ---------- */
+
+function syncGenerators(G){
+  genSelectEl.replaceChildren();
+  if (!G.cyclic){
+    var none = document.createElement('option');
+    none.textContent = translate('cyclicGroups.genNone');
+    none.disabled = true;
+    none.selected = true;
+    genSelectEl.appendChild(none);
+    genSelectEl.disabled = true;
+    return;
+  }
+  genSelectEl.disabled = false;
+  var key = G.mode === 'additive' ? 'cyclicGroups.genOptionAdditive' : 'cyclicGroups.genOptionMultiplicative';
+  G.generators.forEach(function(g){
+    var opt = document.createElement('option');
+    opt.value = String(g);
+    opt.textContent = translate(key, { g: g });
+    genSelectEl.appendChild(opt);
+  });
+  if (G.generators.indexOf(state.gen) === -1) state.gen = G.generators[0];
+  genSelectEl.value = String(state.gen);
+}
+
+/* ---------- render ---------- */
+
+function render(){
+  var G = buildGroup(state.mode, state.n);
+  syncGenerators(G);
+  ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
+  drawNecklace(G);
+}
+
+/* ---------- mode tabs ---------- */
+
+function syncTabs(){
+  for (var t = 0; t < modeTabs.length; t++){
+    var tab = modeTabs[t];
+    var on = tab.getAttribute('data-mode') === state.mode;
+    tab.classList.toggle('is-current', on);
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    tab.tabIndex = on ? 0 : -1;
+    if (on) ringPanelEl.setAttribute('aria-labelledby', tab.id);
+  }
+}
+
+function setMode(id){
+  if (id === state.mode) return;
+  state.mode = id;
+  syncTabs();
+  render();
+}
+
+/* ---------- event wiring ---------- */
+
+nInputEl.addEventListener('input', function(){
+  var v = parseInt(nInputEl.value, 10);
+  if (!isFinite(v)) return;
+  state.n = clamp(v, MIN_N, MAX_N);
+  render();
+});
+nInputEl.addEventListener('change', function(){
+  var v = parseInt(nInputEl.value, 10);
+  state.n = clamp(isFinite(v) ? v : state.n, MIN_N, MAX_N);
+  nInputEl.value = state.n;
+  render();
+});
+genSelectEl.addEventListener('change', function(){
+  var g = parseInt(genSelectEl.value, 10);
+  if (!isFinite(g)) return;
+  state.gen = g;
+  render();
+});
+
+for (var ti = 0; ti < modeTabs.length; ti++){
+  (function(tab){
+    tab.addEventListener('click', function(){ setMode(tab.getAttribute('data-mode')); });
+    tab.addEventListener('keydown', function(ev){
+      if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+      ev.preventDefault();
+      var idx = modeTabs.indexOf(tab);
+      var delta = (ev.key === 'ArrowRight') ? 1 : -1;
+      var next = modeTabs[(idx + delta + modeTabs.length) % modeTabs.length];
+      setMode(next.getAttribute('data-mode'));
+      next.focus();
+    });
+  })(modeTabs[ti]);
+}
+
+/* ---------- i18n re-render ---------- */
+
+// Re-renders every JS-owned piece of text from the current state; no state
+// changes, so the generator choice and the typed n survive a language switch.
+onLangChange(render);
+
+/* ---------- start ---------- */
+
+nInputEl.value = state.n;
+syncTabs();
+render();
+
+})();
+</script>
+</body>
+</html>
