@@ -48,7 +48,7 @@
       layerElement: 'Forward path',
       layerElementTitle: 'To step is to combine the current element with {g}',
       layerBackward: 'Disable backwards path',
-      layerPaths: 'Enabled paths',
+      layerPaths: 'Subgroup paths',
       mirror: 'Mirror',
       resizeTitle: 'Drag to resize; double-click to reset',
       mirrorTitle: 'Mirror the ring across its vertical middle',
