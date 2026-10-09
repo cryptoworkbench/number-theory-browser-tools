@@ -88,10 +88,6 @@
      whose knob sits on the top corner for off, the bottom-left one for
      counterclockwise and the bottom-right one for clockwise. Each corner is
      a radio button, so the arrow keys move the knob too. */
-  /* The mirror button flips the ring each press; it shows no state of its
-     own, so which way the forward arrows turn is the only tell. */
-  .mirror-btn{ position:absolute; top:10px; right:12px; z-index:1; display:inline-flex; align-items:center; gap:6px; padding:5px 10px; font-size:.85rem; }
-  .mirror-btn svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linejoin:round; }
   .auto-rotate{ position:absolute; top:10px; left:12px; z-index:1; display:inline-flex; align-items:center; gap:8px; font-size:.85rem; color:var(--text-dim); user-select:none; -webkit-user-select:none; }
   .tri{ position:relative; width:44px; height:40px; flex:0 0 auto; }
   .tri-track{ position:absolute; inset:0; width:44px; height:40px; overflow:visible; }
@@ -431,7 +427,6 @@
           </span>
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
         </div>
-        <button type="button" class="action-btn mirror-btn" id="mirror-btn" title="Mirror the ring across its vertical middle" data-i18n-title="cyclicGroups.mirrorTitle"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 1.5v13M6 4 1.5 12H6ZM10 4l4.5 8H10Z"/></svg><span data-i18n="cyclicGroups.mirror">Mirror</span></button>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
@@ -505,6 +500,7 @@
         <div id="subgroup-options">
           <div class="arrow-options" id="arrow-options">
           <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow color" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow color" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
+          <div class="check" id="dir-row"><label for="dir-select" data-i18n="cyclicGroups.dirLabel">Forward direction</label><select class="side-select" id="dir-select"><option value="cw" data-i18n="cyclicGroups.dirCw">Clockwise</option><option value="ccw" data-i18n="cyclicGroups.dirCcw">Counterclockwise</option></select></div>
           <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow color" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow color" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Disable backwards path</label></div>
           <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colors manually</label></div>
           <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colors</button>
@@ -579,8 +575,8 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 // elSide puts the forward walk, by h, 'inside' or 'outside' the ring.
 // backward adds the walk by h⁻¹, always on the other side: see invSide().
 // dir is the way the beads count round the ring, and so the way the forward
-// walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Mirror
-// button flips it.
+// walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Forward
+// direction menu picks it.
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
@@ -639,6 +635,7 @@ var legendEl = $('legend');
 var legendHeadingEl = $('legend-heading');
 var colorBySelectEl = $('colorby-select');
 var sideElEl = $('side-el');
+var dirSelectEl = $('dir-select');
 var sideElLabelEl = $('side-el-label');
 var backwardEl = $('backward');
 var arrowOptionsEl = $('arrow-options');
@@ -1635,7 +1632,7 @@ function stopCosets(){
 }
 
 // ⟨g⟩ for every element g, its members read around the ring the way the
-// ring counts (clockwise, or counterclockwise while mirrored), starting at
+// ring counts (clockwise, or counterclockwise when that is the forward direction), starting at
 // the member nearest the top; ties go to the one the ring counts to first.
 function rowMembers(G, g, beads){
   var m = beads.length;
@@ -1985,6 +1982,7 @@ function syncControls(){
   FLAGS.forEach(function(name){ $('layer-' + name).checked = state[name]; });
   colorBySelectEl.value = state.colorBy;
   sideElEl.value = state.elSide;
+  dirSelectEl.value = state.dir;
   backwardEl.checked = !state.backward;
   syncSubLayout();
   syncAutoRotate();
@@ -2147,8 +2145,9 @@ backwardEl.addEventListener('change', function(){
   state.backward = !backwardEl.checked;
   render();
 });
-$('mirror-btn').addEventListener('click', function(){
-  state.dir = state.dir === 'ccw' ? 'cw' : 'ccw';
+dirSelectEl.addEventListener('change', function(){
+  if (DIRS.indexOf(dirSelectEl.value) === -1) return;
+  state.dir = dirSelectEl.value;
   render();
 });
 ARROW_COLORS.forEach(function(c){
