@@ -1057,10 +1057,15 @@ function drawText(cls, x, y, text){
   return t;
 }
 
-// The ring shrinks whenever a shown walk runs outside it.
+// The ring shrinks whenever a shown walk runs outside it, and its top comes
+// down by COSET_LINE while the additive cosets play, to make room for their
+// second subtitle line. The bottom stays put.
+var COSET_LINE = 26;
 function ringBox(){
   var out = state.elSide === 'outside' || invSide() === 'outside';
-  return out ? RING_OUTER : RING;
+  var box = out ? RING_OUTER : RING;
+  if (coset && state.mode === 'additive') box = { cx: box.cx, cy: box.cy + COSET_LINE / 2, R: box.R - COSET_LINE / 2 };
+  return box;
 }
 
 // Every group is one necklace, beads clockwise from the top in numeric order
@@ -1074,12 +1079,16 @@ function drawNecklace(G, paint){
   // In Z/n the coset count follows from |⟨h⟩| = n / gcd(n, h), worked out
   // with this n and h under the title while the cosets play.
   if (coset){
+    // The count, when there is one, comes first and the coset in view on a
+    // line of its own below it.
     var progress = translate('cyclicGroups.cosetProgress', { i: coset.past.length + 1, count: cosetRun.starts.length });
+    var progressY = 72;
     if (G.mode === 'additive'){
       var h = shownGen(G), d = gcd(G.n, h), size = G.n / d;
-      progress = translate('cyclicGroups.cosetCountAdd', { n: G.n, h: h, d: d, size: size, count: G.n / size }) + ' · ' + progress;
+      ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, 72, translate('cyclicGroups.cosetCountAdd', { n: G.n, h: h, d: d, size: size, count: G.n / size })));
+      progressY = 98;
     }
-    ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, 72, progress));
+    ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, progressY, progress));
   }
   var beads = turned(G.cyclic && state.bygen ? lap(G, arrangeBy(G), G.order) : G.els.slice());
   drawRing(ringDynamicEl, G, beads, ringBox(), paint);

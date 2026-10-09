@@ -78,7 +78,7 @@
       cosetButton: 'Explore cosets',
       cosetHide: 'Stop exploring cosets',
       cosetNoneGenerator: 'No cosets to explore; {g} is a generator',
-      cosetProgress: 'coset {i} of {count}',
+      cosetProgress: 'Currently highlighting coset {i} of {count}',
       autoRotate: 'Auto-rotate',
       autoRotateOff: 'Off',
       autoRotateCcw: 'Counterclockwise',
