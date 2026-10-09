@@ -51,7 +51,7 @@
       layerPaths: 'Subgroup paths',
       mirror: 'Mirror',
       resizeTitle: 'Drag to resize; double-click to reset',
-      mirrorTitle: 'Reverse which way the arrows turn',
+      mirrorTitle: 'Mirror the ring across its vertical middle',
       sideInside: 'Inside',
       sideOutside: 'Outside',
       colorElement: 'Element arrow color',
