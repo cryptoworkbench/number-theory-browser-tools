@@ -152,7 +152,7 @@
     },
     en: {
       title: 'Cyclic Groups',
-      tabTitle: '{group} · {title}',
+      tabTitle: '{title} · {group}',
       eyebrow: 'group theory · generators and orbits',
       heading: 'Cyclic Groups',
       lede: 'Pick a group. Every element sits on a ring, equally spaced. Walking by the generator draws the chords, and a generator that reaches every element is what makes the group cyclic. Groups with no such element are split into the rings they are built from.',
