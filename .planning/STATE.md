@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T17:23:43.164Z"
+last_updated: "2026-10-10T17:52:10.363Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: da70c063e6833eee079919caa7e79143ab00eeed
+state_head: 904a7388abf77c57507a3dedbd18d4a07030d9cd
 progress:
   total_phases: 7
   completed_phases: 6
@@ -416,6 +416,7 @@ None yet.
 | 180 | Cyclic Groups: rename 'Coset count formula' to 'Subgroup-coset amount formula' | 2026-10-10 | 8110eb6 | — |
 | 181 | Cyclic Groups: the four switches after 'Group name' start off | 2026-10-10 | 0ac9a5c | — |
 | 261010-qmt | Cyclic Groups: merge the additive and multiplicative views (operation dropdown and modulus input in the Group panel) — branch cyclic-groups-merged-view | 2026-10-10 | da70c06 | [261010-qmt-cyclic-groups-merge-additive-and-multipl](./quick/261010-qmt-cyclic-groups-merge-additive-and-multipl/) |
+| 183 | Cyclic Groups (merged-view branch): Identity row is a 0/1 dropdown that also picks the operation | 2026-10-10 | 904a738 | — |
 
 ## Deferred Items
 
