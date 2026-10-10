@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T15:12:41.352Z"
+last_updated: "2026-10-10T15:46:09.949Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: fea3da8e16ecb07fd57e0ad74952ba74ca33004b
+state_head: 51e4db7b5c66e03e41ecdbe7e3bcd4b327adc3ea
 progress:
   total_phases: 7
   completed_phases: 6
@@ -396,6 +396,7 @@ None yet.
 | 160 | cyclic groups % (modulus) row label | 2026-10-10 | 0ae3796 | — |
 | 161 | cyclic groups generator count from % | 2026-10-10 | 1413853 | — |
 | 162 | cyclic groups log_g 1 as period | 2026-10-10 | fea3da8 | — |
+| 163 | cyclic groups order formula toggles | 2026-10-10 | 51e4db7 | — |
 
 ## Deferred Items
 
