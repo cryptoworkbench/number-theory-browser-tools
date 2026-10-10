@@ -251,17 +251,16 @@
   .iso-chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .iso-ext{ width:11px; height:11px; flex:0 0 auto; opacity:.7; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
   .iso-chip:hover .iso-ext{ opacity:1; }
-  /* The preview a chip shows on hover or focus: the page it opens, live in a
-     desktop-sized frame scaled down to a card. Purely visual, so it takes
-     no pointer events and is hidden from assistive technology. */
-  /* Inside the preview the page opens straight on the tool: no site bar or
-     title, and the pinned diagram column fills the frame. */
-  :root.is-preview{ scrollbar-width:none; }
-  :root.is-preview::-webkit-scrollbar{ display:none; }
-  :root.is-preview .site-header, :root.is-preview .page-header{ display:none; }
-  @media (min-width: 901px){
-    :root.is-preview .stage{ top:16px; height:calc(100vh - 32px); }
-  }
+  /* The preview a chip shows on hover or focus: that group's necklace in a
+     small square card. Purely visual, so it takes no pointer events and is
+     hidden from assistive technology. Inside it the page is the necklace
+     alone, filling the frame: no chrome, controls, panels or captions. */
+  :root.is-preview, :root.is-preview body{ overflow:hidden; background:transparent; min-height:0; }
+  :root.is-preview body > :not(.app), :root.is-preview .app > :not(.layout), :root.is-preview .side,
+  :root.is-preview .stage > :not(.diagram-frame), :root.is-preview .diagram-frame > :not(svg){ display:none !important; }
+  :root.is-preview .app, :root.is-preview .layout, :root.is-preview .stage, :root.is-preview .diagram-frame{
+    display:block; position:static; height:auto; padding:0; margin:0; border:0; background:none; }
+  :root.is-preview svg.ring-svg{ width:100vw; height:100vh; }
   .iso-preview{
     position:fixed; z-index:960; box-sizing:content-box; overflow:hidden; pointer-events:none;
     border:1px solid color-mix(in srgb, var(--iso-hue, var(--accent)) 45%, var(--panel-border-strong)); border-radius:var(--radius-card);
@@ -275,7 +274,7 @@
     background:linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 6%, transparent) 50%, transparent 70%) 0 0 / 200% 100%, var(--bg-1);
     animation:iso-preview-shimmer 1.2s linear infinite; }
   .iso-preview-wrap.is-loaded{ animation:none; background:var(--bg-1); }
-  .iso-preview iframe{ position:absolute; top:0; left:0; border:0; transform-origin:0 0; visibility:hidden; background:var(--bg-1); }
+  .iso-preview iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; visibility:hidden; background:var(--bg-1); }
   .iso-preview iframe.is-current.is-loaded{ visibility:visible; }
   @keyframes iso-preview-shimmer{ from{ background-position:100% 0, 0 0; } to{ background-position:-100% 0, 0 0; } }
   @media (max-width: 640px){
@@ -1244,6 +1243,19 @@ function drawNecklace(G, paint){
   drawRing(ringDynamicEl, G, beads, ringBox(), paint);
   var noteKey = state.orders ? 'cyclicGroups.ringFootnoteOrders' : 'cyclicGroups.ringFootnote';
   ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate(noteKey, { id: G.identity })));
+  if (IS_PREVIEW) cropToRing();
+}
+
+// The preview shows the beads alone: no captions, and the view fitted to
+// the ring with a little room to spare.
+function cropToRing(){
+  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-note').forEach(function(t){ t.remove(); });
+  var b;
+  try { b = ringDynamicEl.getBBox(); } catch (e) { return; }
+  if (!b || !b.width) return;
+  var side = Math.max(b.width, b.height) * 1.1 + 12;
+  var x = b.x + b.width / 2 - side / 2, y = b.y + b.height / 2 - side / 2;
+  ringSvgEl.setAttribute('viewBox', [x, y, side, side].map(num).join(' '));
 }
 
 // The beads before any turn: numeric order, or powers of a generator.
@@ -2147,23 +2159,24 @@ function syncIsoLinks(){
 
 /* ---------- isomorphic-group preview ---------- */
 
-// Hovering or focusing a chip shows the page it opens: the chip's own href
-// (plus preview=1) live in a frame the size of this window (desktop width at
-// least), scaled down to a card. The last few frames stay loaded, so going
-// back to a chip shows it at once.
-var PREVIEW_CACHE = 4, PREVIEW_DELAY = 120;
-var PREVIEW_W = 1280, PREVIEW_H = 800;
-function sizePreview(){
-  PREVIEW_W = Math.max(1024, window.innerWidth);
-  PREVIEW_H = Math.max(640, Math.min(window.innerHeight, PREVIEW_W));
-}
+// Hovering or focusing a chip shows that group's necklace in a small square
+// card: this page in preview mode (see cropToRing), on the chip's group with
+// its first generator selected and only the forward path drawn, in this
+// tab's colors and layers. The last few frames stay loaded, so going back to
+// a chip shows it at once.
+var PREVIEW_SIZE = 240, PREVIEW_CACHE = 4, PREVIEW_DELAY = 120;
 var previewEl = null, previewWrapEl = null, previewChip = null, previewTimer = 0;
 var previewFrames = [];
 
 function previewSrc(a){
   var parts = a.getAttribute('href').split('?');
   var q = new URLSearchParams(parts[1] || '');
+  var G = buildGroup(a.getAttribute('data-iso-mode'), parseInt(a.getAttribute('data-iso-n'), 10));
   q.set('preview', '1');
+  q.set('gen', String(G.generators[0]));
+  q.set('paths', '1');
+  q.set('back', '0');
+  q.delete('autorotate');
   return parts[0] + '?' + q.toString();
 }
 
@@ -2190,9 +2203,7 @@ function previewFrame(src){
 
 function placeIsoPreview(a){
   var gap = 8, margin = 8;
-  sizePreview();
-  var w = Math.min(560, window.innerWidth - 2 * margin);
-  var scale = w / PREVIEW_W, h = Math.round(PREVIEW_H * scale);
+  var w = Math.min(PREVIEW_SIZE, window.innerWidth - 2 * margin), h = w;
   var r = a.getBoundingClientRect();
   var top = r.bottom + gap;
   if (top + h + margin > window.innerHeight && r.top - gap - h >= margin) top = r.top - gap - h;
@@ -2201,11 +2212,6 @@ function placeIsoPreview(a){
   previewEl.style.height = h + 'px';
   previewEl.style.top = Math.round(top) + 'px';
   previewEl.style.left = Math.round(left) + 'px';
-  previewWrapEl.querySelectorAll('iframe').forEach(function(f){
-    f.style.width = PREVIEW_W + 'px';
-    f.style.height = PREVIEW_H + 'px';
-    f.style.transform = 'scale(' + scale + ')';
-  });
 }
 
 function showIsoPreview(a){
