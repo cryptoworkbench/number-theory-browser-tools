@@ -13,8 +13,9 @@
    isomorphic-group selector (quick task 261010-i13) and the *Math keys
    (cosetCountMath, nLabelMath, nNoteMath, opAddMath, ..., notice.ruleMath),
    the templates whose math parameters are typeset as MathML, the two
-   formula.mul* keys of the multiplicative order formulas and
-   fact.cardinality: by the
+   formula.mul* keys of the multiplicative order formulas,
+   fact.cardinality, the two formulaToggle* labels and the three subOrder*
+   strings of the generator prompt: by the
    user's decision they are
    English-only. Every other language shows the English value through
    NT.i18n's current-language to en fallback, and i18n-check --coverage
@@ -229,6 +230,11 @@
       'notice.whyTwoOddPrimesMath': 'Why: {eq} has two different odd prime factors.',
       'notice.ruleMath': '{mul} is cyclic exactly when {n} is {one}, {two} or {four}, an odd prime power {pk}, or twice one, {twopk}. Additive {add} is always cyclic.',
       'fact.cardinality': 'Cardinality',
+      formulaToggleGroup: 'Group’s cardinality',
+      formulaToggleSubgroup: 'Subgroup’s cardinality',
+      subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
+      subOrderPickGen: 'Choose a generator',
+      subOrderCancel: 'Cancel',
       'formula.mulGroupOrder': '|{group}| = φ({n}) = {k}',
       'formula.mulSubgroupOrder': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = φ({n}) / gcd(φ({n}), log_{g} {h}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
       'fact.group': 'Group',

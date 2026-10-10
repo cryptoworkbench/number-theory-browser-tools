@@ -94,6 +94,10 @@
      counterclockwise and the bottom-right one for clockwise. Each corner is
      a radio button, so the arrow keys move the knob too. */
   .auto-rotate{ position:absolute; top:10px; left:12px; z-index:1; display:inline-flex; align-items:center; gap:8px; font-size:.85rem; color:var(--text-dim); user-select:none; -webkit-user-select:none; }
+  /* The two formula toggles, in the diagram's top-right corner. */
+  .formula-toggles{ position:absolute; top:10px; right:12px; z-index:1; display:flex; flex-direction:column; gap:2px; font-size:.85rem; color:var(--text-dim); }
+  .formula-toggles .check{ margin:0; font-size:inherit; gap:6px; }
+  .formula-toggles .check input{ margin-top:2px; }
   .tri{ position:relative; width:44px; height:40px; flex:0 0 auto; }
   .tri-track{ position:absolute; inset:0; width:44px; height:40px; overflow:visible; }
   .tri-track path{ fill:color-mix(in srgb, var(--text) 6%, transparent); stroke:color-mix(in srgb, var(--text) 28%, transparent); stroke-width:2; stroke-linejoin:round; }
@@ -170,7 +174,8 @@
 
   /* ---------- facts, hint, legend ---------- */
   .facts{ list-style:none; margin:0; padding:0; }
-  .facts li{ display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-bottom:1px dotted var(--panel-border); font-size:.92rem; }
+  /* A value too long to share the line drops below its label. */
+  .facts li{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 12px; padding:5px 0; border-bottom:1px dotted var(--panel-border); font-size:.92rem; }
   .facts li:last-child{ border-bottom:none; }
   /* The facts sit at the foot of the Group panel, under its controls. */
   .facts.in-group{ margin-top:12px; padding-top:6px; border-top:1px solid var(--panel-border); }
@@ -217,7 +222,7 @@
   .speed-wrap span{ width:70px; }
   .subgroup-row.is-current{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
   .fact-label{ color:var(--text-dim); }
-  .fact-value{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; text-align:right; }
+  .fact-value{ margin-left:auto; font-family:var(--font-sans); font-variant-numeric:tabular-nums; text-align:right; }
   .hint{ color:var(--text-dim); font-size:.85rem; line-height:1.5; margin:10px 0 0; }
 
   /* ---------- isomorphic groups ---------- */
@@ -415,6 +420,12 @@
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
+  /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
+     for one, or for the formula to be turned off again. */
+  .ring-head .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
+  .ring-head .sub-order-prompt select{ font:inherit; font-family:var(--font-sans); font-size:.86rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  .ring-head .sub-order-prompt select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .ring-head .sub-order-prompt .link-btn{ margin:0; }
   .ring-head .ring-head-sub{ margin:0; font-size:.92rem; font-weight:600; color:var(--accent); line-height:1.35; }
   @media (max-width: 640px){ .ring-head{ padding-inline:0; margin-top:44px; } }
 
@@ -541,6 +552,10 @@
             <span class="tri-knob" aria-hidden="true"></span>
           </span>
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
+        </div>
+        <div class="formula-toggles">
+          <div class="check"><input type="checkbox" id="layer-gorder" checked><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroup">Group’s cardinality</label></div>
+          <div class="check" id="sorder-row"><input type="checkbox" id="layer-sorder" checked><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroup">Subgroup’s cardinality</label></div>
         </div>
         <div class="ring-head" id="ring-head"></div>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
@@ -707,7 +722,8 @@ var RING = { cx: 380, cy: 395, R: 238 };
 
 // The layers double as the URL parameter names and, with the layer-
 // prefix, as the checkbox ids.
-var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
+// gorder and sorder show the group's and the subgroup's order formulas.
+var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gorder', 'sorder'];
 
 /* ---------- state ---------- */
 // gen is the chosen element h: the inner arrows walk by h, the outer arrows
@@ -722,7 +738,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gorder: true, sorder: true, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1366,9 +1382,9 @@ function orderFormulas(G){
   var h = shownGen(G), out = [];
   if (G.mode === 'additive'){
     var n = G.order, d = gcd(n, h);
-    out.push({ math: mrow(abs(mGroup(G)), mo('='), mn(n)),
+    if (state.gorder) out.push({ math: mrow(abs(mGroup(G)), mo('='), mn(n)),
       plain: translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }) });
-    out.push({ math: mrow(
+    if (state.sorder) out.push({ math: mrow(
         abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
@@ -1377,9 +1393,9 @@ function orderFormulas(G){
     return out;
   }
   var k = G.order;
-  out.push({ math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
+  if (state.gorder) out.push({ math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
     plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
-  if (G.cyclic && state.bygen){
+  if (state.sorder && G.cyclic && state.bygen){
     // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
     // gcd(k, k) = k reads more plainly than gcd(k, 0).
     var g = arrangeBy(G), q = lap(G, g, k).indexOf(h) || k, dq = gcd(k, q);
@@ -1392,6 +1408,52 @@ function orderFormulas(G){
       plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: k, q: q, d: dq, m: k / dq }) });
   }
   return out;
+}
+
+// In a cyclic (ℤ/nℤ)* the subgroup's order is worked out from log_g h, so
+// with its formula on and the beads not arranged by a generator g, there
+// is no base yet.
+function needsLogBase(G){
+  return state.sorder && G.mode === 'multiplicative' && G.cyclic && !state.bygen;
+}
+// Two ways on: choose a generator, which arranges the beads by its powers,
+// or turn the subgroup formula off again.
+function logBasePrompt(G){
+  var p = document.createElement('p');
+  p.className = 'sub-order-prompt';
+  p.appendChild(document.createTextNode(translate('cyclicGroups.subOrderNeedsGen')));
+  var pick = document.createElement('select');
+  pick.setAttribute('aria-label', translate('cyclicGroups.subOrderPickGen'));
+  var none = document.createElement('option');
+  none.value = '';
+  none.textContent = translate('cyclicGroups.subOrderPickGen');
+  pick.appendChild(none);
+  G.generators.forEach(function(g){
+    var o = document.createElement('option');
+    o.value = String(g);
+    o.textContent = String(g);
+    pick.appendChild(o);
+  });
+  pick.addEventListener('change', function(){
+    var g = parseInt(pick.value, 10);
+    if (!isFinite(g)) return;
+    state.arrangeGen = g;
+    state.bygen = true;
+    syncControls();
+    render();
+  });
+  var cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'link-btn';
+  cancel.textContent = translate('cyclicGroups.subOrderCancel');
+  cancel.addEventListener('click', function(){
+    state.sorder = false;
+    syncControls();
+    render();
+  });
+  p.appendChild(pick);
+  p.appendChild(cancel);
+  return p;
 }
 
 // The captions over the ring: the title, then outside the cosets the
@@ -1411,7 +1473,8 @@ function drawMath(G, subs){
     var row = document.createElement('div');
     row.className = 'ring-math-row';
     orderFormulas(G).forEach(function(f){ row.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
-    lines.push(row);
+    if (row.firstChild) lines.push(row);
+    if (needsLogBase(G)) lines.push(logBasePrompt(G));
   }
   (subs || []).forEach(function(sub){
     var p = document.createElement('p');
@@ -2807,6 +2870,10 @@ function render(){
   drawNecklace(G, paint);
 
   bygenRowEl.classList.toggle('is-off', !G.cyclic);
+  // A (ℤ/nℤ)* with no generator has no base for the subgroup formula.
+  var noLogBase = G.mode === 'multiplicative' && !G.cyclic;
+  $('sorder-row').classList.toggle('is-off', noLogBase);
+  $('layer-sorder').disabled = noLogBase;
   // With the paths layer off, the path options have nothing to act on.
   arrowOptionsEl.querySelectorAll('.check').forEach(function(row){ row.classList.toggle('is-off', !state.paths); });
   arrowOptionsEl.querySelectorAll('input, select').forEach(function(el){ el.disabled = !state.paths; });
