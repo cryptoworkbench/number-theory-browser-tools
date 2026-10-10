@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme-choice=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme-choice'));}catch(e){}}if(!t){try{t=window.matchMedia('(prefers-color-scheme: light)').matches?'day':'night';}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title data-i18n="cyclicGroups.title">Cyclic Groups — Necklace Visualizer</title>
+<title data-i18n="cyclicGroups.title">Cyclic Groups</title>
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <link rel="stylesheet" href="../assets/palette.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -387,7 +387,6 @@
   @media (prefers-reduced-motion: reduce){ .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both){ animation:none; } }
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
-  .bead.is-identity{ stroke:var(--text); }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .order-label{ fill:var(--text-dim); font-family:var(--font-mono); font-size:12px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .ring-title{ fill:var(--text); font-family:var(--font-serif); font-size:25px; font-weight:600; text-anchor:middle; }
@@ -495,7 +494,7 @@
 
   <header class="page-header">
     <p class="eyebrow" data-i18n="cyclicGroups.eyebrow">group theory · generators and orbits</p>
-    <h1 data-i18n="cyclicGroups.heading">Cyclic Group Necklace</h1>
+    <h1 data-i18n="cyclicGroups.heading">Cyclic Groups</h1>
     <p class="lede" data-i18n="cyclicGroups.lede">Pick a group. Every element sits on a ring, equally spaced. Walking by the generator draws the chords, and a generator that reaches every element is what makes the group cyclic. Groups with no such element are split into the rings they are built from.</p>
     <p class="xref"><a id="xref-cayley" href="../Cayley Table/cayley-table.html" data-i18n="cyclicGroups.xref">See this group's full operation table in the Cayley Table &rarr;</a></p>
   </header>
@@ -1181,12 +1180,11 @@ function drawRing(parent, G, beads, box, paint){
     var p = at(i);
     var look = paint(a);
     var attrs = {
-      'class': 'bead ' + look.cls + (a === G.identity ? ' is-identity' : '') + (coset && !coset.members[a] ? ' is-dim' : ''),
+      'class': 'bead ' + look.cls + (coset && !coset.members[a] ? ' is-dim' : ''),
       cx: num(p[0]), cy: num(p[1]), r: num(beadR),
       'data-el': a, 'data-order': G.orders[a]
     };
     if (look.style) attrs.style = look.style;
-    if (a === G.identity) attrs['stroke-width'] = 3;
     ring.appendChild(svgEl('circle', attrs));
   });
 
@@ -1251,8 +1249,7 @@ function drawNecklace(G, paint){
   }
   var beads = turned(arrangement(G));
   drawRing(ringDynamicEl, G, beads, ringBox(), paint);
-  var noteKey = state.orders ? 'cyclicGroups.ringFootnoteOrders' : 'cyclicGroups.ringFootnote';
-  ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate(noteKey, { id: G.identity })));
+  if (state.orders) ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate('cyclicGroups.ringFootnoteOrders')));
   if (IS_PREVIEW) cropToRing();
 }
 
