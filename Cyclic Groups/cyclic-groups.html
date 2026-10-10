@@ -1437,10 +1437,12 @@ function logBasePrompt(G){
   pick.addEventListener('change', function(){
     var g = parseInt(pick.value, 10);
     if (!isFinite(g)) return;
-    state.arrangeGen = g;
-    state.bygen = true;
-    syncControls();
-    render();
+    rearrange(function(){
+      state.arrangeGen = g;
+      state.bygen = true;
+      syncControls();
+      render();
+    });
   });
   var cancel = document.createElement('button');
   cancel.type = 'button';
@@ -1924,6 +1926,82 @@ function turnHome(){
   var m = drawn.G.order;
   var at = (((state.rot + (spin ? spin.steps : 0)) % m) + m) % m;
   turnBy(at > m / 2 ? m - at : -at);
+}
+
+// Rearranging the beads, between numeric order and the powers of a
+// generator or from one generator's powers to another's, is animated: each
+// bead glides round the ring, the short way, from its old place to its new
+// one, the beads setting off one after another round the ring. The old
+// walks and mirror axis fade out as the beads leave and the new ones fade in
+// once they have landed. A redraw part way through (a hover, a new
+// element) shows the end state at once.
+var ARRANGE_MOVE_MS = 700, ARRANGE_STAGGER_MS = 350, ARRANGE_FADE_MS = 250;
+var arranging = null;
+function isRingFrame(el){
+  return el.matches('.guide, .cord, .bead, .bead-label');
+}
+function ringAngle(x, y, box){
+  return Math.atan2(x - box.cx, -(y - box.cy)) * 180 / Math.PI;
+}
+function rearrange(change){
+  if (!ringDynamicEl.querySelector('.ring') || (reducedMotion && reducedMotion.matches)){ change(); return; }
+  finishSpin();
+  var old = ringDynamicEl.querySelector('.ring');
+  if (arranging){ cancelAnimationFrame(arranging.id); arranging = null; }
+  var box = ringBox(), from = {};
+  old.querySelectorAll('.bead').forEach(function(c){
+    from[c.getAttribute('data-el')] = ringAngle(+c.getAttribute('cx'), +c.getAttribute('cy'), box);
+  });
+  var ghosts = Array.prototype.filter.call(old.children, function(el){ return !isRingFrame(el); })
+    .map(function(el){ return el.cloneNode(true); });
+  change();
+  var ring = ringDynamicEl.querySelector('.ring');
+  if (!ring) return;
+  var labels = {};
+  ring.querySelectorAll('.bead-label').forEach(function(t){ labels[t.textContent] = t; });
+  var beads = Array.prototype.map.call(ring.querySelectorAll('.bead'), function(c, i, all){
+    var a = c.getAttribute('data-el');
+    var to = ringAngle(+c.getAttribute('cx'), +c.getAttribute('cy'), box);
+    var start = from[a] === undefined ? to : from[a];
+    var d = ((to - start) % 360 + 540) % 360 - 180;
+    return { c: c, label: labels[a] || null, start: start, d: d, delay: ARRANGE_STAGGER_MS * i / all.length };
+  });
+  var fresh = Array.prototype.filter.call(ring.children, function(el){ return !isRingFrame(el); });
+  fresh.forEach(function(el){ el.style.opacity = '0'; });
+  var firstBead = ring.querySelector('.bead');
+  ghosts.forEach(function(el){
+    el.style.transition = 'opacity ' + ARRANGE_FADE_MS + 'ms ease-out';
+    ring.insertBefore(el, firstBead);
+  });
+  // The fade-out starts on the next frame, from the ghosts' full opacity.
+  requestAnimationFrame(function(){ ghosts.forEach(function(el){ el.style.opacity = '0'; }); });
+  var place = function(b, angle){
+    var p = polar(box.cx, box.cy, box.R, angle);
+    b.c.setAttribute('cx', num(p[0]));
+    b.c.setAttribute('cy', num(p[1]));
+    if (b.label){ b.label.setAttribute('x', num(p[0])); b.label.setAttribute('y', num(p[1])); }
+  };
+  beads.forEach(function(b){ place(b, b.start); });
+  var t0 = null;
+  var frame = function(ts){
+    if (!ring.isConnected){ arranging = null; return; }
+    if (t0 === null) t0 = ts;
+    var done = true;
+    beads.forEach(function(b){
+      var t = Math.max(0, Math.min(1, (ts - t0 - b.delay) / ARRANGE_MOVE_MS));
+      if (t < 1) done = false;
+      place(b, b.start + b.d * easeInOutCubic(t));
+    });
+    if (autoAngle) spinAngle(autoAngle);
+    if (!done){ arranging.id = requestAnimationFrame(frame); return; }
+    arranging = null;
+    ghosts.forEach(function(el){ el.remove(); });
+    fresh.forEach(function(el){
+      el.style.transition = 'opacity ' + ARRANGE_FADE_MS + 'ms ease-in';
+      el.style.opacity = '';
+    });
+  };
+  arranging = { id: requestAnimationFrame(frame) };
 }
 
 // Auto-rotate turns the ring by itself, slowly and steadily, AUTO_DEG_PER_S
@@ -3067,15 +3145,15 @@ genSelectEl.addEventListener('change', function(){
 });
 FLAGS.forEach(function(name){
   $('layer-' + name).addEventListener('change', function(){
-    state[name] = $('layer-' + name).checked;
-    render();
+    var on = $('layer-' + name).checked;
+    if (name === 'bygen') rearrange(function(){ state.bygen = on; render(); });
+    else { state[name] = on; render(); }
   });
 });
 arrangeGenSelectEl.addEventListener('change', function(){
   var g = parseInt(arrangeGenSelectEl.value, 10);
   if (!isFinite(g)) return;
-  state.arrangeGen = g;
-  render();
+  rearrange(function(){ state.arrangeGen = g; render(); });
 });
 colorBySelectEl.addEventListener('change', function(){
   if (COLOR_BY.indexOf(colorBySelectEl.value) === -1) return;
