@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T13:33:44.521Z"
+last_updated: "2026-10-10T13:37:46.238Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f93e799bde81521c10dda231bdf5059335be48ed
+state_head: ea3aeecebbeafe604e986c4f4a7f109256e1631c
 progress:
   total_phases: 7
   completed_phases: 6
@@ -380,6 +380,7 @@ None yet.
 | 144 | Cyclic Groups: ring title as subgroup relation ⟨h⟩ ⊆ G / ⟨h⟩ ⊂ G | 2026-10-10 | 2e099aa | — |
 | 145 | Cyclic Groups: ring title and captions selectable and copyable | 2026-10-10 | add7702 | — |
 | 146 | Cyclic Groups: additive order formulas under the ring title | 2026-10-10 | f93e799 | — |
+| 147 | Cyclic Groups: additive Generators fact computed as φ(n) | 2026-10-10 | ea3aeec | — |
 
 ## Deferred Items
 
