@@ -251,11 +251,40 @@
   .iso-chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .iso-ext{ width:11px; height:11px; flex:0 0 auto; opacity:.7; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
   .iso-chip:hover .iso-ext{ opacity:1; }
+  /* The preview a chip shows on hover or focus: the page it opens, live in a
+     desktop-sized frame scaled down to a card. Purely visual, so it takes
+     no pointer events and is hidden from assistive technology. */
+  /* Inside the preview the page opens straight on the tool: no site bar or
+     title, and the pinned diagram column fills the frame. */
+  :root.is-preview{ scrollbar-width:none; }
+  :root.is-preview::-webkit-scrollbar{ display:none; }
+  :root.is-preview .site-header, :root.is-preview .page-header{ display:none; }
+  @media (min-width: 901px){
+    :root.is-preview .stage{ top:16px; height:calc(100vh - 32px); }
+  }
+  .iso-preview{
+    position:fixed; z-index:960; box-sizing:content-box; overflow:hidden; pointer-events:none;
+    border:1px solid color-mix(in srgb, var(--iso-hue, var(--accent)) 45%, var(--panel-border-strong)); border-radius:var(--radius-card);
+    background:var(--bg-1); box-shadow:0 12px 32px -8px var(--overlay);
+    opacity:0; transform:translateY(4px); transition:opacity .14s ease, transform .14s ease;
+  }
+  .iso-preview.is-open{ opacity:1; transform:none; }
+  .iso-preview.is-add{ --iso-hue:var(--role-input); }
+  .iso-preview.is-mul{ --iso-hue:var(--role-special); }
+  .iso-preview-wrap{ position:relative; width:100%; height:100%;
+    background:linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 6%, transparent) 50%, transparent 70%) 0 0 / 200% 100%, var(--bg-1);
+    animation:iso-preview-shimmer 1.2s linear infinite; }
+  .iso-preview-wrap.is-loaded{ animation:none; background:var(--bg-1); }
+  .iso-preview iframe{ position:absolute; top:0; left:0; border:0; transform-origin:0 0; visibility:hidden; background:var(--bg-1); }
+  .iso-preview iframe.is-current.is-loaded{ visibility:visible; }
+  @keyframes iso-preview-shimmer{ from{ background-position:100% 0, 0 0; } to{ background-position:-100% 0, 0 0; } }
   @media (max-width: 640px){
     .iso-tile{ flex:1 1 100%; }
   }
   @media (prefers-reduced-motion: reduce){
     .iso-chip, .iso-chip:hover{ transition:none; transform:none; }
+    .iso-preview{ transition:none; transform:none; }
+    .iso-preview-wrap{ animation:none; }
   }
 
   .legend{ display:flex; flex-direction:column; gap:7px; transition:opacity .15s; }
@@ -724,6 +753,10 @@ var isoLeadEl = $('iso-lead');
 var isoAddChipsEl = $('iso-add-chips');
 var isoMulEl = $('iso-mul');
 var isoMulChipsEl = $('iso-mul-chips');
+// preview=1: this page is the live preview inside an isomorphic-group chip's
+// card, so it never writes the shared group and never follows it.
+var IS_PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
+if (IS_PREVIEW) document.documentElement.classList.add('is-preview');
 var subgroupOptionsEl = $('subgroup-options');
 var bygenRowEl = $('bygen-row');
 var combineKeyEl = $('combine-key');
@@ -2109,11 +2142,134 @@ function syncIsoLinks(){
   isoPanelEl.querySelectorAll('a.iso-chip').forEach(function(a){
     a.setAttribute('href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen')));
   });
+  if (previewChip) showIsoPreview(previewChip);
 }
+
+/* ---------- isomorphic-group preview ---------- */
+
+// Hovering or focusing a chip shows the page it opens: the chip's own href
+// (plus preview=1) live in a frame the size of this window (desktop width at
+// least), scaled down to a card. The last few frames stay loaded, so going
+// back to a chip shows it at once.
+var PREVIEW_CACHE = 4, PREVIEW_DELAY = 120;
+var PREVIEW_W = 1280, PREVIEW_H = 800;
+function sizePreview(){
+  PREVIEW_W = Math.max(1024, window.innerWidth);
+  PREVIEW_H = Math.max(640, Math.min(window.innerHeight, PREVIEW_W));
+}
+var previewEl = null, previewWrapEl = null, previewChip = null, previewTimer = 0;
+var previewFrames = [];
+
+function previewSrc(a){
+  var parts = a.getAttribute('href').split('?');
+  var q = new URLSearchParams(parts[1] || '');
+  q.set('preview', '1');
+  return parts[0] + '?' + q.toString();
+}
+
+function previewFrame(src){
+  for (var i = 0; i < previewFrames.length; i++){
+    if (previewFrames[i].src === src){
+      var hit = previewFrames.splice(i, 1)[0];
+      previewFrames.push(hit);
+      return hit.frame;
+    }
+  }
+  var frame = document.createElement('iframe');
+  frame.setAttribute('tabindex', '-1');
+  frame.addEventListener('load', function(){
+    frame.classList.add('is-loaded');
+    if (frame.classList.contains('is-current')) previewWrapEl.classList.add('is-loaded');
+  });
+  frame.src = src;
+  previewWrapEl.appendChild(frame);
+  previewFrames.push({ src: src, frame: frame });
+  while (previewFrames.length > PREVIEW_CACHE) previewFrames.shift().frame.remove();
+  return frame;
+}
+
+function placeIsoPreview(a){
+  var gap = 8, margin = 8;
+  sizePreview();
+  var w = Math.min(560, window.innerWidth - 2 * margin);
+  var scale = w / PREVIEW_W, h = Math.round(PREVIEW_H * scale);
+  var r = a.getBoundingClientRect();
+  var top = r.bottom + gap;
+  if (top + h + margin > window.innerHeight && r.top - gap - h >= margin) top = r.top - gap - h;
+  var left = Math.max(margin, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - margin));
+  previewEl.style.width = w + 'px';
+  previewEl.style.height = h + 'px';
+  previewEl.style.top = Math.round(top) + 'px';
+  previewEl.style.left = Math.round(left) + 'px';
+  previewWrapEl.querySelectorAll('iframe').forEach(function(f){
+    f.style.width = PREVIEW_W + 'px';
+    f.style.height = PREVIEW_H + 'px';
+    f.style.transform = 'scale(' + scale + ')';
+  });
+}
+
+function showIsoPreview(a){
+  if (!previewEl){
+    previewEl = document.createElement('div');
+    previewEl.className = 'iso-preview';
+    previewEl.setAttribute('aria-hidden', 'true');
+    previewWrapEl = document.createElement('div');
+    previewWrapEl.className = 'iso-preview-wrap';
+    previewEl.appendChild(previewWrapEl);
+    document.body.appendChild(previewEl);
+  }
+  previewChip = a;
+  var frame = previewFrame(previewSrc(a));
+  previewWrapEl.querySelectorAll('iframe').forEach(function(f){ f.classList.toggle('is-current', f === frame); });
+  previewWrapEl.classList.toggle('is-loaded', frame.classList.contains('is-loaded'));
+  var mul = a.getAttribute('data-iso-mode') === 'multiplicative';
+  previewEl.classList.toggle('is-mul', mul);
+  previewEl.classList.toggle('is-add', !mul);
+  placeIsoPreview(a);
+  previewEl.classList.add('is-open');
+}
+
+function hideIsoPreview(){
+  clearTimeout(previewTimer);
+  previewChip = null;
+  if (previewEl) previewEl.classList.remove('is-open');
+}
+
+function queueIsoPreview(a){
+  clearTimeout(previewTimer);
+  if (a === previewChip) return;
+  previewTimer = setTimeout(function(){ if (a.isConnected) showIsoPreview(a); }, previewChip ? 0 : PREVIEW_DELAY);
+}
+
+isoPanelEl.addEventListener('pointerover', function(e){
+  if (e.pointerType === 'touch') return;
+  var a = e.target.closest('a.iso-chip');
+  if (a) queueIsoPreview(a);
+});
+isoPanelEl.addEventListener('pointerout', function(e){
+  var a = e.target.closest('a.iso-chip');
+  if (!a || (e.relatedTarget && a.contains(e.relatedTarget))) return;
+  if (document.activeElement === a && a.matches(':focus-visible')) return;
+  hideIsoPreview();
+});
+isoPanelEl.addEventListener('focusin', function(e){
+  var a = e.target.closest('a.iso-chip');
+  if (a && a.matches(':focus-visible')) queueIsoPreview(a);
+});
+isoPanelEl.addEventListener('focusout', hideIsoPreview);
+isoPanelEl.addEventListener('click', function(e){
+  if (e.target.closest('a.iso-chip')) hideIsoPreview();
+});
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && previewChip) hideIsoPreview();
+});
+window.addEventListener('scroll', function(){ if (previewChip) hideIsoPreview(); }, true);
+window.addEventListener('resize', function(){ if (previewChip) placeIsoPreview(previewChip); });
 
 // The selected subgroup is cyclic of order k: Z/k, whose generator is the
 // image of the selected one under the natural isomorphism, 1.
 function renderIso(G){
+  hideIsoPreview();
   var k = G.orders[state.gen];
   if (!(k >= MIN_N)){
     isoPanelEl.hidden = true;
@@ -2319,6 +2475,7 @@ function syncControls(){
 // Equivalence Wheel: a user-initiated mode or n change writes it, a received
 // change (storage event) never does.
 function persistGroup(){
+  if (IS_PREVIEW) return;
   writeSharedGroup(state.mode, state.n);
 }
 
@@ -2539,7 +2696,7 @@ for (var ti = 0; ti < modeTabs.length; ti++){
 // validation path. This handler never writes the store: a received change
 // must not be written back, or two open tools could ping-pong.
 window.addEventListener('storage', function(e){
-  if (e.key !== SHARED_GROUP_KEY) return;
+  if (IS_PREVIEW || e.key !== SHARED_GROUP_KEY) return;
   var incoming = readSharedGroup(e.newValue);
   if (!incoming) return;
   var n = clamp(incoming.N, MIN_N, MAX_N);
