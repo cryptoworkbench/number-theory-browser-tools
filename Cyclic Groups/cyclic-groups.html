@@ -3014,6 +3014,7 @@ function render(){
   showRot(state.rot);
   preview = null;
   drawn = { G: G, paint: paint };
+  syncTabTitle();
   ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
   ringDynamicEl.replaceChildren();
   drawNecklace(G, paint);
@@ -3326,6 +3327,15 @@ window.addEventListener('storage', function(e){
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
 onLangChange(render);
+
+// The browser tab names the group shown, so tabs opened from the
+// isomorphism links tell apart. NT.i18n rewrites <title> from its
+// data-i18n key on load and on a language switch; render follows the
+// switch, and the load-time rewrite is answered once it has run.
+function syncTabTitle(){
+  if (drawn) document.title = translate('cyclicGroups.tabTitle', { group: drawn.G.label, title: translate('cyclicGroups.title') });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncTabTitle);
 
 /* ---------- start ---------- */
 

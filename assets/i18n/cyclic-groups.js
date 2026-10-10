@@ -17,7 +17,7 @@
    multiplicative order formulas, the formula.cosetCount,
    formula.mulCosetCount and formula.cosetCountIndex keys of the coset
    count formula, fact.cardinality, the four formulaToggle* labels and the
-   three subOrder* strings of the generator prompt: by the
+   three subOrder* strings of the generator prompt and tabTitle: by the
    user's decision they are
    English-only. Every other language shows the English value through
    NT.i18n's current-language to en fallback, and i18n-check --coverage
@@ -152,6 +152,7 @@
     },
     en: {
       title: 'Cyclic Groups',
+      tabTitle: '{group} · {title}',
       eyebrow: 'group theory · generators and orbits',
       heading: 'Cyclic Groups',
       lede: 'Pick a group. Every element sits on a ring, equally spaced. Walking by the generator draws the chords, and a generator that reaches every element is what makes the group cyclic. Groups with no such element are split into the rings they are built from.',
