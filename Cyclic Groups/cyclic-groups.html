@@ -1746,14 +1746,27 @@ document.addEventListener('mousemove', function(e){
   if (row) row.dispatchEvent(new MouseEvent('mouseenter'));
 });
 
-// In the list layout, once a row has focus (a click gives it one), the up
-// and down arrow keys select the element of the row above or below.
+// How many grid columns the rows occupy right now, measured from the
+// rendered layout (the leading rows sharing the first row's top), so a
+// vertical step tracks the auto-fill column count at any width.
+function subgroupColumns(){
+  var first = subgroupsEl.firstElementChild;
+  if (!first) return 1;
+  var n = 0;
+  for (var li = first; li && li.offsetTop === first.offsetTop; li = li.nextElementSibling) n++;
+  return n;
+}
+
+// Once a row has focus (a click gives it one), the up and down arrow keys
+// select the element of the row above or below: one row in the list layout,
+// and in the grid the row directly above or below in the same column.
 subgroupsEl.addEventListener('keydown', function(e){
-  if (state.subLayout !== 'list' || !drawn) return;
+  if (!drawn) return;
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  var step = state.subLayout === 'grid' ? subgroupColumns() : 1;
   var els = drawn.G.els;
-  var i = els.indexOf(state.gen) + (e.key === 'ArrowDown' ? 1 : -1);
+  var i = els.indexOf(state.gen) + (e.key === 'ArrowDown' ? step : -step);
   e.preventDefault();
   if (i < 0 || i >= els.length) return;
   keyNav = true;
