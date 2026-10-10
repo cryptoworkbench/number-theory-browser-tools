@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T11:18:03.808Z"
+last_updated: "2026-10-10T12:16:45.522Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 822c92514bbccc95a6e2a6ba8934b6e6149c5906
+state_head: ed694a6f413f79dedb43a991532a75373c81bf2b
 progress:
   total_phases: 7
   completed_phases: 6
@@ -370,6 +370,7 @@ None yet.
 | 134 | Cyclic Groups: coset arrows no longer re-fade on every auto-rotate redraw | 2026-10-09 | 557a284 | — |
 | 261010-hp0 | Cyclic Groups subgroup panel: arrow keys switch subgroups in Grid view | 2026-10-10 | 8cded0d | [261010-hp0-cyclic-groups-panel-subgroup-generated-b](./quick/261010-hp0-cyclic-groups-panel-subgroup-generated-b/) |
 | 261010-i13 | Cyclic Groups: isomorphic additive/multiplicative group selector opening in a new tab (English only) | 2026-10-10 | 822c925 | [261010-i13-cyclic-groups-isomorphic-group-selector-](./quick/261010-i13-cyclic-groups-isomorphic-group-selector-/) |
+| 137 | Cyclic Groups: write groups as ⟨Z/n, +⟩ and ⟨Z/n, ×⟩ throughout the tool | 2026-10-10 | ed694a6 | — |
 
 ## Deferred Items
 
