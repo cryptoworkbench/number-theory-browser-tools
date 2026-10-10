@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T10:53:46.244Z"
-last_activity: 2026-10-09
+last_updated: "2026-10-10T11:18:03.808Z"
+last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 8cded0dbbc263d269b8b7351153b699f2dc160f3
+state_head: 822c92514bbccc95a6e2a6ba8934b6e6149c5906
 progress:
   total_phases: 7
   completed_phases: 6
@@ -369,6 +369,7 @@ None yet.
 | 261009-tgw | Translate the Cyclic Groups tool into all 30 non-English languages | 2026-10-09 | d3765e8 | [261009-tgw-translate-the-cyclic-groups-tool-into-al](./quick/261009-tgw-translate-the-cyclic-groups-tool-into-al/) |
 | 134 | Cyclic Groups: coset arrows no longer re-fade on every auto-rotate redraw | 2026-10-09 | 557a284 | — |
 | 261010-hp0 | Cyclic Groups subgroup panel: arrow keys switch subgroups in Grid view | 2026-10-10 | 8cded0d | [261010-hp0-cyclic-groups-panel-subgroup-generated-b](./quick/261010-hp0-cyclic-groups-panel-subgroup-generated-b/) |
+| 261010-i13 | Cyclic Groups: isomorphic additive/multiplicative group selector opening in a new tab (English only) | 2026-10-10 | 822c925 | [261010-i13-cyclic-groups-isomorphic-group-selector-](./quick/261010-i13-cyclic-groups-isomorphic-group-selector-/) |
 
 ## Deferred Items
 
