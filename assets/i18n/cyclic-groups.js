@@ -10,7 +10,8 @@
    keys in the same order as en, and i18n-check --coverage reports no
    cyclicGroups finding, except for the five iso.* keys (iso.lead,
    iso.additive, iso.multiplicative, iso.open, iso.supergroup) of the
-   isomorphic-group selector (quick task 261010-i13): by the user's decision they are
+   isomorphic-group selector (quick task 261010-i13) and cosetCountMath,
+   the typeset coset count: by the user's decision they are
    English-only. Every other language shows the English value through
    NT.i18n's current-language to en fallback, and i18n-check --coverage
    reports one LANG-KEYSET cyclicGroups.<lang> finding per non-English
@@ -210,6 +211,7 @@
       'iso.multiplicative': 'multiplicative',
       'iso.open': 'Open {group} in a new tab',
       'iso.supergroup': 'This subgroup’s supergroup.',
+      cosetCountMath: '{order}, so there are {count} cosets',
       'fact.group': 'Group',
       'fact.elements': 'Elements',
       'fact.identity': 'Identity',
