@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T12:38:21.989Z"
+last_updated: "2026-10-10T12:49:04.045Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 4f20956c18d583abbfd0fa2fb85f8c237fc1ce95
+state_head: 094db9da9835619843aba63ee0f6845b3aec5ffb
 progress:
   total_phases: 7
   completed_phases: 6
@@ -375,6 +375,7 @@ None yet.
 | 139 | Cyclic Groups: drag the arrow-key bars to swap forward/backward colors | 2026-10-10 | 3ad8884 | — |
 | 140 | Cyclic Groups: hovering or focusing an isomorphic-group chip shows a live scaled-down preview of the tool opened with those parameters | 2026-10-10 | 2ac7581 | — |
 | 141 | Cyclic Groups: isomorphic-group preview shows only the necklace, first generator selected, forward path only in the tab's forward color | 2026-10-10 | 4f20956 | — |
+| 142 | Cyclic Groups: from an additive group, a multiplicative isomorphic-group preview scrolls between generator-power order and numeric order | 2026-10-10 | 094db9d | — |
 
 ## Deferred Items
 
