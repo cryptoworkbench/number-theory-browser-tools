@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T13:17:00.389Z"
+last_updated: "2026-10-10T13:33:44.521Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: add770259d87b03c2f8dee0639ff34a3f261630f
+state_head: f93e799bde81521c10dda231bdf5059335be48ed
 progress:
   total_phases: 7
   completed_phases: 6
@@ -379,6 +379,7 @@ None yet.
 | 143 | Cyclic Groups: stop ringing the identity bead; rename the tool from Cyclic Group Necklace to Cyclic Groups everywhere | 2026-10-10 | 6a932b5 | — |
 | 144 | Cyclic Groups: ring title as subgroup relation ⟨h⟩ ⊆ G / ⟨h⟩ ⊂ G | 2026-10-10 | 2e099aa | — |
 | 145 | Cyclic Groups: ring title and captions selectable and copyable | 2026-10-10 | add7702 | — |
+| 146 | Cyclic Groups: additive order formulas under the ring title | 2026-10-10 | f93e799 | — |
 
 ## Deferred Items
 
