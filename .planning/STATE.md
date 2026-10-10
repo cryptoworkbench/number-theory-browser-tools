@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-10 - Completed quick task 261010-hp0: Cyclic Groups subgroup panel: arrow keys switch subgroups in Grid view
+Last activity: 2026-10-10 - Completed quick task 261010-i13: Cyclic Groups isomorphic-group selector (English only)
 
 Progress: [█████████░] 86%
 
@@ -385,4 +385,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-10 - Completed quick task 261010-hp0: Cyclic Groups subgroup panel: arrow keys switch subgroups in Grid view
+Last activity: 2026-10-10 - Completed quick task 261010-i13: Cyclic Groups isomorphic-group selector (English only)
