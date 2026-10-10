@@ -155,7 +155,7 @@
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
   /* The open list is drawn by the browser on its own light background, so it
      needs an opaque themed fill or the night-theme text is unreadable. */
-  .field select option, #op-select option, .sub-order-prompt select option{ color:var(--text); background:var(--bg-1); }
+  .field select option, #op-select option, #identity-select option, .sub-order-prompt select option{ color:var(--text); background:var(--bg-1); }
   .n-note{ font-size:.82rem; color:var(--role-warn); margin:8px 0 0; }
   .n-note:empty{ display:none; }
 
@@ -447,7 +447,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #gen-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -633,6 +633,13 @@
               <option value="multiplicative">×</option>
             </select>
           </li>
+          <li>
+            <label for="identity-select" class="fact-label" data-i18n="cyclicGroups.fact.identity">Identity</label>
+            <select id="identity-select">
+              <option value="additive">0</option>
+              <option value="multiplicative">1</option>
+            </select>
+          </li>
         </ul>
         <ul class="facts" id="facts"></ul>
         <p class="hint" id="hint"></p>
@@ -792,6 +799,8 @@ var nNoteEl = $('n-note');
 var nLabelEl = $('n-label');
 var opSelectEl = $('op-select');
 var opLabelEl = $('op-label');
+// The identity, 0 or 1, picks the operation too: each names its group.
+var identitySelectEl = $('identity-select');
 var genSelectEl = $('gen-select');
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
@@ -2498,7 +2507,6 @@ function renderFacts(G, factors){
   addFact('cyclicGroups.fact.cardinality', G.mode === 'additive'
     ? mInline(mrow(pctGroup, mo('='), mPct(), mo('='), mn(G.n)), pctLabel + ' = % = ' + G.n)
     : mInline(mrow(pctGroup, mo('='), mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(G.order)), pctLabel + ' = φ(%) = φ(' + G.n + ') = ' + G.order));
-  addFact('cyclicGroups.fact.identity', mNum(G.identity));
   // The generators of ℤ/nℤ are the units mod n, so there are φ(n) of them; a
   // cyclic (ℤ/nℤ)* is a cyclic group of order φ(n), so it has φ(φ(n)).
   var phi = totient(G.n);
@@ -3088,6 +3096,7 @@ function syncControls(){
   syncSubLayout();
   syncAutoRotate();
   opSelectEl.value = state.mode;
+  identitySelectEl.value = state.mode;
 }
 
 // The shared group-params store is the contract with Cayley Table and
@@ -3102,6 +3111,7 @@ function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
   opSelectEl.value = state.mode;
+  identitySelectEl.value = state.mode;
   persistGroup();
   render();
 }
@@ -3226,6 +3236,7 @@ nInputEl.addEventListener('change', function(){
   nInputEl.value = state.n;
 });
 opSelectEl.addEventListener('change', function(){ setMode(opSelectEl.value); });
+identitySelectEl.addEventListener('change', function(){ setMode(identitySelectEl.value); });
 genSelectEl.addEventListener('change', function(){
   var g = parseInt(genSelectEl.value, 10);
   if (!isFinite(g)) return;
