@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T16:44:03.296Z"
+last_updated: "2026-10-10T16:46:19.679Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: e0fd30343b58f563e4ef989f94c151bf731e44e1
+state_head: 18ef64ef7f8da29c579843ceaecbc0e930928ec3
 progress:
   total_phases: 7
   completed_phases: 6
@@ -408,6 +408,7 @@ None yet.
 | 172 | Cyclic Groups: add a 'Coset count formula' switch ([G : <h>] = \|G\| / \|<h>\|) and relabel 'Group and subgroup name' | 2026-10-10 | 24ea1db | — |
 | 173 | Cyclic Groups: simplify the coset count formula to gcd(\|G\|, h) / gcd(\|G\|, log_g h) | 2026-10-10 | 7019eb1 | — |
 | 174 | Cyclic Groups: coset count formula reads 'Amount of cosets = gcd(...)' | 2026-10-10 | e0fd303 | — |
+| 175 | Cyclic Groups: coset count formula reads \|G\| / \|<h>\| = gcd(...) | 2026-10-10 | 18ef64e | — |
 
 ## Deferred Items
 
