@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T13:53:34.166Z"
+last_updated: "2026-10-10T13:58:37.708Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 4586930b62c9455e1029e769f2febada159cbe0c
+state_head: f6245b1c4b9b6d63f3e41993411d6306e22608cb
 progress:
   total_phases: 7
   completed_phases: 6
@@ -384,6 +384,7 @@ None yet.
 | 148 | Cyclic Groups: cyclic multiplicative Generators fact computed as φ(φ(n)) | 2026-10-10 | 22cce6b | — |
 | 149 | Replace plain Z with ℤ in Cyclic Groups and Group Isomorphism text | 2026-10-10 | fccfb27 | — |
 | 150 | Cyclic Groups: ℤ/nℤ instead of ℤ/n | 2026-10-10 | 4586930 | — |
+| 151 | Cyclic Groups: generator-power preview slide rotates the generator to the top | 2026-10-10 | f6245b1 | — |
 
 ## Deferred Items
 
