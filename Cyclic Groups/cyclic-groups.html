@@ -392,10 +392,11 @@
   .ring-title{ fill:var(--text); font-family:var(--font-serif); font-size:25px; font-weight:600; text-anchor:middle; }
   .ring-sub{ fill:var(--accent); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
   .ring-label{ fill:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600; text-anchor:middle; }
+  .ring-formula{ fill:var(--text); font-family:var(--font-mono); font-size:17px; text-anchor:middle; }
   .ring-note{ fill:var(--text-dim); font-family:var(--font-sans); font-size:13px; text-anchor:middle; }
   /* The captions can be selected and copied; a press on one never turns
      the ring. */
-  svg.ring-svg :is(.ring-title, .ring-sub, .ring-note){ user-select:text; -webkit-user-select:text; cursor:text; }
+  svg.ring-svg :is(.ring-title, .ring-sub, .ring-formula, .ring-note){ user-select:text; -webkit-user-select:text; cursor:text; }
 
   @media (prefers-reduced-motion: reduce){
     .mode-tab, .action-btn, .legend, body{ transition:none; }
@@ -1219,12 +1220,20 @@ function drawText(cls, x, y, text){
   return t;
 }
 
-// The ring's top comes down by COSET_LINE while the additive cosets play,
-// to make room for their second subtitle line. The bottom stays put.
+// A line wider than the diagram is squeezed to fit it.
+function fitText(t){
+  var room = SIZE - 24;
+  try { if (t.getComputedTextLength() > room){ t.setAttribute('textLength', room); t.setAttribute('lengthAdjust', 'spacingAndGlyphs'); } } catch (e) { /* not laid out */ }
+  return t;
+}
+
+// In Z/n the ring's top comes down by COSET_LINE, to make room for a second
+// line under the title: the order formulas, or while the cosets play their
+// count. The bottom stays put.
 var COSET_LINE = 26;
 function ringBox(){
   var box = RING;
-  if (coset && state.mode === 'additive') box = { cx: box.cx, cy: box.cy + COSET_LINE / 2, R: box.R - COSET_LINE / 2 };
+  if (state.mode === 'additive') box = { cx: box.cx, cy: box.cy + COSET_LINE / 2, R: box.R - COSET_LINE / 2 };
   return box;
 }
 
@@ -1249,6 +1258,11 @@ function drawNecklace(G, paint){
       progressY = 98;
     }
     ringDynamicEl.appendChild(drawText('ring-sub', SIZE / 2, progressY, progress));
+  } else if (G.mode === 'additive'){
+    // The order of Z/n, then the order of ⟨h⟩ worked out from it.
+    var g = shownGen(G), n = G.order, dd = gcd(n, g);
+    fitText(ringDynamicEl.appendChild(drawText('ring-formula', SIZE / 2, 72, translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }))));
+    fitText(ringDynamicEl.appendChild(drawText('ring-formula', SIZE / 2, 98, translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: g, n: n, d: dd, k: n / dd }))));
   }
   var beads = turned(arrangement(G));
   drawRing(ringDynamicEl, G, beads, ringBox(), paint);
@@ -1259,7 +1273,7 @@ function drawNecklace(G, paint){
 // The preview shows the beads alone: no captions, and the view fitted to
 // the ring with a little room to spare.
 function cropToRing(){
-  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-note').forEach(function(t){ t.remove(); });
+  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note').forEach(function(t){ t.remove(); });
   var b;
   try { b = ringDynamicEl.getBBox(); } catch (e) { return; }
   if (!b || !b.width) return;
@@ -1516,7 +1530,7 @@ function pointerAngle(e){
 var turning = null; // { id, last, swept } while a drag is on
 ringSvgEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !drawn) return;
-  if (e.target.closest('.ring-title, .ring-sub, .ring-note')) return;
+  if (e.target.closest('.ring-title, .ring-sub, .ring-formula, .ring-note')) return;
   finishSpin();
   var a = pointerAngle(e);
   if (a === null) return;
