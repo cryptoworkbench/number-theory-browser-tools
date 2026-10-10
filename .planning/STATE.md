@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T12:25:54.214Z"
+last_updated: "2026-10-10T12:32:55.373Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 3ad88845dec86a4c28248afe81fd91be3fa9761c
+state_head: 2ac7581656c6d38eef6954f49d951d24f3db2a9a
 progress:
   total_phases: 7
   completed_phases: 6
@@ -373,6 +373,7 @@ None yet.
 | 137 | Cyclic Groups: write groups as ⟨Z/n, +⟩ and ⟨Z/n, ×⟩ throughout the tool | 2026-10-10 | ed694a6 | — |
 | 138 | Cyclic Groups: selecting a subgroup row no longer scrolls the page | 2026-10-10 | 88372b1 | — |
 | 139 | Cyclic Groups: drag the arrow-key bars to swap forward/backward colors | 2026-10-10 | 3ad8884 | — |
+| 140 | Cyclic Groups: hovering or focusing an isomorphic-group chip shows a live scaled-down preview of the tool opened with those parameters | 2026-10-10 | 2ac7581 | — |
 
 ## Deferred Items
 
