@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T16:19:48.137Z"
+last_updated: "2026-10-10T16:22:36.476Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 0217441bc4ee2f0fc6a13ebb1e408f28633430a6
+state_head: 8cf104d757126e4f86b9676e380a9304050349b1
 progress:
   total_phases: 7
   completed_phases: 6
@@ -404,6 +404,7 @@ None yet.
 | 168 | Cyclic Groups: add a 'Group and subgroup's name' switch above the cardinality switches | 2026-10-10 | 30413c6 | — |
 | 169 | Cyclic Groups: use the Venn Diagram and Factor Tree page margins (20px 22px) | 2026-10-10 | b49b1b2 | — |
 | 170 | Cyclic Groups: additive-to-multiplicative isomorphism links always open asking for a generator | 2026-10-10 | 0217441 | — |
+| 171 | Cyclic Groups: rename the cardinality switches to 'Group/Subgroup cardinality formula' | 2026-10-10 | 8cf104d | — |
 
 ## Deferred Items
 
