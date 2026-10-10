@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T16:25:39.506Z"
+last_updated: "2026-10-10T16:41:09.108Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 24ea1db117c5a3fe73d9a897b6dde9123525920b
+state_head: 7019eb186f0d18028f431e24c274a5cb1d62000d
 progress:
   total_phases: 7
   completed_phases: 6
@@ -406,6 +406,7 @@ None yet.
 | 170 | Cyclic Groups: additive-to-multiplicative isomorphism links always open asking for a generator | 2026-10-10 | 0217441 | — |
 | 171 | Cyclic Groups: rename the cardinality switches to 'Group/Subgroup cardinality formula' | 2026-10-10 | 8cf104d | — |
 | 172 | Cyclic Groups: add a 'Coset count formula' switch ([G : <h>] = \|G\| / \|<h>\|) and relabel 'Group and subgroup name' | 2026-10-10 | 24ea1db | — |
+| 173 | Cyclic Groups: simplify the coset count formula to gcd(\|G\|, h) / gcd(\|G\|, log_g h) | 2026-10-10 | 7019eb1 | — |
 
 ## Deferred Items
 
