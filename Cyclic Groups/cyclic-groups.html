@@ -55,13 +55,6 @@
   .xref a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
   .xref a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
 
-  /* ---------- mode tabs (same pattern as Cayley Table) ---------- */
-  .mode-tabs{ display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--panel-border); }
-  .mode-tab{ font:inherit; font-size:.92rem; font-weight:600; color:var(--text-dim); background:none; border:none; border-bottom:2px solid transparent; border-radius:8px 8px 0 0; padding:10px 16px; cursor:pointer; transition:color .15s, background .15s, border-color .15s; }
-  .mode-tab:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
-  .mode-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  .mode-tab.is-current{ color:var(--accent); border-bottom-color:var(--accent); }
-
   /* ---------- layout: diagram on the left, controls on the right ---------- */
   /* The subgroup list sits under the diagram, the controls to the right of
      both. Beside the controls, the diagram and the list form one column a
@@ -162,7 +155,7 @@
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
   /* The open list is drawn by the browser on its own light background, so it
      needs an opaque themed fill or the night-theme text is unreadable. */
-  .field select option, .sub-order-prompt select option{ color:var(--text); background:var(--bg-1); }
+  .field select option, #op-select option, .sub-order-prompt select option{ color:var(--text); background:var(--bg-1); }
   .n-note{ font-size:.82rem; color:var(--role-warn); margin:8px 0 0; }
   .n-note:empty{ display:none; }
 
@@ -186,6 +179,14 @@
   .facts li:last-child{ border-bottom:none; }
   /* The facts sit at the foot of the Group panel, under its controls. */
   .facts.in-group{ margin-top:12px; padding-top:6px; border-top:1px solid var(--panel-border); }
+
+  /* The Group panel's editable rows are styled like the facts beneath them,
+     the label on the left and the control on the right. */
+  .facts.group-controls li{ align-items:center; }
+  .facts.group-controls label{ cursor:pointer; }
+  .facts.group-controls input, .facts.group-controls select{ font:inherit; font-family:var(--font-mono); font-size:.92rem; width:5.5em; padding:4px 8px; text-align:right; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  .facts.group-controls select{ text-align-last:right; cursor:pointer; }
+  .facts.group-controls input:focus-visible, .facts.group-controls select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
 
   /* ---------- subgroups list ---------- */
   /* One row per element: the subgroup it generates, its members in the
@@ -437,13 +438,13 @@
   @media (max-width: 640px){ .ring-head{ padding-inline:0; margin-top:44px; } }
 
   @media (prefers-reduced-motion: reduce){
-    .mode-tab, .action-btn, .legend, body{ transition:none; }
+    .action-btn, .legend, body{ transition:none; }
   }
 
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
-     input, the generator select and the notation spans hold numbers and
+     input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #gen-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -541,13 +542,8 @@
     <p class="xref"><a id="xref-cayley" href="../Cayley Table/cayley-table.html" data-i18n="cyclicGroups.xref">See this group's full operation table in the Cayley Table &rarr;</a></p>
   </header>
 
-  <div class="mode-tabs" role="tablist" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.tablistLabel">
-    <button type="button" class="mode-tab is-current" role="tab" id="tab-additive" data-mode="additive" aria-selected="true" aria-controls="ring-panel" data-i18n="common.additiveGroups">Additive Groups</button>
-    <button type="button" class="mode-tab" role="tab" id="tab-multiplicative" data-mode="multiplicative" aria-selected="false" aria-controls="ring-panel" tabindex="-1" data-i18n="common.multiplicativeGroups">Multiplicative Groups</button>
-  </div>
-
   <div class="layout">
-    <div class="stage" id="ring-panel" role="tabpanel" aria-labelledby="tab-additive">
+    <div class="stage" id="ring-panel">
       <section class="panel notice" id="notice" role="note" hidden></section>
       <div class="diagram-frame" id="diagram-frame">
         <div class="auto-rotate" role="radiogroup" aria-labelledby="auto-rotate-label">
@@ -625,6 +621,15 @@
           <label for="n-input" id="n-label">%</label>
           <input type="number" id="n-input" min="2" max="100" step="1" value="12">
         </div>
+        <ul class="facts group-controls" id="group-controls">
+          <li>
+            <label for="op-select" id="op-label" class="fact-label">∗</label>
+            <select id="op-select" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel">
+              <option value="additive">+</option>
+              <option value="multiplicative">×</option>
+            </select>
+          </li>
+        </ul>
         <p class="n-note" id="n-note"></p>
         <ul class="facts in-group" id="facts"></ul>
         <p class="hint" id="hint"></p>
@@ -782,6 +787,8 @@ var $ = function(id){ return document.getElementById(id); };
 var nInputEl = $('n-input');
 var nNoteEl = $('n-note');
 var nLabelEl = $('n-label');
+var opSelectEl = $('op-select');
+var opLabelEl = $('op-label');
 var genSelectEl = $('gen-select');
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
@@ -843,7 +850,6 @@ var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
 var exportStatusEl = $('export-status');
-var modeTabs = Array.prototype.slice.call(document.querySelectorAll('.mode-tab'));
 
 // What the last typed n said and what the last export said, tracked so a
 // language switch can re-say them without redoing the work.
@@ -2481,11 +2487,10 @@ function addFact(labelKey, value){
 
 function renderFacts(G, factors){
   factsEl.replaceChildren();
-  // The modulus, the operation's sign and the group they make; then the
+  // The group the modulus and the operation make; then the
   // group's cardinality |⟨ℤ/%ℤ, +⟩| = % or |⟨ℤ/%ℤ, ×⟩| = φ(%), worked out.
   var op = G.mode === 'additive' ? '+' : '×';
   addFact(tNode('cyclicGroups.nLabelMath', { n: mInline(mPct(), '%') }), mNum(G.n));
-  addFact('cyclicGroups.fact.operation', mInline(mo(op, true), op));
   addFact('cyclicGroups.fact.group', mInline(mGroup(G), G.label));
   var pctGroup = abs(mGroupOf(G.mode, mPct())), pctLabel = '|⟨ℤ/%ℤ, ' + op + '⟩|';
   addFact('cyclicGroups.fact.cardinality', G.mode === 'additive'
@@ -2579,6 +2584,8 @@ function renderLegend(G, classes, pairing){
 
 function renderNNote(){
   nLabelEl.replaceChildren(mInline(mPct(), '%'));
+  // The operation row's label is ∗, typeset the way the modulus row's % is.
+  translateInto(opLabelEl, 'cyclicGroups.opLabelMath', { op: mInline(mo('∗', true), '∗') });
   if (!nNoteShown){ nNoteEl.textContent = ''; return; }
   translateInto(nNoteEl, 'cyclicGroups.nNoteMath', {
     n: mInline(mPct(), '%'), lo: mNum(MIN_N), hi: mNum(MAX_N),
@@ -3069,17 +3076,6 @@ function render(){
 
 /* ---------- controls <-> state ---------- */
 
-function syncTabs(){
-  for (var t = 0; t < modeTabs.length; t++){
-    var tab = modeTabs[t];
-    var on = tab.getAttribute('data-mode') === state.mode;
-    tab.classList.toggle('is-current', on);
-    tab.setAttribute('aria-selected', on ? 'true' : 'false');
-    tab.tabIndex = on ? 0 : -1;
-    if (on) ringPanelEl.setAttribute('aria-labelledby', tab.id);
-  }
-}
-
 function syncControls(){
   nInputEl.value = state.n;
   FLAGS.forEach(function(name){ $('layer-' + name).checked = state[name]; });
@@ -3089,7 +3085,7 @@ function syncControls(){
   backwardEl.checked = !state.backward;
   syncSubLayout();
   syncAutoRotate();
-  syncTabs();
+  opSelectEl.value = state.mode;
 }
 
 // The shared group-params store is the contract with Cayley Table and
@@ -3103,7 +3099,7 @@ function persistGroup(){
 function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
-  syncTabs();
+  opSelectEl.value = state.mode;
   persistGroup();
   render();
 }
@@ -3227,6 +3223,7 @@ nInputEl.addEventListener('change', function(){
   applyTypedN(nInputEl.value);
   nInputEl.value = state.n;
 });
+opSelectEl.addEventListener('change', function(){ setMode(opSelectEl.value); });
 genSelectEl.addEventListener('change', function(){
   var g = parseInt(genSelectEl.value, 10);
   if (!isFinite(g)) return;
@@ -3305,21 +3302,6 @@ colorResetEl.addEventListener('click', function(){
 // theme default show the new ones.
 new MutationObserver(syncArrowColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 exportBtnEl.addEventListener('click', exportRingPng);
-
-for (var ti = 0; ti < modeTabs.length; ti++){
-  (function(tab){
-    tab.addEventListener('click', function(){ setMode(tab.getAttribute('data-mode')); });
-    tab.addEventListener('keydown', function(ev){
-      if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
-      ev.preventDefault();
-      var idx = modeTabs.indexOf(tab);
-      var delta = (ev.key === 'ArrowRight') ? 1 : -1;
-      var next = modeTabs[(idx + delta + modeTabs.length) % modeTabs.length];
-      setMode(next.getAttribute('data-mode'));
-      next.focus();
-    });
-  })(modeTabs[ti]);
-}
 
 // A change written by a sibling tool (or another tab) arrives as a storage
 // event. Re-read through readSharedGroup so there is one parsing and
