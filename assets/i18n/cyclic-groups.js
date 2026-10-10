@@ -14,9 +14,8 @@
    (cosetCountMath, nLabelMath, nNoteMath, opAddMath, ..., notice.ruleMath),
    the templates whose math parameters are typeset as MathML, the
    formula.mulGroupOrder and formula.mulSubgroupOrder keys of the
-   multiplicative order formulas, the formula.cosetCountLead,
-   formula.cosetCount, formula.mulCosetCount and formula.cosetCountIndex
-   keys of the coset
+   multiplicative order formulas, the formula.cosetCount,
+   formula.mulCosetCount and formula.cosetCountIndex keys of the coset
    count formula, fact.cardinality, the four formulaToggle* labels and the
    three subOrder* strings of the generator prompt: by the
    user's decision they are
@@ -242,10 +241,9 @@
       subOrderCancel: 'Cancel',
       'formula.mulGroupOrder': '|{group}| = φ({n}) = {k}',
       'formula.mulSubgroupOrder': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = φ({n}) / gcd(φ({n}), log_{g} {h}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
-      'formula.cosetCountLead': 'Amount of cosets',
-      'formula.cosetCount': 'Amount of cosets = gcd(|{group}|, {h}) = gcd({n}, {h}) = {d}',
-      'formula.mulCosetCount': 'Amount of cosets = gcd(|{group}|, log_{g} {h}) = gcd(φ({n}), log_{g} {h}) = gcd({k}, {q}) = {d}',
-      'formula.cosetCountIndex': 'Amount of cosets = |{group}| / |⟨{h}⟩| = {n} / {k} = {c}',
+      'formula.cosetCount': '|{group}| / |⟨{h}⟩| = gcd(|{group}|, {h}) = gcd({n}, {h}) = {d}',
+      'formula.mulCosetCount': '|{group}| / |⟨{h}⟩| = gcd(|{group}|, log_{g} {h}) = gcd(φ({n}), log_{g} {h}) = gcd({k}, {q}) = {d}',
+      'formula.cosetCountIndex': '|{group}| / |⟨{h}⟩| = {n} / {k} = {c}',
       'fact.group': 'Group',
       'fact.elements': 'Elements',
       'fact.identity': 'Identity',
