@@ -267,15 +267,24 @@
     background:var(--bg-1); box-shadow:0 12px 32px -8px var(--overlay);
     opacity:0; transform:translateY(4px); transition:opacity .14s ease, transform .14s ease;
   }
-  .iso-preview.is-open{ opacity:1; transform:none; }
+  .iso-preview.is-open{ opacity:1; transform:none; pointer-events:auto; }
   .iso-preview.is-add{ --iso-hue:var(--role-input); }
   .iso-preview.is-mul{ --iso-hue:var(--role-special); }
-  .iso-preview-wrap{ position:relative; width:100%; height:100%;
+  /* One slide per view, stacked; with two the card scrolls down to the
+     second, a slide at a time, and the dots on the right say which. */
+  .iso-preview-wrap{ width:100%; height:100%; overflow:hidden; overscroll-behavior:contain; scroll-snap-type:y mandatory; scrollbar-width:none; }
+  .iso-preview-wrap::-webkit-scrollbar{ display:none; }
+  .iso-preview.has-slides .iso-preview-wrap{ overflow-y:auto; }
+  .iso-preview-slide{ position:relative; width:100%; height:100%; scroll-snap-align:start;
     background:linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 6%, transparent) 50%, transparent 70%) 0 0 / 200% 100%, var(--bg-1);
     animation:iso-preview-shimmer 1.2s linear infinite; }
-  .iso-preview-wrap.is-loaded{ animation:none; background:var(--bg-1); }
-  .iso-preview iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; visibility:hidden; background:var(--bg-1); }
+  .iso-preview-slide.is-loaded{ animation:none; background:var(--bg-1); }
+  .iso-preview iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; visibility:hidden; pointer-events:none; background:var(--bg-1); }
   .iso-preview iframe.is-current.is-loaded{ visibility:visible; }
+  .iso-preview-dots{ position:absolute; right:7px; top:50%; transform:translateY(-50%); display:none; flex-direction:column; gap:5px; }
+  .iso-preview.has-slides .iso-preview-dots{ display:flex; }
+  .iso-preview-dots span{ width:6px; height:6px; border-radius:50%; background:color-mix(in srgb, var(--text) 25%, transparent); transition:background .15s; }
+  .iso-preview-dots span.is-current{ background:var(--iso-hue, var(--accent)); }
   @keyframes iso-preview-shimmer{ from{ background-position:100% 0, 0 0; } to{ background-position:-100% 0, 0 0; } }
   @media (max-width: 640px){
     .iso-tile{ flex:1 1 100%; }
@@ -283,7 +292,8 @@
   @media (prefers-reduced-motion: reduce){
     .iso-chip, .iso-chip:hover{ transition:none; transform:none; }
     .iso-preview{ transition:none; transform:none; }
-    .iso-preview-wrap{ animation:none; }
+    .iso-preview-slide{ animation:none; }
+    .iso-preview-dots span{ transition:none; }
   }
 
   .legend{ display:flex; flex-direction:column; gap:7px; transition:opacity .15s; }
@@ -2162,13 +2172,16 @@ function syncIsoLinks(){
 // Hovering or focusing a chip shows that group's necklace in a small square
 // card: this page in preview mode (see cropToRing), on the chip's group with
 // its first generator selected and only the forward path drawn, in this
-// tab's colors and layers. The last few frames stay loaded, so going back to
-// a chip shows it at once.
-var PREVIEW_SIZE = 240, PREVIEW_CACHE = 4, PREVIEW_DELAY = 120;
-var previewEl = null, previewWrapEl = null, previewChip = null, previewTimer = 0;
-var previewFrames = [];
+// tab's colors and layers. Seen from an additive group, a multiplicative
+// chip's card has two slides, scrolled one at a time: first its beads in
+// generator-power order, which lines them up like the additive ring, then
+// in numeric order. Each slide keeps its last few frames loaded (moving a
+// frame would reload it), so going back to a chip shows it at once.
+var PREVIEW_SIZE = 240, PREVIEW_CACHE = 4, PREVIEW_DELAY = 120, PREVIEW_GRACE = 160;
+var previewEl = null, previewWrapEl = null, previewDotEls = [], previewChip = null, previewTimer = 0, previewHideTimer = 0;
+var previewSlides = [];
 
-function previewSrc(a){
+function previewSrc(a, bygen){
   var parts = a.getAttribute('href').split('?');
   var q = new URLSearchParams(parts[1] || '');
   var G = buildGroup(a.getAttribute('data-iso-mode'), parseInt(a.getAttribute('data-iso-n'), 10));
@@ -2176,15 +2189,23 @@ function previewSrc(a){
   q.set('gen', String(G.generators[0]));
   q.set('paths', '1');
   q.set('back', '0');
+  if (bygen !== undefined) q.set('bygen', bygen ? '1' : '0');
   q.delete('autorotate');
   return parts[0] + '?' + q.toString();
 }
 
-function previewFrame(src){
-  for (var i = 0; i < previewFrames.length; i++){
-    if (previewFrames[i].src === src){
-      var hit = previewFrames.splice(i, 1)[0];
-      previewFrames.push(hit);
+// The sources a chip's card shows, one per slide.
+function previewSrcs(a){
+  if (state.mode === 'additive' && a.getAttribute('data-iso-mode') === 'multiplicative') return [previewSrc(a, true), previewSrc(a, false)];
+  return [previewSrc(a)];
+}
+
+function previewFrame(slide, src){
+  var frames = slide.frames;
+  for (var i = 0; i < frames.length; i++){
+    if (frames[i].src === src){
+      var hit = frames.splice(i, 1)[0];
+      frames.push(hit);
       return hit.frame;
     }
   }
@@ -2192,12 +2213,12 @@ function previewFrame(src){
   frame.setAttribute('tabindex', '-1');
   frame.addEventListener('load', function(){
     frame.classList.add('is-loaded');
-    if (frame.classList.contains('is-current')) previewWrapEl.classList.add('is-loaded');
+    if (frame.classList.contains('is-current')) slide.el.classList.add('is-loaded');
   });
   frame.src = src;
-  previewWrapEl.appendChild(frame);
-  previewFrames.push({ src: src, frame: frame });
-  while (previewFrames.length > PREVIEW_CACHE) previewFrames.shift().frame.remove();
+  slide.el.appendChild(frame);
+  frames.push({ src: src, frame: frame });
+  while (frames.length > PREVIEW_CACHE) frames.shift().frame.remove();
   return frame;
 }
 
@@ -2214,20 +2235,54 @@ function placeIsoPreview(a){
   previewEl.style.left = Math.round(left) + 'px';
 }
 
-function showIsoPreview(a){
-  if (!previewEl){
-    previewEl = document.createElement('div');
-    previewEl.className = 'iso-preview';
-    previewEl.setAttribute('aria-hidden', 'true');
-    previewWrapEl = document.createElement('div');
-    previewWrapEl.className = 'iso-preview-wrap';
-    previewEl.appendChild(previewWrapEl);
-    document.body.appendChild(previewEl);
+function syncPreviewDots(){
+  var h = previewWrapEl.clientHeight || 1;
+  var at = Math.round(previewWrapEl.scrollTop / h);
+  previewDotEls.forEach(function(d, i){ d.classList.toggle('is-current', i === at); });
+}
+
+function buildIsoPreview(){
+  previewEl = document.createElement('div');
+  previewEl.className = 'iso-preview';
+  previewEl.setAttribute('aria-hidden', 'true');
+  previewWrapEl = document.createElement('div');
+  previewWrapEl.className = 'iso-preview-wrap';
+  var dots = document.createElement('div');
+  dots.className = 'iso-preview-dots';
+  for (var i = 0; i < 2; i++){
+    var slideEl = document.createElement('div');
+    slideEl.className = 'iso-preview-slide';
+    previewWrapEl.appendChild(slideEl);
+    previewSlides.push({ el: slideEl, frames: [] });
+    previewDotEls.push(dots.appendChild(document.createElement('span')));
   }
+  previewEl.appendChild(previewWrapEl);
+  previewEl.appendChild(dots);
+  previewWrapEl.addEventListener('scroll', syncPreviewDots);
+  // The card holds while the pointer is on it, so its slides can be scrolled.
+  previewEl.addEventListener('pointerenter', function(){ clearTimeout(previewHideTimer); });
+  previewEl.addEventListener('pointerleave', function(e){
+    if (e.relatedTarget && previewChip && previewChip.contains(e.relatedTarget)) return;
+    graceHideIsoPreview();
+  });
+  document.body.appendChild(previewEl);
+}
+
+function showIsoPreview(a){
+  if (!previewEl) buildIsoPreview();
+  clearTimeout(previewHideTimer);
+  var fresh = a !== previewChip || !previewEl.classList.contains('is-open');
   previewChip = a;
-  var frame = previewFrame(previewSrc(a));
-  previewWrapEl.querySelectorAll('iframe').forEach(function(f){ f.classList.toggle('is-current', f === frame); });
-  previewWrapEl.classList.toggle('is-loaded', frame.classList.contains('is-loaded'));
+  var srcs = previewSrcs(a);
+  previewSlides.forEach(function(slide, i){
+    if (i >= srcs.length) return;
+    var frame = previewFrame(slide, srcs[i]);
+    slide.frames.forEach(function(f){ f.frame.classList.toggle('is-current', f.frame === frame); });
+    slide.el.classList.toggle('is-loaded', frame.classList.contains('is-loaded'));
+  });
+  previewEl.classList.toggle('has-slides', srcs.length > 1);
+  if (fresh || srcs.length < 2) previewWrapEl.scrollTop = 0;
+  syncPreviewDots();
   var mul = a.getAttribute('data-iso-mode') === 'multiplicative';
   previewEl.classList.toggle('is-mul', mul);
   previewEl.classList.toggle('is-add', !mul);
@@ -2237,12 +2292,22 @@ function showIsoPreview(a){
 
 function hideIsoPreview(){
   clearTimeout(previewTimer);
+  clearTimeout(previewHideTimer);
   previewChip = null;
   if (previewEl) previewEl.classList.remove('is-open');
 }
 
+// Leaving a chip or the card waits a moment, so the pointer can cross the
+// gap between them.
+function graceHideIsoPreview(){
+  clearTimeout(previewTimer);
+  clearTimeout(previewHideTimer);
+  previewHideTimer = setTimeout(hideIsoPreview, PREVIEW_GRACE);
+}
+
 function queueIsoPreview(a){
   clearTimeout(previewTimer);
+  clearTimeout(previewHideTimer);
   if (a === previewChip) return;
   previewTimer = setTimeout(function(){ if (a.isConnected) showIsoPreview(a); }, previewChip ? 0 : PREVIEW_DELAY);
 }
@@ -2256,7 +2321,7 @@ isoPanelEl.addEventListener('pointerout', function(e){
   var a = e.target.closest('a.iso-chip');
   if (!a || (e.relatedTarget && a.contains(e.relatedTarget))) return;
   if (document.activeElement === a && a.matches(':focus-visible')) return;
-  hideIsoPreview();
+  graceHideIsoPreview();
 });
 isoPanelEl.addEventListener('focusin', function(e){
   var a = e.target.closest('a.iso-chip');
@@ -2266,10 +2331,19 @@ isoPanelEl.addEventListener('focusout', hideIsoPreview);
 isoPanelEl.addEventListener('click', function(e){
   if (e.target.closest('a.iso-chip')) hideIsoPreview();
 });
+// From the keyboard, the up and down arrows turn the card's slides.
+isoPanelEl.addEventListener('keydown', function(e){
+  if (!previewChip || !previewEl.classList.contains('has-slides')) return;
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  previewWrapEl.scrollBy({ top: (e.key === 'ArrowDown' ? 1 : -1) * previewWrapEl.clientHeight, behavior: 'smooth' });
+});
 document.addEventListener('keydown', function(e){
   if (e.key === 'Escape' && previewChip) hideIsoPreview();
 });
-window.addEventListener('scroll', function(){ if (previewChip) hideIsoPreview(); }, true);
+window.addEventListener('scroll', function(e){
+  if (previewChip && !(previewEl && previewEl.contains(e.target))) hideIsoPreview();
+}, true);
 window.addEventListener('resize', function(){ if (previewChip) placeIsoPreview(previewChip); });
 
 // The selected subgroup is cyclic of order k: Z/k, whose generator is the
