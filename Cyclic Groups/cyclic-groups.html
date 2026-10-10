@@ -561,6 +561,7 @@
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
         </div>
         <div class="formula-toggles">
+          <div class="check"><input type="checkbox" role="switch" id="layer-gname" checked><label for="layer-gname" data-i18n="cyclicGroups.formulaToggleName">Group and subgroup’s name</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder" checked><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroup">Group’s cardinality</label></div>
           <div class="check" id="sorder-row"><input type="checkbox" role="switch" id="layer-sorder" checked><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroup">Subgroup’s cardinality</label></div>
         </div>
@@ -729,8 +730,9 @@ var RING = { cx: 380, cy: 395, R: 238 };
 
 // The layers double as the URL parameter names and, with the layer-
 // prefix, as the checkbox ids.
-// gorder and sorder show the group's and the subgroup's order formulas.
-var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gorder', 'sorder'];
+// gname shows the subgroup-of-group title; gorder and sorder show the
+// group's and the subgroup's order formulas.
+var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'gorder', 'sorder'];
 
 /* ---------- state ---------- */
 // gen is the chosen element h: the inner arrows walk by h, the outer arrows
@@ -745,7 +747,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gorder', 's
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gorder: true, sorder: true, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, gorder: true, sorder: true, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1491,7 +1493,7 @@ function drawMath(G, subs){
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
   } else {
     var whole = G.orders[h] === G.order;
-    lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+    if (state.gname) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
       translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
     var row = document.createElement('div');
     row.className = 'ring-math-row';

@@ -14,7 +14,7 @@
    (cosetCountMath, nLabelMath, nNoteMath, opAddMath, ..., notice.ruleMath),
    the templates whose math parameters are typeset as MathML, the two
    formula.mul* keys of the multiplicative order formulas,
-   fact.cardinality, the two formulaToggle* labels and the three subOrder*
+   fact.cardinality, the three formulaToggle* labels and the three subOrder*
    strings of the generator prompt: by the
    user's decision they are
    English-only. Every other language shows the English value through
@@ -230,6 +230,7 @@
       'notice.whyTwoOddPrimesMath': 'Why: {eq} has two different odd prime factors.',
       'notice.ruleMath': '{mul} is cyclic exactly when {n} is {one}, {two} or {four}, an odd prime power {pk}, or twice one, {twopk}. Additive {add} is always cyclic.',
       'fact.cardinality': 'Cardinality',
+      formulaToggleName: 'Group and subgroup’s name',
       formulaToggleGroup: 'Group’s cardinality',
       formulaToggleSubgroup: 'Subgroup’s cardinality',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
