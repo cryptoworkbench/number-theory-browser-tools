@@ -8,7 +8,13 @@
    Translated into all thirty-one supported languages (quick task 261009-tgw),
    with English the source of truth: every non-English block holds the same
    keys in the same order as en, and i18n-check --coverage reports no
-   cyclicGroups finding.
+   cyclicGroups finding, except for the four iso.* keys (iso.lead,
+   iso.additive, iso.multiplicative, iso.open) of the isomorphic-group
+   selector (quick task 261010-i13): by the user's decision they are
+   English-only. Every other language shows the English value through
+   NT.i18n's current-language to en fallback, and i18n-check --coverage
+   reports one LANG-KEYSET cyclicGroups.<lang> finding per non-English
+   language for them. Translating them is a deferred follow-up.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups is a plural entry in each
@@ -193,6 +199,10 @@
       subLayoutLabel: 'Layout',
       subLayoutGrid: 'Grid',
       subLayoutList: 'List',
+      'iso.lead': '⟨{g}⟩ is cyclic of order {k}, so it is isomorphic to:',
+      'iso.additive': 'additive',
+      'iso.multiplicative': 'multiplicative',
+      'iso.open': 'Open {group} in a new tab',
       'fact.group': 'Group',
       'fact.elements': 'Elements',
       'fact.identity': 'Identity',
