@@ -1312,6 +1312,8 @@ function mList(list){
   list.forEach(function(x, i){ if (i) items.push(comma()); items.push(mn(x)); });
   return mrow.apply(null, items);
 }
+// The modulus' symbol in the Group panel.
+function mPct(){ return mEl('mi', ['%'], { mathvariant: 'normal' }); }
 function mPhi(x){ return mrow(mi('φ'), mo('\u2061'), mo('(', true), x, mo(')', true)); }
 function mLog(base, x){ return mrow(mEl('msub', [mi('log'), mn(base)]), mo('\u2061'), mn(x)); }
 // ⟨ℤ/aℤ, +⟩ × ⟨ℤ/bℤ, +⟩ × … for the cyclic factors of a unit group: one
@@ -2242,11 +2244,13 @@ subgroupsEl.addEventListener('keydown', function(e){
   focusCurrentRow();
 });
 
+// A fact's label is a dictionary key, or a math node such as the modulus %.
 function addFact(labelKey, value){
   var li = document.createElement('li');
   var label = document.createElement('span');
   label.className = 'fact-label';
-  label.textContent = translate(labelKey);
+  if (typeof labelKey === 'string') label.textContent = translate(labelKey);
+  else label.appendChild(labelKey);
   var val = document.createElement('span');
   val.className = 'fact-value';
   if (typeof value === 'string') val.textContent = value;
@@ -2258,9 +2262,15 @@ function addFact(labelKey, value){
 
 function renderFacts(G, factors){
   factsEl.replaceChildren();
+  // The modulus, the operation's sign and the group they make; then the
+  // element count, % itself in ℤ/%ℤ and φ(%) in (ℤ/%ℤ)*.
+  var op = G.mode === 'additive' ? '+' : '×';
+  addFact(mInline(mPct(), '%'), mNum(G.n));
+  addFact('cyclicGroups.fact.operation', mInline(mo(op, true), op));
   addFact('cyclicGroups.fact.group', mInline(mGroup(G), G.label));
-  addFact('cyclicGroups.fact.operation', tNode(G.mode === 'additive' ? 'cyclicGroups.opAddMath' : 'cyclicGroups.opMulMath', { mod: mInline(mMod(G.n), 'mod ' + G.n) }));
-  addFact('cyclicGroups.fact.elements', mNum(G.order));
+  addFact('cyclicGroups.fact.elements', G.mode === 'additive'
+    ? mInline(mrow(mPct(), mo('='), mn(G.n)), '% = ' + G.n)
+    : mInline(mrow(mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(G.order)), 'φ(%) = φ(' + G.n + ') = ' + G.order));
   addFact('cyclicGroups.fact.identity', mNum(G.identity));
   // The generators of ℤ/nℤ are the units mod n, so there are φ(n) of them; a
   // cyclic (ℤ/nℤ)* is a cyclic group of order φ(n), so it has φ(φ(n)).
@@ -2348,11 +2358,11 @@ function renderLegend(G, classes, pairing){
 }
 
 function renderNNote(){
-  translateInto(nLabelEl, 'cyclicGroups.nLabelMath', { n: mInline(mi('n'), 'n') });
+  translateInto(nLabelEl, 'cyclicGroups.nLabelMath', { n: mInline(mPct(), '%') });
   if (!nNoteShown){ nNoteEl.textContent = ''; return; }
   translateInto(nNoteEl, 'cyclicGroups.nNoteMath', {
-    n: mInline(mi('n'), 'n'), lo: mNum(MIN_N), hi: mNum(MAX_N),
-    eq: mInline(mrow(mi('n'), mo('='), mn(state.n)), 'n = ' + state.n)
+    n: mInline(mPct(), '%'), lo: mNum(MIN_N), hi: mNum(MAX_N),
+    eq: mInline(mrow(mPct(), mo('='), mn(state.n)), '% = ' + state.n)
   });
 }
 
