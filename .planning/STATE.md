@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T17:05:32.268Z"
+last_updated: "2026-10-10T17:23:43.164Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 0ac9a5cfa7206d1356a92e59dc09f831817b92a5
+state_head: da70c063e6833eee079919caa7e79143ab00eeed
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-10 - Completed quick task 261010-i13: Cyclic Groups isomorphic-group selector (English only)
+Last activity: 2026-10-10 - Completed quick task 261010-qmt: Cyclic Groups merged additive/multiplicative view (branch cyclic-groups-merged-view)
 
 Progress: [█████████░] 86%
 
@@ -415,6 +415,7 @@ None yet.
 | 179 | Cyclic Groups: chain the five head switches (each appears only while the previous is on, no indent) | 2026-10-10 | 90a788f | — |
 | 180 | Cyclic Groups: rename 'Coset count formula' to 'Subgroup-coset amount formula' | 2026-10-10 | 8110eb6 | — |
 | 181 | Cyclic Groups: the four switches after 'Group name' start off | 2026-10-10 | 0ac9a5c | — |
+| 261010-qmt | Cyclic Groups: merge the additive and multiplicative views (operation dropdown and modulus input in the Group panel) — branch cyclic-groups-merged-view | 2026-10-10 | da70c06 | [261010-qmt-cyclic-groups-merge-additive-and-multipl](./quick/261010-qmt-cyclic-groups-merge-additive-and-multipl/) |
 
 ## Deferred Items
 
@@ -430,4 +431,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-10 - Completed quick task 261010-i13: Cyclic Groups isomorphic-group selector (English only)
+Last activity: 2026-10-10 - Completed quick task 261010-qmt: Cyclic Groups merged additive/multiplicative view (branch cyclic-groups-merged-view)
