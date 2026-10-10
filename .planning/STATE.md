@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T12:49:04.045Z"
+last_updated: "2026-10-10T12:54:00.066Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 094db9da9835619843aba63ee0f6845b3aec5ffb
+state_head: 6a932b5b6915d88f9751b6eee4b467cf1c088f9a
 progress:
   total_phases: 7
   completed_phases: 6
@@ -376,6 +376,7 @@ None yet.
 | 140 | Cyclic Groups: hovering or focusing an isomorphic-group chip shows a live scaled-down preview of the tool opened with those parameters | 2026-10-10 | 2ac7581 | — |
 | 141 | Cyclic Groups: isomorphic-group preview shows only the necklace, first generator selected, forward path only in the tab's forward color | 2026-10-10 | 4f20956 | — |
 | 142 | Cyclic Groups: from an additive group, a multiplicative isomorphic-group preview scrolls between generator-power order and numeric order | 2026-10-10 | 094db9d | — |
+| 143 | Cyclic Groups: stop ringing the identity bead; rename the tool from Cyclic Group Necklace to Cyclic Groups everywhere | 2026-10-10 | 6a932b5 | — |
 
 ## Deferred Items
 
