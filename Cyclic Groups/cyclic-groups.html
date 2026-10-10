@@ -98,6 +98,9 @@
      switches in the triangle's own track and knob colors. */
   .formula-toggles{ position:absolute; top:60px; left:12px; z-index:1; display:flex; flex-direction:column; gap:6px; font-size:.85rem; color:var(--text-dim); }
   .formula-toggles .check{ margin:0; font-size:inherit; gap:8px; align-items:center; }
+  /* The subgroup name switch belongs to the group name one: indented under
+     it, and shown only while the group name is. */
+  .formula-toggles .check.is-nested{ margin-left:16px; }
   .formula-toggles .check input{ appearance:none; -webkit-appearance:none; position:relative; margin:0; width:30px; height:17px; border-radius:999px; background:color-mix(in srgb, var(--text) 6%, transparent); border:2px solid color-mix(in srgb, var(--text) 28%, transparent); cursor:pointer; transition:background .2s, border-color .2s; }
   .formula-toggles .check input::after{ content:""; position:absolute; top:50%; left:1px; width:11px; height:11px; margin-top:-5.5px; border-radius:50%; background:var(--panel); border:1px solid color-mix(in srgb, var(--text) 30%, transparent); box-sizing:border-box; transition:transform .2s ease, background .2s; }
   .formula-toggles .check input:checked{ background:var(--accent); border-color:var(--accent); }
@@ -561,7 +564,8 @@
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
         </div>
         <div class="formula-toggles">
-          <div class="check"><input type="checkbox" role="switch" id="layer-gname" checked><label for="layer-gname" data-i18n="cyclicGroups.formulaToggleName">Group and subgroup name</label></div>
+          <div class="check"><input type="checkbox" role="switch" id="layer-gname" checked><label for="layer-gname" data-i18n="cyclicGroups.formulaToggleName">Group name</label></div>
+          <div class="check is-nested" id="sname-row"><input type="checkbox" role="switch" id="layer-sname" checked><label for="layer-sname" data-i18n="cyclicGroups.formulaToggleSubName">Subgroup name</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder" checked><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroup">Group cardinality formula</label></div>
           <div class="check" id="sorder-row"><input type="checkbox" role="switch" id="layer-sorder" checked><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroup">Subgroup cardinality formula</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-cindex" checked><label for="layer-cindex" data-i18n="cyclicGroups.formulaToggleCosets">Coset count formula</label></div>
@@ -731,9 +735,10 @@ var RING = { cx: 380, cy: 395, R: 238 };
 
 // The layers double as the URL parameter names and, with the layer-
 // prefix, as the checkbox ids.
-// gname shows the subgroup-of-group title; gorder and sorder show the
+// gname shows the group's name over the ring and sname, inside it, the
+// subgroup's before it (⟨h⟩ ⊂ or ⟨h⟩ ⊆); gorder and sorder show the
 // group's and the subgroup's order formulas, cindex the coset count.
-var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'gorder', 'sorder', 'cindex'];
+var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 
 /* ---------- state ---------- */
 // gen is the chosen element h: the inner arrows walk by h, the outer arrows
@@ -748,7 +753,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'go
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, gorder: true, sorder: true, cindex: true, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: true, gorder: true, sorder: true, cindex: true, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1518,8 +1523,9 @@ function drawMath(G, subs){
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
   } else {
     var whole = G.orders[h] === G.order;
-    if (state.gname) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+    if (state.gname && state.sname) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
       translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
+    else if (state.gname) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
     var row = document.createElement('div');
     row.className = 'ring-math-row';
     orderFormulas(G).forEach(function(f){ row.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
@@ -3023,6 +3029,7 @@ function render(){
   // A (ℤ/nℤ)* with no generator has no base for the subgroup formula.
   var noLogBase = G.mode === 'multiplicative' && !G.cyclic;
   $('sorder-row').classList.toggle('is-off', noLogBase);
+  $('sname-row').hidden = !state.gname;
   $('layer-sorder').disabled = noLogBase;
   // With the paths layer off, the path options have nothing to act on.
   arrowOptionsEl.querySelectorAll('.check').forEach(function(row){ row.classList.toggle('is-off', !state.paths); });

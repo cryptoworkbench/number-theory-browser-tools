@@ -16,7 +16,7 @@
    formula.mulGroupOrder and formula.mulSubgroupOrder keys of the
    multiplicative order formulas, the formula.cosetCount,
    formula.mulCosetCount and formula.cosetCountIndex keys of the coset
-   count formula, fact.cardinality, the four formulaToggle* labels and the
+   count formula, fact.cardinality, the five formulaToggle* labels and the
    three subOrder* strings of the generator prompt and tabTitle: by the
    user's decision they are
    English-only. Every other language shows the English value through
@@ -233,7 +233,8 @@
       'notice.whyTwoOddPrimesMath': 'Why: {eq} has two different odd prime factors.',
       'notice.ruleMath': '{mul} is cyclic exactly when {n} is {one}, {two} or {four}, an odd prime power {pk}, or twice one, {twopk}. Additive {add} is always cyclic.',
       'fact.cardinality': 'Cardinality',
-      formulaToggleName: 'Group and subgroup name',
+      formulaToggleName: 'Group name',
+      formulaToggleSubName: 'Subgroup name',
       formulaToggleGroup: 'Group cardinality formula',
       formulaToggleSubgroup: 'Subgroup cardinality formula',
       formulaToggleCosets: 'Coset count formula',
