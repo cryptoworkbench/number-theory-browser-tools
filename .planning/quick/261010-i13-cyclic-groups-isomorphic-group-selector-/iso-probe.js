@@ -21,7 +21,7 @@ var url = require("url");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 12;
+var EXPECTED = 17;
 // Headless Chrome's --window-size counts ~143px of window chrome the page
 // never sees, so a 1600x1000 viewport needs a window 1143 tall (I8 asserts
 // innerHeight). A window narrower than ~500px is raised to ~500 (N1 reports
@@ -236,6 +236,62 @@ var MAIN = function () {
     });
     return "no overlap, diagram " + Math.round(fb.height) + "px, 2 logos";
   });
+
+  function englishCard(what) {
+    eq($("iso-lead").textContent, "⟨3⟩ is cyclic of order 4, so it is isomorphic to:", what + " lead");
+    eq(txt(document.querySelector("#iso-add .iso-kind")), "additive", what + " additive caption");
+    eq(txt(document.querySelector("#iso-mul .iso-kind")), "multiplicative", what + " multiplicative caption");
+    var z4 = addLinks()[0];
+    eq(z4.getAttribute("title"), "Open Z/4 in a new tab", what + " title");
+    eq(z4.getAttribute("aria-label"), "Open Z/4 in a new tab", what + " aria-label");
+    var raw = [panel().textContent];
+    Array.prototype.forEach.call(panel().querySelectorAll("[title],[aria-label]"), function (el) {
+      raw.push(el.getAttribute("title") || "", el.getAttribute("aria-label") || "");
+    });
+    assert(!/cyclicGroups\./.test(raw.join("\n")), what + ": a raw key shows");
+  }
+  function everyHrefLang(lang) {
+    var links = document.querySelectorAll("#iso-panel a.iso-chip");
+    assert(links.length > 0, "no links");
+    Array.prototype.forEach.call(links, function (a) { eq(params(a).get("lang"), lang, "href lang"); });
+  }
+
+  scenario("I9 fallback-nl", function () {
+    pick(3);
+    NT.i18n.setLang("nl");
+    try {
+      eq(document.documentElement.lang, "nl", "html lang");
+      eq(document.querySelector(".subgroups-panel h2").textContent, "Subgroep voortgebracht door elk element", "Dutch control heading");
+      englishCard("nl");
+      everyHrefLang("nl");
+    } finally {
+      NT.i18n.setLang("en");
+    }
+    return "English card text in Dutch, hrefs carry nl";
+  });
+
+  scenario("I10 fallback-ar-rtl", function () {
+    pick(3);
+    NT.i18n.setLang("ar");
+    try {
+      eq(document.documentElement.dir, "rtl", "html dir");
+      eq(document.querySelector(".subgroups-panel h2").textContent, "الزمرة الجزئية التي يولدها كل عنصر", "Arabic control heading");
+      englishCard("ar");
+      everyHrefLang("ar");
+      Array.prototype.forEach.call(document.querySelectorAll("#iso-panel a.iso-chip"), function (a) {
+        eq(getComputedStyle(a).direction, "ltr", "chip direction");
+      });
+      assert(shown(panel()), "panel not shown in ar");
+    } finally {
+      NT.i18n.setLang("en");
+    }
+    return "English card text under dir=rtl, chips stay ltr, hrefs carry ar";
+  });
+
+  scenario("I11 no-errors-main", function () {
+    assert(window.__i13Errors.length === 0, "errors: " + window.__i13Errors.join(" | "));
+    return "no window error, rejection or console.error";
+  });
 };
 
 var LANDING = function () {
@@ -254,7 +310,11 @@ var LANDING = function () {
     assert(window.__i13Writes.indexOf("group-params") === -1, "group-params written on a noshare load");
     return "no group-params write";
   });
-  //__LANDING_MORE__
+
+  scenario("L3 no-errors-landing", function () {
+    assert(window.__i13Errors.length === 0, "errors: " + window.__i13Errors.join(" | "));
+    return "no window error, rejection or console.error";
+  });
 };
 
 var NARROW = function () {
@@ -267,6 +327,11 @@ var NARROW = function () {
       assert(b.left >= -0.5 && b.right <= window.innerWidth + 0.5, "tile outside the window: " + b.left + ".." + b.right);
     });
     return "no overflow at " + window.innerWidth + "px";
+  });
+
+  scenario("N2 no-errors-narrow", function () {
+    assert(window.__i13Errors.length === 0, "errors: " + window.__i13Errors.join(" | "));
+    return "no window error, rejection or console.error";
   });
 };
 
