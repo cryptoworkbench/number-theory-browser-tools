@@ -12,10 +12,12 @@
    iso.additive, iso.multiplicative, iso.open, iso.supergroup) of the
    isomorphic-group selector (quick task 261010-i13) and the *Math keys
    (cosetCountMath, nLabelMath, nNoteMath, opAddMath, ..., notice.ruleMath),
-   the templates whose math parameters are typeset as MathML, the two
-   formula.mul* keys of the multiplicative order formulas,
-   formula.cosetCount, fact.cardinality, the four formulaToggle* labels and the three subOrder*
-   strings of the generator prompt: by the
+   the templates whose math parameters are typeset as MathML, the
+   formula.mulGroupOrder and formula.mulSubgroupOrder keys of the
+   multiplicative order formulas, the formula.cosetCount,
+   formula.mulCosetCount and formula.cosetCountIndex keys of the coset
+   count formula, fact.cardinality, the four formulaToggle* labels and the
+   three subOrder* strings of the generator prompt: by the
    user's decision they are
    English-only. Every other language shows the English value through
    NT.i18n's current-language to en fallback, and i18n-check --coverage
@@ -239,7 +241,9 @@
       subOrderCancel: 'Cancel',
       'formula.mulGroupOrder': '|{group}| = φ({n}) = {k}',
       'formula.mulSubgroupOrder': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = φ({n}) / gcd(φ({n}), log_{g} {h}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
-      'formula.cosetCount': '[{group} : ⟨{h}⟩] = |{group}| / |⟨{h}⟩| = {n} / {k} = {c}',
+      'formula.cosetCount': '[{group} : ⟨{h}⟩] = gcd(|{group}|, {h}) = gcd({n}, {h}) = {d}',
+      'formula.mulCosetCount': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g} {h}) = gcd(φ({n}), log_{g} {h}) = gcd({k}, {q}) = {d}',
+      'formula.cosetCountIndex': '[{group} : ⟨{h}⟩] = |{group}| / |⟨{h}⟩| = {n} / {k} = {c}',
       'fact.group': 'Group',
       'fact.elements': 'Elements',
       'fact.identity': 'Identity',

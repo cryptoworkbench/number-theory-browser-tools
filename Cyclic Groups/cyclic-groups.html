@@ -1438,11 +1438,26 @@ function orderFormulas(G){
   return out;
 }
 
-// The number of cosets of ⟨h⟩, its index: the group's order over ⟨h⟩'s.
+// The number of cosets of ⟨h⟩, its index. As |⟨h⟩| = |G| / gcd(|G|, h) in
+// ℤ/nℤ, the index is gcd(|G|, h); in a cyclic (ℤ/nℤ)* arranged by powers of
+// a generator g it is gcd(|G|, log_g h), log_g 1 taken as k as in
+// orderFormulas. Without a log base, the group's order over ⟨h⟩'s.
 function cosetCountFormula(G, h){
-  var n = G.order, k = G.orders[h];
-  return { math: mrow(mIndex(mGroup(G), angle(mn(h))), mo('='), mfrac(abs(mGroup(G)), abs(angle(mn(h)))), mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
-    plain: translate('cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, k: k, c: n / k }) };
+  var n = G.order, index = mIndex(mGroup(G), angle(mn(h))), d;
+  if (G.mode === 'additive'){
+    d = gcd(n, h);
+    return { math: mrow(index, mo('='), mgcd(abs(mGroup(G)), mn(h)), mo('='), mgcd(mn(n), mn(h)), mo('='), mn(d)),
+      plain: translate('cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, d: d }) };
+  }
+  if (G.cyclic && state.bygen){
+    var g = arrangeBy(G), q = lap(G, g, n).indexOf(h) || n;
+    d = gcd(n, q);
+    return { math: mrow(index, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mPhi(mn(G.n)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
+      plain: translate('cyclicGroups.formula.mulCosetCount', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
+  }
+  var k = G.orders[h];
+  return { math: mrow(index, mo('='), mfrac(abs(mGroup(G)), abs(angle(mn(h)))), mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
+    plain: translate('cyclicGroups.formula.cosetCountIndex', { group: G.label, h: h, n: n, k: k, c: n / k }) };
 }
 
 // In a cyclic (ℤ/nℤ)* the subgroup's order is worked out from log_g h, so
