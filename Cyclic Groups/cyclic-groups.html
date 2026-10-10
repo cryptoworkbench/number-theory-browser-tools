@@ -1757,16 +1757,29 @@ function subgroupColumns(){
   return n;
 }
 
-// Once a row has focus (a click gives it one), the up and down arrow keys
-// select the element of the row above or below: one row in the list layout,
-// and in the grid the row directly above or below in the same column.
+// Once a row has focus (a click gives it one), the arrow keys select another
+// element. Up and down move to the row above or below: one row in the list
+// layout, and in the grid the row directly above or below in the same
+// column. In the grid, left and right step through reading order and wrap to
+// the next or previous line; a right-to-left grid places row 0 at the top
+// right, so there ArrowLeft is the forward key and the selection still moves
+// the way the arrow points on screen.
 subgroupsEl.addEventListener('keydown', function(e){
   if (!drawn) return;
-  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+  var grid = state.subLayout === 'grid';
+  var vertical = e.key === 'ArrowUp' || e.key === 'ArrowDown';
+  var horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+  if (!vertical && !(horizontal && grid)) return;
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-  var step = state.subLayout === 'grid' ? subgroupColumns() : 1;
+  var delta;
+  if (vertical){
+    delta = (grid ? subgroupColumns() : 1) * (e.key === 'ArrowDown' ? 1 : -1);
+  } else {
+    var rtl = getComputedStyle(subgroupsEl).direction === 'rtl';
+    delta = (e.key === 'ArrowRight') !== rtl ? 1 : -1;
+  }
   var els = drawn.G.els;
-  var i = els.indexOf(state.gen) + (e.key === 'ArrowDown' ? step : -step);
+  var i = els.indexOf(state.gen) + delta;
   e.preventDefault();
   if (i < 0 || i >= els.length) return;
   keyNav = true;
