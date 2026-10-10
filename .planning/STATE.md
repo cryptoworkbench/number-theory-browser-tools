@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T12:16:45.522Z"
+last_updated: "2026-10-10T12:19:50.258Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ed694a6f413f79dedb43a991532a75373c81bf2b
+state_head: 88372b10e0f0ed34def785e366a6089a20347906
 progress:
   total_phases: 7
   completed_phases: 6
@@ -371,6 +371,7 @@ None yet.
 | 261010-hp0 | Cyclic Groups subgroup panel: arrow keys switch subgroups in Grid view | 2026-10-10 | 8cded0d | [261010-hp0-cyclic-groups-panel-subgroup-generated-b](./quick/261010-hp0-cyclic-groups-panel-subgroup-generated-b/) |
 | 261010-i13 | Cyclic Groups: isomorphic additive/multiplicative group selector opening in a new tab (English only) | 2026-10-10 | 822c925 | [261010-i13-cyclic-groups-isomorphic-group-selector-](./quick/261010-i13-cyclic-groups-isomorphic-group-selector-/) |
 | 137 | Cyclic Groups: write groups as ⟨Z/n, +⟩ and ⟨Z/n, ×⟩ throughout the tool | 2026-10-10 | ed694a6 | — |
+| 138 | Cyclic Groups: selecting a subgroup row no longer scrolls the page | 2026-10-10 | 88372b1 | — |
 
 ## Deferred Items
 
