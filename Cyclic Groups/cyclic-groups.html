@@ -1112,6 +1112,8 @@ function humpPoint(box, foot, side, h, f){
   var p1 = polar(box.cx, box.cy, foot, h.a0 + h.d);
   var dx = p1[0] - p0[0], dy = p1[1] - p0[1];
   var len = Math.hypot(dx, dy);
+  // Two beads passing each other in a rearrangement: no chord to bow off.
+  if (len < 1e-6) return p0;
   var mid = foot * Math.cos(Math.abs(h.d) * Math.PI / 360);
   var bulge = Math.abs(h.scale) * Math.min(INNER_BULGE * len, Math.max(INNER_MIN, 0.35 * mid));
   if (h.scale < 0) bulge = -Math.min(bulge, 0.8 * (foot - mid));
@@ -1120,8 +1122,11 @@ function humpPoint(box, foot, side, h, f){
   return [p0[0] + dx * f - turn * dy * b, p0[1] + dy * f + turn * dx * b];
 }
 
+// A sample per degree of turn, or one per HUMP_COARSE degrees while a
+// rearrangement redraws the walks on every frame.
+var humpCoarse = 1, HUMP_COARSE = 5;
 function humpPath(box, foot, side, h, first){
-  var samples = Math.max(16, Math.ceil(Math.abs(h.d)));
+  var samples = Math.max(16, Math.ceil(Math.abs(h.d) / humpCoarse));
   var path = '';
   for (var t = first ? 0 : 1; t <= samples; t++){
     var q = humpPoint(box, foot, side, h, t / samples);
@@ -1233,12 +1238,21 @@ function drawRing(parent, G, beads, box, paint){
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
     walksFrom(coset ? coset.start : G.identity, false);
-    walks.forEach(function(w){
-      if (w.side === 'outside') outerEdge = Math.max(outerEdge, drawOuter(ring, w.walk, w.cls, w.scale, place, box, beadR, m, width));
-    });
-    walks.forEach(function(w){
-      if (w.side === 'inside') drawInner(ring, w.walk, w.cls, w.scale, place, box, beadR, m, width);
-    });
+    // The walks share one group, which a rearrangement redraws as the beads
+    // move: places may then be fractional.
+    var walksEl = ring.appendChild(svgEl('g', { 'class': 'walks' }));
+    ring.redrawWalks = function(places){
+      var edge = box.R + beadR;
+      walksEl.replaceChildren();
+      walks.forEach(function(w){
+        if (w.side === 'outside') edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width));
+      });
+      walks.forEach(function(w){
+        if (w.side === 'inside') drawInner(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width);
+      });
+      return edge;
+    };
+    outerEdge = Math.max(outerEdge, ring.redrawWalks(place));
   }
 
   beads.forEach(function(a, i){
@@ -1931,14 +1945,15 @@ function turnHome(){
 // Rearranging the beads, between numeric order and the powers of a
 // generator or from one generator's powers to another's, is animated: each
 // bead glides round the ring, the short way, from its old place to its new
-// one, the beads setting off one after another round the ring. The old
-// walks and mirror axis fade out as the beads leave and the new ones fade in
-// once they have landed. A redraw part way through (a hover, a new
-// element) shows the end state at once.
+// one, the beads setting off one after another round the ring. The walks
+// travel with the beads, redrawn on every frame from where the beads are;
+// the old mirror axis and order labels fade out as the beads leave and the
+// new ones fade in once they have landed. A redraw part way through (a
+// hover, a new element) shows the end state at once.
 var ARRANGE_MOVE_MS = 700, ARRANGE_STAGGER_MS = 350, ARRANGE_FADE_MS = 250;
 var arranging = null;
 function isRingFrame(el){
-  return el.matches('.guide, .cord, .bead, .bead-label');
+  return el.matches('.guide, .cord, .walks, .bead, .bead-label');
 }
 function ringAngle(x, y, box){
   return Math.atan2(x - box.cx, -(y - box.cy)) * 180 / Math.PI;
@@ -1964,7 +1979,7 @@ function rearrange(change){
     var to = ringAngle(+c.getAttribute('cx'), +c.getAttribute('cy'), box);
     var start = from[a] === undefined ? to : from[a];
     var d = ((to - start) % 360 + 540) % 360 - 180;
-    return { c: c, label: labels[a] || null, start: start, d: d, delay: ARRANGE_STAGGER_MS * i / all.length };
+    return { c: c, label: labels[a] || null, start: start, d: d, slot: i, delay: ARRANGE_STAGGER_MS * i / all.length };
   });
   var fresh = Array.prototype.filter.call(ring.children, function(el){ return !isRingFrame(el); });
   fresh.forEach(function(el){ el.style.opacity = '0'; });
@@ -1981,7 +1996,17 @@ function rearrange(change){
     b.c.setAttribute('cy', num(p[1]));
     if (b.label){ b.label.setAttribute('x', num(p[0])); b.label.setAttribute('y', num(p[1])); }
   };
-  beads.forEach(function(b){ place(b, b.start); });
+  // The walks find each bead by its place on the ring, counted in steps.
+  var step = dirSign() * 360 / beads.length;
+  var places = {};
+  var moveWalks = function(coarse){
+    if (!ring.redrawWalks) return;
+    humpCoarse = coarse ? HUMP_COARSE : 1;
+    ring.redrawWalks(places);
+    humpCoarse = 1;
+  };
+  beads.forEach(function(b){ place(b, b.start); places[b.c.getAttribute('data-el')] = b.start / step; });
+  moveWalks(true);
   var t0 = null;
   var frame = function(ts){
     if (!ring.isConnected){ arranging = null; return; }
@@ -1990,8 +2015,12 @@ function rearrange(change){
     beads.forEach(function(b){
       var t = Math.max(0, Math.min(1, (ts - t0 - b.delay) / ARRANGE_MOVE_MS));
       if (t < 1) done = false;
-      place(b, b.start + b.d * easeInOutCubic(t));
+      var angle = b.start + b.d * easeInOutCubic(t);
+      place(b, angle);
+      // Landed, a bead takes its exact slot, so the last frame matches a redraw.
+      places[b.c.getAttribute('data-el')] = t < 1 ? angle / step : b.slot;
     });
+    moveWalks(!done);
     if (autoAngle) spinAngle(autoAngle);
     if (!done){ arranging.id = requestAnimationFrame(frame); return; }
     arranging = null;
