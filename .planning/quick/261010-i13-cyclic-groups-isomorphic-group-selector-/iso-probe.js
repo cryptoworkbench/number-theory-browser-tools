@@ -113,9 +113,9 @@ var MAIN = function () {
     assert(shown($("iso-add")), "#iso-add not shown");
     var links = addLinks();
     eq(links.length, 1, "additive link count");
-    eq(txt(links[0].querySelector(".iso-name")), "Z/4", "additive notation");
+    eq(txt(links[0].querySelector(".iso-name")), "⟨Z/4, +⟩", "additive notation");
     eq(txt(document.querySelector("#iso-add .iso-kind")), "additive", "additive caption");
-    return "card in place, Z/4";
+    return "card in place, ⟨Z/4, +⟩";
   });
 
   scenario("I2 additive-href", function () {
@@ -140,19 +140,19 @@ var MAIN = function () {
     eq(p.get("dir"), "ccw", "dir");
     eq(p.get("sublayout"), "list", "sublayout");
     eq(p.get("colorby"), "inverse", "colorby");
-    eq(a.getAttribute("title"), "Open Z/4 in a new tab", "title");
-    eq(a.getAttribute("aria-label"), "Open Z/4 in a new tab", "aria-label");
+    eq(a.getAttribute("title"), "Open ⟨Z/4, +⟩ in a new tab", "title");
+    eq(a.getAttribute("aria-label"), "Open ⟨Z/4, +⟩ in a new tab", "aria-label");
     lines.push("ISO-HREF " + a.href);
     return "href " + a.getAttribute("href");
   });
 
   scenario("I3 mul-chips", function () {
     pick(3);
-    same(chipList(mulLinks()), ["(Z/5)*|multiplicative|5|2", "(Z/10)*|multiplicative|10|3"], "k=4 chips");
+    same(chipList(mulLinks()), ["⟨Z/5, ×⟩|multiplicative|5|2", "⟨Z/10, ×⟩|multiplicative|10|3"], "k=4 chips");
     assert(shown($("iso-mul")), "#iso-mul not shown");
     var ls = mulLinks();
     ls.forEach(function (a, i) {
-      var label = i === 0 ? "(Z/5)*" : "(Z/10)*";
+      var label = i === 0 ? "⟨Z/5, ×⟩" : "⟨Z/10, ×⟩";
       eq(a.getAttribute("target"), "_blank", "target");
       assert(/noopener/.test(a.getAttribute("rel") || ""), "rel lacks noopener");
       eq(params(a).get("noshare"), "1", "noshare");
@@ -160,20 +160,20 @@ var MAIN = function () {
     });
     pick(6);
     eq($("iso-lead").textContent, "⟨6⟩ is cyclic of order 2, so it is isomorphic to:", "k=2 lead");
-    same(chipList(addLinks()), ["Z/2|additive|2|1"], "k=2 additive");
-    same(chipList(mulLinks()), ["(Z/3)*|multiplicative|3|2", "(Z/4)*|multiplicative|4|3", "(Z/6)*|multiplicative|6|5"], "k=2 chips");
+    same(chipList(addLinks()), ["⟨Z/2, +⟩|additive|2|1"], "k=2 additive");
+    same(chipList(mulLinks()), ["⟨Z/3, ×⟩|multiplicative|3|2", "⟨Z/4, ×⟩|multiplicative|4|3", "⟨Z/6, ×⟩|multiplicative|6|5"], "k=2 chips");
     return "k=4 and k=2 chip lists";
   });
 
   scenario("I4 additive-only", function () {
     pick(4);
-    same(chipList(addLinks()), ["Z/3|additive|3|1"], "k=3 additive");
+    same(chipList(addLinks()), ["⟨Z/3, +⟩|additive|3|1"], "k=3 additive");
     assert($("iso-mul").hidden, "#iso-mul not hidden for k=3");
     eq(mulLinks().length, 0, "mul links for k=3");
     assert(shown(panel()), "panel hidden for k=3");
     setN("16");
     pick(2);
-    same(chipList(addLinks()), ["Z/8|additive|8|1"], "k=8 additive");
+    same(chipList(addLinks()), ["⟨Z/8, +⟩|additive|8|1"], "k=8 additive");
     assert($("iso-mul").hidden, "#iso-mul not hidden for k=8");
     assert(shown(panel()), "panel hidden for k=8");
     setN("12");
@@ -194,16 +194,16 @@ var MAIN = function () {
     $("tab-multiplicative").click();
     setN("7");
     pick(3);
-    same(chipList(addLinks()), ["Z/6|additive|6|1"], "(Z/7)* additive");
-    same(chipList(mulLinks()), ["(Z/7)*|multiplicative|7|3", "(Z/9)*|multiplicative|9|2", "(Z/14)*|multiplicative|14|3", "(Z/18)*|multiplicative|18|5"], "(Z/7)* chips");
+    same(chipList(addLinks()), ["⟨Z/6, +⟩|additive|6|1"], "⟨Z/7, ×⟩ additive");
+    same(chipList(mulLinks()), ["⟨Z/7, ×⟩|multiplicative|7|3", "⟨Z/9, ×⟩|multiplicative|9|2", "⟨Z/14, ×⟩|multiplicative|14|3", "⟨Z/18, ×⟩|multiplicative|18|5"], "⟨Z/7, ×⟩ chips");
     setN("8");
     pick(3);
-    eq($("iso-lead").textContent, "⟨3⟩ is cyclic of order 2, so it is isomorphic to:", "(Z/8)* lead");
-    same(chipList(mulLinks()), ["(Z/3)*|multiplicative|3|2", "(Z/4)*|multiplicative|4|3", "(Z/6)*|multiplicative|6|5"], "(Z/8)* chips");
+    eq($("iso-lead").textContent, "⟨3⟩ is cyclic of order 2, so it is isomorphic to:", "⟨Z/8, ×⟩ lead");
+    same(chipList(mulLinks()), ["⟨Z/3, ×⟩|multiplicative|3|2", "⟨Z/4, ×⟩|multiplicative|4|3", "⟨Z/6, ×⟩|multiplicative|6|5"], "⟨Z/8, ×⟩ chips");
     $("tab-additive").click();
     setN("12");
     pick(3);
-    return "(Z/7)* and (Z/8)* lists";
+    return "⟨Z/7, ×⟩ and ⟨Z/8, ×⟩ lists";
   });
 
   scenario("I7 link-freshness", function () {
@@ -242,8 +242,8 @@ var MAIN = function () {
     eq(txt(document.querySelector("#iso-add .iso-kind")), "additive", what + " additive caption");
     eq(txt(document.querySelector("#iso-mul .iso-kind")), "multiplicative", what + " multiplicative caption");
     var z4 = addLinks()[0];
-    eq(z4.getAttribute("title"), "Open Z/4 in a new tab", what + " title");
-    eq(z4.getAttribute("aria-label"), "Open Z/4 in a new tab", what + " aria-label");
+    eq(z4.getAttribute("title"), "Open ⟨Z/4, +⟩ in a new tab", what + " title");
+    eq(z4.getAttribute("aria-label"), "Open ⟨Z/4, +⟩ in a new tab", what + " aria-label");
     var raw = [panel().textContent];
     Array.prototype.forEach.call(panel().querySelectorAll("[title],[aria-label]"), function (el) {
       raw.push(el.getAttribute("title") || "", el.getAttribute("aria-label") || "");
@@ -303,7 +303,7 @@ var LANDING = function () {
     eq($("sub-list").getAttribute("aria-pressed"), "true", "list layout");
     assert(!new URLSearchParams(location.search).has("rot"), "rot in the address bar");
     eq($("iso-lead").textContent, "⟨1⟩ is cyclic of order 4, so it is isomorphic to:", "lead");
-    return "Z/4 with <1>, settings kept";
+    return "⟨Z/4, +⟩ with <1>, settings kept";
   });
 
   scenario("L2 landing-no-share", function () {

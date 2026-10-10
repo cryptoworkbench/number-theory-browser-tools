@@ -754,7 +754,7 @@ function buildGroup(mode, n){
     els: els,
     identity: identity,
     order: els.length,
-    label: multiplicative ? '(Z/' + n + ')*' : 'Z/' + n,
+    label: '⟨Z/' + n + ', ' + (multiplicative ? '×' : '+') + '⟩',
     combine: function(a, b){ return multiplicative ? (a * b) % n : (a + b) % n; },
     orders: {},
     generators: [],
@@ -914,8 +914,13 @@ function unitFactors(n){
   });
 }
 
+// The additive group of order n, written with its operation: ⟨Z/n, +⟩.
+function additiveLabel(n){
+  return '⟨Z/' + n + ', +⟩';
+}
+
 function factorNotation(factors){
-  return factors.map(function(f){ return 'Z/' + f.order; }).join(' × ');
+  return factors.map(function(f){ return additiveLabel(f.order); }).join(' × ');
 }
 
 // Exactly one reason why (Z/n)* has no generator, as a dictionary key.
@@ -1876,7 +1881,7 @@ function renderFacts(G, factors){
   addFact('cyclicGroups.fact.generators', G.cyclic
     ? translate('cyclicGroups.factGeneratorsCount', { count: G.generators.length, order: G.order })
     : translate('cyclicGroups.factGeneratorsNone'));
-  addFact('cyclicGroups.fact.structure', G.cyclic ? 'Z/' + G.order : factorNotation(factors));
+  addFact('cyclicGroups.fact.structure', G.cyclic ? additiveLabel(G.order) : factorNotation(factors));
   sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
 
   var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
@@ -2031,7 +2036,7 @@ function renderIso(G){
     return;
   }
   isoLeadEl.textContent = translate('cyclicGroups.iso.lead', { g: state.gen, k: k });
-  isoAddChipsEl.replaceChildren(isoLink('additive', k, 1, 'Z/' + k));
+  isoAddChipsEl.replaceChildren(isoLink('additive', k, 1, additiveLabel(k)));
   var units = cyclicUnitGroups(k);
   isoMulChipsEl.replaceChildren.apply(isoMulChipsEl, units.map(function(e){
     return isoLink('multiplicative', e.n, e.gen, e.label);
