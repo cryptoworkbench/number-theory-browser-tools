@@ -1355,8 +1355,6 @@ function mList(list){
 // The modulus' symbol in the Group panel.
 function mPct(){ return mEl('mi', ['%'], { mathvariant: 'normal' }); }
 function mPhi(x){ return mrow(mi('φ'), mo('\u2061'), mo('(', true), x, mo(')', true)); }
-// [G : H], the index of H in G.
-function mIndex(g, h){ return mrow(mo('[', true), g, mo(':'), h, mo(']', true)); }
 function mLog(base, x){ return mrow(mEl('msub', [mi('log'), mn(base)]), mo('\u2061'), mn(x)); }
 // ⟨ℤ/aℤ, +⟩ × ⟨ℤ/bℤ, +⟩ × … for the cyclic factors of a unit group: one
 // inline formula per factor, so a long product wraps between factors.
@@ -1443,20 +1441,20 @@ function orderFormulas(G){
 // a generator g it is gcd(|G|, log_g h), log_g 1 taken as k as in
 // orderFormulas. Without a log base, the group's order over ⟨h⟩'s.
 function cosetCountFormula(G, h){
-  var n = G.order, index = mIndex(mGroup(G), angle(mn(h))), d;
+  var n = G.order, lead = mEl('mtext', [translate('cyclicGroups.formula.cosetCountLead')]), d;
   if (G.mode === 'additive'){
     d = gcd(n, h);
-    return { math: mrow(index, mo('='), mgcd(abs(mGroup(G)), mn(h)), mo('='), mgcd(mn(n), mn(h)), mo('='), mn(d)),
+    return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mn(h)), mo('='), mgcd(mn(n), mn(h)), mo('='), mn(d)),
       plain: translate('cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, d: d }) };
   }
   if (G.cyclic && state.bygen){
     var g = arrangeBy(G), q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
-    return { math: mrow(index, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mPhi(mn(G.n)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
+    return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mPhi(mn(G.n)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
       plain: translate('cyclicGroups.formula.mulCosetCount', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
   }
   var k = G.orders[h];
-  return { math: mrow(index, mo('='), mfrac(abs(mGroup(G)), abs(angle(mn(h)))), mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
+  return { math: mrow(lead, mo('='), mfrac(abs(mGroup(G)), abs(angle(mn(h)))), mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
     plain: translate('cyclicGroups.formula.cosetCountIndex', { group: G.label, h: h, n: n, k: k, c: n / k }) };
 }
 
