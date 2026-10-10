@@ -17,7 +17,7 @@ var url = require("url");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 9;
+var EXPECTED = 10;
 
 /* Runs inside the page (serialized with toString), after `load`. */
 function pageProbe() {
@@ -198,6 +198,29 @@ function pageProbe() {
         NT.i18n.setLang("en");
       }
       return "ArrowLeft moves left on screen in he, ArrowDown stays in the column";
+    });
+
+    scenario("G9 page-stays-put", function () {
+      var sg = document.getElementById("subgroups");
+      document.getElementById("sub-list").click();
+      sg.style.maxHeight = "90px";
+      try {
+        window.scrollTo(0, 0);
+        var y0 = window.scrollY;
+        at(0);
+        for (var i = 0; i < 11; i++) key(cur(), "ArrowDown");
+        assert(idx(cur()) === 11, "list ArrowDown x11 landed on " + idx(cur()));
+        assert(window.scrollY === y0, "page scrolled: " + y0 + " -> " + window.scrollY);
+        assert(sg.scrollTop > 0, "list did not scroll");
+        var lb = sg.getBoundingClientRect(), rb = cur().getBoundingClientRect();
+        assert(rb.top >= lb.top - 1 && rb.bottom <= lb.bottom + 1, "selected row outside the list box");
+        for (var j = 0; j < 11; j++) key(cur(), "ArrowUp");
+        assert(window.scrollY === y0 && sg.scrollTop === 0, "page " + window.scrollY + ", list " + sg.scrollTop);
+      } finally {
+        sg.style.maxHeight = "";
+        document.getElementById("sub-grid").click();
+      }
+      return "list scrolls to the row, page scrollY unchanged";
     });
 
     //__SCENARIOS__

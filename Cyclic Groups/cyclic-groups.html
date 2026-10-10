@@ -1800,7 +1800,12 @@ function focusCurrentRow(){
   var row = subgroupsEl.querySelector('.subgroup-row.is-current');
   if (!row) return;
   row.focus({ preventScroll: true });
-  row.scrollIntoView({ block: 'nearest' });
+  // Scroll the list's own box just enough to show the row; never the page,
+  // which scrollIntoView would also move, pulling the ring out of view.
+  var box = subgroupsEl.getBoundingClientRect();
+  var at = row.getBoundingClientRect();
+  if (at.top < box.top) subgroupsEl.scrollTop -= box.top - at.top;
+  else if (at.bottom > box.bottom) subgroupsEl.scrollTop += at.bottom - box.bottom;
 }
 
 // While the arrow keys drive the list, the rows rebuilding and scrolling
