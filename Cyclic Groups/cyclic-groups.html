@@ -143,7 +143,7 @@
   .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   /* JetBrains Mono centres ⟨ ⟩ in a full-width cell, which reads as a stray space
      around the number; the sans face sets them tight to it. */
-  #gen-select{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
+  #gen-select, #arrange-gen-select{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
   /* The open list is drawn by the browser on its own light background, so it
      needs an opaque themed fill or the night-theme text is unreadable. */
@@ -405,7 +405,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #gen-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -598,6 +598,10 @@
         </div>
         <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
         <div class="check" id="bygen-row"><input type="checkbox" id="layer-bygen"><label for="layer-bygen" data-i18n="cyclicGroups.layerBygen">Arrange elements by generator powers</label></div>
+        <div class="field color-by" id="arrange-gen-field" hidden>
+          <label for="arrange-gen-select" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label>
+          <select id="arrange-gen-select"></select>
+        </div>
         <details class="extra-options">
           <summary data-i18n="cyclicGroups.extraOptions">Show extra options</summary>
           <div class="check"><input type="checkbox" id="layer-cord" checked><label for="layer-cord" data-i18n="cyclicGroups.layerCord">Show corresponding polygon</label></div>
@@ -697,7 +701,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen'];
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off' };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -771,6 +775,8 @@ var IS_PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 if (IS_PREVIEW) document.documentElement.classList.add('is-preview');
 var subgroupOptionsEl = $('subgroup-options');
 var bygenRowEl = $('bygen-row');
+var arrangeGenFieldEl = $('arrange-gen-field');
+var arrangeGenSelectEl = $('arrange-gen-select');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
@@ -1007,8 +1013,24 @@ function beadRadius(m, R){ return Math.max(3.5, Math.min(21, 1.5 * R / m)); }
 // The element the arrows walk by, and the generator the beads are arranged
 // by when "generator powers" is on: the chosen element if it generates the
 // group, otherwise the smallest generator.
+// The generator whose powers order the beads: the one picked under the
+// option, or the smallest while none of this group's is picked.
 function arrangeBy(G){
-  return G.generators.indexOf(state.gen) !== -1 ? state.gen : G.generators[0];
+  return G.generators.indexOf(state.arrangeGen) !== -1 ? state.arrangeGen : G.generators[0];
+}
+
+// The generator picker shows while the beads are arranged by powers, and
+// offers this group's generators.
+function syncArrangeGen(G){
+  arrangeGenFieldEl.hidden = !(state.bygen && G.cyclic);
+  if (!G.cyclic) return;
+  arrangeGenSelectEl.replaceChildren.apply(arrangeGenSelectEl, G.generators.map(function(g){
+    var opt = document.createElement('option');
+    opt.value = String(g);
+    opt.textContent = String(g);
+    return opt;
+  }));
+  arrangeGenSelectEl.value = String(arrangeBy(G));
 }
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
@@ -2211,6 +2233,7 @@ function previewSrc(a, bygen){
   if (bygen !== undefined) q.set('bygen', bygen ? '1' : '0');
   // In generator-power order the generator sits at the top.
   if (bygen) q.set('gentop', '1');
+  q.set('arrangegen', String(G.generators[0]));
   q.delete('autorotate');
   return parts[0] + '?' + q.toString();
 }
@@ -2423,6 +2446,8 @@ function mirrorToUrl(G){
     else q.delete('autorotate');
     if (state.subLayout === 'list') q.set('sublayout', 'list');
     else q.delete('sublayout');
+    if (state.arrangeGen !== null) q.set('arrangegen', String(state.arrangeGen));
+    else q.delete('arrangegen');
     if (state.rot) q.set('rot', String(state.rot));
     else q.delete('rot');
     history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
@@ -2535,6 +2560,7 @@ function render(){
   genTopEl.checked = state.genTop;
   autoShiftEl.checked = state.autoShift;
   $('layer-bygen').disabled = !G.cyclic;
+  syncArrangeGen(G);
   colorBySelectEl.disabled = !state.colors;
   renderNotice(G, factors);
   renderFacts(G, factors);
@@ -2719,6 +2745,12 @@ FLAGS.forEach(function(name){
     render();
   });
 });
+arrangeGenSelectEl.addEventListener('change', function(){
+  var g = parseInt(arrangeGenSelectEl.value, 10);
+  if (!isFinite(g)) return;
+  state.arrangeGen = g;
+  render();
+});
 colorBySelectEl.addEventListener('change', function(){
   if (COLOR_BY.indexOf(colorBySelectEl.value) === -1) return;
   state.colorBy = colorBySelectEl.value;
@@ -2869,6 +2901,8 @@ onLangChange(render);
   var auto = query.get('autorotate') === '1' ? 'ccw' : query.get('autorotate');
   if (AUTO_ROTATE.indexOf(auto) !== -1) state.autoRotate = auto;
   if (SUB_LAYOUTS.indexOf(query.get('sublayout')) !== -1) state.subLayout = query.get('sublayout');
+  var arrangeGen = parseInt(query.get('arrangegen'), 10);
+  if (isFinite(arrangeGen)) state.arrangeGen = arrangeGen;
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;
   var wanted = parseInt(query.get('gen'), 10);
