@@ -216,7 +216,7 @@
       'iso.open': 'Open {group} in a new tab',
       'iso.supergroup': 'This subgroup’s supergroup.',
       cosetCountMath: '{order}, so there are {count} cosets',
-      nLabelMath: '{n} — modulus',
+      nLabelMath: '{n} (modulus)',
       nNoteMath: '{n} runs from {lo} to {hi}, so the diagram shows {eq}.',
       opAddMath: 'addition {mod}',
       opMulMath: 'multiplication {mod}',
