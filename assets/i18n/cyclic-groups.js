@@ -237,7 +237,7 @@
       formulaToggleSubName: 'Subgroup name',
       formulaToggleGroup: 'Group cardinality formula',
       formulaToggleSubgroup: 'Subgroup cardinality formula',
-      formulaToggleCosets: 'Coset count formula',
+      formulaToggleCosets: 'Subgroup-coset amount formula',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',
