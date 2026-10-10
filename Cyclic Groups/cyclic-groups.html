@@ -283,6 +283,16 @@
   .combine-key-swatch.is-outer{ border-top-color:var(--arrow-out, var(--role-input)); }
   .combine-key-swatch.is-both{ border-top-color:var(--arrow-both); }
   .combine-key-swatch.is-none{ visibility:hidden; }
+  /* Either bar can be dragged onto the other to swap the two colors (the
+     same as the Subgroup panel's swap checkbox); ::before widens the thin
+     bar into a comfortable grab area. */
+  .combine-key-swatch.is-grabbable{ position:relative; cursor:grab; touch-action:none; border-radius:2px; transition:border-top-width .12s ease, transform .2s ease; }
+  .combine-key-swatch.is-grabbable::before{ content:''; position:absolute; inset:-10px -6px -8px; }
+  .combine-key-swatch.is-grabbable:hover, .combine-key-swatch.is-grabbable:focus-visible{ border-top-width:4px; }
+  .combine-key-swatch.is-grabbable:focus-visible{ outline:2px solid var(--accent); outline-offset:5px; }
+  .combine-key-swatch.is-dragging{ cursor:grabbing; border-top-width:5px; transition:none; z-index:2; box-shadow:0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent); }
+  .combine-key-item.is-drop-target .combine-key-swatch{ border-top-width:5px; outline:1.5px dashed var(--text-dim); outline-offset:6px; }
+  @media (prefers-reduced-motion: reduce){ .combine-key-swatch.is-grabbable{ transition:none; } }
   /* Arrow colors: yellow (--role-active) for the walk by the element and
      blue (--role-input) for the walk by its inverse, unless "Choose arrow colors manually" is on. Then a picker sits
      just after each arrow checkbox, at the left of the row so the browser's
@@ -475,8 +485,8 @@
           <g id="ring-dynamic"></g>
         </svg>
         <div class="combine-key" id="combine-key" hidden>
-          <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-inner"></span></div>
-          <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-outer"></span></div>
+          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
+          <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-outer"></span></div>
         </div>
         <div class="resize-grip" id="resize-grip" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-hidden="true"></div>
         <div class="rotate-ctl">
@@ -1265,7 +1275,76 @@ function renderCombineKey(G){
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged);
   outerEl.parentNode.hidden = invSide() === 'neither';
+  // Swapping only shows when both walks are drawn in their own colors.
+  var swappable = !merged && !outerEl.parentNode.hidden;
+  swatchEls.forEach(function(el){
+    el.classList.toggle('is-grabbable', swappable);
+    el.tabIndex = swappable ? 0 : -1;
+    el.setAttribute('aria-disabled', swappable ? 'false' : 'true');
+  });
 }
+
+/* ---------- dragging one arrow-key bar onto the other ---------- */
+
+// Dropping either bar on the other entry exchanges the two arrow colors,
+// exactly as the swap checkbox does (it follows, since syncArrowColors
+// mirrors state.swapColors into it). A drop anywhere else snaps back.
+// Enter or Space on a focused bar swaps too.
+var swatchEls = Array.prototype.slice.call(combineKeyEl.querySelectorAll('.combine-key-swatch'));
+var swatchDrag = null; // { id, el, x, y, target } while a bar is dragged
+function swapArrowColors(){
+  state.swapColors = !state.swapColors;
+  render();
+}
+function dropTargetAt(from, x, y){
+  var item = null;
+  swatchEls.forEach(function(el){
+    if (el === from) return;
+    var r = el.parentNode.getBoundingClientRect();
+    if (x >= r.left - 8 && x <= r.right + 8 && y >= r.top - 8 && y <= r.bottom + 8) item = el.parentNode;
+  });
+  return item;
+}
+function endSwatchDrag(e){
+  if (!swatchDrag || e.pointerId !== swatchDrag.id) return;
+  var drag = swatchDrag;
+  swatchDrag = null;
+  var swap = drag.target && e.type === 'pointerup';
+  // A miss glides back home; a swap lands at once, the colors trading places.
+  if (swap) drag.el.style.transition = 'none';
+  drag.el.classList.remove('is-dragging');
+  drag.el.style.transform = '';
+  if (drag.target) drag.target.classList.remove('is-drop-target');
+  if (!swap) return;
+  void drag.el.offsetWidth;
+  drag.el.style.transition = '';
+  swapArrowColors();
+}
+swatchEls.forEach(function(el){
+  el.addEventListener('pointerdown', function(e){
+    if (e.button !== 0 || !el.classList.contains('is-grabbable')) return;
+    swatchDrag = { id: e.pointerId, el: el, x: e.clientX, y: e.clientY, target: null };
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('is-dragging');
+    e.preventDefault();
+  });
+  el.addEventListener('pointermove', function(e){
+    if (!swatchDrag || e.pointerId !== swatchDrag.id) return;
+    el.style.transform = 'translate(' + (e.clientX - swatchDrag.x) + 'px, ' + (e.clientY - swatchDrag.y) + 'px)';
+    var target = dropTargetAt(el, e.clientX, e.clientY);
+    if (target === swatchDrag.target) return;
+    if (swatchDrag.target) swatchDrag.target.classList.remove('is-drop-target');
+    if (target) target.classList.add('is-drop-target');
+    swatchDrag.target = target;
+  });
+  el.addEventListener('pointerup', endSwatchDrag);
+  el.addEventListener('pointercancel', endSwatchDrag);
+  el.addEventListener('keydown', function(e){
+    if ((e.key !== 'Enter' && e.key !== ' ') || !el.classList.contains('is-grabbable')) return;
+    e.preventDefault();
+    swapArrowColors();
+  });
+});
 
 function codeNode(text){
   var code = document.createElement('code');
