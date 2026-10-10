@@ -1300,9 +1300,9 @@ function angle(x){ return mrow(mo('⟨', true), x, mo('⟩', true)); }
 function abs(x){ return mrow(mo('|', true), x, mo('|', true)); }
 function mgcd(a, b){ return mrow(mi('gcd'), mo('\u2061'), mo('(', true), a, comma(), b, mo(')', true)); }
 
-// ⟨ℤ/nℤ, +⟩ or ⟨ℤ/nℤ, ×⟩.
+// ⟨ℤ/nℤ, +⟩ or ⟨ℤ/nℤ, ×⟩; n is a number, a letter or a math node.
 function mGroupOf(mode, n){
-  return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : mi(n), mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
+  return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : typeof n === 'string' ? mi(n) : n, mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
 }
 function mGroup(G){ return mGroupOf(G.mode, G.n); }
 // "mod n" after a word: no space of its own before mod.
@@ -2263,14 +2263,15 @@ function addFact(labelKey, value){
 function renderFacts(G, factors){
   factsEl.replaceChildren();
   // The modulus, the operation's sign and the group they make; then the
-  // group's order |⟨ℤ/%ℤ, +⟩| = % or |⟨ℤ/%ℤ, ×⟩| = φ(%).
+  // group's cardinality |⟨ℤ/%ℤ, +⟩| = % or |⟨ℤ/%ℤ, ×⟩| = φ(%), worked out.
   var op = G.mode === 'additive' ? '+' : '×';
   addFact(mInline(mPct(), '%'), mNum(G.n));
   addFact('cyclicGroups.fact.operation', mInline(mo(op, true), op));
   addFact('cyclicGroups.fact.group', mInline(mGroup(G), G.label));
-  addFact(mInline(abs(mGroup(G)), '|' + G.label + '|'), G.mode === 'additive'
-    ? mInline(mrow(mPct(), mo('='), mn(G.n)), '% = ' + G.n)
-    : mInline(mrow(mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(G.order)), 'φ(%) = φ(' + G.n + ') = ' + G.order));
+  var pctGroup = abs(mGroupOf(G.mode, mPct())), pctLabel = '|⟨ℤ/%ℤ, ' + op + '⟩|';
+  addFact('cyclicGroups.fact.cardinality', G.mode === 'additive'
+    ? mInline(mrow(pctGroup, mo('='), mPct(), mo('='), mn(G.n)), pctLabel + ' = % = ' + G.n)
+    : mInline(mrow(pctGroup, mo('='), mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(G.order)), pctLabel + ' = φ(%) = φ(' + G.n + ') = ' + G.order));
   addFact('cyclicGroups.fact.identity', mNum(G.identity));
   // The generators of ℤ/nℤ are the units mod n, so there are φ(n) of them; a
   // cyclic (ℤ/nℤ)* is a cyclic group of order φ(n), so it has φ(φ(n)).
