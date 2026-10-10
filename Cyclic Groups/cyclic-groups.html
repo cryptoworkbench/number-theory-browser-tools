@@ -177,8 +177,6 @@
   /* A value too long to share the line drops below its label. */
   .facts li{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 12px; padding:5px 0; border-bottom:1px dotted var(--panel-border); font-size:.92rem; }
   .facts li:last-child{ border-bottom:none; }
-  /* The facts sit at the foot of the Group panel, under its controls. */
-  .facts.in-group{ margin-top:12px; padding-top:6px; border-top:1px solid var(--panel-border); }
 
   /* The Group panel's editable rows are styled like the facts beneath them,
      the label on the left and the control on the right. */
@@ -186,6 +184,11 @@
   .facts.group-controls label{ cursor:pointer; }
   .facts.group-controls input, .facts.group-controls select{ font:inherit; font-family:var(--font-mono); font-size:.92rem; width:5.5em; padding:4px 8px; text-align:right; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
   .facts.group-controls select{ text-align-last:right; cursor:pointer; }
+  /* The editable rows and the facts list read as one table, so the last
+     editable row keeps its dotted rule. */
+  .facts.group-controls li:last-child{ border-bottom:1px dotted var(--panel-border); }
+  /* The clamped-value note takes its own line under the modulus row. */
+  .facts.group-controls .n-note{ flex-basis:100%; margin:0; }
   .facts.group-controls input:focus-visible, .facts.group-controls select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
 
   /* ---------- subgroups list ---------- */
@@ -617,11 +620,12 @@
     <aside class="side">
       <section class="panel">
         <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
-        <div class="field">
-          <label for="n-input" id="n-label">%</label>
-          <input type="number" id="n-input" min="2" max="100" step="1" value="12">
-        </div>
         <ul class="facts group-controls" id="group-controls">
+          <li>
+            <label for="n-input" id="n-label" class="fact-label">%</label>
+            <input type="number" id="n-input" min="2" max="100" step="1" value="12">
+            <p class="n-note" id="n-note"></p>
+          </li>
           <li>
             <label for="op-select" id="op-label" class="fact-label">∗</label>
             <select id="op-select" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel">
@@ -630,8 +634,7 @@
             </select>
           </li>
         </ul>
-        <p class="n-note" id="n-note"></p>
-        <ul class="facts in-group" id="facts"></ul>
+        <ul class="facts" id="facts"></ul>
         <p class="hint" id="hint"></p>
         <p class="hint" id="hint-inverse" hidden></p>
       </section>
@@ -2487,10 +2490,9 @@ function addFact(labelKey, value){
 
 function renderFacts(G, factors){
   factsEl.replaceChildren();
-  // The group the modulus and the operation make; then the
+  // The group the modulus and the operation make; then its
   // group's cardinality |⟨ℤ/%ℤ, +⟩| = % or |⟨ℤ/%ℤ, ×⟩| = φ(%), worked out.
   var op = G.mode === 'additive' ? '+' : '×';
-  addFact(tNode('cyclicGroups.nLabelMath', { n: mInline(mPct(), '%') }), mNum(G.n));
   addFact('cyclicGroups.fact.group', mInline(mGroup(G), G.label));
   var pctGroup = abs(mGroupOf(G.mode, mPct())), pctLabel = '|⟨ℤ/%ℤ, ' + op + '⟩|';
   addFact('cyclicGroups.fact.cardinality', G.mode === 'additive'
@@ -2583,7 +2585,7 @@ function renderLegend(G, classes, pairing){
 }
 
 function renderNNote(){
-  nLabelEl.replaceChildren(mInline(mPct(), '%'));
+  translateInto(nLabelEl, 'cyclicGroups.nLabelMath', { n: mInline(mPct(), '%') });
   // The operation row's label is ∗, typeset the way the modulus row's % is.
   translateInto(opLabelEl, 'cyclicGroups.opLabelMath', { op: mInline(mo('∗', true), '∗') });
   if (!nNoteShown){ nNoteEl.textContent = ''; return; }
