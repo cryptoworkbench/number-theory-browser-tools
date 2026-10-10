@@ -98,9 +98,6 @@
      switches in the triangle's own track and knob colors. */
   .formula-toggles{ position:absolute; top:60px; left:12px; z-index:1; display:flex; flex-direction:column; gap:6px; font-size:.85rem; color:var(--text-dim); }
   .formula-toggles .check{ margin:0; font-size:inherit; gap:8px; align-items:center; }
-  /* The subgroup name switch belongs to the group name one: indented under
-     it, and shown only while the group name is. */
-  .formula-toggles .check.is-nested{ margin-left:16px; }
   .formula-toggles .check input{ appearance:none; -webkit-appearance:none; position:relative; margin:0; width:30px; height:17px; border-radius:999px; background:color-mix(in srgb, var(--text) 6%, transparent); border:2px solid color-mix(in srgb, var(--text) 28%, transparent); cursor:pointer; transition:background .2s, border-color .2s; }
   .formula-toggles .check input::after{ content:""; position:absolute; top:50%; left:1px; width:11px; height:11px; margin-top:-5.5px; border-radius:50%; background:var(--panel); border:1px solid color-mix(in srgb, var(--text) 30%, transparent); box-sizing:border-box; transition:transform .2s ease, background .2s; }
   .formula-toggles .check input:checked{ background:var(--accent); border-color:var(--accent); }
@@ -565,7 +562,7 @@
         </div>
         <div class="formula-toggles">
           <div class="check"><input type="checkbox" role="switch" id="layer-gname" checked><label for="layer-gname" data-i18n="cyclicGroups.formulaToggleName">Group name</label></div>
-          <div class="check is-nested" id="sname-row"><input type="checkbox" role="switch" id="layer-sname" checked><label for="layer-sname" data-i18n="cyclicGroups.formulaToggleSubName">Subgroup name</label></div>
+          <div class="check"><input type="checkbox" role="switch" id="layer-sname" checked><label for="layer-sname" data-i18n="cyclicGroups.formulaToggleSubName">Subgroup name</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder" checked><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroup">Group cardinality formula</label></div>
           <div class="check" id="sorder-row"><input type="checkbox" role="switch" id="layer-sorder" checked><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroup">Subgroup cardinality formula</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-cindex" checked><label for="layer-cindex" data-i18n="cyclicGroups.formulaToggleCosets">Coset count formula</label></div>
@@ -738,6 +735,9 @@ var RING = { cx: 380, cy: 395, R: 238 };
 // gname shows the group's name over the ring and sname, inside it, the
 // subgroup's before it (⟨h⟩ ⊂ or ⟨h⟩ ⊆); gorder and sorder show the
 // group's and the subgroup's order formulas, cindex the coset count.
+// These five form a chain, in this order: each one's switch shows, and
+// what it adds is drawn, only while every switch before it is on.
+var HEAD_CHAIN = ['gname', 'sname', 'gorder', 'sorder', 'cindex'];
 var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 
 /* ---------- state ---------- */
@@ -1403,6 +1403,12 @@ function mathInline(content){
   return mEl('math', [content], { displaystyle: 'true', dir: 'ltr' });
 }
 
+// Whether a head layer is drawn: it and every one before it in HEAD_CHAIN
+// are on.
+function headOn(name){
+  return HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf(name) + 1).every(function(k){ return state[k]; });
+}
+
 // The order formulas under the ring's title, typeset and as plain text. In
 // ℤ/nℤ the group's order and ⟨h⟩'s worked out from it; in (ℤ/nℤ)* the
 // group's order φ(n), and while the beads are arranged by powers of a
@@ -1411,21 +1417,21 @@ function orderFormulas(G){
   var h = shownGen(G), out = [];
   if (G.mode === 'additive'){
     var n = G.order, d = gcd(n, h);
-    if (state.gorder) out.push({ math: mrow(abs(mGroup(G)), mo('='), mn(n)),
+    if (headOn('gorder')) out.push({ math: mrow(abs(mGroup(G)), mo('='), mn(n)),
       plain: translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }) });
-    if (state.sorder) out.push({ math: mrow(
+    if (headOn('sorder')) out.push({ math: mrow(
         abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
       plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) });
-    if (state.cindex) out.push(cosetCountFormula(G, h));
+    if (headOn('cindex')) out.push(cosetCountFormula(G, h));
     return out;
   }
   var k = G.order;
-  if (state.gorder) out.push({ math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
+  if (headOn('gorder')) out.push({ math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
     plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
-  if (state.sorder && G.cyclic && state.bygen){
+  if (headOn('sorder') && G.cyclic && state.bygen){
     // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
     // gcd(k, k) = k reads more plainly than gcd(k, 0).
     var g = arrangeBy(G), q = lap(G, g, k).indexOf(h) || k, dq = gcd(k, q);
@@ -1437,7 +1443,7 @@ function orderFormulas(G){
         mfrac(mn(k), mn(dq)), mo('='), mn(k / dq)),
       plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: k, q: q, d: dq, m: k / dq }) });
   }
-  if (state.cindex) out.push(cosetCountFormula(G, h));
+  if (headOn('cindex')) out.push(cosetCountFormula(G, h));
   return out;
 }
 
@@ -1467,7 +1473,7 @@ function cosetCountFormula(G, h){
 // with its formula on and the beads not arranged by a generator g, there
 // is no base yet.
 function needsLogBase(G){
-  return state.sorder && G.mode === 'multiplicative' && G.cyclic && !state.bygen;
+  return headOn('sorder') && G.mode === 'multiplicative' && G.cyclic && !state.bygen;
 }
 // Two ways on: choose a generator, which arranges the beads by its powers,
 // or turn the subgroup formula off again.
@@ -1523,9 +1529,9 @@ function drawMath(G, subs){
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
   } else {
     var whole = G.orders[h] === G.order;
-    if (state.gname && state.sname) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
       translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
-    else if (state.gname) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
+    else if (headOn('gname')) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
     var row = document.createElement('div');
     row.className = 'ring-math-row';
     orderFormulas(G).forEach(function(f){ row.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
@@ -2595,7 +2601,8 @@ function syncCayleyLink(){
 // dropped: a turn of one necklace means nothing on another. From an
 // additive group to a multiplicative one the new tab never arrives with a
 // generator chosen: the beads start unarranged and the subgroup formula on,
-// so it opens asking for one (see logBasePrompt).
+// with every head switch before it, so it opens asking for one (see
+// logBasePrompt).
 function isoHref(mode, n, gen){
   var q = new URLSearchParams(location.search);
   q.set('mode', mode);
@@ -2606,7 +2613,7 @@ function isoHref(mode, n, gen){
   q.delete('rot');
   if (state.mode === 'additive' && mode === 'multiplicative'){
     q.set('bygen', '0');
-    q.set('sorder', '1');
+    HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf('sorder') + 1).forEach(function(name){ q.set(name, '1'); });
     q.delete('arrangegen');
   }
   return location.pathname + '?' + q.toString();
@@ -3029,7 +3036,9 @@ function render(){
   // A (ℤ/nℤ)* with no generator has no base for the subgroup formula.
   var noLogBase = G.mode === 'multiplicative' && !G.cyclic;
   $('sorder-row').classList.toggle('is-off', noLogBase);
-  $('sname-row').hidden = !state.gname;
+  HEAD_CHAIN.forEach(function(name, i){
+    if (i) $('layer-' + name).parentNode.hidden = !headOn(HEAD_CHAIN[i - 1]);
+  });
   $('layer-sorder').disabled = noLogBase;
   // With the paths layer off, the path options have nothing to act on.
   arrowOptionsEl.querySelectorAll('.check').forEach(function(row){ row.classList.toggle('is-off', !state.paths); });
