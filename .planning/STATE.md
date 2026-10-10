@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T16:02:10.273Z"
+last_updated: "2026-10-10T16:06:47.374Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 6530559200e2e8c6409ee226e503c6468a041a3c
+state_head: 30413c69a098afdec490137917a32ca638275a30
 progress:
   total_phases: 7
   completed_phases: 6
@@ -401,6 +401,7 @@ None yet.
 | 165 | cyclic groups rearrange animation | 2026-10-10 | ba12cc5 | — |
 | 166 | cyclic groups arrows follow rearrangement | 2026-10-10 | fff4bae | — |
 | 167 | Cyclic Groups: move the cardinality toggles under the auto-rotate triangle as switches | 2026-10-10 | 6530559 | — |
+| 168 | Cyclic Groups: add a 'Group and subgroup's name' switch above the cardinality switches | 2026-10-10 | 30413c6 | — |
 
 ## Deferred Items
 
