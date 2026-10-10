@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-10T17:00:56.027Z"
+last_updated: "2026-10-10T17:03:45.178Z"
 last_activity: 2026-10-10
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 90a788f6fa149396fd571784b75296964243546f
+state_head: 8110eb607e5859bd9087220dd53ff4da0d671178
 progress:
   total_phases: 7
   completed_phases: 6
@@ -413,6 +413,7 @@ None yet.
 | 177 | Cyclic Groups: tab title reads 'Cyclic Groups · <group>' | 2026-10-10 | 3c26897 | — |
 | 178 | Cyclic Groups: split 'Group and subgroup name' into 'Group name' and a nested 'Subgroup name' switch | 2026-10-10 | 58e544a | — |
 | 179 | Cyclic Groups: chain the five head switches (each appears only while the previous is on, no indent) | 2026-10-10 | 90a788f | — |
+| 180 | Cyclic Groups: rename 'Coset count formula' to 'Subgroup-coset amount formula' | 2026-10-10 | 8110eb6 | — |
 
 ## Deferred Items
 
