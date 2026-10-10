@@ -1272,14 +1272,12 @@ function fitText(t){
   return t;
 }
 
-// In ℤ/nℤ the ring's top comes down by MATH_DROP, to make room in the PNG
-// export for a second line under the title: the order formulas, or while the
+// The ring's top comes down by MATH_DROP, to make room in the PNG export
+// for a second line under the title: the order formulas, or while the
 // cosets play their count. The bottom stays put.
 var MATH_DROP = 26;
 function ringBox(){
-  var box = RING;
-  if (state.mode === 'additive') box = { cx: box.cx, cy: box.cy + MATH_DROP / 2, R: box.R - MATH_DROP / 2 };
-  return box;
+  return { cx: RING.cx, cy: RING.cy + MATH_DROP / 2, R: RING.R - MATH_DROP / 2 };
 }
 
 /* ---------- typeset math ---------- */
@@ -1315,6 +1313,7 @@ function mList(list){
   return mrow.apply(null, items);
 }
 function mPhi(x){ return mrow(mi('φ'), mo('\u2061'), mo('(', true), x, mo(')', true)); }
+function mLog(base, x){ return mrow(mEl('msub', [mi('log'), mn(base)]), mo('\u2061'), mn(x)); }
 // ⟨ℤ/aℤ, +⟩ × ⟨ℤ/bℤ, +⟩ × … for the cyclic factors of a unit group: one
 // inline formula per factor, so a long product wraps between factors.
 function mProductInline(orders){
@@ -1357,8 +1356,42 @@ function mathInline(content){
   return mEl('math', [content], { displaystyle: 'true', dir: 'ltr' });
 }
 
-// The captions over the ring: the title, then in ℤ/nℤ outside the cosets
-// the two order formulas, typeset; while the cosets play, the coset as the
+// The order formulas under the ring's title, typeset and as plain text. In
+// ℤ/nℤ the group's order and ⟨h⟩'s worked out from it; in (ℤ/nℤ)* the
+// group's order φ(n), and while the beads are arranged by powers of a
+// generator g also ⟨h⟩'s, worked out from h's place log_g h among them.
+function orderFormulas(G){
+  var h = shownGen(G), out = [];
+  if (G.mode === 'additive'){
+    var n = G.order, d = gcd(n, h);
+    out.push({ math: mrow(abs(mGroup(G)), mo('='), mn(n)),
+      plain: translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }) });
+    out.push({ math: mrow(
+        abs(angle(mn(h))), mo('='),
+        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
+        mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
+        mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
+      plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) });
+    return out;
+  }
+  var k = G.order;
+  out.push({ math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
+    plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
+  if (G.cyclic && state.bygen){
+    var g = arrangeBy(G), q = lap(G, g, k).indexOf(h), dq = gcd(k, q);
+    out.push({ math: mrow(
+        abs(angle(mn(h))), mo('='),
+        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
+        mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mLog(g, h))), mo('='),
+        mfrac(mn(k), mgcd(mn(k), mn(q))), mo('='),
+        mfrac(mn(k), mn(dq)), mo('='), mn(k / dq)),
+      plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: k, q: q, d: dq, m: k / dq }) });
+  }
+  return out;
+}
+
+// The captions over the ring: the title, then outside the cosets the
+// order formulas, typeset; while the cosets play, the coset as the
 // title and the count and progress lines. A formula wider than the header
 // is set in a smaller size to fit it.
 function drawMath(G, subs){
@@ -1371,20 +1404,10 @@ function drawMath(G, subs){
     var whole = G.orders[h] === G.order;
     lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
       translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
-    if (G.mode === 'additive'){
-      var n = G.order, d = gcd(n, h);
-      var row = document.createElement('div');
-      row.className = 'ring-math-row';
-      row.appendChild(mathLine('ring-math-formula', mrow(abs(mGroup(G)), mo('='), mn(n)),
-        translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n })));
-      row.appendChild(mathLine('ring-math-formula', mrow(
-        abs(angle(mn(h))), mo('='),
-        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
-        mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
-        mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
-        translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d })));
-      lines.push(row);
-    }
+    var row = document.createElement('div');
+    row.className = 'ring-math-row';
+    orderFormulas(G).forEach(function(f){ row.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
+    lines.push(row);
   }
   (subs || []).forEach(function(sub){
     var p = document.createElement('p');
@@ -1433,11 +1456,10 @@ function drawNecklace(G, paint){
     }
     subs.push({ key: 'cyclicGroups.cosetProgress', params: { i: mNum(coset.past.length + 1), count: mNum(cosetRun.starts.length) }, plain: progress });
     ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, progressY, progress));
-  } else if (G.mode === 'additive'){
-    // The order of ℤ/nℤ, then the order of ⟨h⟩ worked out from it.
-    var g = shownGen(G), n = G.order, dd = gcd(n, g);
-    fitText(ringDynamicEl.appendChild(drawText('ring-formula is-plain', SIZE / 2, 72, translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }))));
-    fitText(ringDynamicEl.appendChild(drawText('ring-formula is-plain', SIZE / 2, 98, translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: g, n: n, d: dd, k: n / dd }))));
+  } else {
+    orderFormulas(G).forEach(function(f, i){
+      fitText(ringDynamicEl.appendChild(drawText('ring-formula is-plain', SIZE / 2, 72 + 26 * i, f.plain)));
+    });
   }
   if (!IS_PREVIEW) drawMath(G, subs);
   var beads = turned(arrangement(G));
