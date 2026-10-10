@@ -40,7 +40,11 @@
     font-family:var(--font-sans); font-size:16px; }
   body{ min-height:100vh; transition: background .25s ease, color .25s ease; }
 
-  .app{ padding: clamp(12px, 3vw, 32px); margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+  .app{ padding: clamp(12px, 3vw, 32px); margin:0 auto; display:flex; flex-direction:column; gap:18px;
+    --font-math:'STIX Two Math', 'Latin Modern Math', 'Cambria Math', math; }
+  /* Math inside running text and panels, typeset as MathML. */
+  math.m-inline{ font-family:var(--font-math); font-size:1.12em; font-weight:400; direction:ltr; }
+  .subgroup-row math.m-inline{ font-size:1.08em; }
 
   .page-header{ margin:4px 0 0; }
   .eyebrow{ font-size:.875rem; font-weight:600; color:var(--text-dim); margin:0 0 8px; }
@@ -213,7 +217,7 @@
   .speed-wrap span{ width:70px; }
   .subgroup-row.is-current{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
   .fact-label{ color:var(--text-dim); }
-  .fact-value{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right; }
+  .fact-value{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; text-align:right; }
   .hint{ color:var(--text-dim); font-size:.85rem; line-height:1.5; margin:10px 0 0; }
 
   /* ---------- isomorphic groups ---------- */
@@ -405,8 +409,7 @@
   .ring-head{ flex:none; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; padding:0 clamp(0px, 14%, 150px) 2px; text-align:center; }
   .ring-head .ring-math-row{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; column-gap:2.2em; row-gap:2px; max-width:100%; }
   .ring-head:empty{ display:none; }
-  .ring-head math{ white-space:nowrap; direction:ltr; color:var(--text); font-weight:400;
-    font-family:'STIX Two Math', 'Latin Modern Math', 'Cambria Math', math; }
+  .ring-head math{ white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
   .ring-head math[display="block"]{ display:block; }
   .ring-head math, .ring-head .ring-head-sub{ user-select:all; -webkit-user-select:all; cursor:text; }
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
@@ -594,7 +597,7 @@
       <section class="panel">
         <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
         <div class="field">
-          <label for="n-input" data-i18n="cyclicGroups.nLabel">n — modulus</label>
+          <label for="n-input" id="n-label" data-i18n="cyclicGroups.nLabel">n — modulus</label>
           <input type="number" id="n-input" min="2" max="100" step="1" value="12">
         </div>
         <p class="n-note" id="n-note"></p>
@@ -746,6 +749,7 @@ var HEX_COLOR = /^#[0-9a-f]{6}$/;
 var $ = function(id){ return document.getElementById(id); };
 var nInputEl = $('n-input');
 var nNoteEl = $('n-note');
+var nLabelEl = $('n-label');
 var genSelectEl = $('gen-select');
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
@@ -1007,9 +1011,9 @@ function factorNotation(factors){
 function whyNotCyclicKey(n){
   var odd = n;
   while (odd % 2 === 0) odd /= 2;
-  if (odd === 1) return 'cyclicGroups.notice.whyPowerOfTwo';
-  if (n % 4 === 0) return 'cyclicGroups.notice.whyFourAndOdd';
-  return 'cyclicGroups.notice.whyTwoOddPrimes';
+  if (odd === 1) return 'cyclicGroups.notice.whyPowerOfTwoMath';
+  if (n % 4 === 0) return 'cyclicGroups.notice.whyFourAndOddMath';
+  return 'cyclicGroups.notice.whyTwoOddPrimesMath';
 }
 
 /* ---------- drawing ---------- */
@@ -1299,8 +1303,42 @@ function abs(x){ return mrow(mo('|', true), x, mo('|', true)); }
 function mgcd(a, b){ return mrow(mi('gcd'), mo('\u2061'), mo('(', true), a, comma(), b, mo(')', true)); }
 
 // ⟨ℤ/nℤ, +⟩ or ⟨ℤ/nℤ, ×⟩.
-function mGroup(G){
-  return angle(mrow(mi('ℤ'), mo('/', true), mn(G.n), mi('ℤ'), comma(), mo(G.mode === 'additive' ? '+' : '×', true)));
+function mGroupOf(mode, n){
+  return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : mi(n), mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
+}
+function mGroup(G){ return mGroupOf(G.mode, G.n); }
+// "mod n" after a word: no space of its own before mod.
+function mMod(n){ return mrow(mEl('mo', ['mod'], { lspace: '0' }), mn(n)); }
+function mList(list){
+  var items = [];
+  list.forEach(function(x, i){ if (i) items.push(comma()); items.push(mn(x)); });
+  return mrow.apply(null, items);
+}
+function mPhi(x){ return mrow(mi('φ'), mo('\u2061'), mo('(', true), x, mo(')', true)); }
+// ⟨ℤ/aℤ, +⟩ × ⟨ℤ/bℤ, +⟩ × … for the cyclic factors of a unit group: one
+// inline formula per factor, so a long product wraps between factors.
+function mProductInline(orders){
+  var span = document.createElement('span');
+  span.className = 'm-chunks';
+  orders.forEach(function(o, i){
+    var label = additiveLabel(o);
+    span.appendChild(mInline(i ? mrow(mo('×'), mGroupOf('additive', o)) : mGroupOf('additive', o), i ? ' × ' + label : label));
+  });
+  return span;
+}
+
+// Math inside running text: an inline MathML element that remembers its
+// plain-text form for copying.
+function mInline(content, plain){
+  var attrs = { 'class': 'm-inline', dir: 'ltr' };
+  if (plain !== undefined) attrs['data-plain'] = String(plain);
+  return mEl('math', [content], attrs);
+}
+function mNum(v){ return mInline(mn(v), v); }
+
+// A span holding a translated sentence with math nodes for its parameters.
+function tNode(key, params){
+  return translateInto(document.createElement('span'), key, params);
 }
 
 // {a, b, c}
@@ -1393,7 +1431,7 @@ function drawNecklace(G, paint){
       ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, 72, subs[subs.length - 1].plain));
       progressY = 98;
     }
-    subs.push(progress);
+    subs.push({ key: 'cyclicGroups.cosetProgress', params: { i: mNum(coset.past.length + 1), count: mNum(cosetRun.starts.length) }, plain: progress });
     ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, progressY, progress));
   } else if (G.mode === 'additive'){
     // The order of ℤ/nℤ, then the order of ⟨h⟩ worked out from it.
@@ -1480,13 +1518,12 @@ function renderCombineKey(G){
   var on = G.orders[h] > 1 && state.paths;
   combineKeyEl.hidden = !on;
   if (!on) return;
-  var params = { h: h, hinv: G.inv[h] };
+  var params = function(){ return { h: mNum(h), hinv: mNum(G.inv[h]) }; };
   var innerEl = $('combine-key-inner');
   var outerEl = $('combine-key-outer');
-  innerEl.textContent = translate('cyclicGroups.combineForward', params);
-  outerEl.textContent = translate('cyclicGroups.combineBackward', params);
+  translateInto(innerEl, 'cyclicGroups.combineForward', params());
   var merged = mergedWalks(G);
-  if (merged) outerEl.textContent = translate('cyclicGroups.combineSelfInverse', params);
+  translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged);
   outerEl.parentNode.hidden = invSide() === 'neither';
@@ -1561,12 +1598,6 @@ swatchEls.forEach(function(el){
   });
 });
 
-function codeNode(text){
-  var code = document.createElement('code');
-  code.textContent = String(text);
-  return code;
-}
-
 // The explanation for a multiplicative group with no generator. Each sentence
 // is one whole template; notation and numbers go in as <code> nodes.
 function renderNotice(G, factors){
@@ -1574,15 +1605,23 @@ function renderNotice(G, factors){
   noticeEl.hidden = G.cyclic;
   if (G.cyclic) return;
   var heading = document.createElement('h2');
-  translateInto(heading, 'cyclicGroups.notice.heading', { group: codeNode(G.label) });
+  translateInto(heading, 'cyclicGroups.notice.heading', { group: mInline(mGroup(G), G.label) });
   var body = document.createElement('p');
   translateInto(body, 'cyclicGroups.notice.body', {
-    count: codeNode(G.order), longest: codeNode(G.longest), factors: codeNode(factorNotation(factors))
+    count: mNum(G.order), longest: mNum(G.longest),
+    factors: mProductInline(factors.map(function(f){ return f.order; }))
   });
   var why = document.createElement('p');
-  translateInto(why, whyNotCyclicKey(G.n), { n: codeNode(G.n) });
+  translateInto(why, whyNotCyclicKey(G.n), {
+    eq: mInline(mrow(mi('n'), mo('='), mn(G.n)), 'n = ' + G.n), two: mNum(2), four: mNum(4)
+  });
   var rule = document.createElement('p');
-  translateInto(rule, 'cyclicGroups.notice.rule');
+  var pk = function(){ return mEl('msup', [mi('p'), mi('k')]); };
+  translateInto(rule, 'cyclicGroups.notice.ruleMath', {
+    mul: mInline(mGroupOf('multiplicative', 'n'), '⟨ℤ/nℤ, ×⟩'), add: mInline(mGroupOf('additive', 'n'), '⟨ℤ/nℤ, +⟩'),
+    n: mInline(mi('n'), 'n'), one: mNum(1), two: mNum(2), four: mNum(4),
+    pk: mInline(pk(), 'p^k'), twopk: mInline(mrow(mn(2), pk()), '2p^k')
+  });
   noticeEl.appendChild(heading);
   noticeEl.appendChild(body);
   noticeEl.appendChild(why);
@@ -1957,9 +1996,8 @@ function syncCosetButton(){
   var generator = !cosetRun && !!G && G.orders[state.gen] === G.order && G.order > 1;
   cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
   cosetBtnEl.classList.toggle('is-generator', generator);
-  cosetBtnEl.textContent = cosetRun ? translate('cyclicGroups.cosetHide')
-    : generator ? translate('cyclicGroups.cosetNoneGenerator', { g: state.gen })
-    : translate('cyclicGroups.cosetButton');
+  if (generator) translateInto(cosetBtnEl, 'cyclicGroups.cosetNoneGenerator', { g: mNum(state.gen) });
+  else cosetBtnEl.textContent = translate(cosetRun ? 'cyclicGroups.cosetHide' : 'cyclicGroups.cosetButton');
 }
 
 function syncCosetControls(){
@@ -2067,17 +2105,40 @@ function rowMembers(G, g, beads){
 
 // Rebuilding the rows keeps keyboard focus on the list: when a row had it,
 // the selected element's row takes it over.
+// The rows are rebuilt only when their contents change: typeset sets are
+// costly to lay out, and selecting a row changes nothing but the highlight.
+var subgroupsSig = null;
 function renderSubgroups(G){
   var hadFocus = subgroupsEl.contains(document.activeElement);
-  subgroupsEl.replaceChildren();
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
-  G.els.forEach(function(g){
+  var rows = G.els.map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
+  var sig = G.mode + ' ' + G.n + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  if (sig === subgroupsSig){
+    subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
+      var on = Number(row.getAttribute('data-gen')) === state.gen;
+      row.classList.toggle('is-current', on);
+      row.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (hadFocus) focusCurrentRow();
+    return;
+  }
+  subgroupsSig = sig;
+  subgroupsEl.replaceChildren();
+  rows.forEach(function(r){
+    var g = r.g, members = r.members;
     var li = document.createElement('li');
     var row = document.createElement('button');
     row.type = 'button';
     row.className = 'subgroup-row' + (g === state.gen ? ' is-current' : '');
+    row.setAttribute('data-gen', String(g));
     row.setAttribute('aria-pressed', g === state.gen ? 'true' : 'false');
-    row.textContent = '⟨' + g + '⟩ = {' + rowMembers(G, g, beads).join(', ') + '}';
+    // One inline formula per member, so a long set wraps between members.
+    row.setAttribute('aria-label', '⟨' + g + '⟩ = {' + members.join(', ') + '}');
+    row.appendChild(mInline(mrow(angle(mn(g)), mo('='), mo('{', true)), '⟨' + g + '⟩ = {'));
+    members.forEach(function(x, i){
+      var last = i === members.length - 1;
+      row.appendChild(mInline(mrow(mn(x), last ? mo('}', true) : comma()), last ? x + '}' : x + ', '));
+    });
     row.addEventListener('click', function(){
       selectGen(g);
       focusCurrentRow();
@@ -2166,7 +2227,8 @@ function addFact(labelKey, value){
   label.textContent = translate(labelKey);
   var val = document.createElement('span');
   val.className = 'fact-value';
-  val.textContent = value;
+  if (typeof value === 'string') val.textContent = value;
+  else val.appendChild(value);
   li.appendChild(label);
   li.appendChild(val);
   factsEl.appendChild(li);
@@ -2174,25 +2236,29 @@ function addFact(labelKey, value){
 
 function renderFacts(G, factors){
   factsEl.replaceChildren();
-  addFact('cyclicGroups.fact.group', G.label);
-  addFact('cyclicGroups.fact.operation', translate(G.mode === 'additive' ? 'cyclicGroups.opAdd' : 'cyclicGroups.opMul', { n: G.n }));
-  addFact('cyclicGroups.fact.elements', String(G.order));
-  addFact('cyclicGroups.fact.identity', String(G.identity));
+  addFact('cyclicGroups.fact.group', mInline(mGroup(G), G.label));
+  addFact('cyclicGroups.fact.operation', tNode(G.mode === 'additive' ? 'cyclicGroups.opAddMath' : 'cyclicGroups.opMulMath', { mod: mInline(mMod(G.n), 'mod ' + G.n) }));
+  addFact('cyclicGroups.fact.elements', mNum(G.order));
+  addFact('cyclicGroups.fact.identity', mNum(G.identity));
   // The generators of ℤ/nℤ are the units mod n, so there are φ(n) of them; a
   // cyclic (ℤ/nℤ)* is a cyclic group of order φ(n), so it has φ(φ(n)).
+  var phi = totient(G.n);
   addFact('cyclicGroups.fact.generators', G.mode === 'additive'
-    ? translate('cyclicGroups.factGeneratorsPhi', { n: G.n, count: totient(G.n) })
+    ? mInline(mrow(mPhi(mn(G.n)), mo('='), mn(phi)), translate('cyclicGroups.factGeneratorsPhi', { n: G.n, count: phi }))
     : G.cyclic
-      ? translate('cyclicGroups.factGeneratorsPhiPhi', { n: G.n, m: totient(G.n), count: totient(totient(G.n)) })
-      : translate('cyclicGroups.factGeneratorsNone'));
-  addFact('cyclicGroups.fact.structure', G.cyclic ? additiveLabel(G.order) : factorNotation(factors));
+      ? mInline(mrow(mPhi(mPhi(mn(G.n))), mo('='), mPhi(mn(phi)), mo('='), mn(totient(phi))),
+          translate('cyclicGroups.factGeneratorsPhiPhi', { n: G.n, m: phi, count: totient(phi) }))
+      : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) }));
+  addFact('cyclicGroups.fact.structure', G.cyclic
+    ? mInline(mGroupOf('additive', G.order), additiveLabel(G.order))
+    : mProductInline(factors.map(function(f){ return f.order; })));
   sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
 
   var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
   if (labelsDropped) hintEl.textContent = translate('cyclicGroups.hint.noLabels');
   else if (!G.cyclic) hintEl.textContent = translate('cyclicGroups.hint.notCyclic');
-  else if (G.mode === 'multiplicative') hintEl.textContent = translate('cyclicGroups.hint.multiplicative', { n: G.n, g: state.gen });
-  else hintEl.textContent = translate('cyclicGroups.hint.additive', { n: G.n, g: state.gen });
+  else translateInto(hintEl, G.mode === 'multiplicative' ? 'cyclicGroups.hintMultiplicativeMath' : 'cyclicGroups.hintAdditiveMath',
+    { n: mNum(G.n), g: mNum(state.gen), mod: mInline(mMod(G.n), 'mod ' + G.n) });
 
   var inverseView = state.colors && state.colorBy === 'inverse';
   hintInverseEl.hidden = !inverseView;
@@ -2209,7 +2275,8 @@ function legendItem(swatchClass, swatchStyle, text, textClass){
   if (swatchStyle) swatch.setAttribute('style', swatchStyle);
   var label = document.createElement('span');
   label.className = textClass;
-  label.textContent = text;
+  if (typeof text === 'string') label.textContent = text;
+  else label.appendChild(text);
   item.appendChild(swatch);
   item.appendChild(label);
   return item;
@@ -2217,13 +2284,13 @@ function legendItem(swatchClass, swatchStyle, text, textClass){
 
 function renderInverseLegend(pairing){
   var self = legendItem('ord-id', null,
-    translate('cyclicGroups.legendSelfInverse', { list: pairing.selfInverse.join(', ') }), 'legend-order');
+    tNode('cyclicGroups.legendSelfInverse', { list: mInline(mList(pairing.selfInverse), pairing.selfInverse.join(', ')) }), 'legend-order');
   self.classList.add('is-self');
   self.setAttribute('data-self-inverse', pairing.selfInverse.join(' '));
   legendEl.appendChild(self);
   pairing.pairs.forEach(function(pr){
     var item = legendItem('', '--ord: ' + pairing.color[pr[0]],
-      translate('cyclicGroups.legendPair', { a: pr[0], b: pr[1] }), 'legend-pair');
+      mInline(mrow(mn(pr[0]), mo('↔'), mn(pr[1])), translate('cyclicGroups.legendPair', { a: pr[0], b: pr[1] })), 'legend-pair');
     item.setAttribute('data-pair', pr[0] + ' ' + pr[1]);
     legendEl.appendChild(item);
   });
@@ -2247,7 +2314,7 @@ function renderLegend(G, classes, pairing){
     swatch.className = 'legend-swatch ' + classes[o];
     var text = document.createElement('span');
     text.className = 'legend-order';
-    text.textContent = translate('cyclicGroups.legendOrder', { order: o });
+    translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
     var count = document.createElement('span');
     count.className = 'legend-count';
     count.textContent = translate('cyclicGroups.legendSubgroups', { count: counts[o] });
@@ -2259,7 +2326,12 @@ function renderLegend(G, classes, pairing){
 }
 
 function renderNNote(){
-  nNoteEl.textContent = nNoteShown ? translate('cyclicGroups.nNoteClamped', { n: state.n }) : '';
+  translateInto(nLabelEl, 'cyclicGroups.nLabelMath', { n: mInline(mi('n'), 'n') });
+  if (!nNoteShown){ nNoteEl.textContent = ''; return; }
+  translateInto(nNoteEl, 'cyclicGroups.nNoteMath', {
+    n: mInline(mi('n'), 'n'), lo: mNum(MIN_N), hi: mNum(MAX_N),
+    eq: mInline(mrow(mi('n'), mo('='), mn(state.n)), 'n = ' + state.n)
+  });
 }
 
 // The Cayley Table opens on the same group; the language rides along the way
@@ -2297,7 +2369,7 @@ function isoLink(mode, n, gen, label){
   a.setAttribute('rel', 'noopener');
   var name = document.createElement('span');
   name.className = 'iso-name';
-  name.textContent = label;
+  name.appendChild(mInline(mGroupOf(mode, n), label));
   a.appendChild(name);
   var ext = svgEl('svg', { 'class': 'iso-ext', viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
   ext.appendChild(svgEl('path', { d: 'M7 1.5H10.5V5M10.5 1.5L5.5 6.5M9 7.5V9.5A1 1 0 0 1 8 10.5H2.5A1 1 0 0 1 1.5 9.5V4A1 1 0 0 1 2.5 3H4.5' }));
@@ -2526,6 +2598,18 @@ ringHeadEl.addEventListener('copy', function(e){
   e.clipboardData.setData('text/plain', picked.join('\n'));
   e.preventDefault();
 });
+// Elsewhere, a copied selection gives each formula's plain-text form.
+document.addEventListener('copy', function(e){
+  if (e.defaultPrevented || !e.clipboardData) return;
+  var sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  var frag = sel.getRangeAt(0).cloneContents();
+  var maths = frag.querySelectorAll('math');
+  if (!maths.length) return;
+  maths.forEach(function(m){ m.replaceWith(document.createTextNode(m.getAttribute('data-plain') || m.textContent)); });
+  e.clipboardData.setData('text/plain', frag.textContent);
+  e.preventDefault();
+});
 
 // The selected subgroup is cyclic of order k: ℤ/kℤ, whose generator is the
 // image of the selected one under the natural isomorphism, 1.
@@ -2536,7 +2620,7 @@ function renderIso(G){
     isoPanelEl.hidden = true;
     return;
   }
-  isoLeadEl.textContent = translate('cyclicGroups.iso.lead', { g: state.gen, k: k });
+  translateInto(isoLeadEl, 'cyclicGroups.iso.leadMath', { sub: mInline(angle(mn(state.gen)), '⟨' + state.gen + '⟩'), k: mNum(k) });
   var addChip = isoLink('additive', k, 1, additiveLabel(k));
   // In an additive group of order k, ⟨g⟩ is isomorphic to the very group
   // it lies in: the chip names that supergroup.

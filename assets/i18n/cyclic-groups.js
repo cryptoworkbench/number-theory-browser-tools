@@ -10,8 +10,10 @@
    keys in the same order as en, and i18n-check --coverage reports no
    cyclicGroups finding, except for the five iso.* keys (iso.lead,
    iso.additive, iso.multiplicative, iso.open, iso.supergroup) of the
-   isomorphic-group selector (quick task 261010-i13) and cosetCountMath,
-   the typeset coset count: by the user's decision they are
+   isomorphic-group selector (quick task 261010-i13) and the *Math keys
+   (cosetCountMath, nLabelMath, nNoteMath, opAddMath, ..., notice.ruleMath),
+   the templates whose math parameters are typeset as MathML: by the
+   user's decision they are
    English-only. Every other language shows the English value through
    NT.i18n's current-language to en fallback, and i18n-check --coverage
    reports one LANG-KEYSET cyclicGroups.<lang> finding per non-English
@@ -212,6 +214,18 @@
       'iso.open': 'Open {group} in a new tab',
       'iso.supergroup': 'This subgroup’s supergroup.',
       cosetCountMath: '{order}, so there are {count} cosets',
+      nLabelMath: '{n} — modulus',
+      nNoteMath: '{n} runs from {lo} to {hi}, so the diagram shows {eq}.',
+      opAddMath: 'addition {mod}',
+      opMulMath: 'multiplication {mod}',
+      factGeneratorsNoneMath: '{zero} (not cyclic)',
+      hintAdditiveMath: 'Stepping means adding {g} {mod}.',
+      hintMultiplicativeMath: 'The elements are the numbers below {n} that share no factor with it. Stepping means multiplying by {g} {mod}.',
+      'iso.leadMath': '{sub} is cyclic of order {k}, so it is isomorphic to:',
+      'notice.whyPowerOfTwoMath': 'Why: {eq} is a power of {two} above {four}.',
+      'notice.whyFourAndOddMath': 'Why: {eq} is divisible by {four} and by an odd prime.',
+      'notice.whyTwoOddPrimesMath': 'Why: {eq} has two different odd prime factors.',
+      'notice.ruleMath': '{mul} is cyclic exactly when {n} is {one}, {two} or {four}, an odd prime power {pk}, or twice one, {twopk}. Additive {add} is always cyclic.',
       'fact.group': 'Group',
       'fact.elements': 'Elements',
       'fact.identity': 'Identity',
