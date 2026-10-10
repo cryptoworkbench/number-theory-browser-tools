@@ -664,7 +664,7 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { clamp, gcd, primeFactors, unitsMod } = NT.core;
+const { clamp, gcd, primeFactors, totient, unitsMod } = NT.core;
 const { easeInOutCubic, polar, svgEl } = NT.svg;
 const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, translate, translateInto } = NT.i18n;
@@ -2032,9 +2032,12 @@ function renderFacts(G, factors){
   addFact('cyclicGroups.fact.operation', translate(G.mode === 'additive' ? 'cyclicGroups.opAdd' : 'cyclicGroups.opMul', { n: G.n }));
   addFact('cyclicGroups.fact.elements', String(G.order));
   addFact('cyclicGroups.fact.identity', String(G.identity));
-  addFact('cyclicGroups.fact.generators', G.cyclic
-    ? translate('cyclicGroups.factGeneratorsCount', { count: G.generators.length, order: G.order })
-    : translate('cyclicGroups.factGeneratorsNone'));
+  // The generators of Z/n are the units mod n, so there are φ(n) of them.
+  addFact('cyclicGroups.fact.generators', G.mode === 'additive'
+    ? translate('cyclicGroups.factGeneratorsPhi', { n: G.n, count: totient(G.n) })
+    : G.cyclic
+      ? translate('cyclicGroups.factGeneratorsCount', { count: G.generators.length, order: G.order })
+      : translate('cyclicGroups.factGeneratorsNone'));
   addFact('cyclicGroups.fact.structure', G.cyclic ? additiveLabel(G.order) : factorNotation(factors));
   sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
 
