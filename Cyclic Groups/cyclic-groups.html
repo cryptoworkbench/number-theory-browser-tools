@@ -2209,6 +2209,8 @@ function previewSrc(a, bygen){
   q.set('paths', '1');
   q.set('back', '0');
   if (bygen !== undefined) q.set('bygen', bygen ? '1' : '0');
+  // In generator-power order the generator sits at the top.
+  if (bygen) q.set('gentop', '1');
   q.delete('autorotate');
   return parts[0] + '?' + q.toString();
 }
@@ -2867,6 +2869,12 @@ onLangChange(render);
   if (isFinite(rot)) state.rot = rot;
   var wanted = parseInt(query.get('gen'), 10);
   if (isFinite(wanted) && buildGroup(state.mode, state.n).els.indexOf(wanted) !== -1) state.gen = wanted;
+  // A preview has no selection to turn the ring with, so with genTop on it
+  // opens already turned to put the selected element at the top.
+  if (IS_PREVIEW && state.genTop){
+    var at = arrangement(buildGroup(state.mode, state.n)).indexOf(state.gen);
+    if (at !== -1) state.rot = at;
+  }
 })();
 
 syncControls();
