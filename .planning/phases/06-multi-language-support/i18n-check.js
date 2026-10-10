@@ -3061,6 +3061,8 @@ function zghLatinFindings(id, lang, value, enValue) {
     if (r === r.toUpperCase() && r !== r.toLowerCase()) { f.push("ZGH-LETTER " + id + "." + lang + ": acronym " + JSON.stringify(r) + " is not on the keep list (translate it)"); return; }
     if (zghIrcamRun(r)) return;
     if (enRuns[r] && !/[A-Za-z]/.test(r)) return;
+    // ℤ/nℤ: one notation letter fused to ℤ, copied from the English value.
+    if (enRuns[r] && /ℤ/.test(r) && Array.from(r.replace(/ℤ/g, "")).length <= 1) return;
     f.push("ZGH-LETTER " + id + "." + lang + ": " + JSON.stringify(r) + " holds a letter outside the IRCAM Latin alphabet");
   });
   return f;

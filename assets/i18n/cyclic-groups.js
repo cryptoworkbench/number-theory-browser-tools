@@ -22,7 +22,7 @@
    every other key is plain text. The notice.* values are whole sentences
    whose {group}, {count}, {longest}, {factors} and {n} placeholders are
    <code> nodes supplied by the page script, rendered via translateInto,
-   never as markup strings. Notation (ℤ/n, (ℤ/n)*, ℤ/2 × ℤ/4) and numerals
+   never as markup strings. Notation (ℤ/nℤ, (ℤ/nℤ)*, ℤ/2ℤ × ℤ/4ℤ) and numerals
    are written the same way in every language; Hebrew, Arabic and Sorani
    Kurdish wrap formulas and notation in U+2066…U+2069 isolates, written as
    \u2066 / \u2069 escapes. Additive Groups and
@@ -136,7 +136,7 @@
       'notice.whyPowerOfTwo': 'Reden: n = {n} is een macht van 2 groter dan 4.',
       'notice.whyFourAndOdd': 'Reden: n = {n} is deelbaar door 4 en door een oneven priemgetal.',
       'notice.whyTwoOddPrimes': 'Reden: n = {n} heeft twee verschillende oneven priemfactoren.',
-      'notice.rule': '⟨ℤ/n, ×⟩ is precies dan cyclisch als n gelijk is aan 1, 2 of 4, een macht p^k van een oneven priemgetal, of tweemaal zo’n macht, 2p^k. De additieve groep ⟨ℤ/n, +⟩ is altijd cyclisch.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ is precies dan cyclisch als n gelijk is aan 1, 2 of 4, een macht p^k van een oneven priemgetal, of tweemaal zo’n macht, 2p^k. De additieve groep ⟨ℤ/nℤ, +⟩ is altijd cyclisch.',
       exportPng: 'PNG van ring downloaden',
       exportSaved: 'Opgeslagen: {filename}.',
       exportFailed: 'De afbeelding kon in deze browser niet worden geëxporteerd.'
@@ -246,7 +246,7 @@
       'notice.whyPowerOfTwo': 'Why: n = {n} is a power of 2 above 4.',
       'notice.whyFourAndOdd': 'Why: n = {n} is divisible by 4 and by an odd prime.',
       'notice.whyTwoOddPrimes': 'Why: n = {n} has two different odd prime factors.',
-      'notice.rule': '⟨ℤ/n, ×⟩ is cyclic exactly when n is 1, 2 or 4, an odd prime power p^k, or twice one, 2p^k. Additive ⟨ℤ/n, +⟩ is always cyclic.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ is cyclic exactly when n is 1, 2 or 4, an odd prime power p^k, or twice one, 2p^k. Additive ⟨ℤ/nℤ, +⟩ is always cyclic.',
       exportPng: 'Download ring PNG',
       exportSaved: 'Saved {filename}.',
       exportFailed: 'The picture could not be exported in this browser.'
@@ -352,7 +352,7 @@
       'notice.whyPowerOfTwo': 'Grund: n = {n} ist eine Potenz von 2 über 4.',
       'notice.whyFourAndOdd': 'Grund: n = {n} ist durch 4 und durch eine ungerade Primzahl teilbar.',
       'notice.whyTwoOddPrimes': 'Grund: n = {n} hat zwei verschiedene ungerade Primfaktoren.',
-      'notice.rule': '⟨ℤ/n, ×⟩ ist genau dann zyklisch, wenn n gleich 1, 2 oder 4 ist, eine Potenz p^k einer ungeraden Primzahl oder das Doppelte einer solchen, 2p^k. Die additive Gruppe ⟨ℤ/n, +⟩ ist immer zyklisch.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ ist genau dann zyklisch, wenn n gleich 1, 2 oder 4 ist, eine Potenz p^k einer ungeraden Primzahl oder das Doppelte einer solchen, 2p^k. Die additive Gruppe ⟨ℤ/nℤ, +⟩ ist immer zyklisch.',
       exportPng: 'Ring-PNG herunterladen',
       exportSaved: 'Gespeichert: {filename}.',
       exportFailed: 'Das Bild konnte in diesem Browser nicht exportiert werden.'
@@ -458,7 +458,7 @@
       'notice.whyPowerOfTwo': 'Raison : n = {n} est une puissance de 2 supérieure à 4.',
       'notice.whyFourAndOdd': 'Raison : n = {n} est divisible par 4 et par un nombre premier impair.',
       'notice.whyTwoOddPrimes': 'Raison : n = {n} a deux facteurs premiers impairs distincts.',
-      'notice.rule': '⟨ℤ/n, ×⟩ est cyclique exactement lorsque n vaut 1, 2 ou 4, une puissance d’un nombre premier impair p^k, ou le double d’une telle puissance, 2p^k. Le groupe additif ⟨ℤ/n, +⟩ est toujours cyclique.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ est cyclique exactement lorsque n vaut 1, 2 ou 4, une puissance d’un nombre premier impair p^k, ou le double d’une telle puissance, 2p^k. Le groupe additif ⟨ℤ/nℤ, +⟩ est toujours cyclique.',
       exportPng: 'Télécharger le PNG du cercle',
       exportSaved: 'Enregistré : {filename}.',
       exportFailed: 'L’image n’a pas pu être exportée dans ce navigateur.'
@@ -564,7 +564,7 @@
       'notice.whyPowerOfTwo': 'Por qué: n = {n} es una potencia de 2 mayor que 4.',
       'notice.whyFourAndOdd': 'Por qué: n = {n} es divisible por 4 y por un primo impar.',
       'notice.whyTwoOddPrimes': 'Por qué: n = {n} tiene dos factores primos impares distintos.',
-      'notice.rule': '⟨ℤ/n, ×⟩ es cíclico exactamente cuando n es 1, 2 o 4, una potencia de un primo impar p^k, o el doble de una, 2p^k. El grupo aditivo ⟨ℤ/n, +⟩ siempre es cíclico.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ es cíclico exactamente cuando n es 1, 2 o 4, una potencia de un primo impar p^k, o el doble de una, 2p^k. El grupo aditivo ⟨ℤ/nℤ, +⟩ siempre es cíclico.',
       exportPng: 'Descargar PNG del círculo',
       exportSaved: 'Guardado: {filename}.',
       exportFailed: 'No se pudo exportar la imagen en este navegador.'
@@ -670,7 +670,7 @@
       'notice.whyPowerOfTwo': 'Perché: n = {n} è una potenza di 2 maggiore di 4.',
       'notice.whyFourAndOdd': 'Perché: n = {n} è divisibile per 4 e per un primo dispari.',
       'notice.whyTwoOddPrimes': 'Perché: n = {n} ha due fattori primi dispari distinti.',
-      'notice.rule': '⟨ℤ/n, ×⟩ è ciclico esattamente quando n è 1, 2 o 4, una potenza p^k di un primo dispari, o il doppio di una di esse, 2p^k. Il gruppo additivo ⟨ℤ/n, +⟩ è sempre ciclico.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ è ciclico esattamente quando n è 1, 2 o 4, una potenza p^k di un primo dispari, o il doppio di una di esse, 2p^k. Il gruppo additivo ⟨ℤ/nℤ, +⟩ è sempre ciclico.',
       exportPng: 'Scarica PNG del cerchio',
       exportSaved: 'Salvato: {filename}.',
       exportFailed: 'Non è stato possibile esportare l’immagine in questo browser.'
@@ -776,7 +776,7 @@
       'notice.whyPowerOfTwo': 'Powód: n = {n} jest potęgą liczby 2 większą niż 4.',
       'notice.whyFourAndOdd': 'Powód: n = {n} jest podzielne przez 4 i przez nieparzystą liczbę pierwszą.',
       'notice.whyTwoOddPrimes': 'Powód: n = {n} ma dwa różne nieparzyste czynniki pierwsze.',
-      'notice.rule': '⟨ℤ/n, ×⟩ jest cykliczna dokładnie wtedy, gdy n wynosi 1, 2 lub 4, jest potęgą p^k nieparzystej liczby pierwszej albo jej dwukrotnością, 2p^k. Addytywna ⟨ℤ/n, +⟩ jest zawsze cykliczna.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ jest cykliczna dokładnie wtedy, gdy n wynosi 1, 2 lub 4, jest potęgą p^k nieparzystej liczby pierwszej albo jej dwukrotnością, 2p^k. Addytywna ⟨ℤ/nℤ, +⟩ jest zawsze cykliczna.',
       exportPng: 'Pobierz PNG okręgu',
       exportSaved: 'Zapisano: {filename}.',
       exportFailed: 'Nie udało się wyeksportować obrazu w tej przeglądarce.'
@@ -882,7 +882,7 @@
       'notice.whyPowerOfTwo': 'Motivo: n = {n} é uma potência de 2 maior que 4.',
       'notice.whyFourAndOdd': 'Motivo: n = {n} é divisível por 4 e por um primo ímpar.',
       'notice.whyTwoOddPrimes': 'Motivo: n = {n} tem dois fatores primos ímpares diferentes.',
-      'notice.rule': '⟨ℤ/n, ×⟩ é cíclico exatamente quando n é 1, 2 ou 4, uma potência de primo ímpar p^k, ou o dobro de uma, 2p^k. O grupo aditivo ⟨ℤ/n, +⟩ é sempre cíclico.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ é cíclico exatamente quando n é 1, 2 ou 4, uma potência de primo ímpar p^k, ou o dobro de uma, 2p^k. O grupo aditivo ⟨ℤ/nℤ, +⟩ é sempre cíclico.',
       exportPng: 'Baixar PNG do círculo',
       exportSaved: 'Salvo {filename}.',
       exportFailed: 'Não foi possível exportar a imagem neste navegador.'
@@ -988,7 +988,7 @@
       'notice.whyPowerOfTwo': 'Motivo: n = {n} é uma potência de 2 maior que 4.',
       'notice.whyFourAndOdd': 'Motivo: n = {n} é divisível por 4 e por um primo ímpar.',
       'notice.whyTwoOddPrimes': 'Motivo: n = {n} tem dois fatores primos ímpares diferentes.',
-      'notice.rule': '⟨ℤ/n, ×⟩ é cíclico exatamente quando n é 1, 2 ou 4, uma potência de primo ímpar p^k, ou o dobro de uma, 2p^k. O grupo aditivo ⟨ℤ/n, +⟩ é sempre cíclico.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ é cíclico exatamente quando n é 1, 2 ou 4, uma potência de primo ímpar p^k, ou o dobro de uma, 2p^k. O grupo aditivo ⟨ℤ/nℤ, +⟩ é sempre cíclico.',
       exportPng: 'Descarregar PNG do círculo',
       exportSaved: 'Guardado {filename}.',
       exportFailed: 'Não foi possível exportar a imagem neste navegador.'
@@ -1094,7 +1094,7 @@
       'notice.whyPowerOfTwo': 'Varför: n = {n} är en potens av 2 över 4.',
       'notice.whyFourAndOdd': 'Varför: n = {n} är delbart med 4 och med ett udda primtal.',
       'notice.whyTwoOddPrimes': 'Varför: n = {n} har två olika udda primfaktorer.',
-      'notice.rule': '⟨ℤ/n, ×⟩ är cyklisk precis när n är 1, 2 eller 4, en udda primtalspotens p^k, eller två gånger en sådan, 2p^k. Den additiva gruppen ⟨ℤ/n, +⟩ är alltid cyklisk.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ är cyklisk precis när n är 1, 2 eller 4, en udda primtalspotens p^k, eller två gånger en sådan, 2p^k. Den additiva gruppen ⟨ℤ/nℤ, +⟩ är alltid cyklisk.',
       exportPng: 'Ladda ner ring-PNG',
       exportSaved: 'Sparade {filename}.',
       exportFailed: 'Bilden kunde inte exporteras i den här webbläsaren.'
@@ -1200,7 +1200,7 @@
       'notice.whyPowerOfTwo': 'Hvorfor: n = {n} er en potens av 2 over 4.',
       'notice.whyFourAndOdd': 'Hvorfor: n = {n} er delelig med 4 og med et odde primtall.',
       'notice.whyTwoOddPrimes': 'Hvorfor: n = {n} har to forskjellige odde primfaktorer.',
-      'notice.rule': '⟨ℤ/n, ×⟩ er syklisk nøyaktig når n er 1, 2 eller 4, en odde primtallspotens p^k, eller det dobbelte av en slik, 2p^k. Den additive gruppen ⟨ℤ/n, +⟩ er alltid syklisk.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ er syklisk nøyaktig når n er 1, 2 eller 4, en odde primtallspotens p^k, eller det dobbelte av en slik, 2p^k. Den additive gruppen ⟨ℤ/nℤ, +⟩ er alltid syklisk.',
       exportPng: 'Last ned ring-PNG',
       exportSaved: 'Lagret {filename}.',
       exportFailed: 'Bildet kunne ikke eksporteres i denne nettleseren.'
@@ -1306,7 +1306,7 @@
       'notice.whyPowerOfTwo': 'Motivul: n = {n} este o putere a lui 2 mai mare decât 4.',
       'notice.whyFourAndOdd': 'Motivul: n = {n} este divizibil cu 4 și cu un număr prim impar.',
       'notice.whyTwoOddPrimes': 'Motivul: n = {n} are doi factori primi impari diferiți.',
-      'notice.rule': '⟨ℤ/n, ×⟩ este ciclic exact atunci când n este 1, 2 sau 4, o putere p^k a unui număr prim impar, sau dublul uneia, 2p^k. ⟨ℤ/n, +⟩ aditiv este întotdeauna ciclic.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ este ciclic exact atunci când n este 1, 2 sau 4, o putere p^k a unui număr prim impar, sau dublul uneia, 2p^k. ⟨ℤ/nℤ, +⟩ aditiv este întotdeauna ciclic.',
       exportPng: 'Descarcă PNG-ul cercului',
       exportSaved: 'Salvat {filename}.',
       exportFailed: 'Imaginea nu a putut fi exportată în acest browser.'
@@ -1412,7 +1412,7 @@
       'notice.whyPowerOfTwo': 'Ok: n = {n} a 2 egy 4-nél nagyobb hatványa.',
       'notice.whyFourAndOdd': 'Ok: n = {n} osztható 4-gyel és egy páratlan prímmel.',
       'notice.whyTwoOddPrimes': 'Ok: az n = {n} számnak két különböző páratlan prímtényezője van.',
-      'notice.rule': '⟨ℤ/n, ×⟩ pontosan akkor ciklikus, ha n értéke 1, 2 vagy 4, egy páratlan prím p^k hatványa, vagy annak kétszerese, 2p^k. Az additív ⟨ℤ/n, +⟩ mindig ciklikus.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ pontosan akkor ciklikus, ha n értéke 1, 2 vagy 4, egy páratlan prím p^k hatványa, vagy annak kétszerese, 2p^k. Az additív ⟨ℤ/nℤ, +⟩ mindig ciklikus.',
       exportPng: 'Kör PNG letöltése',
       exportSaved: '{filename} mentve.',
       exportFailed: 'A kép ebben a böngészőben nem exportálható.'
@@ -1518,7 +1518,7 @@
       'notice.whyPowerOfTwo': 'Iemesls: n = {n} ir 2 pakāpe, kas lielāka par 4.',
       'notice.whyFourAndOdd': 'Iemesls: n = {n} dalās ar 4 un ar nepāra pirmskaitli.',
       'notice.whyTwoOddPrimes': 'Iemesls: skaitlim n = {n} ir divi dažādi nepāra pirmreizinātāji.',
-      'notice.rule': '⟨ℤ/n, ×⟩ ir cikliska tieši tad, kad n ir 1, 2 vai 4, nepāra pirmskaitļa pakāpe p^k vai tās divkāršs, 2p^k. Aditīvā ⟨ℤ/n, +⟩ vienmēr ir cikliska.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ ir cikliska tieši tad, kad n ir 1, 2 vai 4, nepāra pirmskaitļa pakāpe p^k vai tās divkāršs, 2p^k. Aditīvā ⟨ℤ/nℤ, +⟩ vienmēr ir cikliska.',
       exportPng: 'Lejupielādēt apļa PNG',
       exportSaved: 'Saglabāts {filename}.',
       exportFailed: 'Attēlu šajā pārlūkā nevarēja eksportēt.'
@@ -1624,7 +1624,7 @@
       'notice.whyPowerOfTwo': 'Причина: n = {n} — степень числа 2, большая 4.',
       'notice.whyFourAndOdd': 'Причина: n = {n} делится на 4 и на нечётное простое число.',
       'notice.whyTwoOddPrimes': 'Причина: у n = {n} два разных нечётных простых множителя.',
-      'notice.rule': '⟨ℤ/n, ×⟩ циклична тогда и только тогда, когда n равно 1, 2 или 4, либо является степенью p^k нечётного простого числа, либо вдвое большей степенью, 2p^k. Аддитивная ⟨ℤ/n, +⟩ всегда циклична.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ циклична тогда и только тогда, когда n равно 1, 2 или 4, либо является степенью p^k нечётного простого числа, либо вдвое большей степенью, 2p^k. Аддитивная ⟨ℤ/nℤ, +⟩ всегда циклична.',
       exportPng: 'Скачать PNG окружности',
       exportSaved: 'Сохранено {filename}.',
       exportFailed: 'Не удалось экспортировать изображение в этом браузере.'
@@ -1730,7 +1730,7 @@
       'notice.whyPowerOfTwo': 'Γιατί: το n = {n} είναι δύναμη του 2 μεγαλύτερη του 4.',
       'notice.whyFourAndOdd': 'Γιατί: το n = {n} διαιρείται με το 4 και με έναν περιττό πρώτο.',
       'notice.whyTwoOddPrimes': 'Γιατί: το n = {n} έχει δύο διαφορετικούς περιττούς πρώτους παράγοντες.',
-      'notice.rule': 'Η ⟨ℤ/n, ×⟩ είναι κυκλική ακριβώς όταν το n είναι 1, 2 ή 4, δύναμη περιττού πρώτου p^k, ή διπλάσιό της, 2p^k. Η προσθετική ⟨ℤ/n, +⟩ είναι πάντα κυκλική.',
+      'notice.rule': 'Η ⟨ℤ/nℤ, ×⟩ είναι κυκλική ακριβώς όταν το n είναι 1, 2 ή 4, δύναμη περιττού πρώτου p^k, ή διπλάσιό της, 2p^k. Η προσθετική ⟨ℤ/nℤ, +⟩ είναι πάντα κυκλική.',
       exportPng: 'Λήψη PNG του δακτυλίου',
       exportSaved: 'Αποθηκεύτηκε το {filename}.',
       exportFailed: 'Η εικόνα δεν μπόρεσε να εξαχθεί σε αυτό το πρόγραμμα περιήγησης.'
@@ -1836,7 +1836,7 @@
       'notice.whyPowerOfTwo': 'הסיבה: \u2066n = {n}\u2069 הוא חזקה של 2 הגדולה מ-4.',
       'notice.whyFourAndOdd': 'הסיבה: \u2066n = {n}\u2069 מתחלק ב-4 וגם במספר ראשוני אי-זוגי.',
       'notice.whyTwoOddPrimes': 'הסיבה: ל-\u2066n = {n}\u2069 יש שני גורמים ראשוניים אי-זוגיים שונים.',
-      'notice.rule': '\u2066⟨ℤ/n, ×⟩\u2069 ציקלית בדיוק כאשר n הוא 1, 2 או 4, חזקה של ראשוני אי-זוגי \u2066p^k\u2069, או כפולה שלה פי שניים, \u20662p^k\u2069. החבורה החיבורית \u2066⟨ℤ/n, +⟩\u2069 תמיד ציקלית.',
+      'notice.rule': '\u2066⟨ℤ/nℤ, ×⟩\u2069 ציקלית בדיוק כאשר n הוא 1, 2 או 4, חזקה של ראשוני אי-זוגי \u2066p^k\u2069, או כפולה שלה פי שניים, \u20662p^k\u2069. החבורה החיבורית \u2066⟨ℤ/nℤ, +⟩\u2069 תמיד ציקלית.',
       exportPng: 'הורדת PNG של הטבעת',
       exportSaved: 'נשמר \u2066{filename}\u2069.',
       exportFailed: 'לא ניתן היה לייצא את התמונה בדפדפן הזה.'
@@ -1942,7 +1942,7 @@
       'notice.whyPowerOfTwo': 'कारण: n = {n}, 4 से बड़ी 2 की घात है।',
       'notice.whyFourAndOdd': 'कारण: n = {n} 4 से और एक विषम अभाज्य से विभाज्य है।',
       'notice.whyTwoOddPrimes': 'कारण: n = {n} के दो अलग-अलग विषम अभाज्य गुणनखंड हैं।',
-      'notice.rule': '⟨ℤ/n, ×⟩ ठीक तभी चक्रीय होता है जब n, 1, 2 या 4 हो, कोई विषम अभाज्य घात p^k हो, या उसका दुगुना, 2p^k। योगात्मक ⟨ℤ/n, +⟩ हमेशा चक्रीय होता है।',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ ठीक तभी चक्रीय होता है जब n, 1, 2 या 4 हो, कोई विषम अभाज्य घात p^k हो, या उसका दुगुना, 2p^k। योगात्मक ⟨ℤ/nℤ, +⟩ हमेशा चक्रीय होता है।',
       exportPng: 'छल्ले का PNG डाउनलोड करें',
       exportSaved: 'फ़ाइल {filename} सहेजी गई।',
       exportFailed: 'इस ब्राउज़र में चित्र निर्यात नहीं किया जा सका।'
@@ -2048,7 +2048,7 @@
       'notice.whyPowerOfTwo': 'السبب: \u2066n = {n}\u2069 قوة للعدد 2 أكبر من 4.',
       'notice.whyFourAndOdd': 'السبب: \u2066n = {n}\u2069 يقبل القسمة على 4 وعلى عدد أولي فردي.',
       'notice.whyTwoOddPrimes': 'السبب: للعدد \u2066n = {n}\u2069 عاملان أوليان فرديان مختلفان.',
-      'notice.rule': '\u2066⟨ℤ/n, ×⟩\u2069 دورية تماما عندما يكون n هو 1 أو 2 أو 4، أو قوة لعدد أولي فردي \u2066p^k\u2069، أو ضعف ذلك \u20662p^k\u2069. أما الزمرة الجمعية \u2066⟨ℤ/n, +⟩\u2069 فهي دورية دائما.',
+      'notice.rule': '\u2066⟨ℤ/nℤ, ×⟩\u2069 دورية تماما عندما يكون n هو 1 أو 2 أو 4، أو قوة لعدد أولي فردي \u2066p^k\u2069، أو ضعف ذلك \u20662p^k\u2069. أما الزمرة الجمعية \u2066⟨ℤ/nℤ, +⟩\u2069 فهي دورية دائما.',
       exportPng: 'تنزيل PNG للحلقة',
       exportSaved: 'تم حفظ \u2066{filename}\u2069.',
       exportFailed: 'تعذر تصدير الصورة في هذا المتصفح.'
@@ -2154,7 +2154,7 @@
       'notice.whyPowerOfTwo': 'Arsyeja: n = {n} është fuqi e numrit 2 mbi 4.',
       'notice.whyFourAndOdd': 'Arsyeja: n = {n} pjesëtohet me 4 dhe me një numër të thjeshtë tek.',
       'notice.whyTwoOddPrimes': 'Arsyeja: n = {n} ka dy faktorë të thjeshtë tek të ndryshëm.',
-      'notice.rule': '⟨ℤ/n, ×⟩ është ciklik saktësisht kur n është 1, 2 ose 4, një fuqi e një numri të thjeshtë tek p^k, ose dyfishi i saj, 2p^k. ⟨ℤ/n, +⟩ aditiv është gjithmonë ciklik.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ është ciklik saktësisht kur n është 1, 2 ose 4, një fuqi e një numri të thjeshtë tek p^k, ose dyfishi i saj, 2p^k. ⟨ℤ/nℤ, +⟩ aditiv është gjithmonë ciklik.',
       exportPng: 'Shkarko PNG të unazës',
       exportSaved: 'U ruajt {filename}.',
       exportFailed: 'Fotografia nuk mund të eksportohej në këtë shfletues.'
@@ -2260,7 +2260,7 @@
       'notice.whyPowerOfTwo': 'Sababu: n = {n} ni nguvu ya 2 iliyo juu ya 4.',
       'notice.whyFourAndOdd': 'Sababu: n = {n} inagawanyika kwa 4 na kwa namba tasa witiri.',
       'notice.whyTwoOddPrimes': 'Sababu: n = {n} ina vigawo viwili tofauti vya namba tasa witiri.',
-      'notice.rule': '⟨ℤ/n, ×⟩ ni la mzunguko hasa pale n ni 1, 2 au 4, nguvu ya namba tasa witiri p^k, au mara mbili yake, 2p^k. ⟨ℤ/n, +⟩ ya kujumlisha daima ni la mzunguko.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ ni la mzunguko hasa pale n ni 1, 2 au 4, nguvu ya namba tasa witiri p^k, au mara mbili yake, 2p^k. ⟨ℤ/nℤ, +⟩ ya kujumlisha daima ni la mzunguko.',
       exportPng: 'Pakua PNG ya pete',
       exportSaved: 'Imehifadhiwa {filename}.',
       exportFailed: 'Picha haikuweza kuhamishwa katika kivinjari hiki.'
@@ -2366,7 +2366,7 @@
       'notice.whyPowerOfTwo': '原因：n = {n} 是大于 4 的 2 的幂。',
       'notice.whyFourAndOdd': '原因：n = {n} 能被 4 整除，也能被一个奇素数整除。',
       'notice.whyTwoOddPrimes': '原因：n = {n} 有两个不同的奇素因数。',
-      'notice.rule': '⟨ℤ/n, ×⟩ 是循环群，当且仅当 n 为 1、2 或 4，或为奇素数的幂 p^k，或为其两倍 2p^k。加法群 ⟨ℤ/n, +⟩ 总是循环群。',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ 是循环群，当且仅当 n 为 1、2 或 4，或为奇素数的幂 p^k，或为其两倍 2p^k。加法群 ⟨ℤ/nℤ, +⟩ 总是循环群。',
       exportPng: '下载圆环 PNG',
       exportSaved: '已保存 {filename}。',
       exportFailed: '此浏览器无法导出图片。'
@@ -2472,7 +2472,7 @@
       'notice.whyPowerOfTwo': '理由：n = {n}は4より大きい2のべきです。',
       'notice.whyFourAndOdd': '理由：n = {n}は4でも、ある奇素数でも割り切れます。',
       'notice.whyTwoOddPrimes': '理由：n = {n}は異なる二つの奇素因数を持ちます。',
-      'notice.rule': '⟨ℤ/n, ×⟩が巡回群になるのは、nが1、2、4、奇素数のべきp^k、またはそれを倍にした2p^kであるときに限ります。加法群⟨ℤ/n, +⟩は常に巡回群です。',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩が巡回群になるのは、nが1、2、4、奇素数のべきp^k、またはそれを倍にした2p^kであるときに限ります。加法群⟨ℤ/nℤ, +⟩は常に巡回群です。',
       exportPng: 'リングのPNGをダウンロード',
       exportSaved: '{filename}を保存しました。',
       exportFailed: 'このブラウザーでは画像をエクスポートできませんでした。'
@@ -2578,7 +2578,7 @@
       'notice.whyPowerOfTwo': '이유: n = {n}. 이 값은 4보다 큰 2의 거듭제곱입니다.',
       'notice.whyFourAndOdd': '이유: n = {n}. 이 값은 4로도, 어떤 홀수 소수로도 나누어떨어집니다.',
       'notice.whyTwoOddPrimes': '이유: n = {n}. 이 값은 서로 다른 홀수 소인수를 두 개 가집니다.',
-      'notice.rule': '⟨ℤ/n, ×⟩의 순환 여부: n이 1, 2, 4, 홀수 소수의 거듭제곱 p^k, 또는 그 배인 2p^k일 때만 순환군입니다. 덧셈군 ⟨ℤ/n, +⟩은 항상 순환군입니다.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩의 순환 여부: n이 1, 2, 4, 홀수 소수의 거듭제곱 p^k, 또는 그 배인 2p^k일 때만 순환군입니다. 덧셈군 ⟨ℤ/nℤ, +⟩은 항상 순환군입니다.',
       exportPng: '고리 PNG 다운로드',
       exportSaved: '{filename} 파일을 저장했습니다.',
       exportFailed: '이 브라우저에서는 그림을 내보낼 수 없었습니다.'
@@ -2684,7 +2684,7 @@
       'notice.whyPowerOfTwo': 'Alasan: n = {n} adalah pangkat dari 2 di atas 4.',
       'notice.whyFourAndOdd': 'Alasan: n = {n} habis dibagi 4 dan oleh sebuah bilangan prima ganjil.',
       'notice.whyTwoOddPrimes': 'Alasan: n = {n} memiliki dua faktor prima ganjil yang berbeda.',
-      'notice.rule': '⟨ℤ/n, ×⟩ siklik tepat ketika n adalah 1, 2 atau 4, pangkat bilangan prima ganjil p^k, atau dua kali pangkat itu, 2p^k. ⟨ℤ/n, +⟩ aditif selalu siklik.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ siklik tepat ketika n adalah 1, 2 atau 4, pangkat bilangan prima ganjil p^k, atau dua kali pangkat itu, 2p^k. ⟨ℤ/nℤ, +⟩ aditif selalu siklik.',
       exportPng: 'Unduh PNG cincin',
       exportSaved: '{filename} disimpan.',
       exportFailed: 'Gambar tidak dapat diekspor di peramban ini.'
@@ -2790,7 +2790,7 @@
       'notice.whyPowerOfTwo': 'Acku: n = {n} d tizmrt n 2 afella n 4.',
       'notice.whyFourAndOdd': 'Acku: n = {n} ar ittwabḍa s 4 d s yan umḍan amnzu afrdi.',
       'notice.whyTwoOddPrimes': 'Acku: n = {n} sɛa sin ifakturn imnza ifrdan imxtalfn.',
-      'notice.rule': '⟨ℤ/n, ×⟩ d tasutlant kigan ticki n d 1, 2 nɣ 4, nɣ tizmrt n umḍan amnzu afrdi p^k, nɣ snat n tikkal tizmrt ad, 2p^k. Tagrawt n usmrni ⟨ℤ/n, +⟩ d tasutlant yal ticki.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ d tasutlant kigan ticki n d 1, 2 nɣ 4, nɣ tizmrt n umḍan amnzu afrdi p^k, nɣ snat n tikkal tizmrt ad, 2p^k. Tagrawt n usmrni ⟨ℤ/nℤ, +⟩ d tasutlant yal ticki.',
       exportPng: 'Sider PNG n twrirt',
       exportSaved: 'Ittwaḥfḍ {filename}.',
       exportFailed: 'Asufɣ n tugna ur ikml g brawzr ad.'
@@ -2896,7 +2896,7 @@
       'notice.whyPowerOfTwo': 'ⴰⵛⴽⵓ: n = {n} ⴷ ⵜⵉⵣⵎⵔⵜ ⵏ 2 ⴰⴼⴻⵍⵍⴰ ⵏ 4.',
       'notice.whyFourAndOdd': 'ⴰⵛⴽⵓ: n = {n} ⴰⵔ ⵉⵜⵜⵡⴰⴱⴹⴰ ⵙ 4 ⴷ ⵙ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⴼⵔⴷⵉ.',
       'notice.whyTwoOddPrimes': 'ⴰⵛⴽⵓ: n = {n} ⵙⵄⴰ ⵙⵉⵏ ⵉⴼⴰⴽⵜⵓⵔⵏ ⵉⵎⵏⵣⴰ ⵉⴼⵔⴷⴰⵏ ⵉⵎⵅⵜⴰⵍⴼⵏ.',
-      'notice.rule': '⟨ℤ/n, ×⟩ ⴷ ⵜⴰⵙⵓⵜⵍⴰⵏⵜ ⴽⵉⴳⴰⵏ ⵜⵉⵛⴽⵉ n ⴷ 1, 2 ⵏⵖ 4, ⵏⵖ ⵜⵉⵣⵎⵔⵜ ⵏ ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⴼⵔⴷⵉ p^k, ⵏⵖ ⵙⵏⴰⵜ ⵏ ⵜⵉⴽⴽⴰⵍ ⵜⵉⵣⵎⵔⵜ ⴰⴷ, 2p^k. ⵜⴰⴳⵔⴰⵡⵜ ⵏ ⵓⵙⵎⵔⵏⵉ ⟨ℤ/n, +⟩ ⴷ ⵜⴰⵙⵓⵜⵍⴰⵏⵜ ⵢⴰⵍ ⵜⵉⵛⴽⵉ.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ ⴷ ⵜⴰⵙⵓⵜⵍⴰⵏⵜ ⴽⵉⴳⴰⵏ ⵜⵉⵛⴽⵉ n ⴷ 1, 2 ⵏⵖ 4, ⵏⵖ ⵜⵉⵣⵎⵔⵜ ⵏ ⵓⵎⴹⴰⵏ ⴰⵎⵏⵣⵓ ⴰⴼⵔⴷⵉ p^k, ⵏⵖ ⵙⵏⴰⵜ ⵏ ⵜⵉⴽⴽⴰⵍ ⵜⵉⵣⵎⵔⵜ ⴰⴷ, 2p^k. ⵜⴰⴳⵔⴰⵡⵜ ⵏ ⵓⵙⵎⵔⵏⵉ ⟨ℤ/nℤ, +⟩ ⴷ ⵜⴰⵙⵓⵜⵍⴰⵏⵜ ⵢⴰⵍ ⵜⵉⵛⴽⵉ.',
       exportPng: 'ⵙⵉⴷⴻⵔ PNG ⵏ ⵜⵡⵔⵉⵔⵜ',
       exportSaved: 'ⵉⵜⵜⵡⴰⵃⴼⴹ {filename}.',
       exportFailed: 'ⴰⵙⵓⴼⵖ ⵏ ⵜⵓⴳⵏⴰ ⵓⵔ ⵉⴽⵎⵍ ⴳ ⴱⵔⴰⵡⵣⵔ ⴰⴷ.'
@@ -3002,7 +3002,7 @@
       'notice.whyPowerOfTwo': 'Sedem: n = {n} hêzeke 2 ye ku ji 4 mezintir e.',
       'notice.whyFourAndOdd': 'Sedem: n = {n} bi 4 û bi hejmareke seretayî ya tak dabeş dibe.',
       'notice.whyTwoOddPrimes': 'Sedem: n = {n} du faktorên seretayî yên tak û ji hev cuda hene.',
-      'notice.rule': '⟨ℤ/n, ×⟩ tam wê demê çerxî ye ku n yek ji 1, 2 an 4 be, hêzeke hejmareke seretayî ya tak p^k, an du caran ya wê, 2p^k. Grûpa lêzêdekirinê ⟨ℤ/n, +⟩ her dem çerxî ye.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ tam wê demê çerxî ye ku n yek ji 1, 2 an 4 be, hêzeke hejmareke seretayî ya tak p^k, an du caran ya wê, 2p^k. Grûpa lêzêdekirinê ⟨ℤ/nℤ, +⟩ her dem çerxî ye.',
       exportPng: 'PNG ya xelekê dakêşe',
       exportSaved: '{filename} hate tomarkirin.',
       exportFailed: 'Wêne di vê gerokê de nehat derxistin.'
@@ -3108,7 +3108,7 @@
       'notice.whyPowerOfTwo': 'ھۆکار: \u2066n = {n}\u2069 تواننێکە لە ژمارەی 2 و لە 4 گەورەترە.',
       'notice.whyFourAndOdd': 'ھۆکار: \u2066n = {n}\u2069 بە 4 و بە ژمارەیەکی سەرەتایی تاک دابەش دەبێت.',
       'notice.whyTwoOddPrimes': 'ھۆکار: \u2066n = {n}\u2069 دوو ھۆکاری سەرەتایی تاکی جیاوازی ھەیە.',
-      'notice.rule': '\u2066⟨ℤ/n, ×⟩\u2069 تەنیا کاتێک خولییە کە n یەکێک بێت لە 1 یان 2 یان 4، یان تواننێکی ژمارەیەکی سەرەتایی تاک \u2066p^k\u2069، یان دووقاتی ئەوە \u20662p^k\u2069. گرووپی کۆکردنەوەیی \u2066⟨ℤ/n, +⟩\u2069 ھەمیشە خولییە.',
+      'notice.rule': '\u2066⟨ℤ/nℤ, ×⟩\u2069 تەنیا کاتێک خولییە کە n یەکێک بێت لە 1 یان 2 یان 4، یان تواننێکی ژمارەیەکی سەرەتایی تاک \u2066p^k\u2069، یان دووقاتی ئەوە \u20662p^k\u2069. گرووپی کۆکردنەوەیی \u2066⟨ℤ/nℤ, +⟩\u2069 ھەمیشە خولییە.',
       exportPng: 'دابەزاندنی PNG بۆ ئەڵقەکە',
       exportSaved: '\u2066{filename}\u2069 پاشەکەوت کرا.',
       exportFailed: 'وێنەکە لەم وێبگەڕەدا دەرنەھێنرا.'
@@ -3214,7 +3214,7 @@
       'notice.whyPowerOfTwo': 'कारणम्: n = {n} इति 4 तः अधिकः 2 इत्यस्य घातः अस्ति।',
       'notice.whyFourAndOdd': 'कारणम्: n = {n} इति 4 इत्यनेन एकेन विषमाभाज्येन च विभाज्यः अस्ति।',
       'notice.whyTwoOddPrimes': 'कारणम्: n = {n} इत्यस्य द्वौ भिन्नौ विषमाभाज्यगुणनखण्डौ स्तः।',
-      'notice.rule': '⟨ℤ/n, ×⟩ तदैव चक्रीयः यदा n इति 1, 2 अथवा 4 अस्ति, विषमाभाज्यघातः p^k अस्ति, अथवा तस्य द्विगुणः 2p^k अस्ति। योगात्मकः ⟨ℤ/n, +⟩ सर्वदा चक्रीयः अस्ति।',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ तदैव चक्रीयः यदा n इति 1, 2 अथवा 4 अस्ति, विषमाभाज्यघातः p^k अस्ति, अथवा तस्य द्विगुणः 2p^k अस्ति। योगात्मकः ⟨ℤ/nℤ, +⟩ सर्वदा चक्रीयः अस्ति।',
       exportPng: 'वलयस्य PNG अवारोपयतु',
       exportSaved: '{filename} संरक्षितम्।',
       exportFailed: 'अस्मिन् जालदर्शके चित्रं निर्यातयितुं न शक्यते।'
@@ -3320,7 +3320,7 @@
       'notice.whyPowerOfTwo': 'Causa: n = {n} potestas numeri 2 supra 4 est.',
       'notice.whyFourAndOdd': 'Causa: n = {n} per 4 et per numerum primum imparem dividitur.',
       'notice.whyTwoOddPrimes': 'Causa: n = {n} duos factores primos impares diversos habet.',
-      'notice.rule': '⟨ℤ/n, ×⟩ cyclicus est si et solum si n est 1, 2 vel 4, potestas p^k numeri primi imparis, vel duplum talis potestatis, 2p^k. Grex additivus ⟨ℤ/n, +⟩ semper cyclicus est.',
+      'notice.rule': '⟨ℤ/nℤ, ×⟩ cyclicus est si et solum si n est 1, 2 vel 4, potestas p^k numeri primi imparis, vel duplum talis potestatis, 2p^k. Grex additivus ⟨ℤ/nℤ, +⟩ semper cyclicus est.',
       exportPng: 'Deprome PNG anuli',
       exportSaved: 'Servatum est {filename}.',
       exportFailed: 'Imago in hoc navigatro exportari non potuit.'
