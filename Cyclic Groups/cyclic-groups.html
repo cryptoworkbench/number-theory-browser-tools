@@ -32,6 +32,15 @@
   .ord-m8{ --ord: color-mix(in srgb, var(--role-active) 50%, var(--role-result)); }
   .ord-m9{ --ord: color-mix(in srgb, var(--role-alt) 50%, var(--role-special)); }
   .ord-m10{ --ord: var(--role-warn); }
+  /* The website-theme coloring: primes in the site's prime green and
+     composites in its composite blue, as on the Sieve and the Factor Tree,
+     1 (when it is not the identity) in the Sieve's color for its 1 cell, and
+     the identity red unless the user picks its color, written at runtime as
+     --identity-color on .app. */
+  .ord-prime{ --ord: var(--role-result); }
+  .ord-composite{ --ord: var(--role-composite); }
+  .ord-one{ --ord: var(--role-alt); }
+  .ord-theme-id{ --ord: var(--identity-color, var(--role-warn)); }
 
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
@@ -774,8 +783,11 @@
           <select id="colorby-select">
             <option value="order" data-i18n="cyclicGroups.colorByOrder">Subgroup cardinality</option>
             <option value="inverse" data-i18n="cyclicGroups.colorByInverse">Inverse pairs</option>
+            <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
           </select>
         </div>
+        <div class="check" id="id-color-row" hidden><input type="color" class="arrow-color" id="id-color" aria-label="Identity color" data-i18n-aria-label="cyclicGroups.identityColor" title="Identity color" data-i18n-title="cyclicGroups.identityColor"><label for="id-color" data-i18n="cyclicGroups.identityColor">Identity color</label></div>
+        <button type="button" class="link-btn" id="id-color-reset" hidden data-i18n="cyclicGroups.identityColorReset">Reset identity color</button>
         <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
         <details class="extra-options">
           <summary data-i18n="cyclicGroups.extraOptions">Show extra options</summary>
@@ -843,7 +855,7 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { clamp, gcd, primeFactors, totient, unitsMod } = NT.core;
+const { clamp, gcd, isPrime, primeFactors, totient, unitsMod } = NT.core;
 const { easeInOutCubic, polar, svgEl } = NT.svg;
 const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, translate, translateInto } = NT.i18n;
@@ -873,17 +885,19 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sn
 /* ---------- state ---------- */
 // gen is the chosen element h: the inner arrows walk by h, the outer arrows
 // by its inverse.
-// colorBy picks what the bead colors mean: 'order' (element order) or
-// 'inverse' (an element and its inverse share a color).
+// colorBy picks what the bead colors mean: 'order' (element order),
+// 'inverse' (an element and its inverse share a color) or 'theme' (the
+// website's prime and composite colors, the identity in idColor, a #rrggbb
+// pick or null for the default red).
 // elSide puts the forward walk, by h, 'inside' or 'outside' the ring.
 // backward adds the walk by h⁻¹, always on the other side: see invSide().
 // dir is the way the beads count round the ring, and so the way the forward
 // walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Forward
 // direction menu picks it.
-var COLOR_BY = ['order', 'inverse'];
+var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1109,8 +1123,29 @@ function beadPainter(G, classes, pairing){
     if (state.colorBy === 'inverse'){
       return pairing.color[a] ? { cls: '', style: '--ord: ' + pairing.color[a] } : { cls: 'ord-id', style: null };
     }
+    if (state.colorBy === 'theme') return { cls: themeClass(G, a), style: null };
     return { cls: classes[G.orders[a]], style: null };
   };
+}
+
+// The website-theme color of an element: the identity's own, then 1, the
+// primes and the composites.
+function themeClass(G, a){
+  if (a === G.identity) return 'ord-theme-id';
+  if (a === 1) return 'ord-one';
+  return isPrime(a) ? 'ord-prime' : 'ord-composite';
+}
+
+// The identity's color in the website-theme coloring: the pick, written on
+// .app for the beads and the color key, or the default red. The picker and
+// its reset show only while that coloring is on.
+function syncIdColor(){
+  var on = state.colors && state.colorBy === 'theme';
+  if (state.idColor) appEl.style.setProperty('--identity-color', state.idColor);
+  else appEl.style.removeProperty('--identity-color');
+  $('id-color-row').hidden = !on;
+  $('id-color').value = state.idColor || roleHex('--role-warn');
+  $('id-color-reset').hidden = !on || !state.idColor;
 }
 
 // Inverting g^k negates the exponent, so wherever a ring places beads by
@@ -3105,13 +3140,26 @@ function renderInverseLegend(pairing){
   });
 }
 
+// The website-theme key: one line for each color the ring shows.
+function renderThemeLegend(G){
+  var shown = {};
+  G.els.forEach(function(a){ shown[themeClass(G, a)] = true; });
+  legendEl.appendChild(legendItem('ord-theme-id', null,
+    tNode('cyclicGroups.legendThemeIdentity', { e: mNum(G.identity) }), 'legend-order'));
+  if (shown['ord-one']) legendEl.appendChild(legendItem('ord-one', null,
+    tNode('cyclicGroups.legendThemeOne', { one: mNum(1) }), 'legend-order'));
+  if (shown['ord-prime']) legendEl.appendChild(legendItem('ord-prime', null, translate('cyclicGroups.legendThemePrimes'), 'legend-order'));
+  if (shown['ord-composite']) legendEl.appendChild(legendItem('ord-composite', null, translate('cyclicGroups.legendThemeComposites'), 'legend-order'));
+}
+
 function renderLegend(G, classes, pairing){
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
-  var inverse = state.colorBy === 'inverse';
+  var inverse = state.colorBy === 'inverse', theme = state.colorBy === 'theme';
   legendEl.classList.toggle('is-pairs', inverse);
-  legendHeadingEl.textContent = translate(inverse ? 'cyclicGroups.legendHeadingInverse' : 'cyclicGroups.legendHeading');
+  legendHeadingEl.textContent = translate(inverse ? 'cyclicGroups.legendHeadingInverse' : theme ? 'cyclicGroups.legendHeadingTheme' : 'cyclicGroups.legendHeading');
   if (inverse){ renderInverseLegend(pairing); return; }
+  if (theme){ renderThemeLegend(G); return; }
   var counts = {};
   G.els.forEach(function(a){ counts[G.orders[a]] = (counts[G.orders[a]] || 0) + 1; });
   Object.keys(counts).map(Number).sort(function(a, b){ return a - b; }).forEach(function(o){
@@ -3480,6 +3528,8 @@ function mirrorToUrl(G){
       else q.delete(c.param);
     });
     q.set('colorby', state.colorBy);
+    if (state.idColor) q.set('idcolor', state.idColor.slice(1));
+    else q.delete('idcolor');
     q.delete('chords');
     q.delete('outer');
     q.set('elside', state.elSide);
@@ -3616,6 +3666,7 @@ function render(){
   $('layer-bygen').disabled = !G.cyclic;
   syncArrangeGen(G);
   colorBySelectEl.disabled = !state.colors;
+  syncIdColor();
   renderNotice(G, factors);
   renderFacts(G, factors);
   // The identity generates only itself: nothing to walk, nothing to coset.
@@ -3726,6 +3777,7 @@ function exportName(){
   parts.push('el', state.gen);
   if (state.rot) parts.push('rot', state.rot);
   if (state.colors && state.colorBy === 'inverse') parts.push('inverses');
+  if (state.colors && state.colorBy === 'theme') parts.push('theme');
   if (state.elSide !== 'inside' || !state.backward) parts.push('arrows', state.elSide, state.backward ? 'back' : 'noback');
   if (state.dir === 'ccw') parts.push('ccw');
   if (state.swapColors) parts.push('swapped');
@@ -3806,6 +3858,20 @@ colorBySelectEl.addEventListener('change', function(){
   if (COLOR_BY.indexOf(colorBySelectEl.value) === -1) return;
   state.colorBy = colorBySelectEl.value;
   render();
+});
+// A new identity color repaints through --identity-color alone, so the
+// picker's popup stays open while it is dragged.
+$('id-color').addEventListener('input', function(){
+  var v = $('id-color').value.toLowerCase();
+  if (!HEX_COLOR.test(v)) return;
+  state.idColor = v;
+  syncIdColor();
+  if (drawn) mirrorToUrl(drawn.G);
+});
+$('id-color-reset').addEventListener('click', function(){
+  state.idColor = null;
+  syncIdColor();
+  if (drawn) mirrorToUrl(drawn.G);
 });
 sideElEl.addEventListener('change', function(){
   if (SIDES.indexOf(sideElEl.value) === -1) return;
@@ -3927,6 +3993,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
     else if (raw === '1') state[name] = true;
   });
   if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
+  var idColor = '#' + String(query.get('idcolor') || '').toLowerCase();
+  if (HEX_COLOR.test(idColor)) state.idColor = idColor;
   // Links from before the side menus hid the inverse walk with outer=0, and
   // from before the backwards checkbox with invside=neither.
   if (query.get('outer') === '0' || query.get('invside') === 'neither') state.backward = false;

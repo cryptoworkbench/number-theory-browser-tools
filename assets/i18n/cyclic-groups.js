@@ -33,7 +33,9 @@
    full-screen taskbar and its windows: fsPanels (the taskbar and its
    launcher menu), the window names fsFormulas, fsIsomorphisms, fsColorKey,
    fsExport and fsNotice (the other windows take their panel's heading),
-   formulaMove (a window's grip) and fsClose (its close button). Every other language shows the English
+   formulaMove (a window's grip) and fsClose (its close button), and the
+   website-theme bead coloring: colorByTheme, identityColor,
+   identityColorReset, legendHeadingTheme and the four legendTheme* lines. Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -235,6 +237,9 @@
       colorByLabel: 'Color elements by',
       colorByOrder: 'Subgroup cardinality',
       colorByInverse: 'Inverse pairs',
+      colorByTheme: 'Website theme',
+      identityColor: 'Identity color',
+      identityColorReset: 'Reset identity color',
       layerOrders: 'Order labels',
       layerBygen: 'Arrange elements by generator powers',
       arrangeGenLabel: 'Generator',
@@ -335,6 +340,11 @@
       legendOrder: 'Subgroup’s cardinality: {order}',
       legendSubgroups: { one: '{count} subgroup', other: '{count} subgroups' },
       legendHeadingInverse: 'Color key: inverse pairs',
+      legendHeadingTheme: 'Color key: website theme',
+      legendThemeIdentity: 'identity: {e}',
+      legendThemeOne: '{one}: neither prime nor composite',
+      legendThemePrimes: 'primes',
+      legendThemeComposites: 'composites',
       legendSelfInverse: 'own inverse: {list}',
       legendPair: '{a} ↔ {b}',
       ringTitleWhole: '⟨{h}⟩ ⊆ {group}',
