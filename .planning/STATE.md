@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T12:57:48.049Z"
+last_updated: "2026-10-11T13:02:52.144Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 8d0f2cc3f33cf3fdb0379121528837e952f7396f
+state_head: ba038666530fdbad4a296399c88aca71a392b009
 progress:
   total_phases: 7
   completed_phases: 6
@@ -454,6 +454,7 @@ None yet.
 | 218 | Cyclic Groups: Ring window rows — Group arrangement above Subgroup visualized | 2026-10-11 | 41afa54 | — |
 | 219 | Cyclic Groups: operation switch no longer overlaps the Group arrangement row | 2026-10-11 | 943ab72 | — |
 | 220 | Cyclic Groups: Subgroup panel options move into the Ring window's subgroup row | 2026-10-11 | 8d0f2cc | — |
+| 221 | Cyclic Groups: subgroup row options styled like the Generator control; colour spelling | 2026-10-11 | ba03866 | — |
 
 ## Deferred Items
 
