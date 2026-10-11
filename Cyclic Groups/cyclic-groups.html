@@ -133,6 +133,10 @@
   .stage.is-sized svg.ring-svg{ flex:1 1 0; width:100%; height:auto; min-height:0; }
   .stage.is-sized .subgroups-panel .subgroups{ max-height:420px; }
   .stage.is-resizing{ user-select:none; -webkit-user-select:none; }
+  /* Dragged wider than its column, the diagram takes the whole width and the
+     side panels move under it; dragged back inside the column, or reset by a
+     double-click, they return beside it. */
+  .layout.is-stacked{ grid-template-columns:minmax(0, 1fr); }
   .rotate-row{ display:flex; align-items:center; gap:6px; }
   .rotate-row .action-btn{ padding:6px 12px; }
   .rotate-value{ font-family:var(--font-mono); font-size:.9rem; width:3.2em; text-align:center; padding:4px 2px; border:1px solid var(--panel-border); border-radius:6px; background:var(--panel); color:var(--text); }
@@ -2153,9 +2157,19 @@ autoRotateEl.addEventListener('change', function(e){
 });
 
 // Dragging the grip sizes the diagram: no narrower or shorter than
-// FRAME_MIN, no wider than its column. Double-clicking it unsizes it.
+// FRAME_MIN, no wider than the layout. Past the column beside the side
+// panels, the layout stacks so the panels sit under the diagram.
+// Double-clicking it unsizes it.
 var FRAME_MIN = 300;
+var SIDE_W = 340; // the side column's width in .layout's grid
+var layoutEl = document.querySelector('.layout');
 var sizing = null; // { id, x, y, w, h } while the grip is dragged
+// The diagram's widest size beside the side panels, or 0 when the layout
+// is a single column anyway (a narrow window).
+function besideMaxW(){
+  if (!window.matchMedia('(min-width: 901px)').matches) return 0;
+  return layoutEl.clientWidth - SIDE_W - parseFloat(getComputedStyle(layoutEl).columnGap);
+}
 resizeGripEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0) return;
   var r = diagramFrameEl.getBoundingClientRect();
@@ -2166,8 +2180,10 @@ resizeGripEl.addEventListener('pointerdown', function(e){
 });
 resizeGripEl.addEventListener('pointermove', function(e){
   if (!sizing || e.pointerId !== sizing.id) return;
-  var maxW = ringPanelEl.clientWidth;
-  var w = Math.max(FRAME_MIN, Math.min(maxW, sizing.w + e.clientX - sizing.x));
+  var want = sizing.w + e.clientX - sizing.x;
+  var beside = besideMaxW();
+  layoutEl.classList.toggle('is-stacked', beside > 0 && want > beside);
+  var w = Math.max(FRAME_MIN, Math.min(ringPanelEl.clientWidth, want));
   var h = Math.max(FRAME_MIN, sizing.h + e.clientY - sizing.y);
   diagramFrameEl.style.setProperty('--frame-w', Math.round(w) + 'px');
   diagramFrameEl.style.setProperty('--frame-h', Math.round(h) + 'px');
@@ -2182,6 +2198,7 @@ resizeGripEl.addEventListener('pointerup', endSizing);
 resizeGripEl.addEventListener('pointercancel', endSizing);
 resizeGripEl.addEventListener('dblclick', function(){
   ringPanelEl.classList.remove('is-sized');
+  layoutEl.classList.remove('is-stacked');
   diagramFrameEl.style.removeProperty('--frame-w');
   diagramFrameEl.style.removeProperty('--frame-h');
 });
