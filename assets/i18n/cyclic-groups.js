@@ -33,7 +33,10 @@
    full-screen taskbar and its windows: fsPanels (the taskbar and its
    launcher menu), the window names fsFormulas, fsIsomorphisms, fsColorKey,
    fsExport and fsNotice (the other windows take their panel's heading),
-   formulaMove (a window's grip) and fsClose (its close button), and the
+   formulaMove (a window's grip), fsClose, fsMinimize, fsMaximize and
+   fsRestore (its title-bar buttons), fsRing (the ring's own window), and
+   fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
+   commands), and the
    website-theme bead coloring: colorByTheme, identityColor,
    identityColorReset, legendHeadingTheme and the four legendTheme* lines. Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
@@ -309,6 +312,14 @@
       fsExport: 'Export',
       fsNotice: 'Notice',
       fsClose: 'Close {name}',
+      fsRing: 'Ring',
+      fsMinimize: 'Minimize {name}',
+      fsMaximize: 'Maximize {name}',
+      fsRestore: 'Restore {name}',
+      fsWindows: 'Windows',
+      fsTile: 'Tile windows',
+      fsCascade: 'Cascade windows',
+      fsShowDesktop: 'Show desktop',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',

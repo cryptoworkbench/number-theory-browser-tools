@@ -450,55 +450,92 @@
      and a double-click puts it back in the column. */
   .ring-head [data-formula]{ cursor:grab; touch-action:none; }
   .diagram-frame .is-moved{ position:absolute; z-index:1; margin:0; }
-  /* Full screen, every panel of the page opens as a window over the
-     diagram from a taskbar along the bottom of the screen, like KDE
-     Plasma's: a launcher menu on the left listing them all, then a task
-     button for each, marked along its top edge while its window is open
-     and lit while that window is in front. A window is a card like the
-     Factor Tree's tree cards, dragged by its head (the grip and the
-     panel's name) and closed with its close button; the panel inside is
-     the page's own, moved in, its controls and state untouched. */
-  .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; width:320px; max-width:calc(100% - 24px); max-height:calc(100% - 72px); padding:4px 4px 8px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
-  .fs-win[hidden], .fs-win:has(> .fs-win-body > [hidden]){ display:none; }
-  .fs-win.is-wide{ width:560px; }
-  .fs-win-head{ flex:none; display:flex; align-items:center; gap:4px; min-width:0; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  /* Full screen, the diagram becomes a little desktop: the ring and every
+     panel of the page are windows on it, opened from a taskbar along the
+     bottom like KDE Plasma's (a launcher menu on the left, a task button
+     for each window, marked along its top edge while it is open and lit
+     while it is in front, then a clock and the button that leaves full
+     screen). A window has a title bar with the Factor Tree's drag grip,
+     its name, and minimize, maximize and close buttons; it is moved by its
+     title bar, resized by any edge or corner, maximized by a double-click
+     on its title bar, and snapped to a half or a quarter of the desktop
+     when dragged to an edge or a corner (to all of it at the top edge).
+     Moved or resized, its edges catch on the desktop's and the other
+     windows'. The panel inside is the page's own, moved in, its controls
+     and state untouched. */
+  .diagram-frame:fullscreen{ padding:0; }
+  .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; min-width:0; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
+  .fs-win[hidden], .fs-win:not(.is-ring):has(> .fs-win-body > [hidden]){ display:none; }
+  .fs-win.is-front{ border-color:color-mix(in srgb, var(--accent) 55%, var(--panel-border-strong)); }
+  .fs-win.is-max, .fs-win.is-max .fs-win-head{ border-radius:0; }
+  .fs-win.is-max{ border-width:0; box-shadow:none; }
+  .fs-win-head{ flex:none; display:flex; align-items:center; gap:4px; min-width:0; padding:4px; border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; background:color-mix(in srgb, var(--text) 4%, transparent); border-bottom:1px solid var(--panel-border); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .fs-win.is-front .fs-win-head{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
   .fs-win-grip{ flex:none; width:24px; height:24px; display:grid; place-items:center; color:var(--text-dim); }
   .fs-win-head:hover .fs-win-grip{ color:var(--text); }
   .fs-win-grip circle{ fill:currentColor; }
   .fs-win-title{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:start; font-size:.78rem; font-weight:600; color:var(--text-dim); }
-  .fs-win-close{ flex:none; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
-  .fs-win-close:hover{ color:var(--role-warn); border-color:var(--role-warn); }
-  .fs-win-close:focus{ outline:none; }
-  .fs-win-close:focus-visible{ box-shadow:var(--ctl-focus); }
-  .fs-win-close line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
-  .fs-win-body{ flex:1 1 auto; min-height:0; overflow:auto; }
-  .fs-win-body > .panel{ background:none; border:0; border-radius:0; padding:4px 10px 0; }
+  .fs-win.is-front .fs-win-title{ color:var(--text); }
+  .fs-win-btn{ flex:none; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
+  .fs-win-btn:hover{ color:var(--accent); border-color:var(--accent); }
+  .fs-win-btn.is-close:hover{ color:var(--role-warn); border-color:var(--role-warn); }
+  .fs-win-btn:focus{ outline:none; }
+  .fs-win-btn:focus-visible{ box-shadow:var(--ctl-focus); }
+  .fs-win-btn svg *{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .fs-win-btn .icon-restore, .fs-win.is-max .fs-win-btn .icon-max{ display:none; }
+  .fs-win.is-max .fs-win-btn .icon-restore{ display:block; }
+  .fs-win-body{ flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:8px; border-radius:0 0 calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px); }
+  .fs-win-body > .panel{ background:none; border:0; border-radius:0; padding:6px 12px 0; }
   .fs-win.hides-heading .fs-win-body > .panel > h2, .fs-win.hides-heading .fs-win-body > .panel > .panel-head > h2{ display:none; }
-  .fs-win-body > .formula-toggles{ position:static; padding:6px 10px 2px; font-size:.9rem; gap:8px; }
+  .fs-win-body > .formula-toggles{ position:static; padding:8px 12px 2px; font-size:.9rem; gap:8px; }
   .fs-win-body .subgroups{ max-height:none; }
+  /* The ring's window: the formulas on top, the ring taking the rest, and
+     under it a row with the rotation controls, the speed ruler and the
+     arrow key side by side. */
+  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto minmax(0, 1fr) auto; grid-template-areas:"head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
+  .fs-win-body.is-ring > .ring-head{ grid-area:head; }
+  .fs-win-body.is-ring > svg.ring-svg{ grid-area:ring; align-self:stretch; width:100%; height:100%; min-height:0; }
+  .diagram-frame:fullscreen .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
+  .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; position:static; }
+  .fs-win-body.is-ring > .combine-key{ grid-area:key; position:static; max-width:260px; margin:0; }
+  .fs-rs{ position:absolute; z-index:4; touch-action:none; }
+  .fs-rs[data-dir="n"], .fs-rs[data-dir="s"]{ left:10px; right:10px; height:8px; cursor:ns-resize; }
+  .fs-rs[data-dir="e"], .fs-rs[data-dir="w"]{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
+  .fs-rs[data-dir="n"]{ top:-4px; } .fs-rs[data-dir="s"]{ bottom:-4px; } .fs-rs[data-dir="e"]{ right:-4px; } .fs-rs[data-dir="w"]{ left:-4px; }
+  .fs-rs[data-dir="nw"], .fs-rs[data-dir="ne"], .fs-rs[data-dir="sw"], .fs-rs[data-dir="se"]{ width:16px; height:16px; }
+  .fs-rs[data-dir="nw"]{ top:-4px; left:-4px; cursor:nwse-resize; } .fs-rs[data-dir="se"]{ bottom:-4px; right:-4px; cursor:nwse-resize; }
+  .fs-rs[data-dir="ne"]{ top:-4px; right:-4px; cursor:nesw-resize; } .fs-rs[data-dir="sw"]{ bottom:-4px; left:-4px; cursor:nesw-resize; }
+  .fs-win.is-max .fs-rs{ display:none; }
+  :root.is-win-drag, :root.is-win-drag *{ user-select:none !important; -webkit-user-select:none !important; }
+  .fs-snap{ position:absolute; z-index:45; pointer-events:none; box-sizing:border-box; border:2px solid var(--accent); background:color-mix(in srgb, var(--accent) 14%, transparent); border-radius:var(--radius-card); }
+  .fs-snap[hidden]{ display:none; }
   .fs-taskbar{ display:none; }
-  .diagram-frame:fullscreen .fs-taskbar{ position:relative; z-index:50; flex:none; display:flex; align-items:stretch; gap:2px; height:44px; margin:6px -14px -14px; padding:0 4px; background:var(--surface); border-top:1px solid var(--panel-border-strong); box-shadow:0 -2px 10px var(--scrim); }
-  .fs-task, .fs-launcher, .fs-menu-item{ font:inherit; font-family:var(--font-sans); color:var(--text); background:none; border:0; cursor:pointer; }
+  .diagram-frame:fullscreen .fs-taskbar{ position:absolute; left:0; right:0; bottom:0; z-index:50; display:flex; align-items:stretch; gap:2px; height:44px; padding:0 0 0 4px; box-sizing:border-box; background:var(--surface); border-top:1px solid var(--panel-border-strong); box-shadow:0 -2px 10px var(--scrim); }
+  .fs-task, .fs-launcher, .fs-menu-item, .fs-tray-btn{ font:inherit; font-family:var(--font-sans); color:var(--text); background:none; border:0; cursor:pointer; }
   .fs-task{ position:relative; display:flex; align-items:center; gap:8px; min-width:0; max-width:220px; padding:0 12px; font-size:.84rem; }
-  .fs-task:hover, .fs-launcher:hover, .fs-launcher[aria-expanded="true"]{ background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .fs-task:hover, .fs-launcher:hover, .fs-launcher[aria-expanded="true"], .fs-tray-btn:hover{ background:color-mix(in srgb, var(--text) 8%, transparent); }
   .fs-task.is-open::before{ content:""; position:absolute; left:3px; right:3px; top:0; height:3px; background:color-mix(in srgb, var(--accent) 45%, transparent); }
+  .fs-task.is-min .fs-task-label{ opacity:.65; }
   .fs-task.is-front{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
   .fs-task.is-front::before{ background:var(--accent); }
   .fs-task:disabled{ opacity:.4; cursor:default; background:none; }
-  .fs-task:focus-visible, .fs-launcher:focus-visible, .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .fs-task:focus-visible, .fs-launcher:focus-visible, .fs-menu-item:focus-visible, .fs-tray-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .fs-icon{ flex:none; min-width:20px; text-align:center; font-family:var(--font-math); font-size:1.05rem; line-height:1; color:var(--accent); }
   .fs-task-label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .fs-launcher{ flex:none; width:48px; display:grid; place-items:center; color:var(--accent); }
-  .fs-launcher svg{ width:22px; height:22px; fill:currentColor; }
+  .fs-launcher svg, .fs-tray-btn svg{ width:22px; height:22px; fill:currentColor; }
   .fs-tasks{ flex:1 1 auto; min-width:0; display:flex; gap:2px; overflow-x:auto; }
+  .fs-tray{ flex:none; display:flex; align-items:center; gap:2px; padding:0 4px 0 10px; border-left:1px solid var(--panel-border); }
+  .fs-clock{ padding:0 8px; font-family:var(--font-mono); font-size:.84rem; color:var(--text); font-variant-numeric:tabular-nums; }
+  .fs-tray-btn{ width:40px; align-self:stretch; display:grid; place-items:center; color:var(--text-dim); }
   .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-menu[hidden]{ display:none; }
   .fs-menu-head{ margin:4px 8px 6px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
+  .fs-menu-head + .fs-menu-head, .fs-menu-item + .fs-menu-head{ margin-top:10px; padding-top:8px; border-top:1px solid var(--panel-border); }
   .fs-menu-item{ display:flex; align-items:center; gap:10px; width:100%; padding:7px 8px; border-radius:6px; font-size:.88rem; text-align:start; }
   .fs-menu-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .fs-menu-item:disabled{ opacity:.4; cursor:default; background:none; }
   .diagram-frame:fullscreen .resize-grip{ display:none; }
-  .diagram-frame:fullscreen :is(.rotate-ctl, .combine-key){ bottom:62px; }
   /* The diagram's top-right corner: the full-screen button, and under it,
      while a formula on show stands away from its place, the button that
      puts the formulas back. */
@@ -652,7 +689,7 @@
     <div class="stage" id="ring-panel">
       <section class="panel notice" id="notice" role="note" hidden></section>
       <div class="diagram-frame" id="diagram-frame">
-        <div class="frame-tools">
+        <div class="frame-tools" id="frame-tools">
           <button type="button" class="icon-btn" id="fullscreen-btn">
             <svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
             <svg class="icon-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
@@ -680,7 +717,7 @@
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
-        <div class="spin-ruler">
+        <div class="spin-ruler" id="spin-ruler">
           <span aria-hidden="true">&#x27F2;</span>
           <div class="spin-track">
             <div class="spin-ticks" aria-hidden="true"><span></span><span></span><span></span><span class="is-zero"></span><span></span><span></span><span></span></div>
@@ -690,15 +727,20 @@
         </div>
         <div class="fs-taskbar" id="fs-taskbar" role="toolbar" aria-label="Panels" data-i18n-aria-label="cyclicGroups.fsPanels">
           <button type="button" class="fs-launcher" id="fs-launcher" aria-haspopup="menu" aria-expanded="false" aria-controls="fs-menu" title="Panels" aria-label="Panels" data-i18n-title="cyclicGroups.fsPanels" data-i18n-aria-label="cyclicGroups.fsPanels"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></button>
-          <div class="fs-menu" id="fs-menu" role="menu" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.fsPanels">Panels</p></div>
+          <div class="fs-menu" id="fs-menu" role="menu" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.fsPanels">Panels</p><div id="fs-menu-panels"></div><p class="fs-menu-head" data-i18n="cyclicGroups.fsWindows">Windows</p><div id="fs-menu-actions"></div></div>
           <div class="fs-tasks" id="fs-tasks"></div>
+          <div class="fs-tray">
+            <span class="fs-clock" id="fs-clock"></span>
+            <button type="button" class="fs-tray-btn" id="fs-exit"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></button>
+          </div>
         </div>
+        <div class="fs-snap" id="fs-snap" hidden></div>
         <div class="combine-key" id="combine-key" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-outer"></span></div>
         </div>
         <div class="resize-grip" id="resize-grip" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-hidden="true"></div>
-        <div class="rotate-ctl">
+        <div class="rotate-ctl" id="rotate-ctl">
           <label id="rot-label" data-i18n="cyclicGroups.rotateLabel">Rotation — drag the ring</label>
           <div class="rotate-row" role="group" aria-labelledby="rot-label">
             <button type="button" class="action-btn" id="rot-back" aria-label="Rotate one element counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one element counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
@@ -1748,21 +1790,22 @@ function movable(key, el){
   return el;
 }
 function formulaEl(key){
-  return diagramFrameEl.querySelector('[data-formula="' + key + '"]');
+  return ringHeadEl.querySelector('[data-formula="' + key + '"]');
 }
-// The movable thing a press lands on: a formula anywhere, a full-screen
-// window only by its head, never by its close button.
+// The movable formula a press lands on.
 function grabbed(target){
-  if (!target.closest || target.closest('.fs-win-close')) return null;
-  var el = target.closest('[data-formula]');
-  if (el && el.classList.contains('fs-win') && !target.closest('.fs-win-head')) return null;
-  return el;
+  return target.closest ? target.closest('[data-formula]') : null;
 }
-// Puts a moved formula's centre at (x, y), fractions of the diagram's
-// padding box, kept wholly inside it. A <math> element has no offset*
-// metrics, so the size comes from the bounding box.
+// What the formulas are placed in: the diagram, or full screen the ring's
+// window.
+function formulaBox(){
+  return fsWins ? fsWins.ring.body : diagramFrameEl;
+}
+// Puts a moved formula's centre at (x, y), fractions of its box's padding
+// box, kept wholly inside it. A <math> element has no offset* metrics, so
+// the size comes from the bounding box.
 function placeFormula(el, x, y){
-  var W = diagramFrameEl.clientWidth, H = diagramFrameEl.clientHeight;
+  var box = formulaBox(), W = box.clientWidth, H = box.clientHeight;
   var r = el.getBoundingClientRect(), w = r.width, h = r.height;
   el.style.left = Math.round(clamp(x * W - w / 2, 0, Math.max(0, W - w))) + 'px';
   el.style.top = Math.round(clamp(y * H - h / 2, 0, Math.max(0, H - h))) + 'px';
@@ -1774,17 +1817,15 @@ function placeMoved(){
     el.classList.add('is-moved');
     placeFormula(el, p.x, p.y);
   });
-  placeWindows();
   syncFormulaReset();
 }
 // The reset button shows while a formula on show is away from its place.
 function syncFormulaReset(){
   $('formula-reset').hidden = !ringHeadEl.querySelector('.is-moved');
 }
-// Reset puts every formula back, the ones turned off as well. The
-// full-screen windows keep their places.
+// Reset puts every formula back, the ones turned off as well.
 $('formula-reset').addEventListener('click', function(){
-  Object.keys(formulaPos).forEach(function(k){ if (k.indexOf(WIN_KEY) !== 0) delete formulaPos[k]; });
+  formulaPos = {};
   writeFormulaPos();
   ringHeadEl.querySelectorAll('.is-moved').forEach(function(el){
     el.classList.remove('is-moved');
@@ -1801,8 +1842,8 @@ window.addEventListener('pointermove', function(e){
   if (!formulaDrag || e.pointerId !== formulaDrag.id) return;
   var el = formulaEl(formulaDrag.key);
   if (!el){ formulaDrag = null; return; }
-  var frame = diagramFrameEl.getBoundingClientRect();
-  var ox = frame.left + diagramFrameEl.clientLeft, oy = frame.top + diagramFrameEl.clientTop;
+  var box = formulaBox(), frame = box.getBoundingClientRect();
+  var ox = frame.left + box.clientLeft, oy = frame.top + box.clientTop;
   if (!formulaDrag.live){
     // A press that wanders less than a few pixels is a click, which
     // selects the formula for copying.
@@ -1815,7 +1856,7 @@ window.addEventListener('pointermove', function(e){
     if (sel) sel.removeAllRanges();
     document.documentElement.classList.add('is-formula-drag');
     // Lifted out of the column where it stands, so it does not jump.
-    if (!el.classList.contains('is-moved') && !el.classList.contains('fs-win')){
+    if (!el.classList.contains('is-moved')){
       el.classList.add('is-moved');
       el.style.left = Math.round(r.left - ox) + 'px';
       el.style.top = Math.round(r.top - oy) + 'px';
@@ -1824,15 +1865,15 @@ window.addEventListener('pointermove', function(e){
   }
   e.preventDefault();
   var p = {
-    x: (e.clientX - formulaDrag.dx - ox) / diagramFrameEl.clientWidth,
-    y: (e.clientY - formulaDrag.dy - oy) / diagramFrameEl.clientHeight
+    x: (e.clientX - formulaDrag.dx - ox) / box.clientWidth,
+    y: (e.clientY - formulaDrag.dy - oy) / box.clientHeight
   };
   placeFormula(el, p.x, p.y);
   // What is remembered is where it ended up, after keeping it inside.
   var at = el.getBoundingClientRect();
   formulaPos[formulaDrag.key] = {
-    x: (at.left + at.width / 2 - ox) / diagramFrameEl.clientWidth,
-    y: (at.top + at.height / 2 - oy) / diagramFrameEl.clientHeight
+    x: (at.left + at.width / 2 - ox) / box.clientWidth,
+    y: (at.top + at.height / 2 - oy) / box.clientHeight
   };
 });
 function endFormulaDrag(e){
@@ -1848,12 +1889,6 @@ window.addEventListener('pointercancel', endFormulaDrag);
 diagramFrameEl.addEventListener('dragstart', function(e){ if (grabbed(e.target)) e.preventDefault(); });
 diagramFrameEl.addEventListener('dblclick', function(e){
   var el = grabbed(e.target);
-  if (el && el.classList.contains('fs-win')){
-    delete formulaPos[el.getAttribute('data-formula')];
-    writeFormulaPos();
-    placeWindows();
-    return;
-  }
   if (!el || !el.classList.contains('is-moved')) return;
   delete formulaPos[el.getAttribute('data-formula')];
   writeFormulaPos();
@@ -1896,39 +1931,83 @@ document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 syncFullscreenBtn();
 
-/* ---------- full-screen windows and taskbar ---------- */
+/* ---------- full-screen desktop: windows and taskbar ---------- */
 
-// Every panel of the page, in the taskbar's order: where it lives, the
-// name its window and task button carry, and the sign on its button. A
+// The windows, in the taskbar's order: the parts of the page each holds
+// (moved in on entering full screen, back to their places on leaving), the
+// name it carries, the sign on its task button, and its smallest size. A
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'formulas', id: 'formula-toggles', title: 'cyclicGroups.fsFormulas', icon: '∑' },
-  { key: 'group', id: 'group-panel', title: 'cyclicGroups.groupHeading', icon: 'G', hideHeading: true },
-  { key: 'subgroup', id: 'subgroup-panel', title: 'cyclicGroups.subgroupHeading', icon: 'H', hideHeading: true },
-  { key: 'iso', id: 'iso-panel', title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
-  { key: 'subgroups', id: 'subgroups-list-panel', title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, wide: true },
-  { key: 'legend', id: 'legend-panel', title: 'cyclicGroups.fsColorKey', icon: '◐' },
-  { key: 'layers', id: 'layers-panel', title: 'cyclicGroups.layersHeading', icon: '☰', hideHeading: true },
-  { key: 'export', id: 'export-panel', title: 'cyclicGroups.fsExport', icon: '⤓' },
-  { key: 'notice', id: 'notice', title: 'cyclicGroups.fsNotice', icon: '!' }
+  { key: 'ring', ids: ['frame-tools', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'formulas', ids: ['formula-toggles'], title: 'cyclicGroups.fsFormulas', icon: '∑' },
+  { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.groupHeading', icon: 'G', hideHeading: true },
+  { key: 'subgroup', ids: ['subgroup-panel'], title: 'cyclicGroups.subgroupHeading', icon: 'H', hideHeading: true },
+  { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
+  { key: 'subgroups', ids: ['subgroups-list-panel'], title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, width: 560 },
+  { key: 'legend', ids: ['legend-panel'], title: 'cyclicGroups.fsColorKey', icon: '◐' },
+  { key: 'layers', ids: ['layers-panel'], title: 'cyclicGroups.layersHeading', icon: '☰', hideHeading: true },
+  { key: 'export', ids: ['export-panel'], title: 'cyclicGroups.fsExport', icon: '⤓' },
+  { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
-// A window's remembered place is kept with the formulas', under WIN_KEY and
-// its panel's key; which windows are open, front last, under FS_OPEN_KEY.
-var WIN_KEY = 'win-';
-var FS_OPEN_KEY = 'cyclic-groups-fs-open';
-var fsOpen = readFsOpen();
-var fsWins = null; // panel key -> { spec, el, home, win, title, grip, close } while full screen
+var FS_MIN_W = 220, FS_MIN_H = 120;
+var TASKBAR_H = 44;
+var SNAP_EDGE = 12;   // how near an edge of the desktop the pointer snaps a dragged window
+var SNAP_CORNER = 80; // how near a corner, along the edge, it snaps to a quarter
+var SNAP_ALIGN = 10;  // how near another edge a moved or resized edge catches on it
+
+// The desktop's state, remembered across visits: the open windows in
+// stacking order (front last), the minimized and maximized ones, and each
+// window's place and size as fractions of the desktop (h null: as tall as
+// its content), with the place a snapped or tiled window goes back to when
+// dragged away.
+var FS_STATE_KEY = 'cyclic-groups-fs-windows';
+var fsState = readFsState();
+var fsWins = null; // window key -> { spec, win, body, title, grip, buttons, homes } while full screen
 var fsTasksEl = $('fs-tasks'), fsMenuEl = $('fs-menu'), fsLauncherEl = $('fs-launcher');
-var fsTasks = {}, fsItems = {};
-function readFsOpen(){
+var fsSnapEl = $('fs-snap');
+var fsTasks = {}, fsItems = {}, fsActions = {};
+var fsDesktopHidden = null; // the windows Show desktop minimized, to bring back
+var winDrag = null; // { key, mode: 'move' or a resize edge, id, x, y, start, live, snap, rect } while a window is moved or resized
+function readFsState(){
+  var keys = FS_PANELS.map(function(p){ return p.key; });
+  var ok = function(list){ return Array.isArray(list) ? list.filter(function(k){ return keys.indexOf(k) !== -1; }) : []; };
+  var out = { open: ['ring'], min: [], max: [], geom: {}, restore: {} };
   try {
-    var raw = JSON.parse(localStorage.getItem(FS_OPEN_KEY) || '[]');
-    return Array.isArray(raw) ? raw.filter(function(k){ return FS_PANELS.some(function(p){ return p.key === k; }); }) : [];
-  } catch (e) { return []; }
+    var raw = JSON.parse(localStorage.getItem(FS_STATE_KEY) || 'null');
+    if (raw){
+      out.open = ok(raw.open); out.min = ok(raw.min); out.max = ok(raw.max);
+      ['geom', 'restore'].forEach(function(f){
+        Object.keys(raw[f] || {}).forEach(function(k){
+          var g = raw[f][k];
+          if (keys.indexOf(k) !== -1 && g && [g.l, g.t, g.w].every(isFinite)) out[f][k] = { l: +g.l, t: +g.t, w: +g.w, h: isFinite(g.h) && g.h !== null ? +g.h : null };
+        });
+      });
+    }
+  } catch (e) { /* storage unavailable or unreadable */ }
+  return out;
 }
-function writeFsOpen(){
-  try { localStorage.setItem(FS_OPEN_KEY, JSON.stringify(fsOpen)); } catch (e) { /* storage unavailable */ }
+function writeFsState(){
+  try { localStorage.setItem(FS_STATE_KEY, JSON.stringify(fsState)); } catch (e) { /* storage unavailable */ }
+}
+function specOf(key){ return FS_PANELS.filter(function(p){ return p.key === key; })[0]; }
+function isOpen(key){ return fsState.open.indexOf(key) !== -1; }
+function isMin(key){ return fsState.min.indexOf(key) !== -1; }
+function isMax(key){ return fsState.max.indexOf(key) !== -1; }
+function without(list, key){ return list.filter(function(k){ return k !== key; }); }
+// A window the page has something in: the ring always, a panel unless hidden.
+function hasContent(spec){ return spec.ring || !$(spec.ids[0]).hidden; }
+// The window in front: the last open one not minimized and with content.
+function frontKey(){
+  var shown = fsState.open.filter(function(k){ return !isMin(k) && hasContent(specOf(k)); });
+  return shown.length ? shown[shown.length - 1] : null;
+}
+function desk(){ return { W: diagramFrameEl.clientWidth, H: Math.max(0, diagramFrameEl.clientHeight - TASKBAR_H) }; }
+
+function svgIcon(parts){
+  var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  parts.forEach(function(p){ icon.appendChild(svgEl(p[0], p[1])); });
+  return icon;
 }
 function fsIcon(sign){
   var i = document.createElement('span');
@@ -1937,7 +2016,9 @@ function fsIcon(sign){
   i.textContent = sign;
   return i;
 }
-// The task buttons and the launcher's menu items, one each per panel.
+
+// The task buttons and the launcher's menu, one item each per window, then
+// the desktop's own commands.
 FS_PANELS.forEach(function(spec){
   var task = document.createElement('button');
   task.type = 'button';
@@ -1947,9 +2028,8 @@ FS_PANELS.forEach(function(spec){
   label.className = 'fs-task-label';
   task.appendChild(label);
   task.addEventListener('click', function(){
-    if (fsOpen.indexOf(spec.key) === -1) openWindow(spec.key);
-    else if (fsOpen[fsOpen.length - 1] === spec.key) closeWindow(spec.key);
-    else openWindow(spec.key);
+    if (!isOpen(spec.key) || isMin(spec.key) || frontKey() !== spec.key) raiseWindow(spec.key);
+    else minimizeWindow(spec.key);
   });
   fsTasksEl.appendChild(task);
   fsTasks[spec.key] = task;
@@ -1959,12 +2039,25 @@ FS_PANELS.forEach(function(spec){
   item.setAttribute('role', 'menuitem');
   item.appendChild(fsIcon(spec.icon));
   item.appendChild(document.createElement('span'));
-  item.addEventListener('click', function(){
-    setFsMenu(false);
-    openWindow(spec.key);
-  });
-  fsMenuEl.appendChild(item);
+  item.addEventListener('click', function(){ setFsMenu(false); raiseWindow(spec.key); });
+  $('fs-menu-panels').appendChild(item);
   fsItems[spec.key] = item;
+});
+[
+  { key: 'tile', title: 'cyclicGroups.fsTile', icon: '⊞', run: tileWindows },
+  { key: 'cascade', title: 'cyclicGroups.fsCascade', icon: '❐', run: cascadeWindows },
+  { key: 'desktop', title: 'cyclicGroups.fsShowDesktop', icon: '▭', run: showDesktop }
+].forEach(function(a){
+  var item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'fs-menu-item';
+  item.setAttribute('role', 'menuitem');
+  item.appendChild(fsIcon(a.icon));
+  var label = document.createElement('span');
+  item.appendChild(label);
+  item.addEventListener('click', function(){ setFsMenu(false); a.run(); });
+  $('fs-menu-actions').appendChild(item);
+  fsActions[a.key] = { item: item, label: label, title: a.title };
 });
 function setFsMenu(open){
   fsMenuEl.hidden = !open;
@@ -1981,29 +2074,95 @@ document.addEventListener('pointerdown', function(e){
 fsMenuEl.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ setFsMenu(false); fsLauncherEl.focus(); e.preventDefault(); }
 });
+$('fs-exit').addEventListener('click', function(){
+  if (fullscreenEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+});
 
-function openWindow(key){
-  fsOpen = fsOpen.filter(function(k){ return k !== key; }).concat([key]);
-  writeFsOpen();
+// The clock in the taskbar's tray, hours and minutes.
+function syncClock(){
+  var d = new Date();
+  $('fs-clock').textContent = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+}
+var fsClockId = null;
+
+/* window commands */
+
+function raiseWindow(key){
+  fsState.open = without(fsState.open, key).concat([key]);
+  fsState.min = without(fsState.min, key);
+  fsDesktopHidden = null;
+  writeFsState();
+  syncWindows();
+}
+function minimizeWindow(key){
+  if (!isMin(key)) fsState.min.push(key);
+  writeFsState();
   syncWindows();
 }
 function closeWindow(key){
-  fsOpen = fsOpen.filter(function(k){ return k !== key; });
-  writeFsOpen();
+  fsState.open = without(fsState.open, key);
+  fsState.min = without(fsState.min, key);
+  writeFsState();
   syncWindows();
 }
-// A press anywhere on an open window brings it to the front.
-diagramFrameEl.addEventListener('pointerdown', function(e){
-  var win = e.target.closest && e.target.closest('.fs-win');
-  if (!win || e.target.closest('.fs-win-close')) return;
-  var key = win.getAttribute('data-panel');
-  if (fsOpen[fsOpen.length - 1] !== key) openWindow(key);
-}, true);
+function toggleMaximize(key){
+  if (isMax(key)) fsState.max = without(fsState.max, key);
+  else fsState.max.push(key);
+  raiseWindow(key);
+}
+// The windows on show, the ring first.
+function shownWindows(){
+  return FS_PANELS.map(function(p){ return p.key; }).filter(function(k){ return isOpen(k) && !isMin(k) && hasContent(specOf(k)); });
+}
+// Tile: the windows on show share the desktop in a grid, row by row, the
+// last row's windows widened to fill it.
+function tileWindows(){
+  var keys = shownWindows(), n = keys.length;
+  if (!n) return;
+  var cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
+  keys.forEach(function(k, i){
+    var r = Math.floor(i / cols), inRow = r === rows - 1 ? n - cols * (rows - 1) : cols, c = i - r * cols;
+    fsState.max = without(fsState.max, k);
+    fsState.geom[k] = { l: c / inRow, t: r / rows, w: 1 / inRow, h: 1 / rows };
+    delete fsState.restore[k];
+  });
+  writeFsState();
+  syncWindows();
+}
+// Cascade: the windows on show step down from the top left, each the same
+// size, the ring in front.
+function cascadeWindows(){
+  var keys = shownWindows(), D = desk();
+  if (!keys.length || !D.W) return;
+  keys.forEach(function(k, i){
+    fsState.max = without(fsState.max, k);
+    fsState.geom[k] = { l: (24 + 32 * i) / D.W, t: (24 + 32 * i) / D.H, w: 0.5, h: 0.6 };
+    delete fsState.restore[k];
+  });
+  fsState.open = fsState.open.filter(function(k){ return keys.indexOf(k) === -1; }).concat(keys.slice(1)).concat([keys[0]]);
+  writeFsState();
+  syncWindows();
+}
+// Show desktop minimizes every window on show; a second time it brings
+// them back.
+function showDesktop(){
+  var keys = shownWindows();
+  if (!keys.length && fsDesktopHidden){
+    fsState.min = fsState.min.filter(function(k){ return fsDesktopHidden.indexOf(k) === -1; });
+    fsDesktopHidden = null;
+  } else {
+    fsState.min = fsState.min.concat(keys);
+    fsDesktopHidden = keys;
+  }
+  writeFsState();
+  syncWindows();
+}
+
+/* building, placing and stacking */
 
 function buildWindow(spec){
   var win = document.createElement('div');
-  win.className = 'fs-win' + (spec.wide ? ' is-wide' : '') + (spec.hideHeading ? ' hides-heading' : '');
-  win.setAttribute('data-formula', WIN_KEY + spec.key);
+  win.className = 'fs-win' + (spec.ring ? ' is-ring' : '') + (spec.hideHeading ? ' hides-heading' : '');
   win.setAttribute('data-panel', spec.key);
   win.setAttribute('role', 'dialog');
   var head = document.createElement('div');
@@ -2011,69 +2170,135 @@ function buildWindow(spec){
   var grip = document.createElement('div');
   grip.className = 'fs-win-grip';
   grip.setAttribute('role', 'img');
-  var dots = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
-  [3, 6, 9].forEach(function(y){ [4, 8].forEach(function(x){ dots.appendChild(svgEl('circle', { cx: x, cy: y, r: 1.1 })); }); });
-  grip.appendChild(dots);
+  var dots = [];
+  [3, 6, 9].forEach(function(y){ [4, 8].forEach(function(x){ dots.push(['circle', { cx: x, cy: y, r: 1.1 }]); }); });
+  grip.appendChild(svgIcon(dots));
   var title = document.createElement('span');
   title.className = 'fs-win-title';
-  var close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'fs-win-close';
-  var x = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
-  x.appendChild(svgEl('line', { x1: 2.5, y1: 2.5, x2: 9.5, y2: 9.5 }));
-  x.appendChild(svgEl('line', { x1: 9.5, y1: 2.5, x2: 2.5, y2: 9.5 }));
-  close.appendChild(x);
-  close.addEventListener('click', function(){ closeWindow(spec.key); });
   head.appendChild(grip);
   head.appendChild(title);
-  head.appendChild(close);
+  var buttons = {};
+  [
+    { key: 'min', parts: [['line', { x1: 3, y1: 8.5, x2: 9, y2: 8.5 }]], run: function(){ minimizeWindow(spec.key); } },
+    { key: 'max', parts: [['rect', { 'class': 'icon-max', x: 2.5, y: 2.5, width: 7, height: 7, rx: 1 }], ['path', { 'class': 'icon-restore', d: 'M2.5 4.5h5v5h-5zM4.5 4.5V2.5h5v5h-2' }]], run: function(){ toggleMaximize(spec.key); } },
+    { key: 'close', parts: [['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]], run: function(){ closeWindow(spec.key); } }
+  ].forEach(function(b){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'fs-win-btn';
+    btn.classList.add('is-' + b.key);
+    btn.appendChild(svgIcon(b.parts));
+    btn.addEventListener('click', b.run);
+    head.appendChild(btn);
+    buttons[b.key] = btn;
+  });
   var body = document.createElement('div');
-  body.className = 'fs-win-body';
+  body.className = 'fs-win-body' + (spec.ring ? ' is-ring' : '');
   win.appendChild(head);
   win.appendChild(body);
-  return { win: win, body: body, title: title, grip: grip, close: close };
+  ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw'].forEach(function(dir){
+    var rs = document.createElement('div');
+    rs.className = 'fs-rs';
+    rs.setAttribute('data-dir', dir);
+    rs.setAttribute('aria-hidden', 'true');
+    win.appendChild(rs);
+  });
+  return { spec: spec, win: win, body: body, title: title, grip: grip, buttons: buttons };
 }
 
-// Entering full screen moves every panel into its window, a comment
-// keeping its place; leaving puts each back. In between this shows the
-// open windows, stacked in the order they were last brought forward, and
-// marks their task buttons.
+// Where a window opens the first time: the ring large in the middle, the
+// panels in a cascade from the top left at their natural height.
+function defaultGeom(spec, i){
+  var D = desk();
+  if (spec.ring) return { l: 0.2, t: 0.03, w: 0.6, h: 0.94 };
+  return { l: (24 + 32 * i) / D.W, t: (24 + 32 * i) / D.H, w: (spec.width || 320) / D.W, h: null };
+}
+// A window's place in pixels: the desktop's whole when maximized, else its
+// fractions, at least its smallest size, its title bar always within reach.
+function geomPx(key){
+  var D = desk(), spec = specOf(key);
+  if (isMax(key)) return { l: 0, t: 0, w: D.W, h: D.H };
+  var g = fsState.geom[key] || defaultGeom(spec, FS_PANELS.indexOf(spec));
+  var w = clamp(g.w * D.W, Math.min(spec.minW || FS_MIN_W, D.W), D.W);
+  var h = g.h === null ? null : clamp(g.h * D.H, Math.min(spec.minH || FS_MIN_H, D.H), D.H);
+  return { l: clamp(g.l * D.W, 80 - w, D.W - 80), t: clamp(g.t * D.H, 0, Math.max(0, D.H - 34)), w: w, h: h };
+}
+function setWinPx(win, r){
+  win.style.left = Math.round(r.l) + 'px';
+  win.style.top = Math.round(r.t) + 'px';
+  win.style.width = Math.round(r.w) + 'px';
+  win.style.height = r.h === null ? '' : Math.round(r.h) + 'px';
+  win.style.maxHeight = r.h === null ? Math.max(FS_MIN_H, Math.round(desk().H - r.t)) + 'px' : '';
+}
+function layoutWindows(){
+  if (!fsWins) return;
+  FS_PANELS.forEach(function(spec){
+    var w = fsWins[spec.key];
+    if (winDrag && winDrag.live && winDrag.key === spec.key) return;
+    if (!w.win.hidden) setWinPx(w.win, geomPx(spec.key));
+  });
+}
+// A window's rectangle on the desktop as drawn, in pixels.
+function winRect(win){
+  var f = diagramFrameEl.getBoundingClientRect(), r = win.getBoundingClientRect();
+  return { l: r.left - f.left - diagramFrameEl.clientLeft, t: r.top - f.top - diagramFrameEl.clientTop, w: r.width, h: r.height };
+}
+function toFractions(r, keepAutoHeight){
+  var D = desk();
+  return { l: r.l / D.W, t: r.t / D.H, w: r.w / D.W, h: keepAutoHeight ? null : r.h / D.H };
+}
+
+// Entering full screen moves the ring and every panel into its window, a
+// comment keeping each part's place; leaving puts each back. In between
+// this shows the open windows, stacked front last, and marks their task
+// buttons.
 function syncWindows(){
   var full = fullscreenEl() === diagramFrameEl;
   if (full && !fsWins){
     fsWins = {};
     FS_PANELS.forEach(function(spec){
-      var el = $(spec.id), w = buildWindow(spec);
-      w.spec = spec;
-      w.el = el;
-      w.home = document.createComment(spec.id);
-      el.before(w.home);
-      w.body.appendChild(el);
+      var w = buildWindow(spec);
+      w.homes = spec.ids.map(function(id){
+        var el = $(id), home = document.createComment(id);
+        el.before(home);
+        w.body.appendChild(el);
+        return { el: el, home: home };
+      });
       diagramFrameEl.insertBefore(w.win, $('fs-taskbar'));
       fsWins[spec.key] = w;
     });
+    if (window.ResizeObserver) new ResizeObserver(function(){ placeMoved(); }).observe(fsWins.ring.body);
+    syncClock();
+    fsClockId = setInterval(syncClock, 15000);
   } else if (!full && fsWins){
     FS_PANELS.forEach(function(spec){
       var w = fsWins[spec.key];
-      w.home.replaceWith(w.el);
+      w.homes.forEach(function(h){ h.home.replaceWith(h.el); });
       w.win.remove();
     });
     fsWins = null;
+    clearInterval(fsClockId);
+    fsClockId = null;
     setFsMenu(false);
   }
   syncFsLabels();
+  var front = frontKey();
   FS_PANELS.forEach(function(spec){
-    var shown = !$(spec.id).hidden, at = fsOpen.indexOf(spec.key);
-    fsTasks[spec.key].disabled = !shown;
-    fsItems[spec.key].disabled = !shown;
-    fsTasks[spec.key].classList.toggle('is-open', at !== -1);
-    fsTasks[spec.key].classList.toggle('is-front', at !== -1 && at === fsOpen.length - 1);
-    fsTasks[spec.key].setAttribute('aria-pressed', at !== -1 ? 'true' : 'false');
+    var k = spec.key, open = isOpen(k), shown = hasContent(spec);
+    fsTasks[k].disabled = !shown;
+    fsItems[k].disabled = !shown;
+    fsTasks[k].classList.toggle('is-open', open);
+    fsTasks[k].classList.toggle('is-min', open && isMin(k));
+    fsTasks[k].classList.toggle('is-front', k === front);
+    fsTasks[k].setAttribute('aria-pressed', open && !isMin(k) ? 'true' : 'false');
     if (!fsWins) return;
-    var win = fsWins[spec.key].win;
-    win.hidden = at === -1;
-    win.style.zIndex = 3 + Math.max(0, at);
+    var win = fsWins[k].win;
+    win.hidden = !open || isMin(k);
+    win.classList.toggle('is-front', k === front);
+    win.classList.toggle('is-max', isMax(k));
+    win.style.zIndex = 3 + Math.max(0, fsState.open.indexOf(k));
   });
+  layoutWindows();
   placeMoved();
 }
 
@@ -2089,28 +2314,154 @@ function syncFsLabels(){
     var w = fsWins[spec.key];
     w.title.textContent = name;
     w.win.setAttribute('aria-label', name);
-    w.grip.setAttribute('aria-label', translate('cyclicGroups.formulaMove', { name: name }));
-    w.grip.setAttribute('title', translate('cyclicGroups.formulaMove', { name: name }));
-    w.close.setAttribute('aria-label', translate('cyclicGroups.fsClose', { name: name }));
-    w.close.setAttribute('title', translate('cyclicGroups.fsClose', { name: name }));
+    var label = function(btn, key){
+      var text = translate(key, { name: name });
+      btn.setAttribute('aria-label', text);
+      btn.setAttribute('title', text);
+    };
+    label(w.grip, 'cyclicGroups.formulaMove');
+    label(w.buttons.min, 'cyclicGroups.fsMinimize');
+    label(w.buttons.max, isMax(spec.key) ? 'cyclicGroups.fsRestore' : 'cyclicGroups.fsMaximize');
+    label(w.buttons.close, 'cyclicGroups.fsClose');
   });
+  Object.keys(fsActions).forEach(function(k){ fsActions[k].label.textContent = translate(fsActions[k].title); });
+  var exit = translate('cyclicGroups.fullscreenExit');
+  $('fs-exit').setAttribute('aria-label', exit);
+  $('fs-exit').setAttribute('title', exit);
 }
 
-// An open window stands where it was left, or the first time at its place
-// in a cascade from the top left.
-function placeWindows(){
-  if (!fsWins) return;
-  FS_PANELS.forEach(function(spec, i){
-    var win = fsWins[spec.key].win;
-    if (win.hidden || !win.offsetWidth) return;
-    var p = formulaPos[WIN_KEY + spec.key];
-    if (!p){
-      var W = diagramFrameEl.clientWidth, H = diagramFrameEl.clientHeight;
-      p = { x: (60 + 32 * i + win.offsetWidth / 2) / W, y: (60 + 32 * i + win.offsetHeight / 2) / H };
-    }
-    placeFormula(win, p.x, p.y);
+/* moving and resizing */
+
+// The edges a moved or resized edge catches on: the desktop's and those of
+// every other window on show.
+function alignEdges(skip){
+  var D = desk(), xs = [0, D.W], ys = [0, D.H];
+  FS_PANELS.forEach(function(spec){
+    var w = fsWins[spec.key];
+    if (spec.key === skip || w.win.hidden || !w.win.offsetWidth) return;
+    var r = winRect(w.win);
+    xs.push(r.l, r.l + r.w);
+    ys.push(r.t, r.t + r.h);
   });
+  return { xs: xs, ys: ys };
 }
+// The shift that brings the nearest of the given edges onto a catch, or 0.
+function catchShift(edges, catches){
+  var best = 0, bestD = SNAP_ALIGN + 1;
+  edges.forEach(function(e){
+    catches.forEach(function(c){
+      if (Math.abs(c - e) < bestD){ bestD = Math.abs(c - e); best = c - e; }
+    });
+  });
+  return bestD <= SNAP_ALIGN ? best : 0;
+}
+// Where a window dragged with the pointer at (x, y) on the desktop snaps:
+// a half at a side edge, a quarter near a corner, all of it at the top.
+function snapZone(x, y){
+  var D = desk();
+  var left = x <= SNAP_EDGE, right = x >= D.W - SNAP_EDGE, top = y <= SNAP_EDGE;
+  var half = function(l){ return { l: l, t: 0, w: D.W / 2, h: D.H }; };
+  if (left || right){
+    var l = left ? 0 : D.W / 2;
+    if (y <= SNAP_CORNER) return { l: l, t: 0, w: D.W / 2, h: D.H / 2 };
+    if (y >= D.H - SNAP_CORNER) return { l: l, t: D.H / 2, w: D.W / 2, h: D.H / 2 };
+    return half(l);
+  }
+  if (top) return { max: true, l: 0, t: 0, w: D.W, h: D.H };
+  return null;
+}
+
+diagramFrameEl.addEventListener('pointerdown', function(e){
+  if (!fsWins || e.button !== 0) return;
+  var winEl = e.target.closest && e.target.closest('.fs-win');
+  if (!winEl) return;
+  var key = winEl.getAttribute('data-panel');
+  if (frontKey() !== key) raiseWindow(key);
+  var rs = e.target.closest('.fs-rs');
+  var onHead = e.target.closest('.fs-win-head') && !e.target.closest('.fs-win-btn');
+  if (!rs && !onHead) return;
+  winDrag = { key: key, mode: rs ? rs.getAttribute('data-dir') : 'move', id: e.pointerId, x: e.clientX, y: e.clientY, start: winRect(winEl), live: false, snap: null };
+  e.preventDefault();
+});
+window.addEventListener('pointermove', function(e){
+  if (!winDrag || e.pointerId !== winDrag.id) return;
+  var w = fsWins && fsWins[winDrag.key];
+  if (!w){ winDrag = null; return; }
+  var dx = e.clientX - winDrag.x, dy = e.clientY - winDrag.y;
+  if (!winDrag.live){
+    if (Math.hypot(dx, dy) < 3) return;
+    winDrag.live = true;
+    document.documentElement.classList.add('is-win-drag');
+    // A maximized, snapped or tiled window dragged away takes back its
+    // own size, under the pointer where it was along the title bar.
+    if (winDrag.mode === 'move' && (isMax(winDrag.key) || fsState.restore[winDrag.key])){
+      var D = desk(), back = fsState.restore[winDrag.key] || fsState.geom[winDrag.key] || defaultGeom(w.spec, FS_PANELS.indexOf(w.spec));
+      var bw = clamp(back.w * D.W, w.spec.minW || FS_MIN_W, D.W), bh = back.h === null ? null : back.h * D.H;
+      var along = (winDrag.x - (diagramFrameEl.getBoundingClientRect().left + winDrag.start.l)) / winDrag.start.w;
+      fsState.max = without(fsState.max, winDrag.key);
+      delete fsState.restore[winDrag.key];
+      w.win.classList.remove('is-max');
+      winDrag.start = { l: winDrag.start.l + winDrag.start.w * along - bw * along, t: winDrag.start.t, w: bw, h: bh === null ? null : bh };
+      winDrag.autoHeight = back.h === null;
+    }
+  }
+  e.preventDefault();
+  var D2 = desk(), s0 = winDrag.start, r, edges = alignEdges(winDrag.key);
+  if (winDrag.mode === 'move'){
+    var f = diagramFrameEl.getBoundingClientRect();
+    var zone = snapZone(e.clientX - f.left, e.clientY - f.top);
+    winDrag.snap = zone;
+    if (zone){
+      fsSnapEl.hidden = false;
+      setWinPx(fsSnapEl, zone);
+      fsSnapEl.style.maxHeight = '';
+    } else fsSnapEl.hidden = true;
+    var h0 = s0.h === null ? w.win.offsetHeight : s0.h;
+    r = { l: s0.l + dx, t: s0.t + dy, w: s0.w, h: s0.h };
+    r.l += catchShift([r.l, r.l + r.w], edges.xs);
+    r.t += catchShift([r.t, r.t + h0], edges.ys);
+    r.t = clamp(r.t, 0, Math.max(0, D2.H - 34));
+  } else {
+    var dir = winDrag.mode, spec = w.spec;
+    var minW = Math.min(spec.minW || FS_MIN_W, D2.W), minH = Math.min(spec.minH || FS_MIN_H, D2.H);
+    var L = s0.l, T = s0.t, R = s0.l + s0.w, B = s0.t + s0.h;
+    if (dir.indexOf('w') !== -1){ L = s0.l + dx; L += catchShift([L], edges.xs); L = Math.min(L, R - minW); }
+    if (dir.indexOf('e') !== -1){ R = s0.l + s0.w + dx; R += catchShift([R], edges.xs); R = Math.max(R, L + minW); }
+    if (dir.indexOf('n') !== -1){ T = s0.t + dy; T += catchShift([T], edges.ys); T = clamp(Math.min(T, B - minH), 0, D2.H); }
+    if (dir.indexOf('s') !== -1){ B = s0.t + s0.h + dy; B += catchShift([B], edges.ys); B = Math.max(B, T + minH); }
+    r = { l: L, t: T, w: R - L, h: B - T };
+    delete fsState.restore[winDrag.key];
+  }
+  setWinPx(w.win, r);
+  winDrag.rect = r;
+});
+function endWinDrag(e){
+  if (!winDrag || e.pointerId !== winDrag.id) return;
+  var d = winDrag;
+  winDrag = null;
+  fsSnapEl.hidden = true;
+  if (!d.live) return;
+  document.documentElement.classList.remove('is-win-drag');
+  if (d.snap && d.snap.max){
+    if (!isMax(d.key)) fsState.max.push(d.key);
+  } else if (d.snap){
+    fsState.restore[d.key] = toFractions(d.rect, d.rect.h === null);
+    fsState.geom[d.key] = toFractions(d.snap, false);
+  } else if (d.rect){
+    fsState.geom[d.key] = toFractions(d.rect, d.mode === 'move' && d.rect.h === null);
+  }
+  writeFsState();
+  syncWindows();
+}
+window.addEventListener('pointerup', endWinDrag);
+window.addEventListener('pointercancel', endWinDrag);
+diagramFrameEl.addEventListener('dblclick', function(e){
+  if (!fsWins || !e.target.closest) return;
+  var head = e.target.closest('.fs-win-head');
+  if (!head || e.target.closest('.fs-win-btn')) return;
+  toggleMaximize(head.parentNode.getAttribute('data-panel'));
+});
+
 
 function fitRingHead(){
   var room = ringHeadEl.clientWidth - parseFloat(getComputedStyle(ringHeadEl).paddingLeft) - parseFloat(getComputedStyle(ringHeadEl).paddingRight);
@@ -3455,7 +3806,7 @@ window.addEventListener('scroll', function(e){
 window.addEventListener('resize', function(){ if (previewChip) placeIsoPreview(previewChip); });
 if (window.ResizeObserver){
   new ResizeObserver(function(){ fitRingHead(); }).observe(ringHeadEl);
-  new ResizeObserver(function(){ placeMoved(); }).observe(diagramFrameEl);
+  new ResizeObserver(function(){ placeMoved(); layoutWindows(); }).observe(diagramFrameEl);
 }
 // Copying from the captions gives each selected line's plain-text form.
 ringHeadEl.addEventListener('copy', function(e){
