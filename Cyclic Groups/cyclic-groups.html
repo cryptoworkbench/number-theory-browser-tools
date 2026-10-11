@@ -376,6 +376,12 @@
   .legend.is-off{ opacity:.45; }
   .legend-item{ display:flex; align-items:center; gap:10px; font-size:.9rem; }
   .legend-swatch{ width:16px; height:16px; border-radius:50%; flex:none; background:var(--ord, var(--text-dim)); border:1px solid color-mix(in srgb, var(--text) 25%, transparent); }
+  /* In the Website theme key, the identity's swatch is its colour picker:
+     the picker lies unseen over it, so a click on the circle opens it. */
+  .legend-swatch.is-pickable{ position:relative; cursor:pointer; }
+  .legend-swatch.is-pickable:focus-within{ outline:2px solid var(--accent); outline-offset:2px; }
+  .legend-pick{ display:none; }
+  .legend-swatch > .legend-pick{ display:block; position:absolute; inset:-1px; width:auto; height:auto; margin:0; padding:0; border:0; opacity:0; cursor:pointer; }
   .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
   /* Inverse-pair key: one compact chip per pair, wrapping, with the
      self-inverse row on a line of its own. */
@@ -1003,7 +1009,6 @@
               <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
             </select>
           </div>
-          <div class="check" id="id-color-row" hidden><input type="color" class="arrow-color" id="id-color" aria-label="Identity colour" data-i18n-aria-label="cyclicGroups.identityColor" title="Identity colour" data-i18n-title="cyclicGroups.identityColor"><label for="id-color" data-i18n="cyclicGroups.identityColor">Identity colour</label></div>
           <button type="button" class="link-btn" id="id-color-reset" hidden data-i18n="cyclicGroups.identityColorReset">Reset identity colour</button>
           <button type="button" class="action-btn legend-btn" id="legend-btn" aria-pressed="false" aria-controls="legend-panel" data-i18n="cyclicGroups.showElementColours">Show key</button>
         </div>
@@ -1060,6 +1065,7 @@
       <section class="panel" id="legend-panel">
         <h2 id="legend-heading">Color key: subgroup cardinality</h2>
         <div class="legend" id="legend"></div>
+        <input type="color" class="legend-pick" id="id-color">
       </section>
 
       <section class="panel" id="export-panel">
@@ -1193,6 +1199,7 @@ var hintInverseEl = $('hint-inverse');
 var legendEl = $('legend');
 var legendHeadingEl = $('legend-heading');
 var legendPanelEl = $('legend-panel');
+var idColorEl = $('id-color'); // the identity's colour picker, which the Website theme key holds
 var legendBtnEl = $('legend-btn');
 var legendShown = false; // full screen, whether the element colour key shows in the Ring window
 var colorBySelectEl = $('colorby-select');
@@ -1393,8 +1400,7 @@ function syncIdColor(){
   var on = state.colors && state.colorBy === 'theme';
   if (state.idColor) appEl.style.setProperty('--identity-color', state.idColor);
   else appEl.style.removeProperty('--identity-color');
-  $('id-color-row').hidden = !on;
-  $('id-color').value = state.idColor || roleHex('--role-warn');
+  idColorEl.value = state.idColor || roleHex('--role-warn');
   $('id-color-reset').hidden = !on || !state.idColor;
 }
 
@@ -4357,8 +4363,14 @@ function renderInverseLegend(pairing){
 function renderThemeLegend(G){
   var shown = {};
   G.els.forEach(function(a){ shown[themeClass(G, a)] = true; });
-  legendEl.appendChild(legendItem('ord-theme-id', null,
-    tNode('cyclicGroups.legendThemeIdentity', { e: mNum(G.identity) }), 'legend-order'));
+  var id = legendItem('ord-theme-id', null,
+    tNode('cyclicGroups.legendThemeIdentity', { e: mNum(G.identity) }), 'legend-order');
+  var swatch = id.querySelector('.legend-swatch');
+  swatch.classList.add('is-pickable');
+  idColorEl.title = translate('cyclicGroups.identityColor');
+  idColorEl.setAttribute('aria-label', translate('cyclicGroups.identityColor'));
+  swatch.appendChild(idColorEl);
+  legendEl.appendChild(id);
   if (shown['ord-one']) legendEl.appendChild(legendItem('ord-one', null,
     tNode('cyclicGroups.legendThemeOne', { one: mNum(1) }), 'legend-order'));
   if (shown['ord-prime']) legendEl.appendChild(legendItem('ord-prime', null, translate('cyclicGroups.legendThemePrimes'), 'legend-order'));
@@ -5106,8 +5118,8 @@ colorBySelectEl.addEventListener('change', function(){
 });
 // A new identity color repaints through --identity-color alone, so the
 // picker's popup stays open while it is dragged.
-$('id-color').addEventListener('input', function(){
-  var v = $('id-color').value.toLowerCase();
+idColorEl.addEventListener('input', function(){
+  var v = idColorEl.value.toLowerCase();
   if (!HEX_COLOR.test(v)) return;
   state.idColor = v;
   syncIdColor();
