@@ -2057,6 +2057,8 @@ var SNAP_ALIGN = 10;  // how near another edge a moved or resized edge catches o
 // dragged away, and the extra Ring windows, each a key and the query string
 // of the ring it holds.
 var FS_STATE_KEY = 'cyclic-groups-fs-windows';
+var fsExtraSpecs = {}; // extra window key -> its spec, made once (see allSpecs)
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin'];
 var fsState = readFsState();
 var fsWins = null; // window key -> { spec, win, body, title, grip, buttons, homes } while full screen
 var fsTasksEl = $('fs-tasks'), fsMenuEl = $('fs-menu'), fsLauncherEl = $('fs-launcher');
@@ -2071,6 +2073,17 @@ function readFsState(){
   try {
     var raw = JSON.parse(localStorage.getItem(FS_STATE_KEY) || 'null');
     if (raw){
+      // The extra Ring windows: only a well-formed key and query string, the
+      // first entry for each key, the query re-serialized. A frame never
+      // holds frames of its own.
+      if (!IS_RINGWIN && !IS_PREVIEW && Array.isArray(raw.extras)){
+        raw.extras.forEach(function(e){
+          if (!e || typeof e !== 'object' || typeof e.key !== 'string' || !/^ringwin\d{1,6}$/.test(e.key)) return;
+          if (typeof e.q !== 'string' || e.q.length > 4000 || keys.indexOf(e.key) !== -1) return;
+          keys.push(e.key);
+          out.extras.push({ key: e.key, q: cleanRingQuery(e.q) });
+        });
+      }
       out.open = ok(raw.open); out.min = ok(raw.min); out.max = ok(raw.max);
       ['geom', 'restore'].forEach(function(f){
         Object.keys(raw[f] || {}).forEach(function(k){
@@ -2098,8 +2111,6 @@ function writeFsState(){
 // key is 'ringwin' and a number, q the query string of the ring it holds, kept
 // up to date from the frame's reports. Its spec is what the desktop's code
 // treats like a panel's.
-var fsExtraSpecs = {};
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin'];
 // q without what must not travel between rings: the preview and embed
 // switches, and the theme, language and sharing the frame takes from its page.
 function cleanRingQuery(q){
@@ -2192,6 +2203,7 @@ function removeFsTask(key){
   delete fsItems[key];
 }
 FS_PANELS.forEach(addFsTask);
+fsState.extras.forEach(function(e){ addFsTask(extraSpec(e)); });
 [
   { key: 'newring', title: 'cyclicGroups.fsNewRing', icon: '⊕', run: function(){ openRingWindow('ring'); } },
   { key: 'tile', title: 'cyclicGroups.fsTile', icon: '⊞', run: tileWindows },

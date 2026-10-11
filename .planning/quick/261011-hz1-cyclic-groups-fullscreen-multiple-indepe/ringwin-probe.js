@@ -21,7 +21,7 @@ var net = require("net");
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 14;
+var EXPECTED = 20;
 // Headless Chrome's --window-size counts ~143px of window chrome the page
 // never sees, so a 1600x1000 viewport needs a window 1143 tall.
 var DESKTOP = "1600,1143";
@@ -67,7 +67,8 @@ function recorder() {
 function pageProbe() {
   var IS_CHILD = /[?&]ringwin=1(&|$)/.test(location.search);
   var FS_KEY = "cyclic-groups-fs-windows";
-  var RUN = location.protocol === "http:" ? "http" : "file";
+  var RUN = location.hash === "#hz1-restore" ? "restore" : location.hash === "#hz1-corrupt" ? "corrupt" :
+    location.hash === "#hz1-garbage" ? "garbage" : location.protocol === "http:" ? "http" : "file";
   var IDS = ["group-controls", "gen-field", "ring-head", "ring-svg", "spin-ruler", "combine-key", "rotate-ctl"];
 
   function assert(cond, msg) { if (!cond) throw new Error(msg); }
@@ -475,6 +476,63 @@ function SCENARIOS_HTTP() {
   });
 }
 
+/* Task 3: the stored extras come back (run B, same profile as run A), and a
+   corrupt or unparsable desktop state is ignored (runs C and D). */
+function SCENARIOS_RESTORE() {
+  scenario("R12 restore", function () {
+    var st = stored();
+    assert(st && st.extras && st.extras.length === 2, "stored extras: " + JSON.stringify(st && st.extras));
+    eq(tasks().length, 12, "task buttons before full screen");
+    eq(items().length, 12, "menu items before full screen");
+    fakeFullscreen(true);
+    // Straight away: the titles come from the stored queries, before any frame has reported.
+    var wins = frames();
+    eq(wins.length, 2, "frame windows");
+    var want = ["Cyclic Group \u27E8\u2124/12\u2124, +\u27E9", "Ring \u27E8\u2124/15\u2124, \u00D7\u27E9"];
+    var modes = ["additive/12", "multiplicative/15"];
+    var f = document.getElementById("diagram-frame");
+    var D = { W: f.clientWidth, H: f.clientHeight - 44 };
+    wins.forEach(function (w, i) {
+      eq(titleOf(w), want[i], "title " + i);
+      eq(w.getAttribute("data-panel"), st.extras[i].key, "key " + i);
+      var p = srcParams(w);
+      eq(p.get("mode") + "/" + p.get("n"), modes[i], "src " + i);
+      eq(parseInt(w.style.zIndex, 10), 3 + st.open.indexOf(st.extras[i].key), "stacking " + i);
+      var g = st.geom[st.extras[i].key];
+      assert(g, "no stored geometry for " + st.extras[i].key);
+      var width = Math.min(Math.max(g.w * D.W, Math.min(320, D.W)), D.W);
+      var height = Math.min(Math.max(g.h * D.H, Math.min(280, D.H)), D.H);
+      assert(Math.abs(px(w, "width") - width) <= 2 && Math.abs(px(w, "height") - height) <= 2, "size " + i + ": " + w.style.width + " x " + w.style.height + " vs " + Math.round(width) + " x " + Math.round(height));
+      assert(Math.abs(px(w, "left") - Math.min(Math.max(g.l * D.W, 80 - width), D.W - 80)) <= 2, "left " + i + ": " + w.style.left);
+    });
+    eq(wins[1].style.getPropertyValue("--win-alpha"), String(st.alpha[st.extras[1].key]), "opacity of the second extra");
+    return "both extras are back with group, place, size, opacity and stacking";
+  });
+}
+function SCENARIOS_CORRUPT() {
+  scenario("R13 corrupt", function () {
+    eq(tasks().length, 11, "task buttons");
+    fakeFullscreen(true);
+    var wins = frames();
+    eq(wins.length, 1, "frame windows");
+    eq(wins[0].getAttribute("data-panel"), "ringwin2", "its key");
+    eq(titleOf(wins[0]), "Cyclic Group \u27E8\u2124/5\u2124, +\u27E9", "its title");
+    var p = srcParams(wins[0]);
+    eq(p.get("mode") + "/" + p.get("n"), "additive/5", "its src");
+    eq(document.querySelectorAll(".fs-win").length, 11, "windows built");
+    return "one window from the stored mess: ringwin2, the first entry for its key";
+  });
+}
+function SCENARIOS_GARBAGE() {
+  scenario("R14 unparsable", function () {
+    eq(tasks().length, 10, "task buttons");
+    fakeFullscreen(true);
+    eq(frames().length, 0, "frame windows");
+    assert(ringWin() && !ringWin().hidden, "the Ring window is not open");
+    return "no frame windows, the Ring window open";
+  });
+}
+
 function bodyOf(fn) {
   var s = fn.toString();
   return s.slice(s.indexOf("{") + 1, s.lastIndexOf("}"));
@@ -510,10 +568,21 @@ function buildSite(opts) {
 }
 
 // The recorder's seed: nothing yet (later tasks seed corrupt desktop state).
-var SEED_SRC = "";
+var SEED_SRC = [
+  'var FS = "cyclic-groups-fs-windows";',
+  'if (location.hash === "#hz1-corrupt") orig.call(localStorage, FS, JSON.stringify({',
+  '  open: ["ring", "ringwin1", "ringwin2", "nope"],',
+  '  extras: [{ key: "ringwin1", q: 123 }, { key: "x1", q: "mode=additive&n=7" }, "plain", { key: "ringwin2", q: "mode=additive&n=5" }, { key: "ringwin2", q: "mode=additive&n=6" }],',
+  '  geom: { ringwin2: { l: "abc", t: 0.1, w: 0.4, h: 0.5 } }',
+  '}));',
+  'if (location.hash === "#hz1-garbage") orig.call(localStorage, FS, "{not json");'
+].join("\n");
 var SCENARIO_BODIES = [
   'if (RUN === "file") {', bodyOf(SCENARIOS_1), bodyOf(SCENARIOS_2), "}",
-  'if (RUN === "http") {', bodyOf(SCENARIOS_HTTP), "}"
+  'if (RUN === "http") {', bodyOf(SCENARIOS_HTTP), "}",
+  'if (RUN === "restore") {', bodyOf(SCENARIOS_RESTORE), "}",
+  'if (RUN === "corrupt") {', bodyOf(SCENARIOS_CORRUPT), "}",
+  'if (RUN === "garbage") {', bodyOf(SCENARIOS_GARBAGE), "}"
 ];
 
 function unescapeHtml(s) {
@@ -574,8 +643,17 @@ async function main() {
   var pageUrl = url.pathToFileURL(site.page).href;
   var all = [];
 
-  // Run A: the page over file://, in a fresh profile.
-  all = all.concat(readOut(runChrome(pageUrl + PAGE_QUERY, DESKTOP), "run A"));
+  // Run A: the page over file://, in a fresh profile that run B reuses.
+  var profileAB = harness.mkScratch("hz1-profile-");
+  all = all.concat(readOut(runChrome(pageUrl + PAGE_QUERY, DESKTOP, profileAB), "run A"));
+
+  // Run B: the same profile, a later visit: the extra windows come back.
+  all = all.concat(readOut(runChrome(pageUrl + PAGE_QUERY + "#hz1-restore", DESKTOP, profileAB), "run B"));
+  try { fs.rmSync(profileAB, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+
+  // Runs C and D: a corrupt and an unparsable desktop state, each in a fresh profile.
+  all = all.concat(readOut(runChrome(pageUrl + PAGE_QUERY + "#hz1-corrupt", DESKTOP), "run C"));
+  all = all.concat(readOut(runChrome(pageUrl + PAGE_QUERY + "#hz1-garbage", DESKTOP), "run D"));
 
   // Run H: the page over http://, where the frames are same-origin. The
   // server is stopped through its process handle.
