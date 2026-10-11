@@ -439,8 +439,25 @@
   /* The title and the formulas can be dragged anywhere over the diagram;
      one moved keeps its place, also after being turned off and on again,
      and a double-click puts it back in the column. */
-  .ring-head math[data-formula]{ cursor:grab; touch-action:none; }
-  .ring-head math.is-moved{ position:absolute; z-index:1; margin:0; }
+  .ring-head [data-formula]{ cursor:grab; touch-action:none; }
+  .ring-head .is-moved{ position:absolute; z-index:1; margin:0; }
+  /* Full screen, each formula sits in a card like the Factor Tree's tree
+     cards: the drag grip in the top-left corner with the formula's switch
+     label beside it as its title, and the button that turns it off in the
+     top-right corner. */
+  .diagram-frame:fullscreen .ring-head, .diagram-frame:fullscreen .ring-head .ring-math-row{ gap:8px; }
+  .formula-card{ position:relative; display:flex; flex-direction:column; align-items:center; max-width:100%; box-sizing:border-box; padding:4px 4px 10px; background:var(--surface); border:1px solid var(--panel-border); border-radius:var(--radius-card); }
+  .formula-card-head{ align-self:stretch; display:flex; align-items:center; gap:4px; min-width:0; }
+  .formula-card-grip{ flex:none; width:24px; height:24px; display:grid; place-items:center; color:var(--text-dim); }
+  .formula-card:hover .formula-card-grip{ color:var(--text); }
+  .formula-card-grip circle{ fill:currentColor; }
+  .formula-card-title{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:start; font-size:.78rem; font-weight:600; color:var(--text-dim); }
+  .formula-card-close{ flex:none; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
+  .formula-card-close:hover{ color:var(--role-warn); border-color:var(--role-warn); }
+  .formula-card-close:focus{ outline:none; }
+  .formula-card-close:focus-visible{ box-shadow:var(--ctl-focus); }
+  .formula-card-close line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+  .formula-card math{ padding:2px 10px 0; }
   /* The diagram's top-right corner: the full-screen button, and under it,
      while a formula on show stands away from its place, the button that
      puts the formulas back. */
@@ -1653,16 +1670,59 @@ function readFormulaPos(){
 function writeFormulaPos(){
   try { localStorage.setItem(FORMULA_POS_KEY, JSON.stringify(formulaPos)); } catch (e) { /* storage unavailable */ }
 }
+// The switch whose label titles each formula's full-screen card.
+var FORMULA_TITLES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroup', sorder: 'cyclicGroups.formulaToggleSubgroup', cindex: 'cyclicGroups.formulaToggleCosets' };
+// A formula is moved as it is, or full screen in its card.
 function movable(key, el){
-  el.setAttribute('data-formula', key);
-  return el;
+  if (fullscreenEl() !== diagramFrameEl){
+    el.setAttribute('data-formula', key);
+    return el;
+  }
+  var name = translate(FORMULA_TITLES[key]);
+  var card = document.createElement('div');
+  card.className = 'formula-card';
+  card.setAttribute('data-formula', key);
+  var head = document.createElement('div');
+  head.className = 'formula-card-head';
+  var grip = document.createElement('div');
+  grip.className = 'formula-card-grip';
+  grip.setAttribute('role', 'img');
+  grip.setAttribute('aria-label', translate('cyclicGroups.formulaMove', { name: name }));
+  grip.setAttribute('title', translate('cyclicGroups.formulaMove', { name: name }));
+  var dots = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  [3, 6, 9].forEach(function(y){ [4, 8].forEach(function(x){ dots.appendChild(svgEl('circle', { cx: x, cy: y, r: 1.1 })); }); });
+  grip.appendChild(dots);
+  var title = document.createElement('span');
+  title.className = 'formula-card-title';
+  title.textContent = name;
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'formula-card-close';
+  close.setAttribute('aria-label', translate('cyclicGroups.formulaHide', { name: name }));
+  close.setAttribute('title', translate('cyclicGroups.formulaHide', { name: name }));
+  var x = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  x.appendChild(svgEl('line', { x1: 2.5, y1: 2.5, x2: 9.5, y2: 9.5 }));
+  x.appendChild(svgEl('line', { x1: 9.5, y1: 2.5, x2: 2.5, y2: 9.5 }));
+  close.appendChild(x);
+  // The same as turning its switch off.
+  close.addEventListener('click', function(){
+    var box = $('layer-' + key);
+    box.checked = false;
+    box.dispatchEvent(new Event('change'));
+  });
+  head.appendChild(grip);
+  head.appendChild(title);
+  head.appendChild(close);
+  card.appendChild(head);
+  card.appendChild(el);
+  return card;
 }
 function formulaEl(key){
-  return ringHeadEl.querySelector('math[data-formula="' + key + '"]');
+  return ringHeadEl.querySelector('[data-formula="' + key + '"]');
 }
 // Puts a moved formula's centre at (x, y), fractions of the diagram's
 // padding box, kept wholly inside it. A <math> element has no offset*
-// metrics, so its size comes from its bounding box.
+// metrics, so the size comes from the bounding box.
 function placeFormula(el, x, y){
   var W = diagramFrameEl.clientWidth, H = diagramFrameEl.clientHeight;
   var r = el.getBoundingClientRect(), w = r.width, h = r.height;
@@ -1670,7 +1730,7 @@ function placeFormula(el, x, y){
   el.style.top = Math.round(clamp(y * H - h / 2, 0, Math.max(0, H - h))) + 'px';
 }
 function placeMoved(){
-  ringHeadEl.querySelectorAll('math[data-formula]').forEach(function(el){
+  ringHeadEl.querySelectorAll('[data-formula]').forEach(function(el){
     var p = formulaPos[el.getAttribute('data-formula')];
     if (!p) return;
     el.classList.add('is-moved');
@@ -1680,20 +1740,20 @@ function placeMoved(){
 }
 // The reset button shows while a formula on show is away from its place.
 function syncFormulaReset(){
-  $('formula-reset').hidden = !ringHeadEl.querySelector('math.is-moved');
+  $('formula-reset').hidden = !ringHeadEl.querySelector('.is-moved');
 }
 // Reset puts every formula back, the ones turned off as well.
 $('formula-reset').addEventListener('click', function(){
   formulaPos = {};
   writeFormulaPos();
-  ringHeadEl.querySelectorAll('math.is-moved').forEach(function(el){
+  ringHeadEl.querySelectorAll('.is-moved').forEach(function(el){
     el.classList.remove('is-moved');
     el.style.left = el.style.top = '';
   });
   syncFormulaReset();
 });
 ringHeadEl.addEventListener('pointerdown', function(e){
-  var el = e.button === 0 && e.target.closest && e.target.closest('math[data-formula]');
+  var el = e.button === 0 && e.target.closest && !e.target.closest('.formula-card-close') && e.target.closest('[data-formula]');
   if (!el) return;
   formulaDrag = { key: el.getAttribute('data-formula'), id: e.pointerId, x: e.clientX, y: e.clientY, live: false };
 });
@@ -1745,9 +1805,9 @@ function endFormulaDrag(e){
 }
 window.addEventListener('pointerup', endFormulaDrag);
 window.addEventListener('pointercancel', endFormulaDrag);
-ringHeadEl.addEventListener('dragstart', function(e){ if (e.target.closest && e.target.closest('math[data-formula]')) e.preventDefault(); });
+ringHeadEl.addEventListener('dragstart', function(e){ if (e.target.closest && e.target.closest('[data-formula]')) e.preventDefault(); });
 ringHeadEl.addEventListener('dblclick', function(e){
-  var el = e.target.closest && e.target.closest('math[data-formula]');
+  var el = e.target.closest && !e.target.closest('.formula-card-close') && e.target.closest('[data-formula]');
   if (!el || !el.classList.contains('is-moved')) return;
   delete formulaPos[el.getAttribute('data-formula')];
   writeFormulaPos();
@@ -1782,8 +1842,14 @@ fullscreenBtnEl.addEventListener('click', function(){
     if (p && p.catch) p.catch(function(){ /* refused, e.g. not from a user gesture */ });
   }
 });
-document.addEventListener('fullscreenchange', syncFullscreenBtn);
-document.addEventListener('webkitfullscreenchange', syncFullscreenBtn);
+// Entering or leaving full screen redraws the formulas, in their cards or
+// out of them.
+function onFullscreenChange(){
+  syncFullscreenBtn();
+  if (drawn) render();
+}
+document.addEventListener('fullscreenchange', onFullscreenChange);
+document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 syncFullscreenBtn();
 
 function fitRingHead(){
