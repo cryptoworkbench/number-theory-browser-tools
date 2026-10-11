@@ -1085,7 +1085,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null, noSub: false };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1651,7 +1651,7 @@ function drawRing(parent, G, beads, box, paint){
   var h = shownGen(G);
   var k = G.orders[h];
   var outerEdge = box.R + beadR;
-  if (state.paths){
+  if (state.paths && !noSub()){
     var width = num(Math.max(1, Math.min(2.4, 44 / k + 0.7)));
     var walks = [];
     var shared = state.elSide === invSide();
@@ -1827,9 +1827,12 @@ function mathInline(content){
 // Whether a head layer is drawn: it and every one before it in HEAD_CHAIN
 // are on, or full screen just it.
 function headOn(name){
+  if (noSub() && SUB_HEADS.indexOf(name) !== -1) return false;
   if (fsWins) return state[name];
   return HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf(name) + 1).every(function(k){ return state[k]; });
 }
+// The formulas about the subgroup, which with no subgroup chosen are left out.
+var SUB_HEADS = ['sname', 'sorder', 'cindex'];
 
 // The order formulas under the ring's title, typeset and as plain text. In
 // ℤ/nℤ the group's order and ⟨h⟩'s worked out from it; in (ℤ/nℤ)* the
@@ -1990,7 +1993,7 @@ function drawFormulaPane(G){
     items[key].appendChild(el);
   };
   if (state.gname) add('gname', mathLine('ring-math-title', mGroup(G), G.label));
-  if (state.sname) add('sname', mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+  if (headOn('sname')) add('sname', mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
     translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
   orderFormulas(G).forEach(function(f){ add(f.key, mathLine('ring-math-formula', f.math, f.plain)); });
   if (needsLogBase(G)) add('sorder', logBasePrompt(G));
@@ -3070,6 +3073,7 @@ function drawNecklace(G, paint){
   ringDynamicEl.appendChild(drawText('ring-title is-plain', SIZE / 2, 44, coset
     ? translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul',
         { a: coset.start, h: shownGen(G), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).join(', ') + '}' })
+    : noSub() ? G.label
     : translate(G.orders[shownGen(G)] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: shownGen(G) })));
   // In ℤ/nℤ the coset count follows from |⟨h⟩| = n / gcd(n, h), worked out
   // with this n and h under the title while the cosets play.
@@ -3139,6 +3143,10 @@ function turned(list){
 // remembered across groups while it is still an element of the new group.
 function syncGenerators(G){
   genSelectEl.replaceChildren();
+  var none = document.createElement('option');
+  none.value = 'none';
+  none.textContent = translate('cyclicGroups.colorByNone');
+  genSelectEl.appendChild(none);
   G.els.forEach(function(a){
     var opt = document.createElement('option');
     opt.value = String(a);
@@ -3148,7 +3156,7 @@ function syncGenerators(G){
   if (G.els.indexOf(state.gen) === -1){
     state.gen = G.cyclic ? G.generators[0] : (G.els.length > 1 ? G.els[1] : G.identity);
   }
-  genSelectEl.value = String(state.gen);
+  genSelectEl.value = state.noSub ? 'none' : String(state.gen);
 }
 
 // The backwards walk's side: opposite the forward walk's, or hidden.
@@ -3170,7 +3178,7 @@ function mergedWalks(G){
 
 function renderCombineKey(G){
   var h = shownGen(G);
-  var on = G.orders[h] > 1 && state.paths;
+  var on = G.orders[h] > 1 && state.paths && !noSub();
   combineKeyEl.hidden = !on;
   if (!on) return;
   var params = function(){ return { h: mNum(h), hinv: mNum(G.inv[h]) }; };
@@ -3289,6 +3297,11 @@ function renderNotice(G, factors){
 var preview = null;
 function shownGen(G){
   return preview !== null && G.els.indexOf(preview) !== -1 ? preview : state.gen;
+}
+// None chosen in the subgroup dropdown, and no row previewed: the ring
+// shows no walks. state.gen is kept, for choosing a subgroup again.
+function noSub(){
+  return state.noSub && preview === null;
 }
 var drawn = null;
 function redrawRing(){
@@ -3475,6 +3488,7 @@ function turnBy(steps){
 function selectGen(g){
   var carry = spin && { steps: spin.steps, now: spin.now };
   state.gen = g;
+  state.noSub = false;
   render();
   if (state.top !== 'gen' || !drawn) return;
   if (carry){
@@ -3800,6 +3814,7 @@ var cosetSpeedEl = $('coset-speed');
 // to draw: not the identity's {e}, whose cosets are single beads, and not
 // the whole group, which is its own only coset.
 function hasCosets(G){
+  if (state.noSub) return false;
   var k = G.orders[state.gen];
   return k > 1 && k < G.order;
 }
@@ -3837,7 +3852,7 @@ function showCosets(shown){
 // and for a generator, whose subgroup is the whole group, it says so.
 function syncCosetButton(){
   var G = drawn && drawn.G;
-  var generator = !cosetRun && !!G && G.orders[state.gen] === G.order && G.order > 1;
+  var generator = !cosetRun && !!G && !state.noSub && G.orders[state.gen] === G.order && G.order > 1;
   cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
   cosetBtnEl.classList.toggle('is-generator', generator);
   if (generator) translateInto(cosetBtnEl, 'cyclicGroups.cosetNoneGenerator', { g: mNum(state.gen) });
@@ -3959,7 +3974,7 @@ function renderSubgroups(G){
   var sig = G.mode + ' ' + G.n + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
-      var on = Number(row.getAttribute('data-gen')) === state.gen;
+      var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
       row.classList.toggle('is-current', on);
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
@@ -3973,9 +3988,10 @@ function renderSubgroups(G){
     var li = document.createElement('li');
     var row = document.createElement('button');
     row.type = 'button';
-    row.className = 'subgroup-row' + (g === state.gen ? ' is-current' : '');
+    var on = !state.noSub && g === state.gen;
+    row.className = 'subgroup-row' + (on ? ' is-current' : '');
     row.setAttribute('data-gen', String(g));
-    row.setAttribute('aria-pressed', g === state.gen ? 'true' : 'false');
+    row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
     row.setAttribute('aria-label', '⟨' + g + '⟩ = {' + members.join(', ') + '}');
     row.appendChild(mInline(mrow(angle(mn(g)), mo('='), mo('{', true)), '⟨' + g + '⟩ = {'));
@@ -4518,6 +4534,7 @@ function stateQuery(){
   q.set('mode', state.mode);
   q.set('n', String(state.n));
   q.set('gen', String(state.gen));
+  if (state.noSub) q.set('sub', 'none'); else q.delete('sub');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   q.delete('gentop');
   if (state.top !== 'id') q.set('top', state.top);
@@ -4684,9 +4701,9 @@ function render(){
   renderNotice(G, factors);
   renderFacts(G, factors);
   // The identity generates only itself: nothing to walk, nothing to coset.
-  var isIdentity = state.gen === G.identity;
+  var isIdentity = !state.noSub && state.gen === G.identity;
   identityNoteEl.hidden = !isIdentity;
-  subgroupOptionsEl.hidden = isIdentity;
+  subgroupOptionsEl.hidden = isIdentity || state.noSub;
   renderIso(G);
   renderSubgroups(G);
   renderLegend(G, classes, pairing);
@@ -4862,6 +4879,11 @@ opToggleEl.addEventListener('keydown', function(e){
   setMode(e.key === 'ArrowLeft' ? 'additive' : 'multiplicative');
 });
 genSelectEl.addEventListener('change', function(){
+  if (genSelectEl.value === 'none'){
+    state.noSub = true;
+    render();
+    return;
+  }
   var g = parseInt(genSelectEl.value, 10);
   if (!isFinite(g)) return;
   selectGen(g);
@@ -5060,6 +5082,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (state.top === 'id') state.rot = 0;
   var wanted = parseInt(query.get('gen'), 10);
   if (isFinite(wanted) && buildGroup(state.mode, state.n).els.indexOf(wanted) !== -1) state.gen = wanted;
+  state.noSub = query.get('sub') === 'none';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){
