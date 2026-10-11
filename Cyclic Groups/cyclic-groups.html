@@ -563,9 +563,12 @@
   .scratch-grip{ position:absolute; right:2px; bottom:2px; width:1em; height:1em; cursor:nwse-resize; touch-action:none;
     background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
   .scratch-grip:hover, .scratch-pad.is-resizing .scratch-grip{ opacity:1; }
-  .scratch-name{ display:block; font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  .scratch-name{ display:block; width:max-content; font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
   .scratch-math{ margin-top:.15em; }
   .scratch-math math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
+  /* A formula in pieces, each from an equals sign on, so that a narrowed
+     card breaks it onto new lines there. */
+  .scratch-pieces{ display:flex; flex-wrap:wrap; align-items:baseline; }
   .scratch-math math.m-inline{ display:inline-block; display:inline math; width:auto; font-size:1.05em; }
   .scratch-math .ring-math-title{ font-size:1.2em; }
   .scratch-math .ring-math-formula{ font-size:1.05em; }
@@ -2002,13 +2005,13 @@ function drawScratchPad(G){
   if (!scratchOpen) return;
   var on = function(name){ return !(noSub() && SUB_HEADS.indexOf(name) !== -1); };
   var h = shownGen(G), whole = G.orders[h] === G.order, cells = {};
-  if (on('gname')) cells.gname = mathLine('ring-math-title', mGroup(G), G.label);
-  if (on('sname')) cells.sname = mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+  if (on('gname')) cells.gname = scratchMath('ring-math-title', mGroup(G), G.label);
+  if (on('sname')) cells.sname = scratchMath('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
     translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }));
-  orderFormulas(G, on).forEach(function(f){ cells[f.key] = mathLine('ring-math-formula', f.math, f.plain); });
+  orderFormulas(G, on).forEach(function(f){ cells[f.key] = scratchMath('ring-math-formula', f.math, f.plain); });
   if (on('sorder') && G.mode === 'multiplicative' && G.cyclic && !state.bygen) cells.sorder = logBasePrompt(G, true);
   var count = generatorCount(G);
-  cells.gens = count ? mathLine('ring-math-formula', count.math, count.plain) : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) });
+  cells.gens = count ? scratchMath('ring-math-formula', count.math, count.plain) : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) });
   SCRATCH_ROWS.forEach(function(key){
     var name = document.createElement('span');
     name.className = 'scratch-name';
@@ -2027,15 +2030,53 @@ function drawScratchPad(G){
   grip.title = translate('cyclicGroups.resizeTitle');
   grip.setAttribute('aria-hidden', 'true');
   scratchPadEl.appendChild(grip);
+  if (scratchWidth !== null) setScratchWidth(scratchWidth);
+}
+// A formula as pieces: the first, then one from each equals sign on, each
+// with its share of the plain text for copying.
+function scratchMath(cls, content, plain){
+  var box = document.createElement('div');
+  box.className = 'scratch-pieces';
+  var groups = [[]];
+  Array.prototype.slice.call(content.childNodes).forEach(function(c){
+    if (c.localName === 'mo' && c.textContent === '=' && groups[groups.length - 1].length) groups.push([]);
+    groups[groups.length - 1].push(c);
+  });
+  var parts = String(plain).split(' = ');
+  var split = parts.length === groups.length;
+  groups.forEach(function(g, i){
+    box.appendChild(mathLine(cls + ' scratch-piece', mrow.apply(null, g), split ? (i ? ' = ' + parts[i] : parts[0]) : (i ? '' : plain)));
+  });
+  return box;
 }
 // Dragging the grip scales the card, its names and formulas with it, by
 // how far the corner moves, from where it starts (its names then as large
 // as the arrangement row's Generator label) to three times that; double-
 // clicking it sets it back.
-var scratchScale = 1, scratchSizing = null;
+// At its smallest scale, dragging the grip further in narrows the card
+// instead, its formulas breaking onto new lines at their equals signs, down
+// to its widest name or unbroken piece; scratchWidth is that width, or null
+// while the card takes its natural width.
+var scratchScale = 1, scratchSizing = null, scratchWidth = null;
 function setScratchScale(v){
   scratchScale = clamp(v, 1, 3);
   scratchPadEl.style.setProperty('--scratch-scale', String(scratchScale));
+}
+// The card's natural width and the least it can be narrowed to.
+function scratchBounds(){
+  var pad = scratchPadEl, keep = pad.style.width;
+  pad.style.width = '';
+  // MathML elements have no offsetWidth, so widths come from their boxes.
+  var natural = pad.getBoundingClientRect().width, widest = 0;
+  pad.querySelectorAll('.scratch-name, .scratch-piece, .scratch-math select, .scratch-math > span').forEach(function(el){ widest = Math.max(widest, el.getBoundingClientRect().width); });
+  pad.style.width = keep;
+  var cs = getComputedStyle(pad);
+  return { natural: natural, least: Math.ceil(widest + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth)) };
+}
+function setScratchWidth(w){
+  var b = w === null ? null : scratchBounds();
+  scratchWidth = b && w < b.natural ? Math.max(b.least, Math.round(w)) : null;
+  scratchPadEl.style.width = scratchWidth === null ? '' : scratchWidth + 'px';
 }
 // Dragging the card anywhere but its grip and its controls moves it, kept
 // inside its window; scratchAt is how far it has moved from under the
@@ -2084,6 +2125,12 @@ scratchPadEl.addEventListener('pointerdown', function(e){
 });
 scratchPadEl.addEventListener('pointermove', function(e){
   if (!scratchSizing || e.pointerId !== scratchSizing.id) return;
+  var at = scratchPadEl.getBoundingClientRect();
+  var toW = e.clientX + scratchSizing.dx - at.left;
+  if (scratchWidth !== null || (scratchScale <= 1 && toW < at.width)){
+    setScratchWidth(toW);
+    if (scratchWidth !== null) return;
+  }
   // The scale that brings the corner nearest the pointer along the card's
   // diagonal, so the corner follows it. The formulas don't grow exactly in
   // step with the scale, so it is worked out from the card's size as drawn,
@@ -2103,7 +2150,9 @@ function endScratchSizing(e){
 scratchPadEl.addEventListener('pointerup', endScratchSizing);
 scratchPadEl.addEventListener('pointercancel', endScratchSizing);
 scratchPadEl.addEventListener('dblclick', function(e){
-  if (e.target.classList.contains('scratch-grip')) setScratchScale(1);
+  if (!e.target.classList.contains('scratch-grip')) return;
+  setScratchScale(1);
+  setScratchWidth(null);
 });
 scratchBtnEl.addEventListener('click', function(){
   scratchOpen = !scratchOpen;
