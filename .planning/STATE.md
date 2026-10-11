@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T12:26:26.780Z"
+last_updated: "2026-10-11T12:34:06.625Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: a33caf991fee744715189ad5c75cfc9c138d3d5a
+state_head: c4635efb07d9018abb43eccd4922b4be75765615
 progress:
   total_phases: 7
   completed_phases: 6
@@ -450,6 +450,7 @@ None yet.
 | 214 | Cyclic Groups: Fit button on every full-screen window | 2026-10-11 | c2a0bd1 | — |
 | 215 | Cyclic Groups: three-way Keep on top slider replaces the gen-top checkbox | 2026-10-11 | c8da02d | — |
 | 216 | Cyclic Groups: Arrangement = Sequential / Order by generator powers + Generator dropdown | 2026-10-11 | a33caf9 | — |
+| 217 | Cyclic Groups: Keep on top switch at the right end of the Ring window's first row | 2026-10-11 | c4635ef | — |
 
 ## Deferred Items
 
