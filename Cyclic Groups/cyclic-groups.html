@@ -441,31 +441,55 @@
      and a double-click puts it back in the column. */
   .ring-head [data-formula]{ cursor:grab; touch-action:none; }
   .diagram-frame .is-moved{ position:absolute; z-index:1; margin:0; }
-  /* Full screen, each formula sits in a card like the Factor Tree's tree
-     cards: the drag grip in the top-left corner with the formula's switch
-     label beside it as its title, and the button that turns it off in the
-     top-right corner. */
-  .diagram-frame:fullscreen .ring-head, .diagram-frame:fullscreen .ring-head .ring-math-row{ gap:8px; }
-  .formula-card{ position:relative; display:flex; flex-direction:column; align-items:center; max-width:100%; box-sizing:border-box; padding:4px 4px 10px; background:var(--surface); border:1px solid var(--panel-border); border-radius:var(--radius-card); }
-  .formula-card-head{ align-self:stretch; display:flex; align-items:center; gap:4px; min-width:0; }
-  .formula-card-grip{ flex:none; width:24px; height:24px; display:grid; place-items:center; color:var(--text-dim); }
-  .formula-card:hover .formula-card-grip{ color:var(--text); }
-  .formula-card-grip circle{ fill:currentColor; }
-  .formula-card-title{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:start; font-size:.78rem; font-weight:600; color:var(--text-dim); }
-  .formula-card-close{ flex:none; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
-  .formula-card-close:hover{ color:var(--role-warn); border-color:var(--role-warn); }
-  .formula-card-close:focus{ outline:none; }
-  .formula-card-close:focus-visible{ box-shadow:var(--ctl-focus); }
-  .formula-card-close line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
-  .formula-card math{ padding:2px 10px 0; }
-  /* Full screen, the Subgroup panel moves into the diagram in a card of its
-     own, first in the top-right corner, dragged by its head only so its
-     controls work as ever. */
-  .panel-card{ position:absolute; top:96px; right:12px; z-index:1; width:300px; max-height:calc(100% - 200px); align-items:stretch; cursor:auto; touch-action:auto; overflow:auto; }
-  .panel-card.is-moved{ right:auto; }
-  .panel-card .formula-card-head{ cursor:grab; touch-action:none; }
-  .panel-card > .panel{ background:none; border:0; padding:4px 10px 0; }
-  .panel-card > .panel > h2{ display:none; }
+  /* Full screen, every panel of the page opens as a window over the
+     diagram from a taskbar along the bottom of the screen, like KDE
+     Plasma's: a launcher menu on the left listing them all, then a task
+     button for each, marked along its top edge while its window is open
+     and lit while that window is in front. A window is a card like the
+     Factor Tree's tree cards, dragged by its head (the grip and the
+     panel's name) and closed with its close button; the panel inside is
+     the page's own, moved in, its controls and state untouched. */
+  .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; width:320px; max-width:calc(100% - 24px); max-height:calc(100% - 72px); padding:4px 4px 8px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
+  .fs-win[hidden], .fs-win:has(> .fs-win-body > [hidden]){ display:none; }
+  .fs-win.is-wide{ width:560px; }
+  .fs-win-head{ flex:none; display:flex; align-items:center; gap:4px; min-width:0; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .fs-win-grip{ flex:none; width:24px; height:24px; display:grid; place-items:center; color:var(--text-dim); }
+  .fs-win-head:hover .fs-win-grip{ color:var(--text); }
+  .fs-win-grip circle{ fill:currentColor; }
+  .fs-win-title{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:start; font-size:.78rem; font-weight:600; color:var(--text-dim); }
+  .fs-win-close{ flex:none; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
+  .fs-win-close:hover{ color:var(--role-warn); border-color:var(--role-warn); }
+  .fs-win-close:focus{ outline:none; }
+  .fs-win-close:focus-visible{ box-shadow:var(--ctl-focus); }
+  .fs-win-close line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+  .fs-win-body{ flex:1 1 auto; min-height:0; overflow:auto; }
+  .fs-win-body > .panel{ background:none; border:0; border-radius:0; padding:4px 10px 0; }
+  .fs-win.hides-heading .fs-win-body > .panel > h2, .fs-win.hides-heading .fs-win-body > .panel > .panel-head > h2{ display:none; }
+  .fs-win-body > .formula-toggles{ position:static; padding:6px 10px 2px; font-size:.9rem; gap:8px; }
+  .fs-win-body .subgroups{ max-height:none; }
+  .fs-taskbar{ display:none; }
+  .diagram-frame:fullscreen .fs-taskbar{ position:relative; z-index:50; flex:none; display:flex; align-items:stretch; gap:2px; height:44px; margin:6px -14px -14px; padding:0 4px; background:var(--surface); border-top:1px solid var(--panel-border-strong); box-shadow:0 -2px 10px var(--scrim); }
+  .fs-task, .fs-launcher, .fs-menu-item{ font:inherit; font-family:var(--font-sans); color:var(--text); background:none; border:0; cursor:pointer; }
+  .fs-task{ position:relative; display:flex; align-items:center; gap:8px; min-width:0; max-width:220px; padding:0 12px; font-size:.84rem; }
+  .fs-task:hover, .fs-launcher:hover, .fs-launcher[aria-expanded="true"]{ background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .fs-task.is-open::before{ content:""; position:absolute; left:3px; right:3px; top:0; height:3px; background:color-mix(in srgb, var(--accent) 45%, transparent); }
+  .fs-task.is-front{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  .fs-task.is-front::before{ background:var(--accent); }
+  .fs-task:disabled{ opacity:.4; cursor:default; background:none; }
+  .fs-task:focus-visible, .fs-launcher:focus-visible, .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .fs-icon{ flex:none; min-width:20px; text-align:center; font-family:var(--font-math); font-size:1.05rem; line-height:1; color:var(--accent); }
+  .fs-task-label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fs-launcher{ flex:none; width:48px; display:grid; place-items:center; color:var(--accent); }
+  .fs-launcher svg{ width:22px; height:22px; fill:currentColor; }
+  .fs-tasks{ flex:1 1 auto; min-width:0; display:flex; gap:2px; overflow-x:auto; }
+  .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
+  .fs-menu[hidden]{ display:none; }
+  .fs-menu-head{ margin:4px 8px 6px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
+  .fs-menu-item{ display:flex; align-items:center; gap:10px; width:100%; padding:7px 8px; border-radius:6px; font-size:.88rem; text-align:start; }
+  .fs-menu-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .fs-menu-item:disabled{ opacity:.4; cursor:default; background:none; }
+  .diagram-frame:fullscreen .resize-grip{ display:none; }
+  .diagram-frame:fullscreen :is(.rotate-ctl, .combine-key){ bottom:62px; }
   /* The diagram's top-right corner: the full-screen button, and under it,
      while a formula on show stands away from its place, the button that
      puts the formulas back. */
@@ -636,7 +660,7 @@
           </span>
           <span id="auto-rotate-label" data-i18n="cyclicGroups.autoRotate">Auto-rotate</span>
         </div>
-        <div class="formula-toggles">
+        <div class="formula-toggles" id="formula-toggles">
           <div class="check"><input type="checkbox" role="switch" id="layer-gname" checked><label for="layer-gname" data-i18n="cyclicGroups.formulaToggleName">Group name</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-sname"><label for="layer-sname" data-i18n="cyclicGroups.formulaToggleSubName">Subgroup name</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder"><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroupShort">Group cardinality</label></div>
@@ -654,6 +678,11 @@
             <input type="range" id="spin-slider" min="-3" max="3" step="1" value="0" aria-label="Auto-rotate speed" data-i18n-aria-label="cyclicGroups.spinLabel">
           </div>
           <span aria-hidden="true">&#x27F3;</span>
+        </div>
+        <div class="fs-taskbar" id="fs-taskbar" role="toolbar" aria-label="Panels" data-i18n-aria-label="cyclicGroups.fsPanels">
+          <button type="button" class="fs-launcher" id="fs-launcher" aria-haspopup="menu" aria-expanded="false" aria-controls="fs-menu" title="Panels" aria-label="Panels" data-i18n-title="cyclicGroups.fsPanels" data-i18n-aria-label="cyclicGroups.fsPanels"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></button>
+          <div class="fs-menu" id="fs-menu" role="menu" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.fsPanels">Panels</p></div>
+          <div class="fs-tasks" id="fs-tasks"></div>
         </div>
         <div class="combine-key" id="combine-key" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
@@ -689,7 +718,7 @@
           </div>
         </div>
       </section>
-      <section class="panel subgroups-panel">
+      <section class="panel subgroups-panel" id="subgroups-list-panel">
         <div class="panel-head">
           <h2 data-i18n="cyclicGroups.subgroupsHeading">Subgroup generated by each element</h2>
           <div class="layout-switch" role="group" aria-label="Layout" data-i18n-aria-label="cyclicGroups.subLayoutLabel">
@@ -703,7 +732,7 @@
     </div>
 
     <aside class="side">
-      <section class="panel">
+      <section class="panel" id="group-panel">
         <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
         <ul class="facts group-controls" id="group-controls">
           <li>
@@ -789,12 +818,12 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="legend-panel">
         <h2 id="legend-heading">Color key: subgroup cardinality</h2>
         <div class="legend" id="legend"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="export-panel">
         <button type="button" class="action-btn" id="export-png" data-i18n="cyclicGroups.exportPng">Download ring PNG</button>
         <p class="export-status" id="export-status" aria-live="polite"></p>
       </section>
@@ -1679,94 +1708,19 @@ function readFormulaPos(){
 function writeFormulaPos(){
   try { localStorage.setItem(FORMULA_POS_KEY, JSON.stringify(formulaPos)); } catch (e) { /* storage unavailable */ }
 }
-// Each formula's full-screen card title. The subgroup's name, on only with
-// the group's, is written with it, so its card names both.
-var FORMULA_TITLES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaCardBothNames', gorder: 'cyclicGroups.formulaToggleGroup', sorder: 'cyclicGroups.formulaToggleSubgroup', cindex: 'cyclicGroups.formulaToggleCosets' };
-// A formula is moved as it is, or full screen in its card.
 function movable(key, el){
-  if (fullscreenEl() !== diagramFrameEl){
-    el.setAttribute('data-formula', key);
-    return el;
-  }
-  var name = translate(FORMULA_TITLES[key]);
-  var card = cardShell(key, name), head = card.firstChild;
-  var close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'formula-card-close';
-  close.setAttribute('aria-label', translate('cyclicGroups.formulaHide', { name: name }));
-  close.setAttribute('title', translate('cyclicGroups.formulaHide', { name: name }));
-  var x = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
-  x.appendChild(svgEl('line', { x1: 2.5, y1: 2.5, x2: 9.5, y2: 9.5 }));
-  x.appendChild(svgEl('line', { x1: 9.5, y1: 2.5, x2: 2.5, y2: 9.5 }));
-  close.appendChild(x);
-  // The same as turning its switch off.
-  close.addEventListener('click', function(){
-    var box = $('layer-' + key);
-    box.checked = false;
-    box.dispatchEvent(new Event('change'));
-  });
-  head.appendChild(close);
-  card.appendChild(el);
-  return card;
-}
-// A full-screen card: its head holds the drag grip and the title.
-function cardShell(key, name){
-  var card = document.createElement('div');
-  card.className = 'formula-card';
-  card.setAttribute('data-formula', key);
-  var head = document.createElement('div');
-  head.className = 'formula-card-head';
-  var grip = document.createElement('div');
-  grip.className = 'formula-card-grip';
-  grip.setAttribute('role', 'img');
-  grip.setAttribute('aria-label', translate('cyclicGroups.formulaMove', { name: name }));
-  grip.setAttribute('title', translate('cyclicGroups.formulaMove', { name: name }));
-  var dots = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
-  [3, 6, 9].forEach(function(y){ [4, 8].forEach(function(x){ dots.appendChild(svgEl('circle', { cx: x, cy: y, r: 1.1 })); }); });
-  grip.appendChild(dots);
-  var title = document.createElement('span');
-  title.className = 'formula-card-title';
-  title.textContent = name;
-  head.appendChild(grip);
-  head.appendChild(title);
-  card.appendChild(head);
-  return card;
-}
-
-// Full screen, the Subgroup panel itself moves into a card over the
-// diagram, its controls and their state untouched, and back to its place
-// in the side column after. A comment marks that place meanwhile.
-var SUBGROUP_CARD_KEY = 'subgroup-panel'; // its remembered place's name
-var subgroupPanelEl = $('subgroup-panel');
-var subgroupHome = document.createComment('subgroup-panel');
-var subgroupCard = null;
-function syncSubgroupCard(){
-  var full = fullscreenEl() === diagramFrameEl;
-  if (full && !subgroupCard){
-    subgroupCard = cardShell(SUBGROUP_CARD_KEY, translate('cyclicGroups.subgroupHeading'));
-    subgroupCard.classList.add('panel-card');
-    subgroupPanelEl.before(subgroupHome);
-    subgroupCard.appendChild(subgroupPanelEl);
-    diagramFrameEl.appendChild(subgroupCard);
-  } else if (!full && subgroupCard){
-    subgroupHome.replaceWith(subgroupPanelEl);
-    subgroupCard.remove();
-    subgroupCard = null;
-  } else if (subgroupCard){
-    var fresh = cardShell(SUBGROUP_CARD_KEY, translate('cyclicGroups.subgroupHeading')).firstChild;
-    subgroupCard.replaceChild(fresh, subgroupCard.firstChild);
-  }
-  placeMoved();
+  el.setAttribute('data-formula', key);
+  return el;
 }
 function formulaEl(key){
   return diagramFrameEl.querySelector('[data-formula="' + key + '"]');
 }
-// The movable thing a press lands on: a formula anywhere but its close
-// button, the Subgroup panel's card only by its head.
+// The movable thing a press lands on: a formula anywhere, a full-screen
+// window only by its head, never by its close button.
 function grabbed(target){
-  if (!target.closest || target.closest('.formula-card-close')) return null;
+  if (!target.closest || target.closest('.fs-win-close')) return null;
   var el = target.closest('[data-formula]');
-  if (el && el.classList.contains('panel-card') && !target.closest('.formula-card-head')) return null;
+  if (el && el.classList.contains('fs-win') && !target.closest('.fs-win-head')) return null;
   return el;
 }
 // Puts a moved formula's centre at (x, y), fractions of the diagram's
@@ -1779,23 +1733,25 @@ function placeFormula(el, x, y){
   el.style.top = Math.round(clamp(y * H - h / 2, 0, Math.max(0, H - h))) + 'px';
 }
 function placeMoved(){
-  diagramFrameEl.querySelectorAll('[data-formula]').forEach(function(el){
+  ringHeadEl.querySelectorAll('[data-formula]').forEach(function(el){
     var p = formulaPos[el.getAttribute('data-formula')];
     if (!p) return;
     el.classList.add('is-moved');
     placeFormula(el, p.x, p.y);
   });
+  placeWindows();
   syncFormulaReset();
 }
 // The reset button shows while a formula on show is away from its place.
 function syncFormulaReset(){
-  $('formula-reset').hidden = !diagramFrameEl.querySelector('.is-moved');
+  $('formula-reset').hidden = !ringHeadEl.querySelector('.is-moved');
 }
-// Reset puts every formula back, the ones turned off as well.
+// Reset puts every formula back, the ones turned off as well. The
+// full-screen windows keep their places.
 $('formula-reset').addEventListener('click', function(){
-  formulaPos = {};
+  Object.keys(formulaPos).forEach(function(k){ if (k.indexOf(WIN_KEY) !== 0) delete formulaPos[k]; });
   writeFormulaPos();
-  diagramFrameEl.querySelectorAll('.is-moved').forEach(function(el){
+  ringHeadEl.querySelectorAll('.is-moved').forEach(function(el){
     el.classList.remove('is-moved');
     el.style.left = el.style.top = '';
   });
@@ -1824,7 +1780,7 @@ window.addEventListener('pointermove', function(e){
     if (sel) sel.removeAllRanges();
     document.documentElement.classList.add('is-formula-drag');
     // Lifted out of the column where it stands, so it does not jump.
-    if (!el.classList.contains('is-moved')){
+    if (!el.classList.contains('is-moved') && !el.classList.contains('fs-win')){
       el.classList.add('is-moved');
       el.style.left = Math.round(r.left - ox) + 'px';
       el.style.top = Math.round(r.top - oy) + 'px';
@@ -1857,6 +1813,12 @@ window.addEventListener('pointercancel', endFormulaDrag);
 diagramFrameEl.addEventListener('dragstart', function(e){ if (grabbed(e.target)) e.preventDefault(); });
 diagramFrameEl.addEventListener('dblclick', function(e){
   var el = grabbed(e.target);
+  if (el && el.classList.contains('fs-win')){
+    delete formulaPos[el.getAttribute('data-formula')];
+    writeFormulaPos();
+    placeWindows();
+    return;
+  }
   if (!el || !el.classList.contains('is-moved')) return;
   delete formulaPos[el.getAttribute('data-formula')];
   writeFormulaPos();
@@ -1891,16 +1853,229 @@ fullscreenBtnEl.addEventListener('click', function(){
     if (p && p.catch) p.catch(function(){ /* refused, e.g. not from a user gesture */ });
   }
 });
-// Entering or leaving full screen redraws the formulas, in their cards or
-// out of them.
 function onFullscreenChange(){
   syncFullscreenBtn();
-  syncSubgroupCard();
-  if (drawn) render();
+  syncWindows();
 }
 document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 syncFullscreenBtn();
+
+/* ---------- full-screen windows and taskbar ---------- */
+
+// Every panel of the page, in the taskbar's order: where it lives, the
+// name its window and task button carry, and the sign on its button. A
+// panel the page hides (no isomorphic groups, no notice) keeps its button,
+// disabled, and its window out of sight until the page shows it again.
+var FS_PANELS = [
+  { key: 'formulas', id: 'formula-toggles', title: 'cyclicGroups.fsFormulas', icon: '∑' },
+  { key: 'group', id: 'group-panel', title: 'cyclicGroups.groupHeading', icon: 'G', hideHeading: true },
+  { key: 'subgroup', id: 'subgroup-panel', title: 'cyclicGroups.subgroupHeading', icon: 'H', hideHeading: true },
+  { key: 'iso', id: 'iso-panel', title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
+  { key: 'subgroups', id: 'subgroups-list-panel', title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, wide: true },
+  { key: 'legend', id: 'legend-panel', title: 'cyclicGroups.fsColorKey', icon: '◐' },
+  { key: 'layers', id: 'layers-panel', title: 'cyclicGroups.layersHeading', icon: '☰', hideHeading: true },
+  { key: 'export', id: 'export-panel', title: 'cyclicGroups.fsExport', icon: '⤓' },
+  { key: 'notice', id: 'notice', title: 'cyclicGroups.fsNotice', icon: '!' }
+];
+// A window's remembered place is kept with the formulas', under WIN_KEY and
+// its panel's key; which windows are open, front last, under FS_OPEN_KEY.
+var WIN_KEY = 'win-';
+var FS_OPEN_KEY = 'cyclic-groups-fs-open';
+var fsOpen = readFsOpen();
+var fsWins = null; // panel key -> { spec, el, home, win, title, grip, close } while full screen
+var fsTasksEl = $('fs-tasks'), fsMenuEl = $('fs-menu'), fsLauncherEl = $('fs-launcher');
+var fsTasks = {}, fsItems = {};
+function readFsOpen(){
+  try {
+    var raw = JSON.parse(localStorage.getItem(FS_OPEN_KEY) || '[]');
+    return Array.isArray(raw) ? raw.filter(function(k){ return FS_PANELS.some(function(p){ return p.key === k; }); }) : [];
+  } catch (e) { return []; }
+}
+function writeFsOpen(){
+  try { localStorage.setItem(FS_OPEN_KEY, JSON.stringify(fsOpen)); } catch (e) { /* storage unavailable */ }
+}
+function fsIcon(sign){
+  var i = document.createElement('span');
+  i.className = 'fs-icon';
+  i.setAttribute('aria-hidden', 'true');
+  i.textContent = sign;
+  return i;
+}
+// The task buttons and the launcher's menu items, one each per panel.
+FS_PANELS.forEach(function(spec){
+  var task = document.createElement('button');
+  task.type = 'button';
+  task.className = 'fs-task';
+  task.appendChild(fsIcon(spec.icon));
+  var label = document.createElement('span');
+  label.className = 'fs-task-label';
+  task.appendChild(label);
+  task.addEventListener('click', function(){
+    if (fsOpen.indexOf(spec.key) === -1) openWindow(spec.key);
+    else if (fsOpen[fsOpen.length - 1] === spec.key) closeWindow(spec.key);
+    else openWindow(spec.key);
+  });
+  fsTasksEl.appendChild(task);
+  fsTasks[spec.key] = task;
+  var item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'fs-menu-item';
+  item.setAttribute('role', 'menuitem');
+  item.appendChild(fsIcon(spec.icon));
+  item.appendChild(document.createElement('span'));
+  item.addEventListener('click', function(){
+    setFsMenu(false);
+    openWindow(spec.key);
+  });
+  fsMenuEl.appendChild(item);
+  fsItems[spec.key] = item;
+});
+function setFsMenu(open){
+  fsMenuEl.hidden = !open;
+  fsLauncherEl.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open){
+    var first = fsMenuEl.querySelector('.fs-menu-item:not(:disabled)');
+    if (first) first.focus();
+  }
+}
+fsLauncherEl.addEventListener('click', function(){ setFsMenu(fsMenuEl.hidden); });
+document.addEventListener('pointerdown', function(e){
+  if (!fsMenuEl.hidden && !fsMenuEl.contains(e.target) && !fsLauncherEl.contains(e.target)) setFsMenu(false);
+});
+fsMenuEl.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ setFsMenu(false); fsLauncherEl.focus(); e.preventDefault(); }
+});
+
+function openWindow(key){
+  fsOpen = fsOpen.filter(function(k){ return k !== key; }).concat([key]);
+  writeFsOpen();
+  syncWindows();
+}
+function closeWindow(key){
+  fsOpen = fsOpen.filter(function(k){ return k !== key; });
+  writeFsOpen();
+  syncWindows();
+}
+// A press anywhere on an open window brings it to the front.
+diagramFrameEl.addEventListener('pointerdown', function(e){
+  var win = e.target.closest && e.target.closest('.fs-win');
+  if (!win || e.target.closest('.fs-win-close')) return;
+  var key = win.getAttribute('data-panel');
+  if (fsOpen[fsOpen.length - 1] !== key) openWindow(key);
+}, true);
+
+function buildWindow(spec){
+  var win = document.createElement('div');
+  win.className = 'fs-win' + (spec.wide ? ' is-wide' : '') + (spec.hideHeading ? ' hides-heading' : '');
+  win.setAttribute('data-formula', WIN_KEY + spec.key);
+  win.setAttribute('data-panel', spec.key);
+  win.setAttribute('role', 'dialog');
+  var head = document.createElement('div');
+  head.className = 'fs-win-head';
+  var grip = document.createElement('div');
+  grip.className = 'fs-win-grip';
+  grip.setAttribute('role', 'img');
+  var dots = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  [3, 6, 9].forEach(function(y){ [4, 8].forEach(function(x){ dots.appendChild(svgEl('circle', { cx: x, cy: y, r: 1.1 })); }); });
+  grip.appendChild(dots);
+  var title = document.createElement('span');
+  title.className = 'fs-win-title';
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'fs-win-close';
+  var x = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  x.appendChild(svgEl('line', { x1: 2.5, y1: 2.5, x2: 9.5, y2: 9.5 }));
+  x.appendChild(svgEl('line', { x1: 9.5, y1: 2.5, x2: 2.5, y2: 9.5 }));
+  close.appendChild(x);
+  close.addEventListener('click', function(){ closeWindow(spec.key); });
+  head.appendChild(grip);
+  head.appendChild(title);
+  head.appendChild(close);
+  var body = document.createElement('div');
+  body.className = 'fs-win-body';
+  win.appendChild(head);
+  win.appendChild(body);
+  return { win: win, body: body, title: title, grip: grip, close: close };
+}
+
+// Entering full screen moves every panel into its window, a comment
+// keeping its place; leaving puts each back. In between this shows the
+// open windows, stacked in the order they were last brought forward, and
+// marks their task buttons.
+function syncWindows(){
+  var full = fullscreenEl() === diagramFrameEl;
+  if (full && !fsWins){
+    fsWins = {};
+    FS_PANELS.forEach(function(spec){
+      var el = $(spec.id), w = buildWindow(spec);
+      w.spec = spec;
+      w.el = el;
+      w.home = document.createComment(spec.id);
+      el.before(w.home);
+      w.body.appendChild(el);
+      diagramFrameEl.insertBefore(w.win, $('fs-taskbar'));
+      fsWins[spec.key] = w;
+    });
+  } else if (!full && fsWins){
+    FS_PANELS.forEach(function(spec){
+      var w = fsWins[spec.key];
+      w.home.replaceWith(w.el);
+      w.win.remove();
+    });
+    fsWins = null;
+    setFsMenu(false);
+  }
+  syncFsLabels();
+  FS_PANELS.forEach(function(spec){
+    var shown = !$(spec.id).hidden, at = fsOpen.indexOf(spec.key);
+    fsTasks[spec.key].disabled = !shown;
+    fsItems[spec.key].disabled = !shown;
+    fsTasks[spec.key].classList.toggle('is-open', at !== -1);
+    fsTasks[spec.key].classList.toggle('is-front', at !== -1 && at === fsOpen.length - 1);
+    fsTasks[spec.key].setAttribute('aria-pressed', at !== -1 ? 'true' : 'false');
+    if (!fsWins) return;
+    var win = fsWins[spec.key].win;
+    win.hidden = at === -1;
+    win.style.zIndex = 3 + Math.max(0, at);
+  });
+  placeMoved();
+}
+
+// The names on the task buttons, the menu and the windows, in the current
+// language.
+function syncFsLabels(){
+  FS_PANELS.forEach(function(spec){
+    var name = translate(spec.title);
+    fsTasks[spec.key].querySelector('.fs-task-label').textContent = name;
+    fsTasks[spec.key].setAttribute('title', name);
+    fsItems[spec.key].lastChild.textContent = name;
+    if (!fsWins) return;
+    var w = fsWins[spec.key];
+    w.title.textContent = name;
+    w.win.setAttribute('aria-label', name);
+    w.grip.setAttribute('aria-label', translate('cyclicGroups.formulaMove', { name: name }));
+    w.grip.setAttribute('title', translate('cyclicGroups.formulaMove', { name: name }));
+    w.close.setAttribute('aria-label', translate('cyclicGroups.fsClose', { name: name }));
+    w.close.setAttribute('title', translate('cyclicGroups.fsClose', { name: name }));
+  });
+}
+
+// An open window stands where it was left, or the first time at its place
+// in a cascade from the top left.
+function placeWindows(){
+  if (!fsWins) return;
+  FS_PANELS.forEach(function(spec, i){
+    var win = fsWins[spec.key].win;
+    if (win.hidden || !win.offsetWidth) return;
+    var p = formulaPos[WIN_KEY + spec.key];
+    if (!p){
+      var W = diagramFrameEl.clientWidth, H = diagramFrameEl.clientHeight;
+      p = { x: (60 + 32 * i + win.offsetWidth / 2) / W, y: (60 + 32 * i + win.offsetHeight / 2) / H };
+    }
+    placeFormula(win, p.x, p.y);
+  });
+}
 
 function fitRingHead(){
   var room = ringHeadEl.clientWidth - parseFloat(getComputedStyle(ringHeadEl).paddingLeft) - parseFloat(getComputedStyle(ringHeadEl).paddingRight);
@@ -3453,6 +3628,7 @@ function render(){
   renderNNote();
   renderExportStatus();
   syncCayleyLink();
+  syncWindows();
   mirrorToUrl(G);
 }
 
@@ -3710,7 +3886,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); syncSubgroupCard(); });
+onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its

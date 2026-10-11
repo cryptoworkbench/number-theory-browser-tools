@@ -27,12 +27,13 @@
    strings in English first: formulaReset (the diagram's button that puts
    moved formulas back), fullscreenEnter / fullscreenExit (the
    diagram's full-screen button) and the four spin* strings of the
-   full-screen auto-rotate ruler (spinLabel, spinOff, spinCw, spinCcw), and
-   formulaMove / formulaHide, the grip and close labels of the full-screen
-   formula cards, and formulaToggleGroupShort / formulaToggleSubgroupShort /
-   formulaToggleCosetsShort, the labels of those switches (the cards keep
-   the formulaToggle* names as their titles), and formulaCardBothNames, the
-   title of the card holding the group and subgroup name together. Every other language shows the English
+   full-screen auto-rotate ruler (spinLabel, spinOff, spinCw, spinCcw),
+   formulaToggleGroupShort / formulaToggleSubgroupShort /
+   formulaToggleCosetsShort, the formula switches' labels, and the
+   full-screen taskbar and its windows: fsPanels (the taskbar and its
+   launcher menu), the window names fsFormulas, fsIsomorphisms, fsColorKey,
+   fsExport and fsNotice (the other windows take their panel's heading),
+   formulaMove (a window's grip) and fsClose (its close button). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -288,7 +289,6 @@
       formulaToggleGroupShort: 'Group cardinality',
       formulaToggleSubgroupShort: 'Subgroup cardinality',
       formulaToggleCosetsShort: 'Subgroup-coset amount',
-      formulaCardBothNames: 'Group and subgroup name',
       formulaReset: 'Reset formula positions',
       fullscreenEnter: 'Full screen',
       fullscreenExit: 'Exit full screen',
@@ -297,7 +297,13 @@
       spinCw: 'Clockwise, speed {speed}',
       spinCcw: 'Counterclockwise, speed {speed}',
       formulaMove: 'Move {name}',
-      formulaHide: 'Turn off {name}',
+      fsPanels: 'Panels',
+      fsFormulas: 'Formulas',
+      fsIsomorphisms: 'Isomorphisms',
+      fsColorKey: 'Color key',
+      fsExport: 'Export',
+      fsNotice: 'Notice',
+      fsClose: 'Close {name}',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',
