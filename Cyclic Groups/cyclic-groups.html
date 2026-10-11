@@ -473,11 +473,6 @@
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
-  /* The title and the formulas can be dragged anywhere over the diagram;
-     one moved keeps its place, also after being turned off and on again,
-     and a double-click puts it back in the column. */
-  .ring-head [data-formula]{ cursor:grab; touch-action:none; }
-  .diagram-frame .is-moved{ position:absolute; z-index:1; margin:0; }
   /* Full screen, the diagram becomes a little desktop: the ring and every
      panel of the page are windows on it, opened from a taskbar along the
      bottom like KDE Plasma's (a launcher menu on the left, a task button
@@ -621,7 +616,6 @@
   .spin-track input::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px; height:18px; margin-top:6px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); }
   .spin-track input::-moz-range-thumb{ width:18px; height:18px; box-sizing:border-box; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); }
   .spin-track input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
-  :root.is-formula-drag, :root.is-formula-drag *{ cursor:grabbing !important; user-select:none !important; -webkit-user-select:none !important; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
   :is(.ring-head, .formula-item) .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
@@ -746,7 +740,6 @@
             <svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
             <svg class="icon-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
           </button>
-          <button type="button" class="action-btn" id="formula-reset" hidden data-i18n="cyclicGroups.formulaReset">Reset formula positions</button>
         </div>
         <div class="auto-rotate" role="radiogroup" aria-labelledby="auto-rotate-label">
           <span class="tri" id="auto-rotate" data-at="off">
@@ -1807,12 +1800,12 @@ function drawMath(G, subs){
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
   } else if (!fsWins){
     var whole = G.orders[h] === G.order;
-    if (headOn('sname')) lines.push(movable('sname', mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }))));
-    else if (headOn('gname')) lines.push(movable('gname', mathLine('ring-math-title', mGroup(G), G.label)));
+    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
+    else if (headOn('gname')) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
     var row = document.createElement('div');
     row.className = 'ring-math-row';
-    orderFormulas(G).forEach(function(f){ row.appendChild(movable(f.key, mathLine('ring-math-formula', f.math, f.plain))); });
+    orderFormulas(G).forEach(function(f){ row.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
     if (row.firstChild) lines.push(row);
     if (needsLogBase(G)) lines.push(logBasePrompt(G));
   }
@@ -1825,7 +1818,6 @@ function drawMath(G, subs){
   });
   ringHeadEl.replaceChildren.apply(ringHeadEl, lines);
   fitRingHead();
-  placeMoved();
   drawFormulaPane(G);
 }
 var lastSubs = [];
@@ -1944,143 +1936,6 @@ function syncHeadSwitches(){
     if (i) $('layer-' + name).parentNode.hidden = !fsWins && !headOn(HEAD_CHAIN[i - 1]);
   });
 }
-
-/* ---------- movable formulas ---------- */
-
-// The title and each formula first appear in the column over the ring.
-// Dragged, one is lifted out of it and placed over the diagram where it was
-// dropped; that place is remembered under its switch's name, as the centre
-// as a fraction of the diagram's size, across turning it off and on and
-// across visits. A double-click puts it back in the column. The full-screen
-// Subgroup panel card moves and is remembered the same way.
-var FORMULA_POS_KEY = 'cyclic-groups-formula-pos';
-var formulaPos = readFormulaPos();
-var formulaDrag = null; // { key, id, x, y, dx, dy, live } while one is pressed
-function readFormulaPos(){
-  var out = {};
-  try {
-    var raw = JSON.parse(localStorage.getItem(FORMULA_POS_KEY) || '{}');
-    Object.keys(raw || {}).forEach(function(k){
-      var p = raw[k];
-      if (p && isFinite(p.x) && isFinite(p.y)) out[k] = { x: clamp(+p.x, 0, 1), y: clamp(+p.y, 0, 1) };
-    });
-  } catch (e) { /* storage unavailable or unreadable */ }
-  return out;
-}
-function writeFormulaPos(){
-  try { localStorage.setItem(FORMULA_POS_KEY, JSON.stringify(formulaPos)); } catch (e) { /* storage unavailable */ }
-}
-function movable(key, el){
-  el.setAttribute('data-formula', key);
-  return el;
-}
-function formulaEl(key){
-  return ringHeadEl.querySelector('[data-formula="' + key + '"]');
-}
-// The movable formula a press lands on.
-function grabbed(target){
-  return target.closest ? target.closest('[data-formula]') : null;
-}
-// What the formulas are placed in: the diagram, or full screen the ring's
-// window.
-function formulaBox(){
-  return fsWins ? fsWins.ring.body : diagramFrameEl;
-}
-// Puts a moved formula's centre at (x, y), fractions of its box's padding
-// box, kept wholly inside it. A <math> element has no offset* metrics, so
-// the size comes from the bounding box.
-function placeFormula(el, x, y){
-  var box = formulaBox(), W = box.clientWidth, H = box.clientHeight;
-  var r = el.getBoundingClientRect(), w = r.width, h = r.height;
-  el.style.left = Math.round(clamp(x * W - w / 2, 0, Math.max(0, W - w))) + 'px';
-  el.style.top = Math.round(clamp(y * H - h / 2, 0, Math.max(0, H - h))) + 'px';
-}
-function placeMoved(){
-  ringHeadEl.querySelectorAll('[data-formula]').forEach(function(el){
-    var p = formulaPos[el.getAttribute('data-formula')];
-    if (!p) return;
-    el.classList.add('is-moved');
-    placeFormula(el, p.x, p.y);
-  });
-  syncFormulaReset();
-}
-// The reset button shows while a formula on show is away from its place.
-function syncFormulaReset(){
-  $('formula-reset').hidden = !ringHeadEl.querySelector('.is-moved');
-}
-// Reset puts every formula back, the ones turned off as well.
-$('formula-reset').addEventListener('click', function(){
-  formulaPos = {};
-  writeFormulaPos();
-  ringHeadEl.querySelectorAll('.is-moved').forEach(function(el){
-    el.classList.remove('is-moved');
-    el.style.left = el.style.top = '';
-  });
-  syncFormulaReset();
-});
-diagramFrameEl.addEventListener('pointerdown', function(e){
-  var el = e.button === 0 && grabbed(e.target);
-  if (!el) return;
-  formulaDrag = { key: el.getAttribute('data-formula'), id: e.pointerId, x: e.clientX, y: e.clientY, live: false };
-});
-window.addEventListener('pointermove', function(e){
-  if (!formulaDrag || e.pointerId !== formulaDrag.id) return;
-  var el = formulaEl(formulaDrag.key);
-  if (!el){ formulaDrag = null; return; }
-  var box = formulaBox(), frame = box.getBoundingClientRect();
-  var ox = frame.left + box.clientLeft, oy = frame.top + box.clientTop;
-  if (!formulaDrag.live){
-    // A press that wanders less than a few pixels is a click, which
-    // selects the formula for copying.
-    if (Math.hypot(e.clientX - formulaDrag.x, e.clientY - formulaDrag.y) < 5) return;
-    var r = el.getBoundingClientRect();
-    formulaDrag.live = true;
-    formulaDrag.dx = formulaDrag.x - (r.left + r.width / 2);
-    formulaDrag.dy = formulaDrag.y - (r.top + r.height / 2);
-    var sel = window.getSelection && window.getSelection();
-    if (sel) sel.removeAllRanges();
-    document.documentElement.classList.add('is-formula-drag');
-    // Lifted out of the column where it stands, so it does not jump.
-    if (!el.classList.contains('is-moved')){
-      el.classList.add('is-moved');
-      el.style.left = Math.round(r.left - ox) + 'px';
-      el.style.top = Math.round(r.top - oy) + 'px';
-      syncFormulaReset();
-    }
-  }
-  e.preventDefault();
-  var p = {
-    x: (e.clientX - formulaDrag.dx - ox) / box.clientWidth,
-    y: (e.clientY - formulaDrag.dy - oy) / box.clientHeight
-  };
-  placeFormula(el, p.x, p.y);
-  // What is remembered is where it ended up, after keeping it inside.
-  var at = el.getBoundingClientRect();
-  formulaPos[formulaDrag.key] = {
-    x: (at.left + at.width / 2 - ox) / box.clientWidth,
-    y: (at.top + at.height / 2 - oy) / box.clientHeight
-  };
-});
-function endFormulaDrag(e){
-  if (!formulaDrag || e.pointerId !== formulaDrag.id) return;
-  if (formulaDrag.live){
-    writeFormulaPos();
-    document.documentElement.classList.remove('is-formula-drag');
-  }
-  formulaDrag = null;
-}
-window.addEventListener('pointerup', endFormulaDrag);
-window.addEventListener('pointercancel', endFormulaDrag);
-diagramFrameEl.addEventListener('dragstart', function(e){ if (grabbed(e.target)) e.preventDefault(); });
-diagramFrameEl.addEventListener('dblclick', function(e){
-  var el = grabbed(e.target);
-  if (!el || !el.classList.contains('is-moved')) return;
-  delete formulaPos[el.getAttribute('data-formula')];
-  writeFormulaPos();
-  el.classList.remove('is-moved');
-  el.style.left = el.style.top = '';
-  syncFormulaReset();
-});
 
 /* ---------- full screen ---------- */
 
@@ -2525,7 +2380,6 @@ function syncWindows(){
       diagramFrameEl.insertBefore(w.win, $('fs-taskbar'));
       fsWins[spec.key] = w;
     });
-    if (window.ResizeObserver) new ResizeObserver(function(){ placeMoved(); }).observe(fsWins.ring.body);
     syncClock();
     fsClockId = setInterval(syncClock, 15000);
   } else if (!full && fsWins){
@@ -2562,7 +2416,6 @@ function syncWindows(){
   layoutWindows();
   if (fsWins) layoutFormulaPane();
   else formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
-  placeMoved();
 }
 
 // The names on the task buttons, the menu and the windows, in the current
@@ -4071,7 +3924,7 @@ window.addEventListener('scroll', function(e){
 window.addEventListener('resize', function(){ if (previewChip) placeIsoPreview(previewChip); });
 if (window.ResizeObserver){
   new ResizeObserver(function(){ fitRingHead(); }).observe(ringHeadEl);
-  new ResizeObserver(function(){ placeMoved(); layoutWindows(); }).observe(diagramFrameEl);
+  new ResizeObserver(function(){ layoutWindows(); }).observe(diagramFrameEl);
 }
 // Copying from the captions gives each selected line's plain-text form.
 ringHeadEl.addEventListener('copy', function(e){
