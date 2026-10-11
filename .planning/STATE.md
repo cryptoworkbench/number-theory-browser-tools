@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T07:55:19.956Z"
+last_updated: "2026-10-11T08:02:49.893Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 1cbd74df5fd57b6321974a8c291a5e261c263e2f
+state_head: fbba07dc2a46c036c3bad8d9d3af5ea9c114b230
 progress:
   total_phases: 7
   completed_phases: 6
@@ -421,6 +421,7 @@ None yet.
 | 261011-cdw | Translate the 34 English-only cyclicGroups keys into all thirty non-English languages | 2026-10-11 | d4da376 | [261011-cdw-translate-the-34-english-only-cyclicgrou](./quick/261011-cdw-translate-the-34-english-only-cyclicgrou/) |
 | 186 | Cyclic Groups: widening the diagram past its column moves the side panels under it | 2026-10-11 | 7fb61da | — |
 | 187 | Cyclic Groups: movable title and formulas with remembered places | 2026-10-11 | 1cbd74d | — |
+| 188 | Cyclic Groups: full-screen button and moved-formula reset | 2026-10-11 | fbba07d | — |
 
 ## Deferred Items
 
