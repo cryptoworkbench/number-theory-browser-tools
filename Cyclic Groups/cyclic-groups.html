@@ -1586,6 +1586,34 @@ function drawOuter(ring, walk, cls, scale, place, box, beadR, m, width){
   return foot + peakMax;
 }
 
+// The identity's walk never leaves it: one loop from its bead back to it,
+// outside or inside the ring, turning the way the beads count. Returns the
+// outermost radius used.
+function drawLoop(ring, a, side, place, box, beadR, m, width){
+  var at = dirSign() * 360 * place[a] / m;
+  var foot = side === 'outside' ? box.R + beadR : box.R - beadR;
+  var out = side === 'outside' ? 1 : -1;
+  var reach = Math.max(16, beadR * 2.8);
+  var spread = Math.min(60, 180 / Math.PI * beadR * 0.55 / foot);
+  var flare = Math.min(80, 180 / Math.PI * beadR * 2 / foot);
+  var sweep = dirSign() * out;
+  var p0 = polar(box.cx, box.cy, foot, at - sweep * spread);
+  var c1 = polar(box.cx, box.cy, foot + out * reach, at - sweep * flare);
+  var c2 = polar(box.cx, box.cy, foot + out * reach, at + sweep * flare);
+  var p3 = polar(box.cx, box.cy, foot, at + sweep * spread);
+  var group = svgEl('g', { 'class': 'outer-walk walk-both', 'data-seq': String(a) });
+  group.appendChild(svgEl('path', {
+    'class': 'outer-arc', 'stroke-width': width,
+    d: 'M ' + num(p0[0]) + ' ' + num(p0[1]) + ' C ' + num(c1[0]) + ' ' + num(c1[1]) + ' ' + num(c2[0]) + ' ' + num(c2[1]) + ' ' + num(p3[0]) + ' ' + num(p3[1])
+  }));
+  // The curve's midpoint and its heading there, from the Bézier formula.
+  var mx = (p0[0] + 3 * c1[0] + 3 * c2[0] + p3[0]) / 8, my = (p0[1] + 3 * c1[1] + 3 * c2[1] + p3[1]) / 8;
+  var tx = p3[0] + c2[0] - c1[0] - p0[0], ty = p3[1] + c2[1] - c1[1] - p0[1];
+  group.appendChild(arrowHead('outer-arrow', mx, my, Math.atan2(ty, tx), Math.max(4, Math.min(7, beadR * 0.6))));
+  ring.appendChild(group);
+  return foot + Math.max(0, out) * reach * 0.75;
+}
+
 // The ring of beads. beads is the element at each position, clockwise from
 // the top. The arrows sit under the beads, the labels over them.
 function drawRing(parent, G, beads, box, paint){
@@ -1623,13 +1651,17 @@ function drawRing(parent, G, beads, box, paint){
   var h = shownGen(G);
   var k = G.orders[h];
   var outerEdge = box.R + beadR;
-  if (k > 1 && state.paths){
+  if (state.paths){
     var width = num(Math.max(1, Math.min(2.4, 44 / k + 0.7)));
     var walks = [];
     var shared = state.elSide === invSide();
     // The walks from one start; past marks a coset already stepped past.
     var walksFrom = function(start, past){
       var tag = past ? ' is-past' : '';
+      if (k === 1){
+        walks.push({ walk: [start], cls: 'walk-both' + tag, side: state.elSide, loop: true });
+        return;
+      }
       if (mergedWalks(G)){
         walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1 });
         return;
@@ -1646,10 +1678,13 @@ function drawRing(parent, G, beads, box, paint){
       var edge = box.R + beadR;
       walksEl.replaceChildren();
       walks.forEach(function(w){
-        if (w.side === 'outside') edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width));
+        if (w.side === 'outside' && !w.loop) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
-        if (w.side === 'inside') drawInner(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width);
+        if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.side, places, box, beadR, m, width));
+      });
+      walks.forEach(function(w){
+        if (w.side === 'inside' && !w.loop) drawInner(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width);
       });
       return edge;
     };
