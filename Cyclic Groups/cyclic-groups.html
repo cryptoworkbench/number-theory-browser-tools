@@ -554,9 +554,14 @@
      about the window, double-clicking it puts it back under the button. */
   .formula-scratch{ display:none; }
   .fs-win-body.is-ring > .formula-scratch{ grid-area:pad; display:block; position:relative; z-index:4; justify-self:start; padding:6px 0 0; }
-  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); width:max-content; position:absolute; top:100%; left:0; margin-top:6px; padding:.62em 1.4em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); width:max-content; position:absolute; top:0; left:0; margin-top:6px; padding:.62em 2.6em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
   .scratch-pad.is-moving{ cursor:grabbing; }
   .scratch-pad[hidden]{ display:none; }
+  /* Open, the card takes the button's place, the button keeping its room so
+     the ring stays put; the card closes from its own corner button, like a
+     window. */
+  #scratch-btn[aria-expanded="true"]{ visibility:hidden; }
+  .scratch-pad > .fs-win-btn.is-close{ position:absolute; top:6px; right:6px; }
   /* Each row's name on a line of its own, its formula on the line under it. */
   .scratch-row + .scratch-row{ margin-top:.62em; }
   /* Its corner grip scales the card and its formulas together. */
@@ -1998,7 +2003,7 @@ var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
 var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex' };
 var scratchOpen = false;
 function drawScratchPad(G){
-  scratchBtnEl.textContent = translate(scratchOpen ? 'cyclicGroups.scratchClose' : 'cyclicGroups.scratchOpen');
+  scratchBtnEl.textContent = translate('cyclicGroups.scratchOpen');
   scratchBtnEl.setAttribute('aria-expanded', scratchOpen ? 'true' : 'false');
   scratchPadEl.hidden = !scratchOpen;
   scratchPadEl.replaceChildren();
@@ -2030,6 +2035,14 @@ function drawScratchPad(G){
   grip.title = translate('cyclicGroups.resizeTitle');
   grip.setAttribute('aria-hidden', 'true');
   scratchPadEl.appendChild(grip);
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'fs-win-btn is-close';
+  close.setAttribute('aria-label', translate('cyclicGroups.scratchClose'));
+  close.title = translate('cyclicGroups.scratchClose');
+  close.appendChild(svgIcon([['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]]));
+  close.addEventListener('click', function(){ setScratchOpen(false); });
+  scratchPadEl.appendChild(close);
   if (scratchWidth !== null) setScratchWidth(scratchWidth);
 }
 // A formula as pieces: the first, then one from each equals sign on, each
@@ -2154,9 +2167,13 @@ scratchPadEl.addEventListener('dblclick', function(e){
   setScratchScale(1);
   setScratchWidth(null);
 });
-scratchBtnEl.addEventListener('click', function(){
-  scratchOpen = !scratchOpen;
+function setScratchOpen(open){
+  scratchOpen = open;
   if (drawn) drawScratchPad(drawn.G);
+  (open ? scratchPadEl.querySelector('.is-close') : scratchBtnEl).focus();
+}
+scratchBtnEl.addEventListener('click', function(){
+  setScratchOpen(true);
 });
 
 // Which head switches show: out of full screen each only while every one
