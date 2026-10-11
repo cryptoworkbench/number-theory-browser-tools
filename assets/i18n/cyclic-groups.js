@@ -333,6 +333,8 @@
       keepTopId: 'Keep identity element on top',
       keepTopOff: 'Keep nothing on top',
       keepTopGen: 'Keep subgroup’s generator on top',
+      scratchOpen: 'Formula scratchpad',
+      scratchClose: 'Close formula scratchpad',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',

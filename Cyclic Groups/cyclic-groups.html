@@ -539,23 +539,6 @@
   .fs-win-body{ flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:8px; border-radius:0 0 calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px); }
   .fs-win-body > .panel{ background:none; border:0; border-radius:0; padding:6px 12px 0; }
   .fs-win.hides-heading .fs-win-body > .panel > h2, .fs-win.hides-heading .fs-win-body > .panel > .panel-head > h2{ display:none; }
-  .fs-win-body > .formula-toggles{ position:static; padding:8px 12px 2px; font-size:.9rem; gap:8px; }
-  /* Full screen, the Formulas window keeps its switches in a tight column
-     and sets each formula to their right, where it can be dragged anywhere
-     in the window (double-click puts it back). */
-  .formula-pane{ display:none; }
-  .fs-win-body > .formula-toggles{ position:relative; top:auto; left:auto; align-items:flex-start; box-sizing:border-box; }
-  .fs-win-body{ scrollbar-color:color-mix(in srgb, var(--text) 28%, transparent) transparent; }
-  .formula-reset{ display:none; }
-  .fs-win-body > .formula-toggles .formula-reset{ display:inline-block; margin-top:4px; padding:4px 10px; font-size:.8rem; }
-  .fs-win-body > .formula-toggles .formula-reset[hidden]{ display:none; }
-  .fs-win-body > .formula-toggles .formula-pane{ display:block; position:absolute; inset:0; pointer-events:none; }
-  .formula-item{ position:absolute; pointer-events:auto; padding:2px 4px; border-radius:var(--radius-ctl); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
-  .formula-item:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
-  .formula-item.is-dragging{ cursor:grabbing; z-index:1; background:color-mix(in srgb, var(--accent) 12%, transparent); }
-  .formula-item math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
-  .formula-item .ring-math-title{ font-size:1.2rem; }
-  .formula-item .ring-math-formula{ font-size:1.05rem; }
   .fs-win-body .subgroups{ max-height:none; }
   /* The ring's window: three rows on top, each named on its left, the first
      with the modulus and the operation switch and, at its right end, the
@@ -563,8 +546,21 @@
      with the subgroup on show and the options for its paths and cosets; the formulas under them, the ring taking the rest, and under it a
      row with the rotation controls, the speed ruler and the arrow key side
      by side. */
-  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto auto auto minmax(0, 1fr) auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
+  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto auto auto auto minmax(0, 1fr) auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "pad pad pad" "head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
+  /* The formula scratchpad: a button under the subgroup row that opens a
+     card over the ring, its background clear, a row per formula with its
+     name. Only the Ring window has it; presses pass through the card to
+     the ring, except on its controls. */
+  .formula-scratch{ display:none; }
+  .fs-win-body.is-ring > .formula-scratch{ grid-area:pad; display:block; position:relative; z-index:4; justify-self:start; padding:6px 0 0; }
+  .scratch-pad{ position:absolute; top:100%; left:0; margin-top:6px; display:grid; grid-template-columns:auto auto; align-items:center; gap:10px 24px; padding:10px 14px; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); pointer-events:none; }
+  .scratch-pad[hidden]{ display:none; }
+  .scratch-pad :is(select, button){ pointer-events:auto; }
+  .scratch-name{ font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  .scratch-math math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
+  .scratch-math .ring-math-title{ font-size:1.2rem; }
+  .scratch-math .ring-math-formula{ font-size:1.05rem; }
   .fs-win-body.is-ring .group-controls{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
   .facts.group-controls .fs-row-label{ display:none; }
   .diagram-frame:fullscreen .fs-win-body.is-ring .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring :is(#gen-field, #arrange-field) > label:first-child{ min-width:12em; font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
@@ -679,7 +675,7 @@
      left counterclockwise and those to its right clockwise, faster the
      further out. The slider's thumb snaps to the ticks. */
   .spin-ruler{ display:none; }
-  .diagram-frame:fullscreen .auto-rotate{ display:none; }
+  .diagram-frame:fullscreen .auto-rotate, .diagram-frame:fullscreen .formula-toggles{ display:none; }
   .diagram-frame:fullscreen .spin-ruler, :root.is-ringwin .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
   .spin-track{ position:relative; flex:1 1 auto; height:30px; }
   .spin-ticks{ position:absolute; inset:0 9px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
@@ -694,11 +690,11 @@
   .spin-track input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
-  :is(.ring-head, .formula-item) .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
-  :is(.ring-head, .formula-item) .sub-order-prompt select{ font:inherit; font-family:var(--font-sans); font-size:.86rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
-  :is(.ring-head, .formula-item) .sub-order-prompt select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
-  :is(.ring-head, .formula-item) .sub-order-prompt .link-btn{ margin:0; }
-  .formula-item .sub-order-prompt{ justify-content:flex-start; max-width:300px; }
+  :is(.ring-head, .scratch-pad) .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
+  :is(.ring-head, .scratch-pad) .sub-order-prompt select{ font:inherit; font-family:var(--font-sans); font-size:.86rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  :is(.ring-head, .scratch-pad) .sub-order-prompt select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  :is(.ring-head, .scratch-pad) .sub-order-prompt .link-btn{ margin:0; }
+  .scratch-pad .sub-order-prompt{ justify-content:flex-start; max-width:300px; margin:0; }
   .ring-head .ring-head-sub{ margin:0; font-size:.92rem; font-weight:600; color:var(--accent); line-height:1.35; }
   @media (max-width: 640px){ .ring-head{ padding-inline:0; margin-top:44px; } }
 
@@ -833,8 +829,10 @@
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder"><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroupShort">Group cardinality</label></div>
           <div class="check" id="sorder-row"><input type="checkbox" role="switch" id="layer-sorder"><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroupShort">Subgroup cardinality</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-cindex"><label for="layer-cindex" data-i18n="cyclicGroups.formulaToggleCosetsShort">Subgroup-coset amount</label></div>
-          <button type="button" class="action-btn formula-reset" id="formula-reset" hidden data-i18n="cyclicGroups.formulaReset">Reset formula positions</button>
-          <div class="formula-pane" id="formula-pane"></div>
+        </div>
+        <div class="formula-scratch" id="formula-scratch">
+          <button type="button" class="action-btn" id="scratch-btn" aria-expanded="false" aria-controls="scratch-pad" data-i18n="cyclicGroups.scratchOpen">Formula scratchpad</button>
+          <div class="scratch-pad" id="scratch-pad" hidden></div>
         </div>
         <div class="ring-head" id="ring-head"></div>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
@@ -1062,8 +1060,8 @@ var RING = { cx: 380, cy: 395, R: 238 };
 // These five form a chain, in this order: each one's switch shows, and
 // what it adds is drawn, only while every switch before it is on. Only the
 // first starts on, so a first visit turns the rest on one by one. Full
-// screen, where the formulas sit in their own window, all five switches show
-// and each works on its own.
+// screen the switches are hidden, and the Ring window's formula scratchpad
+// shows every formula instead.
 var HEAD_CHAIN = ['gname', 'sname', 'gorder', 'sorder', 'cindex'];
 var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 // The flags with a switch of their own; bygen is set by the arrangement
@@ -1172,9 +1170,8 @@ var IS_RINGWIN = !IS_PREVIEW && new URLSearchParams(location.search).get('ringwi
 if (IS_RINGWIN) document.documentElement.classList.add('is-ringwin');
 var subgroupOptionsEl = $('subgroup-options');
 var ringHeadEl = $('ring-head');
-var formulaTogglesEl = $('formula-toggles');
-var formulaPaneEl = $('formula-pane');
-var formulaResetEl = $('formula-reset');
+var scratchBtnEl = $('scratch-btn');
+var scratchPadEl = $('scratch-pad');
 var arrangeSelectEl = $('arrange-select');
 var arrangeGenLabelEl = $('arrange-gen-label');
 var arrangeGenSelectEl = $('arrange-gen-select');
@@ -1838,25 +1835,27 @@ var SUB_HEADS = ['sname', 'sorder', 'cindex'];
 // ℤ/nℤ the group's order and ⟨h⟩'s worked out from it; in (ℤ/nℤ)* the
 // group's order φ(n), and while the beads are arranged by powers of a
 // generator g also ⟨h⟩'s, worked out from h's place log_g h among them.
-function orderFormulas(G){
+// on tests which formulas to give, headOn unless another test is passed.
+function orderFormulas(G, on){
+  var shows = on || headOn;
   var h = shownGen(G), out = [];
   if (G.mode === 'additive'){
     var n = G.order, d = gcd(n, h);
-    if (headOn('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mn(n)),
+    if (shows('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mn(n)),
       plain: translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }) });
-    if (headOn('sorder')) out.push({ key: 'sorder', math: mrow(
+    if (shows('sorder')) out.push({ key: 'sorder', math: mrow(
         abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
       plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) });
-    if (headOn('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
+    if (shows('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
     return out;
   }
   var k = G.order;
-  if (headOn('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
+  if (shows('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
     plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
-  if (headOn('sorder') && G.cyclic && state.bygen){
+  if (shows('sorder') && G.cyclic && state.bygen){
     // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
     // gcd(k, k) = k reads more plainly than gcd(k, 0).
     var g = arrangeBy(G), q = lap(G, g, k).indexOf(h) || k, dq = gcd(k, q);
@@ -1868,7 +1867,7 @@ function orderFormulas(G){
         mfrac(mn(k), mn(dq)), mo('='), mn(k / dq)),
       plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: k, q: q, d: dq, m: k / dq }) });
   }
-  if (headOn('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
+  if (shows('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
   return out;
 }
 
@@ -1902,7 +1901,7 @@ function needsLogBase(G){
 }
 // Two ways on: choose a generator, which arranges the beads by its powers,
 // or turn the subgroup formula off again.
-function logBasePrompt(G){
+function logBasePrompt(G, noCancel){
   var p = document.createElement('p');
   p.className = 'sub-order-prompt';
   p.appendChild(document.createTextNode(translate('cyclicGroups.subOrderNeedsGen')));
@@ -1938,7 +1937,7 @@ function logBasePrompt(G){
     render();
   });
   p.appendChild(pick);
-  p.appendChild(cancel);
+  if (!noCancel) p.appendChild(cancel);
   return p;
 }
 
@@ -1973,123 +1972,43 @@ function drawMath(G, subs){
   });
   ringHeadEl.replaceChildren.apply(ringHeadEl, lines);
   fitRingHead();
-  drawFormulaPane(G);
+  drawScratchPad(G);
 }
 var lastSubs = [];
 
-// Full screen, each switch's formula in the Formulas window, to the right
-// of the switches, the group's and the subgroup's names both when both are
-// on.
-function drawFormulaPane(G){
-  formulaPaneEl.replaceChildren();
-  if (!fsWins) return;
-  var h = shownGen(G), whole = G.orders[h] === G.order, items = {};
-  var add = function(key, el){
-    if (!items[key]){
-      items[key] = document.createElement('div');
-      items[key].className = 'formula-item';
-      items[key].setAttribute('data-fkey', key);
-    }
-    items[key].appendChild(el);
-  };
-  if (state.gname) add('gname', mathLine('ring-math-title', mGroup(G), G.label));
-  if (headOn('sname')) add('sname', mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-    translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
-  orderFormulas(G).forEach(function(f){ add(f.key, mathLine('ring-math-formula', f.math, f.plain)); });
-  if (needsLogBase(G)) add('sorder', logBasePrompt(G));
-  HEAD_CHAIN.forEach(function(key){ if (items[key]) formulaPaneEl.appendChild(items[key]); });
-  layoutFormulaPane();
-}
-
-// Where each formula sits in the Formulas window: where it was dropped
-// (remembered in pixels from the window's top left, across visits), or
-// else in a column to the right of the switches, one under another. The
-// switches' box then grows to hold them all, so the window fits its
-// content. Under the switches, while any formula has been moved, a button
-// puts them all back.
-var FS_FORMULA_KEY = 'cyclic-groups-fs-formula-pos';
-var FORMULA_GAP = 16;
-var fsFormulaPos = readFsFormulaPos();
-function readFsFormulaPos(){
-  var out = {};
-  try {
-    var raw = JSON.parse(localStorage.getItem(FS_FORMULA_KEY) || '{}');
-    HEAD_CHAIN.forEach(function(k){
-      var p = raw && raw[k];
-      if (p && isFinite(p.x) && isFinite(p.y)) out[k] = { x: Math.max(0, +p.x), y: Math.max(0, +p.y) };
-    });
-  } catch (e) { /* storage unavailable or unreadable */ }
-  return out;
-}
-function writeFsFormulaPos(){
-  if (IS_RINGWIN || IS_PREVIEW) return;
-  try { localStorage.setItem(FS_FORMULA_KEY, JSON.stringify(fsFormulaPos)); } catch (e) { /* storage unavailable */ }
-}
-function layoutFormulaPane(){
-  formulaResetEl.hidden = !fsWins || !Object.keys(fsFormulaPos).length;
-  if (!fsWins || fsWins.formulas.win.hidden) return;
-  formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
-  var box = formulaTogglesEl.getBoundingClientRect();
-  var col = 0, colH = 0;
-  formulaTogglesEl.querySelectorAll(':scope > .check, :scope > .formula-reset').forEach(function(c){
-    if (c.hidden) return;
-    var r = c.getBoundingClientRect();
-    col = Math.max(col, r.right - box.left);
-    colH = Math.max(colH, r.bottom - box.top);
+// The formula scratchpad: every formula the head can show, each on a row
+// under its name, whichever switches are on. With no subgroup chosen, the
+// subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
+// logarithm by, the subgroup's cardinality asks for one.
+var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.formulaToggleCosetsShort' };
+var scratchOpen = false;
+function drawScratchPad(G){
+  scratchBtnEl.textContent = translate(scratchOpen ? 'cyclicGroups.scratchClose' : 'cyclicGroups.scratchOpen');
+  scratchBtnEl.setAttribute('aria-expanded', scratchOpen ? 'true' : 'false');
+  scratchPadEl.hidden = !scratchOpen;
+  scratchPadEl.replaceChildren();
+  if (!scratchOpen) return;
+  var on = function(name){ return !(noSub() && SUB_HEADS.indexOf(name) !== -1); };
+  var h = shownGen(G), whole = G.orders[h] === G.order, cells = {};
+  if (on('gname')) cells.gname = mathLine('ring-math-title', mGroup(G), G.label);
+  if (on('sname')) cells.sname = mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+    translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }));
+  orderFormulas(G, on).forEach(function(f){ cells[f.key] = mathLine('ring-math-formula', f.math, f.plain); });
+  if (on('sorder') && G.mode === 'multiplicative' && G.cyclic && !state.bygen) cells.sorder = logBasePrompt(G, true);
+  HEAD_CHAIN.forEach(function(key){
+    var name = document.createElement('span');
+    name.className = 'scratch-name';
+    name.textContent = translate(SCRATCH_NAMES[key]);
+    var cell = document.createElement('div');
+    cell.className = 'scratch-math';
+    if (cells[key]) cell.appendChild(cells[key]);
+    scratchPadEl.appendChild(name);
+    scratchPadEl.appendChild(cell);
   });
-  var x0 = col + FORMULA_GAP, y = 8, right = 0, bottom = colH;
-  formulaPaneEl.querySelectorAll('.formula-item').forEach(function(item){
-    var p = fsFormulaPos[item.getAttribute('data-fkey')];
-    if (p){ item.style.left = p.x + 'px'; item.style.top = p.y + 'px'; }
-    else { item.style.left = x0 + 'px'; item.style.top = y + 'px'; y += item.offsetHeight + 8; }
-    right = Math.max(right, item.offsetLeft + item.offsetWidth);
-    bottom = Math.max(bottom, item.offsetTop + item.offsetHeight);
-  });
-  formulaTogglesEl.style.minWidth = Math.ceil(right + 12) + 'px';
-  formulaTogglesEl.style.minHeight = Math.ceil(bottom + 8) + 'px';
 }
-var paneDrag = null; // { item, key, id, x, y, left, top, live } while one is pressed
-formulaPaneEl.addEventListener('pointerdown', function(e){
-  var item = e.target.closest('.formula-item');
-  if (!item || e.button !== 0 || e.target.closest('select, button')) return;
-  paneDrag = { item: item, key: item.getAttribute('data-fkey'), id: e.pointerId, x: e.clientX, y: e.clientY, left: item.offsetLeft, top: item.offsetTop, live: false };
-  e.preventDefault();
-});
-window.addEventListener('pointermove', function(e){
-  if (!paneDrag || e.pointerId !== paneDrag.id) return;
-  var dx = e.clientX - paneDrag.x, dy = e.clientY - paneDrag.y;
-  if (!paneDrag.live){
-    if (Math.abs(dx) + Math.abs(dy) < 4) return;
-    paneDrag.live = true;
-    paneDrag.item.classList.add('is-dragging');
-  }
-  var x = Math.max(0, paneDrag.left + dx), y = Math.max(0, paneDrag.top + dy);
-  paneDrag.item.style.left = x + 'px';
-  paneDrag.item.style.top = y + 'px';
-  fsFormulaPos[paneDrag.key] = { x: Math.round(x), y: Math.round(y) };
-});
-function endPaneDrag(e){
-  if (!paneDrag || e.pointerId !== paneDrag.id) return;
-  if (paneDrag.live){
-    paneDrag.item.classList.remove('is-dragging');
-    writeFsFormulaPos();
-    layoutFormulaPane();
-  }
-  paneDrag = null;
-}
-window.addEventListener('pointerup', endPaneDrag);
-window.addEventListener('pointercancel', endPaneDrag);
-formulaPaneEl.addEventListener('dblclick', function(e){
-  var item = e.target.closest('.formula-item');
-  if (!item || e.target.closest('select, button')) return;
-  delete fsFormulaPos[item.getAttribute('data-fkey')];
-  writeFsFormulaPos();
-  layoutFormulaPane();
-});
-formulaResetEl.addEventListener('click', function(){
-  fsFormulaPos = {};
-  writeFsFormulaPos();
-  layoutFormulaPane();
+scratchBtnEl.addEventListener('click', function(){
+  scratchOpen = !scratchOpen;
+  if (drawn) drawScratchPad(drawn.G);
 });
 
 // Which head switches show: out of full screen each only while every one
@@ -2129,7 +2048,7 @@ fullscreenBtnEl.addEventListener('click', function(){
 function onFullscreenChange(){
   syncFullscreenBtn();
   syncWindows();
-  // The formulas move between the ring and the Formulas window.
+  // The formulas over the ring give way to the Ring window's scratchpad.
   syncHeadSwitches();
   if (drawn && !IS_PREVIEW) drawMath(drawn.G, lastSubs);
 }
@@ -2145,8 +2064,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
-  { key: 'formulas', ids: ['formula-toggles'], title: 'cyclicGroups.fsFormulas', icon: '∑', width: 560 },
+  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
   { key: 'subgroups', ids: ['subgroups-list-panel'], title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, width: 560 },
@@ -2295,8 +2213,8 @@ function addFsTask(spec){
     if (!isOpen(spec.key) || isMin(spec.key) || frontKey() !== spec.key) raiseWindow(spec.key);
     else minimizeWindow(spec.key);
   });
-  // An extra Ring window's button and item sit before the Formulas ones.
-  fsTasksEl.insertBefore(task, spec.frame ? fsTasks.formulas : null);
+  // An extra Ring window's button and item sit before the Group ones.
+  fsTasksEl.insertBefore(task, spec.frame ? fsTasks.group : null);
   fsTasks[spec.key] = task;
   var item = document.createElement('button');
   item.type = 'button';
@@ -2305,7 +2223,7 @@ function addFsTask(spec){
   item.appendChild(fsIcon(spec.icon));
   item.appendChild(document.createElement('span'));
   item.addEventListener('click', function(){ setFsMenu(false); raiseWindow(spec.key); });
-  $('fs-menu-panels').insertBefore(item, spec.frame ? fsItems.formulas : null);
+  $('fs-menu-panels').insertBefore(item, spec.frame ? fsItems.group : null);
   fsItems[spec.key] = item;
 }
 function removeFsTask(key){
@@ -2779,8 +2697,6 @@ function syncWindows(){
   });
   if (alphaKey && fsWins && fsWins[alphaKey].win.hidden) setAlpha(null);
   layoutWindows();
-  layoutFormulaPane();
-  if (!fsWins) formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
 }
 
 // A window's name. The ring's names the group on show, and whether it is
