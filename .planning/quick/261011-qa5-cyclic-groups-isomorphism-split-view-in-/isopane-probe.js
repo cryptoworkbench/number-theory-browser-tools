@@ -15,7 +15,7 @@ var pw = require("/home/mainaccount/Claude/latin-botany-tool/node_modules/playwr
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var PAGE = url.pathToFileURL(path.join(ROOT, "Cyclic Groups", "cyclic-groups.html")).href;
 var Q = "?mode=additive&n=12&gen=3";
-var EXPECTED = 13;
+var EXPECTED = 20;
 var RING = '.fs-win[data-panel="ring"]';
 var CHIP5 = 'a.iso-chip[data-iso-n="5"][data-iso-mode="multiplicative"]';
 var CHIP4 = 'a.iso-chip[data-iso-n="4"][data-iso-mode="additive"]';
@@ -385,6 +385,117 @@ async function main() {
     record("P13 Fit keeps a window with a pane inside the desktop", null);
   } catch (e) { record("P13 Fit keeps a window with a pane inside the desktop", e); }
   if (fp9) await fp9.h.ctx.close();
+
+
+  /* P14-P20: turning together and hovering, through g^k <-> h^k.
+     Mapping, both rings in numeric arrangement: left Z/12 with g = 3, so left
+     rot 0/3/6/9 is k = 0/1/2/3; right (Z/5Z)* with h = 2, powers [1,2,4,3],
+     so k = 0/1/2/3 is right rot 0/1/3/2. */
+  async function turnTo(target, v, expectIn, expected) {
+    await target.fill("#rot-value", String(v));
+    await target.press("#rot-value", "Enter");
+    var watch = expectIn || target;
+    await waitFor(async function () { return (await watch.inputValue("#rot-value")) === String(expected === undefined ? v : expected); }, 3000, "rot " + (expected === undefined ? v : expected));
+  }
+  async function rotOf(target) { return target.inputValue("#rot-value"); }
+  async function hotOf(target) {
+    return target.evaluate(function () {
+      return Array.prototype.map.call(document.querySelectorAll("#ring-dynamic circle.bead.is-iso-hot"), function (b) { return b.getAttribute("data-el"); }).join(",");
+    });
+  }
+  var fp14 = null;
+  try {
+    fp14 = await freshPane();
+    h = fp14.h; pane = fp14.pane;
+    await turnTo(h.page, 3, pane, 1);
+    await turnTo(h.page, 6, pane, 3);
+    await turnTo(h.page, 9, pane, 2);
+    noErrors(h);
+    record("P14 the host's turn turns the pane (g^k to h^k)", null);
+  } catch (e) { record("P14 the host's turn turns the pane (g^k to h^k)", e); }
+
+  try {
+    assert(fp14, "no pane");
+    await h.page.fill("#rot-value", "1");
+    await h.page.press("#rot-value", "Enter");
+    await waitFor(async function () { return (await rotOf(h.page)) === "1"; }, 3000, "host rot 1");
+    await sleep(1200);
+    eq(await rotOf(pane), "2", "pane rot after a left top outside the subgroup");
+    noErrors(h);
+    record("P15 a top outside the subgroup leaves the pane still", null);
+  } catch (e) { record("P15 a top outside the subgroup leaves the pane still", e); }
+
+  try {
+    assert(fp14, "no pane");
+    await turnTo(pane, 3, h.page, 6);
+    await turnTo(pane, 2, h.page, 9);
+    await pane.click("#rot-fwd");
+    await sleep(900);
+    var r = parseInt(await rotOf(pane), 10);
+    var want = 3 * [0, 1, 3, 2].indexOf(r);
+    await waitFor(async function () { return (await rotOf(h.page)) === String(want); }, 3000, "host rot " + want + " for pane rot " + r);
+    noErrors(h);
+    record("P16 the pane's turn turns the host", null);
+  } catch (e) { record("P16 the pane's turn turns the host", e); }
+
+  try {
+    assert(fp14, "no pane");
+    var bead = function (el) { return RING + ' #ring-svg circle.bead[data-el="' + el + '"]'; };
+    await h.page.hover(bead(6));
+    await waitFor(async function () { return (await hotOf(h.page)) === "6" && (await hotOf(pane)) === "4"; }, 3000, "host 6 / pane 4 lit");
+    await h.page.hover(bead(1));
+    await waitFor(async function () { return (await hotOf(pane)) === ""; }, 3000, "the pane's glow gone for a bead outside the subgroup");
+    await pane.hover('#ring-svg circle.bead[data-el="3"]');
+    await waitFor(async function () { return (await hotOf(h.page)) === "9" && (await hotOf(pane)) === "3"; }, 3000, "pane 3 / host 9 lit");
+    await h.page.hover("#fs-clock");
+    await waitFor(async function () { return (await hotOf(h.page)) === "" && (await hotOf(pane)) === ""; }, 3000, "both glows cleared on leaving");
+    noErrors(h);
+    record("P17 hover lights a bead and its image on both rings", null);
+  } catch (e) { record("P17 hover lights a bead and its image on both rings", e); }
+  if (fp14) await fp14.h.ctx.close();
+
+  try {
+    h = await openFs(browser);
+    var extra18 = await openExtra(h);
+    await extra18.click(CHIP5);
+    var np18 = await paneOf(extra18);
+    var topRot = await rotOf(h.page);
+    await turnTo(extra18, 6, np18, 3);
+    eq(await rotOf(h.page), topRot, "the top-level ring's rot");
+    noErrors(h);
+    record("P18 linked turning inside an extra Ring window", null);
+  } catch (e) { record("P18 linked turning inside an extra Ring window", e); }
+  if (h) await h.ctx.close();
+
+  try {
+    var fp19 = await freshPane();
+    h = fp19.h; pane = fp19.pane;
+    var before19 = await rotOf(pane);
+    await h.page.selectOption("#gen-select", "4");
+    await sleep(300);
+    await h.page.fill("#rot-value", "4");
+    await h.page.press("#rot-value", "Enter");
+    await waitFor(async function () { return (await rotOf(h.page)) === "4"; }, 3000, "host rot 4");
+    await sleep(1200);
+    eq(await rotOf(pane), before19, "pane rot after the subgroup's order changed");
+    var still = await h.page.evaluate(function () { return getComputedStyle(document.getElementById("iso-pane")).display !== "none"; });
+    assert(still, "the pane closed");
+    noErrors(h);
+    record("P19 a subgroup of another order pauses the link", null);
+  } catch (e) { record("P19 a subgroup of another order pauses the link", e); }
+  if (h) await h.ctx.close();
+
+  try {
+    h = await openPage(browser);
+    await h.page.click(".stage > .iso-panel " + CHIP5);
+    pane = await paneOf(h.page.mainFrame());
+    await turnTo(h.page, 3, pane, 1);
+    await h.page.hover('#ring-svg circle.bead[data-el="6"]');
+    await waitFor(async function () { return (await hotOf(pane)) === "4"; }, 3000, "pane bead 4 lit");
+    noErrors(h);
+    record("P20 normal page: turning and hover link the rings", null);
+  } catch (e) { record("P20 normal page: turning and hover link the rings", e); }
+  if (h) await h.ctx.close();
 
   await browser.close();
   var ok = results.filter(function (r) { return r.ok; }).length;
