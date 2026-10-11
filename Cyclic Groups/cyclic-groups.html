@@ -208,8 +208,8 @@
      plate with a slot, and a bat handle that swings through the slot about
      its boss, drawn flat but shaded as if lit from above. */
   .facts.group-controls .op-toggle-row{ display:none; }
-  .diagram-frame:fullscreen .facts.group-controls .op-row{ display:none; }
-  .diagram-frame:fullscreen .facts.group-controls .op-toggle-row{ display:flex; justify-content:center; padding:10px 0 12px; }
+  .diagram-frame:fullscreen .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
+  .diagram-frame:fullscreen .facts.group-controls .op-toggle-row, :root.is-ringwin .facts.group-controls .op-toggle-row{ display:flex; justify-content:center; padding:10px 0 12px; }
   .op-toggle{ direction:ltr; display:flex; align-items:center; gap:14px; padding:0; font:inherit; color:var(--text-dim); background:none; border:0; border-radius:var(--radius-ctl); cursor:pointer; }
   .op-toggle:focus{ outline:none; }
   .op-toggle:focus-visible{ box-shadow:var(--ctl-focus); }
@@ -322,6 +322,21 @@
   :root.is-preview .app, :root.is-preview .layout, :root.is-preview .stage, :root.is-preview .diagram-frame{
     display:block; position:static; height:auto; padding:0; margin:0; border:0; background:none; }
   :root.is-preview svg.ring-svg{ width:100vw; height:100vh; }
+  /* ringwin=1: this page is the inside of one extra Ring window on the
+     full-screen desktop, an iframe of the page itself. Like the preview it
+     is the page stripped to what it shows: here the Ring window's own rows,
+     the ring and its rotation controls, moved into one body that fills the
+     frame, with no background so the window's surface shows through. */
+  :root.is-ringwin, :root.is-ringwin body{ height:100%; margin:0; overflow:hidden; min-height:0; background:transparent; }
+  :root.is-ringwin body > :not(.app), :root.is-ringwin .app > :not(.layout), :root.is-ringwin .side,
+  :root.is-ringwin .stage > :not(.diagram-frame), :root.is-ringwin .diagram-frame > :not(.ringwin-body){ display:none !important; }
+  :root.is-ringwin .app, :root.is-ringwin .layout, :root.is-ringwin .stage, :root.is-ringwin .diagram-frame{
+    display:block; position:static; height:auto; width:auto; max-width:none; padding:0; margin:0; border:0; background:none; }
+  :root.is-ringwin .ringwin-body{ position:fixed; inset:0; border-radius:0; }
+  @media (max-width: 640px){
+    :root.is-ringwin .ring-head{ margin-top:0; }
+    :root.is-ringwin .fs-win-body.is-ring > .rotate-ctl{ margin-top:0; }
+  }
   .iso-preview{
     position:fixed; z-index:960; box-sizing:content-box; overflow:hidden; pointer-events:none;
     border:1px solid color-mix(in srgb, var(--iso-hue, var(--accent)) 45%, var(--panel-border-strong)); border-radius:var(--radius-card);
@@ -541,15 +556,20 @@
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
   .fs-win-body.is-ring > .group-controls{ grid-area:ctl; display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
   .facts.group-controls .fs-row-label{ display:none; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring > #gen-field > label{ min-width:12em; font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
-  .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls .fs-row-label{ display:block; }
+  .diagram-frame:fullscreen .fs-win-body.is-ring .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring > #gen-field > label{ min-width:12em; font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+  .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls .fs-row-label, :root.is-ringwin .fs-win-body.is-ring > .facts.group-controls .fs-row-label{ display:block; }
   .fs-win-body.is-ring > #gen-field{ grid-area:gen; flex-direction:row; align-items:center; gap:4px 32px; margin:0; padding:2px 0 6px; border-bottom:1px dotted var(--panel-border); }
   .fs-win-body.is-ring > #gen-field > select{ width:auto; min-width:8em; padding:4px 8px; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
+  .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring > .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
   .fs-win-body.is-ring > svg.ring-svg{ grid-area:ring; align-self:stretch; width:100%; height:100%; min-height:0; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
+  .diagram-frame:fullscreen .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
   .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; position:static; }
   .fs-win-body.is-ring > .combine-key{ grid-area:key; position:static; max-width:260px; margin:0; }
+  /* An extra Ring window is an iframe of this page (ringwin=1) filling its
+     body; it stays hidden until it has loaded so the whole page never shows. */
+  .fs-win-body.is-frame{ display:flex; padding:0; overflow:hidden; }
+  .fs-win-body.is-frame > iframe{ flex:1 1 auto; display:block; width:100%; height:100%; min-height:0; border:0; background:none; visibility:hidden; }
+  .fs-win-body.is-frame > iframe.is-loaded{ visibility:visible; }
   .fs-rs{ position:absolute; z-index:4; touch-action:none; }
   .fs-rs[data-dir="n"], .fs-rs[data-dir="s"]{ left:10px; right:10px; height:8px; cursor:ns-resize; }
   .fs-rs[data-dir="e"], .fs-rs[data-dir="w"]{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
@@ -616,7 +636,7 @@
      further out. The slider's thumb snaps to the ticks. */
   .spin-ruler{ display:none; }
   .diagram-frame:fullscreen .auto-rotate{ display:none; }
-  .diagram-frame:fullscreen .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
+  .diagram-frame:fullscreen .spin-ruler, :root.is-ringwin .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
   .spin-track{ position:relative; flex:1 1 auto; height:30px; }
   .spin-ticks{ position:absolute; inset:0 9px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
   .spin-ticks::before{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; margin-top:-1px; background:color-mix(in srgb, var(--text) 35%, transparent); }
@@ -1087,6 +1107,12 @@ var isoMulChipsEl = $('iso-mul-chips');
 // card, so it never writes the shared group and never follows it.
 var IS_PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 if (IS_PREVIEW) document.documentElement.classList.add('is-preview');
+// ringwin=1: this page is the inside of one extra Ring window on the
+// full-screen desktop, an iframe of the page itself. It shows only the Ring
+// window's contents, keeps its own group, subgroup and rotation, and never
+// writes or follows what the original ring shares (see enterRingWin).
+var IS_RINGWIN = !IS_PREVIEW && new URLSearchParams(location.search).get('ringwin') === '1';
+if (IS_RINGWIN) document.documentElement.classList.add('is-ringwin');
 var subgroupOptionsEl = $('subgroup-options');
 var bygenRowEl = $('bygen-row');
 var ringHeadEl = $('ring-head');
@@ -1813,7 +1839,7 @@ function drawMath(G, subs){
     var set = lap(G, h, G.orders[h], coset.start);
     lines.push(mathLine('ring-math-title', mrow(mn(coset.start), mo(G.mode === 'additive' ? '+' : '·'), angle(mn(h)), mo('='), mSet(set)),
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
-  } else if (!fsWins){
+  } else if (!fsWins && !IS_RINGWIN){
     var whole = G.orders[h] === G.order;
     if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
       translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
@@ -1882,6 +1908,7 @@ function readFsFormulaPos(){
   return out;
 }
 function writeFsFormulaPos(){
+  if (IS_RINGWIN || IS_PREVIEW) return;
   try { localStorage.setItem(FS_FORMULA_KEY, JSON.stringify(fsFormulaPos)); } catch (e) { /* storage unavailable */ }
 }
 function layoutFormulaPane(){
@@ -2026,7 +2053,8 @@ var SNAP_ALIGN = 10;  // how near another edge a moved or resized edge catches o
 // stacking order (front last), the minimized and maximized ones, and each
 // window's place and size as fractions of the desktop (h null: as tall as
 // its content), with the place a snapped or tiled window goes back to when
-// dragged away.
+// dragged away, and the extra Ring windows, each a key and the query string
+// of the ring it holds.
 var FS_STATE_KEY = 'cyclic-groups-fs-windows';
 var fsState = readFsState();
 var fsWins = null; // window key -> { spec, win, body, title, grip, buttons, homes } while full screen
@@ -2038,7 +2066,7 @@ var winDrag = null; // { key, mode: 'move' or a resize edge, id, x, y, start, li
 function readFsState(){
   var keys = FS_PANELS.map(function(p){ return p.key; });
   var ok = function(list){ return Array.isArray(list) ? list.filter(function(k){ return keys.indexOf(k) !== -1; }) : []; };
-  var out = { open: ['ring'], min: [], max: [], geom: {}, restore: {}, alpha: {} };
+  var out = { open: ['ring'], min: [], max: [], geom: {}, restore: {}, alpha: {}, extras: [] };
   try {
     var raw = JSON.parse(localStorage.getItem(FS_STATE_KEY) || 'null');
     if (raw){
@@ -2058,16 +2086,57 @@ function readFsState(){
   return out;
 }
 function writeFsState(){
+  if (IS_RINGWIN || IS_PREVIEW) return;
   try { localStorage.setItem(FS_STATE_KEY, JSON.stringify(fsState)); } catch (e) { /* storage unavailable */ }
 }
-function specOf(key){ return FS_PANELS.filter(function(p){ return p.key === key; })[0]; }
+
+/* extra Ring windows */
+
+// An extra Ring window is an iframe of this page in ringwin mode, so each
+// holds a ring of its own. Its entry in fsState.extras is { key, q }: the
+// key is 'ringwin' and a number, q the query string of the ring it holds, kept
+// up to date from the frame's reports. Its spec is what the desktop's code
+// treats like a panel's.
+var fsExtraSpecs = {};
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin'];
+// q without what must not travel between rings: the preview and embed
+// switches, and the theme, language and sharing the frame takes from its page.
+function cleanRingQuery(q){
+  var p = new URLSearchParams(q);
+  RING_DROP.forEach(function(k){ p.delete(k); });
+  return p.toString();
+}
+// The frame's address: this page's own path, never anything from q.
+function ringWinSrc(q){
+  var p = new URLSearchParams(cleanRingQuery(q));
+  p.set('ringwin', '1');
+  return location.pathname + '?' + p.toString();
+}
+// The group q names, or null when it names none.
+function ringWinGroup(q){
+  var p = new URLSearchParams(q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
+  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return null;
+  var G = buildGroup(mode, clamp(n, MIN_N, MAX_N));
+  return { cyclic: G.cyclic, label: G.label };
+}
+function entryOf(key){ return fsState.extras.filter(function(e){ return e.key === key; })[0]; }
+function extraSpec(entry){
+  if (!fsExtraSpecs[entry.key]) fsExtraSpecs[entry.key] = { key: entry.key, frame: true, icon: '◯', minW: 320, minH: 280, group: ringWinGroup(entry.q) };
+  return fsExtraSpecs[entry.key];
+}
+// Every window's spec in the taskbar's order: the original ring, the extra
+// ones as they were opened, then the panels.
+function allSpecs(){
+  return [FS_PANELS[0]].concat(fsState.extras.map(extraSpec), FS_PANELS.slice(1));
+}
+function specOf(key){ return allSpecs().filter(function(p){ return p.key === key; })[0]; }
 function isOpen(key){ return fsState.open.indexOf(key) !== -1; }
 function isMin(key){ return fsState.min.indexOf(key) !== -1; }
 function isMax(key){ return fsState.max.indexOf(key) !== -1; }
 function alphaOf(key){ return key in fsState.alpha ? fsState.alpha[key] : 1; }
 function without(list, key){ return list.filter(function(k){ return k !== key; }); }
 // A window the page has something in: the ring always, a panel unless hidden.
-function hasContent(spec){ return spec.ring || !$(spec.ids[0]).hidden; }
+function hasContent(spec){ return spec.ring || spec.frame || !$(spec.ids[0]).hidden; }
 // The window in front: the last open one not minimized and with content.
 function frontKey(){
   var shown = fsState.open.filter(function(k){ return !isMin(k) && hasContent(specOf(k)); });
@@ -2090,7 +2159,7 @@ function fsIcon(sign){
 
 // The task buttons and the launcher's menu, one item each per window, then
 // the desktop's own commands.
-FS_PANELS.forEach(function(spec){
+function addFsTask(spec){
   var task = document.createElement('button');
   task.type = 'button';
   task.className = 'fs-task';
@@ -2102,7 +2171,8 @@ FS_PANELS.forEach(function(spec){
     if (!isOpen(spec.key) || isMin(spec.key) || frontKey() !== spec.key) raiseWindow(spec.key);
     else minimizeWindow(spec.key);
   });
-  fsTasksEl.appendChild(task);
+  // An extra Ring window's button and item sit before the Formulas ones.
+  fsTasksEl.insertBefore(task, spec.frame ? fsTasks.formulas : null);
   fsTasks[spec.key] = task;
   var item = document.createElement('button');
   item.type = 'button';
@@ -2111,10 +2181,18 @@ FS_PANELS.forEach(function(spec){
   item.appendChild(fsIcon(spec.icon));
   item.appendChild(document.createElement('span'));
   item.addEventListener('click', function(){ setFsMenu(false); raiseWindow(spec.key); });
-  $('fs-menu-panels').appendChild(item);
+  $('fs-menu-panels').insertBefore(item, spec.frame ? fsItems.formulas : null);
   fsItems[spec.key] = item;
-});
+}
+function removeFsTask(key){
+  fsTasks[key].remove();
+  fsItems[key].remove();
+  delete fsTasks[key];
+  delete fsItems[key];
+}
+FS_PANELS.forEach(addFsTask);
 [
+  { key: 'newring', title: 'cyclicGroups.fsNewRing', icon: '⊕', run: function(){ openRingWindow('ring'); } },
   { key: 'tile', title: 'cyclicGroups.fsTile', icon: '⊞', run: tileWindows },
   { key: 'cascade', title: 'cyclicGroups.fsCascade', icon: '❐', run: cascadeWindows },
   { key: 'desktop', title: 'cyclicGroups.fsShowDesktop', icon: '▭', run: showDesktop }
@@ -2164,7 +2242,7 @@ fsAlphaEl.appendChild(fsAlphaOutEl);
 function syncAlpha(){
   var pct = Math.round(alphaOf(alphaKey) * 100);
   fsAlphaRangeEl.value = String(pct);
-  fsAlphaRangeEl.setAttribute('aria-label', translate('cyclicGroups.fsOpacity', { name: translate(specOf(alphaKey).title) }));
+  fsAlphaRangeEl.setAttribute('aria-label', translate('cyclicGroups.fsOpacity', { name: fsTitle(specOf(alphaKey)) }));
   fsAlphaOutEl.textContent = translate('cyclicGroups.fsOpacityValue', { value: pct });
 }
 // Opens the slider for one window's button, or (null) closes it.
@@ -2234,8 +2312,48 @@ function minimizeWindow(key){
   syncWindows();
 }
 function closeWindow(key){
+  if (specOf(key).frame){ removeRingWindow(key); return; }
   fsState.open = without(fsState.open, key);
   fsState.min = without(fsState.min, key);
+  writeFsState();
+  syncWindows();
+}
+// An extra Ring window is closed for good: its place in every list, its
+// frame, its task button and its menu item go with it.
+function removeRingWindow(key){
+  if (alphaKey === key) setAlpha(null);
+  ['open', 'min', 'max'].forEach(function(f){ fsState[f] = without(fsState[f], key); });
+  ['geom', 'restore', 'alpha'].forEach(function(f){ delete fsState[f][key]; });
+  fsState.extras = fsState.extras.filter(function(e){ return e.key !== key; });
+  if (fsDesktopHidden) fsDesktopHidden = without(fsDesktopHidden, key);
+  if (fsWins && fsWins[key]){ fsWins[key].win.remove(); delete fsWins[key]; }
+  removeFsTask(key);
+  delete fsExtraSpecs[key];
+  writeFsState();
+  syncWindows();
+}
+// Opens another Ring window on the group of the original ring, or on a copy
+// of the extra window the key names, a little down and right of it, in front.
+function openRingWindow(fromKey){
+  var from = entryOf(fromKey);
+  var q = from ? from.q : cleanRingQuery(stateQuery().toString());
+  var top = 0;
+  fsState.extras.forEach(function(e){ top = Math.max(top, parseInt(e.key.slice(7), 10)); });
+  var entry = { key: 'ringwin' + (top + 1), q: q };
+  var D = desk(), src = fsWins && fsWins[fromKey];
+  if (D.W && D.H){
+    if (src && !src.win.hidden && !isMax(fromKey)){
+      var r = winRect(src.win);
+      fsState.geom[entry.key] = toFractions({ l: r.l + 32, t: r.t + 32, w: r.w, h: r.h }, false);
+    } else {
+      var at = 24 + 32 * fsState.extras.length;
+      fsState.geom[entry.key] = { l: at / D.W, t: at / D.H, w: 0.45, h: 0.7 };
+    }
+  }
+  fsState.extras.push(entry);
+  fsState.open = fsState.open.concat([entry.key]);
+  addFsTask(extraSpec(entry));
+  fsDesktopHidden = null;
   writeFsState();
   syncWindows();
 }
@@ -2246,7 +2364,7 @@ function toggleMaximize(key){
 }
 // The windows on show, the ring first.
 function shownWindows(){
-  return FS_PANELS.map(function(p){ return p.key; }).filter(function(k){ return isOpen(k) && !isMin(k) && hasContent(specOf(k)); });
+  return allSpecs().map(function(p){ return p.key; }).filter(function(k){ return isOpen(k) && !isMin(k) && hasContent(specOf(k)); });
 }
 // Tile: the windows on show share the desktop in a grid, row by row, the
 // last row's windows widened to fill it.
@@ -2296,7 +2414,7 @@ function showDesktop(){
 
 function buildWindow(spec){
   var win = document.createElement('div');
-  win.className = 'fs-win' + (spec.ring ? ' is-ring' : '') + (spec.hideHeading ? ' hides-heading' : '');
+  win.className = 'fs-win' + (spec.ring ? ' is-ring' : '') + (spec.frame ? ' is-frame' : '') + (spec.hideHeading ? ' hides-heading' : '');
   win.setAttribute('data-panel', spec.key);
   win.setAttribute('role', 'dialog');
   var head = document.createElement('div');
@@ -2328,7 +2446,7 @@ function buildWindow(spec){
     buttons[b.key] = btn;
   });
   var body = document.createElement('div');
-  body.className = 'fs-win-body' + (spec.ring ? ' is-ring' : '');
+  body.className = 'fs-win-body' + (spec.ring ? ' is-ring' : '') + (spec.frame ? ' is-frame' : '');
   win.appendChild(head);
   win.appendChild(body);
   ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw'].forEach(function(dir){
@@ -2346,6 +2464,7 @@ function buildWindow(spec){
 function defaultGeom(spec, i){
   var D = desk();
   if (spec.ring) return { l: 0.2, t: 0.03, w: 0.6, h: 0.94 };
+  if (spec.frame) return { l: (24 + 32 * i) / D.W, t: (24 + 32 * i) / D.H, w: 0.45, h: 0.7 };
   return { l: (24 + 32 * i) / D.W, t: (24 + 32 * i) / D.H, w: (spec.width || 320) / D.W, h: null };
 }
 // A window's place in pixels: the desktop's whole when maximized, else its
@@ -2353,8 +2472,10 @@ function defaultGeom(spec, i){
 function geomPx(key){
   var D = desk(), spec = specOf(key);
   if (isMax(key)) return { l: 0, t: 0, w: D.W, h: D.H };
-  var g = fsState.geom[key] || defaultGeom(spec, FS_PANELS.indexOf(spec));
+  var g = fsState.geom[key] || defaultGeom(spec, allSpecs().indexOf(spec));
   var w = clamp(g.w * D.W, Math.min(spec.minW || FS_MIN_W, D.W), D.W);
+  // A frame has no content height of its own, so it always has a numeric one.
+  if (spec.frame && g.h === null) g = { l: g.l, t: g.t, w: g.w, h: 0.7 };
   var h = g.h === null ? null : clamp(g.h * D.H, Math.min(spec.minH || FS_MIN_H, D.H), D.H);
   return { l: clamp(g.l * D.W, 80 - w, D.W - 80), t: clamp(g.t * D.H, 0, Math.max(0, D.H - 34)), w: w, h: h };
 }
@@ -2367,9 +2488,9 @@ function setWinPx(win, r){
 }
 function layoutWindows(){
   if (!fsWins) return;
-  FS_PANELS.forEach(function(spec){
+  allSpecs().forEach(function(spec){
     var w = fsWins[spec.key];
-    if (winDrag && winDrag.live && winDrag.key === spec.key) return;
+    if (!w || winDrag && winDrag.live && winDrag.key === spec.key) return;
     if (!w.win.hidden) setWinPx(w.win, geomPx(spec.key));
   });
 }
@@ -2387,27 +2508,38 @@ function toFractions(r, keepAutoHeight){
 // comment keeping each part's place; leaving puts each back. In between
 // this shows the open windows, stacked front last, and marks their task
 // buttons.
+// A panel's window takes the panel's parts in, a comment keeping each part's
+// place; an extra Ring window gets its frame. A frame is never moved in the
+// page afterwards: that would reload it.
+function mountWindow(spec){
+  var w = buildWindow(spec);
+  if (spec.frame) buildFrame(w, entryOf(spec.key));
+  else w.homes = spec.ids.map(function(id){
+    var el = $(id), home = document.createComment(id);
+    el.before(home);
+    w.body.appendChild(el);
+    return { el: el, home: home };
+  });
+  diagramFrameEl.insertBefore(w.win, $('fs-taskbar'));
+  fsWins[spec.key] = w;
+}
+function buildFrame(w, entry){
+  var f = document.createElement('iframe');
+  f.addEventListener('load', function(){ f.classList.add('is-loaded'); });
+  f.src = ringWinSrc(entry.q);
+  w.body.appendChild(f);
+  w.frame = f;
+}
 function syncWindows(){
   var full = fullscreenEl() === diagramFrameEl;
   if (full && !fsWins){
     fsWins = {};
-    FS_PANELS.forEach(function(spec){
-      var w = buildWindow(spec);
-      w.homes = spec.ids.map(function(id){
-        var el = $(id), home = document.createComment(id);
-        el.before(home);
-        w.body.appendChild(el);
-        return { el: el, home: home };
-      });
-      diagramFrameEl.insertBefore(w.win, $('fs-taskbar'));
-      fsWins[spec.key] = w;
-    });
     syncClock();
     fsClockId = setInterval(syncClock, 15000);
   } else if (!full && fsWins){
-    FS_PANELS.forEach(function(spec){
+    allSpecs().forEach(function(spec){
       var w = fsWins[spec.key];
-      w.homes.forEach(function(h){ h.home.replaceWith(h.el); });
+      if (w.homes) w.homes.forEach(function(h){ h.home.replaceWith(h.el); });
       w.win.remove();
     });
     fsWins = null;
@@ -2416,9 +2548,11 @@ function syncWindows(){
     fsClockId = null;
     setFsMenu(false);
   }
+  // Every window the desktop should hold is built once, in front of the taskbar.
+  if (fsWins) allSpecs().forEach(function(spec){ if (!fsWins[spec.key]) mountWindow(spec); });
   syncFsLabels();
   var front = frontKey();
-  FS_PANELS.forEach(function(spec){
+  allSpecs().forEach(function(spec){
     var k = spec.key, open = isOpen(k), shown = hasContent(spec);
     fsTasks[k].disabled = !shown;
     fsItems[k].disabled = !shown;
@@ -2443,21 +2577,27 @@ function syncWindows(){
 // A window's name. The ring's names the group on show, and whether it is
 // cyclic.
 function fsTitle(spec){
+  if (spec.frame){
+    if (!spec.group) return translate('cyclicGroups.fsRing');
+    return translate(spec.group.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: spec.group.label });
+  }
   if (spec.key !== 'ring' || !drawn) return translate(spec.title);
   return translate(drawn.G.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: drawn.G.label });
 }
 // The names on the task buttons, the menu and the windows, in the current
 // language.
 function syncFsLabels(){
-  FS_PANELS.forEach(function(spec){
+  allSpecs().forEach(function(spec){
     var name = fsTitle(spec);
     fsTasks[spec.key].querySelector('.fs-task-label').textContent = name;
     fsTasks[spec.key].setAttribute('title', name);
     fsItems[spec.key].lastChild.textContent = name;
     if (!fsWins) return;
     var w = fsWins[spec.key];
+    if (!w) return;
     w.title.textContent = name;
     w.win.setAttribute('aria-label', name);
+    if (w.frame) w.frame.setAttribute('title', name);
     var label = function(btn, key){
       var text = translate(key, { name: name });
       btn.setAttribute('aria-label', text);
@@ -2482,9 +2622,9 @@ function syncFsLabels(){
 // every other window on show.
 function alignEdges(skip){
   var D = desk(), xs = [0, D.W], ys = [0, D.H];
-  FS_PANELS.forEach(function(spec){
+  allSpecs().forEach(function(spec){
     var w = fsWins[spec.key];
-    if (spec.key === skip || w.win.hidden || !w.win.offsetWidth) return;
+    if (!w || spec.key === skip || w.win.hidden || !w.win.offsetWidth) return;
     var r = winRect(w.win);
     xs.push(r.l, r.l + r.w);
     ys.push(r.t, r.t + r.h);
@@ -2541,7 +2681,7 @@ window.addEventListener('pointermove', function(e){
     // A maximized, snapped or tiled window dragged away takes back its
     // own size, under the pointer where it was along the title bar.
     if (winDrag.mode === 'move' && (isMax(winDrag.key) || fsState.restore[winDrag.key])){
-      var D = desk(), back = fsState.restore[winDrag.key] || fsState.geom[winDrag.key] || defaultGeom(w.spec, FS_PANELS.indexOf(w.spec));
+      var D = desk(), back = fsState.restore[winDrag.key] || fsState.geom[winDrag.key] || defaultGeom(w.spec, allSpecs().indexOf(w.spec));
       var bw = clamp(back.w * D.W, w.spec.minW || FS_MIN_W, D.W), bh = back.h === null ? null : back.h * D.H;
       var along = (winDrag.x - (diagramFrameEl.getBoundingClientRect().left + winDrag.start.l)) / winDrag.start.w;
       fsState.max = without(fsState.max, winDrag.key);
@@ -2607,6 +2747,43 @@ diagramFrameEl.addEventListener('dblclick', function(e){
   if (!head || e.target.closest('.fs-win-btn')) return;
   toggleMaximize(head.parentNode.getAttribute('data-panel'));
 });
+
+/* extra Ring windows: the messages between the desktop and its frames */
+
+// The window key a message came from: the one whose frame's window sent it.
+// This is the single place that maps a frame to its window.
+function frameKeyOf(source){
+  if (!fsWins || !source) return null;
+  var keys = Object.keys(fsWins).filter(function(k){ return fsWins[k].frame && fsWins[k].frame.contentWindow === source; });
+  return keys.length ? keys[0] : null;
+}
+var fsWriteTimer = 0;
+window.addEventListener('message', function(e){
+  if (IS_RINGWIN || IS_PREVIEW || !fsWins) return;
+  var d = e.data;
+  if (!d || typeof d !== 'object') return;
+  var key = frameKeyOf(e.source), entry = key && entryOf(key);
+  if (!entry) return;
+  if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
+    // A ring reports every change, auto-rotation every step, so the write waits.
+    var spec = extraSpec(entry), was = spec.group;
+    entry.q = cleanRingQuery(d.q);
+    spec.group = ringWinGroup(entry.q) || was;
+    if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
+    clearTimeout(fsWriteTimer);
+    fsWriteTimer = setTimeout(writeFsState, 400);
+  }
+});
+
+// In an extra Ring window's frame the Ring window's own contents fill the
+// page: the same parts the original ring's window takes in, in the same
+// order. The frame never enters full screen, so nothing moves them back.
+function enterRingWin(){
+  var body = document.createElement('div');
+  body.className = 'fs-win-body is-ring ringwin-body';
+  FS_PANELS[0].ids.forEach(function(id){ body.appendChild($(id)); });
+  diagramFrameEl.appendChild(body);
+}
 
 
 function fitRingHead(){
@@ -4003,47 +4180,59 @@ function renderIso(G){
   syncIsoLinks();
 }
 
-// Mirror every control into the address bar, keeping foreign parameters
-// (theme, for one) where they are. A throttled or blocked write is skipped.
+// Every control as query parameters, keeping foreign parameters (theme, for
+// one) where they are.
+function stateQuery(){
+  var q = new URLSearchParams(location.search);
+  q.set('mode', state.mode);
+  q.set('n', String(state.n));
+  q.set('gen', String(state.gen));
+  FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
+  if (state.genTop) q.set('gentop', '1');
+  else q.delete('gentop');
+  if (state.autoShift) q.set('autoshift', '1');
+  else q.delete('autoshift');
+  if (state.swapColors) q.set('swapcolors', '1');
+  else q.delete('swapcolors');
+  if (state.customColors) q.set('customcolors', '1');
+  else q.delete('customcolors');
+  ARROW_COLORS.forEach(function(c){
+    if (state.customColors && state[c.key]) q.set(c.param, state[c.key].slice(1));
+    else q.delete(c.param);
+  });
+  q.set('colorby', state.colorBy);
+  if (state.idColor) q.set('idcolor', state.idColor.slice(1));
+  else q.delete('idcolor');
+  q.delete('chords');
+  q.delete('outer');
+  q.set('elside', state.elSide);
+  q.delete('invside');
+  q.set('back', state.backward ? '1' : '0');
+  q.set('dir', state.dir);
+  if (state.autoRotate !== 'off') q.set('autorotate', state.autoRotate);
+  else q.delete('autorotate');
+  if (state.autoSpeed !== 1) q.set('autospeed', state.autoSpeed);
+  else q.delete('autospeed');
+  if (state.subLayout === 'list') q.set('sublayout', 'list');
+  else q.delete('sublayout');
+  if (state.arrangeGen !== null) q.set('arrangegen', String(state.arrangeGen));
+  else q.delete('arrangegen');
+  if (state.rot) q.set('rot', String(state.rot));
+  else q.delete('rot');
+  return q;
+}
+
+// Mirror every control into the address bar. A throttled or blocked write is
+// skipped. An extra Ring window has no address bar of its own: it reports
+// its query to the desktop that holds it instead, which remembers it.
 function mirrorToUrl(G){
   try {
-    var q = new URLSearchParams(location.search);
-    q.set('mode', state.mode);
-    q.set('n', String(state.n));
-    q.set('gen', String(state.gen));
-    FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
-    if (state.genTop) q.set('gentop', '1');
-    else q.delete('gentop');
-    if (state.autoShift) q.set('autoshift', '1');
-    else q.delete('autoshift');
-    if (state.swapColors) q.set('swapcolors', '1');
-    else q.delete('swapcolors');
-    if (state.customColors) q.set('customcolors', '1');
-    else q.delete('customcolors');
-    ARROW_COLORS.forEach(function(c){
-      if (state.customColors && state[c.key]) q.set(c.param, state[c.key].slice(1));
-      else q.delete(c.param);
-    });
-    q.set('colorby', state.colorBy);
-    if (state.idColor) q.set('idcolor', state.idColor.slice(1));
-    else q.delete('idcolor');
-    q.delete('chords');
-    q.delete('outer');
-    q.set('elside', state.elSide);
-    q.delete('invside');
-    q.set('back', state.backward ? '1' : '0');
-    q.set('dir', state.dir);
-    if (state.autoRotate !== 'off') q.set('autorotate', state.autoRotate);
-    else q.delete('autorotate');
-    if (state.autoSpeed !== 1) q.set('autospeed', state.autoSpeed);
-    else q.delete('autospeed');
-    if (state.subLayout === 'list') q.set('sublayout', 'list');
-    else q.delete('sublayout');
-    if (state.arrangeGen !== null) q.set('arrangegen', String(state.arrangeGen));
-    else q.delete('arrangegen');
-    if (state.rot) q.set('rot', String(state.rot));
-    else q.delete('rot');
-    history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
+    var q = stateQuery();
+    if (IS_RINGWIN){
+      if (window.parent !== window) window.parent.postMessage({ ringwin: 'state', q: q.toString() }, '*');
+    } else {
+      history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
+    }
   } catch (e) { /* the address bar is a convenience, never a requirement */ }
   syncIsoLinks();
 }
@@ -4199,7 +4388,7 @@ function syncControls(){
 // Equivalence Wheel: a user-initiated mode or n change writes it, a received
 // change (storage event) never does.
 function persistGroup(){
-  if (IS_PREVIEW) return;
+  if (IS_PREVIEW || IS_RINGWIN) return;
   writeSharedGroup(state.mode, state.n);
 }
 
@@ -4441,7 +4630,7 @@ exportBtnEl.addEventListener('click', exportRingPng);
 // validation path. This handler never writes the store: a received change
 // must not be written back, or two open tools could ping-pong.
 window.addEventListener('storage', function(e){
-  if (IS_PREVIEW || e.key !== SHARED_GROUP_KEY) return;
+  if (IS_PREVIEW || IS_RINGWIN || e.key !== SHARED_GROUP_KEY) return;
   var incoming = readSharedGroup(e.newValue);
   if (!incoming) return;
   var n = clamp(incoming.N, MIN_N, MAX_N);
@@ -4536,6 +4725,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   }
 })();
 
+if (IS_RINGWIN) enterRingWin();
 syncControls();
 render();
 
