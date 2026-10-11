@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T08:14:30.134Z"
+last_updated: "2026-10-11T08:17:34.371Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 203ae9fa6d9c018762d9c36a69aac398ff7ce113
+state_head: 5b5a3438251e1a2df458e02b622ca72611fec950
 progress:
   total_phases: 7
   completed_phases: 6
@@ -423,6 +423,7 @@ None yet.
 | 187 | Cyclic Groups: movable title and formulas with remembered places | 2026-10-11 | 1cbd74d | — |
 | 188 | Cyclic Groups: full-screen button and moved-formula reset | 2026-10-11 | fbba07d | — |
 | 189 | Cyclic Groups: full-screen auto-rotate speed ruler (-3..3) | 2026-10-11 | 203ae9f | — |
+| 190 | Cyclic Groups: speed ruler direction flipped (ccw left, cw right) | 2026-10-11 | 5b5a343 | — |
 
 ## Deferred Items
 
