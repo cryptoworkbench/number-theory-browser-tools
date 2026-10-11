@@ -515,7 +515,7 @@
   /* A window's transparency (--win-alpha, written by the page) thins only
      its background: its title bar, text and controls stay solid. */
   .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; min-width:0; background:color-mix(in srgb, var(--surface) calc(var(--win-alpha, 1) * 100%), transparent); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
-  .fs-win[hidden], .fs-win:not(.is-ring):has(> .fs-win-body > [hidden]), .fs-win:not(.is-ring):not(.is-frame):has(> .fs-win-body:empty){ display:none; }
+  .fs-win[hidden], .fs-win:not(.is-ring):has(> .fs-win-body > [hidden]){ display:none; }
   .fs-win.is-front{ border-color:color-mix(in srgb, var(--accent) 55%, var(--panel-border-strong)); }
   .fs-win.is-max, .fs-win.is-max .fs-win-head{ border-radius:0; }
   .fs-win.is-max{ border-width:0; box-shadow:none; }
@@ -2252,7 +2252,6 @@ var FS_PANELS = [
   { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
-  { key: 'subgroups', ids: ['subgroups-list-panel'], title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, width: 560 },
   { key: 'legend', ids: ['legend-panel'], title: 'cyclicGroups.fsColorKey', icon: '◐' },
   { key: 'layers', ids: ['layers-panel'], title: 'cyclicGroups.layersHeading', icon: '☰', hideHeading: true },
   { key: 'export', ids: ['export-panel'], title: 'cyclicGroups.fsExport', icon: '⤓' },
@@ -2362,9 +2361,8 @@ function isMin(key){ return fsState.min.indexOf(key) !== -1; }
 function isMax(key){ return fsState.max.indexOf(key) !== -1; }
 function alphaOf(key){ return key in fsState.alpha ? fsState.alpha[key] : 1; }
 function without(list, key){ return list.filter(function(k){ return k !== key; }); }
-// A window the page has something in: the ring always, a panel unless hidden
-// or taken into the Ring window's split view.
-function hasContent(spec){ return spec.ring || spec.frame || (!$(spec.ids[0]).hidden && !ringSplitEl.contains($(spec.ids[0]))); }
+// A window the page has something in: the ring always, a panel unless hidden.
+function hasContent(spec){ return spec.ring || spec.frame || !$(spec.ids[0]).hidden; }
 // The window in front: the last open one not minimized and with content.
 function frontKey(){
   var shown = fsState.open.filter(function(k){ return !isMin(k) && hasContent(specOf(k)); });
