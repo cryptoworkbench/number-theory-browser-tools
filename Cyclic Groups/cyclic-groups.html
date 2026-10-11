@@ -601,8 +601,14 @@
   .split-btn, .ring-split{ display:none; }
   .fs-win-body.is-ring .split-btn{ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
-  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; border-top:1px solid var(--panel-border); padding-top:8px; }
-  .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "pad pad pad" "head head head" "ring ring ring" "rot spin key" "split split split"; }
+  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+  /* The ring and the pane share the spare height as --ring-fr to --split-fr,
+     set by dragging the divider along the pane's top. */
+  .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "pad pad pad" "head head head" "ring ring ring" "rot spin key" "split split split"; }
+  .split-grip{ flex:none; position:relative; height:10px; margin-bottom:4px; border-top:1px solid var(--panel-border); cursor:ns-resize; touch-action:none; }
+  .split-grip::after{ content:""; position:absolute; left:50%; top:3px; width:36px; height:3px; margin-left:-18px; border-radius:2px; background:var(--text-dim); opacity:.5; }
+  .split-grip:hover, .split-grip:focus-visible, .ring-split.is-resizing .split-grip{ border-top-color:var(--accent); outline:none; }
+  .split-grip:hover::after, .split-grip:focus-visible::after, .ring-split.is-resizing .split-grip::after{ background:var(--accent); opacity:1; }
   .ring-split > .subgroups-panel{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; background:none; border:0; border-radius:0; padding:0; }
   .ring-split .subgroups{ flex:1 1 auto; min-height:0; max-height:none; }
   .fs-win-body.is-ring .coset-controls:not([hidden]){ margin:0; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 16px; }
@@ -897,7 +903,9 @@
             <button type="button" class="link-btn" id="rot-reset" style="margin:0 0 0 6px" data-i18n="cyclicGroups.rotateReset">Reset</button>
           </div>
         </div>
-        <div class="ring-split" id="ring-split" hidden></div>
+        <div class="ring-split" id="ring-split" hidden>
+          <div class="split-grip" id="split-grip" role="separator" aria-orientation="horizontal" aria-controls="ring-split" aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" tabindex="0" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-label="Drag to resize; double-click to reset" data-i18n-aria-label="cyclicGroups.resizeTitle"></div>
+        </div>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
         <p class="iso-lead" id="iso-lead"></p>
@@ -1210,6 +1218,7 @@ var swapColorsEl = $('swap-colors');
 var keepTopRowEl = $('keep-top-row');
 var splitBtnEl = $('split-btn');
 var ringSplitEl = $('ring-split');
+var splitGripEl = $('split-grip');
 var subgroupsPanelEl = $('subgroups-list-panel');
 var splitOn = false, splitHome = null; // the Ring window's split view, and where its panel goes back to
 var keepTopEl = $('keep-top');
@@ -2628,7 +2637,7 @@ function ringNeeds(){
     if (chromeAt(mid) <= flat + 0.5) hi = mid; else lo = mid;
   }
   body.style.width = was;
-  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), flex: split ? 2 : 1 };
+  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), flex: split ? 1 / (1 - splitShare) : 1 };
 }
 // Sizes a ring's window from its body's needs; holder is the element the
 // body fills inside the window (the body itself, or an extra window's frame).
@@ -2907,6 +2916,44 @@ splitBtnEl.addEventListener('click', function(){
   splitOn = !splitOn;
   syncWindows();
 });
+// The divider along the pane's top sets the pane's share of the height the
+// ring and the pane split between them: dragged, by the arrow keys, or back
+// to half by a double click.
+var SPLIT_MIN = 0.15, SPLIT_MAX = 0.85;
+var splitShare = 0.5, splitSizing = null;
+function setSplitShare(v){
+  splitShare = clamp(v, SPLIT_MIN, SPLIT_MAX);
+  var root = document.documentElement.style;
+  root.setProperty('--ring-fr', (1 - splitShare) + 'fr');
+  root.setProperty('--split-fr', splitShare + 'fr');
+  splitGripEl.setAttribute('aria-valuenow', String(Math.round(splitShare * 100)));
+}
+splitGripEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0) return;
+  var ring = ringSvgEl.getBoundingClientRect().height, pane = ringSplitEl.getBoundingClientRect().height;
+  splitSizing = { id: e.pointerId, y: e.clientY, pane: pane, total: ring + pane };
+  splitGripEl.setPointerCapture(e.pointerId);
+  ringSplitEl.classList.add('is-resizing');
+  e.preventDefault();
+});
+splitGripEl.addEventListener('pointermove', function(e){
+  if (!splitSizing || e.pointerId !== splitSizing.id || !splitSizing.total) return;
+  setSplitShare((splitSizing.pane - (e.clientY - splitSizing.y)) / splitSizing.total);
+});
+function endSplitSizing(e){
+  if (!splitSizing || e.pointerId !== splitSizing.id) return;
+  splitSizing = null;
+  ringSplitEl.classList.remove('is-resizing');
+}
+splitGripEl.addEventListener('pointerup', endSplitSizing);
+splitGripEl.addEventListener('pointercancel', endSplitSizing);
+splitGripEl.addEventListener('dblclick', function(){ setSplitShare(0.5); });
+splitGripEl.addEventListener('keydown', function(e){
+  var to = { ArrowUp: splitShare + 0.05, ArrowDown: splitShare - 0.05, Home: SPLIT_MIN, End: SPLIT_MAX }[e.key];
+  if (to === undefined) return;
+  setSplitShare(to);
+  e.preventDefault();
+});
 
 // A window's name. The ring's names the group on show, and whether it is
 // cyclic.
@@ -3108,7 +3155,7 @@ window.addEventListener('message', function(e){
     if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
     clearTimeout(fsWriteTimer);
     fsWriteTimer = setTimeout(writeFsState, 400);
-  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; }) && (d.flex === 1 || d.flex === 2)){
+  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; }) && typeof d.flex === 'number' && d.flex >= 1 && d.flex <= 10){
     // A frame's answer to a Fit.
     if (!fsWins[key].fitting) return;
     fsWins[key].fitting = false;
