@@ -350,7 +350,7 @@
       fsNewRing: 'New ring window',
       fsDuplicateRing: 'New ring window from {name}',
       splitView: 'Splitview',
-      showElementColours: 'Show element colours',
+      showElementColours: 'Show key',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',
