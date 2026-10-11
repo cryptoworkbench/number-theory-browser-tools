@@ -554,23 +554,17 @@
      the ring, except on its controls. */
   .formula-scratch{ display:none; }
   .fs-win-body.is-ring > .formula-scratch{ grid-area:pad; display:block; position:relative; z-index:4; justify-self:start; padding:6px 0 0; }
-  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); box-sizing:border-box; position:absolute; top:100%; left:0; margin-top:6px; display:grid; grid-template-columns:auto auto; align-items:center; gap:10px 24px; padding:10px 14px; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); pointer-events:none; }
+  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); position:absolute; top:100%; left:0; margin-top:6px; padding:.62em 1.4em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); pointer-events:none; }
   .scratch-pad[hidden]{ display:none; }
-  .scratch-row{ display:contents; }
-  /* Narrowed past its smallest scale, the card keeps its names' width and
-     each formula that no longer fits beside its name drops under it, to
-     the right. */
-  .scratch-pad.is-narrow{ display:block; }
-  .scratch-pad.is-narrow .scratch-row{ display:flex; flex-wrap:wrap; align-items:center; gap:2px 24px; }
-  .scratch-pad.is-narrow .scratch-row + .scratch-row{ margin-top:10px; }
-  .scratch-pad.is-narrow .scratch-name{ flex:none; min-width:var(--scratch-name-w); }
-  .scratch-pad.is-narrow .scratch-math{ margin-inline-start:auto; }
+  /* Each row's name on a line of its own, its formula on the line under it. */
+  .scratch-row + .scratch-row{ margin-top:.62em; }
   .scratch-pad :is(select, button){ pointer-events:auto; }
   /* Its corner grip scales the card and its formulas together. */
-  .scratch-grip{ position:absolute; right:2px; bottom:2px; width:16px; height:16px; cursor:nwse-resize; touch-action:none; pointer-events:auto;
+  .scratch-grip{ position:absolute; right:2px; bottom:2px; width:1em; height:1em; cursor:nwse-resize; touch-action:none; pointer-events:auto;
     background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
   .scratch-grip:hover, .scratch-pad.is-resizing .scratch-grip{ opacity:1; }
-  .scratch-name{ font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  .scratch-name{ display:block; font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  .scratch-math{ margin-top:.15em; }
   .scratch-math math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
   .scratch-math .ring-math-title{ font-size:1.2em; }
   .scratch-math .ring-math-formula{ font-size:1.05em; }
@@ -2027,47 +2021,35 @@ function drawScratchPad(G){
   grip.title = translate('cyclicGroups.resizeTitle');
   grip.setAttribute('aria-hidden', 'true');
   scratchPadEl.appendChild(grip);
-  applyScratchSize();
 }
-// Dragging the grip scales the card by how far the corner moves, up to
-// three times its size; double-clicking it sets it back. Its smallest scale
-// is where it starts, its names then as large as the Generator label of
-// the arrangement row; below 1, scratchScale narrows the card instead, to
-// that fraction of its width, but never narrower than its widest name or
-// formula.
+// Dragging the grip scales the card, its names and formulas with it, by
+// how far the corner moves, from where it starts (its names then as large
+// as the arrangement row's Generator label) to three times that; double-
+// clicking it sets it back.
 var scratchScale = 1, scratchSizing = null;
 function setScratchScale(v){
-  scratchScale = Math.min(3, v);
-  applyScratchSize();
-}
-function applyScratchSize(){
-  var pad = scratchPadEl;
-  pad.classList.remove('is-narrow');
-  pad.style.width = '';
-  pad.style.setProperty('--scratch-scale', String(Math.max(1, scratchScale)));
-  if (scratchScale >= 1 || pad.hidden) return;
-  var full = pad.offsetWidth, nameW = 0, mathW = 0;
-  pad.querySelectorAll('.scratch-name').forEach(function(n){ nameW = Math.max(nameW, n.offsetWidth); });
-  pad.querySelectorAll('.scratch-math > *').forEach(function(m){ mathW = Math.max(mathW, m.offsetWidth); });
-  var cs = getComputedStyle(pad);
-  var least = Math.max(nameW, mathW) + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
-  scratchScale = Math.max(scratchScale, least / full);
-  pad.style.setProperty('--scratch-name-w', nameW + 'px');
-  pad.style.width = Math.ceil(full * scratchScale) + 'px';
-  pad.classList.add('is-narrow');
+  scratchScale = clamp(v, 1, 3);
+  scratchPadEl.style.setProperty('--scratch-scale', String(scratchScale));
 }
 scratchPadEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !e.target.classList.contains('scratch-grip')) return;
   var r = scratchPadEl.getBoundingClientRect();
-  scratchSizing = { id: e.pointerId, x: e.clientX, y: e.clientY, w: r.width, h: r.height, scale: scratchScale };
+  scratchSizing = { id: e.pointerId, dx: r.right - e.clientX, dy: r.bottom - e.clientY };
   e.target.setPointerCapture(e.pointerId);
   scratchPadEl.classList.add('is-resizing');
   e.preventDefault();
 });
 scratchPadEl.addEventListener('pointermove', function(e){
   if (!scratchSizing || e.pointerId !== scratchSizing.id) return;
-  var k = ((scratchSizing.w + e.clientX - scratchSizing.x) / scratchSizing.w + (scratchSizing.h + e.clientY - scratchSizing.y) / scratchSizing.h) / 2;
-  setScratchScale(scratchSizing.scale * k);
+  // The scale that brings the corner nearest the pointer along the card's
+  // diagonal, so the corner follows it. The formulas don't grow exactly in
+  // step with the scale, so it is worked out from the card's size as drawn,
+  // twice over.
+  for (var pass = 0; pass < 2; pass++){
+    var r = scratchPadEl.getBoundingClientRect();
+    var W = e.clientX + scratchSizing.dx - r.left, H = e.clientY + scratchSizing.dy - r.top;
+    setScratchScale(scratchScale * (W * r.width + H * r.height) / (r.width * r.width + r.height * r.height));
+  }
 });
 function endScratchSizing(e){
   if (!scratchSizing || e.pointerId !== scratchSizing.id) return;
