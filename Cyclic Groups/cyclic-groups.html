@@ -414,6 +414,12 @@
      pick is written at runtime as --arrow-in or --arrow-out on .app, which
      every arrow and key swatch reads. */
   .check input.arrow-color{ margin:0; width:30px; height:22px; padding:0 2px; border:1px solid var(--panel-border); border-radius:6px; background:var(--panel); cursor:pointer; }
+  /* Keep on top: identity at the left end, nothing in the middle, the
+     selected subgroup at the right end, each end named on its side. */
+  .keep-top{ display:grid; grid-template-columns:minmax(0, 1fr) 72px minmax(0, 1fr); align-items:center; gap:10px; margin-bottom:8px; font-size:.82rem; line-height:1.3; color:var(--text-dim); }
+  .keep-top-end.is-id{ text-align:end; }
+  .keep-top-track{ height:30px; }
+  .keep-top[data-at="id"] .keep-top-end.is-id, .keep-top[data-at="gen"] .keep-top-end.is-gen{ color:var(--text); }
   .check select.side-select{ margin-left:auto; flex:none; font-family:var(--font-sans); font-size:.86rem; padding:2px 6px; }
   .check input.arrow-color:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .link-btn{ font:inherit; font-size:.82rem; color:var(--role-input); background:none; border:none; padding:0; margin:0 0 10px 25px; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
@@ -561,7 +567,7 @@
   .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls .fs-row-label, :root.is-ringwin .fs-win-body.is-ring > .facts.group-controls .fs-row-label{ display:block; }
   .fs-win-body.is-ring :is(#gen-field, #arrange-field){ flex-direction:row; align-items:center; gap:4px 32px; margin:0; padding:2px 0; }
   .fs-win-body.is-ring > .fs-win-row-gen{ grid-area:gen; display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
-  .fs-win-body.is-ring #gen-top-row{ align-items:center; margin:0; padding:2px 0; }
+  .fs-win-body.is-ring #keep-top-row{ margin:0; padding:2px 0; }
   .fs-win-body.is-ring > #arrange-field{ grid-area:arr; padding-bottom:6px; border-bottom:1px dotted var(--panel-border); }
   .fs-win-body.is-ring :is(#gen-field, #arrange-field) > select{ width:auto; min-width:8em; padding:4px 8px; }
   .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring > .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
@@ -935,7 +941,14 @@
           <label for="gen-select" data-i18n="cyclicGroups.genLabel">Subgroup visualized</label>
           <select id="gen-select"></select>
         </div>
-        <div class="check" id="gen-top-row"><input type="checkbox" id="gen-top"><label for="gen-top" data-i18n="cyclicGroups.genTop">Rotate path generator to the top</label></div>
+        <div class="keep-top" id="keep-top-row">
+          <span class="keep-top-end is-id" aria-hidden="true" data-i18n="cyclicGroups.keepTopId">Keep identity element on top</span>
+          <span class="spin-track keep-top-track">
+            <span class="spin-ticks" aria-hidden="true"><span></span><span class="is-zero"></span><span></span></span>
+            <input type="range" id="keep-top" min="-1" max="1" step="1" value="-1" aria-label="Keep on top" data-i18n-aria-label="cyclicGroups.keepTopLabel">
+          </span>
+          <span class="keep-top-end is-gen" aria-hidden="true" data-i18n="cyclicGroups.keepTopGen">Keep selected subgroup on top</span>
+        </div>
         <p class="identity-note" id="identity-note" hidden data-i18n="cyclicGroups.identityOnly">The identity element only produces itself</p>
         <div id="subgroup-options">
           <div class="arrow-options" id="arrow-options">
@@ -1035,7 +1048,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen'; });
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1131,7 +1144,8 @@ var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
 var customColorsEl = $('custom-colors');
 var swapColorsEl = $('swap-colors');
-var genTopEl = $('gen-top');
+var keepTopRowEl = $('keep-top-row');
+var keepTopEl = $('keep-top');
 var autoShiftEl = $('auto-shift');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
@@ -2044,7 +2058,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'gen-field', 'gen-top-row', 'arrange-field', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'gen-field': 'gen', 'gen-top-row': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'gen-field', 'keep-top-row', 'arrange-field', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'gen-field': 'gen', 'keep-top-row': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'formulas', ids: ['formula-toggles'], title: 'cyclicGroups.fsFormulas', icon: '∑', width: 560 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'subgroup', ids: ['subgroup-panel'], title: 'cyclicGroups.subgroupHeading', icon: 'H', hideHeading: true },
@@ -3230,6 +3244,7 @@ function applyRotInput(){
   var at = (((state.rot + (spin ? spin.steps : 0)) % m) + m) % m;
   var d = ((((v - at) % m) + m) % m);
   rotValueEl.value = String(((v % m) + m) % m);
+  if (d) letGoOfTop();
   turnBy(d > m / 2 ? d - m : d);
 }
 rotValueEl.addEventListener('keydown', function(e){
@@ -3290,6 +3305,7 @@ ringSvgEl.addEventListener('pointermove', function(e){
   var d = a - turning.last;
   if (d > 180) d -= 360;
   if (d < -180) d += 360;
+  if (d) letGoOfTop();
   turning.last = a;
   turning.swept += d;
   spinAngle(turning.swept);
@@ -3350,7 +3366,8 @@ function finishSpin(){
   cancelAnimationFrame(spin.id);
   var steps = spin.steps;
   spin = null;
-  if (!setRotChanged(state.rot + steps)) redrawRing();
+  // A turn that comes out at no steps still puts the field back.
+  if (!setRotChanged(state.rot + steps)){ showRot(state.rot); redrawRing(); }
 }
 
 function turnBy(steps){
@@ -3368,24 +3385,54 @@ function turnBy(steps){
   spin.id = requestAnimationFrame(spinFrame);
 }
 
-// Selecting an element redraws everything. With genTop on, the ring then
-// turns the short way round until that element's bead sits at the top,
-// carrying on from a turn still under way rather than jumping back.
+// Selecting an element redraws everything. While the selected subgroup is
+// kept on top, the ring then turns the short way round until that element's
+// bead sits at the top, carrying on from a turn still under way rather than
+// jumping back.
 function selectGen(g){
   var carry = spin && { steps: spin.steps, now: spin.now };
   state.gen = g;
   render();
-  if (!state.genTop || !drawn) return;
-  var m = drawn.G.order;
-  var at = state.rot + (carry ? carry.steps : 0);
-  var d = ((((arrangement(drawn.G).indexOf(g) - at) % m) + m) % m);
+  if (state.top !== 'gen' || !drawn) return;
   if (carry){
     spinAngle(carry.now);
     spin = { steps: carry.steps, from: carry.now, now: carry.now, t0: null };
     spin.id = requestAnimationFrame(spinFrame);
   }
+  turnToTop(g);
+}
+// Turns the short way round until g's bead sits at the top.
+function turnToTop(g){
+  if (!drawn) return;
+  var m = drawn.G.order;
+  var at = state.rot + (spin ? spin.steps : 0);
+  var d = ((((arrangement(drawn.G).indexOf(g) - at) % m) + m) % m);
   turnBy(d > m / 2 ? d - m : d);
 }
+
+// Keep on top: 'id' keeps the identity at the top, 'gen' the selected
+// element, 'off' neither. Choosing an end stops auto-rotation and turns the
+// ring there; turning the ring by hand (the buttons, the steps field, a
+// drag) or setting it spinning moves the switch to the middle.
+var TOPS = ['id', 'off', 'gen'];
+function syncKeepTop(){
+  keepTopEl.value = String(TOPS.indexOf(state.top) - 1);
+  keepTopRowEl.setAttribute('data-at', state.top);
+  keepTopEl.setAttribute('aria-valuetext', translate(state.top === 'id' ? 'cyclicGroups.keepTopId' : state.top === 'gen' ? 'cyclicGroups.keepTopGen' : 'cyclicGroups.keepTopOff'));
+}
+function setKeepTop(top){
+  if (top === state.top) return;
+  state.top = top;
+  syncKeepTop();
+  if (top !== 'off' && state.autoRotate !== 'off'){
+    state.autoRotate = 'off';
+    syncAutoRotate();
+  }
+  if (top === 'id') turnHome();
+  else if (top === 'gen') turnToTop(state.gen);
+  if (drawn) mirrorToUrl(drawn.G);
+}
+function letGoOfTop(){ setKeepTop('off'); }
 
 // Reset turns back the short way round.
 function turnHome(){
@@ -3548,13 +3595,14 @@ function syncAutoRotate(){
 }
 autoRotateEl.addEventListener('change', function(e){
   state.autoRotate = e.target.value;
+  if (state.autoRotate !== 'off') letGoOfTop();
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
 });
 spinSliderEl.addEventListener('input', function(){
   var v = clamp(parseInt(spinSliderEl.value, 10) || 0, -3, 3);
   state.autoRotate = v < 0 ? 'ccw' : v > 0 ? 'cw' : 'off';
-  if (v) state.autoSpeed = Math.abs(v);
+  if (v){ state.autoSpeed = Math.abs(v); letGoOfTop(); }
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
 });
@@ -3606,9 +3654,13 @@ resizeGripEl.addEventListener('dblclick', function(){
   diagramFrameEl.style.removeProperty('--frame-h');
 });
 
-$('rot-back').addEventListener('click', function(){ turnBy(dirSign()); });
-$('rot-fwd').addEventListener('click', function(){ turnBy(-dirSign()); });
-$('rot-reset').addEventListener('click', turnHome);
+$('rot-back').addEventListener('click', function(){ letGoOfTop(); turnBy(dirSign()); });
+$('rot-fwd').addEventListener('click', function(){ letGoOfTop(); turnBy(-dirSign()); });
+// Reset brings the identity back to the top, and keeps it there.
+$('rot-reset').addEventListener('click', function(){
+  if (state.top === 'id') turnHome();
+  else setKeepTop('id');
+});
 
 /* ---------- coset animation ---------- */
 
@@ -4139,7 +4191,7 @@ function previewSrc(a, bygen){
   q.set('back', '0');
   if (bygen !== undefined) q.set('bygen', bygen ? '1' : '0');
   // In generator-power order the generator sits at the top.
-  if (bygen) q.set('gentop', '1');
+  if (bygen) q.set('top', 'gen');
   q.set('arrangegen', String(G.generators[0]));
   q.delete('autorotate');
   return parts[0] + '?' + q.toString();
@@ -4357,8 +4409,9 @@ function stateQuery(){
   q.set('n', String(state.n));
   q.set('gen', String(state.gen));
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
-  if (state.genTop) q.set('gentop', '1');
-  else q.delete('gentop');
+  q.delete('gentop');
+  if (state.top !== 'id') q.set('top', state.top);
+  else q.delete('top');
   if (state.autoShift) q.set('autoshift', '1');
   else q.delete('autoshift');
   if (state.swapColors) q.set('swapcolors', '1');
@@ -4514,7 +4567,7 @@ function render(){
   renderCombineKey(G);
   syncCosetButton();
   syncArrowColors();
-  genTopEl.checked = state.genTop;
+  syncKeepTop();
   autoShiftEl.checked = state.autoShift;
   syncArrange(G);
   colorBySelectEl.disabled = !state.colors;
@@ -4766,9 +4819,8 @@ ARROW_COLORS.forEach(function(c, i){
     render();
   });
 });
-genTopEl.addEventListener('change', function(){
-  state.genTop = genTopEl.checked;
-  if (drawn) mirrorToUrl(drawn.G);
+keepTopEl.addEventListener('input', function(){
+  setKeepTop(TOPS[clamp(parseInt(keepTopEl.value, 10) || 0, -1, 1) + 1]);
 });
 autoShiftEl.addEventListener('change', function(){
   state.autoShift = autoShiftEl.checked;
@@ -4866,7 +4918,6 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (query.get('back') === '0') state.backward = false;
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
-  state.genTop = query.get('gentop') === '1';
   state.autoShift = query.get('autoshift') === '1';
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
@@ -4884,11 +4935,18 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (isFinite(arrangeGen)) state.arrangeGen = arrangeGen;
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;
+  // Keep on top: top=id|off|gen, gentop=1 from before the switch had three
+  // places. Without either, a ring turned or spinning keeps nothing on top.
+  if (TOPS.indexOf(query.get('top')) !== -1) state.top = query.get('top');
+  else if (query.get('gentop') === '1') state.top = 'gen';
+  else if (state.rot || state.autoRotate !== 'off') state.top = 'off';
+  if (state.top !== 'off') state.autoRotate = 'off';
+  if (state.top === 'id') state.rot = 0;
   var wanted = parseInt(query.get('gen'), 10);
   if (isFinite(wanted) && buildGroup(state.mode, state.n).els.indexOf(wanted) !== -1) state.gen = wanted;
-  // A preview has no selection to turn the ring with, so with genTop on it
-  // opens already turned to put the selected element at the top.
-  if (IS_PREVIEW && state.genTop){
+  // A preview has no selection to turn the ring with, so with the selected
+  // subgroup kept on top it opens already turned to put it at the top.
+  if (IS_PREVIEW && state.top === 'gen'){
     var at = arrangement(buildGroup(state.mode, state.n)).indexOf(state.gen);
     if (at !== -1) state.rot = at;
   }
