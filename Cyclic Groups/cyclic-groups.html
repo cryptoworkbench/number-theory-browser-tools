@@ -899,7 +899,7 @@
           </li>
         </ul>
         <ul class="facts" id="facts"></ul>
-        <p class="hint" id="hint"></p>
+        <p class="hint" id="hint" hidden></p>
         <p class="hint" id="hint-inverse" hidden></p>
         <div class="field color-by" id="arrange-field">
           <label for="arrange-select" data-i18n="cyclicGroups.arrangeLabel">Arrangement</label>
@@ -3846,10 +3846,9 @@ function renderFacts(G, factors){
   sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
 
   var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
-  if (labelsDropped) hintEl.textContent = translate('cyclicGroups.hint.noLabels');
-  else if (!G.cyclic) hintEl.textContent = translate('cyclicGroups.hint.notCyclic');
-  else translateInto(hintEl, G.mode === 'multiplicative' ? 'cyclicGroups.hintMultiplicativeMath' : 'cyclicGroups.hintAdditiveMath',
-    { n: mNum(G.n), g: mNum(state.gen), mod: mInline(mMod(G.n), 'mod ' + G.n) });
+  hintEl.hidden = !labelsDropped && G.cyclic;
+  hintEl.textContent = labelsDropped ? translate('cyclicGroups.hint.noLabels')
+    : G.cyclic ? '' : translate('cyclicGroups.hint.notCyclic');
 
   var inverseView = state.colors && state.colorBy === 'inverse';
   hintInverseEl.hidden = !inverseView;
