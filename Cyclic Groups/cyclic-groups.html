@@ -2288,7 +2288,6 @@ var FS_PANELS = [
   { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
-  { key: 'export', ids: ['export-panel'], title: 'cyclicGroups.fsExport', icon: '⤓' },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -2486,28 +2485,43 @@ fsMenuEl.addEventListener('keydown', function(e){
 });
 // Right-clicking the ring opens its own menu in place of the browser's: the
 // Layers panel's switches, each flipping its checkbox there so the
-// checkbox's own handler draws and remembers the change.
-var RING_CTX_LAYERS = [['orders', 'cyclicGroups.layerOrders'], ['cord', 'cyclicGroups.layerCord'], ['guide', 'cyclicGroups.layerGuide']];
+// checkbox's own handler draws and remembers the change, then the Export
+// panel's download, which clicks its button there.
+var RING_CTX_ITEMS = [
+  { name: 'orders', key: 'cyclicGroups.layerOrders' },
+  { name: 'cord', key: 'cyclicGroups.layerCord' },
+  { name: 'guide', key: 'cyclicGroups.layerGuide' },
+  { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } }
+];
 var ringCtxEl = $('ring-ctx');
-var ringCtxItems = RING_CTX_LAYERS.map(function(l){
+var ringCtxItems = RING_CTX_ITEMS.map(function(l){
+  if (l.head){
+    var head = document.createElement('p');
+    head.className = 'fs-menu-head';
+    head.setAttribute('data-i18n', l.head);
+    head.textContent = translate(l.head);
+    ringCtxEl.appendChild(head);
+  }
   var item = document.createElement('button');
   item.type = 'button';
   item.className = 'fs-menu-item';
-  item.setAttribute('role', 'menuitemcheckbox');
+  item.setAttribute('role', l.run ? 'menuitem' : 'menuitemcheckbox');
   var mark = document.createElement('span');
   mark.className = 'fs-icon';
   mark.setAttribute('aria-hidden', 'true');
+  mark.textContent = l.icon || '';
   var label = document.createElement('span');
   item.appendChild(mark);
   item.appendChild(label);
   item.addEventListener('click', function(){
-    var box = $('layer-' + l[0]);
     setRingCtx(false);
+    if (l.run){ l.run(); return; }
+    var box = $('layer-' + l.name);
     box.checked = !box.checked;
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, name: l[0], key: l[1] };
+  return { item: item, mark: mark, label: label, name: l.name, key: l.key };
 });
 var ringCtxReturn = null;
 function setRingCtx(open, x, y){
@@ -2519,10 +2533,11 @@ function setRingCtx(open, x, y){
     return;
   }
   ringCtxItems.forEach(function(it){
+    it.label.textContent = translate(it.key);
+    if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
     it.mark.textContent = on ? '\u2713' : '';
-    it.label.textContent = translate(it.key);
   });
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
