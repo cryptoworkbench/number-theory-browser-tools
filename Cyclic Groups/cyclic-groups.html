@@ -459,7 +459,7 @@
   .diagram-frame::backdrop{ background:var(--bg-1); }
   /* Full screen, the auto-rotate triangle gives way to a ruler under the
      ring: seven ticks from -3 to 3, the middle one no rotation, those to its
-     left clockwise and those to its right counterclockwise, faster the
+     left counterclockwise and those to its right clockwise, faster the
      further out. The slider's thumb snaps to the ticks. */
   .spin-ruler{ display:none; }
   .diagram-frame:fullscreen .auto-rotate{ display:none; }
@@ -623,12 +623,12 @@
           <g id="ring-dynamic"></g>
         </svg>
         <div class="spin-ruler">
-          <span aria-hidden="true">&#x27F3;</span>
+          <span aria-hidden="true">&#x27F2;</span>
           <div class="spin-track">
             <div class="spin-ticks" aria-hidden="true"><span></span><span></span><span></span><span class="is-zero"></span><span></span><span></span><span></span></div>
             <input type="range" id="spin-slider" min="-3" max="3" step="1" value="0" aria-label="Auto-rotate speed" data-i18n-aria-label="cyclicGroups.spinLabel">
           </div>
-          <span aria-hidden="true">&#x27F2;</span>
+          <span aria-hidden="true">&#x27F3;</span>
         </div>
         <div class="combine-key" id="combine-key" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
@@ -2332,14 +2332,14 @@ var AUTO_ROTATE = ['off', 'ccw', 'cw'];
 var autoRotateEl = $('auto-rotate');
 var autoStopEls = Array.prototype.slice.call(autoRotateEl.querySelectorAll('input'));
 var spinSliderEl = $('spin-slider');
-// The full-screen ruler's place: 0 for off, -1 to -3 clockwise and 1 to 3
-// counterclockwise, the speed being how far from 0.
+// The full-screen ruler's place: 0 for off, -1 to -3 counterclockwise and
+// 1 to 3 clockwise, the speed being how far from 0.
 function spinLevel(){
-  return state.autoRotate === 'off' ? 0 : (state.autoRotate === 'cw' ? -1 : 1) * state.autoSpeed;
+  return state.autoRotate === 'off' ? 0 : (state.autoRotate === 'ccw' ? -1 : 1) * state.autoSpeed;
 }
 function spinValueText(){
   var v = spinLevel();
-  return v ? translate(v < 0 ? 'cyclicGroups.spinCw' : 'cyclicGroups.spinCcw', { speed: Math.abs(v) }) : translate('cyclicGroups.spinOff');
+  return v ? translate(v < 0 ? 'cyclicGroups.spinCcw' : 'cyclicGroups.spinCw', { speed: Math.abs(v) }) : translate('cyclicGroups.spinOff');
 }
 
 function autoFrame(ts){
@@ -2383,7 +2383,7 @@ autoRotateEl.addEventListener('change', function(e){
 });
 spinSliderEl.addEventListener('input', function(){
   var v = clamp(parseInt(spinSliderEl.value, 10) || 0, -3, 3);
-  state.autoRotate = v < 0 ? 'cw' : v > 0 ? 'ccw' : 'off';
+  state.autoRotate = v < 0 ? 'ccw' : v > 0 ? 'cw' : 'off';
   if (v) state.autoSpeed = Math.abs(v);
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
