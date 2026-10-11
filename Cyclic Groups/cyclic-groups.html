@@ -636,6 +636,15 @@
   .diagram-frame:fullscreen .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
   .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; position:static; }
   .fs-win-body.is-ring > .combine-key{ grid-area:key; position:static; max-width:260px; margin:0; }
+  /* Full screen, the element colour key shows only when its button on the
+     Element colours row asks for it, in the ring's bottom right corner, just
+     above the path colour key. */
+  .legend-btn{ display:none; }
+  .fs-win-body.is-ring .legend-btn:not([hidden]){ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
+  .fs-win-body.is-ring .legend-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
+  .fs-win-body.is-ring > #legend-panel{ grid-area:ring; justify-self:end; align-self:end; position:relative; z-index:1; max-width:320px; padding:0 0 8px; }
+  .fs-win-body.is-ring > #legend-panel:not(.is-shown){ display:none; }
+  .fs-win-body.is-ring > #legend-panel > h2{ margin:0 0 8px; font-size:.78rem; }
   /* An extra Ring window is an iframe of this page (ringwin=1) filling its
      body; it stays hidden until it has loaded so the whole page never shows. */
   .fs-win-body.is-frame{ display:flex; padding:0; overflow:hidden; }
@@ -996,6 +1005,7 @@
           </div>
           <div class="check" id="id-color-row" hidden><input type="color" class="arrow-color" id="id-color" aria-label="Identity colour" data-i18n-aria-label="cyclicGroups.identityColor" title="Identity colour" data-i18n-title="cyclicGroups.identityColor"><label for="id-color" data-i18n="cyclicGroups.identityColor">Identity colour</label></div>
           <button type="button" class="link-btn" id="id-color-reset" hidden data-i18n="cyclicGroups.identityColorReset">Reset identity colour</button>
+          <button type="button" class="action-btn legend-btn" id="legend-btn" aria-pressed="false" aria-controls="legend-panel" data-i18n="cyclicGroups.showElementColours">Show element colours</button>
         </div>
         <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
         <details class="extra-options">
@@ -1182,6 +1192,9 @@ var hintEl = $('hint');
 var hintInverseEl = $('hint-inverse');
 var legendEl = $('legend');
 var legendHeadingEl = $('legend-heading');
+var legendPanelEl = $('legend-panel');
+var legendBtnEl = $('legend-btn');
+var legendShown = false; // full screen, whether the element colour key shows in the Ring window
 var colorBySelectEl = $('colorby-select');
 var sideElEl = $('side-el');
 var dirSelectEl = $('dir-select');
@@ -2258,10 +2271,9 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
-  { key: 'legend', ids: ['legend-panel'], title: 'cyclicGroups.fsColorKey', icon: '◐' },
   { key: 'layers', ids: ['layers-panel'], title: 'cyclicGroups.layersHeading', icon: '☰', hideHeading: true },
   { key: 'export', ids: ['export-panel'], title: 'cyclicGroups.fsExport', icon: '⤓' },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
@@ -2912,6 +2924,10 @@ function syncSplit(){
   ringSplitEl.hidden = !on;
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
 }
+legendBtnEl.addEventListener('click', function(){
+  legendShown = !legendShown;
+  render();
+});
 splitBtnEl.addEventListener('click', function(){
   splitOn = !splitOn;
   syncWindows();
@@ -4350,6 +4366,10 @@ function renderThemeLegend(G){
 }
 
 function renderLegend(G, classes, pairing){
+  // With the beads uncoloured there is no key to show full screen.
+  legendBtnEl.hidden = !state.colors;
+  legendBtnEl.setAttribute('aria-pressed', legendShown ? 'true' : 'false');
+  legendPanelEl.classList.toggle('is-shown', legendShown && state.colors);
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
   var inverse = state.colorBy === 'inverse', theme = state.colorBy === 'theme';

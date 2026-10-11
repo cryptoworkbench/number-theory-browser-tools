@@ -45,7 +45,9 @@
    window), fsDuplicateRing (the + button on a ring window's title bar, which
    opens a copy of that ring), splitView (the Ring window's button on its
    Subgroup visualized row that splits the window, the ring on top and the
-   Subgroups list under it), arrangeLabel, arrangeRowLabel (the same
+   Subgroups list under it), showElementColours (the button beside the
+   Element colours dropdown that shows the element colour key in the Ring
+   window, above the path colour key), arrangeLabel, arrangeRowLabel (the same
    control's name in the Ring window), arrangeSequential,
    arrangeSequentialTitle, arrangeByPowers, arrangeGenLabel,
    arrangeMultiples and arrangePowers (the Ring window's arrangement
@@ -348,6 +350,7 @@
       fsNewRing: 'New ring window',
       fsDuplicateRing: 'New ring window from {name}',
       splitView: 'Splitview',
+      showElementColours: 'Show element colours',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',
