@@ -24,7 +24,8 @@
    page and appears exactly once, never wrapped in isolates.
 
    English-only for now, by the user's decision to add new Cyclic Groups
-   strings in English first: fullscreenEnter / fullscreenExit (the
+   strings in English first: formulaReset (the Formulas window's button
+   that puts moved formulas back), fullscreenEnter / fullscreenExit (the
    diagram's full-screen button) and the four spin* strings of the
    full-screen auto-rotate ruler (spinLabel, spinOff, spinCw, spinCcw),
    formulaToggleGroupShort / formulaToggleSubgroupShort /
@@ -297,6 +298,7 @@
       formulaToggleGroupShort: 'Group cardinality',
       formulaToggleSubgroupShort: 'Subgroup cardinality',
       formulaToggleCosetsShort: 'Subgroup-coset amount',
+      formulaReset: 'Reset formula positions',
       fullscreenEnter: 'Full screen',
       fullscreenExit: 'Exit full screen',
       spinLabel: 'Auto-rotate speed',

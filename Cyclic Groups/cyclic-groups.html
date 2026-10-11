@@ -521,6 +521,9 @@
   .formula-pane{ display:none; }
   .fs-win-body > .formula-toggles{ position:relative; top:auto; left:auto; align-items:flex-start; box-sizing:border-box; }
   .fs-win-body{ scrollbar-color:color-mix(in srgb, var(--text) 28%, transparent) transparent; }
+  .formula-reset{ display:none; }
+  .fs-win-body > .formula-toggles .formula-reset{ display:inline-block; margin-top:4px; padding:4px 10px; font-size:.8rem; }
+  .fs-win-body > .formula-toggles .formula-reset[hidden]{ display:none; }
   .fs-win-body > .formula-toggles .formula-pane{ display:block; position:absolute; inset:0; pointer-events:none; }
   .formula-item{ position:absolute; pointer-events:auto; padding:2px 4px; border-radius:var(--radius-ctl); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
   .formula-item:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
@@ -582,9 +585,8 @@
   .fs-menu-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .fs-menu-item:disabled{ opacity:.4; cursor:default; background:none; }
   .diagram-frame:fullscreen .resize-grip{ display:none; }
-  /* The diagram's top-right corner: the full-screen button, and under it,
-     while a formula on show stands away from its place, the button that
-     puts the formulas back. */
+  /* The diagram's top-right corner: the full-screen button. Full screen
+     it gives way to the one in the taskbar's tray. */
   .frame-tools{ position:absolute; top:8px; right:10px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
   .frame-tools .action-btn{ padding:5px 10px; font-size:.8rem; }
   .frame-tools .icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; color:var(--text-dim); background:none; border:none; border-radius:8px; cursor:pointer; }
@@ -593,6 +595,7 @@
   .frame-tools .icon-btn svg{ width:24px; height:24px; fill:currentColor; }
   .frame-tools .icon-btn .icon-exit, .frame-tools .icon-btn.is-on .icon-enter{ display:none; }
   .frame-tools .icon-btn.is-on .icon-exit{ display:block; }
+  .diagram-frame:fullscreen .frame-tools{ display:none; }
   /* Full screen, the diagram fills the screen and the ring scales into it. */
   .diagram-frame:fullscreen{ width:100% !important; height:100% !important; max-width:none !important; box-sizing:border-box; border:0; border-radius:0; display:flex; flex-direction:column;
     background:linear-gradient(var(--panel), var(--panel)), var(--bg-1); }
@@ -757,6 +760,7 @@
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder"><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroupShort">Group cardinality</label></div>
           <div class="check" id="sorder-row"><input type="checkbox" role="switch" id="layer-sorder"><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroupShort">Subgroup cardinality</label></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-cindex"><label for="layer-cindex" data-i18n="cyclicGroups.formulaToggleCosetsShort">Subgroup-coset amount</label></div>
+          <button type="button" class="action-btn formula-reset" id="formula-reset" hidden data-i18n="cyclicGroups.formulaReset">Reset formula positions</button>
           <div class="formula-pane" id="formula-pane"></div>
         </div>
         <div class="ring-head" id="ring-head"></div>
@@ -1078,6 +1082,7 @@ var bygenRowEl = $('bygen-row');
 var ringHeadEl = $('ring-head');
 var formulaTogglesEl = $('formula-toggles');
 var formulaPaneEl = $('formula-pane');
+var formulaResetEl = $('formula-reset');
 var arrangeGenFieldEl = $('arrange-gen-field');
 var arrangeGenSelectEl = $('arrange-gen-select');
 var combineKeyEl = $('combine-key');
@@ -1850,7 +1855,8 @@ function drawFormulaPane(G){
 // (remembered in pixels from the window's top left, across visits), or
 // else in a column to the right of the switches, one under another. The
 // switches' box then grows to hold them all, so the window fits its
-// content.
+// content. Under the switches, while any formula has been moved, a button
+// puts them all back.
 var FS_FORMULA_KEY = 'cyclic-groups-fs-formula-pos';
 var FORMULA_GAP = 16;
 var fsFormulaPos = readFsFormulaPos();
@@ -1869,11 +1875,12 @@ function writeFsFormulaPos(){
   try { localStorage.setItem(FS_FORMULA_KEY, JSON.stringify(fsFormulaPos)); } catch (e) { /* storage unavailable */ }
 }
 function layoutFormulaPane(){
+  formulaResetEl.hidden = !fsWins || !Object.keys(fsFormulaPos).length;
   if (!fsWins || fsWins.formulas.win.hidden) return;
   formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
   var box = formulaTogglesEl.getBoundingClientRect();
   var col = 0, colH = 0;
-  formulaTogglesEl.querySelectorAll(':scope > .check').forEach(function(c){
+  formulaTogglesEl.querySelectorAll(':scope > .check, :scope > .formula-reset').forEach(function(c){
     if (c.hidden) return;
     var r = c.getBoundingClientRect();
     col = Math.max(col, r.right - box.left);
@@ -1925,6 +1932,11 @@ formulaPaneEl.addEventListener('dblclick', function(e){
   var item = e.target.closest('.formula-item');
   if (!item || e.target.closest('select, button')) return;
   delete fsFormulaPos[item.getAttribute('data-fkey')];
+  writeFsFormulaPos();
+  layoutFormulaPane();
+});
+formulaResetEl.addEventListener('click', function(){
+  fsFormulaPos = {};
   writeFsFormulaPos();
   layoutFormulaPane();
 });
@@ -1982,7 +1994,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['frame-tools', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'formulas', ids: ['formula-toggles'], title: 'cyclicGroups.fsFormulas', icon: '∑', width: 560 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.groupHeading', icon: 'G', hideHeading: true },
   { key: 'subgroup', ids: ['subgroup-panel'], title: 'cyclicGroups.subgroupHeading', icon: 'H', hideHeading: true },
@@ -2414,8 +2426,8 @@ function syncWindows(){
   });
   if (alphaKey && fsWins && fsWins[alphaKey].win.hidden) setAlpha(null);
   layoutWindows();
-  if (fsWins) layoutFormulaPane();
-  else formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
+  layoutFormulaPane();
+  if (!fsWins) formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
 }
 
 // The names on the task buttons, the menu and the windows, in the current
