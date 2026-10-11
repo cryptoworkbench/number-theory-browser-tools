@@ -440,7 +440,7 @@
      one moved keeps its place, also after being turned off and on again,
      and a double-click puts it back in the column. */
   .ring-head [data-formula]{ cursor:grab; touch-action:none; }
-  .ring-head .is-moved{ position:absolute; z-index:1; margin:0; }
+  .diagram-frame .is-moved{ position:absolute; z-index:1; margin:0; }
   /* Full screen, each formula sits in a card like the Factor Tree's tree
      cards: the drag grip in the top-left corner with the formula's switch
      label beside it as its title, and the button that turns it off in the
@@ -458,6 +458,14 @@
   .formula-card-close:focus-visible{ box-shadow:var(--ctl-focus); }
   .formula-card-close line{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
   .formula-card math{ padding:2px 10px 0; }
+  /* Full screen, the Subgroup panel moves into the diagram in a card of its
+     own, first in the top-right corner, dragged by its head only so its
+     controls work as ever. */
+  .panel-card{ position:absolute; top:96px; right:12px; z-index:1; width:300px; max-height:calc(100% - 200px); align-items:stretch; cursor:auto; touch-action:auto; overflow:auto; }
+  .panel-card.is-moved{ right:auto; }
+  .panel-card .formula-card-head{ cursor:grab; touch-action:none; }
+  .panel-card > .panel{ background:none; border:0; padding:4px 10px 0; }
+  .panel-card > .panel > h2{ display:none; }
   /* The diagram's top-right corner: the full-screen button, and under it,
      while a formula on show stands away from its place, the button that
      puts the formulas back. */
@@ -747,7 +755,7 @@
         </details>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="subgroup-panel">
         <h2 data-i18n="cyclicGroups.subgroupHeading">Subgroup</h2>
         <div class="field">
           <label for="gen-select" data-i18n="cyclicGroups.genLabel">Subgroup visualized</label>
@@ -1652,7 +1660,8 @@ function drawMath(G, subs){
 // Dragged, one is lifted out of it and placed over the diagram where it was
 // dropped; that place is remembered under its switch's name, as the centre
 // as a fraction of the diagram's size, across turning it off and on and
-// across visits. A double-click puts it back in the column.
+// across visits. A double-click puts it back in the column. The full-screen
+// Subgroup panel card moves and is remembered the same way.
 var FORMULA_POS_KEY = 'cyclic-groups-formula-pos';
 var formulaPos = readFormulaPos();
 var formulaDrag = null; // { key, id, x, y, dx, dy, live } while one is pressed
@@ -1680,6 +1689,28 @@ function movable(key, el){
     return el;
   }
   var name = translate(FORMULA_TITLES[key]);
+  var card = cardShell(key, name), head = card.firstChild;
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'formula-card-close';
+  close.setAttribute('aria-label', translate('cyclicGroups.formulaHide', { name: name }));
+  close.setAttribute('title', translate('cyclicGroups.formulaHide', { name: name }));
+  var x = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  x.appendChild(svgEl('line', { x1: 2.5, y1: 2.5, x2: 9.5, y2: 9.5 }));
+  x.appendChild(svgEl('line', { x1: 9.5, y1: 2.5, x2: 2.5, y2: 9.5 }));
+  close.appendChild(x);
+  // The same as turning its switch off.
+  close.addEventListener('click', function(){
+    var box = $('layer-' + key);
+    box.checked = false;
+    box.dispatchEvent(new Event('change'));
+  });
+  head.appendChild(close);
+  card.appendChild(el);
+  return card;
+}
+// A full-screen card: its head holds the drag grip and the title.
+function cardShell(key, name){
   var card = document.createElement('div');
   card.className = 'formula-card';
   card.setAttribute('data-formula', key);
@@ -1696,30 +1727,47 @@ function movable(key, el){
   var title = document.createElement('span');
   title.className = 'formula-card-title';
   title.textContent = name;
-  var close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'formula-card-close';
-  close.setAttribute('aria-label', translate('cyclicGroups.formulaHide', { name: name }));
-  close.setAttribute('title', translate('cyclicGroups.formulaHide', { name: name }));
-  var x = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
-  x.appendChild(svgEl('line', { x1: 2.5, y1: 2.5, x2: 9.5, y2: 9.5 }));
-  x.appendChild(svgEl('line', { x1: 9.5, y1: 2.5, x2: 2.5, y2: 9.5 }));
-  close.appendChild(x);
-  // The same as turning its switch off.
-  close.addEventListener('click', function(){
-    var box = $('layer-' + key);
-    box.checked = false;
-    box.dispatchEvent(new Event('change'));
-  });
   head.appendChild(grip);
   head.appendChild(title);
-  head.appendChild(close);
   card.appendChild(head);
-  card.appendChild(el);
   return card;
 }
+
+// Full screen, the Subgroup panel itself moves into a card over the
+// diagram, its controls and their state untouched, and back to its place
+// in the side column after. A comment marks that place meanwhile.
+var SUBGROUP_CARD_KEY = 'subgroup-panel'; // its remembered place's name
+var subgroupPanelEl = $('subgroup-panel');
+var subgroupHome = document.createComment('subgroup-panel');
+var subgroupCard = null;
+function syncSubgroupCard(){
+  var full = fullscreenEl() === diagramFrameEl;
+  if (full && !subgroupCard){
+    subgroupCard = cardShell(SUBGROUP_CARD_KEY, translate('cyclicGroups.subgroupHeading'));
+    subgroupCard.classList.add('panel-card');
+    subgroupPanelEl.before(subgroupHome);
+    subgroupCard.appendChild(subgroupPanelEl);
+    diagramFrameEl.appendChild(subgroupCard);
+  } else if (!full && subgroupCard){
+    subgroupHome.replaceWith(subgroupPanelEl);
+    subgroupCard.remove();
+    subgroupCard = null;
+  } else if (subgroupCard){
+    var fresh = cardShell(SUBGROUP_CARD_KEY, translate('cyclicGroups.subgroupHeading')).firstChild;
+    subgroupCard.replaceChild(fresh, subgroupCard.firstChild);
+  }
+  placeMoved();
+}
 function formulaEl(key){
-  return ringHeadEl.querySelector('[data-formula="' + key + '"]');
+  return diagramFrameEl.querySelector('[data-formula="' + key + '"]');
+}
+// The movable thing a press lands on: a formula anywhere but its close
+// button, the Subgroup panel's card only by its head.
+function grabbed(target){
+  if (!target.closest || target.closest('.formula-card-close')) return null;
+  var el = target.closest('[data-formula]');
+  if (el && el.classList.contains('panel-card') && !target.closest('.formula-card-head')) return null;
+  return el;
 }
 // Puts a moved formula's centre at (x, y), fractions of the diagram's
 // padding box, kept wholly inside it. A <math> element has no offset*
@@ -1731,7 +1779,7 @@ function placeFormula(el, x, y){
   el.style.top = Math.round(clamp(y * H - h / 2, 0, Math.max(0, H - h))) + 'px';
 }
 function placeMoved(){
-  ringHeadEl.querySelectorAll('[data-formula]').forEach(function(el){
+  diagramFrameEl.querySelectorAll('[data-formula]').forEach(function(el){
     var p = formulaPos[el.getAttribute('data-formula')];
     if (!p) return;
     el.classList.add('is-moved');
@@ -1741,20 +1789,20 @@ function placeMoved(){
 }
 // The reset button shows while a formula on show is away from its place.
 function syncFormulaReset(){
-  $('formula-reset').hidden = !ringHeadEl.querySelector('.is-moved');
+  $('formula-reset').hidden = !diagramFrameEl.querySelector('.is-moved');
 }
 // Reset puts every formula back, the ones turned off as well.
 $('formula-reset').addEventListener('click', function(){
   formulaPos = {};
   writeFormulaPos();
-  ringHeadEl.querySelectorAll('.is-moved').forEach(function(el){
+  diagramFrameEl.querySelectorAll('.is-moved').forEach(function(el){
     el.classList.remove('is-moved');
     el.style.left = el.style.top = '';
   });
   syncFormulaReset();
 });
-ringHeadEl.addEventListener('pointerdown', function(e){
-  var el = e.button === 0 && e.target.closest && !e.target.closest('.formula-card-close') && e.target.closest('[data-formula]');
+diagramFrameEl.addEventListener('pointerdown', function(e){
+  var el = e.button === 0 && grabbed(e.target);
   if (!el) return;
   formulaDrag = { key: el.getAttribute('data-formula'), id: e.pointerId, x: e.clientX, y: e.clientY, live: false };
 });
@@ -1806,9 +1854,9 @@ function endFormulaDrag(e){
 }
 window.addEventListener('pointerup', endFormulaDrag);
 window.addEventListener('pointercancel', endFormulaDrag);
-ringHeadEl.addEventListener('dragstart', function(e){ if (e.target.closest && e.target.closest('[data-formula]')) e.preventDefault(); });
-ringHeadEl.addEventListener('dblclick', function(e){
-  var el = e.target.closest && !e.target.closest('.formula-card-close') && e.target.closest('[data-formula]');
+diagramFrameEl.addEventListener('dragstart', function(e){ if (grabbed(e.target)) e.preventDefault(); });
+diagramFrameEl.addEventListener('dblclick', function(e){
+  var el = grabbed(e.target);
   if (!el || !el.classList.contains('is-moved')) return;
   delete formulaPos[el.getAttribute('data-formula')];
   writeFormulaPos();
@@ -1847,6 +1895,7 @@ fullscreenBtnEl.addEventListener('click', function(){
 // out of them.
 function onFullscreenChange(){
   syncFullscreenBtn();
+  syncSubgroupCard();
   if (drawn) render();
 }
 document.addEventListener('fullscreenchange', onFullscreenChange);
@@ -3661,7 +3710,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); });
+onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); syncSubgroupCard(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
