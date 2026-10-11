@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T16:04:45.813Z"
+last_updated: "2026-10-11T16:11:59.990Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: a75ec5295afabfbc748b65cb064a0301707f77e2
+state_head: 2fdf88c451fdea3ac56c4e34c91f9c79755885b5
 progress:
   total_phases: 7
   completed_phases: 6
@@ -478,6 +478,7 @@ None yet.
 | 242 | Cyclic Groups: identity colour Reset moves into the colour key; Color key reads Colour key | 2026-10-11 | 90879b4 | — |
 | 243 | Cyclic Groups: list-layout left/right arrows turn the ring, same-arrow double press unlocks keep-on-top | 2026-10-11 | adbcc13 | — |
 | 244 | Cyclic Groups: the ring eases to its new size when the backward path is toggled | 2026-10-11 | a75ec52 | — |
+| 245 | Cyclic Groups: F8 toggles the Ring window's split view | 2026-10-11 | 2fdf88c | — |
 
 ## Deferred Items
 
