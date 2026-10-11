@@ -2587,6 +2587,8 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     setRingCtx(false);
     if (l.run){ l.run(); return; }
     var box = $('layer-' + l.name);
+    // The layers are the left ring's: the pane asks the ring that holds it.
+    if (IS_ISOPANE){ tellHost({ isopane: 'edit', name: l.name, on: !box.checked }); return; }
     box.checked = !box.checked;
     box.dispatchEvent(new Event('change'));
   });
@@ -2798,7 +2800,9 @@ function fitWindow(key){
 }
 // What the ring's window body needs: the narrowest width at which its rows
 // of controls stop wrapping, their height there, and its side padding. The
-// body is tried at other widths and put back.
+// body is tried at other widths and put back. cols is 2 while the isomorphism
+// pane is open: the body then holds two rings side by side, so one ring's
+// side is half of its width.
 var RING_ROW = 6; // the ring's row among the body's grid rows (the formula scratchpad's row is above it)
 var SPLIT_ROW = 8; // the split pane's row, there only while the split is open
 function ringNeeds(){
@@ -2817,16 +2821,17 @@ function ringNeeds(){
     if (chromeAt(mid) <= flat + 0.5) hi = mid; else lo = mid;
   }
   body.style.width = was;
-  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), flex: split ? 1 / (1 - splitShare) : 1 };
+  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), flex: split ? 1 / (1 - splitShare) : 1, cols: isoPaneEl.hidden ? 1 : 2 };
 }
 // Sizes a ring's window from its body's needs; holder is the element the
 // body fills inside the window (the body itself, or an extra window's frame).
+// The ring's side is its half of the width while a pane is open (n.cols).
 function fitRing(key, holder, n){
   var D = desk(), win = fsWins[key].win, r = winRect(win);
   var hb = holder.getBoundingClientRect();
   var extraW = r.w - hb.width, extraH = r.h - hb.height;
   var bodyW = Math.min(D.W - extraW, n.minW);
-  var side = Math.min(bodyW - n.padX, (D.H - extraH - n.chromeH) / n.flex);
+  var side = Math.min((bodyW - n.padX) / n.cols, (D.H - extraH - n.chromeH) / n.flex);
   if (side < 40) return;
   placeFit(key, r, bodyW + extraW, side * n.flex + n.chromeH + extraH);
 }
@@ -3092,6 +3097,7 @@ function syncSplit(){
   }
   ringSplitEl.hidden = !on;
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
+  postIsoShared(false);
 }
 legendBtnEl.addEventListener('click', function(){
   legendShown = !legendShown;
@@ -3106,6 +3112,11 @@ splitBtnEl.addEventListener('click', toggleSplit);
 // button is in a Ring window.
 document.addEventListener('keydown', function(e){
   if (e.key !== 'F8' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  if (IS_ISOPANE){
+    e.preventDefault();
+    tellHost({ isopane: 'edit', name: 'split', on: !splitOn });
+    return;
+  }
   if (!splitBtnEl.closest('.fs-win-body.is-ring')) return;
   e.preventDefault();
   toggleSplit();
@@ -3349,11 +3360,11 @@ window.addEventListener('message', function(e){
     if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
     clearTimeout(fsWriteTimer);
     fsWriteTimer = setTimeout(writeFsState, 400);
-  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; }) && typeof d.flex === 'number' && d.flex >= 1 && d.flex <= 10){
+  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; }) && typeof d.flex === 'number' && d.flex >= 1 && d.flex <= 10 && (d.cols === 1 || d.cols === 2)){
     // A frame's answer to a Fit.
     if (!fsWins[key].fitting) return;
     fsWins[key].fitting = false;
-    fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX, flex: d.flex });
+    fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX, flex: d.flex, cols: d.cols });
   } else if (d.ringwin === 'raise'){
     // A press inside a frame never reaches this document, so the menu and the
     // opacity slider close, and the window comes to the front, from here.
@@ -3412,7 +3423,11 @@ if (IS_RINGWIN){
     if (d.ringhost === 'measure'){
       // The desktop fits this frame's window to what its contents need.
       var n = ringNeeds();
-      try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex }, '*'); } catch (err) { /* no desktop to tell */ }
+      try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex, cols: n.cols }, '*'); } catch (err) { /* no desktop to tell */ }
+      return;
+    }
+    if (d.ringhost === 'shared'){
+      if (IS_ISOPANE) applyIsoShared(d);
       return;
     }
     if (d.ringhost !== 'look') return;
@@ -3575,6 +3590,7 @@ function renderCombineKey(G){
 var swatchEls = Array.prototype.slice.call(combineKeyEl.querySelectorAll('.combine-key-swatch'));
 var swatchDrag = null; // { id, el, x, y, target } while a bar is dragged
 function swapArrowColors(){
+  if (IS_ISOPANE){ tellHost({ isopane: 'edit', name: 'swap', on: !state.swapColors }); return; }
   state.swapColors = !state.swapColors;
   render();
 }
@@ -4741,6 +4757,8 @@ function loadIsoFrame(){
   f.addEventListener('load', function(){
     f.classList.add('is-loaded');
     postLook(f);
+    isoSharedSent = null;
+    postIsoShared(true);
   });
   f.src = isoPaneSrc(isoPane.q, isoPane.h);
   isoPaneEl.appendChild(f);
@@ -4752,6 +4770,7 @@ function closeIsoPane(){
   if (isoPaneFrame) isoPaneFrame.remove();
   isoPaneFrame = null;
   isoPane = null;
+  isoSharedSent = null;
   isoPaneEl.hidden = true;
 }
 // Entering or leaving full screen moves the pane's element, which reloads its
@@ -4770,6 +4789,55 @@ function syncIsoPaneLabels(){
   isoPaneCloseEl.setAttribute('title', close);
 }
 isoPaneCloseEl.addEventListener('click', closeIsoPane);
+
+// What both rings share, set once on the ring that holds the pane and told to
+// the pane after every render: the colours, the paths' look and the layers.
+// The pane shows none of these controls; its own gestures on them (the menu's
+// layers, the arrow key's swap, F8) are relayed back here and edit this ring.
+function isoSharedPayload(){
+  return { ringhost: 'shared', colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+}
+var isoSharedSent = null;
+function postIsoShared(force){
+  if (IS_ISOPANE || !isoPaneFrame) return;
+  var s = JSON.stringify(isoSharedPayload());
+  if (!force && s === isoSharedSent) return;
+  isoSharedSent = s;
+  try { isoPaneFrame.contentWindow.postMessage(isoSharedPayload(), '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+}
+// The pane takes the payload field by field, each only when it is valid.
+function applyIsoShared(d){
+  var flag = function(v){ return typeof v === 'boolean'; };
+  var hex = function(v){ return v === null || (typeof v === 'string' && HEX_COLOR.test(v)); };
+  if (flag(d.colors)) state.colors = d.colors;
+  if (flag(d.backward)) state.backward = d.backward;
+  if (flag(d.swapColors)) state.swapColors = d.swapColors;
+  if (flag(d.customColors)) state.customColors = d.customColors;
+  if (flag(d.orders)) state.orders = d.orders;
+  if (flag(d.cord)) state.cord = d.cord;
+  if (flag(d.guide)) state.guide = d.guide;
+  if (flag(d.legend)) legendShown = d.legend;
+  if (flag(d.split)) splitOn = d.split;
+  if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
+  if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
+  if (hex(d.idColor)) state.idColor = d.idColor;
+  if (hex(d.inColor)) state.inColor = d.inColor;
+  if (hex(d.outColor)) state.outColor = d.outColor;
+  if (DIRS.indexOf(d.dir) !== -1 && d.dir !== state.dir){
+    if (drawn){
+      var at = state.rot + (spin ? spin.steps : 0);
+      state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - at;
+    }
+    state.dir = d.dir;
+  }
+  syncControls();
+  render();
+}
+// The pane tells the ring that holds it, and only that ring.
+function tellHost(msg){
+  if (!IS_ISOPANE) return;
+  try { window.parent.postMessage(msg, '*'); } catch (e) { /* no ring to tell */ }
+}
 // What the pane tells this document; only the pane's own window is heard.
 window.addEventListener('message', function(e){
   if (!isoPaneFrame || e.source !== isoPaneFrame.contentWindow) return;
@@ -4778,6 +4846,20 @@ window.addEventListener('message', function(e){
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
     syncIsoPaneLabels();
+  } else if (d.isopane === 'edit' && typeof d.on === 'boolean'){
+    // A shared setting changed in the pane: the same click on this ring's own
+    // controls, so both rings follow from the one render.
+    if (d.name === 'orders' || d.name === 'cord' || d.name === 'guide'){
+      var box = $('layer-' + d.name);
+      if (box.checked !== d.on){
+        box.checked = d.on;
+        box.dispatchEvent(new Event('change'));
+      }
+    } else if (d.name === 'swap'){
+      if (state.swapColors !== d.on) swapArrowColors();
+    } else if (d.name === 'split'){
+      if (splitOn !== d.on && splitBtnEl.closest('.fs-win-body.is-ring')) toggleSplit();
+    }
   } else if (d.ringwin === 'raise'){
     // A press inside the pane never reaches this document, so the menu and the
     // window come forward from here.
@@ -5090,6 +5172,7 @@ function mirrorToUrl(G){
     }
   } catch (e) { /* the address bar is a convenience, never a requirement */ }
   syncIsoLinks();
+  postIsoShared(false);
 }
 
 /* ---------- arrow colors ---------- */

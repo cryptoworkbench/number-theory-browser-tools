@@ -15,7 +15,7 @@ var pw = require("/home/mainaccount/Claude/latin-botany-tool/node_modules/playwr
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var PAGE = url.pathToFileURL(path.join(ROOT, "Cyclic Groups", "cyclic-groups.html")).href;
 var Q = "?mode=additive&n=12&gen=3";
-var EXPECTED = 8;
+var EXPECTED = 13;
 var RING = '.fs-win[data-panel="ring"]';
 var CHIP5 = 'a.iso-chip[data-iso-n="5"][data-iso-mode="multiplicative"]';
 var CHIP4 = 'a.iso-chip[data-iso-n="4"][data-iso-mode="additive"]';
@@ -256,7 +256,7 @@ async function main() {
     await pane.fill("#rot-value", rot2);
     await pane.press("#rot-value", "Enter");
     await waitFor(async function () { return (await pane.inputValue("#rot-value")) === rot2; }, 3000, "pane rot");
-    await sleep(400);
+    await sleep(1200); // the turn settles, then the pane reports its query
     await h.page.click("#fullscreen-btn");
     await h.page.waitForFunction(function () { return !!document.fullscreenElement && document.querySelectorAll(".fs-win").length >= 2; });
     var fp = await waitFor(function () {
@@ -279,6 +279,112 @@ async function main() {
     record("P8 move keeps state across full screen", null);
   } catch (e) { record("P8 move keeps state across full screen", e); }
   if (h) await h.ctx.close();
+
+
+  /* P9-P13: shared settings, the pane's own menu, lists, Fit (full screen) */
+  async function freshPane() {
+    var hh = await openFs(browser);
+    await hh.page.click(RING + " " + CHIP5);
+    var pf = await paneOf(hh.page.mainFrame());
+    return { h: hh, pane: pf };
+  }
+  var fp9 = null;
+  try {
+    fp9 = await freshPane();
+    h = fp9.h; pane = fp9.pane;
+    await h.page.selectOption("#colorby-select", "inverse");
+    await waitFor(function () { return pane.evaluate(function () { return document.getElementById("colorby-select").value === "inverse"; }); }, 3000, "pane colour scheme");
+    await h.page.evaluate(function () { var b = document.getElementById("layer-orders"); b.checked = true; b.dispatchEvent(new Event("change")); });
+    await waitFor(function () { return pane.evaluate(function () { return document.querySelectorAll("#ring-svg .order-label").length === 4; }); }, 3000, "4 order labels in the pane");
+    noErrors(h);
+    record("P9 shared colours and layers reach the pane", null);
+  } catch (e) { record("P9 shared colours and layers reach the pane", e); }
+
+  try {
+    assert(fp9, "no pane");
+    await h.page.click("#legend-btn");
+    await waitFor(function () {
+      return pane.evaluate(function () {
+        var l = document.getElementById("legend-panel"), pick = l.querySelector(".legend-pick");
+        return l.classList.contains("is-shown") && getComputedStyle(pick).display === "none";
+      });
+    }, 3000, "pane legend");
+    await h.page.selectOption("#dir-select", "ccw");
+    await waitFor(function () { return pane.evaluate(function () { return document.getElementById("dir-select").value === "ccw"; }); }, 3000, "pane direction");
+    await h.page.evaluate(function () { var c = document.getElementById("id-color"); c.value = "#123456"; c.dispatchEvent(new Event("input", { bubbles: true })); });
+    await waitFor(function () { return pane.evaluate(function () { return document.getElementById("id-color").value === "#123456"; }); }, 3000, "pane identity colour");
+    noErrors(h);
+    record("P10 key, direction and identity colour reach the pane", null);
+  } catch (e) { record("P10 key, direction and identity colour reach the pane", e); }
+
+  try {
+    assert(fp9, "no pane");
+    await pane.click("#ring-svg", { button: "right" });
+    var disp = await pane.evaluate(function () { return getComputedStyle(document.getElementById("ring-ctx")).display; });
+    eq(disp, "block", "pane menu display");
+    await pane.click("#ring-ctx .fs-menu-item");
+    await waitFor(function () { return h.page.evaluate(function () { return document.getElementById("layer-orders").checked === false; }); }, 3000, "host orders off");
+    await waitFor(async function () {
+      var a = await h.page.evaluate(function () { return document.querySelectorAll('.fs-win[data-panel="ring"] #ring-svg .order-label').length; });
+      var b = await pane.evaluate(function () { return document.querySelectorAll("#ring-svg .order-label").length; });
+      return a === 0 && b === 0;
+    }, 3000, "both order-label counts 0");
+    noErrors(h);
+    record("P11 the pane's right-click menu edits the shared layers", null);
+  } catch (e) { record("P11 the pane's right-click menu edits the shared layers", e); }
+
+  try {
+    assert(fp9, "no pane");
+    var disp12 = function (f, id) { return f.evaluate(function (i) { return getComputedStyle(document.getElementById(i)).display; }, id); };
+    await h.page.click("#split-btn");
+    eq(await disp12(h.page, "ring-split"), "flex", "host list display");
+    await waitFor(function () {
+      return pane.evaluate(function () {
+        return getComputedStyle(document.getElementById("ring-split")).display === "flex" && document.querySelectorAll("#subgroups .subgroup-row").length === 4;
+      });
+    }, 3000, "the pane's list with 4 rows");
+    await h.page.click("#split-btn");
+    eq(await disp12(h.page, "ring-split"), "none", "host list closed");
+    await waitFor(async function () { return (await disp12(pane, "ring-split")) === "none"; }, 3000, "pane list closed");
+    await pane.focus("#rot-value");
+    await pane.press("#rot-value", "F8");
+    await waitFor(function () { return h.page.evaluate(function () { return document.getElementById("split-btn").getAttribute("aria-pressed") === "true"; }); }, 3000, "F8 in the pane opens the split");
+    noErrors(h);
+    record("P12 Splitview gives a list under each ring", null);
+  } catch (e) { record("P12 Splitview gives a list under each ring", e); }
+
+  try {
+    assert(fp9, "no pane");
+    await h.page.click("#split-btn"); // list closed again, so the fit is of the plain pair
+    await sleep(300);
+    var W = await h.page.evaluate(function () { var r = document.getElementById("diagram-frame").getBoundingClientRect(); return { w: r.width, h: r.height }; });
+    await h.page.click(RING + " .fs-win-btn.is-fit");
+    await sleep(400);
+    var f13 = await h.page.evaluate(function (sel) {
+      var win = document.querySelector(sel), fr = document.getElementById("diagram-frame").getBoundingClientRect(), r = win.getBoundingClientRect();
+      return { right: r.right - fr.left, bottom: r.bottom - fr.top, svgH: win.querySelector("#ring-svg").getBoundingClientRect().height, paneW: win.querySelector("#iso-pane").getBoundingClientRect().width };
+    }, RING);
+    assert(f13.right <= W.w + 1, "window overflows the width: " + f13.right + " > " + W.w);
+    assert(f13.bottom <= W.h - 44 + 1, "window overflows the height: " + f13.bottom + " > " + (W.h - 44));
+    assert(f13.svgH >= 150, "ring only " + f13.svgH + "px tall");
+    assert(f13.paneW >= 200, "pane only " + f13.paneW + "px wide");
+    // an extra Ring window, its own pane, then Fit
+    var extra = await openExtra(h);
+    await extra.click(CHIP5);
+    await paneOf(extra);
+    var key = await h.page.evaluate(function () { var ws = document.querySelectorAll(".fs-win"); return ws.length; });
+    assert(key >= 3, "extra window missing");
+    await h.page.click('.fs-win:has(.fs-win-body.is-frame) .fs-win-btn.is-fit');
+    await sleep(800);
+    var r2 = await h.page.evaluate(function () {
+      var win = document.querySelector(".fs-win:has(.fs-win-body.is-frame)"), fr = document.getElementById("diagram-frame").getBoundingClientRect(), r = win.getBoundingClientRect();
+      return { right: r.right - fr.left, bottom: r.bottom - fr.top, left: r.left - fr.left, top: r.top - fr.top };
+    });
+    assert(r2.left >= -1 && r2.top >= -1 && r2.right <= W.w + 1 && r2.bottom <= W.h - 44 + 1, "extra window outside the desktop: " + JSON.stringify(r2));
+    noErrors(h);
+    record("P13 Fit keeps a window with a pane inside the desktop", null);
+  } catch (e) { record("P13 Fit keeps a window with a pane inside the desktop", e); }
+  if (fp9) await fp9.h.ctx.close();
 
   await browser.close();
   var ok = results.filter(function (r) { return r.ok; }).length;
