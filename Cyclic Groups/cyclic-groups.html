@@ -548,13 +548,14 @@
   .fs-win-body > .panel{ background:none; border:0; border-radius:0; padding:6px 12px 0; }
   .fs-win.hides-heading .fs-win-body > .panel > h2, .fs-win.hides-heading .fs-win-body > .panel > .panel-head > h2{ display:none; }
   .fs-win-body .subgroups{ max-height:none; }
-  /* The ring's window: three rows on top, each named on its left, the first
+  /* The ring's window: four rows on top, each named on its left, the first
      with the modulus and the operation switch and, at its right end, the
      Keep on top switch, the second with the order of the beads, the third
-     with the subgroup on show and the options for its paths and cosets; the formulas under them, the ring taking the rest, and under it a
+     with the subgroup on show and the options for its paths and cosets, the fourth
+     with the groups that subgroup is isomorphic to; the formulas under them, the ring taking the rest, and under it a
      row with the rotation controls, the speed ruler and the arrow key side
      by side. */
-  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto auto auto auto minmax(0, 1fr) auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "pad pad pad" "head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
+  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto auto auto auto auto minmax(0, 1fr) auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
   /* The formula scratchpad: a button under the subgroup row that opens a
      card over the ring, its background clear, a row per formula with its
@@ -595,6 +596,16 @@
      Subgroup panel (its paths, their colors, the cosets), wrapping. */
   .fs-win-body.is-ring > .fs-win-row-gen{ grid-area:gen; display:flex; flex-wrap:wrap; align-items:center; gap:6px 28px; padding:2px 0 6px; border-bottom:1px dotted var(--panel-border); }
   .fs-win-body.is-ring :is(#subgroup-options, #arrow-options):not([hidden]){ display:contents; }
+  /* The isomorphisms row, under the subgroup row while the subgroup on show
+     has isomorphic groups to link to: its name, the sentence, the tiles. It
+     then takes the subgroup row's dotted line under it. */
+  .iso-row-label{ display:none; }
+  .fs-win-body.is-ring .iso-row-label{ display:block; }
+  .fs-win-body.is-ring > .fs-win-row-iso{ grid-area:iso; }
+  .fs-win-body.is-ring > .fs-win-row-iso:has(> .iso-panel:not([hidden])){ padding:6px 0; border-bottom:1px dotted var(--panel-border); }
+  .fs-win-body.is-ring:has(> .fs-win-row-iso > .iso-panel:not([hidden])) > .fs-win-row-gen{ border-bottom:0; }
+  .fs-win-body.is-ring .iso-panel:not([hidden]){ display:flex; flex-wrap:wrap; align-items:center; gap:6px 32px; padding:0; background:none; border:0; border-radius:0; }
+  .fs-win-body.is-ring .iso-lead{ margin:0; font-size:.85rem; }
   /* Modelled on the Generator control of the arrangement row: small dim
      labels, and dropdowns 32px after their label in the fields' style. */
   .fs-win-body.is-ring #arrow-options .check{ align-items:center; margin:0; font-size:.85rem; color:var(--text-dim); }
@@ -612,7 +623,7 @@
   .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
   /* The ring and the pane share the spare height as --ring-fr to --split-fr,
      set by dragging the divider along the pane's top. */
-  .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "pad pad pad" "head head head" "ring ring ring" "rot spin key" "split split split"; }
+  .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "rot spin key" "split split split"; }
   .split-grip{ flex:none; position:relative; height:10px; margin-bottom:4px; border-top:1px solid var(--panel-border); cursor:ns-resize; touch-action:none; }
   .split-grip::after{ content:""; position:absolute; left:50%; top:3px; width:36px; height:3px; margin-left:-18px; border-radius:2px; background:var(--text-dim); opacity:.5; }
   .split-grip:hover, .split-grip:focus-visible, .ring-split.is-resizing .split-grip{ border-top-color:var(--accent); outline:none; }
@@ -933,6 +944,7 @@
         </div>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
+        <span class="fs-row-label iso-row-label" data-i18n="cyclicGroups.fsIsomorphisms">Isomorphisms</span>
         <p class="iso-lead" id="iso-lead"></p>
         <div class="iso-tiles" role="group" aria-labelledby="iso-lead">
           <div class="iso-tile is-add" id="iso-add">
@@ -2287,8 +2299,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
-  { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
+  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'iso-panel', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen', 'iso-panel': 'iso' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -2745,8 +2756,8 @@ function fitWindow(key){
 // What the ring's window body needs: the narrowest width at which its rows
 // of controls stop wrapping, their height there, and its side padding. The
 // body is tried at other widths and put back.
-var RING_ROW = 5; // the ring's row among the body's grid rows (the formula scratchpad's row is above it)
-var SPLIT_ROW = 7; // the split pane's row, there only while the split is open
+var RING_ROW = 6; // the ring's row among the body's grid rows (the formula scratchpad's row is above it)
+var SPLIT_ROW = 8; // the split pane's row, there only while the split is open
 function ringNeeds(){
   var body = ringSvgEl.parentNode, cs = getComputedStyle(body), was = body.style.width;
   var split = !ringSplitEl.hidden; // the ring and the pane share the spare height
