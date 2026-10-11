@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T10:33:20.000Z"
+last_updated: "2026-10-11T10:40:59.000Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 4503f29402e8ab1838784ceca58602c58d3b0c96
+state_head: 02629c18dff3e4bdd30b99558abaa010358484e2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -439,6 +439,7 @@ None yet.
 | 203 | Cyclic Groups: draggable formulas beside a tight switch column in the full-screen Formulas window | 2026-10-11 | e5e7025 | — |
 | 204 | Cyclic Groups: formulas over the ring fixed again outside full screen | 2026-10-11 | 6a3b614 | — |
 | 205 | Cyclic Groups: no exit button in the full-screen Ring window; reset button in the Formulas window once formulas are moved | 2026-10-11 | 4503f29 | — |
+| 206 | Cyclic Groups: Group window renamed Info; modulus and operation switch moved into the Ring window, titled after the (cyclic) group | 2026-10-11 | 02629c1 | — |
 
 ## Deferred Items
 
