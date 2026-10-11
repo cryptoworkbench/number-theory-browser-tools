@@ -510,6 +510,8 @@
   .fs-win-btn:focus{ outline:none; }
   .fs-win-btn:focus-visible{ box-shadow:var(--ctl-focus); }
   .fs-win-btn svg *{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .fs-win-btn svg .icon-fill{ fill:currentColor; stroke:none; }
+  .fs-win-btn.is-alpha[aria-expanded="true"]{ color:var(--accent); border-color:var(--accent); }
   .fs-win-btn .icon-restore, .fs-win.is-max .fs-win-btn .icon-max{ display:none; }
   .fs-win.is-max .fs-win-btn .icon-restore{ display:block; }
   .fs-win-body{ flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:8px; border-radius:0 0 calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px); }
@@ -542,6 +544,12 @@
   .fs-rs[data-dir="ne"]{ top:-4px; right:-4px; cursor:nesw-resize; } .fs-rs[data-dir="sw"]{ bottom:-4px; left:-4px; cursor:nesw-resize; }
   .fs-win.is-max .fs-rs{ display:none; }
   :root.is-win-drag, :root.is-win-drag *{ user-select:none !important; -webkit-user-select:none !important; }
+  /* A window's opacity slider hangs under its title-bar button, on the
+     desktop itself so it stays solid while the window fades. */
+  .fs-alpha{ position:absolute; z-index:55; display:flex; align-items:center; gap:10px; padding:8px 12px; font-size:.84rem; color:var(--text); background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
+  .fs-alpha[hidden]{ display:none; }
+  .fs-alpha input{ width:140px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  .fs-alpha output{ min-width:3.2em; text-align:end; font-family:var(--font-mono); color:var(--text-dim); }
   .fs-snap{ position:absolute; z-index:45; pointer-events:none; box-sizing:border-box; border:2px solid var(--accent); background:color-mix(in srgb, var(--accent) 14%, transparent); border-radius:var(--radius-card); }
   .fs-snap[hidden]{ display:none; }
   .fs-taskbar{ display:none; }
@@ -2036,6 +2044,7 @@ var FS_PANELS = [
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
+var FS_MIN_ALPHA = 0.2; // the faintest a window can be made, so it is never lost
 var TASKBAR_H = 44;
 var SNAP_EDGE = 12;   // how near an edge of the desktop the pointer snaps a dragged window
 var SNAP_CORNER = 80; // how near a corner, along the edge, it snaps to a quarter
@@ -2057,7 +2066,7 @@ var winDrag = null; // { key, mode: 'move' or a resize edge, id, x, y, start, li
 function readFsState(){
   var keys = FS_PANELS.map(function(p){ return p.key; });
   var ok = function(list){ return Array.isArray(list) ? list.filter(function(k){ return keys.indexOf(k) !== -1; }) : []; };
-  var out = { open: ['ring'], min: [], max: [], geom: {}, restore: {} };
+  var out = { open: ['ring'], min: [], max: [], geom: {}, restore: {}, alpha: {} };
   try {
     var raw = JSON.parse(localStorage.getItem(FS_STATE_KEY) || 'null');
     if (raw){
@@ -2067,6 +2076,10 @@ function readFsState(){
           var g = raw[f][k];
           if (keys.indexOf(k) !== -1 && g && [g.l, g.t, g.w].every(isFinite)) out[f][k] = { l: +g.l, t: +g.t, w: +g.w, h: isFinite(g.h) && g.h !== null ? +g.h : null };
         });
+      });
+      Object.keys(raw.alpha || {}).forEach(function(k){
+        var a = raw.alpha[k];
+        if (keys.indexOf(k) !== -1 && isFinite(a) && a !== null) out.alpha[k] = clamp(+a, FS_MIN_ALPHA, 1);
       });
     }
   } catch (e) { /* storage unavailable or unreadable */ }
@@ -2079,6 +2092,7 @@ function specOf(key){ return FS_PANELS.filter(function(p){ return p.key === key;
 function isOpen(key){ return fsState.open.indexOf(key) !== -1; }
 function isMin(key){ return fsState.min.indexOf(key) !== -1; }
 function isMax(key){ return fsState.max.indexOf(key) !== -1; }
+function alphaOf(key){ return fsState.alpha[key] || 1; }
 function without(list, key){ return list.filter(function(k){ return k !== key; }); }
 // A window the page has something in: the ring always, a panel unless hidden.
 function hasContent(spec){ return spec.ring || !$(spec.ids[0]).hidden; }
@@ -2159,6 +2173,64 @@ document.addEventListener('pointerdown', function(e){
 fsMenuEl.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ setFsMenu(false); fsLauncherEl.focus(); e.preventDefault(); }
 });
+// Each window's opacity, from FS_MIN_ALPHA to solid, set with a slider that
+// opens under its title bar's half-filled circle and remembered with its
+// place. One slider serves every window, for the one it was opened from.
+var alphaKey = null;
+var fsAlphaEl = document.createElement('div');
+fsAlphaEl.className = 'fs-alpha';
+fsAlphaEl.hidden = true;
+var fsAlphaRangeEl = document.createElement('input');
+fsAlphaRangeEl.type = 'range';
+fsAlphaRangeEl.min = String(FS_MIN_ALPHA * 100);
+fsAlphaRangeEl.max = '100';
+fsAlphaRangeEl.step = '5';
+var fsAlphaOutEl = document.createElement('output');
+fsAlphaEl.appendChild(fsAlphaRangeEl);
+fsAlphaEl.appendChild(fsAlphaOutEl);
+function syncAlpha(){
+  var pct = Math.round(alphaOf(alphaKey) * 100);
+  fsAlphaRangeEl.value = String(pct);
+  fsAlphaRangeEl.setAttribute('aria-label', translate('cyclicGroups.fsOpacity', { name: translate(specOf(alphaKey).title) }));
+  fsAlphaOutEl.textContent = translate('cyclicGroups.fsOpacityValue', { value: pct });
+}
+// Opens the slider for one window's button, or (null) closes it.
+function setAlpha(key){
+  if (alphaKey && fsWins) fsWins[alphaKey].buttons.alpha.setAttribute('aria-expanded', 'false');
+  alphaKey = key;
+  fsAlphaEl.hidden = !key;
+  if (!key){ fsAlphaEl.remove(); return; }
+  var btn = fsWins[key].buttons.alpha;
+  btn.setAttribute('aria-expanded', 'true');
+  syncAlpha();
+  diagramFrameEl.insertBefore(fsAlphaEl, $('fs-taskbar'));
+  var f = diagramFrameEl.getBoundingClientRect(), b = btn.getBoundingClientRect();
+  var w = fsAlphaEl.offsetWidth;
+  fsAlphaEl.style.left = clamp(b.left + b.width / 2 - w / 2 - f.left, 4, Math.max(4, diagramFrameEl.clientWidth - w - 4)) + 'px';
+  fsAlphaEl.style.top = (b.bottom - f.top + 6) + 'px';
+  fsAlphaRangeEl.focus();
+}
+function toggleAlpha(key){ setAlpha(alphaKey === key ? null : key); }
+fsAlphaRangeEl.addEventListener('input', function(){
+  if (!alphaKey) return;
+  var a = clamp(parseInt(fsAlphaRangeEl.value, 10) / 100, FS_MIN_ALPHA, 1);
+  if (a < 1) fsState.alpha[alphaKey] = a;
+  else delete fsState.alpha[alphaKey];
+  syncAlpha();
+  fsWins[alphaKey].win.style.opacity = a < 1 ? String(a) : '';
+});
+fsAlphaRangeEl.addEventListener('change', writeFsState);
+document.addEventListener('pointerdown', function(e){
+  if (alphaKey && !fsAlphaEl.contains(e.target) && !fsWins[alphaKey].buttons.alpha.contains(e.target)) setAlpha(null);
+});
+fsAlphaEl.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape' && e.key !== 'Enter') return;
+  var btn = fsWins[alphaKey].buttons.alpha;
+  setAlpha(null);
+  btn.focus();
+  e.preventDefault();
+});
+
 $('fs-exit').addEventListener('click', function(){
   if (fullscreenEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
 });
@@ -2264,6 +2336,7 @@ function buildWindow(spec){
   head.appendChild(title);
   var buttons = {};
   [
+    { key: 'alpha', parts: [['circle', { cx: 6, cy: 6, r: 4 }], ['path', { 'class': 'icon-fill', d: 'M6 2a4 4 0 0 1 0 8z' }]], run: function(){ toggleAlpha(spec.key); } },
     { key: 'min', parts: [['line', { x1: 3, y1: 8.5, x2: 9, y2: 8.5 }]], run: function(){ minimizeWindow(spec.key); } },
     { key: 'max', parts: [['rect', { 'class': 'icon-max', x: 2.5, y: 2.5, width: 7, height: 7, rx: 1 }], ['path', { 'class': 'icon-restore', d: 'M2.5 4.5h5v5h-5zM4.5 4.5V2.5h5v5h-2' }]], run: function(){ toggleMaximize(spec.key); } },
     { key: 'close', parts: [['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]], run: function(){ closeWindow(spec.key); } }
@@ -2362,6 +2435,7 @@ function syncWindows(){
       w.win.remove();
     });
     fsWins = null;
+    setAlpha(null);
     clearInterval(fsClockId);
     fsClockId = null;
     setFsMenu(false);
@@ -2382,7 +2456,9 @@ function syncWindows(){
     win.classList.toggle('is-front', k === front);
     win.classList.toggle('is-max', isMax(k));
     win.style.zIndex = 3 + Math.max(0, fsState.open.indexOf(k));
+    win.style.opacity = alphaOf(k) < 1 ? String(alphaOf(k)) : '';
   });
+  if (alphaKey && fsWins && fsWins[alphaKey].win.hidden) setAlpha(null);
   layoutWindows();
   placeMoved();
 }
@@ -2405,11 +2481,13 @@ function syncFsLabels(){
       btn.setAttribute('title', text);
     };
     label(w.grip, 'cyclicGroups.formulaMove');
+    label(w.buttons.alpha, 'cyclicGroups.fsTransparency');
     label(w.buttons.min, 'cyclicGroups.fsMinimize');
     label(w.buttons.max, isMax(spec.key) ? 'cyclicGroups.fsRestore' : 'cyclicGroups.fsMaximize');
     label(w.buttons.close, 'cyclicGroups.fsClose');
   });
   Object.keys(fsActions).forEach(function(k){ fsActions[k].label.textContent = translate(fsActions[k].title); });
+  if (alphaKey) syncAlpha();
   var exit = translate('cyclicGroups.fullscreenExit');
   $('fs-exit').setAttribute('aria-label', exit);
   $('fs-exit').setAttribute('title', exit);

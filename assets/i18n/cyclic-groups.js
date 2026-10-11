@@ -34,7 +34,8 @@
    launcher menu), the window names fsFormulas, fsIsomorphisms, fsColorKey,
    fsExport and fsNotice (the other windows take their panel's heading),
    formulaMove (a window's grip), fsClose, fsMinimize, fsMaximize and
-   fsRestore (its title-bar buttons), fsRing (the ring's own window), and
+   fsRestore (its title-bar buttons), fsTransparency, fsOpacity and
+   fsOpacityValue (its opacity button and slider), fsRing (the ring's own window), and
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), and the
    website-theme bead coloring: colorByTheme, identityColor,
@@ -316,6 +317,9 @@
       fsMinimize: 'Minimize {name}',
       fsMaximize: 'Maximize {name}',
       fsRestore: 'Restore {name}',
+      fsTransparency: 'Transparency of {name}',
+      fsOpacity: 'Opacity of {name}',
+      fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
       fsTile: 'Tile windows',
       fsCascade: 'Cascade windows',
