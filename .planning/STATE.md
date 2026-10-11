@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T14:42:58.838Z"
+last_updated: "2026-10-11T14:49:32.710Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d8473b6a9028616ab6aa6a65bbfdb539bda11ed7
+state_head: d626d4ed984d6583f13d978572adb105b5d923a9
 progress:
   total_phases: 7
   completed_phases: 6
@@ -467,6 +467,7 @@ None yet.
 | 231 | cyclic groups: generator count in the formula scratchpad | 2026-10-11 | 3cc544c | — |
 | 232 | cyclic groups: scratchpad narrows by breaking formulas at equals signs | 2026-10-11 | 2dca8b0 | — |
 | 233 | cyclic groups: scratchpad replaces its button, closes from a corner x | 2026-10-11 | d8473b6 | — |
+| 234 | Cyclic Groups: remove the Subgroup paths checkbox from the Layers panel/window | 2026-10-11 | d626d4e | — |
 
 ## Deferred Items
 
