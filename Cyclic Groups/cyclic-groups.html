@@ -516,6 +516,13 @@
   .fs-win-body > .panel{ background:none; border:0; border-radius:0; padding:6px 12px 0; }
   .fs-win.hides-heading .fs-win-body > .panel > h2, .fs-win.hides-heading .fs-win-body > .panel > .panel-head > h2{ display:none; }
   .fs-win-body > .formula-toggles{ position:static; padding:8px 12px 2px; font-size:.9rem; gap:8px; }
+  /* Full screen, each formula is set under its own switch in the Formulas
+     window rather than over the ring. */
+  .formula-slot{ display:none; }
+  .fs-win-body .formula-slot:not(:empty){ display:block; overflow-x:auto; padding:2px 0 6px 38px; }
+  .formula-slot math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); user-select:all; -webkit-user-select:all; cursor:text; }
+  .formula-slot .ring-math-title{ font-size:1.2rem; }
+  .formula-slot .ring-math-formula{ font-size:1.05rem; }
   .fs-win-body .subgroups{ max-height:none; }
   /* The ring's window: the formulas on top, the ring taking the rest, and
      under it a row with the rotation controls, the speed ruler and the
@@ -601,10 +608,11 @@
   :root.is-formula-drag, :root.is-formula-drag *{ cursor:grabbing !important; user-select:none !important; -webkit-user-select:none !important; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
-  .ring-head .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
-  .ring-head .sub-order-prompt select{ font:inherit; font-family:var(--font-sans); font-size:.86rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
-  .ring-head .sub-order-prompt select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
-  .ring-head .sub-order-prompt .link-btn{ margin:0; }
+  :is(.ring-head, .formula-slot) .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
+  :is(.ring-head, .formula-slot) .sub-order-prompt select{ font:inherit; font-family:var(--font-sans); font-size:.86rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  :is(.ring-head, .formula-slot) .sub-order-prompt select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  :is(.ring-head, .formula-slot) .sub-order-prompt .link-btn{ margin:0; }
+  .formula-slot .sub-order-prompt{ justify-content:flex-start; }
   .ring-head .ring-head-sub{ margin:0; font-size:.92rem; font-weight:600; color:var(--accent); line-height:1.35; }
   @media (max-width: 640px){ .ring-head{ padding-inline:0; margin-top:44px; } }
 
@@ -736,10 +744,15 @@
         </div>
         <div class="formula-toggles" id="formula-toggles">
           <div class="check"><input type="checkbox" role="switch" id="layer-gname" checked><label for="layer-gname" data-i18n="cyclicGroups.formulaToggleName">Group name</label></div>
+          <div class="formula-slot" data-slot="gname"></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-sname"><label for="layer-sname" data-i18n="cyclicGroups.formulaToggleSubName">Subgroup name</label></div>
+          <div class="formula-slot" data-slot="sname"></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-gorder"><label for="layer-gorder" data-i18n="cyclicGroups.formulaToggleGroupShort">Group cardinality</label></div>
+          <div class="formula-slot" data-slot="gorder"></div>
           <div class="check" id="sorder-row"><input type="checkbox" role="switch" id="layer-sorder"><label for="layer-sorder" data-i18n="cyclicGroups.formulaToggleSubgroupShort">Subgroup cardinality</label></div>
+          <div class="formula-slot" data-slot="sorder"></div>
           <div class="check"><input type="checkbox" role="switch" id="layer-cindex"><label for="layer-cindex" data-i18n="cyclicGroups.formulaToggleCosetsShort">Subgroup-coset amount</label></div>
+          <div class="formula-slot" data-slot="cindex"></div>
         </div>
         <div class="ring-head" id="ring-head"></div>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
@@ -955,7 +968,9 @@ var RING = { cx: 380, cy: 395, R: 238 };
 // group's and the subgroup's order formulas, cindex the coset count.
 // These five form a chain, in this order: each one's switch shows, and
 // what it adds is drawn, only while every switch before it is on. Only the
-// first starts on, so a first visit turns the rest on one by one.
+// first starts on, so a first visit turns the rest on one by one. Full
+// screen, where the formulas sit in their own window, all five switches show
+// and each works on its own.
 var HEAD_CHAIN = ['gname', 'sname', 'gorder', 'sorder', 'cindex'];
 var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 
@@ -1056,6 +1071,7 @@ if (IS_PREVIEW) document.documentElement.classList.add('is-preview');
 var subgroupOptionsEl = $('subgroup-options');
 var bygenRowEl = $('bygen-row');
 var ringHeadEl = $('ring-head');
+var formulaTogglesEl = $('formula-toggles');
 var arrangeGenFieldEl = $('arrange-gen-field');
 var arrangeGenSelectEl = $('arrange-gen-select');
 var combineKeyEl = $('combine-key');
@@ -1651,8 +1667,9 @@ function mathInline(content){
 }
 
 // Whether a head layer is drawn: it and every one before it in HEAD_CHAIN
-// are on.
+// are on, or full screen just it.
 function headOn(name){
+  if (fsWins) return state[name];
   return HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf(name) + 1).every(function(k){ return state[k]; });
 }
 
@@ -1770,11 +1787,12 @@ function logBasePrompt(G){
 // is set in a smaller size to fit it.
 function drawMath(G, subs){
   var h = shownGen(G), lines = [];
+  lastSubs = subs;
   if (coset){
     var set = lap(G, h, G.orders[h], coset.start);
     lines.push(mathLine('ring-math-title', mrow(mn(coset.start), mo(G.mode === 'additive' ? '+' : '·'), angle(mn(h)), mo('='), mSet(set)),
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
-  } else {
+  } else if (!fsWins){
     var whole = G.orders[h] === G.order;
     if (headOn('sname')) lines.push(movable('sname', mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
       translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }))));
@@ -1795,6 +1813,33 @@ function drawMath(G, subs){
   ringHeadEl.replaceChildren.apply(ringHeadEl, lines);
   fitRingHead();
   placeMoved();
+  drawFormulaSlots(G);
+}
+var lastSubs = [];
+
+// Full screen, each switch's formula under it in the Formulas window, the
+// group's and the subgroup's names both when both are on.
+function drawFormulaSlots(G){
+  var slots = {};
+  formulaTogglesEl.querySelectorAll('.formula-slot').forEach(function(slot){
+    slots[slot.getAttribute('data-slot')] = slot;
+    slot.replaceChildren();
+  });
+  if (!fsWins) return;
+  var h = shownGen(G), whole = G.orders[h] === G.order;
+  if (state.gname) slots.gname.appendChild(mathLine('ring-math-title', mGroup(G), G.label));
+  if (state.sname) slots.sname.appendChild(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+    translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
+  orderFormulas(G).forEach(function(f){ slots[f.key].appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
+  if (needsLogBase(G)) slots.sorder.appendChild(logBasePrompt(G));
+}
+
+// Which head switches show: out of full screen each only while every one
+// before it is on.
+function syncHeadSwitches(){
+  HEAD_CHAIN.forEach(function(name, i){
+    if (i) $('layer-' + name).parentNode.hidden = !fsWins && !headOn(HEAD_CHAIN[i - 1]);
+  });
 }
 
 /* ---------- movable formulas ---------- */
@@ -1963,6 +2008,9 @@ fullscreenBtnEl.addEventListener('click', function(){
 function onFullscreenChange(){
   syncFullscreenBtn();
   syncWindows();
+  // The formulas move between the ring and the Formulas window.
+  syncHeadSwitches();
+  if (drawn && !IS_PREVIEW) drawMath(drawn.G, lastSubs);
 }
 document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
@@ -4039,9 +4087,7 @@ function render(){
   // A (ℤ/nℤ)* with no generator has no base for the subgroup formula.
   var noLogBase = G.mode === 'multiplicative' && !G.cyclic;
   $('sorder-row').classList.toggle('is-off', noLogBase);
-  HEAD_CHAIN.forEach(function(name, i){
-    if (i) $('layer-' + name).parentNode.hidden = !headOn(HEAD_CHAIN[i - 1]);
-  });
+  syncHeadSwitches();
   $('layer-sorder').disabled = noLogBase;
   // With the paths layer off, the path options have nothing to act on.
   arrowOptionsEl.querySelectorAll('.check').forEach(function(row){ row.classList.toggle('is-off', !state.paths); });
