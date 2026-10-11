@@ -492,13 +492,15 @@
      windows'. The panel inside is the page's own, moved in, its controls
      and state untouched. */
   .diagram-frame:fullscreen{ padding:0; }
-  .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; min-width:0; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
+  /* A window's transparency (--win-alpha, written by the page) thins only
+     its background: its title bar, text and controls stay solid. */
+  .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; min-width:0; background:color-mix(in srgb, var(--surface) calc(var(--win-alpha, 1) * 100%), transparent); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
   .fs-win[hidden], .fs-win:not(.is-ring):has(> .fs-win-body > [hidden]){ display:none; }
   .fs-win.is-front{ border-color:color-mix(in srgb, var(--accent) 55%, var(--panel-border-strong)); }
   .fs-win.is-max, .fs-win.is-max .fs-win-head{ border-radius:0; }
   .fs-win.is-max{ border-width:0; box-shadow:none; }
-  .fs-win-head{ flex:none; display:flex; align-items:center; gap:4px; min-width:0; padding:4px; border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; background:color-mix(in srgb, var(--text) 4%, transparent); border-bottom:1px solid var(--panel-border); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
-  .fs-win.is-front .fs-win-head{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .fs-win-head{ flex:none; display:flex; align-items:center; gap:4px; min-width:0; padding:4px; border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; background:linear-gradient(color-mix(in srgb, var(--text) 4%, transparent), color-mix(in srgb, var(--text) 4%, transparent)), var(--surface); border-bottom:1px solid var(--panel-border); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .fs-win.is-front .fs-win-head{ background:linear-gradient(color-mix(in srgb, var(--accent) 10%, transparent), color-mix(in srgb, var(--accent) 10%, transparent)), var(--surface); }
   .fs-win-grip{ flex:none; width:24px; height:24px; display:grid; place-items:center; color:var(--text-dim); }
   .fs-win-head:hover .fs-win-grip{ color:var(--text); }
   .fs-win-grip circle{ fill:currentColor; }
@@ -545,7 +547,7 @@
   .fs-win.is-max .fs-rs{ display:none; }
   :root.is-win-drag, :root.is-win-drag *{ user-select:none !important; -webkit-user-select:none !important; }
   /* A window's opacity slider hangs under its title-bar button, on the
-     desktop itself so it stays solid while the window fades. */
+     desktop itself, always solid. */
   .fs-alpha{ position:absolute; z-index:55; display:flex; align-items:center; gap:10px; padding:8px 12px; font-size:.84rem; color:var(--text); background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-alpha[hidden]{ display:none; }
   .fs-alpha input{ width:140px; margin:0; accent-color:var(--accent); cursor:pointer; }
@@ -2044,7 +2046,7 @@ var FS_PANELS = [
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
-var FS_MIN_ALPHA = 0.2; // the faintest a window can be made, so it is never lost
+var FS_MIN_ALPHA = 0; // a window's background can be cleared entirely; its title bar and border stay
 var TASKBAR_H = 44;
 var SNAP_EDGE = 12;   // how near an edge of the desktop the pointer snaps a dragged window
 var SNAP_CORNER = 80; // how near a corner, along the edge, it snaps to a quarter
@@ -2092,7 +2094,7 @@ function specOf(key){ return FS_PANELS.filter(function(p){ return p.key === key;
 function isOpen(key){ return fsState.open.indexOf(key) !== -1; }
 function isMin(key){ return fsState.min.indexOf(key) !== -1; }
 function isMax(key){ return fsState.max.indexOf(key) !== -1; }
-function alphaOf(key){ return fsState.alpha[key] || 1; }
+function alphaOf(key){ return key in fsState.alpha ? fsState.alpha[key] : 1; }
 function without(list, key){ return list.filter(function(k){ return k !== key; }); }
 // A window the page has something in: the ring always, a panel unless hidden.
 function hasContent(spec){ return spec.ring || !$(spec.ids[0]).hidden; }
@@ -2173,7 +2175,8 @@ document.addEventListener('pointerdown', function(e){
 fsMenuEl.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ setFsMenu(false); fsLauncherEl.focus(); e.preventDefault(); }
 });
-// Each window's opacity, from FS_MIN_ALPHA to solid, set with a slider that
+// Each window's background opacity, from FS_MIN_ALPHA to solid (its title
+// bar and contents stay solid), set with a slider that
 // opens under its title bar's half-filled circle and remembered with its
 // place. One slider serves every window, for the one it was opened from.
 var alphaKey = null;
@@ -2210,6 +2213,10 @@ function setAlpha(key){
   fsAlphaEl.style.top = (b.bottom - f.top + 6) + 'px';
   fsAlphaRangeEl.focus();
 }
+function setWinAlpha(win, a){
+  if (a < 1) win.style.setProperty('--win-alpha', String(a));
+  else win.style.removeProperty('--win-alpha');
+}
 function toggleAlpha(key){ setAlpha(alphaKey === key ? null : key); }
 fsAlphaRangeEl.addEventListener('input', function(){
   if (!alphaKey) return;
@@ -2217,7 +2224,7 @@ fsAlphaRangeEl.addEventListener('input', function(){
   if (a < 1) fsState.alpha[alphaKey] = a;
   else delete fsState.alpha[alphaKey];
   syncAlpha();
-  fsWins[alphaKey].win.style.opacity = a < 1 ? String(a) : '';
+  setWinAlpha(fsWins[alphaKey].win, a);
 });
 fsAlphaRangeEl.addEventListener('change', writeFsState);
 document.addEventListener('pointerdown', function(e){
@@ -2456,7 +2463,7 @@ function syncWindows(){
     win.classList.toggle('is-front', k === front);
     win.classList.toggle('is-max', isMax(k));
     win.style.zIndex = 3 + Math.max(0, fsState.open.indexOf(k));
-    win.style.opacity = alphaOf(k) < 1 ? String(alphaOf(k)) : '';
+    setWinAlpha(win, alphaOf(k));
   });
   if (alphaKey && fsWins && fsWins[alphaKey].win.hidden) setAlpha(null);
   layoutWindows();
