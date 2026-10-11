@@ -554,14 +554,23 @@
      the ring, except on its controls. */
   .formula-scratch{ display:none; }
   .fs-win-body.is-ring > .formula-scratch{ grid-area:pad; display:block; position:relative; z-index:4; justify-self:start; padding:6px 0 0; }
-  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); position:absolute; top:100%; left:0; margin-top:6px; display:grid; grid-template-columns:auto auto; align-items:center; gap:10px 24px; padding:10px 14px; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); pointer-events:none; }
+  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); box-sizing:border-box; position:absolute; top:100%; left:0; margin-top:6px; display:grid; grid-template-columns:auto auto; align-items:center; gap:10px 24px; padding:10px 14px; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); pointer-events:none; }
   .scratch-pad[hidden]{ display:none; }
+  .scratch-row{ display:contents; }
+  /* Narrowed past its smallest scale, the card keeps its names' width and
+     each formula that no longer fits beside its name drops under it, to
+     the right. */
+  .scratch-pad.is-narrow{ display:block; }
+  .scratch-pad.is-narrow .scratch-row{ display:flex; flex-wrap:wrap; align-items:center; gap:2px 24px; }
+  .scratch-pad.is-narrow .scratch-row + .scratch-row{ margin-top:10px; }
+  .scratch-pad.is-narrow .scratch-name{ flex:none; min-width:var(--scratch-name-w); }
+  .scratch-pad.is-narrow .scratch-math{ margin-inline-start:auto; }
   .scratch-pad :is(select, button){ pointer-events:auto; }
   /* Its corner grip scales the card and its formulas together. */
   .scratch-grip{ position:absolute; right:2px; bottom:2px; width:16px; height:16px; cursor:nwse-resize; touch-action:none; pointer-events:auto;
     background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
   .scratch-grip:hover, .scratch-pad.is-resizing .scratch-grip{ opacity:1; }
-  .scratch-name{ font-size:.78em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  .scratch-name{ font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
   .scratch-math math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
   .scratch-math .ring-math-title{ font-size:1.2em; }
   .scratch-math .ring-math-formula{ font-size:1.05em; }
@@ -2007,21 +2016,45 @@ function drawScratchPad(G){
     var cell = document.createElement('div');
     cell.className = 'scratch-math';
     if (cells[key]) cell.appendChild(cells[key]);
-    scratchPadEl.appendChild(name);
-    scratchPadEl.appendChild(cell);
+    var row = document.createElement('div');
+    row.className = 'scratch-row';
+    row.appendChild(name);
+    row.appendChild(cell);
+    scratchPadEl.appendChild(row);
   });
   var grip = document.createElement('div');
   grip.className = 'scratch-grip';
   grip.title = translate('cyclicGroups.resizeTitle');
   grip.setAttribute('aria-hidden', 'true');
   scratchPadEl.appendChild(grip);
+  applyScratchSize();
 }
-// Dragging the grip scales the card, from half to three times its size,
-// by how far the corner moves; double-clicking it sets it back.
+// Dragging the grip scales the card by how far the corner moves, up to
+// three times its size; double-clicking it sets it back. Its smallest scale
+// is where it starts, its names then as large as the Generator label of
+// the arrangement row; below 1, scratchScale narrows the card instead, to
+// that fraction of its width, but never narrower than its widest name or
+// formula.
 var scratchScale = 1, scratchSizing = null;
 function setScratchScale(v){
-  scratchScale = clamp(v, 0.5, 3);
-  scratchPadEl.style.setProperty('--scratch-scale', String(scratchScale));
+  scratchScale = Math.min(3, v);
+  applyScratchSize();
+}
+function applyScratchSize(){
+  var pad = scratchPadEl;
+  pad.classList.remove('is-narrow');
+  pad.style.width = '';
+  pad.style.setProperty('--scratch-scale', String(Math.max(1, scratchScale)));
+  if (scratchScale >= 1 || pad.hidden) return;
+  var full = pad.offsetWidth, nameW = 0, mathW = 0;
+  pad.querySelectorAll('.scratch-name').forEach(function(n){ nameW = Math.max(nameW, n.offsetWidth); });
+  pad.querySelectorAll('.scratch-math > *').forEach(function(m){ mathW = Math.max(mathW, m.offsetWidth); });
+  var cs = getComputedStyle(pad);
+  var least = Math.max(nameW, mathW) + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+  scratchScale = Math.max(scratchScale, least / full);
+  pad.style.setProperty('--scratch-name-w', nameW + 'px');
+  pad.style.width = Math.ceil(full * scratchScale) + 'px';
+  pad.classList.add('is-narrow');
 }
 scratchPadEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !e.target.classList.contains('scratch-grip')) return;
