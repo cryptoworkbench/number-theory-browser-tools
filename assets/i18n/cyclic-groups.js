@@ -44,8 +44,9 @@
    commands), fsNewRing (the launcher's command that opens another ring
    window), fsDuplicateRing (the + button on a ring window's title bar, which
    opens a copy of that ring), arrangeLabel, arrangeSequential,
-   arrangeSequentialTitle, arrangeMultiples and arrangePowers (the
-   Ring window's arrangement dropdown), and the
+   arrangeSequentialTitle, arrangeByPowers, arrangeGenLabel,
+   arrangeMultiples and arrangePowers (the Ring window's arrangement
+   dropdown and its generator dropdown), and the
    website-theme bead coloring: colorByTheme, identityColor,
    identityColorReset, legendHeadingTheme and the four legendTheme* lines. Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
@@ -248,6 +249,8 @@
       arrangeLabel: 'Arrangement',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
+      arrangeByPowers: 'Order by generator powers',
+      arrangeGenLabel: 'Generator',
       arrangeMultiples: 'Multiples of {g}',
       arrangePowers: 'Powers of {g}',
       combineForward: 'Forward path, combining elements with the selected element {h}',

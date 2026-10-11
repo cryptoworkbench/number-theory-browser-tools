@@ -164,7 +164,7 @@
   .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   /* JetBrains Mono centres ⟨ ⟩ in a full-width cell, which reads as a stray space
      around the number; the sans face sets them tight to it. */
-  #gen-select, #arrange-select{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
+  #gen-select, #arrange-select, #arrange-gen-select{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
   /* The open list is drawn by the browser on its own light background, so it
      needs an opaque themed fill or the night-theme text is unreadable. */
@@ -563,11 +563,12 @@
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
   .fs-win-body.is-ring > .group-controls{ grid-area:ctl; display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
   .facts.group-controls .fs-row-label{ display:none; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring :is(#gen-field, #arrange-field) > label{ min-width:12em; font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+  .diagram-frame:fullscreen .fs-win-body.is-ring .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring :is(#gen-field, #arrange-field) > label:first-child{ min-width:12em; font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
   .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls .fs-row-label, :root.is-ringwin .fs-win-body.is-ring > .facts.group-controls .fs-row-label{ display:block; }
   .fs-win-body.is-ring :is(#gen-field, #arrange-field){ flex-direction:row; align-items:center; gap:4px 32px; margin:0; padding:2px 0; }
   .fs-win-body.is-ring > .fs-win-row-gen{ grid-area:gen; display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
   .fs-win-body.is-ring #keep-top-row{ margin:0; padding:2px 0; }
+  .fs-win-body.is-ring #arrange-gen-label{ font-size:.85rem; color:var(--text-dim); margin-inline-start:8px; }
   .fs-win-body.is-ring > #arrange-field{ grid-area:arr; padding-bottom:6px; border-bottom:1px dotted var(--panel-border); }
   .fs-win-body.is-ring :is(#gen-field, #arrange-field) > select{ width:auto; min-width:8em; padding:4px 8px; }
   .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring > .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
@@ -676,7 +677,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -910,6 +911,8 @@
         <div class="field color-by" id="arrange-field">
           <label for="arrange-select" data-i18n="cyclicGroups.arrangeLabel">Arrangement</label>
           <select id="arrange-select"></select>
+          <label for="arrange-gen-select" id="arrange-gen-label" hidden data-i18n="cyclicGroups.arrangeGenLabel">Generator</label>
+          <select id="arrange-gen-select" hidden></select>
         </div>
       </section>
 
@@ -1139,6 +1142,8 @@ var formulaTogglesEl = $('formula-toggles');
 var formulaPaneEl = $('formula-pane');
 var formulaResetEl = $('formula-reset');
 var arrangeSelectEl = $('arrange-select');
+var arrangeGenLabelEl = $('arrange-gen-label');
+var arrangeGenSelectEl = $('arrange-gen-select');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
@@ -1402,26 +1407,36 @@ function arrangeBy(G){
   return G.generators.indexOf(state.arrangeGen) !== -1 ? state.arrangeGen : G.generators[0];
 }
 
-// The arrangement dropdown: Sequential (low to high), then each generator
-// whose powers order the beads differently. In ℤ/nℤ that leaves out 1,
-// whose multiples are the sequential order already.
+// The arrangement: Sequential (low to high) or by the powers of a
+// generator, and while it is by powers a second dropdown, beside the first,
+// with every generator of the group. A group with no generator offers
+// Sequential only.
+function arrangeOption(value, key, titleKey){
+  var opt = document.createElement('option');
+  opt.value = value;
+  opt.textContent = translate(key);
+  if (titleKey) opt.title = translate(titleKey);
+  return opt;
+}
 function syncArrange(G){
-  var seq = document.createElement('option');
-  seq.value = 'seq';
-  seq.textContent = translate('cyclicGroups.arrangeSequential');
-  seq.title = translate('cyclicGroups.arrangeSequentialTitle');
-  var gens = G.mode === 'additive' ? G.generators.slice(1) : G.generators;
-  arrangeSelectEl.replaceChildren.apply(arrangeSelectEl, [seq].concat(gens.map(function(g){
+  var powers = G.cyclic && state.bygen;
+  arrangeSelectEl.replaceChildren(
+    arrangeOption('seq', 'cyclicGroups.arrangeSequential', 'cyclicGroups.arrangeSequentialTitle'),
+    arrangeOption('powers', 'cyclicGroups.arrangeByPowers'));
+  arrangeSelectEl.value = powers ? 'powers' : 'seq';
+  arrangeSelectEl.title = arrangeSelectEl.selectedOptions[0].title;
+  arrangeSelectEl.disabled = !G.cyclic;
+  arrangeGenLabelEl.hidden = arrangeGenSelectEl.hidden = !powers;
+  if (!powers) return;
+  arrangeGenSelectEl.replaceChildren.apply(arrangeGenSelectEl, G.generators.map(function(g){
     var opt = document.createElement('option');
     opt.value = String(g);
     opt.textContent = String(g);
     opt.title = translate(G.mode === 'additive' ? 'cyclicGroups.arrangeMultiples' : 'cyclicGroups.arrangePowers', { g: g });
     return opt;
-  })));
-  var by = G.cyclic && state.bygen ? arrangeBy(G) : null;
-  arrangeSelectEl.value = gens.indexOf(by) !== -1 ? String(by) : 'seq';
-  arrangeSelectEl.title = arrangeSelectEl.selectedOptions[0].title;
-  arrangeSelectEl.disabled = !gens.length;
+  }));
+  arrangeGenSelectEl.value = String(arrangeBy(G));
+  arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
 }
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
@@ -4764,12 +4779,13 @@ FLAG_SWITCHES.forEach(function(name){
   });
 });
 arrangeSelectEl.addEventListener('change', function(){
-  var g = parseInt(arrangeSelectEl.value, 10);
-  rearrange(function(){
-    state.bygen = isFinite(g);
-    if (isFinite(g)) state.arrangeGen = g;
-    render();
-  });
+  var powers = arrangeSelectEl.value === 'powers';
+  rearrange(function(){ state.bygen = powers; render(); });
+});
+arrangeGenSelectEl.addEventListener('change', function(){
+  var g = parseInt(arrangeGenSelectEl.value, 10);
+  if (!isFinite(g)) return;
+  rearrange(function(){ state.arrangeGen = g; render(); });
 });
 colorBySelectEl.addEventListener('change', function(){
   if (COLOR_BY.indexOf(colorBySelectEl.value) === -1) return;
