@@ -2286,6 +2286,7 @@ function onFullscreenChange(){
   // The formulas over the ring give way to the Ring window's scratchpad.
   syncHeadSwitches();
   if (drawn && !IS_PREVIEW) drawMath(drawn.G, lastSubs);
+  syncIsoLinks();
 }
 document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
@@ -2707,9 +2708,11 @@ function removeRingWindow(key){
 }
 // Opens another Ring window on the group of the original ring, or on a copy
 // of the extra window the key names, a little down and right of it, in front.
-function openRingWindow(fromKey){
+// query, when given, is the ring the new window holds; otherwise it holds
+// a copy of fromKey's.
+function openRingWindow(fromKey, query){
   var from = entryOf(fromKey);
-  var q = from ? from.q : cleanRingQuery(stateQuery().toString());
+  var q = typeof query === 'string' ? cleanRingQuery(query) : from ? from.q : cleanRingQuery(stateQuery().toString());
   var top = 0;
   fsState.extras.forEach(function(e){ top = Math.max(top, parseInt(e.key.slice(7), 10)); });
   var entry = { key: 'ringwin' + (top + 1), q: q };
@@ -3310,6 +3313,9 @@ window.addEventListener('message', function(e){
     if (!fsWins[key].fitting) return;
     fsWins[key].fitting = false;
     fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX, flex: d.flex });
+  } else if (d.ringwin === 'open' && typeof d.q === 'string' && d.q.length <= 4000){
+    // An isomorphism clicked inside a frame opens its group in a new window.
+    openRingWindow(key, d.q);
   } else if (d.ringwin === 'raise'){
     // A press inside a frame never reaches this document, so the menu and the
     // opacity slider close, and the window comes to the front, from here.
@@ -4622,9 +4628,7 @@ function isoLink(mode, n, gen, label){
   var ext = svgEl('svg', { 'class': 'iso-ext', viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
   ext.appendChild(svgEl('path', { d: 'M7 1.5H10.5V5M10.5 1.5L5.5 6.5M9 7.5V9.5A1 1 0 0 1 8 10.5H2.5A1 1 0 0 1 1.5 9.5V4A1 1 0 0 1 2.5 3H4.5' }));
   a.appendChild(ext);
-  var open = translate('cyclicGroups.iso.open', { group: label });
-  a.setAttribute('title', open);
-  a.setAttribute('aria-label', open);
+  a.setAttribute('data-iso-label', label);
   return a;
 }
 
@@ -4645,9 +4649,14 @@ function cyclicUnitGroups(k){
   return unitGroupsByOrder[k] || [];
 }
 
+// Each chip's address, and its name: where it opens (a new tab, or full
+// screen a new Ring window), or for the supergroup's chip, that it is one.
 function syncIsoLinks(){
   isoPanelEl.querySelectorAll('a.iso-chip').forEach(function(a){
     a.setAttribute('href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen')));
+    var open = translate(isoInWindow() ? 'cyclicGroups.iso.openWindow' : 'cyclicGroups.iso.open', { group: a.getAttribute('data-iso-label') });
+    a.setAttribute('aria-label', open);
+    a.setAttribute('title', a.hasAttribute('data-iso-super') ? translate('cyclicGroups.iso.supergroup') : open);
   });
   if (previewChip) showIsoPreview(previewChip);
 }
@@ -4815,8 +4824,19 @@ isoPanelEl.addEventListener('focusin', function(e){
   if (a && a.matches(':focus-visible')) queueIsoPreview(a);
 });
 isoPanelEl.addEventListener('focusout', hideIsoPreview);
+// Full screen, or in an extra Ring window's frame, a plain click on a chip
+// opens its group in a new Ring window on the desktop instead of a new tab.
+function isoInWindow(){ return !!fsWins || IS_RINGWIN; }
 isoPanelEl.addEventListener('click', function(e){
-  if (e.target.closest('a.iso-chip')) hideIsoPreview();
+  var a = e.target.closest('a.iso-chip');
+  if (!a) return;
+  hideIsoPreview();
+  if (!isoInWindow() || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  var q = new URL(a.href, location.href).search.slice(1);
+  if (IS_RINGWIN){
+    try { window.parent.postMessage({ ringwin: 'open', q: q }, '*'); } catch (err) { /* no desktop to tell */ }
+  } else openRingWindow('ring', q);
 });
 // From the keyboard, the up and down arrows turn the card's slides.
 isoPanelEl.addEventListener('keydown', function(e){
@@ -4874,7 +4894,7 @@ function renderIso(G){
   var addChip = isoLink('additive', k, 1, additiveLabel(k));
   // In an additive group of order k, ⟨g⟩ is isomorphic to the very group
   // it lies in: the chip names that supergroup.
-  if (G.mode === 'additive' && k === G.order) addChip.setAttribute('title', translate('cyclicGroups.iso.supergroup'));
+  if (G.mode === 'additive' && k === G.order) addChip.setAttribute('data-iso-super', '');
   isoAddChipsEl.replaceChildren(addChip);
   var units = cyclicUnitGroups(k);
   isoMulChipsEl.replaceChildren.apply(isoMulChipsEl, units.map(function(e){
