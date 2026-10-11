@@ -332,7 +332,7 @@
       keepTopLabel: 'Keep on top',
       keepTopId: 'Keep identity element on top',
       keepTopOff: 'Keep nothing on top',
-      keepTopGen: 'Keep selected subgroup on top',
+      keepTopGen: 'Keep subgroup’s generator on top',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
