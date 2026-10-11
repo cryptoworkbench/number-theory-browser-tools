@@ -30,7 +30,9 @@
    full-screen auto-rotate ruler (spinLabel, spinOff, spinCw, spinCcw), and
    formulaMove / formulaHide, the grip and close labels of the full-screen
    formula cards, and formulaToggleGroupShort / formulaToggleSubgroupShort /
-   formulaToggleCosetsShort, the full-screen labels of those switches. Every other language shows the English
+   formulaToggleCosetsShort, the labels of those switches (the cards keep
+   the formulaToggle* names as their titles), and formulaCardBothNames, the
+   title of the card holding the group and subgroup name together. Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -286,6 +288,7 @@
       formulaToggleGroupShort: 'Group cardinality',
       formulaToggleSubgroupShort: 'Subgroup cardinality',
       formulaToggleCosetsShort: 'Subgroup-coset amount',
+      formulaCardBothNames: 'Group and subgroup name',
       formulaReset: 'Reset formula positions',
       fullscreenEnter: 'Full screen',
       fullscreenExit: 'Exit full screen',
