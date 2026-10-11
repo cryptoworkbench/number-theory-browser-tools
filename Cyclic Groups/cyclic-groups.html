@@ -2387,6 +2387,72 @@ function toggleMaximize(key){
   else fsState.max.push(key);
   raiseWindow(key);
 }
+// Fit: a window takes the size its contents want, where it stands, pulled
+// back onto the desktop. A panel gets its designed width, widened by what
+// still overflows it, at its natural height. A ring window gets at least the
+// width at which none of its rows of controls wraps, the ring filling that
+// width, and the height that leaves no room under the ring; when that is
+// taller than the desktop the ring shrinks to fit. An extra Ring window's
+// frame measures its own contents and sends the numbers.
+function fitWindow(key){
+  var w = fsWins && fsWins[key];
+  if (!w || w.win.hidden) return;
+  if (w.spec.frame){
+    w.fitting = true;
+    try { w.frame.contentWindow.postMessage({ ringhost: 'measure' }, '*'); } catch (e) { w.fitting = false; }
+    return;
+  }
+  if (w.spec.ring) fitRing(key, w.body, ringNeeds());
+  else fitPanel(key);
+}
+// What the ring's window body needs: the narrowest width at which its rows
+// of controls stop wrapping, their height there, and its side padding. The
+// body is tried at other widths and put back.
+var RING_ROW = 4; // the ring's row among the body's grid rows
+function ringNeeds(){
+  var body = ringSvgEl.parentNode, cs = getComputedStyle(body), was = body.style.width;
+  var chromeAt = function(x){
+    body.style.width = x + 'px';
+    var rows = getComputedStyle(body).gridTemplateRows.split(' ').map(parseFloat);
+    var h = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    rows.forEach(function(v, i){ if (i !== RING_ROW && isFinite(v)) h += v; });
+    return body.scrollWidth > body.clientWidth + 1 ? Infinity : h;
+  };
+  var flat = chromeAt(4000), lo = 160, hi = 4000;
+  while (hi - lo > 2){
+    var mid = (lo + hi) / 2;
+    if (chromeAt(mid) <= flat + 0.5) hi = mid; else lo = mid;
+  }
+  body.style.width = was;
+  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) };
+}
+// Sizes a ring's window from its body's needs; holder is the element the
+// body fills inside the window (the body itself, or an extra window's frame).
+function fitRing(key, holder, n){
+  var D = desk(), win = fsWins[key].win, r = winRect(win);
+  var hb = holder.getBoundingClientRect();
+  var extraW = r.w - hb.width, extraH = r.h - hb.height;
+  var bodyW = Math.min(D.W - extraW, n.minW);
+  var side = Math.min(bodyW - n.padX, D.H - extraH - n.chromeH);
+  if (side < 40) return;
+  placeFit(key, r, bodyW + extraW, side + n.chromeH + extraH);
+}
+function fitPanel(key){
+  var w = fsWins[key];
+  placeFit(key, winRect(w.win), w.spec.width || 320, null);
+  var over = w.body.scrollWidth - w.body.clientWidth;
+  if (over > 0) placeFit(key, winRect(w.win), (w.spec.width || 320) + over, null);
+  var r = winRect(w.win), D = desk();
+  if (r.t + r.h > D.H) placeFit(key, r, r.w, null);
+}
+function placeFit(key, r, W, H){
+  var D = desk(), h = H === null ? Math.min(winRect(fsWins[key].win).h, D.H) : H;
+  fsState.max = without(fsState.max, key);
+  delete fsState.restore[key];
+  fsState.geom[key] = toFractions({ l: clamp(r.l, 0, Math.max(0, D.W - W)), t: clamp(r.t, 0, Math.max(0, D.H - h)), w: W, h: H }, H === null);
+  writeFsState();
+  syncWindows();
+}
 // The windows on show, the ring first.
 function shownWindows(){
   return allSpecs().map(function(p){ return p.key; }).filter(function(k){ return isOpen(k) && !isMin(k) && hasContent(specOf(k)); });
@@ -2458,6 +2524,7 @@ function buildWindow(spec){
   [
     { key: 'dup', parts: [['line', { x1: 2.5, y1: 6, x2: 9.5, y2: 6 }], ['line', { x1: 6, y1: 2.5, x2: 6, y2: 9.5 }]], run: function(){ openRingWindow(spec.key); } },
     { key: 'alpha', parts: [['circle', { cx: 6, cy: 6, r: 4 }], ['path', { 'class': 'icon-fill', d: 'M6 2a4 4 0 0 1 0 8z' }]], run: function(){ toggleAlpha(spec.key); } },
+    { key: 'fit', parts: [['path', { d: 'M2.5 5V2.5H5M7 2.5h2.5V5M9.5 7v2.5H7M5 9.5H2.5V7' }], ['rect', { x: 4.75, y: 4.75, width: 2.5, height: 2.5, rx: 0.5 }]], run: function(){ fitWindow(spec.key); } },
     { key: 'min', parts: [['line', { x1: 3, y1: 8.5, x2: 9, y2: 8.5 }]], run: function(){ minimizeWindow(spec.key); } },
     { key: 'max', parts: [['rect', { 'class': 'icon-max', x: 2.5, y: 2.5, width: 7, height: 7, rx: 1 }], ['path', { 'class': 'icon-restore', d: 'M2.5 4.5h5v5h-5zM4.5 4.5V2.5h5v5h-2' }]], run: function(){ toggleMaximize(spec.key); } },
     { key: 'close', parts: [['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]], run: function(){ closeWindow(spec.key); } }
@@ -2648,6 +2715,7 @@ function syncFsLabels(){
     label(w.grip, 'cyclicGroups.formulaMove');
     if (w.buttons.dup) label(w.buttons.dup, 'cyclicGroups.fsDuplicateRing');
     label(w.buttons.alpha, 'cyclicGroups.fsTransparency');
+    label(w.buttons.fit, 'cyclicGroups.fsFit');
     label(w.buttons.min, 'cyclicGroups.fsMinimize');
     label(w.buttons.max, isMax(spec.key) ? 'cyclicGroups.fsRestore' : 'cyclicGroups.fsMaximize');
     label(w.buttons.close, 'cyclicGroups.fsClose');
@@ -2815,6 +2883,11 @@ window.addEventListener('message', function(e){
     if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
     clearTimeout(fsWriteTimer);
     fsWriteTimer = setTimeout(writeFsState, 400);
+  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; })){
+    // A frame's answer to a Fit.
+    if (!fsWins[key].fitting) return;
+    fsWins[key].fitting = false;
+    fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX });
   } else if (d.ringwin === 'raise'){
     // A press inside a frame never reaches this document, so the menu and the
     // opacity slider close, and the window comes to the front, from here.
@@ -2868,7 +2941,14 @@ if (IS_RINGWIN){
   // own too, but never where it is per file.
   window.addEventListener('message', function(e){
     var d = e.data;
-    if (e.source !== window.parent || !d || typeof d !== 'object' || d.ringhost !== 'look') return;
+    if (e.source !== window.parent || !d || typeof d !== 'object') return;
+    if (d.ringhost === 'measure'){
+      // The desktop fits this frame's window to what its contents need.
+      var n = ringNeeds();
+      try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX }, '*'); } catch (err) { /* no desktop to tell */ }
+      return;
+    }
+    if (d.ringhost !== 'look') return;
     var root = document.documentElement;
     if ((d.theme === 'day' || d.theme === 'night') && root.getAttribute('data-theme') !== d.theme) root.setAttribute('data-theme', d.theme);
     if (typeof d.lang === 'string' && d.lang !== getLang()) setLang(d.lang);

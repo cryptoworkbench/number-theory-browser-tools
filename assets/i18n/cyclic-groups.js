@@ -34,7 +34,8 @@
    launcher menu), the window names fsFormulas, fsIsomorphisms, fsColorKey,
    fsExport and fsNotice (the other windows take their panel's heading),
    formulaMove (a window's grip), fsClose, fsMinimize, fsMaximize and
-   fsRestore (its title-bar buttons), fsTransparency, fsOpacity and
+   fsRestore (its title-bar buttons), fsFit (the title-bar button that sizes
+   a window to its contents), fsTransparency, fsOpacity and
    fsOpacityValue (its opacity button and slider), fsRing, fsRingCyclic and fsRingNotCyclic (the ring's own window,
    named after the group on show), fsGroupParams (the label of its top row),
    fsInfo (the group panel's window), and
@@ -327,6 +328,7 @@
       fsMaximize: 'Maximize {name}',
       fsRestore: 'Restore {name}',
       fsTransparency: 'Transparency of {name}',
+      fsFit: 'Fit {name} to its contents',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
