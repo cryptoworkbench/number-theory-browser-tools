@@ -532,11 +532,14 @@
   .formula-item .ring-math-title{ font-size:1.2rem; }
   .formula-item .ring-math-formula{ font-size:1.05rem; }
   .fs-win-body .subgroups{ max-height:none; }
-  /* The ring's window: the formulas on top, the ring taking the rest, and
-     under it a row with the rotation controls, the speed ruler and the
-     arrow key side by side. */
-  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto minmax(0, 1fr) auto; grid-template-areas:"head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
+  /* The ring's window: the modulus and the operation switch in a row on
+     top, the formulas under them, the ring taking the rest, and under it a
+     row with the rotation controls, the speed ruler and the arrow key side
+     by side. */
+  .fs-win-body.is-ring{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto minmax(0, 1fr) auto; grid-template-areas:"ctl ctl ctl" "head head head" "ring ring ring" "rot spin key"; column-gap:14px; align-items:end; overflow:hidden; padding:6px 12px 10px; }
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
+  .fs-win-body.is-ring > .group-controls{ grid-area:ctl; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:4px 32px; }
+  .diagram-frame:fullscreen .fs-win-body.is-ring > .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
   .fs-win-body.is-ring > svg.ring-svg{ grid-area:ring; align-self:stretch; width:100%; height:100%; min-height:0; }
   .diagram-frame:fullscreen .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
   .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; position:static; }
@@ -1994,9 +1997,9 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'formulas', ids: ['formula-toggles'], title: 'cyclicGroups.fsFormulas', icon: '∑', width: 560 },
-  { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.groupHeading', icon: 'G', hideHeading: true },
+  { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'subgroup', ids: ['subgroup-panel'], title: 'cyclicGroups.subgroupHeading', icon: 'H', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
   { key: 'subgroups', ids: ['subgroups-list-panel'], title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, width: 560 },
@@ -2430,11 +2433,17 @@ function syncWindows(){
   if (!fsWins) formulaTogglesEl.style.minWidth = formulaTogglesEl.style.minHeight = '';
 }
 
+// A window's name. The ring's names the group on show, and whether it is
+// cyclic.
+function fsTitle(spec){
+  if (spec.key !== 'ring' || !drawn) return translate(spec.title);
+  return translate(drawn.G.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: drawn.G.label });
+}
 // The names on the task buttons, the menu and the windows, in the current
 // language.
 function syncFsLabels(){
   FS_PANELS.forEach(function(spec){
-    var name = translate(spec.title);
+    var name = fsTitle(spec);
     fsTasks[spec.key].querySelector('.fs-task-label').textContent = name;
     fsTasks[spec.key].setAttribute('title', name);
     fsItems[spec.key].lastChild.textContent = name;
@@ -4124,6 +4133,7 @@ function render(){
   preview = null;
   drawn = { G: G, paint: paint };
   syncTabTitle();
+  syncFsLabels();
   ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
   ringDynamicEl.replaceChildren();
   drawNecklace(G, paint);

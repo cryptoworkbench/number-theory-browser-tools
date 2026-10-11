@@ -35,7 +35,8 @@
    fsExport and fsNotice (the other windows take their panel's heading),
    formulaMove (a window's grip), fsClose, fsMinimize, fsMaximize and
    fsRestore (its title-bar buttons), fsTransparency, fsOpacity and
-   fsOpacityValue (its opacity button and slider), fsRing (the ring's own window), and
+   fsOpacityValue (its opacity button and slider), fsRing, fsRingCyclic and fsRingNotCyclic (the ring's own window,
+   named after the group on show), fsInfo (the group panel's window), and
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), and the
    website-theme bead coloring: colorByTheme, identityColor,
@@ -314,6 +315,9 @@
       fsNotice: 'Notice',
       fsClose: 'Close {name}',
       fsRing: 'Ring',
+      fsRingCyclic: 'Cyclic Group {group}',
+      fsRingNotCyclic: 'Ring {group}',
+      fsInfo: 'Info',
       fsMinimize: 'Minimize {name}',
       fsMaximize: 'Maximize {name}',
       fsRestore: 'Restore {name}',
