@@ -457,6 +457,24 @@
     background:linear-gradient(var(--panel), var(--panel)), var(--bg-1); }
   .diagram-frame:fullscreen svg.ring-svg{ flex:1 1 0; width:100%; height:100%; min-height:0; }
   .diagram-frame::backdrop{ background:var(--bg-1); }
+  /* Full screen, the auto-rotate triangle gives way to a ruler under the
+     ring: seven ticks from -3 to 3, the middle one no rotation, those to its
+     left clockwise and those to its right counterclockwise, faster the
+     further out. The slider's thumb snaps to the ticks. */
+  .spin-ruler{ display:none; }
+  .diagram-frame:fullscreen .auto-rotate{ display:none; }
+  .diagram-frame:fullscreen .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
+  .spin-track{ position:relative; flex:1 1 auto; height:30px; }
+  .spin-ticks{ position:absolute; inset:0 9px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
+  .spin-ticks::before{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; margin-top:-1px; background:color-mix(in srgb, var(--text) 35%, transparent); }
+  .spin-ticks span{ position:relative; width:2px; height:12px; background:color-mix(in srgb, var(--text) 45%, transparent); }
+  .spin-ticks span.is-zero{ height:22px; background:var(--text-dim); }
+  .spin-track input{ position:absolute; inset:0; width:100%; height:100%; margin:0; background:transparent; cursor:pointer; -webkit-appearance:none; appearance:none; }
+  .spin-track input::-webkit-slider-runnable-track{ height:100%; background:transparent; border:none; }
+  .spin-track input::-moz-range-track{ height:100%; background:transparent; border:none; }
+  .spin-track input::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px; height:18px; margin-top:6px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); }
+  .spin-track input::-moz-range-thumb{ width:18px; height:18px; box-sizing:border-box; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); }
+  .spin-track input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
   :root.is-formula-drag, :root.is-formula-drag *{ cursor:grabbing !important; user-select:none !important; -webkit-user-select:none !important; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
@@ -604,6 +622,14 @@
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
+        <div class="spin-ruler">
+          <span aria-hidden="true">&#x27F3;</span>
+          <div class="spin-track">
+            <div class="spin-ticks" aria-hidden="true"><span></span><span></span><span></span><span class="is-zero"></span><span></span><span></span><span></span></div>
+            <input type="range" id="spin-slider" min="-3" max="3" step="1" value="0" aria-label="Auto-rotate speed" data-i18n-aria-label="cyclicGroups.spinLabel">
+          </div>
+          <span aria-hidden="true">&#x27F2;</span>
+        </div>
         <div class="combine-key" id="combine-key" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Swap forward and backward path colors" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colors" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-outer"></span></div>
@@ -803,7 +829,7 @@ var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sn
 var COLOR_BY = ['order', 'inverse'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', arrangeGen: null };
+var state = { mode: 'additive', n: 12, gen: 5, paths: true, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, genTop: false, autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -2290,20 +2316,31 @@ function rearrange(change){
   arranging = { id: requestAnimationFrame(frame) };
 }
 
-// Auto-rotate turns the ring by itself, slowly and steadily, AUTO_DEG_PER_S
-// degrees a second: counterclockwise ('ccw') rot counts up and every
+// Auto-rotate turns the ring by itself, steadily, at one of the
+// AUTO_DEG_PER_S speeds (state.autoSpeed, 1 to 3) in degrees a second:
+// counterclockwise ('ccw') rot counts up and every
 // subgroup row moves on one place each time a bead reaches the top;
 // clockwise ('cw') it counts down. 'off' stops it. autoAngle is how
 // far the drawn ring has turned past the last bead it landed on. A drag or
 // a button turn takes over from where the ring is, and auto-rotate carries
 // on once it has landed.
-var AUTO_DEG_PER_S = 12;
+var AUTO_DEG_PER_S = [12, 36, 90];
 var autoAngle = 0;
 var autoId = null;
 var autoLast = null;
 var AUTO_ROTATE = ['off', 'ccw', 'cw'];
 var autoRotateEl = $('auto-rotate');
 var autoStopEls = Array.prototype.slice.call(autoRotateEl.querySelectorAll('input'));
+var spinSliderEl = $('spin-slider');
+// The full-screen ruler's place: 0 for off, -1 to -3 clockwise and 1 to 3
+// counterclockwise, the speed being how far from 0.
+function spinLevel(){
+  return state.autoRotate === 'off' ? 0 : (state.autoRotate === 'cw' ? -1 : 1) * state.autoSpeed;
+}
+function spinValueText(){
+  var v = spinLevel();
+  return v ? translate(v < 0 ? 'cyclicGroups.spinCw' : 'cyclicGroups.spinCcw', { speed: Math.abs(v) }) : translate('cyclicGroups.spinOff');
+}
 
 function autoFrame(ts){
   autoId = requestAnimationFrame(autoFrame);
@@ -2311,7 +2348,7 @@ function autoFrame(ts){
   autoLast = ts;
   if (!drawn || spin || turning) return;
   var step = 360 / drawn.G.order;
-  autoAngle += (state.autoRotate === 'cw' ? 1 : -1) * AUTO_DEG_PER_S * dt / 1000;
+  autoAngle += (state.autoRotate === 'cw' ? 1 : -1) * AUTO_DEG_PER_S[state.autoSpeed - 1] * dt / 1000;
   var steps = 0;
   while (autoAngle <= -step){ autoAngle += step; steps += dirSign(); }
   while (autoAngle >= step){ autoAngle -= step; steps -= dirSign(); }
@@ -2322,6 +2359,8 @@ function syncAutoRotate(){
   var on = state.autoRotate !== 'off';
   autoRotateEl.setAttribute('data-at', state.autoRotate);
   autoStopEls.forEach(function(r){ r.checked = r.value === state.autoRotate; });
+  spinSliderEl.value = spinLevel();
+  spinSliderEl.setAttribute('aria-valuetext', spinValueText());
   if (on && autoId === null){
     autoLast = null;
     autoId = requestAnimationFrame(autoFrame);
@@ -2339,6 +2378,13 @@ function syncAutoRotate(){
 }
 autoRotateEl.addEventListener('change', function(e){
   state.autoRotate = e.target.value;
+  syncAutoRotate();
+  if (drawn) mirrorToUrl(drawn.G);
+});
+spinSliderEl.addEventListener('input', function(){
+  var v = clamp(parseInt(spinSliderEl.value, 10) || 0, -3, 3);
+  state.autoRotate = v < 0 ? 'cw' : v > 0 ? 'ccw' : 'off';
+  if (v) state.autoSpeed = Math.abs(v);
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
 });
@@ -3151,6 +3197,8 @@ function mirrorToUrl(G){
     q.set('dir', state.dir);
     if (state.autoRotate !== 'off') q.set('autorotate', state.autoRotate);
     else q.delete('autorotate');
+    if (state.autoSpeed !== 1) q.set('autospeed', state.autoSpeed);
+    else q.delete('autospeed');
     if (state.subLayout === 'list') q.set('sublayout', 'list');
     else q.delete('sublayout');
     if (state.arrangeGen !== null) q.set('arrangegen', String(state.arrangeGen));
@@ -3546,7 +3594,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncFullscreenBtn(); });
+onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
@@ -3605,6 +3653,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   // autorotate=1 is from before the direction choice: counterclockwise.
   var auto = query.get('autorotate') === '1' ? 'ccw' : query.get('autorotate');
   if (AUTO_ROTATE.indexOf(auto) !== -1) state.autoRotate = auto;
+  var autoSpeed = parseInt(query.get('autospeed'), 10);
+  if (autoSpeed >= 1 && autoSpeed <= 3) state.autoSpeed = autoSpeed;
   if (SUB_LAYOUTS.indexOf(query.get('sublayout')) !== -1) state.subLayout = query.get('sublayout');
   var arrangeGen = parseInt(query.get('arrangegen'), 10);
   if (isFinite(arrangeGen)) state.arrangeGen = arrangeGen;

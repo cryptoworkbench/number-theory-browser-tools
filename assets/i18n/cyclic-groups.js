@@ -25,8 +25,9 @@
 
    English-only for now, by the user's decision to add new Cyclic Groups
    strings in English first: formulaReset (the diagram's button that puts
-   moved formulas back) and fullscreenEnter / fullscreenExit (the
-   diagram's full-screen button). Every other language shows the English
+   moved formulas back), fullscreenEnter / fullscreenExit (the
+   diagram's full-screen button) and the four spin* strings of the
+   full-screen auto-rotate ruler (spinLabel, spinOff, spinCw, spinCcw). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -282,6 +283,10 @@
       formulaReset: 'Reset formula positions',
       fullscreenEnter: 'Full screen',
       fullscreenExit: 'Exit full screen',
+      spinLabel: 'Auto-rotate speed',
+      spinOff: 'No rotation',
+      spinCw: 'Clockwise, speed {speed}',
+      spinCcw: 'Counterclockwise, speed {speed}',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',
