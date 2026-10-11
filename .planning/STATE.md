@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T11:56:34.386Z"
+last_updated: "2026-10-11T11:59:32.928Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d493e538303e72d6bbb1847086760326854226a8
+state_head: 63cc31c35ea644a297b00f2a2001edef618886b5
 progress:
   total_phases: 7
   completed_phases: 6
@@ -446,6 +446,7 @@ None yet.
 | 210 | Cyclic Groups: gen-top checkbox label → 'Rotate path generator to the top' (English only) | 2026-10-11 | ea7dc3c | — |
 | 211 | Cyclic Groups: full screen, gen-top checkbox moves into the Ring window | 2026-10-11 | 96f5797 | — |
 | 212 | Cyclic Groups: info panel drops the 'Stepping means …' hint | 2026-10-11 | d493e53 | — |
+| 213 | Cyclic Groups: gen-top switch beside the subgroup dropdown in the Ring window | 2026-10-11 | 63cc31c | — |
 
 ## Deferred Items
 
