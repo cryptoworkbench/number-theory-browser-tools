@@ -707,6 +707,8 @@
   .ring-ctx .fs-menu-item{ font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:none; border:0; cursor:pointer; }
   .ring-ctx .fs-menu-item:hover, .ring-ctx .fs-menu-item:focus-visible{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .ring-ctx .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
+  .ring-ctx .fact-value{ padding-inline-start:16px; }
   .diagram-frame:fullscreen .resize-grip{ display:none; }
   /* The diagram's top-right corner: the full-screen button. Full screen
      it gives way to the one in the taskbar's tray. */
@@ -2286,7 +2288,6 @@ syncFullscreenBtn();
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
   { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
-  { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
@@ -2486,12 +2487,14 @@ fsMenuEl.addEventListener('keydown', function(e){
 // Right-clicking the ring opens its own menu in place of the browser's: the
 // Layers panel's switches, each flipping its checkbox there so the
 // checkbox's own handler draws and remembers the change, then the Export
-// panel's download, which clicks its button there.
+// panel's download, which clicks its button there, and last the group's
+// structure from the Info panel, which does nothing yet.
 var RING_CTX_ITEMS = [
   { name: 'orders', key: 'cyclicGroups.layerOrders' },
   { name: 'cord', key: 'cyclicGroups.layerCord' },
   { name: 'guide', key: 'cyclicGroups.layerGuide' },
-  { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } }
+  { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
+  { sep: true, key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringCtxItems = RING_CTX_ITEMS.map(function(l){
@@ -2501,6 +2504,12 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     head.setAttribute('data-i18n', l.head);
     head.textContent = translate(l.head);
     ringCtxEl.appendChild(head);
+  }
+  if (l.sep){
+    var sep = document.createElement('div');
+    sep.className = 'ring-ctx-sep';
+    sep.setAttribute('role', 'separator');
+    ringCtxEl.appendChild(sep);
   }
   var item = document.createElement('button');
   item.type = 'button';
@@ -2513,7 +2522,14 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   var label = document.createElement('span');
   item.appendChild(mark);
   item.appendChild(label);
+  var value = null;
+  if (l.value){
+    value = document.createElement('span');
+    value.className = 'fact-value';
+    item.appendChild(value);
+  }
   item.addEventListener('click', function(){
+    if (l.stay){ l.run(); return; }
     setRingCtx(false);
     if (l.run){ l.run(); return; }
     var box = $('layer-' + l.name);
@@ -2521,7 +2537,7 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, name: l.name, key: l.key };
+  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key };
 });
 var ringCtxReturn = null;
 function setRingCtx(open, x, y){
@@ -2534,6 +2550,7 @@ function setRingCtx(open, x, y){
   }
   ringCtxItems.forEach(function(it){
     it.label.textContent = translate(it.key);
+    if (it.value) it.value.replaceChildren(it.valueOf());
     if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
@@ -4415,6 +4432,9 @@ function generatorCount(G){
     plain: 'φ(φ(%)) = φ(φ(' + G.n + ')) = φ(' + phi + ') = ' + totient(phi) };
 }
 
+// The group's structure as a fresh math node, for the facts and the ring's
+// right-click menu; set by renderFacts.
+var structureFact;
 function renderFacts(G, factors){
   factsEl.replaceChildren();
   // The group the modulus and the operation make; then its
@@ -4427,9 +4447,12 @@ function renderFacts(G, factors){
     : mInline(mrow(pctGroup, mo('='), mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(G.order)), pctLabel + ' = φ(%) = φ(' + G.n + ') = ' + G.order));
   var count = generatorCount(G);
   addFact('cyclicGroups.fact.generators', count ? mInline(count.math, count.plain) : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) }));
-  addFact('cyclicGroups.fact.structure', G.cyclic
-    ? mInline(mGroupOf('additive', G.order), additiveLabel(G.order))
-    : mProductInline(factors.map(function(f){ return f.order; })));
+  structureFact = function(){
+    return G.cyclic
+      ? mInline(mGroupOf('additive', G.order), additiveLabel(G.order))
+      : mProductInline(factors.map(function(f){ return f.order; }));
+  };
+  addFact('cyclicGroups.fact.structure', structureFact());
   sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
 
   var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
