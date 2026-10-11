@@ -40,7 +40,8 @@
    fsInfo (the group panel's window), and
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), fsNewRing (the launcher's command that opens another ring
-   window), and the
+   window), fsDuplicateRing (the + button on a ring window's title bar, which
+   opens a copy of that ring), and the
    website-theme bead coloring: colorByTheme, identityColor,
    identityColorReset, legendHeadingTheme and the four legendTheme* lines. Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
@@ -332,6 +333,7 @@
       fsCascade: 'Cascade windows',
       fsShowDesktop: 'Show desktop',
       fsNewRing: 'New ring window',
+      fsDuplicateRing: 'New ring window from {name}',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',

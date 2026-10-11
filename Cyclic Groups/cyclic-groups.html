@@ -570,6 +570,7 @@
   .fs-win-body.is-frame{ display:flex; padding:0; overflow:hidden; }
   .fs-win-body.is-frame > iframe{ flex:1 1 auto; display:block; width:100%; height:100%; min-height:0; border:0; background:none; visibility:hidden; }
   .fs-win-body.is-frame > iframe.is-loaded{ visibility:visible; }
+  .diagram-frame.is-frames-inert .fs-win-body.is-frame > iframe{ pointer-events:none; }
   .fs-rs{ position:absolute; z-index:4; touch-action:none; }
   .fs-rs[data-dir="n"], .fs-rs[data-dir="s"]{ left:10px; right:10px; height:8px; cursor:ns-resize; }
   .fs-rs[data-dir="e"], .fs-rs[data-dir="w"]{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
@@ -987,7 +988,7 @@
 const { clamp, gcd, isPrime, primeFactors, totient, unitsMod } = NT.core;
 const { easeInOutCubic, polar, svgEl } = NT.svg;
 const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
-const { getLang, onLangChange, translate, translateInto } = NT.i18n;
+const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
 
 /* ---------- constants ---------- */
 var MIN_N = 2;
@@ -2431,11 +2432,12 @@ function buildWindow(spec){
   head.appendChild(title);
   var buttons = {};
   [
+    { key: 'dup', parts: [['line', { x1: 2.5, y1: 6, x2: 9.5, y2: 6 }], ['line', { x1: 6, y1: 2.5, x2: 6, y2: 9.5 }]], run: function(){ openRingWindow(spec.key); } },
     { key: 'alpha', parts: [['circle', { cx: 6, cy: 6, r: 4 }], ['path', { 'class': 'icon-fill', d: 'M6 2a4 4 0 0 1 0 8z' }]], run: function(){ toggleAlpha(spec.key); } },
     { key: 'min', parts: [['line', { x1: 3, y1: 8.5, x2: 9, y2: 8.5 }]], run: function(){ minimizeWindow(spec.key); } },
     { key: 'max', parts: [['rect', { 'class': 'icon-max', x: 2.5, y: 2.5, width: 7, height: 7, rx: 1 }], ['path', { 'class': 'icon-restore', d: 'M2.5 4.5h5v5h-5zM4.5 4.5V2.5h5v5h-2' }]], run: function(){ toggleMaximize(spec.key); } },
     { key: 'close', parts: [['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]], run: function(){ closeWindow(spec.key); } }
-  ].forEach(function(b){
+  ].filter(function(b){ return b.key !== 'dup' || spec.ring || spec.frame; }).forEach(function(b){
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'fs-win-btn';
@@ -2525,7 +2527,7 @@ function mountWindow(spec){
 }
 function buildFrame(w, entry){
   var f = document.createElement('iframe');
-  f.addEventListener('load', function(){ f.classList.add('is-loaded'); });
+  f.addEventListener('load', function(){ f.classList.add('is-loaded'); postLook(f); });
   f.src = ringWinSrc(entry.q);
   w.body.appendChild(f);
   w.frame = f;
@@ -2604,6 +2606,7 @@ function syncFsLabels(){
       btn.setAttribute('title', text);
     };
     label(w.grip, 'cyclicGroups.formulaMove');
+    if (w.buttons.dup) label(w.buttons.dup, 'cyclicGroups.fsDuplicateRing');
     label(w.buttons.alpha, 'cyclicGroups.fsTransparency');
     label(w.buttons.min, 'cyclicGroups.fsMinimize');
     label(w.buttons.max, isMax(spec.key) ? 'cyclicGroups.fsRestore' : 'cyclicGroups.fsMaximize');
@@ -2772,8 +2775,35 @@ window.addEventListener('message', function(e){
     if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
     clearTimeout(fsWriteTimer);
     fsWriteTimer = setTimeout(writeFsState, 400);
+  } else if (d.ringwin === 'raise'){
+    // A press inside a frame never reaches this document, so the menu and the
+    // opacity slider close, and the window comes to the front, from here.
+    setFsMenu(false);
+    if (alphaKey) setAlpha(null);
+    if (frontKey() !== key) raiseWindow(key);
   }
 });
+
+// The page's theme and language, told to a frame: it follows the page without
+// writing the page's choice itself.
+function postLook(frame){
+  try {
+    frame.contentWindow.postMessage({ ringhost: 'look', theme: document.documentElement.getAttribute('data-theme'), lang: getLang() }, '*');
+  } catch (e) { /* a frame that is gone needs nothing */ }
+}
+function postLookAll(){
+  if (fsWins) Object.keys(fsWins).forEach(function(k){ if (fsWins[k].frame) postLook(fsWins[k].frame); });
+}
+
+// While a press is down on this page, the frames let it through: a window
+// moved, resized or turned, or a formula or swatch dragged, keeps its pointer
+// when it crosses a frame. A press inside a frame is its own and stays there.
+document.addEventListener('pointerdown', function(){
+  if (fsWins) diagramFrameEl.classList.add('is-frames-inert');
+}, true);
+function endFramesInert(){ diagramFrameEl.classList.remove('is-frames-inert'); }
+window.addEventListener('pointerup', endFramesInert);
+window.addEventListener('pointercancel', endFramesInert);
 
 // In an extra Ring window's frame the Ring window's own contents fill the
 // page: the same parts the original ring's window takes in, in the same
@@ -2783,6 +2813,25 @@ function enterRingWin(){
   body.className = 'fs-win-body is-ring ringwin-body';
   FS_PANELS[0].ids.forEach(function(id){ body.appendChild($(id)); });
   diagramFrameEl.appendChild(body);
+}
+if (IS_RINGWIN){
+  // A press or focus in this frame tells the desktop, so its window comes to
+  // the front. Raising only re-stacks, so the frame keeps running.
+  var tellRaise = function(){
+    try { window.parent.postMessage({ ringwin: 'raise' }, '*'); } catch (e) { /* no desktop to tell */ }
+  };
+  document.addEventListener('pointerdown', tellRaise, true);
+  document.addEventListener('focusin', tellRaise);
+  // The page's look arrives from the desktop that holds this frame, and only
+  // from it: where storage is shared the theme and language arrive on their
+  // own too, but never where it is per file.
+  window.addEventListener('message', function(e){
+    var d = e.data;
+    if (e.source !== window.parent || !d || typeof d !== 'object' || d.ringhost !== 'look') return;
+    var root = document.documentElement;
+    if ((d.theme === 'day' || d.theme === 'night') && root.getAttribute('data-theme') !== d.theme) root.setAttribute('data-theme', d.theme);
+    if (typeof d.lang === 'string' && d.lang !== getLang()) setLang(d.lang);
+  });
 }
 
 
@@ -4622,7 +4671,7 @@ colorResetEl.addEventListener('click', function(){
 });
 // A day/night switch changes the theme colors, so pickers still on the
 // theme default show the new ones.
-new MutationObserver(syncArrowColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+new MutationObserver(function(){ syncArrowColors(); postLookAll(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 exportBtnEl.addEventListener('click', exportRingPng);
 
 // A change written by a sibling tool (or another tab) arrives as a storage
@@ -4647,7 +4696,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); });
+onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); postLookAll(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its

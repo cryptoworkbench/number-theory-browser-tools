@@ -16,11 +16,12 @@ var fs = require("fs");
 var path = require("path");
 var cp = require("child_process");
 var url = require("url");
+var net = require("net");
 
 var ROOT = path.resolve(__dirname, "..", "..", "..");
 var harness = require(path.join(ROOT, ".planning", "phases", "07-shared-js-module-refactor", "harness.js"));
 
-var EXPECTED = 7;
+var EXPECTED = 14;
 // Headless Chrome's --window-size counts ~143px of window chrome the page
 // never sees, so a 1600x1000 viewport needs a window 1143 tall.
 var DESKTOP = "1600,1143";
@@ -66,6 +67,7 @@ function recorder() {
 function pageProbe() {
   var IS_CHILD = /[?&]ringwin=1(&|$)/.test(location.search);
   var FS_KEY = "cyclic-groups-fs-windows";
+  var RUN = location.protocol === "http:" ? "http" : "file";
   var IDS = ["group-controls", "gen-field", "ring-head", "ring-svg", "spin-ruler", "combine-key", "rotate-ctl"];
 
   function assert(cond, msg) { if (!cond) throw new Error(msg); }
@@ -89,6 +91,8 @@ function pageProbe() {
           inp.dispatchEvent(new Event("input", { bubbles: true }));
           inp.dispatchEvent(new Event("change", { bubbles: true }));
         }
+      } else if (d.hz1 === "poke") {
+        document.getElementById("ring-svg").dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerId: 3, button: 0 }));
       } else if (d.hz1 === "report") {
         var lines = [];
         function check(name, fn) {
@@ -96,7 +100,7 @@ function pageProbe() {
           catch (err) { lines.push("FAIL " + name + ": " + (err && err.message ? err.message : err)); }
         }
         //__CHILD_CHECKS__
-        window.parent.postMessage({ hz1: "lines", nValue: document.getElementById("n-input").value, op: document.getElementById("op-toggle").getAttribute("aria-checked"), lines: lines, writes: window.__hz1Writes.slice(), errors: window.__hz1Errors.slice() }, "*");
+        window.parent.postMessage({ hz1: "lines", nValue: document.getElementById("n-input").value, op: document.getElementById("op-toggle").getAttribute("aria-checked"), theme: document.documentElement.getAttribute("data-theme"), lang: document.documentElement.getAttribute("lang"), lines: lines, writes: window.__hz1Writes.slice(), errors: window.__hz1Errors.slice() }, "*");
       }
     });
     return;
@@ -136,6 +140,15 @@ function pageProbe() {
     document.dispatchEvent(new Event("fullscreenchange"));
   }
   function addLines(list) { list.forEach(function (l) { lines.push(l); }); }
+  // Counts a frame's loads: a frame that is moved in the page, or rebuilt,
+  // loads again.
+  function track(win) {
+    var f = frameOf(win);
+    f.__hz1Loads = 0;
+    f.addEventListener("load", function () { f.__hz1Loads++; });
+    return f;
+  }
+  function px(win, prop) { return parseFloat(win.style[prop]); }
   var scenarios = [];
   function scenario(name, fn) { scenarios.push({ name: name, fn: fn }); }
   var shared = {};
@@ -259,6 +272,209 @@ function SCENARIOS_1() {
   });
 }
 
+
+/* The top page's scenarios, Task 2 (file:// run). */
+function SCENARIOS_2() {
+  function deskPx() {
+    var f = document.getElementById("diagram-frame");
+    return { W: f.clientWidth, H: f.clientHeight - 44 };
+  }
+  function shownRects() {
+    var f = document.getElementById("diagram-frame"), fr = f.getBoundingClientRect();
+    return Array.prototype.slice.call(document.querySelectorAll(".fs-win")).filter(function (w) { return !w.hidden; }).map(function (w) {
+      var r = w.getBoundingClientRect();
+      return { l: r.left - fr.left - f.clientLeft, t: r.top - fr.top - f.clientTop, w: r.width, h: r.height, key: w.getAttribute("data-panel") };
+    });
+  }
+  function click(el) { el.click(); }
+  function pointer(type, target, x, y, id) {
+    target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: id, button: 0, clientX: x, clientY: y }));
+  }
+
+  scenario("R7 copies", function () {
+    ringWin().querySelector(".fs-win-btn.is-dup").click();
+    eq(frames().length, 1, "frame windows after + on the original");
+    var w1 = frames()[0];
+    shared.e1 = track(w1);
+    var p = srcParams(w1);
+    eq(p.get("mode") + "/" + p.get("n"), "additive/12", "copy of the original");
+    assert(w1.classList.contains("is-front"), "copy of the original is not in front");
+    return wait(1500).then(function () {
+      post(w1, { hz1: "set", n: 15, mode: "multiplicative" });
+      return wait(900);
+    }).then(function () {
+      click(w1.querySelector(".fs-win-btn.is-dup"));
+      eq(frames().length, 2, "frame windows after + on an extra");
+      var w2 = frames()[1];
+      shared.e2 = track(w2);
+      var p2 = srcParams(w2);
+      eq(p2.get("mode") + "/" + p2.get("n"), "multiplicative/15", "copy of the extra");
+      assert(Math.abs(px(w2, "left") - px(w1, "left") - 32) <= 1, "left " + px(w1, "left") + " -> " + px(w2, "left"));
+      assert(Math.abs(px(w2, "top") - px(w1, "top") - 32) <= 1, "top " + px(w1, "top") + " -> " + px(w2, "top"));
+      assert(Math.abs(px(w2, "width") - px(w1, "width")) <= 1 && Math.abs(px(w2, "height") - px(w1, "height")) <= 1, "size differs");
+      assert(w2.classList.contains("is-front"), "copy of the extra is not in front");
+      return wait(1500);
+    }).then(function () {
+      post(frames()[0], { hz1: "set", n: 12, mode: "additive" });
+      return wait(900);
+    }).then(function () {
+      eq(titleOf(frames()[0]), "Cyclic Group \u27E8\u2124/12\u2124, +\u27E9", "first extra");
+      eq(titleOf(frames()[1]), "Ring \u27E8\u2124/15\u2124, \u00D7\u27E9", "second extra");
+      return "+ copies the original (12/+) and an extra (15/x), 32px right and down, in front";
+    });
+  });
+
+  scenario("R8 raise", function () {
+    var w1 = frames()[0], w2 = frames()[1];
+    eq(frontWin(), w2, "front before the poke");
+    document.getElementById("fs-launcher").click();
+    assert(!document.getElementById("fs-menu").hidden, "menu did not open");
+    post(w1, { hz1: "poke" });
+    return wait(300).then(function () {
+      eq(frontWin(), w1, "front after the poke");
+      assert(tasks()[1].classList.contains("is-front"), "task button not lit");
+      var z = parseInt(w1.style.zIndex, 10);
+      Array.prototype.forEach.call(document.querySelectorAll(".fs-win"), function (w) {
+        if (w !== w1) assert(parseInt(w.style.zIndex, 10) < z, "z-index of " + w.getAttribute("data-panel") + " is not below");
+      });
+      assert(document.getElementById("fs-menu").hidden, "menu stayed open");
+      return "a press in a back frame brought it to the front and closed the menu";
+    });
+  });
+
+  scenario("R9 inert", function () {
+    var frame = document.getElementById("diagram-frame");
+    var head = ringWin().querySelector(".fs-win-head");
+    pointer("pointerdown", head, 120, 120, 9);
+    assert(frame.classList.contains("is-frames-inert"), "no is-frames-inert after a press on a head");
+    frames().forEach(function (w) { eq(getComputedStyle(frameOf(w)).pointerEvents, "none", "frame pointer-events"); });
+    pointer("pointerup", window, 120, 120, 9);
+    assert(!frame.classList.contains("is-frames-inert"), "is-frames-inert stayed after the release");
+    frames().forEach(function (w) { eq(getComputedStyle(frameOf(w)).pointerEvents, "auto", "frame pointer-events after"); });
+    return "frames let a press through while it lasts";
+  });
+
+  scenario("R10 desktop commands", function () {
+    var w1 = frames()[0], w2 = frames()[1], D = deskPx();
+    // Tile
+    click(actionItem(1));
+    var rs = shownRects();
+    eq(rs.length, 3, "windows shown after Tile");
+    rs.forEach(function (r) {
+      assert(r.l >= -1 && r.t >= -1 && r.l + r.w <= D.W + 1 && r.t + r.h <= D.H + 1, r.key + " is off the desktop: " + JSON.stringify(r));
+    });
+    for (var i = 0; i < rs.length; i++) for (var j = i + 1; j < rs.length; j++) {
+      var a = rs[i], b = rs[j];
+      assert(!(a.l < b.l + b.w - 2 && b.l < a.l + a.w - 2 && a.t < b.t + b.h - 2 && b.t < a.t + a.h - 2), a.key + " overlaps " + b.key);
+    }
+    // Cascade
+    click(actionItem(2));
+    eq(frontWin(), ringWin(), "front after Cascade");
+    eq(px(ringWin(), "left") + "," + px(w1, "left") + "," + px(w2, "left"), "24,56,88", "cascade lefts");
+    // Show desktop, twice
+    click(actionItem(3));
+    assert(ringWin().hidden && w1.hidden && w2.hidden, "Show desktop left a window up");
+    click(actionItem(3));
+    assert(!ringWin().hidden && !w1.hidden && !w2.hidden, "the second Show desktop did not bring them back");
+    // Minimize, restore from the task button, maximize, restore
+    w2.querySelector(".fs-win-btn.is-min").click();
+    assert(w2.hidden, "minimize did not hide");
+    click(tasks()[2]);
+    assert(!w2.hidden && w2.classList.contains("is-front"), "the task button did not restore");
+    w2.querySelector(".fs-win-btn.is-max").click();
+    assert(w2.classList.contains("is-max"), "maximize");
+    w2.querySelector(".fs-win-btn.is-max").click();
+    assert(!w2.classList.contains("is-max"), "restore");
+    var head = w2.querySelector(".fs-win-head");
+    head.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    assert(w2.classList.contains("is-max"), "double-click maximize");
+    head.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    assert(!w2.classList.contains("is-max"), "double-click restore");
+    // Opacity
+    w2.querySelector(".fs-win-btn.is-alpha").click();
+    var slider = document.querySelector(".fs-alpha input");
+    slider.value = "50";
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+    eq(w2.style.getPropertyValue("--win-alpha"), "0.5", "opacity");
+    w2.querySelector(".fs-win-btn.is-alpha").click();
+    // Snap to the left half by dragging the title bar to the edge
+    var fr = document.getElementById("diagram-frame").getBoundingClientRect();
+    var hr = head.getBoundingClientRect();
+    pointer("pointerdown", head, hr.left + 60, hr.top + 10, 11);
+    pointer("pointermove", window, fr.left + 4, fr.top + D.H / 2, 11);
+    pointer("pointerup", window, fr.left + 4, fr.top + D.H / 2, 11);
+    assert(Math.abs(px(w2, "left")) <= 1 && Math.abs(px(w2, "width") - D.W / 2) <= 2, "snap: left " + px(w2, "left") + " width " + px(w2, "width") + " of " + D.W);
+    // None of it reloaded a frame
+    eq(shared.e1.__hz1Loads, 1, "loads of the first extra");
+    eq(shared.e2.__hz1Loads, 1, "loads of the second extra");
+    assert(shared.e1.isConnected && shared.e2.isConnected && frameOf(w1) === shared.e1 && frameOf(w2) === shared.e2, "a frame was replaced");
+    return "Tile, Cascade, Show desktop, minimize, maximize, opacity and snap include the extras; each frame loaded once";
+  });
+
+  scenario("R11f theme-lang over file", function () {
+    var w1 = frames()[0], r0;
+    // The desktop's look message, sent by hand: the frame takes the theme with
+    // no write of its own, and ignores a message from anyone but its page.
+    var top = document.documentElement.getAttribute("data-theme"), other = top === "day" ? "night" : "day";
+    post(w1, { ringhost: "look", theme: other, lang: "en" });
+    return wait(200).then(function () {
+      return ask(w1, { hz1: "report" });
+    }).then(function (rl) {
+      eq(rl.theme, other, "theme after a look message");
+      assert(rl.writes.indexOf("ls:site-theme-choice") === -1, "the look message made the frame write the theme");
+      post(w1, { ringhost: "look", theme: top, lang: "en" });
+      return wait(200).then(function () { return ask(w1, { hz1: "report" }); });
+    }).then(function (r) {
+      eq(r.theme, top, "theme after the look message is undone");
+      r0 = r;
+      document.getElementById("theme-switch-input").click();
+      return wait(500).then(function () { return ask(w1, { hz1: "report" }); });
+    }).then(function (r1) {
+      assert(r1.theme !== r0.theme, "the frame's theme stayed " + r0.theme);
+      eq(r1.theme, document.documentElement.getAttribute("data-theme"), "frame theme");
+      NT.i18n.setLang("fr");
+      return wait(500).then(function () { return ask(w1, { hz1: "report" }); });
+    }).then(function (r2) {
+      eq(r2.lang, "fr", "frame language");
+      assert(titleOf(w1).indexOf("Groupe") === 0 || titleOf(w1).length > 0, "title");
+      NT.i18n.setLang("en");
+      return wait(500).then(function () { return ask(w1, { hz1: "report" }); });
+    }).then(function (r3) {
+      eq(r3.lang, "en", "frame language back");
+      eq(titleOf(w1), "Cyclic Group \u27E8\u2124/12\u2124, +\u27E9", "title back in English");
+      return "over file:// the frame followed the theme (" + r0.theme + " -> " + r1theme(r3) + ") and the language";
+    });
+    function r1theme(r) { return r.theme; }
+  });
+}
+
+/* The top page's scenarios, Task 2 (http:// run, same-origin frames). */
+function SCENARIOS_HTTP() {
+  scenario("R11 theme-lang", function () {
+    fakeFullscreen(true);
+    actionItem(0).click();
+    var win = frames()[0], r0;
+    return wait(1500).then(function () {
+      return ask(win, { hz1: "report" });
+    }).then(function (r) {
+      r0 = r;
+      document.getElementById("theme-switch-input").click();
+      return wait(500).then(function () { return ask(win, { hz1: "report" }); });
+    }).then(function (r1) {
+      assert(r1.theme !== r0.theme, "the frame's theme stayed " + r0.theme);
+      eq(r1.theme, document.documentElement.getAttribute("data-theme"), "frame theme");
+      NT.i18n.setLang("de");
+      return wait(500).then(function () { return ask(win, { hz1: "report" }); });
+    }).then(function (r2) {
+      eq(r2.lang, "de", "frame language");
+      ["group-params", FS_KEY, "cyclic-groups-fs-formula-pos"].forEach(function (k) {
+        assert(r2.writes.indexOf("ls:" + k) === -1, "the frame wrote " + k);
+      });
+      return "the frame followed the theme (" + r0.theme + " -> " + r2.theme + ") and the language (de) and wrote none of the shared stores";
+    });
+  });
+}
+
 function bodyOf(fn) {
   var s = fn.toString();
   return s.slice(s.indexOf("{") + 1, s.lastIndexOf("}"));
@@ -295,7 +511,10 @@ function buildSite(opts) {
 
 // The recorder's seed: nothing yet (later tasks seed corrupt desktop state).
 var SEED_SRC = "";
-var SCENARIO_BODIES = [bodyOf(SCENARIOS_1)];
+var SCENARIO_BODIES = [
+  'if (RUN === "file") {', bodyOf(SCENARIOS_1), bodyOf(SCENARIOS_2), "}",
+  'if (RUN === "http") {', bodyOf(SCENARIOS_HTTP), "}"
+];
 
 function unescapeHtml(s) {
   return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
@@ -325,13 +544,49 @@ function readOut(dom, label) {
   return unescapeHtml(m[1]).split("\n").filter(function (l) { return l.length > 0; });
 }
 
-function main() {
+function freePort() {
+  return new Promise(function (resolve, reject) {
+    var srv = net.createServer();
+    srv.listen(0, "127.0.0.1", function () {
+      var port = srv.address().port;
+      srv.close(function () { resolve(port); });
+    });
+    srv.on("error", reject);
+  });
+}
+
+function waitForPort(port, tries) {
+  return new Promise(function (resolve, reject) {
+    (function attempt(n) {
+      var sock = net.connect(port, "127.0.0.1");
+      sock.on("connect", function () { sock.destroy(); resolve(); });
+      sock.on("error", function () {
+        sock.destroy();
+        if (n <= 0) reject(new Error("http server did not start"));
+        else setTimeout(function () { attempt(n - 1); }, 100);
+      });
+    })(tries);
+  });
+}
+
+async function main() {
   var site = buildSite();
   var pageUrl = url.pathToFileURL(site.page).href;
   var all = [];
 
   // Run A: the page over file://, in a fresh profile.
   all = all.concat(readOut(runChrome(pageUrl + PAGE_QUERY, DESKTOP), "run A"));
+
+  // Run H: the page over http://, where the frames are same-origin. The
+  // server is stopped through its process handle.
+  var port = await freePort();
+  var server = cp.spawn("python3", ["-m", "http.server", String(port), "--bind", "127.0.0.1"], { cwd: site.root, stdio: "ignore" });
+  try {
+    await waitForPort(port, 50);
+    all = all.concat(readOut(runChrome("http://127.0.0.1:" + port + "/Cyclic%20Groups/cyclic-groups.html" + PAGE_QUERY, DESKTOP), "run H"));
+  } finally {
+    server.kill();
+  }
 
   all.forEach(function (l) { console.log(l); });
   var fails = all.filter(function (l) { return /^FAIL/.test(l); }).length;
@@ -344,4 +599,7 @@ function main() {
   process.exit(0);
 }
 
-main();
+main().catch(function (err) {
+  console.log("RINGWIN-PROBE FAIL " + (err && err.stack ? err.stack : err));
+  process.exit(1);
+});
