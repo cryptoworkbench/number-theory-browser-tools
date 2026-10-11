@@ -550,17 +550,17 @@
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
   /* The formula scratchpad: a button under the subgroup row that opens a
      card over the ring, its background clear, a row per formula with its
-     name. Only the Ring window has it; presses pass through the card to
-     the ring, except on its controls. */
+     name. Only the Ring window has it; dragging the card moves it
+     about the window, double-clicking it puts it back under the button. */
   .formula-scratch{ display:none; }
   .fs-win-body.is-ring > .formula-scratch{ grid-area:pad; display:block; position:relative; z-index:4; justify-self:start; padding:6px 0 0; }
-  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); position:absolute; top:100%; left:0; margin-top:6px; padding:.62em 1.4em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); pointer-events:none; }
+  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); position:absolute; top:100%; left:0; margin-top:6px; padding:.62em 1.4em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .scratch-pad.is-moving{ cursor:grabbing; }
   .scratch-pad[hidden]{ display:none; }
   /* Each row's name on a line of its own, its formula on the line under it. */
   .scratch-row + .scratch-row{ margin-top:.62em; }
-  .scratch-pad :is(select, button){ pointer-events:auto; }
   /* Its corner grip scales the card and its formulas together. */
-  .scratch-grip{ position:absolute; right:2px; bottom:2px; width:1em; height:1em; cursor:nwse-resize; touch-action:none; pointer-events:auto;
+  .scratch-grip{ position:absolute; right:2px; bottom:2px; width:1em; height:1em; cursor:nwse-resize; touch-action:none;
     background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
   .scratch-grip:hover, .scratch-pad.is-resizing .scratch-grip{ opacity:1; }
   .scratch-name{ display:block; font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
@@ -2031,6 +2031,43 @@ function setScratchScale(v){
   scratchScale = clamp(v, 1, 3);
   scratchPadEl.style.setProperty('--scratch-scale', String(scratchScale));
 }
+// Dragging the card anywhere but its grip and its controls moves it, kept
+// inside its window; scratchAt is how far it has moved from under the
+// button.
+var scratchAt = { x: 0, y: 0 }, scratchMoving = null;
+function placeScratch(x, y){
+  var body = scratchPadEl.closest('.fs-win-body');
+  scratchPadEl.style.translate = scratchAt.x + 'px ' + scratchAt.y + 'px';
+  if (body && !scratchPadEl.hidden){
+    var b = body.getBoundingClientRect(), r = scratchPadEl.getBoundingClientRect();
+    var left = r.left + x - scratchAt.x, top = r.top + y - scratchAt.y;
+    x += Math.max(0, b.left - left) || Math.min(0, b.right - (left + r.width));
+    y += Math.max(0, b.top - top) || Math.min(0, b.bottom - (top + r.height));
+  }
+  scratchAt = { x: Math.round(x), y: Math.round(y) };
+  scratchPadEl.style.translate = scratchAt.x + 'px ' + scratchAt.y + 'px';
+}
+scratchPadEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0 || e.target.closest('select, button, .scratch-grip')) return;
+  scratchMoving = { id: e.pointerId, x: e.clientX - scratchAt.x, y: e.clientY - scratchAt.y };
+  scratchPadEl.setPointerCapture(e.pointerId);
+  scratchPadEl.classList.add('is-moving');
+  e.preventDefault();
+});
+scratchPadEl.addEventListener('pointermove', function(e){
+  if (scratchMoving && e.pointerId === scratchMoving.id) placeScratch(e.clientX - scratchMoving.x, e.clientY - scratchMoving.y);
+});
+function endScratchMoving(e){
+  if (!scratchMoving || e.pointerId !== scratchMoving.id) return;
+  scratchMoving = null;
+  scratchPadEl.classList.remove('is-moving');
+}
+scratchPadEl.addEventListener('pointerup', endScratchMoving);
+scratchPadEl.addEventListener('pointercancel', endScratchMoving);
+scratchPadEl.addEventListener('dblclick', function(e){
+  if (!e.target.closest('select, button, .scratch-grip')) placeScratch(0, 0);
+});
+
 scratchPadEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !e.target.classList.contains('scratch-grip')) return;
   var r = scratchPadEl.getBoundingClientRect();
@@ -2055,6 +2092,7 @@ function endScratchSizing(e){
   if (!scratchSizing || e.pointerId !== scratchSizing.id) return;
   scratchSizing = null;
   scratchPadEl.classList.remove('is-resizing');
+  placeScratch(scratchAt.x, scratchAt.y);
 }
 scratchPadEl.addEventListener('pointerup', endScratchSizing);
 scratchPadEl.addEventListener('pointercancel', endScratchSizing);
