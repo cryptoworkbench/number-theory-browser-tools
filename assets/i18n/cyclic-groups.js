@@ -36,7 +36,8 @@
    formulaMove (a window's grip), fsClose, fsMinimize, fsMaximize and
    fsRestore (its title-bar buttons), fsTransparency, fsOpacity and
    fsOpacityValue (its opacity button and slider), fsRing, fsRingCyclic and fsRingNotCyclic (the ring's own window,
-   named after the group on show), fsInfo (the group panel's window), and
+   named after the group on show), fsGroupParams (the label of its top row),
+   fsInfo (the group panel's window), and
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), and the
    website-theme bead coloring: colorByTheme, identityColor,
@@ -318,6 +319,7 @@
       fsRingCyclic: 'Cyclic Group {group}',
       fsRingNotCyclic: 'Ring {group}',
       fsInfo: 'Info',
+      fsGroupParams: 'Group parameters',
       fsMinimize: 'Minimize {name}',
       fsMaximize: 'Maximize {name}',
       fsRestore: 'Restore {name}',
