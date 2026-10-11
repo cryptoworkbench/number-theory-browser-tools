@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T14:54:48.201Z"
+last_updated: "2026-10-11T15:28:15.897Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 64fcb0c07da7c6cff0b15efbba395416b9f71c33
+state_head: 574bf8985dc284385216b04e2a4214ec558239d4
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-11 - Completed quick task 261011-cdw: Translate the 34 English-only cyclicGroups keys into all thirty non-English languages
+Last activity: 2026-10-11 - Completed quick task 261011-nut: Cyclic Groups Splitview stacks the subgroup list under the ring in the Ring window
 
 Progress: [█████████░] 86%
 
@@ -469,6 +469,7 @@ None yet.
 | 233 | cyclic groups: scratchpad replaces its button, closes from a corner x | 2026-10-11 | d8473b6 | — |
 | 234 | Cyclic Groups: remove the Subgroup paths checkbox from the Layers panel/window | 2026-10-11 | d626d4e | — |
 | 235 | Cyclic Groups: scratchpad shows the group name as ⟨ℤ/%ℤ, ∗⟩ = ⟨ℤ/12ℤ, +⟩ | 2026-10-11 | 64fcb0c | — |
+| 261011-nut | Cyclic Groups: Splitview button on the Subgroup visualized row stacks the subgroup list under the ring in the Ring window | 2026-10-11 | 574bf89 | [261011-nut-cyclic-groups-splitview-subgroup-list-st](./quick/261011-nut-cyclic-groups-splitview-subgroup-list-st/) |
 
 ## Deferred Items
 
@@ -484,4 +485,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-11 - Completed quick task 261011-cdw: Translate the 34 English-only cyclicGroups keys into all thirty non-English languages
+Last activity: 2026-10-11 - Completed quick task 261011-nut: Cyclic Groups Splitview stacks the subgroup list under the ring in the Ring window
