@@ -5154,9 +5154,38 @@ sideElEl.addEventListener('change', function(){
   state.elSide = sideElEl.value;
   render();
 });
+// A change that resizes the ring, such as the rows of controls around it
+// growing or shrinking, eases the ring from its old size on screen to its
+// new one instead of jumping: the view is first drawn where it was, by a
+// transform worked out from its old and new screen mappings, which then
+// runs out. A change in the middle of one carries on from where it is.
+var RING_EASE_MS = 350;
+var reduceMotionMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+function easeRingResize(change){
+  var before = ringSvgEl.getScreenCTM();
+  ringSvgEl.style.transition = 'none';
+  ringSvgEl.style.transform = '';
+  change();
+  var after = ringSvgEl.getScreenCTM();
+  if (!before || !after || !after.a || (reduceMotionMq && reduceMotionMq.matches)) return;
+  var k = before.a / after.a;
+  if (Math.abs(k - 1) < 0.002 && Math.abs(before.e - after.e) < 0.5 && Math.abs(before.f - after.f) < 0.5) return;
+  var r = ringSvgEl.getBoundingClientRect();
+  var dx = before.e - r.left - k * (after.e - r.left), dy = before.f - r.top - k * (after.f - r.top);
+  ringSvgEl.style.transformOrigin = '0 0';
+  ringSvgEl.style.transform = 'translate(' + num(dx) + 'px, ' + num(dy) + 'px) scale(' + k + ')';
+  void ringSvgEl.getBoundingClientRect();
+  ringSvgEl.style.transition = 'transform ' + RING_EASE_MS + 'ms ease';
+  ringSvgEl.style.transform = '';
+}
+ringSvgEl.addEventListener('transitionend', function(e){
+  if (e.target !== ringSvgEl || e.propertyName !== 'transform') return;
+  ringSvgEl.style.transition = '';
+  ringSvgEl.style.transformOrigin = '';
+});
 backwardEl.addEventListener('change', function(){
   state.backward = !backwardEl.checked;
-  render();
+  easeRingResize(render);
 });
 // Flipping the direction keeps the identity where it is: it sits p - rot
 // places round from the top, p its place in the arrangement, so the new
