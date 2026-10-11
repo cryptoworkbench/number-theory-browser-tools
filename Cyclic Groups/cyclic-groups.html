@@ -554,7 +554,7 @@
      about the window, double-clicking it puts it back under the button. */
   .formula-scratch{ display:none; }
   .fs-win-body.is-ring > .formula-scratch{ grid-area:pad; display:block; position:relative; z-index:4; justify-self:start; padding:6px 0 0; }
-  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); position:absolute; top:100%; left:0; margin-top:6px; padding:.62em 1.4em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .scratch-pad{ --scratch-scale:1; font-size:calc(var(--scratch-scale) * 1rem); width:max-content; position:absolute; top:100%; left:0; margin-top:6px; padding:.62em 1.4em .62em .875em; background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-card); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
   .scratch-pad.is-moving{ cursor:grabbing; }
   .scratch-pad[hidden]{ display:none; }
   /* Each row's name on a line of its own, its formula on the line under it. */
@@ -566,6 +566,7 @@
   .scratch-name{ display:block; font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
   .scratch-math{ margin-top:.15em; }
   .scratch-math math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
+  .scratch-math math.m-inline{ display:inline-block; display:inline math; width:auto; font-size:1.05em; }
   .scratch-math .ring-math-title{ font-size:1.2em; }
   .scratch-math .ring-math-formula{ font-size:1.05em; }
   .fs-win-body.is-ring .group-controls{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
@@ -1984,11 +1985,13 @@ function drawMath(G, subs){
 }
 var lastSubs = [];
 
-// The formula scratchpad: every formula the head can show, each on a row
-// under its name, whichever switches are on. With no subgroup chosen, the
+// The formula scratchpad: every formula the head can show, and the number
+// of generators as the Info window works it out, each on a row under its
+// name, whichever switches are on. With no subgroup chosen, the
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
-var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.formulaToggleCosetsShort' };
+var SCRATCH_ROWS = ['gname', 'sname', 'gorder', 'gens', 'sorder', 'cindex'];
+var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.fact.generators', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.formulaToggleCosetsShort' };
 var scratchOpen = false;
 function drawScratchPad(G){
   scratchBtnEl.textContent = translate(scratchOpen ? 'cyclicGroups.scratchClose' : 'cyclicGroups.scratchOpen');
@@ -2003,7 +2006,9 @@ function drawScratchPad(G){
     translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }));
   orderFormulas(G, on).forEach(function(f){ cells[f.key] = mathLine('ring-math-formula', f.math, f.plain); });
   if (on('sorder') && G.mode === 'multiplicative' && G.cyclic && !state.bygen) cells.sorder = logBasePrompt(G, true);
-  HEAD_CHAIN.forEach(function(key){
+  var count = generatorCount(G);
+  cells.gens = count ? mathLine('ring-math-formula', count.math, count.plain) : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) });
+  SCRATCH_ROWS.forEach(function(key){
     var name = document.createElement('span');
     name.className = 'scratch-name';
     name.textContent = translate(SCRATCH_NAMES[key]);
@@ -4105,6 +4110,17 @@ function addFact(labelKey, value){
   factsEl.appendChild(li);
 }
 
+// The number of generators, worked out, or null for a group that is not
+// cyclic. The generators of ℤ/nℤ are the units mod n, so there are φ(n) of
+// them; a cyclic (ℤ/nℤ)* is a cyclic group of order φ(n), so it has φ(φ(n)).
+function generatorCount(G){
+  var phi = totient(G.n);
+  if (G.mode === 'additive') return { math: mrow(mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(phi)), plain: 'φ(%) = φ(' + G.n + ') = ' + phi };
+  if (!G.cyclic) return null;
+  return { math: mrow(mPhi(mPhi(mPct())), mo('='), mPhi(mPhi(mn(G.n))), mo('='), mPhi(mn(phi)), mo('='), mn(totient(phi))),
+    plain: 'φ(φ(%)) = φ(φ(' + G.n + ')) = φ(' + phi + ') = ' + totient(phi) };
+}
+
 function renderFacts(G, factors){
   factsEl.replaceChildren();
   // The group the modulus and the operation make; then its
@@ -4115,15 +4131,8 @@ function renderFacts(G, factors){
   addFact('cyclicGroups.fact.cardinality', G.mode === 'additive'
     ? mInline(mrow(pctGroup, mo('='), mPct(), mo('='), mn(G.n)), pctLabel + ' = % = ' + G.n)
     : mInline(mrow(pctGroup, mo('='), mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(G.order)), pctLabel + ' = φ(%) = φ(' + G.n + ') = ' + G.order));
-  // The generators of ℤ/nℤ are the units mod n, so there are φ(n) of them; a
-  // cyclic (ℤ/nℤ)* is a cyclic group of order φ(n), so it has φ(φ(n)).
-  var phi = totient(G.n);
-  addFact('cyclicGroups.fact.generators', G.mode === 'additive'
-    ? mInline(mrow(mPhi(mPct()), mo('='), mPhi(mn(G.n)), mo('='), mn(phi)), 'φ(%) = φ(' + G.n + ') = ' + phi)
-    : G.cyclic
-      ? mInline(mrow(mPhi(mPhi(mPct())), mo('='), mPhi(mPhi(mn(G.n))), mo('='), mPhi(mn(phi)), mo('='), mn(totient(phi))),
-          'φ(φ(%)) = φ(φ(' + G.n + ')) = φ(' + phi + ') = ' + totient(phi))
-      : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) }));
+  var count = generatorCount(G);
+  addFact('cyclicGroups.fact.generators', count ? mInline(count.math, count.plain) : tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) }));
   addFact('cyclicGroups.fact.structure', G.cyclic
     ? mInline(mGroupOf('additive', G.order), additiveLabel(G.order))
     : mProductInline(factors.map(function(f){ return f.order; })));
