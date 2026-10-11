@@ -436,6 +436,12 @@
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
+  /* The title and the formulas can be dragged anywhere over the diagram;
+     one moved keeps its place, also after being turned off and on again,
+     and a double-click puts it back in the column. */
+  .ring-head math[data-formula]{ cursor:grab; touch-action:none; }
+  .ring-head math.is-moved{ position:absolute; z-index:1; margin:0; }
+  :root.is-formula-drag, :root.is-formula-drag *{ cursor:grabbing !important; user-select:none !important; -webkit-user-select:none !important; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
   .ring-head .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
@@ -1441,25 +1447,25 @@ function orderFormulas(G){
   var h = shownGen(G), out = [];
   if (G.mode === 'additive'){
     var n = G.order, d = gcd(n, h);
-    if (headOn('gorder')) out.push({ math: mrow(abs(mGroup(G)), mo('='), mn(n)),
+    if (headOn('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mn(n)),
       plain: translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }) });
-    if (headOn('sorder')) out.push({ math: mrow(
+    if (headOn('sorder')) out.push({ key: 'sorder', math: mrow(
         abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
       plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) });
-    if (headOn('cindex')) out.push(cosetCountFormula(G, h));
+    if (headOn('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
     return out;
   }
   var k = G.order;
-  if (headOn('gorder')) out.push({ math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
+  if (headOn('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
     plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
   if (headOn('sorder') && G.cyclic && state.bygen){
     // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
     // gcd(k, k) = k reads more plainly than gcd(k, 0).
     var g = arrangeBy(G), q = lap(G, g, k).indexOf(h) || k, dq = gcd(k, q);
-    out.push({ math: mrow(
+    out.push({ key: 'sorder', math: mrow(
         abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
         mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mLog(g, h))), mo('='),
@@ -1467,7 +1473,7 @@ function orderFormulas(G){
         mfrac(mn(k), mn(dq)), mo('='), mn(k / dq)),
       plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: k, q: q, d: dq, m: k / dq }) });
   }
-  if (headOn('cindex')) out.push(cosetCountFormula(G, h));
+  if (headOn('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
   return out;
 }
 
@@ -1553,12 +1559,12 @@ function drawMath(G, subs){
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
   } else {
     var whole = G.orders[h] === G.order;
-    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
-    else if (headOn('gname')) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
+    if (headOn('sname')) lines.push(movable('sname', mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }))));
+    else if (headOn('gname')) lines.push(movable('gname', mathLine('ring-math-title', mGroup(G), G.label)));
     var row = document.createElement('div');
     row.className = 'ring-math-row';
-    orderFormulas(G).forEach(function(f){ row.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
+    orderFormulas(G).forEach(function(f){ row.appendChild(movable(f.key, mathLine('ring-math-formula', f.math, f.plain))); });
     if (row.firstChild) lines.push(row);
     if (needsLogBase(G)) lines.push(logBasePrompt(G));
   }
@@ -1571,7 +1577,118 @@ function drawMath(G, subs){
   });
   ringHeadEl.replaceChildren.apply(ringHeadEl, lines);
   fitRingHead();
+  placeMoved();
 }
+
+/* ---------- movable formulas ---------- */
+
+// The title and each formula first appear in the column over the ring.
+// Dragged, one is lifted out of it and placed over the diagram where it was
+// dropped; that place is remembered under its switch's name, as the centre
+// as a fraction of the diagram's size, across turning it off and on and
+// across visits. A double-click puts it back in the column.
+var FORMULA_POS_KEY = 'cyclic-groups-formula-pos';
+var formulaPos = readFormulaPos();
+var formulaDrag = null; // { key, id, x, y, dx, dy, live } while one is pressed
+function readFormulaPos(){
+  var out = {};
+  try {
+    var raw = JSON.parse(localStorage.getItem(FORMULA_POS_KEY) || '{}');
+    Object.keys(raw || {}).forEach(function(k){
+      var p = raw[k];
+      if (p && isFinite(p.x) && isFinite(p.y)) out[k] = { x: clamp(+p.x, 0, 1), y: clamp(+p.y, 0, 1) };
+    });
+  } catch (e) { /* storage unavailable or unreadable */ }
+  return out;
+}
+function writeFormulaPos(){
+  try { localStorage.setItem(FORMULA_POS_KEY, JSON.stringify(formulaPos)); } catch (e) { /* storage unavailable */ }
+}
+function movable(key, el){
+  el.setAttribute('data-formula', key);
+  return el;
+}
+function formulaEl(key){
+  return ringHeadEl.querySelector('math[data-formula="' + key + '"]');
+}
+// Puts a moved formula's centre at (x, y), fractions of the diagram's
+// padding box, kept wholly inside it. A <math> element has no offset*
+// metrics, so its size comes from its bounding box.
+function placeFormula(el, x, y){
+  var W = diagramFrameEl.clientWidth, H = diagramFrameEl.clientHeight;
+  var r = el.getBoundingClientRect(), w = r.width, h = r.height;
+  el.style.left = Math.round(clamp(x * W - w / 2, 0, Math.max(0, W - w))) + 'px';
+  el.style.top = Math.round(clamp(y * H - h / 2, 0, Math.max(0, H - h))) + 'px';
+}
+function placeMoved(){
+  ringHeadEl.querySelectorAll('math[data-formula]').forEach(function(el){
+    var p = formulaPos[el.getAttribute('data-formula')];
+    if (!p) return;
+    el.classList.add('is-moved');
+    placeFormula(el, p.x, p.y);
+  });
+}
+ringHeadEl.addEventListener('pointerdown', function(e){
+  var el = e.button === 0 && e.target.closest && e.target.closest('math[data-formula]');
+  if (!el) return;
+  formulaDrag = { key: el.getAttribute('data-formula'), id: e.pointerId, x: e.clientX, y: e.clientY, live: false };
+});
+window.addEventListener('pointermove', function(e){
+  if (!formulaDrag || e.pointerId !== formulaDrag.id) return;
+  var el = formulaEl(formulaDrag.key);
+  if (!el){ formulaDrag = null; return; }
+  var frame = diagramFrameEl.getBoundingClientRect();
+  var ox = frame.left + diagramFrameEl.clientLeft, oy = frame.top + diagramFrameEl.clientTop;
+  if (!formulaDrag.live){
+    // A press that wanders less than a few pixels is a click, which
+    // selects the formula for copying.
+    if (Math.hypot(e.clientX - formulaDrag.x, e.clientY - formulaDrag.y) < 5) return;
+    var r = el.getBoundingClientRect();
+    formulaDrag.live = true;
+    formulaDrag.dx = formulaDrag.x - (r.left + r.width / 2);
+    formulaDrag.dy = formulaDrag.y - (r.top + r.height / 2);
+    var sel = window.getSelection && window.getSelection();
+    if (sel) sel.removeAllRanges();
+    document.documentElement.classList.add('is-formula-drag');
+    // Lifted out of the column where it stands, so it does not jump.
+    if (!el.classList.contains('is-moved')){
+      el.classList.add('is-moved');
+      el.style.left = Math.round(r.left - ox) + 'px';
+      el.style.top = Math.round(r.top - oy) + 'px';
+    }
+  }
+  e.preventDefault();
+  var p = {
+    x: (e.clientX - formulaDrag.dx - ox) / diagramFrameEl.clientWidth,
+    y: (e.clientY - formulaDrag.dy - oy) / diagramFrameEl.clientHeight
+  };
+  placeFormula(el, p.x, p.y);
+  // What is remembered is where it ended up, after keeping it inside.
+  var at = el.getBoundingClientRect();
+  formulaPos[formulaDrag.key] = {
+    x: (at.left + at.width / 2 - ox) / diagramFrameEl.clientWidth,
+    y: (at.top + at.height / 2 - oy) / diagramFrameEl.clientHeight
+  };
+});
+function endFormulaDrag(e){
+  if (!formulaDrag || e.pointerId !== formulaDrag.id) return;
+  if (formulaDrag.live){
+    writeFormulaPos();
+    document.documentElement.classList.remove('is-formula-drag');
+  }
+  formulaDrag = null;
+}
+window.addEventListener('pointerup', endFormulaDrag);
+window.addEventListener('pointercancel', endFormulaDrag);
+ringHeadEl.addEventListener('dragstart', function(e){ if (e.target.closest && e.target.closest('math[data-formula]')) e.preventDefault(); });
+ringHeadEl.addEventListener('dblclick', function(e){
+  var el = e.target.closest && e.target.closest('math[data-formula]');
+  if (!el || !el.classList.contains('is-moved')) return;
+  delete formulaPos[el.getAttribute('data-formula')];
+  writeFormulaPos();
+  el.classList.remove('is-moved');
+  el.style.left = el.style.top = '';
+});
 
 function fitRingHead(){
   var room = ringHeadEl.clientWidth - parseFloat(getComputedStyle(ringHeadEl).paddingLeft) - parseFloat(getComputedStyle(ringHeadEl).paddingRight);
@@ -2881,7 +2998,10 @@ window.addEventListener('scroll', function(e){
   if (previewChip && !(previewEl && previewEl.contains(e.target))) hideIsoPreview();
 }, true);
 window.addEventListener('resize', function(){ if (previewChip) placeIsoPreview(previewChip); });
-if (window.ResizeObserver) new ResizeObserver(function(){ fitRingHead(); }).observe(ringHeadEl);
+if (window.ResizeObserver){
+  new ResizeObserver(function(){ fitRingHead(); }).observe(ringHeadEl);
+  new ResizeObserver(function(){ placeMoved(); }).observe(diagramFrameEl);
+}
 // Copying from the captions gives each selected line's plain-text form.
 ringHeadEl.addEventListener('copy', function(e){
   var sel = window.getSelection();
