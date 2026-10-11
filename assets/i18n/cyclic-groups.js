@@ -23,6 +23,13 @@
    Each placeholder of a *Math template is a MathML node supplied by the
    page and appears exactly once, never wrapped in isolates.
 
+   English-only for now, by the user's decision to add new Cyclic Groups
+   strings in English first: formulaReset (the diagram's button that puts
+   moved formulas back) and fullscreenEnter / fullscreenExit (the
+   diagram's full-screen button). Every other language shows the English
+   value through NT.i18n's fallback until a catch-up translation pass, and
+   i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
+
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups is a plural entry in each
    language's own CLDR category shape ({ one, other } in English);
@@ -272,6 +279,9 @@
       formulaToggleGroup: 'Group cardinality formula',
       formulaToggleSubgroup: 'Subgroup cardinality formula',
       formulaToggleCosets: 'Subgroup-coset amount formula',
+      formulaReset: 'Reset formula positions',
+      fullscreenEnter: 'Full screen',
+      fullscreenExit: 'Exit full screen',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',

@@ -441,6 +441,22 @@
      and a double-click puts it back in the column. */
   .ring-head math[data-formula]{ cursor:grab; touch-action:none; }
   .ring-head math.is-moved{ position:absolute; z-index:1; margin:0; }
+  /* The diagram's top-right corner: the full-screen button, and under it,
+     while a formula on show stands away from its place, the button that
+     puts the formulas back. */
+  .frame-tools{ position:absolute; top:8px; right:10px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .frame-tools .action-btn{ padding:5px 10px; font-size:.8rem; }
+  .frame-tools .icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; color:var(--text-dim); background:none; border:none; border-radius:8px; cursor:pointer; }
+  .frame-tools .icon-btn:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .frame-tools .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .frame-tools .icon-btn svg{ width:24px; height:24px; fill:currentColor; }
+  .frame-tools .icon-btn .icon-exit, .frame-tools .icon-btn.is-on .icon-enter{ display:none; }
+  .frame-tools .icon-btn.is-on .icon-exit{ display:block; }
+  /* Full screen, the diagram fills the screen and the ring scales into it. */
+  .diagram-frame:fullscreen{ width:100% !important; height:100% !important; max-width:none !important; box-sizing:border-box; border:0; border-radius:0; display:flex; flex-direction:column;
+    background:linear-gradient(var(--panel), var(--panel)), var(--bg-1); }
+  .diagram-frame:fullscreen svg.ring-svg{ flex:1 1 0; width:100%; height:100%; min-height:0; }
+  .diagram-frame::backdrop{ background:var(--bg-1); }
   :root.is-formula-drag, :root.is-formula-drag *{ cursor:grabbing !important; user-select:none !important; -webkit-user-select:none !important; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
@@ -560,6 +576,13 @@
     <div class="stage" id="ring-panel">
       <section class="panel notice" id="notice" role="note" hidden></section>
       <div class="diagram-frame" id="diagram-frame">
+        <div class="frame-tools">
+          <button type="button" class="icon-btn" id="fullscreen-btn">
+            <svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+            <svg class="icon-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+          </button>
+          <button type="button" class="action-btn" id="formula-reset" hidden data-i18n="cyclicGroups.formulaReset">Reset formula positions</button>
+        </div>
         <div class="auto-rotate" role="radiogroup" aria-labelledby="auto-rotate-label">
           <span class="tri" id="auto-rotate" data-at="off">
             <svg class="tri-track" viewBox="0 0 44 40" aria-hidden="true" focusable="false"><path d="M22 7 L37 33 L7 33 Z"/></svg>
@@ -1627,7 +1650,22 @@ function placeMoved(){
     el.classList.add('is-moved');
     placeFormula(el, p.x, p.y);
   });
+  syncFormulaReset();
 }
+// The reset button shows while a formula on show is away from its place.
+function syncFormulaReset(){
+  $('formula-reset').hidden = !ringHeadEl.querySelector('math.is-moved');
+}
+// Reset puts every formula back, the ones turned off as well.
+$('formula-reset').addEventListener('click', function(){
+  formulaPos = {};
+  writeFormulaPos();
+  ringHeadEl.querySelectorAll('math.is-moved').forEach(function(el){
+    el.classList.remove('is-moved');
+    el.style.left = el.style.top = '';
+  });
+  syncFormulaReset();
+});
 ringHeadEl.addEventListener('pointerdown', function(e){
   var el = e.button === 0 && e.target.closest && e.target.closest('math[data-formula]');
   if (!el) return;
@@ -1655,6 +1693,7 @@ window.addEventListener('pointermove', function(e){
       el.classList.add('is-moved');
       el.style.left = Math.round(r.left - ox) + 'px';
       el.style.top = Math.round(r.top - oy) + 'px';
+      syncFormulaReset();
     }
   }
   e.preventDefault();
@@ -1688,7 +1727,38 @@ ringHeadEl.addEventListener('dblclick', function(e){
   writeFormulaPos();
   el.classList.remove('is-moved');
   el.style.left = el.style.top = '';
+  syncFormulaReset();
 });
+
+/* ---------- full screen ---------- */
+
+// The button in the diagram's top-right corner takes the diagram full
+// screen and back; its icon and label follow the state, however it is left
+// (the button, Escape or the browser's own control). Hidden where the
+// browser cannot take an element full screen.
+var fullscreenBtnEl = $('fullscreen-btn');
+function fullscreenEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+function syncFullscreenBtn(){
+  var on = fullscreenEl() === diagramFrameEl;
+  var label = translate(on ? 'cyclicGroups.fullscreenExit' : 'cyclicGroups.fullscreenEnter');
+  fullscreenBtnEl.classList.toggle('is-on', on);
+  fullscreenBtnEl.setAttribute('aria-label', label);
+  fullscreenBtnEl.setAttribute('title', label);
+  fullscreenBtnEl.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+fullscreenBtnEl.hidden = !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+fullscreenBtnEl.addEventListener('click', function(){
+  if (fullscreenEl()){
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    var go = diagramFrameEl.requestFullscreen || diagramFrameEl.webkitRequestFullscreen;
+    var p = go.call(diagramFrameEl);
+    if (p && p.catch) p.catch(function(){ /* refused, e.g. not from a user gesture */ });
+  }
+});
+document.addEventListener('fullscreenchange', syncFullscreenBtn);
+document.addEventListener('webkitfullscreenchange', syncFullscreenBtn);
+syncFullscreenBtn();
 
 function fitRingHead(){
   var room = ringHeadEl.clientWidth - parseFloat(getComputedStyle(ringHeadEl).paddingLeft) - parseFloat(getComputedStyle(ringHeadEl).paddingRight);
@@ -3476,7 +3546,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(render);
+onLangChange(function(){ render(); syncFullscreenBtn(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
