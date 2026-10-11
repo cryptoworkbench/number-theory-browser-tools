@@ -49,6 +49,10 @@
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
+   genTop was reworded in English only ("Rotate path generator to the top");
+   the other languages still carry the earlier "selected generator" wording
+   until the next catch-up translation pass.
+
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups is a plural entry in each
    language's own CLDR category shape ({ one, other } in English);
@@ -238,7 +242,7 @@
       colorElement: 'Element arrow color',
       colorInverse: 'Inverse arrow color',
       colorReset: 'Reset arrow colors',
-      genTop: 'Rotate the selected generator to the top',
+      genTop: 'Rotate path generator to the top',
       swapColors: 'Swap forward and backward path colors',
       customColors: 'Choose arrow colors manually',
       layerColors: 'Element colors',
