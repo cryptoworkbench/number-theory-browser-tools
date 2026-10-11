@@ -203,6 +203,34 @@
   /* The clamped-value note takes its own line under the modulus row. */
   .facts.group-controls .n-note{ flex-basis:100%; margin:0; }
   .facts.group-controls input:focus-visible, .facts.group-controls select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  /* In full screen the linked operation and identity rows give way to one
+     toggle switch, (+, 0) thrown left and (×, 1) thrown right: a screwed-on
+     plate with a slot, and a bat handle that swings through the slot about
+     its boss, drawn flat but shaded as if lit from above. */
+  .facts.group-controls .op-toggle-row{ display:none; }
+  .diagram-frame:fullscreen .facts.group-controls .op-row{ display:none; }
+  .diagram-frame:fullscreen .facts.group-controls .op-toggle-row{ display:flex; justify-content:center; padding:10px 0 12px; }
+  .op-toggle{ direction:ltr; display:flex; align-items:center; gap:14px; padding:0; font:inherit; color:var(--text-dim); background:none; border:0; border-radius:var(--radius-ctl); cursor:pointer; }
+  .op-toggle:focus{ outline:none; }
+  .op-toggle:focus-visible{ box-shadow:var(--ctl-focus); }
+  .op-toggle-side{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:1.6em; font-family:var(--font-mono); line-height:1; transition:color var(--ease-ctl), opacity var(--ease-ctl); opacity:.55; }
+  .op-toggle-op{ font-size:1.6rem; font-weight:700; }
+  .op-toggle-id{ font-size:1rem; }
+  .op-toggle[aria-checked="false"] .is-add, .op-toggle[aria-checked="true"] .is-mul{ color:var(--accent); opacity:1; }
+  .op-toggle:hover .op-toggle-side{ opacity:1; }
+  .op-toggle-plate{ position:relative; display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:10px; border:1px solid var(--panel-border-strong); background:linear-gradient(to bottom, color-mix(in srgb, var(--text) 14%, var(--surface)), color-mix(in srgb, var(--text) 5%, var(--surface))); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent), 0 3px 0 color-mix(in srgb, var(--text) 18%, var(--surface)), 0 5px 10px var(--scrim); }
+  .op-toggle-screw{ width:8px; height:8px; border-radius:50%; background:radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--text) 25%, var(--surface)), color-mix(in srgb, var(--text) 55%, var(--surface))); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--text) 30%, transparent); position:relative; }
+  .op-toggle-screw::after{ content:""; position:absolute; left:1px; right:1px; top:50%; height:1px; margin-top:-.5px; background:color-mix(in srgb, var(--text) 60%, var(--surface)); transform:rotate(-35deg); }
+  .op-toggle-slot{ position:relative; width:112px; height:26px; border-radius:13px; background:linear-gradient(to bottom, color-mix(in srgb, var(--text) 45%, var(--surface)), color-mix(in srgb, var(--text) 25%, var(--surface))); box-shadow:inset 0 3px 5px color-mix(in srgb, var(--scrim) 80%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--surface) 60%, transparent); perspective:220px; }
+  /* The bat runs from the boss at the slot's centre to its tip; thrown left
+     it is turned half a revolution about the boss, so it swings through
+     edge-on on the way across. */
+  .op-toggle-bat{ position:absolute; left:50%; top:3px; bottom:3px; width:50px; transform-origin:0 50%; transform:rotateY(180deg); transition:transform 220ms cubic-bezier(.5, 0, .3, 1.4); clip-path:polygon(0 30%, 78% 6%, 100% 0, 100% 100%, 78% 94%, 0 70%); border-radius:0 10px 10px 0; background:linear-gradient(to bottom, color-mix(in srgb, var(--surface) 30%, var(--text)) 0%, var(--text) 45%, color-mix(in srgb, var(--text) 60%, var(--scrim)) 100%); }
+  .op-toggle-bat::after{ content:""; position:absolute; right:0; top:0; bottom:0; width:16px; border-radius:50%; background:radial-gradient(circle at 40% 30%, color-mix(in srgb, var(--surface) 55%, var(--text)), var(--text) 70%); }
+  .op-toggle[aria-checked="true"] .op-toggle-bat{ transform:rotateY(0deg); }
+  .op-toggle-boss{ position:absolute; left:50%; top:50%; width:22px; height:22px; margin:-11px 0 0 -11px; border-radius:50%; background:radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--surface) 45%, var(--text)), color-mix(in srgb, var(--text) 75%, var(--scrim)) 75%); box-shadow:0 2px 3px var(--scrim); }
+  .op-toggle:active .op-toggle-boss{ box-shadow:0 1px 1px var(--scrim); }
+  @media (prefers-reduced-motion: reduce){ .op-toggle-bat{ transition:none; } }
 
   /* ---------- subgroups list ---------- */
   /* One row per element: the subgroup it generates, its members in the
@@ -791,19 +819,26 @@
             <input type="number" id="n-input" min="2" max="100" step="1" value="12">
             <p class="n-note" id="n-note"></p>
           </li>
-          <li>
+          <li class="op-row">
             <label for="op-select" id="op-label" class="fact-label">∗</label>
             <select id="op-select" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel">
               <option value="additive">+</option>
               <option value="multiplicative">×</option>
             </select>
           </li>
-          <li>
+          <li class="op-row">
             <label for="identity-select" class="fact-label" data-i18n="cyclicGroups.fact.identity">Identity</label>
             <select id="identity-select">
               <option value="additive">0</option>
               <option value="multiplicative">1</option>
             </select>
+          </li>
+          <li class="op-toggle-row">
+            <button type="button" class="op-toggle" id="op-toggle" role="switch" aria-checked="false" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel">
+              <span class="op-toggle-side is-add" aria-hidden="true"><span class="op-toggle-op">+</span><span class="op-toggle-id">0</span></span>
+              <span class="op-toggle-plate" aria-hidden="true"><span class="op-toggle-screw"></span><span class="op-toggle-slot"><span class="op-toggle-bat"></span><span class="op-toggle-boss"></span></span><span class="op-toggle-screw"></span></span>
+              <span class="op-toggle-side is-mul" aria-hidden="true"><span class="op-toggle-op">×</span><span class="op-toggle-id">1</span></span>
+            </button>
           </li>
         </ul>
         <ul class="facts" id="facts"></ul>
@@ -969,6 +1004,8 @@ var nNoteEl = $('n-note');
 var nLabelEl = $('n-label');
 var opSelectEl = $('op-select');
 var opLabelEl = $('op-label');
+// Full screen's stand-in for both selects: thrown left (+, 0), right (×, 1).
+var opToggleEl = $('op-toggle');
 // The identity, 0 or 1, picks the operation too: each names its group.
 var identitySelectEl = $('identity-select');
 var genSelectEl = $('gen-select');
@@ -4047,6 +4084,7 @@ function syncControls(){
   syncAutoRotate();
   opSelectEl.value = state.mode;
   identitySelectEl.value = state.mode;
+  opToggleEl.setAttribute('aria-checked', state.mode === 'multiplicative' ? 'true' : 'false');
 }
 
 // The shared group-params store is the contract with Cayley Table and
@@ -4062,6 +4100,7 @@ function setMode(id){
   state.mode = id;
   opSelectEl.value = state.mode;
   identitySelectEl.value = state.mode;
+  opToggleEl.setAttribute('aria-checked', state.mode === 'multiplicative' ? 'true' : 'false');
   persistGroup();
   render();
 }
@@ -4188,6 +4227,14 @@ nInputEl.addEventListener('change', function(){
 });
 opSelectEl.addEventListener('change', function(){ setMode(opSelectEl.value); });
 identitySelectEl.addEventListener('change', function(){ setMode(identitySelectEl.value); });
+opToggleEl.addEventListener('click', function(){
+  setMode(state.mode === 'multiplicative' ? 'additive' : 'multiplicative');
+});
+opToggleEl.addEventListener('keydown', function(e){
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  setMode(e.key === 'ArrowLeft' ? 'additive' : 'multiplicative');
+});
 genSelectEl.addEventListener('change', function(){
   var g = parseInt(genSelectEl.value, 10);
   if (!isFinite(g)) return;
