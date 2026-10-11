@@ -43,8 +43,8 @@
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), fsNewRing (the launcher's command that opens another ring
    window), fsDuplicateRing (the + button on a ring window's title bar, which
-   opens a copy of that ring), iso.openWindow (an isomorphism link's
-   tooltip in full screen, where it opens the group in a new Ring window),
+   opens a copy of that ring), iso.openBeside (an isomorphism link's
+   tooltip: a click opens that group beside the ring, in the same view),
    splitView (the Ring window's button on its
    Subgroup visualized row that splits the window, the ring on top and the
    Subgroups list under it), showElementColours (the button beside the
@@ -288,7 +288,7 @@
       'iso.additive': 'additive',
       'iso.multiplicative': 'multiplicative',
       'iso.open': 'Open {group} in a new tab',
-      'iso.openWindow': 'Open {group} in a new Ring window',
+      'iso.openBeside': 'Open {group} beside this ring',
       'iso.supergroup': 'This subgroup’s supergroup.',
       cosetCountMath: '{order}, so there are {count} cosets',
       nLabelMath: '{n} (modulus)',

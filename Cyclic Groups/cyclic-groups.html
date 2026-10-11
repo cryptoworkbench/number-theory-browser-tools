@@ -330,6 +330,8 @@
   :root.is-ringwin, :root.is-ringwin body{ height:100%; margin:0; overflow:hidden; min-height:0; background:transparent; }
   :root.is-ringwin body > :not(.app), :root.is-ringwin .app > :not(.layout), :root.is-ringwin .side,
   :root.is-ringwin .stage > :not(.diagram-frame), :root.is-ringwin .diagram-frame > :not(.ringwin-body){ display:none !important; }
+  /* The ring's right-click menu is a child of the diagram too, and shows in a frame. */
+  :root.is-ringwin .diagram-frame > .ring-ctx:not([hidden]){ display:block !important; }
   :root.is-ringwin .app, :root.is-ringwin .layout, :root.is-ringwin .stage, :root.is-ringwin .diagram-frame{
     display:block; position:static; height:auto; width:auto; max-width:none; padding:0; margin:0; border:0; background:none; }
   :root.is-ringwin .ringwin-body{ position:fixed; inset:0; border-radius:0; }
@@ -669,7 +671,32 @@
   .fs-win-body.is-frame{ display:flex; padding:0; overflow:hidden; }
   .fs-win-body.is-frame > iframe{ flex:1 1 auto; display:block; width:100%; height:100%; min-height:0; border:0; background:none; visibility:hidden; }
   .fs-win-body.is-frame > iframe.is-loaded{ visibility:visible; }
-  .diagram-frame.is-frames-inert .fs-win-body.is-frame > iframe{ pointer-events:none; }
+  .diagram-frame.is-frames-inert :is(.fs-win-body.is-frame, .iso-pane) > iframe{ pointer-events:none; }
+  /* The isomorphism view puts a second ring, the group an isomorphism chip
+     named, in a pane right of this one: an iframe of this page (isopane=1)
+     under a head with the group's name and a close button. Closed, none of
+     these rules applies. */
+  .iso-pane{ display:flex; flex-direction:column; min-width:0; min-height:0; box-sizing:border-box; }
+  .iso-pane[hidden]{ display:none; }
+  .iso-pane-head{ flex:none; display:flex; align-items:center; gap:8px; padding:0 0 4px; }
+  .iso-pane-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.78rem; font-weight:600; color:var(--text-dim); }
+  .iso-pane > iframe{ flex:1 1 auto; display:block; width:100%; min-height:0; border:0; background:none; visibility:hidden; }
+  .iso-pane > iframe.is-loaded{ visibility:visible; }
+  /* In a Ring window the pane is a fourth column, as wide as the other three
+     with their gaps; it spans every row, the ring's flexible one setting its height. */
+  .fs-win-body.is-ring > .iso-pane:not([hidden]){ grid-area:pane; align-self:stretch; border-left:1px solid var(--panel-border); padding-left:12px; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:auto minmax(0, 1fr) auto calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "rot spin key pane"; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "rot spin key pane" "split split split pane"; }
+  /* On the page itself the pane hangs in the diagram's right half, clear of
+     the full-screen button above and the resize grip below, and the ring,
+     its head and its arrow key keep to the left half. */
+  .diagram-frame > .iso-pane:not([hidden]){ position:absolute; z-index:1; top:52px; right:14px; bottom:28px; width:calc(50% - 21px); border-left:1px solid var(--panel-border); padding-left:12px; }
+  .diagram-frame:not(:fullscreen):has(> .iso-pane:not([hidden])){ min-height:820px; }
+  .diagram-frame:has(> .iso-pane:not([hidden])) > :is(.ring-head, svg.ring-svg){ width:calc(50% - 7px); margin-right:auto; }
+  .diagram-frame:has(> .iso-pane:not([hidden])) > .combine-key{ right:calc(50% + 14px); max-width:min(330px, 20%); }
+  /* The pane keeps to its group's own controls: the shared ones (colours,
+     paths, the layers) are the left ring's, and a pane never splits itself. */
+  :root.is-isopane :is(#element-colours, #arrow-options, #split-btn, .legend-pick, .legend-reset){ display:none !important; }
   .fs-rs{ position:absolute; z-index:4; touch-action:none; }
   .fs-rs[data-dir="n"], .fs-rs[data-dir="s"]{ left:10px; right:10px; height:8px; cursor:ns-resize; }
   .fs-rs[data-dir="e"], .fs-rs[data-dir="w"]{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
@@ -941,6 +968,12 @@
         </div>
         <div class="ring-split" id="ring-split" hidden>
           <div class="split-grip" id="split-grip" role="separator" aria-orientation="horizontal" aria-controls="ring-split" aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" tabindex="0" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-label="Drag to resize; double-click to reset" data-i18n-aria-label="cyclicGroups.resizeTitle"></div>
+        </div>
+        <div class="iso-pane" id="iso-pane" hidden>
+          <div class="iso-pane-head">
+            <span class="iso-pane-name" id="iso-pane-name"></span>
+            <button type="button" class="fs-win-btn is-close" id="iso-pane-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
+          </div>
         </div>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
@@ -1231,6 +1264,9 @@ var sideElLabelEl = $('side-el-label');
 var backwardEl = $('backward');
 var identityNoteEl = $('identity-note');
 var isoPanelEl = $('iso-panel');
+var isoPaneEl = $('iso-pane');
+var isoPaneNameEl = $('iso-pane-name');
+var isoPaneCloseEl = $('iso-pane-close');
 var isoLeadEl = $('iso-lead');
 var isoAddChipsEl = $('iso-add-chips');
 var isoMulEl = $('iso-mul');
@@ -1245,6 +1281,13 @@ if (IS_PREVIEW) document.documentElement.classList.add('is-preview');
 // writes or follows what the original ring shares (see enterRingWin).
 var IS_RINGWIN = !IS_PREVIEW && new URLSearchParams(location.search).get('ringwin') === '1';
 if (IS_RINGWIN) document.documentElement.classList.add('is-ringwin');
+// isopane=1, inside ringwin=1: this page is the right half of a ring's
+// isomorphism view, the group an isomorphism chip named. Its shared settings
+// (colours, paths, layers), theme and language come from the ring that holds
+// it, and it shows only that group's own controls.
+var IS_ISOPANE = IS_RINGWIN && new URLSearchParams(location.search).get('isopane') === '1';
+if (IS_ISOPANE) document.documentElement.classList.add('is-isopane');
+var ISO_GEN = IS_ISOPANE ? parseInt(new URLSearchParams(location.search).get('isogen'), 10) : NaN;
 var subgroupOptionsEl = $('subgroup-options');
 var ringHeadEl = $('ring-head');
 var scratchBtnEl = $('scratch-btn');
@@ -2286,7 +2329,6 @@ function onFullscreenChange(){
   // The formulas over the ring give way to the Ring window's scratchpad.
   syncHeadSwitches();
   if (drawn && !IS_PREVIEW) drawMath(drawn.G, lastSubs);
-  syncIsoLinks();
 }
 document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
@@ -2300,7 +2342,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'iso-panel', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen', 'iso-panel': 'iso' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'iso-panel', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen', 'iso-panel': 'iso' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -2318,7 +2360,7 @@ var SNAP_ALIGN = 10;  // how near another edge a moved or resized edge catches o
 // of the ring it holds.
 var FS_STATE_KEY = 'cyclic-groups-fs-windows';
 var fsExtraSpecs = {}; // extra window key -> its spec, made once (see allSpecs)
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen'];
 var fsState = readFsState();
 var fsWins = null; // window key -> { spec, win, body, title, grip, buttons, homes } while full screen
 var fsTasksEl = $('fs-tasks'), fsMenuEl = $('fs-menu'), fsLauncherEl = $('fs-launcher');
@@ -2708,11 +2750,9 @@ function removeRingWindow(key){
 }
 // Opens another Ring window on the group of the original ring, or on a copy
 // of the extra window the key names, a little down and right of it, in front.
-// query, when given, is the ring the new window holds; otherwise it holds
-// a copy of fromKey's.
-function openRingWindow(fromKey, query){
+function openRingWindow(fromKey){
   var from = entryOf(fromKey);
-  var q = typeof query === 'string' ? cleanRingQuery(query) : from ? from.q : cleanRingQuery(stateQuery().toString());
+  var q = from ? from.q : cleanRingQuery(stateQuery().toString());
   var top = 0;
   fsState.extras.forEach(function(e){ top = Math.max(top, parseInt(e.key.slice(7), 10)); });
   var entry = { key: 'ringwin' + (top + 1), q: q };
@@ -3013,6 +3053,7 @@ function syncWindows(){
   // Every window the desktop should hold is built once, in front of the taskbar.
   if (fsWins) allSpecs().forEach(function(spec){ if (!fsWins[spec.key]) mountWindow(spec); });
   syncSplit();
+  syncIsoPane();
   syncFsLabels();
   var front = frontKey();
   allSpecs().forEach(function(spec){
@@ -3313,9 +3354,6 @@ window.addEventListener('message', function(e){
     if (!fsWins[key].fitting) return;
     fsWins[key].fitting = false;
     fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX, flex: d.flex });
-  } else if (d.ringwin === 'open' && typeof d.q === 'string' && d.q.length <= 4000){
-    // An isomorphism clicked inside a frame opens its group in a new window.
-    openRingWindow(key, d.q);
   } else if (d.ringwin === 'raise'){
     // A press inside a frame never reaches this document, so the menu and the
     // opacity slider close, and the window comes to the front, from here.
@@ -3334,6 +3372,7 @@ function postLook(frame){
 }
 function postLookAll(){
   if (fsWins) Object.keys(fsWins).forEach(function(k){ if (fsWins[k].frame) postLook(fsWins[k].frame); });
+  if (isoPaneFrame) postLook(isoPaneFrame);
 }
 
 // While a press is down on this page, the frames let it through: a window
@@ -4596,7 +4635,8 @@ function syncCayleyLink(){
 // additive group to a multiplicative one the new tab never arrives with a
 // generator chosen: the beads start unarranged and the subgroup formula on,
 // with every head switch before it, so it opens asking for one (see
-// logBasePrompt).
+// logBasePrompt). The ring-window and pane switches are dropped too, so a
+// modified click inside a Ring window's frame opens the normal page.
 function isoHref(mode, n, gen){
   var q = new URLSearchParams(location.search);
   q.set('mode', mode);
@@ -4605,6 +4645,9 @@ function isoHref(mode, n, gen){
   q.set('lang', getLang());
   q.set('noshare', '1');
   q.delete('rot');
+  q.delete('ringwin');
+  q.delete('isopane');
+  q.delete('isogen');
   if (state.mode === 'additive' && mode === 'multiplicative'){
     q.set('bygen', '0');
     HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf('sorder') + 1).forEach(function(name){ q.set(name, '1'); });
@@ -4649,17 +4692,105 @@ function cyclicUnitGroups(k){
   return unitGroupsByOrder[k] || [];
 }
 
-// Each chip's address, and its name: where it opens (a new tab, or full
-// screen a new Ring window), or for the supergroup's chip, that it is one.
+// Each chip's address, and its name, which says it opens beside the ring (or,
+// for the supergroup's chip, that it is one).
 function syncIsoLinks(){
   isoPanelEl.querySelectorAll('a.iso-chip').forEach(function(a){
     a.setAttribute('href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen')));
-    var open = translate(isoInWindow() ? 'cyclicGroups.iso.openWindow' : 'cyclicGroups.iso.open', { group: a.getAttribute('data-iso-label') });
+    var open = translate('cyclicGroups.iso.openBeside', { group: a.getAttribute('data-iso-label') });
     a.setAttribute('aria-label', open);
     a.setAttribute('title', a.hasAttribute('data-iso-super') ? translate('cyclicGroups.iso.supergroup') : open);
   });
   if (previewChip) showIsoPreview(previewChip);
 }
+
+/* ---------- the isomorphism view: the chip's group in a pane beside this ring ---------- */
+
+// A plain click on an isomorphism chip opens its group in a pane right of
+// this ring, in the same view: on the page, in the full-screen Ring window
+// and in an extra Ring window's frame alike. The pane is an iframe of this
+// very page in ringwin+isopane mode (the page keeps one state, so a second
+// ring needs a second page), and this document talks to it by postMessage
+// alone. Moving the pane in the page (entering or leaving full screen)
+// reloads its iframe, so it comes back from the query it last reported.
+var isoPane = null; // { h, q, parent } while the pane is open: the chip's generator, its group's query, where the pane sits
+var isoPaneFrame = null;
+// The pane's address: this page's own path, never anything from q.
+function isoPaneSrc(q, h){
+  var p = new URLSearchParams(cleanRingQuery(q));
+  p.set('ringwin', '1');
+  p.set('isopane', '1');
+  p.set('isogen', String(h));
+  return location.pathname + '?' + p.toString();
+}
+function openIsoPane(a){
+  if (IS_ISOPANE || IS_PREVIEW) return;
+  var h = parseInt(a.getAttribute('data-iso-gen'), 10);
+  if (!isFinite(h)) return;
+  var p = new URLSearchParams(cleanRingQuery(new URL(a.href, location.href).search.slice(1)));
+  // The pane opens still: the host's first turn message aims it.
+  ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ p.delete(k); });
+  isoPane = { h: h, q: p.toString(), parent: null };
+  isoPaneEl.hidden = false;
+  loadIsoFrame();
+  syncIsoPaneLabels();
+}
+function loadIsoFrame(){
+  if (isoPaneFrame) isoPaneFrame.remove();
+  var f = document.createElement('iframe');
+  f.addEventListener('load', function(){
+    f.classList.add('is-loaded');
+    postLook(f);
+  });
+  f.src = isoPaneSrc(isoPane.q, isoPane.h);
+  isoPaneEl.appendChild(f);
+  isoPaneFrame = f;
+  isoPane.parent = isoPaneEl.parentNode;
+  syncIsoPaneLabels();
+}
+function closeIsoPane(){
+  if (isoPaneFrame) isoPaneFrame.remove();
+  isoPaneFrame = null;
+  isoPane = null;
+  isoPaneEl.hidden = true;
+}
+// Entering or leaving full screen moves the pane's element, which reloads its
+// iframe in the browser; the pane is then loaded again from its latest query.
+function syncIsoPane(){
+  if (isoPane && isoPaneEl.parentNode !== isoPane.parent) loadIsoFrame();
+}
+function syncIsoPaneLabels(){
+  if (!isoPane) return;
+  var group = ringWinGroup(isoPane.q);
+  var name = group ? translate(group.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: group.label }) : translate('cyclicGroups.fsRing');
+  isoPaneNameEl.textContent = name;
+  if (isoPaneFrame) isoPaneFrame.setAttribute('title', name);
+  var close = translate('cyclicGroups.fsClose', { name: name });
+  isoPaneCloseEl.setAttribute('aria-label', close);
+  isoPaneCloseEl.setAttribute('title', close);
+}
+isoPaneCloseEl.addEventListener('click', closeIsoPane);
+// What the pane tells this document; only the pane's own window is heard.
+window.addEventListener('message', function(e){
+  if (!isoPaneFrame || e.source !== isoPaneFrame.contentWindow) return;
+  var d = e.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
+    isoPane.q = cleanRingQuery(d.q);
+    syncIsoPaneLabels();
+  } else if (d.ringwin === 'raise'){
+    // A press inside the pane never reaches this document, so the menu and the
+    // window come forward from here.
+    setRingCtx(false);
+    if (IS_RINGWIN){
+      try { window.parent.postMessage({ ringwin: 'raise' }, '*'); } catch (err) { /* no desktop to tell */ }
+    } else if (fsWins){
+      setFsMenu(false);
+      if (alphaKey) setAlpha(null);
+      if (frontKey() !== 'ring') raiseWindow('ring');
+    }
+  }
+});
 
 /* ---------- isomorphic-group preview ---------- */
 
@@ -4824,19 +4955,15 @@ isoPanelEl.addEventListener('focusin', function(e){
   if (a && a.matches(':focus-visible')) queueIsoPreview(a);
 });
 isoPanelEl.addEventListener('focusout', hideIsoPreview);
-// Full screen, or in an extra Ring window's frame, a plain click on a chip
-// opens its group in a new Ring window on the desktop instead of a new tab.
-function isoInWindow(){ return !!fsWins || IS_RINGWIN; }
+// A plain click on a chip opens its group beside this ring, in the same view
+// (replacing the one already there); a modified click still opens a new tab.
 isoPanelEl.addEventListener('click', function(e){
   var a = e.target.closest('a.iso-chip');
   if (!a) return;
   hideIsoPreview();
-  if (!isoInWindow() || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+  if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || IS_ISOPANE) return;
   e.preventDefault();
-  var q = new URL(a.href, location.href).search.slice(1);
-  if (IS_RINGWIN){
-    try { window.parent.postMessage({ ringwin: 'open', q: q }, '*'); } catch (err) { /* no desktop to tell */ }
-  } else openRingWindow('ring', q);
+  openIsoPane(a);
 });
 // From the keyboard, the up and down arrows turn the card's slides.
 isoPanelEl.addEventListener('keydown', function(e){
@@ -4885,6 +5012,7 @@ document.addEventListener('copy', function(e){
 // image of the selected one under the natural isomorphism, 1.
 function renderIso(G){
   hideIsoPreview();
+  if (IS_ISOPANE){ isoPanelEl.hidden = true; return; }
   var k = G.orders[state.gen];
   if (!(k >= MIN_N)){
     isoPanelEl.hidden = true;
@@ -5410,7 +5538,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); postLookAll(); });
+onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
