@@ -384,6 +384,7 @@
   .legend-pair{ font-size:.9rem; font-variant-numeric:tabular-nums; }
   .color-by{ margin:2px 0 10px 25px; }
   .color-by select{ font-family:var(--font-sans); padding:7px 10px; }
+  .element-colours .color-by{ margin-left:0; }
   /* The arrow key sits in the diagram's bottom-right corner, left of the
      resize grip; it only explains the colors, which are picked in the
      Subgroup panel. */
@@ -581,7 +582,15 @@
   .fs-win-body.is-ring .coset-btn{ width:auto; }
   .fs-win-body.is-ring .coset-controls:not([hidden]){ margin:0; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 16px; }
   .fs-win-body.is-ring .coset-controls .speed-wrap input[type="range"]{ width:120px; flex:none; }
-  .fs-win-body.is-ring #keep-top-row{ margin:0 0 0 auto; padding:2px 0; }
+  .fs-win-body.is-ring #keep-top-row{ flex:0 1 340px; margin:0 0 0 auto; padding:2px 0; }
+  /* Element colours, between the operation switch and Keep on top: the
+     dropdown after its label, then the identity colour picker. */
+  .fs-win-body.is-ring #element-colours{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 24px; }
+  .fs-win-body.is-ring #element-colours .color-by{ flex-direction:row; align-items:center; gap:4px 32px; margin:0; }
+  .fs-win-body.is-ring #element-colours .color-by label{ font-size:.85rem; color:var(--text-dim); }
+  .fs-win-body.is-ring #element-colours .color-by select{ width:auto; min-width:8em; padding:4px 8px; }
+  .fs-win-body.is-ring #element-colours .check{ align-items:center; margin:0; font-size:.85rem; color:var(--text-dim); }
+  .fs-win-body.is-ring #element-colours .link-btn{ margin:0; }
   .fs-win-body.is-ring #arrange-gen-label{ font-size:.85rem; color:var(--text-dim); margin-inline-start:8px; }
   .fs-win-body.is-ring > #arrange-field{ grid-area:arr; }
   /* The arrangement row is named for the group in the Ring window. */
@@ -939,17 +948,19 @@
       <section class="panel" id="layers-panel">
         <h2 data-i18n="cyclicGroups.layersHeading">Layers</h2>
         <div class="check"><input type="checkbox" id="layer-paths" checked><label for="layer-paths" data-i18n="cyclicGroups.layerPaths">Subgroup paths</label></div>
-        <div class="check"><input type="checkbox" id="layer-colors" checked><label for="layer-colors" data-i18n="cyclicGroups.layerColors">Element colors</label></div>
-        <div class="field color-by">
-          <label for="colorby-select" data-i18n="cyclicGroups.colorByLabel">Color elements by</label>
-          <select id="colorby-select">
-            <option value="order" data-i18n="cyclicGroups.colorByOrder">Subgroup cardinality</option>
-            <option value="inverse" data-i18n="cyclicGroups.colorByInverse">Inverse pairs</option>
-            <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
-          </select>
+        <div class="element-colours" id="element-colours">
+          <div class="field color-by">
+            <label for="colorby-select" data-i18n="cyclicGroups.layerColors">Element colours</label>
+            <select id="colorby-select">
+              <option value="none" data-i18n="cyclicGroups.colorByNone">None</option>
+              <option value="order" data-i18n="cyclicGroups.colorByOrder">Subgroup cardinality</option>
+              <option value="inverse" data-i18n="cyclicGroups.colorByInverse">Inverse pairs</option>
+              <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
+            </select>
+          </div>
+          <div class="check" id="id-color-row" hidden><input type="color" class="arrow-color" id="id-color" aria-label="Identity colour" data-i18n-aria-label="cyclicGroups.identityColor" title="Identity colour" data-i18n-title="cyclicGroups.identityColor"><label for="id-color" data-i18n="cyclicGroups.identityColor">Identity colour</label></div>
+          <button type="button" class="link-btn" id="id-color-reset" hidden data-i18n="cyclicGroups.identityColorReset">Reset identity colour</button>
         </div>
-        <div class="check" id="id-color-row" hidden><input type="color" class="arrow-color" id="id-color" aria-label="Identity color" data-i18n-aria-label="cyclicGroups.identityColor" title="Identity color" data-i18n-title="cyclicGroups.identityColor"><label for="id-color" data-i18n="cyclicGroups.identityColor">Identity color</label></div>
-        <button type="button" class="link-btn" id="id-color-reset" hidden data-i18n="cyclicGroups.identityColorReset">Reset identity color</button>
         <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
         <details class="extra-options">
           <summary data-i18n="cyclicGroups.extraOptions">Show extra options</summary>
@@ -1053,8 +1064,8 @@ var RING = { cx: 380, cy: 395, R: 238 };
 var HEAD_CHAIN = ['gname', 'sname', 'gorder', 'sorder', 'cindex'];
 var FLAGS = ['paths', 'cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 // The flags with a switch of their own; bygen is set by the arrangement
-// dropdown instead.
-var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen'; });
+// dropdown and colors by the element colours dropdown instead.
+var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name !== 'colors'; });
 
 /* ---------- state ---------- */
 // gen is the chosen element h: the inner arrows walk by h, the outer arrows
@@ -2093,7 +2104,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'formulas', ids: ['formula-toggles'], title: 'cyclicGroups.fsFormulas', icon: '∑', width: 560 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
@@ -4604,7 +4615,6 @@ function render(){
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
   syncArrange(G);
-  colorBySelectEl.disabled = !state.colors;
   syncIdColor();
   renderNotice(G, factors);
   renderFacts(G, factors);
@@ -4627,7 +4637,7 @@ function render(){
 function syncControls(){
   nInputEl.value = state.n;
   FLAG_SWITCHES.forEach(function(name){ $('layer-' + name).checked = state[name]; });
-  colorBySelectEl.value = state.colorBy;
+  colorBySelectEl.value = state.colors ? state.colorBy : 'none';
   sideElEl.value = state.elSide;
   dirSelectEl.value = state.dir;
   backwardEl.checked = !state.backward;
@@ -4806,9 +4816,13 @@ arrangeGenSelectEl.addEventListener('change', function(){
   if (!isFinite(g)) return;
   rearrange(function(){ state.arrangeGen = g; render(); });
 });
+// None turns the element colours off; any other choice turns them on,
+// coloured that way.
 colorBySelectEl.addEventListener('change', function(){
-  if (COLOR_BY.indexOf(colorBySelectEl.value) === -1) return;
-  state.colorBy = colorBySelectEl.value;
+  var v = colorBySelectEl.value;
+  if (v !== 'none' && COLOR_BY.indexOf(v) === -1) return;
+  state.colors = v !== 'none';
+  if (state.colors) state.colorBy = v;
   render();
 });
 // A new identity color repaints through --identity-color alone, so the
