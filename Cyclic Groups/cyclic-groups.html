@@ -3730,7 +3730,8 @@ function setKeepTop(top){
 function letGoOfTop(){ setKeepTop('off'); }
 // An end chosen with the switch itself holds: the first try at turning the
 // ring from one place (a drag on the ring, the buttons and steps field in
-// the corner, the auto-rotate switch, the spin slider) is refused, the held
+// the corner, the auto-rotate switch, the spin slider, each of the left and
+// right arrows in the subgroup list) is refused, the held
 // end blinking red, and only a second try in a row from that same place
 // lets go. topRefused is the place last refused.
 var topHeld = false, topRefused = null;
@@ -4253,11 +4254,24 @@ function subgroupColumns(){
 // the next or previous line; a right-to-left grid places row 0 at the top
 // right, so there ArrowLeft is the forward key and the selection still moves
 // the way the arrow points on screen.
+// In the list layout, left and right turn the ring one element instead, the
+// way the corner's buttons do: ArrowLeft counterclockwise, ArrowRight
+// clockwise. Each arrow is a place of its own to the held keep-on-top end,
+// so two presses of the same arrow let go of it, but one of each does not;
+// a held-down key's repeats are not tries.
 subgroupsEl.addEventListener('keydown', function(e){
   if (!drawn) return;
   var grid = state.subLayout === 'grid';
   var vertical = e.key === 'ArrowUp' || e.key === 'ArrowDown';
   var horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+  if (horizontal && !grid){
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
+    var left = e.key === 'ArrowLeft';
+    if (e.repeat && topHeld && state.top !== 'off') return;
+    if (tryLetGoOfTop(left ? 'key-left' : 'key-right')) turnBy(left ? dirSign() : -dirSign());
+    return;
+  }
   if (!vertical && !(horizontal && grid)) return;
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
   var delta;
