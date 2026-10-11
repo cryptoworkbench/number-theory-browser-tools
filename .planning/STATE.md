@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T16:25:16.883Z"
+last_updated: "2026-10-11T16:27:58.983Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 9f267641ac2465ed9202eac096fa40b5cc407496
+state_head: c90705f7cebdca15c06cdd8b540c27bc56ce00cd
 progress:
   total_phases: 7
   completed_phases: 6
@@ -480,6 +480,7 @@ None yet.
 | 244 | Cyclic Groups: the ring eases to its new size when the backward path is toggled | 2026-10-11 | a75ec52 | — |
 | 245 | Cyclic Groups: F8 toggles the Ring window's split view | 2026-10-11 | 2fdf88c | — |
 | 246 | Cyclic Groups: right-clicking the ring opens a menu with the Layers switches | 2026-10-11 | 9f26764 | — |
+| 247 | Cyclic Groups: full screen drops the Layers window (switches in the ring's right-click menu) | 2026-10-11 | c90705f | — |
 
 ## Deferred Items
 
