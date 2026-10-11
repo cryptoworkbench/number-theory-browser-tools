@@ -336,6 +336,7 @@
       scratchOpen: 'Formula scratchpad',
       scratchClose: 'Close formula scratchpad',
       scratchGens: 'Group generator amount',
+      scratchCindex: 'Subgroup index/co-factor/number of cosets',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
