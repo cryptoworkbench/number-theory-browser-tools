@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T07:39:03.215Z"
-last_activity: 2026-10-10
+last_updated: "2026-10-11T07:43:19.130Z"
+last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d4da3760fc15409cb944c323eb39ad07cc4c3db2
+state_head: 7fb61dadcf38a0ea73f2bdaeb7bafedc5b7d090c
 progress:
   total_phases: 7
   completed_phases: 6
@@ -419,6 +419,7 @@ None yet.
 | 183 | Cyclic Groups (merged-view branch): Identity row is a 0/1 dropdown that also picks the operation | 2026-10-10 | 904a738 | — |
 | 184 | Cyclic Groups (merged-view branch): stack the cardinality formulas vertically | 2026-10-10 | ec5f125 | — |
 | 261011-cdw | Translate the 34 English-only cyclicGroups keys into all thirty non-English languages | 2026-10-11 | d4da376 | [261011-cdw-translate-the-34-english-only-cyclicgrou](./quick/261011-cdw-translate-the-34-english-only-cyclicgrou/) |
+| 186 | Cyclic Groups: widening the diagram past its column moves the side panels under it | 2026-10-11 | 7fb61da | — |
 
 ## Deferred Items
 
