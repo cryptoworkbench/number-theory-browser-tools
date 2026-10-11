@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T08:35:12.862Z"
+last_updated: "2026-10-11T08:41:52.877Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 25c304c99717063215071477f5e01f9e2ed49403
+state_head: dda9b2c68a99f91f4261464c8060dc65316f89db
 progress:
   total_phases: 7
   completed_phases: 6
@@ -427,6 +427,7 @@ None yet.
 | 191 | Cyclic Groups: full-screen formula cards (Factor Tree style, titled) | 2026-10-11 | b17ed35 | — |
 | 192 | Cyclic Groups: shorter full-screen formula switch labels | 2026-10-11 | 14ee10b | — |
 | 193 | Cyclic Groups: short switch labels everywhere, both-names card title | 2026-10-11 | 25c304c | — |
+| 194 | Cyclic Groups: movable Subgroup panel card in full screen | 2026-10-11 | dda9b2c | — |
 
 ## Deferred Items
 
