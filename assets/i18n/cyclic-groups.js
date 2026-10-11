@@ -216,7 +216,7 @@
       opSelectLabel: 'Group operation',
       groupHeading: 'Group',
       subgroupHeading: 'Subgroup',
-      identityOnly: 'The identity element only produces itself',
+      identityOnly: 'The identity element only generates itself.',
       nLabel: 'n — modulus',
       genLabel: 'Subgroup visualized',
       nNoteClamped: 'n runs from 2 to 100, so the diagram shows n = {n}.',
