@@ -3291,7 +3291,7 @@ function applyRotInput(){
   var m = drawn.G.order;
   var at = (((state.rot + (spin ? spin.steps : 0)) % m) + m) % m;
   var d = ((((v - at) % m) + m) % m);
-  if (d && !tryLetGoOfTop()){ rotValueEl.value = String(state.rot); return; }
+  if (d && !tryLetGoOfTop('corner')){ rotValueEl.value = String(state.rot); return; }
   rotValueEl.value = String(((v % m) + m) % m);
   turnBy(d > m / 2 ? d - m : d);
 }
@@ -3353,7 +3353,7 @@ ringSvgEl.addEventListener('pointermove', function(e){
   var d = a - turning.last;
   if (d > 180) d -= 360;
   if (d < -180) d += 360;
-  if (d && !tryLetGoOfTop()){ turning.refused = true; return; }
+  if (d && !tryLetGoOfTop('ring')){ turning.refused = true; return; }
   turning.last = a;
   turning.swept += d;
   spinAngle(turning.swept);
@@ -3471,7 +3471,8 @@ function syncKeepTop(){
 function setKeepTop(top){
   if (top === state.top) return;
   state.top = top;
-  topHeld = topRefused = false;
+  topHeld = false;
+  topRefused = null;
   syncKeepTop();
   if (top !== 'off' && state.autoRotate !== 'off'){
     state.autoRotate = 'off';
@@ -3483,12 +3484,14 @@ function setKeepTop(top){
 }
 function letGoOfTop(){ setKeepTop('off'); }
 // An end chosen with the switch itself holds: the first try at turning the
-// ring (a drag, the buttons, the steps field, setting it spinning) is
-// refused, the held end blinking red, and only a second try lets go.
-var topHeld = false, topRefused = false;
-function tryLetGoOfTop(){
-  if (topHeld && state.top !== 'off' && !topRefused){
-    topRefused = true;
+// ring from one place (a drag on the ring, the buttons and steps field in
+// the corner, the auto-rotate switch, the spin slider) is refused, the held
+// end blinking red, and only a second try in a row from that same place
+// lets go. topRefused is the place last refused.
+var topHeld = false, topRefused = null;
+function tryLetGoOfTop(where){
+  if (topHeld && state.top !== 'off' && topRefused !== where){
+    topRefused = where;
     var end = keepTopRowEl.querySelector(state.top === 'id' ? '.is-id' : '.is-gen');
     end.classList.remove('is-refused');
     void end.offsetWidth;
@@ -3659,7 +3662,7 @@ function syncAutoRotate(){
   }
 }
 autoRotateEl.addEventListener('change', function(e){
-  if (e.target.value !== 'off' && !tryLetGoOfTop()){ syncAutoRotate(); return; }
+  if (e.target.value !== 'off' && !tryLetGoOfTop('switch')){ syncAutoRotate(); return; }
   state.autoRotate = e.target.value;
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
@@ -3672,7 +3675,7 @@ spinSliderEl.addEventListener('pointerdown', newSpinTry);
 spinSliderEl.addEventListener('keydown', newSpinTry);
 spinSliderEl.addEventListener('input', function(){
   var v = clamp(parseInt(spinSliderEl.value, 10) || 0, -3, 3);
-  if (v && (spinRefused || !tryLetGoOfTop())){ spinRefused = true; syncAutoRotate(); return; }
+  if (v && (spinRefused || !tryLetGoOfTop('slider'))){ spinRefused = true; syncAutoRotate(); return; }
   state.autoRotate = v < 0 ? 'ccw' : v > 0 ? 'cw' : 'off';
   if (v){ state.autoSpeed = Math.abs(v); letGoOfTop(); }
   syncAutoRotate();
@@ -3726,8 +3729,8 @@ resizeGripEl.addEventListener('dblclick', function(){
   diagramFrameEl.style.removeProperty('--frame-h');
 });
 
-$('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop()) turnBy(dirSign()); });
-$('rot-fwd').addEventListener('click', function(){ if (tryLetGoOfTop()) turnBy(-dirSign()); });
+$('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop('corner')) turnBy(dirSign()); });
+$('rot-fwd').addEventListener('click', function(){ if (tryLetGoOfTop('corner')) turnBy(-dirSign()); });
 // Reset brings the identity back to the top, and keeps it there.
 $('rot-reset').addEventListener('click', function(){
   if (state.top === 'id') turnHome();
@@ -4898,7 +4901,7 @@ ARROW_COLORS.forEach(function(c, i){
 keepTopEl.addEventListener('input', function(){
   setKeepTop(TOPS[clamp(parseInt(keepTopEl.value, 10) || 0, -1, 1) + 1]);
   topHeld = state.top !== 'off';
-  topRefused = false;
+  topRefused = null;
 });
 autoShiftEl.addEventListener('change', function(){
   state.autoShift = autoShiftEl.checked;
