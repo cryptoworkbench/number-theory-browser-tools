@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T09:02:53.592Z"
+last_updated: "2026-10-11T09:12:41.127Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: e74802dd96d11d53b142b5670660d7b4f66ab359
+state_head: 45cc33bfc70c5f60a457a3f20793f2a95eb76eba
 progress:
   total_phases: 7
   completed_phases: 6
@@ -429,6 +429,7 @@ None yet.
 | 193 | Cyclic Groups: short switch labels everywhere, both-names card title | 2026-10-11 | 25c304c | — |
 | 194 | Cyclic Groups: movable Subgroup panel card in full screen | 2026-10-11 | dda9b2c | — |
 | 195 | Cyclic Groups: full-screen KDE-style taskbar with panel windows (branch cyclic-groups-fullscreen-taskbar) | 2026-10-11 | e74802d | — |
+| 196 | Cyclic Groups: arrange-by-generator option moved into the Group panel | 2026-10-11 | 45cc33b | — |
 
 ## Deferred Items
 
