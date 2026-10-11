@@ -43,7 +43,9 @@
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), fsNewRing (the launcher's command that opens another ring
    window), fsDuplicateRing (the + button on a ring window's title bar, which
-   opens a copy of that ring), arrangeLabel, arrangeRowLabel (the same
+   opens a copy of that ring), splitView (the Ring window's button on its
+   Subgroup visualized row that splits the window, the ring on top and the
+   Subgroups list under it), arrangeLabel, arrangeRowLabel (the same
    control's name in the Ring window), arrangeSequential,
    arrangeSequentialTitle, arrangeByPowers, arrangeGenLabel,
    arrangeMultiples and arrangePowers (the Ring window's arrangement
@@ -345,6 +347,7 @@
       fsShowDesktop: 'Show desktop',
       fsNewRing: 'New ring window',
       fsDuplicateRing: 'New ring window from {name}',
+      splitView: 'Splitview',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
       subOrderCancel: 'Cancel',

@@ -595,6 +595,16 @@
   .fs-win-body.is-ring #arrow-options .check select.side-select option{ color:var(--text); background:var(--bg-1); }
   .fs-win-body.is-ring #arrow-options .link-btn{ margin:0; }
   .fs-win-body.is-ring .coset-btn{ width:auto; }
+  /* The split view: a button at the right end of the subgroup row opens a
+     pane under the ring (a divider between them) that takes in the page's
+     live subgroup list; ring and pane share the window's spare height. */
+  .split-btn, .ring-split{ display:none; }
+  .fs-win-body.is-ring .split-btn{ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
+  .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
+  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; border-top:1px solid var(--panel-border); padding-top:8px; }
+  .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "pad pad pad" "head head head" "ring ring ring" "rot spin key" "split split split"; }
+  .ring-split > .subgroups-panel{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; background:none; border:0; border-radius:0; padding:0; }
+  .ring-split .subgroups{ flex:1 1 auto; min-height:0; max-height:none; }
   .fs-win-body.is-ring .coset-controls:not([hidden]){ margin:0; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 16px; }
   .fs-win-body.is-ring .coset-controls .speed-wrap input[type="range"]{ width:120px; flex:none; }
   .fs-win-body.is-ring #keep-top-row{ flex:0 1 340px; margin:0 0 0 auto; padding:2px 0; }
@@ -887,6 +897,7 @@
             <button type="button" class="link-btn" id="rot-reset" style="margin:0 0 0 6px" data-i18n="cyclicGroups.rotateReset">Reset</button>
           </div>
         </div>
+        <div class="ring-split" id="ring-split" hidden></div>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
         <p class="iso-lead" id="iso-lead"></p>
@@ -1025,6 +1036,7 @@
             </div>
           </div>
         </div>
+        <button type="button" class="action-btn split-btn" id="split-btn" aria-pressed="false" aria-controls="ring-split" data-i18n="cyclicGroups.splitView">Splitview</button>
       </section>
 
       <section class="panel" id="legend-panel">
@@ -1196,6 +1208,10 @@ var colorResetEl = $('color-reset');
 var customColorsEl = $('custom-colors');
 var swapColorsEl = $('swap-colors');
 var keepTopRowEl = $('keep-top-row');
+var splitBtnEl = $('split-btn');
+var ringSplitEl = $('ring-split');
+var subgroupsPanelEl = $('subgroups-list-panel');
+var splitOn = false, splitHome = null; // the Ring window's split view, and where its panel goes back to
 var keepTopEl = $('keep-top');
 var autoShiftEl = $('auto-shift');
 var cayleyLinkEl = $('xref-cayley');
@@ -2233,7 +2249,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'rotate-ctl', 'ring-split'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'group', ids: ['group-panel'], title: 'cyclicGroups.fsInfo', icon: 'G', hideHeading: true },
   { key: 'iso', ids: ['iso-panel'], title: 'cyclicGroups.fsIsomorphisms', icon: '≅' },
   { key: 'subgroups', ids: ['subgroups-list-panel'], title: 'cyclicGroups.subgroupsHeading', icon: '⟨a⟩', hideHeading: true, width: 560 },
@@ -2846,6 +2862,7 @@ function syncWindows(){
   }
   // Every window the desktop should hold is built once, in front of the taskbar.
   if (fsWins) allSpecs().forEach(function(spec){ if (!fsWins[spec.key]) mountWindow(spec); });
+  syncSplit();
   syncFsLabels();
   var front = frontKey();
   allSpecs().forEach(function(spec){
@@ -2867,6 +2884,28 @@ function syncWindows(){
   if (alphaKey && fsWins && fsWins[alphaKey].win.hidden) setAlpha(null);
   layoutWindows();
 }
+
+/* ---------- the Ring window's split view ---------- */
+// The pane under the ring takes in the page's one subgroups panel, a comment
+// keeping its place; closing the split, or leaving full screen, sends it back.
+function syncSplit(){
+  var on = splitOn && !!ringSplitEl.closest('.fs-win-body.is-ring');
+  if (on && subgroupsPanelEl.parentNode !== ringSplitEl){
+    splitHome = document.createComment('subgroups-list-panel');
+    subgroupsPanelEl.before(splitHome);
+    ringSplitEl.appendChild(subgroupsPanelEl);
+  } else if (!on && splitHome){
+    // A placeholder cut loose by leaving full screen needs no panel put back.
+    if (splitHome.isConnected) splitHome.replaceWith(subgroupsPanelEl);
+    splitHome = null;
+  }
+  ringSplitEl.hidden = !on;
+  splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
+}
+splitBtnEl.addEventListener('click', function(){
+  splitOn = !splitOn;
+  syncWindows();
+});
 
 // A window's name. The ring's names the group on show, and whether it is
 // cyclic.
