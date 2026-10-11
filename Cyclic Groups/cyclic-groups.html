@@ -515,7 +515,7 @@
   /* A window's transparency (--win-alpha, written by the page) thins only
      its background: its title bar, text and controls stay solid. */
   .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; min-width:0; background:color-mix(in srgb, var(--surface) calc(var(--win-alpha, 1) * 100%), transparent); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
-  .fs-win[hidden], .fs-win:not(.is-ring):has(> .fs-win-body > [hidden]){ display:none; }
+  .fs-win[hidden], .fs-win:not(.is-ring):has(> .fs-win-body > [hidden]), .fs-win:not(.is-ring):not(.is-frame):has(> .fs-win-body:empty){ display:none; }
   .fs-win.is-front{ border-color:color-mix(in srgb, var(--accent) 55%, var(--panel-border-strong)); }
   .fs-win.is-max, .fs-win.is-max .fs-win-head{ border-radius:0; }
   .fs-win.is-max{ border-width:0; box-shadow:none; }
@@ -2362,8 +2362,9 @@ function isMin(key){ return fsState.min.indexOf(key) !== -1; }
 function isMax(key){ return fsState.max.indexOf(key) !== -1; }
 function alphaOf(key){ return key in fsState.alpha ? fsState.alpha[key] : 1; }
 function without(list, key){ return list.filter(function(k){ return k !== key; }); }
-// A window the page has something in: the ring always, a panel unless hidden.
-function hasContent(spec){ return spec.ring || spec.frame || !$(spec.ids[0]).hidden; }
+// A window the page has something in: the ring always, a panel unless hidden
+// or taken into the Ring window's split view.
+function hasContent(spec){ return spec.ring || spec.frame || (!$(spec.ids[0]).hidden && !ringSplitEl.contains($(spec.ids[0]))); }
 // The window in front: the last open one not minimized and with content.
 function frontKey(){
   var shown = fsState.open.filter(function(k){ return !isMin(k) && hasContent(specOf(k)); });
@@ -2611,14 +2612,16 @@ function fitWindow(key){
 // What the ring's window body needs: the narrowest width at which its rows
 // of controls stop wrapping, their height there, and its side padding. The
 // body is tried at other widths and put back.
-var RING_ROW = 4; // the ring's row among the body's grid rows
+var RING_ROW = 5; // the ring's row among the body's grid rows (the formula scratchpad's row is above it)
+var SPLIT_ROW = 7; // the split pane's row, there only while the split is open
 function ringNeeds(){
   var body = ringSvgEl.parentNode, cs = getComputedStyle(body), was = body.style.width;
+  var split = !ringSplitEl.hidden; // the ring and the pane share the spare height
   var chromeAt = function(x){
     body.style.width = x + 'px';
     var rows = getComputedStyle(body).gridTemplateRows.split(' ').map(parseFloat);
     var h = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-    rows.forEach(function(v, i){ if (i !== RING_ROW && isFinite(v)) h += v; });
+    rows.forEach(function(v, i){ if (i !== RING_ROW && !(split && i === SPLIT_ROW) && isFinite(v)) h += v; });
     return body.scrollWidth > body.clientWidth + 1 ? Infinity : h;
   };
   var flat = chromeAt(4000), lo = 160, hi = 4000;
@@ -2627,7 +2630,7 @@ function ringNeeds(){
     if (chromeAt(mid) <= flat + 0.5) hi = mid; else lo = mid;
   }
   body.style.width = was;
-  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) };
+  return { minW: Math.ceil(hi), chromeH: flat, padX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), flex: split ? 2 : 1 };
 }
 // Sizes a ring's window from its body's needs; holder is the element the
 // body fills inside the window (the body itself, or an extra window's frame).
@@ -2636,9 +2639,9 @@ function fitRing(key, holder, n){
   var hb = holder.getBoundingClientRect();
   var extraW = r.w - hb.width, extraH = r.h - hb.height;
   var bodyW = Math.min(D.W - extraW, n.minW);
-  var side = Math.min(bodyW - n.padX, D.H - extraH - n.chromeH);
+  var side = Math.min(bodyW - n.padX, (D.H - extraH - n.chromeH) / n.flex);
   if (side < 40) return;
-  placeFit(key, r, bodyW + extraW, side + n.chromeH + extraH);
+  placeFit(key, r, bodyW + extraW, side * n.flex + n.chromeH + extraH);
 }
 function fitPanel(key){
   var w = fsWins[key];
@@ -3107,11 +3110,11 @@ window.addEventListener('message', function(e){
     if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
     clearTimeout(fsWriteTimer);
     fsWriteTimer = setTimeout(writeFsState, 400);
-  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; })){
+  } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; }) && (d.flex === 1 || d.flex === 2)){
     // A frame's answer to a Fit.
     if (!fsWins[key].fitting) return;
     fsWins[key].fitting = false;
-    fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX });
+    fitRing(key, fsWins[key].frame, { minW: d.minW, chromeH: d.chromeH, padX: d.padX, flex: d.flex });
   } else if (d.ringwin === 'raise'){
     // A press inside a frame never reaches this document, so the menu and the
     // opacity slider close, and the window comes to the front, from here.
@@ -3169,7 +3172,7 @@ if (IS_RINGWIN){
     if (d.ringhost === 'measure'){
       // The desktop fits this frame's window to what its contents need.
       var n = ringNeeds();
-      try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX }, '*'); } catch (err) { /* no desktop to tell */ }
+      try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex }, '*'); } catch (err) { /* no desktop to tell */ }
       return;
     }
     if (d.ringhost !== 'look') return;
