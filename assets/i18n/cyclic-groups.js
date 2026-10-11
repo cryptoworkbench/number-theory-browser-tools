@@ -335,6 +335,7 @@
       keepTopGen: 'Keep subgroup’s generator on top',
       scratchOpen: 'Formula scratchpad',
       scratchClose: 'Close formula scratchpad',
+      scratchGens: 'Group generator amount',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
