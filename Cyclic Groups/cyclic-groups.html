@@ -380,7 +380,9 @@
      the picker lies unseen over it, so a click on the circle opens it. */
   .legend-swatch.is-pickable{ position:relative; cursor:pointer; }
   .legend-swatch.is-pickable:focus-within{ outline:2px solid var(--accent); outline-offset:2px; }
-  .legend-pick{ display:none; }
+  .legend-pick, #legend-panel > .legend-reset{ display:none; }
+  .legend-item > .legend-reset{ margin:0 0 0 auto; font-size:.82rem; }
+  .legend-item > .legend-reset[hidden]{ display:none; }
   .legend-swatch > .legend-pick{ display:block; position:absolute; inset:-1px; width:auto; height:auto; margin:0; padding:0; border:0; opacity:0; cursor:pointer; }
   .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
   /* Inverse-pair key: one compact chip per pair, wrapping, with the
@@ -1009,7 +1011,6 @@
               <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
             </select>
           </div>
-          <button type="button" class="link-btn" id="id-color-reset" hidden data-i18n="cyclicGroups.identityColorReset">Reset identity colour</button>
           <button type="button" class="action-btn legend-btn" id="legend-btn" aria-pressed="false" aria-controls="legend-panel" data-i18n="cyclicGroups.showElementColours">Show key</button>
         </div>
         <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
@@ -1063,9 +1064,10 @@
       </section>
 
       <section class="panel" id="legend-panel">
-        <h2 id="legend-heading">Color key: subgroup cardinality</h2>
+        <h2 id="legend-heading">Colour key: subgroup cardinality</h2>
         <div class="legend" id="legend"></div>
         <input type="color" class="legend-pick" id="id-color">
+        <button type="button" class="link-btn legend-reset" id="id-color-reset" hidden></button>
       </section>
 
       <section class="panel" id="export-panel">
@@ -1199,7 +1201,7 @@ var hintInverseEl = $('hint-inverse');
 var legendEl = $('legend');
 var legendHeadingEl = $('legend-heading');
 var legendPanelEl = $('legend-panel');
-var idColorEl = $('id-color'); // the identity's colour picker, which the Website theme key holds
+var idColorEl = $('id-color'), idColorResetEl = $('id-color-reset'); // the identity's colour picker, which the Website theme key holds
 var legendBtnEl = $('legend-btn');
 var legendShown = false; // full screen, whether the element colour key shows in the Ring window
 var colorBySelectEl = $('colorby-select');
@@ -1394,14 +1396,14 @@ function themeClass(G, a){
 }
 
 // The identity's color in the website-theme coloring: the pick, written on
-// .app for the beads and the color key, or the default red. The picker and
-// its reset show only while that coloring is on.
+// .app for the beads and the colour key, or the default red. The picker and
+// its reset sit on the identity's row of the Website theme key, the reset
+// only while there is a pick to undo.
 function syncIdColor(){
-  var on = state.colors && state.colorBy === 'theme';
   if (state.idColor) appEl.style.setProperty('--identity-color', state.idColor);
   else appEl.style.removeProperty('--identity-color');
   idColorEl.value = state.idColor || roleHex('--role-warn');
-  $('id-color-reset').hidden = !on || !state.idColor;
+  idColorResetEl.hidden = !state.idColor;
 }
 
 // Inverting g^k negates the exponent, so wherever a ring places beads by
@@ -4370,6 +4372,9 @@ function renderThemeLegend(G){
   idColorEl.title = translate('cyclicGroups.identityColor');
   idColorEl.setAttribute('aria-label', translate('cyclicGroups.identityColor'));
   swatch.appendChild(idColorEl);
+  idColorResetEl.textContent = translate('common.reset');
+  idColorResetEl.title = translate('cyclicGroups.identityColorReset');
+  id.appendChild(idColorResetEl);
   legendEl.appendChild(id);
   if (shown['ord-one']) legendEl.appendChild(legendItem('ord-one', null,
     tNode('cyclicGroups.legendThemeOne', { one: mNum(1) }), 'legend-order'));
@@ -5125,7 +5130,7 @@ idColorEl.addEventListener('input', function(){
   syncIdColor();
   if (drawn) mirrorToUrl(drawn.G);
 });
-$('id-color-reset').addEventListener('click', function(){
+idColorResetEl.addEventListener('click', function(){
   state.idColor = null;
   syncIdColor();
   if (drawn) mirrorToUrl(drawn.G);
