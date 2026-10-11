@@ -1792,6 +1792,11 @@ function mList(list){
 }
 // The modulus' symbol in the Group panel.
 function mPct(){ return mEl('mi', ['%'], { mathvariant: 'normal' }); }
+// ⟨ℤ/%ℤ, ∗⟩: the group in the Group panel's symbols, % its modulus and ∗
+// its operation.
+function mGroupPct(){
+  return angle(mrow(mi('ℤ'), mo('/', true), mPct(), mi('ℤ'), comma(), mo('∗', true)));
+}
 function mPhi(x){ return mrow(mi('φ'), mo('\u2061'), mo('(', true), x, mo(')', true)); }
 function mLog(base, x){ return mrow(mEl('msub', [mi('log'), mn(base)]), mo('\u2061'), mn(x)); }
 // ⟨ℤ/aℤ, +⟩ × ⟨ℤ/bℤ, +⟩ × … for the cyclic factors of a unit group: one
@@ -1991,9 +1996,10 @@ function drawMath(G, subs){
 }
 var lastSubs = [];
 
-// The formula scratchpad: every formula the head can show, and the number
-// of generators as the Info window works it out, each on a row under its
-// name, whichever switches are on; the group's rows first, then the
+// The formula scratchpad: every formula the head can show, the group's
+// name first in the Group panel's symbols, ⟨ℤ/%ℤ, ∗⟩ = ⟨ℤ/12ℤ, +⟩, and
+// the number of generators as the Info window works it out, each on a row
+// under its name, whichever switches are on; the group's rows first, then the
 // subgroup's. With no subgroup chosen, the
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
@@ -2008,7 +2014,7 @@ function drawScratchPad(G){
   if (!scratchOpen) return;
   var on = function(name){ return !(noSub() && SUB_HEADS.indexOf(name) !== -1); };
   var h = shownGen(G), whole = G.orders[h] === G.order, cells = {};
-  if (on('gname')) cells.gname = scratchMath('ring-math-title', mGroup(G), G.label);
+  if (on('gname')) cells.gname = scratchMath('ring-math-title', mrow(mGroupPct(), mo('='), mGroup(G)), '⟨ℤ/%ℤ, ∗⟩ = ' + G.label);
   if (on('sname')) cells.sname = scratchMath('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
     translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }));
   orderFormulas(G, on).forEach(function(f){ cells[f.key] = scratchMath('ring-math-formula', f.math, f.plain); });
