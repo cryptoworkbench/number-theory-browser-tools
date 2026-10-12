@@ -5122,7 +5122,7 @@ gearboxEl.addEventListener('dblclick', function(e){
 // user steps through the rest, or presses Play to have them step by
 // themselves. The run walks through the cosets of
 // the subgroup the selected element generates, one per step, each walked
-// from the coset's smallest element instead of the identity. A coset once
+// from the coset's first element (see cosetStarts) instead of the identity. A coset once
 // shown stays: its beads lit, its walks faded, so the last step (or Instant)
 // shows the whole group split into cosets. Beads in no coset shown yet are
 // dimmed. Each step dwells SPEED_MS at the chosen speed, the same scale the
@@ -5149,10 +5149,14 @@ function hasCosets(G){
   return k > 1 && k < G.order;
 }
 
+// Each coset starts at its first element in the ring's own order: the
+// numbers' order, or, in a pane linked to a whole group, the images of that
+// group's numbers' order (isoHostOrder), so that both rings start each
+// coset at matching elements and show the cosets in matching order.
 function cosetStarts(G, h){
   var seen = {};
   var starts = [];
-  G.els.forEach(function(a){
+  (isoHostOrder(G) || G.els).forEach(function(a){
     if (seen[a]) return;
     starts.push(a);
     lap(G, h, G.orders[h], a).forEach(function(x){ seen[x] = true; });
@@ -6283,7 +6287,7 @@ function isoReceive(d){
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
   if (d.iso === 'lockok'){ if (!IS_ISOPANE){ isoPeerLockOk = d.ok === true; syncInterlock(); } return; }
   if (d.iso === 'interlock'){ if (IS_ISOPANE){ isoInterlockOn = d.on === true; syncInterlock(); } return; }
-  if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, aligned: d.aligned === true }; syncInterlock(); } return; }
+  if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, aligned: d.aligned === true, ks: isoRanks(d.ks, m) }; syncInterlock(); } return; }
   if (d.iso === 'align'){ if (!IS_ISOPANE) alignSubSort(); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'hover'){
@@ -6313,7 +6317,21 @@ var isoSelSent = null;
 // generator on each side, so row k is g^k on one side and h^k on the
 // other, and so interlocks them. The ring holding the pane tells the pane
 // whether the link is whole and its own list sorted so (isoHostWhole).
-var isoHostWhole = { on: false, aligned: false }, isoWholeSent = null;
+var isoHostWhole = { on: false, aligned: false, ks: null }, isoWholeSent = null;
+// ks: the exponent k of each element g^k of the holder's whole group, in the
+// order of its numbers; a permutation of 0 .. m-1, or null.
+function isoRanks(ks, m){
+  if (!Array.isArray(ks) || ks.length !== m) return null;
+  var seen = {};
+  return ks.every(function(k){ return Number.isInteger(k) && k >= 0 && k < m && !seen[k] && (seen[k] = true); }) ? ks : null;
+}
+// The pane's elements, in the order of their images' numbers in the whole
+// group it is linked to, or null while it is not linked to one.
+function isoHostOrder(G){
+  if (!IS_ISOPANE || !isoHostWhole.on || !isoHostWhole.ks || isoOrder() !== G.order) return null;
+  var powers = isoPowers();
+  return isoHostWhole.ks.map(function(k){ return powers[k]; });
+}
 function alignSubSort(){
   if (!drawn || isoOrder() <= 0 || !isoLinksWholeGroups()) return;
   if (isoPane.g === null) isoPane.g = isoLinkGen();
@@ -6353,11 +6371,15 @@ function syncInterlock(){
       if (on && isoPane.g === null) isoPane.g = isoLinkGen();
       isoTell({ iso: 'interlock', on: on });
     }
-    var whole = { on: isoOrder() > 0 && isoLinksWholeGroups(), aligned: genOrNull(drawn.G, state.subSort) === isoLinkGen() };
+    var whole = { on: isoOrder() > 0 && isoLinksWholeGroups(), aligned: genOrNull(drawn.G, state.subSort) === isoLinkGen(), ks: null };
+    if (whole.on){
+      var klog = exprLog(drawn.G, isoLinkGen());
+      whole.ks = drawn.G.els.map(function(x){ return klog[x]; });
+    }
     var wkey = JSON.stringify(whole);
     if (wkey !== isoWholeSent){
       isoWholeSent = wkey;
-      isoTell({ iso: 'whole', on: whole.on, aligned: whole.aligned });
+      isoTell({ iso: 'whole', on: whole.on, aligned: whole.aligned, ks: whole.ks });
     }
   }
   subAlignBtnEl.hidden = !(IS_ISOPANE && isoHostWhole.on && isoOrder() > 0 && drawn.G.cyclic
