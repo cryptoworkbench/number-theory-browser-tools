@@ -835,6 +835,12 @@
      left counterclockwise and those to its right clockwise, faster the
      further out. The slider's thumb snaps to the ticks. */
   .spin-ruler{ display:none; }
+  /* The ruler's two arrows turn the ring one bead, as the rotation row's
+     buttons do, which it then has no need of. */
+  .spin-step{ display:grid; place-items:center; width:1.9em; height:1.9em; padding:0; font:inherit; line-height:1; color:inherit; background:none; border:0; border-radius:50%; cursor:pointer; }
+  .spin-step:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .spin-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .diagram-frame:fullscreen .fs-win-body.is-ring :is(#rot-back, #rot-fwd), :root.is-ringwin .fs-win-body.is-ring :is(#rot-back, #rot-fwd){ display:none; }
   .diagram-frame:fullscreen .auto-rotate, .diagram-frame:fullscreen .formula-toggles{ display:none; }
   .diagram-frame:fullscreen .spin-ruler, :root.is-ringwin .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
   .spin-track{ position:relative; flex:1 1 auto; height:30px; }
@@ -999,12 +1005,12 @@
           <g id="ring-dynamic"></g>
         </svg>
         <div class="spin-ruler" id="spin-ruler">
-          <span aria-hidden="true">&#x27F2;</span>
+          <button type="button" class="spin-step" id="spin-back" aria-label="Rotate one element counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one element counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
           <div class="spin-track">
             <div class="spin-ticks" aria-hidden="true"><span></span><span></span><span></span><span class="is-zero"></span><span></span><span></span><span></span></div>
             <input type="range" id="spin-slider" min="-3" max="3" step="1" value="0" aria-label="Auto-rotate speed" data-i18n-aria-label="cyclicGroups.spinLabel">
           </div>
-          <span aria-hidden="true">&#x27F3;</span>
+          <button type="button" class="spin-step" id="spin-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
         </div>
         <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.layersHeading">Layers</p>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-elements" role="menu" aria-label="Elements" data-i18n-aria-label="cyclicGroups.ctxElements" hidden></div>
@@ -4651,6 +4657,8 @@ resizeGripEl.addEventListener('dblclick', function(){
 
 $('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop('corner')) turnBy(dirSign()); });
 $('rot-fwd').addEventListener('click', function(){ if (tryLetGoOfTop('corner')) turnBy(-dirSign()); });
+$('spin-back').addEventListener('click', function(){ $('rot-back').click(); });
+$('spin-fwd').addEventListener('click', function(){ $('rot-fwd').click(); });
 // Reset brings the identity back to the top, and keeps it there.
 $('rot-reset').addEventListener('click', function(){
   if (state.top === 'id') turnHome();
