@@ -498,6 +498,7 @@ None yet.
 | 262 | Cyclic Groups: inverse-pairs key one pair per line | 2026-10-12 | 4174421 | — |
 | 263 | Cyclic Groups: ring menu opens whole-group isomorphisms | 2026-10-12 | 42f17a3 | — |
 | 264 | Cyclic Groups: copy formulas from the scratchpad | 2026-10-12 | 22adce2 | — |
+| 265 | Cyclic Groups: subgroup isomorphism window title (⟨g⟩ ⊂ G) ≅ H | 2026-10-12 | a17bf4c | — |
 
 ## Deferred Items
 
