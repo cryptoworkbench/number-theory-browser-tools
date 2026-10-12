@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T15:30:30.000Z"
+last_updated: "2026-10-12T15:39:12.000Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 39a280047b52c68d8aa4cd89fd3064e62bdca4c2
+state_head: 40c877f7e3a1b04620645ca5dbbd62d96a7ba355
 progress:
   total_phases: 7
   completed_phases: 6
@@ -547,6 +547,7 @@ None yet.
 | 311 | Cyclic Groups merged Numerical controls reverted (user rejected 8bd8f39) | 2026-10-12 | 6bab5e6 | — |
 | 312 | Cyclic Groups Numerical panel exports its subgroups as a text file | 2026-10-12 | 9b49ca7 | — |
 | 313 | Cyclic Groups group-to-group isomorphisms merge the Numerical panels into one table | 2026-10-12 | 39a2800 | — |
+| 314 | Cyclic Groups: hovering the trivial subgroup's row no longer shakes the Ring window (arrow key keeps its room during a preview) | 2026-10-12 | 40c877f | — |
 
 ## Deferred Items
 
