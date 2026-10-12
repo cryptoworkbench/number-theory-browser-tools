@@ -1783,6 +1783,12 @@ function exprLog(G, g){
   lap(G, g, G.order).forEach(function(x, k){ log[x] = k; });
   return log;
 }
+// The elements in the order lists name them: by number, or under an
+// element expression by exponent, g⁰, g¹, g², ...
+function exprEls(G){
+  var g = exprBy(G);
+  return g === null ? G.els : lap(G, g, G.order);
+}
 var SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 function superscript(k){
   return String(k).replace(/[0-9]/g, function(d){ return SUPERSCRIPT_DIGITS[d]; });
@@ -4168,7 +4174,7 @@ function syncGenerators(G){
   none.textContent = translate('cyclicGroups.colorByNone');
   genSelectEl.appendChild(none);
   var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
-  G.els.forEach(function(a){
+  exprEls(G).forEach(function(a){
     var opt = document.createElement('option');
     opt.value = String(a);
     opt.textContent = '⟨' + a + '⟩' + (elog ? ' (' + eg + superscript(elog[a]) + ')' : '');
@@ -5128,9 +5134,10 @@ var subgroupsSig = null;
 function renderSubgroups(G){
   var hadFocus = subgroupsEl.contains(document.activeElement);
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
-  var rows = G.els.map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
-  // Under an element expression every number reads as a power g^k.
+  // Under an element expression every number reads as a power g^k, and the
+  // rows run by exponent.
   var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
+  var rows = exprEls(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   var mx = function(x){ return elog ? mEl('msup', [mn(eg), mn(elog[x])]) : mn(x); };
   var px = function(x){ return elog ? eg + '^' + elog[x] : String(x); };
   var sig = G.mode + ' ' + G.n + ' ' + eg + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
