@@ -1488,6 +1488,7 @@ function beadPainter(G, classes, pairing){
 // The website-theme color of an element: the identity's own, then 1, the
 // primes and the composites.
 function themeClass(G, a){
+  if (isoBorrowed && isoBorrowed[a]) return isoBorrowed[a].cls;
   if (a === G.identity) return 'ord-theme-id';
   if (a === 1) return 'ord-one';
   return isPrime(a) ? 'ord-prime' : 'ord-composite';
@@ -3642,7 +3643,7 @@ if (IS_RINGWIN){
       try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex, cols: n.cols }, '*'); } catch (err) { /* no desktop to tell */ }
       return;
     }
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'hover'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -4994,6 +4995,7 @@ function loadIsoFrame(){
     postIsoShared(true);
     isoSentK = null;
     isoSentC = null;
+    isoSentPaints = null;
     isoTellTop(true);
   });
   f.src = isoPaneSrc(isoPane.q, isoPane.h);
@@ -5180,9 +5182,37 @@ function isoSpread(){
   }
   return c;
 }
+// The pane's colours: the ring holding it sends how it paints each g^k, the
+// pane keeps them (isoPaints, indexed by k) and paints h^k alike while the
+// two are linked; isoBorrowed is that, by element, for the render under way.
+var ISO_PAINT_PREFIX = '--ord: ';
+var isoPaints = null, isoBorrowed = null, isoSentPaints = null;
+function borrowedPaints(G){
+  if (!IS_ISOPANE || !isoPaints || !G.cyclic || G.orders[ISO_GEN] !== G.order || isoPaints.length !== G.order) return null;
+  var out = {};
+  lap(G, ISO_GEN, G.order).forEach(function(a, k){ out[a] = isoPaints[k]; });
+  return out;
+}
+function isoTellPaints(force){
+  var paints = isoPowers().map(function(a){ return drawn.paint(a); });
+  var key = JSON.stringify(paints);
+  if (!force && key === isoSentPaints) return;
+  isoSentPaints = key;
+  isoTell({ iso: 'paint', paints: paints });
+}
+function isoTakePaints(paints){
+  var ok = Array.isArray(paints) && paints.length === isoOrder() && paints.every(function(p){
+    return p && typeof p.cls === 'string' && /^[a-z0-9 -]{0,40}$/.test(p.cls)
+      && (p.style === null || (typeof p.style === 'string' && p.style.length < 200 && p.style.indexOf(ISO_PAINT_PREFIX) === 0 && !/[;{}<>]/.test(p.style)));
+  });
+  if (!ok) return;
+  isoPaints = paints;
+  render();
+}
 function isoTellTop(force){
   var m = isoOrder();
   if (!m || isoFollowing) return;
+  if (!IS_ISOPANE) isoTellPaints(force);
   // The pane speaks only for a turn of its own.
   if (IS_ISOPANE && !turning && !spin) return;
   if (!IS_ISOPANE){
@@ -5266,6 +5296,7 @@ function isoReceive(d){
   if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a)) isoFollowAngle(d.a); return; }
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
   if (d.iso === 'settle'){ if (!IS_ISOPANE) settleTurn(); return; }
+  if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'hover'){
     isoHoverSent = d.k;
@@ -5723,6 +5754,19 @@ function render(){
   var classes = orderClasses(G.order);
   var pairing = inversePairs(G);
   var paint = beadPainter(G, classes, pairing);
+  // A pane linked to its ring paints each h^k as that ring paints g^k, and
+  // builds its key from those colours, so the two keys always agree.
+  isoBorrowed = borrowedPaints(G);
+  if (isoBorrowed){
+    classes = {};
+    pairing.color = {};
+    G.els.forEach(function(a){
+      var p = isoBorrowed[a];
+      classes[G.orders[a]] = p.cls;
+      if (p.style) pairing.color[a] = p.style.slice(ISO_PAINT_PREFIX.length);
+    });
+    paint = function(a){ return isoBorrowed[a]; };
+  }
   var factors = G.cyclic ? [] : unitFactors(G.n);
 
   stopCosets();
