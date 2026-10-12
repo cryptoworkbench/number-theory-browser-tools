@@ -497,6 +497,7 @@ None yet.
 | 261 | Cyclic Groups: bead colour key styled like the arrow key | 2026-10-12 | 1238ea9 | — |
 | 262 | Cyclic Groups: inverse-pairs key one pair per line | 2026-10-12 | 4174421 | — |
 | 263 | Cyclic Groups: ring menu opens whole-group isomorphisms | 2026-10-12 | 42f17a3 | — |
+| 264 | Cyclic Groups: copy formulas from the scratchpad | 2026-10-12 | 22adce2 | — |
 
 ## Deferred Items
 
