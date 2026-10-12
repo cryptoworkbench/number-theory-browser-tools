@@ -707,9 +707,10 @@
   /* The rotation controls turn both rings and the path colour key reads
      for both, so with the pane open they sit under both, in a footer as
      wide as the window: the buttons at its start, the speed ruler centred
-     on the line between the rings, the key at its end. */
+     on the line between the rings (the pane's column, and so the line,
+     starting half a column gap right of the middle), the key at its end. */
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:foot; justify-self:start; align-self:center; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:foot; justify-self:center; align-self:center; width:min(420px, calc(100% - 35rem)); margin:0; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:foot; justify-self:center; align-self:center; width:min(420px, calc(100% - 35rem)); margin:0 0 0 14px; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:foot; justify-self:end; align-self:end; padding-top:8px; }
   /* Once the two groups are not isomorphic each ring turns on its own: the
      pane shows its own rotation controls, and this ring's sit under it
@@ -5284,6 +5285,7 @@ function openIsoPane(a, g){
   // The pane opens still: the host's first turn message aims it.
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ p.delete(k); });
   isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false };
+  isoWasLinked = true;
   setGroupLock(true);
   isoPaneEl.hidden = false;
   loadIsoFrame();
@@ -5401,7 +5403,12 @@ function applyIsoShared(d){
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.split)) splitOn = d.split;
-  if (flag(d.linked)) document.documentElement.classList.toggle('is-iso-unlinked', !d.linked);
+  if (flag(d.linked)){
+    var root = document.documentElement, was = !root.classList.contains('is-iso-unlinked');
+    root.classList.toggle('is-iso-unlinked', !d.linked);
+    // Linked again after it was not: the pane's group parameters lock again.
+    if (d.linked && !was) setGroupLock(true);
+  }
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
   if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
   if (hex(d.idColor)) state.idColor = d.idColor;
@@ -5440,10 +5447,21 @@ function tellPaneKey(key){
   isoPaneKeySent = s;
   tellHost({ isopane: 'key', key: key });
 }
+// isoWasLinked: whether the rings were linked at the last look, null with
+// no pane. When they are linked again after they were not, the group
+// parameters of both rings, and the padlock between them, lock again.
+var isoWasLinked = null;
 function syncIsoKeys(){
   if (IS_ISOPANE) return;
   var root = document.documentElement, copy = $('combine-key-pane');
   var unlinked = !!isoPane && !!drawn && !isoLinked();
+  if (isoPane && drawn){
+    if (!unlinked && isoWasLinked === false){
+      isoPane.unlocked = false;
+      setGroupLock(true);
+    }
+    isoWasLinked = !unlinked;
+  } else isoWasLinked = null;
   var pk = unlinked && isoPaneKey && isoPaneKey.on && Number.isInteger(isoPaneKey.h) && Number.isInteger(isoPaneKey.hinv) ? isoPaneKey : null;
   var mine = !combineKeyEl.hidden;
   var showCopy = !!pk && (!mine || pk.merged || mergedWalks(drawn.G));
