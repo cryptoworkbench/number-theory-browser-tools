@@ -42,6 +42,14 @@ async function ctxSub(page, sub) {
   await page.locator("#ring-ctx > [aria-haspopup]").nth(sub === "elements" ? 0 : 1).hover();
   await page.waitForSelector("#ring-ctx-" + sub + ":not([hidden])");
 }
+// Opens an isomorphic group beside the ring from the ring's right-click
+// menu (Open in isomorphism view), `chip` naming its chip's selector.
+async function openIso(t, chip) {
+  await t.click("#ring-svg", { button: "right" });
+  await t.waitForSelector("#ring-ctx:not([hidden])");
+  await t.locator("#ring-ctx > [aria-haspopup]").nth(2).hover();
+  await t.click("#ring-ctx-iso " + chip.replace("a.iso-chip", "button"));
+}
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 async function waitFor(fn, ms, what) {
   var end = Date.now() + (ms || 3000), last;
@@ -119,7 +127,7 @@ async function main() {
     h = p1h = await openFs(browser);
     var page = h.page;
     base = { grid: await page.evaluate(bodyGrid), c: await page.evaluate(counts), pages: h.ctx.pages().length };
-    await page.click(RING + " " + CHIP5);
+    await openIso(page, CHIP5);
     pane = await paneOf(page.mainFrame());
     var u = pane.url();
     ["isopane=1", "mode=multiplicative", "n=5", "isogen=2"].forEach(function (k) { assert(u.indexOf(k) >= 0, "pane url lacks " + k + ": " + u); });
@@ -172,7 +180,7 @@ async function main() {
 
   try {
     var page2 = h.page;
-    await page2.click(RING + " " + CHIP4);
+    await openIso(page2, CHIP4);
     await waitFor(async function () { return /n=4/.test((await paneOf(page2.mainFrame())).url()); }, 8000, "the replaced pane");
     pane = await paneOf(page2.mainFrame());
     var u2 = pane.url();
@@ -203,20 +211,18 @@ async function main() {
   } catch (e) { record("P4 close: the single-ring grid is back", e); }
   if (p1h) await p1h.ctx.close();
 
-  /* P5: a modified click leaves the pane alone */
+  /* P5: the isomorphisms panel is gone from the page; the menu lists its chips */
   try {
     h = await openPage(browser);
-    var before = h.ctx.pages().length;
-    await h.page.click(".stage > .iso-panel " + CHIP5, { modifiers: ["Control"] });
-    await sleep(500);
-    var hidden = await h.page.evaluate(function () { return getComputedStyle(document.getElementById("iso-pane")).display === "none"; });
-    assert(hidden, "pane opened on a modified click");
-    var pages = h.ctx.pages();
-    for (var i = 0; i < pages.length; i++) if (pages[i] !== h.page) await pages[i].close();
-    assert(pages.length >= before, "no tab");
+    var gone = await h.page.evaluate(function () { return getComputedStyle(document.getElementById("iso-panel")).display === "none"; });
+    assert(gone, "isomorphisms panel still shown");
+    await h.page.click("#ring-svg", { button: "right" });
+    await h.page.locator("#ring-ctx > [aria-haspopup]").nth(2).hover();
+    var n = await h.page.evaluate(function () { return document.querySelectorAll("#ring-ctx-iso [role=menuitem]").length; });
+    eq(n, 3, "isomorphism menu items");
     noErrors(h);
-    record("P5 modified click: a new tab, no pane", null);
-  } catch (e) { record("P5 modified click: a new tab, no pane", e); }
+    record("P5 isomorphisms: in the menu, not on the page", null);
+  } catch (e) { record("P5 isomorphisms: in the menu, not on the page", e); }
   if (h) await h.ctx.close();
 
   /* P6: an extra Ring window holds its pane nested */
@@ -226,7 +232,7 @@ async function main() {
     var href = await extra.getAttribute(CHIP5, "href");
     assert(href.indexOf("ringwin=") < 0, "chip href leaks ringwin: " + href);
     var cx = await h.page.evaluate(counts), pg = h.ctx.pages().length;
-    await extra.click(CHIP5);
+    await openIso(extra, CHIP5);
     var np = await paneOf(extra);
     assert(/isopane=1/.test(np.url()), "nested pane url");
     var vis = await extra.evaluate(function () { return getComputedStyle(document.getElementById("iso-pane")).display !== "none"; });
@@ -247,7 +253,7 @@ async function main() {
   var rot2 = "2";
   try {
     h = await openPage(browser);
-    await h.page.click(".stage > .iso-panel " + CHIP5);
+    await openIso(h.page, CHIP5);
     pane = await paneOf(h.page.mainFrame());
     await waitFor(function () { return h.page.evaluate(function () { return document.querySelector("#iso-pane iframe").classList.contains("is-loaded"); }); }, 5000, "the pane frame to load");
     var m = await h.page.evaluate(function () {
@@ -298,7 +304,7 @@ async function main() {
   /* P9-P13: shared settings, the pane's own menu, lists, Fit (full screen) */
   async function freshPane() {
     var hh = await openFs(browser);
-    await hh.page.click(RING + " " + CHIP5);
+    await openIso(hh.page, CHIP5);
     var pf = await paneOf(hh.page.mainFrame());
     return { h: hh, pane: pf };
   }
@@ -391,7 +397,7 @@ async function main() {
     assert(f13.paneW >= 200, "pane only " + f13.paneW + "px wide");
     // an extra Ring window, its own pane, then Fit
     var extra = await openExtra(h);
-    await extra.click(CHIP5);
+    await openIso(extra, CHIP5);
     await paneOf(extra);
     var key = await h.page.evaluate(function () { var ws = document.querySelectorAll(".fs-win"); return ws.length; });
     assert(key >= 3, "extra window missing");
@@ -480,7 +486,7 @@ async function main() {
   try {
     h = await openFs(browser);
     var extra18 = await openExtra(h);
-    await extra18.click(CHIP5);
+    await openIso(extra18, CHIP5);
     var np18 = await paneOf(extra18);
     var topRot = await rotOf(h.page);
     await turnTo(extra18, 6, np18, 3);
@@ -510,7 +516,7 @@ async function main() {
 
   try {
     h = await openPage(browser);
-    await h.page.click(".stage > .iso-panel " + CHIP5);
+    await openIso(h.page, CHIP5);
     pane = await paneOf(h.page.mainFrame());
     await turnTo(h.page, 3, pane, 1);
     await h.page.hover('#ring-svg circle.bead[data-el="6"]');

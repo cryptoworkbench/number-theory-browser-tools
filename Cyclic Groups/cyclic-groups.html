@@ -600,26 +600,10 @@
      Subgroup panel (its paths, their colors, the cosets), wrapping. */
   .fs-win-body.is-ring > .fs-win-row-gen{ grid-area:gen; display:flex; flex-wrap:wrap; align-items:center; gap:6px 28px; padding:2px 0 6px; border-bottom:1px dotted var(--panel-border); }
   .fs-win-body.is-ring #subgroup-options:not([hidden]){ display:contents; }
-  /* The isomorphisms row, under the subgroup row while the subgroup on show
-     has isomorphic groups to link to: its name, the sentence, the tiles. It
-     then takes the subgroup row's dotted line under it. */
-  .iso-row-label{ display:none; }
-    .fs-win-body.is-ring > .fs-win-row-iso{ grid-area:iso; }
-  .fs-win-body.is-ring > .fs-win-row-iso:has(> .iso-panel:not([hidden])){ padding:6px 0; border-bottom:1px dotted var(--panel-border); }
-  .fs-win-body.is-ring:has(> .fs-win-row-iso > .iso-panel:not([hidden])) > .fs-win-row-gen{ border-bottom:0; }
-  .fs-win-body.is-ring .iso-panel:not([hidden]){ display:flex; flex-wrap:wrap; align-items:center; gap:6px 32px; padding:0; background:none; border:0; border-radius:0; }
-  .fs-win-body.is-ring .iso-lead{ margin:0; font-size:.85rem; }
-  /* The row's name folds it: folded, only the chips stay, in one line, each
-     still tinted additive or multiplicative. */
-  .iso-row-label{ padding:0; font:inherit; text-align:start; background:none; border:0; cursor:pointer; }
-  .fs-win-body.is-ring .iso-row-label{ display:flex; align-items:center; gap:6px; }
-  .iso-row-label::after{ content:"\25BE"; font-size:.9rem; line-height:1; transition:transform .15s; }
-  .iso-row-label[aria-expanded="false"]::after{ transform:rotate(-90deg); }
-  .iso-row-label:hover{ color:var(--text); }
-  .iso-row-label:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  .fs-win-body.is-ring .iso-panel.is-folded :is(.iso-lead, .iso-logo, .iso-kind){ display:none; }
-  .fs-win-body.is-ring .iso-panel.is-folded .iso-tiles{ gap:6px; }
-  .fs-win-body.is-ring .iso-panel.is-folded .iso-tile{ min-width:0; padding:0; background:none; border:0; }
+  /* The isomorphisms are opened from the ring's right-click menu (Open in
+     isomorphism view); their panel stays behind it, out of sight, holding
+     the chips the menu lists. */
+  #iso-panel{ display:none !important; }
   .fs-win-body.is-ring .coset-btn{ width:auto; }
   /* The split view: a button at the right end of the subgroup row opens a
      pane under the ring (a divider between them) that takes in the page's
@@ -966,6 +950,7 @@
         </div>
         <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.layersHeading">Layers</p>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-elements" role="menu" aria-label="Elements" data-i18n-aria-label="cyclicGroups.ctxElements" hidden></div>
+          <div class="fs-menu ring-ctx-sub" id="ring-ctx-iso" role="menu" aria-label="Open in isomorphism view" data-i18n-aria-label="cyclicGroups.ctxIsoView" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-arrows" role="group" aria-label="Arrows" data-i18n-aria-label="cyclicGroups.ctxArrows" hidden>
             <div class="arrow-options" id="arrow-options">
             <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow colour" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow colour" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
@@ -973,6 +958,7 @@
             <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow colour" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow colour" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Disable backwards path</label></div>
             <div class="check" id="swap-colors-row"><input type="checkbox" id="swap-colors"><label for="swap-colors" data-i18n="cyclicGroups.swapColors">Swap forward and backward path colours</label></div>
             <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colours manually</label></div>
+            <div class="check"><input type="checkbox" id="layer-akey" checked><label for="layer-akey" data-i18n="cyclicGroups.showArrowKey">Show arrow colour key</label></div>
             <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colours</button>
             </div>
           </div>
@@ -1012,7 +998,6 @@
         </div>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
-        <button type="button" class="fs-row-label iso-row-label" id="iso-fold" aria-expanded="true"><span data-i18n="cyclicGroups.fsIsomorphisms">Isomorphisms</span></button>
         <p class="iso-lead" id="iso-lead"></p>
         <div class="iso-tiles" role="group" aria-labelledby="iso-lead">
           <div class="iso-tile is-add" id="iso-add">
@@ -1197,7 +1182,7 @@ var RING = { cx: 380, cy: 395, R: 238 };
 // screen the switches are hidden, and the Ring window's formula scratchpad
 // shows every formula instead.
 var HEAD_CHAIN = ['gname', 'sname', 'gorder', 'sorder', 'cindex'];
-var FLAGS = ['cord', 'guide', 'colors', 'orders', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
+var FLAGS = ['cord', 'guide', 'colors', 'orders', 'akey', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 // The flags with a switch of their own; bygen is set by the arrangement
 // dropdown and colors by the element colours dropdown instead.
 var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name !== 'colors'; });
@@ -1217,7 +1202,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null, noSub: false };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1298,7 +1283,6 @@ var isoLeadEl = $('iso-lead');
 var isoAddChipsEl = $('iso-add-chips');
 var isoMulEl = $('iso-mul');
 var isoMulChipsEl = $('iso-mul-chips');
-var isoFoldEl = $('iso-fold');
 // preview=1: this page is the live preview inside an isomorphic-group chip's
 // card, so it never writes the shared group and never follows it.
 var IS_PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
@@ -2370,7 +2354,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'iso-panel', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen', 'iso-panel': 'iso' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -2570,7 +2554,7 @@ fsMenuEl.addEventListener('keydown', function(e){
 // Layers panel's switches, each flipping its checkbox there so the
 // checkbox's own handler draws and remembers the change, then the Colours
 // submenus (the element colours, and the arrows' own controls, which live
-// in theirs), then the Export panel's download, which clicks its button
+// in theirs), the isomorphic groups to open beside the ring, then the Export panel's download, which clicks its button
 // there, and last the group's structure from the Info panel, which does
 // nothing yet. The colours are the left ring's, so a pane's menu has none.
 var RING_CTX_ITEMS = [
@@ -2579,11 +2563,12 @@ var RING_CTX_ITEMS = [
   { name: 'guide', key: 'cyclicGroups.layerGuide' },
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
+  { sep: true, key: 'cyclicGroups.ctxIsoView', sub: 'iso' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { sep: true, key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
-var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows') };
+var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso') };
 var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && l.sub); }).map(function(l){
   if (l.head){
     var head = document.createElement('p');
@@ -2704,6 +2689,34 @@ function syncElementItems(){
     it.mark.textContent = on ? (it.legend ? '\u2713' : '\u25CF') : '';
   });
 }
+// The isomorphism submenu: one item per chip of the (hidden) isomorphisms
+// panel, each opening its group beside the ring as the chip did, the group
+// already open there ticked.
+function syncIsoItems(){
+  var open = isoPane ? new URLSearchParams(isoPane.q) : null;
+  var items = Array.prototype.map.call(isoPanelEl.querySelectorAll('a.iso-chip'), function(a){
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'fs-menu-item';
+    item.setAttribute('role', 'menuitem');
+    item.title = a.title;
+    item.setAttribute('data-iso-mode', a.getAttribute('data-iso-mode'));
+    item.setAttribute('data-iso-n', a.getAttribute('data-iso-n'));
+    var on = !!open && open.get('mode') === a.getAttribute('data-iso-mode') && open.get('n') === a.getAttribute('data-iso-n');
+    var mark = document.createElement('span');
+    mark.className = 'fs-icon';
+    mark.setAttribute('aria-hidden', 'true');
+    mark.textContent = on ? '\u2713' : '';
+    item.appendChild(mark);
+    item.appendChild(a.querySelector('.iso-name').cloneNode(true));
+    item.addEventListener('click', function(){
+      setRingCtx(false);
+      openIsoPane(a);
+    });
+    return item;
+  });
+  ringSubEls.iso.replaceChildren.apply(ringSubEls.iso, items);
+}
 function subFocusables(name){
   return Array.prototype.filter.call(ringSubEls[name].querySelectorAll('button, input, select'), function(el){
     return !el.disabled && el.getAttribute('aria-disabled') !== 'true' && el.offsetParent !== null;
@@ -2718,6 +2731,7 @@ function setRingSub(name, focus){
   ringSubOpen = name;
   if (!name) return;
   if (name === 'elements') syncElementItems();
+  if (name === 'iso') syncIsoItems();
   var sub = ringSubEls[name], from = ringCtxItems.find(function(it){ return it.sub === name; }).item;
   var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
   var w = sub.offsetWidth, h = sub.offsetHeight;
@@ -2748,6 +2762,8 @@ function setRingCtx(open, x, y){
     if (it.value) it.value.replaceChildren(it.valueOf());
     // With the identity, or no subgroup, there are no arrows to set.
     if (it.sub === 'arrows') it.item.setAttribute('aria-disabled', subgroupOptionsEl.hidden ? 'true' : 'false');
+    // With no isomorphic group to link to (the identity's subgroup), none to open.
+    if (it.sub === 'iso') it.item.setAttribute('aria-disabled', isoPanelEl.hidden ? 'true' : 'false');
     if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
@@ -2771,7 +2787,8 @@ document.addEventListener('pointerdown', function(e){
 ringCtxEl.addEventListener('keydown', function(e){
   if (ringSubOpen && ringSubEls[ringSubOpen].contains(e.target)){
     var subName = ringSubOpen, list = subFocusables(subName), j = list.indexOf(document.activeElement);
-    var back = e.key === 'Escape' || (e.key === 'ArrowLeft' && subName === 'elements');
+    var listed = subName !== 'arrows';
+    var back = e.key === 'Escape' || (e.key === 'ArrowLeft' && listed);
     if (back){
       setRingSub(null);
       ringCtxItems.find(function(it){ return it.sub === subName; }).item.focus();
@@ -2781,9 +2798,9 @@ ringCtxEl.addEventListener('keydown', function(e){
     var step = null;
     // The arrows' controls take Tab, round and round; their selects keep the arrow keys.
     if (e.key === 'Tab') step = e.shiftKey ? -1 : 1;
-    else if (subName === 'elements' && e.key === 'ArrowDown') step = 1;
-    else if (subName === 'elements' && e.key === 'ArrowUp') step = -1;
-    else if (subName === 'elements' && (e.key === 'Home' || e.key === 'End')){ list[e.key === 'Home' ? 0 : list.length - 1].focus(); e.preventDefault(); }
+    else if (listed && e.key === 'ArrowDown') step = 1;
+    else if (listed && e.key === 'ArrowUp') step = -1;
+    else if (listed && (e.key === 'Home' || e.key === 'End')){ list[e.key === 'Home' ? 0 : list.length - 1].focus(); e.preventDefault(); }
     if (step !== null && list.length){ list[(j + step + list.length) % list.length].focus(); e.preventDefault(); }
     return;
   }
@@ -3735,7 +3752,8 @@ function mergedWalks(G){
 
 function renderCombineKey(G){
   var h = shownGen(G);
-  var on = G.orders[h] > 1 && !noSub();
+  // The key can be put away from the ring's menu (Colours > Arrows).
+  var on = G.orders[h] > 1 && !noSub() && state.akey;
   combineKeyEl.hidden = !on;
   if (!on) return;
   var params = function(){ return { h: mNum(h), hinv: mNum(G.inv[h]) }; };
@@ -5000,7 +5018,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -5021,6 +5039,7 @@ function applyIsoShared(d){
   if (flag(d.orders)) state.orders = d.orders;
   if (flag(d.cord)) state.cord = d.cord;
   if (flag(d.guide)) state.guide = d.guide;
+  if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.split)) splitOn = d.split;
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
@@ -5337,26 +5356,6 @@ isoPanelEl.addEventListener('click', function(e){
   if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || IS_ISOPANE) return;
   e.preventDefault();
   openIsoPane(a);
-});
-// The Ring window's isomorphisms row folds to its chips from its name; the
-// choice is remembered for every Ring window and the next visit.
-var ISO_FOLD_KEY = 'cyclic-groups-iso-folded';
-function setIsoFolded(folded){
-  isoPanelEl.classList.toggle('is-folded', folded);
-  isoFoldEl.setAttribute('aria-expanded', folded ? 'false' : 'true');
-}
-function readIsoFolded(){
-  try { return localStorage.getItem(ISO_FOLD_KEY) === '1'; } catch (e) { return false; }
-}
-setIsoFolded(readIsoFolded());
-isoFoldEl.addEventListener('click', function(){
-  var folded = !isoPanelEl.classList.contains('is-folded');
-  setIsoFolded(folded);
-  if (IS_PREVIEW) return;
-  try { localStorage.setItem(ISO_FOLD_KEY, folded ? '1' : '0'); } catch (e) { /* storage unavailable */ }
-});
-window.addEventListener('storage', function(e){
-  if (e.key === ISO_FOLD_KEY) setIsoFolded(readIsoFolded());
 });
 // From the keyboard, the up and down arrows turn the card's slides.
 isoPanelEl.addEventListener('keydown', function(e){
