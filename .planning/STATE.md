@@ -499,6 +499,7 @@ None yet.
 | 263 | Cyclic Groups: ring menu opens whole-group isomorphisms | 2026-10-12 | 42f17a3 | — |
 | 264 | Cyclic Groups: copy formulas from the scratchpad | 2026-10-12 | 22adce2 | — |
 | 265 | Cyclic Groups: subgroup isomorphism window title (⟨g⟩ ⊂ G) ≅ H | 2026-10-12 | a17bf4c | — |
+| 266 | Cyclic Groups: arrow colour key shown once in the isomorphism view | 2026-10-12 | 1bf248f | — |
 
 ## Deferred Items
 
