@@ -2725,9 +2725,9 @@ fsMenuEl.addEventListener('keydown', function(e){
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
 // there, and last the Info section: the Formulas submenu (the scratchpad's
 // switch and its formulas, each to copy in one of several formats) and the
-// group's structure from the Info panel, which does nothing yet. The
-// colours are the left ring's, so a pane's menu has none; its Formulas are
-// its own group's.
+// group's structure from the Info panel, which does nothing yet. A pane's
+// menu has no isomorphisms; its Colours are the left ring's, each change
+// relayed there, and its Formulas are its own group's.
 var RING_CTX_ITEMS = [
   { name: 'orders', key: 'cyclicGroups.layerOrders' },
   { name: 'cord', key: 'cyclicGroups.layerCord' },
@@ -2743,7 +2743,7 @@ var RING_CTX_ITEMS = [
 var ringCtxEl = $('ring-ctx');
 var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group'), formulas: $('ring-ctx-formulas') };
 var ringCopyEl = $('ring-ctx-copy');
-var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && l.sub && l.sub !== 'formulas'); }).map(function(l){
+var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.sub === 'iso' || l.sub === 'whole')); }).map(function(l){
   if (l.head){
     var head = document.createElement('p');
     head.className = 'fs-menu-head';
@@ -2837,7 +2837,8 @@ var elementItems = ELEMENT_ITEMS.map(function(l){
   item.appendChild(label);
   item.addEventListener('click', function(){
     if (item.getAttribute('aria-disabled') === 'true') return;
-    if (l.legend) legendBtnEl.click();
+    if (IS_ISOPANE) tellHost({ isopane: 'ctl', id: l.legend ? 'legend-btn' : 'colorby-select', value: l.legend ? !legendShown : l.value });
+    else if (l.legend) legendBtnEl.click();
     else if (colorBySelectEl.value !== l.value){
       colorBySelectEl.value = l.value;
       colorBySelectEl.dispatchEvent(new Event('change'));
@@ -2878,6 +2879,20 @@ arrowKeyItem.addEventListener('click', function(){
   box.dispatchEvent(new Event('change'));
   syncArrowKeyItem();
 });
+// In a pane, the arrows' controls are the left ring's: a change to one is
+// stopped before its own handler, told to the ring holding the pane, and the
+// control put back until the shared settings come back from there.
+if (IS_ISOPANE){
+  var relayArrowCtl = function(e){
+    var el = e.target;
+    if (!el.id) return;
+    e.stopPropagation();
+    tellHost({ isopane: 'ctl', id: el.id, value: el.type === 'checkbox' ? el.checked : el.tagName === 'BUTTON' ? true : el.value });
+    if (e.type !== 'input') syncControls();
+  };
+  ['change', 'input'].forEach(function(t){ ringSubEls.arrows.addEventListener(t, relayArrowCtl, true); });
+  ringSubEls.arrows.addEventListener('click', function(e){ if (e.target.id === 'color-reset') relayArrowCtl(e); }, true);
+}
 function syncArrowKeyItem(){
   var on = state.akey;
   arrowKey.mark.nextSibling.textContent = translate('cyclicGroups.showArrowKey');
@@ -6091,6 +6106,21 @@ window.addEventListener('message', function(e){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
     isoPane.unlocked = true;
+  } else if (d.isopane === 'ctl' && typeof d.id === 'string'){
+    // A colour control changed in the pane's menu: set this ring's own, and
+    // fire the event its handler listens for.
+    var ctl = ['legend-btn', 'colorby-select', 'layer-akey', 'side-el', 'dir-select', 'backward', 'swap-colors', 'custom-colors', 'color-inner', 'color-outer', 'color-reset'].indexOf(d.id) !== -1 ? $(d.id) : null;
+    if (!ctl) return;
+    if (d.id === 'legend-btn'){ if (typeof d.value === 'boolean' && d.value !== legendShown) ctl.click(); }
+    else if (d.id === 'color-reset'){ if (!ctl.hidden) ctl.click(); }
+    else if (ctl.type === 'checkbox'){
+      if (typeof d.value === 'boolean' && ctl.checked !== d.value){ ctl.checked = d.value; ctl.dispatchEvent(new Event('change')); }
+    } else if (ctl.type === 'color'){
+      if (typeof d.value === 'string' && HEX_COLOR.test(d.value)){ ctl.value = d.value; ctl.dispatchEvent(new Event('input')); }
+    } else if (typeof d.value === 'string' && Array.prototype.some.call(ctl.options, function(o){ return o.value === d.value; }) && ctl.value !== d.value){
+      ctl.value = d.value;
+      ctl.dispatchEvent(new Event('change'));
+    }
   } else if (d.isopane === 'edit' && typeof d.on === 'boolean'){
     // A shared setting changed in the pane: the same click on this ring's own
     // controls, so both rings follow from the one render.
