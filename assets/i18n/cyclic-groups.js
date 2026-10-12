@@ -85,8 +85,8 @@
    dropdown, whose other options reuse arrangePowers), and subExprLeft,
    subExprRight, subSortLabel and subSortExp (the Numerical panel's
    Generator, Set and Sort by dropdowns, which reuse exprNatural and
-   arrangePowers), and subInterlocked (its note while its list is linked
-   to the other pane's) and subAlign (the pane's button that sorts both
+   arrangePowers), and subMergedLead, subMergedFollow and subUnmerge
+   (its note and button while its list is merged with the other pane's) and subAlign (the pane's button that sorts both
    lists by the isomorphism's generators and so links them), and subPad and
    subPadTitle (its switch padding natural numbers with leading zeros). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
@@ -297,7 +297,9 @@
       subExprRight: 'Expression of the permutation in the {}s',
       subSortLabel: 'Sort subgroups by',
       subSortExp: 'Exponent of {g}',
-      subInterlocked: 'Linked to the other pane',
+      subMergedLead: 'Merged: these controls set both lists',
+      subMergedFollow: "Merged with the left pane: its controls set this list",
+      subUnmerge: 'Unmerge',
       subAlign: 'Line up with the other group',
       subPad: 'Pad numbers with leading zeros',
       subPadTitle: "Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up",
