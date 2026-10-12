@@ -2726,7 +2726,8 @@ fsMenuEl.addEventListener('keydown', function(e){
 // there, and last the Info section: the Formulas submenu (the scratchpad's
 // switch and its formulas, each to copy in one of several formats) and the
 // group's structure from the Info panel, which does nothing yet. The
-// colours are the left ring's, so a pane's menu has none, nor formulas.
+// colours are the left ring's, so a pane's menu has none; its Formulas are
+// its own group's.
 var RING_CTX_ITEMS = [
   { name: 'orders', key: 'cyclicGroups.layerOrders' },
   { name: 'cord', key: 'cyclicGroups.layerCord' },
@@ -2737,12 +2738,12 @@ var RING_CTX_ITEMS = [
   { key: 'cyclicGroups.ctxIsoSub', sub: 'iso' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { head: 'cyclicGroups.fsInfo', key: 'cyclicGroups.fsFormulas', sub: 'formulas' },
-  { head: IS_ISOPANE ? 'cyclicGroups.fsInfo' : null, key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
+  { key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group'), formulas: $('ring-ctx-formulas') };
 var ringCopyEl = $('ring-ctx-copy');
-var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && l.sub); }).map(function(l){
+var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && l.sub && l.sub !== 'formulas'); }).map(function(l){
   if (l.head){
     var head = document.createElement('p');
     head.className = 'fs-menu-head';
@@ -5344,7 +5345,7 @@ function renderLegend(G, classes, pairing){
     translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
     var count = document.createElement('span');
     count.className = 'legend-count';
-    count.textContent = translate('cyclicGroups.legendSubgroups', { count: counts[o] });
+    count.textContent = translate('cyclicGroups.legendElements', { count: counts[o] });
     item.appendChild(swatch);
     item.appendChild(text);
     item.appendChild(count);

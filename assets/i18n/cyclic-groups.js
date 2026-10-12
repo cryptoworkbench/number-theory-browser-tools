@@ -78,7 +78,8 @@
    and ctxShowFormulas, ctxCopyLatex, ctxCopyMathml, ctxCopyUnicode and
    ctxCopyAscii (the ring's right-click menu's Info, Formulas submenu: the
    scratchpad's switch and each formula's copy formats), and spinResetTitle
-   (the spin slider's knob, which a double-click in the middle resets). Every other language shows the English
+   (the spin slider's knob, which a double-click in the middle resets),
+   and legendElements (the colour key's count of beads in each colour). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -430,6 +431,7 @@
       legendHeading: 'Colour key: subgroup cardinality',
       legendOrder: 'Subgroup’s cardinality: {order}',
       legendSubgroups: { one: '{count} subgroup', other: '{count} subgroups' },
+      legendElements: { one: '{count} element', other: '{count} elements' },
       legendHeadingInverse: 'Colour key: inverse pairs',
       legendHeadingTheme: 'Colour key: website theme',
       legendThemeIdentity: 'identity: {e}',
