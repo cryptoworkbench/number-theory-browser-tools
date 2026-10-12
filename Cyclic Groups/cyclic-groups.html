@@ -701,6 +701,25 @@
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:foot; justify-self:start; align-self:end; padding-top:8px; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:foot; justify-self:center; align-self:end; width:min(420px, calc(100% - 35rem)); margin:0 0 14px; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:foot; justify-self:end; align-self:end; padding-top:8px; }
+  /* Once the two groups are not isomorphic each ring turns on its own: the
+     pane shows its own rotation controls, and this ring's sit under it
+     alone, in its half, level with the pane's. The path colour key then
+     takes a row of its own under both, at its end; where either ring
+     draws its path once in the mixed colour, the pane's key (drawn here
+     from what the pane reports) joins it, each key at the end of its own
+     ring's half. */
+  #combine-key-pane{ display:none; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "rot spin spin pane" "foot foot foot foot"; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "rot spin spin pane" "split split split pane" "foot foot foot foot"; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "rot spin spin pane" "keyl keyl keyl keyr"; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "rot spin spin pane" "split split split pane" "keyl keyl keyl keyr"; }
+  /* Their bottom margin matches the pane page's own padding under its row. */
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:rot; align-self:end; margin-bottom:10px; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:spin; justify-self:center; align-self:center; width:100%; max-width:420px; margin:0 auto 2px; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#combine-key, #combine-key-pane){ grid-area:foot; justify-self:end; align-self:start; max-width:260px; margin:0; padding-top:10px; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:keyl; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane:not([hidden]){ display:flex; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane{ grid-area:keyr; }
   /* On the page itself the pane hangs in the diagram's right half, clear of
      the full-screen button above and the resize grip below, and the ring,
      its head and its arrow key keep to the left half. */
@@ -715,7 +734,10 @@
      buttons, the speed ruler and Keep on top) are the left ring's too;
      dragging it still turns both. Its arrows are coloured as the left
      ring's, so their key is shown once, under the left ring. */
-  :root.is-isopane :is(#split-btn, .legend-pick, .legend-reset, #rotate-ctl, #spin-ruler, #keep-top-row, #combine-key){ display:none !important; }
+  :root.is-isopane :is(#split-btn, .legend-pick, .legend-reset, #keep-top-row, #combine-key){ display:none !important; }
+  /* The pane's rotation controls show only while it no longer turns with
+     the ring that holds it, the two groups not isomorphic. */
+  :root.is-isopane:not(.is-iso-unlinked) :is(#rotate-ctl, #spin-ruler){ display:none !important; }
   .fs-rs{ position:absolute; z-index:4; touch-action:none; }
   .fs-rs[data-dir="n"], .fs-rs[data-dir="s"]{ left:10px; right:10px; height:8px; cursor:ns-resize; }
   .fs-rs[data-dir="e"], .fs-rs[data-dir="w"]{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
@@ -1007,6 +1029,10 @@
         <div class="combine-key" id="combine-key" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colours" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colours" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-outer"></span></div>
+        </div>
+        <div class="combine-key" id="combine-key-pane" hidden>
+          <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-pane-inner"></span></div>
+          <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-pane-outer"></span></div>
         </div>
         <div class="resize-grip" id="resize-grip" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-hidden="true"></div>
         <div class="rotate-ctl" id="rotate-ctl">
@@ -2391,7 +2417,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -3996,7 +4022,11 @@ function renderCombineKey(G){
   // The key can be put away from the ring's menu (Colours > Arrows).
   var on = G.orders[h] > 1 && !noSub() && state.akey;
   combineKeyEl.hidden = !on;
-  if (!on) return;
+  if (!on){
+    if (IS_ISOPANE) tellPaneKey({ on: false });
+    else syncIsoKeys();
+    return;
+  }
   var params = function(){ return { h: mNum(h), hinv: mNum(G.inv[h]) }; };
   var innerEl = $('combine-key-inner');
   var outerEl = $('combine-key-outer');
@@ -4006,6 +4036,7 @@ function renderCombineKey(G){
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged);
   outerEl.parentNode.hidden = invSide() === 'neither';
+  if (IS_ISOPANE) tellPaneKey({ on: true, h: h, hinv: G.inv[h], merged: merged, back: invSide() !== 'neither' });
   // Swapping only shows when both walks are drawn in their own colors.
   var swappable = !merged && !outerEl.parentNode.hidden;
   swatchEls.forEach(function(el){
@@ -4013,6 +4044,7 @@ function renderCombineKey(G){
     el.tabIndex = swappable ? 0 : -1;
     el.setAttribute('aria-disabled', swappable ? 'false' : 'true');
   });
+  if (!IS_ISOPANE) syncIsoKeys();
 }
 
 /* ---------- dragging one arrow-key bar onto the other ---------- */
@@ -5225,8 +5257,10 @@ function closeIsoPane(){
   isoHoverSent = null;
   setIsoHot(null);
   isoPaneEl.hidden = true;
+  isoPaneKey = null;
   setGroupLock(false);
   syncIsoTitle();
+  syncIsoKeys();
 }
 // Entering or leaving full screen moves the pane's element, which reloads its
 // iframe in the browser; the pane is then loaded again from its latest query.
@@ -5283,7 +5317,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', linked: isoLinked(), colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -5307,6 +5341,7 @@ function applyIsoShared(d){
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.split)) splitOn = d.split;
+  if (flag(d.linked)) document.documentElement.classList.toggle('is-iso-unlinked', !d.linked);
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
   if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
   if (hex(d.idColor)) state.idColor = d.idColor;
@@ -5321,6 +5356,48 @@ function applyIsoShared(d){
   }
   syncControls();
   render();
+}
+// Whether the two rings are linked by an isomorphism, so turn as one: the
+// pane's group is still generated by the chip's generator, and its order is
+// that of this ring's linking generator. Otherwise each turns on its own.
+function isoLinked(){
+  if (IS_ISOPANE || !isoPane || !drawn) return false;
+  var p = new URLSearchParams(isoPane.q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
+  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return false;
+  var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), g = isoLinkGen();
+  var k = g === null ? 0 : drawn.G.orders[g];
+  return k > 0 && H.cyclic && H.order === k && H.orders[isoPane.h] === H.order;
+}
+// The pane's path colour key, as the pane reports it after every render:
+// { on, h, hinv, merged, back }. While the rings are not linked and either
+// draws its path once in the mixed colour, the keys differ, so this ring
+// draws the pane's beside its own; it also stands in for this ring's key
+// when that one is put away.
+var isoPaneKey = null, isoPaneKeySent = null;
+function tellPaneKey(key){
+  var s = JSON.stringify(key);
+  if (s === isoPaneKeySent) return;
+  isoPaneKeySent = s;
+  tellHost({ isopane: 'key', key: key });
+}
+function syncIsoKeys(){
+  if (IS_ISOPANE) return;
+  var root = document.documentElement, copy = $('combine-key-pane');
+  var unlinked = !!isoPane && !!drawn && !isoLinked();
+  var pk = unlinked && isoPaneKey && isoPaneKey.on && Number.isInteger(isoPaneKey.h) && Number.isInteger(isoPaneKey.hinv) ? isoPaneKey : null;
+  var mine = !combineKeyEl.hidden;
+  var showCopy = !!pk && (!mine || pk.merged || mergedWalks(drawn.G));
+  root.classList.toggle('is-iso-unlinked', unlinked);
+  root.classList.toggle('is-iso-two-keys', showCopy && mine);
+  copy.hidden = !showCopy;
+  if (!showCopy) return;
+  var params = function(){ return { h: mNum(pk.h), hinv: mNum(pk.hinv) }; };
+  var innerEl = $('combine-key-pane-inner'), outerEl = $('combine-key-pane-outer');
+  translateInto(innerEl, 'cyclicGroups.combineForward', params());
+  translateInto(outerEl, pk.merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
+  innerEl.previousSibling.classList.toggle('is-both', !!pk.merged);
+  outerEl.previousSibling.classList.toggle('is-none', !!pk.merged);
+  outerEl.parentNode.hidden = !pk.back;
 }
 // The pane tells the ring that holds it, and only that ring.
 function tellHost(msg){
@@ -5523,6 +5600,11 @@ window.addEventListener('message', function(e){
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
     syncIsoPaneLabels();
+    postIsoShared(false);
+    syncIsoKeys();
+  } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
+    isoPaneKey = d.key;
+    syncIsoKeys();
   } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover'){
     isoReceive(d);
   } else if (d.isopane === 'unlocked'){
