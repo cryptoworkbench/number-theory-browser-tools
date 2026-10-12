@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-11T17:36:35.786Z"
+last_updated: "2026-10-12T06:53:45.901Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 0fcce165a9122de71b4310482e1b573cd71e7189
+state_head: fd71227339e806a10a18ae8322d8a5ca7d247c41
 progress:
   total_phases: 7
   completed_phases: 6
@@ -486,6 +486,7 @@ None yet.
 | 250 | Cyclic Groups: Isomorphisms becomes the Ring window's fourth row; full screen drops its window | 2026-10-11 | 4abedf9 | — |
 | 251 | Cyclic Groups: full screen, an isomorphism opens its group in a new Ring window instead of a new tab | 2026-10-11 | 122f203 | — |
 | 261011-qa5 | Cyclic Groups: isomorphism split view — an iso chip opens its group beside the ring in the same view, shared settings, linked turning and hover | 2026-10-11 | 0fcce16 | [261011-qa5-cyclic-groups-isomorphism-split-view-in-](./quick/261011-qa5-cyclic-groups-isomorphism-split-view-in-/) |
+| 253 | Cyclic Groups: isomorphism view's right ring hides its rotation controls | 2026-10-12 | fd71227 | — |
 
 ## Deferred Items
 
