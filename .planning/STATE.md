@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T07:11:58.364Z"
+last_updated: "2026-10-12T09:29:56.629Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: e25105440cef63cf0063211293bf37e09bb02bd3
+state_head: 66d16755f6c4cd314a9992b86b814772af15e79e
 progress:
   total_phases: 7
   completed_phases: 6
@@ -503,6 +503,7 @@ None yet.
 | 267 | Cyclic Groups: group parameters locked while an isomorphism is open | 2026-10-12 | 55ed157 | — |
 | 268 | Cyclic Groups: Ring window titles name the subgroups on show | 2026-10-12 | 2b48065 | — |
 | 269 | Cyclic Groups: isomorphic rings share bead colours and keys | 2026-10-12 | 4f0ba8e | — |
+| 270 | Cyclic groups ring menu Info section: Formulas submenu (show scratchpad, copy formulas as LaTeX/MathML/Unicode/ASCII), Structure under Info, scratchpad button removed | 2026-10-12 | 66d1675 | — |
 
 ## Deferred Items
 
