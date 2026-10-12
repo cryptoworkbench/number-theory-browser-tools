@@ -2570,13 +2570,13 @@ var RING_CTX_ITEMS = [
   { name: 'guide', key: 'cyclicGroups.layerGuide' },
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
-  { head: 'cyclicGroups.fsIsomorphisms', key: 'cyclicGroups.ctxIsoGroup', sub: 'isoGroup' },
+  { head: 'cyclicGroups.fsIsomorphisms', key: 'cyclicGroups.ctxIsoGroup', sub: 'whole' },
   { key: 'cyclicGroups.ctxIsoSub', sub: 'iso' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { sep: true, key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
-var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), isoGroup: $('ring-ctx-iso-group') };
+var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group') };
 var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && l.sub); }).map(function(l){
   if (l.head){
     var head = document.createElement('p');
@@ -2703,7 +2703,7 @@ function syncElementItems(){
 // already open there that way ticked. The whole group's are linked through
 // its smallest generator, leaving the subgroup on show alone.
 function syncIsoItems(name){
-  var whole = name === 'isoGroup';
+  var whole = name === 'whole';
   var open = isoPane && (isoPane.g !== null) === whole ? new URLSearchParams(isoPane.q) : null;
   var items = Array.prototype.map.call((whole ? isoGroupChipsEl : isoPanelEl).querySelectorAll('a.iso-chip'), function(a){
     var item = document.createElement('button');
@@ -2742,7 +2742,7 @@ function setRingSub(name, focus){
   ringSubOpen = name;
   if (!name) return;
   if (name === 'elements') syncElementItems();
-  if (name === 'iso' || name === 'isoGroup') syncIsoItems(name);
+  if (name === 'iso' || name === 'whole') syncIsoItems(name);
   var sub = ringSubEls[name], from = ringCtxItems.find(function(it){ return it.sub === name; }).item;
   var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
   var w = sub.offsetWidth, h = sub.offsetHeight;
@@ -2776,7 +2776,7 @@ function setRingCtx(open, x, y){
     // With no isomorphic group to link to (the identity's subgroup, a group
     // that is not cyclic), none to open.
     if (it.sub === 'iso') it.item.setAttribute('aria-disabled', isoPanelEl.hidden ? 'true' : 'false');
-    if (it.sub === 'isoGroup') it.item.setAttribute('aria-disabled', isoGroupChipsEl.childElementCount ? 'false' : 'true');
+    if (it.sub === 'whole') it.item.setAttribute('aria-disabled', isoGroupChipsEl.childElementCount ? 'false' : 'true');
     if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
