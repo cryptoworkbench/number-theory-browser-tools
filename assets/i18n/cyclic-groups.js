@@ -70,7 +70,8 @@
    identityColorReset, legendHeadingTheme and the four legendTheme* lines,
    and ctxShowFormulas, ctxCopyLatex, ctxCopyMathml, ctxCopyUnicode and
    ctxCopyAscii (the ring's right-click menu's Info, Formulas submenu: the
-   scratchpad's switch and each formula's copy formats). Every other language shows the English
+   scratchpad's switch and each formula's copy formats), and spinResetTitle
+   (the spin slider's knob, which a double-click in the middle resets). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -373,6 +374,7 @@
       ctxCopyMathml: 'Copy in MathML formatting',
       ctxCopyUnicode: 'Copy as Unicode plain text',
       ctxCopyAscii: 'Copy in ASCII formatting',
+      spinResetTitle: 'Double-click to reset',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
