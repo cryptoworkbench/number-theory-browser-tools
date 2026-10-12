@@ -450,7 +450,7 @@
   .keep-top-track{ height:30px; }
   .keep-top[data-at="id"] .keep-top-end.is-id, .keep-top[data-at="gen"] .keep-top-end.is-gen{ color:var(--text); }
   /* A first try at turning a ring the switch holds: the held end blinks. */
-  .keep-top-end.is-refused{ animation:keep-top-refused 300ms steps(1) 3; }
+  :is(.keep-top-end, .gear-label).is-refused{ animation:keep-top-refused 300ms steps(1) 3; }
   @keyframes keep-top-refused{ 0%{ color:var(--role-warn); } 50%{ color:inherit; } }
   .check select.side-select{ margin-left:auto; flex:none; font-family:var(--font-sans); font-size:.86rem; padding:2px 6px; }
   .check input.arrow-color:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
@@ -899,6 +899,26 @@
   .spin-track input::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px; height:18px; margin-top:6px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); }
   .spin-track input::-moz-range-thumb{ width:18px; height:18px; box-sizing:border-box; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); }
   .spin-track input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+  /* The ruler is a gearbox: a slot crosses it at the middle tick, and the
+     knob, in the middle with no rotation, can go up the slot to keep the
+     identity on top or down it to keep the subgroup's generator on top,
+     each named beside its end. Along the ruler it runs only out of the
+     slot's middle, and up or down the slot only from the ruler's middle.
+     The knob is drawn over the slider, which holds the speed and the
+     keyboard focus. Keep on top's own switch is not shown beside it. */
+  .diagram-frame:fullscreen #keep-top-row, :root.is-ringwin #keep-top-row{ display:none !important; }
+  .gearbox{ --gear-slot:14px; height:46px; cursor:pointer; touch-action:none; }
+  .gearbox .spin-ticks span.is-zero{ visibility:hidden; }
+  .gear-slot{ position:absolute; left:50%; top:calc(50% - var(--gear-slot) - 4px); width:4px; height:calc(2 * var(--gear-slot) + 8px); margin-left:-2px; border-radius:2px; background:color-mix(in srgb, var(--text) 35%, transparent); pointer-events:none; }
+  .gear-label{ position:absolute; left:calc(50% + 12px); max-width:calc(50% - 14px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.7rem; line-height:1.2; transform:translateY(-50%); pointer-events:none; }
+  .gear-label.is-id{ top:calc(50% - var(--gear-slot)); }
+  .gear-label.is-gen{ top:calc(50% + var(--gear-slot)); }
+  .gearbox[data-at="id"] .gear-label.is-id, .gearbox[data-at="gen"] .gear-label.is-gen{ color:var(--text); }
+  .gearbox input{ pointer-events:none; }
+  .gearbox input::-webkit-slider-thumb{ opacity:0; }
+  .gearbox input::-moz-range-thumb{ opacity:0; }
+  .gear-knob{ position:absolute; left:calc(10px + (100% - 20px) * (var(--gx, 0) + 3) / 6); top:calc(50% + var(--gy, 0) * var(--gear-slot)); width:18px; height:18px; box-sizing:border-box; margin:-9px 0 0 -9px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); pointer-events:none; transition:left .15s ease, top .15s ease; }
+  .gearbox.is-dragging .gear-knob{ transition:none; }
   /* In (ℤ/nℤ)* with no generator chosen, the subgroup formula's place asks
      for one, or for the formula to be turned off again. */
   :is(.ring-head, .scratch-pad) .sub-order-prompt{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 10px; margin:2px 0 0; font-size:.88rem; color:var(--text-dim); }
@@ -1051,9 +1071,13 @@
         </svg>
         <div class="spin-ruler" id="spin-ruler">
           <button type="button" class="spin-step" id="spin-back" aria-label="Rotate one element counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one element counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
-          <div class="spin-track">
+          <div class="spin-track gearbox" id="gearbox" data-at="id">
             <div class="spin-ticks" aria-hidden="true"><span></span><span></span><span></span><span class="is-zero"></span><span></span><span></span><span></span></div>
+            <span class="gear-slot" aria-hidden="true"></span>
+            <span class="gear-label is-id" aria-hidden="true" data-i18n="cyclicGroups.keepTopId">Keep identity element on top</span>
+            <span class="gear-label is-gen" aria-hidden="true" data-i18n="cyclicGroups.keepTopGen">Keep subgroup’s generator on top</span>
             <input type="range" id="spin-slider" min="-3" max="3" step="1" value="0" aria-label="Auto-rotate speed" data-i18n-aria-label="cyclicGroups.spinLabel">
+            <span class="gear-knob" id="gear-knob" aria-hidden="true"></span>
           </div>
           <button type="button" class="spin-step" id="spin-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
         </div>
@@ -1447,6 +1471,8 @@ var splitGripEl = $('split-grip');
 var subgroupsPanelEl = $('subgroups-list-panel');
 var splitOn = false, splitHome = null; // the Ring window's split view, and where its panel goes back to
 var keepTopEl = $('keep-top');
+var gearboxEl = $('gearbox');
+var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
@@ -4474,6 +4500,7 @@ function syncKeepTop(){
   keepTopEl.value = String(TOPS.indexOf(state.top) - 1);
   keepTopRowEl.setAttribute('data-at', state.top);
   keepTopEl.setAttribute('aria-valuetext', translate(state.top === 'id' ? 'cyclicGroups.keepTopId' : state.top === 'gen' ? 'cyclicGroups.keepTopGen' : 'cyclicGroups.keepTopOff'));
+  syncGearbox();
 }
 function setKeepTop(top){
   if (top === state.top) return;
@@ -4502,10 +4529,12 @@ var topHeld = false, topRefused = null;
 function tryLetGoOfTop(where){
   if (topHeld && state.top !== 'off' && topRefused !== where){
     topRefused = where;
-    var end = keepTopRowEl.querySelector(state.top === 'id' ? '.is-id' : '.is-gen');
-    end.classList.remove('is-refused');
-    void end.offsetWidth;
-    end.classList.add('is-refused');
+    [keepTopRowEl, gearboxEl].forEach(function(row){
+      var end = row.querySelector(state.top === 'id' ? '.is-id' : '.is-gen');
+      end.classList.remove('is-refused');
+      void end.offsetWidth;
+      end.classList.add('is-refused');
+    });
     return false;
   }
   letGoOfTop();
@@ -4655,7 +4684,7 @@ function syncAutoRotate(){
   autoRotateEl.setAttribute('data-at', state.autoRotate);
   autoStopEls.forEach(function(r){ r.checked = r.value === state.autoRotate; });
   spinSliderEl.value = spinLevel();
-  spinSliderEl.setAttribute('aria-valuetext', spinValueText());
+  syncGearbox();
   if (on && autoId === null){
     autoLast = null;
     autoId = requestAnimationFrame(autoFrame);
@@ -4685,6 +4714,85 @@ spinSliderEl.addEventListener('input', function(){
   if (v){ state.autoSpeed = Math.abs(v); letGoOfTop(); }
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
+});
+
+// The gearbox: the knob's place is x along the ruler, -3 to 3, and y along
+// the slot, -1 at its top (Keep identity element on top) to 1 at its bottom
+// (Keep subgroup's generator on top). A drag moves the knob in the gate and
+// sets what it passes over as it goes; letting go snaps it to its place.
+// Going into the slot holds that end, as choosing it on Keep on top's own
+// switch does; coming out of it lets go.
+var gearDrag = null; // { id, x, y } while the knob is dragged
+function placeKnob(x, y){
+  gearKnobEl.style.setProperty('--gx', x);
+  gearKnobEl.style.setProperty('--gy', y);
+}
+function syncGearbox(){
+  gearboxEl.setAttribute('data-at', state.top);
+  spinSliderEl.setAttribute('aria-valuetext', state.top === 'off' ? spinValueText() : translate(state.top === 'id' ? 'cyclicGroups.keepTopId' : 'cyclicGroups.keepTopGen'));
+  if (!gearDrag) placeKnob(state.top === 'off' ? spinLevel() : 0, state.top === 'id' ? -1 : state.top === 'gen' ? 1 : 0);
+}
+function gearTo(level, top){
+  if (top !== 'off'){
+    if (state.top === top) return;
+    setKeepTop(top);
+    topHeld = true;
+    return;
+  }
+  if (state.top !== 'off') setKeepTop('off');
+  var auto = level < 0 ? 'ccw' : level > 0 ? 'cw' : 'off';
+  if (auto === state.autoRotate && (!level || state.autoSpeed === Math.abs(level))) return;
+  state.autoRotate = auto;
+  if (level) state.autoSpeed = Math.abs(level);
+  syncAutoRotate();
+  if (drawn) mirrorToUrl(drawn.G);
+}
+function gearMove(e){
+  var r = gearboxEl.getBoundingClientRect();
+  var unit = (r.width - 20) / 6, slot = parseFloat(getComputedStyle(gearboxEl).getPropertyValue('--gear-slot')) || 14;
+  var px = clamp((e.clientX - r.left - 10) / unit - 3, -3, 3);
+  var py = clamp((e.clientY - r.top - r.height / 2) / slot, -1, 1);
+  var k = gearDrag;
+  var along = Math.abs(k.y) < 0.2, upDown = Math.abs(k.x) < 0.25;
+  if (along && upDown) along = Math.abs(py) * slot < Math.abs(px) * unit;
+  if (along){ k.x = px; k.y = 0; }
+  else { k.x = 0; k.y = py; }
+  placeKnob(k.x, k.y);
+  gearTo(along ? Math.round(k.x) : 0, k.y < -0.5 ? 'id' : k.y > 0.5 ? 'gen' : 'off');
+}
+gearboxEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0) return;
+  // A press goes through the middle to wherever it lands.
+  gearDrag = { id: e.pointerId, x: 0, y: 0 };
+  gearboxEl.setPointerCapture(e.pointerId);
+  gearboxEl.classList.add('is-dragging');
+  spinSliderEl.focus({ preventScroll: true, focusVisible: false });
+  gearMove(e);
+  e.preventDefault();
+});
+gearboxEl.addEventListener('pointermove', function(e){
+  if (gearDrag && e.pointerId === gearDrag.id) gearMove(e);
+});
+function endGearDrag(e){
+  if (!gearDrag || e.pointerId !== gearDrag.id) return;
+  gearDrag = null;
+  gearboxEl.classList.remove('is-dragging');
+  syncGearbox();
+}
+gearboxEl.addEventListener('pointerup', endGearDrag);
+gearboxEl.addEventListener('pointercancel', endGearDrag);
+// From the keyboard, left and right step along the ruler, out of the slot
+// to the middle first; up and down go into the slot, or back out of it.
+spinSliderEl.addEventListener('keydown', function(e){
+  var level = spinLevel(), top = state.top;
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+    if (top === 'off') level = clamp(level + (e.key === 'ArrowLeft' ? -1 : 1), -3, 3);
+    top = 'off';
+  } else if (e.key === 'ArrowUp') top = top === 'gen' ? 'off' : 'id';
+  else if (e.key === 'ArrowDown') top = top === 'id' ? 'off' : 'gen';
+  else return;
+  e.preventDefault();
+  gearTo(top === 'off' ? level : 0, top);
 });
 
 // Dragging the grip sizes the diagram: no narrower or shorter than
@@ -4759,16 +4867,22 @@ $('rot-reset').addEventListener('click', function(){
 // it says so, and a double-click on it resets. Elsewhere on the slider, or
 // with the knob off the middle, neither.
 function onSpinKnob(e){
-  if (spinSliderEl.value !== '0') return false;
+  if (spinSliderEl.value !== '0' || state.top !== 'off' || gearDrag) return false;
   var r = spinSliderEl.getBoundingClientRect();
   return Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) <= 12;
 }
-spinSliderEl.addEventListener('pointermove', function(e){
-  if (onSpinKnob(e)) spinSliderEl.title = translate('cyclicGroups.spinResetTitle');
-  else spinSliderEl.removeAttribute('title');
+// A slot end's name, cut short in a narrow ruler, shows whole on hover.
+gearboxEl.addEventListener('pointermove', function(e){
+  var named = Array.prototype.find.call(gearboxEl.querySelectorAll('.gear-label'), function(l){
+    var r = l.getBoundingClientRect();
+    return e.clientX >= r.left - 14 && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  });
+  if (onSpinKnob(e)) gearboxEl.title = translate('cyclicGroups.spinResetTitle');
+  else if (named) gearboxEl.title = named.textContent;
+  else gearboxEl.removeAttribute('title');
 });
-spinSliderEl.addEventListener('pointerleave', function(){ spinSliderEl.removeAttribute('title'); });
-spinSliderEl.addEventListener('dblclick', function(e){
+gearboxEl.addEventListener('pointerleave', function(){ gearboxEl.removeAttribute('title'); });
+gearboxEl.addEventListener('dblclick', function(e){
   if (onSpinKnob(e)) $('rot-reset').click();
 });
 
