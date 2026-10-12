@@ -4220,7 +4220,7 @@ if (IS_RINGWIN){
       try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex, cols: n.cols }, '*'); } catch (err) { /* no desktop to tell */ }
       return;
     }
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -5180,6 +5180,7 @@ function showCosets(shown){
   redrawRing();
   coset.fresh = false;
   syncCosetControls();
+  tellCosets();
 }
 
 // The button opens or closes a run; with nothing to explore it is disabled,
@@ -5217,7 +5218,12 @@ function playCosets(){
   // A finished run rewinds instead of doing nothing, so Play always plays.
   if (cosetRun.shown >= cosetRun.starts.length) showCosets(1);
   cosetRun.playing = true;
+  isoCosetRemote = false;
   syncCosetControls();
+  tellCosets();
+  cosetTick();
+}
+function cosetTick(){
   (function tick(){
     cosetTimer = setTimeout(function(){
       if (!cosetRun || !cosetRun.playing) return;
@@ -5233,6 +5239,7 @@ function pauseCosets(){
   clearTimeout(cosetTimer);
   cosetRun.playing = false;
   syncCosetControls();
+  tellCosets();
 }
 
 cosetPlayEl.addEventListener('click', function(){
@@ -5264,6 +5271,71 @@ function stopCosets(){
   syncCosetControls();
   syncCosetButton();
   if (was) redrawRing();
+  if (was) tellCosets();
+}
+
+// Linked rings explore their cosets together: while the link is between the
+// whole groups, opening, stepping, playing, pausing or closing a run on one
+// ring does the same on the other, for the image of the subgroup, which the
+// other ring selects first if need be (g^k here, h^k there). The ring whose
+// control was used runs the timer; the other shows each step as told.
+var isoCosetApplying = false, isoCosetSent = null;
+var isoCosetRemote = false; // the run plays on the other ring's timer
+function isoWholeLinked(){
+  if (!drawn || isoOrder() <= 0) return false;
+  return IS_ISOPANE ? isoHostWhole.on : isoLinksWholeGroups();
+}
+function tellCosets(){
+  if (isoCosetApplying || !isoWholeLinked()) return;
+  var msg = cosetRun
+    ? { iso: 'cosets', k: isoPowers().indexOf(cosetRun.h), shown: cosetRun.shown, playing: cosetRun.playing, speed: Number(cosetSpeedEl.value) }
+    : { iso: 'cosets', k: -1 };
+  if (cosetRun && msg.k < 0) return;
+  var key = JSON.stringify(msg);
+  if (key === isoCosetSent) return;
+  isoCosetSent = key;
+  isoTell(msg);
+}
+function isoTakeCosets(d){
+  if (!isoWholeLinked()) return;
+  isoCosetSent = JSON.stringify(d.k < 0 ? { iso: 'cosets', k: -1 } : { iso: 'cosets', k: d.k, shown: d.shown, playing: d.playing, speed: d.speed });
+  isoCosetApplying = true;
+  try {
+    if (d.k < 0){ stopCosets(); return; }
+    var h = isoPowers()[d.k];
+    if (cosetRun && cosetRun.h !== h) stopCosets();
+    if (state.noSub || state.gen !== h){
+      // Selecting a smaller subgroup must not carry a whole link along.
+      if (!IS_ISOPANE && isoPane.g === null) isoPane.g = isoLinkGen();
+      selectGen(h);
+    }
+    if (!drawn || !hasCosets(drawn.G)) return;
+    if (Number.isInteger(d.speed) && d.speed >= 1 && d.speed <= 10) cosetSpeedEl.value = String(d.speed);
+    if (!cosetRun) openCosets();
+    clearTimeout(cosetTimer);
+    cosetRun.playing = d.playing === true;
+    isoCosetRemote = cosetRun.playing;
+    var shown = Number.isInteger(d.shown) ? clamp(d.shown, 1, cosetRun.starts.length) : 1;
+    if (shown !== cosetRun.shown || !coset) showCosets(shown);
+    else syncCosetControls();
+  } finally {
+    isoCosetApplying = false;
+  }
+}
+// A redraw the other ring's colours or spread call for keeps the run open:
+// it is no control change here.
+function keepCosets(fn){
+  var run = cosetRun && { h: cosetRun.h, shown: cosetRun.shown, playing: cosetRun.playing };
+  isoCosetApplying = true;
+  try { fn(); } finally { isoCosetApplying = false; }
+  if (!run || cosetRun || state.noSub || state.gen !== run.h || !drawn || !hasCosets(drawn.G)) return;
+  isoCosetApplying = true;
+  try {
+    openCosets();
+    cosetRun.playing = run.playing;
+    showCosets(clamp(run.shown, 1, cosetRun.starts.length));
+  } finally { isoCosetApplying = false; }
+  if (run.playing && !isoCosetRemote) cosetTick();
 }
 
 // ⟨g⟩ for every element g, its members read around the ring the way g
@@ -5720,6 +5792,7 @@ function loadIsoFrame(){
   isoPeerLockOk = false;
   isoInterlockSent = false;
   isoWholeSent = null;
+  isoCosetSent = null;
   splitAlignSent = null;
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
@@ -6195,7 +6268,7 @@ function isoTakePaints(paints){
   });
   if (!ok) return;
   isoPaints = paints;
-  render();
+  keepCosets(render);
 }
 function isoTellTop(force){
   var m = isoOrder();
@@ -6242,7 +6315,7 @@ function isoArrangeAs(c){
   var b = isoPowers()[ci];
   var want = lap(drawn.G, b, m), have = arrangement(drawn.G);
   if (want.every(function(x, i){ return have[i] === x; })) return;
-  rearrange(function(){ state.bygen = true; state.arrangeGen = b; render(); });
+  rearrange(function(){ keepCosets(function(){ state.bygen = true; state.arrangeGen = b; render(); }); });
 }
 // The leading ring, let go of between beads by a drag on the pane, eases on
 // to the nearest bead.
@@ -6290,6 +6363,7 @@ function isoReceive(d){
   if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, aligned: d.aligned === true, ks: isoRanks(d.ks, m) }; syncInterlock(); } return; }
   if (d.iso === 'align'){ if (!IS_ISOPANE) alignSubSort(); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
+  if (d.iso === 'cosets'){ isoTakeCosets(d); return; }
   if (d.iso === 'hover'){
     isoHoverSent = d.k;
     setIsoHot(d.k >= 0 ? isoPowers()[d.k] : null);
@@ -6406,7 +6480,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'lockok' || d.iso === 'select' || d.iso === 'align'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'lockok' || d.iso === 'select' || d.iso === 'align' || d.iso === 'cosets'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // The blank pane has its group: from now on it is a ring like any other.
