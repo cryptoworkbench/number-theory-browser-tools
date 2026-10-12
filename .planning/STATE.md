@@ -494,6 +494,7 @@ None yet.
 | 258 | Cyclic Groups: ring menu Colours section (Elements and Arrows submenus) | 2026-10-12 | 59990a4 | — |
 | 259 | Cyclic Groups: isomorphisms in the ring menu, arrow key switch | 2026-10-12 | 9e38f32 | — |
 | 260 | Cyclic Groups: isomorphism rings turn in lockstep | 2026-10-12 | b270b80 | — |
+| 261 | Cyclic Groups: bead colour key styled like the arrow key | 2026-10-12 | 1238ea9 | — |
 
 ## Deferred Items
 
