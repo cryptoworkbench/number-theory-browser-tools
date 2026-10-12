@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T09:47:56.617Z"
+last_updated: "2026-10-12T10:02:29.636Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 8176a45dec6dc6f926399292ea82ad40ff248b6e
+state_head: 4426039a1f360edb389c74781e007c1befba22b2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -507,6 +507,7 @@ None yet.
 | 271 | Cyclic groups ring menu copy submenu shows its formula above the copy options | 2026-10-12 | 4b5acb2 | — |
 | 272 | Cyclic groups isomorphism pane: rotation controls in a shared footer under both rings | 2026-10-12 | e18b4d9 | — |
 | 273 | Cyclic groups pane open: path colour key in the shared footer, right of the speed ruler | 2026-10-12 | 8176a45 | — |
+| 274 | Cyclic groups non-isomorphic pane: own rotation controls per ring, path key once under both or two keys when a path is mixed | 2026-10-12 | 4426039 | — |
 
 ## Deferred Items
 
