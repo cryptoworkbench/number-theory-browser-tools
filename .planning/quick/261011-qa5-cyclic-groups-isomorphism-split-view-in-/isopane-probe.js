@@ -146,9 +146,9 @@ async function main() {
       function shown(id) { var e = document.getElementById(id); if (!e) return false; var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
       var rowIso = document.querySelector(".fs-win-row-iso");
       return {
-        hidden: ["element-colours", "arrow-options", "split-btn", "iso-panel", "rotate-ctl", "spin-ruler"].map(function (id) { return id + ":" + disp(id); }),
+        hidden: ["element-colours", "arrow-options", "split-btn", "iso-panel", "rotate-ctl", "spin-ruler", "keep-top-row"].map(function (id) { return id + ":" + disp(id); }),
         rowIso: rowIso ? getComputedStyle(rowIso).display + "/" + rowIso.getBoundingClientRect().height : "absent",
-        shown: ["n-input", "op-toggle", "gen-select", "arrange-select", "scratch-btn", "keep-top"].filter(function (id) { return !shown(id); }),
+        shown: ["n-input", "op-toggle", "gen-select", "arrange-select", "scratch-btn"].filter(function (id) { return !shown(id); }),
         n: document.getElementById("n-input").value
       };
     });
