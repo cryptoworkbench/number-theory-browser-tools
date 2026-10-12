@@ -837,9 +837,11 @@
   .spin-ruler{ display:none; }
   /* The ruler's two arrows turn the ring one bead, as the rotation row's
      buttons do, which it then has no need of. */
-  .spin-step{ display:grid; place-items:center; width:1.9em; height:1.9em; padding:0; font:inherit; line-height:1; color:inherit; background:none; border:0; border-radius:50%; cursor:pointer; }
+  .spin-step{ display:grid; place-items:center; width:1.9em; height:1.9em; padding:0; font:inherit; line-height:1; color:inherit; background:none; border:0; border-radius:50%; cursor:pointer; transition:transform .08s ease, background .08s ease; }
   .spin-step:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .spin-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .spin-step:active, .spin-step.is-pressed{ color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); transform:scale(.88); }
+  .rotate-row .action-btn.is-pressed{ background:color-mix(in srgb, var(--accent) 24%, transparent); transform:scale(.94); }
   .diagram-frame:fullscreen .fs-win-body.is-ring :is(#rot-back, #rot-fwd), :root.is-ringwin .fs-win-body.is-ring :is(#rot-back, #rot-fwd){ display:none; }
   .diagram-frame:fullscreen .auto-rotate, .diagram-frame:fullscreen .formula-toggles{ display:none; }
   .diagram-frame:fullscreen .spin-ruler, :root.is-ringwin .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
@@ -4414,11 +4416,13 @@ function setKeepTop(top){
 }
 function letGoOfTop(){ setKeepTop('off'); }
 // An end chosen with the switch itself holds: the first try at turning the
-// ring from one place (a drag on the ring, the buttons and steps field in
-// the corner, the auto-rotate switch, the spin slider, each of the left and
-// right arrows in the subgroup list) is refused, the held
-// end blinking red, and only a second try in a row from that same place
-// lets go. topRefused is the place last refused.
+// ring from one place (a drag on the ring, the steps field in the corner,
+// the auto-rotate switch, the spin slider, and a one-bead turn each way,
+// counterclockwise or clockwise, by the buttons either side of the spin
+// slider or the left and right arrows in the subgroup list alike) is
+// refused, the held end blinking red, and only a second try in a row from
+// that same place lets go, so two turns the same way let go and one each
+// way does not. topRefused is the place last refused.
 var topHeld = false, topRefused = null;
 function tryLetGoOfTop(where){
   if (topHeld && state.top !== 'off' && topRefused !== where){
@@ -4655,8 +4659,20 @@ resizeGripEl.addEventListener('dblclick', function(){
   diagramFrameEl.style.removeProperty('--frame-h');
 });
 
-$('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop('corner')) turnBy(dirSign()); });
-$('rot-fwd').addEventListener('click', function(){ if (tryLetGoOfTop('corner')) turnBy(-dirSign()); });
+$('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop('turn-ccw')) turnBy(dirSign()); });
+$('rot-fwd').addEventListener('click', function(){ if (tryLetGoOfTop('turn-cw')) turnBy(-dirSign()); });
+// A turn by the subgroup list's arrow keys shows on the buttons it stands
+// for, pressed for a moment.
+function flashStep(cw){
+  [cw ? 'spin-fwd' : 'spin-back', cw ? 'rot-fwd' : 'rot-back'].forEach(function(id){
+    var b = $(id);
+    b.classList.remove('is-pressed');
+    void b.offsetWidth;
+    b.classList.add('is-pressed');
+    clearTimeout(b.pressTimer);
+    b.pressTimer = setTimeout(function(){ b.classList.remove('is-pressed'); }, 160);
+  });
+}
 $('spin-back').addEventListener('click', function(){ $('rot-back').click(); });
 $('spin-fwd').addEventListener('click', function(){ $('rot-fwd').click(); });
 // Reset brings the identity back to the top, and keeps it there.
@@ -4937,10 +4953,11 @@ function subgroupColumns(){
 // right, so there ArrowLeft is the forward key and the selection still moves
 // the way the arrow points on screen.
 // In the list layout, left and right turn the ring one element instead, the
-// way the corner's buttons do: ArrowLeft counterclockwise, ArrowRight
-// clockwise. Each arrow is a place of its own to the held keep-on-top end,
-// so two presses of the same arrow let go of it, but one of each does not;
-// a held-down key's repeats are not tries.
+// way the buttons either side of the spin slider do, which show the press:
+// ArrowLeft counterclockwise, ArrowRight clockwise. To the held
+// keep-on-top end each is the same place as its button, so two turns the
+// same way let go of it, but one each way does not; a held-down key's
+// repeats are not tries.
 subgroupsEl.addEventListener('keydown', function(e){
   if (!drawn) return;
   var grid = state.subLayout === 'grid';
@@ -4951,7 +4968,8 @@ subgroupsEl.addEventListener('keydown', function(e){
     e.preventDefault();
     var left = e.key === 'ArrowLeft';
     if (e.repeat && topHeld && state.top !== 'off') return;
-    if (tryLetGoOfTop(left ? 'key-left' : 'key-right')) turnBy(left ? dirSign() : -dirSign());
+    flashStep(!left);
+    if (tryLetGoOfTop(left ? 'turn-ccw' : 'turn-cw')) turnBy(left ? dirSign() : -dirSign());
     return;
   }
   if (!vertical && !(horizontal && grid)) return;
