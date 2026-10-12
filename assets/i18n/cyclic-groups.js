@@ -61,7 +61,8 @@
    Subgroups list under it), showElementColours (the button beside the
    Element colours dropdown that shows the element colour key in the Ring
    window, above the path colour key), arrangeLabel, arrangeRowLabel (the same
-   control's name in the Ring window), arrangeSequential,
+   control's name in the Ring window), genRowLabel (the subgroup dropdown's
+   name in the Ring window), arrangeSequential,
    arrangeSequentialTitle, arrangeByPowers, arrangeGenLabel,
    arrangeMultiples and arrangePowers (the Ring window's arrangement
    dropdown and its generator dropdown), and the
@@ -269,7 +270,8 @@
       identityColorReset: 'Reset identity colour',
       layerOrders: 'Order labels',
       arrangeLabel: 'Arrangement',
-      arrangeRowLabel: 'Group arrangement',
+      arrangeRowLabel: 'Arrangement',
+      genRowLabel: 'Subgroup',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
       arrangeByPowers: 'Order by generator powers',
@@ -355,7 +357,7 @@
       ctxIsoSub: 'Open subgroup as isomorphism',
       showArrowKey: 'Show arrow colour key',
       fsInfo: 'Info',
-      fsGroupParams: 'Group parameters',
+      fsGroupParams: 'Parameters',
       fsMinimize: 'Minimize {name}',
       fsMaximize: 'Maximize {name}',
       fsRestore: 'Restore {name}',
