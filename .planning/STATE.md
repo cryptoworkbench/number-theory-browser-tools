@@ -501,6 +501,7 @@ None yet.
 | 265 | Cyclic Groups: subgroup isomorphism window title (⟨g⟩ ⊂ G) ≅ H | 2026-10-12 | a17bf4c | — |
 | 266 | Cyclic Groups: arrow colour key shown once in the isomorphism view | 2026-10-12 | 1bf248f | — |
 | 267 | Cyclic Groups: group parameters locked while an isomorphism is open | 2026-10-12 | 55ed157 | — |
+| 268 | Cyclic Groups: Ring window titles name the subgroups on show | 2026-10-12 | 2b48065 | — |
 
 ## Deferred Items
 
