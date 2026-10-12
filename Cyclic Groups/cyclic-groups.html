@@ -273,6 +273,8 @@
   .sub-expr-pair select{ max-width:100%; font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:4px 8px; }
   .sub-lock-note{ font-size:.8rem; font-style:italic; color:var(--text-dim); }
   .sub-lock-note[hidden]{ display:none; }
+  .sub-align-btn{ padding:4px 10px; font-size:.82rem; }
+  .sub-align-btn[hidden]{ display:none; }
   .sub-expr-pair select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
   .panel-head h2{ margin:0; }
@@ -1187,6 +1189,7 @@
           <span class="sub-expr-pair"><label for="sub-right-select" data-i18n="cyclicGroups.subExprRight">Set</label><select id="sub-right-select"></select></span>
           <span class="sub-expr-pair"><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort by</label><select id="sub-sort-select"></select></span>
           <span class="sub-lock-note" id="sub-lock-note" hidden data-i18n="cyclicGroups.subInterlocked">Linked to the other pane</span>
+          <button type="button" class="action-btn sub-align-btn" id="sub-align-btn" hidden data-i18n="cyclicGroups.subAlign">Line up with the other group</button>
         </div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         <ul class="subgroups" id="subgroups"></ul>
@@ -1414,6 +1417,7 @@ cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCose
 subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
 var subExprRowEl = $('sub-expr-row');
 var subLockNoteEl = $('sub-lock-note');
+var subAlignBtnEl = $('sub-align-btn');
 var subLeftSelectEl = $('sub-left-select');
 var subRightSelectEl = $('sub-right-select');
 var subSortSelectEl = $('sub-sort-select');
@@ -4216,7 +4220,7 @@ if (IS_RINGWIN){
       try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex, cols: n.cols }, '*'); } catch (err) { /* no desktop to tell */ }
       return;
     }
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -5711,6 +5715,7 @@ function loadIsoFrame(){
   paneSplitBox = null;
   isoPeerLockOk = false;
   isoInterlockSent = false;
+  isoWholeSent = null;
   splitAlignSent = null;
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
@@ -5733,6 +5738,7 @@ function loadIsoFrame(){
     isoSentC = null;
     isoSentPaints = null;
     isoTellTop(true);
+    syncInterlock();
   });
   f.src = isoPaneSrc(isoPane.q, isoPane.h);
   isoPaneEl.appendChild(f);
@@ -5749,6 +5755,7 @@ function closeIsoPane(){
   paneSplitBox = null;
   isoPeerLockOk = false;
   isoInterlockSent = false;
+  isoWholeSent = null;
   subLockNoteEl.hidden = true;
   splitAlignSent = null;
   alignSplits();
@@ -6276,6 +6283,8 @@ function isoReceive(d){
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
   if (d.iso === 'lockok'){ if (!IS_ISOPANE){ isoPeerLockOk = d.ok === true; syncInterlock(); } return; }
   if (d.iso === 'interlock'){ if (IS_ISOPANE){ isoInterlockOn = d.on === true; syncInterlock(); } return; }
+  if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, aligned: d.aligned === true }; syncInterlock(); } return; }
+  if (d.iso === 'align'){ if (!IS_ISOPANE) alignSubSort(); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'hover'){
     isoHoverSent = d.k;
@@ -6299,6 +6308,24 @@ function isoReceive(d){
 var isoPeerLockOk = false, isoLockOkSent = null;
 var isoInterlockOn = false, isoInterlockSent = false;
 var isoSelSent = null;
+// Lining up: while the link is between the whole groups, the pane's panel
+// offers a button that sorts both lists by the exponent of the link's
+// generator on each side, so row k is g^k on one side and h^k on the
+// other, and so interlocks them. The ring holding the pane tells the pane
+// whether the link is whole and its own list sorted so (isoHostWhole).
+var isoHostWhole = { on: false, aligned: false }, isoWholeSent = null;
+function alignSubSort(){
+  if (!drawn || isoOrder() <= 0 || !isoLinksWholeGroups()) return;
+  if (isoPane.g === null) isoPane.g = isoLinkGen();
+  state.subSort = isoLinkGen();
+  render();
+}
+subAlignBtnEl.addEventListener('click', function(){
+  if (!IS_ISOPANE || !drawn || isoOrder() <= 0) return;
+  state.subSort = ISO_GEN;
+  render();
+  isoTell({ iso: 'align' });
+});
 function subLockOk(){
   if (!drawn) return false;
   var G = drawn.G;
@@ -6326,7 +6353,15 @@ function syncInterlock(){
       if (on && isoPane.g === null) isoPane.g = isoLinkGen();
       isoTell({ iso: 'interlock', on: on });
     }
+    var whole = { on: isoOrder() > 0 && isoLinksWholeGroups(), aligned: genOrNull(drawn.G, state.subSort) === isoLinkGen() };
+    var wkey = JSON.stringify(whole);
+    if (wkey !== isoWholeSent){
+      isoWholeSent = wkey;
+      isoTell({ iso: 'whole', on: whole.on, aligned: whole.aligned });
+    }
   }
+  subAlignBtnEl.hidden = !(IS_ISOPANE && isoHostWhole.on && isoOrder() > 0 && drawn.G.cyclic
+    && !(isoHostWhole.aligned && genOrNull(drawn.G, state.subSort) === ISO_GEN && isoInterlockOn));
   var on2 = subInterlocked();
   subLockNoteEl.hidden = !on2;
   if (!on2) return;
@@ -6349,7 +6384,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'lockok' || d.iso === 'select'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'lockok' || d.iso === 'select' || d.iso === 'align'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // The blank pane has its group: from now on it is a ring like any other.
