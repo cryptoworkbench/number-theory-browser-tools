@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T10:33:43.038Z"
+last_updated: "2026-10-12T10:38:26.570Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 46d0b57833fb8b3e3be497100728118f910eb2bc
+state_head: ef184ba5d35bb8cc821b95f294f8a1c6fbfba500
 progress:
   total_phases: 7
   completed_phases: 6
@@ -513,6 +513,7 @@ None yet.
 | 277 | Cyclic groups: list arrow keys flash the ruler step buttons; keep-on-top lets go only after two one-bead turns the same way | 2026-10-12 | 7a419ed | — |
 | 278 | Cyclic groups Ring window: double-click the spin knob to reset; Reset link and rotation label removed | 2026-10-12 | 7fab525 | — |
 | 279 | Cyclic groups Ring window: spin slider centred under its ring | 2026-10-12 | 46d0b57 | — |
+| 280 | Cyclic groups isomorphism view: shared slider centred on the divider; padlocks return when the groups are isomorphic again | 2026-10-12 | ef184ba | — |
 
 ## Deferred Items
 
