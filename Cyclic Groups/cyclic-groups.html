@@ -693,6 +693,30 @@
   .iso-pane-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.78rem; font-weight:600; color:var(--text-dim); }
   .iso-pane > iframe{ flex:1 1 auto; display:block; width:100%; min-height:0; border:0; background:none; visibility:hidden; }
   .iso-pane > iframe.is-loaded{ visibility:visible; }
+  .iso-pane > iframe.is-loaded{ transition:filter .45s ease, opacity .45s ease; }
+  .iso-pane > iframe.is-blurred{ filter:blur(8px); opacity:.6; }
+  /* The + at a one-ring Ring window's right edge, and the picker it opens. */
+  .iso-add{ display:none; }
+  .fs-win-body.is-ring > .iso-add{ position:absolute; z-index:3; top:50%; right:10px; translate:0 -50%; display:flex; align-items:center; justify-content:center; width:40px; height:40px; padding:0; font:inherit; font-family:var(--font-sans); font-size:1.6rem; line-height:1; color:var(--accent); background:var(--bg-1); border:1px solid var(--panel-border); border-radius:50%; box-shadow:0 2px 8px color-mix(in srgb, var(--ink) 18%, transparent); cursor:pointer; opacity:0; pointer-events:none; transition:opacity .18s ease; }
+  .fs-win-body.is-ring > .iso-add.is-shown, .fs-win-body.is-ring > .iso-add:focus-visible{ opacity:1; pointer-events:auto; }
+  .fs-win-body.is-ring > .iso-add:hover{ background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
+  .fs-win-body.is-ring > .iso-add:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .iso-add{ display:none; }
+  .iso-pane.is-picking{ position:relative; }
+  .iso-pick{ position:absolute; inset:0 0 0 12px; overflow:hidden; }
+  .iso-pick-ghost{ position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; padding:6px 0; filter:blur(7px); opacity:.55; }
+  .iso-ghost-row{ height:26px; width:80%; border-radius:6px; background:color-mix(in srgb, var(--text) 18%, transparent); }
+  .iso-ghost-row.is-short{ width:50%; }
+  .iso-ghost-ring{ align-self:center; width:min(70%, 360px); aspect-ratio:1; margin-top:24px; border-radius:50%; border:14px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  .iso-pick-menu{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:18px; padding:24px; overflow:auto; transition:opacity .25s ease; }
+  .iso-pick.is-chosen .iso-pick-menu{ opacity:0; pointer-events:none; }
+  .iso-pick-sec{ max-width:420px; width:100%; margin:0 auto; padding:10px 12px 12px; background:color-mix(in srgb, var(--bg-1) 88%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); box-shadow:0 4px 16px color-mix(in srgb, var(--ink) 14%, transparent); }
+  .iso-pick-sec > .fs-menu-head{ margin:0 0 8px; }
+  .iso-pick-list{ display:flex; flex-wrap:wrap; gap:6px; }
+  .iso-pick-item{ padding:5px 12px; font:inherit; font-family:var(--font-sans); font-size:.92rem; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:999px; cursor:pointer; }
+  .iso-pick-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); border-color:var(--accent); }
+  .iso-pick-item:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .iso-pick-none{ margin:0; font-size:.86rem; color:var(--text-dim); }
   /* In a Ring window the pane is a fourth column, as wide as the other three
      with their gaps; it spans every row, the ring's flexible one setting its height. */
   .fs-win-body.is-ring > .iso-pane:not([hidden]){ grid-area:pane; align-self:stretch; border-left:1px solid var(--panel-border); padding-left:12px; }
@@ -1076,6 +1100,7 @@
             <button type="button" class="fs-win-btn is-close" id="iso-pane-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
           </div>
         </div>
+        <button type="button" class="iso-add" id="iso-add" aria-label="Open a second ring beside this one" data-i18n-aria-label="cyclicGroups.isoAddTitle" title="Open a second ring beside this one" data-i18n-title="cyclicGroups.isoAddTitle">+</button>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
         <p class="iso-lead" id="iso-lead"></p>
@@ -2440,7 +2465,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -5310,7 +5335,10 @@ function openIsoPane(a, g){
   isoWasLinked = true;
   setGroupLock(true);
   isoPaneEl.hidden = false;
+  var picked = !!isoPickEl;
+  if (picked) isoPickEl.classList.add('is-chosen');
   loadIsoFrame();
+  if (picked) isoPaneFrame.classList.add('is-blurred');
   syncIsoPaneLabels();
 }
 function loadIsoFrame(){
@@ -5318,6 +5346,12 @@ function loadIsoFrame(){
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
     f.classList.add('is-loaded');
+    // Opened from the picker: once the new ring has its group and has drawn
+    // it, the picker goes and the blur lifts.
+    if (f.classList.contains('is-blurred')){
+      endIsoPick();
+      setTimeout(function(){ requestAnimationFrame(function(){ f.classList.remove('is-blurred'); }); }, 350);
+    }
     postLook(f);
     isoSharedSent = null;
     postIsoShared(true);
@@ -5333,6 +5367,7 @@ function loadIsoFrame(){
   syncIsoPaneLabels();
 }
 function closeIsoPane(){
+  endIsoPick();
   if (isoPaneFrame) isoPaneFrame.remove();
   isoPaneFrame = null;
   isoPane = null;
@@ -5350,6 +5385,8 @@ function closeIsoPane(){
 // iframe in the browser; the pane is then loaded again from its latest query.
 function syncIsoPane(){
   if (isoPane && isoPaneEl.parentNode !== isoPane.parent) loadIsoFrame();
+  // The picker belongs to a Ring window; leaving it closes the picker.
+  if (isoPickEl && !isoPane && !isoPaneEl.closest('.fs-win-body.is-ring')) closeIsoPane();
 }
 function syncIsoPaneLabels(){
   if (!isoPane) return;
@@ -5363,6 +5400,92 @@ function syncIsoPaneLabels(){
   syncIsoTitle();
 }
 isoPaneCloseEl.addEventListener('click', closeIsoPane);
+
+/* ---------- the second ring opened empty: a picker of groups to show in it ---------- */
+
+// Pointing at the right edge of a Ring window holding one ring shows a +,
+// which opens the pane empty: a blurred stand-in for a ring under a picker of
+// the groups to open there, the groups isomorphic to the whole group and to
+// the subgroup on show. Choosing one opens it as its chip does; the new ring
+// draws behind the blur, which then lifts.
+var isoAddEl = $('iso-add');
+var isoPickEl = null;
+function endIsoPick(){
+  if (isoPickEl) isoPickEl.remove();
+  isoPickEl = null;
+  isoPaneEl.classList.remove('is-picking');
+}
+function isoPickSection(key, chips, whole){
+  var sec = document.createElement('section');
+  sec.className = 'iso-pick-sec';
+  var head = document.createElement('p');
+  head.className = 'fs-menu-head';
+  head.textContent = translate(key);
+  sec.appendChild(head);
+  var list = document.createElement('div');
+  list.className = 'iso-pick-list';
+  chips.forEach(function(a){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'iso-pick-item';
+    b.title = a.title;
+    b.appendChild(a.querySelector('.iso-name').cloneNode(true));
+    b.addEventListener('click', function(){
+      if (isoPickEl.classList.contains('is-chosen')) return;
+      openIsoPane(a, whole && drawn ? drawn.G.generators[0] : null);
+    });
+    list.appendChild(b);
+  });
+  if (!chips.length){
+    var none = document.createElement('p');
+    none.className = 'iso-pick-none';
+    none.textContent = translate('cyclicGroups.isoPickNone');
+    list.appendChild(none);
+  }
+  sec.appendChild(list);
+  return sec;
+}
+function openIsoPick(){
+  if (IS_ISOPANE || IS_PREVIEW || isoPane || isoPickEl) return;
+  isoPickEl = document.createElement('div');
+  isoPickEl.className = 'iso-pick';
+  var ghost = document.createElement('div');
+  ghost.className = 'iso-pick-ghost';
+  ghost.setAttribute('aria-hidden', 'true');
+  ['row', 'row is-short', 'row', 'ring'].forEach(function(c){
+    var d = document.createElement('div');
+    d.className = 'iso-ghost-' + c;
+    ghost.appendChild(d);
+  });
+  var menu = document.createElement('div');
+  menu.className = 'iso-pick-menu';
+  menu.setAttribute('role', 'group');
+  var chips = function(el){ return Array.prototype.slice.call(el.querySelectorAll('a.iso-chip')); };
+  menu.appendChild(isoPickSection('cyclicGroups.isoPickWhole', chips(isoGroupChipsEl), true));
+  menu.appendChild(isoPickSection('cyclicGroups.isoPickSub', isoPanelEl.hidden ? [] : chips(isoPanelEl), false));
+  isoPickEl.appendChild(ghost);
+  isoPickEl.appendChild(menu);
+  isoPaneEl.appendChild(isoPickEl);
+  isoPaneEl.classList.add('is-picking');
+  isoPaneEl.hidden = false;
+  isoAddEl.classList.remove('is-shown');
+  var close = translate('cyclicGroups.fsClose', { name: translate('cyclicGroups.fsRing') });
+  isoPaneCloseEl.setAttribute('aria-label', close);
+  isoPaneCloseEl.setAttribute('title', close);
+  var first = menu.querySelector('button');
+  if (first) first.focus();
+}
+isoAddEl.addEventListener('click', openIsoPick);
+// The + shows while the pointer is near the window's right edge.
+document.addEventListener('pointermove', function(e){
+  var body = isoAddEl.parentNode;
+  var near = false;
+  if (!isoPane && !isoPickEl && body.classList.contains('fs-win-body') && body.classList.contains('is-ring')){
+    var r = body.getBoundingClientRect();
+    near = e.clientX >= r.right - 90 && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  }
+  isoAddEl.classList.toggle('is-shown', near);
+});
 // A ring's subgroup on show inside its group, ⟨g⟩ ⊆ G when g generates the
 // group and ⟨g⟩ ⊂ G otherwise; just the group with no subgroup on show.
 function subgroupName(G, g){

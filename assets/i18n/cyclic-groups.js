@@ -48,7 +48,9 @@
    and ctxArrows (the ring's right-click menu's Colours section and its two
    submenus), ctxIsoGroup and ctxIsoSub (that menu's submenus of groups
    isomorphic to the whole group and to the subgroup on show, to open
-   beside the ring), showArrowKey (the Arrows submenu's switch for the arrow
+   beside the ring), isoAddTitle, isoPickWhole, isoPickSub and isoPickNone
+   (the + at a Ring window's right edge and the picker of those groups it
+   opens in an empty second pane), showArrowKey (the Arrows submenu's switch for the arrow
    colour key), fsGroupParams (the label of its top row),
    fsInfo (the group panel's window), and
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
@@ -355,6 +357,10 @@
       ctxArrows: 'Arrows',
       ctxIsoGroup: 'Open group as isomorphism',
       ctxIsoSub: 'Open subgroup as isomorphism',
+      isoAddTitle: 'Open a second ring beside this one',
+      isoPickWhole: 'Groups isomorphic to the current group',
+      isoPickSub: 'Groups isomorphic to the current subgroup',
+      isoPickNone: 'None',
       showArrowKey: 'Show arrow colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
