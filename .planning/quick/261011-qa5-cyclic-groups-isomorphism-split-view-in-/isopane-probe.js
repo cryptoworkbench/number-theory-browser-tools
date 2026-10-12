@@ -34,6 +34,14 @@ function eq(actual, expected, what) {
 async function setRot(target, v) {
   await target.evaluate(function (v) { var e = document.getElementById("rot-value"); e.value = String(v); e.dispatchEvent(new Event("change")); }, v);
 }
+// Opens the host ring's right-click menu and its Colours submenu `sub`
+// (elements or arrows), where the shared colour controls live.
+async function ctxSub(page, sub) {
+  await page.click(RING + " #ring-svg", { button: "right" });
+  await page.waitForSelector("#ring-ctx:not([hidden])");
+  await page.locator("#ring-ctx > [aria-haspopup]").nth(sub === "elements" ? 0 : 1).hover();
+  await page.waitForSelector("#ring-ctx-" + sub + ":not([hidden])");
+}
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 async function waitFor(fn, ms, what) {
   var end = Date.now() + (ms || 3000), last;
@@ -146,12 +154,14 @@ async function main() {
       function shown(id) { var e = document.getElementById(id); if (!e) return false; var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
       var rowIso = document.querySelector(".fs-win-row-iso");
       return {
-        hidden: ["element-colours", "arrow-options", "split-btn", "iso-panel", "rotate-ctl", "spin-ruler", "keep-top-row"].map(function (id) { return id + ":" + disp(id); }),
+        colours: document.querySelectorAll("#ring-ctx [aria-haspopup]").length,
+        hidden: ["split-btn", "iso-panel", "rotate-ctl", "spin-ruler", "keep-top-row"].map(function (id) { return id + ":" + disp(id); }),
         rowIso: rowIso ? getComputedStyle(rowIso).display + "/" + rowIso.getBoundingClientRect().height : "absent",
         shown: ["n-input", "op-toggle", "gen-select", "arrange-select", "scratch-btn"].filter(function (id) { return !shown(id); }),
         n: document.getElementById("n-input").value
       };
     });
+    eq(d.colours, 0, "Colours submenus in the pane's menu");
     d.hidden.forEach(function (x) { eq(x.split(":")[1], "none", x.split(":")[0] + " display"); });
     if (d.rowIso !== "absent") assert(d.rowIso === "none/0" || /^(none|block|flex|grid)\/0$/.test(d.rowIso), "iso row visible: " + d.rowIso);
     eq(d.shown.join(","), "", "per-group controls without a box");
@@ -296,7 +306,10 @@ async function main() {
   try {
     fp9 = await freshPane();
     h = fp9.h; pane = fp9.pane;
-    await h.page.selectOption("#colorby-select", "inverse");
+    await ctxSub(h.page, "elements");
+    await h.page.locator("#ring-ctx-elements [role=menuitemradio]").nth(2).click();
+    await h.page.keyboard.press("Escape");
+    await h.page.keyboard.press("Escape");
     await waitFor(function () { return pane.evaluate(function () { return document.getElementById("colorby-select").value === "inverse"; }); }, 3000, "pane colour scheme");
     await h.page.evaluate(function () { var b = document.getElementById("layer-orders"); b.checked = true; b.dispatchEvent(new Event("change")); });
     await waitFor(function () { return pane.evaluate(function () { return document.querySelectorAll("#ring-svg .order-label").length === 4; }); }, 3000, "4 order labels in the pane");
@@ -306,14 +319,18 @@ async function main() {
 
   try {
     assert(fp9, "no pane");
-    await h.page.click("#legend-btn");
+    await ctxSub(h.page, "elements");
+    await h.page.click("#ring-ctx-elements .fs-menu-item[role=menuitemcheckbox]");
     await waitFor(function () {
       return pane.evaluate(function () {
         var l = document.getElementById("legend-panel"), pick = l.querySelector(".legend-pick");
         return l.classList.contains("is-shown") && getComputedStyle(pick).display === "none";
       });
     }, 3000, "pane legend");
+    await h.page.locator("#ring-ctx > [aria-haspopup]").nth(1).hover();
     await h.page.selectOption("#dir-select", "ccw");
+    await h.page.keyboard.press("Escape");
+    await h.page.keyboard.press("Escape");
     await waitFor(function () { return pane.evaluate(function () { return document.getElementById("dir-select").value === "ccw"; }); }, 3000, "pane direction");
     await h.page.evaluate(function () { var c = document.getElementById("id-color"); c.value = "#123456"; c.dispatchEvent(new Event("input", { bubbles: true })); });
     await waitFor(function () { return pane.evaluate(function () { return document.getElementById("id-color").value === "#123456"; }); }, 3000, "pane identity colour");
@@ -326,7 +343,7 @@ async function main() {
     await pane.click("#ring-svg", { button: "right" });
     var disp = await pane.evaluate(function () { return getComputedStyle(document.getElementById("ring-ctx")).display; });
     eq(disp, "block", "pane menu display");
-    await pane.click("#ring-ctx .fs-menu-item");
+    await pane.click("#ring-ctx > .fs-menu-item");
     await waitFor(function () { return h.page.evaluate(function () { return document.getElementById("layer-orders").checked === false; }); }, 3000, "host orders off");
     await waitFor(async function () {
       var a = await h.page.evaluate(function () { return document.querySelectorAll('.fs-win[data-panel="ring"] #ring-svg .order-label').length; });

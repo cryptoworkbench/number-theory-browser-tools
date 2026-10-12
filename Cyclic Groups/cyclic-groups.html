@@ -599,7 +599,7 @@
   /* The subgroup row: the subgroup on show, then every option of the
      Subgroup panel (its paths, their colors, the cosets), wrapping. */
   .fs-win-body.is-ring > .fs-win-row-gen{ grid-area:gen; display:flex; flex-wrap:wrap; align-items:center; gap:6px 28px; padding:2px 0 6px; border-bottom:1px dotted var(--panel-border); }
-  .fs-win-body.is-ring :is(#subgroup-options, #arrow-options):not([hidden]){ display:contents; }
+  .fs-win-body.is-ring #subgroup-options:not([hidden]){ display:contents; }
   /* The isomorphisms row, under the subgroup row while the subgroup on show
      has isomorphic groups to link to: its name, the sentence, the tiles. It
      then takes the subgroup row's dotted line under it. */
@@ -620,13 +620,6 @@
   .fs-win-body.is-ring .iso-panel.is-folded :is(.iso-lead, .iso-logo, .iso-kind){ display:none; }
   .fs-win-body.is-ring .iso-panel.is-folded .iso-tiles{ gap:6px; }
   .fs-win-body.is-ring .iso-panel.is-folded .iso-tile{ min-width:0; padding:0; background:none; border:0; }
-  /* Modelled on the Generator control of the arrangement row: small dim
-     labels, and dropdowns 32px after their label in the fields' style. */
-  .fs-win-body.is-ring #arrow-options .check{ align-items:center; margin:0; font-size:.85rem; color:var(--text-dim); }
-  .fs-win-body.is-ring #arrow-options .check select.side-select{ margin:0; margin-inline-start:23px; width:auto; min-width:8em; padding:4px 8px; font:inherit; font-family:var(--font-sans); font-size:.95rem; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
-  .fs-win-body.is-ring #arrow-options .check select.side-select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
-  .fs-win-body.is-ring #arrow-options .check select.side-select option{ color:var(--text); background:var(--bg-1); }
-  .fs-win-body.is-ring #arrow-options .link-btn{ margin:0; }
   .fs-win-body.is-ring .coset-btn{ width:auto; }
   /* The split view: a button at the right end of the subgroup row opens a
      pane under the ring (a divider between them) that takes in the page's
@@ -647,14 +640,9 @@
   .fs-win-body.is-ring .coset-controls:not([hidden]){ margin:0; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 16px; }
   .fs-win-body.is-ring .coset-controls .speed-wrap input[type="range"]{ width:120px; flex:none; }
   .fs-win-body.is-ring #keep-top-row{ flex:0 1 340px; margin:0 0 0 auto; padding:2px 0; }
-  /* Element colours, between the operation switch and Keep on top: the
-     dropdown after its label, then the identity colour picker. */
-  .fs-win-body.is-ring #element-colours{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 24px; }
-  .fs-win-body.is-ring #element-colours .color-by{ flex-direction:row; align-items:center; gap:4px 32px; margin:0; }
-  .fs-win-body.is-ring #element-colours .color-by label{ font-size:.85rem; color:var(--text-dim); }
-  .fs-win-body.is-ring #element-colours .color-by select{ width:auto; min-width:8em; padding:4px 8px; }
-  .fs-win-body.is-ring #element-colours .check{ align-items:center; margin:0; font-size:.85rem; color:var(--text-dim); }
-  .fs-win-body.is-ring #element-colours .link-btn{ margin:0; }
+  /* The element colours are set from the ring's right-click menu; their
+     dropdown and key button stay behind it, out of sight, holding the choice. */
+  #element-colours{ display:none !important; }
   .fs-win-body.is-ring #arrange-gen-label{ font-size:.85rem; color:var(--text-dim); margin-inline-start:8px; }
   .fs-win-body.is-ring > #arrange-field{ grid-area:arr; }
   /* The arrangement row is named for the group in the Ring window. */
@@ -713,11 +701,12 @@
   .diagram-frame:has(> .iso-pane:not([hidden])) > :is(.ring-head, svg.ring-svg){ width:calc(50% - 7px); margin-right:auto; }
   .diagram-frame:has(> .iso-pane:not([hidden])) > .combine-key{ right:calc(50% + 14px); max-width:min(330px, 20%); }
   /* The pane keeps to its group's own controls: the shared ones (colours,
-     paths, the layers) are the left ring's, and a pane never splits itself.
+     paths, the layers) are the left ring's, its menu having no Colours,
+     and a pane never splits itself.
      Its ring turns with the left one, so its rotation controls (the turn
      buttons, the speed ruler and Keep on top) are the left ring's too;
      dragging it still turns both. */
-  :root.is-isopane :is(#element-colours, #arrow-options, #split-btn, .legend-pick, .legend-reset, #rotate-ctl, #spin-ruler, #keep-top-row){ display:none !important; }
+  :root.is-isopane :is(#split-btn, .legend-pick, .legend-reset, #rotate-ctl, #spin-ruler, #keep-top-row){ display:none !important; }
   .fs-rs{ position:absolute; z-index:4; touch-action:none; }
   .fs-rs[data-dir="n"], .fs-rs[data-dir="s"]{ left:10px; right:10px; height:8px; cursor:ns-resize; }
   .fs-rs[data-dir="e"], .fs-rs[data-dir="w"]{ top:10px; bottom:10px; width:8px; cursor:ew-resize; }
@@ -768,6 +757,19 @@
   .ring-ctx .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
+  .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
+  .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
+  .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  /* Its Colours submenus open beside it, the Arrows one holding the arrows'
+     own controls: small labels, dropdowns at the row's end. */
+  .ring-ctx .ring-ctx-sub{ position:fixed; left:0; top:0; bottom:auto; z-index:1; min-width:200px; }
+  .ring-ctx-sub .arrow-options{ margin:0; padding:2px 4px; }
+  .ring-ctx-sub #arrow-options .check{ align-items:center; gap:9px; margin:0; padding:5px 4px; font-size:.86rem; color:var(--text); }
+  .ring-ctx-sub #arrow-options .check select.side-select{ margin:0; margin-inline-start:auto; width:9.5em; padding:3px 8px; font:inherit; font-family:var(--font-sans); font-size:.86rem; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  .ring-ctx-sub #arrow-options .check select.side-select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .ring-ctx-sub #arrow-options .check select.side-select option{ color:var(--text); background:var(--bg-1); }
+  .ring-ctx-sub #arrow-options .check label{ margin-inline-end:16px; }
+  .ring-ctx-sub #arrow-options .link-btn{ margin:4px 4px 2px; }
   .diagram-frame:fullscreen .resize-grip{ display:none; }
   /* The diagram's top-right corner: the full-screen button. Full screen
      it gives way to the one in the taskbar's tray. */
@@ -962,7 +964,19 @@
           </div>
           <span aria-hidden="true">&#x27F3;</span>
         </div>
-        <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.layersHeading">Layers</p></div>
+        <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.layersHeading">Layers</p>
+          <div class="fs-menu ring-ctx-sub" id="ring-ctx-elements" role="menu" aria-label="Elements" data-i18n-aria-label="cyclicGroups.ctxElements" hidden></div>
+          <div class="fs-menu ring-ctx-sub" id="ring-ctx-arrows" role="group" aria-label="Arrows" data-i18n-aria-label="cyclicGroups.ctxArrows" hidden>
+            <div class="arrow-options" id="arrow-options">
+            <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow colour" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow colour" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
+            <div class="check" id="dir-row"><label for="dir-select" data-i18n="cyclicGroups.dirLabel">Forward direction</label><select class="side-select" id="dir-select"><option value="cw" data-i18n="cyclicGroups.dirCw">Clockwise</option><option value="ccw" data-i18n="cyclicGroups.dirCcw">Counterclockwise</option></select></div>
+            <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow colour" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow colour" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Disable backwards path</label></div>
+            <div class="check" id="swap-colors-row"><input type="checkbox" id="swap-colors"><label for="swap-colors" data-i18n="cyclicGroups.swapColors">Swap forward and backward path colours</label></div>
+            <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colours manually</label></div>
+            <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colours</button>
+            </div>
+          </div>
+        </div>
         <div class="fs-taskbar" id="fs-taskbar" role="toolbar" aria-label="Panels" data-i18n-aria-label="cyclicGroups.fsPanels">
           <button type="button" class="fs-launcher" id="fs-launcher" aria-haspopup="menu" aria-expanded="false" aria-controls="fs-menu" title="Panels" aria-label="Panels" data-i18n-title="cyclicGroups.fsPanels" data-i18n-aria-label="cyclicGroups.fsPanels"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></button>
           <div class="fs-menu" id="fs-menu" role="menu" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.fsPanels">Panels</p><div id="fs-menu-panels"></div><p class="fs-menu-head" data-i18n="cyclicGroups.fsWindows">Windows</p><div id="fs-menu-actions"></div></div>
@@ -1111,14 +1125,6 @@
         </div>
         <p class="identity-note" id="identity-note" hidden data-i18n="cyclicGroups.identityOnly">The identity element only generates itself.</p>
         <div id="subgroup-options">
-          <div class="arrow-options" id="arrow-options">
-          <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow colour" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow colour" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
-          <div class="check" id="dir-row"><label for="dir-select" data-i18n="cyclicGroups.dirLabel">Forward direction</label><select class="side-select" id="dir-select"><option value="cw" data-i18n="cyclicGroups.dirCw">Clockwise</option><option value="ccw" data-i18n="cyclicGroups.dirCcw">Counterclockwise</option></select></div>
-          <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow colour" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow colour" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Disable backwards path</label></div>
-          <div class="check" id="swap-colors-row"><input type="checkbox" id="swap-colors"><label for="swap-colors" data-i18n="cyclicGroups.swapColors">Swap forward and backward path colours</label></div>
-          <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colours manually</label></div>
-          <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colours</button>
-          </div>
           <button type="button" class="action-btn coset-btn" id="coset-btn" aria-expanded="false" aria-controls="coset-controls">Explore cosets</button>
           <div class="coset-controls" id="coset-controls" hidden>
             <div class="btn-row">
@@ -2364,7 +2370,7 @@ syncFullscreenBtn();
 // panel the page hides (no isomorphic groups, no notice) keeps its button,
 // disabled, and its window out of sight until the page shows it again.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'element-colours', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'iso-panel', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'element-colours': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen', 'iso-panel': 'iso' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'iso-panel', 'formula-scratch', 'ring-head', 'ring-svg', 'spin-ruler', 'combine-key', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen', 'iso-panel': 'iso' }, title: 'cyclicGroups.fsRing', icon: '◯', ring: true, minW: 320, minH: 280 },
   { key: 'notice', ids: ['notice'], title: 'cyclicGroups.fsNotice', icon: '!' }
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
@@ -2562,18 +2568,23 @@ fsMenuEl.addEventListener('keydown', function(e){
 });
 // Right-clicking the ring opens its own menu in place of the browser's: the
 // Layers panel's switches, each flipping its checkbox there so the
-// checkbox's own handler draws and remembers the change, then the Export
-// panel's download, which clicks its button there, and last the group's
-// structure from the Info panel, which does nothing yet.
+// checkbox's own handler draws and remembers the change, then the Colours
+// submenus (the element colours, and the arrows' own controls, which live
+// in theirs), then the Export panel's download, which clicks its button
+// there, and last the group's structure from the Info panel, which does
+// nothing yet. The colours are the left ring's, so a pane's menu has none.
 var RING_CTX_ITEMS = [
   { name: 'orders', key: 'cyclicGroups.layerOrders' },
   { name: 'cord', key: 'cyclicGroups.layerCord' },
   { name: 'guide', key: 'cyclicGroups.layerGuide' },
+  { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
+  { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { sep: true, key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
-var ringCtxItems = RING_CTX_ITEMS.map(function(l){
+var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows') };
+var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && l.sub); }).map(function(l){
   if (l.head){
     var head = document.createElement('p');
     head.className = 'fs-menu-head';
@@ -2590,7 +2601,11 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   var item = document.createElement('button');
   item.type = 'button';
   item.className = 'fs-menu-item';
-  item.setAttribute('role', l.run ? 'menuitem' : 'menuitemcheckbox');
+  item.setAttribute('role', l.run || l.sub ? 'menuitem' : 'menuitemcheckbox');
+  if (l.sub){
+    item.setAttribute('aria-haspopup', 'true');
+    item.setAttribute('aria-expanded', 'false');
+  }
   var mark = document.createElement('span');
   mark.className = 'fs-icon';
   mark.setAttribute('aria-hidden', 'true');
@@ -2598,13 +2613,27 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   var label = document.createElement('span');
   item.appendChild(mark);
   item.appendChild(label);
+  if (l.sub){
+    var more = document.createElement('span');
+    more.className = 'ring-ctx-more';
+    more.setAttribute('aria-hidden', 'true');
+    more.textContent = '\u203A';
+    item.appendChild(more);
+  }
   var value = null;
   if (l.value){
     value = document.createElement('span');
     value.className = 'fact-value';
     item.appendChild(value);
   }
+  item.addEventListener('pointerenter', function(){
+    setRingSub(l.sub && item.getAttribute('aria-disabled') !== 'true' ? l.sub : null, false);
+  });
   item.addEventListener('click', function(){
+    if (l.sub){
+      if (item.getAttribute('aria-disabled') !== 'true') setRingSub(l.sub, true);
+      return;
+    }
     if (l.stay){ l.run(); return; }
     setRingCtx(false);
     if (l.run){ l.run(); return; }
@@ -2615,20 +2644,110 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key };
+  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub };
 });
+// The Elements submenu: the key's switch (in a Ring window, where the key
+// is shown on request), then the colour schemes, each choosing its option
+// in the Element colours dropdown so the dropdown's own handler draws and
+// remembers it. Both keep the menu open, to try one scheme after another.
+var ELEMENT_ITEMS = [
+  { legend: true, key: 'cyclicGroups.showElementColours' },
+  { sep: true },
+  { value: 'none', key: 'cyclicGroups.colorByNone' },
+  { value: 'order', key: 'cyclicGroups.colorByOrder' },
+  { value: 'inverse', key: 'cyclicGroups.colorByInverse' },
+  { value: 'theme', key: 'cyclicGroups.colorByTheme' }
+];
+var elementItems = ELEMENT_ITEMS.map(function(l){
+  if (l.sep){
+    var sep = document.createElement('div');
+    sep.className = 'ring-ctx-sep';
+    sep.setAttribute('role', 'separator');
+    ringSubEls.elements.appendChild(sep);
+    return { sep: sep };
+  }
+  var item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'fs-menu-item';
+  item.setAttribute('role', l.legend ? 'menuitemcheckbox' : 'menuitemradio');
+  var mark = document.createElement('span');
+  mark.className = 'fs-icon';
+  mark.setAttribute('aria-hidden', 'true');
+  var label = document.createElement('span');
+  item.appendChild(mark);
+  item.appendChild(label);
+  item.addEventListener('click', function(){
+    if (item.getAttribute('aria-disabled') === 'true') return;
+    if (l.legend) legendBtnEl.click();
+    else if (colorBySelectEl.value !== l.value){
+      colorBySelectEl.value = l.value;
+      colorBySelectEl.dispatchEvent(new Event('change'));
+    }
+    syncElementItems();
+  });
+  ringSubEls.elements.appendChild(item);
+  return { item: item, mark: mark, label: label, key: l.key, legend: l.legend, value: l.value };
+});
+function syncElementItems(){
+  // The key is a switch only where a Ring window shows it on request.
+  var keyed = !!legendPanelEl.closest('.fs-win-body.is-ring');
+  elementItems.forEach(function(it){
+    if (it.sep){ it.sep.hidden = !keyed; return; }
+    it.label.textContent = translate(it.key);
+    var on;
+    if (it.legend){
+      it.item.hidden = !keyed;
+      it.item.setAttribute('aria-disabled', state.colors ? 'false' : 'true');
+      on = legendShown && state.colors;
+    } else on = colorBySelectEl.value === it.value;
+    it.item.setAttribute('aria-checked', on ? 'true' : 'false');
+    it.mark.textContent = on ? (it.legend ? '\u2713' : '\u25CF') : '';
+  });
+}
+function subFocusables(name){
+  return Array.prototype.filter.call(ringSubEls[name].querySelectorAll('button, input, select'), function(el){
+    return !el.disabled && el.getAttribute('aria-disabled') !== 'true' && el.offsetParent !== null;
+  });
+}
+var ringSubOpen = null;
+function setRingSub(name, focus){
+  Object.keys(ringSubEls).forEach(function(k){ ringSubEls[k].hidden = k !== name; });
+  ringCtxItems.forEach(function(it){
+    if (it.sub) it.item.setAttribute('aria-expanded', it.sub === name ? 'true' : 'false');
+  });
+  ringSubOpen = name;
+  if (!name) return;
+  if (name === 'elements') syncElementItems();
+  var sub = ringSubEls[name], from = ringCtxItems.find(function(it){ return it.sub === name; }).item;
+  var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
+  var w = sub.offsetWidth, h = sub.offsetHeight;
+  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  // Beside the menu on its right, or on its left where the right has no room.
+  var x = menu.right - 2;
+  if (x + w > vw - 4) x = Math.max(4, menu.left - w + 2);
+  sub.style.left = x + 'px';
+  sub.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
+  if (focus){
+    var first = subFocusables(name)[0];
+    if (first) first.focus();
+  }
+}
 var ringCtxReturn = null;
 function setRingCtx(open, x, y){
   if (!open){
     if (ringCtxEl.hidden) return;
+    setRingSub(null);
     ringCtxEl.hidden = true;
     if (ringCtxReturn && ringCtxEl.contains(document.activeElement)) ringCtxReturn.focus();
     ringCtxReturn = null;
     return;
   }
+  setRingSub(null);
   ringCtxItems.forEach(function(it){
     it.label.textContent = translate(it.key);
     if (it.value) it.value.replaceChildren(it.valueOf());
+    // With the identity, or no subgroup, there are no arrows to set.
+    if (it.sub === 'arrows') it.item.setAttribute('aria-disabled', subgroupOptionsEl.hidden ? 'true' : 'false');
     if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
@@ -2650,7 +2769,26 @@ document.addEventListener('pointerdown', function(e){
   if (!ringCtxEl.contains(e.target)) setRingCtx(false);
 });
 ringCtxEl.addEventListener('keydown', function(e){
+  if (ringSubOpen && ringSubEls[ringSubOpen].contains(e.target)){
+    var subName = ringSubOpen, list = subFocusables(subName), j = list.indexOf(document.activeElement);
+    var back = e.key === 'Escape' || (e.key === 'ArrowLeft' && subName === 'elements');
+    if (back){
+      setRingSub(null);
+      ringCtxItems.find(function(it){ return it.sub === subName; }).item.focus();
+      e.preventDefault();
+      return;
+    }
+    var step = null;
+    // The arrows' controls take Tab, round and round; their selects keep the arrow keys.
+    if (e.key === 'Tab') step = e.shiftKey ? -1 : 1;
+    else if (subName === 'elements' && e.key === 'ArrowDown') step = 1;
+    else if (subName === 'elements' && e.key === 'ArrowUp') step = -1;
+    else if (subName === 'elements' && (e.key === 'Home' || e.key === 'End')){ list[e.key === 'Home' ? 0 : list.length - 1].focus(); e.preventDefault(); }
+    if (step !== null && list.length){ list[(j + step + list.length) % list.length].focus(); e.preventDefault(); }
+    return;
+  }
   var i = ringCtxItems.findIndex(function(it){ return it.item === document.activeElement; });
+  if (e.key === 'ArrowRight' && i >= 0 && ringCtxItems[i].sub){ ringCtxItems[i].item.click(); e.preventDefault(); return; }
   var n = ringCtxItems.length, to = null;
   if (e.key === 'Escape' || e.key === 'Tab'){ setRingCtx(false); e.preventDefault(); return; }
   if (e.key === 'ArrowDown') to = (i + 1) % n;
@@ -2660,7 +2798,12 @@ ringCtxEl.addEventListener('keydown', function(e){
   if (to !== null){ ringCtxItems[to].item.focus(); e.preventDefault(); }
 });
 ['resize', 'blur', 'fullscreenchange', 'webkitfullscreenchange'].forEach(function(type){
-  (type === 'resize' || type === 'blur' ? window : document).addEventListener(type, function(){ setRingCtx(false); });
+  (type === 'resize' || type === 'blur' ? window : document).addEventListener(type, function(){
+    // An arrow's colour picker, or a select's list, takes the focus off the page while it is open.
+    var at = document.activeElement;
+    if (type === 'blur' && at && ringCtxEl.contains(at) && /^(INPUT|SELECT)$/.test(at.tagName)) return;
+    setRingCtx(false);
+  });
 });
 window.addEventListener('scroll', function(){ setRingCtx(false); }, true);
 // Each window's background opacity, from FS_MIN_ALPHA to solid (its title
