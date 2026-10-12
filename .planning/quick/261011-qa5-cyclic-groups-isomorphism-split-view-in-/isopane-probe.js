@@ -414,10 +414,30 @@ async function main() {
   if (fp9) await fp9.h.ctx.close();
 
 
-  /* P14-P20: turning together and hovering, through g^k <-> h^k.
-     Mapping, both rings in numeric arrangement: left Z/12 with g = 3, so left
-     rot 0/3/6/9 is k = 0/1/2/3; right (Z/5Z)* with h = 2, powers [1,2,4,3],
-     so k = 0/1/2/3 is right rot 0/1/3/2. */
+  /* P14-P20: turning together, through the same angle, and hovering, through
+     g^k <-> h^k. Left Z/12 in numeric order with g = 3, so left rot 0/3/6/9
+     is k = 0/1/2/3, its subgroup spread evenly; the pane, (Z/5Z)* with h = 2,
+     lays itself out as the powers of 2, [1,2,4,3], so k is the pane's rot.
+     Each identity bead is drawn at the same angle at every moment. */
+  async function idAngle(target, el) {
+    return target.evaluate(function (el) {
+      var ring = document.querySelector("#ring-dynamic .ring"), beads = ring.querySelectorAll("circle.bead");
+      var cx = 0, cy = 0;
+      beads.forEach(function (b) { cx += +b.getAttribute("cx"); cy += +b.getAttribute("cy"); });
+      cx /= beads.length; cy /= beads.length;
+      var b = ring.querySelector('circle.bead[data-el="' + el + '"]');
+      var a = Math.atan2(+b.getAttribute("cx") - cx, -(+b.getAttribute("cy") - cy)) * 180 / Math.PI;
+      var t = /rotate\(([-\d.e]+)/.exec(ring.getAttribute("transform") || "");
+      if (t) a += +t[1];
+      return ((a % 360) + 360) % 360;
+    }, el);
+  }
+  async function level(host, pane, what) {
+    var a = await idAngle(host, "0"), b = await idAngle(pane, "1");
+    var d = Math.abs(((a - b) % 360 + 540) % 360 - 180);
+    assert(d < 0.5, what + ": identities at " + a.toFixed(2) + " and " + b.toFixed(2));
+    return a;
+  }
   async function turnTo(target, v, expectIn, expected) {
     await setRot(target, v);
     var watch = expectIn || target;
@@ -434,8 +454,10 @@ async function main() {
     fp14 = await freshPane();
     h = fp14.h; pane = fp14.pane;
     await turnTo(h.page, 3, pane, 1);
-    await turnTo(h.page, 6, pane, 3);
-    await turnTo(h.page, 9, pane, 2);
+    await turnTo(h.page, 6, pane, 2);
+    await turnTo(h.page, 9, pane, 3);
+    await sleep(600);
+    await level(h.page, pane, "after the host's turns");
     noErrors(h);
     record("P14 the host's turn turns the pane (g^k to h^k)", null);
   } catch (e) { record("P14 the host's turn turns the pane (g^k to h^k)", e); }
@@ -446,23 +468,32 @@ async function main() {
     await h.page.press("#rot-value", "Enter");
     await waitFor(async function () { return (await rotOf(h.page)) === "1"; }, 3000, "host rot 1");
     await sleep(1200);
-    eq(await rotOf(pane), "2", "pane rot after a left top outside the subgroup");
+    var a15 = await level(h.page, pane, "with a top outside the subgroup");
+    assert(Math.abs(a15 % 90) > 1 && Math.abs(a15 % 90) < 89, "the pane on a bead: " + a15);
     noErrors(h);
-    record("P15 a top outside the subgroup leaves the pane still", null);
-  } catch (e) { record("P15 a top outside the subgroup leaves the pane still", e); }
+    record("P15 a top outside the subgroup leaves the pane between beads", null);
+  } catch (e) { record("P15 a top outside the subgroup leaves the pane between beads", e); }
 
   try {
     assert(fp14, "no pane");
     // P15 left the host's rotation field focused, which keeps its typed value;
     // the pane has no field of its own to take the focus, so it is let go.
     await h.page.evaluate(function () { document.activeElement.blur(); });
-    await turnTo(pane, 3, h.page, 6);
-    await turnTo(pane, 2, h.page, 9);
-    await setRot(pane, (parseInt(await rotOf(pane), 10) + 1) % 4);
+    await turnTo(pane, 2, h.page, 6);
+    await turnTo(pane, 3, h.page, 9);
+    await sleep(600);
+    await level(h.page, pane, "after the pane's turns");
+    // A drag on the pane turns the host with it; let go, the host settles both on a bead.
+    var box = await pane.locator("#ring-svg").boundingBox();
+    var cx = box.x + box.width / 2, cy = box.y + box.height / 2, R = Math.min(box.width, box.height) / 3;
+    await h.page.mouse.move(cx, cy - R);
+    await h.page.mouse.down();
+    for (var i = 1; i <= 10; i++) { var t = i * 5 * Math.PI / 180; await h.page.mouse.move(cx + R * Math.sin(t), cy - R * Math.cos(t)); }
+    await level(h.page, pane, "during the pane's drag");
+    await h.page.mouse.up();
     await sleep(900);
-    var r = parseInt(await rotOf(pane), 10);
-    var want = 3 * [0, 1, 3, 2].indexOf(r);
-    await waitFor(async function () { return (await rotOf(h.page)) === String(want); }, 3000, "host rot " + want + " for pane rot " + r);
+    var a16 = await level(h.page, pane, "after the drag settled");
+    assert(Math.abs(a16 / 30 - Math.round(a16 / 30)) < 0.01, "the host between beads: " + a16);
     noErrors(h);
     record("P16 the pane's turn turns the host", null);
   } catch (e) { record("P16 the pane's turn turns the host", e); }
@@ -489,7 +520,7 @@ async function main() {
     await openIso(extra18, CHIP5);
     var np18 = await paneOf(extra18);
     var topRot = await rotOf(h.page);
-    await turnTo(extra18, 6, np18, 3);
+    await turnTo(extra18, 6, np18, 2);
     eq(await rotOf(h.page), topRot, "the top-level ring's rot");
     noErrors(h);
     record("P18 linked turning inside an extra Ring window", null);

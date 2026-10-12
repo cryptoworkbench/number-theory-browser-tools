@@ -1155,7 +1155,7 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { clamp, gcd, isPrime, primeFactors, totient, unitsMod } = NT.core;
+const { clamp, gcd, isPrime, modInverse, primeFactors, totient, unitsMod } = NT.core;
 const { easeInOutCubic, polar, svgEl } = NT.svg;
 const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
@@ -3614,7 +3614,7 @@ if (IS_RINGWIN){
       try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex, cols: n.cols }, '*'); } catch (err) { /* no desktop to tell */ }
       return;
     }
-    if (d.iso === 'top' || d.iso === 'hover'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'hover'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -3992,6 +3992,15 @@ function endTurn(e){
   turning = null;
   ringSvgEl.classList.remove('is-turning');
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
+  // A linked pane stays where it was let go, and the ring holding it settles both.
+  if (IS_ISOPANE && isoOrder()){
+    isoFollowing = true;
+    autoAngle = swept + dirSign() * steps * 360 / drawn.G.order;
+    if (!setRotChanged(state.rot + steps)) spinAngle(autoAngle);
+    isoFollowing = false;
+    isoTell({ iso: 'settle' });
+    return;
+  }
   if (reducedMotion && reducedMotion.matches){
     if (!setRotChanged(state.rot + steps)) redrawRing();
     return;
@@ -4019,6 +4028,7 @@ function spinAngle(angle){
   ring.querySelectorAll('.bead-label, .order-label').forEach(function(t){
     t.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + t.getAttribute('x') + ' ' + t.getAttribute('y') + ')');
   });
+  isoTellTop(false);
 }
 
 function spinFrame(ts){
@@ -4282,12 +4292,7 @@ function syncAutoRotate(){
     cancelAnimationFrame(autoId);
     autoId = null;
     // Ease on to the nearest bead rather than stopping between two.
-    if (autoAngle && drawn && !spin && !turning){
-      var steps = -Math.round(autoAngle / (360 / drawn.G.order));
-      spin = { steps: steps, from: autoAngle, now: autoAngle, t0: null };
-      autoAngle = 0;
-      spin.id = requestAnimationFrame(spinFrame);
-    }
+    settleTurn();
   }
 }
 autoRotateEl.addEventListener('change', function(e){
@@ -4956,6 +4961,7 @@ function loadIsoFrame(){
     isoSharedSent = null;
     postIsoShared(true);
     isoSentK = null;
+    isoSentC = null;
     isoTellTop(true);
   });
   f.src = isoPaneSrc(isoPane.q, isoPane.h);
@@ -5084,33 +5090,96 @@ function isoTell(msg){
   msg.order = isoOrder();
   try { peer.postMessage(msg, '*'); } catch (e) { /* a window that is gone needs nothing */ }
 }
-// Turning: the top bead's exponent goes to the other ring, once per change.
-// A top outside the subgroup tells nothing, and the other ring stays.
-var isoSentK = null;
+// Turning: the two rings turn as one, through the same angle at the same
+// moment. Each tells the other where its identity bead is (its angle from
+// the top, clockwise), and the other puts its own identity there, between
+// beads if need be. The ring holding the pane leads; the pane speaks only
+// while it is dragged, and on letting go the leading ring settles on a bead.
+// So that g^k and h^k stay level, the pane lays its beads out like the
+// holder's subgroup: when g^k sits c·k places of the subgroup round from g^0
+// (c a unit, the subgroup's beads spread evenly), the pane takes the powers
+// of h^(1/c) as its arrangement. A holder whose subgroup is not spread
+// evenly sends no c, and the rings then only turn alike.
+var isoSentK = null; // the last angle and spread sent, as a key
+var isoSentC = null;
+var isoFollowing = false; // set while this ring is put where the other says
+var isoLastAngle = null; // the pane: the holder's last angle, held through a redraw
+function ringExtra(){ return spin ? spin.now : turning ? turning.swept : autoAngle; }
+// Where the identity bead is drawn: its angle clockwise from the top.
+function identityAngle(){
+  var M = drawn.G.order, P0 = arrangement(drawn.G).indexOf(drawn.G.identity);
+  var a = dirSign() * (P0 - state.rot) * 360 / M + ringExtra();
+  return ((a % 360) + 540) % 360 - 180;
+}
+// The subgroup's spread on this ring: the unit c with g^k at c·k subgroup
+// places from g^0 for every k, or null.
+function isoSpread(){
+  var m = isoOrder(), M = drawn.G.order, arr = arrangement(drawn.G);
+  if (!m || M % m) return null;
+  var w = M / m, pos = isoPowers().map(function(x){ return arr.indexOf(x); });
+  var d1 = (((pos[1] - pos[0]) % M) + M) % M;
+  if (d1 % w) return null;
+  var c = d1 / w;
+  if (gcd(c, m) !== 1) return null;
+  for (var k = 0; k < m; k++){
+    if ((((pos[k] - pos[0]) % M) + M) % M !== (k * c * w) % M) return null;
+  }
+  return c;
+}
 function isoTellTop(force){
   var m = isoOrder();
-  if (!m) return;
-  var M = drawn.G.order;
-  var top = arrangement(drawn.G)[(((state.rot + (spin ? spin.steps : 0)) % M) + M) % M];
-  var k = isoPowers().indexOf(top);
-  var key = m + ':' + k;
+  if (!m || isoFollowing) return;
+  // The pane speaks only for a turn of its own.
+  if (IS_ISOPANE && !turning && !spin) return;
+  if (!IS_ISOPANE){
+    var c = isoSpread();
+    if (force || c !== isoSentC){
+      isoSentC = c;
+      isoTell({ iso: 'spread', c: c });
+    }
+  }
+  var a = identityAngle();
+  var key = m + ':' + a.toFixed(4);
   if (!force && key === isoSentK) return;
   isoSentK = key;
-  if (k >= 0) isoTell({ iso: 'top', k: k });
+  isoTell({ iso: 'angle', a: a });
 }
-// The other ring's turn: this ring turns the short way round to put its
-// image on top. The exponent is recorded as sent first, so this ring's own
-// turn never echoes back.
-function isoFollowTop(k){
-  if (turning || !drawn) return;
-  var target = isoPowers()[k];
-  var M = drawn.G.order;
-  var at = state.rot + (spin ? spin.steps : 0);
-  var d = ((((arrangement(drawn.G).indexOf(target) - at) % M) + M) % M);
-  isoSentK = isoOrder() + ':' + k;
-  if (!d) return;
-  if (state.top !== 'off') letGoOfTop();
-  turnBy(d > M / 2 ? d - M : d);
+// The other ring's angle: this ring is drawn with its identity there, its
+// own turn under way given up.
+function isoFollowAngle(a){
+  if (!drawn || turning) return;
+  if (IS_ISOPANE) isoLastAngle = a;
+  var M = drawn.G.order, U = 360 / M;
+  var P0 = arrangement(drawn.G).indexOf(drawn.G.identity);
+  var rho = P0 - dirSign() * a / U;
+  var r = Math.round(rho);
+  if (spin){ cancelAnimationFrame(spin.id); spin = null; }
+  if (!IS_ISOPANE && state.top !== 'off') letGoOfTop();
+  isoFollowing = true;
+  autoAngle = dirSign() * (r - rho) * U;
+  if (!setRotChanged(r)) spinAngle(autoAngle);
+  isoFollowing = false;
+  isoSentK = isoOrder() + ':' + identityAngle().toFixed(4);
+}
+// The pane: lays its beads out as the holder's subgroup, c its spread.
+function isoArrangeAs(c){
+  var m = isoOrder();
+  if (!m || c === null) return;
+  var ci = modInverse(c, m);
+  if (ci === null) return;
+  var b = isoPowers()[ci];
+  var want = lap(drawn.G, b, m), have = arrangement(drawn.G);
+  if (want.every(function(x, i){ return have[i] === x; })) return;
+  rearrange(function(){ state.bygen = true; state.arrangeGen = b; render(); });
+}
+// The leading ring, let go of between beads by a drag on the pane, eases on
+// to the nearest bead.
+function settleTurn(){
+  if (!drawn || spin || turning || !autoAngle) return;
+  var steps = -dirSign() * Math.round(autoAngle / (360 / drawn.G.order));
+  spin = { steps: steps, from: autoAngle, now: autoAngle, t0: null };
+  autoAngle = 0;
+  spin.id = requestAnimationFrame(spinFrame);
 }
 // Hovering: the bead under the pointer and its image glow.
 var isoHot = null, isoHoverSent = null;
@@ -5139,9 +5208,12 @@ ringSvgEl.addEventListener('pointerleave', function(){ isoHover(null); });
 // exponent inside it.
 function isoReceive(d){
   var m = isoOrder();
-  if (!m || d.order !== m || !Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
-  if (d.iso === 'top' && d.k >= 0) isoFollowTop(d.k);
-  else if (d.iso === 'hover'){
+  if (!m || d.order !== m) return;
+  if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a)) isoFollowAngle(d.a); return; }
+  if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
+  if (d.iso === 'settle'){ if (!IS_ISOPANE) settleTurn(); return; }
+  if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
+  if (d.iso === 'hover'){
     isoHoverSent = d.k;
     setIsoHot(d.k >= 0 ? isoPowers()[d.k] : null);
   }
@@ -5154,7 +5226,7 @@ window.addEventListener('message', function(e){
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
     syncIsoPaneLabels();
-  } else if (d.iso === 'top' || d.iso === 'hover'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover'){
     isoReceive(d);
   } else if (d.isopane === 'edit' && typeof d.on === 'boolean'){
     // A shared setting changed in the pane: the same click on this ring's own
@@ -5610,8 +5682,10 @@ function render(){
   syncWindows();
   mirrorToUrl(G);
   // The ring holding the pane leads: a new subgroup, arrangement or direction
-  // aims the pane again. The pane never sends from a render.
+  // aims the pane again. The pane never sends from a render; it goes back to
+  // where the holder last put it.
   if (!IS_ISOPANE) isoTellTop(false);
+  else if (isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
 }
 
 /* ---------- controls <-> state ---------- */
