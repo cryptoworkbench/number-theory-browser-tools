@@ -50,8 +50,9 @@
    isomorphic to the whole group and to the subgroup on show, to open
    beside the ring), isoAddTitle, isoPickWhole, isoPickSub, isoPickBoth (the one list when the
    subgroup on show is the whole group), isoPickNone and isoPickConstruct
-   (the picker's button for a pane to construct a group in), isoAskLock,
-   isoAskYes and isoAskNo (asked, on the line between two rings, whether to
+   (the picker's button for a pane to construct a group in), isoAskLockGroup,
+   isoAskLockSub (the question for an isomorphism between the whole groups
+   or from the subgroup on show), isoAskYes and isoAskNo (asked, on the line between two rings, whether to
    lock an isomorphism found between them)
    (the + at a Ring window's right edge and the picker of those groups it
    opens in an empty second pane), showArrowKey (the Arrows submenu's switch for the arrow
@@ -375,7 +376,8 @@
       isoPickBoth: 'Groups isomorphic to the current group/subgroup',
       isoPickNone: 'None',
       isoPickConstruct: 'Construct own ring / group',
-      isoAskLock: 'Isomorphism found! Lock groups?',
+      isoAskLockGroup: 'Group-to-group isomorphism found! Lock groups?',
+      isoAskLockSub: 'Subgroup-to-group isomorphism found! Lock groups?',
       isoAskYes: 'Yes',
       isoAskNo: 'No',
       showArrowKey: 'Show arrow colour key',
