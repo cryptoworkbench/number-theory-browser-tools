@@ -491,6 +491,7 @@ None yet.
 | 255 | Cyclic Groups: isomorphisms row folds to its chips, remembered | 2026-10-12 | ae81171 | — |
 | 256 | Cyclic Groups: Ring window studying an isomorphism is named for it | 2026-10-12 | 1f8544e | — |
 | 257 | Cyclic Groups: isomorphism pane drops its name in Ring windows | 2026-10-12 | e251054 | — |
+| 258 | Cyclic Groups: ring menu Colours section (Elements and Arrows submenus) | 2026-10-12 | 59990a4 | — |
 
 ## Deferred Items
 
