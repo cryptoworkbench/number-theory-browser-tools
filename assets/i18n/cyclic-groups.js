@@ -62,7 +62,7 @@
    window), fsDuplicateRing (the + button on a ring window's title bar, which
    opens a copy of that ring), iso.openBeside (an isomorphism link's
    tooltip: a click opens that group beside the ring, in the same view),
-   splitView (the Ring window's button on its
+   splitView (the Ring window's Numerical button on its
    Subgroup visualized row that splits the window, the ring on top and the
    Subgroups list under it), showElementColours (the button beside the
    Element colours dropdown that shows the element colour key in the Ring
@@ -405,7 +405,7 @@
       fsShowDesktop: 'Show desktop',
       fsNewRing: 'New ring window',
       fsDuplicateRing: 'New ring window from {name}',
-      splitView: 'Splitview',
+      splitView: 'Numerical',
       showElementColours: 'Show key',
       subOrderNeedsGen: 'The subgroup’s cardinality takes a logarithm to the base of a generator.',
       subOrderPickGen: 'Choose a generator',
