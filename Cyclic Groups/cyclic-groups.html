@@ -3180,10 +3180,13 @@ splitGripEl.addEventListener('keydown', function(e){
 // cyclic.
 function fsTitle(spec){
   if (spec.frame){
+    if (spec.isoTitle) return spec.isoTitle;
     if (!spec.group) return translate('cyclicGroups.fsRing');
     return translate(spec.group.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: spec.group.label });
   }
   if (spec.key !== 'ring' || !drawn) return translate(spec.title);
+  var iso = isoTitle();
+  if (iso) return iso;
   return translate(drawn.G.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: drawn.G.label });
 }
 // The names on the task buttons, the menu and the windows, in the current
@@ -3373,7 +3376,10 @@ window.addEventListener('message', function(e){
     var spec = extraSpec(entry), was = spec.group;
     entry.q = cleanRingQuery(d.q);
     spec.group = ringWinGroup(entry.q) || was;
-    if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic) syncFsLabels();
+    // While the frame studies an isomorphism, its window is named for it.
+    var wasIso = spec.isoTitle || '';
+    spec.isoTitle = typeof d.iso === 'string' && d.iso.length <= 300 ? d.iso : '';
+    if (!was || !spec.group || was.label !== spec.group.label || was.cyclic !== spec.group.cyclic || wasIso !== spec.isoTitle) syncFsLabels();
     clearTimeout(fsWriteTimer);
     fsWriteTimer = setTimeout(writeFsState, 400);
   } else if (d.ringwin === 'measure' && [d.minW, d.chromeH, d.padX].every(function(v){ return typeof v === 'number' && isFinite(v) && v >= 0; }) && typeof d.flex === 'number' && d.flex >= 1 && d.flex <= 10 && (d.cols === 1 || d.cols === 2)){
@@ -4800,6 +4806,7 @@ function closeIsoPane(){
   isoHoverSent = null;
   setIsoHot(null);
   isoPaneEl.hidden = true;
+  syncIsoTitle();
 }
 // Entering or leaving full screen moves the pane's element, which reloads its
 // iframe in the browser; the pane is then loaded again from its latest query.
@@ -4815,8 +4822,29 @@ function syncIsoPaneLabels(){
   var close = translate('cyclicGroups.fsClose', { name: name });
   isoPaneCloseEl.setAttribute('aria-label', close);
   isoPaneCloseEl.setAttribute('title', close);
+  syncIsoTitle();
 }
 isoPaneCloseEl.addEventListener('click', closeIsoPane);
+// The name of a Ring window studying an isomorphism: the left ring's subgroup
+// (the whole group when the generator generates it) and the right ring's
+// group, while the two have the same order; null otherwise.
+function isoTitle(){
+  if (IS_ISOPANE || !isoPane || !drawn || state.noSub) return null;
+  var p = new URLSearchParams(isoPane.q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
+  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return null;
+  var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), G = drawn.G, k = G.orders[state.gen];
+  if (!H.cyclic || H.order !== k) return null;
+  if (k === G.order) return translate('cyclicGroups.fsRingIso', { left: G.label, right: H.label });
+  return translate('cyclicGroups.fsRingIsoSub', { sub: '⟨' + state.gen + '⟩', left: G.label, right: H.label });
+}
+// The window's name follows the pane: on the desktop it is renamed here; in
+// an extra Ring window's frame the name goes to the desktop with the frame's
+// next report.
+function syncIsoTitle(){
+  if (IS_ISOPANE || IS_PREVIEW) return;
+  if (IS_RINGWIN){ if (drawn) mirrorToUrl(drawn.G); }
+  else syncFsLabels();
+}
 
 // What both rings share, set once on the ring that holds the pane and told to
 // the pane after every render: the colours, the paths' look and the layers.
@@ -5300,7 +5328,7 @@ function mirrorToUrl(G){
   try {
     var q = stateQuery();
     if (IS_RINGWIN){
-      if (window.parent !== window) window.parent.postMessage({ ringwin: 'state', q: q.toString() }, '*');
+      if (window.parent !== window) window.parent.postMessage({ ringwin: 'state', q: q.toString(), iso: isoTitle() || '' }, '*');
     } else {
       history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
     }

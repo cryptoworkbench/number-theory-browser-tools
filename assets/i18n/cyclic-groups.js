@@ -38,7 +38,9 @@
    and keepTopGen (the three-way Keep on top switch), fsFit (the title-bar button that sizes
    a window to its contents), fsTransparency, fsOpacity and
    fsOpacityValue (its opacity button and slider), fsRing, fsRingCyclic and fsRingNotCyclic (the ring's own window,
-   named after the group on show), fsGroupParams (the label of its top row),
+   named after the group on show), fsRingIso and fsRingIsoSub (its name
+   while it studies an isomorphism: the whole group, or the subgroup and the
+   group it lies in, beside the right ring's group), fsGroupParams (the label of its top row),
    fsInfo (the group panel's window), and
    fsWindows, fsTile, fsCascade and fsShowDesktop (the launcher's desktop
    commands), fsNewRing (the launcher's command that opens another ring
@@ -329,6 +331,8 @@
       fsRing: 'Ring',
       fsRingCyclic: 'Cyclic Group {group}',
       fsRingNotCyclic: 'Ring {group}',
+      fsRingIso: 'Isomorphism {left} ≅ {right}',
+      fsRingIsoSub: 'Isomorphism {sub} ≅ {right} in {left}',
       fsInfo: 'Info',
       fsGroupParams: 'Group parameters',
       fsMinimize: 'Minimize {name}',
