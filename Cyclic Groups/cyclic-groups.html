@@ -1026,13 +1026,13 @@
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-iso" role="menu" aria-label="Open subgroup as isomorphism" data-i18n-aria-label="cyclicGroups.ctxIsoSub" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-formulas" role="menu" aria-label="Formulas" data-i18n-aria-label="cyclicGroups.fsFormulas" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-arrows" role="group" aria-label="Arrows" data-i18n-aria-label="cyclicGroups.ctxArrows" hidden>
+            <input type="checkbox" id="layer-akey" checked hidden>
             <div class="arrow-options" id="arrow-options">
             <div class="check" id="chords-row"><input type="color" class="arrow-color" id="color-inner" aria-label="Element arrow colour" data-i18n-aria-label="cyclicGroups.colorElement" title="Element arrow colour" data-i18n-title="cyclicGroups.colorElement"><label for="side-el" id="side-el-label" data-i18n="cyclicGroups.layerElement">Forward path</label><select class="side-select" id="side-el"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select></div>
             <div class="check" id="dir-row"><label for="dir-select" data-i18n="cyclicGroups.dirLabel">Forward direction</label><select class="side-select" id="dir-select"><option value="cw" data-i18n="cyclicGroups.dirCw">Clockwise</option><option value="ccw" data-i18n="cyclicGroups.dirCcw">Counterclockwise</option></select></div>
             <div class="check"><input type="color" class="arrow-color" id="color-outer" aria-label="Inverse arrow colour" data-i18n-aria-label="cyclicGroups.colorInverse" title="Inverse arrow colour" data-i18n-title="cyclicGroups.colorInverse"><input type="checkbox" id="backward"><label for="backward" data-i18n="cyclicGroups.layerBackward">Disable backwards path</label></div>
             <div class="check" id="swap-colors-row"><input type="checkbox" id="swap-colors"><label for="swap-colors" data-i18n="cyclicGroups.swapColors">Swap forward and backward path colours</label></div>
             <div class="check" id="custom-colors-row"><input type="checkbox" id="custom-colors"><label for="custom-colors" data-i18n="cyclicGroups.customColors">Choose arrow colours manually</label></div>
-            <div class="check"><input type="checkbox" id="layer-akey" checked><label for="layer-akey" data-i18n="cyclicGroups.showArrowKey">Show arrow colour key</label></div>
             <button type="button" class="link-btn" id="color-reset" hidden data-i18n="cyclicGroups.colorReset">Reset arrow colours</button>
             </div>
           </div>
@@ -2781,6 +2781,27 @@ function syncElementItems(){
     it.mark.textContent = on ? (it.legend ? '\u2713' : '\u25CF') : '';
   });
 }
+// The Arrows submenu opens with the arrow key's switch, as the Elements
+// one does, flipping its (hidden) checkbox so the checkbox's own handler
+// draws and remembers it, and keeping the menu open.
+var arrowKey = ctxItem('menuitemcheckbox', ''), arrowKeyItem = arrowKey.item;
+var arrowKeySep = document.createElement('div');
+arrowKeySep.className = 'ring-ctx-sep';
+arrowKeySep.setAttribute('role', 'separator');
+ringSubEls.arrows.insertBefore(arrowKeySep, ringSubEls.arrows.firstChild);
+ringSubEls.arrows.insertBefore(arrowKeyItem, arrowKeySep);
+arrowKeyItem.addEventListener('click', function(){
+  var box = $('layer-akey');
+  box.checked = !box.checked;
+  box.dispatchEvent(new Event('change'));
+  syncArrowKeyItem();
+});
+function syncArrowKeyItem(){
+  var on = state.akey;
+  arrowKey.mark.nextSibling.textContent = translate('cyclicGroups.showArrowKey');
+  arrowKeyItem.setAttribute('aria-checked', on ? 'true' : 'false');
+  arrowKey.mark.textContent = on ? '\u2713' : '';
+}
 // The isomorphism submenus: one item per chip, the subgroup's from the
 // (hidden) isomorphisms panel and the whole group's from its own hidden
 // list, each opening its group beside the ring as the chip did, the group
@@ -3001,6 +3022,7 @@ function setRingSub(name, focus){
   ringSubOpen = name;
   if (!name) return;
   if (name === 'elements') syncElementItems();
+  if (name === 'arrows') syncArrowKeyItem();
   if (name === 'iso' || name === 'whole') syncIsoItems(name);
   if (name === 'formulas'){
     if (again) return;
