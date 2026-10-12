@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T14:52:32.000Z"
+last_updated: "2026-10-12T15:10:29.000Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: a3605209e76be242a7692bda4f08b1e46d288c8b
+state_head: 9b49ca737fa4ce5b856a74cfed174570bea75af1
 progress:
   total_phases: 7
   completed_phases: 6
@@ -544,6 +544,8 @@ None yet.
 | 308 | Cyclic Groups Numerical panel generator-expression label renamed | 2026-10-12 | 77a4eb0 | — |
 | 309 | Cyclic Groups Numerical panel set-expression label renamed | 2026-10-12 | 6b2fa01 | — |
 | 310 | Cyclic Groups leading zeros also pad exponents | 2026-10-12 | a360520 | — |
+| 311 | Cyclic Groups merged Numerical controls reverted (user rejected 8bd8f39) | 2026-10-12 | 6bab5e6 | — |
+| 312 | Cyclic Groups Numerical panel exports its subgroups as a text file | 2026-10-12 | 9b49ca7 | — |
 
 ## Deferred Items
 
