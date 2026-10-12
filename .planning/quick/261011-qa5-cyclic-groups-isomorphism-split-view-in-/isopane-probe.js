@@ -501,6 +501,9 @@ async function main() {
   try {
     assert(fp14, "no pane");
     var bead = function (el) { return RING + ' #ring-svg circle.bead[data-el="' + el + '"]'; };
+    // Home first, so no bead lies under the arrow key after P16's drag.
+    await turnTo(h.page, 0, pane, 0);
+    await sleep(600);
     await h.page.hover(bead(6));
     await waitFor(async function () { return (await hotOf(h.page)) === "6" && (await hotOf(pane)) === "4"; }, 3000, "host 6 / pane 4 lit");
     await h.page.hover(bead(1));
