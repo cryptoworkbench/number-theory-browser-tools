@@ -84,7 +84,8 @@
    dropdown, whose other options reuse arrangePowers), and subExprLeft,
    subExprRight, subSortLabel and subSortExp (the Numerical panel's
    Generator, Set and Sort by dropdowns, which reuse exprNatural and
-   arrangePowers). Every other language shows the English
+   arrangePowers), and subInterlocked (its note while its list is linked
+   to the other pane's). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -293,6 +294,7 @@
       subExprRight: 'Set',
       subSortLabel: 'Sort by',
       subSortExp: 'Exponent of {g}',
+      subInterlocked: 'Linked to the other pane',
       combineForward: 'Forward path, combining elements with the selected element {h}',
       combineBackward: "Backward path, combining elements with the selected element's inverse, which is {hinv}",
       combineSelfInverse: '{h} is its own inverse, so both walks are the same one, drawn once in a mix of the two colors',

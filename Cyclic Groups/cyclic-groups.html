@@ -271,6 +271,8 @@
   .sub-expr-pair{ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 8px; min-width:0; max-width:100%; }
   .sub-expr-pair label{ font-size:.85rem; color:var(--text-dim); white-space:nowrap; }
   .sub-expr-pair select{ max-width:100%; font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:4px 8px; }
+  .sub-lock-note{ font-size:.8rem; font-style:italic; color:var(--text-dim); }
+  .sub-lock-note[hidden]{ display:none; }
   .sub-expr-pair select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
   .panel-head h2{ margin:0; }
@@ -1184,6 +1186,7 @@
           <span class="sub-expr-pair"><label for="sub-left-select" data-i18n="cyclicGroups.subExprLeft">Generator</label><select id="sub-left-select"></select></span>
           <span class="sub-expr-pair"><label for="sub-right-select" data-i18n="cyclicGroups.subExprRight">Set</label><select id="sub-right-select"></select></span>
           <span class="sub-expr-pair"><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort by</label><select id="sub-sort-select"></select></span>
+          <span class="sub-lock-note" id="sub-lock-note" hidden data-i18n="cyclicGroups.subInterlocked">Linked to the other pane</span>
         </div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         <ul class="subgroups" id="subgroups"></ul>
@@ -1410,6 +1413,7 @@ var rotValueEl = $('rot-value');
 cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCosets(); });
 subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
 var subExprRowEl = $('sub-expr-row');
+var subLockNoteEl = $('sub-lock-note');
 var subLeftSelectEl = $('sub-left-select');
 var subRightSelectEl = $('sub-right-select');
 var subSortSelectEl = $('sub-sort-select');
@@ -4212,7 +4216,7 @@ if (IS_RINGWIN){
       try { window.parent.postMessage({ ringwin: 'measure', minW: n.minW, chromeH: n.chromeH, padX: n.padX, flex: n.flex, cols: n.cols }, '*'); } catch (err) { /* no desktop to tell */ }
       return;
     }
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -5705,6 +5709,8 @@ function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
   // A new frame reports its own pane afresh.
   paneSplitBox = null;
+  isoPeerLockOk = false;
+  isoInterlockSent = false;
   splitAlignSent = null;
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
@@ -5741,6 +5747,9 @@ function closeIsoPane(){
   isoPane = null;
   isoSharedSent = null;
   paneSplitBox = null;
+  isoPeerLockOk = false;
+  isoInterlockSent = false;
+  subLockNoteEl.hidden = true;
   splitAlignSent = null;
   alignSplits();
   isoSentK = null;
@@ -6262,12 +6271,68 @@ function isoReceive(d){
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
   if (d.iso === 'settle'){ if (!IS_ISOPANE) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
+  if (d.iso === 'lockok'){ if (!IS_ISOPANE){ isoPeerLockOk = d.ok === true; syncInterlock(); } return; }
+  if (d.iso === 'interlock'){ if (IS_ISOPANE){ isoInterlockOn = d.on === true; syncInterlock(); } return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'hover'){
     isoHoverSent = d.k;
     setIsoHot(d.k >= 0 ? isoPowers()[d.k] : null);
   }
+  if (d.iso === 'select' && subInterlocked()){
+    isoSelSent = d.k;
+    if (d.k < 0){
+      if (state.noSub) return;
+      state.noSub = true;
+      render();
+    } else if (state.noSub || state.gen !== isoPowers()[d.k]) selectGen(isoPowers()[d.k]);
+  }
 }
+// Interlocked lists: while the link is between the whole groups, and each
+// multiplicative side sorts its Numerical panel by the exponent of the link's
+// generator there (so its rows run g^0, g^1, ... as the other side's do),
+// selecting a subgroup on one side selects its image on the other: g^k
+// there, h^k here. The ring holding the pane decides, from its own sort and
+// the pane's (isoPeerLockOk), and tells the pane (isoInterlockOn).
+var isoPeerLockOk = false, isoLockOkSent = null;
+var isoInterlockOn = false, isoInterlockSent = false;
+var isoSelSent = null;
+function subLockOk(){
+  if (!drawn) return false;
+  var G = drawn.G;
+  return G.mode !== 'multiplicative' || (genOrNull(G, state.subSort) !== null && genOrNull(G, state.subSort) === isoLinkGen());
+}
+function subInterlocked(){
+  if (IS_ISOPANE) return isoInterlockOn && isoOrder() > 0 && subLockOk();
+  return isoOrder() > 0 && isoLinksWholeGroups() && subLockOk() && isoPeerLockOk;
+}
+function syncInterlock(){
+  if (!drawn) return;
+  if (IS_ISOPANE){
+    var ok = isoOrder() > 0 ? subLockOk() : null;
+    if (ok !== isoLockOkSent){
+      isoLockOkSent = ok;
+      if (ok !== null) isoTell({ iso: 'lockok', ok: ok });
+    }
+  } else {
+    var on = subInterlocked();
+    if (on !== isoInterlockSent){
+      isoInterlockSent = on;
+      isoSelSent = null;
+      // Interlocked, the link stays with the whole group: selecting a
+      // smaller subgroup here must not carry the link along to it.
+      if (on && isoPane.g === null) isoPane.g = isoLinkGen();
+      isoTell({ iso: 'interlock', on: on });
+    }
+  }
+  var on2 = subInterlocked();
+  subLockNoteEl.hidden = !on2;
+  if (!on2) return;
+  var k = state.noSub ? -1 : isoPowers().indexOf(state.gen);
+  if (k === isoSelSent) return;
+  isoSelSent = k;
+  isoTell({ iso: 'select', k: k });
+}
+
 // What the pane tells this document; only the pane's own window is heard.
 window.addEventListener('message', function(e){
   if (!isoPaneFrame || e.source !== isoPaneFrame.contentWindow) return;
@@ -6281,7 +6346,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'lockok' || d.iso === 'select'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // The blank pane has its group: from now on it is a ring like any other.
@@ -6823,6 +6888,7 @@ function render(){
   // where the holder last put it.
   if (!IS_ISOPANE) isoTellTop(false);
   else if (isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
+  syncInterlock();
 }
 
 /* ---------- controls <-> state ---------- */
