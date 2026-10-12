@@ -5384,11 +5384,14 @@ function renderSubgroups(G){
   var llog = lg === null ? null : exprLog(G, lg), rlog = rg === null ? null : exprLog(G, rg);
   var rows = elsBy(G, sg).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   // Padded, a number in its natural expression takes leading zeros up to
-  // the width of the group's largest, so the rows' columns line up.
+  // the width of the group's largest, and an exponent up to the width of
+  // the largest exponent, so the rows' columns line up.
   var width = state.subPad ? String(Math.max.apply(null, G.els)).length : 0;
+  var expWidth = state.subPad ? String(G.order - 1).length : 0;
   var nat = function(x){ return String(x).padStart(width, '0'); };
-  var mxBy = function(b, log){ return function(x){ return log ? mEl('msup', [mn(b), mn(log[x])]) : mn(nat(x)); }; };
-  var pxBy = function(b, log){ return function(x){ return log ? b + '^' + log[x] : nat(x); }; };
+  var ex = function(k){ return String(k).padStart(expWidth, '0'); };
+  var mxBy = function(b, log){ return function(x){ return log ? mEl('msup', [mn(b), mn(ex(log[x]))]) : mn(nat(x)); }; };
+  var pxBy = function(b, log){ return function(x){ return log ? b + '^' + ex(log[x]) : nat(x); }; };
   var mxl = mxBy(lg, llog), pxl = pxBy(lg, llog), mx = mxBy(rg, rlog), px = pxBy(rg, rlog);
   var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width].join(',') + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
