@@ -1191,6 +1191,7 @@
           <span class="sub-lock-note" id="sub-lock-note" hidden data-i18n="cyclicGroups.subInterlocked">Linked to the other pane</span>
           <button type="button" class="action-btn sub-align-btn" id="sub-align-btn" hidden data-i18n="cyclicGroups.subAlign">Line up with the other group</button>
         </div>
+        <div class="check" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle"><input type="checkbox" id="sub-pad"><label for="sub-pad" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         <ul class="subgroups" id="subgroups"></ul>
       </section>
@@ -1371,7 +1372,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, subPad: false, idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1496,6 +1497,7 @@ var keepTopEl = $('keep-top');
 var gearboxEl = $('gearbox');
 var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
+var subPadEl = $('sub-pad');
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -5381,10 +5383,14 @@ function renderSubgroups(G){
   var lg = genOrNull(G, state.subLeft), rg = genOrNull(G, state.subRight), sg = genOrNull(G, state.subSort);
   var llog = lg === null ? null : exprLog(G, lg), rlog = rg === null ? null : exprLog(G, rg);
   var rows = elsBy(G, sg).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
-  var mxBy = function(b, log){ return function(x){ return log ? mEl('msup', [mn(b), mn(log[x])]) : mn(x); }; };
-  var pxBy = function(b, log){ return function(x){ return log ? b + '^' + log[x] : String(x); }; };
+  // Padded, a number in its natural expression takes leading zeros up to
+  // the width of the group's largest, so the rows' columns line up.
+  var width = state.subPad ? String(Math.max.apply(null, G.els)).length : 0;
+  var nat = function(x){ return String(x).padStart(width, '0'); };
+  var mxBy = function(b, log){ return function(x){ return log ? mEl('msup', [mn(b), mn(log[x])]) : mn(nat(x)); }; };
+  var pxBy = function(b, log){ return function(x){ return log ? b + '^' + log[x] : nat(x); }; };
   var mxl = mxBy(lg, llog), pxl = pxBy(lg, llog), mx = mxBy(rg, rlog), px = pxBy(rg, rlog);
-  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg].join(',') + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width].join(',') + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -6827,6 +6833,8 @@ function stateQuery(){
   else q.delete('top');
   if (state.autoShift) q.set('autoshift', '1');
   else q.delete('autoshift');
+  if (state.subPad) q.set('subpad', '1');
+  else q.delete('subpad');
   if (state.swapColors) q.set('swapcolors', '1');
   else q.delete('swapcolors');
   if (state.customColors) q.set('customcolors', '1');
@@ -6999,6 +7007,7 @@ function render(){
   syncArrowColors();
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
+  subPadEl.checked = state.subPad;
   syncArrange(G);
   syncExpr(G);
   syncSubExpr(G);
@@ -7394,6 +7403,12 @@ autoShiftEl.addEventListener('change', function(){
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
 });
+subPadEl.addEventListener('change', function(){
+  state.subPad = subPadEl.checked;
+  if (!drawn) return;
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+});
 swapColorsEl.addEventListener('change', function(){
   state.swapColors = swapColorsEl.checked;
   render();
@@ -7485,6 +7500,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.autoShift = query.get('autoshift') === '1';
+  state.subPad = query.get('subpad') === '1';
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
