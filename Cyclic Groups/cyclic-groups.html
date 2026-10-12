@@ -604,12 +604,22 @@
      has isomorphic groups to link to: its name, the sentence, the tiles. It
      then takes the subgroup row's dotted line under it. */
   .iso-row-label{ display:none; }
-  .fs-win-body.is-ring .iso-row-label{ display:block; }
-  .fs-win-body.is-ring > .fs-win-row-iso{ grid-area:iso; }
+    .fs-win-body.is-ring > .fs-win-row-iso{ grid-area:iso; }
   .fs-win-body.is-ring > .fs-win-row-iso:has(> .iso-panel:not([hidden])){ padding:6px 0; border-bottom:1px dotted var(--panel-border); }
   .fs-win-body.is-ring:has(> .fs-win-row-iso > .iso-panel:not([hidden])) > .fs-win-row-gen{ border-bottom:0; }
   .fs-win-body.is-ring .iso-panel:not([hidden]){ display:flex; flex-wrap:wrap; align-items:center; gap:6px 32px; padding:0; background:none; border:0; border-radius:0; }
   .fs-win-body.is-ring .iso-lead{ margin:0; font-size:.85rem; }
+  /* The row's name folds it: folded, only the chips stay, in one line, each
+     still tinted additive or multiplicative. */
+  .iso-row-label{ padding:0; font:inherit; text-align:start; background:none; border:0; cursor:pointer; }
+  .fs-win-body.is-ring .iso-row-label{ display:flex; align-items:center; gap:6px; }
+  .iso-row-label::after{ content:"\25BE"; font-size:.9rem; line-height:1; transition:transform .15s; }
+  .iso-row-label[aria-expanded="false"]::after{ transform:rotate(-90deg); }
+  .iso-row-label:hover{ color:var(--text); }
+  .iso-row-label:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .fs-win-body.is-ring .iso-panel.is-folded :is(.iso-lead, .iso-logo, .iso-kind){ display:none; }
+  .fs-win-body.is-ring .iso-panel.is-folded .iso-tiles{ gap:6px; }
+  .fs-win-body.is-ring .iso-panel.is-folded .iso-tile{ min-width:0; padding:0; background:none; border:0; }
   /* Modelled on the Generator control of the arrangement row: small dim
      labels, and dropdowns 32px after their label in the fields' style. */
   .fs-win-body.is-ring #arrow-options .check{ align-items:center; margin:0; font-size:.85rem; color:var(--text-dim); }
@@ -982,7 +992,7 @@
         </div>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
-        <span class="fs-row-label iso-row-label" data-i18n="cyclicGroups.fsIsomorphisms">Isomorphisms</span>
+        <button type="button" class="fs-row-label iso-row-label" id="iso-fold" aria-expanded="true"><span data-i18n="cyclicGroups.fsIsomorphisms">Isomorphisms</span></button>
         <p class="iso-lead" id="iso-lead"></p>
         <div class="iso-tiles" role="group" aria-labelledby="iso-lead">
           <div class="iso-tile is-add" id="iso-add">
@@ -1276,6 +1286,7 @@ var isoLeadEl = $('iso-lead');
 var isoAddChipsEl = $('iso-add-chips');
 var isoMulEl = $('iso-mul');
 var isoMulChipsEl = $('iso-mul-chips');
+var isoFoldEl = $('iso-fold');
 // preview=1: this page is the live preview inside an isomorphic-group chip's
 // card, so it never writes the shared group and never follows it.
 var IS_PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
@@ -5149,6 +5160,26 @@ isoPanelEl.addEventListener('click', function(e){
   if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || IS_ISOPANE) return;
   e.preventDefault();
   openIsoPane(a);
+});
+// The Ring window's isomorphisms row folds to its chips from its name; the
+// choice is remembered for every Ring window and the next visit.
+var ISO_FOLD_KEY = 'cyclic-groups-iso-folded';
+function setIsoFolded(folded){
+  isoPanelEl.classList.toggle('is-folded', folded);
+  isoFoldEl.setAttribute('aria-expanded', folded ? 'false' : 'true');
+}
+function readIsoFolded(){
+  try { return localStorage.getItem(ISO_FOLD_KEY) === '1'; } catch (e) { return false; }
+}
+setIsoFolded(readIsoFolded());
+isoFoldEl.addEventListener('click', function(){
+  var folded = !isoPanelEl.classList.contains('is-folded');
+  setIsoFolded(folded);
+  if (IS_PREVIEW) return;
+  try { localStorage.setItem(ISO_FOLD_KEY, folded ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+});
+window.addEventListener('storage', function(e){
+  if (e.key === ISO_FOLD_KEY) setIsoFolded(readIsoFolded());
 });
 // From the keyboard, the up and down arrows turn the card's slides.
 isoPanelEl.addEventListener('keydown', function(e){
