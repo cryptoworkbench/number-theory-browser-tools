@@ -502,6 +502,7 @@ None yet.
 | 266 | Cyclic Groups: arrow colour key shown once in the isomorphism view | 2026-10-12 | 1bf248f | — |
 | 267 | Cyclic Groups: group parameters locked while an isomorphism is open | 2026-10-12 | 55ed157 | — |
 | 268 | Cyclic Groups: Ring window titles name the subgroups on show | 2026-10-12 | 2b48065 | — |
+| 269 | Cyclic Groups: isomorphic rings share bead colours and keys | 2026-10-12 | 4f0ba8e | — |
 
 ## Deferred Items
 
