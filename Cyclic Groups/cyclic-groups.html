@@ -762,6 +762,10 @@
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
   .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  /* The copy submenu shows its formula above the copy options, broken at
+     its equals signs where it is wider than the menu may grow. */
+  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw - 16px)); cursor:default; }
+  .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
      own controls: small labels, dropdowns at the row's end. */
   .ring-ctx .ring-ctx-sub{ position:fixed; left:0; top:0; bottom:auto; z-index:1; min-width:200px; }
@@ -2810,7 +2814,8 @@ function syncFormulaItems(){
   });
   ringSubEls.formulas.replaceChildren.apply(ringSubEls.formulas, items);
 }
-// The copy submenu, beside the Formulas one, for one formula: as LaTeX, as
+// The copy submenu, beside the Formulas one, for one formula, shown at its
+// top as the scratchpad typesets it: as LaTeX, as
 // MathML, as the Unicode plain text copying it from the page gives, or as
 // plain ASCII. Each copies the formula as it is drawn when chosen.
 var COPY_FORMATS = [
@@ -2827,7 +2832,18 @@ function setRingCopy(name, from, focus){
   if (!name){ ringCopyEl.replaceChildren(); return; }
   from.setAttribute('aria-expanded', 'true');
   ringCopyEl.setAttribute('aria-label', translate(SCRATCH_NAMES[name]));
-  ringCopyEl.replaceChildren.apply(ringCopyEl, COPY_FORMATS.map(function(c){
+  var shown = drawn && scratchFormulas(drawn.G).find(function(x){ return x.key === name; }), top = [];
+  if (shown){
+    var view = document.createElement('div');
+    view.className = 'ring-ctx-formula';
+    view.setAttribute('role', 'presentation');
+    view.appendChild(scratchMath(shown.cls, shown.math, shown.plain));
+    var sep = document.createElement('div');
+    sep.className = 'ring-ctx-sep';
+    sep.setAttribute('role', 'separator');
+    top = [view, sep];
+  }
+  ringCopyEl.replaceChildren.apply(ringCopyEl, top.concat(COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
     it.item.addEventListener('click', function(){
       var f = drawn && scratchFormulas(drawn.G).find(function(x){ return x.key === name; });
@@ -2835,7 +2851,7 @@ function setRingCopy(name, from, focus){
       if (f) copyText(c.as(f));
     });
     return it.item;
-  }));
+  })));
   var menu = ringSubEls.formulas.getBoundingClientRect(), at = from.getBoundingClientRect();
   var w = ringCopyEl.offsetWidth, h = ringCopyEl.offsetHeight;
   var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
