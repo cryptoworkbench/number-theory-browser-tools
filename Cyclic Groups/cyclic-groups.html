@@ -646,12 +646,20 @@
   /* The element colours are set from the ring's right-click menu; their
      dropdown and key button stay behind it, out of sight, holding the choice. */
   #element-colours{ display:none !important; }
-  .fs-win-body.is-ring :is(#arrange-gen-label, #expr-label){ font-size:.85rem; color:var(--text-dim); margin-inline-start:8px; }
+  .fs-win-body.is-ring :is(#arrange-gen-label, #expr-label){ font-size:.85rem; color:var(--text-dim); white-space:nowrap; }
   .fs-win-body.is-ring > #arrange-field{ grid-area:arr; }
   /* The arrangement row is named for the group in the Ring window. */
   .arrange-fs-name, .fs-win-body.is-ring .arrange-panel-name, .gen-fs-name, .fs-win-body.is-ring .gen-panel-name{ display:none; }
   .fs-win-body.is-ring :is(.arrange-fs-name, .gen-fs-name){ display:inline; }
-  .fs-win-body.is-ring :is(#gen-field, #arrange-field) > select{ width:auto; min-width:8em; padding:4px 8px; }
+  /* The arrangement row's controls wrap, each label with its dropdown, so a
+     narrow Ring window (the second pane beside it) never pushes them past
+     its edge. In the side panel both wrappers step aside. */
+  .arrange-controls, .arrange-pair{ display:contents; }
+  .arrange-pair[hidden]{ display:none; }
+  .fs-win-body.is-ring > #arrange-field{ min-width:0; }
+  .fs-win-body.is-ring .arrange-controls{ flex:1 1 0; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:6px clamp(12px, 3.5cqi, 32px); }
+  .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; align-items:center; gap:10px; }
+  .fs-win-body.is-ring :is(#gen-field > select, #arrange-field select){ width:auto; min-width:8em; padding:4px 8px; }
   .diagram-frame:fullscreen .fs-win-body.is-ring .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
   /* The switch plate's ledge and shadow hang below its box; room under it
      keeps them off the next row. */
@@ -1218,11 +1226,11 @@
         <p class="hint" id="hint-inverse" hidden></p>
         <div class="field color-by" id="arrange-field">
           <label for="arrange-select"><span class="arrange-panel-name" data-i18n="cyclicGroups.arrangeLabel">Arrangement</span><span class="arrange-fs-name" data-i18n="cyclicGroups.arrangeRowLabel">Arrangement</span></label>
-          <select id="arrange-select"></select>
-          <label for="arrange-gen-select" id="arrange-gen-label" hidden data-i18n="cyclicGroups.arrangeGenLabel">Generator</label>
-          <select id="arrange-gen-select" hidden></select>
-          <label for="expr-select" id="expr-label" hidden data-i18n="cyclicGroups.exprLabel">Element expression</label>
-          <select id="expr-select" hidden></select>
+          <div class="arrange-controls">
+            <select id="arrange-select"></select>
+            <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
+            <span class="arrange-pair" id="expr-pair" hidden><label for="expr-select" id="expr-label" data-i18n="cyclicGroups.exprLabel">Element expression</label><select id="expr-select"></select></span>
+          </div>
         </div>
       </section>
 
@@ -1464,9 +1472,9 @@ var subgroupOptionsEl = $('subgroup-options');
 var ringHeadEl = $('ring-head');
 var scratchPadEl = $('scratch-pad');
 var arrangeSelectEl = $('arrange-select');
-var arrangeGenLabelEl = $('arrange-gen-label');
 var arrangeGenSelectEl = $('arrange-gen-select');
-var exprLabelEl = $('expr-label');
+var arrangeGenPairEl = $('arrange-gen-pair');
+var exprPairEl = $('expr-pair');
 var exprSelectEl = $('expr-select');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
@@ -1757,7 +1765,7 @@ function syncArrange(G){
   arrangeSelectEl.value = powers ? 'powers' : 'seq';
   arrangeSelectEl.title = arrangeSelectEl.selectedOptions[0].title;
   arrangeSelectEl.disabled = !G.cyclic;
-  arrangeGenLabelEl.hidden = arrangeGenSelectEl.hidden = !powers;
+  arrangeGenPairEl.hidden = !powers;
   if (!powers) return;
   arrangeGenSelectEl.replaceChildren.apply(arrangeGenSelectEl, G.generators.map(function(g){
     var opt = document.createElement('option');
@@ -1794,7 +1802,7 @@ function superscript(k){
   return String(k).replace(/[0-9]/g, function(d){ return SUPERSCRIPT_DIGITS[d]; });
 }
 function syncExpr(G){
-  exprLabelEl.hidden = exprSelectEl.hidden = !G.cyclic;
+  exprPairEl.hidden = !G.cyclic;
   if (!G.cyclic) return;
   exprSelectEl.replaceChildren.apply(exprSelectEl, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(G.generators.map(function(g){
     var opt = document.createElement('option');
