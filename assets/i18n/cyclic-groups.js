@@ -79,7 +79,9 @@
    ctxCopyAscii (the ring's right-click menu's Info, Formulas submenu: the
    scratchpad's switch and each formula's copy formats), and spinResetTitle
    (the spin slider's knob, which a double-click in the middle resets),
-   and legendElements (the colour key's count of beads in each colour). Every other language shows the English
+   legendElements (the colour key's count of beads in each colour), and
+   exprLabel and exprNatural (the arrangement row's Element expression
+   dropdown, whose other options reuse arrangePowers). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -285,6 +287,8 @@
       arrangeGenLabel: 'Generator',
       arrangeMultiples: 'Multiples of {g}',
       arrangePowers: 'Powers of {g}',
+      exprLabel: 'Element expression',
+      exprNatural: 'Natural',
       combineForward: 'Forward path, combining elements with the selected element {h}',
       combineBackward: "Backward path, combining elements with the selected element's inverse, which is {hinv}",
       combineSelfInverse: '{h} is its own inverse, so both walks are the same one, drawn once in a mix of the two colors',

@@ -164,7 +164,7 @@
   .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   /* JetBrains Mono centres ⟨ ⟩ in a full-width cell, which reads as a stray space
      around the number; the sans face sets them tight to it. */
-  #gen-select, #arrange-select, #arrange-gen-select{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
+  #gen-select, #arrange-select, #arrange-gen-select, #expr-select{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
   /* The open list is drawn by the browser on its own light background, so it
      needs an opaque themed fill or the night-theme text is unreadable. */
@@ -646,7 +646,7 @@
   /* The element colours are set from the ring's right-click menu; their
      dropdown and key button stay behind it, out of sight, holding the choice. */
   #element-colours{ display:none !important; }
-  .fs-win-body.is-ring #arrange-gen-label{ font-size:.85rem; color:var(--text-dim); margin-inline-start:8px; }
+  .fs-win-body.is-ring :is(#arrange-gen-label, #expr-label){ font-size:.85rem; color:var(--text-dim); margin-inline-start:8px; }
   .fs-win-body.is-ring > #arrange-field{ grid-area:arr; }
   /* The arrangement row is named for the group in the Ring window. */
   .arrange-fs-name, .fs-win-body.is-ring .arrange-panel-name, .gen-fs-name, .fs-win-body.is-ring .gen-panel-name{ display:none; }
@@ -943,7 +943,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-select, #arrange-gen-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-select, #arrange-gen-select, #expr-select, .notice code, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -1221,6 +1221,8 @@
           <select id="arrange-select"></select>
           <label for="arrange-gen-select" id="arrange-gen-label" hidden data-i18n="cyclicGroups.arrangeGenLabel">Generator</label>
           <select id="arrange-gen-select" hidden></select>
+          <label for="expr-select" id="expr-label" hidden data-i18n="cyclicGroups.exprLabel">Element expression</label>
+          <select id="expr-select" hidden></select>
         </div>
       </section>
 
@@ -1354,7 +1356,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, subLayout: 'grid', autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, idColor: null, noSub: false };
 
 // subLayout lays the subgroup rows out in columns ('grid') or one per line
 // ('list').
@@ -1464,6 +1466,8 @@ var scratchPadEl = $('scratch-pad');
 var arrangeSelectEl = $('arrange-select');
 var arrangeGenLabelEl = $('arrange-gen-label');
 var arrangeGenSelectEl = $('arrange-gen-select');
+var exprLabelEl = $('expr-label');
+var exprSelectEl = $('expr-select');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
@@ -1766,6 +1770,36 @@ function syncArrange(G){
   arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
 }
 
+// Element expression: each element by its number (Natural), or as the power
+// g^k of a chosen generator g, always in power notation, the additive group
+// included. A group with no generator shows numbers only, and a choice that
+// is not a generator of this group reads as Natural.
+function exprBy(G){
+  return G.cyclic && G.generators.indexOf(state.expr) !== -1 ? state.expr : null;
+}
+// Each element's exponent k over generator g.
+function exprLog(G, g){
+  var log = {};
+  lap(G, g, G.order).forEach(function(x, k){ log[x] = k; });
+  return log;
+}
+var SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+function superscript(k){
+  return String(k).replace(/[0-9]/g, function(d){ return SUPERSCRIPT_DIGITS[d]; });
+}
+function syncExpr(G){
+  exprLabelEl.hidden = exprSelectEl.hidden = !G.cyclic;
+  if (!G.cyclic) return;
+  exprSelectEl.replaceChildren.apply(exprSelectEl, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(G.generators.map(function(g){
+    var opt = document.createElement('option');
+    opt.value = String(g);
+    opt.textContent = translate('cyclicGroups.arrangePowers', { g: g });
+    return opt;
+  })));
+  var g = exprBy(G);
+  exprSelectEl.value = g === null ? '' : String(g);
+}
+
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
 // edge, bulges to its peak halfway, and comes back into its target, turning
 // the short way round. Its shape depends only on how far it turns, so steps
@@ -1997,10 +2031,14 @@ function drawRing(parent, G, beads, box, paint){
   });
 
   if (beadR >= 9){
+    var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
     beads.forEach(function(a, i){
       var p = at(i);
-      var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(beadR * 1.05) });
-      label.textContent = String(a);
+      var text = elog ? eg + superscript(elog[a]) : String(a);
+      // An expressed label wider than two characters shrinks to stay in its bead.
+      var size = beadR * 1.05 * (elog ? Math.min(1, 2.2 / text.length) : 1);
+      var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(elog ? Math.max(size, 7) : size), 'data-el': a });
+      label.textContent = text;
       ring.appendChild(label);
     });
   }
@@ -4598,7 +4636,7 @@ function rearrange(change){
   var ring = ringDynamicEl.querySelector('.ring');
   if (!ring) return;
   var labels = {};
-  ring.querySelectorAll('.bead-label').forEach(function(t){ labels[t.textContent] = t; });
+  ring.querySelectorAll('.bead-label').forEach(function(t){ labels[t.getAttribute('data-el')] = t; });
   var beads = Array.prototype.map.call(ring.querySelectorAll('.bead'), function(c, i, all){
     var a = c.getAttribute('data-el');
     var to = ringAngle(+c.getAttribute('cx'), +c.getAttribute('cy'), box);
@@ -5089,7 +5127,11 @@ function renderSubgroups(G){
   var hadFocus = subgroupsEl.contains(document.activeElement);
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
   var rows = G.els.map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
-  var sig = G.mode + ' ' + G.n + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  // Under an element expression every number reads as a power g^k.
+  var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
+  var mx = function(x){ return elog ? mEl('msup', [mn(eg), mn(elog[x])]) : mn(x); };
+  var px = function(x){ return elog ? eg + '^' + elog[x] : String(x); };
+  var sig = G.mode + ' ' + G.n + ' ' + eg + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5111,11 +5153,11 @@ function renderSubgroups(G){
     row.setAttribute('data-gen', String(g));
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
-    row.setAttribute('aria-label', '⟨' + g + '⟩ = {' + members.join(', ') + '}');
-    row.appendChild(mInline(mrow(angle(mn(g)), mo('='), mo('{', true)), '⟨' + g + '⟩ = {'));
+    row.setAttribute('aria-label', '⟨' + px(g) + '⟩ = {' + members.map(px).join(', ') + '}');
+    row.appendChild(mInline(mrow(angle(mx(g)), mo('='), mo('{', true)), '⟨' + px(g) + '⟩ = {'));
     members.forEach(function(x, i){
       var last = i === members.length - 1;
-      row.appendChild(mInline(mrow(mn(x), last ? mo('}', true) : comma()), last ? x + '}' : x + ', '));
+      row.appendChild(mInline(mrow(mx(x), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
     });
     row.addEventListener('click', function(){
       selectGen(g);
@@ -6451,6 +6493,8 @@ function stateQuery(){
   else q.delete('sublayout');
   if (state.arrangeGen !== null) q.set('arrangegen', String(state.arrangeGen));
   else q.delete('arrangegen');
+  if (state.expr !== null) q.set('expr', String(state.expr));
+  else q.delete('expr');
   if (state.rot) q.set('rot', String(state.rot));
   else q.delete('rot');
   return q;
@@ -6594,6 +6638,7 @@ function render(){
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
   syncArrange(G);
+  syncExpr(G);
   syncIdColor();
   renderNotice(G, factors);
   renderFacts(G, factors);
@@ -6882,6 +6927,11 @@ arrangeGenSelectEl.addEventListener('change', function(){
   if (!isFinite(g)) return;
   rearrange(function(){ state.arrangeGen = g; render(); });
 });
+exprSelectEl.addEventListener('change', function(){
+  var g = parseInt(exprSelectEl.value, 10);
+  state.expr = isFinite(g) ? g : null;
+  render();
+});
 // None turns the element colours off; any other choice turns them on,
 // coloured that way.
 colorBySelectEl.addEventListener('change', function(){
@@ -7079,6 +7129,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (SUB_LAYOUTS.indexOf(query.get('sublayout')) !== -1) state.subLayout = query.get('sublayout');
   var arrangeGen = parseInt(query.get('arrangegen'), 10);
   if (isFinite(arrangeGen)) state.arrangeGen = arrangeGen;
+  var expr = parseInt(query.get('expr'), 10);
+  if (isFinite(expr)) state.expr = expr;
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;
   // Keep on top: top=id|off|gen, gentop=1 from before the switch had three
