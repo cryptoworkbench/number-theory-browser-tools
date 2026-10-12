@@ -580,6 +580,9 @@
   .scratch-grip:hover, .scratch-pad.is-resizing .scratch-grip{ opacity:1; }
   .scratch-name{ display:block; width:max-content; font-size:.85em; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
   .scratch-math{ margin-top:.15em; }
+  /* The formulas are selected, for copying, rather than moving the card. */
+  .scratch-pad .scratch-math{ width:max-content; max-width:100%; cursor:text; user-select:text; -webkit-user-select:text; }
+  .scratch-pad .scratch-math select{ cursor:pointer; }
   .scratch-math math{ display:block; width:max-content; white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
   /* A formula in pieces, each from an equals sign on, so that a narrowed
      card breaks it onto new lines there. */
@@ -2222,8 +2225,8 @@ function setScratchWidth(w){
   scratchWidth = b && w < b.natural ? Math.max(b.least, Math.round(w)) : null;
   scratchPadEl.style.width = scratchWidth === null ? '' : scratchWidth + 'px';
 }
-// Dragging the card anywhere but its grip and its controls moves it, kept
-// inside its window; scratchAt is how far it has moved from under the
+// Dragging the card anywhere but its grip, its controls and its formulas
+// (which a drag selects, for copying) moves it, kept inside its window; scratchAt is how far it has moved from under the
 // button.
 var scratchAt = { x: 0, y: 0 }, scratchMoving = null;
 function placeScratch(x, y){
@@ -2239,7 +2242,7 @@ function placeScratch(x, y){
   scratchPadEl.style.translate = scratchAt.x + 'px ' + scratchAt.y + 'px';
 }
 scratchPadEl.addEventListener('pointerdown', function(e){
-  if (e.button !== 0 || e.target.closest('select, button, .scratch-grip')) return;
+  if (e.button !== 0 || e.target.closest('select, button, .scratch-grip, .scratch-math')) return;
   scratchMoving = { id: e.pointerId, x: e.clientX - scratchAt.x, y: e.clientY - scratchAt.y };
   scratchPadEl.setPointerCapture(e.pointerId);
   scratchPadEl.classList.add('is-moving');
@@ -2256,7 +2259,7 @@ function endScratchMoving(e){
 scratchPadEl.addEventListener('pointerup', endScratchMoving);
 scratchPadEl.addEventListener('pointercancel', endScratchMoving);
 scratchPadEl.addEventListener('dblclick', function(e){
-  if (!e.target.closest('select, button, .scratch-grip')) placeScratch(0, 0);
+  if (!e.target.closest('select, button, .scratch-grip, .scratch-math')) placeScratch(0, 0);
 });
 
 scratchPadEl.addEventListener('pointerdown', function(e){
@@ -5473,6 +5476,24 @@ if (window.ResizeObserver){
   new ResizeObserver(function(){ fitRingHead(); }).observe(ringHeadEl);
   new ResizeObserver(function(){ layoutWindows(); }).observe(diagramFrameEl);
 }
+// Copying from the scratchpad gives each selected formula's plain-text form,
+// one per line, from the first of its pieces selected to the last.
+scratchPadEl.addEventListener('copy', function(e){
+  var sel = window.getSelection();
+  if (!sel || !sel.rangeCount || !e.clipboardData) return;
+  var range = sel.getRangeAt(0);
+  var lines = [];
+  scratchPadEl.querySelectorAll('.scratch-math').forEach(function(cell){
+    var text = Array.prototype.filter.call(cell.querySelectorAll('math[data-plain]'), function(m){
+      return range.intersectsNode(m);
+    }).map(function(m){ return m.getAttribute('data-plain'); }).join('').replace(/^ = /, '');
+    if (!text && range.intersectsNode(cell) && !cell.querySelector('math[data-plain]')) text = cell.textContent.trim();
+    if (text) lines.push(text);
+  });
+  if (!lines.length) return;
+  e.clipboardData.setData('text/plain', lines.join('\n'));
+  e.preventDefault();
+});
 // Copying from the captions gives each selected line's plain-text form.
 ringHeadEl.addEventListener('copy', function(e){
   var sel = window.getSelection();
