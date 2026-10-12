@@ -495,6 +495,7 @@ None yet.
 | 259 | Cyclic Groups: isomorphisms in the ring menu, arrow key switch | 2026-10-12 | 9e38f32 | — |
 | 260 | Cyclic Groups: isomorphism rings turn in lockstep | 2026-10-12 | b270b80 | — |
 | 261 | Cyclic Groups: bead colour key styled like the arrow key | 2026-10-12 | 1238ea9 | — |
+| 262 | Cyclic Groups: inverse-pairs key one pair per line | 2026-10-12 | 4174421 | — |
 
 ## Deferred Items
 
