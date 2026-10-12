@@ -437,6 +437,7 @@
     .combine-key{ position:static; margin-top:10px; max-width:none; }
   }
   .combine-key[hidden], .combine-key-item[hidden]{ display:none; }
+  .combine-key.is-held{ visibility:hidden; }
   .combine-key-item{ display:flex; align-items:flex-start; gap:9px; }
   .combine-key-swatch{ flex:none; width:20px; height:0; margin-top:.6em; border-top:2.5px solid var(--arrow-in, var(--role-active)); }
   .combine-key-swatch.is-outer{ border-top-color:var(--arrow-out, var(--role-input)); }
@@ -4427,7 +4428,15 @@ function renderCombineKey(G){
   var h = shownGen(G);
   // The key can be put away from the ring's menu (Colours > Arrows).
   var on = G.orders[h] > 1 && !noSub() && state.akey;
-  combineKeyEl.hidden = !on;
+  // Where the key takes room in the layout (the Ring window), a previewed
+  // row only borrows it: the room follows the selected subgroup, kept empty
+  // or left out while a row is hovered, so the list never moves out from
+  // under the pointer and ends the preview that moved it.
+  var kept = G.orders[state.gen] > 1 && !state.noSub && state.akey;
+  if (preview !== null && on !== kept && getComputedStyle(combineKeyEl).position !== 'absolute') on = false;
+  var held = !on && preview !== null && kept && getComputedStyle(combineKeyEl).position !== 'absolute';
+  combineKeyEl.hidden = !on && !held;
+  combineKeyEl.classList.toggle('is-held', held);
   if (!on){
     if (IS_ISOPANE) tellPaneKey({ on: false });
     else syncIsoKeys();
