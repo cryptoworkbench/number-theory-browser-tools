@@ -286,8 +286,6 @@
   .subgroup-row.is-merged > .sub-row-r{ flex:0 1 auto; min-width:0; margin-left:auto; text-align:right; }
   :root.is-sub-merged .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) minmax(0, var(--split-fr, 1fr)) auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "split split split split" "foot foot foot foot"; }
   :root.is-sub-merged.is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) minmax(0, var(--split-fr, 1fr)) auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "split split split split" "foot foot foot foot" "lgd lgd lgd lgd"; }
-  .sub-export-row{ display:flex; justify-content:flex-end; margin-top:10px; }
-  .sub-export-btn{ padding:5px 12px; font-size:.85rem; }
   .sub-expr-pair select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
   .panel-head h2{ margin:0; }
@@ -1216,7 +1214,7 @@
         </div>
         </div>
         <ul class="subgroups" id="subgroups"></ul>
-        <div class="sub-export-row"><button type="button" class="action-btn sub-export-btn" id="sub-export-btn" title="Download the list as a text file in ASCII notation" data-i18n-title="cyclicGroups.subExportTitle" data-i18n="cyclicGroups.subExport">Export as text</button></div>
+        <div class="fs-menu ring-ctx" id="sub-ctx" role="menu" hidden></div>
       </section>
     </div>
 
@@ -5436,7 +5434,9 @@ function rowMembers(G, g, beads){
 // The rows are rebuilt only when their contents change: typeset sets are
 // costly to lay out, and selecting a row changes nothing but the highlight.
 var subgroupsSig = null;
-var subgroupsAscii = []; // each row in ASCII notation, for the export
+// Per group the list shows (one, or two merged), its rows in ASCII
+// notation, for the rows' right-click downloads.
+var subExports = [];
 // The rows' order: the panel's sort, or merged, the shared one.
 function subOrder(G){
   if (!IS_ISOPANE && subInterlocked() && state.subSortR){
@@ -5485,7 +5485,7 @@ function renderSubgroups(G){
     return;
   }
   subgroupsSig = sig;
-  subgroupsAscii = rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; });
+  subExports = [{ G: G, lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
   subgroupsEl.replaceChildren();
   rows.forEach(function(r){
     var g = r.g, members = r.members;
@@ -5545,11 +5545,13 @@ function renderMergedSubgroups(G){
   subgroupsSig = sig;
   var leftText = function(r){ return '⟨' + fl.p(r.g) + '⟩ = {' + r.members.map(fr.p).join(', ') + '}'; };
   var rightText = function(r){ return '{' + r.members.map(function(x){ return hfr.p(phi(x)); }).join(', ') + '} = ⟨' + hfl.p(phi(r.g)) + '⟩'; };
-  var asciiL = rows.map(function(r){ return asciiText(leftText(r)); });
-  var asciiR = rows.map(function(r){ return asciiText(rightText(r)); });
-  var wl = Math.max.apply(null, asciiL.map(function(t){ return t.length; }));
-  var wr = Math.max.apply(null, asciiR.map(function(t){ return t.length; }));
-  subgroupsAscii = asciiL.map(function(t, i){ return t.padEnd(wl) + '   ' + asciiR[i].padStart(wr); });
+  // Each side downloads on its own, written the way its single panel
+  // writes it: ⟨generator⟩ = {members}, in the rows' order here.
+  var ownRight = function(r){ return '⟨' + hfl.p(phi(r.g)) + '⟩ = {' + r.members.map(function(x){ return hfr.p(phi(x)); }).join(', ') + '}'; };
+  subExports = [
+    { G: G, lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
+    { G: H, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
+  ];
   subgroupsEl.replaceChildren();
   rows.forEach(function(r){
     var g = r.g, members = r.members, last = members.length - 1;
@@ -7345,15 +7347,63 @@ function saveBlob(blob, filename){
 function asciiText(t){
   return t.replace(/[⟨⟩×·∗ℤ]/g, function(c){ return ASCII_MI[c] || ASCII_MO[c]; });
 }
-function exportSubgroups(){
-  if (!drawn) return;
-  var head = !IS_ISOPANE && subInterlocked()
-    ? translate('cyclicGroups.subExportHeadPair', { left: asciiText(drawn.G.label), right: asciiText(isoPaneGroup().label) })
-    : translate('cyclicGroups.subExportHead', { group: asciiText(drawn.G.label) });
-  var text = [head, ''].concat(subgroupsAscii).join('\n') + '\n';
-  saveBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), ['subgroups', state.mode === 'additive' ? 'add' : 'mul', state.n].join('-') + '.txt');
+function exportSubgroups(x){
+  var head = translate('cyclicGroups.subExportHead', { group: asciiText(x.G.label) });
+  var text = [head, ''].concat(x.lines).join('\n') + '\n';
+  saveBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), ['subgroups', x.G.mode === 'additive' ? 'add' : 'mul', x.G.n].join('-') + '.txt');
 }
-$('sub-export-btn').addEventListener('click', exportSubgroups);
+// Right-clicking a row offers each group in the list for download: the one
+// group, or both merged ones, left first.
+var subCtxEl = $('sub-ctx');
+var subCtxReturn = null;
+function setSubCtx(open, x, y){
+  if (!open){
+    if (subCtxEl.hidden) return;
+    subCtxEl.hidden = true;
+    if (subCtxReturn && subCtxEl.contains(document.activeElement)) subCtxReturn.focus();
+    subCtxReturn = null;
+    return;
+  }
+  subCtxEl.replaceChildren();
+  subExports.forEach(function(ex){
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'fs-menu-item';
+    item.setAttribute('role', 'menuitem');
+    item.textContent = translate('cyclicGroups.subDownloadGroup', { group: ex.G.label });
+    item.addEventListener('click', function(){ setSubCtx(false); exportSubgroups(ex); });
+    subCtxEl.appendChild(item);
+  });
+  subCtxReturn = subCtxEl.hidden ? document.activeElement : subCtxReturn;
+  subCtxEl.hidden = false;
+  var w = subCtxEl.offsetWidth, h = subCtxEl.offsetHeight;
+  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  var left = Math.max(4, Math.min(x, vw - w - 4)), top = Math.max(4, Math.min(y, vh - h - 4));
+  subCtxEl.style.left = left + 'px';
+  subCtxEl.style.top = top + 'px';
+  // Inside a window that contains its fixed children, place it against
+  // that window's corner instead of the viewport's.
+  var at = subCtxEl.getBoundingClientRect();
+  subCtxEl.style.left = (2 * left - at.left) + 'px';
+  subCtxEl.style.top = (2 * top - at.top) + 'px';
+  subCtxEl.firstChild.focus();
+}
+subgroupsEl.addEventListener('contextmenu', function(e){
+  if (!e.target.closest('.subgroup-row') || !subExports.length) return;
+  e.preventDefault();
+  setSubCtx(true, e.clientX, e.clientY);
+});
+document.addEventListener('pointerdown', function(e){
+  if (!subCtxEl.contains(e.target)) setSubCtx(false);
+});
+subCtxEl.addEventListener('keydown', function(e){
+  var items = Array.prototype.slice.call(subCtxEl.children), i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape' || e.key === 'Tab'){ e.preventDefault(); setSubCtx(false); }
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    e.preventDefault();
+    items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+  }
+});
 
 function exportRingPng(){
   var failed = function(){ noteExport('cyclicGroups.exportFailed'); };
