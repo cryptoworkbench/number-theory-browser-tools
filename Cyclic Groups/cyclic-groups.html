@@ -529,12 +529,10 @@
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
   /* Full screen, the diagram becomes a little desktop: the ring and every
-     panel of the page are windows on it, opened from a taskbar along the
-     bottom like KDE Plasma's (a launcher menu on the left, a task button
-     for each window, marked along its top edge while it is open and lit
-     while it is in front, then a clock and the button that leaves full
-     screen). A window has a title bar with the Factor Tree's drag grip,
-     its name, and minimize, maximize and close buttons; it is moved by its
+     panel of the page are windows on it, all open on entering, with no
+     taskbar (Escape, or closing the Ring window, leaves full screen). A
+     window has a title bar with the Factor Tree's drag grip, its name, and
+     maximize and close buttons; it is moved by its
      title bar, resized by any edge or corner, maximized by a double-click
      on its title bar, and snapped to a half or a quarter of the desktop
      when dragged to an edge or a corner (to all of it at the top edge).
@@ -811,8 +809,9 @@
   .fs-alpha output{ min-width:3.2em; text-align:end; font-family:var(--font-mono); color:var(--text-dim); }
   .fs-snap{ position:absolute; z-index:45; pointer-events:none; box-sizing:border-box; border:2px solid var(--accent); background:color-mix(in srgb, var(--accent) 14%, transparent); border-radius:var(--radius-card); }
   .fs-snap[hidden]{ display:none; }
+  /* The taskbar is gone: it stays out of sight, holding the task buttons
+     and the launcher menu the desktop's code still keeps in step. */
   .fs-taskbar{ display:none; }
-  .diagram-frame:fullscreen .fs-taskbar{ position:absolute; left:0; right:0; bottom:0; z-index:50; display:flex; align-items:stretch; gap:2px; height:44px; padding:0 0 0 4px; box-sizing:border-box; background:var(--surface); border-top:1px solid var(--panel-border-strong); box-shadow:0 -2px 10px var(--scrim); }
   .fs-task, .fs-launcher, .fs-menu-item, .fs-tray-btn{ font:inherit; font-family:var(--font-sans); color:var(--text); background:none; border:0; cursor:pointer; }
   .fs-task{ position:relative; display:flex; align-items:center; gap:8px; min-width:0; max-width:220px; padding:0 12px; font-size:.84rem; }
   .fs-task:hover, .fs-launcher:hover, .fs-launcher[aria-expanded="true"], .fs-tray-btn:hover{ background:color-mix(in srgb, var(--text) 8%, transparent); }
@@ -828,7 +827,6 @@
   .fs-launcher svg, .fs-tray-btn svg{ width:22px; height:22px; fill:currentColor; }
   .fs-tasks{ flex:1 1 auto; min-width:0; display:flex; gap:2px; overflow-x:auto; }
   .fs-tray{ flex:none; display:flex; align-items:center; gap:2px; padding:0 4px 0 10px; border-left:1px solid var(--panel-border); }
-  .fs-clock{ padding:0 8px; font-family:var(--font-mono); font-size:.84rem; color:var(--text); font-variant-numeric:tabular-nums; }
   .fs-tray-btn{ width:40px; align-self:stretch; display:grid; place-items:center; color:var(--text-dim); }
   .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-menu[hidden]{ display:none; }
@@ -1112,7 +1110,6 @@
           <div class="fs-menu" id="fs-menu" role="menu" hidden><p class="fs-menu-head" data-i18n="cyclicGroups.fsPanels">Panels</p><div id="fs-menu-panels"></div><p class="fs-menu-head" data-i18n="cyclicGroups.fsWindows">Windows</p><div id="fs-menu-actions"></div></div>
           <div class="fs-tasks" id="fs-tasks"></div>
           <div class="fs-tray">
-            <span class="fs-clock" id="fs-clock"></span>
             <button type="button" class="fs-tray-btn" id="fs-exit"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></button>
           </div>
         </div>
@@ -2526,7 +2523,6 @@ var FS_PANELS = [
 ];
 var FS_MIN_W = 220, FS_MIN_H = 120;
 var FS_MIN_ALPHA = 0; // a window's background can be cleared entirely; its title bar and border stay
-var TASKBAR_H = 44;
 var SNAP_EDGE = 12;   // how near an edge of the desktop the pointer snaps a dragged window
 var SNAP_CORNER = 80; // how near a corner, along the edge, it snaps to a quarter
 var SNAP_ALIGN = 10;  // how near another edge a moved or resized edge catches on it
@@ -2635,7 +2631,7 @@ function frontKey(){
   var shown = fsState.open.filter(function(k){ return !isMin(k) && hasContent(specOf(k)); });
   return shown.length ? shown[shown.length - 1] : null;
 }
-function desk(){ return { W: diagramFrameEl.clientWidth, H: Math.max(0, diagramFrameEl.clientHeight - TASKBAR_H) }; }
+function desk(){ return { W: diagramFrameEl.clientWidth, H: diagramFrameEl.clientHeight }; }
 
 function svgIcon(parts){
   var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
@@ -3301,12 +3297,6 @@ $('fs-exit').addEventListener('click', function(){
   if (fullscreenEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
 });
 
-// The clock in the taskbar's tray, hours and minutes.
-function syncClock(){
-  var d = new Date();
-  $('fs-clock').textContent = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
-}
-var fsClockId = null;
 
 /* window commands */
 
@@ -3322,8 +3312,13 @@ function minimizeWindow(key){
   writeFsState();
   syncWindows();
 }
+// With no taskbar to bring it back, closing the Ring window leaves full screen.
 function closeWindow(key){
   if (specOf(key).frame){ removeRingWindow(key); return; }
+  if (key === 'ring'){
+    if (fullscreenEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    return;
+  }
   fsState.open = without(fsState.open, key);
   fsState.min = without(fsState.min, key);
   writeFsState();
@@ -3516,7 +3511,6 @@ function buildWindow(spec){
     { key: 'dup', parts: [['line', { x1: 2.5, y1: 6, x2: 9.5, y2: 6 }], ['line', { x1: 6, y1: 2.5, x2: 6, y2: 9.5 }]], run: function(){ openRingWindow(spec.key); } },
     { key: 'alpha', parts: [['circle', { cx: 6, cy: 6, r: 4 }], ['path', { 'class': 'icon-fill', d: 'M6 2a4 4 0 0 1 0 8z' }]], run: function(){ toggleAlpha(spec.key); } },
     { key: 'fit', parts: [['path', { d: 'M2.5 5V2.5H5M7 2.5h2.5V5M9.5 7v2.5H7M5 9.5H2.5V7' }], ['rect', { x: 4.75, y: 4.75, width: 2.5, height: 2.5, rx: 0.5 }]], run: function(){ fitWindow(spec.key); } },
-    { key: 'min', parts: [['line', { x1: 3, y1: 8.5, x2: 9, y2: 8.5 }]], run: function(){ minimizeWindow(spec.key); } },
     { key: 'max', parts: [['rect', { 'class': 'icon-max', x: 2.5, y: 2.5, width: 7, height: 7, rx: 1 }], ['path', { 'class': 'icon-restore', d: 'M2.5 4.5h5v5h-5zM4.5 4.5V2.5h5v5h-2' }]], run: function(){ toggleMaximize(spec.key); } },
     { key: 'close', parts: [['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]], run: function(){ closeWindow(spec.key); } }
   ].filter(function(b){ return b.key !== 'dup' || spec.ring || spec.frame; }).forEach(function(b){
@@ -3634,8 +3628,11 @@ function syncWindows(){
   var full = fullscreenEl() === diagramFrameEl;
   if (full && !fsWins){
     fsWins = {};
-    syncClock();
-    fsClockId = setInterval(syncClock, 15000);
+    // With no taskbar, every window comes up on show: none minimized, and
+    // the page's own windows open.
+    fsState.min = [];
+    FS_PANELS.forEach(function(spec){ if (!isOpen(spec.key)) fsState.open.unshift(spec.key); });
+    writeFsState();
   } else if (!full && fsWins){
     allSpecs().forEach(function(spec){
       var w = fsWins[spec.key];
@@ -3644,8 +3641,6 @@ function syncWindows(){
     });
     fsWins = null;
     setAlpha(null);
-    clearInterval(fsClockId);
-    fsClockId = null;
     setFsMenu(false);
   }
   // Every window the desktop should hold is built once, in front of the taskbar.
@@ -3787,7 +3782,6 @@ function syncFsLabels(){
     if (w.buttons.dup) label(w.buttons.dup, 'cyclicGroups.fsDuplicateRing');
     label(w.buttons.alpha, 'cyclicGroups.fsTransparency');
     label(w.buttons.fit, 'cyclicGroups.fsFit');
-    label(w.buttons.min, 'cyclicGroups.fsMinimize');
     label(w.buttons.max, isMax(spec.key) ? 'cyclicGroups.fsRestore' : 'cyclicGroups.fsMaximize');
     label(w.buttons.close, 'cyclicGroups.fsClose');
   });
