@@ -43,11 +43,11 @@ async function ctxSub(page, sub) {
   await page.waitForSelector("#ring-ctx-" + sub + ":not([hidden])");
 }
 // Opens an isomorphic group beside the ring from the ring's right-click
-// menu (Open in isomorphism view), `chip` naming its chip's selector.
+// menu (Open subgroup as isomorphism), `chip` naming its chip's selector.
 async function openIso(t, chip) {
   await t.click("#ring-svg", { button: "right" });
   await t.waitForSelector("#ring-ctx:not([hidden])");
-  await t.locator("#ring-ctx > [aria-haspopup]").nth(2).hover();
+  await t.locator("#ring-ctx > [aria-haspopup]").nth(3).hover();
   await t.click("#ring-ctx-iso " + chip.replace("a.iso-chip", "button"));
 }
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -217,7 +217,7 @@ async function main() {
     var gone = await h.page.evaluate(function () { return getComputedStyle(document.getElementById("iso-panel")).display === "none"; });
     assert(gone, "isomorphisms panel still shown");
     await h.page.click("#ring-svg", { button: "right" });
-    await h.page.locator("#ring-ctx > [aria-haspopup]").nth(2).hover();
+    await h.page.locator("#ring-ctx > [aria-haspopup]").nth(3).hover();
     var n = await h.page.evaluate(function () { return document.querySelectorAll("#ring-ctx-iso [role=menuitem]").length; });
     eq(n, 3, "isomorphism menu items");
     noErrors(h);

@@ -42,7 +42,8 @@
    while it studies an isomorphism: the whole group, or the subgroup and the
    group it lies in, beside the right ring's group), ctxColours, ctxElements
    and ctxArrows (the ring's right-click menu's Colours section and its two
-   submenus), ctxIsoView (that menu's submenu of isomorphic groups to open
+   submenus), ctxIsoGroup and ctxIsoSub (that menu's submenus of groups
+   isomorphic to the whole group and to the subgroup on show, to open
    beside the ring), showArrowKey (the Arrows submenu's switch for the arrow
    colour key), fsGroupParams (the label of its top row),
    fsInfo (the group panel's window), and
@@ -340,7 +341,8 @@
       ctxColours: 'Colours',
       ctxElements: 'Elements',
       ctxArrows: 'Arrows',
-      ctxIsoView: 'Open in isomorphism view',
+      ctxIsoGroup: 'Open group as isomorphism',
+      ctxIsoSub: 'Open subgroup as isomorphism',
       showArrowKey: 'Show arrow colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Group parameters',
