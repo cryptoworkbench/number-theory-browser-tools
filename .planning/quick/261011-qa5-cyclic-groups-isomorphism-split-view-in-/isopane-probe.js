@@ -29,6 +29,11 @@ function assert(cond, msg) { if (!cond) throw new Error(msg); }
 function eq(actual, expected, what) {
   if (actual !== expected) throw new Error(what + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));
 }
+// The rotation value, typed: the pane hides its rotation controls, so the
+// field is set and its change sent rather than filled like a visible input.
+async function setRot(target, v) {
+  await target.evaluate(function (v) { var e = document.getElementById("rot-value"); e.value = String(v); e.dispatchEvent(new Event("change")); }, v);
+}
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 async function waitFor(fn, ms, what) {
   var end = Date.now() + (ms || 3000), last;
@@ -141,9 +146,9 @@ async function main() {
       function shown(id) { var e = document.getElementById(id); if (!e) return false; var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
       var rowIso = document.querySelector(".fs-win-row-iso");
       return {
-        hidden: ["element-colours", "arrow-options", "split-btn", "iso-panel"].map(function (id) { return id + ":" + disp(id); }),
+        hidden: ["element-colours", "arrow-options", "split-btn", "iso-panel", "rotate-ctl", "spin-ruler"].map(function (id) { return id + ":" + disp(id); }),
         rowIso: rowIso ? getComputedStyle(rowIso).display + "/" + rowIso.getBoundingClientRect().height : "absent",
-        shown: ["n-input", "op-toggle", "gen-select", "arrange-select", "scratch-btn", "rot-back", "rot-fwd", "rot-value", "rot-reset", "keep-top"].filter(function (id) { return !shown(id); }),
+        shown: ["n-input", "op-toggle", "gen-select", "arrange-select", "scratch-btn", "keep-top"].filter(function (id) { return !shown(id); }),
         n: document.getElementById("n-input").value
       };
     });
@@ -253,8 +258,7 @@ async function main() {
 
   try {
     assert(h && pane, "no pane");
-    await pane.fill("#rot-value", rot2);
-    await pane.press("#rot-value", "Enter");
+    await setRot(pane, rot2);
     await waitFor(async function () { return (await pane.inputValue("#rot-value")) === rot2; }, 3000, "pane rot");
     await sleep(1200); // the turn settles, then the pane reports its query
     await h.page.click("#fullscreen-btn");
@@ -392,8 +396,7 @@ async function main() {
      rot 0/3/6/9 is k = 0/1/2/3; right (Z/5Z)* with h = 2, powers [1,2,4,3],
      so k = 0/1/2/3 is right rot 0/1/3/2. */
   async function turnTo(target, v, expectIn, expected) {
-    await target.fill("#rot-value", String(v));
-    await target.press("#rot-value", "Enter");
+    await setRot(target, v);
     var watch = expectIn || target;
     await waitFor(async function () { return (await watch.inputValue("#rot-value")) === String(expected === undefined ? v : expected); }, 3000, "rot " + (expected === undefined ? v : expected));
   }
@@ -427,9 +430,12 @@ async function main() {
 
   try {
     assert(fp14, "no pane");
+    // P15 left the host's rotation field focused, which keeps its typed value;
+    // the pane has no field of its own to take the focus, so it is let go.
+    await h.page.evaluate(function () { document.activeElement.blur(); });
     await turnTo(pane, 3, h.page, 6);
     await turnTo(pane, 2, h.page, 9);
-    await pane.click("#rot-fwd");
+    await setRot(pane, (parseInt(await rotOf(pane), 10) + 1) % 4);
     await sleep(900);
     var r = parseInt(await rotOf(pane), 10);
     var want = 3 * [0, 1, 3, 2].indexOf(r);
