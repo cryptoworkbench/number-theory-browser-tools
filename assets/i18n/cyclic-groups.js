@@ -49,7 +49,10 @@
    submenus), ctxIsoGroup and ctxIsoSub (that menu's submenus of groups
    isomorphic to the whole group and to the subgroup on show, to open
    beside the ring), isoAddTitle, isoPickWhole, isoPickSub, isoPickBoth (the one list when the
-   subgroup on show is the whole group) and isoPickNone
+   subgroup on show is the whole group), isoPickNone and isoPickConstruct
+   (the picker's button for a pane to construct a group in), isoAskLock,
+   isoAskYes and isoAskNo (asked, on the line between two rings, whether to
+   lock an isomorphism found between them)
    (the + at a Ring window's right edge and the picker of those groups it
    opens in an empty second pane), showArrowKey (the Arrows submenu's switch for the arrow
    colour key), fsGroupParams (the label of its top row),
@@ -363,6 +366,10 @@
       isoPickSub: 'Groups isomorphic to the current subgroup',
       isoPickBoth: 'Groups isomorphic to the current group/subgroup',
       isoPickNone: 'None',
+      isoPickConstruct: 'Construct own ring / group',
+      isoAskLock: 'Isomorphism found! Lock groups?',
+      isoAskYes: 'Yes',
+      isoAskNo: 'No',
       showArrowKey: 'Show arrow colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',

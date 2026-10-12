@@ -717,6 +717,19 @@
   .iso-pick-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); border-color:var(--accent); }
   .iso-pick-item:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .iso-pick-none{ margin:0; font-size:.86rem; color:var(--text-dim); }
+  .iso-pick-sec.is-own{ display:flex; justify-content:center; }
+  .iso-pick-item.is-own{ padding:8px 18px; font-weight:600; color:var(--accent); border-color:var(--accent); }
+  /* Asked whether to lock an isomorphism found: a card on the line between
+     the rings, where the padlock would sit. */
+  .iso-ask{ position:absolute; z-index:4; left:0; top:50%; translate:-50% -50%; width:max-content; max-width:16em; padding:10px 14px 12px; text-align:center; background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); box-shadow:0 4px 18px color-mix(in srgb, var(--ink) 22%, transparent); }
+  .iso-ask[hidden]{ display:none; }
+  .iso-ask-text{ margin:0 0 10px; font-size:.9rem; font-weight:600; color:var(--text); }
+  .iso-ask-btns{ display:flex; justify-content:center; gap:8px; }
+  .iso-ask-btns .action-btn{ min-width:4.5em; }
+  /* A pane opened to construct a group: all but its group parameters is
+     blurred until a modulus is entered. */
+  :root.is-iso-blank .fs-win-body.is-ring > :not(.fs-win-row-ctl), :root.is-iso-blank #keep-top-row{ filter:blur(8px); opacity:.5; pointer-events:none; user-select:none; }
+  :root.is-iso-unblurring .fs-win-body.is-ring > *, :root.is-iso-unblurring #keep-top-row{ transition:filter .45s ease, opacity .45s ease; }
   /* In a Ring window the pane is a fourth column, as wide as the other three
      with their gaps; it spans every row, the ring's flexible one setting its height. */
   .fs-win-body.is-ring > .iso-pane:not([hidden]){ grid-area:pane; align-self:stretch; border-left:1px solid var(--panel-border); padding-left:12px; }
@@ -1095,6 +1108,10 @@
         </div>
         <div class="iso-pane" id="iso-pane" hidden>
           <span class="iso-lock" id="iso-lock" title="Double-click to unlock" data-i18n-title="cyclicGroups.groupLockTitle" hidden></span>
+          <div class="iso-ask" id="iso-ask" role="alertdialog" aria-labelledby="iso-ask-text" hidden>
+            <p class="iso-ask-text" id="iso-ask-text" data-i18n="cyclicGroups.isoAskLock">Isomorphism found! Lock groups?</p>
+            <div class="iso-ask-btns"><button type="button" class="action-btn" id="iso-ask-yes" data-i18n="cyclicGroups.isoAskYes">Yes</button><button type="button" class="action-btn" id="iso-ask-no" data-i18n="cyclicGroups.isoAskNo">No</button></div>
+          </div>
           <div class="iso-pane-head">
             <span class="iso-pane-name" id="iso-pane-name"></span>
             <button type="button" class="fs-win-btn is-close" id="iso-pane-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
@@ -1407,6 +1424,11 @@ if (IS_RINGWIN) document.documentElement.classList.add('is-ringwin');
 var IS_ISOPANE = IS_RINGWIN && new URLSearchParams(location.search).get('isopane') === '1';
 if (IS_ISOPANE) document.documentElement.classList.add('is-isopane');
 var ISO_GEN = IS_ISOPANE ? parseInt(new URLSearchParams(location.search).get('isogen'), 10) : NaN;
+// isoblank=1: the pane was opened to construct a group of one's own. Only its
+// group parameters are clear, the modulus field empty; the rest stays blurred
+// until a modulus is entered.
+var isoBlank = IS_ISOPANE && new URLSearchParams(location.search).get('isoblank') === '1';
+if (isoBlank) document.documentElement.classList.add('is-iso-blank');
 var subgroupOptionsEl = $('subgroup-options');
 var ringHeadEl = $('ring-head');
 var scratchPadEl = $('scratch-pad');
@@ -2483,7 +2505,7 @@ var SNAP_ALIGN = 10;  // how near another edge a moved or resized edge catches o
 // of the ring it holds.
 var FS_STATE_KEY = 'cyclic-groups-fs-windows';
 var fsExtraSpecs = {}; // extra window key -> its spec, made once (see allSpecs)
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isoblank'];
 var fsState = readFsState();
 var fsWins = null; // window key -> { spec, win, body, title, grip, buttons, homes } while full screen
 var fsTasksEl = $('fs-tasks'), fsMenuEl = $('fs-menu'), fsLauncherEl = $('fs-launcher');
@@ -5320,6 +5342,7 @@ function isoPaneSrc(q, h){
   p.set('isopane', '1');
   p.set('isogen', String(h));
   if (isoPane && isoPane.unlocked) p.set('grouplock', '0');
+  if (isoPane && isoPane.blank) p.set('isoblank', '1');
   return location.pathname + '?' + p.toString();
 }
 // g, when given, is the generator of this ring's whole group the link runs
@@ -5331,8 +5354,8 @@ function openIsoPane(a, g){
   var p = new URLSearchParams(cleanRingQuery(new URL(a.href, location.href).search.slice(1)));
   // The pane opens still: the host's first turn message aims it.
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ p.delete(k); });
-  isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false };
-  isoWasLinked = true;
+  // Chosen as an isomorphism, the two rings open linked and locked.
+  isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false, link: 'linked', blank: false };
   setGroupLock(true);
   isoPaneEl.hidden = false;
   var picked = !!isoPickEl;
@@ -5340,6 +5363,20 @@ function openIsoPane(a, g){
   loadIsoFrame();
   if (picked) isoPaneFrame.classList.add('is-blurred');
   syncIsoPaneLabels();
+}
+// Construct own ring / group: the pane opens on this ring's mode and modulus,
+// unlocked and blank (see isoBlank), linked to nothing until the user says so.
+function openOwnPane(){
+  if (IS_ISOPANE || IS_PREVIEW || !drawn) return;
+  var p = new URLSearchParams();
+  p.set('mode', state.mode);
+  p.set('n', String(state.n));
+  isoPane = { h: drawn.G.identity, q: cleanRingQuery(p.toString()), parent: null, g: null, unlocked: true, link: 'none', blank: true };
+  isoPaneEl.hidden = false;
+  if (isoPickEl) isoPickEl.classList.add('is-chosen');
+  loadIsoFrame();
+  syncIsoPaneLabels();
+  syncIsoKeys();
 }
 function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
@@ -5351,6 +5388,11 @@ function loadIsoFrame(){
     if (f.classList.contains('is-blurred')){
       endIsoPick();
       setTimeout(function(){ requestAnimationFrame(function(){ f.classList.remove('is-blurred'); }); }, 350);
+    }
+    // A blank pane blurs all but its group parameters itself.
+    if (isoPane && isoPane.blank && isoPickEl){
+      endIsoPick();
+      f.focus();
     }
     postLook(f);
     isoSharedSent = null;
@@ -5376,6 +5418,7 @@ function closeIsoPane(){
   isoHoverSent = null;
   setIsoHot(null);
   isoPaneEl.hidden = true;
+  isoAskEl.hidden = true;
   isoPaneKey = null;
   setGroupLock(false);
   syncIsoTitle();
@@ -5461,6 +5504,17 @@ function openIsoPick(){
   menu.className = 'iso-pick-menu';
   menu.setAttribute('role', 'group');
   var chips = function(el){ return Array.prototype.slice.call(el.querySelectorAll('a.iso-chip')); };
+  var own = document.createElement('section');
+  own.className = 'iso-pick-sec is-own';
+  var ownBtn = document.createElement('button');
+  ownBtn.type = 'button';
+  ownBtn.className = 'iso-pick-item is-own';
+  ownBtn.textContent = translate('cyclicGroups.isoPickConstruct');
+  ownBtn.addEventListener('click', function(){
+    if (!isoPickEl.classList.contains('is-chosen')) openOwnPane();
+  });
+  own.appendChild(ownBtn);
+  menu.appendChild(own);
   var whole = chips(isoGroupChipsEl), sub = isoPanelEl.hidden ? [] : chips(isoPanelEl);
   // With the whole group on show as its subgroup, the two lists name the
   // same groups: one list, opening each as the subgroup's chip does.
@@ -5517,7 +5571,7 @@ function subgroupName(G, g){
 function ringTitle(){
   if (IS_ISOPANE || !drawn) return null;
   var G = drawn.G, left = subgroupName(G, state.noSub ? null : state.gen);
-  if (!isoPane) return left;
+  if (!isoPane || isoPane.blank) return left;
   var p = new URLSearchParams(isoPane.q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
   if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return left;
   var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), hg = parseInt(p.get('gen'), 10);
@@ -5541,7 +5595,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', linked: isoLinked(), colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -5565,11 +5619,21 @@ function applyIsoShared(d){
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.split)) splitOn = d.split;
+  // The link's generator here, which the holding ring may move to another
+  // generator of this group once the two are found isomorphic.
+  if (Number.isInteger(d.isogen) && d.isogen >= 0) ISO_GEN = d.isogen;
   if (flag(d.linked)){
-    var root = document.documentElement, was = !root.classList.contains('is-iso-unlinked');
-    root.classList.toggle('is-iso-unlinked', !d.linked);
-    // Linked again after it was not: the pane's group parameters lock again.
-    if (d.linked && !was) setGroupLock(true);
+    document.documentElement.classList.toggle('is-iso-unlinked', !d.linked);
+    if (!d.linked) isoPaints = null;
+  }
+  // Told to lock (the user said yes to the isomorphism found): lock, and show
+  // the link's generator as the subgroup, as an isomorphism chip opens it.
+  if (d.lock === true){
+    setGroupLock(true);
+    if (drawn && drawn.G.els.indexOf(ISO_GEN) !== -1){
+      state.gen = ISO_GEN;
+      state.noSub = false;
+    }
   }
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
   if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
@@ -5589,13 +5653,23 @@ function applyIsoShared(d){
 // Whether the two rings are linked by an isomorphism, so turn as one: the
 // pane's group is still generated by the chip's generator, and its order is
 // that of this ring's linking generator. Otherwise each turns on its own.
-function isoLinked(){
-  if (IS_ISOPANE || !isoPane || !drawn) return false;
+function isoPaneGroup(){
+  if (isoPane.Hq === isoPane.q) return isoPane.H;
   var p = new URLSearchParams(isoPane.q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
-  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return false;
-  var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), g = isoLinkGen();
+  isoPane.Hq = isoPane.q;
+  isoPane.H = (mode === 'additive' || mode === 'multiplicative') && isFinite(n) ? buildGroup(mode, clamp(n, MIN_N, MAX_N)) : null;
+  return isoPane.H;
+}
+// Whether the pane's group is isomorphic to this ring's linking subgroup
+// (both cyclic of one order), whatever the user made of it.
+function isoFound(){
+  if (IS_ISOPANE || !isoPane || isoPane.blank || !drawn) return false;
+  var H = isoPaneGroup(), g = isoLinkGen();
   var k = g === null ? 0 : drawn.G.orders[g];
-  return k > 0 && H.cyclic && H.order === k && H.orders[isoPane.h] === H.order;
+  return !!H && k > 0 && H.cyclic && H.order === k;
+}
+function isoLinked(){
+  return isoFound() && isoPane.link === 'linked' && isoPane.H.orders[isoPane.h] === isoPane.H.order;
 }
 // The pane's path colour key, as the pane reports it after every render:
 // { on, h, hinv, merged, back }. While the rings are not linked and either
@@ -5609,21 +5683,53 @@ function tellPaneKey(key){
   isoPaneKeySent = s;
   tellHost({ isopane: 'key', key: key });
 }
-// isoWasLinked: whether the rings were linked at the last look, null with
-// no pane. When they are linked again after they were not, the group
-// parameters of both rings, and the padlock between them, lock again.
-var isoWasLinked = null;
+// isoPane.link: 'linked' while the two rings are linked, 'none' while their
+// groups are not isomorphic, 'asking' while the user is asked whether to lock
+// an isomorphism found, 'declined' once they said no, until the groups stop
+// being isomorphic. The rings never link, nor lock, without being asked,
+// except when opened as an isomorphism.
+function syncIsoLink(){
+  if (IS_ISOPANE || !isoPane || !drawn || isoPane.blank) return;
+  if (!isoFound()) isoPane.link = 'none';
+  else {
+    var H = isoPaneGroup();
+    if (H.orders[isoPane.h] !== H.order) isoPane.h = H.generators[0];
+    if (isoPane.link === 'none') isoPane.link = 'asking';
+  }
+  isoAskEl.hidden = isoPane.link !== 'asking';
+}
+function answerIsoAsk(yes){
+  if (!isoPane || isoPane.link !== 'asking') return;
+  isoAskEl.hidden = true;
+  if (!yes){
+    isoPane.link = 'declined';
+    syncIsoKeys();
+    return;
+  }
+  isoPane.link = 'linked';
+  isoPane.unlocked = false;
+  setGroupLock(true);
+  isoPane.lockNow = true;
+  postIsoShared(true);
+  isoPane.lockNow = false;
+  isoSharedSent = null;
+  isoSentK = null;
+  isoSentC = null;
+  isoSentPaints = null;
+  render();
+  isoTellTop(true);
+}
+var isoAskEl = $('iso-ask');
+$('iso-ask-yes').addEventListener('click', function(){ answerIsoAsk(true); });
+$('iso-ask-no').addEventListener('click', function(){ answerIsoAsk(false); });
+isoAskEl.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ e.preventDefault(); answerIsoAsk(false); }
+});
 function syncIsoKeys(){
   if (IS_ISOPANE) return;
   var root = document.documentElement, copy = $('combine-key-pane');
+  syncIsoLink();
   var unlinked = !!isoPane && !!drawn && !isoLinked();
-  if (isoPane && drawn){
-    if (!unlinked && isoWasLinked === false){
-      isoPane.unlocked = false;
-      setGroupLock(true);
-    }
-    isoWasLinked = !unlinked;
-  } else isoWasLinked = null;
   var pk = unlinked && isoPaneKey && isoPaneKey.on && Number.isInteger(isoPaneKey.h) && Number.isInteger(isoPaneKey.hinv) ? isoPaneKey : null;
   var mine = !combineKeyEl.hidden;
   var showCopy = !!pk && (!mine || pk.merged || mergedWalks(drawn.G));
@@ -5663,8 +5769,8 @@ function isoLinkGen(){
 function isoOrder(){
   if (!drawn) return 0;
   var g = isoLinkGen();
-  var m = IS_ISOPANE ? (drawn.G.cyclic && drawn.G.orders[ISO_GEN] === drawn.G.order ? drawn.G.order : 0)
-    : (isoPaneFrame && g !== null ? drawn.G.orders[g] : 0);
+  var m = IS_ISOPANE ? (!document.documentElement.classList.contains('is-iso-unlinked') && drawn.G.cyclic && drawn.G.orders[ISO_GEN] === drawn.G.order ? drawn.G.order : 0)
+    : (isoPaneFrame && g !== null && isoLinked() ? drawn.G.orders[g] : 0);
   return typeof m === 'number' && isFinite(m) ? m : 0;
 }
 // The powers of the link's generator, the index being the exponent.
@@ -5717,7 +5823,7 @@ function isoSpread(){
 var ISO_PAINT_PREFIX = '--ord: ';
 var isoPaints = null, isoBorrowed = null, isoSentPaints = null;
 function borrowedPaints(G){
-  if (!IS_ISOPANE || !isoPaints || !G.cyclic || G.orders[ISO_GEN] !== G.order || isoPaints.length !== G.order) return null;
+  if (!IS_ISOPANE || !isoPaints || document.documentElement.classList.contains('is-iso-unlinked') || !G.cyclic || G.orders[ISO_GEN] !== G.order || isoPaints.length !== G.order) return null;
   var out = {};
   lap(G, ISO_GEN, G.order).forEach(function(a, k){ out[a] = isoPaints[k]; });
   return out;
@@ -5847,6 +5953,13 @@ window.addEventListener('message', function(e){
     syncIsoKeys();
   } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover'){
     isoReceive(d);
+  } else if (d.isopane === 'built'){
+    // The blank pane has its group: from now on it is a ring like any other.
+    isoPane.blank = false;
+    isoSharedSent = null;
+    syncIsoPaneLabels();
+    syncIsoKeys();
+    postIsoShared(true);
   } else if (d.isopane === 'unlock'){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
@@ -6355,7 +6468,7 @@ function render(){
 /* ---------- controls <-> state ---------- */
 
 function syncControls(){
-  nInputEl.value = state.n;
+  if (!isoBlank) nInputEl.value = state.n;
   FLAG_SWITCHES.forEach(function(name){ $('layer-' + name).checked = state[name]; });
   colorBySelectEl.value = state.colors ? state.colorBy : 'none';
   sideElEl.value = state.elSide;
@@ -6503,9 +6616,25 @@ function exportRingPng(){
 
 nInputEl.addEventListener('input', function(){ applyTypedN(nInputEl.value); });
 nInputEl.addEventListener('change', function(){
+  if (isoBlank && !isFinite(parseInt(nInputEl.value, 10))) return;
   applyTypedN(nInputEl.value);
+  if (isoBlank) endIsoBlank();
   nInputEl.value = state.n;
 });
+// The blank pane's modulus is entered: its blur lifts and the ring holding it
+// takes it as a ring like any other.
+function endIsoBlank(){
+  isoBlank = false;
+  var root = document.documentElement;
+  root.classList.add('is-iso-unblurring');
+  root.classList.remove('is-iso-blank');
+  setTimeout(function(){ root.classList.remove('is-iso-unblurring'); }, 600);
+  tellHost({ isopane: 'built' });
+}
+if (isoBlank){
+  nInputEl.value = '';
+  setTimeout(function(){ nInputEl.focus(); }, 0);
+}
 opSelectEl.addEventListener('change', function(){ setMode(opSelectEl.value); });
 identitySelectEl.addEventListener('change', function(){ setMode(identitySelectEl.value); });
 opToggleEl.addEventListener('click', function(){
