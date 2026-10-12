@@ -5461,8 +5461,25 @@ function openIsoPick(){
   menu.className = 'iso-pick-menu';
   menu.setAttribute('role', 'group');
   var chips = function(el){ return Array.prototype.slice.call(el.querySelectorAll('a.iso-chip')); };
-  menu.appendChild(isoPickSection('cyclicGroups.isoPickWhole', chips(isoGroupChipsEl), true));
-  menu.appendChild(isoPickSection('cyclicGroups.isoPickSub', isoPanelEl.hidden ? [] : chips(isoPanelEl), false));
+  var whole = chips(isoGroupChipsEl), sub = isoPanelEl.hidden ? [] : chips(isoPanelEl);
+  // With the whole group on show as its subgroup, the two lists name the
+  // same groups: one list, opening each as the subgroup's chip does.
+  if (drawn && !state.noSub && drawn.G.orders[state.gen] === drawn.G.order){
+    var named = sub.map(function(a){ return a.getAttribute('data-iso-mode') + ' ' + a.getAttribute('data-iso-n'); });
+    var only = whole.filter(function(a){ return named.indexOf(a.getAttribute('data-iso-mode') + ' ' + a.getAttribute('data-iso-n')) === -1; });
+    var both = isoPickSection('cyclicGroups.isoPickBoth', sub, false);
+    if (only.length){
+      var rest = isoPickSection('cyclicGroups.isoPickBoth', only, true);
+      var list = both.querySelector('.iso-pick-list');
+      var none = list.querySelector('.iso-pick-none');
+      if (none) none.remove();
+      rest.querySelectorAll('.iso-pick-item').forEach(function(b){ list.appendChild(b); });
+    }
+    menu.appendChild(both);
+  } else {
+    menu.appendChild(isoPickSection('cyclicGroups.isoPickWhole', whole, true));
+    menu.appendChild(isoPickSection('cyclicGroups.isoPickSub', sub, false));
+  }
   isoPickEl.appendChild(ghost);
   isoPickEl.appendChild(menu);
   isoPaneEl.appendChild(isoPickEl);

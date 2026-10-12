@@ -48,7 +48,8 @@
    and ctxArrows (the ring's right-click menu's Colours section and its two
    submenus), ctxIsoGroup and ctxIsoSub (that menu's submenus of groups
    isomorphic to the whole group and to the subgroup on show, to open
-   beside the ring), isoAddTitle, isoPickWhole, isoPickSub and isoPickNone
+   beside the ring), isoAddTitle, isoPickWhole, isoPickSub, isoPickBoth (the one list when the
+   subgroup on show is the whole group) and isoPickNone
    (the + at a Ring window's right edge and the picker of those groups it
    opens in an empty second pane), showArrowKey (the Arrows submenu's switch for the arrow
    colour key), fsGroupParams (the label of its top row),
@@ -360,6 +361,7 @@
       isoAddTitle: 'Open a second ring beside this one',
       isoPickWhole: 'Groups isomorphic to the current group',
       isoPickSub: 'Groups isomorphic to the current subgroup',
+      isoPickBoth: 'Groups isomorphic to the current group/subgroup',
       isoPickNone: 'None',
       showArrowKey: 'Show arrow colour key',
       fsInfo: 'Info',
