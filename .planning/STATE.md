@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T10:02:29.636Z"
+last_updated: "2026-10-12T10:08:57.239Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 4426039a1f360edb389c74781e007c1befba22b2
+state_head: afa35d10360bcb09fdeff01d9ab814a44f0542e6
 progress:
   total_phases: 7
   completed_phases: 6
@@ -508,6 +508,7 @@ None yet.
 | 272 | Cyclic groups isomorphism pane: rotation controls in a shared footer under both rings | 2026-10-12 | e18b4d9 | — |
 | 273 | Cyclic groups pane open: path colour key in the shared footer, right of the speed ruler | 2026-10-12 | 8176a45 | — |
 | 274 | Cyclic groups non-isomorphic pane: own rotation controls per ring, path key once under both or two keys when a path is mixed | 2026-10-12 | 4426039 | — |
+| 275 | Cyclic groups isomorphism: padlock on the divider, synced with both rings' group-parameter locks | 2026-10-12 | afa35d1 | — |
 
 ## Deferred Items
 
