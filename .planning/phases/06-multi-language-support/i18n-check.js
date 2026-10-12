@@ -2491,9 +2491,10 @@ function isProse(text) {
 // name present in the English value and kept literal by every existing
 // language.
 var SCRIPT_LATIN_NOTATION = [
-  "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
-  "Fourier", "Garner", "Hasse", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "aB", "aG",
-  "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "pointAdd", "qInv", "scalarMul"
+  "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
+  "Fourier", "Garner", "Hasse", "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG",
+  "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "pointAdd",
+  "qInv", "scalarMul"
 ];
 
 // ---------- Standard Moroccan Tamazight (IRCAM standard, ISO 639-3 zgh) ----------
@@ -2544,8 +2545,8 @@ var ZGH_LATN_TO_TFNG = Object.freeze({
 // Delete/Enter/Space). Equal to SCRIPT_LATIN_NOTATION without its four eponyms
 // (Fibonacci, Fourier, Garner, Hasse are adapted to IRCAM Latin) plus those four.
 var ZGH_KEEP = [
-  "AES", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Delete", "Enter", "Eve",
-  "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "Space", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
+  "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Delete", "Enter", "Eve",
+  "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "Space", "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
   "kG", "lcm", "log", "mod", "ms", "pointAdd", "qInv", "scalarMul"
 ];
 var ZGH_KEEP_SET = {};
