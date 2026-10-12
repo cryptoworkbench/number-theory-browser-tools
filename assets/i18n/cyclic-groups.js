@@ -67,7 +67,10 @@
    dropdown and its generator dropdown), and the
    website-theme bead coloring: colorByNone (the element colours
    dropdown's None, which replaced the Element colors checkbox), colorByTheme, identityColor,
-   identityColorReset, legendHeadingTheme and the four legendTheme* lines. Every other language shows the English
+   identityColorReset, legendHeadingTheme and the four legendTheme* lines,
+   and ctxShowFormulas, ctxCopyLatex, ctxCopyMathml, ctxCopyUnicode and
+   ctxCopyAscii (the ring's right-click menu's Info, Formulas submenu: the
+   scratchpad's switch and each formula's copy formats). Every other language shows the English
    value through NT.i18n's fallback until a catch-up translation pass, and
    i18n-check --coverage reports them as LANG-KEYSET findings meanwhile.
 
@@ -365,6 +368,11 @@
       scratchClose: 'Close formula scratchpad',
       scratchGens: 'Group generator amount',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
+      ctxShowFormulas: 'Show formulas',
+      ctxCopyLatex: 'Copy in LaTeX formatting',
+      ctxCopyMathml: 'Copy in MathML formatting',
+      ctxCopyUnicode: 'Copy as Unicode plain text',
+      ctxCopyAscii: 'Copy in ASCII formatting',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
       fsWindows: 'Windows',
