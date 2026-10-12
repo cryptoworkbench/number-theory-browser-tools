@@ -767,6 +767,14 @@
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#combine-key, #combine-key-pane){ grid-area:foot; justify-self:end; align-self:start; max-width:260px; margin:0; padding-top:10px; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:keyl; }
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane:not([hidden]){ display:flex; }
+  /* Linked, the two rings colour their beads by subgroup cardinality alike,
+     so their colour keys are one: the pane shows none, and this ring's sits
+     once under both, its entries in a row, as the arrow key does. */
+  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "foot foot foot foot" "lgd lgd lgd lgd"; }
+  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "split split split pane" "foot foot foot foot" "lgd lgd lgd lgd"; }
+  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel.is-shown{ grid-area:lgd; justify-self:center; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
+  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
+  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane{ grid-area:keyr; }
   /* On the page itself the pane hangs in the diagram's right half, clear of
      the full-screen button above and the resize grip below, and the ring,
@@ -5311,7 +5319,10 @@ function renderLegend(G, classes, pairing){
   // With the beads uncoloured there is no key to show full screen.
   legendBtnEl.hidden = !state.colors;
   legendBtnEl.setAttribute('aria-pressed', legendShown ? 'true' : 'false');
-  legendPanelEl.classList.toggle('is-shown', legendShown && state.colors);
+  // Linked, the pane's key is the same as the ring holding it, which shows
+  // the one key under both.
+  var oneKey = IS_ISOPANE && !document.documentElement.classList.contains('is-iso-unlinked') && state.colorBy === 'order';
+  legendPanelEl.classList.toggle('is-shown', legendShown && state.colors && !oneKey);
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
   var inverse = state.colorBy === 'inverse', theme = state.colorBy === 'theme';
@@ -5848,6 +5859,7 @@ function syncIsoKeys(){
   var mine = !combineKeyEl.hidden;
   var showCopy = !!pk && (!mine || pk.merged || mergedWalks(drawn.G));
   root.classList.toggle('is-iso-unlinked', unlinked);
+  root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && state.colorBy === 'order');
   root.classList.toggle('is-iso-two-keys', showCopy && mine);
   copy.hidden = !showCopy;
   if (!showCopy) return;
