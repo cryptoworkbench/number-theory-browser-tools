@@ -493,6 +493,7 @@ None yet.
 | 257 | Cyclic Groups: isomorphism pane drops its name in Ring windows | 2026-10-12 | e251054 | — |
 | 258 | Cyclic Groups: ring menu Colours section (Elements and Arrows submenus) | 2026-10-12 | 59990a4 | — |
 | 259 | Cyclic Groups: isomorphisms in the ring menu, arrow key switch | 2026-10-12 | 9e38f32 | — |
+| 260 | Cyclic Groups: isomorphism rings turn in lockstep | 2026-10-12 | b270b80 | — |
 
 ## Deferred Items
 
