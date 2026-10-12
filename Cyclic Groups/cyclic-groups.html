@@ -658,7 +658,8 @@
   .arrange-pair[hidden]{ display:none; }
   .fs-win-body.is-ring > #arrange-field{ min-width:0; }
   .fs-win-body.is-ring .arrange-controls{ flex:1 1 0; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:6px clamp(12px, 3.5cqi, 32px); }
-  .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; align-items:center; gap:10px; }
+  .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; max-width:100%; }
+  .fs-win-body.is-ring .arrange-controls select{ max-width:100%; }
   .fs-win-body.is-ring :is(#gen-field > select, #arrange-field select){ width:auto; min-width:8em; padding:4px 8px; }
   .diagram-frame:fullscreen .fs-win-body.is-ring .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
   /* The switch plate's ledge and shadow hang below its box; room under it
@@ -3738,6 +3739,8 @@ function syncSplit(){
   ringSplitEl.hidden = !on;
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
   postIsoShared(false);
+  if (IS_ISOPANE){ applySplitAlign(); reportPaneSplit(); }
+  else alignSplits();
 }
 legendBtnEl.addEventListener('click', function(){
   legendShown = !legendShown;
@@ -3776,14 +3779,15 @@ function setSplitShare(v){
 splitGripEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0) return;
   var ring = ringSvgEl.getBoundingClientRect().height, pane = ringSplitEl.getBoundingClientRect().height;
-  splitSizing = { id: e.pointerId, y: e.clientY, pane: pane, total: ring + pane };
+  splitSizing = { id: e.pointerId, y: e.clientY, pane: pane, total: ring + pane, top: ringSplitEl.getBoundingClientRect().top };
   splitGripEl.setPointerCapture(e.pointerId);
   ringSplitEl.classList.add('is-resizing');
   e.preventDefault();
 });
 splitGripEl.addEventListener('pointermove', function(e){
   if (!splitSizing || e.pointerId !== splitSizing.id || !splitSizing.total) return;
-  setSplitShare((splitSizing.pane - (e.clientY - splitSizing.y)) / splitSizing.total);
+  if (splitLinedUp()) moveLinedUpTop(splitSizing.top + e.clientY - splitSizing.y);
+  else changeSplitShare((splitSizing.pane - (e.clientY - splitSizing.y)) / splitSizing.total);
 });
 function endSplitSizing(e){
   if (!splitSizing || e.pointerId !== splitSizing.id) return;
@@ -3792,13 +3796,139 @@ function endSplitSizing(e){
 }
 splitGripEl.addEventListener('pointerup', endSplitSizing);
 splitGripEl.addEventListener('pointercancel', endSplitSizing);
-splitGripEl.addEventListener('dblclick', function(){ setSplitShare(0.5); });
+splitGripEl.addEventListener('dblclick', function(){ changeSplitShare(0.5); });
 splitGripEl.addEventListener('keydown', function(e){
+  if (splitLinedUp()){
+    var by = { ArrowUp: -SPLIT_ALIGN_STEP, ArrowDown: SPLIT_ALIGN_STEP, Home: 1e6, End: -1e6 }[e.key];
+    if (by === undefined) return;
+    moveLinedUpTop(ringSplitEl.getBoundingClientRect().top + by);
+    e.preventDefault();
+    return;
+  }
   var to = { ArrowUp: splitShare + 0.05, ArrowDown: splitShare - 0.05, Home: SPLIT_MIN, End: SPLIT_MAX }[e.key];
   if (to === undefined) return;
-  setSplitShare(to);
+  changeSplitShare(to);
   e.preventDefault();
 });
+// A share set by the divider. A pane lined up with its ring hands the share
+// to that ring, which sets both.
+function changeSplitShare(v){
+  if (IS_ISOPANE && splitAlign){
+    tellHost({ isopane: 'splitshare', value: clamp(v, SPLIT_MIN, SPLIT_MAX) });
+    return;
+  }
+  setSplitShare(v);
+  alignTopWant = null;
+  alignSplits();
+}
+// Lined up, the divider sets both panes' top to the pixel instead: dragged,
+// or a step a key press, as far as both rings and both panes leave room.
+var SPLIT_ALIGN_STEP = 24;
+var alignTopWant = null, alignApplied = false; // in the ring holding the pane
+function splitLinedUp(){ return IS_ISOPANE ? !!splitAlign : alignApplied; }
+function moveLinedUpTop(top){
+  if (IS_ISOPANE){ tellHost({ isopane: 'splittop', top: top }); return; }
+  alignTopWant = top;
+  alignSplits();
+}
+
+// In an isomorphism between two whole groups the two subgroup panes line up,
+// top and bottom. The ring holding the pane decides where: its own pane's
+// top at its share, but low enough to leave the pane's ring room, and the
+// higher of the two bottoms. The pane reports where its ring starts and how
+// low its pane reaches, and is told where to put its pane.
+var SPLIT_ALIGN_RING_MIN = 120, SPLIT_ALIGN_PANE_MIN = 60;
+var paneSplitBox = null; // the pane's report, in its own coordinates
+var splitAlignSent = null;
+var splitAlign = null; // in the pane: the top and bottom it was told
+// The pane's height and the margin under it, in pixels, the ring taking the
+// rest and every other row only what it needs; or, without them, back to the
+// share. Where the pane's row ends does not depend on its height.
+function setSplitPx(height, under){
+  var root = document.documentElement.style;
+  if (height === null){
+    setSplitShare(splitShare);
+    ringSplitEl.style.height = ringSplitEl.style.marginBottom = '';
+    return;
+  }
+  root.setProperty('--ring-fr', '1fr');
+  root.setProperty('--split-fr', 'auto');
+  ringSplitEl.style.height = num(Math.max(0, height)) + 'px';
+  ringSplitEl.style.marginBottom = num(Math.max(0, under)) + 'px';
+}
+// Where the pane's row ends with its height set in pixels.
+function splitRowEnd(){
+  setSplitPx(0, 0);
+  return ringSplitEl.getBoundingClientRect().top;
+}
+// The link is between whole groups when it runs through this whole group, or
+// through the subgroup on show and that subgroup is the whole group.
+function isoLinksWholeGroups(){
+  if (!isoPane || isoPane.blank) return false;
+  if (isoPane.g !== null) return true;
+  return !!drawn && !state.noSub && drawn.G.orders[state.gen] === drawn.G.order;
+}
+function splitAlignOn(){
+  return splitOn && !ringSplitEl.hidden && isoLinksWholeGroups() && !!isoPaneFrame && !isoPaneEl.hidden && !!paneSplitBox;
+}
+function tellPaneSplit(msg){
+  var s = JSON.stringify(msg);
+  if (s === splitAlignSent || !isoPaneFrame) return;
+  splitAlignSent = s;
+  try { isoPaneFrame.contentWindow.postMessage(msg, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+}
+function alignSplits(){
+  if (IS_ISOPANE) return;
+  setSplitPx(null);
+  alignApplied = false;
+  if (!splitAlignOn()){
+    alignTopWant = null;
+    tellPaneSplit({ ringhost: 'split', top: null, share: splitShare });
+    return;
+  }
+  var atShare = ringSplitEl.getBoundingClientRect().top;
+  var end = splitRowEnd();
+  var off = isoPaneFrame.getBoundingClientRect().top, ringTop = ringSvgEl.getBoundingClientRect().top;
+  var bottom = Math.min(end, off + paneSplitBox.bottom);
+  var top = Math.max(alignTopWant !== null ? Math.min(alignTopWant, bottom - SPLIT_ALIGN_PANE_MIN) : atShare, ringTop + SPLIT_ALIGN_RING_MIN, off + paneSplitBox.ringTop + SPLIT_ALIGN_RING_MIN);
+  if (bottom - top < SPLIT_ALIGN_PANE_MIN){
+    setSplitPx(null);
+    tellPaneSplit({ ringhost: 'split', top: null, share: splitShare });
+    return;
+  }
+  setSplitPx(bottom - top, end - bottom);
+  alignApplied = true;
+  tellPaneSplit({ ringhost: 'split', top: top - off, bottom: bottom - off, share: splitShare });
+}
+// The pane's side: put its pane where it is told, or back to the share.
+function applySplitAlign(){
+  setSplitPx(null);
+  if (!splitAlign || ringSplitEl.hidden) return;
+  var end = splitRowEnd();
+  setSplitPx(splitAlign.bottom - splitAlign.top, end - splitAlign.bottom);
+}
+var paneSplitSent = null;
+function reportPaneSplit(){
+  if (!IS_ISOPANE) return;
+  var box = null;
+  if (!ringSplitEl.hidden){
+    var r = ringSplitEl.getBoundingClientRect();
+    box = { ringTop: Math.round(ringSvgEl.getBoundingClientRect().top), bottom: Math.round(r.bottom + (parseFloat(getComputedStyle(ringSplitEl).marginBottom) || 0)) };
+  }
+  var s = JSON.stringify(box);
+  if (s === paneSplitSent) return;
+  paneSplitSent = s;
+  tellHost({ isopane: 'splitbox', box: box });
+}
+// Any change of size on either side measures again.
+if (typeof ResizeObserver === 'function'){
+  var splitWatch = new ResizeObserver(function(){
+    if (IS_ISOPANE) reportPaneSplit();
+    else alignSplits();
+  });
+  splitWatch.observe(ringSvgEl);
+  splitWatch.observe(ringSplitEl);
+}
 
 // A window's name. The ring's names the group on show, and whether it is
 // cyclic.
@@ -4079,6 +4209,13 @@ if (IS_RINGWIN){
     }
     if (d.ringhost === 'unlock'){
       if (IS_ISOPANE) openGroupLock(true);
+      return;
+    }
+    if (d.ringhost === 'split'){
+      if (!IS_ISOPANE) return;
+      if (typeof d.share === 'number' && isFinite(d.share)) splitShare = clamp(d.share, SPLIT_MIN, SPLIT_MAX);
+      splitAlign = typeof d.top === 'number' && typeof d.bottom === 'number' && isFinite(d.top) && isFinite(d.bottom) ? { top: d.top, bottom: d.bottom } : null;
+      applySplitAlign();
       return;
     }
     if (d.ringhost !== 'look') return;
@@ -5575,6 +5712,9 @@ function openOwnPane(){
 }
 function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
+  // A new frame reports its own pane afresh.
+  paneSplitBox = null;
+  splitAlignSent = null;
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
     f.classList.add('is-loaded');
@@ -5609,6 +5749,9 @@ function closeIsoPane(){
   isoPaneFrame = null;
   isoPane = null;
   isoSharedSent = null;
+  paneSplitBox = null;
+  splitAlignSent = null;
+  alignSplits();
   isoSentK = null;
   isoHoverSent = null;
   setIsoHot(null);
@@ -6160,6 +6303,14 @@ window.addEventListener('message', function(e){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
     isoPane.unlocked = true;
+  } else if (d.isopane === 'splitbox'){
+    var b = d.box;
+    paneSplitBox = b && typeof b === 'object' && isFinite(b.ringTop) && isFinite(b.bottom) ? { ringTop: +b.ringTop, bottom: +b.bottom } : null;
+    alignSplits();
+  } else if (d.isopane === 'splitshare' && typeof d.value === 'number' && isFinite(d.value)){
+    changeSplitShare(d.value);
+  } else if (d.isopane === 'splittop' && typeof d.top === 'number' && isFinite(d.top) && isoPaneFrame){
+    moveLinedUpTop(isoPaneFrame.getBoundingClientRect().top + d.top);
   } else if (d.isopane === 'ctl' && typeof d.id === 'string'){
     // A colour control changed in the pane's menu: set this ring's own, and
     // fire the event its handler listens for.
