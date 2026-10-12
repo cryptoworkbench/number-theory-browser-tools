@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-12T15:49:50.000Z"
+last_updated: "2026-10-12T18:41:39.000Z"
 last_activity: 2026-10-11
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 0df819056a9622b7dc070a2d86c5cceb8ce25141
+state_head: 2952fec3d1fd689fdbd8942e312b8a542e55addc
 progress:
   total_phases: 7
   completed_phases: 6
@@ -549,6 +549,7 @@ None yet.
 | 313 | Cyclic Groups group-to-group isomorphisms merge the Numerical panels into one table | 2026-10-12 | 39a2800 | — |
 | 314 | Cyclic Groups: hovering the trivial subgroup's row no longer shakes the Ring window (arrow key keeps its room during a preview) | 2026-10-12 | 40c877f | — |
 | 315 | Cyclic Groups: Numerical rows' right-click menu downloads each group's subgroup list (replaces Export as text) | 2026-10-12 | 0df8190 | — |
+| 316 | Catch-up translation: Cyclic Groups (105 keys), Least Common Multiple (whole namespace), nav/hub lcm keys and the seventeen-tools lede/footer into all 31 languages; i18n-check --coverage PASS | 2026-10-12 | 2952fec | — |
 
 ## Deferred Items
 
