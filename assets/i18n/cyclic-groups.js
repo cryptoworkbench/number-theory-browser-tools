@@ -40,7 +40,10 @@
    fsOpacityValue (its opacity button and slider), fsRing, fsRingCyclic and fsRingNotCyclic (the ring's own window,
    named after the group on show), fsRingIso and fsRingIsoSub (its name
    while it studies an isomorphism: the whole group, or the subgroup and the
-   group it lies in, beside the right ring's group), ctxColours, ctxElements
+   group it lies in, beside the right ring's group), fsRingPair (its name
+   once the two groups are changed so they are no longer isomorphic),
+   groupLockTitle (the tooltip of the group parameters, locked while an
+   isomorphism is open), ctxColours, ctxElements
    and ctxArrows (the ring's right-click menu's Colours section and its two
    submenus), ctxIsoGroup and ctxIsoSub (that menu's submenus of groups
    isomorphic to the whole group and to the subgroup on show, to open
@@ -338,6 +341,8 @@
       fsRingNotCyclic: 'Ring {group}',
       fsRingIso: 'Isomorphism {left} ≅ {right}',
       fsRingIsoSub: '({sub} ⊂ {left}) ≅ {right}',
+      fsRingPair: '{left} & {right}',
+      groupLockTitle: 'Double-click to unlock',
       ctxColours: 'Colours',
       ctxElements: 'Elements',
       ctxArrows: 'Arrows',

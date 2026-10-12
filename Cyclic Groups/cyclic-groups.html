@@ -202,6 +202,19 @@
   .facts.group-controls li:last-child{ border-bottom:1px dotted var(--panel-border); }
   /* The clamped-value note takes its own line under the modulus row. */
   .facts.group-controls .n-note{ flex-basis:100%; margin:0; }
+  /* With an isomorphism open, the group's parameters start locked: greyed,
+     a padlock on each, a double-click anywhere on them opening the padlock,
+     which fades, and only then are they let go. The rows are covered so a
+     click reaches neither the field nor the switch. */
+  .group-controls > li{ position:relative; }
+  .group-controls.is-locked > li:not(.fs-row-label) > :not(.group-lock){ opacity:.45; }
+  .group-controls.is-locked > li:not(.fs-row-label){ user-select:none; -webkit-user-select:none; }
+  .group-controls.is-locked > li:not(.fs-row-label)::after{ content:""; position:absolute; inset:0; z-index:1; cursor:not-allowed; }
+  .group-lock{ position:absolute; z-index:2; top:-8px; right:-14px; display:none; width:22px; height:22px; place-items:center; color:var(--text-dim); background:var(--surface); border:1px solid var(--panel-border); border-radius:50%; pointer-events:none; transition:opacity .5s ease; }
+  .group-controls.is-locked .group-lock{ display:grid; }
+  .group-lock svg{ width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; }
+  .group-controls.is-unlocking .group-lock{ color:var(--accent); border-color:var(--accent); }
+  .group-controls.is-fading .group-lock{ opacity:0; }
   .facts.group-controls input:focus-visible, .facts.group-controls select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   /* In full screen the linked operation and identity rows give way to one
      toggle switch, (+, 0) thrown left and (×, 1) thrown right: a screwed-on
@@ -4955,6 +4968,7 @@ function isoPaneSrc(q, h){
   p.set('ringwin', '1');
   p.set('isopane', '1');
   p.set('isogen', String(h));
+  if (isoPane && isoPane.unlocked) p.set('grouplock', '0');
   return location.pathname + '?' + p.toString();
 }
 // g, when given, is the generator of this ring's whole group the link runs
@@ -4966,7 +4980,8 @@ function openIsoPane(a, g){
   var p = new URLSearchParams(cleanRingQuery(new URL(a.href, location.href).search.slice(1)));
   // The pane opens still: the host's first turn message aims it.
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ p.delete(k); });
-  isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g };
+  isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false };
+  setGroupLock(true);
   isoPaneEl.hidden = false;
   loadIsoFrame();
   syncIsoPaneLabels();
@@ -4998,6 +5013,7 @@ function closeIsoPane(){
   isoHoverSent = null;
   setIsoHot(null);
   isoPaneEl.hidden = true;
+  setGroupLock(false);
   syncIsoTitle();
 }
 // Entering or leaving full screen moves the pane's element, which reloads its
@@ -5022,12 +5038,12 @@ isoPaneCloseEl.addEventListener('click', closeIsoPane);
 // group, while the two have the same order; null otherwise.
 function isoTitle(){
   if (IS_ISOPANE || !isoPane || !drawn) return null;
-  var g = isoLinkGen();
-  if (g === null) return null;
   var p = new URLSearchParams(isoPane.q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
   if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return null;
-  var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), G = drawn.G, k = G.orders[g];
-  if (!H.cyclic || H.order !== k) return null;
+  var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), G = drawn.G, g = isoLinkGen();
+  var k = g === null ? 0 : G.orders[g];
+  // Groups changed so that they are no longer isomorphic are just named side by side.
+  if (!H.cyclic || H.order !== k) return translate('cyclicGroups.fsRingPair', { left: G.label, right: H.label });
   if (k === G.order) return translate('cyclicGroups.fsRingIso', { left: G.label, right: H.label });
   return translate('cyclicGroups.fsRingIsoSub', { sub: '⟨' + g + '⟩', left: G.label, right: H.label });
 }
@@ -5258,6 +5274,8 @@ window.addEventListener('message', function(e){
     syncIsoPaneLabels();
   } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover'){
     isoReceive(d);
+  } else if (d.isopane === 'unlocked'){
+    isoPane.unlocked = true;
   } else if (d.isopane === 'edit' && typeof d.on === 'boolean'){
     // A shared setting changed in the pane: the same click on this ring's own
     // controls, so both rings follow from the one render.
@@ -5910,6 +5928,55 @@ opToggleEl.addEventListener('keydown', function(e){
   e.preventDefault();
   setMode(e.key === 'ArrowLeft' ? 'additive' : 'multiplicative');
 });
+// The group's parameters, locked while an isomorphism is open: on the ring
+// holding the pane from the moment it opens, in the pane from its start
+// (unless it was let go before a reload). A double-click on them opens the
+// padlocks, which fade, and then the fields and the switch are let go.
+var groupControlsEl = $('group-controls');
+var GROUP_LOCK_FIELDS = [nInputEl, opSelectEl, identitySelectEl, opToggleEl];
+var groupLockTimer = 0;
+var groupLockIcons = Array.prototype.map.call(groupControlsEl.querySelectorAll(':scope > li:not(.fs-row-label)'), function(li){
+  var icon = document.createElement('span');
+  icon.className = 'group-lock';
+  icon.setAttribute('aria-hidden', 'true');
+  li.appendChild(icon);
+  return icon;
+});
+function drawGroupLocks(open){
+  groupLockIcons.forEach(function(icon){
+    icon.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: open ? 'M4 5.5V3.5a2 2 0 0 1 4 0' : 'M4 5.5V4a2 2 0 0 1 4 0v1.5' }]]));
+  });
+}
+function setGroupLock(on){
+  clearTimeout(groupLockTimer);
+  groupControlsEl.classList.remove('is-unlocking', 'is-fading');
+  groupControlsEl.classList.toggle('is-locked', on);
+  GROUP_LOCK_FIELDS.forEach(function(el){ el.disabled = on; });
+  drawGroupLocks(false);
+  var title = on ? translate('cyclicGroups.groupLockTitle') : '';
+  groupControlsEl.querySelectorAll(':scope > li:not(.fs-row-label)').forEach(function(li){
+    if (title) li.title = title; else li.removeAttribute('title');
+  });
+}
+// A press on locked parameters starts no selection, so the double-click
+// that opens them leaves no word highlighted.
+groupControlsEl.addEventListener('mousedown', function(e){
+  if (groupControlsEl.classList.contains('is-locked')) e.preventDefault();
+});
+groupControlsEl.addEventListener('dblclick', function(){
+  if (!groupControlsEl.classList.contains('is-locked') || groupControlsEl.classList.contains('is-unlocking')) return;
+  drawGroupLocks(true);
+  groupControlsEl.classList.add('is-unlocking');
+  groupLockTimer = setTimeout(function(){
+    groupControlsEl.classList.add('is-fading');
+    groupLockTimer = setTimeout(function(){
+      setGroupLock(false);
+      // The ring holding the pane remembers that the pane was let go.
+      tellHost({ isopane: 'unlocked' });
+    }, 500);
+  }, 450);
+});
+if (IS_ISOPANE && new URLSearchParams(location.search).get('grouplock') !== '0') setGroupLock(true);
 genSelectEl.addEventListener('change', function(){
   if (genSelectEl.value === 'none'){
     state.noSub = true;
