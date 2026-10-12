@@ -294,7 +294,7 @@
       exprLabel: 'Element expression',
       exprNatural: 'Natural',
       subExprLeft: 'Expression of the element generating the subgroup',
-      subExprRight: 'Members in set expression',
+      subExprRight: 'Expression of the permutation in the {}s',
       subSortLabel: 'Sort subgroups by',
       subSortExp: 'Exponent of {g}',
       subInterlocked: 'Linked to the other pane',
