@@ -337,7 +337,7 @@
       fsRingCyclic: 'Cyclic Group {group}',
       fsRingNotCyclic: 'Ring {group}',
       fsRingIso: 'Isomorphism {left} ≅ {right}',
-      fsRingIsoSub: 'Isomorphism {sub} ≅ {right} in {left}',
+      fsRingIsoSub: '({sub} ⊂ {left}) ≅ {right}',
       ctxColours: 'Colours',
       ctxElements: 'Elements',
       ctxArrows: 'Arrows',
