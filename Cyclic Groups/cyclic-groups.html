@@ -923,7 +923,14 @@
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   /* The copy submenu shows its formula above the copy options, broken at
      its equals signs where it is wider than the menu may grow. */
-  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw - 16px)); cursor:default; }
+  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw - 16px)); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  /* A formula dragged out of the copy submenu onto the Ring window: a card
+     of its own over a blurred background, moved by dragging, closed from
+     its corner button. While dragged out it follows the pointer. */
+  .formula-card{ position:absolute; z-index:6; width:max-content; padding:.62em 2.6em .62em .875em; background:color-mix(in srgb, var(--panel) 72%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid var(--panel-border); border-radius:var(--radius-card); box-shadow:0 4px 16px color-mix(in srgb, var(--ink) 18%, transparent); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .formula-card.is-moving{ cursor:grabbing; }
+  .formula-card.is-ghost{ position:fixed; z-index:80; pointer-events:none; opacity:.9; }
+  .formula-card > .fs-win-btn.is-close{ position:absolute; top:6px; right:6px; }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
      own controls: small labels, dropdowns at the row's end. */
@@ -3131,6 +3138,7 @@ function setRingCopy(name, from, focus){
     view.className = 'ring-ctx-formula';
     view.setAttribute('role', 'presentation');
     view.appendChild(scratchMath(shown.cls, shown.math, shown.plain));
+    dragFormulaFrom(view, name);
     var sep = document.createElement('div');
     sep.className = 'ring-ctx-sep';
     sep.setAttribute('role', 'separator');
@@ -3156,6 +3164,96 @@ function setRingCopy(name, from, focus){
   ringCopyEl.style.left = x + 'px';
   ringCopyEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
   if (focus) ringCopyEl.querySelector('button').focus();
+}
+// Formula cards: the formula at the top of the copy submenu, dragged out
+// and let go over the Ring window, stays there as a card of its own, the
+// formula as it was drawn then, until its corner button closes it.
+function ringWorkArea(){ return scratchPadEl.closest('.fs-win-body.is-ring'); }
+function formulaCard(name){
+  var f = drawn && scratchFormulas(drawn.G).find(function(x){ return x.key === name; });
+  if (!f) return null;
+  var card = document.createElement('div');
+  card.className = 'formula-card';
+  var cell = document.createElement('div');
+  cell.className = 'scratch-math';
+  cell.appendChild(scratchMath(f.cls, f.math, f.plain));
+  card.appendChild(cell);
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'fs-win-btn is-close';
+  var label = translate('cyclicGroups.fsClose', { name: translate(SCRATCH_NAMES[name]) });
+  close.setAttribute('aria-label', label);
+  close.title = label;
+  close.appendChild(svgIcon([['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]]));
+  close.addEventListener('click', function(){ card.remove(); });
+  card.appendChild(close);
+  return card;
+}
+// A card's place in its window, kept inside it.
+function placeFormulaCard(card, area, x, y){
+  card.style.left = Math.round(clamp(x, 0, Math.max(0, area.clientWidth - card.offsetWidth))) + 'px';
+  card.style.top = Math.round(clamp(y, 0, Math.max(0, area.clientHeight - card.offsetHeight))) + 'px';
+}
+function dragFormulaFrom(view, name){
+  var drag = null;
+  view.addEventListener('pointerdown', function(e){
+    if (e.button !== 0 || !ringWorkArea()) return;
+    var r = view.getBoundingClientRect();
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, ghost: null };
+    view.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  view.addEventListener('pointermove', function(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.ghost){
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4) return;
+      drag.ghost = formulaCard(name);
+      if (!drag.ghost){ drag = null; return; }
+      drag.ghost.classList.add('is-ghost', 'is-moving');
+      ringCtxEl.parentNode.appendChild(drag.ghost);
+    }
+    drag.ghost.style.left = (e.clientX - drag.dx) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+  });
+  function drop(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var ghost = drag.ghost, area = ringWorkArea();
+    drag = null;
+    if (!ghost) return;
+    var g = ghost.getBoundingClientRect();
+    ghost.remove();
+    if (e.type !== 'pointerup' || !area) return;
+    var a = area.getBoundingClientRect();
+    if (e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom) return;
+    var card = formulaCard(name);
+    if (!card) return;
+    area.appendChild(card);
+    placeFormulaCard(card, area, g.left - a.left, g.top - a.top);
+    movableFormulaCard(card, area);
+    setRingCtx(false);
+  }
+  view.addEventListener('pointerup', drop);
+  view.addEventListener('pointercancel', drop);
+}
+function movableFormulaCard(card, area){
+  var move = null;
+  card.addEventListener('pointerdown', function(e){
+    if (e.button !== 0 || e.target.closest('button')) return;
+    move = { id: e.pointerId, x: e.clientX - card.offsetLeft, y: e.clientY - card.offsetTop };
+    card.setPointerCapture(e.pointerId);
+    card.classList.add('is-moving');
+    e.preventDefault();
+  });
+  card.addEventListener('pointermove', function(e){
+    if (move && e.pointerId === move.id) placeFormulaCard(card, area, e.clientX - move.x, e.clientY - move.y);
+  });
+  function end(e){
+    if (!move || e.pointerId !== move.id) return;
+    move = null;
+    card.classList.remove('is-moving');
+  }
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
 }
 // Text onto the clipboard; where the Clipboard API is out of reach (a page
 // opened from a file in some browsers), through a hidden text box.
