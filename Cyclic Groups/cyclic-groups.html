@@ -3624,7 +3624,7 @@ if (IS_RINGWIN){
   window.addEventListener('message', function(e){
     var d = e.data;
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -3899,6 +3899,9 @@ function setPreview(g){
   if (g === preview || !drawn || coset) return;
   preview = g;
   redrawRing();
+  // A row of the merged list previews both rings at once: the pane draws the
+  // image of the hovered subgroup as this ring draws it.
+  if (!IS_ISOPANE && subInterlocked()) isoTell({ iso: 'preview', k: g === null ? -1 : isoPowers().indexOf(g) });
 }
 
 /* ---------- turning the necklace ---------- */
@@ -5845,6 +5848,7 @@ function isoReceive(d){
   if (d.iso === 'subexpr'){ if (IS_ISOPANE && isoInterlockOn) takeSubExpr(d); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'cosets'){ isoTakeCosets(d); return; }
+  if (d.iso === 'preview'){ if (IS_ISOPANE && subInterlocked()) setPreview(d.k >= 0 ? isoPowers()[d.k] : null); return; }
   if (d.iso === 'hover'){
     isoHoverSent = d.k;
     setIsoHot(d.k >= 0 ? isoPowers()[d.k] : null);
