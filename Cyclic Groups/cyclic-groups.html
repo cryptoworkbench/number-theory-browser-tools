@@ -4067,6 +4067,7 @@ function syncFsLabels(){
   var exit = translate('cyclicGroups.fullscreenExit');
   $('fs-exit').setAttribute('aria-label', exit);
   $('fs-exit').setAttribute('title', exit);
+  syncTabTitle();
 }
 
 /* moving and resizing */
@@ -7720,9 +7721,12 @@ onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); postLo
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
 // data-i18n key on load and on a language switch; render follows the
-// switch, and the load-time rewrite is answered once it has run.
+// switch, and the load-time rewrite is answered once it has run. On the
+// desktop the tab carries the name of the window in front instead.
 function syncTabTitle(){
-  if (drawn) document.title = translate('cyclicGroups.tabTitle', { group: drawn.G.label, title: translate('cyclicGroups.title') });
+  var front = IS_DESKTOP && fsWins ? frontKey() : null;
+  if (front) document.title = fsTitle(specOf(front));
+  else if (drawn) document.title = translate('cyclicGroups.tabTitle', { group: drawn.G.label, title: translate('cyclicGroups.title') });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncTabTitle);
 
