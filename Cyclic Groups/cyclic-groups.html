@@ -813,6 +813,11 @@
   .fs-win-body.is-ring > .iso-pane{ position:relative; }
   .fs-win-body.is-ring > .iso-pane > .iso-pane-head{ position:absolute; top:0; right:0; z-index:2; padding:0; }
   .fs-win-body.is-ring.ring-body > .iso-pane > .iso-pane-head{ right:36px; }
+  /* With two rings open, the left one has its own close button too, at the
+     top of its side just left of the line between them: closing it leaves
+     the right ring's group in its place. */
+  .iso-ring-close{ display:none; }
+  .fs-win-body.is-ring > .iso-pane > .iso-ring-close{ display:grid; position:absolute; z-index:3; top:0; left:-14px; translate:-100% 0; }
   .fs-win-body.is-ring > .iso-pane .iso-pane-name{ display:none; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:auto minmax(0, 1fr) auto calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "foot foot foot foot"; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot"; }
@@ -1209,6 +1214,7 @@
           <div class="split-grip" id="split-grip" role="separator" aria-orientation="horizontal" aria-controls="ring-split" aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" tabindex="0" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-label="Drag to resize; double-click to reset" data-i18n-aria-label="cyclicGroups.resizeTitle"></div>
         </div>
         <div class="iso-pane" id="iso-pane" hidden>
+          <button type="button" class="fs-win-btn is-close iso-ring-close" id="iso-ring-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
           <span class="iso-lock" id="iso-lock" title="Double-click to unlock" data-i18n-title="cyclicGroups.groupLockTitle" hidden></span>
           <div class="iso-ask" id="iso-ask" role="alertdialog" aria-labelledby="iso-ask-text" hidden>
             <p class="iso-ask-text" id="iso-ask-text"></p>
@@ -5342,6 +5348,39 @@ function syncIsoPaneLabels(){
   syncIsoTitle();
 }
 isoPaneCloseEl.addEventListener('click', closeIsoPane);
+// The left ring's close button: the pane's group takes this ring's place,
+// with its generator, arrangement, expressions and turn, and the pane goes.
+var isoRingCloseEl = $('iso-ring-close');
+function closeLeftRing(){
+  if (IS_ISOPANE || !isoPane || isoPane.blank) return;
+  var q = new URLSearchParams(isoPane.q), mode = q.get('mode'), n = parseInt(q.get('n'), 10);
+  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)){ closeIsoPane(); return; }
+  closeIsoPane();
+  state.mode = mode;
+  state.n = clamp(n, MIN_N, MAX_N);
+  var G = buildGroup(state.mode, state.n);
+  var gen = intOrNull(q.get('gen'));
+  state.gen = gen !== null && G.els.indexOf(gen) !== -1 ? gen : (G.cyclic ? G.generators[0] : G.identity);
+  state.noSub = q.get('sub') === 'none';
+  state.bygen = q.get('bygen') === '1';
+  state.arrangeGen = intOrNull(q.get('arrangegen'));
+  state.expr = intOrNull(q.get('expr'));
+  SUB_EXPR_CTLS.forEach(function(c){ c.set(c.el === subSortSelectEl ? intOrNull(q.get(c.param)) : subExprVal(q.get(c.param))); });
+  state.subSortR = q.get('subsortr') === '1';
+  state.rot = intOrNull(q.get('rot')) || 0;
+  if (TOPS.indexOf(q.get('top')) !== -1) state.top = q.get('top');
+  persistGroup();
+  syncControls();
+  render();
+}
+isoRingCloseEl.addEventListener('click', closeLeftRing);
+function syncRingCloseLabel(){
+  if (!drawn || !isoRingCloseEl) return;
+  var name = translate(drawn.G.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: drawn.G.label });
+  var close = translate('cyclicGroups.fsClose', { name: name });
+  isoRingCloseEl.setAttribute('aria-label', close);
+  isoRingCloseEl.setAttribute('title', close);
+}
 
 /* ---------- the second ring opened empty: a picker of groups to show in it ---------- */
 
@@ -5640,6 +5679,7 @@ isoAskEl.addEventListener('keydown', function(e){
 });
 function syncIsoKeys(){
   if (IS_ISOPANE) return;
+  syncRingCloseLabel();
   var root = document.documentElement, copy = $('combine-key-pane');
   syncIsoLink();
   var unlinked = !!isoPane && !!drawn && !isoLinked();
