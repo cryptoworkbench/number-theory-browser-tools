@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T11:37:44.000Z"
+last_updated: "2026-10-13T11:41:31.000Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f8f2c5d48034ddac4e5663fd20254be4cec2495c
+state_head: a902f8994ae16ec689ab19e71fa239995af81b5d
 progress:
   total_phases: 7
   completed_phases: 6
@@ -570,6 +570,7 @@ None yet.
 | 334 | Cyclic Groups controls snug against the top edge | 2026-10-13 | f0cc10f | — |
 | 335 | Left ring close button when two rings are open | 2026-10-13 | 644c5f6 | — |
 | 336 | + at the left edge opens a new ring on the left | 2026-10-13 | f8f2c5d | — |
+| 337 | Full-screen button dropped; closing the last ring exits to the intro | 2026-10-13 | a902f89 | — |
 
 ## Deferred Items
 
