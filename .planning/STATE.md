@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-13T13:40:47.882Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 268d43651c30c5ef0c1a528b3938bfaa45ae606a
+state_head: 3f4312e1d17a393727f0ee0884d3e20ab5cb21d5
 progress:
   total_phases: 7
   completed_phases: 6
@@ -599,6 +599,7 @@ None yet.
 | 363 | Numerical view open: green/red padlock under each upright slider | 2026-10-13 | 3442608 | — |
 | 364 | Follow expression slider on one Subgroup dropdown sets the other's | 2026-10-13 | 423a131 | — |
 | 365 | Formula drag in the right-hand ring shows its card and lands where let go | 2026-10-13 | 268d436 | — |
+| 366 | Formula cards and the scratchpad keep below the top three rows | 2026-10-13 | 3f4312e | — |
 
 ## Deferred Items
 
