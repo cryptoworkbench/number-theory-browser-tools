@@ -5259,12 +5259,19 @@ function openIsoPane(a, g){
   // Chosen as an isomorphism, the two rings open linked and locked.
   isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false, link: 'linked', blank: false };
   setGroupLock(true);
+  var pair = isoExprPair();
+  if (pair){
+    state.expr = pair.g;
+    p.set('expr', String(pair.h));
+    isoPane.q = p.toString();
+  }
   isoPaneEl.hidden = false;
   var picked = !!isoPickEl;
   if (picked) isoPickEl.classList.add('is-chosen');
   loadIsoFrame();
   if (picked) isoPaneFrame.classList.add('is-blurred');
   syncIsoPaneLabels();
+  if (pair) render();
 }
 // Construct own ring / group: the pane opens on this ring's mode and modulus,
 // unlocked and blank (see isoBlank), linked to nothing until the user says so.
@@ -5657,7 +5664,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -5705,6 +5712,9 @@ function applyIsoShared(d){
       state.gen = ISO_GEN;
       state.noSub = false;
     }
+    // Locking whole groups, the expression slider takes the image of the
+    // holding ring's generator.
+    if (Number.isInteger(d.expr) && drawn && genOrNull(drawn.G, d.expr) !== null) state.expr = d.expr;
   }
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
   if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
@@ -5786,9 +5796,13 @@ function answerIsoAsk(yes){
   isoPane.link = 'linked';
   isoPane.unlocked = false;
   setGroupLock(true);
+  var pair = isoExprPair();
+  if (pair) state.expr = pair.g;
+  isoPane.lockExpr = pair ? pair.h : null;
   isoPane.lockNow = true;
   postIsoShared(true);
   isoPane.lockNow = false;
+  isoPane.lockExpr = null;
   isoSharedSent = null;
   isoSentK = null;
   isoSentC = null;
@@ -6067,6 +6081,18 @@ function isoHostOrder(G){
 function isoImage(G){
   var gp = isoPowers(), H = isoPaneGroup(), hp = lap(H, isoPane.h, H.order);
   return function(x){ return hp[gp.indexOf(x)]; };
+}
+// Locking an isomorphism of whole groups: this ring's expression generator
+// (the first generator in place of Natural) and its image in the pane's
+// group, so the two sliders lock onto a pair named alike, g^k beside h^k.
+function isoExprPair(){
+  if (IS_ISOPANE || !isoPane || !drawn || !drawn.G.cyclic || !isoLinksWholeGroups()) return null;
+  var G = drawn.G, H = isoPaneGroup(), link = isoLinkGen();
+  if (!H || !H.cyclic || link === null || H.order !== G.order || G.orders[link] !== G.order || H.orders[isoPane.h] !== H.order) return null;
+  var g = exprBy(G);
+  if (g === null) g = G.generators[0];
+  var gp = lap(G, link, G.order), hp = lap(H, isoPane.h, H.order);
+  return { g: g, h: hp[gp.indexOf(g)] };
 }
 function subInterlocked(){
   if (IS_ISOPANE) return isoInterlockOn && isoOrder() > 0;
