@@ -6285,6 +6285,7 @@ function syncIsoLink(){
     if (isoPane.link === 'none') isoPane.link = 'asking';
   }
   isoAskEl.hidden = isoPane.link !== 'asking';
+  syncOpenLock();
   // The question names the kind of isomorphism: onto this whole group, or
   // onto the subgroup on show only.
   if (!isoAskEl.hidden) $('iso-ask-text').textContent = translate(isoLinksWholeGroups() ? 'cyclicGroups.isoAskLockGroup' : 'cyclicGroups.isoAskLockSub');
@@ -7502,6 +7503,20 @@ function setGroupLock(on){
   groupControlsEl.querySelectorAll(':scope > li:not(.fs-row-label)').forEach(function(li){
     if (title) li.title = title; else li.removeAttribute('title');
   });
+  isoLockEl.setAttribute('title', translate('cyclicGroups.groupLockTitle'));
+  isoLockEl.classList.remove('is-open');
+  syncOpenLock();
+}
+// While the rings share an isomorphism the user declined to lock, the padlock
+// sits open where the closed one would.
+function syncOpenLock(){
+  if (IS_ISOPANE || !isoLockEl || groupControlsEl.classList.contains('is-locked')) return;
+  var open = !!isoPane && isoPane.link === 'declined' && isoFound();
+  isoLockEl.hidden = !open;
+  isoLockEl.classList.toggle('is-open', open);
+  if (!open) return;
+  isoLockEl.removeAttribute('title');
+  isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
 }
 // A press on locked parameters starts no selection, so the double-click
 // that opens them leaves no word highlighted.
