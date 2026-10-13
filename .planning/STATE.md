@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T13:28:02.942Z"
+last_updated: "2026-10-13T13:34:25.516Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 0a3a950f7c19d93af61a5d2180464f9053ef1fb8
+state_head: a0929323baf9ee27cc2689bfaf5309107657aa03
 progress:
   total_phases: 7
   completed_phases: 6
@@ -586,6 +586,7 @@ None yet.
 | 350 | Zoom the ring from the right-click menu or + and − keys | 2026-10-13 | 1cd6ad8 | — |
 | 351 | A changed group finds its isomorphism again (lock offered) | 2026-10-13 | d609e25 | — |
 | 352 | A padlock couples the locked rings' expression sliders | 2026-10-13 | 0a3a950 | — |
+| 353 | Locking whole groups selects corresponding subgroups | 2026-10-13 | a092932 | — |
 
 ## Deferred Items
 
