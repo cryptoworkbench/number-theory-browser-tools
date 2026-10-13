@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T12:58:19.500Z"
+last_updated: "2026-10-13T13:01:47.925Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 076b96085a22b94cf4184839b40b6ffdbd4dd267
+state_head: 401d41c7ceecaa771cbcc722863eb2069a31b886
 progress:
   total_phases: 7
   completed_phases: 6
@@ -582,6 +582,7 @@ None yet.
 | 346 | A reloaded isomorphism pane is merged again (F8 split bug) | 2026-10-13 | 22510c4 | — |
 | 347 | Formulas drag out of the right-click menu as closable cards | 2026-10-13 | 21d0e69 | — |
 | 348 | Formula cards get a window title bar | 2026-10-13 | 076b960 | — |
+| 349 | Formula cards follow the ring (live update) | 2026-10-13 | 401d41c | — |
 
 ## Deferred Items
 
