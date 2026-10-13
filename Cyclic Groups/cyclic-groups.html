@@ -752,6 +752,12 @@
   :root.is-isopane .fs-win-body.is-ring > .expr-slot.is-side:not([hidden]){ justify-self:end; }
   .expr-slot.is-side .expr-name{ justify-self:auto; text-align:center; }
   .expr-slot.is-side .expr-now{ max-width:100%; white-space:normal; }
+  /* Upright beside the Numerical view, each slider shows under it whether
+     the two are coupled: a closed green padlock, or an open red one. */
+  .expr-side-lock{ display:none; }
+  .expr-slot.is-side .expr-side-lock:not([hidden]){ display:grid; place-items:center; flex:none; width:28px; height:28px; padding:0; color:var(--role-warn); background:var(--role-warn-soft); border:1.5px solid currentColor; border-radius:50%; cursor:pointer; }
+  .expr-slot.is-side .expr-side-lock[aria-pressed="true"]{ color:var(--role-result); background:var(--role-result-soft); }
+  .expr-side-lock svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; }
   .expr-slot.is-side .expr-scale{ flex:1 1 auto; flex-direction:column; gap:6px; min-height:0; max-height:300px; }
   .expr-slot.is-side .expr-track{ flex:1 1 auto; width:24px; height:auto; min-height:48px; padding:0; }
   .expr-slot.is-side #expr-slider{ writing-mode:vertical-lr; direction:ltr; width:24px; height:100%; }
@@ -1208,6 +1214,7 @@
             </div>
           </div>
           <output class="expr-now" id="expr-now" for="expr-slider"></output>
+          <button type="button" class="expr-side-lock" id="expr-side-lock" aria-pressed="false" hidden></button>
         </div>
         <div class="spin-ruler" id="spin-ruler">
           <button type="button" class="spin-step" id="spin-back" aria-label="Rotate one element counterclockwise" data-i18n-aria-label="cyclicGroups.rotateBack" title="Rotate one element counterclockwise" data-i18n-title="cyclicGroups.rotateBack">&#x27F2;</button>
@@ -1996,6 +2003,8 @@ function syncExprSide(){
   exprSlotEl.classList.toggle('is-side', side);
   exprSliderEl.setAttribute('aria-orientation', side ? 'vertical' : 'horizontal');
   thinExprStops();
+  if (IS_ISOPANE) drawSideLock(paneExprCoupled);
+  else syncExprLock();
 }
 // Stops too close to name each are named every few, the rest marked bare.
 var EXPR_LABEL_GAP = { across: 24, upright: 16 };
@@ -3885,6 +3894,12 @@ if (IS_RINGWIN){
       render();
       return;
     }
+    if (d.ringhost === 'exprlock'){
+      if (!IS_ISOPANE) return;
+      paneExprCoupled = d.on === true || d.on === false ? d.on : null;
+      drawSideLock(paneExprCoupled);
+      return;
+    }
     if (d.ringhost === 'split'){
       if (!IS_ISOPANE) return;
       if (typeof d.share === 'number' && isFinite(d.share)) splitShare = clamp(d.share, SPLIT_MIN, SPLIT_MAX);
@@ -5555,6 +5570,7 @@ function loadIsoFrame(){
   // A new frame reports its own pane afresh.
   paneSplitBox = null;
   isoInterlockSent = false;
+  exprLockSent = undefined;
   document.documentElement.classList.remove('is-sub-merged');
   isoWholeSent = null;
   isoCosetSent = null;
@@ -5577,6 +5593,7 @@ function loadIsoFrame(){
     // A frame that loads again (reloaded, or moved with a parent) starts
     // afresh too, unmerged: everything it was told is told again.
     isoInterlockSent = false;
+    exprLockSent = undefined;
     isoWholeSent = null;
     isoCosetSent = null;
     splitAlignSent = null;
@@ -6432,9 +6449,20 @@ function tellPaneExpr(next){
   var g = next === undefined ? exprBy(m.G) : next;
   try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'expr', expr: g === null ? null : m.to(g) }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
+// The padlock on the line between the rings gives way, while the Numerical
+// view is open and the sliders stand upright, to one under each slider
+// (drawSideLock); the pane is told what its own should show.
+var exprLockSent;
 function syncExprLock(){
   if (IS_ISOPANE || !exprLockEl) return;
-  exprLockEl.hidden = !(isoPane && !isoPaneEl.hidden && isoLinked() && isoWholeMap());
+  var avail = !!(isoPane && !isoPaneEl.hidden && isoLinked() && isoWholeMap());
+  var coupled = avail ? exprCoupled : null;
+  drawSideLock(coupled);
+  if (coupled !== exprLockSent && isoPaneFrame){
+    exprLockSent = coupled;
+    try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'exprlock', on: coupled }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+  }
+  exprLockEl.hidden = !avail || exprSlotEl.classList.contains('is-side');
   if (exprLockEl.hidden) return;
   exprLockEl.setAttribute('aria-pressed', exprCoupled ? 'true' : 'false');
   var label = translate(exprCoupled ? 'cyclicGroups.exprLockUncouple' : 'cyclicGroups.exprLockCouple');
@@ -6442,11 +6470,28 @@ function syncExprLock(){
   exprLockEl.title = label;
   exprLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: exprCoupled ? 'M4 5.5V4a2 2 0 0 1 4 0v1.5' : 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
 }
-if (exprLockEl) exprLockEl.addEventListener('click', function(){
+function toggleExprCoupling(){
   exprCoupled = !exprCoupled;
   syncExprLock();
   // Closed, the pane's slider takes the image of this one's at once.
   if (exprCouplingOn()) tellPaneExpr();
+}
+if (exprLockEl) exprLockEl.addEventListener('click', toggleExprCoupling);
+var exprSideLockEl = $('expr-side-lock');
+var paneExprCoupled = null; // in the pane: what the holding ring said
+function drawSideLock(coupled){
+  if (!exprSideLockEl) return;
+  exprSideLockEl.hidden = coupled === null || !exprSlotEl.classList.contains('is-side');
+  if (exprSideLockEl.hidden) return;
+  exprSideLockEl.setAttribute('aria-pressed', coupled ? 'true' : 'false');
+  var label = translate(coupled ? 'cyclicGroups.exprLockUncouple' : 'cyclicGroups.exprLockCouple');
+  exprSideLockEl.setAttribute('aria-label', label);
+  exprSideLockEl.title = label;
+  exprSideLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: coupled ? 'M4 5.5V4a2 2 0 0 1 4 0v1.5' : 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
+}
+exprSideLockEl.addEventListener('click', function(){
+  if (IS_ISOPANE) tellHost({ isopane: 'exprlock' });
+  else toggleExprCoupling();
 });
 function subInterlocked(){
   if (IS_ISOPANE) return isoInterlockOn && isoOrder() > 0;
@@ -6570,6 +6615,8 @@ window.addEventListener('message', function(e){
     if (g === exprBy(m.G)) return;
     state.expr = g;
     render();
+  } else if (d.isopane === 'exprlock'){
+    if (isoPane && isoLinked() && isoWholeMap()) toggleExprCoupling();
   } else if (d.isopane === 'unlock'){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
@@ -7712,7 +7759,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
+onLangChange(function(){ render(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
