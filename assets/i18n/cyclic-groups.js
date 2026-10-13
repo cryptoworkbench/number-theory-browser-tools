@@ -29,9 +29,8 @@
    rest) were translated by the catch-up pass of 2026-10-12. LaTeX, MathML,
    Unicode and ASCII stay Latin in every script, as format names.
    Added in English first since that pass, for the next catch-up
-   translation: subColorLabel, subColorTitle, subColorOff, subColorTint and
-   subColorFull (the Numerical panel's choice colouring each member like
-   its bead: off, a soft tint or the bead's full colour), and isoLockOpenGroup
+   translation: subColorLabel and subColorTitle (the Numerical panel's
+   checkbox colouring each member like its bead), and isoLockOpenGroup
    and isoLockOpenSub (the open padlock's tooltip, naming the isomorphism a
    double-click would lock), introAbout, introFullscreen and introEnter
    (the intro screen every visit opens on: what the tool does, why it is a
@@ -360,9 +359,6 @@
       subPadTitle: "Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up",
       subColorLabel: 'Colour members like their beads',
       subColorTitle: 'Give every member in the list a background in the colour of its bead on the ring',
-      subColorOff: 'Off',
-      subColorTint: 'Soft tint',
-      subColorFull: 'Bead colour',
       combineForward: 'Forward path, combining elements with the selected element {h}',
       combineBackward: "Backward path, combining elements with the selected element's inverse, which is {hinv}",
       combineSelfInverse: '{h} is its own inverse, so both walks are the same one, drawn once in a mix of the two colors',

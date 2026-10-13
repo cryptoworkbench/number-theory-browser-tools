@@ -317,7 +317,6 @@
      the row (its hover and current highlights still show through) or the
      bead's full colour with the bead labels' ink. */
   .sub-chip{ padding:.15em .3em; border-radius:.4em; }
-  .sub-chip-tint{ background:color-mix(in srgb, var(--ord, var(--text-dim)) 30%, transparent); }
   .sub-chip-full{ background:var(--ord, var(--text-dim)); color:var(--accent-ink); }
   .fact-label{ color:var(--text-dim); }
   .fact-value{ margin-left:auto; font-family:var(--font-sans); font-variant-numeric:tabular-nums; text-align:right; }
@@ -1258,8 +1257,8 @@
         <div class="sub-ctls-mid">
         <div class="sub-expr-row" id="sub-sort-row">
           <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</label><select id="sub-sort-select"></select></span>
-          <span class="sub-expr-pair" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><label for="sub-color-select" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label><select id="sub-color-select"><option value="off" data-i18n="cyclicGroups.subColorOff">Off</option><option value="tint" data-i18n="cyclicGroups.subColorTint">Soft tint</option><option value="full" data-i18n="cyclicGroups.subColorFull">Bead colour</option></select></span>
         </div>
+        <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
         <div class="check" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle"><input type="checkbox" id="sub-pad"><label for="sub-pad" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         </div>
@@ -1595,8 +1594,10 @@ var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
 var subPadEl = $('sub-pad');
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
-var subColorEl = $('sub-color-select');
-var SUB_COLORS = ['off', 'tint', 'full'];
+var subColorEl = $('sub-color');
+// Off, or each member in its bead's colour; the soft tint once offered
+// between them reads as the bead colour.
+function subColorOf(v){ return v === 'full' || v === 'tint' ? 'full' : 'off'; }
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -6105,9 +6106,9 @@ function syncInterlock(){
 function takeNumset(d){
   state.subPad = d.pad === true;
   state.autoShift = d.shift === true;
-  state.subColor = SUB_COLORS.indexOf(d.color) !== -1 ? d.color : 'off';
+  state.subColor = subColorOf(d.color);
   subPadEl.checked = state.subPad;
-  subColorEl.value = state.subColor;
+  subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
@@ -6668,7 +6669,7 @@ function render(){
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
   subPadEl.checked = state.subPad;
-  subColorEl.value = state.subColor;
+  subColorEl.checked = state.subColor === 'full';
   syncArrange(G);
   syncExpr(G);
   syncSubExpr(G);
@@ -7208,7 +7209,7 @@ subPadEl.addEventListener('change', function(){
   syncInterlock();
 });
 subColorEl.addEventListener('change', function(){
-  state.subColor = SUB_COLORS.indexOf(subColorEl.value) !== -1 ? subColorEl.value : 'off';
+  state.subColor = subColorEl.checked ? 'full' : 'off';
   if (!drawn) return;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
@@ -7311,7 +7312,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.autoShift = query.get('autoshift') === '1';
   state.subPad = query.get('subpad') === '1';
-  if (SUB_COLORS.indexOf(query.get('subcolor')) !== -1) state.subColor = query.get('subcolor');
+  if (query.has('subcolor')) state.subColor = subColorOf(query.get('subcolor'));
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
