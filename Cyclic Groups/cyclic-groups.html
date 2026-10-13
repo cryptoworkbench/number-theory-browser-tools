@@ -2072,20 +2072,26 @@ function syncMergedExpr(G){
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
 // edge, bulges to its peak halfway, and comes back into its target, turning
-// the short way round. Its shape depends only on how far it turns, so steps
-// of the same size draw identical curves, and humps that overlap cross each
-// other instead of hiding one another. An outer hump bulges away from the
-// ring; an inner hump bulges off the straight chord between its beads,
-// toward the center, so the inner walk never reads as a plain polygon.
-function humpSteps(walk, place, m, scale){
+// the way its walk goes: sense 1 (the forward walk) the forward direction,
+// sense -1 (the backward walk) the other way, the long way round when the
+// target lies more than halfway round. So every arrow of a walk turns the
+// same way, and a lap shows how often the walk winds round. Its shape
+// depends only on how far it turns, so steps of the same size draw identical
+// curves, and humps that overlap cross each other instead of hiding one
+// another. An outer hump bulges away from the ring, as high as the shorter
+// way round would take it, so a long step stays a low arc; an inner hump
+// bulges off the straight chord between its beads, toward the center, so
+// the inner walk never reads as a plain polygon.
+function humpSteps(walk, place, m, scale, sense){
   var step = dirSign() * 360 / m;
   var k = walk.length;
   var out = [];
   for (var s = 0; s < k; s++){
     var a0 = step * place[walk[s]];
-    var d = ((step * (place[walk[(s + 1) % k]] - place[walk[s]])) % 360 + 540) % 360 - 180;
-    if (d <= -179.999) d = 180;
-    out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, Math.abs(d) * 0.4)) });
+    var span = ((place[walk[(s + 1) % k]] - place[walk[s]]) % m + m) % m;
+    var d = step * (sense < 0 && span > 0 ? span - m : span);
+    var near = Math.min(Math.abs(d), 360 - Math.abs(d));
+    out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, near * 0.4)) });
   }
   return out;
 }
@@ -2098,14 +2104,24 @@ function humpSteps(walk, place, m, scale){
 // INNER_MIN. The center lies to the right of a clockwise chord and to the
 // left of a counterclockwise one, which also gives the half turn its side.
 // A negative scale bows an inner hump the other way, away from the center,
-// but only so far that it stays inside the beads.
+// but only so far that it stays inside the beads. A step the long way round
+// has no chord turning its way, so inside it sweeps round the center, dipping
+// halfway to between INNER_LONG_MIN and INNER_LONG_MAX of the way out, the
+// longer the step the shallower, which keeps its arrowheads apart; a
+// negative scale keeps it shallower still.
 var INNER_BULGE = 0.14;
 var INNER_MIN = 24;
+var INNER_LONG_MIN = 0.3, INNER_LONG_MAX = 0.7;
 // The inverse walk's hump height, relative to the element walk's, when both
 // walks are drawn outside.
 var SHARED_SCALE = 0.5;
 function humpPoint(box, foot, side, h, f){
   if (side > 0) return polar(box.cx, box.cy, foot + h.peak * Math.sin(Math.PI * f), h.a0 + h.d * f);
+  if (Math.abs(h.d) > 180){
+    var low = foot * (INNER_LONG_MIN + (INNER_LONG_MAX - INNER_LONG_MIN) * (Math.abs(h.d) - 180) / 180);
+    if (h.scale < 0) low = Math.max(low, 0.75 * foot);
+    return polar(box.cx, box.cy, foot - (foot - low) * Math.sin(Math.PI * f), h.a0 + h.d * f);
+  }
   var p0 = polar(box.cx, box.cy, foot, h.a0);
   var p1 = polar(box.cx, box.cy, foot, h.a0 + h.d);
   var dx = p1[0] - p0[0], dy = p1[1] - p0[1];
@@ -2149,10 +2165,10 @@ function humpArrow(cls, box, foot, side, h, size){
 // outside it runs at SHARED_SCALE height.
 
 // A walk inside the ring, as one closed chain of humps.
-function drawInner(ring, walk, cls, scale, place, box, beadR, m, width){
+function drawInner(ring, walk, cls, scale, sense, place, box, beadR, m, width){
   var k = walk.length;
   var foot = box.R - beadR;
-  var steps = humpSteps(walk, place, m, scale);
+  var steps = humpSteps(walk, place, m, scale, sense);
   var group = svgEl('g', { 'class': cls });
   var d = '';
   steps.forEach(function(h, s){ d += (s ? ' ' : '') + humpPath(box, foot, -1, h, s === 0); });
@@ -2166,13 +2182,13 @@ function drawInner(ring, walk, cls, scale, place, box, beadR, m, width){
 
 // A walk outside the ring, one hump per step. Returns the outermost radius
 // used.
-function drawOuter(ring, walk, cls, scale, place, box, beadR, m, width){
+function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width){
   var k = walk.length;
   var foot = box.R + beadR;
   var size = Math.max(3, Math.min(7, 90 / k));
   var peakMax = 0;
   var group = svgEl('g', { 'class': 'outer-walk ' + cls, 'data-seq': walk.join(' ') });
-  humpSteps(walk, place, m, scale).forEach(function(h){
+  humpSteps(walk, place, m, scale, sense).forEach(function(h){
     peakMax = Math.max(peakMax, h.peak);
     group.appendChild(svgEl('path', {
       'class': 'outer-arc', 'stroke-width': width, 'data-from': h.from, 'data-to': h.to, d: humpPath(box, foot, 1, h, true)
@@ -2260,11 +2276,11 @@ function drawRing(parent, G, beads, box, paint){
         return;
       }
       if (mergedWalks(G)){
-        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1 });
+        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1 });
         return;
       }
-      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1 });
-      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE });
+      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1 });
+      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, sense: -1 });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
     walksFrom(coset ? coset.start : G.identity, false);
@@ -2275,13 +2291,13 @@ function drawRing(parent, G, beads, box, paint){
       var edge = box.R + beadR;
       walksEl.replaceChildren();
       walks.forEach(function(w){
-        if (w.side === 'outside' && !w.loop) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width));
+        if (w.side === 'outside' && !w.loop) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
         if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.side, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
-        if (w.side === 'inside' && !w.loop) drawInner(walksEl, w.walk, w.cls, w.scale, places, box, beadR, m, width);
+        if (w.side === 'inside' && !w.loop) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width);
       });
       return edge;
     };
