@@ -360,8 +360,8 @@ function buildExpected(catalog, navHrefs) {
     throw new Error("buildExpected: de.heading is identical to en.heading — cross-session probe would be vacuous");
   }
 
-  if (!navHrefs || navHrefs.length !== 18) {
-    throw new Error("buildExpected: expected 18 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
+  if (!navHrefs || navHrefs.length !== 19) {
+    throw new Error("buildExpected: expected 19 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
   }
 
   return { en: en, fr: fr, es: es, de: de, rawTemplates: rawTemplates, navHrefs: navHrefs };
@@ -2387,6 +2387,9 @@ var PAGES = [
   { file: "Eulers Totient/eulers-totient.html", dataFile: "assets/i18n/eulers-totient.js", ns: "totient", slug: "eulers-totient" },
   { file: "Cayley Table/cayley-table.html", dataFile: "assets/i18n/cayley-table.js", ns: "cayley", slug: "cayley-table" },
   { file: "Cyclic Groups/cyclic-groups.html", dataFile: "assets/i18n/cyclic-groups.js", ns: "cyclicGroups", slug: "cyclic-groups" },
+  // _Cyclic Groups shares the Cyclic Groups page's dictionary and its
+  // i18n-config (config), so neither is duplicated.
+  { file: "_Cyclic Groups/_cyclic-groups.html", dataFile: "assets/i18n/cyclic-groups.js", ns: "cyclicGroups", slug: "_cyclic-groups", config: "cyclic-groups" },
   { file: "Group Isomorphism/group-isomorphism.html", dataFile: "assets/i18n/group-isomorphism.js", ns: "iso", slug: "group-isomorphism" },
   { file: "Square And Multiply/square-and-multiply.html", dataFile: "assets/i18n/square-and-multiply.js", ns: "sqm", slug: "square-and-multiply" },
   { file: "Diffie-Hellman Key Exchange/diffie-hellman-key-exchange.html", dataFile: "assets/i18n/diffie-hellman-key-exchange.js", ns: "dh", slug: "diffie-hellman-key-exchange" },
@@ -3163,7 +3166,8 @@ function cjkFindings(id, lang, value, enValue) {
 /* ---------- per-page config (allowSame/allowLiteral/allowRenderText/...) ---------- */
 
 function readConfig(slug) {
-  var p = path.join(ROOT, ".planning", "phases", "06-multi-language-support", "i18n-config", slug + ".json");
+  var row = PAGES.filter(function (pg) { return pg.slug === slug && pg.config; })[0];
+  var p = path.join(ROOT, ".planning", "phases", "06-multi-language-support", "i18n-config", (row ? row.config : slug) + ".json");
   var cfg = {};
   if (fs.existsSync(p)) {
     try { cfg = JSON.parse(fs.readFileSync(p, "utf8")); } catch (e) { cfg = {}; }
@@ -3352,9 +3356,10 @@ function checkSwitcherPresent(relPath, html, findings) {
       });
     }
   }
-  var navRefs = html.match(/data-i18n="site\.nav\.[A-Za-z]+"/g) || [];
-  if (navRefs.length !== 18) {
-    findings.push("SWITCHER " + relPath + ": expected 18 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
+  // Nav links only: _Cyclic Groups also titles its page with a site.nav key.
+  var navRefs = html.match(/<a\b[^>]*\bdata-i18n="site\.nav\.[A-Za-z]+"/g) || [];
+  if (navRefs.length !== 19) {
+    findings.push("SWITCHER " + relPath + ": expected 19 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
   }
   var header = extractHeaderHtml(html);
   if (header === null || !/<select\b[^>]*id="lang-switch-select"/.test(header)) {
