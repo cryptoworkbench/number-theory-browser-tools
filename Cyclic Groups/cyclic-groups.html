@@ -7385,8 +7385,7 @@ function keepLockClear(){
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
-  var exprH = exprLockEl.hidden ? 0 : exprLockEl.offsetHeight;
-  var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1) + (exprH ? LOCK_CLEAR_GAP + exprH : 0);
+  var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
   var top = mid - total / 2;
   if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
   var y = top + lockH + gap;
@@ -7396,8 +7395,18 @@ function keepLockClear(){
     el.style.top = num(y + hs[i] / 2 - r.top) + 'px';
     y += hs[i] + SHARED_BTN_GAP;
   });
-  // The expression padlock last, under the rest.
-  if (exprH) exprLockEl.style.top = num(y - (btns.length ? SHARED_BTN_GAP : gap) + LOCK_CLEAR_GAP + exprH / 2 - p.top) + 'px';
+  // The expression padlock sits level with the two expression sliders,
+  // halfway between their heights when the pane's can be measured.
+  if (!exprLockEl.hidden) exprLockEl.style.top = num(exprSlidersMid() - p.top) + 'px';
+}
+function exprSlidersMid(){
+  var r = exprSliderEl.getBoundingClientRect(), y = r.top + r.height / 2;
+  try {
+    var pe = isoPaneFrame.contentDocument.getElementById('expr-slider');
+    var pr = pe.getBoundingClientRect(), f = isoPaneFrame.getBoundingClientRect();
+    if (pr.height) y = (y + f.top + pr.top + pr.height / 2) / 2;
+  } catch (e) { /* a pane out of reach: this ring's slider alone */ }
+  return y;
 }
 // A press on locked parameters starts no selection, so the double-click
 // that opens them leaves no word highlighted.
