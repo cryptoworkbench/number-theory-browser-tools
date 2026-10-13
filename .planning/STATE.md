@@ -607,6 +607,7 @@ None yet.
 | 371 | Isomorphism view: each side of a shared subgroup row has its own GCD tooltip | 2026-10-13 | d1560b0 | — |
 | 372 | Subgroup panel controls share lines in one-group mode | 2026-10-13 | 78b0d9f | — |
 | 373 | Subgroup list heading centred in isomorphism view | 2026-10-13 | 75d702f | — |
+| 374 | Subgroup list scrolls to keep the selected subgroup's row in view | 2026-10-13 | 9de6e2f | — |
 
 ## Deferred Items
 
