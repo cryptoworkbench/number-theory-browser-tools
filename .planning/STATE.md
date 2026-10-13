@@ -610,6 +610,7 @@ None yet.
 | 374 | Subgroup list scrolls to keep the selected subgroup's row in view | 2026-10-13 | 9de6e2f | — |
 | 375 | Drop the identity-only note from the subgroup row | 2026-10-13 | 5622afa | — |
 | 376 | Coset button centred in the subgroup row over the ring's centre | 2026-10-13 | f2a03fc | — |
+| 377 | Explore cosets of the identity's trivial subgroup | 2026-10-13 | 0c5e37f | — |
 
 ## Deferred Items
 
