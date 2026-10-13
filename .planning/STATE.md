@@ -615,6 +615,7 @@ None yet.
 | 379 | Coset run survives opening or closing the bottom panel | 2026-10-13 | 31ed828 | — |
 | 380 | Forward-direction toggle: Arrangement row alone, the line between rings in isomorphism view | 2026-10-13 | 1ec50f2 | — |
 | 381 | 3D flip of the ring about the identity axis when the direction changes | 2026-10-13 | 02402c8 | — |
+| 382 | Open subgroup panel's chevrons in its top-right corner | 2026-10-13 | 1b5231d | — |
 
 ## Deferred Items
 
