@@ -46,8 +46,7 @@
    rings, coupling their expression sliders), cosetLoop and cosetLoopTitle
    (the coset run's Loop toggle, replaying the cosets continuously),
    dirToggleCw and dirToggleCcw (the forward-direction button's name in
-   each direction), splitOpenHint and splitCloseHint (the lock-screen style
-   chevrons' tooltip), and subRowGcd (a Numerical
+   each direction), and subRowGcd (a Numerical
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
    subgroup's order that follows). Every other
@@ -329,8 +328,6 @@
       dirLabel: 'Forward direction',
       dirToggleCw: 'Forward direction: clockwise. Click for counterclockwise',
       dirToggleCcw: 'Forward direction: counterclockwise. Click for clockwise',
-      splitOpenHint: 'Drag up or double-click to open the subgroup list',
-      splitCloseHint: 'Drag down or double-click to close the subgroup list',
       dirCw: 'Clockwise',
       dirCcw: 'Counterclockwise',
       sideInside: 'Inside',
