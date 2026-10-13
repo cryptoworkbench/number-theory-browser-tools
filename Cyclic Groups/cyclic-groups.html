@@ -1890,9 +1890,11 @@ function beadRadius(m, R){ return Math.max(3.5, Math.min(21, 1.5 * R / m)); }
 // by when "generator powers" is on: the chosen element if it generates the
 // group, otherwise the smallest generator.
 // The generator whose powers order the beads: the one picked under the
-// option, or the smallest while none of this group's is picked.
+// option, or the expression slider's when it follows that (SUB_FOLLOW), or
+// the smallest while none of this group's is picked.
 function arrangeBy(G){
-  return G.generators.indexOf(state.arrangeGen) !== -1 ? state.arrangeGen : G.generators[0];
+  var g = state.arrangeGen === SUB_FOLLOW ? exprBy(G) : state.arrangeGen;
+  return G.generators.indexOf(g) !== -1 ? g : G.generators[0];
 }
 
 // The arrangement: Sequential (low to high) or by the powers of a
@@ -1916,14 +1918,14 @@ function syncArrange(G){
   arrangeSelectEl.disabled = !G.cyclic;
   arrangeGenPairEl.hidden = !powers;
   if (!powers) return;
-  arrangeGenSelectEl.replaceChildren.apply(arrangeGenSelectEl, G.generators.map(function(g){
+  arrangeGenSelectEl.replaceChildren.apply(arrangeGenSelectEl, [followOption()].concat(G.generators.map(function(g){
     var opt = document.createElement('option');
     opt.value = String(g);
     opt.textContent = String(g);
     opt.title = translate(G.mode === 'additive' ? 'cyclicGroups.arrangeMultiples' : 'cyclicGroups.arrangePowers', { g: g });
     return opt;
-  }));
-  arrangeGenSelectEl.value = String(arrangeBy(G));
+  })));
+  arrangeGenSelectEl.value = state.arrangeGen === SUB_FOLLOW ? SUB_FOLLOW : String(arrangeBy(G));
   arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
 }
 
@@ -5603,7 +5605,7 @@ function applyRingQuery(q){
   state.gen = gen !== null && G.els.indexOf(gen) !== -1 ? gen : (G.cyclic ? G.generators[0] : G.identity);
   state.noSub = q.get('sub') === 'none';
   state.bygen = q.get('bygen') === '1';
-  state.arrangeGen = intOrNull(q.get('arrangegen'));
+  state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
   SUB_EXPR_CTLS.forEach(function(c){ c.set(c.el === subSortSelectEl ? intOrNull(q.get(c.param)) : subExprVal(q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
@@ -7431,8 +7433,8 @@ arrangeSelectEl.addEventListener('change', function(){
   rearrange(function(){ state.bygen = powers; render(); });
 });
 arrangeGenSelectEl.addEventListener('change', function(){
-  var g = parseInt(arrangeGenSelectEl.value, 10);
-  if (!isFinite(g)) return;
+  var g = subExprVal(arrangeGenSelectEl.value);
+  if (g === null) return;
   rearrange(function(){ state.arrangeGen = g; render(); });
 });
 SUB_EXPR_CTLS.forEach(function(c){
@@ -7449,8 +7451,12 @@ function setExprStop(i){
   var g = i > 0 ? drawn.G.generators[i - 1] : undefined;
   var next = g === undefined ? null : g;
   if (next === exprBy(drawn.G)) return;
-  state.expr = next;
-  render();
+  // Arranged by the slider's generator, the beads move to their new places.
+  if (state.bygen && state.arrangeGen === SUB_FOLLOW) rearrange(function(){ state.expr = next; render(); });
+  else {
+    state.expr = next;
+    render();
+  }
   // Coupled, the other ring's slider follows: the pane is told the image,
   // and the ring holding it the pane's choice, to take its preimage.
   if (IS_ISOPANE) tellHost({ isopane: 'expr', expr: next });
@@ -7679,8 +7685,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (AUTO_ROTATE.indexOf(auto) !== -1) state.autoRotate = auto;
   var autoSpeed = parseInt(query.get('autospeed'), 10);
   if (autoSpeed >= 1 && autoSpeed <= 3) state.autoSpeed = autoSpeed;
-  var arrangeGen = parseInt(query.get('arrangegen'), 10);
-  if (isFinite(arrangeGen)) state.arrangeGen = arrangeGen;
+  var arrangeGen = subExprVal(query.get('arrangegen'));
+  if (arrangeGen !== null) state.arrangeGen = arrangeGen;
   var expr = parseInt(query.get('expr'), 10);
   if (isFinite(expr)) state.expr = expr;
   SUB_EXPR_CTLS.forEach(function(c){
