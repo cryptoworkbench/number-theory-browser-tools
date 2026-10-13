@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T11:44:45.000Z"
+last_updated: "2026-10-13T11:48:49.000Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: afe9f828b7e6e2a38f2e96da3dd66b72dba9a9da
+state_head: 0fdd99e195b0b7db88b9ac975a3df8b17914a8f8
 progress:
   total_phases: 7
   completed_phases: 6
@@ -572,6 +572,7 @@ None yet.
 | 336 | + at the left edge opens a new ring on the left | 2026-10-13 | f8f2c5d | — |
 | 337 | Full-screen button dropped; closing the last ring exits to the intro | 2026-10-13 | a902f89 | — |
 | 338 | No + for a third ring while two are open | 2026-10-13 | afe9f82 | — |
+| 339 | Colour members like their beads becomes a checkbox (soft tint dropped) | 2026-10-13 | 0fdd99e | — |
 
 ## Deferred Items
 
