@@ -6248,7 +6248,17 @@ function isoReceive(d){
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
   if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
-  if (d.iso === 'interlock'){ if (IS_ISOPANE){ isoInterlockOn = d.on === true; syncSplit(); syncInterlock(); } return; }
+  if (d.iso === 'interlock'){
+    if (IS_ISOPANE){
+      isoInterlockOn = d.on === true;
+      // Merging, the holder's subgroup decides: the pane says nothing of
+      // its own until it has been told the holder's.
+      isoSelSent = isoInterlockOn ? SEL_AWAIT : null;
+      syncSplit();
+      syncInterlock();
+    }
+    return;
+  }
   if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, ks: isoRanks(d.ks, m) }; document.documentElement.classList.toggle('is-iso-whole', isoHostWhole.on); syncInterlock(); } return; }
   if (d.iso === 'numset'){ if (IS_ISOPANE && isoInterlockOn) takeNumset(d); return; }
   if (d.iso === 'subexpr'){ if (IS_ISOPANE && isoInterlockOn) takeSubExpr(d); return; }
@@ -6278,6 +6288,7 @@ function isoReceive(d){
 // which it reads from the pane's query when they merge (isoPane.subExpr).
 var isoInterlockOn = false, isoInterlockSent = false;
 var isoSelSent = null, isoNumSent = null;
+var SEL_AWAIT = 'await';
 // The ring holding the pane tells the pane whether the link is whole, and
 // how its numbers run (isoHostWhole).
 var isoHostWhole = { on: false, ks: null }, isoWholeSent = null;
@@ -6409,7 +6420,7 @@ function syncInterlock(){
       }
     }
   }
-  if (!subInterlocked()) return;
+  if (!subInterlocked() || isoSelSent === SEL_AWAIT) return;
   var k = state.noSub ? -1 : isoPowers().indexOf(state.gen);
   if (k === isoSelSent) return;
   isoSelSent = k;
