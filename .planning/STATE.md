@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-13T13:40:47.882Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ba32882dc1284f0a1a61f75648c2b7dc0a2e149d
+state_head: 344260896805b686414d0302297bc2f30b308031
 progress:
   total_phases: 7
   completed_phases: 6
@@ -596,6 +596,7 @@ None yet.
 | 360 | Locking whole groups orders both rings by their expression slider | 2026-10-13 | d66a037 | — |
 | 361 | Expression padlock sits level with the two expression sliders | 2026-10-13 | 0275364 | — |
 | 362 | Numerical button is a pair of chevrons, pulled to open | 2026-10-13 | ba32882 | — |
+| 363 | Numerical view open: green/red padlock under each upright slider | 2026-10-13 | 3442608 | — |
 
 ## Deferred Items
 
