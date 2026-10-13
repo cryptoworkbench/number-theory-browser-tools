@@ -648,6 +648,11 @@
      has its own button at the end of its own subgroup row. */
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen{ position:relative; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > .split-btn{ position:absolute; z-index:3; left:calc(100% + 14px); top:50%; translate:-50% -50%; }
+  /* Linked as whole groups, the rings explore their cosets together too:
+     the left ring's Explore cosets button joins Numerical on the line,
+     under it, and the pane's own goes. */
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn{ position:absolute; z-index:3; translate:-50% -50%; width:max-content; max-width:12em; padding:5px 12px; font-size:.85rem; white-space:normal; text-align:center; }
+  :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-btn{ display:none !important; }
   .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
   /* The ring and the pane share the spare height as --ring-fr to --split-fr,
      set by dragging the divider along the pane's top. */
@@ -3402,24 +3407,11 @@ function drawNecklace(G, paint){
         { a: coset.start, h: shownGen(G), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).join(', ') + '}' })
     : noSub() ? G.label
     : translate(G.orders[shownGen(G)] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: shownGen(G) })));
-  // In ℤ/nℤ the coset count follows from |⟨h⟩| = n / gcd(n, h), worked out
-  // with this n and h under the title while the cosets play.
+  // While the cosets play, the coset in view is named under the title.
   if (coset){
-    // The count, when there is one, comes first and the coset in view on a
-    // line of its own below it.
     var progress = translate('cyclicGroups.cosetProgress', { i: coset.past.length + 1, count: cosetRun.starts.length });
-    var progressY = 72;
-    if (G.mode === 'additive'){
-      var h = shownGen(G), d = gcd(G.n, h), size = G.n / d;
-      subs.push({ key: 'cyclicGroups.cosetCountMath', params: {
-        order: mathInline(mrow(abs(angle(mn(h))), mo('='), mfrac(mn(G.n), mgcd(mn(G.n), mn(h))), mo('='), mfrac(mn(G.n), mn(d)), mo('='), mn(size))),
-        count: mathInline(mrow(mfrac(mn(G.n), mn(size)), mo('='), mn(G.n / size)))
-      }, plain: translate('cyclicGroups.cosetCountAdd', { n: G.n, h: h, d: d, size: size, count: G.n / size }) });
-      ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, 72, subs[subs.length - 1].plain));
-      progressY = 98;
-    }
     subs.push({ key: 'cyclicGroups.cosetProgress', params: { i: mNum(coset.past.length + 1), count: mNum(cosetRun.starts.length) }, plain: progress });
-    ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, progressY, progress));
+    ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, 72, progress));
   } else {
     orderFormulas(G).forEach(function(f, i){
       fitText(ringDynamicEl.appendChild(drawText('ring-formula is-plain', SIZE / 2, 72 + 26 * i, f.plain)));
@@ -4339,6 +4331,8 @@ function syncCosetButton(){
   cosetBtnEl.classList.toggle('is-generator', generator);
   if (generator) translateInto(cosetBtnEl, 'cyclicGroups.cosetNoneGenerator', { g: mNum(state.gen) });
   else cosetBtnEl.textContent = translate(cosetRun ? 'cyclicGroups.cosetHide' : 'cyclicGroups.cosetButton');
+  // On the line between linked rings the button is placed by its size.
+  if (document.documentElement.classList.contains('is-iso-whole')) keepLockClear();
 }
 
 function syncCosetControls(){
@@ -5115,7 +5109,7 @@ function closeIsoPane(){
   paneSplitBox = null;
   isoInterlockSent = false;
   isoWholeSent = null;
-  document.documentElement.classList.remove('is-sub-merged');
+  document.documentElement.classList.remove('is-sub-merged', 'is-iso-whole');
   splitAlignSent = null;
   alignSplits();
   isoSentK = null;
@@ -5657,7 +5651,7 @@ function isoReceive(d){
   if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
   if (d.iso === 'interlock'){ if (IS_ISOPANE){ isoInterlockOn = d.on === true; syncSplit(); syncInterlock(); } return; }
-  if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, ks: isoRanks(d.ks, m) }; syncInterlock(); } return; }
+  if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, ks: isoRanks(d.ks, m) }; document.documentElement.classList.toggle('is-iso-whole', isoHostWhole.on); syncInterlock(); } return; }
   if (d.iso === 'numset'){ if (IS_ISOPANE && isoInterlockOn) takeNumset(d); return; }
   if (d.iso === 'subexpr'){ if (IS_ISOPANE && isoInterlockOn) takeSubExpr(d); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
@@ -5738,6 +5732,10 @@ function syncInterlock(){
       alignSplits();
     }
     var whole = { on: isoOrder() > 0 && isoLinksWholeGroups(), ks: null };
+    if (document.documentElement.classList.contains('is-iso-whole') !== whole.on){
+      document.documentElement.classList.toggle('is-iso-whole', whole.on);
+      keepLockClear();
+    }
     if (whole.on){
       var klog = exprLog(drawn.G, isoLinkGen());
       whole.ks = drawn.G.els.map(function(x){ return klog[x]; });
@@ -6303,7 +6301,10 @@ function render(){
       classes[G.orders[a]] = p.cls;
       if (p.style) pairing.color[a] = p.style.slice(ISO_PAINT_PREFIX.length);
     });
-    paint = function(a){ return isoBorrowed[a]; };
+    // Its own copy: a redraw with this painter, after the link is let go,
+    // still finds the colours.
+    var borrowed = isoBorrowed;
+    paint = function(a){ return borrowed[a]; };
   }
   var factors = G.cyclic ? [] : unitFactors(G.n);
 
@@ -6650,27 +6651,33 @@ function syncOpenLock(){
   isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
 }
 // The padlock, and while the rings are linked their shared Numerical button
-// under it, sit on the line between the rings, centred as one on the left
-// ring's middle: beside the rings, clear of the rows of controls above them.
+// under it (and, linked as whole groups, their shared Explore cosets button
+// under that), sit on the line between the rings, centred as one on the
+// left ring's middle: beside the rings, clear of the rows of controls above them.
 var LOCK_CLEAR_GAP = 14; // room for the padlock's pulsing halo
+var SHARED_BTN_GAP = 8;
 function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
   isoLockEl.style.top = '';
-  splitBtnEl.style.left = splitBtnEl.style.top = '';
+  [splitBtnEl, cosetBtnEl].forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
   if (!g.height || !p.height) return;
   var mid = g.top + g.height / 2;
-  var shared = getComputedStyle(splitBtnEl).position === 'absolute' && !!splitBtnEl.offsetParent;
-  var b = shared ? splitBtnEl.getBoundingClientRect() : null;
+  var btns = [splitBtnEl, cosetBtnEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent; });
+  var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
-  var gap = lockH && b ? LOCK_CLEAR_GAP : 0;
-  var top = mid - ((b ? b.height : 0) + gap + lockH) / 2;
+  var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
+  var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
+  var top = mid - total / 2;
   if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
-  if (!b) return;
-  var r = splitBtnEl.offsetParent.getBoundingClientRect();
-  splitBtnEl.style.left = num(p.left - r.left) + 'px';
-  splitBtnEl.style.top = num(top + lockH + gap + b.height / 2 - r.top) + 'px';
+  var y = top + lockH + gap;
+  btns.forEach(function(el, i){
+    var r = el.offsetParent.getBoundingClientRect();
+    el.style.left = num(p.left - r.left) + 'px';
+    el.style.top = num(y + hs[i] / 2 - r.top) + 'px';
+    y += hs[i] + SHARED_BTN_GAP;
+  });
 }
 // A press on locked parameters starts no selection, so the double-click
 // that opens them leaves no word highlighted.
