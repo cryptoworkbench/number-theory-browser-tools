@@ -612,6 +612,7 @@ None yet.
 | 376 | Coset button centred in the subgroup row over the ring's centre | 2026-10-13 | f2a03fc | — |
 | 377 | Explore cosets of the identity's trivial subgroup | 2026-10-13 | 0c5e37f | — |
 | 378 | Loop toggle for continuous coset replay | 2026-10-13 | 22490cf | — |
+| 379 | Coset run survives opening or closing the bottom panel | 2026-10-13 | 31ed828 | — |
 
 ## Deferred Items
 
