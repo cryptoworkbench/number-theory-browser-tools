@@ -1869,6 +1869,14 @@ function genOrNull(G, v){
   return G.cyclic && G.generators.indexOf(v) !== -1 ? v : null;
 }
 function exprBy(G){ return genOrNull(G, state.expr); }
+// The Numerical panel's two expressions may follow the ring's expression
+// slider (stored as SUB_FOLLOW) instead of naming a generator of their own.
+var SUB_FOLLOW = 'follow';
+function subExprGen(G, v, slider){ return v === SUB_FOLLOW ? genOrNull(G, slider) : genOrNull(G, v); }
+function subExprVal(v){ if (v === SUB_FOLLOW) return SUB_FOLLOW; var n = parseInt(v, 10); return isFinite(n) ? n : null; }
+// The pane's slider, as its query reports it to the ring holding it.
+function paneExpr(){ return isoPane ? intOrNull(new URLSearchParams(isoPane.q).get('expr')) : null; }
+function followOption(){ return arrangeOption(SUB_FOLLOW, 'cyclicGroups.subExprFollow'); }
 // Each element's exponent k over generator g.
 function exprLog(G, g){
   var log = {};
@@ -1943,12 +1951,14 @@ function syncSubExpr(G){
   subExprRowREl.hidden = !merged;
   if (!G.cyclic) return;
   SUB_EXPR_CTLS.forEach(function(c){
-    c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(G.generators.map(function(g){
+    var follows = c.el !== subSortSelectEl;
+    c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(follows ? [followOption()] : [], G.generators.map(function(g){
       var opt = document.createElement('option');
       opt.value = String(g);
       opt.textContent = translate(c.key, { g: g });
       return opt;
     })));
+    if (follows && c.get() === SUB_FOLLOW){ c.el.value = SUB_FOLLOW; return; }
     var g = genOrNull(G, c.get());
     c.el.value = g === null ? '' : String(g);
   });
@@ -1960,12 +1970,13 @@ function syncSubExpr(G){
 function syncMergedExpr(G){
   var H = isoPaneGroup(), se = isoPane.subExpr || { left: null, right: null }, phi = isoImage(G);
   [[subLeftRSelectEl, se.left], [subRightRSelectEl, se.right]].forEach(function(c){
-    c[0].replaceChildren.apply(c[0], [arrangeOption('', 'cyclicGroups.exprNatural')].concat(H.generators.map(function(h){
+    c[0].replaceChildren.apply(c[0], [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(H.generators.map(function(h){
       var opt = document.createElement('option');
       opt.value = String(h);
       opt.textContent = translate('cyclicGroups.arrangePowers', { g: h });
       return opt;
     })));
+    if (c[1] === SUB_FOLLOW){ c[0].value = SUB_FOLLOW; return; }
     var h = genOrNull(H, c[1]);
     c[0].value = h === null ? '' : String(h);
   });
@@ -4741,7 +4752,7 @@ function renderSubgroups(G){
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
   // The panel's own expressions: the generating element left of =, the
   // members right of it, each a number or a power g^k; and the rows' order.
-  var lg = genOrNull(G, state.subLeft), rg = genOrNull(G, state.subRight), sg = genOrNull(G, state.subSort);
+  var lg = subExprGen(G, state.subLeft, state.expr), rg = subExprGen(G, state.subRight, state.expr), sg = genOrNull(G, state.subSort);
   var llog = lg === null ? null : exprLog(G, lg), rlog = rg === null ? null : exprLog(G, rg);
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   // Padded, a number in its natural expression takes leading zeros up to
@@ -4802,8 +4813,8 @@ function renderMergedSubgroups(G){
   var hadFocus = subgroupsEl.contains(document.activeElement);
   var H = isoPaneGroup(), phi = isoImage(G), se = isoPane.subExpr || { left: null, right: null };
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
-  var lg = genOrNull(G, state.subLeft), rg = genOrNull(G, state.subRight);
-  var hl = genOrNull(H, se.left), hr = genOrNull(H, se.right);
+  var lg = subExprGen(G, state.subLeft, state.expr), rg = subExprGen(G, state.subRight, state.expr);
+  var hl = subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   var expWidth = state.subPad ? String(G.order - 1).length : 0;
   var widthG = state.subPad ? String(Math.max.apply(null, G.els)).length : 0;
@@ -5900,7 +5911,7 @@ function syncInterlock(){
         // subgroup here must not carry the link along to it.
         if (isoPane.g === null) isoPane.g = isoLinkGen();
         var q = new URLSearchParams(isoPane.q);
-        isoPane.subExpr = { left: intOrNull(q.get('subleft')), right: intOrNull(q.get('subright')) };
+        isoPane.subExpr = { left: subExprVal(q.get('subleft')), right: subExprVal(q.get('subright')) };
       }
       isoTell({ iso: 'interlock', on: on });
       document.documentElement.classList.toggle('is-sub-merged', on);
@@ -5945,7 +5956,7 @@ function takeNumset(d){
 }
 function takeSubExpr(d){
   var G = drawn.G;
-  var ok = function(v){ return v === null || genOrNull(G, v) !== null; };
+  var ok = function(v){ return v === null || v === SUB_FOLLOW || genOrNull(G, v) !== null; };
   if (!ok(d.left) || !ok(d.right)) return;
   state.subLeft = d.left;
   state.subRight = d.right;
@@ -5957,7 +5968,7 @@ function takeSubExpr(d){
 [subLeftRSelectEl, subRightRSelectEl].forEach(function(el){
   el.addEventListener('change', function(){
     if (IS_ISOPANE || !isoPane || !isoPane.subExpr || !drawn) return;
-    isoPane.subExpr = { left: intOrNull(subLeftRSelectEl.value), right: intOrNull(subRightRSelectEl.value) };
+    isoPane.subExpr = { left: subExprVal(subLeftRSelectEl.value), right: subExprVal(subRightRSelectEl.value) };
     isoTell({ iso: 'subexpr', left: isoPane.subExpr.left, right: isoPane.subExpr.right });
     renderSubgroups(drawn.G);
   });
@@ -6918,8 +6929,7 @@ arrangeGenSelectEl.addEventListener('change', function(){
 });
 SUB_EXPR_CTLS.forEach(function(c){
   c.el.addEventListener('change', function(){
-    var g = parseInt(c.el.value, 10);
-    c.set(isFinite(g) ? g : null);
+    c.set(c.el === subSortSelectEl ? intOrNull(c.el.value) : subExprVal(c.el.value));
     if (c.el === subSortSelectEl) state.subSortR = c.el.value === 'r';
     render();
   });
@@ -7159,8 +7169,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   var expr = parseInt(query.get('expr'), 10);
   if (isFinite(expr)) state.expr = expr;
   SUB_EXPR_CTLS.forEach(function(c){
-    var v = parseInt(query.get(c.param), 10);
-    if (isFinite(v)) c.set(v);
+    var v = c.el === subSortSelectEl ? intOrNull(query.get(c.param)) : subExprVal(query.get(c.param));
+    if (v !== null) c.set(v);
   });
   state.subSortR = query.get('subsortr') === '1';
   var rot = parseInt(query.get('rot'), 10);
