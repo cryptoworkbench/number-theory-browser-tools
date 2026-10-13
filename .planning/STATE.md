@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T11:24:58.263Z"
+last_updated: "2026-10-13T11:28:55.095Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f0cc10f7c61bfb7f5e2a90230025e880b0b6e7ba
+state_head: 644c5f667c36b2145330f958509379ff997d9201
 progress:
   total_phases: 7
   completed_phases: 6
@@ -568,6 +568,7 @@ None yet.
 | 332 | Numerical panel expressions can follow the expression slider | 2026-10-13 | dce5ea7 | — |
 | 333 | Merged Numerical row hover previews both rings | 2026-10-13 | 74cbf00 | — |
 | 334 | Cyclic Groups controls snug against the top edge | 2026-10-13 | f0cc10f | — |
+| 335 | Left ring close button when two rings are open | 2026-10-13 | 644c5f6 | — |
 
 ## Deferred Items
 
