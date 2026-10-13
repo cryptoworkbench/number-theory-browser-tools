@@ -927,10 +927,15 @@
   /* A formula dragged out of the copy submenu onto the Ring window: a card
      of its own over a blurred background, moved by dragging, closed from
      its corner button. While dragged out it follows the pointer. */
-  .formula-card{ position:absolute; z-index:6; width:max-content; padding:.62em 2.6em .62em .875em; background:color-mix(in srgb, var(--panel) 72%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid var(--panel-border); border-radius:var(--radius-card); box-shadow:0 4px 16px color-mix(in srgb, var(--ink) 18%, transparent); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .formula-card{ position:absolute; z-index:6; width:max-content; overflow:hidden; background:color-mix(in srgb, var(--panel) 72%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid var(--panel-border); border-radius:var(--radius-card); box-shadow:0 4px 16px color-mix(in srgb, var(--ink) 18%, transparent); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
   .formula-card.is-moving{ cursor:grabbing; }
   .formula-card.is-ghost{ position:fixed; z-index:80; pointer-events:none; opacity:.9; }
-  .formula-card > .fs-win-btn.is-close{ position:absolute; top:6px; right:6px; }
+  /* Its title bar, like a window's: the formula's name from the menu on
+     the left, the close button on the right. */
+  .formula-card-bar{ display:flex; align-items:center; gap:16px; padding:4px 5px 4px 10px; border-bottom:1px solid var(--panel-border); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .formula-card-title{ flex:1 1 auto; font-family:var(--font-sans); font-size:.72rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  .formula-card-bar > .fs-win-btn{ width:20px; height:20px; }
+  .formula-card > .scratch-math{ margin:0; padding:.55em .875em .62em; }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
      own controls: small labels, dropdowns at the row's end. */
@@ -3174,20 +3179,34 @@ function formulaCard(name){
   if (!f) return null;
   var card = document.createElement('div');
   card.className = 'formula-card';
+  card.setAttribute('data-formula', name);
+  var bar = document.createElement('div');
+  bar.className = 'formula-card-bar';
+  var title = document.createElement('span');
+  title.className = 'formula-card-title';
+  bar.appendChild(title);
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'fs-win-btn is-close';
+  close.appendChild(svgIcon([['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]]));
+  close.addEventListener('click', function(){ card.remove(); });
+  bar.appendChild(close);
+  card.appendChild(bar);
   var cell = document.createElement('div');
   cell.className = 'scratch-math';
   cell.appendChild(scratchMath(f.cls, f.math, f.plain));
   card.appendChild(cell);
-  var close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'fs-win-btn is-close';
-  var label = translate('cyclicGroups.fsClose', { name: translate(SCRATCH_NAMES[name]) });
+  nameFormulaCard(card);
+  return card;
+}
+// A card's title, the name its formula has in the menu, and its close
+// button's label, in the language shown.
+function nameFormulaCard(card){
+  var name = translate(SCRATCH_NAMES[card.getAttribute('data-formula')]);
+  card.querySelector('.formula-card-title').textContent = name;
+  var close = card.querySelector('.formula-card-bar > .is-close'), label = translate('cyclicGroups.fsClose', { name: name });
   close.setAttribute('aria-label', label);
   close.title = label;
-  close.appendChild(svgIcon([['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]]));
-  close.addEventListener('click', function(){ card.remove(); });
-  card.appendChild(close);
-  return card;
 }
 // A card's place in its window, kept inside it.
 function placeFormulaCard(card, area, x, y){
@@ -7422,7 +7441,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); });
+onLangChange(function(){ render(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
