@@ -627,6 +627,13 @@
   .split-btn, .ring-split{ display:none; }
   .fs-win-body.is-ring .split-btn{ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
+  /* While the rings are linked through an isomorphism they share one
+     button: the left ring's, centred on the line between the two rings
+     (the pane's column starting one column gap after the subgroup row)
+     at the height of that row, opening both splits. Unlinked, each ring
+     has its own button at the end of its own subgroup row. */
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen{ position:relative; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > .split-btn{ position:absolute; z-index:3; left:calc(100% + 14px); top:50%; translate:-50% -50%; }
   .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
   /* The ring and the pane share the spare height as --ring-fr to --split-fr,
      set by dragging the divider along the pane's top. */
@@ -783,12 +790,14 @@
   .diagram-frame:has(> .iso-pane:not([hidden])) > .combine-key{ right:calc(50% + 14px); max-width:min(330px, 20%); }
   /* The pane keeps to its group's own controls: the shared ones (colours,
      paths, the layers) are the left ring's, its menu having no Colours,
-     and a pane never splits itself.
+     and while the two rings are linked its Numerical button is the left
+     ring's one, on the line between them.
      Its ring turns with the left one, so its rotation controls (the turn
      buttons, the speed ruler and Keep on top) are the left ring's too;
      dragging it still turns both. Its arrows are coloured as the left
      ring's, so their key is shown once, under the left ring. */
-  :root.is-isopane :is(#split-btn, .legend-pick, .legend-reset, #keep-top-row, #combine-key){ display:none !important; }
+  :root.is-isopane :is(.legend-pick, .legend-reset, #keep-top-row, #combine-key){ display:none !important; }
+  :root.is-isopane:not(.is-iso-unlinked) #split-btn{ display:none !important; }
   /* The pane's rotation controls show only while it no longer turns with
      the ring that holds it, the two groups not isomorphic. */
   :root.is-isopane:not(.is-iso-unlinked) :is(#rotate-ctl, #spin-ruler){ display:none !important; }
@@ -3115,7 +3124,8 @@ splitBtnEl.addEventListener('click', toggleSplit);
 // button is in a Ring window.
 document.addEventListener('keydown', function(e){
   if (e.key !== 'F8' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-  if (IS_ISOPANE){
+  // A linked pane's split is the holding ring's; unlinked, it has its own.
+  if (IS_ISOPANE && !document.documentElement.classList.contains('is-iso-unlinked')){
     e.preventDefault();
     tellHost({ isopane: 'edit', name: 'split', on: !splitOn });
     return;
@@ -3284,7 +3294,10 @@ function reportPaneSplit(){
 if (typeof ResizeObserver === 'function'){
   var splitWatch = new ResizeObserver(function(){
     if (IS_ISOPANE) reportPaneSplit();
-    else alignSplits();
+    else {
+      alignSplits();
+      keepLockClear();
+    }
   });
   splitWatch.observe(ringSvgEl);
   splitWatch.observe(ringSplitEl);
@@ -5280,13 +5293,22 @@ function applyIsoShared(d){
   if (flag(d.guide)) state.guide = d.guide;
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
-  if (flag(d.split)) splitOn = d.split;
+  // The split follows the holding ring's only while the two are linked;
+  // unlinked, the pane opens and closes its own, and takes the holder's
+  // again once they are linked anew.
+  if (flag(d.split) && d.linked === true) splitOn = d.split;
   // The link's generator here, which the holding ring may move to another
   // generator of this group once the two are found isomorphic.
   if (Number.isInteger(d.isogen) && d.isogen >= 0) ISO_GEN = d.isogen;
   if (flag(d.linked)){
     document.documentElement.classList.toggle('is-iso-unlinked', !d.linked);
-    if (!d.linked) isoPaints = null;
+    // Unlinked, the two lists are no longer merged: the holder's word that
+    // they are not (sent with no link order) cannot reach this ring, so it
+    // drops the merge itself and shows its own list again.
+    if (!d.linked){
+      isoPaints = null;
+      isoInterlockOn = false;
+    }
   }
   // Told to lock (the user said yes to the isomorphism found): lock, and show
   // the link's generator as the subgroup, as an isomorphism chip opens it.
@@ -5402,6 +5424,7 @@ function syncIsoKeys(){
   var mine = !combineKeyEl.hidden;
   var showCopy = !!pk && (!mine || pk.merged || mergedWalks(drawn.G));
   root.classList.toggle('is-iso-unlinked', unlinked);
+  keepLockClear();
   root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && state.colorBy === 'order');
   root.classList.toggle('is-iso-two-keys', showCopy && mine);
   copy.hidden = !showCopy;
@@ -6580,6 +6603,7 @@ function setGroupLock(on){
   isoLockEl.setAttribute('title', translate('cyclicGroups.groupLockTitle'));
   isoLockEl.classList.remove('is-open');
   syncOpenLock();
+  keepLockClear();
 }
 // While the rings share an isomorphism that is not locked (declined, or
 // unlocked since), the padlock sits open where the closed one would.
@@ -6588,9 +6612,23 @@ function syncOpenLock(){
   var open = !!isoPane && isoPane.link !== 'asking' && isoFound();
   isoLockEl.hidden = !open;
   isoLockEl.classList.toggle('is-open', open);
+  keepLockClear();
   if (!open) return;
   isoLockEl.setAttribute('title', translate(isoLinksWholeGroups() ? 'cyclicGroups.isoLockOpenGroup' : 'cyclicGroups.isoLockOpenSub'));
   isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
+}
+// The padlock, half way down the line between the rings, steps clear of the
+// Numerical button centred on that line while the rings are linked, should
+// the two meet (a small ring under an open split).
+var LOCK_CLEAR_GAP = 6;
+function keepLockClear(){
+  if (IS_ISOPANE || !isoLockEl) return;
+  isoLockEl.style.marginTop = '';
+  if (isoLockEl.hidden || isoPaneEl.hidden || getComputedStyle(splitBtnEl).position !== 'absolute') return;
+  var b = splitBtnEl.getBoundingClientRect(), l = isoLockEl.getBoundingClientRect();
+  if (l.top >= b.bottom + LOCK_CLEAR_GAP || l.bottom <= b.top - LOCK_CLEAR_GAP) return;
+  var by = l.top + l.height / 2 >= b.top + b.height / 2 ? b.bottom + LOCK_CLEAR_GAP - l.top : b.top - LOCK_CLEAR_GAP - l.bottom;
+  isoLockEl.style.marginTop = num(by) + 'px';
 }
 // A press on locked parameters starts no selection, so the double-click
 // that opens them leaves no word highlighted.
