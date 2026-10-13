@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T09:07:55.917Z"
+last_updated: "2026-10-13T09:27:30.387Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: b76379ecc66fb756b1f9547af5cc4ea9a58b734e
+state_head: 41e5168c642be6fe957e31f623fcf899cc6d844d
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-13 - Completed quick task 261013-dln: Numeric panel option to colour members like their beads
+Last activity: 2026-10-13 - Completed quick task 261013-fka: Per-pane Numerical buttons; centred button while linked
 
 Progress: [█████████░] 86%
 
@@ -559,6 +559,7 @@ None yet.
 | 323 | Unlocking an isomorphism leaves the padlock open | 2026-10-13 | 862b25b | — |
 | 324 | Rings turn independently while the padlock is open | 2026-10-13 | ed2e888 | — |
 | 325 | An open padlock unlinks the rings entirely (numeric, halo, colours) | 2026-10-13 | b76379e | — |
+| 261013-fka | Per-pane Numerical buttons; centred button while linked | 2026-10-13 | 41e5168 | [261013-fka-per-pane-numerical-buttons-centred-butto](./quick/261013-fka-per-pane-numerical-buttons-centred-butto/) |
 
 ## Deferred Items
 
@@ -574,4 +575,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-13 - Completed quick task 261013-dln: Numeric panel option to colour members like their beads
+Last activity: 2026-10-13 - Completed quick task 261013-fka: Per-pane Numerical buttons; centred button while linked
