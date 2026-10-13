@@ -628,9 +628,8 @@
   .fs-win-body.is-ring .split-btn{ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the rings are linked through an isomorphism they share one
-     button: the left ring's, centred on the line between the two rings
-     (the pane's column starting one column gap after the subgroup row)
-     at the height of that row, opening both splits. Unlinked, each ring
+     button: the left ring's, on the line between the two rings just
+     under the padlock (placed by keepLockClear), opening both splits. Unlinked, each ring
      has its own button at the end of its own subgroup row. */
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen{ position:relative; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > .split-btn{ position:absolute; z-index:3; left:calc(100% + 14px); top:50%; translate:-50% -50%; }
@@ -6617,18 +6616,28 @@ function syncOpenLock(){
   isoLockEl.setAttribute('title', translate(isoLinksWholeGroups() ? 'cyclicGroups.isoLockOpenGroup' : 'cyclicGroups.isoLockOpenSub'));
   isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
 }
-// The padlock, half way down the line between the rings, steps clear of the
-// Numerical button centred on that line while the rings are linked, should
-// the two meet (a small ring under an open split).
+// The padlock, and while the rings are linked their shared Numerical button
+// under it, sit on the line between the rings, centred as one on the left
+// ring's middle: beside the rings, clear of the rows of controls above them.
 var LOCK_CLEAR_GAP = 6;
 function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
-  isoLockEl.style.marginTop = '';
-  if (isoLockEl.hidden || isoPaneEl.hidden || getComputedStyle(splitBtnEl).position !== 'absolute') return;
-  var b = splitBtnEl.getBoundingClientRect(), l = isoLockEl.getBoundingClientRect();
-  if (l.top >= b.bottom + LOCK_CLEAR_GAP || l.bottom <= b.top - LOCK_CLEAR_GAP) return;
-  var by = l.top + l.height / 2 >= b.top + b.height / 2 ? b.bottom + LOCK_CLEAR_GAP - l.top : b.top - LOCK_CLEAR_GAP - l.bottom;
-  isoLockEl.style.marginTop = num(by) + 'px';
+  isoLockEl.style.top = '';
+  splitBtnEl.style.left = splitBtnEl.style.top = '';
+  if (isoPaneEl.hidden) return;
+  var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
+  if (!g.height || !p.height) return;
+  var mid = g.top + g.height / 2;
+  var shared = getComputedStyle(splitBtnEl).position === 'absolute' && !!splitBtnEl.offsetParent;
+  var b = shared ? splitBtnEl.getBoundingClientRect() : null;
+  var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
+  var gap = lockH && b ? LOCK_CLEAR_GAP : 0;
+  var top = mid - ((b ? b.height : 0) + gap + lockH) / 2;
+  if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
+  if (!b) return;
+  var r = splitBtnEl.offsetParent.getBoundingClientRect();
+  splitBtnEl.style.left = num(p.left - r.left) + 'px';
+  splitBtnEl.style.top = num(top + lockH + gap + b.height / 2 - r.top) + 'px';
 }
 // A press on locked parameters starts no selection, so the double-click
 // that opens them leaves no word highlighted.
