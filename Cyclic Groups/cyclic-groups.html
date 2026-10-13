@@ -7507,11 +7507,11 @@ function setGroupLock(on){
   isoLockEl.classList.remove('is-open');
   syncOpenLock();
 }
-// While the rings share an isomorphism the user declined to lock, the padlock
-// sits open where the closed one would.
+// While the rings share an isomorphism that is not locked (declined, or
+// unlocked since), the padlock sits open where the closed one would.
 function syncOpenLock(){
   if (IS_ISOPANE || !isoLockEl || groupControlsEl.classList.contains('is-locked')) return;
-  var open = !!isoPane && isoPane.link === 'declined' && isoFound();
+  var open = !!isoPane && isoPane.link !== 'asking' && isoFound();
   isoLockEl.hidden = !open;
   isoLockEl.classList.toggle('is-open', open);
   if (!open) return;
@@ -7535,7 +7535,9 @@ function openGroupLock(told){
   drawGroupLocks(true);
   [groupControlsEl, isoLockEl].forEach(function(el){ el.classList.add('is-unlocking'); });
   groupLockTimer = setTimeout(function(){
-    [groupControlsEl, isoLockEl].forEach(function(el){ el.classList.add('is-fading'); });
+    // The padlock between the rings stays, opening, while they are still isomorphic.
+    var stays = !IS_ISOPANE && !!isoPane && isoFound();
+    [groupControlsEl].concat(stays ? [] : [isoLockEl]).forEach(function(el){ el.classList.add('is-fading'); });
     groupLockTimer = setTimeout(function(){
       setGroupLock(false);
       // The ring holding the pane remembers that the pane was let go.
@@ -7549,9 +7551,9 @@ isoLockEl.addEventListener('dblclick', function(){
   else openGroupLock(false);
 });
 // A double-click on the open padlock locks the isomorphism the user had
-// declined, just as answering Yes would have.
+// declined or unlocked, just as answering Yes would have.
 function lockDeclined(){
-  if (!isoPane || isoPane.link !== 'declined' || !isoFound()) return;
+  if (!isoPane || (isoPane.link !== 'declined' && isoPane.link !== 'linked') || !isoFound()) return;
   isoPane.link = 'asking';
   answerIsoAsk(true);
 }
