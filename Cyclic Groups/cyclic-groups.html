@@ -706,6 +706,7 @@
   .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "expr expr expr" "rot spin key" "split split split"; }
   /* With no isomorphism open the button leaves the subgroup row for a row
      of its own under the ring (placeSplitBtn). */
+  .fs-win-body.is-ring .panel-head > .split-btn{ flex:none; padding:2px 10px; }
   .fs-win-body.is-ring > .split-btn{ grid-area:sbtn; justify-self:center; align-self:center; margin:2px 0 4px; }
   .fs-win-body.is-ring:has(> .split-btn){ grid-template-rows:auto auto auto auto auto auto minmax(0, 1fr) auto auto auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key"; }
   .fs-win-body.is-ring:has(> .split-btn):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key" "split split split"; }
@@ -3647,16 +3648,27 @@ function syncPanes(){
 // keeping its place; closing the split, or leaving full screen, sends it back.
 // Alone, the ring has the Numerical button under it; beside an isomorphism
 // pane, and in the pane's own ring, it keeps to the end of the subgroup row.
-function placeSplitBtn(){
+// With the panel open, a ring alone has it in the panel's top-right corner,
+// the way a window has its controls, pointing down, so the ring keeps the
+// row under it.
+var subgroupsHeadEl = subgroupsPanelEl.querySelector('.panel-head');
+// hadFocus: the button had the focus before the panel, perhaps carrying it,
+// moved.
+function placeSplitBtn(hadFocus){
   var body = ringSvgEl.parentNode;
   if (!body.classList.contains('fs-win-body')) return;
+  var focused = hadFocus === true || document.activeElement === splitBtnEl;
   if (!IS_ISOPANE && isoPaneEl.hidden){
-    if (splitBtnEl.parentNode !== body) ringSvgEl.after(splitBtnEl);
-  } else if (splitBtnEl.parentNode === body) subgroupOptionsEl.after(splitBtnEl);
+    if (subgroupsPanelEl.parentNode === ringSplitEl){
+      if (splitBtnEl.parentNode !== subgroupsHeadEl) subgroupsHeadEl.appendChild(splitBtnEl);
+    } else if (splitBtnEl.parentNode !== body) ringSvgEl.after(splitBtnEl);
+  } else if (splitBtnEl.parentNode !== subgroupOptionsEl.parentNode) subgroupOptionsEl.after(splitBtnEl);
+  // Moving the button blurs it; a keyboard user keeps their place.
+  if (focused && document.activeElement !== splitBtnEl) splitBtnEl.focus({ preventScroll: true });
 }
 new MutationObserver(placeSplitBtn).observe(isoPaneEl, { attributes: true, attributeFilter: ['hidden'] });
 function syncSplit(){
-  placeSplitBtn();
+  var hadFocus = document.activeElement === splitBtnEl;
   var on =splitOn && !!ringSplitEl.closest('.fs-win-body.is-ring') && !(IS_ISOPANE && isoInterlockOn);
   if (on && subgroupsPanelEl.parentNode !== ringSplitEl){
     splitHome = document.createComment('subgroups-list-panel');
@@ -3668,6 +3680,7 @@ function syncSplit(){
     splitHome = null;
   }
   ringSplitEl.hidden = !on;
+  placeSplitBtn(hadFocus);
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
   drawSplitChevrons();
   syncExprSide();
