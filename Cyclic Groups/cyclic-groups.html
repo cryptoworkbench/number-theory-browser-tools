@@ -666,9 +666,30 @@
      pane under the ring (a divider between them) that takes in the page's
      live subgroup list; ring and pane share the window's spare height. */
   .split-btn, .ring-split{ display:none; }
-  .fs-win-body.is-ring .split-btn{ display:inline-grid; place-items:center; width:auto; padding:4px 12px; font-size:.85rem; cursor:grab; touch-action:none; }
-  .fs-win-body.is-ring .split-btn.is-pulling{ cursor:grabbing; }
-  .split-btn svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  /* Like a lock screen's: big chevrons straight on the background, pulled
+     the way they point (or double-clicked) to open or close the pane; a
+     single click only lifts the pane into view for a moment and lets it
+     fall back, the chevrons bobbing with it. */
+  .fs-win-body.is-ring .split-btn{ display:inline-grid; place-items:center; width:auto; margin:0; padding:0 14px; font:inherit; color:var(--text-dim); background:none; border:0; border-radius:var(--radius-ctl); box-shadow:none; cursor:grab; touch-action:none; -webkit-tap-highlight-color:transparent; transition:color .15s; }
+  .fs-win-body.is-ring .split-btn:hover, .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--text); }
+  .fs-win-body.is-ring .split-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .fs-win-body.is-ring .split-btn.is-pulling{ cursor:grabbing; color:var(--accent); }
+  .split-btn svg{ display:block; width:40px; height:40px; fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
+  .split-btn.is-nudging svg{ animation:split-nudge-up .75s ease-out; }
+  .split-btn[aria-pressed="true"].is-nudging svg{ animation-name:split-nudge-down; }
+  @keyframes split-nudge-up{ 0%, 100%{ transform:none; } 35%{ transform:translateY(-9px); } 60%{ transform:translateY(2px); } }
+  @keyframes split-nudge-down{ 0%, 100%{ transform:none; } 35%{ transform:translateY(9px); } 60%{ transform:translateY(-2px); } }
+  /* What rises while the pane is closed: a sheet with the pane's heading,
+     following a pull, or lifting briefly at a click. */
+  .split-peek{ position:absolute; z-index:6; left:12px; right:12px; bottom:0; height:140px; box-sizing:border-box; padding:10px 16px; background:var(--panel); border:1px solid var(--panel-border); border-bottom:0; border-radius:14px 14px 0 0; box-shadow:0 -6px 24px color-mix(in srgb, var(--text) 14%, transparent); transform:translateY(100%); pointer-events:none; transition:transform .3s cubic-bezier(.2, .9, .3, 1.15); }
+  .split-peek::before{ content:""; display:block; width:36px; height:4px; margin:0 auto 10px; border-radius:2px; background:var(--text-dim); opacity:.5; }
+  .split-peek h2{ margin:0; font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+  .split-peek.is-nudging{ animation:split-peek .75s ease-out; }
+  @keyframes split-peek{ 0%, 100%{ transform:translateY(100%); } 35%{ transform:translateY(calc(100% - 64px)); } }
+  .fs-win-body.is-ring > .ring-split{ transition:transform .3s cubic-bezier(.2, .9, .3, 1.15); }
+  .fs-win-body.is-ring > .ring-split.is-nudging{ animation:split-dip .75s ease-out; }
+  @keyframes split-dip{ 0%, 100%{ transform:none; } 35%{ transform:translateY(28px); } }
+  @media (prefers-reduced-motion: reduce){ .split-btn.is-nudging svg, .split-peek.is-nudging, .fs-win-body.is-ring > .ring-split.is-nudging{ animation:none; } .split-peek, .fs-win-body.is-ring > .ring-split{ transition:none; } }
   /* The forward direction as one button, its arrow turning the way the
      beads count: in the Arrangement row beside a ring alone, on the line
      between the rings (placed by keepLockClear) beside an isomorphism pane,
@@ -679,7 +700,6 @@
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-toggle{ position:absolute; z-index:3; translate:-50% -50%; }
   :root.is-isopane #dir-toggle{ display:none !important; }
-  .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the rings are linked through an isomorphism they share one
      button: the left ring's, on the line between the two rings just
      under the padlock (placed by keepLockClear), opening both splits. Unlinked, each ring
@@ -1463,7 +1483,7 @@
             </div>
           </div>
         </div>
-        <button type="button" class="action-btn split-btn" id="split-btn" aria-pressed="false" aria-controls="ring-split" title="Numerical" aria-label="Numerical" data-i18n-title="cyclicGroups.splitView" data-i18n-aria-label="cyclicGroups.splitView"></button>
+        <button type="button" class="split-btn" id="split-btn" aria-pressed="false" aria-controls="ring-split" aria-label="Numerical" data-i18n-aria-label="cyclicGroups.splitView"></button>
       </section>
 
       <section class="panel" id="legend-panel">
@@ -3683,40 +3703,105 @@ function toggleSplit(){
   splitOn = !splitOn;
   syncPanes();
 }
-// The Numerical button is two stacked chevrons, pointing up while the panel
-// is closed and down while it is open: clicked, or pulled the way they
-// point, it opens or closes the panel.
-var SPLIT_PULL = 18;
-var splitPull = null, splitPulled = false;
+// The Numerical button is two big stacked chevrons, pointing up while the
+// panel is closed and down while it is open. As on a lock screen, it opens
+// or closes the panel when pulled the way they point far enough, or when
+// double-clicked: the panel (or, closed, a sheet with its heading) follows
+// the pull and springs back if let go short. A single click only lifts it
+// into view for a moment. From the keyboard, Enter or Space toggles at once.
+var SPLIT_OPEN_PULL = 56, SPLIT_PULL_MAX = 120;
+var splitPull = null, splitPulled = false, splitPeekEl = null;
 function drawSplitChevrons(){
   var d = splitOn ? ['M2.5 3.5 6 6.5l3.5-3', 'M2.5 6.5 6 9.5l3.5-3'] : ['M2.5 5.5 6 2.5l3.5 3', 'M2.5 8.5 6 5.5l3.5 3'];
   splitBtnEl.replaceChildren(svgIcon(d.map(function(p){ return ['path', { d: p }]; })));
+  splitBtnEl.title = translate(splitOn ? 'cyclicGroups.splitCloseHint' : 'cyclicGroups.splitOpenHint');
 }
+// The sheet that rises from the foot of the ring's body while it is closed.
+function splitPeek(){
+  var body = splitBtnEl.closest('.fs-win-body.is-ring');
+  if (!body) return null;
+  if (!splitPeekEl){
+    splitPeekEl = document.createElement('div');
+    splitPeekEl.className = 'split-peek';
+    splitPeekEl.setAttribute('aria-hidden', 'true');
+    splitPeekEl.appendChild(document.createElement('h2'));
+    splitPeekEl.addEventListener('animationend', function(){ splitPeekEl.classList.remove('is-nudging'); });
+  }
+  splitPeekEl.firstChild.textContent = translate('cyclicGroups.subgroupsHeading');
+  if (splitPeekEl.parentNode !== body) body.appendChild(splitPeekEl);
+  return splitPeekEl;
+}
+// What a pull moves: the open panel down, or the closed one's sheet up.
+function pullTarget(){ return splitOn ? ringSplitEl : splitPeek(); }
+// Shows a pull of px along the chevrons, with growing resistance past the
+// point where letting go opens.
+function showPull(px){
+  var shown = px <= SPLIT_OPEN_PULL ? px : Math.min(SPLIT_PULL_MAX, SPLIT_OPEN_PULL + (px - SPLIT_OPEN_PULL) * 0.35);
+  var svg = splitBtnEl.firstChild;
+  if (svg) svg.style.transform = shown ? 'translateY(' + num((splitOn ? 1 : -1) * Math.min(shown, 40) * 0.6) + 'px)' : '';
+  var t = pullTarget();
+  if (!t) return;
+  t.style.transform = !shown ? '' : splitOn ? 'translateY(' + num(shown) + 'px)' : 'translateY(calc(100% - ' + num(shown) + 'px))';
+}
+function endNudges(){
+  [splitBtnEl, ringSplitEl, splitPeekEl].forEach(function(el){ if (el) el.classList.remove('is-nudging'); });
+}
+function nudgeSplit(){
+  endNudges();
+  var t = pullTarget();
+  void splitBtnEl.offsetWidth;
+  splitBtnEl.classList.add('is-nudging');
+  if (t) t.classList.add('is-nudging');
+}
+splitBtnEl.addEventListener('animationend', function(){ splitBtnEl.classList.remove('is-nudging'); });
+ringSplitEl.addEventListener('animationend', function(e){ if (e.target === ringSplitEl) ringSplitEl.classList.remove('is-nudging'); });
 splitBtnEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0) return;
-  splitPull = { id: e.pointerId, y: e.clientY };
+  endNudges();
+  splitPull = { id: e.pointerId, y: e.clientY, pull: 0 };
   splitPulled = false;
   splitBtnEl.setPointerCapture(e.pointerId);
   splitBtnEl.classList.add('is-pulling');
+  var t = pullTarget();
+  if (t) t.style.transition = 'none';
 });
 splitBtnEl.addEventListener('pointermove', function(e){
-  if (!splitPull || e.pointerId !== splitPull.id || splitPulled) return;
+  if (!splitPull || e.pointerId !== splitPull.id) return;
   var dy = e.clientY - splitPull.y;
-  if (Math.abs(dy) < SPLIT_PULL) return;
-  // A pull either way is no click; only the way the chevrons point acts.
-  splitPulled = true;
-  if (splitOn === dy > 0) toggleSplit();
+  // A pull either way is no click; only the way the chevrons point moves.
+  if (Math.abs(dy) > 4) splitPulled = true;
+  splitPull.pull = Math.max(0, (splitOn ? 1 : -1) * dy);
+  showPull(splitPull.pull);
 });
 function endSplitPull(e){
   if (!splitPull || e.pointerId !== splitPull.id) return;
+  var through = e.type === 'pointerup' && splitPull.pull >= SPLIT_OPEN_PULL;
   splitPull = null;
   splitBtnEl.classList.remove('is-pulling');
+  var t = pullTarget();
+  if (through){
+    // Through: the pane takes its place at once, with no spring back.
+    if (t) t.style.transform = '';
+    var svg = splitBtnEl.firstChild;
+    if (svg) svg.style.transform = '';
+    toggleSplit();
+    if (t){ void t.offsetWidth; t.style.transition = ''; }
+    return;
+  }
+  if (t) t.style.transition = '';
+  showPull(0);
 }
 splitBtnEl.addEventListener('pointerup', endSplitPull);
 splitBtnEl.addEventListener('pointercancel', endSplitPull);
-splitBtnEl.addEventListener('click', function(){
+splitBtnEl.addEventListener('click', function(e){
   // A pull is not a click.
   if (splitPulled){ splitPulled = false; return; }
+  // Enter or Space: no pointer to pull with, so the key toggles.
+  if (e.detail === 0){ toggleSplit(); return; }
+  nudgeSplit();
+});
+splitBtnEl.addEventListener('dblclick', function(){
+  endNudges();
   toggleSplit();
 });
 drawSplitChevrons();
