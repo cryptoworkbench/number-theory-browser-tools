@@ -669,6 +669,16 @@
   .fs-win-body.is-ring .split-btn{ display:inline-grid; place-items:center; width:auto; padding:4px 12px; font-size:.85rem; cursor:grab; touch-action:none; }
   .fs-win-body.is-ring .split-btn.is-pulling{ cursor:grabbing; }
   .split-btn svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  /* The forward direction as one button, its arrow turning the way the
+     beads count: in the Arrangement row beside a ring alone, on the line
+     between the rings (placed by keepLockClear) beside an isomorphism pane,
+     whose own ring takes the direction from this one. */
+  .dir-toggle{ display:none; }
+  .fs-win-body.is-ring .dir-toggle{ display:inline-grid; place-items:center; width:auto; padding:4px 10px; }
+  .dir-toggle svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-toggle{ position:absolute; z-index:3; translate:-50% -50%; }
+  :root.is-isopane #dir-toggle{ display:none !important; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the rings are linked through an isomorphism they share one
      button: the left ring's, on the line between the two rings just
@@ -1393,6 +1403,7 @@
         <div class="field color-by" id="arrange-field">
           <label for="arrange-select"><span class="arrange-panel-name" data-i18n="cyclicGroups.arrangeLabel">Arrangement</span><span class="arrange-fs-name" data-i18n="cyclicGroups.arrangeRowLabel">Arrangement</span></label>
           <div class="arrange-controls">
+            <button type="button" class="action-btn dir-toggle" id="dir-toggle"></button>
             <select id="arrange-select"></select>
             <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
           </div>
@@ -1666,6 +1677,7 @@ var customColorsEl = $('custom-colors');
 var swapColorsEl = $('swap-colors');
 var keepTopRowEl = $('keep-top-row');
 var splitBtnEl = $('split-btn');
+var dirToggleEl = $('dir-toggle');
 var ringSplitEl = $('ring-split');
 var splitGripEl = $('split-grip');
 var subgroupsPanelEl = $('subgroups-list-panel');
@@ -7299,6 +7311,7 @@ function syncControls(){
   colorBySelectEl.value = state.colors ? state.colorBy : 'none';
   sideElEl.value = state.elSide;
   dirSelectEl.value = state.dir;
+  syncDirToggle();
   backwardEl.checked = !state.backward;
   syncAutoRotate();
   opSelectEl.value = state.mode;
@@ -7593,12 +7606,12 @@ function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
   syncExprLock();
   isoLockEl.style.top = exprLockEl.style.top = '';
-  [splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
+  [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
   if (!g.height || !p.height) return;
   var mid = g.top + g.height / 2;
-  var btns = [splitBtnEl, cosetBtnEl, cosetControlsEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent; });
+  var btns = [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent; });
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
@@ -7806,15 +7819,27 @@ backwardEl.addEventListener('change', function(){
 // Flipping the direction keeps the identity where it is: it sits p - rot
 // places round from the top, p its place in the arrangement, so the new
 // rot is 2p - rot. A turn still under way counts as finished.
-dirSelectEl.addEventListener('change', function(){
-  if (DIRS.indexOf(dirSelectEl.value) === -1 || dirSelectEl.value === state.dir) return;
+function setDir(dir){
+  if (DIRS.indexOf(dir) === -1 || dir === state.dir) return;
   if (drawn){
     var at = state.rot + (spin ? spin.steps : 0);
     state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - at;
   }
-  state.dir = dirSelectEl.value;
+  state.dir = dir;
+  syncControls();
   render();
-});
+}
+dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); });
+dirToggleEl.addEventListener('click', function(){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); });
+// The button's arrow turns the way the beads count, and its name says so.
+var DIR_ARROW = ['M6 1.5A4.5 4.5 0 1 1 1.5 6', 'M0 6.6 1.5 4.8 3 6.6'];
+function syncDirToggle(){
+  var ccw = state.dir === 'ccw';
+  dirToggleEl.replaceChildren(svgIcon(DIR_ARROW.map(function(d){ return ['path', ccw ? { d: d, transform: 'matrix(-1 0 0 1 12 0)' } : { d: d }]; })));
+  var name = translate(ccw ? 'cyclicGroups.dirToggleCcw' : 'cyclicGroups.dirToggleCw');
+  dirToggleEl.title = name;
+  dirToggleEl.setAttribute('aria-label', name);
+}
 ARROW_COLORS.forEach(function(c, i){
   $(c.id).addEventListener('input', function(){
     var v = $(c.id).value.toLowerCase();
@@ -7891,7 +7916,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
+onLangChange(function(){ render(); syncAutoRotate(); syncDirToggle(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its

@@ -44,7 +44,9 @@
    View section, zooming the ring in and out), and exprLockCouple and
    exprLockUncouple (the small padlock on the line between two locked
    rings, coupling their expression sliders), cosetLoop and cosetLoopTitle
-   (the coset run's Loop toggle, replaying the cosets continuously), and subRowGcd (a Numerical
+   (the coset run's Loop toggle, replaying the cosets continuously),
+   dirToggleCw and dirToggleCcw (the forward-direction button's name in
+   each direction), and subRowGcd (a Numerical
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
    subgroup's order that follows). Every other
@@ -324,6 +326,8 @@
       layerPaths: 'Subgroup paths',
       resizeTitle: 'Drag to resize; double-click to reset',
       dirLabel: 'Forward direction',
+      dirToggleCw: 'Forward direction: clockwise. Click for counterclockwise',
+      dirToggleCcw: 'Forward direction: counterclockwise. Click for clockwise',
       dirCw: 'Clockwise',
       dirCcw: 'Counterclockwise',
       sideInside: 'Inside',
