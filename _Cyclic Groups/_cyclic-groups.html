@@ -5056,6 +5056,8 @@ function loadIsoFrame(){
     isoSentPaints = null;
     isoTellTop(true);
     syncInterlock();
+    // The list left merged with the frame this one replaced is drawn afresh.
+    if (drawn){ syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
   });
   f.src = isoPaneSrc(isoPane.q, isoPane.h);
   isoPaneEl.appendChild(f);
@@ -5084,6 +5086,8 @@ function closeIsoPane(){
   setGroupLock(false);
   syncIsoTitle();
   syncIsoKeys();
+  // With the pane gone, the Numeric list is this ring's own again.
+  if (drawn){ syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
 }
 // Entering or leaving full screen moves the pane's element, which reloads its
 // iframe in the browser; the pane is then loaded again from its latest query.
@@ -5739,6 +5743,9 @@ window.addEventListener('message', function(e){
     syncIsoPaneLabels();
     postIsoShared(false);
     syncIsoKeys();
+    // The pane changed its group: the Numeric list merges, unmerges or
+    // pairs its rows anew to match.
+    if (drawn){ syncInterlock(); syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
