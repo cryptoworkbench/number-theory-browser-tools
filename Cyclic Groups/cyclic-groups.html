@@ -903,6 +903,26 @@
   :root.is-desktop, :root.is-desktop body{ height:100%; overflow:hidden; }
   :root.is-desktop :is(.page-header, .side, .stage > :not(.diagram-frame)){ display:none !important; }
   :root.is-desktop .diagram-frame:not(:fullscreen){ position:fixed; inset:var(--desk-top, 64px) 0 0 0; height:auto !important; margin:0; }
+  /* Every visit opens on an intro under the site header. The desktop waits
+     behind it, laid out but out of sight and out of the page's flow, and
+     its button takes the desktop full screen; entered, the site header is
+     gone and the desktop fills the whole window, full screen or not. */
+  .cg-intro{ display:none; }
+  :root.is-desktop:not(.is-entered), :root.is-desktop:not(.is-entered) body{ height:auto; overflow:visible; }
+  :root.is-desktop:not(.is-entered) .cg-intro{ display:block; }
+  :root.is-desktop:not(.is-entered) .app{ position:fixed; inset:0; overflow:hidden; visibility:hidden; pointer-events:none; }
+  :root.is-desktop:not(.is-entered) .app iframe{ visibility:hidden !important; }
+  :root.is-entered .site-header{ display:none; }
+  :root.is-entered .diagram-frame:not(:fullscreen){ inset:0; }
+  .cg-intro{ max-width:68ch; margin:0 auto; padding:clamp(32px, 9vh, 96px) 22px 56px; }
+  .cg-intro h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.9rem, 3.8vw, 2.6rem); line-height:1.12; letter-spacing:-.012em; margin:0 0 18px; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
+  .cg-intro p{ font-size:1.0625rem; line-height:1.65; color:var(--text-dim); margin:0 0 16px; }
+  .cg-intro p.cg-intro-about{ color:var(--text); }
+  .cg-enter{ display:inline-flex; align-items:center; gap:10px; margin-top:14px; font:inherit; font-size:1rem; font-weight:600; color:var(--accent-ink); background:var(--accent); border:1px solid transparent; border-radius:10px; padding:12px 20px; cursor:pointer; transition:filter .15s ease, transform .08s ease; }
+  .cg-enter:hover{ filter:brightness(1.08); }
+  .cg-enter:active{ transform:scale(.98); }
+  .cg-enter:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .cg-enter svg{ width:20px; height:20px; fill:currentColor; flex:none; }
   /* Full screen, the auto-rotate triangle gives way to a ruler under the
      ring: seven ticks from -3 to 3, the middle one no rotation, those to its
      left counterclockwise and those to its right clockwise, faster the
@@ -1059,6 +1079,16 @@
     </label>
   </div>
 </header>
+
+<section class="cg-intro" id="cg-intro" aria-labelledby="cg-intro-heading">
+  <h1 id="cg-intro-heading" data-i18n="cyclicGroups.heading">Cyclic Groups</h1>
+  <p class="cg-intro-about" data-i18n="cyclicGroups.introAbout">Cyclic Groups turns a group into a ring of beads, one bead for each element. Choose a modulus and an operation — addition modulo n, or multiplication of the units modulo n — then pick an element: its chords walk around the ring, and when they reach every bead that element generates the whole group, which makes the group cyclic. The tool works like a small desktop. The Ring window holds the group's controls and its ring; drag it, resize it, and open more Ring windows to compare groups side by side. The Numerical list shows the subgroup each element generates, and an isomorphic group can be opened beside the ring and locked to it with the padlock, so the two turn, colour and highlight as one.</p>
+  <p data-i18n="cyclicGroups.introFullscreen">Because this tool has so many controls, it is really a full-screen application. It is best used in full screen, and the website's usual header is hidden either way. To get back to the rest of the website, use your browser's Back and Forward buttons instead of the header. Have fun!</p>
+  <button type="button" class="cg-enter" id="cg-enter">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+    <span data-i18n="cyclicGroups.introEnter">Open Cyclic Groups in full screen</span>
+  </button>
+</section>
 
 <div class="app">
 
@@ -1498,6 +1528,9 @@ if (IS_ISOPANE) document.documentElement.classList.add('is-isopane');
 // head's own script set its class before the first paint.
 var IS_DESKTOP = !IS_PREVIEW && !IS_RINGWIN;
 document.documentElement.classList.toggle('is-desktop', IS_DESKTOP);
+// The desktop opens on its intro every visit; the intro's button enters it
+// (see cgEnterEl), and from then on the site header is gone.
+var cgEntered = false;
 // The desktop starts where the site header ends, which moves as the header
 // wraps (a narrow window, a longer language).
 function syncDeskTop(){
@@ -2659,6 +2692,34 @@ function onFullscreenChange(){
 document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 syncFullscreenBtn();
+
+// The intro's button: the desktop comes out from behind the intro, the site
+// header goes, and the desktop asks for full screen in the same click (a
+// browser grants it only in answer to one). Refused, or with no full screen
+// at all, the desktop still fills the window. The windows were laid out
+// under the header, so they are fitted again to the whole window, and the
+// focus goes into the Ring window.
+var cgEnterEl = $('cg-enter');
+function enterDesktop(){
+  if (!IS_DESKTOP || cgEntered) return;
+  cgEntered = true;
+  document.documentElement.classList.add('is-entered');
+  var go = diagramFrameEl.requestFullscreen || diagramFrameEl.webkitRequestFullscreen;
+  if (go && (document.fullscreenEnabled || document.webkitFullscreenEnabled)){
+    try {
+      var p = go.call(diagramFrameEl);
+      if (p && p.catch) p.catch(function(){ /* refused: the desktop fills the window instead */ });
+    } catch (e) { /* refused: the desktop fills the window instead */ }
+  }
+  syncWindows();
+  var ring = fsWins && fsWins.ring;
+  var first = ring && Array.prototype.filter.call(ring.body.querySelectorAll('input, select, button, [tabindex]:not([tabindex="-1"])'), function(el){
+    return !el.disabled && el.getClientRects().length > 0;
+  })[0];
+  if (first) first.focus({ preventScroll: true });
+  syncTabTitle();
+}
+cgEnterEl.addEventListener('click', enterDesktop);
 
 /* ---------- full-screen desktop: windows and taskbar ---------- */
 
@@ -3858,6 +3919,8 @@ splitBtnEl.addEventListener('click', toggleSplit);
 // button is in a Ring window.
 document.addEventListener('keydown', function(e){
   if (e.key !== 'F8' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  // The desktop behind the intro takes no keys.
+  if (IS_DESKTOP && !cgEntered) return;
   // A linked pane's split is the holding ring's; unlinked, it has its own.
   if (IS_ISOPANE && !document.documentElement.classList.contains('is-iso-unlinked')){
     e.preventDefault();
@@ -7814,8 +7877,10 @@ onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); postLo
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
 // data-i18n key on load and on a language switch; render follows the
 // switch, and the load-time rewrite is answered once it has run. On the
-// desktop the tab carries the name of the window in front instead.
+// desktop the tab carries the name of the window in front instead, and on
+// its intro the tool's own name.
 function syncTabTitle(){
+  if (IS_DESKTOP && !cgEntered){ document.title = translate('cyclicGroups.title'); return; }
   var front = IS_DESKTOP && fsWins ? frontKey() : null;
   if (front) document.title = fsTitle(specOf(front));
   else if (drawn) document.title = translate('cyclicGroups.tabTitle', { group: drawn.G.label, title: translate('cyclicGroups.title') });
