@@ -46,7 +46,8 @@
    rings, coupling their expression sliders), cosetLoop and cosetLoopTitle
    (the coset run's Loop toggle, replaying the cosets continuously),
    dirToggleCw and dirToggleCcw (the forward-direction button's name in
-   each direction), and subRowGcd (a Numerical
+   each direction), combinePrompt (the line under the ring asking for the
+   second element to combine with the first), and subRowGcd (a Numerical
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
    subgroup's order that follows). Every other
@@ -328,6 +329,7 @@
       dirLabel: 'Forward direction',
       dirToggleCw: 'Forward direction: clockwise. Click for counterclockwise',
       dirToggleCcw: 'Forward direction: counterclockwise. Click for clockwise',
+      combinePrompt: 'Click a second bead to combine it with {a}',
       dirCw: 'Clockwise',
       dirCcw: 'Counterclockwise',
       sideInside: 'Inside',
