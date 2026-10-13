@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-13T13:40:47.882Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: eb0d0c27df1eaf97b78eb6bcef32b5cefe5afd06
+state_head: d66a03766f14d4d1c1523ecd64ae707768ded72f
 progress:
   total_phases: 7
   completed_phases: 6
@@ -593,6 +593,7 @@ None yet.
 | 357 | Subgroup dropdown can follow the expression slider | 2026-10-13 | 04cf4b4 | — |
 | 358 | Subgroup dropdown lists ⟨a⟩ (gᵏ), sorted low to high | 2026-10-13 | d84032c | — |
 | 359 | Locking whole groups also closes the expression padlock | 2026-10-13 | eb0d0c2 | — |
+| 360 | Locking whole groups orders both rings by their expression slider | 2026-10-13 | d66a037 | — |
 
 ## Deferred Items
 
