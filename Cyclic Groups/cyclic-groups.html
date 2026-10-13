@@ -1497,7 +1497,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3968,6 +3968,7 @@ function syncGenerators(G){
   none.value = 'none';
   none.textContent = translate('cyclicGroups.colorByNone');
   genSelectEl.appendChild(none);
+  if (G.cyclic) genSelectEl.appendChild(followOption());
   var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
   exprEls(G).forEach(function(a){
     var opt = document.createElement('option');
@@ -3978,7 +3979,17 @@ function syncGenerators(G){
   if (G.els.indexOf(state.gen) === -1){
     state.gen = G.cyclic ? G.generators[0] : (G.els.length > 1 ? G.els[1] : G.identity);
   }
-  genSelectEl.value = state.noSub ? 'none' : String(state.gen);
+  genSelectEl.value = state.noSub ? 'none' : state.genFollow ? SUB_FOLLOW : String(state.gen);
+}
+// Following the expression slider, the selected element is the slider's
+// generator (the smallest while it is on Natural). Another choice of
+// subgroup, from anywhere, ends the following.
+var followedGen = null;
+function syncGenFollow(G){
+  if (state.genFollow && (!G.cyclic || state.noSub || (followedGen !== null && state.gen !== followedGen))) state.genFollow = false;
+  if (!state.genFollow){ followedGen = null; return; }
+  var g = exprBy(G);
+  state.gen = followedGen = g === null ? G.generators[0] : g;
 }
 
 // The backwards walk's side: opposite the forward walk's, or hidden.
@@ -5604,6 +5615,7 @@ function applyRingQuery(q){
   var gen = intOrNull(q.get('gen'));
   state.gen = gen !== null && G.els.indexOf(gen) !== -1 ? gen : (G.cyclic ? G.generators[0] : G.identity);
   state.noSub = q.get('sub') === 'none';
+  state.genFollow = q.get('sub') === SUB_FOLLOW;
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
@@ -6819,7 +6831,7 @@ function stateQuery(){
   q.set('mode', state.mode);
   q.set('n', String(state.n));
   q.set('gen', String(state.gen));
-  if (state.noSub) q.set('sub', 'none'); else q.delete('sub');
+  if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else q.delete('sub');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   q.delete('gentop');
   if (state.top !== 'id') q.set('top', state.top);
@@ -6987,6 +6999,7 @@ function render(){
 
   stopCosets();
   if (spin){ cancelAnimationFrame(spin.id); spin = null; }
+  syncGenFollow(G);
   syncGenerators(G);
   state.rot = ((state.rot % G.order) + G.order) % G.order;
   showRot(state.rot);
@@ -7413,9 +7426,16 @@ function lockDeclined(){
 }
 if (IS_ISOPANE && new URLSearchParams(location.search).get('grouplock') !== '0') setGroupLock(true);
 genSelectEl.addEventListener('change', function(){
+  state.genFollow = genSelectEl.value === SUB_FOLLOW;
   if (genSelectEl.value === 'none'){
     state.noSub = true;
     render();
+    return;
+  }
+  if (state.genFollow){
+    var G = buildGroup(state.mode, state.n), e = exprBy(G);
+    followedGen = null;
+    selectGen(e === null ? G.generators[0] : e);
     return;
   }
   var g = parseInt(genSelectEl.value, 10);
@@ -7457,6 +7477,7 @@ function setExprStop(i){
     state.expr = next;
     render();
   }
+  if (state.genFollow && state.top === 'gen') turnToTop(state.gen);
   // Coupled, the other ring's slider follows: the pane is told the image,
   // and the ring holding it the pane's choice, to take its preimage.
   if (IS_ISOPANE) tellHost({ isopane: 'expr', expr: next });
@@ -7706,6 +7727,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   var wanted = parseInt(query.get('gen'), 10);
   if (isFinite(wanted) && buildGroup(state.mode, state.n).els.indexOf(wanted) !== -1) state.gen = wanted;
   state.noSub = query.get('sub') === 'none';
+  state.genFollow = query.get('sub') === SUB_FOLLOW;
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){
