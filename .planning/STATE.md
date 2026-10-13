@@ -616,6 +616,7 @@ None yet.
 | 380 | Forward-direction toggle: Arrangement row alone, the line between rings in isomorphism view | 2026-10-13 | 1ec50f2 | — |
 | 381 | 3D flip of the ring about the identity axis when the direction changes | 2026-10-13 | 02402c8 | — |
 | 382 | Open subgroup panel's chevrons in its top-right corner | 2026-10-13 | 1b5231d | — |
+| 383 | Open panel's chevrons in its corner in isomorphism view too | 2026-10-13 | 6399761 | — |
 
 ## Deferred Items
 
