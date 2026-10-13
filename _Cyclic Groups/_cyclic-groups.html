@@ -6583,7 +6583,7 @@ function syncOpenLock(){
   isoLockEl.hidden = !open;
   isoLockEl.classList.toggle('is-open', open);
   if (!open) return;
-  isoLockEl.removeAttribute('title');
+  isoLockEl.setAttribute('title', translate(isoLinksWholeGroups() ? 'cyclicGroups.isoLockOpenGroup' : 'cyclicGroups.isoLockOpenSub'));
   isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
 }
 // A press on locked parameters starts no selection, so the double-click
@@ -6612,7 +6612,17 @@ function openGroupLock(told){
   }, 450);
 }
 groupControlsEl.addEventListener('dblclick', function(){ openGroupLock(false); });
-isoLockEl.addEventListener('dblclick', function(){ openGroupLock(false); });
+isoLockEl.addEventListener('dblclick', function(){
+  if (isoLockEl.classList.contains('is-open')) lockDeclined();
+  else openGroupLock(false);
+});
+// A double-click on the open padlock locks the isomorphism the user had
+// declined, just as answering Yes would have.
+function lockDeclined(){
+  if (!isoPane || isoPane.link !== 'declined' || !isoFound()) return;
+  isoPane.link = 'asking';
+  answerIsoAsk(true);
+}
 if (IS_ISOPANE && new URLSearchParams(location.search).get('grouplock') !== '0') setGroupLock(true);
 genSelectEl.addEventListener('change', function(){
   if (genSelectEl.value === 'none'){

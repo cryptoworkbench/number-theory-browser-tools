@@ -31,7 +31,9 @@
    Added in English first since that pass, for the next catch-up
    translation: subColorLabel, subColorTitle, subColorOff, subColorTint and
    subColorFull (the Numerical panel's choice colouring each member like
-   its bead: off, a soft tint or the bead's full colour). Every other
+   its bead: off, a soft tint or the bead's full colour), and isoLockOpenGroup
+   and isoLockOpenSub (the open padlock's tooltip, naming the isomorphism a
+   double-click would lock). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -438,6 +440,8 @@
       isoPickConstruct: 'Construct own ring / group',
       isoAskLockGroup: 'Group-to-group isomorphism found! Lock groups?',
       isoAskLockSub: 'Subgroup-to-group isomorphism found! Lock groups?',
+      isoLockOpenGroup: 'Double-click to lock the groups through their group-to-group isomorphism',
+      isoLockOpenSub: 'Double-click to lock the groups through the subgroup-to-group isomorphism',
       isoAskYes: 'Yes',
       isoAskNo: 'No',
       showArrowKey: 'Show arrow colour key',
