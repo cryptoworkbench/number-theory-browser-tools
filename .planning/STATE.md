@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-13T13:40:47.882Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 04cf4b4720b4b078ad82fdd411647d81e628578b
+state_head: d84032caad6ec5a335b20a0995a269042e609fae
 progress:
   total_phases: 7
   completed_phases: 6
@@ -591,6 +591,7 @@ None yet.
 | 355 | View (zoom) is the first category in the right-click menu | 2026-10-13 | 98d09c7 | — |
 | 356 | Arrangement's Generator can follow the expression slider | 2026-10-13 | 610958f | — |
 | 357 | Subgroup dropdown can follow the expression slider | 2026-10-13 | 04cf4b4 | — |
+| 358 | Subgroup dropdown lists ⟨a⟩ (gᵏ), sorted low to high | 2026-10-13 | d84032c | — |
 
 ## Deferred Items
 
