@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T13:11:21.253Z"
+last_updated: "2026-10-13T13:17:26.105Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 1cd6ad8027ab395ef2089782c558f4002c9b3b52
+state_head: d609e2594645f89efa2abe8e124832afb2390465
 progress:
   total_phases: 7
   completed_phases: 6
@@ -584,6 +584,7 @@ None yet.
 | 348 | Formula cards get a window title bar | 2026-10-13 | 076b960 | — |
 | 349 | Formula cards follow the ring (live update) | 2026-10-13 | 401d41c | — |
 | 350 | Zoom the ring from the right-click menu or + and − keys | 2026-10-13 | 1cd6ad8 | — |
+| 351 | A changed group finds its isomorphism again (lock offered) | 2026-10-13 | d609e25 | — |
 
 ## Deferred Items
 
