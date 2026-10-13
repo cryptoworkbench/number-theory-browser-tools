@@ -3991,7 +3991,7 @@ if (IS_RINGWIN){
   window.addEventListener('message', function(e){
     var d = e.data;
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -4403,6 +4403,29 @@ function combinePick(x){
   } else if (combo.a === null || combo.b !== null || combo.key !== comboKey(drawn.G)){
     combo = { a: x, b: null, key: comboKey(drawn.G) };
   } else combo.b = x;
+  redrawRing();
+  tellCombine();
+}
+// Linked through an isomorphism, the other ring picks the images: g^k here
+// is h^k there, so φ(a) and φ(b) light up yellow and blue, and
+// φ(a ∗ b) = φ(a) ∗ φ(b) green, which is the isomorphism at work. Picks are
+// told as exponents of the link's generator; an element outside the
+// linked subgroup has no image, and the other ring's picks clear.
+function tellCombine(){
+  if (!isoOrder()) return;
+  var powers = isoPowers();
+  var k = function(x){ return x === null ? -1 : powers.indexOf(x); };
+  var a = k(combo.a), b = k(combo.b);
+  if (a < 0 || (combo.b !== null && b < 0)) a = b = -1;
+  isoTell({ iso: 'combine', a: a, b: b });
+}
+// A pick the other ring told: its images here (a of -1 clears).
+function isoTakeCombine(d, m){
+  var ok = function(v){ return Number.isInteger(v) && v >= -1 && v < m; };
+  if (!drawn || !ok(d.a) || !ok(d.b)) return;
+  var powers = isoPowers();
+  combo = d.a < 0 ? { a: null, b: null, key: null }
+    : { a: powers[d.a], b: d.b < 0 ? null : powers[d.b], key: comboKey(drawn.G) };
   redrawRing();
 }
 // The line under the ring: a prompt for b once a is picked, then the
@@ -6674,6 +6697,7 @@ function isoReceive(d){
   if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, ks: isoRanks(d.ks, m) }; document.documentElement.classList.toggle('is-iso-whole', isoHostWhole.on); syncInterlock(); } return; }
   if (d.iso === 'numset'){ if (IS_ISOPANE && isoInterlockOn) takeNumset(d); return; }
   if (d.iso === 'subexpr'){ if (IS_ISOPANE && isoInterlockOn) takeSubExpr(d); return; }
+  if (d.iso === 'combine'){ isoTakeCombine(d, m); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'cosets'){ isoTakeCosets(d); return; }
   if (d.iso === 'preview'){ if (IS_ISOPANE && subInterlocked()) setPreview(d.k >= 0 ? isoPowers()[d.k] : null); return; }
@@ -6938,7 +6962,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // The blank pane has its group: from now on it is a ring like any other.
