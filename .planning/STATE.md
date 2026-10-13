@@ -619,6 +619,7 @@ None yet.
 | 383 | Open panel's chevrons in its corner in isomorphism view too | 2026-10-13 | 6399761 | — |
 | 384 | RSA: link each keypair's modulus to (ℤ/nℤ)* in Cyclic Groups | 2026-10-13 | ec30745 | — |
 | 385 | Combine two elements on the ring: yellow, blue and green halos | 2026-10-13 | 1ab69e3 | — |
+| 386 | Combined elements mirrored to the other ring through the isomorphism | 2026-10-13 | ea6c059 | — |
 
 ## Deferred Items
 
