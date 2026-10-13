@@ -298,7 +298,7 @@
   :root.is-sub-merged .sub-ctls-mid > .sub-expr-row{ margin:0 0 4px; }
   /* Merged, the middle column stays narrow: the sort and the member
      colouring stack there instead of sharing a line. */
-  :root.is-sub-merged .sub-ctls-mid > #sub-sort-row{ flex-direction:column; align-items:flex-start; gap:4px; }
+  :root.is-sub-merged .sub-ctls-mid > :is(#sub-sort-row, #sub-width-row){ flex-direction:column; align-items:flex-start; gap:4px; }
   .sub-expr-row-r, .sub-expr-row-r .sub-expr-pair{ justify-content:flex-end; }
   .subgroup-row.is-merged{ display:flex; justify-content:space-between; align-items:baseline; gap:6px 32px; }
   .subgroup-row.is-merged > .sub-row-l{ flex:0 1 auto; min-width:0; text-align:left; }
@@ -1139,9 +1139,10 @@
         <div class="sub-expr-row" id="sub-sort-row">
           <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</label><select id="sub-sort-select"></select></span>
         </div>
+        <div class="sub-expr-row" id="sub-width-row">
+          <span class="sub-expr-pair"><label for="sub-width-select" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
+        </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
-        <div class="check" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle"><input type="checkbox" id="sub-pad"><label for="sub-pad" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</label></div>
-        <div class="check" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle"><input type="checkbox" id="sub-align"><label for="sub-align" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         </div>
         <div class="sub-expr-row sub-expr-row-r" id="sub-expr-row-r" hidden>
@@ -1456,8 +1457,7 @@ var keepTopEl = $('keep-top');
 var gearboxEl = $('gearbox');
 var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
-var subPadEl = $('sub-pad');
-var subAlignEl = $('sub-align');
+var subWidthEl = $('sub-width-select');
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
 // Off, or each member in its bead's colour; the soft tint once offered
@@ -5767,8 +5767,7 @@ function takeNumset(d){
   state.subAlign = d.align === true;
   state.autoShift = d.shift === true;
   state.subColor = subColorOf(d.color);
-  subPadEl.checked = state.subPad;
-  subAlignEl.checked = state.subAlign;
+  subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
   renderSubgroups(drawn.G);
@@ -6331,8 +6330,7 @@ function render(){
   syncArrowColors();
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
-  subPadEl.checked = state.subPad;
-  subAlignEl.checked = state.subAlign;
+  subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   syncArrange(G);
   syncExpr(G);
@@ -6857,19 +6855,10 @@ autoShiftEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
-// Padding with zeros and aligning with blank space are two ways to line up
-// the columns: ticking one unticks the other.
-subPadEl.addEventListener('change', function(){
-  state.subPad = subPadEl.checked;
-  if (state.subPad){ state.subAlign = false; subAlignEl.checked = false; }
-  if (!drawn) return;
-  renderSubgroups(drawn.G);
-  mirrorToUrl(drawn.G);
-  syncInterlock();
-});
-subAlignEl.addEventListener('change', function(){
-  state.subAlign = subAlignEl.checked;
-  if (state.subAlign){ state.subPad = false; subPadEl.checked = false; }
+// The list's numbers line up with leading zeros, with blank space, or not.
+subWidthEl.addEventListener('change', function(){
+  state.subPad = subWidthEl.value === 'pad';
+  state.subAlign = subWidthEl.value === 'align';
   if (!drawn) return;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
