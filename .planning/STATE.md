@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T08:02:03.392Z"
+last_updated: "2026-10-13T08:21:03.058Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: a4249399b1ae131f3cc9ec7446f77a261c80df8c
+state_head: e7da811e4aad6ee6055ec95c49e1eae86bb6d743
 progress:
   total_phases: 7
   completed_phases: 6
@@ -552,6 +552,7 @@ None yet.
 | 316 | Catch-up translation: Cyclic Groups (105 keys), Least Common Multiple (whole namespace), nav/hub lcm keys and the seventeen-tools lede/footer into all 31 languages; i18n-check --coverage PASS | 2026-10-12 | 2952fec | — |
 | 261013-cxy | Split Cyclic Groups into a desktop tool and an _Cyclic Groups page tool | 2026-10-13 | 9b40e4b | [261013-cxy-split-cyclic-groups-into-a-desktop-tool-](./quick/261013-cxy-split-cyclic-groups-into-a-desktop-tool-/) |
 | 261013-dln | Numeric panel option to colour members like their beads | 2026-10-13 | a424939 | [261013-dln-numeric-panel-option-to-colour-members-l](./quick/261013-dln-numeric-panel-option-to-colour-members-l/) |
+| 319 | Numeric list follows the iso pane on group change and close | 2026-10-13 | e7da811 | — |
 
 ## Deferred Items
 
