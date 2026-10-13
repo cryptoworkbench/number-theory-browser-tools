@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-13T13:40:47.882Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 98d09c79666c4f270a276027ee2aab955f79c0a2
+state_head: 610958f8f42b57fae4e11826631c598df9377c5b
 progress:
   total_phases: 7
   completed_phases: 6
@@ -589,6 +589,7 @@ None yet.
 | 353 | Locking whole groups selects corresponding subgroups | 2026-10-13 | a092932 | — |
 | 354 | Merging, the holder's subgroup decides the subgroup pair | 2026-10-13 | d02289b | — |
 | 355 | View (zoom) is the first category in the right-click menu | 2026-10-13 | 98d09c7 | — |
+| 356 | Arrangement's Generator can follow the expression slider | 2026-10-13 | 610958f | — |
 
 ## Deferred Items
 
