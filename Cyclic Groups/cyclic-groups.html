@@ -6047,7 +6047,15 @@ function isoPeer(){ return IS_ISOPANE ? window.parent : (isoPaneFrame && isoPane
 // subgroup's (null while the group on show has no such generator).
 function isoLinkGen(){
   if (IS_ISOPANE) return ISO_GEN;
-  if (isoPane && isoPane.g !== null) return drawn.G.generators.indexOf(isoPane.g) !== -1 ? isoPane.g : null;
+  if (isoPane && isoPane.g !== null){
+    var G = drawn.G;
+    if (G.generators.indexOf(isoPane.g) !== -1) return isoPane.g;
+    if (!G.cyclic) return null;
+    // The group was changed since (unlocked): the link runs through a
+    // generator of the new one, the subgroup's when that is one.
+    isoPane.g = !state.noSub && G.generators.indexOf(state.gen) !== -1 ? state.gen : G.generators[0];
+    return isoPane.g;
+  }
   return state.noSub ? null : state.gen;
 }
 function isoOrder(){
