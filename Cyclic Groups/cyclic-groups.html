@@ -776,6 +776,14 @@
   .fs-win-body.is-ring > .iso-add:hover{ background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
   .fs-win-body.is-ring > .iso-add:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .iso-add{ display:none; }
+  /* Its twin at the left edge opens a new ring on the left: this ring moves
+     into the pane on the right and a picker covers the left side. */
+  .fs-win-body.is-ring > .iso-add.is-left{ right:auto; left:10px; }
+  .iso-pick.is-left{ inset:0 auto 0 0; z-index:5; width:calc(50% - 7px); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); background:color-mix(in srgb, var(--bg) 45%, transparent); }
+  /* A new ring constructed on the left: all but its group parameters is
+     blurred until a modulus is entered. */
+  :root.is-host-blank .fs-win-body.is-ring.ring-body > :not(.fs-win-row-ctl, .iso-pane, .iso-add), :root.is-host-blank .fs-win-body.is-ring.ring-body #keep-top-row{ filter:blur(8px); opacity:.5; pointer-events:none; user-select:none; }
+  :root.is-host-unblurring .fs-win-body.is-ring.ring-body > *, :root.is-host-unblurring .fs-win-body.is-ring.ring-body #keep-top-row{ transition:filter .45s ease, opacity .45s ease; }
   .iso-pane.is-picking{ position:relative; }
   .iso-pick{ position:absolute; inset:0 0 0 12px; overflow:hidden; }
   .iso-pick-ghost{ position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; padding:6px 0; filter:blur(7px); opacity:.55; }
@@ -817,7 +825,7 @@
      top of its side just left of the line between them: closing it leaves
      the right ring's group in its place. */
   .iso-ring-close{ display:none; }
-  .fs-win-body.is-ring > .iso-pane > .iso-ring-close{ display:grid; position:absolute; z-index:3; top:0; left:-14px; translate:-100% 0; }
+  .fs-win-body.is-ring > .iso-pane > .iso-ring-close{ display:grid; position:absolute; z-index:6; top:0; left:-14px; translate:-100% 0; }
   .fs-win-body.is-ring > .iso-pane .iso-pane-name{ display:none; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:auto minmax(0, 1fr) auto calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "foot foot foot foot"; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot"; }
@@ -1226,6 +1234,7 @@
           </div>
         </div>
         <button type="button" class="iso-add" id="iso-add" aria-label="Open a second ring beside this one" data-i18n-aria-label="cyclicGroups.isoAddTitle" title="Open a second ring beside this one" data-i18n-title="cyclicGroups.isoAddTitle">+</button>
+        <button type="button" class="iso-add is-left" id="iso-add-left" aria-label="Open a new ring on the left, this one moving to the right" data-i18n-aria-label="cyclicGroups.isoAddLeftTitle" title="Open a new ring on the left, this one moving to the right" data-i18n-title="cyclicGroups.isoAddLeftTitle">+</button>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
         <p class="iso-lead" id="iso-lead"></p>
@@ -2787,7 +2796,7 @@ cgEnterEl.addEventListener('click', enterDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -5323,6 +5332,10 @@ function closeIsoPane(){
   isoPaneEl.hidden = true;
   isoAskEl.hidden = true;
   isoPaneKey = null;
+  if (document.documentElement.classList.contains('is-host-blank')){
+    document.documentElement.classList.remove('is-host-blank');
+    nInputEl.value = state.n;
+  }
   setGroupLock(false);
   syncIsoTitle();
   syncIsoKeys();
@@ -5353,9 +5366,15 @@ isoPaneCloseEl.addEventListener('click', closeIsoPane);
 var isoRingCloseEl = $('iso-ring-close');
 function closeLeftRing(){
   if (IS_ISOPANE || !isoPane || isoPane.blank) return;
-  var q = new URLSearchParams(isoPane.q), mode = q.get('mode'), n = parseInt(q.get('n'), 10);
-  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)){ closeIsoPane(); return; }
+  var q = new URLSearchParams(isoPane.q);
   closeIsoPane();
+  applyRingQuery(q);
+}
+// This ring takes the group, generator, arrangement, expressions and turn a
+// ring's query names; a query naming no group changes nothing.
+function applyRingQuery(q){
+  var mode = q.get('mode'), n = parseInt(q.get('n'), 10);
+  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return;
   state.mode = mode;
   state.n = clamp(n, MIN_N, MAX_N);
   var G = buildGroup(state.mode, state.n);
@@ -5486,15 +5505,110 @@ function openIsoPick(){
 }
 isoAddEl.addEventListener('click', openIsoPick);
 // The + shows while the pointer is near the window's right edge.
+// Its twin, opening a new ring on the left, near the left edge.
 document.addEventListener('pointermove', function(e){
   var body = isoAddEl.parentNode;
-  var near = false;
+  var near = false, nearLeft = false;
   if (!isoPane && !isoPickEl && body.classList.contains('fs-win-body') && body.classList.contains('is-ring')){
     var r = body.getBoundingClientRect();
-    near = e.clientX >= r.right - 90 && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    var rows = e.clientY >= r.top && e.clientY <= r.bottom;
+    near = rows && e.clientX >= r.right - 90 && e.clientX <= r.right;
+    nearLeft = rows && !IS_RINGWIN && e.clientX >= r.left && e.clientX <= r.left + 90;
   }
   isoAddEl.classList.toggle('is-shown', near);
+  isoAddLeftEl.classList.toggle('is-shown', nearLeft);
 });
+
+/* ---------- a new ring on the left ---------- */
+
+// The + at the left edge moves this ring, as it is, into the pane on the
+// right and covers the left side with a picker: the groups isomorphic to
+// this whole group, or a ring of one's own. A group picked takes the left
+// ring's place, linked and locked to the ring now on the right; a ring of
+// one's own starts blank, all but its group parameters blurred until a
+// modulus is entered. Until then the left ring is blank (hostBlank): no
+// isomorphism is looked for. Closing either ring meanwhile cancels: the
+// ring on the right comes back to the left, or stays there.
+var isoAddLeftEl = $('iso-add-left');
+function hostBlank(){ return !IS_ISOPANE && !!isoPane && !!isoPane.hostBlank; }
+function endHostBlank(){
+  isoPane.hostBlank = false;
+  var root = document.documentElement;
+  root.classList.add('is-host-unblurring');
+  root.classList.remove('is-host-blank');
+  setTimeout(function(){ root.classList.remove('is-host-unblurring'); }, 600);
+  render();
+}
+function openLeftPick(){
+  if (IS_ISOPANE || IS_PREVIEW || IS_RINGWIN || isoPane || isoPickEl || !drawn) return;
+  var G = drawn.G;
+  var whole = Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'));
+  var h = !G.cyclic ? G.identity : !state.noSub && G.orders[state.gen] === G.order ? state.gen : G.generators[0];
+  isoPane = { h: h, q: cleanRingQuery(stateQuery().toString()), parent: null, g: null, unlocked: true, link: 'none', blank: false, hostBlank: true };
+  isoPaneEl.hidden = false;
+  loadIsoFrame();
+  isoAddLeftEl.classList.remove('is-shown');
+  isoPickEl = document.createElement('div');
+  isoPickEl.className = 'iso-pick is-left';
+  var menu = document.createElement('div');
+  menu.className = 'iso-pick-menu';
+  menu.setAttribute('role', 'group');
+  var own = document.createElement('section');
+  own.className = 'iso-pick-sec is-own';
+  var ownBtn = document.createElement('button');
+  ownBtn.type = 'button';
+  ownBtn.className = 'iso-pick-item is-own';
+  ownBtn.textContent = translate('cyclicGroups.isoPickConstruct');
+  ownBtn.addEventListener('click', function(){
+    endIsoPick();
+    document.documentElement.classList.add('is-host-blank');
+    nInputEl.value = '';
+    nInputEl.focus();
+    syncIsoKeys();
+  });
+  own.appendChild(ownBtn);
+  menu.appendChild(own);
+  var sec = isoPickSection('cyclicGroups.isoPickWhole', [], true);
+  var list = sec.querySelector('.iso-pick-list');
+  if (whole.length) list.replaceChildren();
+  whole.forEach(function(a){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'iso-pick-item';
+    b.title = a.title;
+    b.appendChild(a.querySelector('.iso-name').cloneNode(true));
+    b.addEventListener('click', function(){ pickLeft(a); });
+    list.appendChild(b);
+  });
+  menu.appendChild(sec);
+  isoPickEl.appendChild(menu);
+  isoPickEl.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ e.preventDefault(); closeLeftRing(); }
+  });
+  isoAddEl.parentNode.appendChild(isoPickEl);
+  syncIsoPaneLabels();
+  syncIsoKeys();
+  var first = menu.querySelector('button');
+  if (first) first.focus();
+}
+// The picked group takes the left ring's place, its generator linked to the
+// one the right ring's whole group is shown through, and the two lock.
+function pickLeft(a){
+  if (!isoPane || !isoPane.hostBlank) return;
+  var g = parseInt(a.getAttribute('data-iso-gen'), 10);
+  endIsoPick();
+  isoPane.hostBlank = false;
+  isoPane.g = isFinite(g) ? g : null;
+  isoPane.link = 'asking';
+  // Only the chip's group, generator and arrangement switch: this ring's
+  // other parameters named elements of the group it held.
+  var href = new URLSearchParams(new URL(a.href, location.href).search), q = new URLSearchParams();
+  ['mode', 'n', 'gen', 'bygen'].forEach(function(k){ if (href.has(k)) q.set(k, href.get(k)); });
+  applyRingQuery(q);
+  answerIsoAsk(true);
+  syncIsoPaneLabels();
+}
+isoAddLeftEl.addEventListener('click', openLeftPick);
 // A ring's subgroup on show inside its group, ⟨g⟩ ⊆ G when g generates the
 // group and ⟨g⟩ ⊂ G otherwise; just the group with no subgroup on show.
 function subgroupName(G, g){
@@ -5514,6 +5628,8 @@ function ringTitle(){
   if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return left;
   var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), hg = parseInt(p.get('gen'), 10);
   var right = subgroupName(H, p.get('sub') === 'none' || !isFinite(hg) ? null : hg);
+  // A new ring still being chosen or built on the left: only the right one counts.
+  if (isoPane.hostBlank) return right;
   var g = isoLinkGen(), k = g === null ? 0 : G.orders[g];
   if (!H.cyclic || H.order !== k) return translate('cyclicGroups.fsRingPair', { left: left, right: right });
   if (k === G.order) return translate('cyclicGroups.fsRingIso', { left: G.label, right: H.label });
@@ -5609,7 +5725,7 @@ function isoPaneGroup(){
 // Whether the pane's group is isomorphic to this ring's linking subgroup
 // (both cyclic of one order), whatever the user made of it.
 function isoFound(){
-  if (IS_ISOPANE || !isoPane || isoPane.blank || !drawn) return false;
+  if (IS_ISOPANE || !isoPane || isoPane.blank || isoPane.hostBlank || !drawn) return false;
   var H = isoPaneGroup(), g = isoLinkGen();
   var k = g === null ? 0 : drawn.G.orders[g];
   return !!H && k > 0 && H.cyclic && H.order === k;
@@ -6592,7 +6708,7 @@ function render(){
 /* ---------- controls <-> state ---------- */
 
 function syncControls(){
-  if (!isoBlank) nInputEl.value = state.n;
+  if (!isoBlank && !hostBlank()) nInputEl.value = state.n;
   FLAG_SWITCHES.forEach(function(name){ $('layer-' + name).checked = state[name]; });
   colorBySelectEl.value = state.colors ? state.colorBy : 'none';
   sideElEl.value = state.elSide;
@@ -6802,9 +6918,10 @@ function exportRingPng(){
 
 nInputEl.addEventListener('input', function(){ applyTypedN(nInputEl.value); });
 nInputEl.addEventListener('change', function(){
-  if (isoBlank && !isFinite(parseInt(nInputEl.value, 10))) return;
+  if ((isoBlank || hostBlank()) && !isFinite(parseInt(nInputEl.value, 10))) return;
   applyTypedN(nInputEl.value);
   if (isoBlank) endIsoBlank();
+  if (hostBlank()) endHostBlank();
   nInputEl.value = state.n;
 });
 // The blank pane's modulus is entered: its blur lifts and the ring holding it

@@ -37,7 +37,8 @@
    (the intro screen every visit opens on: what the tool does, why it is a
    full-screen application, and its button into the tool), and
    subExprFollow (the Numerical panel's two expressions following the ring's
-   expression slider). Every other
+   expression slider), and isoAddLeftTitle (the + at the ring's left edge,
+   opening a new ring on the left). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -437,6 +438,7 @@
       ctxIsoGroup: 'Open group as isomorphism',
       ctxIsoSub: 'Open subgroup as isomorphism',
       isoAddTitle: 'Open a second ring beside this one',
+      isoAddLeftTitle: 'Open a new ring on the left, this one moving to the right',
       isoPickWhole: 'Groups isomorphic to the current group',
       isoPickSub: 'Groups isomorphic to the current subgroup',
       isoPickBoth: 'Groups isomorphic to the current group/subgroup',
