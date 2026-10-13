@@ -2222,7 +2222,7 @@ function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width){
 // The identity's walk never leaves it: one loop from its bead back to it,
 // outside or inside the ring, turning the way the beads count. Returns the
 // outermost radius used.
-function drawLoop(ring, a, side, place, box, beadR, m, width){
+function drawLoop(ring, a, cls, side, place, box, beadR, m, width){
   var at = dirSign() * 360 * place[a] / m;
   var foot = side === 'outside' ? box.R + beadR : box.R - beadR;
   var out = side === 'outside' ? 1 : -1;
@@ -2234,7 +2234,7 @@ function drawLoop(ring, a, side, place, box, beadR, m, width){
   var c1 = polar(box.cx, box.cy, foot + out * reach, at - sweep * flare);
   var c2 = polar(box.cx, box.cy, foot + out * reach, at + sweep * flare);
   var p3 = polar(box.cx, box.cy, foot, at + sweep * spread);
-  var group = svgEl('g', { 'class': 'outer-walk walk-both', 'data-seq': String(a) });
+  var group = svgEl('g', { 'class': 'outer-walk ' + cls, 'data-seq': String(a) });
   group.appendChild(svgEl('path', {
     'class': 'outer-arc', 'stroke-width': width,
     d: 'M ' + num(p0[0]) + ' ' + num(p0[1]) + ' C ' + num(c1[0]) + ' ' + num(c1[1]) + ' ' + num(c2[0]) + ' ' + num(c2[1]) + ' ' + num(p3[0]) + ' ' + num(p3[1])
@@ -2314,7 +2314,7 @@ function drawRing(parent, G, beads, box, paint){
         if (w.side === 'outside' && !w.loop) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
-        if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.side, places, box, beadR, m, width));
+        if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.cls, w.side, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
         if (w.side === 'inside' && !w.loop) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width);
@@ -4832,13 +4832,12 @@ var cosetStepEl = $('coset-step');
 var cosetInstantEl = $('coset-instant');
 var cosetSpeedEl = $('coset-speed');
 
-// There is something to show only when ⟨h⟩ is a proper subgroup with a walk
-// to draw: not the identity's {e}, whose cosets are single beads, and not
-// the whole group, which is its own only coset.
+// There is something to show only when ⟨h⟩ is a proper subgroup: not the
+// whole group, which is its own only coset. The identity's {e} has a coset
+// per element, each a single bead with its loop.
 function hasCosets(G){
   if (state.noSub) return false;
-  var k = G.orders[state.gen];
-  return k > 1 && k < G.order;
+  return G.orders[state.gen] < G.order;
 }
 
 // Each coset starts at its first element in the ring's own order: the
@@ -7259,9 +7258,7 @@ function render(){
   syncSubExpr(G);
   syncIdColor();
   renderFacts(G, factors);
-  // The identity generates only itself: nothing to walk, nothing to coset.
-  var isIdentity = !state.noSub && state.gen === G.identity;
-  subgroupOptionsEl.hidden = isIdentity || state.noSub;
+  subgroupOptionsEl.hidden = state.noSub;
   renderIso(G);
   renderSubgroups(G);
   renderLegend(G, classes, pairing);
