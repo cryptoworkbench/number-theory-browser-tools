@@ -224,6 +224,16 @@
   }
   @media (prefers-reduced-motion: reduce){ .iso-lock{ animation:none; } }
   .iso-lock.is-fading{ opacity:0; }
+  /* Under them on the same line, a smaller padlock couples the two rings'
+     expression sliders while it is closed: either slider then moves the
+     other to the image of its generator. Open, each moves on its own. */
+  .expr-lock{ position:absolute; z-index:3; left:0; top:50%; translate:-50% -50%; display:grid; width:30px; height:30px; padding:0; place-items:center; color:var(--text-dim); background:var(--surface); border:1.5px solid var(--panel-border); border-radius:50%; cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl), background var(--ease-ctl); }
+  .expr-lock[hidden]{ display:none; }
+  .expr-lock:hover{ color:var(--accent); border-color:var(--accent); }
+  .expr-lock[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+  .expr-lock:focus{ outline:none; }
+  .expr-lock:focus-visible{ box-shadow:var(--ctl-focus); }
+  .expr-lock svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; }
   .facts.group-controls input:focus-visible, .facts.group-controls select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   /* In full screen the linked operation and identity rows give way to one
      toggle switch, (+, 0) thrown left and (×, 1) thrown right: a screwed-on
@@ -1250,6 +1260,7 @@
         <div class="iso-pane" id="iso-pane" hidden>
           <button type="button" class="fs-win-btn is-close iso-ring-close" id="iso-ring-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
           <span class="iso-lock" id="iso-lock" title="Double-click to unlock" data-i18n-title="cyclicGroups.groupLockTitle" hidden></span>
+          <button type="button" class="expr-lock" id="expr-lock" aria-pressed="false" hidden></button>
           <div class="iso-ask" id="iso-ask" role="alertdialog" aria-labelledby="iso-ask-text" hidden>
             <p class="iso-ask-text" id="iso-ask-text"></p>
             <div class="iso-ask-btns"><button type="button" class="action-btn" id="iso-ask-yes" data-i18n="cyclicGroups.isoAskYes">Yes</button><button type="button" class="action-btn" id="iso-ask-no" data-i18n="cyclicGroups.isoAskNo">No</button></div>
@@ -3825,6 +3836,13 @@ if (IS_RINGWIN){
       if (IS_ISOPANE) openGroupLock(true);
       return;
     }
+    // Coupled to the holding ring's expression slider: its image here.
+    if (d.ringhost === 'expr'){
+      if (!IS_ISOPANE || !drawn || (d.expr !== null && genOrNull(drawn.G, d.expr) === null) || d.expr === exprBy(drawn.G)) return;
+      state.expr = d.expr;
+      render();
+      return;
+    }
     if (d.ringhost === 'split'){
       if (!IS_ISOPANE) return;
       if (typeof d.share === 'number' && isFinite(d.share)) splitShare = clamp(d.share, SPLIT_MIN, SPLIT_MAX);
@@ -6284,14 +6302,50 @@ function isoImage(G){
 // (the first generator in place of Natural) and its image in the pane's
 // group, so the two sliders lock onto a pair named alike, g^k beside h^k.
 function isoExprPair(){
+  var m = isoWholeMap();
+  if (!m) return null;
+  var g = exprBy(m.G);
+  if (g === null) g = m.G.generators[0];
+  return { g: g, h: m.to(g) };
+}
+// An isomorphism of whole groups, element by element: g^k here to h^k in
+// the pane's group and back; null while the link is not between whole
+// cyclic groups.
+function isoWholeMap(){
   if (IS_ISOPANE || !isoPane || !drawn || !drawn.G.cyclic || !isoLinksWholeGroups()) return null;
   var G = drawn.G, H = isoPaneGroup(), link = isoLinkGen();
   if (!H || !H.cyclic || link === null || H.order !== G.order || G.orders[link] !== G.order || H.orders[isoPane.h] !== H.order) return null;
-  var g = exprBy(G);
-  if (g === null) g = G.generators[0];
   var gp = lap(G, link, G.order), hp = lap(H, isoPane.h, H.order);
-  return { g: g, h: hp[gp.indexOf(g)] };
+  return { G: G, H: H, to: function(x){ return hp[gp.indexOf(x)]; }, from: function(y){ return gp[hp.indexOf(y)]; } };
 }
+// The expression padlock: closed, the two rings' expression sliders move
+// together while the rings are locked, each to the image of the other's
+// generator, Natural to Natural.
+var exprCoupled = false;
+var exprLockEl = $('expr-lock');
+function exprCouplingOn(){ return exprCoupled && isoLinked() && !!isoWholeMap(); }
+function tellPaneExpr(){
+  var m = isoWholeMap();
+  if (!m || !isoPaneFrame) return;
+  var g = exprBy(m.G);
+  try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'expr', expr: g === null ? null : m.to(g) }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+}
+function syncExprLock(){
+  if (IS_ISOPANE || !exprLockEl) return;
+  exprLockEl.hidden = !(isoPane && !isoPaneEl.hidden && isoLinked() && isoWholeMap());
+  if (exprLockEl.hidden) return;
+  exprLockEl.setAttribute('aria-pressed', exprCoupled ? 'true' : 'false');
+  var label = translate(exprCoupled ? 'cyclicGroups.exprLockUncouple' : 'cyclicGroups.exprLockCouple');
+  exprLockEl.setAttribute('aria-label', label);
+  exprLockEl.title = label;
+  exprLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: exprCoupled ? 'M4 5.5V4a2 2 0 0 1 4 0v1.5' : 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
+}
+if (exprLockEl) exprLockEl.addEventListener('click', function(){
+  exprCoupled = !exprCoupled;
+  syncExprLock();
+  // Closed, the pane's slider takes the image of this one's at once.
+  if (exprCouplingOn()) tellPaneExpr();
+});
 function subInterlocked(){
   if (IS_ISOPANE) return isoInterlockOn && isoOrder() > 0;
   return isoOrder() > 0 && isoLinksWholeGroups();
@@ -6406,6 +6460,14 @@ window.addEventListener('message', function(e){
     syncIsoPaneLabels();
     syncIsoKeys();
     postIsoShared(true);
+  } else if (d.isopane === 'expr'){
+    // The pane's expression slider moved: coupled, this one takes its preimage.
+    var m = exprCouplingOn() && isoWholeMap();
+    if (!m || (d.expr !== null && genOrNull(m.H, d.expr) === null)) return;
+    var g = d.expr === null ? null : m.from(d.expr);
+    if (g === exprBy(m.G)) return;
+    state.expr = g;
+    render();
   } else if (d.isopane === 'unlock'){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
@@ -7248,7 +7310,8 @@ var LOCK_CLEAR_GAP = 14; // room for the padlock's pulsing halo
 var SHARED_BTN_GAP = 8;
 function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
-  isoLockEl.style.top = '';
+  syncExprLock();
+  isoLockEl.style.top = exprLockEl.style.top = '';
   [splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
@@ -7258,7 +7321,8 @@ function keepLockClear(){
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
-  var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
+  var exprH = exprLockEl.hidden ? 0 : exprLockEl.offsetHeight;
+  var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1) + (exprH ? LOCK_CLEAR_GAP + exprH : 0);
   var top = mid - total / 2;
   if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
   var y = top + lockH + gap;
@@ -7268,6 +7332,8 @@ function keepLockClear(){
     el.style.top = num(y + hs[i] / 2 - r.top) + 'px';
     y += hs[i] + SHARED_BTN_GAP;
   });
+  // The expression padlock last, under the rest.
+  if (exprH) exprLockEl.style.top = num(y - (btns.length ? SHARED_BTN_GAP : gap) + LOCK_CLEAR_GAP + exprH / 2 - p.top) + 'px';
 }
 // A press on locked parameters starts no selection, so the double-click
 // that opens them leaves no word highlighted.
@@ -7362,6 +7428,10 @@ function setExprStop(i){
   if (next === exprBy(drawn.G)) return;
   state.expr = next;
   render();
+  // Coupled, the other ring's slider follows: the pane is told the image,
+  // and the ring holding it the pane's choice, to take its preimage.
+  if (IS_ISOPANE) tellHost({ isopane: 'expr', expr: next });
+  else if (exprCouplingOn()) tellPaneExpr();
 }
 exprSliderEl.addEventListener('input', function(){ setExprStop(parseInt(exprSliderEl.value, 10) || 0); });
 exprNatEl.addEventListener('click', function(){ setExprStop(0); });

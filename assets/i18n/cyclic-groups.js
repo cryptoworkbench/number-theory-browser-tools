@@ -41,7 +41,9 @@
    subAlign and subAlignTitle (the Numerical panel's dropdown lining up the
    columns: not at all, with blank space, or with the leading zeros of
    subPad), and ctxView, ctxZoomIn and ctxZoomOut (the right-click menu's
-   View section, zooming the ring in and out). Every other
+   View section, zooming the ring in and out), and exprLockCouple and
+   exprLockUncouple (the small padlock on the line between two locked
+   rings, coupling their expression sliders). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -475,6 +477,8 @@
       ctxView: 'View',
       ctxZoomIn: 'Zoom in',
       ctxZoomOut: 'Zoom out',
+      exprLockCouple: 'Couple the two expression sliders',
+      exprLockUncouple: 'Uncouple the two expression sliders',
       ctxCopyLatex: 'Copy in LaTeX formatting',
       ctxCopyMathml: 'Copy in MathML formatting',
       ctxCopyUnicode: 'Copy as Unicode plain text',
