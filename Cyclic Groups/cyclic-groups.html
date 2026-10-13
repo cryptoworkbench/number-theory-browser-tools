@@ -553,9 +553,8 @@
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
-     moved in, their controls and state untouched. The ctl row and the
-     isomorphism pane's close button keep clear of the full-screen button
-     in the top-right corner. */
+     moved in, their controls and state untouched. The ctl row keeps
+     clear of the close button in the top-right corner. */
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame){ padding:0; }
   .fs-win-btn{ flex:none; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
   .fs-win-btn:hover{ color:var(--accent); border-color:var(--accent); }
@@ -820,7 +819,11 @@
      top corner, and its rows line up with the left ring's. */
   .fs-win-body.is-ring > .iso-pane{ position:relative; }
   .fs-win-body.is-ring > .iso-pane > .iso-pane-head{ position:absolute; top:0; right:0; z-index:2; padding:0; }
-  .fs-win-body.is-ring.ring-body > .iso-pane > .iso-pane-head{ right:36px; }
+  /* With one ring open, its own close button sits in the top-right corner:
+     closing the last ring leaves full screen and goes back to the intro. */
+  .ring-exit{ display:none; }
+  .fs-win-body.is-ring.ring-body > .ring-exit{ display:grid; position:absolute; z-index:6; top:4px; right:20px; }
+  .fs-win-body.is-ring.ring-body:has(> .iso-pane:not([hidden])) > .ring-exit{ display:none; }
   /* With two rings open, the left one has its own close button too, at the
      top of its side just left of the line between them: closing it leaves
      the right ring's group in its place. */
@@ -911,15 +914,6 @@
   .ring-ctx-sub #arrow-options .check select.side-select option{ color:var(--text); background:var(--bg-1); }
   .ring-ctx-sub #arrow-options .check label{ margin-inline-end:16px; }
   .ring-ctx-sub #arrow-options .link-btn{ margin:4px 4px 2px; }
-  /* The diagram's top-right corner: the full-screen button, over the ring. */
-  .frame-tools{ position:absolute; top:8px; right:10px; z-index:50; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-  .frame-tools .action-btn{ padding:5px 10px; font-size:.8rem; }
-  .frame-tools .icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; color:var(--text-dim); background:none; border:none; border-radius:8px; cursor:pointer; }
-  .frame-tools .icon-btn:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 8%, transparent); }
-  .frame-tools .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .frame-tools .icon-btn svg{ width:24px; height:24px; fill:currentColor; }
-  .frame-tools .icon-btn .icon-exit, .frame-tools .icon-btn.is-on .icon-enter{ display:none; }
-  .frame-tools .icon-btn.is-on .icon-exit{ display:block; }
   /* Full screen, the diagram fills the screen and the ring scales into it. */
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame){ width:100% !important; height:100% !important; max-width:none !important; box-sizing:border-box; border:0; border-radius:0; display:flex; flex-direction:column;
     background:linear-gradient(var(--panel), var(--panel)), var(--bg-1); }
@@ -1130,12 +1124,6 @@
   <div class="layout">
     <div class="stage" id="ring-panel">
       <div class="diagram-frame" id="diagram-frame">
-        <div class="frame-tools" id="frame-tools">
-          <button type="button" class="icon-btn" id="fullscreen-btn">
-            <svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-            <svg class="icon-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
-          </button>
-        </div>
         <div class="auto-rotate" role="radiogroup" aria-labelledby="auto-rotate-label">
           <span class="tri" id="auto-rotate" data-at="off">
             <svg class="tri-track" viewBox="0 0 44 40" aria-hidden="true" focusable="false"><path d="M22 7 L37 33 L7 33 Z"/></svg>
@@ -1235,6 +1223,7 @@
         </div>
         <button type="button" class="iso-add" id="iso-add" aria-label="Open a second ring beside this one" data-i18n-aria-label="cyclicGroups.isoAddTitle" title="Open a second ring beside this one" data-i18n-title="cyclicGroups.isoAddTitle">+</button>
         <button type="button" class="iso-add is-left" id="iso-add-left" aria-label="Open a new ring on the left, this one moving to the right" data-i18n-aria-label="cyclicGroups.isoAddLeftTitle" title="Open a new ring on the left, this one moving to the right" data-i18n-title="cyclicGroups.isoAddLeftTitle">+</button>
+        <button type="button" class="fs-win-btn is-close ring-exit" id="ring-exit"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
       </div>
       <section class="panel iso-panel" id="iso-panel" hidden>
         <p class="iso-lead" id="iso-lead"></p>
@@ -2727,34 +2716,12 @@ function syncHeadSwitches(){
 
 /* ---------- full screen ---------- */
 
-// The button in the diagram's top-right corner takes the diagram into the
-// browser's full screen and back; its icon and label follow the state, however it is left
-// (the button, Escape or the browser's own control). Hidden where the
-// browser cannot take an element full screen.
-var fullscreenBtnEl = $('fullscreen-btn');
+// The diagram goes full screen from the intro's button and leaves it, and
+// the tool, with the last ring's close button (see exitDesktop).
 function fullscreenEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
 // Whether the ring's body fills the diagram: always on the page, and in full screen.
 function desktopOn(){ return IS_DESKTOP || fullscreenEl() === diagramFrameEl; }
-function syncFullscreenBtn(){
-  var on = fullscreenEl() === diagramFrameEl;
-  var label = translate(on ? 'cyclicGroups.fullscreenExit' : 'cyclicGroups.fullscreenEnter');
-  fullscreenBtnEl.classList.toggle('is-on', on);
-  fullscreenBtnEl.setAttribute('aria-label', label);
-  fullscreenBtnEl.setAttribute('title', label);
-  fullscreenBtnEl.setAttribute('aria-pressed', on ? 'true' : 'false');
-}
-fullscreenBtnEl.hidden = !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
-fullscreenBtnEl.addEventListener('click', function(){
-  if (fullscreenEl()){
-    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-  } else {
-    var go = diagramFrameEl.requestFullscreen || diagramFrameEl.webkitRequestFullscreen;
-    var p = go.call(diagramFrameEl);
-    if (p && p.catch) p.catch(function(){ /* refused, e.g. not from a user gesture */ });
-  }
-});
 function onFullscreenChange(){
-  syncFullscreenBtn();
   syncPanes();
   // The formulas over the ring give way to the Ring window's scratchpad.
   syncHeadSwitches();
@@ -2762,7 +2729,6 @@ function onFullscreenChange(){
 }
 document.addEventListener('fullscreenchange', onFullscreenChange);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-syncFullscreenBtn();
 
 // The intro's button: the ring comes out from behind the intro, the site
 // header goes, and the diagram asks for full screen in the same click (a
@@ -2789,6 +2755,25 @@ function enterDesktop(){
   syncTabTitle();
 }
 cgEnterEl.addEventListener('click', enterDesktop);
+// The last ring's close button: full screen ends, the site header comes
+// back and the intro shows again, its button ready to go back in.
+var ringExitEl = $('ring-exit');
+function exitDesktop(){
+  if (!IS_DESKTOP || !cgEntered) return;
+  cgEntered = false;
+  if (fullscreenEl()){
+    try {
+      var p = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      if (p && p.catch) p.catch(function(){ /* already out of full screen */ });
+    } catch (e) { /* already out of full screen */ }
+  }
+  document.documentElement.classList.remove('is-entered');
+  syncPanes();
+  window.scrollTo(0, 0);
+  cgEnterEl.focus({ preventScroll: true });
+  syncTabTitle();
+}
+ringExitEl.addEventListener('click', exitDesktop);
 
 /* ---------- the ring's parts ---------- */
 
@@ -2796,7 +2781,7 @@ cgEnterEl.addEventListener('click', enterDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'identity-note', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'identity-note': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -5399,6 +5384,8 @@ function syncRingCloseLabel(){
   var close = translate('cyclicGroups.fsClose', { name: name });
   isoRingCloseEl.setAttribute('aria-label', close);
   isoRingCloseEl.setAttribute('title', close);
+  ringExitEl.setAttribute('aria-label', close);
+  ringExitEl.setAttribute('title', close);
 }
 
 /* ---------- the second ring opened empty: a picker of groups to show in it ---------- */
@@ -7265,7 +7252,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncFullscreenBtn(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); });
+onLangChange(function(){ render(); syncAutoRotate(); postLookAll(); syncIsoPaneLabels(); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
