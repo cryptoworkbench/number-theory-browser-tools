@@ -5143,6 +5143,7 @@ function renderSubgroups(G){
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     if (hadFocus) focusCurrentRow();
+    keepCurrentRowInView(G);
     return;
   }
   subgroupsSig = sig;
@@ -5177,6 +5178,7 @@ function renderSubgroups(G){
     subgroupsEl.appendChild(li);
   });
   if (hadFocus) focusCurrentRow();
+  keepCurrentRowInView(G);
 }
 // Merged: each row this group's ⟨g⟩ = {…} on the left and the pane's
 // {…} = ⟨φ(g)⟩ on the right, φ the isomorphism (g^k to h^k), the image's
@@ -5206,6 +5208,7 @@ function renderMergedSubgroups(G){
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     if (hadFocus) focusCurrentRow();
+    keepCurrentRowInView(G);
     return;
   }
   subgroupsSig = sig;
@@ -5262,18 +5265,33 @@ function renderMergedSubgroups(G){
     subgroupsEl.appendChild(li);
   });
   if (hadFocus) focusCurrentRow();
+  keepCurrentRowInView(G);
 }
 
 function focusCurrentRow(){
   var row = subgroupsEl.querySelector('.subgroup-row.is-current');
   if (!row) return;
   row.focus({ preventScroll: true });
-  // Scroll the list's own box just enough to show the row; never the page,
-  // which scrollIntoView would also move, pulling the ring out of view.
+  showRow(row);
+}
+// Scroll the list's own box just enough to show the row; never the page,
+// which scrollIntoView would also move, pulling the ring out of view.
+function showRow(row){
   var box = subgroupsEl.getBoundingClientRect();
   var at = row.getBoundingClientRect();
   if (at.top < box.top) subgroupsEl.scrollTop -= box.top - at.top;
   else if (at.bottom > box.bottom) subgroupsEl.scrollTop += at.bottom - box.bottom;
+}
+// A newly selected subgroup, chosen from anywhere, scrolls its row into the
+// list's view, once: scrolling the list away from it afterwards stays put.
+// A list out of sight waits until it shows.
+var shownRowKey = null;
+function keepCurrentRowInView(G){
+  var row = subgroupsEl.querySelector('.subgroup-row.is-current');
+  var key = G.mode + ' ' + G.n + ' ' + state.gen;
+  if (!row || key === shownRowKey || !subgroupsEl.clientHeight) return;
+  shownRowKey = key;
+  showRow(row);
 }
 
 // While the arrow keys drive the list, the rows rebuilding and scrolling
