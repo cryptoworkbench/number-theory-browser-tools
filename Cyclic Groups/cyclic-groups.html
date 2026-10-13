@@ -5101,6 +5101,13 @@ function memberPaintKey(G){
   if (state.subColor === 'off' || !drawn) return 'off';
   return state.subColor + ':' + G.els.map(function(a){ var p = drawn.paint(a); return p.cls + '|' + (p.style || ''); }).join(',');
 }
+// A row's tooltip while the generating element is written as a power g^e:
+// how gcd(e, |G|) gives the subgroup's order |G| / gcd(e, |G|).
+function subRowGcdTitle(G, log, g){
+  if (!log) return null;
+  var e = log[g], d = gcd(e, G.order);
+  return translate('cyclicGroups.subRowGcd', { e: e, n: G.order, gcd: d, count: G.order / d });
+}
 function renderSubgroups(G){
   if (!IS_ISOPANE && subInterlocked()) return renderMergedSubgroups(G);
   var hadFocus = subgroupsEl.contains(document.activeElement);
@@ -5117,7 +5124,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5141,6 +5148,8 @@ function renderSubgroups(G){
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
     row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + members.map(px).join(', ') + '}');
+    var tip = subRowGcdTitle(G, llog, g);
+    if (tip) row.title = tip;
     row.appendChild(mInline(mrow(angle(memberMath(g, mxl(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
     members.forEach(function(x, i){
       var last = i === members.length - 1;
@@ -5178,7 +5187,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5209,6 +5218,8 @@ function renderMergedSubgroups(G){
     row.setAttribute('data-gen', String(g));
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     row.setAttribute('aria-label', leftText(r) + '; ' + rightText(r));
+    var tip = subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), g);
+    if (tip) row.title = tip;
     var left = document.createElement('span');
     left.className = 'sub-row-l';
     left.appendChild(mInline(mrow(angle(memberMath(g, fl.m(g))), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));

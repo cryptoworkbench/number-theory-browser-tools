@@ -43,11 +43,14 @@
    subPad), and ctxView, ctxZoomIn and ctxZoomOut (the right-click menu's
    View section, zooming the ring in and out), and exprLockCouple and
    exprLockUncouple (the small padlock on the line between two locked
-   rings, coupling their expression sliders). Every other
+   rings, coupling their expression sliders), and subRowGcd (a Numerical
+   panel row's tooltip while the generating element is written as a
+   power: the gcd of its exponent with the group's order, and the
+   subgroup's order that follows). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
-   NT.i18n.register(...). legendSubgroups is a plural entry in each
+   NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
    language's own CLDR category shape ({ one, other } in English);
    every other key is plain text. The notice.* values are whole sentences
    whose {group}, {count}, {longest}, {factors} and {n} placeholders are
@@ -455,6 +458,7 @@
       introFullscreen: 'Because this tool has so many controls, it is really a full-screen application. It is best used in full screen, and the website\'s usual header is hidden either way. To get back to the rest of the website, use your browser\'s Back and Forward buttons instead of the header. Have fun!',
       introEnter: 'Open Cyclic Groups in full screen',
       subExprFollow: 'Follow expression slider',
+      subRowGcd: { one: 'The GCD of {e} with {n} is {gcd}. So the subgroup has {count} element. {n} / GCD({n}, {e}) = {count}', other: 'The GCD of {e} with {n} is {gcd}. So the subgroup has {count} elements. {n} / GCD({n}, {e}) = {count}' },
       isoAskYes: 'Yes',
       isoAskNo: 'No',
       showArrowKey: 'Show arrow colour key',
