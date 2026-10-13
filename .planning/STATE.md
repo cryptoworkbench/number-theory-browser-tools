@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T09:03:26.003Z"
+last_updated: "2026-10-13T09:07:55.917Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ed2e888ba00819d31b094b241deb6a432a02af51
+state_head: b76379ecc66fb756b1f9547af5cc4ea9a58b734e
 progress:
   total_phases: 7
   completed_phases: 6
@@ -558,6 +558,7 @@ None yet.
 | 322 | Double-click the open padlock to lock; tooltip names the isomorphism kind | 2026-10-13 | 06be75e | — |
 | 323 | Unlocking an isomorphism leaves the padlock open | 2026-10-13 | 862b25b | — |
 | 324 | Rings turn independently while the padlock is open | 2026-10-13 | ed2e888 | — |
+| 325 | An open padlock unlinks the rings entirely (numeric, halo, colours) | 2026-10-13 | b76379e | — |
 
 ## Deferred Items
 
