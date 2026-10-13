@@ -1260,6 +1260,7 @@
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
         <div class="check" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle"><input type="checkbox" id="sub-pad"><label for="sub-pad" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</label></div>
+        <div class="check" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle"><input type="checkbox" id="sub-align"><label for="sub-align" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         </div>
         <div class="sub-expr-row sub-expr-row-r" id="sub-expr-row-r" hidden>
@@ -1446,7 +1447,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subColor: 'off', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1593,6 +1594,7 @@ var gearboxEl = $('gearbox');
 var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
 var subPadEl = $('sub-pad');
+var subAlignEl = $('sub-align');
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
 // Off, or each member in its bead's colour; the soft tint once offered
@@ -4733,13 +4735,24 @@ function subOrder(G){
   }
   return elsBy(G, genOrNull(G, state.subSort));
 }
-// How the rows write their numbers: as the number, padded to width, or as
-// a power of base, its exponent padded to expWidth.
+// A number in the list, as wide as width digits: padded, its leading zeros
+// are written already; aligned, blank space as wide as the missing digits
+// (zeros drawn invisible) goes before it, inside a member's chip too.
+function numMn(s, width){
+  var miss = state.subAlign && !state.subPad ? width - s.length : 0;
+  return miss > 0 ? mrow(mEl('mphantom', [mn('0'.repeat(miss))]), mn(s)) : mn(s);
+}
+// The width the list's numbers keep, padded or aligned: that of the group's
+// largest; and its exponents, that of the largest exponent.
+function subWidth(G){ return state.subPad || state.subAlign ? String(Math.max.apply(null, G.els)).length : 0; }
+function subExpWidth(G){ return state.subPad || state.subAlign ? String(G.order - 1).length : 0; }
+// How the rows write their numbers: as the number, padded or aligned to
+// width, or as a power of base, its exponent padded or aligned to expWidth.
 function subFormat(base, log, width, expWidth){
-  var nat = function(x){ return String(x).padStart(width, '0'); };
-  var ex = function(k){ return String(k).padStart(expWidth, '0'); };
+  var nat = function(x){ return state.subPad ? String(x).padStart(width, '0') : String(x); };
+  var ex = function(k){ return state.subPad ? String(k).padStart(expWidth, '0') : String(k); };
   return {
-    m: function(x){ return log ? mEl('msup', [mn(base), mn(ex(log[x]))]) : mn(nat(x)); },
+    m: function(x){ return log ? mEl('msup', [mn(base), numMn(ex(log[x]), expWidth)]) : numMn(nat(x), width); },
     p: function(x){ return log ? base + '^' + ex(log[x]) : nat(x); }
   };
 }
@@ -4771,15 +4784,12 @@ function renderSubgroups(G){
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   // Padded, a number in its natural expression takes leading zeros up to
   // the width of the group's largest, and an exponent up to the width of
-  // the largest exponent, so the rows' columns line up.
-  var width = state.subPad ? String(Math.max.apply(null, G.els)).length : 0;
-  var expWidth = state.subPad ? String(G.order - 1).length : 0;
-  var nat = function(x){ return String(x).padStart(width, '0'); };
-  var ex = function(k){ return String(k).padStart(expWidth, '0'); };
-  var mxBy = function(b, log){ return function(x){ return log ? mEl('msup', [mn(b), mn(ex(log[x]))]) : mn(nat(x)); }; };
-  var pxBy = function(b, log){ return function(x){ return log ? b + '^' + ex(log[x]) : nat(x); }; };
-  var mxl = mxBy(lg, llog), pxl = pxBy(lg, llog), mx = mxBy(rg, rlog), px = pxBy(rg, rlog);
-  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  // the largest exponent, so the rows' columns line up; aligned, it takes
+  // blank space up to those widths instead.
+  var width = subWidth(G), expWidth = subExpWidth(G);
+  var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
+  var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
+  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -4830,9 +4840,8 @@ function renderMergedSubgroups(G){
   var lg = subExprGen(G, state.subLeft, state.expr), rg = subExprGen(G, state.subRight, state.expr);
   var hl = subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
-  var expWidth = state.subPad ? String(G.order - 1).length : 0;
-  var widthG = state.subPad ? String(Math.max.apply(null, G.els)).length : 0;
-  var widthH = state.subPad ? String(Math.max.apply(null, H.els)).length : 0;
+  var expWidth = Math.max(subExpWidth(G), subExpWidth(H));
+  var widthG = subWidth(G), widthH = subWidth(H);
   var fl = subFormat(lg, lg === null ? null : exprLog(G, lg), widthG, expWidth);
   var fr = subFormat(rg, rg === null ? null : exprLog(G, rg), widthG, expWidth);
   var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth);
@@ -4841,7 +4850,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -6089,10 +6098,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.autoShift + ' ' + state.subColor;
+      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, shift: state.autoShift, color: state.subColor });
+        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor });
       }
     }
   }
@@ -6105,9 +6114,11 @@ function syncInterlock(){
 // The pane: the holder's padding and auto-shift, or its expressions.
 function takeNumset(d){
   state.subPad = d.pad === true;
+  state.subAlign = d.align === true;
   state.autoShift = d.shift === true;
   state.subColor = subColorOf(d.color);
   subPadEl.checked = state.subPad;
+  subAlignEl.checked = state.subAlign;
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
   renderSubgroups(drawn.G);
@@ -6493,6 +6504,8 @@ function stateQuery(){
   else q.delete('autoshift');
   if (state.subPad) q.set('subpad', '1');
   else q.delete('subpad');
+  if (state.subAlign) q.set('subalign', '1');
+  else q.delete('subalign');
   if (state.subColor !== 'off') q.set('subcolor', state.subColor);
   else q.delete('subcolor');
   if (state.swapColors) q.set('swapcolors', '1');
@@ -6669,6 +6682,7 @@ function render(){
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
   subPadEl.checked = state.subPad;
+  subAlignEl.checked = state.subAlign;
   subColorEl.checked = state.subColor === 'full';
   syncArrange(G);
   syncExpr(G);
@@ -7201,8 +7215,19 @@ autoShiftEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
+// Padding with zeros and aligning with blank space are two ways to line up
+// the columns: ticking one unticks the other.
 subPadEl.addEventListener('change', function(){
   state.subPad = subPadEl.checked;
+  if (state.subPad){ state.subAlign = false; subAlignEl.checked = false; }
+  if (!drawn) return;
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+  syncInterlock();
+});
+subAlignEl.addEventListener('change', function(){
+  state.subAlign = subAlignEl.checked;
+  if (state.subAlign){ state.subPad = false; subPadEl.checked = false; }
   if (!drawn) return;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
@@ -7312,6 +7337,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.autoShift = query.get('autoshift') === '1';
   state.subPad = query.get('subpad') === '1';
+  state.subAlign = !state.subPad && query.get('subalign') === '1';
   if (query.has('subcolor')) state.subColor = subColorOf(query.get('subcolor'));
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
