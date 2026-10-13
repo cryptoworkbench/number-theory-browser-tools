@@ -147,6 +147,12 @@
   .msg-flow{ display:flex; flex-direction:column; gap:20px; }
   .msg-block{ border-radius:12px; border:1px solid var(--panel-border); padding:14px 16px; background:color-mix(in srgb, var(--text) 3%, transparent); }
   .msg-hint{ font-size:.78rem; color:var(--text-dim); margin-top:2px; }
+  /* The way on to Cyclic Groups, under the modulus: a link while n is small
+     enough to draw there, greyed out with the reason when it is not. */
+  .cg-link{ margin-top:8px; font-size:.85rem; }
+  .cg-link a{ color:var(--role-input); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--role-input) 45%, transparent); }
+  .cg-link a:hover{ color:var(--role-result); border-bottom-color:color-mix(in srgb, var(--role-result) 45%, transparent); }
+  .cg-link.is-off > span{ color:var(--text-dim); }
   .arrow-note{ text-align:center; color:var(--text-dim); font-size:.85rem; margin:4px 0; }
 
   footer{ text-align:center; color:var(--text-dim); font-size:.78rem; padding:14px 0 6px; line-height:1.6; }
@@ -389,7 +395,7 @@
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { bigGcd, fmt, isPrimeBig, modPowPlain, parseBigIntStrict, scratchNum } = NT.bigint;
-const { bindText, onLangChange, translate, translateInto } = NT.i18n;
+const { bindText, getLang, onLangChange, translate, translateInto } = NT.i18n;
 const { attachPrimePicker } = NT.picker;
 
 /* Extended Euclidean algorithm, iterative table form: a*x + b*y = gcd(a,b) */
@@ -577,6 +583,36 @@ function buildTableBody(rows){
   return tbody;
 }
 
+// Cyclic Groups draws (ℤ/nℤ)* for n up to its own limit; a larger modulus
+// gets the link greyed out, with the reason under it. The link opens a new
+// tab, so the example here stays, in the language this page is in.
+const CYCLIC_MAX_N = 100n;
+function cyclicGroupLink(n){
+  const box = document.createElement('div');
+  box.className = 'cg-link';
+  if(n <= CYCLIC_MAX_N){
+    const a = document.createElement('a');
+    const href = () => '../Cyclic Groups/cyclic-groups.html?mode=multiplicative&n=' + n + '&lang=' + getLang();
+    a.href = href();
+    a.setAttribute('target', '_blank');
+    a.setAttribute('rel', 'noopener');
+    a.addEventListener('click', () => { a.href = href(); });
+    bindText(a, 'rsa.openCyclicGroup', {0: fmt(n)});
+    box.appendChild(a);
+    return box;
+  }
+  box.classList.add('is-off');
+  const label = document.createElement('span');
+  label.setAttribute('aria-disabled', 'true');
+  bindText(label, 'rsa.openCyclicGroup', {0: fmt(n)});
+  const why = document.createElement('div');
+  why.className = 'msg-hint';
+  bindText(why, 'rsa.openCyclicGroupTooBig');
+  box.appendChild(label);
+  box.appendChild(why);
+  return box;
+}
+
 function renderKeyOutput(id){
   const k = State[id];
   const out = document.getElementById(id+'-output');
@@ -605,6 +641,7 @@ function renderKeyOutput(id){
   f1.appendChild(document.createTextNode(' ' + fmt(k.p) + ' × ' + fmt(k.q) + ' = '));
   f1.appendChild(val1);
   sub1.appendChild(f1);
+  sub1.appendChild(cyclicGroupLink(k.n));
   out.appendChild(sub1);
 
   // substep: Euler's totient
