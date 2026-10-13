@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T12:43:47.987Z"
+last_updated: "2026-10-13T12:53:00.161Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 22510c46a2d3429524ae9524957f849f5c916773
+state_head: 21d0e69bfd4460947a8f8e39b768f281f31035c2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -580,6 +580,7 @@ None yet.
 | 344 | Top three rows' controls keep to the right | 2026-10-13 | 19fe5b5 | — |
 | 345 | Locking whole groups pairs the expression sliders (g ↔ φ(g)) | 2026-10-13 | 023fb7a | — |
 | 346 | A reloaded isomorphism pane is merged again (F8 split bug) | 2026-10-13 | 22510c4 | — |
+| 347 | Formulas drag out of the right-click menu as closable cards | 2026-10-13 | 21d0e69 | — |
 
 ## Deferred Items
 
