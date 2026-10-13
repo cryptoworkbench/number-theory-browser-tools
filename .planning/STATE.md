@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T08:21:03.058Z"
+last_updated: "2026-10-13T08:24:58.683Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: e7da811e4aad6ee6055ec95c49e1eae86bb6d743
+state_head: 96ce7049e19830e6072d59fb6454b299f8fc769f
 progress:
   total_phases: 7
   completed_phases: 6
@@ -553,6 +553,7 @@ None yet.
 | 261013-cxy | Split Cyclic Groups into a desktop tool and an _Cyclic Groups page tool | 2026-10-13 | 9b40e4b | [261013-cxy-split-cyclic-groups-into-a-desktop-tool-](./quick/261013-cxy-split-cyclic-groups-into-a-desktop-tool-/) |
 | 261013-dln | Numeric panel option to colour members like their beads | 2026-10-13 | a424939 | [261013-dln-numeric-panel-option-to-colour-members-l](./quick/261013-dln-numeric-panel-option-to-colour-members-l/) |
 | 319 | Numeric list follows the iso pane on group change and close | 2026-10-13 | e7da811 | — |
+| 320 | Cyclic Groups desktop: browser tab title follows the front window | 2026-10-13 | 96ce704 | — |
 
 ## Deferred Items
 
