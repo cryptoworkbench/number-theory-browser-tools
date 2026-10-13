@@ -6366,12 +6366,21 @@ function isoReceive(d){
     setIsoHot(d.k >= 0 ? isoPowers()[d.k] : null);
   }
   if (d.iso === 'select' && subInterlocked()){
-    isoSelSent = d.k;
+    // Following its expression slider on one ring, the other follows its
+    // own too, the two sliders coupled so the subgroups still correspond.
+    var follow = d.follow === true && d.k >= 0, was = state.genFollow;
+    isoSelSent = selKey(d.k, follow);
+    state.genFollow = follow;
+    if (follow){
+      followedGen = null;
+      if (!IS_ISOPANE) coupleForFollow(true);
+    }
     if (d.k < 0){
       if (state.noSub) return;
       state.noSub = true;
       render();
     } else if (state.noSub || state.gen !== isoPowers()[d.k]) selectGen(isoPowers()[d.k]);
+    else if (follow !== was || follow) render();
   }
 }
 // Merged lists: while the link is between the whole groups, the two
@@ -6546,9 +6555,24 @@ function syncInterlock(){
   }
   if (!subInterlocked() || isoSelSent === SEL_AWAIT) return;
   var k = state.noSub ? -1 : isoPowers().indexOf(state.gen);
-  if (k === isoSelSent) return;
-  isoSelSent = k;
-  isoTell({ iso: 'select', k: k });
+  var follow = state.genFollow && k >= 0;
+  if (selKey(k, follow) === isoSelSent) return;
+  isoSelSent = selKey(k, follow);
+  isoTell({ iso: 'select', k: k, follow: follow });
+}
+function selKey(k, follow){ return k + (follow ? ':follow' : ''); }
+// The ring holding the pane couples the two expression sliders for a
+// subgroup that follows them: to the pane's slider when the pane chose to
+// follow, else the pane's to this one's.
+function coupleForFollow(fromPane){
+  var m = isoWholeMap();
+  if (IS_ISOPANE || exprCoupled || !m || !isoLinked()) return;
+  exprCoupled = true;
+  if (fromPane){
+    var h = paneExpr();
+    state.expr = h === null || genOrNull(m.H, h) === null ? null : m.from(h);
+  } else tellPaneExpr();
+  syncExprLock();
 }
 // The pane: the holder's padding and auto-shift, or its expressions.
 function takeNumset(d){
@@ -7554,6 +7578,7 @@ genSelectEl.addEventListener('change', function(){
     return;
   }
   if (state.genFollow){
+    if (subInterlocked()) coupleForFollow(false);
     var G = buildGroup(state.mode, state.n), e = exprBy(G);
     followedGen = null;
     selectGen(e === null ? G.generators[0] : e);
