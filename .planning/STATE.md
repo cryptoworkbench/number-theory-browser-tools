@@ -605,6 +605,7 @@ None yet.
 | 369 | Numerical button under the ring in single-group view | 2026-10-13 | 76da153 | — |
 | 370 | GCD tooltip on subgroup rows whose generating element is written as a power | 2026-10-13 | ee0fa69 | — |
 | 371 | Isomorphism view: each side of a shared subgroup row has its own GCD tooltip | 2026-10-13 | d1560b0 | — |
+| 372 | Subgroup panel controls share lines in one-group mode | 2026-10-13 | 78b0d9f | — |
 
 ## Deferred Items
 
