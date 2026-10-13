@@ -328,6 +328,7 @@
   .coset-controls .btn-row .action-btn{ flex:1 1 auto; padding:7px 10px; }
   .coset-controls .action-btn.is-primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
   .coset-controls .action-btn.is-primary:hover{ filter:brightness(1.08); }
+  .coset-controls .coset-loop[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
   .speed-wrap{ display:flex; align-items:center; gap:10px; font-size:.82rem; color:var(--text-dim); }
   .speed-wrap input[type="range"]{ flex:1 1 auto; min-width:0; accent-color:var(--accent); }
   .speed-wrap span{ width:70px; }
@@ -1442,6 +1443,7 @@
               <button type="button" class="action-btn" id="coset-step" data-i18n="common.step">Step</button>
               <button type="button" class="action-btn" id="coset-instant" data-i18n="common.instant">Instant</button>
               <button type="button" class="action-btn" id="coset-reset" data-i18n="common.reset">Reset</button>
+              <button type="button" class="action-btn coset-loop" id="coset-loop" aria-pressed="false" title="Replay continuously: after the last coset, start again from the first" data-i18n="cyclicGroups.cosetLoop" data-i18n-title="cyclicGroups.cosetLoopTitle">Loop</button>
             </div>
             <div class="speed-wrap">
               <label for="coset-speed" data-i18n="common.speed">Speed</label>
@@ -4920,8 +4922,11 @@ function cosetTick(){
   (function tick(){
     cosetTimer = setTimeout(function(){
       if (!cosetRun || !cosetRun.playing) return;
-      showCosets(cosetRun.shown + 1);
-      if (cosetRun.shown >= cosetRun.starts.length) pauseCosets();
+      // Looping, the last coset gives way to the first again.
+      var last = cosetRun.shown >= cosetRun.starts.length;
+      if (last && !cosetLoop){ pauseCosets(); return; }
+      showCosets(last ? 1 : cosetRun.shown + 1);
+      if (!cosetLoop && cosetRun.shown >= cosetRun.starts.length) pauseCosets();
       else tick();
     }, SPEED_MS[cosetSpeedEl.value] || SPEED_MS[4]);
   })();
@@ -4934,6 +4939,15 @@ function pauseCosets(){
   syncCosetControls();
   tellCosets();
 }
+
+// Loop: playing goes on from the last coset back to the first, round and
+// round, until paused.
+var cosetLoop = false;
+var cosetLoopEl = $('coset-loop');
+cosetLoopEl.addEventListener('click', function(){
+  cosetLoop = !cosetLoop;
+  cosetLoopEl.setAttribute('aria-pressed', cosetLoop ? 'true' : 'false');
+});
 
 cosetPlayEl.addEventListener('click', function(){
   if (cosetRun && cosetRun.playing) pauseCosets(); else playCosets();

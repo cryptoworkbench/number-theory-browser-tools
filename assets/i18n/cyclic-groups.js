@@ -43,7 +43,8 @@
    subPad), and ctxView, ctxZoomIn and ctxZoomOut (the right-click menu's
    View section, zooming the ring in and out), and exprLockCouple and
    exprLockUncouple (the small padlock on the line between two locked
-   rings, coupling their expression sliders), and subRowGcd (a Numerical
+   rings, coupling their expression sliders), cosetLoop and cosetLoopTitle
+   (the coset run's Loop toggle, replaying the cosets continuously), and subRowGcd (a Numerical
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
    subgroup's order that follows). Every other
@@ -374,6 +375,8 @@
       factsHeading: 'This group',
       cosetButton: 'Explore cosets',
       cosetHide: 'Stop exploring cosets',
+      cosetLoop: 'Loop',
+      cosetLoopTitle: 'Replay continuously: after the last coset, start again from the first',
       cosetNoneGenerator: 'No cosets to explore; {g} is a generator',
       cosetProgress: 'Currently highlighting coset {i} of {count}',
       autoRotate: 'Auto-rotate',
