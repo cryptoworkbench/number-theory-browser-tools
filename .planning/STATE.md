@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T11:59:00.000Z"
+last_updated: "2026-10-13T12:10:33.000Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ad5e43fe4eca3ca28d08dbfc81097ade458b74d2
+state_head: 0c20d121ba5abbd79b22bc290d3c21c94b10b58e
 progress:
   total_phases: 7
   completed_phases: 6
@@ -575,6 +575,7 @@ None yet.
 | 339 | Colour members like their beads becomes a checkbox (soft tint dropped) | 2026-10-13 | 0fdd99e | — |
 | 340 | Numerical list: align numbers with blank space | 2026-10-13 | 9d4fdc4 | — |
 | 341 | Line up numbers dropdown replaces the pad/align checkboxes | 2026-10-13 | ad5e43f | — |
+| 342 | Shared Explore cosets button on the line; additive coset-count formula removed | 2026-10-13 | 0c20d12 | — |
 
 ## Deferred Items
 
