@@ -919,6 +919,11 @@
   .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
+  /* A menu item's key, right-aligned like a submenu's arrow. */
+  .ring-ctx-key{ margin-inline-start:auto; padding-inline-start:16px; font-family:var(--font-mono); font-size:.8rem; color:var(--text-dim); }
+  /* Zoomed in, the ring is cut off at the edges of its place rather than
+     drawn over the controls around it. */
+  svg.ring-svg.is-zoomed{ overflow:hidden; }
   .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   /* The copy submenu shows its formula above the copy options, broken at
@@ -2870,6 +2875,8 @@ var RING_CTX_ITEMS = [
   { name: 'orders', key: 'cyclicGroups.layerOrders' },
   { name: 'cord', key: 'cyclicGroups.layerCord' },
   { name: 'guide', key: 'cyclicGroups.layerGuide' },
+  { head: 'cyclicGroups.ctxView', key: 'cyclicGroups.ctxZoomIn', zoom: 1, keys: '+', run: function(){ stepRingZoom(1); }, stay: true },
+  { key: 'cyclicGroups.ctxZoomOut', zoom: -1, keys: '\u2212', run: function(){ stepRingZoom(-1); }, stay: true },
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
   { head: 'cyclicGroups.fsIsomorphisms', key: 'cyclicGroups.ctxIsoGroup', sub: 'whole' },
@@ -2917,6 +2924,12 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
     more.textContent = '\u203A';
     item.appendChild(more);
   }
+  if (l.keys){
+    var keys = document.createElement('kbd');
+    keys.className = 'ring-ctx-key';
+    keys.textContent = l.keys;
+    item.appendChild(keys);
+  }
   var value = null;
   if (l.value){
     value = document.createElement('span');
@@ -2931,7 +2944,10 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
       if (item.getAttribute('aria-disabled') !== 'true') setRingSub(l.sub, true);
       return;
     }
-    if (l.stay){ l.run(); return; }
+    if (l.stay){
+      if (item.getAttribute('aria-disabled') !== 'true') l.run();
+      return;
+    }
     setRingCtx(false);
     if (l.run){ l.run(); return; }
     var box = $('layer-' + l.name);
@@ -2941,7 +2957,7 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub };
+  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom };
 });
 // The Elements submenu: the key's switch (in a Ring window, where the key
 // is shown on request), then the colour schemes, each choosing its option
@@ -3416,6 +3432,7 @@ function setRingCtx(open, x, y){
     // that is not cyclic), none to open.
     if (it.sub === 'iso') it.item.setAttribute('aria-disabled', isoPanelEl.hidden ? 'true' : 'false');
     if (it.sub === 'whole') it.item.setAttribute('aria-disabled', isoGroupChipsEl.childElementCount ? 'false' : 'true');
+    if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
     if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
@@ -3860,8 +3877,37 @@ function drawNecklace(G, paint){
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
   // above the ring's outer reach.
-  else ringSvgEl.setAttribute('viewBox', [0, ringTopCut(box), SIZE, SIZE - ringTopCut(box)].map(num).join(' '));
+  else {
+    // Zoomed, the view shrinks or grows about the ring's centre.
+    var top = ringTopCut(box), z = RING_ZOOMS[ringZoom];
+    ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z, SIZE / z, (SIZE - top) / z].map(num).join(' '));
+    ringSvgEl.classList.toggle('is-zoomed', z > 1);
+  }
 }
+
+// The ring's zoom, a step along RING_ZOOMS, from the right-click menu's
+// View section or the + and − keys; 1 is the ring as it fits its place.
+var RING_ZOOMS = [0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
+var ringZoom = RING_ZOOMS.indexOf(1);
+function canZoom(by){ return !!RING_ZOOMS[ringZoom + by]; }
+function stepRingZoom(by){
+  if (!canZoom(by)) return;
+  ringZoom += by;
+  easeRingResize(render);
+  ringCtxItems.forEach(function(it){
+    if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
+  });
+}
+document.addEventListener('keydown', function(e){
+  if (e.ctrlKey || e.metaKey || e.altKey || IS_PREVIEW) return;
+  var by = e.key === '+' || e.key === '=' ? 1 : e.key === '-' || e.key === '\u2212' ? -1 : 0;
+  if (!by) return;
+  // The ring behind the intro takes no keys, nor does a field being typed in.
+  if (IS_DESKTOP && !cgEntered) return;
+  if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable]')) return;
+  e.preventDefault();
+  stepRingZoom(by);
+});
 
 // How far down the on-screen view starts: a margin above the ring for the
 // outer humps and labels.

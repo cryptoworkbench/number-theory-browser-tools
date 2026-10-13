@@ -40,7 +40,8 @@
    opening a new ring on the left), and subWidthLabel, subWidthNone,
    subAlign and subAlignTitle (the Numerical panel's dropdown lining up the
    columns: not at all, with blank space, or with the leading zeros of
-   subPad). Every other
+   subPad), and ctxView, ctxZoomIn and ctxZoomOut (the right-click menu's
+   View section, zooming the ring in and out). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -471,6 +472,9 @@
       scratchGens: 'Group generator amount',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       ctxShowFormulas: 'Show formulas',
+      ctxView: 'View',
+      ctxZoomIn: 'Zoom in',
+      ctxZoomOut: 'Zoom out',
       ctxCopyLatex: 'Copy in LaTeX formatting',
       ctxCopyMathml: 'Copy in MathML formatting',
       ctxCopyUnicode: 'Copy as Unicode plain text',
