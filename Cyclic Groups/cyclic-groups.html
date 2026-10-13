@@ -676,6 +676,11 @@
   /* The ring and the pane share the spare height as --ring-fr to --split-fr,
      set by dragging the divider along the pane's top. */
   .fs-win-body.is-ring:has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "expr expr expr" "rot spin key" "split split split"; }
+  /* With no isomorphism open the button leaves the subgroup row for a row
+     of its own under the ring (placeSplitBtn). */
+  .fs-win-body.is-ring > .split-btn{ grid-area:sbtn; justify-self:center; align-self:center; margin:2px 0 4px; }
+  .fs-win-body.is-ring:has(> .split-btn){ grid-template-rows:auto auto auto auto auto auto minmax(0, 1fr) auto auto auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key"; }
+  .fs-win-body.is-ring:has(> .split-btn):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key" "split split split"; }
   .split-grip{ flex:none; position:relative; height:10px; margin-bottom:4px; border-top:1px solid var(--panel-border); cursor:ns-resize; touch-action:none; }
   .split-grip::after{ content:""; position:absolute; left:50%; top:3px; width:36px; height:3px; margin-left:-18px; border-radius:2px; background:var(--text-dim); opacity:.5; }
   .split-grip:hover, .split-grip:focus-visible, .ring-split.is-resizing .split-grip{ border-top-color:var(--accent); outline:none; }
@@ -3611,8 +3616,19 @@ function syncPanes(){
 /* ---------- the Ring window's split view ---------- */
 // The pane under the ring takes in the page's one subgroups panel, a comment
 // keeping its place; closing the split, or leaving full screen, sends it back.
+// Alone, the ring has the Numerical button under it; beside an isomorphism
+// pane, and in the pane's own ring, it keeps to the end of the subgroup row.
+function placeSplitBtn(){
+  var body = ringSvgEl.parentNode;
+  if (!body.classList.contains('fs-win-body')) return;
+  if (!IS_ISOPANE && isoPaneEl.hidden){
+    if (splitBtnEl.parentNode !== body) ringSvgEl.after(splitBtnEl);
+  } else if (splitBtnEl.parentNode === body) subgroupOptionsEl.after(splitBtnEl);
+}
+new MutationObserver(placeSplitBtn).observe(isoPaneEl, { attributes: true, attributeFilter: ['hidden'] });
 function syncSplit(){
-  var on = splitOn && !!ringSplitEl.closest('.fs-win-body.is-ring') && !(IS_ISOPANE && isoInterlockOn);
+  placeSplitBtn();
+  var on =splitOn && !!ringSplitEl.closest('.fs-win-body.is-ring') && !(IS_ISOPANE && isoInterlockOn);
   if (on && subgroupsPanelEl.parentNode !== ringSplitEl){
     splitHome = document.createComment('subgroups-list-panel');
     subgroupsPanelEl.before(splitHome);
@@ -3890,6 +3906,7 @@ function enterRingWin(){
   var into = partHolder(FS_PANELS[0], body);
   FS_PANELS[0].ids.forEach(function(id){ into(id).appendChild($(id)); });
   diagramFrameEl.appendChild(body);
+  placeSplitBtn();
 }
 if (IS_RINGWIN){
   // A press or focus in this frame tells the page holding it, so the ring's
