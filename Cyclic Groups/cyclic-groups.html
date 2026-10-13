@@ -647,7 +647,9 @@
      pane under the ring (a divider between them) that takes in the page's
      live subgroup list; ring and pane share the window's spare height. */
   .split-btn, .ring-split{ display:none; }
-  .fs-win-body.is-ring .split-btn{ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
+  .fs-win-body.is-ring .split-btn{ display:inline-grid; place-items:center; width:auto; padding:4px 12px; font-size:.85rem; cursor:grab; touch-action:none; }
+  .fs-win-body.is-ring .split-btn.is-pulling{ cursor:grabbing; }
+  .split-btn svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the rings are linked through an isomorphism they share one
      button: the left ring's, on the line between the two rings just
@@ -1420,7 +1422,7 @@
             </div>
           </div>
         </div>
-        <button type="button" class="action-btn split-btn" id="split-btn" aria-pressed="false" aria-controls="ring-split" data-i18n="cyclicGroups.splitView">Numerical</button>
+        <button type="button" class="action-btn split-btn" id="split-btn" aria-pressed="false" aria-controls="ring-split" title="Numerical" aria-label="Numerical" data-i18n-title="cyclicGroups.splitView" data-i18n-aria-label="cyclicGroups.splitView"></button>
       </section>
 
       <section class="panel" id="legend-panel">
@@ -3583,6 +3585,7 @@ function syncSplit(){
   }
   ringSplitEl.hidden = !on;
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
+  drawSplitChevrons();
   syncExprSide();
   postIsoShared(false);
   if (IS_ISOPANE){ applySplitAlign(); reportPaneSplit(); }
@@ -3596,7 +3599,43 @@ function toggleSplit(){
   splitOn = !splitOn;
   syncPanes();
 }
-splitBtnEl.addEventListener('click', toggleSplit);
+// The Numerical button is two stacked chevrons, pointing up while the panel
+// is closed and down while it is open: clicked, or pulled the way they
+// point, it opens or closes the panel.
+var SPLIT_PULL = 18;
+var splitPull = null, splitPulled = false;
+function drawSplitChevrons(){
+  var d = splitOn ? ['M2.5 3.5 6 6.5l3.5-3', 'M2.5 6.5 6 9.5l3.5-3'] : ['M2.5 5.5 6 2.5l3.5 3', 'M2.5 8.5 6 5.5l3.5 3'];
+  splitBtnEl.replaceChildren(svgIcon(d.map(function(p){ return ['path', { d: p }]; })));
+}
+splitBtnEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0) return;
+  splitPull = { id: e.pointerId, y: e.clientY };
+  splitPulled = false;
+  splitBtnEl.setPointerCapture(e.pointerId);
+  splitBtnEl.classList.add('is-pulling');
+});
+splitBtnEl.addEventListener('pointermove', function(e){
+  if (!splitPull || e.pointerId !== splitPull.id || splitPulled) return;
+  var dy = e.clientY - splitPull.y;
+  if (Math.abs(dy) < SPLIT_PULL) return;
+  // A pull either way is no click; only the way the chevrons point acts.
+  splitPulled = true;
+  if (splitOn === dy > 0) toggleSplit();
+});
+function endSplitPull(e){
+  if (!splitPull || e.pointerId !== splitPull.id) return;
+  splitPull = null;
+  splitBtnEl.classList.remove('is-pulling');
+}
+splitBtnEl.addEventListener('pointerup', endSplitPull);
+splitBtnEl.addEventListener('pointercancel', endSplitPull);
+splitBtnEl.addEventListener('click', function(){
+  // A pull is not a click.
+  if (splitPulled){ splitPulled = false; return; }
+  toggleSplit();
+});
+drawSplitChevrons();
 // F8 opens and closes the split too, wherever the focus is, while the
 // button is in a Ring window.
 document.addEventListener('keydown', function(e){
