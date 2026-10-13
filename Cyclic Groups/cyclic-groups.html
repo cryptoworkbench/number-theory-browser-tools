@@ -650,6 +650,15 @@
      under it, and the pane's own goes. */
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn{ position:absolute; z-index:3; translate:-50% -50%; width:max-content; max-width:12em; padding:5px 12px; font-size:.85rem; white-space:normal; text-align:center; }
   :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-btn{ display:none !important; }
+  /* Its run's controls show once too, in a small card under it on the line:
+     the four buttons two by two, the speed under them. */
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls:not([hidden]){ position:absolute; z-index:3; translate:-50% -50%; width:max-content; flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:8px; background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .btn-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .btn-row .action-btn{ padding:5px 10px; font-size:.85rem; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap{ gap:6px; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap input[type="range"]{ width:80px; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap span{ width:auto; min-width:3.5em; }
+  :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-controls{ display:none !important; }
   .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
   /* The ring and the pane share the spare height as --ring-fr to --split-fr,
      set by dragging the divider along the pane's top. */
@@ -7002,19 +7011,19 @@ function syncOpenLock(){
 }
 // The padlock, and while the rings are linked their shared Numerical button
 // under it (and, linked as whole groups, their shared Explore cosets button
-// under that), sit on the line between the rings, centred as one on the
+// and its run's controls under that), sit on the line between the rings, centred as one on the
 // left ring's middle: beside the rings, clear of the rows of controls above them.
 var LOCK_CLEAR_GAP = 14; // room for the padlock's pulsing halo
 var SHARED_BTN_GAP = 8;
 function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
   isoLockEl.style.top = '';
-  [splitBtnEl, cosetBtnEl].forEach(function(el){ el.style.left = el.style.top = ''; });
+  [splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
   if (!g.height || !p.height) return;
   var mid = g.top + g.height / 2;
-  var btns = [splitBtnEl, cosetBtnEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent; });
+  var btns = [splitBtnEl, cosetBtnEl, cosetControlsEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent; });
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
