@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme-choice=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme-choice'));}catch(e){}}if(!t){try{t=window.matchMedia('(prefers-color-scheme: light)').matches?'day':'night';}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>if(!/[?&](?:preview|ringwin)=1(?:&|#|$)/.test(location.search))document.documentElement.classList.add('is-desktop');</script>
 <title data-i18n="cyclicGroups.title">Cyclic Groups</title>
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <link rel="stylesheet" href="../assets/palette.css">
@@ -130,22 +131,6 @@
   @media (max-width: 640px){
     .rotate-ctl{ position:static; margin-top:8px; }
   }
-  /* The resize grip in the diagram's bottom-right corner. Once dragged, the
-     column stops being pinned to the window and the diagram takes the size
-     the grip left it at, as wide as the column at most; a double-click
-     gives the automatic size back. */
-  .resize-grip{ position:absolute; right:3px; bottom:3px; z-index:2; width:18px; height:18px; cursor:nwse-resize; touch-action:none;
-    background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
-  .resize-grip:hover, .stage.is-resizing .resize-grip{ opacity:1; }
-  .stage.is-sized{ position:static; height:auto; }
-  .stage.is-sized .diagram-frame{ flex:none; display:flex; flex-direction:column; box-sizing:border-box; width:var(--frame-w); height:var(--frame-h); max-width:100%; }
-  .stage.is-sized svg.ring-svg{ flex:1 1 0; width:100%; height:auto; min-height:0; }
-  .stage.is-sized .subgroups-panel .subgroups{ max-height:420px; }
-  .stage.is-resizing{ user-select:none; -webkit-user-select:none; }
-  /* Dragged wider than its column, the diagram takes the whole width and the
-     side panels move under it; dragged back inside the column, or reset by a
-     double-click, they return beside it. */
-  .layout.is-stacked{ grid-template-columns:minmax(0, 1fr); }
   .rotate-row{ display:flex; align-items:center; gap:6px; }
   .rotate-row .action-btn{ padding:6px 12px; }
   .rotate-value{ font-family:var(--font-mono); font-size:.9rem; width:3.2em; text-align:center; padding:4px 2px; border:1px solid var(--panel-border); border-radius:6px; background:var(--panel); color:var(--text); }
@@ -229,8 +214,8 @@
      plate with a slot, and a bat handle that swings through the slot about
      its boss, drawn flat but shaded as if lit from above. */
   .facts.group-controls .op-toggle-row{ display:none; }
-  .diagram-frame:fullscreen .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
-  .diagram-frame:fullscreen .facts.group-controls .op-toggle-row, :root.is-ringwin .facts.group-controls .op-toggle-row{ display:flex; justify-content:center; padding:10px 0 12px; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-toggle-row, :root.is-ringwin .facts.group-controls .op-toggle-row{ display:flex; justify-content:center; padding:10px 0 12px; }
   .op-toggle{ direction:ltr; display:flex; align-items:center; gap:14px; padding:0; font:inherit; color:var(--text-dim); background:none; border:0; border-radius:var(--radius-ctl); cursor:pointer; }
   .op-toggle:focus{ outline:none; }
   .op-toggle:focus-visible{ box-shadow:var(--ctl-focus); }
@@ -543,9 +528,10 @@
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
-  /* Full screen, the diagram becomes a little desktop: the ring and every
-     panel of the page are windows on it, all open on entering, with no
-     taskbar (Escape, or closing the Ring window, leaves full screen). A
+  /* The diagram is a little desktop, filling the browser window under the
+     site header, or the screen in full screen: the ring and every panel of
+     the page are windows on it, all open on loading, with no taskbar (in
+     full screen, Escape or closing the Ring window leaves it). A
      window has a title bar with the Factor Tree's drag grip, its name, and
      maximize and close buttons; it is moved by its
      title bar, resized by any edge or corner, maximized by a double-click
@@ -554,7 +540,7 @@
      Moved or resized, its edges catch on the desktop's and the other
      windows'. The panel inside is the page's own, moved in, its controls
      and state untouched. */
-  .diagram-frame:fullscreen{ padding:0; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame){ padding:0; }
   /* A window's transparency (--win-alpha, written by the page) thins only
      its background: its title bar, text and controls stay solid. */
   .fs-win{ position:absolute; z-index:3; display:flex; flex-direction:column; box-sizing:border-box; min-width:0; background:color-mix(in srgb, var(--surface) calc(var(--win-alpha, 1) * 100%), transparent); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 8px 24px var(--scrim); }
@@ -626,8 +612,8 @@
   .scratch-math .ring-math-formula{ font-size:1.05em; }
   .fs-win-body.is-ring .group-controls{ display:flex; flex-wrap:wrap; align-items:center; gap:4px clamp(12px, 3.5cqi, 32px); }
   .facts.group-controls .fs-row-label{ display:none; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring :is(#gen-field, #arrange-field) > label:first-child{ min-width:min(12em, 16.5cqi); font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
-  .diagram-frame:fullscreen .fs-win-body.is-ring .facts.group-controls .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls .fs-row-label{ display:block; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .fs-row-label, .fs-win-body.is-ring :is(#gen-field, #arrange-field) > label:first-child{ min-width:min(12em, 16.5cqi); font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring .facts.group-controls .fs-row-label, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls .fs-row-label{ display:block; }
   .fs-win-body.is-ring :is(#gen-field, #arrange-field){ flex-direction:row; align-items:center; gap:4px clamp(12px, 3.5cqi, 32px); margin:0; padding:2px 0; }
   .fs-win-body.is-ring > .fs-win-row-ctl{ grid-area:ctl; display:flex; flex-wrap:wrap; align-items:center; gap:4px 32px; }
   /* The subgroup row: the subgroup on show, then every option of the
@@ -676,12 +662,12 @@
   .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; max-width:100%; }
   .fs-win-body.is-ring .arrange-controls select{ max-width:100%; }
   .fs-win-body.is-ring :is(#gen-field > select, #arrange-field select){ width:auto; min-width:8em; padding:4px 8px; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
   /* The switch plate's ledge and shadow hang below its box; room under it
      keeps them off the next row. */
-  .diagram-frame:fullscreen .fs-win-body.is-ring .facts.group-controls li.op-toggle-row, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li.op-toggle-row{ padding:4px 0 14px; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring .facts.group-controls li.op-toggle-row, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li.op-toggle-row{ padding:4px 0 14px; }
   .fs-win-body.is-ring > svg.ring-svg{ grid-area:ring; align-self:stretch; width:100%; height:100%; min-height:0; }
-  .diagram-frame:fullscreen .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
   .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; justify-self:start; position:static; align-self:center; }
   .fs-win-body.is-ring > .combine-key{ grid-area:key; justify-self:end; position:static; max-width:260px; margin:0; }
   /* Full screen, the element colour key shows only when its button on the
@@ -798,13 +784,6 @@
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane{ grid-area:keyr; }
-  /* On the page itself the pane hangs in the diagram's right half, clear of
-     the full-screen button above and the resize grip below, and the ring,
-     its head and its arrow key keep to the left half. */
-  .diagram-frame > .iso-pane:not([hidden]){ position:absolute; z-index:1; top:52px; right:14px; bottom:28px; width:calc(50% - 21px); border-left:1px solid var(--panel-border); padding-left:12px; }
-  .diagram-frame:not(:fullscreen):has(> .iso-pane:not([hidden])){ min-height:820px; }
-  .diagram-frame:has(> .iso-pane:not([hidden])) > :is(.ring-head, svg.ring-svg){ width:calc(50% - 7px); margin-right:auto; }
-  .diagram-frame:has(> .iso-pane:not([hidden])) > .combine-key{ right:calc(50% + 14px); max-width:min(330px, 20%); }
   /* The pane keeps to its group's own controls: the shared ones (colours,
      paths, the layers) are the left ring's, its menu having no Colours,
      and a pane never splits itself.
@@ -883,10 +862,10 @@
   .ring-ctx-sub #arrow-options .check select.side-select option{ color:var(--text); background:var(--bg-1); }
   .ring-ctx-sub #arrow-options .check label{ margin-inline-end:16px; }
   .ring-ctx-sub #arrow-options .link-btn{ margin:4px 4px 2px; }
-  .diagram-frame:fullscreen .resize-grip{ display:none; }
-  /* The diagram's top-right corner: the full-screen button. Full screen
-     it gives way to the one in the taskbar's tray. */
-  .frame-tools{ position:absolute; top:8px; right:10px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  /* The desktop's top-right corner: the full-screen button, over the
+     windows; a window whose title bar runs under it keeps its buttons
+     clear of it. */
+  .frame-tools{ position:absolute; top:8px; right:10px; z-index:50; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
   .frame-tools .action-btn{ padding:5px 10px; font-size:.8rem; }
   .frame-tools .icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; color:var(--text-dim); background:none; border:none; border-radius:8px; cursor:pointer; }
   .frame-tools .icon-btn:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 8%, transparent); }
@@ -894,12 +873,18 @@
   .frame-tools .icon-btn svg{ width:24px; height:24px; fill:currentColor; }
   .frame-tools .icon-btn .icon-exit, .frame-tools .icon-btn.is-on .icon-enter{ display:none; }
   .frame-tools .icon-btn.is-on .icon-exit{ display:block; }
-  .diagram-frame:fullscreen .frame-tools{ display:none; }
+  .fs-win.is-cornered .fs-win-head{ padding-right:48px; }
   /* Full screen, the diagram fills the screen and the ring scales into it. */
-  .diagram-frame:fullscreen{ width:100% !important; height:100% !important; max-width:none !important; box-sizing:border-box; border:0; border-radius:0; display:flex; flex-direction:column;
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame){ width:100% !important; height:100% !important; max-width:none !important; box-sizing:border-box; border:0; border-radius:0; display:flex; flex-direction:column;
     background:linear-gradient(var(--panel), var(--panel)), var(--bg-1); }
-  .diagram-frame:fullscreen svg.ring-svg{ flex:1 1 0; width:100%; height:100%; min-height:0; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) svg.ring-svg{ flex:1 1 0; width:100%; height:100%; min-height:0; }
   .diagram-frame::backdrop{ background:var(--bg-1); }
+  /* The desktop: the diagram frame fills the browser window from the site
+     header's bottom edge (--desk-top, measured by the page) down, the page
+     around it out of sight and still. */
+  :root.is-desktop, :root.is-desktop body{ height:100%; overflow:hidden; }
+  :root.is-desktop :is(.page-header, .side, .stage > :not(.diagram-frame)){ display:none !important; }
+  :root.is-desktop .diagram-frame:not(:fullscreen){ position:fixed; inset:var(--desk-top, 64px) 0 0 0; height:auto !important; margin:0; }
   /* Full screen, the auto-rotate triangle gives way to a ruler under the
      ring: seven ticks from -3 to 3, the middle one no rotation, those to its
      left counterclockwise and those to its right clockwise, faster the
@@ -915,9 +900,9 @@
   /* Its knob, double-clicked at rest in the middle, resets the turn as the
      rotation row's Reset does; so in the Ring window that row keeps only
      its steps field. */
-  .diagram-frame:fullscreen .fs-win-body.is-ring :is(#rot-back, #rot-fwd, #rot-reset, #rot-label), :root.is-ringwin .fs-win-body.is-ring :is(#rot-back, #rot-fwd, #rot-reset, #rot-label){ display:none; }
-  .diagram-frame:fullscreen .auto-rotate, .diagram-frame:fullscreen .formula-toggles{ display:none; }
-  .diagram-frame:fullscreen .spin-ruler, :root.is-ringwin .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring :is(#rot-back, #rot-fwd, #rot-reset, #rot-label), :root.is-ringwin .fs-win-body.is-ring :is(#rot-back, #rot-fwd, #rot-reset, #rot-label){ display:none; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .auto-rotate, :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .formula-toggles{ display:none; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .spin-ruler, :root.is-ringwin .spin-ruler{ flex:none; display:flex; align-items:center; justify-content:center; gap:12px; margin:4px auto 2px; width:min(420px, 60%); color:var(--text-dim); font-size:1.15rem; user-select:none; -webkit-user-select:none; }
   .spin-track{ position:relative; flex:1 1 auto; height:30px; }
   .spin-ticks{ position:absolute; inset:0 9px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
   .spin-ticks::before{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; margin-top:-1px; background:color-mix(in srgb, var(--text) 35%, transparent); }
@@ -936,7 +921,7 @@
      slot's middle, and up or down the slot only from the ruler's middle.
      The knob is drawn over the slider, which holds the speed and the
      keyboard focus. Keep on top's own switch is not shown beside it. */
-  .diagram-frame:fullscreen #keep-top-row, :root.is-ringwin #keep-top-row{ display:none !important; }
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) #keep-top-row, :root.is-ringwin #keep-top-row{ display:none !important; }
   .gearbox{ --gear-slot:14px; height:46px; cursor:pointer; touch-action:none; }
   .gearbox .spin-ticks span.is-zero{ visibility:hidden; }
   .gear-slot{ position:absolute; left:50%; top:calc(50% - var(--gear-slot) - 4px); width:4px; height:calc(2 * var(--gear-slot) + 8px); margin-left:-2px; border-radius:2px; background:color-mix(in srgb, var(--text) 35%, transparent); pointer-events:none; }
@@ -1146,7 +1131,6 @@
           <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-pane-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-pane-outer"></span></div>
         </div>
-        <div class="resize-grip" id="resize-grip" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-hidden="true"></div>
         <div class="rotate-ctl" id="rotate-ctl">
           <label id="rot-label" data-i18n="cyclicGroups.rotateLabel">Rotation — drag the ring</label>
           <div class="rotate-row" role="group" aria-labelledby="rot-label">
@@ -1427,9 +1411,7 @@ var identitySelectEl = $('identity-select');
 var genSelectEl = $('gen-select');
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
-var ringPanelEl = $('ring-panel');
 var diagramFrameEl = $('diagram-frame');
-var resizeGripEl = $('resize-grip');
 var noticeEl = $('notice');
 var factsEl = $('facts');
 var subgroupsEl = $('subgroups');
@@ -1491,6 +1473,22 @@ if (IS_RINGWIN) document.documentElement.classList.add('is-ringwin');
 // it, and it shows only that group's own controls.
 var IS_ISOPANE = IS_RINGWIN && new URLSearchParams(location.search).get('isopane') === '1';
 if (IS_ISOPANE) document.documentElement.classList.add('is-isopane');
+// The top-level page is the desktop: the diagram frame fills the window
+// under the site header and holds the windows, full screen or not. The
+// head's own script set its class before the first paint.
+var IS_DESKTOP = !IS_PREVIEW && !IS_RINGWIN;
+document.documentElement.classList.toggle('is-desktop', IS_DESKTOP);
+// The desktop starts where the site header ends, which moves as the header
+// wraps (a narrow window, a longer language).
+function syncDeskTop(){
+  var header = document.querySelector('.site-header');
+  if (header) document.documentElement.style.setProperty('--desk-top', Math.max(0, Math.round(header.getBoundingClientRect().bottom)) + 'px');
+}
+if (IS_DESKTOP){
+  syncDeskTop();
+  window.addEventListener('resize', syncDeskTop);
+  if (window.ResizeObserver && document.querySelector('.site-header')) new ResizeObserver(syncDeskTop).observe(document.querySelector('.site-header'));
+}
 var ISO_GEN = IS_ISOPANE ? parseInt(new URLSearchParams(location.search).get('isogen'), 10) : NaN;
 // isoblank=1: the pane was opened to construct a group of one's own. Only its
 // group parameters are clear, the modulus field empty; the rest stays blurred
@@ -2602,12 +2600,14 @@ function syncHeadSwitches(){
 
 /* ---------- full screen ---------- */
 
-// The button in the diagram's top-right corner takes the diagram full
-// screen and back; its icon and label follow the state, however it is left
+// The button in the desktop's top-right corner takes the desktop into the
+// browser's full screen and back; its icon and label follow the state, however it is left
 // (the button, Escape or the browser's own control). Hidden where the
 // browser cannot take an element full screen.
 var fullscreenBtnEl = $('fullscreen-btn');
 function fullscreenEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+// Whether the windows are up: always on the desktop, and in full screen.
+function desktopOn(){ return IS_DESKTOP || fullscreenEl() === diagramFrameEl; }
 function syncFullscreenBtn(){
   var on = fullscreenEl() === diagramFrameEl;
   var label = translate(on ? 'cyclicGroups.fullscreenExit' : 'cyclicGroups.fullscreenEnter');
@@ -3439,7 +3439,9 @@ function minimizeWindow(key){
   writeFsState();
   syncWindows();
 }
-// With no taskbar to bring it back, closing the Ring window leaves full screen.
+// With no taskbar to bring it back, the Ring window is never closed: in full
+// screen its close button leaves full screen, back to the desktop, and on the
+// desktop itself the button is not shown (see syncWindows).
 function closeWindow(key){
   if (specOf(key).frame){ removeRingWindow(key); return; }
   if (key === 'ring'){
@@ -3696,7 +3698,10 @@ function layoutWindows(){
   allSpecs().forEach(function(spec){
     var w = fsWins[spec.key];
     if (!w || winDrag && winDrag.live && winDrag.key === spec.key) return;
-    if (!w.win.hidden) setWinPx(w.win, geomPx(spec.key));
+    if (w.win.hidden) return;
+    var r = geomPx(spec.key);
+    setWinPx(w.win, r);
+    w.win.classList.toggle('is-cornered', r.t < 50 && r.l + r.w > desk().W - 56);
   });
 }
 // A window's rectangle on the desktop as drawn, in pixels.
@@ -3752,7 +3757,7 @@ function buildFrame(w, entry){
   w.frame = f;
 }
 function syncWindows(){
-  var full = fullscreenEl() === diagramFrameEl;
+  var full = desktopOn();
   if (full && !fsWins){
     fsWins = {};
     // With no taskbar, every window comes up on show: none minimized, and
@@ -3790,6 +3795,7 @@ function syncWindows(){
     win.classList.toggle('is-front', k === front);
     win.classList.toggle('is-max', isMax(k));
     win.style.zIndex = 3 + Math.max(0, fsState.open.indexOf(k));
+    if (k === 'ring') fsWins[k].buttons.close.hidden = fullscreenEl() !== diagramFrameEl;
     setWinAlpha(win, alphaOf(k));
   });
   if (alphaKey && fsWins && fsWins[alphaKey].win.hidden) setAlpha(null);
@@ -5084,53 +5090,6 @@ spinSliderEl.addEventListener('keydown', function(e){
   else return;
   e.preventDefault();
   gearTo(top === 'off' ? level : 0, top);
-});
-
-// Dragging the grip sizes the diagram: no narrower or shorter than
-// FRAME_MIN, no wider than the layout. Past the column beside the side
-// panels, the layout stacks so the panels sit under the diagram.
-// Double-clicking it unsizes it.
-var FRAME_MIN = 300;
-var SIDE_W = 340; // the side column's width in .layout's grid
-var layoutEl = document.querySelector('.layout');
-var sizing = null; // { id, x, y, w, h } while the grip is dragged
-// The diagram's widest size beside the side panels, or 0 when the layout
-// is a single column anyway (a narrow window).
-function besideMaxW(){
-  if (!window.matchMedia('(min-width: 901px)').matches) return 0;
-  return layoutEl.clientWidth - SIDE_W - parseFloat(getComputedStyle(layoutEl).columnGap);
-}
-resizeGripEl.addEventListener('pointerdown', function(e){
-  if (e.button !== 0) return;
-  var r = diagramFrameEl.getBoundingClientRect();
-  sizing = { id: e.pointerId, x: e.clientX, y: e.clientY, w: r.width, h: r.height };
-  resizeGripEl.setPointerCapture(e.pointerId);
-  ringPanelEl.classList.add('is-resizing');
-  e.preventDefault();
-});
-resizeGripEl.addEventListener('pointermove', function(e){
-  if (!sizing || e.pointerId !== sizing.id) return;
-  var want = sizing.w + e.clientX - sizing.x;
-  var beside = besideMaxW();
-  layoutEl.classList.toggle('is-stacked', beside > 0 && want > beside);
-  var w = Math.max(FRAME_MIN, Math.min(ringPanelEl.clientWidth, want));
-  var h = Math.max(FRAME_MIN, sizing.h + e.clientY - sizing.y);
-  diagramFrameEl.style.setProperty('--frame-w', Math.round(w) + 'px');
-  diagramFrameEl.style.setProperty('--frame-h', Math.round(h) + 'px');
-  ringPanelEl.classList.add('is-sized');
-});
-function endSizing(e){
-  if (!sizing || e.pointerId !== sizing.id) return;
-  sizing = null;
-  ringPanelEl.classList.remove('is-resizing');
-}
-resizeGripEl.addEventListener('pointerup', endSizing);
-resizeGripEl.addEventListener('pointercancel', endSizing);
-resizeGripEl.addEventListener('dblclick', function(){
-  ringPanelEl.classList.remove('is-sized');
-  layoutEl.classList.remove('is-stacked');
-  diagramFrameEl.style.removeProperty('--frame-w');
-  diagramFrameEl.style.removeProperty('--frame-h');
 });
 
 $('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop('turn-ccw')) turnBy(dirSign()); });
@@ -7794,6 +7753,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 })();
 
 if (IS_RINGWIN) enterRingWin();
+else if (IS_DESKTOP) syncWindows();
 syncControls();
 render();
 
