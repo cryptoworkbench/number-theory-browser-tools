@@ -5872,7 +5872,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -5916,8 +5916,10 @@ function applyIsoShared(d){
   // the link's generator as the subgroup, as an isomorphism chip opens it.
   if (d.lock === true){
     setGroupLock(true);
-    if (drawn && drawn.G.els.indexOf(ISO_GEN) !== -1){
-      state.gen = ISO_GEN;
+    var lockGen = Number.isInteger(d.gen) ? d.gen : ISO_GEN;
+    if (lockGen === -1) state.noSub = true;
+    else if (drawn && drawn.G.els.indexOf(lockGen) !== -1){
+      state.gen = lockGen;
       state.noSub = false;
     }
     // Locking whole groups, the expression slider takes the image of the
@@ -6301,6 +6303,16 @@ function isoImage(G){
 // Locking an isomorphism of whole groups: this ring's expression generator
 // (the first generator in place of Natural) and its image in the pane's
 // group, so the two sliders lock onto a pair named alike, g^k beside h^k.
+// Locking whole groups, the pane's subgroup is the image of this ring's,
+// as a click on their shared row in the Numerical panel would set them
+// (-1 for no subgroup); null leaves the pane to show the link's generator.
+function isoLockGen(){
+  var m = isoWholeMap();
+  if (!m) return null;
+  if (state.noSub) return -1;
+  var h = m.to(state.gen);
+  return Number.isInteger(h) ? h : null;
+}
 function isoExprPair(){
   var m = isoWholeMap();
   if (!m) return null;
