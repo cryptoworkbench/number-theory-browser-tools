@@ -1894,6 +1894,7 @@ function beadRadius(m, R){ return Math.max(3.5, Math.min(21, 1.5 * R / m)); }
 // the smallest while none of this group's is picked.
 function arrangeBy(G){
   var g = state.arrangeGen === SUB_FOLLOW ? exprBy(G) : state.arrangeGen;
+  if (g === null && state.arrangeGen === SUB_FOLLOW && IS_ISOPANE) g = isoAlignGen;
   return G.generators.indexOf(g) !== -1 ? g : G.generators[0];
 }
 
@@ -5476,11 +5477,16 @@ function openIsoPane(a, g){
   isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false, link: 'linked', blank: false };
   setGroupLock(true);
   var pair = isoExprPair();
-  // Locking whole groups closes the expression padlock too.
+  // Locking whole groups closes the expression padlock too, and both
+  // rings are ordered by the powers of their expression slider's generator.
   if (pair){
     exprCoupled = true;
     state.expr = pair.g;
+    state.bygen = true;
+    state.arrangeGen = SUB_FOLLOW;
     p.set('expr', String(pair.h));
+    p.set('bygen', '1');
+    p.set('arrangegen', SUB_FOLLOW);
     isoPane.q = p.toString();
   }
   isoPaneEl.hidden = false;
@@ -5941,7 +5947,11 @@ function applyIsoShared(d){
     }
     // Locking whole groups, the expression slider takes the image of the
     // holding ring's generator.
-    if (Number.isInteger(d.expr) && drawn && genOrNull(drawn.G, d.expr) !== null) state.expr = d.expr;
+    if (Number.isInteger(d.expr) && drawn && genOrNull(drawn.G, d.expr) !== null){
+      state.expr = d.expr;
+      state.bygen = true;
+      state.arrangeGen = SUB_FOLLOW;
+    }
   }
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
   if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
@@ -6024,10 +6034,13 @@ function answerIsoAsk(yes){
   isoPane.unlocked = false;
   setGroupLock(true);
   var pair = isoExprPair();
-  // Locking whole groups closes the expression padlock too.
+  // Locking whole groups closes the expression padlock too, and both
+  // rings are ordered by the powers of their expression slider's generator.
   if (pair){
     exprCoupled = true;
     state.expr = pair.g;
+    state.bygen = true;
+    state.arrangeGen = SUB_FOLLOW;
   }
   isoPane.lockExpr = pair ? pair.h : null;
   isoPane.lockNow = true;
@@ -6218,14 +6231,20 @@ function isoFollowAngle(a){
   isoSentK = isoOrder() + ':' + identityAngle().toFixed(4);
 }
 // The pane: lays its beads out as the holder's subgroup, c its spread.
+// Ordered by its expression slider while that is on Natural, it keeps
+// following and takes b as the generator Natural stands for (isoAlignGen).
+var isoAlignGen = null;
 function isoArrangeAs(c){
   var m = isoOrder();
   if (!m || c === null) return;
   var ci = modInverse(c, m);
   if (ci === null) return;
   var b = isoPowers()[ci];
+  var follow = state.arrangeGen === SUB_FOLLOW && exprBy(drawn.G) === null;
+  isoAlignGen = b;
   var want = lap(drawn.G, b, m), have = arrangement(drawn.G);
   if (want.every(function(x, i){ return have[i] === x; })) return;
+  if (follow){ rearrange(function(){ keepCosets(function(){ state.bygen = true; render(); }); }); return; }
   rearrange(function(){ keepCosets(function(){ state.bygen = true; state.arrangeGen = b; render(); }); });
 }
 // The leading ring, let go of between beads by a drag on the pane, eases on
@@ -6368,10 +6387,10 @@ function isoWholeMap(){
 var exprCoupled = false;
 var exprLockEl = $('expr-lock');
 function exprCouplingOn(){ return exprCoupled && isoLinked() && !!isoWholeMap(); }
-function tellPaneExpr(){
+function tellPaneExpr(next){
   var m = isoWholeMap();
   if (!m || !isoPaneFrame) return;
-  var g = exprBy(m.G);
+  var g = next === undefined ? exprBy(m.G) : next;
   try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'expr', expr: g === null ? null : m.to(g) }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
 function syncExprLock(){
@@ -7478,6 +7497,11 @@ function setExprStop(i){
   var g = i > 0 ? drawn.G.generators[i - 1] : undefined;
   var next = g === undefined ? null : g;
   if (next === exprBy(drawn.G)) return;
+  // Coupled, the other ring's slider follows: the pane is told the image
+  // (before this ring's new layout, so a pane ordered by its slider is laid
+  // out to match already), and the ring holding it the pane's choice, to
+  // take its preimage.
+  if (!IS_ISOPANE && exprCouplingOn()) tellPaneExpr(next);
   // Arranged by the slider's generator, the beads move to their new places.
   if (state.bygen && state.arrangeGen === SUB_FOLLOW) rearrange(function(){ state.expr = next; render(); });
   else {
@@ -7485,10 +7509,7 @@ function setExprStop(i){
     render();
   }
   if (state.genFollow && state.top === 'gen') turnToTop(state.gen);
-  // Coupled, the other ring's slider follows: the pane is told the image,
-  // and the ring holding it the pane's choice, to take its preimage.
   if (IS_ISOPANE) tellHost({ isopane: 'expr', expr: next });
-  else if (exprCouplingOn()) tellPaneExpr();
 }
 exprSliderEl.addEventListener('input', function(){ setExprStop(parseInt(exprSliderEl.value, 10) || 0); });
 exprNatEl.addEventListener('click', function(){ setExprStop(0); });
