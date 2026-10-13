@@ -35,7 +35,7 @@
    and isoLockOpenSub (the open padlock's tooltip, naming the isomorphism a
    double-click would lock), and introAbout, introFullscreen and introEnter
    (the intro screen every visit opens on: what the tool does, why it is a
-   full-screen application, and its button into the desktop). Every other
+   full-screen application, and its button into the tool). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -444,7 +444,7 @@
       isoAskLockSub: 'Subgroup-to-group isomorphism found! Lock groups?',
       isoLockOpenGroup: 'Double-click to lock the groups through their group-to-group isomorphism',
       isoLockOpenSub: 'Double-click to lock the groups through the subgroup-to-group isomorphism',
-      introAbout: 'Cyclic Groups turns a group into a ring of beads, one bead for each element. Choose a modulus and an operation — addition modulo n, or multiplication of the units modulo n — then pick an element: its chords walk around the ring, and when they reach every bead that element generates the whole group, which makes the group cyclic. The tool works like a small desktop. The Ring window holds the group\'s controls and its ring; drag it, resize it, and open more Ring windows to compare groups side by side. The Numerical list shows the subgroup each element generates, and an isomorphic group can be opened beside the ring and locked to it with the padlock, so the two turn, colour and highlight as one.',
+      introAbout: 'Cyclic Groups turns a group into a ring of beads, one bead for each element. Choose a modulus and an operation — addition modulo n, or multiplication of the units modulo n — then pick an element: its chords walk around the ring, and when they reach every bead that element generates the whole group, which makes the group cyclic. The ring fills the screen with the group\'s controls above it. The Numerical list shows the subgroup each element generates, and an isomorphic group can be opened beside the ring and locked to it with the padlock, so the two turn, colour and highlight as one.',
       introFullscreen: 'Because this tool has so many controls, it is really a full-screen application. It is best used in full screen, and the website\'s usual header is hidden either way. To get back to the rest of the website, use your browser\'s Back and Forward buttons instead of the header. Have fun!',
       introEnter: 'Open Cyclic Groups in full screen',
       isoAskYes: 'Yes',
