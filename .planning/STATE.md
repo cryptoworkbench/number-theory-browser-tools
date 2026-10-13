@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T08:42:11.319Z"
+last_updated: "2026-10-13T08:44:55.763Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 06be75e0eb82592fd08bad9e4aca7ea6db3dfe0d
+state_head: 862b25be575757e56c55be08e85fc4be8c661113
 progress:
   total_phases: 7
   completed_phases: 6
@@ -556,6 +556,7 @@ None yet.
 | 320 | Cyclic Groups desktop: browser tab title follows the front window | 2026-10-13 | 96ce704 | — |
 | 321 | Open padlock shows for a declined group-to-group isomorphism | 2026-10-13 | 377cfdc | — |
 | 322 | Double-click the open padlock to lock; tooltip names the isomorphism kind | 2026-10-13 | 06be75e | — |
+| 323 | Unlocking an isomorphism leaves the padlock open | 2026-10-13 | 862b25b | — |
 
 ## Deferred Items
 
