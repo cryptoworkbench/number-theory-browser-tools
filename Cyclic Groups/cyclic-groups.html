@@ -707,6 +707,9 @@
   /* With no isomorphism open the button leaves the subgroup row for a row
      of its own under the ring (placeSplitBtn). */
   .fs-win-body.is-ring .panel-head > .split-btn{ flex:none; padding:2px 10px; }
+  /* Merged, the heading is centred, so the button keeps to the corner. */
+  :root.is-sub-merged #subgroups-list-panel > .panel-head{ position:relative; }
+  :root.is-sub-merged #subgroups-list-panel > .panel-head > .split-btn{ position:absolute; right:0; top:50%; translate:0 -50%; }
   .fs-win-body.is-ring > .split-btn{ grid-area:sbtn; justify-self:center; align-self:center; margin:2px 0 4px; }
   .fs-win-body.is-ring:has(> .split-btn){ grid-template-rows:auto auto auto auto auto auto minmax(0, 1fr) auto auto auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key"; }
   .fs-win-body.is-ring:has(> .split-btn):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key" "split split split"; }
@@ -3648,9 +3651,9 @@ function syncPanes(){
 // keeping its place; closing the split, or leaving full screen, sends it back.
 // Alone, the ring has the Numerical button under it; beside an isomorphism
 // pane, and in the pane's own ring, it keeps to the end of the subgroup row.
-// With the panel open, a ring alone has it in the panel's top-right corner,
-// the way a window has its controls, pointing down, so the ring keeps the
-// row under it.
+// With the panel open, the button sits in the panel's top-right corner,
+// the way a window has its controls, pointing down, so a ring alone keeps
+// the row under it; beside an isomorphism pane too.
 var subgroupsHeadEl = subgroupsPanelEl.querySelector('.panel-head');
 // hadFocus: the button had the focus before the panel, perhaps carrying it,
 // moved.
@@ -3658,10 +3661,14 @@ function placeSplitBtn(hadFocus){
   var body = ringSvgEl.parentNode;
   if (!body.classList.contains('fs-win-body')) return;
   var focused = hadFocus === true || document.activeElement === splitBtnEl;
-  if (!IS_ISOPANE && isoPaneEl.hidden){
-    if (subgroupsPanelEl.parentNode === ringSplitEl){
-      if (splitBtnEl.parentNode !== subgroupsHeadEl) subgroupsHeadEl.appendChild(splitBtnEl);
-    } else if (splitBtnEl.parentNode !== body) ringSvgEl.after(splitBtnEl);
+  if (subgroupsPanelEl.parentNode === ringSplitEl){
+    if (splitBtnEl.parentNode !== subgroupsHeadEl){
+      subgroupsHeadEl.appendChild(splitBtnEl);
+      // Off the line between the rings: its place there no longer applies.
+      splitBtnEl.style.left = splitBtnEl.style.top = '';
+    }
+  } else if (!IS_ISOPANE && isoPaneEl.hidden){
+    if (splitBtnEl.parentNode !== body) ringSvgEl.after(splitBtnEl);
   } else if (splitBtnEl.parentNode !== subgroupOptionsEl.parentNode) subgroupOptionsEl.after(splitBtnEl);
   // Moving the button blurs it; a keyboard user keeps their place.
   if (focused && document.activeElement !== splitBtnEl) splitBtnEl.focus({ preventScroll: true });
@@ -7704,7 +7711,8 @@ function keepLockClear(){
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
   if (!g.height || !p.height) return;
   var mid = g.top + g.height / 2;
-  var btns = [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent; });
+  // The split button in the open panel's corner is the panel's, not the line's.
+  var btns = [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); });
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
