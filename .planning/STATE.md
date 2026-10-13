@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T09:27:30.387Z"
+last_updated: "2026-10-13T09:32:42.989Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 41e5168c642be6fe957e31f623fcf899cc6d844d
+state_head: 2a4f58367075e72a4bb5a9690bf6b614b37fb530
 progress:
   total_phases: 7
   completed_phases: 6
@@ -560,6 +560,7 @@ None yet.
 | 324 | Rings turn independently while the padlock is open | 2026-10-13 | ed2e888 | — |
 | 325 | An open padlock unlinks the rings entirely (numeric, halo, colours) | 2026-10-13 | b76379e | — |
 | 261013-fka | Per-pane Numerical buttons; centred button while linked | 2026-10-13 | 41e5168 | [261013-fka-per-pane-numerical-buttons-centred-butto](./quick/261013-fka-per-pane-numerical-buttons-centred-butto/) |
+| 327 | Shared Numerical button sits under the padlock, mid-line beside the rings | 2026-10-13 | 2a4f583 | — |
 
 ## Deferred Items
 
