@@ -1233,7 +1233,6 @@
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-elements" role="menu" aria-label="Elements" data-i18n-aria-label="cyclicGroups.ctxElements" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-iso-group" role="menu" aria-label="Open group as isomorphism" data-i18n-aria-label="cyclicGroups.ctxIsoGroup" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-iso" role="menu" aria-label="Open subgroup as isomorphism" data-i18n-aria-label="cyclicGroups.ctxIsoSub" hidden></div>
-          <div class="fs-menu ring-ctx-sub" id="ring-ctx-formulas" role="menu" aria-label="Formulas" data-i18n-aria-label="cyclicGroups.fsFormulas" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-arrows" role="group" aria-label="Arrows" data-i18n-aria-label="cyclicGroups.ctxArrows" hidden>
             <input type="checkbox" id="layer-akey" checked hidden>
             <div class="arrow-options" id="arrow-options">
@@ -2705,6 +2704,12 @@ var scratchAt = { x: 0, y: 0 }, scratchMoving = null;
 // The top three rows (the group's parameters, the arrangement and the
 // subgroup) stay clear: the scratchpad and the formula cards keep below the
 // third, viewport y of its bottom edge, or the window's top without it.
+// With a pane open beside it, this ring's side ends where the pane begins:
+// cards and the scratchpad stay on their own ring's side.
+function workRight(body){
+  if (!IS_ISOPANE && isoPane && isoPaneEl && !isoPaneEl.hidden && body.contains(isoPaneEl)) return isoPaneEl.getBoundingClientRect().left;
+  return body.getBoundingClientRect().right;
+}
 function topRowsBottom(body){
   var row = body.querySelector(':scope > .fs-win-row-gen');
   var r = row && row.getBoundingClientRect();
@@ -2716,7 +2721,7 @@ function placeScratch(x, y){
   if (body && !scratchPadEl.hidden){
     var b = body.getBoundingClientRect(), r = scratchPadEl.getBoundingClientRect();
     var left = r.left + x - scratchAt.x, top = r.top + y - scratchAt.y;
-    x += Math.max(0, b.left - left) || Math.min(0, b.right - (left + r.width));
+    x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
     y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, b.bottom - (top + r.height));
   }
   scratchAt = { x: Math.round(x), y: Math.round(y) };
@@ -2916,11 +2921,10 @@ var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.fsIsomorphisms', key: 'cyclicGroups.ctxIsoGroup', sub: 'whole' },
   { key: 'cyclicGroups.ctxIsoSub', sub: 'iso' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
-  { head: 'cyclicGroups.fsInfo', key: 'cyclicGroups.fsFormulas', sub: 'formulas' },
-  { key: 'cyclicGroups.fact.structure', value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
+  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
-var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group'), formulas: $('ring-ctx-formulas') };
+var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group') };
 var ringCopyEl = $('ring-ctx-copy');
 var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.sub === 'iso' || l.sub === 'whole')); }).map(function(l){
   if (l.head){
@@ -2991,7 +2995,7 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom };
+  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom, formulas: l.formulas };
 });
 // The Elements submenu: the key's switch (in a Ring window, where the key
 // is shown on request), then the colour schemes, each choosing its option
@@ -3143,10 +3147,10 @@ function ctxItem(role, label, more){
   }
   return { item: item, mark: mark };
 }
-// The Formulas submenu: the switch that shows the formula scratchpad
-// (where a Ring window has one to show), then the scratchpad's formulas by
-// their row names, each opening the copy submenu. It stays open on the
-// switch, to see the card come and go.
+// The Formulas section, in the menu itself above Structure: the switch that
+// shows the formula scratchpad (where a Ring window has one to show), then
+// the scratchpad's formulas by their row names, each opening the copy
+// submenu. The menu stays open on the switch, to see the card come and go.
 function syncFormulaItems(){
   var items = [];
   var show = ctxItem('menuitemcheckbox', translate('cyclicGroups.ctxShowFormulas'));
@@ -3154,7 +3158,7 @@ function syncFormulaItems(){
   show.item.setAttribute('aria-disabled', shown ? 'false' : 'true');
   show.item.setAttribute('aria-checked', scratchOpen && shown ? 'true' : 'false');
   show.mark.textContent = scratchOpen && shown ? '\u2713' : '';
-  show.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  show.item.addEventListener('pointerenter', function(){ setRingSub(null); });
   show.item.addEventListener('click', function(){
     if (show.item.getAttribute('aria-disabled') === 'true') return;
     setRingCopy(null);
@@ -3170,11 +3174,16 @@ function syncFormulaItems(){
   (drawn ? scratchFormulas(drawn.G) : []).forEach(function(f){
     var it = ctxItem('menuitem', translate(SCRATCH_NAMES[f.key]), true);
     it.item.setAttribute('data-formula', f.key);
-    it.item.addEventListener('pointerenter', function(){ setRingCopy(f.key, it.item, false); });
-    it.item.addEventListener('click', function(){ setRingCopy(f.key, it.item, true); });
+    it.item.addEventListener('pointerenter', function(){ setRingSub(null); setRingCopy(f.key, it.item, false); });
+    it.item.addEventListener('click', function(){ setRingSub(null); setRingCopy(f.key, it.item, true); });
     items.push(it.item);
   });
-  ringSubEls.formulas.replaceChildren.apply(ringSubEls.formulas, items);
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-fitem').forEach(function(el){ el.remove(); });
+  var at = ringCtxItems.find(function(it){ return it.formulas; });
+  items.forEach(function(el){
+    el.classList.add('ring-ctx-fitem');
+    at.item.before(el);
+  });
 }
 // The copy submenu, beside the Formulas one, for one formula, shown at its
 // top as the scratchpad typesets it: as LaTeX, as
@@ -3215,14 +3224,12 @@ function setRingCopy(name, from, focus){
     });
     return it.item;
   })));
-  var menu = ringSubEls.formulas.getBoundingClientRect(), at = from.getBoundingClientRect();
+  var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
   var w = ringCopyEl.offsetWidth, h = ringCopyEl.offsetHeight;
   var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-  // Onward the way the Formulas submenu went, back over it where that side has no room.
-  var right = menu.right - 2, left = menu.left - w + 2;
-  var x = menu.left < ringCtxEl.getBoundingClientRect().left
-    ? (left >= 4 ? left : Math.min(right, vw - w - 4))
-    : (right + w <= vw - 4 ? right : Math.max(4, left));
+  // Beside the menu on its right, or on its left where the right has no room.
+  var x = menu.right - 2;
+  if (x + w > vw - 4) x = Math.max(4, menu.left - w + 2);
   ringCopyEl.style.left = x + 'px';
   ringCopyEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
   if (focus) ringCopyEl.querySelector('button').focus();
@@ -3282,7 +3289,8 @@ function nameFormulaCard(card){
 // A card's place in its window, kept inside it and below its top rows.
 function placeFormulaCard(card, area, x, y){
   var minTop = Math.max(0, topRowsBottom(area) - area.getBoundingClientRect().top - area.clientTop);
-  card.style.left = Math.round(clamp(x, 0, Math.max(0, area.clientWidth - card.offsetWidth))) + 'px';
+  var maxLeft = Math.min(area.clientWidth, workRight(area) - area.getBoundingClientRect().left - area.clientLeft) - card.offsetWidth;
+  card.style.left = Math.round(clamp(x, 0, Math.max(0, maxLeft))) + 'px';
   card.style.top = Math.round(clamp(y, minTop, Math.max(minTop, area.clientHeight - card.offsetHeight))) + 'px';
 }
 function dragFormulaFrom(view, name){
@@ -3416,10 +3424,7 @@ function subFocusables(name){
 }
 var ringSubOpen = null;
 function setRingSub(name, focus){
-  // Pointing at the Formulas item again keeps its submenu, and the copy
-  // submenu open from it, as they are.
-  var again = !!name && name === ringSubOpen && !focus;
-  if (!again) setRingCopy(null);
+  if (name || ringSubOpen) setRingCopy(null);
   Object.keys(ringSubEls).forEach(function(k){ ringSubEls[k].hidden = k !== name; });
   ringCtxItems.forEach(function(it){
     if (it.sub) it.item.setAttribute('aria-expanded', it.sub === name ? 'true' : 'false');
@@ -3429,10 +3434,6 @@ function setRingSub(name, focus){
   if (name === 'elements') syncElementItems();
   if (name === 'arrows') syncArrowKeyItem();
   if (name === 'iso' || name === 'whole') syncIsoItems(name);
-  if (name === 'formulas'){
-    if (again) return;
-    syncFormulaItems();
-  }
   var sub = ringSubEls[name], from = ringCtxItems.find(function(it){ return it.sub === name; }).item;
   var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
   var w = sub.offsetWidth, h = sub.offsetHeight;
@@ -3473,6 +3474,7 @@ function setRingCtx(open, x, y){
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
     it.mark.textContent = on ? '\u2713' : '';
   });
+  syncFormulaItems();
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
   var w = ringCtxEl.offsetWidth, h = ringCtxEl.offsetHeight;
@@ -3524,15 +3526,17 @@ ringCtxEl.addEventListener('keydown', function(e){
     if (step !== null && list.length){ list[(j + step + list.length) % list.length].focus(); e.preventDefault(); }
     return;
   }
-  var i = ringCtxItems.findIndex(function(it){ return it.item === document.activeElement; });
-  if (e.key === 'ArrowRight' && i >= 0 && ringCtxItems[i].sub){ ringCtxItems[i].item.click(); e.preventDefault(); return; }
-  var n = ringCtxItems.length, to = null;
+  // The menu's own items, the formulas among them.
+  var mains = Array.prototype.filter.call(ringCtxEl.children, function(el){ return el.classList.contains('fs-menu-item') && !el.hidden; });
+  var i = mains.indexOf(document.activeElement);
+  if (e.key === 'ArrowRight' && i >= 0 && mains[i].getAttribute('aria-haspopup')){ mains[i].click(); e.preventDefault(); return; }
+  var n = mains.length, to = null;
   if (e.key === 'Escape' || e.key === 'Tab'){ setRingCtx(false); e.preventDefault(); return; }
   if (e.key === 'ArrowDown') to = (i + 1) % n;
   else if (e.key === 'ArrowUp') to = (i - 1 + n) % n;
   else if (e.key === 'Home') to = 0;
   else if (e.key === 'End') to = n - 1;
-  if (to !== null){ ringCtxItems[to].item.focus(); e.preventDefault(); }
+  if (to !== null){ mains[to].focus(); e.preventDefault(); }
 });
 ['resize', 'blur', 'fullscreenchange', 'webkitfullscreenchange'].forEach(function(type){
   (type === 'resize' || type === 'blur' ? window : document).addEventListener(type, function(){
