@@ -603,6 +603,7 @@ None yet.
 | 367 | Formulas section in the ring menu; cards stay on their ring's side | 2026-10-13 | b89f258 | — |
 | 368 | Walk arrows turn the way their walk goes (forward path in the Forward direction, backward path the other way) | 2026-10-13 | abcc10e | — |
 | 369 | Numerical button under the ring in single-group view | 2026-10-13 | 76da153 | — |
+| 370 | GCD tooltip on subgroup rows whose generating element is written as a power | 2026-10-13 | ee0fa69 | — |
 
 ## Deferred Items
 
