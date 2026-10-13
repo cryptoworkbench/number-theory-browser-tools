@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T12:14:44.000Z"
+last_updated: "2026-10-13T12:22:09.000Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 796ad3a6a945c8a156f7cd48623c6bd092728801
+state_head: 19fe5b5a2dab0ce575267cc1a2d155de456fafdf
 progress:
   total_phases: 7
   completed_phases: 6
@@ -577,6 +577,7 @@ None yet.
 | 341 | Line up numbers dropdown replaces the pad/align checkboxes | 2026-10-13 | ad5e43f | — |
 | 342 | Shared Explore cosets button on the line; additive coset-count formula removed | 2026-10-13 | 0c20d12 | — |
 | 343 | Shared coset run controls on the line between linked rings | 2026-10-13 | 796ad3a | — |
+| 344 | Top three rows' controls keep to the right | 2026-10-13 | 19fe5b5 | — |
 
 ## Deferred Items
 
