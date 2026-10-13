@@ -2578,14 +2578,21 @@ function scratchFormulas(G){
   if (count) list.push({ key: 'gens', cls: 'ring-math-formula', math: count.math, plain: count.plain });
   return list.sort(function(a, b){ return SCRATCH_ROWS.indexOf(a.key) - SCRATCH_ROWS.indexOf(b.key); });
 }
-function drawScratchPad(G){
-  scratchPadEl.hidden = !scratchOpen;
-  scratchPadEl.replaceChildren();
-  if (!scratchOpen) return;
+// What each scratchpad row holds, by its key: its formula, or what stands
+// in for it; a row with nothing to show has no entry.
+function scratchCells(G){
   var cells = {};
   scratchFormulas(G).forEach(function(f){ cells[f.key] = scratchMath(f.cls, f.math, f.plain); });
   if (!noSub() && G.mode === 'multiplicative' && G.cyclic && !state.bygen) cells.sorder = logBasePrompt(G, true);
   if (!cells.gens) cells.gens = tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) });
+  return cells;
+}
+function drawScratchPad(G){
+  drawFormulaCards(G);
+  scratchPadEl.hidden = !scratchOpen;
+  scratchPadEl.replaceChildren();
+  if (!scratchOpen) return;
+  var cells = scratchCells(G);
   SCRATCH_ROWS.forEach(function(key){
     var name = document.createElement('span');
     name.className = 'scratch-name';
@@ -3194,10 +3201,24 @@ function formulaCard(name){
   card.appendChild(bar);
   var cell = document.createElement('div');
   cell.className = 'scratch-math';
-  cell.appendChild(scratchMath(f.cls, f.math, f.plain));
   card.appendChild(cell);
   nameFormulaCard(card);
+  fillFormulaCard(card, drawn.G);
   return card;
+}
+// The cards follow the ring: each shows its formula for the group and
+// subgroup on show now, or stays empty while they have none.
+function fillFormulaCard(card, G){
+  var cell = card.querySelector('.scratch-math');
+  var c = scratchCells(G)[card.getAttribute('data-formula')];
+  if (c) cell.replaceChildren(c); else cell.replaceChildren();
+}
+function drawFormulaCards(G){
+  document.querySelectorAll('.formula-card:not(.is-ghost)').forEach(function(card){
+    fillFormulaCard(card, G);
+    var area = card.parentNode;
+    if (area) placeFormulaCard(card, area, card.offsetLeft, card.offsetTop);
+  });
 }
 // A card's title, the name its formula has in the menu, and its close
 // button's label, in the language shown.
@@ -3257,7 +3278,7 @@ function dragFormulaFrom(view, name){
 function movableFormulaCard(card, area){
   var move = null;
   card.addEventListener('pointerdown', function(e){
-    if (e.button !== 0 || e.target.closest('button')) return;
+    if (e.button !== 0 || e.target.closest('button, select')) return;
     move = { id: e.pointerId, x: e.clientX - card.offsetLeft, y: e.clientY - card.offsetTop };
     card.setPointerCapture(e.pointerId);
     card.classList.add('is-moving');
