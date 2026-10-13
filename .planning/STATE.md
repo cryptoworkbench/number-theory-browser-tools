@@ -608,6 +608,7 @@ None yet.
 | 372 | Subgroup panel controls share lines in one-group mode | 2026-10-13 | 78b0d9f | — |
 | 373 | Subgroup list heading centred in isomorphism view | 2026-10-13 | 75d702f | — |
 | 374 | Subgroup list scrolls to keep the selected subgroup's row in view | 2026-10-13 | 9de6e2f | — |
+| 375 | Drop the identity-only note from the subgroup row | 2026-10-13 | 5622afa | — |
 
 ## Deferred Items
 
