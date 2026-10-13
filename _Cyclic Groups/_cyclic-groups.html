@@ -3731,7 +3731,7 @@ function endTurn(e){
   ringSvgEl.classList.remove('is-turning');
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
   // A linked pane stays where it was let go, and the ring holding it settles both.
-  if (IS_ISOPANE && isoOrder()){
+  if (IS_ISOPANE && isoOrder() && isoTurnsTogether()){
     isoFollowing = true;
     autoAngle = swept + dirSign() * steps * 360 / drawn.G.order;
     if (!setRotChanged(state.rot + steps)) spinAngle(autoAngle);
@@ -5511,6 +5511,9 @@ function isoTakePaints(paints){
   isoPaints = paints;
   keepCosets(render);
 }
+// The two rings turn as one only while their groups are locked together;
+// with the padlock open each turns on its own.
+function isoTurnsTogether(){ return groupControlsEl.classList.contains('is-locked'); }
 function isoTellTop(force){
   var m = isoOrder();
   if (!m || isoFollowing) return;
@@ -5524,6 +5527,7 @@ function isoTellTop(force){
       isoTell({ iso: 'spread', c: c });
     }
   }
+  if (!isoTurnsTogether()) return;
   var a = identityAngle();
   var key = m + ':' + a.toFixed(4);
   if (!force && key === isoSentK) return;
@@ -5595,9 +5599,9 @@ ringSvgEl.addEventListener('pointerleave', function(){ isoHover(null); });
 function isoReceive(d){
   var m = isoOrder();
   if (!m || d.order !== m) return;
-  if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a)) isoFollowAngle(d.a); return; }
+  if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a) && isoTurnsTogether()) isoFollowAngle(d.a); return; }
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
-  if (d.iso === 'settle'){ if (!IS_ISOPANE) settleTurn(); return; }
+  if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
   if (d.iso === 'interlock'){ if (IS_ISOPANE){ isoInterlockOn = d.on === true; syncSplit(); syncInterlock(); } return; }
   if (d.iso === 'whole'){ if (IS_ISOPANE){ isoHostWhole = { on: d.on === true, ks: isoRanks(d.ks, m) }; syncInterlock(); } return; }
