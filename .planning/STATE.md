@@ -617,6 +617,7 @@ None yet.
 | 381 | 3D flip of the ring about the identity axis when the direction changes | 2026-10-13 | 02402c8 | — |
 | 382 | Open subgroup panel's chevrons in its top-right corner | 2026-10-13 | 1b5231d | — |
 | 383 | Open panel's chevrons in its corner in isomorphism view too | 2026-10-13 | 6399761 | — |
+| 384 | RSA: link each keypair's modulus to (ℤ/nℤ)* in Cyclic Groups | 2026-10-13 | ec30745 | — |
 
 ## Deferred Items
 
