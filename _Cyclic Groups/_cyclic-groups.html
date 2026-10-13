@@ -280,6 +280,9 @@
   :root.is-sub-merged .sub-ctls .sub-expr-pair label{ white-space:normal; }
   .sub-expr-row-r .sub-expr-pair label{ text-align:right; }
   :root.is-sub-merged .sub-ctls-mid > .sub-expr-row{ margin:0 0 4px; }
+  /* Merged, the middle column stays narrow: the sort and the member
+     colouring stack there instead of sharing a line. */
+  :root.is-sub-merged .sub-ctls-mid > #sub-sort-row{ flex-direction:column; align-items:flex-start; gap:4px; }
   .sub-expr-row-r, .sub-expr-row-r .sub-expr-pair{ justify-content:flex-end; }
   .subgroup-row.is-merged{ display:flex; justify-content:space-between; align-items:baseline; gap:6px 32px; }
   .subgroup-row.is-merged > .sub-row-l{ flex:0 1 auto; min-width:0; text-align:left; }
@@ -308,6 +311,13 @@
   .speed-wrap input[type="range"]{ flex:1 1 auto; min-width:0; accent-color:var(--accent); }
   .speed-wrap span{ width:70px; }
   .subgroup-row.is-current{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  /* Members coloured like their beads: each member's math on a chip
+     carrying its bead's own .ord-* class or inline --ord, a soft tint over
+     the row (its hover and current highlights still show through) or the
+     bead's full colour with the bead labels' ink. */
+  .sub-chip{ padding:.15em .3em; border-radius:.4em; }
+  .sub-chip-tint{ background:color-mix(in srgb, var(--ord, var(--text-dim)) 30%, transparent); }
+  .sub-chip-full{ background:var(--ord, var(--text-dim)); color:var(--accent-ink); }
   .fact-label{ color:var(--text-dim); }
   .fact-value{ margin-left:auto; font-family:var(--font-sans); font-variant-numeric:tabular-nums; text-align:right; }
   .hint{ color:var(--text-dim); font-size:.85rem; line-height:1.5; margin:10px 0 0; }
@@ -1103,8 +1113,9 @@
           <span class="sub-expr-pair"><label for="sub-right-select" data-i18n="cyclicGroups.subExprRight">Expression of the permutation in the {}s</label><select id="sub-right-select"></select></span>
         </div>
         <div class="sub-ctls-mid">
-        <div class="sub-expr-row" id="sub-sort-row" hidden>
-          <span class="sub-expr-pair"><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</label><select id="sub-sort-select"></select></span>
+        <div class="sub-expr-row" id="sub-sort-row">
+          <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</label><select id="sub-sort-select"></select></span>
+          <span class="sub-expr-pair" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><label for="sub-color-select" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label><select id="sub-color-select"><option value="off" data-i18n="cyclicGroups.subColorOff">Off</option><option value="tint" data-i18n="cyclicGroups.subColorTint">Soft tint</option><option value="full" data-i18n="cyclicGroups.subColorFull">Bead colour</option></select></span>
         </div>
         <div class="check" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle"><input type="checkbox" id="sub-pad"><label for="sub-pad" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
@@ -1294,7 +1305,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subColor: 'off', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1339,7 +1350,7 @@ var rotValueEl = $('rot-value');
 cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCosets(); });
 subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
 var subExprRowEl = $('sub-expr-row');
-var subSortRowEl = $('sub-sort-row');
+var subSortPairEl = $('sub-sort-pair');
 var subExprRowREl = $('sub-expr-row-r');
 var subLeftRSelectEl = $('sub-left-r-select');
 var subRightRSelectEl = $('sub-right-r-select');
@@ -1422,6 +1433,9 @@ var gearboxEl = $('gearbox');
 var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
 var subPadEl = $('sub-pad');
+// The Numeric panel's member colouring: off, a soft tint or the bead's colour.
+var subColorEl = $('sub-color-select');
+var SUB_COLORS = ['off', 'tint', 'full'];
 var cayleyLinkEl = $('xref-cayley');
 var cayleyPath = cayleyLinkEl.getAttribute('href').split('?')[0];
 var exportBtnEl = $('export-png');
@@ -1750,7 +1764,7 @@ function syncExpr(G){
 function syncSubExpr(G){
   var merged = !IS_ISOPANE && subInterlocked();
   subExprRowEl.hidden = !G.cyclic;
-  subSortRowEl.hidden = !G.cyclic;
+  subSortPairEl.hidden = !G.cyclic;
   subExprRowREl.hidden = !merged;
   if (!G.cyclic) return;
   SUB_EXPR_CTLS.forEach(function(c){
@@ -4493,6 +4507,23 @@ function subFormat(base, log, width, expWidth){
     p: function(x){ return log ? base + '^' + ex(log[x]) : nat(x); }
   };
 }
+// A member's math, coloured: with the panel's colouring on, it sits on a
+// chip painted exactly as its bead x is (drawn.paint: the same class, the
+// same inline --ord), so order, inverse and website-theme colourings and a
+// linked pane's borrowed colours all carry over; off, it is left as it is.
+function memberMath(x, content){
+  if (state.subColor === 'off' || !drawn) return content;
+  var p = drawn.paint(x), chip = mrow(content);
+  chip.setAttribute('class', ('sub-chip sub-chip-' + state.subColor + ' ' + (p.cls || '')).trim());
+  if (p.style) chip.setAttribute('style', p.style);
+  return chip;
+}
+// What the chips depend on, for the rows' re-render key: the colouring
+// and, while it is on, how each bead is painted.
+function memberPaintKey(G){
+  if (state.subColor === 'off' || !drawn) return 'off';
+  return state.subColor + ':' + G.els.map(function(a){ var p = drawn.paint(a); return p.cls + '|' + (p.style || ''); }).join(',');
+}
 function renderSubgroups(G){
   if (!IS_ISOPANE && subInterlocked()) return renderMergedSubgroups(G);
   var hadFocus = subgroupsEl.contains(document.activeElement);
@@ -4512,7 +4543,7 @@ function renderSubgroups(G){
   var mxBy = function(b, log){ return function(x){ return log ? mEl('msup', [mn(b), mn(ex(log[x]))]) : mn(nat(x)); }; };
   var pxBy = function(b, log){ return function(x){ return log ? b + '^' + ex(log[x]) : nat(x); }; };
   var mxl = mxBy(lg, llog), pxl = pxBy(lg, llog), mx = mxBy(rg, rlog), px = pxBy(rg, rlog);
-  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth].join(',') + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -4536,10 +4567,10 @@ function renderSubgroups(G){
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
     row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + members.map(px).join(', ') + '}');
-    row.appendChild(mInline(mrow(angle(mxl(g)), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
+    row.appendChild(mInline(mrow(angle(memberMath(g, mxl(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
     members.forEach(function(x, i){
       var last = i === members.length - 1;
-      row.appendChild(mInline(mrow(mx(x), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
+      row.appendChild(mInline(mrow(memberMath(x, mx(x)), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
     });
     row.addEventListener('click', function(){
       selectGen(g);
@@ -4570,7 +4601,11 @@ function renderMergedSubgroups(G){
   var fr = subFormat(rg, rg === null ? null : exprLog(G, rg), widthG, expWidth);
   var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth);
   var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth);
-  var sig = 'M ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth].join(',') + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  // The right side's beads borrow these colours only while the rings are
+  // linked (φ(x) painted as x); otherwise its members stay plain.
+  var linked = isoLinked();
+  var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
+  var sig = 'M ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -4603,18 +4638,18 @@ function renderMergedSubgroups(G){
     row.setAttribute('aria-label', leftText(r) + '; ' + rightText(r));
     var left = document.createElement('span');
     left.className = 'sub-row-l';
-    left.appendChild(mInline(mrow(angle(fl.m(g)), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));
+    left.appendChild(mInline(mrow(angle(memberMath(g, fl.m(g))), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));
     members.forEach(function(x, i){
-      left.appendChild(mInline(mrow(fr.m(x), i === last ? mo('}', true) : comma()), i === last ? fr.p(x) + '}' : fr.p(x) + ', '));
+      left.appendChild(mInline(mrow(memberMath(x, fr.m(x)), i === last ? mo('}', true) : comma()), i === last ? fr.p(x) + '}' : fr.p(x) + ', '));
     });
     var right = document.createElement('span');
     right.className = 'sub-row-r';
     members.forEach(function(x, i){
-      var y = phi(x), parts = [hfr.m(y), i === last ? mo('}', true) : comma()];
+      var y = phi(x), parts = [rightMath(x, hfr.m(y)), i === last ? mo('}', true) : comma()];
       if (i === 0) parts.unshift(mo('{', true));
       right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(y) + (i === last ? '}' : ', ')));
     });
-    right.appendChild(mInline(mrow(mo('='), angle(hfl.m(phi(g)))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
+    right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.m(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
     row.appendChild(left);
     row.appendChild(right);
     row.addEventListener('click', function(){
@@ -5650,10 +5685,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.autoShift;
+      var nkey = state.subPad + ' ' + state.autoShift + ' ' + state.subColor;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, shift: state.autoShift });
+        isoTell({ iso: 'numset', pad: state.subPad, shift: state.autoShift, color: state.subColor });
       }
     }
   }
@@ -5667,7 +5702,9 @@ function syncInterlock(){
 function takeNumset(d){
   state.subPad = d.pad === true;
   state.autoShift = d.shift === true;
+  state.subColor = SUB_COLORS.indexOf(d.color) !== -1 ? d.color : 'off';
   subPadEl.checked = state.subPad;
+  subColorEl.value = state.subColor;
   autoShiftEl.checked = state.autoShift;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
@@ -6049,6 +6086,8 @@ function stateQuery(){
   else q.delete('autoshift');
   if (state.subPad) q.set('subpad', '1');
   else q.delete('subpad');
+  if (state.subColor !== 'off') q.set('subcolor', state.subColor);
+  else q.delete('subcolor');
   if (state.swapColors) q.set('swapcolors', '1');
   else q.delete('swapcolors');
   if (state.customColors) q.set('customcolors', '1');
@@ -6223,6 +6262,7 @@ function render(){
   syncKeepTop();
   autoShiftEl.checked = state.autoShift;
   subPadEl.checked = state.subPad;
+  subColorEl.value = state.subColor;
   syncArrange(G);
   syncExpr(G);
   syncSubExpr(G);
@@ -6690,6 +6730,13 @@ subPadEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
+subColorEl.addEventListener('change', function(){
+  state.subColor = SUB_COLORS.indexOf(subColorEl.value) !== -1 ? subColorEl.value : 'off';
+  if (!drawn) return;
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+  syncInterlock();
+});
 swapColorsEl.addEventListener('change', function(){
   state.swapColors = swapColorsEl.checked;
   render();
@@ -6782,6 +6829,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.autoShift = query.get('autoshift') === '1';
   state.subPad = query.get('subpad') === '1';
+  if (SUB_COLORS.indexOf(query.get('subcolor')) !== -1) state.subColor = query.get('subcolor');
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
