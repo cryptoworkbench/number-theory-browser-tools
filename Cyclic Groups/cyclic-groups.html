@@ -1025,11 +1025,23 @@
   .formula-card.is-genexp .formula-card-title{ font-size:calc(.72rem * var(--genexp-scale)); }
   .formula-card.is-genexp > .scratch-grip{ width:12px; height:12px; }
   .formula-card.is-genexp.is-resizing > .scratch-grip{ opacity:1; }
-  .formula-card.is-genexp > .scratch-math{ max-height:min(60vh, 520px); overflow:auto; overscroll-behavior:contain; }
-  .genexp-grid{ display:grid; grid-template-columns:repeat(var(--genexp-cols, 3), max-content); column-gap:.35em; row-gap:.38em; align-items:baseline; font-family:var(--font-math); font-size:calc(1.15rem * var(--genexp-scale, 1)); color:var(--text); }
-  .genexp-grid > .genexp-el{ justify-self:end; }
-  .genexp-grid > .genexp-eq{ justify-self:center; }
-  .genexp-grid > .genexp-pow{ justify-self:start; margin-right:.6em; }
+  .formula-card.is-genexp > .scratch-math{ max-height:min(60vh, 520px); overflow:auto; overscroll-behavior:contain; padding-top:0; }
+  .genexp-table{ border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.15rem * var(--genexp-scale, 1)); color:var(--text); }
+  .genexp-table td{ padding:.19em 0; vertical-align:baseline; white-space:nowrap; }
+  .genexp-table .genexp-el{ text-align:right; }
+  .genexp-table .genexp-eq{ padding-inline:.35em; text-align:center; }
+  .genexp-table .genexp-pow{ padding-right:.6em; text-align:left; }
+  .genexp-table .genexp-pow:last-child{ padding-right:0; }
+  /* The header row stays in view while the table scrolls. */
+  .genexp-table thead th{ position:sticky; top:0; z-index:1; padding:.45em 0 .25em; font-weight:400; background:var(--surface); border-bottom:1px solid var(--panel-border); }
+  .genexp-table thead th.genexp-el{ text-align:right; }
+  .genexp-table thead th.genexp-pow{ text-align:left; }
+  .genexp-sort{ display:inline-flex; align-items:baseline; gap:.25em; padding:.1em .3em; font:inherit; color:var(--text-dim); background:none; border:1px solid transparent; border-radius:var(--radius-ctl); cursor:pointer; }
+  .genexp-sort:hover{ color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .genexp-sort:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .genexp-sort.is-active{ color:var(--text); border-color:var(--panel-border); }
+  .genexp-arrow{ font-family:var(--font-sans); font-size:.6em; opacity:.55; }
+  .genexp-sort.is-active .genexp-arrow{ color:var(--accent); opacity:1; }
   .genexp-none{ max-width:22em; margin:0; font-size:calc(.9rem * var(--genexp-scale, 1)); color:var(--text-dim); }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
@@ -3568,15 +3580,25 @@ function movableFormulaCard(card, area){
 // the ring's group; a group with no generator says so instead. The table is
 // built again only when the group or the language changes.
 function genExpCard(){ var area = ringWorkArea(); return area && area.querySelector(':scope > .formula-card[data-formula="genexp"]'); }
-// Each element and each power sit in cells of their own, the equals signs
-// in columns of their own: the elements right-aligned, the powers left-
-// aligned, so the signs and the generators line up whatever the widths.
-// The numbers follow the Subgroups panel's Line up numbers (leading zeros,
-// or blank space, to the widest element and exponent) and its colouring
-// (each element and each power that equals it on its bead's colour).
+// The card is a table: a column of the elements, then one per generator g
+// (an equals sign, then g^k for each element), its header row staying in
+// view while the table scrolls. Each column header sorts the rows: the
+// elements' by the numbers themselves, low to high or high to low, a
+// generator's by its exponents, 0 up or down; a second click on the active
+// header turns its direction round. The sort is the card's own, kept while
+// the group stays, back to the elements low to high when it changes.
+// The elements are right-aligned and the powers left-aligned, so the signs
+// and the generators line up whatever the widths. The numbers follow the
+// Subgroups panel's Line up numbers (leading zeros, or blank space, to the
+// widest element and exponent) and its colouring (each element and each
+// power that equals it on its bead's colour).
 function fillGenExp(cell, G){
+  var card = cell.closest('.formula-card');
+  var group = G.mode + ' ' + G.n;
+  if (!card.genExpSort || card.genExpSort.group !== group) card.genExpSort = { group: group, col: -1, dir: 1 };
+  var sort = card.genExpSort;
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var sig = [getLang(), G.mode, G.n, width, expWidth, state.subPad, memberPaintKey(G)].join(' ');
+  var sig = [getLang(), group, width, expWidth, state.subPad, memberPaintKey(G), sort.col, sort.dir].join(' ');
   if (cell.getAttribute('data-sig') === sig) return;
   cell.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -3589,23 +3611,65 @@ function fillGenExp(cell, G){
   var logs = gens.map(function(g){ return exprLog(G, g); });
   var nat = subFormat(null, null, width, expWidth);
   var pows = gens.map(function(g, i){ return subFormat(g, logs[i], width, expWidth); });
-  var grid = document.createElement('div');
-  grid.className = 'genexp-grid';
-  grid.style.setProperty('--genexp-cols', String(2 * gens.length + 1));
-  G.els.slice().sort(function(a, b){ return a - b; }).forEach(function(x){
-    var el = mInline(memberMath(x, nat.m(x)), nat.p(x));
-    el.classList.add('genexp-el');
-    grid.appendChild(el);
+  var key = sort.col < 0 ? function(x){ return x; } : function(x){ return logs[sort.col][x]; };
+  var rows = G.els.slice().sort(function(a, b){ return sort.dir * (key(a) - key(b)); });
+  var table = document.createElement('table');
+  table.className = 'genexp-table';
+  var head = table.createTHead().insertRow();
+  head.appendChild(genExpHead(card, G, -1, mi('x')));
+  gens.forEach(function(g, i){
+    head.appendChild(document.createElement('th'));
+    head.appendChild(genExpHead(card, G, i, mEl('msup', [mn(g), mi('k')]), g));
+  });
+  var body = table.createTBody();
+  rows.forEach(function(x){
+    var tr = body.insertRow();
+    var el = tr.insertCell();
+    el.className = 'genexp-el';
+    el.appendChild(mInline(memberMath(x, nat.m(x)), nat.p(x)));
     pows.forEach(function(f){
-      var eq = mInline(mo('='), ' = ');
-      eq.classList.add('genexp-eq');
-      grid.appendChild(eq);
-      var pw = mInline(memberMath(x, f.m(x)), f.p(x));
-      pw.classList.add('genexp-pow');
-      grid.appendChild(pw);
+      var eq = tr.insertCell();
+      eq.className = 'genexp-eq';
+      eq.appendChild(mInline(mo('='), ' = '));
+      var pw = tr.insertCell();
+      pw.className = 'genexp-pow';
+      pw.appendChild(mInline(memberMath(x, f.m(x)), f.p(x)));
     });
   });
-  cell.replaceChildren(grid);
+  cell.replaceChildren(table);
+}
+// A column's header: a button holding the column's name (x, or g^k) and
+// the sort's arrow while it is the active column; its title says what a
+// click does, and aria-sort on the cell says how the column is sorted.
+function genExpHead(card, G, col, name, g){
+  var sort = card.genExpSort, active = sort.col === col;
+  var th = document.createElement('th');
+  th.scope = 'col';
+  th.className = col < 0 ? 'genexp-el' : 'genexp-pow';
+  if (active) th.setAttribute('aria-sort', sort.dir > 0 ? 'ascending' : 'descending');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'genexp-sort' + (active ? ' is-active' : '');
+  var next = active ? -sort.dir : 1;
+  var title = col < 0
+    ? translate(next > 0 ? 'cyclicGroups.genExpSortElUp' : 'cyclicGroups.genExpSortElDown')
+    : translate(next > 0 ? 'cyclicGroups.genExpSortExpUp' : 'cyclicGroups.genExpSortExpDown', { g: g });
+  btn.title = title;
+  btn.setAttribute('aria-label', title);
+  btn.appendChild(mInline(name, col < 0 ? 'x' : g + '^k'));
+  var arrow = document.createElement('span');
+  arrow.className = 'genexp-arrow';
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.textContent = active ? (sort.dir > 0 ? '\u25B2' : '\u25BC') : '\u2195';
+  btn.appendChild(arrow);
+  btn.addEventListener('click', function(){
+    card.genExpSort = { group: sort.group, col: col, dir: next };
+    fillFormulaCard(card, G);
+    var again = card.querySelectorAll('.genexp-table thead .genexp-sort')[col + 1];
+    if (again) again.focus();
+  });
+  th.appendChild(btn);
+  return th;
 }
 // The panel's numbers and colours changing redraw the card too.
 function syncGenExpCard(G){
