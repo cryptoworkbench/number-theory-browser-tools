@@ -1016,6 +1016,14 @@
   .formula-card-title{ flex:1 1 auto; font-family:var(--font-sans); font-size:.72rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
   .formula-card-bar > .fs-win-btn{ width:20px; height:20px; }
   .formula-card > .scratch-math{ margin:0; padding:.55em .875em .62em; }
+  /* The generator exponent equivalences: every element, then each
+     generator's power that equals it, in lined-up columns; a long table
+     scrolls inside the card. */
+  .formula-card.is-genexp{ max-width:calc(100% - 24px); }
+  .formula-card.is-genexp > .scratch-math{ max-height:min(60vh, 520px); overflow:auto; overscroll-behavior:contain; }
+  .genexp-grid{ display:grid; grid-template-columns:repeat(var(--genexp-cols, 2), max-content); column-gap:.8em; row-gap:.38em; align-items:baseline; font-family:var(--font-math); font-size:1.15rem; color:var(--text); }
+  .genexp-grid > math{ justify-self:end; }
+  .genexp-none{ max-width:22em; margin:0; font-size:.9rem; color:var(--text-dim); }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
      own controls: small labels, dropdowns at the row's end. */
@@ -2778,7 +2786,7 @@ var lastSubs = [];
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
 var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
-var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex' };
+var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', genexp: 'cyclicGroups.genExpTitle' };
 var scratchOpen = false;
 // The scratchpad's formulas, fresh nodes each time, in its rows' order:
 // { key, cls, math, plain } for each row that holds a formula.
@@ -3106,7 +3114,8 @@ var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.fsIsomorphisms', key: 'cyclicGroups.ctxIsoGroup', sub: 'whole' },
   { key: 'cyclicGroups.ctxIsoSub', sub: 'iso' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
-  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
+  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true },
+  { key: 'cyclicGroups.ctxGenExp', run: function(){ toggleGenExp(); }, checked: function(){ return !!genExpCard(); }, needsArea: true }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group') };
@@ -3128,7 +3137,7 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
   var item = document.createElement('button');
   item.type = 'button';
   item.className = 'fs-menu-item';
-  item.setAttribute('role', l.run || l.sub ? 'menuitem' : 'menuitemcheckbox');
+  item.setAttribute('role', l.checked || !(l.run || l.sub) ? 'menuitemcheckbox' : 'menuitem');
   if (l.sub){
     item.setAttribute('aria-haspopup', 'true');
     item.setAttribute('aria-expanded', 'false');
@@ -3171,6 +3180,7 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
       if (item.getAttribute('aria-disabled') !== 'true') l.run();
       return;
     }
+    if (item.getAttribute('aria-disabled') === 'true') return;
     setRingCtx(false);
     if (l.run){ l.run(); return; }
     var box = $('layer-' + l.name);
@@ -3180,7 +3190,7 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom, formulas: l.formulas };
+  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom, formulas: l.formulas, checked: l.checked, needsArea: l.needsArea };
 });
 // The Elements submenu: the key's switch (in a Ring window, where the key
 // is shown on request), then the colour schemes, each choosing its option
@@ -3424,10 +3434,10 @@ function setRingCopy(name, from, focus){
 // formula as it was drawn then, until its corner button closes it.
 function ringWorkArea(){ return scratchPadEl.closest('.fs-win-body.is-ring'); }
 function formulaCard(name){
-  var f = drawn && scratchFormulas(drawn.G).find(function(x){ return x.key === name; });
+  var f = drawn && (name === 'genexp' || scratchFormulas(drawn.G).find(function(x){ return x.key === name; }));
   if (!f) return null;
   var card = document.createElement('div');
-  card.className = 'formula-card';
+  card.className = 'formula-card' + (name === 'genexp' ? ' is-genexp' : '');
   card.setAttribute('data-formula', name);
   var bar = document.createElement('div');
   bar.className = 'formula-card-bar';
@@ -3452,6 +3462,7 @@ function formulaCard(name){
 // subgroup on show now, or stays empty while they have none.
 function fillFormulaCard(card, G){
   var cell = card.querySelector('.scratch-math');
+  if (card.getAttribute('data-formula') === 'genexp') return fillGenExp(cell, G);
   var c = scratchCells(G)[card.getAttribute('data-formula')];
   if (c) cell.replaceChildren(c); else cell.replaceChildren();
 }
@@ -3523,6 +3534,9 @@ function movableFormulaCard(card, area){
   var move = null;
   card.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || e.target.closest('button, select')) return;
+    // A press on a scrolling cell's scroll bar scrolls it instead.
+    var t = e.target, tr = t.getBoundingClientRect && t.getBoundingClientRect();
+    if (tr && (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) && (e.clientX - tr.left - t.clientLeft >= t.clientWidth || e.clientY - tr.top - t.clientTop >= t.clientHeight)) return;
     move = { id: e.pointerId, x: e.clientX - card.offsetLeft, y: e.clientY - card.offsetTop };
     card.setPointerCapture(e.pointerId);
     card.classList.add('is-moving');
@@ -3538,6 +3552,48 @@ function movableFormulaCard(card, area){
   }
   card.addEventListener('pointerup', end);
   card.addEventListener('pointercancel', end);
+}
+// The generator exponent equivalences card, opened from the ring's right-
+// click menu: each element, in numeric order, followed by the power of
+// every generator that equals it, x = g^e with 0 ≤ e < |G|, the generators
+// in numeric order, e.g. in ⟨ℤ/7ℤ, ×⟩ the row 2 = 3^2 = 5^4. It follows
+// the ring's group; a group with no generator says so instead. The table is
+// built again only when the group or the language changes.
+function genExpCard(){ var area = ringWorkArea(); return area && area.querySelector(':scope > .formula-card[data-formula="genexp"]'); }
+function fillGenExp(cell, G){
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n;
+  if (cell.getAttribute('data-sig') === sig) return;
+  cell.setAttribute('data-sig', sig);
+  if (!G.cyclic){
+    var none = tNode('cyclicGroups.genExpNone', { group: mInline(mGroup(G), G.label) });
+    none.className = 'genexp-none';
+    cell.replaceChildren(none);
+    return;
+  }
+  var gens = G.generators.slice().sort(function(a, b){ return a - b; });
+  var logs = gens.map(function(g){ return exprLog(G, g); });
+  var grid = document.createElement('div');
+  grid.className = 'genexp-grid';
+  grid.style.setProperty('--genexp-cols', String(gens.length + 1));
+  G.els.slice().sort(function(a, b){ return a - b; }).forEach(function(x){
+    grid.appendChild(mInline(mn(x), x));
+    gens.forEach(function(g, i){
+      grid.appendChild(mInline(mrow(mo('='), mEl('msup', [mn(g), mn(logs[i][x])])), ' = ' + g + '^' + logs[i][x]));
+    });
+  });
+  cell.replaceChildren(grid);
+}
+// The menu's switch: opens the card in the top-left corner of the ring's
+// area, under its top rows, or closes it.
+function toggleGenExp(){
+  var open = genExpCard(), area = ringWorkArea();
+  if (open){ open.remove(); return; }
+  if (!area) return;
+  var card = formulaCard('genexp');
+  if (!card) return;
+  area.appendChild(card);
+  placeFormulaCard(card, area, 12, 0);
+  movableFormulaCard(card, area);
 }
 // Text onto the clipboard; where the Clipboard API is out of reach (a page
 // opened from a file in some browsers), through a hidden text box.
@@ -3654,6 +3710,13 @@ function setRingCtx(open, x, y){
     if (it.sub === 'iso') it.item.setAttribute('aria-disabled', isoPanelEl.hidden ? 'true' : 'false');
     if (it.sub === 'whole') it.item.setAttribute('aria-disabled', isoGroupChipsEl.childElementCount ? 'false' : 'true');
     if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
+    // A card needs the Ring window's area to sit in.
+    if (it.needsArea) it.item.setAttribute('aria-disabled', ringWorkArea() ? 'false' : 'true');
+    if (it.checked){
+      var shown = it.checked();
+      it.item.setAttribute('aria-checked', shown ? 'true' : 'false');
+      it.mark.textContent = shown ? '\u2713' : '';
+    }
     if (!it.name) return;
     var on = $('layer-' + it.name).checked;
     it.item.setAttribute('aria-checked', on ? 'true' : 'false');
