@@ -321,9 +321,6 @@
   .sub-row-formula .ring-math-formula{ display:inline math; margin:0; }
   .arrow-options{ margin:0 0 14px; }
   .coset-btn{ width:100%; }
-  /* For a generator the button says why there is nothing to explore, in
-     plain text rather than grayed out. */
-  .coset-btn.is-generator:disabled, .coset-btn.is-generator:disabled:hover{ opacity:1; cursor:default; color:var(--text-dim); font-weight:500; background:none; border-style:dashed; }
   /* The coset playback controls, the same set the other tools use. */
   .coset-controls{ margin-top:10px; display:flex; flex-direction:column; gap:10px; }
   .coset-controls[hidden]{ display:none; }
@@ -5390,15 +5387,21 @@ function showCosets(shown){
   tellCosets();
 }
 
-// The button opens or closes a run; with nothing to explore it is disabled,
-// and for a generator, whose subgroup is the whole group, it says so.
+// |G| / |⟨h⟩| − 1: the cosets of ⟨h⟩ besides ⟨h⟩ itself.
+function cosetsLeftMath(G, h){
+  var plain = (G.mode === 'additive' ? additiveLabel(G.n) : '⟨ℤ/' + G.n + 'ℤ, ×⟩');
+  return mInline(mrow(abs(mGroup(G)), mo('/'), abs(angle(mn(h))), mo('\u2212'), mn(1)),
+    '|' + plain + '| / |⟨' + h + '⟩| \u2212 1');
+}
+
+// The button opens or closes a run. Closed, it counts the cosets left to
+// explore; when ⟨h⟩ is the whole group that count is 0 and it is disabled.
 function syncCosetButton(){
   var G = drawn && drawn.G;
-  var generator = !cosetRun && !!G && !state.noSub && G.orders[state.gen] === G.order && G.order > 1;
   cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
-  cosetBtnEl.classList.toggle('is-generator', generator);
-  if (generator) translateInto(cosetBtnEl, 'cyclicGroups.cosetNoneGenerator', { g: mNum(state.gen) });
-  else cosetBtnEl.textContent = translate(cosetRun ? 'cyclicGroups.cosetHide' : 'cyclicGroups.cosetButton');
+  if (cosetRun) cosetBtnEl.textContent = translate('cyclicGroups.cosetHide');
+  else if (G && !state.noSub) translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { count: cosetsLeftMath(G, state.gen) });
+  else cosetBtnEl.textContent = translate('cyclicGroups.cosetButton');
   // On the line between linked rings the button is placed by its size.
   if (document.documentElement.classList.contains('is-iso-whole')) keepLockClear();
 }
