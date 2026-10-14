@@ -4535,7 +4535,8 @@ function drawNecklace(G, paint){
   else {
     // Zoomed, the view shrinks or grows about the ring's centre.
     var top = ringTopCut(box), z = RING_ZOOMS[ringZoom];
-    ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z, SIZE / z, (SIZE - top) / z].map(num).join(' '));
+    var low = SIZE + (combineTwoLines(G) ? COMBINE_LINE : 0);
+    ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z, SIZE / z, (low - top) / z].map(num).join(' '));
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
   }
 }
@@ -4571,7 +4572,7 @@ function ringTopCut(box){ return Math.max(0, box.cy - box.R - 70); }
 // The preview shows the beads alone: no captions, and the view fitted to
 // the ring with a little room to spare.
 function cropToRing(){
-  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine').forEach(function(t){ t.remove(); });
+  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine').forEach(function(t){ t.remove(); });
   var b;
   try { b = ringDynamicEl.getBBox(); } catch (e) { return; }
   if (!b || !b.width) return;
@@ -4895,38 +4896,73 @@ function isoTakeCombine(d, m){
 // combination written out as a chain of congruences: the generic a ∗ b,
 // the operation revealed (+ or ×), its plain result, and only as the last
 // step that result reduced, closed by the modulus (% n). The plain result
-// is green like the reduced one: it is the same residue class.
+// is green like the reduced one: it is the same residue class. While the
+// elements are expressed as powers of a generator g, a second line under
+// it writes the same chain in powers, g^i ∗ g^j ≡ … ≡ g^(i+j) ≡ g^k, each
+// term set in a column under its plain counterpart.
+var COMBINE_LINE = 26, COMBINE_GAP = 5;
+function combineTwoLines(G){ return G.cyclic && exprBy(G) !== null; }
 function drawCombineLine(G, y){
   var roles = combineRoles(G);
   if (!roles.size) return;
-  var t = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
-  var part = function(role, v){
-    var s = svgEl('tspan', { 'class': 'is-' + role });
-    s.textContent = String(v);
-    return s;
-  };
-  if (combo.b === null) translateInto(t, 'cyclicGroups.combinePrompt', { a: part('a', combo.a) });
-  else {
-    var a = combo.a, b = combo.b, c = G.combine(a, b);
-    var raw = G.mode === 'multiplicative' ? a * b : a + b;
-    t.setAttribute('direction', 'ltr');
-    t.appendChild(part('a', a));
-    t.appendChild(document.createTextNode(' ∗ '));
-    t.appendChild(part('b', b));
-    t.appendChild(document.createTextNode(' ≡ '));
-    t.appendChild(part('a', a));
-    t.appendChild(document.createTextNode(G.mode === 'multiplicative' ? ' × ' : ' + '));
-    t.appendChild(part('b', b));
-    t.appendChild(document.createTextNode(' ≡ '));
-    if (raw !== c){
-      t.appendChild(part('c', raw));
-      t.appendChild(document.createTextNode(' ≡ '));
-    }
-    t.appendChild(part('c', c));
-    t.appendChild(document.createTextNode(' (% ' + G.n + ')'));
+  if (combo.b === null){
+    var t = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
+    var s = svgEl('tspan', { 'class': 'is-a' });
+    s.textContent = String(combo.a);
+    translateInto(t, 'cyclicGroups.combinePrompt', { a: s });
+    ringDynamicEl.appendChild(t);
+    fitText(t);
+    return;
   }
-  ringDynamicEl.appendChild(t);
-  fitText(t);
+  var a = combo.a, b = combo.b, c = G.combine(a, b);
+  var raw = G.mode === 'multiplicative' ? a * b : a + b;
+  var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
+  var g = exprBy(G), two = g !== null;
+  // A cell is [role, text]; the role colours it (null: plain).
+  var rows = [[['a', a], [null, '∗'], ['b', b], [null, '≡'], ['a', a], [null, op], ['b', b], [null, '≡']]];
+  if (raw !== c || two) rows[0].push(['c', raw], [null, '≡']);
+  rows[0].push(['c', c], [null, mod]);
+  if (two){
+    var log = exprLog(G, g), i = log[a], j = log[b];
+    var pow = function(k){ return g + superscript(k); };
+    rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
+      ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
+  }
+  var box = svgEl('g', { 'class': 'ring-combine-box' });
+  ringDynamicEl.appendChild(box);
+  var cols = [];
+  var lines = rows.map(function(row, r){
+    var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
+    var spans = row.map(function(cell, k){
+      var sp = svgEl('tspan', cell[0] ? { 'class': 'is-' + cell[0] } : {});
+      sp.textContent = String(cell[1]);
+      t.appendChild(sp);
+      return sp;
+    });
+    box.appendChild(t);
+    spans.forEach(function(sp, k){
+      var w = 0;
+      try { w = sp.getComputedTextLength(); } catch (e) { /* not laid out */ }
+      sp.w = w;
+      cols[k] = Math.max(cols[k] || 0, w);
+    });
+    return spans;
+  });
+  var width = cols.reduce(function(sum, w){ return sum + w; }, 0) + COMBINE_GAP * (cols.length - 1);
+  var x0 = SIZE / 2 - width / 2;
+  lines.forEach(function(spans){
+    var x = x0;
+    spans.forEach(function(sp, k){
+      sp.setAttribute('x', num(x + (cols[k] - sp.w) / 2));
+      x += cols[k] + COMBINE_GAP;
+    });
+  });
+  // Too wide for the ring's view, both lines shrink together about the middle.
+  var room = SIZE - 24;
+  if (width > room){
+    var f = room / width;
+    box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(y * (1 - f)) + ') scale(' + num(f) + ')');
+  }
 }
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape' || combo.a === null || e.defaultPrevented) return;
