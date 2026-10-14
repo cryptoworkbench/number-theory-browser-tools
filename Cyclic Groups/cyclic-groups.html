@@ -1019,13 +1019,18 @@
   /* The generator exponent equivalences: every element, then each
      generator's power that equals it, in lined-up columns; a long table
      scrolls inside the card. */
-  .formula-card.is-genexp{ max-width:calc(100% - 24px); }
+  /* Its corner grip shrinks it along its diagonal: --genexp-scale scales
+     the table and the title, down to 30% of their size. */
+  .formula-card.is-genexp{ --genexp-scale:1; max-width:calc(100% - 24px); padding-bottom:12px; }
+  .formula-card.is-genexp .formula-card-title{ font-size:calc(.72rem * var(--genexp-scale)); }
+  .formula-card.is-genexp > .scratch-grip{ width:12px; height:12px; }
+  .formula-card.is-genexp.is-resizing > .scratch-grip{ opacity:1; }
   .formula-card.is-genexp > .scratch-math{ max-height:min(60vh, 520px); overflow:auto; overscroll-behavior:contain; }
-  .genexp-grid{ display:grid; grid-template-columns:repeat(var(--genexp-cols, 3), max-content); column-gap:.35em; row-gap:.38em; align-items:baseline; font-family:var(--font-math); font-size:1.15rem; color:var(--text); }
+  .genexp-grid{ display:grid; grid-template-columns:repeat(var(--genexp-cols, 3), max-content); column-gap:.35em; row-gap:.38em; align-items:baseline; font-family:var(--font-math); font-size:calc(1.15rem * var(--genexp-scale, 1)); color:var(--text); }
   .genexp-grid > .genexp-el{ justify-self:end; }
   .genexp-grid > .genexp-eq{ justify-self:center; }
   .genexp-grid > .genexp-pow{ justify-self:start; margin-right:.6em; }
-  .genexp-none{ max-width:22em; margin:0; font-size:.9rem; color:var(--text-dim); }
+  .genexp-none{ max-width:22em; margin:0; font-size:calc(.9rem * var(--genexp-scale, 1)); color:var(--text-dim); }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
      own controls: small labels, dropdowns at the row's end. */
@@ -3535,7 +3540,7 @@ function dragFormulaFrom(view, name){
 function movableFormulaCard(card, area){
   var move = null;
   card.addEventListener('pointerdown', function(e){
-    if (e.button !== 0 || e.target.closest('button, select')) return;
+    if (e.button !== 0 || e.target.closest('button, select, .scratch-grip')) return;
     // A press on a scrolling cell's scroll bar scrolls it instead.
     var t = e.target, tr = t.getBoundingClientRect && t.getBoundingClientRect();
     if (tr && (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) && (e.clientX - tr.left - t.clientLeft >= t.clientWidth || e.clientY - tr.top - t.clientTop >= t.clientHeight)) return;
@@ -3617,6 +3622,53 @@ function toggleGenExp(){
   area.appendChild(card);
   placeFormulaCard(card, area, 12, 0);
   movableFormulaCard(card, area);
+  shrinkableGenExp(card, area);
+}
+// Dragging its corner grip scales the card's table and title by how far the
+// corner moves along the card's diagonal, so the corner follows the pointer,
+// from their full size down to 30% of it; double-clicking it sets it back.
+function shrinkableGenExp(card, area){
+  var grip = document.createElement('div');
+  grip.className = 'scratch-grip';
+  grip.title = translate('cyclicGroups.resizeTitle');
+  grip.setAttribute('aria-hidden', 'true');
+  card.appendChild(grip);
+  var scale = 1, sizing = null;
+  function setScale(v){
+    scale = clamp(v, 0.3, 1);
+    card.style.setProperty('--genexp-scale', String(scale));
+  }
+  grip.addEventListener('pointerdown', function(e){
+    if (e.button !== 0) return;
+    var r = card.getBoundingClientRect();
+    sizing = { id: e.pointerId, dx: r.right - e.clientX, dy: r.bottom - e.clientY };
+    grip.setPointerCapture(e.pointerId);
+    card.classList.add('is-resizing');
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove', function(e){
+    if (!sizing || e.pointerId !== sizing.id) return;
+    // The card doesn't shrink exactly in step with the scale (its bar and
+    // padding keep their size), so it is worked out from the card as drawn,
+    // twice over.
+    for (var pass = 0; pass < 2; pass++){
+      var r = card.getBoundingClientRect();
+      var W = e.clientX + sizing.dx - r.left, H = e.clientY + sizing.dy - r.top;
+      setScale(scale * (W * r.width + H * r.height) / (r.width * r.width + r.height * r.height));
+    }
+  });
+  function end(e){
+    if (!sizing || e.pointerId !== sizing.id) return;
+    sizing = null;
+    card.classList.remove('is-resizing');
+    placeFormulaCard(card, area, card.offsetLeft, card.offsetTop);
+  }
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+  grip.addEventListener('dblclick', function(){
+    setScale(1);
+    placeFormulaCard(card, area, card.offsetLeft, card.offsetTop);
+  });
 }
 // Text onto the clipboard; where the Clipboard API is out of reach (a page
 // opened from a file in some browsers), through a hidden text box.
