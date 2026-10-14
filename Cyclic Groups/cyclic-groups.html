@@ -2611,7 +2611,7 @@ function subOrderFormula(G, h, g){
 // arranged by it.
 function cosetCountFormula(G, h, g, index){
   var n = G.order, lead = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), d;
-  if (index) lead = mrow(mo('[', true), mGroup(G), mo(':'), angle(mn(h)), mo(']', true), mo('='), lead);
+  if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true), mo('='), lead);
   if (G.mode === 'additive'){
     var q = gcdOperand(G, h);
     d = gcd(n, q);
@@ -5387,9 +5387,14 @@ function showCosets(shown){
   tellCosets();
 }
 
-// |G| / |⟨h⟩| − 1: the cosets of ⟨h⟩ besides ⟨h⟩ itself.
+// The cosets of ⟨h⟩ besides ⟨h⟩ itself: [G : ⟨h⟩] − 1 when there are any,
+// in Lagrange's index notation, or |G| / |⟨h⟩| − 1 when that is 0.
 function cosetsLeftMath(G, h){
   var plain = (G.mode === 'additive' ? additiveLabel(G.n) : '⟨ℤ/' + G.n + 'ℤ, ×⟩');
+  if (G.orders[h] < G.order) {
+    return mInline(mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true), mo('\u2212'), mn(1)),
+      '[' + plain + ' : ⟨' + h + '⟩] \u2212 1');
+  }
   return mInline(mrow(abs(mGroup(G)), mo('/'), abs(angle(mn(h))), mo('\u2212'), mn(1)),
     '|' + plain + '| / |⟨' + h + '⟩| \u2212 1');
 }
