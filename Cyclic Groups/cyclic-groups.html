@@ -3849,11 +3849,19 @@ function setRingCtx(open, x, y){
   syncFormulaItems();
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
+  ringCtxAt = [x, y];
+  placeRingCtx();
+  ringCtxItems[0].item.focus();
+}
+// At the pointer, kept inside the window; placed again when the pane's
+// window grows to give the menu room, with its open submenu.
+var ringCtxAt = [0, 0];
+function placeRingCtx(){
   var w = ringCtxEl.offsetWidth, h = ringCtxEl.offsetHeight;
   var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-  ringCtxEl.style.left = Math.max(4, Math.min(x, vw - w - 4)) + 'px';
-  ringCtxEl.style.top = Math.max(4, Math.min(y, vh - h - 4)) + 'px';
-  ringCtxItems[0].item.focus();
+  ringCtxEl.style.left = Math.max(4, Math.min(ringCtxAt[0], vw - w - 4)) + 'px';
+  ringCtxEl.style.top = Math.max(4, Math.min(ringCtxAt[1], vh - h - 4)) + 'px';
+  if (ringSubOpen) setRingSub(ringSubOpen);
 }
 ringSvgEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
@@ -3915,6 +3923,9 @@ ringCtxEl.addEventListener('keydown', function(e){
     // An arrow's colour picker, or a select's list, takes the focus off the page while it is open.
     var at = document.activeElement;
     if (type === 'blur' && at && ringCtxEl.contains(at) && /^(INPUT|SELECT)$/.test(at.tagName)) return;
+    // The pane's window grows to give its open menu room: the menu is placed
+    // again rather than closed.
+    if (type === 'resize' && IS_ISOPANE && paneMenuOpen) return;
     setRingCtx(false);
   });
 });
@@ -4319,6 +4330,14 @@ if (IS_RINGWIN){
       if (typeof d.share === 'number' && isFinite(d.share)) splitShare = clamp(d.share, SPLIT_MIN, SPLIT_MAX);
       splitAlign = typeof d.top === 'number' && typeof d.bottom === 'number' && isFinite(d.top) && isFinite(d.bottom) ? { top: d.top, bottom: d.bottom } : null;
       applySplitAlign();
+      return;
+    }
+    // The room the holding ring gave the menu: none (or the menu closed),
+    // and the content follows the frame again.
+    if (d.ringhost === 'menuroom'){
+      if (!IS_ISOPANE) return;
+      if (d.px > 0) placeRingCtx();
+      else pinPaneBody(false);
       return;
     }
     if (d.ringhost !== 'look') return;
@@ -6301,6 +6320,27 @@ function loadIsoFrame(){
   isoPane.parent = isoPaneEl.parentNode;
   syncIsoPaneLabels();
 }
+// A menu open in the pane: the pane goes over the line's controls and its
+// frame runs on down to the window's foot, over the subgroups panel, its
+// place in the layout unchanged; the pane is told how far.
+function setPaneMenuRoom(open){
+  isoPaneEl.classList.toggle('is-menu-open', open);
+  var f = isoPaneFrame;
+  if (!f) return;
+  f.style.flex = f.style.height = f.style.marginBottom = '';
+  var px = 0;
+  if (open){
+    var r = f.getBoundingClientRect();
+    px = Math.max(0, Math.floor(document.documentElement.clientHeight - r.bottom));
+    if (px){
+      f.style.flex = 'none';
+      f.style.height = (r.height + px) + 'px';
+      f.style.marginBottom = -px + 'px';
+      f.getBoundingClientRect();
+    }
+  }
+  try { f.contentWindow.postMessage({ ringhost: 'menuroom', px: px }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+}
 function closeIsoPane(){
   endIsoPick();
   if (isoPaneFrame) isoPaneFrame.remove();
@@ -7348,7 +7388,7 @@ window.addEventListener('message', function(e){
     // pairs its rows anew to match.
     if (drawn){ syncInterlock(); syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
   } else if (d.isopane === 'menu'){
-    isoPaneEl.classList.toggle('is-menu-open', d.open === true);
+    setPaneMenuRoom(d.open === true);
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
@@ -8102,9 +8142,26 @@ document.addEventListener('pointerdown', function(e){
   if (!subCtxEl.contains(e.target)) setSubCtx(false);
 });
 // A menu open in the pane tells the ring holding it, which lifts the pane
-// over the controls it keeps on the line between them, so none covers it.
+// over the controls it keeps on the line between them, so none covers it,
+// and lets the frame run down to the window's foot, over the subgroups panel,
+// so the menu has the room the holding ring's own menu has. The pane's
+// content keeps its height meanwhile, so the ring does not move.
+var paneMenuOpen = false;
+function pinPaneBody(on){
+  var body = document.querySelector('.ringwin-body');
+  if (!body) return;
+  body.style.height = on ? body.offsetHeight + 'px' : '';
+  body.style.bottom = on ? 'auto' : '';
+}
 if (IS_ISOPANE){
-  var tellPaneMenu = function(){ tellHost({ isopane: 'menu', open: !ringCtxEl.hidden || !subCtxEl.hidden }); };
+  var tellPaneMenu = function(){
+    var open = !ringCtxEl.hidden || !subCtxEl.hidden;
+    if (open === paneMenuOpen) return;
+    paneMenuOpen = open;
+    if (open) pinPaneBody(true);
+    tellHost({ isopane: 'menu', open: open });
+  };
+  window.addEventListener('resize', function(){ if (!ringCtxEl.hidden) placeRingCtx(); });
   var paneMenuWatch = new MutationObserver(tellPaneMenu);
   [ringCtxEl, subCtxEl].forEach(function(el){ paneMenuWatch.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
 }
