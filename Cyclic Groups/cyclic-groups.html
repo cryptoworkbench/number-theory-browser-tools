@@ -7577,10 +7577,10 @@ function isoReceive(d){
     var follow = d.follow === true && d.k >= 0, was = state.genFollow;
     isoSelSent = selKey(d.k, follow);
     state.genFollow = follow;
-    if (follow){
-      followedGen = null;
-      if (!IS_ISOPANE) coupleForFollow(true);
-    }
+    // Only a fresh choice to follow couples the sliders: the other ring's
+    // echo of a follow already under way must not close the padlock again.
+    if (follow) followedGen = null;
+    if (follow && !was && !IS_ISOPANE) coupleForFollow(true);
     if (d.k < 0){
       if (state.noSub) return;
       state.noSub = true;
@@ -7688,6 +7688,14 @@ function syncExprLock(){
 function toggleExprCoupling(){
   exprCoupled = !exprCoupled;
   syncExprLock();
+  // Uncoupled, the two sliders could pick different subgroups, so a merged
+  // list stops following them: the subgroup on show stays, chosen outright.
+  if (!exprCoupled && state.genFollow && subInterlocked()){
+    state.genFollow = false;
+    followedGen = null;
+    render();
+    return;
+  }
   // Closed, the pane's slider takes the image of this one's at once.
   if (exprCouplingOn()) tellPaneExpr();
 }
