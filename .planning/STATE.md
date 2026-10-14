@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-13T13:40:47.882Z"
+last_updated: "2026-10-14T09:14:02.846Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: b89f2580cd1deca4369084d9a6ad6ba6d2a22b51
+state_head: 0ef01d9f7a148e7f261f7de3a276f689ae500e81
 progress:
   total_phases: 7
   completed_phases: 6
@@ -620,6 +620,7 @@ None yet.
 | 384 | RSA: link each keypair's modulus to (ℤ/nℤ)* in Cyclic Groups | 2026-10-13 | ec30745 | — |
 | 385 | Combine two elements on the ring: yellow, blue and green halos | 2026-10-13 | 1ab69e3 | — |
 | 386 | Combined elements mirrored to the other ring through the isomorphism | 2026-10-13 | ea6c059 | — |
+| 387 | Cyclic Groups: hover formula (cardinality / index-cofactor-coset) for the subgroup list, shown in the row or at the ring | 2026-10-14 | 0ef01d9 | — |
 
 ## Deferred Items
 
