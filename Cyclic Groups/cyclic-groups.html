@@ -314,6 +314,11 @@
      from a row): where more rows lie beyond an edge, the list fades out
      there instead. */
   .subgroups::-webkit-scrollbar{ display:none; }
+  /* Over the fade at the bottom, how many rows lie below; a click scrolls
+     a page down. Placed by syncSubMore, level with the list's bottom edge. */
+  .sub-more{ position:absolute; z-index:2; translate:-50% 0; padding:1px 10px; font:inherit; font-size:.74rem; color:var(--text-dim); background:var(--surface); border:1px solid var(--panel-border); border-radius:999px; box-shadow:0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); cursor:pointer; white-space:nowrap; }
+  .sub-more:hover{ color:var(--accent); border-color:var(--accent); }
+  .sub-more[hidden]{ display:none; }
   .subgroups.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); }
   .subgroups.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); }
   .subgroups.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); }
@@ -1512,6 +1517,7 @@
         </div>
         </div>
         <ul class="subgroups" id="subgroups"></ul>
+        <button type="button" class="sub-more" id="sub-more" tabindex="-1" aria-hidden="true" hidden></button>
         <div class="fs-menu ring-ctx" id="sub-ctx" role="menu" hidden></div>
       </section>
     </div>
@@ -6230,11 +6236,23 @@ function focusCurrentRow(){
   showRow(row);
 }
 // The list has no scrollbar: it fades out at an edge with more rows beyond it.
+// Below it, a label counts the rows still hidden there.
+var subMoreEl = $('sub-more');
 function syncSubMore(){
   var top = subgroupsEl.scrollTop, rest = subgroupsEl.scrollHeight - subgroupsEl.clientHeight - top;
   subgroupsEl.classList.toggle('is-more-above', top > 1);
   subgroupsEl.classList.toggle('is-more-below', rest > 1);
+  var bottom = subgroupsEl.getBoundingClientRect().bottom, n = 0;
+  if (rest > 1) Array.prototype.forEach.call(subgroupsEl.children, function(li){ if (li.getBoundingClientRect().top >= bottom - 1) n++; });
+  subMoreEl.hidden = !n || !subgroupsEl.offsetParent;
+  if (subMoreEl.hidden) return;
+  subMoreEl.textContent = translate('cyclicGroups.subMoreBelow', { count: n });
+  subMoreEl.style.left = (subgroupsEl.offsetLeft + subgroupsEl.offsetWidth / 2) + 'px';
+  subMoreEl.style.top = (subgroupsEl.offsetTop + subgroupsEl.offsetHeight - subMoreEl.offsetHeight - 4) + 'px';
 }
+subMoreEl.addEventListener('click', function(){
+  subgroupsEl.scrollBy({ top: subgroupsEl.clientHeight * 0.8, behavior: 'smooth' });
+});
 subgroupsEl.addEventListener('scroll', syncSubMore, { passive: true });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,

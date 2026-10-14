@@ -469,6 +469,7 @@
       ctxShowFormulasItem: 'Formulas',
       genExpTitle: 'Element expressions',
       genExpOpenTitle: 'Show the element expressions',
+      subMoreBelow: { one: '+{count} more row', other: '+{count} more rows' },
       genExpMinimizeTitle: 'Minimize the element expressions',
       genExpSortElUp: 'Sort by element, low to high',
       genExpSortElDown: 'Sort by element, high to low',
