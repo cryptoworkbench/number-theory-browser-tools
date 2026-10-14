@@ -360,8 +360,8 @@ function buildExpected(catalog, navHrefs) {
     throw new Error("buildExpected: de.heading is identical to en.heading — cross-session probe would be vacuous");
   }
 
-  if (!navHrefs || navHrefs.length !== 19) {
-    throw new Error("buildExpected: expected 19 nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
+  if (!navHrefs || navHrefs.length !== expectedNavLinkCount()) {
+    throw new Error("buildExpected: expected " + expectedNavLinkCount() + " nav hrefs, extracted " + (navHrefs ? navHrefs.length : 0));
   }
 
   return { en: en, fr: fr, es: es, de: de, rawTemplates: rawTemplates, navHrefs: navHrefs };
@@ -2393,8 +2393,22 @@ var PAGES = [
   { file: "Elliptic Curve Diffie-Hellman/elliptic-curve-diffie-hellman.html", dataFile: "assets/i18n/elliptic-curve-diffie-hellman.js", ns: "ecdh", slug: "elliptic-curve-diffie-hellman" },
   { file: "RSA/rsa.html", dataFile: "assets/i18n/rsa.js", ns: "rsa", slug: "rsa" },
   { file: "Fermats Method/fermats-method.html", dataFile: "assets/i18n/fermats-method.js", ns: "fermat", slug: "fermats-method" },
-  { file: "Shors Algorithm/shors-algorithm.html", dataFile: "assets/i18n/shors-algorithm.js", ns: "shor", slug: "shors-algorithm" }
+  { file: "Shors Algorithm/shors-algorithm.html", dataFile: "assets/i18n/shors-algorithm.js", ns: "shor", slug: "shors-algorithm" },
+  { file: "QR Code/qr-code.html", dataFile: "assets/i18n/qr-code.js", ns: "qr", slug: "qr-code" }
 ];
+
+// Number of nav links a canonical header carries: Home plus one per page that has a nav entry,
+// i.e. the site.nav.* keys of the English catalog other than the nav.label aria-label. Derived
+// rather than hard-coded so adding a nav entry needs no checker edit; loaded once per process.
+var NAV_LINK_COUNT = null;
+function expectedNavLinkCount() {
+  if (NAV_LINK_COUNT === null) {
+    NAV_LINK_COUNT = Object.keys(loadCatalog().site.en).filter(function (k) {
+      return /^nav\./.test(k) && k !== "nav.label";
+    }).length;
+  }
+  return NAV_LINK_COUNT;
+}
 
 function pageForFile(relPath) {
   var norm = relPath.split(path.sep).join("/");
@@ -2492,7 +2506,7 @@ function isProse(text) {
 // language.
 var SCRIPT_LATIN_NOTATION = [
   "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
-  "Fourier", "Garner", "Hasse", "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG",
+  "Fourier", "Garner", "Hasse", "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "QR", "RSA", "SVG",
   "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "pointAdd",
   "qInv", "scalarMul"
 ];
@@ -2546,7 +2560,7 @@ var ZGH_LATN_TO_TFNG = Object.freeze({
 // (Fibonacci, Fourier, Garner, Hasse are adapted to IRCAM Latin) plus those four.
 var ZGH_KEEP = [
   "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Delete", "Enter", "Eve",
-  "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "RSA", "SVG", "Space", "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
+  "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "QR", "RSA", "SVG", "Space", "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
   "kG", "lcm", "log", "mod", "ms", "pointAdd", "qInv", "scalarMul"
 ];
 var ZGH_KEEP_SET = {};
@@ -3355,8 +3369,8 @@ function checkSwitcherPresent(relPath, html, findings) {
   }
   // Nav links only, not a page title bound to a site.nav key.
   var navRefs = html.match(/<a\b[^>]*\bdata-i18n="site\.nav\.[A-Za-z]+"/g) || [];
-  if (navRefs.length !== 18) {
-    findings.push("SWITCHER " + relPath + ": expected 18 data-i18n=\"site.nav.*\" links, found " + navRefs.length);
+  if (navRefs.length !== expectedNavLinkCount()) {
+    findings.push("SWITCHER " + relPath + ": expected " + expectedNavLinkCount() + " data-i18n=\"site.nav.*\" links, found " + navRefs.length);
   }
   var header = extractHeaderHtml(html);
   if (header === null || !/<select\b[^>]*id="lang-switch-select"/.test(header)) {
@@ -3394,7 +3408,16 @@ function checkHeader(targets, opts) {
     var aTagRe = /<a\s+href="([^"]+)"\s+class="site-nav-link( is-active)?"[^>]*>/g;
     var activeHrefs = [], am;
     while ((am = aTagRe.exec(header))) { if (am[2]) activeHrefs.push(am[1]); }
-    if (activeHrefs.length !== 1) {
+    // A nav-linked page (its own path appears among the canonical header's hrefs) carries exactly one
+    // is-active link, to itself; a page with no nav entry carries none (assets/theme.js then falls
+    // back to the first nav link).
+    var pagePosix = path.relative(ROOT, abs).split(path.sep).join("/");
+    var navLinked = sieveNorm.indexOf('href="' + pagePosix + '"') !== -1;
+    if (!navLinked) {
+      if (activeHrefs.length !== 0) {
+        findings.push("ACTIVE-LINK " + relPath + ": page has no nav link, expected 0 is-active nav links, found " + activeHrefs.length);
+      }
+    } else if (activeHrefs.length !== 1) {
       findings.push("ACTIVE-LINK " + relPath + ": expected exactly 1 is-active nav link, found " + activeHrefs.length);
     } else {
       var selfBase = path.basename(relPath);
