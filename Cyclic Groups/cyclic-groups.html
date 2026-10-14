@@ -1062,9 +1062,12 @@
      their own under the sliders (the gx row of every layout), each
      element across the top and under it, row by row, its power of every
      generator, the elements and the powers that equal them in lined-up
-     columns. A wide or tall table scrolls inside the band. */
+     columns. A table too wide for the band shrinks a little, then wraps:
+     its columns go on in blocks under one another, each with the rows'
+     names, so it never scrolls sideways; a tall one scrolls inside the
+     band. */
   .genexp-info{ display:none; }
-  .fs-win-body.is-ring > .genexp-info:not([hidden]){ grid-area:gx; justify-self:center; align-self:start; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; max-width:100%; margin:0; padding:10px 0 0; }
+  .fs-win-body.is-ring > .genexp-info:not([hidden]){ grid-area:gx; justify-self:stretch; align-self:start; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; max-width:100%; margin:0; padding:10px 0 0; }
   .fs-win-body.is-ring > .genexp-info > h2{ margin:0; font-size:.78rem; }
   /* In the isomorphism view both rings show theirs. Unlinked, each ring has
      its own under its own sliders; linked, the pane shows none of its own,
@@ -1072,8 +1075,8 @@
      its own, as it does the two inverse-pair colour keys. */
   .fs-win-body.is-ring > #genexp-info-pane:not([hidden]){ grid-area:gxr; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
-  .genexp-body{ max-width:100%; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
-  .genexp-table{ border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:1.05rem; color:var(--text); }
+  .genexp-body{ align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
+  .genexp-table{ flex:none; border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.05rem * var(--genexp-fit, 1)); color:var(--text); }
   .genexp-table td{ padding:.12em .4em; text-align:center; vertical-align:baseline; white-space:nowrap; }
   /* The elements' row is set off from the powers under it, and each row's
      name stays in view while the table scrolls sideways. */
@@ -3743,7 +3746,8 @@ function fillGenExp(G){
   if (!G.cyclic){
     var none = tNode('cyclicGroups.genExpNone', { group: mInline(mGroup(G), G.label) });
     none.className = 'genexp-none';
-    genExpBodyEl.replaceChildren(none);
+    genExpBodyEl.genExpFull = none;
+    fitGenExp(genExpBodyEl);
     return;
   }
   var gens = G.generators.slice().sort(function(a, b){ return a - b; });
@@ -3763,7 +3767,66 @@ function fillGenExp(G){
   };
   row(genExpHead(G, -1, mi('x')), nat).className = 'genexp-els';
   gens.forEach(function(g, i){ row(genExpHead(G, i, mEl('msup', [mn(g), mi('k')]), g), pows[i]); });
-  genExpBodyEl.replaceChildren(table);
+  genExpBodyEl.genExpFull = table;
+  fitGenExp(genExpBodyEl);
+}
+// The table into the band's width: as it is when it fits, else shrunk to
+// fit down to GENEXP_MIN_FIT of its size, else at that size with its
+// columns in blocks, each as many as fit, under one another, every block
+// with the rows' names. The full table is kept aside (genExpFull) and the
+// blocks are copies of it, built again when the band's width changes.
+var GENEXP_MIN_FIT = 0.8;
+function fitGenExp(body){
+  var full = body.genExpFull;
+  body.style.removeProperty('--genexp-fit');
+  if (!full){ body.replaceChildren(); return; }
+  var room = body.clientWidth;
+  body.genExpRoom = room;
+  var t = full.cloneNode(true);
+  body.replaceChildren(t);
+  if (!room || t.localName !== 'table' || !t.rows.length) return;
+  room -= 2;
+  // The table's width doesn't shrink exactly in step with its font (the
+  // pixel-rounded padding), so the fit is worked out again from the table
+  // as drawn, a few times over.
+  var fit = 1;
+  for (var pass = 0; pass < 4; pass++){
+    var w = t.getBoundingClientRect().width;
+    if (w <= room || fit <= GENEXP_MIN_FIT) break;
+    fit = Math.max(GENEXP_MIN_FIT, Math.floor(fit * room / w * 1000) / 1000);
+    body.style.setProperty('--genexp-fit', String(fit));
+  }
+  if (t.getBoundingClientRect().width <= room) return;
+  // Too wide even so: as many blocks as the widest columns need, the
+  // columns shared out evenly between them.
+  var cells = Array.prototype.slice.call(t.rows[0].cells);
+  var head = cells[0].getBoundingClientRect().width;
+  var widest = Math.max.apply(null, cells.slice(1).map(function(c){ return c.getBoundingClientRect().width; }));
+  var count = cells.length - 1;
+  var per = Math.max(1, Math.floor((room - head) / widest));
+  var n = Math.ceil(count / per);
+  per = Math.ceil(count / n);
+  var blocks = [];
+  for (var b0 = 1; b0 <= count; b0 += per) blocks.push([b0, Math.min(b0 + per, count + 1)]);
+  body.replaceChildren.apply(body, blocks.map(function(b){
+    var part = document.createElement('table');
+    part.className = t.className;
+    var tb = part.createTBody();
+    Array.prototype.forEach.call(full.rows, function(r){
+      var tr = tb.insertRow();
+      if (r.className) tr.className = r.className;
+      tr.appendChild(r.cells[0].cloneNode(true));
+      for (var k = b[0]; k < b[1]; k++) if (r.cells[k]) tr.appendChild(r.cells[k].cloneNode(true));
+    });
+    return part;
+  }));
+}
+// A band whose width changes fits its table again.
+function watchGenExpWidth(body){
+  if (typeof ResizeObserver !== 'function') return;
+  new ResizeObserver(function(){
+    if (body.clientWidth !== body.genExpRoom) fitGenExp(body);
+  }).observe(body);
 }
 // A row's name: a button holding it (x, or g^k) and the sort's arrow while
 // it is the active row; its title says what a click does, and aria-sort on
@@ -3776,6 +3839,7 @@ function genExpHead(G, col, name, g){
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'genexp-sort' + (active ? ' is-active' : '');
+  btn.setAttribute('data-col', String(col));
   var next = active ? -sort.dir : 1;
   var title = col < 0
     ? translate(next > 0 ? 'cyclicGroups.genExpSortElUp' : 'cyclicGroups.genExpSortElDown')
@@ -3788,16 +3852,22 @@ function genExpHead(G, col, name, g){
   arrow.setAttribute('aria-hidden', 'true');
   arrow.textContent = active ? (sort.dir > 0 ? '▲' : '▼') : '↕';
   btn.appendChild(arrow);
-  btn.addEventListener('click', function(){
-    genExpSort = { group: sort.group, col: col, dir: next };
-    if (drawn) fillGenExp(drawn.G);
-    tellHostGenExp();
-    var again = genExpBodyEl.querySelectorAll('.genexp-sort')[col + 1];
-    if (again) again.focus();
-  });
   th.appendChild(btn);
   return th;
 }
+// A click on a row's name (in any of the blocks) sorts the columns by that
+// row: up first, and the other way round when it is the active row.
+genExpBodyEl.addEventListener('click', function(e){
+  var btn = e.target.closest && e.target.closest('button.genexp-sort[data-col]');
+  if (!btn || !drawn || !genExpSort) return;
+  var col = parseInt(btn.getAttribute('data-col'), 10);
+  genExpSort = { group: genExpSort.group, col: col, dir: genExpSort.col === col ? -genExpSort.dir : 1 };
+  fillGenExp(drawn.G);
+  tellHostGenExp();
+  var again = genExpBodyEl.querySelector('.genexp-sort[data-col="' + col + '"]');
+  if (again) again.focus();
+});
+watchGenExpWidth(genExpBodyEl);
 // The panel's numbers and colours changing redraw the table too.
 function syncGenExp(G){
   if (genExpShown()) fillGenExp(G);
@@ -3824,13 +3894,13 @@ var genExpSent;
 function tellHostGenExp(){
   if (!IS_ISOPANE) return;
   var table = null;
-  if (genExpShown() && genExpBodyEl.firstChild){
-    var copy = genExpBodyEl.firstChild.cloneNode(true);
-    copy.querySelectorAll('button.genexp-sort').forEach(function(btn, i){
+  if (genExpShown() && genExpBodyEl.genExpFull){
+    var copy = genExpBodyEl.genExpFull.cloneNode(true);
+    copy.querySelectorAll('button.genexp-sort').forEach(function(btn){
       var span = document.createElement('span');
       span.className = btn.className;
       span.title = btn.title;
-      span.setAttribute('data-col', String(i - 1));
+      span.setAttribute('data-col', btn.getAttribute('data-col'));
       while (btn.firstChild) span.appendChild(btn.firstChild);
       btn.replaceWith(span);
     });
@@ -3848,16 +3918,18 @@ function syncPaneGenExp(){
   if (IS_ISOPANE) return;
   var on = !!isoPane && !!drawn && isoLinked() && genExpShown() && !!isoPaneGenExp;
   genExpPaneEl.hidden = !on;
-  if (!on){ genExpPaneBodyEl.replaceChildren(); return; }
+  if (!on){ genExpPaneBodyEl.genExpFull = null; genExpPaneBodyEl.removeAttribute('data-sig'); genExpPaneBodyEl.replaceChildren(); return; }
   var sig = JSON.stringify(isoPaneGenExp);
   if (genExpPaneBodyEl.getAttribute('data-sig') === sig) return;
   genExpPaneBodyEl.setAttribute('data-sig', sig);
-  genExpPaneBodyEl.replaceChildren(jsonNode(isoPaneGenExp));
-  genExpPaneBodyEl.querySelectorAll('.genexp-sort[data-col]').forEach(function(span){
+  var full = jsonNode(isoPaneGenExp);
+  if (full.querySelectorAll) full.querySelectorAll('.genexp-sort[data-col]').forEach(function(span){
     span.setAttribute('role', 'button');
     span.tabIndex = 0;
     span.setAttribute('aria-label', span.title);
   });
+  genExpPaneBodyEl.genExpFull = full;
+  fitGenExp(genExpPaneBodyEl);
 }
 function dropPaneGenExp(){
   isoPaneGenExp = null;
@@ -3880,6 +3952,7 @@ function sortPaneGenExp(e){
 var genExpPaneFocus = null;
 genExpPaneBodyEl.addEventListener('click', sortPaneGenExp);
 genExpPaneBodyEl.addEventListener('keydown', sortPaneGenExp);
+watchGenExpWidth(genExpPaneBodyEl);
 // Text onto the clipboard; where the Clipboard API is out of reach (a page
 // opened from a file in some browsers), through a hidden text box.
 function copyText(text){
@@ -4492,7 +4565,7 @@ if (IS_RINGWIN){
     // and the content follows the frame again.
     if (d.ringhost === 'genexp-sort'){
       if (!IS_ISOPANE || !Number.isInteger(d.col)) return;
-      var btn = genExpBodyEl.querySelectorAll('.genexp-sort')[d.col + 1];
+      var btn = genExpBodyEl.querySelector('.genexp-sort[data-col="' + d.col + '"]');
       if (btn) btn.click();
       return;
     }
