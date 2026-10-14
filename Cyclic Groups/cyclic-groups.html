@@ -3049,7 +3049,7 @@ var lastSubs = [];
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
 var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
-var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex' };
+var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
 var scratchOpen = false;
 // The scratchpad's formulas, fresh nodes each time, in its rows' order:
 // { key, cls, math, plain } for each row that holds a formula.
@@ -3064,11 +3064,27 @@ function scratchFormulas(G){
   if (count) list.push({ key: 'gens', cls: 'ring-math-formula', math: count.math, plain: count.plain });
   return list.sort(function(a, b){ return SCRATCH_ROWS.indexOf(a.key) - SCRATCH_ROWS.indexOf(b.key); });
 }
-// What each scratchpad row holds, by its key: its formula, or what stands
-// in for it; a row with nothing to show has no entry.
+// The group's structure, the last of the right-click menu's formulas,
+// copied and dragged out like the scratchpad's: ⟨ℤ/nℤ, +⟩ for a cyclic
+// group, else the product of its cyclic factors.
+function structureFormula(G){
+  if (G.cyclic) return { key: 'struct', cls: 'ring-math-formula', math: mGroupOf('additive', G.order), plain: additiveLabel(G.order) };
+  var factors = unitFactors(G.n), parts = [];
+  factors.forEach(function(f, i){
+    if (i) parts.push(mo('×'));
+    parts.push(mGroupOf('additive', f.order));
+  });
+  return { key: 'struct', cls: 'ring-math-formula', math: mrow.apply(null, parts), plain: factorNotation(factors) };
+}
+// The menu's formulas: the scratchpad's, then the structure.
+function menuFormulas(G){
+  return scratchFormulas(G).concat([structureFormula(G)]);
+}
+// What each scratchpad row (and the structure) holds, by its key: its
+// formula, or what stands in for it; a row with nothing to show has no entry.
 function scratchCells(G){
   var cells = {};
-  scratchFormulas(G).forEach(function(f){ cells[f.key] = scratchMath(f.cls, f.math, f.plain); });
+  menuFormulas(G).forEach(function(f){ cells[f.key] = scratchMath(f.cls, f.math, f.plain); });
   if (!noSub() && G.mode === 'multiplicative' && G.cyclic && !state.bygen) cells.sorder = logBasePrompt(G, true);
   if (!cells.gens) cells.gens = tNode('cyclicGroups.factGeneratorsNoneMath', { zero: mNum(0) });
   return cells;
@@ -3364,8 +3380,7 @@ function svgIcon(parts){
 // in theirs), the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
 // there, and last the Info section: the Formulas submenus (each formula to
-// copy in one of several formats) and the
-// group's structure from the Info panel, which does nothing yet. A pane's
+// copy in one of several formats), the group's structure last among them. A pane's
 // menu has no isomorphisms, nor has the ring's while a pane is open; its Colours are the left ring's, each change
 // relayed there, and its Formulas are its own group's.
 var RING_CTX_ITEMS = [
@@ -3377,7 +3392,7 @@ var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
-  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
+  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, copy: 'struct' }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows') };
@@ -3399,8 +3414,8 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   var item = document.createElement('button');
   item.type = 'button';
   item.className = 'fs-menu-item';
-  item.setAttribute('role', l.checked || !(l.run || l.sub) ? 'menuitemcheckbox' : 'menuitem');
-  if (l.sub){
+  item.setAttribute('role', l.checked || !(l.run || l.sub || l.copy) ? 'menuitemcheckbox' : 'menuitem');
+  if (l.sub || l.copy){
     item.setAttribute('aria-haspopup', 'true');
     item.setAttribute('aria-expanded', 'false');
   }
@@ -3411,7 +3426,7 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   var label = document.createElement('span');
   item.appendChild(mark);
   item.appendChild(label);
-  if (l.sub){
+  if (l.sub || l.copy){
     var more = document.createElement('span');
     more.className = 'ring-ctx-more';
     more.setAttribute('aria-hidden', 'true');
@@ -3432,8 +3447,10 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   }
   item.addEventListener('pointerenter', function(){
     setRingSub(l.sub && item.getAttribute('aria-disabled') !== 'true' ? l.sub : null, false);
+    if (l.copy) setRingCopy(l.copy, item, false);
   });
   item.addEventListener('click', function(){
+    if (l.copy){ setRingSub(null); setRingCopy(l.copy, item, true); return; }
     if (l.sub){
       if (item.getAttribute('aria-disabled') !== 'true') setRingSub(l.sub, true);
       return;
@@ -3573,7 +3590,8 @@ function ctxItem(role, label, more){
   }
   return { item: item, mark: mark };
 }
-// The Formulas section, in the menu itself above Structure: the switch that
+// The Formulas section, in the menu itself above Structure (whose copy
+// submenu RING_CTX_ITEMS opens itself): the switch that
 // shows the formula scratchpad (where a Ring window has one to show), then
 // the scratchpad's formulas by their row names, each opening the copy
 // submenu. The menu stays open on the switch, to see the card come and go.
@@ -3611,7 +3629,7 @@ function setRingCopy(name, from, focus){
   if (!name){ ringCopyEl.replaceChildren(); return; }
   from.setAttribute('aria-expanded', 'true');
   ringCopyEl.setAttribute('aria-label', translate(SCRATCH_NAMES[name]));
-  var shown = drawn && scratchFormulas(drawn.G).find(function(x){ return x.key === name; }), top = [];
+  var shown = drawn && menuFormulas(drawn.G).find(function(x){ return x.key === name; }), top = [];
   if (shown){
     var view = document.createElement('div');
     view.className = 'ring-ctx-formula';
@@ -3626,7 +3644,7 @@ function setRingCopy(name, from, focus){
   ringCopyEl.replaceChildren.apply(ringCopyEl, top.concat(COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
     it.item.addEventListener('click', function(){
-      var f = drawn && scratchFormulas(drawn.G).find(function(x){ return x.key === name; });
+      var f = drawn && menuFormulas(drawn.G).find(function(x){ return x.key === name; });
       setRingCtx(false);
       if (f) copyText(c.as(f));
     });
@@ -3647,7 +3665,7 @@ function setRingCopy(name, from, focus){
 // formula as it was drawn then, until its corner button closes it.
 function ringWorkArea(){ return scratchPadEl.closest('.fs-win-body.is-ring'); }
 function formulaCard(name){
-  var f = drawn && (scratchFormulas(drawn.G).find(function(x){ return x.key === name; }));
+  var f = drawn && (menuFormulas(drawn.G).find(function(x){ return x.key === name; }));
   if (!f) return null;
   var card = formulaCardShell(name);
   fillFormulaCard(card, drawn.G);
@@ -6354,8 +6372,8 @@ function generatorCount(G){
     plain: 'φ(φ(%)) = φ(φ(' + G.n + ')) = φ(' + phi + ') = ' + totient(phi) };
 }
 
-// The group's structure as a fresh math node, for the facts and the ring's
-// right-click menu; set by renderFacts.
+// The group's structure as a fresh math node, for the facts; set by
+// renderFacts.
 var structureFact;
 function renderFacts(G, factors){
   factsEl.replaceChildren();
