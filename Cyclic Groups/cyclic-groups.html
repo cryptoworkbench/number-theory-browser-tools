@@ -550,7 +550,6 @@
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
-  .order-label{ fill:var(--text-dim); font-family:var(--font-mono); font-size:12px; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .ring-title{ fill:var(--text); font-family:var(--font-serif); font-size:25px; font-weight:600; text-anchor:middle; }
   .ring-sub{ fill:var(--accent); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
   .ring-label{ fill:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600; text-anchor:middle; }
@@ -1478,7 +1477,6 @@
           </div>
           <button type="button" class="action-btn legend-btn" id="legend-btn" aria-pressed="false" aria-controls="legend-panel" data-i18n="cyclicGroups.showElementColours">Show key</button>
         </div>
-        <div class="check"><input type="checkbox" id="layer-orders"><label for="layer-orders" data-i18n="cyclicGroups.layerOrders">Order labels</label></div>
         <details class="extra-options">
           <summary data-i18n="cyclicGroups.extraOptions">Show extra options</summary>
           <div class="check"><input type="checkbox" id="layer-cord" checked><label for="layer-cord" data-i18n="cyclicGroups.layerCord">Show corresponding polygon</label></div>
@@ -1574,7 +1572,7 @@ var RING = { cx: 380, cy: 395, R: 238 };
 // screen the switches are hidden, and the Ring window's formula scratchpad
 // shows every formula instead.
 var HEAD_CHAIN = ['gname', 'sname', 'gorder', 'sorder', 'cindex'];
-var FLAGS = ['cord', 'guide', 'colors', 'orders', 'akey', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
+var FLAGS = ['cord', 'guide', 'colors', 'akey', 'bygen', 'gname', 'sname', 'gorder', 'sorder', 'cindex'];
 // The flags with a switch of their own; bygen is set by the arrangement
 // dropdown and colors by the element colours dropdown instead.
 var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name !== 'colors'; });
@@ -1594,7 +1592,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormula: 'none', subFormulaAt: 'row', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormula: 'none', subFormulaAt: 'row', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -2432,15 +2430,6 @@ function drawRing(parent, G, beads, box, paint){
     });
   }
 
-  if (state.orders && m <= 60 && beadR >= 7){
-    beads.forEach(function(a, i){
-      var p = polar(box.cx, box.cy, outerEdge + 15, dirSign() * 360 * i / m);
-      var label = svgEl('text', { 'class': 'order-label', x: num(p[0]), y: num(p[1]) });
-      label.textContent = String(G.orders[a]);
-      ring.appendChild(label);
-    });
-  }
-
   parent.appendChild(ring);
   return ring;
 }
@@ -3126,8 +3115,7 @@ function svgIcon(parts){
 var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxView', key: 'cyclicGroups.ctxZoomIn', zoom: 1, keys: '+', run: function(){ stepRingZoom(1); }, stay: true },
   { key: 'cyclicGroups.ctxZoomOut', zoom: -1, keys: '\u2212', run: function(){ stepRingZoom(-1); }, stay: true },
-  { head: 'cyclicGroups.layersHeading', name: 'orders', key: 'cyclicGroups.layerOrders' },
-  { name: 'cord', key: 'cyclicGroups.layerCord' },
+  { head: 'cyclicGroups.layersHeading', name: 'cord', key: 'cyclicGroups.layerCord' },
   { name: 'guide', key: 'cyclicGroups.layerGuide' },
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
@@ -4381,8 +4369,7 @@ function drawNecklace(G, paint){
   var beads = turned(arrangement(G));
   var box = ringBox();
   drawRing(ringDynamicEl, G, beads, box, paint);
-  if (state.orders) ringDynamicEl.appendChild(drawText('ring-note', SIZE / 2, SIZE - 14, translate('cyclicGroups.ringFootnoteOrders')));
-  drawCombineLine(G, SIZE - 16 - (state.orders ? 24 : 0));
+  drawCombineLine(G, SIZE - 16);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
   // above the ring's outer reach.
@@ -4857,7 +4844,7 @@ function spinAngle(angle){
   if (!ring) return;
   var box = ringBox();
   ring.setAttribute('transform', 'rotate(' + num(angle) + ' ' + box.cx + ' ' + box.cy + ')');
-  ring.querySelectorAll('.bead-label, .order-label').forEach(function(t){
+  ring.querySelectorAll('.bead-label').forEach(function(t){
     t.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + t.getAttribute('x') + ' ' + t.getAttribute('y') + ')');
   });
   isoTellTop(false);
@@ -5067,7 +5054,7 @@ function flipRing(change){
 // bead glides round the ring, the short way, from its old place to its new
 // one, the beads setting off one after another round the ring. The walks
 // travel with the beads, redrawn on every frame from where the beads are;
-// the old mirror axis and order labels fade out as the beads leave and the
+// the old mirror axis fades out as the beads leave and the
 // new ones fade in once they have landed. A redraw part way through (a
 // hover, a new element) shows the end state at once.
 var ARRANGE_MOVE_MS = 700, ARRANGE_STAGGER_MS = 350, ARRANGE_FADE_MS = 250;
@@ -6632,7 +6619,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, orders: state.orders, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -6650,7 +6637,6 @@ function applyIsoShared(d){
   if (flag(d.backward)) state.backward = d.backward;
   if (flag(d.swapColors)) state.swapColors = d.swapColors;
   if (flag(d.customColors)) state.customColors = d.customColors;
-  if (flag(d.orders)) state.orders = d.orders;
   if (flag(d.cord)) state.cord = d.cord;
   if (flag(d.guide)) state.guide = d.guide;
   if (flag(d.akey)) state.akey = d.akey;
@@ -7364,7 +7350,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'edit' && typeof d.on === 'boolean'){
     // A shared setting changed in the pane: the same click on this ring's own
     // controls, so both rings follow from the one render.
-    if (d.name === 'orders' || d.name === 'cord' || d.name === 'guide'){
+    if (d.name === 'cord' || d.name === 'guide'){
       var box = $('layer-' + d.name);
       if (box.checked !== d.on){
         box.checked = d.on;
@@ -7662,6 +7648,8 @@ function stateQuery(){
   q.set('gen', String(state.gen));
   if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else q.delete('sub');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
+  // Order labels are gone; an old link's switch for them is dropped.
+  q.delete('orders');
   q.delete('gentop');
   if (state.top !== 'id') q.set('top', state.top);
   else q.delete('top');
