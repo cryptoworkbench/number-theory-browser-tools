@@ -1018,9 +1018,9 @@
      from what the pane reports) joins it, each key at the end of its own
      ring's half. */
   #combine-key-pane{ display:none; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:minmax(3.6rem, 1fr) minmax(0, 420px) minmax(3.6rem, 1fr) calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot foot"; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:minmax(3.6rem, 1fr) minmax(0, 420px) minmax(3.6rem, 1fr) calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "rot spin . pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot foot"; }
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot foot"; }
-  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "gx gx gx pane" "lgd lgd lgd pane" "keyl keyl keyl keyr"; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "rot spin . pane" "gx gx gx pane" "lgd lgd lgd pane" "keyl keyl keyl keyr"; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "gx gx gx pane" "lgd lgd lgd pane" "keyl keyl keyl keyr"; }
   /* Their bottom margin matches the pane page's own padding under its row. */
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:rot; align-self:center; margin-bottom:10px; }
@@ -4288,8 +4288,9 @@ function syncPanes(){
 /* ---------- the Ring window's split view ---------- */
 // The pane under the ring takes in the page's one subgroups panel, a comment
 // keeping its place; closing the split, or leaving full screen, sends it back.
-// Alone, the ring has the Numerical button under it; beside an isomorphism
-// pane, and in the pane's own ring, it keeps to the end of the subgroup row.
+// Alone, the ring has the Numerical button under it, and so does each of two
+// unlinked rings; beside a linked isomorphism pane, and in the pane's own
+// ring, it keeps to the end of the subgroup row.
 // With the panel open, the button sits in the panel's top-right corner,
 // the way a window has its controls, pointing down, so a ring alone keeps
 // the row under it; beside an isomorphism pane too.
@@ -4306,13 +4307,15 @@ function placeSplitBtn(hadFocus){
       // Off the line between the rings: its place there no longer applies.
       splitBtnEl.style.left = splitBtnEl.style.top = '';
     }
-  } else if (!IS_ISOPANE && isoPaneEl.hidden){
+  } else if ((!IS_ISOPANE && isoPaneEl.hidden) || document.documentElement.classList.contains('is-iso-unlinked')){
+    // Unlinked, each of the two rings has its own under it, as alone.
     if (splitBtnEl.parentNode !== body) ringSvgEl.after(splitBtnEl);
   } else if (splitBtnEl.parentNode !== subgroupOptionsEl.parentNode) subgroupOptionsEl.after(splitBtnEl);
   // Moving the button blurs it; a keyboard user keeps their place.
   if (focused && document.activeElement !== splitBtnEl) splitBtnEl.focus({ preventScroll: true });
 }
 new MutationObserver(placeSplitBtn).observe(isoPaneEl, { attributes: true, attributeFilter: ['hidden'] });
+new MutationObserver(function(){ placeSplitBtn(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 function syncSplit(){
   var hadFocus = document.activeElement === splitBtnEl;
   var on =splitOn && !!ringSplitEl.closest('.fs-win-body.is-ring') && !(IS_ISOPANE && isoInterlockOn);
