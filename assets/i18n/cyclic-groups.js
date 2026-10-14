@@ -34,7 +34,9 @@
    and isoLockOpenSub (the open padlock's tooltip, naming the isomorphism a
    double-click would lock), introAbout, introFullscreen and introEnter
    (the intro screen every visit opens on: what the tool does, why it is a
-   full-screen application, and its button into the tool), and
+   full-screen application, and its button into the tool), introQrLabel
+   and introQrCaption (the QR code of the page's own address beside the
+   intro), and
    subExprFollow (the Numerical panel's two expressions following the ring's
    expression slider), isoAddLeftTitle (the + at the ring's left edge,
    opening a new ring on the left), and subWidthLabel, subWidthNone,
@@ -501,6 +503,8 @@
       introAbout: 'Cyclic Groups turns a group into a ring of beads, one bead for each element. Choose a modulus and an operation — addition modulo n, or multiplication of the units modulo n — then pick an element: its chords walk around the ring, and when they reach every bead that element generates the whole group, which makes the group cyclic. The ring fills the screen with the group\'s controls above it. The Numerical list shows the subgroup each element generates, and an isomorphic group can be opened beside the ring and locked to it with the padlock, so the two turn, colour and highlight as one.',
       introFullscreen: 'Because this tool has so many controls, it is really a full-screen application. It is best used in full screen, and the website\'s usual header is hidden either way. To get back to the rest of the website, use your browser\'s Back and Forward buttons instead of the header. Have fun!',
       introEnter: 'Open Cyclic Groups in full screen',
+      introQrLabel: 'QR code for the address of this page',
+      introQrCaption: 'Scan to open this page on your phone',
       subExprFollow: 'Follow expression slider',
       subRowGcd: { one: 'The GCD of {e} with {n} is {gcd}. So the subgroup has {count} element. {n} / GCD({n}, {e}) = {count}', other: 'The GCD of {e} with {n} is {gcd}. So the subgroup has {count} elements. {n} / GCD({n}, {e}) = {count}' },
       isoAskYes: 'Yes',
