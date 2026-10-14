@@ -452,7 +452,7 @@
       fsNotice: 'Notice',
       fsClose: 'Close {name}',
       ctxGenExp: 'Show generator exponent equivalences',
-      genExpTitle: 'Generator exponent equivalences',
+      genExpTitle: 'Element expressions',
       genExpSortElUp: 'Sort by element, low to high',
       genExpSortElDown: 'Sort by element, high to low',
       genExpSortExpUp: 'Sort by the exponent of {g}, low to high',
