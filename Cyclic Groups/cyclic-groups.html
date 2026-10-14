@@ -204,13 +204,14 @@
   /* While an isomorphism is studied a larger padlock sits on the line
      between the two rings, locked with both rings' group parameters and
      opened with them: a double-click on any of the three opens all three. */
-  /* The padlock on the line between the rings draws the eye: a little larger,
-     its colour drifting through the palette and a soft halo pulsing out from
-     it; warm while open (a lock waiting to be closed), cool while closed. */
+  /* The padlock on the line between the rings, a little larger, with a
+     keyhole: steady green while closed; open (a lock waiting to be closed),
+     its colour drifts through warm colours and a soft halo pulses out from it. */
   .iso-lock{ position:absolute; z-index:3; left:0; top:50%; translate:-50% -50%; display:grid; width:40px; height:40px; place-items:center; color:var(--accent); background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:default; user-select:none; -webkit-user-select:none; transition:opacity .5s ease;
     --lock-a:var(--accent); --lock-b:var(--role-result); --lock-c:var(--role-alt);
+    color:var(--role-result); border-color:var(--role-result); background:color-mix(in srgb, var(--role-result) 10%, var(--surface)); }
+  .iso-lock.is-open{ --lock-a:var(--role-warn); --lock-b:var(--role-special); --lock-c:var(--role-active);
     animation:iso-lock-hue 6s ease-in-out infinite, iso-lock-halo 2.4s ease-out infinite; }
-  .iso-lock.is-open{ --lock-a:var(--role-warn); --lock-b:var(--role-special); --lock-c:var(--role-active); }
   .iso-lock[hidden]{ display:none; }
   /* The swap button on the line between the rings, level with their group
      parameters, as between the two languages of a translator. */
@@ -219,8 +220,40 @@
   .iso-swap:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .iso-swap[hidden]{ display:none; }
   .iso-swap svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
-  .iso-lock svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; }
-  .iso-lock.is-unlocking{ animation:none; color:var(--accent); border-color:var(--accent); box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .iso-lock svg{ width:26px; height:26px; overflow:visible; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .iso-lock .lock-keyhole{ fill:currentColor; stroke:none; }
+  .iso-lock .lock-shackle{ transform-origin:16px 11px; }
+  .iso-lock.is-open .lock-shackle{ transform:translateY(-2.5px) rotate(22deg); }
+  /* Unlocking, a key flies in, slides into the keyhole and turns (its teeth
+     flipping over), the shackle springs up and swings open, and the lock
+     turns from green to the accent colour. */
+  .iso-lock .lock-key{ display:none; color:var(--role-active); transform-origin:12px 16px; }
+  .iso-lock .lock-key-blade{ stroke-width:2.2; }
+  .iso-lock .lock-key-bow{ fill:currentColor; stroke:none; }
+  .iso-lock .lock-key-hole{ fill:var(--surface); stroke:none; }
+  .iso-lock.is-unlocking{ animation:iso-lock-unlock 1.25s ease both; }
+  .iso-lock.is-unlocking .lock-key{ display:inline; animation:iso-key 1.25s cubic-bezier(.3,.7,.3,1) both; }
+  .iso-lock.is-unlocking .lock-shackle{ animation:iso-shackle 1.25s ease both; }
+  @keyframes iso-key{
+    0%{ opacity:0; transform:translate(-14px, 10px) rotate(-35deg); }
+    18%{ opacity:1; }
+    40%{ transform:translate(-3px, 0) rotate(0); }
+    52%{ transform:translate(0, 0); }
+    60%{ transform:translate(0, 0) scaleY(1); }
+    74%{ transform:translate(0, 0) scaleY(-1); }
+    88%{ opacity:1; transform:translate(0, 0) scaleY(-1); }
+    100%{ opacity:0; transform:translate(-4px, 0) scaleY(-1); }
+  }
+  @keyframes iso-shackle{
+    0%, 72%{ transform:none; }
+    82%{ transform:translateY(-3.5px); }
+    100%{ transform:translateY(-2.5px) rotate(22deg); }
+  }
+  @keyframes iso-lock-unlock{
+    0%, 72%{ color:var(--role-result); border-color:var(--role-result); box-shadow:0 0 0 0 color-mix(in srgb, var(--role-result) 0%, transparent); }
+    80%{ box-shadow:0 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent); }
+    100%{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface)); box-shadow:0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); }
+  }
   @keyframes iso-lock-hue{
     0%, 100%{ color:var(--lock-a); border-color:var(--lock-a); background:color-mix(in srgb, var(--lock-a) 10%, var(--surface)); }
     33%{ color:var(--lock-b); border-color:var(--lock-b); background:color-mix(in srgb, var(--lock-b) 10%, var(--surface)); }
@@ -230,7 +263,7 @@
     0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--lock-a) 45%, transparent); }
     70%, 100%{ box-shadow:0 0 0 12px color-mix(in srgb, var(--lock-a) 0%, transparent); }
   }
-  @media (prefers-reduced-motion: reduce){ .iso-lock{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .iso-lock, .iso-lock *{ animation:none !important; } .iso-lock.is-unlocking .lock-key{ display:none; } .iso-lock.is-unlocking .lock-shackle{ transform:translateY(-2.5px) rotate(22deg); } .iso-lock.is-unlocking{ color:var(--accent); border-color:var(--accent); } }
   .iso-lock.is-fading{ opacity:0; }
   /* Under them on the same line, a smaller padlock couples the two rings'
      expression sliders while it is closed: either slider then moves the
@@ -8643,11 +8676,25 @@ var groupLockIcons = Array.prototype.map.call(groupControlsEl.querySelectorAll('
   icon.setAttribute('aria-hidden', 'true');
   li.appendChild(icon);
   return icon;
-}).concat([isoLockEl]);
+});
 function drawGroupLocks(open){
   groupLockIcons.forEach(function(icon){
     icon.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: open ? 'M4 5.5V3.5a2 2 0 0 1 4 0' : 'M4 5.5V4a2 2 0 0 1 4 0v1.5' }]]));
   });
+}
+// The padlock between the rings: a shackle (open by its class), a body with
+// a keyhole, and the key that opens it, shown only while it unlocks.
+function drawIsoLock(){
+  var icon = svgEl('svg', { viewBox: '0 0 24 24', width: 24, height: 24, 'aria-hidden': 'true', focusable: 'false' });
+  icon.appendChild(svgEl('path', { 'class': 'lock-shackle', d: 'M8 11V8a4 4 0 0 1 8 0v3' }));
+  icon.appendChild(svgEl('rect', { x: 5, y: 11, width: 14, height: 10, rx: 2 }));
+  icon.appendChild(svgEl('path', { 'class': 'lock-keyhole', d: 'M12 14.2a1.5 1.5 0 0 1 .7 2.8l.4 2h-2.2l.4-2a1.5 1.5 0 0 1 .7-2.8z' }));
+  var key = svgEl('g', { 'class': 'lock-key' });
+  key.appendChild(svgEl('path', { 'class': 'lock-key-blade', d: 'M3.4 16H12.4M7.6 16v2.8M10 16v2.2' }));
+  key.appendChild(svgEl('circle', { 'class': 'lock-key-bow', cx: 0, cy: 16, r: 3.6 }));
+  key.appendChild(svgEl('circle', { 'class': 'lock-key-hole', cx: -0.6, cy: 16, r: 1.2 }));
+  icon.appendChild(key);
+  isoLockEl.replaceChildren(icon);
 }
 function setGroupLock(on){
   clearTimeout(groupLockTimer);
@@ -8657,6 +8704,7 @@ function setGroupLock(on){
   isoLockEl.hidden = !on || IS_ISOPANE;
   GROUP_LOCK_FIELDS.forEach(function(el){ el.disabled = on; });
   drawGroupLocks(false);
+  drawIsoLock();
   var title = on ? translate('cyclicGroups.groupLockTitle') : '';
   groupControlsEl.querySelectorAll(':scope > li:not(.fs-row-label)').forEach(function(li){
     if (title) li.title = title; else li.removeAttribute('title');
@@ -8676,7 +8724,7 @@ function syncOpenLock(){
   keepLockClear();
   if (!open) return;
   isoLockEl.setAttribute('title', translate(isoLinksWholeGroups() ? 'cyclicGroups.isoLockOpenGroup' : 'cyclicGroups.isoLockOpenSub'));
-  isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
+  drawIsoLock();
 }
 // The padlock, and while the rings are linked (as whole groups) their shared
 // Explore cosets button and its run's controls under it, sit on the line
@@ -8754,6 +8802,9 @@ function openGroupLock(told){
   }
   drawGroupLocks(true);
   [groupControlsEl, isoLockEl].forEach(function(el){ el.classList.add('is-unlocking'); });
+  // The key needs its time to open the padlock between the rings.
+  // Both rings wait for it, so their parameters open together.
+  var turn = (IS_ISOPANE || isoPane) && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 1300 : 450;
   groupLockTimer = setTimeout(function(){
     // The padlock between the rings stays, opening, while they are still isomorphic.
     var stays = !IS_ISOPANE && !!isoPane && isoFound();
@@ -8764,7 +8815,7 @@ function openGroupLock(told){
       // The ring holding the pane remembers that the pane was let go.
       tellHost({ isopane: 'unlocked' });
     }, 500);
-  }, 450);
+  }, turn);
 }
 groupControlsEl.addEventListener('dblclick', function(){ openGroupLock(false); });
 isoLockEl.addEventListener('dblclick', function(){
