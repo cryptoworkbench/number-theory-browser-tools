@@ -2555,18 +2555,23 @@ function orderFormulas(G, on){
   return out;
 }
 
+// In ℤ/nℤ the number gcd takes for h once |G| is written as n: h itself,
+// but n for 0, which is the same element, so ⟨0⟩ reads gcd(12, 12) = 12
+// rather than gcd(12, 0) = 12, as log_g 1 is taken as k in (ℤ/nℤ)*.
+function gcdOperand(G, h){ return h === 0 ? G.order : h; }
 // |⟨h⟩|, worked out: in ℤ/nℤ from gcd(n, h); in a cyclic (ℤ/nℤ)* from
 // log_g h, g the generator given; in a (ℤ/nℤ)* with no generator, h's order.
 function subOrderFormula(G, h, g){
   var n = G.order, d;
   if (G.mode === 'additive'){
-    d = gcd(n, h);
+    var q = gcdOperand(G, h);
+    d = gcd(n, q);
     return { math: mrow(
         abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
-        mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
+        mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
-      plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) };
+      plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, q: q, d: d, k: n / d }) };
   }
   if (!G.cyclic) return { math: mrow(abs(angle(mn(h))), mo('='), mrow(mi('ord'), mo('\u2061'), mo('(', true), mn(h), mo(')', true)), mo('='), mn(G.orders[h])),
     plain: translate('cyclicGroups.formula.mulSubgroupOrderByOrd', { h: h, k: G.orders[h] }) };
@@ -2594,9 +2599,10 @@ function cosetCountFormula(G, h, g, index){
   var n = G.order, lead = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), d;
   if (index) lead = mrow(mo('[', true), mGroup(G), mo(':'), angle(mn(h)), mo(']', true), mo('='), lead);
   if (G.mode === 'additive'){
-    d = gcd(n, h);
-    return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mn(h)), mo('='), mgcd(mn(n), mn(h)), mo('='), mn(d)),
-      plain: translate(index ? 'cyclicGroups.formula.subgroupIndex' : 'cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, d: d }) };
+    var q = gcdOperand(G, h);
+    d = gcd(n, q);
+    return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mn(h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
+      plain: translate(index ? 'cyclicGroups.formula.subgroupIndex' : 'cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, q: q, d: d }) };
   }
   if (G.cyclic && (g !== undefined || state.bygen)){
     if (g === undefined) g = arrangeBy(G);
