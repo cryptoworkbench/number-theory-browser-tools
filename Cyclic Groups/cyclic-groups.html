@@ -1074,6 +1074,19 @@
      and this ring draws the pane's table under the pane's half (gxr), beside
      its own, as it does the two inverse-pair colour keys. */
   .fs-win-body.is-ring > #genexp-info-pane:not([hidden]){ grid-area:gxr; }
+  /* The band opens from a small button always in the window's bottom right
+     corner, drawn over whatever lies there, and closes again from the
+     minimize button in its own top right corner; with two bands, only the
+     right-hand one has it (the pane's copy linked, the pane's own unlinked),
+     and either closes both. The pane has no corner button: the window's is
+     the one. */
+  .genexp-corner{ display:none; }
+  .fs-win-body.is-ring > .genexp-corner{ display:grid; position:absolute; right:6px; bottom:6px; z-index:5; }
+  :root.is-isopane .fs-win-body.is-ring > .genexp-corner{ display:none; }
+  .fs-win-body.is-ring > .genexp-corner[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
+  .fs-win-body.is-ring > .genexp-info{ position:relative; }
+  .genexp-info > .genexp-min{ position:absolute; top:6px; right:0; z-index:2; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #genexp-info > .genexp-min{ display:none; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
   .genexp-body{ align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
   .genexp-table{ flex:none; border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.05rem * var(--genexp-fit, 1)); color:var(--text); }
@@ -1574,12 +1587,15 @@
       </section>
       <section class="panel genexp-info" id="genexp-info" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expressions</h2>
+        <button type="button" class="fs-win-btn genexp-min" title="Minimize the element expressions" aria-label="Minimize the element expressions" data-i18n-title="cyclicGroups.genExpMinimizeTitle" data-i18n-aria-label="cyclicGroups.genExpMinimizeTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button>
         <div class="genexp-body" id="genexp-body"></div>
       </section>
       <section class="panel genexp-info is-pane-copy" id="genexp-info-pane" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expressions</h2>
+        <button type="button" class="fs-win-btn genexp-min" title="Minimize the element expressions" aria-label="Minimize the element expressions" data-i18n-title="cyclicGroups.genExpMinimizeTitle" data-i18n-aria-label="cyclicGroups.genExpMinimizeTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button>
         <div class="genexp-body" id="genexp-body-pane"></div>
       </section>
+      <button type="button" class="fs-win-btn genexp-corner" id="genexp-corner" aria-pressed="false" aria-controls="genexp-info" title="Show the element expressions" aria-label="Show the element expressions" data-i18n-title="cyclicGroups.genExpOpenTitle" data-i18n-aria-label="cyclicGroups.genExpOpenTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="1.5" y="2" width="9" height="8" rx="1"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4.5" y1="2" x2="4.5" y2="10"/></svg></button>
 
       <section class="panel" id="export-panel">
         <button type="button" class="action-btn" id="export-png" data-i18n="cyclicGroups.exportPng">Download ring PNG</button>
@@ -3186,7 +3202,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'genexp-corner', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -3219,8 +3235,7 @@ function svgIcon(parts){
 // Right-clicking the ring opens its own menu in place of the browser's: the
 // zoom, then the Show switches (the Layers panel's polygon and circle, each
 // flipping its checkbox there so the checkbox's own handler draws and
-// remembers the change, the formula scratchpad and the element expressions
-// band under the sliders), then the Colours
+// remembers the change, and the formula scratchpad), then the Colours
 // submenus (the element colours, and the arrows' own controls, which live
 // in theirs), the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
@@ -3235,7 +3250,6 @@ var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxShowHeading', name: 'cord', key: 'cyclicGroups.ctxShowPolygon' },
   { name: 'guide', key: 'cyclicGroups.ctxShowCircle' },
   { key: 'cyclicGroups.ctxShowFormulasItem', run: function(){ setScratchOpen(!scratchOpen); }, checked: function(){ return scratchOpen && !!ringWorkArea(); }, needsArea: true },
-  { key: 'cyclicGroups.ctxGenExp', run: function(){ toggleGenExp(); }, checked: function(){ return genExpShown(); }, needsArea: true },
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
@@ -3883,9 +3897,18 @@ function toggleGenExp(){
   }
   genExpEl.hidden = !genExpEl.hidden;
   if (genExpShown() && drawn) fillGenExp(drawn.G);
+  syncGenExpCorner();
   postIsoShared(false);
   syncPaneGenExp();
 }
+// The corner button opens and closes the band; the minimize buttons only
+// close it.
+var genExpCornerEl = $('genexp-corner');
+function syncGenExpCorner(){ genExpCornerEl.setAttribute('aria-pressed', genExpShown() ? 'true' : 'false'); }
+genExpCornerEl.addEventListener('click', toggleGenExp);
+document.querySelectorAll('.genexp-min').forEach(function(btn){
+  btn.addEventListener('click', function(){ if (genExpShown()) toggleGenExp(); });
+});
 // The pane's table, sent to the ring holding it as plain data whenever it
 // changes (null while it is hidden): linked, that ring draws it. Each row
 // name's button goes as a span carrying its column, which the copy's
@@ -7033,7 +7056,7 @@ function applyIsoShared(d){
   if (flag(d.guide)) state.guide = d.guide;
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
-  if (flag(d.genexp)) genExpEl.hidden = !d.genexp;
+  if (flag(d.genexp)){ genExpEl.hidden = !d.genexp; syncGenExpCorner(); }
   // The split follows the holding ring's only while the two are linked;
   // unlinked, the pane opens and closes its own, and takes the holder's
   // again once they are linked anew.
