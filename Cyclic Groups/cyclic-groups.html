@@ -1377,7 +1377,7 @@
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
           <span class="sub-expr-pair"><label for="sub-formula-select" data-i18n="cyclicGroups.subFormulaLabel">Formula on hover</label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality formula</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/coset formula</option></select></span>
-          <span class="sub-expr-pair"><label for="sub-formula-at-select" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</label><select id="sub-formula-at-select"><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the hovered row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-at-select" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</label><select id="sub-formula-at-select"><option value="none" data-i18n="cyclicGroups.subFormulaAtNone">None</option><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the hovered row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option></select></span>
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
@@ -1717,7 +1717,7 @@ var subWidthEl = $('sub-width-select');
 var subFormulaEl = $('sub-formula-select');
 var SUB_FORMULAS = ['none', 'order', 'index'];
 var subFormulaAtEl = $('sub-formula-at-select');
-var SUB_FORMULA_ATS = ['row', 'ring'];
+var SUB_FORMULA_ATS = ['none', 'row', 'ring'];
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
 // Off, or each member in its bead's colour; the soft tint once offered
@@ -2611,18 +2611,21 @@ function cosetCountFormula(G, h, g, index){
 }
 
 /* ---------- the subgroup list's hover formula ---------- */
+// Whether hovering a row shows a formula: one is chosen, and a place for it,
+// None in either dropdown turning the previews off.
+function subFormulaOn(){ return state.subFormula !== 'none' && state.subFormulaAt !== 'none'; }
 // The formula the list's dropdown asks for, for the row of ⟨h⟩ in G, or
 // null under None. In (ℤ/nℤ)* the log base is the generator the beads are
 // arranged by, which is the smallest one while they are not.
 function subHoverFormula(G, h){
-  if (state.subFormula === 'none') return null;
+  if (!subFormulaOn()) return null;
   var g = G.mode === 'multiplicative' && G.cyclic ? arrangeBy(G) : undefined;
   return state.subFormula === 'order' ? subOrderFormula(G, h, g) : cosetCountFormula(G, h, g, true);
 }
 // The row (or a merged row's side) whose formula shows, as { el, G, h }.
 var subFormulaAt = null;
 function showSubFormula(el, G, h){
-  if (state.subFormula === 'none') return hideSubFormula();
+  if (!subFormulaOn()) return hideSubFormula();
   subFormulaAt = { el: el, G: G, h: h };
   placeSubFormula();
 }
@@ -2634,7 +2637,7 @@ function hideSubFormula(){
 // Redrawn after a change of language, or dropped if its row was rebuilt.
 function refreshSubFormula(){
   if (!subFormulaAt) return;
-  if (!subFormulaAt.el.isConnected || state.subFormula === 'none') return hideSubFormula();
+  if (!subFormulaAt.el.isConnected || !subFormulaOn()) return hideSubFormula();
   placeSubFormula();
 }
 // It shows where the second dropdown says: on a line of its own under the
@@ -5460,7 +5463,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormula].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, subFormulaOn()].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5485,7 +5488,7 @@ function renderSubgroups(G){
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
     row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + members.map(px).join(', ') + '}');
-    var tip = state.subFormula === 'none' && subRowGcdTitle(G, llog, g);
+    var tip = !subFormulaOn() && subRowGcdTitle(G, llog, g);
     if (tip) row.title = tip;
     row.appendChild(mInline(mrow(angle(memberMath(g, mxl(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
     members.forEach(function(x, i){
@@ -5526,7 +5529,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormula].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, subFormulaOn()].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5574,7 +5577,7 @@ function renderMergedSubgroups(G){
     right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.m(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
     // Each side's tooltip follows that side's own way of writing its
     // generating element.
-    var plainTips = state.subFormula === 'none';
+    var plainTips = !subFormulaOn();
     var tipL = plainTips && subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), g);
     var tipR = plainTips && subRowGcdTitle(H, hl === null ? null : exprLog(H, hl), phi(g));
     if (tipL) left.title = tipL;
@@ -8200,11 +8203,12 @@ subFormulaEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
-// Where it shows: in the hovered row, or at the ring.
+// Where it shows: in the hovered row, at the ring, or nowhere (None).
 subFormulaAtEl.addEventListener('change', function(){
   state.subFormulaAt = subFormulaAtEl.value;
   hideSubFormula();
   if (!drawn) return;
+  renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
   syncInterlock();
 });

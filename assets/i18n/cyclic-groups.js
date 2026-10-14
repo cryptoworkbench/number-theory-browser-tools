@@ -374,6 +374,7 @@
       subFormulaOrder: 'Subgroup cardinality formula',
       subFormulaIndex: 'Subgroup index/cofactor/coset formula',
       subFormulaAtLabel: 'Show the formula',
+      subFormulaAtNone: 'None',
       subFormulaAtRow: 'In the hovered row',
       subFormulaAtRing: 'At the ring',
       'formula.subgroupIndex': '[{group} : ⟨{h}⟩] = |{group}| / |⟨{h}⟩| = gcd(|{group}|, {h}) = gcd({n}, {h}) = {d}',
