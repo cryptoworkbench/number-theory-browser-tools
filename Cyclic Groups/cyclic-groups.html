@@ -1113,11 +1113,10 @@
      minimize button in its own top right corner; with two bands, only the
      right-hand one has it (the pane's copy linked, the pane's own unlinked),
      and either closes both. The pane has no corner button: the window's is
-     the one. */
+     the one, and it hides while the band is open. */
   .genexp-corner{ display:none; }
   .fs-win-body.is-ring > .genexp-corner{ display:grid; position:absolute; right:6px; bottom:6px; z-index:5; }
-  :root.is-isopane .fs-win-body.is-ring > .genexp-corner{ display:none; }
-  .fs-win-body.is-ring > .genexp-corner[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
+  :root.is-isopane .fs-win-body.is-ring > .genexp-corner, .fs-win-body.is-ring > .genexp-corner[aria-pressed="true"]{ display:none; }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   .genexp-info > .genexp-min{ position:absolute; top:6px; right:0; z-index:2; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #genexp-info > .genexp-min{ display:none; }
@@ -3939,9 +3938,19 @@ function toggleGenExp(){
 // close it.
 var genExpCornerEl = $('genexp-corner');
 function syncGenExpCorner(){ genExpCornerEl.setAttribute('aria-pressed', genExpShown() ? 'true' : 'false'); }
-genExpCornerEl.addEventListener('click', toggleGenExp);
+// The corner button hides while the band is open, so the focus moves to
+// the band's minimize button, and back to the corner when it minimizes.
+genExpCornerEl.addEventListener('click', function(){
+  toggleGenExp();
+  var min = [].find.call(document.querySelectorAll('.genexp-min'), function(b){ return b.offsetParent; });
+  if (min) min.focus();
+});
 document.querySelectorAll('.genexp-min').forEach(function(btn){
-  btn.addEventListener('click', function(){ if (genExpShown()) toggleGenExp(); });
+  btn.addEventListener('click', function(){
+    if (!genExpShown()) return;
+    toggleGenExp();
+    if (!IS_ISOPANE) genExpCornerEl.focus();
+  });
 });
 // The pane's table, sent to the ring holding it as plain data whenever it
 // changes (null while it is hidden): linked, that ring draws it. Each row
