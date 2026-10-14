@@ -321,6 +321,8 @@
   .sub-row-formula .ring-math-formula{ display:inline math; margin:0; }
   .arrow-options{ margin:0 0 14px; }
   .coset-btn{ width:100%; }
+  /* Between locked rings each group's index formula takes a line. */
+  .coset-btn .coset-line{ display:block math; margin:0 auto; }
   /* The coset playback controls, the same set the other tools use. */
   .coset-controls{ margin-top:10px; display:flex; flex-direction:column; gap:10px; }
   .coset-controls[hidden]{ display:none; }
@@ -5387,13 +5389,16 @@ function showCosets(shown){
   tellCosets();
 }
 
+function groupPlain(G){
+  return G.mode === 'additive' ? additiveLabel(G.n) : '⟨ℤ/' + G.n + 'ℤ, ×⟩';
+}
 // The cosets of ⟨h⟩ besides ⟨h⟩ itself, in Lagrange's index notation:
-// [G : ⟨h⟩] − 1 = x.
-function cosetsLeftMath(G, h){
-  var plain = (G.mode === 'additive' ? additiveLabel(G.n) : '⟨ℤ/' + G.n + 'ℤ, ×⟩');
-  var left = G.order / G.orders[h] - 1;
-  return mInline(mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true), mo('\u2212'), mn(1), mo('='), mn(left)),
-    '[' + plain + ' : ⟨' + h + '⟩] \u2212 1 = ' + left);
+// [G : ⟨h⟩] − 1 = x, or [G : ⟨h⟩] − 1 = alone when x follows elsewhere.
+function cosetIndexMath(G, h, left){
+  var tail = left === undefined ? [mo('=')] : [mo('='), mn(left)];
+  var m = mInline(mrow.apply(null, [mEl('mo', ['['], { lspace: '0', rspace: '0', stretchy: 'false' }), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mEl('mo', [']'], { lspace: '0', rspace: '0', stretchy: 'false' }), mo('\u2212'), mn(1)].concat(tail)),
+    '[' + groupPlain(G) + ' : ⟨' + h + '⟩] \u2212 1 =' + (left === undefined ? '' : ' ' + left));
+  return m;
 }
 
 // The button opens or closes a run. Closed, it counts the cosets left to
@@ -5402,7 +5407,19 @@ function syncCosetButton(){
   var G = drawn && drawn.G;
   cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
   if (cosetRun) cosetBtnEl.textContent = translate('cyclicGroups.cosetHide');
-  else if (G && !state.noSub) translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { expr: cosetsLeftMath(G, state.gen), count: G.order / G.orders[state.gen] - 1 });
+  else if (G && !state.noSub){
+    var left = G.order / G.orders[state.gen] - 1;
+    // Locked to the pane as whole groups, the one button between the rings
+    // counts for both: each group's index on its own line, then the count.
+    var m = !IS_ISOPANE && isoLinked() ? isoWholeMap() : null;
+    if (m){
+      var l = cosetIndexMath(G, state.gen), r = cosetIndexMath(m.H, m.to(state.gen));
+      l.classList.add('coset-line');
+      r.classList.add('coset-line');
+      translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonIsoMath', { left: l, right: r, count: mNum(left) });
+    }
+    else translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { expr: cosetIndexMath(G, state.gen, left), count: left });
+  }
   else cosetBtnEl.textContent = translate('cyclicGroups.cosetButton');
   // On the line between linked rings the button is placed by its size.
   if (document.documentElement.classList.contains('is-iso-whole')) keepLockClear();
@@ -6789,6 +6806,7 @@ function syncIsoKeys(){
   var mine = !combineKeyEl.hidden;
   var showCopy = !!pk && (!mine || pk.merged || mergedWalks(drawn.G));
   root.classList.toggle('is-iso-unlinked', unlinked);
+  syncCosetButton();
   keepLockClear();
   root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && state.colorBy === 'order');
   root.classList.toggle('is-iso-two-keys', showCopy && mine);
@@ -7198,6 +7216,7 @@ function syncInterlock(){
     var whole = { on: isoOrder() > 0 && isoLinksWholeGroups(), ks: null };
     if (document.documentElement.classList.contains('is-iso-whole') !== whole.on){
       document.documentElement.classList.toggle('is-iso-whole', whole.on);
+      syncCosetButton();
       keepLockClear();
     }
     if (whole.on){
