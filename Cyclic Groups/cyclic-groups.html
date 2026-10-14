@@ -975,8 +975,8 @@
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#combine-key, #combine-key-pane){ grid-area:foot; justify-self:end; align-self:start; max-width:260px; margin:0; padding-top:10px; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:keyl; }
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane:not([hidden]){ display:flex; }
-  /* Linked, the two rings colour their beads by subgroup cardinality alike,
-     so their colour keys are one: the pane shows none, and this ring's sits
+  /* Linked, the two rings colour their beads by subgroup cardinality, or
+     in the website theme's colours, alike, so their colour keys are one: the pane shows none, and this ring's sits
      once under both, its entries in a row, as the arrow key does. */
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "foot foot foot foot" "lgd lgd lgd lgd"; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "lgd lgd lgd lgd"; }
@@ -6092,8 +6092,13 @@ function renderInverseLegend(pairing, el){
 function renderThemeLegend(G){
   var shown = {};
   G.els.forEach(function(a){ shown[themeClass(G, a)] = true; });
+  // Linked, the one key reads for both rings: the identity names its image
+  // in the pane's group too, when that is another element.
+  var H = !IS_ISOPANE && isoPane && isoLinked() ? isoPaneGroup() : null;
+  var e = H && H.identity !== G.identity
+    ? mInline(mrow(mn(G.identity), mo('↦'), mn(H.identity)), G.identity + ' ↦ ' + H.identity) : mNum(G.identity);
   var id = legendItem('ord-theme-id', null,
-    tNode('cyclicGroups.legendThemeIdentity', { e: mNum(G.identity) }), 'legend-order');
+    tNode('cyclicGroups.legendThemeIdentity', { e: e }), 'legend-order');
   var swatch = id.querySelector('.legend-swatch');
   swatch.classList.add('is-pickable');
   idColorEl.title = translate('cyclicGroups.identityColor');
@@ -6113,10 +6118,10 @@ function renderLegend(G, classes, pairing){
   // With the beads uncoloured there is no key to show full screen.
   legendBtnEl.hidden = !state.colors;
   legendBtnEl.setAttribute('aria-pressed', legendShown ? 'true' : 'false');
-  // Linked, the pane's key is the same as the ring holding it, which shows
-  // the one key under both; by inverse pairs it differs, and the ring
-  // holding it draws it under the pane's half (syncPaneLegend).
-  var oneKey = IS_ISOPANE && !document.documentElement.classList.contains('is-iso-unlinked') && (state.colorBy === 'order' || state.colorBy === 'inverse');
+  // Linked, the ring holding the pane shows its key: the one key under
+  // both, or by inverse pairs, where it differs, under the pane's half
+  // (syncPaneLegend).
+  var oneKey = IS_ISOPANE && !document.documentElement.classList.contains('is-iso-unlinked');
   legendPanelEl.classList.toggle('is-shown', legendShown && state.colors && !oneKey);
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
@@ -6954,7 +6959,7 @@ function syncIsoKeys(){
   root.classList.toggle('is-iso-unlinked', unlinked);
   syncCosetButton();
   keepLockClear();
-  root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && state.colorBy === 'order');
+  root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && (state.colorBy === 'order' || state.colorBy === 'theme'));
   syncPaneLegend(!!isoPane && !!drawn && !unlinked && state.colors && state.colorBy === 'inverse');
   root.classList.toggle('is-iso-two-keys', showCopy && mine);
   copy.hidden = !showCopy;
