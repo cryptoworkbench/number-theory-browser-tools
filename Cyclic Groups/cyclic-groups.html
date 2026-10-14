@@ -1554,7 +1554,7 @@
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { clamp, gcd, isPrime, modInverse, primeFactors, totient, unitsMod } = NT.core;
 const { easeInOutCubic, polar, svgEl } = NT.svg;
-const { SHARED_GROUP_KEY, readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
+const { readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
 
 /* ---------- constants ---------- */
@@ -7932,8 +7932,9 @@ function syncControls(){
 }
 
 // The shared group-params store is the contract with Cayley Table and
-// Equivalence Wheel: a user-initiated mode or n change writes it, a received
-// change (storage event) never does.
+// Equivalence Wheel: a user-initiated mode or n change writes it, so the next
+// tool or tab opened starts on that group. Open tabs never follow it: each
+// tab keeps its own group, so two tabs of the tool work independently.
 function persistGroup(){
   if (IS_PREVIEW || IS_RINGWIN) return;
   writeSharedGroup(state.mode, state.n);
@@ -8541,23 +8542,6 @@ colorResetEl.addEventListener('click', function(){
 new MutationObserver(function(){ syncArrowColors(); postLookAll(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 exportBtnEl.addEventListener('click', exportRingPng);
 
-// A change written by a sibling tool (or another tab) arrives as a storage
-// event. Re-read through readSharedGroup so there is one parsing and
-// validation path. This handler never writes the store: a received change
-// must not be written back, or two open tools could ping-pong.
-window.addEventListener('storage', function(e){
-  if (IS_PREVIEW || IS_RINGWIN || e.key !== SHARED_GROUP_KEY) return;
-  var incoming = readSharedGroup(e.newValue);
-  if (!incoming) return;
-  var n = clamp(incoming.N, MIN_N, MAX_N);
-  if (incoming.mode === state.mode && n === state.n) return;
-  state.mode = incoming.mode;
-  state.n = n;
-  nNoteShown = false;
-  syncControls();
-  render();
-});
-
 /* ---------- i18n re-render ---------- */
 
 // Re-renders every JS-owned piece of text from the current state; no state
@@ -8584,8 +8568,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 // Load order: an explicit ?mode=&n= link wins and is shared on, unless it
 // carries noshare=1 (an isomorphic-group link): then it is display-only on
 // load, like the shared-group read, so opening it never switches the tab it
-// came from. A later explicit mode or n change in either tab still syncs, as
-// for any two open tabs of the tool. Otherwise the shared group, display-only
+// came from. Otherwise the shared group, display-only
 // (a clamped read is never written back); otherwise the defaults. The generator and the layers come from the query string
 // alone: a generator only if it really generates the group, a layer only on
 // exactly 0 or 1.
