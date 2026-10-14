@@ -584,6 +584,12 @@
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
+  /* The hovered list row's formula, when it shows at the ring: laid over
+     the top-left corner of the ring's area under the header, beside the
+     ring, so the ring keeps its size. */
+  .ring-head{ position:relative; }
+  .ring-head > .ring-hover-formula{ position:absolute; z-index:5; top:100%; left:0; translate:0 6px; max-width:calc(100% - 16px); padding:6px 14px; overflow-x:auto; overflow-y:hidden; pointer-events:none; user-select:none; -webkit-user-select:none; background:color-mix(in srgb, var(--panel) 82%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border:1px solid color-mix(in srgb, var(--accent) 45%, var(--panel-border)); border-radius:var(--radius-card); box-shadow:0 2px 10px color-mix(in srgb, var(--ink) 14%, transparent); }
+  .ring-head > .ring-hover-formula math{ cursor:default; user-select:none; -webkit-user-select:none; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -1371,6 +1377,7 @@
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
           <span class="sub-expr-pair"><label for="sub-formula-select" data-i18n="cyclicGroups.subFormulaLabel">Formula on hover</label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality formula</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/coset formula</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-at-select" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</label><select id="sub-formula-at-select"><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the hovered row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option></select></span>
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
@@ -1560,7 +1567,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', subFormula: 'none', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', subFormula: 'none', subFormulaAt: 'row', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1709,6 +1716,8 @@ var autoShiftEl = $('auto-shift');
 var subWidthEl = $('sub-width-select');
 var subFormulaEl = $('sub-formula-select');
 var SUB_FORMULAS = ['none', 'order', 'index'];
+var subFormulaAtEl = $('sub-formula-at-select');
+var SUB_FORMULA_ATS = ['row', 'ring'];
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
 // Off, or each member in its bead's colour; the soft tint once offered
@@ -2628,20 +2637,25 @@ function refreshSubFormula(){
   if (!subFormulaAt.el.isConnected || state.subFormula === 'none') return hideSubFormula();
   placeSubFormula();
 }
-// It shows on a line of its own under the row's subgroup, inside the row
-// (or inside the hovered side of a merged row).
+// It shows where the second dropdown says: on a line of its own under the
+// row's subgroup, inside the row (or inside the hovered side of a merged
+// row), or at the ring, under its header, where the row's subgroup is
+// previewed.
 function placeSubFormula(){
   var at = subFormulaAt, f = subHoverFormula(at.G, at.h);
   clearSubFormula();
   if (!f) return;
-  var line = document.createElement('span');
-  line.className = 'sub-row-formula';
-  line.setAttribute('aria-hidden', 'true');
-  line.appendChild(mathLine('ring-math-formula', f.math, f.plain));
-  at.el.appendChild(line);
+  var ring = state.subFormulaAt === 'ring';
+  var box = document.createElement(ring ? 'div' : 'span');
+  box.className = ring ? 'ring-hover-formula' : 'sub-row-formula';
+  box.setAttribute('aria-hidden', 'true');
+  box.appendChild(mathLine('ring-math-formula', f.math, f.plain));
+  (ring ? ringHeadEl : at.el).appendChild(box);
 }
 function clearSubFormula(){
   subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
+  var box = ringHeadEl.querySelector('.ring-hover-formula');
+  if (box) box.remove();
 }
 
 // In a cyclic (ℤ/nℤ)* the subgroup's order is worked out from log_g h, so
@@ -2722,6 +2736,7 @@ function drawMath(G, subs){
     lines.push(p);
   });
   ringHeadEl.replaceChildren.apply(ringHeadEl, lines);
+  if (subFormulaAt && state.subFormulaAt === 'ring') placeSubFormula();
   fitRingHead();
   drawScratchPad(G);
 }
@@ -6961,10 +6976,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormula;
+      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormula + ' ' + state.subFormulaAt;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formula: state.subFormula });
+        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formula: state.subFormula, formulaAt: state.subFormulaAt });
       }
     }
   }
@@ -6996,7 +7011,10 @@ function takeNumset(d){
   state.autoShift = d.shift === true;
   state.subColor = subColorOf(d.color);
   if (SUB_FORMULAS.indexOf(d.formula) !== -1) state.subFormula = d.formula;
+  if (SUB_FORMULA_ATS.indexOf(d.formulaAt) !== -1) state.subFormulaAt = d.formulaAt;
   subFormulaEl.value = state.subFormula;
+  subFormulaAtEl.value = state.subFormulaAt;
+  subFormulaAtEl.disabled = state.subFormula === 'none';
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
@@ -7399,6 +7417,8 @@ function stateQuery(){
   else q.delete('subcolor');
   if (state.subFormula !== 'none') q.set('subformula', state.subFormula);
   else q.delete('subformula');
+  if (state.subFormulaAt !== 'row') q.set('subformulaat', state.subFormulaAt);
+  else q.delete('subformulaat');
   if (state.swapColors) q.set('swapcolors', '1');
   else q.delete('swapcolors');
   if (state.customColors) q.set('customcolors', '1');
@@ -7579,6 +7599,8 @@ function render(){
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   subFormulaEl.value = state.subFormula;
+  subFormulaAtEl.value = state.subFormulaAt;
+  subFormulaAtEl.disabled = state.subFormula === 'none';
   syncArrange(G);
   syncExpr(G);
   syncSubExpr(G);
@@ -8171,9 +8193,18 @@ subWidthEl.addEventListener('change', function(){
 // worked out, or its index, the number of its cosets.
 subFormulaEl.addEventListener('change', function(){
   state.subFormula = subFormulaEl.value;
+  subFormulaAtEl.disabled = state.subFormula === 'none';
   hideSubFormula();
   if (!drawn) return;
   renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+  syncInterlock();
+});
+// Where it shows: in the hovered row, or at the ring.
+subFormulaAtEl.addEventListener('change', function(){
+  state.subFormulaAt = subFormulaAtEl.value;
+  hideSubFormula();
+  if (!drawn) return;
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
@@ -8284,6 +8315,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   state.subAlign = !state.subPad && query.get('subalign') === '1';
   if (query.has('subcolor')) state.subColor = subColorOf(query.get('subcolor'));
   if (SUB_FORMULAS.indexOf(query.get('subformula')) !== -1) state.subFormula = query.get('subformula');
+  if (SUB_FORMULA_ATS.indexOf(query.get('subformulaat')) !== -1) state.subFormulaAt = query.get('subformulaat');
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
