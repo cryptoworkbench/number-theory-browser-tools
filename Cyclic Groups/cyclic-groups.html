@@ -598,11 +598,10 @@
   .ring-head .ring-head-sub math{ display:inline-block; vertical-align:middle; font-size:1.1em; }
   .ring-head .ring-math-title{ font-size:1.3rem; }
   .ring-head .ring-math-formula{ font-size:1.05rem; }
-  /* The hovered list row's formula, when it shows at the ring: laid over
-     the top-left corner of the ring's area under the header, beside the
-     ring, so the ring keeps its size. */
-  .ring-head{ position:relative; }
-  .ring-head > .ring-hover-formula{ position:absolute; z-index:5; top:100%; left:0; translate:0 6px; max-width:calc(100% - 16px); padding:6px 14px; overflow:hidden; white-space:nowrap; pointer-events:none; user-select:none; -webkit-user-select:none; background:color-mix(in srgb, var(--panel) 82%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border:1px solid color-mix(in srgb, var(--accent) 45%, var(--panel-border)); border-radius:var(--radius-card); box-shadow:0 2px 10px color-mix(in srgb, var(--ink) 14%, transparent); }
+  /* The selected subgroup's formula, when it shows at the ring: a band of
+     its own first in the header, under the SUBGROUP row, so the ring and a
+     side expression slider below it give up that much height. */
+  .ring-head > .ring-hover-formula{ order:-1; align-self:center; max-width:100%; margin:4px 0 6px; padding:6px 14px; overflow:hidden; white-space:nowrap; pointer-events:none; user-select:none; -webkit-user-select:none; background:var(--panel); border:1px solid color-mix(in srgb, var(--accent) 45%, var(--panel-border)); border-radius:var(--radius-card); }
   .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
@@ -2711,10 +2710,11 @@ function subFormulaBox(tag, cls, f){
 function fitSubFormulaBox(box){
   var m = box.firstChild;
   m.style.fontSize = '';
-  // The header can run wider than the view (the pane's does), so the room
-  // ends at whichever edge comes first.
-  var cs = getComputedStyle(box), edge = Math.min(ringHeadEl.getBoundingClientRect().right, document.documentElement.clientWidth);
-  var room = Math.min(edge - box.getBoundingClientRect().left - 8, ringHeadEl.clientWidth - 16) - 2 - (box.offsetWidth - box.clientWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  // The box is centred, so the room is the header's own content width,
+  // ending at the view's edge when the header runs wider (the pane's does).
+  var cs = getComputedStyle(box), hs = getComputedStyle(ringHeadEl), r = ringHeadEl.getBoundingClientRect();
+  var left = r.left + parseFloat(hs.paddingLeft), right = Math.min(r.right - parseFloat(hs.paddingRight), document.documentElement.clientWidth);
+  var room = right - left - 2 - (box.offsetWidth - box.clientWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   var w = m.getBoundingClientRect().width;
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
