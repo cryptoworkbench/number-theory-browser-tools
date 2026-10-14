@@ -289,18 +289,27 @@
   .sub-expr-pair{ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 8px; min-width:0; max-width:100%; }
   .sub-expr-pair label{ font-size:.85rem; color:var(--text-dim); white-space:nowrap; }
   .sub-expr-pair select{ max-width:100%; font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:4px 8px; }
-  /* Merged with the pane's (see subInterlocked): one wide panel, this
-     group's controls on the left, the pane's group's mirrored on the right,
-     the shared ones between; each row this group's subgroup on the left and
-     its image, mirrored, on the right. */
-  :root.is-sub-merged .sub-ctls{ display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr); gap:6px 24px; align-items:start; margin:0 0 6px; }
-  :root.is-sub-merged .sub-ctls .sub-expr-row{ margin:0; }
-  :root.is-sub-merged .sub-ctls .sub-expr-pair label{ white-space:normal; }
-  .sub-expr-row-r .sub-expr-pair label{ text-align:right; }
-  :root.is-sub-merged .sub-ctls-mid > .sub-expr-row{ margin:0 0 4px; }
-  /* Merged, the middle column stays narrow: the sort and the member
-     colouring stack there instead of sharing a line. */
-  :root.is-sub-merged .sub-ctls-mid > :is(#sub-sort-row, #sub-width-row, #sub-formula-row){ flex-direction:column; align-items:flex-start; gap:4px; }
+  /* Merged with the pane's (see subInterlocked): one wide, compact panel.
+     The heading sits in the middle of the first line, this group's
+     expressions left of it and the pane's group's, mirrored, right of it;
+     the shared controls share the second line; each row this group's
+     subgroup on the left and its image, mirrored, on the right. Labels
+     shorten to one word, the full wording kept as the tooltip. */
+  .lbl-short{ display:none; }
+  :root.is-sub-merged #subgroups-list-panel .lbl-long{ display:none; }
+  :root.is-sub-merged #subgroups-list-panel .lbl-short{ display:inline; }
+  :root.is-sub-merged #subgroups-list-panel{ position:relative; display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows:auto auto minmax(0, 1fr); grid-template-areas:"l head r" "mid mid mid" "list list list"; gap:6px 24px; align-items:center; }
+  :root.is-sub-merged #subgroups-list-panel > .sub-ctls{ display:contents; }
+  :root.is-sub-merged #subgroups-list-panel > .panel-head{ grid-area:head; margin:0; }
+  :root.is-sub-merged #sub-expr-row{ grid-area:l; margin:0; }
+  :root.is-sub-merged #sub-expr-row-r{ grid-area:r; margin:0; padding-right:56px; }
+  :root.is-sub-merged .sub-ctls-mid{ grid-area:mid; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px 24px; }
+  :root.is-sub-merged .sub-ctls-mid > :is(.sub-expr-row, .check){ margin:0; }
+  :root.is-sub-merged .sub-ctls-mid > .check{ align-items:center; }
+  :root.is-sub-merged .sub-ctls-mid > .check input{ margin:0; }
+  :root.is-sub-merged #sub-sort-row:not(:has(> :not([hidden]))){ display:none; }
+  :root.is-sub-merged #subgroups-list-panel > .subgroups{ grid-area:list; align-self:stretch; }
+  :root.is-sub-merged #sub-expr-row-r{ flex-direction:row-reverse; justify-content:flex-start; }
   .sub-expr-row-r, .sub-expr-row-r .sub-expr-pair{ justify-content:flex-end; }
   /* Not merged, the controls share lines, wrapping only where they run
      out of room. */
@@ -731,9 +740,9 @@
   /* With no isomorphism open the button leaves the subgroup row for a row
      of its own under the ring (placeSplitBtn). */
   .fs-win-body.is-ring .panel-head > .split-btn{ flex:none; padding:2px 10px; }
-  /* Merged, the heading is centred, so the button keeps to the corner. */
-  :root.is-sub-merged #subgroups-list-panel > .panel-head{ position:relative; }
-  :root.is-sub-merged #subgroups-list-panel > .panel-head > .split-btn{ position:absolute; right:0; top:50%; translate:0 -50%; }
+  /* Merged, the heading is centred, so the button keeps to the panel's
+     top corner, beside the pane's group's expressions. */
+  :root.is-sub-merged #subgroups-list-panel > .panel-head > .split-btn{ position:absolute; right:0; top:0; }
   .fs-win-body.is-ring > .split-btn{ grid-area:sbtn; justify-self:center; align-self:center; margin:2px 0 4px; }
   .fs-win-body.is-ring:has(> .split-btn){ grid-template-rows:auto auto auto auto auto auto minmax(0, 1fr) auto auto auto; grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key"; }
   .fs-win-body.is-ring:has(> .split-btn):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto auto minmax(0, var(--split-fr, 1fr)); grid-template-areas:"ctl ctl ctl" "arr arr arr" "gen gen gen" "iso iso iso" "pad pad pad" "head head head" "ring ring ring" "sbtn sbtn sbtn" "expr expr expr" "rot spin key" "split split split"; }
@@ -1402,26 +1411,26 @@
         </div>
         <div class="sub-ctls">
         <div class="sub-expr-row" id="sub-expr-row" hidden>
-          <span class="sub-expr-pair"><label for="sub-left-select" data-i18n="cyclicGroups.subExprLeft">Expression of the element generating the subgroup</label><select id="sub-left-select"></select></span>
-          <span class="sub-expr-pair"><label for="sub-right-select" data-i18n="cyclicGroups.subExprRight">Expression of the permutation in the {}s</label><select id="sub-right-select"></select></span>
+          <span class="sub-expr-pair"><label for="sub-left-select" title="Expression of the element generating the subgroup" data-i18n-title="cyclicGroups.subExprLeft"><span class="lbl-long" data-i18n="cyclicGroups.subExprLeft">Expression of the element generating the subgroup</span><span class="lbl-short" data-i18n="cyclicGroups.subExprLeftShort">Generator</span></label><select id="sub-left-select"></select></span>
+          <span class="sub-expr-pair"><label for="sub-right-select" title="Expression of the permutation in the {}s" data-i18n-title="cyclicGroups.subExprRight"><span class="lbl-long" data-i18n="cyclicGroups.subExprRight">Expression of the permutation in the {}s</span><span class="lbl-short" data-i18n="cyclicGroups.subExprRightShort">Members</span></label><select id="sub-right-select"></select></span>
         </div>
         <div class="sub-ctls-mid">
         <div class="sub-expr-row" id="sub-sort-row">
-          <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</label><select id="sub-sort-select"></select></span>
+          <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" title="Sort subgroups by" data-i18n-title="cyclicGroups.subSortLabel"><span class="lbl-long" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</span><span class="lbl-short" data-i18n="cyclicGroups.subSortLabelShort">Sort</span></label><select id="sub-sort-select"></select></span>
         </div>
         <div class="sub-expr-row" id="sub-width-row">
-          <span class="sub-expr-pair"><label for="sub-width-select" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
-          <span class="sub-expr-pair"><label for="sub-formula-select" data-i18n="cyclicGroups.subFormulaLabel">Selected subgroup's formula</label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality formula</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/coset formula</option></select></span>
-          <span class="sub-expr-pair"><label for="sub-formula-at-select" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</label><select id="sub-formula-at-select"><option value="none" data-i18n="cyclicGroups.subFormulaAtNone">None</option><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the selected row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option><option value="both" data-i18n="cyclicGroups.subFormulaAtBoth">Both</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-select" title="Selected subgroup's formula" data-i18n-title="cyclicGroups.subFormulaLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaLabel">Selected subgroup's formula</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaLabelShort">Formula</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality formula</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/coset formula</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-at-select" title="Show the formula" data-i18n-title="cyclicGroups.subFormulaAtLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaAtLabelShort">Show</span></label><select id="sub-formula-at-select"><option value="none" data-i18n="cyclicGroups.subFormulaAtNone">None</option><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the selected row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option><option value="both" data-i18n="cyclicGroups.subFormulaAtBoth">Both</option></select></span>
         </div>
-        <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
-        <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
+        <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color"><span class="lbl-long" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</span><span class="lbl-short" data-i18n="cyclicGroups.subColorLabelShort">Colour like beads</span></label></div>
+        <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift"><span class="lbl-long" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</span><span class="lbl-short" data-i18n="cyclicGroups.autoShiftShort">Auto-shift</span></label></div>
         </div>
         <div class="sub-expr-row sub-expr-row-r" id="sub-expr-row-r" hidden>
-          <span class="sub-expr-pair"><select id="sub-left-r-select"></select><label for="sub-left-r-select" data-i18n="cyclicGroups.subExprLeft">Expression of the element generating the subgroup</label></span>
-          <span class="sub-expr-pair"><select id="sub-right-r-select"></select><label for="sub-right-r-select" data-i18n="cyclicGroups.subExprRight">Expression of the permutation in the {}s</label></span>
+          <span class="sub-expr-pair"><select id="sub-left-r-select"></select><label for="sub-left-r-select" title="Expression of the element generating the subgroup" data-i18n-title="cyclicGroups.subExprLeft"><span class="lbl-long" data-i18n="cyclicGroups.subExprLeft">Expression of the element generating the subgroup</span><span class="lbl-short" data-i18n="cyclicGroups.subExprLeftShort">Generator</span></label></span>
+          <span class="sub-expr-pair"><select id="sub-right-r-select"></select><label for="sub-right-r-select" title="Expression of the permutation in the {}s" data-i18n-title="cyclicGroups.subExprRight"><span class="lbl-long" data-i18n="cyclicGroups.subExprRight">Expression of the permutation in the {}s</span><span class="lbl-short" data-i18n="cyclicGroups.subExprRightShort">Members</span></label></span>
         </div>
         </div>
         <ul class="subgroups" id="subgroups"></ul>
