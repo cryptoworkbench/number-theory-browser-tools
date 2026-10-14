@@ -1366,6 +1366,9 @@
         <div class="sub-expr-row" id="sub-width-row">
           <span class="sub-expr-pair"><label for="sub-width-select" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
         </div>
+        <div class="sub-expr-row" id="sub-formula-row">
+          <span class="sub-expr-pair"><label for="sub-formula-select" data-i18n="cyclicGroups.subFormulaLabel">Formula on hover</label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality formula</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/coset formula</option></select></span>
+        </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
         </div>
@@ -1554,7 +1557,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', subFormula: 'none', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1594,7 +1597,7 @@ var subgroupsEl = $('subgroups');
 var cosetBtnEl = $('coset-btn');
 var rotValueEl = $('rot-value');
 cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCosets(); });
-subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
+subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); hideSubFormula(); });
 var subExprRowEl = $('sub-expr-row');
 var subSortPairEl = $('sub-sort-pair');
 var subExprRowREl = $('sub-expr-row-r');
@@ -1701,6 +1704,8 @@ var gearboxEl = $('gearbox');
 var gearKnobEl = $('gear-knob');
 var autoShiftEl = $('auto-shift');
 var subWidthEl = $('sub-width-select');
+var subFormulaEl = $('sub-formula-select');
+var SUB_FORMULAS = ['none', 'order', 'index'];
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
 // Off, or each member in its bead's colour; the soft tint once offered
@@ -2526,55 +2531,103 @@ function orderFormulas(G, on){
     var n = G.order, d = gcd(n, h);
     if (shows('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mn(n)),
       plain: translate('cyclicGroups.formula.groupOrder', { group: G.label, n: n }) });
-    if (shows('sorder')) out.push({ key: 'sorder', math: mrow(
-        abs(angle(mn(h))), mo('='),
-        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
-        mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
-        mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
-      plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) });
+    if (shows('sorder')) out.push(Object.assign(subOrderFormula(G, h), { key: 'sorder' }));
     if (shows('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
     return out;
   }
   var k = G.order;
   if (shows('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
     plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
-  if (shows('sorder') && G.cyclic && state.bygen){
-    // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
-    // gcd(k, k) = k reads more plainly than gcd(k, 0).
-    var g = arrangeBy(G), q = lap(G, g, k).indexOf(h) || k, dq = gcd(k, q);
-    out.push({ key: 'sorder', math: mrow(
-        abs(angle(mn(h))), mo('='),
-        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
-        mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mLog(g, h))), mo('='),
-        mfrac(mn(k), mgcd(mn(k), mn(q))), mo('='),
-        mfrac(mn(k), mn(dq)), mo('='), mn(k / dq)),
-      plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: k, q: q, d: dq, m: k / dq }) });
-  }
+  if (shows('sorder') && G.cyclic && state.bygen) out.push(Object.assign(subOrderFormula(G, h, arrangeBy(G)), { key: 'sorder' }));
   if (shows('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
   return out;
+}
+
+// |⟨h⟩|, worked out: in ℤ/nℤ from gcd(n, h); in a cyclic (ℤ/nℤ)* from
+// log_g h, g the generator given; in a (ℤ/nℤ)* with no generator, h's order.
+function subOrderFormula(G, h, g){
+  var n = G.order, d;
+  if (G.mode === 'additive'){
+    d = gcd(n, h);
+    return { math: mrow(
+        abs(angle(mn(h))), mo('='),
+        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
+        mfrac(mn(n), mgcd(mn(n), mn(h))), mo('='),
+        mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
+      plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, d: d, k: n / d }) };
+  }
+  if (!G.cyclic) return { math: mrow(abs(angle(mn(h))), mo('='), mrow(mi('ord'), mo('\u2061'), mo('(', true), mn(h), mo(')', true)), mo('='), mn(G.orders[h])),
+    plain: translate('cyclicGroups.formula.mulSubgroupOrderByOrd', { h: h, k: G.orders[h] }) };
+  // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
+  // gcd(k, k) = k reads more plainly than gcd(k, 0).
+  var q = lap(G, g, n).indexOf(h) || n;
+  d = gcd(n, q);
+  return { math: mrow(
+      abs(angle(mn(h))), mo('='),
+      mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
+      mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mLog(g, h))), mo('='),
+      mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
+      mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
+    plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d, m: n / d }) };
 }
 
 // The number of cosets of ⟨h⟩, |G| / |⟨h⟩|, its index. As |⟨h⟩| = |G| / gcd(|G|, h) in
 // ℤ/nℤ, the index is gcd(|G|, h); in a cyclic (ℤ/nℤ)* arranged by powers of
 // a generator g it is gcd(|G|, log_g h), log_g 1 taken as k as in
 // orderFormulas. Without a log base, the group's order over ⟨h⟩'s.
-function cosetCountFormula(G, h){
+// With index set it opens with the index's own notation, [G : ⟨h⟩], and a
+// generator g given is taken as the log base whether or not the beads are
+// arranged by it.
+function cosetCountFormula(G, h, g, index){
   var n = G.order, lead = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), d;
+  if (index) lead = mrow(mo('[', true), mGroup(G), mo(':'), angle(mn(h)), mo(']', true), mo('='), lead);
   if (G.mode === 'additive'){
     d = gcd(n, h);
     return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mn(h)), mo('='), mgcd(mn(n), mn(h)), mo('='), mn(d)),
-      plain: translate('cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, d: d }) };
+      plain: translate(index ? 'cyclicGroups.formula.subgroupIndex' : 'cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, d: d }) };
   }
-  if (G.cyclic && state.bygen){
-    var g = arrangeBy(G), q = lap(G, g, n).indexOf(h) || n;
+  if (G.cyclic && (g !== undefined || state.bygen)){
+    if (g === undefined) g = arrangeBy(G);
+    var q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
     return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mPhi(mn(G.n)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
-      plain: translate('cyclicGroups.formula.mulCosetCount', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
+      plain: translate(index ? 'cyclicGroups.formula.mulSubgroupIndex' : 'cyclicGroups.formula.mulCosetCount', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
   }
   var k = G.orders[h];
   return { math: mrow(lead, mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
-    plain: translate('cyclicGroups.formula.cosetCountIndex', { group: G.label, h: h, n: n, k: k, c: n / k }) };
+    plain: translate(index ? 'cyclicGroups.formula.subgroupIndexByOrder' : 'cyclicGroups.formula.cosetCountIndex', { group: G.label, h: h, n: n, k: k, c: n / k }) };
 }
+
+/* ---------- the subgroup list's hover formula ---------- */
+// The formula the list's dropdown asks for, for the row of ⟨h⟩ in G, or
+// null under None. In (ℤ/nℤ)* the log base is the generator the beads are
+// arranged by, which is the smallest one while they are not.
+function subHoverFormula(G, h){
+  if (state.subFormula === 'none') return null;
+  var g = G.mode === 'multiplicative' && G.cyclic ? arrangeBy(G) : undefined;
+  return state.subFormula === 'order' ? subOrderFormula(G, h, g) : cosetCountFormula(G, h, g, true);
+}
+// The row (or a merged row's side) whose formula shows, as { el, G, h }.
+var subFormulaAt = null;
+function showSubFormula(el, G, h){
+  if (state.subFormula === 'none') return hideSubFormula();
+  subFormulaAt = { el: el, G: G, h: h };
+  placeSubFormula();
+}
+function hideSubFormula(){
+  if (!subFormulaAt) return;
+  subFormulaAt = null;
+  clearSubFormula();
+}
+// Redrawn after a change of language, or dropped if its row was rebuilt.
+function refreshSubFormula(){
+  if (!subFormulaAt) return;
+  if (!subFormulaAt.el.isConnected || state.subFormula === 'none') return hideSubFormula();
+  placeSubFormula();
+}
+// Where the formula goes: each placement fills these two in.
+function placeSubFormula(){}
+function clearSubFormula(){}
 
 // In a cyclic (ℤ/nℤ)* the subgroup's order is worked out from log_g h, so
 // with its formula on and the beads not arranged by a generator g, there
@@ -5377,7 +5430,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormula].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5402,7 +5455,7 @@ function renderSubgroups(G){
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
     row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + members.map(px).join(', ') + '}');
-    var tip = subRowGcdTitle(G, llog, g);
+    var tip = state.subFormula === 'none' && subRowGcdTitle(G, llog, g);
     if (tip) row.title = tip;
     row.appendChild(mInline(mrow(angle(memberMath(g, mxl(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
     members.forEach(function(x, i){
@@ -5413,9 +5466,10 @@ function renderSubgroups(G){
       selectGen(g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
-    row.addEventListener('focus', function(){ setPreview(g); });
-    row.addEventListener('blur', function(){ setPreview(null); });
+    row.addEventListener('mouseenter', function(){ if (!keyNav){ setPreview(g); showSubFormula(row, G, g); } });
+    row.addEventListener('mouseleave', hideSubFormula);
+    row.addEventListener('focus', function(){ setPreview(g); showSubFormula(row, G, g); });
+    row.addEventListener('blur', function(){ setPreview(null); hideSubFormula(); });
     li.appendChild(row);
     subgroupsEl.appendChild(li);
   });
@@ -5442,7 +5496,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormula].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -5490,8 +5544,9 @@ function renderMergedSubgroups(G){
     right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.m(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
     // Each side's tooltip follows that side's own way of writing its
     // generating element.
-    var tipL = subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), g);
-    var tipR = subRowGcdTitle(H, hl === null ? null : exprLog(H, hl), phi(g));
+    var plainTips = state.subFormula === 'none';
+    var tipL = plainTips && subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), g);
+    var tipR = plainTips && subRowGcdTitle(H, hl === null ? null : exprLog(H, hl), phi(g));
     if (tipL) left.title = tipL;
     if (tipR) right.title = tipR;
     row.appendChild(left);
@@ -5501,8 +5556,13 @@ function renderMergedSubgroups(G){
       focusCurrentRow();
     });
     row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
-    row.addEventListener('focus', function(){ setPreview(g); });
-    row.addEventListener('blur', function(){ setPreview(null); });
+    // Each side gives its own group's formula: ⟨g⟩'s on the left, the
+    // pane's ⟨φ(g)⟩ on the right; focus, from the keyboard, the left's.
+    left.addEventListener('mouseenter', function(){ if (!keyNav) showSubFormula(left, G, g); });
+    right.addEventListener('mouseenter', function(){ if (!keyNav) showSubFormula(right, H, phi(g)); });
+    row.addEventListener('mouseleave', hideSubFormula);
+    row.addEventListener('focus', function(){ setPreview(g); showSubFormula(left, G, g); });
+    row.addEventListener('blur', function(){ setPreview(null); hideSubFormula(); });
     li.appendChild(row);
     subgroupsEl.appendChild(li);
   });
@@ -6886,10 +6946,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor;
+      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormula;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor });
+        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formula: state.subFormula });
       }
     }
   }
@@ -6920,6 +6980,8 @@ function takeNumset(d){
   state.subAlign = d.align === true;
   state.autoShift = d.shift === true;
   state.subColor = subColorOf(d.color);
+  if (SUB_FORMULAS.indexOf(d.formula) !== -1) state.subFormula = d.formula;
+  subFormulaEl.value = state.subFormula;
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
@@ -7320,6 +7382,8 @@ function stateQuery(){
   else q.delete('subalign');
   if (state.subColor !== 'off') q.set('subcolor', state.subColor);
   else q.delete('subcolor');
+  if (state.subFormula !== 'none') q.set('subformula', state.subFormula);
+  else q.delete('subformula');
   if (state.swapColors) q.set('swapcolors', '1');
   else q.delete('swapcolors');
   if (state.customColors) q.set('customcolors', '1');
@@ -7499,6 +7563,7 @@ function render(){
   autoShiftEl.checked = state.autoShift;
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
+  subFormulaEl.value = state.subFormula;
   syncArrange(G);
   syncExpr(G);
   syncSubExpr(G);
@@ -8087,6 +8152,16 @@ subWidthEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
+// What hovering a row of the list shows: no formula, ⟨h⟩'s cardinality
+// worked out, or its index, the number of its cosets.
+subFormulaEl.addEventListener('change', function(){
+  state.subFormula = subFormulaEl.value;
+  hideSubFormula();
+  if (!drawn) return;
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+  syncInterlock();
+});
 subColorEl.addEventListener('change', function(){
   state.subColor = subColorEl.checked ? 'full' : 'off';
   if (!drawn) return;
@@ -8134,7 +8209,7 @@ window.addEventListener('storage', function(e){
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); syncAutoRotate(); syncDirToggle(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
+onLangChange(function(){ render(); refreshSubFormula(); syncAutoRotate(); syncDirToggle(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
@@ -8193,6 +8268,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   state.subPad = query.get('subpad') === '1';
   state.subAlign = !state.subPad && query.get('subalign') === '1';
   if (query.has('subcolor')) state.subColor = subColorOf(query.get('subcolor'));
+  if (SUB_FORMULAS.indexOf(query.get('subformula')) !== -1) state.subFormula = query.get('subformula');
   state.swapColors = query.get('swapcolors') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
