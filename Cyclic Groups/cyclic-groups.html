@@ -309,7 +309,14 @@
   /* One row per element: the subgroup it generates, its members in the
      order the element reaches them, one per line, ruled between. A row is a button that selects that
      element; the selected one is highlighted. Long groups scroll. */
-  .subgroups{ list-style:none; margin:0; padding:0; max-height:420px; overflow-y:auto; display:grid; grid-template-columns:minmax(0, 1fr); align-content:start; }
+  .subgroups{ list-style:none; margin:0; padding:0; max-height:420px; overflow-y:auto; display:grid; grid-template-columns:minmax(0, 1fr); align-content:start; scrollbar-width:none; }
+  /* It scrolls without a scrollbar (the wheel, a touch, or the arrow keys
+     from a row): where more rows lie beyond an edge, the list fades out
+     there instead. */
+  .subgroups::-webkit-scrollbar{ display:none; }
+  .subgroups.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); }
+  .subgroups.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); }
+  .subgroups.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); }
   .subgroup-row{
     display:block; width:100%; text-align:left; font:inherit; font-family:var(--font-mono); font-size:.88rem;
     color:var(--text); background:none; border:none; border-radius:var(--radius-ctl);
@@ -6120,6 +6127,7 @@ function renderSubgroups(G){
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
   keepCurrentRowInView(G);
+  syncSubMore();
 }
 // Merged: each row this group's ⟨g⟩ = {…} on the left and the pane's
 // {…} = ⟨φ(g)⟩ on the right, φ the isomorphism (g^k to h^k), the image's
@@ -6212,6 +6220,7 @@ function renderMergedSubgroups(G){
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
   keepCurrentRowInView(G);
+  syncSubMore();
 }
 
 function focusCurrentRow(){
@@ -6220,6 +6229,14 @@ function focusCurrentRow(){
   row.focus({ preventScroll: true });
   showRow(row);
 }
+// The list has no scrollbar: it fades out at an edge with more rows beyond it.
+function syncSubMore(){
+  var top = subgroupsEl.scrollTop, rest = subgroupsEl.scrollHeight - subgroupsEl.clientHeight - top;
+  subgroupsEl.classList.toggle('is-more-above', top > 1);
+  subgroupsEl.classList.toggle('is-more-below', rest > 1);
+}
+subgroupsEl.addEventListener('scroll', syncSubMore, { passive: true });
+if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
 // which scrollIntoView would also move, pulling the ring out of view.
 function showRow(row){
