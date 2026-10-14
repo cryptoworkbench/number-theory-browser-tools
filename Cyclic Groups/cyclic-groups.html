@@ -316,6 +316,9 @@
   :root.is-sub-merged #subgroups-list-panel > .panel-head{ justify-content:center; text-align:center; }
   .subgroup-row:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
   .subgroup-row:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  /* The hovered row's formula, on a line of its own inside the row. */
+  .sub-row-formula{ display:block; margin:4px 0 2px; padding:6px 0 4px; overflow-x:auto; overflow-y:hidden; font-family:var(--font-sans); font-size:.95rem; color:var(--text); border-top:1px dashed var(--panel-border); }
+  .sub-row-formula .ring-math-formula{ display:inline math; margin:0; }
   .arrow-options{ margin:0 0 14px; }
   .coset-btn{ width:100%; }
   /* For a generator the button says why there is nothing to explore, in
@@ -2625,9 +2628,21 @@ function refreshSubFormula(){
   if (!subFormulaAt.el.isConnected || state.subFormula === 'none') return hideSubFormula();
   placeSubFormula();
 }
-// Where the formula goes: each placement fills these two in.
-function placeSubFormula(){}
-function clearSubFormula(){}
+// It shows on a line of its own under the row's subgroup, inside the row
+// (or inside the hovered side of a merged row).
+function placeSubFormula(){
+  var at = subFormulaAt, f = subHoverFormula(at.G, at.h);
+  clearSubFormula();
+  if (!f) return;
+  var line = document.createElement('span');
+  line.className = 'sub-row-formula';
+  line.setAttribute('aria-hidden', 'true');
+  line.appendChild(mathLine('ring-math-formula', f.math, f.plain));
+  at.el.appendChild(line);
+}
+function clearSubFormula(){
+  subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
+}
 
 // In a cyclic (ℤ/nℤ)* the subgroup's order is worked out from log_g h, so
 // with its formula on and the beads not arranged by a generator g, there
