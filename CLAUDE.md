@@ -16,7 +16,6 @@ Each tool lives in its own top-level directory named after the tool, containing 
 - `RSA/rsa.html` — walks through RSA key generation, encryption, and a brute-force factoring attack demo (Bob/Alice/Eve narrative)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — animated sieve grid with playback controls and audio chimes on primes found
 - `Cyclic Groups/cyclic-groups.html` — "Cyclic Groups," a windowed desktop that fills the browser window under the site header: the ring of a group's elements, its subgroups and isomorphisms in movable, snapping Ring windows (extra Ring windows are `?ringwin=1` iframes of the page), with a corner button for true browser full screen
-- `_Cyclic Groups/_cyclic-groups.html` — "_Cyclic Groups," the same rings on one scrolling page with the controls in side panels and no desktop; an independent copy of the Cyclic Groups page that shares its `assets/i18n/cyclic-groups.js` dictionary (`cyclicGroups` namespace), its `cyclic-groups` storage key and the shared group
 
 Each tool directory also has a stray `CLAUDE_RESUME_COMMAND` (or `RESUME_CLAUDES_CHAT` in the Sieve directory) file containing a `claude --resume <session-id>` command left over from the session that built that tool. These are not part of the app; leave them as-is unless the user asks to clean them up.
 
