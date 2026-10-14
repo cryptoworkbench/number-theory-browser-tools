@@ -1267,6 +1267,50 @@
     .action-btn, .legend, body{ transition:none; }
   }
 
+  /* ---------- mobile mode (:root.is-mobile) ----------
+     A phone gets the stacked page at every width, whatever the width is: the
+     head's script found a browser that reports itself mobile (or ?mobile=1)
+     and set the class before the first paint. The windowed desktop and its
+     intro are not used, so everything the 901px rules above set is undone
+     here, and what the narrow-screen rules do only below 640px is done at every
+     width. The ring is width-bound (its viewBox is fixed), so the ring's width
+     is its size: the page and the diagram frame give it all the room they can.
+     Every selector here starts with :root.is-mobile; the desktop is untouched. */
+  :root.is-mobile .app{ padding:12px 10px; gap:14px; }
+  :root.is-mobile .layout{ grid-template-columns:minmax(0, 1fr); gap:14px; }
+  :root.is-mobile .stage{ position:static; height:auto; }
+  :root.is-mobile .diagram-frame{ display:block; flex:none; min-height:0; padding:8px 6px; }
+  :root.is-mobile svg.ring-svg{ flex:none; height:auto; min-height:0; max-height:92vh; max-height:92svh; touch-action:pan-y pinch-zoom; }
+  :root.is-mobile .stage > .subgroups-panel{ flex:none; max-height:none; display:block; }
+  :root.is-mobile .stage > .iso-panel{ flex:none; }
+  :root.is-mobile .subgroups-panel .subgroups{ max-height:420px; flex:none; }
+  :root.is-mobile .rotate-ctl{ position:static; margin-top:8px; }
+  :root.is-mobile .combine-key{ position:static; margin-top:10px; max-width:none; }
+  :root.is-mobile .iso-tile{ flex:1 1 100%; }
+  /* The auto-rotate triangle and the formula switches, drawn over the ring's
+     corner on the desktop, take their own rows above the ring's heading, the
+     switches wrapping side by side. */
+  :root.is-mobile .auto-rotate{ position:static; display:flex; padding:0 4px; }
+  :root.is-mobile .auto-rotate .tri{ zoom:1.3; }
+  :root.is-mobile .formula-toggles{ position:static; flex-direction:row; flex-wrap:wrap; gap:0 16px; padding:0 4px; }
+  :root.is-mobile .formula-toggles .check{ min-height:40px; }
+  :root.is-mobile .formula-toggles .check label{ display:flex; align-items:center; min-height:40px; }
+  :root.is-mobile .ring-head{ margin-top:0; padding-inline:0; }
+  /* Fingers: buttons and fields at least 40px tall, fields at 16px so iOS
+     Safari does not zoom into a focused one. */
+  :root.is-mobile .rotate-row{ gap:8px; }
+  :root.is-mobile .rotate-row .action-btn{ min-width:44px; min-height:44px; padding:6px 12px; }
+  :root.is-mobile .rotate-value{ min-height:44px; font-size:16px; }
+  :root.is-mobile .app select, :root.is-mobile .app input[type="text"], :root.is-mobile .app input[type="number"]{ min-height:40px; font-size:16px; }
+  :root.is-mobile .app .action-btn{ min-height:40px; }
+  :root.is-mobile .check{ align-items:center; }
+  :root.is-mobile .extra-options summary{ padding:10px 0; }
+  /* The arrow options live in the Layers panel here (the right-click menu that
+     holds them on the desktop is off), under the two extra layers. */
+  :root.is-mobile .extra-options .arrow-options{ margin:10px 0 0; }
+  :root.is-mobile .extra-options .arrow-options .check{ flex-wrap:wrap; gap:6px 9px; margin-bottom:6px; }
+  :root.is-mobile .extra-options .arrow-options .check select.side-select{ margin-inline-start:auto; }
+
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
@@ -1848,6 +1892,13 @@ if (IS_DESKTOP){
   syncDeskTop();
   window.addEventListener('resize', syncDeskTop);
   if (window.ResizeObserver && document.querySelector('.site-header')) new ResizeObserver(syncDeskTop).observe(document.querySelector('.site-header'));
+}
+// On a phone the arrow options cannot sit in the ring's right-click menu
+// (the menu is off), so they move into the Layers panel's extra options.
+if (IS_MOBILE){
+  var extraOptionsEl = document.querySelector('#layers-panel .extra-options');
+  var arrowOptionsEl = document.getElementById('arrow-options');
+  if (extraOptionsEl && arrowOptionsEl) extraOptionsEl.appendChild(arrowOptionsEl);
 }
 var ISO_GEN = IS_ISOPANE ? parseInt(new URLSearchParams(location.search).get('isogen'), 10) : NaN;
 // isoblank=1: the pane was opened to construct a group of one's own. Only its
@@ -4200,6 +4251,7 @@ function placeRingCtx(){
 }
 ringSvgEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
+  if (IS_MOBILE) return; // a long press is no right click on a phone
   setRingCtx(true, e.clientX, e.clientY);
 });
 document.addEventListener('pointerdown', function(e){
@@ -5078,6 +5130,18 @@ ringSvgEl.addEventListener('pointerdown', function(e){
   // A press that does not move is a click: on a bead it picks that element
   // to combine, anywhere else on the ring it clears the picks.
   var bead = e.target.closest('.bead, .bead-label');
+  // A bead is about 15px across on a phone: a touch that misses every bead
+  // picks the bead whose centre is nearest, if that is within 22px.
+  var nearBead = null;
+  if (IS_MOBILE && !bead && e.pointerType === 'touch'){
+    var nearest = 22;
+    ringSvgEl.querySelectorAll('.bead').forEach(function(b){
+      var r = b.getBoundingClientRect();
+      var d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      if (d <= nearest){ nearest = d; nearBead = b; }
+    });
+  }
+  if (nearBead) bead = nearBead;
   turning = { id: e.pointerId, last: a, swept: autoAngle, x: e.clientX, y: e.clientY, moved: false, pick: bead ? +bead.getAttribute('data-el') : null };
   autoAngle = 0;
   ringSvgEl.setPointerCapture(e.pointerId);
@@ -6546,7 +6610,7 @@ function isoPaneSrc(q, h){
 // g, when given, is the generator of this ring's whole group the link runs
 // through; without it the link follows the subgroup on show.
 function openIsoPane(a, g){
-  if (IS_ISOPANE || IS_PREVIEW) return;
+  if (IS_ISOPANE || IS_PREVIEW || IS_MOBILE) return;
   var h = parseInt(a.getAttribute('data-iso-gen'), 10);
   if (!isFinite(h)) return;
   var p = new URLSearchParams(cleanRingQuery(new URL(a.href, location.href).search.slice(1)));
@@ -8003,7 +8067,8 @@ isoPanelEl.addEventListener('click', function(e){
   var a = e.target.closest('a.iso-chip');
   if (!a) return;
   hideIsoPreview();
-  if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || IS_ISOPANE) return;
+  // On a phone there are no panes: the chip's own link opens the group in a new tab.
+  if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || IS_ISOPANE || IS_MOBILE) return;
   e.preventDefault();
   openIsoPane(a);
 });
@@ -8518,6 +8583,7 @@ function setSubCtx(open, x, y){
 subgroupsEl.addEventListener('contextmenu', function(e){
   if (!e.target.closest('.subgroup-row') || !subExports.length) return;
   e.preventDefault();
+  if (IS_MOBILE) return;
   setSubCtx(true, e.clientX, e.clientY);
 });
 document.addEventListener('pointerdown', function(e){
