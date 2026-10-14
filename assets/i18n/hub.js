@@ -1,5 +1,6 @@
 /* assets/i18n/hub.js — the 'hub' namespace: index.html's page title, hero
-   (eyebrow, h1, lede), all seventeen tool cards (card.<id>.title / desc),
+   (eyebrow, h1, lede), all seventeen tool cards (card.<id>.title / desc), the QR Code
+   card (card.qr.title / card.qr.desc, added by quick task 261014-ttj),
    the shared "Open tool →" link label and the footer, in all thirty-one
    supported languages. The lcm card and the "seventeen tools"
    wording of the lede and footer, English-only at first (quick task
@@ -67,7 +68,9 @@
       'card.fermat.title': 'Methode van Fermat',
       'card.fermat.desc': 'De factorisatiemethode van Fermat: zoek a² − N = b², en kijk hoe de algebra verandert in een plaatje doordat een vierkant wordt herschikt tot een rechthoek.',
       'card.shor.title': 'Algoritme van Shor',
-      'card.shor.desc': 'Kijk hoe het algoritme dat RSA sterfelijk maakt een getal stap voor stap factoriseert — met de ene werkelijk kwantumstap, ordebepaling, eerlijk gelabeld als een klassieke vervanging, en daarom blijft N hier klein.'
+      'card.shor.desc': 'Kijk hoe het algoritme dat RSA sterfelijk maakt een getal stap voor stap factoriseert — met de ene werkelijk kwantumstap, ordebepaling, eerlijk gelabeld als een klassieke vervanging, en daarom blijft N hier klein.',
+      'card.qr.title': 'QR-code',
+      'card.qr.desc': 'Een QR-code met het adres van deze site — scan hem met de camera van je telefoon en elke tool opent daar.'
     },
     en: {
       title: 'Number Theory Browser Tools',
@@ -110,7 +113,9 @@
       'card.fermat.title': "Fermat's Method",
       'card.fermat.desc': "Fermat's factoring method: search for a² − N = b², then watch the algebra turn into a picture as a square gets rearranged into a rectangle.",
       'card.shor.title': "Shor's Algorithm",
-      'card.shor.desc': 'Watch the algorithm that makes RSA mortal factor a number stage by stage — with the one genuinely quantum step, order finding, honestly labelled as a classical stand-in, which is why N stays small here.'
+      'card.shor.desc': 'Watch the algorithm that makes RSA mortal factor a number stage by stage — with the one genuinely quantum step, order finding, honestly labelled as a classical stand-in, which is why N stays small here.',
+      'card.qr.title': 'QR Code',
+      'card.qr.desc': "A QR code of this site's address — scan it with your phone's camera and every tool opens there."
     },
     de: {
       title: 'Zahlentheorie-Browser-Tools',
@@ -153,7 +158,9 @@
       'card.fermat.title': 'Fermat-Methode',
       'card.fermat.desc': 'Fermats Faktorisierungsmethode: suche a² − N = b², und sieh zu, wie sich die Algebra in ein Bild verwandelt, während ein Quadrat zu einem Rechteck umgeordnet wird.',
       'card.shor.title': 'Shor-Algorithmus',
-      'card.shor.desc': 'Sieh zu, wie der Algorithmus, der RSA sterblich macht, eine Zahl Schritt für Schritt faktorisiert — mit dem einen wirklich quantenhaften Schritt, der Ordnungsbestimmung, ehrlich als klassischer Ersatz gekennzeichnet, weshalb N hier klein bleibt.'
+      'card.shor.desc': 'Sieh zu, wie der Algorithmus, der RSA sterblich macht, eine Zahl Schritt für Schritt faktorisiert — mit dem einen wirklich quantenhaften Schritt, der Ordnungsbestimmung, ehrlich als klassischer Ersatz gekennzeichnet, weshalb N hier klein bleibt.',
+      'card.qr.title': 'QR-Code',
+      'card.qr.desc': 'Ein QR-Code mit der Adresse dieser Seite — scanne ihn mit der Kamera deines Handys, und jedes Werkzeug öffnet sich dort.'
     },
     fr: {
       title: 'Outils de théorie des nombres pour navigateur',
@@ -196,7 +203,9 @@
       'card.fermat.title': 'Méthode de Fermat',
       'card.fermat.desc': "La méthode de factorisation de Fermat : cherchez a² − N = b², puis regardez l'algèbre se transformer en image à mesure qu'un carré est réarrangé en rectangle.",
       'card.shor.title': 'Algorithme de Shor',
-      'card.shor.desc': "Regardez l'algorithme qui rend RSA mortel factoriser un nombre étape par étape — avec la seule étape véritablement quantique, la recherche d'ordre, honnêtement présentée comme un substitut classique, ce qui explique pourquoi N reste petit ici."
+      'card.shor.desc': "Regardez l'algorithme qui rend RSA mortel factoriser un nombre étape par étape — avec la seule étape véritablement quantique, la recherche d'ordre, honnêtement présentée comme un substitut classique, ce qui explique pourquoi N reste petit ici.",
+      'card.qr.title': 'Code QR',
+      'card.qr.desc': "Un code QR de l'adresse de ce site — scannez-le avec l'appareil photo de votre téléphone et chaque outil s'y ouvre."
     },
     es: {
       title: 'Herramientas de teoría de números para navegador',
@@ -239,7 +248,9 @@
       'card.fermat.title': 'Método de Fermat',
       'card.fermat.desc': 'El método de factorización de Fermat: busca a² − N = b², y mira cómo el álgebra se convierte en una imagen a medida que un cuadrado se reorganiza en un rectángulo.',
       'card.shor.title': 'Algoritmo de Shor',
-      'card.shor.desc': 'Mira cómo el algoritmo que hace mortal a RSA factoriza un número paso a paso — con el único paso genuinamente cuántico, la búsqueda de orden, honestamente etiquetado como un sustituto clásico, por lo que N se mantiene pequeño aquí.'
+      'card.shor.desc': 'Mira cómo el algoritmo que hace mortal a RSA factoriza un número paso a paso — con el único paso genuinamente cuántico, la búsqueda de orden, honestamente etiquetado como un sustituto clásico, por lo que N se mantiene pequeño aquí.',
+      'card.qr.title': 'Código QR',
+      'card.qr.desc': 'Un código QR con la dirección de este sitio — escanéalo con la cámara de tu teléfono y cada herramienta se abre allí.'
     },
     it: {
       title: 'Strumenti di teoria dei numeri per il browser',
@@ -282,7 +293,9 @@
       'card.fermat.title': 'Metodo di Fermat',
       'card.fermat.desc': 'Il metodo di fattorizzazione di Fermat: cerca a² − N = b², poi guarda l’algebra trasformarsi in un’immagine mentre un quadrato viene riorganizzato in un rettangolo.',
       'card.shor.title': 'Algoritmo di Shor',
-      'card.shor.desc': 'Guarda l’algoritmo che rende RSA mortale fattorizzare un numero passo dopo passo — con l’unico passo davvero quantistico, la ricerca dell’ordine, onestamente etichettato come un sostituto classico, motivo per cui N resta piccolo qui.'
+      'card.shor.desc': 'Guarda l’algoritmo che rende RSA mortale fattorizzare un numero passo dopo passo — con l’unico passo davvero quantistico, la ricerca dell’ordine, onestamente etichettato come un sostituto classico, motivo per cui N resta piccolo qui.',
+      'card.qr.title': 'Codice QR',
+      'card.qr.desc': "Un codice QR con l'indirizzo di questo sito — scansionalo con la fotocamera del telefono e ogni strumento si apre lì."
     },
     pl: {
       title: 'Narzędzia teorii liczb do przeglądarki',
@@ -325,7 +338,9 @@
       'card.fermat.title': 'Metoda Fermata',
       'card.fermat.desc': 'Metoda faktoryzacji Fermata: szukaj a² − N = b², a potem obserwuj, jak algebra zmienia się w obraz, gdy kwadrat zostaje przekształcony w prostokąt.',
       'card.shor.title': 'Algorytm Shora',
-      'card.shor.desc': 'Obserwuj, jak algorytm, który czyni RSA śmiertelnym, faktoryzuje liczbę etap po etapie — z jednym prawdziwie kwantowym krokiem, wyznaczaniem rzędu, szczerze oznaczonym jako klasyczny zamiennik, dlatego N pozostaje tu małe.'
+      'card.shor.desc': 'Obserwuj, jak algorytm, który czyni RSA śmiertelnym, faktoryzuje liczbę etap po etapie — z jednym prawdziwie kwantowym krokiem, wyznaczaniem rzędu, szczerze oznaczonym jako klasyczny zamiennik, dlatego N pozostaje tu małe.',
+      'card.qr.title': 'Kod QR',
+      'card.qr.desc': 'Kod QR z adresem tej strony — zeskanuj go aparatem telefonu, a każde narzędzie otworzy się tam.'
     },
     'pt-BR': {
       title: 'Ferramentas de teoria dos números para navegador',
@@ -368,7 +383,9 @@
       'card.fermat.title': 'Método de Fermat',
       'card.fermat.desc': 'O método de fatoração de Fermat: procure por a² − N = b², depois veja a álgebra se transformar em uma imagem conforme um quadrado é reorganizado em um retângulo.',
       'card.shor.title': 'Algoritmo de Shor',
-      'card.shor.desc': 'Veja o algoritmo que torna o RSA mortal fatorar um número etapa por etapa — com a única etapa genuinamente quântica, a determinação da ordem, honestamente identificada como um substituto clássico, por isso N permanece pequeno aqui.'
+      'card.shor.desc': 'Veja o algoritmo que torna o RSA mortal fatorar um número etapa por etapa — com a única etapa genuinamente quântica, a determinação da ordem, honestamente identificada como um substituto clássico, por isso N permanece pequeno aqui.',
+      'card.qr.title': 'Código QR',
+      'card.qr.desc': 'Um código QR com o endereço deste site — escaneie com a câmera do celular e todas as ferramentas abrem lá.'
     },
     'pt-PT': {
       title: 'Ferramentas de teoria dos números para navegador',
@@ -411,7 +428,9 @@
       'card.fermat.title': 'Método de Fermat',
       'card.fermat.desc': 'O método de fatorização de Fermat: procura a² − N = b², depois vê a álgebra transformar-se numa imagem conforme um quadrado é reorganizado num retângulo.',
       'card.shor.title': 'Algoritmo de Shor',
-      'card.shor.desc': 'Vê o algoritmo que torna o RSA mortal fatorizar um número etapa por etapa — com a única etapa genuinamente quântica, a determinação da ordem, honestamente identificada como um substituto clássico, por isso N permanece pequeno aqui.'
+      'card.shor.desc': 'Vê o algoritmo que torna o RSA mortal fatorizar um número etapa por etapa — com a única etapa genuinamente quântica, a determinação da ordem, honestamente identificada como um substituto clássico, por isso N permanece pequeno aqui.',
+      'card.qr.title': 'Código QR',
+      'card.qr.desc': 'Um código QR com o endereço deste site — leia-o com a câmara do telemóvel e todas as ferramentas abrem aí.'
     },
     sv: {
       title: 'Talteoriverktyg för webbläsaren',
@@ -454,7 +473,9 @@
       'card.fermat.title': 'Fermats metod',
       'card.fermat.desc': 'Fermats faktoriseringsmetod: sök a² − N = b², och se hur algebran förvandlas till en bild när en kvadrat omarrangeras till en rektangel.',
       'card.shor.title': 'Shors algoritm',
-      'card.shor.desc': 'Se hur algoritmen som gör RSA dödligt faktoriserar ett tal steg för steg — med det enda genuint kvantsteget, ordningsbestämning, ärligt märkt som en klassisk ersättning, och det är därför N förblir litet här.'
+      'card.shor.desc': 'Se hur algoritmen som gör RSA dödligt faktoriserar ett tal steg för steg — med det enda genuint kvantsteget, ordningsbestämning, ärligt märkt som en klassisk ersättning, och det är därför N förblir litet här.',
+      'card.qr.title': 'QR-kod',
+      'card.qr.desc': 'En QR-kod med adressen till den här webbplatsen — skanna den med telefonens kamera så öppnas alla verktyg där.'
     },
     nb: {
       title: 'Tallteoriverktøy for nettleseren',
@@ -497,7 +518,9 @@
       'card.fermat.title': 'Fermats metode',
       'card.fermat.desc': 'Fermats faktoriseringsmetode: søk etter a² − N = b², og se hvordan algebraen forvandles til et bilde når et kvadrat omorganiseres til et rektangel.',
       'card.shor.title': 'Shors algoritme',
-      'card.shor.desc': 'Se hvordan algoritmen som gjør RSA dødelig faktoriserer et tall steg for steg — med det ene genuint kvantesteget, ordensbestemmelse, ærlig merket som en klassisk erstatning, og derfor forblir N liten her.'
+      'card.shor.desc': 'Se hvordan algoritmen som gjør RSA dødelig faktoriserer et tall steg for steg — med det ene genuint kvantesteget, ordensbestemmelse, ærlig merket som en klassisk erstatning, og derfor forblir N liten her.',
+      'card.qr.title': 'QR-kode',
+      'card.qr.desc': 'En QR-kode med adressen til dette nettstedet — skann den med kameraet på telefonen, så åpnes alle verktøyene der.'
     },
     ro: {
       title: 'Instrumente de teoria numerelor pentru browser',
@@ -540,7 +563,9 @@
       'card.fermat.title': 'Metoda lui Fermat',
       'card.fermat.desc': 'Metoda de factorizare a lui Fermat: caută a² − N = b², apoi privește cum algebra se transformă într-o imagine atunci când un pătrat este rearanjat într-un dreptunghi.',
       'card.shor.title': 'Algoritmul lui Shor',
-      'card.shor.desc': 'Privește cum algoritmul care face RSA mortal factorizează un număr etapă cu etapă — cu singurul pas cu adevărat cuantic, determinarea ordinului, etichetat cinstit ca înlocuitor clasic, motiv pentru care N rămâne mic aici.'
+      'card.shor.desc': 'Privește cum algoritmul care face RSA mortal factorizează un număr etapă cu etapă — cu singurul pas cu adevărat cuantic, determinarea ordinului, etichetat cinstit ca înlocuitor clasic, motiv pentru care N rămâne mic aici.',
+      'card.qr.title': 'Cod QR',
+      'card.qr.desc': 'Un cod QR cu adresa acestui site — scanează-l cu camera telefonului și toate instrumentele se deschid acolo.'
     },
     hu: {
       title: 'Számelméleti böngészőeszközök',
@@ -583,7 +608,9 @@
       'card.fermat.title': 'Fermat-módszer',
       'card.fermat.desc': 'Fermat faktorizációs módszere: keresd az a² − N = b² megoldást, majd nézd, hogyan válik az algebra képpé, amikor egy négyzetet téglalappá rendeznek át.',
       'card.shor.title': 'Shor-algoritmus',
-      'card.shor.desc': 'Nézd, hogyan faktorizál egy számot szakaszról szakaszra az az algoritmus, amely halandóvá teszi az RSA-t — az egyetlen valóban kvantumlépéssel, a rendmeghatározással, amelyet becsületesen klasszikus helyettesítőként jelölnek, ezért marad itt kicsi N.'
+      'card.shor.desc': 'Nézd, hogyan faktorizál egy számot szakaszról szakaszra az az algoritmus, amely halandóvá teszi az RSA-t — az egyetlen valóban kvantumlépéssel, a rendmeghatározással, amelyet becsületesen klasszikus helyettesítőként jelölnek, ezért marad itt kicsi N.',
+      'card.qr.title': 'QR-kód',
+      'card.qr.desc': 'Egy QR-kód ennek az oldalnak a címével — olvasd be a telefonod kamerájával, és minden eszköz megnyílik ott.'
     },
     lv: {
       title: 'Skaitļu teorijas pārlūkrīki',
@@ -626,7 +653,9 @@
       'card.fermat.title': 'Ferma metode',
       'card.fermat.desc': 'Ferma faktorizācijas metode: meklē a² − N = b², un skaties, kā algebra pārtop attēlā, kad kvadrāts tiek pārkārtots taisnstūrī.',
       'card.shor.title': 'Šora algoritms',
-      'card.shor.desc': 'Skaties, kā algoritms, kas padara RSA mirstīgu, faktorizē skaitli soli pa solim — ar vienu patiesi kvantu soli, kārtas noteikšanu, godīgi apzīmētu kā klasisku aizstājēju, tāpēc N šeit paliek mazs.'
+      'card.shor.desc': 'Skaties, kā algoritms, kas padara RSA mirstīgu, faktorizē skaitli soli pa solim — ar vienu patiesi kvantu soli, kārtas noteikšanu, godīgi apzīmētu kā klasisku aizstājēju, tāpēc N šeit paliek mazs.',
+      'card.qr.title': 'QR kods',
+      'card.qr.desc': 'QR kods ar šīs vietnes adresi — noskenē to ar tālruņa kameru, un tur atveras katrs rīks.'
     },
     ru: {
       title: 'Браузерные инструменты теории чисел',
@@ -669,7 +698,9 @@
       'card.fermat.title': 'Метод Ферма',
       'card.fermat.desc': 'Метод факторизации Ферма: ищи a² − N = b², и смотри, как алгебра превращается в картинку, когда квадрат перестраивается в прямоугольник.',
       'card.shor.title': 'Алгоритм Шора',
-      'card.shor.desc': 'Смотри, как алгоритм, делающий RSA смертным, факторизует число этап за этапом — с единственным по-настоящему квантовым шагом, нахождением порядка, честно обозначенным как классическая замена, поэтому здесь N остаётся малым.'
+      'card.shor.desc': 'Смотри, как алгоритм, делающий RSA смертным, факторизует число этап за этапом — с единственным по-настоящему квантовым шагом, нахождением порядка, честно обозначенным как классическая замена, поэтому здесь N остаётся малым.',
+      'card.qr.title': 'QR-код',
+      'card.qr.desc': 'QR-код с адресом этого сайта — отсканируйте его камерой телефона, и каждый инструмент откроется там.'
     },
     el: {
       title: 'Εργαλεία θεωρίας αριθμών για πρόγραμμα περιήγησης',
@@ -712,7 +743,9 @@
       'card.fermat.title': 'Μέθοδος του Fermat',
       'card.fermat.desc': 'Η μέθοδος παραγοντοποίησης του Fermat: αναζήτησε a² − N = b², και δες πώς η άλγεβρα μετατρέπεται σε εικόνα καθώς ένα τετράγωνο αναδιατάσσεται σε ορθογώνιο.',
       'card.shor.title': 'Αλγόριθμος του Shor',
-      'card.shor.desc': 'Δες πώς ο αλγόριθμος που κάνει το RSA θνητό παραγοντοποιεί έναν αριθμό στάδιο προς στάδιο — με το ένα πραγματικά κβαντικό βήμα, την εύρεση τάξης, τίμια επισημασμένο ως κλασικό υποκατάστατο, για αυτό το N παραμένει μικρό εδώ.'
+      'card.shor.desc': 'Δες πώς ο αλγόριθμος που κάνει το RSA θνητό παραγοντοποιεί έναν αριθμό στάδιο προς στάδιο — με το ένα πραγματικά κβαντικό βήμα, την εύρεση τάξης, τίμια επισημασμένο ως κλασικό υποκατάστατο, για αυτό το N παραμένει μικρό εδώ.',
+      'card.qr.title': 'Κωδικός QR',
+      'card.qr.desc': 'Ένας κωδικός QR με τη διεύθυνση αυτού του ιστότοπου — σαρώστε τον με την κάμερα του τηλεφώνου σας και κάθε εργαλείο ανοίγει εκεί.'
     },
     he: {
       title: 'כלי דפדפן לתורת המספרים',
@@ -755,7 +788,9 @@
       'card.fermat.title': 'שיטת פרמה',
       'card.fermat.desc': 'שיטת הפירוק לגורמים של פרמה: חפשו \u2066a² − N = b²\u2069, ואז צפו כיצד האלגברה הופכת לתמונה כשריבוע מסודר מחדש למלבן.',
       'card.shor.title': 'האלגוריתם של שור',
-      'card.shor.desc': 'צפו באלגוריתם שהופך את RSA לבן תמותה מפרק מספר שלב אחר שלב — כשהצעד הקוונטי האמיתי היחיד, מציאת סדר, מסומן בכנות כתחליף קלאסי, ולכן N נשאר כאן קטן.'
+      'card.shor.desc': 'צפו באלגוריתם שהופך את RSA לבן תמותה מפרק מספר שלב אחר שלב — כשהצעד הקוונטי האמיתי היחיד, מציאת סדר, מסומן בכנות כתחליף קלאסי, ולכן N נשאר כאן קטן.',
+      'card.qr.title': 'קוד QR',
+      'card.qr.desc': 'קוד QR עם כתובת האתר הזה — סרקו אותו במצלמת הטלפון וכל כלי ייפתח שם.'
     },
     hi: {
       title: 'संख्या सिद्धांत के ब्राउज़र उपकरण',
@@ -798,7 +833,9 @@
       'card.fermat.title': 'फ़र्मा की विधि',
       'card.fermat.desc': 'फ़र्मा की गुणनखंडन विधि: a² − N = b² खोजें, फिर देखें कि एक वर्ग को आयत में पुनर्व्यवस्थित करने पर बीजगणित कैसे एक चित्र में बदल जाता है।',
       'card.shor.title': 'शोर का एल्गोरिथ्म',
-      'card.shor.desc': 'देखें कि RSA को नश्वर बना देने वाला एल्गोरिथ्म किसी संख्या का चरण-दर-चरण गुणनखंडन कैसे करता है — उसके एकमात्र वास्तविक क्वांटम चरण, कोटि ज्ञात करना, को ईमानदारी से एक क्लासिकल विकल्प के रूप में चिह्नित किया गया है, इसीलिए यहाँ N छोटा रहता है।'
+      'card.shor.desc': 'देखें कि RSA को नश्वर बना देने वाला एल्गोरिथ्म किसी संख्या का चरण-दर-चरण गुणनखंडन कैसे करता है — उसके एकमात्र वास्तविक क्वांटम चरण, कोटि ज्ञात करना, को ईमानदारी से एक क्लासिकल विकल्प के रूप में चिह्नित किया गया है, इसीलिए यहाँ N छोटा रहता है।',
+      'card.qr.title': 'QR कोड',
+      'card.qr.desc': 'इस साइट के पते का QR कोड — इसे अपने फ़ोन के कैमरे से स्कैन करें और हर उपकरण वहीं खुल जाता है।'
     },
     ar: {
       title: 'أدوات نظرية الأعداد في المتصفح',
@@ -841,7 +878,9 @@
       'card.fermat.title': 'طريقة فيرما',
       'card.fermat.desc': 'طريقة فيرما في التحليل إلى عوامل: ابحث عن \u2066a² − N = b²\u2069، ثم شاهد الجبر يتحول إلى صورة حين يعاد ترتيب مربع ليصبح مستطيلا.',
       'card.shor.title': 'خوارزمية شور',
-      'card.shor.desc': 'شاهد الخوارزمية التي تجعل RSA قابلة للكسر وهي تحلل عددا مرحلة بعد مرحلة — مع وصف الخطوة الكمومية الوحيدة حقا، إيجاد الرتبة، بصدق بأنها بديل كلاسيكي، ولذلك يبقى N صغيرا هنا.'
+      'card.shor.desc': 'شاهد الخوارزمية التي تجعل RSA قابلة للكسر وهي تحلل عددا مرحلة بعد مرحلة — مع وصف الخطوة الكمومية الوحيدة حقا، إيجاد الرتبة، بصدق بأنها بديل كلاسيكي، ولذلك يبقى N صغيرا هنا.',
+      'card.qr.title': 'رمز QR',
+      'card.qr.desc': 'رمز QR يحمل عنوان هذا الموقع — امسحه بكاميرا هاتفك لتفتح كل أداة هناك.'
     },
     sq: {
       title: 'Mjete shfletuesi për teorinë e numrave',
@@ -884,7 +923,9 @@
       'card.fermat.title': 'Metoda e Fermatit',
       'card.fermat.desc': 'Metoda e faktorizimit e Fermatit: kërkoni a² − N = b², pastaj shikoni se si algjebra kthehet në një figurë teksa një katror riorganizohet në një drejtkëndësh.',
       'card.shor.title': 'Algoritmi i Shorit',
-      'card.shor.desc': 'Shikoni algoritmin që e bën kriptosistemin RSA të cenueshëm duke faktorizuar një numër fazë pas faze — me hapin e vetëm vërtet kuantik, gjetjen e rendit, të etiketuar ndershmërisht si zëvendësues klasik, prandaj N mbetet i vogël këtu.'
+      'card.shor.desc': 'Shikoni algoritmin që e bën kriptosistemin RSA të cenueshëm duke faktorizuar një numër fazë pas faze — me hapin e vetëm vërtet kuantik, gjetjen e rendit, të etiketuar ndershmërisht si zëvendësues klasik, prandaj N mbetet i vogël këtu.',
+      'card.qr.title': 'Kodi QR',
+      'card.qr.desc': 'Një kod QR me adresën e këtij sajti — skanoje me kamerën e telefonit dhe çdo mjet hapet aty.'
     },
     sw: {
       title: 'Zana za Kivinjari za Nadharia ya Namba',
@@ -927,7 +968,9 @@
       'card.fermat.title': 'Mbinu ya Fermat',
       'card.fermat.desc': 'Mbinu ya Fermat ya kuchanganua vigawo: tafuta a² − N = b², kisha tazama aljebra ikigeuka kuwa picha huku mraba ukipangwa upya kuwa mstatili.',
       'card.shor.title': 'Algorithimu ya Shor',
-      'card.shor.desc': 'Tazama algorithimu inayofanya RSA iweze kuvunjika ikichanganua namba hatua kwa hatua — huku hatua ile pekee ya kikwanta kweli, kupata daraja, ikiandikwa kwa uaminifu kuwa mbadala wa kawaida, ndiyo maana N inabaki ndogo hapa.'
+      'card.shor.desc': 'Tazama algorithimu inayofanya RSA iweze kuvunjika ikichanganua namba hatua kwa hatua — huku hatua ile pekee ya kikwanta kweli, kupata daraja, ikiandikwa kwa uaminifu kuwa mbadala wa kawaida, ndiyo maana N inabaki ndogo hapa.',
+      'card.qr.title': 'Msimbo wa QR',
+      'card.qr.desc': 'Msimbo wa QR wenye anwani ya tovuti hii — uskani kwa kamera ya simu yako na kila zana hufunguka huko.'
     },
     zh: {
       title: '数论浏览器工具',
@@ -970,7 +1013,9 @@
       'card.fermat.title': '费马分解法',
       'card.fermat.desc': '费马分解法：寻找 a² − N = b²，然后看代数如何变成图形，一个正方形被重新排列成长方形。',
       'card.shor.title': '秀尔算法',
-      'card.shor.desc': '看这个让 RSA 变得不再安全的算法逐阶段分解一个数——其中唯一真正的量子步骤“求阶”被如实标明为经典的替代实现，这就是这里 N 保持较小的原因。'
+      'card.shor.desc': '看这个让 RSA 变得不再安全的算法逐阶段分解一个数——其中唯一真正的量子步骤“求阶”被如实标明为经典的替代实现，这就是这里 N 保持较小的原因。',
+      'card.qr.title': 'QR码',
+      'card.qr.desc': '本网站地址的QR码——用手机相机扫描，每个工具都会在那里打开。'
     },
     ja: {
       title: '数論ブラウザツール',
@@ -1013,7 +1058,9 @@
       'card.fermat.title': 'フェルマー法',
       'card.fermat.desc': 'フェルマー法による因数分解です。a² − N = b²となる組を探し、正方形を長方形に並べ替えるにつれて代数が図に変わる様子を見ていきましょう。',
       'card.shor.title': 'ショアのアルゴリズム',
-      'card.shor.desc': 'RSAを破りうるアルゴリズムが、数を段階的に因数分解していく様子を見てみましょう。唯一本当に量子的なステップである位数発見は、古典的な代用品であることを正直に明記しています。そのためここではNを小さく抑えています。'
+      'card.shor.desc': 'RSAを破りうるアルゴリズムが、数を段階的に因数分解していく様子を見てみましょう。唯一本当に量子的なステップである位数発見は、古典的な代用品であることを正直に明記しています。そのためここではNを小さく抑えています。',
+      'card.qr.title': 'QRコード',
+      'card.qr.desc': 'このサイトのアドレスのQRコード——スマートフォンのカメラでスキャンすると、すべてのツールがそこで開きます。'
     },
     ko: {
       title: '정수론 브라우저 도구',
@@ -1056,7 +1103,9 @@
       'card.fermat.title': '페르마 인수분해법',
       'card.fermat.desc': '페르마의 인수분해법입니다. a² − N = b² 형태의 식을 만족하는 값을 찾고, 정사각형이 직사각형으로 재배열되면서 대수가 그림으로 바뀌는 모습을 지켜보세요.',
       'card.shor.title': '쇼어 알고리즘',
-      'card.shor.desc': 'RSA를 깨뜨릴 수 있는 알고리즘이 수를 단계별로 인수분해하는 모습을 지켜보세요. 진정으로 양자적인 단계인 위수 찾기는 고전적 대용품임을 솔직하게 표시했으며, 그래서 여기서는 N을 작게 유지합니다.'
+      'card.shor.desc': 'RSA를 깨뜨릴 수 있는 알고리즘이 수를 단계별로 인수분해하는 모습을 지켜보세요. 진정으로 양자적인 단계인 위수 찾기는 고전적 대용품임을 솔직하게 표시했으며, 그래서 여기서는 N을 작게 유지합니다.',
+      'card.qr.title': 'QR 코드',
+      'card.qr.desc': '이 사이트 주소의 QR 코드 — 휴대폰 카메라로 스캔하면 모든 도구가 그곳에서 열립니다.'
     },
     id: {
       title: 'Alat Peramban Teori Bilangan',
@@ -1099,7 +1148,9 @@
       'card.fermat.title': 'Metode Fermat',
       'card.fermat.desc': 'Metode faktorisasi Fermat: cari a² − N = b², lalu saksikan aljabar berubah menjadi gambar saat sebuah persegi disusun ulang menjadi persegi panjang.',
       'card.shor.title': 'Algoritma Shor',
-      'card.shor.desc': 'Saksikan algoritma yang membuat RSA bisa ditembus memfaktorkan sebuah bilangan tahap demi tahap — dengan satu-satunya langkah yang benar-benar kuantum, pencarian orde, yang diberi label jujur sebagai pengganti klasik, itulah sebabnya N tetap kecil di sini.'
+      'card.shor.desc': 'Saksikan algoritma yang membuat RSA bisa ditembus memfaktorkan sebuah bilangan tahap demi tahap — dengan satu-satunya langkah yang benar-benar kuantum, pencarian orde, yang diberi label jujur sebagai pengganti klasik, itulah sebabnya N tetap kecil di sini.',
+      'card.qr.title': 'Kode QR',
+      'card.qr.desc': 'Kode QR berisi alamat situs ini — pindai dengan kamera ponsel Anda dan setiap alat terbuka di sana.'
     },
     'zgh-Latn': {
       title: 'Allaln n tiẓri n imḍanen g brawzr',
@@ -1142,7 +1193,9 @@
       'card.fermat.title': 'Tarrayt n Firma',
       'card.fermat.desc': 'Tarrayt n Firma n usfaktr: ssn a² − N = b², dɣa ẓr amek ar ittuɣal unfalit d tugna ticki ar ittwarmmd umkkuẓ ɣ yan umkkuẓ ummid.',
       'card.shor.title': 'Alguritm n Cur',
-      'card.shor.desc': 'Ẓr amek ar isfaktr alguritm ayd ittga RSA izmr ad immt yan umḍan asurif s usurif — d asurif aquntum kigan n tidt, asiggl n urdr, ittwasmmi s ṣṣḥ d amsbddl aklasik, acku N ar iqqim amẓẓan dagi.'
+      'card.shor.desc': 'Ẓr amek ar isfaktr alguritm ayd ittga RSA izmr ad immt yan umḍan asurif s usurif — d asurif aquntum kigan n tidt, asiggl n urdr, ittwasmmi s ṣṣḥ d amsbddl aklasik, acku N ar iqqim amẓẓan dagi.',
+      'card.qr.title': 'Tangalt QR',
+      'card.qr.desc': 'Tangalt QR n tansa n usmel-a — smmal tkamira n tilifun-nnek ɣer-s, ad yeldi yal allal dinna.'
     },
     'zgh-Tfng': {
       title: 'ⴰⵍⵍⴰⵍⵏ ⵏ ⵜⵉⵥⵔⵉ ⵏ ⵉⵎⴹⴰⵏⴻⵏ ⴳ ⴱⵔⴰⵡⵣⵔ',
@@ -1185,7 +1238,9 @@
       'card.fermat.title': 'ⵜⴰⵔⵔⴰⵢⵜ ⵏ ⴼⵉⵔⵎⴰ',
       'card.fermat.desc': 'ⵜⴰⵔⵔⴰⵢⵜ ⵏ ⴼⵉⵔⵎⴰ ⵏ ⵓⵙⴼⴰⴽⵜⵔ: ⵙⵙⵏ a² − N = b², ⴷⵖⴰ ⵥⵔ ⴰⵎⴻⴽ ⴰⵔ ⵉⵜⵜⵓⵖⴰⵍ ⵓⵏⴼⴰⵍⵉⵜ ⴷ ⵜⵓⴳⵏⴰ ⵜⵉⵛⴽⵉ ⴰⵔ ⵉⵜⵜⵡⴰⵔⵎⵎⴷ ⵓⵎⴽⴽⵓⵥ ⵖ ⵢⴰⵏ ⵓⵎⴽⴽⵓⵥ ⵓⵎⵎⵉⴷ.',
       'card.shor.title': 'ⴰⵍⴳⵓⵔⵉⵜⵎ ⵏ ⵛⵓⵔ',
-      'card.shor.desc': 'ⵥⵔ ⴰⵎⴻⴽ ⴰⵔ ⵉⵙⴼⴰⴽⵜⵔ ⴰⵍⴳⵓⵔⵉⵜⵎ ⴰⵢⴷ ⵉⵜⵜⴳⴰ RSA ⵉⵣⵎⵔ ⴰⴷ ⵉⵎⵎⵜ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⴰⵙⵓⵔⵉⴼ ⵙ ⵓⵙⵓⵔⵉⴼ — ⴷ ⴰⵙⵓⵔⵉⴼ ⴰⵇⵓⵏⵜⵓⵎ ⴽⵉⴳⴰⵏ ⵏ ⵜⵉⴷⵜ, ⴰⵙⵉⴳⴳⵍ ⵏ ⵓⵔⴷⵔ, ⵉⵜⵜⵡⴰⵙⵎⵎⵉ ⵙ ⵚⵚⵃ ⴷ ⴰⵎⵙⴱⴷⴷⵍ ⴰⴽⵍⴰⵙⵉⴽ, ⴰⵛⴽⵓ N ⴰⵔ ⵉⵇⵇⵉⵎ ⴰⵎⵥⵥⴰⵏ ⴷⴰⴳⵉ.'
+      'card.shor.desc': 'ⵥⵔ ⴰⵎⴻⴽ ⴰⵔ ⵉⵙⴼⴰⴽⵜⵔ ⴰⵍⴳⵓⵔⵉⵜⵎ ⴰⵢⴷ ⵉⵜⵜⴳⴰ RSA ⵉⵣⵎⵔ ⴰⴷ ⵉⵎⵎⵜ ⵢⴰⵏ ⵓⵎⴹⴰⵏ ⴰⵙⵓⵔⵉⴼ ⵙ ⵓⵙⵓⵔⵉⴼ — ⴷ ⴰⵙⵓⵔⵉⴼ ⴰⵇⵓⵏⵜⵓⵎ ⴽⵉⴳⴰⵏ ⵏ ⵜⵉⴷⵜ, ⴰⵙⵉⴳⴳⵍ ⵏ ⵓⵔⴷⵔ, ⵉⵜⵜⵡⴰⵙⵎⵎⵉ ⵙ ⵚⵚⵃ ⴷ ⴰⵎⵙⴱⴷⴷⵍ ⴰⴽⵍⴰⵙⵉⴽ, ⴰⵛⴽⵓ N ⴰⵔ ⵉⵇⵇⵉⵎ ⴰⵎⵥⵥⴰⵏ ⴷⴰⴳⵉ.',
+      'card.qr.title': 'ⵜⴰⵏⴳⴰⵍⵜ QR',
+      'card.qr.desc': 'ⵜⴰⵏⴳⴰⵍⵜ QR ⵏ ⵜⴰⵏⵙⴰ ⵏ ⵓⵙⵎⴻⵍ-ⴰ — ⵙⵎⵎⴰⵍ ⵜⴽⴰⵎⵉⵔⴰ ⵏ ⵜⵉⵍⵉⴼⵓⵏ-ⵏⵏⴻⴽ ⵖⴻⵔ-ⵙ, ⴰⴷ ⵢⴻⵍⴷⵉ ⵢⴰⵍ ⴰⵍⵍⴰⵍ ⴷⵉⵏⵏⴰ.'
     },
     ku: {
       title: 'Amûrên gerokê yên teoriya hejmaran',
@@ -1228,7 +1283,9 @@
       'card.fermat.title': 'Rêbaza Fermat',
       'card.fermat.desc': 'Rêbaza faktorkirinê ya Fermat: li a² − N = b² bigere, paşê temaşe bike ka cebr çawa dibe wêne dema ku çargoşeyek wekî çargoşeya dirêj tê rêzkirin.',
       'card.shor.title': 'Algorîtma Shor',
-      'card.shor.desc': 'Temaşe bike ka algorîtma ku dikare RSA bişkîne çawa hejmarekê qonax bi qonax faktor dike — bi yekane gava rastî kuantûmî, dîtina rêzê, ku bi dilpaqijî wekî cîgirekî klasîk hatiye nîşankirin, ji ber vê N li vir biçûk dimîne.'
+      'card.shor.desc': 'Temaşe bike ka algorîtma ku dikare RSA bişkîne çawa hejmarekê qonax bi qonax faktor dike — bi yekane gava rastî kuantûmî, dîtina rêzê, ku bi dilpaqijî wekî cîgirekî klasîk hatiye nîşankirin, ji ber vê N li vir biçûk dimîne.',
+      'card.qr.title': 'Koda QR',
+      'card.qr.desc': 'Koda QR a navnîşana vê malperê — bi kameraya têlefona xwe skan bike û her amûr li wir vedibe.'
     },
     ckb: {
       title: 'ئامرازەکانی وێبگەڕ بۆ تیۆری ژمارە',
@@ -1271,7 +1328,9 @@
       'card.fermat.title': 'ڕێگای فێرما',
       'card.fermat.desc': 'ڕێگای شیکردنەوە بۆ ھۆکاری فێرما: بگەڕێ بەدوای \u2066a² − N = b²\u2069، ئینجا سەیر بکە چۆن ئەلجەبر دەبێتە وێنە کاتێک چوارگۆشەیەک دووبارە ڕێک دەخرێتەوە بۆ لاکێشەیەک.',
       'card.shor.title': 'ئەلگۆریتمی شۆر',
-      'card.shor.desc': 'سەیر بکە چۆن ئەو ئەلگۆریتمەی دەتوانێت RSA بشکێنێت ژمارەیەک قۆناغ بە قۆناغ دەکاتە ھۆکارەکانی — لەگەڵ تاکە ھەنگاوی بەڕاستی کوانتەمی، دۆزینەوەی پلە، کە بە ڕاستگۆیی وەک جێگرەوەیەکی کلاسیکی نیشان کراوە، ھۆکاری ئەوەی N لێرە بچووک دەمێنێتەوە.'
+      'card.shor.desc': 'سەیر بکە چۆن ئەو ئەلگۆریتمەی دەتوانێت RSA بشکێنێت ژمارەیەک قۆناغ بە قۆناغ دەکاتە ھۆکارەکانی — لەگەڵ تاکە ھەنگاوی بەڕاستی کوانتەمی، دۆزینەوەی پلە، کە بە ڕاستگۆیی وەک جێگرەوەیەکی کلاسیکی نیشان کراوە، ھۆکاری ئەوەی N لێرە بچووک دەمێنێتەوە.',
+      'card.qr.title': 'کۆدی QR',
+      'card.qr.desc': 'کۆدی QR بۆ ناونیشانی ئەم ماڵپەڕە — بە کامێرای تەلەفۆنەکەت سکانی بکە و ھەموو ئامرازێک لەوێ دەکرێتەوە.'
     },
     sa: {
       title: 'सङ्ख्यासिद्धान्तस्य जालदर्शकसाधनानि',
@@ -1314,7 +1373,9 @@
       'card.fermat.title': 'फर्मा-विधिः',
       'card.fermat.desc': 'फर्मा-गुणनखण्डनविधिः: a² − N = b² अन्विष्यताम्, ततः एकः वर्गः आयतरूपेण पुनः व्यवस्थाप्यमानः सन् बीजगणितं चित्रं कथं भवति इति पश्यतु।',
       'card.shor.title': 'शोर-कलनविधिः',
-      'card.shor.desc': 'RSA मर्त्यं येन कलनविधिना भवति सः सङ्ख्यां चरणशः गुणनखण्डयति — तं पश्यतु; एकः यथार्थतः क्वाण्टम्-चरणः, कोटिनिर्धारणम्, शास्त्रीयप्रतिनिधिरूपेण सत्यं चिह्नितः, अतः एव अत्र N लघुः तिष्ठति।'
+      'card.shor.desc': 'RSA मर्त्यं येन कलनविधिना भवति सः सङ्ख्यां चरणशः गुणनखण्डयति — तं पश्यतु; एकः यथार्थतः क्वाण्टम्-चरणः, कोटिनिर्धारणम्, शास्त्रीयप्रतिनिधिरूपेण सत्यं चिह्नितः, अतः एव अत्र N लघुः तिष्ठति।',
+      'card.qr.title': 'QR-सङ्केतः',
+      'card.qr.desc': 'अस्य जालस्थानस्य निर्देशस्य QR-सङ्केतः — दूरभाषस्य चित्रग्राहकेण पठ्यताम्, ततः सर्वाणि साधनानि तत्र उद्घाट्यन्ते।'
     },
     la: {
       title: 'Instrumenta theoriae numerorum pro navigatro',
@@ -1357,7 +1418,9 @@
       'card.fermat.title': 'Methodus Fermatiana',
       'card.fermat.desc': 'Methodus resolutionis Fermatiana: quaere a² − N = b², deinde specta algebram in imaginem verti dum quadratum in rectangulum redisponitur.',
       'card.shor.title': 'Algorithmus Shorianus',
-      'card.shor.desc': 'Specta algorithmum qui RSA mortale facit numerum gradatim resolventem — cum uno gradu vere quantico, inventione ordinis, sincere ut vicarium classicum notato, quam ob rem N hic parvus manet.'
+      'card.shor.desc': 'Specta algorithmum qui RSA mortale facit numerum gradatim resolventem — cum uno gradu vere quantico, inventione ordinis, sincere ut vicarium classicum notato, quam ob rem N hic parvus manet.',
+      'card.qr.title': 'Codex QR',
+      'card.qr.desc': 'Codex QR cum inscriptione huius paginae — eum camera telephoni tui lege, et omnia instrumenta ibi aperiuntur.'
     }
   });
 })();
