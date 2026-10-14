@@ -2918,6 +2918,7 @@ function scratchCells(G){
 }
 function drawScratchPad(G){
   drawFormulaCards(G);
+  tellHostCards(G);
   scratchPadEl.hidden = !scratchOpen;
   scratchPadEl.replaceChildren();
   if (!scratchOpen) return;
@@ -3493,6 +3494,13 @@ function ringWorkArea(){ return scratchPadEl.closest('.fs-win-body.is-ring'); }
 function formulaCard(name){
   var f = drawn && (name === 'genexp' || scratchFormulas(drawn.G).find(function(x){ return x.key === name; }));
   if (!f) return null;
+  var card = formulaCardShell(name);
+  fillFormulaCard(card, drawn.G);
+  return card;
+}
+// A card without its formula: its bar, title and close button, and the cell
+// the formula goes in.
+function formulaCardShell(name){
   var card = document.createElement('div');
   card.className = 'formula-card' + (name === 'genexp' ? ' is-genexp' : '');
   card.setAttribute('data-formula', name);
@@ -3505,14 +3513,16 @@ function formulaCard(name){
   close.type = 'button';
   close.className = 'fs-win-btn is-close';
   close.appendChild(svgIcon([['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]]));
-  close.addEventListener('click', function(){ card.remove(); });
+  close.addEventListener('click', function(){
+    card.remove();
+    if (card.classList.contains('is-pane-card')) paneCardGone(name);
+  });
   bar.appendChild(close);
   card.appendChild(bar);
   var cell = document.createElement('div');
   cell.className = 'scratch-math';
   card.appendChild(cell);
   nameFormulaCard(card);
-  fillFormulaCard(card, drawn.G);
   return card;
 }
 // The cards follow the ring: each shows its formula for the group and
@@ -3525,7 +3535,8 @@ function fillFormulaCard(card, G){
 }
 function drawFormulaCards(G){
   document.querySelectorAll('.formula-card:not(.is-ghost)').forEach(function(card){
-    fillFormulaCard(card, G);
+    // The pane's cards hold the pane's formulas, which it sends.
+    if (!card.classList.contains('is-pane-card')) fillFormulaCard(card, G);
     var area = card.parentNode;
     if (area) placeFormulaCard(card, area, card.offsetLeft, card.offsetTop);
   });
@@ -3539,11 +3550,16 @@ function nameFormulaCard(card){
   close.setAttribute('aria-label', label);
   close.title = label;
 }
-// A card's place in its window, kept inside it and below its top rows.
+// A card's place in its window, kept inside it and below its top rows, on
+// its own ring's side: the pane's cards, which this ring holds, on the
+// pane's.
 function placeFormulaCard(card, area, x, y){
-  var minTop = Math.max(0, topRowsBottom(area) - area.getBoundingClientRect().top - area.clientTop);
-  var maxLeft = Math.min(area.clientWidth, workRight(area) - area.getBoundingClientRect().left - area.clientLeft) - card.offsetWidth;
-  card.style.left = Math.round(clamp(x, 0, Math.max(0, maxLeft))) + 'px';
+  var ar = area.getBoundingClientRect();
+  var minTop = Math.max(0, topRowsBottom(area) - ar.top - area.clientTop);
+  var pane = card.classList.contains('is-pane-card') && !isoPaneEl.hidden;
+  var minLeft = pane ? Math.max(0, isoPaneEl.getBoundingClientRect().left - ar.left - area.clientLeft) : 0;
+  var maxLeft = (pane ? area.clientWidth : Math.min(area.clientWidth, workRight(area) - ar.left - area.clientLeft)) - card.offsetWidth;
+  card.style.left = Math.round(clamp(x, minLeft, Math.max(minLeft, maxLeft))) + 'px';
   card.style.top = Math.round(clamp(y, minTop, Math.max(minTop, area.clientHeight - card.offsetHeight))) + 'px';
 }
 function dragFormulaFrom(view, name){
@@ -3575,6 +3591,17 @@ function dragFormulaFrom(view, name){
     var g = ghost.getBoundingClientRect();
     ghost.remove();
     if (e.type !== 'pointerup' || !area) return;
+    // The pane's frame ends above the window's bottom panel, so its cards
+    // live in the ring holding it, which takes this one where it was let go.
+    if (IS_ISOPANE && name !== 'genexp'){
+      if (e.clientX < 0 || e.clientY < 0 || e.clientX > window.innerWidth || e.clientY > window.innerHeight) return;
+      hostCards[name] = true;
+      hostCardsSent = null;
+      tellHost({ isopane: 'card', name: name, x: g.left, y: g.top });
+      if (drawn) tellHostCards(drawn.G);
+      setRingCtx(false);
+      return;
+    }
     var a = area.getBoundingClientRect();
     if (e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom) return;
     var card = formulaCard(name);
@@ -3609,6 +3636,69 @@ function movableFormulaCard(card, area){
   }
   card.addEventListener('pointerup', end);
   card.addEventListener('pointercancel', end);
+}
+// The pane's formula cards, held by the ring holding the pane: the names it
+// handed over, whose formulas it sends again whenever they change, as plain
+// data the holding ring builds back into MathML.
+var hostCards = {}, hostCardsSent = null;
+function mathJson(node){
+  if (node.nodeType === 3) return node.nodeValue;
+  if (node.nodeType !== 1 && node.nodeType !== 11) return '';
+  // A control (the log base prompt's) means nothing in a copy.
+  if (node.nodeType === 1 && /^(select|button|input)$/.test(node.localName)) return '';
+  var a = {};
+  if (node.nodeType === 1) Array.prototype.forEach.call(node.attributes, function(at){ a[at.name] = at.value; });
+  return { n: node.nodeType === 1 ? node.localName : 'span', ns: node.nodeType === 1 ? node.namespaceURI : 'http://www.w3.org/1999/xhtml', a: a, c: Array.prototype.map.call(node.childNodes, mathJson) };
+}
+function tellHostCards(G){
+  if (!IS_ISOPANE) return;
+  var names = Object.keys(hostCards);
+  if (!names.length) return;
+  var cells = scratchCells(G), out = {};
+  names.forEach(function(name){ out[name] = cells[name] ? mathJson(cells[name]) : null; });
+  var sent = JSON.stringify(out);
+  if (sent === hostCardsSent) return;
+  hostCardsSent = sent;
+  tellHost({ isopane: 'cards', cells: out });
+}
+var CARD_NS = { 'http://www.w3.org/1998/Math/MathML': true, 'http://www.w3.org/1999/xhtml': true };
+function jsonNode(j){
+  if (typeof j === 'string') return document.createTextNode(j);
+  if (!j || typeof j !== 'object' || !CARD_NS[j.ns] || typeof j.n !== 'string' || !/^[a-z][a-z0-9-]*$/.test(j.n) || /^(script|style|iframe|object|embed|link|a|form|input|button|select|textarea)$/.test(j.n)) return document.createTextNode('');
+  var el = document.createElementNS(j.ns, j.n);
+  if (j.a && typeof j.a === 'object') Object.keys(j.a).forEach(function(k){
+    if (/^[a-z][a-z0-9-]*$/.test(k) && !/^on/.test(k) && k !== 'href' && k !== 'src') el.setAttribute(k, String(j.a[k]));
+  });
+  if (Array.isArray(j.c)) j.c.forEach(function(c){ el.appendChild(jsonNode(c)); });
+  return el;
+}
+// Here, the card the pane handed over, at x, y in the pane's view.
+function addPaneCard(name, x, y){
+  var area = ringWorkArea();
+  if (!area || !isoPaneFrame) return;
+  var f = isoPaneFrame.getBoundingClientRect(), a = area.getBoundingClientRect();
+  var card = formulaCardShell(name);
+  card.classList.add('is-pane-card');
+  area.appendChild(card);
+  placeFormulaCard(card, area, f.left + x - a.left - area.clientLeft, f.top + y - a.top - area.clientTop);
+  movableFormulaCard(card, area);
+}
+function fillPaneCards(cells){
+  document.querySelectorAll('.formula-card.is-pane-card').forEach(function(card){
+    var j = cells[card.getAttribute('data-formula')];
+    var cell = card.querySelector('.scratch-math');
+    if (j === undefined) return;
+    if (j) cell.replaceChildren(jsonNode(j)); else cell.replaceChildren();
+    if (card.parentNode) placeFormulaCard(card, card.parentNode, card.offsetLeft, card.offsetTop);
+  });
+}
+// The last of a formula's pane cards closed: the pane stops sending it.
+function paneCardGone(name){
+  if (document.querySelector('.formula-card.is-pane-card[data-formula="' + name + '"]')) return;
+  try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'cardgone', name: name }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+}
+function dropPaneCards(){
+  document.querySelectorAll('.formula-card.is-pane-card').forEach(function(card){ card.remove(); });
 }
 // The generator exponent equivalences card, opened from the ring's right-
 // click menu: each element, in numeric order, followed by the power of
@@ -4382,6 +4472,12 @@ if (IS_RINGWIN){
     }
     // The room the holding ring gave the menu: none (or the menu closed),
     // and the content follows the frame again.
+    if (d.ringhost === 'cardgone'){
+      if (!IS_ISOPANE || typeof d.name !== 'string') return;
+      delete hostCards[d.name];
+      hostCardsSent = null;
+      return;
+    }
     if (d.ringhost === 'menuroom'){
       if (!IS_ISOPANE) return;
       if (d.px > 0) placeRingCtx();
@@ -6334,6 +6430,7 @@ function openOwnPane(){
 }
 function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
+  dropPaneCards();
   isoPaneEl.classList.remove('is-menu-open');
   // A new frame reports its own pane afresh.
   paneSplitBox = null;
@@ -6405,6 +6502,7 @@ function setPaneMenuRoom(open){
 function closeIsoPane(){
   endIsoPick();
   if (isoPaneFrame) isoPaneFrame.remove();
+  dropPaneCards();
   isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
   isoPane = null;
@@ -7484,6 +7582,10 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
+  } else if (d.isopane === 'card'){
+    if (typeof d.name === 'string' && d.name !== 'genexp' && Object.prototype.hasOwnProperty.call(SCRATCH_NAMES, d.name) && isFinite(d.x) && isFinite(d.y)) addPaneCard(d.name, d.x, d.y);
+  } else if (d.isopane === 'cards'){
+    if (d.cells && typeof d.cells === 'object') fillPaneCards(d.cells);
   } else if (d.isopane === 'legend'){
     var lg = d.legend, num = function(v){ return Number.isInteger(v); };
     isoPaneLegend = lg && Array.isArray(lg.selfInverse) && lg.selfInverse.every(num) && Array.isArray(lg.pairs)
