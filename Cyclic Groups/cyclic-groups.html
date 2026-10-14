@@ -846,25 +846,31 @@
   @container expr-side (max-height: 140px){ .expr-slot.is-side .expr-name{ display:none; } }
   .fs-win-body.is-ring:has(> .expr-slot.is-side:not([hidden])) > svg.ring-svg{ justify-self:end; width:calc(100% - var(--expr-side) - 10px); }
   :root.is-isopane .fs-win-body.is-ring:has(> .expr-slot.is-side:not([hidden])) > svg.ring-svg{ justify-self:start; }
-  :root.is-isopane .fs-win-body.is-ring:has(> .expr-slot.is-side:not([hidden])) > #legend-panel{ margin-right:calc(var(--expr-side) + 10px); }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
   .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; justify-self:start; position:static; align-self:center; }
   .fs-win-body.is-ring > .combine-key{ grid-area:key; justify-self:end; position:static; max-width:260px; margin:0; }
   /* Full screen, the element colour key shows only when its button on the
-     Element colours row asks for it, in the ring's bottom right corner, just
-     above the path colour key. */
+     Element colours row asks for it, always at the bottom of the window:
+     a row of its own under everything else (the first row past the grid's
+     last line, whatever the layout), its entries side by side. Beside an
+     isomorphism's pane it keeps to this ring's columns, unless the linked
+     rings share it (below). */
   .legend-btn{ display:none; }
   .fs-win-body.is-ring .legend-btn:not([hidden]){ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
   .fs-win-body.is-ring .legend-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
-  .fs-win-body.is-ring > #legend-panel{ grid-area:ring; justify-self:end; align-self:end; position:relative; z-index:1; max-width:320px; padding:0 0 8px; }
+  .fs-win-body.is-ring > #legend-panel{ grid-column:1 / -1; grid-row:-1 / span 1; justify-self:center; align-self:start; position:relative; z-index:1; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel{ grid-column:1 / 4; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel{ grid-area:lgd; }
+  .fs-win-body.is-ring > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
   .fs-win-body.is-ring > #legend-panel:not(.is-shown){ display:none; }
-  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) > h2{ margin:0 0 8px; font-size:.78rem; }
+  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) > h2{ margin:0; font-size:.78rem; }
   /* Its entries read like the arrow key under it: the same small dim text,
      each count straight after its entry rather than pushed to the edge. */
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) .legend{ gap:6px; }
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) :is(.legend-item, .legend-pair){ gap:9px; font-size:.84rem; line-height:1.4; color:var(--text-dim); }
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) .legend-count{ margin-left:6px; font-size:inherit; opacity:.8; }
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) .legend-swatch{ margin:0 2px; }
+  .fs-win-body.is-ring > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   .diagram-frame.is-frames-inert .iso-pane > iframe{ pointer-events:none; }
   /* The isomorphism view puts a second ring, the group an isomorphism chip
      named, in a pane right of this one: an iframe of this page (isopane=1)
@@ -966,10 +972,10 @@
      from what the pane reports) joins it, each key at the end of its own
      ring's half. */
   #combine-key-pane{ display:none; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:minmax(3.6rem, 1fr) minmax(0, 420px) minmax(3.6rem, 1fr) calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "foot foot foot foot"; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "foot foot foot foot"; }
-  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "keyl keyl keyl keyr"; }
-  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "keyl keyl keyl keyr"; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:minmax(3.6rem, 1fr) minmax(0, 420px) minmax(3.6rem, 1fr) calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "lgd lgd lgd pane" "foot foot foot foot"; }
+  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "lgd lgd lgd pane" "foot foot foot foot"; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "lgd lgd lgd pane" "keyl keyl keyl keyr"; }
+  .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "lgd lgd lgd pane" "keyl keyl keyl keyr"; }
   /* Their bottom margin matches the pane page's own padding under its row. */
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:rot; align-self:center; margin-bottom:10px; }
   .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:spin; justify-self:center; align-self:center; width:100%; max-width:420px; margin:0 auto 10px; }
