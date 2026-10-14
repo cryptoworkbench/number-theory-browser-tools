@@ -996,6 +996,9 @@
   .fs-menu-item:disabled{ opacity:.4; cursor:default; background:none; }
   /* The ring's own right-click menu: the Layers switches, at the pointer. */
   .ring-ctx{ position:fixed; left:0; top:0; bottom:auto; z-index:70; min-width:220px; }
+  /* Never taller than the window it opens in: the pane's ends above the
+     open subgroups panel. */
+  .ring-ctx, .ring-ctx .ring-ctx-sub{ max-height:calc(100vh - 8px); box-sizing:border-box; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
   .ring-ctx .fs-menu-item{ font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:none; border:0; cursor:pointer; }
   .ring-ctx .fs-menu-item:hover, .ring-ctx .fs-menu-item:focus-visible{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .ring-ctx .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
@@ -3423,16 +3426,27 @@ function setRingCopy(name, from, focus){
     });
     return it.item;
   })));
-  var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
-  var w = ringCopyEl.offsetWidth, h = ringCopyEl.offsetHeight;
-  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-  // Beside the menu on its right, or on its left where the right has no room.
-  var x = menu.right - 2;
-  if (x + w > vw - 4) x = Math.max(4, menu.left - w + 2);
-  ringCopyEl.style.left = x + 'px';
-  ringCopyEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
+  placeBeside(ringCopyEl, from);
   if (focus) ringCopyEl.querySelector('button').focus();
 }
+// A submenu goes beside the menu on its right, or on its left where the
+// right has no room, level with the item that opened it.
+function placeBeside(sub, from){
+  var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
+  var w = sub.offsetWidth, h = sub.offsetHeight;
+  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  var x = menu.right - 2;
+  if (x + w > vw - 4) x = Math.max(4, menu.left - w + 2);
+  sub.style.left = x + 'px';
+  sub.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
+}
+function ringSubFrom(name){ return ringCtxItems.find(function(it){ return it.sub === name; }).item; }
+// A menu taller than its window (the pane's, above the open subgroups panel)
+// scrolls, and an open submenu keeps level with its item.
+ringCtxEl.addEventListener('scroll', function(){
+  if (ringSubOpen) placeBeside(ringSubEls[ringSubOpen], ringSubFrom(ringSubOpen));
+  if (ringCopyFrom) placeBeside(ringCopyEl, ringCopyFrom);
+});
 // Formula cards: the formula at the top of the copy submenu, dragged out
 // and let go over the Ring window, stays there as a card of its own, the
 // formula as it was drawn then, until its corner button closes it.
@@ -3799,15 +3813,7 @@ function setRingSub(name, focus){
   if (name === 'elements') syncElementItems();
   if (name === 'arrows') syncArrowKeyItem();
   if (name === 'iso' || name === 'whole') syncIsoItems(name);
-  var sub = ringSubEls[name], from = ringCtxItems.find(function(it){ return it.sub === name; }).item;
-  var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
-  var w = sub.offsetWidth, h = sub.offsetHeight;
-  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-  // Beside the menu on its right, or on its left where the right has no room.
-  var x = menu.right - 2;
-  if (x + w > vw - 4) x = Math.max(4, menu.left - w + 2);
-  sub.style.left = x + 'px';
-  sub.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
+  placeBeside(ringSubEls[name], ringSubFrom(name));
   if (focus){
     var first = subFocusables(name)[0];
     if (first) first.focus();
@@ -3918,7 +3924,8 @@ ringCtxEl.addEventListener('keydown', function(e){
     setRingCtx(false);
   });
 });
-window.addEventListener('scroll', function(){ setRingCtx(false); }, true);
+// Scrolling the page closes the menu; scrolling the menu itself does not.
+window.addEventListener('scroll', function(e){ if (!ringCtxEl.contains(e.target)) setRingCtx(false); }, true);
 
 /* ---------- the ring filling the screen ---------- */
 
