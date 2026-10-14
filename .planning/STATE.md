@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-14T20:55:55.441Z"
+last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 7eaeb0c177fa78cb70f23d03ff81f7ef2267f652
+state_head: 6d8dbad941c506a6aac903ca670d8abf99d8665c
 progress:
   total_phases: 7
   completed_phases: 6
@@ -624,6 +624,7 @@ None yet.
 | 261014-ttj | QR-code page linking to the GitHub Pages site, on branches qr-hub and qr-nav | 2026-10-14 | 77340be | [261014-ttj-qr-code-page-linking-to-the-github-pages](./quick/261014-ttj-qr-code-page-linking-to-the-github-pages/) |
 | 389 | Cyclic Groups intro: QR code of the page's own GitHub Pages address | 2026-10-14 | 5987530 | — |
 | 261014-v9c | Cyclic Groups mobile version for mobile-reporting browsers | 2026-10-14 | 7eaeb0c | [261014-v9c-cyclic-groups-mobile-version-for-mobile-](./quick/261014-v9c-cyclic-groups-mobile-version-for-mobile-/) |
+| 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 
 ## Deferred Items
 
