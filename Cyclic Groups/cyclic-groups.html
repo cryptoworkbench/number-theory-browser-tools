@@ -4892,7 +4892,10 @@ function isoTakeCombine(d, m){
   redrawRing();
 }
 // The line under the ring: a prompt for b once a is picked, then the
-// combination written out, reduced mod n where it wraps.
+// combination written out as a chain of congruences: the generic a ∗ b,
+// the operation revealed (+ or ×), its plain result, and only as the last
+// step that result reduced, closed by the modulus (% n). The plain result
+// is green like the reduced one: it is the same residue class.
 function drawCombineLine(G, y){
   var roles = combineRoles(G);
   if (!roles.size) return;
@@ -4908,12 +4911,19 @@ function drawCombineLine(G, y){
     var raw = G.mode === 'multiplicative' ? a * b : a + b;
     t.setAttribute('direction', 'ltr');
     t.appendChild(part('a', a));
-    t.appendChild(document.createTextNode(G.mode === 'multiplicative' ? ' · ' : ' + '));
+    t.appendChild(document.createTextNode(' * '));
     t.appendChild(part('b', b));
-    t.appendChild(document.createTextNode(' = '));
-    if (raw !== c) t.appendChild(document.createTextNode(raw + ' ≡ '));
+    t.appendChild(document.createTextNode(' ≡ '));
+    t.appendChild(part('a', a));
+    t.appendChild(document.createTextNode(G.mode === 'multiplicative' ? ' × ' : ' + '));
+    t.appendChild(part('b', b));
+    t.appendChild(document.createTextNode(' ≡ '));
+    if (raw !== c){
+      t.appendChild(part('c', raw));
+      t.appendChild(document.createTextNode(' ≡ '));
+    }
     t.appendChild(part('c', c));
-    if (raw !== c) t.appendChild(document.createTextNode(' (mod ' + G.n + ')'));
+    t.appendChild(document.createTextNode(' (% ' + G.n + ')'));
   }
   ringDynamicEl.appendChild(t);
   fitText(t);
