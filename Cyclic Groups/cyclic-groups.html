@@ -996,6 +996,7 @@
   .fs-menu-item:disabled{ opacity:.4; cursor:default; background:none; }
   /* The ring's own right-click menu: the Layers switches, at the pointer. */
   .ring-ctx{ position:fixed; left:0; top:0; bottom:auto; z-index:70; min-width:220px; }
+  .ring-ctx > [hidden]{ display:none; }
   .ring-ctx .fs-menu-item{ font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:none; border:0; cursor:pointer; }
   .ring-ctx .fs-menu-item:hover, .ring-ctx .fs-menu-item:focus-visible{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .ring-ctx .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
@@ -3123,7 +3124,7 @@ function svgIcon(parts){
 // there, and last the Info section: the Formulas submenus (each formula to
 // copy in one of several formats) and the
 // group's structure from the Info panel, which does nothing yet. A pane's
-// menu has no isomorphisms; its Colours are the left ring's, each change
+// menu has no isomorphisms, nor has the ring's while a pane is open; its Colours are the left ring's, each change
 // relayed there, and its Formulas are its own group's.
 var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxView', key: 'cyclicGroups.ctxZoomIn', zoom: 1, keys: '+', run: function(){ stepRingZoom(1); }, stay: true },
@@ -3212,7 +3213,7 @@ var ringCtxItems = RING_CTX_ITEMS.filter(function(l){ return !(IS_ISOPANE && (l.
     box.dispatchEvent(new Event('change'));
   });
   ringCtxEl.appendChild(item);
-  return { item: item, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom, formulas: l.formulas, checked: l.checked, needsArea: l.needsArea };
+  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom, formulas: l.formulas, checked: l.checked, needsArea: l.needsArea };
 });
 // The Elements submenu: the key's switch (in a Ring window, where the key
 // is shown on request), then the colour schemes, each choosing its option
@@ -3832,6 +3833,12 @@ function setRingCtx(open, x, y){
     // With no isomorphic group to link to (the identity's subgroup, a group
     // that is not cyclic), none to open.
     if (it.sub === 'iso') it.item.setAttribute('aria-disabled', isoPanelEl.hidden ? 'true' : 'false');
+    // With a second ring already open beside this one there is no room for
+    // another: the Isomorphisms section goes, its heading with it.
+    if (it.sub === 'iso' || it.sub === 'whole'){
+      it.item.hidden = !isoPaneEl.hidden;
+      if (it.head) it.head.hidden = !isoPaneEl.hidden;
+    }
     if (it.sub === 'whole') it.item.setAttribute('aria-disabled', isoGroupChipsEl.childElementCount ? 'false' : 'true');
     if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
     // A card needs the Ring window's area to sit in.
