@@ -627,6 +627,7 @@
   .ring-combine .is-a{ fill:var(--role-active); }
   .ring-combine .is-b{ fill:var(--role-input); }
   .ring-combine .is-c{ fill:var(--role-result); }
+  .ring-combine-hit{ fill:transparent; cursor:help; }
   /* The captions can be selected and copied; a press on one never turns
      the ring. */
   svg.ring-svg .ring-note{ user-select:text; -webkit-user-select:text; cursor:text; }
@@ -5013,6 +5014,19 @@ function drawCombineLine(G, y){
       x += cols[k] + COMBINE_GAP;
     });
   });
+  // Over g^(i+j) ≡ g^k, a tooltip explains the reduction: g has order |G|,
+  // so exponents count modulo the group's cardinality.
+  if (two){
+    var cells = lines[1], from = cells[8], to = cells[10];
+    var left = +from.getAttribute('x'), right = +to.getAttribute('x') + to.w;
+    var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
+    var tip = svgEl('title', {});
+    var sum = i + j, n = G.order;
+    tip.textContent = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
+      { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
+    hit.appendChild(tip);
+    box.appendChild(hit);
+  }
   // Too wide for the ring's view, both lines shrink together about the middle.
   var room = SIZE - 24;
   if (width > room){

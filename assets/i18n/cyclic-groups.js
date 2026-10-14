@@ -329,6 +329,8 @@
       dirToggleCw: 'Forward direction: clockwise. Click for counterclockwise',
       dirToggleCcw: 'Forward direction: counterclockwise. Click for clockwise',
       combinePrompt: 'Click a second bead to combine it with {a}',
+      combineExpWrap: 'Exponents add: {i} + {j} = {sum}. The group has {n} elements, so {g} has order {n} and {gn} is the identity. Exponents therefore count modulo the group\'s cardinality {n}: {sum} mod {n} = {k}, so {gsum} = {gk}.',
+      combineExpNoWrap: 'Exponents add: {i} + {j} = {sum}. Exponents count modulo the group\'s cardinality {n}, and {sum} is already below {n}, so nothing wraps: {gsum} = {gk}.',
       dirCw: 'Clockwise',
       dirCcw: 'Counterclockwise',
       sideInside: 'Inside',
