@@ -369,7 +369,7 @@
       subAlign: 'Align numbers with blank space',
       subWidthLabel: 'Line up numbers',
       subWidthNone: 'None',
-      subFormulaLabel: 'Formula of the selected subgroup',
+      subFormulaLabel: "Selected subgroup's formula",
       subFormulaNone: 'None',
       subFormulaOrder: 'Subgroup cardinality formula',
       subFormulaIndex: 'Subgroup index/cofactor/coset formula',
