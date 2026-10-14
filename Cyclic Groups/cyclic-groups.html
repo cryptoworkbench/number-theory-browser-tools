@@ -588,8 +588,8 @@
      the top-left corner of the ring's area under the header, beside the
      ring, so the ring keeps its size. */
   .ring-head{ position:relative; }
-  .ring-head > .ring-hover-formula{ position:absolute; z-index:5; top:100%; left:0; translate:0 6px; max-width:calc(100% - 16px); padding:6px 14px; overflow-x:auto; overflow-y:hidden; pointer-events:none; user-select:none; -webkit-user-select:none; background:color-mix(in srgb, var(--panel) 82%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border:1px solid color-mix(in srgb, var(--accent) 45%, var(--panel-border)); border-radius:var(--radius-card); box-shadow:0 2px 10px color-mix(in srgb, var(--ink) 14%, transparent); }
-  .ring-head > .ring-hover-formula math{ cursor:default; user-select:none; -webkit-user-select:none; }
+  .ring-head > .ring-hover-formula{ position:absolute; z-index:5; top:100%; left:0; translate:0 6px; max-width:calc(100% - 16px); padding:6px 14px; overflow:hidden; white-space:nowrap; pointer-events:none; user-select:none; -webkit-user-select:none; background:color-mix(in srgb, var(--panel) 82%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border:1px solid color-mix(in srgb, var(--accent) 45%, var(--panel-border)); border-radius:var(--radius-card); box-shadow:0 2px 10px color-mix(in srgb, var(--ink) 14%, transparent); }
+  .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -2623,10 +2623,18 @@ function subFormulaOn(){ return state.subFormula !== 'none' && state.subFormulaA
 // The formula the list's dropdown asks for, for ⟨h⟩ in G, or null under
 // None. In (ℤ/nℤ)* the log base is the generator the beads are arranged
 // by, which is the smallest one while they are not.
-function subRowFormula(G, h){
+// base, when given, is the log base to use instead.
+function subRowFormula(G, h, base){
   if (!subFormulaOn()) return null;
-  var g = G.mode === 'multiplicative' && G.cyclic ? arrangeBy(G) : undefined;
+  var g = G.mode === 'multiplicative' && G.cyclic ? base || arrangeBy(G) : undefined;
   return state.subFormula === 'order' ? subOrderFormula(G, h, g) : cosetCountFormula(G, h, g, true);
+}
+// The generator the pane's beads are arranged by, as its query reports it,
+// the way its own arrangeBy picks it: the smallest while it names none.
+function paneArrangeBy(H){
+  var v = new URLSearchParams(isoPane ? isoPane.q : '').get('arrangegen');
+  var g = v === SUB_FOLLOW ? paneExpr() : intOrNull(v);
+  return H.generators.indexOf(g) !== -1 ? g : H.generators[0];
 }
 // The selected subgroup's formula, where the second dropdown says: on a
 // line of its own inside the selected row, under its subgroup (on the
@@ -2634,20 +2642,43 @@ function subRowFormula(G, h){
 // header, or both. Hovering another row leaves it on the selected one.
 function subFormulaAtRing(){ return state.subFormulaAt === 'ring' || state.subFormulaAt === 'both'; }
 function subFormulaAtRow(){ return state.subFormulaAt === 'row' || state.subFormulaAt === 'both'; }
+// A merged row gives each group its formula on its own side: ⟨h⟩'s on the
+// left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
   clearSubFormula();
-  if (state.noSub || !subRowFormula(G, state.gen)) return;
+  var f = state.noSub ? null : subRowFormula(G, state.gen);
+  if (!f) return;
   var row = subFormulaAtRow() && subgroupsEl.querySelector('.subgroup-row.is-current');
-  if (subFormulaAtRing()) ringHeadEl.appendChild(subFormulaBox('div', 'ring-hover-formula', G));
-  if (row) (row.querySelector('.sub-row-l') || row).appendChild(subFormulaBox('span', 'sub-row-formula', G));
+  if (subFormulaAtRing()){
+    var box = subFormulaBox('div', 'ring-hover-formula', f);
+    ringHeadEl.appendChild(box);
+    fitSubFormulaBox(box);
+  }
+  if (!row) return;
+  var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
+  // Fresh nodes: the ring's box holds the first ones.
+  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, state.gen)));
+  var H = right && isoPaneGroup();
+  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(state.gen), paneArrangeBy(H))));
 }
-// Each place gets nodes of its own.
-function subFormulaBox(tag, cls, G){
-  var f = subRowFormula(G, state.gen), box = document.createElement(tag);
+function subFormulaBox(tag, cls, f){
+  var box = document.createElement(tag);
   box.className = cls;
   box.setAttribute('aria-hidden', 'true');
   box.appendChild(mathLine('ring-math-formula', f.math, f.plain));
   return box;
+}
+// The formula at the ring never scrolls: one too wide for the ring's area is
+// set in a smaller size to fit it, as the header's own formulas are.
+function fitSubFormulaBox(box){
+  var m = box.firstChild;
+  m.style.fontSize = '';
+  // The header can run wider than the view (the pane's does), so the room
+  // ends at whichever edge comes first.
+  var cs = getComputedStyle(box), edge = Math.min(ringHeadEl.getBoundingClientRect().right, document.documentElement.clientWidth);
+  var room = Math.min(edge - box.getBoundingClientRect().left - 8, ringHeadEl.clientWidth - 16) - 2 - (box.offsetWidth - box.clientWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  var w = m.getBoundingClientRect().width;
+  if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
 function clearSubFormula(){
   subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
@@ -4114,10 +4145,13 @@ if (IS_RINGWIN){
 function fitRingHead(){
   var room = ringHeadEl.clientWidth - parseFloat(getComputedStyle(ringHeadEl).paddingLeft) - parseFloat(getComputedStyle(ringHeadEl).paddingRight);
   ringHeadEl.querySelectorAll('math').forEach(function(m){
+    if (m.closest('.ring-hover-formula')) return;
     m.style.fontSize = '';
     var w = m.getBoundingClientRect().width;
     if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
   });
+  var box = ringHeadEl.querySelector('.ring-hover-formula');
+  if (box) fitSubFormulaBox(box);
 }
 
 // Every group is one necklace, beads clockwise from the top in numeric order
