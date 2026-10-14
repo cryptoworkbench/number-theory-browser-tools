@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Continued Fractions Tool
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 4
-last_updated: "2026-10-14T09:14:02.846Z"
+last_updated: "2026-10-14T19:50:45.784Z"
 last_activity: 2026-10-13
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 0ef01d9f7a148e7f261f7de3a276f689ae500e81
+state_head: 77340beb78c128227fad4706e2867f43acae85e2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-13 - Completed quick task 261013-h96: Cyclic Groups: element-expression slider by the ring
+Last activity: 2026-10-14 - Completed quick task 261014-ttj: QR-code page linking to the GitHub Pages site, on branches qr-hub and qr-nav
 
 Progress: [█████████░] 86%
 
@@ -621,6 +621,7 @@ None yet.
 | 385 | Combine two elements on the ring: yellow, blue and green halos | 2026-10-13 | 1ab69e3 | — |
 | 386 | Combined elements mirrored to the other ring through the isomorphism | 2026-10-13 | ea6c059 | — |
 | 387 | Cyclic Groups: hover formula (cardinality / index-cofactor-coset) for the subgroup list, shown in the row or at the ring | 2026-10-14 | 0ef01d9 | — |
+| 261014-ttj | QR-code page linking to the GitHub Pages site, on branches qr-hub and qr-nav | 2026-10-14 | 77340be | [261014-ttj-qr-code-page-linking-to-the-github-pages](./quick/261014-ttj-qr-code-page-linking-to-the-github-pages/) |
 
 ## Deferred Items
 
@@ -636,4 +637,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-13 - Completed quick task 261013-h96: Cyclic Groups: element-expression slider by the ring
+Last activity: 2026-10-14 - Completed quick task 261014-ttj: QR-code page linking to the GitHub Pages site, on branches qr-hub and qr-nav
