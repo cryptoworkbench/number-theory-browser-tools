@@ -451,7 +451,7 @@
       fsExport: 'Export',
       fsNotice: 'Notice',
       fsClose: 'Close {name}',
-      ctxGenExp: 'Show generator exponent equivalences',
+      ctxGenExp: 'Show element expressions',
       genExpTitle: 'Element expressions',
       genExpSortElUp: 'Sort by element, low to high',
       genExpSortElDown: 'Sort by element, high to low',
