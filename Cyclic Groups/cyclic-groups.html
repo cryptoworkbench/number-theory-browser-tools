@@ -2616,12 +2616,13 @@ function subOrderFormula(G, h, g){
 // ℤ/nℤ, the index is gcd(|G|, h); in a cyclic (ℤ/nℤ)* arranged by powers of
 // a generator g it is gcd(|G|, log_g h), log_g 1 taken as k as in
 // orderFormulas. Without a log base, the group's order over ⟨h⟩'s.
-// With index set it opens with the index's own notation, [G : ⟨h⟩], and a
-// generator g given is taken as the log base whether or not the beads are
-// arranged by it.
+// With index set it opens with the index's own notation, [G : ⟨h⟩], in
+// place of the fraction, which only the order-based form without a gcd
+// keeps, and a generator g given is taken as the log base whether or not
+// the beads are arranged by it.
 function cosetCountFormula(G, h, g, index){
-  var n = G.order, lead = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), d;
-  if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true), mo('='), lead);
+  var n = G.order, frac = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), lead = frac, d;
+  if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true));
   if (G.mode === 'additive'){
     var q = gcdOperand(G, h);
     d = gcd(n, q);
@@ -2636,7 +2637,7 @@ function cosetCountFormula(G, h, g, index){
       plain: translate(index ? 'cyclicGroups.formula.mulSubgroupIndex' : 'cyclicGroups.formula.mulCosetCount', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
   }
   var k = G.orders[h];
-  return { math: mrow(lead, mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
+  return { math: mrow(index ? mrow(lead, mo('='), frac) : lead, mo('='), mfrac(mn(n), mn(k)), mo('='), mn(n / k)),
     plain: translate(index ? 'cyclicGroups.formula.subgroupIndexByOrder' : 'cyclicGroups.formula.cosetCountIndex', { group: G.label, h: h, n: n, k: k, c: n / k }) };
 }
 
