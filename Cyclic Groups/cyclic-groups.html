@@ -1377,7 +1377,7 @@
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
           <span class="sub-expr-pair"><label for="sub-formula-select" data-i18n="cyclicGroups.subFormulaLabel">Formula of the selected subgroup</label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality formula</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/coset formula</option></select></span>
-          <span class="sub-expr-pair"><label for="sub-formula-at-select" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</label><select id="sub-formula-at-select"><option value="none" data-i18n="cyclicGroups.subFormulaAtNone">None</option><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the selected row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-at-select" data-i18n="cyclicGroups.subFormulaAtLabel">Show the formula</label><select id="sub-formula-at-select"><option value="none" data-i18n="cyclicGroups.subFormulaAtNone">None</option><option value="row" data-i18n="cyclicGroups.subFormulaAtRow">In the selected row</option><option value="ring" data-i18n="cyclicGroups.subFormulaAtRing">At the ring</option><option value="both" data-i18n="cyclicGroups.subFormulaAtBoth">Both</option></select></span>
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</label></div>
         <div class="check" title="Automatically shift the generated cyclic subgroup to match the first element from the top when moving in the forward direction" data-i18n-title="cyclicGroups.autoShiftTitle"><input type="checkbox" id="auto-shift"><label for="auto-shift" data-i18n="cyclicGroups.autoShift">Automatically shift cyclic subgroups</label></div>
@@ -1717,7 +1717,7 @@ var subWidthEl = $('sub-width-select');
 var subFormulaEl = $('sub-formula-select');
 var SUB_FORMULAS = ['none', 'order', 'index'];
 var subFormulaAtEl = $('sub-formula-at-select');
-var SUB_FORMULA_ATS = ['none', 'row', 'ring'];
+var SUB_FORMULA_ATS = ['none', 'row', 'ring', 'both'];
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
 // Off, or each member in its bead's colour; the soft tint once offered
@@ -2630,20 +2630,24 @@ function subRowFormula(G, h){
 }
 // The selected subgroup's formula, where the second dropdown says: on a
 // line of its own inside the selected row, under its subgroup (on the
-// left, this group's side, of a merged row), or at the ring, under its
-// header. Hovering another row leaves it on the selected one.
+// left, this group's side, of a merged row), at the ring, under its
+// header, or both. Hovering another row leaves it on the selected one.
+function subFormulaAtRing(){ return state.subFormulaAt === 'ring' || state.subFormulaAt === 'both'; }
+function subFormulaAtRow(){ return state.subFormulaAt === 'row' || state.subFormulaAt === 'both'; }
 function syncSubFormula(G){
   clearSubFormula();
-  var f = state.noSub ? null : subRowFormula(G, state.gen);
-  if (!f) return;
-  var ring = state.subFormulaAt === 'ring';
-  var row = ring ? null : subgroupsEl.querySelector('.subgroup-row.is-current');
-  if (!ring && !row) return;
-  var box = document.createElement(ring ? 'div' : 'span');
-  box.className = ring ? 'ring-hover-formula' : 'sub-row-formula';
+  if (state.noSub || !subRowFormula(G, state.gen)) return;
+  var row = subFormulaAtRow() && subgroupsEl.querySelector('.subgroup-row.is-current');
+  if (subFormulaAtRing()) ringHeadEl.appendChild(subFormulaBox('div', 'ring-hover-formula', G));
+  if (row) (row.querySelector('.sub-row-l') || row).appendChild(subFormulaBox('span', 'sub-row-formula', G));
+}
+// Each place gets nodes of its own.
+function subFormulaBox(tag, cls, G){
+  var f = subRowFormula(G, state.gen), box = document.createElement(tag);
+  box.className = cls;
   box.setAttribute('aria-hidden', 'true');
   box.appendChild(mathLine('ring-math-formula', f.math, f.plain));
-  (ring ? ringHeadEl : row.querySelector('.sub-row-l') || row).appendChild(box);
+  return box;
 }
 function clearSubFormula(){
   subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
@@ -2729,7 +2733,7 @@ function drawMath(G, subs){
     lines.push(p);
   });
   ringHeadEl.replaceChildren.apply(ringHeadEl, lines);
-  if (state.subFormulaAt === 'ring') syncSubFormula(G);
+  if (subFormulaAtRing()) syncSubFormula(G);
   fitRingHead();
   drawScratchPad(G);
 }
@@ -8190,7 +8194,7 @@ subFormulaEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
-// Where it shows: in the selected row, at the ring, or nowhere (None).
+// Where it shows: in the selected row, at the ring, both, or nowhere (None).
 subFormulaAtEl.addEventListener('change', function(){
   state.subFormulaAt = subFormulaAtEl.value;
   if (!drawn) return;

@@ -377,6 +377,7 @@
       subFormulaAtNone: 'None',
       subFormulaAtRow: 'In the selected row',
       subFormulaAtRing: 'At the ring',
+      subFormulaAtBoth: 'Both',
       'formula.subgroupIndex': '[{group} : ⟨{h}⟩] = |{group}| / |⟨{h}⟩| = gcd(|{group}|, {h}) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupIndex': '[{group} : ⟨{h}⟩] = |{group}| / |⟨{h}⟩| = gcd(|{group}|, log_{g} {h}) = gcd(φ({n}), log_{g} {h}) = gcd({k}, {q}) = {d}',
       'formula.subgroupIndexByOrder': '[{group} : ⟨{h}⟩] = |{group}| / |⟨{h}⟩| = {n} / {k} = {c}',
