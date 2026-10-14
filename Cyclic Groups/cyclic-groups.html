@@ -1021,8 +1021,10 @@
      scrolls inside the card. */
   .formula-card.is-genexp{ max-width:calc(100% - 24px); }
   .formula-card.is-genexp > .scratch-math{ max-height:min(60vh, 520px); overflow:auto; overscroll-behavior:contain; }
-  .genexp-grid{ display:grid; grid-template-columns:repeat(var(--genexp-cols, 2), max-content); column-gap:.8em; row-gap:.38em; align-items:baseline; font-family:var(--font-math); font-size:1.15rem; color:var(--text); }
-  .genexp-grid > math{ justify-self:end; }
+  .genexp-grid{ display:grid; grid-template-columns:repeat(var(--genexp-cols, 3), max-content); column-gap:.35em; row-gap:.38em; align-items:baseline; font-family:var(--font-math); font-size:1.15rem; color:var(--text); }
+  .genexp-grid > .genexp-el{ justify-self:end; }
+  .genexp-grid > .genexp-eq{ justify-self:center; }
+  .genexp-grid > .genexp-pow{ justify-self:start; margin-right:.6em; }
   .genexp-none{ max-width:22em; margin:0; font-size:.9rem; color:var(--text-dim); }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
@@ -3560,8 +3562,15 @@ function movableFormulaCard(card, area){
 // the ring's group; a group with no generator says so instead. The table is
 // built again only when the group or the language changes.
 function genExpCard(){ var area = ringWorkArea(); return area && area.querySelector(':scope > .formula-card[data-formula="genexp"]'); }
+// Each element and each power sit in cells of their own, the equals signs
+// in columns of their own: the elements right-aligned, the powers left-
+// aligned, so the signs and the generators line up whatever the widths.
+// The numbers follow the Subgroups panel's Line up numbers (leading zeros,
+// or blank space, to the widest element and exponent) and its colouring
+// (each element and each power that equals it on its bead's colour).
 function fillGenExp(cell, G){
-  var sig = getLang() + ' ' + G.mode + ' ' + G.n;
+  var width = subWidth(G), expWidth = subExpWidth(G);
+  var sig = [getLang(), G.mode, G.n, width, expWidth, state.subPad, memberPaintKey(G)].join(' ');
   if (cell.getAttribute('data-sig') === sig) return;
   cell.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -3572,16 +3581,30 @@ function fillGenExp(cell, G){
   }
   var gens = G.generators.slice().sort(function(a, b){ return a - b; });
   var logs = gens.map(function(g){ return exprLog(G, g); });
+  var nat = subFormat(null, null, width, expWidth);
+  var pows = gens.map(function(g, i){ return subFormat(g, logs[i], width, expWidth); });
   var grid = document.createElement('div');
   grid.className = 'genexp-grid';
-  grid.style.setProperty('--genexp-cols', String(gens.length + 1));
+  grid.style.setProperty('--genexp-cols', String(2 * gens.length + 1));
   G.els.slice().sort(function(a, b){ return a - b; }).forEach(function(x){
-    grid.appendChild(mInline(mn(x), x));
-    gens.forEach(function(g, i){
-      grid.appendChild(mInline(mrow(mo('='), mEl('msup', [mn(g), mn(logs[i][x])])), ' = ' + g + '^' + logs[i][x]));
+    var el = mInline(memberMath(x, nat.m(x)), nat.p(x));
+    el.classList.add('genexp-el');
+    grid.appendChild(el);
+    pows.forEach(function(f){
+      var eq = mInline(mo('='), ' = ');
+      eq.classList.add('genexp-eq');
+      grid.appendChild(eq);
+      var pw = mInline(memberMath(x, f.m(x)), f.p(x));
+      pw.classList.add('genexp-pow');
+      grid.appendChild(pw);
     });
   });
   cell.replaceChildren(grid);
+}
+// The panel's numbers and colours changing redraw the card too.
+function syncGenExpCard(G){
+  var card = genExpCard();
+  if (card) fillFormulaCard(card, G);
 }
 // The menu's switch: opens the card in the top-left corner of the ring's
 // area, under its top rows, or closes it.
@@ -5562,6 +5585,7 @@ function renderSubgroups(G){
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     syncSubFormula(G);
+    syncGenExpCard(G);
     if (hadFocus) focusCurrentRow();
     keepCurrentRowInView(G);
     return;
@@ -5598,6 +5622,7 @@ function renderSubgroups(G){
     subgroupsEl.appendChild(li);
   });
   syncSubFormula(G);
+  syncGenExpCard(G);
   if (hadFocus) focusCurrentRow();
   keepCurrentRowInView(G);
 }
@@ -5629,6 +5654,7 @@ function renderMergedSubgroups(G){
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     syncSubFormula(G);
+    syncGenExpCard(G);
     if (hadFocus) focusCurrentRow();
     keepCurrentRowInView(G);
     return;
@@ -5688,6 +5714,7 @@ function renderMergedSubgroups(G){
     subgroupsEl.appendChild(li);
   });
   syncSubFormula(G);
+  syncGenExpCard(G);
   if (hadFocus) focusCurrentRow();
   keepCurrentRowInView(G);
 }
