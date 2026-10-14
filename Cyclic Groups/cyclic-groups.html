@@ -3102,28 +3102,31 @@ function svgIcon(parts){
 }
 
 // Right-clicking the ring opens its own menu in place of the browser's: the
-// Layers panel's switches, each flipping its checkbox there so the
-// checkbox's own handler draws and remembers the change, then the Colours
+// zoom, then the Show switches (the Layers panel's polygon and circle, each
+// flipping its checkbox there so the checkbox's own handler draws and
+// remembers the change, the formula scratchpad and the element expressions
+// card), then the Colours
 // submenus (the element colours, and the arrows' own controls, which live
 // in theirs), the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
-// there, and last the Info section: the Formulas submenu (the scratchpad's
-// switch and its formulas, each to copy in one of several formats) and the
+// there, and last the Info section: the Formulas submenus (each formula to
+// copy in one of several formats) and the
 // group's structure from the Info panel, which does nothing yet. A pane's
 // menu has no isomorphisms; its Colours are the left ring's, each change
 // relayed there, and its Formulas are its own group's.
 var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxView', key: 'cyclicGroups.ctxZoomIn', zoom: 1, keys: '+', run: function(){ stepRingZoom(1); }, stay: true },
   { key: 'cyclicGroups.ctxZoomOut', zoom: -1, keys: '\u2212', run: function(){ stepRingZoom(-1); }, stay: true },
-  { head: 'cyclicGroups.layersHeading', name: 'cord', key: 'cyclicGroups.layerCord' },
-  { name: 'guide', key: 'cyclicGroups.layerGuide' },
+  { head: 'cyclicGroups.ctxShowHeading', name: 'cord', key: 'cyclicGroups.ctxShowPolygon' },
+  { name: 'guide', key: 'cyclicGroups.ctxShowCircle' },
+  { key: 'cyclicGroups.ctxShowFormulasItem', run: function(){ setScratchOpen(!scratchOpen); }, checked: function(){ return scratchOpen && !!ringWorkArea(); }, needsArea: true },
+  { key: 'cyclicGroups.ctxGenExp', run: function(){ toggleGenExp(); }, checked: function(){ return !!genExpCard(); }, needsArea: true },
   { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
   { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
   { head: 'cyclicGroups.fsIsomorphisms', key: 'cyclicGroups.ctxIsoGroup', sub: 'whole' },
   { key: 'cyclicGroups.ctxIsoSub', sub: 'iso' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
-  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true },
-  { key: 'cyclicGroups.ctxGenExp', run: function(){ toggleGenExp(); }, checked: function(){ return !!genExpCard(); }, needsArea: true }
+  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, value: function(){ return structureFact ? structureFact() : document.createTextNode(''); }, run: function(){}, stay: true }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows'), iso: $('ring-ctx-iso'), whole: $('ring-ctx-iso-group') };
@@ -3356,24 +3359,6 @@ function ctxItem(role, label, more){
 // submenu. The menu stays open on the switch, to see the card come and go.
 function syncFormulaItems(){
   var items = [];
-  var show = ctxItem('menuitemcheckbox', translate('cyclicGroups.ctxShowFormulas'));
-  var shown = !!scratchPadEl.closest('.fs-win-body.is-ring');
-  show.item.setAttribute('aria-disabled', shown ? 'false' : 'true');
-  show.item.setAttribute('aria-checked', scratchOpen && shown ? 'true' : 'false');
-  show.mark.textContent = scratchOpen && shown ? '\u2713' : '';
-  show.item.addEventListener('pointerenter', function(){ setRingSub(null); });
-  show.item.addEventListener('click', function(){
-    if (show.item.getAttribute('aria-disabled') === 'true') return;
-    setRingCopy(null);
-    setScratchOpen(!scratchOpen);
-    show.item.setAttribute('aria-checked', scratchOpen ? 'true' : 'false');
-    show.mark.textContent = scratchOpen ? '\u2713' : '';
-  });
-  items.push(show.item);
-  var sep = document.createElement('div');
-  sep.className = 'ring-ctx-sep';
-  sep.setAttribute('role', 'separator');
-  items.push(sep);
   (drawn ? scratchFormulas(drawn.G) : []).forEach(function(f){
     var it = ctxItem('menuitem', translate(SCRATCH_NAMES[f.key]), true);
     it.item.setAttribute('data-formula', f.key);
