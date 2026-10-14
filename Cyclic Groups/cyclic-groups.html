@@ -1709,6 +1709,7 @@ var arrangeGenSelectEl = $('arrange-gen-select');
 var arrangeGenPairEl = $('arrange-gen-pair');
 var exprSlotEl = $('expr-slot');
 var exprSliderEl = $('expr-slider');
+var spinRulerEl = $('spin-ruler');
 var exprStopsEl = $('expr-stops');
 var exprNatEl = $('expr-nat');
 var exprNowEl = $('expr-now');
@@ -8112,10 +8113,13 @@ function syncOpenLock(){
   isoLockEl.setAttribute('title', translate(isoLinksWholeGroups() ? 'cyclicGroups.isoLockOpenGroup' : 'cyclicGroups.isoLockOpenSub'));
   isoLockEl.replaceChildren(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V3.5a2 2 0 0 1 4 0' }]]));
 }
-// The padlock, and while the rings are linked their shared Numerical button
-// under it (and, linked as whole groups, their shared Explore cosets button
-// and its run's controls under that), sit on the line between the rings, centred as one on the
-// left ring's middle: beside the rings, clear of the rows of controls above them.
+// The padlock, and while the rings are linked (as whole groups) their shared
+// Explore cosets button and its run's controls under it, sit on the line
+// between the rings, centred as one on the left ring's middle: beside the
+// rings, clear of the rows of controls above them. Their shared Numerical
+// button sits on that line too, but low down, just above the expression
+// sliders' row (and its padlock) over the rotation slider, where a single
+// ring has it.
 var LOCK_CLEAR_GAP = 14; // room for the padlock's pulsing halo
 var SHARED_BTN_GAP = 8;
 function keepLockClear(){
@@ -8128,7 +8132,8 @@ function keepLockClear(){
   if (!g.height || !p.height) return;
   var mid = g.top + g.height / 2;
   // The split button in the open panel's corner is the panel's, not the line's.
-  var btns = [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].filter(function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); });
+  var onLine = function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); };
+  var btns = [dirToggleEl, cosetBtnEl, cosetControlsEl].filter(onLine);
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
@@ -8144,7 +8149,15 @@ function keepLockClear(){
   });
   // The expression padlock sits level with the two expression sliders,
   // halfway between their heights when the pane's can be measured.
-  if (!exprLockEl.hidden) exprLockEl.style.top = num(exprSlidersMid() - p.top) + 'px';
+  var lockMid = exprSlidersMid();
+  if (!exprLockEl.hidden) exprLockEl.style.top = num(lockMid - p.top) + 'px';
+  if (onLine(splitBtnEl)){
+    var sh = splitBtnEl.getBoundingClientRect().height, sr = splitBtnEl.offsetParent.getBoundingClientRect();
+    var floor = exprLockEl.hidden ? exprSlotEl.getBoundingClientRect().top : lockMid - exprLockEl.offsetHeight / 2;
+    if (exprSlotEl.hidden || !floor) floor = spinRulerEl.getBoundingClientRect().top;
+    splitBtnEl.style.left = num(p.left - sr.left) + 'px';
+    splitBtnEl.style.top = num(floor - SHARED_BTN_GAP - sh / 2 - sr.top) + 'px';
+  }
 }
 function exprSlidersMid(){
   var r = exprSliderEl.getBoundingClientRect(), y = r.top + r.height / 2;
