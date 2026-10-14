@@ -1577,7 +1577,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: false, subAlign: false, subColor: 'off', subFormula: 'none', subFormulaAt: 'row', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', orders: false, akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormula: 'none', subFormulaAt: 'row', idColor: null, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -7528,11 +7528,14 @@ function stateQuery(){
   else q.delete('top');
   if (state.autoShift) q.set('autoshift', '1');
   else q.delete('autoshift');
-  if (state.subPad) q.set('subpad', '1');
-  else q.delete('subpad');
+  // The list's numbers are padded with leading zeros and coloured like their
+  // beads unless the address says otherwise: subpad=0 for no lining up,
+  // subalign=1 for blank space, subcolor=off for plain members.
+  q.delete('subpad');
+  q.delete('subalign');
   if (state.subAlign) q.set('subalign', '1');
-  else q.delete('subalign');
-  if (state.subColor !== 'off') q.set('subcolor', state.subColor);
+  else if (!state.subPad) q.set('subpad', '0');
+  if (state.subColor !== 'full') q.set('subcolor', state.subColor);
   else q.delete('subcolor');
   if (state.subFormula !== 'none') q.set('subformula', state.subFormula);
   else q.delete('subformula');
@@ -8429,9 +8432,9 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
   state.autoShift = query.get('autoshift') === '1';
-  state.subPad = query.get('subpad') === '1';
-  state.subAlign = !state.subPad && query.get('subalign') === '1';
-  if (query.has('subcolor')) state.subColor = subColorOf(query.get('subcolor'));
+  state.subAlign = query.get('subalign') === '1' && query.get('subpad') !== '1';
+  state.subPad = !state.subAlign && query.get('subpad') !== '0';
+  state.subColor = query.has('subcolor') ? subColorOf(query.get('subcolor')) : 'full';
   if (SUB_FORMULAS.indexOf(query.get('subformula')) !== -1) state.subFormula = query.get('subformula');
   if (SUB_FORMULA_ATS.indexOf(query.get('subformulaat')) !== -1) state.subFormulaAt = query.get('subformulaat');
   state.swapColors = query.get('swapcolors') === '1';
