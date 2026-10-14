@@ -21,27 +21,28 @@
         remaining roles, ascending. Every one of these is light at night and
         deep by day, like the role layer itself, so --accent-ink stays
         readable on all of them. */
-  .ord-id{ --ord: var(--text-dim); }
-  .ord-gen{ --ord: var(--role-result); }
-  .ord-m1{ --ord: var(--role-input); }
-  .ord-m2{ --ord: var(--role-active); }
-  .ord-m3{ --ord: var(--role-alt); }
-  .ord-m4{ --ord: var(--role-special); }
-  .ord-m5{ --ord: color-mix(in srgb, var(--role-input) 50%, var(--role-result)); }
-  .ord-m6{ --ord: color-mix(in srgb, var(--role-active) 50%, var(--role-alt)); }
-  .ord-m7{ --ord: color-mix(in srgb, var(--role-special) 50%, var(--role-input)); }
-  .ord-m8{ --ord: color-mix(in srgb, var(--role-active) 50%, var(--role-result)); }
-  .ord-m9{ --ord: color-mix(in srgb, var(--role-alt) 50%, var(--role-special)); }
-  .ord-m10{ --ord: var(--role-warn); }
+  .ord-id{ --ord: var(--pick-id, var(--text-dim)); }
+  .ord-gen{ --ord: var(--pick-gen, var(--role-result)); }
+  .ord-m1{ --ord: var(--pick-m1, var(--role-input)); }
+  .ord-m2{ --ord: var(--pick-m2, var(--role-active)); }
+  .ord-m3{ --ord: var(--pick-m3, var(--role-alt)); }
+  .ord-m4{ --ord: var(--pick-m4, var(--role-special)); }
+  .ord-m5{ --ord: var(--pick-m5, color-mix(in srgb, var(--role-input) 50%, var(--role-result))); }
+  .ord-m6{ --ord: var(--pick-m6, color-mix(in srgb, var(--role-active) 50%, var(--role-alt))); }
+  .ord-m7{ --ord: var(--pick-m7, color-mix(in srgb, var(--role-special) 50%, var(--role-input))); }
+  .ord-m8{ --ord: var(--pick-m8, color-mix(in srgb, var(--role-active) 50%, var(--role-result))); }
+  .ord-m9{ --ord: var(--pick-m9, color-mix(in srgb, var(--role-alt) 50%, var(--role-special))); }
+  .ord-m10{ --ord: var(--pick-m10, var(--role-warn)); }
   /* The website-theme coloring: primes in the site's prime green and
      composites in its composite blue, as on the Sieve and the Factor Tree,
      1 (when it is not the identity) in the Sieve's color for its 1 cell, and
-     the identity red unless the user picks its color, written at runtime as
-     --identity-color on .app. */
-  .ord-prime{ --ord: var(--role-result); }
-  .ord-composite{ --ord: var(--role-composite); }
-  .ord-one{ --ord: var(--role-alt); }
-  .ord-theme-id{ --ord: var(--identity-color, var(--role-warn)); }
+     the identity red. Every colour of every coloring can be picked from its
+     key: the active coloring's picks are written at runtime on .app as
+     --pick-<slot> (see syncPicks), each falling back to its default. */
+  .ord-prime{ --ord: var(--pick-prime, var(--role-result)); }
+  .ord-composite{ --ord: var(--pick-composite, var(--role-composite)); }
+  .ord-one{ --ord: var(--pick-one, var(--role-alt)); }
+  .ord-theme-id{ --ord: var(--pick-id, var(--role-warn)); }
 
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
@@ -468,9 +469,9 @@
      the picker lies unseen over it, so a click on the circle opens it. */
   .legend-swatch.is-pickable{ position:relative; cursor:pointer; }
   .legend-swatch.is-pickable:focus-within{ outline:2px solid var(--accent); outline-offset:2px; }
-  .legend-pick, #legend-panel > .legend-reset{ display:none; }
-  .legend-item > .legend-reset{ margin:0 0 0 auto; font-size:.82rem; }
-  .legend-item > .legend-reset[hidden]{ display:none; }
+  .legend-pick{ display:none; }
+  #legend-panel > .legend-reset{ align-self:flex-start; margin:8px 0 0; font-size:.82rem; }
+  #legend-panel > .legend-reset[hidden]{ display:none; }
   .legend-swatch > .legend-pick{ display:block; position:absolute; inset:-1px; width:auto; height:auto; margin:0; padding:0; border:0; opacity:0; cursor:pointer; }
   .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
   /* Inverse-pair key: one pair per line, like every other key. */
@@ -982,6 +983,7 @@
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "lgd lgd lgd lgd"; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel.is-shown{ grid-area:lgd; justify-self:center; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
+  :is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane{ grid-area:keyr; }
   /* Linked but coloured by inverse pairs, a colour names a different pair
@@ -1557,8 +1559,7 @@
       <section class="panel" id="legend-panel">
         <h2 id="legend-heading">Colour key: subgroup cardinality</h2>
         <div class="legend" id="legend"></div>
-        <input type="color" class="legend-pick" id="id-color">
-        <button type="button" class="link-btn legend-reset" id="id-color-reset" hidden></button>
+        <button type="button" class="link-btn legend-reset" id="legend-reset" data-i18n="common.reset" data-i18n-title="cyclicGroups.legendResetTitle" title="Put this colour key's colours back to their defaults" hidden>Reset</button>
       </section>
       <section class="panel" id="legend-panel-pane" hidden>
         <h2 id="legend-heading-pane"></h2>
@@ -1622,8 +1623,9 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 // by its inverse.
 // colorBy picks what the bead colors mean: 'order' (element order),
 // 'inverse' (an element and its inverse share a color) or 'theme' (the
-// website's prime and composite colors, the identity in idColor, a #rrggbb
-// pick or null for the default red).
+// website's prime and composite colors, the identity red).
+// picks holds, per coloring, the colours picked from its key: a #rrggbb by
+// slot (see PICK_SLOT), a slot left out keeping its default.
 // elSide puts the forward walk, by h, 'inside' or 'outside' the ring.
 // backward adds the walk by h⁻¹, always on the other side: see invSide().
 // dir is the way the beads count round the ring, and so the way the forward
@@ -1632,7 +1634,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormula: 'none', subFormulaAt: 'row', idColor: null, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormula: 'none', subFormulaAt: 'row', picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1693,7 +1695,7 @@ var hintInverseEl = $('hint-inverse');
 var legendEl = $('legend');
 var legendHeadingEl = $('legend-heading');
 var legendPanelEl = $('legend-panel');
-var idColorEl = $('id-color'), idColorResetEl = $('id-color-reset'); // the identity's colour picker, which the Website theme key holds
+var legendResetEl = $('legend-reset'); // puts the active coloring's picked colours back
 var legendBtnEl = $('legend-btn');
 var legendShown = false; // full screen, whether the element colour key shows in the Ring window
 var colorBySelectEl = $('colorby-select');
@@ -1910,7 +1912,7 @@ function inversePairs(G){
     if (inv[a] === a) selfInverse.push(a);
     else if (a < inv[a]){
       var t = (pairs.length * 0.6180339887) % 1;
-      color[a] = color[inv[a]] = wheelColor(t);
+      color[a] = color[inv[a]] = 'var(--pick-p' + pairs.length + ', ' + wheelColor(t) + ')';
       pairs.push([a, inv[a]]);
     }
   });
@@ -1940,15 +1942,70 @@ function themeClass(G, a){
   return isPrime(a) ? 'ord-prime' : 'ord-composite';
 }
 
-// The identity's color in the website-theme coloring: the pick, written on
-// .app for the beads and the colour key, or the default red. The picker and
-// its reset sit on the identity's row of the Website theme key, the reset
-// only while there is a pick to undo.
-function syncIdColor(){
-  if (state.idColor) appEl.style.setProperty('--identity-color', state.idColor);
-  else appEl.style.removeProperty('--identity-color');
-  idColorEl.value = state.idColor || roleHex('--role-warn');
-  idColorResetEl.hidden = !state.idColor;
+// A picked colour's slot: the .ord-* class it repaints, without the ord-
+// (the identity's in every coloring is id, the website theme's included),
+// or pK for the inverse pairs' Kth pair.
+var PICK_SLOT = /^(id|gen|m([1-9]|10)|one|prime|composite|p[0-9]{1,2})$/;
+var PICK_KEYS = { order: 'pickorder', inverse: 'pickinverse', theme: 'picktheme' };
+var pickedOn = [];
+// The active coloring's picks, written on .app as --pick-<slot> for the
+// beads, the list and the keys, the reset showing while there is one to
+// undo. Uncoloured beads take none.
+function syncPicks(){
+  pickedOn.forEach(function(slot){ appEl.style.removeProperty('--pick-' + slot); });
+  var picks = state.colors ? state.picks[state.colorBy] || {} : {};
+  pickedOn = Object.keys(picks);
+  pickedOn.forEach(function(slot){ appEl.style.setProperty('--pick-' + slot, picks[slot]); });
+  legendResetEl.hidden = IS_ISOPANE || !pickedOn.length;
+}
+// The picks as a query value, slot.rrggbb joined by ~, and back.
+function picksParam(picks){
+  return Object.keys(picks).map(function(slot){ return slot + '.' + picks[slot].slice(1); }).join('~');
+}
+function readPicks(raw){
+  var out = {};
+  String(raw || '').split('~').forEach(function(part){
+    var m = /^([a-z0-9]+)\.([0-9a-f]{6})$/.exec(part.toLowerCase());
+    if (m && PICK_SLOT.test(m[1])) out[m[1]] = '#' + m[2];
+  });
+  return out;
+}
+// A colour as #rrggbb, whatever form the browser resolved it to (color-mix
+// in oklch resolves to oklch()): painted on a one-pixel canvas and read back.
+var pickCanvas = null;
+function colorHex(value){
+  if (!pickCanvas) pickCanvas = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  pickCanvas.clearRect(0, 0, 1, 1);
+  pickCanvas.fillStyle = '#000';
+  pickCanvas.fillStyle = value;
+  pickCanvas.fillRect(0, 0, 1, 1);
+  var d = pickCanvas.getImageData(0, 0, 1, 1).data;
+  return '#' + [d[0], d[1], d[2]].map(function(v){ return ('0' + v.toString(16)).slice(-2); }).join('');
+}
+// Gives a key entry's swatch a colour picker for its slot. A new colour
+// repaints through --pick-<slot> alone, so the picker's popup stays open
+// while it is dragged.
+function makePickable(swatch, slot, title){
+  if (IS_ISOPANE) return;
+  var input = document.createElement('input');
+  input.type = 'color';
+  input.className = 'legend-pick';
+  input.title = title;
+  input.setAttribute('aria-label', title);
+  swatch.classList.add('is-pickable');
+  swatch.appendChild(input);
+  // Its value is the colour the swatch shows, read as it opens.
+  var fill = function(){ input.value = colorHex(getComputedStyle(swatch).backgroundColor); };
+  input.addEventListener('pointerdown', fill);
+  input.addEventListener('focus', fill);
+  input.addEventListener('input', function(){
+    var v = input.value.toLowerCase();
+    if (!HEX_COLOR.test(v)) return;
+    state.picks[state.colorBy][slot] = v;
+    syncPicks();
+    if (drawn) mirrorToUrl(drawn.G);
+    postIsoShared(false);
+  });
 }
 
 // Inverting g^k negates the exponent, so wherever a ring places beads by
@@ -6079,11 +6136,16 @@ function renderInverseLegend(pairing, el){
     tNode('cyclicGroups.legendSelfInverse', { list: mInline(mList(pairing.selfInverse), pairing.selfInverse.join(', ')) }), 'legend-order');
   self.classList.add('is-self');
   self.setAttribute('data-self-inverse', pairing.selfInverse.join(' '));
+  // The pane's copy (see syncPaneLegend) takes no pickers: its colours are
+  // this ring's.
+  var own = el === legendEl, title = translate('cyclicGroups.legendPickTitle');
+  if (own) makePickable(self.querySelector('.legend-swatch'), 'id', title);
   el.appendChild(self);
-  pairing.pairs.forEach(function(pr){
+  pairing.pairs.forEach(function(pr, k){
     var item = legendItem('', '--ord: ' + pairing.color[pr[0]],
       mInline(mrow(mn(pr[0]), mo('↔'), mn(pr[1])), translate('cyclicGroups.legendPair', { a: pr[0], b: pr[1] })), 'legend-pair');
     item.setAttribute('data-pair', pr[0] + ' ' + pr[1]);
+    if (own) makePickable(item.querySelector('.legend-swatch'), 'p' + k, title);
     el.appendChild(item);
   });
 }
@@ -6099,19 +6161,16 @@ function renderThemeLegend(G){
     ? mInline(mrow(mn(G.identity), mo('↦'), mn(H.identity)), G.identity + ' ↦ ' + H.identity) : mNum(G.identity);
   var id = legendItem('ord-theme-id', null,
     tNode('cyclicGroups.legendThemeIdentity', { e: e }), 'legend-order');
-  var swatch = id.querySelector('.legend-swatch');
-  swatch.classList.add('is-pickable');
-  idColorEl.title = translate('cyclicGroups.identityColor');
-  idColorEl.setAttribute('aria-label', translate('cyclicGroups.identityColor'));
-  swatch.appendChild(idColorEl);
-  idColorResetEl.textContent = translate('common.reset');
-  idColorResetEl.title = translate('cyclicGroups.identityColorReset');
-  id.appendChild(idColorResetEl);
+  makePickable(id.querySelector('.legend-swatch'), 'id', translate('cyclicGroups.identityColor'));
   legendEl.appendChild(id);
-  if (shown['ord-one']) legendEl.appendChild(legendItem('ord-one', null,
-    tNode('cyclicGroups.legendThemeOne', { one: mNum(1) }), 'legend-order'));
-  if (shown['ord-prime']) legendEl.appendChild(legendItem('ord-prime', null, translate('cyclicGroups.legendThemePrimes'), 'legend-order'));
-  if (shown['ord-composite']) legendEl.appendChild(legendItem('ord-composite', null, translate('cyclicGroups.legendThemeComposites'), 'legend-order'));
+  var add = function(slot, text){
+    var item = legendItem('ord-' + slot, null, text, 'legend-order');
+    makePickable(item.querySelector('.legend-swatch'), slot, translate('cyclicGroups.legendPickTitle'));
+    legendEl.appendChild(item);
+  };
+  if (shown['ord-one']) add('one', tNode('cyclicGroups.legendThemeOne', { one: mNum(1) }));
+  if (shown['ord-prime']) add('prime', translate('cyclicGroups.legendThemePrimes'));
+  if (shown['ord-composite']) add('composite', translate('cyclicGroups.legendThemeComposites'));
 }
 
 function renderLegend(G, classes, pairing){
@@ -6140,6 +6199,7 @@ function renderLegend(G, classes, pairing){
     item.setAttribute('data-count', counts[o]);
     var swatch = document.createElement('span');
     swatch.className = 'legend-swatch ' + classes[o];
+    makePickable(swatch, classes[o].replace(/^ord-/, ''), translate('cyclicGroups.legendPickTitle'));
     var text = document.createElement('span');
     text.className = 'legend-order';
     translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
@@ -6754,7 +6814,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, idColor: state.idColor, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, split: splitOn && !ringSplitEl.hidden };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -6813,7 +6873,13 @@ function applyIsoShared(d){
   }
   if (COLOR_BY.indexOf(d.colorBy) !== -1) state.colorBy = d.colorBy;
   if (SIDES.indexOf(d.elSide) !== -1) state.elSide = d.elSide;
-  if (hex(d.idColor)) state.idColor = d.idColor;
+  // The picks arrive as plain data: each slot and colour checked as a
+  // link's are.
+  if (d.picks && typeof d.picks === 'object') Object.keys(PICK_KEYS).forEach(function(c){
+    var src = d.picks[c], out = {};
+    if (src && typeof src === 'object') Object.keys(src).forEach(function(slot){ if (PICK_SLOT.test(slot) && hex(src[slot])) out[slot] = src[slot]; });
+    state.picks[c] = out;
+  });
   if (hex(d.inColor)) state.inColor = d.inColor;
   if (hex(d.outColor)) state.outColor = d.outColor;
   var flip = DIRS.indexOf(d.dir) !== -1 && d.dir !== state.dir;
@@ -7846,8 +7912,12 @@ function stateQuery(){
     else q.delete(c.param);
   });
   q.set('colorby', state.colorBy);
-  if (state.idColor) q.set('idcolor', state.idColor.slice(1));
-  else q.delete('idcolor');
+  Object.keys(PICK_KEYS).forEach(function(c){
+    var v = picksParam(state.picks[c]);
+    if (v) q.set(PICK_KEYS[c], v);
+    else q.delete(PICK_KEYS[c]);
+  });
+  q.delete('idcolor');
   q.delete('chords');
   q.delete('outer');
   q.set('elside', state.elSide);
@@ -8022,7 +8092,7 @@ function render(){
   syncArrange(G);
   syncExpr(G);
   syncSubExpr(G);
-  syncIdColor();
+  syncPicks();
   renderFacts(G, factors);
   subgroupOptionsEl.hidden = state.noSub;
   renderIso(G);
@@ -8545,19 +8615,13 @@ colorBySelectEl.addEventListener('change', function(){
   if (state.colors) state.colorBy = v;
   render();
 });
-// A new identity color repaints through --identity-color alone, so the
-// picker's popup stays open while it is dragged.
-idColorEl.addEventListener('input', function(){
-  var v = idColorEl.value.toLowerCase();
-  if (!HEX_COLOR.test(v)) return;
-  state.idColor = v;
-  syncIdColor();
+// One reset per coloring: every colour picked from the active key goes back
+// to its default.
+legendResetEl.addEventListener('click', function(){
+  state.picks[state.colorBy] = {};
+  syncPicks();
   if (drawn) mirrorToUrl(drawn.G);
-});
-idColorResetEl.addEventListener('click', function(){
-  state.idColor = null;
-  syncIdColor();
-  if (drawn) mirrorToUrl(drawn.G);
+  postIsoShared(false);
 });
 sideElEl.addEventListener('change', function(){
   if (SIDES.indexOf(sideElEl.value) === -1) return;
@@ -8742,8 +8806,11 @@ function loadState(query, link){
     else if (raw === '1') state[name] = true;
   });
   if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
+  Object.keys(PICK_KEYS).forEach(function(c){ state.picks[c] = readPicks(query.get(PICK_KEYS[c])); });
+  // Links from before every colour could be picked carry the website
+  // theme's identity colour alone, as idcolor.
   var idColor = '#' + String(query.get('idcolor') || '').toLowerCase();
-  if (HEX_COLOR.test(idColor)) state.idColor = idColor;
+  if (HEX_COLOR.test(idColor) && !state.picks.theme.id) state.picks.theme.id = idColor;
   // Links from before the side menus hid the inverse walk with outer=0, and
   // from before the backwards checkbox with invside=neither.
   if (query.get('outer') === '0' || query.get('invside') === 'neither') state.backward = false;
