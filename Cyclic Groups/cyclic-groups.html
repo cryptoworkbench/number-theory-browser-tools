@@ -5835,14 +5835,36 @@ subgroupsEl.addEventListener('keydown', function(e){
   }
   if (!vertical) return;
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-  var delta = e.key === 'ArrowDown' ? 1 : -1;
+  e.preventDefault();
+  if (stepSubRow(e.key === 'ArrowDown' ? 1 : -1)) focusCurrentRow();
+});
+// Select the row delta rows below (or above) the selected one, in the list's
+// own order; false at either end.
+function stepSubRow(delta){
   var els = subOrder(drawn.G);
   var i = els.indexOf(state.gen) + delta;
-  e.preventDefault();
-  if (i < 0 || i >= els.length) return;
+  if (i < 0 || i >= els.length) return false;
   keyNav = true;
   selectGen(els[i]);
-  focusCurrentRow();
+  return true;
+}
+// In the list merged across two rings linked as whole groups, the formula
+// dropdown keeps the focus while the keys work both: left and right step
+// through its options, up and down through the rows of the shared list
+// under it, as they do in the list itself.
+subFormulaEl.addEventListener('keydown', function(e){
+  if (!drawn || IS_ISOPANE || !subInterlocked() || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){
+    e.preventDefault();
+    stepSubRow(e.key === 'ArrowDown' ? 1 : -1);
+    return;
+  }
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  var i = subFormulaEl.selectedIndex + (e.key === 'ArrowRight' ? 1 : -1);
+  if (i < 0 || i >= subFormulaEl.options.length) return;
+  subFormulaEl.selectedIndex = i;
+  subFormulaEl.dispatchEvent(new Event('change'));
 });
 
 // A fact's label is a dictionary key, or a math node such as the modulus %.
