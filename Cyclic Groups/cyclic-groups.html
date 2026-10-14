@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){function v(t){return t==='day'||t==='night'?t:null;}var t=null,m;try{m=/[?&]theme=([^&#]*)/.exec(location.search);if(m)t=v(decodeURIComponent(m[1]));}catch(e){}if(!t){try{m=/(?:^|; *)site-theme-choice=([^;]*)/.exec(document.cookie||'');if(m)t=v(decodeURIComponent(m[1]));}catch(e){}}if(!t){try{t=v(localStorage.getItem('site-theme-choice'));}catch(e){}}if(!t){try{t=window.matchMedia('(prefers-color-scheme: light)').matches?'day':'night';}catch(e){}}document.documentElement.setAttribute('data-theme',t||'night');})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>if(!/[?&](?:preview|ringwin)=1(?:&|#|$)/.test(location.search))document.documentElement.classList.add('is-desktop');</script>
+<script>(function(){var c='is-desktop';if(/[?&](?:preview|ringwin)=1(?:&|#|$)/.test(location.search))return;try{var m=/[?&]mobile=([01])(?:&|#|$)/.exec(location.search),u=navigator.userAgentData;if(m?m[1]==='1':(u&&u.mobile===true)||/Mobi|iPhone|iPod/.test(navigator.userAgent||''))c='is-mobile';}catch(e){}document.documentElement.classList.add(c);})();</script>
 <title data-i18n="cyclicGroups.title">Cyclic Groups</title>
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <link rel="stylesheet" href="../assets/palette.css">
@@ -1826,10 +1826,14 @@ if (IS_RINGWIN) document.documentElement.classList.add('is-ringwin');
 // it, and it shows only that group's own controls.
 var IS_ISOPANE = IS_RINGWIN && new URLSearchParams(location.search).get('isopane') === '1';
 if (IS_ISOPANE) document.documentElement.classList.add('is-isopane');
+// A phone: the head's script found a browser that reports itself mobile, or
+// ?mobile=1. The page stays the stacked page: no intro, no windows, the site
+// header kept.
+var IS_MOBILE = !IS_PREVIEW && !IS_RINGWIN && document.documentElement.classList.contains('is-mobile');
 // The top-level page: the diagram frame fills the window and the ring's body
 // fills the diagram frame, full screen or not. The head's own script set its
 // class before the first paint.
-var IS_DESKTOP = !IS_PREVIEW && !IS_RINGWIN;
+var IS_DESKTOP = !IS_PREVIEW && !IS_RINGWIN && !IS_MOBILE;
 document.documentElement.classList.toggle('is-desktop', IS_DESKTOP);
 // The page opens on its intro every visit; the intro's button enters the
 // tool (see cgEnterEl), and from then on the site header is gone.
