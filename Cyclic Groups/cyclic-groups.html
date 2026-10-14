@@ -7352,7 +7352,13 @@ function borrowedPaints(G){
   return out;
 }
 function isoTellPaints(force){
-  var paints = isoPowers().map(function(a){ return drawn.paint(a); });
+  // lead marks the smaller member of an inverse pair, which this ring's key
+  // names first, so the pane's key can name that member's image first too.
+  var G = drawn.G;
+  var paints = isoPowers().map(function(a){
+    var p = drawn.paint(a);
+    return { cls: p.cls, style: p.style, lead: a < G.inv[a] };
+  });
   var key = JSON.stringify(paints);
   if (!force && key === isoSentPaints) return;
   isoSentPaints = key;
@@ -8294,6 +8300,11 @@ function render(){
     // still finds the colours.
     var borrowed = isoBorrowed;
     paint = function(a){ return borrowed[a]; };
+    // Its key lists the pairs as that ring's does: in the same order, each
+    // naming first the image of the member that ring names first.
+    var pairAt = function(pr){ var m = /--pick-p(\d+)/.exec(pairing.color[pr[0]] || ''); return m ? +m[1] : 0; };
+    pairing.pairs.forEach(function(pr){ if (borrowed[pr[1]].lead && !borrowed[pr[0]].lead) pr.reverse(); });
+    pairing.pairs.sort(function(x, y){ return pairAt(x) - pairAt(y); });
   }
   var factors = G.cyclic ? [] : unitFactors(G.n);
 
