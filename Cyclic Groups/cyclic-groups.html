@@ -675,7 +675,7 @@
      controls take a line of their own under it. */
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen{ display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr); align-items:center; }
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen > #gen-field{ grid-area:1 / 1 / 2 / 4; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-btn{ grid-area:1 / 2 / 2 / 3; position:relative; z-index:1; max-width:min(22em, 34cqi); white-space:normal; text-align:center; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-btn{ grid-area:1 / 2 / 2 / 3; position:relative; z-index:1; max-width:min(28em, 40cqi); white-space:normal; text-align:center; }
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-controls:not([hidden]){ grid-area:2 / 1 / 3 / 4; justify-self:center; }
   /* The split view: a button at the right end of the subgroup row opens a
      pane under the ring (a divider between them) that takes in the page's
@@ -704,7 +704,7 @@
   /* Linked as whole groups, the rings explore their cosets together too:
      the left ring's Explore cosets button joins Numerical on the line,
      under it, and the pane's own goes. */
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn{ position:absolute; z-index:3; translate:-50% -50%; width:max-content; max-width:12em; padding:5px 12px; font-size:.85rem; white-space:normal; text-align:center; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn{ position:absolute; z-index:3; translate:-50% -50%; width:max-content; max-width:12em; min-width:min-content; padding:5px 12px; font-size:.85rem; white-space:normal; text-align:center; }
   :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-btn{ display:none !important; }
   /* Its run's controls show once too, in a small card under it on the line:
      the four buttons two by two, the speed under them. */
@@ -5387,13 +5387,14 @@ function showCosets(shown){
   tellCosets();
 }
 
-// The cosets of ⟨h⟩ besides ⟨h⟩ itself: [G : ⟨h⟩] − 1 when there are any,
-// in Lagrange's index notation, or |G| / |⟨h⟩| − 1 when that is 0.
+// The cosets of ⟨h⟩ besides ⟨h⟩ itself: ([G : ⟨h⟩] − 1) = x when there are
+// any, in Lagrange's index notation, or |G| / |⟨h⟩| − 1 when that is 0.
 function cosetsLeftMath(G, h){
   var plain = (G.mode === 'additive' ? additiveLabel(G.n) : '⟨ℤ/' + G.n + 'ℤ, ×⟩');
   if (G.orders[h] < G.order) {
-    return mInline(mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true), mo('\u2212'), mn(1)),
-      '[' + plain + ' : ⟨' + h + '⟩] \u2212 1');
+    var left = G.order / G.orders[h] - 1;
+    return mInline(mrow(mo('(', true), mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true), mo('\u2212'), mn(1), mo(')', true), mo('='), mn(left)),
+      '([' + plain + ' : ⟨' + h + '⟩] \u2212 1) = ' + left);
   }
   return mInline(mrow(abs(mGroup(G)), mo('/'), abs(angle(mn(h))), mo('\u2212'), mn(1)),
     '|' + plain + '| / |⟨' + h + '⟩| \u2212 1');
@@ -5405,7 +5406,7 @@ function syncCosetButton(){
   var G = drawn && drawn.G;
   cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
   if (cosetRun) cosetBtnEl.textContent = translate('cyclicGroups.cosetHide');
-  else if (G && !state.noSub) translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { count: cosetsLeftMath(G, state.gen) });
+  else if (G && !state.noSub) translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { expr: cosetsLeftMath(G, state.gen), count: G.order / G.orders[state.gen] - 1 });
   else cosetBtnEl.textContent = translate('cyclicGroups.cosetButton');
   // On the line between linked rings the button is placed by its size.
   if (document.documentElement.classList.contains('is-iso-whole')) keepLockClear();

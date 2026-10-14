@@ -397,7 +397,7 @@
       cosetLoop: 'Loop',
       cosetLoopTitle: 'Replay continuously: after the last coset, start again from the first',
       cosetNoneGenerator: 'No cosets to explore; {g} is a generator',
-      cosetCountButtonMath: '{count} cosets to explore',
+      cosetCountButtonMath: { one: '{expr} coset to explore', other: '{expr} cosets to explore' },
       cosetProgress: 'Currently highlighting coset {i} of {count}',
       autoRotate: 'Auto-rotate',
       autoRotateOff: 'Off',
