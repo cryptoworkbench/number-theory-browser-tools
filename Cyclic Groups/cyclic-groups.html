@@ -919,6 +919,9 @@
      show, so the pane drops its name and keeps only its close button, in its
      top corner, and its rows line up with the left ring's. */
   .fs-win-body.is-ring > .iso-pane{ position:relative; }
+  /* A menu open in the pane: the pane over the controls on the line. */
+  .fs-win-body.is-ring > .iso-pane.is-menu-open{ z-index:7; }
+  .iso-pane.is-menu-open > iframe{ position:relative; z-index:4; }
   .fs-win-body.is-ring > .iso-pane > .iso-pane-head{ position:absolute; top:0; right:0; z-index:2; padding:0; }
   /* With one ring open, its own close button sits in the top-right corner:
      closing the last ring leaves full screen and goes back to the intro. */
@@ -4473,21 +4476,21 @@ function dirSign(){ return state.dir === 'ccw' ? -1 : 1; }
 
 // A self-inverse element (other than the identity) walks the same path
 // either way, so with both walks shown it is drawn once, on the element's
-// side, in the mixed color.
+// side, in the mixed color. The identity's loop is always drawn so.
 function mergedWalks(G){
   var h = shownGen(G);
-  return G.orders[h] === 2 && invSide() !== 'neither';
+  return G.orders[h] === 1 || (G.orders[h] === 2 && invSide() !== 'neither');
 }
 
 function renderCombineKey(G){
   var h = shownGen(G);
   // The key can be put away from the ring's menu (Colours > Arrows).
-  var on = G.orders[h] > 1 && !noSub() && state.akey;
+  var on = !noSub() && state.akey;
   // Where the key takes room in the layout (the Ring window), a previewed
   // row only borrows it: the room follows the selected subgroup, kept empty
   // or left out while a row is hovered, so the list never moves out from
   // under the pointer and ends the preview that moved it.
-  var kept = G.orders[state.gen] > 1 && !state.noSub && state.akey;
+  var kept = !state.noSub && state.akey;
   if (preview !== null && on !== kept && getComputedStyle(combineKeyEl).position !== 'absolute') on = false;
   var held = !on && preview !== null && kept && getComputedStyle(combineKeyEl).position !== 'absolute';
   combineKeyEl.hidden = !on && !held;
@@ -6251,6 +6254,7 @@ function openOwnPane(){
 }
 function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
+  isoPaneEl.classList.remove('is-menu-open');
   // A new frame reports its own pane afresh.
   paneSplitBox = null;
   isoInterlockSent = false;
@@ -6300,6 +6304,7 @@ function loadIsoFrame(){
 function closeIsoPane(){
   endIsoPick();
   if (isoPaneFrame) isoPaneFrame.remove();
+  isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
   isoPane = null;
   isoSharedSent = null;
@@ -7342,6 +7347,8 @@ window.addEventListener('message', function(e){
     // The pane changed its group: the Numeric list merges, unmerges or
     // pairs its rows anew to match.
     if (drawn){ syncInterlock(); syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
+  } else if (d.isopane === 'menu'){
+    isoPaneEl.classList.toggle('is-menu-open', d.open === true);
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
@@ -8094,6 +8101,13 @@ subgroupsEl.addEventListener('contextmenu', function(e){
 document.addEventListener('pointerdown', function(e){
   if (!subCtxEl.contains(e.target)) setSubCtx(false);
 });
+// A menu open in the pane tells the ring holding it, which lifts the pane
+// over the controls it keeps on the line between them, so none covers it.
+if (IS_ISOPANE){
+  var tellPaneMenu = function(){ tellHost({ isopane: 'menu', open: !ringCtxEl.hidden || !subCtxEl.hidden }); };
+  var paneMenuWatch = new MutationObserver(tellPaneMenu);
+  [ringCtxEl, subCtxEl].forEach(function(el){ paneMenuWatch.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
+}
 subCtxEl.addEventListener('keydown', function(e){
   var items = Array.prototype.slice.call(subCtxEl.children), i = items.indexOf(document.activeElement);
   if (e.key === 'Escape' || e.key === 'Tab'){ e.preventDefault(); setSubCtx(false); }
