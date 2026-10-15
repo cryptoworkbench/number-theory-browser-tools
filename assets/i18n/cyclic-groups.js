@@ -65,7 +65,7 @@
    and akeyDropLine (that line in one colour from the subgroup cardinality
    key, with further lines, added with a + and removed again, for the
    powers picked for them, each with its eye, power and side), and
-   akeyPathAdd, akeyPathMul, akeyOrderSame and akeyOrderId (those lines'
+   akeyPath, akeyOrderSame and akeyOrderId (those lines'
    texts: the path of an element and its inverse, written out).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
@@ -522,8 +522,7 @@
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
-      akeyPathAdd: "Path walked by {a} and {a}'s inverse: {ainv}",
-      akeyPathMul: "Path walked by {a} and {a}'s inverse: {a}⁻¹ ≡ {ainv}",
+      akeyPath: "Path walked by {a} and {a}'s inverse: {a}⁻¹ ≡ {ainv}",
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyPowerSide: 'Side of the ring for these lines',
