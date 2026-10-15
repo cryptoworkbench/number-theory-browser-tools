@@ -59,8 +59,12 @@
    akeyPick (a bar of the arrow colour key, clicked for its path's colour
    picker), akeyShowBackward (the key's eye bringing the backwards path
    back), zoomLabel and zoomWheel (the corner's zoom slider and its
-   switch letting the scroll wheel zoom the ring), and akeyOneLine (the
-   key's switch drawing both paths on one line). Every other
+   switch letting the scroll wheel zoom the ring), akeyOneLine (the
+   key's switch drawing both paths on one line), and akeyPairMode,
+   akeyPairLine, akeySquareLine, akeySquareSelf, akeySquareSame,
+   akeyShowSquare and akeyHideSquare (that
+   line in its inverse pair's colour, with the squared pair's lines beside
+   it). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -511,6 +515,13 @@
       akeyPick: 'Choose this path\'s colour; drag it onto the other bar to swap the colours',
       akeyShowBackward: 'Show backwards path',
       akeyOneLine: 'Draw both paths on one line',
+      akeyPairMode: "Draw the line in its inverse pair's colour",
+      akeyPairLine: 'Inverse pair {h} and {hinv}, on one line',
+      akeySquareLine: 'Inverse pair {h2} and {h2inv}, the squares, on one line',
+      akeySquareSelf: 'The square {h2} is its own inverse, on one line',
+      akeySquareSame: 'The squares {h2} and {h2inv} are this same pair again',
+      akeyShowSquare: "Show the squared pair's lines",
+      akeyHideSquare: "Hide the squared pair's lines",
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
