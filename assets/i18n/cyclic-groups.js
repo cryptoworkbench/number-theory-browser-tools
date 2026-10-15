@@ -58,8 +58,9 @@
    right corner, beside the arrow colour key's, which reuses showArrowKey),
    akeyPick (a bar of the arrow colour key, clicked for its path's colour
    picker), akeyShowBackward (the key's eye bringing the backwards path
-   back), and zoomLabel and zoomWheel (the corner's zoom slider and its
-   switch letting the scroll wheel zoom the ring). Every other
+   back), zoomLabel and zoomWheel (the corner's zoom slider and its
+   switch letting the scroll wheel zoom the ring), and akeyOneLine (the
+   key's switch drawing both paths on one line). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -509,6 +510,7 @@
       showArrowKey: 'Show arrow colour key',
       akeyPick: 'Choose this path\'s colour; drag it onto the other bar to swap the colours',
       akeyShowBackward: 'Show backwards path',
+      akeyOneLine: 'Draw both paths on one line',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',

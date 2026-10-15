@@ -618,6 +618,7 @@
   .akey-btn svg{ fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
   .akey-btn circle{ fill:none; }
   .akey-btn[aria-pressed="true"] .akey-slash{ display:none; }
+  .akey-toggle[aria-pressed="true"]{ color:var(--accent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
   .combine-key-item.is-off > :is(.combine-key-swatch, [id^="combine-key-"]){ opacity:.4; }
   .combine-key-item.is-off .combine-key-swatch{ border-top-style:dashed; }
   /* Arrow colors: yellow (--role-active) for the walk by the element and
@@ -664,6 +665,13 @@
   /* A self-inverse element's two walks coincide and are drawn once, in a
      mix of both colors, which the script writes as --arrow-both on .app. */
   .walk-both{ --walk:var(--arrow-both); }
+  /* Both walks on one line: each half-arrowhead, and its share of the line,
+     in its own walk's color. */
+  .duo-fwd{ fill:var(--arrow-in, var(--role-active)); stroke:none; }
+  .duo-bwd{ fill:var(--arrow-out, var(--role-input)); stroke:none; }
+  .duo-line{ fill:none; stroke-linecap:butt; stroke-linejoin:round; opacity:.9; }
+  .duo-line.is-fwd{ stroke:var(--arrow-in, var(--role-active)); }
+  .duo-line.is-bwd{ stroke:var(--arrow-out, var(--role-input)); }
   .outer-arc{ fill:none; stroke:var(--walk); stroke-linecap:round; stroke-linejoin:round; opacity:.9; }
   .outer-arrow{ fill:var(--walk); stroke:none; }
   .mirror-axis{ stroke:var(--text-dim); stroke-width:1.5; stroke-dasharray:6 6; opacity:.7; }
@@ -678,9 +686,9 @@
      coset's walk fades in as it is drawn — only on the step that brings it
      in (.is-coset-new), not on every redraw a turn of the ring makes. */
   .bead.is-dim, .bead-label.is-dim{ opacity:.22; }
-  .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both):not(.is-past){ animation:coset-in .25s ease-out; }
+  .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo):not(.is-past){ animation:coset-in .25s ease-out; }
   @keyframes coset-in{ from{ opacity:0; } }
-  @media (prefers-reduced-motion: reduce){ .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both){ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo){ animation:none; } }
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
@@ -1608,7 +1616,7 @@
           </div>
         </div>
         <div class="combine-key" id="combine-key" hidden>
-          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-inner"></span><span class="akey-ctl"><select class="akey-side" id="akey-side" aria-label="Forward path" data-i18n-aria-label="cyclicGroups.layerElement" title="Forward path" data-i18n-title="cyclicGroups.layerElement"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-reset" hidden title="Reset arrow colours" aria-label="Reset arrow colours" data-i18n-title="cyclicGroups.colorReset" data-i18n-aria-label="cyclicGroups.colorReset"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3.2 6.2A5 5 0 1 1 3 9.5"/><path d="M2.6 2.8V6.6H6.4"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
+          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-inner"></span><span class="akey-ctl"><select class="akey-side" id="akey-side" aria-label="Forward path" data-i18n-aria-label="cyclicGroups.layerElement" title="Forward path" data-i18n-title="cyclicGroups.layerElement"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn akey-toggle" id="akey-oneline" aria-pressed="false" title="Draw both paths on one line" aria-label="Draw both paths on one line" data-i18n-title="cyclicGroups.akeyOneLine" data-i18n-aria-label="cyclicGroups.akeyOneLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M2 8H14"/><path d="M14 8 10 4.5"/><path d="M2 8 6 11.5"/></svg></button><button type="button" class="akey-btn" id="akey-reset" hidden title="Reset arrow colours" aria-label="Reset arrow colours" data-i18n-title="cyclicGroups.colorReset" data-i18n-aria-label="cyclicGroups.colorReset"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3.2 6.2A5 5 0 1 1 3 9.5"/><path d="M2.6 2.8V6.6H6.4"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-outer"></span><span class="akey-ctl"><button type="button" class="akey-btn" id="akey-swap" title="Swap forward and backward path colours" aria-label="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" data-i18n-aria-label="cyclicGroups.swapColors"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M5 13.5V2.5M2.5 5 5 2.5 7.5 5"/><path d="M11 2.5V13.5M8.5 11 11 13.5 13.5 11"/></svg></button><button type="button" class="akey-btn" id="akey-back" aria-pressed="true" title="Disable backwards path" aria-label="Disable backwards path" data-i18n-title="cyclicGroups.layerBackward" data-i18n-aria-label="cyclicGroups.layerBackward"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
         </div>
         <div class="combine-key" id="combine-key-pane" hidden>
@@ -1907,7 +1915,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -2371,6 +2379,20 @@ function arrowHead(cls, x, y, heading, size){
   });
 }
 
+// Half an arrowhead: the tip ahead of (x, y) along heading, one barb out to
+// the side the unit vector barb points, and its back edge along the line.
+function halfHead(cls, x, y, heading, size, barb){
+  var ux = Math.cos(heading), uy = Math.sin(heading);
+  var tip = [x + size * ux, y + size * uy];
+  var wing = [x - 0.8 * size * ux + 0.75 * size * barb[0], y - 0.8 * size * uy + 0.75 * size * barb[1]];
+  var back = [x - 0.8 * size * ux, y - 0.8 * size * uy];
+  return svgEl('path', {
+    'class': cls,
+    d: 'M ' + num(tip[0]) + ' ' + num(tip[1]) + ' L ' + num(wing[0]) + ' ' + num(wing[1]) +
+       ' L ' + num(back[0]) + ' ' + num(back[1]) + ' Z'
+  });
+}
+
 function beadRadius(m, R){ return Math.max(3.5, Math.min(21, 1.5 * R / m)); }
 
 // The element the arrows walk by, and the generator the beads are arranged
@@ -2707,6 +2729,68 @@ function drawLoop(ring, a, cls, side, place, box, beadR, m, width){
   return foot + Math.max(0, out) * reach * 0.75;
 }
 
+// Both walks on one line (state.oneLine): each step a -> a∘h is drawn once,
+// in the forward walk's place, as a hump turning the forward way. duoLine
+// gives it both walks' colors; on it sit a half-arrowhead for each walk:
+// the forward one just past the peak, pointing on, its barb on the side away
+// from the center, the backward one just before the peak, pointing back, its
+// barb toward the center. Returns the outermost radius used.
+function drawDuo(ring, walk, cls, side, place, box, beadR, m, width){
+  var k = walk.length;
+  var out = side === 'outside' ? 1 : -1;
+  var foot = box.R + out * beadR;
+  var size = 1.8 * Math.max(3, Math.min(7, 90 / k));
+  var peakMax = 0;
+  var group = svgEl('g', { 'class': 'duo-walk ' + cls, 'data-seq': walk.join(' ') });
+  humpSteps(walk, place, m, 1, 1).forEach(function(h){
+    if (out > 0) peakMax = Math.max(peakMax, h.peak);
+    var away = duoAway(box, foot, out, h);
+    duoLine(group, box, foot, out, h, parseFloat(width), away);
+    if (k > 60) return;
+    [[0.56, 1, 'duo-fwd'], [0.44, -1, 'duo-bwd']].forEach(function(e){
+      var p = humpPoint(box, foot, out, h, e[0]);
+      var a = humpPoint(box, foot, out, h, e[0] - 0.01), b = humpPoint(box, foot, out, h, e[0] + 0.01);
+      var n = leftNormal(a, b);
+      var heading = Math.atan2(b[1] - a[1], b[0] - a[0]) + (e[1] < 0 ? Math.PI : 0);
+      group.appendChild(halfHead(e[2], p[0], p[1], heading, size, [e[1] * away * n[0], e[1] * away * n[1]]));
+    });
+  });
+  ring.appendChild(group);
+  return foot + peakMax;
+}
+
+// The unit normal to the left of the line from a to b.
+function leftNormal(a, b){
+  var tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
+  return [-ty / len, tx / len];
+}
+
+// 1 when the left of hump h's forward way faces away from the center (judged
+// at its peak, so it holds along the whole hump), else -1.
+function duoAway(box, foot, side, h){
+  var p = humpPoint(box, foot, side, h, 0.5);
+  var n = leftNormal(humpPoint(box, foot, side, h, 0.49), humpPoint(box, foot, side, h, 0.51));
+  return n[0] * (p[0] - box.cx) + n[1] * (p[1] - box.cy) >= 0 ? 1 : -1;
+}
+
+// The hump's line split down its length: the forward walk's color along the
+// side away from the center, the backward walk's along the side toward it,
+// each stripe as wide as a single walk's line.
+function duoLine(group, box, foot, side, h, width, away){
+  var samples = Math.max(16, Math.ceil(Math.abs(h.d) / humpCoarse));
+  var pts = [];
+  for (var t = 0; t <= samples; t++) pts.push(humpPoint(box, foot, side, h, t / samples));
+  var fwd = '', bwd = '';
+  pts.forEach(function(p, t){
+    var n = leftNormal(pts[Math.max(0, t - 1)], pts[Math.min(samples, t + 1)]);
+    var dx = away * n[0] * width / 2, dy = away * n[1] * width / 2;
+    fwd += (t ? ' L ' : 'M ') + num(p[0] + dx) + ' ' + num(p[1] + dy);
+    bwd += (t ? ' L ' : 'M ') + num(p[0] - dx) + ' ' + num(p[1] - dy);
+  });
+  group.appendChild(svgEl('path', { 'class': 'duo-line is-fwd', 'stroke-width': num(width), d: fwd }));
+  group.appendChild(svgEl('path', { 'class': 'duo-line is-bwd', 'stroke-width': num(width), d: bwd }));
+}
+
 // The ring of beads. beads is the element at each position, clockwise from
 // the top. The arrows sit under the beads, the labels over them.
 function drawRing(parent, G, beads, box, paint){
@@ -2759,6 +2843,10 @@ function drawRing(parent, G, beads, box, paint){
         walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1 });
         return;
       }
+      if (state.oneLine && invSide() !== 'neither'){
+        walks.push({ walk: lap(G, h, k, start), cls: 'walk-duo' + tag, side: state.elSide, duo: true });
+        return;
+      }
       walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1 });
       if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, sense: -1 });
     };
@@ -2771,13 +2859,16 @@ function drawRing(parent, G, beads, box, paint){
       var edge = box.R + beadR;
       walksEl.replaceChildren();
       walks.forEach(function(w){
-        if (w.side === 'outside' && !w.loop) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width));
+        if (w.duo) edge = Math.max(edge, drawDuo(walksEl, w.walk, w.cls, w.side, places, box, beadR, m, width));
+      });
+      walks.forEach(function(w){
+        if (w.side === 'outside' && !w.loop && !w.duo) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
         if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.cls, w.side, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
-        if (w.side === 'inside' && !w.loop) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width);
+        if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width);
       });
       return edge;
     };
@@ -4923,6 +5014,8 @@ function renderCombineKey(G){
   akeyBackEl.title = backName;
   akeyBackEl.setAttribute('aria-label', backName);
   akeySwapEl.hidden = !swappable;
+  akeyOneLineEl.hidden = !swappable;
+  akeyOneLineEl.setAttribute('aria-pressed', state.oneLine ? 'true' : 'false');
   akeyResetEl.hidden = !state.customColors;
   if (!IS_ISOPANE) syncIsoKeys();
 }
@@ -4935,7 +5028,7 @@ function renderCombineKey(G){
 // A click on a bar, or Enter or Space on a focused one, picks its color.
 var swatchEls = Array.prototype.slice.call(combineKeyEl.querySelectorAll('.combine-key-swatch'));
 var swatchDrag = null; // { id, el, x, y, target, moved } while a bar is held
-var akeySideEl = $('akey-side'), akeyBackEl = $('akey-back'), akeySwapEl = $('akey-swap'), akeyResetEl = $('akey-reset');
+var akeySideEl = $('akey-side'), akeyBackEl = $('akey-back'), akeySwapEl = $('akey-swap'), akeyResetEl = $('akey-reset'), akeyOneLineEl = $('akey-oneline');
 // The key's controls work the arrows' own (hidden) ones, so their handlers draw,
 // remember and share the change.
 function workCtl(el, value){
@@ -4946,6 +5039,11 @@ function workCtl(el, value){
 akeySideEl.addEventListener('change', function(){ workCtl(sideElEl, akeySideEl.value); });
 akeyBackEl.addEventListener('click', function(){ workCtl(backwardEl, state.backward); });
 akeySwapEl.addEventListener('click', swapArrowColors);
+// Both walks on one line, or each on its own side.
+akeyOneLineEl.addEventListener('click', function(){
+  state.oneLine = !state.oneLine;
+  render();
+});
 // Reset: the picked colours forgotten and manual colours off, back to the
 // theme's.
 akeyResetEl.addEventListener('click', function(){
@@ -7326,7 +7424,7 @@ function syncIsoTitle(){
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
 function isoSharedPayload(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, zoomwheel: zoomWheelOn };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, zoomwheel: zoomWheelOn };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -7343,6 +7441,7 @@ function applyIsoShared(d){
   if (flag(d.colors)) state.colors = d.colors;
   if (flag(d.backward)) state.backward = d.backward;
   if (flag(d.swapColors)) state.swapColors = d.swapColors;
+  if (flag(d.oneLine)) state.oneLine = d.oneLine;
   if (flag(d.customColors)) state.customColors = d.customColors;
   if (flag(d.cord)) state.cord = d.cord;
   if (flag(d.guide)) state.guide = d.guide;
@@ -8480,6 +8579,8 @@ function stateQuery(){
   else q.delete('subformularing');
   if (state.swapColors) q.set('swapcolors', '1');
   else q.delete('swapcolors');
+  if (state.oneLine) q.set('oneline', '1');
+  else q.delete('oneline');
   if (state.customColors) q.set('customcolors', '1');
   else q.delete('customcolors');
   ARROW_COLORS.forEach(function(c){
@@ -8792,6 +8893,7 @@ function exportName(){
   if (state.elSide !== 'inside' || !state.backward) parts.push('arrows', state.elSide, state.backward ? 'back' : 'noback');
   if (state.dir === 'ccw') parts.push('ccw');
   if (state.swapColors) parts.push('swapped');
+  if (state.oneLine && state.backward) parts.push('oneline');
   return parts.join('-') + '.png';
 }
 
@@ -9506,6 +9608,7 @@ function loadState(query, link){
   if (SUB_FORMULAS.indexOf(query.get('subformularow')) !== -1) state.subFormulaRow = query.get('subformularow');
   if (SUB_FORMULAS.indexOf(query.get('subformularing')) !== -1) state.subFormulaRing = query.get('subformularing');
   state.swapColors = query.get('swapcolors') === '1';
+  state.oneLine = query.get('oneline') === '1';
   state.customColors = query.get('customcolors') === '1';
   ARROW_COLORS.forEach(function(c){
     var v = '#' + String(query.get(c.param) || '').toLowerCase();
