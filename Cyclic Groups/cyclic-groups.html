@@ -2739,6 +2739,8 @@ function drawLoop(ring, a, cls, side, place, box, beadR, m, width){
 // round the ring, so it sits at the peak; inside the peaks crowd the center,
 // so it moves out toward the step's end.
 var DUO_HEAD_OUT = 0.5, DUO_HEAD_IN = 0.72;
+// How far each half-arrowhead steps on from the mark's spot, in head sizes.
+var DUO_HEAD_NUDGE = 0.4;
 function drawDuo(ring, walk, cls, side, place, box, beadR, m, width){
   var k = walk.length;
   var out = side === 'outside' ? 1 : -1;
@@ -2757,7 +2759,9 @@ function drawDuo(ring, walk, cls, side, place, box, beadR, m, width){
       var a = humpPoint(box, foot, out, h, e[0] - 0.01), b = humpPoint(box, foot, out, h, e[0] + 0.01);
       var n = leftNormal(a, b);
       var heading = Math.atan2(b[1] - a[1], b[0] - a[0]) + (e[1] < 0 ? Math.PI : 0);
-      group.appendChild(halfHead(e[2], p[0], p[1], heading, size, [e[1] * away * n[0], e[1] * away * n[1]]));
+      // Each head steps on the way it points, drawing the two back edges together.
+      var x = p[0] + DUO_HEAD_NUDGE * size * Math.cos(heading), y = p[1] + DUO_HEAD_NUDGE * size * Math.sin(heading);
+      group.appendChild(halfHead(e[2], x, y, heading, size, [e[1] * away * n[0], e[1] * away * n[1]]));
     });
   });
   ring.appendChild(group);
