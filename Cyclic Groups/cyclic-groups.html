@@ -563,7 +563,7 @@
   :is(.legend-expr select, .legend-kind-select){ font:inherit; font-family:var(--font-sans); font-size:.82rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; }
   :is(.legend-expr select, .legend-kind-select):focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   :is(.legend-expr select, .legend-kind-select) option{ color:var(--text); background:var(--bg-1); }
-  .fs-win-body.is-ring > #legend-panel > .legend-expr{ margin:0; }
+  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane) > .legend-expr{ margin:0; }
   .color-by{ margin:2px 0 10px 25px; }
   .color-by select{ font-family:var(--font-sans); padding:7px 10px; }
   .element-colours .color-by{ margin-left:0; }
@@ -1120,6 +1120,8 @@
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel.is-shown{ grid-area:lgd; justify-self:center; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
+  /* The keys along the bottom stop above the corner's switches. */
+  :root:not(.is-isopane):is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#legend-panel.is-shown, #legend-panel-pane:not([hidden])){ padding-bottom:30px; }
   :is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   .is-iso-two-keys .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key-pane{ grid-area:keyr; }
@@ -1782,6 +1784,7 @@
       </section>
       <section class="panel" id="legend-panel-pane" hidden>
         <h2 id="legend-heading-pane"></h2>
+        <label class="legend-expr" id="legend-expr-pane" hidden><span data-i18n="cyclicGroups.legendExprLabel">Elements as</span> <select id="legend-expr-pane-select"></select></label>
         <div class="legend is-pairs" id="legend-pane"></div>
       </section>
       <section class="panel genexp-info" id="genexp-info" hidden>
@@ -2440,9 +2443,11 @@ function syncExpr(G){
 }
 // Upright beside the ring while two groups are open with the Numerical view
 // under them: in the ring holding the pane while its split is open, and in
-// the pane while its own split is on (a linked pane's follows the holder's).
+// the pane while that split is open under both rings (hostSplitOn, told by
+// the holder) or its own split is on, so the two sliders stand alike.
+var hostSplitOn = false;
 function syncExprSide(){
-  var side = !!exprSlotEl.closest('.fs-win-body.is-ring') && splitOn && (IS_ISOPANE || (!isoPaneEl.hidden && !ringSplitEl.hidden));
+  var side = !!exprSlotEl.closest('.fs-win-body.is-ring') && (IS_ISOPANE ? splitOn || hostSplitOn : splitOn && !isoPaneEl.hidden && !ringSplitEl.hidden);
   exprSlotEl.classList.toggle('is-side', side);
   exprSliderEl.setAttribute('aria-orientation', side ? 'vertical' : 'horizontal');
   thinExprStops();
@@ -4555,6 +4560,13 @@ if (IS_RINGWIN){
       if (IS_ISOPANE) applyIsoShared(d);
       return;
     }
+    // The inverse-pair key's "Elements as", chosen under this pane's half.
+    if (d.ringhost === 'legendexpr'){
+      if (!IS_ISOPANE || !(d.value === null || d.value === SUB_FOLLOW || Number.isInteger(d.value))) return;
+      state.legendExpr = d.value;
+      render();
+      return;
+    }
     if (d.ringhost === 'unlock'){
       if (IS_ISOPANE) openGroupLock(true);
       return;
@@ -6455,10 +6467,13 @@ function legendItem(swatchClass, swatchStyle, text, textClass){
 // el, when given, is the list to fill instead of this ring's own (the
 // pane's copy, see syncPaneLegend). G, when given, is this ring's group, its
 // elements written as the key's menu chooses: by number, or as powers g^k
-// of a generator g, the pairs then listed by their smaller exponent.
+// of a generator g, the pairs then listed by their smaller exponent. The
+// pane's copy has no group here: the pane sends its menu's g and the
+// exponents with the pairs.
 function renderInverseLegend(pairing, el, G){
   el = el || legendEl;
   var g = G ? subExprGen(G, state.legendExpr, state.expr) : null, log = g === null ? null : exprLog(G, g);
+  if (!G && pairing.log){ g = pairing.g; log = pairing.log; }
   var m = function(x){ return log ? mEl('msup', [mn(g), mn(log[x])]) : mn(x); };
   var p = function(x){ return log ? g + '^' + log[x] : String(x); };
   var byExp = function(a, b){ return log[a] - log[b]; };
@@ -6578,7 +6593,7 @@ function renderLegend(G, classes, pairing){
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
   var inverse = state.colorBy === 'inverse', theme = state.colorBy === 'theme';
-  if (IS_ISOPANE) tellPaneLegend(inverse && state.colors ? { selfInverse: pairing.selfInverse, pairs: pairing.pairs, color: pairing.color } : null);
+  if (IS_ISOPANE) tellPaneLegend(inverse && state.colors ? paneLegendOf(G, pairing) : null);
   legendEl.classList.toggle('is-pairs', inverse);
   drawLegendHeading(state.colorBy);
   legendExprEl.hidden = !(inverse && state.colors && G.cyclic);
@@ -7229,6 +7244,7 @@ function applyIsoShared(d){
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.genexp)){ genExpEl.hidden = !d.genexp; syncGenExpCorner(); }
+  if (flag(d.split) && d.split !== hostSplitOn){ hostSplitOn = d.split; syncExprSide(); }
   // The link's generator here, which the holding ring may move to another
   // generator of this group once the two are found isomorphic.
   if (Number.isInteger(d.isogen) && d.isogen >= 0) ISO_GEN = d.isogen;
@@ -7385,6 +7401,13 @@ isoAskEl.addEventListener('keydown', function(e){
 // not coloured by inverse pairs): linked, it paints with this ring's
 // colours, so only it knows which pair wears which.
 var isoPaneLegend = null, isoPaneLegendSent;
+// What the pane's key sends: its pairs and colours, and its "Elements as"
+// menu (the group's generators, the choice, and under a generator g the
+// exponent of each element).
+function paneLegendOf(G, pairing){
+  var g = subExprGen(G, state.legendExpr, state.expr);
+  return { selfInverse: pairing.selfInverse, pairs: pairing.pairs, color: pairing.color, gens: G.cyclic ? G.generators : [], expr: state.legendExpr, g: g, log: g === null ? null : exprLog(G, g) };
+}
 function tellPaneLegend(legend){
   var s = JSON.stringify(legend);
   if (s === isoPaneLegendSent) return;
@@ -7399,10 +7422,27 @@ function syncPaneLegend(on){
   panel.hidden = !pk;
   if (!pk) return;
   $('legend-heading-pane').textContent = translate('cyclicGroups.legendHeadingInverse');
+  // The pane's own "Elements as" menu, its choice told back to the pane.
+  var gens = pk.gens || [];
+  $('legend-expr-pane').hidden = !gens.length;
+  if (gens.length){
+    var sel = $('legend-expr-pane-select');
+    sel.replaceChildren.apply(sel, [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(gens.map(function(h){
+      var opt = document.createElement('option');
+      opt.value = String(h);
+      opt.textContent = translate('cyclicGroups.arrangePowers', { g: h });
+      return opt;
+    })));
+    sel.value = pk.expr === SUB_FOLLOW ? SUB_FOLLOW : gens.indexOf(pk.expr) !== -1 ? String(pk.expr) : '';
+  }
   var list = $('legend-pane');
   list.replaceChildren();
   renderInverseLegend(pk, list);
 }
+$('legend-expr-pane-select').addEventListener('change', function(e){
+  if (!isoPaneFrame) return;
+  try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'legendexpr', value: subExprVal(e.target.value) }, '*'); } catch (err) { /* a frame that is gone needs nothing */ }
+});
 function syncIsoKeys(){
   if (IS_ISOPANE) return;
   syncRingCloseLabel();
@@ -7957,6 +7997,13 @@ window.addEventListener('message', function(e){
     isoPaneLegend = lg && Array.isArray(lg.selfInverse) && lg.selfInverse.every(num) && Array.isArray(lg.pairs)
       && lg.pairs.every(function(pr){ return Array.isArray(pr) && pr.length === 2 && pr.every(num) && typeof (lg.color || {})[pr[0]] === 'string'; })
       ? { selfInverse: lg.selfInverse, pairs: lg.pairs, color: lg.color } : null;
+    // Its "Elements as" menu: whole, or not at all.
+    if (isoPaneLegend && Array.isArray(lg.gens) && lg.gens.every(num)){
+      var logOk = lg.log && typeof lg.log === 'object' && lg.pairs.concat([lg.selfInverse]).every(function(xs){ return xs.every(function(x){ return num(lg.log[x]); }); });
+      isoPaneLegend.gens = lg.gens;
+      isoPaneLegend.expr = lg.expr === SUB_FOLLOW || num(lg.expr) ? lg.expr : null;
+      if (num(lg.g) && logOk){ isoPaneLegend.g = lg.g; isoPaneLegend.log = lg.log; }
+    }
     syncIsoKeys();
   } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine'){
     isoReceive(d);
