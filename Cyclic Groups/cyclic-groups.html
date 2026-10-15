@@ -773,7 +773,7 @@
      between the rings (placed by keepLockClear) beside an isomorphism pane,
      whose own ring takes the direction from this one. */
   .dir-toggle{ display:none; }
-  .fs-win-body.is-ring .dir-toggle{ display:inline-grid; place-items:center; width:auto; padding:2px 8px; }
+  .fs-win-body.is-ring .dir-toggle{ display:inline-grid; grid-auto-flow:column; column-gap:6px; place-items:center; width:auto; padding:2px 8px; }
   /* The button is a circle with a dashed line through its centre, the
      axis through the identity, turned as the ring is turned and flipped
      over as the ring is (syncDirAxis). */
@@ -5437,8 +5437,9 @@ function flipRing(change){
   var box = ringBox();
   var beta = identityAxis(old, box);
   var ghost = old.cloneNode(true);
-  var from = dirSign();
   change();
+  // The direction it turns from: the pane is told its new one beforehand.
+  var from = -dirSign();
   var ring = ringDynamicEl.querySelector('.ring');
   if (!ring) return;
   var wrap = svgEl('g', { 'class': 'ring-flip' });
@@ -6809,6 +6810,7 @@ function closeIsoPane(){
   isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
   isoPane = null;
+  dirPaneAxis = null;
   isoSharedSent = null;
   isoInterlockSent = false;
   isoWholeSent = null;
@@ -7941,6 +7943,9 @@ window.addEventListener('message', function(e){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
     isoPane.unlocked = true;
+  } else if (d.isopane === 'axis' && [d.b, d.s, d.k].every(Number.isFinite)){
+    dirPaneAxis = { b: d.b, s: d.s, k: d.k };
+    syncDirAxis();
   } else if (d.isopane === 'ctl' && typeof d.id === 'string'){
     // A colour control changed in the pane's menu: set this ring's own, and
     // fire the event its handler listens for.
@@ -8814,6 +8819,8 @@ function setGroupLock(on){
   isoLockEl.setAttribute('title', translate('cyclicGroups.groupLockTitle'));
   isoLockEl.classList.remove('is-open');
   syncOpenLock();
+  // Locked, the rings turn as one and the direction button shows one circle.
+  syncDirAxis();
   keepLockClear();
 }
 // While the rings share an isomorphism that is not locked (declined, or
@@ -9087,36 +9094,53 @@ dirToggleEl.addEventListener('click', function(){ setDir(state.dir === 'cw' ? 'c
 // past the circle, and a small ring threaded onto the axis just past the circle, at the identity's end,
 // showing that the button turns the rings over about it. While the ring
 // flips over that axis (dirIconFlip, set by flipRing) the circle flips with
-// it. Its name says which way the beads count.
-var dirAxisEl = null, dirFlipEl = null, dirIconFlip = null;
+// it. Its name says which way the beads count. Beside an isomorphism pane
+// whose ring turns on its own (the rings' lock broken) the button widens to
+// hold a second circle, the pane's, turned and flipped as the pane's ring is
+// (dirPaneAxis, told by the pane); the first stays this ring's.
+var dirIcons = [], dirIconFlip = null, dirPaneAxis = null, dirAxisSent = null;
 function drawDirIcon(){
-  var icon = svgEl('svg', { viewBox: '0 0 36 36', width: 36, height: 36, 'aria-hidden': 'true', focusable: 'false' });
-  dirAxisEl = svgEl('g');
-  dirFlipEl = svgEl('g');
-  dirFlipEl.appendChild(svgEl('circle', { cx: 18, cy: 18, r: 9 }));
-  // The arrow round the axis at the identity's end: its back half, the
-  // axis (broken where the front half crosses it), then its front half and
-  // its head, turning in behind the axis.
-  dirFlipEl.appendChild(svgEl('path', { 'class': 'dir-axis-ring is-back', d: 'M31.5 11A3 7 0 0 0 31.5 25' }));
-  dirFlipEl.appendChild(svgEl('line', { 'class': 'dir-axis-line', x1: 0, y1: 18, x2: 33.3, y2: 18 }));
-  dirFlipEl.appendChild(svgEl('line', { 'class': 'dir-axis-line', x1: 35.7, y1: 18, x2: 36.6, y2: 18 }));
-  dirFlipEl.appendChild(svgEl('path', { 'class': 'dir-axis-ring', d: 'M31.5 11A3 7 0 0 1 33.22 23.73' }));
-  dirFlipEl.appendChild(svgEl('path', { 'class': 'dir-axis-ring', d: 'M35.66 23.57 32.59 24.75 32.24 21.49' }));
-  dirAxisEl.appendChild(dirFlipEl);
-  icon.appendChild(dirAxisEl);
-  dirToggleEl.replaceChildren(icon);
+  dirIcons = [0, 1].map(function(){
+    var icon = svgEl('svg', { viewBox: '0 0 36 36', width: 36, height: 36, 'aria-hidden': 'true', focusable: 'false' });
+    var axis = svgEl('g'), flip = svgEl('g');
+    flip.appendChild(svgEl('circle', { cx: 18, cy: 18, r: 9 }));
+    // The arrow round the axis at the identity's end: its back half, the
+    // axis (broken where the front half crosses it), then its front half and
+    // its head, turning in behind the axis.
+    flip.appendChild(svgEl('path', { 'class': 'dir-axis-ring is-back', d: 'M31.5 11A3 7 0 0 0 31.5 25' }));
+    flip.appendChild(svgEl('line', { 'class': 'dir-axis-line', x1: 0, y1: 18, x2: 33.3, y2: 18 }));
+    flip.appendChild(svgEl('line', { 'class': 'dir-axis-line', x1: 35.7, y1: 18, x2: 36.6, y2: 18 }));
+    flip.appendChild(svgEl('path', { 'class': 'dir-axis-ring', d: 'M31.5 11A3 7 0 0 1 33.22 23.73' }));
+    flip.appendChild(svgEl('path', { 'class': 'dir-axis-ring', d: 'M35.66 23.57 32.59 24.75 32.24 21.49' }));
+    axis.appendChild(flip);
+    icon.appendChild(axis);
+    return { svg: icon, axis: axis, flip: flip };
+  });
+  dirToggleEl.replaceChildren(dirIcons[0].svg, dirIcons[1].svg);
+}
+function setDirIcon(icon, beta, f){
+  icon.axis.setAttribute('transform', 'rotate(' + num(beta) + ' 18 18)');
+  icon.flip.setAttribute('transform', 'translate(18 18) scale(' + num(f.k) + ' ' + num(f.k * f.s) + ') translate(-18 -18)');
 }
 function syncDirAxis(){
-  if (!dirAxisEl) return;
   var ring = ringDynamicEl.querySelector('.ring');
   var beta = ring && drawn ? identityAxis(ring, ringBox()) : -90;
   var f = dirIconFlip || { s: dirSign(), k: 1 };
-  dirAxisEl.setAttribute('transform', 'rotate(' + num(beta) + ' 18 18)');
-  dirFlipEl.setAttribute('transform', 'translate(18 18) scale(' + num(f.k) + ' ' + num(f.k * f.s) + ') translate(-18 -18)');
+  // The pane draws no button of its own: it tells the holder its axis.
+  if (IS_ISOPANE){
+    var key = num(beta) + ':' + num(f.s) + ':' + num(f.k);
+    if (key !== dirAxisSent){ dirAxisSent = key; tellHost({ isopane: 'axis', b: beta, s: f.s, k: f.k }); }
+    return;
+  }
+  if (!dirIcons.length) return;
+  setDirIcon(dirIcons[0], beta, f);
+  var two = !!isoPane && !isoPaneEl.hidden && !!dirPaneAxis && !isoTurnsTogether();
+  dirIcons[1].svg.style.display = two ? '' : 'none';
+  if (two) setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
 }
 function syncDirToggle(){
   var ccw = state.dir === 'ccw';
-  if (!dirAxisEl) drawDirIcon();
+  if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
   var name = translate(ccw ? 'cyclicGroups.dirToggleCcw' : 'cyclicGroups.dirToggleCw');
   dirToggleEl.title = name;
