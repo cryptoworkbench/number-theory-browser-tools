@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d2f696c7fe82a8fc13b730c3ccd39ef1ff06c392
+state_head: 5d1cf0739054e3db5f73f02e5aa6b0aacf5db6b2
 progress:
   total_phases: 7
   completed_phases: 6
@@ -626,6 +626,7 @@ None yet.
 | 261014-v9c | Cyclic Groups mobile version for mobile-reporting browsers | 2026-10-14 | 7eaeb0c | [261014-v9c-cyclic-groups-mobile-version-for-mobile-](./quick/261014-v9c-cyclic-groups-mobile-version-for-mobile-/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
+| 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
 
 ## Deferred Items
 
