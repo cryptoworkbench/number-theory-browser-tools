@@ -575,6 +575,18 @@
     .combine-key{ position:static; margin-top:10px; max-width:none; }
   }
   .combine-key[hidden], .combine-key-item[hidden]{ display:none; }
+  /* Past the default key's height, as rows are added, the arrow key
+     scrolls instead of growing, as the subgroup list does: no scrollbar,
+     a fade at an edge with more rows beyond it, and a count below (see
+     syncAkeyMore). */
+  #combine-key{ max-height:122px; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
+  #combine-key::-webkit-scrollbar{ display:none; }
+  /* With the pair lines, the key keeps that height from the start, so
+     adding or removing a line never moves the ring. */
+  #combine-key.is-pair-mode{ height:122px; }
+  #combine-key.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 28px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 28px), transparent); }
+  #combine-key.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 28px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 28px); }
+  #combine-key.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 28px, var(--ink) calc(100% - 28px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 28px, var(--ink) calc(100% - 28px), transparent); }
   .combine-key.is-held{ visibility:hidden; }
   .combine-key-item{ display:flex; align-items:flex-start; gap:9px; }
   .combine-key-swatch{ flex:none; width:20px; height:0; margin-top:.6em; border-top:2.5px solid var(--arrow-in, var(--role-active)); }
@@ -1639,6 +1651,7 @@
           <div class="combine-key-item" id="akey-sixth-item" hidden><span class="combine-key-swatch akey-power-swatch"></span><span id="combine-key-sixth"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-6" hidden><span class="akey-exp-base"></span><input type="number" class="akey-exp" id="akey-exp-6" min="2" step="1" value="6" aria-label="Power to raise the selected element to" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to" data-i18n-title="cyclicGroups.akeyPowerExp"></label><select class="akey-side" id="akey-side-6" hidden aria-label="Side of the ring for these lines" data-i18n-aria-label="cyclicGroups.akeyPowerSide" title="Side of the ring for these lines" data-i18n-title="cyclicGroups.akeyPowerSide"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-sixth" aria-pressed="false" title="Show these lines" aria-label="Show these lines" data-i18n-title="cyclicGroups.akeyShowPower" data-i18n-aria-label="cyclicGroups.akeyShowPower"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button><button type="button" class="akey-btn akey-drop" id="akey-drop-6" hidden title="Remove this line" aria-label="Remove this line" data-i18n-title="cyclicGroups.akeyDropLine" data-i18n-aria-label="cyclicGroups.akeyDropLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg></button></span></div>
           <div class="combine-key-item akey-add-row" id="akey-add-row" hidden><button type="button" class="akey-btn" id="akey-add" title="Add a line for another inverse pair" aria-label="Add a line for another inverse pair" data-i18n-title="cyclicGroups.akeyAddLine" data-i18n-aria-label="cyclicGroups.akeyAddLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M8 3V13M3 8H13"/></svg></button></div>
         </div>
+        <button type="button" class="sub-more" id="akey-more" tabindex="-1" aria-hidden="true" hidden></button>
         <div class="combine-key" id="combine-key-pane" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-pane-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-pane-outer"></span></div>
@@ -3657,7 +3670,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'combine-key-pane', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-corner', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'combine-key-pane', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-corner', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -5198,6 +5211,8 @@ function renderCombineKey(G){
     dropEl.classList.toggle('is-spare', p - 1 !== state.powerLayers);
   });
   akeyPairEl.setAttribute('aria-pressed', state.oneLinePair ? 'true' : 'false');
+  combineKeyEl.classList.toggle('is-pair-mode', akeyPairMode);
+  syncAkeyMore();
   akeyResetEl.hidden = !state.customColors;
   if (!IS_ISOPANE) syncIsoKeys();
 }
@@ -5234,14 +5249,38 @@ akeyOneLineEl.addEventListener('click', function(){
   state.oneLine = !state.oneLine;
   render();
 });
-// The + adds the next pair line, its lines shown; a line's remove button
-// takes the last one away.
+// The + adds the next pair line, its lines shown, and scrolls the key down
+// to it; a line's remove button takes the last one away.
 $('akey-add').addEventListener('click', function(){
   if (state.powerLayers >= POWER_PS.length) return;
   state.powerLayers++;
   state[powerFlag(state.powerLayers + 1)] = true;
   render();
+  combineKeyEl.scrollTop = combineKeyEl.scrollHeight;
+  syncAkeyMore();
 });
+// The key scrolls without a scrollbar, as the subgroup list does: it fades
+// out at an edge with more rows beyond it, and over the bottom fade a
+// label counts the rows still hidden there; a click scrolls a page down.
+var akeyMoreEl = $('akey-more');
+function syncAkeyMore(){
+  if (!akeyMoreEl) return;
+  var top = combineKeyEl.scrollTop, rest = combineKeyEl.scrollHeight - combineKeyEl.clientHeight - top;
+  combineKeyEl.classList.toggle('is-more-above', top > 1);
+  combineKeyEl.classList.toggle('is-more-below', rest > 1);
+  var bottom = combineKeyEl.getBoundingClientRect().bottom, n = 0;
+  if (rest > 1) Array.prototype.forEach.call(combineKeyEl.children, function(row){ if (!row.hidden && row.getBoundingClientRect().top >= bottom - 1) n++; });
+  akeyMoreEl.hidden = !n || !combineKeyEl.offsetParent || combineKeyEl.hidden;
+  if (akeyMoreEl.hidden) return;
+  akeyMoreEl.textContent = translate('cyclicGroups.subMoreBelow', { count: n });
+  akeyMoreEl.style.left = (combineKeyEl.offsetLeft + combineKeyEl.offsetWidth / 2) + 'px';
+  akeyMoreEl.style.top = (combineKeyEl.offsetTop + combineKeyEl.offsetHeight - akeyMoreEl.offsetHeight - 2) + 'px';
+}
+akeyMoreEl.addEventListener('click', function(){
+  combineKeyEl.scrollBy({ top: combineKeyEl.clientHeight * 0.8, behavior: 'smooth' });
+});
+combineKeyEl.addEventListener('scroll', syncAkeyMore, { passive: true });
+if (window.ResizeObserver) new ResizeObserver(syncAkeyMore).observe(combineKeyEl);
 POWER_PS.forEach(function(p){
   $('akey-drop-' + p).addEventListener('click', function(){
     state[powerFlag(p)] = false;
