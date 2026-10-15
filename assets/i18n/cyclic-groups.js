@@ -62,9 +62,10 @@
    switch letting the scroll wheel zoom the ring), akeyOneLine (the
    key's switch drawing both paths on one line), akeyPairMode,
    akeyPairLine, akeyPowerLine, akeyPowerSelf, akeyPowerSame, akeyPowerId,
-   akeyShowPower, akeyHidePower, akeyPowerExp and akeyPowerSide (that line
-   in its inverse pair's colour, with further lines for the pairs of the
-   powers picked for them, each with its eye, power and side). Every
+   akeyShowPower, akeyHidePower, akeyPowerExp, akeyPowerSide, akeyAddLine
+   and akeyDropLine (that line in its inverse pair's colour, with further
+   lines, added with a + and removed again, for the pairs of the powers
+   picked for them, each with its eye, power and side). Every
    other language shows the English value through NT.i18n's fallback
    meanwhile.
 
@@ -526,6 +527,8 @@
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power of the selected element for this line',
       akeyPowerSide: 'Side of the ring for these lines',
+      akeyAddLine: 'Add a line for another inverse pair',
+      akeyDropLine: 'Remove this line',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
