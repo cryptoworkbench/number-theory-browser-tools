@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f957d06
+state_head: 3f197d9
 progress:
   total_phases: 7
   completed_phases: 6
@@ -662,6 +662,7 @@ None yet.
 | 426 | Cyclic Groups: pair-line power box shown as a raised exponent after h (reads h^x) | 2026-10-15 | d8dddc8 | — |
 | 427 | Cyclic Groups: one-colour line texts speak of steps and subgroup cardinality unless colouring by inverse pairs | 2026-10-15 | dbd8cff | — |
 | 428 | Cyclic Groups: drop ', on one line' from the one-colour lines' key texts | 2026-10-15 | f957d06 | — |
+| 429 | Cyclic Groups: arrow key scrolls (subgroup-list style fades + more-rows pill) instead of growing and pushing the ring | 2026-10-15 | 3f197d9 | — |
 
 ## Deferred Items
 
