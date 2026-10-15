@@ -5005,13 +5005,17 @@ var SUB_PANEL = 'panel';
 
 // The subgroup row's tail: the group the chosen subgroup lies in, ⊂ for a
 // proper subgroup and ⊆ for the whole group, as the ring's title has it;
-// empty with no subgroup chosen.
+// empty with no subgroup chosen. When the dropdown follows the expression
+// slider or the bottom panel, it names the subgroup followed first, ⟨4⟩ ⊂ ….
 var genSuperEl = $('gen-super');
 function syncGenSuper(G){
   genSuperEl.replaceChildren();
   if (noSub()) return;
-  var whole = G.orders[shownGen(G)] === G.order;
-  genSuperEl.appendChild(mInline(mrow(mo(whole ? '⊆' : '⊂'), mGroup(G)), (whole ? '⊆ ' : '⊂ ') + G.label));
+  var h = shownGen(G), whole = G.orders[h] === G.order, rel = whole ? '⊆' : '⊂';
+  var named = genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL;
+  genSuperEl.appendChild(named
+    ? mInline(mrow(angle(mn(h)), mo(rel), mGroup(G)), '⟨' + h + '⟩ ' + rel + ' ' + G.label)
+    : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
 }
 function syncGenerators(G){
   genSelectEl.replaceChildren();
