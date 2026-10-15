@@ -1218,7 +1218,13 @@
   .ring-corner{ display:none; }
   .fs-win-body.is-ring > .ring-corner{ display:flex; gap:6px; position:absolute; right:6px; bottom:6px; z-index:5; }
   .ring-corner > .fs-win-btn{ display:grid; }
-  .ring-corner > .fs-win-btn[hidden], :root.is-isopane .fs-win-body.is-ring > .ring-corner, .ring-corner > .genexp-corner[aria-pressed="true"]{ display:none; }
+  .ring-corner > .fs-win-btn[hidden], .ring-corner > .genexp-corner[aria-pressed="true"]{ display:none; }
+  /* Two groups: what the ring shows (its polygon, its circle, the formula
+     scratchpad), then, past a thin rule, the keys and the expressions. A
+     pane keeps only its own scratchpad's switch; the rest are the left
+     ring's. */
+  .ring-corner-sep{ flex:none; align-self:center; width:1px; height:14px; margin:0 2px; background:var(--panel-border); }
+  :root.is-isopane .ring-corner > :not(#formulas-corner){ display:none; }
   .ring-corner > .key-corner[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   .genexp-info > .genexp-min{ position:absolute; top:6px; right:0; z-index:2; }
@@ -1789,6 +1795,10 @@
         <div class="genexp-body" id="genexp-body-pane"></div>
       </section>
       <div class="ring-corner" id="ring-corner">
+        <button type="button" class="fs-win-btn key-corner show-corner" id="cord-corner" aria-pressed="true" title="Show corresponding polygon" aria-label="Show corresponding polygon" data-i18n-title="cyclicGroups.layerCord" data-i18n-aria-label="cyclicGroups.layerCord"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6 1.3 10.5 4.6 8.8 10.2H3.2L1.5 4.6Z"/></svg></button>
+        <button type="button" class="fs-win-btn key-corner show-corner" id="guide-corner" aria-pressed="true" title="Show connecting circle" aria-label="Show connecting circle" data-i18n-title="cyclicGroups.layerGuide" data-i18n-aria-label="cyclicGroups.layerGuide"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/></svg></button>
+        <button type="button" class="fs-win-btn key-corner show-corner" id="formulas-corner" aria-pressed="false" aria-controls="scratch-pad" title="Show formulas" aria-label="Show formulas" data-i18n-title="cyclicGroups.ctxShowFormulas" data-i18n-aria-label="cyclicGroups.ctxShowFormulas"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1 6.8H2.6L4.3 10.3 6.6 1.7H11"/><path d="M7.6 4.6 10.4 8.4M10.4 4.6 7.6 8.4"/></svg></button>
+        <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner" id="legend-corner" aria-pressed="false" aria-controls="legend-panel" title="Show element colour key" aria-label="Show element colour key" data-i18n-title="cyclicGroups.showElementKey" data-i18n-aria-label="cyclicGroups.showElementKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle class="icon-fill" cx="2.8" cy="2.5" r="1.4"/><circle class="icon-fill" cx="2.8" cy="6" r="1.4"/><circle class="icon-fill" cx="2.8" cy="9.5" r="1.4"/><line x1="6" y1="2.5" x2="10.5" y2="2.5"/><line x1="6" y1="6" x2="10.5" y2="6"/><line x1="6" y1="9.5" x2="10.5" y2="9.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="akey-corner" aria-pressed="false" aria-controls="combine-key" title="Show arrow colour key" aria-label="Show arrow colour key" data-i18n-title="cyclicGroups.showArrowKey" data-i18n-aria-label="cyclicGroups.showArrowKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 3.5H5.5M4 2 5.5 3.5 4 5"/><path d="M1.5 8.5H5.5M4 7 5.5 8.5 4 10"/><line x1="7.5" y1="3.5" x2="10.5" y2="3.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="8.5"/></svg></button>
         <button type="button" class="fs-win-btn genexp-corner" id="genexp-corner" aria-pressed="false" aria-controls="genexp-info" title="Show the element expressions" aria-label="Show the element expressions" data-i18n-title="cyclicGroups.genExpOpenTitle" data-i18n-aria-label="cyclicGroups.genExpOpenTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="1.5" y="2" width="9" height="8" rx="1"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4.5" y1="2" x2="4.5" y2="10"/></svg></button>
@@ -3357,12 +3367,31 @@ scratchPadEl.addEventListener('dblclick', function(e){
   setScratchScale(1);
   setScratchWidth(null);
 });
-// Opened from the ring's right-click menu, which keeps the focus; closed
-// from its corner button too.
+// Opened and closed from the window's corner switch; closed from the
+// scratchpad's own corner button too.
 function setScratchOpen(open){
   scratchOpen = open;
   if (drawn) drawScratchPad(drawn.G);
+  syncShowCorners();
 }
+// The corner's Show switches: the polygon's and the circle's flip the
+// Layers panel's checkboxes, whose own handlers draw and remember the
+// change; the formulas' opens the scratchpad, where the window has room.
+var showCornerEls = { cord: $('cord-corner'), guide: $('guide-corner') }, formulasCornerEl = $('formulas-corner');
+function syncShowCorners(){
+  if (!formulasCornerEl) return; // not yet set up
+  Object.keys(showCornerEls).forEach(function(name){ showCornerEls[name].setAttribute('aria-pressed', state[name] ? 'true' : 'false'); });
+  formulasCornerEl.hidden = !ringWorkArea();
+  formulasCornerEl.setAttribute('aria-pressed', scratchOpen && !formulasCornerEl.hidden ? 'true' : 'false');
+}
+Object.keys(showCornerEls).forEach(function(name){
+  showCornerEls[name].addEventListener('click', function(){
+    var box = $('layer-' + name);
+    box.checked = !box.checked;
+    box.dispatchEvent(new Event('change'));
+  });
+});
+formulasCornerEl.addEventListener('click', function(){ setScratchOpen(!scratchOpen); });
 
 // Which head switches show: out of full screen each only while every one
 // before it is on.
@@ -3470,10 +3499,8 @@ function svgIcon(parts){
 }
 
 // Right-clicking the ring opens its own menu in place of the browser's: the
-// zoom, then the Show switches (the Layers panel's polygon and circle, each
-// flipping its checkbox there so the checkbox's own handler draws and
-// remembers the change, and the formula scratchpad) (the colours are set
-// in the colour keys instead), then the groups isomorphic to the whole group or to the subgroup
+// zoom (what the ring shows is switched in the window's bottom-right corner,
+// the colours in the colour keys), then the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
 // there, and last the Info section: the Formulas submenus (each formula to
 // copy in one of several formats), the group's structure last among them. A pane's
@@ -3482,9 +3509,6 @@ function svgIcon(parts){
 var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxView', key: 'cyclicGroups.ctxZoomIn', zoom: 1, keys: '+', run: function(){ stepRingZoom(1); }, stay: true },
   { key: 'cyclicGroups.ctxZoomOut', zoom: -1, keys: '\u2212', run: function(){ stepRingZoom(-1); }, stay: true },
-  { head: 'cyclicGroups.ctxShowHeading', name: 'cord', key: 'cyclicGroups.ctxShowPolygon' },
-  { name: 'guide', key: 'cyclicGroups.ctxShowCircle' },
-  { key: 'cyclicGroups.ctxShowFormulasItem', run: function(){ setScratchOpen(!scratchOpen); }, checked: function(){ return scratchOpen && !!ringWorkArea(); }, needsArea: true },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, copy: 'struct' }
 ];
@@ -3507,7 +3531,7 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   var item = document.createElement('button');
   item.type = 'button';
   item.className = 'fs-menu-item';
-  item.setAttribute('role', l.checked || !(l.run || l.copy) ? 'menuitemcheckbox' : 'menuitem');
+  item.setAttribute('role', 'menuitem');
   if (l.copy){
     item.setAttribute('aria-haspopup', 'true');
     item.setAttribute('aria-expanded', 'false');
@@ -3549,15 +3573,10 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     }
     if (item.getAttribute('aria-disabled') === 'true') return;
     setRingCtx(false);
-    if (l.run){ l.run(); return; }
-    var box = $('layer-' + l.name);
-    // The layers are the left ring's: the pane asks the ring that holds it.
-    if (IS_ISOPANE){ tellHost({ isopane: 'edit', name: l.name, on: !box.checked }); return; }
-    box.checked = !box.checked;
-    box.dispatchEvent(new Event('change'));
+    l.run();
   });
   ringCtxEl.appendChild(item);
-  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, zoom: l.zoom, formulas: l.formulas, checked: l.checked, needsArea: l.needsArea };
+  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key, zoom: l.zoom, formulas: l.formulas };
 });
 // A plain item of a submenu: its mark, its label and, opening a submenu of
 // its own, the arrow.
@@ -4198,17 +4217,6 @@ function setRingCtx(open, x, y){
     it.label.textContent = translate(it.key);
     if (it.value) it.value.replaceChildren(it.valueOf());
     if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
-    // A card needs the Ring window's area to sit in.
-    if (it.needsArea) it.item.setAttribute('aria-disabled', ringWorkArea() ? 'false' : 'true');
-    if (it.checked){
-      var shown = it.checked();
-      it.item.setAttribute('aria-checked', shown ? 'true' : 'false');
-      it.mark.textContent = shown ? '\u2713' : '';
-    }
-    if (!it.name) return;
-    var on = $('layer-' + it.name).checked;
-    it.item.setAttribute('aria-checked', on ? 'true' : 'false');
-    it.mark.textContent = on ? '\u2713' : '';
   });
   syncFormulaItems();
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
@@ -8532,6 +8540,7 @@ function render(){
 function syncControls(){
   if (!isoBlank && !hostBlank()) nInputEl.value = state.n;
   FLAG_SWITCHES.forEach(function(name){ $('layer-' + name).checked = state[name]; });
+  syncShowCorners();
   colorBySelectEl.value = state.colors ? state.colorBy : 'none';
   sideElEl.value = state.elSide;
   dirSelectEl.value = state.dir;
@@ -9018,6 +9027,7 @@ FLAG_SWITCHES.forEach(function(name){
   $('layer-' + name).addEventListener('change', function(){
     state[name] = $('layer-' + name).checked;
     render();
+    syncShowCorners();
   });
 });
 arrangeSelectEl.addEventListener('change', function(){
