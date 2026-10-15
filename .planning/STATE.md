@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: bc9c2e0
+state_head: 565df52
 progress:
   total_phases: 7
   completed_phases: 6
@@ -655,6 +655,7 @@ None yet.
 | 419 | Cyclic Groups: one-line pair mode gains the fourth powers' pair {h⁴, h⁻⁴} (fourth key line + eye, squares' side) | 2026-10-15 | d5586e3 | — |
 | 420 | Cyclic Groups: per-pair Inside/Outside menu for the squared, cubed and fourth powers' one-line pairs | 2026-10-15 | f4f5565 | — |
 | 421 | Cyclic Groups: one-line pair mode gains the fifth powers' pair {h⁵, h⁻⁵} (key line, eye, side menu) | 2026-10-15 | bc9c2e0 | — |
+| 422 | Cyclic Groups: one-line pair mode gains the sixth powers' pair {h⁶, h⁻⁶} (key line, eye, side menu) | 2026-10-15 | 565df52 | — |
 
 ## Deferred Items
 
