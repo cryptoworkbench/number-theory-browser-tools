@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d5f7439
+state_head: fbcb28c
 progress:
   total_phases: 7
   completed_phases: 6
@@ -679,6 +679,7 @@ None yet.
 | 443 | Cyclic Groups: subgroup row's tail ignores a hovered row's preview | 2026-10-15 | 501ddf0 | — |
 | 444 | Cyclic Groups: Follow bottom-panel starts at the identity's subgroup, arrow keys step it at once | 2026-10-15 | 99fd785 | — |
 | 445 | Cyclic Groups: chevron button's tooltip says Open / Close bottom-panel | 2026-10-15 | d5f7439 | — |
+| 446 | Cyclic Groups: bottom panel without heading; single-group controls compact (short labels, chevrons in corner) | 2026-10-15 | fbcb28c | — |
 
 ## Deferred Items
 
