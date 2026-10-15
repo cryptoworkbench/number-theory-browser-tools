@@ -67,7 +67,9 @@
    akeyCubeSelf, akeyCubeSame, akeyCubeId, akeyShowCube and akeyHideCube
    (the cubed pair's lines likewise), and akeyFourthLine, akeyFourthSelf,
    akeyFourthSame, akeyFourthId, akeyShowFourth and akeyHideFourth (the
-   fourth powers' pair's lines likewise), and akeyPowerSide (each of those
+   fourth powers' pair's lines likewise), akeyFifthLine, akeyFifthSelf,
+   akeyFifthSame, akeyFifthId, akeyShowFifth and akeyHideFifth (the fifth
+   powers' likewise), and akeyPowerSide (each of those
    pairs' inside/outside menu). Every other language shows the
    English value through NT.i18n's fallback meanwhile.
 
@@ -538,6 +540,12 @@
       akeyFourthId: 'The fourth power {h4} is the identity, so it has no lines',
       akeyShowFourth: "Show the fourth powers' lines",
       akeyHideFourth: "Hide the fourth powers' lines",
+      akeyFifthLine: 'Inverse pair {h5} and {h5inv}, the fifth powers, on one line',
+      akeyFifthSelf: 'The fifth power {h5} is its own inverse, on one line',
+      akeyFifthSame: 'The fifth powers {h5} and {h5inv} repeat an earlier pair',
+      akeyFifthId: 'The fifth power {h5} is the identity, so it has no lines',
+      akeyShowFifth: "Show the fifth powers' lines",
+      akeyHideFifth: "Hide the fifth powers' lines",
       akeyPowerSide: 'Side of the ring for these lines',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
