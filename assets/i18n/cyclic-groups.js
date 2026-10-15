@@ -63,11 +63,11 @@
    key's switch drawing both paths on one line), akeyPairMode,
    akeyPairLine, akeyPowerLine, akeyPowerSelf, akeyPowerSame, akeyPowerId,
    akeyShowPower, akeyHidePower, akeyPowerExp, akeyPowerSide, akeyAddLine
-   and akeyDropLine (that line in its inverse pair's colour, with further
-   lines, added with a + and removed again, for the pairs of the powers
-   picked for them, each with its eye, power and side). Every
-   other language shows the English value through NT.i18n's fallback
-   meanwhile.
+   and akeyDropLine (that line in one colour from the subgroup
+   cardinality key, with further lines, added with a + and removed again,
+   for the pairs of the powers picked for them, each with its eye, power
+   and side). Every other language shows the English value through
+   NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
@@ -517,7 +517,7 @@
       akeyPick: 'Choose this path\'s colour; drag it onto the other bar to swap the colours',
       akeyShowBackward: 'Show backwards path',
       akeyOneLine: 'Draw both paths on one line',
-      akeyPairMode: "Draw the line in its inverse pair's colour",
+      akeyPairMode: 'Draw the line in one colour, from the subgroup cardinality key',
       akeyPairLine: 'Inverse pair {h} and {hinv}, on one line',
       akeyPowerLine: 'Inverse pair {hp} and {hpinv}, power {x}, on one line',
       akeyPowerSelf: '{hp}, power {x}, is its own inverse, on one line',
