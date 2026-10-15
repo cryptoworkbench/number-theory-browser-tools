@@ -61,19 +61,12 @@
    back), zoomLabel and zoomWheel (the corner's zoom slider and its
    switch letting the scroll wheel zoom the ring), akeyOneLine (the
    key's switch drawing both paths on one line), akeyPairMode,
-   akeyPairLine, akeySquareLine, akeySquareSelf, akeySquareSame,
-   akeyShowSquare and akeyHideSquare (that line in its inverse pair's
-   colour, with the squared pair's lines beside it), and akeyCubeLine,
-   akeyCubeSelf, akeyCubeSame, akeyCubeId, akeyShowCube and akeyHideCube
-   (the cubed pair's lines likewise), and akeyFourthLine, akeyFourthSelf,
-   akeyFourthSame, akeyFourthId, akeyShowFourth and akeyHideFourth (the
-   fourth powers' pair's lines likewise), akeyFifthLine, akeyFifthSelf,
-   akeyFifthSame, akeyFifthId, akeyShowFifth and akeyHideFifth (the fifth
-   powers' likewise), akeySixthLine, akeySixthSelf, akeySixthSame,
-   akeySixthId, akeyShowSixth and akeyHideSixth (the sixth powers'
-   likewise), and akeyPowerSide (each of those
-   pairs' inside/outside menu). Every other language shows the
-   English value through NT.i18n's fallback meanwhile.
+   akeyPairLine, akeyPowerLine, akeyPowerSelf, akeyPowerSame, akeyPowerId,
+   akeyShowPower, akeyHidePower, akeyPowerExp and akeyPowerSide (that line
+   in its inverse pair's colour, with further lines for the pairs of the
+   powers picked for them, each with its eye, power and side). Every
+   other language shows the English value through NT.i18n's fallback
+   meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
@@ -525,35 +518,13 @@
       akeyOneLine: 'Draw both paths on one line',
       akeyPairMode: "Draw the line in its inverse pair's colour",
       akeyPairLine: 'Inverse pair {h} and {hinv}, on one line',
-      akeySquareLine: 'Inverse pair {h2} and {h2inv}, the squares, on one line',
-      akeySquareSelf: 'The square {h2} is its own inverse, on one line',
-      akeySquareSame: 'The squares {h2} and {h2inv} are this same pair again',
-      akeyShowSquare: "Show the squared pair's lines",
-      akeyHideSquare: "Hide the squared pair's lines",
-      akeyCubeLine: 'Inverse pair {h3} and {h3inv}, the cubes, on one line',
-      akeyCubeSelf: 'The cube {h3} is its own inverse, on one line',
-      akeyCubeSame: 'The cubes {h3} and {h3inv} repeat an earlier pair',
-      akeyCubeId: 'The cube {h3} is the identity, so it has no lines',
-      akeyShowCube: "Show the cubed pair's lines",
-      akeyHideCube: "Hide the cubed pair's lines",
-      akeyFourthLine: 'Inverse pair {h4} and {h4inv}, the fourth powers, on one line',
-      akeyFourthSelf: 'The fourth power {h4} is its own inverse, on one line',
-      akeyFourthSame: 'The fourth powers {h4} and {h4inv} repeat an earlier pair',
-      akeyFourthId: 'The fourth power {h4} is the identity, so it has no lines',
-      akeyShowFourth: "Show the fourth powers' lines",
-      akeyHideFourth: "Hide the fourth powers' lines",
-      akeyFifthLine: 'Inverse pair {h5} and {h5inv}, the fifth powers, on one line',
-      akeyFifthSelf: 'The fifth power {h5} is its own inverse, on one line',
-      akeyFifthSame: 'The fifth powers {h5} and {h5inv} repeat an earlier pair',
-      akeyFifthId: 'The fifth power {h5} is the identity, so it has no lines',
-      akeyShowFifth: "Show the fifth powers' lines",
-      akeyHideFifth: "Hide the fifth powers' lines",
-      akeySixthLine: 'Inverse pair {h6} and {h6inv}, the sixth powers, on one line',
-      akeySixthSelf: 'The sixth power {h6} is its own inverse, on one line',
-      akeySixthSame: 'The sixth powers {h6} and {h6inv} repeat an earlier pair',
-      akeySixthId: 'The sixth power {h6} is the identity, so it has no lines',
-      akeyShowSixth: "Show the sixth powers' lines",
-      akeyHideSixth: "Hide the sixth powers' lines",
+      akeyPowerLine: 'Inverse pair {hp} and {hpinv}, power {x}, on one line',
+      akeyPowerSelf: '{hp}, power {x}, is its own inverse, on one line',
+      akeyPowerSame: "{hp}, power {x}, is in the first line's pair",
+      akeyPowerId: '{hp}, power {x}, is the identity, so it has no lines',
+      akeyShowPower: 'Show these lines',
+      akeyHidePower: 'Hide these lines',
+      akeyPowerExp: 'Power of the selected element for this line',
       akeyPowerSide: 'Side of the ring for these lines',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
