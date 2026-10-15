@@ -52,10 +52,13 @@
    second element to combine with the first), and subRowGcd (a Numerical
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
-   subgroup's order that follows), and legendExprLabel (the inverse-pair
-   colour key's menu writing its elements by number or as powers), and
+   subgroup's order that follows), legendExprLabel (the inverse-pair
+   colour key's menu writing its elements by number or as powers),
    showElementKey (the element colour key's switch in the window's bottom
-   right corner, beside the arrow colour key's, which reuses showArrowKey). Every other
+   right corner, beside the arrow colour key's, which reuses showArrowKey),
+   akeyPick (a bar of the arrow colour key, clicked for its path's colour
+   picker) and akeyShowBackward (the key's eye bringing the backwards path
+   back). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -511,6 +514,8 @@
       isoAskYes: 'Yes',
       isoAskNo: 'No',
       showArrowKey: 'Show arrow colour key',
+      akeyPick: 'Choose this path\'s colour; drag it onto the other bar to swap the colours',
+      akeyShowBackward: 'Show backwards path',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',

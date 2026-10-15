@@ -591,6 +591,35 @@
   .combine-key-swatch.is-dragging{ cursor:grabbing; border-top-width:5px; transition:none; z-index:2; box-shadow:0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent); }
   .combine-key-item.is-drop-target .combine-key-swatch{ border-top-width:5px; outline:1.5px dashed var(--text-dim); outline-offset:6px; }
   @media (prefers-reduced-motion: reduce){ .combine-key-swatch.is-grabbable{ transition:none; } }
+  /* The Arrows menu's controls, squeezed into the key: a click on a bar
+     picks its path's colour (turning manual colours on), with the browser's
+     picker anchored to the hidden input under the bar; the forward path's
+     side at the end of its line; the backwards path's eye at the end of
+     its (the line stays, dimmed, while that path is off), after the button
+     swapping the colours; and, while the colours are picked by hand, the
+     forward path's button putting the theme's back. */
+  .combine-key-item{ position:relative; }
+  .combine-key-item > [id^="combine-key-"]{ flex:1 1 auto; min-width:0; }
+  .combine-key-swatch.is-pickable{ position:relative; cursor:pointer; border-radius:2px; transition:border-top-width .12s ease; }
+  .combine-key-swatch.is-pickable.is-grabbable{ cursor:grab; }
+  .combine-key-swatch.is-pickable::before{ content:''; position:absolute; inset:-10px -6px -8px; }
+  .combine-key-swatch.is-pickable:hover, .combine-key-swatch.is-pickable:focus-visible{ border-top-width:4px; }
+  .combine-key-swatch.is-pickable:focus-visible{ outline:2px solid var(--accent); outline-offset:5px; }
+  .akey-pick{ position:absolute; left:0; top:1.1em; width:20px; height:1px; padding:0; border:0; opacity:0; pointer-events:none; }
+  .akey-ctl{ flex:none; display:flex; align-items:center; gap:2px; margin-inline-start:auto; }
+  .akey-side{ font:inherit; font-family:var(--font-sans); font-size:.78rem; padding:0 4px; height:20px; color:var(--text-dim); background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; }
+  .akey-side:hover{ color:var(--text); }
+  .akey-side:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .akey-side option{ color:var(--text); background:var(--bg-1); }
+  .akey-btn{ flex:none; width:20px; height:20px; padding:0; display:grid; place-items:center; border:1px solid transparent; border-radius:var(--radius-ctl); background:transparent; color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
+  .akey-btn:hover{ color:var(--text); border-color:var(--panel-border); }
+  .akey-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .akey-btn[hidden]{ display:none; }
+  .akey-btn svg{ fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  .akey-btn circle{ fill:none; }
+  .akey-btn[aria-pressed="true"] .akey-slash{ display:none; }
+  .combine-key-item.is-off > :is(.combine-key-swatch, [id^="combine-key-"]){ opacity:.4; }
+  .combine-key-item.is-off .combine-key-swatch{ border-top-style:dashed; }
   /* Arrow colors: yellow (--role-active) for the walk by the element and
      blue (--role-input) for the walk by its inverse, unless "Choose arrow colours manually" is on. Then a picker sits
      just after each arrow checkbox, at the left of the row so the browser's
@@ -945,7 +974,9 @@
   :root.is-isopane .fs-win-body.is-ring:has(> .expr-slot.is-side:not([hidden])) > svg.ring-svg{ justify-self:start; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
   .fs-win-body.is-ring > .rotate-ctl{ grid-area:rot; justify-self:start; position:static; align-self:center; }
-  .fs-win-body.is-ring > .combine-key{ grid-area:key; justify-self:end; position:static; max-width:260px; margin:0; }
+  .fs-win-body.is-ring > .combine-key{ grid-area:key; justify-self:end; position:static; max-width:300px; margin:0; }
+  /* Clear of the key switches in the window's bottom-right corner. */
+  :root:not(.is-isopane) .fs-win-body.is-ring > #combine-key{ margin-bottom:24px; }
   /* Full screen, the element colour key shows only when its button on the
      Element colours row asks for it, always at the bottom of the window:
      a row of its own under everything else (the first row past the grid's
@@ -1552,9 +1583,9 @@
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-copy" role="menu" hidden></div>
         </div>
         <div class="combine-key" id="combine-key" hidden>
-          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colours" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-inner"></span></div>
-          <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" aria-label="Swap forward and backward path colours" data-i18n-aria-label="cyclicGroups.swapColors"></span><span id="combine-key-outer"></span></div>
-        </div>
+          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-inner"></span><span class="akey-ctl"><select class="akey-side" id="akey-side" aria-label="Forward path" data-i18n-aria-label="cyclicGroups.layerElement" title="Forward path" data-i18n-title="cyclicGroups.layerElement"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-reset" hidden title="Reset arrow colours" aria-label="Reset arrow colours" data-i18n-title="cyclicGroups.colorReset" data-i18n-aria-label="cyclicGroups.colorReset"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3.2 6.2A5 5 0 1 1 3 9.5"/><path d="M2.6 2.8V6.6H6.4"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
+          <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-outer"></span><span class="akey-ctl"><button type="button" class="akey-btn" id="akey-swap" title="Swap forward and backward path colours" aria-label="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" data-i18n-aria-label="cyclicGroups.swapColors"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M5 13.5V2.5M2.5 5 5 2.5 7.5 5"/><path d="M11 2.5V13.5M8.5 11 11 13.5 13.5 11"/></svg></button><button type="button" class="akey-btn" id="akey-back" aria-pressed="true" title="Disable backwards path" aria-label="Disable backwards path" data-i18n-title="cyclicGroups.layerBackward" data-i18n-aria-label="cyclicGroups.layerBackward"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
+                  </div>
         <div class="combine-key" id="combine-key-pane" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-pane-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-pane-outer"></span></div>
@@ -4846,26 +4877,76 @@ function renderCombineKey(G){
   translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged);
-  outerEl.parentNode.hidden = invSide() === 'neither';
+  // The backwards path's line stays while that path is off, dimmed, so its
+  // eye can bring it back.
+  outerEl.parentNode.classList.toggle('is-off', invSide() === 'neither');
   if (IS_ISOPANE) tellPaneKey({ on: true, h: h, hinv: G.inv[h], merged: merged, back: invSide() !== 'neither' });
-  // Swapping only shows when both walks are drawn in their own colors.
-  var swappable = !merged && !outerEl.parentNode.hidden;
-  swatchEls.forEach(function(el){
+  // Swapping only shows when both walks are drawn in their own colors; a
+  // bar drawn in its own color picks it.
+  var swappable = !merged && invSide() !== 'neither';
+  swatchEls.forEach(function(el, i){
+    var pickable = !merged && (i === 0 || invSide() !== 'neither');
     el.classList.toggle('is-grabbable', swappable);
-    el.tabIndex = swappable ? 0 : -1;
-    el.setAttribute('aria-disabled', swappable ? 'false' : 'true');
+    el.classList.toggle('is-pickable', pickable);
+    el.tabIndex = pickable ? 0 : -1;
+    el.setAttribute('aria-disabled', pickable ? 'false' : 'true');
   });
+  akeySideEl.value = state.elSide;
+  akeyBackEl.setAttribute('aria-pressed', state.backward ? 'true' : 'false');
+  var backName = translate(state.backward ? 'cyclicGroups.layerBackward' : 'cyclicGroups.akeyShowBackward');
+  akeyBackEl.title = backName;
+  akeyBackEl.setAttribute('aria-label', backName);
+  akeySwapEl.hidden = !swappable;
+  akeyResetEl.hidden = !state.customColors;
   if (!IS_ISOPANE) syncIsoKeys();
 }
 
-/* ---------- dragging one arrow-key bar onto the other ---------- */
+/* ---------- the arrow key's bars and controls ---------- */
 
 // Dropping either bar on the other entry exchanges the two arrow colors,
 // exactly as the swap checkbox does (it follows, since syncArrowColors
 // mirrors state.swapColors into it). A drop anywhere else snaps back.
-// Enter or Space on a focused bar swaps too.
+// A click on a bar, or Enter or Space on a focused one, picks its color.
 var swatchEls = Array.prototype.slice.call(combineKeyEl.querySelectorAll('.combine-key-swatch'));
-var swatchDrag = null; // { id, el, x, y, target } while a bar is dragged
+var swatchDrag = null; // { id, el, x, y, target, moved } while a bar is held
+var akeySideEl = $('akey-side'), akeyBackEl = $('akey-back'), akeySwapEl = $('akey-swap'), akeyResetEl = $('akey-reset');
+// The key's controls work the Arrows menu's own, so their handlers draw,
+// remember and share the change.
+function workCtl(el, value){
+  if (el.type === 'checkbox') el.checked = value;
+  else el.value = value;
+  el.dispatchEvent(new Event(el.type === 'color' ? 'input' : 'change'));
+}
+akeySideEl.addEventListener('change', function(){ workCtl(sideElEl, akeySideEl.value); });
+akeyBackEl.addEventListener('click', function(){ workCtl(backwardEl, state.backward); });
+akeySwapEl.addEventListener('click', swapArrowColors);
+// Reset: the picked colours forgotten and manual colours off, back to the
+// theme's.
+akeyResetEl.addEventListener('click', function(){
+  state.inColor = null;
+  state.outColor = null;
+  workCtl(customColorsEl, false);
+});
+// A bar's hidden picker: opened under the bar, showing the bar's color; a
+// pick turns manual colors on and sets that path's.
+var akeyPickEls = Array.prototype.slice.call(combineKeyEl.querySelectorAll('.akey-pick'));
+function openArrowPick(i){
+  var pick = akeyPickEls[i];
+  pick.value = $(ARROW_COLORS[i].id).value;
+  try { pick.showPicker(); } catch (e) { pick.click(); }
+}
+akeyPickEls.forEach(function(pick, i){
+  pick.addEventListener('input', function(){
+    var v = pick.value.toLowerCase();
+    if (!HEX_COLOR.test(v)) return;
+    if (!state.customColors){
+      // Turning manual colors on shows earlier picks; this one replaces its own.
+      state[arrowSource(i).key] = v;
+      workCtl(customColorsEl, true);
+    }
+    workCtl($(ARROW_COLORS[i].id), v);
+  });
+});
 function swapArrowColors(){
   if (IS_ISOPANE){ tellHost({ isopane: 'edit', name: 'swap', on: !state.swapColors }); return; }
   state.swapColors = !state.swapColors;
@@ -4890,6 +4971,8 @@ function endSwatchDrag(e){
   drag.el.classList.remove('is-dragging');
   drag.el.style.transform = '';
   if (drag.target) drag.target.classList.remove('is-drop-target');
+  // Held and let go where it was: a click, picking the bar's color.
+  if (!drag.moved && e.type === 'pointerup'){ openArrowPick(swatchEls.indexOf(drag.el)); return; }
   if (!swap) return;
   void drag.el.offsetWidth;
   drag.el.style.transition = '';
@@ -4897,14 +4980,19 @@ function endSwatchDrag(e){
 }
 swatchEls.forEach(function(el){
   el.addEventListener('pointerdown', function(e){
-    if (e.button !== 0 || !el.classList.contains('is-grabbable')) return;
-    swatchDrag = { id: e.pointerId, el: el, x: e.clientX, y: e.clientY, target: null };
+    if (e.button !== 0 || !el.classList.contains('is-pickable')) return;
+    swatchDrag = { id: e.pointerId, el: el, x: e.clientX, y: e.clientY, target: null, moved: false };
     el.setPointerCapture(e.pointerId);
-    el.classList.add('is-dragging');
     e.preventDefault();
   });
   el.addEventListener('pointermove', function(e){
     if (!swatchDrag || e.pointerId !== swatchDrag.id) return;
+    // Past a few pixels a held bar is dragged, where it can be.
+    if (!swatchDrag.moved){
+      if (!el.classList.contains('is-grabbable') || Math.hypot(e.clientX - swatchDrag.x, e.clientY - swatchDrag.y) < 4) return;
+      swatchDrag.moved = true;
+      el.classList.add('is-dragging');
+    }
     el.style.transform = 'translate(' + (e.clientX - swatchDrag.x) + 'px, ' + (e.clientY - swatchDrag.y) + 'px)';
     var target = dropTargetAt(el, e.clientX, e.clientY);
     if (target === swatchDrag.target) return;
@@ -4915,9 +5003,9 @@ swatchEls.forEach(function(el){
   el.addEventListener('pointerup', endSwatchDrag);
   el.addEventListener('pointercancel', endSwatchDrag);
   el.addEventListener('keydown', function(e){
-    if ((e.key !== 'Enter' && e.key !== ' ') || !el.classList.contains('is-grabbable')) return;
+    if ((e.key !== 'Enter' && e.key !== ' ') || !el.classList.contains('is-pickable')) return;
     e.preventDefault();
-    swapArrowColors();
+    openArrowPick(swatchEls.indexOf(el));
   });
 });
 
