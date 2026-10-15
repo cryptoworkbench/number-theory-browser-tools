@@ -943,6 +943,10 @@
   .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; max-width:100%; }
   .fs-win-body.is-ring .arrange-controls select{ max-width:100%; }
   .fs-win-body.is-ring :is(#gen-field > select, #arrange-field select){ width:auto; min-width:8em; padding:4px 8px; }
+  /* After the subgroup's dropdown, the group it lies in: ⊂ ⟨ℤ/12ℤ, +⟩ for a
+     proper subgroup, ⊆ for the whole group. Only in the ring's own row. */
+  .gen-super{ display:none; }
+  .fs-win-body.is-ring #gen-field > .gen-super:not(:empty){ display:inline; margin-left:-0.4em; font-size:1.05rem; white-space:nowrap; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring .facts.group-controls li, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li{ flex-wrap:wrap; gap:2px 12px; padding:2px 0; border-bottom:none; }
   /* The switch plate's ledge and shadow hang below its box; room under it
      keeps them off the next row. */
@@ -1818,6 +1822,7 @@
         <div class="field" id="gen-field">
           <label for="gen-select"><span class="gen-panel-name" data-i18n="cyclicGroups.genLabel">Subgroup visualized</span><span class="gen-fs-name" data-i18n="cyclicGroups.genRowLabel">Subgroup</span></label>
           <select id="gen-select"></select>
+          <span class="gen-super" id="gen-super"></span>
         </div>
         <div class="keep-top" id="keep-top-row">
           <span class="keep-top-end is-id" aria-hidden="true" data-i18n="cyclicGroups.keepTopId">Keep identity element on top</span>
@@ -4997,6 +5002,17 @@ function turned(list){
 // down the list (figure spaces making up the shorter elements), and the
 // modulus after it too (SUP_SPACE making up the shorter exponents).
 var SUP_SPACE = '\u2008\u2009'; // a punctuation and a thin space: a superscript digit's width
+
+// The subgroup row's tail: the group the chosen subgroup lies in, ⊂ for a
+// proper subgroup and ⊆ for the whole group, as the ring's title has it;
+// empty with no subgroup chosen.
+var genSuperEl = $('gen-super');
+function syncGenSuper(G){
+  genSuperEl.replaceChildren();
+  if (noSub()) return;
+  var whole = G.orders[shownGen(G)] === G.order;
+  genSuperEl.appendChild(mInline(mrow(mo(whole ? '⊆' : '⊂'), mGroup(G)), (whole ? '⊆ ' : '⊂ ') + G.label));
+}
 function syncGenerators(G){
   genSelectEl.replaceChildren();
   var none = document.createElement('option');
@@ -9078,6 +9094,7 @@ function render(){
   if (spin){ cancelAnimationFrame(spin.id); spin = null; }
   syncGenFollow(G);
   syncGenerators(G);
+  syncGenSuper(G);
   state.rot = ((state.rot % G.order) + G.order) % G.order;
   showRot(state.rot);
   preview = null;
