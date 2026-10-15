@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d8934ead2b1e467654f8443faf0781cb8345f622
+state_head: 70c91e2049d4c2a5a7285c7c195da46ff6b0d43e
 progress:
   total_phases: 7
   completed_phases: 6
@@ -632,6 +632,7 @@ None yet.
 | 396 | Cyclic Groups beads: leading zeros follow Line up numbers, checkbox removed | 2026-10-15 | 33f7cde | — |
 | 397 | Cyclic Groups forward-direction button: miniature ring with dashed axis, turning and flipping with the ring | 2026-10-15 | c0509ef | — |
 | 398 | Cyclic Groups forward-direction button: circle and dashed axis only, arrowhead removed | 2026-10-15 | d8934ea | — |
+| 399 | Cyclic Groups forward-direction button: longer axis with a rotation arrow round it, larger | 2026-10-15 | 70c91e2 | — |
 
 ## Deferred Items
 
