@@ -1170,7 +1170,6 @@
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
   /* A menu item's key, right-aligned like a submenu's arrow. */
-  .ring-ctx-key{ margin-inline-start:auto; padding-inline-start:16px; font-family:var(--font-mono); font-size:.8rem; color:var(--text-dim); }
   /* Zoomed in, the ring is cut off at the edges of its place rather than
      drawn over the controls around it. */
   svg.ring-svg.is-zoomed{ overflow:hidden; }
@@ -1226,7 +1225,18 @@
      pane keeps only its own scratchpad's switch; the rest are the left
      ring's. */
   .ring-corner-sep{ flex:none; align-self:center; width:1px; height:14px; margin:0 2px; background:var(--panel-border); }
-  :root.is-isopane .ring-corner > :not(#formulas-corner){ display:none; }
+  :root.is-isopane .ring-corner > :not(#formulas-corner, #zoom-ctl, #zoom-wheel, .ring-corner-sep:first-of-type){ display:none; }
+  /* The ring's zoom: a slim pill, − and + either side of a short slider
+     whose middle notch is the ring as it fits its place; beside it the
+     switch letting the scroll wheel over the ring zoom it too. A
+     double-click on the slider puts the zoom back. */
+  .zoom-ctl{ flex:none; display:flex; align-items:center; gap:2px; height:24px; padding:0 3px; border:1px solid var(--panel-border); border-radius:999px; background:var(--surface); }
+  .zoom-step{ flex:none; width:18px; height:18px; padding:0; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), background var(--ease-ctl); }
+  .zoom-step:hover:not(:disabled){ color:var(--text); background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .zoom-step:disabled{ opacity:.35; cursor:default; }
+  .zoom-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .zoom-step svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+  #zoom-slider{ width:76px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
   .ring-corner > .key-corner[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   .genexp-info > .genexp-min{ position:absolute; top:6px; right:0; z-index:2; }
@@ -1798,6 +1808,13 @@
         <div class="genexp-body" id="genexp-body-pane"></div>
       </section>
       <div class="ring-corner" id="ring-corner">
+        <div class="zoom-ctl" id="zoom-ctl" role="group" aria-label="Zoom" data-i18n-aria-label="cyclicGroups.zoomLabel">
+          <button type="button" class="zoom-step" id="zoom-out" title="Zoom out" aria-label="Zoom out" data-i18n-title="cyclicGroups.ctxZoomOut" data-i18n-aria-label="cyclicGroups.ctxZoomOut"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/></svg></button>
+          <input type="range" id="zoom-slider" min="0" max="8" step="1" value="3" title="Zoom" aria-label="Zoom" data-i18n-title="cyclicGroups.zoomLabel" data-i18n-aria-label="cyclicGroups.zoomLabel">
+          <button type="button" class="zoom-step" id="zoom-in" title="Zoom in" aria-label="Zoom in" data-i18n-title="cyclicGroups.ctxZoomIn" data-i18n-aria-label="cyclicGroups.ctxZoomIn"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/><line x1="6" y1="2.5" x2="6" y2="9.5"/></svg></button>
+        </div>
+        <button type="button" class="fs-win-btn key-corner" id="zoom-wheel" aria-pressed="false" title="Zoom with the scroll wheel" aria-label="Zoom with the scroll wheel" data-i18n-title="cyclicGroups.zoomWheel" data-i18n-aria-label="cyclicGroups.zoomWheel"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="3" y="1.2" width="6" height="9.6" rx="3"/><line x1="6" y1="3" x2="6" y2="5"/></svg></button>
+        <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner show-corner" id="cord-corner" aria-pressed="true" title="Show corresponding polygon" aria-label="Show corresponding polygon" data-i18n-title="cyclicGroups.layerCord" data-i18n-aria-label="cyclicGroups.layerCord"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6 1.3 10.5 4.6 8.8 10.2H3.2L1.5 4.6Z"/></svg></button>
         <button type="button" class="fs-win-btn key-corner show-corner" id="guide-corner" aria-pressed="true" title="Show connecting circle" aria-label="Show connecting circle" data-i18n-title="cyclicGroups.layerGuide" data-i18n-aria-label="cyclicGroups.layerGuide"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner show-corner" id="formulas-corner" aria-pressed="false" aria-controls="scratch-pad" title="Show formulas" aria-label="Show formulas" data-i18n-title="cyclicGroups.ctxShowFormulas" data-i18n-aria-label="cyclicGroups.ctxShowFormulas"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1 6.8H2.6L4.3 10.3 6.6 1.7H11"/><path d="M7.6 4.6 10.4 8.4M10.4 4.6 7.6 8.4"/></svg></button>
@@ -3503,17 +3520,15 @@ function svgIcon(parts){
   return icon;
 }
 
-// Right-clicking the ring opens its own menu in place of the browser's: the
-// zoom (what the ring shows is switched in the window's bottom-right corner,
-// the colours in the colour keys), then the groups isomorphic to the whole group or to the subgroup
+// Right-clicking the ring opens its own menu in place of the browser's (the
+// zoom and what the ring shows are set in the window's bottom-right corner,
+// the colours in the colour keys): the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
 // there, and last the Info section: the Formulas submenus (each formula to
 // copy in one of several formats), the group's structure last among them. A pane's
 // menu has no isomorphisms, nor has the ring's while a pane is open; its
 // Formulas are its own group's.
 var RING_CTX_ITEMS = [
-  { head: 'cyclicGroups.ctxView', key: 'cyclicGroups.ctxZoomIn', zoom: 1, keys: '+', run: function(){ stepRingZoom(1); }, stay: true },
-  { key: 'cyclicGroups.ctxZoomOut', zoom: -1, keys: '\u2212', run: function(){ stepRingZoom(-1); }, stay: true },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, copy: 'struct' }
 ];
@@ -3555,12 +3570,6 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     more.textContent = '\u203A';
     item.appendChild(more);
   }
-  if (l.keys){
-    var keys = document.createElement('kbd');
-    keys.className = 'ring-ctx-key';
-    keys.textContent = l.keys;
-    item.appendChild(keys);
-  }
   var value = null;
   if (l.value){
     value = document.createElement('span');
@@ -3572,16 +3581,12 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   });
   item.addEventListener('click', function(){
     if (l.copy){ setRingCopy(l.copy, item, true); return; }
-    if (l.stay){
-      if (item.getAttribute('aria-disabled') !== 'true') l.run();
-      return;
-    }
     if (item.getAttribute('aria-disabled') === 'true') return;
     setRingCtx(false);
     l.run();
   });
   ringCtxEl.appendChild(item);
-  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key, zoom: l.zoom, formulas: l.formulas };
+  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key, formulas: l.formulas };
 });
 // A plain item of a submenu: its mark, its label and, opening a submenu of
 // its own, the arrow.
@@ -4221,7 +4226,6 @@ function setRingCtx(open, x, y){
   ringCtxItems.forEach(function(it){
     it.label.textContent = translate(it.key);
     if (it.value) it.value.replaceChildren(it.valueOf());
-    if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
   });
   syncFormulaItems();
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
@@ -4661,19 +4665,50 @@ function drawNecklace(G, paint){
   }
 }
 
-// The ring's zoom, a step along RING_ZOOMS, from the right-click menu's
-// View section or the + and − keys; 1 is the ring as it fits its place.
+// The ring's zoom, a step along RING_ZOOMS, from the corner's zoom pill
+// (its − and +, its slider, and the scroll wheel over the ring while its
+// switch is on) or the + and − keys; 1 is the ring as it fits its place.
 var RING_ZOOMS = [0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
-var ringZoom = RING_ZOOMS.indexOf(1);
+var RING_ZOOM_FIT = RING_ZOOMS.indexOf(1);
+var ringZoom = RING_ZOOM_FIT;
+var zoomSliderEl = $('zoom-slider'), zoomOutEl = $('zoom-out'), zoomInEl = $('zoom-in'), zoomWheelEl = $('zoom-wheel');
 function canZoom(by){ return !!RING_ZOOMS[ringZoom + by]; }
-function stepRingZoom(by){
-  if (!canZoom(by)) return;
-  ringZoom += by;
+function setRingZoom(i){
+  i = clamp(i, 0, RING_ZOOMS.length - 1);
+  if (i === ringZoom) return;
+  ringZoom = i;
   easeRingResize(render);
-  ringCtxItems.forEach(function(it){
-    if (it.zoom) it.item.setAttribute('aria-disabled', canZoom(it.zoom) ? 'false' : 'true');
-  });
+  syncZoomCtl();
 }
+function stepRingZoom(by){ if (canZoom(by)) setRingZoom(ringZoom + by); }
+function syncZoomCtl(){
+  zoomSliderEl.max = String(RING_ZOOMS.length - 1);
+  zoomSliderEl.value = String(ringZoom);
+  zoomSliderEl.setAttribute('aria-valuetext', Math.round(RING_ZOOMS[ringZoom] * 100) + '%');
+  zoomOutEl.disabled = !canZoom(-1);
+  zoomInEl.disabled = !canZoom(1);
+}
+syncZoomCtl();
+zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
+zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
+zoomOutEl.addEventListener('click', function(){ stepRingZoom(-1); });
+zoomInEl.addEventListener('click', function(){ stepRingZoom(1); });
+// With the switch on, the wheel over the ring zooms it, a step for each
+// notch (a touchpad's small scrolls add up to one), instead of scrolling.
+var zoomWheelOn = false, zoomWheelSum = 0;
+zoomWheelEl.addEventListener('click', function(){
+  zoomWheelOn = !zoomWheelOn;
+  zoomWheelSum = 0;
+  zoomWheelEl.setAttribute('aria-pressed', zoomWheelOn ? 'true' : 'false');
+});
+ringSvgEl.addEventListener('wheel', function(e){
+  if (!zoomWheelOn || e.ctrlKey || !e.deltaY) return;
+  e.preventDefault();
+  zoomWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
+  if (Math.abs(zoomWheelSum) < 50) return;
+  stepRingZoom(zoomWheelSum < 0 ? 1 : -1);
+  zoomWheelSum = 0;
+}, { passive: false });
 document.addEventListener('keydown', function(e){
   if (e.ctrlKey || e.metaKey || e.altKey || IS_PREVIEW) return;
   var by = e.key === '+' || e.key === '=' ? 1 : e.key === '-' || e.key === '\u2212' ? -1 : 0;

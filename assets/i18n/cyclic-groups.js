@@ -42,8 +42,8 @@
    opening a new ring on the left), and subWidthLabel, subWidthNone,
    subAlign and subAlignTitle (the Numerical panel's dropdown lining up the
    columns: not at all, with blank space, or with the leading zeros of
-   subPad), and ctxView, ctxZoomIn and ctxZoomOut (the right-click menu's
-   View section, zooming the ring in and out), and exprLockCouple and
+   subPad), and ctxZoomIn and ctxZoomOut (the − and + of the window
+   corner's zoom pill), and exprLockCouple and
    exprLockUncouple (the small padlock on the line between two locked
    rings, coupling their expression sliders), cosetLoop and cosetLoopTitle
    (the coset run's Loop toggle, replaying the cosets continuously),
@@ -57,8 +57,9 @@
    showElementKey (the element colour key's switch in the window's bottom
    right corner, beside the arrow colour key's, which reuses showArrowKey),
    akeyPick (a bar of the arrow colour key, clicked for its path's colour
-   picker) and akeyShowBackward (the key's eye bringing the backwards path
-   back). Every other
+   picker), akeyShowBackward (the key's eye bringing the backwards path
+   back), and zoomLabel and zoomWheel (the corner's zoom slider and its
+   switch letting the scroll wheel zoom the ring). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -525,9 +526,10 @@
       scratchGens: 'Group generator amount',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       ctxShowFormulas: 'Show formulas',
-      ctxView: 'View',
       ctxZoomIn: 'Zoom in',
       ctxZoomOut: 'Zoom out',
+      zoomLabel: 'Zoom',
+      zoomWheel: 'Zoom with the scroll wheel',
       exprLockCouple: 'Couple the two expression sliders',
       exprLockUncouple: 'Uncouple the two expression sliders',
       ctxCopyLatex: 'Copy in LaTeX formatting',
