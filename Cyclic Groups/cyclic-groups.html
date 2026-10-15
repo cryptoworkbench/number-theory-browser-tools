@@ -5101,21 +5101,12 @@ function powerText(el, G, p){
   return hp;
 }
 
-// A one-colour line's key text for the subgroup a generates: its
-// cardinality, whose key colours the line, then the inverse pairs
-// {b, b^-1} it holds, listed by their smaller member.
+// A one-colour line's key text for the element a it walks: the path of
+// a and a's inverse, that inverse written out as n - a in an additive
+// group and as a^-1 = its value in a multiplicative one.
 function orderText(el, G, a){
-  var members = lap(G, a, G.orders[a]);
-  var pairs = members.filter(function(b){ return b < G.inv[b]; }).sort(function(x, y){ return x - y; });
-  el.textContent = '';
-  var line = function(text){
-    var div = document.createElement('div');
-    div.textContent = text;
-    el.appendChild(div);
-  };
-  line(translate('cyclicGroups.akeyOrderCard', { k: G.orders[a] }));
-  line(pairs.length ? translate('cyclicGroups.akeyOrderPairs', { count: pairs.length }) : translate('cyclicGroups.akeyOrderNoPairs'));
-  if (pairs.length) line(pairs.map(function(b){ return '{' + b + ', ' + G.inv[b] + '}'; }).join(', '));
+  var key = state.mode === 'additive' ? 'cyclicGroups.akeyPathAdd' : 'cyclicGroups.akeyPathMul';
+  el.textContent = translate(key, { a: String(a), n: String(G.n), ainv: String(G.inv[a]) });
 }
 
 // The powers past h whose pairs can join the one line, each with a side.
