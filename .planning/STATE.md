@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ad780c6
+state_head: 28652e0
 progress:
   total_phases: 7
   completed_phases: 6
@@ -635,6 +635,7 @@ None yet.
 | 399 | Cyclic Groups forward-direction button: longer axis with a rotation arrow round it, larger | 2026-10-15 | 70c91e2 | — |
 | 400 | Cyclic Groups forward-direction button: two circles side by side, one per ring, while the iso lock is broken | 2026-10-15 | b9ad082 | — |
 | 401 | Cyclic Groups central padlock: animated closing (shackle swings back and snaps shut, colour fades to green) | 2026-10-15 | ad780c6 | — |
+| 402 | Cyclic Groups Subgroup dropdown: options as ⟨a⟩ ≅ ⟨gᵏ⟩ (% n) under a non-Natural expression, ≅ aligned | 2026-10-15 | 28652e0 | — |
 
 ## Deferred Items
 
