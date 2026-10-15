@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 5f820c645a8212762f6a3d59a379b3f3775d419f
+state_head: 7d4fe52570522b4ed40f57ca5fdb8c066a2853b8
 progress:
   total_phases: 7
   completed_phases: 6
@@ -628,6 +628,7 @@ None yet.
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
 | 394 | Cyclic Groups inverse-pair key: Elements as dropdown follows the site's dropdown theme | 2026-10-15 | 5f820c6 | — |
+| 395 | Cyclic Groups parameter padlocks: key-turn unlock animation like the padlock between the rings | 2026-10-15 | 7d4fe52 | — |
 
 ## Deferred Items
 
