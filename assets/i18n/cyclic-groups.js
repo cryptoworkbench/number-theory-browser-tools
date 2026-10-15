@@ -523,7 +523,7 @@
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
       akeyPathAdd: "Path walked by {a} and {a}'s inverse: {ainv}",
-      akeyPathMul: "Path walked by {a} and {a}'s inverse: {a}⁻¹ = {ainv}",
+      akeyPathMul: "Path walked by {a} and {a}'s inverse: {a}⁻¹ ≡ {ainv}",
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyPowerSide: 'Side of the ring for these lines',
