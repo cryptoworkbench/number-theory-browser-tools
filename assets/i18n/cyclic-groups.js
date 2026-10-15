@@ -60,12 +60,13 @@
    picker), akeyShowBackward (the key's eye bringing the backwards path
    back), zoomLabel and zoomWheel (the corner's zoom slider and its
    switch letting the scroll wheel zoom the ring), akeyOneLine (the
-   key's switch drawing both paths on one line), and akeyPairMode,
+   key's switch drawing both paths on one line), akeyPairMode,
    akeyPairLine, akeySquareLine, akeySquareSelf, akeySquareSame,
-   akeyShowSquare and akeyHideSquare (that
-   line in its inverse pair's colour, with the squared pair's lines beside
-   it). Every other
-   language shows the English value through NT.i18n's fallback meanwhile.
+   akeyShowSquare and akeyHideSquare (that line in its inverse pair's
+   colour, with the squared pair's lines beside it), and akeyCubeLine,
+   akeyCubeSelf, akeyCubeSame, akeyCubeId, akeyShowCube and akeyHideCube
+   (the cubed pair's lines likewise). Every other language shows the
+   English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
@@ -522,6 +523,12 @@
       akeySquareSame: 'The squares {h2} and {h2inv} are this same pair again',
       akeyShowSquare: "Show the squared pair's lines",
       akeyHideSquare: "Hide the squared pair's lines",
+      akeyCubeLine: 'Inverse pair {h3} and {h3inv}, the cubes, on one line',
+      akeyCubeSelf: 'The cube {h3} is its own inverse, on one line',
+      akeyCubeSame: 'The cubes {h3} and {h3inv} repeat an earlier pair',
+      akeyCubeId: 'The cube {h3} is the identity, so it has no lines',
+      akeyShowCube: "Show the cubed pair's lines",
+      akeyHideCube: "Hide the cubed pair's lines",
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
