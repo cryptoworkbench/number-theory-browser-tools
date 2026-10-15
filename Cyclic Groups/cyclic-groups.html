@@ -1290,6 +1290,7 @@
   :root.is-zoom-apart .fs-win-body.is-ring > .ring-corner > .zoom-wrap{ position:absolute; z-index:3; }
   :root.is-zoom-apart:not(.is-isopane) .fs-win-body.is-ring > .ring-corner > .zoom-wrap + .ring-corner-sep{ display:none; }
   :root.is-isopane.is-zoom-apart .ring-corner > #zoom-wrap{ display:flex; }
+  :root.is-formulas-apart:not(.is-isopane) .fs-win-body.is-ring > .ring-corner > #formulas-corner{ position:absolute; z-index:3; }
   :root.is-isopane #zoom-wheel{ display:none; }
   /* Zoomed in beside a pane, each ring stays inside its own half. */
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed, :root.is-isopane svg.ring-svg.is-zoomed{ overflow:hidden; }
@@ -3607,6 +3608,23 @@ function syncShowCorners(){
   Object.keys(showCornerEls).forEach(function(name){ showCornerEls[name].setAttribute('aria-pressed', state[name] ? 'true' : 'false'); });
   formulasCornerEl.hidden = !ringWorkArea();
   formulasCornerEl.setAttribute('aria-pressed', scratchOpen && !formulasCornerEl.hidden ? 'true' : 'false');
+  placeFormulasCorner();
+}
+// Beside a pane the window's corner is no longer this ring's own: the
+// formulas switch leaves it for this ring's half, at its bottom left, level
+// with the pane's own switch at the pane's bottom right.
+function placeFormulasCorner(){
+  if (!formulasCornerEl || IS_ISOPANE) return;
+  var body = ringSvgEl.parentNode;
+  var apart = !isoPaneEl.hidden && body.classList.contains('fs-win-body') && !formulasCornerEl.hidden;
+  document.documentElement.classList.toggle('is-formulas-apart', apart);
+  formulasCornerEl.style.left = formulasCornerEl.style.top = '';
+  if (!apart || !formulasCornerEl.offsetParent) return;
+  var b = body.getBoundingClientRect(), p = isoPaneEl.getBoundingClientRect();
+  var w = formulasCornerEl.getBoundingClientRect(), r = formulasCornerEl.offsetParent.getBoundingClientRect();
+  if (!p.height) return;
+  formulasCornerEl.style.left = num(b.left + body.clientLeft + parseFloat(getComputedStyle(body).paddingLeft) + 6 - r.left) + 'px';
+  formulasCornerEl.style.top = num(p.bottom - w.height - 6 - r.top) + 'px';
 }
 Object.keys(showCornerEls).forEach(function(name){
   showCornerEls[name].addEventListener('click', function(){
@@ -3616,6 +3634,12 @@ Object.keys(showCornerEls).forEach(function(name){
   });
 });
 formulasCornerEl.addEventListener('click', function(){ setScratchOpen(!scratchOpen); });
+new MutationObserver(placeFormulasCorner).observe(isoPaneEl, { attributes: true, attributeFilter: ['hidden'] });
+if (window.ResizeObserver){
+  new ResizeObserver(placeFormulasCorner).observe(isoPaneEl);
+  new ResizeObserver(placeFormulasCorner).observe($('ring-corner'));
+}
+window.addEventListener('resize', placeFormulasCorner);
 
 // Which head switches show: out of full screen each only while every one
 // before it is on.
