@@ -1168,7 +1168,6 @@
   .genexp-sort.is-active{ color:var(--text); border-color:var(--panel-border); }
   .genexp-arrow{ font-family:var(--font-sans); font-size:.6em; opacity:.55; }
   .genexp-sort.is-active .genexp-arrow{ color:var(--accent); opacity:1; }
-  .genexp-pad{ margin:0; font-size:.82rem; color:var(--text-dim); }
   .genexp-none{ max-width:32em; margin:0; font-size:.9rem; color:var(--text-dim); text-align:center; }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its Colours submenus open beside it, the Arrows one holding the arrows'
@@ -1720,7 +1719,6 @@
       <section class="panel genexp-info" id="genexp-info" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expressions</h2>
         <button type="button" class="fs-win-btn genexp-min" title="Minimize the element expressions" aria-label="Minimize the element expressions" data-i18n-title="cyclicGroups.genExpMinimizeTitle" data-i18n-aria-label="cyclicGroups.genExpMinimizeTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button>
-        <div class="check genexp-pad" title="Write every bead's number, or its exponent, as wide as the group's largest, with leading zeros" data-i18n-title="cyclicGroups.beadPadTitle"><input type="checkbox" id="bead-pad"><label for="bead-pad" data-i18n="cyclicGroups.beadPadLabel">Leading zeros in the beads</label></div>
         <div class="genexp-body" id="genexp-body"></div>
       </section>
       <section class="panel genexp-info is-pane-copy" id="genexp-info-pane" hidden>
@@ -1798,7 +1796,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, beadPad: false, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1968,7 +1966,6 @@ var subFormulaRingEl = $('sub-formula-ring-select');
 var SUB_FORMULAS = ['none', 'order', 'index', 'both'];
 // The Numeric panel's member colouring: off, a soft tint or the bead's colour.
 var subColorEl = $('sub-color');
-var beadPadEl = $('bead-pad');
 // Off, or each member in its bead's colour; the soft tint once offered
 // between them reads as the bead colour.
 function subColorOf(v){ return v === 'full' || v === 'tint' ? 'full' : 'off'; }
@@ -2697,17 +2694,17 @@ function drawRing(parent, G, beads, box, paint){
 
   if (beadR >= 9){
     var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
-    // Leading zeros, when the Element expressions panel asks for them, pad a
-    // number to the width of the group's largest and an exponent to the
-    // width of the largest exponent.
-    var pad = function(v, max){ return state.beadPad ? String(v).padStart(String(max).length, '0') : String(v); };
+    // Leading zeros, when the Numerical panel's Line up numbers asks for
+    // them, pad a number to the width of the group's largest and an exponent
+    // to the width of the largest exponent.
+    var pad = function(v, max){ return state.subPad ? String(v).padStart(String(max).length, '0') : String(v); };
     var maxEl = Math.max.apply(null, G.els);
     beads.forEach(function(a, i){
       var p = at(i);
       var text = elog ? eg + superscript(pad(elog[a], G.order - 1)) : pad(a, maxEl);
       // An expressed or padded label wider than two characters shrinks to
       // stay in its bead.
-      var shrink = elog || state.beadPad;
+      var shrink = elog || state.subPad;
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
       var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
@@ -7800,10 +7797,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormulaRow + ' ' + state.subFormulaRing + ' ' + state.beadPad;
+      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormulaRow + ' ' + state.subFormulaRing;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formulaRow: state.subFormulaRow, formulaRing: state.subFormulaRing, beadPad: state.beadPad });
+        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formulaRow: state.subFormulaRow, formulaRing: state.subFormulaRing });
       }
     }
   }
@@ -7830,12 +7827,7 @@ function coupleForFollow(fromPane){
 }
 // The pane: the holder's padding and auto-shift, or its expressions.
 function takeNumset(d){
-  var beadPad = d.beadPad === true;
-  if (beadPad !== state.beadPad){
-    state.beadPad = beadPad;
-    beadPadEl.checked = beadPad;
-    render();
-  }
+  var padWas = state.subPad;
   state.subPad = d.pad === true;
   state.subAlign = d.align === true;
   state.autoShift = d.shift === true;
@@ -7847,6 +7839,8 @@ function takeNumset(d){
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
+  // The beads' labels take the leading zeros too.
+  if (state.subPad !== padWas){ render(); return; }
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
 }
@@ -8265,8 +8259,6 @@ function stateQuery(){
   else if (!state.subPad) q.set('subpad', '0');
   if (state.subColor !== 'full') q.set('subcolor', state.subColor);
   else q.delete('subcolor');
-  if (state.beadPad) q.set('beadpad', '1');
-  else q.delete('beadpad');
   q.delete('subformula');
   q.delete('subformulaat');
   if (state.subFormulaRow !== 'none') q.set('subformularow', state.subFormulaRow);
@@ -8461,7 +8453,6 @@ function render(){
   autoShiftEl.checked = state.autoShift;
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
-  beadPadEl.checked = state.beadPad;
   subFormulaEl.value = state.subFormulaRow;
   subFormulaRingEl.value = state.subFormulaRing;
   syncArrange(G);
@@ -9105,13 +9096,13 @@ autoShiftEl.addEventListener('change', function(){
   mirrorToUrl(drawn.G);
   syncInterlock();
 });
-// The list's numbers line up with leading zeros, with blank space, or not.
+// The list's numbers line up with leading zeros, with blank space, or not;
+// the beads' labels take the leading zeros too.
 subWidthEl.addEventListener('change', function(){
   state.subPad = subWidthEl.value === 'pad';
   state.subAlign = subWidthEl.value === 'align';
   if (!drawn) return;
-  renderSubgroups(drawn.G);
-  mirrorToUrl(drawn.G);
+  render();
   syncInterlock();
 });
 // The selected subgroup's formulas in its row and in the main view: none,
@@ -9129,12 +9120,6 @@ subFormulaRingEl.addEventListener('change', function(){
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
   syncInterlock();
-});
-// Leading zeros in the beads' own labels, set from the Element expressions
-// panel.
-beadPadEl.addEventListener('change', function(){
-  state.beadPad = beadPadEl.checked;
-  render();
 });
 subColorEl.addEventListener('change', function(){
   state.subColor = subColorEl.checked ? 'full' : 'off';
@@ -9227,7 +9212,6 @@ function loadState(query, link){
   state.subAlign = query.get('subalign') === '1' && query.get('subpad') !== '1';
   state.subPad = !state.subAlign && query.get('subpad') !== '0';
   state.subColor = query.has('subcolor') ? subColorOf(query.get('subcolor')) : 'full';
-  state.beadPad = query.get('beadpad') === '1';
   // Older links name one formula and where it shows.
   var oldF = query.get('subformula'), oldAt = query.get('subformulaat') || 'row';
   if (oldF === 'order' || oldF === 'index'){
