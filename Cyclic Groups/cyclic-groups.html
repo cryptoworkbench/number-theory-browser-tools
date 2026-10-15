@@ -2732,14 +2732,19 @@ function drawLoop(ring, a, cls, side, place, box, beadR, m, width){
 // Both walks on one line (state.oneLine): each step a -> a∘h is drawn once,
 // in the forward walk's place, as a hump turning the forward way. duoLine
 // gives it both walks' colors; on it sit a half-arrowhead for each walk:
-// the forward one just past the peak, pointing on, its barb on the side away
-// from the center, the backward one just before the peak, pointing back, its
-// barb toward the center. Returns the outermost radius used.
+// the forward one past the peak, pointing on, its barb on the side away from
+// the center, the backward one before the peak, pointing back, its barb
+// toward the center. Returns the outermost radius used.
+// How far from the peak each half-arrowhead sits, as a fraction of the hump:
+// outside the humps spread round the ring, so the heads stay by the peak;
+// inside the peaks crowd the center, so each head moves out toward the bead
+// it points at.
+var DUO_HEAD_OUT = 0.06, DUO_HEAD_IN = 0.22;
 function drawDuo(ring, walk, cls, side, place, box, beadR, m, width){
   var k = walk.length;
   var out = side === 'outside' ? 1 : -1;
   var foot = box.R + out * beadR;
-  var size = 1.8 * Math.max(3, Math.min(7, 90 / k));
+  var size = Math.max(6, 1.25 * Math.min(7, 90 / k));
   var peakMax = 0;
   var group = svgEl('g', { 'class': 'duo-walk ' + cls, 'data-seq': walk.join(' ') });
   humpSteps(walk, place, m, 1, 1).forEach(function(h){
@@ -2747,7 +2752,8 @@ function drawDuo(ring, walk, cls, side, place, box, beadR, m, width){
     var away = duoAway(box, foot, out, h);
     duoLine(group, box, foot, out, h, parseFloat(width), away);
     if (k > 60) return;
-    [[0.56, 1, 'duo-fwd'], [0.44, -1, 'duo-bwd']].forEach(function(e){
+    var at = out > 0 ? DUO_HEAD_OUT : DUO_HEAD_IN;
+    [[0.5 + at, 1, 'duo-fwd'], [0.5 - at, -1, 'duo-bwd']].forEach(function(e){
       var p = humpPoint(box, foot, out, h, e[0]);
       var a = humpPoint(box, foot, out, h, e[0] - 0.01), b = humpPoint(box, foot, out, h, e[0] + 0.01);
       var n = leftNormal(a, b);
