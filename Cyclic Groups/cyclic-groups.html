@@ -265,6 +265,23 @@
     80%{ box-shadow:0 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent); }
     100%{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface)); box-shadow:0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); }
   }
+  /* Locking, the open shackle swings back over the body, rises a little
+     and snaps down into it, and the lock turns from the colour it had
+     open (--lock-from, --lock-from-bg) to green, a pulse marking the snap. */
+  .iso-lock.is-locking{ animation:iso-lock-close .8s ease both; }
+  .iso-lock.is-locking .lock-shackle{ animation:iso-shackle-close .8s cubic-bezier(.4,0,.2,1) both; }
+  @keyframes iso-shackle-close{
+    0%{ transform:translateY(-2.5px) rotate(22deg); }
+    45%{ transform:translateY(-3.5px) rotate(0); }
+    62%{ transform:translateY(-3.5px); }
+    74%{ transform:translateY(.6px); }
+    84%, 100%{ transform:none; }
+  }
+  @keyframes iso-lock-close{
+    0%{ color:var(--lock-from); border-color:var(--lock-from); background:var(--lock-from-bg); box-shadow:0 0 0 0 color-mix(in srgb, var(--role-result) 0%, transparent); }
+    72%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--role-result) 40%, transparent); }
+    100%{ color:var(--role-result); border-color:var(--role-result); background:color-mix(in srgb, var(--role-result) 10%, var(--surface)); box-shadow:0 0 0 12px color-mix(in srgb, var(--role-result) 0%, transparent); }
+  }
   @keyframes iso-lock-hue{
     0%, 100%{ color:var(--lock-a); border-color:var(--lock-a); background:color-mix(in srgb, var(--lock-a) 10%, var(--surface)); }
     33%{ color:var(--lock-b); border-color:var(--lock-b); background:color-mix(in srgb, var(--lock-b) 10%, var(--surface)); }
@@ -8805,6 +8822,15 @@ function drawIsoLock(){
 }
 function setGroupLock(on){
   clearTimeout(groupLockTimer);
+  // The open padlock between the rings, closed, shuts before the eyes: its
+  // colour of the moment is where the closing starts.
+  var closing = on && !IS_ISOPANE && !isoLockEl.hidden && isoLockEl.classList.contains('is-open');
+  if (closing){
+    var cs = getComputedStyle(isoLockEl);
+    isoLockEl.style.setProperty('--lock-from', cs.color);
+    isoLockEl.style.setProperty('--lock-from-bg', cs.backgroundColor);
+  }
+  isoLockEl.classList.remove('is-locking');
   [groupControlsEl, isoLockEl].forEach(function(el){ el.classList.remove('is-unlocking', 'is-fading'); });
   groupControlsEl.classList.toggle('is-locked', on);
   // The padlock on the line between the rings is the holding ring's.
@@ -8818,6 +8844,10 @@ function setGroupLock(on){
   });
   isoLockEl.setAttribute('title', translate('cyclicGroups.groupLockTitle'));
   isoLockEl.classList.remove('is-open');
+  if (closing){
+    void isoLockEl.offsetWidth;
+    isoLockEl.classList.add('is-locking');
+  }
   syncOpenLock();
   // Locked, the rings turn as one and the direction button shows one circle.
   syncDirAxis();
@@ -8909,6 +8939,7 @@ function openGroupLock(told){
     if (IS_ISOPANE) tellHost({ isopane: 'unlock' });
     else if (isoPaneFrame){ try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'unlock' }, '*'); } catch (e) { /* a frame that is gone needs nothing */ } }
   }
+  isoLockEl.classList.remove('is-locking');
   [groupControlsEl, isoLockEl].forEach(function(el){ el.classList.add('is-unlocking'); });
   // The key needs its time to open the padlocks.
   // Both rings wait for it, so their parameters open together.
@@ -8926,6 +8957,9 @@ function openGroupLock(told){
   }, turn);
 }
 groupControlsEl.addEventListener('dblclick', function(){ openGroupLock(false); });
+isoLockEl.addEventListener('animationend', function(e){
+  if (e.animationName === 'iso-lock-close') isoLockEl.classList.remove('is-locking');
+});
 isoLockEl.addEventListener('dblclick', function(){
   if (isoLockEl.classList.contains('is-open')) lockDeclined();
   else openGroupLock(false);
