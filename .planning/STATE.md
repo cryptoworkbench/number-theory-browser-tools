@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: fce4e64
+state_head: 7671990
 progress:
   total_phases: 7
   completed_phases: 6
@@ -640,6 +640,7 @@ None yet.
 | 404 | Cyclic Groups: bottom-right corner switches for the element and arrow colour keys (branch colour-key-corners) | 2026-10-15 | 7e1e92e | — |
 | 405 | Cyclic Groups: colour key heading's scheme name opens a dropdown to switch scheme (branch colour-key-corners) | 2026-10-15 | ad90bd4 | — |
 | 406 | Cyclic Groups: colour-key-corners merged; right-click menu Colours > Elements removed | 2026-10-15 | fce4e64 | — |
+| 407 | Cyclic Groups: arrow colour key holds the Arrows menu's controls (branch arrow-key-controls) | 2026-10-15 | 7671990 | — |
 
 ## Deferred Items
 
