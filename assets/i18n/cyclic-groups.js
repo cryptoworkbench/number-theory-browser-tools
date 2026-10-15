@@ -61,15 +61,14 @@
    back), zoomLabel and zoomWheel (the corner's zoom slider and its
    switch letting the scroll wheel zoom the ring), akeyOneLine (the
    key's switch drawing both paths on one line), akeyPairMode,
-   akeyPairLine, akeyPowerLine, akeyPowerSelf, akeyPowerSame, akeyPowerId,
    akeyShowPower, akeyHidePower, akeyPowerExp, akeyPowerSide, akeyAddLine
    and akeyDropLine (that line in one colour from the subgroup cardinality
    key, with further lines, added with a + and removed again, for the
-   pairs of the powers picked for them, each with its eye, power and
-   side), and akeyOrderFirst, akeyOrderLine, akeyOrderSelf, akeyOrderSame
-   and akeyOrderId (those lines' texts while the beads are not coloured by
-   inverse pairs). Every other language shows the English value through
-   NT.i18n's fallback meanwhile.
+   powers picked for them, each with its eye, power and side), and
+   akeyOrderFirst, akeyOrderLine, akeyOrderSelf, akeyOrderSame and
+   akeyOrderId (those lines' texts, in terms of subgroup cardinality).
+   Every other language shows the English value through NT.i18n's
+   fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
@@ -520,11 +519,6 @@
       akeyShowBackward: 'Show backwards path',
       akeyOneLine: 'Draw both paths on one line',
       akeyPairMode: 'Draw the line in one colour, from the subgroup cardinality key',
-      akeyPairLine: 'Inverse pair {h} and {hinv}',
-      akeyPowerLine: 'Inverse pair {hp} and {hpinv}, power {x}',
-      akeyPowerSelf: '{hp}, power {x}, is its own inverse',
-      akeyPowerSame: "{hp}, power {x}, is in the first line's pair",
-      akeyPowerId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
@@ -534,7 +528,7 @@
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyPowerSide: 'Side of the ring for these lines',
-      akeyAddLine: 'Add a line for another inverse pair',
+      akeyAddLine: 'Add a line for another power',
       akeyDropLine: 'Remove this line',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
