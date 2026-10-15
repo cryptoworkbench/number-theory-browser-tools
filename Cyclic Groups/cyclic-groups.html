@@ -774,7 +774,12 @@
      whose own ring takes the direction from this one. */
   .dir-toggle{ display:none; }
   .fs-win-body.is-ring .dir-toggle{ display:inline-grid; place-items:center; width:auto; padding:4px 10px; }
-  .dir-toggle svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  /* The button is the ring in miniature: a circle with the mirror axis
+     through the identity dashed across it, turned as the ring is turned,
+     and an arrowhead on the circle the way the beads count. It flips over
+     that axis as the ring does (syncDirAxis). */
+  .dir-toggle svg{ width:22px; height:22px; overflow:visible; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .dir-toggle .dir-axis-line{ stroke-width:1.3; stroke-dasharray:2.2 2.2; opacity:.75; }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-toggle{ position:absolute; z-index:3; translate:-50% -50%; }
   :root.is-isopane #dir-toggle{ display:none !important; }
@@ -4948,6 +4953,7 @@ function redrawRing(){
   if (spin) spinAngle(spin.now);
   else if (turning) spinAngle(turning.swept);
   else if (autoAngle) spinAngle(autoAngle);
+  else syncDirAxis();
 }
 function setPreview(g){
   if (g === preview || !drawn || coset) return;
@@ -5258,6 +5264,7 @@ function spinAngle(angle){
   ring.querySelectorAll('.bead-label').forEach(function(t){
     t.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + t.getAttribute('x') + ' ' + t.getAttribute('y') + ')');
   });
+  syncDirAxis();
   isoTellTop(false);
 }
 
@@ -5398,6 +5405,7 @@ var FLIP_MS = 700, FLIP_SINK = 0.08;
 var flipping = null;
 function endFlip(){
   if (!flipping) return;
+  dirIconFlip = null;
   cancelAnimationFrame(flipping.id);
   var f = flipping;
   flipping = null;
@@ -5426,6 +5434,7 @@ function flipRing(change){
   var box = ringBox();
   var beta = identityAxis(old, box);
   var ghost = old.cloneNode(true);
+  var from = dirSign();
   change();
   var ring = ringDynamicEl.querySelector('.ring');
   if (!ring) return;
@@ -5452,6 +5461,9 @@ function flipRing(change){
     ghostWrap.style.display = first ? '' : 'none';
     wrap.style.visibility = first ? 'hidden' : '';
     squash(first ? ghostWrap : wrap, s, k);
+    // The direction button's miniature ring turns over with it.
+    dirIconFlip = { s: from * Math.cos(th), k: k };
+    syncDirAxis();
     if (t < 1){ f.id = requestAnimationFrame(frame); return; }
     endFlip();
   };
@@ -9067,11 +9079,36 @@ function setDir(dir){
 }
 dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); });
 dirToggleEl.addEventListener('click', function(){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); });
-// The button's arrow turns the way the beads count, and its name says so.
-var DIR_ARROW = ['M6 1.5A4.5 4.5 0 1 1 1.5 6', 'M0 6.6 1.5 4.8 3 6.6'];
+// The button: the ring in miniature, its dashed axis through the identity
+// wherever the ring's turn has put it, and an arrowhead on the circle the
+// way the beads count. Drawn clockwise with the identity on the right;
+// counting counterclockwise is the same drawing mirrored in the axis, and
+// while the ring flips (dirIconFlip, set by flipRing) the miniature flips
+// with it. Its name says which way the beads count.
+var dirAxisEl = null, dirFlipEl = null, dirIconFlip = null;
+function drawDirIcon(){
+  var icon = svgEl('svg', { viewBox: '0 0 24 24', width: 24, height: 24, 'aria-hidden': 'true', focusable: 'false' });
+  dirAxisEl = svgEl('g');
+  dirFlipEl = svgEl('g');
+  dirFlipEl.appendChild(svgEl('circle', { cx: 12, cy: 12, r: 8 }));
+  dirFlipEl.appendChild(svgEl('line', { 'class': 'dir-axis-line', x1: 1.5, y1: 12, x2: 22.5, y2: 12 }));
+  dirFlipEl.appendChild(svgEl('path', { d: 'M19.35 19.54 16 18.93 17.15 15.72' }));
+  dirAxisEl.appendChild(dirFlipEl);
+  icon.appendChild(dirAxisEl);
+  dirToggleEl.replaceChildren(icon);
+}
+function syncDirAxis(){
+  if (!dirAxisEl) return;
+  var ring = ringDynamicEl.querySelector('.ring');
+  var beta = ring && drawn ? identityAxis(ring, ringBox()) : -90;
+  var f = dirIconFlip || { s: dirSign(), k: 1 };
+  dirAxisEl.setAttribute('transform', 'rotate(' + num(beta) + ' 12 12)');
+  dirFlipEl.setAttribute('transform', 'translate(12 12) scale(' + num(f.k) + ' ' + num(f.k * f.s) + ') translate(-12 -12)');
+}
 function syncDirToggle(){
   var ccw = state.dir === 'ccw';
-  dirToggleEl.replaceChildren(svgIcon(DIR_ARROW.map(function(d){ return ['path', ccw ? { d: d, transform: 'matrix(-1 0 0 1 12 0)' } : { d: d }]; })));
+  if (!dirAxisEl) drawDirIcon();
+  syncDirAxis();
   var name = translate(ccw ? 'cyclicGroups.dirToggleCcw' : 'cyclicGroups.dirToggleCw');
   dirToggleEl.title = name;
   dirToggleEl.setAttribute('aria-label', name);
