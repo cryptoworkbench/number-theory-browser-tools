@@ -5089,12 +5089,30 @@ function powerSide(p){
   return powerExp(p) % 2 ? state.elSide : state.elSide === 'inside' ? 'outside' : 'inside';
 }
 
-// The key's text for line p, by what h^x turns out to be, in terms of the
-// subgroup cardinality whose key colours the lines.
-function powerText(G, p){
+// Key line p's text: the subgroup h^x generates, told by orderText, or,
+// when it has no lines, why.
+function powerText(el, G, p){
   var h = shownGen(G), hp = powerOf(G, h, powerExp(p));
-  var key = hp === G.identity ? 'Id' : !powerFits(G, p) ? 'Same' : hp === G.inv[hp] ? 'Self' : 'Line';
-  return { key: 'cyclicGroups.akeyOrder' + key, args: { hp: mNum(hp), hpinv: mNum(G.inv[hp]), x: mNum(powerExp(p)), h: mNum(h), k: mNum(G.orders[hp]) }, hp: hp };
+  if (hp !== G.identity && powerFits(G, p)) orderText(el, G, hp);
+  else translateInto(el, hp === G.identity ? 'cyclicGroups.akeyOrderId' : 'cyclicGroups.akeyOrderSame', { hp: mNum(hp), x: mNum(powerExp(p)) });
+  return hp;
+}
+
+// A one-colour line's key text for the subgroup a generates: its
+// cardinality, whose key colours the line, then the inverse pairs
+// {b, b^-1} it holds, listed by their smaller member.
+function orderText(el, G, a){
+  var members = lap(G, a, G.orders[a]);
+  var pairs = members.filter(function(b){ return b < G.inv[b]; }).sort(function(x, y){ return x - y; });
+  el.textContent = '';
+  var line = function(text){
+    var div = document.createElement('div');
+    div.textContent = text;
+    el.appendChild(div);
+  };
+  line(translate('cyclicGroups.akeyOrderCard', { k: G.orders[a] }));
+  line(pairs.length ? translate('cyclicGroups.akeyOrderPairs', { count: pairs.length }) : translate('cyclicGroups.akeyOrderNoPairs'));
+  if (pairs.length) line(pairs.map(function(b){ return '{' + b + ', ' + G.inv[b] + '}'; }).join(', '));
 }
 
 // The powers past h whose pairs can join the one line, each with a side.
@@ -5137,14 +5155,14 @@ function renderCombineKey(G){
   // further lines' pairs, their bars in the subgroup cardinality key's
   // colours for the pairs' orders.
   akeyPairMode = lined && state.oneLinePair;
-  translateInto(innerEl, akeyPairMode ? 'cyclicGroups.akeyOrderFirst' : 'cyclicGroups.combineForward', { h: mNum(h), hinv: mNum(G.inv[h]), k: mNum(G.orders[h]) });
-  var line2 = powerText(G, 2);
-  if (akeyPairMode) translateInto(outerEl, line2.key, line2.args);
-  else translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
+  if (akeyPairMode) orderText(innerEl, G, h);
+  else translateInto(innerEl, 'cyclicGroups.combineForward', params());
+  var line2 = akeyPairMode ? powerText(outerEl, G, 2) : null;
+  if (!akeyPairMode) translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged || (akeyPairMode && !powerFits(G, 2)));
   paintSwatch(innerEl.previousSibling, akeyPairMode ? orderPaint(G, h) : null);
-  paintSwatch(outerEl.previousSibling, akeyPairMode ? orderPaint(G, line2.hp) : null);
+  paintSwatch(outerEl.previousSibling, akeyPairMode ? orderPaint(G, line2) : null);
   // The backwards path's line stays while that path is off, dimmed, so its
   // eye can bring it back; so does the squared pair's.
   outerEl.parentNode.classList.toggle('is-off', akeyPairMode ? !powerShown(G, 2) : invSide() === 'neither');
@@ -5187,9 +5205,8 @@ function renderCombineKey(G){
     var itemEl = $('akey-' + w.id + '-item'), eyeEl = $('akey-' + w.id);
     itemEl.hidden = !akeyPairMode || !powerAdded(w.p);
     if (itemEl.hidden) return;
-    var textEl = $('combine-key-' + w.id), fits = powerFits(G, w.p), said = powerText(G, w.p);
-    translateInto(textEl, said.key, said.args);
-    paintSwatch(textEl.previousSibling, orderPaint(G, said.hp));
+    var textEl = $('combine-key-' + w.id), fits = powerFits(G, w.p);
+    paintSwatch(textEl.previousSibling, orderPaint(G, powerText(textEl, G, w.p)));
     textEl.previousSibling.classList.toggle('is-none', !fits);
     itemEl.classList.toggle('is-off', !powerShown(G, w.p));
     eyeEl.hidden = !fits;
@@ -5209,6 +5226,7 @@ function renderCombineKey(G){
   akeyPairEl.setAttribute('aria-pressed', state.oneLinePair ? 'true' : 'false');
   combineKeyEl.classList.toggle('is-pair-mode', akeyPairMode);
   syncAkeyMore();
+  requestAnimationFrame(syncAkeyMore);
   akeyResetEl.hidden = !state.customColors;
   if (!IS_ISOPANE) syncIsoKeys();
 }
@@ -5276,7 +5294,14 @@ akeyMoreEl.addEventListener('click', function(){
   combineKeyEl.scrollBy({ top: combineKeyEl.clientHeight * 0.8, behavior: 'smooth' });
 });
 combineKeyEl.addEventListener('scroll', syncAkeyMore, { passive: true });
-if (window.ResizeObserver) new ResizeObserver(syncAkeyMore).observe(combineKeyEl);
+// The label sits by the key's edge, which moves as the ring and the window
+// around it change size, so it follows those too, and settles after a draw.
+if (window.ResizeObserver){
+  var akeyMoreWatch = new ResizeObserver(syncAkeyMore);
+  akeyMoreWatch.observe(combineKeyEl);
+  akeyMoreWatch.observe(ringSvgEl);
+}
+window.addEventListener('resize', syncAkeyMore);
 POWER_PS.forEach(function(p){
   $('akey-drop-' + p).addEventListener('click', function(){
     state[powerFlag(p)] = false;

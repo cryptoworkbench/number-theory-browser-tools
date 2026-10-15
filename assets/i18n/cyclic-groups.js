@@ -65,8 +65,9 @@
    and akeyDropLine (that line in one colour from the subgroup cardinality
    key, with further lines, added with a + and removed again, for the
    powers picked for them, each with its eye, power and side), and
-   akeyOrderFirst, akeyOrderLine, akeyOrderSelf, akeyOrderSame and
-   akeyOrderId (those lines' texts, in terms of subgroup cardinality).
+   akeyOrderCard, akeyOrderPairs, akeyOrderNoPairs, akeyOrderSame and
+   akeyOrderId (those lines' texts: the subgroup's cardinality and the
+   inverse pairs in it). akeyOrderPairs is a plural entry.
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -522,9 +523,9 @@
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
-      akeyOrderFirst: 'Steps of {h} both ways, subgroup cardinality {k}',
-      akeyOrderLine: 'Steps of {hp} both ways, subgroup cardinality {k}',
-      akeyOrderSelf: 'Steps of {hp} both ways, subgroup cardinality {k}',
+      akeyOrderCard: 'Subgroup cardinality: {k}',
+      akeyOrderPairs: { one: '{count} inverse pair included:', other: '{count} inverse pairs included:' },
+      akeyOrderNoPairs: 'No inverse pairs included',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyPowerSide: 'Side of the ring for these lines',
