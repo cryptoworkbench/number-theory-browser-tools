@@ -2796,7 +2796,8 @@ function duoAway(box, foot, side, h){
 
 // The hump's line split down its length: the forward walk's color along the
 // side away from the center, the backward walk's along the side toward it,
-// each stripe as wide as a single walk's line.
+// each stripe half as wide as a single walk's line, so the two together are
+// exactly as thick as one walk drawn on its own.
 function duoLine(group, box, foot, side, h, width, away){
   var samples = Math.max(16, Math.ceil(Math.abs(h.d) / humpCoarse));
   var pts = [];
@@ -2804,12 +2805,12 @@ function duoLine(group, box, foot, side, h, width, away){
   var fwd = '', bwd = '';
   pts.forEach(function(p, t){
     var n = leftNormal(pts[Math.max(0, t - 1)], pts[Math.min(samples, t + 1)]);
-    var dx = away * n[0] * width / 2, dy = away * n[1] * width / 2;
+    var dx = away * n[0] * width / 4, dy = away * n[1] * width / 4;
     fwd += (t ? ' L ' : 'M ') + num(p[0] + dx) + ' ' + num(p[1] + dy);
     bwd += (t ? ' L ' : 'M ') + num(p[0] - dx) + ' ' + num(p[1] - dy);
   });
-  group.appendChild(svgEl('path', { 'class': 'duo-line is-fwd', 'stroke-width': num(width), d: fwd }));
-  group.appendChild(svgEl('path', { 'class': 'duo-line is-bwd', 'stroke-width': num(width), d: bwd }));
+  group.appendChild(svgEl('path', { 'class': 'duo-line is-fwd', 'stroke-width': num(width / 2), d: fwd }));
+  group.appendChild(svgEl('path', { 'class': 'duo-line is-bwd', 'stroke-width': num(width / 2), d: bwd }));
 }
 
 // The ring of beads. beads is the element at each position, clockwise from
