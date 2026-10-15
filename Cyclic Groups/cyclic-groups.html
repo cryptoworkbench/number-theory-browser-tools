@@ -1538,7 +1538,6 @@
           <button type="button" class="spin-step" id="spin-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
         </div>
         <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden>
-          <div class="fs-menu ring-ctx-sub" id="ring-ctx-elements" role="menu" aria-label="Elements" data-i18n-aria-label="cyclicGroups.ctxElements" hidden></div>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-arrows" role="group" aria-label="Arrows" data-i18n-aria-label="cyclicGroups.ctxArrows" hidden>
             <input type="checkbox" id="layer-akey" checked hidden>
             <div class="arrow-options" id="arrow-options">
@@ -3449,8 +3448,8 @@ function svgIcon(parts){
 // zoom, then the Show switches (the Layers panel's polygon and circle, each
 // flipping its checkbox there so the checkbox's own handler draws and
 // remembers the change, and the formula scratchpad), then the Colours
-// submenus (the element colours, and the arrows' own controls, which live
-// in theirs), the groups isomorphic to the whole group or to the subgroup
+// submenu of the arrows' own controls, which live in it (the element
+// colours are chosen in the colour key's heading instead), the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
 // there, and last the Info section: the Formulas submenus (each formula to
 // copy in one of several formats), the group's structure last among them. A pane's
@@ -3462,13 +3461,12 @@ var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.ctxShowHeading', name: 'cord', key: 'cyclicGroups.ctxShowPolygon' },
   { name: 'guide', key: 'cyclicGroups.ctxShowCircle' },
   { key: 'cyclicGroups.ctxShowFormulasItem', run: function(){ setScratchOpen(!scratchOpen); }, checked: function(){ return scratchOpen && !!ringWorkArea(); }, needsArea: true },
-  { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxElements', sub: 'elements' },
-  { key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
+  { head: 'cyclicGroups.ctxColours', key: 'cyclicGroups.ctxArrows', sub: 'arrows' },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
   { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, copy: 'struct' }
 ];
 var ringCtxEl = $('ring-ctx');
-var ringSubEls = { elements: $('ring-ctx-elements'), arrows: $('ring-ctx-arrows') };
+var ringSubEls = { arrows: $('ring-ctx-arrows') };
 var ringCopyEl = $('ring-ctx-copy');
 var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   if (l.head){
@@ -3544,68 +3542,9 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   ringCtxEl.appendChild(item);
   return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, name: l.name, key: l.key, sub: l.sub, zoom: l.zoom, formulas: l.formulas, checked: l.checked, needsArea: l.needsArea };
 });
-// The Elements submenu: the key's switch (in a Ring window, where the key
-// is shown on request), then the colour schemes, each choosing its option
-// in the Element colours dropdown so the dropdown's own handler draws and
-// remembers it. Both keep the menu open, to try one scheme after another.
-var ELEMENT_ITEMS = [
-  { legend: true, key: 'cyclicGroups.showElementColours' },
-  { sep: true },
-  { value: 'none', key: 'cyclicGroups.colorByNone' },
-  { value: 'order', key: 'cyclicGroups.colorByOrder' },
-  { value: 'inverse', key: 'cyclicGroups.colorByInverse' },
-  { value: 'theme', key: 'cyclicGroups.colorByTheme' }
-];
-var elementItems = ELEMENT_ITEMS.map(function(l){
-  if (l.sep){
-    var sep = document.createElement('div');
-    sep.className = 'ring-ctx-sep';
-    sep.setAttribute('role', 'separator');
-    ringSubEls.elements.appendChild(sep);
-    return { sep: sep };
-  }
-  var item = document.createElement('button');
-  item.type = 'button';
-  item.className = 'fs-menu-item';
-  item.setAttribute('role', l.legend ? 'menuitemcheckbox' : 'menuitemradio');
-  var mark = document.createElement('span');
-  mark.className = 'fs-icon';
-  mark.setAttribute('aria-hidden', 'true');
-  var label = document.createElement('span');
-  item.appendChild(mark);
-  item.appendChild(label);
-  item.addEventListener('click', function(){
-    if (item.getAttribute('aria-disabled') === 'true') return;
-    if (IS_ISOPANE) tellHost({ isopane: 'ctl', id: l.legend ? 'legend-btn' : 'colorby-select', value: l.legend ? !legendShown : l.value });
-    else if (l.legend) legendBtnEl.click();
-    else if (colorBySelectEl.value !== l.value){
-      colorBySelectEl.value = l.value;
-      colorBySelectEl.dispatchEvent(new Event('change'));
-    }
-    syncElementItems();
-  });
-  ringSubEls.elements.appendChild(item);
-  return { item: item, mark: mark, label: label, key: l.key, legend: l.legend, value: l.value };
-});
-function syncElementItems(){
-  // The key is a switch only where a Ring window shows it on request.
-  var keyed = !!legendPanelEl.closest('.fs-win-body.is-ring');
-  elementItems.forEach(function(it){
-    if (it.sep){ it.sep.hidden = !keyed; return; }
-    it.label.textContent = translate(it.key);
-    var on;
-    if (it.legend){
-      it.item.hidden = !keyed;
-      it.item.setAttribute('aria-disabled', state.colors ? 'false' : 'true');
-      on = legendShown && state.colors;
-    } else on = colorBySelectEl.value === it.value;
-    it.item.setAttribute('aria-checked', on ? 'true' : 'false');
-    it.mark.textContent = on ? (it.legend ? '\u2713' : '\u25CF') : '';
-  });
-}
-// The Arrows submenu opens with the arrow key's switch, as the Elements
-// one does, flipping its (hidden) checkbox so the checkbox's own handler
-// draws and remembers it, and keeping the menu open.
+// The Arrows submenu opens with the arrow key's switch, flipping its
+// (hidden) checkbox so the checkbox's own handler draws and remembers it,
+// and keeping the menu open.
 var arrowKey = ctxItem('menuitemcheckbox', ''), arrowKeyItem = arrowKey.item;
 var arrowKeySep = document.createElement('div');
 arrowKeySep.className = 'ring-ctx-sep';
@@ -4278,7 +4217,6 @@ function setRingSub(name, focus){
   });
   ringSubOpen = name;
   if (!name) return;
-  if (name === 'elements') syncElementItems();
   if (name === 'arrows') syncArrowKeyItem();
   var sub = ringSubEls[name], from = ringCtxItems.find(function(it){ return it.sub === name; }).item;
   var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
