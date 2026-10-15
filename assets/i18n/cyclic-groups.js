@@ -69,7 +69,9 @@
    akeyFourthSame, akeyFourthId, akeyShowFourth and akeyHideFourth (the
    fourth powers' pair's lines likewise), akeyFifthLine, akeyFifthSelf,
    akeyFifthSame, akeyFifthId, akeyShowFifth and akeyHideFifth (the fifth
-   powers' likewise), and akeyPowerSide (each of those
+   powers' likewise), akeySixthLine, akeySixthSelf, akeySixthSame,
+   akeySixthId, akeyShowSixth and akeyHideSixth (the sixth powers'
+   likewise), and akeyPowerSide (each of those
    pairs' inside/outside menu). Every other language shows the
    English value through NT.i18n's fallback meanwhile.
 
@@ -546,6 +548,12 @@
       akeyFifthId: 'The fifth power {h5} is the identity, so it has no lines',
       akeyShowFifth: "Show the fifth powers' lines",
       akeyHideFifth: "Hide the fifth powers' lines",
+      akeySixthLine: 'Inverse pair {h6} and {h6inv}, the sixth powers, on one line',
+      akeySixthSelf: 'The sixth power {h6} is its own inverse, on one line',
+      akeySixthSame: 'The sixth powers {h6} and {h6inv} repeat an earlier pair',
+      akeySixthId: 'The sixth power {h6} is the identity, so it has no lines',
+      akeyShowSixth: "Show the sixth powers' lines",
+      akeyHideSixth: "Hide the sixth powers' lines",
       akeyPowerSide: 'Side of the ring for these lines',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
