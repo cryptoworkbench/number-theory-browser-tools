@@ -5076,11 +5076,16 @@ function powerSide(p){
   return powerExp(p) % 2 ? state.elSide : state.elSide === 'inside' ? 'outside' : 'inside';
 }
 
+// Whether the one-colour lines' key speaks of inverse pairs: only while
+// the beads are coloured by them; otherwise it speaks of the subgroup
+// cardinality whose key colours the lines.
+function pairWords(){ return state.colors && state.colorBy === 'inverse'; }
+
 // The key's text for line p's pair, by what h^x turns out to be.
 function powerText(G, p){
   var h = shownGen(G), hp = powerOf(G, h, powerExp(p));
   var key = hp === G.identity ? 'Id' : !powerFits(G, p) ? 'Same' : hp === G.inv[hp] ? 'Self' : 'Line';
-  return { key: 'cyclicGroups.akeyPower' + key, args: { hp: mNum(hp), hpinv: mNum(G.inv[hp]), x: mNum(powerExp(p)), h: mNum(h) }, hp: hp };
+  return { key: 'cyclicGroups.akey' + (pairWords() ? 'Power' : 'Order') + key, args: { hp: mNum(hp), hpinv: mNum(G.inv[hp]), x: mNum(powerExp(p)), h: mNum(h), k: mNum(G.orders[hp]) }, hp: hp };
 }
 
 // The powers past h whose pairs can join the one line, each with a side.
@@ -5123,7 +5128,7 @@ function renderCombineKey(G){
   // further lines' pairs, their bars in the subgroup cardinality key's
   // colours for the pairs' orders.
   akeyPairMode = lined && state.oneLinePair;
-  translateInto(innerEl, akeyPairMode ? 'cyclicGroups.akeyPairLine' : 'cyclicGroups.combineForward', params());
+  translateInto(innerEl, !akeyPairMode ? 'cyclicGroups.combineForward' : pairWords() ? 'cyclicGroups.akeyPairLine' : 'cyclicGroups.akeyOrderFirst', { h: mNum(h), hinv: mNum(G.inv[h]), k: mNum(G.orders[h]) });
   var line2 = powerText(G, 2);
   if (akeyPairMode) translateInto(outerEl, line2.key, line2.args);
   else translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());

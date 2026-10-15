@@ -63,10 +63,12 @@
    key's switch drawing both paths on one line), akeyPairMode,
    akeyPairLine, akeyPowerLine, akeyPowerSelf, akeyPowerSame, akeyPowerId,
    akeyShowPower, akeyHidePower, akeyPowerExp, akeyPowerSide, akeyAddLine
-   and akeyDropLine (that line in one colour from the subgroup
-   cardinality key, with further lines, added with a + and removed again,
-   for the pairs of the powers picked for them, each with its eye, power
-   and side). Every other language shows the English value through
+   and akeyDropLine (that line in one colour from the subgroup cardinality
+   key, with further lines, added with a + and removed again, for the
+   pairs of the powers picked for them, each with its eye, power and
+   side), and akeyOrderFirst, akeyOrderLine, akeyOrderSelf, akeyOrderSame
+   and akeyOrderId (those lines' texts while the beads are not coloured by
+   inverse pairs). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -526,6 +528,11 @@
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
+      akeyOrderFirst: 'Steps of {h} both ways, subgroup cardinality {k}, on one line',
+      akeyOrderLine: 'Steps of {hp} both ways, subgroup cardinality {k}, on one line',
+      akeyOrderSelf: 'Steps of {hp} both ways, subgroup cardinality {k}, on one line',
+      akeyOrderSame: '{hp}, power {x}, steps as the first line does',
+      akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyPowerSide: 'Side of the ring for these lines',
       akeyAddLine: 'Add a line for another inverse pair',
       akeyDropLine: 'Remove this line',
