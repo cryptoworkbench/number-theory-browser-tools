@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: c18d29d
+state_head: d5586e3
 progress:
   total_phases: 7
   completed_phases: 6
@@ -652,6 +652,7 @@ None yet.
 | 416 | Cyclic Groups: one-line pair mode gains the cubed pair {h³, h⁻³} (third key line + eye, h's side) | 2026-10-15 | af55621 | — |
 | 417 | Cyclic Groups: squared/cubed pair lines drawn from the identity only (no extra coset laps) | 2026-10-15 | 83386da | — |
 | 418 | Cyclic Groups: one-line paths as thin as a single path (stripes at half width) | 2026-10-15 | c18d29d | — |
+| 419 | Cyclic Groups: one-line pair mode gains the fourth powers' pair {h⁴, h⁻⁴} (fourth key line + eye, squares' side) | 2026-10-15 | d5586e3 | — |
 
 ## Deferred Items
 
