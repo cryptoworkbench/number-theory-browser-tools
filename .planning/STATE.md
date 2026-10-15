@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 598ff38
+state_head: aeabb9b
 progress:
   total_phases: 7
   completed_phases: 6
@@ -673,6 +673,7 @@ None yet.
 | 437 | Cyclic Groups: one-colour key lines read 'Path walking by a and a⁻¹ (a & b).' | 2026-10-15 | 73f1ce3 | — |
 | 438 | Cyclic Groups: colour key's Reset link beside its heading, no longer lifting the ring | 2026-10-15 | d4b3ef4 | — |
 | 439 | Cyclic Groups: subgroup row ends with ⊂/⊆ and the group after its dropdown | 2026-10-15 | 598ff38 | — |
+| 440 | Cyclic Groups: expressed subgroup dropdown entries drop the (% n) tail | 2026-10-15 | aeabb9b | — |
 
 ## Deferred Items
 
