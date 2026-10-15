@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: edef672
+state_head: 3d744ac
 progress:
   total_phases: 7
   completed_phases: 6
@@ -669,6 +669,7 @@ None yet.
 | 433 | Cyclic Groups: one-colour key lines read 'Path walked by a and a's inverse: (n − a)' / 'a⁻¹ = b' | 2026-10-15 | 1471a39 | — |
 | 434 | Cyclic Groups: additive one-colour key lines give the inverse's value (7, not 12 − 5) | 2026-10-15 | b7661cb | — |
 | 435 | Cyclic Groups: multiplicative one-colour key lines use ≡ (2⁻¹ ≡ 7) | 2026-10-15 | edef672 | — |
+| 436 | Cyclic Groups: one-colour key lines write the inverse as a⁻¹ ≡ b in additive groups too | 2026-10-15 | 3d744ac | — |
 
 ## Deferred Items
 
