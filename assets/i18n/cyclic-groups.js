@@ -67,7 +67,8 @@
    akeyCubeSelf, akeyCubeSame, akeyCubeId, akeyShowCube and akeyHideCube
    (the cubed pair's lines likewise), and akeyFourthLine, akeyFourthSelf,
    akeyFourthSame, akeyFourthId, akeyShowFourth and akeyHideFourth (the
-   fourth powers' pair's lines likewise). Every other language shows the
+   fourth powers' pair's lines likewise), and akeyPowerSide (each of those
+   pairs' inside/outside menu). Every other language shows the
    English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -537,6 +538,7 @@
       akeyFourthId: 'The fourth power {h4} is the identity, so it has no lines',
       akeyShowFourth: "Show the fourth powers' lines",
       akeyHideFourth: "Hide the fourth powers' lines",
+      akeyPowerSide: 'Side of the ring for these lines',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
