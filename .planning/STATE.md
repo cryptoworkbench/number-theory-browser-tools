@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: afba90a
+state_head: b8f8994
 progress:
   total_phases: 7
   completed_phases: 6
@@ -658,6 +658,7 @@ None yet.
 | 422 | Cyclic Groups: one-line pair mode gains the sixth powers' pair {h⁶, h⁻⁶} (key line, eye, side menu) | 2026-10-15 | 565df52 | — |
 | 423 | Cyclic Groups: user-picked power x per further one-line pair line (number box; text, lap, side follow x) | 2026-10-15 | 8601537 | — |
 | 424 | Cyclic Groups: pair lines start at one; + adds the next (up to five), × removes the last | 2026-10-15 | afba90a | — |
+| 425 | Cyclic Groups: one-colour pair lines take the subgroup cardinality key's colour (by order) instead of the inverse-pairs key's | 2026-10-15 | b8f8994 | — |
 
 ## Deferred Items
 
