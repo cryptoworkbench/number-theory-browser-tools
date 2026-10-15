@@ -65,7 +65,9 @@
    akeyShowSquare and akeyHideSquare (that line in its inverse pair's
    colour, with the squared pair's lines beside it), and akeyCubeLine,
    akeyCubeSelf, akeyCubeSame, akeyCubeId, akeyShowCube and akeyHideCube
-   (the cubed pair's lines likewise). Every other language shows the
+   (the cubed pair's lines likewise), and akeyFourthLine, akeyFourthSelf,
+   akeyFourthSame, akeyFourthId, akeyShowFourth and akeyHideFourth (the
+   fourth powers' pair's lines likewise). Every other language shows the
    English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -529,6 +531,12 @@
       akeyCubeId: 'The cube {h3} is the identity, so it has no lines',
       akeyShowCube: "Show the cubed pair's lines",
       akeyHideCube: "Hide the cubed pair's lines",
+      akeyFourthLine: 'Inverse pair {h4} and {h4inv}, the fourth powers, on one line',
+      akeyFourthSelf: 'The fourth power {h4} is its own inverse, on one line',
+      akeyFourthSame: 'The fourth powers {h4} and {h4inv} repeat an earlier pair',
+      akeyFourthId: 'The fourth power {h4} is the identity, so it has no lines',
+      akeyShowFourth: "Show the fourth powers' lines",
+      akeyHideFourth: "Hide the fourth powers' lines",
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
