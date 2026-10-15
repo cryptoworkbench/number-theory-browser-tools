@@ -522,7 +522,7 @@
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
-      akeyPath: "Path walked by {a} and {a}'s inverse: {a}⁻¹ ≡ {ainv}",
+      akeyPath: 'Path walking by {a} and {a}⁻¹ ({a} & {ainv}).',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyPowerSide: 'Side of the ring for these lines',
