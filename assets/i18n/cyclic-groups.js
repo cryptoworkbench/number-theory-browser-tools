@@ -53,7 +53,9 @@
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
    subgroup's order that follows), and legendExprLabel (the inverse-pair
-   colour key's menu writing its elements by number or as powers). Every other
+   colour key's menu writing its elements by number or as powers), and
+   beadPadLabel and beadPadTitle (the Element expressions panel's checkbox
+   padding the beads' own labels with leading zeros). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -585,6 +587,8 @@
       legendSelfInverse: 'own inverse: {list}',
       legendPair: '{a} ↔ {b}',
       legendExprLabel: 'Elements as',
+      beadPadLabel: 'Leading zeros in the beads',
+      beadPadTitle: "Write every bead's number, or its exponent, as wide as the group's largest, with leading zeros",
       ringTitleWhole: '⟨{h}⟩ ⊆ {group}',
       ringTitleProper: '⟨{h}⟩ ⊂ {group}',
       'formula.groupOrder': '|{group}| = {n}',
