@@ -343,7 +343,8 @@
      there instead. */
   .subgroups::-webkit-scrollbar{ display:none; }
   /* Over the fade at the bottom, how many rows lie below; a click scrolls
-     a page down. Placed by syncSubMore, level with the list's bottom edge. */
+     a page down. Placed by syncSubMore, level with the list's bottom edge;
+     a twin at the top edge counts the rows above and scrolls up. */
   .sub-more{ position:absolute; z-index:2; translate:-50% 0; padding:1px 10px; font:inherit; font-size:.74rem; color:var(--text-dim); background:var(--surface); border:1px solid var(--panel-border); border-radius:999px; box-shadow:0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); cursor:pointer; white-space:nowrap; }
   .sub-more:hover{ color:var(--accent); border-color:var(--accent); }
   .sub-more[hidden]{ display:none; }
@@ -1652,6 +1653,7 @@
           <div class="combine-key-item akey-add-row" id="akey-add-row" hidden><button type="button" class="akey-btn" id="akey-add" title="Add a line for another power" aria-label="Add a line for another power" data-i18n-title="cyclicGroups.akeyAddLine" data-i18n-aria-label="cyclicGroups.akeyAddLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M8 3V13M3 8H13"/></svg></button></div>
         </div>
         <button type="button" class="sub-more" id="akey-more" tabindex="-1" aria-hidden="true" hidden></button>
+        <button type="button" class="sub-more" id="akey-more-top" tabindex="-1" aria-hidden="true" hidden></button>
         <div class="combine-key" id="combine-key-pane" hidden>
           <div class="combine-key-item"><span class="combine-key-swatch"></span><span id="combine-key-pane-inner"></span></div>
           <div class="combine-key-item"><span class="combine-key-swatch is-outer"></span><span id="combine-key-pane-outer"></span></div>
@@ -1736,6 +1738,7 @@
         </div>
         <ul class="subgroups" id="subgroups"></ul>
         <button type="button" class="sub-more" id="sub-more" tabindex="-1" aria-hidden="true" hidden></button>
+        <button type="button" class="sub-more" id="sub-more-top" tabindex="-1" aria-hidden="true" hidden></button>
         <div class="fs-menu ring-ctx" id="sub-ctx" role="menu" hidden></div>
       </section>
     </div>
@@ -3670,7 +3673,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'combine-key-pane', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-corner', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'combine-key-pane', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-corner', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -5274,24 +5277,18 @@ $('akey-add').addEventListener('click', function(){
   syncAkeyMore();
 });
 // The key scrolls without a scrollbar, as the subgroup list does: it fades
-// out at an edge with more rows beyond it, and over the bottom fade a
-// label counts the rows still hidden there; a click scrolls a page down.
-var akeyMoreEl = $('akey-more');
+// out at an edge with more rows beyond it, and over each such edge a label
+// counts the rows still hidden past it; a click scrolls a page that way.
+var akeyMoreEl = $('akey-more'), akeyMoreTopEl = $('akey-more-top');
 function syncAkeyMore(){
-  if (!akeyMoreEl) return;
-  var top = combineKeyEl.scrollTop, rest = combineKeyEl.scrollHeight - combineKeyEl.clientHeight - top;
-  combineKeyEl.classList.toggle('is-more-above', top > 1);
-  combineKeyEl.classList.toggle('is-more-below', rest > 1);
-  var bottom = combineKeyEl.getBoundingClientRect().bottom, n = 0;
-  if (rest > 1) Array.prototype.forEach.call(combineKeyEl.children, function(row){ if (!row.hidden && row.getBoundingClientRect().top >= bottom - 1) n++; });
-  akeyMoreEl.hidden = !n || !combineKeyEl.offsetParent || combineKeyEl.hidden;
-  if (akeyMoreEl.hidden) return;
-  akeyMoreEl.textContent = translate('cyclicGroups.subMoreBelow', { count: n });
-  akeyMoreEl.style.left = (combineKeyEl.offsetLeft + combineKeyEl.offsetWidth / 2) + 'px';
-  akeyMoreEl.style.top = (combineKeyEl.offsetTop + combineKeyEl.offsetHeight - akeyMoreEl.offsetHeight - 2) + 'px';
+  if (!akeyMoreTopEl) return;
+  syncMoreLabels(combineKeyEl, akeyMoreTopEl, akeyMoreEl, 2);
 }
 akeyMoreEl.addEventListener('click', function(){
   combineKeyEl.scrollBy({ top: combineKeyEl.clientHeight * 0.8, behavior: 'smooth' });
+});
+akeyMoreTopEl.addEventListener('click', function(){
+  combineKeyEl.scrollBy({ top: -combineKeyEl.clientHeight * 0.8, behavior: 'smooth' });
 });
 combineKeyEl.addEventListener('scroll', syncAkeyMore, { passive: true });
 // The label sits by the key's edge, which moves as the ring and the window
@@ -6770,22 +6767,39 @@ function focusCurrentRow(){
   showRow(row);
 }
 // The list has no scrollbar: it fades out at an edge with more rows beyond it.
-// Below it, a label counts the rows still hidden there.
-var subMoreEl = $('sub-more');
-function syncSubMore(){
-  var top = subgroupsEl.scrollTop, rest = subgroupsEl.scrollHeight - subgroupsEl.clientHeight - top;
-  subgroupsEl.classList.toggle('is-more-above', top > 1);
-  subgroupsEl.classList.toggle('is-more-below', rest > 1);
-  var bottom = subgroupsEl.getBoundingClientRect().bottom, n = 0;
-  if (rest > 1) Array.prototype.forEach.call(subgroupsEl.children, function(li){ if (li.getBoundingClientRect().top >= bottom - 1) n++; });
-  subMoreEl.hidden = !n || !subgroupsEl.offsetParent;
-  if (subMoreEl.hidden) return;
-  subMoreEl.textContent = translate('cyclicGroups.subMoreBelow', { count: n });
-  subMoreEl.style.left = (subgroupsEl.offsetLeft + subgroupsEl.offsetWidth / 2) + 'px';
-  subMoreEl.style.top = (subgroupsEl.offsetTop + subgroupsEl.offsetHeight - subMoreEl.offsetHeight - 4) + 'px';
+// At each such edge a label counts the rows still hidden past it.
+var subMoreEl = $('sub-more'), subMoreTopEl = $('sub-more-top');
+function syncSubMore(){ syncMoreLabels(subgroupsEl, subMoreTopEl, subMoreEl, 4); }
+// A scrolling list's two labels: over its top edge the rows hidden, wholly
+// or in part, above it, over its bottom edge those below (rows: the list's
+// shown children, which the labels never are), each level with its edge,
+// inset by gap.
+function syncMoreLabels(listEl, topEl, bottomEl, gap){
+  var top = listEl.scrollTop, rest = listEl.scrollHeight - listEl.clientHeight - top;
+  listEl.classList.toggle('is-more-above', top > 1);
+  listEl.classList.toggle('is-more-below', rest > 1);
+  var box = listEl.getBoundingClientRect(), above = 0, below = 0;
+  Array.prototype.forEach.call(listEl.children, function(row){
+    if (row.hidden) return;
+    var r = row.getBoundingClientRect();
+    if (top > 1 && r.top < box.top - 1) above++;
+    if (rest > 1 && r.bottom > box.bottom + 1) below++;
+  });
+  var gone = !listEl.offsetParent || listEl.hidden;
+  [[topEl, above], [bottomEl, below]].forEach(function(e, i){
+    var el = e[0];
+    el.hidden = !e[1] || gone;
+    if (el.hidden) return;
+    el.textContent = translate('cyclicGroups.subMoreBelow', { count: e[1] });
+    el.style.left = (listEl.offsetLeft + listEl.offsetWidth / 2) + 'px';
+    el.style.top = (i ? listEl.offsetTop + listEl.offsetHeight - el.offsetHeight - gap : listEl.offsetTop + gap) + 'px';
+  });
 }
 subMoreEl.addEventListener('click', function(){
   subgroupsEl.scrollBy({ top: subgroupsEl.clientHeight * 0.8, behavior: 'smooth' });
+});
+subMoreTopEl.addEventListener('click', function(){
+  subgroupsEl.scrollBy({ top: -subgroupsEl.clientHeight * 0.8, behavior: 'smooth' });
 });
 subgroupsEl.addEventListener('scroll', syncSubMore, { passive: true });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
