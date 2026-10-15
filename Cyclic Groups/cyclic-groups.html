@@ -521,6 +521,12 @@
   .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
   /* Inverse-pair key: one pair per line, like every other key. */
   .legend-pair{ font-size:.9rem; font-variant-numeric:tabular-nums; }
+  /* How the inverse-pair key writes its elements: Natural, the ring's
+     expression slider, or the powers of a generator. */
+  .legend-expr{ display:flex; align-items:baseline; gap:8px; margin:0 0 8px; font-size:.82rem; color:var(--text-dim); }
+  .legend-expr[hidden]{ display:none; }
+  .legend-expr select{ font-family:var(--font-sans); font-size:.82rem; padding:3px 6px; }
+  .fs-win-body.is-ring > #legend-panel > .legend-expr{ margin:0; }
   .color-by{ margin:2px 0 10px 25px; }
   .color-by select{ font-family:var(--font-sans); padding:7px 10px; }
   .element-colours .color-by{ margin-left:0; }
@@ -1689,6 +1695,7 @@
 
       <section class="panel" id="legend-panel">
         <h2 id="legend-heading">Colour key: subgroup cardinality</h2>
+        <label class="legend-expr" id="legend-expr" hidden><span data-i18n="cyclicGroups.legendExprLabel">Elements as</span> <select id="legend-expr-select"></select></label>
         <div class="legend" id="legend"></div>
         <button type="button" class="link-btn legend-reset" id="legend-reset" data-i18n="common.reset" data-i18n-title="cyclicGroups.legendResetTitle" title="Put this colour key's colours back to their defaults" hidden>Reset</button>
       </section>
@@ -1776,7 +1783,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -1825,12 +1832,15 @@ var subRightRSelectEl = $('sub-right-r-select');
 var subLeftSelectEl = $('sub-left-select');
 var subRightSelectEl = $('sub-right-select');
 var subSortSelectEl = $('sub-sort-select');
-// The Numerical panel's three dropdowns: each one's share-link parameter,
-// state, and option wording.
+var legendExprEl = $('legend-expr');
+var legendExprSelectEl = $('legend-expr-select');
+// The Numerical panel's three dropdowns and the inverse-pair key's: each
+// one's share-link parameter, state, and option wording.
 var SUB_EXPR_CTLS = [
   { el: subLeftSelectEl, param: 'subleft', key: 'cyclicGroups.arrangePowers', get: function(){ return state.subLeft; }, set: function(v){ state.subLeft = v; } },
   { el: subRightSelectEl, param: 'subright', key: 'cyclicGroups.arrangePowers', get: function(){ return state.subRight; }, set: function(v){ state.subRight = v; } },
-  { el: subSortSelectEl, param: 'subsort', key: 'cyclicGroups.subSortExp', get: function(){ return state.subSort; }, set: function(v){ state.subSort = v; } }
+  { el: subSortSelectEl, param: 'subsort', key: 'cyclicGroups.subSortExp', get: function(){ return state.subSort; }, set: function(v){ state.subSort = v; } },
+  { el: legendExprSelectEl, param: 'legendexpr', key: 'cyclicGroups.arrangePowers', get: function(){ return state.legendExpr; }, set: function(v){ state.legendExpr = v; } }
 ];
 var hintEl = $('hint');
 var hintInverseEl = $('hint-inverse');
@@ -6423,11 +6433,20 @@ function legendItem(swatchClass, swatchStyle, text, textClass){
 }
 
 // el, when given, is the list to fill instead of this ring's own (the
-// pane's copy, see syncPaneLegend).
-function renderInverseLegend(pairing, el){
+// pane's copy, see syncPaneLegend). G, when given, is this ring's group, its
+// elements written as the key's menu chooses: by number, or as powers g^k
+// of a generator g, the pairs then listed by their smaller exponent.
+function renderInverseLegend(pairing, el, G){
   el = el || legendEl;
+  var g = G ? subExprGen(G, state.legendExpr, state.expr) : null, log = g === null ? null : exprLog(G, g);
+  var m = function(x){ return log ? mEl('msup', [mn(g), mn(log[x])]) : mn(x); };
+  var p = function(x){ return log ? g + '^' + log[x] : String(x); };
+  var byExp = function(a, b){ return log[a] - log[b]; };
+  var selfInverse = log ? pairing.selfInverse.slice().sort(byExp) : pairing.selfInverse;
+  var selfList = [];
+  selfInverse.forEach(function(x, i){ if (i) selfList.push(comma()); selfList.push(m(x)); });
   var self = legendItem('ord-id', null,
-    tNode('cyclicGroups.legendSelfInverse', { list: mInline(mList(pairing.selfInverse), pairing.selfInverse.join(', ')) }), 'legend-order');
+    tNode('cyclicGroups.legendSelfInverse', { list: mInline(mrow.apply(null, selfList), selfInverse.map(p).join(', ')) }), 'legend-order');
   self.classList.add('is-self');
   self.setAttribute('data-self-inverse', pairing.selfInverse.join(' '));
   // The pane's copy (see syncPaneLegend) takes no pickers: its colours are
@@ -6435,9 +6454,15 @@ function renderInverseLegend(pairing, el){
   var own = el === legendEl, title = translate('cyclicGroups.legendPickTitle');
   if (own) makePickable(self.querySelector('.legend-swatch'), 'id', title);
   el.appendChild(self);
-  pairing.pairs.forEach(function(pr, k){
-    var item = legendItem('', '--ord: ' + pairing.color[pr[0]],
-      mInline(mrow(mn(pr[0]), mo('↔'), mn(pr[1])), translate('cyclicGroups.legendPair', { a: pr[0], b: pr[1] })), 'legend-pair');
+  // Each pair keeps its index k, which names its colour pick.
+  var pairs = pairing.pairs.map(function(pr, k){
+    return { pr: log && log[pr[1]] < log[pr[0]] ? [pr[1], pr[0]] : pr, k: k };
+  });
+  if (log) pairs.sort(function(a, b){ return log[a.pr[0]] - log[b.pr[0]]; });
+  pairs.forEach(function(e){
+    var pr = e.pr, k = e.k;
+    var item = legendItem('', '--ord: ' + pairing.color[pairing.pairs[k][0]],
+      mInline(mrow(m(pr[0]), mo('↔'), m(pr[1])), translate('cyclicGroups.legendPair', { a: p(pr[0]), b: p(pr[1]) })), 'legend-pair');
     item.setAttribute('data-pair', pr[0] + ' ' + pr[1]);
     if (own) makePickable(item.querySelector('.legend-swatch'), 'p' + k, title);
     el.appendChild(item);
@@ -6482,7 +6507,8 @@ function renderLegend(G, classes, pairing){
   if (IS_ISOPANE) tellPaneLegend(inverse && state.colors ? { selfInverse: pairing.selfInverse, pairs: pairing.pairs, color: pairing.color } : null);
   legendEl.classList.toggle('is-pairs', inverse);
   legendHeadingEl.textContent = translate(inverse ? 'cyclicGroups.legendHeadingInverse' : theme ? 'cyclicGroups.legendHeadingTheme' : 'cyclicGroups.legendHeading');
-  if (inverse){ renderInverseLegend(pairing); return; }
+  legendExprEl.hidden = !(inverse && state.colors && G.cyclic);
+  if (inverse){ renderInverseLegend(pairing, legendEl, G); return; }
   if (theme){ renderThemeLegend(G); return; }
   var counts = {};
   G.els.forEach(function(a){ counts[G.orders[a]] = (counts[G.orders[a]] || 0) + 1; });

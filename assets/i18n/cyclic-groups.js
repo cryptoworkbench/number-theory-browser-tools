@@ -52,7 +52,8 @@
    second element to combine with the first), and subRowGcd (a Numerical
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
-   subgroup's order that follows). Every other
+   subgroup's order that follows), and legendExprLabel (the inverse-pair
+   colour key's menu writing its elements by number or as powers). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -583,6 +584,7 @@
       legendThemeComposites: 'composites',
       legendSelfInverse: 'own inverse: {list}',
       legendPair: '{a} ↔ {b}',
+      legendExprLabel: 'Elements as',
       ringTitleWhole: '⟨{h}⟩ ⊆ {group}',
       ringTitleProper: '⟨{h}⟩ ⊂ {group}',
       'formula.groupOrder': '|{group}| = {n}',
