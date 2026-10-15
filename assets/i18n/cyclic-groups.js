@@ -525,7 +525,7 @@
       akeyPowerId: '{hp}, power {x}, is the identity, so it has no lines',
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
-      akeyPowerExp: 'Power of the selected element for this line',
+      akeyPowerExp: 'Power to raise the selected element to',
       akeyPowerSide: 'Side of the ring for these lines',
       akeyAddLine: 'Add a line for another inverse pair',
       akeyDropLine: 'Remove this line',
