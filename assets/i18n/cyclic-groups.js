@@ -53,7 +53,9 @@
    panel row's tooltip while the generating element is written as a
    power: the gcd of its exponent with the group's order, and the
    subgroup's order that follows), and legendExprLabel (the inverse-pair
-   colour key's menu writing its elements by number or as powers). Every other
+   colour key's menu writing its elements by number or as powers), and
+   showElementKey (the element colour key's switch in the window's bottom
+   right corner, beside the arrow colour key's, which reuses showArrowKey). Every other
    language shows the English value through NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -511,6 +513,7 @@
       isoAskYes: 'Yes',
       isoAskNo: 'No',
       showArrowKey: 'Show arrow colour key',
+      showElementKey: 'Show element colour key',
       fsInfo: 'Info',
       fsGroupParams: 'Parameters',
       fsMinimize: 'Minimize {name}',
