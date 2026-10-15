@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d8dddc8
+state_head: dbd8cff
 progress:
   total_phases: 7
   completed_phases: 6
@@ -660,6 +660,7 @@ None yet.
 | 424 | Cyclic Groups: pair lines start at one; + adds the next (up to five), × removes the last | 2026-10-15 | afba90a | — |
 | 425 | Cyclic Groups: one-colour pair lines take the subgroup cardinality key's colour (by order) instead of the inverse-pairs key's | 2026-10-15 | b8f8994 | — |
 | 426 | Cyclic Groups: pair-line power box shown as a raised exponent after h (reads h^x) | 2026-10-15 | d8dddc8 | — |
+| 427 | Cyclic Groups: one-colour line texts speak of steps and subgroup cardinality unless colouring by inverse pairs | 2026-10-15 | dbd8cff | — |
 
 ## Deferred Items
 
