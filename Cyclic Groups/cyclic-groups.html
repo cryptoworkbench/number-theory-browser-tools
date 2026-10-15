@@ -1121,6 +1121,7 @@
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel.is-shown{ grid-area:lgd; justify-self:center; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
   /* The keys along the bottom stop above the corner's switches. */
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#combine-key, #combine-key-pane){ padding-bottom:30px; }
   :root:not(.is-isopane):is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#legend-panel.is-shown, #legend-panel-pane:not([hidden])){ padding-bottom:30px; }
   :is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
@@ -1227,15 +1228,15 @@
   .ring-corner-sep{ flex:none; align-self:center; width:1px; height:14px; margin:0 2px; background:var(--panel-border); }
   :root.is-isopane .ring-corner > :not(#formulas-corner){ display:none; }
   .zoom-wrap{ flex:none; display:flex; align-items:center; gap:6px; }
-  /* Beside a pane, the one zoom for both rings sits on the line between
-     them, under the padlock and the direction button (keepLockClear places
-     it); its corner place and rule go. While the rings turn apart it zooms
-     the ring last pointed at, its caret pointing there. */
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .ring-corner > .zoom-wrap{ position:absolute; z-index:3; translate:-50% -50%; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .ring-corner > .zoom-wrap + .ring-corner-sep{ display:none; }
-  .zoom-wrap::before, .zoom-wrap::after{ display:none; flex:none; font-size:.9rem; line-height:1; color:var(--accent); }
-  .zoom-wrap[data-target="left"]::before{ content:'\2039'; display:block; order:-1; }
-  .zoom-wrap[data-target="right"]::after{ content:'\203A'; display:block; }
+  /* Beside a pane whose ring turns with this one, the one zoom pill in the
+     window's corner zooms both rings. While they turn apart each ring has
+     its own, at its drawing's bottom right (placeZoom): this ring's leaves
+     the corner, the pane's shows in its own; the pane's takes no wheel
+     switch, the one switch serving both rings. */
+  :root.is-zoom-apart .fs-win-body.is-ring > .ring-corner > .zoom-wrap{ position:absolute; z-index:3; }
+  :root.is-zoom-apart:not(.is-isopane) .fs-win-body.is-ring > .ring-corner > .zoom-wrap + .ring-corner-sep{ display:none; }
+  :root.is-isopane.is-zoom-apart .ring-corner > #zoom-wrap{ display:flex; }
+  :root.is-isopane #zoom-wheel{ display:none; }
   /* Zoomed in beside a pane, each ring stays inside its own half. */
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed, :root.is-isopane svg.ring-svg.is-zoomed{ overflow:hidden; }
   /* The ring's zoom: a slim pill, − and + either side of a short slider
@@ -4582,7 +4583,6 @@ if (IS_RINGWIN){
     if (d.ringhost === 'zoom'){
       if (!IS_ISOPANE || !Number.isInteger(d.i)) return;
       applyZoom(d.i);
-      tellHost({ isopane: 'zoom', i: ringZoom });
       return;
     }
     // The inverse-pair key's "Elements as", chosen under this pane's half.
@@ -4689,18 +4689,17 @@ function drawNecklace(G, paint){
 // The ring's zoom, a step along RING_ZOOMS, from the corner's zoom pill
 // (its − and +, its slider, and the scroll wheel over the ring while its
 // switch is on) or the + and − keys; 1 is the ring as it fits its place.
-// Beside a pane the one pill, on the line between the rings, serves both:
-// while the rings turn together they zoom together; apart, the pill (and
-// the keys) zoom the ring last pointed at. The pane zooms when told and
-// tells each zoom of its own (keys or wheel over it) back.
+// Beside a pane the two rings zoom together while they turn together,
+// each telling the other its zoom; apart, each ring zooms on its own, from
+// its own pill.
 var RING_ZOOMS = [0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
 var RING_ZOOM_FIT = RING_ZOOMS.indexOf(1);
-var ringZoom = RING_ZOOM_FIT, paneZoom = RING_ZOOM_FIT, zoomOnPane = false;
+var ringZoom = RING_ZOOM_FIT, paneZoom = RING_ZOOM_FIT;
 var zoomWrapEl = $('zoom-wrap'), zoomSliderEl = $('zoom-slider'), zoomOutEl = $('zoom-out'), zoomInEl = $('zoom-in'), zoomWheelEl = $('zoom-wheel');
 function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPaneEl.hidden; }
-function zoomsPane(){ return twoRings() && !isoTurnsTogether() && zoomOnPane; }
-function shownZoom(){ return zoomsPane() ? paneZoom : ringZoom; }
-function canZoom(by){ return !!RING_ZOOMS[shownZoom() + by]; }
+// Whether each ring has its own pill: beside a pane, the rings turning apart.
+function zoomApart(){ return !!groupControlsEl && (IS_ISOPANE || twoRings()) && !isoTurnsTogether(); }
+function canZoom(by){ return !!RING_ZOOMS[ringZoom + by]; }
 // This ring's own zoom.
 function applyZoom(i){
   i = clamp(i, 0, RING_ZOOMS.length - 1);
@@ -4713,54 +4712,53 @@ function tellPaneZoom(i){
   if (!isoPaneFrame) return;
   try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'zoom', i: i }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
-// A zoom asked for here: this ring's, the pane's, or both.
+// A zoom asked for here: this ring's, and the other's too while the rings
+// turn together.
 function setRingZoom(i){
-  i = clamp(i, 0, RING_ZOOMS.length - 1);
-  if (IS_ISOPANE){
-    applyZoom(i);
-    tellHost({ isopane: 'zoom', i: ringZoom, own: true });
-    return;
-  }
-  if (zoomsPane()){ tellPaneZoom(i); return; }
   applyZoom(i);
-  if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom) tellPaneZoom(ringZoom);
+  if (IS_ISOPANE){ tellHost({ isopane: 'zoom', i: ringZoom }); return; }
+  if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom){ paneZoom = ringZoom; tellPaneZoom(ringZoom); }
 }
-function stepRingZoom(by){ if (canZoom(by)) setRingZoom(shownZoom() + by); }
+function stepRingZoom(by){ if (canZoom(by)) setRingZoom(ringZoom + by); }
 // The pane's zoom, as it reports it: followed here while the rings turn
-// together. Zoomed from the pane itself (its keys or wheel), the pane is the
-// ring last pointed at.
-function heardPaneZoom(i, own){
+// together.
+function heardPaneZoom(i){
   paneZoom = clamp(i, 0, RING_ZOOMS.length - 1);
-  if (own) zoomOnPane = true;
   if (isoTurnsTogether()) applyZoom(paneZoom);
-  syncZoomCtl();
 }
 // Locked again, the pane takes this ring's zoom.
 function matchPaneZoom(){
-  if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom) tellPaneZoom(ringZoom);
+  if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom){ paneZoom = ringZoom; tellPaneZoom(ringZoom); }
   syncZoomCtl();
 }
 function syncZoomCtl(){
-  var at = shownZoom();
   zoomSliderEl.max = String(RING_ZOOMS.length - 1);
-  zoomSliderEl.value = String(at);
-  zoomSliderEl.setAttribute('aria-valuetext', Math.round(RING_ZOOMS[at] * 100) + '%');
+  zoomSliderEl.value = String(ringZoom);
+  zoomSliderEl.setAttribute('aria-valuetext', Math.round(RING_ZOOMS[ringZoom] * 100) + '%');
   zoomOutEl.disabled = !canZoom(-1);
   zoomInEl.disabled = !canZoom(1);
-  var apart = twoRings() && !isoTurnsTogether();
-  if (apart) zoomWrapEl.setAttribute('data-target', zoomOnPane ? 'right' : 'left');
-  else zoomWrapEl.removeAttribute('data-target');
+  document.documentElement.classList.toggle('is-zoom-apart', zoomApart());
+  placeZoom();
+}
+// Apart, the pill sits at the bottom right of its ring's drawing: placed
+// once the drawing has eased to its new size (see easeRingResize), not on
+// its way there.
+function placeZoom(){
+  if (/transform/.test(ringSvgEl.style.transition)) return;
+  zoomWrapEl.style.left = zoomWrapEl.style.top = '';
+  if (!zoomApart() || !zoomWrapEl.offsetParent) return;
+  var g = ringSvgEl.getBoundingClientRect(), w = zoomWrapEl.getBoundingClientRect(), r = zoomWrapEl.offsetParent.getBoundingClientRect();
+  if (!g.width || !g.height) return;
+  zoomWrapEl.style.left = num(g.right - w.width - 6 - r.left) + 'px';
+  zoomWrapEl.style.top = num(g.bottom - w.height - 6 - r.top) + 'px';
 }
 syncZoomCtl();
+if (window.ResizeObserver) new ResizeObserver(placeZoom).observe(ringSvgEl);
+window.addEventListener('resize', placeZoom);
 zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
 zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
 zoomOutEl.addEventListener('click', function(){ stepRingZoom(-1); });
 zoomInEl.addEventListener('click', function(){ stepRingZoom(1); });
-// The ring last pointed at, for the pill while the rings turn apart.
-if (!IS_ISOPANE){
-  ringSvgEl.addEventListener('pointerenter', function(){ if (zoomOnPane){ zoomOnPane = false; syncZoomCtl(); } });
-  isoPaneEl.addEventListener('pointerover', function(){ if (!zoomOnPane){ zoomOnPane = true; syncZoomCtl(); } });
-}
 // With the switch on, the wheel over a ring zooms it, a step for each
 // notch (a touchpad's small scrolls add up to one), instead of scrolling.
 // The pane hears the switch with the shared settings.
@@ -4776,7 +4774,6 @@ ringSvgEl.addEventListener('wheel', function(e){
   e.preventDefault();
   zoomWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
   if (Math.abs(zoomWheelSum) < 50) return;
-  if (!IS_ISOPANE) zoomOnPane = false;
   stepRingZoom(zoomWheelSum < 0 ? 1 : -1);
   zoomWheelSum = 0;
 }, { passive: false });
@@ -6971,7 +6968,6 @@ function closeIsoPane(){
   isoPane = null;
   dirPaneAxis = null;
   paneZoom = RING_ZOOM_FIT;
-  zoomOnPane = false;
   syncZoomCtl();
   isoSharedSent = null;
   isoInterlockSent = false;
@@ -8139,7 +8135,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'unlocked'){
     isoPane.unlocked = true;
   } else if (d.isopane === 'zoom' && Number.isInteger(d.i)){
-    heardPaneZoom(d.i, d.own === true);
+    heardPaneZoom(d.i);
   } else if (d.isopane === 'axis' && [d.b, d.s, d.k].every(Number.isFinite)){
     dirPaneAxis = { b: d.b, s: d.s, k: d.k };
     syncDirAxis();
@@ -9032,7 +9028,7 @@ function setGroupLock(on){
   syncOpenLock();
   // Locked, the rings turn as one and the direction button shows one circle.
   syncDirAxis();
-  if (!IS_ISOPANE) matchPaneZoom();
+  if (IS_ISOPANE) syncZoomCtl(); else matchPaneZoom();
   keepLockClear();
 }
 // While the rings share an isomorphism that is not locked (declined, or
@@ -9058,9 +9054,10 @@ var LOCK_CLEAR_GAP = 14; // room for the padlock's pulsing halo
 var SHARED_BTN_GAP = 8;
 function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
+  syncZoomCtl();
   syncExprLock();
   isoLockEl.style.top = exprLockEl.style.top = '';
-  [dirToggleEl, zoomWrapEl, splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
+  [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
   isoSwapEl.hidden = !canSwapRings();
@@ -9072,7 +9069,7 @@ function keepLockClear(){
   var mid = g.top + g.height / 2;
   // The split button in the open panel's corner is the panel's, not the line's.
   var onLine = function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); };
-  var btns = [dirToggleEl, zoomWrapEl, cosetBtnEl, cosetControlsEl].filter(onLine);
+  var btns = [dirToggleEl, cosetBtnEl, cosetControlsEl].filter(onLine);
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
@@ -9287,6 +9284,7 @@ ringSvgEl.addEventListener('transitionend', function(e){
   if (e.target !== ringSvgEl || e.propertyName !== 'transform') return;
   ringSvgEl.style.transition = '';
   ringSvgEl.style.transformOrigin = '';
+  placeZoom();
 });
 backwardEl.addEventListener('change', function(){
   state.backward = !backwardEl.checked;
