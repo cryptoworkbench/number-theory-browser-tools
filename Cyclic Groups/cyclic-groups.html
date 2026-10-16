@@ -2716,13 +2716,15 @@ function syncSubGcdBtn(G){
 function syncMergedExpr(G){
   var H = isoPaneGroup(), se = isoPane.subExpr || { left: null, right: null }, phi = isoImage(G);
   [[subLeftRSelectEl, se.left], [subRightRSelectEl, se.right]].forEach(function(c){
-    c[0].replaceChildren.apply(c[0], [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(H.generators.map(function(h){
+    var sorts = c[0] === subLeftRSelectEl;
+    c[0].replaceChildren.apply(c[0], [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], H.generators.map(function(h){
       var opt = document.createElement('option');
       opt.value = String(h);
       opt.textContent = translate('cyclicGroups.arrangePowers', { g: h });
       return opt;
     })));
     if (c[1] === SUB_FOLLOW){ c[0].value = SUB_FOLLOW; return; }
+    if (sorts && c[1] === SUB_SORT){ c[0].value = SUB_SORT; return; }
     var h = genOrNull(H, c[1]);
     c[0].value = h === null ? '' : String(h);
   });
@@ -7056,7 +7058,11 @@ function renderMergedSubgroups(G){
   var H = isoPaneGroup(), phi = isoImage(G), se = isoPane.subExpr || { left: null, right: null };
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
   var lg = subExprGen(G, state.subLeft, state.expr), rg = subExprGen(G, state.subRight, state.expr);
-  var hl = subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
+  // The pane's Generator following the shared sort: the image of the
+  // generator the rows are sorted by, or Natural while they are sorted
+  // naturally, by either group's numbers.
+  var sortG = state.subSortR ? null : genOrNull(G, state.subSort);
+  var hl = se.left === SUB_SORT ? (sortG === null ? null : phi(sortG)) : subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   var expWidth = Math.max(subExpWidth(G), subExpWidth(H));
   var widthG = subWidth(G), widthH = subWidth(H);
@@ -8794,7 +8800,7 @@ function syncInterlock(){
         // subgroup here must not carry the link along to it.
         if (isoPane.g === null) isoPane.g = isoLinkGen();
         var q = new URLSearchParams(isoPane.q);
-        isoPane.subExpr = { left: subExprVal(q.get('subleft')), right: subExprVal(q.get('subright')) };
+        isoPane.subExpr = { left: paneLeftVal(q.get('subleft')), right: subExprVal(q.get('subright')) };
       }
       isoTell({ iso: 'interlock', on: on });
       document.documentElement.classList.toggle('is-sub-merged', on);
@@ -8874,11 +8880,13 @@ function takeSubExpr(d){
   renderSubgroups(G);
   mirrorToUrl(G);
 }
+// The pane's Generator expression, which may follow the Sort dropdown too.
+function paneLeftVal(v){ return v === SUB_SORT ? SUB_SORT : subExprVal(v); }
 // The holder: the pane's expressions, chosen on the right of the merged panel.
 [subLeftRSelectEl, subRightRSelectEl].forEach(function(el){
   el.addEventListener('change', function(){
     if (IS_ISOPANE || !isoPane || !isoPane.subExpr || !drawn) return;
-    isoPane.subExpr = { left: subExprVal(subLeftRSelectEl.value), right: subExprVal(subRightRSelectEl.value) };
+    isoPane.subExpr = { left: paneLeftVal(subLeftRSelectEl.value), right: subExprVal(subRightRSelectEl.value) };
     isoTell({ iso: 'subexpr', left: isoPane.subExpr.left, right: isoPane.subExpr.right });
     renderSubgroups(drawn.G);
   });
