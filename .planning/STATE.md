@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: a80e2fa
+state_head: 0507af1
 progress:
   total_phases: 7
   completed_phases: 6
@@ -687,6 +687,7 @@ None yet.
 | 451 | Cyclic Groups: ELEMENT EXPRESSION tooltip gives φ(n) / φ(φ(n)) generators to choose from | 2026-10-15 | b32d7e5 | — |
 | 452 | Cyclic Groups: beside a pane, one-colour arrow key stacks its power lines and scrolls | 2026-10-16 | 605f26a | — |
 | 453 | Cyclic Groups: formula scratchpad's corner switch removed | 2026-10-16 | a80e2fa | — |
+| 454 | Cyclic Groups: SUBGROUP row's name reads SUBGROUP ⟨G⟩ | 2026-10-16 | 0507af1 | — |
 
 ## Deferred Items
 
