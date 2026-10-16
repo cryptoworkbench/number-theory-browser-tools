@@ -1298,6 +1298,9 @@
   /* On a desktop those switches live in that menu, not among the panel's
      controls. */
   :root:not(.is-mobile) #subgroups-list-panel .sub-ctls .check{ display:none; }
+  /* So do the line-up dropdown, in that menu too, and the main view's
+     formula dropdown, in the ring's own menu. */
+  :root:not(.is-mobile) #sub-width-row, :root:not(.is-mobile) #subgroups-list-panel .sub-expr-pair:has(> #sub-formula-ring-select){ display:none; }
   .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
@@ -1816,7 +1819,7 @@
           <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
-          <span class="sub-expr-pair"><label for="sub-formula-select" title="Selected subgroup's formula in its row" data-i18n-title="cyclicGroups.subFormulaRowLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaRowLabel">Selected subgroup's formula in its row</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaRowLabelShort">Formula in row</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-select" title="Formula of the subgroup whose row the pointer is on" data-i18n-title="cyclicGroups.subFormulaHoverLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaHoverLabel">Formula of the subgroup whose row the pointer is on</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaHoverLabelShort">Formula on hover</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
           <span class="sub-expr-pair"><label for="sub-formula-ring-select" title="Selected subgroup's formula in the main view" data-i18n-title="cyclicGroups.subFormulaRingLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaRingLabel">Selected subgroup's formula in the main view</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaRingLabelShort">Formula main view</span></label><select id="sub-formula-ring-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color"><span class="lbl-long" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</span><span class="lbl-short" data-i18n="cyclicGroups.subColorLabelShort">Colour like beads</span></label></div>
@@ -3304,7 +3307,7 @@ function cosetCountFormula(G, h, g, index){
 }
 
 /* ---------- the subgroup list's hover formula ---------- */
-// Whether the selected row shows a formula.
+// Whether the row the pointer is on shows a formula.
 function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
@@ -3324,27 +3327,40 @@ function paneArrangeBy(H){
   var g = v === SUB_FOLLOW ? paneExpr() : intOrNull(v);
   return H.generators.indexOf(g) !== -1 ? g : H.generators[0];
 }
-// The selected subgroup's formulas: in the selected row, on lines of their
-// own under its subgroup (on the left, this group's side, of a merged
-// row), and in the main view, under the ring's header, each place as its
-// own dropdown says. Hovering another row leaves them on the selected one.
+// The subgroups' formulas: the hovered row's, on lines of their own under
+// its subgroup (on the left, this group's side, of a merged row), and the
+// selected one's in the main view, under the ring's header, each place as
+// its own choice says.
 function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
 // A merged row gives each group its formulas on its own side: ⟨h⟩'s on the
 // left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
   clearSubFormula();
-  if (state.noSub) return;
+  if (state.noSub){ showHoverFormula(G); return; }
   if (subFormulaAtRing()){
     var box = subFormulaBox('div', 'ring-hover-formula', subRowFormula(G, state.gen, state.subFormulaRing));
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
   }
-  var row = subFormulaOn() && subgroupsEl.querySelector('.subgroup-row.is-current');
-  if (!row) return;
+  showHoverFormula(G);
+}
+// The formula on hover: in the row the pointer is on, whichever row is
+// selected. subHoverGen is that row's element, so a row rebuilt under the
+// pointer gets its formula back.
+var subHoverGen = null;
+function showHoverFormula(G){
+  subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
+  if (!subFormulaOn() || subHoverGen === null || G.els.indexOf(subHoverGen) === -1) return;
+  var g = subHoverGen, row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
+  if (!row || row.parentNode.hidden) return;
   var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
-  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, state.gen, state.subFormulaRow)));
+  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow)));
   var H = right && isoPaneGroup();
-  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(state.gen), state.subFormulaRow, paneArrangeBy(H))));
+  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneArrangeBy(H))));
+}
+function hoverRowFormula(g){
+  subHoverGen = g;
+  if (drawn) showHoverFormula(drawn.G);
 }
 function subFormulaBox(tag, cls, fs){
   var box = document.createElement(tag);
@@ -4513,11 +4529,32 @@ function setRingCtx(open, x, y){
     if (it.value) it.value.replaceChildren(it.valueOf());
   });
   syncFormulaItems();
+  syncRingFormulaPicks();
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
   ringCtxAt = [x, y];
   placeRingCtx();
   ringCtxItems[0].item.focus();
+}
+// Last in the ring's menu, on a desktop, the selected subgroup's formula
+// in the main view: none, its cardinality, its index, or both (the
+// dropdown it stands in for is kept for phones).
+function syncRingFormulaPicks(){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-fpick').forEach(function(el){ el.remove(); });
+  if (IS_MOBILE) return;
+  var head = document.createElement('p');
+  head.className = 'fs-menu-head ring-ctx-fpick';
+  head.textContent = translate('cyclicGroups.subFormulaRingLabel');
+  ringCtxEl.appendChild(head);
+  Array.prototype.forEach.call(subFormulaRingEl.options, function(o){
+    var item = menuTick('menuitemradio', o.textContent, o.value === state.subFormulaRing, function(){
+      setRingCtx(false);
+      subFormulaRingEl.value = o.value;
+      subFormulaRingEl.dispatchEvent(new Event('change'));
+    });
+    item.classList.add('ring-ctx-fpick');
+    ringCtxEl.appendChild(item);
+  });
 }
 // At the pointer, kept inside the window; placed again when the pane's
 // window grows to give the menu room.
@@ -6975,7 +7012,8 @@ function renderSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
+    row.addEventListener('mouseenter', function(){ hoverRowFormula(g); if (!keyNav) setPreview(g); });
+    row.addEventListener('mouseleave', function(){ if (subHoverGen === g) hoverRowFormula(null); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -7073,7 +7111,8 @@ function renderMergedSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
+    row.addEventListener('mouseenter', function(){ hoverRowFormula(g); if (!keyNav) setPreview(g); });
+    row.addEventListener('mouseleave', function(){ if (subHoverGen === g) hoverRowFormula(null); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -9656,21 +9695,23 @@ function setSubCtx(open, x, y){
   // The panel's switches: members coloured like their beads, and auto-shift.
   if (subCtxEl.firstChild) subCtxEl.appendChild(subCtxRule());
   [[subColorEl, 'cyclicGroups.subColorLabel'], [autoShiftEl, 'cyclicGroups.autoShift']].forEach(function(c){
-    var item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'fs-menu-item';
-    item.setAttribute('role', 'menuitemcheckbox');
-    item.setAttribute('aria-checked', c[0].checked ? 'true' : 'false');
-    var tick = svgEl('svg', { viewBox: '0 0 16 16', 'class': 'sub-ctx-tick', 'aria-hidden': 'true', focusable: 'false' });
-    tick.appendChild(svgEl('path', { d: 'M3 8.5 6.5 12 13 4.5' }));
-    item.appendChild(tick);
-    item.appendChild(document.createTextNode(translate(c[1])));
-    item.addEventListener('click', function(){
+    subCtxEl.appendChild(menuTick('menuitemcheckbox', translate(c[1]), c[0].checked, function(){
       setSubCtx(false);
       c[0].checked = !c[0].checked;
       c[0].dispatchEvent(new Event('change'));
-    });
-    subCtxEl.appendChild(item);
+    }));
+  });
+  // How the list lines up its numbers: not, with blank space, or with zeros.
+  var head = document.createElement('p');
+  head.className = 'fs-menu-head';
+  head.textContent = translate('cyclicGroups.subWidthLabel');
+  subCtxEl.appendChild(head);
+  Array.prototype.forEach.call(subWidthEl.options, function(o){
+    subCtxEl.appendChild(menuTick('menuitemradio', o.textContent, o.value === subWidthEl.value, function(){
+      setSubCtx(false);
+      subWidthEl.value = o.value;
+      subWidthEl.dispatchEvent(new Event('change'));
+    }));
   });
   // Grouped by gcd, the dividers between the groups can be hidden or shown.
   if (drawn && subGcdOn(drawn.G)){
@@ -9700,6 +9741,20 @@ function setSubCtx(open, x, y){
   subCtxEl.style.left = (2 * left - at.left) + 'px';
   subCtxEl.style.top = (2 * top - at.top) + 'px';
   subCtxEl.firstChild.focus();
+}
+// A menu item ticked while on: a switch, or one of a set of choices.
+function menuTick(role, text, on, run){
+  var item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'fs-menu-item';
+  item.setAttribute('role', role);
+  item.setAttribute('aria-checked', on ? 'true' : 'false');
+  var tick = svgEl('svg', { viewBox: '0 0 16 16', 'class': 'sub-ctx-tick', 'aria-hidden': 'true', focusable: 'false' });
+  tick.appendChild(svgEl('path', { d: 'M3 8.5 6.5 12 13 4.5' }));
+  item.appendChild(tick);
+  item.appendChild(document.createTextNode(text));
+  item.addEventListener('click', run);
+  return item;
 }
 function subCtxRule(){
   var rule = document.createElement('div');

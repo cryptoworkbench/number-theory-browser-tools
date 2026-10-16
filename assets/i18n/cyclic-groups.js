@@ -82,7 +82,9 @@
    their exponent with the group's cardinality, the divider heading each
    group, the rows' right-click entries hiding or showing those
    dividers, and a divider's tooltip folding its group's rows away or
-   unfolding them).
+   unfolding them), and subFormulaHoverLabel and subFormulaHoverLabelShort
+   (the subgroup list's choice of formula shown in the row the pointer is
+   on; they replace subFormulaRowLabel and subFormulaRowLabelShort).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -395,7 +397,7 @@
       subExprRightShort: 'Members',
       subSortLabelShort: 'Sort',
       subWidthLabelShort: 'Line up',
-      subFormulaRowLabelShort: 'Formula in row',
+      subFormulaHoverLabelShort: 'Formula on hover',
       subFormulaRingLabelShort: 'Formula main view',
       subColorLabelShort: 'Colour like beads',
       autoShiftShort: 'Auto-shift',
@@ -414,7 +416,7 @@
       subAlign: 'Align numbers with blank space',
       subWidthLabel: 'Line up numbers',
       subWidthNone: 'None',
-      subFormulaRowLabel: "Selected subgroup's formula in its row",
+      subFormulaHoverLabel: 'Formula of the subgroup whose row the pointer is on',
       subFormulaRingLabel: "Selected subgroup's formula in the main view",
       subFormulaNone: 'None',
       subFormulaOrder: 'Subgroup cardinality',
