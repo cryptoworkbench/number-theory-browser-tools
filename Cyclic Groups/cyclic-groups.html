@@ -6822,6 +6822,7 @@ function subGcdDivider(G, g, prev){
   text.textContent = translate('cyclicGroups.subGcdDivider', { n: G.order, d: G.order / order, order: order });
   btn.appendChild(text);
   btn.addEventListener('click', function(){
+    if (subAutoOpen && subAutoOpen.order === order) subAutoOpen = null;
     if (folded) delete state.subGcdFolded[order];
     else state.subGcdFolded[order] = true;
     render();
@@ -6835,6 +6836,17 @@ function subGcdDivider(G, g, prev){
 function subGcdPaint(G, g){
   if (state.colorBy === 'order' && drawn) return drawn.paint(g).cls;
   return orderPaint(G, g);
+}
+// A group the arrow keys unfolded by stepping into it folds again once the
+// selection leaves it; folded or unfolded by hand, it stays as it is.
+var subAutoOpen = null;
+function refoldAutoOpen(G){
+  var a = subAutoOpen;
+  if (!a) return;
+  if (a.group !== G.mode + ' ' + G.n){ subAutoOpen = null; return; }
+  if (!state.noSub && G.orders[state.gen] === a.order) return;
+  subAutoOpen = null;
+  state.subGcdFolded[a.order] = true;
 }
 // Whether row g is folded away under its divider.
 function subRowFolded(G, g){
@@ -6893,6 +6905,7 @@ function subRowGcdTitle(G, log, g){
   return translate('cyclicGroups.subRowGcd', { e: e, n: G.order, gcd: d, count: G.order / d });
 }
 function renderSubgroups(G){
+  refoldAutoOpen(G);
   if (!IS_ISOPANE && subInterlocked()) return renderMergedSubgroups(G);
   var hadFocus = subgroupsEl.contains(document.activeElement);
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
@@ -7177,7 +7190,10 @@ function stepSubRow(delta){
   var G = drawn.G, els = subOrder(G);
   var i = els.indexOf(state.gen) + delta;
   if (i < 0 || i >= els.length) return false;
-  if (subRowFolded(G, els[i])) delete state.subGcdFolded[G.orders[els[i]]];
+  if (subRowFolded(G, els[i])){
+    delete state.subGcdFolded[G.orders[els[i]]];
+    subAutoOpen = { group: G.mode + ' ' + G.n, order: G.orders[els[i]] };
+  }
   keyNav = true;
   selectGen(panelGen = els[i]);
   return true;
