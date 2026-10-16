@@ -533,7 +533,7 @@
       akeyPairMode: 'Draw the line in one colour, from the subgroup cardinality key',
       akeyShowPower: 'Show these lines',
       akeyHidePower: 'Hide these lines',
-      akeyPowerExp: 'Power to raise the selected element to',
+      akeyPowerExp: 'Power to raise the selected element to: a divisor of the group\'s cardinality',
       akeyPath: '{a} and {a}⁻¹\'s shared path',
       akeyTipGroup: 'Group',
       akeyPathGeneral: '{a} and {ainv}\'s shared path',
