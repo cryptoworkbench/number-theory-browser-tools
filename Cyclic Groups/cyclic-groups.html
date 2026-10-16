@@ -6822,7 +6822,7 @@ function subGcdDivider(G, g, prev){
   text.textContent = translate('cyclicGroups.subGcdDivider', { n: G.order, d: G.order / order, order: order });
   btn.appendChild(text);
   btn.addEventListener('click', function(){
-    if (subAutoOpen && subAutoOpen.order === order) subAutoOpen = null;
+    if (subAutoOpen) delete subAutoOpen.orders[order];
     if (folded) delete state.subGcdFolded[order];
     else state.subGcdFolded[order] = true;
     render();
@@ -6837,16 +6837,20 @@ function subGcdPaint(G, g){
   if (state.colorBy === 'order' && drawn) return drawn.paint(g).cls;
   return orderPaint(G, g);
 }
-// A group the arrow keys unfolded by stepping into it folds again once the
-// selection leaves it; folded or unfolded by hand, it stays as it is.
-var subAutoOpen = null;
+// Each group the arrow keys unfolded by stepping into it folds again once
+// the selection leaves it, however many such groups it passes through;
+// folded or unfolded by hand, a group stays as it is.
+var subAutoOpen = null; // { group, orders: { order: true } }
 function refoldAutoOpen(G){
   var a = subAutoOpen;
   if (!a) return;
   if (a.group !== G.mode + ' ' + G.n){ subAutoOpen = null; return; }
-  if (!state.noSub && G.orders[state.gen] === a.order) return;
-  subAutoOpen = null;
-  state.subGcdFolded[a.order] = true;
+  var here = state.noSub ? null : String(G.orders[state.gen]);
+  Object.keys(a.orders).forEach(function(order){
+    if (order === here) return;
+    delete a.orders[order];
+    state.subGcdFolded[order] = true;
+  });
 }
 // Whether row g is folded away under its divider.
 function subRowFolded(G, g){
@@ -7192,7 +7196,9 @@ function stepSubRow(delta){
   if (i < 0 || i >= els.length) return false;
   if (subRowFolded(G, els[i])){
     delete state.subGcdFolded[G.orders[els[i]]];
-    subAutoOpen = { group: G.mode + ' ' + G.n, order: G.orders[els[i]] };
+    var group = G.mode + ' ' + G.n;
+    if (!subAutoOpen || subAutoOpen.group !== group) subAutoOpen = { group: group, orders: {} };
+    subAutoOpen.orders[G.orders[els[i]]] = true;
   }
   keyNav = true;
   selectGen(panelGen = els[i]);
