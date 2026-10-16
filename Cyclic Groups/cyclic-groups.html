@@ -4823,6 +4823,7 @@ if (IS_RINGWIN){
     // Coupled to the holding ring's expression slider: its image here.
     if (d.ringhost === 'expr'){
       if (!IS_ISOPANE || !drawn || (d.expr !== null && genOrNull(drawn.G, d.expr) === null) || d.expr === exprBy(drawn.G)) return;
+      pinArrangeGen(drawn.G, d.expr);
       state.expr = d.expr;
       render();
       return;
@@ -8715,6 +8716,7 @@ window.addEventListener('message', function(e){
     if (!m || (d.expr !== null && genOrNull(m.H, d.expr) === null)) return;
     var g = d.expr === null ? null : m.from(d.expr);
     if (g === exprBy(m.G)) return;
+    pinArrangeGen(m.G, g);
     state.expr = g;
     render();
   } else if (d.isopane === 'exprlock'){
@@ -9867,6 +9869,14 @@ SUB_EXPR_CTLS.forEach(function(c){
 });
 // Sliding through the element expression's stops: Natural, then the powers
 // of each generator in turn.
+// Arranged by the slider's generator, sliding back to Natural leaves the
+// beads where they are: the arrangement takes the generator the slider was
+// last on, named in its dropdown, instead of falling back to the smallest.
+function pinArrangeGen(G, next){
+  if (next !== null || !state.bygen || state.arrangeGen !== SUB_FOLLOW) return;
+  var g = exprBy(G);
+  if (g !== null) state.arrangeGen = g;
+}
 function setExprStop(i){
   if (!drawn || !drawn.G.cyclic) return;
   var g = i > 0 ? drawn.G.generators[i - 1] : undefined;
@@ -9877,6 +9887,7 @@ function setExprStop(i){
   // out to match already), and the ring holding it the pane's choice, to
   // take its preimage.
   if (!IS_ISOPANE && exprCouplingOn()) tellPaneExpr(next);
+  pinArrangeGen(drawn.G, next);
   // Arranged by the slider's generator, the beads move to their new places.
   if (state.bygen && state.arrangeGen === SUB_FOLLOW) rearrange(function(){ state.expr = next; render(); });
   else {
