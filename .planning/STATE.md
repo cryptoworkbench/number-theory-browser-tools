@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: dd632da
+state_head: a38c745
 progress:
   total_phases: 7
   completed_phases: 6
@@ -712,6 +712,7 @@ None yet.
 | 476 | Cyclic Groups: shared paths named G^x and G^-x with an x = box | 2026-10-16 | 18bf865 | — |
 | 477 | Cyclic Groups: shared-path powers named x, y, z, a, b, c in turn | 2026-10-16 | 1a8b408 | — |
 | 478 | Cyclic Groups: light chevron blink when the hidden bottom panel's row changes | 2026-10-16 | dd632da | — |
+| 479 | Cyclic Groups: expression slider blinks only its grey track and ticks | 2026-10-16 | a38c745 | — |
 
 ## Deferred Items
 
