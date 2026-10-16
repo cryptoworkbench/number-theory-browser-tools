@@ -397,7 +397,7 @@
       subExprRightShort: 'Members',
       subSortLabelShort: 'Sort',
       subWidthLabelShort: 'Line up',
-      subFormulaHoverLabelShort: 'Formula on hover',
+      subFormulaHoverLabelShort: 'Formula',
       subFormulaRingLabelShort: 'Formula main view',
       subColorLabelShort: 'Colour like beads',
       autoShiftShort: 'Auto-shift',
