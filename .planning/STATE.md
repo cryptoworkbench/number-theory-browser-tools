@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: fcf5039
+state_head: ee91926
 progress:
   total_phases: 7
   completed_phases: 6
@@ -702,6 +702,7 @@ None yet.
 | 466 | Cyclic Groups: locked-view key writes G¹ rather than G | 2026-10-16 | 145816b | — |
 | 467 | Cyclic Groups: slider to Natural pins the arrangement generator it was following | 2026-10-16 | 5633069 | — |
 | 468 | Cyclic Groups: subgroup dropdown keeps Follow bottom-panel when the slider goes to Natural | 2026-10-16 | fcf5039 | — |
+| 469 | Cyclic Groups: subgroup dropdown holds only Follow bottom-panel and Follow expression slider | 2026-10-16 | ee91926 | — |
 
 ## Deferred Items
 
