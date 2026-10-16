@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 785f098
+state_head: 56837b7
 progress:
   total_phases: 7
   completed_phases: 6
@@ -714,6 +714,7 @@ None yet.
 | 478 | Cyclic Groups: light chevron blink when the hidden bottom panel's row changes | 2026-10-16 | dd632da | — |
 | 479 | Cyclic Groups: expression slider blinks only its grey track and ticks | 2026-10-16 | a38c745 | — |
 | 480 | Cyclic Groups: shared-path exponents picked from the divisors of the group cardinality | 2026-10-16 | 785f098 | — |
+| 481 | Cyclic Groups: exponent dropdowns follow the dark theme | 2026-10-16 | 56837b7 | — |
 
 ## Deferred Items
 
