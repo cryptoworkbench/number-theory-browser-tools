@@ -38,7 +38,8 @@
    and introQrCaption (the QR code of the page's own address beside the
    intro), and
    subExprSort (the Numerical panel's Generator expression following its
-   Sort dropdown), subExprFollow (the Numerical panel's two expressions following the ring's
+   Sort dropdown), subSortFollowCoupled (that Sort dropdown, merged across
+   two rings, following their coupled expression sliders), subExprFollow (the Numerical panel's two expressions following the ring's
    expression slider), isoAddLeftTitle (the + at the ring's left edge,
    opening a new ring on the left), and subWidthLabel, subWidthNone,
    subAlign and subAlignTitle (the Numerical panel's dropdown lining up the
@@ -405,6 +406,7 @@
       subSortNatLeft: 'Natural order on the left',
       subSortNatRight: 'Natural order on the right',
       subSortExpPair: 'Exponent of {g} and {h}',
+      subSortFollowCoupled: 'Follow coupled expression sliders',
       subGcd: 'gcd(k, |G|)',
       subGcdTitle: 'Group the rows by gcd(k, |G|), k each row\'s exponent of the generator they are sorted by',
       subGcdDivider: 'gcd(k, {n}) = {d} · order {order}',
