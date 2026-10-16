@@ -2593,11 +2593,11 @@ function subExprGen(G, v, slider){
   if (v === SUB_SORT) return !IS_ISOPANE && subInterlocked() && state.subSortR ? null : sortGen(G);
   return v === SUB_FOLLOW ? genOrNull(G, slider) : genOrNull(G, v);
 }
-// The generator the rows are sorted by the exponent of, or null. Merged,
-// the sort may follow the coupled expression sliders (SUB_FOLLOW): the
-// generator this ring's slider is on, its image the pane's.
+// The generator the rows are sorted by the exponent of, or null. The sort
+// may follow the expression slider (SUB_FOLLOW): the generator this ring's
+// slider is on, and merged, with the sliders coupled, its image the pane's.
 function sortGen(G){
-  if (state.subSort === SUB_FOLLOW) return !IS_ISOPANE && subInterlocked() ? exprBy(G) : null;
+  if (state.subSort === SUB_FOLLOW) return exprBy(G);
   return genOrNull(G, state.subSort);
 }
 // A panel control's value as read from its dropdown or a link: the sort a
@@ -2693,15 +2693,14 @@ function syncSubExpr(G){
   subExprRowREl.hidden = !merged;
   if (!G.cyclic) return;
   SUB_EXPR_CTLS.forEach(function(c){
-    var follows = c.el !== subSortSelectEl;
     var sorts = c.el === subLeftSelectEl;
-    c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(follows ? [followOption()] : [], sorts ? [sortOption()] : [], G.generators.map(function(g){
+    c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], G.generators.map(function(g){
       var opt = document.createElement('option');
       opt.value = String(g);
       opt.textContent = translate(c.key, { g: g });
       return opt;
     })));
-    if (follows && c.get() === SUB_FOLLOW){ c.el.value = SUB_FOLLOW; return; }
+    if (c.get() === SUB_FOLLOW){ c.el.value = SUB_FOLLOW; return; }
     if (sorts && c.get() === SUB_SORT){ c.el.value = SUB_SORT; return; }
     var g = genOrNull(G, c.get());
     c.el.value = g === null ? '' : String(g);
