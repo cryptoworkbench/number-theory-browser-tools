@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: fa73db3
+state_head: eeb5147
 progress:
   total_phases: 7
   completed_phases: 6
@@ -736,6 +736,7 @@ None yet.
 | 500 | Cyclic Groups: merged Sort can follow the coupled expression sliders | 2026-10-16 | 0df857b | — |
 | 501 | Cyclic Groups: merged subgroup panel's sides sized to their controls, no wrap | 2026-10-16 | fc18c8a | — |
 | 502 | Cyclic Groups: element expressions' corner button stays pressed; minimize removed | 2026-10-16 | fa73db3 | — |
+| 503 | Cyclic Groups: gcd dividers read GCD(generator's exponent, \|group\|) | 2026-10-17 | eeb5147 | — |
 
 ## Deferred Items
 
