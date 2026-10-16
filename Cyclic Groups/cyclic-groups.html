@@ -1287,7 +1287,7 @@
      pane keeps only its own scratchpad's switch; the rest are the left
      ring's. */
   .ring-corner-sep{ flex:none; align-self:center; width:1px; height:14px; margin:0 2px; background:var(--panel-border); }
-  :root.is-isopane .ring-corner > :not(#formulas-corner){ display:none; }
+  :root.is-isopane .ring-corner > *{ display:none; }
   .zoom-wrap{ flex:none; display:flex; align-items:center; gap:6px; }
   /* Beside a pane whose ring turns with this one, the one zoom pill in the
      window's corner zooms both rings. While they turn apart each ring has
@@ -1297,7 +1297,6 @@
   :root.is-zoom-apart .fs-win-body.is-ring > .ring-corner > .zoom-wrap{ position:absolute; z-index:3; }
   :root.is-zoom-apart:not(.is-isopane) .fs-win-body.is-ring > .ring-corner > .zoom-wrap + .ring-corner-sep{ display:none; }
   :root.is-isopane.is-zoom-apart .ring-corner > #zoom-wrap{ display:flex; }
-  :root.is-formulas-apart:not(.is-isopane) .fs-win-body.is-ring > .ring-corner > #formulas-corner{ position:absolute; z-index:3; }
   :root.is-isopane #zoom-wheel{ display:none; }
   /* Zoomed in beside a pane, each ring stays inside its own half. */
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed, :root.is-isopane svg.ring-svg.is-zoomed{ overflow:hidden; }
@@ -1903,7 +1902,6 @@
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner show-corner" id="cord-corner" aria-pressed="true" title="Show corresponding polygon" aria-label="Show corresponding polygon" data-i18n-title="cyclicGroups.layerCord" data-i18n-aria-label="cyclicGroups.layerCord"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6 1.3 10.5 4.6 8.8 10.2H3.2L1.5 4.6Z"/></svg></button>
         <button type="button" class="fs-win-btn key-corner show-corner" id="guide-corner" aria-pressed="true" title="Show connecting circle" aria-label="Show connecting circle" data-i18n-title="cyclicGroups.layerGuide" data-i18n-aria-label="cyclicGroups.layerGuide"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/></svg></button>
-        <button type="button" class="fs-win-btn key-corner show-corner" id="formulas-corner" aria-pressed="false" aria-controls="scratch-pad" title="Show formulas" aria-label="Show formulas" data-i18n-title="cyclicGroups.ctxShowFormulas" data-i18n-aria-label="cyclicGroups.ctxShowFormulas"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1 6.8H2.6L4.3 10.3 6.6 1.7H11"/><path d="M7.6 4.6 10.4 8.4M10.4 4.6 7.6 8.4"/></svg></button>
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner" id="legend-corner" aria-pressed="false" aria-controls="legend-panel" title="Show element colour key" aria-label="Show element colour key" data-i18n-title="cyclicGroups.showElementKey" data-i18n-aria-label="cyclicGroups.showElementKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle class="icon-fill" cx="2.8" cy="2.5" r="1.4"/><circle class="icon-fill" cx="2.8" cy="6" r="1.4"/><circle class="icon-fill" cx="2.8" cy="9.5" r="1.4"/><line x1="6" y1="2.5" x2="10.5" y2="2.5"/><line x1="6" y1="6" x2="10.5" y2="6"/><line x1="6" y1="9.5" x2="10.5" y2="9.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="akey-corner" aria-pressed="false" aria-controls="combine-key" title="Show arrow colour key" aria-label="Show arrow colour key" data-i18n-title="cyclicGroups.showArrowKey" data-i18n-aria-label="cyclicGroups.showArrowKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 3.5H5.5M4 2 5.5 3.5 4 5"/><path d="M1.5 8.5H5.5M4 7 5.5 8.5 4 10"/><line x1="7.5" y1="3.5" x2="10.5" y2="3.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="8.5"/></svg></button>
@@ -3602,8 +3600,8 @@ scratchPadEl.addEventListener('dblclick', function(e){
   setScratchScale(1);
   setScratchWidth(null);
 });
-// Opened and closed from the window's corner switch; closed from the
-// scratchpad's own corner button too.
+// Closed from the scratchpad's own corner button; nothing opens it now that
+// the window's corner has no switch for it.
 function setScratchOpen(open){
   scratchOpen = open;
   if (drawn) drawScratchPad(drawn.G);
@@ -3611,30 +3609,11 @@ function setScratchOpen(open){
 }
 // The corner's Show switches: the polygon's and the circle's flip the
 // Layers panel's checkboxes, whose own handlers draw and remember the
-// change; the formulas' opens the scratchpad, where the window has room.
-var showCornerEls = { cord: $('cord-corner'), guide: $('guide-corner') }, formulasCornerEl = $('formulas-corner');
+// change.
+var showCornerEls = { cord: $('cord-corner'), guide: $('guide-corner') };
 function syncShowCorners(){
-  if (!formulasCornerEl) return; // not yet set up
+  if (!showCornerEls) return; // not yet set up
   Object.keys(showCornerEls).forEach(function(name){ showCornerEls[name].setAttribute('aria-pressed', state[name] ? 'true' : 'false'); });
-  formulasCornerEl.hidden = !ringWorkArea();
-  formulasCornerEl.setAttribute('aria-pressed', scratchOpen && !formulasCornerEl.hidden ? 'true' : 'false');
-  placeFormulasCorner();
-}
-// Beside a pane the window's corner is no longer this ring's own: the
-// formulas switch leaves it for this ring's half, at its bottom left, level
-// with the pane's own switch at the pane's bottom right.
-function placeFormulasCorner(){
-  if (!formulasCornerEl || IS_ISOPANE) return;
-  var body = ringSvgEl.parentNode;
-  var apart = !isoPaneEl.hidden && body.classList.contains('fs-win-body') && !formulasCornerEl.hidden;
-  document.documentElement.classList.toggle('is-formulas-apart', apart);
-  formulasCornerEl.style.left = formulasCornerEl.style.top = '';
-  if (!apart || !formulasCornerEl.offsetParent) return;
-  var b = body.getBoundingClientRect(), p = isoPaneEl.getBoundingClientRect();
-  var w = formulasCornerEl.getBoundingClientRect(), r = formulasCornerEl.offsetParent.getBoundingClientRect();
-  if (!p.height) return;
-  formulasCornerEl.style.left = num(b.left + body.clientLeft + parseFloat(getComputedStyle(body).paddingLeft) + 6 - r.left) + 'px';
-  formulasCornerEl.style.top = num(p.bottom - w.height - 6 - r.top) + 'px';
 }
 Object.keys(showCornerEls).forEach(function(name){
   showCornerEls[name].addEventListener('click', function(){
@@ -3643,13 +3622,6 @@ Object.keys(showCornerEls).forEach(function(name){
     box.dispatchEvent(new Event('change'));
   });
 });
-formulasCornerEl.addEventListener('click', function(){ setScratchOpen(!scratchOpen); });
-new MutationObserver(placeFormulasCorner).observe(isoPaneEl, { attributes: true, attributeFilter: ['hidden'] });
-if (window.ResizeObserver){
-  new ResizeObserver(placeFormulasCorner).observe(isoPaneEl);
-  new ResizeObserver(placeFormulasCorner).observe($('ring-corner'));
-}
-window.addEventListener('resize', placeFormulasCorner);
 
 // Which head switches show: out of full screen each only while every one
 // before it is on.
