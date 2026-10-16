@@ -5155,7 +5155,7 @@ function powerSide(p){
 // when it has no lines, why.
 function powerText(el, G, p){
   var h = shownGen(G), x = powerExp(p), hp = powerOf(G, h, x);
-  if (hp !== G.identity && powerFits(G, p)) orderText(el, G, hp, x);
+  if (hp !== G.identity && powerFits(G, p)) orderText(el, G, hp, p);
   else translateInto(el, hp === G.identity ? 'cyclicGroups.akeyOrderId' : 'cyclicGroups.akeyOrderSame', { hp: akeyGeneral() ? gPower(x) : mNum(hp), x: mNum(x) });
   return hp;
 }
@@ -5163,11 +5163,19 @@ function powerText(el, G, p){
 // A one-colour line's key text for the element a = h^x it walks: the path
 // of a and a^-1. For one ring alone, and beside a locked pane where it
 // serves both rings, it names them as G^x and G^-x, G the selected element
-// and x the power in the line's box, rather than by value.
-function orderText(el, G, a, x){
+// and x the power in the line's box (expName), rather than by value.
+function orderText(el, G, a, p){
+  var e = expName(p);
   el.textContent = akeyGeneral()
-    ? translate('cyclicGroups.akeyPathGeneral', { a: 'Gˣ', ainv: 'G⁻ˣ' })
+    ? translate('cyclicGroups.akeyPathGeneral', { a: 'G' + e.sup, ainv: 'G⁻' + e.sup })
     : translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
+}
+// The p-th line's power is named by the alphabet from x on, wrapping
+// round to a after z: x, y, z, a, b, c, ...
+var EXP_NAMES = 'xyzabcdefghijklmnopqrstuvw', EXP_SUPS = ['ˣ', 'ʸ', 'ᶻ', 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ', 'ᵉ', 'ᶠ', 'ᵍ', 'ʰ', 'ⁱ', 'ʲ', 'ᵏ', 'ˡ', 'ᵐ', 'ⁿ', 'ᵒ', 'ᵖ', '𐞥', 'ʳ', 'ˢ', 'ᵗ', 'ᵘ', 'ᵛ', 'ʷ'];
+function expName(p){
+  var i = (p - 1) % EXP_NAMES.length;
+  return { name: EXP_NAMES[i], sup: EXP_SUPS[i] };
 }
 // The key writes its lines in powers of G for one ring alone, and beside a
 // locked pane; beside an unlocked one, and in the pane, by value.
@@ -5287,7 +5295,7 @@ function renderCombineKey(G){
   akeyPairMode = lined && state.oneLinePair;
   var line1 = akeyPairMode ? powerOf(G, h, powerExp(1)) : h;
   if (!akeyPairMode) translateInto(innerEl, 'cyclicGroups.combineForward', params());
-  else if (line1 !== G.identity) orderText(innerEl, G, line1, powerExp(1));
+  else if (line1 !== G.identity) orderText(innerEl, G, line1, 1);
   else translateInto(innerEl, 'cyclicGroups.akeyOrderId', { hp: akeyGeneral() ? gPower(powerExp(1)) : mNum(line1), x: mNum(powerExp(1)) });
   var line2 = akeyPairMode ? powerText(outerEl, G, 2) : null;
   if (!akeyPairMode) translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
@@ -5320,10 +5328,11 @@ function renderCombineKey(G){
   akeyBackEl.setAttribute('aria-label', backName);
   akeyBackEl.hidden = akeyPairMode && !powerFits(G, 2);
   // Each further line's power, and its side while its lines can be drawn.
-  // Written in powers of G, each box is named x, the x of its text.
-  var exp1El = $('akey-exp-1'), expBase = akeyGeneral() ? 'x = ' : '';
+  // Written in powers of G, each box is named as its text names it.
+  var exp1El = $('akey-exp-1'), general = akeyGeneral();
+  function expBase(p){ return general ? expName(p).name + ' = ' : ''; }
   $('akey-exp-wrap-1').hidden = !akeyPairMode;
-  $('akey-exp-wrap-1').firstChild.textContent = expBase;
+  $('akey-exp-wrap-1').firstChild.textContent = expBase(1);
   exp1El.max = Math.max(1, G.orders[h] - 1);
   if (document.activeElement !== exp1El) exp1El.value = powerExp(1);
   POWER_PS.forEach(function(p){
@@ -5331,7 +5340,7 @@ function renderCombineKey(G){
     sideEl.hidden = !akeyPairMode || !powerFits(G, p);
     sideEl.value = powerSide(p);
     wrapEl.hidden = !akeyPairMode;
-    wrapEl.firstChild.textContent = expBase;
+    wrapEl.firstChild.textContent = expBase(p);
     expEl.max = Math.max(2, G.orders[h] - 1);
     if (document.activeElement !== expEl) expEl.value = powerExp(p);
   });
