@@ -409,7 +409,7 @@
       subSortFollowCoupled: 'Follow coupled expression sliders',
       subGcd: 'gcd(k, |G|)',
       subGcdTitle: 'Group the rows by gcd(k, |G|), k each row\'s exponent of the generator they are sorted by',
-      subGcdDivider: "GCD(generator's exponent, |{group}|) = {d} · order {order}",
+      subGcdDivider: 'GCD(exponent of {g}, |{group}|) = {d} · order {order}',
       subGcdHideDividers: 'Hide the gcd dividers',
       subGcdShowDividers: 'Show the gcd dividers',
       subGcdCollapse: 'Fold this group of rows away',
