@@ -436,6 +436,11 @@
   /* The hovered row's formula, on a line of its own inside the row. */
   .sub-row-formula{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin:4px 0 2px; padding:6px 0 4px; overflow-x:auto; overflow-y:hidden; font-family:var(--font-sans); font-size:.95rem; color:var(--text); border-top:1px dashed var(--panel-border); }
   .sub-row-formula .ring-math-formula{ display:inline math; margin:0; }
+  /* The hovered row's, unless it is the selected one, floats under the row
+     as a card over whatever lies below, so the list never moves under the
+     pointer; it lets the pointer through. Placed by placeFloatFormula,
+     above the row where the window has no room below it. */
+  .sub-row-formula.is-float{ position:fixed; z-index:60; left:0; top:0; max-width:min(48em, calc(100vw - 16px)); margin:0; padding:6px 10px; background:var(--surface); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--ink) 18%, transparent); pointer-events:none; }
   .arrow-options{ margin:0 0 14px; }
   .coset-btn{ width:100%; }
   /* Between locked rings each group's index formula takes a line. */
@@ -3357,7 +3362,7 @@ function syncSubFormula(G){
 // gets its formula back.
 var subHoverGen = null;
 function showHoverFormula(G){
-  subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
+  subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
   if (!subFormulaOn()) return;
   var gens = [];
   if (!state.noSub) gens.push(state.gen);
@@ -3367,14 +3372,61 @@ function showHoverFormula(G){
     var row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
     if (!row || row.parentNode.hidden) return;
     var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
-    (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow)));
     var H = right && isoPaneGroup();
-    if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneArrangeBy(H))));
+    var fs = subRowFormula(G, g, state.subFormulaRow), hs = H ? subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneArrangeBy(H)) : null;
+    if (g === state.gen && !state.noSub){
+      (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', fs));
+      if (hs) right.appendChild(subFormulaBox('span', 'sub-row-formula', hs));
+      return;
+    }
+    placeFloatFormula(subgroupsPanelEl.appendChild(subFormulaBox('div', 'sub-row-formula is-float', fs)), left || row, false);
+    if (hs) placeFloatFormula(subgroupsPanelEl.appendChild(subFormulaBox('div', 'sub-row-formula is-float', hs)), right, true);
   });
 }
+// A floating formula just under its row's side (side: its left part, or
+// for a merged row's right side, alignRight, the right one). Where the
+// window has no room below, it goes beside the row's own text, level with
+// the row, where that leaves room, and else above the row. Inside a window
+// that holds its fixed children, it is placed against that window's corner
+// instead of the viewport's.
+function placeFloatFormula(box, side, alignRight){
+  var at = side.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
+  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  var x = alignRight ? at.right - 8 - w : at.left + 8;
+  x = Math.max(4, Math.min(x, vw - w - 4));
+  var y = at.bottom + 2;
+  if (y + h > vh - 4){
+    // The row's text: from its first piece's left to its last piece's right.
+    var parts = Array.prototype.filter.call(side.children, function(c){ return !c.classList.contains('sub-row-formula'); });
+    var textL = parts.length ? parts[0].getBoundingClientRect().left : at.left;
+    var textR = parts.length ? parts[parts.length - 1].getBoundingClientRect().right : at.right;
+    var bx = alignRight ? textL - 16 - w : textR + 16;
+    if (alignRight ? bx >= at.left : bx + w <= at.right){
+      x = bx;
+      y = Math.max(4, Math.min(at.top, vh - h - 4));
+    } else y = Math.max(4, at.top - h - 2);
+  }
+  box.style.left = x + 'px';
+  box.style.top = y + 'px';
+  var r = box.getBoundingClientRect();
+  box.style.left = (2 * x - r.left) + 'px';
+  box.style.top = (2 * y - r.top) + 'px';
+}
+subgroupsEl.addEventListener('scroll', function(){
+  if (subHoverGen !== null && drawn && subgroupsPanelEl.querySelector('.sub-row-formula.is-float')) showHoverFormula(drawn.G);
+}, { passive: true });
+// Leaving a row clears its formula a moment later, so crossing the thin
+// gap between two rows does not make it blink.
+var subHoverLeave = null;
 function hoverRowFormula(g){
+  clearTimeout(subHoverLeave);
+  if (g === subHoverGen) return;
   subHoverGen = g;
   if (drawn) showHoverFormula(drawn.G);
+}
+function leaveRowFormula(g){
+  clearTimeout(subHoverLeave);
+  subHoverLeave = setTimeout(function(){ if (subHoverGen === g) hoverRowFormula(null); }, 80);
 }
 function subFormulaBox(tag, cls, fs){
   var box = document.createElement(tag);
@@ -3399,7 +3451,7 @@ function fitSubFormulaLine(box, m){
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
 function clearSubFormula(){
-  subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
+  subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
   var box = ringHeadEl.querySelector('.ring-hover-formula');
   if (box) box.remove();
 }
@@ -7026,8 +7078,8 @@ function renderSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ hoverRowFormula(g); if (!keyNav) setPreview(g); });
-    row.addEventListener('mouseleave', function(){ if (subHoverGen === g) hoverRowFormula(null); });
+    row.addEventListener('mouseenter', function(){ if (keyNav) return; hoverRowFormula(g); setPreview(g); });
+    row.addEventListener('mouseleave', function(){ leaveRowFormula(g); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -7125,8 +7177,8 @@ function renderMergedSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ hoverRowFormula(g); if (!keyNav) setPreview(g); });
-    row.addEventListener('mouseleave', function(){ if (subHoverGen === g) hoverRowFormula(null); });
+    row.addEventListener('mouseenter', function(){ if (keyNav) return; hoverRowFormula(g); setPreview(g); });
+    row.addEventListener('mouseleave', function(){ leaveRowFormula(g); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -7255,6 +7307,7 @@ function stepSubRow(delta){
   var G = drawn.G, els = subOrder(G);
   var i = els.indexOf(state.gen) + delta;
   if (i < 0 || i >= els.length) return false;
+  if (subHoverGen !== null) subHoverGen = null;
   if (subRowFolded(G, els[i])){
     delete state.subGcdFolded[G.orders[els[i]]];
     var group = G.mode + ' ' + G.n;
