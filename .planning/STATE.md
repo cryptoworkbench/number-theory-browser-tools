@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f31159c
+state_head: 922d02a
 progress:
   total_phases: 7
   completed_phases: 6
@@ -726,6 +726,7 @@ None yet.
 | 490 | Cyclic Groups: line-up and main-view formula moved to right-click menus; row formula on hover | 2026-10-16 | 30fdaa3 | — |
 | 491 | Cyclic Groups: merged subgroup panel's shared controls moved onto the first line | 2026-10-16 | cf18616 | — |
 | 492 | Cyclic Groups: no focus ring on the selected subgroup row | 2026-10-16 | f31159c | — |
+| 493 | Cyclic Groups: subgroup panel's Formula on hover control renamed Formula | 2026-10-16 | 922d02a | — |
 
 ## Deferred Items
 
