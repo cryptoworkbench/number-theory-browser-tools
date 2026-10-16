@@ -77,7 +77,8 @@
    one-colour line's text beside a locked pane, in powers of G), and
    akeyTipGroup (the group column's head of the hover tables there: a
    one-colour line's, giving its pair by value per ring, and the exponent
-   column head's, giving G per ring).
+   column head's, giving G per ring), and akeyPickPane (a path's bar in
+   the unlocked second group's arrow key, picking that group's own colour).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -538,6 +539,7 @@
       akeyPowerExp: 'Power to raise the selected element to',
       akeyPath: '{a} and {a}⁻¹\'s shared path',
       akeyExpHead: 'G\'s exponent',
+      akeyPickPane: 'Choose this path\'s colour in this group',
       akeyTipGroup: 'Group',
       akeyPathGeneral: '{a} and {ainv}\'s shared path',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
