@@ -3236,7 +3236,8 @@ var SUB_HEADS = ['sname', 'sorder', 'cindex'];
 // The order formulas under the ring's title, typeset and as plain text. In
 // ℤ/nℤ the group's order and ⟨h⟩'s worked out from it; in (ℤ/nℤ)* the
 // group's order φ(n), and while the beads are arranged by powers of a
-// generator g also ⟨h⟩'s, worked out from h's place log_g h among them.
+// generator also ⟨h⟩'s, worked out from log_g h, g the generator the
+// element expression slider is on (logBase).
 // on tests which formulas to give, headOn unless another test is passed.
 function orderFormulas(G, on){
   var shows = on || headOn;
@@ -3252,7 +3253,7 @@ function orderFormulas(G, on){
   var k = G.order;
   if (shows('gorder')) out.push({ key: 'gorder', math: mrow(abs(mGroup(G)), mo('='), mPhi(mn(G.n)), mo('='), mn(k)),
     plain: translate('cyclicGroups.formula.mulGroupOrder', { group: G.label, n: G.n, k: k }) });
-  if (shows('sorder') && G.cyclic && state.bygen) out.push(Object.assign(subOrderFormula(G, h, arrangeBy(G)), { key: 'sorder' }));
+  if (shows('sorder') && G.cyclic && state.bygen) out.push(Object.assign(subOrderFormula(G, h, logBase(G)), { key: 'sorder' }));
   if (shows('cindex')) out.push(Object.assign(cosetCountFormula(G, h), { key: 'cindex' }));
   return out;
 }
@@ -3292,7 +3293,7 @@ function subOrderFormula(G, h, g){
 
 // The number of cosets of ⟨h⟩, |G| / |⟨h⟩|, its index. As |⟨h⟩| = |G| / gcd(|G|, h) in
 // ℤ/nℤ, the index is gcd(|G|, h); in a cyclic (ℤ/nℤ)* arranged by powers of
-// a generator g it is gcd(|G|, log_g h), log_g 1 taken as k as in
+// a generator it is gcd(|G|, log_g h), g logBase's, log_g 1 taken as k as in
 // orderFormulas. Without a log base, the group's order over ⟨h⟩'s.
 // With index set it opens with the index's own notation, [G : ⟨h⟩], in
 // place of the fraction, which only the order-based form without a gcd
@@ -3308,7 +3309,7 @@ function cosetCountFormula(G, h, g, index){
       plain: translate(index ? 'cyclicGroups.formula.subgroupIndex' : 'cyclicGroups.formula.cosetCount', { group: G.label, h: h, n: n, q: q, d: d }) };
   }
   if (G.cyclic && (g !== undefined || state.bygen)){
-    if (g === undefined) g = arrangeBy(G);
+    if (g === undefined) g = logBase(G);
     var q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
     return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mPhi(mn(G.n)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
@@ -3324,20 +3325,24 @@ function cosetCountFormula(G, h, g, index){
 function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
-// is the generator the beads are arranged by, which is the smallest one
-// while they are not. base, when given, is the log base to use instead.
+// is logBase's. base, when given, is the log base to use instead.
 function subRowFormula(G, h, choice, base){
-  var g = G.mode === 'multiplicative' && G.cyclic ? base || arrangeBy(G) : undefined;
+  var g = G.mode === 'multiplicative' && G.cyclic ? base || logBase(G) : undefined;
   var out = [];
   if (choice === 'order' || choice === 'both') out.push(subOrderFormula(G, h, g));
   if (choice === 'index' || choice === 'both') out.push(cosetCountFormula(G, h, g, true));
   return out;
 }
-// The generator the pane's beads are arranged by, as its query reports it,
-// the way its own arrangeBy picks it: the smallest while it names none.
-function paneArrangeBy(H){
-  var v = new URLSearchParams(isoPane ? isoPane.q : '').get('arrangegen');
-  var g = v === SUB_FOLLOW ? paneExpr() : intOrNull(v);
+// The log base of a cyclic (ℤ/nℤ)*'s formulas: the generator its element
+// expression slider is on, whatever the beads are arranged by; the
+// smallest while the slider is on Natural.
+function logBase(G){
+  var g = exprBy(G);
+  return g !== null ? g : G.generators[0];
+}
+// The pane's, from its slider as its query reports it.
+function paneLogBase(H){
+  var g = paneExpr();
   return H.generators.indexOf(g) !== -1 ? g : H.generators[0];
 }
 // The subgroups' formulas: the selected and the hovered row's, on lines of their own under
@@ -3373,7 +3378,7 @@ function showHoverFormula(G){
     if (!row || row.parentNode.hidden) return;
     var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
     var H = right && isoPaneGroup();
-    var fs = subRowFormula(G, g, state.subFormulaRow), hs = H ? subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneArrangeBy(H)) : null;
+    var fs = subRowFormula(G, g, state.subFormulaRow), hs = H ? subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneLogBase(H)) : null;
     if (g === state.gen && !state.noSub){
       (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', fs));
       if (hs) right.appendChild(subFormulaBox('span', 'sub-row-formula', hs));
