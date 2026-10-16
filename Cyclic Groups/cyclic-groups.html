@@ -1019,6 +1019,14 @@
   #expr-slider::-moz-range-thumb{ width:var(--expr-thumb); height:var(--expr-thumb); box-sizing:border-box; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 3px color-mix(in srgb, var(--ink) 30%, transparent); }
   /* Focused from the keyboard, the thumb takes a ring of its own, clear of the stops' names. */
   #expr-slider:focus-visible{ outline:none; box-shadow:none; }
+  /* Followed by the subgroup dropdown, the slider blinks only its grey: the
+     track and the stops' ticks turn red (blinkLinked). */
+  .expr-slot.is-linked-blink{ animation:expr-linked-blink 360ms steps(1) 3; }
+  .expr-slot.is-linked-blink .expr-stop::before{ animation:expr-grey-blink 360ms steps(1) 3; }
+  .expr-slot.is-linked-blink #expr-slider::-webkit-slider-runnable-track{ animation:expr-grey-blink 360ms steps(1) 3; }
+  .expr-slot.is-linked-blink #expr-slider::-moz-range-track{ animation:expr-grey-blink 360ms steps(1) 3; }
+  @keyframes expr-linked-blink{ 0%{ opacity:1; } }
+  @keyframes expr-grey-blink{ 0%{ background:var(--role-warn); } 50%{ background:color-mix(in srgb, var(--text) 30%, transparent); } }
   #expr-slider:focus-visible::-webkit-slider-thumb{ box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
   #expr-slider:focus-visible::-moz-range-thumb{ box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
   /* Upright: the slider's own column beside the ring, in the ring's row. */
@@ -9787,7 +9795,7 @@ function blinkLinked(el){
   el.classList.add('is-linked-blink');
 }
 document.addEventListener('animationend', function(e){
-  if (e.animationName === 'linked-blink') e.target.classList.remove('is-linked-blink');
+  if (e.animationName === 'linked-blink' || e.animationName === 'expr-linked-blink') e.target.classList.remove('is-linked-blink');
   if (e.animationName === 'row-blink') e.target.classList.remove('is-row-blink');
 });
 // The bottom panel's selected row, last seen in this group. Another row
