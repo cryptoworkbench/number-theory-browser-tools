@@ -358,9 +358,18 @@
   }
   .subgroups li + li{ border-top:1px dotted var(--panel-border); }
   /* Grouped by gcd, a divider heads each group of rows. */
-  .subgroups li.sub-gcd-divider{ padding:8px 8px 2px; font-family:var(--font-mono); font-size:.72rem; letter-spacing:.02em; color:var(--text-dim); cursor:default; user-select:none; }
-  .subgroups li + li.sub-gcd-divider{ border-top:1px solid var(--panel-border); margin-top:4px; }
+  .subgroups li.sub-gcd-divider{ padding:4px 0 2px; }
+  .subgroups li + li.sub-gcd-divider{ border-top:none; margin-top:4px; }
   .subgroups li.sub-gcd-divider + li{ border-top:none; }
+  /* Each divider in its group's bead colour, a button folding the group's
+     rows away under it, or unfolding them. */
+  .sub-gcd-toggle{ display:flex; align-items:center; gap:6px; width:100%; padding:3px 8px; font:inherit; font-family:var(--font-mono); font-size:.74rem; letter-spacing:.02em; text-align:left; color:var(--text); background:color-mix(in srgb, var(--ord, var(--text-dim)) 22%, transparent); border:none; border-left:3px solid var(--ord, var(--text-dim)); border-radius:var(--radius-ctl); cursor:pointer; user-select:none; }
+  .sub-gcd-toggle:hover{ background:color-mix(in srgb, var(--ord, var(--text-dim)) 34%, transparent); }
+  .sub-gcd-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .sub-gcd-toggle svg{ flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:rotate 160ms ease; }
+  .sub-gcd-toggle[aria-expanded="false"] svg{ rotate:-90deg; }
+  /* Folded, the divider stands in for the selected row hidden under it. */
+  .sub-gcd-divider.is-current .sub-gcd-toggle{ box-shadow:inset 0 0 0 1px var(--ord, var(--text-dim)); font-weight:600; }
   /* The panel's own expressions and order: the generating element left of
      =, the set's members right of it, and the rows' order. */
   .sub-expr-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; margin:0 0 10px; }
@@ -2025,7 +2034,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6778,6 +6787,12 @@ function subOrder(G){
     .sort(function(x, y){ return x.d - y.d; })
     .map(function(x){ return x.a; });
 }
+// The folded groups' cardinalities from a link: whole numbers, dot-separated.
+function foldedOrders(v){
+  var out = {};
+  String(v || '').split('.').forEach(function(x){ if (/^[1-9]\d*$/.test(x)) out[x] = true; });
+  return out;
+}
 // Whether the rows are grouped by gcd: switched on, with the rows sorted by
 // the exponent of a generator here.
 function subGcdOn(G){
@@ -6785,15 +6800,52 @@ function subGcdOn(G){
 }
 // Grouped by gcd, with the dividers shown, a divider before row g when it
 // opens a group: its gcd(k, |G|) and the order of its rows' subgroups.
+// The divider is in the bead colour of its rows' cardinality, and folds
+// its group's rows away when clicked.
 function subGcdDivider(G, g, prev){
   if (!subGcdOn(G) || !state.subGcdDividers) return null;
   var order = G.orders[g];
   if (prev !== null && G.orders[prev] === order) return null;
+  var folded = !!state.subGcdFolded[order];
   var li = document.createElement('li');
-  li.className = 'sub-gcd-divider';
-  li.setAttribute('aria-hidden', 'true');
-  li.textContent = translate('cyclicGroups.subGcdDivider', { n: G.order, d: G.order / order, order: order });
+  li.className = ('sub-gcd-divider ' + (subGcdPaint(G, g) || '')).trim();
+  li.setAttribute('data-order', String(order));
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'sub-gcd-toggle';
+  btn.setAttribute('aria-expanded', folded ? 'false' : 'true');
+  btn.title = translate(folded ? 'cyclicGroups.subGcdExpand' : 'cyclicGroups.subGcdCollapse');
+  var chevron = svgEl('svg', { viewBox: '0 0 16 16', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  chevron.appendChild(svgEl('path', { d: 'M4 6 8 10 12 6' }));
+  btn.appendChild(chevron);
+  var text = document.createElement('span');
+  text.textContent = translate('cyclicGroups.subGcdDivider', { n: G.order, d: G.order / order, order: order });
+  btn.appendChild(text);
+  btn.addEventListener('click', function(){
+    if (folded) delete state.subGcdFolded[order];
+    else state.subGcdFolded[order] = true;
+    render();
+  });
+  li.appendChild(btn);
   return li;
+}
+// The colour of the beads of g's cardinality: as the ring paints them while
+// it colours by order (a linked pane's borrowed colours too), else that
+// order's own colour.
+function subGcdPaint(G, g){
+  if (state.colorBy === 'order' && drawn) return drawn.paint(g).cls;
+  return orderPaint(G, g);
+}
+// Whether row g is folded away under its divider.
+function subRowFolded(G, g){
+  return subGcdOn(G) && state.subGcdDividers && !!state.subGcdFolded[G.orders[g]];
+}
+// Each divider of a folded group holding the selected row stands in for it.
+function syncGcdDividers(G){
+  subgroupsEl.querySelectorAll('.sub-gcd-divider').forEach(function(li){
+    var order = Number(li.getAttribute('data-order'));
+    li.classList.toggle('is-current', !state.noSub && !!state.subGcdFolded[order] && G.orders[state.gen] === order);
+  });
 }
 // A number in the list, as wide as width digits: padded, its leading zeros
 // are written already; aligned, blank space as wide as the missing digits
@@ -6856,13 +6908,14 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
       row.classList.toggle('is-current', on);
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+    syncGcdDividers(G);
     syncSubFormula(G);
     syncGenExp(G);
     if (hadFocus) focusCurrentRow();
@@ -6877,6 +6930,7 @@ function renderSubgroups(G){
     var divider = subGcdDivider(G, g, i ? rows[i - 1].g : null);
     if (divider) subgroupsEl.appendChild(divider);
     var li = document.createElement('li');
+    li.hidden = subRowFolded(G, g);
     var row = document.createElement('button');
     row.type = 'button';
     var on = !state.noSub && g === state.gen;
@@ -6902,6 +6956,7 @@ function renderSubgroups(G){
     li.appendChild(row);
     subgroupsEl.appendChild(li);
   });
+  syncGcdDividers(G);
   syncSubFormula(G);
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
@@ -6928,13 +6983,14 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
       row.classList.toggle('is-current', on);
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+    syncGcdDividers(G);
     syncSubFormula(G);
     syncGenExp(G);
     if (hadFocus) focusCurrentRow();
@@ -6957,6 +7013,7 @@ function renderMergedSubgroups(G){
     var divider = subGcdDivider(G, g, i ? rows[i - 1].g : null);
     if (divider) subgroupsEl.appendChild(divider);
     var li = document.createElement('li');
+    li.hidden = subRowFolded(G, g);
     var row = document.createElement('button');
     row.type = 'button';
     var on = !state.noSub && g === state.gen;
@@ -6997,6 +7054,7 @@ function renderMergedSubgroups(G){
     li.appendChild(row);
     subgroupsEl.appendChild(li);
   });
+  syncGcdDividers(G);
   syncSubFormula(G);
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
@@ -7005,7 +7063,7 @@ function renderMergedSubgroups(G){
 }
 
 function focusCurrentRow(){
-  var row = subgroupsEl.querySelector('.subgroup-row.is-current');
+  var row = currentRowEl();
   if (!row) return;
   row.focus({ preventScroll: true });
   showRow(row);
@@ -7049,6 +7107,10 @@ subgroupsEl.addEventListener('scroll', syncSubMore, { passive: true });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
 // which scrollIntoView would also move, pulling the ring out of view.
+// The selected row, or, folded away, the divider standing in for it.
+function currentRowEl(){
+  return subgroupsEl.querySelector('li:not([hidden]) > .subgroup-row.is-current, .sub-gcd-divider.is-current > .sub-gcd-toggle');
+}
 function showRow(row){
   var box = subgroupsEl.getBoundingClientRect();
   var at = row.getBoundingClientRect();
@@ -7060,7 +7122,7 @@ function showRow(row){
 // A list out of sight waits until it shows.
 var shownRowKey = null;
 function keepCurrentRowInView(G){
-  var row = subgroupsEl.querySelector('.subgroup-row.is-current');
+  var row = currentRowEl();
   var key = G.mode + ' ' + G.n + ' ' + state.gen;
   if (!row || key === shownRowKey || !subgroupsEl.clientHeight) return;
   shownRowKey = key;
@@ -7111,7 +7173,7 @@ subgroupsEl.addEventListener('keydown', function(e){
 // Select the row delta rows below (or above) the selected one, in the list's
 // own order; false at either end.
 function stepSubRow(delta){
-  var els = subOrder(drawn.G);
+  var G = drawn.G, els = subOrder(G).filter(function(a){ return a === state.gen || !subRowFolded(G, a); });
   var i = els.indexOf(state.gen) + delta;
   if (i < 0 || i >= els.length) return false;
   keyNav = true;
@@ -7714,6 +7776,7 @@ function applyRingQuery(q){
   state.subSortR = q.get('subsortr') === '1';
   state.subGcd = q.get('subgcd') === '1';
   state.subGcdDividers = q.get('subgcddiv') !== '0';
+  state.subGcdFolded = foldedOrders(q.get('subgcdfold'));
   state.rot = intOrNull(q.get('rot')) || 0;
   if (TOPS.indexOf(q.get('top')) !== -1) state.top = q.get('top');
   persistGroup();
@@ -9207,6 +9270,9 @@ function stateQuery(){
   else q.delete('subgcd');
   if (!state.subGcdDividers) q.set('subgcddiv', '0');
   else q.delete('subgcddiv');
+  var folded = Object.keys(state.subGcdFolded);
+  if (folded.length) q.set('subgcdfold', folded.join('.'));
+  else q.delete('subgcdfold');
   if (state.rot) q.set('rot', String(state.rot));
   else q.delete('rot');
   return q;
@@ -10326,6 +10392,7 @@ function loadState(query, link){
   state.subSortR = query.get('subsortr') === '1';
   state.subGcd = query.get('subgcd') === '1';
   state.subGcdDividers = query.get('subgcddiv') !== '0';
+  state.subGcdFolded = foldedOrders(query.get('subgcdfold'));
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;
   // Keep on top: top=id|off|gen, gentop=1 from before the switch had three

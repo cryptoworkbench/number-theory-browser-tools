@@ -76,11 +76,13 @@
    one-colour line's text beside a locked pane, in powers of G), and
    akeyTipGroup (the group column's head of the hover tables there: a
    one-colour line's, giving its pair by value per ring), and subGcd,
-   subGcdTitle, subGcdDivider, subGcdHideDividers and subGcdShowDividers
+   subGcdTitle, subGcdDivider, subGcdHideDividers, subGcdShowDividers,
+   subGcdCollapse and subGcdExpand
    (the switch beside the subgroups' sort grouping the rows by the gcd of
    their exponent with the group's cardinality, the divider heading each
-   group, and the rows' right-click entries hiding or showing those
-   dividers).
+   group, the rows' right-click entries hiding or showing those
+   dividers, and a divider's tooltip folding its group's rows away or
+   unfolding them).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -406,6 +408,8 @@
       subGcdDivider: 'gcd(k, {n}) = {d} · order {order}',
       subGcdHideDividers: 'Hide the gcd dividers',
       subGcdShowDividers: 'Show the gcd dividers',
+      subGcdCollapse: 'Fold this group of rows away',
+      subGcdExpand: 'Unfold this group of rows',
       subPad: 'Pad numbers with leading zeros',
       subAlign: 'Align numbers with blank space',
       subWidthLabel: 'Line up numbers',
