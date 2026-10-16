@@ -7171,11 +7171,13 @@ subgroupsEl.addEventListener('keydown', function(e){
   if (stepSubRow(e.key === 'ArrowDown' ? 1 : -1)) focusCurrentRow();
 });
 // Select the row delta rows below (or above) the selected one, in the list's
-// own order; false at either end.
+// own order; false at either end. A row folded away under its divider
+// unfolds its group.
 function stepSubRow(delta){
-  var G = drawn.G, els = subOrder(G).filter(function(a){ return a === state.gen || !subRowFolded(G, a); });
+  var G = drawn.G, els = subOrder(G);
   var i = els.indexOf(state.gen) + delta;
   if (i < 0 || i >= els.length) return false;
+  if (subRowFolded(G, els[i])) delete state.subGcdFolded[G.orders[els[i]]];
   keyNav = true;
   selectGen(panelGen = els[i]);
   return true;
