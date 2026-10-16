@@ -75,9 +75,9 @@
    φ(n) or φ(φ(n))), and akeyExpHead (the head of the one-colour arrow
    key's column of each line's exponent of G), and akeyPathGeneral (a
    one-colour line's text beside a locked pane, in powers of G), and
-   akeyExpHeadTitle (that column head's tooltip there, telling what G is
-   in either ring), and akeyTipGroup (the group column's head of a
-   one-colour line's hover table there, giving its pair by value per ring).
+   akeyTipGroup (the group column's head of the hover tables there: a
+   one-colour line's, giving its pair by value per ring, and the exponent
+   column head's, giving G per ring).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -538,7 +538,6 @@
       akeyPowerExp: 'Power to raise the selected element to',
       akeyPath: '{a} and {a}⁻¹\'s shared path',
       akeyExpHead: 'G\'s exponent',
-      akeyExpHeadTitle: 'G in {group} = {g}\nG in {other} = {h}',
       akeyTipGroup: 'Group',
       akeyPathGeneral: '{a} and {ainv}\'s shared path',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
