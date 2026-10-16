@@ -5178,6 +5178,24 @@ function orderText(el, G, a, x){
     : translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
 }
 function akeyGeneral(){ return twoRings() && isoLinked(); }
+// Beside a locked pane each one-colour line, hovered, tells its pair by
+// value in either ring: h^x and h^-x here, the pane's G to the same power
+// and its inverse there, G as the pane reports it.
+function akeyLineEl(p){
+  if (p === 1) return $('combine-key-inner').parentNode;
+  if (p === 2) return $('combine-key-outer').parentNode;
+  return $('akey-' + AKEY_POWERS.filter(function(w){ return w.p === p; })[0].id + '-item');
+}
+function syncAkeyRowTitles(){
+  var G = drawn && drawn.G, H = isoPane && isoPane.H;
+  var on = !!G && !!H && akeyPairMode && akeyGeneral() && !!isoPaneKey && Number.isInteger(isoPaneKey.h) && H.els.indexOf(isoPaneKey.h) !== -1;
+  [1].concat(POWER_PS).forEach(function(p){
+    var el = akeyLineEl(p), x = powerExp(p);
+    var a = on ? powerOf(G, shownGen(G), x) : null, b = on ? powerOf(H, isoPaneKey.h, x) : null;
+    if (!on || el.hidden || a === G.identity || (p > 1 && !powerFits(G, p))){ el.removeAttribute('title'); return; }
+    el.title = translate('cyclicGroups.akeyPathTitle', { a: a, ainv: G.inv[a], group: G.label }) + '\n' + translate('cyclicGroups.akeyPathTitle', { a: b, ainv: H.inv[b], group: H.label });
+  });
+}
 // G^x written out: G, G², G⁻¹, G⁻³, ...
 function gPower(x){
   if (x === 1) return 'G';
@@ -8067,6 +8085,7 @@ function syncIsoKeys(){
   if (drawn && akeyGeneral() && isoPaneKey && Number.isInteger(isoPaneKey.h) && isoPane.H){
     headEl.title = translate('cyclicGroups.akeyExpHeadTitle', { g: shownGen(drawn.G), group: drawn.G.label, h: isoPaneKey.h, other: isoPane.H.label });
   } else headEl.removeAttribute('title');
+  syncAkeyRowTitles();
   var unlinked = !!isoPane && !!drawn && !isoLinked();
   var pk = unlinked && isoPaneKey && isoPaneKey.on && Number.isInteger(isoPaneKey.h) && Number.isInteger(isoPaneKey.hinv) ? isoPaneKey : null;
   var mine = !combineKeyEl.hidden;
