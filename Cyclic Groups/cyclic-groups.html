@@ -1290,6 +1290,14 @@
   .ring-ctx .fs-menu-item{ font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:none; border:0; cursor:pointer; }
   .ring-ctx .fs-menu-item:hover, .ring-ctx .fs-menu-item:focus-visible{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .ring-ctx .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  /* The subgroup list's menu: below its downloads, its switches, each
+     ticked while on. */
+  .sub-ctx-rule{ height:0; margin:4px 0; border-top:1px solid var(--panel-border); }
+  .sub-ctx-tick{ flex:none; width:14px; height:14px; fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .fs-menu-item[aria-checked="false"] .sub-ctx-tick{ visibility:hidden; }
+  /* On a desktop those switches live in that menu, not among the panel's
+     controls. */
+  :root:not(.is-mobile) #subgroups-list-panel .sub-ctls .check{ display:none; }
   .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
@@ -9645,6 +9653,25 @@ function setSubCtx(open, x, y){
     item.addEventListener('click', function(){ setSubCtx(false); exportSubgroups(ex); });
     subCtxEl.appendChild(item);
   });
+  // The panel's switches: members coloured like their beads, and auto-shift.
+  if (subCtxEl.firstChild) subCtxEl.appendChild(subCtxRule());
+  [[subColorEl, 'cyclicGroups.subColorLabel'], [autoShiftEl, 'cyclicGroups.autoShift']].forEach(function(c){
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'fs-menu-item';
+    item.setAttribute('role', 'menuitemcheckbox');
+    item.setAttribute('aria-checked', c[0].checked ? 'true' : 'false');
+    var tick = svgEl('svg', { viewBox: '0 0 16 16', 'class': 'sub-ctx-tick', 'aria-hidden': 'true', focusable: 'false' });
+    tick.appendChild(svgEl('path', { d: 'M3 8.5 6.5 12 13 4.5' }));
+    item.appendChild(tick);
+    item.appendChild(document.createTextNode(translate(c[1])));
+    item.addEventListener('click', function(){
+      setSubCtx(false);
+      c[0].checked = !c[0].checked;
+      c[0].dispatchEvent(new Event('change'));
+    });
+    subCtxEl.appendChild(item);
+  });
   // Grouped by gcd, the dividers between the groups can be hidden or shown.
   if (drawn && subGcdOn(drawn.G)){
     var item = document.createElement('button');
@@ -9660,6 +9687,7 @@ function setSubCtx(open, x, y){
     subCtxEl.appendChild(item);
   }
   subCtxReturn = subCtxEl.hidden ? document.activeElement : subCtxReturn;
+  if (!(subCtxReturn instanceof HTMLElement) || subCtxReturn === document.body) subCtxReturn = null;
   subCtxEl.hidden = false;
   var w = subCtxEl.offsetWidth, h = subCtxEl.offsetHeight;
   var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
@@ -9673,8 +9701,15 @@ function setSubCtx(open, x, y){
   subCtxEl.style.top = (2 * top - at.top) + 'px';
   subCtxEl.firstChild.focus();
 }
-subgroupsEl.addEventListener('contextmenu', function(e){
-  if (!e.target.closest('.subgroup-row, .sub-gcd-divider') || !subExports.length) return;
+function subCtxRule(){
+  var rule = document.createElement('div');
+  rule.className = 'sub-ctx-rule';
+  rule.setAttribute('role', 'separator');
+  return rule;
+}
+// Anywhere in the panel but on its own controls.
+subgroupsPanelEl.addEventListener('contextmenu', function(e){
+  if (e.target.closest('select, input, label, .sub-ctls button, .panel-head button, .split-btn')) return;
   e.preventDefault();
   if (IS_MOBILE) return;
   setSubCtx(true, e.clientX, e.clientY);
@@ -9707,7 +9742,7 @@ if (IS_ISOPANE){
   [ringCtxEl, subCtxEl].forEach(function(el){ paneMenuWatch.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
 }
 subCtxEl.addEventListener('keydown', function(e){
-  var items = Array.prototype.slice.call(subCtxEl.children), i = items.indexOf(document.activeElement);
+  var items = Array.prototype.slice.call(subCtxEl.querySelectorAll('.fs-menu-item')), i = items.indexOf(document.activeElement);
   if (e.key === 'Escape' || e.key === 'Tab'){ e.preventDefault(); setSubCtx(false); }
   else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
     e.preventDefault();
