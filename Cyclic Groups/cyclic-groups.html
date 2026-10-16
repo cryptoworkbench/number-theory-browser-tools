@@ -636,12 +636,12 @@
   /* In one colour the lines' controls stand in columns, each line's
      exponent of G (the selected element) in its box, the boxes one under
      another. */
-  #combine-key.is-pair-mode .akey-ctl{ display:grid; grid-template-columns:4.4rem 5.4em 20px 20px; column-gap:2px; align-items:center; }
+  #combine-key.is-pair-mode .akey-ctl{ display:grid; grid-template-columns:4.6rem 5.4em 20px 20px; column-gap:2px; align-items:center; }
   #combine-key.is-pair-mode .akey-ctl > .akey-exp-wrap{ grid-column:1; justify-self:center; margin:0; white-space:nowrap; }
   #combine-key.is-pair-mode .akey-ctl > .akey-side{ grid-column:2; width:100%; }
   #combine-key.is-pair-mode .akey-ctl > .akey-btn{ grid-column:3; }
   #combine-key.is-pair-mode .akey-ctl > :is(#akey-pair, .akey-drop){ grid-column:4; }
-  #combine-key.is-pair-mode .akey-exp-base{ display:none; }
+  #combine-key.is-pair-mode .akey-exp-base{ white-space:pre; padding-inline-end:0; font-family:var(--font-math); font-style:italic; font-size:.84rem; }
   #combine-key.is-pair-mode .akey-exp{ font-size:.78rem; height:20px; line-height:18px; }
   /* The + under the pair lines sits where their bars do. */
   .akey-add-row{ padding-inline-start:0; }
@@ -5162,11 +5162,11 @@ function powerText(el, G, p){
 
 // A one-colour line's key text for the element a = h^x it walks: the path
 // of a and a^-1. For one ring alone, and beside a locked pane where it
-// serves both rings, it names them as powers of G, the selected element,
-// rather than by value.
+// serves both rings, it names them as G^x and G^-x, G the selected element
+// and x the power in the line's box, rather than by value.
 function orderText(el, G, a, x){
   el.textContent = akeyGeneral()
-    ? translate('cyclicGroups.akeyPathGeneral', { a: gPower(x), ainv: gPower(-x) })
+    ? translate('cyclicGroups.akeyPathGeneral', { a: 'Gˣ', ainv: 'G⁻ˣ' })
     : translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
 }
 // The key writes its lines in powers of G for one ring alone, and beside a
@@ -5320,9 +5320,10 @@ function renderCombineKey(G){
   akeyBackEl.setAttribute('aria-label', backName);
   akeyBackEl.hidden = akeyPairMode && !powerFits(G, 2);
   // Each further line's power, and its side while its lines can be drawn.
-  var exp1El = $('akey-exp-1');
+  // Written in powers of G, each box is named x, the x of its text.
+  var exp1El = $('akey-exp-1'), expBase = akeyGeneral() ? 'x = ' : '';
   $('akey-exp-wrap-1').hidden = !akeyPairMode;
-  $('akey-exp-wrap-1').firstChild.textContent = h;
+  $('akey-exp-wrap-1').firstChild.textContent = expBase;
   exp1El.max = Math.max(1, G.orders[h] - 1);
   if (document.activeElement !== exp1El) exp1El.value = powerExp(1);
   POWER_PS.forEach(function(p){
@@ -5330,7 +5331,7 @@ function renderCombineKey(G){
     sideEl.hidden = !akeyPairMode || !powerFits(G, p);
     sideEl.value = powerSide(p);
     wrapEl.hidden = !akeyPairMode;
-    wrapEl.firstChild.textContent = h;
+    wrapEl.firstChild.textContent = expBase;
     expEl.max = Math.max(2, G.orders[h] - 1);
     if (document.activeElement !== expEl) expEl.value = powerExp(p);
   });
