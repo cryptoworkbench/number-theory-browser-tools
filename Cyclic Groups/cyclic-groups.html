@@ -2587,11 +2587,26 @@ function exprBy(G){ return genOrNull(G, state.expr); }
 // The Numerical panel's two expressions may follow the ring's expression
 // slider (stored as SUB_FOLLOW) instead of naming a generator of their own.
 var SUB_FOLLOW = 'follow';
-function subExprGen(G, v, slider){ return v === SUB_FOLLOW ? genOrNull(G, slider) : genOrNull(G, v); }
+// The panel's Generator expression may follow its Sort dropdown instead
+// (stored as SUB_SORT): the generator the rows are sorted by, or Natural
+// while they are sorted naturally.
+var SUB_SORT = 'sort';
+function subExprGen(G, v, slider){
+  if (v === SUB_SORT) return !IS_ISOPANE && subInterlocked() && state.subSortR ? null : genOrNull(G, state.subSort);
+  return v === SUB_FOLLOW ? genOrNull(G, slider) : genOrNull(G, v);
+}
+// A panel control's value as read from its dropdown or a link: the sort a
+// generator or none, the Generator expression also SUB_SORT.
+function subCtlVal(c, v){
+  if (c.el === subSortSelectEl) return intOrNull(v);
+  if (c.el === subLeftSelectEl && v === SUB_SORT) return SUB_SORT;
+  return subExprVal(v);
+}
 function subExprVal(v){ if (v === SUB_FOLLOW) return SUB_FOLLOW; var n = parseInt(v, 10); return isFinite(n) ? n : null; }
 // The pane's slider, as its query reports it to the ring holding it.
 function paneExpr(){ return isoPane ? intOrNull(new URLSearchParams(isoPane.q).get('expr')) : null; }
 function followOption(){ return arrangeOption(SUB_FOLLOW, 'cyclicGroups.subExprFollow'); }
+function sortOption(){ return arrangeOption(SUB_SORT, 'cyclicGroups.subExprSort'); }
 // Each element's exponent k over generator g.
 function exprLog(G, g){
   var log = {};
@@ -2674,13 +2689,15 @@ function syncSubExpr(G){
   if (!G.cyclic) return;
   SUB_EXPR_CTLS.forEach(function(c){
     var follows = c.el !== subSortSelectEl;
-    c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(follows ? [followOption()] : [], G.generators.map(function(g){
+    var sorts = c.el === subLeftSelectEl;
+    c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural')].concat(follows ? [followOption()] : [], sorts ? [sortOption()] : [], G.generators.map(function(g){
       var opt = document.createElement('option');
       opt.value = String(g);
       opt.textContent = translate(c.key, { g: g });
       return opt;
     })));
     if (follows && c.get() === SUB_FOLLOW){ c.el.value = SUB_FOLLOW; return; }
+    if (sorts && c.get() === SUB_SORT){ c.el.value = SUB_SORT; return; }
     var g = genOrNull(G, c.get());
     c.el.value = g === null ? '' : String(g);
   });
@@ -7847,7 +7864,7 @@ function applyRingQuery(q){
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
-  SUB_EXPR_CTLS.forEach(function(c){ c.set(c.el === subSortSelectEl ? intOrNull(q.get(c.param)) : subExprVal(q.get(c.param))); });
+  SUB_EXPR_CTLS.forEach(function(c){ c.set(subCtlVal(c, q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
   state.subGcd = q.get('subgcd') === '1';
   state.subGcdDividers = q.get('subgcddiv') !== '0';
@@ -8850,7 +8867,7 @@ function takeNumset(d){
 function takeSubExpr(d){
   var G = drawn.G;
   var ok = function(v){ return v === null || v === SUB_FOLLOW || genOrNull(G, v) !== null; };
-  if (!ok(d.left) || !ok(d.right)) return;
+  if (!(ok(d.left) || d.left === SUB_SORT) || !ok(d.right)) return;
   state.subLeft = d.left;
   state.subRight = d.right;
   syncSubExpr(G);
@@ -10158,7 +10175,7 @@ $('sub-gcd').addEventListener('click', function(){
 });
 SUB_EXPR_CTLS.forEach(function(c){
   c.el.addEventListener('change', function(){
-    c.set(c.el === subSortSelectEl ? intOrNull(c.el.value) : subExprVal(c.el.value));
+    c.set(subCtlVal(c, c.el.value));
     if (c.el === subSortSelectEl) state.subSortR = c.el.value === 'r';
     render();
   });
@@ -10504,7 +10521,7 @@ function loadState(query, link){
   var expr = parseInt(query.get('expr'), 10);
   if (isFinite(expr)) state.expr = expr;
   SUB_EXPR_CTLS.forEach(function(c){
-    var v = c.el === subSortSelectEl ? intOrNull(query.get(c.param)) : subExprVal(query.get(c.param));
+    var v = subCtlVal(c, query.get(c.param));
     if (v !== null) c.set(v);
   });
   state.subSortR = query.get('subsortr') === '1';

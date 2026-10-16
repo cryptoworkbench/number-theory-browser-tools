@@ -37,7 +37,8 @@
    full-screen application, and its button into the tool), introQrLabel
    and introQrCaption (the QR code of the page's own address beside the
    intro), and
-   subExprFollow (the Numerical panel's two expressions following the ring's
+   subExprSort (the Numerical panel's Generator expression following its
+   Sort dropdown), subExprFollow (the Numerical panel's two expressions following the ring's
    expression slider), isoAddLeftTitle (the + at the ring's left edge,
    opening a new ring on the left), and subWidthLabel, subWidthNone,
    subAlign and subAlignTitle (the Numerical panel's dropdown lining up the
@@ -533,6 +534,7 @@
       introQrLabel: 'QR code for the address of this page',
       introQrCaption: 'Scan to open this page on your phone',
       subExprFollow: 'Follow expression slider',
+      subExprSort: 'Follow the Sort dropdown',
       subPanelFollow: 'Follow bottom-panel',
       splitOpen: 'Open bottom-panel',
       splitClose: 'Close bottom-panel',
