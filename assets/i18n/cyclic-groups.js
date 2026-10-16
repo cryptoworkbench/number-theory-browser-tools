@@ -534,7 +534,7 @@
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
       akeyPath: '{a} and {a}⁻¹\'s shared path',
-      akeyExpHead: 'G exponent',
+      akeyExpHead: 'G\'s exponent',
       akeyPathGeneral: '{a} and {ainv}\'s shared path',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
