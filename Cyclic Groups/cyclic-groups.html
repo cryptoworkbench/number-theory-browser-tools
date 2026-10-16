@@ -5167,16 +5167,19 @@ function powerText(el, G, p){
 }
 
 // A one-colour line's key text for the element a = h^x it walks: the path
-// of a and a^-1. Beside a locked pane the key serves both rings, so it
-// names them as powers of G, the selected element, rather than by value.
+// of a and a^-1. For one ring alone, and beside a locked pane where it
+// serves both rings, it names them as powers of G, the selected element,
+// rather than by value.
 function orderText(el, G, a, x){
   el.textContent = akeyGeneral()
     ? translate('cyclicGroups.akeyPathGeneral', { a: gPower(x), ainv: gPower(-x) })
     : translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
 }
-function akeyGeneral(){ return twoRings() && isoLinked(); }
-// Beside a locked pane each one-colour line, hovered, tells its pair by
-// value in either ring, as a small table (akeyTipEl): h^x and h^-x here,
+// The key writes its lines in powers of G for one ring alone, and beside a
+// locked pane; beside an unlocked one, and in the pane, by value.
+function akeyGeneral(){ return !IS_ISOPANE && (!twoRings() || isoLinked()); }
+// Written in powers of G, each one-colour line, hovered, tells its pair by
+// value in this ring and, beside a locked pane, in that one too, as a small table (akeyTipEl): h^x and h^-x here,
 // the pane's G to the same power and its inverse there, G as the pane
 // reports it; numbers padded as the bottom panel pads them. The exponent
 // column's head, hovered, tells G itself in either ring the same way.
@@ -5186,15 +5189,19 @@ function akeyLineEl(p){
   return $('akey-' + AKEY_POWERS.filter(function(w){ return w.p === p; })[0].id + '-item');
 }
 function syncAkeyRowTitles(){
-  var G = drawn && drawn.G, H = isoPane && isoPane.H;
-  var on = !!G && !!H && akeyPairMode && akeyGeneral() && !!isoPaneKey && Number.isInteger(isoPaneKey.h) && H.els.indexOf(isoPaneKey.h) !== -1;
+  // One ring alone, the tables have its row only.
+  var G = drawn && drawn.G, H = twoRings() ? isoPane.H : null;
+  var paneOk = !H || (!!isoPaneKey && Number.isInteger(isoPaneKey.h) && H.els.indexOf(isoPaneKey.h) !== -1);
+  var on = !!G && akeyPairMode && akeyGeneral() && paneOk;
   [1].concat(POWER_PS).forEach(function(p){
     var el = akeyLineEl(p), x = powerExp(p);
-    var a = on ? powerOf(G, shownGen(G), x) : null, b = on ? powerOf(H, isoPaneKey.h, x) : null;
+    var a = on ? powerOf(G, shownGen(G), x) : null;
     if (!on || el.hidden || a === G.identity || (p > 1 && !powerFits(G, p))){ el.akeyTip = null; return; }
-    el.akeyTip = { cols: [gPower(x), gPower(-x)], rows: [[G, a, G.inv[a]], [H, b, H.inv[b]]] };
+    var rows = [[G, a, G.inv[a]]];
+    if (H){ var b = powerOf(H, isoPaneKey.h, x); rows.push([H, b, H.inv[b]]); }
+    el.akeyTip = { cols: [gPower(x), gPower(-x)], rows: rows };
   });
-  akeyHeadEl.akeyTip = on ? { cols: ['G'], rows: [[G, shownGen(G)], [H, isoPaneKey.h]] } : null;
+  akeyHeadEl.akeyTip = on ? { cols: ['G'], rows: [[G, shownGen(G)]].concat(H ? [[H, isoPaneKey.h]] : []) } : null;
   if (akeyTipFor && !akeyTipFor.akeyTip) hideAkeyTip();
 }
 var akeyTipEl = document.createElement('div'), akeyTipFor = null;
