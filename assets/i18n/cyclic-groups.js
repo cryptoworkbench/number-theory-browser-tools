@@ -83,8 +83,8 @@
    group, the rows' right-click entries hiding or showing those
    dividers, and a divider's tooltip folding its group's rows away or
    unfolding them), and subFormulaHoverLabel and subFormulaHoverLabelShort
-   (the subgroup list's choice of formula shown in the row the pointer is
-   on; they replace subFormulaRowLabel and subFormulaRowLabelShort).
+   (the subgroup list's choice of formula shown in the selected row and in
+   the row the pointer is on; they replace subFormulaRowLabel and subFormulaRowLabelShort).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -416,7 +416,7 @@
       subAlign: 'Align numbers with blank space',
       subWidthLabel: 'Line up numbers',
       subWidthNone: 'None',
-      subFormulaHoverLabel: 'Formula of the subgroup whose row the pointer is on',
+      subFormulaHoverLabel: 'Formula of the selected subgroup and of the one whose row the pointer is on',
       subFormulaRingLabel: "Selected subgroup's formula in the main view",
       subFormulaNone: 'None',
       subFormulaOrder: 'Subgroup cardinality',

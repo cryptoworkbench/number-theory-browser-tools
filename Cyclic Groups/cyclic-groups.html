@@ -1827,7 +1827,7 @@
           <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
-          <span class="sub-expr-pair"><label for="sub-formula-select" title="Formula of the subgroup whose row the pointer is on" data-i18n-title="cyclicGroups.subFormulaHoverLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaHoverLabel">Formula of the subgroup whose row the pointer is on</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaHoverLabelShort">Formula</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-select" title="Formula of the selected subgroup and of the one whose row the pointer is on" data-i18n-title="cyclicGroups.subFormulaHoverLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaHoverLabel">Formula of the selected subgroup and of the one whose row the pointer is on</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaHoverLabelShort">Formula</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
           <span class="sub-expr-pair"><label for="sub-formula-ring-select" title="Selected subgroup's formula in the main view" data-i18n-title="cyclicGroups.subFormulaRingLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaRingLabel">Selected subgroup's formula in the main view</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaRingLabelShort">Formula main view</span></label><select id="sub-formula-ring-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color"><span class="lbl-long" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</span><span class="lbl-short" data-i18n="cyclicGroups.subColorLabelShort">Colour like beads</span></label></div>
@@ -3315,7 +3315,7 @@ function cosetCountFormula(G, h, g, index){
 }
 
 /* ---------- the subgroup list's hover formula ---------- */
-// Whether the row the pointer is on shows a formula.
+// Whether the selected row, and the row the pointer is on, show a formula.
 function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
@@ -3335,7 +3335,7 @@ function paneArrangeBy(H){
   var g = v === SUB_FOLLOW ? paneExpr() : intOrNull(v);
   return H.generators.indexOf(g) !== -1 ? g : H.generators[0];
 }
-// The subgroups' formulas: the hovered row's, on lines of their own under
+// The subgroups' formulas: the selected and the hovered row's, on lines of their own under
 // its subgroup (on the left, this group's side, of a merged row), and the
 // selected one's in the main view, under the ring's header, each place as
 // its own choice says.
@@ -3352,19 +3352,25 @@ function syncSubFormula(G){
   }
   showHoverFormula(G);
 }
-// The formula on hover: in the row the pointer is on, whichever row is
-// selected. subHoverGen is that row's element, so a row rebuilt under the
-// pointer gets its formula back.
+// The row formula: in the selected row and in the row the pointer is on.
+// subHoverGen is that row's element, so a row rebuilt under the pointer
+// gets its formula back.
 var subHoverGen = null;
 function showHoverFormula(G){
   subgroupsEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
-  if (!subFormulaOn() || subHoverGen === null || G.els.indexOf(subHoverGen) === -1) return;
-  var g = subHoverGen, row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
-  if (!row || row.parentNode.hidden) return;
-  var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
-  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow)));
-  var H = right && isoPaneGroup();
-  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneArrangeBy(H))));
+  if (!subFormulaOn()) return;
+  var gens = [];
+  if (!state.noSub) gens.push(state.gen);
+  if (subHoverGen !== null && gens.indexOf(subHoverGen) === -1) gens.push(subHoverGen);
+  gens.forEach(function(g){
+    if (G.els.indexOf(g) === -1) return;
+    var row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
+    if (!row || row.parentNode.hidden) return;
+    var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
+    (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow)));
+    var H = right && isoPaneGroup();
+    if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneArrangeBy(H))));
+  });
 }
 function hoverRowFormula(g){
   subHoverGen = g;
