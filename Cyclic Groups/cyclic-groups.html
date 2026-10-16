@@ -433,14 +433,9 @@
   :root.is-sub-merged #subgroups-list-panel > .panel-head{ justify-content:center; text-align:center; }
   .subgroup-row:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
   .subgroup-row:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
-  /* The hovered row's formula, on a line of its own inside the row. */
+  /* The selected row's formula, on a line of its own inside the row. */
   .sub-row-formula{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin:4px 0 2px; padding:6px 0 4px; overflow-x:auto; overflow-y:hidden; font-family:var(--font-sans); font-size:.95rem; color:var(--text); border-top:1px dashed var(--panel-border); }
   .sub-row-formula .ring-math-formula{ display:inline math; margin:0; }
-  /* The hovered row's, unless it is the selected one, floats under the row
-     as a card over whatever lies below, so the list never moves under the
-     pointer; it lets the pointer through. Placed by placeFloatFormula,
-     above the row where the window has no room below it. */
-  .sub-row-formula.is-float{ position:fixed; z-index:60; left:0; top:0; max-width:min(48em, calc(100vw - 16px)); margin:0; padding:6px 10px; background:var(--surface); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--ink) 18%, transparent); pointer-events:none; }
   .arrow-options{ margin:0 0 14px; }
   .coset-btn{ width:100%; }
   /* Between locked rings each group's index formula takes a line. */
@@ -1832,7 +1827,7 @@
           <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
         </div>
         <div class="sub-expr-row" id="sub-formula-row">
-          <span class="sub-expr-pair"><label for="sub-formula-select" title="Formula of the selected subgroup and of the one whose row the pointer is on" data-i18n-title="cyclicGroups.subFormulaHoverLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaHoverLabel">Formula of the selected subgroup and of the one whose row the pointer is on</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaHoverLabelShort">Formula</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
+          <span class="sub-expr-pair"><label for="sub-formula-select" title="Formula shown in the selected subgroup's row" data-i18n-title="cyclicGroups.subFormulaRowLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaRowLabel">Formula shown in the selected subgroup's row</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaRowLabelShort">Formula</span></label><select id="sub-formula-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
           <span class="sub-expr-pair"><label for="sub-formula-ring-select" title="Selected subgroup's formula in the main view" data-i18n-title="cyclicGroups.subFormulaRingLabel"><span class="lbl-long" data-i18n="cyclicGroups.subFormulaRingLabel">Selected subgroup's formula in the main view</span><span class="lbl-short" data-i18n="cyclicGroups.subFormulaRingLabelShort">Formula main view</span></label><select id="sub-formula-ring-select"><option value="none" data-i18n="cyclicGroups.subFormulaNone">None</option><option value="order" data-i18n="cyclicGroups.subFormulaOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.subFormulaIndex">Subgroup index/cofactor/amount of cosets</option><option value="both" data-i18n="cyclicGroups.subFormulaBoth">Both</option></select></span>
         </div>
         <div class="check" title="Give every member in the list a background in the colour of its bead on the ring" data-i18n-title="cyclicGroups.subColorTitle"><input type="checkbox" id="sub-color"><label for="sub-color"><span class="lbl-long" data-i18n="cyclicGroups.subColorLabel">Colour members like their beads</span><span class="lbl-short" data-i18n="cyclicGroups.subColorLabelShort">Colour like beads</span></label></div>
@@ -3321,7 +3316,7 @@ function cosetCountFormula(G, h, g, index){
 }
 
 /* ---------- the subgroup list's hover formula ---------- */
-// Whether the selected row, and the row the pointer is on, show a formula.
+// Whether the selected row shows a formula.
 function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
@@ -3345,93 +3340,33 @@ function paneLogBase(H){
   var g = paneExpr();
   return H.generators.indexOf(g) !== -1 ? g : H.generators[0];
 }
-// The subgroups' formulas: the selected and the hovered row's, on lines of their own under
-// its subgroup (on the left, this group's side, of a merged row), and the
-// selected one's in the main view, under the ring's header, each place as
-// its own choice says.
+// The selected subgroup's formulas: in its row, on lines of their own under
+// its subgroup (on the left, this group's side, of a merged row), and in
+// the main view, under the ring's header, each place as its own choice says.
 function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
 // A merged row gives each group its formulas on its own side: ⟨h⟩'s on the
 // left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
   clearSubFormula();
-  if (state.noSub){ showHoverFormula(G); return; }
+  if (state.noSub){ showRowFormula(G); return; }
   if (subFormulaAtRing()){
     var box = subFormulaBox('div', 'ring-hover-formula', subRowFormula(G, state.gen, state.subFormulaRing));
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
   }
-  showHoverFormula(G);
+  showRowFormula(G);
 }
-// The row formula: in the selected row and in the row the pointer is on.
-// subHoverGen is that row's element, so a row rebuilt under the pointer
-// gets its formula back.
-var subHoverGen = null;
-function showHoverFormula(G){
+// The row formula, in the selected row: on lines of their own under its
+// subgroup, each side of a merged row its own group's.
+function showRowFormula(G){
   subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
-  if (!subFormulaOn()) return;
-  var gens = [];
-  if (!state.noSub) gens.push(state.gen);
-  if (subHoverGen !== null && gens.indexOf(subHoverGen) === -1) gens.push(subHoverGen);
-  gens.forEach(function(g){
-    if (G.els.indexOf(g) === -1) return;
-    var row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
-    if (!row || row.parentNode.hidden) return;
-    var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
-    var H = right && isoPaneGroup();
-    var fs = subRowFormula(G, g, state.subFormulaRow), hs = H ? subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneLogBase(H)) : null;
-    if (g === state.gen && !state.noSub){
-      (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', fs));
-      if (hs) right.appendChild(subFormulaBox('span', 'sub-row-formula', hs));
-      return;
-    }
-    placeFloatFormula(subgroupsPanelEl.appendChild(subFormulaBox('div', 'sub-row-formula is-float', fs)), left || row, false);
-    if (hs) placeFloatFormula(subgroupsPanelEl.appendChild(subFormulaBox('div', 'sub-row-formula is-float', hs)), right, true);
-  });
-}
-// A floating formula just under its row's side (side: its left part, or
-// for a merged row's right side, alignRight, the right one). Where the
-// window has no room below, it goes beside the row's own text, level with
-// the row, where that leaves room, and else above the row. Inside a window
-// that holds its fixed children, it is placed against that window's corner
-// instead of the viewport's.
-function placeFloatFormula(box, side, alignRight){
-  var at = side.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
-  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-  var x = alignRight ? at.right - 8 - w : at.left + 8;
-  x = Math.max(4, Math.min(x, vw - w - 4));
-  var y = at.bottom + 2;
-  if (y + h > vh - 4){
-    // The row's text: from its first piece's left to its last piece's right.
-    var parts = Array.prototype.filter.call(side.children, function(c){ return !c.classList.contains('sub-row-formula'); });
-    var textL = parts.length ? parts[0].getBoundingClientRect().left : at.left;
-    var textR = parts.length ? parts[parts.length - 1].getBoundingClientRect().right : at.right;
-    var bx = alignRight ? textL - 16 - w : textR + 16;
-    if (alignRight ? bx >= at.left : bx + w <= at.right){
-      x = bx;
-      y = Math.max(4, Math.min(at.top, vh - h - 4));
-    } else y = Math.max(4, at.top - h - 2);
-  }
-  box.style.left = x + 'px';
-  box.style.top = y + 'px';
-  var r = box.getBoundingClientRect();
-  box.style.left = (2 * x - r.left) + 'px';
-  box.style.top = (2 * y - r.top) + 'px';
-}
-subgroupsEl.addEventListener('scroll', function(){
-  if (subHoverGen !== null && drawn && subgroupsPanelEl.querySelector('.sub-row-formula.is-float')) showHoverFormula(drawn.G);
-}, { passive: true });
-// Leaving a row clears its formula a moment later, so crossing the thin
-// gap between two rows does not make it blink.
-var subHoverLeave = null;
-function hoverRowFormula(g){
-  clearTimeout(subHoverLeave);
-  if (g === subHoverGen) return;
-  subHoverGen = g;
-  if (drawn) showHoverFormula(drawn.G);
-}
-function leaveRowFormula(g){
-  clearTimeout(subHoverLeave);
-  subHoverLeave = setTimeout(function(){ if (subHoverGen === g) hoverRowFormula(null); }, 80);
+  if (!subFormulaOn() || state.noSub) return;
+  var g = state.gen, row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
+  if (!row || row.parentNode.hidden) return;
+  var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
+  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow)));
+  var H = right && isoPaneGroup();
+  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneLogBase(H))));
 }
 function subFormulaBox(tag, cls, fs){
   var box = document.createElement(tag);
@@ -7083,8 +7018,7 @@ function renderSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (keyNav) return; hoverRowFormula(g); setPreview(g); });
-    row.addEventListener('mouseleave', function(){ leaveRowFormula(g); });
+    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -7182,8 +7116,7 @@ function renderMergedSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (keyNav) return; hoverRowFormula(g); setPreview(g); });
-    row.addEventListener('mouseleave', function(){ leaveRowFormula(g); });
+    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -7312,7 +7245,6 @@ function stepSubRow(delta){
   var G = drawn.G, els = subOrder(G);
   var i = els.indexOf(state.gen) + delta;
   if (i < 0 || i >= els.length) return false;
-  if (subHoverGen !== null) subHoverGen = null;
   if (subRowFolded(G, els[i])){
     delete state.subGcdFolded[G.orders[els[i]]];
     var group = G.mode + ' ' + G.n;
