@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: fa75fce
+state_head: 444e14d
 progress:
   total_phases: 7
   completed_phases: 6
@@ -705,6 +705,7 @@ None yet.
 | 469 | Cyclic Groups: subgroup dropdown holds only Follow bottom-panel and Follow expression slider | 2026-10-16 | ee91926 | — |
 | 470 | Cyclic Groups: G's exponent head's tooltip is a Group / G table | 2026-10-16 | 29254f8 | — |
 | 471 | Cyclic Groups: one ring's shared-path key in powers of G with one-row hover tables | 2026-10-16 | fa75fce | — |
+| 472 | Cyclic Groups: unlocked groups keep their own arrow and element key colours | 2026-10-16 | 444e14d | — |
 
 ## Deferred Items
 
