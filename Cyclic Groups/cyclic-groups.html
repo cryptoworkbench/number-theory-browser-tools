@@ -5163,16 +5163,25 @@ function powerSide(p){
 // Key line p's text: the subgroup h^x generates, told by orderText, or,
 // when it has no lines, why.
 function powerText(el, G, p){
-  var h = shownGen(G), hp = powerOf(G, h, powerExp(p));
-  if (hp !== G.identity && powerFits(G, p)) orderText(el, G, hp);
-  else translateInto(el, hp === G.identity ? 'cyclicGroups.akeyOrderId' : 'cyclicGroups.akeyOrderSame', { hp: mNum(hp), x: mNum(powerExp(p)) });
+  var h = shownGen(G), x = powerExp(p), hp = powerOf(G, h, x);
+  if (hp !== G.identity && powerFits(G, p)) orderText(el, G, hp, x);
+  else translateInto(el, hp === G.identity ? 'cyclicGroups.akeyOrderId' : 'cyclicGroups.akeyOrderSame', { hp: akeyGeneral() ? gPower(x) : mNum(hp), x: mNum(x) });
   return hp;
 }
 
-// A one-colour line's key text for the element a it walks: the path of
-// a and a^-1, then both by value.
-function orderText(el, G, a){
-  el.textContent = translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
+// A one-colour line's key text for the element a = h^x it walks: the path
+// of a and a^-1. Beside a locked pane the key serves both rings, so it
+// names them as powers of G, the selected element, rather than by value.
+function orderText(el, G, a, x){
+  el.textContent = akeyGeneral()
+    ? translate('cyclicGroups.akeyPathGeneral', { a: gPower(x), ainv: gPower(-x) })
+    : translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
+}
+function akeyGeneral(){ return twoRings() && isoLinked(); }
+// G^x written out: G, G², G⁻¹, G⁻³, ...
+function gPower(x){
+  if (x === 1) return 'G';
+  return 'G' + (x < 0 ? '⁻' : '') + superscript(Math.abs(x));
 }
 
 // The powers past h whose pairs can join the one line, each with a side.
@@ -5217,8 +5226,8 @@ function renderCombineKey(G){
   akeyPairMode = lined && state.oneLinePair;
   var line1 = akeyPairMode ? powerOf(G, h, powerExp(1)) : h;
   if (!akeyPairMode) translateInto(innerEl, 'cyclicGroups.combineForward', params());
-  else if (line1 !== G.identity) orderText(innerEl, G, line1);
-  else translateInto(innerEl, 'cyclicGroups.akeyOrderId', { hp: mNum(line1), x: mNum(powerExp(1)) });
+  else if (line1 !== G.identity) orderText(innerEl, G, line1, powerExp(1));
+  else translateInto(innerEl, 'cyclicGroups.akeyOrderId', { hp: akeyGeneral() ? gPower(powerExp(1)) : mNum(line1), x: mNum(powerExp(1)) });
   var line2 = akeyPairMode ? powerText(outerEl, G, 2) : null;
   if (!akeyPairMode) translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
   innerEl.previousSibling.classList.toggle('is-both', merged);
@@ -7464,7 +7473,10 @@ function closeIsoPane(){
   }
   setGroupLock(false);
   syncIsoTitle();
-  syncIsoKeys();
+  // The key, no longer shared, names this ring's elements again (and syncs
+  // the pane's keys away).
+  if (drawn) renderCombineKey(drawn.G);
+  else syncIsoKeys();
   // With the pane gone, the Numeric list is this ring's own again.
   if (drawn){ syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
 }
