@@ -357,6 +357,10 @@
     padding:4px 8px; cursor:pointer; overflow-wrap:anywhere; line-height:1.5;
   }
   .subgroups li + li{ border-top:1px dotted var(--panel-border); }
+  /* Grouped by gcd, a divider heads each group of rows. */
+  .subgroups li.sub-gcd-divider{ padding:8px 8px 2px; font-family:var(--font-mono); font-size:.72rem; letter-spacing:.02em; color:var(--text-dim); cursor:default; user-select:none; }
+  .subgroups li + li.sub-gcd-divider{ border-top:1px solid var(--panel-border); margin-top:4px; }
+  .subgroups li.sub-gcd-divider + li{ border-top:none; }
   /* The panel's own expressions and order: the generating element left of
      =, the set's members right of it, and the rows' order. */
   .sub-expr-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; margin:0 0 10px; }
@@ -400,6 +404,11 @@
   :root.is-sub-merged .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr"; }
   :root.is-sub-merged.is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
   :root.is-sub-merged.is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
+  .sub-gcd-btn{ font:inherit; font-family:var(--font-math); font-style:italic; font-size:.88rem; color:var(--text-dim); background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:3px 8px; cursor:pointer; white-space:nowrap; }
+  .sub-gcd-btn:hover:not(:disabled){ color:var(--text); }
+  .sub-gcd-btn[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
+  .sub-gcd-btn:disabled{ opacity:.45; cursor:default; }
+  .sub-gcd-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .sub-expr-pair select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
   .panel-head h2{ margin:0; }
@@ -1777,7 +1786,7 @@
         </div>
         <div class="sub-ctls-mid">
         <div class="sub-expr-row" id="sub-sort-row">
-          <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" title="Sort subgroups by" data-i18n-title="cyclicGroups.subSortLabel"><span class="lbl-long" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</span><span class="lbl-short" data-i18n="cyclicGroups.subSortLabelShort">Sort</span></label><select id="sub-sort-select"></select></span>
+          <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" title="Sort subgroups by" data-i18n-title="cyclicGroups.subSortLabel"><span class="lbl-long" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</span><span class="lbl-short" data-i18n="cyclicGroups.subSortLabelShort">Sort</span></label><select id="sub-sort-select"></select><button type="button" class="sub-gcd-btn" id="sub-gcd" aria-pressed="false" title="Group the rows by gcd(k, |G|), k each row's exponent of the generator they are sorted by" data-i18n-title="cyclicGroups.subGcdTitle" data-i18n="cyclicGroups.subGcd">gcd(k, |G|)</button></span>
         </div>
         <div class="sub-expr-row" id="sub-width-row">
           <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
@@ -2009,7 +2018,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -2641,6 +2650,13 @@ function syncSubExpr(G){
     c.el.value = g === null ? '' : String(g);
   });
   if (merged) syncMergedExpr(G);
+  syncSubGcdBtn(G);
+}
+// The gcd switch works only while the rows are sorted by an exponent.
+function syncSubGcdBtn(G){
+  var btn = $('sub-gcd'), sorted = genOrNull(G, state.subSort) !== null && !(!IS_ISOPANE && subInterlocked() && state.subSortR);
+  btn.disabled = !sorted;
+  btn.setAttribute('aria-pressed', state.subGcd && sorted ? 'true' : 'false');
 }
 // Merged: the pane's group's own two expressions, and one shared order: either
 // group's numbers, or the exponent of a generator g here and so of its image
@@ -6747,7 +6763,30 @@ function subOrder(G){
     var phi = isoImage(G);
     return G.els.slice().sort(function(a, b){ return phi(a) - phi(b); });
   }
-  return elsBy(G, genOrNull(G, state.subSort));
+  var els = elsBy(G, genOrNull(G, state.subSort));
+  if (!subGcdOn(G)) return els;
+  // Grouped by gcd(k, |G|), k each row's exponent, so by the order of the
+  // subgroup each row generates, largest first; in a group by k.
+  return els.map(function(a, k){ return { a: a, d: gcd(k, G.order) }; })
+    .sort(function(x, y){ return x.d - y.d; })
+    .map(function(x){ return x.a; });
+}
+// Whether the rows are grouped by gcd: switched on, with the rows sorted by
+// the exponent of a generator here.
+function subGcdOn(G){
+  return state.subGcd && G.cyclic && genOrNull(G, state.subSort) !== null && !(!IS_ISOPANE && subInterlocked() && state.subSortR);
+}
+// Grouped by gcd, with the dividers shown, a divider before row g when it
+// opens a group: its gcd(k, |G|) and the order of its rows' subgroups.
+function subGcdDivider(G, g, prev){
+  if (!subGcdOn(G) || !state.subGcdDividers) return null;
+  var order = G.orders[g];
+  if (prev !== null && G.orders[prev] === order) return null;
+  var li = document.createElement('li');
+  li.className = 'sub-gcd-divider';
+  li.setAttribute('aria-hidden', 'true');
+  li.textContent = translate('cyclicGroups.subGcdDivider', { n: G.order, d: G.order / order, order: order });
+  return li;
 }
 // A number in the list, as wide as width digits: padded, its leading zeros
 // are written already; aligned, blank space as wide as the missing digits
@@ -6810,7 +6849,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormulaRow].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -6826,8 +6865,10 @@ function renderSubgroups(G){
   subgroupsSig = sig;
   subExports = [{ G: G, lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
   subgroupsEl.replaceChildren();
-  rows.forEach(function(r){
+  rows.forEach(function(r, i){
     var g = r.g, members = r.members;
+    var divider = subGcdDivider(G, g, i ? rows[i - 1].g : null);
+    if (divider) subgroupsEl.appendChild(divider);
     var li = document.createElement('li');
     var row = document.createElement('button');
     row.type = 'button';
@@ -6880,7 +6921,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormulaRow].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -6904,8 +6945,10 @@ function renderMergedSubgroups(G){
     { G: H, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
   ];
   subgroupsEl.replaceChildren();
-  rows.forEach(function(r){
+  rows.forEach(function(r, i){
     var g = r.g, members = r.members, last = members.length - 1;
+    var divider = subGcdDivider(G, g, i ? rows[i - 1].g : null);
+    if (divider) subgroupsEl.appendChild(divider);
     var li = document.createElement('li');
     var row = document.createElement('button');
     row.type = 'button';
@@ -6974,7 +7017,7 @@ function syncMoreLabels(listEl, topEl, bottomEl, gap){
   listEl.classList.toggle('is-more-below', rest > 1);
   var box = listEl.getBoundingClientRect(), above = 0, below = 0;
   Array.prototype.forEach.call(listEl.children, function(row){
-    if (row.hidden) return;
+    if (row.hidden || row.classList.contains('sub-gcd-divider')) return;
     var r = row.getBoundingClientRect();
     if (top > 1 && r.top < box.top - 1) above++;
     if (rest > 1 && r.bottom > box.bottom + 1) below++;
@@ -7662,6 +7705,8 @@ function applyRingQuery(q){
   state.expr = intOrNull(q.get('expr'));
   SUB_EXPR_CTLS.forEach(function(c){ c.set(c.el === subSortSelectEl ? intOrNull(q.get(c.param)) : subExprVal(q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
+  state.subGcd = q.get('subgcd') === '1';
+  state.subGcdDividers = q.get('subgcddiv') !== '0';
   state.rot = intOrNull(q.get('rot')) || 0;
   if (TOPS.indexOf(q.get('top')) !== -1) state.top = q.get('top');
   persistGroup();
@@ -9151,6 +9196,10 @@ function stateQuery(){
   });
   if (state.subSortR) q.set('subsortr', '1');
   else q.delete('subsortr');
+  if (state.subGcd) q.set('subgcd', '1');
+  else q.delete('subgcd');
+  if (!state.subGcdDividers) q.set('subgcddiv', '0');
+  else q.delete('subgcddiv');
   if (state.rot) q.set('rot', String(state.rot));
   else q.delete('rot');
   return q;
@@ -9499,6 +9548,20 @@ function setSubCtx(open, x, y){
     item.addEventListener('click', function(){ setSubCtx(false); exportSubgroups(ex); });
     subCtxEl.appendChild(item);
   });
+  // Grouped by gcd, the dividers between the groups can be hidden or shown.
+  if (drawn && subGcdOn(drawn.G)){
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'fs-menu-item';
+    item.setAttribute('role', 'menuitem');
+    item.textContent = translate(state.subGcdDividers ? 'cyclicGroups.subGcdHideDividers' : 'cyclicGroups.subGcdShowDividers');
+    item.addEventListener('click', function(){
+      setSubCtx(false);
+      state.subGcdDividers = !state.subGcdDividers;
+      render();
+    });
+    subCtxEl.appendChild(item);
+  }
   subCtxReturn = subCtxEl.hidden ? document.activeElement : subCtxReturn;
   subCtxEl.hidden = false;
   var w = subCtxEl.offsetWidth, h = subCtxEl.offsetHeight;
@@ -9514,7 +9577,7 @@ function setSubCtx(open, x, y){
   subCtxEl.firstChild.focus();
 }
 subgroupsEl.addEventListener('contextmenu', function(e){
-  if (!e.target.closest('.subgroup-row') || !subExports.length) return;
+  if (!e.target.closest('.subgroup-row, .sub-gcd-divider') || !subExports.length) return;
   e.preventDefault();
   if (IS_MOBILE) return;
   setSubCtx(true, e.clientX, e.clientY);
@@ -9898,6 +9961,10 @@ arrangeGenSelectEl.addEventListener('change', function(){
   }
   rearrange(function(){ state.arrangeGen = g; render(); });
 });
+$('sub-gcd').addEventListener('click', function(){
+  state.subGcd = !state.subGcd;
+  render();
+});
 SUB_EXPR_CTLS.forEach(function(c){
   c.el.addEventListener('change', function(){
     c.set(c.el === subSortSelectEl ? intOrNull(c.el.value) : subExprVal(c.el.value));
@@ -10250,6 +10317,8 @@ function loadState(query, link){
     if (v !== null) c.set(v);
   });
   state.subSortR = query.get('subsortr') === '1';
+  state.subGcd = query.get('subgcd') === '1';
+  state.subGcdDividers = query.get('subgcddiv') !== '0';
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;
   // Keep on top: top=id|off|gen, gentop=1 from before the switch had three

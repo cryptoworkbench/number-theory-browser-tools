@@ -75,7 +75,12 @@
    φ(n) or φ(φ(n))), and akeyPathGeneral (a
    one-colour line's text beside a locked pane, in powers of G), and
    akeyTipGroup (the group column's head of the hover tables there: a
-   one-colour line's, giving its pair by value per ring).
+   one-colour line's, giving its pair by value per ring), and subGcd,
+   subGcdTitle, subGcdDivider, subGcdHideDividers and subGcdShowDividers
+   (the switch beside the subgroups' sort grouping the rows by the gcd of
+   their exponent with the group's cardinality, the divider heading each
+   group, and the rows' right-click entries hiding or showing those
+   dividers).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -396,6 +401,11 @@
       subSortNatLeft: 'Natural order on the left',
       subSortNatRight: 'Natural order on the right',
       subSortExpPair: 'Exponent of {g} and {h}',
+      subGcd: 'gcd(k, |G|)',
+      subGcdTitle: 'Group the rows by gcd(k, |G|), k each row\'s exponent of the generator they are sorted by',
+      subGcdDivider: 'gcd(k, {n}) = {d} · order {order}',
+      subGcdHideDividers: 'Hide the gcd dividers',
+      subGcdShowDividers: 'Show the gcd dividers',
       subPad: 'Pad numbers with leading zeros',
       subAlign: 'Align numbers with blank space',
       subWidthLabel: 'Line up numbers',
