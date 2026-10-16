@@ -7257,7 +7257,8 @@ function drawLegendHeading(by){
   pick.addEventListener('change', function(){
     var v = pick.value;
     back();
-    if (IS_ISOPANE){ tellHost({ isopane: 'ctl', id: 'colorby-select', value: v }); return; }
+    // Linked, the pane's choice is the holding ring's; unlocked, its own.
+    if (IS_ISOPANE && !paneUnlinked()){ tellHost({ isopane: 'ctl', id: 'colorby-select', value: v }); return; }
     if (colorBySelectEl.value === v) return;
     colorBySelectEl.value = v;
     colorBySelectEl.dispatchEvent(new Event('change'));
@@ -7910,11 +7911,12 @@ function syncIsoTitle(){
 // the pane after every render: the colours, the paths' look and the layers.
 // The pane shows none of these controls; its own gestures on them (the menu's
 // layers, the arrow key's swap, F8) are relayed back here and edit this ring.
-// Unlocked, each ring keeps its own arrow and element colours: those are
-// left out, and locking again sends this ring's.
+// Unlocked, each ring keeps its own arrow and element colours, the element
+// colouring itself included: those are left out, and locking again sends
+// this ring's.
 function isoSharedPayload(){
   var p = isoSharedAll();
-  if (isoPane && !isoLinked()) ['picks', 'swapColors', 'customColors', 'inColor', 'outColor'].forEach(function(k){ delete p[k]; });
+  if (isoPane && !isoLinked()) ['colors', 'colorBy', 'picks', 'swapColors', 'customColors', 'inColor', 'outColor'].forEach(function(k){ delete p[k]; });
   return p;
 }
 function isoSharedAll(){
