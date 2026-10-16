@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f3bc464
+state_head: b9fec49
 progress:
   total_phases: 7
   completed_phases: 6
@@ -695,6 +695,7 @@ None yet.
 | 459 | Cyclic Groups: beside a locked pane the one-colour key names lines as powers of G | 2026-10-16 | 38801e6 | — |
 | 460 | Cyclic Groups: exponent column's head reads G's exponent | 2026-10-16 | 12f9eb1 | — |
 | 461 | Cyclic Groups: G's exponent tooltip tells G per ring in locked view | 2026-10-16 | f3bc464 | — |
+| 462 | Cyclic Groups: G's exponent tooltip one line per ring, G in ⟨…⟩ = g | 2026-10-16 | b9fec49 | — |
 
 ## Deferred Items
 
