@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 31df9d1
+state_head: 0b8364d
 progress:
   total_phases: 7
   completed_phases: 6
@@ -717,6 +717,7 @@ None yet.
 | 481 | Cyclic Groups: exponent dropdowns follow the dark theme | 2026-10-16 | 56837b7 | — |
 | 482 | Cyclic Groups: subgroup rows grouped by gcd(k, \|G\|), with dividers | 2026-10-16 | 326d9b2 | — |
 | 483 | Cyclic Groups: subgroup panel controls compacted again (dropdowns sized to content) | 2026-10-16 | 31df9d1 | — |
+| 484 | Cyclic Groups: merged (locked isomorphism) subgroup panel controls compacted | 2026-10-16 | 0b8364d | — |
 
 ## Deferred Items
 
