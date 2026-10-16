@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: bb4aa1b
+state_head: 0df857b
 progress:
   total_phases: 7
   completed_phases: 6
@@ -733,6 +733,7 @@ None yet.
 | 497 | Cyclic Groups: hover formulas removed; Formula shows only in the selected row | 2026-10-16 | 8b34bb7 | — |
 | 498 | Cyclic Groups: subgroup panel's Generator can follow the Sort dropdown | 2026-10-16 | 134ce7a | — |
 | 499 | Cyclic Groups: merged pane side's Generator can follow the Sort dropdown | 2026-10-16 | bb4aa1b | — |
+| 500 | Cyclic Groups: merged Sort can follow the coupled expression sliders | 2026-10-16 | 0df857b | — |
 
 ## Deferred Items
 
