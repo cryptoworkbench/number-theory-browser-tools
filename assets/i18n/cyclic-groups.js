@@ -72,12 +72,10 @@
    and splitClose (the chevron button's tooltip, opening or closing that
    panel; they replace splitView), and exprGensAdd and exprGensMul (plural
    entries: the expression slider's name's tooltip counting the generators,
-   φ(n) or φ(φ(n))), and akeyExpHead (the head of the one-colour arrow
-   key's column of each line's exponent of G), and akeyPathGeneral (a
+   φ(n) or φ(φ(n))), and akeyPathGeneral (a
    one-colour line's text beside a locked pane, in powers of G), and
    akeyTipGroup (the group column's head of the hover tables there: a
-   one-colour line's, giving its pair by value per ring, and the exponent
-   column head's, giving G per ring).
+   one-colour line's, giving its pair by value per ring).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -537,7 +535,6 @@
       akeyHidePower: 'Hide these lines',
       akeyPowerExp: 'Power to raise the selected element to',
       akeyPath: '{a} and {a}⁻¹\'s shared path',
-      akeyExpHead: 'G\'s exponent',
       akeyTipGroup: 'Group',
       akeyPathGeneral: '{a} and {ainv}\'s shared path',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
