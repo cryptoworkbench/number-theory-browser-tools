@@ -649,6 +649,16 @@
   .akey-add-row{ padding-inline-start:0; }
   /* Pair lines keep the remove button's room, so their controls line up. */
   .akey-drop.is-spare{ visibility:hidden; }
+  /* A one-colour line's pair in either ring, beside a locked pane. */
+  .akey-tip{ position:fixed; z-index:60; padding:6px 8px; font-size:.8rem; color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); box-shadow:0 4px 14px var(--scrim); pointer-events:none; }
+  .akey-tip[hidden]{ display:none; }
+  .akey-tip table{ border-collapse:collapse; }
+  .akey-tip :is(th, td){ padding:2px 8px; white-space:nowrap; }
+  .akey-tip :is(th, td) + :is(th, td){ border-left:1px solid var(--panel-border); }
+  .akey-tip tr:first-child > th{ font-size:.72rem; font-weight:600; letter-spacing:.04em; color:var(--text-dim); border-bottom:1px solid var(--panel-border); }
+  .akey-tip tr:first-child > th:first-child{ text-transform:uppercase; }
+  .akey-tip tr + tr > th{ font-weight:400; text-align:start; }
+  .akey-tip td, .akey-tip tr:first-child > th + th{ text-align:end; font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
   .akey-btn{ flex:none; width:20px; height:20px; padding:0; display:grid; place-items:center; border:1px solid transparent; border-radius:var(--radius-ctl); background:transparent; color:var(--text-dim); cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl); }
   .akey-btn:hover{ color:var(--text); border-color:var(--panel-border); }
   .akey-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
@@ -5179,8 +5189,9 @@ function orderText(el, G, a, x){
 }
 function akeyGeneral(){ return twoRings() && isoLinked(); }
 // Beside a locked pane each one-colour line, hovered, tells its pair by
-// value in either ring: h^x and h^-x here, the pane's G to the same power
-// and its inverse there, G as the pane reports it.
+// value in either ring, as a small table (akeyTipEl): h^x and h^-x here,
+// the pane's G to the same power and its inverse there, G as the pane
+// reports it; numbers padded as the bottom panel pads them.
 function akeyLineEl(p){
   if (p === 1) return $('combine-key-inner').parentNode;
   if (p === 2) return $('combine-key-outer').parentNode;
@@ -5192,9 +5203,45 @@ function syncAkeyRowTitles(){
   [1].concat(POWER_PS).forEach(function(p){
     var el = akeyLineEl(p), x = powerExp(p);
     var a = on ? powerOf(G, shownGen(G), x) : null, b = on ? powerOf(H, isoPaneKey.h, x) : null;
-    if (!on || el.hidden || a === G.identity || (p > 1 && !powerFits(G, p))){ el.removeAttribute('title'); return; }
-    el.title = translate('cyclicGroups.akeyPathTitle', { a: a, ainv: G.inv[a], group: G.label }) + '\n' + translate('cyclicGroups.akeyPathTitle', { a: b, ainv: H.inv[b], group: H.label });
+    if (!on || el.hidden || a === G.identity || (p > 1 && !powerFits(G, p))){ el.akeyTip = null; return; }
+    el.akeyTip = { x: x, rows: [[G, a, G.inv[a]], [H, b, H.inv[b]]] };
   });
+  if (akeyTipFor && !akeyTipFor.akeyTip) hideAkeyTip();
+}
+var akeyTipEl = document.createElement('div'), akeyTipFor = null;
+akeyTipEl.className = 'akey-tip';
+akeyTipEl.setAttribute('role', 'tooltip');
+akeyTipEl.hidden = true;
+document.body.appendChild(akeyTipEl);
+function showAkeyTip(el){
+  var t = el.akeyTip;
+  if (!t){ hideAkeyTip(); return; }
+  akeyTipFor = el;
+  var table = document.createElement('table');
+  var cell = function(tr, tag, text){ var c = document.createElement(tag); c.textContent = text; tr.appendChild(c); };
+  var head = table.appendChild(document.createElement('tr'));
+  cell(head, 'th', translate('cyclicGroups.akeyTipGroup'));
+  cell(head, 'th', gPower(t.x));
+  cell(head, 'th', gPower(-t.x));
+  t.rows.forEach(function(r){
+    var G = r[0], wide = String(Math.max.apply(null, G.els)).length;
+    var num = function(v){ return state.subPad ? String(v).padStart(wide, '0') : String(v); };
+    var tr = table.appendChild(document.createElement('tr'));
+    cell(tr, 'th', G.label);
+    cell(tr, 'td', num(r[1]));
+    cell(tr, 'td', num(r[2]));
+  });
+  akeyTipEl.replaceChildren(table);
+  akeyTipEl.hidden = false;
+  var r = el.getBoundingClientRect(), w = akeyTipEl.offsetWidth, h = akeyTipEl.offsetHeight;
+  var top = r.top - h - 6;
+  if (top < 4) top = r.bottom + 6;
+  akeyTipEl.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + 'px';
+  akeyTipEl.style.top = top + 'px';
+}
+function hideAkeyTip(){
+  akeyTipFor = null;
+  akeyTipEl.hidden = true;
 }
 // G^x written out: G, G², G⁻¹, G⁻³, ...
 function gPower(x){
@@ -5212,6 +5259,13 @@ var AKEY_POWERS = [
   { p: 5, id: 'fifth', state: 'oneLineFifth' },
   { p: 6, id: 'sixth', state: 'oneLineSixth' }
 ];
+// Each one-colour line shows its table while hovered (showAkeyTip).
+[1].concat(POWER_PS).forEach(function(p){
+  var el = akeyLineEl(p);
+  el.addEventListener('mouseenter', function(){ showAkeyTip(el); });
+  el.addEventListener('mouseleave', hideAkeyTip);
+});
+combineKeyEl.addEventListener('scroll', hideAkeyTip, { passive: true });
 
 function renderCombineKey(G){
   var h = shownGen(G);

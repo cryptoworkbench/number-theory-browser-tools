@@ -76,8 +76,8 @@
    key's column of each line's exponent of G), and akeyPathGeneral (a
    one-colour line's text beside a locked pane, in powers of G), and
    akeyExpHeadTitle (that column head's tooltip there, telling what G is
-   in either ring), and akeyPathTitle (a one-colour line's tooltip there,
-   one line per ring naming its pair by value).
+   in either ring), and akeyTipGroup (the group column's head of a
+   one-colour line's hover table there, giving its pair by value per ring).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -539,7 +539,7 @@
       akeyPath: '{a} and {a}⁻¹\'s shared path',
       akeyExpHead: 'G\'s exponent',
       akeyExpHeadTitle: 'G in {group} = {g}\nG in {other} = {h}',
-      akeyPathTitle: '{a} and {ainv} in {group}',
+      akeyTipGroup: 'Group',
       akeyPathGeneral: '{a} and {ainv}\'s shared path',
       akeyOrderSame: '{hp}, power {x}, steps as the first line does',
       akeyOrderId: '{hp}, power {x}, is the identity, so it has no lines',
