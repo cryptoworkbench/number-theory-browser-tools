@@ -1364,7 +1364,7 @@
   .ring-corner{ display:none; }
   .fs-win-body.is-ring > .ring-corner{ display:flex; gap:6px; position:absolute; right:6px; bottom:6px; z-index:5; }
   .ring-corner > .fs-win-btn{ display:grid; }
-  .ring-corner > .fs-win-btn[hidden], .ring-corner > .genexp-corner[aria-pressed="true"]{ display:none; }
+  .ring-corner > .fs-win-btn[hidden]{ display:none; }
   /* Two groups: what the ring shows (its polygon, its circle, the formula
      scratchpad), then, past a thin rule, the keys and the expressions. A
      pane keeps only its own scratchpad's switch; the rest are the left
@@ -1394,10 +1394,8 @@
   .zoom-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .zoom-step svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
   #zoom-slider{ width:76px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
-  .ring-corner > .key-corner[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+  .ring-corner > :is(.key-corner, .genexp-corner)[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
-  .genexp-info > .genexp-min{ position:absolute; top:6px; right:0; z-index:2; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #genexp-info > .genexp-min{ display:none; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
   .genexp-body{ align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
   .genexp-table{ flex:none; border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.05rem * var(--genexp-fit, 1)); color:var(--text); }
@@ -1961,12 +1959,10 @@
       </section>
       <section class="panel genexp-info" id="genexp-info" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expressions</h2>
-        <button type="button" class="fs-win-btn genexp-min" title="Minimize the element expressions" aria-label="Minimize the element expressions" data-i18n-title="cyclicGroups.genExpMinimizeTitle" data-i18n-aria-label="cyclicGroups.genExpMinimizeTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button>
         <div class="genexp-body" id="genexp-body"></div>
       </section>
       <section class="panel genexp-info is-pane-copy" id="genexp-info-pane" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expressions</h2>
-        <button type="button" class="fs-win-btn genexp-min" title="Minimize the element expressions" aria-label="Minimize the element expressions" data-i18n-title="cyclicGroups.genExpMinimizeTitle" data-i18n-aria-label="cyclicGroups.genExpMinimizeTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button>
         <div class="genexp-body" id="genexp-body-pane"></div>
       </section>
       <div class="ring-corner" id="ring-corner">
@@ -4403,24 +4399,11 @@ function toggleGenExp(){
   postIsoShared(false);
   syncPaneGenExp();
 }
-// The corner button opens and closes the band; the minimize buttons only
-// close it.
+// The corner button opens and closes the band, and stays in the corner
+// pressed while it is open, as the colour keys' buttons do.
 var genExpCornerEl = $('genexp-corner');
 function syncGenExpCorner(){ genExpCornerEl.setAttribute('aria-pressed', genExpShown() ? 'true' : 'false'); }
-// The corner button hides while the band is open, so the focus moves to
-// the band's minimize button, and back to the corner when it minimizes.
-genExpCornerEl.addEventListener('click', function(){
-  toggleGenExp();
-  var min = [].find.call(document.querySelectorAll('.genexp-min'), function(b){ return b.offsetParent; });
-  if (min) min.focus();
-});
-document.querySelectorAll('.genexp-min').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    if (!genExpShown()) return;
-    toggleGenExp();
-    if (!IS_ISOPANE) genExpCornerEl.focus();
-  });
-});
+genExpCornerEl.addEventListener('click', toggleGenExp);
 // The pane's table, sent to the ring holding it as plain data whenever it
 // changes (null while it is hidden): linked, that ring draws it. Each row
 // name's button goes as a span carrying its column, which the copy's
