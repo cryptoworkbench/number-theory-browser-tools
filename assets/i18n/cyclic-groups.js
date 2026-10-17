@@ -412,7 +412,7 @@
       subSortNatLeft: 'Natural order on the left',
       subSortNatRight: 'Natural order on the right',
       subSortExpPair: 'Exponent of {g} and {h}',
-      subSortFollowCoupled: 'Follow coupled expression sliders',
+      subSortFollowCoupled: 'Follow expression sliders',
       subGcd: 'gcd(k, |G|)',
       subGcdTitle: 'Group the rows by gcd(k, |G|), k each row\'s exponent of the generator they are sorted by',
       subGcdDivider: 'GCD(log{g}(G), |{group}|) = {d} · order {order}',
