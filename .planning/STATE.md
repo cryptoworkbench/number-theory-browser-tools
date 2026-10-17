@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: b43102b
+state_head: 115f8b7
 progress:
   total_phases: 7
   completed_phases: 6
@@ -741,6 +741,7 @@ None yet.
 | 505 | Cyclic Groups: gcd dividers name the Sort dropdown's generator | 2026-10-17 | be2b069 | — |
 | 506 | Cyclic Groups: gcd dividers write the exponent as log_g(G) | 2026-10-17 | ca66602 | — |
 | 507 | Cyclic Groups: SUBGROUP row label reads Subgroup (G) | 2026-10-17 | b43102b | — |
+| 508 | Cyclic Groups: additive row formulas use log_g h, Simplify in the right-click menu | 2026-10-17 | 115f8b7 | — |
 
 ## Deferred Items
 
