@@ -39,7 +39,9 @@
    intro), and
    subExprSort (the Numerical panel's Generator expression following its
    Sort dropdown), subSortFollowCoupled (that Sort dropdown, merged across
-   two rings, following their coupled expression sliders), subExprFollow (the Numerical panel's two expressions following the ring's
+   two rings, following their coupled expression sliders), subFormulaSize
+   and subFormulaIndexShort (the bottom panel's Formula dropdown: the
+   selected row's cardinality or index formula), subExprFollow (the Numerical panel's two expressions following the ring's
    expression slider), isoAddLeftTitle (the + at the ring's left edge,
    opening a new ring on the left), and subWidthLabel, subWidthNone,
    subAlign and subAlignTitle (the Numerical panel's dropdown lining up the
@@ -435,6 +437,8 @@
       subFormulaNone: 'None',
       subFormulaOrder: 'Subgroup cardinality',
       subFormulaIndex: 'Subgroup index/cofactor/amount of cosets',
+      subFormulaSize: 'Size',
+      subFormulaIndexShort: 'Index',
       subFormulaBoth: 'Both',
       'formula.subgroupIndex': '[{group} : ⟨{h}⟩] = gcd(|{group}|, {h}) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupIndex': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g} {h}) = gcd(φ({n}), log_{g} {h}) = gcd({k}, {q}) = {d}',
