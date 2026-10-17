@@ -1466,8 +1466,7 @@
   .spin-step{ display:grid; place-items:center; width:1.9em; height:1.9em; padding:0; font:inherit; line-height:1; color:inherit; background:none; border:0; border-radius:50%; cursor:pointer; transition:transform .08s ease, background .08s ease; }
   .spin-step:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .spin-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .spin-step:active, .spin-step.is-pressed{ color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); transform:scale(.88); }
-  .rotate-row .action-btn.is-pressed{ background:color-mix(in srgb, var(--accent) 24%, transparent); transform:scale(.94); }
+  .spin-step:active{ color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); transform:scale(.88); }
   /* Its knob, double-clicked at rest in the middle, resets the turn as the
      rotation row's Reset does; so in the Ring window that row keeps only
      its steps field. */
@@ -6534,18 +6533,6 @@ spinSliderEl.addEventListener('keydown', function(e){
 
 $('rot-back').addEventListener('click', function(){ if (tryLetGoOfTop('turn-ccw')) turnBy(dirSign()); });
 $('rot-fwd').addEventListener('click', function(){ if (tryLetGoOfTop('turn-cw')) turnBy(-dirSign()); });
-// A turn by the subgroup list's arrow keys shows on the buttons it stands
-// for, pressed for a moment.
-function flashStep(cw){
-  [cw ? 'spin-fwd' : 'spin-back', cw ? 'rot-fwd' : 'rot-back'].forEach(function(id){
-    var b = $(id);
-    b.classList.remove('is-pressed');
-    void b.offsetWidth;
-    b.classList.add('is-pressed');
-    clearTimeout(b.pressTimer);
-    b.pressTimer = setTimeout(function(){ b.classList.remove('is-pressed'); }, 160);
-  });
-}
 $('spin-back').addEventListener('click', function(){ $('rot-back').click(); });
 $('spin-fwd').addEventListener('click', function(){ $('rot-fwd').click(); });
 // Reset brings the identity back to the top, and keeps it there.
@@ -7290,32 +7277,34 @@ document.addEventListener('mousemove', function(e){
   if (row) row.dispatchEvent(new MouseEvent('mouseenter'));
 });
 
-// Once a row has focus (a click gives it one), the arrow keys select another
-// element: up and down move to the row above or below, in the panel's own
-// order. Left and right turn the ring one element instead, the
-// way the buttons either side of the spin slider do, which show the press:
-// ArrowLeft counterclockwise, ArrowRight clockwise. To the held
-// keep-on-top end each is the same place as its button, so two turns the
-// same way let go of it, but one each way does not; a held-down key's
-// repeats are not tries.
-subgroupsEl.addEventListener('keydown', function(e){
-  if (!drawn) return;
+// Wherever the focus is, the arrow keys work two things: left and right step
+// the element expression slider (and a slider coupled to it with it), up
+// and down select the subgroup row below or above, in the bottom panel's
+// own order. Only typing in a field and a menu's own items keep them.
+// Taken before the focused control sees them, so no dropdown, slider or
+// switch acts on them as well. A row with the focus keeps it, on the row
+// now selected.
+window.addEventListener('keydown', function(e){
   var vertical = e.key === 'ArrowUp' || e.key === 'ArrowDown';
-  var horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
-  if (horizontal){
-    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    e.preventDefault();
-    var left = e.key === 'ArrowLeft';
-    if (e.repeat && topHeld && state.top !== 'off') return;
-    flashStep(!left);
-    if (tryLetGoOfTop(left ? 'turn-ccw' : 'turn-cw')) turnBy(left ? dirSign() : -dirSign());
+  if (!vertical && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !drawn || IS_PREVIEW) return;
+  // The ring behind the intro takes no keys.
+  if (IS_DESKTOP && !cgEntered) return;
+  var t = e.target;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"]')) return;
+  if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (vertical){
+    var hadFocus = subgroupsEl.contains(document.activeElement);
+    if (stepSubRow(e.key === 'ArrowDown' ? 1 : -1) && hadFocus) focusCurrentRow();
     return;
   }
-  if (!vertical) return;
-  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-  e.preventDefault();
-  if (stepSubRow(e.key === 'ArrowDown' ? 1 : -1)) focusCurrentRow();
-});
+  var i = (parseInt(exprSliderEl.value, 10) || 0) + (e.key === 'ArrowRight' ? 1 : -1);
+  if (i < 0 || i > parseInt(exprSliderEl.max, 10)) return;
+  exprSliderEl.value = String(i);
+  setExprStop(i);
+}, true);
 // Select the row delta rows below (or above) the selected one, in the list's
 // own order; false at either end. A row folded away under its divider
 // unfolds its group.
@@ -7333,24 +7322,6 @@ function stepSubRow(delta){
   selectGen(panelGen = els[i]);
   return true;
 }
-// In the list merged across two rings linked as whole groups, the formula
-// dropdown keeps the focus while the keys work both: left and right step
-// through its options, up and down through the rows of the shared list
-// under it, as they do in the list itself.
-subFormulaEl.addEventListener('keydown', function(e){
-  if (!drawn || IS_ISOPANE || !subInterlocked() || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-  if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){
-    e.preventDefault();
-    stepSubRow(e.key === 'ArrowDown' ? 1 : -1);
-    return;
-  }
-  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-  e.preventDefault();
-  var i = subFormulaEl.selectedIndex + (e.key === 'ArrowRight' ? 1 : -1);
-  if (i < 0 || i >= subFormulaEl.options.length) return;
-  subFormulaEl.selectedIndex = i;
-  subFormulaEl.dispatchEvent(new Event('change'));
-});
 
 // A fact's label is a dictionary key, or a math node such as the modulus %.
 function addFact(labelKey, value){
@@ -9953,11 +9924,6 @@ identitySelectEl.addEventListener('change', function(){ setMode(identitySelectEl
 opToggleEl.addEventListener('click', function(){
   setMode(state.mode === 'multiplicative' ? 'additive' : 'multiplicative');
 });
-opToggleEl.addEventListener('keydown', function(e){
-  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-  e.preventDefault();
-  setMode(e.key === 'ArrowLeft' ? 'additive' : 'multiplicative');
-});
 // The group's parameters, locked while an isomorphism is open: on the ring
 // holding the pane from the moment it opens, in the pane from its start
 // (unless it was let go before a reload). A double-click on them opens the
@@ -10212,14 +10178,6 @@ genSelectEl.addEventListener('change', function(){
     focusCurrentRow();
     blinkLinked(subgroupsPanelEl.parentNode === ringSplitEl && !ringSplitEl.hidden ? subgroupsPanelEl : splitBtnEl);
   }
-});
-// With the bottom panel closed, its row cannot take the focus: the dropdown,
-// following that panel, passes up and down to the list instead.
-genSelectEl.addEventListener('keydown', function(e){
-  if (genSelectEl.value !== SUB_PANEL || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
-  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !drawn) return;
-  e.preventDefault();
-  stepSubRow(e.key === 'ArrowDown' ? 1 : -1);
 });
 FLAG_SWITCHES.forEach(function(name){
   $('layer-' + name).addEventListener('change', function(){
