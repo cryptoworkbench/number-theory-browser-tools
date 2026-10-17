@@ -2051,7 +2051,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3290,6 +3290,16 @@ function gcdOperand(G, h){ return h === 0 ? G.order : h; }
 // log_g h, g the generator given; in a (ℤ/nℤ)* with no generator, h's order.
 function subOrderFormula(G, h, g){
   var n = G.order, d;
+  if (G.mode === 'additive' && g !== undefined){
+    var q = lap(G, g, n).indexOf(h) || n;
+    d = gcd(n, q);
+    return { math: mrow(
+        abs(angle(mn(h))), mo('='),
+        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
+        mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
+        mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
+      plain: translate('cyclicGroups.formula.subgroupOrderLog', { group: G.label, h: h, g: g, n: n, q: q, d: d, k: n / d }) };
+  }
   if (G.mode === 'additive'){
     var q = gcdOperand(G, h);
     d = gcd(n, q);
@@ -3326,6 +3336,12 @@ function subOrderFormula(G, h, g){
 function cosetCountFormula(G, h, g, index){
   var n = G.order, frac = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), lead = frac, d;
   if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true));
+  if (G.mode === 'additive' && g !== undefined){
+    var q = lap(G, g, n).indexOf(h) || n;
+    d = gcd(n, q);
+    return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
+      plain: translate('cyclicGroups.formula.subgroupIndexLog', { group: G.label, h: h, g: g, n: n, q: q, d: d }) };
+  }
   if (G.mode === 'additive'){
     var q = gcdOperand(G, h);
     d = gcd(n, q);
@@ -3349,9 +3365,12 @@ function cosetCountFormula(G, h, g, index){
 function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
-// is logBase's. base, when given, is the log base to use instead.
+// is logBase's, and in ℤ/nℤ too, h found by its place on the ring as
+// log_g h, unless Simplify writes it as h itself (h = 1·h, 1 a generator).
+// base, when given, is the log base to use instead.
 function subRowFormula(G, h, choice, base){
-  var g = G.mode === 'multiplicative' && G.cyclic ? base || logBase(G) : undefined;
+  var logs = G.mode === 'multiplicative' ? G.cyclic : !state.subSimplify;
+  var g = logs ? base || logBase(G) : undefined;
   var out = [];
   if (choice === 'order' || choice === 'both') out.push(subOrderFormula(G, h, g));
   if (choice === 'index' || choice === 'both') out.push(cosetCountFormula(G, h, g, true));
@@ -9365,6 +9384,8 @@ function stateQuery(){
   else q.delete('subsortr');
   if (state.subGcd) q.set('subgcd', '1');
   else q.delete('subgcd');
+  if (state.subSimplify) q.set('subsimplify', '1');
+  else q.delete('subsimplify');
   if (!state.subGcdDividers) q.set('subgcddiv', '0');
   else q.delete('subgcddiv');
   var folded = Object.keys(state.subGcdFolded);
@@ -9739,6 +9760,15 @@ function setSubCtx(open, x, y){
       subWidthEl.dispatchEvent(new Event('change'));
     }));
   });
+  // In ℤ/nℤ the row formula can write h as itself rather than as log_g h.
+  var H = drawn && isoPane && isoPaneGroup();
+  if (drawn && (drawn.G.mode === 'additive' || (H && H.mode === 'additive'))){
+    subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subSimplify'), state.subSimplify, function(){
+      setSubCtx(false);
+      state.subSimplify = !state.subSimplify;
+      render();
+    }));
+  }
   // Grouped by gcd, the dividers between the groups can be hidden or shown.
   if (drawn && subGcdOn(drawn.G)){
     var item = document.createElement('button');
@@ -10532,6 +10562,7 @@ function loadState(query, link){
   state.subSortR = query.get('subsortr') === '1';
   state.subGcd = query.get('subgcd') === '1';
   state.subGcdDividers = query.get('subgcddiv') !== '0';
+  state.subSimplify = query.get('subsimplify') === '1';
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;

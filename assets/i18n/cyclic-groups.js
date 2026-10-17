@@ -85,7 +85,10 @@
    group, the rows' right-click entries hiding or showing those
    dividers, and a divider's tooltip folding its group's rows away or
    unfolding them), and subFormulaRowLabel and subFormulaRowLabelShort
-   (the subgroup list's choice of formula shown in the selected row).
+   (the subgroup list's choice of formula shown in the selected row), and
+   subSimplify, formula.subgroupOrderLog and formula.subgroupIndexLog (the
+   rows' right-click switch writing an additive row formula's h as itself,
+   and the additive row formulas that, with it off, find h as log_g h).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -412,6 +415,9 @@
       subGcdDivider: 'GCD(log{g}(G), |{group}|) = {d} · order {order}',
       subGcdHideDividers: 'Hide the gcd dividers',
       subGcdShowDividers: 'Show the gcd dividers',
+      subSimplify: 'Simplify',
+      'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
+      'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g} {h}) = gcd({n}, {q}) = {d}',
       subGcdCollapse: 'Fold this group of rows away',
       subGcdExpand: 'Unfold this group of rows',
       subPad: 'Pad numbers with leading zeros',
