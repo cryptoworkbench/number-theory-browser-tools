@@ -7390,6 +7390,29 @@ window.addEventListener('keydown', function(e){
   exprSliderEl.value = String(i);
   setExprStop(i);
 }, true);
+// Enter on a row, or with nothing focused, folds the selected row's formulas
+// away or opens them again, as the Formula dropdown last had them (Both the
+// first time). A row not yet selected is selected, its formulas open.
+var lastRowFormula = 'both';
+window.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !drawn || IS_PREVIEW || e.repeat) return;
+  if (IS_DESKTOP && !cgEntered) return;
+  var t = e.target, row = t.closest && t.closest('.subgroup-row');
+  if (!row && t !== document.body && t !== document.documentElement) return;
+  e.preventDefault();
+  e.stopPropagation();
+  var g = row ? parseInt(row.getAttribute('data-gen'), 10) : state.gen;
+  var fresh = g !== state.gen || state.noSub;
+  if (fresh){
+    selectGen(panelGen = g);
+    focusCurrentRow();
+  }
+  var open = fresh || !subFormulaOn();
+  if (!open) lastRowFormula = state.subFormulaRow;
+  if (open === subFormulaOn()) return;
+  subFormulaEl.value = open ? lastRowFormula : 'none';
+  subFormulaEl.dispatchEvent(new Event('change'));
+}, true);
 // Select the row delta rows below (or above) the selected one, in the list's
 // own order; false at either end. A row folded away under its divider
 // unfolds its group.
@@ -10499,6 +10522,7 @@ subWidthEl.addEventListener('change', function(){
 // ⟨h⟩'s cardinality worked out, its index (the number of its cosets), or both.
 subFormulaEl.addEventListener('change', function(){
   state.subFormulaRow = subFormulaEl.value;
+  if (subFormulaOn()) lastRowFormula = state.subFormulaRow;
   if (!drawn) return;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
