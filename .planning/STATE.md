@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d9c8835
+state_head: 3ae0106
 progress:
   total_phases: 7
   completed_phases: 6
@@ -761,6 +761,7 @@ None yet.
 | 525 | Cyclic Groups: recoupling the expression sliders brings back Sort's follow option | 2026-10-17 | dc2b6a5 | — |
 | 526 | Cyclic Groups: Enter folds or opens the selected row's formulas | 2026-10-17 | 15c13a3 | — |
 | 527 | Cyclic Groups: Formula dropdown without None, shown only while the row formulas are open | 2026-10-17 | d9c8835 | — |
+| 528 | Cyclic Groups: Sort's follow option renamed Follow expression sliders | 2026-10-17 | 3ae0106 | — |
 
 ## Deferred Items
 
