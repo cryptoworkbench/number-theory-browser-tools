@@ -8865,9 +8865,14 @@ function toggleExprCoupling(){
   syncExprLock();
   // Uncoupled, the two sliders could pick different subgroups, so a merged
   // list stops following them: the subgroup on show stays, chosen outright.
-  if (!exprCoupled && state.genFollow && subInterlocked()){
-    state.genFollow = false;
-    followedGen = null;
+  // A Sort following them takes the first generator listed after that option.
+  var sortFollows = state.subSort === SUB_FOLLOW;
+  if (!exprCoupled && (state.genFollow || sortFollows) && subInterlocked()){
+    if (state.genFollow){
+      state.genFollow = false;
+      followedGen = null;
+    }
+    if (sortFollows) state.subSort = drawn.G.generators[0];
     render();
     return;
   }
