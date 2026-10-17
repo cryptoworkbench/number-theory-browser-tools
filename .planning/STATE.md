@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: bf6ea8a
+state_head: 049ca76
 progress:
   total_phases: 7
   completed_phases: 6
@@ -743,6 +743,7 @@ None yet.
 | 507 | Cyclic Groups: SUBGROUP row label reads Subgroup (G) | 2026-10-17 | b43102b | — |
 | 508 | Cyclic Groups: additive row formulas use log_g h, Simplify in the right-click menu | 2026-10-17 | 115f8b7 | — |
 | 509 | Cyclic Groups: row formulas take the Sort generator as log base | 2026-10-17 | bf6ea8a | — |
+| 510 | Cyclic Groups: re-sorted subgroup list keeps the selected row at its height (branch subrow-stays-put) | 2026-10-17 | 049ca76 | — |
 
 ## Deferred Items
 
