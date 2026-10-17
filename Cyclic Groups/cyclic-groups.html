@@ -6576,6 +6576,18 @@ function gearTo(level, top){
   syncAutoRotate();
   if (drawn) mirrorToUrl(drawn.G);
 }
+// Space pauses the auto-rotation, whichever way it turns: the speed slider
+// goes back to its middle. Only typing in a field and a menu keep it.
+window.addEventListener('keydown', function(e){
+  if (e.key !== ' ' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || state.autoRotate === 'off' || IS_PREVIEW) return;
+  if (IS_DESKTOP && !cgEntered) return;
+  var t = e.target;
+  if (t.closest && t.closest('textarea, select, [contenteditable], [role="menu"], [role="listbox"]')) return;
+  if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  gearTo(0, 'off');
+}, true);
 function gearMove(e){
   var r = gearboxEl.getBoundingClientRect();
   var unit = (r.width - 20) / 6, slot = parseFloat(getComputedStyle(gearboxEl).getPropertyValue('--gear-slot')) || 14;
