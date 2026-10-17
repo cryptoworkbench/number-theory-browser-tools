@@ -417,7 +417,7 @@
       subGcdShowDividers: 'Show the gcd dividers',
       subSimplify: 'Simplify',
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = |{group}| / gcd(|{group}|, log_{g} {g}^{q}) = |{group}| / gcd(|{group}|, {q}) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
-      'formula.subgroupIndexLog': '[{group} : ⟨{lhs}⟩] = gcd(|{group}|, log_{g} {h}) = gcd(|{group}|, log_{g} {g}^{q}) = gcd(|{group}|, {q}) = gcd({n}, {q}) = {d}',
+      'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g} {h}) = gcd(|{group}|, log_{g} {g}^{q}) = gcd(|{group}|, {q}) = gcd({n}, {q}) = {d}',
       subGcdCollapse: 'Fold this group of rows away',
       subGcdExpand: 'Unfold this group of rows',
       subPad: 'Pad numbers with leading zeros',
