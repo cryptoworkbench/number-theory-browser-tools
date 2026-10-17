@@ -436,6 +436,9 @@
   /* The selected row's formula, on a line of its own inside the row. */
   .sub-row-formula{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin:4px 0 2px; padding:6px 0 4px; overflow-x:auto; overflow-y:hidden; font-family:var(--font-sans); font-size:.95rem; color:var(--text); border-top:1px dashed var(--panel-border); }
   .sub-row-formula .ring-math-formula{ display:inline math; margin:0; }
+  .sub-formula-line{ display:flex; flex-wrap:wrap; align-items:baseline; row-gap:4px; max-width:100%; padding-left:var(--hang, 0px); box-sizing:border-box; }
+  .sub-formula-head{ display:flex; align-items:baseline; margin-left:calc(-1 * var(--hang, 0px)); }
+  .sub-formula-piece{ display:inline math; margin:0; }
   .arrow-options{ margin:0 0 14px; }
   .coset-btn{ width:100%; }
   /* Between locked rings each group's index formula takes a line. */
@@ -3436,19 +3439,58 @@ function showRowFormula(G){
   if (!row || row.parentNode.hidden) return;
   var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
   var sg = !IS_ISOPANE && subInterlocked() && state.subSortR ? null : sortGen(G);
-  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg)));
+  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg), true));
   var H = right && isoPaneGroup();
-  if (!H) return;
-  var phi = isoImage(G);
-  right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRow, sg === null ? paneLogBase(H) : phi(sg))));
+  if (H){
+    var phi = isoImage(G);
+    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRow, sg === null ? paneLogBase(H) : phi(sg)), true));
+  }
+  hangSubFormulas();
 }
-function subFormulaBox(tag, cls, fs){
+// wrap sets each formula as pieces that break onto further lines at its
+// equals signs, rather than as one line too wide for the row.
+function subFormulaBox(tag, cls, fs, wrap){
   var box = document.createElement(tag);
   box.className = cls;
   box.setAttribute('aria-hidden', 'true');
-  fs.forEach(function(f){ box.appendChild(mathLine('ring-math-formula', f.math, f.plain)); });
+  fs.forEach(function(f){ box.appendChild(wrap ? wrappedMathLine(f.math, f.plain) : mathLine('ring-math-formula', f.math, f.plain)); });
   return box;
 }
+// A formula a = b = c = … as its left side and then one piece per step,
+// = b, = c, …: the left side and the first step keep together, and the
+// steps flow on as the room allows, each line after the first starting
+// with its = under the first one (hangSubFormulas measures how far in).
+function wrappedMathLine(math, plain){
+  var line = document.createElement('span');
+  line.className = 'sub-formula-line';
+  var segs = [[]];
+  Array.prototype.slice.call(math.childNodes).forEach(function(c){
+    if (c.localName === 'mo' && c.textContent === '=') segs.push([]);
+    else segs[segs.length - 1].push(c);
+  });
+  var piece = function(nodes, eq){
+    var m = mEl('math', [mrow.apply(null, eq ? [mo('=')].concat(nodes) : nodes)], { displaystyle: 'true', dir: 'ltr', 'class': 'sub-formula-piece' });
+    return m;
+  };
+  var head = document.createElement('span');
+  head.className = 'sub-formula-head';
+  var lhs = piece(segs[0], false);
+  lhs.setAttribute('data-plain', plain);
+  head.appendChild(lhs);
+  if (segs.length > 1) head.appendChild(piece(segs[1], true));
+  line.appendChild(head);
+  segs.slice(2).forEach(function(nodes){ line.appendChild(piece(nodes, true)); });
+  return line;
+}
+// Built while the panel is closed, a line has nothing to measure yet; it is
+// measured again once the list shows.
+function hangSubFormulas(){
+  subgroupsPanelEl.querySelectorAll('.sub-formula-line').forEach(function(line){
+    var w = line.querySelector('.sub-formula-piece').getBoundingClientRect().width;
+    if (w) line.style.setProperty('--hang', w + 'px');
+  });
+}
+if (typeof ResizeObserver === 'function') new ResizeObserver(hangSubFormulas).observe(subgroupsEl);
 // The formula at the ring never scrolls: one too wide for the ring's area is
 // set in a smaller size to fit it, as the header's own formulas are.
 function fitSubFormulaBox(box){
