@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 9bfaeba
+state_head: db820fa
 progress:
   total_phases: 7
   completed_phases: 6
@@ -754,6 +754,7 @@ None yet.
 | 518 | Cyclic Groups: row formulas write ⟨h⟩'s h lined up and coloured as the rows do | 2026-10-17 | 6b64518 | — |
 | 519 | Cyclic Groups: the pane's colour key heading picks the colouring too | 2026-10-17 | 46d6933 | — |
 | 520 | Cyclic Groups: a row formula's ⟨h⟩ chip shows its colour only on hover | 2026-10-17 | 9bfaeba | — |
+| 521 | Cyclic Groups: row formulas bracket log_g(h) like log_g(g^q) | 2026-10-17 | db820fa | — |
 
 ## Deferred Items
 
