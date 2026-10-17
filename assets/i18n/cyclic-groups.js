@@ -88,7 +88,10 @@
    (the subgroup list's choice of formula shown in the selected row), and
    subSimplify, formula.subgroupOrderLog and formula.subgroupIndexLog (the
    rows' right-click switch writing an additive row formula's h as itself,
-   and the additive row formulas that, with it off, find h as log_g h).
+   and the additive row formulas that, with it off, find h as log_g h), and
+   formula.mulSubgroupOrderSteps, formula.mulSubgroupIndexSteps and
+   formula.mulCosetCountSteps (the multiplicative row formulas writing
+   log_g h out as log_g g^q, then q).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -418,6 +421,9 @@
       subSimplify: 'Simplify',
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = |{group}| / gcd(|{group}|, log_{g} {g}^{q}) = |{group}| / gcd(|{group}|, {q}) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g} {h}) = gcd(|{group}|, log_{g} {g}^{q}) = gcd(|{group}|, {q}) = gcd({n}, {q}) = {d}',
+      'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g} {h}) = |{group}| / gcd(|{group}|, log_{g} {g}^{q}) = |{group}| / gcd(|{group}|, {q}) = φ({n}) / gcd(φ({n}), {q}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
+      'formula.mulSubgroupIndexSteps': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g} {h}) = gcd(|{group}|, log_{g} {g}^{q}) = gcd(|{group}|, {q}) = gcd(φ({n}), {q}) = gcd({k}, {q}) = {d}',
+      'formula.mulCosetCountSteps': '|{group}| / |⟨{h}⟩| = gcd(|{group}|, log_{g} {h}) = gcd(|{group}|, log_{g} {g}^{q}) = gcd(|{group}|, {q}) = gcd(φ({n}), {q}) = gcd({k}, {q}) = {d}',
       subGcdCollapse: 'Fold this group of rows away',
       subGcdExpand: 'Unfold this group of rows',
       subPad: 'Pad numbers with leading zeros',
