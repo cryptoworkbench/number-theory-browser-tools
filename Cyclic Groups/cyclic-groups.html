@@ -8317,7 +8317,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, zoomwheel: zoomWheelOn };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -8368,9 +8368,17 @@ function applyIsoShared(d){
     // they are not (sent with no link order) cannot reach this ring, so it
     // drops the merge itself and shows its own list again.
     if (!d.linked){
+      // Let go while the shared bottom panel was open, this ring opens its
+      // own, at the size the shared one had.
+      var wasMerged = isoInterlockOn;
+      if (wasMerged && hostSplitOn){
+        splitOn = true;
+        if (typeof d.splitShare === 'number' && isFinite(d.splitShare)) setSplitShare(d.splitShare);
+      }
       isoPaints = null;
       isoInterlockOn = false;
       document.documentElement.classList.remove('is-pane-merged');
+      if (wasMerged) syncSplit();
     }
   }
   // Told to lock (the user said yes to the isomorphism found): lock, and show
