@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 6b64518
+state_head: 46d6933
 progress:
   total_phases: 7
   completed_phases: 6
@@ -752,6 +752,7 @@ None yet.
 | 516 | Cyclic Groups: row formulas wrap at their equals signs instead of scrolling | 2026-10-17 | b869e00 | — |
 | 517 | Cyclic Groups: multiplicative row formulas write φ(n) and g^q in one step | 2026-10-17 | 4341d79 | — |
 | 518 | Cyclic Groups: row formulas write ⟨h⟩'s h lined up and coloured as the rows do | 2026-10-17 | 6b64518 | — |
+| 519 | Cyclic Groups: the pane's colour key heading picks the colouring too | 2026-10-17 | 46d6933 | — |
 
 ## Deferred Items
 
