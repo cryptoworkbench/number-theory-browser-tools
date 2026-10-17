@@ -7040,6 +7040,7 @@ function renderSubgroups(G){
   }
   subgroupsSig = sig;
   subExports = [{ G: G, lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
+  rowAnchor();
   subgroupsEl.replaceChildren();
   rows.forEach(function(r, i){
     var g = r.g, members = r.members;
@@ -7076,6 +7077,7 @@ function renderSubgroups(G){
   syncSubFormula(G);
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
+  restoreRowAnchor();
   keepCurrentRowInView(G);
   syncSubMore();
 }
@@ -7127,6 +7129,7 @@ function renderMergedSubgroups(G){
     { G: G, lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
     { G: H, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
   ];
+  rowAnchor();
   subgroupsEl.replaceChildren();
   rows.forEach(function(r, i){
     var g = r.g, members = r.members, last = members.length - 1;
@@ -7178,6 +7181,7 @@ function renderMergedSubgroups(G){
   syncSubFormula(G);
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
+  restoreRowAnchor();
   keepCurrentRowInView(G);
   syncSubMore();
 }
@@ -7236,6 +7240,28 @@ function showRow(row){
   var at = row.getBoundingClientRect();
   if (at.top < box.top) subgroupsEl.scrollTop -= box.top - at.top;
   else if (at.bottom > box.bottom) subgroupsEl.scrollTop += at.bottom - box.bottom;
+}
+// A rebuild that re-sorts the list keeps the selected row in sight, when it
+// was in sight before (one scrolled away from stays away): at the same
+// height in the list as before, as far as the list's ends allow, so the
+// rows reshuffle around it.
+var rowAnchorAt = null;
+function rowAnchor(){
+  rowAnchorAt = null;
+  var row = currentRowEl();
+  if (!row) return;
+  var box = subgroupsEl.getBoundingClientRect(), at = row.getBoundingClientRect();
+  if (!at.height || at.bottom <= box.top || at.top >= box.bottom) return;
+  rowAnchorAt = { gen: state.gen, top: at.top - box.top };
+}
+function restoreRowAnchor(){
+  var a = rowAnchorAt, row = currentRowEl();
+  rowAnchorAt = null;
+  if (!a || a.gen !== state.gen || !row) return;
+  var box = subgroupsEl.getBoundingClientRect(), at = row.getBoundingClientRect();
+  if (!at.height) return;
+  subgroupsEl.scrollTop += at.top - box.top - a.top;
+  showRow(row);
 }
 // A newly selected subgroup, chosen from anywhere, scrolls its row into the
 // list's view, once: scrolling the list away from it afterwards stays put.

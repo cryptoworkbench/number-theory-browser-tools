@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 7812975
+state_head: 049ca76
 progress:
   total_phases: 7
   completed_phases: 6
@@ -746,6 +746,7 @@ None yet.
 | 510 | Cyclic Groups: additive row formulas write log_g h out in steps (branch additive-formula-power-step) | 2026-10-17 | 997ba3f | — |
 | 511 | Cyclic Groups: additive cardinality formula writes ⟨h⟩ naturally (branch additive-formula-power-step) | 2026-10-17 | 93ee61c | — |
 | 512 | Cyclic Groups: additive index formula writes ⟨h⟩ naturally (branch additive-formula-power-step) | 2026-10-17 | 7812975 | — |
+| 513 | Cyclic Groups: re-sorted subgroup list keeps the selected row at its height (branch subrow-stays-put) | 2026-10-17 | 049ca76 | — |
 
 ## Deferred Items
 
