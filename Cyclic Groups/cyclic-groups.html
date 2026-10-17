@@ -3296,22 +3296,21 @@ function orderFormulas(G, on){
 function gcdOperand(G, h){ return h === 0 ? G.order : h; }
 // |⟨h⟩|, worked out: in ℤ/nℤ from gcd(n, h); in a cyclic (ℤ/nℤ)* from
 // log_g h, g the generator given; in a (ℤ/nℤ)* with no generator, h's order.
-// In ℤ/nℤ with a log base, ⟨h⟩ itself is written as a power of e, the
-// Generator dropdown's generator, when e is given, and log_g h is worked
-// out in steps: h written as g^q, then q.
-function subOrderFormula(G, h, g, e){
+// In ℤ/nℤ with a log base, log_g h is worked out in steps: h written as
+// g^q, then q; ⟨h⟩ itself stays written as the number h.
+function subOrderFormula(G, h, g){
   var n = G.order, d;
   if (G.mode === 'additive' && g !== undefined){
-    var q = lap(G, g, n).indexOf(h) || n, lhs = additiveLhs(G, h, e);
+    var q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
     return { math: mrow(
-        abs(angle(lhs.math)), mo('='),
+        abs(angle(mn(h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLogOf(g, mEl('msup', [mn(g), mn(q)])))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(q))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
-      plain: translate('cyclicGroups.formula.subgroupOrderLog', { group: G.label, lhs: lhs.plain, h: h, g: g, n: n, q: q, d: d, k: n / d }) };
+      plain: translate('cyclicGroups.formula.subgroupOrderLog', { group: G.label, h: h, g: g, n: n, q: q, d: d, k: n / d }) };
   }
   if (G.mode === 'additive'){
     var q = gcdOperand(G, h);
@@ -3388,7 +3387,7 @@ function subRowFormula(G, h, choice, base, e){
   var logs = G.mode === 'multiplicative' ? G.cyclic : !state.subSimplify;
   var g = logs ? base || logBase(G) : undefined;
   var out = [];
-  if (choice === 'order' || choice === 'both') out.push(subOrderFormula(G, h, g, e));
+  if (choice === 'order' || choice === 'both') out.push(subOrderFormula(G, h, g));
   if (choice === 'index' || choice === 'both') out.push(cosetCountFormula(G, h, g, true, e));
   return out;
 }
