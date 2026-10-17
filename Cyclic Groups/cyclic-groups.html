@@ -3295,13 +3295,14 @@ function gcdOperand(G, h){ return h === 0 ? G.order : h; }
 // In ℤ/nℤ with a log base, log_g h is worked out in steps: h written as
 // g^q, then q; ⟨h⟩ itself stays written as the number h. In (ℤ/nℤ)* steps
 // asks for the same, |G| written as φ(n) in the step that writes h as g^q.
-function subOrderFormula(G, h, g, steps){
-  var n = G.order, d;
+// hm, when given, makes the h inside ⟨⟩ instead (the rows' chip).
+function subOrderFormula(G, h, g, steps, hm){
+  var n = G.order, d, hx = hm || function(){ return mn(h); };
   if (G.mode === 'additive' && g !== undefined){
     var q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
     return { math: mrow(
-        abs(angle(mn(h))), mo('='),
+        abs(angle(hx())), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLogOf(g, mEl('msup', [mn(g), mn(q)])))), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(q))), mo('='),
@@ -3313,20 +3314,20 @@ function subOrderFormula(G, h, g, steps){
     var q = gcdOperand(G, h);
     d = gcd(n, q);
     return { math: mrow(
-        abs(angle(mn(h))), mo('='),
+        abs(angle(hx())), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(h))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
       plain: translate('cyclicGroups.formula.subgroupOrder', { group: G.label, h: h, n: n, q: q, d: d, k: n / d }) };
   }
-  if (!G.cyclic) return { math: mrow(abs(angle(mn(h))), mo('='), mrow(mi('ord'), mo('\u2061'), mo('(', true), mn(h), mo(')', true)), mo('='), mn(G.orders[h])),
+  if (!G.cyclic) return { math: mrow(abs(angle(hx())), mo('='), mrow(mi('ord'), mo('\u2061'), mo('(', true), mn(h), mo(')', true)), mo('='), mn(G.orders[h])),
     plain: translate('cyclicGroups.formula.mulSubgroupOrderByOrd', { h: h, k: G.orders[h] }) };
   // log_g 1 is taken as g's period k rather than 0: g^k = 1 as well, and
   // gcd(k, k) = k reads more plainly than gcd(k, 0).
   var q = lap(G, g, n).indexOf(h) || n;
   d = gcd(n, q);
   if (steps) return { math: mrow(
-      abs(angle(mn(h))), mo('='),
+      abs(angle(hx())), mo('='),
       mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
       mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mLogOf(g, mEl('msup', [mn(g), mn(q)])))), mo('='),
       mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mn(q))), mo('='),
@@ -3334,7 +3335,7 @@ function subOrderFormula(G, h, g, steps){
       mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
     plain: translate('cyclicGroups.formula.mulSubgroupOrderSteps', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d, m: n / d }) };
   return { math: mrow(
-      abs(angle(mn(h))), mo('='),
+      abs(angle(hx())), mo('='),
       mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLog(g, h))), mo('='),
       mfrac(mPhi(mn(G.n)), mgcd(mPhi(mn(G.n)), mLog(g, h))), mo('='),
       mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
@@ -3350,9 +3351,10 @@ function subOrderFormula(G, h, g, steps){
 // place of the fraction, which only the order-based form without a gcd
 // keeps, and a generator g given is taken as the log base whether or not
 // the beads are arranged by it.
-function cosetCountFormula(G, h, g, index, steps){
-  var n = G.order, frac = mfrac(abs(mGroup(G)), abs(angle(mn(h)))), lead = frac, d;
-  if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(mn(h)), mo(']', true));
+function cosetCountFormula(G, h, g, index, steps, hm){
+  var hx = hm || function(){ return mn(h); };
+  var n = G.order, frac = mfrac(abs(mGroup(G)), abs(angle(hx()))), lead = frac, d;
+  if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true));
   if (G.mode === 'additive' && g !== undefined){
     var q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
@@ -3390,13 +3392,14 @@ function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
 // is logBase's, and in ℤ/nℤ too, h found by its place on the ring as
 // log_g h, unless Simplify writes it as h itself (h = 1·h, 1 a generator).
-// base, when given, is the log base to use instead.
-function subRowFormula(G, h, choice, base){
+// base, when given, is the log base to use instead, and hm what makes the
+// h inside ⟨⟩.
+function subRowFormula(G, h, choice, base, hm){
   var logs = G.mode === 'multiplicative' ? G.cyclic : !state.subSimplify;
   var g = logs ? base || logBase(G) : undefined;
   var out = [];
-  if (choice === 'order' || choice === 'both') out.push(subOrderFormula(G, h, g, true));
-  if (choice === 'index' || choice === 'both') out.push(cosetCountFormula(G, h, g, true, true));
+  if (choice === 'order' || choice === 'both') out.push(subOrderFormula(G, h, g, true, hm));
+  if (choice === 'index' || choice === 'both') out.push(cosetCountFormula(G, h, g, true, true, hm));
   return out;
 }
 // The log base of a cyclic (ℤ/nℤ)*'s formulas: the generator its element
@@ -3438,11 +3441,16 @@ function showRowFormula(G){
   if (!row || row.parentNode.hidden) return;
   var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
   var sg = !IS_ISOPANE && subInterlocked() && state.subSortR ? null : sortGen(G);
-  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg), true));
+  // ⟨h⟩'s h is written as the rows write their numbers, lined up and
+  // coloured like its bead as the panel's menu says; the pane's coloured
+  // only while its colours are linked, as its side of the rows is.
+  var gm = function(){ return memberMath(g, subFormat(null, null, subWidth(G), 0).m(g)); };
+  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg, gm), true));
   var H = right && isoPaneGroup();
   if (H){
-    var phi = isoImage(G);
-    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRow, sg === null ? paneLogBase(H) : phi(sg)), true));
+    var phi = isoImage(G), linked = isoLinked();
+    var hm = function(){ var m = subFormat(null, null, subWidth(H), 0).m(phi(g)); return linked ? memberMath(g, m) : m; };
+    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRow, sg === null ? paneLogBase(H) : phi(sg), hm), true));
   }
   hangSubFormulas();
 }
