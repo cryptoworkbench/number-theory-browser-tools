@@ -591,7 +591,7 @@
   .legend-kind[hidden], .legend-kind-select[hidden]{ display:none; }
   /* The dropdown it turns into keeps the heading's lettering. */
   .legend-kind-select{ text-transform:inherit; letter-spacing:inherit; font-weight:inherit; }
-  #legend-panel > h2 > .legend-kind-select{ font-size:inherit; padding:1px 6px; vertical-align:baseline; }
+  :is(#legend-panel, #legend-panel-pane) > h2 > .legend-kind-select{ font-size:inherit; padding:1px 6px; vertical-align:baseline; }
   :is(.legend-expr select, .legend-kind-select){ font:inherit; font-family:var(--font-sans); font-size:.82rem; padding:3px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; }
   :is(.legend-expr select, .legend-kind-select):focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   :is(.legend-expr select, .legend-kind-select) option{ color:var(--text); background:var(--bg-1); }
@@ -7530,14 +7530,15 @@ function renderThemeLegend(G){
 // is a button that, clicked, turns into a dropdown of the schemes, each
 // named as its own heading names it (the part after the colon), choosing in
 // the Element colours dropdown as the ring's menu does, until a choice or
-// a click elsewhere turns it back.
+// a click elsewhere turns it back. into is the heading it goes in, this
+// ring's own unless given (the pane's, drawn here).
 var LEGEND_KINDS = { order: 'cyclicGroups.legendHeading', inverse: 'cyclicGroups.legendHeadingInverse', theme: 'cyclicGroups.legendHeadingTheme' };
 function legendHeadingParts(by){
   var t = translate(LEGEND_KINDS[by] || LEGEND_KINDS.order);
   var m = t.match(/^(.*?[:：]\s*)(.+)$/);
   return m ? { head: m[1], name: m[2] } : { head: '', name: t };
 }
-function drawLegendHeading(by){
+function drawLegendHeading(by, into){
   var parts = legendHeadingParts(by);
   var name = document.createElement('button');
   name.type = 'button';
@@ -7577,7 +7578,7 @@ function drawLegendHeading(by){
     colorBySelectEl.value = v;
     colorBySelectEl.dispatchEvent(new Event('change'));
   });
-  legendHeadingEl.replaceChildren(document.createTextNode(parts.head), name, pick);
+  (into || legendHeadingEl).replaceChildren(document.createTextNode(parts.head), name, pick);
 }
 function renderLegend(G, classes, pairing){
   // With the beads uncoloured there is no key to show full screen.
@@ -8453,7 +8454,7 @@ function syncPaneLegend(on){
   document.documentElement.classList.toggle('is-iso-two-legends', on);
   panel.hidden = !pk;
   if (!pk) return;
-  $('legend-heading-pane').textContent = translate('cyclicGroups.legendHeadingInverse');
+  drawLegendHeading('inverse', $('legend-heading-pane'));
   // The pane's own "Elements as" menu, its choice told back to the pane.
   var gens = pk.gens || [];
   $('legend-expr-pane').hidden = !gens.length;
