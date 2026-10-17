@@ -3405,16 +3405,19 @@ function syncSubFormula(G){
   showRowFormula(G);
 }
 // The row formula, in the selected row: on lines of their own under its
-// subgroup, each side of a merged row its own group's.
+// subgroup, each side of a merged row its own group's. Its log base is
+// the generator the rows are sorted by, the pane's its image, and while
+// they are sorted naturally logBase's.
 function showRowFormula(G){
   subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
   if (!subFormulaOn() || state.noSub) return;
   var g = state.gen, row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
   if (!row || row.parentNode.hidden) return;
   var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
-  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow)));
+  var sg = !IS_ISOPANE && subInterlocked() && state.subSortR ? null : sortGen(G);
+  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg)));
   var H = right && isoPaneGroup();
-  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, paneLogBase(H))));
+  if (H) right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, isoImage(G)(g), state.subFormulaRow, sg === null ? paneLogBase(H) : isoImage(G)(sg))));
 }
 function subFormulaBox(tag, cls, fs){
   var box = document.createElement(tag);
