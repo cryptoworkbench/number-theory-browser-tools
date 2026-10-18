@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 68a268a
+state_head: ca613f4
 progress:
   total_phases: 7
   completed_phases: 6
@@ -767,6 +767,16 @@ None yet.
 | 531 | Cyclic Groups: subgroup row labels its dropdown G and reads G = ⟨h⟩ ⊂ … | 2026-10-17 | 46e2eab | — |
 | 532 | Cyclic Groups: Space pauses the auto-rotation (speed slider to its middle) | 2026-10-17 | e7b7b0b | — |
 | 533 | Cyclic Groups: unlocking with the shared bottom panel open opens both rings' panels at its size | 2026-10-17 | 68a268a | — |
+| 534 | Cyclic Groups: subgroup rows coloured by forward/backward path | 2026-10-17 | d56d80b | — |
+| 535 | Cyclic Groups: Formula None back, always shown; right-click toggle for path-coloured rows | 2026-10-17 | 2db8b49 | — |
+| 536 | Cyclic Groups: rows coloured by power-of-G line colours (right-click toggle) | 2026-10-17 | 48f8f7b | — |
+| 537 | Cyclic Groups: power-line dropdowns include the cardinality itself | 2026-10-17 | 932612f | — |
+| 538 | Cyclic Groups: a power line on the identity draws a two-way loop in its cardinality colour | 2026-10-17 | 950a8d2 | — |
+| 539 | Cyclic Groups: zoomed in, the ring grows on behind the control rows above it | 2026-10-18 | 1c7f164 | — |
+| 540 | Cyclic Groups: control rows over a zoomed ring are frosted glass | 2026-10-18 | d719074 | — |
+| 541 | Cyclic Groups: frosted control rows in the double view too | 2026-10-18 | db7c024 | — |
+| 542 | Cyclic Groups: double view's rings meet at the middle line, sliders level | 2026-10-18 | 8baf485 | — |
+| 543 | Cyclic Groups: expression slider drops its name; its tooltip names it | 2026-10-18 | ca613f4 | — |
 
 ## Deferred Items
 
