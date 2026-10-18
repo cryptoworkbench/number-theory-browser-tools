@@ -3472,15 +3472,28 @@ function subRowFormula(G, h, choice, base, hm, lcm){
   var lcms = (lcm === undefined ? state.subLcm : lcm) && (G.mode === 'additive' || G.cyclic);
   if (choice === 'order' || choice === 'both') out.push(lcms ? subOrderLcm(G, h, g, hm) : subOrderFormula(G, h, g, true, hm));
   if (choice === 'index' || choice === 'both') out.push(lcms ? subIndexLcm(G, h, g, hm) : cosetCountFormula(G, h, g, true, true, hm));
-  return g !== undefined && state.subShort ? out.map(skipPowerStep) : out;
+  if (g === undefined || !state.subShort) return out;
+  var q = lap(G, g, G.order).indexOf(h) || G.order;
+  return out.map(function(f){ return skipPowerStep(f, G.mode === 'multiplicative' ? q : null); });
 }
-// The formula complexity slider's rightmost stop leaves out the step writing
-// h as a power (or multiple) of g, the third term, going from log_g h to q.
-function skipPowerStep(f){
-  var kids = f.math.childNodes;
-  if (kids.length > 5){ f.math.removeChild(kids[4]); f.math.removeChild(kids[3]); }
-  var parts = f.plain.split(' = ');
-  if (parts.length > 3) parts.splice(2, 1);
+// The formula complexity slider's rightmost stop leaves out writing h as a
+// power (or multiple) of g, in the third term. In ℤ/nℤ that term goes, the
+// log going straight to q; in (ℤ/nℤ)* it stays for the φ(n) it brings in,
+// with q in place of log_g(g^q). q is given for (ℤ/nℤ)*, null for ℤ/nℤ.
+function skipPowerStep(f, q){
+  var kids = f.math.childNodes, parts = f.plain.split(' = ');
+  if (kids.length <= 5 || parts.length <= 3) return f;
+  if (q === null){
+    f.math.removeChild(kids[4]);
+    f.math.removeChild(kids[3]);
+    parts.splice(2, 1);
+  } else {
+    kids[4].querySelectorAll('mrow').forEach(function(r){
+      var c = r.firstElementChild;
+      if (c && c.localName === 'msub' && c.firstElementChild && c.firstElementChild.textContent === 'log' && kids[4].contains(r)) r.replaceWith(mn(q));
+    });
+    parts[2] = parts[2].replace(/log_\d+\(\d+\^\d+\)/g, String(q));
+  }
   return { math: f.math, plain: parts.join(' = ') };
 }
 // The slider's stops: 0 the additive formulas without the logarithm

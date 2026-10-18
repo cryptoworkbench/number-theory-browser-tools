@@ -441,7 +441,7 @@
       formulaLevelLess: 'Less beginner',
       formulaLevelLeast: 'Least beginner',
       formulaLevelSubst: "Substitute the element to make the logarithm's function clear.",
-      formulaLevelNoSubst: "Don't substitute the element; shorter, but less clear.",
+      formulaLevelNoSubst: "Don't substitute the element; less clear about what the logarithm does.",
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = {n} / gcd({n}, log_{g}({g}^{q})) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd({n}, log_{g}({g}^{q})) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = φ({n}) / gcd(φ({n}), log_{g}({g}^{q})) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
