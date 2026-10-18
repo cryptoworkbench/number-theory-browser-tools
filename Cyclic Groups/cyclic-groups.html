@@ -8703,7 +8703,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -8711,12 +8711,16 @@ function postIsoShared(force){
   var s = JSON.stringify(isoSharedPayload());
   if (!force && s === isoSharedSent) return;
   isoSharedSent = s;
+  // Turning together, the pane takes this ring's zoom with the rest, so a
+  // pane just opened starts at it rather than at its own fit.
+  if (twoRings() && isoTurnsTogether()) paneZoom = ringZoom;
   try { isoPaneFrame.contentWindow.postMessage(isoSharedPayload(), '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
 // The pane takes the payload field by field, each only when it is valid.
 function applyIsoShared(d){
   var flag = function(v){ return typeof v === 'boolean'; };
   var hex = function(v){ return v === null || (typeof v === 'string' && HEX_COLOR.test(v)); };
+  if (Number.isInteger(d.zoom)) applyZoom(d.zoom);
   if (flag(d.colors)) state.colors = d.colors;
   if (flag(d.backward)) state.backward = d.backward;
   if (flag(d.swapColors)) state.swapColors = d.swapColors;
