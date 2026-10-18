@@ -97,7 +97,8 @@
    formula.mulSubgroupOrderSteps, formula.mulSubgroupIndexSteps and
    formula.mulCosetCountSteps (the multiplicative row formulas writing
    log_g h out as log_g g^q, then q), subLcmFormulas (the bottom panel's
-   menu switch to the lcm forms) and formula.subgroupOrderLcm,
+   menu switch to the lcm forms), subLcmFormulasIn (that switch for one
+   side's group, with the rows merged across two rings) and formula.subgroupOrderLcm,
    formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
    formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
    (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)).
@@ -431,6 +432,7 @@
       subPathColours: 'Colour row lines according to paths',
       subPowerColours: 'Colour rows according to power of G colours',
       subLcmFormulas: 'Calculate cardinality and index with the LCM formulas',
+      subLcmFormulasIn: 'Calculate cardinality and index in {group} with the LCM formulas',
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = |{group}| / gcd(|{group}|, log_{g}({g}^{q})) = |{group}| / gcd(|{group}|, {q}) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd(|{group}|, log_{g}({g}^{q})) = gcd(|{group}|, {q}) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = φ({n}) / gcd(φ({n}), log_{g}({g}^{q})) = φ({n}) / gcd(φ({n}), {q}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
