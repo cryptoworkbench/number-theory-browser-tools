@@ -864,9 +864,18 @@
      room under it, none above. */
   :root.is-desktop .diagram-frame .fs-win-body.is-ring.ring-body .facts.group-controls li.op-toggle-row,
   :root.is-isopane .fs-win-body.is-ring.ringwin-body .facts.group-controls li.op-toggle-row{ padding:0 0 6px; }
-  /* The pane already sits inside the ring body's top padding, so its own
-     controls start at its top edge, level with the left ring's. */
-  :root.is-isopane .fs-win-body.is-ring.ringwin-body{ padding-top:0; }
+  /* The pane already sits inside the ring body's top and bottom padding, so
+     its own controls start at its top edge, level with the left ring's, and
+     its expression slider ends at its bottom edge, level with the left one.
+     Its left padding makes up for the pane reaching to the middle line. */
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body{ padding-top:0; padding-bottom:0; padding-left:31px; }
+  /* The ring and its expression slider mirror the left ring's: from 6px
+     right of the middle line to the window's edge, as wide as the left
+     ones, so both rings and both sliders lay out alike. */
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body > svg.ring-svg{ margin-left:-25px; width:calc(100% + 37px); }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> .expr-slot.is-side:not([hidden])) > svg.ring-svg{ width:calc(100% + 25px - var(--expr-side) - 10px); }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body > .expr-slot:not([hidden]):not(.is-side){ justify-self:start; margin-left:-25px; width:calc(100% + 37px); }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body > .expr-slot.is-side:not([hidden]){ margin-right:-12px; }
   /* At the top edge the toggle row's lock badge sits lower, inside the screen. */
   .fs-win-body.is-ring:is(.ring-body, .ringwin-body) .facts.group-controls > li.op-toggle-row > .group-lock{ top:-2px; }
   .fs-win-body.is-ring.ring-body > .fs-win-row-ctl{ padding-right:40px; }
@@ -1206,8 +1215,9 @@
   :root.is-iso-blank .fs-win-body.is-ring > :not(.fs-win-row-ctl), :root.is-iso-blank #keep-top-row{ filter:blur(8px); opacity:.5; pointer-events:none; user-select:none; }
   :root.is-iso-unblurring .fs-win-body.is-ring > *, :root.is-iso-unblurring #keep-top-row{ transition:filter .45s ease, opacity .45s ease; }
   /* In a Ring window the pane is a fourth column, as wide as the other three
-     with their gaps; it spans every row, the ring's flexible one setting its height. */
-  .fs-win-body.is-ring > .iso-pane:not([hidden]){ grid-area:pane; align-self:stretch; border-left:1px solid var(--panel-border); padding-left:12px; }
+     with their gaps; it spans every row, the ring's flexible one setting its
+     height. Its line reaches back over half the gap, to the window's middle. */
+  .fs-win-body.is-ring > .iso-pane:not([hidden]){ grid-area:pane; align-self:stretch; border-left:1px solid var(--panel-border); margin-left:-7px; }
   /* In the ring's body the browser tab's name says which isomorphism is on
      show, so the pane drops its name and keeps only its close button, in its
      top corner, and its rows line up with the left ring's. */
@@ -1225,7 +1235,7 @@
      top of its side just left of the line between them: closing it leaves
      the right ring's group in its place. */
   .iso-ring-close{ display:none; }
-  .fs-win-body.is-ring > .iso-pane > .iso-ring-close{ display:grid; position:absolute; z-index:6; top:0; left:-14px; translate:-100% 0; }
+  .fs-win-body.is-ring > .iso-pane > .iso-ring-close{ display:grid; position:absolute; z-index:6; top:0; left:-7px; translate:-100% 0; }
   .fs-win-body.is-ring > .iso-pane .iso-pane-name{ display:none; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:auto minmax(0, 1fr) auto calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr"; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr"; }
@@ -1342,12 +1352,17 @@
   svg.ring-svg.is-zoomed{ overflow:hidden; }
   .fs-win-body.is-ring{ isolation:isolate; }
   .fs-win-body.is-ring > svg.ring-svg.is-zoomed{ overflow:visible; clip-path:inset(-100vh 0 0 0); position:relative; z-index:-1; }
+  /* Beside a pane the two rings meet at the middle line. */
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -7px 0 0); }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh 0 0 -6px); }
   /* Frosted glass over the part grown behind the rows: the rows' band
      blurs and softens the ring beneath it, the rows' own controls sharp on
      top. Drawn after the ring at its depth, so before the rows. Beside a
      pane, each ring has its own, above its own half, as the ring keeps to
      its half at the sides. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / ring-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg.is-zoomed)::after{ margin-right:-7px; }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg.is-zoomed)::after{ margin-left:-31px; margin-right:-12px; }
   .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   /* The copy submenu shows its formula above the copy options, broken at
