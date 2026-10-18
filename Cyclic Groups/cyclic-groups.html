@@ -593,6 +593,7 @@
   .legend-count{ margin-left:auto; color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; }
   /* Inverse-pair key: one pair per line, like every other key. */
   .legend-pair{ font-size:.9rem; font-variant-numeric:tabular-nums; }
+  .legend.is-distinct{ flex-direction:row; flex-wrap:wrap; gap:4px 14px; }
   /* How the inverse-pair key writes its elements: Natural, the ring's
      expression slider, or the powers of a generator. */
   .legend-expr{ display:flex; align-items:baseline; gap:8px; margin:0 0 8px; font-size:.82rem; color:var(--text-dim); }
@@ -1973,6 +1974,7 @@
               <option value="order" data-i18n="cyclicGroups.colorByOrder">Subgroup cardinality</option>
               <option value="inverse" data-i18n="cyclicGroups.colorByInverse">Inverse pairs</option>
               <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
+              <option value="distinct" data-i18n="cyclicGroups.colorByDistinct">One distinct colour per element</option>
             </select>
           </div>
           <button type="button" class="action-btn legend-btn" id="legend-btn" aria-pressed="false" aria-controls="legend-panel" data-i18n="cyclicGroups.showElementColours">Show key</button>
@@ -2117,8 +2119,9 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 // gen is the chosen element h: the inner arrows walk by h, the outer arrows
 // by its inverse.
 // colorBy picks what the bead colors mean: 'order' (element order),
-// 'inverse' (an element and its inverse share a color) or 'theme' (the
-// website's prime and composite colors, the identity red).
+// 'inverse' (an element and its inverse share a color), 'theme' (the
+// website's prime and composite colors, the identity red) or 'distinct'
+// (every element a color of its own).
 // picks holds, per coloring, the colours picked from its key: a #rrggbb by
 // slot (see PICK_SLOT), a slot left out keeping its default.
 // elSide puts the forward walk, by h, 'inside' or 'outside' the ring.
@@ -2126,10 +2129,10 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 // dir is the way the beads count round the ring, and so the way the forward
 // walk turns: 'cw' (clockwise, like a clock face) or 'ccw'. The Forward
 // direction menu picks it.
-var COLOR_BY = ['order', 'inverse', 'theme'];
+var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -2441,8 +2444,24 @@ function beadPainter(G, classes, pairing){
       return pairing.color[a] ? { cls: '', style: '--ord: ' + pairing.color[a] } : { cls: 'ord-id', style: null };
     }
     if (state.colorBy === 'theme') return { cls: themeClass(G, a), style: null };
+    if (state.colorBy === 'distinct') return { cls: '', style: '--ord: ' + distinctColor(G, a) };
     return { cls: classes[G.orders[a]], style: null };
   };
+}
+
+// Every element its own colour: the group's |G| colours spaced evenly round
+// the pair wheel, the kth element taking the (k·s mod |G|)th, s the step
+// nearest |G| over the golden ratio squared that is coprime to |G|, so
+// elements that follow each other never get neighbouring hues. Each can be
+// picked from the key (slot eA).
+function distinctColor(G, a){
+  var m = G.order, s = Math.max(1, Math.round(m * 0.381966));
+  for (var d = 0; d < m; d++){
+    if (gcd(s + d, m) === 1){ s += d; break; }
+    if (s - d > 0 && gcd(s - d, m) === 1){ s -= d; break; }
+  }
+  var k = G.els.indexOf(a);
+  return 'var(--pick-e' + a + ', ' + wheelColor((k * s % m) / m) + ')';
 }
 
 // The website-theme color of an element: the identity's own, then 1, the
@@ -2456,9 +2475,9 @@ function themeClass(G, a){
 
 // A picked colour's slot: the .ord-* class it repaints, without the ord-
 // (the identity's in every coloring is id, the website theme's included),
-// or pK for the inverse pairs' Kth pair.
-var PICK_SLOT = /^(id|gen|m([1-9]|10)|one|prime|composite|p[0-9]{1,2})$/;
-var PICK_KEYS = { order: 'pickorder', inverse: 'pickinverse', theme: 'picktheme' };
+// pK for the inverse pairs' Kth pair, or eA for element A's own colour.
+var PICK_SLOT = /^(id|gen|m([1-9]|10)|one|prime|composite|p[0-9]{1,2}|e[0-9]{1,2})$/;
+var PICK_KEYS = { order: 'pickorder', inverse: 'pickinverse', theme: 'picktheme', distinct: 'pickdistinct' };
 var pickedOn = [];
 // The active coloring's picks, written on .app as --pick-<slot> for the
 // beads, the list and the keys, the reset showing while there is one to
@@ -7942,13 +7961,30 @@ function renderThemeLegend(G){
   if (shown['ord-composite']) add('composite', translate('cyclicGroups.legendThemeComposites'));
 }
 
+// The one-colour-per-element key: every element beside its colour, in the
+// group's order. Linked, the one key reads for both rings: each element
+// names its image in the pane's group too.
+function renderDistinctLegend(G){
+  var H = !IS_ISOPANE && isoPane && isoLinked() ? isoPaneGroup() : null;
+  var img = H ? isoImage(G) : null;
+  var title = translate('cyclicGroups.legendPickTitle');
+  G.els.forEach(function(a){
+    var b = img ? img(a) : a;
+    var text = b !== a ? mInline(mrow(mn(a), mo('↦'), mn(b)), a + ' ↦ ' + b) : mNum(a);
+    var item = legendItem('', '--ord: ' + distinctColor(G, a), text, 'legend-pair');
+    item.setAttribute('data-el', a);
+    makePickable(item.querySelector('.legend-swatch'), 'e' + a, title);
+    legendEl.appendChild(item);
+  });
+}
+
 // The key's heading, 'Colour key: subgroup cardinality': the scheme's name
 // is a button that, clicked, turns into a dropdown of the schemes, each
 // named as its own heading names it (the part after the colon), choosing in
 // the Element colours dropdown as the ring's menu does, until a choice or
 // a click elsewhere turns it back. into is the heading it goes in, this
 // ring's own unless given (the pane's, drawn here).
-var LEGEND_KINDS = { order: 'cyclicGroups.legendHeading', inverse: 'cyclicGroups.legendHeadingInverse', theme: 'cyclicGroups.legendHeadingTheme' };
+var LEGEND_KINDS = { order: 'cyclicGroups.legendHeading', inverse: 'cyclicGroups.legendHeadingInverse', theme: 'cyclicGroups.legendHeadingTheme', distinct: 'cyclicGroups.legendHeadingDistinct' };
 function legendHeadingParts(by){
   var t = translate(LEGEND_KINDS[by] || LEGEND_KINDS.order);
   var m = t.match(/^(.*?[:：]\s*)(.+)$/);
@@ -8009,13 +8045,15 @@ function renderLegend(G, classes, pairing){
   legendPanelEl.classList.toggle('is-shown', legendShown && state.colors && !oneKey);
   legendEl.replaceChildren();
   legendEl.classList.toggle('is-off', !state.colors);
-  var inverse = state.colorBy === 'inverse', theme = state.colorBy === 'theme';
+  var inverse = state.colorBy === 'inverse', theme = state.colorBy === 'theme', distinct = state.colorBy === 'distinct';
   if (IS_ISOPANE) tellPaneLegend(inverse && state.colors ? paneLegendOf(G, pairing) : null);
   legendEl.classList.toggle('is-pairs', inverse);
+  legendEl.classList.toggle('is-distinct', distinct);
   drawLegendHeading(state.colorBy);
   legendExprEl.hidden = !(inverse && state.colors && G.cyclic);
   if (inverse){ renderInverseLegend(pairing, legendEl, G); return; }
   if (theme){ renderThemeLegend(G); return; }
+  if (distinct){ renderDistinctLegend(G); return; }
   var counts = {};
   G.els.forEach(function(a){ counts[G.orders[a]] = (counts[G.orders[a]] || 0) + 1; });
   Object.keys(counts).map(Number).sort(function(a, b){ return a - b; }).forEach(function(o){
@@ -8919,7 +8957,7 @@ function syncIsoKeys(){
   root.classList.toggle('is-iso-unlinked', unlinked);
   syncCosetButton();
   keepLockClear();
-  root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && (state.colorBy === 'order' || state.colorBy === 'theme'));
+  root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && (state.colorBy === 'order' || state.colorBy === 'theme' || state.colorBy === 'distinct'));
   syncPaneLegend(!!isoPane && !!drawn && !unlinked && state.colors && state.colorBy === 'inverse');
   syncPaneGenExp();
 }
@@ -10203,6 +10241,7 @@ function exportName(){
   if (state.rot) parts.push('rot', state.rot);
   if (state.colors && state.colorBy === 'inverse') parts.push('inverses');
   if (state.colors && state.colorBy === 'theme') parts.push('theme');
+  if (state.colors && state.colorBy === 'distinct') parts.push('distinct');
   if (state.elSide !== 'inside' || !state.backward) parts.push('arrows', state.elSide, state.backward ? 'back' : 'noback');
   if (state.dir === 'ccw') parts.push('ccw');
   if (state.swapColors) parts.push('swapped');

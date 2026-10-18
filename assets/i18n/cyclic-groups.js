@@ -102,7 +102,8 @@
    corner and its stops' tooltips), barFormulas, barRowFormula,
    barMainFormula, barLcmRow, barLcmMain, barGcd, barLcm, barLcmRowTitle and
    barLcmMainTitle (the bottom bar's per-group formula menu and GCD/LCM
-   switches) and formula.subgroupOrderLcm,
+   switches), colorByDistinct and legendHeadingDistinct (the Element
+   colours choice giving every element a colour of its own, and its key) and formula.subgroupOrderLcm,
    formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
    formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
    (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)).
@@ -396,6 +397,7 @@
       colorByOrder: 'Subgroup cardinality',
       colorByInverse: 'Inverse pairs',
       colorByTheme: 'Website theme',
+      colorByDistinct: 'One distinct colour per element',
       identityColor: 'Identity colour',
       legendPickTitle: 'Pick this colour',
       legendResetTitle: "Put this colour key's colours back to their defaults",
@@ -678,6 +680,7 @@
       legendElements: { one: '{count} element', other: '{count} elements' },
       legendHeadingInverse: 'Colour key: inverse pairs',
       legendHeadingTheme: 'Colour key: website theme',
+      legendHeadingDistinct: 'Colour key: one colour per element',
       legendThemeIdentity: 'identity: {e}',
       legendThemeOne: '{one}: neither prime nor composite',
       legendThemePrimes: 'primes',
