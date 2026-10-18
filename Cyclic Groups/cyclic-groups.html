@@ -2901,8 +2901,9 @@ function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width){
 
 // The identity's walk never leaves it: one loop from its bead back to it,
 // outside or inside the ring, turning the way the beads count. Returns the
-// outermost radius used.
-function drawLoop(ring, a, cls, side, place, box, beadR, m, width){
+// outermost radius used. In a cardinality colour (paint, an .ord-* class)
+// and both ways (both), it carries two heads, one each way.
+function drawLoop(ring, a, cls, side, place, box, beadR, m, width, paint, both){
   var at = dirSign() * 360 * place[a] / m;
   var foot = side === 'outside' ? box.R + beadR : box.R - beadR;
   var out = side === 'outside' ? 1 : -1;
@@ -2915,14 +2916,28 @@ function drawLoop(ring, a, cls, side, place, box, beadR, m, width){
   var c2 = polar(box.cx, box.cy, foot + out * reach, at + sweep * flare);
   var p3 = polar(box.cx, box.cy, foot, at + sweep * spread);
   var group = svgEl('g', { 'class': 'outer-walk ' + cls, 'data-seq': String(a) });
+  if (paint){
+    group.classList.add(paint);
+    group.setAttribute('style', '--walk: var(--ord)');
+  }
   group.appendChild(svgEl('path', {
     'class': 'outer-arc', 'stroke-width': width,
     d: 'M ' + num(p0[0]) + ' ' + num(p0[1]) + ' C ' + num(c1[0]) + ' ' + num(c1[1]) + ' ' + num(c2[0]) + ' ' + num(c2[1]) + ' ' + num(p3[0]) + ' ' + num(p3[1])
   }));
-  // The curve's midpoint and its heading there, from the Bézier formula.
-  var mx = (p0[0] + 3 * c1[0] + 3 * c2[0] + p3[0]) / 8, my = (p0[1] + 3 * c1[1] + 3 * c2[1] + p3[1]) / 8;
-  var tx = p3[0] + c2[0] - c1[0] - p0[0], ty = p3[1] + c2[1] - c1[1] - p0[1];
-  group.appendChild(arrowHead('outer-arrow', mx, my, Math.atan2(ty, tx), Math.max(4, Math.min(7, beadR * 0.6))));
+  // A point of the curve and its heading there, from the Bézier formula:
+  // one head at the midpoint, or one each way a third of the way from
+  // either end.
+  var size = Math.max(4, Math.min(7, beadR * 0.6));
+  var head = function(t, back){
+    var u = 1 - t;
+    var x = u * u * u * p0[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * p3[0];
+    var y = u * u * u * p0[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * p3[1];
+    var tx = 3 * u * u * (c1[0] - p0[0]) + 6 * u * t * (c2[0] - c1[0]) + 3 * t * t * (p3[0] - c2[0]);
+    var ty = 3 * u * u * (c1[1] - p0[1]) + 6 * u * t * (c2[1] - c1[1]) + 3 * t * t * (p3[1] - c2[1]);
+    group.appendChild(arrowHead('outer-arrow', x, y, Math.atan2(ty, tx) + (back ? Math.PI : 0), size));
+  };
+  if (both){ head(0.3, true); head(0.7, false); }
+  else head(0.5, false);
   ring.appendChild(group);
   return foot + Math.max(0, out) * reach * 0.75;
 }
@@ -3057,10 +3072,16 @@ function drawRing(parent, G, beads, box, paint){
     // joins each pair of beads once, not there and back).
     var powerWalks;
     // The walks from one start; past marks a coset already stepped past.
+    // A line whose power is the identity: a loop at its start, there and
+    // back, in the identity's own cardinality colour.
+    var identityLoop = function(start, cls, side){
+      return { walk: [start], cls: 'walk-power-id ' + cls, side: side, loop: true, paint: orderPaint(G, G.identity), both: true };
+    };
     var walksFrom = function(start, past){
       var tag = past ? ' is-past' : '';
       powerWalks = function(p, cls, side){
         var hp = powerOf(G, h, powerExp(p)), kp = G.orders[hp];
+        if (hp === G.identity){ walks.push(identityLoop(start, cls + tag, side)); return; }
         walks.push({ walk: lap(G, hp, kp, start), cls: 'walk-duo ' + cls + tag, side: side, duo: true, paint: orderPaint(G, hp), open: kp === 2 });
       };
       if (k === 1){
@@ -3081,6 +3102,7 @@ function drawRing(parent, G, beads, box, paint){
           // The first line walks h^x for its own power x, 1 unless picked.
           var h1 = powerOf(G, h, powerExp(1)), k1 = G.orders[h1];
           if (h1 !== G.identity) walks.push({ walk: lap(G, h1, k1, start), cls: 'walk-duo' + tag, side: state.elSide, duo: true, paint: orderPaint(G, h1), open: k1 === 2 });
+          else walks.push(identityLoop(start, tag, state.elSide));
         }
         if (pairs && powerShown(G, 2)) powerWalks(2, 'is-square', powerSide(2));
         if (pairs && powerShown(G, 3)) powerWalks(3, 'is-cube', powerSide(3));
@@ -3107,7 +3129,7 @@ function drawRing(parent, G, beads, box, paint){
         if (w.side === 'outside' && !w.loop && !w.duo) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width));
       });
       walks.forEach(function(w){
-        if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.cls, w.side, places, box, beadR, m, width));
+        if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.cls, w.side, places, box, beadR, m, width, w.paint, w.both));
       });
       walks.forEach(function(w){
         if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width);
@@ -5404,11 +5426,12 @@ function fillPowerSelect(el, G, p){
   el.value = x;
 }
 
-// Key line p's pair {h^x, h^-x} has lines of its own while h^x is neither
-// the identity nor in the first line's pair {h^y, h^-y}, y its power.
+// Key line p's pair {h^x, h^-x} has lines of its own while h^x is not in
+// the first line's pair {h^y, h^-y}, y its power. The identity's lines are
+// a loop at each start, there and back.
 function powerFits(G, p){
   var k = G.orders[shownGen(G)], x = powerExp(p) % k, y = powerExp(1) % k;
-  return x !== 0 && x !== y && x !== (k - y) % k;
+  return x !== y && x !== (k - y) % k;
 }
 // Key line p's lines: asked for with the one line in one colour, and only
 // while its pair is one of its own.
@@ -5436,8 +5459,8 @@ function powerSide(p){
 // when it has no lines, why.
 function powerText(el, G, p){
   var h = shownGen(G), x = powerExp(p), hp = powerOf(G, h, x);
-  if (hp !== G.identity && powerFits(G, p)) orderText(el, G, hp, p);
-  else translateInto(el, hp === G.identity ? 'cyclicGroups.akeyOrderId' : 'cyclicGroups.akeyOrderSame', { hp: akeyGeneral() ? gPower(x) : mNum(hp), x: mNum(x) });
+  if (powerFits(G, p)) orderText(el, G, hp, p);
+  else translateInto(el, 'cyclicGroups.akeyOrderSame', { hp: akeyGeneral() ? gPower(x) : mNum(hp), x: mNum(x) });
   return hp;
 }
 
@@ -5479,7 +5502,7 @@ function syncAkeyRowTitles(){
   [1].concat(POWER_PS).forEach(function(p){
     var el = akeyLineEl(p), x = powerExp(p);
     var a = on ? powerOf(G, shownGen(G), x) : null;
-    if (!on || el.hidden || a === G.identity || (p > 1 && !powerFits(G, p))){ el.akeyTip = null; return; }
+    if (!on || el.hidden || (p > 1 && !powerFits(G, p))){ el.akeyTip = null; return; }
     var rows = [[G, a, G.inv[a]]];
     if (H){ var b = powerOf(H, isoPaneKey.h, x); rows.push([H, b, H.inv[b]]); }
     el.akeyTip = { cols: [gPower(x), gPower(-x)], rows: rows };
@@ -5576,14 +5599,13 @@ function renderCombineKey(G){
   akeyPairMode = lined && state.oneLinePair;
   var line1 = akeyPairMode ? powerOf(G, h, powerExp(1)) : h;
   if (!akeyPairMode) translateInto(innerEl, 'cyclicGroups.combineForward', params());
-  else if (line1 !== G.identity) orderText(innerEl, G, line1, 1);
-  else translateInto(innerEl, 'cyclicGroups.akeyOrderId', { hp: akeyGeneral() ? gPower(powerExp(1)) : mNum(line1), x: mNum(powerExp(1)) });
+  else orderText(innerEl, G, line1, 1);
   var line2 = akeyPairMode ? powerText(outerEl, G, 2) : null;
   if (!akeyPairMode) translateInto(outerEl, merged ? 'cyclicGroups.combineSelfInverse' : 'cyclicGroups.combineBackward', params());
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged || (akeyPairMode && !powerFits(G, 2)));
-  innerEl.previousSibling.classList.toggle('is-none', akeyPairMode && line1 === G.identity);
-  paintSwatch(innerEl.previousSibling, akeyPairMode && line1 !== G.identity ? orderPaint(G, line1) : null);
+  innerEl.previousSibling.classList.toggle('is-none', false);
+  paintSwatch(innerEl.previousSibling, akeyPairMode ? orderPaint(G, line1) : null);
   paintSwatch(outerEl.previousSibling, akeyPairMode ? orderPaint(G, line2) : null);
   // The backwards path's line stays while that path is off, dimmed, so its
   // eye can bring it back; so does the squared pair's.
@@ -7103,7 +7125,6 @@ function rowPowerTints(G){
   [1, 2, 3, 4, 5, 6].forEach(function(p){
     if (p > 1 && !powerShown(G, p)) return;
     var hp = powerOf(G, h, powerExp(p));
-    if (hp === G.identity) return;
     out[hp] = out[G.inv[hp]] = orderPaint(G, hp);
   });
   return out;
