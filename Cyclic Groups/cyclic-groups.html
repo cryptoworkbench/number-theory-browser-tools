@@ -3359,7 +3359,7 @@ function gcdOperand(G, h){ return h === 0 ? G.order : h; }
 // |⟨h⟩|, worked out: in ℤ/nℤ from gcd(n, h); in a cyclic (ℤ/nℤ)* from
 // log_g h, g the generator given; in a (ℤ/nℤ)* with no generator, h's order.
 // In ℤ/nℤ with a log base, log_g h is worked out in steps: h written as
-// g^q, then q; ⟨h⟩ itself stays written as the number h. In (ℤ/nℤ)* steps
+// g^q, |G| as n with it, then q; ⟨h⟩ itself stays written as the number h. In (ℤ/nℤ)* steps
 // asks for the same, |G| written as φ(n) in the step that writes h as g^q,
 // and φ(n) worked out in the step that writes g^q's log as q.
 // hm, when given, makes h instead (the rows' chip) wherever it is written
@@ -3372,8 +3372,7 @@ function subOrderFormula(G, h, g, steps, hm){
     return { math: mrow(
         abs(angle(hx())), mo('='),
         mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLogOf(g, hx()))), mo('='),
-        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mLogOf(g, hx(g, q)))), mo('='),
-        mfrac(abs(mGroup(G)), mgcd(abs(mGroup(G)), mn(q))), mo('='),
+        mfrac(mn(n), mgcd(mn(n), mLogOf(g, hx(g, q)))), mo('='),
         mfrac(mn(n), mgcd(mn(n), mn(q))), mo('='),
         mfrac(mn(n), mn(d)), mo('='), mn(n / d)),
       plain: translate('cyclicGroups.formula.subgroupOrderLog', { group: G.label, h: h, g: g, n: n, q: q, d: d, k: n / d }) };
@@ -3426,8 +3425,7 @@ function cosetCountFormula(G, h, g, index, steps, hm){
     var q = lap(G, g, n).indexOf(h) || n;
     d = gcd(n, q);
     return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLogOf(g, hx())), mo('='),
-        mgcd(abs(mGroup(G)), mLogOf(g, hx(g, q))), mo('='),
-        mgcd(abs(mGroup(G)), mn(q)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
+        mgcd(mn(n), mLogOf(g, hx(g, q))), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
       plain: translate('cyclicGroups.formula.subgroupIndexLog', { group: G.label, h: h, g: g, n: n, q: q, d: d }) };
   }
   if (G.mode === 'additive'){
@@ -3474,14 +3472,13 @@ function subRowFormula(G, h, choice, base, hm, lcm){
 // The rows' formulas the lcm way, chosen in the panel's right-click menu:
 // |⟨h⟩| = lcm(|G|, q) / q and [G : ⟨h⟩] = |G| · q / lcm(|G|, q), q being h
 // (n for 0) or log_g h (k for 1), in the same steps as the gcd forms.
-// In (ℤ/nℤ)* the two forms drop lcmTerms' third step: φ(n) is worked out
-// in the step that writes the log as q.
+// |G| is written as n, or as φ(n) in (ℤ/nℤ)*, in the step that writes h as
+// g^q, and φ(n) worked out in the step that writes the log as q.
 function lcmTerms(G, h, g, hm){
   var hx = hm || plainH(h), n = G.order, mul = G.mode === 'multiplicative';
   var q = g !== undefined ? lap(G, g, n).indexOf(h) || n : gcdOperand(G, h);
-  var size = function(){ return mul ? mPhi(mn(G.n)) : abs(mGroup(G)); };
   var ops = g !== undefined
-    ? [[abs(mGroup(G)), function(){ return mLogOf(g, hx()); }], [size(), function(){ return mLogOf(g, hx(g, q)); }], [size(), function(){ return mn(q); }]]
+    ? [[abs(mGroup(G)), function(){ return mLogOf(g, hx()); }], [mul ? mPhi(mn(G.n)) : mn(n), function(){ return mLogOf(g, hx(g, q)); }]]
     : [[abs(mGroup(G)), function(){ return mn(q); }]];
   ops.push([mn(n), function(){ return mn(q); }]);
   return { n: n, q: q, l: n * q / gcd(n, q), d: gcd(n, q), ops: ops, hx: hx, mul: mul };
@@ -3497,7 +3494,6 @@ function lcmPlainKey(G, g, kind){
 }
 function subOrderLcm(G, h, g, hm){
   var t = lcmTerms(G, h, g, hm);
-  if (t.mul) t.ops.splice(2, 1);
   var terms = [abs(angle(t.hx()))].concat(t.ops.map(function(o){ return mfrac(mlcm(o[0].cloneNode(true), o[1]()), o[1]()); }));
   terms.push(mfrac(mn(t.l), mn(t.q)), mn(t.l / t.q));
   return { math: joinEq(terms),
@@ -3505,7 +3501,6 @@ function subOrderLcm(G, h, g, hm){
 }
 function subIndexLcm(G, h, g, hm){
   var t = lcmTerms(G, h, g, hm);
-  if (t.mul) t.ops.splice(2, 1);
   var lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(t.hx()), mo(']', true));
   var terms = [lead].concat(t.ops.map(function(o){ return mfrac(mrow(o[0].cloneNode(true), mo('\u00b7'), o[1]()), mlcm(o[0].cloneNode(true), o[1]())); }));
   terms.push(mfrac(mn(t.n * t.q), mn(t.l)), mn(t.d));
