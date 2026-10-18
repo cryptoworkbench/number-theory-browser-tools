@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 8e79f5d
+state_head: 1904f61
 progress:
   total_phases: 7
   completed_phases: 6
@@ -793,6 +793,7 @@ None yet.
 | 557 | Cyclic Groups: zoomed ring shows blurred through the rows below it and the bottom bar, as at the top | 2026-10-18 | 92503fa | — |
 | 558 | Cyclic Groups: new iso pane starts at the host ring's zoom (zoom rides the shared payload) | 2026-10-18 | 66d2400 | — |
 | 559 | Cyclic Groups: shared zoom eases both rings in step (WAAPI ease with a shared start time) | 2026-10-18 | 8e79f5d | — |
+| 560 | Cyclic Groups: iso pane frame extends under the shared foot rows (--pane-foot), its zoomed ring blurred there too | 2026-10-18 | 1904f61 | — |
 
 ## Deferred Items
 
