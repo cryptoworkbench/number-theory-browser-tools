@@ -1341,6 +1341,8 @@
   /* So do the line-up dropdown, in that menu too, and the main view's
      formula dropdown, in the ring's own menu. */
   :root:not(.is-mobile) #sub-width-row, :root:not(.is-mobile) #subgroups-list-panel .sub-expr-pair:has(> #sub-formula-ring-select){ display:none; }
+  /* On a desktop the row formulas are chosen in the bottom bar. */
+  :root:not(.is-mobile) #sub-formula-pair{ display:none; }
   .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
@@ -1444,6 +1446,24 @@
   .ring-bar{ display:none; }
   :root:not(.is-isopane) .fs-win-body.is-ring{ --ring-bar-h:36px; padding-bottom:calc(var(--ring-bar-h) + 8px); }
   :root:not(.is-isopane) .fs-win-body.is-ring > .ring-bar{ display:block; position:absolute; z-index:4; left:0; right:0; bottom:0; height:var(--ring-bar-h); box-sizing:border-box; background:var(--bg-1); border-top:1px solid var(--panel-border); pointer-events:none; }
+  /* Each group's formulas in the bar: a button opening their menu (the row
+     formula and the main formula), and a GCD/LCM switch for each one shown.
+     The ring's group's at the bar's left end, the pane's right of its middle. */
+  .bar-formulas{ display:none; }
+  :root:not(.is-isopane) .fs-win-body.is-ring > .bar-formulas:not(:empty){ display:flex; position:absolute; z-index:5; bottom:6px; left:12px; align-items:center; gap:6px; }
+  :root:not(.is-isopane) .fs-win-body.is-ring > .bar-formulas.is-right{ left:calc(50% + 34px); }
+  .bar-btn{ display:inline-flex; align-items:center; gap:6px; height:24px; box-sizing:border-box; padding:0 8px; font:inherit; font-family:var(--font-sans); font-size:.78rem; color:var(--text); white-space:nowrap; background:var(--surface); border:1px solid var(--panel-border); border-radius:6px; cursor:pointer; }
+  .bar-btn:hover{ border-color:var(--panel-border-strong); }
+  .bar-btn[aria-expanded="true"]{ border-color:var(--accent); }
+  .bar-btn svg{ width:10px; height:10px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .bar-lcm{ gap:0; padding:0 0 0 8px; overflow:hidden; }
+  .bar-lcm-name{ margin-right:6px; color:var(--text-dim); }
+  .bar-lcm-seg{ display:grid; place-items:center; height:100%; padding:0 6px; font-size:.72rem; font-weight:600; letter-spacing:.04em; color:var(--text-dim); border-left:1px solid var(--panel-border); }
+  .bar-lcm[aria-checked="false"] .bar-lcm-seg.is-gcd, .bar-lcm[aria-checked="true"] .bar-lcm-seg.is-lcm{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+  .bar-menu{ min-width:200px; }
+  .bar-btn-short{ display:none; }
+  @container (max-width: 1500px){ .bar-btn-long{ display:none; } .bar-btn-short{ display:inline; } }
+  @container (max-width: 1400px){ .bar-lcm-name{ display:none; } }
   .formula-level{ display:none; }
   .fs-win-body.is-ring > .formula-level{ display:block; position:absolute; z-index:5; left:50%; bottom:10px; translate:-50% 0; width:44px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
   :root.is-isopane .fs-win-body.is-ring > .formula-level{ display:none; }
@@ -2019,6 +2039,9 @@
         <div class="genexp-body" id="genexp-body-pane"></div>
       </section>
       <div class="ring-bar" id="ring-bar" aria-hidden="true"></div>
+      <div class="bar-formulas" id="bar-formulas-l"></div>
+      <div class="bar-formulas is-right" id="bar-formulas-r"></div>
+      <div class="fs-menu ring-ctx bar-menu" id="bar-menu" role="menu" hidden></div>
       <input type="range" class="formula-level" id="formula-level" min="0" max="2" step="1" value="1" aria-label="Formula complexity" data-i18n-aria-label="cyclicGroups.formulaLevelLabel">
       <div class="ring-corner" id="ring-corner">
         <div class="zoom-wrap" id="zoom-wrap">
@@ -2106,7 +2129,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3512,6 +3535,112 @@ function formulaLevelAdd(){
   var H = drawn && !isoPaneEl.hidden && isoPaneGroup();
   return !!drawn && (drawn.G.mode === 'additive' || !!(H && H.mode === 'additive'));
 }
+// The bottom bar's formula controls, one set per open group: the ring's own
+// and, beside a pane, the pane's, whose choices this ring keeps and shares.
+var BAR_SIDES = [
+  { el: 'bar-formulas-l', row: 'subFormulaRow', ring: 'subFormulaRing', lrow: 'subLcm', lring: 'subLcmRing' },
+  { el: 'bar-formulas-r', row: 'subFormulaRowR', ring: 'subFormulaRingR', lrow: 'subLcmR', lring: 'subLcmRingR' }
+];
+var barMenuFor = null;
+function barGroup(i){
+  if (!drawn || IS_ISOPANE) return null;
+  if (i === 0) return drawn.G;
+  return !isoPaneEl.hidden && isoPaneGroup() || null;
+}
+function syncBarFormulas(){
+  BAR_SIDES.forEach(function(side, i){
+    var box = $(side.el), G = barGroup(i);
+    box.replaceChildren();
+    if (!G) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bar-btn';
+    btn.setAttribute('aria-haspopup', 'menu');
+    btn.setAttribute('aria-expanded', barMenuFor === i && !barMenuEl.hidden ? 'true' : 'false');
+    // Narrow, the button names only the group, its full name in its tooltip.
+    var full = translate('cyclicGroups.barFormulas', { group: G.label });
+    [['bar-btn-long', full], ['bar-btn-short', G.label]].forEach(function(t){
+      var span = document.createElement('span');
+      span.className = t[0];
+      span.textContent = t[1];
+      btn.appendChild(span);
+    });
+    btn.title = full;
+    var chev = svgEl('svg', { viewBox: '0 0 10 10', 'aria-hidden': 'true', focusable: 'false' });
+    chev.appendChild(svgEl('path', { d: 'M2 6.5 5 3.5 8 6.5' }));
+    btn.appendChild(chev);
+    btn.addEventListener('click', function(){ toggleBarMenu(i, btn); });
+    box.appendChild(btn);
+    [['row', 'lrow', 'cyclicGroups.barLcmRow', 'cyclicGroups.barLcmRowTitle'], ['ring', 'lring', 'cyclicGroups.barLcmMain', 'cyclicGroups.barLcmMainTitle']].forEach(function(c){
+      if (state[side[c[0]]] === 'none') return;
+      var sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'bar-btn bar-lcm';
+      sw.setAttribute('role', 'switch');
+      sw.setAttribute('aria-checked', state[side[c[1]]] ? 'true' : 'false');
+      sw.title = translate(c[3], { group: G.label });
+      var name = document.createElement('span');
+      name.className = 'bar-lcm-name';
+      name.textContent = translate(c[2]);
+      sw.appendChild(name);
+      [['is-gcd', 'cyclicGroups.barGcd'], ['is-lcm', 'cyclicGroups.barLcm']].forEach(function(g){
+        var seg = document.createElement('span');
+        seg.className = 'bar-lcm-seg ' + g[0];
+        seg.textContent = translate(g[1]);
+        sw.appendChild(seg);
+      });
+      sw.addEventListener('click', function(){
+        state[side[c[1]]] = !state[side[c[1]]];
+        barFormulasChanged();
+      });
+      box.appendChild(sw);
+    });
+  });
+}
+function barFormulasChanged(){
+  syncFormulaCtl();
+  subFormulaRingEl.value = state.subFormulaRing;
+  if (!drawn) return;
+  renderSubgroups(drawn.G);
+  mirrorToUrl(drawn.G);
+  syncInterlock();
+}
+// The menu above a group's button: its row formula, then its main formula.
+function toggleBarMenu(i, btn){
+  if (!barMenuEl.hidden && barMenuFor === i){ closeBarMenu(); return; }
+  var side = BAR_SIDES[i], G = barGroup(i);
+  if (!G) return;
+  barMenuFor = i;
+  barMenuEl.replaceChildren();
+  [[side.row, 'cyclicGroups.barRowFormula'], [side.ring, 'cyclicGroups.barMainFormula']].forEach(function(c){
+    var head = document.createElement('p');
+    head.className = 'fs-menu-head';
+    head.textContent = translate(c[1]);
+    barMenuEl.appendChild(head);
+    [['none', 'cyclicGroups.subFormulaNone'], ['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort'], ['both', 'cyclicGroups.subFormulaBoth']].forEach(function(o){
+      barMenuEl.appendChild(menuTick('menuitemradio', translate(o[1]), state[c[0]] === o[0], function(){
+        closeBarMenu();
+        state[c[0]] = o[0];
+        barFormulasChanged();
+      }));
+    });
+  });
+  barMenuEl.hidden = false;
+  var r = btn.getBoundingClientRect(), w = barMenuEl.offsetWidth, h = barMenuEl.offsetHeight;
+  barMenuEl.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + 'px';
+  barMenuEl.style.top = Math.max(4, r.top - h - 6) + 'px';
+  btn.setAttribute('aria-expanded', 'true');
+  var first = barMenuEl.querySelector('[aria-checked="true"]') || barMenuEl.querySelector('.fs-menu-item');
+  if (first) first.focus();
+}
+function closeBarMenu(){
+  if (barMenuEl.hidden) return;
+  barMenuEl.hidden = true;
+  var i = barMenuFor;
+  barMenuFor = null;
+  var btn = i === null ? null : $(BAR_SIDES[i].el).querySelector('.bar-btn');
+  if (btn){ btn.setAttribute('aria-expanded', 'false'); if (barMenuEl.contains(document.activeElement) || document.activeElement === document.body) btn.focus(); }
+}
 function syncFormulaLevel(){
   var add = formulaLevelAdd();
   var v = state.subShort ? 2 : state.subSimplify && add ? 0 : 1;
@@ -3581,7 +3710,7 @@ function syncSubFormula(G){
   clearSubFormula();
   if (state.noSub){ showRowFormula(G); return; }
   if (subFormulaAtRing()){
-    var box = subFormulaBox('div', 'ring-hover-formula', subRowFormula(G, state.gen, state.subFormulaRing));
+    var box = subFormulaBox('div', 'ring-hover-formula', subRowFormula(G, state.gen, state.subFormulaRing, undefined, undefined, state.subLcmRing));
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
   }
@@ -3593,8 +3722,10 @@ function syncSubFormula(G){
 // they are sorted naturally logBase's.
 function showRowFormula(G){
   syncFormulaLevel();
+  syncBarFormulas();
   subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
-  if (!subFormulaOn() || state.noSub) return;
+  var rightOn = !IS_ISOPANE && state.subFormulaRowR !== 'none';
+  if ((!subFormulaOn() && !rightOn) || state.noSub) return;
   var g = state.gen, row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
   if (!row || row.parentNode.hidden) return;
   var left = row.querySelector('.sub-row-l'), right = row.querySelector('.sub-row-r');
@@ -3603,12 +3734,12 @@ function showRowFormula(G){
   // coloured like its bead as the panel's menu says; the pane's coloured
   // only while its colours are linked, as its side of the rows is.
   var gm = rowFormulaH(G, g, g, true);
-  (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg, gm), true));
-  var H = right && isoPaneGroup();
+  if (subFormulaOn()) (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, sg === null ? undefined : sg, gm), true));
+  var H = rightOn && right && isoPaneGroup();
   if (H){
     var phi = isoImage(G), linked = isoLinked();
     var hm = rowFormulaH(H, phi(g), g, linked);
-    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRow, sg === null ? paneLogBase(H) : phi(sg), hm, state.subLcmR), true));
+    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRowR, sg === null ? paneLogBase(H) : phi(sg), hm, state.subLcmR), true));
   }
   hangSubFormulas();
 }
@@ -4092,7 +4223,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -5294,7 +5425,15 @@ function drawNecklace(G, paint){
 var RING_ZOOMS = [0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
 var RING_ZOOM_FIT = RING_ZOOMS.indexOf(1);
 var ringZoom = RING_ZOOM_FIT, paneZoom = RING_ZOOM_FIT;
-var formulaLevelEl = $('formula-level');
+var formulaLevelEl = $('formula-level'), barMenuEl = $('bar-menu');
+document.addEventListener('pointerdown', function(e){
+  if (barMenuEl.hidden || barMenuEl.contains(e.target)) return;
+  if (barMenuFor !== null && $(BAR_SIDES[barMenuFor].el).contains(e.target)) return;
+  closeBarMenu();
+}, true);
+barMenuEl.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeBarMenu(); }
+});
 formulaLevelEl.addEventListener('input', function(){
   var v = +formulaLevelEl.value;
   state.subSimplify = v === 0;
@@ -7619,7 +7758,7 @@ window.addEventListener('keydown', function(e){
 // Enter on a row, or with nothing focused, folds the selected row's formulas
 // away or opens them again, as the Formula dropdown last had them (Both the
 // first time). A row not yet selected is selected, its formulas open.
-var lastRowFormula = 'both';
+var lastRowFormula = 'both', lastRowFormulaR = 'both';
 window.addEventListener('keydown', function(e){
   if (e.key !== 'Enter' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !drawn || IS_PREVIEW || e.repeat) return;
   if (IS_DESKTOP && !cgEntered) return;
@@ -7633,9 +7772,16 @@ window.addEventListener('keydown', function(e){
     selectGen(panelGen = g);
     focusCurrentRow();
   }
-  var open = fresh || !subFormulaOn();
-  if (!open) lastRowFormula = state.subFormulaRow;
-  if (open === subFormulaOn()) return;
+  // With the rows merged across two rings, both sides' formulas fold together.
+  var merged = !IS_ISOPANE && subInterlocked();
+  var anyOn = subFormulaOn() || (merged && state.subFormulaRowR !== 'none');
+  var open = fresh || !anyOn;
+  if (open === anyOn) return;
+  if (!open){
+    if (subFormulaOn()) lastRowFormula = state.subFormulaRow;
+    if (state.subFormulaRowR !== 'none') lastRowFormulaR = state.subFormulaRowR;
+    if (merged) state.subFormulaRowR = 'none';
+  } else if (merged) state.subFormulaRowR = lastRowFormulaR;
   setRowFormula(open ? lastRowFormula : 'none');
 }, true);
 // Select the row delta rows below (or above) the selected one, in the list's
@@ -8508,7 +8654,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort };
 }
 var isoSharedSent = null;
 function postIsoShared(force){
@@ -8611,6 +8757,15 @@ function applyIsoShared(d){
     }
     state.dir = d.dir;
   }
+  // The pane's formulas, chosen in the bottom bar of the ring holding it.
+  if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
+  if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
+  if (flag(d.lcmRow)) state.subLcm = d.lcmRow;
+  if (flag(d.lcmRing)) state.subLcmRing = d.lcmRing;
+  if (flag(d.simplify)) state.subSimplify = d.simplify;
+  if (flag(d.short)) state.subShort = d.short;
+  syncFormulaCtl();
+  subFormulaRingEl.value = state.subFormulaRing;
   syncControls();
   // A shared setting, such as the split opening or closing, keeps a coset
   // run going; a new direction flips the ring over, as on the holding ring.
@@ -9198,10 +9353,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormulaRow + ' ' + state.subFormulaRing + ' ' + state.subLcmR + ' ' + state.subSimplify + ' ' + state.subShort;
+      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor ;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formulaRow: state.subFormulaRow, formulaRing: state.subFormulaRing, lcm: state.subLcmR, simplify: state.subSimplify, short: state.subShort });
+        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor });
       }
     }
   }
@@ -9233,20 +9388,11 @@ function takeNumset(d){
   state.subAlign = d.align === true;
   state.autoShift = d.shift === true;
   state.subColor = subColorOf(d.color);
-  if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
-  if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
-  // The right side's gcd or lcm forms are this ring's own, in its main view too.
-  var lcmWas = state.subLcm + ' ' + state.subSimplify + ' ' + state.subShort;
-  state.subLcm = d.lcm === true;
-  state.subSimplify = d.simplify === true;
-  state.subShort = d.short === true;
-  syncFormulaCtl();
-  subFormulaRingEl.value = state.subFormulaRing;
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
   // The beads' labels take the leading zeros too.
-  if (state.subPad !== padWas || state.subLcm + ' ' + state.subSimplify + ' ' + state.subShort !== lcmWas){ render(); return; }
+  if (state.subPad !== padWas){ render(); return; }
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
 }
@@ -9342,6 +9488,9 @@ window.addEventListener('message', function(e){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
     isoPane.unlocked = true;
+  } else if (d.isopane === 'formula-ring' && SUB_FORMULAS.indexOf(d.value) !== -1){
+    state.subFormulaRingR = d.value;
+    barFormulasChanged();
   } else if (d.isopane === 'zoom' && Number.isInteger(d.i)){
     heardPaneZoom(d.i);
   } else if (d.isopane === 'axis' && [d.b, d.s, d.k].every(Number.isFinite)){
@@ -9756,6 +9905,14 @@ function stateQuery(){
   else q.delete('sublcm');
   if (state.subLcmR) q.set('sublcmr', '1');
   else q.delete('sublcmr');
+  if (state.subLcmRing) q.set('sublcmring', '1');
+  else q.delete('sublcmring');
+  if (state.subLcmRingR) q.set('sublcmringr', '1');
+  else q.delete('sublcmringr');
+  if (state.subFormulaRowR !== 'none') q.set('subformularowr', state.subFormulaRowR);
+  else q.delete('subformularowr');
+  if (state.subFormulaRingR !== 'none') q.set('subformularingr', state.subFormulaRingR);
+  else q.delete('subformularingr');
   if (state.subShort) q.set('subshort', '1');
   else q.delete('subshort');
   if (state.subSimplify) q.set('subsimplify', '1');
@@ -10131,23 +10288,6 @@ function setSubCtx(open, x, y){
     subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subPowerColours'), state.subPowers, function(){
       setSubCtx(false);
       state.subPowers = !state.subPowers;
-      render();
-    }));
-  }
-  // The lcm forms; with the rows merged across two rings, each side's own.
-  var lcmH = !IS_ISOPANE && drawn && subInterlocked() && isoPaneGroup();
-  if (lcmH){
-    [[drawn.G, 'subLcm'], [lcmH, 'subLcmR']].forEach(function(c){
-      subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subLcmFormulasIn', { group: c[0].label }), state[c[1]], function(){
-        setSubCtx(false);
-        state[c[1]] = !state[c[1]];
-        render();
-      }));
-    });
-  } else {
-    subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subLcmFormulas'), state.subLcm, function(){
-      setSubCtx(false);
-      state.subLcm = !state.subLcm;
       render();
     }));
   }
@@ -10813,6 +10953,8 @@ function setRowFormula(v){
 subFormulaEl.addEventListener('change', function(){ setRowFormula(subFormulaEl.value); });
 subFormulaRingEl.addEventListener('change', function(){
   state.subFormulaRing = subFormulaRingEl.value;
+  // The pane's main formula is kept by the ring holding it, for its bottom bar.
+  if (IS_ISOPANE) tellHost({ isopane: 'formula-ring', value: state.subFormulaRing });
   if (!drawn) return;
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
@@ -10965,6 +11107,10 @@ function loadState(query, link){
   state.subPowers = query.get('subpowers') !== '0';
   state.subLcm = query.get('sublcm') === '1';
   state.subLcmR = query.get('sublcmr') === '1';
+  state.subLcmRing = query.get('sublcmring') === '1';
+  state.subLcmRingR = query.get('sublcmringr') === '1';
+  if (SUB_FORMULAS.indexOf(query.get('subformularowr')) !== -1) state.subFormulaRowR = query.get('subformularowr');
+  if (SUB_FORMULAS.indexOf(query.get('subformularingr')) !== -1) state.subFormulaRingR = query.get('subformularingr');
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));
   var rot = parseInt(query.get('rot'), 10);
   if (isFinite(rot)) state.rot = rot;

@@ -96,12 +96,13 @@
    and the additive row formulas that, with it off, find h as log_g h), and
    formula.mulSubgroupOrderSteps, formula.mulSubgroupIndexSteps and
    formula.mulCosetCountSteps (the multiplicative row formulas writing
-   log_g h out as log_g g^q, then q), subLcmFormulas (the bottom panel's
-   menu switch to the lcm forms), subLcmFormulasIn (that switch for one
-   side's group, with the rows merged across two rings), formulaLevelLabel,
+   log_g h out as log_g g^q, then q), formulaLevelLabel,
    formulaLevelMost, formulaLevelLess, formulaLevelLeast, formulaLevelSubst
    and formulaLevelNoSubst (the formula complexity slider in the ring's
-   corner and its stops' tooltips) and formula.subgroupOrderLcm,
+   corner and its stops' tooltips), barFormulas, barRowFormula,
+   barMainFormula, barLcmRow, barLcmMain, barGcd, barLcm, barLcmRowTitle and
+   barLcmMainTitle (the bottom bar's per-group formula menu and GCD/LCM
+   switches) and formula.subgroupOrderLcm,
    formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
    formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
    (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)).
@@ -434,9 +435,16 @@
       subSimplify: 'Simplify',
       subPathColours: 'Colour row lines according to paths',
       subPowerColours: 'Colour rows according to power of G colours',
-      subLcmFormulas: 'Calculate cardinality and index with the LCM formulas',
-      subLcmFormulasIn: 'Calculate cardinality and index in {group} with the LCM formulas',
       formulaLevelLabel: 'Formula complexity',
+      barFormulas: '{group} formulas',
+      barRowFormula: 'Row formula',
+      barMainFormula: 'Main formula',
+      barLcmRow: 'Row',
+      barLcmMain: 'Main',
+      barGcd: 'GCD',
+      barLcm: 'LCM',
+      barLcmRowTitle: "{group}'s row formula: GCD or LCM form",
+      barLcmMainTitle: "{group}'s main formula: GCD or LCM form",
       formulaLevelMost: 'Most beginner',
       formulaLevelLess: 'Less beginner',
       formulaLevelLeast: 'Least beginner',
