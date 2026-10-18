@@ -98,7 +98,10 @@
    formula.mulCosetCountSteps (the multiplicative row formulas writing
    log_g h out as log_g g^q, then q), subLcmFormulas (the bottom panel's
    menu switch to the lcm forms), subLcmFormulasIn (that switch for one
-   side's group, with the rows merged across two rings) and formula.subgroupOrderLcm,
+   side's group, with the rows merged across two rings), formulaLevelLabel,
+   formulaLevelMost, formulaLevelLess, formulaLevelLeast, formulaLevelSubst
+   and formulaLevelNoSubst (the formula complexity slider in the ring's
+   corner and its stops' tooltips) and formula.subgroupOrderLcm,
    formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
    formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
    (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)).
@@ -433,6 +436,12 @@
       subPowerColours: 'Colour rows according to power of G colours',
       subLcmFormulas: 'Calculate cardinality and index with the LCM formulas',
       subLcmFormulasIn: 'Calculate cardinality and index in {group} with the LCM formulas',
+      formulaLevelLabel: 'Formula complexity',
+      formulaLevelMost: 'Most beginner',
+      formulaLevelLess: 'Less beginner',
+      formulaLevelLeast: 'Least beginner',
+      formulaLevelSubst: "Substitute the element to make the logarithm's function clear.",
+      formulaLevelNoSubst: "Don't substitute the element; shorter, but less clear.",
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = {n} / gcd({n}, log_{g}({g}^{q})) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd({n}, log_{g}({g}^{q})) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = φ({n}) / gcd(φ({n}), log_{g}({g}^{q})) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',

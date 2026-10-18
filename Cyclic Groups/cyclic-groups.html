@@ -1436,6 +1436,9 @@
   .zoom-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .zoom-step svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
   #zoom-slider{ width:76px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  /* The row formulas' complexity: three stops, or two with no additive group. */
+  .formula-level{ flex:none; align-self:center; width:44px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  .formula-level.is-two{ width:28px; }
   .ring-corner > :is(.key-corner, .genexp-corner)[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
@@ -2007,6 +2010,8 @@
         <div class="genexp-body" id="genexp-body-pane"></div>
       </section>
       <div class="ring-corner" id="ring-corner">
+        <input type="range" class="formula-level" id="formula-level" min="0" max="2" step="1" value="1" aria-label="Formula complexity" data-i18n-aria-label="cyclicGroups.formulaLevelLabel">
+        <span class="ring-corner-sep" aria-hidden="true"></span>
         <div class="zoom-wrap" id="zoom-wrap">
         <div class="zoom-ctl" id="zoom-ctl" role="group" aria-label="Zoom" data-i18n-aria-label="cyclicGroups.zoomLabel">
           <button type="button" class="zoom-step" id="zoom-out" title="Zoom out" aria-label="Zoom out" data-i18n-title="cyclicGroups.ctxZoomOut" data-i18n-aria-label="cyclicGroups.ctxZoomOut"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/></svg></button>
@@ -2092,7 +2097,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3467,7 +3472,32 @@ function subRowFormula(G, h, choice, base, hm, lcm){
   var lcms = (lcm === undefined ? state.subLcm : lcm) && (G.mode === 'additive' || G.cyclic);
   if (choice === 'order' || choice === 'both') out.push(lcms ? subOrderLcm(G, h, g, hm) : subOrderFormula(G, h, g, true, hm));
   if (choice === 'index' || choice === 'both') out.push(lcms ? subIndexLcm(G, h, g, hm) : cosetCountFormula(G, h, g, true, true, hm));
-  return out;
+  return g !== undefined && state.subShort ? out.map(skipPowerStep) : out;
+}
+// The formula complexity slider's rightmost stop leaves out the step writing
+// h as a power (or multiple) of g, the third term, going from log_g h to q.
+function skipPowerStep(f){
+  var kids = f.math.childNodes;
+  if (kids.length > 5){ f.math.removeChild(kids[4]); f.math.removeChild(kids[3]); }
+  var parts = f.plain.split(' = ');
+  if (parts.length > 3) parts.splice(2, 1);
+  return { math: f.math, plain: parts.join(' = ') };
+}
+// The slider's stops: 0 the additive formulas without the logarithm
+// (Simplify), 1 as they are, 2 without the power step. With no additive
+// group open it has only the last two.
+function formulaLevelAdd(){
+  var H = drawn && !isoPaneEl.hidden && isoPaneGroup();
+  return !!drawn && (drawn.G.mode === 'additive' || !!(H && H.mode === 'additive'));
+}
+function syncFormulaLevel(){
+  var add = formulaLevelAdd();
+  var v = state.subShort ? 2 : state.subSimplify && add ? 0 : 1;
+  formulaLevelEl.min = add ? 0 : 1;
+  formulaLevelEl.value = v;
+  formulaLevelEl.classList.toggle('is-two', !add);
+  formulaLevelEl.title = translate(add ? ['cyclicGroups.formulaLevelMost', 'cyclicGroups.formulaLevelLess', 'cyclicGroups.formulaLevelLeast'][v]
+    : v === 2 ? 'cyclicGroups.formulaLevelNoSubst' : 'cyclicGroups.formulaLevelSubst');
 }
 // The rows' formulas the lcm way, chosen in the panel's right-click menu:
 // |⟨h⟩| = lcm(|G|, q) / q and [G : ⟨h⟩] = |G| · q / lcm(|G|, q), q being h
@@ -3540,6 +3570,7 @@ function syncSubFormula(G){
 // the generator the rows are sorted by, the pane's its image, and while
 // they are sorted naturally logBase's.
 function showRowFormula(G){
+  syncFormulaLevel();
   subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(function(el){ el.remove(); });
   if (!subFormulaOn() || state.noSub) return;
   var g = state.gen, row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + g + '"]');
@@ -5241,6 +5272,13 @@ function drawNecklace(G, paint){
 var RING_ZOOMS = [0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
 var RING_ZOOM_FIT = RING_ZOOMS.indexOf(1);
 var ringZoom = RING_ZOOM_FIT, paneZoom = RING_ZOOM_FIT;
+var formulaLevelEl = $('formula-level');
+formulaLevelEl.addEventListener('input', function(){
+  var v = +formulaLevelEl.value;
+  state.subSimplify = v === 0;
+  state.subShort = v === 2;
+  render();
+});
 var zoomWrapEl = $('zoom-wrap'), zoomSliderEl = $('zoom-slider'), zoomOutEl = $('zoom-out'), zoomInEl = $('zoom-in'), zoomWheelEl = $('zoom-wheel');
 function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPaneEl.hidden; }
 // Whether each ring has its own pill: beside a pane, the rings turning apart.
@@ -9138,10 +9176,10 @@ function syncInterlock(){
       isoTell({ iso: 'whole', on: whole.on, ks: whole.ks });
     }
     if (on){
-      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormulaRow + ' ' + state.subFormulaRing + ' ' + state.subLcmR;
+      var nkey = state.subPad + ' ' + state.subAlign + ' ' + state.autoShift + ' ' + state.subColor + ' ' + state.subFormulaRow + ' ' + state.subFormulaRing + ' ' + state.subLcmR + ' ' + state.subSimplify + ' ' + state.subShort;
       if (nkey !== isoNumSent){
         isoNumSent = nkey;
-        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formulaRow: state.subFormulaRow, formulaRing: state.subFormulaRing, lcm: state.subLcmR });
+        isoTell({ iso: 'numset', pad: state.subPad, align: state.subAlign, shift: state.autoShift, color: state.subColor, formulaRow: state.subFormulaRow, formulaRing: state.subFormulaRing, lcm: state.subLcmR, simplify: state.subSimplify, short: state.subShort });
       }
     }
   }
@@ -9176,15 +9214,17 @@ function takeNumset(d){
   if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
   if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
   // The right side's gcd or lcm forms are this ring's own, in its main view too.
-  var lcmWas = state.subLcm;
+  var lcmWas = state.subLcm + ' ' + state.subSimplify + ' ' + state.subShort;
   state.subLcm = d.lcm === true;
+  state.subSimplify = d.simplify === true;
+  state.subShort = d.short === true;
   syncFormulaCtl();
   subFormulaRingEl.value = state.subFormulaRing;
   subWidthEl.value = state.subPad ? 'pad' : state.subAlign ? 'align' : 'none';
   subColorEl.checked = state.subColor === 'full';
   autoShiftEl.checked = state.autoShift;
   // The beads' labels take the leading zeros too.
-  if (state.subPad !== padWas || state.subLcm !== lcmWas){ render(); return; }
+  if (state.subPad !== padWas || state.subLcm + ' ' + state.subSimplify + ' ' + state.subShort !== lcmWas){ render(); return; }
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
 }
@@ -9694,6 +9734,8 @@ function stateQuery(){
   else q.delete('sublcm');
   if (state.subLcmR) q.set('sublcmr', '1');
   else q.delete('sublcmr');
+  if (state.subShort) q.set('subshort', '1');
+  else q.delete('subshort');
   if (state.subSimplify) q.set('subsimplify', '1');
   else q.delete('subsimplify');
   if (!state.subGcdDividers) q.set('subgcddiv', '0');
@@ -10105,6 +10147,7 @@ function setSubCtx(open, x, y){
     subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subSimplify'), state.subSimplify, function(){
       setSubCtx(false);
       state.subSimplify = !state.subSimplify;
+      if (state.subSimplify) state.subShort = false;
       render();
     }));
   }
@@ -10895,6 +10938,7 @@ function loadState(query, link){
   state.subGcd = query.get('subgcd') === '1';
   state.subGcdDividers = query.get('subgcddiv') !== '0';
   state.subSimplify = query.get('subsimplify') === '1';
+  state.subShort = !state.subSimplify && query.get('subshort') === '1';
   state.subPaths = query.get('subpaths') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
   state.subLcm = query.get('sublcm') === '1';
