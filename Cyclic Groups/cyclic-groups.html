@@ -3442,7 +3442,7 @@ function cosetCountFormula(G, h, g, index, steps, hm){
     d = gcd(n, q);
     if (steps) return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLogOf(g, hx())), mo('='),
         mgcd(mPhi(mn(G.n)), mLogOf(g, hx(g, q))), mo('='),
-        mgcd(mPhi(mn(G.n)), mn(q)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
+        mgcd(mn(n), mn(q)), mo('='), mn(d)),
       plain: translate(index ? 'cyclicGroups.formula.mulSubgroupIndexSteps' : 'cyclicGroups.formula.mulCosetCountSteps', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
     return { math: mrow(lead, mo('='), mgcd(abs(mGroup(G)), mLog(g, h)), mo('='), mgcd(mPhi(mn(G.n)), mLog(g, h)), mo('='), mgcd(mn(n), mn(q)), mo('='), mn(d)),
       plain: translate(index ? 'cyclicGroups.formula.mulSubgroupIndex' : 'cyclicGroups.formula.mulCosetCount', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d }) };
@@ -3474,6 +3474,8 @@ function subRowFormula(G, h, choice, base, hm, lcm){
 // The rows' formulas the lcm way, chosen in the panel's right-click menu:
 // |⟨h⟩| = lcm(|G|, q) / q and [G : ⟨h⟩] = |G| · q / lcm(|G|, q), q being h
 // (n for 0) or log_g h (k for 1), in the same steps as the gcd forms.
+// In (ℤ/nℤ)* the two forms drop lcmTerms' third step: φ(n) is worked out
+// in the step that writes the log as q.
 function lcmTerms(G, h, g, hm){
   var hx = hm || plainH(h), n = G.order, mul = G.mode === 'multiplicative';
   var q = g !== undefined ? lap(G, g, n).indexOf(h) || n : gcdOperand(G, h);
@@ -3495,7 +3497,6 @@ function lcmPlainKey(G, g, kind){
 }
 function subOrderLcm(G, h, g, hm){
   var t = lcmTerms(G, h, g, hm);
-  // In (ℤ/nℤ)* φ(n) is worked out in the step that writes the log as q.
   if (t.mul) t.ops.splice(2, 1);
   var terms = [abs(angle(t.hx()))].concat(t.ops.map(function(o){ return mfrac(mlcm(o[0].cloneNode(true), o[1]()), o[1]()); }));
   terms.push(mfrac(mn(t.l), mn(t.q)), mn(t.l / t.q));
@@ -3504,6 +3505,7 @@ function subOrderLcm(G, h, g, hm){
 }
 function subIndexLcm(G, h, g, hm){
   var t = lcmTerms(G, h, g, hm);
+  if (t.mul) t.ops.splice(2, 1);
   var lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(t.hx()), mo(']', true));
   var terms = [lead].concat(t.ops.map(function(o){ return mfrac(mrow(o[0].cloneNode(true), mo('\u00b7'), o[1]()), mlcm(o[0].cloneNode(true), o[1]())); }));
   terms.push(mfrac(mn(t.n * t.q), mn(t.l)), mn(t.d));
