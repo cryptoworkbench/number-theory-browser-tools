@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f099a1f
+state_head: db539db
 progress:
   total_phases: 7
   completed_phases: 6
@@ -787,6 +787,7 @@ None yet.
 | 551 | Cyclic Groups: formula complexity slider centred on the bottom edge | 2026-10-18 | 9ce06c1 | — |
 | 552 | Cyclic Groups: bottom bar with its own background (corner buttons, complexity slider), bottom panel above it | 2026-10-18 | 6c937d5 | — |
 | 553 | Cyclic Groups: bottom bar per-group formula menus (row/main) with per-formula GCD/LCM switches; panel Formula dropdown gone on desktop | 2026-10-18 | f099a1f | — |
+| 554 | Cyclic Groups: Element colours option 'One distinct colour per element' (evenly spaced hues, own pickable key, iso-linked) | 2026-10-18 | db539db | — |
 
 ## Deferred Items
 
