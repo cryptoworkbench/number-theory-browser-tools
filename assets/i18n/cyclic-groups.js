@@ -40,7 +40,9 @@
    subExprSort (the Numerical panel's Generator expression following its
    Sort dropdown), subSortFollowCoupled (that Sort dropdown, merged across
    two rings, following their coupled expression sliders), subPathColours (the bottom panel's menu switch
-   colouring the selected row and its inverse's like their paths), subFormulaSize
+   colouring the selected row and its inverse's like their paths), subPowerColours
+   (its switch, with the paths drawn as powers of G, tinting each line's
+   rows in that line's colour), subFormulaSize
    and subFormulaIndexShort (the bottom panel's Formula dropdown: the
    selected row's cardinality or index formula), subExprFollow (the Numerical panel's two expressions following the ring's
    expression slider), isoAddLeftTitle (the + at the ring's left edge,
@@ -423,6 +425,7 @@
       subGcdShowDividers: 'Show the gcd dividers',
       subSimplify: 'Simplify',
       subPathColours: 'Colour row lines according to paths',
+      subPowerColours: 'Colour rows according to power of G colours',
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = |{group}| / gcd(|{group}|, log_{g}({g}^{q})) = |{group}| / gcd(|{group}|, {q}) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd(|{group}|, log_{g}({g}^{q})) = gcd(|{group}|, {q}) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = φ({n}) / gcd(φ({n}), log_{g}({g}^{q})) = φ({n}) / gcd(φ({n}), {q}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
