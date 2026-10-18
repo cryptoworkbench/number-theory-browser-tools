@@ -1101,7 +1101,7 @@
   .fs-win-body.is-ring{ --expr-side:7.5rem; }
   .fs-win-body.is-ring > .expr-slot.is-side:not([hidden]){ grid-area:ring; justify-self:start; align-self:stretch; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; width:var(--expr-side); min-height:0; padding:4px 0; text-align:center; container:expr-side / size; }
   :root.is-isopane .fs-win-body.is-ring > .expr-slot.is-side:not([hidden]){ justify-self:end; }
-  .expr-slot.is-side .expr-name{ justify-self:auto; text-align:center; }
+  .expr-slot.is-side .expr-name{ display:none; }
   .expr-slot.is-side .expr-now{ max-width:100%; white-space:normal; }
   /* Upright beside the Numerical view, each slider shows under it whether
      the two are coupled: a closed green padlock, or an open red one. */
@@ -1122,7 +1122,6 @@
   /* A ring too short for all of it keeps the slider, giving up first the
      choice named in full, then the slider's name. */
   @container expr-side (max-height: 190px){ .expr-slot.is-side .expr-now{ display:none; } }
-  @container expr-side (max-height: 140px){ .expr-slot.is-side .expr-name{ display:none; } }
   .fs-win-body.is-ring:has(> .expr-slot.is-side:not([hidden])) > svg.ring-svg{ justify-self:end; width:calc(100% - var(--expr-side) - 10px); }
   :root.is-isopane .fs-win-body.is-ring:has(> .expr-slot.is-side:not([hidden])) > svg.ring-svg{ justify-self:start; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring > .spin-ruler, :root.is-ringwin .fs-win-body.is-ring > .spin-ruler{ grid-area:spin; align-self:center; width:100%; max-width:420px; margin:0 auto; }
@@ -1752,11 +1751,11 @@
           <g id="ring-dynamic"></g>
         </svg>
         <div class="expr-slot" id="expr-slot" hidden>
-          <label class="expr-name" for="expr-slider" data-i18n="cyclicGroups.exprLabel">Element expression</label>
+          <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
             <span class="expr-nat" id="expr-nat" aria-hidden="true" data-i18n="cyclicGroups.exprNatural">Natural</span>
             <div class="expr-track">
-              <input type="range" id="expr-slider" min="0" max="0" step="1" value="0" aria-orientation="horizontal">
+              <input type="range" id="expr-slider" min="0" max="0" step="1" value="0" aria-orientation="horizontal" aria-label="Element expression" data-i18n-aria-label="cyclicGroups.exprLabel">
               <div class="expr-stops" id="expr-stops" aria-hidden="true"></div>
             </div>
           </div>
@@ -2696,9 +2695,9 @@ function syncExpr(G){
   var now = g === null ? translate('cyclicGroups.exprNatural') : translate('cyclicGroups.arrangePowers', { g: g });
   exprNowEl.textContent = now;
   exprSliderEl.setAttribute('aria-valuetext', now);
-  // Hovered, the slider's name counts its generators: φ(n) of them in the
-  // additive group, φ(φ(n)) in the multiplicative one, whose order is φ(n).
-  exprSlotEl.querySelector('.expr-name').title = translate(G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
+  // Hovered, the slider names itself and counts its generators: φ(n) of them
+  // in the additive group, φ(φ(n)) in the multiplicative one, whose order is φ(n).
+  exprSliderEl.title = translate(G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
   thinExprStops();
 }
 // Upright beside the ring while two groups are open with the Numerical view
