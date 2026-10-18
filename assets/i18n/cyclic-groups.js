@@ -96,7 +96,11 @@
    and the additive row formulas that, with it off, find h as log_g h), and
    formula.mulSubgroupOrderSteps, formula.mulSubgroupIndexSteps and
    formula.mulCosetCountSteps (the multiplicative row formulas writing
-   log_g h out as log_g g^q, then q).
+   log_g h out as log_g g^q, then q), subLcmFormulas (the bottom panel's
+   menu switch to the lcm forms) and formula.subgroupOrderLcm,
+   formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
+   formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
+   (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -426,10 +430,17 @@
       subSimplify: 'Simplify',
       subPathColours: 'Colour row lines according to paths',
       subPowerColours: 'Colour rows according to power of G colours',
+      subLcmFormulas: 'Calculate cardinality and index with the LCM formulas',
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = |{group}| / gcd(|{group}|, log_{g}({g}^{q})) = |{group}| / gcd(|{group}|, {q}) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd(|{group}|, log_{g}({g}^{q})) = gcd(|{group}|, {q}) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = φ({n}) / gcd(φ({n}), log_{g}({g}^{q})) = φ({n}) / gcd(φ({n}), {q}) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
       'formula.mulSubgroupIndexSteps': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd(φ({n}), log_{g}({g}^{q})) = gcd(φ({n}), {q}) = gcd({k}, {q}) = {d}',
+      'formula.subgroupOrderLcm': '|⟨{h}⟩| = lcm(|{group}|, {q}) / {q} = lcm({n}, {q}) / {q} = {l} / {q} = {m}',
+      'formula.subgroupIndexLcm': '[{group} : ⟨{h}⟩] = |{group}| · {q} / lcm(|{group}|, {q}) = {n} · {q} / lcm({n}, {q}) = {p} / {l} = {d}',
+      'formula.subgroupOrderLogLcm': '|⟨{h}⟩| = lcm(|{group}|, log_{g}({h})) / log_{g}({h}) = lcm(|{group}|, log_{g}({g}^{q})) / log_{g}({g}^{q}) = lcm(|{group}|, {q}) / {q} = lcm({n}, {q}) / {q} = {l} / {q} = {m}',
+      'formula.subgroupIndexLogLcm': '[{group} : ⟨{h}⟩] = |{group}| · log_{g}({h}) / lcm(|{group}|, log_{g}({h})) = |{group}| · log_{g}({g}^{q}) / lcm(|{group}|, log_{g}({g}^{q})) = |{group}| · {q} / lcm(|{group}|, {q}) = {n} · {q} / lcm({n}, {q}) = {p} / {l} = {d}',
+      'formula.mulOrderLcm': '|⟨{h}⟩| = lcm(|{group}|, log_{g}({h})) / log_{g}({h}) = lcm(φ({n}), log_{g}({g}^{q})) / log_{g}({g}^{q}) = lcm(φ({n}), {q}) / {q} = lcm({k}, {q}) / {q} = {l} / {q} = {m}',
+      'formula.mulIndexLcm': '[{group} : ⟨{h}⟩] = |{group}| · log_{g}({h}) / lcm(|{group}|, log_{g}({h})) = φ({n}) · log_{g}({g}^{q}) / lcm(φ({n}), log_{g}({g}^{q})) = φ({n}) · {q} / lcm(φ({n}), {q}) = {k} · {q} / lcm({k}, {q}) = {p} / {l} = {d}',
       'formula.mulCosetCountSteps': '|{group}| / |⟨{h}⟩| = gcd(|{group}|, log_{g}({h})) = gcd(φ({n}), log_{g}({g}^{q})) = gcd(φ({n}), {q}) = gcd({k}, {q}) = {d}',
       subGcdCollapse: 'Fold this group of rows away',
       subGcdExpand: 'Unfold this group of rows',
