@@ -5341,7 +5341,7 @@ if (IS_RINGWIN){
     // A zoom for this pane from the pill between the rings.
     if (d.ringhost === 'zoom'){
       if (!IS_ISOPANE || !Number.isInteger(d.i)) return;
-      applyZoom(d.i);
+      applyZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
       return;
     }
     // The inverse-pair key's "Elements as", chosen under this pane's half.
@@ -5476,30 +5476,33 @@ function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPa
 function zoomApart(){ return !!groupControlsEl && (IS_ISOPANE || twoRings()) && !isoTurnsTogether(); }
 function canZoom(by){ return !!RING_ZOOMS[ringZoom + by]; }
 // This ring's own zoom.
-function applyZoom(i){
+// at, from the other ring, keeps the two eases in step (see
+// easeRingResize); returns the moment this ring's ease began.
+function applyZoom(i, at){
   i = clamp(i, 0, RING_ZOOMS.length - 1);
   if (i === ringZoom) return;
   ringZoom = i;
-  easeRingResize(render);
+  var began = easeRingResize(render, at);
   syncZoomCtl();
+  return began;
 }
-function tellPaneZoom(i){
+function tellPaneZoom(i, at){
   if (!isoPaneFrame) return;
-  try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'zoom', i: i }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+  try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'zoom', i: i, at: at }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
 // A zoom asked for here: this ring's, and the other's too while the rings
 // turn together.
 function setRingZoom(i){
-  applyZoom(i);
-  if (IS_ISOPANE){ tellHost({ isopane: 'zoom', i: ringZoom }); return; }
-  if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom){ paneZoom = ringZoom; tellPaneZoom(ringZoom); }
+  var at = applyZoom(i);
+  if (IS_ISOPANE){ tellHost({ isopane: 'zoom', i: ringZoom, at: at }); return; }
+  if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom){ paneZoom = ringZoom; tellPaneZoom(ringZoom, at); }
 }
 function stepRingZoom(by){ if (canZoom(by)) setRingZoom(ringZoom + by); }
 // The pane's zoom, as it reports it: followed here while the rings turn
 // together.
-function heardPaneZoom(i){
+function heardPaneZoom(i, at){
   paneZoom = clamp(i, 0, RING_ZOOMS.length - 1);
-  if (isoTurnsTogether()) applyZoom(paneZoom);
+  if (isoTurnsTogether()) applyZoom(paneZoom, at);
 }
 // Locked again, the pane takes this ring's zoom.
 function matchPaneZoom(){
@@ -5519,7 +5522,7 @@ function syncZoomCtl(){
 // once the drawing has eased to its new size (see easeRingResize), not on
 // its way there.
 function placeZoom(){
-  if (/transform/.test(ringSvgEl.style.transition)) return;
+  if (ringEase) return;
   zoomWrapEl.style.left = zoomWrapEl.style.top = '';
   if (!zoomApart() || !zoomWrapEl.offsetParent) return;
   var g = ringSvgEl.getBoundingClientRect(), w = zoomWrapEl.getBoundingClientRect(), r = zoomWrapEl.offsetParent.getBoundingClientRect();
@@ -9545,7 +9548,7 @@ window.addEventListener('message', function(e){
     state.subFormulaRingR = d.value;
     barFormulasChanged();
   } else if (d.isopane === 'zoom' && Number.isInteger(d.i)){
-    heardPaneZoom(d.i);
+    heardPaneZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
   } else if (d.isopane === 'axis' && [d.b, d.s, d.k].every(Number.isFinite)){
     dirPaneAxis = { b: d.b, s: d.s, k: d.k };
     syncDirAxis();
@@ -10863,10 +10866,15 @@ sideElEl.addEventListener('change', function(){
 // runs out. A change in the middle of one carries on from where it is.
 var RING_EASE_MS = 350;
 var reduceMotionMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-function easeRingResize(change){
+// The ease runs as a Web Animation, ringEase while it lasts. at, when
+// given, is the moment the other ring's same ease began, on the clock both
+// share (performance.timeOrigin plus a document timeline's time): this one
+// starts at that moment too, so the two run in step whatever each one's
+// redraw cost. Returns the moment this ease began.
+var ringEase = null;
+function easeRingResize(change, at){
   var before = ringSvgEl.getScreenCTM();
-  ringSvgEl.style.transition = 'none';
-  ringSvgEl.style.transform = '';
+  if (ringEase){ ringEase.cancel(); ringEase = null; ringSvgEl.style.transformOrigin = ''; }
   change();
   var after = ringSvgEl.getScreenCTM();
   if (!before || !after || !after.a || (reduceMotionMq && reduceMotionMq.matches)) return;
@@ -10875,17 +10883,20 @@ function easeRingResize(change){
   var r = ringSvgEl.getBoundingClientRect();
   var dx = before.e - r.left - k * (after.e - r.left), dy = before.f - r.top - k * (after.f - r.top);
   ringSvgEl.style.transformOrigin = '0 0';
-  ringSvgEl.style.transform = 'translate(' + num(dx) + 'px, ' + num(dy) + 'px) scale(' + k + ')';
-  void ringSvgEl.getBoundingClientRect();
-  ringSvgEl.style.transition = 'transform ' + RING_EASE_MS + 'ms ease';
-  ringSvgEl.style.transform = '';
+  var anim = ringSvgEl.animate([
+    { transform: 'translate(' + num(dx) + 'px, ' + num(dy) + 'px) scale(' + k + ')' },
+    { transform: 'none' }
+  ], { duration: RING_EASE_MS, easing: 'ease' });
+  anim.startTime = at ? at - performance.timeOrigin : document.timeline.currentTime;
+  ringEase = anim;
+  anim.onfinish = function(){
+    if (ringEase !== anim) return;
+    ringEase = null;
+    ringSvgEl.style.transformOrigin = '';
+    placeZoom();
+  };
+  return performance.timeOrigin + anim.startTime;
 }
-ringSvgEl.addEventListener('transitionend', function(e){
-  if (e.target !== ringSvgEl || e.propertyName !== 'transform') return;
-  ringSvgEl.style.transition = '';
-  ringSvgEl.style.transformOrigin = '';
-  placeZoom();
-});
 backwardEl.addEventListener('change', function(){
   state.backward = !backwardEl.checked;
   easeRingResize(render);
