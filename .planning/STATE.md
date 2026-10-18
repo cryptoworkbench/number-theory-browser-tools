@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: e0b5908
+state_head: 92503fa
 progress:
   total_phases: 7
   completed_phases: 6
@@ -790,6 +790,7 @@ None yet.
 | 554 | Cyclic Groups: Element colours option 'One distinct colour per element' (evenly spaced hues, own pickable key, iso-linked) | 2026-10-18 | db539db | — |
 | 555 | Cyclic Groups: main-view formulas follow 'Colour elements like their beads' and 'Line up numbers' | 2026-10-18 | 6d05d6b | — |
 | 556 | Cyclic Groups: main-view formula chips coloured only on hover | 2026-10-18 | e0b5908 | — |
+| 557 | Cyclic Groups: zoomed ring shows blurred through the rows below it and the bottom bar, as at the top | 2026-10-18 | 92503fa | — |
 
 ## Deferred Items
 
