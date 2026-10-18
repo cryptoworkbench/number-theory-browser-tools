@@ -871,7 +871,7 @@
      its own controls start at its top edge, level with the left ring's, and
      its expression slider ends at its bottom edge, level with the left one.
      Its left padding makes up for the pane reaching to the middle line. */
-  :root.is-isopane .fs-win-body.is-ring.ringwin-body{ padding-top:0; padding-bottom:0; padding-left:31px; }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body{ padding-top:0; padding-bottom:var(--pane-foot, 0px); padding-left:31px; }
   /* The ring and its expression slider mirror the left ring's: from 6px
      right of the middle line to the window's edge, as wide as the left
      ones, so both rings and both sliders lay out alike. */
@@ -1171,6 +1171,12 @@
   .iso-pane > iframe.is-loaded{ visibility:visible; }
   .iso-pane > iframe.is-loaded{ transition:filter .45s ease, opacity .45s ease; }
   .iso-pane > iframe.is-blurred{ filter:blur(8px); opacity:.6; }
+  /* The pane's frame reaches on down behind the rows under both rings, to
+     the bottom bar (--pane-foot, measured by syncPaneFoot), and the pane
+     keeps that much room empty at its foot, so its ring, zoomed, grows
+     down behind those rows as this ring's does; the rows stay on top. */
+  .fs-win-body.is-ring > .iso-pane > iframe{ margin-bottom:calc(-1 * var(--pane-foot, 0px)); }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#rotate-ctl, #spin-ruler, #combine-key, .genexp-info, #legend-panel-pane, .ring-split, .split-btn){ position:relative; z-index:1; }
   /* The + at a one-ring Ring window's right edge, level with the ring
      (its grid area holds it, whatever opens below), and the picker it opens. */
   .iso-add{ display:none; }
@@ -1372,7 +1378,7 @@
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ content:''; grid-row:ring-end / -1; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:0 -14px -10px; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ margin-bottom:-8px; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg.is-zoomed)::before{ margin-right:-7px; }
-  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg.is-zoomed)::before{ margin-left:-31px; margin-right:-12px; }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg.is-zoomed)::before{ margin-left:-31px; margin-right:-12px; margin-bottom:calc(-1 * var(--pane-foot, 0px)); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-bar{ background:color-mix(in srgb, var(--bg-1) 70%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -8706,10 +8712,31 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot };
 }
 var isoSharedSent = null;
+// How far below the pane's place the rows under both rings reach, down to
+// the bottom bar: the pane's frame reaches that far too (see --pane-foot),
+// the pane told it with the shared settings to keep that room at its foot.
+var paneFoot = 0;
+function syncPaneFoot(){
+  if (IS_ISOPANE || isoPaneEl.hidden) return;
+  var body = isoPaneEl.parentNode, bar = $('ring-bar');
+  var low = bar && bar.offsetParent ? bar.getBoundingClientRect().top
+    : body.getBoundingClientRect().bottom - parseFloat(getComputedStyle(body).paddingBottom);
+  var px = Math.max(0, Math.round(low - isoPaneEl.getBoundingClientRect().bottom));
+  if (px === paneFoot) return false;
+  paneFoot = px;
+  isoPaneEl.style.setProperty('--pane-foot', px + 'px');
+  return true;
+}
+if (!IS_ISOPANE && window.ResizeObserver){
+  var paneFootRo = new ResizeObserver(function(){ if (syncPaneFoot()) postIsoShared(false); });
+  paneFootRo.observe(isoPaneEl);
+  paneFootRo.observe(isoPaneEl.parentNode);
+}
 function postIsoShared(force){
+  syncPaneFoot();
   if (IS_ISOPANE || !isoPaneFrame) return;
   var s = JSON.stringify(isoSharedPayload());
   if (!force && s === isoSharedSent) return;
@@ -8724,6 +8751,7 @@ function applyIsoShared(d){
   var flag = function(v){ return typeof v === 'boolean'; };
   var hex = function(v){ return v === null || (typeof v === 'string' && HEX_COLOR.test(v)); };
   if (Number.isInteger(d.zoom)) applyZoom(d.zoom);
+  if (Number.isFinite(d.foot) && d.foot >= 0 && d.foot < 4000) document.documentElement.style.setProperty('--pane-foot', Math.round(d.foot) + 'px');
   if (flag(d.colors)) state.colors = d.colors;
   if (flag(d.backward)) state.backward = d.backward;
   if (flag(d.swapColors)) state.swapColors = d.swapColors;
