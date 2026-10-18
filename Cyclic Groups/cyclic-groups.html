@@ -457,6 +457,10 @@
   .speed-wrap input[type="range"]{ flex:1 1 auto; min-width:0; accent-color:var(--accent); }
   .speed-wrap span{ width:70px; }
   .subgroup-row.is-current{ background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  /* The selected element's row and its inverse's, in their paths' colours. */
+  .subgroup-row.is-path-fwd{ background:color-mix(in srgb, var(--arrow-in, var(--role-active)) 22%, transparent); }
+  .subgroup-row.is-path-back{ background:color-mix(in srgb, var(--arrow-out, var(--role-input)) 22%, transparent); }
+  .subgroup-row.is-path-both{ background:color-mix(in srgb, var(--arrow-both, var(--accent)) 22%, transparent); }
   /* The selected row looks the same whether the keys or the pointer chose
      it: its highlight shows the focus, without the focus ring. */
   .subgroup-row.is-current:focus-visible{ outline:none; }
@@ -7062,6 +7066,18 @@ function refoldAutoOpen(G){
 function subRowFolded(G, g){
   return subGcdOn(G) && state.subGcdDividers && !!state.subGcdFolded[G.orders[g]];
 }
+// The rows in the colours of the selected element's paths: its own row in
+// the forward path's, its inverse's row in the backward path's while that
+// path is drawn, and a self-inverse element's row in the two mixed.
+function syncRowPaths(G){
+  var g = state.noSub ? null : state.gen, back = g !== null && invSide() !== 'neither' ? G.inv[g] : null;
+  subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
+    var x = Number(row.getAttribute('data-gen')), fwd = x === g, inv = x === back;
+    row.classList.toggle('is-path-fwd', fwd && !inv);
+    row.classList.toggle('is-path-back', inv && !fwd);
+    row.classList.toggle('is-path-both', fwd && inv);
+  });
+}
 // Each divider of a folded group holding the selected row stands in for it.
 function syncGcdDividers(G){
   subgroupsEl.querySelectorAll('.sub-gcd-divider').forEach(function(li){
@@ -7139,6 +7155,7 @@ function renderSubgroups(G){
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     syncGcdDividers(G);
+    syncRowPaths(G);
     syncSubFormula(G);
     syncGenExp(G);
     if (hadFocus) focusCurrentRow();
@@ -7181,6 +7198,7 @@ function renderSubgroups(G){
     subgroupsEl.appendChild(li);
   });
   syncGcdDividers(G);
+  syncRowPaths(G);
   syncSubFormula(G);
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
@@ -7220,6 +7238,7 @@ function renderMergedSubgroups(G){
       row.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     syncGcdDividers(G);
+    syncRowPaths(G);
     syncSubFormula(G);
     syncGenExp(G);
     if (hadFocus) focusCurrentRow();
@@ -7285,6 +7304,7 @@ function renderMergedSubgroups(G){
     subgroupsEl.appendChild(li);
   });
   syncGcdDividers(G);
+  syncRowPaths(G);
   syncSubFormula(G);
   syncGenExp(G);
   if (hadFocus) focusCurrentRow();
