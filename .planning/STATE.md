@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: bff2ae0
+state_head: d26ca21
 progress:
   total_phases: 7
   completed_phases: 6
@@ -780,6 +780,7 @@ None yet.
 | 544 | Cyclic Groups: bottom panel menu switch to lcm forms of the cardinality and index formulas | 2026-10-18 | 414595d | — |
 | 545 | Cyclic Groups: merged rows let each side pick gcd or lcm formulas | 2026-10-18 | fcfadad | — |
 | 546 | Cyclic Groups: multiplicative cardinality formulas work out φ(n) with the log, one step shorter | 2026-10-18 | bff2ae0 | — |
+| 547 | Cyclic Groups: multiplicative index formulas work out φ(n) with the log, one step shorter | 2026-10-18 | d26ca21 | — |
 
 ## Deferred Items
 
