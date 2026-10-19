@@ -824,8 +824,6 @@
   /* The order formulas, one under the other. */
   .ring-head .ring-math-row{ display:flex; flex-direction:column; align-items:center; row-gap:4px; max-width:100%; }
   .ring-head:empty{ display:none; }
-  /* Standing as tall as the other locked ring's head (see syncHeadMatch). */
-  .ring-head.is-matched:empty{ display:flex; }
   .ring-head math{ white-space:nowrap; direction:ltr; color:var(--text); font-weight:400; font-family:var(--font-math); }
   .ring-head math[display="block"]{ display:block; }
   .ring-head math, .ring-head .ring-head-sub{ user-select:all; -webkit-user-select:all; cursor:text; }
@@ -1062,6 +1060,9 @@
      keeps them off the next row. */
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .fs-win-body.is-ring .facts.group-controls li.op-toggle-row, :root.is-ringwin .fs-win-body.is-ring .facts.group-controls li.op-toggle-row{ padding:4px 0 14px; }
   .fs-win-body.is-ring > svg.ring-svg{ grid-area:ring; align-self:stretch; width:100%; height:100%; min-height:0; }
+  /* Room left above the drawing to start level with the other locked
+     ring's (--head-gap, see syncHeadMatch). */
+  :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame, :root) .fs-win-body.is-ring > svg.ring-svg{ margin-top:var(--head-gap, 0px); height:calc(100% - var(--head-gap, 0px)); }
   /* The element expression: a slider under the ring, from Natural through
      the powers of each generator, its stops named by their generator and
      the choice named in full beside it. With two groups open and the
@@ -3772,20 +3773,13 @@ function syncSubFormula(G){
   showRowFormula(G);
   syncHeadMatch();
 }
-// Two rings locked together keep their heads the same height, so a formula
-// in one's main view lowers both rings alike: each tells the other how tall
-// its head is of itself, and stands at least as tall as the other's.
+// Two rings locked together start their drawings at the same height, so a
+// formula in one's main view lowers both rings alike: each tells the other
+// how tall its head is, and the one with the shorter head leaves the
+// difference empty above its drawing, under its frosted band of rows
+// (never as a taller, empty head, which the band would blur).
 var headOther = 0, headSent = null;
-function headNatural(){
-  var m = ringHeadEl.style.minHeight;
-  ringHeadEl.style.minHeight = '';
-  var match = ringHeadEl.classList.contains('is-matched');
-  ringHeadEl.classList.remove('is-matched');
-  var h = Math.round(ringHeadEl.getBoundingClientRect().height * 100) / 100;
-  ringHeadEl.style.minHeight = m;
-  ringHeadEl.classList.toggle('is-matched', match);
-  return h;
-}
+function headNatural(){ return Math.round(ringHeadEl.getBoundingClientRect().height * 100) / 100; }
 function headMatchOn(){ return IS_ISOPANE ? isoTurnsTogether() : twoRings() && isoTurnsTogether(); }
 function syncHeadMatch(){
   var own = headNatural();
@@ -3796,10 +3790,8 @@ function syncHeadMatch(){
       try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'head', h: own }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
     }
   }
-  var on = headMatchOn() && headOther > own;
-  var v = on ? headOther + 'px' : '';
-  if (ringHeadEl.style.minHeight !== v) ringHeadEl.style.minHeight = v;
-  ringHeadEl.classList.toggle('is-matched', on);
+  var v = headMatchOn() && headOther > own ? (headOther - own) + 'px' : '';
+  if (ringSvgEl.style.getPropertyValue('--head-gap') !== v) ringSvgEl.style.setProperty('--head-gap', v);
 }
 function heardHead(h){
   if (!Number.isFinite(h) || h < 0 || h > 2000) return;
@@ -8394,8 +8386,7 @@ function setPaneMenuRoom(open){
 function closeIsoPane(){
   headOther = 0;
   headSent = null;
-  ringHeadEl.style.minHeight = '';
-  ringHeadEl.classList.remove('is-matched');
+  ringSvgEl.style.removeProperty('--head-gap');
   endIsoPick();
   if (isoPaneFrame) isoPaneFrame.remove();
   dropPaneCards();
