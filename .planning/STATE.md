@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 09b26a7
+state_head: ec42c30
 progress:
   total_phases: 7
   completed_phases: 6
@@ -817,6 +817,7 @@ None yet.
 | 581 | Cyclic Groups: Simplify removed from the subgroup right-click menu (formula slider covers it) | 2026-10-19 | 171d2cb | — |
 | 582 | Cyclic Groups: ELEMENT EXPRESSIONS heading turns white on hover over the ring | 2026-10-19 | 33331ac | — |
 | 583 | Cyclic Groups: element expressions table gets the resting card over the ring | 2026-10-19 | 09b26a7 | — |
+| 584 | Cyclic Groups: table heading renamed to Element expression reference table | 2026-10-19 | ec42c30 | — |
 
 ## Deferred Items
 
