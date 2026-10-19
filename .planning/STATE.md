@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 171d2cb
+state_head: 33331ac
 progress:
   total_phases: 7
   completed_phases: 6
@@ -815,6 +815,7 @@ None yet.
 | 579 | Cyclic Groups: the whole bottom panel takes its control row's card when zoomed | 2026-10-19 | 270c7cf | — |
 | 580 | Cyclic Groups: bottom panel control names turn white when frosted | 2026-10-19 | ac08ae0 | — |
 | 581 | Cyclic Groups: Simplify removed from the subgroup right-click menu (formula slider covers it) | 2026-10-19 | 171d2cb | — |
+| 582 | Cyclic Groups: ELEMENT EXPRESSIONS heading turns white on hover over the ring | 2026-10-19 | 33331ac | — |
 
 ## Deferred Items
 
