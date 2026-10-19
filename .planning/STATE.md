@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 1897fe8
+state_head: 9df9feb
 progress:
   total_phases: 7
   completed_phases: 6
@@ -810,6 +810,7 @@ None yet.
 | 574 | Cyclic Groups: the bead colour key frosts (formula card's frost, edge) whenever it lies over a ring's or the pane's drawing, no hover needed | 2026-10-19 | 8724802 | — |
 | 575 | Cyclic Groups: the frosted bead colour key turns its gray text white under the pointer | 2026-10-19 | 635502a | — |
 | 576 | Cyclic Groups: the bottom panel sliding grows and shrinks both locked rings in the same frame | 2026-10-19 | 1897fe8 | — |
+| 577 | Cyclic Groups: no empty band under the arrow key beside a pane | 2026-10-19 | 9df9feb | — |
 
 ## Deferred Items
 
