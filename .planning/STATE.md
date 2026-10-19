@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: f1a87e8
+state_head: 0ea75d0
 progress:
   total_phases: 7
   completed_phases: 6
@@ -819,6 +819,7 @@ None yet.
 | 583 | Cyclic Groups: element expressions table gets the resting card over the ring | 2026-10-19 | 09b26a7 | — |
 | 584 | Cyclic Groups: table heading renamed to Element expression reference table | 2026-10-19 | ec42c30 | — |
 | 585 | Cyclic Groups: bottom panel card only while the ring is under it | 2026-10-19 | f1a87e8 | — |
+| 586 | Cyclic Groups: bottom panel and arrow key reach the window's side edges | 2026-10-19 | 0ea75d0 | — |
 
 ## Deferred Items
 
