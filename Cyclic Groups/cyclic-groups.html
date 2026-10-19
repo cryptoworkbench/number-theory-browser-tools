@@ -473,10 +473,10 @@
      bead's full colour with the bead labels' ink. */
   .sub-chip{ padding:.15em .3em; border-radius:.4em; }
   .sub-chip-full{ background:var(--ord, var(--text-dim)); color:var(--accent-ink); }
-  /* In a row formula, in the main view's and on the cosets button, ⟨h⟩'s
-     chip keeps its room but shows its bead colour only under the pointer;
-     the main view's box lets the pointer through everywhere but its chips. */
-  :is(.sub-row-formula, .ring-hover-formula, #coset-btn) .sub-chip-full:not(:hover){ background:none; color:inherit; }
+  /* In a row formula, in the main view's, on the cosets button and in the
+     subgroup row's G = ⟨h⟩, ⟨h⟩'s chip keeps its room but shows its bead
+     colour only under the pointer; the main view's box lets the pointer through everywhere but its chips. */
+  :is(.sub-row-formula, .ring-hover-formula, #coset-btn, #gen-super) .sub-chip-full:not(:hover){ background:none; color:inherit; }
   .ring-hover-formula .sub-chip{ pointer-events:auto; }
   .fact-label{ color:var(--text-dim); }
   .fact-value{ margin-left:auto; font-family:var(--font-sans); font-variant-numeric:tabular-nums; text-align:right; }
@@ -3848,8 +3848,9 @@ function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
 // left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
   clearSubFormula();
-  // The cosets button writes ⟨h⟩ as the panel does.
+  // The cosets button and the subgroup row's G = ⟨h⟩ write h as the panel does.
   syncCosetButton();
+  syncGenSuper(G);
   if (state.noSub){ showRowFormula(G); return; }
   if (subFormulaAtRing()){
     // ⟨h⟩'s h is written as in the row formula: lined up and, under the
@@ -5972,8 +5973,10 @@ function syncGenSuper(G){
   if (state.noSub) return;
   var h = state.gen, whole = G.orders[h] === G.order, rel = whole ? '⊆' : '⊂';
   var named = genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL;
+  // The subgroup's h is written as the Subgroups panel writes it.
+  var hw = named && cosetGenWrite(G, h);
   genSuperEl.appendChild(named
-    ? mInline(mrow(mi('G'), mo('='), angle(mn(h)), mo(rel), mGroup(G)), 'G = ⟨' + h + '⟩ ' + rel + ' ' + G.label)
+    ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
     : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
 }
 function syncGenerators(G){
