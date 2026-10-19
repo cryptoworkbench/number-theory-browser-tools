@@ -1423,6 +1423,14 @@
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden]){ position:relative; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden])::before{ content:''; position:absolute; z-index:-1; left:var(--side-x, 0px); top:var(--side-y, 0px); width:var(--side-w, 0px); height:var(--side-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden]):is(.is-side-hot, :has(:focus-visible))::before{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* The subgroup panel's control row gets the same card: the cosets
+     button's faint ground and edge at rest, frosted while the pointer is
+     over the row (is-sub-hot) or a control in it has the keyboard focus;
+     its top and height (--sub-t, --sub-h) from hugSubCtls, as merged
+     beside a pane the row is three pieces of the panel's grid. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel{ position:relative; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel::before{ content:''; position:absolute; z-index:-1; left:-8px; right:-8px; top:var(--sub-t, 0px); height:var(--sub-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel:is(.is-sub-hot, :has(.sub-ctls :focus-visible))::before{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:backdrop-filter .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:is(:hover, :focus-visible){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
@@ -5649,8 +5657,22 @@ function hugSideSlot(){
   cs.setProperty('--side-w', num(u.right - u.left + 16) + 'px');
   cs.setProperty('--side-h', num(u.bottom - u.top + 16) + 'px');
 }
+function hugSubCtls(){
+  var ctls = subgroupsPanelEl.querySelector('.sub-ctls'), u = null;
+  if (!ctls) return;
+  ctls.querySelectorAll('*').forEach(function(el){
+    var b = el.getBoundingClientRect();
+    if (!b.width || !b.height) return;
+    u = u ? { top: Math.min(u.top, b.top), bottom: Math.max(u.bottom, b.bottom) } : { top: b.top, bottom: b.bottom };
+  });
+  if (!u) return;
+  var r = subgroupsPanelEl.getBoundingClientRect();
+  subgroupsPanelEl.style.setProperty('--sub-t', num(u.top - 5 - r.top - subgroupsPanelEl.clientTop) + 'px');
+  subgroupsPanelEl.style.setProperty('--sub-h', num(u.bottom - u.top + 10) + 'px');
+}
 function hugBottomCluster(){
   hugSideSlot();
+  hugSubCtls();
   var body = exprSlotEl.parentNode, rs = [], lo = Infinity, hi = -Infinity;
   function seen(el){ return el && !el.hidden && el.offsetParent && el.getBoundingClientRect().width > 0; }
   if (seen(exprSlotEl) && !exprSlotEl.classList.contains('is-side')){
@@ -5697,6 +5719,8 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
   }
   exprSlotEl.classList.toggle('is-side-hot', side);
   body.classList.toggle('is-top-hot', inTopBand(e.clientX, e.clientY));
+  var pr = subgroupsPanelEl.getBoundingClientRect(), pt = pr.top + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-t')) || 0);
+  subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && e.clientX >= pr.left - 8 && e.clientX <= pr.right + 8 && e.clientY >= pt && e.clientY <= pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0));
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card){
     var fr = card.getBoundingClientRect();
@@ -5745,6 +5769,7 @@ document.addEventListener('focusin', function(e){
 });
 exprSlotEl.parentNode.addEventListener('pointerleave', function(){
   exprSlotEl.parentNode.classList.remove('is-top-hot');
+  subgroupsPanelEl.classList.remove('is-sub-hot');
   exprSlotEl.parentNode.classList.remove('is-clu-hot');
   exprSlotEl.classList.remove('is-side-hot');
   var card = ringHeadEl.querySelector('.ring-hover-formula');
@@ -5752,7 +5777,7 @@ exprSlotEl.parentNode.addEventListener('pointerleave', function(){
 });
 if (window.ResizeObserver){
   var clusterRo = new ResizeObserver(hugBottomCluster);
-  [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode].forEach(function(el){ if (el) clusterRo.observe(el); });
+  [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode, subgroupsPanelEl].forEach(function(el){ if (el) clusterRo.observe(el); });
 }
 if (window.MutationObserver){
   var clusterMo = new MutationObserver(hugBottomCluster);
