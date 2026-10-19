@@ -9185,6 +9185,32 @@ function isoFollowAngle(a){
   isoFollowing = false;
   isoSentK = isoOrder() + ':' + identityAngle().toFixed(4);
 }
+// While the other ring turns, this one only turns its drawing to keep up,
+// as the turning ring does, without redrawing its beads, rows and link at
+// every bead it passes: the turn is settled with isoFollowAngle once the
+// other ring stops on a bead or has said nothing for ISO_SETTLE_MS.
+var ISO_SETTLE_MS = 120;
+var isoSettleId = null;
+function isoFollowLive(a){
+  if (!drawn || turning) return;
+  if (IS_ISOPANE) isoLastAngle = a;
+  var M = drawn.G.order, U = 360 / M;
+  var rho = arrangement(drawn.G).indexOf(drawn.G.identity) - dirSign() * a / U;
+  clearTimeout(isoSettleId);
+  isoSettleId = null;
+  if (Math.abs(rho - Math.round(rho)) < 1e-6){ isoFollowAngle(a); return; }
+  if (spin){ cancelAnimationFrame(spin.id); spin = null; }
+  if (!IS_ISOPANE && state.top !== 'off') letGoOfTop();
+  var d = dirSign() * (state.rot - rho) * U;
+  isoFollowing = true;
+  autoAngle = ((d % 360) + 540) % 360 - 180;
+  spinAngle(autoAngle);
+  isoFollowing = false;
+  isoSentK = isoOrder() + ':' + identityAngle().toFixed(4);
+  // A turn of this ring's own begun meanwhile (settling the other's let-go
+  // turn, say) has the last word.
+  isoSettleId = setTimeout(function(){ isoSettleId = null; if (!spin && !turning) isoFollowAngle(a); }, ISO_SETTLE_MS);
+}
 // The pane: lays its beads out as the holder's subgroup, c its spread.
 // Ordered by its expression slider while that is on Natural, it keeps
 // following and takes b as the generator Natural stands for (isoAlignGen).
@@ -9239,7 +9265,7 @@ ringSvgEl.addEventListener('pointerleave', function(){ isoHover(null); });
 function isoReceive(d){
   var m = isoOrder();
   if (!m || d.order !== m) return;
-  if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a) && isoTurnsTogether()) isoFollowAngle(d.a); return; }
+  if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a) && isoTurnsTogether()) isoFollowLive(d.a); return; }
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
   if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
