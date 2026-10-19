@@ -1451,10 +1451,14 @@
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible){ border-color:var(--panel-border); background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:disabled{ opacity:1; color:color-mix(in srgb, var(--text) 45%, transparent); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:is(:hover, :focus-visible){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* The chevron that opens the bottom panel behaves as the cards do: the
+     cosets button's faint ground at rest, the formula card's frost on
+     hover, its edge only while it lies over the beads. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:not([aria-pressed="true"]), .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]){ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:not([aria-pressed="true"]).is-on-beads, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-beads{ border-color:var(--panel-border); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:not([aria-pressed="true"]):is(:hover, :focus-visible), .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]):is(:hover, :focus-visible){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key.combine-key){ background:color-mix(in srgb, var(--text) 6%, transparent); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key).is-on-beads{ box-shadow:inset 0 0 0 1px var(--panel-border); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane):is(:hover, :focus-within){ background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#combine-key.combine-key, #spin-ruler.is-own-card):is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
@@ -5710,13 +5714,14 @@ function onBeads(band, r){
   var fx = Math.max(Math.abs(r.left - band.x), Math.abs(r.right - band.x)), fy = Math.max(Math.abs(r.top - band.y), Math.abs(r.bottom - band.y));
   return Math.hypot(dx, dy) <= band.hi && Math.hypot(fx, fy) >= band.lo;
 }
-// The main-view formula card, the turning ruler, the arrow key and the
-// middle card draw their edge only while they lie over the beads.
+// The main-view formula card, the turning ruler, the arrow key, the split
+// chevron and the middle card draw their edge only while they lie over
+// the beads.
 function syncRingOverlap(){
   var band = ringBand(), body = exprSlotEl.parentNode, key = $('combine-key');
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card) card.classList.toggle('is-on-beads', onBeads(band, card.getBoundingClientRect()));
-  [spinRulerEl, key].forEach(function(el){
+  [spinRulerEl, key, splitBtnEl].forEach(function(el){
     if (el) el.classList.toggle('is-on-beads', !!el.offsetParent && onBeads(band, el.getBoundingClientRect()));
   });
   var b = body.getBoundingClientRect(), cs = body.style, w = parseFloat(cs.getPropertyValue('--clu-w')) || 0;
