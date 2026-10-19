@@ -1379,9 +1379,12 @@
      pane, each ring has its own, above its own half, as the ring keeps to
      its half at the sides. The band stops above the head: a main-view
      formula there carries the same frosted glass on its own card, so only
-     the card covers the ring. Plain lines in the head, as while the cosets
+     the card covers the ring, frosted only while the pointer is over it
+     (is-hot, from the pointer's place, as the card lets the pointer
+     through), its edge always drawn. Plain lines in the head, as while the cosets
      play, keep the band behind them. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula{ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
     /* The main Ring window's frosted bands reach its sides, over its 20px
@@ -5678,8 +5681,18 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
     side = sx >= 0 && sy >= 0 && sx <= (parseFloat(ss.getPropertyValue('--side-w')) || 0) && sy <= (parseFloat(ss.getPropertyValue('--side-h')) || 0);
   }
   exprSlotEl.classList.toggle('is-side-hot', side);
+  var card = ringHeadEl.querySelector('.ring-hover-formula');
+  if (card){
+    var fr = card.getBoundingClientRect();
+    card.classList.toggle('is-hot', e.clientX >= fr.left && e.clientX <= fr.right && e.clientY >= fr.top && e.clientY <= fr.bottom);
+  }
 });
-exprSlotEl.parentNode.addEventListener('pointerleave', function(){ exprSlotEl.parentNode.classList.remove('is-clu-hot'); exprSlotEl.classList.remove('is-side-hot'); });
+exprSlotEl.parentNode.addEventListener('pointerleave', function(){
+  exprSlotEl.parentNode.classList.remove('is-clu-hot');
+  exprSlotEl.classList.remove('is-side-hot');
+  var card = ringHeadEl.querySelector('.ring-hover-formula');
+  if (card) card.classList.remove('is-hot');
+});
 if (window.ResizeObserver){
   var clusterRo = new ResizeObserver(hugBottomCluster);
   [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode].forEach(function(el){ if (el) clusterRo.observe(el); });
