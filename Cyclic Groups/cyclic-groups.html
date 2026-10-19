@@ -1385,7 +1385,13 @@
      play, keep the band behind them. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula{ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; transition:opacity .18s; }
+  /* The rows' band frosts only while the pointer is over it (is-top-hot,
+     from the pointer's place) or a control in it has the keyboard focus;
+     the rows' dropdowns keep a solid ground of their own, as the bottom
+     panel's do, so they read clearly over the ring either way. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot::after{ opacity:1; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
     /* The main Ring window's frosted bands reach its sides, over its 20px
      padding. */
@@ -5681,13 +5687,30 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
     side = sx >= 0 && sy >= 0 && sx <= (parseFloat(ss.getPropertyValue('--side-w')) || 0) && sy <= (parseFloat(ss.getPropertyValue('--side-h')) || 0);
   }
   exprSlotEl.classList.toggle('is-side-hot', side);
+  body.classList.toggle('is-top-hot', inTopBand(e.clientX, e.clientY));
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card){
     var fr = card.getBoundingClientRect();
     card.classList.toggle('is-hot', e.clientX >= fr.left && e.clientX <= fr.right && e.clientY >= fr.top && e.clientY <= fr.bottom);
   }
 });
+// Whether a point lies in the zoomed rows' band, the body's ::after: from
+// the body's top (the band reaches 20px over its padding) down its height.
+function inTopBand(x, y){
+  var body = exprSlotEl.parentNode;
+  if (!ringSvgEl.classList.contains('is-zoomed')) return false;
+  var cs = getComputedStyle(body, '::after');
+  if (cs.content === 'none') return false;
+  var b = body.getBoundingClientRect();
+  var top = b.top + body.clientTop + parseFloat(getComputedStyle(body).paddingTop) + parseFloat(cs.marginTop);
+  return x >= b.left && x <= b.right && y >= top && y <= top + parseFloat(cs.height);
+}
+document.addEventListener('focusin', function(e){
+  var r = e.target.getBoundingClientRect && e.target.getBoundingClientRect();
+  if (r && e.target.matches(':focus-visible') && inTopBand((r.left + r.right) / 2, (r.top + r.bottom) / 2)) exprSlotEl.parentNode.classList.add('is-top-hot');
+});
 exprSlotEl.parentNode.addEventListener('pointerleave', function(){
+  exprSlotEl.parentNode.classList.remove('is-top-hot');
   exprSlotEl.parentNode.classList.remove('is-clu-hot');
   exprSlotEl.classList.remove('is-side-hot');
   var card = ringHeadEl.querySelector('.ring-hover-formula');
