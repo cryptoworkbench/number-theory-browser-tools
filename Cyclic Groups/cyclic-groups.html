@@ -5765,27 +5765,44 @@ function ringReach(){
   return { x: m.a * box.cx + m.c * box.cy + m.e, y: m.b * box.cx + m.d * box.cy + m.f, r: ringReachUnits * Math.hypot(m.a, m.b) };
 }
 // Whether a box lies over the drawing: its nearest point within the reach.
-function onDrawing(reach, r){
+function onReach(reach, r){
   if (!reach || !r || !r.width) return false;
   var dx = Math.max(r.left - reach.x, 0, reach.x - r.right), dy = Math.max(r.top - reach.y, 0, reach.y - r.bottom);
   return Math.hypot(dx, dy) <= reach.r;
 }
 // The main-view formula card, the expression sliders' cards, the turning
 // ruler, the arrow key and the split chevron show their ground, edge and
-// hover frost only while they lie over the ring's drawing.
+// hover frost only while they lie over the ring's drawing. Beside a pane
+// they may lie over the pane's drawing too, within the pane's frame: the
+// pane tells its reach in its own frame (paneReach).
+var paneReach = null, paneReachSent = null;
 function syncRingOverlap(){
-  var reach = ringReach(), body = exprSlotEl.parentNode, key = $('combine-key');
+  var own = ringReach(), body = exprSlotEl.parentNode, key = $('combine-key');
+  var pane = null, fr = null;
+  if (!IS_ISOPANE && paneReach && isoPaneFrame && !isoPaneEl.hidden){
+    fr = isoPaneFrame.getBoundingClientRect();
+    if (fr.width) pane = { x: fr.left + isoPaneFrame.clientLeft + paneReach.x, y: fr.top + isoPaneFrame.clientTop + paneReach.y, r: paneReach.r };
+  }
+  var inPane = function(r){
+    var l = Math.max(r.left, fr.left), t = Math.max(r.top, fr.top), rt = Math.min(r.right, fr.right), b = Math.min(r.bottom, fr.bottom);
+    return rt > l && b > t ? { left: l, top: t, right: rt, bottom: b, width: rt - l } : null;
+  };
+  if (IS_ISOPANE){
+    var sent = own ? [own.x, own.y, own.r].map(function(v){ return Math.round(v); }).join(',') : '';
+    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: own ? { x: own.x, y: own.y, r: own.r } : null }); }
+  }
+  var over = function(r){ return onReach(own, r) || (!!pane && onReach(pane, inPane(r))); };
   var card = ringHeadEl.querySelector('.ring-hover-formula');
-  if (card) card.classList.toggle('is-on-ring', onDrawing(reach, card.getBoundingClientRect()));
+  if (card) card.classList.toggle('is-on-ring', over(card.getBoundingClientRect()));
   [spinRulerEl, key, splitBtnEl].forEach(function(el){
-    if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && onDrawing(reach, el.getBoundingClientRect()));
+    if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && over(el.getBoundingClientRect()));
   });
   function hug(el, pre){
     var b = el.getBoundingClientRect(), cs = el.style, w = parseFloat(cs.getPropertyValue(pre + 'w')) || 0;
     var l = b.left + el.clientLeft + (parseFloat(cs.getPropertyValue(pre + 'x')) || 0);
     var t = b.top + el.clientTop + (parseFloat(cs.getPropertyValue(pre + 'y')) || 0);
     var h = parseFloat(cs.getPropertyValue(pre + 'h')) || 0;
-    return w > 0 && onDrawing(reach, { left: l, top: t, right: l + w, bottom: t + h, width: w });
+    return w > 0 && over({ left: l, top: t, right: l + w, bottom: t + h, width: w });
   }
   body.classList.toggle('is-clu-on-ring', hug(body, '--clu-'));
   exprSlotEl.classList.toggle('is-side-on-ring', exprSlotEl.classList.contains('is-side') && !exprSlotEl.hidden && hug(exprSlotEl, '--side-'));
@@ -8748,6 +8765,7 @@ function closeIsoPane(){
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
+  paneReach = null;
   isoPane = null;
   dirPaneAxis = null;
   paneZoom = RING_ZOOM_FIT;
@@ -10023,6 +10041,10 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'formula-ring' && SUB_FORMULAS.indexOf(d.value) !== -1){
     state.subFormulaRingR = d.value;
     barFormulasChanged();
+  } else if (d.isopane === 'reach'){
+    var pr = d.reach;
+    paneReach = pr && [pr.x, pr.y, pr.r].every(Number.isFinite) ? { x: pr.x, y: pr.y, r: pr.r } : null;
+    syncRingOverlap();
   } else if (d.isopane === 'head'){
     heardHead(d.h);
   } else if (d.isopane === 'zoom' && Number.isInteger(d.i)){
