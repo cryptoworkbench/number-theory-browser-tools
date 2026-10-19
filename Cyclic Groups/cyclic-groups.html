@@ -1401,6 +1401,12 @@
      either way; a locked group's modulus keeps its full strength there,
      only its number greyed, the lock badge marking it. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot::after{ opacity:1; }
+  /* The frosted row's controls draw what they keep gray in the text's full
+     colour (is-top-row-hot, the row under the pointer); a locked group's
+     modulus keeps its number greyed. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed){ --text-dim-rest:var(--text-dim); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot{ --text-dim:var(--text); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot .group-controls.is-locked #n-input{ color:var(--text-dim-rest); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) #n-input{ background-color:var(--bg-1); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) .group-controls.is-locked > li > :is(#n-label, #n-input){ opacity:1; }
@@ -5857,15 +5863,17 @@ var TOP_ROWS = ['ctl', 'arr', 'gen', 'iso'];
 // first from the band's top, the last to the band's foot.
 function inTopBand(x, y){
   var band = topBand(), body = exprSlotEl.parentNode;
-  if (!band || x < band.left || x > band.right || y < band.top || y > band.bottom) return false;
-  var feet = {};
+  if (!band || x < band.left || x > band.right || y < band.top || y > band.bottom){ markTopRow(-1); return false; }
+  var feet = {}, rows = [];
   Array.prototype.forEach.call(body.children, function(el){
     var row = TOP_ROWS.indexOf(getComputedStyle(el).gridRowStart);
     if (row === -1) return;
+    rows.push([el, row]);
     var r = el.getBoundingClientRect();
     if (r.height) feet[row] = Math.max(feet[row] || -Infinity, r.bottom);
   });
-  var ends = Object.keys(feet).sort(function(a, b){ return a - b; }).map(function(k){ return feet[k]; });
+  var keys = Object.keys(feet).sort(function(a, b){ return a - b; });
+  var ends = keys.map(function(k){ return feet[k]; });
   if (!ends.length) ends = [band.bottom];
   ends[ends.length - 1] = band.bottom;
   var k = 0;
@@ -5873,7 +5881,17 @@ function inTopBand(x, y){
   var from = k ? ends[k - 1] : band.top;
   body.style.setProperty('--band-t', num(from - band.top) + 'px');
   body.style.setProperty('--band-b', num(band.bottom - ends[k]) + 'px');
+  markTopRow(keys.length ? Number(keys[k]) : -1, rows);
   return true;
+}
+// The controls of the row the band frosts behind, is-top-row-hot, which
+// draws their grays in the text's full colour; -1 marks none.
+function markTopRow(row, rows){
+  Array.prototype.forEach.call(exprSlotEl.parentNode.children, function(el){
+    var on = false;
+    if (row !== -1 && rows) for (var i = 0; i < rows.length; i++) if (rows[i][0] === el){ on = rows[i][1] === row; break; }
+    if (el.classList.contains('is-top-row-hot') !== on) el.classList.toggle('is-top-row-hot', on);
+  });
 }
 document.addEventListener('focusin', function(e){
   var r = e.target.getBoundingClientRect && e.target.getBoundingClientRect();
@@ -5881,6 +5899,7 @@ document.addEventListener('focusin', function(e){
 });
 exprSlotEl.parentNode.addEventListener('pointerleave', function(){
   exprSlotEl.parentNode.classList.remove('is-top-hot');
+  markTopRow(-1);
   subgroupsPanelEl.classList.remove('is-sub-hot');
   exprSlotEl.parentNode.classList.remove('is-clu-hot');
   exprSlotEl.classList.remove('is-side-hot');
