@@ -99,8 +99,8 @@
    log_g h out as log_g g^q, then q), formulaLevelLabel,
    formulaLevelMost, formulaLevelLess, formulaLevelLeast, formulaLevelSubst
    and formulaLevelNoSubst (the formula complexity slider in the ring's
-   corner and its stops' tooltips), barFormulas, barRowFormula,
-   barMainFormula, barLcmRow, barLcmMain, barGcd, barLcm, barLcmRowTitle and
+   corner and its stops' tooltips), barFormulas, barSizeFormula,
+   barIndexFormula, barAreaMain, barAreaRow, barLcmRow, barLcmMain, barGcd, barLcm, barLcmRowTitle and
    barLcmMainTitle (the bottom bar's per-group formula menu and GCD/LCM
    switches), colorByDistinct and legendHeadingDistinct (the Element
    colours choice giving every element a colour of its own, and its key) and formula.subgroupOrderLcm,
@@ -439,8 +439,10 @@
       subPowerColours: 'Colour rows according to power of G colours',
       formulaLevelLabel: 'Formula complexity',
       barFormulas: '{group} formulas',
-      barRowFormula: 'Row formula',
-      barMainFormula: 'Main formula',
+      barSizeFormula: 'Size formula',
+      barIndexFormula: 'Index formula',
+      barAreaMain: 'Main area',
+      barAreaRow: 'Row area',
       barLcmRow: 'Row',
       barLcmMain: 'Main',
       barGcd: 'GCD',

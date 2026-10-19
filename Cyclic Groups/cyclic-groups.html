@@ -3653,15 +3653,25 @@ function toggleBarMenu(i, btn){
   if (!G) return;
   barMenuFor = i;
   barMenuEl.replaceChildren();
-  [[side.row, 'cyclicGroups.barRowFormula'], [side.ring, 'cyclicGroups.barMainFormula']].forEach(function(c){
+  // One section per formula, size then index, each choosing where it
+  // shows: nowhere, in the main view, in the row, or in both. A place
+  // showing both formulas stacks them, size first.
+  var has = function(v, f){ return v === f || v === 'both'; };
+  var pack = function(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; };
+  [['order', 'cyclicGroups.barSizeFormula'], ['index', 'cyclicGroups.barIndexFormula']].forEach(function(c){
+    var f = c[0], other = f === 'order' ? 'index' : 'order';
     var head = document.createElement('p');
     head.className = 'fs-menu-head';
     head.textContent = translate(c[1]);
     barMenuEl.appendChild(head);
-    [['none', 'cyclicGroups.subFormulaNone'], ['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort'], ['both', 'cyclicGroups.subFormulaBoth']].forEach(function(o){
-      barMenuEl.appendChild(menuTick('menuitemradio', translate(o[1]), state[c[0]] === o[0], function(){
+    var at = (has(state[side.ring], f) ? 1 : 0) + (has(state[side.row], f) ? 2 : 0);
+    [[0, 'cyclicGroups.subFormulaNone'], [1, 'cyclicGroups.barAreaMain'], [2, 'cyclicGroups.barAreaRow'], [3, 'cyclicGroups.subFormulaBoth']].forEach(function(o){
+      barMenuEl.appendChild(menuTick('menuitemradio', translate(o[1]), at === o[0], function(){
         closeBarMenu();
-        state[c[0]] = o[0];
+        [[side.ring, 1], [side.row, 2]].forEach(function(p){
+          var on = !!(o[0] & p[1]), keep = has(state[p[0]], other);
+          state[p[0]] = f === 'order' ? pack(on, keep) : pack(keep, on);
+        });
         barFormulasChanged();
       }));
     });
