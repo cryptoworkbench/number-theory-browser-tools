@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 2c75e9c
+state_head: 1ca8891
 progress:
   total_phases: 7
   completed_phases: 6
@@ -805,6 +805,7 @@ None yet.
 | 569 | Cyclic Groups: legend beside a pane drops its stand-alone right/bottom offsets (no overlap with the subgroup list or ruler) | 2026-10-19 | 8348f7c | — |
 | 570 | Cyclic Groups: below the zoomed ring one hover-frosted card around the middle controls, side controls/upright slider/main-view formula card frost on hover only (borders kept) | 2026-10-19 | c07333e | — |
 | 571 | Cyclic Groups: top rows frost per row on hover; control cards show ground/edge/frost only over the ring's (or pane's) drawing, grays turn white when frosted; zoom % reset; cosets button and G = ⟨h⟩ write h as the Subgroups panel does | 2026-10-19 | 2c75e9c | — |
+| 572 | Cyclic Groups: beside a pane the arrow key drops its 24px margin and 30px padding while a colour key sits under it (no empty band) | 2026-10-19 | 1ca8891 | — |
 
 ## Deferred Items
 
