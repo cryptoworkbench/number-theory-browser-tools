@@ -833,7 +833,10 @@
   /* The selected subgroup's formula, when it shows at the ring: a band of
      its own first in the header, under the SUBGROUP row, so the ring and a
      side expression slider below it give up that much height. */
-  .ring-head > .ring-hover-formula{ order:-1; align-self:center; max-width:100%; margin:4px 0 6px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:6px 14px; overflow:hidden; white-space:nowrap; pointer-events:none; user-select:none; -webkit-user-select:none; background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius-card); }
+  .ring-head > .ring-hover-formula{ order:-1; align-self:center; max-width:100%; margin:4px 0 6px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:6px 14px; overflow:hidden; white-space:nowrap; pointer-events:none; user-select:none; -webkit-user-select:none; background:var(--panel); border:1px solid transparent; border-radius:var(--radius-card); }
+  /* Its edge shows only while it lies over the circle of beads (is-on-beads,
+     from syncRingOverlap). */
+  .ring-head > .ring-hover-formula.is-on-beads{ border-color:var(--panel-border); }
   .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
@@ -1415,8 +1418,11 @@
      keyboard focus. The expression sliders' and the arrow key's cards
      behave as the main-view formula card does: clear at rest with a plain
      edge, its frosted ground on hover, and so does the turning ruler's
-     card of its own. The bottom bar turns frosted glass of its own. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ content:''; position:absolute; z-index:-1; left:var(--clu-x, 0px); top:var(--clu-y, 0px); width:var(--clu-w, 0px); height:var(--clu-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--panel) 0%, transparent); border:1px solid var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
+     card of its own. The middle card's, the ruler's and the arrow key's
+     edges show only while they lie over the circle of beads
+     (is-clu-on-beads, is-on-beads, from syncRingOverlap). The bottom bar turns frosted glass of its own. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ content:''; position:absolute; z-index:-1; left:var(--clu-x, 0px); top:var(--clu-y, 0px); width:var(--clu-w, 0px); height:var(--clu-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--panel) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-clu-on-beads::before{ border-color:var(--panel-border); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible))::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* The upright expression slider beside the ring gets the same card,
      hugging its labels, track and lock (--side-x, --side-y, --side-w,
@@ -1440,7 +1446,7 @@
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:backdrop-filter .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:is(:hover, :focus-visible){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key){ box-shadow:inset 0 0 0 1px var(--panel-border); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key).is-on-beads{ box-shadow:inset 0 0 0 1px var(--panel-border); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane):is(:hover, :focus-within){ background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#combine-key.combine-key, #spin-ruler.is-own-card):is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-bar{ background:color-mix(in srgb, var(--bg-1) 70%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
@@ -5677,6 +5683,39 @@ function hugSubCtls(){
   subgroupsPanelEl.style.setProperty('--sub-t', num(u.top - 5 - r.top - subgroupsPanelEl.clientTop) + 'px');
   subgroupsPanelEl.style.setProperty('--sub-h', num(u.bottom - u.top + 10) + 'px');
 }
+// The circle of beads on screen: its centre and the band its beads fill,
+// from the ring's centre and radius and a bead's radius, mapped through
+// the drawing's place and scale (turning leaves the band where it is).
+function ringBand(){
+  var ring = ringDynamicEl.querySelector('.ring'), bead = ring && ring.querySelector('.bead');
+  var m = bead && ringDynamicEl.getScreenCTM();
+  if (!m) return null;
+  var box = ringBox(), sc = Math.hypot(m.a, m.b), br = parseFloat(bead.getAttribute('r')) * sc;
+  return { x: m.a * box.cx + m.c * box.cy + m.e, y: m.b * box.cx + m.d * box.cy + m.f, lo: box.R * sc - br, hi: box.R * sc + br };
+}
+// Whether a box crosses that band: its nearest point inside the band's
+// outer edge and its farthest corner past its inner edge.
+function onBeads(band, r){
+  if (!band || !r || !r.width) return false;
+  var dx = Math.max(r.left - band.x, 0, band.x - r.right), dy = Math.max(r.top - band.y, 0, band.y - r.bottom);
+  var fx = Math.max(Math.abs(r.left - band.x), Math.abs(r.right - band.x)), fy = Math.max(Math.abs(r.top - band.y), Math.abs(r.bottom - band.y));
+  return Math.hypot(dx, dy) <= band.hi && Math.hypot(fx, fy) >= band.lo;
+}
+// The main-view formula card, the turning ruler, the arrow key and the
+// middle card draw their edge only while they lie over the beads.
+function syncRingOverlap(){
+  var band = ringBand(), body = exprSlotEl.parentNode, key = $('combine-key');
+  var card = ringHeadEl.querySelector('.ring-hover-formula');
+  if (card) card.classList.toggle('is-on-beads', onBeads(band, card.getBoundingClientRect()));
+  [spinRulerEl, key].forEach(function(el){
+    if (el) el.classList.toggle('is-on-beads', !!el.offsetParent && onBeads(band, el.getBoundingClientRect()));
+  });
+  var b = body.getBoundingClientRect(), cs = body.style, w = parseFloat(cs.getPropertyValue('--clu-w')) || 0;
+  var l = b.left + body.clientLeft + (parseFloat(cs.getPropertyValue('--clu-x')) || 0);
+  var t = b.top + body.clientTop + (parseFloat(cs.getPropertyValue('--clu-y')) || 0);
+  var h = parseFloat(cs.getPropertyValue('--clu-h')) || 0;
+  body.classList.toggle('is-clu-on-beads', w > 0 && onBeads(band, { left: l, top: t, right: l + w, bottom: t + h, width: w }));
+}
 function hugBottomCluster(){
   hugSideSlot();
   hugSubCtls();
@@ -5700,7 +5739,7 @@ function hugBottomCluster(){
   }
   if (seen(splitBtnEl)) under(splitBtnEl);
   spinRulerEl.classList.toggle('is-own-card', seen(spinRulerEl) && under(spinRulerEl));
-  if (!rs.length){ body.style.setProperty('--clu-w', '0px'); return; }
+  if (!rs.length){ body.style.setProperty('--clu-w', '0px'); syncRingOverlap(); return; }
   var b = body.getBoundingClientRect(), u = rs.reduce(function(a, r){
     return { left: Math.min(a.left, r.left), right: Math.max(a.right, r.right), top: Math.min(a.top, r.top), bottom: Math.max(a.bottom, r.bottom) };
   });
@@ -5708,6 +5747,7 @@ function hugBottomCluster(){
   body.style.setProperty('--clu-y', num(u.top - 4 - b.top - body.clientTop) + 'px');
   body.style.setProperty('--clu-w', num(u.right - u.left + 20) + 'px');
   body.style.setProperty('--clu-h', num(u.bottom - u.top + 8) + 'px');
+  syncRingOverlap();
 }
 // The middle card frosts while the pointer is inside it; the slider's row
 // reaches past the card, so its place is checked rather than :hover.
@@ -5784,14 +5824,17 @@ exprSlotEl.parentNode.addEventListener('pointerleave', function(){
 });
 if (window.ResizeObserver){
   var clusterRo = new ResizeObserver(hugBottomCluster);
-  [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode, subgroupsPanelEl].forEach(function(el){ if (el) clusterRo.observe(el); });
+  [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode, subgroupsPanelEl, ringSvgEl, ringHeadEl, $('combine-key')].forEach(function(el){ if (el) clusterRo.observe(el); });
 }
 if (window.MutationObserver){
   var clusterMo = new MutationObserver(hugBottomCluster);
   clusterMo.observe(exprSlotEl, { attributes: true, attributeFilter: ['hidden', 'class'], childList: true, characterData: true, subtree: true });
   [splitBtnEl, spinRulerEl].forEach(function(el){ if (el) clusterMo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
   clusterMo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  clusterMo.observe(ringSvgEl, { attributes: true, attributeFilter: ['class'] });
+  clusterMo.observe(ringSvgEl, { attributes: true, attributeFilter: ['class', 'viewBox'] });
+  var overlapMo = new MutationObserver(syncRingOverlap);
+  overlapMo.observe(ringHeadEl, { childList: true });
+  overlapMo.observe(ringDynamicEl, { childList: true });
 }
 zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
 zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
@@ -11221,6 +11264,7 @@ function easeRingResize(change, at){
     ringEase = null;
     ringSvgEl.style.transformOrigin = '';
     placeZoom();
+    syncRingOverlap();
   };
   return performance.timeOrigin + anim.startTime;
 }
