@@ -1538,6 +1538,12 @@
   .zoom-step:disabled{ opacity:.35; cursor:default; }
   .zoom-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .zoom-step svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+  /* The pill's percentage, as a browser shows its zoom: clicked, it sets the
+     zoom back to 100% (the ring fitting its window); at 100% it rests. */
+  .zoom-reset{ flex:none; min-width:3.2em; height:18px; padding:0 4px; border:0; border-radius:999px; background:transparent; color:var(--text-dim); font:inherit; font-size:.72rem; font-variant-numeric:tabular-nums; line-height:18px; text-align:center; cursor:pointer; transition:color var(--ease-ctl), background var(--ease-ctl); }
+  .zoom-reset:hover:not(:disabled){ color:var(--text); background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .zoom-reset:disabled{ opacity:.55; cursor:default; }
+  .zoom-reset:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   #zoom-slider{ width:76px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
   /* The row formulas' complexity: three stops, or two with no additive group,
      in the middle of the window's bottom edge, level with the corner's buttons. */
@@ -2151,6 +2157,7 @@
           <button type="button" class="zoom-step" id="zoom-out" title="Zoom out" aria-label="Zoom out" data-i18n-title="cyclicGroups.ctxZoomOut" data-i18n-aria-label="cyclicGroups.ctxZoomOut"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/></svg></button>
           <input type="range" id="zoom-slider" min="0" max="8" step="1" value="3" title="Zoom" aria-label="Zoom" data-i18n-title="cyclicGroups.zoomLabel" data-i18n-aria-label="cyclicGroups.zoomLabel">
           <button type="button" class="zoom-step" id="zoom-in" title="Zoom in" aria-label="Zoom in" data-i18n-title="cyclicGroups.ctxZoomIn" data-i18n-aria-label="cyclicGroups.ctxZoomIn"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/><line x1="6" y1="2.5" x2="6" y2="9.5"/></svg></button>
+          <button type="button" class="zoom-reset" id="zoom-reset" title="Reset the zoom to 100%" aria-label="Reset the zoom to 100%" data-i18n-title="cyclicGroups.zoomReset" data-i18n-aria-label="cyclicGroups.zoomReset">100%</button>
         </div>
         <button type="button" class="fs-win-btn key-corner" id="zoom-wheel" aria-pressed="false" title="Zoom with the scroll wheel" aria-label="Zoom with the scroll wheel" data-i18n-title="cyclicGroups.zoomWheel" data-i18n-aria-label="cyclicGroups.zoomWheel"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="3" y="1.2" width="6" height="9.6" rx="3"/><line x1="6" y1="3" x2="6" y2="5"/></svg></button>
         </div>
@@ -5602,7 +5609,7 @@ formulaLevelEl.addEventListener('input', function(){
   state.subShort = v === 2;
   render();
 });
-var zoomWrapEl = $('zoom-wrap'), zoomSliderEl = $('zoom-slider'), zoomOutEl = $('zoom-out'), zoomInEl = $('zoom-in'), zoomWheelEl = $('zoom-wheel');
+var zoomWrapEl = $('zoom-wrap'), zoomSliderEl = $('zoom-slider'), zoomOutEl = $('zoom-out'), zoomInEl = $('zoom-in'), zoomResetEl = $('zoom-reset'), zoomWheelEl = $('zoom-wheel');
 function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPaneEl.hidden; }
 // Whether each ring has its own pill: beside a pane, the rings turning apart.
 function zoomApart(){ return !!groupControlsEl && (IS_ISOPANE || twoRings()) && !isoTurnsTogether(); }
@@ -5647,6 +5654,8 @@ function syncZoomCtl(){
   zoomSliderEl.setAttribute('aria-valuetext', Math.round(RING_ZOOMS[ringZoom] * 100) + '%');
   zoomOutEl.disabled = !canZoom(-1);
   zoomInEl.disabled = !canZoom(1);
+  zoomResetEl.textContent = Math.round(RING_ZOOMS[ringZoom] * 100) + '%';
+  zoomResetEl.disabled = ringZoom === RING_ZOOM_FIT;
   document.documentElement.classList.toggle('is-zoom-apart', zoomApart());
   placeZoom();
 }
@@ -5855,6 +5864,7 @@ if (window.MutationObserver){
 zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
 zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
 zoomOutEl.addEventListener('click', function(){ stepRingZoom(-1); });
+zoomResetEl.addEventListener('click', function(){ setRingZoom(RING_ZOOM_FIT); });
 zoomInEl.addEventListener('click', function(){ stepRingZoom(1); });
 // With the switch on, the wheel over a ring zooms it, a step for each
 // notch (a touchpad's small scrolls add up to one), instead of scrolling.

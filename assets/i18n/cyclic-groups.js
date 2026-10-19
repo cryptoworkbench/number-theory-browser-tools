@@ -66,7 +66,8 @@
    akeyPick (a bar of the arrow colour key, clicked for its path's colour
    picker), akeyShowBackward (the key's eye bringing the backwards path
    back), zoomLabel and zoomWheel (the corner's zoom slider and its
-   switch letting the scroll wheel zoom the ring), akeyOneLine (the
+   switch letting the scroll wheel zoom the ring), zoomReset (the zoom
+   pill's percentage, which sets the zoom back to 100%), akeyOneLine (the
    key's switch drawing both paths on one line), akeyPairMode,
    akeyShowPower, akeyHidePower, akeyPowerExp, akeyPowerSide, akeyAddLine
    and akeyDropLine (that line in one colour from the subgroup cardinality
@@ -635,6 +636,7 @@
       ctxZoomOut: 'Zoom out',
       zoomLabel: 'Zoom',
       zoomWheel: 'Zoom with the scroll wheel',
+      zoomReset: 'Reset the zoom to 100%',
       exprLockCouple: 'Couple the two expression sliders',
       exprLockUncouple: 'Uncouple the two expression sliders',
       ctxCopyLatex: 'Copy in LaTeX formatting',
