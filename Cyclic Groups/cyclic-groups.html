@@ -1389,13 +1389,15 @@
   .fs-win-body.is-ring.ring-body:has(> svg.ring-svg.is-zoomed)::after{ margin-left:-20px; margin-right:-20px; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg.is-zoomed)::after{ margin-right:-7px; }
   :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg.is-zoomed)::after{ margin-left:-31px; margin-right:-32px; }
-  /* And over the part grown below it, behind every row under the ring down
-     to the bottom bar, which turns frosted glass of its own. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ content:''; grid-row:ring-end / -1; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:0 -14px -10px; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ margin-bottom:-8px; }
-  .fs-win-body.is-ring.ring-body:has(> svg.ring-svg.is-zoomed)::before{ margin-left:-20px; margin-right:-20px; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg.is-zoomed)::before{ margin-right:-7px; }
-  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg.is-zoomed)::before{ margin-left:-31px; margin-right:-32px; margin-bottom:calc(-1 * var(--pane-foot, 0px)); }
+  /* Below the ring no band: one rounded frosted card hugs the controls
+     in the middle (the split button, the expression slider's labels and
+     track, and the turning ruler under them), placed by hugBottomCluster
+     (--clu-x, --clu-y, --clu-w, --clu-h); the controls off to the sides
+     carry cards of their own, so the ring shows sharp between them. The
+     bottom bar turns frosted glass of its own. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ content:''; position:absolute; z-index:-1; left:var(--clu-x, 0px); top:var(--clu-y, 0px); width:var(--clu-w, 0px); height:var(--clu-h, 0px); pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:var(--radius-card); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:var(--radius-card); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-bar{ background:color-mix(in srgb, var(--bg-1) 70%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -5597,6 +5599,52 @@ function placeZoom(){
 syncZoomCtl();
 if (window.ResizeObserver) new ResizeObserver(placeZoom).observe(ringSvgEl);
 window.addEventListener('resize', placeZoom);
+// Zoomed, one frosted card hugs the controls in the middle under the ring:
+// the expression slider's labels and track, and the split button and the
+// turning ruler when they sit under the slider (beside a locked pane they
+// sit on the middle line: the button keeps its own look, the ruler a card
+// of its own).
+function hugBottomCluster(){
+  var body = exprSlotEl.parentNode, rs = [], lo = Infinity, hi = -Infinity;
+  function seen(el){ return el && !el.hidden && el.offsetParent && el.getBoundingClientRect().width > 0; }
+  if (seen(exprSlotEl) && !exprSlotEl.classList.contains('is-side')){
+    var top = exprSlotEl.getBoundingClientRect();
+    exprSlotEl.querySelectorAll('.expr-name, .expr-nat, .expr-track, .expr-now').forEach(function(el){
+      var b = el.getBoundingClientRect();
+      if (!b.width) return;
+      lo = Math.min(lo, b.left);
+      hi = Math.max(hi, b.right);
+    });
+    if (lo <= hi) rs.push({ left: lo, right: hi, top: top.top, bottom: top.bottom });
+  }
+  var slider = rs.length;
+  function under(el){
+    var r = el.getBoundingClientRect(), mid = (r.left + r.right) / 2;
+    if (!slider || (mid >= lo && mid <= hi)){ rs.push(r); return false; }
+    return true;
+  }
+  if (seen(splitBtnEl)) under(splitBtnEl);
+  spinRulerEl.classList.toggle('is-own-card', seen(spinRulerEl) && under(spinRulerEl));
+  if (!rs.length){ body.style.setProperty('--clu-w', '0px'); return; }
+  var b = body.getBoundingClientRect(), u = rs.reduce(function(a, r){
+    return { left: Math.min(a.left, r.left), right: Math.max(a.right, r.right), top: Math.min(a.top, r.top), bottom: Math.max(a.bottom, r.bottom) };
+  });
+  body.style.setProperty('--clu-x', num(u.left - 10 - b.left - body.clientLeft) + 'px');
+  body.style.setProperty('--clu-y', num(u.top - 4 - b.top - body.clientTop) + 'px');
+  body.style.setProperty('--clu-w', num(u.right - u.left + 20) + 'px');
+  body.style.setProperty('--clu-h', num(u.bottom - u.top + 8) + 'px');
+}
+if (window.ResizeObserver){
+  var clusterRo = new ResizeObserver(hugBottomCluster);
+  [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode].forEach(function(el){ if (el) clusterRo.observe(el); });
+}
+if (window.MutationObserver){
+  var clusterMo = new MutationObserver(hugBottomCluster);
+  clusterMo.observe(exprSlotEl, { attributes: true, attributeFilter: ['hidden', 'class'], childList: true, characterData: true, subtree: true });
+  [splitBtnEl, spinRulerEl].forEach(function(el){ if (el) clusterMo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
+  clusterMo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  clusterMo.observe(ringSvgEl, { attributes: true, attributeFilter: ['class'] });
+}
 zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
 zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
 zoomOutEl.addEventListener('click', function(){ stepRingZoom(-1); });
