@@ -1385,13 +1385,20 @@
      play, keep the band behind them. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula{ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; transition:opacity .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; clip-path:inset(var(--band-t, 0px) -100vw var(--band-b, 0px)); transition:opacity .18s, clip-path .18s; }
   /* The rows' band frosts only while the pointer is over it (is-top-hot,
-     from the pointer's place) or a control in it has the keyboard focus;
-     the rows' dropdowns keep a solid ground of their own, as the bottom
-     panel's do, so they read clearly over the ring either way. */
+     from the pointer's place) or a control in it has the keyboard focus,
+     and then only behind that one row: --band-t and --band-b clip it to
+     the row's slice, sliding along as the pointer moves between rows. The
+     rows' dropdowns and the modulus box keep a solid ground of their own,
+     as the bottom panel's dropdowns do, so they read clearly over the ring
+     either way; a locked group's modulus keeps its full strength there,
+     only its number greyed, the lock badge marking it. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot::after{ opacity:1; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) #n-input{ background-color:var(--bg-1); }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) .group-controls.is-locked > li > :is(#n-label, #n-input){ opacity:1; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) .group-controls.is-locked #n-input{ color:var(--text-dim); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
     /* The main Ring window's frosted bands reach its sides, over its 20px
      padding. */
@@ -5694,16 +5701,41 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
     card.classList.toggle('is-hot', e.clientX >= fr.left && e.clientX <= fr.right && e.clientY >= fr.top && e.clientY <= fr.bottom);
   }
 });
-// Whether a point lies in the zoomed rows' band, the body's ::after: from
-// the body's top (the band reaches 20px over its padding) down its height.
-function inTopBand(x, y){
+// The zoomed rows' band, the body's ::after: from the body's top (the band
+// reaches 20px over its padding) down its height, or null.
+function topBand(){
   var body = exprSlotEl.parentNode;
-  if (!ringSvgEl.classList.contains('is-zoomed')) return false;
+  if (!ringSvgEl.classList.contains('is-zoomed')) return null;
   var cs = getComputedStyle(body, '::after');
-  if (cs.content === 'none') return false;
+  if (cs.content === 'none') return null;
   var b = body.getBoundingClientRect();
   var top = b.top + body.clientTop + parseFloat(getComputedStyle(body).paddingTop) + parseFloat(cs.marginTop);
-  return x >= b.left && x <= b.right && y >= top && y <= top + parseFloat(cs.height);
+  return { left: b.left, right: b.right, top: top, bottom: top + parseFloat(cs.height) };
+}
+var TOP_ROWS = ['ctl', 'arr', 'gen', 'iso'];
+// Whether a point lies in the band; if so, the band is clipped to the
+// slice of the row under it, each row's slice running down to the foot of
+// its lowest control (the rows' controls sit at their rows' feet), the
+// first from the band's top, the last to the band's foot.
+function inTopBand(x, y){
+  var band = topBand(), body = exprSlotEl.parentNode;
+  if (!band || x < band.left || x > band.right || y < band.top || y > band.bottom) return false;
+  var feet = {};
+  Array.prototype.forEach.call(body.children, function(el){
+    var row = TOP_ROWS.indexOf(getComputedStyle(el).gridRowStart);
+    if (row === -1) return;
+    var r = el.getBoundingClientRect();
+    if (r.height) feet[row] = Math.max(feet[row] || -Infinity, r.bottom);
+  });
+  var ends = Object.keys(feet).sort(function(a, b){ return a - b; }).map(function(k){ return feet[k]; });
+  if (!ends.length) ends = [band.bottom];
+  ends[ends.length - 1] = band.bottom;
+  var k = 0;
+  while (k < ends.length - 1 && y > ends[k]) k++;
+  var from = k ? ends[k - 1] : band.top;
+  body.style.setProperty('--band-t', num(from - band.top) + 'px');
+  body.style.setProperty('--band-b', num(band.bottom - ends[k]) + 'px');
+  return true;
 }
 document.addEventListener('focusin', function(e){
   var r = e.target.getBoundingClientRect && e.target.getBoundingClientRect();
