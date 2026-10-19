@@ -92,9 +92,9 @@
    dividers, and a divider's tooltip folding its group's rows away or
    unfolding them), and subFormulaRowLabel and subFormulaRowLabelShort
    (the subgroup list's choice of formula shown in the selected row), and
-   subSimplify, formula.subgroupOrderLog and formula.subgroupIndexLog (the
-   rows' right-click switch writing an additive row formula's h as itself,
-   and the additive row formulas that, with it off, find h as log_g h), and
+   formula.subgroupOrderLog and formula.subgroupIndexLog (the additive row
+   formulas that, the formula slider not at its simplest, find h as
+   log_g h), and
    formula.mulSubgroupOrderSteps, formula.mulSubgroupIndexSteps and
    formula.mulCosetCountSteps (the multiplicative row formulas writing
    log_g h out as log_g g^q, then q), formulaLevelLabel,
@@ -435,7 +435,6 @@
       subGcdDivider: 'GCD(log{g}(G), |{group}|) = {d} · order {order}',
       subGcdHideDividers: 'Hide the gcd dividers',
       subGcdShowDividers: 'Show the gcd dividers',
-      subSimplify: 'Simplify',
       subPathColours: 'Colour row lines according to paths',
       subPowerColours: 'Colour rows according to power of G colours',
       formulaLevelLabel: 'Formula complexity',
