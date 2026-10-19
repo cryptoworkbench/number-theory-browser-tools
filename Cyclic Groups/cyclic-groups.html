@@ -5781,28 +5781,49 @@ function onReach(reach, r){
   var dx = Math.max(r.left - reach.x, 0, reach.x - r.right), dy = Math.max(r.top - reach.y, 0, reach.y - r.bottom);
   return Math.hypot(dx, dy) <= reach.r;
 }
+// The box on screen of the combination written under the ring (drawn on
+// past the drawing's own box when zoomed); null while no beads are combined.
+function combineTextBox(){
+  var l = Infinity, t = Infinity, rt = -Infinity, b = -Infinity;
+  ringDynamicEl.querySelectorAll('text.ring-combine').forEach(function(el){
+    var r = el.getBoundingClientRect();
+    if (!r.width) return;
+    l = Math.min(l, r.left); t = Math.min(t, r.top); rt = Math.max(rt, r.right); b = Math.max(b, r.bottom);
+  });
+  return rt > l && b > t ? { left: l, top: t, right: rt, bottom: b } : null;
+}
+// Whether two boxes cross.
+function onBox(a, r){ return !!a && !!r && !!r.width && r.left < a.right && r.right > a.left && r.top < a.bottom && r.bottom > a.top; }
 // The main-view formula card, the expression sliders' cards, the turning
 // ruler, the arrow key and the split chevron show their ground, edge and
-// hover frost only while they lie over the ring's drawing. Beside a pane
-// they may lie over the pane's drawing too, within the pane's frame: the
-// pane tells its reach in its own frame (paneReach).
-var paneReach = null, paneReachSent = null;
+// hover frost only while they lie over the ring's drawing or the
+// combination written under it. Beside a pane they may lie over the pane's
+// drawing or combination too, within the pane's frame: the pane tells
+// both in its own frame (paneReach, paneText).
+var paneReach = null, paneText = null, paneReachSent = null;
 function syncRingOverlap(){
-  var own = ringReach(), body = exprSlotEl.parentNode, key = $('combine-key');
-  var pane = null, fr = null;
-  if (!IS_ISOPANE && paneReach && isoPaneFrame && !isoPaneEl.hidden){
+  var own = ringReach(), text = combineTextBox(), body = exprSlotEl.parentNode, key = $('combine-key');
+  var pane = null, ptext = null, fr = null;
+  if (!IS_ISOPANE && (paneReach || paneText) && isoPaneFrame && !isoPaneEl.hidden){
     fr = isoPaneFrame.getBoundingClientRect();
-    if (fr.width) pane = { x: fr.left + isoPaneFrame.clientLeft + paneReach.x, y: fr.top + isoPaneFrame.clientTop + paneReach.y, r: paneReach.r };
+    var ox = fr.left + isoPaneFrame.clientLeft, oy = fr.top + isoPaneFrame.clientTop;
+    if (fr.width && paneReach) pane = { x: ox + paneReach.x, y: oy + paneReach.y, r: paneReach.r };
+    if (fr.width && paneText) ptext = { left: ox + paneText.left, top: oy + paneText.top, right: ox + paneText.right, bottom: oy + paneText.bottom };
   }
   var inPane = function(r){
     var l = Math.max(r.left, fr.left), t = Math.max(r.top, fr.top), rt = Math.min(r.right, fr.right), b = Math.min(r.bottom, fr.bottom);
     return rt > l && b > t ? { left: l, top: t, right: rt, bottom: b, width: rt - l } : null;
   };
   if (IS_ISOPANE){
-    var sent = own ? [own.x, own.y, own.r].map(function(v){ return Math.round(v); }).join(',') : '';
-    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: own ? { x: own.x, y: own.y, r: own.r } : null }); }
+    var sent = (own ? [own.x, own.y, own.r] : []).concat(text ? [text.left, text.top, text.right, text.bottom] : []).map(function(v){ return Math.round(v); }).join(',') + (text ? 't' : '');
+    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: own ? { x: own.x, y: own.y, r: own.r } : null, text: text }); }
   }
-  var over = function(r){ return onReach(own, r) || (!!pane && onReach(pane, inPane(r))); };
+  var over = function(r){
+    if (onReach(own, r) || onBox(text, r)) return true;
+    if (!fr) return false;
+    var c = inPane(r);
+    return (!!pane && onReach(pane, c)) || onBox(ptext, c);
+  };
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card) card.classList.toggle('is-on-ring', over(card.getBoundingClientRect()));
   [spinRulerEl, key, splitBtnEl, legendPanelEl, $('legend-panel-pane')].forEach(function(el){
@@ -8776,7 +8797,7 @@ function closeIsoPane(){
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
-  paneReach = null;
+  paneReach = paneText = null;
   isoPane = null;
   dirPaneAxis = null;
   paneZoom = RING_ZOOM_FIT;
@@ -10060,6 +10081,8 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'reach'){
     var pr = d.reach;
     paneReach = pr && [pr.x, pr.y, pr.r].every(Number.isFinite) ? { x: pr.x, y: pr.y, r: pr.r } : null;
+    var pt = d.text;
+    paneText = pt && [pt.left, pt.top, pt.right, pt.bottom].every(Number.isFinite) ? { left: pt.left, top: pt.top, right: pt.right, bottom: pt.bottom } : null;
     syncRingOverlap();
   } else if (d.isopane === 'head'){
     heardHead(d.h);
