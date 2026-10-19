@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: d618cde
+state_head: 71c3d92
 progress:
   total_phases: 7
   completed_phases: 6
@@ -797,6 +797,8 @@ None yet.
 | 561 | Cyclic Groups: zoomed rings and frosted bands use the full window width (no side gutters) | 2026-10-18 | f8670dc | — |
 | 562 | Cyclic Groups: bar formula menu reorganised as formula → area (Size/Index × None/Main/Row/Both) | 2026-10-19 | 040a6a0 | — |
 | 563 | Cyclic Groups: bar GCD/LCM switches ordered Main, Row | 2026-10-19 | d618cde | — |
+| 564 | Cyclic Groups: swapping rings swaps their formula/LCM choices (no stale main-area formulas) | 2026-10-19 | c39ec4c | — |
+| 565 | Cyclic Groups: following ring turns its drawing live, settling rot once the turn stops (rings keep pace) | 2026-10-19 | 71c3d92 | — |
 
 ## Deferred Items
 
