@@ -5412,6 +5412,7 @@ function setSplitShare(v){
   var root = document.documentElement.style;
   root.setProperty('--ring-fr', (1 - splitShare) + 'fr');
   root.setProperty('--split-fr', splitShare + 'fr');
+  if (!IS_ISOPANE && syncPaneFoot()) postIsoShared(false);
   splitGripEl.setAttribute('aria-valuenow', String(Math.round(splitShare * 100)));
 }
 splitGripEl.addEventListener('pointerdown', function(e){
@@ -9192,7 +9193,12 @@ function postIsoShared(force){
   // Turning together, the pane takes this ring's zoom with the rest, so a
   // pane just opened starts at it rather than at its own fit.
   if (twoRings() && isoTurnsTogether()) paneZoom = ringZoom;
-  try { isoPaneFrame.contentWindow.postMessage(isoSharedPayload(), '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+  // A pane within reach takes them at once, in the same frame as this
+  // ring's own change of size, so a bottom panel sliding up or down grows
+  // and shrinks the two rings together; one out of reach is sent them.
+  var w = isoPaneFrame.contentWindow;
+  try { w.dispatchEvent(new w.MessageEvent('message', { data: isoSharedPayload(), source: window })); return; } catch (e) { /* out of reach: sent instead */ }
+  try { w.postMessage(isoSharedPayload(), '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
 // The pane takes the payload field by field, each only when it is valid.
 function applyIsoShared(d){
