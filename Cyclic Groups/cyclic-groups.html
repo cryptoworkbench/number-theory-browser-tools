@@ -1399,6 +1399,13 @@
      keyboard focus. The bottom bar turns frosted glass of its own. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::before{ content:''; position:absolute; z-index:-1; left:var(--clu-x, 0px); top:var(--clu-y, 0px); width:var(--clu-w, 0px); height:var(--clu-h, 0px); pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:var(--radius-card); opacity:0; transition:opacity .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible))::before{ opacity:1; }
+  /* The upright expression slider beside the ring gets the same card,
+     hugging its labels, track and lock (--side-x, --side-y, --side-w,
+     --side-h, from hugSideSlot), frosted while the pointer is inside it
+     (is-side-hot) or a control in it has the keyboard focus. */
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden]){ position:relative; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden])::before{ content:''; position:absolute; z-index:-1; left:var(--side-x, 0px); top:var(--side-y, 0px); width:var(--side-w, 0px); height:var(--side-h, 0px); pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:var(--radius-card); opacity:0; transition:opacity .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden]):is(.is-side-hot, :has(:focus-visible))::before{ opacity:1; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:backdrop-filter .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .split-btn:is(:hover, :focus-visible){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
@@ -5609,7 +5616,23 @@ window.addEventListener('resize', placeZoom);
 // turning ruler when they sit under the slider (beside a locked pane they
 // sit on the middle line: the button keeps its own look, the ruler a card
 // of its own). With the slider at the side or hidden there is no card.
+function hugSideSlot(){
+  if (exprSlotEl.hidden || !exprSlotEl.classList.contains('is-side')) return;
+  var r = exprSlotEl.getBoundingClientRect(), u = null;
+  exprSlotEl.querySelectorAll('*').forEach(function(el){
+    var b = el.getBoundingClientRect();
+    if (!b.width || !b.height) return;
+    u = u ? { left: Math.min(u.left, b.left), right: Math.max(u.right, b.right), top: Math.min(u.top, b.top), bottom: Math.max(u.bottom, b.bottom) } : { left: b.left, right: b.right, top: b.top, bottom: b.bottom };
+  });
+  if (!u) return;
+  var cs = exprSlotEl.style;
+  cs.setProperty('--side-x', num(u.left - 8 - r.left - exprSlotEl.clientLeft) + 'px');
+  cs.setProperty('--side-y', num(u.top - 8 - r.top - exprSlotEl.clientTop) + 'px');
+  cs.setProperty('--side-w', num(u.right - u.left + 16) + 'px');
+  cs.setProperty('--side-h', num(u.bottom - u.top + 16) + 'px');
+}
 function hugBottomCluster(){
+  hugSideSlot();
   var body = exprSlotEl.parentNode, rs = [], lo = Infinity, hi = -Infinity;
   function seen(el){ return el && !el.hidden && el.offsetParent && el.getBoundingClientRect().width > 0; }
   if (seen(exprSlotEl) && !exprSlotEl.classList.contains('is-side')){
@@ -5647,8 +5670,16 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
   var l = parseFloat(cs.getPropertyValue('--clu-x')) || 0, t = parseFloat(cs.getPropertyValue('--clu-y')) || 0;
   var w = parseFloat(cs.getPropertyValue('--clu-w')) || 0, h = parseFloat(cs.getPropertyValue('--clu-h')) || 0;
   body.classList.toggle('is-clu-hot', w > 0 && x >= l && x <= l + w && y >= t && y <= t + h);
+  var side = false;
+  if (exprSlotEl.classList.contains('is-side') && !exprSlotEl.hidden){
+    var sr = exprSlotEl.getBoundingClientRect(), ss = exprSlotEl.style;
+    var sx = e.clientX - sr.left - exprSlotEl.clientLeft - (parseFloat(ss.getPropertyValue('--side-x')) || 0);
+    var sy = e.clientY - sr.top - exprSlotEl.clientTop - (parseFloat(ss.getPropertyValue('--side-y')) || 0);
+    side = sx >= 0 && sy >= 0 && sx <= (parseFloat(ss.getPropertyValue('--side-w')) || 0) && sy <= (parseFloat(ss.getPropertyValue('--side-h')) || 0);
+  }
+  exprSlotEl.classList.toggle('is-side-hot', side);
 });
-exprSlotEl.parentNode.addEventListener('pointerleave', function(){ exprSlotEl.parentNode.classList.remove('is-clu-hot'); });
+exprSlotEl.parentNode.addEventListener('pointerleave', function(){ exprSlotEl.parentNode.classList.remove('is-clu-hot'); exprSlotEl.classList.remove('is-side-hot'); });
 if (window.ResizeObserver){
   var clusterRo = new ResizeObserver(hugBottomCluster);
   [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode].forEach(function(el){ if (el) clusterRo.observe(el); });
