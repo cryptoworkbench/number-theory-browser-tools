@@ -556,7 +556,7 @@
       fsNotice: 'Notice',
       fsClose: 'Close {name}',
       ctxGenExp: 'Element expressions',
-      genExpTitle: 'Element expressions',
+      genExpTitle: 'Element expression reference table',
       genExpOpenTitle: 'Show the element expressions',
       subMoreBelow: { one: '+{count} more row', other: '+{count} more rows' },
       genExpSortElUp: 'Sort by element, low to high',
