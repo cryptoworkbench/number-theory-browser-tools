@@ -8397,8 +8397,16 @@ function swapIsoRings(){
   var paneQ = new URLSearchParams(cleanRingQuery(isoPane.q));
   var g = isoLinkGen(), h = isoPane.h;
   var keep = { rot: state.rot, top: state.top, autoRotate: state.autoRotate, autoSpeed: state.autoSpeed };
+  // Each group's formula choices go with it to the other side: the ones
+  // this ring kept for the pane's group become this ring's own, and its
+  // own the pane's. The pane's query holds none of them up to date.
+  var sides = BAR_SIDES.map(function(side){ return [side.row, side.ring, side.lrow, side.lring].map(function(k){ return state[k]; }); });
   loadState(paneQ, { mode: paneQ.get('mode'), n: parseInt(paneQ.get('n'), 10) });
   Object.keys(keep).forEach(function(k){ state[k] = keep[k]; });
+  BAR_SIDES.forEach(function(side, i){
+    [side.row, side.ring, side.lrow, side.lring].forEach(function(k, j){ state[k] = sides[1 - i][j]; });
+  });
+  syncFormulaCtl();
   isoPane.q = hostQ.toString();
   isoPane.h = g;
   isoPane.g = h;
