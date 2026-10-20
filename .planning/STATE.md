@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 6e387af
+state_head: be28165
 progress:
   total_phases: 7
   completed_phases: 6
@@ -852,6 +852,7 @@ None yet.
 | 616 | Cyclic Groups: zoomed middle card (slider + ruler) no longer overlaps the colour key's / table's banner | 2026-10-20 | 883adbe | — |
 | 617 | Cyclic Groups: bottom panel's resize grip has no line, its centre handle alone marking it | 2026-10-20 | a0ccf40 | — |
 | 618 | Cyclic Groups: bottom panel reaches the bottom bar (no 8px gap) when nothing lies under it | 2026-10-20 | 6e387af | — |
+| 619 | Cyclic Groups: modulus field's native spin buttons replaced by themed up/down buttons (press-and-hold repeats) | 2026-10-20 | be28165 | — |
 
 ## Deferred Items
 
