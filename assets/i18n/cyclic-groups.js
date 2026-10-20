@@ -631,6 +631,7 @@
       scratchClose: 'Close formula scratchpad',
       scratchGens: 'Group generator count',
       exprNatHoverOff: 'Disable natural expression on hover',
+      subEnterInverse: 'Hit enter to switch to inverse',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       ctxZoomIn: 'Zoom in',
       ctxZoomOut: 'Zoom out',
