@@ -1637,15 +1637,10 @@
   .bar-btn:hover{ border-color:var(--panel-border-strong); }
   .bar-btn[aria-expanded="true"]{ border-color:var(--accent); }
   .bar-btn svg{ width:10px; height:10px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  .bar-lcm{ gap:0; padding:0 0 0 8px; overflow:hidden; }
-  .bar-lcm-name{ margin-right:6px; color:var(--text-dim); }
-  .bar-lcm-seg{ display:grid; place-items:center; height:100%; padding:0 6px; font-size:.72rem; font-weight:600; letter-spacing:.04em; color:var(--text-dim); border-left:1px solid var(--panel-border); }
-  .bar-lcm[aria-checked="false"] .bar-lcm-seg.is-gcd, .bar-lcm[aria-checked="true"] .bar-lcm-seg.is-lcm{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
   .bar-menu{ min-width:0; }
   .bar-grid{ display:grid; grid-template-columns:auto auto auto; align-items:center; gap:6px 12px; padding:6px 10px 8px; }
   .bar-grid-col{ font-size:.72rem; color:var(--text-dim); text-align:center; white-space:nowrap; }
   .bar-grid-row{ font-size:.85rem; color:var(--text); white-space:nowrap; }
-  .bar-lcm[aria-checked="mixed"] .bar-lcm-name{ color:var(--text); }
   .bar-seg{ display:flex; border:1px solid var(--panel-border); border-radius:6px; overflow:hidden; }
   .bar-check{ padding:3px 8px; border:0; border-left:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); font:inherit; font-size:.72rem; font-weight:600; letter-spacing:.04em; white-space:nowrap; cursor:pointer; }
   .bar-check:first-child{ border-left:0; }
@@ -1654,7 +1649,6 @@
   .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .bar-btn-short{ display:none; }
   @container (max-width: 1500px){ .bar-btn-long{ display:none; } .bar-btn-short{ display:inline; } }
-  @container (max-width: 1400px){ .bar-lcm-name{ display:none; } }
   .formula-level{ display:none; }
   .fs-win-body.is-ring > .formula-level{ display:block; position:absolute; z-index:5; left:50%; bottom:10px; translate:-50% 0; width:44px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
   :root.is-isopane .fs-win-body.is-ring > .formula-level{ display:none; }
@@ -3868,34 +3862,6 @@ function syncBarFormulas(){
     btn.appendChild(chev);
     btn.addEventListener('click', function(){ toggleBarMenu(i, btn); });
     box.appendChild(btn);
-    [['ring', 'lring', 'cyclicGroups.barLcmMain', 'cyclicGroups.barLcmMainTitle'], ['row', 'lrow', 'cyclicGroups.barLcmRow', 'cyclicGroups.barLcmRowTitle']].forEach(function(c){
-      if (state[side[c[0]]] === 'none') return;
-      var sw = document.createElement('button');
-      sw.type = 'button';
-      sw.className = 'bar-btn bar-lcm';
-      sw.setAttribute('role', 'switch');
-      var shown = state[side[c[0]]], lv = state[side[c[1]]];
-      var some = ['order', 'index'].filter(function(f){ return lcmHas(shown, f); });
-      var lcmd = some.filter(function(f){ return lcmHas(lv, f); }).length;
-      var checked = lcmd === some.length ? 'true' : lcmd ? 'mixed' : 'false';
-      sw.setAttribute('aria-checked', checked);
-      sw.title = translate(c[3], { group: G.label });
-      var name = document.createElement('span');
-      name.className = 'bar-lcm-name';
-      name.textContent = translate(c[2]);
-      sw.appendChild(name);
-      [['is-gcd', 'cyclicGroups.barGcd'], ['is-lcm', 'cyclicGroups.barLcm']].forEach(function(g){
-        var seg = document.createElement('span');
-        seg.className = 'bar-lcm-seg ' + g[0];
-        seg.textContent = translate(g[1]);
-        sw.appendChild(seg);
-      });
-      sw.addEventListener('click', function(){
-        state[side[c[1]]] = checked === 'true' ? 'none' : 'both';
-        barFormulasChanged();
-      });
-      box.appendChild(sw);
-    });
   });
 }
 function barFormulasChanged(){

@@ -101,9 +101,8 @@
    formulaLevelMost, formulaLevelLess, formulaLevelLeast, formulaLevelSubst
    and formulaLevelNoSubst (the formula complexity slider in the ring's
    corner and its stops' tooltips), barFormulas, barSizeFormula,
-   barIndexFormula, barAreaMain, barAreaRow, barLcmRow, barLcmMain, barGcd, barLcm, barLcmRowTitle and
-   barLcmMainTitle (the bottom bar's per-group formula menu and GCD/LCM
-   switches), colorByDistinct and legendHeadingDistinct (the Element
+   barIndexFormula, barAreaMain, barAreaRow, barLcmRow, barLcmMain, barGcd and barLcm (the
+   bottom bar's per-group formula menu), colorByDistinct and legendHeadingDistinct (the Element
    colours choice giving every element a colour of its own, and its key) and formula.subgroupOrderLcm,
    formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
    formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
@@ -447,8 +446,6 @@
       barLcmMain: 'Main',
       barGcd: 'GCD',
       barLcm: 'LCM',
-      barLcmRowTitle: "{group}'s row formula: GCD or LCM form",
-      barLcmMainTitle: "{group}'s main formula: GCD or LCM form",
       formulaLevelMost: 'Most beginner',
       formulaLevelLess: 'Less beginner',
       formulaLevelLeast: 'Least beginner',
