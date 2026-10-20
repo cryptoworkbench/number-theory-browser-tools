@@ -8314,9 +8314,11 @@ function subFormat(base, log, width, expWidth){
   };
   return f;
 }
-// Reveal on hover: offered, and so working, only while the element
-// expression slider is off Natural.
-function subRevealOn(){ return state.subReveal && !!drawn && exprBy(drawn.G) !== null; }
+// Reveal on hover: offered, and so working, while either of the panel's own
+// expressions, the generating element's or the members', writes powers
+// (whatever the element expression slider is on).
+function subRevealable(G){ return subExprGen(G, state.subLeft, state.expr) !== null || subExprGen(G, state.subRight, state.expr) !== null; }
+function subRevealOn(){ return state.subReveal && !!drawn && subRevealable(drawn.G); }
 // A member's math, coloured: with the panel's colouring on, it sits on a
 // chip painted exactly as its bead x is (drawn.paint: the same class, the
 // same inline --ord), so order, inverse and website-theme colourings and a
@@ -11382,7 +11384,7 @@ function setSubCtx(open, x, y){
     state.enterInverse = !state.enterInverse;
     render();
   }));
-  if (exprBy(drawn.G) !== null){
+  if (subRevealable(drawn.G)){
     subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subRevealHover'), state.subReveal, function(){
       setSubCtx(false);
       state.subReveal = !state.subReveal;
