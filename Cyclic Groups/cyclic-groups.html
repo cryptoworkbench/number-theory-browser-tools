@@ -126,8 +126,8 @@
   @media (prefers-reduced-motion: reduce){ .tri-knob{ transition:none; } }
   svg.ring-svg{ width:100%; height:auto; display:block; overflow:visible; }
   /* The necklace turns under a drag, one bead at a time. */
-  svg.ring-svg{ cursor:var(--hand-open, grab); touch-action:none; user-select:none; -webkit-user-select:none; }
-  svg.ring-svg.is-turning{ cursor:var(--hand-closed, grabbing); }
+  svg.ring-svg{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  svg.ring-svg.is-turning{ cursor:grabbing; }
   /* The rotation controls sit in the diagram's bottom-left corner. */
   .rotate-ctl{ position:absolute; bottom:10px; left:12px; z-index:1; display:flex; flex-direction:column; gap:4px; font-size:.85rem; color:var(--text-dim); }
   @media (max-width: 640px){
@@ -790,8 +790,9 @@
   /* The pointer's stand-in, drawn under the beads while one shows its
      natural number, so the pointer is seen to slide beneath it. */
   .nat-cursor{ pointer-events:none; }
-  .nat-cursor .hand-edge{ fill:var(--bg-1); stroke:var(--bg-1); stroke-width:2; stroke-linejoin:round; }
-  .nat-cursor .hand-fill{ fill:var(--text); }
+  .nat-cursor .hand-shade{ fill:var(--pointer-ink); opacity:.2; }
+  .nat-cursor .hand-edge{ fill:var(--pointer-edge); }
+  .nat-cursor .hand-fill{ fill:var(--pointer-ink); }
   svg.ring-svg:not(.is-turning) .nat-cursor .is-closed, svg.ring-svg.is-turning .nat-cursor .is-open{ display:none; }
   /* The bead under the pointer, and its image on the other ring of the isomorphism view. */
   .bead.is-iso-hot{ stroke:var(--text); stroke-width:5; }
@@ -3492,40 +3493,32 @@ ringSvgEl.addEventListener('pointerleave', function(){ showNatHover(null); natCu
 // Over a bead showing its natural number the pointer hides, and its
 // stand-in follows it in the ring's layer under the beads, upright and at
 // the pointer's own size however the ring is zoomed or turned: the ring's
-// hand, open, or closed while the ring is being turned. Each hand is drawn
-// twice, its outline under its fill, so its parts join without seams.
+// hand, open, or closed while the ring is being turned, drawn as the
+// Breeze cursor theme draws its 32px grab and grabbing hands (hotspot at
+// their middle): a soft shadow, a white outline and the black hand.
+var HAND_SHAPES = {
+  'is-open': [
+    'm17.844 5.482c-.852.052-1.434.602-1.844 1.28-.447-1.668-3.616-1.771-4.25.595-.498-.55-1.136-.934-1.937-.875h-.033a2.487 2.487 0 0 0 -2.25 2.906l1.25 7.469c-.473-.334-1.047-.905-1.468-1.094-.978-.438-1.873-.493-2.594-.281-1.442.424-1.875 1.812-1.875 1.812l-.25.719.625.437c1.376.93 2.774 3.183 4.094 5.282.66 1.049 1.315 2.042 2.062 2.843s1.642 1.476 2.781 1.47l8.845-.033h.969l.03-.969s.09-1.745.25-3.812c.162-2.068.41-4.478.688-5.594l1.5-6.031c.433-1.657-.886-3.252-2.593-3.125-.524.03-.987.26-1.375.562l.031-.906a2.49 2.49 0 0 0 -2.656-2.656',
+    'm11.75 6.357c-.498-.55-1.136-.934-1.937-.875h-.033a2.487 2.487 0 0 0 -2.25 2.906l1.25 7.469c-.473-.334-1.047-.905-1.468-1.094-.978-.438-1.873-.493-2.594-.281-1.442.424-1.875 1.812-1.875 1.812l-.25.719.625.437c1.376.93 2.774 3.183 4.094 5.282.66 1.049 1.315 2.042 2.062 2.843s1.642 1.476 2.781 1.47l8.845-.033h.969l.03-.969s.09-1.745.25-3.812c.162-2.068.41-4.478.688-5.594l1.5-6.031c.433-1.657-.886-3.252-2.593-3.125-.524.03-.987.26-1.375.562l.031-.906a2.49 2.49 0 0 0 -2.656-2.656c-.852.052-1.434.602-1.844 1.28-.447-1.668-3.616-1.771-4.25.595',
+    'm13.906 5.482c-.786.047-1.457.808-1.406 1.593l.406 7.094c.02.354-.298.427-.344.156l-1.092-6.562c-.108-.742-.846-1.336-1.594-1.281-.823.074-1.485.935-1.344 1.75l1.5 9q.008.191.063.375c-.059.237-.094.406-.094.406-5-5-6.219-1.406-6.219-1.406 3.398 2.294 5.459 9.456 8.375 9.437l8.843-.031s.33-7.055.969-9.625l1.5-6.031c.24-.92-.615-1.946-1.563-1.875a1.54 1.54 0 0 0 -1.375 1.156l-1.281 5.094c-.07.276-.136.165-.125-.063l.375-7.594c.055-.848-.746-1.648-1.594-1.593-.733.045-1.377.703-1.406 1.437l-.344 6.938c-.017.352-.26.36-.281-.032l-.375-6.905c-.032-.796-.798-1.488-1.594-1.437z'
+  ],
+  'is-closed': [
+    'm17.292 10.92c-.706.043-1.263.408-1.687.905-.756-.755-1.563-.662-1.813-.656-.937.057-1.556.69-1.937 1.469-.43-.26-.895-.477-1.438-.438h-.03c-1.455.131-2.45 1.439-2.22 2.875v.032l.25 1.656-.062.031c-.48.361-1.205.847-1.75 1.656-.545.81-.818 2.004-.406 3.313.449 1.428 1.292 2.917 2.25 4.093a8.4 8.4 0 0 0 1.53 1.47c.538.394 1.098.723 1.813.718l8.844-.031c.503 0 .969-.435 1-.938 0 0 1.908-3.251 1.344-11.312v-.031c-.19-2.167-.913-3.198-2.594-3.094h-.031c-.251.017-.431.197-.656.281-.271-1.154-1.15-2.081-2.407-2',
+    'm17.292 9.92c-.706.043-1.263.408-1.687.905-.756-.755-1.563-.662-1.813-.656-.937.057-1.556.69-1.937 1.469-.43-.26-.895-.477-1.438-.438h-.03c-1.455.131-2.45 1.439-2.22 2.875v.032l.25 1.656-.062.031c-.48.361-1.205.847-1.75 1.656-.545.81-.818 2.004-.406 3.313.449 1.428 1.292 2.917 2.25 4.093a8.4 8.4 0 0 0 1.53 1.47c.538.394 1.098.723 1.813.718l8.844-.031c.503 0 .969-.435 1-.938 0 0 1.908-3.251 1.344-11.312v-.031c-.19-2.166-.913-3.198-2.594-3.094h-.031c-.251.017-.431.197-.656.281-.271-1.154-1.15-2.081-2.407-2',
+    'm13.852 11.183c-.786.047-1.457.808-1.407 1.593l.097 1.393c.025.354-.305.428-.343.156l-.122-.861c-.107-.742-.846-1.336-1.594-1.281-.823.074-1.484.935-1.343 1.75l.527 3.299c.005.127-.03.78-.03.78l-.688-1.405c-1.005.756-2.465 1.723-1.792 3.863.796 2.532 3.177 5.583 4.635 5.574l8.844-.031c1.711-3.792 1.392-7.334 1.375-9.844l-.011-1.658c-.006-.95-.615-1.945-1.562-1.875a1.54 1.54 0 0 0 -1.375 1.156l-.177.94c-.052.28-.146.165-.125-.063l.198-2.158c.055-.848-.745-1.648-1.593-1.593-.734.045-1.377.703-1.407 1.437l-.167 1.502c-.039.35-.26.36-.28-.032l-.066-1.205c-.032-.796-.799-1.488-1.594-1.437'
+  ]
+};
 var natCursorEl = svgEl('g', { 'class': 'nat-cursor' });
-[['is-open', [[-5.6, -9, 3.2, 11], [-2.3, -10.4, 3.2, 12], [1, -9.4, 3.2, 11], [4.3, -7.4, 3, 9], [-5.6, -3, 12.9, 10.4, 3.6]], [-6.2, -2.4, 3.2, 9.4, -40]],
- ['is-closed', [[-5.6, -5, 3.2, 6], [-2.3, -5.6, 3.2, 6], [1, -5.4, 3.2, 6], [4.3, -4.6, 3, 5.4], [-5.6, -3, 12.9, 10.4, 3.6]], [-6.2, -0.4, 3.2, 7.4, -55]]].forEach(function(hand){
-  var g = natCursorEl.appendChild(svgEl('g', { 'class': hand[0] }));
-  ['hand-edge', 'hand-fill'].forEach(function(cls){
-    var part = g.appendChild(svgEl('g', { 'class': cls }));
-    hand[1].forEach(function(r){ part.appendChild(svgEl('rect', { x: r[0], y: r[1], width: r[2], height: r[3], rx: r[4] || 1.6 })); });
-    var t = hand[2];
-    part.appendChild(svgEl('rect', { x: t[0], y: t[1], width: t[2], height: t[3], rx: 1.6, transform: 'rotate(' + t[4] + ' ' + (t[0] + t[2] / 2) + ' ' + (t[1] + t[3]) + ')' }));
+var natShadeEl = natCursorEl.appendChild(svgEl('filter', { id: 'nat-cursor-shade', 'color-interpolation-filters': 'sRGB' }));
+natShadeEl.appendChild(svgEl('feGaussianBlur', { stdDeviation: '.657' }));
+Object.keys(HAND_SHAPES).forEach(function(cls){
+  var g = natCursorEl.appendChild(svgEl('g', { 'class': cls, transform: 'translate(-16 -16)' }));
+  ['hand-shade', 'hand-edge', 'hand-fill'].forEach(function(part, i){
+    var d = svgEl('path', { 'class': part, d: HAND_SHAPES[cls][i] });
+    if (!i) d.setAttribute('filter', 'url(#nat-cursor-shade)');
+    g.appendChild(d);
   });
 });
-// The ring's own pointer is the same hand, made a cursor image in the
-// theme's colours, so the pointer and its stand-in are one hand.
-function handCursor(cls, fallback){
-  var cs = getComputedStyle(document.documentElement), edge = cs.getPropertyValue('--bg-1').trim();
-  var g = natCursorEl.querySelector('.' + cls).cloneNode(true);
-  g.removeAttribute('class');
-  var e = g.querySelector('.hand-edge');
-  e.setAttribute('fill', edge);
-  e.setAttribute('stroke', edge);
-  e.setAttribute('stroke-width', '2');
-  e.setAttribute('stroke-linejoin', 'round');
-  g.querySelector('.hand-fill').setAttribute('fill', cs.getPropertyValue('--text').trim());
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="-13 -13 26 26">' + new XMLSerializer().serializeToString(g) + '</svg>';
-  return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") 13 13, ' + fallback;
-}
-function syncHandCursors(){
-  document.documentElement.style.setProperty('--hand-open', handCursor('is-open', 'grab'));
-  document.documentElement.style.setProperty('--hand-closed', handCursor('is-closed', 'grabbing'));
-}
-syncHandCursors();
-new MutationObserver(syncHandCursors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 ringSvgEl.addEventListener('pointermove', function(e){
   var bead = e.target.closest && e.target.closest('circle.bead.is-nat-shown');
   if (!bead){ natCursorEl.remove(); return; }
