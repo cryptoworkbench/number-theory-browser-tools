@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ba380bd
+state_head: 481e3b7
 progress:
   total_phases: 7
   completed_phases: 6
@@ -857,6 +857,7 @@ None yet.
 | 621 | Cyclic Groups: hovered top row's frost has holes at the cosets / direction buttons (zero blur behind them) | 2026-10-20 | f92de9e | — |
 | 622 | Cyclic Groups: main-view formula right-click menu (Hide + copy as LaTeX/MathML/Unicode/ASCII); Hide blinks the bar's group red; msup/mphantom in LaTeX/ASCII copies | 2026-10-20 | 97b7d28 | — |
 | 623 | Cyclic Groups: SUBGROUP row's G = ⟨h⟩ follows the element expression slider (not the bottom panel's G expression) | 2026-10-20 | ba380bd | — |
+| 624 | Cyclic Groups: cosets button always writes h (and the pane's φ(h)) in natural form | 2026-10-20 | 481e3b7 | — |
 
 ## Deferred Items
 
