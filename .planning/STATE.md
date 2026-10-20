@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 350d1d6
+state_head: a8f08c7
 progress:
   total_phases: 7
   completed_phases: 6
@@ -848,6 +848,7 @@ None yet.
 | 612 | Cyclic Groups: dotted line under the SUBGROUP row removed | 2026-10-20 | 6e4f989 | — |
 | 613 | Cyclic Groups: element expression table over the ring is an edge-to-edge banner like the colour key's, reaching the bar when last | 2026-10-20 | b48aa31 | — |
 | 614 | Cyclic Groups: bottom panel's card over the ring is an edge-to-edge square banner | 2026-10-20 | 350d1d6 | — |
+| 615 | Cyclic Groups: iso view's middle-line turning ruler card spaced off the slider cards (overlap) and the table banner (double edge) | 2026-10-20 | a8f08c7 | — |
 
 ## Deferred Items
 
