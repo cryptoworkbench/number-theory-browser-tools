@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 5eca3d0
+state_head: f82c1e8
 progress:
   total_phases: 7
   completed_phases: 6
@@ -830,6 +830,7 @@ None yet.
 | 594 | Cyclic Groups: bottom panel Reveal on hover (natural number of ⟨⟩/{} members) | 2026-10-20 | 348896c | — |
 | 595 | Cyclic Groups: hover reveal pulses the power's and its natural number's cells in the element expressions table | 2026-10-20 | 4ecb12c | — |
 | 596 | Cyclic Groups: natural-on-hover switch in the main menu; G = ⟨h⟩ reveals too | 2026-10-20 | 5eca3d0 | — |
+| 597 | Cyclic Groups: G = ⟨h⟩ chip always in its bead colour | 2026-10-20 | f82c1e8 | — |
 
 ## Deferred Items
 
