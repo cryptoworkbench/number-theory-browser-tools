@@ -787,6 +787,9 @@
   .chord-arrow{ fill:var(--walk); stroke:none; }
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
   .bead.is-nat-shown{ cursor:none; }
+  /* The pointer's stand-in, drawn under the beads while one shows its
+     natural number, so the pointer is seen to slide beneath it. */
+  .nat-cursor{ pointer-events:none; fill:var(--text); stroke:var(--bg); stroke-width:1.2; stroke-linejoin:round; }
   /* The bead under the pointer, and its image on the other ring of the isomorphism view. */
   .bead.is-iso-hot{ stroke:var(--text); stroke-width:5; }
   /* Coset animation: beads outside the coset shown fade back, and each
@@ -3482,7 +3485,21 @@ ringSvgEl.addEventListener('pointerover', function(e){
   var bead = e.target.closest('.bead');
   showNatHover(bead ? +bead.getAttribute('data-el') : null);
 });
-ringSvgEl.addEventListener('pointerleave', function(){ showNatHover(null); });
+ringSvgEl.addEventListener('pointerleave', function(){ showNatHover(null); natCursorEl.remove(); });
+// Over a bead showing its natural number the pointer hides, and its
+// stand-in follows it in the ring's layer under the beads, upright and at
+// the pointer's own size however the ring is zoomed or turned.
+var natCursorEl = svgEl('path', { 'class': 'nat-cursor', d: 'M0 0V17L4.2 13L7.2 19.6L10 18.4L7.1 11.9H12.6Z' });
+ringSvgEl.addEventListener('pointermove', function(e){
+  var bead = e.target.closest && e.target.closest('circle.bead.is-nat-shown');
+  if (!bead){ natCursorEl.remove(); return; }
+  var layer = bead.parentNode, ctm = layer.getScreenCTM();
+  if (!ctm){ natCursorEl.remove(); return; }
+  var first = layer.querySelector('circle.bead');
+  if (natCursorEl.parentNode !== layer || natCursorEl.nextSibling !== first) layer.insertBefore(natCursorEl, first);
+  var m = DOMMatrix.fromMatrix(ctm).inverse().translate(e.clientX, e.clientY);
+  natCursorEl.setAttribute('transform', 'matrix(' + [m.a, m.b, m.c, m.d, m.e, m.f].map(num).join(' ') + ')');
+});
 
 function drawText(cls, x, y, text){
   var t = svgEl('text', { 'class': cls, x: x, y: y });
