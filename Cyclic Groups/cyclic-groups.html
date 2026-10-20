@@ -1642,7 +1642,7 @@
   .ring-corner > :is(.key-corner, .genexp-corner)[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
-  .genexp-body{ align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
+  .genexp-body{ position:relative; align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
   .genexp-table{ flex:none; border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.05rem * var(--genexp-fit, 1)); color:var(--text); }
   .genexp-table td{ padding:.12em .4em; text-align:center; vertical-align:baseline; white-space:nowrap; }
   /* The elements' row is set off from the powers under it, and each row's
@@ -1655,6 +1655,9 @@
   .genexp-sort.is-active{ color:var(--text); border-color:var(--panel-border); }
   .genexp-arrow{ font-family:var(--font-sans); font-size:.6em; opacity:.55; }
   .genexp-sort.is-active .genexp-arrow{ color:var(--accent); opacity:1; }
+  .genexp-table td.is-linked{ border-radius:var(--radius-ctl); box-shadow:inset 0 0 0 1.5px var(--accent); background:color-mix(in srgb, var(--accent) 16%, transparent); animation:genexp-pulse .45s ease-out 2; }
+  @keyframes genexp-pulse{ from{ box-shadow:inset 0 0 0 1.5px var(--accent), 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } to{ box-shadow:inset 0 0 0 1.5px var(--accent), 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); } }
+  @media (prefers-reduced-motion: reduce){ .genexp-table td.is-linked{ animation:none; } }
   .genexp-none{ max-width:32em; margin:0; font-size:.9rem; color:var(--text-dim); text-align:center; }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its copy submenu opens beside it. */
@@ -3452,6 +3455,7 @@ function natLabel(t, on){
 function showNatHover(a){
   if (a === natHot) return;
   natHot = a;
+  genExpLink(a !== null && !state.natHoverOff && drawn ? exprBy(drawn.G) : null, a);
   ringSvgEl.querySelectorAll('.bead-label[data-nat]').forEach(function(t){ natLabel(t, t.getAttribute('data-el') === String(a)); });
 }
 ringSvgEl.addEventListener('pointerover', function(e){
@@ -4931,16 +4935,22 @@ function fillGenExp(G){
   var table = document.createElement('table');
   table.className = 'genexp-table';
   var body = table.createTBody();
-  var row = function(head, f){
+  var row = function(head, f, g){
     var tr = body.insertRow();
     tr.appendChild(head);
-    cols.forEach(function(x){ tr.insertCell().appendChild(mInline(memberMath(x, f.m(x)), f.p(x))); });
+    cols.forEach(function(x){
+      var td = tr.insertCell();
+      td.setAttribute('data-el', String(x));
+      td.setAttribute('data-g', g === undefined ? '' : String(g));
+      td.appendChild(mInline(memberMath(x, f.m(x)), f.p(x)));
+    });
     return tr;
   };
   row(genExpHead(G, -1, mi('x')), nat).className = 'genexp-els';
-  gens.forEach(function(g, i){ row(genExpHead(G, i, mEl('msup', [mn(g), mi('k')]), g), pows[i]); });
+  gens.forEach(function(g, i){ row(genExpHead(G, i, mEl('msup', [mn(g), mi('k')]), g), pows[i], g); });
   genExpBodyEl.genExpFull = table;
   fitGenExp(genExpBodyEl);
+  relinkGenExp();
 }
 // The table into the band's width: as it is when it fits, else shrunk to
 // fit down to GENEXP_MIN_FIT of its size, else at that size with its
@@ -4993,11 +5003,48 @@ function fitGenExp(body){
     return part;
   }));
 }
+// A hovered power g^k revealing its natural number x, on a bead or in the
+// bottom panel, shows in the open table too: its cell in g's row is linked
+// to x's own cell at the top of the same column (of the same block). The
+// pair is scrolled into the band's view, never the page.
+var genExpLinked = null;
+function genExpLink(g, x){
+  genExpLinked = g === null || g === undefined ? null : { g: g, x: x };
+  relinkGenExp();
+}
+function relinkGenExp(){
+  unlinkCells();
+  var l = genExpLinked;
+  if (!l || !genExpShown()) return;
+  var pow = genExpBodyEl.querySelector('td[data-el="' + l.x + '"][data-g="' + l.g + '"]');
+  var nat = pow && pow.closest('table').querySelector('tr.genexp-els td[data-el="' + l.x + '"]');
+  if (!nat) return;
+  var body = genExpBodyEl, b = body.getBoundingClientRect();
+  var top = nat.getBoundingClientRect(), bot = pow.getBoundingClientRect();
+  if (top.top < b.top) body.scrollTop -= b.top - top.top;
+  else if (bot.bottom > b.bottom) body.scrollTop += bot.bottom - b.bottom;
+  var th = pow.parentNode.cells[0].getBoundingClientRect().right;
+  if (bot.left < th) body.scrollLeft -= th - bot.left;
+  else if (bot.right > b.right) body.scrollLeft += bot.right - b.right;
+  linkCells(pow, nat);
+}
+// A cell's box in the band's scrolled content.
+function genExpBox(td){
+  var b = genExpBodyEl.getBoundingClientRect(), r = td.getBoundingClientRect();
+  return { left: r.left - b.left + genExpBodyEl.scrollLeft, top: r.top - b.top + genExpBodyEl.scrollTop, width: r.width, height: r.height };
+}
+// Pulse: both cells ring out together twice, then stay outlined.
+function linkCells(pow, nat){
+  [pow, nat].forEach(function(td){ td.classList.add('is-linked'); });
+}
+function unlinkCells(){
+  genExpBodyEl.querySelectorAll('td.is-linked').forEach(function(td){ td.classList.remove('is-linked'); });
+}
 // A band whose width changes fits its table again.
 function watchGenExpWidth(body){
   if (typeof ResizeObserver !== 'function') return;
   new ResizeObserver(function(){
-    if (body.clientWidth !== body.genExpRoom) fitGenExp(body);
+    if (body.clientWidth !== body.genExpRoom){ fitGenExp(body); if (body === genExpBodyEl) relinkGenExp(); }
   }).observe(body);
 }
 // A row's name: a button holding it (x, or g^k) and the sort's arrow while
@@ -7990,10 +8037,12 @@ function subFormat(base, log, width, expWidth){
   // number beside its power, shown in its place under the pointer.
   f.r = function(x){
     if (!log || !subRevealOn()) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(numMn(nat(x), width));
+    var e = mrow(f.m(x)), n = mrow(numMn(nat(x), width)), both = mrow(e, n);
     e.setAttribute('class', 'sub-ex');
     n.setAttribute('class', 'sub-nat');
-    return mrow(e, n);
+    both.setAttribute('data-g', String(base));
+    both.setAttribute('data-el', String(x));
+    return both;
   };
   return f;
 }
@@ -8257,6 +8306,8 @@ function setRevealHot(m){
   if (m === revealHot) return;
   if (revealHot){ revealHot.classList.remove('is-revealed'); revealHot.style.minWidth = ''; }
   revealHot = m;
+  var at = m && !m.closest('.sub-row-r') && m.querySelector('.sub-nat').parentNode;
+  genExpLink(at ? +at.getAttribute('data-g') : null, at ? +at.getAttribute('data-el') : null);
   if (!m) return;
   m.style.minWidth = m.getBoundingClientRect().width + 'px';
   m.classList.add('is-revealed');
