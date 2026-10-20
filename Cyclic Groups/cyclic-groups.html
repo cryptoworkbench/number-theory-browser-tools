@@ -1656,9 +1656,13 @@
   .genexp-sort.is-active{ color:var(--text); border-color:var(--panel-border); }
   .genexp-arrow{ font-family:var(--font-sans); font-size:.6em; opacity:.55; }
   .genexp-sort.is-active .genexp-arrow{ color:var(--accent); opacity:1; }
-  .genexp-table td.is-linked{ border-radius:var(--radius-ctl); box-shadow:inset 0 0 0 1.5px var(--accent); background:color-mix(in srgb, var(--accent) 16%, transparent); animation:genexp-pulse .45s ease-out 2; }
-  @keyframes genexp-pulse{ from{ box-shadow:inset 0 0 0 1.5px var(--accent), 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } to{ box-shadow:inset 0 0 0 1.5px var(--accent), 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); } }
-  @media (prefers-reduced-motion: reduce){ .genexp-table td.is-linked{ animation:none; } }
+  .genexp-table td.is-linked{ border-radius:var(--radius-ctl); box-shadow:inset 0 0 0 1.5px var(--accent); background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  .genexp-table td.is-passed{ opacity:.3; transition:opacity .2s; }
+  .genexp-arrow-ov{ position:absolute; left:0; top:0; z-index:2; pointer-events:none; overflow:visible; }
+  .genexp-arrow-ov marker path{ fill:var(--accent); }
+  .genexp-arrow-line{ fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; animation:genexp-draw .4s ease-out; }
+  @keyframes genexp-draw{ from{ stroke-dashoffset:var(--len); } to{ stroke-dashoffset:0; } }
+  @media (prefers-reduced-motion: reduce){ .genexp-arrow-line{ animation:none; } }
   .genexp-none{ max-width:32em; margin:0; font-size:.9rem; color:var(--text-dim); text-align:center; }
   .ring-ctx-formula math{ color:var(--text); font-family:var(--font-math); font-size:1.05rem; white-space:nowrap; }
   /* Its copy submenu opens beside it. */
@@ -5034,12 +5038,33 @@ function genExpBox(td){
   var b = genExpBodyEl.getBoundingClientRect(), r = td.getBoundingClientRect();
   return { left: r.left - b.left + genExpBodyEl.scrollLeft, top: r.top - b.top + genExpBodyEl.scrollTop, width: r.width, height: r.height };
 }
-// Pulse: both cells ring out together twice, then stay outlined.
+// Arrow: drawn from the power up to its natural number; the column's other
+// cells between them fade so the arrow reads.
+var genExpArrow = null;
 function linkCells(pow, nat){
-  [pow, nat].forEach(function(td){ td.classList.add('is-linked'); });
+  pow.classList.add('is-linked');
+  nat.classList.add('is-linked');
+  var col = Array.prototype.indexOf.call(pow.parentNode.cells, pow), rows = pow.closest('tbody').rows;
+  for (var r = nat.parentNode.rowIndex + 1; r < pow.parentNode.rowIndex; r++) if (rows[r].cells[col]) rows[r].cells[col].classList.add('is-passed');
+  var p = genExpBox(pow), n = genExpBox(nat);
+  var x0 = p.left + p.width / 2, y0 = p.top + 2, x1 = n.left + n.width / 2, y1 = n.top + n.height - 1;
+  var my = (y0 + y1) / 2;
+  genExpArrow = svgEl('svg', { 'class': 'genexp-arrow-ov', width: genExpBodyEl.scrollWidth, height: genExpBodyEl.scrollHeight, 'aria-hidden': 'true' });
+  var defs = svgEl('defs');
+  var mark = svgEl('marker', { id: 'genexp-head', viewBox: '0 0 8 8', refX: 6, refY: 4, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+  mark.appendChild(svgEl('path', { d: 'M1 1 L7 4 L1 7 Z' }));
+  defs.appendChild(mark);
+  genExpArrow.appendChild(defs);
+  var path = svgEl('path', { 'class': 'genexp-arrow-line', d: 'M' + x0 + ' ' + y0 + ' C' + x0 + ' ' + my + ' ' + x1 + ' ' + my + ' ' + x1 + ' ' + y1, 'marker-end': 'url(#genexp-head)' });
+  genExpArrow.appendChild(path);
+  genExpBodyEl.appendChild(genExpArrow);
+  var len = path.getTotalLength();
+  path.style.strokeDasharray = len;
+  path.style.setProperty('--len', len);
 }
 function unlinkCells(){
-  genExpBodyEl.querySelectorAll('td.is-linked').forEach(function(td){ td.classList.remove('is-linked'); });
+  genExpBodyEl.querySelectorAll('td.is-linked, td.is-passed').forEach(function(td){ td.classList.remove('is-linked', 'is-passed'); });
+  if (genExpArrow){ genExpArrow.remove(); genExpArrow = null; }
 }
 // A band whose width changes fits its table again.
 function watchGenExpWidth(body){
