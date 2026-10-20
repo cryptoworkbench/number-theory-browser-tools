@@ -1441,6 +1441,7 @@
      either way; a locked group's modulus keeps its full strength there,
      only its number greyed, the lock badge marking it. */
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible)))::after{ opacity:1; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ -webkit-mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; }
   /* The frosted row's controls draw what they keep gray in the text's full
      colour (is-top-row-hot, the row under the pointer); a locked group's
      modulus keeps its number greyed, and the identity keeps its grey. */
@@ -6231,8 +6232,31 @@ function inTopBand(x, y){
   var from = k ? ends[k - 1] : band.top;
   body.style.setProperty('--band-t', num(from - band.top) + 'px');
   body.style.setProperty('--band-b', num(band.bottom - ends[k]) + 'px');
+  bandHoles(body, band);
   markTopRow(keys.length ? Number(keys[k]) : -1, rows);
   return true;
+}
+// The cosets button and the turning direction button frost on their own,
+// so the band leaves them clear: a mask the band's size with a hole the
+// shape of each, their rounded corners included.
+function bandHoles(body, band){
+  var cs = getComputedStyle(body, '::after'), bs = getComputedStyle(body), b = body.getBoundingClientRect();
+  var w = parseFloat(cs.width), h = parseFloat(cs.height);
+  if (!(w > 0 && h > 0)){ body.style.removeProperty('--band-mask'); return; }
+  var left = b.left + body.clientLeft + parseFloat(bs.paddingLeft) + parseFloat(cs.marginLeft);
+  var d = 'M0 0H' + num(w) + 'V' + num(h) + 'H0Z';
+  [$('coset-btn'), $('dir-toggle')].forEach(function(el){
+    if (!el || !el.offsetParent) return;
+    var r = el.getBoundingClientRect();
+    if (!r.width || r.bottom < band.top || r.top > band.bottom) return;
+    var x = r.left - left, y = r.top - band.top, rx = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, r.width / 2, r.height / 2);
+    d += 'M' + num(x + rx) + ' ' + num(y) + 'H' + num(x + r.width - rx) + 'A' + num(rx) + ' ' + num(rx) + ' 0 0 1 ' + num(x + r.width) + ' ' + num(y + rx) +
+      'V' + num(y + r.height - rx) + 'A' + num(rx) + ' ' + num(rx) + ' 0 0 1 ' + num(x + r.width - rx) + ' ' + num(y + r.height) +
+      'H' + num(x + rx) + 'A' + num(rx) + ' ' + num(rx) + ' 0 0 1 ' + num(x) + ' ' + num(y + r.height - rx) +
+      'V' + num(y + rx) + 'A' + num(rx) + ' ' + num(rx) + ' 0 0 1 ' + num(x + rx) + ' ' + num(y) + 'Z';
+  });
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + num(w) + '" height="' + num(h) + '"><path fill-rule="evenodd" d="' + d + '"/></svg>';
+  body.style.setProperty('--band-mask', 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")');
 }
 // The controls of the row the band frosts behind, is-top-row-hot, which
 // draws their grays in the text's full colour; -1 marks none.
