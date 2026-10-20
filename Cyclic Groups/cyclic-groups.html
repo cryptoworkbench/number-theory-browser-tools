@@ -126,8 +126,8 @@
   @media (prefers-reduced-motion: reduce){ .tri-knob{ transition:none; } }
   svg.ring-svg{ width:100%; height:auto; display:block; overflow:visible; }
   /* The necklace turns under a drag, one bead at a time. */
-  svg.ring-svg{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
-  svg.ring-svg.is-turning{ cursor:grabbing; }
+  svg.ring-svg{ cursor:var(--hand-open, grab); touch-action:none; user-select:none; -webkit-user-select:none; }
+  svg.ring-svg.is-turning{ cursor:var(--hand-closed, grabbing); }
   /* The rotation controls sit in the diagram's bottom-left corner. */
   .rotate-ctl{ position:absolute; bottom:10px; left:12px; z-index:1; display:flex; flex-direction:column; gap:4px; font-size:.85rem; color:var(--text-dim); }
   @media (max-width: 640px){
@@ -3505,6 +3505,27 @@ var natCursorEl = svgEl('g', { 'class': 'nat-cursor' });
     part.appendChild(svgEl('rect', { x: t[0], y: t[1], width: t[2], height: t[3], rx: 1.6, transform: 'rotate(' + t[4] + ' ' + (t[0] + t[2] / 2) + ' ' + (t[1] + t[3]) + ')' }));
   });
 });
+// The ring's own pointer is the same hand, made a cursor image in the
+// theme's colours, so the pointer and its stand-in are one hand.
+function handCursor(cls, fallback){
+  var cs = getComputedStyle(document.documentElement), edge = cs.getPropertyValue('--bg-1').trim();
+  var g = natCursorEl.querySelector('.' + cls).cloneNode(true);
+  g.removeAttribute('class');
+  var e = g.querySelector('.hand-edge');
+  e.setAttribute('fill', edge);
+  e.setAttribute('stroke', edge);
+  e.setAttribute('stroke-width', '2');
+  e.setAttribute('stroke-linejoin', 'round');
+  g.querySelector('.hand-fill').setAttribute('fill', cs.getPropertyValue('--text').trim());
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="-13 -13 26 26">' + new XMLSerializer().serializeToString(g) + '</svg>';
+  return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") 13 13, ' + fallback;
+}
+function syncHandCursors(){
+  document.documentElement.style.setProperty('--hand-open', handCursor('is-open', 'grab'));
+  document.documentElement.style.setProperty('--hand-closed', handCursor('is-closed', 'grabbing'));
+}
+syncHandCursors();
+new MutationObserver(syncHandCursors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 ringSvgEl.addEventListener('pointermove', function(e){
   var bead = e.target.closest && e.target.closest('circle.bead.is-nat-shown');
   if (!bead){ natCursorEl.remove(); return; }
