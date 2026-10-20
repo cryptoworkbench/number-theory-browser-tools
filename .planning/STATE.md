@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: a7ae318
+state_head: fda0984
 progress:
   total_phases: 7
   completed_phases: 6
@@ -835,6 +835,7 @@ None yet.
 | 599 | Cyclic Groups: bottom panel row-hover loop fixed (stable arrow key width, held row preview) | 2026-10-20 | 816b9da | — |
 | 600 | Cyclic Groups: element expressions table hover link is an arrow (replaces pulse) | 2026-10-20 | 3f05ac3 | — |
 | 601 | Cyclic Groups: bottom bar formulas menu as a checkbox grid (size/index × row/main, Both line) | 2026-10-20 | a7ae318 | — |
+| 602 | Cyclic Groups: bead colour key banner flush against the bottom bar | 2026-10-20 | fda0984 | — |
 
 ## Deferred Items
 
