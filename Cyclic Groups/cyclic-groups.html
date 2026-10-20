@@ -786,6 +786,7 @@
   .chord{ fill:none; stroke:var(--walk); stroke-linejoin:round; stroke-linecap:round; opacity:.9; }
   .chord-arrow{ fill:var(--walk); stroke:none; }
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
+  .bead.is-nat-shown{ cursor:none; }
   /* The bead under the pointer, and its image on the other ring of the isomorphism view. */
   .bead.is-iso-hot{ stroke:var(--text); stroke-width:5; }
   /* Coset animation: beads outside the coset shown fade back, and each
@@ -3449,9 +3450,9 @@ function drawRing(parent, G, beads, box, paint){
         label.setAttribute('data-expr-size', label.getAttribute('font-size'));
         label.setAttribute('data-nat', nat);
         label.setAttribute('data-nat-size', Math.round(state.subPad ? Math.max(natSize, 7) : natSize));
-        natLabel(label, a === natHot);
       }
       ring.appendChild(label);
+      if (elog) natLabel(label, a === natHot);
     });
   }
 
@@ -3462,10 +3463,14 @@ function drawRing(parent, G, beads, box, paint){
 // Under the pointer, a bead the expression slider writes as a power shows
 // its natural number instead, unless the slider's menu turns that off.
 var natHot = null;
+// The pointer hides while its bead shows the natural number, so as not to
+// cover it.
 function natLabel(t, on){
   var w = on && !state.natHoverOff ? 'nat' : 'expr';
   t.textContent = t.getAttribute('data-' + w);
   t.setAttribute('font-size', t.getAttribute('data-' + w + '-size'));
+  var bead = t.parentNode && t.parentNode.querySelector('circle.bead[data-el="' + t.getAttribute('data-el') + '"]');
+  if (bead) bead.classList.toggle('is-nat-shown', w === 'nat');
 }
 function showNatHover(a){
   if (a === natHot) return;
