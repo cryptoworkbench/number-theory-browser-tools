@@ -789,7 +789,10 @@
   .bead.is-nat-shown{ cursor:none; }
   /* The pointer's stand-in, drawn under the beads while one shows its
      natural number, so the pointer is seen to slide beneath it. */
-  .nat-cursor{ pointer-events:none; fill:var(--text); stroke:var(--bg); stroke-width:1.2; stroke-linejoin:round; }
+  .nat-cursor{ pointer-events:none; }
+  .nat-cursor .hand-edge{ fill:var(--bg-1); stroke:var(--bg-1); stroke-width:2; stroke-linejoin:round; }
+  .nat-cursor .hand-fill{ fill:var(--text); }
+  svg.ring-svg:not(.is-turning) .nat-cursor .is-closed, svg.ring-svg.is-turning .nat-cursor .is-open{ display:none; }
   /* The bead under the pointer, and its image on the other ring of the isomorphism view. */
   .bead.is-iso-hot{ stroke:var(--text); stroke-width:5; }
   /* Coset animation: beads outside the coset shown fade back, and each
@@ -3488,8 +3491,20 @@ ringSvgEl.addEventListener('pointerover', function(e){
 ringSvgEl.addEventListener('pointerleave', function(){ showNatHover(null); natCursorEl.remove(); });
 // Over a bead showing its natural number the pointer hides, and its
 // stand-in follows it in the ring's layer under the beads, upright and at
-// the pointer's own size however the ring is zoomed or turned.
-var natCursorEl = svgEl('path', { 'class': 'nat-cursor', d: 'M0 0V17L4.2 13L7.2 19.6L10 18.4L7.1 11.9H12.6Z' });
+// the pointer's own size however the ring is zoomed or turned: the ring's
+// hand, open, or closed while the ring is being turned. Each hand is drawn
+// twice, its outline under its fill, so its parts join without seams.
+var natCursorEl = svgEl('g', { 'class': 'nat-cursor' });
+[['is-open', [[-5.6, -9, 3.2, 11], [-2.3, -10.4, 3.2, 12], [1, -9.4, 3.2, 11], [4.3, -7.4, 3, 9], [-5.6, -3, 12.9, 10.4, 3.6]], [-6.2, -2.4, 3.2, 9.4, -40]],
+ ['is-closed', [[-5.6, -5, 3.2, 6], [-2.3, -5.6, 3.2, 6], [1, -5.4, 3.2, 6], [4.3, -4.6, 3, 5.4], [-5.6, -3, 12.9, 10.4, 3.6]], [-6.2, -0.4, 3.2, 7.4, -55]]].forEach(function(hand){
+  var g = natCursorEl.appendChild(svgEl('g', { 'class': hand[0] }));
+  ['hand-edge', 'hand-fill'].forEach(function(cls){
+    var part = g.appendChild(svgEl('g', { 'class': cls }));
+    hand[1].forEach(function(r){ part.appendChild(svgEl('rect', { x: r[0], y: r[1], width: r[2], height: r[3], rx: r[4] || 1.6 })); });
+    var t = hand[2];
+    part.appendChild(svgEl('rect', { x: t[0], y: t[1], width: t[2], height: t[3], rx: 1.6, transform: 'rotate(' + t[4] + ' ' + (t[0] + t[2] / 2) + ' ' + (t[1] + t[3]) + ')' }));
+  });
+});
 ringSvgEl.addEventListener('pointermove', function(e){
   var bead = e.target.closest && e.target.closest('circle.bead.is-nat-shown');
   if (!bead){ natCursorEl.remove(); return; }
