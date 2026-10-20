@@ -56,6 +56,7 @@
   /* Math inside running text and panels, typeset as MathML. */
   math.m-inline{ font-family:var(--font-math); font-size:1.12em; font-weight:400; direction:ltr; }
   .subgroup-row math.m-inline{ font-size:1.08em; }
+  .subgroup-row math.m-inline:not(.is-revealed) .sub-nat, .subgroup-row math.m-inline.is-revealed .sub-ex{ display:none; }
 
   .page-header{ margin:0; }
   .eyebrow{ font-size:.875rem; font-weight:600; color:var(--text-dim); margin:0 0 8px; }
@@ -2302,7 +2303,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -7981,11 +7982,24 @@ function subExpWidth(G){ return state.subPad || state.subAlign ? String(G.order 
 function subFormat(base, log, width, expWidth){
   var nat = function(x){ return state.subPad ? String(x).padStart(width, '0') : String(x); };
   var ex = function(k){ return state.subPad ? String(k).padStart(expWidth, '0') : String(k); };
-  return {
+  var f = {
     m: function(x){ return log ? mEl('msup', [mn(base), numMn(ex(log[x]), expWidth)]) : numMn(nat(x), width); },
     p: function(x){ return log ? base + '^' + ex(log[x]) : nat(x); }
   };
+  // A row's member, which with Reveal on hover on carries its natural
+  // number beside its power, shown in its place under the pointer.
+  f.r = function(x){
+    if (!log || !subRevealOn()) return f.m(x);
+    var e = mrow(f.m(x)), n = mrow(numMn(nat(x), width));
+    e.setAttribute('class', 'sub-ex');
+    n.setAttribute('class', 'sub-nat');
+    return mrow(e, n);
+  };
+  return f;
 }
+// Reveal on hover: offered, and so working, only while the element
+// expression slider is off Natural.
+function subRevealOn(){ return state.subReveal && !!drawn && exprBy(drawn.G) !== null; }
 // A member's math, coloured: with the panel's colouring on, it sits on a
 // chip painted exactly as its bead x is (drawn.paint: the same class, the
 // same inline --ord), so order, inverse and website-theme colourings and a
@@ -8027,7 +8041,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.mode + ' ' + G.n + ' ' + [lg, rg, sg, width, expWidth, state.subPad, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -8062,10 +8076,10 @@ function renderSubgroups(G){
     row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + members.map(px).join(', ') + '}');
     var tip = !subFormulaOn() && subRowGcdTitle(G, llog, g);
     if (tip) row.title = tip;
-    row.appendChild(mInline(mrow(angle(memberMath(g, mxl(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
+    row.appendChild(mInline(mrow(angle(memberMath(g, fl.r(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
     members.forEach(function(x, i){
       var last = i === members.length - 1;
-      row.appendChild(mInline(mrow(memberMath(x, mx(x)), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
+      row.appendChild(mInline(mrow(memberMath(x, fr.r(x)), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
     });
     row.addEventListener('click', function(){
       selectGen(panelGen = g);
@@ -8110,7 +8124,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.mode + ' ' + G.n + ' ' + H.mode + ' ' + H.n + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -8152,18 +8166,18 @@ function renderMergedSubgroups(G){
     row.setAttribute('aria-label', leftText(r) + '; ' + rightText(r));
     var left = document.createElement('span');
     left.className = 'sub-row-l';
-    left.appendChild(mInline(mrow(angle(memberMath(g, fl.m(g))), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));
+    left.appendChild(mInline(mrow(angle(memberMath(g, fl.r(g))), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));
     members.forEach(function(x, i){
-      left.appendChild(mInline(mrow(memberMath(x, fr.m(x)), i === last ? mo('}', true) : comma()), i === last ? fr.p(x) + '}' : fr.p(x) + ', '));
+      left.appendChild(mInline(mrow(memberMath(x, fr.r(x)), i === last ? mo('}', true) : comma()), i === last ? fr.p(x) + '}' : fr.p(x) + ', '));
     });
     var right = document.createElement('span');
     right.className = 'sub-row-r';
     members.forEach(function(x, i){
-      var y = phi(x), parts = [rightMath(x, hfr.m(y)), i === last ? mo('}', true) : comma()];
+      var y = phi(x), parts = [rightMath(x, hfr.r(y)), i === last ? mo('}', true) : comma()];
       if (i === 0) parts.unshift(mo('{', true));
       right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(y) + (i === last ? '}' : ', ')));
     });
-    right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.m(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
+    right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.r(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
     // Each side's tooltip follows that side's own way of writing its
     // generating element.
     var plainTips = !subFormulaOn();
@@ -8235,6 +8249,23 @@ subMoreTopEl.addEventListener('click', function(){
   subgroupsEl.scrollBy({ top: -subgroupsEl.clientHeight * 0.8, behavior: 'smooth' });
 });
 subgroupsEl.addEventListener('scroll', syncSubMore, { passive: true });
+// Reveal on hover: the member under the pointer shows its natural number,
+// keeping at least the width its power took, so the swap never moves the
+// member out from under the pointer.
+var revealHot = null;
+function setRevealHot(m){
+  if (m === revealHot) return;
+  if (revealHot){ revealHot.classList.remove('is-revealed'); revealHot.style.minWidth = ''; }
+  revealHot = m;
+  if (!m) return;
+  m.style.minWidth = m.getBoundingClientRect().width + 'px';
+  m.classList.add('is-revealed');
+}
+subgroupsEl.addEventListener('pointerover', function(e){
+  var m = e.target.closest && e.target.closest('math.m-inline');
+  setRevealHot(m && m.querySelector('.sub-nat') ? m : null);
+});
+subgroupsEl.addEventListener('pointerleave', function(){ setRevealHot(null); });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
 // which scrollIntoView would also move, pulling the ring out of view.
@@ -10572,6 +10603,8 @@ function stateQuery(){
   else q.delete('nathover');
   if (!state.enterInverse) q.set('enterinv', '0');
   else q.delete('enterinv');
+  if (state.subReveal) q.set('subreveal', '1');
+  else q.delete('subreveal');
   if (state.subLcm) q.set('sublcm', '1');
   else q.delete('sublcm');
   if (state.subLcmR) q.set('sublcmr', '1');
@@ -10968,6 +11001,13 @@ function setSubCtx(open, x, y){
     state.enterInverse = !state.enterInverse;
     render();
   }));
+  if (exprBy(drawn.G) !== null){
+    subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subRevealHover'), state.subReveal, function(){
+      setSubCtx(false);
+      state.subReveal = !state.subReveal;
+      render();
+    }));
+  }
   // How the list lines up its numbers: not, with blank space, or with zeros.
   var head = document.createElement('p');
   head.className = 'fs-menu-head';
@@ -11782,6 +11822,7 @@ function loadState(query, link){
   state.subPaths = query.get('subpaths') !== '0';
   state.natHoverOff = query.get('nathover') === '0';
   state.enterInverse = query.get('enterinv') !== '0';
+  state.subReveal = query.get('subreveal') === '1';
   state.subPowers = query.get('subpowers') !== '0';
   state.subLcm = query.get('sublcm') === '1';
   state.subLcmR = query.get('sublcmr') === '1';
