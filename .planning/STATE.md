@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 6e4f989
+state_head: b48aa31
 progress:
   total_phases: 7
   completed_phases: 6
@@ -846,6 +846,7 @@ None yet.
 | 610 | Cyclic Groups: GCD/LCM switches removed from the bottom bar (and their two tooltip strings) | 2026-10-20 | ccd1ae1 | — |
 | 611 | Cyclic Groups: mouse wheel steps the expression slider (Follow expression slider) or the bottom panel's selected row (Follow bottom-panel) | 2026-10-20 | 9756926 | — |
 | 612 | Cyclic Groups: dotted line under the SUBGROUP row removed | 2026-10-20 | 6e4f989 | — |
+| 613 | Cyclic Groups: element expression table over the ring is an edge-to-edge banner like the colour key's, reaching the bar when last | 2026-10-20 | b48aa31 | — |
 
 ## Deferred Items
 
