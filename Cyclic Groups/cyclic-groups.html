@@ -1642,15 +1642,16 @@
   .bar-lcm-seg{ display:grid; place-items:center; height:100%; padding:0 6px; font-size:.72rem; font-weight:600; letter-spacing:.04em; color:var(--text-dim); border-left:1px solid var(--panel-border); }
   .bar-lcm[aria-checked="false"] .bar-lcm-seg.is-gcd, .bar-lcm[aria-checked="true"] .bar-lcm-seg.is-lcm{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
   .bar-menu{ min-width:0; }
-  .bar-grid{ display:grid; grid-template-columns:auto auto auto; align-items:center; gap:6px 14px; padding:6px 10px 8px; }
+  .bar-grid{ display:grid; grid-template-columns:auto auto auto; align-items:center; gap:6px 12px; padding:6px 10px 8px; }
   .bar-grid-col{ font-size:.72rem; color:var(--text-dim); text-align:center; white-space:nowrap; }
   .bar-grid-row{ font-size:.85rem; color:var(--text); white-space:nowrap; }
-  .bar-check{ justify-self:center; display:grid; place-items:center; width:22px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:5px; background:var(--surface); cursor:pointer; }
-  .bar-check svg{ width:14px; height:14px; fill:none; stroke:var(--accent-ink); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; visibility:hidden; }
-  .bar-check:is([aria-checked="true"], [aria-checked="mixed"]){ background:var(--accent); border-color:var(--accent); }
-  .bar-check:is([aria-checked="true"], [aria-checked="mixed"]) svg{ visibility:visible; }
-  .bar-check:hover{ border-color:var(--accent); }
-  .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .bar-lcm[aria-checked="mixed"] .bar-lcm-name{ color:var(--text); }
+  .bar-seg{ display:flex; border:1px solid var(--panel-border); border-radius:6px; overflow:hidden; }
+  .bar-check{ padding:3px 8px; border:0; border-left:1px solid var(--panel-border); background:var(--surface); color:var(--text-dim); font:inherit; font-size:.72rem; font-weight:600; letter-spacing:.04em; white-space:nowrap; cursor:pointer; }
+  .bar-check:first-child{ border-left:0; }
+  .bar-check:hover{ color:var(--text); }
+  .bar-check[aria-checked="true"]{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+  .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .bar-btn-short{ display:none; }
   @container (max-width: 1500px){ .bar-btn-long{ display:none; } .bar-btn-short{ display:inline; } }
   @container (max-width: 1400px){ .bar-lcm-name{ display:none; } }
@@ -2329,7 +2330,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3775,6 +3776,13 @@ function cosetCountFormula(G, h, g, index, steps, hm){
 }
 
 /* ---------- the subgroup list's hover formula ---------- */
+// Which formulas a place writes in their lcm form: none, order, index or
+// both (true and false, as older links and panes give it, for both and none).
+function lcmHas(v, f){ return v === true || v === 'both' || v === f; }
+// A link's lcm choice: one of none, order, index or both, or 1 (older
+// links) for both.
+function urlLcm(v){ return v === '1' ? 'both' : SUB_FORMULAS.indexOf(v) !== -1 ? v : 'none'; }
+function lcmPack(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; }
 // Whether the selected row shows a formula.
 function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
@@ -3783,15 +3791,16 @@ function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // log_g h, unless the formula slider at its simplest writes it as h itself
 // (h = 1·h, 1 a generator).
 // base, when given, is the log base to use instead, and hm what makes the
-// h inside ⟨⟩. lcm, when given, picks the gcd or lcm forms instead of
-// state.subLcm (the merged rows' right side keeps its own, subLcmR).
+// h inside ⟨⟩. lcm, when given, names the formulas written in their lcm
+// form instead of state.subLcm (the merged rows' right side keeps its own,
+// subLcmR): none, order, index or both.
 function subRowFormula(G, h, choice, base, hm, lcm){
   var logs = G.mode === 'multiplicative' ? G.cyclic : !state.subSimplify;
   var g = logs ? base || logBase(G) : undefined;
   var out = [];
-  var lcms = (lcm === undefined ? state.subLcm : lcm) && (G.mode === 'additive' || G.cyclic);
-  if (choice === 'order' || choice === 'both') out.push(lcms ? subOrderLcm(G, h, g, hm) : subOrderFormula(G, h, g, true, hm));
-  if (choice === 'index' || choice === 'both') out.push(lcms ? subIndexLcm(G, h, g, hm) : cosetCountFormula(G, h, g, true, true, hm));
+  var lcms = function(f){ return lcmHas(lcm === undefined ? state.subLcm : lcm, f) && (G.mode === 'additive' || G.cyclic); };
+  if (choice === 'order' || choice === 'both') out.push(lcms('order') ? subOrderLcm(G, h, g, hm) : subOrderFormula(G, h, g, true, hm));
+  if (choice === 'index' || choice === 'both') out.push(lcms('index') ? subIndexLcm(G, h, g, hm) : cosetCountFormula(G, h, g, true, true, hm));
   if (g === undefined || !state.subShort) return out;
   var q = lap(G, g, G.order).indexOf(h) || G.order;
   return out.map(function(f){ return skipPowerStep(f, G.mode === 'multiplicative' ? q : null); });
@@ -3865,7 +3874,11 @@ function syncBarFormulas(){
       sw.type = 'button';
       sw.className = 'bar-btn bar-lcm';
       sw.setAttribute('role', 'switch');
-      sw.setAttribute('aria-checked', state[side[c[1]]] ? 'true' : 'false');
+      var shown = state[side[c[0]]], lv = state[side[c[1]]];
+      var some = ['order', 'index'].filter(function(f){ return lcmHas(shown, f); });
+      var lcmd = some.filter(function(f){ return lcmHas(lv, f); }).length;
+      var checked = lcmd === some.length ? 'true' : lcmd ? 'mixed' : 'false';
+      sw.setAttribute('aria-checked', checked);
       sw.title = translate(c[3], { group: G.label });
       var name = document.createElement('span');
       name.className = 'bar-lcm-name';
@@ -3878,7 +3891,7 @@ function syncBarFormulas(){
         sw.appendChild(seg);
       });
       sw.addEventListener('click', function(){
-        state[side[c[1]]] = !state[side[c[1]]];
+        state[side[c[1]]] = checked === 'true' ? 'none' : 'both';
         barFormulasChanged();
       });
       box.appendChild(sw);
@@ -3908,58 +3921,66 @@ function toggleBarMenu(i, btn){
   var first = barMenuEl.querySelector('.bar-check');
   if (first) first.focus();
 }
-// The menu's grid: a box for each formula, size and index, in each place
-// it can show, the row and the main area; a place showing both stacks
-// them, size first. A click ticks one box and leaves the menu open.
-// The last line's boxes tick or untick both formulas in their place at
-// once: ticked while both are on, half-ticked while one is.
-var BAR_PLACES = [['row', 'cyclicGroups.barAreaRow'], ['ring', 'cyclicGroups.barAreaMain']];
-var BAR_FORMULAS = [['order', 'cyclicGroups.barSizeFormula'], ['index', 'cyclicGroups.barIndexFormula'], ['both', 'cyclicGroups.subFormulaBoth']];
+// The menu's grid: for each place a formula can show in, the main area
+// and the row, and for each formula, size and index, a choice of three:
+// its gcd form, none, or its lcm form. A place showing both stacks them,
+// size first. A click picks one and leaves the menu open.
+var BAR_PLACES = [['ring', 'cyclicGroups.barLcmMain'], ['row', 'cyclicGroups.barLcmRow']];
+var BAR_FORMULAS = [['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort']];
+var BAR_FORMS = [['gcd', 'cyclicGroups.barGcd'], ['none', 'cyclicGroups.subFormulaNone'], ['lcm', 'cyclicGroups.barLcm']];
 function fillBarGrid(i, focusAt){
   var side = BAR_SIDES[i];
   var has = function(v, f){ return v === f || v === 'both'; };
-  var pack = function(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; };
   var grid = document.createElement('div');
   grid.className = 'bar-grid';
   grid.setAttribute('role', 'group');
   grid.appendChild(document.createElement('span'));
-  BAR_PLACES.forEach(function(pl){
+  BAR_FORMULAS.forEach(function(fm){
     var head = document.createElement('span');
     head.className = 'bar-grid-col';
-    head.id = 'bar-grid-' + pl[0];
-    head.textContent = translate(pl[1]);
+    head.id = 'bar-grid-' + fm[0];
+    head.textContent = translate(fm[1]);
     grid.appendChild(head);
   });
-  BAR_FORMULAS.forEach(function(fm, r){
+  BAR_PLACES.forEach(function(pl, r){
     var name = document.createElement('span');
     name.className = 'bar-grid-row';
-    name.id = 'bar-grid-' + fm[0];
-    name.textContent = translate(fm[1]);
+    name.id = 'bar-grid-' + pl[0];
+    name.textContent = translate(pl[1]);
     grid.appendChild(name);
-    BAR_PLACES.forEach(function(pl, c){
-      var v = state[side[pl[0]]];
-      var on = fm[0] === 'both' ? (v === 'both' ? 'true' : v === 'none' ? 'false' : 'mixed') : has(v, fm[0]) ? 'true' : 'false';
-      var box = document.createElement('button');
-      box.type = 'button';
-      box.className = 'bar-check';
-      box.setAttribute('role', 'menuitemcheckbox');
-      box.setAttribute('aria-checked', on);
-      box.setAttribute('aria-labelledby', name.id + ' bar-grid-' + pl[0]);
-      box.setAttribute('data-at', r + ',' + c);
-      box.tabIndex = -1;
-      var tick = svgEl('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' });
-      tick.appendChild(svgEl('path', { d: on === 'mixed' ? 'M4 8H12' : 'M3 8.5 6.5 12 13 4.5' }));
-      box.appendChild(tick);
-      box.addEventListener('click', function(){
-        var order = has(v, 'order'), index = has(v, 'index');
-        if (fm[0] === 'order') order = !order;
-        else if (fm[0] === 'index') index = !index;
-        else order = index = on !== 'true';
-        state[side[pl[0]]] = pack(order, index);
-        barFormulasChanged();
-        fillBarGrid(i, r + ',' + c);
+    var v = state[side[pl[0]]], lv = state[side['l' + pl[0]]];
+    BAR_FORMULAS.forEach(function(fm, k){
+      var now = !has(v, fm[0]) ? 'none' : lcmHas(lv, fm[0]) ? 'lcm' : 'gcd';
+      var seg = document.createElement('span');
+      seg.className = 'bar-seg';
+      seg.setAttribute('role', 'group');
+      seg.setAttribute('aria-labelledby', name.id + ' bar-grid-' + fm[0]);
+      BAR_FORMS.forEach(function(fo, j){
+        var c = k * BAR_FORMS.length + j;
+        var opt = document.createElement('button');
+        opt.type = 'button';
+        opt.className = 'bar-check';
+        opt.id = 'bar-grid-' + r + '-' + c;
+        opt.setAttribute('role', 'menuitemradio');
+        opt.setAttribute('aria-checked', now === fo[0] ? 'true' : 'false');
+        opt.setAttribute('aria-labelledby', name.id + ' bar-grid-' + fm[0] + ' ' + opt.id);
+        opt.setAttribute('data-at', r + ',' + c);
+        opt.tabIndex = -1;
+        opt.textContent = translate(fo[1]);
+        opt.addEventListener('click', function(){
+          var order = has(v, 'order'), index = has(v, 'index');
+          var lo = lcmHas(lv, 'order'), li = lcmHas(lv, 'index');
+          var on = fo[0] !== 'none';
+          if (fm[0] === 'order'){ order = on; if (on) lo = fo[0] === 'lcm'; }
+          else { index = on; if (on) li = fo[0] === 'lcm'; }
+          state[side[pl[0]]] = lcmPack(order, index);
+          state[side['l' + pl[0]]] = lcmPack(lo, li);
+          barFormulasChanged();
+          fillBarGrid(i, r + ',' + c);
+        });
+        seg.appendChild(opt);
       });
-      grid.appendChild(box);
+      grid.appendChild(seg);
     });
   });
   barMenuEl.replaceChildren(grid);
@@ -5885,7 +5906,7 @@ document.addEventListener('pointerdown', function(e){
 barMenuEl.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeBarMenu(); }
 });
-// Arrow keys move between the boxes; Space and Enter tick one (a button's own).
+// Arrow keys move between the choices; Space and Enter pick one (a button's own).
 barMenuEl.addEventListener('keydown', function(e){
   var box = e.target.closest && e.target.closest('.bar-check');
   var step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
@@ -5893,7 +5914,8 @@ barMenuEl.addEventListener('keydown', function(e){
   e.preventDefault();
   e.stopPropagation();
   var at = box.getAttribute('data-at').split(',').map(Number);
-  var r = (at[0] + step[0] + BAR_FORMULAS.length) % BAR_FORMULAS.length, c = (at[1] + step[1] + BAR_PLACES.length) % BAR_PLACES.length;
+  var cols = BAR_FORMULAS.length * BAR_FORMS.length;
+  var r = (at[0] + step[0] + BAR_PLACES.length) % BAR_PLACES.length, c = (at[1] + step[1] + cols) % cols;
   barMenuEl.querySelector('[data-at="' + r + ',' + c + '"]').focus();
 });
 formulaLevelEl.addEventListener('input', function(){
@@ -9652,8 +9674,8 @@ function applyIsoShared(d){
   // The pane's formulas, chosen in the bottom bar of the ring holding it.
   if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
   if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
-  if (flag(d.lcmRow)) state.subLcm = d.lcmRow;
-  if (flag(d.lcmRing)) state.subLcmRing = d.lcmRing;
+  if (flag(d.lcmRow) || SUB_FORMULAS.indexOf(d.lcmRow) !== -1) state.subLcm = lcmPack(lcmHas(d.lcmRow, 'order'), lcmHas(d.lcmRow, 'index'));
+  if (flag(d.lcmRing) || SUB_FORMULAS.indexOf(d.lcmRing) !== -1) state.subLcmRing = lcmPack(lcmHas(d.lcmRing, 'order'), lcmHas(d.lcmRing, 'index'));
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.short)) state.subShort = d.short;
   syncFormulaCtl();
@@ -10836,13 +10858,13 @@ function stateQuery(){
   else q.delete('enterinv');
   if (state.subReveal) q.set('subreveal', '1');
   else q.delete('subreveal');
-  if (state.subLcm) q.set('sublcm', '1');
+  if (state.subLcm !== 'none') q.set('sublcm', state.subLcm);
   else q.delete('sublcm');
-  if (state.subLcmR) q.set('sublcmr', '1');
+  if (state.subLcmR !== 'none') q.set('sublcmr', state.subLcmR);
   else q.delete('sublcmr');
-  if (state.subLcmRing) q.set('sublcmring', '1');
+  if (state.subLcmRing !== 'none') q.set('sublcmring', state.subLcmRing);
   else q.delete('sublcmring');
-  if (state.subLcmRingR) q.set('sublcmringr', '1');
+  if (state.subLcmRingR !== 'none') q.set('sublcmringr', state.subLcmRingR);
   else q.delete('sublcmringr');
   if (state.subFormulaRowR !== 'none') q.set('subformularowr', state.subFormulaRowR);
   else q.delete('subformularowr');
@@ -12055,10 +12077,10 @@ function loadState(query, link){
   state.enterInverse = query.get('enterinv') !== '0';
   state.subReveal = query.get('subreveal') === '1';
   state.subPowers = query.get('subpowers') !== '0';
-  state.subLcm = query.get('sublcm') === '1';
-  state.subLcmR = query.get('sublcmr') === '1';
-  state.subLcmRing = query.get('sublcmring') === '1';
-  state.subLcmRingR = query.get('sublcmringr') === '1';
+  state.subLcm = urlLcm(query.get('sublcm'));
+  state.subLcmR = urlLcm(query.get('sublcmr'));
+  state.subLcmRing = urlLcm(query.get('sublcmring'));
+  state.subLcmRingR = urlLcm(query.get('sublcmringr'));
   if (SUB_FORMULAS.indexOf(query.get('subformularowr')) !== -1) state.subFormulaRowR = query.get('subformularowr');
   if (SUB_FORMULAS.indexOf(query.get('subformularingr')) !== -1) state.subFormulaRingR = query.get('subformularingr');
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));
