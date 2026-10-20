@@ -8326,11 +8326,17 @@ subgroupsEl.addEventListener('pointerover', function(e){
   setRevealHot(m && m.querySelector('.sub-nat') ? m : null);
 });
 subgroupsEl.addEventListener('pointerleave', function(){ setRevealHot(null); });
-genSuperEl.addEventListener('pointerover', function(e){
+// Only G = ⟨h⟩'s h reveals, and its natural number may be narrower than
+// its power: the reveal holds while the pointer stays in the box the power
+// took, so the chip shrinking never ends it and starts it again.
+var revealBox = null;
+genSuperEl.addEventListener('pointermove', function(e){
+  if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
   var at = e.target.closest && e.target.closest('mrow[data-el]');
+  revealBox = at ? at.getBoundingClientRect() : null;
   setRevealHot(at ? at.closest('math.m-inline') : null);
 });
-genSuperEl.addEventListener('pointerleave', function(){ setRevealHot(null); });
+genSuperEl.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
 // which scrollIntoView would also move, pulling the ring out of view.
