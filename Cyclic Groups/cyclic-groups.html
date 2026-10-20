@@ -6454,7 +6454,13 @@ function renderCombineKey(G){
     else syncIsoKeys();
     return;
   }
-  var params = function(){ return { h: mNum(h), hinv: mNum(G.inv[h]) }; };
+  // Each number keeps the room of the group's widest, so the key's lines
+  // wrap alike for every element and a previewed row never resizes it.
+  var keyNum = function(v){
+    var miss = String(Math.max.apply(null, G.els)).length - String(v).length;
+    return miss > 0 ? mInline(mrow(mn(v), mEl('mphantom', [mn('0'.repeat(miss))])), v) : mNum(v);
+  };
+  var params = function(){ return { h: keyNum(h), hinv: keyNum(G.inv[h]) }; };
   var innerEl = $('combine-key-inner');
   var outerEl = $('combine-key-outer');
   var merged = mergedWalks(G);
@@ -8143,7 +8149,7 @@ function renderSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
+    row.addEventListener('mouseenter', function(e){ hoverRow(row, g, e); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -8249,7 +8255,7 @@ function renderMergedSubgroups(G){
       selectGen(panelGen = g);
       focusCurrentRow();
     });
-    row.addEventListener('mouseenter', function(){ if (!keyNav) setPreview(g); });
+    row.addEventListener('mouseenter', function(e){ hoverRow(row, g, e); });
     row.addEventListener('focus', function(){ setPreview(g); });
     row.addEventListener('blur', function(){ setPreview(null); });
     li.appendChild(row);
@@ -8384,6 +8390,28 @@ function keepCurrentRowInView(G){
   showRow(row);
 }
 
+// A hovered row previews its subgroup, and the preview may move the list
+// (the arrow key under it rewrapping, say): the row stays previewed while
+// the pointer is still in the box it had when the pointer came in, so a
+// row moved in under a resting pointer can't take the preview and move the
+// list back, over and over.
+var heldRow = null, pointerClient = null;
+function hoverRow(row, g, e){
+  if (keyNav) return;
+  if (heldRow && heldRow.g === g){ setPreview(g); return; }
+  var at = e && e.isTrusted ? { x: e.clientX, y: e.clientY } : pointerClient;
+  var b = heldRow && heldRow.g === preview && heldRow.g !== g && heldRow.box;
+  if (b && at && at.x >= b.left && at.x < b.right && at.y >= b.top && at.y < b.bottom) return;
+  heldRow = { g: g, box: row.getBoundingClientRect() };
+  setPreview(g);
+}
+subgroupsEl.addEventListener('mousemove', function(e){
+  var row = e.target.closest && e.target.closest('.subgroup-row');
+  if (row && heldRow) hoverRow(row, Number(row.getAttribute('data-gen')), e);
+});
+subgroupsEl.addEventListener('mouseleave', function(){ heldRow = null; });
+subgroupsEl.addEventListener('scroll', function(){ heldRow = null; }, { passive: true });
+
 // While the arrow keys drive the list, the rows rebuilding and scrolling
 // under a resting pointer make the browser report it entering whatever row
 // lands there; that must not preview over the keyboard's choice. keyNav
@@ -8393,6 +8421,7 @@ var pointerAt = null;
 document.addEventListener('mousemove', function(e){
   var moved = pointerAt !== null && (pointerAt.x !== e.screenX || pointerAt.y !== e.screenY);
   pointerAt = { x: e.screenX, y: e.screenY };
+  pointerClient = { x: e.clientX, y: e.clientY };
   if (!keyNav || !moved) return;
   keyNav = false;
   var row = e.target.closest && e.target.closest('.subgroup-row');
