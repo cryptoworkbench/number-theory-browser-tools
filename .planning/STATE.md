@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: c5e09cb
+state_head: b5c2826
 progress:
   total_phases: 7
   completed_phases: 6
@@ -823,6 +823,7 @@ None yet.
 | 587 | Cyclic Groups: bead colour key frosts only on hover | 2026-10-19 | d2a2dd0 | — |
 | 588 | Cyclic Groups: two bead keys' cards no longer overlap in the middle | 2026-10-19 | a768580 | — |
 | 589 | Cyclic Groups: bead colour key as an edge-to-edge banner | 2026-10-19 | c5e09cb | — |
+| 590 | Cyclic Groups: expression slider menu (generator count, natural expression on hover) | 2026-10-20 | b5c2826 | — |
 
 ## Deferred Items
 
