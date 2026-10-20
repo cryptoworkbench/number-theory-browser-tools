@@ -56,7 +56,7 @@
   /* Math inside running text and panels, typeset as MathML. */
   math.m-inline{ font-family:var(--font-math); font-size:1.12em; font-weight:400; direction:ltr; }
   .subgroup-row math.m-inline{ font-size:1.08em; }
-  .subgroup-row math.m-inline:not(.is-revealed) .sub-nat, .subgroup-row math.m-inline.is-revealed .sub-ex{ display:none; }
+  :is(.subgroup-row, #gen-super) math.m-inline:not(.is-revealed) .sub-nat, :is(.subgroup-row, #gen-super) math.m-inline.is-revealed .sub-ex{ display:none; }
 
   .page-header{ margin:0; }
   .eyebrow{ font-size:.875rem; font-weight:600; color:var(--text-dim); margin:0 0 8px; }
@@ -5257,17 +5257,16 @@ function setRingCtx(open, x, y, expr){
   });
   syncFormulaItems();
   syncExprCtx(!!expr);
+  var nat = syncNatHoverCtx(!expr);
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
   ringCtxAt = [x, y];
   placeRingCtx();
-  (expr ? ringCtxEl.querySelector(':scope > .ring-ctx-expr') : ringCtxItems[0].item).focus();
+  (expr ? ringCtxEl.querySelector(':scope > .ring-ctx-expr') : nat || ringCtxItems[0].item).focus();
 }
 // Right-clicking the expression slider opens the ring's menu with only its
-// own items: the group's generator count, opening the copy submenu as the
-// Formulas item does, then, while the slider expresses the beads as
-// powers, the switch that keeps a bead under the pointer in its power
-// rather than showing its natural number.
+// own item: the group's generator count, opening the copy submenu as the
+// Formulas item does.
 function syncExprCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', on);
@@ -5275,20 +5274,26 @@ function syncExprCtx(on){
   var gens = ctxItem('menuitem', translate('cyclicGroups.scratchGens'), true);
   gens.item.addEventListener('pointerenter', function(){ setRingCopy('gens', gens.item, false); });
   gens.item.addEventListener('click', function(){ setRingCopy('gens', gens.item, true); });
-  var items = [gens.item];
-  if (exprBy(drawn.G) !== null){
-    var nat = menuTick('menuitemcheckbox', translate('cyclicGroups.exprNatHoverOff'), state.natHoverOff, function(){
-      setRingCtx(false);
-      state.natHoverOff = !state.natHoverOff;
-      render();
-    });
-    nat.addEventListener('pointerenter', function(){ setRingCopy(null); });
-    items.push(nat);
-  }
-  items.forEach(function(el){
-    el.classList.add('ring-ctx-expr');
-    ringCtxEl.appendChild(el);
+  gens.item.classList.add('ring-ctx-expr');
+  ringCtxEl.appendChild(gens.item);
+}
+// The main menu's first item, while the expression slider writes the
+// elements as powers: the switch that keeps a bead, or the subgroup row's
+// G = ⟨h⟩, in its power under the pointer rather than showing its natural
+// number.
+function syncNatHoverCtx(on){
+  var old = ringCtxEl.querySelector(':scope > .ring-ctx-nat');
+  if (old) old.remove();
+  if (!on || !drawn || exprBy(drawn.G) === null) return null;
+  var nat = menuTick('menuitemcheckbox', translate('cyclicGroups.exprNatHoverOff'), state.natHoverOff, function(){
+    setRingCtx(false);
+    state.natHoverOff = !state.natHoverOff;
+    render();
   });
+  nat.classList.add('ring-ctx-nat');
+  nat.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  ringCtxEl.insertBefore(nat, ringCtxEl.querySelector(':scope > .fs-menu-head'));
+  return nat;
 }
 // At the pointer, kept inside the window; placed again when the pane's
 // window grows to give the menu room.
@@ -6179,7 +6184,9 @@ function syncGenSuper(G){
   var h = state.gen, whole = G.orders[h] === G.order, rel = whole ? '⊆' : '⊂';
   var named = genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL;
   // The subgroup's h is written as the Subgroups panel writes it.
-  var hw = named && cosetGenWrite(G, h);
+  // Under the pointer it shows its natural number, as a bead does, unless
+  // the main menu's switch turns that off.
+  var hw = named && cosetGenWrite(G, h, !state.natHoverOff && exprBy(G) !== null);
   genSuperEl.appendChild(named
     ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
     : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
@@ -7637,11 +7644,11 @@ function cosetIndexMath(G, h, left, hw){
 // The button's h as the Subgroups panel writes its generating element:
 // in its expression, lined up, and coloured like its bead. Merged, the
 // pane's φ(h) as the panel's right side writes it, coloured as h is.
-function cosetGenWrite(G, h){
+function cosetGenWrite(G, h, reveal){
   var lg = subExprGen(G, state.subLeft, state.expr);
   var H = !IS_ISOPANE && subInterlocked() ? isoPaneGroup() : null;
   var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G));
-  return { m: memberMath(h, f.m(h)), p: f.p(h) };
+  return { m: memberMath(h, reveal ? f.r(h, true) : f.m(h)), p: f.p(h) };
 }
 function cosetPaneWrite(G, H, phi, h){
   var se = isoPane.subExpr || { left: null, right: null };
@@ -8033,10 +8040,11 @@ function subFormat(base, log, width, expWidth){
     m: function(x){ return log ? mEl('msup', [mn(base), numMn(ex(log[x]), expWidth)]) : numMn(nat(x), width); },
     p: function(x){ return log ? base + '^' + ex(log[x]) : nat(x); }
   };
-  // A row's member, which with Reveal on hover on carries its natural
-  // number beside its power, shown in its place under the pointer.
-  f.r = function(x){
-    if (!log || !subRevealOn()) return f.m(x);
+  // A row's member, which with Reveal on hover on (or the switch on given
+  // as on) carries its natural number beside its power, shown in its
+  // place under the pointer.
+  f.r = function(x, on){
+    if (!log || !(on === undefined ? subRevealOn() : on)) return f.m(x);
     var e = mrow(f.m(x)), n = mrow(numMn(nat(x), width)), both = mrow(e, n);
     e.setAttribute('class', 'sub-ex');
     n.setAttribute('class', 'sub-nat');
@@ -8317,6 +8325,11 @@ subgroupsEl.addEventListener('pointerover', function(e){
   setRevealHot(m && m.querySelector('.sub-nat') ? m : null);
 });
 subgroupsEl.addEventListener('pointerleave', function(){ setRevealHot(null); });
+genSuperEl.addEventListener('pointerover', function(e){
+  var at = e.target.closest && e.target.closest('mrow[data-el]');
+  setRevealHot(at ? at.closest('math.m-inline') : null);
+});
+genSuperEl.addEventListener('pointerleave', function(){ setRevealHot(null); });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
 // which scrollIntoView would also move, pulling the ring out of view.
