@@ -1632,7 +1632,16 @@
   .bar-lcm-name{ margin-right:6px; color:var(--text-dim); }
   .bar-lcm-seg{ display:grid; place-items:center; height:100%; padding:0 6px; font-size:.72rem; font-weight:600; letter-spacing:.04em; color:var(--text-dim); border-left:1px solid var(--panel-border); }
   .bar-lcm[aria-checked="false"] .bar-lcm-seg.is-gcd, .bar-lcm[aria-checked="true"] .bar-lcm-seg.is-lcm{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
-  .bar-menu{ min-width:200px; }
+  .bar-menu{ min-width:0; }
+  .bar-grid{ display:grid; grid-template-columns:auto auto auto; align-items:center; gap:6px 14px; padding:6px 10px 8px; }
+  .bar-grid-col{ font-size:.72rem; color:var(--text-dim); text-align:center; white-space:nowrap; }
+  .bar-grid-row{ font-size:.85rem; color:var(--text); white-space:nowrap; }
+  .bar-check{ justify-self:center; display:grid; place-items:center; width:22px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:5px; background:var(--surface); cursor:pointer; }
+  .bar-check svg{ width:14px; height:14px; fill:none; stroke:var(--accent-ink); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; visibility:hidden; }
+  .bar-check:is([aria-checked="true"], [aria-checked="mixed"]){ background:var(--accent); border-color:var(--accent); }
+  .bar-check:is([aria-checked="true"], [aria-checked="mixed"]) svg{ visibility:visible; }
+  .bar-check:hover{ border-color:var(--accent); }
+  .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .bar-btn-short{ display:none; }
   @container (max-width: 1500px){ .bar-btn-long{ display:none; } .bar-btn-short{ display:inline; } }
   @container (max-width: 1400px){ .bar-lcm-name{ display:none; } }
@@ -3838,37 +3847,71 @@ function toggleBarMenu(i, btn){
   var side = BAR_SIDES[i], G = barGroup(i);
   if (!G) return;
   barMenuFor = i;
-  barMenuEl.replaceChildren();
-  // One section per formula, size then index, each choosing where it
-  // shows: nowhere, in the main view, in the row, or in both. A place
-  // showing both formulas stacks them, size first.
-  var has = function(v, f){ return v === f || v === 'both'; };
-  var pack = function(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; };
-  [['order', 'cyclicGroups.barSizeFormula'], ['index', 'cyclicGroups.barIndexFormula']].forEach(function(c){
-    var f = c[0], other = f === 'order' ? 'index' : 'order';
-    var head = document.createElement('p');
-    head.className = 'fs-menu-head';
-    head.textContent = translate(c[1]);
-    barMenuEl.appendChild(head);
-    var at = (has(state[side.ring], f) ? 1 : 0) + (has(state[side.row], f) ? 2 : 0);
-    [[0, 'cyclicGroups.subFormulaNone'], [1, 'cyclicGroups.barAreaMain'], [2, 'cyclicGroups.barAreaRow'], [3, 'cyclicGroups.subFormulaBoth']].forEach(function(o){
-      barMenuEl.appendChild(menuTick('menuitemradio', translate(o[1]), at === o[0], function(){
-        closeBarMenu();
-        [[side.ring, 1], [side.row, 2]].forEach(function(p){
-          var on = !!(o[0] & p[1]), keep = has(state[p[0]], other);
-          state[p[0]] = f === 'order' ? pack(on, keep) : pack(keep, on);
-        });
-        barFormulasChanged();
-      }));
-    });
-  });
+  fillBarGrid(i);
   barMenuEl.hidden = false;
   var r = btn.getBoundingClientRect(), w = barMenuEl.offsetWidth, h = barMenuEl.offsetHeight;
   barMenuEl.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + 'px';
   barMenuEl.style.top = Math.max(4, r.top - h - 6) + 'px';
   btn.setAttribute('aria-expanded', 'true');
-  var first = barMenuEl.querySelector('[aria-checked="true"]') || barMenuEl.querySelector('.fs-menu-item');
+  var first = barMenuEl.querySelector('.bar-check');
   if (first) first.focus();
+}
+// The menu's grid: a box for each formula, size and index, in each place
+// it can show, the row and the main area; a place showing both stacks
+// them, size first. A click ticks one box and leaves the menu open.
+// The last line's boxes tick or untick both formulas in their place at
+// once: ticked while both are on, half-ticked while one is.
+var BAR_PLACES = [['row', 'cyclicGroups.barAreaRow'], ['ring', 'cyclicGroups.barAreaMain']];
+var BAR_FORMULAS = [['order', 'cyclicGroups.barSizeFormula'], ['index', 'cyclicGroups.barIndexFormula'], ['both', 'cyclicGroups.subFormulaBoth']];
+function fillBarGrid(i, focusAt){
+  var side = BAR_SIDES[i];
+  var has = function(v, f){ return v === f || v === 'both'; };
+  var pack = function(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; };
+  var grid = document.createElement('div');
+  grid.className = 'bar-grid';
+  grid.setAttribute('role', 'group');
+  grid.appendChild(document.createElement('span'));
+  BAR_PLACES.forEach(function(pl){
+    var head = document.createElement('span');
+    head.className = 'bar-grid-col';
+    head.id = 'bar-grid-' + pl[0];
+    head.textContent = translate(pl[1]);
+    grid.appendChild(head);
+  });
+  BAR_FORMULAS.forEach(function(fm, r){
+    var name = document.createElement('span');
+    name.className = 'bar-grid-row';
+    name.id = 'bar-grid-' + fm[0];
+    name.textContent = translate(fm[1]);
+    grid.appendChild(name);
+    BAR_PLACES.forEach(function(pl, c){
+      var v = state[side[pl[0]]];
+      var on = fm[0] === 'both' ? (v === 'both' ? 'true' : v === 'none' ? 'false' : 'mixed') : has(v, fm[0]) ? 'true' : 'false';
+      var box = document.createElement('button');
+      box.type = 'button';
+      box.className = 'bar-check';
+      box.setAttribute('role', 'menuitemcheckbox');
+      box.setAttribute('aria-checked', on);
+      box.setAttribute('aria-labelledby', name.id + ' bar-grid-' + pl[0]);
+      box.setAttribute('data-at', r + ',' + c);
+      box.tabIndex = -1;
+      var tick = svgEl('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' });
+      tick.appendChild(svgEl('path', { d: on === 'mixed' ? 'M4 8H12' : 'M3 8.5 6.5 12 13 4.5' }));
+      box.appendChild(tick);
+      box.addEventListener('click', function(){
+        var order = has(v, 'order'), index = has(v, 'index');
+        if (fm[0] === 'order') order = !order;
+        else if (fm[0] === 'index') index = !index;
+        else order = index = on !== 'true';
+        state[side[pl[0]]] = pack(order, index);
+        barFormulasChanged();
+        fillBarGrid(i, r + ',' + c);
+      });
+      grid.appendChild(box);
+    });
+  });
+  barMenuEl.replaceChildren(grid);
+  if (focusAt){ var again = grid.querySelector('[data-at="' + focusAt + '"]'); if (again) again.focus(); }
 }
 function closeBarMenu(){
   if (barMenuEl.hidden) return;
@@ -5789,6 +5832,17 @@ document.addEventListener('pointerdown', function(e){
 }, true);
 barMenuEl.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeBarMenu(); }
+});
+// Arrow keys move between the boxes; Space and Enter tick one (a button's own).
+barMenuEl.addEventListener('keydown', function(e){
+  var box = e.target.closest && e.target.closest('.bar-check');
+  var step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+  if (!box || !step) return;
+  e.preventDefault();
+  e.stopPropagation();
+  var at = box.getAttribute('data-at').split(',').map(Number);
+  var r = (at[0] + step[0] + BAR_FORMULAS.length) % BAR_FORMULAS.length, c = (at[1] + step[1] + BAR_PLACES.length) % BAR_PLACES.length;
+  barMenuEl.querySelector('[data-at="' + r + ',' + c + '"]').focus();
 });
 formulaLevelEl.addEventListener('input', function(){
   var v = +formulaLevelEl.value;
