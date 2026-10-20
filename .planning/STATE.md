@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: 6bc2e77
+state_head: 3cfbfd9
 progress:
   total_phases: 7
   completed_phases: 6
@@ -841,6 +841,7 @@ None yet.
 | 605 | Cyclic Groups: a stand-in pointer drawn under the beads follows the hidden pointer over a bead showing its natural number | 2026-10-20 | 277db44 | — |
 | 606 | Cyclic Groups: the stand-in pointer under a revealed bead is the ring's grab hand (closed while turning) | 2026-10-20 | f8c28c6 | — |
 | 607 | Cyclic Groups: the ring's grab pointer is the page's own hand image, identical to the stand-in under a revealed bead | 2026-10-20 | 6bc2e77 | — |
+| 608 | Cyclic Groups: the ring keeps the system grab pointer; the stand-in under a revealed bead is the Breeze black hand (palette: --pointer-ink, --pointer-edge) | 2026-10-20 | 3cfbfd9 | — |
 
 ## Deferred Items
 
