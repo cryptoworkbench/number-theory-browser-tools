@@ -8570,11 +8570,38 @@ window.addEventListener('keydown', function(e){
     if (stepSubRow(e.key === 'ArrowDown' ? 1 : -1) && hadFocus) focusCurrentRow();
     return;
   }
-  var i = (parseInt(exprSliderEl.value, 10) || 0) + (e.key === 'ArrowRight' ? 1 : -1);
+  stepExprSlider(e.key === 'ArrowRight' ? 1 : -1);
+}, true);
+function stepExprSlider(by){
+  var i = (parseInt(exprSliderEl.value, 10) || 0) + by;
   if (i < 0 || i > parseInt(exprSliderEl.max, 10)) return;
   exprSliderEl.value = String(i);
   setExprStop(i);
-}, true);
+}
+// Wherever the pointer is, the wheel steps what the subgroup dropdown
+// follows, as the arrow keys do: the expression slider (down to the right)
+// or the bottom panel's selected row (down to the row below), a step for
+// each notch, a touchpad's small scrolls adding up to one. A ring zooming
+// by the wheel keeps it, and so do a menu, a field being typed in and
+// the browser's own zoom (Ctrl).
+var stepWheelSum = 0;
+window.addEventListener('wheel', function(e){
+  if (e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW || state.noSub) return;
+  if (IS_DESKTOP && !cgEntered) return;
+  var t = e.target;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
+  if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
+  var follow = genSelectEl.value === SUB_FOLLOW;
+  if (!follow && genSelectEl.value !== SUB_PANEL) return;
+  e.preventDefault();
+  stepWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
+  if (Math.abs(stepWheelSum) < 50) return;
+  var by = stepWheelSum > 0 ? 1 : -1;
+  stepWheelSum = 0;
+  if (follow){ stepExprSlider(by); return; }
+  var hadFocus = subgroupsEl.contains(document.activeElement);
+  if (stepSubRow(by) && hadFocus) focusCurrentRow();
+}, { passive: false, capture: true });
 // Enter on a row, or with nothing focused, selects the row of the inverse
 // of that row's element (the selected row's with nothing focused), unless
 // the bottom panel's menu turns that off; then Enter does nothing there.
