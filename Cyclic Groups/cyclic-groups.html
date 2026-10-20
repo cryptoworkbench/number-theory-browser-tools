@@ -1358,6 +1358,7 @@
   /* The ring's own right-click menu: the Layers switches, at the pointer. */
   .ring-ctx{ position:fixed; left:0; top:0; bottom:auto; z-index:70; min-width:220px; }
   .ring-ctx > [hidden]{ display:none; }
+  .ring-ctx.is-expr-ctx > :not(.ring-ctx-expr, .ring-ctx-sub){ display:none; }
   .ring-ctx .fs-menu-item{ font:inherit; font-family:var(--font-sans); font-size:.88rem; color:var(--text); background:none; border:0; cursor:pointer; }
   .ring-ctx .fs-menu-item:hover, .ring-ctx .fs-menu-item:focus-visible{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .ring-ctx .fs-menu-item:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
@@ -2301,7 +2302,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, subLcm: false, subLcmR: false, subLcmRing: false, subLcmRingR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3423,6 +3424,14 @@ function drawRing(parent, G, beads, box, paint){
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
       var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
+      if (elog){
+        var nat = pad(a, maxEl), natSize = beadR * 1.05 * (state.subPad ? Math.min(1, 2.2 / nat.length) : 1);
+        label.setAttribute('data-expr', text);
+        label.setAttribute('data-expr-size', label.getAttribute('font-size'));
+        label.setAttribute('data-nat', nat);
+        label.setAttribute('data-nat-size', Math.round(state.subPad ? Math.max(natSize, 7) : natSize));
+        natLabel(label, a === natHot);
+      }
       ring.appendChild(label);
     });
   }
@@ -3430,6 +3439,25 @@ function drawRing(parent, G, beads, box, paint){
   parent.appendChild(ring);
   return ring;
 }
+
+// Under the pointer, a bead the expression slider writes as a power shows
+// its natural number instead, unless the slider's menu turns that off.
+var natHot = null;
+function natLabel(t, on){
+  var w = on && !state.natHoverOff ? 'nat' : 'expr';
+  t.textContent = t.getAttribute('data-' + w);
+  t.setAttribute('font-size', t.getAttribute('data-' + w + '-size'));
+}
+function showNatHover(a){
+  if (a === natHot) return;
+  natHot = a;
+  ringSvgEl.querySelectorAll('.bead-label[data-nat]').forEach(function(t){ natLabel(t, t.getAttribute('data-el') === String(a)); });
+}
+ringSvgEl.addEventListener('pointerover', function(e){
+  var bead = e.target.closest('.bead');
+  showNatHover(bead ? +bead.getAttribute('data-el') : null);
+});
+ringSvgEl.addEventListener('pointerleave', function(){ showNatHover(null); });
 
 function drawText(cls, x, y, text){
   var t = svgEl('text', { 'class': cls, x: x, y: y });
@@ -5166,10 +5194,11 @@ function mathToAscii(node){
   return asc(node).replace(/ +/g, ' ').trim();
 }
 var ringCtxReturn = null;
-function setRingCtx(open, x, y){
+function setRingCtx(open, x, y, expr){
   if (!open){
     if (ringCtxEl.hidden) return;
     ringCtxEl.hidden = true;
+    setRingCopy(null);
     if (ringCtxReturn && ringCtxEl.contains(document.activeElement)) ringCtxReturn.focus();
     ringCtxReturn = null;
     return;
@@ -5180,11 +5209,39 @@ function setRingCtx(open, x, y){
   });
   syncFormulaItems();
   syncRingFormulaPicks();
+  syncExprCtx(!!expr);
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
   ringCtxAt = [x, y];
   placeRingCtx();
-  ringCtxItems[0].item.focus();
+  (expr ? ringCtxEl.querySelector(':scope > .ring-ctx-expr') : ringCtxItems[0].item).focus();
+}
+// Right-clicking the expression slider opens the ring's menu with only its
+// own items: the group's generator count, opening the copy submenu as the
+// Formulas item does, then, while the slider expresses the beads as
+// powers, the switch that keeps a bead under the pointer in its power
+// rather than showing its natural number.
+function syncExprCtx(on){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
+  ringCtxEl.classList.toggle('is-expr-ctx', on);
+  if (!on || !drawn) return;
+  var gens = ctxItem('menuitem', translate('cyclicGroups.scratchGens'), true);
+  gens.item.addEventListener('pointerenter', function(){ setRingCopy('gens', gens.item, false); });
+  gens.item.addEventListener('click', function(){ setRingCopy('gens', gens.item, true); });
+  var items = [gens.item];
+  if (exprBy(drawn.G) !== null){
+    var nat = menuTick('menuitemcheckbox', translate('cyclicGroups.exprNatHoverOff'), state.natHoverOff, function(){
+      setRingCtx(false);
+      state.natHoverOff = !state.natHoverOff;
+      render();
+    });
+    nat.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    items.push(nat);
+  }
+  items.forEach(function(el){
+    el.classList.add('ring-ctx-expr');
+    ringCtxEl.appendChild(el);
+  });
 }
 // Last in the ring's menu, on a desktop, the selected subgroup's formula
 // in the main view: none, its cardinality, its index, or both (the
@@ -5220,6 +5277,11 @@ ringSvgEl.addEventListener('contextmenu', function(e){
   if (IS_MOBILE) return; // a long press is no right click on a phone
   setRingCtx(true, e.clientX, e.clientY);
 });
+exprSlotEl.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  if (IS_MOBILE) return;
+  setRingCtx(true, e.clientX, e.clientY, true);
+});
 document.addEventListener('pointerdown', function(e){
   if (!ringCtxEl.contains(e.target)) setRingCtx(false);
 });
@@ -5240,7 +5302,7 @@ ringCtxEl.addEventListener('keydown', function(e){
     return;
   }
   // The menu's own items, the formulas among them.
-  var mains = Array.prototype.filter.call(ringCtxEl.children, function(el){ return el.classList.contains('fs-menu-item') && !el.hidden; });
+  var mains = Array.prototype.filter.call(ringCtxEl.children, function(el){ return el.classList.contains('fs-menu-item') && el.getClientRects().length > 0; });
   var i = mains.indexOf(document.activeElement);
   if (e.key === 'ArrowRight' && i >= 0 && mains[i].getAttribute('aria-haspopup')){ mains[i].click(); e.preventDefault(); return; }
   var n = mains.length, to = null;
@@ -10531,6 +10593,8 @@ function stateQuery(){
   else q.delete('subpowers');
   if (!state.subPaths) q.set('subpaths', '0');
   else q.delete('subpaths');
+  if (state.natHoverOff) q.set('nathover', '0');
+  else q.delete('nathover');
   if (state.subLcm) q.set('sublcm', '1');
   else q.delete('sublcm');
   if (state.subLcmR) q.set('sublcmr', '1');
@@ -11735,6 +11799,7 @@ function loadState(query, link){
   state.subSimplify = query.get('subsimplify') === '1';
   state.subShort = !state.subSimplify && query.get('subshort') === '1';
   state.subPaths = query.get('subpaths') !== '0';
+  state.natHoverOff = query.get('nathover') === '0';
   state.subPowers = query.get('subpowers') !== '0';
   state.subLcm = query.get('sublcm') === '1';
   state.subLcmR = query.get('sublcmr') === '1';
