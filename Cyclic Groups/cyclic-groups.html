@@ -8300,10 +8300,10 @@ document.addEventListener('mousemove', function(e){
 // Wherever the focus is, the arrow keys work two things: left and right step
 // the element expression slider (and a slider coupled to it with it), up
 // and down select the subgroup row below or above, in the bottom panel's
-// own order. Only typing in a field and a menu's own items keep them.
-// Taken before the focused control sees them, so no dropdown, slider or
-// switch acts on them as well. A row with the focus keeps it, on the row
-// now selected.
+// own order, wrapping round at either end. Only typing in a field and a
+// menu's own items keep them. Taken before the focused control sees them,
+// so no dropdown, slider or switch acts on them as well. A row with the
+// focus keeps it, on the row now selected.
 window.addEventListener('keydown', function(e){
   var vertical = e.key === 'ArrowUp' || e.key === 'ArrowDown';
   if (!vertical && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
@@ -8357,8 +8357,11 @@ function unfoldSubRow(G, h){
 // unfolds its group.
 function stepSubRow(delta){
   var G = drawn.G, els = subOrder(G);
-  var i = els.indexOf(state.gen) + delta;
-  if (i < 0 || i >= els.length) return false;
+  if (!els.length) return false;
+  // Past the last row comes the first again, and before the first the last.
+  var at = els.indexOf(state.gen);
+  var i = at === -1 ? (delta > 0 ? 0 : els.length - 1) : (at + delta + els.length) % els.length;
+  if (els[i] === state.gen) return false;
   unfoldSubRow(G, els[i]);
   keyNav = true;
   selectGen(panelGen = els[i]);
