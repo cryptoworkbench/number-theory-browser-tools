@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: ccd1ae1
+state_head: 9756926
 progress:
   total_phases: 7
   completed_phases: 6
@@ -844,6 +844,7 @@ None yet.
 | 608 | Cyclic Groups: the ring keeps the system grab pointer; the stand-in under a revealed bead is the Breeze black hand (palette: --pointer-ink, --pointer-edge) | 2026-10-20 | 3cfbfd9 | — |
 | 609 | Cyclic Groups: formulas menu as Main/Row × Size/Index, each GCD / None / LCM; lcm state per formula (sublcm* now none/order/index/both, 1 read as both) | 2026-10-20 | 5673550 | — |
 | 610 | Cyclic Groups: GCD/LCM switches removed from the bottom bar (and their two tooltip strings) | 2026-10-20 | ccd1ae1 | — |
+| 611 | Cyclic Groups: mouse wheel steps the expression slider (Follow expression slider) or the bottom panel's selected row (Follow bottom-panel) | 2026-10-20 | 9756926 | — |
 
 ## Deferred Items
 
