@@ -6442,7 +6442,7 @@ function syncGenSuper(G){
   // The subgroup's h is written as the element expression slider writes
   // the beads. Under the pointer it shows its natural number, as a bead
   // does, unless the main menu's switch turns that off.
-  var hw = named && cosetGenWrite(G, h, !state.natHoverOff && exprBy(G) !== null, true);
+  var hw = named && cosetGenWrite(G, h, !state.natHoverOff && exprBy(G) !== null);
   genSuperEl.appendChild(named
     ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
     : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
@@ -7903,24 +7903,20 @@ function cosetIndexMath(G, h, left, hw){
     '[' + groupPlain(G) + ' : ⟨' + hp + '⟩] \u2212 1 =' + (left === undefined ? '' : ' ' + left));
   return m;
 }
-// The button's h as the Subgroups panel writes its generating element:
-// in its expression, lined up, and coloured like its bead. Merged, the
-// pane's φ(h) as the panel's right side writes it, coloured as h is.
-// slider, when given, writes h in the element expression slider's
-// expression instead, as the beads are.
-function cosetGenWrite(G, h, reveal, slider){
-  var lg = slider ? exprBy(G) : subExprGen(G, state.subLeft, state.expr);
+// The subgroup row's G = ⟨h⟩: h in the element expression slider's
+// expression, as the beads are, lined up and coloured like its bead.
+function cosetGenWrite(G, h, reveal){
+  var lg = exprBy(G);
   var H = !IS_ISOPANE && subInterlocked() ? isoPaneGroup() : null;
   var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G));
   return { m: memberMath(h, reveal ? f.r(h, true) : f.m(h)), p: f.p(h) };
 }
-function cosetPaneWrite(G, H, phi, h){
-  var se = isoPane.subExpr || { left: null, right: null };
-  if (!subInterlocked()) return null;
-  var sortG = state.subSortR ? null : sortGen(G);
-  var hl = se.left === SUB_SORT ? (sortG === null ? null : phi(sortG)) : subExprGen(H, se.left, paneExpr());
-  var f = subFormat(hl, hl === null ? null : exprLog(H, hl), subWidth(H), Math.max(subExpWidth(G), subExpWidth(H)));
-  return { m: memberMath(h, f.m(phi(h))), p: f.p(phi(h)) };
+// The cosets button's h: always its natural number, lined up and coloured
+// like its bead; for the pane's line, φ(h) in the pane's group, coloured
+// as h is.
+function cosetNatWrite(G, h, H, x){
+  var f = subFormat(null, null, subWidth(H || G), 0), n = H ? x : h;
+  return { m: memberMath(h, f.m(n)), p: f.p(n) };
 }
 
 // The button opens or closes a run. Closed, it counts the cosets left to
@@ -7935,12 +7931,12 @@ function syncCosetButton(){
     // counts for both: each group's index on its own line, then the count.
     var m = !IS_ISOPANE && isoLinked() ? isoWholeMap() : null;
     if (m){
-      var l = cosetIndexMath(G, state.gen, undefined, cosetGenWrite(G, state.gen)), r = cosetIndexMath(m.H, m.to(state.gen), undefined, cosetPaneWrite(G, m.H, m.to, state.gen));
+      var l = cosetIndexMath(G, state.gen, undefined, cosetNatWrite(G, state.gen)), r = cosetIndexMath(m.H, m.to(state.gen), undefined, cosetNatWrite(G, state.gen, m.H, m.to(state.gen)));
       l.classList.add('coset-line');
       r.classList.add('coset-line');
       translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonIsoMath', { left: l, right: r, count: mNum(left) });
     }
-    else translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { expr: cosetIndexMath(G, state.gen, left, cosetGenWrite(G, state.gen)), count: left });
+    else translateInto(cosetBtnEl, 'cyclicGroups.cosetCountButtonMath', { expr: cosetIndexMath(G, state.gen, left, cosetNatWrite(G, state.gen)), count: left });
   }
   else cosetBtnEl.textContent = translate('cyclicGroups.cosetButton');
   // On the line between linked rings the button is placed by its size.
