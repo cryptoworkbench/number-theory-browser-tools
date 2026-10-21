@@ -2507,7 +2507,7 @@ function isProse(text) {
 var SCRIPT_LATIN_NOTATION = [
   "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
   "Fourier", "Garner", "Hasse", "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "QR", "RSA", "SVG",
-  "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "pointAdd",
+  "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "ord", "pointAdd",
   "qInv", "scalarMul"
 ];
 
@@ -2561,7 +2561,7 @@ var ZGH_LATN_TO_TFNG = Object.freeze({
 var ZGH_KEEP = [
   "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Delete", "Enter", "Eve",
   "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "QR", "RSA", "SVG", "Space", "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
-  "kG", "lcm", "log", "mod", "ms", "pointAdd", "qInv", "scalarMul"
+  "kG", "lcm", "log", "mod", "ms", "ord", "pointAdd", "qInv", "scalarMul"
 ];
 var ZGH_KEEP_SET = {};
 ZGH_KEEP.forEach(function (w) { ZGH_KEEP_SET[w] = true; });
