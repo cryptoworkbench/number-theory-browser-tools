@@ -7,7 +7,7 @@ stopped_at: Phase 06 complete, ready to plan Phase 4
 last_updated: "2026-10-14T22:07:24.718Z"
 last_activity: 2026-10-14
 last_activity_desc: Quick task 261006-l6v complete — Undo/Redo for the number palette and working areas
-state_head: df89c91
+state_head: 4474b6c
 progress:
   total_phases: 7
   completed_phases: 6
@@ -859,6 +859,7 @@ None yet.
 | 623 | Cyclic Groups: SUBGROUP row's G = ⟨h⟩ follows the element expression slider (not the bottom panel's G expression) | 2026-10-20 | ba380bd | — |
 | 624 | Cyclic Groups: cosets button always writes h (and the pane's φ(h)) in natural form | 2026-10-20 | 481e3b7 | — |
 | 625 | Cyclic Groups: bottom panel's Reveal on hover offered and working whenever the panel's G or Subgroup expression writes powers (not tied to the slider) | 2026-10-20 | df89c91 | — |
+| 626 | Cyclic Groups: catch-up translation of 123 keys into all 30 languages; 6 dead keys dropped; formula {q} fix; ord notation; i18n-check --coverage PASS | 2026-10-21 | 4474b6c | — |
 
 ## Deferred Items
 
