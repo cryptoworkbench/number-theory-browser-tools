@@ -849,7 +849,9 @@
   .combine-seg > button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .combine-k-spin[hidden]{ display:none; }
   /* k past the group's cardinality: ≡ its reduction, beside the field. */
-  .combine-k-mod{ padding:3px 6px; border:0; border-radius:var(--radius-ctl); background:none; font-family:var(--font-math); font-size:1rem; color:var(--text); white-space:nowrap; cursor:pointer; }
+  .combine-k-mod{ display:inline-grid; justify-items:start; padding:3px 6px; border:0; border-radius:var(--radius-ctl); background:none; font-family:var(--font-math); font-size:1rem; color:var(--text); white-space:nowrap; cursor:pointer; }
+  .combine-k-mod > span{ grid-area:1 / 1; }
+  .combine-k-mod-size, .combine-k-mod.is-idle{ visibility:hidden; }
   .combine-k-mod:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .combine-k-mod:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .combine-k-mod[hidden]{ display:none; }
@@ -7449,9 +7451,21 @@ function syncCombineMode(){
 // element's order divides |G|), so ≡ k mod |G| shows beside the field.
 function syncCombineKMod(G){
   var el = $('combine-k-mod'), k = state.combineK, n = G ? G.order : 0;
-  el.hidden = state.combineMode !== 'scalar' || !n || k < n;
+  // Its room is kept while scalar mode is on, as wide as the widest
+  // reduction ≡ |G| − 1, so the field beside it never shifts.
+  el.hidden = state.combineMode !== 'scalar' || !n;
   if (el.hidden) return;
-  el.textContent = '≡ ' + (k % n);
+  var on = k >= n;
+  el.classList.toggle('is-idle', !on);
+  el.disabled = !on;
+  el.textContent = '';
+  var shown = document.createElement('span'), size = document.createElement('span');
+  shown.textContent = on ? '≡ ' + (k % n) : '';
+  size.textContent = '≡ ' + (n - 1);
+  size.className = 'combine-k-mod-size';
+  size.setAttribute('aria-hidden', 'true');
+  el.append(shown, size);
+  if (!on){ el.removeAttribute('title'); el.removeAttribute('aria-label'); return; }
   el.title = translate('cyclicGroups.combineScalarKMod', { k: k, n: n, r: k % n });
   el.setAttribute('aria-label', el.title);
 }
