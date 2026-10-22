@@ -855,6 +855,7 @@
   .ring-combine .is-a{ fill:var(--role-active); }
   .ring-combine .is-b{ fill:var(--role-input); }
   .ring-combine .is-c{ fill:var(--role-result); }
+  .ring-combine .is-sup{ font-size:0.68em; baseline-shift:super; }
   .ring-combine-hit{ fill:transparent; cursor:help; }
   /* The captions can be selected and copied; a press on one never turns
      the ring. */
@@ -7247,22 +7248,16 @@ function isoTakeCombine(d, m){
 // elements are expressed as powers of a generator g, a second line under
 // it writes the same chain in powers, g^i ∗ g^j ≡ … ≡ g^(i+j) ≡ g^k, each
 // term set in a column under its plain counterpart. A scalar combination
-// writes k·a (or aᵏ) out as the sum (or product) of its k terms, the
-// powers line as (gⁱ)ᵏ ≡ gⁱ ∗ … ∗ gⁱ ≡ g^(ik) ≡ g^m.
+// names its given first, a = …, k = …, then writes one chain A ≡ aᵏ ≡ …,
+// in powers of g while they are on, (gⁱ)ᵏ ≡ g^(i × k) ≡ g^m, else the
+// power and its plain value, never the k terms themselves.
 var COMBINE_LINE = 26, COMBINE_GAP = 5;
-function combineTwoLines(G){ return G.cyclic && exprBy(G) !== null; }
+// A scalar combination always takes two: its given above its chain.
+function combineTwoLines(G){ return (G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)); }
 // A number with a true minus sign.
 function signed(v){ return v < 0 ? '−' + (-v) : String(v); }
 // A signed superscript: ⁻ for a negative k.
 function supSigned(k){ return (k < 0 ? '⁻' : '') + superscript(Math.abs(k)); }
-// |k| terms joined by op, the middle ones elided past six.
-function scalarTerms(term, op, k){
-  var n = Math.abs(k), out = [];
-  var push = function(part){ if (out.length) out.push([null, ' ' + op + ' ']); out.push(part); };
-  if (n <= 6) for (var i = 0; i < n; i++) push(term);
-  else { push(term); push(term); push([null, '⋯']); push(term); }
-  return out;
-}
 // The prompt line once a is picked and before b or k is: the variants may
 // write their own (it returns the text element it drew, or null).
 var comboPromptHook = null;
@@ -7285,42 +7280,42 @@ function drawCombineLine(G, y){
   var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
   // A cell is [role, text] (the role colours it; null: plain), or a list
   // of them set together.
-  var rows, tipAt = null, tip = null;
+  var rows, tipAt = null, tipTo = null, tipRow = 1, tip = null;
   if (combo.k !== null){
     var a = combo.a, k = combo.k, c = scalarOf(G, a, k), mul = G.mode === 'multiplicative';
-    var inv = G.inv[a];
-    // The k terms: a, or for a negative k −a (additive) or a⁻¹'s value.
-    var term = k >= 0 ? ['a', a] : mul ? ['a', inv] : ['a', '(−' + a + ')'];
-    var raw = mul ? Math.pow(k >= 0 ? a : inv, Math.abs(k)) : k * a;
-    var head = mul ? [['a', a], [null, supSigned(k)]] : [[null, signed(k) + '·'], ['a', a]];
-    var r0 = [head, [null, '≡']], r1 = null, i = two ? log[a] : 0;
-    if (two) r1 = [[[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']];
-    // a⁻¹ itself first, for a negative power in a multiplicative group.
-    if (mul && k < 0){
-      r0.push([[null, '('], ['a', a], [null, '⁻¹)' + superscript(-k)]], [null, '≡']);
-      if (two) r1.push([[null, '('], ['a', g + supSigned(-i)], [null, ')' + superscript(-k)]], [null, '≡']);
-    }
-    if (Math.abs(k) >= 2){
-      r0.push(scalarTerms(term, op, k), [null, '≡']);
-      if (two) r1.push(scalarTerms(['a', g + supSigned(k < 0 ? -i : i)], op, k), [null, '≡']);
-    }
-    // The plain result, while it is not too big to write.
-    if (Math.abs(raw) <= 1e15 && (raw !== c || two) && k !== 0 && Math.abs(k) !== 1){
-      r0.push(['c', signed(raw)], [null, '≡']);
-      if (two){ r1.push(['c', g + supSigned(i * k)], [null, '≡']); tipAt = r1.length - 2; }
-    } else if (two && k !== 0){
-      r0.push([null, ''], [null, '']);
-      r1.push(['c', g + supSigned(i * k)], [null, '≡']);
-      tipAt = r1.length - 2;
-    }
-    r0.push(['c', c], [null, mod]);
-    if (two) r1.push(['c', pow(log[c])], [null, mod]);
-    rows = two ? [r0, r1] : [r0];
-    if (two && tipAt !== null){
-      var ik = i * k, n = G.order;
+    // The given, a and k, on a line of its own above the chain.
+    var given = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
+    var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', {});
+    sa.textContent = String(a);
+    sk.textContent = signed(k);
+    translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
+    ringDynamicEl.appendChild(given);
+    fitText(given);
+    y += COMBINE_LINE;
+    var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
+    if (two){
+      // Powers of g: (gⁱ)ᵏ ≡ g^(i × k), the exponent then counted mod |G|.
+      var i = log[a], ik = i * k, m = log[c], n = G.order;
+      r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
+      tipAt = r.length;
+      r.push([['c', g], ['c', i + ' × ' + (k < 0 ? '(' + signed(k) + ')' : k), 'sup']], [null, '≡']);
+      if (ik !== m) r.push(['c', g + supSigned(ik)], [null, '≡']);
+      r.push(['c', pow(m)], [null, '≡']);
+      tipTo = r.length - 2;
       tip = translate(ik >= n || ik < 0 ? 'cyclicGroups.combineScalarExpWrap' : 'cyclicGroups.combineScalarExpNoWrap',
-        { g: g, i: i, k: signed(k), ik: signed(ik), n: n, m: log[c], gn: pow(n), gik: g + supSigned(ik), gm: pow(log[c]) });
+        { g: g, i: i, k: signed(k), ik: signed(ik), n: n, m: m, gn: pow(n), gik: g + supSigned(ik), gm: pow(m) });
+    } else {
+      // The power itself, a negative one in a multiplicative group as the
+      // inverse's, then its plain value while that is not too big to write.
+      var inv = G.inv[a];
+      if (mul && k < 0) r.push([[null, '('], ['a', a], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', inv], [null, superscript(-k)]], [null, '≡']);
+      else r.push([['a', a], [null, supSigned(k)]], [null, '≡']);
+      var raw = mul ? Math.pow(k >= 0 ? a : inv, Math.abs(k)) : k * a;
+      if (Math.abs(raw) <= 1e15 && raw !== c) r.push(['c', signed(raw)], [null, '≡']);
     }
+    r.push(['c', c], [null, mod]);
+    rows = [r];
+    tipRow = 0;
   } else {
     var a = combo.a, b = combo.b, c = G.combine(a, b);
     var raw = G.mode === 'multiplicative' ? a * b : a + b;
@@ -7332,6 +7327,7 @@ function drawCombineLine(G, y){
       rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
         ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
       tipAt = 8;
+      tipTo = 10;
       var sum = i + j, n = G.order;
       tip = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
         { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
@@ -7345,7 +7341,8 @@ function drawCombineLine(G, y){
     var cells = row.map(function(cell){
       var parts = Array.isArray(cell[0]) ? cell : [cell];
       var spans = parts.map(function(part){
-        var sp = svgEl('tspan', part[0] ? { 'class': 'is-' + part[0] } : {});
+        var cls = (part[0] ? 'is-' + part[0] : '') + (part[2] === 'sup' ? ' is-sup' : '');
+        var sp = svgEl('tspan', cls ? { 'class': cls.trim() } : {});
         sp.textContent = String(part[1]);
         t.appendChild(sp);
         return sp;
@@ -7379,9 +7376,9 @@ function drawCombineLine(G, y){
   // Over the powers line's exponent reduction, a tooltip explains it: g
   // has order |G|, so exponents count modulo the group's cardinality.
   if (tip){
-    var from = lines[1][tipAt], to = lines[1][tipAt + 2];
+    var from = lines[tipRow][tipAt], to = lines[tipRow][tipTo];
     var left = from.x, right = to.x + to.w;
-    var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
+    var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + tipRow * COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
     var title = svgEl('title', {});
     title.textContent = tip;
     hit.appendChild(title);
