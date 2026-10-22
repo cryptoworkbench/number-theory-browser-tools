@@ -7201,9 +7201,9 @@ function scalarWalk(G){
   return { walk: lap(G, s, lapped ? ord : hops + 1), lap: lapped, sense: combo.k < 0 ? -1 : 1 };
 }
 // Each picked element with its roles, in the order a, b, result; with k,
-// the multiples passed on the way are 'w', and once k is large enough
-// for the walk to come round again every element on it, the identity
-// included, wears an extra 'a' halo.
+// the multiples passed on the way are 'w', and once the walk comes round
+// again each element it passes a second time, the identity first, wears
+// an extra 'a' halo.
 function combineRoles(G){
   var roles = new Map();
   if (!comboLive(G)) return roles;
@@ -7211,11 +7211,12 @@ function combineRoles(G){
   add(combo.a, 'a');
   if (combo.k !== null){
     var w = scalarWalk(G), c = scalarOf(G, combo.a, combo.k);
-    var again = w && Math.abs(combo.k) > G.orders[combo.a];
-    if (again) add(combo.a, 'a');
+    var ord = G.orders[combo.a], k = Math.abs(combo.k);
+    var again = function(j){ return w && w.lap && k >= ord + j; };
+    if (w && again(w.walk.indexOf(combo.a))) add(combo.a, 'a');
     if (w) w.walk.slice(1).forEach(function(x){ if (x !== combo.a && x !== c && !roles.has(x)) add(x, 'w'); });
     add(c, 'c');
-    if (again) w.walk.forEach(function(x){ if (x !== combo.a) add(x, 'a'); });
+    if (w) w.walk.forEach(function(x, j){ if (x !== combo.a && again(j)) add(x, 'a'); });
   } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
     add(combo.b, 'b');
     add(G.combine(combo.a, combo.b), 'c');
