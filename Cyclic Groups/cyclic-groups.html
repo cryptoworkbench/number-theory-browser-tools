@@ -831,6 +831,7 @@
   .combine-halo.is-a{ color:var(--role-active); }
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
+  .combine-halo.is-dense{ filter:none; }
   /* Combining a with itself k times: the multiples a, 2a, … on the way
      to the result ringed faintly, and the walk there in the result's
      colour, each hop numbered. */
@@ -3519,10 +3520,17 @@ function drawRing(parent, G, beads, box, paint){
   // Two elements picked to combine and their result, each ringed by a halo
   // in its colour; an element with more than one role wears a halo per
   // role, one around the other.
+  // Halos past what fits before the neighbouring bead's close up, thinner
+  // and thinner, into a band halfway to it.
+  var haloBand = beads.length > 1 ? Math.max(10, Math.hypot(at(1)[0] - at(0)[0], at(1)[1] - at(0)[1]) / 2 - beadR - 4) : HALO_BAND;
   combineRoles(G).forEach(function(roles, a){
     var p = at(place[a]);
+    var step = Math.min(5, Math.min(HALO_BAND, haloBand) / Math.max(1, roles.length - 1));
     roles.forEach(function(role, k){
-      ring.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + 5 * k) }));
+      var dense = step < 5 && role !== 'c';
+      var attrs = { 'class': 'combine-halo is-' + role + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
+      if (dense) attrs['stroke-width'] = num(Math.max(0.4, step * 0.55));
+      ring.appendChild(svgEl('circle', attrs));
     });
   });
 
@@ -7182,6 +7190,9 @@ function pointerAngle(e){
 // both set.
 var combo = { a: null, b: null, k: null, key: null };
 var COMBO_K_MAX = 1000000;
+// The most lap halos one element wears; past a few they close up into a
+// band of HALO_BAND pixels at most.
+var HALO_MAX = 200, HALO_BAND = 40;
 function comboKey(G){ return G.mode + ' ' + G.n; }
 function comboLive(G){ return combo.key === comboKey(G) && G.els.indexOf(combo.a) !== -1; }
 // a combined with itself k times.
@@ -7202,9 +7213,9 @@ function scalarWalk(G){
 }
 // Each picked element with its roles, in the order a, b, result (the
 // result's halo always outermost); with k,
-// the multiples passed on the way are 'w', and once the walk comes round
-// again each element it passes a second time, the identity first, wears
-// an extra 'a' halo.
+// the multiples passed on the way are 'w', and each time the walk comes
+// round again each element it passes once more, the identity first, wears
+// one more 'a' halo (up to HALO_MAX in all).
 function combineRoles(G){
   var roles = new Map();
   if (!comboLive(G)) return roles;
@@ -7213,10 +7224,13 @@ function combineRoles(G){
   if (combo.k !== null){
     var w = scalarWalk(G), c = scalarOf(G, combo.a, combo.k);
     var ord = G.orders[combo.a], k = Math.abs(combo.k);
-    var again = function(j){ return w && w.lap && k >= ord + j; };
-    if (w && again(w.walk.indexOf(combo.a))) add(combo.a, 'a');
+    var laps = function(x, j){
+      var n = w && w.lap && k >= j ? Math.min(Math.floor((k - j) / ord), HALO_MAX) : 0;
+      for (var i = 0; i < n; i++) add(x, 'a');
+    };
+    if (w) laps(combo.a, w.walk.indexOf(combo.a));
     if (w) w.walk.slice(1).forEach(function(x){ if (x !== combo.a && x !== c && !roles.has(x)) add(x, 'w'); });
-    if (w) w.walk.forEach(function(x, j){ if (x !== combo.a && again(j)) add(x, 'a'); });
+    if (w) w.walk.forEach(function(x, j){ if (x !== combo.a) laps(x, j); });
     add(c, 'c');
   } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
     add(combo.b, 'b');
