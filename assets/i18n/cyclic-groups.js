@@ -507,6 +507,7 @@
       dirToggleCcw: 'Forward direction: counterclockwise. Click for clockwise',
       combinePrompt: 'Click a second bead to combine it with {a}',
       combineModeLabel: 'Combine',
+      combineModeLabelScalar: 'Scalar combination',
       combineModeElement: 'Combine two elements',
       combineModeScalar: 'Combine one element with itself k times',
       combineScalarTimes: 'How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse\'s multiples',
