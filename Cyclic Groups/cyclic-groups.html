@@ -831,6 +831,13 @@
   .combine-halo.is-a{ color:var(--role-active); }
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
+  /* Combining a with itself k times: the multiples a, 2a, … on the way
+     to the result ringed faintly, and the walk there in the result's
+     colour, each hop numbered. */
+  .combine-halo.is-w{ color:var(--role-active); stroke-width:2; opacity:.45; filter:none; }
+  .walk-scalar{ --walk:var(--role-result); }
+  .walk-scalar .chord{ opacity:1; }
+  .scalar-hop-n{ fill:var(--role-result); font-family:var(--font-sans); font-size:12px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:3px; }
   .ring-combine{ fill:var(--text); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
   .ring-combine .is-a{ fill:var(--role-active); }
   .ring-combine .is-b{ fill:var(--role-input); }
@@ -3457,6 +3464,30 @@ function drawRing(parent, G, beads, box, paint){
       return edge;
     };
     outerEdge = Math.max(outerEdge, ring.redrawWalks(place));
+  }
+
+  // An element combined with itself k times: the walk from the identity
+  // through a, 2a, … to ka (with a⁻¹ for a negative k, the other way
+  // round), each hop numbered, one lap at most, since the walk then
+  // repeats.
+  var sw = scalarWalk(G);
+  if (sw && m > 1){
+    var swFoot = box.R - beadR;
+    var swSteps = humpSteps(sw.walk, place, m, 1, sw.sense);
+    if (!sw.lap) swSteps.pop();
+    var swEl = svgEl('g', { 'class': 'walk-scalar' });
+    var swD = '';
+    swSteps.forEach(function(h, s){ swD += (s ? ' ' : '') + humpPath(box, swFoot, -1, h, s === 0); });
+    swEl.appendChild(svgEl('path', { 'class': 'chord', d: swD, 'stroke-width': 2.6 }));
+    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
+    swSteps.forEach(function(h, s){
+      swEl.appendChild(humpArrow('chord-arrow', box, swFoot, -1, h, swSize));
+      if (m > 40) return;
+      var p = humpPoint(box, swFoot, -1, h, 0.5);
+      var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(p[0]), y: num(p[1]) }));
+      t.textContent = String(s + 1);
+    });
+    ring.appendChild(swEl);
   }
 
   // Two elements picked to combine and their result, each ringed by a halo
@@ -7095,15 +7126,43 @@ function pointerAngle(e){
 // each ringed by a halo, with the sum or product written out under the
 // ring. A third click starts again from a; Escape, a click on the ring
 // away from the beads, or another group clears the picks.
-var combo = { a: null, b: null, key: null };
+//
+// Combining a with itself k times instead (k an integer: 0 gives the
+// identity, a negative k the multiples of a⁻¹) is a scalar combination,
+// k·a in an additive group, aᵏ in a multiplicative one: b and k are never
+// both set.
+var combo = { a: null, b: null, k: null, key: null };
+var COMBO_K_MAX = 1000000;
 function comboKey(G){ return G.mode + ' ' + G.n; }
-// Each picked element with its roles, in the order a, b, result.
+function comboLive(G){ return combo.key === comboKey(G) && G.els.indexOf(combo.a) !== -1; }
+// a combined with itself k times.
+function scalarOf(G, a, k){
+  var s = k < 0 ? G.inv[a] : a, t = Math.abs(k) % G.orders[a], x = G.identity;
+  for (var i = 0; i < t; i++) x = G.combine(x, s);
+  return x;
+}
+// The walk the ring draws for k·a: from the identity a hop of a (or a⁻¹)
+// at a time, |k| hops, or one whole lap when |k| reaches a's order.
+function scalarWalk(G){
+  if (combo.k === null || !comboLive(G) || !combo.k) return null;
+  var ord = G.orders[combo.a];
+  if (ord === 1) return null;
+  var hops = Math.min(Math.abs(combo.k), ord), lapped = hops === ord;
+  var s = combo.k < 0 ? G.inv[combo.a] : combo.a;
+  return { walk: lap(G, s, lapped ? ord : hops + 1), lap: lapped, sense: combo.k < 0 ? -1 : 1 };
+}
+// Each picked element with its roles, in the order a, b, result; with k,
+// the multiples passed on the way are 'w'.
 function combineRoles(G){
   var roles = new Map();
-  if (combo.key !== comboKey(G) || G.els.indexOf(combo.a) === -1) return roles;
+  if (!comboLive(G)) return roles;
   var add = function(x, role){ if (!roles.has(x)) roles.set(x, []); roles.get(x).push(role); };
   add(combo.a, 'a');
-  if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
+  if (combo.k !== null){
+    var w = scalarWalk(G), c = scalarOf(G, combo.a, combo.k);
+    if (w) w.walk.slice(1).forEach(function(x){ if (x !== combo.a && x !== c && !roles.has(x)) add(x, 'w'); });
+    add(c, 'c');
+  } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
     add(combo.b, 'b');
     add(G.combine(combo.a, combo.b), 'c');
   }
@@ -7113,34 +7172,58 @@ function combinePick(x){
   if (!drawn) return;
   if (x === null){
     if (combo.a === null) return;
-    combo = { a: null, b: null, key: null };
+    combo = { a: null, b: null, k: null, key: null };
   } else if (combo.a === null || combo.b !== null || combo.key !== comboKey(drawn.G)){
-    combo = { a: x, b: null, key: comboKey(drawn.G) };
-  } else combo.b = x;
+    combo = { a: x, b: null, k: null, key: comboKey(drawn.G) };
+  } else {
+    combo.b = x;
+    combo.k = null;
+  }
   redrawRing();
   tellCombine();
+  syncComboUi();
 }
+// Combines a (the picked one, or x picked anew) with itself k times.
+function combineScalar(k, x){
+  if (!drawn || !Number.isInteger(k)) return;
+  k = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
+  if (x !== undefined && x !== null) combo = { a: x, b: null, k: k, key: comboKey(drawn.G) };
+  else if (!comboLive(drawn.G)) return;
+  else {
+    combo.b = null;
+    combo.k = k;
+  }
+  redrawRing();
+  tellCombine();
+  syncComboUi();
+}
+// What the entry method around the ring shows for the picks (the
+// variants fill it in).
+function syncComboUi(){}
 // Linked through an isomorphism, the other ring picks the images: g^k here
 // is h^k there, so φ(a) and φ(b) light up yellow and blue, and
-// φ(a ∗ b) = φ(a) ∗ φ(b) green, which is the isomorphism at work. Picks are
-// told as exponents of the link's generator; an element outside the
-// linked subgroup has no image, and the other ring's picks clear.
+// φ(a ∗ b) = φ(a) ∗ φ(b) green, which is the isomorphism at work, as
+// φ(k·a) = k·φ(a) is for a scalar combination. Picks are told as
+// exponents of the link's generator; an element outside the linked
+// subgroup has no image, and the other ring's picks clear.
 function tellCombine(){
   if (!isoOrder()) return;
   var powers = isoPowers();
   var k = function(x){ return x === null ? -1 : powers.indexOf(x); };
   var a = k(combo.a), b = k(combo.b);
   if (a < 0 || (combo.b !== null && b < 0)) a = b = -1;
-  isoTell({ iso: 'combine', a: a, b: b });
+  isoTell({ iso: 'combine', a: a, b: b, k: a < 0 ? null : combo.k });
 }
 // A pick the other ring told: its images here (a of -1 clears).
 function isoTakeCombine(d, m){
   var ok = function(v){ return Number.isInteger(v) && v >= -1 && v < m; };
   if (!drawn || !ok(d.a) || !ok(d.b)) return;
+  var k = Number.isInteger(d.k) && Math.abs(d.k) <= COMBO_K_MAX ? d.k : null;
   var powers = isoPowers();
-  combo = d.a < 0 ? { a: null, b: null, key: null }
-    : { a: powers[d.a], b: d.b < 0 ? null : powers[d.b], key: comboKey(drawn.G) };
+  combo = d.a < 0 ? { a: null, b: null, k: null, key: null }
+    : { a: powers[d.a], b: d.b < 0 || k !== null ? null : powers[d.b], k: k, key: comboKey(drawn.G) };
   redrawRing();
+  syncComboUi();
 }
 // The line under the ring: a prompt for b once a is picked, then the
 // combination written out as a chain of congruences: the generic a ∗ b,
@@ -7149,13 +7232,31 @@ function isoTakeCombine(d, m){
 // is green like the reduced one: it is the same residue class. While the
 // elements are expressed as powers of a generator g, a second line under
 // it writes the same chain in powers, g^i ∗ g^j ≡ … ≡ g^(i+j) ≡ g^k, each
-// term set in a column under its plain counterpart.
+// term set in a column under its plain counterpart. A scalar combination
+// writes k·a (or aᵏ) out as the sum (or product) of its k terms, the
+// powers line as (gⁱ)ᵏ ≡ gⁱ ∗ … ∗ gⁱ ≡ g^(ik) ≡ g^m.
 var COMBINE_LINE = 26, COMBINE_GAP = 5;
 function combineTwoLines(G){ return G.cyclic && exprBy(G) !== null; }
+// A number with a true minus sign.
+function signed(v){ return v < 0 ? '−' + (-v) : String(v); }
+// A signed superscript: ⁻ for a negative k.
+function supSigned(k){ return (k < 0 ? '⁻' : '') + superscript(Math.abs(k)); }
+// |k| terms joined by op, the middle ones elided past four.
+function scalarTerms(term, op, k){
+  var n = Math.abs(k), out = [];
+  var push = function(part){ if (out.length) out.push([null, ' ' + op + ' ']); out.push(part); };
+  if (n <= 4) for (var i = 0; i < n; i++) push(term);
+  else { push(term); push(term); push([null, '⋯']); push(term); }
+  return out;
+}
+// The prompt line once a is picked and before b or k is: the variants may
+// write their own (it returns the text element it drew, or null).
+var comboPromptHook = null;
 function drawCombineLine(G, y){
   var roles = combineRoles(G);
   if (!roles.size) return;
-  if (combo.b === null){
+  if (combo.b === null && combo.k === null){
+    if (comboPromptHook && comboPromptHook(G, y)) return;
     var t = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
     var s = svgEl('tspan', { 'class': 'is-a' });
     s.textContent = String(combo.a);
@@ -7164,60 +7265,112 @@ function drawCombineLine(G, y){
     fitText(t);
     return;
   }
-  var a = combo.a, b = combo.b, c = G.combine(a, b);
-  var raw = G.mode === 'multiplicative' ? a * b : a + b;
-  var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
   var g = exprBy(G), two = g !== null;
-  // A cell is [role, text]; the role colours it (null: plain).
-  var rows = [[['a', a], [null, '∗'], ['b', b], [null, '≡'], ['a', a], [null, op], ['b', b], [null, '≡']]];
-  if (raw !== c || two) rows[0].push(['c', raw], [null, '≡']);
-  rows[0].push(['c', c], [null, mod]);
-  if (two){
-    var log = exprLog(G, g), i = log[a], j = log[b];
-    var pow = function(k){ return g + superscript(k); };
-    rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
-      ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
+  var log = two ? exprLog(G, g) : null;
+  var pow = function(k){ return g + superscript(k); };
+  var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
+  // A cell is [role, text] (the role colours it; null: plain), or a list
+  // of them set together.
+  var rows, tipAt = null, tip = null;
+  if (combo.k !== null){
+    var a = combo.a, k = combo.k, c = scalarOf(G, a, k), mul = G.mode === 'multiplicative';
+    var inv = G.inv[a];
+    // The k terms: a, or for a negative k −a (additive) or a⁻¹'s value.
+    var term = k >= 0 ? ['a', a] : mul ? ['a', inv] : ['a', '(−' + a + ')'];
+    var raw = mul ? Math.pow(k >= 0 ? a : inv, Math.abs(k)) : k * a;
+    var head = mul ? [['a', a], [null, supSigned(k)]] : [[null, signed(k) + '·'], ['a', a]];
+    var r0 = [head, [null, '≡']], r1 = null, i = two ? log[a] : 0;
+    if (two) r1 = [[[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']];
+    // a⁻¹ itself first, for a negative power in a multiplicative group.
+    if (mul && k < 0){
+      r0.push([[null, '('], ['a', a], [null, '⁻¹)' + superscript(-k)]], [null, '≡']);
+      if (two) r1.push([[null, '('], ['a', g + supSigned(-i)], [null, ')' + superscript(-k)]], [null, '≡']);
+    }
+    if (Math.abs(k) >= 2){
+      r0.push(scalarTerms(term, op, k), [null, '≡']);
+      if (two) r1.push(scalarTerms(['a', g + supSigned(k < 0 ? -i : i)], op, k), [null, '≡']);
+    }
+    // The plain result, while it is not too big to write.
+    if (Math.abs(raw) <= 1e15 && (raw !== c || two) && k !== 0 && Math.abs(k) !== 1){
+      r0.push(['c', signed(raw)], [null, '≡']);
+      if (two){ r1.push(['c', g + supSigned(i * k)], [null, '≡']); tipAt = r1.length - 2; }
+    } else if (two && k !== 0){
+      r0.push([null, ''], [null, '']);
+      r1.push(['c', g + supSigned(i * k)], [null, '≡']);
+      tipAt = r1.length - 2;
+    }
+    r0.push(['c', c], [null, mod]);
+    if (two) r1.push(['c', pow(log[c])], [null, mod]);
+    rows = two ? [r0, r1] : [r0];
+    if (two && tipAt !== null){
+      var ik = i * k, n = G.order;
+      tip = translate(ik >= n || ik < 0 ? 'cyclicGroups.combineScalarExpWrap' : 'cyclicGroups.combineScalarExpNoWrap',
+        { g: g, i: i, k: k, ik: ik, n: n, m: log[c], gn: pow(n), gik: g + supSigned(ik), gm: pow(log[c]) });
+    }
+  } else {
+    var a = combo.a, b = combo.b, c = G.combine(a, b);
+    var raw = G.mode === 'multiplicative' ? a * b : a + b;
+    rows = [[['a', a], [null, '∗'], ['b', b], [null, '≡'], ['a', a], [null, op], ['b', b], [null, '≡']]];
+    if (raw !== c || two) rows[0].push(['c', raw], [null, '≡']);
+    rows[0].push(['c', c], [null, mod]);
+    if (two){
+      var i = log[a], j = log[b];
+      rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
+        ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
+      tipAt = 8;
+      var sum = i + j, n = G.order;
+      tip = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
+        { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
+    }
   }
   var box = svgEl('g', { 'class': 'ring-combine-box' });
   ringDynamicEl.appendChild(box);
   var cols = [];
   var lines = rows.map(function(row, r){
     var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
-    var spans = row.map(function(cell, k){
-      var sp = svgEl('tspan', cell[0] ? { 'class': 'is-' + cell[0] } : {});
-      sp.textContent = String(cell[1]);
-      t.appendChild(sp);
-      return sp;
+    var cells = row.map(function(cell){
+      var parts = Array.isArray(cell[0]) ? cell : [cell];
+      var spans = parts.map(function(part){
+        var sp = svgEl('tspan', part[0] ? { 'class': 'is-' + part[0] } : {});
+        sp.textContent = String(part[1]);
+        t.appendChild(sp);
+        return sp;
+      });
+      return { spans: spans, w: 0 };
     });
     box.appendChild(t);
-    spans.forEach(function(sp, k){
-      var w = 0;
-      try { w = sp.getComputedTextLength(); } catch (e) { /* not laid out */ }
-      sp.w = w;
-      cols[k] = Math.max(cols[k] || 0, w);
+    cells.forEach(function(cell, k){
+      cell.ws = cell.spans.map(function(sp){
+        try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ }
+      });
+      cell.w = cell.ws.reduce(function(s, w){ return s + w; }, 0);
+      cols[k] = Math.max(cols[k] || 0, cell.w);
     });
-    return spans;
+    return cells;
   });
   var width = cols.reduce(function(sum, w){ return sum + w; }, 0) + COMBINE_GAP * (cols.length - 1);
   var x0 = SIZE / 2 - width / 2;
-  lines.forEach(function(spans){
+  lines.forEach(function(cells){
     var x = x0;
-    spans.forEach(function(sp, k){
-      sp.setAttribute('x', num(x + (cols[k] - sp.w) / 2));
+    cells.forEach(function(cell, k){
+      var at = x + (cols[k] - cell.w) / 2;
+      cell.x = at;
+      cell.spans.forEach(function(sp, s){
+        sp.setAttribute('x', num(at));
+        at += cell.ws[s];
+      });
       x += cols[k] + COMBINE_GAP;
     });
   });
-  // Over g^(i+j) ≡ g^k, a tooltip explains the reduction: g has order |G|,
-  // so exponents count modulo the group's cardinality.
-  if (two){
-    var cells = lines[1], from = cells[8], to = cells[10];
-    var left = +from.getAttribute('x'), right = +to.getAttribute('x') + to.w;
+  // Over the powers line's exponent reduction, a tooltip explains it: g
+  // has order |G|, so exponents count modulo the group's cardinality.
+  if (tip){
+    var from = lines[1][tipAt], to = lines[1][tipAt + 2];
+    var left = from.x, right = to.x + to.w;
     var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
-    var tip = svgEl('title', {});
-    var sum = i + j, n = G.order;
-    tip.textContent = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
-      { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
-    hit.appendChild(tip);
+    var title = svgEl('title', {});
+    title.textContent = tip;
+    hit.appendChild(title);
     box.appendChild(hit);
   }
   // Too wide for the ring's view, both lines shrink together about the middle.
