@@ -572,6 +572,7 @@
       barFormulas: '{group} formulas',
       barLcmRow: 'Row',
       barLcmMain: 'Main',
+      barSwap: 'Swap the Main and Row formulas',
       barGcd: 'GCD',
       barLcm: 'LCM',
       formulaLevelMost: 'Most beginner',
