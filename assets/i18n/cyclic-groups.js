@@ -511,6 +511,7 @@
       combineModeElement: 'Combine two elements',
       combineModeScalar: 'Combine one element with itself k times',
       combineScalarGiven: 'a = {a}, k = {k}',
+      combineScalarKMod: 'Every element\'s order divides the group\'s cardinality {n}, so k = {k} combines an element with itself just as k = {r} does: {k} mod {n} = {r}',
       combineScalarTimes: 'How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse\'s multiples',
       combineExpWrap: 'Exponents add: {i} + {j} = {sum}. The group has {n} elements, so {g} has order {n} and {gn} is the identity. Exponents therefore count modulo the group\'s cardinality {n}: {sum} mod {n} = {k}, so {gsum} = {gk}.',
       combineExpNoWrap: 'Exponents add: {i} + {j} = {sum}. Exponents count modulo the group\'s cardinality {n}, and {sum} is already below {n}, so nothing wraps: {gsum} = {gk}.',
