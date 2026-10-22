@@ -849,7 +849,9 @@
   .combine-seg > button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .combine-k-spin[hidden]{ display:none; }
   /* k past the group's cardinality: ≡ its reduction, beside the field. */
-  .combine-k-mod{ font-family:var(--font-math); font-size:1rem; color:var(--text); white-space:nowrap; cursor:help; }
+  .combine-k-mod{ padding:3px 6px; border:0; border-radius:var(--radius-ctl); background:none; font-family:var(--font-math); font-size:1rem; color:var(--text); white-space:nowrap; cursor:pointer; }
+  .combine-k-mod:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .combine-k-mod:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .combine-k-mod[hidden]{ display:none; }
   .combine-k-spin > #combine-k{ width:4.6em; -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
   .combine-k-spin > #combine-k::-webkit-inner-spin-button, .combine-k-spin > #combine-k::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
@@ -2223,7 +2225,7 @@
         <div class="field color-by" id="arrange-field">
           <label for="arrange-select"><span class="arrange-panel-name" data-i18n="cyclicGroups.arrangeLabel">Arrangement</span><span class="arrange-fs-name" data-i18n="cyclicGroups.arrangeRowLabel">Arrangement</span></label>
           <div class="arrange-controls">
-            <span class="combine-mode" id="combine-mode" role="group" aria-label="Combine" data-i18n-aria-label="cyclicGroups.combineModeLabel"><span class="combine-mode-name" data-i18n="cyclicGroups.combineModeLabel">Combine</span><span class="combine-seg"><button type="button" id="combine-mode-element" aria-pressed="true" title="Combine two elements" aria-label="Combine two elements" data-i18n-title="cyclicGroups.combineModeElement" data-i18n-aria-label="cyclicGroups.combineModeElement"></button><button type="button" id="combine-mode-scalar" aria-pressed="false" title="Combine one element with itself k times" aria-label="Combine one element with itself k times" data-i18n-title="cyclicGroups.combineModeScalar" data-i18n-aria-label="cyclicGroups.combineModeScalar"></button></span><span class="n-spin combine-k-spin" hidden><input type="number" id="combine-k" step="1" value="2" title="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" aria-label="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" data-i18n-title="cyclicGroups.combineScalarTimes" data-i18n-aria-label="cyclicGroups.combineScalarTimes"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span><span class="combine-k-mod" id="combine-k-mod" hidden></span></span>
+            <span class="combine-mode" id="combine-mode" role="group" aria-label="Combine" data-i18n-aria-label="cyclicGroups.combineModeLabel"><span class="combine-mode-name" data-i18n="cyclicGroups.combineModeLabel">Combine</span><span class="combine-seg"><button type="button" id="combine-mode-element" aria-pressed="true" title="Combine two elements" aria-label="Combine two elements" data-i18n-title="cyclicGroups.combineModeElement" data-i18n-aria-label="cyclicGroups.combineModeElement"></button><button type="button" id="combine-mode-scalar" aria-pressed="false" title="Combine one element with itself k times" aria-label="Combine one element with itself k times" data-i18n-title="cyclicGroups.combineModeScalar" data-i18n-aria-label="cyclicGroups.combineModeScalar"></button></span><span class="n-spin combine-k-spin" hidden><input type="number" id="combine-k" step="1" value="2" title="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" aria-label="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" data-i18n-title="cyclicGroups.combineScalarTimes" data-i18n-aria-label="cyclicGroups.combineScalarTimes"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span><button type="button" class="combine-k-mod" id="combine-k-mod" hidden></button></span>
             <button type="button" class="action-btn dir-toggle" id="dir-toggle"></button>
             <select id="arrange-select"></select>
             <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
@@ -7451,7 +7453,13 @@ function syncCombineKMod(G){
   if (el.hidden) return;
   el.textContent = '≡ ' + (k % n);
   el.title = translate('cyclicGroups.combineScalarKMod', { k: k, n: n, r: k % n });
+  el.setAttribute('aria-label', el.title);
 }
+// Clicked, the reduction is made: k becomes k mod |G|.
+$('combine-k-mod').addEventListener('click', function(){
+  var n = drawn ? drawn.G.order : 0;
+  if (n) setCombineK(state.combineK % n);
+});
 function setCombineMode(mode){
   if (state.combineMode === mode) return;
   state.combineMode = mode;
