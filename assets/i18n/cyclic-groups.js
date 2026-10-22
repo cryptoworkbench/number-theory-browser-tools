@@ -515,8 +515,6 @@
       combineScalarTimes: 'How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse\'s multiples',
       combineExpWrap: 'Exponents add: {i} + {j} = {sum}. The group has {n} elements, so {g} has order {n} and {gn} is the identity. Exponents therefore count modulo the group\'s cardinality {n}: {sum} mod {n} = {k}, so {gsum} = {gk}.',
       combineExpNoWrap: 'Exponents add: {i} + {j} = {sum}. Exponents count modulo the group\'s cardinality {n}, and {sum} is already below {n}, so nothing wraps: {gsum} = {gk}.',
-      combineScalarExpWrap: 'Exponents multiply: {i} × {k} = {ik}. The group has {n} elements, so {g} has order {n} and {gn} is the identity. Exponents therefore count modulo the group\'s cardinality {n}: {ik} mod {n} = {m}, so {gik} = {gm}.',
-      combineScalarExpNoWrap: 'Exponents multiply: {i} × {k} = {ik}. Exponents count modulo the group\'s cardinality {n}, and {ik} is already below {n}, so nothing wraps: {gik} = {gm}.',
       dirCw: 'Clockwise',
       dirCcw: 'Counterclockwise',
       sideInside: 'Inside',
