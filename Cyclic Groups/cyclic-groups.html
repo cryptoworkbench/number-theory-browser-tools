@@ -7299,13 +7299,19 @@ function drawCombineLine(G, y){
     var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
     if (two){
       // Powers of g: (gⁱ)ᵏ ≡ g^(i × k), then, g having order |G|, the
-      // exponent reduced mod |G| as a step of its own: g^(ik % |G|) ≡ g^m.
+      // exponent reduced mod |G| in steps of its own: g^(ik % |G|), |G|
+      // resolved (through φ(n) multiplicatively), ≡ g^m.
       var i = log[a], ik = i * k, m = log[c];
       r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
       r.push([['c', g], ['c', i + ' × ' + (k < 0 ? '(' + signed(k) + ')' : k), 'sup']], [null, '≡']);
       if (ik !== m){
         r.push(['c', g + supSigned(ik)], [null, '≡']);
-        r.push([['c', g], ['c', signed(ik) + ' % |' + groupPlain(G) + '|', 'sup']], [null, '≡']);
+        // |G| resolved to the cardinality itself: n for ⟨ℤ/nℤ, +⟩, and for
+        // ⟨ℤ/nℤ, ×⟩ the totient φ(n) first, then its value.
+        var red = function(by){ r.push([['c', g], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
+        red('|' + groupPlain(G) + '|');
+        if (mul) red('φ(' + G.n + ')');
+        red(G.order);
       }
       r.push(['c', pow(m)], [null, '≡']);
       // Additively g^m is g added m times: the product g × m, then its
