@@ -7201,7 +7201,8 @@ function scalarWalk(G){
   return { walk: lap(G, s, lapped ? ord : hops + 1), lap: lapped, sense: combo.k < 0 ? -1 : 1 };
 }
 // Each picked element with its roles, in the order a, b, result; with k,
-// the multiples passed on the way are 'w'.
+// the multiples passed on the way are 'w', and a wears a second 'a' halo
+// once k is large enough for the walk to come round to it again.
 function combineRoles(G){
   var roles = new Map();
   if (!comboLive(G)) return roles;
@@ -7209,6 +7210,7 @@ function combineRoles(G){
   add(combo.a, 'a');
   if (combo.k !== null){
     var w = scalarWalk(G), c = scalarOf(G, combo.a, combo.k);
+    if (w && Math.abs(combo.k) > G.orders[combo.a]) add(combo.a, 'a');
     if (w) w.walk.slice(1).forEach(function(x){ if (x !== combo.a && x !== c && !roles.has(x)) add(x, 'w'); });
     add(c, 'c');
   } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
