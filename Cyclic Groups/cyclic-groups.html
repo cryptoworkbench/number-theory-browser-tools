@@ -831,10 +831,39 @@
   .combine-halo.is-a{ color:var(--role-active); }
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
+  .combine-halo.is-dense{ filter:none; }
+  /* Combining a with itself k times: the multiples a, 2a, … on the way
+     to the result ringed faintly, and the walk there in the result's
+     colour, each hop numbered. */
+  .combine-halo.is-w{ color:var(--role-active); stroke-width:2; opacity:.45; filter:none; }
+  .walk-scalar{ --walk:var(--role-result); }
+  .walk-scalar .chord{ opacity:1; }
+  /* Which combination a click on a bead makes, in the Arrangement row:
+     a ∗ b (two elements) or aᵏ (one element k times, k in its field, written so in either group). */
+  .combine-mode{ display:inline-flex; align-items:center; gap:8px; margin-inline-end:18px; }
+  .combine-mode-name{ font-size:.85rem; color:var(--text-dim); }
+  .combine-seg{ display:inline-flex; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); overflow:hidden; }
+  .combine-seg > button{ padding:5px 11px; border:0; background:none; color:var(--text-dim); font-family:var(--font-math); font-style:italic; font-size:1rem; line-height:1.2; cursor:pointer; white-space:nowrap; }
+  .combine-seg > button + button{ border-inline-start:1px solid var(--panel-border); }
+  .combine-seg > button:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .combine-seg > button[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .combine-seg > button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .combine-k-spin[hidden]{ display:none; }
+  /* k past the group's cardinality: ≡ its reduction, beside the field. */
+  .combine-k-mod{ display:inline-grid; justify-items:start; padding:3px 6px; border:0; border-radius:var(--radius-ctl); background:none; font-family:var(--font-math); font-size:1rem; color:var(--text); white-space:nowrap; cursor:pointer; }
+  .combine-k-mod > span{ grid-area:1 / 1; }
+  .combine-k-mod-size, .combine-k-mod.is-idle{ visibility:hidden; }
+  .combine-k-mod:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .combine-k-mod:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .combine-k-mod[hidden]{ display:none; }
+  .combine-k-spin > #combine-k{ width:4.6em; -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
+  .combine-k-spin > #combine-k::-webkit-inner-spin-button, .combine-k-spin > #combine-k::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
+  .scalar-hop-n{ fill:var(--role-result); font-family:var(--font-sans); font-size:20px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:3px; }
   .ring-combine{ fill:var(--text); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
   .ring-combine .is-a{ fill:var(--role-active); }
   .ring-combine .is-b{ fill:var(--role-input); }
   .ring-combine .is-c{ fill:var(--role-result); }
+  .ring-combine .is-sup{ font-size:0.68em; baseline-shift:super; }
   .ring-combine-hit{ fill:transparent; cursor:help; }
   /* The captions can be selected and copied; a press on one never turns
      the ring. */
@@ -2070,8 +2099,8 @@
           </div>
         </div>
         <div class="combine-key" id="combine-key" hidden>
-          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-inner"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-1" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-1" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side" aria-label="Forward path" data-i18n-aria-label="cyclicGroups.layerElement" title="Forward path" data-i18n-title="cyclicGroups.layerElement"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn akey-toggle" id="akey-oneline" aria-pressed="false" title="Draw both paths on one line" aria-label="Draw both paths on one line" data-i18n-title="cyclicGroups.akeyOneLine" data-i18n-aria-label="cyclicGroups.akeyOneLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M2 8H14"/><path d="M14 8 10 4.5"/><path d="M2 8 6 11.5"/></svg></button><button type="button" class="akey-btn akey-toggle" id="akey-pair" hidden aria-pressed="false" title="Draw the line in one colour, from the subgroup cardinality key" aria-label="Draw the line in one colour, from the subgroup cardinality key" data-i18n-title="cyclicGroups.akeyPairMode" data-i18n-aria-label="cyclicGroups.akeyPairMode"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M5 8H11"/><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/></svg></button><button type="button" class="akey-btn" id="akey-reset" hidden title="Reset arrow colours" aria-label="Reset arrow colours" data-i18n-title="cyclicGroups.colorReset" data-i18n-aria-label="cyclicGroups.colorReset"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3.2 6.2A5 5 0 1 1 3 9.5"/><path d="M2.6 2.8V6.6H6.4"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
-          <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-outer"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-2" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-2" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side-2" hidden aria-label="Side of the ring for these lines" data-i18n-aria-label="cyclicGroups.akeyPowerSide" title="Side of the ring for these lines" data-i18n-title="cyclicGroups.akeyPowerSide"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-swap" title="Swap forward and backward path colours" aria-label="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" data-i18n-aria-label="cyclicGroups.swapColors"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M5 13.5V2.5M2.5 5 5 2.5 7.5 5"/><path d="M11 2.5V13.5M8.5 11 11 13.5 13.5 11"/></svg></button><button type="button" class="akey-btn" id="akey-back" aria-pressed="true" title="Disable backwards path" aria-label="Disable backwards path" data-i18n-title="cyclicGroups.layerBackward" data-i18n-aria-label="cyclicGroups.layerBackward"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button><button type="button" class="akey-btn akey-drop" id="akey-drop-2" hidden title="Remove this line" aria-label="Remove this line" data-i18n-title="cyclicGroups.akeyDropLine" data-i18n-aria-label="cyclicGroups.akeyDropLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
+          <div class="combine-key-item"><span class="combine-key-swatch" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-inner"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-1" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-1" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side" aria-label="Forward path" data-i18n-aria-label="cyclicGroups.layerElement" title="Forward path" data-i18n-title="cyclicGroups.layerElement"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn akey-toggle" id="akey-oneline" aria-pressed="false" title="Draw both paths on one line" aria-label="Draw both paths on one line" data-i18n-title="cyclicGroups.akeyOneLine" data-i18n-aria-label="cyclicGroups.akeyOneLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M2 8H14"/><path d="M14 8 10 4.5"/><path d="M2 8 6 11.5"/></svg></button><button type="button" class="akey-btn akey-toggle" id="akey-pair" hidden aria-pressed="false" title="Draw the line in one colour, from the subgroup cardinality key" aria-label="Draw the line in one colour, from the subgroup cardinality key" data-i18n-title="cyclicGroups.akeyPairMode" data-i18n-aria-label="cyclicGroups.akeyPairMode"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M5 8H11"/><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/></svg></button><button type="button" class="akey-btn" id="akey-reset" hidden title="Reset arrow colours" aria-label="Reset arrow colours" data-i18n-title="cyclicGroups.colorReset" data-i18n-aria-label="cyclicGroups.colorReset"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3.2 6.2A5 5 0 1 1 3 9.5"/><path d="M2.6 2.8V6.6H6.4"/></svg></button><button type="button" class="akey-btn" id="akey-fwd" aria-pressed="true" title="Disable forward path" aria-label="Disable forward path"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
+          <div class="combine-key-item"><span class="combine-key-swatch is-outer" role="button" tabindex="-1" title="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-title="cyclicGroups.akeyPick" aria-label="Choose this path's colour; drag it onto the other bar to swap the colours" data-i18n-aria-label="cyclicGroups.akeyPick"></span><span id="combine-key-outer"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-2" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-2" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side-2" hidden aria-label="Side of the ring for these lines" data-i18n-aria-label="cyclicGroups.akeyPowerSide" title="Side of the ring for these lines" data-i18n-title="cyclicGroups.akeyPowerSide"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-swap" title="Swap forward and backward path colours" aria-label="Swap forward and backward path colours" data-i18n-title="cyclicGroups.swapColors" data-i18n-aria-label="cyclicGroups.swapColors"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M5 13.5V2.5M2.5 5 5 2.5 7.5 5"/><path d="M11 2.5V13.5M8.5 11 11 13.5 13.5 11"/></svg></button><button type="button" class="akey-btn" id="akey-back" aria-pressed="true" title="Disable backwards path" aria-label="Disable backwards path"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button><button type="button" class="akey-btn akey-drop" id="akey-drop-2" hidden title="Remove this line" aria-label="Remove this line" data-i18n-title="cyclicGroups.akeyDropLine" data-i18n-aria-label="cyclicGroups.akeyDropLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg></button></span><input type="color" class="akey-pick" tabindex="-1" aria-hidden="true"></div>
           <div class="combine-key-item" id="akey-cube-item" hidden><span class="combine-key-swatch akey-power-swatch"></span><span id="combine-key-cube"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-3" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-3" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side-3" hidden aria-label="Side of the ring for these lines" data-i18n-aria-label="cyclicGroups.akeyPowerSide" title="Side of the ring for these lines" data-i18n-title="cyclicGroups.akeyPowerSide"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-cube" aria-pressed="false" title="Show these lines" aria-label="Show these lines" data-i18n-title="cyclicGroups.akeyShowPower" data-i18n-aria-label="cyclicGroups.akeyShowPower"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button><button type="button" class="akey-btn akey-drop" id="akey-drop-3" hidden title="Remove this line" aria-label="Remove this line" data-i18n-title="cyclicGroups.akeyDropLine" data-i18n-aria-label="cyclicGroups.akeyDropLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg></button></span></div>
           <div class="combine-key-item" id="akey-fourth-item" hidden><span class="combine-key-swatch akey-power-swatch"></span><span id="combine-key-fourth"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-4" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-4" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side-4" hidden aria-label="Side of the ring for these lines" data-i18n-aria-label="cyclicGroups.akeyPowerSide" title="Side of the ring for these lines" data-i18n-title="cyclicGroups.akeyPowerSide"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-fourth" aria-pressed="false" title="Show these lines" aria-label="Show these lines" data-i18n-title="cyclicGroups.akeyShowPower" data-i18n-aria-label="cyclicGroups.akeyShowPower"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button><button type="button" class="akey-btn akey-drop" id="akey-drop-4" hidden title="Remove this line" aria-label="Remove this line" data-i18n-title="cyclicGroups.akeyDropLine" data-i18n-aria-label="cyclicGroups.akeyDropLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg></button></span></div>
           <div class="combine-key-item" id="akey-fifth-item" hidden><span class="combine-key-swatch akey-power-swatch"></span><span id="combine-key-fifth"></span><span class="akey-ctl"><label class="akey-exp-wrap" id="akey-exp-wrap-5" hidden><span class="akey-exp-base"></span><select class="akey-exp" id="akey-exp-5" aria-label="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-aria-label="cyclicGroups.akeyPowerExp" title="Power to raise the selected element to: a divisor of the group&#39;s cardinality" data-i18n-title="cyclicGroups.akeyPowerExp"></select></label><select class="akey-side" id="akey-side-5" hidden aria-label="Side of the ring for these lines" data-i18n-aria-label="cyclicGroups.akeyPowerSide" title="Side of the ring for these lines" data-i18n-title="cyclicGroups.akeyPowerSide"><option value="inside" data-i18n="cyclicGroups.sideInside">Inside</option><option value="outside" data-i18n="cyclicGroups.sideOutside">Outside</option></select><button type="button" class="akey-btn" id="akey-fifth" aria-pressed="false" title="Show these lines" aria-label="Show these lines" data-i18n-title="cyclicGroups.akeyShowPower" data-i18n-aria-label="cyclicGroups.akeyShowPower"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8C3.3 4.8 5.5 3.5 8 3.5S12.7 4.8 14.5 8C12.7 11.2 10.5 12.5 8 12.5S3.3 11.2 1.5 8Z"/><circle cx="8" cy="8" r="2.2"/><line class="akey-slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5"/></svg></button><button type="button" class="akey-btn akey-drop" id="akey-drop-5" hidden title="Remove this line" aria-label="Remove this line" data-i18n-title="cyclicGroups.akeyDropLine" data-i18n-aria-label="cyclicGroups.akeyDropLine"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg></button></span></div>
@@ -2203,6 +2232,7 @@
         <div class="field color-by" id="arrange-field">
           <label for="arrange-select"><span class="arrange-panel-name" data-i18n="cyclicGroups.arrangeLabel">Arrangement</span><span class="arrange-fs-name" data-i18n="cyclicGroups.arrangeRowLabel">Arrangement</span></label>
           <div class="arrange-controls">
+            <span class="combine-mode" id="combine-mode" role="group" aria-label="Combine" data-i18n-aria-label="cyclicGroups.combineModeLabel"><span class="combine-mode-name" data-i18n="cyclicGroups.combineModeLabel">Combine</span><span class="combine-seg"><button type="button" id="combine-mode-element" aria-pressed="true" title="Combine two elements" aria-label="Combine two elements" data-i18n-title="cyclicGroups.combineModeElement" data-i18n-aria-label="cyclicGroups.combineModeElement"></button><button type="button" id="combine-mode-scalar" aria-pressed="false" title="Combine one element with itself k times" aria-label="Combine one element with itself k times" data-i18n-title="cyclicGroups.combineModeScalar" data-i18n-aria-label="cyclicGroups.combineModeScalar"></button></span><span class="n-spin combine-k-spin" hidden><input type="number" id="combine-k" step="1" value="2" title="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" aria-label="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" data-i18n-title="cyclicGroups.combineScalarTimes" data-i18n-aria-label="cyclicGroups.combineScalarTimes"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span><button type="button" class="combine-k-mod" id="combine-k-mod" hidden></button></span>
             <button type="button" class="action-btn dir-toggle" id="dir-toggle"></button>
             <select id="arrange-select"></select>
             <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
@@ -2379,7 +2409,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false };
+var state = { mode: 'additive', n: 12, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2 };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3416,7 +3446,7 @@ function drawRing(parent, G, beads, box, paint){
         walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1 });
         return;
       }
-      if (state.oneLine && invSide() !== 'neither'){
+      if (state.oneLine && invSide() !== 'neither' && state.forward){
         // In one colour, the line stands for the inverse pair
         // {h, h^-1}; the key's further lines' pairs {h^x, h^-x} can join it,
         // each with its own power x and side (see powerExp, powerSide).
@@ -3435,7 +3465,7 @@ function drawRing(parent, G, beads, box, paint){
         if (pairs && powerShown(G, 6)) powerWalks(6, 'is-sixth', powerSide(6));
         return;
       }
-      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1 });
+      if (state.forward) walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1 });
       if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, sense: -1 });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
@@ -3463,13 +3493,46 @@ function drawRing(parent, G, beads, box, paint){
     outerEdge = Math.max(outerEdge, ring.redrawWalks(place));
   }
 
+  // An element combined with itself k times: the walk from the identity
+  // through a, 2a, … to ka (with a⁻¹ for a negative k, the other way
+  // round), each hop numbered, one lap at most, since the walk then
+  // repeats; a later lap's numbers replace the earlier ones.
+  var sw = scalarWalk(G);
+  if (sw && m > 1){
+    var swFoot = box.R - beadR;
+    var swSteps = humpSteps(sw.walk, place, m, 1, sw.sense);
+    if (!sw.lap) swSteps.pop();
+    var swEl = svgEl('g', { 'class': 'walk-scalar' });
+    var swD = '';
+    swSteps.forEach(function(h, s){ swD += (s ? ' ' : '') + humpPath(box, swFoot, -1, h, s === 0); });
+    swEl.appendChild(svgEl('path', { 'class': 'chord', d: swD, 'stroke-width': 2.6 }));
+    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length)), m0 = sw.walk.length;
+    swSteps.forEach(function(h, s){
+      swEl.appendChild(humpArrow('chord-arrow', box, swFoot, -1, h, swSize));
+      if (m > 40) return;
+      var p = humpPoint(box, swFoot, -1, h, 0.3);
+      var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(p[0]), y: num(p[1]) }));
+      // Past a lap, a hop shows the latest number to land on it.
+      var K = Math.abs(combo.k);
+      t.textContent = String(s + 1 + m0 * Math.floor((K - s - 1) / m0));
+    });
+    ring.appendChild(swEl);
+  }
+
   // Two elements picked to combine and their result, each ringed by a halo
   // in its colour; an element with more than one role wears a halo per
   // role, one around the other.
+  // Halos past what fits before the neighbouring bead's close up, thinner
+  // and thinner, into a band halfway to it.
+  var haloBand = beads.length > 1 ? Math.max(10, Math.hypot(at(1)[0] - at(0)[0], at(1)[1] - at(0)[1]) / 2 - beadR - 4) : HALO_BAND;
   combineRoles(G).forEach(function(roles, a){
     var p = at(place[a]);
+    var step = Math.min(5, Math.min(HALO_BAND, haloBand) / Math.max(1, roles.length - 1));
     roles.forEach(function(role, k){
-      ring.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + 5 * k) }));
+      var dense = step < 5 && role !== 'c';
+      var attrs = { 'class': 'combine-halo is-' + role + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
+      if (dense) attrs['stroke-width'] = num(Math.max(0.4, step * 0.55));
+      ring.appendChild(svgEl('circle', attrs));
     });
   });
 
@@ -5983,6 +6046,7 @@ function drawNecklace(G, paint){
   var box = ringBox();
   drawRing(ringDynamicEl, G, beads, box, paint);
   drawCombineLine(G, SIZE - 16);
+  syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
   // above the ring's outer reach.
@@ -6515,7 +6579,7 @@ function dirSign(){ return state.dir === 'ccw' ? -1 : 1; }
 // side, in the mixed color. The identity's loop is always drawn so.
 function mergedWalks(G){
   var h = shownGen(G);
-  return G.orders[h] === 1 || (G.orders[h] === 2 && invSide() !== 'neither');
+  return G.orders[h] === 1 || (G.orders[h] === 2 && invSide() !== 'neither' && state.forward);
 }
 
 // The subgroup cardinality key's colour class for a's order, as its bead
@@ -6747,7 +6811,7 @@ function renderCombineKey(G){
   var innerEl = $('combine-key-inner');
   var outerEl = $('combine-key-outer');
   var merged = mergedWalks(G);
-  var lined = !merged && invSide() !== 'neither' && state.oneLine;
+  var lined = !merged && invSide() !== 'neither' && state.forward && state.oneLine;
   // One line in one colour: the key's lines become that pair and the
   // further lines' pairs, their bars in the subgroup cardinality key's
   // colours for the pairs' orders.
@@ -6760,6 +6824,9 @@ function renderCombineKey(G){
   innerEl.previousSibling.classList.toggle('is-both', merged);
   outerEl.previousSibling.classList.toggle('is-none', merged || (akeyPairMode && !powerFits(G, 2)));
   innerEl.previousSibling.classList.toggle('is-none', false);
+  // The forward path's line stays while that path is off, dimmed, so its
+  // eye can bring it back.
+  innerEl.parentNode.classList.toggle('is-off', !akeyPairMode && !state.forward);
   paintSwatch(innerEl.previousSibling, akeyPairMode ? orderPaint(G, line1) : null);
   paintSwatch(outerEl.previousSibling, akeyPairMode ? orderPaint(G, line2) : null);
   // The backwards path's line stays while that path is off, dimmed, so its
@@ -6770,9 +6837,9 @@ function renderCombineKey(G){
   if (IS_ISOPANE) tellPaneKey({ on: true, h: h, hinv: G.inv[h], merged: merged, back: invSide() !== 'neither' });
   // Swapping only shows when both walks are drawn in their own colors; a
   // bar drawn in its own color picks it.
-  var swappable = !merged && invSide() !== 'neither' && !akeyPairMode;
+  var swappable = !merged && invSide() !== 'neither' && state.forward && !akeyPairMode;
   swatchEls.forEach(function(el, i){
-    var pickable = !merged && !akeyPairMode && (i === 0 || invSide() !== 'neither');
+    var pickable = !merged && !akeyPairMode && (i === 0 ? state.forward : invSide() !== 'neither');
     el.classList.toggle('is-grabbable', swappable);
     el.classList.toggle('is-pickable', pickable);
     el.tabIndex = pickable ? 0 : -1;
@@ -6785,6 +6852,11 @@ function renderCombineKey(G){
   akeyBackEl.title = backName;
   akeyBackEl.setAttribute('aria-label', backName);
   akeyBackEl.hidden = akeyPairMode && !powerFits(G, 2);
+  akeyFwdEl.hidden = akeyPairMode || G.orders[h] === 1;
+  akeyFwdEl.setAttribute('aria-pressed', state.forward ? 'true' : 'false');
+  var fwdName = translate(state.forward ? 'cyclicGroups.akeyHideForward' : 'cyclicGroups.akeyShowForward');
+  akeyFwdEl.title = fwdName;
+  akeyFwdEl.setAttribute('aria-label', fwdName);
   // Each further line's power, and its side while its lines can be drawn.
   // Written in powers of G, each box is named as its text names it.
   var exp1El = $('akey-exp-1'), general = akeyGeneral();
@@ -6801,7 +6873,7 @@ function renderCombineKey(G){
     fillPowerSelect(expEl, G, p);
   });
   akeySwapEl.hidden = !swappable;
-  akeyOneLineEl.hidden = merged || invSide() === 'neither';
+  akeyOneLineEl.hidden = merged || invSide() === 'neither' || !state.forward;
   akeyOneLineEl.setAttribute('aria-pressed', state.oneLine ? 'true' : 'false');
   akeyPairEl.hidden = !lined;
   // The third to sixth lines, only with the line in one colour.
@@ -6843,7 +6915,7 @@ function renderCombineKey(G){
 // A click on a bar, or Enter or Space on a focused one, picks its color.
 var swatchEls = Array.prototype.slice.call(combineKeyEl.querySelectorAll('.combine-key-swatch:not(.akey-power-swatch)'));
 var swatchDrag = null; // { id, el, x, y, target, moved } while a bar is held
-var akeySideEl = $('akey-side'), akeyBackEl = $('akey-back'), akeySwapEl = $('akey-swap'), akeyResetEl = $('akey-reset'), akeyOneLineEl = $('akey-oneline'), akeyPairEl = $('akey-pair');
+var akeySideEl = $('akey-side'), akeyFwdEl = $('akey-fwd'), akeyBackEl = $('akey-back'), akeySwapEl = $('akey-swap'), akeyResetEl = $('akey-reset'), akeyOneLineEl = $('akey-oneline'), akeyPairEl = $('akey-pair');
 // Whether the key shows the one-colour lines (set by renderCombineKey).
 var akeyPairMode = false;
 // The key's controls work the arrows' own (hidden) ones, so their handlers draw,
@@ -6860,6 +6932,11 @@ akeyBackEl.addEventListener('click', function(){
   if (!akeyPairMode){ workCtl(backwardEl, state.backward); return; }
   state.oneLineSquare = !state.oneLineSquare;
   render();
+});
+// The forward path's eye.
+akeyFwdEl.addEventListener('click', function(){
+  state.forward = !state.forward;
+  easeRingResize(render);
 });
 akeySwapEl.addEventListener('click', swapArrowColors);
 // Both walks on one line, or each on its own side.
@@ -7121,15 +7198,56 @@ function pointerAngle(e){
 // each ringed by a halo, with the sum or product written out under the
 // ring. A third click starts again from a; Escape, a click on the ring
 // away from the beads, or another group clears the picks.
-var combo = { a: null, b: null, key: null };
+//
+// Combining a with itself k times instead (k an integer: 0 gives the
+// identity, a negative k the multiples of a⁻¹) is a scalar combination,
+// k·a in an additive group, aᵏ in a multiplicative one: b and k are never
+// both set.
+var combo = { a: null, b: null, k: null, key: null };
+var COMBO_K_MAX = 1000000;
+// The most lap halos one element wears; past a few they close up into a
+// band of HALO_BAND pixels at most.
+var HALO_MAX = 200, HALO_BAND = 40;
 function comboKey(G){ return G.mode + ' ' + G.n; }
-// Each picked element with its roles, in the order a, b, result.
+function comboLive(G){ return combo.key === comboKey(G) && G.els.indexOf(combo.a) !== -1; }
+// a combined with itself k times.
+function scalarOf(G, a, k){
+  var s = k < 0 ? G.inv[a] : a, t = Math.abs(k) % G.orders[a], x = G.identity;
+  for (var i = 0; i < t; i++) x = G.combine(x, s);
+  return x;
+}
+// The walk the ring draws for k·a: from the identity a hop of a (or a⁻¹)
+// at a time, |k| hops, or one whole lap when |k| reaches a's order.
+function scalarWalk(G){
+  if (combo.k === null || !comboLive(G) || !combo.k) return null;
+  var ord = G.orders[combo.a];
+  if (ord === 1) return null;
+  var hops = Math.min(Math.abs(combo.k), ord), lapped = hops === ord;
+  var s = combo.k < 0 ? G.inv[combo.a] : combo.a;
+  return { walk: lap(G, s, lapped ? ord : hops + 1), lap: lapped, sense: combo.k < 0 ? -1 : 1 };
+}
+// Each picked element with its roles, in the order a, b, result (the
+// result's halo always outermost); with k,
+// the multiples passed on the way are 'w', and each time the walk comes
+// round again each element it passes once more, the identity first, wears
+// one more 'a' halo (up to HALO_MAX in all).
 function combineRoles(G){
   var roles = new Map();
-  if (combo.key !== comboKey(G) || G.els.indexOf(combo.a) === -1) return roles;
+  if (!comboLive(G)) return roles;
   var add = function(x, role){ if (!roles.has(x)) roles.set(x, []); roles.get(x).push(role); };
   add(combo.a, 'a');
-  if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
+  if (combo.k !== null){
+    var w = scalarWalk(G), c = scalarOf(G, combo.a, combo.k);
+    var ord = G.orders[combo.a], k = Math.abs(combo.k);
+    var laps = function(x, j){
+      var n = w && w.lap && k >= j ? Math.min(Math.floor((k - j) / ord), HALO_MAX) : 0;
+      for (var i = 0; i < n; i++) add(x, 'a');
+    };
+    if (w) laps(combo.a, w.walk.indexOf(combo.a));
+    if (w) w.walk.slice(1).forEach(function(x){ if (x !== combo.a && x !== c && !roles.has(x)) add(x, 'w'); });
+    if (w) w.walk.forEach(function(x, j){ if (x !== combo.a) laps(x, j); });
+    add(c, 'c');
+  } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
     add(combo.b, 'b');
     add(G.combine(combo.a, combo.b), 'c');
   }
@@ -7139,34 +7257,58 @@ function combinePick(x){
   if (!drawn) return;
   if (x === null){
     if (combo.a === null) return;
-    combo = { a: null, b: null, key: null };
+    combo = { a: null, b: null, k: null, key: null };
   } else if (combo.a === null || combo.b !== null || combo.key !== comboKey(drawn.G)){
-    combo = { a: x, b: null, key: comboKey(drawn.G) };
-  } else combo.b = x;
+    combo = { a: x, b: null, k: null, key: comboKey(drawn.G) };
+  } else {
+    combo.b = x;
+    combo.k = null;
+  }
   redrawRing();
   tellCombine();
+  syncComboUi();
 }
+// Combines a (the picked one, or x picked anew) with itself k times.
+function combineScalar(k, x){
+  if (!drawn || !Number.isInteger(k)) return;
+  k = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
+  if (x !== undefined && x !== null) combo = { a: x, b: null, k: k, key: comboKey(drawn.G) };
+  else if (!comboLive(drawn.G)) return;
+  else {
+    combo.b = null;
+    combo.k = k;
+  }
+  redrawRing();
+  tellCombine();
+  syncComboUi();
+}
+// What the entry method around the ring shows for the picks (the
+// variants fill it in).
+function syncComboUi(){}
 // Linked through an isomorphism, the other ring picks the images: g^k here
 // is h^k there, so φ(a) and φ(b) light up yellow and blue, and
-// φ(a ∗ b) = φ(a) ∗ φ(b) green, which is the isomorphism at work. Picks are
-// told as exponents of the link's generator; an element outside the
-// linked subgroup has no image, and the other ring's picks clear.
+// φ(a ∗ b) = φ(a) ∗ φ(b) green, which is the isomorphism at work, as
+// φ(k·a) = k·φ(a) is for a scalar combination. Picks are told as
+// exponents of the link's generator; an element outside the linked
+// subgroup has no image, and the other ring's picks clear.
 function tellCombine(){
   if (!isoOrder()) return;
   var powers = isoPowers();
   var k = function(x){ return x === null ? -1 : powers.indexOf(x); };
   var a = k(combo.a), b = k(combo.b);
   if (a < 0 || (combo.b !== null && b < 0)) a = b = -1;
-  isoTell({ iso: 'combine', a: a, b: b });
+  isoTell({ iso: 'combine', a: a, b: b, k: a < 0 ? null : combo.k });
 }
 // A pick the other ring told: its images here (a of -1 clears).
 function isoTakeCombine(d, m){
   var ok = function(v){ return Number.isInteger(v) && v >= -1 && v < m; };
   if (!drawn || !ok(d.a) || !ok(d.b)) return;
+  var k = Number.isInteger(d.k) && Math.abs(d.k) <= COMBO_K_MAX ? d.k : null;
   var powers = isoPowers();
-  combo = d.a < 0 ? { a: null, b: null, key: null }
-    : { a: powers[d.a], b: d.b < 0 ? null : powers[d.b], key: comboKey(drawn.G) };
+  combo = d.a < 0 ? { a: null, b: null, k: null, key: null }
+    : { a: powers[d.a], b: d.b < 0 || k !== null ? null : powers[d.b], k: k, key: comboKey(drawn.G) };
   redrawRing();
+  syncComboUi();
 }
 // The line under the ring: a prompt for b once a is picked, then the
 // combination written out as a chain of congruences: the generic a ∗ b,
@@ -7175,13 +7317,25 @@ function isoTakeCombine(d, m){
 // is green like the reduced one: it is the same residue class. While the
 // elements are expressed as powers of a generator g, a second line under
 // it writes the same chain in powers, g^i ∗ g^j ≡ … ≡ g^(i+j) ≡ g^k, each
-// term set in a column under its plain counterpart.
+// term set in a column under its plain counterpart. A scalar combination
+// names its given first, a = …, k = …, then writes one chain A ≡ aᵏ ≡ …,
+// in powers of g while they are on, (gⁱ)ᵏ ≡ g^(i × k) ≡ g^m, else the
+// power and its plain value, never the k terms themselves.
 var COMBINE_LINE = 26, COMBINE_GAP = 5;
-function combineTwoLines(G){ return G.cyclic && exprBy(G) !== null; }
+// A scalar combination always takes two: its given above its chain.
+function combineTwoLines(G){ return (G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)); }
+// A number with a true minus sign.
+function signed(v){ return v < 0 ? '−' + (-v) : String(v); }
+// A signed superscript: ⁻ for a negative k.
+function supSigned(k){ return (k < 0 ? '⁻' : '') + superscript(Math.abs(k)); }
+// The prompt line once a is picked and before b or k is: the variants may
+// write their own (it returns the text element it drew, or null).
+var comboPromptHook = null;
 function drawCombineLine(G, y){
   var roles = combineRoles(G);
   if (!roles.size) return;
-  if (combo.b === null){
+  if (combo.b === null && combo.k === null){
+    if (comboPromptHook && comboPromptHook(G, y)) return;
     var t = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
     var s = svgEl('tspan', { 'class': 'is-a' });
     s.textContent = String(combo.a);
@@ -7190,60 +7344,135 @@ function drawCombineLine(G, y){
     fitText(t);
     return;
   }
-  var a = combo.a, b = combo.b, c = G.combine(a, b);
-  var raw = G.mode === 'multiplicative' ? a * b : a + b;
-  var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
   var g = exprBy(G), two = g !== null;
-  // A cell is [role, text]; the role colours it (null: plain).
-  var rows = [[['a', a], [null, '∗'], ['b', b], [null, '≡'], ['a', a], [null, op], ['b', b], [null, '≡']]];
-  if (raw !== c || two) rows[0].push(['c', raw], [null, '≡']);
-  rows[0].push(['c', c], [null, mod]);
-  if (two){
-    var log = exprLog(G, g), i = log[a], j = log[b];
-    var pow = function(k){ return g + superscript(k); };
-    rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
-      ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
+  var log = two ? exprLog(G, g) : null;
+  var pow = function(k){ return g + superscript(k); };
+  var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
+  // A cell is [role, text] (the role colours it; null: plain), or a list
+  // of them set together.
+  var rows, tipAt = null, tipTo = null, tip = null;
+  if (combo.k !== null){
+    var a = combo.a, k = combo.k, c = scalarOf(G, a, k), mul = G.mode === 'multiplicative';
+    // The given, a and k, on a line of its own above the chain.
+    var given = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
+    var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', {});
+    sa.textContent = String(a);
+    sk.textContent = signed(k);
+    translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
+    ringDynamicEl.appendChild(given);
+    fitText(given);
+    y += COMBINE_LINE;
+    var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
+    if (two){
+      // Powers of g: (gⁱ)ᵏ ≡ g^(i × k), then, g having order |G|, the
+      // exponent reduced mod |G| in steps of its own: g^(ik % |G|), |G|
+      // resolved (through φ(n) multiplicatively), ≡ g^m.
+      var i = log[a], ik = i * k, m = log[c];
+      r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
+      r.push([['c', g], ['c', i + ' × ' + (k < 0 ? '(' + signed(k) + ')' : k), 'sup']], [null, '≡']);
+      if (ik !== m){
+        r.push(['c', g + supSigned(ik)], [null, '≡']);
+        // |G| resolved to the cardinality itself: n for ⟨ℤ/nℤ, +⟩, and for
+        // ⟨ℤ/nℤ, ×⟩ the totient φ(n) first, then its value.
+        var red = function(by){ r.push([['c', g], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
+        red('|' + groupPlain(G) + '|');
+        if (mul) red('φ(' + G.n + ')');
+        red(G.order);
+      }
+      r.push(['c', pow(m)], [null, '≡']);
+      // Additively g^m is g added m times: the product g × m, then its
+      // plain value while that still needs reducing.
+      if (!mul){
+        r.push(['c', g + ' × ' + m], [null, '≡']);
+        if (g * m !== c) r.push(['c', g * m], [null, '≡']);
+      }
+    } else {
+      // The power itself, a negative one in a multiplicative group as the
+      // inverse's, then its plain value while that is not too big to write.
+      // Multiplicatively, a having an order dividing |G|, an exponent of
+      // |G| or more is first reduced mod |G| in the same steps as with g.
+      var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
+      if (mul && k < 0) r.push([[null, '('], ['a', a], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', inv], [null, superscript(-k)]], [null, '≡']);
+      else r.push([['a', a], [null, supSigned(k)]], [null, '≡']);
+      if (mul && e >= G.order){
+        var redA = function(by){ r.push([['a', base], [null, e + ' % ' + by, 'sup']], [null, '≡']); };
+        redA('|' + groupPlain(G) + '|');
+        redA('φ(' + G.n + ')');
+        redA(G.order);
+        e %= G.order;
+        r.push([['a', base], [null, superscript(e)]], [null, '≡']);
+      }
+      var raw = mul ? Math.pow(base, e) : k * a;
+      if (Math.abs(raw) <= 1e15 && raw !== c) r.push(['c', signed(raw)], [null, '≡']);
+    }
+    r.push(['c', c], [null, mod]);
+    rows = [r];
+  } else {
+    var a = combo.a, b = combo.b, c = G.combine(a, b);
+    var raw = G.mode === 'multiplicative' ? a * b : a + b;
+    rows = [[['a', a], [null, '∗'], ['b', b], [null, '≡'], ['a', a], [null, op], ['b', b], [null, '≡']]];
+    if (raw !== c || two) rows[0].push(['c', raw], [null, '≡']);
+    rows[0].push(['c', c], [null, mod]);
+    if (two){
+      var i = log[a], j = log[b];
+      rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
+        ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
+      tipAt = 8;
+      tipTo = 10;
+      var sum = i + j, n = G.order;
+      tip = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
+        { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
+    }
   }
   var box = svgEl('g', { 'class': 'ring-combine-box' });
   ringDynamicEl.appendChild(box);
   var cols = [];
   var lines = rows.map(function(row, r){
     var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
-    var spans = row.map(function(cell, k){
-      var sp = svgEl('tspan', cell[0] ? { 'class': 'is-' + cell[0] } : {});
-      sp.textContent = String(cell[1]);
-      t.appendChild(sp);
-      return sp;
+    var cells = row.map(function(cell){
+      var parts = Array.isArray(cell[0]) ? cell : [cell];
+      var spans = parts.map(function(part){
+        var cls = (part[0] ? 'is-' + part[0] : '') + (part[2] === 'sup' ? ' is-sup' : '');
+        var sp = svgEl('tspan', cls ? { 'class': cls.trim() } : {});
+        sp.textContent = String(part[1]);
+        t.appendChild(sp);
+        return sp;
+      });
+      return { spans: spans, w: 0 };
     });
     box.appendChild(t);
-    spans.forEach(function(sp, k){
-      var w = 0;
-      try { w = sp.getComputedTextLength(); } catch (e) { /* not laid out */ }
-      sp.w = w;
-      cols[k] = Math.max(cols[k] || 0, w);
+    cells.forEach(function(cell, k){
+      cell.ws = cell.spans.map(function(sp){
+        try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ }
+      });
+      cell.w = cell.ws.reduce(function(s, w){ return s + w; }, 0);
+      cols[k] = Math.max(cols[k] || 0, cell.w);
     });
-    return spans;
+    return cells;
   });
   var width = cols.reduce(function(sum, w){ return sum + w; }, 0) + COMBINE_GAP * (cols.length - 1);
   var x0 = SIZE / 2 - width / 2;
-  lines.forEach(function(spans){
+  lines.forEach(function(cells){
     var x = x0;
-    spans.forEach(function(sp, k){
-      sp.setAttribute('x', num(x + (cols[k] - sp.w) / 2));
+    cells.forEach(function(cell, k){
+      var at = x + (cols[k] - cell.w) / 2;
+      cell.x = at;
+      cell.spans.forEach(function(sp, s){
+        sp.setAttribute('x', num(at));
+        at += cell.ws[s];
+      });
       x += cols[k] + COMBINE_GAP;
     });
   });
-  // Over g^(i+j) ≡ g^k, a tooltip explains the reduction: g has order |G|,
-  // so exponents count modulo the group's cardinality.
-  if (two){
-    var cells = lines[1], from = cells[8], to = cells[10];
-    var left = +from.getAttribute('x'), right = +to.getAttribute('x') + to.w;
+  // Over the powers line's exponent reduction, a tooltip explains it: g
+  // has order |G|, so exponents count modulo the group's cardinality.
+  if (tip){
+    var from = lines[1][tipAt], to = lines[1][tipTo];
+    var left = from.x, right = to.x + to.w;
     var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
-    var tip = svgEl('title', {});
-    var sum = i + j, n = G.order;
-    tip.textContent = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
-      { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
-    hit.appendChild(tip);
+    var title = svgEl('title', {});
+    title.textContent = tip;
+    hit.appendChild(title);
     box.appendChild(hit);
   }
   // Too wide for the ring's view, both lines shrink together about the middle.
@@ -7258,6 +7487,111 @@ document.addEventListener('keydown', function(e){
   if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable]')) return;
   combinePick(null);
 });
+
+// Which combination a click on a bead makes is a mode, switched in the
+// Arrangement row: two elements (a, then b), or one element with itself k
+// times, drawn at once with the k in the field beside the switch. The
+// wheel over the ring steps k while one is drawn. A pane follows the
+// holding ring's mode, which shows the switch for both.
+var combineModeEl = $('combine-mode'), combineKEl = $('combine-k');
+var combineModeBtns = { element: $('combine-mode-element'), scalar: $('combine-mode-scalar') };
+function combineTap(x){
+  if (state.combineMode === 'scalar' && x !== null) combineScalar(state.combineK, x);
+  else combinePick(x);
+}
+// Called from syncControls, which may run before the lines above have.
+function syncCombineMode(){
+  var scalar = state.combineMode === 'scalar', el = $('combine-mode-element'), sc = $('combine-mode-scalar'), k = $('combine-k');
+  var box = $('combine-mode'), name = box.querySelector('.combine-mode-name'), key = 'cyclicGroups.' + (scalar ? 'combineModeLabelScalar' : 'combineModeLabel');
+  box.hidden = IS_ISOPANE;
+  // The data-i18n keys follow the mode, so a language change keeps the right name.
+  name.setAttribute('data-i18n', key);
+  box.setAttribute('data-i18n-aria-label', key);
+  name.textContent = translate(key);
+  box.setAttribute('aria-label', translate(key));
+  el.textContent = 'a ∗ b';
+  sc.textContent = 'aᵏ';
+  el.setAttribute('aria-pressed', String(!scalar));
+  sc.setAttribute('aria-pressed', String(scalar));
+  k.parentNode.hidden = !scalar;
+  // A focused field keeps what is being typed while it reads this k; a k
+  // stepped elsewhere (the wheel, the spin buttons) still shows in it.
+  if (document.activeElement !== k || parseInt(k.value.trim(), 10) !== state.combineK) k.value = String(state.combineK);
+  syncCombineKMod(drawn && drawn.G);
+}
+// k at or past the group's cardinality |G| combines like k mod |G| (every
+// element's order divides |G|), so ≡ k mod |G| shows beside the field.
+function syncCombineKMod(G){
+  var el = $('combine-k-mod'), k = state.combineK, n = G ? G.order : 0;
+  // Its room is kept while scalar mode is on, as wide as the widest
+  // reduction ≡ |G| − 1, so the field beside it never shifts.
+  el.hidden = state.combineMode !== 'scalar' || !n;
+  if (el.hidden) return;
+  var on = k >= n;
+  el.classList.toggle('is-idle', !on);
+  el.disabled = !on;
+  el.textContent = '';
+  var shown = document.createElement('span'), size = document.createElement('span');
+  shown.textContent = on ? '≡ ' + (k % n) : '';
+  size.textContent = '≡ ' + (n - 1);
+  size.className = 'combine-k-mod-size';
+  size.setAttribute('aria-hidden', 'true');
+  el.append(shown, size);
+  if (!on){ el.removeAttribute('title'); el.removeAttribute('aria-label'); return; }
+  el.title = translate('cyclicGroups.combineScalarKMod', { k: k, n: n, r: k % n });
+  el.setAttribute('aria-label', el.title);
+}
+// Clicked, the reduction is made: k becomes k mod |G|.
+$('combine-k-mod').addEventListener('click', function(){
+  var n = drawn ? drawn.G.order : 0;
+  if (n) setCombineK(state.combineK % n);
+});
+function setCombineMode(mode){
+  if (state.combineMode === mode) return;
+  state.combineMode = mode;
+  syncCombineMode();
+  if (drawn && comboLive(drawn.G)){
+    if (mode === 'scalar') combineScalar(state.combineK, combo.a);
+    else if (combo.k !== null){
+      combo.k = null;
+      redrawRing();
+      tellCombine();
+    }
+  }
+  mirrorToUrl(drawn && drawn.G);
+}
+function setCombineK(k){
+  if (!Number.isInteger(k)) return;
+  state.combineK = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
+  syncCombineMode();
+  if (drawn && comboLive(drawn.G) && combo.k !== null) combineScalar(state.combineK);
+  mirrorToUrl(drawn && drawn.G);
+}
+combineModeBtns.element.addEventListener('click', function(){ setCombineMode('element'); });
+combineModeBtns.scalar.addEventListener('click', function(){ setCombineMode('scalar'); });
+combineKEl.addEventListener('input', function(){
+  var v = combineKEl.value.trim();
+  if (/^-?\d+$/.test(v)) setCombineK(parseInt(v, 10));
+});
+combineKEl.addEventListener('change', function(){ combineKEl.value = String(state.combineK); });
+(function(){
+  var held = null;
+  function stop(){ if (held){ clearTimeout(held); held = null; } }
+  combineKEl.parentNode.querySelectorAll('.n-spin-btn').forEach(function(btn){
+    var by = parseInt(btn.getAttribute('data-step'), 10);
+    btn.addEventListener('pointerdown', function(e){
+      if (e.button !== 0) return;
+      e.preventDefault();
+      stop();
+      setCombineK(state.combineK + by);
+      var again = function(){ setCombineK(state.combineK + by); held = setTimeout(again, 60); };
+      held = setTimeout(again, 400);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ btn.addEventListener(t, stop); });
+  });
+})();
+function comboKOn(){ return !!drawn && comboLive(drawn.G) && combo.k !== null; }
+function stepComboK(by){ setCombineK(state.combineK + by); }
 
 // A drag turns the drawn ring smoothly with the pointer, and on release it
 // eases on to the nearest bead and lands there like a button turn. Turning
@@ -7315,7 +7649,7 @@ function endTurn(e){
   var pick = turning.pick;
   turning = null;
   ringSvgEl.classList.remove('is-turning');
-  if (tap) combinePick(pick);
+  if (tap) combineTap(pick);
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
   // A linked pane stays where it was let go, and the ring holding it settles both.
   if (IS_ISOPANE && isoOrder() && isoTurnsTogether()){
@@ -8290,7 +8624,7 @@ function syncRowPaths(G){
 // Drawn as powers of G (one colour, its pairs shown), the rows each line's
 // pair runs through, h^x and h^-x, with that line's colour class; null
 // otherwise, or switched off in the panel's menu.
-function powersOfG(){ return state.oneLine && state.oneLinePair && invSide() !== 'neither'; }
+function powersOfG(){ return state.oneLine && state.oneLinePair && invSide() !== 'neither' && state.forward; }
 function rowPowerTints(G){
   if (!state.subPowers || state.noSub || !powersOfG()) return null;
   var h = state.gen, out = {};
@@ -8750,11 +9084,22 @@ function stepExprSlider(by){
 // the browser's own zoom (Ctrl).
 var stepWheelSum = 0;
 window.addEventListener('wheel', function(e){
-  if (e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW || state.noSub) return;
+  if (e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW) return;
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
   if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
+  // With k·a drawn, the wheel over the ring or the k field steps k instead.
+  if (comboKOn() && t.closest && t.closest('svg.ring-svg, #combine-k')){
+    e.preventDefault();
+    stepWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
+    if (Math.abs(stepWheelSum) < 50) return;
+    var dk = stepWheelSum > 0 ? 1 : -1;
+    stepWheelSum = 0;
+    stepComboK(dk);
+    return;
+  }
+  if (state.noSub) return;
   var follow = genSelectEl.value === SUB_FOLLOW;
   if (!follow && genSelectEl.value !== SUB_PANEL) return;
   e.preventDefault();
@@ -9694,7 +10039,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, forward: state.forward, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot };
 }
 var isoSharedSent = null;
 // How far below the pane's place the rows under both rings reach, down to
@@ -9740,6 +10085,7 @@ function applyIsoShared(d){
   if (Number.isInteger(d.zoom)) applyZoom(d.zoom);
   if (Number.isFinite(d.foot) && d.foot >= 0 && d.foot < 4000) document.documentElement.style.setProperty('--pane-foot', Math.round(d.foot) + 'px');
   if (flag(d.colors)) state.colors = d.colors;
+  if (flag(d.forward)) state.forward = d.forward;
   if (flag(d.backward)) state.backward = d.backward;
   if (flag(d.swapColors)) state.swapColors = d.swapColors;
   if (flag(d.oneLine)) state.oneLine = d.oneLine;
@@ -9835,6 +10181,9 @@ function applyIsoShared(d){
   if (flag(d.lcmRing) || SUB_FORMULAS.indexOf(d.lcmRing) !== -1) state.subLcmRing = lcmPack(lcmHas(d.lcmRing, 'order'), lcmHas(d.lcmRing, 'index'));
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.short)) state.subShort = d.short;
+  if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
+  if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
+  syncCombineMode();
   syncFormulaCtl();
   subFormulaRingEl.value = state.subFormulaRing;
   syncControls();
@@ -10987,6 +11336,8 @@ function stateQuery(){
   q.delete('outer');
   q.set('elside', state.elSide);
   q.delete('invside');
+  if (!state.forward) q.set('fwd', '0');
+  else q.delete('fwd');
   q.set('back', state.backward ? '1' : '0');
   q.set('dir', state.dir);
   if (state.autoRotate !== 'off') q.set('autorotate', state.autoRotate);
@@ -11039,6 +11390,8 @@ function stateQuery(){
   else q.delete('subgcdfold');
   if (state.rot) q.set('rot', String(state.rot));
   else q.delete('rot');
+  if (state.combineMode === 'scalar'){ q.set('combine', 'scalar'); q.set('combinek', String(state.combineK)); }
+  else { q.delete('combine'); q.delete('combinek'); }
   return q;
 }
 
@@ -11222,6 +11575,7 @@ function render(){
 /* ---------- controls <-> state ---------- */
 
 function syncControls(){
+  syncCombineMode();
   if (!isoBlank && !hostBlank()) nInputEl.value = state.n;
   FLAG_SWITCHES.forEach(function(name){ $('layer-' + name).checked = state[name]; });
   syncShowCorners();
@@ -11319,10 +11673,10 @@ function exportName(){
   if (state.colors && state.colorBy === 'inverse') parts.push('inverses');
   if (state.colors && state.colorBy === 'theme') parts.push('theme');
   if (state.colors && state.colorBy === 'distinct') parts.push('distinct');
-  if (state.elSide !== 'inside' || !state.backward) parts.push('arrows', state.elSide, state.backward ? 'back' : 'noback');
+  if (state.elSide !== 'inside' || !state.backward || !state.forward) parts.push('arrows', state.elSide, state.forward ? 'fwd' : 'nofwd', state.backward ? 'back' : 'noback');
   if (state.dir === 'ccw') parts.push('ccw');
   if (state.swapColors) parts.push('swapped');
-  if (state.oneLine && state.backward){
+  if (state.oneLine && state.backward && state.forward){
     parts.push('oneline');
     if (state.oneLinePair) parts.push('pair');
     if (state.oneLinePair && state.oneLineSquare) parts.push('square');
@@ -11563,7 +11917,7 @@ nInputEl.addEventListener('input', function(){ applyTypedN(nInputEl.value); });
     nInputEl.dispatchEvent(new Event('change', { bubbles: true }));
   }
   function stop(){ if (held){ clearTimeout(held); held = null; } }
-  document.querySelectorAll('.n-spin-btn').forEach(function(btn){
+  document.querySelectorAll('#n-input ~ .n-spin-btns .n-spin-btn').forEach(function(btn){
     var by = parseInt(btn.getAttribute('data-step'), 10);
     btn.addEventListener('pointerdown', function(e){
       if (e.button !== 0) return;
@@ -12197,6 +12551,7 @@ function loadState(query, link){
   // from before the backwards checkbox with invside=neither.
   if (query.get('outer') === '0' || query.get('invside') === 'neither') state.backward = false;
   if (SIDES.indexOf(query.get('elside')) !== -1) state.elSide = query.get('elside');
+  state.forward = query.get('fwd') !== '0';
   if (query.get('back') === '0') state.backward = false;
   else if (query.get('back') === '1') state.backward = true;
   if (DIRS.indexOf(query.get('dir')) !== -1) state.dir = query.get('dir');
@@ -12261,6 +12616,9 @@ function loadState(query, link){
   state.enterInverse = query.get('enterinv') !== '0';
   state.subReveal = query.get('subreveal') === '1';
   state.subPowers = query.get('subpowers') !== '0';
+  state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';
+  var ck = intOrNull(query.get('combinek'));
+  state.combineK = ck !== null && Math.abs(ck) <= COMBO_K_MAX ? ck : 2;
   state.subLcm = urlLcm(query.get('sublcm'));
   state.subLcmR = urlLcm(query.get('sublcmr'));
   state.subLcmRing = urlLcm(query.get('sublcmring'));
