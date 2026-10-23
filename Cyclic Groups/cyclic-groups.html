@@ -3496,7 +3496,7 @@ function drawRing(parent, G, beads, box, paint){
   // An element combined with itself k times: the walk from the identity
   // through a, 2a, … to ka (with a⁻¹ for a negative k, the other way
   // round), each hop numbered, one lap at most, since the walk then
-  // repeats.
+  // repeats; a later lap's numbers replace the earlier ones.
   var sw = scalarWalk(G);
   if (sw && m > 1){
     var swFoot = box.R - beadR;
@@ -3506,13 +3506,15 @@ function drawRing(parent, G, beads, box, paint){
     var swD = '';
     swSteps.forEach(function(h, s){ swD += (s ? ' ' : '') + humpPath(box, swFoot, -1, h, s === 0); });
     swEl.appendChild(svgEl('path', { 'class': 'chord', d: swD, 'stroke-width': 2.6 }));
-    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
+    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length)), m0 = sw.walk.length;
     swSteps.forEach(function(h, s){
       swEl.appendChild(humpArrow('chord-arrow', box, swFoot, -1, h, swSize));
       if (m > 40) return;
       var p = humpPoint(box, swFoot, -1, h, 0.3);
       var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(p[0]), y: num(p[1]) }));
-      t.textContent = String(s + 1);
+      // Past a lap, a hop shows the latest number to land on it.
+      var K = Math.abs(combo.k);
+      t.textContent = String(s + 1 + m0 * Math.floor((K - s - 1) / m0));
     });
     ring.appendChild(swEl);
   }
