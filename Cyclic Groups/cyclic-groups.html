@@ -7387,10 +7387,20 @@ function drawCombineLine(G, y){
     } else {
       // The power itself, a negative one in a multiplicative group as the
       // inverse's, then its plain value while that is not too big to write.
-      var inv = G.inv[a];
+      // Multiplicatively, a having an order dividing |G|, an exponent of
+      // |G| or more is first reduced mod |G| in the same steps as with g.
+      var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
       if (mul && k < 0) r.push([[null, '('], ['a', a], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', inv], [null, superscript(-k)]], [null, '≡']);
       else r.push([['a', a], [null, supSigned(k)]], [null, '≡']);
-      var raw = mul ? Math.pow(k >= 0 ? a : inv, Math.abs(k)) : k * a;
+      if (mul && e >= G.order){
+        var redA = function(by){ r.push([['a', base], [null, e + ' % ' + by, 'sup']], [null, '≡']); };
+        redA('|' + groupPlain(G) + '|');
+        redA('φ(' + G.n + ')');
+        redA(G.order);
+        e %= G.order;
+        r.push([['a', base], [null, superscript(e)]], [null, '≡']);
+      }
+      var raw = mul ? Math.pow(base, e) : k * a;
       if (Math.abs(raw) <= 1e15 && raw !== c) r.push(['c', signed(raw)], [null, '≡']);
     }
     r.push(['c', c], [null, mod]);
