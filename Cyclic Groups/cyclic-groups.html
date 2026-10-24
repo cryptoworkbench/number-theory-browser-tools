@@ -903,7 +903,8 @@
   .combine-seg > button[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .combine-seg > button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .combine-k-spin[hidden]{ display:none; }
-  .bead-k{ position:fixed; z-index:30; width:4.2em; padding:3px 6px; font:inherit; font-family:var(--font-math); font-size:.95rem; color:var(--text); background:var(--bg-1); border:1px solid var(--accent); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--bg) 60%, transparent); }
+  .bead-k-spin{ position:fixed; z-index:30; }
+  .bead-k{ width:5em; padding:3px 24px 3px 6px; font:inherit; font-family:var(--font-math); font-size:.95rem; color:var(--text); background:var(--bg-1); border:1px solid var(--accent); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--bg) 60%, transparent); }
   .bead-k::placeholder{ color:var(--text-dim); opacity:.7; font-style:italic; }
   .bead-k:focus{ outline:none; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
   .bead-k.is-invalid{ border-color:var(--role-warn); }
@@ -8246,9 +8247,10 @@ ringSvgEl.addEventListener('pointerup', endTurn);
 ringSvgEl.addEventListener('pointercancel', endTurn);
 // A double click (or double tap) on a bead combines that element with
 // itself, a ∗ a, and opens a field at it holding that 2: emptied, it shows k
-// greyed; any other k typed there redraws at once as the element combined
-// with itself k times, switching the Arrangement row to aᵏ and its field to
-// that k, and 2 again goes back to a ∗ a.
+// greyed. Enter draws the k typed there, the element combined with itself
+// k times (switching the Arrangement row to aᵏ and its field to that k; 2
+// again goes back to a ∗ a), and selects it, so the next k typed replaces
+// it. The spin buttons, and the up and down keys, step k and draw it.
 var lastBeadTap = null, beadKEl = null;
 function beadDoubleTap(x){
   var now = Date.now(), last = lastBeadTap;
@@ -8285,6 +8287,8 @@ function openBeadK(x, fromPair){
   closeBeadK();
   var bead = ringSvgEl.querySelector('.bead[data-el="' + x + '"]');
   if (!bead || !drawn) return;
+  var box = document.createElement('span');
+  box.className = 'n-spin bead-k-spin';
   var field = document.createElement('input');
   field.type = 'text';
   field.className = 'bead-k';
@@ -8295,36 +8299,65 @@ function openBeadK(x, fromPair){
   field.value = '2';
   field.setAttribute('aria-label', translate('cyclicGroups.beadKLabel', { a: elText(drawn.G, x) }));
   field.title = field.getAttribute('aria-label');
-  ringSvgEl.parentNode.appendChild(field);
-  beadKEl = field;
+  // The modulus field's spin buttons, the same arrows.
+  var spin = combineKEl.parentNode.querySelector('.n-spin-btns').cloneNode(true);
+  box.append(field, spin);
+  ringSvgEl.parentNode.appendChild(box);
+  beadKEl = box;
   // Just right of the bead, its middle at the bead's: placed in the
   // viewport, then against the window's corner when the window holds its
   // fixed children.
   var b = bead.getBoundingClientRect();
-  var left = b.right + 6, top = b.top + b.height / 2 - field.offsetHeight / 2;
+  var left = b.right + 6, top = b.top + b.height / 2 - box.offsetHeight / 2;
   var vw = document.documentElement.clientWidth;
-  if (left + field.offsetWidth > vw - 4) left = b.left - 6 - field.offsetWidth;
-  field.style.left = left + 'px';
-  field.style.top = top + 'px';
-  var at = field.getBoundingClientRect();
-  field.style.left = (2 * left - at.left) + 'px';
-  field.style.top = (2 * top - at.top) + 'px';
+  if (left + box.offsetWidth > vw - 4) left = b.left - 6 - box.offsetWidth;
+  box.style.left = left + 'px';
+  box.style.top = top + 'px';
+  var at = box.getBoundingClientRect();
+  box.style.left = (2 * left - at.left) + 'px';
+  box.style.top = (2 * top - at.top) + 'px';
   var read = function(){
     var v = field.value.trim().replace(/^[−–]/, '-');
     return /^[-+]?\d+$/.test(v) ? parseInt(v, 10) : null;
   };
-  // Live: each whole number redraws; an empty field keeps what is drawn.
+  var shown = 2;
+  var draw = function(k){
+    k = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
+    shown = k;
+    field.value = String(k);
+    field.classList.remove('is-invalid');
+    applyBeadK(x, k, fromPair);
+    field.select();
+  };
+  var step = function(by){ var k = read(); draw((k === null ? shown : k) + by); };
   field.addEventListener('input', function(){
-    var k = read();
-    field.classList.toggle('is-invalid', k === null && !/^[-+−–]?$/.test(field.value.trim()));
-    if (k !== null) applyBeadK(x, k, fromPair);
+    field.classList.toggle('is-invalid', read() === null && !/^[-+−–]?$/.test(field.value.trim()));
   });
   field.addEventListener('keydown', function(e){
-    if (e.key !== 'Escape' && e.key !== 'Enter') return;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){ e.preventDefault(); step(e.key === 'ArrowUp' ? 1 : -1); return; }
+    if (e.key === 'Escape'){ e.preventDefault(); closeBeadK(); return; }
+    if (e.key !== 'Enter') return;
     e.preventDefault();
-    closeBeadK();
+    var k = read();
+    if (k === null){ if (field.value.trim() !== '') field.classList.add('is-invalid'); return; }
+    draw(k);
   });
-  field.addEventListener('blur', function(){ if (beadKEl === field) closeBeadK(); });
+  // Held, a button steps again and again, as the Arrangement row's k does.
+  var held = null;
+  var stop = function(){ if (held){ clearTimeout(held); held = null; } };
+  spin.querySelectorAll('.n-spin-btn').forEach(function(btn){
+    var by = parseInt(btn.getAttribute('data-step'), 10);
+    btn.addEventListener('pointerdown', function(e){
+      if (e.button !== 0) return;
+      e.preventDefault();
+      stop();
+      step(by);
+      var again = function(){ step(by); held = setTimeout(again, 60); };
+      held = setTimeout(again, 400);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ btn.addEventListener(t, stop); });
+  });
+  field.addEventListener('blur', function(){ stop(); if (beadKEl === box) closeBeadK(); });
   field.focus();
   field.select();
 }
