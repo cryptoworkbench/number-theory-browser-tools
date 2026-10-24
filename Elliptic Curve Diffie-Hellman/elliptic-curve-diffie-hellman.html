@@ -415,22 +415,18 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { isPrime, mod, modInverse, randomInt } = NT.core;
+const { ecAdd, ecIsNonSingular, ecPoints, isPrime, mod, modInverse, randomInt } = NT.core;
 const { svgEl } = NT.svg;
 const { onLangChange, translate, translateInto } = NT.i18n;
 
 /* ---------- math layer ---------- */
 /* Plain Number arithmetic throughout -- every multiply is reduced mod p
-   before the next, no BigInt (grounded fact 9). The curve arithmetic below
-   (point enumeration, group law, scalar multiplication, point order) is
-   this tool's own and stays local; only the shared prime/modular helpers
-   above come from NT.core. */
+   before the next, no BigInt (grounded fact 9). Point enumeration, the
+   non-singularity test and the group law come from NT.core (shared with
+   Cyclic Groups); the on-curve test, scalar multiplication and point order
+   below are this tool's own. */
 
 var MAX_P = 199;
-
-function isNonSingular(a, b, p){
-  return mod(4 * a * a * a + 27 * b * b, p) !== 0;
-}
 
 function isOnCurve(P, a, b, p){
   if (P === null) return true;
@@ -439,61 +435,14 @@ function isOnCurve(P, a, b, p){
   return lhs === rhs;
 }
 
-// O(p): build a map from y^2 mod p to the list of y that produce it, then
-// look up x^3+ax+b mod p once per x. Cross-checked against a naive O(p^2)
-// double loop at planning time (grounded fact 8). Returns affine points
-// only, x-ascending then y-ascending; the point at infinity is represented
-// as null everywhere in this file and is never in this returned array.
-function enumeratePoints(a, b, p){
-  var map = {};
-  for (var y = 0; y < p; y++){
-    var key = mod(y * y, p);
-    if (!map[key]) map[key] = [];
-    map[key].push(y);
-  }
-  var out = [];
-  for (var x = 0; x < p; x++){
-    var rhs = mod(x * x * x + a * x + b, p);
-    var ys = map[rhs];
-    if (ys){
-      for (var i = 0; i < ys.length; i++) out.push({ x: x, y: ys[i] });
-    }
-  }
-  return out;
-}
-
-// The full group law, all four branches present and distinguishable.
-// Doubling is exposed as the P-equals-Q branch, not a separate function, so
-// the plot and the arithmetic can never diverge (key link in the plan).
-function pointAdd(P, Q, a, p){
-  if (P === null) return Q;
-  if (Q === null) return P;
-  if (P.x === Q.x && mod(P.y + Q.y, p) === 0) return null; // vertical: inverse pair
-  var lambda, inv;
-  if (P.x === Q.x && P.y === Q.y){
-    // tangent: slope (3x^2+a) / 2y
-    inv = modInverse(2 * P.y, p);
-    if (inv === null) return null;
-    lambda = mod((3 * P.x * P.x + a) * inv, p);
-  } else {
-    // chord: slope (y2-y1) / (x2-x1)
-    inv = modInverse(Q.x - P.x, p);
-    if (inv === null) return null;
-    lambda = mod((Q.y - P.y) * inv, p);
-  }
-  var x3 = mod(lambda * lambda - P.x - Q.x, p);
-  var y3 = mod(lambda * (P.x - x3) - P.y, p);
-  return { x: x3, y: y3 };
-}
-
-// double-and-add, routed entirely through pointAdd. k=0 yields infinity.
+// double-and-add, routed entirely through ecAdd. k=0 yields infinity.
 function scalarMul(k, P, a, p){
   var result = null;
   var addend = P;
   var kk = k;
   while (kk > 0){
-    if (kk & 1) result = pointAdd(result, addend, a, p);
-    addend = pointAdd(addend, addend, a, p);
+    if (kk & 1) result = ecAdd(result, addend, a, p);
+    addend = ecAdd(addend, addend, a, p);
     kk = Math.floor(kk / 2);
   }
   return result;
@@ -505,7 +454,7 @@ function pointOrder(P, a, p){
   var ceiling = p + 2 * Math.ceil(Math.sqrt(p)) + 2;
   var current = null;
   for (var k = 1; k <= ceiling; k++){
-    current = pointAdd(current, P, a, p);
+    current = ecAdd(current, P, a, p);
     if (current === null) return k;
   }
   return null;
@@ -601,10 +550,10 @@ function refreshBasePointOptions(preferredGx, preferredGy){
   var pRaw = parseInt(pInput.value, 10);
   var aRaw = parseInt(aInput.value, 10);
   var bRaw = parseInt(bInput.value, 10);
-  if (!Number.isInteger(pRaw) || pRaw < 5 || pRaw > MAX_P || !isPrime(pRaw) || !isNonSingular(aRaw, bRaw, pRaw)){
+  if (!Number.isInteger(pRaw) || pRaw < 5 || pRaw > MAX_P || !isPrime(pRaw) || !ecIsNonSingular(aRaw, bRaw, pRaw)){
     return;
   }
-  var points = enumeratePoints(aRaw, bRaw, pRaw);
+  var points = ecPoints(aRaw, bRaw, pRaw);
   var withOrders = points.map(function(P){ return { P: P, ord: pointOrder(P, aRaw, pRaw) }; });
   var maxOrd = 0;
   for (var i = 0; i < withOrders.length; i++){ if (withOrders[i].ord && withOrders[i].ord > maxOrd) maxOrd = withOrders[i].ord; }
@@ -644,7 +593,7 @@ function readInputs(){
   if (!/^-?\d+$/.test(bRaw)){ setError('ecdh.errBNotNumber'); return null; }
   var b = mod(parseInt(bRaw, 10), p);
 
-  if (!isNonSingular(a, b, p)){ setError('ecdh.errSingular'); return null; }
+  if (!ecIsNonSingular(a, b, p)){ setError('ecdh.errSingular'); return null; }
 
   var selVal = basePointSelect.value;
   if (!selVal){ setError('ecdh.errNoBasePoint'); return null; }
@@ -661,7 +610,7 @@ function readInputs(){
   // and Bob's scalars (14, 23) are deliberately larger than ord(G) -- the
   // scalar multiplication still lands correctly (kP is periodic mod
   // ord(P)), and bounding by ord(G) alone would reject that worked example.
-  var groupOrder = enumeratePoints(a, b, p).length + 1;
+  var groupOrder = ecPoints(a, b, p).length + 1;
 
   var kaRaw = kaInput.value.trim();
   if (!/^\d+$/.test(kaRaw)){ setError('ecdh.errKaNotNumber'); return null; }
@@ -680,7 +629,7 @@ function readInputs(){
 
 function buildExchange(parsed){
   var p = parsed.p, a = parsed.a, b = parsed.b, G = parsed.G, ordG = parsed.ordG, ka = parsed.ka, kb = parsed.kb;
-  var points = enumeratePoints(a, b, p);
+  var points = ecPoints(a, b, p);
   var A = scalarMul(ka, G, a, p);
   var B = scalarMul(kb, G, a, p);
   var secretFromB = scalarMul(ka, B, a, p);
@@ -1009,7 +958,7 @@ function runEveBruteForce(ex){
   var start = performance.now();
   var current = null, found = null, tries = 0;
   for (var k = 1; k <= ex.ordG; k++){
-    current = pointAdd(current, ex.G, ex.a, ex.p);
+    current = ecAdd(current, ex.G, ex.a, ex.p);
     tries++;
     if (pointsEqual(current, ex.A)){ found = k; break; }
   }
@@ -1036,7 +985,7 @@ function computeWalkHops(k, X, a, p, ordG){
   var hops = [];
   var current = null;
   for (var i = 1; i <= kEff; i++){
-    current = pointAdd(current, X, a, p);
+    current = ecAdd(current, X, a, p);
     hops.push(current);
   }
   return hops;
@@ -1122,7 +1071,7 @@ function renderExplorer(){
 
   var P = explorerState.a, Q = explorerState.b;
   var p = ex.p, a = ex.a, b = ex.b;
-  var sum = pointAdd(P, Q, a, p);
+  var sum = ecAdd(P, Q, a, p);
 
   if (P.x === Q.x && mod(P.y + Q.y, p) === 0){
     drawVerticalColumn(P.x, p);
@@ -1491,7 +1440,7 @@ chipButtons.forEach(function(chip){
 
 randomScalarsBtn.addEventListener('click', function(){
   var pRaw = parseInt(pInput.value, 10), aRaw = parseInt(aInput.value, 10), bRaw = parseInt(bInput.value, 10);
-  if (!Number.isInteger(pRaw) || !isPrime(pRaw) || !isNonSingular(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw)){
+  if (!Number.isInteger(pRaw) || !isPrime(pRaw) || !ecIsNonSingular(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw)){
     setError('ecdh.errSetValidCurve'); return;
   }
   var selVal = basePointSelect.value;
@@ -1500,7 +1449,7 @@ randomScalarsBtn.addEventListener('click', function(){
   var G = { x: parseInt(parts[0], 10), y: parseInt(parts[1], 10) };
   var ordG = pointOrder(G, mod(aRaw, pRaw), pRaw);
   if (!ordG){ setError('ecdh.errCouldNotDetermineOrder'); return; }
-  var groupOrder = enumeratePoints(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw).length + 1;
+  var groupOrder = ecPoints(mod(aRaw, pRaw), mod(bRaw, pRaw), pRaw).length + 1;
   kaInput.value = String(randomInt(1, groupOrder - 1));
   kbInput.value = String(randomInt(1, groupOrder - 1));
   rebuild();

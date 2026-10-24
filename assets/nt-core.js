@@ -210,6 +210,51 @@
     return result;
   }
 
+  // Elliptic curves y^2 = x^3 + ax + b over F_p (p an odd prime above 3),
+  // shared by Elliptic Curve Diffie-Hellman and Cyclic Groups. A point is
+  // {x, y}; the point at infinity is null.
+  function ecIsNonSingular(a, b, p) {
+    return mod(4 * a * a * a + 27 * b * b, p) !== 0;
+  }
+
+  // The affine points, x-ascending then y-ascending (O(p): a map from
+  // y^2 mod p to the y producing it, looked up once per x).
+  function ecPoints(a, b, p) {
+    var map = {};
+    for (var y = 0; y < p; y++) {
+      var key = mod(y * y, p);
+      if (!map[key]) map[key] = [];
+      map[key].push(y);
+    }
+    var out = [];
+    for (var x = 0; x < p; x++) {
+      var ys = map[mod(x * x * x + a * x + b, p)];
+      if (ys) for (var i = 0; i < ys.length; i++) out.push({ x: x, y: ys[i] });
+    }
+    return out;
+  }
+
+  // The group law, doubling as its P = Q branch: chord slope
+  // (y2 - y1)/(x2 - x1), tangent slope (3x^2 + a)/2y, an inverse pair
+  // summing to infinity.
+  function ecAdd(P, Q, a, p) {
+    if (P === null) return Q;
+    if (Q === null) return P;
+    if (P.x === Q.x && mod(P.y + Q.y, p) === 0) return null;
+    var lambda, inv;
+    if (P.x === Q.x && P.y === Q.y) {
+      inv = modInverse(2 * P.y, p);
+      if (inv === null) return null;
+      lambda = mod((3 * P.x * P.x + a) * inv, p);
+    } else {
+      inv = modInverse(Q.x - P.x, p);
+      if (inv === null) return null;
+      lambda = mod((Q.y - P.y) * inv, p);
+    }
+    var x3 = mod(lambda * lambda - P.x - Q.x, p);
+    return { x: x3, y: mod(lambda * (P.x - x3) - P.y, p) };
+  }
+
   // randomInt(min, max): byte-identical across Cayley Table, ECDH,
   // Equivalence Wheel, and Group Isomorphism.
   function randomInt(min, max) {
@@ -219,6 +264,9 @@
   var NT = window.NT = window.NT || {};
   NT.core = Object.freeze({
     clamp: clamp,
+    ecAdd: ecAdd,
+    ecIsNonSingular: ecIsNonSingular,
+    ecPoints: ecPoints,
     euclidSteps: euclidSteps,
     FERMAT_MAX_ITER: FERMAT_MAX_ITER,
     fermatSplit: fermatSplit,
