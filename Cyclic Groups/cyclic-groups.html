@@ -4462,7 +4462,7 @@ function rowFormulaH(G, h, x, paint){
     if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G).m(h);
     else {
       var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
-      m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew)]);
+      m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew, signedOn(G))]);
     }
     if (subRevealOn() && from !== to){
       var ex = mrow(m), nat = mrow(to === null ? subFormat(null, null, subWidth(G), 0, G).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h));
@@ -9336,9 +9336,13 @@ function syncGcdDividers(G){
 // A number in the list, as wide as width digits: padded, its leading zeros
 // are written already; aligned, blank space as wide as the missing digits
 // (zeros drawn invisible) goes before it, inside a member's chip too.
-function numMn(s, width){
-  var miss = state.subAlign && !state.subPad ? width - s.length : 0;
-  return miss > 0 ? mrow(mEl('mphantom', [mn('0'.repeat(miss))]), mn(s)) : mn(s);
+// Signed, a number without a minus sign keeps its place with an invisible
+// one, so the digits line up under those of the negative numbers.
+function numMn(s, width, signed){
+  var neg = s.charAt(0) === '−', digits = s.length - (neg ? 1 : 0);
+  var miss = state.subAlign && !state.subPad ? width - (signed ? 1 : 0) - digits : 0;
+  var ghost = (signed && width > 0 && !neg ? '−' : '') + '0'.repeat(Math.max(0, miss));
+  return ghost ? mrow(mEl('mphantom', [mn(ghost)]), mn(s)) : mn(s);
 }
 // The width the list's numbers keep, padded or aligned: that of the group's
 // largest; and its exponents, that of the largest exponent.
@@ -9357,7 +9361,7 @@ function subFormat(base, log, width, expWidth, G){
   var pts = curvePts(), C = pts ? { pts: pts } : G;
   var f = {
     ex: ex,
-    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth)) : pts ? mPoint(pts[x]) : numMn(nat(x), width); },
+    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sg)) : pts ? mPoint(pts[x]) : numMn(nat(x), width, sg); },
     p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? plainPoint(pts[x]) : nat(x); }
   };
   // A row's member, which with Reveal on hover on (or the switch on given
@@ -9366,7 +9370,7 @@ function subFormat(base, log, width, expWidth, G){
   f.r = function(x, on){
     var to = revealTo(G), from = log ? base : null;
     if (!(on === undefined ? subRevealOn() : on) || from === to) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? mPoint(pts[x]) : numMn(nat(x), width)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow(e, n);
+    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? mPoint(pts[x]) : numMn(nat(x), width, sg)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow(e, n);
     e.setAttribute('class', 'sub-ex');
     n.setAttribute('class', 'sub-nat');
     both.setAttribute('data-g', from === null ? '' : String(from));
