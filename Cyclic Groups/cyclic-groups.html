@@ -5475,10 +5475,11 @@ function fitGenExp(body){
 // the bottom panel or in the table, shows in the open table too: its cell in
 // the row of the expression it is written in is linked to its cell in the
 // row of the one revealed, in the same column (of the same block). The pair
-// is scrolled into the band's view, never the page.
+// is scrolled into the band's view, never the page. body: the band, this
+// group's or the linked pane's copy.
 var genExpLinked = null;
-function genExpLink(from, x, to){
-  genExpLinked = x === null || x === undefined || from === to ? null : { from: from, x: x, to: to };
+function genExpLink(from, x, to, body){
+  genExpLinked = x === null || x === undefined || from === to ? null : { from: from, x: x, to: to, body: body || genExpBodyEl };
   relinkGenExp();
 }
 function genExpCell(root, x, g){ return root.querySelector('td[data-el="' + x + '"][data-g="' + (g === null ? '' : g) + '"]'); }
@@ -5486,10 +5487,10 @@ function relinkGenExp(){
   unlinkCells();
   var l = genExpLinked;
   if (!l || !genExpShown()) return;
-  var pow = genExpCell(genExpBodyEl, l.x, l.from);
+  var body = l.body, pow = genExpCell(body, l.x, l.from);
   var nat = pow && genExpCell(pow.closest('table'), l.x, l.to);
   if (!nat) return;
-  var body = genExpBodyEl, b = body.getBoundingClientRect();
+  var b = body.getBoundingClientRect();
   var up = nat.parentNode.rowIndex < pow.parentNode.rowIndex;
   var top = (up ? nat : pow).getBoundingClientRect(), bot = (up ? pow : nat).getBoundingClientRect();
   if (top.top < b.top) body.scrollTop -= b.top - top.top;
@@ -5497,26 +5498,26 @@ function relinkGenExp(){
   var th = pow.parentNode.cells[0].getBoundingClientRect().right;
   if (bot.left < th) body.scrollLeft -= th - bot.left;
   else if (bot.right > b.right) body.scrollLeft += bot.right - b.right;
-  linkCells(pow, nat);
+  linkCells(pow, nat, body);
 }
-// A cell's box in the band's scrolled content.
-function genExpBox(td){
-  var b = genExpBodyEl.getBoundingClientRect(), r = td.getBoundingClientRect();
-  return { left: r.left - b.left + genExpBodyEl.scrollLeft, top: r.top - b.top + genExpBodyEl.scrollTop, width: r.width, height: r.height };
+// A cell's box in its band's scrolled content.
+function genExpBox(td, body){
+  var b = body.getBoundingClientRect(), r = td.getBoundingClientRect();
+  return { left: r.left - b.left + body.scrollLeft, top: r.top - b.top + body.scrollTop, width: r.width, height: r.height };
 }
 // Arrow: drawn from the expression shown to the one revealed, up or down;
 // the column's other cells between them fade so the arrow reads.
 var genExpArrow = null;
-function linkCells(pow, nat){
+function linkCells(pow, nat, body){
   pow.classList.add('is-linked');
   nat.classList.add('is-linked');
   var col = Array.prototype.indexOf.call(pow.parentNode.cells, pow), rows = pow.closest('tbody').rows;
   var r0 = pow.parentNode.rowIndex, r1 = nat.parentNode.rowIndex, up = r1 < r0;
   for (var r = Math.min(r0, r1) + 1; r < Math.max(r0, r1); r++) if (rows[r].cells[col]) rows[r].cells[col].classList.add('is-passed');
-  var p = genExpBox(pow), n = genExpBox(nat);
+  var p = genExpBox(pow, body), n = genExpBox(nat, body);
   var x0 = p.left + p.width / 2, y0 = up ? p.top + 2 : p.top + p.height - 2, x1 = n.left + n.width / 2, y1 = up ? n.top + n.height - 1 : n.top + 1;
   var my = (y0 + y1) / 2;
-  genExpArrow = svgEl('svg', { 'class': 'genexp-arrow-ov', width: genExpBodyEl.scrollWidth, height: genExpBodyEl.scrollHeight, 'aria-hidden': 'true' });
+  genExpArrow = svgEl('svg', { 'class': 'genexp-arrow-ov', width: body.scrollWidth, height: body.scrollHeight, 'aria-hidden': 'true' });
   var defs = svgEl('defs');
   var mark = svgEl('marker', { id: 'genexp-head', viewBox: '0 0 8 8', refX: 6, refY: 4, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
   mark.appendChild(svgEl('path', { d: 'M1 1 L7 4 L1 7 Z' }));
@@ -5524,20 +5525,20 @@ function linkCells(pow, nat){
   genExpArrow.appendChild(defs);
   var path = svgEl('path', { 'class': 'genexp-arrow-line', d: 'M' + x0 + ' ' + y0 + ' C' + x0 + ' ' + my + ' ' + x1 + ' ' + my + ' ' + x1 + ' ' + y1, 'marker-end': 'url(#genexp-head)' });
   genExpArrow.appendChild(path);
-  genExpBodyEl.appendChild(genExpArrow);
+  body.appendChild(genExpArrow);
   var len = path.getTotalLength();
   path.style.strokeDasharray = len;
   path.style.setProperty('--len', len);
 }
 function unlinkCells(){
-  genExpBodyEl.querySelectorAll('td.is-linked, td.is-passed').forEach(function(td){ td.classList.remove('is-linked', 'is-passed'); });
+  document.querySelectorAll('.genexp-body td.is-linked, .genexp-body td.is-passed').forEach(function(td){ td.classList.remove('is-linked', 'is-passed'); });
   if (genExpArrow){ genExpArrow.remove(); genExpArrow = null; }
 }
 // A band whose width changes fits its table again.
 function watchGenExpWidth(body){
   if (typeof ResizeObserver !== 'function') return;
   new ResizeObserver(function(){
-    if (body.clientWidth !== body.genExpRoom){ fitGenExp(body); if (body === genExpBodyEl) relinkGenExp(); }
+    if (body.clientWidth !== body.genExpRoom){ fitGenExp(body); if (genExpLinked && body === genExpLinked.body) relinkGenExp(); }
   }).observe(body);
 }
 // A row's name: a button holding it (x, or g^k) and the sort's arrow while
@@ -5575,11 +5576,12 @@ function genExpHead(G, col, name, g){
   var eyeName = col < 0 ? translate('cyclicGroups.genExpRevealNat') : translate('cyclicGroups.genExpRevealPow', { g: baseText(G, g) });
   eye.title = eyeName;
   eye.setAttribute('aria-label', eyeName);
-  eye.appendChild(svgIcon([['path', { d: 'M1 6C2.4 3.6 4 2.6 6 2.6S9.6 3.6 11 6C9.6 8.4 8 9.4 6 9.4S2.4 8.4 1 6Z' }], ['circle', { cx: 6, cy: 6, r: 1.7 }]]));
+  eye.appendChild(genExpEyeIcon());
   th.appendChild(eye);
   th.appendChild(btn);
   return th;
 }
+function genExpEyeIcon(){ return svgIcon([['path', { d: 'M1 6C2.4 3.6 4 2.6 6 2.6S9.6 3.6 11 6C9.6 8.4 8 9.4 6 9.4S2.4 8.4 1 6Z' }], ['circle', { cx: 6, cy: 6, r: 1.7 }]]); }
 // A click on a row's eye picks what the reveal shows, the same pick for
 // the whole ring: beads, the bottom panel, formulas and the table.
 function pickReveal(v){
@@ -5682,6 +5684,8 @@ function syncPaneGenExp(){
     span.setAttribute('role', 'button');
     span.tabIndex = 0;
     span.setAttribute('aria-label', span.title);
+    // The copy carries no SVG: an eye gets its icon back here.
+    if (span.classList.contains('genexp-reveal')) span.replaceChildren(genExpEyeIcon());
   });
   genExpPaneBodyEl.genExpFull = full;
   fitGenExp(genExpPaneBodyEl);
@@ -9652,7 +9656,7 @@ function setRevealHot(m){
   revealHot = m;
   var at = m && !m.closest('.sub-row-r') && m.querySelector('.sub-nat').parentNode;
   var row = function(a){ var v = at && at.getAttribute(a); return v ? +v : null; };
-  genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'));
+  genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'), m && m.closest('.genexp-body'));
   if (!m) return;
   m.style.minWidth = m.getBoundingClientRect().width + 'px';
   m.classList.add('is-revealed');
@@ -9683,17 +9687,19 @@ function formulaReveal(e){
 }
 subgroupsEl.addEventListener('pointermove', function(e){ if (e.target.closest && e.target.closest('.sub-row-formula')) formulaReveal(e); });
 ringHeadEl.addEventListener('pointermove', formulaReveal);
-// In the element expression reference table, a power's cell reveals its
-// natural number, held the same way, and is linked to the element's own
-// cell at the top of its column.
-genExpBodyEl.addEventListener('pointermove', function(e){
-  if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
-  var m = e.target.closest && e.target.closest('td math.m-inline');
-  if (m && !m.querySelector('.sub-nat')) m = null;
-  revealBox = m ? m.getBoundingClientRect() : null;
-  setRevealHot(m);
+// In the element expression reference table, and in the linked pane's copy
+// of its own, a power's cell reveals its natural number, held the same way,
+// and is linked to the element's own cell at the top of its column.
+[genExpBodyEl, genExpPaneBodyEl].forEach(function(body){
+  body.addEventListener('pointermove', function(e){
+    if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
+    var m = e.target.closest && e.target.closest('td math.m-inline');
+    if (m && !m.querySelector('.sub-nat')) m = null;
+    revealBox = m ? m.getBoundingClientRect() : null;
+    setRevealHot(m);
+  });
+  body.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
 });
-genExpBodyEl.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
 ringHeadEl.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
