@@ -57,6 +57,8 @@
   math.m-inline{ font-family:var(--font-math); font-size:1.12em; font-weight:400; direction:ltr; }
   .subgroup-row math.m-inline{ font-size:1.08em; }
   :is(.subgroup-row, #gen-super) math.m-inline:not(.is-revealed) .sub-nat, :is(.subgroup-row, #gen-super) math.m-inline.is-revealed .sub-ex{ display:none; }
+  mrow.sub-reveal:not(.is-revealed) > .sub-nat, mrow.sub-reveal.is-revealed > .sub-ex{ display:none; }
+  .ring-hover-formula mrow.sub-reveal{ pointer-events:auto; }
 
   .page-header{ margin:0; }
   .eyebrow{ font-size:.875rem; font-weight:600; color:var(--text-dim); margin:0 0 8px; }
@@ -4437,7 +4439,8 @@ function showRowFormula(G){
 // equals signs, rather than as one line too wide for the row.
 // What makes h in G's row formula, as the rows write their numbers: lined
 // up, as itself or as g^q its exponent lined up too, and on a chip painted
-// like bead x when paint is set.
+// like bead x when paint is set. With Reveal on hover on, the power
+// carries h's natural number too, shown in its place under the pointer.
 function rowFormulaH(G, h, x, paint){
   return function(base, q){
     var m;
@@ -4445,6 +4448,15 @@ function rowFormulaH(G, h, x, paint){
     else {
       var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
       m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew)]);
+      if (subRevealOn()){
+        var ex = mrow(m), nat = mrow(subFormat(null, null, subWidth(G), 0, G).m(h));
+        ex.setAttribute('class', 'sub-ex');
+        nat.setAttribute('class', 'sub-nat');
+        m = mrow(ex, nat);
+        m.setAttribute('class', 'sub-reveal');
+        m.setAttribute('data-g', String(base));
+        m.setAttribute('data-el', String(h));
+      }
     }
     return paint ? memberMath(x, m) : m;
   };
@@ -9421,6 +9433,7 @@ function setRevealHot(m){
   m.classList.add('is-revealed');
 }
 subgroupsEl.addEventListener('pointerover', function(e){
+  if (e.target.closest && e.target.closest('.sub-row-formula')) return;
   var m = e.target.closest && e.target.closest('math.m-inline');
   setRevealHot(m && m.querySelector('.sub-nat') ? m : null);
 });
@@ -9436,6 +9449,16 @@ genSuperEl.addEventListener('pointermove', function(e){
   setRevealHot(at ? at.closest('math.m-inline') : null);
 });
 genSuperEl.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
+// In a formula, the power of h reveals alone, held the same way.
+function formulaReveal(e){
+  if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
+  var at = e.target.closest && e.target.closest('mrow.sub-reveal');
+  revealBox = at ? at.getBoundingClientRect() : null;
+  setRevealHot(at);
+}
+subgroupsEl.addEventListener('pointermove', function(e){ if (e.target.closest && e.target.closest('.sub-row-formula')) formulaReveal(e); });
+ringHeadEl.addEventListener('pointermove', formulaReveal);
+ringHeadEl.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
 if (window.ResizeObserver) new ResizeObserver(syncSubMore).observe(subgroupsEl);
 // Scroll the list's own box just enough to show the row; never the page,
 // which scrollIntoView would also move, pulling the ring out of view.
