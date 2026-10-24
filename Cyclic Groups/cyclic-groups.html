@@ -5481,6 +5481,9 @@ var genExpLinked = null;
 function genExpLink(from, x, to, body){
   genExpLinked = x === null || x === undefined || from === to ? null : { from: from, x: x, to: to, body: body || genExpBodyEl };
   relinkGenExp();
+  // The pane's link goes to the ring holding it too, which draws it in its
+  // copy of the pane's table.
+  if (IS_ISOPANE) tellHost({ isopane: 'genexp-link', link: genExpLinked && { from: from, x: x, to: to } });
 }
 function genExpCell(root, x, g){ return root.querySelector('td[data-el="' + x + '"][data-g="' + (g === null ? '' : g) + '"]'); }
 function relinkGenExp(){
@@ -9654,9 +9657,10 @@ function setRevealHot(m){
   if (m === revealHot) return;
   if (revealHot){ revealHot.classList.remove('is-revealed'); revealHot.style.minWidth = ''; }
   revealHot = m;
-  var at = m && !m.closest('.sub-row-r') && m.querySelector('.sub-nat').parentNode;
+  // A member on the linked pane's side links in the copy of its table.
+  var at = m && m.querySelector('.sub-nat').parentNode;
   var row = function(a){ var v = at && at.getAttribute(a); return v ? +v : null; };
-  genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'), m && m.closest('.genexp-body'));
+  genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'), m && (m.closest('.genexp-body') || (m.closest('.sub-row-r') ? genExpPaneBodyEl : null)));
   if (!m) return;
   m.style.minWidth = m.getBoundingClientRect().width + 'px';
   m.classList.add('is-revealed');
@@ -11630,6 +11634,10 @@ window.addEventListener('message', function(e){
     if (typeof d.name === 'string' && Object.prototype.hasOwnProperty.call(SCRATCH_NAMES, d.name) && isFinite(d.x) && isFinite(d.y)) addPaneCard(d.name, d.x, d.y);
   } else if (d.isopane === 'genexp'){
     if (typeof d.on === 'boolean' && d.on !== genExpShown()) toggleGenExp();
+  } else if (d.isopane === 'genexp-link'){
+    var l = d.link, ok = function(v){ return v === null || (Number.isInteger(v) && v >= 0); };
+    if (l && typeof l === 'object' && ok(l.from) && Number.isInteger(l.x) && ok(l.to)) genExpLink(l.from, l.x, l.to, genExpPaneBodyEl);
+    else if (genExpLinked && genExpLinked.body === genExpPaneBodyEl) genExpLink(null, null, null);
   } else if (d.isopane === 'genexp-table'){
     isoPaneGenExp = d.table && typeof d.table === 'object' ? d.table : null;
     syncPaneGenExp();
