@@ -509,6 +509,8 @@
       combineModeLabel: 'Combine elements',
       combineModeLabelScalar: 'Scale an element',
       ecToggle: 'Elliptic curve',
+      exprMultiplesEc: 'Multiples kP of P = {g}',
+      exprGensEc: { one: 'ELEMENT EXPRESSION: {count} generator P to write the points as multiples kP of.', other: 'ELEMENT EXPRESSION: {count} generators P to write the points as multiples kP of.' },
       curvePlotShow: 'Show the curve\'s points',
       ecToggleTitle: 'Study the group of an elliptic curve\'s points over a prime field',
       ecPTitle: 'The field\'s prime p, from 5 to 97',

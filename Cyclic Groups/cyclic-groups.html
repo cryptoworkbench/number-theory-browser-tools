@@ -335,8 +335,7 @@
   .facts.group-controls .ec-row[hidden]{ display:none; }
   .ec-field{ display:inline-flex; align-items:center; gap:6px; }
   .facts.group-controls .ec-field > input{ width:4.2em; }
-  .facts.group-controls .ec-preset{ width:auto; text-align-last:left; }
-  :root.is-ec #expr-slot{ display:none !important; }
+  .facts.group-controls .ec-preset{ width:auto; max-width:100%; text-align-last:left; }
   .ec-eq{ font-family:var(--font-math); font-size:1.05rem; color:var(--text); white-space:nowrap; }
   :root.is-ec .facts.group-controls :is(.n-row, .op-row, .op-toggle-row){ display:none !important; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
@@ -860,8 +859,8 @@
   .lap-c2{ --walk:var(--role-alt); }
   .lap-c3{ --walk:var(--role-warn); }
   .lap-c4{ --walk:var(--role-input); }
-  .lap-key{ position:absolute; left:20px; top:170px; z-index:3; max-width:min(300px, 45%); max-height:190px; overflow-y:auto; padding:8px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); font-size:.84rem; color:var(--text-dim); line-height:1.4; }
-  .fs-win-body.is-ring > .lap-key{ grid-area:ring; justify-self:start; align-self:start; position:relative; left:0; top:8px; }
+  .lap-key{ position:relative; margin-top:10px; z-index:3; max-width:min(300px, 100%); box-sizing:border-box; max-height:190px; overflow-y:auto; padding:8px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); font-size:.84rem; color:var(--text-dim); line-height:1.4; }
+  .fs-win-body.is-ring > .lap-key{ grid-area:ring; justify-self:start; align-self:start; margin:0; top:8px; max-width:min(300px, 45%); }
   .lap-key[hidden]{ display:none; }
   .lap-key-head{ display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:4px; }
   .lap-key-head > h2{ margin:0; font-size:.78rem; font-weight:600; color:var(--text); }
@@ -873,10 +872,10 @@
      with it: each point painted as its bead, the picked ones ringed alike,
      P + Q's line through the grid, and k·P's walk. A click on a point picks
      it as a click on its bead does. */
-  .curve-plot{ position:absolute; right:20px; top:170px; z-index:3; width:min(300px, 40%); padding:8px 10px 6px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); }
-  .fs-win-body.is-ring > .curve-plot{ grid-area:ring; justify-self:end; align-self:start; position:relative; right:0; top:8px; }
+  .curve-plot{ position:relative; margin:10px auto 0; z-index:3; width:min(300px, 100%); box-sizing:border-box; padding:8px 10px 6px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); }
+  .fs-win-body.is-ring > .curve-plot{ grid-area:ring; justify-self:end; align-self:start; margin:0; top:8px; width:min(300px, 40%); max-height:calc(100% - 16px); display:flex; flex-direction:column; }
   .curve-plot[hidden]{ display:none; }
-  .curve-plot-svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .curve-plot-svg{ display:block; width:100%; height:auto; flex:0 1 auto; min-height:0; overflow:visible; }
   .curve-plot-svg .curve-frame{ fill:none; stroke:var(--panel-border); }
   .curve-plot-svg .curve-grid{ stroke:var(--panel-border); stroke-width:.5; opacity:.5; }
   .curve-plot-svg .curve-tick{ fill:var(--text-dim); font-family:var(--font-sans); font-size:10px; }
@@ -3089,13 +3088,15 @@ function syncArrange(G){
   arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
 }
 
+// On a curve the element expression writes multiples kP of the generator
+// P the slider is on, where a group of numbers writes powers g^k.
+function expMath(G, g, k){ return G && G.pts ? mrow(k, mi('P')) : mEl('msup', [mn(g), k]); }
+function expPlain(G, g, k){ return G && G.pts ? k + 'P' : g + '^' + k; }
 // Element expression: each element by its number (Natural), or as the power
 // g^k of a chosen generator g, always in power notation, the additive group
 // included. A group with no generator shows numbers only, and a choice that
 // is not a generator of this group reads as Natural.
 function genOrNull(G, v){
-  // A curve's points are written as points, never as powers (for now).
-  if (G.pts) return null;
   return G.cyclic && G.generators.indexOf(v) !== -1 ? v : null;
 }
 function exprBy(G){ return genOrNull(G, state.expr); }
@@ -3162,18 +3163,18 @@ function syncExpr(G){
     stop.className = 'expr-stop';
     stop.style.setProperty('--at', String((i + 1) / max));
     var name = document.createElement('span');
-    name.textContent = String(h);
+    name.textContent = elText(G, h, true);
     stop.appendChild(name);
     stop.classList.toggle('is-on', i + 1 === at);
     return stop;
   }));
   exprNatEl.classList.toggle('is-on', at === 0);
-  var now = g === null ? translate('cyclicGroups.exprNatural') : translate('cyclicGroups.arrangePowers', { g: g });
+  var now = g === null ? translate('cyclicGroups.exprNatural') : G.pts ? translate('cyclicGroups.exprMultiplesEc', { g: elText(G, g) }) : translate('cyclicGroups.arrangePowers', { g: g });
   exprNowEl.textContent = now;
   exprSliderEl.setAttribute('aria-valuetext', now);
   // Hovered, the slider names itself and counts its generators: φ(n) of them
   // in the additive group, φ(φ(n)) in the multiplicative one, whose order is φ(n).
-  exprSliderEl.title = translate(G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
+  exprSliderEl.title = translate(G.pts ? 'cyclicGroups.exprGensEc' : G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
   thinExprStops();
 }
 // Upright beside the ring while two groups are open with the Numerical view
@@ -3719,7 +3720,7 @@ function drawRing(parent, G, beads, box, paint){
         ring.appendChild(pl);
         return;
       }
-      var text = elog ? eg + superscript(pad(elog[a], G.order - 1)) : pad(a, maxEl);
+      var text = elog ? (G.pts ? pad(elog[a], G.order - 1) + 'P' : eg + superscript(pad(elog[a], G.order - 1))) : pad(a, maxEl);
       // An expressed or padded label wider than two characters shrinks to
       // stay in its bead.
       var shrink = elog || state.subPad;
@@ -3727,7 +3728,7 @@ function drawRing(parent, G, beads, box, paint){
       var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
       if (elog){
-        var nat = pad(a, maxEl), natSize = beadR * 1.05 * (state.subPad ? Math.min(1, 2.2 / nat.length) : 1);
+        var nat = G.pts ? elText(G, a, true) : pad(a, maxEl), natSize = beadR * 1.05 * (state.subPad || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
         label.setAttribute('data-expr', text);
         label.setAttribute('data-expr-size', label.getAttribute('font-size'));
         label.setAttribute('data-nat', nat);
@@ -4895,7 +4896,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -5355,7 +5356,7 @@ function fillGenExp(G){
     return tr;
   };
   row(genExpHead(G, -1, mi('x')), nat).className = 'genexp-els';
-  gens.forEach(function(g, i){ row(genExpHead(G, i, mEl('msup', [mn(g), mi('k')]), g), pows[i], g); });
+  gens.forEach(function(g, i){ row(genExpHead(G, i, G.pts ? mrow(mi('k'), mo('·'), mPoint(G.pts[g])) : mEl('msup', [mn(g), mi('k')]), g), pows[i], g); });
   genExpBodyEl.genExpFull = table;
   fitGenExp(genExpBodyEl);
   relinkGenExp();
@@ -7647,10 +7648,13 @@ var COMBINE_LINE = 26, COMBINE_GAP = 5;
 // How many lines the combination takes below its first: a curve's sum of
 // two different points (or a point doubled) four in all.
 function combineExtraLines(G){
-  if (G.pts && comboLive(G) && combo.b !== null && combo.k === null){
+  if (G.pts && comboLive(G)){
+    var ex = exprBy(G) !== null ? 1 : 0;
+    if (combo.k !== null) return 1 + ex;
+    if (combo.b === null) return 0;
     var P = G.pts[combo.a], Q = G.pts[combo.b];
-    if (!P || !Q) return 0;
-    return P.x === Q.x && (P.y + Q.y) % G.n === 0 ? 1 : 3;
+    if (!P || !Q) return ex;
+    return ex + (P.x === Q.x && (P.y + Q.y) % G.n === 0 ? 1 : 3);
   }
   return (G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0;
 }
@@ -7665,7 +7669,7 @@ var comboPromptHook = null;
 // (or, for P + P, the tangent) and the sum's coordinates from it, or k·P
 // with k reduced mod |E| first. Coordinates count mod p.
 function curveRows(G, y, mod){
-  var p = G.n, pts = G.pts, a = combo.a;
+  var p = G.n, pts = G.pts, a = combo.a, g = exprBy(G), log = g === null ? null : exprLog(G, g);
   var sub = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
   if (combo.k !== null){
     var k = combo.k, c = scalarOf(G, a, k), N = G.order;
@@ -7685,10 +7689,27 @@ function curveRows(G, y, mod){
     }
     if (e < 0) r.push([null, (-e) + ' ·'], ['a', elText(G, G.inv[a])], [null, '≡']);
     r.push(['c', elText(G, c)], [null, mod]);
-    return [r];
+    var out = [r];
+    // As multiples of P: k·(iP) ≡ (k × i)P, the factor reduced mod |E|.
+    if (log){
+      var ki = k * log[a], m = log[c];
+      var s2 = [[null, signed(k) + ' ·'], ['a', log[a] + 'P'], [null, '≡'], ['c', '(' + signed(k) + ' × ' + log[a] + ')P'], [null, '≡']];
+      if (ki !== m) s2.push(['c', signed(ki) + 'P'], [null, '≡']);
+      s2.push(['c', m + 'P'], [null, '≡'], ['c', elText(G, c)]);
+      out.push(s2);
+    }
+    return out;
   }
   var b = combo.b, c = G.combine(a, b), P = pts[a], Q = pts[b];
   var rows = [[['a', elText(G, a)], [null, '+'], ['b', elText(G, b)], [null, '≡'], ['c', elText(G, c)], [null, mod]]];
+  // As multiples of P: iP + jP ≡ (i + j)P, the sum reduced mod |E|.
+  if (log){
+    var i = log[a], j = log[b], m2 = log[c];
+    var er = [['a', i + 'P'], [null, '+'], ['b', j + 'P'], [null, '≡'], ['c', '(' + i + ' + ' + j + ')P'], [null, '≡']];
+    if (i + j !== m2) er.push(['c', (i + j) + 'P'], [null, '≡']);
+    er.push(['c', m2 + 'P'], [null, '≡'], ['c', elText(G, c)]);
+    rows.push(er);
+  }
   if (!P || !Q) return rows;
   if (P.x === Q.x && (P.y + Q.y) % p === 0){
     // A vertical line meets the curve at no third point: P + (−P) is 𝒪.
@@ -7709,8 +7730,8 @@ function curveRows(G, y, mod){
   }
   var inv = modInverse(((den % p) + p) % p, p);
   lam = (((num * inv) % p) + p) % p;
-  var lr = rows[1];
-  lr.push([null, '≡'], [[null, signed(num) + ' × ' + signed(den)], [null, '⁻¹']], [null, '≡'], [null, signed(num) + ' × ' + inv], [null, '≡'], [null, lam], [null, mod]);
+  var lr = rows[rows.length - 1];
+  lr.push([null, '≡'], [[null, signed(num) + ' × ' + sub(den)], [null, '⁻¹']], [null, '≡'], [null, signed(num) + ' × ' + inv], [null, '≡'], [null, lam], [null, mod]);
   var R = pts[c], x3raw = lam * lam - P.x - Q.x, y3raw = lam * (P.x - R.x) - P.y;
   rows.push([[null, 'x₃'], [null, '≡'], [null, 'λ² − x₁ − x₂'], [null, '≡'], [[null, lam + '² − '], ['a', P.x], [null, ' − '], ['b', Q.x]], [null, '≡'], [null, signed(x3raw)], [null, '≡'], ['c', R.x], [null, mod]]);
   rows.push([[null, 'y₃'], [null, '≡'], [null, 'λ(x₁ − x₃) − y₁'], [null, '≡'], [[null, lam + '('], ['a', P.x], [null, ' − '], ['c', R.x], [null, ') − '], ['a', P.y]], [null, '≡'], [null, signed(y3raw)], [null, '≡'], ['c', R.y], [null, mod]]);
@@ -9051,17 +9072,17 @@ function subExpWidth(G){ return state.subPad || state.subAlign ? String(G.order 
 function subFormat(base, log, width, expWidth){
   var nat = function(x){ return state.subPad ? String(x).padStart(width, '0') : String(x); };
   var ex = function(k){ return state.subPad ? String(k).padStart(expWidth, '0') : String(k); };
-  var pts = curvePts();
+  var pts = curvePts(), C = pts ? { pts: pts } : null;
   var f = {
-    m: function(x){ return pts ? mPoint(pts[x]) : log ? mEl('msup', [mn(base), numMn(ex(log[x]), expWidth)]) : numMn(nat(x), width); },
-    p: function(x){ return pts ? plainPoint(pts[x]) : log ? base + '^' + ex(log[x]) : nat(x); }
+    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth)) : pts ? mPoint(pts[x]) : numMn(nat(x), width); },
+    p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? plainPoint(pts[x]) : nat(x); }
   };
   // A row's member, which with Reveal on hover on (or the switch on given
   // as on) carries its natural number beside its power, shown in its
   // place under the pointer.
   f.r = function(x, on){
     if (!log || !(on === undefined ? subRevealOn() : on)) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(numMn(nat(x), width)), both = mrow(e, n);
+    var e = mrow(f.m(x)), n = mrow(pts ? mPoint(pts[x]) : numMn(nat(x), width)), both = mrow(e, n);
     e.setAttribute('class', 'sub-ex');
     n.setAttribute('class', 'sub-nat');
     both.setAttribute('data-g', String(base));
@@ -9635,8 +9656,8 @@ function renderInverseLegend(pairing, el, G){
   el = el || legendEl;
   var g = G ? subExprGen(G, state.legendExpr, state.expr) : null, log = g === null ? null : exprLog(G, g);
   if (!G && pairing.log){ g = pairing.g; log = pairing.log; }
-  var m = function(x){ return log ? mEl('msup', [mn(g), mn(log[x])]) : mn(x); };
-  var p = function(x){ return log ? g + '^' + log[x] : String(x); };
+  var m = function(x){ return log ? expMath(G, g, mn(log[x])) : G && G.pts ? mPoint(G.pts[x]) : mn(x); };
+  var p = function(x){ return log ? expPlain(G, g, log[x]) : G ? elText(G, x) : String(x); };
   var byExp = function(a, b){ return log[a] - log[b]; };
   var selfInverse = log ? pairing.selfInverse.slice().sort(byExp) : pairing.selfInverse;
   var selfList = [];
