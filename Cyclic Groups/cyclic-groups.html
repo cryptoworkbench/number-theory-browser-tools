@@ -838,6 +838,22 @@
   .combine-halo.is-w{ color:var(--role-active); stroke-width:2; opacity:.45; filter:none; }
   .walk-scalar{ --walk:var(--role-result); }
   .walk-scalar .chord{ opacity:1; }
+  /* Each lap of the walk in its own colour (lapClass), listed by the lap
+     key over the ring's top left corner. */
+  .lap-c0{ --walk:var(--role-result); }
+  .lap-c1{ --walk:var(--role-special); }
+  .lap-c2{ --walk:var(--role-alt); }
+  .lap-c3{ --walk:var(--role-warn); }
+  .lap-c4{ --walk:var(--role-input); }
+  .lap-key{ position:absolute; left:20px; top:170px; z-index:3; max-width:min(300px, 45%); max-height:190px; overflow-y:auto; padding:8px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); font-size:.84rem; color:var(--text-dim); line-height:1.4; }
+  .fs-win-body.is-ring > .lap-key{ grid-area:ring; justify-self:start; align-self:start; position:relative; left:0; top:8px; }
+  .lap-key[hidden]{ display:none; }
+  .lap-key-head{ display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:4px; }
+  .lap-key-head > h2{ margin:0; font-size:.78rem; font-weight:600; color:var(--text); }
+  .lap-key-min{ width:20px; height:20px; }
+  .lap-key-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px; }
+  .lap-key-list > li{ display:flex; align-items:baseline; gap:8px; }
+  .lap-key-swatch{ flex:none; width:20px; border-top:3px solid var(--walk); transform:translateY(-3px); }
   /* Which combination a click on a bead makes, in the Arrangement row:
      a ∗ b (two elements) or aᵏ (one element k times, k in its field, written so in either group). */
   .combine-mode{ display:inline-flex; align-items:center; gap:8px; margin-inline-end:18px; }
@@ -858,7 +874,7 @@
   .combine-k-mod[hidden]{ display:none; }
   .combine-k-spin > #combine-k{ width:4.6em; -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
   .combine-k-spin > #combine-k::-webkit-inner-spin-button, .combine-k-spin > #combine-k::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
-  .scalar-hop-n{ fill:var(--role-result); font-family:var(--font-sans); font-size:20px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:3px; }
+  .scalar-hop-n{ fill:var(--walk, var(--role-result)); font-family:var(--font-sans); font-size:20px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:3px; }
   .ring-combine{ fill:var(--text); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
   .ring-combine .is-a{ fill:var(--role-active); }
   .ring-combine .is-b{ fill:var(--role-input); }
@@ -2058,6 +2074,10 @@
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
         </svg>
+        <section class="lap-key" id="lap-key" aria-labelledby="lap-key-title" hidden>
+          <div class="lap-key-head"><h2 id="lap-key-title" data-i18n="cyclicGroups.lapKeyTitle">Laps of the path</h2><button type="button" class="fs-win-btn lap-key-min" id="lap-key-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
+          <ul class="lap-key-list" id="lap-key-list"></ul>
+        </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
@@ -2337,6 +2357,7 @@
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner" id="legend-corner" aria-pressed="false" aria-controls="legend-panel" title="Show element colour key" aria-label="Show element colour key" data-i18n-title="cyclicGroups.showElementKey" data-i18n-aria-label="cyclicGroups.showElementKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle class="icon-fill" cx="2.8" cy="2.5" r="1.4"/><circle class="icon-fill" cx="2.8" cy="6" r="1.4"/><circle class="icon-fill" cx="2.8" cy="9.5" r="1.4"/><line x1="6" y1="2.5" x2="10.5" y2="2.5"/><line x1="6" y1="6" x2="10.5" y2="6"/><line x1="6" y1="9.5" x2="10.5" y2="9.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="akey-corner" aria-pressed="false" aria-controls="combine-key" title="Show arrow colour key" aria-label="Show arrow colour key" data-i18n-title="cyclicGroups.showArrowKey" data-i18n-aria-label="cyclicGroups.showArrowKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 3.5H5.5M4 2 5.5 3.5 4 5"/><path d="M1.5 8.5H5.5M4 7 5.5 8.5 4 10"/><line x1="7.5" y1="3.5" x2="10.5" y2="3.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="8.5"/></svg></button>
+        <button type="button" class="fs-win-btn key-corner" id="lap-corner" aria-pressed="false" aria-controls="lap-key" title="Show the laps' colours" aria-label="Show the laps' colours" data-i18n-title="cyclicGroups.lapKeyShow" data-i18n-aria-label="cyclicGroups.lapKeyShow" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/><circle cx="6" cy="6" r="2"/></svg></button>
         <button type="button" class="fs-win-btn genexp-corner" id="genexp-corner" aria-pressed="false" aria-controls="genexp-info" title="Show the element expressions" aria-label="Show the element expressions" data-i18n-title="cyclicGroups.genExpOpenTitle" data-i18n-aria-label="cyclicGroups.genExpOpenTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="1.5" y="2" width="9" height="8" rx="1"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4.5" y1="2" x2="4.5" y2="10"/></svg></button>
       </div>
 
@@ -3503,18 +3524,25 @@ function drawRing(parent, G, beads, box, paint){
     var swSteps = humpSteps(sw.walk, place, m, 1, sw.sense);
     if (!sw.lap) swSteps.pop();
     var swEl = svgEl('g', { 'class': 'walk-scalar' });
-    var swD = '';
-    swSteps.forEach(function(h, s){ swD += (s ? ' ' : '') + humpPath(box, swFoot, -1, h, s === 0); });
-    swEl.appendChild(svgEl('path', { 'class': 'chord', d: swD, 'stroke-width': 2.6 }));
-    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length)), m0 = sw.walk.length;
+    // Past a lap, a hop shows the latest number to land on it, in that
+    // number's lap's colour (see lapClass).
+    var m0 = sw.walk.length, K = Math.abs(combo.k);
+    var latest = function(s){ return s + 1 + m0 * Math.floor((K - s - 1) / m0); };
+    var hopLap = function(s){ return lapClass(Math.floor((latest(s) - 1) / m0)); };
+    var swD = '', swLap = null;
+    var flush = function(){ if (swD) swEl.appendChild(svgEl('path', { 'class': 'chord ' + swLap, d: swD, 'stroke-width': 2.6 })); swD = ''; };
     swSteps.forEach(function(h, s){
-      swEl.appendChild(humpArrow('chord-arrow', box, swFoot, -1, h, swSize));
+      if (hopLap(s) !== swLap){ flush(); swLap = hopLap(s); }
+      swD += (swD ? ' ' : '') + humpPath(box, swFoot, -1, h, !swD);
+    });
+    flush();
+    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
+    swSteps.forEach(function(h, s){
+      swEl.appendChild(humpArrow('chord-arrow ' + hopLap(s), box, swFoot, -1, h, swSize));
       if (m > 40) return;
       var p = humpPoint(box, swFoot, -1, h, 0.3);
-      var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(p[0]), y: num(p[1]) }));
-      // Past a lap, a hop shows the latest number to land on it.
-      var K = Math.abs(combo.k);
-      t.textContent = String(s + 1 + m0 * Math.floor((K - s - 1) / m0));
+      var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n ' + hopLap(s), x: num(p[0]), y: num(p[1]) }));
+      t.textContent = String(latest(s));
     });
     ring.appendChild(swEl);
   }
@@ -6045,6 +6073,7 @@ function drawNecklace(G, paint){
   var beads = turned(arrangement(G));
   var box = ringBox();
   drawRing(ringDynamicEl, G, beads, box, paint);
+  syncLapKey(G);
   drawCombineLine(G, SIZE - 16);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
@@ -7226,6 +7255,56 @@ function scalarWalk(G){
   var s = combo.k < 0 ? G.inv[combo.a] : combo.a;
   return { walk: lap(G, s, lapped ? ord : hops + 1), lap: lapped, sense: combo.k < 0 ? -1 : 1 };
 }
+// The scalar walk's laps: the first in the result's green, each later one
+// in the next of LAP_COLORS, round and round, so no two laps in a row
+// share a colour.
+var LAP_COLORS = 4;
+function lapClass(L){ return 'lap-c' + (L ? (L - 1) % LAP_COLORS + 1 : 0); }
+// Once the walk passes a lap, the lap key pops up listing the colours, each
+// with the laps and the k it stands for; it minimizes into the ring
+// window's corner buttons, and goes away again once k fits in one lap.
+var lapKeyEl = $('lap-key'), lapKeyListEl = $('lap-key-list'), lapCornerEl = $('lap-corner');
+var lapKeyOpen = false, lapKeyOn = false;
+function syncLapKey(G){
+  var sw = IS_ISOPANE ? null : scalarWalk(G);
+  var m0 = sw ? sw.walk.length : 0, K = combo.k === null ? 0 : Math.abs(combo.k);
+  var on = !!sw && sw.lap && K > m0;
+  if (on && !lapKeyOn) lapKeyOpen = true;
+  lapKeyOn = on;
+  lapKeyEl.hidden = !on || !lapKeyOpen;
+  lapCornerEl.hidden = !on;
+  lapCornerEl.setAttribute('aria-pressed', on && lapKeyOpen ? 'true' : 'false');
+  if (!on) return;
+  // Up to three laps per colour, then an ellipsis; k signed as entered.
+  var laps = Math.ceil(K / m0), sign = combo.k < 0 ? -1 : 1;
+  var range = function(L){
+    var from = L * m0 + 1, to = Math.min(K, (L + 1) * m0);
+    return from === to ? signed(sign * from) : signed(sign * from) + (sign < 0 ? ' – ' : '–') + signed(sign * to);
+  };
+  lapKeyListEl.replaceChildren();
+  for (var c = 0; c <= Math.min(LAP_COLORS, laps - 1); c++){
+    var ls = [];
+    for (var L = c ? c : 0; L < laps && ls.length < 4; L += c ? LAP_COLORS : laps) ls.push(L);
+    var more = ls.length > 3;
+    if (more) ls.pop();
+    var li = lapKeyListEl.appendChild(document.createElement('li'));
+    li.className = lapClass(ls[0]);
+    li.appendChild(document.createElement('span')).className = 'lap-key-swatch';
+    var text = li.appendChild(document.createElement('span'));
+    var lapList = ls.map(function(L){ return L + 1; }).join(', ') + (more ? ', …' : '');
+    var rangeList = ls.map(range).join(', ') + (more ? ', …' : '');
+    translateInto(text, ls.length > 1 || more ? 'cyclicGroups.lapKeyMany' : 'cyclicGroups.lapKeyOne', { laps: lapList, lap: lapList, k: rangeList });
+  }
+}
+$('lap-key-min').addEventListener('click', function(){
+  lapKeyOpen = false;
+  if (drawn) syncLapKey(drawn.G);
+  lapCornerEl.focus();
+});
+lapCornerEl.addEventListener('click', function(){
+  lapKeyOpen = !lapKeyOpen;
+  if (drawn) syncLapKey(drawn.G);
+});
 // Each picked element with its roles, in the order a, b, result (the
 // result's halo always outermost); with k,
 // the multiples passed on the way are 'w', and each time the walk comes
