@@ -511,6 +511,8 @@
       exprSignOff: 'Write elements and exponents as 0 … n − 1',
       menuSigned: 'Signed form (nearest 0)',
       menuRevealOff: 'Disable reveal on hover',
+      genExpRevealNat: 'Reveal on hover shows the elements as natural numbers',
+      genExpRevealPow: 'Reveal on hover shows the elements as powers of {g}',
       exprMultiplesEc: 'Multiples kP of P = {g}',
       exprGensEc: { one: 'ELEMENT EXPRESSION: {count} generator P to write the points as multiples kP of.', other: 'ELEMENT EXPRESSION: {count} generators P to write the points as multiples kP of.' },
       curvePlotShow: 'Show the curve\'s points',

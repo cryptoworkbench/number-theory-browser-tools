@@ -1816,6 +1816,11 @@
   .genexp-sort.is-active{ color:var(--text); border-color:var(--panel-border); }
   .genexp-arrow{ font-family:var(--font-sans); font-size:.6em; opacity:.55; }
   .genexp-sort.is-active .genexp-arrow{ color:var(--accent); opacity:1; }
+  .genexp-reveal{ float:inline-start; display:grid; place-items:center; width:1.3em; height:1.3em; margin:.15em .3em 0 0; padding:0; color:var(--text-dim); background:none; border:1px solid transparent; border-radius:var(--radius-ctl); cursor:pointer; opacity:.45; }
+  .genexp-reveal svg{ width:.75em; height:.75em; fill:none; stroke:currentColor; stroke-width:1.2; }
+  .genexp-reveal:hover{ opacity:1; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .genexp-reveal:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .genexp-reveal[aria-pressed="true"]{ opacity:1; color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, transparent); }
   .genexp-table td.is-linked{ border-radius:var(--radius-ctl); box-shadow:inset 0 0 0 1.5px var(--accent); background:color-mix(in srgb, var(--accent) 16%, transparent); }
   .genexp-table td.is-passed{ opacity:.3; transition:opacity .2s; }
   .genexp-arrow-ov{ position:absolute; left:0; top:0; z-index:2; pointer-events:none; overflow:visible; }
@@ -2492,7 +2497,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, signed: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2 };
+var state = { mode: 'additive', n: 12, signed: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2 };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3733,6 +3738,7 @@ function drawRing(parent, G, beads, box, paint){
 
   if (beadR >= 9){
     var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
+    var rt = revealTo(G), rlog = rt === null ? null : revealLog(G, rt);
     // Leading zeros, when the Numerical panel's Line up numbers asks for
     // them, pad a number to the width of the group's largest and an exponent
     // to the width of the largest exponent.
@@ -3753,22 +3759,25 @@ function drawRing(parent, G, beads, box, paint){
         ring.appendChild(pl);
         return;
       }
-      var text = elog ? (G.pts ? pad(elog[a], G.order - 1) + 'P' : baseText(G, eg) + superscript(pad(balExp(G, elog[a]), maxExp))) : pad(balEl(G, a), maxEl);
+      var power = function(g, log){ return G.pts ? pad(log[a], G.order - 1) + 'P' : baseText(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
+      var text = elog ? power(eg, elog) : pad(balEl(G, a), maxEl);
       // An expressed, padded or signed label wider than two characters
       // shrinks to stay in its bead.
       var shrink = elog || state.subPad || state.signed;
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
       var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
-      if (elog){
-        var nat = G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), natSize = beadR * 1.05 * (state.subPad || state.signed || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
+      // The label the reveal shows: the natural number, or the picked
+      // generator's power.
+      if (eg !== rt){
+        var nat = rlog ? power(rt, rlog) : G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), natSize = beadR * 1.05 * (rlog || state.subPad || state.signed || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
         label.setAttribute('data-expr', text);
         label.setAttribute('data-expr-size', label.getAttribute('font-size'));
         label.setAttribute('data-nat', nat);
-        label.setAttribute('data-nat-size', Math.round(state.subPad || state.signed ? Math.max(natSize, 7) : natSize));
+        label.setAttribute('data-nat-size', Math.round(rlog || state.subPad || state.signed ? Math.max(natSize, 7) : natSize));
       }
       ring.appendChild(label);
-      if (elog) natLabel(label, a === natHot);
+      if (eg !== rt) natLabel(label, a === natHot);
     });
   }
 
@@ -3791,7 +3800,8 @@ function natLabel(t, on){
 function showNatHover(a){
   if (a === natHot) return;
   natHot = a;
-  genExpLink(a !== null && !state.revealOff && drawn ? exprBy(drawn.G) : null, a);
+  if (a !== null && !state.revealOff && drawn && exprBy(drawn.G) !== revealTo(drawn.G)) genExpLink(exprBy(drawn.G), a, revealTo(drawn.G));
+  else genExpLink(null, null, null);
   ringSvgEl.querySelectorAll('.bead-label[data-nat]').forEach(function(t){ natLabel(t, t.getAttribute('data-el') === String(a)); });
 }
 ringSvgEl.addEventListener('pointerover', function(e){
@@ -4439,24 +4449,25 @@ function showRowFormula(G){
 // equals signs, rather than as one line too wide for the row.
 // What makes h in G's row formula, as the rows write their numbers: lined
 // up, as itself or as g^q its exponent lined up too, and on a chip painted
-// like bead x when paint is set. With Reveal on hover on, the power
-// carries h's natural number too, shown in its place under the pointer.
+// like bead x when paint is set. With Reveal on hover on, it carries h as
+// the reveal writes it too, shown in its place under the pointer.
 function rowFormulaH(G, h, x, paint){
   return function(base, q){
-    var m;
+    var m, from = base === undefined ? null : base, to = revealTo(G);
     if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G).m(h);
     else {
       var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
       m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew)]);
-      if (subRevealOn()){
-        var ex = mrow(m), nat = mrow(subFormat(null, null, subWidth(G), 0, G).m(h));
-        ex.setAttribute('class', 'sub-ex');
-        nat.setAttribute('class', 'sub-nat');
-        m = mrow(ex, nat);
-        m.setAttribute('class', 'sub-reveal');
-        m.setAttribute('data-g', String(base));
-        m.setAttribute('data-el', String(h));
-      }
+    }
+    if (subRevealOn() && from !== to){
+      var ex = mrow(m), nat = mrow(to === null ? subFormat(null, null, subWidth(G), 0, G).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h));
+      ex.setAttribute('class', 'sub-ex');
+      nat.setAttribute('class', 'sub-nat');
+      m = mrow(ex, nat);
+      m.setAttribute('class', 'sub-reveal');
+      m.setAttribute('data-g', from === null ? '' : String(from));
+      m.setAttribute('data-to', to === null ? '' : String(to));
+      m.setAttribute('data-el', String(h));
     }
     return paint ? memberMath(x, m) : m;
   };
@@ -5368,7 +5379,7 @@ function fillGenExp(G){
   if (!genExpSort || genExpSort.group !== group) genExpSort = { group: group, col: -1, dir: 1 };
   var sort = genExpSort;
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.revealOff, memberPaintKey(G), sort.col, sort.dir].join(' ');
+  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
   if (genExpBodyEl.getAttribute('data-sig') === sig) return;
   genExpBodyEl.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -5394,7 +5405,7 @@ function fillGenExp(G){
       var td = tr.insertCell();
       td.setAttribute('data-el', String(x));
       td.setAttribute('data-g', g === undefined ? '' : String(g));
-      td.appendChild(mInline(memberMath(x, g === undefined ? f.m(x) : f.r(x, !state.revealOff)), f.p(x)));
+      td.appendChild(mInline(memberMath(x, f.r(x, !state.revealOff)), f.p(x)));
     });
     return tr;
   };
@@ -5455,24 +5466,27 @@ function fitGenExp(body){
     return part;
   }));
 }
-// A hovered power g^k revealing its natural number x, on a bead or in the
-// bottom panel, shows in the open table too: its cell in g's row is linked
-// to x's own cell at the top of the same column (of the same block). The
-// pair is scrolled into the band's view, never the page.
+// A hovered element revealing another expression of itself, on a bead, in
+// the bottom panel or in the table, shows in the open table too: its cell in
+// the row of the expression it is written in is linked to its cell in the
+// row of the one revealed, in the same column (of the same block). The pair
+// is scrolled into the band's view, never the page.
 var genExpLinked = null;
-function genExpLink(g, x){
-  genExpLinked = g === null || g === undefined ? null : { g: g, x: x };
+function genExpLink(from, x, to){
+  genExpLinked = x === null || x === undefined || from === to ? null : { from: from, x: x, to: to };
   relinkGenExp();
 }
+function genExpCell(root, x, g){ return root.querySelector('td[data-el="' + x + '"][data-g="' + (g === null ? '' : g) + '"]'); }
 function relinkGenExp(){
   unlinkCells();
   var l = genExpLinked;
   if (!l || !genExpShown()) return;
-  var pow = genExpBodyEl.querySelector('td[data-el="' + l.x + '"][data-g="' + l.g + '"]');
-  var nat = pow && pow.closest('table').querySelector('tr.genexp-els td[data-el="' + l.x + '"]');
+  var pow = genExpCell(genExpBodyEl, l.x, l.from);
+  var nat = pow && genExpCell(pow.closest('table'), l.x, l.to);
   if (!nat) return;
   var body = genExpBodyEl, b = body.getBoundingClientRect();
-  var top = nat.getBoundingClientRect(), bot = pow.getBoundingClientRect();
+  var up = nat.parentNode.rowIndex < pow.parentNode.rowIndex;
+  var top = (up ? nat : pow).getBoundingClientRect(), bot = (up ? pow : nat).getBoundingClientRect();
   if (top.top < b.top) body.scrollTop -= b.top - top.top;
   else if (bot.bottom > b.bottom) body.scrollTop += bot.bottom - b.bottom;
   var th = pow.parentNode.cells[0].getBoundingClientRect().right;
@@ -5485,16 +5499,17 @@ function genExpBox(td){
   var b = genExpBodyEl.getBoundingClientRect(), r = td.getBoundingClientRect();
   return { left: r.left - b.left + genExpBodyEl.scrollLeft, top: r.top - b.top + genExpBodyEl.scrollTop, width: r.width, height: r.height };
 }
-// Arrow: drawn from the power up to its natural number; the column's other
-// cells between them fade so the arrow reads.
+// Arrow: drawn from the expression shown to the one revealed, up or down;
+// the column's other cells between them fade so the arrow reads.
 var genExpArrow = null;
 function linkCells(pow, nat){
   pow.classList.add('is-linked');
   nat.classList.add('is-linked');
   var col = Array.prototype.indexOf.call(pow.parentNode.cells, pow), rows = pow.closest('tbody').rows;
-  for (var r = nat.parentNode.rowIndex + 1; r < pow.parentNode.rowIndex; r++) if (rows[r].cells[col]) rows[r].cells[col].classList.add('is-passed');
+  var r0 = pow.parentNode.rowIndex, r1 = nat.parentNode.rowIndex, up = r1 < r0;
+  for (var r = Math.min(r0, r1) + 1; r < Math.max(r0, r1); r++) if (rows[r].cells[col]) rows[r].cells[col].classList.add('is-passed');
   var p = genExpBox(pow), n = genExpBox(nat);
-  var x0 = p.left + p.width / 2, y0 = p.top + 2, x1 = n.left + n.width / 2, y1 = n.top + n.height - 1;
+  var x0 = p.left + p.width / 2, y0 = up ? p.top + 2 : p.top + p.height - 2, x1 = n.left + n.width / 2, y1 = up ? n.top + n.height - 1 : n.top + 1;
   var my = (y0 + y1) / 2;
   genExpArrow = svgEl('svg', { 'class': 'genexp-arrow-ov', width: genExpBodyEl.scrollWidth, height: genExpBodyEl.scrollHeight, 'aria-hidden': 'true' });
   var defs = svgEl('defs');
@@ -5544,9 +5559,37 @@ function genExpHead(G, col, name, g){
   arrow.setAttribute('aria-hidden', 'true');
   arrow.textContent = active ? (sort.dir > 0 ? '▲' : '▼') : '↕';
   btn.appendChild(arrow);
+  // The row's eye: pressed, Reveal on hover shows the elements as this
+  // row writes them.
+  var as = col < 0 ? null : g, on = as === revealTo(G);
+  var eye = document.createElement('button');
+  eye.type = 'button';
+  eye.className = 'genexp-reveal';
+  eye.setAttribute('data-reveal', as === null ? '' : String(as));
+  eye.setAttribute('aria-pressed', on ? 'true' : 'false');
+  var eyeName = col < 0 ? translate('cyclicGroups.genExpRevealNat') : translate('cyclicGroups.genExpRevealPow', { g: baseText(G, g) });
+  eye.title = eyeName;
+  eye.setAttribute('aria-label', eyeName);
+  eye.appendChild(svgIcon([['path', { d: 'M1 6C2.4 3.6 4 2.6 6 2.6S9.6 3.6 11 6C9.6 8.4 8 9.4 6 9.4S2.4 8.4 1 6Z' }], ['circle', { cx: 6, cy: 6, r: 1.7 }]]));
+  th.appendChild(eye);
   th.appendChild(btn);
   return th;
 }
+// A click on a row's eye picks what the reveal shows, the same pick for
+// the whole ring: beads, the bottom panel, formulas and the table.
+function pickReveal(v){
+  state.revealAs = v;
+  setRevealHot(null);
+  render();
+}
+genExpBodyEl.addEventListener('click', function(e){
+  var eye = e.target.closest && e.target.closest('button.genexp-reveal');
+  if (!eye) return;
+  var v = eye.getAttribute('data-reveal');
+  pickReveal(v === '' ? null : +v);
+  var again = genExpBodyEl.querySelector('.genexp-reveal[data-reveal="' + v + '"]');
+  if (again) again.focus();
+});
 // A click on a row's name (in any of the blocks) sorts the columns by that
 // row: up first, and the other way round when it is the active row.
 genExpBodyEl.addEventListener('click', function(e){
@@ -5602,6 +5645,15 @@ function tellHostGenExp(){
       while (btn.firstChild) span.appendChild(btn.firstChild);
       btn.replaceWith(span);
     });
+    copy.querySelectorAll('button.genexp-reveal').forEach(function(btn){
+      var span = document.createElement('span');
+      span.className = btn.className;
+      span.title = btn.title;
+      span.setAttribute('data-reveal', btn.getAttribute('data-reveal'));
+      span.setAttribute('aria-pressed', btn.getAttribute('aria-pressed'));
+      while (btn.firstChild) span.appendChild(btn.firstChild);
+      btn.replaceWith(span);
+    });
     table = mathJson(copy);
   }
   var sent = JSON.stringify(table);
@@ -5621,7 +5673,7 @@ function syncPaneGenExp(){
   if (genExpPaneBodyEl.getAttribute('data-sig') === sig) return;
   genExpPaneBodyEl.setAttribute('data-sig', sig);
   var full = jsonNode(isoPaneGenExp);
-  if (full.querySelectorAll) full.querySelectorAll('.genexp-sort[data-col]').forEach(function(span){
+  if (full.querySelectorAll) full.querySelectorAll('.genexp-sort[data-col], .genexp-reveal[data-reveal]').forEach(function(span){
     span.setAttribute('role', 'button');
     span.tabIndex = 0;
     span.setAttribute('aria-label', span.title);
@@ -5637,11 +5689,16 @@ function dropPaneGenExp(){
 // A click on a row's name in the copy sorts the pane's own table, which
 // sends itself again.
 function sortPaneGenExp(e){
+  var eye = e.target.closest && e.target.closest('.genexp-reveal[data-reveal]');
   var span = e.target.closest && e.target.closest('.genexp-sort[data-col]');
-  if (!span || !isoPaneFrame) return;
+  if ((!span && !eye) || !isoPaneFrame) return;
   if (e.type === 'keydown'){
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
+  }
+  if (eye){
+    try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'genexp-reveal', g: eye.getAttribute('data-reveal') }, '*'); } catch (err) { /* a frame that is gone needs nothing */ }
+    return;
   }
   var col = parseInt(span.getAttribute('data-col'), 10);
   genExpPaneFocus = col;
@@ -6246,6 +6303,11 @@ if (IS_RINGWIN){
     }
     // The room the holding ring gave the menu: none (or the menu closed),
     // and the content follows the frame again.
+    if (d.ringhost === 'genexp-reveal'){
+      if (!IS_ISOPANE || typeof d.g !== 'string') return;
+      pickReveal(d.g === '' ? null : genOrNull(drawn.G, +d.g));
+      return;
+    }
     if (d.ringhost === 'genexp-sort'){
       if (!IS_ISOPANE || !Number.isInteger(d.col)) return;
       var btn = genExpBodyEl.querySelector('.genexp-sort[data-col="' + d.col + '"]');
@@ -6799,7 +6861,7 @@ function syncGenSuper(G){
   // The subgroup's h is written as the element expression slider writes
   // the beads. Under the pointer it shows its natural number, as a bead
   // does, unless the main menu's switch turns that off.
-  var hw = named && cosetGenWrite(G, h, !state.revealOff && exprBy(G) !== null);
+  var hw = named && cosetGenWrite(G, h, !state.revealOff);
   genSuperEl.appendChild(named
     ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
     : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
@@ -9176,14 +9238,16 @@ function subFormat(base, log, width, expWidth, G){
     p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? plainPoint(pts[x]) : nat(x); }
   };
   // A row's member, which with Reveal on hover on (or the switch on given
-  // as on) carries its natural number beside its power, shown in its
-  // place under the pointer.
+  // as on) carries the expression the reveal shows beside its own, shown
+  // in its place under the pointer.
   f.r = function(x, on){
-    if (!log || !(on === undefined ? subRevealOn() : on)) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(pts ? mPoint(pts[x]) : numMn(nat(x), width)), both = mrow(e, n);
+    var to = revealTo(G), from = log ? base : null;
+    if (!(on === undefined ? subRevealOn() : on) || from === to) return f.m(x);
+    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? mPoint(pts[x]) : numMn(nat(x), width)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow(e, n);
     e.setAttribute('class', 'sub-ex');
     n.setAttribute('class', 'sub-nat');
-    both.setAttribute('data-g', String(base));
+    both.setAttribute('data-g', from === null ? '' : String(from));
+    both.setAttribute('data-to', to === null ? '' : String(to));
     both.setAttribute('data-el', String(x));
     return both;
   };
@@ -9193,7 +9257,15 @@ function subFormat(base, log, width, expWidth, G){
 // expressions, the generating element's or the members', writes powers
 // (whatever the element expression slider is on).
 function subRevealable(G){ return subExprGen(G, state.subLeft, state.expr) !== null || subExprGen(G, state.subRight, state.expr) !== null; }
-function subRevealOn(){ return !state.revealOff && !!drawn && subRevealable(drawn.G); }
+function subRevealOn(){ return !state.revealOff && !!drawn && (subRevealable(drawn.G) || revealTo(drawn.G) !== null); }
+// What Reveal on hover shows, picked by the eyes in the element expression
+// reference table: the natural number (null) or the power of a generator of
+// the group drawn (another group, a linked pane's, reveals naturally). An
+// element already written that way has nothing to reveal.
+var revealKey = null;
+function revealTo(G){ return state.revealAs !== null && G && G.key === revealKey ? genOrNull(G, state.revealAs) : null; }
+var revealLogs = {};
+function revealLog(G, g){ var k = G.key + ' ' + g; return revealLogs[k] || (revealLogs[k] = exprLog(G, g)); }
 // A member's math, coloured: with the panel's colouring on, it sits on a
 // chip painted exactly as its bead x is (drawn.paint: the same class, the
 // same inline --ord), so order, inverse and website-theme colourings and a
@@ -9235,7 +9307,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, subRevealOn(), revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -9318,7 +9390,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, subRevealOn(), revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -9452,7 +9524,8 @@ function setRevealHot(m){
   if (revealHot){ revealHot.classList.remove('is-revealed'); revealHot.style.minWidth = ''; }
   revealHot = m;
   var at = m && !m.closest('.sub-row-r') && m.querySelector('.sub-nat').parentNode;
-  genExpLink(at ? +at.getAttribute('data-g') : null, at ? +at.getAttribute('data-el') : null);
+  var row = function(a){ var v = at && at.getAttribute(a); return v ? +v : null; };
+  genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'));
   if (!m) return;
   m.style.minWidth = m.getBoundingClientRect().width + 'px';
   m.classList.add('is-revealed');
@@ -11907,6 +11980,9 @@ function stateQuery(){
   if (!state.enterInverse) q.set('enterinv', '0');
   else q.delete('enterinv');
   q.delete('subreveal');
+  var rt = drawn ? revealTo(drawn.G) : null;
+  if (rt !== null) q.set('revealas', String(rt));
+  else q.delete('revealas');
   if (state.subLcm !== 'none') q.set('sublcm', state.subLcm);
   else q.delete('sublcm');
   if (state.subLcmR !== 'none') q.set('sublcmr', state.subLcmR);
@@ -12034,6 +12110,8 @@ function mixPaint(hexA, hexB){
 function render(){
   syncEcControls();
   var G = currentGroup();
+  if (revealKey !== null && revealKey !== G.key) state.revealAs = null;
+  revealKey = G.key;
   var classes = orderClasses(G.order);
   var pairing = inversePairs(G);
   var paint = beadPainter(G, classes, pairing);
@@ -13231,6 +13309,7 @@ function loadState(query, link){
   state.subShort = !state.subSimplify && query.get('subshort') === '1';
   state.subPaths = query.get('subpaths') !== '0';
   state.revealOff = readRevealOff() || query.get('nathover') === '0';
+  state.revealAs = intOrNull(query.get('revealas'));
   state.signed = query.get('signed') === '1';
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
