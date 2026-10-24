@@ -511,7 +511,7 @@
       exprSignOff: 'Write elements and exponents as 0 … n − 1',
       menuSigned: 'Signed form (nearest 0)',
       menuRevealOff: 'Disable reveal on hover',
-      beadKLabel: 'Combine {a} with itself k times: type k and press Enter',
+      beadKLabel: 'k, the times {a} is combined with itself: 2 is {a} ∗ {a}, any other k draws its multiple at once',
       genExpRevealNat: 'Reveal on hover shows the elements as natural numbers',
       genExpRevealPow: 'Reveal on hover shows the elements as powers of {g}',
       exprMultiplesEc: 'Multiples kP of P = {g}',

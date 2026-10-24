@@ -8243,19 +8243,36 @@ function endTurn(e){
 }
 ringSvgEl.addEventListener('pointerup', endTurn);
 ringSvgEl.addEventListener('pointercancel', endTurn);
-// A double click (or double tap) on a bead opens a field at it, k greyed
-// in it: the k typed there, with Enter, combines that element with itself
-// k times, switching the Arrangement row to aᵏ and its field to that k.
+// A double click (or double tap) on a bead combines that element with
+// itself, a ∗ a, and opens a field at it holding that 2: emptied, it shows k
+// greyed; any other k typed there redraws at once as the element combined
+// with itself k times, switching the Arrangement row to aᵏ and its field to
+// that k, and 2 again goes back to a ∗ a.
 var lastBeadTap = null, beadKEl = null;
 function beadDoubleTap(x){
   var now = Date.now(), last = lastBeadTap;
   lastBeadTap = x === null ? null : { x: x, t: now };
   if (x === null || !last || last.x !== x || now - last.t > 450) return;
   lastBeadTap = null;
-  // The two clicks combined the element with itself as a ∗ b: it is left
-  // picked alone, waiting for its k.
-  if (state.combineMode !== 'scalar'){ combinePick(null); combinePick(x); }
-  openBeadK(x);
+  // In a ∗ b mode the two clicks already made a ∗ a; in aᵏ mode it is k = 2.
+  var fromPair = state.combineMode !== 'scalar';
+  if (!fromPair) applyBeadK(x, 2, false);
+  openBeadK(x, fromPair);
+}
+function applyBeadK(x, k, fromPair){
+  if (!drawn) return;
+  if (k === 2 && fromPair){
+    state.combineK = 2;
+    state.combineMode = 'element';
+    syncCombineMode();
+    if (!(comboLive(drawn.G) && combo.a === x && combo.b === x)){ combinePick(null); combinePick(x); combinePick(x); }
+  } else {
+    state.combineK = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
+    state.combineMode = 'scalar';
+    syncCombineMode();
+    combineScalar(state.combineK, x);
+  }
+  mirrorToUrl(drawn.G);
 }
 function closeBeadK(){
   if (!beadKEl) return;
@@ -8263,7 +8280,7 @@ function closeBeadK(){
   beadKEl = null;
   el.remove();
 }
-function openBeadK(x){
+function openBeadK(x, fromPair){
   closeBeadK();
   var bead = ringSvgEl.querySelector('.bead[data-el="' + x + '"]');
   if (!bead || !drawn) return;
@@ -8274,6 +8291,7 @@ function openBeadK(x){
   field.setAttribute('autocomplete', 'off');
   field.spellcheck = false;
   field.placeholder = 'k';
+  field.value = '2';
   field.setAttribute('aria-label', translate('cyclicGroups.beadKLabel', { a: elText(drawn.G, x) }));
   field.title = field.getAttribute('aria-label');
   ringSvgEl.parentNode.appendChild(field);
@@ -8294,25 +8312,20 @@ function openBeadK(x){
     var v = field.value.trim().replace(/^[−–]/, '-');
     return /^[-+]?\d+$/.test(v) ? parseInt(v, 10) : null;
   };
+  // Live: each whole number redraws; an empty field keeps what is drawn.
   field.addEventListener('input', function(){
-    field.classList.toggle('is-invalid', field.value.trim() !== '' && read() === null);
+    var k = read();
+    field.classList.toggle('is-invalid', k === null && !/^[-+−–]?$/.test(field.value.trim()));
+    if (k !== null) applyBeadK(x, k, fromPair);
   });
   field.addEventListener('keydown', function(e){
-    if (e.key === 'Escape'){ e.preventDefault(); closeBeadK(); return; }
-    if (e.key !== 'Enter') return;
+    if (e.key !== 'Escape' && e.key !== 'Enter') return;
     e.preventDefault();
-    var k = read();
-    if (k === null){ field.classList.add('is-invalid'); return; }
     closeBeadK();
-    k = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
-    state.combineK = k;
-    if (state.combineMode !== 'scalar') state.combineMode = 'scalar';
-    syncCombineMode();
-    combineScalar(k, x);
-    mirrorToUrl(drawn && drawn.G);
   });
   field.addEventListener('blur', function(){ if (beadKEl === field) closeBeadK(); });
   field.focus();
+  field.select();
 }
 // The buttons turn the ring as an animation: the drawn ring spins (its
 // labels counter-spun to stay upright) and, once it arrives, is redrawn in
