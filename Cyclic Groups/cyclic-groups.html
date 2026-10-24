@@ -1190,6 +1190,15 @@
   /* The ring's frame reads left to right; the slider's words keep their own
      language's direction within it. */
   .expr-slot :is(.expr-name, .expr-nat, .expr-now){ unicode-bidi:plaintext; }
+  /* The ± switch to the signed form, at the slider's start. */
+  .expr-sign{ flex:none; display:grid; place-items:center; width:26px; height:26px; padding:0; font:inherit; font-size:1rem; font-weight:600; line-height:1; color:var(--text-dim); background:var(--surface); border:1.5px solid var(--panel-border); border-radius:50%; cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl), background var(--ease-ctl); }
+  .expr-sign[hidden]{ display:none; }
+  .expr-sign:hover{ color:var(--accent); border-color:var(--accent); }
+  .expr-sign[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+  .expr-sign:focus{ outline:none; }
+  .expr-sign:focus-visible{ box-shadow:var(--ctl-focus); }
+  /* A group with no generator keeps only the ± switch. */
+  .expr-slot.is-sign-only :is(.expr-name, .expr-nat, .expr-track, .expr-now){ visibility:hidden; }
   .expr-nat{ flex:none; white-space:nowrap; cursor:pointer; user-select:none; -webkit-user-select:none; }
   .expr-nat.is-on{ color:var(--text); font-weight:600; }
   .expr-track{ position:relative; flex:1 1 auto; min-width:0; height:24px; padding-bottom:16px; }
@@ -2121,6 +2130,7 @@
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
+            <button type="button" class="expr-sign" id="expr-sign" aria-pressed="false">±</button>
             <span class="expr-nat" id="expr-nat" aria-hidden="true" data-i18n="cyclicGroups.exprNatural">Natural</span>
             <div class="expr-track">
               <input type="range" id="expr-slider" min="0" max="0" step="1" value="0" aria-orientation="horizontal" aria-label="Element expression" data-i18n-aria-label="cyclicGroups.exprLabel">
@@ -2480,7 +2490,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2 };
+var state = { mode: 'additive', n: 12, signed: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, natHoverOff: false, enterInverse: true, subReveal: false, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2 };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -2626,6 +2636,7 @@ var spinRulerEl = $('spin-ruler');
 var exprStopsEl = $('expr-stops');
 var exprNatEl = $('expr-nat');
 var exprNowEl = $('expr-now');
+var exprSignEl = $('expr-sign');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
@@ -2774,9 +2785,21 @@ function readCurve(q){
   state.ecP = +m[1]; state.ecA = +m[2]; state.ecB = +m[3];
   return true;
 }
+// The signed form: an element above n/2 written x − n, an exponent above
+// ord/2 written k − ord, so each reads as its representative nearest 0.
+function balEl(G, x){ return state.signed && G && !G.pts && x > G.n / 2 ? x - G.n : x; }
+function balExp(G, k){ return state.signed && G && !G.pts && k > G.order / 2 ? k - G.order : k; }
+function elMn(G, x){ return mn(elText(G, x)); }
+function signedOn(G){ return state.signed && !!G && !G.pts; }
+// The largest number written, element or exponent: signed, half the range.
+function elMax(G){ return signedOn(G) ? Math.floor(G.n / 2) : Math.max.apply(null, G.els); }
+function expMax(G){ return signedOn(G) ? Math.floor(G.order / 2) : G.order - 1; }
+// A generator as the base of a power: a negative one in brackets, (−1)ᵏ.
+function baseText(G, g){ var s = G && !G.pts ? signed(balEl(G, g)) : String(g); return s.charAt(0) === '−' ? '(' + s + ')' : s; }
+function baseMn(G, g){ var s = baseText(G, g); return s.charAt(0) === '(' ? mrow(mo('(', true), mn(s.slice(1, -1)), mo(')', true)) : mn(s); }
 // An element as the page writes it: a point (x, y), 𝒪, or the number.
 function elText(G, x, tight){
-  if (!G.pts) return String(x);
+  if (!G.pts) return signed(balEl(G, x));
   var P = G.pts[x];
   return P ? '(' + P.x + (tight ? ',' : ', ') + P.y + ')' : '𝒪';
 }
@@ -3091,8 +3114,8 @@ function syncArrange(G){
 
 // On a curve the element expression writes multiples kP of the generator
 // P the slider is on, where a group of numbers writes powers g^k.
-function expMath(G, g, k){ return G && G.pts ? mrow(k, mi('P')) : mEl('msup', [mn(g), k]); }
-function expPlain(G, g, k){ return G && G.pts ? k + 'P' : g + '^' + k; }
+function expMath(G, g, k){ return G && G.pts ? mrow(k, mi('P')) : mEl('msup', [baseMn(G, g), k]); }
+function expPlain(G, g, k){ return G && G.pts ? k + 'P' : baseText(G, g) + '^' + k; }
 // Element expression: each element by its number (Natural), or as the power
 // g^k of a chosen generator g, always in power notation, the additive group
 // included. A group with no generator shows numbers only, and a choice that
@@ -3143,7 +3166,7 @@ function elsBy(G, g){ return g === null ? G.els : lap(G, g, G.order); }
 function exprEls(G){ return elsBy(G, exprBy(G)); }
 var SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 function superscript(k){
-  return String(k).replace(/[0-9]/g, function(d){ return SUPERSCRIPT_DIGITS[d]; });
+  return String(k).replace(/[0-9]/g, function(d){ return SUPERSCRIPT_DIGITS[d]; }).replace(/[-−]/g, '⁻');
 }
 var SUBSCRIPT_DIGITS = '₀₁₂₃₄₅₆₇₈₉';
 function subscript(k){
@@ -3153,7 +3176,13 @@ function subscript(k){
 // the group's i-th generator, each stop marked on the track and named by its
 // generator, the choice named in full beside it.
 function syncExpr(G){
-  exprSlotEl.hidden = !G.cyclic;
+  // The ± switch: elements and exponents in their signed form, nearest 0.
+  exprSignEl.hidden = !!G.pts;
+  exprSignEl.setAttribute('aria-pressed', String(state.signed));
+  exprSignEl.title = translate(state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
+  exprSignEl.setAttribute('aria-label', exprSignEl.title);
+  exprSlotEl.hidden = !G.cyclic && !!G.pts;
+  exprSlotEl.classList.toggle('is-sign-only', !G.cyclic);
   if (!G.cyclic) return;
   var gens = G.generators, max = gens.length, g = exprBy(G);
   var at = g === null ? 0 : gens.indexOf(g) + 1;
@@ -3170,7 +3199,7 @@ function syncExpr(G){
     return stop;
   }));
   exprNatEl.classList.toggle('is-on', at === 0);
-  var now = g === null ? translate('cyclicGroups.exprNatural') : G.pts ? translate('cyclicGroups.exprMultiplesEc', { g: elText(G, g) }) : translate('cyclicGroups.arrangePowers', { g: g });
+  var now = g === null ? translate('cyclicGroups.exprNatural') : G.pts ? translate('cyclicGroups.exprMultiplesEc', { g: elText(G, g) }) : translate('cyclicGroups.arrangePowers', { g: elText(G, g) });
   exprNowEl.textContent = now;
   exprSliderEl.setAttribute('aria-valuetext', now);
   // Hovered, the slider names itself and counts its generators: φ(n) of them
@@ -3220,7 +3249,7 @@ function syncSubExpr(G){
     c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], G.generators.map(function(g){
       var opt = document.createElement('option');
       opt.value = String(g);
-      opt.textContent = translate(c.key, { g: g });
+      opt.textContent = translate(c.key, { g: elText(G, g) });
       return opt;
     })));
     if (c.get() === SUB_FOLLOW){ c.el.value = SUB_FOLLOW; return; }
@@ -3247,7 +3276,7 @@ function syncMergedExpr(G){
     c[0].replaceChildren.apply(c[0], [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], H.generators.map(function(h){
       var opt = document.createElement('option');
       opt.value = String(h);
-      opt.textContent = translate('cyclicGroups.arrangePowers', { g: h });
+      opt.textContent = translate('cyclicGroups.arrangePowers', { g: elText(H, h) });
       return opt;
     })));
     if (c[1] === SUB_FOLLOW){ c[0].value = SUB_FOLLOW; return; }
@@ -3260,7 +3289,7 @@ function syncMergedExpr(G){
   subSortSelectEl.replaceChildren.apply(subSortSelectEl, [arrangeOption('', 'cyclicGroups.subSortNatLeft'), arrangeOption('r', 'cyclicGroups.subSortNatRight')].concat(follows ? [arrangeOption(SUB_FOLLOW, 'cyclicGroups.subSortFollowCoupled')] : [], G.generators.map(function(g){
     var opt = document.createElement('option');
     opt.value = String(g);
-    opt.textContent = translate('cyclicGroups.subSortExpPair', { g: g, h: phi(g) });
+    opt.textContent = translate('cyclicGroups.subSortExpPair', { g: elText(G, g), h: elText(H, phi(g)) });
     return opt;
   })));
   var sg = genOrNull(G, state.subSort);
@@ -3705,8 +3734,9 @@ function drawRing(parent, G, beads, box, paint){
     // Leading zeros, when the Numerical panel's Line up numbers asks for
     // them, pad a number to the width of the group's largest and an exponent
     // to the width of the largest exponent.
-    var pad = function(v, max){ return state.subPad ? String(v).padStart(String(max).length, '0') : String(v); };
-    var maxEl = Math.max.apply(null, G.els);
+    // In the signed form the zeros pad the digits, after the sign.
+    var pad = function(v, max){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(String(max).length, '0') : String(Math.abs(v))); };
+    var maxEl = elMax(G), maxExp = expMax(G);
     beads.forEach(function(a, i){
       var p = at(i);
       // A curve's point is its x over its y, each at a number's size, 𝒪 alone.
@@ -3721,19 +3751,19 @@ function drawRing(parent, G, beads, box, paint){
         ring.appendChild(pl);
         return;
       }
-      var text = elog ? (G.pts ? pad(elog[a], G.order - 1) + 'P' : eg + superscript(pad(elog[a], G.order - 1))) : pad(a, maxEl);
-      // An expressed or padded label wider than two characters shrinks to
-      // stay in its bead.
-      var shrink = elog || state.subPad;
+      var text = elog ? (G.pts ? pad(elog[a], G.order - 1) + 'P' : baseText(G, eg) + superscript(pad(balExp(G, elog[a]), maxExp))) : pad(balEl(G, a), maxEl);
+      // An expressed, padded or signed label wider than two characters
+      // shrinks to stay in its bead.
+      var shrink = elog || state.subPad || state.signed;
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
       var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
       if (elog){
-        var nat = G.pts ? elText(G, a, true) : pad(a, maxEl), natSize = beadR * 1.05 * (state.subPad || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
+        var nat = G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), natSize = beadR * 1.05 * (state.subPad || state.signed || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
         label.setAttribute('data-expr', text);
         label.setAttribute('data-expr-size', label.getAttribute('font-size'));
         label.setAttribute('data-nat', nat);
-        label.setAttribute('data-nat-size', Math.round(state.subPad ? Math.max(natSize, 7) : natSize));
+        label.setAttribute('data-nat-size', Math.round(state.subPad || state.signed ? Math.max(natSize, 7) : natSize));
       }
       ring.appendChild(label);
       if (elog) natLabel(label, a === natHot);
@@ -4411,10 +4441,10 @@ function showRowFormula(G){
 function rowFormulaH(G, h, x, paint){
   return function(base, q){
     var m;
-    if (base === undefined) m = subFormat(null, null, subWidth(G), 0).m(h);
+    if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G).m(h);
     else {
-      var ew = subExpWidth(G), e = state.subPad ? String(q).padStart(ew, '0') : String(q);
-      m = mEl('msup', [mn(base), numMn(e, ew)]);
+      var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
+      m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew)]);
     }
     return paint ? memberMath(x, m) : m;
   };
@@ -4503,7 +4533,7 @@ function logBasePrompt(G, noCancel){
   G.generators.forEach(function(g){
     var o = document.createElement('option');
     o.value = String(g);
-    o.textContent = String(g);
+    o.textContent = elText(G, g);
     pick.appendChild(o);
   });
   pick.addEventListener('change', function(){
@@ -4539,12 +4569,12 @@ function drawMath(G, subs){
   lastSubs = subs;
   if (coset){
     var set = lap(G, h, G.orders[h], coset.start);
-    lines.push(mathLine('ring-math-title', mrow(mn(coset.start), mo(G.mode === 'additive' ? '+' : '·'), angle(mn(h)), mo('='), mSet(set)),
-      translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: coset.start, h: h, set: '{' + set.join(', ') + '}' })));
+    lines.push(mathLine('ring-math-title', mrow(elMn(G, coset.start), mo(G.mode === 'additive' ? '+' : '·'), angle(elMn(G, h)), mo('='), mSet(set.map(function(x){ return elText(G, x); }))),
+      translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: elText(G, coset.start), h: elText(G, h), set: '{' + set.map(function(x){ return elText(G, x); }).join(', ') + '}' })));
   } else if (!ringBody && !IS_RINGWIN){
     var whole = G.orders[h] === G.order;
-    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h })));
+    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(elMn(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, h) })));
     else if (headOn('gname')) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
     var row = document.createElement('div');
     row.className = 'ring-math-row';
@@ -4591,8 +4621,8 @@ function scratchFormulas(G){
     return list;
   }
   if (on('gname')) list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroupPct(), mo('='), mGroup(G)), plain: '⟨ℤ/%ℤ, ∗⟩ = ' + G.label });
-  if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-    plain: translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }) });
+  if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(elMn(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
+    plain: translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, h) }) });
   orderFormulas(G, on).forEach(function(f){ list.push({ key: f.key, cls: 'ring-math-formula', math: f.math, plain: f.plain }); });
   var count = generatorCount(G);
   if (count) list.push({ key: 'gens', cls: 'ring-math-formula', math: count.math, plain: count.plain });
@@ -5326,7 +5356,7 @@ function fillGenExp(G){
   if (!genExpSort || genExpSort.group !== group) genExpSort = { group: group, col: -1, dir: 1 };
   var sort = genExpSort;
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var sig = [getLang(), group, width, expWidth, state.subPad, memberPaintKey(G), sort.col, sort.dir].join(' ');
+  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, memberPaintKey(G), sort.col, sort.dir].join(' ');
   if (genExpBodyEl.getAttribute('data-sig') === sig) return;
   genExpBodyEl.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -5338,8 +5368,8 @@ function fillGenExp(G){
   }
   var gens = G.generators.slice().sort(function(a, b){ return a - b; });
   var logs = gens.map(function(g){ return exprLog(G, g); });
-  var nat = subFormat(null, null, width, expWidth);
-  var pows = gens.map(function(g, i){ return subFormat(g, logs[i], width, expWidth); });
+  var nat = subFormat(null, null, width, expWidth, G);
+  var pows = gens.map(function(g, i){ return subFormat(g, logs[i], width, expWidth, G); });
   var key = sort.col < 0 ? function(x){ return x; } : function(x){ return logs[sort.col][x]; };
   var cols = G.els.slice().sort(function(a, b){ return sort.dir * (key(a) - key(b)); });
   var table = document.createElement('table');
@@ -5357,7 +5387,7 @@ function fillGenExp(G){
     return tr;
   };
   row(genExpHead(G, -1, mi('x')), nat).className = 'genexp-els';
-  gens.forEach(function(g, i){ row(genExpHead(G, i, G.pts ? mrow(mi('k'), mo('·'), mPoint(G.pts[g])) : mEl('msup', [mn(g), mi('k')]), g), pows[i], g); });
+  gens.forEach(function(g, i){ row(genExpHead(G, i, G.pts ? mrow(mi('k'), mo('·'), mPoint(G.pts[g])) : mEl('msup', [baseMn(G, g), mi('k')]), g), pows[i], g); });
   genExpBodyEl.genExpFull = table;
   fitGenExp(genExpBodyEl);
   relinkGenExp();
@@ -5493,10 +5523,10 @@ function genExpHead(G, col, name, g){
   var next = active ? -sort.dir : 1;
   var title = col < 0
     ? translate(next > 0 ? 'cyclicGroups.genExpSortElUp' : 'cyclicGroups.genExpSortElDown')
-    : translate(next > 0 ? 'cyclicGroups.genExpSortExpUp' : 'cyclicGroups.genExpSortExpDown', { g: g });
+    : translate(next > 0 ? 'cyclicGroups.genExpSortExpUp' : 'cyclicGroups.genExpSortExpDown', { g: baseText(G, g) });
   btn.title = title;
   btn.setAttribute('aria-label', title);
-  btn.appendChild(mInline(name, col < 0 ? 'x' : g + '^k'));
+  btn.appendChild(mInline(name, col < 0 ? 'x' : baseText(G, g) + '^k'));
   var arrow = document.createElement('span');
   arrow.className = 'genexp-arrow';
   arrow.setAttribute('aria-hidden', 'true');
@@ -5777,7 +5807,8 @@ function syncExprCtx(on){
 function syncNatHoverCtx(on){
   var old = ringCtxEl.querySelector(':scope > .ring-ctx-nat');
   if (old) old.remove();
-  if (!on || !drawn || exprBy(drawn.G) === null) return null;
+  var sign = syncSignCtx(on);
+  if (!on || !drawn || exprBy(drawn.G) === null) return sign;
   var nat = menuTick('menuitemcheckbox', translate('cyclicGroups.exprNatHoverOff'), state.natHoverOff, function(){
     setRingCtx(false);
     state.natHoverOff = !state.natHoverOff;
@@ -5787,6 +5818,20 @@ function syncNatHoverCtx(on){
   nat.addEventListener('pointerenter', function(){ setRingCopy(null); });
   ringCtxEl.insertBefore(nat, ringCtxEl.querySelector(':scope > .fs-menu-head'));
   return nat;
+}
+// Next to it, the switch to the signed form, the same as the ± button.
+function syncSignCtx(on){
+  var old = ringCtxEl.querySelector(':scope > .ring-ctx-sign');
+  if (old) old.remove();
+  if (!on || !drawn || drawn.G.pts) return null;
+  var sign = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSigned'), state.signed, function(){
+    setRingCtx(false);
+    toggleSigned();
+  });
+  sign.classList.add('ring-ctx-sign');
+  sign.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  ringCtxEl.insertBefore(sign, ringCtxEl.querySelector(':scope > .fs-menu-head'));
+  return sign;
 }
 // At the pointer, kept inside the window; placed again when the pane's
 // window grows to give the menu room.
@@ -6209,9 +6254,9 @@ function drawNecklace(G, paint){
   var subs = [];
   ringDynamicEl.appendChild(drawText('ring-title is-plain', SIZE / 2, 44, coset
     ? translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul',
-        { a: coset.start, h: shownGen(G), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).join(', ') + '}' })
+        { a: elText(G, coset.start), h: elText(G, shownGen(G)), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).map(function(x){ return elText(G, x); }).join(', ') + '}' })
     : noSub() ? G.label
-    : translate(G.orders[shownGen(G)] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: shownGen(G) })));
+    : translate(G.orders[shownGen(G)] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, shownGen(G)) })));
   // While the cosets play, the coset in view is named under the title.
   if (coset){
     var progress = translate('cyclicGroups.cosetProgress', { i: coset.past.length + 1, count: cosetRun.starts.length });
@@ -6856,7 +6901,7 @@ function powerSide(p){
 function powerText(el, G, p){
   var h = shownGen(G), x = powerExp(p), hp = powerOf(G, h, x);
   if (powerFits(G, p)) orderText(el, G, hp, p);
-  else translateInto(el, 'cyclicGroups.akeyOrderSame', { hp: akeyGeneral() ? gPower(x) : mNum(hp), x: mNum(x) });
+  else translateInto(el, 'cyclicGroups.akeyOrderSame', { hp: akeyGeneral() ? gPower(x) : mNum(elText(G, hp)), x: mNum(x) });
   return hp;
 }
 
@@ -6868,7 +6913,7 @@ function orderText(el, G, a, p){
   var e = expName(p);
   el.textContent = akeyGeneral()
     ? translate('cyclicGroups.akeyPathGeneral', { a: 'G' + e.sup, ainv: 'G⁻' + e.sup })
-    : translate('cyclicGroups.akeyPath', { a: String(a), ainv: String(G.inv[a]) });
+    : translate('cyclicGroups.akeyPath', { a: elText(G, a), ainv: elText(G, G.inv[a]) });
 }
 // The p-th line's power is named by the alphabet from x on, wrapping
 // round to a after z: x, y, z, a, b, c, ...
@@ -6920,8 +6965,8 @@ function showAkeyTip(el){
   cell(head, 'th', translate('cyclicGroups.akeyTipGroup'));
   t.cols.forEach(function(c){ cell(head, 'th', c); });
   t.rows.forEach(function(r){
-    var G = r[0], wide = String(Math.max.apply(null, G.els)).length;
-    var num = function(v){ return state.subPad ? String(v).padStart(wide, '0') : String(v); };
+    var G = r[0], wide = String(elMax(G)).length;
+    var num = function(v){ var b = balEl(G, v); return (b < 0 ? '−' : '') + (state.subPad ? String(Math.abs(b)).padStart(wide, '0') : String(Math.abs(b))); };
     var tr = table.appendChild(document.createElement('tr'));
     cell(tr, 'th', G.label);
     r.slice(1).forEach(function(v){ cell(tr, 'td', num(v)); });
@@ -6988,8 +7033,8 @@ function renderCombineKey(G){
   // wrap alike for every element and a previewed row never resizes it.
   var keyNum = function(v){
     if (G.pts) return mInline(mPoint(G.pts[v]), elText(G, v));
-    var miss = String(Math.max.apply(null, G.els)).length - String(v).length;
-    return miss > 0 ? mInline(mrow(mn(v), mEl('mphantom', [mn('0'.repeat(miss))])), v) : mNum(v);
+    var s = elText(G, v), miss = String(elMax(G)).length + (signedOn(G) ? 1 : 0) - s.length;
+    return miss > 0 ? mInline(mrow(mn(s), mEl('mphantom', [mn('0'.repeat(miss))])), s) : mNum(s);
   };
   var params = function(){ return { h: keyNum(h), hinv: keyNum(G.inv[h]) }; };
   var innerEl = $('combine-key-inner');
@@ -7753,7 +7798,13 @@ function drawCombineLine(G, y){
   }
   var g = exprBy(G), two = g !== null;
   var log = two ? exprLog(G, g) : null;
-  var pow = function(k){ return g + superscript(k); };
+  // In the signed form elements and exponents are written nearest 0 (E,
+  // X), a negative base or right operand in brackets (B, R), and plain
+  // values are worked out from the numbers as written.
+  var E = function(x){ return elText(G, x); }, B = function(x){ return baseText(G, x); };
+  var V = function(x){ return balEl(G, x); }, X = function(k){ return balExp(G, k); };
+  var R = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
+  var pow = function(k){ return B(g) + supSigned(k); };
   var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
   // A cell is [role, text] (the role colours it; null: plain), or a list
   // of them set together.
@@ -7768,7 +7819,7 @@ function drawCombineLine(G, y){
     // The given, a and k, on a line of its own above the chain.
     var given = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
     var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', {});
-    sa.textContent = String(a);
+    sa.textContent = E(a);
     sk.textContent = signed(k);
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
     ringDynamicEl.appendChild(given);
@@ -7779,24 +7830,27 @@ function drawCombineLine(G, y){
       // Powers of g: (gⁱ)ᵏ ≡ g^(i × k), then, g having order |G|, the
       // exponent reduced mod |G| in steps of its own: g^(ik % |G|), |G|
       // resolved (through φ(n) multiplicatively), ≡ g^m.
-      var i = log[a], ik = i * k, m = log[c];
+      var i = X(log[a]), ik = i * k, m = log[c];
       r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
-      r.push([['c', g], ['c', i + ' × ' + (k < 0 ? '(' + signed(k) + ')' : k), 'sup']], [null, '≡']);
-      if (ik !== m){
-        r.push(['c', g + supSigned(ik)], [null, '≡']);
+      r.push([['c', B(g)], ['c', signed(i) + ' × ' + R(k), 'sup']], [null, '≡']);
+      // Signed, the exponent ends at its value nearest 0, t.
+      var t = X(m);
+      if (ik !== t){
+        r.push(['c', pow(ik)], [null, '≡']);
         // |G| resolved to the cardinality itself: n for ⟨ℤ/nℤ, +⟩, and for
         // ⟨ℤ/nℤ, ×⟩ the totient φ(n) first, then its value.
-        var red = function(by){ r.push([['c', g], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
+        var red = function(by){ r.push([['c', B(g)], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
         red('|' + groupPlain(G) + '|');
         if (mul) red('φ(' + G.n + ')');
         red(G.order);
       }
-      r.push(['c', pow(m)], [null, '≡']);
+      r.push(['c', pow(t)], [null, '≡']);
+      m = t;
       // Additively g^m is g added m times: the product g × m, then its
       // plain value while that still needs reducing.
       if (!mul){
-        r.push(['c', g + ' × ' + m], [null, '≡']);
-        if (g * m !== c) r.push(['c', g * m], [null, '≡']);
+        r.push(['c', signed(V(g)) + ' × ' + R(m)], [null, '≡']);
+        if (V(g) * m !== V(c)) r.push(['c', signed(V(g) * m)], [null, '≡']);
       }
     } else {
       // The power itself, a negative one in a multiplicative group as the
@@ -7804,36 +7858,36 @@ function drawCombineLine(G, y){
       // Multiplicatively, a having an order dividing |G|, an exponent of
       // |G| or more is first reduced mod |G| in the same steps as with g.
       var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
-      if (mul && k < 0) r.push([[null, '('], ['a', a], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', inv], [null, superscript(-k)]], [null, '≡']);
-      else r.push([['a', a], [null, supSigned(k)]], [null, '≡']);
+      if (mul && k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', B(inv)], [null, superscript(-k)]], [null, '≡']);
+      else r.push([['a', B(a)], [null, supSigned(k)]], [null, '≡']);
       if (mul && e >= G.order){
-        var redA = function(by){ r.push([['a', base], [null, e + ' % ' + by, 'sup']], [null, '≡']); };
+        var redA = function(by){ r.push([['a', B(base)], [null, e + ' % ' + by, 'sup']], [null, '≡']); };
         redA('|' + groupPlain(G) + '|');
         redA('φ(' + G.n + ')');
         redA(G.order);
         e %= G.order;
-        r.push([['a', base], [null, superscript(e)]], [null, '≡']);
+        r.push([['a', B(base)], [null, superscript(e)]], [null, '≡']);
       }
-      var raw = mul ? Math.pow(base, e) : k * a;
-      if (Math.abs(raw) <= 1e15 && raw !== c) r.push(['c', signed(raw)], [null, '≡']);
+      var raw = mul ? Math.pow(V(base), e) : k * V(a);
+      if (Math.abs(raw) <= 1e15 && raw !== V(c)) r.push(['c', signed(raw)], [null, '≡']);
     }
-    r.push(['c', c], [null, mod]);
+    r.push(['c', E(c)], [null, mod]);
     rows = [r];
   } else {
     var a = combo.a, b = combo.b, c = G.combine(a, b);
-    var raw = G.mode === 'multiplicative' ? a * b : a + b;
-    rows = [[['a', a], [null, '∗'], ['b', b], [null, '≡'], ['a', a], [null, op], ['b', b], [null, '≡']]];
-    if (raw !== c || two) rows[0].push(['c', raw], [null, '≡']);
-    rows[0].push(['c', c], [null, mod]);
+    var raw = G.mode === 'multiplicative' ? V(a) * V(b) : V(a) + V(b);
+    rows = [[['a', E(a)], [null, '∗'], ['b', R(V(b))], [null, '≡'], ['a', E(a)], [null, op], ['b', R(V(b))], [null, '≡']]];
+    if (raw !== V(c) || two) rows[0].push(['c', signed(raw)], [null, '≡']);
+    rows[0].push(['c', E(c)], [null, mod]);
     if (two){
-      var i = log[a], j = log[b];
+      var i = X(log[a]), j = X(log[b]), kc = X(log[c]);
       rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
-        ['c', g + superscript(i) + '⁺' + superscript(j)], [null, '≡'], ['c', pow(log[c])], [null, mod]]);
+        ['c', B(g) + supSigned(i) + (j < 0 ? '⁻' : '⁺') + superscript(Math.abs(j))], [null, '≡'], ['c', pow(kc)], [null, mod]]);
       tipAt = 8;
       tipTo = 10;
       var sum = i + j, n = G.order;
-      tip = translate(sum >= n ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
-        { g: g, i: i, j: j, sum: sum, n: n, k: log[c], gn: pow(n), gsum: pow(sum), gk: pow(log[c]) });
+      tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
+        { g: E(g), i: signed(i), j: R(j), sum: signed(sum), n: n, k: signed(kc), gn: pow(n), gsum: pow(sum), gk: pow(kc) });
     }
   }
   var box = svgEl('g', { 'class': 'ring-combine-box' });
@@ -8685,14 +8739,14 @@ function cosetIndexMath(G, h, left, hw){
 function cosetGenWrite(G, h, reveal){
   var lg = exprBy(G);
   var H = !IS_ISOPANE && subInterlocked() ? isoPaneGroup() : null;
-  var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G));
+  var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G), G);
   return { m: memberMath(h, reveal ? f.r(h, true) : f.m(h)), p: f.p(h) };
 }
 // The cosets button's h: always its natural number, lined up and coloured
 // like its bead; for the pane's line, φ(h) in the pane's group, coloured
 // as h is.
 function cosetNatWrite(G, h, H, x){
-  var f = subFormat(null, null, subWidth(H || G), 0), n = H ? x : h;
+  var f = subFormat(null, null, subWidth(H || G), 0, H || G), n = H ? x : h;
   return { m: memberMath(h, f.m(n)), p: f.p(n) };
 }
 
@@ -9066,15 +9120,21 @@ function numMn(s, width){
 }
 // The width the list's numbers keep, padded or aligned: that of the group's
 // largest; and its exponents, that of the largest exponent.
-function subWidth(G){ return state.subPad || state.subAlign ? String(Math.max.apply(null, G.els)).length : 0; }
-function subExpWidth(G){ return state.subPad || state.subAlign ? String(G.order - 1).length : 0; }
+// In the signed form the width keeps room for a minus sign.
+function subWidth(G){ return state.subPad || state.subAlign ? String(elMax(G)).length + (signedOn(G) ? 1 : 0) : 0; }
+function subExpWidth(G){ return state.subPad || state.subAlign ? String(expMax(G)).length + (signedOn(G) ? 1 : 0) : 0; }
 // How the rows write their numbers: as the number, padded or aligned to
 // width, or as a power of base, its exponent padded or aligned to expWidth.
-function subFormat(base, log, width, expWidth){
-  var nat = function(x){ return state.subPad ? String(x).padStart(width, '0') : String(x); };
-  var ex = function(k){ return state.subPad ? String(k).padStart(expWidth, '0') : String(k); };
-  var pts = curvePts(), C = pts ? { pts: pts } : null;
+function subFormat(base, log, width, expWidth, G){
+  // Signed, a number's zeros pad its digits after the sign, which keeps
+  // one place of the width.
+  var sg = signedOn(G) ? 1 : 0;
+  var num = function(v, w){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(w - sg, '0') : String(Math.abs(v))); };
+  var nat = function(x){ return num(balEl(G, x), width); };
+  var ex = function(k){ return num(balExp(G, k), expWidth); };
+  var pts = curvePts(), C = pts ? { pts: pts } : G;
   var f = {
+    ex: ex,
     m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth)) : pts ? mPoint(pts[x]) : numMn(nat(x), width); },
     p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? plainPoint(pts[x]) : nat(x); }
   };
@@ -9136,9 +9196,9 @@ function renderSubgroups(G){
   // the largest exponent, so the rows' columns line up; aligned, it takes
   // blank space up to those widths instead.
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var fl = subFormat(lg, llog, width, expWidth), fr = subFormat(rg, rlog, width, expWidth);
+  var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -9213,15 +9273,15 @@ function renderMergedSubgroups(G){
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   var expWidth = Math.max(subExpWidth(G), subExpWidth(H));
   var widthG = subWidth(G), widthH = subWidth(H);
-  var fl = subFormat(lg, lg === null ? null : exprLog(G, lg), widthG, expWidth);
-  var fr = subFormat(rg, rg === null ? null : exprLog(G, rg), widthG, expWidth);
-  var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth);
-  var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth);
+  var fl = subFormat(lg, lg === null ? null : exprLog(G, lg), widthG, expWidth, G);
+  var fr = subFormat(rg, rg === null ? null : exprLog(G, rg), widthG, expWidth, G);
+  var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth, H);
+  var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth, H);
   // The right side's beads borrow these colours only while the rings are
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, subRevealOn(), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -9618,7 +9678,7 @@ function renderFacts(G, factors){
       : mProductInline(factors.map(function(f){ return f.order; }));
   };
   addFact('cyclicGroups.fact.structure', structureFact());
-  sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: state.gen });
+  sideElLabelEl.title = translate('cyclicGroups.layerElementTitle', { g: elText(G, state.gen) });
 
   var labelsDropped = beadRadius(G.order, ringBox().R) < 9;
   hintEl.hidden = !labelsDropped && G.cyclic;
@@ -9657,8 +9717,8 @@ function renderInverseLegend(pairing, el, G){
   el = el || legendEl;
   var g = G ? subExprGen(G, state.legendExpr, state.expr) : null, log = g === null ? null : exprLog(G, g);
   if (!G && pairing.log){ g = pairing.g; log = pairing.log; }
-  var m = function(x){ return log ? expMath(G, g, mn(log[x])) : G && G.pts ? mPoint(G.pts[x]) : mn(x); };
-  var p = function(x){ return log ? expPlain(G, g, log[x]) : G ? elText(G, x) : String(x); };
+  var m = function(x){ return log ? expMath(G, g, mn(signed(balExp(G, log[x])))) : G && G.pts ? mPoint(G.pts[x]) : G ? elMn(G, x) : mn(x); };
+  var p = function(x){ return log ? expPlain(G, g, signed(balExp(G, log[x]))) : G ? elText(G, x) : String(x); };
   var byExp = function(a, b){ return log[a] - log[b]; };
   var selfInverse = log ? pairing.selfInverse.slice().sort(byExp) : pairing.selfInverse;
   var selfList = [];
@@ -9719,7 +9779,8 @@ function renderDistinctLegend(G){
   var title = translate('cyclicGroups.legendPickTitle');
   G.els.forEach(function(a){
     var b = img ? img(a) : a;
-    var text = b !== a ? mInline(mrow(mn(a), mo('↦'), mn(b)), a + ' ↦ ' + b) : mNum(a);
+    var ta = elText(G, a), tb = elText(H || G, b);
+    var text = b !== a ? mInline(mrow(mn(ta), mo('↦'), mn(tb)), ta + ' ↦ ' + tb) : mNum(ta);
     var item = legendItem('', '--ord: ' + distinctColor(G, a), text, 'legend-pair');
     item.setAttribute('data-el', a);
     makePickable(item.querySelector('.legend-swatch'), 'e' + a, title);
@@ -10178,6 +10239,7 @@ function applyRingQuery(q){
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
+  state.signed = q.get('signed') === '1';
   SUB_EXPR_CTLS.forEach(function(c){ c.set(subCtlVal(c, q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
   state.subGcd = q.get('subgcd') === '1';
@@ -10413,7 +10475,7 @@ isoAddLeftEl.addEventListener('click', openLeftPick);
 // group and ⟨g⟩ ⊂ G otherwise; just the group with no subgroup on show.
 function subgroupName(G, g){
   if (g === null || G.els.indexOf(g) === -1) return G.label;
-  return translate(G.orders[g] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: g });
+  return translate(G.orders[g] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, g) });
 }
 // The name of a Ring window: its subgroup in its group; with an isomorphism
 // open beside it, the two groups isomorphic (G ≅ H), or the subgroup's
@@ -11664,7 +11726,7 @@ function renderIso(G){
     isoPanelEl.hidden = true;
     return;
   }
-  translateInto(isoLeadEl, 'cyclicGroups.iso.leadMath', { sub: mInline(angle(mn(state.gen)), '⟨' + state.gen + '⟩'), k: mNum(k) });
+  translateInto(isoLeadEl, 'cyclicGroups.iso.leadMath', { sub: mInline(angle(elMn(G, state.gen)), '⟨' + elText(G, state.gen) + '⟩'), k: mNum(k) });
   var addChip = isoLink('additive', k, 1, additiveLabel(k));
   // In an additive group of order k, ⟨g⟩ is isomorphic to the very group
   // it lies in: the chip names that supergroup.
@@ -11782,6 +11844,8 @@ function stateQuery(){
   else q.delete('subpaths');
   if (state.natHoverOff) q.set('nathover', '0');
   else q.delete('nathover');
+  if (state.signed && !state.ec) q.set('signed', '1');
+  else q.delete('signed');
   if (!state.enterInverse) q.set('enterinv', '0');
   else q.delete('enterinv');
   if (state.subReveal) q.set('subreveal', '1');
@@ -12777,6 +12841,8 @@ function setExprStop(i){
   if (state.genFollow && state.top === 'gen') turnToTop(state.gen);
   if (IS_ISOPANE) tellHost({ isopane: 'expr', expr: next });
 }
+function toggleSigned(){ state.signed = !state.signed; render(); }
+exprSignEl.addEventListener('click', toggleSigned);
 exprSliderEl.addEventListener('input', function(){ setExprStop(parseInt(exprSliderEl.value, 10) || 0); });
 exprNatEl.addEventListener('click', function(){ setExprStop(0); });
 if (typeof ResizeObserver === 'function') new ResizeObserver(thinExprStops).observe(exprStopsEl);
@@ -13115,6 +13181,7 @@ function loadState(query, link){
   state.subShort = !state.subSimplify && query.get('subshort') === '1';
   state.subPaths = query.get('subpaths') !== '0';
   state.natHoverOff = query.get('nathover') === '0';
+  state.signed = query.get('signed') === '1';
   state.enterInverse = query.get('enterinv') !== '0';
   state.subReveal = query.get('subreveal') === '1';
   state.subPowers = query.get('subpowers') !== '0';
