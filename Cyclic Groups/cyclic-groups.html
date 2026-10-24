@@ -903,6 +903,10 @@
   .combine-seg > button[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .combine-seg > button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .combine-k-spin[hidden]{ display:none; }
+  .bead-k{ position:fixed; z-index:30; width:4.2em; padding:3px 6px; font:inherit; font-family:var(--font-math); font-size:.95rem; color:var(--text); background:var(--bg-1); border:1px solid var(--accent); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--bg) 60%, transparent); }
+  .bead-k::placeholder{ color:var(--text-dim); opacity:.7; font-style:italic; }
+  .bead-k:focus{ outline:none; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .bead-k.is-invalid{ border-color:var(--role-warn); }
   /* k past the group's cardinality: ≡ its reduction, beside the field. */
   .combine-k-mod{ display:inline-grid; justify-items:start; padding:3px 6px; border:0; border-radius:var(--radius-ctl); background:none; font-family:var(--font-math); font-size:1rem; color:var(--text); white-space:nowrap; cursor:pointer; }
   .combine-k-mod > span{ grid-area:1 / 1; }
@@ -8218,6 +8222,7 @@ function endTurn(e){
   turning = null;
   ringSvgEl.classList.remove('is-turning');
   if (tap) combineTap(pick);
+  if (tap) beadDoubleTap(pick);
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
   // A linked pane stays where it was let go, and the ring holding it settles both.
   if (IS_ISOPANE && isoOrder() && isoTurnsTogether()){
@@ -8238,6 +8243,77 @@ function endTurn(e){
 }
 ringSvgEl.addEventListener('pointerup', endTurn);
 ringSvgEl.addEventListener('pointercancel', endTurn);
+// A double click (or double tap) on a bead opens a field at it, k greyed
+// in it: the k typed there, with Enter, combines that element with itself
+// k times, switching the Arrangement row to aᵏ and its field to that k.
+var lastBeadTap = null, beadKEl = null;
+function beadDoubleTap(x){
+  var now = Date.now(), last = lastBeadTap;
+  lastBeadTap = x === null ? null : { x: x, t: now };
+  if (x === null || !last || last.x !== x || now - last.t > 450) return;
+  lastBeadTap = null;
+  // The two clicks combined the element with itself as a ∗ b: it is left
+  // picked alone, waiting for its k.
+  if (state.combineMode !== 'scalar'){ combinePick(null); combinePick(x); }
+  openBeadK(x);
+}
+function closeBeadK(){
+  if (!beadKEl) return;
+  var el = beadKEl;
+  beadKEl = null;
+  el.remove();
+}
+function openBeadK(x){
+  closeBeadK();
+  var bead = ringSvgEl.querySelector('.bead[data-el="' + x + '"]');
+  if (!bead || !drawn) return;
+  var field = document.createElement('input');
+  field.type = 'text';
+  field.className = 'bead-k';
+  field.setAttribute('inputmode', 'numeric');
+  field.setAttribute('autocomplete', 'off');
+  field.spellcheck = false;
+  field.placeholder = 'k';
+  field.setAttribute('aria-label', translate('cyclicGroups.beadKLabel', { a: elText(drawn.G, x) }));
+  field.title = field.getAttribute('aria-label');
+  ringSvgEl.parentNode.appendChild(field);
+  beadKEl = field;
+  // Just right of the bead, its middle at the bead's: placed in the
+  // viewport, then against the window's corner when the window holds its
+  // fixed children.
+  var b = bead.getBoundingClientRect();
+  var left = b.right + 6, top = b.top + b.height / 2 - field.offsetHeight / 2;
+  var vw = document.documentElement.clientWidth;
+  if (left + field.offsetWidth > vw - 4) left = b.left - 6 - field.offsetWidth;
+  field.style.left = left + 'px';
+  field.style.top = top + 'px';
+  var at = field.getBoundingClientRect();
+  field.style.left = (2 * left - at.left) + 'px';
+  field.style.top = (2 * top - at.top) + 'px';
+  var read = function(){
+    var v = field.value.trim().replace(/^[−–]/, '-');
+    return /^[-+]?\d+$/.test(v) ? parseInt(v, 10) : null;
+  };
+  field.addEventListener('input', function(){
+    field.classList.toggle('is-invalid', field.value.trim() !== '' && read() === null);
+  });
+  field.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ e.preventDefault(); closeBeadK(); return; }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    var k = read();
+    if (k === null){ field.classList.add('is-invalid'); return; }
+    closeBeadK();
+    k = Math.max(-COMBO_K_MAX, Math.min(COMBO_K_MAX, k));
+    state.combineK = k;
+    if (state.combineMode !== 'scalar') state.combineMode = 'scalar';
+    syncCombineMode();
+    combineScalar(k, x);
+    mirrorToUrl(drawn && drawn.G);
+  });
+  field.addEventListener('blur', function(){ if (beadKEl === field) closeBeadK(); });
+  field.focus();
+}
 // The buttons turn the ring as an animation: the drawn ring spins (its
 // labels counter-spun to stay upright) and, once it arrives, is redrawn in
 // the new arrangement with the subgroup rows following. Clicks during a
