@@ -561,6 +561,7 @@
       genRowLabel: 'Subgroup',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
+      arrangeGenSequential: '{g}\u00a0\u00a0\u00a0(sequential)',
       arrangeByPowers: 'Order by generator powers',
       arrangeGenLabel: 'Generator',
       arrangeMultiples: 'Multiples of {g}',
