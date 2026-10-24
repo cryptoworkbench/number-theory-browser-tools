@@ -666,6 +666,7 @@
       'iso.lead': '⟨{g}⟩ is cyclic of order {k}, so it is isomorphic to:',
       'iso.additive': 'additive',
       'iso.multiplicative': 'multiplicative',
+      'iso.elliptic': 'elliptic curve',
       'iso.open': 'Open {group} in a new tab',
       'iso.openBeside': 'Open {group} beside this ring',
       'iso.supergroup': 'This subgroup’s supergroup.',
