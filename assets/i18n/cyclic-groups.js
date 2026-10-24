@@ -509,6 +509,7 @@
       combineModeLabel: 'Combine elements',
       combineModeLabelScalar: 'Scale an element',
       ecToggle: 'Elliptic curve',
+      curvePlotShow: 'Show the curve\'s points',
       ecToggleTitle: 'Study the group of an elliptic curve\'s points over a prime field',
       ecPTitle: 'The field\'s prime p, from 5 to 97',
       ecATitle: 'The coefficient a',

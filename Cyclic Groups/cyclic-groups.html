@@ -869,6 +869,27 @@
   .lap-key-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px; }
   .lap-key-list > li{ display:flex; align-items:baseline; gap:8px; }
   .lap-key-swatch{ flex:none; width:20px; border-top:3px solid var(--walk); transform:translateY(-3px); }
+  /* The curve's points on the p × p grid of 𝔽ₚ, beside the ring and in step
+     with it: each point painted as its bead, the picked ones ringed alike,
+     P + Q's line through the grid, and k·P's walk. A click on a point picks
+     it as a click on its bead does. */
+  .curve-plot{ position:absolute; right:20px; top:170px; z-index:3; width:min(300px, 40%); padding:8px 10px 6px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); }
+  .fs-win-body.is-ring > .curve-plot{ grid-area:ring; justify-self:end; align-self:start; position:relative; right:0; top:8px; }
+  .curve-plot[hidden]{ display:none; }
+  .curve-plot-svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .curve-plot-svg .curve-frame{ fill:none; stroke:var(--panel-border); }
+  .curve-plot-svg .curve-grid{ stroke:var(--panel-border); stroke-width:.5; opacity:.5; }
+  .curve-plot-svg .curve-tick{ fill:var(--text-dim); font-family:var(--font-sans); font-size:10px; }
+  .curve-plot-svg .curve-dot{ fill:var(--ord, var(--text-dim)); cursor:pointer; }
+  .curve-plot-svg .curve-dot:hover{ stroke:var(--text); stroke-width:1.5; }
+  .curve-plot-svg .combine-halo{ stroke-width:2; filter:none; }
+  .curve-plot-svg .curve-line{ fill:var(--role-input); opacity:.45; pointer-events:none; }
+  .curve-plot-svg .curve-third{ fill:none; stroke:var(--role-result); stroke-width:1.5; stroke-dasharray:2 2; pointer-events:none; }
+  .curve-plot-svg .curve-reflect{ stroke:var(--role-result); stroke-width:1.2; stroke-dasharray:3 3; pointer-events:none; }
+  .curve-plot-svg .curve-column{ fill:var(--role-input); opacity:.12; pointer-events:none; }
+  .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
+  .curve-plot-svg .curve-o{ fill:var(--text-dim); font-family:var(--font-math); font-size:13px; }
+  :root.is-ec :is(.iso-add, #iso-add-left, #bar-formulas-l, #bar-formulas-r, #formula-level, #facts){ display:none !important; }
   /* Which combination a click on a bead makes, in the Arrangement row:
      a ∗ b (two elements) or aᵏ (one element k times, k in its field, written so in either group). */
   .combine-mode{ display:inline-flex; align-items:center; gap:8px; margin-inline-end:18px; }
@@ -2093,6 +2114,10 @@
           <div class="lap-key-head"><h2 id="lap-key-title" data-i18n="cyclicGroups.lapKeyTitle">Laps of the path</h2><button type="button" class="fs-win-btn lap-key-min" id="lap-key-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
           <ul class="lap-key-list" id="lap-key-list"></ul>
         </section>
+        <section class="curve-plot" id="curve-plot" aria-labelledby="curve-plot-title" hidden>
+          <div class="lap-key-head"><h2 id="curve-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="curve-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
+          <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg>
+        </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
@@ -2381,6 +2406,7 @@
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner" id="legend-corner" aria-pressed="false" aria-controls="legend-panel" title="Show element colour key" aria-label="Show element colour key" data-i18n-title="cyclicGroups.showElementKey" data-i18n-aria-label="cyclicGroups.showElementKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle class="icon-fill" cx="2.8" cy="2.5" r="1.4"/><circle class="icon-fill" cx="2.8" cy="6" r="1.4"/><circle class="icon-fill" cx="2.8" cy="9.5" r="1.4"/><line x1="6" y1="2.5" x2="10.5" y2="2.5"/><line x1="6" y1="6" x2="10.5" y2="6"/><line x1="6" y1="9.5" x2="10.5" y2="9.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="akey-corner" aria-pressed="false" aria-controls="combine-key" title="Show arrow colour key" aria-label="Show arrow colour key" data-i18n-title="cyclicGroups.showArrowKey" data-i18n-aria-label="cyclicGroups.showArrowKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 3.5H5.5M4 2 5.5 3.5 4 5"/><path d="M1.5 8.5H5.5M4 7 5.5 8.5 4 10"/><line x1="7.5" y1="3.5" x2="10.5" y2="3.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="8.5"/></svg></button>
+        <button type="button" class="fs-win-btn key-corner" id="curve-corner" aria-pressed="true" aria-controls="curve-plot" title="Show the curve's points" aria-label="Show the curve's points" data-i18n-title="cyclicGroups.curvePlotShow" data-i18n-aria-label="cyclicGroups.curvePlotShow" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 10.5V1.5M1.5 10.5H10.5"/><circle class="icon-fill" cx="4.5" cy="7" r="1"/><circle class="icon-fill" cx="7" cy="4.5" r="1"/><circle class="icon-fill" cx="9" cy="8" r="1"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="lap-corner" aria-pressed="false" aria-controls="lap-key" title="Show the laps' colours" aria-label="Show the laps' colours" data-i18n-title="cyclicGroups.lapKeyShow" data-i18n-aria-label="cyclicGroups.lapKeyShow" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/><circle cx="6" cy="6" r="2"/></svg></button>
         <button type="button" class="fs-win-btn genexp-corner" id="genexp-corner" aria-pressed="false" aria-controls="genexp-info" title="Show the element expressions" aria-label="Show the element expressions" data-i18n-title="cyclicGroups.genExpOpenTitle" data-i18n-aria-label="cyclicGroups.genExpOpenTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="1.5" y="2" width="9" height="8" rx="1"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4.5" y1="2" x2="4.5" y2="10"/></svg></button>
       </div>
@@ -3895,6 +3921,7 @@ function mathInline(content){
 // are on, or full screen just it.
 function headOn(name){
   if (noSub() && SUB_HEADS.indexOf(name) !== -1) return false;
+  if (state.ec && name !== 'gname' && name !== 'sname') return false;
   if (ringBody) return state[name];
   return HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf(name) + 1).every(function(k){ return state[k]; });
 }
@@ -4033,7 +4060,8 @@ function lcmHas(v, f){ return v === true || v === 'both' || v === f; }
 function urlLcm(v){ return v === '1' ? 'both' : SUB_FORMULAS.indexOf(v) !== -1 ? v : 'none'; }
 function lcmPack(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; }
 // Whether the selected row shows a formula.
-function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
+// A curve has none of ℤ/nℤ's gcd, lcm and φ formulas (for now).
+function subFormulaOn(){ return state.subFormulaRow !== 'none' && !state.ec; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
 // is logBase's, and in ℤ/nℤ too, h found by its place on the ring as
@@ -4301,7 +4329,7 @@ function paneLogBase(H){
 // The selected subgroup's formulas: in its row, on lines of their own under
 // its subgroup (on the left, this group's side, of a merged row), and in
 // the main view, under the ring's header, each place as its own choice says.
-function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
+function subFormulaAtRing(){ return state.subFormulaRing !== 'none' && !state.ec; }
 // A merged row gives each group its formulas on its own side: ⟨h⟩'s on the
 // left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
@@ -4551,6 +4579,15 @@ var scratchOpen = false;
 function scratchFormulas(G){
   var on = function(name){ return !(noSub() && SUB_HEADS.indexOf(name) !== -1); };
   var h = shownGen(G), whole = G.orders[h] === G.order, list = [];
+  // A curve: its name with its equation, the subgroup's name, and its
+  // cardinality, the point count.
+  if (G.pts){
+    var eq = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
+    list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroup(G), mo(':'), mEl('mtext', [eq])), plain: G.label + ': ' + eq });
+    if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(mPoint(G.pts[h])), mo(whole ? '⊆' : '⊂'), mGroup(G)), plain: '⟨' + elText(G, h) + '⟩ ' + (whole ? '⊆' : '⊂') + ' ' + G.label });
+    list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(mGroup(G)), mo('='), mn(G.order)), plain: '|' + G.label + '| = ' + G.order });
+    return list;
+  }
   if (on('gname')) list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroupPct(), mo('='), mGroup(G)), plain: '⟨ℤ/%ℤ, ∗⟩ = ' + G.label });
   if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(mn(h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
     plain: translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: h }) });
@@ -4563,6 +4600,11 @@ function scratchFormulas(G){
 // copied and dragged out like the scratchpad's: ⟨ℤ/nℤ, +⟩ for a cyclic
 // group, else the product of its cyclic factors.
 function structureFormula(G){
+  // A curve's group is ℤ/n₁ℤ × ℤ/n₂ℤ, n₂ its largest order and n₁ dividing it.
+  if (G.pts && !G.cyclic){
+    var n2 = G.longest, n1 = G.order / n2;
+    return { key: 'struct', cls: 'ring-math-formula', math: mrow(mGroupOf('additive', n1), mo('×'), mGroupOf('additive', n2)), plain: additiveLabel(n1) + ' × ' + additiveLabel(n2) };
+  }
   if (G.cyclic) return { key: 'struct', cls: 'ring-math-formula', math: mGroupOf('additive', G.order), plain: additiveLabel(G.order) };
   var factors = unitFactors(G.n), parts = [];
   factors.forEach(function(f, i){
@@ -6183,6 +6225,7 @@ function drawNecklace(G, paint){
   var box = ringBox();
   drawRing(ringDynamicEl, G, beads, box, paint);
   syncLapKey(G);
+  drawCurvePlot(G);
   drawCombineLine(G, SIZE - 16);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
@@ -7414,6 +7457,96 @@ $('lap-key-min').addEventListener('click', function(){
 lapCornerEl.addEventListener('click', function(){
   lapKeyOpen = !lapKeyOpen;
   if (drawn) syncLapKey(drawn.G);
+});
+
+// The elliptic curve mode's plot: open with the mode, minimized into the
+// corner buttons and back.
+var curvePlotEl = $('curve-plot'), curvePlotSvgEl = $('curve-plot-svg'), curveCornerEl = $('curve-corner');
+var curvePlotOpen = true, CURVE_W = 280, CURVE_M = 22;
+function drawCurvePlot(G){
+  var on = !!G.pts && !IS_ISOPANE;
+  curveCornerEl.hidden = !on;
+  curveCornerEl.setAttribute('aria-pressed', on && curvePlotOpen ? 'true' : 'false');
+  curvePlotEl.hidden = !on || !curvePlotOpen;
+  if (curvePlotEl.hidden) return;
+  $('curve-plot-title').textContent = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
+  var p = G.n, plot = CURVE_W - CURVE_M - 6, cell = plot / p, svg = curvePlotSvgEl;
+  svg.replaceChildren();
+  svg.setAttribute('aria-label', G.label);
+  var X = function(x){ return CURVE_M + (x + 0.5) * cell; }, Y = function(y){ return 6 + plot - (y + 0.5) * cell; };
+  svg.appendChild(svgEl('rect', { 'class': 'curve-frame', x: CURVE_M, y: 6, width: num(plot), height: num(plot) }));
+  var step = p <= 13 ? 1 : p <= 31 ? 5 : 10;
+  for (var t = 0; t < p; t += step){
+    if (t) svg.appendChild(svgEl('line', { 'class': 'curve-grid', x1: num(X(t)), y1: 6, x2: num(X(t)), y2: num(6 + plot) }));
+    if (t) svg.appendChild(svgEl('line', { 'class': 'curve-grid', x1: CURVE_M, y1: num(Y(t)), x2: num(CURVE_M + plot), y2: num(Y(t)) }));
+    var tx = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(X(t)), y: num(6 + plot + 12), 'text-anchor': 'middle' }));
+    tx.textContent = String(t);
+    var ty = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: CURVE_M - 4, y: num(Y(t) + 3.5), 'text-anchor': 'end' }));
+    ty.textContent = String(t);
+  }
+  var r = Math.max(2, Math.min(6, cell * 0.38));
+  var roles = combineRoles(G), live = comboLive(G);
+  // P + Q: the line through them (the tangent for P + P) as its points mod
+  // p, meeting the curve a third time at −R, which the reflection turns
+  // into R; a vertical line, through an inverse pair, as its column.
+  if (live && combo.b !== null && combo.k === null && G.pts[combo.a] && G.pts[combo.b]){
+    var P = G.pts[combo.a], Q = G.pts[combo.b], c = G.combine(combo.a, combo.b);
+    if (P.x === Q.x && (P.y + Q.y) % p === 0){
+      svg.appendChild(svgEl('rect', { 'class': 'curve-column', x: num(X(P.x) - cell / 2), y: 6, width: num(cell), height: num(plot) }));
+    } else {
+      var num0 = combo.a === combo.b ? 3 * P.x * P.x + G.a : Q.y - P.y, den = combo.a === combo.b ? 2 * P.y : Q.x - P.x;
+      var lam = (((num0 * modInverse(((den % p) + p) % p, p)) % p) + p) % p;
+      for (var x = 0; x < p; x++){
+        var y = (((lam * (x - P.x) + P.y) % p) + p) % p;
+        svg.appendChild(svgEl('rect', { 'class': 'curve-line', x: num(X(x) - 1.2), y: num(Y(y) - 1.2), width: 2.4, height: 2.4 }));
+      }
+      var R = G.pts[c], negY = (p - R.y) % p;
+      svg.appendChild(svgEl('circle', { 'class': 'curve-third', cx: num(X(R.x)), cy: num(Y(negY)), r: num(r + 2) }));
+      svg.appendChild(svgEl('line', { 'class': 'curve-reflect', x1: num(X(R.x)), y1: num(Y(negY)), x2: num(X(R.x)), y2: num(Y(R.y)) }));
+    }
+  }
+  // k·P: its walk, point to point (𝒪, off the grid, is skipped).
+  var sw = live ? scalarWalk(G) : null;
+  if (sw){
+    var steps = sw.lap ? sw.walk.concat([sw.walk[0]]) : sw.walk.slice(0, Math.abs(combo.k) + 1);
+    for (var s2 = 1; s2 < steps.length; s2++){
+      var A = G.pts[steps[s2 - 1]], B = G.pts[steps[s2]];
+      if (A && B) svg.appendChild(svgEl('line', { 'class': 'curve-walk', x1: num(X(A.x)), y1: num(Y(A.y)), x2: num(X(B.x)), y2: num(Y(B.y)) }));
+    }
+  }
+  G.els.forEach(function(e){
+    var Pt = G.pts[e];
+    if (!Pt) return;
+    var look = drawn ? drawn.paint(e) : { cls: '', style: null };
+    var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r), 'data-el': e };
+    if (look.style) attrs.style = look.style;
+    var dot = svg.appendChild(svgEl('circle', attrs));
+    var tt = dot.appendChild(svgEl('title', {}));
+    tt.textContent = plainPoint(Pt);
+    (roles.get(e) || []).forEach(function(role, k){
+      if (role === 'a' && k && (roles.get(e)[k - 1] === 'a')) return;
+      svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * k) }));
+    });
+  });
+  // 𝒪 lies off the grid: written in the corner, ringed while picked.
+  var o = svg.appendChild(svgEl('text', { 'class': 'curve-o', x: num(CURVE_M + plot - 4), y: 20, 'text-anchor': 'end' }));
+  o.textContent = '𝒪';
+  (roles.get(0) || []).forEach(function(role, k){
+    svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(CURVE_M + plot - 9), cy: 15, r: num(8 + 2.5 * k) }));
+  });
+}
+curvePlotSvgEl.addEventListener('click', function(e){
+  var dot = e.target.closest('.curve-dot');
+  if (dot) combineTap(+dot.getAttribute('data-el'));
+});
+$('curve-plot-min').addEventListener('click', function(){
+  curvePlotOpen = false;
+  if (drawn) drawCurvePlot(drawn.G);
+  curveCornerEl.focus();
+});
+curveCornerEl.addEventListener('click', function(){
+  curvePlotOpen = !curvePlotOpen;
+  if (drawn) drawCurvePlot(drawn.G);
 });
 // Each picked element with its roles, in the order a, b, result (the
 // result's halo always outermost); with k,
