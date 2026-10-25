@@ -3455,7 +3455,9 @@ function humpSteps(walk, place, m, scale, sense){
 // distance from the center, so long steps don't pile their arrowheads up
 // there. A half turn, whose chord runs through the center, still bows by
 // INNER_MIN. The center lies to the right of a clockwise chord and to the
-// left of a counterclockwise one, which also gives the half turn its side.
+// left of a counterclockwise one. A half turn bows the other way, to the
+// side it turns toward, so an element of order 2's there and back reads as
+// going round the way its steps count.
 // A negative scale bows an inner hump the other way, away from the center,
 // but only so far that it stays inside the beads. A step the long way round
 // has no chord turning its way, so inside it sweeps round the center, dipping
@@ -3484,7 +3486,7 @@ function humpPoint(box, foot, side, h, f){
   var mid = foot * Math.cos(Math.abs(h.d) * Math.PI / 360);
   var bulge = Math.abs(h.scale) * Math.min(INNER_BULGE * len, Math.max(INNER_MIN, 0.35 * mid));
   if (h.scale < 0) bulge = -Math.min(bulge, 0.8 * (foot - mid));
-  var turn = h.d > 0 ? 1 : -1;
+  var turn = (h.d > 0 ? 1 : -1) * (Math.abs(Math.abs(h.d) - 180) < 1e-6 ? -1 : 1);
   var b = bulge / len * Math.sin(Math.PI * f);
   return [p0[0] + dx * f - turn * dy * b, p0[1] + dy * f + turn * dx * b];
 }
@@ -13446,21 +13448,27 @@ dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); })
 // previewed row only borrows the arrows, so it never flips the ring; nor
 // does the pane, whose direction is its holder's.
 var pathSense = null;
-function forwardSense(G, h){
+// Steps that cancel out (an element of order 2 there and back across a
+// short gap) go by the first, from the identity, unless strict asks for a
+// way round the steps agree on.
+function forwardSense(G, h, strict){
   if (h === undefined) h = state.noSub ? null : state.gen;
   if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return 0;
   var beads = arrangement(G), m = beads.length, place = {}, sum = 0;
   beads.forEach(function(a, i){ place[a] = i; });
   var walk = lap(G, h, G.orders[h], G.identity), k = walk.length;
+  var first = 0;
   walk.forEach(function(x, i){
     var span = ((place[walk[(i + 1) % k]] - place[x]) % m + m) % m;
-    sum += span > m / 2 ? span - m : span;
+    var d = span > m / 2 ? span - m : span;
+    if (!i) first = d;
+    sum += d;
   });
-  return Math.sign(sum) * dirSign();
+  return Math.sign(sum || (strict ? 0 : first)) * dirSign();
 }
 function autoFlip(G){
   if (IS_ISOPANE || IS_PREVIEW) return;
-  var s = forwardSense(G);
+  var s = forwardSense(G, undefined, true);
   if (!s) return;
   if (pathSense === null) pathSense = s;
   else if (s !== pathSense) setDir(state.dir === 'cw' ? 'ccw' : 'cw', true);
