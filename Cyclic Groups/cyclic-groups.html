@@ -1089,6 +1089,7 @@
   /* The picked way wears the forward path's colour, the other the backward path's. */
   .dir-pref > button[aria-pressed="true"] svg{ stroke:var(--arrow-in, var(--role-active)); }
   .dir-pref > button[aria-pressed="false"] svg{ stroke:var(--arrow-out, var(--role-input)); }
+  .dir-pref.is-fwd-off > button[aria-pressed="true"] svg, .dir-pref.is-back-off > button[aria-pressed="false"] svg{ stroke:var(--role-inert-text); }
   .dir-toggle .dir-arrow{ stroke-width:1.5; stroke:var(--arrow-in, var(--role-active)); }
   .dir-toggle.is-both .dir-arrow{ stroke:var(--arrow-both); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
@@ -13533,12 +13534,16 @@ window.addEventListener('storage', function(e){
   state.prefDir = dir;
   render();
 });
+var dirPrefEl = $('dir-pref');
 var dirPrefEls = { cw: $('dir-pref-cw'), ccw: $('dir-pref-ccw') };
 Object.keys(dirPrefEls).forEach(function(dir){
   dirPrefEls[dir].addEventListener('click', function(){ setPrefDir(dir); });
 });
+// A hidden path's colour greys out on its icon.
 function syncDirPref(){
   Object.keys(dirPrefEls).forEach(function(dir){ dirPrefEls[dir].setAttribute('aria-pressed', String(dir === state.prefDir)); });
+  dirPrefEl.classList.toggle('is-fwd-off', !state.forward);
+  dirPrefEl.classList.toggle('is-back-off', invSide() === 'neither');
 }
 // Whether flipping the ring would simplify subgroup h's arrows: keeping to
 // the preferred way, its walk would then go fewer places round in all.
