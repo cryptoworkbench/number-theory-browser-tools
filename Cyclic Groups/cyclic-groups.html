@@ -3565,7 +3565,8 @@ function drawLoop(ring, a, cls, side, place, box, beadR, m, width, paint, both){
   var reach = Math.max(16, beadR * 2.8);
   var spread = Math.min(60, 180 / Math.PI * beadR * 0.55 / foot);
   var flare = Math.min(80, 180 / Math.PI * beadR * 2 / foot);
-  var sweep = dirSign() * out;
+  // It turns, on screen, the way the forward walk is kept going round.
+  var sweep = keptSense() * out;
   var p0 = polar(box.cx, box.cy, foot, at - sweep * spread);
   var c1 = polar(box.cx, box.cy, foot + out * reach, at - sweep * flare);
   var c2 = polar(box.cx, box.cy, foot + out * reach, at + sweep * flare);
@@ -13448,6 +13449,10 @@ dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); })
 // previewed row only borrows the arrows, so it never flips the ring; nor
 // does the pane, whose direction is its holder's.
 var pathSense = null;
+// The way round a walk with no steps to go by (the identity's loop) turns
+// on screen, and the coin then shows: the way the forward walk is kept
+// going, else the way the beads count.
+function keptSense(){ return !IS_ISOPANE && pathSense !== null ? pathSense : dirSign(); }
 // Steps that cancel out (an element of order 2 there and back across a
 // short gap) go by the first, from the identity, unless strict asks for a
 // way round the steps agree on.
@@ -13526,12 +13531,12 @@ function syncDirAxis(){
   if (two) setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
 }
 // Its name tells which way the forward walk drawn (a previewed row's while
-// one is) goes round on screen; with no walk to go by, the way the beads count.
+// one is) goes round on screen; with no walk to go by, keptSense's way.
 var DIR_ARROW_CW = 'M13 18A5 5 0 1 1 18 23M20.1 20.8 17.6 23 20.1 25.2';
 var DIR_ARROW_CCW = 'M23 18A5 5 0 1 0 18 23M15.9 20.8 18.4 23 15.9 25.2';
 function syncDirToggle(){
   var sense = drawn ? forwardSense(drawn.G, noSub() ? null : shownGen(drawn.G)) : 0;
-  var ccw = sense ? sense < 0 : state.dir === 'ccw';
+  var ccw = (sense || keptSense()) < 0;
   if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
   // The coin is drawn mirrored while the beads count counterclockwise, so
