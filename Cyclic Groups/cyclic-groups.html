@@ -4469,7 +4469,9 @@ function rowFormulaH(G, h, x, paint){
       var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
       m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew, signedOn(G))]);
     }
-    if (subRevealOn() && from !== to){
+    // A power here reveals whatever the panel writes, the setting alone
+    // deciding (the formulas write powers of h even beside Natural).
+    if (!state.revealOff && from !== to){
       var ex = mrow(m), nat = mrow(to === null ? subFormat(null, null, subWidth(G), 0, G).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h));
       ex.setAttribute('class', 'sub-ex');
       nat.setAttribute('class', 'sub-nat');
@@ -9461,7 +9463,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, subRevealOn(), revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -9544,7 +9546,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, subRevealOn(), revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
