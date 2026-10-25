@@ -1215,6 +1215,7 @@
   .expr-adv:focus{ outline:none; }
   .expr-adv:focus-visible{ box-shadow:var(--ctl-focus); }
   .expr-adv svg{ width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
+  .expr-adv[aria-expanded="true"] .expr-adv-unfold, .expr-adv:not([aria-expanded="true"]) .expr-adv-fold{ display:none; }
   .expr-gap{ flex:none; width:26px; }
   .expr-gap[hidden]{ display:none; }
   .expr-hover-row{ display:none; }
@@ -3284,9 +3285,6 @@ function syncExprHover(G){
   var advName = translate(open ? 'cyclicGroups.exprAdvClose' : 'cyclicGroups.exprAdvOpen');
   exprAdvEl.title = advName;
   exprAdvEl.setAttribute('aria-label', advName);
-  exprAdvEl.replaceChildren(open
-    ? svgIcon([['path', { d: 'M1.5 6H10.5' }], ['path', { d: 'M6 .8V4M4.4 2.6 6 4.2 7.6 2.6' }], ['path', { d: 'M6 11.2V8M4.4 9.4 6 7.8 7.6 9.4' }]])
-    : svgIcon([['path', { d: 'M1.5 6H10.5' }], ['path', { d: 'M6 4.4V.8M4.4 2.4 6 .8 7.6 2.4' }], ['path', { d: 'M6 7.6v3.6M4.4 9.6 6 11.2 7.6 9.6' }]]));
   var name = exprSlotEl.querySelector(':scope > .expr-name:not(.expr-hover-row)');
   name.textContent = open ? translate('cyclicGroups.exprNoHover') : '';
   exprSlotEl.querySelector('.expr-gap-sign').hidden = exprSignEl.hidden;
@@ -3299,6 +3297,15 @@ function syncExprHover(G){
   exprHoverSliderEl.setAttribute('aria-valuetext', now);
   exprHoverSliderEl.title = translate('cyclicGroups.exprHoverTitle');
 }
+// Both icons are built once, CSS showing the one that fits: replacing the
+// icon under the pointer as it is clicked would leave the button hovered.
+(function(){
+  var unfold = svgIcon([['path', { d: 'M1.5 6H10.5' }], ['path', { d: 'M6 4.4V.8M4.4 2.4 6 .8 7.6 2.4' }], ['path', { d: 'M6 7.6v3.6M4.4 9.6 6 11.2 7.6 9.6' }]]);
+  var fold = svgIcon([['path', { d: 'M1.5 6H10.5' }], ['path', { d: 'M6 .8V4M4.4 2.6 6 4.2 7.6 2.6' }], ['path', { d: 'M6 11.2V8M4.4 9.4 6 7.8 7.6 9.4' }]]);
+  unfold.classList.add('expr-adv-unfold');
+  fold.classList.add('expr-adv-fold');
+  exprAdvEl.append(unfold, fold);
+})();
 function setExprHoverStop(i){
   if (!drawn || state.revealOff) return;
   var gens = drawn.G.generators, v = i > 0 ? gens[i - 1] : null;
