@@ -768,6 +768,8 @@
   @keyframes keep-top-refused{ 0%{ color:var(--role-warn); } 50%{ color:inherit; } }
   /* What the subgroup dropdown now follows blinks red (blinkLinked). */
   .is-linked-blink{ border-radius:var(--radius-ctl); animation:linked-blink 360ms steps(1) 3; }
+  /* Blinked in turn with another, it lights while the other is dark. */
+  .is-linked-blink.is-blink-late{ animation-delay:180ms; }
   @keyframes linked-blink{ 0%{ outline:2px solid var(--role-warn); outline-offset:2px; background-color:var(--role-warn-soft); } 50%{ outline:2px solid transparent; } }
   /* Its light version: a new row picked while the bottom panel is out of
      sight blinks its chevrons once, softly (hintPanelRow). */
@@ -12646,7 +12648,12 @@ function render(){
   // Compared here, after a follow (syncGenFollow) has moved the subgroup.
   var genChanged = lastGenSeen !== null && state.gen !== lastGenSeen;
   lastGenSeen = state.gen;
-  if (genChanged && !state.noSub && drawn && drawn.G === G && simplifiable(G, state.gen)) blinkLinked(dirToggleEl);
+  // A new subgroup whose arrows go the long way blinks, in turn, both ways
+  // to shorten them: flipping the ring, or turning the preferred direction.
+  if (genChanged && !state.noSub && drawn && drawn.G === G && simplifiable(G, state.gen)) {
+    blinkLinked(dirToggleEl);
+    blinkLinked(dirPrefFwdSegEl, true);
+  }
 }
 
 /* ---------- controls <-> state ---------- */
@@ -13312,14 +13319,15 @@ function lockDeclined(){
 if (IS_ISOPANE && new URLSearchParams(location.search).get('grouplock') !== '0') setGroupLock(true);
 // A follow chosen in the subgroup dropdown blinks red what it now follows:
 // the expression slider, or the bottom panel (its chevrons while closed).
-function blinkLinked(el){
+function blinkLinked(el, late){
   if (!el || el.hidden) return;
-  el.classList.remove('is-linked-blink', 'is-row-blink');
+  el.classList.remove('is-linked-blink', 'is-blink-late', 'is-row-blink');
   void el.offsetWidth;
   el.classList.add('is-linked-blink');
+  if (late) el.classList.add('is-blink-late');
 }
 document.addEventListener('animationend', function(e){
-  if (e.animationName === 'linked-blink' || e.animationName === 'expr-linked-blink') e.target.classList.remove('is-linked-blink');
+  if (e.animationName === 'linked-blink' || e.animationName === 'expr-linked-blink') e.target.classList.remove('is-linked-blink', 'is-blink-late');
   if (e.animationName === 'row-blink') e.target.classList.remove('is-row-blink');
 });
 // The bottom panel's selected row, last seen in this group. Another row
@@ -13548,6 +13556,7 @@ window.addEventListener('storage', function(e){
   render();
 });
 var dirPrefEl = $('dir-pref');
+var dirPrefFwdSegEl = dirPrefEl.querySelector('.dir-pref-seg.is-fwd');
 // The backwards path's row picks the forward path's way the other way round.
 var dirPrefEls = Array.prototype.slice.call(dirPrefEl.querySelectorAll('button[data-dir]'));
 function prefBack(el){ return el.parentNode.classList.contains('is-back'); }
