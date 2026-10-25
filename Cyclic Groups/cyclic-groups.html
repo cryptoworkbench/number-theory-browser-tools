@@ -5931,7 +5931,7 @@ function setRingCtx(open, x, y, expr, fml){
     if (it.value) it.value.replaceChildren(it.valueOf());
   });
   syncFormulaItems();
-  syncExprCtx(!!expr);
+  syncExprCtx(expr === true ? 'gens' : expr || null);
   syncFormulaCtx(fml || null);
   var nat = syncNatHoverCtx(!expr && !fml);
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
@@ -6000,16 +6000,24 @@ document.addEventListener('contextmenu', function(e){
 // Right-clicking the expression slider opens the ring's menu with only its
 // own item: the group's generator count, opening the copy submenu as the
 // Formulas item does.
-function syncExprCtx(on){
+// The Subgroup row's formula, right-clicked, opens it the same way with
+// the subgroup's name, ⟨h⟩ ⊂ G, to copy (key, the formula's: 'gens' or 'sname').
+function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
-  ringCtxEl.classList.toggle('is-expr-ctx', on);
-  if (!on || !drawn) return;
-  var gens = ctxItem('menuitem', translate('cyclicGroups.scratchGens'), true);
-  gens.item.addEventListener('pointerenter', function(){ setRingCopy('gens', gens.item, false); });
-  gens.item.addEventListener('click', function(){ setRingCopy('gens', gens.item, true); });
-  gens.item.classList.add('ring-ctx-expr');
-  ringCtxEl.appendChild(gens.item);
+  ringCtxEl.classList.toggle('is-expr-ctx', !!key);
+  if (!key || !drawn) return;
+  var it = ctxItem('menuitem', translate(SCRATCH_NAMES[key]), true);
+  it.item.addEventListener('pointerenter', function(){ setRingCopy(key, it.item, false); });
+  it.item.addEventListener('click', function(){ setRingCopy(key, it.item, true); });
+  it.item.classList.add('ring-ctx-expr');
+  ringCtxEl.appendChild(it.item);
 }
+$('gen-super').addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  if (IS_MOBILE || !e.currentTarget.firstChild || !drawn) return;
+  setRevealHot(null);
+  setRingCtx(true, e.clientX, e.clientY, 'sname');
+});
 // The main menu's first item: Disable reveal on hover, one switch for the
 // whole tool. Off, a power of the generator under the pointer shows its
 // natural number wherever it is written: on a bead, in G = ⟨h⟩, in the
