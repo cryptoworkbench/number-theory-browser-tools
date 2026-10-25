@@ -7617,6 +7617,7 @@ function redrawRing(){
   ringDynamicEl.replaceChildren();
   drawNecklace(drawn.G, drawn.paint);
   renderCombineKey(drawn.G);
+  syncDirToggle();
   if (spin) spinAngle(spin.now);
   else if (turning) spinAngle(turning.swept);
   else if (autoAngle) spinAngle(autoAngle);
@@ -12561,6 +12562,7 @@ function render(){
   else if (isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
   syncInterlock();
   autoFlip(G);
+  syncDirToggle();
 }
 
 /* ---------- controls <-> state ---------- */
@@ -13440,9 +13442,9 @@ dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); })
 // previewed row only borrows the arrows, so it never flips the ring; nor
 // does the pane, whose direction is its holder's.
 var pathSense = null;
-function forwardSense(G){
-  var h = state.gen;
-  if (state.noSub || G.els.indexOf(h) === -1 || G.orders[h] < 2) return 0;
+function forwardSense(G, h){
+  if (h === undefined) h = state.noSub ? null : state.gen;
+  if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return 0;
   var beads = arrangement(G), m = beads.length, place = {}, sum = 0;
   beads.forEach(function(a, i){ place[a] = i; });
   var walk = lap(G, h, G.orders[h], G.identity), k = walk.length;
@@ -13509,8 +13511,11 @@ function syncDirAxis(){
   dirIcons[1].svg.style.display = two ? '' : 'none';
   if (two) setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
 }
+// Its name tells which way the forward walk drawn (a previewed row's while
+// one is) goes round on screen; with no walk to go by, the way the beads count.
 function syncDirToggle(){
-  var ccw = state.dir === 'ccw';
+  var sense = drawn ? forwardSense(drawn.G, noSub() ? null : shownGen(drawn.G)) : 0;
+  var ccw = sense ? sense < 0 : state.dir === 'ccw';
   if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
   var name = translate(ccw ? 'cyclicGroups.dirToggleCcw' : 'cyclicGroups.dirToggleCw');
