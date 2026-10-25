@@ -13564,7 +13564,10 @@ function autoFlip(G){
 }
 // The direction button always flips the ring: to simplify the arrows drawn
 // when it can, and otherwise with the preferred way round turning with it.
-dirToggleEl.addEventListener('click', function(){
+dirToggleEl.addEventListener('click', function(e){
+  // A pointer's click lets go of the focus, so a later arrow key (stepping
+  // the rows) never rings the button in the keyboard's focus outline.
+  if (e.detail) dirToggleEl.blur();
   if (!drawn) return;
   setDir(state.dir === 'cw' ? 'ccw' : 'cw', !simplifiable(drawn.G, shownSub(drawn.G)));
 });
@@ -13573,6 +13576,8 @@ dirToggleEl.addEventListener('click', function(){
 // to the preferred way, until the button flips it.
 dirToggleEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
+  // Nor does closing the menu hand the focus back to it.
+  if (document.activeElement === dirToggleEl) dirToggleEl.blur();
   if (IS_MOBILE || !drawn) return;
   setRingCtx(true, e.clientX, e.clientY, 'dir');
 });
