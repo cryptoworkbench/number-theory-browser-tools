@@ -772,8 +772,6 @@
       showArrowKey: 'Show arrow colour key',
       akeyPick: 'Choose this path\'s colour; drag it onto the other bar to swap the colours',
       akeyShowBackward: 'Show backwards path',
-      akeyHideForward: 'Disable forward path',
-      akeyShowForward: 'Show forward path',
       akeyOneLine: 'Draw both paths on one line',
       akeyPairMode: 'Draw the line in one colour, from the subgroup cardinality key',
       akeyShowPower: 'Show these lines',
