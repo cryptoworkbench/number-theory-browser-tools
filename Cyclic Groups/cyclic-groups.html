@@ -9702,17 +9702,22 @@ subgroupsEl.addEventListener('scroll', syncSubMore, { passive: true });
 // Reveal on hover: the member under the pointer shows its natural number,
 // keeping at least the width its power took, so the swap never moves the
 // member out from under the pointer.
-var revealHot = null;
+// The width is held around the chip, never inside it (a formula's reveal
+// sits on its chip, inside the box holding both), so the chip is always the
+// one its shown form gets.
+var revealHot = null, revealHold = null;
 function setRevealHot(m){
   if (m === revealHot) return;
-  if (revealHot){ revealHot.classList.remove('is-revealed'); revealHot.style.minWidth = ''; }
+  if (revealHot) revealHot.classList.remove('is-revealed');
+  if (revealHold){ revealHold.style.minWidth = ''; revealHold = null; }
   revealHot = m;
   // A member on the linked pane's side links in the copy of its table.
   var at = m && m.querySelector('.sub-nat').parentNode;
   var row = function(a){ var v = at && at.getAttribute(a); return v ? +v : null; };
   genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'), m && (m.closest('.genexp-body') || (m.closest('.sub-row-r') ? genExpPaneBodyEl : null)));
   if (!m) return;
-  m.style.minWidth = m.getBoundingClientRect().width + 'px';
+  revealHold = (m.closest && m.closest('.sub-flat')) || m;
+  revealHold.style.minWidth = revealHold.getBoundingClientRect().width + 'px';
   m.classList.add('is-revealed');
 }
 subgroupsEl.addEventListener('pointerover', function(e){
