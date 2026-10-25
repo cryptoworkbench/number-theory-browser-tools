@@ -2553,7 +2553,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false };
+var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false, autoFlipOff: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3442,7 +3442,13 @@ function humpSteps(walk, place, m, scale, sense){
   for (var s = 0; s < k; s++){
     var a0 = step * place[walk[s]];
     var span = ((place[walk[(s + 1) % k]] - place[walk[s]]) % m + m) % m;
-    var d = step * (span > m / 2 || (sense < 0 && span > 0 && span === m / 2) ? span - m : span);
+    // With automatic flipping off, the walks go as they once did: the
+    // forward walk always the forward direction, the backward walk the
+    // other way, the long way round when the target lies more than halfway
+    // round (sense 0, which has no one way to go, still the shorter way).
+    var d = state.autoFlipOff
+      ? step * ((sense < 0 && span > 0) || (sense === 0 && span > m / 2) ? span - m : span)
+      : step * (span > m / 2 || (sense < 0 && span > 0 && span === m / 2) ? span - m : span);
     var near = Math.min(Math.abs(d), 360 - Math.abs(d));
     out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, near * 0.4)) });
   }
@@ -6025,6 +6031,17 @@ function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
   if (!key || !drawn) return;
+  // The direction button's: its one switch, Disable automatic flipping.
+  if (key === 'dir'){
+    var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuAutoFlipOff'), state.autoFlipOff, function(){
+      setRingCtx(false);
+      setAutoFlipOff(!state.autoFlipOff);
+    });
+    tick.classList.add('ring-ctx-expr');
+    tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    ringCtxEl.appendChild(tick);
+    return;
+  }
   var it = ctxItem('menuitem', translate(SCRATCH_NAMES[key]), true);
   it.item.addEventListener('pointerenter', function(){ setRingCopy(key, it.item, false); });
   it.item.addEventListener('click', function(){ setRingCopy(key, it.item, true); });
@@ -12354,6 +12371,8 @@ function stateQuery(){
   q.delete('nathover');
   if (state.signed && !state.ec) q.set('signed', '1');
   else q.delete('signed');
+  if (state.autoFlipOff) q.set('autoflip', '0');
+  else q.delete('autoflip');
   if (state.signedExp && !state.ec) q.set('signedexp', '1');
   else q.delete('signedexp');
   if (!state.enterInverse) q.set('enterinv', '0');
@@ -13452,13 +13471,14 @@ var pathSense = null;
 // The way round a walk with no steps to go by (the identity's loop) turns
 // on screen, and the coin then shows: the way the forward walk is kept
 // going, else the way the beads count.
-function keptSense(){ return !IS_ISOPANE && pathSense !== null ? pathSense : dirSign(); }
+function keptSense(){ return !IS_ISOPANE && !state.autoFlipOff && pathSense !== null ? pathSense : dirSign(); }
 // Steps that cancel out (an element of order 2 there and back across a
 // short gap) go by the first, from the identity, unless strict asks for a
 // way round the steps agree on.
 function forwardSense(G, h, strict){
   if (h === undefined) h = state.noSub ? null : state.gen;
   if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return 0;
+  if (state.autoFlipOff) return dirSign();
   var beads = arrangement(G), m = beads.length, place = {}, sum = 0;
   beads.forEach(function(a, i){ place[a] = i; });
   var walk = lap(G, h, G.orders[h], G.identity), k = walk.length;
@@ -13472,13 +13492,28 @@ function forwardSense(G, h, strict){
   return Math.sign(sum || (strict ? 0 : first)) * dirSign();
 }
 function autoFlip(G){
-  if (IS_ISOPANE || IS_PREVIEW) return;
+  if (IS_ISOPANE || IS_PREVIEW || state.autoFlipOff) return;
   var s = forwardSense(G, undefined, true);
   if (!s) return;
   if (pathSense === null) pathSense = s;
   else if (s !== pathSense) setDir(state.dir === 'cw' ? 'ccw' : 'cw', true);
 }
 dirToggleEl.addEventListener('click', function(){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); });
+// Right-clicked, its menu holds Disable automatic flipping: the arrows then
+// go as they once did, the forward walk always the way the beads count,
+// however far round that takes it, and the ring never flips by itself.
+// Switched back on, the way the forward walk goes then is the one kept.
+dirToggleEl.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  if (IS_MOBILE || !drawn) return;
+  setRingCtx(true, e.clientX, e.clientY, 'dir');
+});
+function setAutoFlipOff(on){
+  state.autoFlipOff = on;
+  // Off, the forward walk went the way the beads count: that way is kept.
+  pathSense = on ? null : dirSign();
+  render();
+}
 // The button: a circle with a dashed line through its centre, the axis
 // through the identity wherever the ring's turn has put it, reaching well
 // past the circle, and a small ring threaded onto the axis just past the circle, at the identity's end,
@@ -13750,6 +13785,7 @@ function loadState(query, link){
   state.revealAs = intOrNull(query.get('revealas'));
   state.signed = query.get('signed') === '1';
   state.signedExp = query.get('signedexp') === '1';
+  state.autoFlipOff = query.get('autoflip') === '0';
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
   state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';

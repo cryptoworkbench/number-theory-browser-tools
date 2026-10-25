@@ -513,6 +513,7 @@
       exprSignExpOff: 'Write the exponents as 0 … |G| − 1',
       menuSigned: 'Signed numbers (nearest 0)',
       menuSignedExp: 'Signed exponents (nearest 0)',
+      menuAutoFlipOff: 'Disable automatic flipping',
       menuRevealOff: 'Disable reveal on hover',
       beadKLabel: 'k, the times {a} is combined with itself: 2 is {a} ∗ {a}; type another k and press Enter to draw it',
       genExpRevealNat: 'Reveal on hover shows the elements as natural numbers',
