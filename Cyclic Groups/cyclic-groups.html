@@ -834,6 +834,10 @@
   .bead.is-dim, .bead-label.is-dim{ opacity:.22; }
   .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo):not(.is-past){ animation:coset-in .25s ease-out; }
   @keyframes coset-in{ from{ opacity:0; } }
+  /* After a flip, the new arrows come in. */
+  .ring > :is(.walks, .walk-scalar).is-respawn{ animation:arrows-respawn .35s ease-out; }
+  @keyframes arrows-respawn{ from{ opacity:0; } }
+  @media (prefers-reduced-motion: reduce){ .ring > :is(.walks, .walk-scalar).is-respawn{ animation:none; } }
   @media (prefers-reduced-motion: reduce){ .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo){ animation:none; } }
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
@@ -8735,6 +8739,12 @@ function endFlip(){
   var f = flipping;
   flipping = null;
   if (f.ghost.parentNode) f.ghost.remove();
+  // The arrows the coin carried over go, and the new ones come in.
+  f.mirrored.forEach(function(el){ el.remove(); });
+  f.arrows.forEach(function(el){
+    el.style.visibility = '';
+    if (el.isConnected) el.classList.add('is-respawn');
+  });
   if (f.wrap.parentNode){
     while (f.wrap.firstChild) f.wrap.parentNode.insertBefore(f.wrap.firstChild, f.wrap);
     f.wrap.remove();
@@ -8767,13 +8777,30 @@ function flipRing(change){
   var wrap = svgEl('g', { 'class': 'ring-flip' });
   ring.before(wrap);
   wrap.appendChild(ring);
+  // The flip is static: the coin turns over carrying the old arrows, so on
+  // its far side they show mirrored in the identity's axis (where the new
+  // beads now stand: the flip mirrors every bead in that axis), and only
+  // once it has landed do the new arrows, simplified, come in.
+  var arrows = Array.prototype.slice.call(ring.querySelectorAll(':scope > .walks, :scope > .walk-scalar'));
+  // The axis in the ring's own coordinates, through its identity bead.
+  var idb = drawn && ghost.querySelector('.bead[data-el="' + drawn.G.identity + '"]');
+  var axis = idb ? Math.atan2(+idb.getAttribute('cy') - box.cy, +idb.getAttribute('cx') - box.cx) * 180 / Math.PI : beta;
+  var mirrored = Array.prototype.slice.call(ghost.querySelectorAll(':scope > .walks, :scope > .walk-scalar')).map(function(el){
+    var copy = el.cloneNode(true);
+    copy.setAttribute('transform', 'translate(' + num(box.cx) + ' ' + num(box.cy) + ') rotate(' + num(axis) + ') scale(1 -1) rotate(' + num(-axis) + ') translate(' + num(-box.cx) + ' ' + num(-box.cy) + ')');
+    copy.setAttribute('aria-hidden', 'true');
+    return copy;
+  });
+  arrows.forEach(function(el){ el.style.visibility = 'hidden'; });
+  var under = ring.querySelector(':scope > .walks') || ring.firstChild;
+  mirrored.forEach(function(el){ ring.insertBefore(el, under); });
   var ghostWrap = svgEl('g', { 'class': 'ring-flip', 'aria-hidden': 'true', style: 'pointer-events:none' });
   ghostWrap.appendChild(ghost);
   wrap.after(ghostWrap);
   var squash = function(el, s, k){
     el.setAttribute('transform', 'translate(' + num(box.cx) + ' ' + num(box.cy) + ') rotate(' + num(beta) + ') scale(' + num(k) + ' ' + num(Math.max(0.001, k * s)) + ') rotate(' + num(-beta) + ') translate(' + num(-box.cx) + ' ' + num(-box.cy) + ')');
   };
-  flipping = { ghost: ghostWrap, wrap: wrap, id: 0, t0: null };
+  flipping = { ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored };
   var f = flipping;
   var frame = function(ts){
     if (flipping !== f) return;
