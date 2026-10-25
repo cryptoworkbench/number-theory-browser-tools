@@ -7285,9 +7285,17 @@ function renderCombineKey(G){
   // row only borrows it: the room follows the selected subgroup, kept empty
   // or left out while a row is hovered, so the list never moves out from
   // under the pointer and ends the preview that moved it.
-  var kept = !state.noSub && state.akey;
-  if (preview !== null && on !== kept && getComputedStyle(combineKeyEl).position !== 'absolute') on = false;
-  var held = !on && preview !== null && kept && getComputedStyle(combineKeyEl).position !== 'absolute';
+  var kept = !state.noSub && state.akey, inFlow = getComputedStyle(combineKeyEl).position !== 'absolute';
+  if (preview !== null && on !== kept && inFlow) on = false;
+  var held = !on && preview !== null && kept && inFlow;
+  // Its height too: a previewed row's key, the identity's one short line
+  // or another's two, keeps the selected subgroup's height (scrolling
+  // within it if it needs more), so the layout under it never moves.
+  if (preview === null){ combineKeyEl.style.height = ''; combineKeyEl.style.boxSizing = ''; }
+  else if (inFlow && !combineKeyEl.hidden && !combineKeyEl.style.height){
+    combineKeyEl.style.boxSizing = 'border-box';
+    combineKeyEl.style.height = combineKeyEl.getBoundingClientRect().height + 'px';
+  }
   combineKeyEl.hidden = !on && !held;
   combineKeyEl.classList.toggle('is-held', held);
   if (!on){
