@@ -12648,12 +12648,15 @@ function render(){
   // Compared here, after a follow (syncGenFollow) has moved the subgroup.
   var genChanged = lastGenSeen !== null && state.gen !== lastGenSeen;
   lastGenSeen = state.gen;
-  // A new subgroup whose arrows go the long way blinks, in turn, both ways
-  // to shorten them: flipping the ring, or turning the preferred direction.
-  if (genChanged && !state.noSub && drawn && drawn.G === G && simplifiable(G, state.gen)) {
-    blinkLinked(dirToggleEl);
-    blinkLinked(dirPrefFwdSegEl, true);
-  }
+  if (genChanged && drawn && drawn.G === G) blinkShorteners();
+}
+// Arrows sent the long way, by a new subgroup or a new arrangement, blink,
+// in turn, both ways to shorten them: flipping the ring, or turning the
+// preferred direction.
+function blinkShorteners(){
+  if (state.noSub || !drawn || !simplifiable(drawn.G, state.gen)) return;
+  blinkLinked(dirToggleEl);
+  blinkLinked(dirPrefFwdSegEl, true);
 }
 
 /* ---------- controls <-> state ---------- */
@@ -13390,9 +13393,11 @@ arrangeGenSelectEl.addEventListener('change', function(){
   // so choosing 1 sets the arrangement back to Sequential.
   if (drawn && drawn.G.mode === 'additive' && g === 1){
     rearrange(function(){ state.bygen = false; render(); });
+    blinkShorteners();
     return;
   }
   rearrange(function(){ state.arrangeGen = g; render(); });
+  blinkShorteners();
 });
 $('sub-gcd').addEventListener('click', function(){
   state.subGcd = !state.subGcd;
