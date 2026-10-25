@@ -4461,13 +4461,16 @@ function showRowFormula(G){
 // up, as itself or as g^q its exponent lined up too, and on a chip painted
 // like bead x when paint is set. With Reveal on hover on, it carries h as
 // the reveal writes it too, shown in its place under the pointer.
-// Both of a reveal's forms, invisible and of no width: the reveal keeps the
-// height of the taller whichever shows, so its line never grows or shrinks.
-function revealGhost(ex, nat){
-  var a = ex.cloneNode(true), b = nat.cloneNode(true);
-  a.removeAttribute('class');
-  b.removeAttribute('class');
-  return mEl('mpadded', [mEl('mphantom', [a, b])], { width: '0' });
+// A reveal's two forms: the form written, ex, and the one revealed, nat,
+// which takes no height (drawn over its line, not making it taller), while
+// an invisible copy of ex of no width keeps ex's height when nat shows. At
+// rest it is ex alone, and its line never grows or shrinks.
+function revealForms(ex, nat){
+  var box = mEl('mpadded', [nat], { height: '0', depth: '0' }), ghost = ex.cloneNode(true);
+  ex.setAttribute('class', 'sub-ex');
+  box.setAttribute('class', 'sub-nat');
+  ghost.removeAttribute('class');
+  return [ex, box, mEl('mpadded', [mEl('mphantom', [ghost])], { width: '0' })];
 }
 function rowFormulaH(G, h, x, paint){
   return function(base, q){
@@ -4481,9 +4484,7 @@ function rowFormulaH(G, h, x, paint){
     // deciding (the formulas write powers of h even beside Natural).
     if (!state.revealOff && from !== to){
       var ex = mrow(m), nat = mrow(to === null ? subFormat(null, null, subWidth(G), 0, G).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h));
-      ex.setAttribute('class', 'sub-ex');
-      nat.setAttribute('class', 'sub-nat');
-      m = mrow(ex, nat, revealGhost(ex, nat));
+      m = mrow.apply(null, revealForms(ex, nat));
       m.setAttribute('class', 'sub-reveal');
       m.setAttribute('data-g', from === null ? '' : String(from));
       m.setAttribute('data-to', to === null ? '' : String(to));
@@ -9407,9 +9408,7 @@ function subFormat(base, log, width, expWidth, G){
   f.r = function(x, on){
     var to = revealTo(G), from = log ? base : null;
     if (!(on === undefined ? subRevealOn() : on) || from === to) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? mPoint(pts[x]) : numMn(nat(x), width, sg)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow(e, n, revealGhost(e, n));
-    e.setAttribute('class', 'sub-ex');
-    n.setAttribute('class', 'sub-nat');
+    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? mPoint(pts[x]) : numMn(nat(x), width, sg)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow.apply(null, revealForms(e, n));
     both.setAttribute('data-g', from === null ? '' : String(from));
     both.setAttribute('data-to', to === null ? '' : String(to));
     both.setAttribute('data-el', String(x));
