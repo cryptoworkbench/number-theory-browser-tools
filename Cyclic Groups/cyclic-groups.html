@@ -1205,6 +1205,11 @@
   .expr-sign[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface)); }
   .expr-sign:focus{ outline:none; }
   .expr-sign:focus-visible{ box-shadow:var(--ctl-focus); }
+  /* Its twin beside it signs the exponents alone: k with a raised ±. */
+  .expr-sign-exp{ display:flex; align-items:center; justify-content:center; font-family:var(--font-serif); font-size:.85rem; }
+  .expr-sign-exp[hidden]{ display:none; }
+  .expr-sign-base{ font-style:italic; }
+  .expr-sign-exp sup{ font-size:.62rem; line-height:1; margin-left:1px; translate:0 -.35em; vertical-align:baseline; }
   /* At the slider's end, the unfold icon opens the advanced mode: a second
      slider under it, On hover, picking what Reveal on hover shows (the same
      pick as the eyes in the element expression reference table), the first
@@ -1217,6 +1222,7 @@
   .expr-adv svg{ width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
   .expr-adv[aria-expanded="true"] .expr-adv-unfold, .expr-adv:not([aria-expanded="true"]) .expr-adv-fold{ display:none; }
   .expr-gap{ flex:none; width:26px; }
+  .expr-gap-sign{ width:calc(26px * 2 + 10px); }
   .expr-gap[hidden]{ display:none; }
   .expr-hover-row{ display:none; }
   .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-side, .is-sign-only) > .expr-hover-row{ display:revert; }
@@ -2164,6 +2170,7 @@
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
             <button type="button" class="expr-sign" id="expr-sign" aria-pressed="false">±</button>
+            <button type="button" class="expr-sign expr-sign-exp" id="expr-sign-exp" aria-pressed="false"><span class="expr-sign-base">k</span><sup>±</sup></button>
             <span class="expr-nat" id="expr-nat" aria-hidden="true" data-i18n="cyclicGroups.exprNatural">Natural</span>
             <div class="expr-track">
               <input type="range" class="expr-range" id="expr-slider" min="0" max="0" step="1" value="0" aria-orientation="horizontal" aria-label="Element expression" data-i18n-aria-label="cyclicGroups.exprLabel">
@@ -2542,7 +2549,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, signed: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false };
+var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -2695,6 +2702,7 @@ var exprHoverStopsEl = $('expr-hover-stops');
 var exprHoverNatEl = $('expr-hover-nat');
 var exprHoverNowEl = $('expr-hover-now');
 var exprSignEl = $('expr-sign');
+var exprSignExpEl = $('expr-sign-exp');
 var combineKeyEl = $('combine-key');
 var appEl = document.querySelector('.app');
 var colorResetEl = $('color-reset');
@@ -2839,15 +2847,17 @@ function curveOf(q){
   var m = /^(\d+),(\d+),(\d+)$/.exec(q.get('curve') || '');
   return m && ecValid(+m[1], +m[2], +m[3]) && +m[2] <= EC_COEF_MAX && +m[3] <= EC_COEF_MAX ? [+m[1], +m[2], +m[3]] : null;
 }
-// The signed form: an element above n/2 written x − n, an exponent above
-// ord/2 written k − ord, so each reads as its representative nearest 0.
+// The signed forms, each with its own switch: an element above n/2 written
+// x − n (state.signed), an exponent above ord/2 written k − ord
+// (state.signedExp), so each reads as its representative nearest 0.
 function balEl(G, x){ return state.signed && G && !G.pts && x > G.n / 2 ? x - G.n : x; }
-function balExp(G, k){ return state.signed && G && !G.pts && k > G.order / 2 ? k - G.order : k; }
+function balExp(G, k){ return state.signedExp && G && !G.pts && k > G.order / 2 ? k - G.order : k; }
 function elMn(G, x){ return mn(elText(G, x)); }
 function signedOn(G){ return state.signed && !!G && !G.pts; }
+function signedExpOn(G){ return state.signedExp && !!G && !G.pts; }
 // The largest number written, element or exponent: signed, half the range.
 function elMax(G){ return signedOn(G) ? Math.floor(G.n / 2) : Math.max.apply(null, G.els); }
-function expMax(G){ return signedOn(G) ? Math.floor(G.order / 2) : G.order - 1; }
+function expMax(G){ return signedExpOn(G) ? Math.floor(G.order / 2) : G.order - 1; }
 // A generator as the base of a power: a negative one in brackets, (−1)ᵏ.
 function baseText(G, g){ var s = G && !G.pts ? signed(balEl(G, g)) : String(g); return s.charAt(0) === '−' ? '(' + s + ')' : s; }
 function baseMn(G, g){ var s = baseText(G, g); return s.charAt(0) === '(' ? mrow(mo('(', true), mn(s.slice(1, -1)), mo(')', true)) : mn(s); }
@@ -3236,6 +3246,10 @@ function syncExpr(G){
   exprSignEl.setAttribute('aria-pressed', String(state.signed));
   exprSignEl.title = translate(state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
   exprSignEl.setAttribute('aria-label', exprSignEl.title);
+  exprSignExpEl.hidden = !!G.pts;
+  exprSignExpEl.setAttribute('aria-pressed', String(state.signedExp));
+  exprSignExpEl.title = translate(state.signedExp ? 'cyclicGroups.exprSignExpOff' : 'cyclicGroups.exprSignExpOn');
+  exprSignExpEl.setAttribute('aria-label', exprSignExpEl.title);
   exprSlotEl.hidden = !G.cyclic && !!G.pts;
   exprSlotEl.classList.toggle('is-sign-only', !G.cyclic);
   if (!G.cyclic) return;
@@ -3865,18 +3879,18 @@ function drawRing(parent, G, beads, box, paint){
       var text = elog ? power(eg, elog) : pad(balEl(G, a), maxEl);
       // An expressed, padded or signed label wider than two characters
       // shrinks to stay in its bead.
-      var shrink = elog || state.subPad || state.signed;
+      var shrink = elog || state.subPad || state.signed || state.signedExp;
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
       var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
       // The label the reveal shows: the natural number, or the picked
       // generator's power.
       if (eg !== rt){
-        var nat = rlog ? power(rt, rlog) : G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), natSize = beadR * 1.05 * (rlog || state.subPad || state.signed || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
+        var nat = rlog ? power(rt, rlog) : G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), natSize = beadR * 1.05 * (rlog || state.subPad || state.signed || state.signedExp || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
         label.setAttribute('data-expr', text);
         label.setAttribute('data-expr-size', label.getAttribute('font-size'));
         label.setAttribute('data-nat', nat);
-        label.setAttribute('data-nat-size', Math.round(rlog || state.subPad || state.signed ? Math.max(natSize, 7) : natSize));
+        label.setAttribute('data-nat-size', Math.round(rlog || state.subPad || state.signed || state.signedExp ? Math.max(natSize, 7) : natSize));
       }
       ring.appendChild(label);
       if (eg !== rt) natLabel(label, a === natHot);
@@ -4584,7 +4598,7 @@ function rowFormulaH(G, h, x, paint){
     if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G).m(h);
     else {
       var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
-      m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew, signedOn(G))]);
+      m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew, signedExpOn(G))]);
     }
     // A power here reveals whatever the panel writes, the setting alone
     // deciding (the formulas write powers of h even beside Natural).
@@ -5513,7 +5527,7 @@ function fillGenExp(G){
   if (!genExpSort || genExpSort.group !== group) genExpSort = { group: group, col: -1, dir: 1 };
   var sort = genExpSort;
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
+  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.signedExp, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
   if (genExpBodyEl.getAttribute('data-sig') === sig) return;
   genExpBodyEl.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -6062,19 +6076,23 @@ function syncNatHoverCtx(on){
   ringCtxEl.insertBefore(nat, ringCtxEl.querySelector(':scope > :not(#ring-ctx-copy)'));
   return nat;
 }
-// Next to it, the switch to the signed form, the same as the ± button.
+// Next to it, the switches to the signed forms, the same as the slider's
+// two buttons: the numbers', then the exponents'.
 function syncSignCtx(on){
-  var old = ringCtxEl.querySelector(':scope > .ring-ctx-sign');
-  if (old) old.remove();
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
   if (!on || !drawn || drawn.G.pts) return null;
-  var sign = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSigned'), state.signed, function(){
-    setRingCtx(false);
-    toggleSigned();
+  var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
+  [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]].forEach(function(t){
+    var sign = menuTick('menuitemcheckbox', translate(t[0]), state[t[1]], function(){
+      setRingCtx(false);
+      t[2]();
+    });
+    sign.classList.add('ring-ctx-sign');
+    sign.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    ringCtxEl.insertBefore(sign, head);
+    if (!first) first = sign;
   });
-  sign.classList.add('ring-ctx-sign');
-  sign.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  ringCtxEl.insertBefore(sign, ringCtxEl.querySelector(':scope > .fs-menu-head'));
-  return sign;
+  return first;
 }
 // At the pointer, kept inside the window; placed again when the pane's
 // window grows to give the menu room.
@@ -9501,20 +9519,20 @@ function numMn(s, width, signed){
 // largest; and its exponents, that of the largest exponent.
 // In the signed form the width keeps room for a minus sign.
 function subWidth(G){ return state.subPad || state.subAlign ? String(elMax(G)).length + (signedOn(G) ? 1 : 0) : 0; }
-function subExpWidth(G){ return state.subPad || state.subAlign ? String(expMax(G)).length + (signedOn(G) ? 1 : 0) : 0; }
+function subExpWidth(G){ return state.subPad || state.subAlign ? String(expMax(G)).length + (signedExpOn(G) ? 1 : 0) : 0; }
 // How the rows write their numbers: as the number, padded or aligned to
 // width, or as a power of base, its exponent padded or aligned to expWidth.
 function subFormat(base, log, width, expWidth, G){
   // Signed, a number's zeros pad its digits after the sign, which keeps
   // one place of the width.
-  var sg = signedOn(G) ? 1 : 0;
-  var num = function(v, w){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(w - sg, '0') : String(Math.abs(v))); };
-  var nat = function(x){ return num(balEl(G, x), width); };
-  var ex = function(k){ return num(balExp(G, k), expWidth); };
+  var sg = signedOn(G) ? 1 : 0, sgExp = signedExpOn(G) ? 1 : 0;
+  var num = function(v, w, s){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(w - s, '0') : String(Math.abs(v))); };
+  var nat = function(x){ return num(balEl(G, x), width, sg); };
+  var ex = function(k){ return num(balExp(G, k), expWidth, sgExp); };
   var pts = G && G.pts || null, C = pts ? { pts: pts } : G;
   var f = {
     ex: ex,
-    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sg)) : pts ? mPoint(pts[x]) : numMn(nat(x), width, sg); },
+    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sgExp)) : pts ? mPoint(pts[x]) : numMn(nat(x), width, sg); },
     p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? plainPoint(pts[x]) : nat(x); }
   };
   // A row's member, which with Reveal on hover on (or the switch on given
@@ -9591,7 +9609,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, state.signedExp, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -9674,7 +9692,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, state.signedExp, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -10703,6 +10721,7 @@ function applyRingQuery(q){
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
   state.signed = q.get('signed') === '1';
+  state.signedExp = q.get('signedexp') === '1';
   SUB_EXPR_CTLS.forEach(function(c){ c.set(subCtlVal(c, q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
   state.subGcd = q.get('subgcd') === '1';
@@ -12316,6 +12335,8 @@ function stateQuery(){
   q.delete('nathover');
   if (state.signed && !state.ec) q.set('signed', '1');
   else q.delete('signed');
+  if (state.signedExp && !state.ec) q.set('signedexp', '1');
+  else q.delete('signedexp');
   if (!state.enterInverse) q.set('enterinv', '0');
   else q.delete('enterinv');
   q.delete('subreveal');
@@ -13309,7 +13330,9 @@ function setExprStop(i){
   if (IS_ISOPANE) tellHost({ isopane: 'expr', expr: next });
 }
 function toggleSigned(){ state.signed = !state.signed; render(); }
+function toggleSignedExp(){ state.signedExp = !state.signedExp; render(); }
 exprSignEl.addEventListener('click', toggleSigned);
+exprSignExpEl.addEventListener('click', toggleSignedExp);
 exprSliderEl.addEventListener('input', function(){ setExprStop(parseInt(exprSliderEl.value, 10) || 0); });
 exprNatEl.addEventListener('click', function(){ setExprStop(0); });
 exprHoverSliderEl.addEventListener('input', function(){ setExprHoverStop(parseInt(exprHoverSliderEl.value, 10) || 0); });
@@ -13653,6 +13676,7 @@ function loadState(query, link){
   state.revealOff = readRevealOff() || query.get('nathover') === '0';
   state.revealAs = intOrNull(query.get('revealas'));
   state.signed = query.get('signed') === '1';
+  state.signedExp = query.get('signedexp') === '1';
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
   state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';
