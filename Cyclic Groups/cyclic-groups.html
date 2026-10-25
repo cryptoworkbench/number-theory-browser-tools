@@ -3420,11 +3420,11 @@ function syncMergedExpr(G){
 }
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
-// edge, bulges to its peak halfway, and comes back into its target, turning
-// the way its walk goes: sense 1 (the forward walk) the forward direction,
-// sense -1 (the backward walk) the other way, the long way round when the
-// target lies more than halfway round. So every arrow of a walk turns the
-// same way, and a lap shows how often the walk winds round. Its shape
+// edge, bulges to its peak halfway, and comes back into its target, the
+// shorter way round; the ring flips over (autoFlip) when that would turn
+// the forward walk against the way it went before. A step of exactly half
+// the ring goes the forward direction, or the other way for sense -1 (the
+// backward walk), so the two walks never share it. Its shape
 // depends only on how far it turns, so steps of the same size draw identical
 // curves, and humps that overlap cross each other instead of hiding one
 // another. An outer hump bulges away from the ring, as high as the shorter
@@ -3438,9 +3438,7 @@ function humpSteps(walk, place, m, scale, sense){
   for (var s = 0; s < k; s++){
     var a0 = step * place[walk[s]];
     var span = ((place[walk[(s + 1) % k]] - place[walk[s]]) % m + m) % m;
-    // Sense 0 (a one-line inverse pair, which has no one way to go) takes
-    // the shorter way round.
-    var d = step * ((sense < 0 && span > 0) || (sense === 0 && span > m / 2) ? span - m : span);
+    var d = step * (span > m / 2 || (sense < 0 && span > 0 && span === m / 2) ? span - m : span);
     var near = Math.min(Math.abs(d), 360 - Math.abs(d));
     out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, near * 0.4)) });
   }
@@ -12557,6 +12555,7 @@ function render(){
   if (!IS_ISOPANE) isoTellTop(false);
   else if (isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
   syncInterlock();
+  autoFlip(G);
 }
 
 /* ---------- controls <-> state ---------- */
@@ -13416,16 +13415,45 @@ backwardEl.addEventListener('change', function(){
 // Flipping the direction keeps the identity where it is: it sits p - rot
 // places round from the top, p its place in the arrangement, so the new
 // rot is 2p - rot. A turn still under way counts as finished.
-function setDir(dir){
+function setDir(dir, auto){
   if (DIRS.indexOf(dir) === -1 || dir === state.dir) return;
   flipRing(function(){
     if (drawn) state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - state.rot;
     state.dir = dir;
+    // Flipped by hand, the forward walk goes the other way from now on.
+    if (!auto && pathSense !== null) pathSense = -pathSense;
     syncControls();
     keepCosets(render);
   });
 }
 dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); });
+// Every hop takes the shorter way round, so the selected subgroup's forward
+// walk goes clockwise or counterclockwise as its steps fall. When a new
+// subgroup, arrangement or group would turn it against the way it went
+// before (pathSense, on screen: 1 clockwise, -1 counterclockwise), the ring
+// flips over as the direction button flips it, and it goes on that way. A
+// previewed row only borrows the arrows, so it never flips the ring; nor
+// does the pane, whose direction is its holder's.
+var pathSense = null;
+function forwardSense(G){
+  var h = state.gen;
+  if (state.noSub || G.els.indexOf(h) === -1 || G.orders[h] < 2) return 0;
+  var beads = arrangement(G), m = beads.length, place = {}, sum = 0;
+  beads.forEach(function(a, i){ place[a] = i; });
+  var walk = lap(G, h, G.orders[h], G.identity), k = walk.length;
+  walk.forEach(function(x, i){
+    var span = ((place[walk[(i + 1) % k]] - place[x]) % m + m) % m;
+    sum += span > m / 2 ? span - m : span;
+  });
+  return Math.sign(sum) * dirSign();
+}
+function autoFlip(G){
+  if (IS_ISOPANE || IS_PREVIEW) return;
+  var s = forwardSense(G);
+  if (!s) return;
+  if (pathSense === null) pathSense = s;
+  else if (s !== pathSense) setDir(state.dir === 'cw' ? 'ccw' : 'cw', true);
+}
 dirToggleEl.addEventListener('click', function(){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); });
 // The button: a circle with a dashed line through its centre, the axis
 // through the identity wherever the ring's turn has put it, reaching well
