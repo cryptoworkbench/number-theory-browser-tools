@@ -4461,16 +4461,30 @@ function showRowFormula(G){
 // up, as itself or as g^q its exponent lined up too, and on a chip painted
 // like bead x when paint is set. With Reveal on hover on, it carries h as
 // the reveal writes it too, shown in its place under the pointer.
-// A reveal's two forms: the form written, ex, and the one revealed, nat,
-// which takes no height (drawn over its line, not making it taller), while
-// an invisible copy of ex of no width keeps ex's height when nat shows. At
-// rest it is ex alone, and its line never grows or shrinks.
+// A reveal's two forms, the form written, ex, and the one revealed, nat,
+// each shown exactly as an element written that way is.
 function revealForms(ex, nat){
-  var box = mEl('mpadded', [nat], { height: '0', depth: '0' }), ghost = ex.cloneNode(true);
   ex.setAttribute('class', 'sub-ex');
-  box.setAttribute('class', 'sub-nat');
-  ghost.removeAttribute('class');
-  return [ex, box, mEl('mpadded', [mEl('mphantom', [ghost])], { width: '0' })];
+  nat.setAttribute('class', 'sub-nat');
+  return [ex, nat];
+}
+// The reveal on its line: drawn at no height, beside an invisible copy of it
+// at rest, of no width, which keeps the line exactly as tall as at rest
+// whichever form shows. On a chip the two hold the whole chip (see
+// memberMath), so the chip is always the very one its shown form gets.
+function revealOnLine(node){ return mrow(flatMath(node), restGhost(node)); }
+function flatMath(node){
+  var f = mEl('mpadded', [node], { height: '0', depth: '0' });
+  f.setAttribute('class', 'sub-flat');
+  return f;
+}
+function restGhost(node){
+  var copy = node.cloneNode(true);
+  copy.querySelectorAll('.sub-nat').forEach(function(el){ el.remove(); });
+  [copy].concat(Array.prototype.slice.call(copy.querySelectorAll('*'))).forEach(function(el){
+    ['class', 'data-g', 'data-to', 'data-el'].forEach(function(a){ el.removeAttribute(a); });
+  });
+  return mEl('mpadded', [mEl('mphantom', [copy])], { width: '0' });
 }
 function rowFormulaH(G, h, x, paint){
   return function(base, q){
@@ -4489,6 +4503,7 @@ function rowFormulaH(G, h, x, paint){
       m.setAttribute('data-g', from === null ? '' : String(from));
       m.setAttribute('data-to', to === null ? '' : String(to));
       m.setAttribute('data-el', String(h));
+      m = revealOnLine(m);
     }
     return paint ? memberMath(x, m) : m;
   };
@@ -9412,7 +9427,7 @@ function subFormat(base, log, width, expWidth, G){
     both.setAttribute('data-g', from === null ? '' : String(from));
     both.setAttribute('data-to', to === null ? '' : String(to));
     both.setAttribute('data-el', String(x));
-    return both;
+    return revealOnLine(both);
   };
   return f;
 }
@@ -9438,7 +9453,13 @@ function memberMath(x, content){
   var p = drawn.paint(x), chip = mrow(content);
   chip.setAttribute('class', ('sub-chip sub-chip-' + state.subColor + ' ' + (p.cls || '')).trim());
   if (p.style) chip.setAttribute('style', p.style);
-  return chip;
+  // A reveal goes on the chip, and the chip on the line as the reveal would.
+  var flat = content.firstChild;
+  if (!flat || !flat.classList || !flat.classList.contains('sub-flat')) return chip;
+  chip.replaceChildren(flat.firstChild);
+  var line = revealOnLine(chip);
+  line.lastChild.querySelector('mphantom > *').setAttribute('class', chip.getAttribute('class'));
+  return line;
 }
 // What the chips depend on, for the rows' re-render key: the colouring
 // and, while it is on, how each bead is painted.
