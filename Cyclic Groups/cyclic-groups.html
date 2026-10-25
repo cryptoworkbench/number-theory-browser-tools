@@ -12558,9 +12558,9 @@ function mixPaint(hexA, hexB){
 
 /* ---------- render ---------- */
 
-// The selected subgroup at the last render: a new one whose arrows a flip
-// would simplify blinks the direction button red.
-var lastGenSeen = null;
+// The selected subgroup and the beads' order at the last render: a new one
+// sending the arrows the long way blinks the buttons that shorten them.
+var lastGenSeen = null, lastOrderSeen = null;
 function render(){
   syncEcControls();
   var G = currentGroup();
@@ -12648,7 +12648,12 @@ function render(){
   // Compared here, after a follow (syncGenFollow) has moved the subgroup.
   var genChanged = lastGenSeen !== null && state.gen !== lastGenSeen;
   lastGenSeen = state.gen;
-  if (genChanged && drawn && drawn.G === G) blinkShorteners();
+  // So, within one group, is a new order of the beads, from whatever
+  // control: the arrangement's dropdowns, a slider it follows, a pane.
+  var order = arrangement(G).join(',');
+  var orderChanged = lastOrderSeen !== null && lastOrderSeen.group === G.key && lastOrderSeen.order !== order;
+  lastOrderSeen = { group: G.key, order: order };
+  if ((genChanged || orderChanged) && drawn && drawn.G === G) blinkShorteners();
 }
 // Arrows sent the long way, by a new subgroup or a new arrangement, blink,
 // in turn, both ways to shorten them: flipping the ring, or turning the
@@ -13393,11 +13398,9 @@ arrangeGenSelectEl.addEventListener('change', function(){
   // so choosing 1 sets the arrangement back to Sequential.
   if (drawn && drawn.G.mode === 'additive' && g === 1){
     rearrange(function(){ state.bygen = false; render(); });
-    blinkShorteners();
     return;
   }
   rearrange(function(){ state.arrangeGen = g; render(); });
-  blinkShorteners();
 });
 $('sub-gcd').addEventListener('click', function(){
   state.subGcd = !state.subGcd;
