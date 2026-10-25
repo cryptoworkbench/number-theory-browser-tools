@@ -1075,6 +1075,15 @@
   .dir-toggle .dir-axis-ring.is-back{ opacity:.45; }
   /* In the forward walk's colour, or the mix both walks share when they
      are drawn as one (a self-inverse element). */
+  /* The preferred way round: two icons, beside the button, in the ring's
+     window only (the pane follows its holder's, through storage). */
+  .dir-pref{ display:none; }
+  .fs-win-body.is-ring .dir-pref{ display:inline-flex; align-self:center; }
+  :root.is-isopane .dir-pref{ display:none !important; }
+  .dir-pref > button{ display:grid; place-items:center; padding:5px 9px; }
+  .dir-pref svg{ width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
+  /* Greyed out while flipping would not simplify the arrows. */
+  .dir-toggle[aria-disabled="true"]{ opacity:.4; cursor:default; }
   .dir-toggle .dir-arrow{ stroke-width:1.5; stroke:var(--arrow-in, var(--role-active)); }
   .dir-toggle.is-both .dir-arrow{ stroke:var(--arrow-both); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
@@ -2377,6 +2386,7 @@
             <span class="combine-mode" id="combine-mode" role="group" aria-label="Combine elements" data-i18n-aria-label="cyclicGroups.combineModeLabel"><span class="combine-mode-name" data-i18n="cyclicGroups.combineModeLabel">Combine elements</span><span class="combine-seg"><button type="button" id="combine-mode-element" aria-pressed="true" title="Combine two elements" aria-label="Combine two elements" data-i18n-title="cyclicGroups.combineModeElement" data-i18n-aria-label="cyclicGroups.combineModeElement"></button><button type="button" id="combine-mode-scalar" aria-pressed="false" title="Combine one element with itself k times" aria-label="Combine one element with itself k times" data-i18n-title="cyclicGroups.combineModeScalar" data-i18n-aria-label="cyclicGroups.combineModeScalar"></button></span><span class="n-spin combine-k-spin" hidden><input type="number" id="combine-k" step="1" value="2" title="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" aria-label="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" data-i18n-title="cyclicGroups.combineScalarTimes" data-i18n-aria-label="cyclicGroups.combineScalarTimes"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span><button type="button" class="combine-k-mod" id="combine-k-mod" hidden></button></span>
             <select id="arrange-select"></select>
             <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
+            <span class="combine-seg dir-pref" id="dir-pref" role="group" aria-label="Preferred direction of the forward path" data-i18n-aria-label="cyclicGroups.dirPrefLabel"><button type="button" id="dir-pref-ccw" aria-pressed="false" title="Forward path counterclockwise" aria-label="Forward path counterclockwise" data-i18n-title="cyclicGroups.dirPrefCcw" data-i18n-aria-label="cyclicGroups.dirPrefCcw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 1.8A4.2 4.2 0 1 0 10.2 6M8.8 7.4 10.2 5.8 11.6 7.4"/></svg></button><button type="button" id="dir-pref-cw" aria-pressed="true" title="Forward path clockwise" aria-label="Forward path clockwise" data-i18n-title="cyclicGroups.dirPrefCw" data-i18n-aria-label="cyclicGroups.dirPrefCw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 1.8A4.2 4.2 0 1 1 1.8 6M0.4 7.4 1.8 5.8 3.2 7.4"/></svg></button></span>
             <button type="button" class="action-btn dir-toggle" id="dir-toggle"></button>
           </div>
         </div>
@@ -2553,7 +2563,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false, autoFlipOff: false };
+var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', forward: true, backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false, autoFlipOff: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3425,10 +3435,10 @@ function syncMergedExpr(G){
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
 // edge, bulges to its peak halfway, and comes back into its target, the
-// shorter way round; the ring flips over (autoFlip) when that would turn
-// the forward walk against the way it went before. A step of exactly half
-// the ring goes the forward direction, or the other way for sense -1 (the
-// backward walk), so the two walks never share it. Its shape
+// way its walk goes: the forward walk the preferred way round on screen
+// (state.prefDir), the backward walk the other way, however far round that
+// takes them; the ring can flip over to make that the shorter way (see
+// simplifiable). Its shape
 // depends only on how far it turns, so steps of the same size draw identical
 // curves, and humps that overlap cross each other instead of hiding one
 // another. An outer hump bulges away from the ring, as high as the shorter
@@ -3442,13 +3452,12 @@ function humpSteps(walk, place, m, scale, sense){
   for (var s = 0; s < k; s++){
     var a0 = step * place[walk[s]];
     var span = ((place[walk[(s + 1) % k]] - place[walk[s]]) % m + m) % m;
-    // With automatic flipping off, the walks go as they once did: the
-    // forward walk always the forward direction, the backward walk the
-    // other way, the long way round when the target lies more than halfway
-    // round (sense 0, which has no one way to go, still the shorter way).
-    var d = state.autoFlipOff
-      ? step * ((sense < 0 && span > 0) || (sense === 0 && span > m / 2) ? span - m : span)
-      : step * (span > m / 2 || (sense < 0 && span > 0 && span === m / 2) ? span - m : span);
+    // The forward walk (sense 1) goes round the preferred way on screen,
+    // the backward walk (sense -1) the other way, the long way round when
+    // the target lies more than halfway round that way; sense 0, which has
+    // no one way to go, takes the shorter way.
+    var way = sense === 0 ? (span > m / 2 ? -1 : 1) : sense * prefSign() * dirSign();
+    var d = step * (way < 0 && span > 0 ? span - m : span);
     var near = Math.min(Math.abs(d), 360 - Math.abs(d));
     out.push({ from: walk[s], to: walk[(s + 1) % k], a0: a0, d: d, scale: scale, peak: scale * Math.max(14, Math.min(50, near * 0.4)) });
   }
@@ -3571,8 +3580,8 @@ function drawLoop(ring, a, cls, side, place, box, beadR, m, width, paint, both){
   var reach = Math.max(16, beadR * 2.8);
   var spread = Math.min(60, 180 / Math.PI * beadR * 0.55 / foot);
   var flare = Math.min(80, 180 / Math.PI * beadR * 2 / foot);
-  // It turns, on screen, the way the forward walk is kept going round.
-  var sweep = keptSense() * out;
+  // It turns, on screen, the preferred way round.
+  var sweep = prefSign() * out;
   var p0 = polar(box.cx, box.cy, foot, at - sweep * spread);
   var c1 = polar(box.cx, box.cy, foot + out * reach, at - sweep * flare);
   var c2 = polar(box.cx, box.cy, foot + out * reach, at + sweep * flare);
@@ -13448,61 +13457,80 @@ backwardEl.addEventListener('change', function(){
 // Flipping the direction keeps the identity where it is: it sits p - rot
 // places round from the top, p its place in the arrangement, so the new
 // rot is 2p - rot. A turn still under way counts as finished.
-function setDir(dir, auto){
+function setDir(dir){
   if (DIRS.indexOf(dir) === -1 || dir === state.dir) return;
   flipRing(function(){
     if (drawn) state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - state.rot;
     state.dir = dir;
-    // Flipped by hand, the forward walk goes the other way from now on.
-    if (!auto && pathSense !== null) pathSense = -pathSense;
     syncControls();
     keepCosets(render);
   });
 }
 dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); });
-// Every hop takes the shorter way round, so the selected subgroup's forward
-// walk goes clockwise or counterclockwise as its steps fall. When a new
-// subgroup, arrangement or group would turn it against the way it went
-// before (pathSense, on screen: 1 clockwise, -1 counterclockwise), the ring
-// flips over as the direction button flips it, and it goes on that way. A
-// previewed row only borrows the arrows, so it never flips the ring; nor
-// does the pane, whose direction is its holder's.
-var pathSense = null;
-// The way round a walk with no steps to go by (the identity's loop) turns
-// on screen, and the coin then shows: the way the forward walk is kept
-// going, else the way the beads count.
-function keptSense(){ return !IS_ISOPANE && !state.autoFlipOff && pathSense !== null ? pathSense : dirSign(); }
-// Steps that cancel out (an element of order 2 there and back across a
-// short gap) go by the first, from the identity, unless strict asks for a
-// way round the steps agree on.
-function forwardSense(G, h, strict){
-  if (h === undefined) h = state.noSub ? null : state.gen;
-  if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return 0;
-  if (state.autoFlipOff) return dirSign();
-  var beads = arrangement(G), m = beads.length, place = {}, sum = 0;
+// The way the forward walk should go round on screen, clockwise or
+// counterclockwise, picked by the two icons beside the direction button and
+// kept in storage, so every Ring window and pane follows it. The walks keep
+// to it however far round it takes them; the beads may count either way.
+var PREF_DIR_KEY = 'cyclic-groups-pref-dir';
+function readPrefDir(){
+  try { return localStorage.getItem(PREF_DIR_KEY) === 'ccw' ? 'ccw' : 'cw'; } catch (e) { return 'cw'; }
+}
+function prefSign(){ return state.prefDir === 'ccw' ? -1 : 1; }
+function setPrefDir(dir){
+  if (dir === state.prefDir) return;
+  state.prefDir = dir;
+  try { localStorage.setItem(PREF_DIR_KEY, dir); } catch (e) { /* storage unavailable */ }
+  render();
+}
+window.addEventListener('storage', function(e){
+  if (e.key !== PREF_DIR_KEY && e.key !== null) return;
+  var dir = readPrefDir();
+  if (dir === state.prefDir) return;
+  state.prefDir = dir;
+  render();
+});
+var dirPrefEls = { cw: $('dir-pref-cw'), ccw: $('dir-pref-ccw') };
+Object.keys(dirPrefEls).forEach(function(dir){
+  dirPrefEls[dir].addEventListener('click', function(){ setPrefDir(dir); });
+});
+function syncDirPref(){
+  Object.keys(dirPrefEls).forEach(function(dir){ dirPrefEls[dir].setAttribute('aria-pressed', String(dir === state.prefDir)); });
+}
+// Whether flipping the ring would simplify subgroup h's arrows: keeping to
+// the preferred way, its walk would then go fewer places round in all.
+// Flipped, the preferred way runs the other way through the arrangement.
+function simplifiable(G, h){
+  if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return false;
+  var beads = arrangement(G), m = beads.length, place = {}, now = 0, flipped = 0;
+  var fwd = prefSign() * dirSign();
   beads.forEach(function(a, i){ place[a] = i; });
   var walk = lap(G, h, G.orders[h], G.identity), k = walk.length;
-  var first = 0;
   walk.forEach(function(x, i){
-    var span = ((place[walk[(i + 1) % k]] - place[x]) % m + m) % m;
-    var d = span > m / 2 ? span - m : span;
-    if (!i) first = d;
-    sum += d;
+    var span = ((place[walk[(i + 1) % k]] - place[x]) % m + m) % m, back = span ? m - span : 0;
+    now += fwd > 0 ? span : back;
+    flipped += fwd > 0 ? back : span;
   });
-  return Math.sign(sum || (strict ? 0 : first)) * dirSign();
+  return flipped < now;
 }
+function shownSub(G){ return noSub() ? null : shownGen(G); }
+// With automatic flipping on, the ring flips over by itself as soon as
+// that simplifies the selected subgroup's arrows. A previewed row only
+// borrows the arrows, so it never flips the ring; nor does the pane, whose
+// direction is its holder's.
 function autoFlip(G){
   if (IS_ISOPANE || IS_PREVIEW || state.autoFlipOff) return;
-  var s = forwardSense(G, undefined, true);
-  if (!s) return;
-  if (pathSense === null) pathSense = s;
-  else if (s !== pathSense) setDir(state.dir === 'cw' ? 'ccw' : 'cw', true);
+  if (simplifiable(G, state.noSub ? null : state.gen)) setDir(state.dir === 'cw' ? 'ccw' : 'cw');
 }
-dirToggleEl.addEventListener('click', function(){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); });
-// Right-clicked, its menu holds Disable automatic flipping: the arrows then
-// go as they once did, the forward walk always the way the beads count,
-// however far round that takes it, and the ring never flips by itself.
-// Switched back on, the way the forward walk goes then is the one kept.
+// The direction button flips the ring, and only when that simplifies the
+// arrows drawn; otherwise it stands greyed out (aria-disabled, so its
+// tooltip and right-click menu still work).
+dirToggleEl.addEventListener('click', function(){
+  if (!drawn || !simplifiable(drawn.G, shownSub(drawn.G))) return;
+  setDir(state.dir === 'cw' ? 'ccw' : 'cw');
+});
+// Right-clicked, its menu holds Disable automatic flipping: the ring then
+// never flips by itself, and the arrows may go the long way round to keep
+// to the preferred way, until the button flips it.
 dirToggleEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE || !drawn) return;
@@ -13510,8 +13538,6 @@ dirToggleEl.addEventListener('contextmenu', function(e){
 });
 function setAutoFlipOff(on){
   state.autoFlipOff = on;
-  // Off, the forward walk went the way the beads count: that way is kept.
-  pathSense = on ? null : dirSign();
   render();
 }
 // The button: a circle with a dashed line through its centre, the axis
@@ -13565,13 +13591,15 @@ function syncDirAxis(){
   dirIcons[1].svg.style.display = two ? '' : 'none';
   if (two) setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
 }
-// Its name tells which way the forward walk drawn (a previewed row's while
-// one is) goes round on screen; with no walk to go by, keptSense's way.
+// Its coin's arrow shows the preferred way round; its name offers the flip,
+// greyed out while the arrows already take the shorter way.
 var DIR_ARROW_CW = 'M13 18A5 5 0 1 1 18 23M20.1 20.8 17.6 23 20.1 25.2';
 var DIR_ARROW_CCW = 'M23 18A5 5 0 1 0 18 23M15.9 20.8 18.4 23 15.9 25.2';
 function syncDirToggle(){
-  var sense = drawn ? forwardSense(drawn.G, noSub() ? null : shownGen(drawn.G)) : 0;
-  var ccw = (sense || keptSense()) < 0;
+  var ccw = prefSign() < 0;
+  var can = !!drawn && simplifiable(drawn.G, shownSub(drawn.G));
+  dirToggleEl.setAttribute('aria-disabled', String(!can));
+  syncDirPref();
   if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
   // The coin is drawn mirrored while the beads count counterclockwise, so
@@ -13580,7 +13608,7 @@ function syncDirToggle(){
   dirIcons[0].arrow.setAttribute('d', ccw !== (dirSign() < 0) ? DIR_ARROW_CCW : DIR_ARROW_CW);
   dirIcons[1].arrow.setAttribute('d', '');
   dirToggleEl.classList.toggle('is-both', !!drawn && !noSub() && mergedWalks(drawn.G));
-  var name = translate(ccw ? 'cyclicGroups.dirToggleCcw' : 'cyclicGroups.dirToggleCw');
+  var name = translate(can ? 'cyclicGroups.dirFlipSimplify' : 'cyclicGroups.dirFlipSimplest');
   dirToggleEl.title = name;
   dirToggleEl.setAttribute('aria-label', name);
 }
@@ -13786,6 +13814,7 @@ function loadState(query, link){
   state.signed = query.get('signed') === '1';
   state.signedExp = query.get('signedexp') === '1';
   state.autoFlipOff = query.get('autoflip') === '0';
+  state.prefDir = readPrefDir();
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
   state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';
