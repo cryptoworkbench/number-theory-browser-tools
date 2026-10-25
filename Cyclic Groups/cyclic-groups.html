@@ -10068,6 +10068,9 @@ function unfoldSubRow(G, h){
 // own order; false at either end. A row folded away under its divider
 // unfolds its group.
 function stepSubRow(delta){
+  // Merged with the ring holding it, the pane's rows are that ring's list:
+  // a step there goes through its rows in its order, not the pane's own.
+  if (IS_ISOPANE && subInterlocked()){ tellHost({ isopane: 'substep', by: delta }); return false; }
   var G = drawn.G, els = subOrder(G);
   if (!els.length) return false;
   // Past the last row comes the first again, and before the first the last.
@@ -11853,6 +11856,8 @@ window.addEventListener('message', function(e){
     syncIsoKeys();
   } else if (d.isopane === 'card'){
     if (typeof d.name === 'string' && Object.prototype.hasOwnProperty.call(SCRATCH_NAMES, d.name) && isFinite(d.x) && isFinite(d.y)) addPaneCard(d.name, d.x, d.y);
+  } else if (d.isopane === 'substep'){
+    if ((d.by === 1 || d.by === -1) && drawn && subInterlocked()) stepSubRow(d.by);
   } else if (d.isopane === 'genexp'){
     if (typeof d.on === 'boolean' && d.on !== genExpShown()) toggleGenExp();
   } else if (d.isopane === 'genexp-link'){
