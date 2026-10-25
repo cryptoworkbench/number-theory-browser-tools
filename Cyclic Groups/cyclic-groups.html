@@ -1073,6 +1073,7 @@
      axis, fainter, its front half across it, ending in its head. */
   .dir-toggle .dir-axis-ring{ stroke-width:1.8; }
   .dir-toggle .dir-axis-ring.is-back{ opacity:.45; }
+  .dir-toggle .dir-arrow{ stroke-width:1.5; }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-toggle{ position:absolute; z-index:3; translate:-50% -50%; }
   :root.is-isopane #dir-toggle{ display:none !important; }
@@ -13477,6 +13478,8 @@ function drawDirIcon(){
     var icon = svgEl('svg', { viewBox: '0 0 36 36', width: 36, height: 36, 'aria-hidden': 'true', focusable: 'false' });
     var axis = svgEl('g'), flip = svgEl('g');
     flip.appendChild(svgEl('circle', { cx: 18, cy: 18, r: 9 }));
+    // On the coin, a curved arrow: the way the forward walk goes round.
+    flip.appendChild(svgEl('path', { 'class': 'dir-arrow' }));
     // The arrow round the axis at the identity's end: its back half, the
     // axis (broken where the front half crosses it), then its front half and
     // its head, turning in behind the axis.
@@ -13487,7 +13490,7 @@ function drawDirIcon(){
     flip.appendChild(svgEl('path', { 'class': 'dir-axis-ring', d: 'M35.66 23.57 32.59 24.75 32.24 21.49' }));
     axis.appendChild(flip);
     icon.appendChild(axis);
-    return { svg: icon, axis: axis, flip: flip };
+    return { svg: icon, axis: axis, flip: flip, arrow: flip.querySelector('.dir-arrow') };
   });
   dirToggleEl.replaceChildren(dirIcons[0].svg, dirIcons[1].svg);
 }
@@ -13513,11 +13516,18 @@ function syncDirAxis(){
 }
 // Its name tells which way the forward walk drawn (a previewed row's while
 // one is) goes round on screen; with no walk to go by, the way the beads count.
+var DIR_ARROW_CW = 'M13 18A5 5 0 1 1 18 23M20.1 20.8 17.6 23 20.1 25.2';
+var DIR_ARROW_CCW = 'M23 18A5 5 0 1 0 18 23M15.9 20.8 18.4 23 15.9 25.2';
 function syncDirToggle(){
   var sense = drawn ? forwardSense(drawn.G, noSub() ? null : shownGen(drawn.G)) : 0;
   var ccw = sense ? sense < 0 : state.dir === 'ccw';
   if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
+  // The coin is drawn mirrored while the beads count counterclockwise, so
+  // its arrow is drawn the other way round to read right on screen. The
+  // pane's coin has no walk of this ring's to show.
+  dirIcons[0].arrow.setAttribute('d', ccw !== (dirSign() < 0) ? DIR_ARROW_CCW : DIR_ARROW_CW);
+  dirIcons[1].arrow.setAttribute('d', '');
   var name = translate(ccw ? 'cyclicGroups.dirToggleCcw' : 'cyclicGroups.dirToggleCw');
   dirToggleEl.title = name;
   dirToggleEl.setAttribute('aria-label', name);
