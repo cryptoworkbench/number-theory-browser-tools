@@ -521,6 +521,8 @@
       dirPrefCcw: 'Forward path counterclockwise',
       dirPrefBackCw: 'Backwards path clockwise',
       dirPrefBackCcw: 'Backwards path counterclockwise',
+      dirPrefAdvOpen: 'Show the backwards path\'s direction',
+      dirPrefAdvClose: 'Hide the backwards path\'s direction',
       dirFlipSimplify: 'Flip to simplify',
       dirFlipTurn: 'Flip the ring over (the preferred direction turns with it)',
       menuRevealOff: 'Disable reveal on hover',
