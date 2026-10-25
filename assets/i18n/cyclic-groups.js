@@ -518,7 +518,7 @@
       dirPrefCw: 'Forward path clockwise',
       dirPrefCcw: 'Forward path counterclockwise',
       dirFlipSimplify: 'Flip to simplify',
-      dirFlipSimplest: 'Flip to simplify (the arrows already take the shortest way)',
+      dirFlipTurn: 'Flip the ring over (the preferred direction turns with it)',
       menuRevealOff: 'Disable reveal on hover',
       beadKLabel: 'k, the times {a} is combined with itself: 2 is {a} ∗ {a}; type another k and press Enter to draw it',
       genExpRevealNat: 'Reveal on hover shows the elements as natural numbers',

@@ -1089,8 +1089,6 @@
   /* The picked way wears the forward path's colour, the other the backward path's. */
   .dir-pref > button[aria-pressed="true"] svg{ stroke:var(--arrow-in, var(--role-active)); }
   .dir-pref > button[aria-pressed="false"] svg{ stroke:var(--arrow-out, var(--role-input)); }
-  /* Greyed out while flipping would not simplify the arrows. */
-  .dir-toggle[aria-disabled="true"]{ opacity:.4; cursor:default; }
   .dir-toggle .dir-arrow{ stroke-width:1.5; stroke:var(--arrow-in, var(--role-active)); }
   .dir-toggle.is-both .dir-arrow{ stroke:var(--arrow-both); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
@@ -12544,6 +12542,9 @@ function mixPaint(hexA, hexB){
 
 /* ---------- render ---------- */
 
+// The selected subgroup at the last render: a new one whose arrows a flip
+// would simplify blinks the direction button red.
+var lastGenSeen = null;
 function render(){
   syncEcControls();
   var G = currentGroup();
@@ -12628,6 +12629,10 @@ function render(){
   syncInterlock();
   autoFlip(G);
   syncDirToggle();
+  // Compared here, after a follow (syncGenFollow) has moved the subgroup.
+  var genChanged = lastGenSeen !== null && state.gen !== lastGenSeen;
+  lastGenSeen = state.gen;
+  if (genChanged && !state.noSub && drawn && drawn.G === G && simplifiable(G, state.gen)) blinkLinked(dirToggleEl);
 }
 
 /* ---------- controls <-> state ---------- */
@@ -13487,11 +13492,17 @@ backwardEl.addEventListener('change', function(){
 // Flipping the direction keeps the identity where it is: it sits p - rot
 // places round from the top, p its place in the arrangement, so the new
 // rot is 2p - rot. A turn still under way counts as finished.
-function setDir(dir){
+// With turnPref the preferred way round turns with the flip, so arrows
+// already the shortest stay so, mirrored.
+function setDir(dir, turnPref){
   if (DIRS.indexOf(dir) === -1 || dir === state.dir) return;
   flipRing(function(){
     if (drawn) state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - state.rot;
     state.dir = dir;
+    if (turnPref){
+      state.prefDir = state.prefDir === 'ccw' ? 'cw' : 'ccw';
+      try { localStorage.setItem(PREF_DIR_KEY, state.prefDir); } catch (e) { /* storage unavailable */ }
+    }
     syncControls();
     keepCosets(render);
   });
@@ -13551,12 +13562,11 @@ function autoFlip(G){
   if (IS_ISOPANE || IS_PREVIEW || state.autoFlipOff) return;
   if (simplifiable(G, state.noSub ? null : state.gen)) setDir(state.dir === 'cw' ? 'ccw' : 'cw');
 }
-// The direction button flips the ring, and only when that simplifies the
-// arrows drawn; otherwise it stands greyed out (aria-disabled, so its
-// tooltip and right-click menu still work).
+// The direction button always flips the ring: to simplify the arrows drawn
+// when it can, and otherwise with the preferred way round turning with it.
 dirToggleEl.addEventListener('click', function(){
-  if (!drawn || !simplifiable(drawn.G, shownSub(drawn.G))) return;
-  setDir(state.dir === 'cw' ? 'ccw' : 'cw');
+  if (!drawn) return;
+  setDir(state.dir === 'cw' ? 'ccw' : 'cw', !simplifiable(drawn.G, shownSub(drawn.G)));
 });
 // Right-clicked, its menu holds Disable automatic flipping: the ring then
 // never flips by itself, and the arrows may go the long way round to keep
@@ -13621,14 +13631,14 @@ function syncDirAxis(){
   dirIcons[1].svg.style.display = two ? '' : 'none';
   if (two) setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
 }
-// Its coin's arrow shows the preferred way round; its name offers the flip,
-// greyed out while the arrows already take the shorter way.
+// Its coin's arrow shows the preferred way round; its name says what a
+// click does: simplify the arrows, or turn the ring and the preference.
 var DIR_ARROW_CW = 'M13 18A5 5 0 1 1 18 23M20.1 20.8 17.6 23 20.1 25.2';
 var DIR_ARROW_CCW = 'M23 18A5 5 0 1 0 18 23M15.9 20.8 18.4 23 15.9 25.2';
 function syncDirToggle(){
   var ccw = prefSign() < 0;
   var can = !!drawn && simplifiable(drawn.G, shownSub(drawn.G));
-  dirToggleEl.setAttribute('aria-disabled', String(!can));
+  dirToggleEl.removeAttribute('aria-disabled');
   syncDirPref();
   if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
@@ -13638,7 +13648,7 @@ function syncDirToggle(){
   dirIcons[0].arrow.setAttribute('d', ccw !== (dirSign() < 0) ? DIR_ARROW_CCW : DIR_ARROW_CW);
   dirIcons[1].arrow.setAttribute('d', '');
   dirToggleEl.classList.toggle('is-both', !!drawn && !noSub() && mergedWalks(drawn.G));
-  var name = translate(can ? 'cyclicGroups.dirFlipSimplify' : 'cyclicGroups.dirFlipSimplest');
+  var name = translate(can ? 'cyclicGroups.dirFlipSimplify' : 'cyclicGroups.dirFlipTurn');
   dirToggleEl.title = name;
   dirToggleEl.setAttribute('aria-label', name);
 }
