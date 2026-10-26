@@ -2330,6 +2330,7 @@
           </div>
           <button type="button" class="spin-step" id="spin-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
         </div>
+        <div class="fs-menu ring-ctx" id="plot-ctx" role="menu" hidden></div>
         <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-copy" role="menu" hidden></div>
         </div>
@@ -2676,7 +2677,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -8106,7 +8107,7 @@ function drawCurvePlot(G){
   var real = state.plotView === 'real';
   syncPlotView(G);
   curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
-  curvePlotEl.classList.toggle('is-real', real);
+  curvePlotEl.classList.toggle('is-real', real && state.realPlot);
   $('curve-plot-title').textContent = ecEquation(G.a, G.b) + (real ? ', x, y ∈ ℝ' : ' (mod ' + G.n + ')');
   curvePlotSvgEl.replaceChildren();
   curvePlotSvgEl.setAttribute('aria-label', G.label);
@@ -8286,6 +8287,7 @@ function plotReal(G){
   var svg = curvePlotSvgEl, plot = CURVE_W - CURVE_M - 6, key = G.a + ',' + G.b;
   if (realPick.key !== key) realPick = { P: null, Q: null, key: key };
   var roots = realRoots(G), lo = Math.min.apply(null, roots), hi = Math.max.apply(null, roots);
+  if (!state.realPlot) realPick = { P: null, Q: null, key: key };
   var P = realPick.P, Q = realPick.Q, sum = P && Q ? realSum(G, P, Q) : null;
   // Wide enough for the sum too, R and −R in view.
   var x1 = Math.max(hi + 3, 2.5, G.n - 0.5, sum && !sum.o ? sum.x + 0.5 : -Infinity), x0 = Math.min(lo - 1, -0.5, sum && !sum.o ? sum.x - 0.5 : Infinity);
@@ -8360,7 +8362,8 @@ function plotReal(G){
     g.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + t[1], cx: num(X(t[0].x)), cy: num(Y(t[0].y)), r: num(6 + (k === 1 && Q === P ? 2.5 : 0)) }));
   });
   noteEl.hidden = false;
-  if (!P) translateInto(noteEl, 'cyclicGroups.curveRealHint', {});
+  if (!state.realPlot) translateInto(noteEl, 'cyclicGroups.curveRealOff', {});
+  else if (!P) translateInto(noteEl, 'cyclicGroups.curveRealHint', {});
   else if (!Q) translateInto(noteEl, 'cyclicGroups.curveRealHintQ', { x: realNum(P.x), y: realNum(P.y) });
   else if (sum.o) translateInto(noteEl, 'cyclicGroups.curveRealO', {});
   else translateInto(noteEl, P === Q ? 'cyclicGroups.curveRealDouble' : 'cyclicGroups.curveRealSum', { x: realNum(sum.x), y: realNum(sum.y) });
@@ -8404,7 +8407,7 @@ function realPickAt(e){
 // Followed by the subgroup dropdown, the plot picks G instead: a point, or
 // 𝒪 in its corner.
 curvePlotSvgEl.addEventListener('click', function(e){
-  if (state.plotView === 'real' && !e.target.closest('.curve-dot, .curve-o')){ realPickAt(e); return; }
+  if (state.plotView === 'real' && !e.target.closest('.curve-dot, .curve-o')){ if (state.realPlot) realPickAt(e); return; }
   var dot = e.target.closest(state.genPlot ? '.curve-dot, .curve-o' : '.curve-dot');
   if (!dot) return;
   var el = dot.classList.contains('curve-o') ? 0 : +dot.getAttribute('data-el');
@@ -11393,6 +11396,7 @@ function applyRingQuery(q){
   state.genFollow = q.get('sub') === SUB_FOLLOW;
   state.genPlot = q.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(q.get('plotview')) !== -1 ? q.get('plotview') : 'mod';
+  state.realPlot = q.get('realplot') === '1';
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
@@ -12937,6 +12941,7 @@ function stateQuery(){
   q.set('gen', String(state.gen));
   if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else if (state.genPlot) q.set('sub', SUB_PLOT); else q.delete('sub');
   if (state.plotView !== 'mod') q.set('plotview', state.plotView); else q.delete('plotview');
+  if (state.realPlot) q.set('realplot', '1'); else q.delete('realplot');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
   q.delete('orders');
@@ -13492,19 +13497,60 @@ function setSubCtx(open, x, y){
   }
   subCtxReturn = subCtxEl.hidden ? document.activeElement : subCtxReturn;
   if (!(subCtxReturn instanceof HTMLElement) || subCtxReturn === document.body) subCtxReturn = null;
-  subCtxEl.hidden = false;
-  var w = subCtxEl.offsetWidth, h = subCtxEl.offsetHeight;
+  showCtxAt(subCtxEl, x, y);
+}
+// A menu shown at the pointer, kept inside the window, its first item
+// focused.
+function showCtxAt(menu, x, y){
+  menu.hidden = false;
+  var w = menu.offsetWidth, h = menu.offsetHeight;
   var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
   var left = Math.max(4, Math.min(x, vw - w - 4)), top = Math.max(4, Math.min(y, vh - h - 4));
-  subCtxEl.style.left = left + 'px';
-  subCtxEl.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
   // Inside a window that contains its fixed children, place it against
   // that window's corner instead of the viewport's.
-  var at = boxOf(subCtxEl);
-  subCtxEl.style.left = (2 * left - at.left) + 'px';
-  subCtxEl.style.top = (2 * top - at.top) + 'px';
-  subCtxEl.firstChild.focus();
+  var at = boxOf(menu);
+  menu.style.left = (2 * left - at.left) + 'px';
+  menu.style.top = (2 * top - at.top) + 'px';
+  menu.firstChild.focus();
 }
+// Over the reals, the plot's own menu: whether clicks on the curve add
+// real points (off until enabled here).
+var plotCtxEl = $('plot-ctx'), plotCtxReturn = null;
+function setPlotCtx(open, x, y){
+  if (!open){
+    if (plotCtxEl.hidden) return;
+    plotCtxEl.hidden = true;
+    if (plotCtxReturn && plotCtxEl.contains(document.activeElement)) plotCtxReturn.focus();
+    plotCtxReturn = null;
+    return;
+  }
+  var item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'fs-menu-item';
+  item.setAttribute('role', 'menuitem');
+  item.textContent = translate(state.realPlot ? 'cyclicGroups.realPlotOff' : 'cyclicGroups.realPlotOn');
+  item.addEventListener('click', function(){
+    setPlotCtx(false);
+    state.realPlot = !state.realPlot;
+    realPick = { P: null, Q: null, key: '' };
+    if (drawn){ drawCurvePlot(drawn.G); mirrorToUrl(drawn.G); }
+  });
+  plotCtxEl.replaceChildren(item);
+  plotCtxReturn = plotCtxEl.hidden ? document.activeElement : plotCtxReturn;
+  if (!(plotCtxReturn instanceof HTMLElement) || plotCtxReturn === document.body) plotCtxReturn = null;
+  showCtxAt(plotCtxEl, x, y);
+}
+curvePlotEl.addEventListener('contextmenu', function(e){
+  if (state.plotView !== 'real') return;
+  e.preventDefault();
+  if (IS_MOBILE) return;
+  setPlotCtx(true, ptX(e), ptY(e));
+});
+plotCtxEl.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' || e.key === 'Tab'){ e.preventDefault(); setPlotCtx(false); }
+});
 // A menu item ticked while on: a switch, or one of a set of choices.
 function menuTick(role, text, on, run){
   var item = document.createElement('button');
@@ -13534,6 +13580,7 @@ subgroupsPanelEl.addEventListener('contextmenu', function(e){
 });
 document.addEventListener('pointerdown', function(e){
   if (!subCtxEl.contains(e.target)) setSubCtx(false);
+  if (!plotCtxEl.contains(e.target)) setPlotCtx(false);
 });
 // A menu open in the pane tells the ring holding it, which lifts the pane
 // over the controls it keeps on the line between them, so none covers it,
@@ -13557,7 +13604,7 @@ if (IS_ISOPANE){
   };
   window.addEventListener('resize', function(){ if (!ringCtxEl.hidden) placeRingCtx(); });
   var paneMenuWatch = new MutationObserver(tellPaneMenu);
-  [ringCtxEl, subCtxEl].forEach(function(el){ paneMenuWatch.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
+  [ringCtxEl, subCtxEl, plotCtxEl].forEach(function(el){ paneMenuWatch.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
 }
 subCtxEl.addEventListener('keydown', function(e){
   var items = Array.prototype.slice.call(subCtxEl.querySelectorAll('.fs-menu-item')), i = items.indexOf(document.activeElement);
@@ -14732,6 +14779,7 @@ function loadState(query, link){
   state.genFollow = query.get('sub') === SUB_FOLLOW;
   state.genPlot = query.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(query.get('plotview')) !== -1 ? query.get('plotview') : 'mod';
+  state.realPlot = query.get('realplot') === '1';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){
