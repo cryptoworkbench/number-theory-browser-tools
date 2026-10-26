@@ -2745,7 +2745,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', autoFlipOff: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6494,20 +6494,14 @@ function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
   if (!key || !drawn) return;
-  // The flip button's: its one switch, Disable automatic flipping, shown
-  // but not to be changed while the flip is locked.
+  // The preferred directions', the lock slider's and the flip button's:
+  // their one switch, Disable auto-simplify.
   if (key === 'dir'){
-    var locked = coinLocked();
-    var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuAutoFlipOff'), state.autoFlipOff, function(){
-      if (coinLocked()) return;
+    var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSimplifyOff'), state.simplifyOff, function(){
       setRingCtx(false);
-      setAutoFlipOff(!state.autoFlipOff);
+      setSimplifyOff(!state.simplifyOff);
     });
     tick.classList.add('ring-ctx-expr');
-    if (locked){
-      tick.setAttribute('aria-disabled', 'true');
-      tick.title = translate('cyclicGroups.dirFlipLocked');
-    }
     tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
     ringCtxEl.appendChild(tick);
     return;
@@ -13721,9 +13715,9 @@ function stateQuery(){
   else q.delete('signed');
   // Written with autoflip=0, lock=dir is spelled out: alone, an older
   // link's autoflip=0 reads as nothing locked.
-  if (state.autoFlipOff) q.set('autoflip', '0');
+  if (state.simplifyOff) q.set('autoflip', '0');
   else q.delete('autoflip');
-  if (state.lock !== 'dir' || state.autoFlipOff) q.set('lock', state.lock);
+  if (state.lock !== 'dir' || state.simplifyOff) q.set('lock', state.lock);
   else q.delete('lock');
   if (state.signedExp && !state.ec) q.set('signedexp', '1');
   else q.delete('signedexp');
@@ -15052,7 +15046,7 @@ function setPrefDir(dir){
   render();
   if (inv !== null) tookInverse(inv);
   // Picked by hand, a way round that sends the arrows the long way blinks
-  // the button that would simplify them (automatic flipping has already).
+  // the button that would simplify them (auto-simplify has already).
   if (drawn && !state.noSub && simplifiable(drawn.G, state.gen)) blinkLinked(dirToggleEl);
 }
 window.addEventListener('storage', function(e){
@@ -15138,22 +15132,19 @@ function shownSub(G){ return noSub() ? null : shownGen(G); }
 // locked (under a padlock), the other then curing them by itself when a new
 // subgroup would send them the long way: with the directions locked ('dir')
 // the ring flips over, with the flip locked ('flip') the preferred direction
-// turns, and with nothing locked ('none') the ring flips over too. The ring
-// flips by itself only while automatic flipping is on (the flip button's
-// right-click menu); the preferred direction turns whatever that says. The
-// free control may still be used by hand: G then becomes its inverse
-// (invForTurn). A previewed row only
+// turns, and with nothing locked ('none') the ring flips over too. The free
+// control may still be used by hand: G then becomes its inverse
+// (invForTurn). All of it is auto-simplify, which the right-click menu of
+// either control or the slider disables (state.simplifyOff): the arrows may
+// then go the long way round, however convoluted. A previewed row only
 // borrows the arrows, so it never cures them; nor does the pane, whose
 // direction is its holder's.
 var LOCKS = ['dir', 'none', 'flip'];
 var shortenLockEl = $('shorten-lock');
 function autoFlip(G){
-  if (IS_ISOPANE || IS_PREVIEW) return;
+  if (IS_ISOPANE || IS_PREVIEW || state.simplifyOff) return;
   if (!simplifiable(G, state.noSub ? null : state.gen)) return;
-  if (state.lock !== 'flip'){
-    if (!state.autoFlipOff) setDir(state.dir === 'cw' ? 'ccw' : 'cw');
-    return;
-  }
+  if (state.lock !== 'flip'){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); return; }
   // The turned direction is this ring's alone, never stored: another Ring
   // window, with the flip locked on another subgroup, may need the other.
   state.prefDir = otherDir(state.prefDir);
@@ -15168,7 +15159,7 @@ function prefLocked(){ return state.lock === 'dir'; }
 // reverses the walk, so the inverse is wanted exactly when the walk is the
 // shorter way now; null when it is not, or either way is as short.
 function invForTurn(){
-  if (state.lock === 'none' || !drawn || state.noSub || IS_ISOPANE || IS_PREVIEW) return null;
+  if (state.lock === 'none' || state.simplifyOff || !drawn || state.noSub || IS_ISOPANE || IS_PREVIEW) return null;
   var G = drawn.G, h = state.gen, s = walkSpans(G, h);
   if (!s || s[0] >= s[1]) return null;
   var inv = G.inv[h];
@@ -15208,20 +15199,21 @@ dirToggleEl.addEventListener('click', function(e){
   // the rows) never rings the button in the keyboard's focus outline.
   if (e.detail) dirToggleEl.blur();
   if (!drawn || coinLocked()) return;
-  setDir(state.dir === 'cw' ? 'ccw' : 'cw', state.lock !== 'dir' && !simplifiable(drawn.G, shownSub(drawn.G)), invForTurn());
+  setDir(state.dir === 'cw' ? 'ccw' : 'cw', !state.simplifyOff && state.lock !== 'dir' && !simplifiable(drawn.G, shownSub(drawn.G)), invForTurn());
 });
-// Right-clicked, even while locked, its menu holds Disable automatic
-// flipping: the ring then never flips by itself, and the arrows may go the
-// long way round, until the button flips it.
-dirToggleEl.addEventListener('contextmenu', function(e){
-  e.preventDefault();
-  // Nor does closing the menu hand the focus back to it.
-  if (document.activeElement === dirToggleEl) dirToggleEl.blur();
-  if (IS_MOBILE || !drawn) return;
-  setRingCtx(true, e.clientX, e.clientY, 'dir');
+// Right-clicked, even while locked, the button, the preferred directions
+// and the lock slider between them open one menu: Disable auto-simplify.
+[dirToggleEl, $('dir-pref'), $('shorten-lock-track')].forEach(function(el){
+  el.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+    // Nor does closing the menu hand the focus back to it.
+    if (el.contains(document.activeElement)) document.activeElement.blur();
+    if (IS_MOBILE || !drawn) return;
+    setRingCtx(true, e.clientX, e.clientY, 'dir');
+  });
 });
-function setAutoFlipOff(on){
-  state.autoFlipOff = on;
+function setSimplifyOff(on){
+  state.simplifyOff = on;
   render();
 }
 // The button: a circle with a dashed line through its centre, the axis
@@ -15297,6 +15289,7 @@ function syncDirToggle(){
   dirIcons[1].arrow.setAttribute('d', '');
   dirToggleEl.classList.toggle('is-both', !!drawn && !noSub() && mergedWalks(drawn.G));
   var name = translate(locked ? 'cyclicGroups.dirFlipLocked' : can ? 'cyclicGroups.dirFlipSimplify'
+    : state.simplifyOff ? 'cyclicGroups.dirFlipPlain'
     : state.lock !== 'dir' ? 'cyclicGroups.dirFlipTurn' : invForTurn() !== null ? 'cyclicGroups.dirFlipInverse' : 'cyclicGroups.dirFlipKeep');
   dirToggleEl.title = name;
   dirToggleEl.setAttribute('aria-label', name);
@@ -15505,7 +15498,7 @@ function loadState(query, link){
   state.natExpOff = query.get('natexp') === '0' && !IS_MOBILE;
   // An older link's autoflip=0 is the lock's middle, nothing locked.
   state.lock = LOCKS.indexOf(query.get('lock')) !== -1 ? query.get('lock') : query.get('autoflip') === '0' ? 'none' : 'dir';
-  state.autoFlipOff = query.get('autoflip') === '0';
+  state.simplifyOff = query.get('autoflip') === '0';
   state.prefDir = readPrefDir();
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
