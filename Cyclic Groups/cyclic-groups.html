@@ -2847,7 +2847,7 @@ function buildGroup(mode, n){
 var EC_MIN_P = 5, EC_MAX_P = 97, EC_COEF_MAX = 96;
 function ecValid(p, a, b){ return isPrime(p) && p >= EC_MIN_P && p <= EC_MAX_P && ecIsNonSingular(a, b, p); }
 function buildCurveGroup(p, a, b){
-  var pts = [null].concat(ecPoints(a, b, p)), at = {};
+  var pts = [null].concat(ecPoints(a, b, p).map(function(P){ return { x: P.x, y: P.y, p: p }; })), at = {};
   pts.forEach(function(P, i){ if (P) at[P.x + ',' + P.y] = i; });
   var N = pts.length, table = {};
   var G = {
@@ -2881,9 +2881,10 @@ function buildCurveGroup(p, a, b){
 }
 // Where a group starts: on a generator if it has one, else the identity.
 function startGen(G){ return G.cyclic ? G.generators[0] : G.identity; }
-// A point in formulas, and in plain text.
-function mPoint(P){ return P ? mrow(mo('(', true), mn(P.x), comma(), mn(P.y), mo(')', true)) : mi('𝒪'); }
-function plainPoint(P){ return P ? '(' + P.x + ', ' + P.y + ')' : '𝒪'; }
+// A point in formulas, and in plain text, its coordinates in the signed
+// form while that is on.
+function mPoint(P){ return P ? mrow(mo('(', true), mn(coordText(P.p, P.x)), comma(), mn(coordText(P.p, P.y)), mo(')', true)) : mi('𝒪'); }
+function plainPoint(P){ return P ? '(' + coordText(P.p, P.x) + ', ' + coordText(P.p, P.y) + ')' : '𝒪'; }
 // The group shown: the curve's in the elliptic curve mode, ℤ/nℤ's otherwise.
 function currentGroup(){ return state.ec ? buildCurveGroup(state.ecP, state.ecA, state.ecB) : buildGroup(state.mode, state.n); }
 // A query's curve=p,a,b, when it names a valid curve: the mode is then on.
@@ -2902,6 +2903,10 @@ function curveOf(q){
 // x − n (state.signed), an exponent above ord/2 written k − ord
 // (state.signedExp), so each reads as its representative nearest 0.
 function balEl(G, x){ return state.signed && G && !G.pts && x > G.n / 2 ? x - G.n : x; }
+// On a curve the signed form is the coordinates': one above p/2 written
+// v − p.
+function balCoord(p, v){ return state.signed && v > p / 2 ? v - p : v; }
+function coordText(p, v){ return signed(balCoord(p, v)); }
 function balExp(G, k){ return state.signedExp && G && !G.pts && k > G.order / 2 ? k - G.order : k; }
 function elMn(G, x){ return mn(elText(G, x)); }
 function signedOn(G){ return state.signed && !!G && !G.pts; }
@@ -2916,7 +2921,7 @@ function baseMn(G, g){ var s = baseText(G, g); return s.charAt(0) === '(' ? mrow
 function elText(G, x, tight){
   if (!G.pts) return signed(balEl(G, x));
   var P = G.pts[x];
-  return P ? '(' + P.x + (tight ? ',' : ', ') + P.y + ')' : '𝒪';
+  return P ? '(' + coordText(P.p, P.x) + (tight ? ',' : ', ') + coordText(P.p, P.y) + ')' : '𝒪';
 }
 
 // One lap: identity, then the identity stepped by gen once, twice, and so on
@@ -3292,16 +3297,16 @@ function subscript(k){
 // the group's i-th generator, each stop marked on the track and named by its
 // generator, the choice named in full beside it.
 function syncExpr(G){
-  // The ± switch: elements and exponents in their signed form, nearest 0.
-  exprSignEl.hidden = !!G.pts;
+  // The ± switch: elements and exponents in their signed form, nearest 0;
+  // on a curve, the points' coordinates.
   exprSignEl.setAttribute('aria-pressed', String(state.signed));
-  exprSignEl.title = translate(state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
+  exprSignEl.title = translate(G.pts ? (state.signed ? 'cyclicGroups.exprSignOffEc' : 'cyclicGroups.exprSignOnEc') : state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
   exprSignEl.setAttribute('aria-label', exprSignEl.title);
   exprSignExpEl.hidden = !!G.pts;
   exprSignExpEl.setAttribute('aria-pressed', String(state.signedExp));
   exprSignExpEl.title = translate(state.signedExp ? 'cyclicGroups.exprSignExpOff' : 'cyclicGroups.exprSignExpOn');
   exprSignExpEl.setAttribute('aria-label', exprSignExpEl.title);
-  exprSlotEl.hidden = !G.cyclic && !!G.pts;
+  exprSlotEl.hidden = false;
   exprSlotEl.classList.toggle('is-sign-only', !G.cyclic);
   if (!G.cyclic) return;
   var gens = G.generators, max = gens.length, g = exprBy(G);
@@ -3927,7 +3932,7 @@ function drawRing(parent, G, beads, box, paint){
         if (!P) pl.textContent = '𝒪';
         else [P.x, P.y].forEach(function(v, j){
           var ts = pl.appendChild(svgEl('tspan', { x: num(p[0]), dy: j ? '1em' : '-0.5em' }));
-          ts.textContent = String(v);
+          ts.textContent = coordText(P.p, v);
         });
         ring.appendChild(pl);
         return;
@@ -6148,9 +6153,11 @@ function syncNatHoverCtx(on){
 // two buttons: the numbers', then the exponents'.
 function syncSignCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
-  if (!on || !drawn || drawn.G.pts) return null;
+  if (!on || !drawn) return null;
   var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
-  [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]].forEach(function(t){
+  // On a curve only the coordinates have a signed form.
+  var signs = drawn.G.pts ? [['cyclicGroups.menuSignedEc', 'signed', toggleSigned]] : [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]];
+  signs.forEach(function(t){
     var sign = menuTick('menuitemcheckbox', translate(t[0]), state[t[1]], function(){
       setRingCtx(false);
       t[2]();
@@ -7851,16 +7858,21 @@ function drawCurvePlot(G){
   var p = G.n, plot = CURVE_W - CURVE_M - 6, cell = plot / p, svg = curvePlotSvgEl;
   svg.replaceChildren();
   svg.setAttribute('aria-label', G.label);
-  var X = function(x){ return CURVE_M + (x + 0.5) * cell; }, Y = function(y){ return 6 + plot - (y + 0.5) * cell; };
+  // Signed, the axes run from −(p − 1)/2 to (p − 1)/2, 0 in the middle,
+  // where the curve's mirror image in the x-axis shows.
+  var lo = state.signed ? -Math.floor(p / 2) : 0;
+  var slot = function(v){ return balCoord(p, v) - lo + 0.5; };
+  var X = function(x){ return CURVE_M + slot(x) * cell; }, Y = function(y){ return 6 + plot - slot(y) * cell; };
   svg.appendChild(svgEl('rect', { 'class': 'curve-frame', x: CURVE_M, y: 6, width: num(plot), height: num(plot) }));
   var step = p <= 13 ? 1 : p <= 31 ? 5 : 10;
-  for (var t = 0; t < p; t += step){
-    if (t) svg.appendChild(svgEl('line', { 'class': 'curve-grid', x1: num(X(t)), y1: 6, x2: num(X(t)), y2: num(6 + plot) }));
-    if (t) svg.appendChild(svgEl('line', { 'class': 'curve-grid', x1: CURVE_M, y1: num(Y(t)), x2: num(CURVE_M + plot), y2: num(Y(t)) }));
-    var tx = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(X(t)), y: num(6 + plot + 12), 'text-anchor': 'middle' }));
-    tx.textContent = String(t);
-    var ty = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: CURVE_M - 4, y: num(Y(t) + 3.5), 'text-anchor': 'end' }));
-    ty.textContent = String(t);
+  for (var t = Math.ceil(lo / step) * step; t < lo + p; t += step){
+    var tv = (t + p) % p;
+    if (t !== lo) svg.appendChild(svgEl('line', { 'class': 'curve-grid', x1: num(X(tv)), y1: 6, x2: num(X(tv)), y2: num(6 + plot) }));
+    if (t !== lo) svg.appendChild(svgEl('line', { 'class': 'curve-grid', x1: CURVE_M, y1: num(Y(tv)), x2: num(CURVE_M + plot), y2: num(Y(tv)) }));
+    var tx = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(X(tv)), y: num(6 + plot + 12), 'text-anchor': 'middle' }));
+    tx.textContent = signed(t);
+    var ty = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: CURVE_M - 4, y: num(Y(tv) + 3.5), 'text-anchor': 'end' }));
+    ty.textContent = signed(t);
   }
   var r = Math.max(2, Math.min(6, cell * 0.38));
   var roles = combineRoles(G), live = comboLive(G);
@@ -8088,30 +8100,34 @@ function curveRows(G, y, mod){
     rows.push(er);
   }
   if (!P || !Q) return rows;
+  // The coordinates as they are written, signed while that is on: the
+  // working then counts with them, so each step reads as it is shown.
+  var B = function(v){ return balCoord(p, ((v % p) + p) % p); };
+  var x1 = B(P.x), y1 = B(P.y), x2 = B(Q.x), y2 = B(Q.y);
   if (P.x === Q.x && (P.y + Q.y) % p === 0){
     // A vertical line meets the curve at no third point: P + (−P) is 𝒪.
-    rows.push([[null, 'x₁ = x₂ = '], ['a', P.x], [null, ','], [null, 'y₁ + y₂ = '], ['a', P.y], [null, '+'], ['b', Q.y], [null, '≡'], [null, '0'], [null, '⟹'], ['c', '𝒪']]);
+    rows.push([[null, 'x₁ = x₂ = '], ['a', signed(x1)], [null, ','], [null, 'y₁ + y₂ = '], ['a', signed(y1)], [null, '+'], ['b', sub(y2)], [null, '≡'], [null, '0'], [null, '⟹'], ['c', '𝒪']]);
     return rows;
   }
   var num, den, lam;
   if (a === b){
-    num = 3 * P.x * P.x + G.a;
-    den = 2 * P.y;
-    rows.push([[null, 'λ'], [null, '≡'], [null, '(3x₁² + a) / 2y₁'], [null, '≡'], [[null, '(3 · '], ['a', P.x], [null, '² + ' + G.a + ') / (2 · '], ['a', P.y], [null, ')']],
-      [null, '≡'], [null, num + ' / ' + den]]);
+    num = 3 * x1 * x1 + G.a;
+    den = 2 * y1;
+    rows.push([[null, 'λ'], [null, '≡'], [null, '(3x₁² + a) / 2y₁'], [null, '≡'], [[null, '(3 · '], ['a', sub(x1)], [null, '² + ' + G.a + ') / (2 · '], ['a', sub(y1)], [null, ')']],
+      [null, '≡'], [null, signed(num) + ' / ' + signed(den)]]);
   } else {
-    num = Q.y - P.y;
-    den = Q.x - P.x;
-    rows.push([[null, 'λ'], [null, '≡'], [null, '(y₂ − y₁) / (x₂ − x₁)'], [null, '≡'], [[null, '('], ['b', Q.y], [null, ' − '], ['a', P.y], [null, ') / ('], ['b', Q.x], [null, ' − '], ['a', P.x], [null, ')']],
+    num = y2 - y1;
+    den = x2 - x1;
+    rows.push([[null, 'λ'], [null, '≡'], [null, '(y₂ − y₁) / (x₂ − x₁)'], [null, '≡'], [[null, '('], ['b', signed(y2)], [null, ' − '], ['a', sub(y1)], [null, ') / ('], ['b', signed(x2)], [null, ' − '], ['a', sub(x1)], [null, ')']],
       [null, '≡'], [null, signed(num) + ' / ' + signed(den)]]);
   }
-  var inv = modInverse(((den % p) + p) % p, p);
-  lam = (((num * inv) % p) + p) % p;
+  var inv = B(modInverse(((den % p) + p) % p, p));
+  lam = B(num * inv);
   var lr = rows[rows.length - 1];
-  lr.push([null, '≡'], [[null, signed(num) + ' × ' + sub(den)], [null, '⁻¹']], [null, '≡'], [null, signed(num) + ' × ' + inv], [null, '≡'], [null, lam], [null, mod]);
-  var R = pts[c], x3raw = lam * lam - P.x - Q.x, y3raw = lam * (P.x - R.x) - P.y;
-  rows.push([[null, 'x₃'], [null, '≡'], [null, 'λ² − x₁ − x₂'], [null, '≡'], [[null, lam + '² − '], ['a', P.x], [null, ' − '], ['b', Q.x]], [null, '≡'], [null, signed(x3raw)], [null, '≡'], ['c', R.x], [null, mod]]);
-  rows.push([[null, 'y₃'], [null, '≡'], [null, 'λ(x₁ − x₃) − y₁'], [null, '≡'], [[null, lam + '('], ['a', P.x], [null, ' − '], ['c', R.x], [null, ') − '], ['a', P.y]], [null, '≡'], [null, signed(y3raw)], [null, '≡'], ['c', R.y], [null, mod]]);
+  lr.push([null, '≡'], [[null, signed(num) + ' × ' + sub(den)], [null, '⁻¹']], [null, '≡'], [null, signed(num) + ' × ' + sub(inv)], [null, '≡'], [null, signed(lam)], [null, mod]);
+  var R = pts[c], x3 = B(R.x), y3 = B(R.y), x3raw = lam * lam - x1 - x2, y3raw = lam * (x1 - x3) - y1;
+  rows.push([[null, 'x₃'], [null, '≡'], [null, 'λ² − x₁ − x₂'], [null, '≡'], [[null, sub(lam) + '² − '], ['a', sub(x1)], [null, ' − '], ['b', sub(x2)]], [null, '≡'], [null, signed(x3raw)], [null, '≡'], ['c', signed(x3)], [null, mod]]);
+  rows.push([[null, 'y₃'], [null, '≡'], [null, 'λ(x₁ − x₃) − y₁'], [null, '≡'], [[null, sub(lam) + '('], ['a', signed(x1)], [null, ' − '], ['c', sub(x3)], [null, ') − '], ['a', sub(y1)]], [null, '≡'], [null, signed(y3raw)], [null, '≡'], ['c', signed(y3)], [null, mod]]);
   return rows;
 }
 function drawCombineLine(G, y){
@@ -12422,7 +12438,7 @@ function stateQuery(){
   if (!state.subPaths) q.set('subpaths', '0');
   else q.delete('subpaths');
   q.delete('nathover');
-  if (state.signed && !state.ec) q.set('signed', '1');
+  if (state.signed) q.set('signed', '1');
   else q.delete('signed');
   if (state.autoFlipOff) q.set('autoflip', '0');
   else q.delete('autoflip');
