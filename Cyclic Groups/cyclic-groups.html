@@ -3137,6 +3137,11 @@ function mPoint(P){
   items.push(mo(')', true));
   return mrow.apply(null, items);
 }
+// A curve's point x written Natural, its own first power as on its bead
+// (natPow), unless the exponents are turned off there.
+function natOne(G){ return state.subPad ? '1'.padStart(String(expMax(G)).length, '0') : '1'; }
+function natPointM(G, x){ return state.natExpOff ? mPoint(G.pts[x]) : mEl('msup', [mPoint(G.pts[x]), mn(natOne(G))]); }
+function natPointP(G, x){ return state.natExpOff ? elText(G, x) : elText(G, x) + superscript(natOne(G)); }
 function plainPoint(P){ return P ? '(' + pointCoords(P).map(function(v){ return coordText(P.p, v); }).join(P.proj ? ' : ' : ', ') + ')' : '𝒪'; }
 // The group shown: the curve's in the elliptic curve mode, ℤ/nℤ's otherwise.
 function currentGroup(){ return state.ec ? buildCurveGroup(state.ecP, state.ecA, state.ecB) : buildGroup(state.mode, state.n); }
@@ -5232,7 +5237,7 @@ function scratchFormulas(G){
   if (G.pts){
     var eq = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
     list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroup(G), mo(':'), mEl('mtext', [eq])), plain: G.label + ': ' + eq });
-    if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(mPoint(G.pts[h])), mo(whole ? '⊆' : '⊂'), mGroup(G)), plain: '⟨' + elText(G, h) + '⟩ ' + (whole ? '⊆' : '⊂') + ' ' + G.label });
+    if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(natPointM(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)), plain: '⟨' + natPointP(G, h) + '⟩ ' + (whole ? '⊆' : '⊂') + ' ' + G.label });
     list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(mGroup(G)), mo('='), mn(G.order)), plain: '|' + G.label + '| = ' + G.order });
     return list;
   }
@@ -6002,7 +6007,7 @@ function fillGenExp(G){
   if (!genExpSort || genExpSort.group !== group) genExpSort = { group: group, col: -1, dir: 1 };
   var sort = genExpSort;
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.signedExp, state.ecMult, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
+  var sig = [getLang(), group, width, expWidth, state.subPad, state.natExpOff, state.signed, state.signedExp, state.ecMult, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
   if (genExpBodyEl.getAttribute('data-sig') === sig) return;
   genExpBodyEl.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -7851,7 +7856,7 @@ function renderCombineKey(G){
   // Each number keeps the room of the group's widest, so the key's lines
   // wrap alike for every element and a previewed row never resizes it.
   var keyNum = function(v){
-    if (G.pts) return mInline(mPoint(G.pts[v]), elText(G, v));
+    if (G.pts) return mInline(natPointM(G, v), natPointP(G, v));
     var s = elText(G, v), miss = String(elMax(G)).length + (signedOn(G) ? 1 : 0) - s.length;
     return miss > 0 ? mInline(mrow(mn(s), mEl('mphantom', [mn('0'.repeat(miss))])), s) : mNum(s);
   };
@@ -10917,10 +10922,15 @@ function subFormat(base, log, width, expWidth, G){
   var nat = function(x){ return num(balEl(G, x), width, sg); };
   var ex = function(k){ return num(balExp(G, k), expWidth, sgExp); };
   var pts = G && G.pts || null, C = pts ? { pts: pts } : G;
+  // A curve's point, Natural, is its own first power, as on its bead,
+  // unless the exponents are turned off there (natPow).
+  var one = pts && state.subPad ? '1'.padStart(expWidth || String(expMax(G)).length, '0') : '1';
+  var ptM = function(x){ return state.natExpOff ? mPoint(pts[x]) : mEl('msup', [mPoint(pts[x]), mn(one)]); };
+  var ptP = function(x){ return state.natExpOff ? plainPoint(pts[x]) : plainPoint(pts[x]) + superscript(one); };
   var f = {
     ex: ex,
-    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sgExp)) : pts ? mPoint(pts[x]) : numMn(nat(x), width, sg); },
-    p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? plainPoint(pts[x]) : nat(x); }
+    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sgExp)) : pts ? ptM(x) : numMn(nat(x), width, sg); },
+    p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? ptP(x) : nat(x); }
   };
   // A row's member, which with Reveal on hover on (or the switch on given
   // as on) carries the expression the reveal shows beside its own, shown
@@ -10928,7 +10938,7 @@ function subFormat(base, log, width, expWidth, G){
   f.r = function(x, on){
     var to = revealTo(G), from = log ? base : null;
     if (!(on === undefined ? subRevealOn() : on) || from === to) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? mPoint(pts[x]) : numMn(nat(x), width, sg)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow.apply(null, revealForms(e, n));
+    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? ptM(x) : numMn(nat(x), width, sg)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow.apply(null, revealForms(e, n));
     both.setAttribute('data-g', from === null ? '' : String(from));
     both.setAttribute('data-to', to === null ? '' : String(to));
     both.setAttribute('data-el', String(x));
@@ -10996,7 +11006,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.natExpOff, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -11079,7 +11089,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.natExpOff, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -11549,8 +11559,8 @@ function renderInverseLegend(pairing, el, G){
   el = el || legendEl;
   var g = G ? subExprGen(G, state.legendExpr, state.expr) : null, log = g === null ? null : exprLog(G, g);
   if (!G && pairing.log){ g = pairing.g; log = pairing.log; }
-  var m = function(x){ return log ? expMath(G, g, mn(signed(balExp(G, log[x])))) : G && G.pts ? mPoint(G.pts[x]) : G ? elMn(G, x) : mn(x); };
-  var p = function(x){ return log ? expPlain(G, g, signed(balExp(G, log[x]))) : G ? elText(G, x) : String(x); };
+  var m = function(x){ return log ? expMath(G, g, mn(signed(balExp(G, log[x])))) : G && G.pts ? natPointM(G, x) : G ? elMn(G, x) : mn(x); };
+  var p = function(x){ return log ? expPlain(G, g, signed(balExp(G, log[x]))) : G && G.pts ? natPointP(G, x) : G ? elText(G, x) : String(x); };
   var byExp = function(a, b){ return log[a] - log[b]; };
   var selfInverse = log ? pairing.selfInverse.slice().sort(byExp) : pairing.selfInverse;
   var selfList = [];
