@@ -7544,9 +7544,9 @@ function syncGenSuper(G){
 }
 function genNamed(){ return genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL || genSelectEl.value === SUB_PLOT; }
 // G turning into its inverse by a lock: what changes in the subgroup row
-// blinks red, twice before and once after, a blink apart. Written as a
-// power, only the exponent changes and blinks (k in kP); written Natural,
-// the element itself.
+// blinks red, a blink apart. Written as a power, only the exponent changes
+// and blinks (k in kP), twice before and once after; written Natural, the
+// element itself, once before and twice after (invBlinks).
 var invBlink = null, INV_BLINK_MS = 360;
 function invBlinkEls(G){
   var row = genSuperEl.querySelector('mrow > mrow');
@@ -7563,8 +7563,12 @@ function invBlinkEls(G){
   });
   return out.length ? out : inner;
 }
-function startInvBlink(n){
-  invBlink = { at: performance.now(), n: n };
+function invBlinks(after){
+  var nat = !drawn || exprBy(drawn.G) === null;
+  return after === nat ? 2 : 1;
+}
+function startInvBlink(n, after){
+  invBlink = { at: performance.now(), n: n, after: !!after };
   if (drawn) syncGenSuper(drawn.G);
 }
 function syncGenerators(G){
@@ -15244,28 +15248,29 @@ function takeInverse(inv){
   state.noSub = false;
 }
 // Kept on top, the inverse's bead turns to the top, as a selection does.
-// Its exponent in the subgroup row blinks once, timed from the redraw.
+// Its exponent in the subgroup row blinks, timed from the redraw.
 function tookInverse(inv){
   if (state.top === 'gen' && drawn) turnToTop(inv);
-  startInvBlink(1);
+  startInvBlink(invBlinks(true), true);
 }
 // The free control used by hand while G would turn into its inverse: G's
-// exponent first blinks twice, then the control acts (act, given the
+// exponent first blinks (invBlinks), then the control acts (act, given the
 // inverse as it then is). Clicked again meanwhile, it waits on the first.
-// The redraw takes a while (invActMs, as long as the last one took), so the
+// The redraw takes a while (invActMs, as long as the last ones took, on average), so the
 // control acts that much early, the blinks staying a blink apart.
 var invWait = null, invActMs = 250;
 function afterInvBlink(act){
   if (invWait !== null) return;
   if (invForTurn() === null || !drawn || !genNamed()){ act(invForTurn()); return; }
-  startInvBlink(2);
+  var before = invBlinks(false);
+  startInvBlink(before);
   invWait = setTimeout(function(){
     invWait = null;
     var t = performance.now();
     act(invForTurn());
     // Its blink after counts from the end of it all, when it can show.
-    if (invBlink && invBlink.n === 1 && invBlink.at >= t){ invActMs = Math.min(INV_BLINK_MS, performance.now() - t); startInvBlink(1); }
-  }, Math.max(INV_BLINK_MS, 2 * INV_BLINK_MS - invActMs));
+    if (invBlink && invBlink.after && invBlink.at >= t){ invActMs = (invActMs + Math.min(INV_BLINK_MS, performance.now() - t)) / 2; startInvBlink(invBlink.n, true); }
+  }, Math.max(INV_BLINK_MS * (before - 1) + 60, before * INV_BLINK_MS - invActMs));
 }
 function setLock(lock){
   if (LOCKS.indexOf(lock) === -1 || lock === state.lock) return;
