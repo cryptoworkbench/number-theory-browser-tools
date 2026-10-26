@@ -918,6 +918,20 @@
   /* A phone has no bottom bar for the plot to minimize into. */
   :root.is-mobile #curve-plot-min{ display:none; }
   :root:not(.is-mobile) .curve-plot{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  /* Resized by its grip in the bottom left (it grows to the left, from its
+     right edge), the plot keeps its shape: its text and padding in em, all
+     scaled by --plot-scale with its width. */
+  .curve-plot{ font-size:calc(var(--plot-scale, 1) * 1rem); padding:.5em .625em .375em; }
+  .curve-plot .lap-key-head{ gap:.625em; margin-bottom:.25em; }
+  .curve-plot .lap-key-head > h2, .curve-plot .plot-view > button{ font-size:.78em; }
+  .curve-plot .lap-key-head > h2{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .curve-plot .lap-key-min{ width:calc(var(--plot-scale, 1) * 20px); height:calc(var(--plot-scale, 1) * 20px); }
+  .curve-plot .lap-key-min svg{ width:calc(var(--plot-scale, 1) * 12px); height:calc(var(--plot-scale, 1) * 12px); }
+  .curve-plot .curve-plot-note{ font-size:.74em; }
+  .curve-grip{ display:none; }
+  :root:not(.is-mobile) .fs-win-body.is-ring > .curve-plot > .curve-grip{ display:block; position:absolute; left:2px; bottom:2px; width:12px; height:12px; cursor:nesw-resize; touch-action:none;
+    background:linear-gradient(225deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); opacity:.6; }
+  .curve-grip:hover, .curve-plot.is-resizing .curve-grip{ opacity:1; }
   :root:not(.is-mobile) .curve-plot.is-moving{ cursor:grabbing; }
   :root:not(.is-mobile) .curve-plot-svg{ cursor:default; }
   .curve-plot-svg{ display:block; width:100%; height:auto; flex:0 1 auto; min-height:0; overflow:visible; }
@@ -2290,7 +2304,7 @@
         </section>
         <section class="curve-plot" id="curve-plot" aria-labelledby="curve-plot-title" hidden>
           <div class="lap-key-head"><h2 id="curve-plot-title"></h2><span class="plot-view" id="plot-view" role="group" aria-label="Plot" data-i18n-aria-label="cyclicGroups.plotViewLabel"><button type="button" data-view="mod" aria-pressed="true">mod</button><button type="button" data-view="tiles" aria-pressed="false">ℤ</button><button type="button" data-view="real" aria-pressed="false">ℝ</button></span><button type="button" class="fs-win-btn lap-key-min" id="curve-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
-          <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="curve-plot-note" hidden></p>
+          <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="curve-plot-note" hidden></p><div class="curve-grip" id="curve-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
@@ -8448,7 +8462,7 @@ function placeCurvePlot(x, y){
   curveAt = { x: Math.round(x), y: Math.round(y) };
   curvePlotEl.style.translate = curveAt.x + 'px ' + curveAt.y + 'px';
 }
-function curveGrip(e){ return !IS_MOBILE && e.button === 0 && !e.target.closest('button, .curve-plot-svg'); }
+function curveGrip(e){ return !IS_MOBILE && e.button === 0 && !e.target.closest('button, .curve-plot-svg, .curve-grip'); }
 curvePlotEl.addEventListener('pointerdown', function(e){
   if (!curveGrip(e)) return;
   curveMoving = { id: e.pointerId, x: ptX(e) - curveAt.x, y: ptY(e) - curveAt.y };
@@ -8468,6 +8482,55 @@ curvePlotEl.addEventListener('pointerup', endCurveMoving);
 curvePlotEl.addEventListener('pointercancel', endCurveMoving);
 curvePlotEl.addEventListener('dblclick', function(e){ if (curveGrip(e)) placeCurvePlot(0, 0); });
 window.addEventListener('resize', function(){ if (curveAt.x || curveAt.y) placeCurvePlot(curveAt.x, curveAt.y); });
+// Its grip, in the bottom left corner, resizes it on the diagonal: the
+// width follows the pointer's pull (left or down grows it) and the height
+// follows the width, the plot's shape kept. A double click puts it back.
+var CURVE_BASE_W = 300, curveSizing = null;
+function sizeCurvePlot(w){
+  if (w === null){
+    curvePlotEl.style.removeProperty('width');
+    curvePlotEl.style.removeProperty('max-height');
+    curvePlotEl.style.removeProperty('--plot-scale');
+  } else {
+    // Its height follows from its width alone (the grip keeps it within
+    // the room under the rows), never squeezed by the ring's row.
+    curvePlotEl.style.width = w + 'px';
+    curvePlotEl.style.maxHeight = 'none';
+    curvePlotEl.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
+  }
+}
+var curveGripEl = $('curve-grip');
+curveGripEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0 || IS_MOBILE) return;
+  var r = boxOf(curvePlotEl), body = curvePlotEl.closest('.fs-win-body');
+  var b = boxOf(body), floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
+  // As large as fits: as wide as the room left of its right edge, as tall
+  // as the room under the rows.
+  var maxW = Math.min(r.right - b.left - 8, r.width * (floor - topRowsBottom(body) - 8) / r.height);
+  curveSizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: Math.max(r.width, maxW) };
+  curveGripEl.setPointerCapture(e.pointerId);
+  curvePlotEl.classList.add('is-resizing');
+  e.preventDefault();
+  e.stopPropagation();
+});
+curveGripEl.addEventListener('pointermove', function(e){
+  if (!curveSizing || e.pointerId !== curveSizing.id) return;
+  var pull = ((curveSizing.x - ptX(e)) + (ptY(e) - curveSizing.y)) / 2;
+  sizeCurvePlot(Math.round(Math.max(200, Math.min(curveSizing.max, curveSizing.w + pull))));
+  placeCurvePlot(curveAt.x, curveAt.y);
+});
+function endCurveSizing(e){
+  if (!curveSizing || e.pointerId !== curveSizing.id) return;
+  curveSizing = null;
+  curvePlotEl.classList.remove('is-resizing');
+}
+curveGripEl.addEventListener('pointerup', endCurveSizing);
+curveGripEl.addEventListener('pointercancel', endCurveSizing);
+curveGripEl.addEventListener('dblclick', function(e){
+  e.stopPropagation();
+  sizeCurvePlot(null);
+  placeCurvePlot(curveAt.x, curveAt.y);
+});
 var plotMinSent = null;
 function tellPlotMin(min){
   if (min === plotMinSent) return;
