@@ -900,7 +900,12 @@
   .lap-c3{ --walk:var(--role-warn); }
   .lap-c4{ --walk:var(--role-input); }
   .lap-key{ position:relative; margin-top:10px; z-index:3; max-width:min(300px, 100%); box-sizing:border-box; max-height:190px; overflow-y:auto; padding:8px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); font-size:.84rem; color:var(--text-dim); line-height:1.4; }
-  .fs-win-body.is-ring > .lap-key{ grid-area:ring; justify-self:start; align-self:start; margin:0; top:8px; max-width:min(300px, 45%); }
+  .fs-win-body.is-ring > .lap-key{ grid-area:ring; justify-self:start; align-self:end; margin:0; bottom:8px; max-width:min(300px, 45%); }
+  /* Like the plot windows it is dragged by its head or frame and minimized
+     into the bottom bar, which a phone does not have. */
+  :root:not(.is-mobile) .lap-key{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  :root:not(.is-mobile) .lap-key.is-moving{ cursor:grabbing; }
+  :root.is-mobile #lap-key-min{ display:none; }
   .lap-key[hidden]{ display:none; }
   .lap-key-head{ display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:4px; }
   .lap-key-head > h2{ margin:0; font-size:.78rem; font-weight:600; color:var(--text); }
@@ -2648,7 +2653,6 @@
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner" id="legend-corner" aria-pressed="false" aria-controls="legend-panel" title="Show element colour key" aria-label="Show element colour key" data-i18n-title="cyclicGroups.showElementKey" data-i18n-aria-label="cyclicGroups.showElementKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle class="icon-fill" cx="2.8" cy="2.5" r="1.4"/><circle class="icon-fill" cx="2.8" cy="6" r="1.4"/><circle class="icon-fill" cx="2.8" cy="9.5" r="1.4"/><line x1="6" y1="2.5" x2="10.5" y2="2.5"/><line x1="6" y1="6" x2="10.5" y2="6"/><line x1="6" y1="9.5" x2="10.5" y2="9.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="akey-corner" aria-pressed="false" aria-controls="combine-key" title="Show arrow colour key" aria-label="Show arrow colour key" data-i18n-title="cyclicGroups.showArrowKey" data-i18n-aria-label="cyclicGroups.showArrowKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 3.5H5.5M4 2 5.5 3.5 4 5"/><path d="M1.5 8.5H5.5M4 7 5.5 8.5 4 10"/><line x1="7.5" y1="3.5" x2="10.5" y2="3.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="8.5"/></svg></button>
-        <button type="button" class="fs-win-btn key-corner" id="lap-corner" aria-pressed="false" aria-controls="lap-key" title="Show the laps' colours" aria-label="Show the laps' colours" data-i18n-title="cyclicGroups.lapKeyShow" data-i18n-aria-label="cyclicGroups.lapKeyShow" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/><circle cx="6" cy="6" r="2"/></svg></button>
         <button type="button" class="fs-win-btn genexp-corner" id="genexp-corner" aria-pressed="false" aria-controls="genexp-info" title="Show the element expressions" aria-label="Show the element expressions" data-i18n-title="cyclicGroups.genExpOpenTitle" data-i18n-aria-label="cyclicGroups.genExpOpenTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="1.5" y="2" width="9" height="8" rx="1"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4.5" y1="2" x2="4.5" y2="10"/></svg></button>
       </div>
 
@@ -4601,32 +4605,39 @@ function barPlotTasks(i, G){
   var tasks = [];
   if (G.pts && (i === 0 ? !curvePlotOpen : isoPanePlotMin)){
     var curve = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
-    tasks.push(barTask(curve, translate('cyclicGroups.curvePlotShow'), translate('cyclicGroups.curvePlotTask', { curve: curve }), false, function(){
+    tasks.push(barTask(curve, translate('cyclicGroups.curvePlotShow'), translate('cyclicGroups.curvePlotTask', { curve: curve }), 'curve', function(){
       if (i === 0){ openCurvePlot(); blinkLinked(curvePlotEl); return; }
       tellPane({ ringhost: 'plotopen' });
     }));
   }
   if (i === 0 ? polyAvail(G) && !polyOpen : isoPanePolyMin){
     var name = translate('cyclicGroups.polyTitle', { n: G.order });
-    tasks.push(barTask(name, translate('cyclicGroups.polyShow'), translate('cyclicGroups.polyTask', { n: G.order }), true, function(){
+    tasks.push(barTask(name, translate('cyclicGroups.polyShow'), translate('cyclicGroups.polyTask', { n: G.order }), 'poly', function(){
       if (i === 0){ openPolyPlot(); blinkLinked(polyPlotEl); return; }
       tellPane({ ringhost: 'polyopen' });
     }));
+  }
+  if (i === 0 && lapKeyOn && !lapKeyOpen){
+    var laps = translate('cyclicGroups.lapKeyTitle');
+    tasks.push(barTask(laps, translate('cyclicGroups.lapKeyShow'), translate('cyclicGroups.lapKeyShow'), 'lap', function(){ openLapKey(); blinkLinked(lapKeyEl); }));
   }
   return tasks;
 }
 function tellPane(msg){
   try { isoPaneFrame.contentWindow.postMessage(msg, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
-function barTask(text, title, label, poly, open){
+function barTask(text, title, label, kind, open){
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'bar-btn bar-task' + (poly ? ' is-poly' : '');
+  btn.className = 'bar-btn bar-task is-' + kind;
   btn.title = title;
   btn.setAttribute('aria-label', label);
   var icon = svgEl('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
-  if (poly) icon.appendChild(svgEl('path', { d: 'M6 1.2 10.6 4.6 8.8 10.2H3.2L1.4 4.6Z' }));
-  else {
+  if (kind === 'poly') icon.appendChild(svgEl('path', { d: 'M6 1.2 10.6 4.6 8.8 10.2H3.2L1.4 4.6Z' }));
+  else if (kind === 'lap'){
+    icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 4.5 }));
+    icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 2 }));
+  } else {
     icon.appendChild(svgEl('path', { d: 'M1.5 10.5V1.5M1.5 10.5H10.5' }));
     [[4.5, 7], [7, 4.5], [9, 8]].forEach(function(c){ icon.appendChild(svgEl('circle', { 'class': 'icon-fill', cx: c[0], cy: c[1], r: 1 })); });
   }
@@ -8096,8 +8107,8 @@ function lapClass(L){ return 'lap-c' + L % LAP_COLORS; }
 // Once the walk passes a lap, the lap key pops up listing the colours, each
 // with the laps and the k it stands for; it minimizes into the ring
 // window's corner buttons, and goes away again once k fits in one lap.
-var lapKeyEl = $('lap-key'), lapKeyListEl = $('lap-key-list'), lapCornerEl = $('lap-corner');
-var lapKeyOpen = false, lapKeyOn = false;
+var lapKeyEl = $('lap-key'), lapKeyListEl = $('lap-key-list');
+var lapKeyOpen = false, lapKeyOn = false, lapTaskShown = false;
 function syncLapKey(G){
   var sw = IS_ISOPANE ? null : scalarWalk(G);
   var m0 = sw ? sw.walk.length : 0, K = combo.k === null ? 0 : Math.abs(combo.k);
@@ -8105,8 +8116,11 @@ function syncLapKey(G){
   if (on && !lapKeyOn) lapKeyOpen = true;
   lapKeyOn = on;
   lapKeyEl.hidden = !on || !lapKeyOpen;
-  lapCornerEl.hidden = !on;
-  lapCornerEl.setAttribute('aria-pressed', on && lapKeyOpen ? 'true' : 'false');
+  // Minimized, it is a task in the bottom bar.
+  if ((on && !lapKeyOpen) !== lapTaskShown){
+    lapTaskShown = on && !lapKeyOpen;
+    syncBarFormulas();
+  }
   if (!on) return;
   // Up to three laps per colour, then an ellipsis; k signed as entered.
   var laps = Math.ceil(K / m0), sign = combo.k < 0 ? -1 : 1;
@@ -8132,12 +8146,14 @@ function syncLapKey(G){
 $('lap-key-min').addEventListener('click', function(){
   lapKeyOpen = false;
   if (drawn) syncLapKey(drawn.G);
-  lapCornerEl.focus();
+  var task = $('bar-formulas-l').querySelector('.bar-task.is-lap');
+  if (task) task.focus();
 });
-lapCornerEl.addEventListener('click', function(){
-  lapKeyOpen = !lapKeyOpen;
+function openLapKey(){
+  lapKeyOpen = true;
   if (drawn) syncLapKey(drawn.G);
-});
+  lapKeyWin.place(lapKeyWin.at.x, lapKeyWin.at.y);
+}
 
 // The elliptic curve mode's plot: open with the mode, minimized into the
 // corner buttons and back.
@@ -8690,7 +8706,7 @@ $('curve-plot-min').addEventListener('click', function(){
   curvePlotOpen = false;
   if (drawn) drawCurvePlot(drawn.G);
   syncBarFormulas();
-  var task = $('bar-formulas-l').querySelector('.bar-task:not(.is-poly)');
+  var task = $('bar-formulas-l').querySelector('.bar-task.is-curve');
   if (task) task.focus();
 });
 function openCurvePlot(){
@@ -8754,6 +8770,7 @@ function plotWindow(el, gripEl){
   el.addEventListener('pointercancel', endMoving);
   el.addEventListener('dblclick', function(e){ if (grip(e)) win.place(0, 0); });
   window.addEventListener('resize', function(){ if (win.at.x || win.at.y) win.place(win.at.x, win.at.y); });
+  if (!gripEl) return win;
   gripEl.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || IS_MOBILE) return;
     var r = boxOf(el), body = el.closest('.fs-win-body');
@@ -8788,6 +8805,7 @@ function plotWindow(el, gripEl){
   return win;
 }
 var curveWin = plotWindow(curvePlotEl, $('curve-grip'));
+var lapKeyWin = plotWindow(lapKeyEl, null);
 var plotMinSent = null;
 function tellPlotMin(min){
   if (min === plotMinSent) return;
