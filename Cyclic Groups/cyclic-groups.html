@@ -334,7 +334,7 @@
   .facts.group-controls .op-toggle-row{ display:none; }
   /* The elliptic curve mode: its switch, then, while it is on, the curve's
      p, a and b in place of the modulus and the operation switch. */
-  .facts.group-controls .ec-toggle-row{ justify-content:flex-end; gap:6px; }
+  .facts.group-controls .ec-toggle-row{ justify-content:flex-end; }
   .ec-toggle{ font:inherit; font-size:.85rem; padding:4px 10px; color:var(--text-dim); background:none; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; white-space:nowrap; }
   .ec-toggle:hover{ color:var(--text); }
   .ec-toggle[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); }
@@ -966,7 +966,12 @@
   .curve-plot.is-real .curve-plot-svg{ cursor:crosshair; }
   /* The polygon mode: the n-gon at rest (dashed), turned (shaded) with its
      marked corner's hand, the turns as arcs inside it. */
-  .curve-plot.is-poly .plot-view{ display:none; }
+  /* The polygon's window docks at the top left of the ring's half, its
+     grip in its bottom right corner; a phone has no bar to keep it in. */
+  .fs-win-body.is-ring > .poly-plot{ justify-self:start; }
+  :root:not(.is-mobile) .fs-win-body.is-ring > .poly-plot > .curve-grip{ left:auto; right:2px; cursor:nwse-resize;
+    background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); }
+  :root.is-mobile .poly-plot{ display:none !important; }
   .curve-plot-svg .poly-home{ fill:none; stroke:var(--panel-border); stroke-width:1; stroke-dasharray:3 3; }
   .curve-plot-svg .poly-shape{ fill:color-mix(in srgb, var(--accent) 12%, transparent); stroke:var(--text-dim); stroke-width:1.4; stroke-linejoin:round; }
   .curve-plot-svg .poly-body{ transform-box:view-box; pointer-events:none; }
@@ -2325,6 +2330,10 @@
           <div class="lap-key-head"><h2 id="curve-plot-title"></h2><span class="plot-view" id="plot-view" role="group" aria-label="Plot" data-i18n-aria-label="cyclicGroups.plotViewLabel"><button type="button" data-view="mod" aria-pressed="true">mod</button><button type="button" data-view="tiles" aria-pressed="false">ℤ</button><button type="button" data-view="real" aria-pressed="false">ℝ</button></span><button type="button" class="fs-win-btn lap-key-min" id="curve-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
           <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="curve-plot-note" hidden></p><div class="curve-grip" id="curve-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
+        <section class="curve-plot poly-plot" id="poly-plot" aria-labelledby="poly-plot-title" hidden>
+          <div class="lap-key-head"><h2 id="poly-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="poly-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
+          <svg class="curve-plot-svg" id="poly-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="poly-plot-note"></p><div class="curve-grip" id="poly-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
+        </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
@@ -2488,7 +2497,7 @@
         <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
         <ul class="facts group-controls" id="group-controls">
           <li class="fs-row-label" data-i18n="cyclicGroups.fsGroupParams">Parameters</li>
-          <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button><button type="button" class="ec-toggle" id="poly-toggle" aria-pressed="false" title="Show ⟨ℤ/nℤ, +⟩ as the rotations of a regular n-sided polygon" aria-label="Regular polygon" data-i18n-title="cyclicGroups.polyToggleTitle" data-i18n-aria-label="cyclicGroups.polyToggle"><span data-i18n="cyclicGroups.polyToggle">Regular polygon</span></button></li>
+          <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
           <li class="ec-row" id="ec-row" hidden>
             <span class="ec-eq" id="ec-eq" dir="ltr"></span>
             <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><span class="n-spin"><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span></span>
@@ -2710,7 +2719,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { poly: false, plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -4560,8 +4569,7 @@ function syncBarFormulas(){
     var box = $(side.el), G = barGroup(i);
     box.replaceChildren();
     if (!G) return;
-    var task = barPlotTask(i, G);
-    if (task) box.appendChild(task);
+    barPlotTasks(i, G).forEach(function(task){ box.appendChild(task); });
     if (state.ec || G.pts) return;
     var btn = document.createElement('button');
     btn.type = 'button';
@@ -4584,17 +4592,36 @@ function syncBarFormulas(){
     box.appendChild(btn);
   });
 }
-// A curve's minimized plot, as a task in the bar: its curve, and a click
-// opens it again.
-var isoPanePlotMin = false;
-function barPlotTask(i, G){
-  if (!(i === 0 ? plotted(G) && !curvePlotOpen : isoPanePlotMin)) return null;
-  var poly = !G.pts, curve = poly ? translate('cyclicGroups.polyTitle', { n: G.n }) : ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
+// A minimized plot, as a task in the bar: the curve's, named by its
+// curve, and the polygon's, named by its N; a click opens it again.
+var isoPanePlotMin = false, isoPanePolyMin = false;
+function barPlotTasks(i, G){
+  var tasks = [];
+  if (G.pts && (i === 0 ? !curvePlotOpen : isoPanePlotMin)){
+    var curve = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
+    tasks.push(barTask(curve, translate('cyclicGroups.curvePlotShow'), translate('cyclicGroups.curvePlotTask', { curve: curve }), false, function(){
+      if (i === 0){ openCurvePlot(); blinkLinked(curvePlotEl); return; }
+      tellPane({ ringhost: 'plotopen' });
+    }));
+  }
+  if (i === 0 ? polyAvail(G) && !polyOpen : isoPanePolyMin){
+    var name = translate('cyclicGroups.polyTitle', { n: G.order });
+    tasks.push(barTask(name, translate('cyclicGroups.polyShow'), translate('cyclicGroups.polyTask', { n: G.order }), true, function(){
+      if (i === 0){ openPolyPlot(); blinkLinked(polyPlotEl); return; }
+      tellPane({ ringhost: 'polyopen' });
+    }));
+  }
+  return tasks;
+}
+function tellPane(msg){
+  try { isoPaneFrame.contentWindow.postMessage(msg, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+}
+function barTask(text, title, label, poly, open){
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'bar-btn bar-task';
-  btn.title = translate(poly ? 'cyclicGroups.polyShow' : 'cyclicGroups.curvePlotShow');
-  btn.setAttribute('aria-label', poly ? btn.title + ': ' + curve : translate('cyclicGroups.curvePlotTask', { curve: curve }));
+  btn.className = 'bar-btn bar-task' + (poly ? ' is-poly' : '');
+  btn.title = title;
+  btn.setAttribute('aria-label', label);
   var icon = svgEl('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
   if (poly) icon.appendChild(svgEl('path', { d: 'M6 1.2 10.6 4.6 8.8 10.2H3.2L1.4 4.6Z' }));
   else {
@@ -4603,12 +4630,9 @@ function barPlotTask(i, G){
   }
   btn.appendChild(icon);
   var name = document.createElement('span');
-  name.textContent = curve;
+  name.textContent = text;
   btn.appendChild(name);
-  btn.addEventListener('click', function(){
-    if (i === 0){ openCurvePlot(); blinkLinked(curvePlotEl); return; }
-    try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'plotopen' }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
-  });
+  btn.addEventListener('click', open);
   return btn;
 }
 function barFormulasChanged(){
@@ -5418,7 +5442,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -6770,6 +6794,10 @@ if (IS_RINGWIN){
       if (IS_ISOPANE){ openCurvePlot(); blinkLinked(curvePlotEl); }
       return;
     }
+    if (d.ringhost === 'polyopen'){
+      if (IS_ISOPANE){ openPolyPlot(); blinkLinked(polyPlotEl); }
+      return;
+    }
     if (d.ringhost === 'zoom'){
       if (!IS_ISOPANE || !Number.isInteger(d.i)) return;
       applyZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
@@ -6871,6 +6899,7 @@ function drawNecklace(G, paint){
   drawRing(ringDynamicEl, G, beads, box, paint);
   syncLapKey(G);
   drawCurvePlot(G);
+  drawPolyPlot(G);
   drawCombineLine(G, SIZE - 16);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
@@ -8135,23 +8164,11 @@ plotViewEl.addEventListener('click', function(e){
   drawCurvePlot(drawn.G);
   mirrorToUrl(drawn.G);
 });
-// The polygon mode's window shows ⟨ℤ/nℤ, +⟩ alone.
-function polyOn(G){ return state.poly && !!G && !G.pts && G.mode === 'additive'; }
-function plotted(G){ return !!G.pts || polyOn(G); }
 function drawCurvePlot(G){
-  var on = plotted(G);
+  var on = !!G.pts;
   curvePlotEl.hidden = !on || !curvePlotOpen;
   if (IS_ISOPANE) tellPlotMin(on && !curvePlotOpen);
-  curvePlotEl.classList.toggle('is-poly', polyOn(G));
   if (curvePlotEl.hidden) return;
-  if (!G.pts){
-    curvePlotEl.classList.remove('is-picks-g', 'is-real');
-    translateInto($('curve-plot-title'), 'cyclicGroups.polyTitle', { n: G.n });
-    curvePlotSvgEl.replaceChildren();
-    curvePlotSvgEl.setAttribute('aria-label', translate('cyclicGroups.polyTitle', { n: G.n }));
-    plotPolygon(G);
-    return;
-  }
   var real = state.plotView === 'real';
   syncPlotView(G);
   curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
@@ -8162,36 +8179,66 @@ function drawCurvePlot(G){
   if (real) plotReal(G);
   else plotGrid(G, state.plotView === 'tiles');
 }
-// The regular n-gon: corner k is the element k, the turn by k · 360°/n
-// that carries the marked corner, at 0 when the polygon is at rest, to
-// corner k. The polygon stands turned by the combination picked on the
-// ring (a, a + b or k·a), the turns that make it drawn as arcs inside it,
-// and it turns there, forward as the ring counts, when the pick changes.
-var polyShown = null;
+// Every cyclic group of order N is ⟨ℤ/Nℤ, +⟩: the rotations of a regular
+// N-gon. Its window, minimized into the bar until opened, sets corner k
+// at the element gᵏ, the turn by k · 360°/N that carries the marked
+// corner, at corner 0 while the polygon rests, to corner k; g is the
+// expression slider's generator (on Natural, 1 in the additive group, the
+// first generator in any other). The polygon stands turned by the
+// combination picked (a, a ∗ b or aᵏ), the turns that make it drawn as
+// arcs inside it, and turns there, forward as the ring counts, when the
+// pick changes. A corner is picked as its bead is.
+var polyPlotEl = $('poly-plot'), polyPlotSvgEl = $('poly-plot-svg'), polyNoteEl = $('poly-plot-note');
+var polyOpen = false, polyShown = null;
+var polyWin = plotWindow(polyPlotEl, $('poly-grip'));
+function polyAvail(G){ return !!G && G.cyclic && G.order > 1 && !IS_MOBILE && !(IS_ISOPANE && isoBlank) && !hostBlank(); }
+function polyGen(G){
+  var g = exprBy(G);
+  return g !== null ? g : !G.pts && G.mode === 'additive' ? 1 : G.generators[0];
+}
 function polyRotation(G){
   if (!comboLive(G)) return G.identity;
   if (combo.k !== null) return scalarOf(G, combo.a, combo.k);
   return combo.b !== null && G.els.indexOf(combo.b) !== -1 ? G.combine(combo.a, combo.b) : combo.a;
 }
 function polyDegrees(k, n){ return String(Math.round(k * 36000 / n) / 100); }
+var polyMinSent = null;
+function drawPolyPlot(G){
+  var on = polyAvail(G);
+  polyPlotEl.hidden = !on || !polyOpen;
+  if (IS_ISOPANE && polyMinSent !== (on && !polyOpen)){
+    polyMinSent = on && !polyOpen;
+    tellHost({ isopane: 'polymin', min: polyMinSent });
+  }
+  if (polyPlotEl.hidden) return;
+  var n = G.order, title = translate('cyclicGroups.polyTitle', { n: n });
+  $('poly-plot-title').textContent = title;
+  polyPlotSvgEl.setAttribute('aria-label', title);
+  polyPlotSvgEl.replaceChildren();
+  plotPolygon(G);
+}
 function plotPolygon(G){
-  var n = G.n, svg = curvePlotSvgEl, C = CURVE_W / 2, R = 96, sgn = dirSign();
+  var n = G.order, svg = polyPlotSvgEl, C = CURVE_W / 2, R = 96, sgn = dirSign();
+  var g = polyGen(G), log = exprLog(G, g), els = elsBy(G, g), natural = exprBy(G) === null;
+  var nat = natural && !G.pts && G.mode === 'additive';
   var roles = combineRoles(G), live = comboLive(G), rot = polyRotation(G);
   var ang = function(k){ return (-90 + sgn * k * 360 / n) * Math.PI / 180; };
   var at = function(k, r){ return [C + r * Math.cos(ang(k)), C + r * Math.sin(ang(k))]; };
-  var ring = function(r){ return G.els.map(function(k){ var p = at(k, r); return num(p[0]) + ',' + num(p[1]); }).join(' '); };
+  var ring = function(r){ return els.map(function(x, k){ var p = at(k, r); return num(p[0]) + ',' + num(p[1]); }).join(' '); };
+  // gᵏ as the ring writes it: k·P on a curve, a power otherwise.
+  var power = function(k){ return G.pts ? k + '·' + elText(G, g, true) : baseText(G, g) + superscript(k); };
+  var label = function(x){ return natural ? elText(G, x, true) : G.pts ? log[x] + 'P' : baseText(G, g) + superscript(balExp(G, log[x])); };
   var dotR = Math.max(3, Math.min(9, Math.PI * R / n * 0.42));
-  // Where the polygon rests, its corners' places.
   svg.appendChild(svgEl('polygon', { 'class': 'poly-home', points: ring(R) }));
   // The turns: from 0 by a (then by b), or k hops of a; each an arc
   // inside the polygon, the later ones nearer its centre.
   var turns = [];
   if (live && combo.k !== null){
-    var hop = combo.k < 0 ? G.inv[combo.a] : combo.a, hops = Math.min(Math.abs(combo.k), 40);
+    var hop = log[combo.k < 0 ? G.inv[combo.a] : combo.a], hops = Math.min(Math.abs(combo.k), 40);
     for (var h = 0; h < hops; h++) turns.push({ from: (h * hop) % n, by: hop, role: 'a' });
   } else if (live){
-    turns.push({ from: 0, by: combo.a, role: 'a' });
-    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: combo.a, by: combo.b, role: 'b' });
+    turns.push({ from: 0, by: log[combo.a], role: 'a' });
+    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: log[combo.a], by: log[combo.b], role: 'b' });
   }
   turns = turns.filter(function(t){ return t.by % n; });
   turns.forEach(function(t, i){
@@ -8212,41 +8259,61 @@ function plotPolygon(G){
   body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
   // It turns forward from where it stood, by as many steps as the ring
   // counts; let go, it is back at rest at once.
-  var key = G.key + '|' + sgn, deg = sgn * rot * 360 / n;
-  if (polyShown && polyShown.key === key && rot && polyShown.rot !== rot){
-    deg = polyShown.deg + sgn * (((rot - polyShown.rot) % n + n) % n) * 360 / n;
-  }
-  var from = polyShown && polyShown.key === key && rot ? polyShown.deg : deg;
+  var turn = log[rot], key = G.key + '|' + g + '|' + sgn, deg = sgn * turn * 360 / n;
+  var same = polyShown && polyShown.key === key && turn;
+  if (same && polyShown.turn !== turn) deg = polyShown.deg + sgn * (((turn - polyShown.turn) % n + n) % n) * 360 / n;
+  var from = same ? polyShown.deg : deg;
   body.style.transform = 'rotate(' + deg + 'deg)';
   body.style.transformOrigin = C + 'px ' + C + 'px';
   if (from !== deg && body.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches){
     body.animate([{ transform: 'rotate(' + from + 'deg)' }, { transform: 'rotate(' + deg + 'deg)' }], { duration: Math.min(900, 260 + Math.abs(deg - from) * 2), easing: 'ease-in-out' });
   }
-  polyShown = { key: key, rot: rot, deg: deg };
+  polyShown = { key: key, turn: turn, deg: deg };
   // The corners' places, one per element, painted and picked as beads.
   var every = n <= 30 ? 1 : n <= 60 ? 5 : 10;
-  G.els.forEach(function(k){
-    var p = at(k, R), look = drawn ? drawn.paint(k) : { cls: '', style: null };
-    var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(p[0]), cy: num(p[1]), r: num(dotR), 'data-el': k };
+  els.forEach(function(x, k){
+    var p = at(k, R), look = drawn ? drawn.paint(x) : { cls: '', style: null };
+    var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(p[0]), cy: num(p[1]), r: num(dotR), 'data-el': x };
     if (look.style) attrs.style = look.style;
     var dot = svg.appendChild(svgEl('circle', attrs));
-    dot.appendChild(svgEl('title', {})).textContent = translate('cyclicGroups.polyCorner', { k: elText(G, k), deg: polyDegrees(k, n) });
-    (roles.get(k) || []).forEach(function(role, j){
-      if (role === 'a' && j && roles.get(k)[j - 1] === 'a') return;
+    dot.appendChild(svgEl('title', {})).textContent = nat
+      ? translate('cyclicGroups.polyCornerNat', { k: k, n: n, deg: polyDegrees(k, n) })
+      : translate('cyclicGroups.polyCorner', { el: elText(G, x), gk: power(k), k: k, n: n, deg: polyDegrees(k, n) });
+    (roles.get(x) || []).forEach(function(role, j){
+      if (role === 'a' && j && roles.get(x)[j - 1] === 'a') return;
       svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * j) }));
     });
     if (k % every) return;
     var q = at(k, R + dotR + 10);
-    var lab = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(q[0]), y: num(q[1] + 3.5), 'text-anchor': 'middle' }));
-    lab.textContent = elText(G, k);
+    svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(q[0]), y: num(q[1] + 3.5), 'text-anchor': 'middle' })).textContent = label(x);
   });
-  var noteEl = $('curve-plot-note');
-  noteEl.hidden = false;
-  var c = rot, ks = live && combo.k !== null;
-  if (!live) translateInto(noteEl, 'cyclicGroups.polyNoteRest', { n: n });
-  else if (ks) translateInto(noteEl, 'cyclicGroups.polyNoteScalar', { k: signed(combo.k), a: elText(G, combo.a), c: elText(G, c), n: n, deg: polyDegrees(c, n) });
-  else if (combo.b !== null && G.els.indexOf(combo.b) !== -1) translateInto(noteEl, 'cyclicGroups.polyNoteSum', { a: elText(G, combo.a), b: elText(G, combo.b), c: elText(G, c), n: n, deg: polyDegrees(c, n) });
-  else translateInto(noteEl, 'cyclicGroups.polyNoteOne', { a: elText(G, combo.a), n: n, deg: polyDegrees(combo.a, n) });
+  var gk = G.pts ? 'k·' + elText(G, g, true) : baseText(G, g) + 'ᵏ';
+  var op = G.pts || G.mode === 'additive' ? '+' : '·';
+  if (!live) translateInto(polyNoteEl, nat ? 'cyclicGroups.polyNoteRestNat' : natural ? 'cyclicGroups.polyNoteFirstGen' : 'cyclicGroups.polyNoteRest', { gk: gk, n: n });
+  else if (combo.k !== null){
+    var kk = combo.k, i0 = log[combo.a], t0 = log[rot];
+    var expr = G.pts || G.mode === 'additive' ? signed(kk) + '·' + baseText(G, combo.a) : baseText(G, combo.a) + superscript(signed(kk));
+    translateInto(polyNoteEl, 'cyclicGroups.polyNoteScalar', { expr: expr, c: elText(G, rot), i: i0, k: signed(kk), t: t0, n: n });
+  } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
+    translateInto(polyNoteEl, 'cyclicGroups.polyNoteSum', { a: elText(G, combo.a), op: op, b: elText(G, combo.b), c: elText(G, rot), i: log[combo.a], j: log[combo.b], k: log[rot], n: n });
+  } else translateInto(polyNoteEl, 'cyclicGroups.polyNoteOne', { a: elText(G, combo.a), i: log[combo.a], n: n, deg: polyDegrees(log[combo.a], n) });
+}
+polyPlotSvgEl.addEventListener('click', function(e){
+  var dot = e.target.closest('.curve-dot');
+  if (dot) combineTap(+dot.getAttribute('data-el'));
+});
+$('poly-plot-min').addEventListener('click', function(){
+  polyOpen = false;
+  if (drawn){ drawPolyPlot(drawn.G); mirrorToUrl(drawn.G); }
+  syncBarFormulas();
+  var task = $('bar-formulas-l').querySelector('.bar-task.is-poly');
+  if (task) task.focus();
+});
+function openPolyPlot(){
+  polyOpen = true;
+  if (drawn){ drawPolyPlot(drawn.G); mirrorToUrl(drawn.G); }
+  syncBarFormulas();
+  polyWin.place(polyWin.at.x, polyWin.at.y);
 }
 // The slope mod n of the line through two points (the tangent through one).
 function chordSlope(G, a, b){
@@ -8567,7 +8634,7 @@ function realPickAt(e){
 // Followed by the subgroup dropdown, the plot picks G instead: a point, or
 // 𝒪 in its corner.
 curvePlotSvgEl.addEventListener('click', function(e){
-  if (state.plotView === 'real' && !curvePlotEl.classList.contains('is-poly') && !e.target.closest('.curve-dot, .curve-o')){ if (state.realPlot) realPickAt(e); return; }
+  if (state.plotView === 'real' && !e.target.closest('.curve-dot, .curve-o')){ if (state.realPlot) realPickAt(e); return; }
   var dot = e.target.closest(state.genPlot ? '.curve-dot, .curve-o' : '.curve-dot');
   if (!dot) return;
   var el = dot.classList.contains('curve-o') ? 0 : +dot.getAttribute('data-el');
@@ -8577,106 +8644,109 @@ curvePlotSvgEl.addEventListener('click', function(e){
 // Minimized, the plot is a task in the bottom bar, under its own ring's
 // half, named by its curve; the pane's plot too, its task in the bar
 // beside the pane, which the pane hears of (tellPlotMin) and is told to
-// open again ('plotopen').
+// open again ('plotopen'). The polygon's window does the same.
 $('curve-plot-min').addEventListener('click', function(){
   curvePlotOpen = false;
   if (drawn) drawCurvePlot(drawn.G);
   syncBarFormulas();
-  var task = $('bar-formulas-l').querySelector('.bar-task');
+  var task = $('bar-formulas-l').querySelector('.bar-task:not(.is-poly)');
   if (task) task.focus();
 });
 function openCurvePlot(){
   curvePlotOpen = true;
   if (drawn) drawCurvePlot(drawn.G);
   syncBarFormulas();
-  placeCurvePlot(curveAt.x, curveAt.y);
+  curveWin.place(curveWin.at.x, curveWin.at.y);
 }
-// The plot's window is dragged by its head or its frame (not its points),
+// A plot's window is dragged by its head or its frame (not its points),
 // kept within the ring's half under its rows and above the bottom bar; a
-// double click on its head puts it back.
-var curveAt = { x: 0, y: 0 }, curveMoving = null;
-function placeCurvePlot(x, y){
-  var body = curvePlotEl.closest('.fs-win-body');
-  curvePlotEl.style.translate = curveAt.x + 'px ' + curveAt.y + 'px';
-  if (body && !curvePlotEl.hidden){
-    var b = boxOf(body), r = boxOf(curvePlotEl);
-    var floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
-    var left = r.left + x - curveAt.x, top = r.top + y - curveAt.y;
-    x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
-    y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, floor - (top + r.height));
-  }
-  curveAt = { x: Math.round(x), y: Math.round(y) };
-  curvePlotEl.style.translate = curveAt.x + 'px ' + curveAt.y + 'px';
+// double click on its head puts it back. Its grip, in the bottom left
+// corner, resizes it on the diagonal: the width follows the pointer's pull
+// (left or down grows it) and the height follows the width, the plot's
+// shape kept. A double click puts it back.
+var CURVE_BASE_W = 300;
+function plotWindow(el, gripEl){
+  var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
+  win.place = function(x, y){
+    var body = el.closest('.fs-win-body');
+    el.style.translate = win.at.x + 'px ' + win.at.y + 'px';
+    if (body && !el.hidden){
+      var b = boxOf(body), r = boxOf(el);
+      var floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
+      var left = r.left + x - win.at.x, top = r.top + y - win.at.y;
+      x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
+      y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, floor - (top + r.height));
+    }
+    win.at = { x: Math.round(x), y: Math.round(y) };
+    el.style.translate = win.at.x + 'px ' + win.at.y + 'px';
+  };
+  // Its height follows from its width alone (the grip keeps it within the
+  // room under the rows), never squeezed by the ring's row.
+  win.size = function(w){
+    if (w === null){
+      el.style.removeProperty('width');
+      el.style.removeProperty('max-height');
+      el.style.removeProperty('--plot-scale');
+    } else {
+      el.style.width = w + 'px';
+      el.style.maxHeight = 'none';
+      el.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
+    }
+  };
+  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !e.target.closest('button, .curve-plot-svg, .curve-grip'); };
+  el.addEventListener('pointerdown', function(e){
+    if (!grip(e)) return;
+    moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y };
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('is-moving');
+    e.preventDefault();
+  });
+  el.addEventListener('pointermove', function(e){
+    if (moving && e.pointerId === moving.id) win.place(ptX(e) - moving.x, ptY(e) - moving.y);
+  });
+  var endMoving = function(e){
+    if (!moving || e.pointerId !== moving.id) return;
+    moving = null;
+    el.classList.remove('is-moving');
+  };
+  el.addEventListener('pointerup', endMoving);
+  el.addEventListener('pointercancel', endMoving);
+  el.addEventListener('dblclick', function(e){ if (grip(e)) win.place(0, 0); });
+  window.addEventListener('resize', function(){ if (win.at.x || win.at.y) win.place(win.at.x, win.at.y); });
+  gripEl.addEventListener('pointerdown', function(e){
+    if (e.button !== 0 || IS_MOBILE) return;
+    var r = boxOf(el), body = el.closest('.fs-win-body');
+    var b = boxOf(body), floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
+    // As large as fits: as wide as the room left of its right edge, as
+    // tall as the room under the rows.
+    var maxW = Math.min(r.right - b.left - 8, r.width * (floor - topRowsBottom(body) - 8) / r.height);
+    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: Math.max(r.width, maxW) };
+    gripEl.setPointerCapture(e.pointerId);
+    el.classList.add('is-resizing');
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  gripEl.addEventListener('pointermove', function(e){
+    if (!sizing || e.pointerId !== sizing.id) return;
+    var pull = ((sizing.x - ptX(e)) + (ptY(e) - sizing.y)) / 2;
+    win.size(Math.round(Math.max(200, Math.min(sizing.max, sizing.w + pull))));
+    win.place(win.at.x, win.at.y);
+  });
+  var endSizing = function(e){
+    if (!sizing || e.pointerId !== sizing.id) return;
+    sizing = null;
+    el.classList.remove('is-resizing');
+  };
+  gripEl.addEventListener('pointerup', endSizing);
+  gripEl.addEventListener('pointercancel', endSizing);
+  gripEl.addEventListener('dblclick', function(e){
+    e.stopPropagation();
+    win.size(null);
+    win.place(win.at.x, win.at.y);
+  });
+  return win;
 }
-function curveGrip(e){ return !IS_MOBILE && e.button === 0 && !e.target.closest('button, .curve-plot-svg, .curve-grip'); }
-curvePlotEl.addEventListener('pointerdown', function(e){
-  if (!curveGrip(e)) return;
-  curveMoving = { id: e.pointerId, x: ptX(e) - curveAt.x, y: ptY(e) - curveAt.y };
-  curvePlotEl.setPointerCapture(e.pointerId);
-  curvePlotEl.classList.add('is-moving');
-  e.preventDefault();
-});
-curvePlotEl.addEventListener('pointermove', function(e){
-  if (curveMoving && e.pointerId === curveMoving.id) placeCurvePlot(ptX(e) - curveMoving.x, ptY(e) - curveMoving.y);
-});
-function endCurveMoving(e){
-  if (!curveMoving || e.pointerId !== curveMoving.id) return;
-  curveMoving = null;
-  curvePlotEl.classList.remove('is-moving');
-}
-curvePlotEl.addEventListener('pointerup', endCurveMoving);
-curvePlotEl.addEventListener('pointercancel', endCurveMoving);
-curvePlotEl.addEventListener('dblclick', function(e){ if (curveGrip(e)) placeCurvePlot(0, 0); });
-window.addEventListener('resize', function(){ if (curveAt.x || curveAt.y) placeCurvePlot(curveAt.x, curveAt.y); });
-// Its grip, in the bottom left corner, resizes it on the diagonal: the
-// width follows the pointer's pull (left or down grows it) and the height
-// follows the width, the plot's shape kept. A double click puts it back.
-var CURVE_BASE_W = 300, curveSizing = null;
-function sizeCurvePlot(w){
-  if (w === null){
-    curvePlotEl.style.removeProperty('width');
-    curvePlotEl.style.removeProperty('max-height');
-    curvePlotEl.style.removeProperty('--plot-scale');
-  } else {
-    // Its height follows from its width alone (the grip keeps it within
-    // the room under the rows), never squeezed by the ring's row.
-    curvePlotEl.style.width = w + 'px';
-    curvePlotEl.style.maxHeight = 'none';
-    curvePlotEl.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
-  }
-}
-var curveGripEl = $('curve-grip');
-curveGripEl.addEventListener('pointerdown', function(e){
-  if (e.button !== 0 || IS_MOBILE) return;
-  var r = boxOf(curvePlotEl), body = curvePlotEl.closest('.fs-win-body');
-  var b = boxOf(body), floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
-  // As large as fits: as wide as the room left of its right edge, as tall
-  // as the room under the rows.
-  var maxW = Math.min(r.right - b.left - 8, r.width * (floor - topRowsBottom(body) - 8) / r.height);
-  curveSizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: Math.max(r.width, maxW) };
-  curveGripEl.setPointerCapture(e.pointerId);
-  curvePlotEl.classList.add('is-resizing');
-  e.preventDefault();
-  e.stopPropagation();
-});
-curveGripEl.addEventListener('pointermove', function(e){
-  if (!curveSizing || e.pointerId !== curveSizing.id) return;
-  var pull = ((curveSizing.x - ptX(e)) + (ptY(e) - curveSizing.y)) / 2;
-  sizeCurvePlot(Math.round(Math.max(200, Math.min(curveSizing.max, curveSizing.w + pull))));
-  placeCurvePlot(curveAt.x, curveAt.y);
-});
-function endCurveSizing(e){
-  if (!curveSizing || e.pointerId !== curveSizing.id) return;
-  curveSizing = null;
-  curvePlotEl.classList.remove('is-resizing');
-}
-curveGripEl.addEventListener('pointerup', endCurveSizing);
-curveGripEl.addEventListener('pointercancel', endCurveSizing);
-curveGripEl.addEventListener('dblclick', function(e){
-  e.stopPropagation();
-  sizeCurvePlot(null);
-  placeCurvePlot(curveAt.x, curveAt.y);
-});
+var curveWin = plotWindow(curvePlotEl, $('curve-grip'));
 var plotMinSent = null;
 function tellPlotMin(min){
   if (min === plotMinSent) return;
@@ -11420,6 +11490,7 @@ function openOwnPane(){
 function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
   isoPanePlotMin = false;
+  isoPanePolyMin = false;
   dropPaneCards();
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
@@ -11514,6 +11585,7 @@ function closeIsoPane(){
   isoAskEl.hidden = true;
   isoPaneKey = null;
   isoPanePlotMin = false;
+  isoPanePolyMin = false;
   isoPaneLegend = null;
   if (document.documentElement.classList.contains('is-host-blank')){
     document.documentElement.classList.remove('is-host-blank');
@@ -11606,7 +11678,7 @@ function applyRingQuery(q){
   state.genPlot = q.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(q.get('plotview')) !== -1 ? q.get('plotview') : 'mod';
   state.realPlot = q.get('realplot') === '1';
-  state.poly = q.get('polygon') === '1';
+  polyOpen = q.get('polygon') === '1';
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
@@ -12747,6 +12819,9 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'plotmin'){
     isoPanePlotMin = d.min === true;
     syncBarFormulas();
+  } else if (d.isopane === 'polymin'){
+    isoPanePolyMin = d.min === true;
+    syncBarFormulas();
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
@@ -13152,7 +13227,7 @@ function stateQuery(){
   if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else if (state.genPlot) q.set('sub', SUB_PLOT); else q.delete('sub');
   if (state.plotView !== 'mod') q.set('plotview', state.plotView); else q.delete('plotview');
   if (state.realPlot) q.set('realplot', '1'); else q.delete('realplot');
-  if (state.poly) q.set('polygon', '1'); else q.delete('polygon');
+  if (polyOpen) q.set('polygon', '1'); else q.delete('polygon');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
   q.delete('orders');
@@ -13516,7 +13591,6 @@ function persistGroup(){
 function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
-  if (id !== 'additive') state.poly = false;
   opSelectEl.value = state.mode;
   identitySelectEl.value = state.mode;
   opToggleEl.setAttribute('aria-checked', state.mode === 'multiplicative' ? 'true' : 'false');
@@ -13755,7 +13829,7 @@ function setPlotCtx(open, x, y){
   showCtxAt(plotCtxEl, x, y);
 }
 curvePlotEl.addEventListener('contextmenu', function(e){
-  if (state.plotView !== 'real' || curvePlotEl.classList.contains('is-poly')) return;
+  if (state.plotView !== 'real') return;
   e.preventDefault();
   if (IS_MOBILE) return;
   setPlotCtx(true, ptX(e), ptY(e));
@@ -13927,7 +14001,6 @@ function ecEquation(a, b){
 function syncEcControls(){
   document.documentElement.classList.toggle('is-ec', state.ec);
   ecToggleEl.setAttribute('aria-pressed', state.ec ? 'true' : 'false');
-  polyToggleEl.setAttribute('aria-pressed', state.poly ? 'true' : 'false');
   ecRowEl.hidden = !state.ec;
   if (!state.ec) return;
   [[ecPEl, state.ecP], [ecAEl, state.ecA], [ecBEl, state.ecB]].forEach(function(f){ if (document.activeElement !== f[0] || !ecNote) f[0].value = f[1]; });
@@ -13981,7 +14054,6 @@ function syncEcPresets(){
 function setEcMode(on){
   if (on === state.ec) return;
   state.ec = on;
-  if (on) state.poly = false;
   ecNote = null;
   var G = currentGroup();
   state.gen = startGen(G);
@@ -14011,21 +14083,6 @@ function applyCurve(p, a, b){
   endBlank();
 }
 ecToggleEl.addEventListener('click', function(){ setEcMode(!state.ec); });
-// The regular polygon mode: ⟨ℤ/nℤ, +⟩ as the turns of a regular n-gon,
-// shown in the plot's window. Turned on, it leaves the curve and takes
-// addition; multiplication or a curve turns it off.
-var polyToggleEl = $('poly-toggle');
-function setPolyMode(on){
-  state.poly = on;
-  if (on){
-    setEcMode(false);
-    setMode('additive');
-    curvePlotOpen = true;
-  }
-  render();
-  if (drawn) mirrorToUrl(drawn.G);
-}
-polyToggleEl.addEventListener('click', function(){ setPolyMode(!state.poly); });
 function typedCurve(){ applyCurve(parseInt(ecPEl.value, 10), parseInt(ecAEl.value, 10), parseInt(ecBEl.value, 10)); }
 [ecPEl, ecAEl, ecBEl].forEach(function(el){
   el.addEventListener('change', typedCurve);
@@ -15009,7 +15066,7 @@ function loadState(query, link){
   state.genPlot = query.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(query.get('plotview')) !== -1 ? query.get('plotview') : 'mod';
   state.realPlot = query.get('realplot') === '1';
-  state.poly = query.get('polygon') === '1';
+  polyOpen = query.get('polygon') === '1';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){
