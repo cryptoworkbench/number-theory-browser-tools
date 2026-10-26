@@ -798,7 +798,7 @@
   @keyframes keep-top-refused{ 0%{ color:var(--role-warn); } 50%{ color:inherit; } }
   /* G turned into its inverse by a lock (takeInverse): the angle brackets
      round its generator in the subgroup row flash red three times. */
-  .gen-super mo.is-lock-flash{ animation:lock-flash 360ms steps(1) 3; }
+  .gen-super .is-lock-flash{ animation:lock-flash 360ms steps(1) var(--blinks, 1); }
   @keyframes lock-flash{ 0%{ color:var(--role-warn); } 50%{ color:inherit; } }
   /* What the subgroup dropdown now follows blinks red (blinkLinked). */
   .is-linked-blink{ border-radius:var(--radius-ctl); animation:linked-blink 360ms steps(1) 3; }
@@ -7530,7 +7530,7 @@ function syncGenSuper(G){
   genSuperEl.replaceChildren();
   if (state.noSub) return;
   var h = state.gen, whole = G.orders[h] === G.order, rel = whole ? '⊆' : '⊂';
-  var named = genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL || genSelectEl.value === SUB_PLOT;
+  var named = genNamed();
   // The subgroup's h is written as the element expression slider writes
   // the beads. Under the pointer it shows its natural number, as a bead
   // does, unless the main menu's switch turns that off.
@@ -7538,17 +7538,41 @@ function syncGenSuper(G){
   genSuperEl.appendChild(named
     ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
     : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
-  // Redrawn while its brackets flash, they carry on from where they were.
-  var since = lockFlashAt === null ? Infinity : performance.now() - lockFlashAt;
-  if (!named || since >= LOCK_FLASH_MS) return;
-  var row = genSuperEl.querySelector('mrow > mrow');
-  if (!row) return;
-  [row.firstElementChild, row.lastElementChild].forEach(function(el){
+  // Redrawn while it blinks, it carries on from where it was.
+  if (!named || invBlink === null) return;
+  var since = performance.now() - invBlink.at;
+  if (since >= invBlink.n * INV_BLINK_MS) return;
+  invBlinkEls(G).forEach(function(el){
     el.classList.add('is-lock-flash');
+    el.style.setProperty('--blinks', invBlink.n);
     el.style.animationDelay = -since + 'ms';
   });
 }
-var lockFlashAt = null, LOCK_FLASH_MS = 3 * 360;
+function genNamed(){ return genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL || genSelectEl.value === SUB_PLOT; }
+// G turning into its inverse by a lock: what changes in the subgroup row
+// blinks red, twice before and once after, a blink apart. Written as a
+// power, only the exponent changes and blinks (k in kP); written Natural,
+// the element itself.
+var invBlink = null, INV_BLINK_MS = 360;
+function invBlinkEls(G){
+  var row = genSuperEl.querySelector('mrow > mrow');
+  if (!row) return [];
+  var inner = [].slice.call(row.children, 1, -1);
+  if (exprBy(G) === null) return inner;
+  var out = [];
+  inner.forEach(function(el){
+    el.querySelectorAll(ecMult(G) ? 'mrow:has(> mi:last-child)' : 'msup').forEach(function(m){
+      if (m.closest('.sub-nat')) return;
+      var k = ecMult(G) ? m.firstElementChild : m.lastElementChild;
+      if (k && out.indexOf(k) === -1) out.push(k);
+    });
+  });
+  return out.length ? out : inner;
+}
+function startInvBlink(n){
+  invBlink = { at: performance.now(), n: n };
+  if (drawn) syncGenSuper(drawn.G);
+}
 function syncGenerators(G){
   genSelectEl.replaceChildren();
   genSelectEl.appendChild(arrangeOption(SUB_PANEL, 'cyclicGroups.subPanelFollow'));
@@ -15093,7 +15117,10 @@ function readPrefDir(){
 function prefSign(){ return state.prefDir === 'ccw' ? -1 : 1; }
 function setPrefDir(dir){
   if (dir === state.prefDir || prefLocked()) return;
-  var inv = invForTurn();
+  afterInvBlink(function(inv){ turnPrefDir(dir, inv); });
+}
+function turnPrefDir(dir, inv){
+  if (dir === state.prefDir || prefLocked()) return;
   state.prefDir = dir;
   if (inv !== null) takeInverse(inv);
   try { localStorage.setItem(PREF_DIR_KEY, dir); } catch (e) { /* storage unavailable */ }
@@ -15223,11 +15250,28 @@ function takeInverse(inv){
   state.noSub = false;
 }
 // Kept on top, the inverse's bead turns to the top, as a selection does.
-// The brackets round it in the subgroup row flash, timed from the redraw.
+// Its exponent in the subgroup row blinks once, timed from the redraw.
 function tookInverse(inv){
   if (state.top === 'gen' && drawn) turnToTop(inv);
-  lockFlashAt = performance.now();
-  if (drawn) syncGenSuper(drawn.G);
+  startInvBlink(1);
+}
+// The free control used by hand while G would turn into its inverse: G's
+// exponent first blinks twice, then the control acts (act, given the
+// inverse as it then is). Clicked again meanwhile, it waits on the first.
+// The redraw takes a while (invActMs, as long as the last one took), so the
+// control acts that much early, the blinks staying a blink apart.
+var invWait = null, invActMs = 250;
+function afterInvBlink(act){
+  if (invWait !== null) return;
+  if (invForTurn() === null || !drawn || !genNamed()){ act(invForTurn()); return; }
+  startInvBlink(2);
+  invWait = setTimeout(function(){
+    invWait = null;
+    var t = performance.now();
+    act(invForTurn());
+    // Its blink after counts from the end of it all, when it can show.
+    if (invBlink && invBlink.n === 1 && invBlink.at >= t){ invActMs = Math.min(INV_BLINK_MS, performance.now() - t); startInvBlink(1); }
+  }, Math.max(INV_BLINK_MS, 2 * INV_BLINK_MS - invActMs));
 }
 function setLock(lock){
   if (LOCKS.indexOf(lock) === -1 || lock === state.lock) return;
@@ -15251,7 +15295,10 @@ dirToggleEl.addEventListener('click', function(e){
   // the rows) never rings the button in the keyboard's focus outline.
   if (e.detail) dirToggleEl.blur();
   if (!drawn || coinLocked()) return;
-  setDir(state.dir === 'cw' ? 'ccw' : 'cw', !state.simplifyOff && state.lock !== 'dir' && !simplifiable(drawn.G, shownSub(drawn.G)), invForTurn());
+  afterInvBlink(function(inv){
+    if (!drawn || coinLocked()) return;
+    setDir(state.dir === 'cw' ? 'ccw' : 'cw', !state.simplifyOff && state.lock !== 'dir' && !simplifiable(drawn.G, shownSub(drawn.G)), inv);
+  });
 });
 // Right-clicked, even while locked, the button, the preferred directions
 // and the lock slider between them open one menu: Disable auto-simplify.
