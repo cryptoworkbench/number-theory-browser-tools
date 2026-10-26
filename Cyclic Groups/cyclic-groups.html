@@ -3568,7 +3568,6 @@ function exprLog(G, g){
 // The elements in the order lists name them: by number, or under an
 // element expression by exponent, g⁰, g¹, g², ...
 function elsBy(G, g){ return g === null ? G.els : lap(G, g, G.order); }
-function exprEls(G){ return elsBy(G, exprBy(G)); }
 var SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 function superscript(k){
   return String(k).replace(/[0-9]/g, function(d){ return SUPERSCRIPT_DIGITS[d]; }).replace(/[-−]/g, '⁻');
@@ -4386,13 +4385,6 @@ function mGroupOf(mode, n){
   return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : typeof n === 'string' ? mi(n) : n, mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
 }
 function mGroup(G){ return mGroupOf(G.mode, G.n); }
-// "mod n" after a word: no space of its own before mod.
-function mMod(n){ return mrow(mEl('mo', ['mod'], { lspace: '0' }), mn(n)); }
-function mList(list){
-  var items = [];
-  list.forEach(function(x, i){ if (i) items.push(comma()); items.push(mn(x)); });
-  return mrow.apply(null, items);
-}
 // The modulus' symbol in the Group panel.
 function mPct(){ return mEl('mi', ['%'], { mathvariant: 'normal' }); }
 // ⟨ℤ/%ℤ, ∗⟩: the group in the Group panel's symbols, % its modulus and ∗
@@ -4445,9 +4437,6 @@ function mSet(list){
 // Each line keeps its plain-text form, which is what copying it gives.
 function mathLine(cls, content, plain){
   return mEl('math', [content], { 'class': cls, display: 'block', dir: 'ltr', 'data-plain': plain });
-}
-function mathInline(content){
-  return mEl('math', [content], { displaystyle: 'true', dir: 'ltr' });
 }
 
 // Whether a head layer is drawn: it and every one before it in HEAD_CHAIN
@@ -9541,7 +9530,7 @@ document.addEventListener('keydown', function(e){
 // times, drawn at once with the k in the field beside the switch. The
 // wheel over the ring steps k while one is drawn. A pane follows the
 // holding ring's mode, which shows the switch for both.
-var combineModeEl = $('combine-mode'), combineKEl = $('combine-k');
+var combineKEl = $('combine-k');
 var combineModeBtns = { element: $('combine-mode-element'), scalar: $('combine-mode-scalar') };
 function combineTap(x){
   if (state.combineMode === 'scalar' && x !== null) combineScalar(state.combineK, x);
