@@ -796,6 +796,10 @@
   /* A first try at turning a ring the switch holds: the held end blinks. */
   :is(.keep-top-end, .gear-label).is-refused{ animation:keep-top-refused 300ms steps(1) 3; }
   @keyframes keep-top-refused{ 0%{ color:var(--role-warn); } 50%{ color:inherit; } }
+  /* G turned into its inverse by a lock (takeInverse): the angle brackets
+     round its generator in the subgroup row flash red three times. */
+  .gen-super mo.is-lock-flash{ animation:lock-flash 360ms steps(1) 3; }
+  @keyframes lock-flash{ 0%{ color:var(--role-warn); } 50%{ color:inherit; } }
   /* What the subgroup dropdown now follows blinks red (blinkLinked). */
   .is-linked-blink{ border-radius:var(--radius-ctl); animation:linked-blink 360ms steps(1) 3; }
   /* Blinked in turn with another, it lights while the other is dark. */
@@ -7554,7 +7558,17 @@ function syncGenSuper(G){
   genSuperEl.appendChild(named
     ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
     : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
+  // Redrawn while its brackets flash, they carry on from where they were.
+  var since = lockFlashAt === null ? Infinity : performance.now() - lockFlashAt;
+  if (!named || since >= LOCK_FLASH_MS) return;
+  var row = genSuperEl.querySelector('mrow > mrow');
+  if (!row) return;
+  [row.firstElementChild, row.lastElementChild].forEach(function(el){
+    el.classList.add('is-lock-flash');
+    el.style.animationDelay = -since + 'ms';
+  });
 }
+var lockFlashAt = null, LOCK_FLASH_MS = 3 * 360;
 function syncGenerators(G){
   genSelectEl.replaceChildren();
   genSelectEl.appendChild(arrangeOption(SUB_PANEL, 'cyclicGroups.subPanelFollow'));
@@ -15166,8 +15180,11 @@ function takeInverse(inv){
   state.noSub = false;
 }
 // Kept on top, the inverse's bead turns to the top, as a selection does.
+// The brackets round it in the subgroup row flash, timed from the redraw.
 function tookInverse(inv){
   if (state.top === 'gen' && drawn) turnToTop(inv);
+  lockFlashAt = performance.now();
+  if (drawn) syncGenSuper(drawn.G);
 }
 function setLock(lock){
   if (LOCKS.indexOf(lock) === -1 || lock === state.lock) return;
