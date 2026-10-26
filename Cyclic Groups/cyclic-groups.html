@@ -8306,6 +8306,39 @@ function plotPolygon(G){
     translateInto(polyNoteEl, 'cyclicGroups.polyNoteSum', { a: elText(G, combo.a), op: op, b: elText(G, combo.b), c: elText(G, rot), i: log[combo.a], j: log[combo.b], k: log[rot], n: n });
   } else translateInto(polyNoteEl, 'cyclicGroups.polyNoteOne', { a: elText(G, combo.a), i: log[combo.a], n: n, deg: polyDegrees(log[combo.a], n) });
 }
+// The group's flip turns the polygon over with the ring, like a coin about
+// the axis through its corner 0, in step with it (see flipRing): the old
+// drawing, kept as a ghost, turns edge-on, and the new one, its mirror
+// image, opens out from there.
+function polyFlipGhost(){
+  if (polyPlotEl.hidden || !polyPlotSvgEl.firstChild) return null;
+  var g = svgEl('g', { 'aria-hidden': 'true', style: 'pointer-events:none' });
+  Array.prototype.forEach.call(polyPlotSvgEl.childNodes, function(n){ g.appendChild(n.cloneNode(true)); });
+  return g;
+}
+function polyFlipWrap(ghost){
+  if (!ghost || polyPlotEl.hidden) return null;
+  var wrap = svgEl('g', {});
+  while (polyPlotSvgEl.firstChild) wrap.appendChild(polyPlotSvgEl.firstChild);
+  polyPlotSvgEl.appendChild(wrap);
+  polyPlotSvgEl.appendChild(ghost);
+  var p = { wrap: wrap, ghost: ghost };
+  polyFlipFrame(p, true, 1, 1);
+  return p;
+}
+function polyFlipFrame(p, first, s, k){
+  if (!p.wrap.isConnected) return;
+  var C = CURVE_W / 2;
+  p.ghost.style.display = first ? '' : 'none';
+  p.wrap.style.visibility = first ? 'hidden' : '';
+  (first ? p.ghost : p.wrap).setAttribute('transform', 'translate(' + C + ' ' + C + ') rotate(-90) scale(' + num(k) + ' ' + num(Math.max(0.001, k * s)) + ') rotate(90) translate(' + -C + ' ' + -C + ')');
+}
+function polyFlipEnd(p){
+  if (p.ghost.parentNode) p.ghost.remove();
+  if (!p.wrap.parentNode) return;
+  while (p.wrap.firstChild) p.wrap.parentNode.insertBefore(p.wrap.firstChild, p.wrap);
+  p.wrap.remove();
+}
 polyPlotSvgEl.addEventListener('click', function(e){
   var dot = e.target.closest('.curve-dot');
   if (dot) combineTap(+dot.getAttribute('data-el'));
@@ -9631,6 +9664,7 @@ function endFlip(){
   var f = flipping;
   flipping = null;
   if (f.ghost.parentNode) f.ghost.remove();
+  if (f.poly) polyFlipEnd(f.poly);
   // The arrows the coin carried over go, and the new ones come in.
   f.mirrored.forEach(function(el){ el.remove(); });
   f.arrows.forEach(function(el){
@@ -9661,7 +9695,9 @@ function flipRing(change){
   var box = ringBox();
   var beta = identityAxis(old, box);
   var ghost = old.cloneNode(true);
+  var polyGhost = polyFlipGhost();
   change();
+  var poly = polyFlipWrap(polyGhost);
   // The direction it turns from: the pane is told its new one beforehand.
   var from = -dirSign();
   var ring = ringDynamicEl.querySelector('.ring');
@@ -9692,7 +9728,7 @@ function flipRing(change){
   var squash = function(el, s, k){
     el.setAttribute('transform', 'translate(' + num(box.cx) + ' ' + num(box.cy) + ') rotate(' + num(beta) + ') scale(' + num(k) + ' ' + num(Math.max(0.001, k * s)) + ') rotate(' + num(-beta) + ') translate(' + num(-box.cx) + ' ' + num(-box.cy) + ')');
   };
-  flipping = { ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored };
+  flipping = { ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored, poly: poly };
   var f = flipping;
   var frame = function(ts){
     if (flipping !== f) return;
@@ -9706,6 +9742,7 @@ function flipRing(change){
     ghostWrap.style.display = first ? '' : 'none';
     wrap.style.visibility = first ? 'hidden' : '';
     squash(first ? ghostWrap : wrap, s, k);
+    if (f.poly) polyFlipFrame(f.poly, first, s, k);
     // The direction button's miniature ring turns over with it.
     dirIconFlip = { s: from * Math.cos(th), k: k };
     syncDirAxis();
