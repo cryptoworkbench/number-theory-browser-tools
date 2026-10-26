@@ -885,12 +885,13 @@
   .combine-halo.is-a{ color:var(--role-active); }
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
-  .combine-halo.is-c:is(.lap-c1, .lap-c2, .lap-c3, .lap-c4){ color:var(--walk); }
   .combine-halo.is-dense{ filter:none; }
   /* Combining a with itself k times: the multiples a, 2a, … on the way
      to the result ringed faintly, and the walk there in the result's
      colour, each hop numbered. */
   .combine-halo.is-w{ color:var(--role-active); stroke-width:2; opacity:.45; filter:none; }
+  /* aᵏ on the ring: each halo in the colour of the lap that put it there. */
+  .combine-halo.combine-halo:is(.lap-c0, .lap-c1, .lap-c2, .lap-c3, .lap-c4){ color:var(--walk); }
   .walk-scalar{ --walk:var(--role-result); }
   .walk-scalar .chord{ opacity:1; }
   /* Each lap of the walk in its own colour (lapClass), listed by the lap
@@ -4121,7 +4122,7 @@ function drawRing(parent, G, beads, box, paint){
     var step = Math.min(5, Math.min(HALO_BAND, haloBand) / Math.max(1, roles.length - 1));
     roles.forEach(function(role, k){
       var dense = step < 5 && role !== 'c';
-      var attrs = { 'class': haloClass(G, role) + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
+      var attrs = { 'class': haloClass(G, role, k) + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
       if (dense) attrs['stroke-width'] = num(Math.max(0.4, step * 0.55));
       ring.appendChild(svgEl('circle', attrs));
     });
@@ -8857,11 +8858,14 @@ function tellPlotMin(min){
 // round again each element it passes once more, the identity first, wears
 // one more 'a' halo (up to HALO_MAX in all).
 // A halo's classes: aᵏ's result wears the colour of the lap whose last hop
-// reached it (see lapClass), as Laps of the path lists it.
-function haloClass(G, role){
+// reached it (see lapClass), as Laps of the path lists it. On the ring,
+// where an element's halos stack one per visit of the walk, inside out
+// (see combineRoles), the i-th (lap) wears lap i's colour.
+function haloClass(G, role, lap){
   var cls = 'combine-halo is-' + role;
-  var sw = role === 'c' && G && combo.k !== null ? scalarWalk(G) : null;
-  return sw ? cls + ' ' + lapClass(Math.floor((Math.abs(combo.k) - 1) / sw.walk.length)) : cls;
+  var sw = G && combo.k !== null && (role === 'c' || lap !== undefined) ? scalarWalk(G) : null;
+  if (!sw) return cls;
+  return cls + ' ' + lapClass(role === 'c' ? Math.floor((Math.abs(combo.k) - 1) / sw.walk.length) : lap);
 }
 function combineRoles(G){
   var roles = new Map();
