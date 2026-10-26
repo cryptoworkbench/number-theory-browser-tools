@@ -6492,8 +6492,8 @@ function syncExprCtx(key){
   it.item.classList.add('ring-ctx-expr');
   ringCtxEl.appendChild(it.item);
   if (key !== 'gens') return;
-  // Under it, Natural without its exponents: x, not x¹.
-  var natExp = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExpOff'), state.natExpOff, function(){
+  // Under it, Natural with its exponents, x¹, or without, x.
+  var natExp = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExp'), !state.natExpOff, function(){
     setRingCtx(false);
     toggleNatExp();
   });
@@ -10905,7 +10905,8 @@ function subWidth(G){ return state.subPad || state.subAlign ? String(elMax(G)).l
 function subExpWidth(G){ return state.subPad || state.subAlign ? String(expMax(G)).length + (signedExpOn(G) ? 1 : 0) : 0; }
 // How the rows write their numbers: as the number, padded or aligned to
 // width, or as a power of base, its exponent padded or aligned to expWidth.
-function subFormat(base, log, width, expWidth, G){
+function subFormat(base, log, width, expWidth, G, natOff){
+  if (natOff === undefined) natOff = state.natExpOff;
   // Signed, a number's zeros pad its digits after the sign, which keeps
   // one place of the width.
   var sg = signedOn(G) ? 1 : 0, sgExp = signedExpOn(G) ? 1 : 0;
@@ -10915,17 +10916,18 @@ function subFormat(base, log, width, expWidth, G){
   var pts = G && G.pts || null, C = pts ? { pts: pts } : G;
   // An element written Natural, a number or a curve's point, is its own
   // first power, as on its bead, a negative one bracketed, unless the
-  // exponents are turned off there (natPow).
+  // exponents are turned off there (natPow; natOff, the pane's own in the
+  // merged panel).
   var one = G && state.subPad ? '1'.padStart(expWidth || String(expMax(G)).length, '0') : '1';
   var natM = function(x){
-    if (pts) return state.natExpOff ? mPoint(pts[x]) : mEl('msup', [mPoint(pts[x]), mn(one)]);
+    if (pts) return natOff ? mPoint(pts[x]) : mEl('msup', [mPoint(pts[x]), mn(one)]);
     var s = nat(x), b = numMn(s, width, sg);
-    if (state.natExpOff) return b;
+    if (natOff) return b;
     return mEl('msup', [s.charAt(0) === '−' ? mrow(mo('(', true), b, mo(')', true)) : b, mn(one)]);
   };
   var natP = function(x){
     var s = pts ? plainPoint(pts[x]) : nat(x);
-    if (state.natExpOff) return s;
+    if (natOff) return s;
     return (s.charAt(0) === '−' ? '(' + s + ')' : s) + superscript(one);
   };
   var f = {
@@ -10939,7 +10941,7 @@ function subFormat(base, log, width, expWidth, G){
   f.r = function(x, on){
     var to = revealTo(G), from = log ? base : null;
     if (!(on === undefined ? subRevealOn() : on) || from === to) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(to === null ? natM(x) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow.apply(null, revealForms(e, n));
+    var e = mrow(f.m(x)), n = mrow(to === null ? natM(x) : subFormat(to, revealLog(G, to), width, expWidth, G, natOff).m(x)), both = mrow.apply(null, revealForms(e, n));
     both.setAttribute('data-g', from === null ? '' : String(from));
     both.setAttribute('data-to', to === null ? '' : String(to));
     both.setAttribute('data-el', String(x));
@@ -11084,13 +11086,16 @@ function renderMergedSubgroups(G){
   var widthG = subWidth(G), widthH = subWidth(H);
   var fl = subFormat(lg, lg === null ? null : exprLog(G, lg), widthG, expWidth, G);
   var fr = subFormat(rg, rg === null ? null : exprLog(G, rg), widthG, expWidth, G);
-  var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth, H);
-  var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth, H);
+  // The pane's side writes Natural as the pane does, with or without its
+  // exponents.
+  var paneNatOff = new URLSearchParams(isoPane.q || '').get('natexp') === '0';
+  var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth, H, paneNatOff);
+  var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth, H, paneNatOff);
   // The right side's beads borrow these colours only while the rings are
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.natExpOff, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;

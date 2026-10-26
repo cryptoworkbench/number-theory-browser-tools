@@ -516,7 +516,7 @@
       menuSigned: 'Signed numbers (nearest 0)',
       menuSignedEc: 'Signed coordinates (nearest 0)',
       menuEcMult: 'Write points as multiples kP',
-      menuNatExpOff: 'Disable exponents in natural expression',
+      menuNatExp: 'Exponents in natural expression',
       menuSignedExp: 'Signed exponents (nearest 0)',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyAuto: 'Auto-simplify',
