@@ -8290,11 +8290,15 @@ function plotPolygon(G){
   body.appendChild(svgEl('line', { 'class': 'poly-hand', x1: num(base[0]), y1: num(base[1]), x2: num(tip[0]), y2: num(tip[1]) }));
   body.appendChild(svgEl('circle', { 'class': 'poly-mark', cx: num(tip[0]), cy: num(tip[1]), r: 3.2 }));
   body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
-  // It turns forward from where it stood, by as many steps as the ring
-  // counts; let go, it is back at rest at once.
+  // It turns from where it stood to its new place the shorter way round
+  // (forward on a half turn); let go, it is back at rest at once.
   var turn = log[rot], key = G.key + '|' + g + '|' + sgn, deg = sgn * turn * 360 / n;
   var same = polyShown && polyShown.key === key && turn;
-  if (same && polyShown.turn !== turn) deg = polyShown.deg + sgn * (((turn - polyShown.turn) % n + n) % n) * 360 / n;
+  if (same && polyShown.turn !== turn){
+    var steps = ((turn - polyShown.turn) % n + n) % n;
+    if (steps > n / 2) steps -= n;
+    deg = polyShown.deg + sgn * steps * 360 / n;
+  }
   var from = same ? polyShown.deg : deg;
   body.style.transform = 'rotate(' + deg + 'deg)';
   body.style.transformOrigin = C + 'px ' + C + 'px';
