@@ -8089,10 +8089,10 @@ function scalarWalk(G){
   return { walk: lap(G, s, lapped ? ord : hops + 1), lap: lapped, sense: 0 };
 }
 // The scalar walk's laps: the first in the result's green, each later one
-// in the next of LAP_COLORS, round and round, so no two laps in a row
-// share a colour.
-var LAP_COLORS = 4;
-function lapClass(L){ return 'lap-c' + (L ? (L - 1) % LAP_COLORS + 1 : 0); }
+// in the next of the LAP_COLORS, green among them, round and round, so no
+// two laps in a row share a colour.
+var LAP_COLORS = 5;
+function lapClass(L){ return 'lap-c' + L % LAP_COLORS; }
 // Once the walk passes a lap, the lap key pops up listing the colours, each
 // with the laps and the k it stands for; it minimizes into the ring
 // window's corner buttons, and goes away again once k fits in one lap.
@@ -8115,9 +8115,9 @@ function syncLapKey(G){
     return from === to ? signed(sign * from) : signed(sign * from) + (sign < 0 ? ' – ' : '–') + signed(sign * to);
   };
   lapKeyListEl.replaceChildren();
-  for (var c = 0; c <= Math.min(LAP_COLORS, laps - 1); c++){
+  for (var c = 0; c < Math.min(LAP_COLORS, laps); c++){
     var ls = [];
-    for (var L = c ? c : 0; L < laps && ls.length < 4; L += c ? LAP_COLORS : laps) ls.push(L);
+    for (var L = c; L < laps && ls.length < 4; L += LAP_COLORS) ls.push(L);
     var more = ls.length > 3;
     if (more) ls.pop();
     var li = lapKeyListEl.appendChild(document.createElement('li'));
