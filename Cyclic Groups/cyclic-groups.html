@@ -1559,6 +1559,12 @@
   /* Beside a pane the corner's switches are in the bottom bar, so the key
      along the bottom keeps no room under it. */
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ margin-bottom:0; padding-bottom:0; }
+  /* There the key lies over the pane's bottom corner, where the pane's own
+     curve plot button sits: a press on the key's empty room reaches it. */
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key,
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key .combine-key-item{ pointer-events:none; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key > :not(.combine-key-item),
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key .combine-key-item > *{ pointer-events:auto; }
   :is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
   .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   /* Linked but coloured by inverse pairs, a colour names a different pair
@@ -1850,9 +1856,10 @@
   /* Two groups: what the ring shows (its polygon, its circle, the formula
      scratchpad), then, past a thin rule, the keys and the expressions. A
      pane keeps only its own scratchpad's switch; the rest are the left
-     ring's. */
+     ring's, apart from a curve's plot, which each ring minimizes for itself. */
   .ring-corner-sep{ flex:none; align-self:center; width:1px; height:14px; margin:0 2px; background:var(--panel-border); }
   :root.is-isopane .ring-corner > *{ display:none; }
+  :root.is-isopane .ring-corner > #curve-corner:not([hidden]){ display:grid; }
   .zoom-wrap{ flex:none; display:flex; align-items:center; gap:6px; }
   /* Beside a pane whose ring turns with this one, the one zoom pill in the
      window's corner zooms both rings. While they turn apart each ring has
@@ -8014,7 +8021,7 @@ lapCornerEl.addEventListener('click', function(){
 var curvePlotEl = $('curve-plot'), curvePlotSvgEl = $('curve-plot-svg'), curveCornerEl = $('curve-corner');
 var curvePlotOpen = true, CURVE_W = 280, CURVE_M = 22;
 function drawCurvePlot(G){
-  var on = !!G.pts && !IS_ISOPANE;
+  var on = !!G.pts;
   curveCornerEl.hidden = !on;
   curveCornerEl.setAttribute('aria-pressed', on && curvePlotOpen ? 'true' : 'false');
   curvePlotEl.hidden = !on || !curvePlotOpen;
