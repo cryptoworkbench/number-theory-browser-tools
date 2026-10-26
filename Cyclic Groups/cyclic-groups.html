@@ -10913,15 +10913,25 @@ function subFormat(base, log, width, expWidth, G){
   var nat = function(x){ return num(balEl(G, x), width, sg); };
   var ex = function(k){ return num(balExp(G, k), expWidth, sgExp); };
   var pts = G && G.pts || null, C = pts ? { pts: pts } : G;
-  // A curve's point, Natural, is its own first power, as on its bead,
-  // unless the exponents are turned off there (natPow).
-  var one = pts && state.subPad ? '1'.padStart(expWidth || String(expMax(G)).length, '0') : '1';
-  var ptM = function(x){ return state.natExpOff ? mPoint(pts[x]) : mEl('msup', [mPoint(pts[x]), mn(one)]); };
-  var ptP = function(x){ return state.natExpOff ? plainPoint(pts[x]) : plainPoint(pts[x]) + superscript(one); };
+  // An element written Natural, a number or a curve's point, is its own
+  // first power, as on its bead, a negative one bracketed, unless the
+  // exponents are turned off there (natPow).
+  var one = G && state.subPad ? '1'.padStart(expWidth || String(expMax(G)).length, '0') : '1';
+  var natM = function(x){
+    if (pts) return state.natExpOff ? mPoint(pts[x]) : mEl('msup', [mPoint(pts[x]), mn(one)]);
+    var s = nat(x), b = numMn(s, width, sg);
+    if (state.natExpOff) return b;
+    return mEl('msup', [s.charAt(0) === '−' ? mrow(mo('(', true), b, mo(')', true)) : b, mn(one)]);
+  };
+  var natP = function(x){
+    var s = pts ? plainPoint(pts[x]) : nat(x);
+    if (state.natExpOff) return s;
+    return (s.charAt(0) === '−' ? '(' + s + ')' : s) + superscript(one);
+  };
   var f = {
     ex: ex,
-    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sgExp)) : pts ? ptM(x) : numMn(nat(x), width, sg); },
-    p: function(x){ return log ? expPlain(C, base, ex(log[x])) : pts ? ptP(x) : nat(x); }
+    m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sgExp)) : natM(x); },
+    p: function(x){ return log ? expPlain(C, base, ex(log[x])) : natP(x); }
   };
   // A row's member, which with Reveal on hover on (or the switch on given
   // as on) carries the expression the reveal shows beside its own, shown
@@ -10929,7 +10939,7 @@ function subFormat(base, log, width, expWidth, G){
   f.r = function(x, on){
     var to = revealTo(G), from = log ? base : null;
     if (!(on === undefined ? subRevealOn() : on) || from === to) return f.m(x);
-    var e = mrow(f.m(x)), n = mrow(to === null ? (pts ? ptM(x) : numMn(nat(x), width, sg)) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow.apply(null, revealForms(e, n));
+    var e = mrow(f.m(x)), n = mrow(to === null ? natM(x) : subFormat(to, revealLog(G, to), width, expWidth, G).m(x)), both = mrow.apply(null, revealForms(e, n));
     both.setAttribute('data-g', from === null ? '' : String(from));
     both.setAttribute('data-to', to === null ? '' : String(to));
     both.setAttribute('data-el', String(x));
