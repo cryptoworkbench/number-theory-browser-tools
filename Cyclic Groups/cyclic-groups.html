@@ -310,7 +310,7 @@
      theme's colours, instead of the browser's: shown, as the browser's
      are, while the pointer is over the field or it has the focus. */
   .n-spin{ position:relative; display:inline-flex; }
-  .facts.group-controls .n-spin > #n-input{ -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
+  .facts.group-controls .n-spin > :is(#n-input, #ec-p){ -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
   #n-input::-webkit-inner-spin-button, #n-input::-webkit-outer-spin-button{ -webkit-appearance:none; appearance:none; margin:0; }
   .n-spin-btns{ position:absolute; top:3px; bottom:3px; right:3px; display:none; flex-direction:column; width:16px; border-radius:calc(var(--radius-ctl) - 2px); overflow:hidden; background:var(--bg-1); box-shadow:inset 0 0 0 1px var(--panel-border); }
   .n-spin:is(:hover, :focus-within) > .n-spin-btns{ display:flex; }
@@ -335,8 +335,14 @@
   .ec-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .facts.group-controls .ec-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; }
   .facts.group-controls .ec-row[hidden]{ display:none; }
+  /* Why a typed curve is refused hangs under the fields, out of the row's
+     flow, so the fields never move: the next step of p's spin buttons stays
+     under the pointer. */
+  .facts.group-controls .ec-row{ position:relative; }
+  .facts.group-controls #ec-note{ position:absolute; top:calc(100% + 4px); right:0; z-index:5; max-width:min(36em, 100%); padding:4px 8px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); box-shadow:0 2px 8px color-mix(in srgb, var(--text) 18%, transparent); }
   .ec-field{ display:inline-flex; align-items:center; gap:6px; }
   .facts.group-controls .ec-field > input{ width:4.2em; }
+  .facts.group-controls .ec-field #ec-p{ width:calc(4.2em + 18px); }
   .facts.group-controls .ec-preset{ width:auto; max-width:100%; text-align-last:left; }
   .facts.group-controls .ec-preset option, .facts.group-controls .ec-preset optgroup{ color:var(--text); background:var(--bg-1); }
   .ec-eq{ font-family:var(--font-math); font-size:1.05rem; color:var(--text); white-space:nowrap; }
@@ -2383,7 +2389,7 @@
           <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
           <li class="ec-row" id="ec-row" hidden>
             <span class="ec-eq" id="ec-eq" dir="ltr"></span>
-            <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"></span>
+            <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><span class="n-spin"><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span></span>
             <span class="ec-field"><label for="ec-a" class="fact-label">a</label><input type="number" id="ec-a" min="0" max="96" step="1" value="2" title="The coefficient a" aria-label="The coefficient a" data-i18n-title="cyclicGroups.ecATitle" data-i18n-aria-label="cyclicGroups.ecATitle"></span>
             <span class="ec-field"><label for="ec-b" class="fact-label">b</label><input type="number" id="ec-b" min="0" max="96" step="1" value="2" title="The coefficient b" aria-label="The coefficient b" data-i18n-title="cyclicGroups.ecBTitle" data-i18n-aria-label="cyclicGroups.ecBTitle"></span>
             <select id="ec-preset" class="ec-preset" title="Example curves" aria-label="Example curves" data-i18n-title="cyclicGroups.ecPresets" data-i18n-aria-label="cyclicGroups.ecPresets"></select>
@@ -13284,15 +13290,37 @@ function typedCurve(){ applyCurve(parseInt(ecPEl.value, 10), parseInt(ecAEl.valu
   el.addEventListener('change', typedCurve);
   el.addEventListener('input', typedCurve);
 });
-// The modulus' arrows step from one it takes to the next.
-ecPEl.addEventListener('keydown', function(e){
-  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-  e.preventDefault();
-  var by = e.key === 'ArrowUp' ? 1 : -1, v = parseInt(ecPEl.value, 10) || state.ecP;
+// The modulus' arrow keys and spin buttons step from one it takes to the
+// next: a prime, or a product of two different primes.
+function stepEcP(by){
+  var v = parseInt(ecPEl.value, 10) || state.ecP;
   for (var q = v + by; q >= EC_MIN_P && q <= EC_MAX_P; q += by){
     if (ecModulusOk(q)){ ecPEl.value = q; typedCurve(); return; }
   }
+}
+ecPEl.addEventListener('keydown', function(e){
+  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+  e.preventDefault();
+  stepEcP(e.key === 'ArrowUp' ? 1 : -1);
 });
+(function(){
+  var held = null;
+  function stop(){ if (held){ clearTimeout(held); held = null; } }
+  ecPEl.parentNode.querySelectorAll('.n-spin-btn').forEach(function(btn){
+    var by = parseInt(btn.getAttribute('data-step'), 10);
+    btn.addEventListener('pointerdown', function(e){
+      if (e.button !== 0) return;
+      e.preventDefault();
+      stop();
+      // Focused, the field keeps a refused modulus to step on from.
+      ecPEl.focus({ preventScroll: true });
+      stepEcP(by);
+      var again = function(){ stepEcP(by); held = setTimeout(again, 60); };
+      held = setTimeout(again, 400);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ btn.addEventListener(t, stop); });
+  });
+})();
 ecPresetEl.addEventListener('change', function(){
   var c = EC_PRESETS[parseInt(ecPresetEl.value, 10)];
   if (c) applyCurve(c[0], c[1], c[2]);
