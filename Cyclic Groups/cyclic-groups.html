@@ -8254,12 +8254,18 @@ function plotPolygon(G){
   var turns = [];
   // aᵏ: every one of the |k| hops, lap after lap, spiralling inward (the
   // last 120 of a longer walk), each in the colour the ring's walk gives
-  // that hop: its lap's (see lapClass).
+  // that hop: its lap's (see lapClass). Each turns the way the ring's
+  // walk takes that hop on screen, the shorter way round the ring's
+  // arrangement (see humpSteps), so with k < 0 as with k > 0 the arrows
+  // here and there go round alike.
   var sw = live && combo.k !== null ? scalarWalk(G) : null;
   if (sw){
     var m0 = sw.walk.length, K = Math.abs(combo.k), hop = log[combo.k < 0 ? G.inv[combo.a] : combo.a];
+    var arr = arrangement(G), m = arr.length;
     for (var h = Math.max(1, K - 119); h <= K; h++){
-      turns.push({ from: ((h - 1) * hop) % n, by: hop, cls: 'is-walk ' + lapClass(Math.floor((h - 1) / m0)) });
+      var x0 = sw.walk[(h - 1) % m0], x1 = sw.walk[h % m0];
+      var span = ((arr.indexOf(x1) - arr.indexOf(x0)) % m + m) % m;
+      turns.push({ from: log[x0], by: span > m / 2 ? hop - n : hop, cls: 'is-walk ' + lapClass(Math.floor((h - 1) / m0)) });
     }
   } else if (live && combo.k === null){
     turns.push({ from: 0, by: log[combo.a], cls: 'is-a' });
@@ -8268,11 +8274,13 @@ function plotPolygon(G){
   turns = turns.filter(function(t){ return t.by % n; });
   turns.forEach(function(t, i){
     var r = R * (0.72 - i * Math.min(0.18, 0.44 / Math.max(1, turns.length - 1)));
-    var a0 = ang(t.from), a1 = ang(t.from + t.by), span = t.by * 360 / n;
+    // A negative t.by turns backward, against the count.
+    var back = t.by < 0 ? -1 : 1;
+    var a0 = ang(t.from), a1 = ang(t.from + t.by), span = Math.abs(t.by) * 360 / n;
     var p0 = [C + r * Math.cos(a0), C + r * Math.sin(a0)], p1 = [C + r * Math.cos(a1), C + r * Math.sin(a1)];
-    svg.appendChild(svgEl('path', { 'class': 'poly-turn ' + t.cls, d: 'M' + num(p0[0]) + ' ' + num(p0[1]) + ' A' + num(r) + ' ' + num(r) + ' 0 ' + (span > 180 ? 1 : 0) + ' ' + (sgn > 0 ? 1 : 0) + ' ' + num(p1[0]) + ' ' + num(p1[1]) }));
+    svg.appendChild(svgEl('path', { 'class': 'poly-turn ' + t.cls, d: 'M' + num(p0[0]) + ' ' + num(p0[1]) + ' A' + num(r) + ' ' + num(r) + ' 0 ' + (span > 180 ? 1 : 0) + ' ' + (sgn * back > 0 ? 1 : 0) + ' ' + num(p1[0]) + ' ' + num(p1[1]) }));
     // Its arrowhead, along the arc's direction at its end.
-    var tx = -Math.sin(a1) * sgn, ty = Math.cos(a1) * sgn, w = 4;
+    var tx = -Math.sin(a1) * sgn * back, ty = Math.cos(a1) * sgn * back, w = 4;
     svg.appendChild(svgEl('path', { 'class': 'poly-turn-head ' + t.cls, d: 'M' + num(p1[0] + tx * 2) + ' ' + num(p1[1] + ty * 2) + ' L' + num(p1[0] - tx * 5 + ty * w) + ' ' + num(p1[1] - ty * 5 - tx * w) + ' L' + num(p1[0] - tx * 5 - ty * w) + ' ' + num(p1[1] - ty * 5 + tx * w) + ' Z' }));
   });
   // The polygon itself, turned: its marked corner a hand from the centre.
