@@ -8913,12 +8913,15 @@ function openCurvePlot(){
   syncBarFormulas();
   curveWin.place(curveWin.at.x, curveWin.at.y);
 }
-// How low a plot's window may go: just above the bottom bar. The pane's
+// How low a plot's window may go: down onto the bottom bar. The pane's
 // frame reaches down to the bar behind the rows under both rings (its
-// foot, kept empty), so there it may hang over those rows too.
+// foot, kept empty), so there it may hang over those rows too. With no
+// bar, above the window's padding.
 function plotFloor(body){
-  var b = boxOf(body);
-  return b.bottom - (IS_ISOPANE ? 8 : parseFloat(getComputedStyle(body).paddingBottom) || 0);
+  var b = boxOf(body), bar = !IS_ISOPANE && body.querySelector(':scope > .ring-bar');
+  if (IS_ISOPANE) return b.bottom;
+  if (bar && bar.offsetParent) return boxOf(bar).top;
+  return b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
 }
 // A plot's window is dragged by its head or its frame (not its points),
 // kept within the ring's half under its rows and above the bottom bar; a
