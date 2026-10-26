@@ -6470,22 +6470,16 @@ function syncExprCtx(key){
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
   if (!key || !drawn) return;
   // The preferred directions', the lock slider's and the flip button's:
-  // Disable auto-simplify, and under it Indicate how to simplify, greyed
-  // out while auto-simplify is on.
+  // Auto-simplify, Indicate how to simplify or Neither, one of the three
+  // ticked.
   if (key === 'dir'){
-    var off = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSimplifyOff'), state.simplifyOff, function(){
-      setRingCtx(false);
-      setSimplifyOff(!state.simplifyOff);
-    });
-    var hint = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSimplifyHint'), state.simplifyHint, function(){
-      if (!state.simplifyOff) return;
-      setRingCtx(false);
-      state.simplifyHint = !state.simplifyHint;
-      render();
-      blinkShorteners();
-    });
-    if (!state.simplifyOff) hint.setAttribute('aria-disabled', 'true');
-    [off, hint].forEach(function(tick){
+    var now = simplifyMode();
+    [['auto', 'cyclicGroups.menuSimplifyAuto'], ['hint', 'cyclicGroups.menuSimplifyHint'], ['none', 'cyclicGroups.menuSimplifyNone']].map(function(m){
+      return menuTick('menuitemradio', translate(m[1]), now === m[0], function(){
+        setRingCtx(false);
+        setSimplifyMode(m[0]);
+      });
+    }).forEach(function(tick){
       tick.classList.add('ring-ctx-expr');
       tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
       ringCtxEl.appendChild(tick);
@@ -15311,9 +15305,15 @@ dirToggleEl.addEventListener('click', function(e){
     setRingCtx(true, e.clientX, e.clientY, 'dir');
   });
 });
-function setSimplifyOff(on){
-  state.simplifyOff = on;
+// Auto-simplify ('auto'), or not, the controls then to shorten the arrows
+// blinking ('hint') or not ('none').
+function simplifyMode(){ return !state.simplifyOff ? 'auto' : state.simplifyHint ? 'hint' : 'none'; }
+function setSimplifyMode(mode){
+  if (mode === simplifyMode()) return;
+  state.simplifyOff = mode !== 'auto';
+  state.simplifyHint = mode === 'hint';
   render();
+  blinkShorteners();
 }
 // The button: a circle with a dashed line through its centre, the axis
 // through the identity wherever the ring's turn has put it, reaching well
