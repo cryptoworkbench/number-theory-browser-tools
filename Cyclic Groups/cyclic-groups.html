@@ -334,7 +334,7 @@
   .facts.group-controls .op-toggle-row{ display:none; }
   /* The elliptic curve mode: its switch, then, while it is on, the curve's
      p, a and b in place of the modulus and the operation switch. */
-  .facts.group-controls .ec-toggle-row{ justify-content:flex-end; }
+  .facts.group-controls .ec-toggle-row{ justify-content:flex-end; gap:6px; }
   .ec-toggle{ font:inherit; font-size:.85rem; padding:4px 10px; color:var(--text-dim); background:none; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; white-space:nowrap; }
   .ec-toggle:hover{ color:var(--text); }
   .ec-toggle[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); }
@@ -964,6 +964,21 @@
   .curve-plot-svg .curve-real-sum{ fill:none; stroke:var(--role-warn); stroke-width:1.8; pointer-events:none; }
   .curve-plot-svg .curve-mismatch{ stroke:var(--role-warn); stroke-width:1.3; stroke-dasharray:2 3; pointer-events:none; }
   .curve-plot.is-real .curve-plot-svg{ cursor:crosshair; }
+  /* The polygon mode: the n-gon at rest (dashed), turned (shaded) with its
+     marked corner's hand, the turns as arcs inside it. */
+  .curve-plot.is-poly .plot-view{ display:none; }
+  .curve-plot-svg .poly-home{ fill:none; stroke:var(--panel-border); stroke-width:1; stroke-dasharray:3 3; }
+  .curve-plot-svg .poly-shape{ fill:color-mix(in srgb, var(--accent) 12%, transparent); stroke:var(--text-dim); stroke-width:1.4; stroke-linejoin:round; }
+  .curve-plot-svg .poly-body{ transform-box:view-box; pointer-events:none; }
+  .curve-plot-svg .poly-hand{ stroke:var(--role-result); stroke-width:2; stroke-linecap:round; }
+  .curve-plot-svg .poly-mark{ fill:var(--role-result); }
+  .curve-plot-svg .poly-hub{ fill:var(--text-dim); }
+  .curve-plot-svg .poly-turn{ fill:none; stroke-width:1.6; pointer-events:none; }
+  .curve-plot-svg .poly-turn-head{ stroke:none; pointer-events:none; }
+  .curve-plot-svg .poly-turn.is-a{ stroke:var(--role-active); }
+  .curve-plot-svg .poly-turn-head.is-a{ fill:var(--role-active); }
+  .curve-plot-svg .poly-turn.is-b{ stroke:var(--role-input); }
+  .curve-plot-svg .poly-turn-head.is-b{ fill:var(--role-input); }
   .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
   /* Modulo a composite n, how many points have no (x, y) to plot. */
   .curve-plot-note{ margin:2px 0 0; font-size:.74rem; line-height:1.3; color:var(--text-dim); text-align:center; }
@@ -2473,7 +2488,7 @@
         <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
         <ul class="facts group-controls" id="group-controls">
           <li class="fs-row-label" data-i18n="cyclicGroups.fsGroupParams">Parameters</li>
-          <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
+          <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button><button type="button" class="ec-toggle" id="poly-toggle" aria-pressed="false" title="Show ⟨ℤ/nℤ, +⟩ as the rotations of a regular n-sided polygon" aria-label="Regular polygon" data-i18n-title="cyclicGroups.polyToggleTitle" data-i18n-aria-label="cyclicGroups.polyToggle"><span data-i18n="cyclicGroups.polyToggle">Regular polygon</span></button></li>
           <li class="ec-row" id="ec-row" hidden>
             <span class="ec-eq" id="ec-eq" dir="ltr"></span>
             <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><span class="n-spin"><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span></span>
@@ -2695,7 +2710,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
+var state = { poly: false, plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -4573,16 +4588,19 @@ function syncBarFormulas(){
 // opens it again.
 var isoPanePlotMin = false;
 function barPlotTask(i, G){
-  if (!G.pts || !(i === 0 ? !curvePlotOpen : isoPanePlotMin)) return null;
-  var curve = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
+  if (!(i === 0 ? plotted(G) && !curvePlotOpen : isoPanePlotMin)) return null;
+  var poly = !G.pts, curve = poly ? translate('cyclicGroups.polyTitle', { n: G.n }) : ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'bar-btn bar-task';
-  btn.title = translate('cyclicGroups.curvePlotShow');
-  btn.setAttribute('aria-label', translate('cyclicGroups.curvePlotTask', { curve: curve }));
+  btn.title = translate(poly ? 'cyclicGroups.polyShow' : 'cyclicGroups.curvePlotShow');
+  btn.setAttribute('aria-label', poly ? btn.title + ': ' + curve : translate('cyclicGroups.curvePlotTask', { curve: curve }));
   var icon = svgEl('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
-  icon.appendChild(svgEl('path', { d: 'M1.5 10.5V1.5M1.5 10.5H10.5' }));
-  [[4.5, 7], [7, 4.5], [9, 8]].forEach(function(c){ icon.appendChild(svgEl('circle', { 'class': 'icon-fill', cx: c[0], cy: c[1], r: 1 })); });
+  if (poly) icon.appendChild(svgEl('path', { d: 'M6 1.2 10.6 4.6 8.8 10.2H3.2L1.4 4.6Z' }));
+  else {
+    icon.appendChild(svgEl('path', { d: 'M1.5 10.5V1.5M1.5 10.5H10.5' }));
+    [[4.5, 7], [7, 4.5], [9, 8]].forEach(function(c){ icon.appendChild(svgEl('circle', { 'class': 'icon-fill', cx: c[0], cy: c[1], r: 1 })); });
+  }
   btn.appendChild(icon);
   var name = document.createElement('span');
   name.textContent = curve;
@@ -8117,11 +8135,23 @@ plotViewEl.addEventListener('click', function(e){
   drawCurvePlot(drawn.G);
   mirrorToUrl(drawn.G);
 });
+// The polygon mode's window shows ⟨ℤ/nℤ, +⟩ alone.
+function polyOn(G){ return state.poly && !!G && !G.pts && G.mode === 'additive'; }
+function plotted(G){ return !!G.pts || polyOn(G); }
 function drawCurvePlot(G){
-  var on = !!G.pts;
+  var on = plotted(G);
   curvePlotEl.hidden = !on || !curvePlotOpen;
   if (IS_ISOPANE) tellPlotMin(on && !curvePlotOpen);
+  curvePlotEl.classList.toggle('is-poly', polyOn(G));
   if (curvePlotEl.hidden) return;
+  if (!G.pts){
+    curvePlotEl.classList.remove('is-picks-g', 'is-real');
+    translateInto($('curve-plot-title'), 'cyclicGroups.polyTitle', { n: G.n });
+    curvePlotSvgEl.replaceChildren();
+    curvePlotSvgEl.setAttribute('aria-label', translate('cyclicGroups.polyTitle', { n: G.n }));
+    plotPolygon(G);
+    return;
+  }
   var real = state.plotView === 'real';
   syncPlotView(G);
   curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
@@ -8131,6 +8161,92 @@ function drawCurvePlot(G){
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);
   else plotGrid(G, state.plotView === 'tiles');
+}
+// The regular n-gon: corner k is the element k, the turn by k · 360°/n
+// that carries the marked corner, at 0 when the polygon is at rest, to
+// corner k. The polygon stands turned by the combination picked on the
+// ring (a, a + b or k·a), the turns that make it drawn as arcs inside it,
+// and it turns there, forward as the ring counts, when the pick changes.
+var polyShown = null;
+function polyRotation(G){
+  if (!comboLive(G)) return G.identity;
+  if (combo.k !== null) return scalarOf(G, combo.a, combo.k);
+  return combo.b !== null && G.els.indexOf(combo.b) !== -1 ? G.combine(combo.a, combo.b) : combo.a;
+}
+function polyDegrees(k, n){ return String(Math.round(k * 36000 / n) / 100); }
+function plotPolygon(G){
+  var n = G.n, svg = curvePlotSvgEl, C = CURVE_W / 2, R = 96, sgn = dirSign();
+  var roles = combineRoles(G), live = comboLive(G), rot = polyRotation(G);
+  var ang = function(k){ return (-90 + sgn * k * 360 / n) * Math.PI / 180; };
+  var at = function(k, r){ return [C + r * Math.cos(ang(k)), C + r * Math.sin(ang(k))]; };
+  var ring = function(r){ return G.els.map(function(k){ var p = at(k, r); return num(p[0]) + ',' + num(p[1]); }).join(' '); };
+  var dotR = Math.max(3, Math.min(9, Math.PI * R / n * 0.42));
+  // Where the polygon rests, its corners' places.
+  svg.appendChild(svgEl('polygon', { 'class': 'poly-home', points: ring(R) }));
+  // The turns: from 0 by a (then by b), or k hops of a; each an arc
+  // inside the polygon, the later ones nearer its centre.
+  var turns = [];
+  if (live && combo.k !== null){
+    var hop = combo.k < 0 ? G.inv[combo.a] : combo.a, hops = Math.min(Math.abs(combo.k), 40);
+    for (var h = 0; h < hops; h++) turns.push({ from: (h * hop) % n, by: hop, role: 'a' });
+  } else if (live){
+    turns.push({ from: 0, by: combo.a, role: 'a' });
+    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: combo.a, by: combo.b, role: 'b' });
+  }
+  turns = turns.filter(function(t){ return t.by % n; });
+  turns.forEach(function(t, i){
+    var r = R * (0.72 - i * Math.min(0.18, 0.44 / Math.max(1, turns.length - 1)));
+    var a0 = ang(t.from), a1 = ang(t.from + t.by), span = t.by * 360 / n;
+    var p0 = [C + r * Math.cos(a0), C + r * Math.sin(a0)], p1 = [C + r * Math.cos(a1), C + r * Math.sin(a1)];
+    svg.appendChild(svgEl('path', { 'class': 'poly-turn is-' + t.role, d: 'M' + num(p0[0]) + ' ' + num(p0[1]) + ' A' + num(r) + ' ' + num(r) + ' 0 ' + (span > 180 ? 1 : 0) + ' ' + (sgn > 0 ? 1 : 0) + ' ' + num(p1[0]) + ' ' + num(p1[1]) }));
+    // Its arrowhead, along the arc's direction at its end.
+    var tx = -Math.sin(a1) * sgn, ty = Math.cos(a1) * sgn, w = 4;
+    svg.appendChild(svgEl('path', { 'class': 'poly-turn-head is-' + t.role, d: 'M' + num(p1[0] + tx * 2) + ' ' + num(p1[1] + ty * 2) + ' L' + num(p1[0] - tx * 5 + ty * w) + ' ' + num(p1[1] - ty * 5 - tx * w) + ' L' + num(p1[0] - tx * 5 - ty * w) + ' ' + num(p1[1] - ty * 5 + tx * w) + ' Z' }));
+  });
+  // The polygon itself, turned: its marked corner a hand from the centre.
+  var body = svg.appendChild(svgEl('g', { 'class': 'poly-body' }));
+  body.appendChild(svgEl('polygon', { 'class': 'poly-shape', points: ring(R) }));
+  var tip = at(0, R - dotR - 3), base = at(0, 0);
+  body.appendChild(svgEl('line', { 'class': 'poly-hand', x1: num(base[0]), y1: num(base[1]), x2: num(tip[0]), y2: num(tip[1]) }));
+  body.appendChild(svgEl('circle', { 'class': 'poly-mark', cx: num(tip[0]), cy: num(tip[1]), r: 3.2 }));
+  body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
+  // It turns forward from where it stood, by as many steps as the ring
+  // counts; let go, it is back at rest at once.
+  var key = G.key + '|' + sgn, deg = sgn * rot * 360 / n;
+  if (polyShown && polyShown.key === key && rot && polyShown.rot !== rot){
+    deg = polyShown.deg + sgn * (((rot - polyShown.rot) % n + n) % n) * 360 / n;
+  }
+  var from = polyShown && polyShown.key === key && rot ? polyShown.deg : deg;
+  body.style.transform = 'rotate(' + deg + 'deg)';
+  body.style.transformOrigin = C + 'px ' + C + 'px';
+  if (from !== deg && body.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    body.animate([{ transform: 'rotate(' + from + 'deg)' }, { transform: 'rotate(' + deg + 'deg)' }], { duration: Math.min(900, 260 + Math.abs(deg - from) * 2), easing: 'ease-in-out' });
+  }
+  polyShown = { key: key, rot: rot, deg: deg };
+  // The corners' places, one per element, painted and picked as beads.
+  var every = n <= 30 ? 1 : n <= 60 ? 5 : 10;
+  G.els.forEach(function(k){
+    var p = at(k, R), look = drawn ? drawn.paint(k) : { cls: '', style: null };
+    var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(p[0]), cy: num(p[1]), r: num(dotR), 'data-el': k };
+    if (look.style) attrs.style = look.style;
+    var dot = svg.appendChild(svgEl('circle', attrs));
+    dot.appendChild(svgEl('title', {})).textContent = translate('cyclicGroups.polyCorner', { k: elText(G, k), deg: polyDegrees(k, n) });
+    (roles.get(k) || []).forEach(function(role, j){
+      if (role === 'a' && j && roles.get(k)[j - 1] === 'a') return;
+      svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * j) }));
+    });
+    if (k % every) return;
+    var q = at(k, R + dotR + 10);
+    var lab = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(q[0]), y: num(q[1] + 3.5), 'text-anchor': 'middle' }));
+    lab.textContent = elText(G, k);
+  });
+  var noteEl = $('curve-plot-note');
+  noteEl.hidden = false;
+  var c = rot, ks = live && combo.k !== null;
+  if (!live) translateInto(noteEl, 'cyclicGroups.polyNoteRest', { n: n });
+  else if (ks) translateInto(noteEl, 'cyclicGroups.polyNoteScalar', { k: signed(combo.k), a: elText(G, combo.a), c: elText(G, c), n: n, deg: polyDegrees(c, n) });
+  else if (combo.b !== null && G.els.indexOf(combo.b) !== -1) translateInto(noteEl, 'cyclicGroups.polyNoteSum', { a: elText(G, combo.a), b: elText(G, combo.b), c: elText(G, c), n: n, deg: polyDegrees(c, n) });
+  else translateInto(noteEl, 'cyclicGroups.polyNoteOne', { a: elText(G, combo.a), n: n, deg: polyDegrees(combo.a, n) });
 }
 // The slope mod n of the line through two points (the tangent through one).
 function chordSlope(G, a, b){
@@ -8451,7 +8567,7 @@ function realPickAt(e){
 // Followed by the subgroup dropdown, the plot picks G instead: a point, or
 // 𝒪 in its corner.
 curvePlotSvgEl.addEventListener('click', function(e){
-  if (state.plotView === 'real' && !e.target.closest('.curve-dot, .curve-o')){ if (state.realPlot) realPickAt(e); return; }
+  if (state.plotView === 'real' && !curvePlotEl.classList.contains('is-poly') && !e.target.closest('.curve-dot, .curve-o')){ if (state.realPlot) realPickAt(e); return; }
   var dot = e.target.closest(state.genPlot ? '.curve-dot, .curve-o' : '.curve-dot');
   if (!dot) return;
   var el = dot.classList.contains('curve-o') ? 0 : +dot.getAttribute('data-el');
@@ -11490,6 +11606,7 @@ function applyRingQuery(q){
   state.genPlot = q.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(q.get('plotview')) !== -1 ? q.get('plotview') : 'mod';
   state.realPlot = q.get('realplot') === '1';
+  state.poly = q.get('polygon') === '1';
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
@@ -13035,6 +13152,7 @@ function stateQuery(){
   if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else if (state.genPlot) q.set('sub', SUB_PLOT); else q.delete('sub');
   if (state.plotView !== 'mod') q.set('plotview', state.plotView); else q.delete('plotview');
   if (state.realPlot) q.set('realplot', '1'); else q.delete('realplot');
+  if (state.poly) q.set('polygon', '1'); else q.delete('polygon');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
   q.delete('orders');
@@ -13398,6 +13516,7 @@ function persistGroup(){
 function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
+  if (id !== 'additive') state.poly = false;
   opSelectEl.value = state.mode;
   identitySelectEl.value = state.mode;
   opToggleEl.setAttribute('aria-checked', state.mode === 'multiplicative' ? 'true' : 'false');
@@ -13636,7 +13755,7 @@ function setPlotCtx(open, x, y){
   showCtxAt(plotCtxEl, x, y);
 }
 curvePlotEl.addEventListener('contextmenu', function(e){
-  if (state.plotView !== 'real') return;
+  if (state.plotView !== 'real' || curvePlotEl.classList.contains('is-poly')) return;
   e.preventDefault();
   if (IS_MOBILE) return;
   setPlotCtx(true, ptX(e), ptY(e));
@@ -13808,6 +13927,7 @@ function ecEquation(a, b){
 function syncEcControls(){
   document.documentElement.classList.toggle('is-ec', state.ec);
   ecToggleEl.setAttribute('aria-pressed', state.ec ? 'true' : 'false');
+  polyToggleEl.setAttribute('aria-pressed', state.poly ? 'true' : 'false');
   ecRowEl.hidden = !state.ec;
   if (!state.ec) return;
   [[ecPEl, state.ecP], [ecAEl, state.ecA], [ecBEl, state.ecB]].forEach(function(f){ if (document.activeElement !== f[0] || !ecNote) f[0].value = f[1]; });
@@ -13861,6 +13981,7 @@ function syncEcPresets(){
 function setEcMode(on){
   if (on === state.ec) return;
   state.ec = on;
+  if (on) state.poly = false;
   ecNote = null;
   var G = currentGroup();
   state.gen = startGen(G);
@@ -13890,6 +14011,21 @@ function applyCurve(p, a, b){
   endBlank();
 }
 ecToggleEl.addEventListener('click', function(){ setEcMode(!state.ec); });
+// The regular polygon mode: ⟨ℤ/nℤ, +⟩ as the turns of a regular n-gon,
+// shown in the plot's window. Turned on, it leaves the curve and takes
+// addition; multiplication or a curve turns it off.
+var polyToggleEl = $('poly-toggle');
+function setPolyMode(on){
+  state.poly = on;
+  if (on){
+    setEcMode(false);
+    setMode('additive');
+    curvePlotOpen = true;
+  }
+  render();
+  if (drawn) mirrorToUrl(drawn.G);
+}
+polyToggleEl.addEventListener('click', function(){ setPolyMode(!state.poly); });
 function typedCurve(){ applyCurve(parseInt(ecPEl.value, 10), parseInt(ecAEl.value, 10), parseInt(ecBEl.value, 10)); }
 [ecPEl, ecAEl, ecBEl].forEach(function(el){
   el.addEventListener('change', typedCurve);
@@ -14873,6 +15009,7 @@ function loadState(query, link){
   state.genPlot = query.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(query.get('plotview')) !== -1 ? query.get('plotview') : 'mod';
   state.realPlot = query.get('realplot') === '1';
+  state.poly = query.get('polygon') === '1';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){
