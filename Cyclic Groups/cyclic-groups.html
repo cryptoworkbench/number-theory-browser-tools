@@ -8260,10 +8260,20 @@ var polyPlotEl = $('poly-plot'), polyPlotSvgEl = $('poly-plot-svg'), polyNoteEl 
 var polyOpen = false, polyShown = null;
 var polyWin = plotWindow(polyPlotEl, $('poly-grip'));
 function polyAvail(G){ return !!G && G.cyclic && G.order > 1 && !IS_MOBILE && !(IS_ISOPANE && isoBlank) && !hostBlank(); }
+// The polygon follows whichever was moved last, the element expression
+// slider or the Arrangement row: by powers, its generator; Sequential, in
+// an additive group, 1 (the sequential order is its multiples).
+var polyBy = 'arrange';
 function polyGen(G){
+  if (polyBy === 'arrange' && G.cyclic){
+    if (state.bygen) return arrangeBy(G);
+    if (!G.pts && G.mode === 'additive') return 1;
+  }
   var g = exprBy(G);
   return g !== null ? g : !G.pts && G.mode === 'additive' ? 1 : G.generators[0];
 }
+// The generator the polygon takes with no other say: the first one.
+function polyGenOwn(G){ return !G.pts && G.mode === 'additive' ? 1 : G.generators[0]; }
 function polyRotation(G){
   if (!comboLive(G)) return G.identity;
   if (combo.k !== null) return scalarOf(G, combo.a, combo.k);
@@ -8289,7 +8299,7 @@ function drawPolyPlot(G){
 function plotPolygon(G){
   var n = G.order, svg = polyPlotSvgEl, C = CURVE_W / 2, R = 96, sgn = dirSign();
   var g = polyGen(G), log = exprLog(G, g), els = elsBy(G, g), natural = exprBy(G) === null;
-  var nat = natural && !G.pts && G.mode === 'additive';
+  var nat = natural && !G.pts && G.mode === 'additive' && g === 1;
   var roles = combineRoles(G), live = comboLive(G), rot = polyRotation(G);
   var ang = function(k){ return (-90 + sgn * k * 360 / n) * Math.PI / 180; };
   var at = function(k, r){ return [C + r * Math.cos(ang(k)), C + r * Math.sin(ang(k))]; };
@@ -8386,7 +8396,7 @@ function plotPolygon(G){
   });
   var gk = ecMult(G) ? 'k·' + elText(G, g, true) : baseText(G, g, true) + 'ᵏ';
   var op = G.pts || G.mode === 'additive' ? '+' : '·';
-  if (!live) translateInto(polyNoteEl, nat ? 'cyclicGroups.polyNoteRestNat' : natural ? 'cyclicGroups.polyNoteFirstGen' : 'cyclicGroups.polyNoteRest', { gk: gk, n: n });
+  if (!live) translateInto(polyNoteEl, nat ? 'cyclicGroups.polyNoteRestNat' : natural && g !== polyGenOwn(G) ? 'cyclicGroups.polyNoteRest' : natural ? 'cyclicGroups.polyNoteFirstGen' : 'cyclicGroups.polyNoteRest', { gk: gk, n: n });
   else if (combo.k !== null){
     var kk = combo.k, i0 = log[combo.a], t0 = log[rot];
     var expr = ecMult(G) || (!G.pts && G.mode === 'additive') ? signed(kk) + '·' + baseText(G, combo.a) : baseText(G, combo.a) + superscript(signed(kk));
@@ -14667,11 +14677,13 @@ FLAG_SWITCHES.forEach(function(name){
 });
 arrangeSelectEl.addEventListener('change', function(){
   var powers = arrangeSelectEl.value === 'powers';
+  polyBy = 'arrange';
   rearrange(function(){ state.bygen = powers; render(); });
 });
 arrangeGenSelectEl.addEventListener('change', function(){
   var g = subExprVal(arrangeGenSelectEl.value);
   if (g === null) return;
+  polyBy = 'arrange';
   // In an additive group the multiples of 1 are the sequential order itself,
   // so choosing 1 sets the arrangement back to Sequential.
   if (drawn && drawn.G.mode === 'additive' && g === 1){
@@ -14703,9 +14715,11 @@ function pinArrangeGen(G, next){
 }
 function setExprStop(i){
   if (!drawn || !drawn.G.cyclic) return;
+  var was = polyBy;
+  polyBy = 'expr';
   var g = i > 0 ? drawn.G.generators[i - 1] : undefined;
   var next = g === undefined ? null : g;
-  if (next === exprBy(drawn.G)) return;
+  if (next === exprBy(drawn.G)){ if (was !== polyBy) render(); return; }
   // Coupled, the other ring's slider follows: the pane is told the image
   // (before this ring's new layout, so a pane ordered by its slider is laid
   // out to match already), and the ring holding it the pane's choice, to
