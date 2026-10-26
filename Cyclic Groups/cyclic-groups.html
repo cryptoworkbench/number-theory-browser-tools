@@ -9972,12 +9972,17 @@ function flipRing(change){
   var beta = identityAxis(old, box);
   var ghost = old.cloneNode(true);
   var polyGhost = polyFlipGhost();
+  var oldDrawn = ringStillSig(old);
   change();
   var poly = polyFlipWrap(polyGhost);
   // The direction it turns from: the pane is told its new one beforehand.
   var from = -dirSign();
   var ring = ringDynamicEl.querySelector('.ring');
   if (!ring) return;
+  // Drawn the same after the flip as before (G turned into its inverse
+  // with it, see invForTurn), the arrows stay where they are, in mid-air,
+  // and only the beads turn over under them, landing in their new places.
+  if (oldDrawn === ringStillSig(ring)){ flipBeads(ring, ghost, box, beta, from, poly); return; }
   var wrap = svgEl('g', { 'class': 'ring-flip' });
   ring.before(wrap);
   wrap.appendChild(ring);
@@ -10001,11 +10006,17 @@ function flipRing(change){
   var ghostWrap = svgEl('g', { 'class': 'ring-flip', 'aria-hidden': 'true', style: 'pointer-events:none' });
   ghostWrap.appendChild(ghost);
   wrap.after(ghostWrap);
+  flipFrames({ ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored, poly: poly }, box, beta, from);
+}
+// The flip's turn, frame by frame: the ghost (the ring as it was) turns
+// edge-on about the identity's axis, then the new drawing (wrap) opens out
+// from there.
+function flipFrames(f, box, beta, from){
+  var ghostWrap = f.ghost, wrap = f.wrap, poly = f.poly;
   var squash = function(el, s, k){
     el.setAttribute('transform', 'translate(' + num(box.cx) + ' ' + num(box.cy) + ') rotate(' + num(beta) + ') scale(' + num(k) + ' ' + num(Math.max(0.001, k * s)) + ') rotate(' + num(-beta) + ') translate(' + num(-box.cx) + ' ' + num(-box.cy) + ')');
   };
-  flipping = { ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored, poly: poly };
-  var f = flipping;
+  flipping = f;
   var frame = function(ts){
     if (flipping !== f) return;
     // Gone from the page: a redraw has shown the end state already.
@@ -10013,7 +10024,7 @@ function flipRing(change){
     if (f.t0 === null) f.t0 = ts;
     var t = Math.min(1, (ts - f.t0) / FLIP_MS);
     var th = Math.PI * easeInOutCubic(t);
-    var s = Math.abs(Math.cos(th)), k = 1 - FLIP_SINK * Math.sin(th);
+    var s = Math.abs(Math.cos(th)), k = 1 - (f.still ? 0 : FLIP_SINK) * Math.sin(th);
     var first = th < Math.PI / 2;
     ghostWrap.style.display = first ? '' : 'none';
     wrap.style.visibility = first ? 'hidden' : '';
@@ -10028,6 +10039,33 @@ function flipRing(change){
   squash(ghostWrap, 1, 1);
   wrap.style.visibility = 'hidden';
   f.id = requestAnimationFrame(frame);
+}
+// What the ring draws besides its beads, their labels, the guide circle and
+// the cord polygon (which a flip leaves as they are): its arrows, as a
+// string to compare, every coordinate to the nearest pixel.
+var STILL_ATTRS = ['d', 'points', 'cx', 'cy', 'r', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'transform'];
+function ringStillSig(ring){
+  return Array.prototype.filter.call(ring.children, function(el){ return !el.matches('.bead, .bead-label, .guide, .cord'); })
+    .map(function(el){
+      return [el].concat(Array.prototype.slice.call(el.querySelectorAll('*'))).map(function(n){
+        var at = STILL_ATTRS.map(function(k){ return n.getAttribute(k) || ''; }).join(',');
+        return n.tagName + '.' + (n.getAttribute('class') || '').split(/\s+/).filter(function(c){ return c && c !== 'is-respawn'; }).join(' ') + ':' + at.replace(/-?\d+(\.\d+)?/g, function(v){ return String(Math.round(+v)); }) + ':' + (n.children.length ? '' : n.textContent);
+      }).sort().join('|');
+    }).join('#');
+}
+// The flip with the arrows held still: the old beads (and their labels)
+// alone turn edge-on, then the new ones open out from there, inside the
+// ring, under the arrows that never move.
+function flipBeads(ring, ghost, box, beta, from, poly){
+  Array.prototype.slice.call(ghost.children).forEach(function(el){ if (!el.matches('.bead, .bead-label')) el.remove(); });
+  var wrap = svgEl('g', { 'class': 'ring-flip' });
+  ring.querySelectorAll(':scope > :is(.bead, .bead-label)').forEach(function(el){ wrap.appendChild(el); });
+  ring.appendChild(wrap);
+  var ghostWrap = svgEl('g', { 'class': 'ring-flip', 'aria-hidden': 'true', style: 'pointer-events:none' });
+  ghostWrap.appendChild(ghost);
+  ring.after(ghostWrap);
+  // Under arrows that stay put the beads keep to the ring, never sinking.
+  flipFrames({ ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: [], mirrored: [], poly: poly, still: true }, box, beta, from);
 }
 
 // Rearranging the beads, between numeric order and the powers of a
