@@ -3474,6 +3474,16 @@ function ecMult(G){ return !!(G && G.pts) && state.ecMult; }
 // (x,y)¹ on a curve), unless the slider's right-click menu turns that off
 // (state.natExpOff). The exponent takes the leading zeros every exponent of
 // the group takes while Line up numbers pads them: 01 in a group of order 12.
+// A number padded with the leading zeros Line up numbers asks for, to the
+// width of max; in the signed form the zeros pad the digits, after the sign.
+function padNum(v, max){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(String(max).length, '0') : String(Math.abs(v))); }
+// A generator as the base of a power, padded as the group's numbers are; a
+// curve's point as it is.
+function padBase(G, g){
+  if (G.pts) return elText(G, g, true);
+  var s = padNum(balEl(G, g), elMax(G));
+  return s.charAt(0) === '−' ? '(' + s + ')' : s;
+}
 function natPow(s, G){
   if (state.natExpOff) return s;
   var e = state.subPad && G ? '1'.padStart(String(expMax(G)).length, '0') : '1';
@@ -4170,11 +4180,11 @@ function drawRing(parent, G, beads, box, paint){
     // them, pad a number to the width of the group's largest and an exponent
     // to the width of the largest exponent.
     // In the signed form the zeros pad the digits, after the sign.
-    var pad = function(v, max){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(String(max).length, '0') : String(Math.abs(v))); };
+    var pad = padNum;
     var maxEl = elMax(G), maxExp = expMax(G);
     beads.forEach(function(a, i){
       var p = at(i);
-      var power = function(g, log){ return ecMult(G) ? pad(log[a], G.order - 1) + 'P' : baseText(G, g, true) + superscript(pad(balExp(G, log[a]), maxExp)); };
+      var power = function(g, log){ return ecMult(G) ? pad(log[a], G.order - 1) + 'P' : padBase(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
       // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
       // and the small exponent), sized to its estimated width.
       var ptPowSize = function(t){ return Math.round(Math.max(7, Math.min(beadR * 1.05, beadR * 1.8 / labelEms(t)))); };
@@ -8351,8 +8361,9 @@ function plotPolygon(G){
   var at = function(k, r){ return [C + r * Math.cos(ang(k)), C + r * Math.sin(ang(k))]; };
   var ring = function(r){ return els.map(function(x, k){ var p = at(k, r); return num(p[0]) + ',' + num(p[1]); }).join(' '); };
   // gᵏ as the ring writes it: a power, or k·P on a curve written in multiples.
-  var power = function(k){ return ecMult(G) ? k + '·' + elText(G, g, true) : baseText(G, g, true) + superscript(k); };
-  var label = function(x){ return natural ? natPow(elText(G, x, true), G) : ecMult(G) ? log[x] + 'P' : baseText(G, g, true) + superscript(balExp(G, log[x])); };
+  // Padded as the ring pads its labels, while Line up numbers asks for it.
+  var power = function(k){ return ecMult(G) ? k + '·' + elText(G, g, true) : padBase(G, g) + superscript(padNum(k, expMax(G))); };
+  var label = function(x){ return natural ? natPow(G.pts ? elText(G, x, true) : padNum(balEl(G, x), elMax(G)), G) : ecMult(G) ? log[x] + 'P' : padBase(G, g) + superscript(padNum(balExp(G, log[x]), expMax(G))); };
   // Wide corner labels, (x,y)ᵏ, need room outside the corners: the polygon
   // shrinks to leave it.
   var labelW = Math.max.apply(null, els.map(function(x){ return labelEms(label(x)) * 10; }));
