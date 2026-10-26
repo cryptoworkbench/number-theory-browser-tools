@@ -1094,6 +1094,17 @@
      between the rings (placed by keepLockClear) beside an isomorphism pane,
      whose own ring takes the direction from this one. */
   .dir-toggle{ display:none; }
+  /* Between the preferred directions and the coin, the slider locking one
+     of the two ways to shorten the arrows: the directions (left), nothing
+     (middle) or the flip (right). The one locked, and the other while it
+     follows, grey out. */
+  .shorten-lock{ display:none; }
+  .fs-win-body.is-ring .shorten-lock{ display:block; flex:0 0 64px; width:64px; align-self:center; }
+  .field .shorten-lock input{ padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; width:100%; height:100%; min-width:0; }
+  :root.is-isopane .shorten-lock{ display:none !important; }
+  .dir-toggle[aria-disabled="true"]{ opacity:.4; cursor:default; }
+  .dir-pref.is-locked > .dir-pref-seg{ opacity:.4; }
+  .dir-pref.is-locked > .dir-pref-seg > button{ pointer-events:none; }
   .fs-win-body.is-ring .dir-toggle{ display:inline-grid; grid-auto-flow:column; column-gap:6px; place-items:center; width:auto; padding:2px 8px; }
   /* The button is a circle with a dashed line through its centre, the
      axis through the identity, turned as the ring is turned and flipped
@@ -2449,6 +2460,7 @@
             <select id="arrange-select"></select>
             <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
             <span class="dir-pref" id="dir-pref" role="group" aria-label="Preferred directions of the paths" data-i18n-aria-label="cyclicGroups.dirPrefLabel"><span class="dir-pref-name" aria-hidden="true" data-i18n="cyclicGroups.dirPrefFwdName">Forward</span><span class="combine-seg dir-pref-seg is-fwd"><button type="button" id="dir-pref-ccw" data-dir="ccw" aria-pressed="false" title="Forward path counterclockwise" aria-label="Forward path counterclockwise" data-i18n-title="cyclicGroups.dirPrefCcw" data-i18n-aria-label="cyclicGroups.dirPrefCcw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 0 1.8 6M0.4 4.6 1.8 6.2 3.2 4.6"/></svg></button><button type="button" id="dir-pref-cw" data-dir="cw" aria-pressed="true" title="Forward path clockwise" aria-label="Forward path clockwise" data-i18n-title="cyclicGroups.dirPrefCw" data-i18n-aria-label="cyclicGroups.dirPrefCw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 1 10.2 6M8.8 4.6 10.2 6.2 11.6 4.6"/></svg></button></span><button type="button" class="expr-adv dir-pref-adv" id="dir-pref-adv" aria-expanded="false"></button><span class="dir-pref-name" aria-hidden="true" data-i18n="cyclicGroups.dirPrefBackName">Backward</span><span class="combine-seg dir-pref-seg is-back"><button type="button" id="dir-pref-back-ccw" data-dir="ccw" aria-pressed="true" title="Backwards path counterclockwise" aria-label="Backwards path counterclockwise" data-i18n-title="cyclicGroups.dirPrefBackCcw" data-i18n-aria-label="cyclicGroups.dirPrefBackCcw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 0 1.8 6M0.4 4.6 1.8 6.2 3.2 4.6"/></svg></button><button type="button" id="dir-pref-back-cw" data-dir="cw" aria-pressed="false" title="Backwards path clockwise" aria-label="Backwards path clockwise" data-i18n-title="cyclicGroups.dirPrefBackCw" data-i18n-aria-label="cyclicGroups.dirPrefBackCw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 1 10.2 6M8.8 4.6 10.2 6.2 11.6 4.6"/></svg></button></span></span>
+            <span class="spin-track shorten-lock" id="shorten-lock-track"><span class="spin-ticks" aria-hidden="true"><span></span><span class="is-zero"></span><span></span></span><input type="range" id="shorten-lock" min="-1" max="1" step="1" value="-1" aria-label="Lock" data-i18n-aria-label="cyclicGroups.lockLabel"></span>
             <button type="button" class="action-btn dir-toggle" id="dir-toggle"></button>
           </div>
         </div>
@@ -2625,7 +2637,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, autoFlipOff: false, prefDir: 'cw' };
+var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6218,17 +6230,6 @@ function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
   if (!key || !drawn) return;
-  // The direction button's: its one switch, Disable automatic flipping.
-  if (key === 'dir'){
-    var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuAutoFlipOff'), state.autoFlipOff, function(){
-      setRingCtx(false);
-      setAutoFlipOff(!state.autoFlipOff);
-    });
-    tick.classList.add('ring-ctx-expr');
-    tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
-    ringCtxEl.appendChild(tick);
-    return;
-  }
   var it = ctxItem('menuitem', translate(SCRATCH_NAMES[key]), true);
   it.item.addEventListener('pointerenter', function(){ setRingCopy(key, it.item, false); });
   it.item.addEventListener('click', function(){ setRingCopy(key, it.item, true); });
@@ -12630,8 +12631,9 @@ function stateQuery(){
   q.delete('nathover');
   if (state.signed) q.set('signed', '1');
   else q.delete('signed');
-  if (state.autoFlipOff) q.set('autoflip', '0');
-  else q.delete('autoflip');
+  q.delete('autoflip');
+  if (state.lock !== 'dir') q.set('lock', state.lock);
+  else q.delete('lock');
   if (state.signedExp && !state.ec) q.set('signedexp', '1');
   else q.delete('signedexp');
   if (!state.enterInverse) q.set('enterinv', '0');
@@ -13864,7 +13866,7 @@ function readPrefDir(){
 }
 function prefSign(){ return state.prefDir === 'ccw' ? -1 : 1; }
 function setPrefDir(dir){
-  if (dir === state.prefDir) return;
+  if (dir === state.prefDir || prefLocked()) return;
   state.prefDir = dir;
   try { localStorage.setItem(PREF_DIR_KEY, dir); } catch (e) { /* storage unavailable */ }
   render();
@@ -13902,13 +13904,33 @@ function syncDirPref(){
     el.setAttribute('aria-pressed', String(el.dataset.dir === dir));
   });
   dirPrefEl.classList.toggle('is-back-off', invSide() === 'neither');
+  // Locked, or following the flip's lock, the directions are greyed out and
+  // say why.
+  var locked = prefLocked();
+  dirPrefEl.classList.toggle('is-locked', locked);
+  if (locked) dirPrefEl.title = translate(state.lock === 'dir' ? 'cyclicGroups.dirPrefLocked' : 'cyclicGroups.dirPrefFollows');
+  else dirPrefEl.removeAttribute('title');
+  dirSelectEl.disabled = coinLocked();
   dirPrefEl.classList.toggle('is-both', !!drawn && !noSub() && mergedWalks(drawn.G));
 }
 // Whether flipping the ring would simplify subgroup h's arrows: keeping to
 // the preferred way, its walk would then go fewer places round in all.
 // Flipped, the preferred way runs the other way through the arrangement.
 function simplifiable(G, h){
-  if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return false;
+  var s = walkSpans(G, h);
+  return !!s && s[1] < s[0];
+}
+// Whether either way round gives h's arrows the same length (always so for
+// the identity, or with no subgroup): then the control that follows a lock
+// may still be used by hand.
+function shortTie(G, h){
+  var s = walkSpans(G, h);
+  return !s || s[0] === s[1];
+}
+// How far round h's walk goes in all as drawn, and flipped: [now, flipped];
+// null with nothing to walk.
+function walkSpans(G, h){
+  if (h === null || G.els.indexOf(h) === -1 || G.orders[h] < 2) return null;
   var beads = arrangement(G), m = beads.length, place = {}, now = 0, flipped = 0;
   var fwd = prefSign() * dirSign();
   beads.forEach(function(a, i){ place[a] = i; });
@@ -13918,40 +13940,58 @@ function simplifiable(G, h){
     now += fwd > 0 ? span : back;
     flipped += fwd > 0 ? back : span;
   });
-  return flipped < now;
+  return [now, flipped];
 }
 function shownSub(G){ return noSub() ? null : shownGen(G); }
-// With automatic flipping on, the ring flips over by itself as soon as
-// that simplifies the selected subgroup's arrows. A previewed row only
-// borrows the arrows, so it never flips the ring; nor does the pane, whose
+// The lock slider: arrows going the long way round have two cures, a new
+// preferred direction or the ring flipped over, and one of the two may be
+// locked, the other then curing them by itself: with the directions locked
+// ('dir') the ring flips over, with the flip locked ('flip') the preferred
+// direction turns, and with nothing locked ('none') nothing happens, and a
+// new subgroup may send the arrows the long way. A previewed row only
+// borrows the arrows, so it never cures them; nor does the pane, whose
 // direction is its holder's.
+var LOCKS = ['dir', 'none', 'flip'];
+var shortenLockEl = $('shorten-lock');
 function autoFlip(G){
-  if (IS_ISOPANE || IS_PREVIEW || state.autoFlipOff) return;
-  if (simplifiable(G, state.noSub ? null : state.gen)) setDir(state.dir === 'cw' ? 'ccw' : 'cw');
+  if (IS_ISOPANE || IS_PREVIEW || state.lock === 'none') return;
+  if (!simplifiable(G, state.noSub ? null : state.gen)) return;
+  if (state.lock === 'dir'){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); return; }
+  // The turned direction is this ring's alone, never stored: another Ring
+  // window, with the flip locked on another subgroup, may need the other.
+  state.prefDir = otherDir(state.prefDir);
+  render();
 }
-// The direction button always flips the ring: to simplify the arrows drawn
-// when it can, and otherwise with the preferred way round turning with it.
+// The control that follows the lock is free while either way is as short.
+function lockFollows(){
+  return state.lock !== 'none' && !!drawn && !shortTie(drawn.G, shownSub(drawn.G));
+}
+function coinLocked(){ return state.lock === 'flip' || (state.lock === 'dir' && lockFollows()); }
+function prefLocked(){ return state.lock === 'dir' || (state.lock === 'flip' && lockFollows()); }
+function setLock(lock){
+  if (LOCKS.indexOf(lock) === -1 || lock === state.lock) return;
+  state.lock = lock;
+  render();
+}
+shortenLockEl.addEventListener('input', function(){
+  setLock(LOCKS[clamp(parseInt(shortenLockEl.value, 10) || 0, -1, 1) + 1]);
+});
+function syncLock(){
+  shortenLockEl.value = String(LOCKS.indexOf(state.lock) - 1);
+  var name = translate({ dir: 'cyclicGroups.lockDir', none: 'cyclicGroups.lockNone', flip: 'cyclicGroups.lockFlip' }[state.lock]);
+  shortenLockEl.title = name;
+  shortenLockEl.setAttribute('aria-valuetext', name);
+}
+// The direction button flips the ring: to simplify the arrows drawn when it
+// can, and otherwise with the preferred way round turning with it, unless
+// the directions are locked.
 dirToggleEl.addEventListener('click', function(e){
   // A pointer's click lets go of the focus, so a later arrow key (stepping
   // the rows) never rings the button in the keyboard's focus outline.
   if (e.detail) dirToggleEl.blur();
-  if (!drawn) return;
-  setDir(state.dir === 'cw' ? 'ccw' : 'cw', !simplifiable(drawn.G, shownSub(drawn.G)));
+  if (!drawn || coinLocked()) return;
+  setDir(state.dir === 'cw' ? 'ccw' : 'cw', state.lock !== 'dir' && !simplifiable(drawn.G, shownSub(drawn.G)));
 });
-// Right-clicked, its menu holds Disable automatic flipping: the ring then
-// never flips by itself, and the arrows may go the long way round to keep
-// to the preferred way, until the button flips it.
-dirToggleEl.addEventListener('contextmenu', function(e){
-  e.preventDefault();
-  // Nor does closing the menu hand the focus back to it.
-  if (document.activeElement === dirToggleEl) dirToggleEl.blur();
-  if (IS_MOBILE || !drawn) return;
-  setRingCtx(true, e.clientX, e.clientY, 'dir');
-});
-function setAutoFlipOff(on){
-  state.autoFlipOff = on;
-  render();
-}
 // The button: a circle with a dashed line through its centre, the axis
 // through the identity wherever the ring's turn has put it, reaching well
 // past the circle, and a small ring threaded onto the axis just past the circle, at the identity's end,
@@ -14010,7 +14050,10 @@ var DIR_ARROW_CCW = 'M23 18A5 5 0 1 0 18 23M15.9 20.8 18.4 23 15.9 25.2';
 function syncDirToggle(){
   var ccw = prefSign() < 0;
   var can = !!drawn && simplifiable(drawn.G, shownSub(drawn.G));
-  dirToggleEl.removeAttribute('aria-disabled');
+  var locked = coinLocked();
+  if (locked) dirToggleEl.setAttribute('aria-disabled', 'true');
+  else dirToggleEl.removeAttribute('aria-disabled');
+  syncLock();
   syncDirPref();
   if (!dirIcons.length) drawDirIcon();
   syncDirAxis();
@@ -14020,7 +14063,8 @@ function syncDirToggle(){
   dirIcons[0].arrow.setAttribute('d', ccw !== (dirSign() < 0) ? DIR_ARROW_CCW : DIR_ARROW_CW);
   dirIcons[1].arrow.setAttribute('d', '');
   dirToggleEl.classList.toggle('is-both', !!drawn && !noSub() && mergedWalks(drawn.G));
-  var name = translate(can ? 'cyclicGroups.dirFlipSimplify' : 'cyclicGroups.dirFlipTurn');
+  var name = translate(state.lock === 'flip' ? 'cyclicGroups.dirFlipLocked' : locked ? 'cyclicGroups.dirFlipFollows'
+    : can ? 'cyclicGroups.dirFlipSimplify' : state.lock === 'dir' ? 'cyclicGroups.dirFlipKeep' : 'cyclicGroups.dirFlipTurn');
   dirToggleEl.title = name;
   dirToggleEl.setAttribute('aria-label', name);
 }
@@ -14224,7 +14268,8 @@ function loadState(query, link){
   state.revealAs = intOrNull(query.get('revealas'));
   state.signed = query.get('signed') === '1';
   state.signedExp = query.get('signedexp') === '1';
-  state.autoFlipOff = query.get('autoflip') === '0';
+  // An older link's autoflip=0 is the lock's middle, nothing locked.
+  state.lock = LOCKS.indexOf(query.get('lock')) !== -1 ? query.get('lock') : query.get('autoflip') === '0' ? 'none' : 'dir';
   state.prefDir = readPrefDir();
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
