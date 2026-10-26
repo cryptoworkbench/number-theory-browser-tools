@@ -8465,12 +8465,16 @@ function plotGrid(G, tiles){
     svg.appendChild(svgEl('line', { 'class': 'curve-reflect', x1: num(X(R.x)), y1: num(Y(negY)), x2: num(X(R.x)), y2: num(Y(R.y)) }));
   }
   // k·P: its walk, point to point (𝒪, off the grid, is skipped).
+  // Each hop in the colour the ring's walk gives it: the lap of the latest
+  // k to land on it, as Laps of the path lists them (see lapClass).
   var sw = live ? scalarWalk(G) : null;
   if (sw){
     var steps = sw.lap ? sw.walk.concat([sw.walk[0]]) : sw.walk.slice(0, Math.abs(combo.k) + 1);
+    var m0 = sw.walk.length, K = Math.abs(combo.k);
     for (var s2 = 1; s2 < steps.length; s2++){
       var A = G.pts[steps[s2 - 1]], B = G.pts[steps[s2]];
-      if (A && B && !A.proj && !B.proj) svg.appendChild(svgEl('line', { 'class': 'curve-walk', x1: num(X(A.x)), y1: num(Y(A.y)), x2: num(X(B.x)), y2: num(Y(B.y)) }));
+      var latest = s2 + m0 * Math.floor((K - s2) / m0);
+      if (A && B && !A.proj && !B.proj) svg.appendChild(svgEl('line', { 'class': 'curve-walk ' + lapClass(Math.floor((latest - 1) / m0)), x1: num(X(A.x)), y1: num(Y(A.y)), x2: num(X(B.x)), y2: num(Y(B.y)) }));
     }
   }
   var off = 0, rc = Math.max(1, Math.min(r * 0.7, cellY * 0.45));
