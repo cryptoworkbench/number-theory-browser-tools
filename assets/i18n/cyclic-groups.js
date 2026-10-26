@@ -770,6 +770,7 @@
       subExprFollow: 'Follow expression slider',
       subExprSort: 'Follow the Sort dropdown',
       subPanelFollow: 'Follow bottom-panel',
+      subPlotFollow: 'Follow plot',
       splitOpen: 'Open bottom-panel',
       splitClose: 'Close bottom-panel',
       exprGensAdd: { one: 'ELEMENT EXPRESSION: φ({n}) = {count} generator to choose from.', other: 'ELEMENT EXPRESSION: φ({n}) = {count} generators to choose from.' },

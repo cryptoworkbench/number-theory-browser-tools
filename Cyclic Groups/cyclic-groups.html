@@ -921,6 +921,7 @@
   .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
   /* Modulo a composite n, how many points have no (x, y) to plot. */
   .curve-plot-note{ margin:2px 0 0; font-size:.74rem; line-height:1.3; color:var(--text-dim); text-align:center; }
+  .curve-plot.is-picks-g .curve-o{ cursor:pointer; }
   .curve-plot-svg .curve-o{ fill:var(--text-dim); font-family:var(--font-math); font-size:13px; }
   :root.is-ec :is(#bar-formulas-l, #bar-formulas-r, #formula-level, #facts){ display:none !important; }
   /* Which combination a click on a bead makes, in the Arrangement row:
@@ -2624,7 +2625,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, autoFlipOff: false, prefDir: 'cw' };
+var state = { mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, autoFlipOff: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -7222,6 +7223,9 @@ function turned(list){
 // following the expression slider in a cyclic group. None is no choice to
 // make; it shows only while a link opened the ring without a subgroup.
 var SUB_PANEL = 'panel';
+// On a curve, following the plot: a click on a point there picks it.
+var SUB_PLOT = 'plot';
+var plotGen = null; // the point the plot last picked, while it is followed
 var panelGen = null; // the bottom panel's last pick: a row clicked or stepped to
 
 // The subgroup row's tail: the group the chosen subgroup lies in, ⊂ for a
@@ -7234,7 +7238,7 @@ function syncGenSuper(G){
   genSuperEl.replaceChildren();
   if (state.noSub) return;
   var h = state.gen, whole = G.orders[h] === G.order, rel = whole ? '⊆' : '⊂';
-  var named = genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL;
+  var named = genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL || genSelectEl.value === SUB_PLOT;
   // The subgroup's h is written as the element expression slider writes
   // the beads. Under the pointer it shows its natural number, as a bead
   // does, unless the main menu's switch turns that off.
@@ -7247,6 +7251,7 @@ function syncGenerators(G){
   genSelectEl.replaceChildren();
   genSelectEl.appendChild(arrangeOption(SUB_PANEL, 'cyclicGroups.subPanelFollow'));
   if (G.cyclic) genSelectEl.appendChild(followOption());
+  if (G.pts) genSelectEl.appendChild(arrangeOption(SUB_PLOT, 'cyclicGroups.subPlotFollow'));
   if (state.noSub){
     var none = document.createElement('option');
     none.value = 'none';
@@ -7256,13 +7261,16 @@ function syncGenerators(G){
   if (G.els.indexOf(state.gen) === -1){
     state.gen = G.cyclic ? G.generators[0] : (G.els.length > 1 ? G.els[1] : G.identity);
   }
-  genSelectEl.value = state.noSub ? 'none' : state.genFollow ? SUB_FOLLOW : SUB_PANEL;
+  genSelectEl.value = state.noSub ? 'none' : state.genFollow ? SUB_FOLLOW : state.genPlot ? SUB_PLOT : SUB_PANEL;
 }
 // Following the expression slider, the selected element is the slider's
 // generator (the smallest while it is on Natural). Another choice of
 // subgroup, from anywhere, ends the following.
 var followedGen = null;
 function syncGenFollow(G){
+  // Following the plot ends the same way, and with the curve mode.
+  if (state.genPlot && (!G.pts || state.noSub || state.genFollow || (plotGen !== null && state.gen !== plotGen))) state.genPlot = false;
+  if (!state.genPlot) plotGen = null;
   if (state.genFollow && (!G.cyclic || state.noSub || (followedGen !== null && state.gen !== followedGen))) state.genFollow = false;
   if (!state.genFollow){ followedGen = null; return; }
   var g = exprBy(G);
@@ -7989,6 +7997,7 @@ function drawCurvePlot(G){
   curveCornerEl.setAttribute('aria-pressed', on && curvePlotOpen ? 'true' : 'false');
   curvePlotEl.hidden = !on || !curvePlotOpen;
   if (curvePlotEl.hidden) return;
+  curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
   $('curve-plot-title').textContent = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
   var p = G.n, plot = CURVE_W - CURVE_M - 6, cell = plot / p, svg = curvePlotSvgEl;
   svg.replaceChildren();
@@ -8067,9 +8076,14 @@ function drawCurvePlot(G){
     svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(CURVE_M + plot - 9), cy: 15, r: num(8 + 2.5 * k) }));
   });
 }
+// Followed by the subgroup dropdown, the plot picks G instead: a point, or
+// 𝒪 in its corner.
 curvePlotSvgEl.addEventListener('click', function(e){
-  var dot = e.target.closest('.curve-dot');
-  if (dot) combineTap(+dot.getAttribute('data-el'));
+  var dot = e.target.closest(state.genPlot ? '.curve-dot, .curve-o' : '.curve-dot');
+  if (!dot) return;
+  var el = dot.classList.contains('curve-o') ? 0 : +dot.getAttribute('data-el');
+  if (state.genPlot){ plotGen = el; selectGen(el); return; }
+  combineTap(el);
 });
 $('curve-plot-min').addEventListener('click', function(){
   curvePlotOpen = false;
@@ -10998,6 +11012,7 @@ function applyRingQuery(q){
   state.gen = gen !== null && G.els.indexOf(gen) !== -1 ? gen : (G.cyclic ? G.generators[0] : G.identity);
   state.noSub = q.get('sub') === 'none';
   state.genFollow = q.get('sub') === SUB_FOLLOW;
+  state.genPlot = q.get('sub') === SUB_PLOT;
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
@@ -12522,7 +12537,7 @@ function stateQuery(){
   if (state.ec) q.set('curve', [state.ecP, state.ecA, state.ecB].join(','));
   else q.delete('curve');
   q.set('gen', String(state.gen));
-  if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else q.delete('sub');
+  if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else if (state.genPlot) q.set('sub', SUB_PLOT); else q.delete('sub');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
   q.delete('orders');
@@ -13651,6 +13666,16 @@ genSelectEl.addEventListener('change', function(){
     render();
     return;
   }
+  state.genPlot = genSelectEl.value === SUB_PLOT;
+  // Following the plot opens it, if minimized, and blinks it; G stays as it
+  // is until a point there is clicked.
+  if (state.genPlot){
+    plotGen = state.gen;
+    curvePlotOpen = true;
+    render();
+    blinkLinked(curvePlotEl);
+    return;
+  }
   if (state.genFollow){
     if (subInterlocked()) coupleForFollow(false);
     var G = currentGroup(), e = exprBy(G);
@@ -14228,6 +14253,7 @@ function loadState(query, link){
   else if (state.ec) state.gen = startGen(currentGroup());
   state.noSub = query.get('sub') === 'none';
   state.genFollow = query.get('sub') === SUB_FOLLOW;
+  state.genPlot = query.get('sub') === SUB_PLOT;
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){
