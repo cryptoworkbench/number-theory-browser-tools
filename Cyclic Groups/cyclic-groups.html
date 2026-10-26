@@ -9998,7 +9998,9 @@ function identityAxis(ring, box){
   var x = +id.getAttribute('cx'), y = +id.getAttribute('cy');
   return Math.atan2(m.b * x + m.d * y + m.f - box.cy, m.a * x + m.c * y + m.e - box.cx) * 180 / Math.PI;
 }
-function flipRing(change, carried){
+// before, when given, is the ring as shown before the redraw that set the
+// flip off (autoFlip): see flipBeads.
+function flipRing(change, carried, before){
   endFlip();
   if (reducedMotion && reducedMotion.matches){ change(); return; }
   // A turn under way lands first, so the ghost is the ring at rest.
@@ -10010,6 +10012,7 @@ function flipRing(change, carried){
   var ghost = old.cloneNode(true);
   var polyGhost = polyFlipGhost();
   var oldDrawn = ringStillSig(old);
+  var beforeDrawn = before && before !== old ? ringStillSig(before) : null;
   change();
   var poly = polyFlipWrap(polyGhost);
   // The direction it turns from: the pane is told its new one beforehand.
@@ -10019,7 +10022,13 @@ function flipRing(change, carried){
   // Drawn the same after the flip as before (G turned into its inverse
   // with it, see invForTurn), the arrows stay where they are, in mid-air,
   // and only the beads turn over under them, landing in their new places.
-  if (oldDrawn === ringStillSig(ring)){ flipBeads(ring, ghost, box, beta, from, poly); return; }
+  var newDrawn = ringStillSig(ring);
+  if (oldDrawn === newDrawn){ flipBeads(ring, ghost, box, beta, from, poly); return; }
+  // G just turned into its inverse (Enter, or its row picked) was drawn the
+  // long way only for the flip to set it right, never seen: the arrows as
+  // shown before, G's own, are the inverse's once flipped, so they stay
+  // where they are and only the beads turn.
+  if (beforeDrawn === newDrawn){ flipBeads(ring, before.cloneNode(true), box, beta, from, poly); return; }
   var wrap = svgEl('g', { 'class': 'ring-flip' });
   ring.before(wrap);
   wrap.appendChild(ring);
@@ -13872,6 +13881,8 @@ function mixPaint(hexA, hexB){
 // sending the arrows the long way blinks the buttons that shorten them.
 var lastGenSeen = null, lastOrderSeen = null, lastTurnSeen = null;
 function render(){
+  // The ring as last shown, for a flip this redraw may set off (autoFlip).
+  var shown = ringDynamicEl.querySelector('.ring');
   syncEcControls();
   var G = currentGroup();
   if (revealKey !== null && revealKey !== G.key) state.revealAs = null;
@@ -13953,7 +13964,7 @@ function render(){
   if (!IS_ISOPANE) isoTellTop(false);
   else if (isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
   syncInterlock();
-  autoFlip(G);
+  autoFlip(G, shown);
   syncDirToggle();
   // Compared here, after a follow (syncGenFollow) has moved the subgroup.
   var genChanged = lastGenSeen !== null && state.gen !== lastGenSeen;
@@ -15029,7 +15040,7 @@ backwardEl.addEventListener('change', function(){
 // With turnPref the preferred way round turns with the flip, so arrows
 // already the shortest stay so, mirrored.
 // With inv, G becomes inv as the ring flips (takeInverse).
-function setDir(dir, turnPref, inv){
+function setDir(dir, turnPref, inv, before){
   if (DIRS.indexOf(dir) === -1 || dir === state.dir) return;
   // The preferred way round turning with the ring and G kept, the arrows the
   // ring carries over, mirrored, are the new ones: they land without a pulse.
@@ -15044,7 +15055,7 @@ function setDir(dir, turnPref, inv){
     syncControls();
     keepCosets(render);
     if (inv != null) tookInverse(inv);
-  }, !!turnPref && inv == null);
+  }, !!turnPref && inv == null, before);
 }
 dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); });
 // The way the forward walk should go round on screen, clockwise or
@@ -15157,10 +15168,11 @@ function shownSub(G){ return noSub() ? null : shownGen(G); }
 // direction is its holder's.
 var LOCKS = ['dir', 'none', 'flip'];
 var shortenLockEl = $('shorten-lock');
-function autoFlip(G){
+// before is the ring as shown before the redraw that calls for the flip.
+function autoFlip(G, before){
   if (IS_ISOPANE || IS_PREVIEW || state.simplifyOff) return;
   if (!simplifiable(G, state.noSub ? null : state.gen)) return;
-  if (state.lock !== 'flip'){ setDir(state.dir === 'cw' ? 'ccw' : 'cw'); return; }
+  if (state.lock !== 'flip'){ setDir(state.dir === 'cw' ? 'ccw' : 'cw', false, null, before); return; }
   // The turned direction is this ring's alone, never stored: another Ring
   // window, with the flip locked on another subgroup, may need the other.
   state.prefDir = otherDir(state.prefDir);
