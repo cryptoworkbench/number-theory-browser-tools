@@ -1160,7 +1160,9 @@
   .dir-toggle .dir-arrow{ stroke-width:1.5; stroke:var(--arrow-in, var(--role-active)); }
   .dir-toggle.is-both .dir-arrow{ stroke:var(--arrow-both); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-toggle{ position:absolute; z-index:3; translate:-50% -50%; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field :is(#dir-toggle, #dir-pref, #shorten-lock-track){ position:absolute; z-index:3; translate:-50% -50%; }
+  /* Moved there, the grid keeps its own width (the slider has its 64px). */
+  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-pref{ width:max-content; }
   :root.is-isopane #dir-toggle{ display:none !important; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the two rings' lists are merged into one they share one button:
@@ -13514,7 +13516,8 @@ function syncOpenLock(){
   isoLockEl.setAttribute('title', translate(isoLinksWholeGroups() ? 'cyclicGroups.isoLockOpenGroup' : 'cyclicGroups.isoLockOpenSub'));
   drawIsoLock();
 }
-// The padlock, and while the rings are linked (as whole groups) their shared
+// The padlock, then the preferred directions, the lock slider and the coin,
+// and while the rings are linked (as whole groups) their shared
 // Explore cosets button and its run's controls under it, sit on the line
 // between the rings, centred as one on the left ring's middle: beside the
 // rings, clear of the rows of controls above them. Their shared Numerical
@@ -13528,7 +13531,9 @@ function keepLockClear(){
   syncZoomCtl();
   syncExprLock();
   isoLockEl.style.top = exprLockEl.style.top = '';
-  [dirToggleEl, splitBtnEl, cosetBtnEl, cosetControlsEl].forEach(function(el){ el.style.left = el.style.top = ''; });
+  // The preferred directions and the lock slider go with the coin, above it.
+  var dirCtls = [$('dir-pref'), $('shorten-lock-track'), dirToggleEl];
+  dirCtls.concat([splitBtnEl, cosetBtnEl, cosetControlsEl]).forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
   isoSwapEl.hidden = !canSwapRings();
@@ -13540,7 +13545,7 @@ function keepLockClear(){
   var mid = g.top + g.height / 2;
   // The split button in the open panel's corner is the panel's, not the line's.
   var onLine = function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); };
-  var btns = [dirToggleEl, cosetBtnEl, cosetControlsEl].filter(onLine);
+  var btns = dirCtls.concat([cosetBtnEl, cosetControlsEl]).filter(onLine);
   var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
@@ -13891,7 +13896,12 @@ dirPrefEls.forEach(function(el){
   el.addEventListener('click', function(){ setPrefDir(prefBack(el) ? otherDir(el.dataset.dir) : el.dataset.dir); });
 });
 var dirPrefAdvEl = $('dir-pref-adv');
-dirPrefAdvEl.addEventListener('click', function(){ state.dirPrefAdv = !state.dirPrefAdv; syncDirPref(); });
+dirPrefAdvEl.addEventListener('click', function(){
+  state.dirPrefAdv = !state.dirPrefAdv;
+  syncDirPref();
+  // Between the rings the grid's new height moves the stack it is in.
+  keepLockClear();
+});
 // A hidden path's colour greys out on its row.
 function syncDirPref(){
   var open = state.dirPrefAdv, advName = translate(open ? 'cyclicGroups.dirPrefAdvClose' : 'cyclicGroups.dirPrefAdvOpen');
