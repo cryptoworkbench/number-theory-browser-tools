@@ -50,12 +50,12 @@
   html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
     font-family:var(--font-sans); font-size:16px; }
   body{ min-height:100vh; transition: background .25s ease, color .25s ease; }
-  /* The desktop page draws at 90%, as a browser zoomed to 90% would draw it
-     (the head's script sets is-desktop before the first paint); see PAGE_ZOOM.
-     A length in vw or vh is divided by it, so it stays that share of the
-     window, as under the browser's own zoom. */
+  /* The desktop tool, once entered, draws at 90%, as a browser zoomed to 90%
+     would draw it; its intro draws at 100%, as the site's other pages do.
+     See PAGE_ZOOM. A length in vw or vh is divided by it, so it stays that
+     share of the window, as under the browser's own zoom. */
   :root{ --page-zoom:1; }
-  :root.is-desktop{ --page-zoom:.9; zoom:var(--page-zoom); }
+  :root.is-desktop.is-entered{ --page-zoom:.9; zoom:var(--page-zoom); }
 
   .app{ padding:20px 22px; margin:0 auto; display:flex; flex-direction:column; gap:18px;
     --font-math:'STIX Two Math', 'Latin Modern Math', 'Cambria Math', math; }
@@ -2838,12 +2838,21 @@ var IS_MOBILE = !IS_PREVIEW && !IS_RINGWIN && document.documentElement.classList
 // class before the first paint.
 var IS_DESKTOP = !IS_PREVIEW && !IS_RINGWIN && !IS_MOBILE;
 document.documentElement.classList.toggle('is-desktop', IS_DESKTOP);
-// The top-level page draws at 90% (the zoom on :root.is-desktop), with room
-// for everything as at a browser zoom of 90%. What the browser measures on
+// The entered tool draws at 90% (the zoom on :root.is-desktop.is-entered),
+// with room for everything as at a browser zoom of 90%; its intro at 100%. What the browser measures on
 // screen, a box, the pointer, the window, comes in screen px; these bring it
 // into the page's own px, the ones its styles are written in. A box inside
 // a frame of this page is in that frame's px already.
-var PAGE_ZOOM = (IS_DESKTOP && parseFloat(getComputedStyle(document.documentElement).zoom)) || 1;
+var PAGE_ZOOM = 1;
+// Read again as the tool is entered or left, and everything placed by it
+// placed again.
+function syncPageZoom(){
+  var z = (IS_DESKTOP && parseFloat(getComputedStyle(document.documentElement).zoom)) || 1;
+  if (z === PAGE_ZOOM) return;
+  PAGE_ZOOM = z;
+  window.dispatchEvent(new Event('resize'));
+}
+syncPageZoom();
 function boxOf(el){
   var r = el.getBoundingClientRect();
   if (PAGE_ZOOM === 1 || el.ownerDocument !== document) return r;
@@ -5499,6 +5508,7 @@ function enterDesktop(){
   if (!IS_DESKTOP || cgEntered) return;
   cgEntered = true;
   document.documentElement.classList.add('is-entered');
+  syncPageZoom();
   var go = diagramFrameEl.requestFullscreen || diagramFrameEl.webkitRequestFullscreen;
   if (go && (document.fullscreenEnabled || document.webkitFullscreenEnabled)){
     try {
@@ -5527,6 +5537,7 @@ function exitDesktop(){
     } catch (e) { /* already out of full screen */ }
   }
   document.documentElement.classList.remove('is-entered');
+  syncPageZoom();
   syncPanes();
   window.scrollTo(0, 0);
   cgEnterEl.focus({ preventScroll: true });
