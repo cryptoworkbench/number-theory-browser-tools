@@ -11495,6 +11495,12 @@ function isoFound(){
   var k = g === null ? 0 : drawn.G.orders[g];
   return !!H && k > 0 && H.cyclic && H.order === k;
 }
+// Whether the pane's group and this whole group are cyclic of one order.
+function isoWholeMatch(){
+  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn) return false;
+  var H = isoPaneGroup(), G = drawn.G;
+  return !!H && H.cyclic && G.cyclic && H.order === G.order;
+}
 // Linked only while the padlock is closed: opened, the rings turn, colour,
 // highlight and list on their own until locked again.
 function isoLinked(){
@@ -11517,6 +11523,15 @@ function tellPaneKey(key){
 // except when opened as an isomorphism.
 function syncIsoLink(){
   if (IS_ISOPANE || !isoPane || !drawn || isoPane.blank) return;
+  // A pane's group not isomorphic to the subgroup on show may still be to
+  // this whole group: the link then runs through a generator of the whole
+  // group, for as long as the two whole groups match.
+  if (isoPane.gAuto && !isoWholeMatch()){ isoPane.g = null; isoPane.gAuto = false; }
+  if (isoPane.g === null && !isoFound() && isoWholeMatch()){
+    var G = drawn.G;
+    isoPane.g = !state.noSub && G.generators.indexOf(state.gen) !== -1 ? state.gen : G.generators[0];
+    isoPane.gAuto = true;
+  }
   if (!isoFound()) isoPane.link = 'none';
   else {
     var H = isoPaneGroup();
