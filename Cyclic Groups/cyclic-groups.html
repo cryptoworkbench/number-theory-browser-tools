@@ -8323,9 +8323,8 @@ function plotPolygon(G){
     dot.appendChild(svgEl('title', {})).textContent = nat
       ? translate('cyclicGroups.polyCornerNat', { k: k, n: n, deg: polyDegrees(k, n) })
       : translate('cyclicGroups.polyCorner', { el: elText(G, x), gk: power(k), k: k, n: n, deg: polyDegrees(k, n) });
-    (roles.get(x) || []).forEach(function(role, j){
-      if (role === 'a' && j && roles.get(x)[j - 1] === 'a') return;
-      svg.appendChild(svgEl('circle', { 'class': haloClass(G, role), cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * j) }));
+    windowHalos(G, roles.get(x)).forEach(function(h){
+      svg.appendChild(svgEl('circle', { 'class': h.cls, cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * h.i) }));
     });
     if (k % every) return;
     var q = at(k, R + dotR + 10);
@@ -8512,9 +8511,8 @@ function plotGrid(G, tiles){
     var dot = svg.appendChild(svgEl('circle', attrs));
     var tt = dot.appendChild(svgEl('title', {}));
     tt.textContent = plainPoint(Pt);
-    (roles.get(e) || []).forEach(function(role, k){
-      if (role === 'a' && k && (roles.get(e)[k - 1] === 'a')) return;
-      svg.appendChild(svgEl('circle', { 'class': haloClass(G, role), cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * k) }));
+    windowHalos(G, roles.get(e)).forEach(function(h){
+      svg.appendChild(svgEl('circle', { 'class': h.cls, cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * h.i) }));
     });
   });
   var noteEl = $('curve-plot-note');
@@ -8529,8 +8527,8 @@ function plotO(svg, plot, roles, left){
   var cx = left ? CURVE_M + 9 : CURVE_M + plot - 9;
   var o = svg.appendChild(svgEl('text', { 'class': 'curve-o', x: num(left ? CURVE_M + 4 : CURVE_M + plot - 4), y: 20, 'text-anchor': left ? 'start' : 'end' }));
   o.textContent = '𝒪';
-  (roles.get(0) || []).forEach(function(role, k){
-    svg.appendChild(svgEl('circle', { 'class': haloClass(drawn && drawn.G, role), cx: num(cx), cy: 15, r: num(8 + 2.5 * k) }));
+  windowHalos(drawn && drawn.G, roles.get(0)).forEach(function(h){
+    svg.appendChild(svgEl('circle', { 'class': h.cls, cx: num(cx), cy: 15, r: num(8 + 2.5 * h.i) }));
   });
 }
 // A point mod n set on the real curve: at its own x (as written, 0 to
@@ -8634,9 +8632,8 @@ function plotReal(G){
     if (look.style) attrs.style = look.style;
     var dot = g.appendChild(svgEl('circle', attrs));
     dot.appendChild(svgEl('title', {})).textContent = plainPoint(Pt);
-    (roles.get(e) || []).forEach(function(role, k){
-      if (role === 'a' && k && (roles.get(e)[k - 1] === 'a')) return;
-      g.appendChild(svgEl('circle', { 'class': haloClass(G, role), cx: num(X(at3.x)), cy: num(Y(at3.y)), r: num(6.5 + 2.5 * k) }));
+    windowHalos(G, roles.get(e)).forEach(function(h){
+      g.appendChild(svgEl('circle', { 'class': h.cls, cx: num(X(at3.x)), cy: num(Y(at3.y)), r: num(6.5 + 2.5 * h.i) }));
     });
   });
   plotO(svg, plot, roles, true);
@@ -8864,6 +8861,22 @@ function tellPlotMin(min){
 // reached it (see lapClass), as Laps of the path lists it. On the ring,
 // where an element's halos stack one per visit of the walk, inside out
 // (see combineRoles), the i-th (lap) wears lap i's colour.
+// The halos the polygon and the curve plot ring an element with: as on the
+// ring, with aᵏ only the last visit's, in its lap's colour; otherwise each
+// role's, a run of a's laps as one.
+function windowHalos(G, list){
+  list = list || [];
+  if (combo.k !== null && list.length && G && scalarWalk(G)){
+    var last = list.length - 1;
+    return [{ cls: haloClass(G, list[last], last), i: 0 }];
+  }
+  var out = [];
+  list.forEach(function(role, k){
+    if (role === 'a' && k && list[k - 1] === 'a') return;
+    out.push({ cls: haloClass(G, role), i: k });
+  });
+  return out;
+}
 function haloClass(G, role, lap){
   var cls = 'combine-halo is-' + role;
   var sw = G && combo.k !== null && (role === 'c' || lap !== undefined) ? scalarWalk(G) : null;
