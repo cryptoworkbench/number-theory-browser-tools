@@ -878,7 +878,7 @@
   .lap-key-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px; }
   .lap-key-list > li{ display:flex; align-items:baseline; gap:8px; }
   .lap-key-swatch{ flex:none; width:20px; border-top:3px solid var(--walk); transform:translateY(-3px); }
-  /* The curve's points on the p × p grid of 𝔽ₚ, beside the ring and in step
+  /* The curve's points on the p × p grid of 𝔽ₚ (or n × n), beside the ring and in step
      with it: each point painted as its bead, the picked ones ringed alike,
      P + Q's line through the grid, and k·P's walk. A click on a point picks
      it as a click on its bead does. */
@@ -897,6 +897,8 @@
   .curve-plot-svg .curve-reflect{ stroke:var(--role-result); stroke-width:1.2; stroke-dasharray:3 3; pointer-events:none; }
   .curve-plot-svg .curve-column{ fill:var(--role-input); opacity:.12; pointer-events:none; }
   .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
+  /* Modulo a composite n, how many points have no (x, y) to plot. */
+  .curve-plot-note{ margin:2px 0 0; font-size:.74rem; line-height:1.3; color:var(--text-dim); text-align:center; }
   .curve-plot-svg .curve-o{ fill:var(--text-dim); font-family:var(--font-math); font-size:13px; }
   :root.is-ec :is(#bar-formulas-l, #bar-formulas-r, #formula-level, #facts){ display:none !important; }
   /* Which combination a click on a bead makes, in the Arrangement row:
@@ -2214,7 +2216,7 @@
         </section>
         <section class="curve-plot" id="curve-plot" aria-labelledby="curve-plot-title" hidden>
           <div class="lap-key-head"><h2 id="curve-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="curve-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
-          <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg>
+          <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="curve-plot-note" hidden></p>
         </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
@@ -2378,10 +2380,10 @@
         <h2 data-i18n="cyclicGroups.groupHeading">Group</h2>
         <ul class="facts group-controls" id="group-controls">
           <li class="fs-row-label" data-i18n="cyclicGroups.fsGroupParams">Parameters</li>
-          <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points over a prime field" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitle" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
+          <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
           <li class="ec-row" id="ec-row" hidden>
             <span class="ec-eq" id="ec-eq" dir="ltr"></span>
-            <span class="ec-field"><label for="ec-p" class="fact-label">p</label><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The field's prime p, from 5 to 97" aria-label="The field's prime p, from 5 to 97" data-i18n-title="cyclicGroups.ecPTitle" data-i18n-aria-label="cyclicGroups.ecPTitle"></span>
+            <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"></span>
             <span class="ec-field"><label for="ec-a" class="fact-label">a</label><input type="number" id="ec-a" min="0" max="96" step="1" value="2" title="The coefficient a" aria-label="The coefficient a" data-i18n-title="cyclicGroups.ecATitle" data-i18n-aria-label="cyclicGroups.ecATitle"></span>
             <span class="ec-field"><label for="ec-b" class="fact-label">b</label><input type="number" id="ec-b" min="0" max="96" step="1" value="2" title="The coefficient b" aria-label="The coefficient b" data-i18n-title="cyclicGroups.ecBTitle" data-i18n-aria-label="cyclicGroups.ecBTitle"></span>
             <select id="ec-preset" class="ec-preset" title="Example curves" aria-label="Example curves" data-i18n-title="cyclicGroups.ecPresets" data-i18n-aria-label="cyclicGroups.ecPresets"></select>
@@ -2844,9 +2846,29 @@ function buildGroup(mode, n){
 // point at infinity 𝒪 the identity. Each point is known by its index,
 // 0 for 𝒪 and then x-ascending, so the ring and its walks treat it like any
 // element; G.pts holds the coordinates (null for 𝒪).
-var EC_MIN_P = 5, EC_MAX_P = 97, EC_COEF_MAX = 96;
-function ecValid(p, a, b){ return isPrime(p) && p >= EC_MIN_P && p <= EC_MAX_P && ecIsNonSingular(a, b, p); }
+// Modulo n = pq, two primes, the group is the two curves' side by side:
+// see buildCompositeCurve.
+var EC_MIN_P = 5, EC_MAX_P = 97, EC_COEF_MAX = 96, EC_MAX_ORDER = 120;
+// A curve's modulus: a prime from 5 to 97, or a product of two different
+// such primes (y² = x³ + ax + b breaks down mod 2 and 3).
+function ecModulusOk(n){
+  if (!Number.isInteger(n) || n < EC_MIN_P || n > EC_MAX_P) return false;
+  var f = primeFactors(n);
+  return f.every(function(q, i){ return q >= EC_MIN_P && f.indexOf(q) === i; });
+}
+// The first of n's primes the curve is singular at, or null.
+function ecSingularAt(a, b, n){
+  var f = primeFactors(n);
+  for (var i = 0; i < f.length; i++) if (!ecIsNonSingular(a, b, f[i])) return f[i];
+  return null;
+}
+// Its point count, 𝒪 included: the product of each prime's.
+function ecOrder(n, a, b){
+  return primeFactors(n).reduce(function(N, q){ return N * (ecPoints(a, b, q).length + 1); }, 1);
+}
+function ecValid(n, a, b){ return ecModulusOk(n) && ecSingularAt(a, b, n) === null && ecOrder(n, a, b) <= EC_MAX_ORDER; }
 function buildCurveGroup(p, a, b){
+  if (!isPrime(p)) return buildCompositeCurve(p, a, b);
   var pts = [null].concat(ecPoints(a, b, p).map(function(P){ return { x: P.x, y: P.y, p: p }; })), at = {};
   pts.forEach(function(P, i){ if (P) at[P.x + ',' + P.y] = i; });
   var N = pts.length, table = {};
@@ -2867,24 +2889,89 @@ function buildCurveGroup(p, a, b){
     generators: [],
     longest: 1
   };
+  G.inv = {};
+  G.els.forEach(function(x){ G.inv[x] = x ? at[pts[x].x + ',' + ((p - pts[x].y) % p)] : 0; });
+  return curveOrders(G);
+}
+function curveOrders(G){
   G.els.forEach(function(x){
     var y = x, steps = 1;
     while (y !== 0){ y = G.combine(y, x); steps++; }
     G.orders[x] = steps;
-    if (steps === N) G.generators.push(x);
+    if (steps === G.order) G.generators.push(x);
     if (steps > G.longest) G.longest = steps;
   });
-  G.inv = {};
-  G.els.forEach(function(x){ G.inv[x] = x ? at[pts[x].x + ',' + ((p - pts[x].y) % p)] : 0; });
   G.cyclic = G.generators.length > 0;
   return G;
+}
+// Modulo n = pq the Chinese remainder theorem makes E(ℤ/nℤ) the pairs of a
+// point mod p and a point mod q, added each mod its own prime. A pair of
+// two points is one point (x, y) mod n; a pair holding one 𝒪 has none, and
+// is written in projective coordinates (X : Y : Z), 𝒪 being (0 : 1 : 0)
+// and (x, y) being (x : y : 1): its Z then shares a prime with n. 𝒪 comes
+// first, then the points (x, y), x-ascending, then those (X : Y : Z).
+function buildCompositeCurve(n, a, b){
+  var f = primeFactors(n), A = buildCurveGroup(f[0], a, b), B = buildCurveGroup(f[1], a, b);
+  var crt = function(u, v){ for (var x = u; x < n; x += f[0]) if (x % f[1] === v) return x; };
+  var proj = function(P){ return P ? [P.x, P.y, 1] : [0, 1, 0]; };
+  var items = [];
+  A.els.forEach(function(i){
+    B.els.forEach(function(j){
+      var P = A.pts[i], Q = B.pts[j], pt = null;
+      if (P && Q) pt = { x: crt(P.x, Q.x), y: crt(P.y, Q.y), p: n };
+      else if (P || Q){
+        var u = proj(P), v = proj(Q);
+        pt = { X: crt(u[0], v[0]), Y: crt(u[1], v[1]), Z: crt(u[2], v[2]), p: n, proj: true };
+      }
+      items.push({ i: i, j: j, pt: pt });
+    });
+  });
+  var rank = function(t){ return !t.pt ? [0, 0, 0, 0] : t.pt.proj ? [2, t.pt.Z, t.pt.X, t.pt.Y] : [1, t.pt.x, t.pt.y, 0]; };
+  items.sort(function(s, t){
+    var r = rank(s), q = rank(t);
+    for (var k = 0; k < 4; k++) if (r[k] !== q[k]) return r[k] - q[k];
+    return 0;
+  });
+  var at = {};
+  items.forEach(function(t, k){ at[t.i * B.order + t.j] = k; });
+  var G = {
+    mode: 'elliptic',
+    n: n, a: a, b: b, pts: items.map(function(t){ return t.pt; }),
+    factors: f, parts: [A, B], split: items.map(function(t){ return [t.i, t.j]; }),
+    els: items.map(function(t, k){ return k; }),
+    identity: 0,
+    order: items.length,
+    key: 'elliptic ' + n + ' ' + a + ' ' + b,
+    label: 'E(ℤ/' + n + 'ℤ)',
+    combine: function(x, y){
+      var s = G.split[x], t = G.split[y];
+      return at[A.combine(s[0], t[0]) * B.order + B.combine(s[1], t[1])];
+    },
+    orders: {},
+    generators: [],
+    longest: 1
+  };
+  G.inv = {};
+  G.els.forEach(function(x){ var s = G.split[x]; G.inv[x] = at[A.inv[s[0]] * B.order + B.inv[s[1]]]; });
+  return curveOrders(G);
 }
 // Where a group starts: on a generator if it has one, else the identity.
 function startGen(G){ return G.cyclic ? G.generators[0] : G.identity; }
 // A point in formulas, and in plain text, its coordinates in the signed
 // form while that is on.
-function mPoint(P){ return P ? mrow(mo('(', true), mn(coordText(P.p, P.x)), comma(), mn(coordText(P.p, P.y)), mo(')', true)) : mi('𝒪'); }
-function plainPoint(P){ return P ? '(' + coordText(P.p, P.x) + ', ' + coordText(P.p, P.y) + ')' : '𝒪'; }
+// A point with no (x, y) mod n is written (X : Y : Z).
+function pointCoords(P){ return P.proj ? [P.X, P.Y, P.Z] : [P.x, P.y]; }
+function mPoint(P){
+  if (!P) return mi('𝒪');
+  var items = [mo('(', true)];
+  pointCoords(P).forEach(function(v, i){
+    if (i) items.push(P.proj ? mo(':') : comma());
+    items.push(mn(coordText(P.p, v)));
+  });
+  items.push(mo(')', true));
+  return mrow.apply(null, items);
+}
+function plainPoint(P){ return P ? '(' + pointCoords(P).map(function(v){ return coordText(P.p, v); }).join(P.proj ? ' : ' : ', ') + ')' : '𝒪'; }
 // The group shown: the curve's in the elliptic curve mode, ℤ/nℤ's otherwise.
 function currentGroup(){ return state.ec ? buildCurveGroup(state.ecP, state.ecA, state.ecB) : buildGroup(state.mode, state.n); }
 // A query's curve=p,a,b, when it names a valid curve: the mode is then on.
@@ -2921,6 +3008,7 @@ function baseMn(G, g){ var s = baseText(G, g); return s.charAt(0) === '(' ? mrow
 function elText(G, x, tight){
   if (!G.pts) return signed(balEl(G, x));
   var P = G.pts[x];
+  if (P && P.proj) return '(' + pointCoords(P).map(function(v){ return coordText(P.p, v); }).join(tight ? ':' : ' : ') + ')';
   return P ? '(' + coordText(P.p, P.x) + (tight ? ',' : ', ') + coordText(P.p, P.y) + ')' : '𝒪';
 }
 
@@ -3927,11 +4015,12 @@ function drawRing(parent, G, beads, box, paint){
       var p = at(i);
       // A curve's point is its x over its y, each at a number's size, 𝒪 alone.
       if (G.pts && !elog){
-        var P = G.pts[a], size2 = Math.round(Math.max(7, beadR * (P ? 0.72 : 1.05)));
+        // (X : Y : Z) stacks its three, smaller.
+        var P = G.pts[a], size2 = Math.round(Math.max(7, beadR * (!P ? 1.05 : P.proj ? 0.56 : 0.72)));
         var pl = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': size2, 'data-el': a });
         if (!P) pl.textContent = '𝒪';
-        else [P.x, P.y].forEach(function(v, j){
-          var ts = pl.appendChild(svgEl('tspan', { x: num(p[0]), dy: j ? '1em' : '-0.5em' }));
+        else pointCoords(P).forEach(function(v, j, all){
+          var ts = pl.appendChild(svgEl('tspan', { x: num(p[0]), dy: j ? '1em' : -(all.length - 1) / 2 + 'em' }));
           ts.textContent = coordText(P.p, v);
         });
         ring.appendChild(pl);
@@ -4071,6 +4160,8 @@ function mlcm(a, b){ return mrow(mi('lcm'), mo('\u2061'), mo('(', true), a, comm
 
 // ⟨ℤ/nℤ, +⟩ or ⟨ℤ/nℤ, ×⟩; n is a number, a letter or a math node.
 function mGroupOf(mode, n){
+  // A curve over the field 𝔽ₚ, or modulo a composite n over the ring ℤ/nℤ.
+  if (mode === 'elliptic' && typeof n === 'number' && !isPrime(n)) return mrow(mi('E'), mo('(', true), mi('ℤ'), mo('/', true), mn(n), mi('ℤ'), mo(')', true));
   if (mode === 'elliptic') return mrow(mi('E'), mo('(', true), mEl('msub', [mi('𝔽'), typeof n === 'number' ? mn(n) : mi(n)]), mo(')', true));
   return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : typeof n === 'string' ? mi(n) : n, mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
 }
@@ -4859,10 +4950,11 @@ function scratchFormulas(G){
 // copied and dragged out like the scratchpad's: ⟨ℤ/nℤ, +⟩ for a cyclic
 // group, else the product of its cyclic factors.
 function structureFormula(G){
-  // A curve's group is ℤ/n₁ℤ × ℤ/n₂ℤ, n₂ its largest order and n₁ dividing it.
+  // A curve's group is ℤ/n₁ℤ × ℤ/n₂ℤ × …, each nᵢ dividing the next.
   if (G.pts && !G.cyclic){
-    var n2 = G.longest, n1 = G.order / n2;
-    return { key: 'struct', cls: 'ring-math-formula', math: mrow(mGroupOf('additive', n1), mo('×'), mGroupOf('additive', n2)), plain: additiveLabel(n1) + ' × ' + additiveLabel(n2) };
+    var ns = invariantFactors(G), ms = [];
+    ns.forEach(function(m, i){ if (i) ms.push(mo('×')); ms.push(mGroupOf('additive', m)); });
+    return { key: 'struct', cls: 'ring-math-formula', math: mrow.apply(null, ms), plain: ns.map(additiveLabel).join(' × ') };
   }
   if (G.cyclic) return { key: 'struct', cls: 'ring-math-formula', math: mGroupOf('additive', G.order), plain: additiveLabel(G.order) };
   var factors = unitFactors(G.n), parts = [];
@@ -4871,6 +4963,27 @@ function structureFormula(G){
     parts.push(mGroupOf('additive', f.order));
   });
   return { key: 'struct', cls: 'ring-math-formula', math: mrow.apply(null, parts), plain: factorNotation(factors) };
+}
+// An abelian group's invariant factors, read off its elements' orders: for
+// each prime ℓ, how many elements ℓᵏ kills says how many of its cyclic
+// factors reach ℓᵏ; the largest of each prime's then multiply together
+// into the largest factor, and so on down.
+function invariantFactors(G){
+  var out = [];
+  primeFactors(G.order).filter(function(l, i, all){ return all.indexOf(l) === i; }).forEach(function(l){
+    var prev = 0, reach = [];
+    for (var q = l; G.order % q === 0; q *= l){
+      var c = G.els.filter(function(x){ return q % G.orders[x] === 0; }).length;
+      var s = Math.round(Math.log(c) / Math.log(l));
+      reach.push(s - prev);
+      prev = s;
+    }
+    for (var i = 0; reach.length && i < reach[0]; i++){
+      var e = reach.filter(function(r){ return r > i; }).length;
+      out[i] = (out[i] || 1) * Math.pow(l, e);
+    }
+  });
+  return out.reverse();
 }
 // The menu's formulas: the scratchpad's, then the structure.
 function menuFormulas(G){
@@ -7879,9 +7992,11 @@ function drawCurvePlot(G){
   // P + Q: the line through them (the tangent for P + P) as its points mod
   // p, meeting the curve a third time at −R, which the reflection turns
   // into R; a vertical line, through an inverse pair, as its column.
-  if (live && combo.b !== null && combo.k === null && G.pts[combo.a] && G.pts[combo.b]){
+  // Modulo a composite n the line exists only while its slope does.
+  var kind = live && combo.b !== null && combo.k === null ? curveSumKind(G, combo.a, combo.b) : null;
+  if (kind === 'vertical' || kind === 'chord'){
     var P = G.pts[combo.a], Q = G.pts[combo.b], c = G.combine(combo.a, combo.b);
-    if (P.x === Q.x && (P.y + Q.y) % p === 0){
+    if (kind === 'vertical'){
       svg.appendChild(svgEl('rect', { 'class': 'curve-column', x: num(X(P.x) - cell / 2), y: 6, width: num(cell), height: num(plot) }));
     } else {
       var num0 = combo.a === combo.b ? 3 * P.x * P.x + G.a : Q.y - P.y, den = combo.a === combo.b ? 2 * P.y : Q.x - P.x;
@@ -7901,12 +8016,14 @@ function drawCurvePlot(G){
     var steps = sw.lap ? sw.walk.concat([sw.walk[0]]) : sw.walk.slice(0, Math.abs(combo.k) + 1);
     for (var s2 = 1; s2 < steps.length; s2++){
       var A = G.pts[steps[s2 - 1]], B = G.pts[steps[s2]];
-      if (A && B) svg.appendChild(svgEl('line', { 'class': 'curve-walk', x1: num(X(A.x)), y1: num(Y(A.y)), x2: num(X(B.x)), y2: num(Y(B.y)) }));
+      if (A && B && !A.proj && !B.proj) svg.appendChild(svgEl('line', { 'class': 'curve-walk', x1: num(X(A.x)), y1: num(Y(A.y)), x2: num(X(B.x)), y2: num(Y(B.y)) }));
     }
   }
+  var off = 0;
   G.els.forEach(function(e){
     var Pt = G.pts[e];
-    if (!Pt) return;
+    if (Pt && Pt.proj) off++;
+    if (!Pt || Pt.proj) return;
     var look = drawn ? drawn.paint(e) : { cls: '', style: null };
     var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r), 'data-el': e };
     if (look.style) attrs.style = look.style;
@@ -7918,6 +8035,9 @@ function drawCurvePlot(G){
       svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * k) }));
     });
   });
+  var noteEl = $('curve-plot-note');
+  noteEl.hidden = !off;
+  if (off) translateInto(noteEl, 'cyclicGroups.curveOffGrid', { count: off, n: p });
   // 𝒪 lies off the grid: written in the corner, ringed while picked.
   var o = svg.appendChild(svgEl('text', { 'class': 'curve-o', x: num(CURVE_M + plot - 4), y: 20, 'text-anchor': 'end' }));
   o.textContent = '𝒪';
@@ -8041,11 +8161,27 @@ function combineExtraLines(G){
     var ex = exprBy(G) !== null ? 1 : 0;
     if (combo.k !== null) return 1 + ex;
     if (combo.b === null) return 0;
-    var P = G.pts[combo.a], Q = G.pts[combo.b];
-    if (!P || !Q) return ex;
-    return ex + (P.x === Q.x && (P.y + Q.y) % G.n === 0 ? 1 : 3);
+    var kind = curveSumKind(G, combo.a, combo.b);
+    return ex + ({ vertical: 1, chord: 3, stuck: 3, split: 2 }[kind] || 0);
   }
   return (G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0;
+}
+// What P + Q's working takes: none past the sum with 𝒪 in it, P + (−P)'s
+// vertical line, the chord (or tangent) and its slope λ; modulo a
+// composite n, a slope whose denominator has no inverse (it shares a prime
+// with n), then the sum worked out mod each prime ('stuck'), or, for a
+// point (X : Y : Z), only that ('split').
+function curveSumKind(G, a, b){
+  var P = G.pts[a], Q = G.pts[b], n = G.n;
+  if (!P || !Q) return 'o';
+  if (P.proj || Q.proj) return 'split';
+  if (P.x === Q.x && (P.y + Q.y) % n === 0) return 'vertical';
+  return gcd(curveDen(G, a, b), n) === 1 ? 'chord' : 'stuck';
+}
+// The slope's denominator mod n: 2y₁ for a tangent, x₂ − x₁ for a chord.
+function curveDen(G, a, b){
+  var P = G.pts[a], Q = G.pts[b], n = G.n;
+  return (((a === b ? 2 * P.y : Q.x - P.x) % n) + n) % n;
 }
 // A number with a true minus sign.
 function signed(v){ return v < 0 ? '−' + (-v) : String(v); }
@@ -8099,12 +8235,29 @@ function curveRows(G, y, mod){
     er.push(['c', m2 + 'P'], [null, '≡'], ['c', elText(G, c)]);
     rows.push(er);
   }
-  if (!P || !Q) return rows;
+  var kind = curveSumKind(G, a, b);
+  if (kind === 'o') return rows;
   // The coordinates as they are written, signed while that is on: the
   // working then counts with them, so each step reads as it is shown.
   var B = function(v){ return balCoord(p, ((v % p) + p) % p); };
+  // Modulo pq, with no slope mod n: the sum mod each prime, each part
+  // added on its own curve.
+  if (kind === 'stuck' || kind === 'split'){
+    if (kind === 'stuck'){
+      var d = curveDen(G, a, b), g2 = gcd(d, p);
+      var den2 = a === b ? '2y₁' : 'x₂ − x₁';
+      rows.push([[null, g2 === p
+        ? translate('cyclicGroups.ecNoInverse', { expr: den2, d: signed(B(d)), n: p })
+        : translate('cyclicGroups.ecNoInverseFactor', { expr: den2, d: signed(B(d)), n: p, g: g2, h: p / g2 })]]);
+    }
+    G.parts.forEach(function(H, k){
+      var s1 = G.split[a][k], s2 = G.split[b][k];
+      rows.push([['a', elText(H, s1)], [null, '+'], ['b', elText(H, s2)], [null, '≡'], ['c', elText(H, H.combine(s1, s2))], [null, '(% ' + H.n + ')']]);
+    });
+    return rows;
+  }
   var x1 = B(P.x), y1 = B(P.y), x2 = B(Q.x), y2 = B(Q.y);
-  if (P.x === Q.x && (P.y + Q.y) % p === 0){
+  if (kind === 'vertical'){
     // A vertical line meets the curve at no third point: P + (−P) is 𝒪.
     rows.push([[null, 'x₁ = x₂ = '], ['a', signed(x1)], [null, ','], [null, 'y₁ + y₂ = '], ['a', signed(y1)], [null, '+'], ['b', sub(y2)], [null, '≡'], [null, '0'], [null, '⟹'], ['c', '𝒪']]);
     return rows;
@@ -13062,9 +13215,9 @@ opToggleEl.addEventListener('click', function(){
 
 // Example curves, each with its point count: cyclic ones first, then two
 // that are not (ℤ/3ℤ × ℤ/3ℤ and ℤ/2ℤ × ℤ/10ℤ).
-var EC_PRESETS = [[5, 1, 1], [7, 3, 4], [7, 3, 1], [11, 1, 6], [17, 2, 2], [23, 1, 1], [29, 4, 20], [7, 0, 2], [13, 1, 0]];
+var EC_PRESETS = [[5, 1, 1], [7, 3, 4], [7, 3, 1], [11, 1, 6], [17, 2, 2], [23, 1, 1], [29, 4, 20], [7, 0, 2], [13, 1, 0], [35, 3, 3], [35, 1, 3]];
 var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPEl = $('ec-p'), ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecNoteEl = $('ec-note'), ecEqEl = $('ec-eq');
-var ecNote = null; // the key of the note under the fields, while the typed curve is refused
+var ecNote = null; // the note under the fields ({ key, params }), while the typed curve is refused
 // The curve as y² = x³ + ax + b, its terms dropped or merged as a and b ask.
 function ecEquation(a, b){
   var rhs = 'x³' + (a ? ' + ' + (a === 1 ? '' : a) + 'x' : '') + (b ? ' + ' + b : '');
@@ -13077,7 +13230,9 @@ function syncEcControls(){
   if (!state.ec) return;
   [[ecPEl, state.ecP], [ecAEl, state.ecA], [ecBEl, state.ecB]].forEach(function(f){ if (document.activeElement !== f[0] || !ecNote) f[0].value = f[1]; });
   ecEqEl.textContent = ecEquation(state.ecA, state.ecB) + ' (mod ' + state.ecP + ')';
-  if (ecNote) translateInto(ecNoteEl, ecNote, {});
+  // The modulus is p over a prime field, n otherwise.
+  $('ec-p-label').textContent = isPrime(state.ecP) ? 'p' : 'n';
+  if (ecNote) translateInto(ecNoteEl, ecNote.key, ecNote.params);
   else ecNoteEl.textContent = '';
   ecPresetEl.replaceChildren();
   var head = ecPresetEl.appendChild(document.createElement('option'));
@@ -13108,9 +13263,12 @@ function setEcMode(on){
 // note under the fields says why not, and the ring keeps the last curve.
 function applyCurve(p, a, b){
   if (![p, a, b].every(Number.isInteger)) return;
-  ecNote = !isPrime(p) || p < EC_MIN_P || p > EC_MAX_P ? 'cyclicGroups.ecNoteP'
-    : a < 0 || b < 0 || a > EC_COEF_MAX || b > EC_COEF_MAX ? 'cyclicGroups.ecNoteCoef'
-    : !ecIsNonSingular(a, b, p) ? 'cyclicGroups.ecNoteSingular' : null;
+  var at = ecModulusOk(p) ? ecSingularAt(a, b, p) : null, count = 0;
+  ecNote = !ecModulusOk(p) ? { key: 'cyclicGroups.ecNoteN', params: {} }
+    : a < 0 || b < 0 || a > EC_COEF_MAX || b > EC_COEF_MAX ? { key: 'cyclicGroups.ecNoteCoef', params: {} }
+    : at !== null && at === p ? { key: 'cyclicGroups.ecNoteSingular', params: {} }
+    : at !== null ? { key: 'cyclicGroups.ecNoteSingularMod', params: { q: at } }
+    : (count = ecOrder(p, a, b)) > EC_MAX_ORDER ? { key: 'cyclicGroups.ecNoteSize', params: { count: count, max: EC_MAX_ORDER } } : null;
   if (ecNote){ syncEcControls(); return; }
   state.ecP = p; state.ecA = a; state.ecB = b;
   var G = currentGroup();
@@ -13126,13 +13284,13 @@ function typedCurve(){ applyCurve(parseInt(ecPEl.value, 10), parseInt(ecAEl.valu
   el.addEventListener('change', typedCurve);
   el.addEventListener('input', typedCurve);
 });
-// p's arrows step from prime to prime.
+// The modulus' arrows step from one it takes to the next.
 ecPEl.addEventListener('keydown', function(e){
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
   e.preventDefault();
   var by = e.key === 'ArrowUp' ? 1 : -1, v = parseInt(ecPEl.value, 10) || state.ecP;
   for (var q = v + by; q >= EC_MIN_P && q <= EC_MAX_P; q += by){
-    if (isPrime(q)){ ecPEl.value = q; typedCurve(); return; }
+    if (ecModulusOk(q)){ ecPEl.value = q; typedCurve(); return; }
   }
 });
 ecPresetEl.addEventListener('change', function(){
