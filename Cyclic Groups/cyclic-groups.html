@@ -8286,6 +8286,10 @@ function plotPolygon(G){
   // gᵏ as the ring writes it: a power, or k·P on a curve written in multiples.
   var power = function(k){ return ecMult(G) ? k + '·' + elText(G, g, true) : baseText(G, g, true) + superscript(k); };
   var label = function(x){ return natural ? elText(G, x, true) : ecMult(G) ? log[x] + 'P' : baseText(G, g, true) + superscript(balExp(G, log[x])); };
+  // Wide corner labels, (x,y)ᵏ, need room outside the corners: the polygon
+  // shrinks to leave it.
+  var labelW = Math.max.apply(null, els.map(function(x){ return labelEms(label(x)) * 10; }));
+  R = Math.max(64, Math.min(R, C - 6 - Math.max(3, Math.min(9, Math.PI * R / n * 0.42)) - 8 - labelW));
   var dotR = Math.max(3, Math.min(9, Math.PI * R / n * 0.42));
   svg.appendChild(svgEl('polygon', { 'class': 'poly-home', points: ring(R) }));
   // The turns: from 0 by a (then by b), or k hops of a; each an arc
@@ -8359,8 +8363,15 @@ function plotPolygon(G){
       svg.appendChild(svgEl('circle', { 'class': h.cls, cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * h.i) }));
     });
     if (k % every) return;
-    var q = at(k, R + dotR + 10);
-    svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(q[0]), y: num(q[1] + 3.5), 'text-anchor': 'middle' })).textContent = label(x);
+    // Each label clear of its corner's dot and halo: its box's centre out
+    // along the corner's direction by the dot, a gap and the box's own
+    // half-extent that way.
+    var tick = svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: 0, y: 0, 'text-anchor': 'middle' }));
+    tick.textContent = label(x);
+    var bb = tick.getBBox(), cs = Math.cos(ang(k)), sn = Math.sin(ang(k));
+    var q = at(k, R + dotR + 6 + Math.abs(cs) * bb.width / 2 + Math.abs(sn) * bb.height / 2);
+    tick.setAttribute('x', num(q[0] - bb.x - bb.width / 2));
+    tick.setAttribute('y', num(q[1] - bb.y - bb.height / 2));
   });
   var gk = ecMult(G) ? 'k·' + elText(G, g, true) : baseText(G, g, true) + 'ᵏ';
   var op = G.pts || G.mode === 'additive' ? '+' : '·';
