@@ -885,6 +885,7 @@
   .combine-halo.is-a{ color:var(--role-active); }
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
+  .combine-halo.is-c:is(.lap-c1, .lap-c2, .lap-c3, .lap-c4){ color:var(--walk); }
   .combine-halo.is-dense{ filter:none; }
   /* Combining a with itself k times: the multiples a, 2a, … on the way
      to the result ringed faintly, and the walk there in the result's
@@ -4120,7 +4121,7 @@ function drawRing(parent, G, beads, box, paint){
     var step = Math.min(5, Math.min(HALO_BAND, haloBand) / Math.max(1, roles.length - 1));
     roles.forEach(function(role, k){
       var dense = step < 5 && role !== 'c';
-      var attrs = { 'class': 'combine-halo is-' + role + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
+      var attrs = { 'class': haloClass(G, role) + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
       if (dense) attrs['stroke-width'] = num(Math.max(0.4, step * 0.55));
       ring.appendChild(svgEl('circle', attrs));
     });
@@ -8305,7 +8306,7 @@ function plotPolygon(G){
       : translate('cyclicGroups.polyCorner', { el: elText(G, x), gk: power(k), k: k, n: n, deg: polyDegrees(k, n) });
     (roles.get(x) || []).forEach(function(role, j){
       if (role === 'a' && j && roles.get(x)[j - 1] === 'a') return;
-      svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * j) }));
+      svg.appendChild(svgEl('circle', { 'class': haloClass(G, role), cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * j) }));
     });
     if (k % every) return;
     var q = at(k, R + dotR + 10);
@@ -8494,7 +8495,7 @@ function plotGrid(G, tiles){
     tt.textContent = plainPoint(Pt);
     (roles.get(e) || []).forEach(function(role, k){
       if (role === 'a' && k && (roles.get(e)[k - 1] === 'a')) return;
-      svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * k) }));
+      svg.appendChild(svgEl('circle', { 'class': haloClass(G, role), cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * k) }));
     });
   });
   var noteEl = $('curve-plot-note');
@@ -8510,7 +8511,7 @@ function plotO(svg, plot, roles, left){
   var o = svg.appendChild(svgEl('text', { 'class': 'curve-o', x: num(left ? CURVE_M + 4 : CURVE_M + plot - 4), y: 20, 'text-anchor': left ? 'start' : 'end' }));
   o.textContent = '𝒪';
   (roles.get(0) || []).forEach(function(role, k){
-    svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(cx), cy: 15, r: num(8 + 2.5 * k) }));
+    svg.appendChild(svgEl('circle', { 'class': haloClass(drawn && drawn.G, role), cx: num(cx), cy: 15, r: num(8 + 2.5 * k) }));
   });
 }
 // A point mod n set on the real curve: at its own x (as written, 0 to
@@ -8616,7 +8617,7 @@ function plotReal(G){
     dot.appendChild(svgEl('title', {})).textContent = plainPoint(Pt);
     (roles.get(e) || []).forEach(function(role, k){
       if (role === 'a' && k && (roles.get(e)[k - 1] === 'a')) return;
-      g.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(X(at3.x)), cy: num(Y(at3.y)), r: num(6.5 + 2.5 * k) }));
+      g.appendChild(svgEl('circle', { 'class': haloClass(G, role), cx: num(X(at3.x)), cy: num(Y(at3.y)), r: num(6.5 + 2.5 * k) }));
     });
   });
   plotO(svg, plot, roles, true);
@@ -8821,6 +8822,13 @@ function tellPlotMin(min){
 // the multiples passed on the way are 'w', and each time the walk comes
 // round again each element it passes once more, the identity first, wears
 // one more 'a' halo (up to HALO_MAX in all).
+// A halo's classes: aᵏ's result wears the colour of the lap whose last hop
+// reached it (see lapClass), as Laps of the path lists it.
+function haloClass(G, role){
+  var cls = 'combine-halo is-' + role;
+  var sw = role === 'c' && G && combo.k !== null ? scalarWalk(G) : null;
+  return sw ? cls + ' ' + lapClass(Math.floor((Math.abs(combo.k) - 1) / sw.walk.length)) : cls;
+}
 function combineRoles(G){
   var roles = new Map();
   if (!comboLive(G)) return roles;
