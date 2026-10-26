@@ -520,6 +520,7 @@
       menuSignedExp: 'Signed exponents (nearest 0)',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyOff: 'Disable auto-simplify',
+      menuSimplifyHint: 'Indicate how to simplify',
       lockDir: 'Locked: the preferred direction. The ring flips over by itself to keep the arrows short, unless auto-simplify is disabled',
       lockNone: 'Nothing locked: the ring flips over by itself to keep the arrows short, unless auto-simplify is disabled',
       lockFlip: 'Locked: the flip. The preferred direction turns by itself to keep the arrows short, unless auto-simplify is disabled',

@@ -2745,7 +2745,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6495,15 +6495,26 @@ function syncExprCtx(key){
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
   if (!key || !drawn) return;
   // The preferred directions', the lock slider's and the flip button's:
-  // their one switch, Disable auto-simplify.
+  // Disable auto-simplify, and under it Indicate how to simplify, greyed
+  // out while auto-simplify is on.
   if (key === 'dir'){
-    var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSimplifyOff'), state.simplifyOff, function(){
+    var off = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSimplifyOff'), state.simplifyOff, function(){
       setRingCtx(false);
       setSimplifyOff(!state.simplifyOff);
     });
-    tick.classList.add('ring-ctx-expr');
-    tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
-    ringCtxEl.appendChild(tick);
+    var hint = menuTick('menuitemcheckbox', translate('cyclicGroups.menuSimplifyHint'), state.simplifyHint, function(){
+      if (!state.simplifyOff) return;
+      setRingCtx(false);
+      state.simplifyHint = !state.simplifyHint;
+      render();
+      blinkShorteners();
+    });
+    if (!state.simplifyOff) hint.setAttribute('aria-disabled', 'true');
+    [off, hint].forEach(function(tick){
+      tick.classList.add('ring-ctx-expr');
+      tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
+      ringCtxEl.appendChild(tick);
+    });
     return;
   }
   var it = ctxItem('menuitem', translate(SCRATCH_NAMES[key]), true);
@@ -13717,6 +13728,8 @@ function stateQuery(){
   // link's autoflip=0 reads as nothing locked.
   if (state.simplifyOff) q.set('autoflip', '0');
   else q.delete('autoflip');
+  if (state.simplifyHint) q.set('simplifyhint', '1');
+  else q.delete('simplifyhint');
   if (state.lock !== 'dir' || state.simplifyOff) q.set('lock', state.lock);
   else q.delete('lock');
   if (state.signedExp && !state.ec) q.set('signedexp', '1');
@@ -13857,7 +13870,7 @@ function mixPaint(hexA, hexB){
 
 // The selected subgroup and the beads' order at the last render: a new one
 // sending the arrows the long way blinks the buttons that shorten them.
-var lastGenSeen = null, lastOrderSeen = null;
+var lastGenSeen = null, lastOrderSeen = null, lastTurnSeen = null;
 function render(){
   syncEcControls();
   var G = currentGroup();
@@ -13950,15 +13963,21 @@ function render(){
   var order = arrangement(G).join(',');
   var orderChanged = lastOrderSeen !== null && lastOrderSeen.group === G.key && lastOrderSeen.order !== order;
   lastOrderSeen = { group: G.key, order: order };
-  if ((genChanged || orderChanged) && drawn && drawn.G === G) blinkShorteners();
+  // And a flip, or a new preferred direction.
+  var turn = state.dir + ' ' + state.prefDir;
+  var turnChanged = lastTurnSeen !== null && lastTurnSeen !== turn;
+  lastTurnSeen = turn;
+  if ((genChanged || orderChanged || turnChanged) && drawn && drawn.G === G) blinkShorteners();
 }
-// Arrows sent the long way, by a new subgroup or a new arrangement, blink,
-// in turn, both ways to shorten them: flipping the ring, or turning the
-// preferred direction.
+// With auto-simplify disabled and Indicate how to simplify on, arrows sent
+// the long way (by a new subgroup or arrangement, a flip, or a new
+// preferred direction) blink the controls that would shorten them: the one
+// not locked, or, nothing locked, both in turn.
+function simplifyHintOn(){ return state.simplifyOff && state.simplifyHint; }
 function blinkShorteners(){
-  if (state.noSub || !drawn || !simplifiable(drawn.G, state.gen)) return;
-  blinkLinked(dirToggleEl);
-  blinkLinked(dirPrefFwdSegEl, true);
+  if (!simplifyHintOn() || state.noSub || !drawn || !simplifiable(drawn.G, state.gen)) return;
+  if (state.lock !== 'flip') blinkLinked(dirToggleEl);
+  if (state.lock !== 'dir') blinkLinked(dirPrefFwdSegEl, state.lock === 'none');
 }
 
 /* ---------- controls <-> state ---------- */
@@ -15045,9 +15064,6 @@ function setPrefDir(dir){
   try { localStorage.setItem(PREF_DIR_KEY, dir); } catch (e) { /* storage unavailable */ }
   render();
   if (inv !== null) tookInverse(inv);
-  // Picked by hand, a way round that sends the arrows the long way blinks
-  // the button that would simplify them (auto-simplify has already).
-  if (drawn && !state.noSub && simplifiable(drawn.G, state.gen)) blinkLinked(dirToggleEl);
 }
 window.addEventListener('storage', function(e){
   if (e.key !== PREF_DIR_KEY && e.key !== null) return;
@@ -15499,6 +15515,7 @@ function loadState(query, link){
   // An older link's autoflip=0 is the lock's middle, nothing locked.
   state.lock = LOCKS.indexOf(query.get('lock')) !== -1 ? query.get('lock') : query.get('autoflip') === '0' ? 'none' : 'dir';
   state.simplifyOff = query.get('autoflip') === '0';
+  state.simplifyHint = query.get('simplifyhint') === '1';
   state.prefDir = readPrefDir();
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
