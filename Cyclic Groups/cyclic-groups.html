@@ -4165,29 +4165,45 @@ function drawRing(parent, G, beads, box, paint){
     var maxEl = elMax(G), maxExp = expMax(G);
     beads.forEach(function(a, i){
       var p = at(i);
+      var power = function(g, log){ return ecMult(G) ? pad(log[a], G.order - 1) + 'P' : baseText(G, g, true) + superscript(pad(balExp(G, log[a]), maxExp)); };
+      // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
+      // and the small exponent), sized to its estimated width.
+      var ptPowSize = function(t){ return Math.round(Math.max(7, Math.min(beadR * 1.05, beadR * 1.8 / labelEms(t)))); };
       // A curve's point is its x over its y, each at a number's size, 𝒪 alone.
-      if (G.pts && !elog){
-        // (X : Y : Z) stacks its three, smaller.
-        var P = G.pts[a], size2 = Math.round(Math.max(7, beadR * (!P ? 1.05 : P.proj ? 0.56 : 0.72)));
-        var pl = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': size2, 'data-el': a });
-        if (!P) pl.textContent = '𝒪';
-        else pointCoords(P).forEach(function(v, j, all){
-          var ts = pl.appendChild(svgEl('tspan', { x: num(p[0]), dy: j ? '1em' : -(all.length - 1) / 2 + 'em' }));
+      // (X : Y : Z) stacks its three, smaller.
+      var P = G.pts && G.pts[a], size2 = Math.round(Math.max(7, beadR * (!P ? 1.05 : P.proj ? 0.56 : 0.72)));
+      var stacked = function(){
+        if (!P) return [document.createTextNode('𝒪')];
+        return pointCoords(P).map(function(v, j, all){
+          var ts = svgEl('tspan', { x: num(p[0]), dy: j ? '1em' : -(all.length - 1) / 2 + 'em' });
           ts.textContent = coordText(P.p, v);
+          return ts;
         });
+      };
+      if (G.pts && !elog){
+        var pl = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': size2, 'data-el': a });
+        pl._expr = stacked();
+        pl.replaceChildren.apply(pl, pl._expr);
+        // Reveal on hover: the picked generator's power.
+        if (rt !== null){
+          var pnat = power(rt, rlog), pt = !ecMult(G);
+          pl.setAttribute('data-expr', elText(G, a, true));
+          pl.setAttribute('data-expr-size', size2);
+          pl.setAttribute('data-nat', pnat);
+          pl.setAttribute('data-nat-size', pt ? ptPowSize(pnat) : Math.round(Math.max(7, beadR * 1.05 * Math.min(1, 2.2 / pnat.length))));
+          if (pt) pl.setAttribute('data-nat-pt', '1');
+        }
         ring.appendChild(pl);
+        if (rt !== null) natLabel(pl, a === natHot);
         return;
       }
-      var power = function(g, log){ return ecMult(G) ? pad(log[a], G.order - 1) + 'P' : baseText(G, g, true) + superscript(pad(balExp(G, log[a]), maxExp)); };
       var text = elog ? power(eg, elog) : pad(balEl(G, a), maxEl);
       // An expressed, padded or signed label wider than two characters
       // shrinks to stay in its bead.
       var shrink = elog || state.subPad || state.signed || state.signedExp;
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
-      // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
-      // and the small exponent), sized to its estimated width.
       var ptPow = !!(G.pts && elog && !ecMult(G));
-      if (ptPow) size = Math.min(beadR * 1.05, beadR * 1.8 / labelEms(text));
+      if (ptPow) size = ptPowSize(text);
       var label = svgEl('text', { 'class': (coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       beadText(label, text);
       // The label the reveal shows: the natural number, or the picked
@@ -4198,6 +4214,11 @@ function drawRing(parent, G, beads, box, paint){
         label.setAttribute('data-expr-size', label.getAttribute('font-size'));
         label.setAttribute('data-nat', nat);
         label.setAttribute('data-nat-size', Math.round(rlog || state.subPad || state.signed || state.signedExp ? Math.max(natSize, 7) : natSize));
+        if (ptPow) label.setAttribute('data-expr-pt', '1');
+        // A curve's point revealed stacks as it does under Natural; its power
+        // in the sans.
+        if (G.pts && !rlog){ label._nat = stacked(); label.setAttribute('data-nat-size', size2); }
+        else if (G.pts && !ecMult(G)){ label.setAttribute('data-nat-pt', '1'); label.setAttribute('data-nat-size', ptPowSize(nat)); }
       }
       ring.appendChild(label);
       if (eg !== rt) natLabel(label, a === natHot);
@@ -4236,7 +4257,9 @@ var natHot = null;
 // cover it.
 function natLabel(t, on){
   var w = on && !state.revealOff ? 'nat' : 'expr';
-  beadText(t, t.getAttribute('data-' + w));
+  if (t['_' + w]) t.replaceChildren.apply(t, t['_' + w]);
+  else beadText(t, t.getAttribute('data-' + w));
+  t.classList.toggle('is-pt-pow', t.getAttribute('data-' + w + '-pt') === '1');
   t.setAttribute('font-size', t.getAttribute('data-' + w + '-size'));
   var bead = t.parentNode && t.parentNode.querySelector('circle.bead[data-el="' + t.getAttribute('data-el') + '"]');
   if (bead) bead.classList.toggle('is-nat-shown', w === 'nat');
