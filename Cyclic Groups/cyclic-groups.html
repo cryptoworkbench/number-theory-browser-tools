@@ -8105,7 +8105,7 @@ function drawCurvePlot(G){
   if (curvePlotEl.hidden) return;
   var real = state.plotView === 'real';
   syncPlotView(G);
-  curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot && !real);
+  curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
   curvePlotEl.classList.toggle('is-real', real);
   $('curve-plot-title').textContent = ecEquation(G.a, G.b) + (real ? ', x, y ∈ ℝ' : ' (mod ' + G.n + ')');
   curvePlotSvgEl.replaceChildren();
@@ -8237,12 +8237,27 @@ function plotGrid(G, tiles){
   var noteEl = $('curve-plot-note');
   noteEl.hidden = !off;
   if (off) translateInto(noteEl, 'cyclicGroups.curveOffGrid', { count: off, n: p });
-  // 𝒪 lies off the grid: written in the corner, ringed while picked.
-  var o = svg.appendChild(svgEl('text', { 'class': 'curve-o', x: num(CURVE_M + plot - 4), y: 20, 'text-anchor': 'end' }));
+  plotO(svg, plot, roles);
+}
+// 𝒪 lies off the grid: written in a corner, ringed while picked. Over
+// the reals the curve climbs through the top right, so it takes the top
+// left there.
+function plotO(svg, plot, roles, left){
+  var cx = left ? CURVE_M + 9 : CURVE_M + plot - 9;
+  var o = svg.appendChild(svgEl('text', { 'class': 'curve-o', x: num(left ? CURVE_M + 4 : CURVE_M + plot - 4), y: 20, 'text-anchor': left ? 'start' : 'end' }));
   o.textContent = '𝒪';
   (roles.get(0) || []).forEach(function(role, k){
-    svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(CURVE_M + plot - 9), cy: 15, r: num(8 + 2.5 * k) }));
+    svg.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(cx), cy: 15, r: num(8 + 2.5 * k) }));
   });
+}
+// A point mod n set on the real curve: at its own x (as written, 0 to
+// n − 1), on the upper branch when its y is the lower half of 0 … n − 1,
+// on the lower when the upper half, so P and −P mirror each other in the
+// x-axis as on the real curve (a y of 0 on the upper). Points mod n are
+// not on the real curve; this only shows them along it.
+function realPlace(G, Pt){
+  var y = Math.sqrt(Math.max(0, realF(G, Pt.x)));
+  return { x: Pt.x, y: Pt.y > G.n / 2 ? -y : y };
 }
 // Over the real numbers: y² = x³ + ax + b as one smooth curve (an oval
 // beside it when the cubic has three real roots), where two points
@@ -8273,7 +8288,7 @@ function plotReal(G){
   var roots = realRoots(G), lo = Math.min.apply(null, roots), hi = Math.max.apply(null, roots);
   var P = realPick.P, Q = realPick.Q, sum = P && Q ? realSum(G, P, Q) : null;
   // Wide enough for the sum too, R and −R in view.
-  var x1 = Math.max(hi + 3, 2.5, sum && !sum.o ? sum.x + 0.5 : -Infinity), x0 = Math.min(lo - 1, sum && !sum.o ? sum.x - 0.5 : Infinity);
+  var x1 = Math.max(hi + 3, 2.5, G.n - 0.5, sum && !sum.o ? sum.x + 0.5 : -Infinity), x0 = Math.min(lo - 1, -0.5, sum && !sum.o ? sum.x - 0.5 : Infinity);
   var ymax = Math.max(Math.sqrt(Math.max(1, realF(G, x1))), sum && !sum.o ? Math.abs(sum.y) : 0) * 1.05;
   var v = realView = { x0: x0, x1: x1, y0: -ymax, y1: ymax, roots: roots, plot: plot };
   var X = function(x){ return CURVE_M + (x - v.x0) / (v.x1 - v.x0) * plot; };
@@ -8311,6 +8326,23 @@ function plotReal(G){
   clip.appendChild(svgEl('rect', { x: CURVE_M, y: 6, width: num(plot), height: num(plot) }));
   var g = svg.appendChild(svgEl('g', { 'clip-path': 'url(#curve-real-clip)' }));
   g.appendChild(svgEl('path', { 'class': 'curve-real', d: d }));
+  // The group's elements along it, in their colours, clicked as on the grid.
+  var roles = combineRoles(G), off = 0;
+  G.els.forEach(function(e){
+    var Pt = G.pts[e];
+    if (Pt && Pt.proj) off++;
+    if (!Pt || Pt.proj) return;
+    var at3 = realPlace(G, Pt), look = drawn ? drawn.paint(e) : { cls: '', style: null };
+    var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(X(at3.x)), cy: num(Y(at3.y)), r: 4, 'data-el': e };
+    if (look.style) attrs.style = look.style;
+    var dot = g.appendChild(svgEl('circle', attrs));
+    dot.appendChild(svgEl('title', {})).textContent = plainPoint(Pt);
+    (roles.get(e) || []).forEach(function(role, k){
+      if (role === 'a' && k && (roles.get(e)[k - 1] === 'a')) return;
+      g.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + role, cx: num(X(at3.x)), cy: num(Y(at3.y)), r: num(6.5 + 2.5 * k) }));
+    });
+  });
+  plotO(svg, plot, roles, true);
   var noteEl = $('curve-plot-note');
   if (sum){
     if (sum.o){
@@ -8372,7 +8404,7 @@ function realPickAt(e){
 // Followed by the subgroup dropdown, the plot picks G instead: a point, or
 // 𝒪 in its corner.
 curvePlotSvgEl.addEventListener('click', function(e){
-  if (state.plotView === 'real'){ realPickAt(e); return; }
+  if (state.plotView === 'real' && !e.target.closest('.curve-dot, .curve-o')){ realPickAt(e); return; }
   var dot = e.target.closest(state.genPlot ? '.curve-dot, .curve-o' : '.curve-dot');
   if (!dot) return;
   var el = dot.classList.contains('curve-o') ? 0 : +dot.getAttribute('data-el');

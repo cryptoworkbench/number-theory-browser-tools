@@ -771,7 +771,7 @@
       plotViewMod: 'The points mod {n}',
       plotViewTiles: 'Unrolled: the square repeated, so the line through two points runs straight',
       plotViewReal: 'The same equation over the real numbers',
-      curveRealHint: 'Click a point on the curve, then a second one, to add them',
+      curveRealHint: 'Click two places on the curve to add them over the reals; a coloured point, set at its x, combines in the group',
       curveRealHintQ: 'P = ({x}, {y}); now click Q (P again for P + P)',
       curveRealSum: 'P + Q = ({x}, {y})',
       curveRealDouble: 'P + P = ({x}, {y})',
