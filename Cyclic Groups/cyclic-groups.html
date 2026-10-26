@@ -9963,7 +9963,7 @@ function endFlip(){
   f.mirrored.forEach(function(el){ el.remove(); });
   f.arrows.forEach(function(el){
     el.style.visibility = '';
-    if (el.isConnected) el.classList.add('is-respawn');
+    if (el.isConnected && !f.carried) el.classList.add('is-respawn');
   });
   if (f.wrap.parentNode){
     while (f.wrap.firstChild) f.wrap.parentNode.insertBefore(f.wrap.firstChild, f.wrap);
@@ -9979,7 +9979,7 @@ function identityAxis(ring, box){
   var x = +id.getAttribute('cx'), y = +id.getAttribute('cy');
   return Math.atan2(m.b * x + m.d * y + m.f - box.cy, m.a * x + m.c * y + m.e - box.cx) * 180 / Math.PI;
 }
-function flipRing(change){
+function flipRing(change, carried){
   endFlip();
   if (reducedMotion && reducedMotion.matches){ change(); return; }
   // A turn under way lands first, so the ghost is the ring at rest.
@@ -10024,7 +10024,7 @@ function flipRing(change){
   var ghostWrap = svgEl('g', { 'class': 'ring-flip', 'aria-hidden': 'true', style: 'pointer-events:none' });
   ghostWrap.appendChild(ghost);
   wrap.after(ghostWrap);
-  flipFrames({ ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored, poly: poly }, box, beta, from);
+  flipFrames({ ghost: ghostWrap, wrap: wrap, id: 0, t0: null, arrows: arrows, mirrored: mirrored, poly: poly, carried: !!carried }, box, beta, from);
 }
 // The flip's turn, frame by frame: the ghost (the ring as it was) turns
 // edge-on about the identity's axis, then the new drawing (wrap) opens out
@@ -15004,6 +15004,8 @@ backwardEl.addEventListener('change', function(){
 // With inv, G becomes inv as the ring flips (takeInverse).
 function setDir(dir, turnPref, inv){
   if (DIRS.indexOf(dir) === -1 || dir === state.dir) return;
+  // The preferred way round turning with the ring and G kept, the arrows the
+  // ring carries over, mirrored, are the new ones: they land without a pulse.
   flipRing(function(){
     if (drawn) state.rot = 2 * arrangement(drawn.G).indexOf(drawn.G.identity) - state.rot;
     state.dir = dir;
@@ -15015,7 +15017,7 @@ function setDir(dir, turnPref, inv){
     syncControls();
     keepCosets(render);
     if (inv != null) tookInverse(inv);
-  });
+  }, !!turnPref && inv == null);
 }
 dirSelectEl.addEventListener('change', function(){ setDir(dirSelectEl.value); });
 // The way the forward walk should go round on screen, clockwise or
