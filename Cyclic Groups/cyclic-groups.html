@@ -4185,7 +4185,7 @@ function drawRing(parent, G, beads, box, paint){
       var ptPow = !!(G.pts && elog && !ecMult(G));
       if (ptPow) size = Math.min(beadR * 1.05, beadR * 1.8 / labelEms(text));
       var label = svgEl('text', { 'class': (coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
-      label.textContent = text;
+      beadText(label, text);
       // The label the reveal shows: the natural number, or the picked
       // generator's power.
       if (eg !== rt){
@@ -4204,6 +4204,17 @@ function drawRing(parent, G, beads, box, paint){
   return ring;
 }
 
+// A bead's label, its exponent as a raised run of plain, smaller digits:
+// the superscript characters' ¹ ² ³ (Latin-1) sit lower than the others,
+// so an exponent written with them would droop.
+var SUP_PLAIN = { '⁻': '−', '⁺': '+' };
+function beadText(t, text){
+  var at = text.search(/[⁰¹²³⁴-⁹⁻⁺]/);
+  if (at < 0){ t.textContent = text; return; }
+  t.textContent = text.slice(0, at);
+  var exp = text.slice(at).replace(/[⁰¹²³⁴-⁹⁻⁺]/g, function(ch){ return SUP_PLAIN[ch] || String(SUPERSCRIPT_DIGITS.indexOf(ch)); });
+  t.appendChild(svgEl('tspan', { 'class': 'bead-exp', dy: '-0.42em', 'font-size': '64%' })).textContent = exp;
+}
 // A sans label's width in ems, roughly: digits and signs wide, brackets,
 // comma and superscripts narrower.
 function labelEms(text){
@@ -4221,7 +4232,7 @@ var natHot = null;
 // cover it.
 function natLabel(t, on){
   var w = on && !state.revealOff ? 'nat' : 'expr';
-  t.textContent = t.getAttribute('data-' + w);
+  beadText(t, t.getAttribute('data-' + w));
   t.setAttribute('font-size', t.getAttribute('data-' + w + '-size'));
   var bead = t.parentNode && t.parentNode.querySelector('circle.bead[data-el="' + t.getAttribute('data-el') + '"]');
   if (bead) bead.classList.toggle('is-nat-shown', w === 'nat');
