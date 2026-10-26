@@ -50,6 +50,12 @@
   html,body{ margin:0; padding:0; min-height:100%; background:var(--bg-1); color:var(--text);
     font-family:var(--font-sans); font-size:16px; }
   body{ min-height:100vh; transition: background .25s ease, color .25s ease; }
+  /* The desktop page draws at 90%, as a browser zoomed to 90% would draw it
+     (the head's script sets is-desktop before the first paint); see PAGE_ZOOM.
+     A length in vw or vh is divided by it, so it stays that share of the
+     window, as under the browser's own zoom. */
+  :root{ --page-zoom:1; }
+  :root.is-desktop{ --page-zoom:.9; zoom:var(--page-zoom); }
 
   .app{ padding:20px 22px; margin:0 auto; display:flex; flex-direction:column; gap:18px;
     --font-math:'STIX Two Math', 'Latin Modern Math', 'Cambria Math', math; }
@@ -353,7 +359,7 @@
   .ec-pick-btn svg{ flex:none; width:10px; height:6px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
   .ec-pick-pop{ position:absolute; top:calc(100% + 4px); right:0; z-index:20; min-width:100%; box-sizing:border-box; padding:4px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .ec-pick-pop[hidden]{ display:none; }
-  .ec-pick-list{ list-style:none; margin:0; padding:0; max-height:min(320px, 60vh); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; outline:none; }
+  .ec-pick-list{ list-style:none; margin:0; padding:0; max-height:min(320px, calc(60vh / var(--page-zoom))); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; outline:none; }
   .ec-pick-list::-webkit-scrollbar{ display:none; }
   .ec-pick-list > li{ padding:4px 10px; font-family:var(--font-mono); font-size:.88rem; white-space:nowrap; color:var(--text); border-radius:4px; cursor:pointer; }
   .ec-pick-list > li.is-active{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -1795,7 +1801,7 @@
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   /* The copy submenu shows its formula above the copy options, broken at
      its equals signs where it is wider than the menu may grow. */
-  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw - 16px)); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw / var(--page-zoom) - 16px)); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
   /* A formula dragged out of the copy submenu onto the Ring window: a card
      of its own over a blurred background, moved by dragging, closed from
      its corner button. While dragged out it follows the pointer. */
@@ -1923,7 +1929,7 @@
   .ring-corner > :is(.key-corner, .genexp-corner)[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
-  .genexp-body{ position:relative; align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(30vh, 260px); overflow:auto; overscroll-behavior:contain; }
+  .genexp-body{ position:relative; align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(calc(30vh / var(--page-zoom)), 260px); overflow:auto; overscroll-behavior:contain; }
   .genexp-table{ flex:none; border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.05rem * var(--genexp-fit, 1)); color:var(--text); }
   .genexp-table td{ padding:.12em .4em; text-align:center; vertical-align:baseline; white-space:nowrap; }
   /* The elements' row is set off from the powers under it, and each row's
@@ -1974,8 +1980,8 @@
   :root.is-desktop:not(.is-entered) .app iframe{ visibility:hidden !important; }
   :root.is-entered .site-header{ display:none; }
   :root.is-entered .diagram-frame:not(:fullscreen){ inset:0; }
-  .cg-intro{ max-width:68ch; margin:0 auto; padding:clamp(32px, 9vh, 96px) 22px 56px; }
-  .cg-intro h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.9rem, 3.8vw, 2.6rem); line-height:1.12; letter-spacing:-.012em; margin:0 0 18px; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
+  .cg-intro{ max-width:68ch; margin:0 auto; padding:clamp(32px, calc(9vh / var(--page-zoom)), 96px) 22px 56px; }
+  .cg-intro h1{ font-family:var(--font-serif); font-weight:600; font-size:clamp(1.9rem, calc(3.8vw / var(--page-zoom)), 2.6rem); line-height:1.12; letter-spacing:-.012em; margin:0 0 18px; color:var(--text); text-wrap:balance; overflow-wrap:break-word; }
   .cg-intro p{ font-size:1.0625rem; line-height:1.65; color:var(--text-dim); margin:0 0 16px; }
   .cg-intro p.cg-intro-about{ color:var(--text); }
   /* A QR code of this page's own address beside the intro, to carry the
@@ -2747,6 +2753,19 @@ var IS_MOBILE = !IS_PREVIEW && !IS_RINGWIN && document.documentElement.classList
 // class before the first paint.
 var IS_DESKTOP = !IS_PREVIEW && !IS_RINGWIN && !IS_MOBILE;
 document.documentElement.classList.toggle('is-desktop', IS_DESKTOP);
+// The top-level page draws at 90% (the zoom on :root.is-desktop), with room
+// for everything as at a browser zoom of 90%. What the browser measures on
+// screen, a box, the pointer, the window, comes in screen px; these bring it
+// into the page's own px, the ones its styles are written in. A box inside
+// a frame of this page is in that frame's px already.
+var PAGE_ZOOM = (IS_DESKTOP && parseFloat(getComputedStyle(document.documentElement).zoom)) || 1;
+function boxOf(el){
+  var r = el.getBoundingClientRect();
+  if (PAGE_ZOOM === 1 || el.ownerDocument !== document) return r;
+  return new DOMRect(r.x / PAGE_ZOOM, r.y / PAGE_ZOOM, r.width / PAGE_ZOOM, r.height / PAGE_ZOOM);
+}
+function ptX(e){ return e.clientX / PAGE_ZOOM; }
+function ptY(e){ return e.clientY / PAGE_ZOOM; }
 // The page opens on its intro every visit; the intro's button enters the
 // tool (see cgEnterEl), and from then on the site header is gone.
 var cgEntered = false;
@@ -2754,7 +2773,7 @@ var cgEntered = false;
 // as the header wraps (a narrow window, a longer language).
 function syncDeskTop(){
   var header = document.querySelector('.site-header');
-  if (header) document.documentElement.style.setProperty('--desk-top', Math.max(0, Math.round(header.getBoundingClientRect().bottom)) + 'px');
+  if (header) document.documentElement.style.setProperty('--desk-top', Math.max(0, Math.round(boxOf(header).bottom)) + 'px');
 }
 if (IS_DESKTOP){
   syncDeskTop();
@@ -4149,7 +4168,7 @@ ringSvgEl.addEventListener('pointermove', function(e){
   if (!ctm){ natCursorEl.remove(); return; }
   var first = layer.querySelector('circle.bead');
   if (natCursorEl.parentNode !== layer || natCursorEl.nextSibling !== first) layer.insertBefore(natCursorEl, first);
-  var m = DOMMatrix.fromMatrix(ctm).inverse().translate(e.clientX, e.clientY);
+  var m = DOMMatrix.fromMatrix(ctm).inverse().translate(e.clientX, e.clientY).scale(PAGE_ZOOM);
   natCursorEl.setAttribute('transform', 'matrix(' + [m.a, m.b, m.c, m.d, m.e, m.f].map(num).join(' ') + ')');
 });
 
@@ -4513,8 +4532,8 @@ function toggleBarMenu(i, btn){
   barMenuFor = i;
   fillBarGrid(i);
   barMenuEl.hidden = false;
-  var r = btn.getBoundingClientRect(), w = barMenuEl.offsetWidth, h = barMenuEl.offsetHeight;
-  barMenuEl.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + 'px';
+  var r = boxOf(btn), w = barMenuEl.offsetWidth, h = barMenuEl.offsetHeight;
+  barMenuEl.style.left = Math.max(4, Math.min(r.left, (window.innerWidth / PAGE_ZOOM) - w - 4)) + 'px';
   barMenuEl.style.top = Math.max(4, r.top - h - 6) + 'px';
   btn.setAttribute('aria-expanded', 'true');
   var first = barMenuEl.querySelector('.bar-check');
@@ -4704,7 +4723,7 @@ function syncSubFormula(G){
 // difference empty above its drawing, under its frosted band of rows
 // (never as a taller, empty head, which the band would blur).
 var headOther = 0, headSent = null;
-function headNatural(){ return Math.round(ringHeadEl.getBoundingClientRect().height * 100) / 100; }
+function headNatural(){ return Math.round(boxOf(ringHeadEl).height * 100) / 100; }
 function headMatchOn(){ return IS_ISOPANE ? isoTurnsTogether() : twoRings() && isoTurnsTogether(); }
 function syncHeadMatch(){
   var own = headNatural();
@@ -4841,7 +4860,7 @@ function wrappedMathLine(math, plain){
 // measured again once the list shows.
 function hangSubFormulas(){
   subgroupsPanelEl.querySelectorAll('.sub-formula-line').forEach(function(line){
-    var w = line.querySelector('.sub-formula-piece').getBoundingClientRect().width;
+    var w = boxOf(line.querySelector('.sub-formula-piece')).width;
     if (w) line.style.setProperty('--hang', w + 'px');
   });
 }
@@ -4855,10 +4874,10 @@ function fitSubFormulaLine(box, m){
   m.style.fontSize = '';
   // The box is centred, so the room is the header's own content width,
   // ending at the view's edge when the header runs wider (the pane's does).
-  var cs = getComputedStyle(box), hs = getComputedStyle(ringHeadEl), r = ringHeadEl.getBoundingClientRect();
-  var left = r.left + parseFloat(hs.paddingLeft), right = Math.min(r.right - parseFloat(hs.paddingRight), document.documentElement.clientWidth);
+  var cs = getComputedStyle(box), hs = getComputedStyle(ringHeadEl), r = boxOf(ringHeadEl);
+  var left = r.left + parseFloat(hs.paddingLeft), right = Math.min(r.right - parseFloat(hs.paddingRight), (document.documentElement.clientWidth / PAGE_ZOOM));
   var room = right - left - 2 - (box.offsetWidth - box.clientWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  var w = m.getBoundingClientRect().width;
+  var w = boxOf(m).width;
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
 function clearSubFormula(){
@@ -5105,8 +5124,8 @@ function scratchBounds(){
   var pad = scratchPadEl, keep = pad.style.width;
   pad.style.width = '';
   // MathML elements have no offsetWidth, so widths come from their boxes.
-  var natural = pad.getBoundingClientRect().width, widest = 0;
-  pad.querySelectorAll('.scratch-name, .scratch-piece, .scratch-math select, .scratch-math > span').forEach(function(el){ widest = Math.max(widest, el.getBoundingClientRect().width); });
+  var natural = boxOf(pad).width, widest = 0;
+  pad.querySelectorAll('.scratch-name, .scratch-piece, .scratch-math select, .scratch-math > span').forEach(function(el){ widest = Math.max(widest, boxOf(el).width); });
   pad.style.width = keep;
   var cs = getComputedStyle(pad);
   return { natural: natural, least: Math.ceil(widest + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth)) };
@@ -5126,19 +5145,19 @@ var scratchAt = { x: 0, y: 0 }, scratchMoving = null;
 // With a pane open beside it, this ring's side ends where the pane begins:
 // cards and the scratchpad stay on their own ring's side.
 function workRight(body){
-  if (!IS_ISOPANE && isoPane && isoPaneEl && !isoPaneEl.hidden && body.contains(isoPaneEl)) return isoPaneEl.getBoundingClientRect().left;
-  return body.getBoundingClientRect().right;
+  if (!IS_ISOPANE && isoPane && isoPaneEl && !isoPaneEl.hidden && body.contains(isoPaneEl)) return boxOf(isoPaneEl).left;
+  return boxOf(body).right;
 }
 function topRowsBottom(body){
   var row = body.querySelector(':scope > .fs-win-row-gen');
-  var r = row && row.getBoundingClientRect();
-  return r && r.height ? r.bottom : body.getBoundingClientRect().top;
+  var r = row && boxOf(row);
+  return r && r.height ? r.bottom : boxOf(body).top;
 }
 function placeScratch(x, y){
   var body = scratchPadEl.closest('.fs-win-body');
   scratchPadEl.style.translate = scratchAt.x + 'px ' + scratchAt.y + 'px';
   if (body && !scratchPadEl.hidden){
-    var b = body.getBoundingClientRect(), r = scratchPadEl.getBoundingClientRect();
+    var b = boxOf(body), r = boxOf(scratchPadEl);
     var left = r.left + x - scratchAt.x, top = r.top + y - scratchAt.y;
     x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
     y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, b.bottom - (top + r.height));
@@ -5148,13 +5167,13 @@ function placeScratch(x, y){
 }
 scratchPadEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || e.target.closest('select, button, .scratch-grip, .scratch-math')) return;
-  scratchMoving = { id: e.pointerId, x: e.clientX - scratchAt.x, y: e.clientY - scratchAt.y };
+  scratchMoving = { id: e.pointerId, x: ptX(e) - scratchAt.x, y: ptY(e) - scratchAt.y };
   scratchPadEl.setPointerCapture(e.pointerId);
   scratchPadEl.classList.add('is-moving');
   e.preventDefault();
 });
 scratchPadEl.addEventListener('pointermove', function(e){
-  if (scratchMoving && e.pointerId === scratchMoving.id) placeScratch(e.clientX - scratchMoving.x, e.clientY - scratchMoving.y);
+  if (scratchMoving && e.pointerId === scratchMoving.id) placeScratch(ptX(e) - scratchMoving.x, ptY(e) - scratchMoving.y);
 });
 function endScratchMoving(e){
   if (!scratchMoving || e.pointerId !== scratchMoving.id) return;
@@ -5169,16 +5188,16 @@ scratchPadEl.addEventListener('dblclick', function(e){
 
 scratchPadEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !e.target.classList.contains('scratch-grip')) return;
-  var r = scratchPadEl.getBoundingClientRect();
-  scratchSizing = { id: e.pointerId, dx: r.right - e.clientX, dy: r.bottom - e.clientY };
+  var r = boxOf(scratchPadEl);
+  scratchSizing = { id: e.pointerId, dx: r.right - ptX(e), dy: r.bottom - ptY(e) };
   e.target.setPointerCapture(e.pointerId);
   scratchPadEl.classList.add('is-resizing');
   e.preventDefault();
 });
 scratchPadEl.addEventListener('pointermove', function(e){
   if (!scratchSizing || e.pointerId !== scratchSizing.id) return;
-  var at = scratchPadEl.getBoundingClientRect();
-  var toW = e.clientX + scratchSizing.dx - at.left;
+  var at = boxOf(scratchPadEl);
+  var toW = ptX(e) + scratchSizing.dx - at.left;
   if (scratchWidth !== null || (scratchScale <= 1 && toW < at.width)){
     setScratchWidth(toW);
     if (scratchWidth !== null) return;
@@ -5188,8 +5207,8 @@ scratchPadEl.addEventListener('pointermove', function(e){
   // step with the scale, so it is worked out from the card's size as drawn,
   // twice over.
   for (var pass = 0; pass < 2; pass++){
-    var r = scratchPadEl.getBoundingClientRect();
-    var W = e.clientX + scratchSizing.dx - r.left, H = e.clientY + scratchSizing.dy - r.top;
+    var r = boxOf(scratchPadEl);
+    var W = ptX(e) + scratchSizing.dx - r.left, H = ptY(e) + scratchSizing.dy - r.top;
     setScratchScale(scratchScale * (W * r.width + H * r.height) / (r.width * r.width + r.height * r.height));
   }
 });
@@ -5493,9 +5512,9 @@ function setRingCopy(name, from, focus){
     });
     return it.item;
   })));
-  var menu = ringCtxEl.getBoundingClientRect(), at = from.getBoundingClientRect();
+  var menu = boxOf(ringCtxEl), at = boxOf(from);
   var w = ringCopyEl.offsetWidth, h = ringCopyEl.offsetHeight;
-  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
   // Beside the menu on its right, or on its left where the right has no room.
   var x = menu.right - 2;
   if (x + w > vw - 4) x = Math.max(4, menu.left - w + 2);
@@ -5569,10 +5588,10 @@ function nameFormulaCard(card){
 // its own ring's side: the pane's cards, which this ring holds, on the
 // pane's.
 function placeFormulaCard(card, area, x, y){
-  var ar = area.getBoundingClientRect();
+  var ar = boxOf(area);
   var minTop = Math.max(0, topRowsBottom(area) - ar.top - area.clientTop);
   var pane = card.classList.contains('is-pane-card') && !isoPaneEl.hidden;
-  var minLeft = pane ? Math.max(0, isoPaneEl.getBoundingClientRect().left - ar.left - area.clientLeft) : 0;
+  var minLeft = pane ? Math.max(0, boxOf(isoPaneEl).left - ar.left - area.clientLeft) : 0;
   var maxLeft = (pane ? area.clientWidth : Math.min(area.clientWidth, workRight(area) - ar.left - area.clientLeft)) - card.offsetWidth;
   card.style.left = Math.round(clamp(x, minLeft, Math.max(minLeft, maxLeft))) + 'px';
   card.style.top = Math.round(clamp(y, minTop, Math.max(minTop, area.clientHeight - card.offsetHeight))) + 'px';
@@ -5581,35 +5600,35 @@ function dragFormulaFrom(view, name){
   var drag = null;
   view.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || !ringWorkArea()) return;
-    var r = view.getBoundingClientRect();
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, ghost: null };
+    var r = boxOf(view);
+    drag = { id: e.pointerId, x: ptX(e), y: ptY(e), dx: ptX(e) - r.left, dy: ptY(e) - r.top, ghost: null };
     view.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
   view.addEventListener('pointermove', function(e){
     if (!drag || e.pointerId !== drag.id) return;
     if (!drag.ghost){
-      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4) return;
+      if (Math.hypot(ptX(e) - drag.x, ptY(e) - drag.y) < 4) return;
       drag.ghost = formulaCard(name);
       if (!drag.ghost){ drag = null; return; }
       drag.ghost.classList.add('is-ghost', 'is-moving');
       ringCtxEl.parentNode.appendChild(drag.ghost);
     }
-    drag.ghost.style.left = (e.clientX - drag.dx) + 'px';
-    drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+    drag.ghost.style.left = (ptX(e) - drag.dx) + 'px';
+    drag.ghost.style.top = (ptY(e) - drag.dy) + 'px';
   });
   function drop(e){
     if (!drag || e.pointerId !== drag.id) return;
     var ghost = drag.ghost, area = ringWorkArea();
     drag = null;
     if (!ghost) return;
-    var g = ghost.getBoundingClientRect();
+    var g = boxOf(ghost);
     ghost.remove();
     if (e.type !== 'pointerup' || !area) return;
     // The pane's frame ends above the window's bottom panel, so its cards
     // live in the ring holding it, which takes this one where it was let go.
     if (IS_ISOPANE){
-      if (e.clientX < 0 || e.clientY < 0 || e.clientX > window.innerWidth || e.clientY > window.innerHeight) return;
+      if (ptX(e) < 0 || ptY(e) < 0 || ptX(e) > (window.innerWidth / PAGE_ZOOM) || ptY(e) > (window.innerHeight / PAGE_ZOOM)) return;
       hostCards[name] = true;
       hostCardsSent = null;
       tellHost({ isopane: 'card', name: name, x: g.left, y: g.top });
@@ -5617,8 +5636,8 @@ function dragFormulaFrom(view, name){
       setRingCtx(false);
       return;
     }
-    var a = area.getBoundingClientRect();
-    if (e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom) return;
+    var a = boxOf(area);
+    if (ptX(e) < a.left || ptX(e) > a.right || ptY(e) < a.top || ptY(e) > a.bottom) return;
     var card = formulaCard(name);
     if (!card) return;
     area.appendChild(card);
@@ -5634,15 +5653,15 @@ function movableFormulaCard(card, area){
   card.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || e.target.closest('button, select, .scratch-grip')) return;
     // A press on a scrolling cell's scroll bar scrolls it instead.
-    var t = e.target, tr = t.getBoundingClientRect && t.getBoundingClientRect();
-    if (tr && (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) && (e.clientX - tr.left - t.clientLeft >= t.clientWidth || e.clientY - tr.top - t.clientTop >= t.clientHeight)) return;
-    move = { id: e.pointerId, x: e.clientX - card.offsetLeft, y: e.clientY - card.offsetTop };
+    var t = e.target, tr = t.getBoundingClientRect && boxOf(t);
+    if (tr && (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) && (ptX(e) - tr.left - t.clientLeft >= t.clientWidth || ptY(e) - tr.top - t.clientTop >= t.clientHeight)) return;
+    move = { id: e.pointerId, x: ptX(e) - card.offsetLeft, y: ptY(e) - card.offsetTop };
     card.setPointerCapture(e.pointerId);
     card.classList.add('is-moving');
     e.preventDefault();
   });
   card.addEventListener('pointermove', function(e){
-    if (move && e.pointerId === move.id) placeFormulaCard(card, area, e.clientX - move.x, e.clientY - move.y);
+    if (move && e.pointerId === move.id) placeFormulaCard(card, area, ptX(e) - move.x, ptY(e) - move.y);
   });
   function end(e){
     if (!move || e.pointerId !== move.id) return;
@@ -5691,7 +5710,7 @@ function jsonNode(j){
 function addPaneCard(name, x, y){
   var area = ringWorkArea();
   if (!area || !isoPaneFrame) return;
-  var f = isoPaneFrame.getBoundingClientRect(), a = area.getBoundingClientRect();
+  var f = boxOf(isoPaneFrame), a = boxOf(area);
   var card = formulaCardShell(name);
   card.classList.add('is-pane-card');
   area.appendChild(card);
@@ -5796,17 +5815,17 @@ function fitGenExp(body){
   // as drawn, a few times over.
   var fit = 1;
   for (var pass = 0; pass < 4; pass++){
-    var w = t.getBoundingClientRect().width;
+    var w = boxOf(t).width;
     if (w <= room || fit <= GENEXP_MIN_FIT) break;
     fit = Math.max(GENEXP_MIN_FIT, Math.floor(fit * room / w * 1000) / 1000);
     body.style.setProperty('--genexp-fit', String(fit));
   }
-  if (t.getBoundingClientRect().width <= room) return;
+  if (boxOf(t).width <= room) return;
   // Too wide even so: as many blocks as the widest columns need, the
   // columns shared out evenly between them.
   var cells = Array.prototype.slice.call(t.rows[0].cells);
-  var head = cells[0].getBoundingClientRect().width;
-  var widest = Math.max.apply(null, cells.slice(1).map(function(c){ return c.getBoundingClientRect().width; }));
+  var head = boxOf(cells[0]).width;
+  var widest = Math.max.apply(null, cells.slice(1).map(function(c){ return boxOf(c).width; }));
   var count = cells.length - 1;
   var per = Math.max(1, Math.floor((room - head) / widest));
   var n = Math.ceil(count / per);
@@ -5848,19 +5867,19 @@ function relinkGenExp(){
   var body = l.body, pow = genExpCell(body, l.x, l.from);
   var nat = pow && genExpCell(pow.closest('table'), l.x, l.to);
   if (!nat) return;
-  var b = body.getBoundingClientRect();
+  var b = boxOf(body);
   var up = nat.parentNode.rowIndex < pow.parentNode.rowIndex;
-  var top = (up ? nat : pow).getBoundingClientRect(), bot = (up ? pow : nat).getBoundingClientRect();
+  var top = boxOf((up ? nat : pow)), bot = boxOf((up ? pow : nat));
   if (top.top < b.top) body.scrollTop -= b.top - top.top;
   else if (bot.bottom > b.bottom) body.scrollTop += bot.bottom - b.bottom;
-  var th = pow.parentNode.cells[0].getBoundingClientRect().right;
+  var th = boxOf(pow.parentNode.cells[0]).right;
   if (bot.left < th) body.scrollLeft -= th - bot.left;
   else if (bot.right > b.right) body.scrollLeft += bot.right - b.right;
   linkCells(pow, nat, body);
 }
 // A cell's box in its band's scrolled content.
 function genExpBox(td, body){
-  var b = body.getBoundingClientRect(), r = td.getBoundingClientRect();
+  var b = boxOf(body), r = boxOf(td);
   return { left: r.left - b.left + body.scrollLeft, top: r.top - b.top + body.scrollTop, width: r.width, height: r.height };
 }
 // Arrow: drawn from the expression shown to the one revealed, up or down;
@@ -6213,15 +6232,15 @@ function blinkBarBtn(i){ blinkLinked($(BAR_SIDES[i].el)); }
 document.addEventListener('contextmenu', function(e){
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (!card || IS_MOBILE) return;
-  var r = card.getBoundingClientRect();
-  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+  var r = boxOf(card);
+  if (ptX(e) < r.left || ptX(e) > r.right || ptY(e) < r.top || ptY(e) > r.bottom) return;
   e.preventDefault();
   e.stopPropagation();
   var line = Array.prototype.findIndex.call(card.children, function(el){
-    var b = el.getBoundingClientRect();
-    return e.clientY >= b.top && e.clientY <= b.bottom;
+    var b = boxOf(el);
+    return ptY(e) >= b.top && ptY(e) <= b.bottom;
   });
-  setRingCtx(true, e.clientX, e.clientY, false, { line: line });
+  setRingCtx(true, ptX(e), ptY(e), false, { line: line });
 }, true);
 // Right-clicking the expression slider opens the ring's menu with only its
 // own item: the group's generator count, opening the copy submenu as the
@@ -6242,7 +6261,7 @@ $('gen-super').addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE || !e.currentTarget.firstChild || !drawn) return;
   setRevealHot(null);
-  setRingCtx(true, e.clientX, e.clientY, 'sname');
+  setRingCtx(true, ptX(e), ptY(e), 'sname');
 });
 // The main menu's first item: Disable reveal on hover, one switch for the
 // whole tool. Off, a power of the generator under the pointer shows its
@@ -6313,19 +6332,19 @@ function syncSignCtx(on){
 var ringCtxAt = [0, 0];
 function placeRingCtx(){
   var w = ringCtxEl.offsetWidth, h = ringCtxEl.offsetHeight;
-  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
   ringCtxEl.style.left = Math.max(4, Math.min(ringCtxAt[0], vw - w - 4)) + 'px';
   ringCtxEl.style.top = Math.max(4, Math.min(ringCtxAt[1], vh - h - 4)) + 'px';
 }
 ringSvgEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE) return; // a long press is no right click on a phone
-  setRingCtx(true, e.clientX, e.clientY);
+  setRingCtx(true, ptX(e), ptY(e));
 });
 exprSlotEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE) return;
-  setRingCtx(true, e.clientX, e.clientY, true);
+  setRingCtx(true, ptX(e), ptY(e), true);
 });
 document.addEventListener('pointerdown', function(e){
   if (!ringCtxEl.contains(e.target)) setRingCtx(false);
@@ -6496,14 +6515,14 @@ function drawSplitChevrons(){
 }
 splitBtnEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0) return;
-  splitPull = { id: e.pointerId, y: e.clientY };
+  splitPull = { id: e.pointerId, y: ptY(e) };
   splitPulled = false;
   splitBtnEl.setPointerCapture(e.pointerId);
   splitBtnEl.classList.add('is-pulling');
 });
 splitBtnEl.addEventListener('pointermove', function(e){
   if (!splitPull || e.pointerId !== splitPull.id || splitPulled) return;
-  var dy = e.clientY - splitPull.y;
+  var dy = ptY(e) - splitPull.y;
   if (Math.abs(dy) < SPLIT_PULL) return;
   // A pull either way is no click; only the way the chevrons point acts.
   splitPulled = true;
@@ -6553,15 +6572,15 @@ function setSplitShare(v){
 }
 splitGripEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0) return;
-  var ring = ringSvgEl.getBoundingClientRect().height, pane = ringSplitEl.getBoundingClientRect().height;
-  splitSizing = { id: e.pointerId, y: e.clientY, pane: pane, total: ring + pane };
+  var ring = boxOf(ringSvgEl).height, pane = boxOf(ringSplitEl).height;
+  splitSizing = { id: e.pointerId, y: ptY(e), pane: pane, total: ring + pane };
   splitGripEl.setPointerCapture(e.pointerId);
   ringSplitEl.classList.add('is-resizing');
   e.preventDefault();
 });
 splitGripEl.addEventListener('pointermove', function(e){
   if (!splitSizing || e.pointerId !== splitSizing.id || !splitSizing.total) return;
-  changeSplitShare((splitSizing.pane - (e.clientY - splitSizing.y)) / splitSizing.total);
+  changeSplitShare((splitSizing.pane - (ptY(e) - splitSizing.y)) / splitSizing.total);
 });
 function endSplitSizing(e){
   if (!splitSizing || e.pointerId !== splitSizing.id) return;
@@ -6720,7 +6739,7 @@ function fitRingHead(){
   ringHeadEl.querySelectorAll('math').forEach(function(m){
     if (m.closest('.ring-hover-formula')) return;
     m.style.fontSize = '';
-    var w = m.getBoundingClientRect().width;
+    var w = boxOf(m).width;
     if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
   });
   var box = ringHeadEl.querySelector('.ring-hover-formula');
@@ -6860,7 +6879,7 @@ function placeZoom(){
   if (ringEase) return;
   zoomWrapEl.style.left = zoomWrapEl.style.top = '';
   if (!zoomApart() || !zoomWrapEl.offsetParent) return;
-  var g = ringSvgEl.getBoundingClientRect(), w = zoomWrapEl.getBoundingClientRect(), r = zoomWrapEl.offsetParent.getBoundingClientRect();
+  var g = boxOf(ringSvgEl), w = boxOf(zoomWrapEl), r = boxOf(zoomWrapEl.offsetParent);
   if (!g.width || !g.height) return;
   zoomWrapEl.style.left = num(g.right - w.width - 6 - r.left) + 'px';
   zoomWrapEl.style.top = num(g.bottom - w.height - 6 - r.top) + 'px';
@@ -6875,9 +6894,9 @@ window.addEventListener('resize', placeZoom);
 // of its own). With the slider at the side or hidden there is no card.
 function hugSideSlot(){
   if (exprSlotEl.hidden || !exprSlotEl.classList.contains('is-side')) return;
-  var r = exprSlotEl.getBoundingClientRect(), u = null;
+  var r = boxOf(exprSlotEl), u = null;
   exprSlotEl.querySelectorAll('*').forEach(function(el){
-    var b = el.getBoundingClientRect();
+    var b = boxOf(el);
     if (!b.width || !b.height) return;
     u = u ? { left: Math.min(u.left, b.left), right: Math.max(u.right, b.right), top: Math.min(u.top, b.top), bottom: Math.max(u.bottom, b.bottom) } : { left: b.left, right: b.right, top: b.top, bottom: b.bottom };
   });
@@ -6893,12 +6912,12 @@ function hugSubCtls(){
   var ctls = subgroupsPanelEl.querySelector('.sub-ctls'), u = null;
   if (!ctls) return;
   ctls.querySelectorAll('*').forEach(function(el){
-    var b = el.getBoundingClientRect();
+    var b = boxOf(el);
     if (!b.width || !b.height) return;
     u = u ? { top: Math.min(u.top, b.top), bottom: Math.max(u.bottom, b.bottom) } : { top: b.top, bottom: b.bottom };
   });
   if (!u) return;
-  var r = subgroupsPanelEl.getBoundingClientRect();
+  var r = boxOf(subgroupsPanelEl);
   subgroupsPanelEl.style.setProperty('--sub-t', num(u.top - 5 - r.top - subgroupsPanelEl.clientTop) + 'px');
   // The card runs on down over the subgroup rows, to the panel's foot.
   subgroupsPanelEl.style.setProperty('--sub-h', num(Math.max(u.bottom + 5, r.bottom) - (u.top - 5)) + 'px');
@@ -6932,7 +6951,7 @@ function ringReach(){
   var m = ringReachUnits !== null && ringDynamicEl.getScreenCTM();
   if (!m) return null;
   var box = ringBox();
-  return { x: m.a * box.cx + m.c * box.cy + m.e, y: m.b * box.cx + m.d * box.cy + m.f, r: ringReachUnits * Math.hypot(m.a, m.b) };
+  return { x: (m.a * box.cx + m.c * box.cy + m.e) / PAGE_ZOOM, y: (m.b * box.cx + m.d * box.cy + m.f) / PAGE_ZOOM, r: ringReachUnits * Math.hypot(m.a, m.b) / PAGE_ZOOM };
 }
 // Whether a box lies over the drawing: its nearest point within the reach.
 function onReach(reach, r){
@@ -6945,7 +6964,7 @@ function onReach(reach, r){
 function combineTextBox(){
   var l = Infinity, t = Infinity, rt = -Infinity, b = -Infinity;
   ringDynamicEl.querySelectorAll('text.ring-combine').forEach(function(el){
-    var r = el.getBoundingClientRect();
+    var r = boxOf(el);
     if (!r.width) return;
     l = Math.min(l, r.left); t = Math.min(t, r.top); rt = Math.max(rt, r.right); b = Math.max(b, r.bottom);
   });
@@ -6964,7 +6983,7 @@ function syncRingOverlap(){
   var own = ringReach(), text = combineTextBox(), body = exprSlotEl.parentNode, key = $('combine-key');
   var pane = null, ptext = null, fr = null;
   if (!IS_ISOPANE && (paneReach || paneText) && isoPaneFrame && !isoPaneEl.hidden){
-    fr = isoPaneFrame.getBoundingClientRect();
+    fr = boxOf(isoPaneFrame);
     var ox = fr.left + isoPaneFrame.clientLeft, oy = fr.top + isoPaneFrame.clientTop;
     if (fr.width && paneReach) pane = { x: ox + paneReach.x, y: oy + paneReach.y, r: paneReach.r };
     if (fr.width && paneText) ptext = { left: ox + paneText.left, top: oy + paneText.top, right: ox + paneText.right, bottom: oy + paneText.bottom };
@@ -6984,19 +7003,19 @@ function syncRingOverlap(){
     return (!!pane && onReach(pane, c)) || onBox(ptext, c);
   };
   var card = ringHeadEl.querySelector('.ring-hover-formula');
-  if (card) card.classList.toggle('is-on-ring', over(card.getBoundingClientRect()));
+  if (card) card.classList.toggle('is-on-ring', over(boxOf(card)));
   [spinRulerEl, key, splitBtnEl, legendPanelEl, $('legend-panel-pane'), $('genexp-info'), $('genexp-info-pane')].forEach(function(el){
-    if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && over(el.getBoundingClientRect()));
+    if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && over(boxOf(el)));
   });
   function hug(el, pre){
-    var b = el.getBoundingClientRect(), cs = el.style, w = parseFloat(cs.getPropertyValue(pre + 'w')) || 0;
+    var b = boxOf(el), cs = el.style, w = parseFloat(cs.getPropertyValue(pre + 'w')) || 0;
     var l = b.left + el.clientLeft + (parseFloat(cs.getPropertyValue(pre + 'x')) || 0);
     var t = b.top + el.clientTop + (parseFloat(cs.getPropertyValue(pre + 'y')) || 0);
     var h = parseFloat(cs.getPropertyValue(pre + 'h')) || 0;
     return w > 0 && over({ left: l, top: t, right: l + w, bottom: t + h, width: w });
   }
   body.classList.toggle('is-clu-on-ring', hug(body, '--clu-'));
-  var sp = subgroupsPanelEl.getBoundingClientRect(), sst = subgroupsPanelEl.style;
+  var sp = boxOf(subgroupsPanelEl), sst = subgroupsPanelEl.style;
   var st = sp.top + subgroupsPanelEl.clientTop + (parseFloat(sst.getPropertyValue('--sub-t')) || 0), sh = parseFloat(sst.getPropertyValue('--sub-h')) || 0;
   subgroupsPanelEl.classList.toggle('is-sub-on-ring', !!subgroupsPanelEl.closest('.ring-split') && sp.width > 0 && sh > 0 && over({ left: sp.left - 8, top: st, right: sp.right + 8, bottom: st + sh, width: sp.width + 16 }));
   exprSlotEl.classList.toggle('is-side-on-ring', exprSlotEl.classList.contains('is-side') && !exprSlotEl.hidden && hug(exprSlotEl, '--side-'));
@@ -7005,11 +7024,11 @@ function hugBottomCluster(){
   hugSideSlot();
   hugSubCtls();
   var body = exprSlotEl.parentNode, rs = [], lo = Infinity, hi = -Infinity;
-  function seen(el){ return el && !el.hidden && el.offsetParent && el.getBoundingClientRect().width > 0; }
+  function seen(el){ return el && !el.hidden && el.offsetParent && boxOf(el).width > 0; }
   if (seen(exprSlotEl) && !exprSlotEl.classList.contains('is-side')){
-    var top = exprSlotEl.getBoundingClientRect();
+    var top = boxOf(exprSlotEl);
     exprSlotEl.querySelectorAll('.expr-name, .expr-nat, .expr-track, .expr-now').forEach(function(el){
-      var b = el.getBoundingClientRect();
+      var b = boxOf(el);
       if (!b.width) return;
       lo = Math.min(lo, b.left);
       hi = Math.max(hi, b.right);
@@ -7018,14 +7037,14 @@ function hugBottomCluster(){
   }
   var slider = rs.length;
   function under(el){
-    var r = el.getBoundingClientRect(), mid = (r.left + r.right) / 2;
+    var r = boxOf(el), mid = (r.left + r.right) / 2;
     if (slider && mid >= lo && mid <= hi){ rs.push(r); return false; }
     return true;
   }
   if (seen(splitBtnEl)) under(splitBtnEl);
   spinRulerEl.classList.toggle('is-own-card', seen(spinRulerEl) && under(spinRulerEl));
   if (!rs.length){ body.style.setProperty('--clu-w', '0px'); syncRingOverlap(); return; }
-  var b = body.getBoundingClientRect(), u = rs.reduce(function(a, r){
+  var b = boxOf(body), u = rs.reduce(function(a, r){
     return { left: Math.min(a.left, r.left), right: Math.max(a.right, r.right), top: Math.min(a.top, r.top), bottom: Math.max(a.bottom, r.bottom) };
   });
   body.style.setProperty('--clu-x', num(u.left - 10 - b.left - body.clientLeft) + 'px');
@@ -7037,26 +7056,26 @@ function hugBottomCluster(){
 // The middle card frosts while the pointer is inside it; the slider's row
 // reaches past the card, so its place is checked rather than :hover.
 exprSlotEl.parentNode.addEventListener('pointermove', function(e){
-  var body = exprSlotEl.parentNode, b = body.getBoundingClientRect(), cs = body.style;
-  var x = e.clientX - b.left - body.clientLeft, y = e.clientY - b.top - body.clientTop;
+  var body = exprSlotEl.parentNode, b = boxOf(body), cs = body.style;
+  var x = ptX(e) - b.left - body.clientLeft, y = ptY(e) - b.top - body.clientTop;
   var l = parseFloat(cs.getPropertyValue('--clu-x')) || 0, t = parseFloat(cs.getPropertyValue('--clu-y')) || 0;
   var w = parseFloat(cs.getPropertyValue('--clu-w')) || 0, h = parseFloat(cs.getPropertyValue('--clu-h')) || 0;
   body.classList.toggle('is-clu-hot', w > 0 && x >= l && x <= l + w && y >= t && y <= t + h);
   var side = false;
   if (exprSlotEl.classList.contains('is-side') && !exprSlotEl.hidden){
-    var sr = exprSlotEl.getBoundingClientRect(), ss = exprSlotEl.style;
-    var sx = e.clientX - sr.left - exprSlotEl.clientLeft - (parseFloat(ss.getPropertyValue('--side-x')) || 0);
-    var sy = e.clientY - sr.top - exprSlotEl.clientTop - (parseFloat(ss.getPropertyValue('--side-y')) || 0);
+    var sr = boxOf(exprSlotEl), ss = exprSlotEl.style;
+    var sx = ptX(e) - sr.left - exprSlotEl.clientLeft - (parseFloat(ss.getPropertyValue('--side-x')) || 0);
+    var sy = ptY(e) - sr.top - exprSlotEl.clientTop - (parseFloat(ss.getPropertyValue('--side-y')) || 0);
     side = sx >= 0 && sy >= 0 && sx <= (parseFloat(ss.getPropertyValue('--side-w')) || 0) && sy <= (parseFloat(ss.getPropertyValue('--side-h')) || 0);
   }
   exprSlotEl.classList.toggle('is-side-hot', side);
-  body.classList.toggle('is-top-hot', inTopBand(e.clientX, e.clientY));
-  var pr = subgroupsPanelEl.getBoundingClientRect(), pt = pr.top + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-t')) || 0);
-  subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && e.clientX >= pr.left - 8 && e.clientX <= pr.right + 8 && e.clientY >= pt && e.clientY <= pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0));
+  body.classList.toggle('is-top-hot', inTopBand(ptX(e), ptY(e)));
+  var pr = boxOf(subgroupsPanelEl), pt = pr.top + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-t')) || 0);
+  subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && ptX(e) >= pr.left - 8 && ptX(e) <= pr.right + 8 && ptY(e) >= pt && ptY(e) <= pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0));
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card){
-    var fr = card.getBoundingClientRect();
-    card.classList.toggle('is-hot', e.clientX >= fr.left && e.clientX <= fr.right && e.clientY >= fr.top && e.clientY <= fr.bottom);
+    var fr = boxOf(card);
+    card.classList.toggle('is-hot', ptX(e) >= fr.left && ptX(e) <= fr.right && ptY(e) >= fr.top && ptY(e) <= fr.bottom);
   }
 });
 // The zoomed rows' band, the body's ::after: from the body's top (the band
@@ -7066,7 +7085,7 @@ function topBand(){
   if (!ringSvgEl.classList.contains('is-zoomed')) return null;
   var cs = getComputedStyle(body, '::after');
   if (cs.content === 'none') return null;
-  var b = body.getBoundingClientRect();
+  var b = boxOf(body);
   var top = b.top + body.clientTop + parseFloat(getComputedStyle(body).paddingTop) + parseFloat(cs.marginTop);
   return { left: b.left, right: b.right, top: top, bottom: top + parseFloat(cs.height) };
 }
@@ -7083,7 +7102,7 @@ function inTopBand(x, y){
     var row = TOP_ROWS.indexOf(getComputedStyle(el).gridRowStart);
     if (row === -1) return;
     rows.push([el, row]);
-    var r = el.getBoundingClientRect();
+    var r = boxOf(el);
     if (r.height) feet[row] = Math.max(feet[row] || -Infinity, r.bottom);
   });
   var keys = Object.keys(feet).sort(function(a, b){ return a - b; });
@@ -7103,14 +7122,14 @@ function inTopBand(x, y){
 // so the band leaves them clear: a mask the band's size with a hole the
 // shape of each, their rounded corners included.
 function bandHoles(body, band){
-  var cs = getComputedStyle(body, '::after'), bs = getComputedStyle(body), b = body.getBoundingClientRect();
+  var cs = getComputedStyle(body, '::after'), bs = getComputedStyle(body), b = boxOf(body);
   var w = parseFloat(cs.width), h = parseFloat(cs.height);
   if (!(w > 0 && h > 0)){ body.style.removeProperty('--band-mask'); return; }
   var left = b.left + body.clientLeft + parseFloat(bs.paddingLeft) + parseFloat(cs.marginLeft);
   var d = 'M0 0H' + num(w) + 'V' + num(h) + 'H0Z';
   [$('coset-btn'), $('dir-toggle')].forEach(function(el){
     if (!el || !el.offsetParent) return;
-    var r = el.getBoundingClientRect();
+    var r = boxOf(el);
     if (!r.width || r.bottom < band.top || r.top > band.bottom) return;
     var x = r.left - left, y = r.top - band.top, rx = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, r.width / 2, r.height / 2);
     d += 'M' + num(x + rx) + ' ' + num(y) + 'H' + num(x + r.width - rx) + 'A' + num(rx) + ' ' + num(rx) + ' 0 0 1 ' + num(x + r.width) + ' ' + num(y + rx) +
@@ -7131,7 +7150,7 @@ function markTopRow(row, rows){
   });
 }
 document.addEventListener('focusin', function(e){
-  var r = e.target.getBoundingClientRect && e.target.getBoundingClientRect();
+  var r = e.target.getBoundingClientRect && boxOf(e.target);
   if (r && e.target.matches(':focus-visible') && inTopBand((r.left + r.right) / 2, (r.top + r.bottom) / 2)) exprSlotEl.parentNode.classList.add('is-top-hot');
 });
 exprSlotEl.parentNode.addEventListener('pointerleave', function(){
@@ -7464,10 +7483,10 @@ function showAkeyTip(el){
   var host = document.fullscreenElement || document.body;
   if (akeyTipEl.parentNode !== host) host.appendChild(akeyTipEl);
   akeyTipEl.hidden = false;
-  var r = el.getBoundingClientRect(), w = akeyTipEl.offsetWidth, h = akeyTipEl.offsetHeight;
+  var r = boxOf(el), w = akeyTipEl.offsetWidth, h = akeyTipEl.offsetHeight;
   var top = r.top - h - 6;
   if (top < 4) top = r.bottom + 6;
-  akeyTipEl.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + 'px';
+  akeyTipEl.style.left = Math.max(4, Math.min(r.left, (window.innerWidth / PAGE_ZOOM) - w - 4)) + 'px';
   akeyTipEl.style.top = top + 'px';
 }
 function hideAkeyTip(){
@@ -7515,7 +7534,7 @@ function renderCombineKey(G){
   if (preview === null){ combineKeyEl.style.height = ''; combineKeyEl.style.boxSizing = ''; }
   else if (inFlow && !combineKeyEl.hidden && !combineKeyEl.style.height){
     combineKeyEl.style.boxSizing = 'border-box';
-    combineKeyEl.style.height = combineKeyEl.getBoundingClientRect().height + 'px';
+    combineKeyEl.style.height = boxOf(combineKeyEl).height + 'px';
   }
   combineKeyEl.hidden = !on && !held;
   combineKeyEl.classList.toggle('is-held', held);
@@ -7757,7 +7776,7 @@ function dropTargetAt(from, x, y){
   var item = null;
   swatchEls.forEach(function(el){
     if (el === from) return;
-    var r = el.parentNode.getBoundingClientRect();
+    var r = boxOf(el.parentNode);
     if (x >= r.left - 8 && x <= r.right + 8 && y >= r.top - 8 && y <= r.bottom + 8) item = el.parentNode;
   });
   return item;
@@ -7782,7 +7801,7 @@ function endSwatchDrag(e){
 swatchEls.forEach(function(el){
   el.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || !el.classList.contains('is-pickable')) return;
-    swatchDrag = { id: e.pointerId, el: el, x: e.clientX, y: e.clientY, target: null, moved: false };
+    swatchDrag = { id: e.pointerId, el: el, x: ptX(e), y: ptY(e), target: null, moved: false };
     el.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
@@ -7790,12 +7809,12 @@ swatchEls.forEach(function(el){
     if (!swatchDrag || e.pointerId !== swatchDrag.id) return;
     // Past a few pixels a held bar is dragged, where it can be.
     if (!swatchDrag.moved){
-      if (!el.classList.contains('is-grabbable') || Math.hypot(e.clientX - swatchDrag.x, e.clientY - swatchDrag.y) < 4) return;
+      if (!el.classList.contains('is-grabbable') || Math.hypot(ptX(e) - swatchDrag.x, ptY(e) - swatchDrag.y) < 4) return;
       swatchDrag.moved = true;
       el.classList.add('is-dragging');
     }
-    el.style.transform = 'translate(' + (e.clientX - swatchDrag.x) + 'px, ' + (e.clientY - swatchDrag.y) + 'px)';
-    var target = dropTargetAt(el, e.clientX, e.clientY);
+    el.style.transform = 'translate(' + (ptX(e) - swatchDrag.x) + 'px, ' + (ptY(e) - swatchDrag.y) + 'px)';
+    var target = dropTargetAt(el, ptX(e), ptY(e));
     if (target === swatchDrag.target) return;
     if (swatchDrag.target) swatchDrag.target.classList.remove('is-drop-target');
     if (target) target.classList.add('is-drop-target');
@@ -8621,13 +8640,13 @@ ringSvgEl.addEventListener('pointerdown', function(e){
   if (IS_MOBILE && !bead && e.pointerType === 'touch'){
     var nearest = 22;
     ringSvgEl.querySelectorAll('.bead').forEach(function(b){
-      var r = b.getBoundingClientRect();
-      var d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      var r = boxOf(b);
+      var d = Math.hypot(ptX(e) - (r.left + r.width / 2), ptY(e) - (r.top + r.height / 2));
       if (d <= nearest){ nearest = d; nearBead = b; }
     });
   }
   if (nearBead) bead = nearBead;
-  turning = { id: e.pointerId, last: a, swept: autoAngle, x: e.clientX, y: e.clientY, moved: false, pick: bead ? +bead.getAttribute('data-el') : null };
+  turning = { id: e.pointerId, last: a, swept: autoAngle, x: ptX(e), y: ptY(e), moved: false, pick: bead ? +bead.getAttribute('data-el') : null };
   autoAngle = 0;
   ringSvgEl.setPointerCapture(e.pointerId);
   ringSvgEl.classList.add('is-turning');
@@ -8635,7 +8654,7 @@ ringSvgEl.addEventListener('pointerdown', function(e){
 });
 ringSvgEl.addEventListener('pointermove', function(e){
   if (!turning || e.pointerId !== turning.id || turning.refused) return;
-  if (!turning.moved && Math.hypot(e.clientX - turning.x, e.clientY - turning.y) < 5) return;
+  if (!turning.moved && Math.hypot(ptX(e) - turning.x, ptY(e) - turning.y) < 5) return;
   turning.moved = true;
   var a = pointerAngle(e);
   if (a === null) return;
@@ -8741,13 +8760,13 @@ function openBeadK(x, fromPair){
   // Just right of the bead, its middle at the bead's: placed in the
   // viewport, then against the window's corner when the window holds its
   // fixed children.
-  var b = bead.getBoundingClientRect();
+  var b = boxOf(bead);
   var left = b.right + 6, top = b.top + b.height / 2 - box.offsetHeight / 2;
-  var vw = document.documentElement.clientWidth;
+  var vw = (document.documentElement.clientWidth / PAGE_ZOOM);
   if (left + box.offsetWidth > vw - 4) left = b.left - 6 - box.offsetWidth;
   box.style.left = left + 'px';
   box.style.top = top + 'px';
-  var at = box.getBoundingClientRect();
+  var at = boxOf(box);
   box.style.left = (2 * left - at.left) + 'px';
   box.style.top = (2 * top - at.top) + 'px';
   var read = function(){
@@ -9264,10 +9283,10 @@ window.addEventListener('keydown', function(e){
   gearTo(0, 'off');
 }, true);
 function gearMove(e){
-  var r = gearboxEl.getBoundingClientRect();
+  var r = boxOf(gearboxEl);
   var unit = (r.width - 20) / 6, slot = parseFloat(getComputedStyle(gearboxEl).getPropertyValue('--gear-slot')) || 14;
-  var px = clamp((e.clientX - r.left - 10) / unit - 3, -3, 3);
-  var py = clamp((e.clientY - r.top - r.height / 2) / slot, -1, 1);
+  var px = clamp((ptX(e) - r.left - 10) / unit - 3, -3, 3);
+  var py = clamp((ptY(e) - r.top - r.height / 2) / slot, -1, 1);
   var k = gearDrag;
   var along = Math.abs(k.y) < 0.2, upDown = Math.abs(k.x) < 0.25;
   if (along && upDown) along = Math.abs(py) * slot < Math.abs(px) * unit;
@@ -9325,14 +9344,14 @@ $('rot-reset').addEventListener('click', function(){
 // with the knob off the middle, neither.
 function onSpinKnob(e){
   if (spinSliderEl.value !== '0' || state.top !== 'off' || gearDrag) return false;
-  var r = spinSliderEl.getBoundingClientRect();
-  return Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) <= 12;
+  var r = boxOf(spinSliderEl);
+  return Math.hypot(ptX(e) - (r.left + r.width / 2), ptY(e) - (r.top + r.height / 2)) <= 12;
 }
 // A slot end's name, cut short in a narrow ruler, shows whole on hover.
 gearboxEl.addEventListener('pointermove', function(e){
   var named = Array.prototype.find.call(gearboxEl.querySelectorAll('.gear-label'), function(l){
-    var r = l.getBoundingClientRect();
-    return e.clientX >= r.left - 14 && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    var r = boxOf(l);
+    return ptX(e) >= r.left - 14 && ptX(e) <= r.right && ptY(e) >= r.top && ptY(e) <= r.bottom;
   });
   if (onSpinKnob(e)) gearboxEl.title = translate('cyclicGroups.spinResetTitle');
   else if (named) gearboxEl.title = named.textContent;
@@ -10088,10 +10107,10 @@ function syncMoreLabels(listEl, topEl, bottomEl, gap){
   var top = listEl.scrollTop, rest = listEl.scrollHeight - listEl.clientHeight - top;
   listEl.classList.toggle('is-more-above', top > 1);
   listEl.classList.toggle('is-more-below', rest > 1);
-  var box = listEl.getBoundingClientRect(), above = 0, below = 0;
+  var box = boxOf(listEl), above = 0, below = 0;
   Array.prototype.forEach.call(listEl.children, function(row){
     if (row.hidden || row.classList.contains('sub-gcd-divider')) return;
-    var r = row.getBoundingClientRect();
+    var r = boxOf(row);
     if (top > 1 && r.top < box.top - 1) above++;
     if (rest > 1 && r.bottom > box.bottom + 1) below++;
   });
@@ -10130,7 +10149,7 @@ function setRevealHot(m){
   genExpLink(row('data-g'), at ? +at.getAttribute('data-el') : null, row('data-to'), m && (m.closest('.genexp-body') || (m.closest('.sub-row-r') ? genExpPaneBodyEl : null)));
   if (!m) return;
   revealHold = (m.closest && m.closest('.sub-flat')) || m;
-  revealHold.style.minWidth = revealHold.getBoundingClientRect().width + 'px';
+  revealHold.style.minWidth = boxOf(revealHold).width + 'px';
   m.classList.add('is-revealed');
 }
 subgroupsEl.addEventListener('pointerover', function(e){
@@ -10144,17 +10163,17 @@ subgroupsEl.addEventListener('pointerleave', function(){ setRevealHot(null); });
 // took, so the chip shrinking never ends it and starts it again.
 var revealBox = null;
 genSuperEl.addEventListener('pointermove', function(e){
-  if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
+  if (revealHot && revealBox && ptX(e) >= revealBox.left && ptX(e) <= revealBox.right && ptY(e) >= revealBox.top && ptY(e) <= revealBox.bottom) return;
   var at = e.target.closest && e.target.closest('mrow[data-el]');
-  revealBox = at ? at.getBoundingClientRect() : null;
+  revealBox = at ? boxOf(at) : null;
   setRevealHot(at ? at.closest('math.m-inline') : null);
 });
 genSuperEl.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
 // In a formula, the power of h reveals alone, held the same way.
 function formulaReveal(e){
-  if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
+  if (revealHot && revealBox && ptX(e) >= revealBox.left && ptX(e) <= revealBox.right && ptY(e) >= revealBox.top && ptY(e) <= revealBox.bottom) return;
   var at = e.target.closest && e.target.closest('mrow.sub-reveal');
-  revealBox = at ? at.getBoundingClientRect() : null;
+  revealBox = at ? boxOf(at) : null;
   setRevealHot(at);
 }
 subgroupsEl.addEventListener('pointermove', function(e){ if (e.target.closest && e.target.closest('.sub-row-formula')) formulaReveal(e); });
@@ -10164,10 +10183,10 @@ ringHeadEl.addEventListener('pointermove', formulaReveal);
 // and is linked to the element's own cell at the top of its column.
 [genExpBodyEl, genExpPaneBodyEl].forEach(function(body){
   body.addEventListener('pointermove', function(e){
-    if (revealHot && revealBox && e.clientX >= revealBox.left && e.clientX <= revealBox.right && e.clientY >= revealBox.top && e.clientY <= revealBox.bottom) return;
+    if (revealHot && revealBox && ptX(e) >= revealBox.left && ptX(e) <= revealBox.right && ptY(e) >= revealBox.top && ptY(e) <= revealBox.bottom) return;
     var m = e.target.closest && e.target.closest('td math.m-inline');
     if (m && !m.querySelector('.sub-nat')) m = null;
-    revealBox = m ? m.getBoundingClientRect() : null;
+    revealBox = m ? boxOf(m) : null;
     setRevealHot(m);
   });
   body.addEventListener('pointerleave', function(){ revealBox = null; setRevealHot(null); });
@@ -10181,8 +10200,8 @@ function currentRowEl(){
   return subgroupsEl.querySelector('li:not([hidden]) > .subgroup-row.is-current, .sub-gcd-divider.is-current > .sub-gcd-toggle');
 }
 function showRow(row){
-  var box = subgroupsEl.getBoundingClientRect();
-  var at = row.getBoundingClientRect();
+  var box = boxOf(subgroupsEl);
+  var at = boxOf(row);
   if (at.top < box.top) subgroupsEl.scrollTop -= box.top - at.top;
   else if (at.bottom > box.bottom) subgroupsEl.scrollTop += at.bottom - box.bottom;
 }
@@ -10195,7 +10214,7 @@ function rowAnchor(){
   rowAnchorAt = null;
   var row = currentRowEl();
   if (!row) return;
-  var box = subgroupsEl.getBoundingClientRect(), at = row.getBoundingClientRect();
+  var box = boxOf(subgroupsEl), at = boxOf(row);
   if (!at.height || at.bottom <= box.top || at.top >= box.bottom) return;
   rowAnchorAt = { gen: state.gen, top: at.top - box.top };
 }
@@ -10203,7 +10222,7 @@ function restoreRowAnchor(){
   var a = rowAnchorAt, row = currentRowEl();
   rowAnchorAt = null;
   if (!a || a.gen !== state.gen || !row) return;
-  var box = subgroupsEl.getBoundingClientRect(), at = row.getBoundingClientRect();
+  var box = boxOf(subgroupsEl), at = boxOf(row);
   if (!at.height) return;
   subgroupsEl.scrollTop += at.top - box.top - a.top;
   showRow(row);
@@ -10229,10 +10248,10 @@ var heldRow = null, pointerClient = null;
 function hoverRow(row, g, e){
   if (keyNav) return;
   if (heldRow && heldRow.g === g){ setPreview(g); return; }
-  var at = e && e.isTrusted ? { x: e.clientX, y: e.clientY } : pointerClient;
+  var at = e && e.isTrusted ? { x: ptX(e), y: ptY(e) } : pointerClient;
   var b = heldRow && heldRow.g === preview && heldRow.g !== g && heldRow.box;
   if (b && at && at.x >= b.left && at.x < b.right && at.y >= b.top && at.y < b.bottom) return;
-  heldRow = { g: g, box: row.getBoundingClientRect() };
+  heldRow = { g: g, box: boxOf(row) };
   setPreview(g);
 }
 subgroupsEl.addEventListener('mousemove', function(e){
@@ -10251,7 +10270,7 @@ var pointerAt = null;
 document.addEventListener('mousemove', function(e){
   var moved = pointerAt !== null && (pointerAt.x !== e.screenX || pointerAt.y !== e.screenY);
   pointerAt = { x: e.screenX, y: e.screenY };
-  pointerClient = { x: e.clientX, y: e.clientY };
+  pointerClient = { x: ptX(e), y: ptY(e) };
   if (!keyNav || !moved) return;
   keyNav = false;
   var row = e.target.closest && e.target.closest('.subgroup-row');
@@ -10890,13 +10909,13 @@ function setPaneMenuRoom(open){
   f.style.flex = f.style.height = f.style.marginBottom = '';
   var px = 0;
   if (open){
-    var r = f.getBoundingClientRect();
-    px = Math.max(0, Math.floor(document.documentElement.clientHeight - r.bottom));
+    var r = boxOf(f);
+    px = Math.max(0, Math.floor((document.documentElement.clientHeight / PAGE_ZOOM) - r.bottom));
     if (px){
       f.style.flex = 'none';
       f.style.height = (r.height + px) + 'px';
       f.style.marginBottom = -px + 'px';
-      f.getBoundingClientRect();
+      boxOf(f);
     }
   }
   try { f.contentWindow.postMessage({ ringhost: 'menuroom', px: px }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
@@ -11154,10 +11173,10 @@ document.addEventListener('pointermove', function(e){
   var near = false, nearLeft = false;
   // The second ring's pane is a ring page too; it never offers a third.
   if (!IS_ISOPANE && !isoPane && !isoPickEl && body.classList.contains('fs-win-body') && body.classList.contains('is-ring')){
-    var r = body.getBoundingClientRect(), ring = ringSvgEl.getBoundingClientRect();
-    var rows = e.clientY >= ring.top && e.clientY <= ring.bottom;
-    near = rows && e.clientX >= r.right - 90 && e.clientX <= r.right;
-    nearLeft = rows && !IS_RINGWIN && e.clientX >= r.left && e.clientX <= r.left + 90;
+    var r = boxOf(body), ring = boxOf(ringSvgEl);
+    var rows = ptY(e) >= ring.top && ptY(e) <= ring.bottom;
+    near = rows && ptX(e) >= r.right - 90 && ptX(e) <= r.right;
+    nearLeft = rows && !IS_RINGWIN && ptX(e) >= r.left && ptX(e) <= r.left + 90;
   }
   isoAddEl.classList.toggle('is-shown', near);
   isoAddLeftEl.classList.toggle('is-shown', nearLeft);
@@ -11310,9 +11329,9 @@ var paneFoot = 0;
 function syncPaneFoot(){
   if (IS_ISOPANE || isoPaneEl.hidden) return;
   var body = isoPaneEl.parentNode, bar = $('ring-bar');
-  var low = bar && bar.offsetParent ? bar.getBoundingClientRect().top
-    : body.getBoundingClientRect().bottom - parseFloat(getComputedStyle(body).paddingBottom);
-  var px = Math.max(0, Math.round(low - isoPaneEl.getBoundingClientRect().bottom));
+  var low = bar && bar.offsetParent ? boxOf(bar).top
+    : boxOf(body).bottom - parseFloat(getComputedStyle(body).paddingBottom);
+  var px = Math.max(0, Math.round(low - boxOf(isoPaneEl).bottom));
   if (px === paneFoot) return false;
   paneFoot = px;
   isoPaneEl.style.setProperty('--pane-foot', px + 'px');
@@ -12317,11 +12336,11 @@ function previewFrame(slide, src){
 
 function placeIsoPreview(a){
   var gap = 8, margin = 8;
-  var w = Math.min(PREVIEW_SIZE, window.innerWidth - 2 * margin), h = w;
-  var r = a.getBoundingClientRect();
+  var w = Math.min(PREVIEW_SIZE, (window.innerWidth / PAGE_ZOOM) - 2 * margin), h = w;
+  var r = boxOf(a);
   var top = r.bottom + gap;
-  if (top + h + margin > window.innerHeight && r.top - gap - h >= margin) top = r.top - gap - h;
-  var left = Math.max(margin, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - margin));
+  if (top + h + margin > (window.innerHeight / PAGE_ZOOM) && r.top - gap - h >= margin) top = r.top - gap - h;
+  var left = Math.max(margin, Math.min(r.left + r.width / 2 - w / 2, (window.innerWidth / PAGE_ZOOM) - w - margin));
   previewEl.style.width = w + 'px';
   previewEl.style.height = h + 'px';
   previewEl.style.top = Math.round(top) + 'px';
@@ -13098,13 +13117,13 @@ function setSubCtx(open, x, y){
   if (!(subCtxReturn instanceof HTMLElement) || subCtxReturn === document.body) subCtxReturn = null;
   subCtxEl.hidden = false;
   var w = subCtxEl.offsetWidth, h = subCtxEl.offsetHeight;
-  var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
   var left = Math.max(4, Math.min(x, vw - w - 4)), top = Math.max(4, Math.min(y, vh - h - 4));
   subCtxEl.style.left = left + 'px';
   subCtxEl.style.top = top + 'px';
   // Inside a window that contains its fixed children, place it against
   // that window's corner instead of the viewport's.
-  var at = subCtxEl.getBoundingClientRect();
+  var at = boxOf(subCtxEl);
   subCtxEl.style.left = (2 * left - at.left) + 'px';
   subCtxEl.style.top = (2 * top - at.top) + 'px';
   subCtxEl.firstChild.focus();
@@ -13134,7 +13153,7 @@ subgroupsPanelEl.addEventListener('contextmenu', function(e){
   if (e.target.closest('select, input, label, .sub-ctls button, .panel-head button, .split-btn')) return;
   e.preventDefault();
   if (IS_MOBILE) return;
-  setSubCtx(true, e.clientX, e.clientY);
+  setSubCtx(true, ptX(e), ptY(e));
 });
 document.addEventListener('pointerdown', function(e){
   if (!subCtxEl.contains(e.target)) setSubCtx(false);
@@ -13535,10 +13554,10 @@ function keepLockClear(){
   var dirCtls = [$('dir-pref'), $('shorten-lock-track'), dirToggleEl];
   dirCtls.concat([splitBtnEl, cosetBtnEl, cosetControlsEl]).forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
-  var p = isoPaneEl.getBoundingClientRect(), g = ringSvgEl.getBoundingClientRect();
+  var p = boxOf(isoPaneEl), g = boxOf(ringSvgEl);
   isoSwapEl.hidden = !canSwapRings();
   if (!isoSwapEl.hidden){
-    var row = groupControlsEl.getBoundingClientRect();
+    var row = boxOf(groupControlsEl);
     if (row.height) isoSwapEl.style.top = num(row.top + row.height / 2 - p.top) + 'px';
   }
   if (!g.height || !p.height) return;
@@ -13546,7 +13565,7 @@ function keepLockClear(){
   // The split button in the open panel's corner is the panel's, not the line's.
   var onLine = function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); };
   var btns = dirCtls.concat([cosetBtnEl, cosetControlsEl]).filter(onLine);
-  var hs = btns.map(function(el){ return el.getBoundingClientRect().height; });
+  var hs = btns.map(function(el){ return boxOf(el).height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
   var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
@@ -13554,7 +13573,7 @@ function keepLockClear(){
   if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
   var y = top + lockH + gap;
   btns.forEach(function(el, i){
-    var r = el.offsetParent.getBoundingClientRect();
+    var r = boxOf(el.offsetParent);
     el.style.left = num(p.left - r.left) + 'px';
     el.style.top = num(y + hs[i] / 2 - r.top) + 'px';
     y += hs[i] + SHARED_BTN_GAP;
@@ -13564,18 +13583,18 @@ function keepLockClear(){
   var lockMid = exprSlidersMid();
   if (!exprLockEl.hidden) exprLockEl.style.top = num(lockMid - p.top) + 'px';
   if (onLine(splitBtnEl)){
-    var sh = splitBtnEl.getBoundingClientRect().height, sr = splitBtnEl.offsetParent.getBoundingClientRect();
-    var floor = exprLockEl.hidden ? exprSlotEl.getBoundingClientRect().top : lockMid - exprLockEl.offsetHeight / 2;
-    if (exprSlotEl.hidden || !floor) floor = spinRulerEl.getBoundingClientRect().top;
+    var sh = boxOf(splitBtnEl).height, sr = boxOf(splitBtnEl.offsetParent);
+    var floor = exprLockEl.hidden ? boxOf(exprSlotEl).top : lockMid - exprLockEl.offsetHeight / 2;
+    if (exprSlotEl.hidden || !floor) floor = boxOf(spinRulerEl).top;
     splitBtnEl.style.left = num(p.left - sr.left) + 'px';
     splitBtnEl.style.top = num(floor - SHARED_BTN_GAP - sh / 2 - sr.top) + 'px';
   }
 }
 function exprSlidersMid(){
-  var r = exprSliderEl.getBoundingClientRect(), y = r.top + r.height / 2;
+  var r = boxOf(exprSliderEl), y = r.top + r.height / 2;
   try {
     var pe = isoPaneFrame.contentDocument.getElementById('expr-slider');
-    var pr = pe.getBoundingClientRect(), f = isoPaneFrame.getBoundingClientRect();
+    var pr = boxOf(pe), f = boxOf(isoPaneFrame);
     if (pr.height) y = (y + f.top + pr.top + pr.height / 2) / 2;
   } catch (e) { /* a pane out of reach: this ring's slider alone */ }
   return y;
@@ -13820,8 +13839,8 @@ function easeRingResize(change, at){
   if (!before || !after || !after.a || (reduceMotionMq && reduceMotionMq.matches)) return;
   var k = before.a / after.a;
   if (Math.abs(k - 1) < 0.002 && Math.abs(before.e - after.e) < 0.5 && Math.abs(before.f - after.f) < 0.5) return;
-  var r = ringSvgEl.getBoundingClientRect();
-  var dx = before.e - r.left - k * (after.e - r.left), dy = before.f - r.top - k * (after.f - r.top);
+  var r = boxOf(ringSvgEl);
+  var dx = before.e / PAGE_ZOOM - r.left - k * (after.e / PAGE_ZOOM - r.left), dy = before.f / PAGE_ZOOM - r.top - k * (after.f / PAGE_ZOOM - r.top);
   ringSvgEl.style.transformOrigin = '0 0';
   var anim = ringSvgEl.animate([
     { transform: 'translate(' + num(dx) + 'px, ' + num(dy) + 'px) scale(' + k + ')' },
