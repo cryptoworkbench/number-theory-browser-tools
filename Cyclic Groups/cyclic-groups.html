@@ -982,9 +982,8 @@
   .curve-plot-svg .poly-turn-head{ stroke:none; pointer-events:none; }
   .curve-plot-svg .poly-turn.is-a{ stroke:var(--role-active); }
   .curve-plot-svg .poly-turn-head.is-a{ fill:var(--role-active); }
-  .curve-plot-svg .poly-turn.is-walk{ stroke:var(--walk); stroke-width:1.8; }
+  .curve-plot-svg .poly-turn.is-walk{ stroke:var(--walk); }
   .curve-plot-svg .poly-turn-head.is-walk{ fill:var(--walk); }
-  .curve-plot-svg .poly-hop-n{ fill:var(--walk); font-family:var(--font-sans); font-size:9px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--surface); stroke-width:2.5px; }
   .curve-plot-svg .poly-turn.is-b{ stroke:var(--role-input); }
   .curve-plot-svg .poly-turn-head.is-b{ fill:var(--role-input); }
   .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
@@ -8236,37 +8235,22 @@ function plotPolygon(G){
   // The turns: from 0 by a (then by b), or k hops of a; each an arc
   // inside the polygon, the later ones nearer its centre.
   var turns = [];
-  // aᵏ turns as the ring's walk hops: one lap at most, each hop in its
-  // lap's colour and numbered with the latest k to land on it.
+  // aᵏ: every one of the |k| hops, lap after lap, spiralling inward (the
+  // last 120 of a longer walk), each in the colour the ring's walk gives
+  // that hop: its lap's (see lapClass).
   var sw = live && combo.k !== null ? scalarWalk(G) : null;
   if (sw){
     var m0 = sw.walk.length, K = Math.abs(combo.k), hop = log[combo.k < 0 ? G.inv[combo.a] : combo.a];
-    var latest = function(s){ return s + 1 + m0 * Math.floor((K - s - 1) / m0); };
-    for (var h = 0; h < (sw.lap ? m0 : m0 - 1); h++){
-      turns.push({ from: log[sw.walk[h]], by: hop, cls: 'is-walk ' + lapClass(Math.floor((latest(h) - 1) / m0)), hop: latest(h) });
+    for (var h = Math.max(1, K - 119); h <= K; h++){
+      turns.push({ from: ((h - 1) * hop) % n, by: hop, cls: 'is-walk ' + lapClass(Math.floor((h - 1) / m0)) });
     }
   } else if (live && combo.k === null){
     turns.push({ from: 0, by: log[combo.a], cls: 'is-a' });
     if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: log[combo.a], by: log[combo.b], cls: 'is-b' });
   }
   turns = turns.filter(function(t){ return t.by % n; });
-  var turnsEl = svg.appendChild(svgEl('g', {}));
-  var arcs = turns.filter(function(t){ return !t.hop; });
-  turns.forEach(function(t){
-    if (!t.hop) return;
-    // As on the ring: a chord from corner to corner, its arrow halfway,
-    // its number a third of the way along.
-    var foot = R - dotR - 1, p0 = at(t.from, foot), p1 = at(t.from + t.by, foot);
-    var pt = function(f){ return [p0[0] + (p1[0] - p0[0]) * f, p0[1] + (p1[1] - p0[1]) * f]; };
-    turnsEl.appendChild(svgEl('line', { 'class': 'poly-turn ' + t.cls, x1: num(p0[0]), y1: num(p0[1]), x2: num(p1[0]), y2: num(p1[1]) }));
-    var dir = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]), mid = pt(0.5), size = Math.max(3, Math.min(5, 60 / turns.length));
-    turnsEl.appendChild(svgEl('path', { 'class': 'poly-turn-head ' + t.cls, d: 'M' + num(mid[0] + Math.cos(dir) * size) + ' ' + num(mid[1] + Math.sin(dir) * size) + ' L' + num(mid[0] - Math.cos(dir) * size - Math.sin(dir) * size * 0.8) + ' ' + num(mid[1] - Math.sin(dir) * size + Math.cos(dir) * size * 0.8) + ' L' + num(mid[0] - Math.cos(dir) * size + Math.sin(dir) * size * 0.8) + ' ' + num(mid[1] - Math.sin(dir) * size - Math.cos(dir) * size * 0.8) + ' Z' }));
-    if (n > 40) return;
-    var q = pt(0.3);
-    turnsEl.appendChild(svgEl('text', { 'class': 'poly-hop-n ' + t.cls, x: num(q[0]), y: num(q[1]) })).textContent = String(t.hop);
-  });
-  arcs.forEach(function(t, i){
-    var r = R * (0.72 - i * 0.18);
+  turns.forEach(function(t, i){
+    var r = R * (0.72 - i * Math.min(0.18, 0.44 / Math.max(1, turns.length - 1)));
     var a0 = ang(t.from), a1 = ang(t.from + t.by), span = t.by * 360 / n;
     var p0 = [C + r * Math.cos(a0), C + r * Math.sin(a0)], p1 = [C + r * Math.cos(a1), C + r * Math.sin(a1)];
     svg.appendChild(svgEl('path', { 'class': 'poly-turn ' + t.cls, d: 'M' + num(p0[0]) + ' ' + num(p0[1]) + ' A' + num(r) + ' ' + num(r) + ' 0 ' + (span > 180 ? 1 : 0) + ' ' + (sgn > 0 ? 1 : 0) + ' ' + num(p1[0]) + ' ' + num(p1[1]) }));
@@ -8281,7 +8265,6 @@ function plotPolygon(G){
   body.appendChild(svgEl('line', { 'class': 'poly-hand', x1: num(base[0]), y1: num(base[1]), x2: num(tip[0]), y2: num(tip[1]) }));
   body.appendChild(svgEl('circle', { 'class': 'poly-mark', cx: num(tip[0]), cy: num(tip[1]), r: 3.2 }));
   body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
-  svg.appendChild(turnsEl);
   // It turns forward from where it stood, by as many steps as the ring
   // counts; let go, it is back at rest at once.
   var turn = log[rot], key = G.key + '|' + g + '|' + sgn, deg = sgn * turn * 360 / n;
