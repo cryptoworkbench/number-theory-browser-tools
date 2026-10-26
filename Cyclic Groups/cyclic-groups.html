@@ -4117,12 +4117,15 @@ function drawRing(parent, G, beads, box, paint){
   // Halos past what fits before the neighbouring bead's close up, thinner
   // and thinner, into a band halfway to it.
   var haloBand = beads.length > 1 ? Math.max(10, Math.hypot(at(1)[0] - at(0)[0], at(1)[1] - at(0)[1]) / 2 - beadR - 4) : HALO_BAND;
+  // With aᵏ only the last visit's halo shows, in its lap's colour.
+  var lastOnly = combo.k !== null && !!scalarWalk(G);
   combineRoles(G).forEach(function(roles, a){
-    var p = at(place[a]);
-    var step = Math.min(5, Math.min(HALO_BAND, haloBand) / Math.max(1, roles.length - 1));
+    var p = at(place[a]), first = lastOnly ? roles.length - 1 : 0;
+    var step = Math.min(5, Math.min(HALO_BAND, haloBand) / Math.max(1, roles.length - 1 - first));
     roles.forEach(function(role, k){
+      if (k < first) return;
       var dense = step < 5 && role !== 'c';
-      var attrs = { 'class': haloClass(G, role, k) + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * k) };
+      var attrs = { 'class': haloClass(G, role, k) + (dense ? ' is-dense' : ''), cx: num(p[0]), cy: num(p[1]), r: num(beadR + 4 + step * (k - first)) };
       if (dense) attrs['stroke-width'] = num(Math.max(0.4, step * 0.55));
       ring.appendChild(svgEl('circle', attrs));
     });
