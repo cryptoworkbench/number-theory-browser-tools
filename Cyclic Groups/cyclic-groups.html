@@ -959,6 +959,10 @@
   .curve-plot-svg .curve-axis{ stroke:var(--text-dim); stroke-width:.8; }
   .curve-plot-svg .curve-real{ fill:none; stroke:var(--text); stroke-width:1.6; pointer-events:none; }
   .curve-plot-svg .curve-real-pt{ fill:var(--text); pointer-events:none; }
+  /* Two beads added along the real line: where the reals land, in red,
+     dotted to where the group's sum is set. */
+  .curve-plot-svg .curve-real-sum{ fill:none; stroke:var(--role-warn); stroke-width:1.8; pointer-events:none; }
+  .curve-plot-svg .curve-mismatch{ stroke:var(--role-warn); stroke-width:1.3; stroke-dasharray:2 3; pointer-events:none; }
   .curve-plot.is-real .curve-plot-svg{ cursor:crosshair; }
   .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
   /* Modulo a composite n, how many points have no (x, y) to plot. */
@@ -8303,6 +8307,19 @@ function plotReal(G){
   var roots = realRoots(G), lo = Math.min.apply(null, roots), hi = Math.max.apply(null, roots);
   if (!state.realPlot) realPick = { P: null, Q: null, key: key };
   var P = realPick.P, Q = realPick.Q, sum = P && Q ? realSum(G, P, Q) : null;
+  // Two beads combined (with no real points picked): the real line through
+  // where they are set along the curve, which lands where the reals add
+  // them, not where the group does, the two results joined in red.
+  var bead = null;
+  if (state.realPlot && !P && comboLive(G) && combo.b !== null && combo.k === null){
+    var A = G.pts[combo.a], B = G.pts[combo.b], C = G.pts[G.combine(combo.a, combo.b)];
+    if (A && B && !A.proj && !B.proj && !(C && C.proj)){
+      var pa = realPlace(G, A), pb = combo.a === combo.b ? pa : realPlace(G, B);
+      bead = { P: pa, Q: pb, sum: realSum(G, pa, pb), C: C, at: C ? realPlace(G, C) : null };
+      P = pa;
+      sum = bead.sum;
+    }
+  }
   // Wide enough for the sum too, R and −R in view.
   var x1 = Math.max(hi + 3, 2.5, G.n - 0.5, sum && !sum.o ? sum.x + 0.5 : -Infinity), x0 = Math.min(lo - 1, -0.5, sum && !sum.o ? sum.x - 0.5 : Infinity);
   var ymax = Math.max(Math.sqrt(Math.max(1, realF(G, x1))), sum && !sum.o ? Math.abs(sum.y) : 0) * 1.05;
@@ -8370,13 +8387,26 @@ function plotReal(G){
       g.appendChild(svgEl('line', { 'class': 'curve-reflect', x1: num(X(sum.x)), y1: num(Y(-sum.y)), x2: num(X(sum.x)), y2: num(Y(sum.y)) }));
     }
   }
-  [[P, 'a'], [Q, 'b'], [sum && !sum.o ? sum : null, 'c']].forEach(function(t, k){
+  if (bead){
+    // The beads wear their halos already; the real result is a red ring,
+    // dotted to where the group's P + Q is set (unless 𝒪, off the curve).
+    if (!sum.o){
+      g.appendChild(svgEl('circle', { 'class': 'curve-real-sum', cx: num(X(sum.x)), cy: num(Y(sum.y)), r: 6 }));
+      if (bead.at) g.appendChild(svgEl('line', { 'class': 'curve-mismatch', x1: num(X(sum.x)), y1: num(Y(sum.y)), x2: num(X(bead.at.x)), y2: num(Y(bead.at.y)) }));
+    }
+  }
+  [[bead ? null : P, 'a'], [bead ? null : Q, 'b'], [!bead && sum && !sum.o ? sum : null, 'c']].forEach(function(t, k){
     if (!t[0]) return;
     g.appendChild(svgEl('circle', { 'class': 'curve-real-pt', cx: num(X(t[0].x)), cy: num(Y(t[0].y)), r: 3.5 }));
     g.appendChild(svgEl('circle', { 'class': 'combine-halo is-' + t[1], cx: num(X(t[0].x)), cy: num(Y(t[0].y)), r: num(6 + (k === 1 && Q === P ? 2.5 : 0)) }));
   });
   noteEl.hidden = false;
+  var point = bead && (bead.C ? plainPoint(bead.C) : '𝒪');
+  var agree = bead && (sum.o ? !bead.C : !!bead.at && Math.abs(bead.at.x - sum.x) < 1e-6 && Math.abs(bead.at.y - sum.y) < 1e-6);
   if (!state.realPlot) translateInto(noteEl, 'cyclicGroups.curveRealOff', {});
+  else if (bead && agree) translateInto(noteEl, 'cyclicGroups.curveRealBeadsSame', { point: point });
+  else if (bead && sum.o) translateInto(noteEl, 'cyclicGroups.curveRealBeadsVertical', { point: point });
+  else if (bead) translateInto(noteEl, 'cyclicGroups.curveRealBeads', { x: realNum(sum.x), y: realNum(sum.y), point: point, n: G.n });
   else if (!P) translateInto(noteEl, 'cyclicGroups.curveRealHint', {});
   else if (!Q) translateInto(noteEl, 'cyclicGroups.curveRealHintQ', { x: realNum(P.x), y: realNum(P.y) });
   else if (sum.o) translateInto(noteEl, 'cyclicGroups.curveRealO', {});
