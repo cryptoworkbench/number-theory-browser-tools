@@ -1371,7 +1371,9 @@
   .expr-sign:focus-visible{ box-shadow:var(--ctl-focus); }
   /* Its twin beside it signs the exponents alone: g with a raised ±, a power with a signed exponent. */
   .expr-sign-exp{ display:flex; align-items:center; justify-content:center; font-family:var(--font-serif); font-size:.85rem; }
-  .expr-sign-exp[hidden]{ display:none; }
+  /* Hidden on a curve, it keeps its place, so the slider stays as long as
+     the On hover one under it. */
+  .expr-sign-exp.is-void{ visibility:hidden; }
   .expr-sign-base{ font-style:italic; }
   .expr-sign-exp sup{ font-size:.62rem; line-height:1; margin-left:1px; translate:0 -.35em; vertical-align:baseline; }
   /* At the slider's end, the unfold icon opens the advanced mode: a second
@@ -3535,7 +3537,9 @@ function syncExpr(G){
   exprSignEl.setAttribute('aria-pressed', String(state.signed));
   exprSignEl.title = translate(G.pts ? (state.signed ? 'cyclicGroups.exprSignOffEc' : 'cyclicGroups.exprSignOnEc') : state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
   exprSignEl.setAttribute('aria-label', exprSignEl.title);
-  exprSignExpEl.hidden = !!G.pts;
+  exprSignExpEl.classList.toggle('is-void', !!G.pts);
+  exprSignExpEl.disabled = !!G.pts;
+  exprSignExpEl.toggleAttribute('aria-hidden', !!G.pts);
   exprSignExpEl.setAttribute('aria-pressed', String(state.signedExp));
   exprSignExpEl.title = translate(state.signedExp ? 'cyclicGroups.exprSignExpOff' : 'cyclicGroups.exprSignExpOn');
   exprSignExpEl.setAttribute('aria-label', exprSignExpEl.title);
