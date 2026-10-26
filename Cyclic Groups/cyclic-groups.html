@@ -343,8 +343,21 @@
   .ec-field{ display:inline-flex; align-items:center; gap:6px; }
   .facts.group-controls .ec-field > input{ width:4.2em; }
   .facts.group-controls .ec-field #ec-p{ width:calc(4.2em + 18px); }
-  .facts.group-controls .ec-preset{ width:auto; max-width:100%; text-align-last:left; }
-  .facts.group-controls .ec-preset option, .facts.group-controls .ec-preset optgroup{ color:var(--text); background:var(--bg-1); }
+  /* The example curves: a button showing the curve picked (if it is one of
+     them) and a list under it, which scrolls as the subgroup list does,
+     with no scrollbar, fading out at an edge with more curves beyond it. */
+  .ec-pick{ position:relative; display:inline-flex; max-width:100%; }
+  .ec-pick-btn{ display:inline-flex; align-items:center; gap:10px; max-width:100%; font:inherit; font-family:var(--font-mono); font-size:.92rem; padding:4px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; white-space:nowrap; }
+  .ec-pick-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .ec-pick-now{ overflow:hidden; text-overflow:ellipsis; }
+  .ec-pick-btn svg{ flex:none; width:10px; height:6px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .ec-pick-pop{ position:absolute; top:calc(100% + 4px); right:0; z-index:20; min-width:100%; box-sizing:border-box; padding:4px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
+  .ec-pick-pop[hidden]{ display:none; }
+  .ec-pick-list{ list-style:none; margin:0; padding:0; max-height:min(320px, 60vh); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; outline:none; }
+  .ec-pick-list::-webkit-scrollbar{ display:none; }
+  .ec-pick-list > li{ padding:4px 10px; font-family:var(--font-mono); font-size:.88rem; white-space:nowrap; color:var(--text); border-radius:4px; cursor:pointer; }
+  .ec-pick-list > li.is-active{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .ec-pick-list > li[aria-selected="true"]{ color:var(--accent); font-weight:600; }
   .ec-eq{ font-family:var(--font-math); font-size:1.05rem; color:var(--text); white-space:nowrap; }
   :root.is-ec .facts.group-controls :is(.n-row, .op-row, .op-toggle-row){ display:none !important; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
@@ -386,6 +399,9 @@
   .sub-more{ position:absolute; z-index:2; translate:-50% 0; padding:1px 10px; font:inherit; font-size:.74rem; color:var(--text-dim); background:var(--surface); border:1px solid var(--panel-border); border-radius:999px; box-shadow:0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); cursor:pointer; white-space:nowrap; }
   .sub-more:hover{ color:var(--accent); border-color:var(--accent); }
   .sub-more[hidden]{ display:none; }
+  .ec-pick-list.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); }
+  .ec-pick-list.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); }
+  .ec-pick-list.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); }
   .subgroups.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); }
   .subgroups.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); }
   .subgroups.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); }
@@ -2392,7 +2408,7 @@
             <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><span class="n-spin"><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span></span>
             <span class="ec-field"><label for="ec-a" class="fact-label">a</label><input type="number" id="ec-a" min="0" max="96" step="1" value="2" title="The coefficient a" aria-label="The coefficient a" data-i18n-title="cyclicGroups.ecATitle" data-i18n-aria-label="cyclicGroups.ecATitle"></span>
             <span class="ec-field"><label for="ec-b" class="fact-label">b</label><input type="number" id="ec-b" min="0" max="96" step="1" value="2" title="The coefficient b" aria-label="The coefficient b" data-i18n-title="cyclicGroups.ecBTitle" data-i18n-aria-label="cyclicGroups.ecBTitle"></span>
-            <select id="ec-preset" class="ec-preset" title="Example curves" aria-label="Example curves" data-i18n-title="cyclicGroups.ecPresets" data-i18n-aria-label="cyclicGroups.ecPresets"></select>
+            <span class="ec-pick" id="ec-pick"><button type="button" class="ec-pick-btn" id="ec-preset" aria-haspopup="listbox" aria-expanded="false" aria-controls="ec-preset-list" title="Example curves" data-i18n-title="cyclicGroups.ecPresets"><span class="ec-pick-now" id="ec-preset-now"></span><svg viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button><span class="ec-pick-pop" id="ec-preset-pop" hidden><ul class="ec-pick-list" id="ec-preset-list" role="listbox" tabindex="-1" aria-label="Example curves" data-i18n-aria-label="cyclicGroups.ecPresets"></ul><button type="button" class="sub-more" id="ec-more-top" tabindex="-1" hidden></button><button type="button" class="sub-more" id="ec-more" tabindex="-1" hidden></button></span></span>
             <p class="n-note" id="ec-note"></p>
           </li>
           <li class="n-row">
@@ -13222,7 +13238,7 @@ opToggleEl.addEventListener('click', function(){
 // Example curves, each with its point count: cyclic ones first, then two
 // that are not (ℤ/3ℤ × ℤ/3ℤ and ℤ/2ℤ × ℤ/10ℤ).
 var EC_PRESETS = [[5, 1, 1], [7, 0, 2], [7, 3, 4], [7, 1, 6], [7, 3, 1], [11, 1, 6], [11, 1, 1], [11, 1, 7], [11, 1, 2], [11, 2, 4], [11, 1, 3], [17, 2, 2], [13, 1, 0], [13, 0, 4], [17, 2, 3], [17, 3, 5], [35, 1, 3], [17, 1, 8], [19, 1, 9], [19, 0, 5], [23, 1, 1], [23, 1, 4], [35, 3, 3], [23, 5, 1], [23, 1, 10], [23, 1, 11], [29, 7, 8], [29, 1, 7], [29, 1, 1], [29, 4, 20]];
-var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPEl = $('ec-p'), ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecNoteEl = $('ec-note'), ecEqEl = $('ec-eq');
+var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPEl = $('ec-p'), ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note'), ecEqEl = $('ec-eq');
 var ecNote = null; // the note under the fields ({ key, params }), while the typed curve is refused
 // The curve as y² = x³ + ax + b, its terms dropped or merged as a and b ask.
 function ecEquation(a, b){
@@ -13240,17 +13256,25 @@ function syncEcControls(){
   $('ec-p-label').textContent = isPrime(state.ecP) ? 'p' : 'n';
   if (ecNote) translateInto(ecNoteEl, ecNote.key, ecNote.params);
   else ecNoteEl.textContent = '';
-  ecPresetEl.replaceChildren();
-  var head = ecPresetEl.appendChild(document.createElement('option'));
-  head.value = '';
-  translateInto(head, 'cyclicGroups.ecPresets', {});
-  EC_PRESETS.forEach(function(c, i){
-    var o = ecPresetEl.appendChild(document.createElement('option'));
-    o.value = String(i);
-    o.textContent = ecEquation(c[1], c[2]) + ' (mod ' + c[0] + '), |E| = ' + buildCurveGroup(c[0], c[1], c[2]).order;
-  });
-  var at = EC_PRESETS.findIndex(function(c){ return c[0] === state.ecP && c[1] === state.ecA && c[2] === state.ecB; });
-  ecPresetEl.value = at === -1 ? '' : String(at);
+  syncEcPresets();
+}
+// The example curves' list, the one shown ticked, and the button naming it,
+// or the list's name while the curve is none of them.
+function ecPresetText(c){ return ecEquation(c[1], c[2]) + ' (mod ' + c[0] + '), |E| = ' + ecOrder(c[0], c[1], c[2]); }
+function ecPresetAt(){ return EC_PRESETS.findIndex(function(c){ return c[0] === state.ecP && c[1] === state.ecA && c[2] === state.ecB; }); }
+function syncEcPresets(){
+  var at = ecPresetAt();
+  if (at === -1) translateInto(ecPresetNowEl, 'cyclicGroups.ecPresets', {});
+  else ecPresetNowEl.textContent = ecPresetText(EC_PRESETS[at]);
+  ecPresetListEl.replaceChildren.apply(ecPresetListEl, EC_PRESETS.map(function(c, i){
+    var li = document.createElement('li');
+    li.id = 'ec-preset-' + i;
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', String(i === at));
+    li.textContent = ecPresetText(c);
+    return li;
+  }));
+  if (!ecPresetPopEl.hidden) setEcActive(ecActive, false);
 }
 // The mode on or off: the ring starts on a generator, its beads laid out
 // along it when there is one, and any combination is let go.
@@ -13321,9 +13345,74 @@ ecPEl.addEventListener('keydown', function(e){
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ btn.addEventListener(t, stop); });
   });
 })();
-ecPresetEl.addEventListener('change', function(){
-  var c = EC_PRESETS[parseInt(ecPresetEl.value, 10)];
+// Open, the list takes the focus, the arrow keys moving through it and
+// Enter picking; a click picks too. A click elsewhere, Escape or Tab closes
+// it. Like the subgroup list it fades at an edge with more beyond, a label
+// there counting them and scrolling a page their way.
+var ecActive = -1;
+function syncEcMore(){ syncMoreLabels(ecPresetListEl, ecMoreTopEl, ecMoreEl, 4); }
+function setEcActive(i, scroll){
+  var items = ecPresetListEl.children;
+  if (!items.length) return;
+  ecActive = Math.max(0, Math.min(items.length - 1, i));
+  Array.prototype.forEach.call(items, function(li, k){ li.classList.toggle('is-active', k === ecActive); });
+  ecPresetListEl.setAttribute('aria-activedescendant', items[ecActive].id);
+  if (scroll){
+    var li = items[ecActive], top = li.offsetTop - ecPresetListEl.offsetTop, list = ecPresetListEl;
+    if (top < list.scrollTop + 30) list.scrollTop = top - 30;
+    else if (top + li.offsetHeight > list.scrollTop + list.clientHeight - 30) list.scrollTop = top + li.offsetHeight - list.clientHeight + 30;
+  }
+  syncEcMore();
+}
+function setEcPick(open){
+  if (open === !ecPresetPopEl.hidden) return;
+  ecPresetPopEl.hidden = !open;
+  ecPresetEl.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  var at = ecPresetAt(), list = ecPresetListEl;
+  ecActive = at === -1 ? 0 : at;
+  // The ticked curve opens in the middle of the list's view.
+  var li = list.children[ecActive];
+  list.scrollTop = li ? li.offsetTop - list.offsetTop - (list.clientHeight - li.offsetHeight) / 2 : 0;
+  setEcActive(ecActive, false);
+  list.focus({ preventScroll: true });
+}
+function pickEcPreset(i){
+  var c = EC_PRESETS[i];
+  setEcPick(false);
+  ecPresetEl.focus({ preventScroll: true });
   if (c) applyCurve(c[0], c[1], c[2]);
+}
+ecPresetEl.addEventListener('click', function(){ setEcPick(ecPresetPopEl.hidden); });
+ecPresetEl.addEventListener('keydown', function(e){
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  setEcPick(true);
+});
+ecPresetListEl.addEventListener('keydown', function(e){
+  var n = ecPresetListEl.children.length, page = 8;
+  var to = { ArrowDown: ecActive + 1, ArrowUp: ecActive - 1, Home: 0, End: n - 1, PageDown: ecActive + page, PageUp: ecActive - page }[e.key];
+  if (to !== undefined){ e.preventDefault(); e.stopPropagation(); setEcActive(to, true); return; }
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); pickEcPreset(ecActive); return; }
+  if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); setEcPick(false); ecPresetEl.focus({ preventScroll: true }); return; }
+  if (e.key === 'Tab') setEcPick(false);
+});
+ecPresetListEl.addEventListener('pointermove', function(e){
+  var li = e.target.closest && e.target.closest('li[role="option"]');
+  if (li){ var i = Array.prototype.indexOf.call(ecPresetListEl.children, li); if (i !== ecActive) setEcActive(i, false); }
+});
+ecPresetListEl.addEventListener('click', function(e){
+  var li = e.target.closest && e.target.closest('li[role="option"]');
+  if (li) pickEcPreset(Array.prototype.indexOf.call(ecPresetListEl.children, li));
+});
+ecPresetListEl.addEventListener('scroll', syncEcMore, { passive: true });
+ecMoreEl.addEventListener('click', function(){ ecPresetListEl.scrollBy({ top: ecPresetListEl.clientHeight * 0.8, behavior: 'smooth' }); ecPresetListEl.focus({ preventScroll: true }); });
+ecMoreTopEl.addEventListener('click', function(){ ecPresetListEl.scrollBy({ top: -ecPresetListEl.clientHeight * 0.8, behavior: 'smooth' }); ecPresetListEl.focus({ preventScroll: true }); });
+document.addEventListener('pointerdown', function(e){
+  if (!ecPresetPopEl.hidden && !$('ec-pick').contains(e.target)) setEcPick(false);
+}, true);
+ecPresetListEl.addEventListener('focusout', function(e){
+  if (!ecPresetPopEl.hidden && !$('ec-pick').contains(e.relatedTarget)) setEcPick(false);
 });
 // The group's parameters, locked while an isomorphism is open: on the ring
 // holding the pane from the moment it opens, in the pane from its start
