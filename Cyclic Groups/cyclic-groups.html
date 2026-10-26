@@ -874,6 +874,7 @@
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+  .bead-label.is-pt-pow{ font-family:var(--font-sans); }
   .ring-title{ fill:var(--text); font-family:var(--font-serif); font-size:25px; font-weight:600; text-anchor:middle; }
   .ring-sub{ fill:var(--accent); font-family:var(--font-sans); font-size:19px; font-weight:600; text-anchor:middle; }
   .ring-label{ fill:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600; text-anchor:middle; }
@@ -2727,7 +2728,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3140,8 +3141,12 @@ function signedExpOn(G){ return state.signedExp && !!G && !G.pts; }
 function elMax(G){ return signedOn(G) ? Math.floor(G.n / 2) : Math.max.apply(null, G.els); }
 function expMax(G){ return signedExpOn(G) ? Math.floor(G.order / 2) : G.order - 1; }
 // A generator as the base of a power: a negative one in brackets, (−1)ᵏ.
-function baseText(G, g){ var s = G && !G.pts ? signed(balEl(G, g)) : String(g); return s.charAt(0) === '−' ? '(' + s + ')' : s; }
-function baseMn(G, g){ var s = baseText(G, g); return s.charAt(0) === '(' ? mrow(mo('(', true), mn(s.slice(1, -1)), mo(')', true)) : mn(s); }
+// On a curve the base is the point itself, (x, y), already bracketed.
+function baseText(G, g, tight){
+  if (G && G.pts) return elText(G, g, tight);
+  var s = G ? signed(balEl(G, g)) : String(g); return s.charAt(0) === '−' ? '(' + s + ')' : s;
+}
+function baseMn(G, g){ if (G && G.pts) return mPoint(G.pts[g]); var s = baseText(G, g); return s.charAt(0) === '(' ? mrow(mo('(', true), mn(s.slice(1, -1)), mo(')', true)) : mn(s); }
 // An element as the page writes it: a point (x, y), 𝒪, or the number.
 function elText(G, x, tight){
   if (!G.pts) return signed(balEl(G, x));
@@ -3459,10 +3464,12 @@ function syncArrange(G){
   arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
 }
 
-// On a curve the element expression writes multiples kP of the generator
-// P the slider is on, where a group of numbers writes powers g^k.
-function expMath(G, g, k){ return G && G.pts ? mrow(k, mi('P')) : mEl('msup', [baseMn(G, g), k]); }
-function expPlain(G, g, k){ return G && G.pts ? k + 'P' : baseText(G, g) + '^' + k; }
+// On a curve the element expression writes powers of the generator the
+// slider is on, (x, y)ᵏ, as a group of numbers writes gᵏ; the slider's
+// right-click menu writes them as the multiples kP instead (state.ecMult).
+function ecMult(G){ return !!(G && G.pts) && state.ecMult; }
+function expMath(G, g, k){ return ecMult(G) ? mrow(k, mi('P')) : mEl('msup', [baseMn(G, g), k]); }
+function expPlain(G, g, k){ return ecMult(G) ? k + 'P' : baseText(G, g) + '^' + k; }
 // Element expression: each element by its number (Natural), or as the power
 // g^k of a chosen generator g, always in power notation, the additive group
 // included. A group with no generator shows numbers only, and a choice that
@@ -3543,7 +3550,7 @@ function syncExpr(G){
   syncExprHover(G);
   // Hovered, the slider names itself and counts its generators: φ(n) of them
   // in the additive group, φ(φ(n)) in the multiplicative one, whose order is φ(n).
-  exprSliderEl.title = translate(G.pts ? 'cyclicGroups.exprGensEc' : G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
+  exprSliderEl.title = translate(G.pts ? (ecMult(G) ? 'cyclicGroups.exprGensEc' : 'cyclicGroups.exprGensEcPow') : G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
   thinExprStops();
 }
 // A slider's stops, one per generator, the one on at g (null: Natural)
@@ -3567,7 +3574,7 @@ function fillExprStops(G, slider, stopsEl, natEl, g){
   return at;
 }
 function exprNow(G, g){
-  return g === null ? translate('cyclicGroups.exprNatural') : G.pts ? translate('cyclicGroups.exprMultiplesEc', { g: elText(G, g) }) : translate('cyclicGroups.arrangePowers', { g: elText(G, g) });
+  return g === null ? translate('cyclicGroups.exprNatural') : ecMult(G) ? translate('cyclicGroups.exprMultiplesEc', { g: elText(G, g) }) : translate('cyclicGroups.arrangePowers', { g: elText(G, g) });
 }
 // The advanced mode: the unfold icon opens a second slider, On hover, under
 // the first, then named No hover. It picks what Reveal on hover shows, as
@@ -4167,13 +4174,17 @@ function drawRing(parent, G, beads, box, paint){
         ring.appendChild(pl);
         return;
       }
-      var power = function(g, log){ return G.pts ? pad(log[a], G.order - 1) + 'P' : baseText(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
+      var power = function(g, log){ return ecMult(G) ? pad(log[a], G.order - 1) + 'P' : baseText(G, g, true) + superscript(pad(balExp(G, log[a]), maxExp)); };
       var text = elog ? power(eg, elog) : pad(balEl(G, a), maxEl);
       // An expressed, padded or signed label wider than two characters
       // shrinks to stay in its bead.
       var shrink = elog || state.subPad || state.signed || state.signedExp;
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
-      var label = svgEl('text', { 'class': coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label', x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
+      // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
+      // and the small exponent), sized to its estimated width.
+      var ptPow = !!(G.pts && elog && !ecMult(G));
+      if (ptPow) size = Math.min(beadR * 1.05, beadR * 1.8 / labelEms(text));
+      var label = svgEl('text', { 'class': (coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       label.textContent = text;
       // The label the reveal shows: the natural number, or the picked
       // generator's power.
@@ -4193,6 +4204,16 @@ function drawRing(parent, G, beads, box, paint){
   return ring;
 }
 
+// A sans label's width in ems, roughly: digits and signs wide, brackets,
+// comma and superscripts narrower.
+function labelEms(text){
+  var w = 0;
+  for (var i = 0; i < text.length; i++){
+    var ch = text.charAt(i);
+    w += '(),:'.indexOf(ch) !== -1 ? 0.3 : SUPERSCRIPT_DIGITS.indexOf(ch) !== -1 || ch === '⁻' ? 0.36 : 0.54;
+  }
+  return Math.max(1, w);
+}
 // Under the pointer, a bead the expression slider writes as a power shows
 // its natural number instead, unless the slider's menu turns that off.
 var natHot = null;
@@ -5895,7 +5916,7 @@ function fillGenExp(G){
   if (!genExpSort || genExpSort.group !== group) genExpSort = { group: group, col: -1, dir: 1 };
   var sort = genExpSort;
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.signedExp, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
+  var sig = [getLang(), group, width, expWidth, state.subPad, state.signed, state.signedExp, state.ecMult, state.revealOff, revealTo(G), memberPaintKey(G), sort.col, sort.dir].join(' ');
   if (genExpBodyEl.getAttribute('data-sig') === sig) return;
   genExpBodyEl.setAttribute('data-sig', sig);
   if (!G.cyclic){
@@ -5926,7 +5947,7 @@ function fillGenExp(G){
     return tr;
   };
   row(genExpHead(G, -1, mi('x')), nat).className = 'genexp-els';
-  gens.forEach(function(g, i){ row(genExpHead(G, i, G.pts ? mrow(mi('k'), mo('·'), mPoint(G.pts[g])) : mEl('msup', [baseMn(G, g), mi('k')]), g), pows[i], g); });
+  gens.forEach(function(g, i){ row(genExpHead(G, i, ecMult(G) ? mrow(mi('k'), mo('·'), mPoint(G.pts[g])) : mEl('msup', [baseMn(G, g), mi('k')]), g), pows[i], g); });
   genExpBodyEl.genExpFull = table;
   fitGenExp(genExpBodyEl);
   relinkGenExp();
@@ -6393,6 +6414,16 @@ function syncExprCtx(key){
   it.item.addEventListener('click', function(){ setRingCopy(key, it.item, true); });
   it.item.classList.add('ring-ctx-expr');
   ringCtxEl.appendChild(it.item);
+  // On a curve, under it, the points written as multiples kP instead of
+  // as powers of the generator.
+  if (key !== 'gens' || !drawn.G.pts || !drawn.G.cyclic) return;
+  var mult = menuTick('menuitemcheckbox', translate('cyclicGroups.menuEcMult'), state.ecMult, function(){
+    setRingCtx(false);
+    toggleEcMult();
+  });
+  mult.classList.add('ring-ctx-expr');
+  mult.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  ringCtxEl.appendChild(mult);
 }
 $('gen-super').addEventListener('contextmenu', function(e){
   e.preventDefault();
@@ -6450,8 +6481,9 @@ function syncSignCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
   var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
-  // On a curve only the coordinates have a signed form.
-  var signs = drawn.G.pts ? [['cyclicGroups.menuSignedEc', 'signed', toggleSigned]] : [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]];
+  // On a curve only the coordinates have a signed form; beside it, the
+  // points written as multiples kP of the generator, not as its powers.
+  var signs = drawn.G.pts ? [['cyclicGroups.menuSignedEc', 'signed', toggleSigned]].concat(drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : []) : [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]];
   signs.forEach(function(t){
     var sign = menuTick('menuitemcheckbox', translate(t[0]), state[t[1]], function(){
       setRingCtx(false);
@@ -8251,9 +8283,9 @@ function plotPolygon(G){
   var ang = function(k){ return (-90 + sgn * k * 360 / n) * Math.PI / 180; };
   var at = function(k, r){ return [C + r * Math.cos(ang(k)), C + r * Math.sin(ang(k))]; };
   var ring = function(r){ return els.map(function(x, k){ var p = at(k, r); return num(p[0]) + ',' + num(p[1]); }).join(' '); };
-  // gᵏ as the ring writes it: k·P on a curve, a power otherwise.
-  var power = function(k){ return G.pts ? k + '·' + elText(G, g, true) : baseText(G, g) + superscript(k); };
-  var label = function(x){ return natural ? elText(G, x, true) : G.pts ? log[x] + 'P' : baseText(G, g) + superscript(balExp(G, log[x])); };
+  // gᵏ as the ring writes it: a power, or k·P on a curve written in multiples.
+  var power = function(k){ return ecMult(G) ? k + '·' + elText(G, g, true) : baseText(G, g, true) + superscript(k); };
+  var label = function(x){ return natural ? elText(G, x, true) : ecMult(G) ? log[x] + 'P' : baseText(G, g, true) + superscript(balExp(G, log[x])); };
   var dotR = Math.max(3, Math.min(9, Math.PI * R / n * 0.42));
   svg.appendChild(svgEl('polygon', { 'class': 'poly-home', points: ring(R) }));
   // The turns: from 0 by a (then by b), or k hops of a; each an arc
@@ -8330,12 +8362,12 @@ function plotPolygon(G){
     var q = at(k, R + dotR + 10);
     svg.appendChild(svgEl('text', { 'class': 'curve-tick', x: num(q[0]), y: num(q[1] + 3.5), 'text-anchor': 'middle' })).textContent = label(x);
   });
-  var gk = G.pts ? 'k·' + elText(G, g, true) : baseText(G, g) + 'ᵏ';
+  var gk = ecMult(G) ? 'k·' + elText(G, g, true) : baseText(G, g, true) + 'ᵏ';
   var op = G.pts || G.mode === 'additive' ? '+' : '·';
   if (!live) translateInto(polyNoteEl, nat ? 'cyclicGroups.polyNoteRestNat' : natural ? 'cyclicGroups.polyNoteFirstGen' : 'cyclicGroups.polyNoteRest', { gk: gk, n: n });
   else if (combo.k !== null){
     var kk = combo.k, i0 = log[combo.a], t0 = log[rot];
-    var expr = G.pts || G.mode === 'additive' ? signed(kk) + '·' + baseText(G, combo.a) : baseText(G, combo.a) + superscript(signed(kk));
+    var expr = ecMult(G) || (!G.pts && G.mode === 'additive') ? signed(kk) + '·' + baseText(G, combo.a) : baseText(G, combo.a) + superscript(signed(kk));
     translateInto(polyNoteEl, 'cyclicGroups.polyNoteScalar', { expr: expr, c: elText(G, rot), i: i0, k: signed(kk), t: t0, n: n });
   } else if (combo.b !== null && G.els.indexOf(combo.b) !== -1){
     translateInto(polyNoteEl, 'cyclicGroups.polyNoteSum', { a: elText(G, combo.a), op: op, b: elText(G, combo.b), c: elText(G, rot), i: log[combo.a], j: log[combo.b], k: log[rot], n: n });
@@ -9035,20 +9067,34 @@ function curveRows(G, y, mod){
     if (e < 0) r.push([null, (-e) + ' ·'], ['a', elText(G, G.inv[a])], [null, '≡']);
     r.push(['c', elText(G, c)], [null, mod]);
     var out = [r];
-    // As multiples of P: k·(iP) ≡ (k × i)P, the factor reduced mod |E|.
-    if (log){
+    // As multiples of P: k·(iP) ≡ (k × i)P, the factor reduced mod |E|;
+    // as powers of P: (Pⁱ)ᵏ ≡ P^(i × k), the exponent reduced mod |E|.
+    if (log && ecMult(G)){
       var ki = k * log[a], m = log[c];
       var s2 = [[null, signed(k) + ' ·'], ['a', log[a] + 'P'], [null, '≡'], ['c', '(' + signed(k) + ' × ' + log[a] + ')P'], [null, '≡']];
       if (ki !== m) s2.push(['c', signed(ki) + 'P'], [null, '≡']);
       s2.push(['c', m + 'P'], [null, '≡'], ['c', elText(G, c)]);
       out.push(s2);
+    } else if (log){
+      var Pg = baseText(G, g), ik = log[a] * k, mp = log[c];
+      var s3 = [[[null, '('], ['a', Pg + superscript(log[a])], [null, ')' + supSigned(k)]], [null, '≡'], [['c', Pg], ['c', log[a] + ' × ' + sub(k), 'sup']], [null, '≡']];
+      if (ik !== mp) s3.push(['c', Pg + supSigned(ik)], [null, '≡']);
+      s3.push(['c', Pg + superscript(mp)], [null, '≡'], ['c', elText(G, c)]);
+      out.push(s3);
     }
     return out;
   }
   var b = combo.b, c = G.combine(a, b), P = pts[a], Q = pts[b];
   var rows = [[['a', elText(G, a)], [null, '+'], ['b', elText(G, b)], [null, '≡'], ['c', elText(G, c)], [null, mod]]];
-  // As multiples of P: iP + jP ≡ (i + j)P, the sum reduced mod |E|.
-  if (log){
+  // As multiples of P: iP + jP ≡ (i + j)P, the sum reduced mod |E|; as
+  // powers of P: Pⁱ + Pʲ ≡ Pⁱ⁺ʲ, the exponents added.
+  if (log && !ecMult(G)){
+    var Pb = baseText(G, g), i2 = log[a], j2 = log[b], m3 = log[c];
+    var ep = [['a', Pb + superscript(i2)], [null, '+'], ['b', Pb + superscript(j2)], [null, '≡'], ['c', Pb + superscript(i2) + '⁺' + superscript(j2)], [null, '≡']];
+    if (i2 + j2 !== m3) ep.push(['c', Pb + superscript(i2 + j2)], [null, '≡']);
+    ep.push(['c', Pb + superscript(m3)], [null, '≡'], ['c', elText(G, c)]);
+    rows.push(ep);
+  } else if (log){
     var i = log[a], j = log[b], m2 = log[c];
     var er = [['a', i + 'P'], [null, '+'], ['b', j + 'P'], [null, '≡'], ['c', '(' + i + ' + ' + j + ')P'], [null, '≡']];
     if (i + j !== m2) er.push(['c', (i + j) + 'P'], [null, '≡']);
@@ -10689,7 +10735,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, state.signedExp, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -10772,7 +10818,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, state.signedExp, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.signed, state.signedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -11813,6 +11859,7 @@ function applyRingQuery(q){
   state.expr = intOrNull(q.get('expr'));
   state.signed = q.get('signed') === '1';
   state.signedExp = q.get('signedexp') === '1';
+  state.ecMult = q.get('ecmult') === '1';
   SUB_EXPR_CTLS.forEach(function(c){ c.set(subCtlVal(c, q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
   state.subGcd = q.get('subgcd') === '1';
@@ -13454,6 +13501,8 @@ function stateQuery(){
   else q.delete('lock');
   if (state.signedExp && !state.ec) q.set('signedexp', '1');
   else q.delete('signedexp');
+  if (state.ecMult && state.ec) q.set('ecmult', '1');
+  else q.delete('ecmult');
   if (!state.enterInverse) q.set('enterinv', '0');
   else q.delete('enterinv');
   q.delete('subreveal');
@@ -14652,6 +14701,7 @@ function setExprStop(i){
 }
 function toggleSigned(){ state.signed = !state.signed; render(); }
 function toggleSignedExp(){ state.signedExp = !state.signedExp; render(); }
+function toggleEcMult(){ state.ecMult = !state.ecMult; render(); }
 exprSignEl.addEventListener('click', toggleSigned);
 exprSignExpEl.addEventListener('click', toggleSignedExp);
 exprSliderEl.addEventListener('input', function(){ setExprStop(parseInt(exprSliderEl.value, 10) || 0); });
@@ -15162,6 +15212,7 @@ function loadState(query, link){
   state.revealAs = intOrNull(query.get('revealas'));
   state.signed = query.get('signed') === '1';
   state.signedExp = query.get('signedexp') === '1';
+  state.ecMult = query.get('ecmult') === '1' && !IS_MOBILE;
   // An older link's autoflip=0 is the lock's middle, nothing locked.
   state.lock = LOCKS.indexOf(query.get('lock')) !== -1 ? query.get('lock') : query.get('autoflip') === '0' ? 'none' : 'dir';
   state.prefDir = readPrefDir();
