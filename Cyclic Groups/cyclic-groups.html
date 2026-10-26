@@ -8116,6 +8116,7 @@ function syncLapKey(G){
   var on = !!sw && sw.lap && K > m0;
   if (on && !lapKeyOn) lapKeyOpen = true;
   lapKeyOn = on;
+  var spawned = lapKeyEl.hidden && on && lapKeyOpen;
   lapKeyEl.hidden = !on || !lapKeyOpen;
   // Minimized, it is a task in the bottom bar.
   if ((on && !lapKeyOpen) !== lapTaskShown){
@@ -8143,6 +8144,7 @@ function syncLapKey(G){
     var rangeList = ls.map(range).join(', ') + (more ? ', …' : '');
     translateInto(text, ls.length > 1 || more ? 'cyclicGroups.lapKeyMany' : 'cyclicGroups.lapKeyOne', { laps: lapList, lap: lapList, k: rangeList });
   }
+  if (spawned) unstack(lapKeyEl, lapKeyWin, polyPlotEl);
 }
 $('lap-key-min').addEventListener('click', function(){
   lapKeyOpen = false;
@@ -8223,7 +8225,7 @@ function polyRotation(G){
 function polyDegrees(k, n){ return String(Math.round(k * 36000 / n) / 100); }
 var polyMinSent = null;
 function drawPolyPlot(G){
-  var on = polyAvail(G);
+  var on = polyAvail(G), spawned = polyPlotEl.hidden && on && polyOpen;
   polyPlotEl.hidden = !on || !polyOpen;
   if (IS_ISOPANE && polyMinSent !== (on && !polyOpen)){
     polyMinSent = on && !polyOpen;
@@ -8235,6 +8237,7 @@ function drawPolyPlot(G){
   polyPlotSvgEl.setAttribute('aria-label', title);
   polyPlotSvgEl.replaceChildren();
   plotPolygon(G);
+  if (spawned) unstack(polyPlotEl, polyWin, lapKeyEl);
 }
 function plotPolygon(G){
   var n = G.order, svg = polyPlotSvgEl, C = CURVE_W / 2, R = 96, sgn = dirSign();
@@ -8820,6 +8823,25 @@ function plotWindow(el, gripEl){
     win.place(win.at.x, win.at.y);
   });
   return win;
+}
+// A window that comes up over another one open on the same side moves
+// clear of it: below it, else above it, else beside it, as the room left
+// under the rows and above the bottom bar allows.
+function unstack(el, win, other){
+  if (el.hidden || other.hidden) return;
+  var GAP = 8, a = boxOf(el), b = boxOf(other);
+  var hits = function(){
+    var r = boxOf(el);
+    return r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top;
+  };
+  if (!hits()) return;
+  var x = win.at.x, y = win.at.y;
+  var tries = [[0, b.bottom + GAP - a.top], [0, b.top - GAP - a.bottom], [b.right + GAP - a.left, 0], [b.left - GAP - a.right, 0]];
+  for (var i = 0; i < tries.length; i++){
+    win.place(x + tries[i][0], y + tries[i][1]);
+    if (!hits()) return;
+  }
+  win.place(x + tries[2][0], y);
 }
 var curveWin = plotWindow(curvePlotEl, $('curve-grip'));
 var lapKeyWin = plotWindow(lapKeyEl, null);
