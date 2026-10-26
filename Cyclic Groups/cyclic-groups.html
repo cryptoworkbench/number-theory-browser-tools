@@ -917,6 +917,9 @@
   .curve-plot[hidden]{ display:none; }
   /* A phone has no bottom bar for the plot to minimize into. */
   :root.is-mobile #curve-plot-min{ display:none; }
+  :root:not(.is-mobile) .curve-plot{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  :root:not(.is-mobile) .curve-plot.is-moving{ cursor:grabbing; }
+  :root:not(.is-mobile) .curve-plot-svg{ cursor:default; }
   .curve-plot-svg{ display:block; width:100%; height:auto; flex:0 1 auto; min-height:0; overflow:visible; }
   .curve-plot-svg .curve-frame{ fill:none; stroke:var(--panel-border); }
   .curve-plot-svg .curve-grid{ stroke:var(--panel-border); stroke-width:.5; opacity:.5; }
@@ -8165,7 +8168,45 @@ function openCurvePlot(){
   curvePlotOpen = true;
   if (drawn) drawCurvePlot(drawn.G);
   syncBarFormulas();
+  placeCurvePlot(curveAt.x, curveAt.y);
 }
+// The plot's window is dragged by its head or its frame (not its points),
+// kept within the ring's half under its rows and above the bottom bar; a
+// double click on its head puts it back.
+var curveAt = { x: 0, y: 0 }, curveMoving = null;
+function placeCurvePlot(x, y){
+  var body = curvePlotEl.closest('.fs-win-body');
+  curvePlotEl.style.translate = curveAt.x + 'px ' + curveAt.y + 'px';
+  if (body && !curvePlotEl.hidden){
+    var b = boxOf(body), r = boxOf(curvePlotEl);
+    var floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
+    var left = r.left + x - curveAt.x, top = r.top + y - curveAt.y;
+    x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
+    y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, floor - (top + r.height));
+  }
+  curveAt = { x: Math.round(x), y: Math.round(y) };
+  curvePlotEl.style.translate = curveAt.x + 'px ' + curveAt.y + 'px';
+}
+function curveGrip(e){ return !IS_MOBILE && e.button === 0 && !e.target.closest('button, .curve-plot-svg'); }
+curvePlotEl.addEventListener('pointerdown', function(e){
+  if (!curveGrip(e)) return;
+  curveMoving = { id: e.pointerId, x: ptX(e) - curveAt.x, y: ptY(e) - curveAt.y };
+  curvePlotEl.setPointerCapture(e.pointerId);
+  curvePlotEl.classList.add('is-moving');
+  e.preventDefault();
+});
+curvePlotEl.addEventListener('pointermove', function(e){
+  if (curveMoving && e.pointerId === curveMoving.id) placeCurvePlot(ptX(e) - curveMoving.x, ptY(e) - curveMoving.y);
+});
+function endCurveMoving(e){
+  if (!curveMoving || e.pointerId !== curveMoving.id) return;
+  curveMoving = null;
+  curvePlotEl.classList.remove('is-moving');
+}
+curvePlotEl.addEventListener('pointerup', endCurveMoving);
+curvePlotEl.addEventListener('pointercancel', endCurveMoving);
+curvePlotEl.addEventListener('dblclick', function(e){ if (curveGrip(e)) placeCurvePlot(0, 0); });
+window.addEventListener('resize', function(){ if (curveAt.x || curveAt.y) placeCurvePlot(curveAt.x, curveAt.y); });
 var plotMinSent = null;
 function tellPlotMin(min){
   if (min === plotMinSent) return;
