@@ -5561,7 +5561,7 @@ if (IS_DESKTOP){
 
 // What must not travel between rings: the preview and embed switches, and
 // the theme, language and sharing the pane takes from its page.
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isoblank'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isoblank', 'plotmin'];
 function cleanRingQuery(q){
   var p = new URLSearchParams(q);
   RING_DROP.forEach(function(k){ p.delete(k); });
@@ -8275,7 +8275,7 @@ function openLapKey(){
 // The elliptic curve mode's plot: open with the mode, minimized into the
 // corner buttons and back.
 var curvePlotEl = $('curve-plot'), curvePlotSvgEl = $('curve-plot-svg');
-var curvePlotOpen = true, CURVE_W = 280, CURVE_M = 22;
+var curvePlotOpen = !(IS_ISOPANE && new URLSearchParams(location.search).get('plotmin') === '1'), CURVE_W = 280, CURVE_M = 22;
 // The plot's three views: the points mod n as they are ('mod'); unrolled,
 // the square repeated above and below itself so the line through two
 // points runs straight ('tiles'); and the same equation over the real
@@ -11747,6 +11747,7 @@ function isoPaneSrc(q, h){
   p.set('isogen', String(h));
   if (isoPane && isoPane.unlocked) p.set('grouplock', '0');
   if (isoPane && isoPane.blank) p.set('isoblank', '1');
+  if (isoPane && isoPane.plotMin) p.set('plotmin', '1');
   return location.pathname + '?' + p.toString();
 }
 // g, when given, is the generator of this ring's whole group the link runs
@@ -11760,6 +11761,9 @@ function openIsoPane(a, g){
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ p.delete(k); });
   // Chosen as an isomorphism, the two rings open linked and locked.
   isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false, link: 'linked', blank: false };
+  // A curve opened from a group of numbers comes with its plot minimized,
+  // the two rings side by side first; its task in the bar opens it.
+  isoPane.plotMin = !state.ec && !!curveOf(p);
   setGroupLock(true);
   var pair = isoExprPair();
   // Locking whole groups closes the expression padlock too, and both
@@ -13130,6 +13134,8 @@ window.addEventListener('message', function(e){
     setPaneMenuRoom(d.open === true);
   } else if (d.isopane === 'plotmin'){
     isoPanePlotMin = d.min === true;
+    // The pane reloaded (full screen in or out) keeps its plot as it was.
+    if (isoPane) isoPane.plotMin = isoPanePlotMin;
     syncBarFormulas();
   } else if (d.isopane === 'polymin'){
     isoPanePolyMin = d.min === true;
