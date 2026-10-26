@@ -3472,8 +3472,13 @@ function syncArrange(G){
 function ecMult(G){ return !!(G && G.pts) && state.ecMult; }
 // Natural, an element is written as its own first power, x¹ ((−x)¹ signed,
 // (x,y)¹ on a curve), unless the slider's right-click menu turns that off
-// (state.natExpOff).
-function natPow(s){ return state.natExpOff ? s : (s.charAt(0) === '−' ? '(' + s + ')' : s) + '¹'; }
+// (state.natExpOff). The exponent takes the leading zeros every exponent of
+// the group takes while Line up numbers pads them: 01 in a group of order 12.
+function natPow(s, G){
+  if (state.natExpOff) return s;
+  var e = state.subPad && G ? '1'.padStart(String(expMax(G)).length, '0') : '1';
+  return (s.charAt(0) === '−' ? '(' + s + ')' : s) + superscript(e);
+}
 function expMath(G, g, k){ return ecMult(G) ? mrow(k, mi('P')) : mEl('msup', [baseMn(G, g), k]); }
 function expPlain(G, g, k){ return ecMult(G) ? k + 'P' : baseText(G, g) + '^' + k; }
 // Element expression: each element by its number (Natural), or as the power
@@ -4201,7 +4206,7 @@ function drawRing(parent, G, beads, box, paint){
         if (rt !== null) natLabel(pl, a === natHot);
         return;
       }
-      var natural = function(){ return natPow(G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl)); };
+      var natural = function(){ return natPow(G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), G); };
       var text = elog ? power(eg, elog) : natural();
       // An expressed, padded or signed label wider than two characters
       // shrinks to stay in its bead.
@@ -8347,7 +8352,7 @@ function plotPolygon(G){
   var ring = function(r){ return els.map(function(x, k){ var p = at(k, r); return num(p[0]) + ',' + num(p[1]); }).join(' '); };
   // gᵏ as the ring writes it: a power, or k·P on a curve written in multiples.
   var power = function(k){ return ecMult(G) ? k + '·' + elText(G, g, true) : baseText(G, g, true) + superscript(k); };
-  var label = function(x){ return natural ? natPow(elText(G, x, true)) : ecMult(G) ? log[x] + 'P' : baseText(G, g, true) + superscript(balExp(G, log[x])); };
+  var label = function(x){ return natural ? natPow(elText(G, x, true), G) : ecMult(G) ? log[x] + 'P' : baseText(G, g, true) + superscript(balExp(G, log[x])); };
   // Wide corner labels, (x,y)ᵏ, need room outside the corners: the polygon
   // shrinks to leave it.
   var labelW = Math.max.apply(null, els.map(function(x){ return labelEms(label(x)) * 10; }));
