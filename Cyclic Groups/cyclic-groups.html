@@ -1520,6 +1520,7 @@
   /* It reaches the window's right edge too, over this window's padding,
      the pane padding its own right side that much more to match. */
   .fs-win-body.is-ring.ring-body > .iso-pane > iframe{ width:calc(100% + 20px); margin-right:-20px; }
+  .fs-win-body.is-ring > .iso-pane > iframe.is-lifted{ position:relative; z-index:2; }
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#rotate-ctl, #spin-ruler, #combine-key, .genexp-info, #legend-panel-pane, .ring-split, .split-btn){ position:relative; z-index:1; }
   /* Raised so, the key leaves its stand-alone offsets (right, bottom) behind. */
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ inset:auto; }
@@ -8916,6 +8917,13 @@ function openCurvePlot(){
   syncBarFormulas();
   curveWin.place(curveWin.at.x, curveWin.at.y);
 }
+// How low a plot's window may go: just above the bottom bar. The pane's
+// frame reaches down to the bar behind the rows under both rings (its
+// foot, kept empty), so there it may hang over those rows too.
+function plotFloor(body){
+  var b = boxOf(body);
+  return b.bottom - (IS_ISOPANE ? 8 : parseFloat(getComputedStyle(body).paddingBottom) || 0);
+}
 // A plot's window is dragged by its head or its frame (not its points),
 // kept within the ring's half under its rows and above the bottom bar; a
 // double click on its head puts it back. Its grip, in the bottom left
@@ -8929,8 +8937,7 @@ function plotWindow(el, gripEl){
     var body = el.closest('.fs-win-body');
     el.style.translate = win.at.x + 'px ' + win.at.y + 'px';
     if (body && !el.hidden){
-      var b = boxOf(body), r = boxOf(el);
-      var floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
+      var b = boxOf(body), r = boxOf(el), floor = plotFloor(body);
       var left = r.left + x - win.at.x, top = r.top + y - win.at.y;
       x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
       y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, floor - (top + r.height));
@@ -8975,7 +8982,7 @@ function plotWindow(el, gripEl){
   gripEl.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || IS_MOBILE) return;
     var r = boxOf(el), body = el.closest('.fs-win-body');
-    var b = boxOf(body), floor = b.bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0);
+    var b = boxOf(body), floor = plotFloor(body);
     // As large as fits: as wide as the room left of its right edge, as
     // tall as the room under the rows.
     var maxW = Math.min(r.right - b.left - 8, r.width * (floor - topRowsBottom(body) - 8) / r.height);
@@ -9026,6 +9033,30 @@ function unstack(el, win, other){
 }
 var curveWin = plotWindow(curvePlotEl, $('curve-grip'));
 var lapKeyWin = plotWindow(lapKeyEl, null);
+// The pane tells the ring holding it where its plots hang over its foot,
+// the rows there being the holder's, drawn over the pane's frame: the
+// holder lifts the frame over them, cut to the part above the foot and
+// those plots, so the rows stay in reach beside them.
+var plotsOverSent = null;
+function tellPlotsOver(){
+  var body = curvePlotEl.closest('.fs-win-body');
+  if (!body) return;
+  var line = boxOf(body).bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0), rects = [];
+  [curvePlotEl, polyPlotEl, lapKeyEl].forEach(function(el){
+    if (el.hidden || el.closest('.fs-win-body') !== body) return;
+    var r = boxOf(el);
+    if (r.width && r.bottom > line) rects.push([r.left, r.top, r.right, r.bottom].map(Math.round));
+  });
+  var msg = { isopane: 'over', line: Math.round(line), rects: rects }, sent = JSON.stringify(msg);
+  if (sent === plotsOverSent) return;
+  plotsOverSent = sent;
+  tellHost(msg);
+}
+if (IS_ISOPANE && !IS_MOBILE && window.MutationObserver){
+  var plotsOverMo = new MutationObserver(tellPlotsOver);
+  [curvePlotEl, polyPlotEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
+  window.addEventListener('resize', tellPlotsOver);
+}
 var plotMinSent = null;
 function tellPlotMin(min){
   if (min === plotMinSent) return;
@@ -11923,6 +11954,7 @@ function loadIsoFrame(){
       f.focus();
     }
     postLook(f);
+    liftPaneOver(0, []);
     // A frame that loads again (reloaded, or moved with a parent) starts
     // afresh too, unmerged: everything it was told is told again.
     isoInterlockSent = false;
@@ -11946,6 +11978,17 @@ function loadIsoFrame(){
   isoPaneFrame = f;
   isoPane.parent = isoPaneEl.parentNode;
   syncIsoPaneLabels();
+}
+// The pane's plots hanging over its foot: its frame goes over the rows
+// there, cut to what lies above its foot (line) and to those plots.
+function liftPaneOver(line, rects){
+  var f = isoPaneFrame;
+  if (!f) return;
+  f.classList.toggle('is-lifted', rects.length > 0);
+  if (!rects.length){ f.style.removeProperty('clip-path'); return; }
+  var w = Math.ceil(f.offsetWidth), d = 'M0 0H' + w + 'V' + line + 'H0Z';
+  rects.forEach(function(r){ d += 'M' + (r[0] - 2) + ' ' + (r[1] - 2) + 'H' + (r[2] + 2) + 'V' + (r[3] + 2) + 'H' + (r[0] - 2) + 'Z'; });
+  f.style.clipPath = 'path("' + d + '")';
 }
 // A menu open in the pane: the pane goes over the line's controls and its
 // frame runs on down to the window's foot, over the subgroups panel, its
@@ -13232,6 +13275,8 @@ window.addEventListener('message', function(e){
     // The pane reloaded (full screen in or out) keeps its plot as it was.
     if (isoPane) isoPane.plotMin = isoPanePlotMin;
     syncBarFormulas();
+  } else if (d.isopane === 'over'){
+    if (Number.isFinite(d.line) && Array.isArray(d.rects)) liftPaneOver(d.line, d.rects);
   } else if (d.isopane === 'polymin'){
     isoPanePolyMin = d.min === true;
     syncBarFormulas();
