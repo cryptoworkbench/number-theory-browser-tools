@@ -364,6 +364,8 @@
   .ec-pick-list > li{ padding:4px 10px; font-family:var(--font-mono); font-size:.88rem; white-space:nowrap; color:var(--text); border-radius:4px; cursor:pointer; }
   .ec-pick-list > li.is-active{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .ec-pick-list > li[aria-selected="true"]{ color:var(--accent); font-weight:600; }
+  /* A curve whose group is not cyclic, in red. */
+  .ec-pick-list > li.is-not-cyclic, #ec-preset-now.is-not-cyclic{ color:var(--role-warn); }
   .ec-eq{ font-family:var(--font-math); font-size:1.05rem; color:var(--text); white-space:nowrap; }
   :root.is-ec .facts.group-controls :is(.n-row, .op-row, .op-toggle-row){ display:none !important; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
@@ -913,6 +915,8 @@
   .curve-plot{ position:relative; margin:10px auto 0; z-index:3; width:min(300px, 100%); box-sizing:border-box; padding:8px 10px 6px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); }
   .fs-win-body.is-ring > .curve-plot{ grid-area:ring; justify-self:end; align-self:start; margin:0; top:8px; width:min(300px, 40%); max-height:calc(100% - 16px); display:flex; flex-direction:column; }
   .curve-plot[hidden]{ display:none; }
+  /* A phone has no bottom bar for the plot to minimize into. */
+  :root.is-mobile #curve-plot-min{ display:none; }
   .curve-plot-svg{ display:block; width:100%; height:auto; flex:0 1 auto; min-height:0; overflow:visible; }
   .curve-plot-svg .curve-frame{ fill:none; stroke:var(--panel-border); }
   .curve-plot-svg .curve-grid{ stroke:var(--panel-border); stroke-width:.5; opacity:.5; }
@@ -929,7 +933,7 @@
   .curve-plot-note{ margin:2px 0 0; font-size:.74rem; line-height:1.3; color:var(--text-dim); text-align:center; }
   .curve-plot.is-picks-g .curve-o{ cursor:pointer; }
   .curve-plot-svg .curve-o{ fill:var(--text-dim); font-family:var(--font-math); font-size:13px; }
-  :root.is-ec :is(#bar-formulas-l, #bar-formulas-r, #formula-level, #facts){ display:none !important; }
+  :root.is-ec :is(#formula-level, #facts){ display:none !important; }
   /* Which combination a click on a bead makes, in the Arrangement row:
      a ∗ b (two elements) or aᵏ (one element k times, k in its field, written so in either group). */
   .combine-mode{ display:inline-flex; align-items:center; gap:8px; margin-inline-end:18px; }
@@ -1856,10 +1860,9 @@
   /* Two groups: what the ring shows (its polygon, its circle, the formula
      scratchpad), then, past a thin rule, the keys and the expressions. A
      pane keeps only its own scratchpad's switch; the rest are the left
-     ring's, apart from a curve's plot, which each ring minimizes for itself. */
+     ring's. */
   .ring-corner-sep{ flex:none; align-self:center; width:1px; height:14px; margin:0 2px; background:var(--panel-border); }
   :root.is-isopane .ring-corner > *{ display:none; }
-  :root.is-isopane .ring-corner > #curve-corner:not([hidden]){ display:grid; }
   .zoom-wrap{ flex:none; display:flex; align-items:center; gap:6px; }
   /* Beside a pane whose ring turns with this one, the one zoom pill in the
      window's corner zooms both rings. While they turn apart each ring has
@@ -1913,6 +1916,10 @@
   .bar-btn:hover{ border-color:var(--panel-border-strong); }
   .bar-btn[aria-expanded="true"]{ border-color:var(--accent); }
   .bar-btn svg{ width:10px; height:10px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  /* A minimized curve plot, a task in the bar: its icon, then its curve. */
+  .bar-task{ font-family:var(--font-math); font-size:.82rem; }
+  .bar-task svg{ width:12px; height:12px; stroke-width:1.2; }
+  .bar-task svg .icon-fill{ fill:currentColor; stroke:none; }
   .bar-menu{ min-width:0; }
   .bar-grid{ display:grid; grid-template-columns:auto auto auto; align-items:center; gap:6px 12px; padding:6px 10px 8px; }
   .bar-grid-col{ font-size:.72rem; color:var(--text-dim); text-align:center; white-space:nowrap; }
@@ -2578,7 +2585,6 @@
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner" id="legend-corner" aria-pressed="false" aria-controls="legend-panel" title="Show element colour key" aria-label="Show element colour key" data-i18n-title="cyclicGroups.showElementKey" data-i18n-aria-label="cyclicGroups.showElementKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle class="icon-fill" cx="2.8" cy="2.5" r="1.4"/><circle class="icon-fill" cx="2.8" cy="6" r="1.4"/><circle class="icon-fill" cx="2.8" cy="9.5" r="1.4"/><line x1="6" y1="2.5" x2="10.5" y2="2.5"/><line x1="6" y1="6" x2="10.5" y2="6"/><line x1="6" y1="9.5" x2="10.5" y2="9.5"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="akey-corner" aria-pressed="false" aria-controls="combine-key" title="Show arrow colour key" aria-label="Show arrow colour key" data-i18n-title="cyclicGroups.showArrowKey" data-i18n-aria-label="cyclicGroups.showArrowKey"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 3.5H5.5M4 2 5.5 3.5 4 5"/><path d="M1.5 8.5H5.5M4 7 5.5 8.5 4 10"/><line x1="7.5" y1="3.5" x2="10.5" y2="3.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="8.5"/></svg></button>
-        <button type="button" class="fs-win-btn key-corner" id="curve-corner" aria-pressed="true" aria-controls="curve-plot" title="Show the curve's points" aria-label="Show the curve's points" data-i18n-title="cyclicGroups.curvePlotShow" data-i18n-aria-label="cyclicGroups.curvePlotShow" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.5 10.5V1.5M1.5 10.5H10.5"/><circle class="icon-fill" cx="4.5" cy="7" r="1"/><circle class="icon-fill" cx="7" cy="4.5" r="1"/><circle class="icon-fill" cx="9" cy="8" r="1"/></svg></button>
         <button type="button" class="fs-win-btn key-corner" id="lap-corner" aria-pressed="false" aria-controls="lap-key" title="Show the laps' colours" aria-label="Show the laps' colours" data-i18n-title="cyclicGroups.lapKeyShow" data-i18n-aria-label="cyclicGroups.lapKeyShow" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="4.5"/><circle cx="6" cy="6" r="2"/></svg></button>
         <button type="button" class="fs-win-btn genexp-corner" id="genexp-corner" aria-pressed="false" aria-controls="genexp-info" title="Show the element expressions" aria-label="Show the element expressions" data-i18n-title="cyclicGroups.genExpOpenTitle" data-i18n-aria-label="cyclicGroups.genExpOpenTitle"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="1.5" y="2" width="9" height="8" rx="1"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4.5" y1="2" x2="4.5" y2="10"/></svg></button>
       </div>
@@ -4502,6 +4508,9 @@ function syncBarFormulas(){
     var box = $(side.el), G = barGroup(i);
     box.replaceChildren();
     if (!G) return;
+    var task = barPlotTask(i, G);
+    if (task) box.appendChild(task);
+    if (state.ec || G.pts) return;
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'bar-btn';
@@ -4522,6 +4531,30 @@ function syncBarFormulas(){
     btn.addEventListener('click', function(){ toggleBarMenu(i, btn); });
     box.appendChild(btn);
   });
+}
+// A curve's minimized plot, as a task in the bar: its curve, and a click
+// opens it again.
+var isoPanePlotMin = false;
+function barPlotTask(i, G){
+  if (!G.pts || !(i === 0 ? !curvePlotOpen : isoPanePlotMin)) return null;
+  var curve = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'bar-btn bar-task';
+  btn.title = translate('cyclicGroups.curvePlotShow');
+  btn.setAttribute('aria-label', translate('cyclicGroups.curvePlotTask', { curve: curve }));
+  var icon = svgEl('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
+  icon.appendChild(svgEl('path', { d: 'M1.5 10.5V1.5M1.5 10.5H10.5' }));
+  [[4.5, 7], [7, 4.5], [9, 8]].forEach(function(c){ icon.appendChild(svgEl('circle', { 'class': 'icon-fill', cx: c[0], cy: c[1], r: 1 })); });
+  btn.appendChild(icon);
+  var name = document.createElement('span');
+  name.textContent = curve;
+  btn.appendChild(name);
+  btn.addEventListener('click', function(){
+    if (i === 0){ openCurvePlot(); blinkLinked(curvePlotEl); return; }
+    try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'plotopen' }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
+  });
+  return btn;
 }
 function barFormulasChanged(){
   syncFormulaCtl();
@@ -6678,6 +6711,10 @@ if (IS_RINGWIN){
       if (IS_ISOPANE) heardHead(d.h);
       return;
     }
+    if (d.ringhost === 'plotopen'){
+      if (IS_ISOPANE){ openCurvePlot(); blinkLinked(curvePlotEl); }
+      return;
+    }
     if (d.ringhost === 'zoom'){
       if (!IS_ISOPANE || !Number.isInteger(d.i)) return;
       applyZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
@@ -8018,13 +8055,12 @@ lapCornerEl.addEventListener('click', function(){
 
 // The elliptic curve mode's plot: open with the mode, minimized into the
 // corner buttons and back.
-var curvePlotEl = $('curve-plot'), curvePlotSvgEl = $('curve-plot-svg'), curveCornerEl = $('curve-corner');
+var curvePlotEl = $('curve-plot'), curvePlotSvgEl = $('curve-plot-svg');
 var curvePlotOpen = true, CURVE_W = 280, CURVE_M = 22;
 function drawCurvePlot(G){
   var on = !!G.pts;
-  curveCornerEl.hidden = !on;
-  curveCornerEl.setAttribute('aria-pressed', on && curvePlotOpen ? 'true' : 'false');
   curvePlotEl.hidden = !on || !curvePlotOpen;
+  if (IS_ISOPANE) tellPlotMin(on && !curvePlotOpen);
   if (curvePlotEl.hidden) return;
   curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
   $('curve-plot-title').textContent = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
@@ -8114,15 +8150,28 @@ curvePlotSvgEl.addEventListener('click', function(e){
   if (state.genPlot){ plotGen = el; selectGen(el); return; }
   combineTap(el);
 });
+// Minimized, the plot is a task in the bottom bar, under its own ring's
+// half, named by its curve; the pane's plot too, its task in the bar
+// beside the pane, which the pane hears of (tellPlotMin) and is told to
+// open again ('plotopen').
 $('curve-plot-min').addEventListener('click', function(){
   curvePlotOpen = false;
   if (drawn) drawCurvePlot(drawn.G);
-  curveCornerEl.focus();
+  syncBarFormulas();
+  var task = $('bar-formulas-l').querySelector('.bar-task');
+  if (task) task.focus();
 });
-curveCornerEl.addEventListener('click', function(){
-  curvePlotOpen = !curvePlotOpen;
+function openCurvePlot(){
+  curvePlotOpen = true;
   if (drawn) drawCurvePlot(drawn.G);
-});
+  syncBarFormulas();
+}
+var plotMinSent = null;
+function tellPlotMin(min){
+  if (min === plotMinSent) return;
+  plotMinSent = min;
+  tellHost({ isopane: 'plotmin', min: min });
+}
 // Each picked element with its roles, in the order a, b, result (the
 // result's halo always outermost); with k,
 // the multiples passed on the way are 'w', and each time the walk comes
@@ -10859,6 +10908,7 @@ function openOwnPane(){
 }
 function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
+  isoPanePlotMin = false;
   dropPaneCards();
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
@@ -10952,6 +11002,7 @@ function closeIsoPane(){
   isoPaneEl.hidden = true;
   isoAskEl.hidden = true;
   isoPaneKey = null;
+  isoPanePlotMin = false;
   isoPaneLegend = null;
   if (document.documentElement.classList.contains('is-host-blank')){
     document.documentElement.classList.remove('is-host-blank');
@@ -12179,6 +12230,9 @@ window.addEventListener('message', function(e){
     if (drawn){ syncInterlock(); syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
   } else if (d.isopane === 'menu'){
     setPaneMenuRoom(d.open === true);
+  } else if (d.isopane === 'plotmin'){
+    isoPanePlotMin = d.min === true;
+    syncBarFormulas();
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
@@ -13327,16 +13381,36 @@ function syncEcControls(){
 // or the list's name while the curve is none of them.
 function ecPresetText(c){ return ecEquation(c[1], c[2]) + ' (mod ' + c[0] + '), |E| = ' + ecOrder(c[0], c[1], c[2]); }
 function ecPresetAt(){ return EC_PRESETS.findIndex(function(c){ return c[0] === state.ecP && c[1] === state.ecA && c[2] === state.ecB; }); }
+// An example curve's group when it is not cyclic, as ℤ/aℤ × ℤ/bℤ; null for
+// a cyclic one. Worked out once per curve.
+var ecPresetSplit = {};
+function ecPresetStructure(i){
+  if (!(i in ecPresetSplit)){
+    var c = EC_PRESETS[i], G = buildCurveGroup(c[0], c[1], c[2]);
+    ecPresetSplit[i] = G.generators.length ? null : invariantFactors(G).map(function(f){ return 'ℤ/' + f + 'ℤ'; }).join(' × ');
+  }
+  return ecPresetSplit[i];
+}
+// The curves whose group is not cyclic are marked in red, their group
+// named in their tooltip.
+function markEcPreset(el, i){
+  var split = i === -1 ? null : ecPresetStructure(i);
+  el.classList.toggle('is-not-cyclic', !!split);
+  if (split) el.title = translate('cyclicGroups.ecPresetNotCyclic', { group: split });
+  else el.removeAttribute('title');
+}
 function syncEcPresets(){
   var at = ecPresetAt();
   if (at === -1) translateInto(ecPresetNowEl, 'cyclicGroups.ecPresets', {});
   else ecPresetNowEl.textContent = ecPresetText(EC_PRESETS[at]);
+  markEcPreset(ecPresetNowEl, at);
   ecPresetListEl.replaceChildren.apply(ecPresetListEl, EC_PRESETS.map(function(c, i){
     var li = document.createElement('li');
     li.id = 'ec-preset-' + i;
     li.setAttribute('role', 'option');
     li.setAttribute('aria-selected', String(i === at));
     li.textContent = ecPresetText(c);
+    markEcPreset(li, i);
     return li;
   }));
   if (!ecPresetPopEl.hidden) setEcActive(ecActive, false);

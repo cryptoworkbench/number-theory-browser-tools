@@ -766,6 +766,8 @@
       isoPickBoth: 'Groups isomorphic to the current group/subgroup',
       isoPickNone: 'None',
       isoPickConstruct: 'Construct own ring / group',
+      ecPresetNotCyclic: 'Not cyclic: {group}',
+      curvePlotTask: 'Show the points of {curve}',
       isoAskLockGroup: 'Group-to-group isomorphism found! Lock groups?',
       isoAskLockSub: 'Subgroup-to-group isomorphism found! Lock groups?',
       isoLockOpenGroup: 'Double-click to lock the groups through their group-to-group isomorphism',
