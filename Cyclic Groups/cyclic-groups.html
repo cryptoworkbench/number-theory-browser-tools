@@ -9100,7 +9100,7 @@ var COMBINE_LINE = 26, COMBINE_GAP = 5;
 function combineExtraLines(G){
   if (G.pts && comboLive(G)){
     var ex = exprBy(G) !== null ? 1 : 0;
-    if (combo.k !== null) return 1 + ex;
+    if (combo.k !== null) return 1 + (ecMult(G) ? ex : 0);
     if (combo.b === null) return 0;
     var kind = curveSumKind(G, combo.a, combo.b);
     return ex + ({ vertical: 1, chord: 3, stuck: 3, split: 2 }[kind] || 0);
@@ -9131,6 +9131,38 @@ function supSigned(k){ return (k < 0 ? '⁻' : '') + superscript(Math.abs(k)); }
 // The prompt line once a is picked and before b or k is: the variants may
 // write their own (it returns the text element it drew, or null).
 var comboPromptHook = null;
+// aᵏ on a curve in powers: (Pⁱ)ᵏ ≡ P^(i × k) ≡ P^(ik % |E|) ≡ P^m under a
+// generator P, else aᵏ (a negative k through a⁻¹) ≡ a^(k % |E|), each
+// reduction only once the exponent reaches |E|.
+function curvePowerRow(G, a, k, c, g, log, mod){
+  var B = function(x){ return baseText(G, x); };
+  var R = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
+  var size = '|' + G.label + '|';
+  var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
+  if (log){
+    var i = log[a], ik = i * k, m = log[c];
+    var pow = function(e){ return B(g) + supSigned(e); };
+    r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
+    r.push([['c', B(g)], ['c', signed(i) + ' × ' + R(k), 'sup']], [null, '≡']);
+    if (ik !== m){
+      r.push(['c', pow(ik)], [null, '≡']);
+      r.push([['c', B(g)], ['c', signed(ik) + ' % ' + size, 'sup']], [null, '≡']);
+      r.push([['c', B(g)], ['c', signed(ik) + ' % ' + G.order, 'sup']], [null, '≡']);
+    }
+    r.push(['c', pow(m)], [null, '≡']);
+  } else {
+    var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
+    if (k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', B(inv)], [null, superscript(-k)]], [null, '≡']);
+    else r.push([['a', B(a)], [null, supSigned(k)]], [null, '≡']);
+    if (e >= G.order){
+      r.push([['a', B(base)], [null, e + ' % ' + size, 'sup']], [null, '≡']);
+      r.push([['a', B(base)], [null, e + ' % ' + G.order, 'sup']], [null, '≡']);
+      r.push([['a', B(base)], [null, superscript(e % G.order)]], [null, '≡']);
+    }
+  }
+  r.push(['c', elText(G, c)], [null, mod]);
+  return r;
+}
 // A curve's combination, written out: P + Q with the slope λ of the chord
 // (or, for P + P, the tangent) and the sum's coordinates from it, or k·P
 // with k reduced mod |E| first. Coordinates count mod p.
@@ -9146,6 +9178,9 @@ function curveRows(G, y, mod){
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
     ringDynamicEl.appendChild(given);
     fitText(given);
+    // Written in powers, as the groups of numbers write aᵏ: one line, the
+    // exponent reduced mod |E| in a step of its own.
+    if (!ecMult(G)) return [curvePowerRow(G, a, k, c, g, log, mod)];
     var r = [['c', 'A'], [null, '≡'], [null, 'k ·'], ['a', 'a'], [null, '≡'], [null, signed(k) + ' ·'], ['a', elText(G, a)], [null, '≡']];
     var e = k;
     if (Math.abs(k) >= N){
