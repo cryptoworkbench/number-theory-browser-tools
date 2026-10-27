@@ -895,13 +895,11 @@
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
   .combine-halo.is-dense{ filter:none; }
-  /* A point ringed in the colour its row shows in the list beside the plot. */
+  /* G and its inverse ringed on the curve plot in their paths' colours. */
   .row-halo{ fill:none; stroke-width:2; pointer-events:none; }
-  .row-halo.is-current{ stroke:var(--accent); }
   .row-halo.is-path-fwd{ stroke:var(--arrow-in, var(--role-active)); }
   .row-halo.is-path-back{ stroke:var(--arrow-out, var(--role-input)); }
   .row-halo.is-path-both{ stroke:var(--arrow-both, var(--accent)); }
-  .row-halo.is-tint{ stroke:var(--ord, var(--text-dim)); }
   /* Combining a with itself k times: the multiples a, 2a, … on the way
      to the result ringed faintly, and the walk there in the result's
      colour, each hop numbered. */
@@ -2817,7 +2815,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6848,7 +6846,6 @@ function syncSplit(){
   splitPaneSlotEl.hidden = !slot;
   splitPaneSlotEl.style.width = slot ? paneDock.w + 'px' : '';
   ringSplitEl.hidden = !(on || plotIn || slot);
-  drawRowHalos();
   // Again once the strip has settled into its new layout.
   if (!ringSplitEl.hidden){ fitDockedPlot(); requestAnimationFrame(fitDockedPlot); }
   placeSplitBtn(hadFocus);
@@ -8622,33 +8619,34 @@ function drawCurvePlot(G){
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);
   else plotGrid(G, state.plotView === 'tiles');
-  drawRowHalos();
+  drawPathHalos();
   fitDockedPlot();
 }
-// Docked beside the list, the plot picking G (Follow plot), each point
-// whose row the list shows in a colour is ringed in that colour: the
-// selected row's, its paths' rows', or the tint of a power's line. The
-// colours are read from the rows as shown.
-function drawRowHalos(){
+// The plot rings either the elements being combined, a and b (and aᵏ's
+// walk), or G and its inverse in their paths' colours: G in the forward
+// path's, its inverse in the backward path's while that path is drawn, a
+// self-inverse G in the two mixed (state.plotHalos, the plot's menu).
+function plotRoles(G){ return state.plotHalos === 'ab' ? combineRoles(G) : new Map(); }
+function drawPathHalos(){
   curvePlotSvgEl.querySelectorAll('.row-halo').forEach(function(h){ h.remove(); });
-  if (!state.genPlot || curvePlotEl.hidden || curvePlotEl.parentNode !== ringSplitEl || subgroupsPanelEl.parentNode !== ringSplitEl) return;
-  subgroupsEl.querySelectorAll('.subgroup-row[data-gen]').forEach(function(row){
-    if (row.hidden || row.closest('[hidden]')) return;
-    var tint = row.querySelector(':scope > .row-tint'), cls = null;
-    if (tint) cls = 'is-tint ' + tint.className.replace('row-tint', '').trim();
-    else ['is-path-both', 'is-path-fwd', 'is-path-back', 'is-current'].some(function(c){ return row.classList.contains(c) && (cls = c); });
-    if (!cls) return;
-    var x = row.getAttribute('data-gen'), dot = curvePlotSvgEl.querySelector('.curve-dot[data-el="' + x + '"]'), halo;
+  var G = drawn && drawn.G;
+  if (!G || !G.pts || curvePlotEl.hidden || state.plotHalos === 'ab' || state.noSub) return;
+  var g = state.gen, back = invSide() !== 'neither' ? G.inv[g] : null, rings = [];
+  if (back === g) rings.push([g, 'is-path-both']);
+  else {
+    rings.push([g, 'is-path-fwd']);
+    if (back !== null && back !== undefined) rings.push([back, 'is-path-back']);
+  }
+  rings.forEach(function(ring){
+    var x = ring[0], cls = 'row-halo ' + ring[1], dot = curvePlotSvgEl.querySelector('.curve-dot[data-el="' + x + '"]');
     if (dot){
-      halo = svgEl('circle', { 'class': 'row-halo ' + cls, cx: dot.getAttribute('cx'), cy: dot.getAttribute('cy'), r: num(+dot.getAttribute('r') + 2) });
-      dot.after(halo);
-    } else if (+x === 0 && drawn && drawn.G.identity === 0){
-      var o = curvePlotSvgEl.querySelector('.curve-o');
-      if (!o) return;
-      var b = o.getBBox();
-      halo = svgEl('circle', { 'class': 'row-halo ' + cls, cx: num(b.x + b.width / 2), cy: num(b.y + b.height / 2), r: num(Math.max(b.width, b.height) / 2 + 2) });
-      o.after(halo);
+      dot.after(svgEl('circle', { 'class': cls, cx: dot.getAttribute('cx'), cy: dot.getAttribute('cy'), r: num(+dot.getAttribute('r') + 2) }));
+      return;
     }
+    var o = x === G.identity && curvePlotSvgEl.querySelector('.curve-o');
+    if (!o) return;
+    var b = o.getBBox();
+    o.after(svgEl('circle', { 'class': cls, cx: num(b.x + b.width / 2), cy: num(b.y + b.height / 2), r: num(Math.max(b.width, b.height) / 2 + 2) }));
   });
 }
 // Every cyclic group of order N is ⟨ℤ/Nℤ, +⟩: the rotations of a regular
@@ -8873,7 +8871,7 @@ function plotGrid(G, tiles){
   // Signed, the axes run from −(p − 1)/2 to (p − 1)/2, 0 in the middle,
   // where the curve's mirror image in the x-axis shows.
   var lo = state.signed ? -Math.floor(p / 2) : 0;
-  var roles = combineRoles(G), live = comboLive(G);
+  var roles = plotRoles(G), live = comboLive(G);
   // P + Q: the line through them (the tangent for P + P) as its points mod
   // p, meeting the curve a third time at −R, which the reflection turns
   // into R; a vertical line, through an inverse pair, as its column.
@@ -9091,7 +9089,7 @@ function plotReal(G){
   var g = svg.appendChild(svgEl('g', { 'clip-path': 'url(#curve-real-clip)' }));
   g.appendChild(svgEl('path', { 'class': 'curve-real', d: d }));
   // The group's elements along it, in their colours, clicked as on the grid.
-  var roles = combineRoles(G), off = 0;
+  var roles = plotRoles(G), off = 0;
   G.els.forEach(function(e){
     var Pt = G.pts[e];
     if (Pt && Pt.proj) off++;
@@ -11198,7 +11196,6 @@ function syncRowPaths(G){
     }
     tint.className = 'row-tint ' + cls;
   });
-  drawRowHalos();
 }
 // Drawn as powers of G (one colour, its pairs shown), the rows each line's
 // pair runs through, h^x and h^-x, with that line's colour class; null
@@ -12500,6 +12497,7 @@ function applyRingQuery(q){
   state.plotView = PLOT_VIEWS.indexOf(q.get('plotview')) !== -1 ? q.get('plotview') : 'mod';
   state.realPlot = q.get('realplot') === '1';
   state.plotDock = q.get('plotdock') === '1';
+  state.plotHalos = q.get('plothalos') === 'ab' ? 'ab' : 'path';
   polyOpen = q.get('polygon') === '1';
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
@@ -14118,6 +14116,7 @@ function stateQuery(){
   if (state.plotView !== 'mod') q.set('plotview', state.plotView); else q.delete('plotview');
   if (state.realPlot) q.set('realplot', '1'); else q.delete('realplot');
   if (state.plotDock) q.set('plotdock', '1'); else q.delete('plotdock');
+  if (state.plotHalos === 'ab') q.set('plothalos', 'ab'); else q.delete('plothalos');
   if (polyOpen) q.set('polygon', '1'); else q.delete('polygon');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
@@ -14716,8 +14715,9 @@ function showCtxAt(menu, x, y){
   menu.style.top = (2 * top - at.top) + 'px';
   menu.firstChild.focus();
 }
-// Over the reals, the plot's own menu: whether clicks on the curve add
-// real points (off until enabled here).
+// The plot's own menu: which halos it draws (see plotRoles), and over the
+// reals whether clicks on the curve add real points (off until enabled
+// here).
 var plotCtxEl = $('plot-ctx'), plotCtxReturn = null;
 function setPlotCtx(open, x, y){
   if (!open){
@@ -14727,24 +14727,35 @@ function setPlotCtx(open, x, y){
     plotCtxReturn = null;
     return;
   }
-  var item = document.createElement('button');
-  item.type = 'button';
-  item.className = 'fs-menu-item';
-  item.setAttribute('role', 'menuitem');
-  item.textContent = translate(state.realPlot ? 'cyclicGroups.realPlotOff' : 'cyclicGroups.realPlotOn');
-  item.addEventListener('click', function(){
-    setPlotCtx(false);
-    state.realPlot = !state.realPlot;
-    realPick = { P: null, Q: null, key: '' };
-    if (drawn){ drawCurvePlot(drawn.G); mirrorToUrl(drawn.G); }
-  });
-  plotCtxEl.replaceChildren(item);
+  var items = [], halos = function(v){
+    return function(){
+      setPlotCtx(false);
+      state.plotHalos = v;
+      if (drawn){ drawCurvePlot(drawn.G); mirrorToUrl(drawn.G); }
+    };
+  };
+  items.push(menuTick('menuitemradio', translate('cyclicGroups.plotHalosPath'), state.plotHalos !== 'ab', halos('path')));
+  items.push(menuTick('menuitemradio', translate('cyclicGroups.plotHalosAb'), state.plotHalos === 'ab', halos('ab')));
+  if (state.plotView === 'real'){
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'fs-menu-item';
+    item.setAttribute('role', 'menuitem');
+    item.textContent = translate(state.realPlot ? 'cyclicGroups.realPlotOff' : 'cyclicGroups.realPlotOn');
+    item.addEventListener('click', function(){
+      setPlotCtx(false);
+      state.realPlot = !state.realPlot;
+      realPick = { P: null, Q: null, key: '' };
+      if (drawn){ drawCurvePlot(drawn.G); mirrorToUrl(drawn.G); }
+    });
+    items.push(subCtxRule(), item);
+  }
+  plotCtxEl.replaceChildren.apply(plotCtxEl, items);
   plotCtxReturn = plotCtxEl.hidden ? document.activeElement : plotCtxReturn;
   if (!(plotCtxReturn instanceof HTMLElement) || plotCtxReturn === document.body) plotCtxReturn = null;
   showCtxAt(plotCtxEl, x, y);
 }
 curvePlotEl.addEventListener('contextmenu', function(e){
-  if (state.plotView !== 'real') return;
   e.preventDefault();
   if (IS_MOBILE) return;
   setPlotCtx(true, ptX(e), ptY(e));
@@ -16114,6 +16125,7 @@ function loadState(query, link){
   state.plotView = PLOT_VIEWS.indexOf(query.get('plotview')) !== -1 ? query.get('plotview') : 'mod';
   state.realPlot = query.get('realplot') === '1';
   state.plotDock = query.get('plotdock') === '1';
+  state.plotHalos = query.get('plothalos') === 'ab' ? 'ab' : 'path';
   polyOpen = query.get('polygon') === '1';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.

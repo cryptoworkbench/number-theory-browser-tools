@@ -111,7 +111,9 @@
    (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)),
    and plotDock and plotFloat (the curve plot's button docking it in the
    strip at the bottom of the Ring window, and floating it over the ring
-   again).
+   again), and plotHalosPath and plotHalosAb (the curve plot's menu choosing
+   which points it rings: G and its inverse in their paths' colours, or the
+   elements a and b being combined).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -561,6 +563,8 @@
       lapKeyMin: 'Minimize',
       plotDock: 'Dock at the bottom',
       plotFloat: 'Float over the ring',
+      plotHalosPath: 'Ring G and its inverse',
+      plotHalosAb: 'Ring a and b',
       lapKeyShow: 'Show the laps\' colours',
       lapKeyOne: 'Lap {lap}: k = {k}',
       lapKeyMany: 'Laps {laps}: k = {k}',
