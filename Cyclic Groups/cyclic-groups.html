@@ -9235,7 +9235,7 @@ var comboPromptHook = null;
 function curvePowerRow(G, a, k, c, g, log, mod){
   var B = function(x){ return baseText(G, x); };
   var R = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
-  var size = '|' + G.label + '|';
+  var size = '|' + curveName(G) + '|';
   var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
   if (log){
     var i = log[a], ik = i * k, m = log[c];
@@ -9261,12 +9261,14 @@ function curvePowerRow(G, a, k, c, g, log, mod){
   r.push(['c', elText(G, c)], [null, mod]);
   return r;
 }
+// The curve's whole name, as the subgroup row writes it: E(𝔽ₚ): y² = ….
+function curveName(G){ return G.label + ': ' + ecEquation(G.a, G.b); }
 // An exponent (or a multiple of P) past |E|, or below 0, reduced by |E|
 // in steps of its own in row: e % |E|, then |E| as its value, each step's
 // exponent written by cell.
 function curveReduce(G, row, e, cell){
   if (e >= 0 && e < G.order) return;
-  row.push(cell(signed(e) + ' % |' + G.label + '|'), [null, '≡']);
+  row.push(cell(signed(e) + ' % |' + curveName(G) + '|'), [null, '≡']);
   row.push(cell(signed(e) + ' % ' + G.order), [null, '≡']);
 }
 // A curve's combination, written out: P + Q with the slope λ of the chord
@@ -9290,7 +9292,7 @@ function curveRows(G, y, mod){
     var r = [['c', 'A'], [null, '≡'], [null, 'k ·'], ['a', 'a'], [null, '≡'], [null, signed(k) + ' ·'], ['a', elText(G, a)], [null, '≡']];
     var e = k;
     if (Math.abs(k) >= N){
-      r.push([[null, '(' + signed(k) + ' % |'], [null, G.label], [null, '|) · '], ['a', elText(G, a)]], [null, '≡']);
+      r.push([[null, '(' + signed(k) + ' % |'], [null, curveName(G)], [null, '|) · '], ['a', elText(G, a)]], [null, '≡']);
       e = k % N;
       r.push([null, signed(e) + ' ·'], ['a', elText(G, a)], [null, '≡']);
     }
