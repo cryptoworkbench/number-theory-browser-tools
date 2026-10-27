@@ -1284,7 +1284,7 @@
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap input[type="range"]{ width:80px; }
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap span{ width:auto; min-width:3.5em; }
   :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-controls{ display:none !important; }
-  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto minmax(0, 1fr); min-height:0; overflow:hidden; }
   /* The panel runs out over the window's side padding to 2px from its
      edges; 8px of its own keep room for the card the zoomed view draws
      8px outside the rows, and the divider still spans it all. */
@@ -1308,6 +1308,23 @@
   .split-grip:hover::after, .split-grip:focus-visible::after, .ring-split.is-resizing .split-grip::after{ background:var(--accent); opacity:1; }
   .ring-split > .subgroups-panel{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; background:none; border:0; border-radius:0; padding:0; }
   .ring-split .subgroups{ flex:1 1 auto; min-height:0; max-height:none; }
+  /* The strip is the divider over a row of three: the curve plot docked at
+     the ring's own end (a pane's at its right), the list between, and, locked
+     to a pane whose plot is docked too, the room its plot takes at the right,
+     the pane drawing it there over its foot. */
+  .ring-split > .split-grip{ grid-column:1 / -1; grid-row:1; }
+  .ring-split > .subgroups-panel{ grid-column:2; grid-row:2; min-width:0; }
+  .ring-split > .curve-plot{ grid-column:1; grid-row:2; align-self:start; margin:0 12px 0 0; }
+  :root.is-isopane .ring-split > .curve-plot{ grid-column:3; margin:0 0 0 12px; }
+  .ring-split > .split-pane-slot{ grid-column:3; grid-row:2; margin-left:12px; }
+  .split-pane-slot[hidden]{ display:none; }
+  .curve-plot.is-docked{ z-index:auto; translate:none !important; max-height:none; }
+  :root:not(.is-mobile) .curve-plot.is-docked{ cursor:auto; }
+  .curve-plot.is-docked .curve-plot-svg{ flex:none; margin-inline:auto; }
+  .curve-plot.is-docked > .curve-grip{ display:none !important; }
+  /* A pane merged into the ring holding it docks its plot over its foot,
+     where the holder keeps the room for it. */
+  .fs-win-body.is-ring > .curve-plot.is-docked-foot{ position:absolute; grid-area:auto; justify-self:auto; align-self:auto; margin:0; z-index:3; }
   /* Under the ring the panel goes without its heading. With one group in it,
      the chevrons keep to its top corner, clear of the controls, and the
      labels shorten to one word as merged, so the controls take fewer lines
@@ -1320,6 +1337,10 @@
   :root.is-sub-merged .ring-split > #subgroups-list-panel{ grid-template-columns:minmax(0, max-content) minmax(0, 1fr) minmax(0, max-content); grid-template-rows:auto minmax(0, 1fr); grid-template-areas:"l mid r" "list list list"; column-gap:16px; }
   :root.is-sub-merged .ring-split > #subgroups-list-panel > .panel-head{ position:absolute; top:0; right:0; z-index:1; }
   :root.is-sub-merged .ring-split .sub-ctls-mid{ flex-wrap:nowrap; }
+  /* Narrowed by a docked plot, the merged list's shared controls take a line
+     of their own under the two groups' expressions. */
+  :root.is-sub-merged .ring-split:has(> .curve-plot.is-docked, > .split-pane-slot:not([hidden])) > #subgroups-list-panel{ grid-template-rows:auto auto minmax(0, 1fr); grid-template-areas:"l . r" "mid mid mid" "list list list"; }
+  :root.is-sub-merged .ring-split:has(> .curve-plot.is-docked, > .split-pane-slot:not([hidden])) .sub-ctls-mid{ flex-wrap:wrap; }
   :root:not(.is-sub-merged) .ring-split > #subgroups-list-panel{ position:relative; }
   :root:not(.is-sub-merged) .ring-split > #subgroups-list-panel > .panel-head{ position:absolute; top:0; right:0; z-index:1; margin:0; }
   :root:not(.is-sub-merged) .ring-split > #subgroups-list-panel > .sub-ctls{ padding-right:64px; }
@@ -2382,7 +2403,7 @@
           <ul class="lap-key-list" id="lap-key-list"></ul>
         </section>
         <section class="curve-plot" id="curve-plot" aria-labelledby="curve-plot-title" hidden>
-          <div class="lap-key-head"><h2 id="curve-plot-title"></h2><span class="plot-view" id="plot-view" role="group" aria-label="Plot" data-i18n-aria-label="cyclicGroups.plotViewLabel"><button type="button" data-view="mod" aria-pressed="true">mod</button><button type="button" data-view="tiles" aria-pressed="false">ℤ</button><button type="button" data-view="real" aria-pressed="false">ℝ</button></span><button type="button" class="fs-win-btn lap-key-min" id="curve-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
+          <div class="lap-key-head"><h2 id="curve-plot-title"></h2><span class="plot-view" id="plot-view" role="group" aria-label="Plot" data-i18n-aria-label="cyclicGroups.plotViewLabel"><button type="button" data-view="mod" aria-pressed="true">mod</button><button type="button" data-view="tiles" aria-pressed="false">ℤ</button><button type="button" data-view="real" aria-pressed="false">ℝ</button></span><button type="button" class="fs-win-btn lap-key-min curve-plot-dock" id="curve-plot-dock" aria-pressed="false"></button><button type="button" class="fs-win-btn lap-key-min" id="curve-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
           <svg class="curve-plot-svg" id="curve-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="curve-plot-note" hidden></p><div class="curve-grip" id="curve-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <section class="curve-plot poly-plot" id="poly-plot" aria-labelledby="poly-plot-title" hidden>
@@ -2466,6 +2487,7 @@
         </div>
         <div class="ring-split" id="ring-split" hidden>
           <div class="split-grip" id="split-grip" role="separator" aria-orientation="horizontal" aria-controls="ring-split" aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" tabindex="0" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-label="Drag to resize; double-click to reset" data-i18n-aria-label="cyclicGroups.resizeTitle"></div>
+          <div class="split-pane-slot" id="split-pane-slot" aria-hidden="true" hidden></div>
         </div>
         <div class="iso-pane" id="iso-pane" hidden>
           <button type="button" class="fs-win-btn is-close iso-ring-close" id="iso-ring-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
@@ -2783,7 +2805,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6809,12 +6831,151 @@ function syncSplit(){
     if (splitHome.isConnected) splitHome.replaceWith(subgroupsPanelEl);
     splitHome = null;
   }
-  ringSplitEl.hidden = !on;
+  // The strip opens for a docked plot too, the list closed or not.
+  var plotIn = syncPlotDock(), slot = paneDockSlot();
+  splitPaneSlotEl.hidden = !slot;
+  splitPaneSlotEl.style.width = slot ? paneDock.w + 'px' : '';
+  ringSplitEl.hidden = !(on || plotIn || slot);
+  // Again once the strip has settled into its new layout.
+  if (!ringSplitEl.hidden){ fitDockedPlot(); requestAnimationFrame(fitDockedPlot); }
   placeSplitBtn(hadFocus);
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
   drawSplitChevrons();
   syncExprSide();
   postIsoShared(false);
+}
+// The curve plot docked (state.plotDock): out of its window over the ring
+// into the strip at the window's bottom, beside the list, sized to the
+// strip's height; minimized it goes to the bar as it would floating, and
+// comes back docked. A pane merged into the ring holding it has no strip of
+// its own: it docks its plot over its foot, at the right end of the
+// holder's strip, where the holder keeps the room the pane says it takes.
+var curveDockBtnEl = $('curve-plot-dock'), splitPaneSlotEl = $('split-pane-slot');
+var plotHome = null, plotFloatSize = null;
+// The pane's docked plot, as the holder knows it: whether it is docked, and
+// how wide; and, in the pane, where the holder keeps the room for it.
+var paneDock = { on: false, w: 0 }, hostDock = null;
+function plotDockWanted(){
+  return state.plotDock && !IS_MOBILE && !curvePlotEl.hidden && !!ringSplitEl.closest('.fs-win-body.is-ring');
+}
+function plotDockFoot(){ return IS_ISOPANE && isoInterlockOn; }
+// Whether the plot sits in the strip (in a merged pane, over the foot).
+function syncPlotDock(){
+  var on = plotDockWanted(), foot = on && plotDockFoot(), inStrip = on && !foot;
+  if (inStrip && curvePlotEl.parentNode !== ringSplitEl){
+    plotHome = document.createComment('curve-plot');
+    curvePlotEl.before(plotHome);
+    ringSplitEl.appendChild(curvePlotEl);
+  } else if (!inStrip && plotHome){
+    if (plotHome.isConnected) plotHome.replaceWith(curvePlotEl);
+    plotHome = null;
+  }
+  var was = curvePlotEl.classList.contains('is-docked');
+  if (on && !was){
+    // Its floating size kept for when it floats again.
+    plotFloatSize = { w: curvePlotEl.style.width, h: curvePlotEl.style.maxHeight, s: curvePlotEl.style.getPropertyValue('--plot-scale') };
+    curvePlotEl.style.removeProperty('--plot-scale');
+    curvePlotEl.style.maxHeight = '';
+  }
+  curvePlotEl.classList.toggle('is-docked', on);
+  curvePlotEl.classList.toggle('is-docked-foot', foot);
+  if (!foot) curvePlotEl.style.left = curvePlotEl.style.top = '';
+  if (!on) curvePlotSvgEl.style.width = '';
+  if (!on && was){
+    var f = plotFloatSize || { w: '', h: '', s: '' };
+    curvePlotEl.style.width = f.w;
+    curvePlotEl.style.maxHeight = f.h;
+    if (f.s) curvePlotEl.style.setProperty('--plot-scale', f.s);
+    plotFloatSize = null;
+    if (curveWin) curveWin.place(curveWin.at.x, curveWin.at.y);
+  }
+  if (IS_ISOPANE) tellHostPlotDock();
+  syncPlotDockBtn();
+  return inStrip;
+}
+function syncPlotDockBtn(){
+  var docked = state.plotDock;
+  var tip = translate(docked ? 'cyclicGroups.plotFloat' : 'cyclicGroups.plotDock');
+  curveDockBtnEl.title = tip;
+  curveDockBtnEl.setAttribute('aria-label', tip);
+  curveDockBtnEl.setAttribute('aria-pressed', docked ? 'true' : 'false');
+  curveDockBtnEl.hidden = IS_MOBILE;
+  // An arrow down to the bottom edge, or up off it.
+  var d = docked ? ['M2 10h8', 'M6 8.5V2.5', 'M3.5 5 6 2.5 8.5 5'] : ['M2 10h8', 'M6 2.5v5.5', 'M3.5 5.5 6 8l2.5-2.5'];
+  curveDockBtnEl.replaceChildren(svgIcon(d.map(function(p){ return ['path', { d: p }]; })));
+}
+curveDockBtnEl.addEventListener('click', function(){
+  state.plotDock = !state.plotDock;
+  syncSplit();
+  if (drawn){ drawCurvePlot(drawn.G); mirrorToUrl(drawn.G); }
+  curveDockBtnEl.focus({ preventScroll: true });
+});
+// The plot's width in the strip: its points' square as tall as the strip
+// lets it be, as wide as its share of the strip's width allows.
+function fitDockedPlot(){
+  var el = curvePlotEl;
+  if (!el.classList.contains('is-docked') || el.hidden) return;
+  var top, bottom, maxW;
+  if (el.classList.contains('is-docked-foot')){
+    if (!hostDock) return;
+    top = hostDock.top;
+    bottom = hostDock.bottom;
+    maxW = hostDock.maxW;
+  } else {
+    var sr = boxOf(ringSplitEl), cs = getComputedStyle(ringSplitEl);
+    top = boxOf(splitGripEl).bottom + (parseFloat(getComputedStyle(splitGripEl).marginBottom) || 0);
+    bottom = sr.bottom - (parseFloat(cs.paddingBottom) || 0);
+    maxW = (sr.width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0)) * (paneDockSlot() ? 0.3 : subgroupsPanelEl.parentNode === ringSplitEl ? 0.4 : 1);
+  }
+  // Never narrower than its head's buttons with a little of its title; the
+  // points' square then as tall as the room left, centred under the head.
+  var head = el.querySelector('.lap-key-head'), gap = parseFloat(getComputedStyle(head).columnGap) || 0, headW = 48;
+  Array.prototype.forEach.call(head.children, function(c){ if (c.tagName !== 'H2' && c.offsetWidth) headW += boxOf(c).width + gap; });
+  for (var i = 0; i < 2; i++){
+    var r = boxOf(el), sv = boxOf(curvePlotSvgEl), pad = r.width - boxOf(head).width;
+    var side = Math.max(60, bottom - top - (r.height - sv.height));
+    var w = Math.round(Math.min(maxW - 12, Math.max(headW + pad, side + pad)));
+    el.style.width = w + 'px';
+    curvePlotSvgEl.style.width = Math.round(Math.min(side, w - pad)) + 'px';
+  }
+  if (el.classList.contains('is-docked-foot')){
+    var b = boxOf(el.closest('.fs-win-body'));
+    el.style.left = Math.round(hostDock.right - boxOf(el).width - b.left) + 'px';
+    el.style.top = Math.round(top - b.top) + 'px';
+    tellHostPlotDock();
+  }
+}
+if (typeof ResizeObserver === 'function'){
+  new ResizeObserver(function(){
+    fitDockedPlot();
+    if (!IS_ISOPANE && paneDock.on) postIsoShared(false);
+  }).observe(ringSplitEl);
+}
+// The pane tells the ring holding it whether its plot is docked, and how
+// wide it is.
+var plotDockSent = null;
+function tellHostPlotDock(){
+  var on = plotDockWanted() && plotDockFoot();
+  var msg = { isopane: 'plotdock', on: on, w: on && hostDock ? Math.round(boxOf(curvePlotEl).width) : 0 }, sent = JSON.stringify(msg);
+  if (sent === plotDockSent) return;
+  plotDockSent = sent;
+  tellHost(msg);
+}
+// The holder keeps the room for the pane's docked plot while the two lists
+// are merged; until the pane says how wide its plot is, as wide as the
+// strip is tall.
+function paneDockSlot(){
+  if (IS_ISOPANE || isoPaneEl.hidden || !paneDock.on || !document.documentElement.classList.contains('is-sub-merged')) return false;
+  if (!paneDock.w) paneDock.w = Math.max(140, Math.round(boxOf(ringSplitEl).height) || 240);
+  return true;
+}
+// Where the holder keeps that room, in the pane's own coordinates.
+function paneDockRect(){
+  if (!paneDockSlot() || ringSplitEl.hidden || !isoPaneFrame) return null;
+  var f = boxOf(isoPaneFrame), sr = boxOf(ringSplitEl), slot = boxOf(splitPaneSlotEl);
+  var top = boxOf(splitGripEl).bottom + (parseFloat(getComputedStyle(splitGripEl).marginBottom) || 0);
+  var bottom = sr.bottom - (parseFloat(getComputedStyle(ringSplitEl).paddingBottom) || 0);
+  return { top: Math.round(top - f.top), bottom: Math.round(bottom - f.top), right: Math.round(slot.right - f.left), maxW: Math.round(sr.width * 0.3) };
 }
 legendBtnEl.addEventListener('click', function(){
   legendShown = !legendShown;
@@ -8435,9 +8596,12 @@ function drawCurvePlot(G){
   var on = !!G.pts;
   curvePlotEl.hidden = !on || !curvePlotOpen;
   if (IS_ISOPANE) tellPlotMin(on && !curvePlotOpen);
+  var dock = plotDockWanted();
+  if (dock !== curvePlotEl.classList.contains('is-docked') || (dock && plotDockFoot()) !== curvePlotEl.classList.contains('is-docked-foot')) syncSplit();
   if (curvePlotEl.hidden) return;
   var real = state.plotView === 'real';
   syncPlotView(G);
+  syncPlotDockBtn();
   curvePlotEl.classList.toggle('is-picks-g', !!state.genPlot);
   curvePlotEl.classList.toggle('is-real', real && state.realPlot);
   $('curve-plot-title').textContent = ecEquation(G.a, G.b) + (real ? ', x, y ∈ ℝ' : ' (mod ' + G.n + ')');
@@ -8445,6 +8609,7 @@ function drawCurvePlot(G){
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);
   else plotGrid(G, state.plotView === 'tiles');
+  fitDockedPlot();
 }
 // Every cyclic group of order N is ⟨ℤ/Nℤ, +⟩: the rotations of a regular
 // N-gon. Its window, minimized into the bar until opened, sets corner k
@@ -9020,6 +9185,7 @@ var CURVE_BASE_W = 300;
 function plotWindow(el, gripEl, acrossLocked){
   var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
   win.place = function(x, y){
+    if (el.classList.contains('is-docked')) return;
     var body = el.closest('.fs-win-body');
     el.style.translate = win.at.x + 'px ' + win.at.y + 'px';
     if (body && !el.hidden){
@@ -9046,7 +9212,7 @@ function plotWindow(el, gripEl, acrossLocked){
       el.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
     }
   };
-  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !e.target.closest('button, .curve-plot-svg, .curve-grip'); };
+  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, .curve-plot-svg, .curve-grip'); };
   el.addEventListener('pointerdown', function(e){
     if (!grip(e)) return;
     moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y };
@@ -12182,6 +12348,7 @@ function closeIsoPane(){
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
+  paneDock = { on: false, w: 0 };
   paneReach = paneText = null;
   isoPane = null;
   dirPaneAxis = null;
@@ -12291,6 +12458,7 @@ function applyRingQuery(q){
   state.genPlot = q.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(q.get('plotview')) !== -1 ? q.get('plotview') : 'mod';
   state.realPlot = q.get('realplot') === '1';
+  state.plotDock = q.get('plotdock') === '1';
   polyOpen = q.get('polygon') === '1';
   state.bygen = q.get('bygen') === '1';
   state.arrangeGen = subExprVal(q.get('arrangegen'));
@@ -12578,7 +12746,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -12657,6 +12825,9 @@ function applyIsoShared(d){
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.genexp)){ genExpEl.hidden = !d.genexp; syncGenExpCorner(); }
   if (flag(d.split) && d.split !== hostSplitOn){ hostSplitOn = d.split; syncExprSide(); }
+  var dk = d.dock, fin = function(v){ return Number.isFinite(v) && Math.abs(v) < 20000; };
+  hostDock = dk && typeof dk === 'object' && fin(dk.top) && fin(dk.bottom) && fin(dk.right) && fin(dk.maxW) && dk.bottom > dk.top ? dk : null;
+  fitDockedPlot();
   if (flag(d.zoomwheel)) zoomWheelOn = d.zoomwheel;
   // The link's generator here, which the holding ring may move to another
   // generator of this group once the two are found isomorphic.
@@ -13474,6 +13645,13 @@ window.addEventListener('message', function(e){
     if (drawn){ syncInterlock(); syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
   } else if (d.isopane === 'menu'){
     setPaneMenuRoom(d.open === true);
+  } else if (d.isopane === 'plotdock'){
+    var pd = { on: d.on === true, w: d.on === true && Number.isFinite(d.w) && d.w > 0 && d.w < 4000 ? Math.round(d.w) : 0 };
+    if (pd.on !== paneDock.on || (pd.w && pd.w !== paneDock.w)){
+      paneDock = { on: pd.on, w: pd.w || (pd.on ? paneDock.w : 0) };
+      syncSplit();
+      postIsoShared(false);
+    }
   } else if (d.isopane === 'plotmin'){
     isoPanePlotMin = d.min === true;
     // The pane reloaded (full screen in or out) keeps its plot as it was.
@@ -13898,6 +14076,7 @@ function stateQuery(){
   if (state.noSub) q.set('sub', 'none'); else if (state.genFollow) q.set('sub', SUB_FOLLOW); else if (state.genPlot) q.set('sub', SUB_PLOT); else q.delete('sub');
   if (state.plotView !== 'mod') q.set('plotview', state.plotView); else q.delete('plotview');
   if (state.realPlot) q.set('realplot', '1'); else q.delete('realplot');
+  if (state.plotDock) q.set('plotdock', '1'); else q.delete('plotdock');
   if (polyOpen) q.set('polygon', '1'); else q.delete('polygon');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
@@ -15893,6 +16072,7 @@ function loadState(query, link){
   state.genPlot = query.get('sub') === SUB_PLOT;
   state.plotView = PLOT_VIEWS.indexOf(query.get('plotview')) !== -1 ? query.get('plotview') : 'mod';
   state.realPlot = query.get('realplot') === '1';
+  state.plotDock = query.get('plotdock') === '1';
   polyOpen = query.get('polygon') === '1';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.

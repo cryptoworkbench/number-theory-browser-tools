@@ -108,7 +108,10 @@
    colours choice giving every element a colour of its own, and its key) and formula.subgroupOrderLcm,
    formula.subgroupIndexLcm, formula.subgroupOrderLogLcm,
    formula.subgroupIndexLogLcm, formula.mulOrderLcm and formula.mulIndexLcm
-   (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)).
+   (those forms: |⟨h⟩| = lcm(|G|, q) / q, [G : ⟨h⟩] = |G| · q / lcm(|G|, q)),
+   and plotDock and plotFloat (the curve plot's button docking it in the
+   strip at the bottom of the Ring window, and floating it over the ring
+   again).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -556,6 +559,8 @@
       ecNoteSingular: 'This curve is singular (4a³ + 27b² ≡ 0 mod p), so its points form no group',
       lapKeyTitle: 'Laps of the path',
       lapKeyMin: 'Minimize',
+      plotDock: 'Dock at the bottom',
+      plotFloat: 'Float over the ring',
       lapKeyShow: 'Show the laps\' colours',
       lapKeyOne: 'Lap {lap}: k = {k}',
       lapKeyMany: 'Laps {laps}: k = {k}',
