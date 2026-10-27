@@ -12454,7 +12454,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow() };
+  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && !ringSplitEl.hidden, splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -12595,6 +12595,10 @@ function applyIsoShared(d){
     }
     state.dir = d.dir;
   }
+  // The preferred way round comes with the holder's flip that turns it,
+  // never on its own (the storage event), which would redraw mid-flip.
+  var pref = DIRS.indexOf(d.pref) !== -1 && d.pref !== state.prefDir ? d.pref : null;
+  if (pref && !flip) state.prefDir = pref;
   // The pane's formulas, chosen in the bottom bar of the ring holding it.
   if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
   if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
@@ -12613,7 +12617,7 @@ function applyIsoShared(d){
   // A flip that turns G into its inverse (invForTurn) brings the new
   // subgroup with it, taken as the ring turns over, as on the holding ring:
   // its select message, coming after, would redraw the ring mid-flip.
-  if (flip) flipRing(function(){ takeFlipSel(d.sel); keepCosets(render); });
+  if (flip) flipRing(function(){ if (pref) state.prefDir = pref; takeFlipSel(d.sel); keepCosets(render); });
   else keepCosets(render);
 }
 function takeFlipSel(sel){
@@ -15216,7 +15220,8 @@ function turnPrefDir(dir, inv){
   if (inv !== null) tookInverse(inv);
 }
 window.addEventListener('storage', function(e){
-  if (e.key !== PREF_DIR_KEY && e.key !== null) return;
+  // The pane's way round is its holder's, sent with the shared settings.
+  if (IS_ISOPANE || (e.key !== PREF_DIR_KEY && e.key !== null)) return;
   var dir = readPrefDir();
   if (dir === state.prefDir) return;
   state.prefDir = dir;
