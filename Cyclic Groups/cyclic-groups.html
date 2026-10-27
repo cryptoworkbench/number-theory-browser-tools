@@ -9261,6 +9261,14 @@ function curvePowerRow(G, a, k, c, g, log, mod){
   r.push(['c', elText(G, c)], [null, mod]);
   return r;
 }
+// An exponent (or a multiple of P) past |E|, or below 0, reduced by |E|
+// in steps of its own in row: e % |E|, then |E| as its value, each step's
+// exponent written by cell.
+function curveReduce(G, row, e, cell){
+  if (e >= 0 && e < G.order) return;
+  row.push(cell(signed(e) + ' % |' + G.label + '|'), [null, '≡']);
+  row.push(cell(signed(e) + ' % ' + G.order), [null, '≡']);
+}
 // A curve's combination, written out: P + Q with the slope λ of the chord
 // (or, for P + P, the tangent) and the sum's coordinates from it, or k·P
 // with k reduced mod |E| first. Coordinates count mod p.
@@ -9295,6 +9303,7 @@ function curveRows(G, y, mod){
       var ki = k * log[a], m = log[c];
       var s2 = [[null, signed(k) + ' ·'], ['a', log[a] + 'P'], [null, '≡'], ['c', '(' + signed(k) + ' × ' + log[a] + ')P'], [null, '≡']];
       if (ki !== m) s2.push(['c', signed(ki) + 'P'], [null, '≡']);
+      if (ki !== m) curveReduce(G, s2, ki, function(e){ return ['c', '(' + e + ')P']; });
       s2.push(['c', m + 'P'], [null, '≡'], ['c', elText(G, c)]);
       out.push(s2);
     } else if (log){
@@ -9314,12 +9323,15 @@ function curveRows(G, y, mod){
     var Pb = baseText(G, g), i2 = log[a], j2 = log[b], m3 = log[c];
     var ep = [['a', Pb + superscript(i2)], [null, '+'], ['b', Pb + superscript(j2)], [null, '≡'], ['c', Pb + superscript(i2) + '⁺' + superscript(j2)], [null, '≡']];
     if (i2 + j2 !== m3) ep.push(['c', Pb + superscript(i2 + j2)], [null, '≡']);
+    // Past |E|, the sum is reduced by it in steps of its own.
+    if (i2 + j2 !== m3) curveReduce(G, ep, i2 + j2, function(e){ return [['c', Pb], ['c', e, 'sup']]; });
     ep.push(['c', Pb + superscript(m3)], [null, '≡'], ['c', elText(G, c)]);
     rows.push(ep);
   } else if (log){
     var i = log[a], j = log[b], m2 = log[c];
     var er = [['a', i + 'P'], [null, '+'], ['b', j + 'P'], [null, '≡'], ['c', '(' + i + ' + ' + j + ')P'], [null, '≡']];
     if (i + j !== m2) er.push(['c', (i + j) + 'P'], [null, '≡']);
+    if (i + j !== m2) curveReduce(G, er, i + j, function(e){ return ['c', '(' + e + ')P']; });
     er.push(['c', m2 + 'P'], [null, '≡'], ['c', elText(G, c)]);
     rows.push(er);
   }
@@ -9469,11 +9481,27 @@ function drawCombineLine(G, y){
     rows[0].push(['c', E(c)], [null, mod]);
     if (two){
       var i = X(log[a]), j = X(log[b]), kc = X(log[c]);
-      rows.push([['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
-        ['c', B(g) + supSigned(i) + (j < 0 ? '⁻' : '⁺') + superscript(Math.abs(j))], [null, '≡'], ['c', pow(kc)], [null, mod]]);
-      tipAt = 8;
-      tipTo = 10;
       var sum = i + j, n = G.order;
+      var pr = [['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
+        ['c', B(g) + supSigned(i) + (j < 0 ? '⁻' : '⁺') + superscript(Math.abs(j))], [null, '≡']];
+      // The summed exponent past the group's cardinality (or below 0) is
+      // reduced by it in steps of its own, as aᵏ's is: |G| resolved to n
+      // for ⟨ℤ/nℤ, +⟩, and for ⟨ℤ/nℤ, ×⟩ through the totient φ(n). The
+      // plain line above leaves those columns blank, its result over g's.
+      if (sum !== kc && (sum < 0 || sum >= n)){
+        pr.push(['c', pow(sum)], [null, '≡']);
+        var redE = function(by){ pr.push([['c', B(g)], ['c', signed(sum) + ' % ' + by, 'sup']], [null, '≡']); };
+        redE('|' + groupPlain(G) + '|');
+        if (G.mode === 'multiplicative') redE('φ(' + G.n + ')');
+        redE(n);
+        var last = rows[0].splice(rows[0].length - 2, 2);
+        while (rows[0].length < pr.length) rows[0].push([null, '']);
+        rows[0].push.apply(rows[0], last);
+      }
+      tipAt = 8;
+      tipTo = pr.length;
+      pr.push(['c', pow(kc)], [null, mod]);
+      rows.push(pr);
       tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
         { g: E(g), i: signed(i), j: R(j), sum: signed(sum), n: n, k: signed(kc), gn: pow(n), gsum: pow(sum), gk: pow(kc) });
     }
