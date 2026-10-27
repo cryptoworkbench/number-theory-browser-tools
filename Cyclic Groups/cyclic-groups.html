@@ -1254,7 +1254,7 @@
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-pref{ width:max-content; }
   :root.is-isopane #dir-toggle{ display:none !important; }
   /* Locked, the combination's switch moves onto the line between the rings,
-     under the rows, heading the column over the padlock: its two choices one above the
+     right under the rows, heading the column over the padlock: its two choices one above the
      other, k under them, its name left to their titles, over the plots. */
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #combine-mode{ position:absolute; z-index:4; translate:-50% -50%; flex-direction:column; gap:4px; margin:0; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-mode-name{ display:none; }
@@ -6943,6 +6943,8 @@ if (typeof ResizeObserver === 'function' && !IS_ISOPANE){
   var splitWatch = new ResizeObserver(function(){ keepLockClear(); });
   splitWatch.observe(ringSvgEl);
   splitWatch.observe(ringSplitEl);
+  // The rows above the ring, growing or shrinking, move the switch under them.
+  splitWatch.observe($('gen-field'));
 }
 
 // The page's theme and language, told to a frame: it follows the page without
@@ -15018,17 +15020,24 @@ function keepLockClear(){
   var hs = btns.map(function(el){ return boxOf(el).height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
-  // The combination's switch, locked, heads the column, over the padlock.
-  var head = onLine(combineModeEl), headH = head ? boxOf(combineModeEl).height : 0;
-  var headGap = head && (lockH || btns.length) ? (lockH ? LOCK_CLEAR_GAP : SHARED_BTN_GAP) : 0;
-  var total = headH + headGap + lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
-  // Centred on the ring, but never up among the rows above it.
-  var top = Math.max(mid - total / 2, topRowsBottom(isoPaneEl.parentNode) + SHARED_BTN_GAP);
-  if (head){
-    var hr = boxOf(combineModeEl.offsetParent);
+  var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
+  // Centred on the ring, but never up among the rows above it, the pane's
+  // included.
+  var rowsEnd = topRowsBottom(isoPaneEl.parentNode);
+  try {
+    var pd = isoPaneFrame.contentDocument, pb = pd && pd.querySelector('.fs-win-body.is-ring');
+    var pr = pb && pb.querySelector(':scope > .fs-win-row-gen'), prb = pr && boxOf(pr);
+    if (prb && prb.height) rowsEnd = Math.max(rowsEnd, boxOf(isoPaneFrame).top + prb.bottom);
+  } catch (e) { /* a pane out of reach: this ring's rows alone */ }
+  var top = Math.max(mid - total / 2, rowsEnd + SHARED_BTN_GAP);
+  // The combination's switch, locked, heads the column, right under the
+  // rows, k opening downwards under its two choices; the padlock and the
+  // rest keep under it.
+  if (onLine(combineModeEl)){
+    var hr = boxOf(combineModeEl.offsetParent), headH = boxOf(combineModeEl).height;
     combineModeEl.style.left = num(p.left - hr.left) + 'px';
-    combineModeEl.style.top = num(top + headH / 2 - hr.top) + 'px';
-    top += headH + headGap;
+    combineModeEl.style.top = num(rowsEnd + SHARED_BTN_GAP + headH / 2 - hr.top) + 'px';
+    top = Math.max(top, rowsEnd + SHARED_BTN_GAP + headH + (lockH ? LOCK_CLEAR_GAP : SHARED_BTN_GAP));
   }
   if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
   var y = top + lockH + gap;
