@@ -6865,8 +6865,10 @@ var plotHome = null, plotFloatSize = null;
 // The pane's docked plot, as the holder knows it: whether it is docked, and
 // how wide; and, in the pane, where the holder keeps the room for it.
 var paneDock = { on: false, w: 0 }, hostDock = null;
+// Docked only while the bottom panel is open (in a merged pane, the
+// holder's): with it closed, the plot opens over the ring.
 function plotDockWanted(){
-  return state.plotDock && !IS_MOBILE && !curvePlotEl.hidden && !!ringSplitEl.closest('.fs-win-body.is-ring');
+  return state.plotDock && !IS_MOBILE && !curvePlotEl.hidden && !!ringSplitEl.closest('.fs-win-body.is-ring') && (plotDockFoot() ? hostSplitOn : splitOn);
 }
 function plotDockFoot(){ return IS_ISOPANE && isoInterlockOn; }
 // Whether the plot sits in the strip (in a merged pane, over the foot).
@@ -6916,6 +6918,12 @@ function syncPlotDockBtn(){
 }
 curveDockBtnEl.addEventListener('click', function(){
   state.plotDock = !state.plotDock;
+  // Docked, it goes into the bottom panel, opening the panel if closed.
+  if (state.plotDock && plotDockFoot() && !hostSplitOn) tellHost({ isopane: 'edit', name: 'split', on: true });
+  else if (state.plotDock && !plotDockFoot() && !splitOn){
+    splitOn = true;
+    syncPanes();
+  }
   syncSplit();
   if (drawn){ drawCurvePlot(drawn.G); mirrorToUrl(drawn.G); }
   curveDockBtnEl.focus({ preventScroll: true });
@@ -12889,7 +12897,10 @@ function applyIsoShared(d){
   if (flag(d.split) && d.split !== hostSplitOn){
     hostSplitOn = d.split;
     syncExprSide();
-    if (isoInterlockOn) splitTakesPlot(hostSplitOn);
+    if (isoInterlockOn){
+      splitTakesPlot(hostSplitOn);
+      syncSplit();
+    }
   }
   var dk = d.dock, fin = function(v){ return Number.isFinite(v) && Math.abs(v) < 20000; };
   hostDock = dk && typeof dk === 'object' && fin(dk.top) && fin(dk.bottom) && fin(dk.right) && fin(dk.maxW) && dk.bottom > dk.top ? dk : null;
