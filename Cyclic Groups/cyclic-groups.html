@@ -1254,17 +1254,15 @@
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-pref{ width:max-content; }
   :root.is-isopane #dir-toggle{ display:none !important; }
   /* Locked, the combination's switch moves onto the line between the rings,
-     level with the arrangement row, as the swap button sits level with the
-     group row: its two choices one above the other, k under them, its name
-     left to their titles. The ring's arrangement row keeps clear of it. */
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ padding-right:30px; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #combine-mode{ position:absolute; z-index:3; translate:-50% 0; flex-direction:column; gap:4px; margin:0; }
+     under the rows, first under the padlock: its two choices one above the
+     other, k under them, its name left to their titles, over the plots. */
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #combine-mode{ position:absolute; z-index:4; translate:-50% -50%; flex-direction:column; gap:4px; margin:0; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-mode-name{ display:none; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg{ flex-direction:column; background:var(--surface); }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg > button{ padding:4px 8px; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg > button + button{ border-inline-start:0; border-top:1px solid var(--panel-border); }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field :is(.combine-k-spin, .combine-k-mod){ background:var(--surface); border-radius:var(--radius-ctl); }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-k-spin > #combine-k{ width:3.6em; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-k-spin > #combine-k{ width:4.4em; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the two rings' lists are merged into one they share one button:
      the left ring's, on the line between the two rings just under the
@@ -9720,6 +9718,8 @@ function setCombineMode(mode){
   if (state.combineMode === mode) return;
   state.combineMode = mode;
   syncCombineMode();
+  // On the line between locked rings, k coming or going moves the buttons there.
+  if (!IS_ISOPANE) keepLockClear();
   if (drawn && comboLive(drawn.G)){
     if (mode === 'scalar') combineScalar(state.combineK, combo.a);
     else if (combo.k !== null){
@@ -15014,19 +15014,13 @@ function keepLockClear(){
   var mid = g.top + g.height / 2;
   // The split button in the open panel's corner is the panel's, not the line's.
   var onLine = function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); };
-  var btns = dirCtls.concat([cosetBtnEl, cosetControlsEl]).filter(onLine);
-  // The combination's switch, locked, has its two choices level with the
-  // arrangement row's select, its k hanging under them.
-  if (onLine(combineModeEl)){
-    var cr = boxOf(combineModeEl.offsetParent), ar = boxOf(arrangeSelectEl), cs = boxOf(combineModeEl.querySelector('.combine-seg'));
-    combineModeEl.style.left = num(p.left - cr.left) + 'px';
-    combineModeEl.style.top = num(ar.top + ar.height / 2 - cs.height / 2 - cr.top) + 'px';
-  }
+  var btns = [combineModeEl].concat(dirCtls, [cosetBtnEl, cosetControlsEl]).filter(onLine);
   var hs = btns.map(function(el){ return boxOf(el).height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
   var total = lockH + gap + hs.reduce(function(a, h){ return a + h; }, 0) + SHARED_BTN_GAP * Math.max(0, btns.length - 1);
-  var top = mid - total / 2;
+  // Centred on the ring, but never up among the rows above it.
+  var top = Math.max(mid - total / 2, topRowsBottom(isoPaneEl.parentNode) + SHARED_BTN_GAP);
   if (lockH) isoLockEl.style.top = num(top + lockH / 2 - p.top) + 'px';
   var y = top + lockH + gap;
   btns.forEach(function(el, i){
