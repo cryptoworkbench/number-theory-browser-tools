@@ -7003,7 +7003,23 @@ akeyCornerEl.addEventListener('click', function(){
 });
 function toggleSplit(){
   splitOn = !splitOn;
+  splitTakesPlot(splitOn);
   syncPanes();
+}
+// Closing the bottom panel minimizes the docked curve plot with it, and
+// opening it again brings back a plot minimized that way. A pane merged
+// into the ring holding it does the same with the holder's panel.
+var plotMinWithSplit = false;
+function splitTakesPlot(open){
+  if (!open && state.plotDock && curvePlotOpen && drawn && drawn.G.pts){
+    plotMinWithSplit = true;
+    curvePlotOpen = false;
+  } else if (open && plotMinWithSplit){
+    plotMinWithSplit = false;
+    curvePlotOpen = true;
+  } else return;
+  if (drawn) drawCurvePlot(drawn.G);
+  syncBarFormulas();
 }
 // The Numerical button is two stacked chevrons, pointing up while the panel
 // is closed and down while it is open: clicked, or pulled the way they
@@ -9205,6 +9221,7 @@ $('curve-plot-min').addEventListener('click', function(){
 });
 function openCurvePlot(){
   curvePlotOpen = true;
+  plotMinWithSplit = false;
   if (drawn) drawCurvePlot(drawn.G);
   syncBarFormulas();
   curveWin.place(curveWin.at.x, curveWin.at.y);
@@ -12869,7 +12886,11 @@ function applyIsoShared(d){
   if (flag(d.akey)) state.akey = d.akey;
   if (flag(d.legend)) legendShown = d.legend;
   if (flag(d.genexp)){ genExpEl.hidden = !d.genexp; syncGenExpCorner(); }
-  if (flag(d.split) && d.split !== hostSplitOn){ hostSplitOn = d.split; syncExprSide(); }
+  if (flag(d.split) && d.split !== hostSplitOn){
+    hostSplitOn = d.split;
+    syncExprSide();
+    if (isoInterlockOn) splitTakesPlot(hostSplitOn);
+  }
   var dk = d.dock, fin = function(v){ return Number.isFinite(v) && Math.abs(v) < 20000; };
   hostDock = dk && typeof dk === 'object' && fin(dk.top) && fin(dk.bottom) && fin(dk.right) && fin(dk.maxW) && dk.bottom > dk.top ? dk : null;
   fitDockedPlot();
