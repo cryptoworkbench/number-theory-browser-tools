@@ -9017,7 +9017,7 @@ function plotFloor(body){
 // (left or down grows it) and the height follows the width, the plot's
 // shape kept. A double click puts it back.
 var CURVE_BASE_W = 300;
-function plotWindow(el, gripEl){
+function plotWindow(el, gripEl, acrossLocked){
   var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
   win.place = function(x, y){
     var body = el.closest('.fs-win-body');
@@ -9025,7 +9025,9 @@ function plotWindow(el, gripEl){
     if (body && !el.hidden){
       var b = boxOf(body), r = boxOf(el), floor = plotFloor(body);
       var left = r.left + x - win.at.x, top = r.top + y - win.at.y;
-      x += Math.max(0, b.left - left) || Math.min(0, workRight(body) - (left + r.width));
+      // One that goes across, locked to a second ring, has its pane too.
+      var right = acrossLocked && isoLinked() ? b.right : workRight(body);
+      x += Math.max(0, b.left - left) || Math.min(0, right - (left + r.width));
       y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, floor - (top + r.height));
     }
     win.at = { x: Math.round(x), y: Math.round(y) };
@@ -9118,7 +9120,9 @@ function unstack(el, win, other){
   win.place(x + tries[2][0], y);
 }
 var curveWin = plotWindow(curvePlotEl, $('curve-grip'));
-var lapKeyWin = plotWindow(lapKeyEl, null);
+// Laps of the path, the one ring's key to both while they are locked, can
+// be dragged over the pane as well.
+var lapKeyWin = plotWindow(lapKeyEl, null, true);
 // The pane tells the ring holding it where its plots hang over its foot,
 // the rows there being the holder's, drawn over the pane's frame: the
 // holder lifts the frame over them, cut to the part above the foot and
@@ -12921,6 +12925,8 @@ function syncIsoKeys(){
   root.classList.toggle('is-iso-unlinked', unlinked);
   syncCosetButton();
   keepLockClear();
+  // Unlocked, Laps of the path comes back off the pane.
+  if (lapKeyWin && !lapKeyEl.hidden) lapKeyWin.place(lapKeyWin.at.x, lapKeyWin.at.y);
   root.classList.toggle('is-iso-one-legend', !!isoPane && !!drawn && !unlinked && (state.colorBy === 'order' || state.colorBy === 'theme' || state.colorBy === 'distinct'));
   syncPaneLegend(!!isoPane && !!drawn && !unlinked && state.colors && state.colorBy === 'inverse');
   syncPaneGenExp();
