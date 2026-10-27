@@ -1253,6 +1253,18 @@
   /* Moved there, the grid keeps its own width (the slider has its 64px). */
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-pref{ width:max-content; }
   :root.is-isopane #dir-toggle{ display:none !important; }
+  /* Locked, the combination's switch moves onto the line between the rings,
+     level with the arrangement row, as the swap button sits level with the
+     group row: its two choices one above the other, k under them, its name
+     left to their titles. The ring's arrangement row keeps clear of it. */
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ padding-right:30px; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #combine-mode{ position:absolute; z-index:3; translate:-50% 0; flex-direction:column; gap:4px; margin:0; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-mode-name{ display:none; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg{ flex-direction:column; background:var(--surface); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg > button{ padding:4px 8px; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg > button + button{ border-inline-start:0; border-top:1px solid var(--panel-border); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field :is(.combine-k-spin, .combine-k-mod){ background:var(--surface); border-radius:var(--radius-ctl); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-k-spin > #combine-k{ width:3.6em; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the two rings' lists are merged into one they share one button:
      the left ring's, on the line between the two rings just under the
@@ -9647,6 +9659,7 @@ document.addEventListener('keydown', function(e){
 // wheel over the ring steps k while one is drawn. A pane follows the
 // holding ring's mode, which shows the switch for both.
 var combineKEl = $('combine-k');
+var combineModeEl = $('combine-mode');
 var combineModeBtns = { element: $('combine-mode-element'), scalar: $('combine-mode-scalar') };
 function combineTap(x){
   if (state.combineMode === 'scalar' && x !== null) combineScalar(state.combineK, x);
@@ -14983,7 +14996,7 @@ function keepLockClear(){
   isoLockEl.style.top = exprLockEl.style.top = '';
   // The preferred directions and the lock slider go with the coin, above it.
   var dirCtls = [$('dir-pref'), $('shorten-lock-track'), dirToggleEl];
-  dirCtls.concat([splitBtnEl, cosetBtnEl, cosetControlsEl]).forEach(function(el){ el.style.left = el.style.top = ''; });
+  dirCtls.concat([splitBtnEl, cosetBtnEl, cosetControlsEl, combineModeEl]).forEach(function(el){ el.style.left = el.style.top = ''; });
   if (isoPaneEl.hidden) return;
   var p = boxOf(isoPaneEl), g = boxOf(ringSvgEl);
   isoSwapEl.hidden = !canSwapRings();
@@ -14996,6 +15009,13 @@ function keepLockClear(){
   // The split button in the open panel's corner is the panel's, not the line's.
   var onLine = function(el){ return getComputedStyle(el).position === 'absolute' && !!el.offsetParent && !subgroupsHeadEl.contains(el); };
   var btns = dirCtls.concat([cosetBtnEl, cosetControlsEl]).filter(onLine);
+  // The combination's switch, locked, has its two choices level with the
+  // arrangement row's select, its k hanging under them.
+  if (onLine(combineModeEl)){
+    var cr = boxOf(combineModeEl.offsetParent), ar = boxOf(arrangeSelectEl), cs = boxOf(combineModeEl.querySelector('.combine-seg'));
+    combineModeEl.style.left = num(p.left - cr.left) + 'px';
+    combineModeEl.style.top = num(ar.top + ar.height / 2 - cs.height / 2 - cr.top) + 'px';
+  }
   var hs = btns.map(function(el){ return boxOf(el).height; });
   var lockH = isoLockEl.hidden ? 0 : isoLockEl.offsetHeight;
   var gap = lockH && btns.length ? LOCK_CLEAR_GAP : 0;
