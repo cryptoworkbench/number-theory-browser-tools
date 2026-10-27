@@ -5190,7 +5190,7 @@ var lastSubs = [];
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
 var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
-var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gsub: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
+var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gsub: 'cyclicGroups.formulaToggleSubName', ggroup: 'cyclicGroups.formulaToggleName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
 var scratchOpen = false;
 // The scratchpad's formulas, fresh nodes each time, in its rows' order:
 // { key, cls, math, plain } for each row that holds a formula.
@@ -5261,6 +5261,10 @@ function menuFormulas(G){
   if (sub) list.push(G.pts
     ? { key: 'gsub', cls: sub.cls, math: mrow(sub.math, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: sub.plain + ': ' + ecEquation(G.a, G.b) }
     : { key: 'gsub', cls: sub.cls, math: sub.math, plain: sub.plain });
+  // And the group's name alone, as that row writes it.
+  list.push(G.pts
+    ? { key: 'ggroup', cls: 'ring-math-title', math: mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: curveName(G) }
+    : { key: 'ggroup', cls: 'ring-math-title', math: mGroup(G), plain: G.label });
   return list.concat([structureFormula(G)]);
 }
 // What each scratchpad row (and the structure) holds, by its key: its
@@ -6488,11 +6492,14 @@ function syncExprCtx(key){
     });
     return;
   }
-  var it = ctxItem('menuitem', translate(SCRATCH_NAMES[key]), true);
-  it.item.addEventListener('pointerenter', function(){ setRingCopy(key, it.item, false); });
-  it.item.addEventListener('click', function(){ setRingCopy(key, it.item, true); });
-  it.item.classList.add('ring-ctx-expr');
-  ringCtxEl.appendChild(it.item);
+  // The subgroup row's G = ⟨h⟩ ⊆ …: the subgroup's name, then the group's.
+  (key === 'gsub' ? ['gsub', 'ggroup'] : [key]).forEach(function(k){
+    var it = ctxItem('menuitem', translate(SCRATCH_NAMES[k]), true);
+    it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
+    it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
+    it.item.classList.add('ring-ctx-expr');
+    ringCtxEl.appendChild(it.item);
+  });
   if (key !== 'gens') return;
   // Under it, Natural with its exponents, x¹, or without, x.
   var natExp = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExp'), !state.natExpOff, function(){
