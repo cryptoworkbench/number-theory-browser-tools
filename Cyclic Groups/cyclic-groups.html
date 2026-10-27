@@ -5190,7 +5190,7 @@ var lastSubs = [];
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
 var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
-var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
+var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gsub: 'cyclicGroups.formulaToggleSubName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
 var scratchOpen = false;
 // The scratchpad's formulas, fresh nodes each time, in its rows' order:
 // { key, cls, math, plain } for each row that holds a formula.
@@ -5255,7 +5255,13 @@ function invariantFactors(G){
 }
 // The menu's formulas: the scratchpad's, then the structure.
 function menuFormulas(G){
-  return scratchFormulas(G).concat([structureFormula(G)]);
+  var list = scratchFormulas(G), sub = list.find(function(f){ return f.key === 'sname'; });
+  // The subgroup's name as the subgroup row writes it, copied from there:
+  // on a curve with the curve's equation, E(𝔽ₚ): y² = ….
+  if (sub) list.push(G.pts
+    ? { key: 'gsub', cls: sub.cls, math: mrow(sub.math, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: sub.plain + ': ' + ecEquation(G.a, G.b) }
+    : { key: 'gsub', cls: sub.cls, math: sub.math, plain: sub.plain });
+  return list.concat([structureFormula(G)]);
 }
 // What each scratchpad row (and the structure) holds, by its key: its
 // formula, or what stands in for it; a row with nothing to show has no entry.
@@ -6460,7 +6466,7 @@ document.addEventListener('contextmenu', function(e){
 // own item: the group's generator count, opening the copy submenu as the
 // Formulas item does.
 // The Subgroup row's formula, right-clicked, opens it the same way with
-// the subgroup's name, ⟨h⟩ ⊂ G, to copy (key, the formula's: 'gens' or 'sname').
+// the subgroup's name, ⟨h⟩ ⊂ G, to copy (key, the formula's: 'gens' or 'gsub').
 function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
@@ -6511,7 +6517,7 @@ $('gen-super').addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE || !e.currentTarget.firstChild || !drawn) return;
   setRevealHot(null);
-  setRingCtx(true, ptX(e), ptY(e), 'sname');
+  setRingCtx(true, ptX(e), ptY(e), 'gsub');
 });
 // The main menu's first item: Disable reveal on hover, one switch for the
 // whole tool. Off, a power of the generator under the pointer shows its
