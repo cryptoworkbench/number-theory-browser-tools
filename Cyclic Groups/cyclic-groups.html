@@ -3266,13 +3266,14 @@ function elMaxBoth(G){ return Math.max(elMax(G), state.revealOff ? 0 : asReveal(
 function expMaxBoth(G){ return Math.max(expMax(G), state.revealOff ? 0 : asReveal(function(){ return expMax(G); })); }
 function signRoomEl(G){ return signedOn(G) || (!state.revealOff && asReveal(function(){ return signedOn(G); })); }
 function signRoomExp(G){ return signedExpOn(G) || (!state.revealOff && asReveal(function(){ return signedExpOn(G); })); }
-// A generator as the base of a power: a negative one in brackets, (−1)ᵏ.
+// A generator as the base of a power: a negative one unbracketed, −1ᵏ, the
+// element itself raised, not the negation of a power.
 // On a curve the base is the point itself, (x, y), already bracketed.
 function baseText(G, g, tight){
   if (G && G.pts) return elText(G, g, tight);
-  var s = G ? signed(balEl(G, g)) : String(g); return s.charAt(0) === '−' ? '(' + s + ')' : s;
+  return G ? signed(balEl(G, g)) : String(g);
 }
-function baseMn(G, g){ if (G && G.pts) return mPoint(G.pts[g]); var s = baseText(G, g); return s.charAt(0) === '(' ? mrow(mo('(', true), mn(s.slice(1, -1)), mo(')', true)) : mn(s); }
+function baseMn(G, g){ return G && G.pts ? mPoint(G.pts[g]) : mn(baseText(G, g)); }
 // An element as the page writes it: a point (x, y), 𝒪, or the number.
 function elText(G, x, tight){
   if (!G.pts) return signed(balEl(G, x));
@@ -3609,7 +3610,7 @@ function tellHostEcMult(){
   ecMultSent = state.ecMult;
   tellHost({ isopane: 'ecmult', on: state.ecMult });
 }
-// Natural, an element is written as its own first power, x¹ ((−x)¹ signed,
+// Natural, an element is written as its own first power, x¹ (−x¹ signed,
 // (x,y)¹ on a curve), unless the slider's right-click menu turns that off
 // (state.natExpOff). The exponent takes the leading zeros every exponent of
 // the group takes while Line up numbers pads them: 01 in a group of order 12.
@@ -3620,13 +3621,12 @@ function padNum(v, max){ return (v < 0 ? '−' : '') + (state.subPad ? String(Ma
 // curve's point as it is.
 function padBase(G, g){
   if (G.pts) return elText(G, g, true);
-  var s = padNum(balEl(G, g), elMaxBoth(G));
-  return s.charAt(0) === '−' ? '(' + s + ')' : s;
+  return padNum(balEl(G, g), elMaxBoth(G));
 }
 function natPow(s, G){
   if (state.natExpOff) return s;
   var e = state.subPad && G ? '1'.padStart(String(expMax(G)).length, '0') : '1';
-  return (s.charAt(0) === '−' ? '(' + s + ')' : s) + superscript(e);
+  return s + superscript(e);
 }
 function expMath(G, g, k){ return ecMult(G) ? mrow(k, mi('P')) : mEl('msup', [baseMn(G, g), k]); }
 function expPlain(G, g, k){ return ecMult(G) ? k + 'P' : baseText(G, g) + '^' + k; }
@@ -11320,7 +11320,7 @@ function subFormat(base, log, width, expWidth, G, natOff){
   // A curve's points stand in for it, written as multiples or not as G is.
   var pts = G && G.pts || null, C = pts ? { pts: pts, mult: ecMult(G) } : G;
   // An element written Natural, a number or a curve's point, is its own
-  // first power, as on its bead, a negative one bracketed, unless the
+  // first power, as on its bead, unless the
   // exponents are turned off there (natPow; natOff, the pane's own in the
   // merged panel).
   var one = G && state.subPad ? '1'.padStart(expWidth || String(expMaxBoth(G)).length, '0') : '1';
@@ -11328,12 +11328,12 @@ function subFormat(base, log, width, expWidth, G, natOff){
     if (pts) return natOff ? mPoint(pts[x]) : mEl('msup', [mPoint(pts[x]), mn(one)]);
     var s = nat(x), b = numMn(s, width, sg);
     if (natOff) return b;
-    return mEl('msup', [s.charAt(0) === '−' ? mrow(mo('(', true), b, mo(')', true)) : b, mn(one)]);
+    return mEl('msup', [b, mn(one)]);
   };
   var natP = function(x){
     var s = pts ? plainPoint(pts[x]) : nat(x);
     if (natOff) return s;
-    return (s.charAt(0) === '−' ? '(' + s + ')' : s) + superscript(one);
+    return s + superscript(one);
   };
   var f = {
     ex: ex,
