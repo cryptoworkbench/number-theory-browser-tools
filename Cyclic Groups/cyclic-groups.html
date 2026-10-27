@@ -318,7 +318,7 @@
      theme's colours, instead of the browser's: shown, as the browser's
      are, while the pointer is over the field or it has the focus. */
   .n-spin{ position:relative; display:inline-flex; }
-  .facts.group-controls .n-spin > input{ -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
+  .facts.group-controls .n-spin > input{ width:calc(var(--digits, 2) * 1ch + 36px); -moz-appearance:textfield; appearance:textfield; padding-right:24px; }
   .n-spin > input::-webkit-inner-spin-button, .n-spin > input::-webkit-outer-spin-button{ -webkit-appearance:none; appearance:none; margin:0; }
   .n-spin-btns{ position:absolute; top:3px; bottom:3px; right:3px; display:none; flex-direction:column; width:16px; border-radius:calc(var(--radius-ctl) - 2px); overflow:hidden; background:var(--bg-1); box-shadow:inset 0 0 0 1px var(--panel-border); }
   .n-spin:is(:hover, :focus-within) > .n-spin-btns{ display:flex; }
@@ -348,7 +348,6 @@
   .facts.group-controls .ec-row{ position:relative; }
   .facts.group-controls #ec-note{ position:absolute; top:calc(100% + 4px); right:0; z-index:5; max-width:min(36em, 100%); padding:4px 8px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); box-shadow:0 2px 8px color-mix(in srgb, var(--text) 18%, transparent); }
   .ec-field{ display:inline-flex; align-items:center; gap:6px; }
-  .facts.group-controls .ec-field input{ width:4.2em; }
   /* The example curves: a button showing the curve picked (if it is one of
      them) and a list under it, which scrolls as the subgroup list does,
      with no scrollbar, fading out at an edge with more curves beyond it. */
@@ -1388,7 +1387,7 @@
   :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls > .ec-pick-row{ min-width:2.75em; padding-left:0; }
   :root.is-ec :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls{ column-gap:16px; }
   :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field{ gap:4px; }
-  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field input{ width:2.4em; padding-inline:6px; }
+  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field input{ width:calc(var(--digits, 2) * 1ch + 14px); padding-inline:6px; }
   :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field .n-spin-btns{ display:none; }
   .fs-win-body.is-ring > #arrange-field > .arrange-controls{ justify-content:flex-end; }
   /* The arrangement row is named for the group in the Ring window. */
@@ -14952,19 +14951,20 @@ function exportRingPng(){
 
 /* ---------- event wiring ---------- */
 
-// The modulus field is as wide as its number (an empty one as two digits),
-// however the number reaches it: typed, stepped or written by the page.
-function fitNInput(){ nInputEl.style.width = 'calc(' + (nInputEl.value.length || 2) + 'ch + 36px)'; }
-(function(){
+// The modulus field and a curve's a and b are each as wide as their number
+// (an empty one as two digits), however the number reaches it: typed,
+// stepped or written by the page.
+[nInputEl, $('ec-a'), $('ec-b')].forEach(function(el){
   var own = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  Object.defineProperty(nInputEl, 'value', {
+  var fit = function(){ el.style.setProperty('--digits', own.get.call(el).length || 2); };
+  Object.defineProperty(el, 'value', {
     configurable: true,
     get: function(){ return own.get.call(this); },
-    set: function(v){ own.set.call(this, v); fitNInput(); }
+    set: function(v){ own.set.call(this, v); fit(); }
   });
-})();
-nInputEl.addEventListener('input', fitNInput);
-fitNInput();
+  el.addEventListener('input', fit);
+  fit();
+});
 nInputEl.addEventListener('input', function(){ if (state.ec) typedCurve(); else applyTypedN(nInputEl.value); });
 // The field's own up and down buttons step it as the browser's would: once
 // on a press, then on and on while held.
