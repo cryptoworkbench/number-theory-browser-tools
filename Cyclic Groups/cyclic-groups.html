@@ -12617,13 +12617,20 @@ function applyIsoShared(d){
   // A flip that turns G into its inverse (invForTurn) brings the new
   // subgroup with it, taken as the ring turns over, as on the holding ring:
   // its select message, coming after, would redraw the ring mid-flip.
-  if (flip) flipRing(function(){ if (pref) state.prefDir = pref; takeFlipSel(d.sel); keepCosets(render); });
+  // With the preferred way round turning and G kept, the arrows carried
+  // over are the new ones and land without a pulse, as on the holder.
+  if (flip) flipRing(function(){ if (pref) state.prefDir = pref; takeFlipSel(d.sel); keepCosets(render); }, !!pref && flipSelGen(d.sel) === null);
   else keepCosets(render);
 }
-function takeFlipSel(sel){
-  if (!sel || !subInterlocked() || !Number.isInteger(sel.k) || sel.k < 0 || sel.k >= isoOrder()) return;
+// The subgroup a flip brings, when it is a new one; null otherwise.
+function flipSelGen(sel){
+  if (!sel || !subInterlocked() || !Number.isInteger(sel.k) || sel.k < 0 || sel.k >= isoOrder()) return null;
   var g = isoPowers()[sel.k];
-  if (g === undefined || (!state.noSub && state.gen === g)) return;
+  return g === undefined || (!state.noSub && state.gen === g) ? null : g;
+}
+function takeFlipSel(sel){
+  var g = flipSelGen(sel);
+  if (g === null) return;
   var follow = sel.follow === true;
   pickSent = null;
   isoSelSent = selKey(sel.k, follow);
