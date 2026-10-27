@@ -8761,10 +8761,13 @@ function plotPolygon(G){
   body.appendChild(svgEl('circle', { 'class': 'poly-mark', cx: num(tip[0]), cy: num(tip[1]), r: 3.2 }));
   body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
   // It turns from where it stood to its new place the shorter way round
-  // (forward on a half turn); let go, it is back at rest at once.
+  // (forward on a half turn), to rest too when a combination comes to 0;
+  // let go, it is back at rest at once.
   var turn = log[rot], key = G.key + '|' + g + '|' + sgn, deg = sgn * turn * 360 / n;
-  var same = polyShown && polyShown.key === key && turn;
-  if (same && polyShown.turn !== turn){
+  var same = polyShown && polyShown.key === key && (turn || live);
+  if (same){
+    // From where it stands, never round a whole turn back to the same
+    // place: the same turn again leaves it standing.
     var steps = ((turn - polyShown.turn) % n + n) % n;
     if (steps > n / 2) steps -= n;
     deg = polyShown.deg + sgn * steps * 360 / n;
