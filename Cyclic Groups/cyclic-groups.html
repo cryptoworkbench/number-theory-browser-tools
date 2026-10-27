@@ -3506,7 +3506,22 @@ function syncArrange(G){
 // On a curve the element expression writes powers of the generator the
 // slider is on, (x, y)ᵏ, as a group of numbers writes gᵏ; the slider's
 // right-click menu writes them as the multiples kP instead (state.ecMult).
-function ecMult(G){ return !!(G && G.pts) && state.ecMult; }
+function ecMult(G){
+  if (!G || !G.pts) return false;
+  if (typeof G.mult === 'boolean') return G.mult;
+  // The pane's group, written in this ring's bottom panel, as the pane
+  // writes it (tellHostEcMult).
+  if (!IS_ISOPANE && isoPane && isoPane.H === G && !(drawn && drawn.G === G)) return isoPane.ecMult === true;
+  return state.ecMult;
+}
+// A pane tells the ring holding it how it writes its points, for the rows
+// of its group in the holder's bottom panel.
+var ecMultSent = null;
+function tellHostEcMult(){
+  if (!IS_ISOPANE || state.ecMult === ecMultSent) return;
+  ecMultSent = state.ecMult;
+  tellHost({ isopane: 'ecmult', on: state.ecMult });
+}
 // Natural, an element is written as its own first power, x¹ ((−x)¹ signed,
 // (x,y)¹ on a curve), unless the slider's right-click menu turns that off
 // (state.natExpOff). The exponent takes the leading zeros every exponent of
@@ -3720,7 +3735,8 @@ function syncSubExpr(G){
     c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], G.generators.map(function(g){
       var opt = document.createElement('option');
       opt.value = String(g);
-      opt.textContent = translate(c.key, { g: elText(G, g) });
+      // A curve's points written as multiples kP: its expressions are too.
+      opt.textContent = translate(c.key === 'cyclicGroups.arrangePowers' && ecMult(G) ? 'cyclicGroups.exprMultiplesEc' : c.key, { g: elText(G, g) });
       return opt;
     })));
     if (c.get() === SUB_FOLLOW){ c.el.value = SUB_FOLLOW; return; }
@@ -3747,7 +3763,7 @@ function syncMergedExpr(G){
     c[0].replaceChildren.apply(c[0], [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], H.generators.map(function(h){
       var opt = document.createElement('option');
       opt.value = String(h);
-      opt.textContent = translate('cyclicGroups.arrangePowers', { g: elText(H, h) });
+      opt.textContent = translate(ecMult(H) ? 'cyclicGroups.exprMultiplesEc' : 'cyclicGroups.arrangePowers', { g: elText(H, h) });
       return opt;
     })));
     if (c[1] === SUB_FOLLOW){ c[0].value = SUB_FOLLOW; return; }
@@ -10967,7 +10983,8 @@ function subFormat(base, log, width, expWidth, G, natOff){
   var num = function(v, w, s){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(w - s, '0') : String(Math.abs(v))); };
   var nat = function(x){ return num(balEl(G, x), width, sg); };
   var ex = function(k){ return num(balExp(G, k), expWidth, sgExp); };
-  var pts = G && G.pts || null, C = pts ? { pts: pts } : G;
+  // A curve's points stand in for it, written as multiples or not as G is.
+  var pts = G && G.pts || null, C = pts ? { pts: pts, mult: ecMult(G) } : G;
   // An element written Natural, a number or a curve's point, is its own
   // first power, as on its bead, a negative one bracketed, unless the
   // exponents are turned off there (natPow; natOff, the pane's own in the
@@ -13419,6 +13436,11 @@ window.addEventListener('message', function(e){
     if (drawn && subInterlocked() && Number.isInteger(d.k) && d.k >= 0 && d.k < isoOrder()) selectGen(isoPowers()[d.k]);
   } else if (d.isopane === 'subinv'){
     if (drawn && subInterlocked() && !state.noSub) selectInverse(state.gen);
+  } else if (d.isopane === 'ecmult'){
+    if (typeof d.on === 'boolean' && isoPane && d.on !== (isoPane.ecMult === true)){
+      isoPane.ecMult = d.on;
+      render();
+    }
   } else if (d.isopane === 'genexp'){
     if (typeof d.on === 'boolean' && d.on !== genExpShown()) toggleGenExp();
   } else if (d.isopane === 'genexp-link'){
@@ -14146,6 +14168,7 @@ function render(){
   autoFlip(G, shown);
   syncInterlock();
   syncDirToggle();
+  tellHostEcMult();
   // Compared here, after a follow (syncGenFollow) has moved the subgroup.
   var genChanged = lastGenSeen !== null && state.gen !== lastGenSeen;
   lastGenSeen = state.gen;
