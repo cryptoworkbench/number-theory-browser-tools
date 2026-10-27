@@ -12163,7 +12163,15 @@ function renderLegend(G, classes, pairing){
 }
 
 function renderNNote(){
-  translateInto(nLabelEl, 'cyclicGroups.nLabelMath', { n: mInline(mPct(), '%') });
+  // Over the Ring window's top row the % stands alone, naming the modulus
+  // in its tooltip; the stacked page keeps the word beside it.
+  if (IS_MOBILE){
+    translateInto(nLabelEl, 'cyclicGroups.nLabelMath', { n: mInline(mPct(), '%') });
+    nLabelEl.removeAttribute('title');
+  } else {
+    nLabelEl.replaceChildren(mInline(mPct(), '%'));
+    nLabelEl.title = translate('cyclicGroups.nLabelTitle');
+  }
   // The operation row's label is ∗, typeset the way the modulus row's % is.
   translateInto(opLabelEl, 'cyclicGroups.opLabelMath', { op: mInline(mo('∗', true), '∗') });
   if (!nNoteShown || state.ec){ nNoteEl.textContent = ''; return; }

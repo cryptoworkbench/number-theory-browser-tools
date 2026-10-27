@@ -116,7 +116,8 @@
    elements a and b being combined), and exprHoverSignOn, exprHoverSignOff,
    exprHoverSignOnEc, exprHoverSignOffEc, exprHoverSignExpOn and
    exprHoverSignExpOff (the On hover slider's own ± and g^± switches,
-   signing what Reveal on hover shows).
+   signing what Reveal on hover shows), and nLabelTitle (the tooltip of
+   the % alone naming the modulus in the Ring window's top row).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -518,6 +519,7 @@
       exprHoverSignOffEc: 'Under the pointer, write the coordinates as 0 … p − 1',
       exprHoverSignExpOn: 'Under the pointer, write the exponents in their signed form, nearest 0',
       exprHoverSignExpOff: 'Under the pointer, write the exponents as 0 … |G| − 1',
+      nLabelTitle: 'Modulus',
       menuSigned: 'Signed numbers (nearest 0)',
       menuSignedEc: 'Signed coordinates (nearest 0)',
       menuEcMult: 'Write points as multiples kP',
