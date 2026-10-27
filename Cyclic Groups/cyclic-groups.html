@@ -8735,8 +8735,11 @@ function plotPolygon(G){
       turns.push({ from: log[x0], by: span > m / 2 ? hop - n : hop, cls: 'is-walk ' + lapClass(Math.floor((h - 1) / m0)) });
     }
   } else if (live && combo.k === null){
-    turns.push({ from: 0, by: log[combo.a], cls: 'is-a' });
-    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: log[combo.a], by: log[combo.b], cls: 'is-b' });
+    // a + b: each turn the shorter way round, backward past half a turn
+    // (forward on a half turn), as the polygon itself turns.
+    var short = function(k){ return k > n / 2 ? k - n : k; };
+    turns.push({ from: 0, by: short(log[combo.a]), cls: 'is-a' });
+    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: log[combo.a], by: short(log[combo.b]), cls: 'is-b' });
   }
   turns = turns.filter(function(t){ return t.by % n; });
   turns.forEach(function(t, i){
