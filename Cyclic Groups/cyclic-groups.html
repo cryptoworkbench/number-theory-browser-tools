@@ -2027,7 +2027,14 @@
   .ring-corner > :is(.key-corner, .genexp-corner)[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
-  .genexp-body{ position:relative; align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(calc(30vh / var(--page-zoom)), 260px); overflow:auto; overscroll-behavior:contain; }
+  /* Past its height the table scrolls as the subgroup list does: no
+     scrollbar, a fade at an edge with more rows beyond it, and over it a
+     count of those rows (syncGenExpMore). */
+  .genexp-body{ position:relative; align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; max-height:min(calc(36vh / var(--page-zoom)), 360px); overflow:auto; overscroll-behavior:contain; scrollbar-width:none; }
+  .genexp-body::-webkit-scrollbar{ display:none; }
+  .genexp-body.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); }
+  .genexp-body.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); }
+  .genexp-body.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); }
   .genexp-table{ flex:none; border-collapse:separate; border-spacing:0; font-family:var(--font-math); font-size:calc(1.05rem * var(--genexp-fit, 1)); color:var(--text); }
   .genexp-table td{ padding:.12em .4em; text-align:center; vertical-align:baseline; white-space:nowrap; }
   /* The elements' row is set off from the powers under it, and each row's
@@ -2654,10 +2661,14 @@
       <section class="panel genexp-info" id="genexp-info" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expression reference table</h2>
         <div class="genexp-body" id="genexp-body"></div>
+        <button type="button" class="sub-more genexp-more" tabindex="-1" aria-hidden="true" hidden></button>
+        <button type="button" class="sub-more genexp-more is-top" tabindex="-1" aria-hidden="true" hidden></button>
       </section>
       <section class="panel genexp-info is-pane-copy" id="genexp-info-pane" hidden>
         <h2 data-i18n="cyclicGroups.genExpTitle">Element expression reference table</h2>
         <div class="genexp-body" id="genexp-body-pane"></div>
+        <button type="button" class="sub-more genexp-more" tabindex="-1" aria-hidden="true" hidden></button>
+        <button type="button" class="sub-more genexp-more is-top" tabindex="-1" aria-hidden="true" hidden></button>
       </section>
       <div class="ring-bar" id="ring-bar" aria-hidden="true"></div>
       <div class="bar-formulas" id="bar-formulas-l"></div>
@@ -5987,6 +5998,23 @@ function dropPaneCards(){
 // instead. The table is built again only when the group, the language, the
 // sort or the panel's numbers and colours change.
 var genExpEl = $('genexp-info'), genExpBodyEl = $('genexp-body');
+// Each table's count of the rows past its edges (see .genexp-body), kept
+// as it scrolls, is filled or changes size; a click scrolls a page that way.
+function syncGenExpMore(body){
+  var bottom = body.parentNode.querySelector(':scope > .genexp-more:not(.is-top)'), top = body.parentNode.querySelector(':scope > .genexp-more.is-top');
+  syncMoreLabels(body, top, bottom, 4, body.querySelectorAll('tr'));
+}
+[genExpBodyEl, $('genexp-body-pane')].forEach(function(body){
+  var sync = function(){ syncGenExpMore(body); };
+  body.addEventListener('scroll', sync, { passive: true });
+  new MutationObserver(sync).observe(body, { childList: true });
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(body);
+  body.parentNode.querySelectorAll(':scope > .genexp-more').forEach(function(el){
+    el.addEventListener('click', function(){
+      body.scrollBy({ top: (el.classList.contains('is-top') ? -0.8 : 0.8) * body.clientHeight, behavior: 'smooth' });
+    });
+  });
+});
 var genExpSort = null;
 function genExpShown(){ return !genExpEl.hidden; }
 // The table: a row of the elements, then one per generator g (g^k under
@@ -11261,14 +11289,14 @@ var subMoreEl = $('sub-more'), subMoreTopEl = $('sub-more-top');
 function syncSubMore(){ syncMoreLabels(subgroupsEl, subMoreTopEl, subMoreEl, 4); }
 // A scrolling list's two labels: over its top edge the rows hidden, wholly
 // or in part, above it, over its bottom edge those below (rows: the list's
-// shown children, which the labels never are), each level with its edge,
-// inset by gap.
-function syncMoreLabels(listEl, topEl, bottomEl, gap){
+// shown children, which the labels never are, or those given), each level
+// with its edge, inset by gap.
+function syncMoreLabels(listEl, topEl, bottomEl, gap, rows){
   var top = listEl.scrollTop, rest = listEl.scrollHeight - listEl.clientHeight - top;
   listEl.classList.toggle('is-more-above', top > 1);
   listEl.classList.toggle('is-more-below', rest > 1);
   var box = boxOf(listEl), above = 0, below = 0;
-  Array.prototype.forEach.call(listEl.children, function(row){
+  Array.prototype.forEach.call(rows || listEl.children, function(row){
     if (row.hidden || row.classList.contains('sub-gcd-divider')) return;
     var r = boxOf(row);
     if (top > 1 && r.top < box.top - 1) above++;
