@@ -113,7 +113,10 @@
    strip at the bottom of the Ring window, and floating it over the ring
    again), and plotHalosPath and plotHalosAb (the curve plot's menu choosing
    which points it rings: G and its inverse in their paths' colours, or the
-   elements a and b being combined).
+   elements a and b being combined), and exprHoverSignOn, exprHoverSignOff,
+   exprHoverSignOnEc, exprHoverSignOffEc, exprHoverSignExpOn and
+   exprHoverSignExpOff (the On hover slider's own ± and g^± switches,
+   signing what Reveal on hover shows).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -509,6 +512,12 @@
       exprSignOffEc: 'Write the coordinates as 0 … p − 1',
       exprSignExpOn: 'Write the exponents in their signed form, nearest 0',
       exprSignExpOff: 'Write the exponents as 0 … |G| − 1',
+      exprHoverSignOn: 'Under the pointer, write the numbers in their signed form, nearest 0',
+      exprHoverSignOff: 'Under the pointer, write the numbers as 0 … n − 1',
+      exprHoverSignOnEc: 'Under the pointer, write the coordinates in their signed form, nearest 0',
+      exprHoverSignOffEc: 'Under the pointer, write the coordinates as 0 … p − 1',
+      exprHoverSignExpOn: 'Under the pointer, write the exponents in their signed form, nearest 0',
+      exprHoverSignExpOff: 'Under the pointer, write the exponents as 0 … |G| − 1',
       menuSigned: 'Signed numbers (nearest 0)',
       menuSignedEc: 'Signed coordinates (nearest 0)',
       menuEcMult: 'Write points as multiples kP',
