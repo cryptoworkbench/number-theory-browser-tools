@@ -825,7 +825,7 @@
       akeyDropLine: 'Remove this line',
       showElementKey: 'Show element colour key',
       fsInfo: 'Info',
-      fsGroupParams: 'Parameters',
+      fsGroupParams: 'Group',
       fsMinimize: 'Minimize {name}',
       fsMaximize: 'Maximize {name}',
       fsRestore: 'Restore {name}',
