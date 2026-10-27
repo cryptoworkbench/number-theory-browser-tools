@@ -366,7 +366,6 @@
   .ec-pick-list > li[aria-selected="true"]{ color:var(--accent); font-weight:600; }
   /* A curve whose group is not cyclic, in red. */
   .ec-pick-list > li.is-not-cyclic, #ec-preset-now.is-not-cyclic{ color:var(--role-warn); }
-  .ec-eq{ font-family:var(--font-math); font-size:1.05rem; color:var(--text); white-space:nowrap; }
   :root.is-ec .facts.group-controls :is(.n-row, .op-row, .op-toggle-row){ display:none !important; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-row, :root.is-ringwin .facts.group-controls .op-row{ display:none; }
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame) .facts.group-controls .op-toggle-row, :root.is-ringwin .facts.group-controls .op-toggle-row{ display:flex; justify-content:center; padding:10px 0 12px; }
@@ -2527,7 +2526,6 @@
           <li class="fs-row-label" data-i18n="cyclicGroups.fsGroupParams">Parameters</li>
           <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
           <li class="ec-row" id="ec-row" hidden>
-            <span class="ec-eq" id="ec-eq" dir="ltr"></span>
             <span class="ec-field"><label for="ec-p" class="fact-label" id="ec-p-label">p</label><span class="n-spin"><input type="number" id="ec-p" min="5" max="97" step="1" value="17" title="The modulus: a prime from 5 to 97, or a product of two different such primes" aria-label="The modulus: a prime from 5 to 97, or a product of two different such primes" data-i18n-title="cyclicGroups.ecNTitle" data-i18n-aria-label="cyclicGroups.ecNTitle"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span></span>
             <span class="ec-field"><label for="ec-a" class="fact-label">a</label><input type="number" id="ec-a" min="0" max="96" step="1" value="2" title="The coefficient a" aria-label="The coefficient a" data-i18n-title="cyclicGroups.ecATitle" data-i18n-aria-label="cyclicGroups.ecATitle"></span>
             <span class="ec-field"><label for="ec-b" class="fact-label">b</label><input type="number" id="ec-b" min="0" max="96" step="1" value="2" title="The coefficient b" aria-label="The coefficient b" data-i18n-title="cyclicGroups.ecBTitle" data-i18n-aria-label="cyclicGroups.ecBTitle"></span>
@@ -7518,9 +7516,12 @@ function syncGenSuper(G){
   // the beads. Under the pointer it shows its natural number, as a bead
   // does, unless the main menu's switch turns that off.
   var hw = named && cosetGenWrite(G, h, !state.revealOff);
+  // On a curve the group is followed by the curve itself, E(𝔽ₚ), E: y² = ….
+  var eq = G.mode === 'elliptic' ? [comma(), mi('E'), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)] : [];
+  var eqPlain = eq.length ? ', E: ' + ecEquation(G.a, G.b) : '';
   genSuperEl.appendChild(named
-    ? mInline(mrow(mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label)
-    : mInline(mrow(mo(rel), mGroup(G)), rel + ' ' + G.label));
+    ? mInline(mrow.apply(null, [mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)].concat(eq)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label + eqPlain)
+    : mInline(mrow.apply(null, [mo(rel), mGroup(G)].concat(eq)), rel + ' ' + G.label + eqPlain));
   // Redrawn while it blinks, it carries on from where it was.
   if (!named || invBlink === null) return;
   var since = performance.now() - invBlink.at;
@@ -14474,12 +14475,19 @@ opToggleEl.addEventListener('click', function(){
 // count from 9 to 36. A few are not cyclic, among them y² = x³ + 1 (mod 7),
 // ℤ/2ℤ × ℤ/6ℤ, beside a cyclic curve of the same count.
 var EC_PRESETS = [[5, 1, 1], [7, 0, 2], [7, 3, 4], [7, 1, 6], [7, 3, 1], [7, 0, 1], [11, 0, 1], [11, 1, 6], [11, 1, 1], [11, 1, 7], [11, 1, 2], [11, 2, 4], [11, 1, 3], [17, 2, 2], [13, 1, 0], [13, 0, 4], [17, 2, 3], [17, 3, 5], [35, 1, 3], [17, 1, 8], [19, 1, 9], [19, 0, 5], [23, 1, 1], [23, 1, 4], [35, 3, 3], [23, 5, 1], [23, 1, 10], [23, 1, 11], [29, 7, 8], [29, 1, 7], [29, 1, 1], [29, 4, 20]];
-var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPEl = $('ec-p'), ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note'), ecEqEl = $('ec-eq');
+var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPEl = $('ec-p'), ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note');
 var ecNote = null; // the note under the fields ({ key, params }), while the typed curve is refused
 // The curve as y² = x³ + ax + b, its terms dropped or merged as a and b ask.
 function ecEquation(a, b){
   var rhs = 'x³' + (a ? ' + ' + (a === 1 ? '' : a) + 'x' : '') + (b ? ' + ' + b : '');
   return 'y² = ' + rhs;
+}
+// The same equation typeset.
+function mEcEquation(a, b){
+  var out = [mEl('msup', [mi('y'), mn(2)]), mo('='), mEl('msup', [mi('x'), mn(3)])];
+  if (a) out.push(mo('+'), a === 1 ? mi('x') : mrow(mn(a), mi('x')));
+  if (b) out.push(mo('+'), mn(b));
+  return mrow.apply(null, out);
 }
 function syncEcControls(){
   document.documentElement.classList.toggle('is-ec', state.ec);
@@ -14487,7 +14495,6 @@ function syncEcControls(){
   ecRowEl.hidden = !state.ec;
   if (!state.ec) return;
   [[ecPEl, state.ecP], [ecAEl, state.ecA], [ecBEl, state.ecB]].forEach(function(f){ if (document.activeElement !== f[0] || !ecNote) f[0].value = f[1]; });
-  ecEqEl.textContent = ecEquation(state.ecA, state.ecB) + ' (mod ' + state.ecP + ')';
   // The modulus is p over a prime field, n otherwise.
   $('ec-p-label').textContent = isPrime(state.ecP) ? 'p' : 'n';
   if (ecNote) translateInto(ecNoteEl, ecNote.key, ecNote.params);
