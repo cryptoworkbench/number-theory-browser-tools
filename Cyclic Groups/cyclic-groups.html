@@ -5255,16 +5255,21 @@ function invariantFactors(G){
 }
 // The menu's formulas: the scratchpad's, then the structure.
 function menuFormulas(G){
-  var list = scratchFormulas(G), sub = list.find(function(f){ return f.key === 'sname'; });
-  // The subgroup's name as the subgroup row writes it, copied from there:
-  // on a curve with the curve's equation, E(𝔽ₚ): y² = ….
-  if (sub) list.push(G.pts
-    ? { key: 'gsub', cls: sub.cls, math: mrow(sub.math, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: sub.plain + ': ' + ecEquation(G.a, G.b) }
-    : { key: 'gsub', cls: sub.cls, math: sub.math, plain: sub.plain });
-  // And the group's name alone, as that row writes it.
-  list.push(G.pts
-    ? { key: 'ggroup', cls: 'ring-math-title', math: mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: curveName(G) }
-    : { key: 'ggroup', cls: 'ring-math-title', math: mGroup(G), plain: G.label });
+  var list = scratchFormulas(G);
+  // The group's name as the subgroup row writes it, copied from there: on a
+  // curve with the curve's equation, E(𝔽ₚ): y² = ….
+  var name = G.pts
+    ? { math: mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: curveName(G) }
+    : { math: mGroup(G), plain: G.label };
+  list.push({ key: 'ggroup', cls: 'ring-math-title', math: name.math, plain: name.plain });
+  // And the subgroup's, ⟨h⟩ ⊆ …, h written as the row writes it, in the
+  // element expression slider's expression.
+  if (!state.noSub){
+    var h = state.gen, rel = G.orders[h] === G.order ? '⊆' : '⊂', hw = cosetGenWrite(G, h, false);
+    // Without the row's chip and colours, which mean nothing once copied.
+    [hw.m].concat([].slice.call(hw.m.querySelectorAll('[class]'))).forEach(function(el){ el.removeAttribute('class'); });
+    list.push({ key: 'gsub', cls: 'ring-math-title', math: mrow(angle(hw.m), mo(rel), name.math), plain: '⟨' + hw.p + '⟩ ' + rel + ' ' + name.plain });
+  }
   return list.concat([structureFormula(G)]);
 }
 // What each scratchpad row (and the structure) holds, by its key: its
