@@ -6909,7 +6909,7 @@ if (IS_RINGWIN){
   window.addEventListener('message', function(e){
     var d = e.data;
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'invblink'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -7569,6 +7569,8 @@ function invBlinks(after){
 function startInvBlink(n, after){
   invBlink = { at: performance.now(), n: n, after: !!after };
   if (drawn) syncGenSuper(drawn.G);
+  // The pane's G turns into its inverse with this ring's: it blinks too.
+  if (!IS_ISOPANE && drawn && subInterlocked()) isoTell({ iso: 'invblink', after: !!after });
 }
 function syncGenerators(G){
   genSelectEl.replaceChildren();
@@ -12597,8 +12599,11 @@ function applyIsoShared(d){
   }
   // The preferred way round comes with the holder's flip that turns it,
   // never on its own (the storage event), which would redraw mid-flip.
+  // Turned with the flip locked, it brings G's inverse along too (see
+  // invForTurn): the two drawn at once, as on the holder, never the old G
+  // the long way round first.
   var pref = DIRS.indexOf(d.pref) !== -1 && d.pref !== state.prefDir ? d.pref : null;
-  if (pref && !flip) state.prefDir = pref;
+  if (pref && !flip){ state.prefDir = pref; takeFlipSel(d.sel); }
   // The pane's formulas, chosen in the bottom bar of the ring holding it.
   if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
   if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
@@ -12622,7 +12627,8 @@ function applyIsoShared(d){
   if (flip) flipRing(function(){ if (pref) state.prefDir = pref; takeFlipSel(d.sel); keepCosets(render); }, !!pref && flipSelGen(d.sel) === null);
   else keepCosets(render);
 }
-// The subgroup a flip brings, when it is a new one; null otherwise.
+// The subgroup the shared settings bring with a flip or a turned preferred
+// direction (isoSelNow), when it is a new one; null otherwise.
 function flipSelGen(sel){
   if (!sel || !subInterlocked() || !Number.isInteger(sel.k) || sel.k < 0 || sel.k >= isoOrder()) return null;
   var g = isoPowers()[sel.k];
@@ -13056,6 +13062,9 @@ function isoReceive(d){
   if (d.iso === 'numset'){ if (IS_ISOPANE && isoInterlockOn) takeNumset(d); return; }
   if (d.iso === 'subexpr'){ if (IS_ISOPANE && isoInterlockOn) takeSubExpr(d); return; }
   if (d.iso === 'combine'){ isoTakeCombine(d, m); return; }
+  // G turning into its inverse on the holder blinks here too, as this
+  // ring writes G: before the new subgroup comes, and after.
+  if (d.iso === 'invblink'){ if (IS_ISOPANE && subInterlocked()) startInvBlink(invBlinks(d.after === true), d.after === true); return; }
   if (!Number.isInteger(d.k) || d.k < -1 || d.k >= m) return;
   if (d.iso === 'cosets'){ isoTakeCosets(d); return; }
   if (d.iso === 'preview'){ if (IS_ISOPANE && subInterlocked()) setPreview(d.k >= 0 ? isoPowers()[d.k] : null); return; }
