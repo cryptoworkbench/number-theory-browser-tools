@@ -895,6 +895,13 @@
   .combine-halo.is-b{ color:var(--role-input); }
   .combine-halo.is-c{ color:var(--role-result); }
   .combine-halo.is-dense{ filter:none; }
+  /* A point ringed in the colour its row shows in the list beside the plot. */
+  .row-halo{ fill:none; stroke-width:2; pointer-events:none; }
+  .row-halo.is-current{ stroke:var(--accent); }
+  .row-halo.is-path-fwd{ stroke:var(--arrow-in, var(--role-active)); }
+  .row-halo.is-path-back{ stroke:var(--arrow-out, var(--role-input)); }
+  .row-halo.is-path-both{ stroke:var(--arrow-both, var(--accent)); }
+  .row-halo.is-tint{ stroke:var(--ord, var(--text-dim)); }
   /* Combining a with itself k times: the multiples a, 2a, … on the way
      to the result ringed faintly, and the walk there in the result's
      colour, each hop numbered. */
@@ -6841,6 +6848,7 @@ function syncSplit(){
   splitPaneSlotEl.hidden = !slot;
   splitPaneSlotEl.style.width = slot ? paneDock.w + 'px' : '';
   ringSplitEl.hidden = !(on || plotIn || slot);
+  drawRowHalos();
   // Again once the strip has settled into its new layout.
   if (!ringSplitEl.hidden){ fitDockedPlot(); requestAnimationFrame(fitDockedPlot); }
   placeSplitBtn(hadFocus);
@@ -8614,7 +8622,34 @@ function drawCurvePlot(G){
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);
   else plotGrid(G, state.plotView === 'tiles');
+  drawRowHalos();
   fitDockedPlot();
+}
+// Docked beside the list, the plot picking G (Follow plot), each point
+// whose row the list shows in a colour is ringed in that colour: the
+// selected row's, its paths' rows', or the tint of a power's line. The
+// colours are read from the rows as shown.
+function drawRowHalos(){
+  curvePlotSvgEl.querySelectorAll('.row-halo').forEach(function(h){ h.remove(); });
+  if (!state.genPlot || curvePlotEl.hidden || curvePlotEl.parentNode !== ringSplitEl || subgroupsPanelEl.parentNode !== ringSplitEl) return;
+  subgroupsEl.querySelectorAll('.subgroup-row[data-gen]').forEach(function(row){
+    if (row.hidden || row.closest('[hidden]')) return;
+    var tint = row.querySelector(':scope > .row-tint'), cls = null;
+    if (tint) cls = 'is-tint ' + tint.className.replace('row-tint', '').trim();
+    else ['is-path-both', 'is-path-fwd', 'is-path-back', 'is-current'].some(function(c){ return row.classList.contains(c) && (cls = c); });
+    if (!cls) return;
+    var x = row.getAttribute('data-gen'), dot = curvePlotSvgEl.querySelector('.curve-dot[data-el="' + x + '"]'), halo;
+    if (dot){
+      halo = svgEl('circle', { 'class': 'row-halo ' + cls, cx: dot.getAttribute('cx'), cy: dot.getAttribute('cy'), r: num(+dot.getAttribute('r') + 2) });
+      dot.after(halo);
+    } else if (+x === 0 && drawn && drawn.G.identity === 0){
+      var o = curvePlotSvgEl.querySelector('.curve-o');
+      if (!o) return;
+      var b = o.getBBox();
+      halo = svgEl('circle', { 'class': 'row-halo ' + cls, cx: num(b.x + b.width / 2), cy: num(b.y + b.height / 2), r: num(Math.max(b.width, b.height) / 2 + 2) });
+      o.after(halo);
+    }
+  });
 }
 // Every cyclic group of order N is ⟨ℤ/Nℤ, +⟩: the rotations of a regular
 // N-gon. Its window, minimized into the bar until opened, sets corner k
@@ -11163,6 +11198,7 @@ function syncRowPaths(G){
     }
     tint.className = 'row-tint ' + cls;
   });
+  drawRowHalos();
 }
 // Drawn as powers of G (one colour, its pairs shown), the rows each line's
 // pair runs through, h^x and h^-x, with that line's colour class; null
