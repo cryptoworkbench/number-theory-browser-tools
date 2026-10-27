@@ -7591,7 +7591,9 @@ function syncGenerators(G){
 var followedGen = null;
 function syncGenFollow(G){
   // Following the plot ends the same way, and with the curve mode.
-  if (state.genPlot && (!G.pts || state.noSub || state.genFollow || (plotGen !== null && state.gen !== plotGen))) state.genPlot = false;
+  // A pick the pane has asked the holding ring for (pickSent) is not yet
+  // a new subgroup.
+  if (state.genPlot && (!G.pts || state.noSub || state.genFollow || (plotGen !== null && state.gen !== plotGen && plotGen !== pickSent))) state.genPlot = false;
   if (!state.genPlot) plotGen = null;
   if (state.genFollow && (!G.cyclic || state.noSub || (followedGen !== null && state.gen !== followedGen))) state.genFollow = false;
   if (!state.genFollow){ followedGen = null; return; }
@@ -8892,7 +8894,7 @@ curvePlotSvgEl.addEventListener('click', function(e){
   var dot = e.target.closest(state.genPlot ? '.curve-dot, .curve-o' : '.curve-dot');
   if (!dot) return;
   var el = dot.classList.contains('curve-o') ? 0 : +dot.getAttribute('data-el');
-  if (state.genPlot){ plotGen = el; selectGen(el); return; }
+  if (state.genPlot){ plotGen = el; pickGen(el); return; }
   combineTap(el);
 });
 // Minimized, the plot is a task in the bottom bar, under its own ring's
@@ -11445,14 +11447,31 @@ window.addEventListener('keydown', function(e){
   e.preventDefault();
   e.stopPropagation();
   if (!state.enterInverse) return;
-  var G = drawn.G, g = row ? parseInt(row.getAttribute('data-gen'), 10) : state.gen;
-  var inv = G.inv[g];
-  if (inv === undefined || subOrder(G).indexOf(inv) === -1) return;
+  // Merged with the ring holding it, the pane leaves the choice to that
+  // ring, as a step through the rows: G's inverse then comes to the pane
+  // with the flip it may set off, so the pane's arrows never go the long
+  // way round first.
+  if (IS_ISOPANE && subInterlocked()){ tellHost({ isopane: 'subinv' }); return; }
+  if (selectInverse(row ? parseInt(row.getAttribute('data-gen'), 10) : state.gen) && row) focusCurrentRow();
+}, true);
+// g picked on this ring by hand. Merged with the ring holding it, the pane
+// leaves the choice to that ring, which tells it back, together with any
+// flip the new subgroup sets off (see the subinv relay).
+var pickSent = null;
+function pickGen(g){
+  var k = IS_ISOPANE && subInterlocked() ? isoPowers().indexOf(g) : -1;
+  if (k !== -1){ pickSent = g; tellHost({ isopane: 'subpick', k: k }); return; }
+  selectGen(g);
+}
+// The row of g's inverse selected; false when it has none to select.
+function selectInverse(g){
+  var G = drawn.G, inv = G.inv[g];
+  if (inv === undefined || subOrder(G).indexOf(inv) === -1) return false;
   unfoldSubRow(G, inv);
   keyNav = true;
   selectGen(panelGen = inv);
-  if (row) focusCurrentRow();
-}, true);
+  return true;
+}
 // A row folded away under its divider unfolds its group to be selected.
 function unfoldSubRow(G, h){
   if (!subRowFolded(G, h)) return;
@@ -12602,6 +12621,7 @@ function takeFlipSel(sel){
   var g = isoPowers()[sel.k];
   if (g === undefined || (!state.noSub && state.gen === g)) return;
   var follow = sel.follow === true;
+  pickSent = null;
   isoSelSent = selKey(sel.k, follow);
   state.genFollow = follow;
   state.gen = g;
@@ -13033,6 +13053,7 @@ function isoReceive(d){
     setIsoHot(d.k >= 0 ? isoPowers()[d.k] : null);
   }
   if (d.iso === 'select' && subInterlocked()){
+    pickSent = null;
     // Following its expression slider on one ring, the other follows its
     // own too, the two sliders coupled so the subgroups still correspond.
     var follow = d.follow === true && d.k >= 0, was = state.genFollow;
@@ -13326,6 +13347,10 @@ window.addEventListener('message', function(e){
     if (typeof d.name === 'string' && Object.prototype.hasOwnProperty.call(SCRATCH_NAMES, d.name) && isFinite(d.x) && isFinite(d.y)) addPaneCard(d.name, d.x, d.y);
   } else if (d.isopane === 'substep'){
     if ((d.by === 1 || d.by === -1) && drawn && subInterlocked()) stepSubRow(d.by);
+  } else if (d.isopane === 'subpick'){
+    if (drawn && subInterlocked() && Number.isInteger(d.k) && d.k >= 0 && d.k < isoOrder()) selectGen(isoPowers()[d.k]);
+  } else if (d.isopane === 'subinv'){
+    if (drawn && subInterlocked() && !state.noSub) selectInverse(state.gen);
   } else if (d.isopane === 'genexp'){
     if (typeof d.on === 'boolean' && d.on !== genExpShown()) toggleGenExp();
   } else if (d.isopane === 'genexp-link'){
