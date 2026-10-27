@@ -14952,6 +14952,19 @@ function exportRingPng(){
 
 /* ---------- event wiring ---------- */
 
+// The modulus field is as wide as its number (an empty one as two digits),
+// however the number reaches it: typed, stepped or written by the page.
+function fitNInput(){ nInputEl.style.width = 'calc(' + (nInputEl.value.length || 2) + 'ch + 36px)'; }
+(function(){
+  var own = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  Object.defineProperty(nInputEl, 'value', {
+    configurable: true,
+    get: function(){ return own.get.call(this); },
+    set: function(v){ own.set.call(this, v); fitNInput(); }
+  });
+})();
+nInputEl.addEventListener('input', fitNInput);
+fitNInput();
 nInputEl.addEventListener('input', function(){ if (state.ec) typedCurve(); else applyTypedN(nInputEl.value); });
 // The field's own up and down buttons step it as the browser's would: once
 // on a press, then on and on while held.
