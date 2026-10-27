@@ -338,7 +338,8 @@
   .ec-toggle[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); }
   .ec-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .facts.group-controls .ec-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; }
-  .facts.group-controls .ec-row[hidden]{ display:none; }
+  .facts.group-controls :is(.ec-row, .ec-pick-row)[hidden]{ display:none; }
+  .facts.group-controls .ec-pick-row{ justify-content:flex-end; }
   /* Why a typed curve is refused hangs under the fields, out of the row's
      flow, so the fields never move: the next step of p's spin buttons stays
      under the pointer. */
@@ -1334,6 +1335,15 @@
   .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .n-row{ order:-2; }
   .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .op-toggle-row{ order:-1; margin-right:auto; }
   :root .fs-win-body.is-ring > .fs-win-row-ctl > .facts.group-controls > .fs-row-label{ min-width:0; margin-right:0; }
+  /* A curve's a and b stay on the row's first line; its example curves,
+     with no room left there, drop to a line of their own, at the right. In
+     a ring beside another, a and b close up, without spin buttons, to fit. */
+  .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .ec-row{ flex-grow:1000; justify-content:flex-end; }
+  .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .ec-pick-row{ flex-grow:1; }
+  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls > .ec-row{ gap:2px 8px; }
+  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field{ gap:4px; }
+  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field > input{ width:2.4em; padding-inline:6px; -moz-appearance:textfield; appearance:textfield; }
+  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field > input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .fs-win-body.is-ring > #arrange-field > .arrange-controls{ justify-content:flex-end; }
   /* The arrangement row is named for the group in the Ring window. */
   .arrange-fs-name, .fs-win-body.is-ring .arrange-panel-name, .gen-fs-name, .fs-win-body.is-ring .gen-panel-name{ display:none; }
@@ -2541,9 +2551,9 @@
           <li class="ec-row" id="ec-row" hidden>
             <span class="ec-field"><label for="ec-a" class="fact-label">a</label><input type="number" id="ec-a" min="0" max="96" step="1" value="2" title="The coefficient a" aria-label="The coefficient a" data-i18n-title="cyclicGroups.ecATitle" data-i18n-aria-label="cyclicGroups.ecATitle"></span>
             <span class="ec-field"><label for="ec-b" class="fact-label">b</label><input type="number" id="ec-b" min="0" max="96" step="1" value="2" title="The coefficient b" aria-label="The coefficient b" data-i18n-title="cyclicGroups.ecBTitle" data-i18n-aria-label="cyclicGroups.ecBTitle"></span>
-            <span class="ec-pick" id="ec-pick"><button type="button" class="ec-pick-btn" id="ec-preset" aria-haspopup="listbox" aria-expanded="false" aria-controls="ec-preset-list" title="Example curves" data-i18n-title="cyclicGroups.ecPresets"><span class="ec-pick-now" id="ec-preset-now"></span><svg viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button><span class="ec-pick-pop" id="ec-preset-pop" hidden><ul class="ec-pick-list" id="ec-preset-list" role="listbox" tabindex="-1" aria-label="Example curves" data-i18n-aria-label="cyclicGroups.ecPresets"></ul><button type="button" class="sub-more" id="ec-more-top" tabindex="-1" hidden></button><button type="button" class="sub-more" id="ec-more" tabindex="-1" hidden></button></span></span>
             <p class="n-note" id="ec-note"></p>
           </li>
+          <li class="ec-pick-row" id="ec-pick-row" hidden><span class="ec-pick" id="ec-pick"><button type="button" class="ec-pick-btn" id="ec-preset" aria-haspopup="listbox" aria-expanded="false" aria-controls="ec-preset-list" title="Example curves" data-i18n-title="cyclicGroups.ecPresets"><span class="ec-pick-now" id="ec-preset-now"></span><svg viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button><span class="ec-pick-pop" id="ec-preset-pop" hidden><ul class="ec-pick-list" id="ec-preset-list" role="listbox" tabindex="-1" aria-label="Example curves" data-i18n-aria-label="cyclicGroups.ecPresets"></ul><button type="button" class="sub-more" id="ec-more-top" tabindex="-1" hidden></button><button type="button" class="sub-more" id="ec-more" tabindex="-1" hidden></button></span></span></li>
           <li class="op-row">
             <label for="op-select" id="op-label" class="fact-label">∗</label>
             <select id="op-select" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel">
@@ -14682,7 +14692,7 @@ function syncOpTri(){
 // count from 9 to 36. A few are not cyclic, among them y² = x³ + 1 (mod 7),
 // ℤ/2ℤ × ℤ/6ℤ, beside a cyclic curve of the same count.
 var EC_PRESETS = [[5, 1, 1], [7, 0, 2], [7, 3, 4], [7, 1, 6], [7, 3, 1], [7, 0, 1], [11, 0, 1], [11, 1, 6], [11, 1, 1], [11, 1, 7], [11, 1, 2], [11, 2, 4], [11, 1, 3], [17, 2, 2], [13, 1, 0], [13, 0, 4], [17, 2, 3], [17, 3, 5], [35, 1, 3], [17, 1, 8], [19, 1, 9], [19, 0, 5], [23, 1, 1], [23, 1, 4], [35, 3, 3], [23, 5, 1], [23, 1, 10], [23, 1, 11], [29, 7, 8], [29, 1, 7], [29, 1, 1], [29, 4, 20]];
-var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPEl = nInputEl, ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note');
+var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPickRowEl = $('ec-pick-row'), ecPEl = nInputEl, ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note');
 var ecNote = null; // the note under the fields ({ key, params }), while the typed curve is refused
 // The curve as y² = x³ + ax + b, its terms dropped or merged as a and b ask.
 function ecEquation(a, b){
@@ -14700,7 +14710,7 @@ function syncEcControls(){
   document.documentElement.classList.toggle('is-ec', state.ec);
   ecToggleEl.setAttribute('aria-pressed', state.ec ? 'true' : 'false');
   syncOpTri();
-  ecRowEl.hidden = !state.ec;
+  ecRowEl.hidden = ecPickRowEl.hidden = !state.ec;
   // The shared modulus field takes what the kind of group takes.
   nInputEl.min = state.ec ? EC_MIN_P : MIN_N;
   nInputEl.max = state.ec ? EC_MAX_P : MAX_N;
