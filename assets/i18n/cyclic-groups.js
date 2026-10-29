@@ -945,7 +945,7 @@
       cayleyTask: 'Show the Cayley table of {group}',
       cayleyMerge: 'Merge the two tables into one table of the linked pairs',
       cayleySplit: 'Give each ring its own table again',
-      cayleyModeReveal: 'Write the elements as the on-hover expression slider does',
+      cayleyModeReveal: 'Reveal the element under the pointer as the on-hover expression slider does',
       cayleyModeHover: 'Write the elements as the ring does, and show a ∗ b in the ring as the pointer passes a cell',
       polyTask: 'Show the rotations of a regular {n}-gon',
       polyCornerNat: 'The turn by {k} · 360°/{n} = {deg}°',

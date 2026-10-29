@@ -9166,13 +9166,13 @@ var cayleyBuilt = null, cayleyEls = [], cayleyRows = {}, cayleyCols = {}, cayley
 function cayleyAvail(G){ return !!G && !IS_MOBILE && !(IS_ISOPANE && (isoBlank || paneCayleyMerged)) && !hostBlank(); }
 function cayleyMerged(){ return !IS_ISOPANE && state.cayleyMerged && isoLinked(); }
 // An element as the No hover slider writes it: natural, gᵏ or kP.
-// Its two modes: the elements written as the ring writes them, a ∗ b
-// shown in the ring as the pointer passes a cell; or written as the ring
-// reveals them on hover (state.cayleyReveal), the on-hover expression
-// slider's way.
+// Its two modes, its elements written as the ring writes them in both: a ∗ b
+// shown in the ring as the pointer passes a cell; or (state.cayleyReveal)
+// the cell under the pointer, and its row's and column's heads, revealed
+// as the ring's beads reveal on hover, the on-hover expression slider's way.
 function cayleyRevealOn(){ return state.cayleyReveal && !state.revealOff; }
-function cayleyNamer(G){
-  var reveal = cayleyRevealOn(), g = reveal ? revealTo(G) : exprBy(G), log = g === null ? null : exprLog(G, g);
+function cayleyNamer(G, reveal){
+  var g = reveal ? revealTo(G) : exprBy(G), log = g === null ? null : exprLog(G, g);
   var name = function(x){
     if (!log) return elText(G, x);
     var k = balExp(G, log[x]);
@@ -9202,7 +9202,7 @@ function drawCayley(G){
   fitDockedCayley();
 }
 function buildCayley(G, merged){
-  var name = cayleyNamer(G), els = arrangement(G), H = null, phi = null;
+  var name = cayleyNamer(G), rname = cayleyRevealOn() ? cayleyNamer(G, true) : null, els = arrangement(G), H = null, phi = null;
   if (merged){
     var linked = isoPowers();
     H = isoPaneGroup();
@@ -9211,14 +9211,16 @@ function buildCayley(G, merged){
   }
   // A pair x ↔ φ(x), its arrow set apart; text alone keys the build.
   var label = merged ? function(x){ return name(x) + ' ↔ ' + elText(H, phi(x)); } : name;
-  var put = function(cell, x){
-    if (!merged){ cell.textContent = texts[x]; return; }
+  var put = cayleyPut = function(cell, x, revealed){
+    var nm = revealed && rname ? rname : name;
+    cell.setAttribute('data-x', x);
+    if (!merged){ cell.textContent = nm(x); return; }
     var to = document.createElement('span');
     to.className = 'cayley-to';
     to.textContent = '↔';
-    cell.append(name(x), to, elText(H, phi(x)));
+    cell.replaceChildren(nm(x), to, elText(H, phi(x)));
   };
-  var key = JSON.stringify([getLang(), G.key, els, els.map(label)]);
+  var key = JSON.stringify([getLang(), G.key, els, els.map(label), rname ? els.map(rname) : null]);
   if (key === cayleyBuilt) return;
   cayleyBuilt = key;
   cayleyEls = els;
@@ -9254,6 +9256,7 @@ function buildCayley(G, merged){
       cayleyCells[a + ',' + b] = td;
     });
   });
+  cayleyShownAs = [];
   cayleyGridEl.replaceChildren(head, body);
 }
 // The picks as the table shows them: a's row, b's column and their cell;
@@ -9335,8 +9338,21 @@ function cayleyPeekEnd(){
   tellCombine();
   syncComboUi();
 }
+// Revealed, in the second mode: the cell under the pointer and its heads.
+var cayleyPut = null, cayleyShownAs = [];
+function cayleyRevealCells(cells){
+  cayleyShownAs.forEach(function(el){ if (el.isConnected && cayleyPut){ cayleyPut(el, +el.getAttribute('data-x'), false); el.classList.remove('is-revealed'); } });
+  cayleyShownAs = cells.filter(Boolean);
+  cayleyShownAs.forEach(function(el){ cayleyPut(el, +el.getAttribute('data-x'), true); el.classList.add('is-revealed'); });
+}
 cayleyGridEl.addEventListener('mouseover', function(e){
-  if (cayleyRevealOn() || !drawn) return;
+  if (!drawn) return;
+  if (cayleyRevealOn()){
+    var at = e.target.closest('td[data-a], th[data-a], th[data-b]');
+    if (at && cayleyShownAs[0] === at) return;
+    cayleyRevealCells(!at ? [] : at.tagName === 'TD' ? [at, cayleyRows[at.getAttribute('data-a')], cayleyCols[at.getAttribute('data-b')]] : [at]);
+    return;
+  }
   var cell = e.target.closest('td[data-a], th[data-a], th[data-b]');
   cayleyHoverLine(cell);
   if (!cell || cell.tagName !== 'TD'){ cayleyPeekEnd(); return; }
@@ -9345,7 +9361,7 @@ cayleyGridEl.addEventListener('mouseover', function(e){
   else if (combo.a === a && combo.b === b && combo.k === null) return;
   cayleyPick(a, b);
 });
-cayleyGridEl.addEventListener('mouseleave', function(){ cayleyHoverLine(null); cayleyPeekEnd(); });
+cayleyGridEl.addEventListener('mouseleave', function(){ cayleyHoverLine(null); cayleyPeekEnd(); cayleyRevealCells([]); });
 // step the subgroup rows and the expression slider): up and down move to
 // another row a, left and right to another column b (Home and End to the
 // first and last), each cell combined as it is reached; with nothing
@@ -9395,6 +9411,7 @@ function syncCayleyBtns(merged){
 cayleyRevealBtnEl.addEventListener('click', function(){
   cayleyPeekEnd();
   cayleyHoverLine(null);
+  cayleyRevealCells([]);
   state.cayleyReveal = !state.cayleyReveal;
   if (drawn){ drawCayley(drawn.G); mirrorToUrl(drawn.G); }
   cayleyRevealBtnEl.focus({ preventScroll: true });
