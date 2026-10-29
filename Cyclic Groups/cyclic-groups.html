@@ -8780,6 +8780,8 @@ var COMBO_K_MAX = 1000000;
 var HALO_MAX = 200, HALO_BAND = 40;
 function comboKey(G){ return G.key; }
 function comboLive(G){ return combo.key === comboKey(G) && G.els.indexOf(combo.a) !== -1; }
+// b picked before a (a Cayley table's column head): b alone, waiting for a.
+function comboBOnly(G){ return combo.a === null && combo.b !== null && combo.key === comboKey(G) && G.els.indexOf(combo.b) !== -1; }
 // a combined with itself k times.
 function scalarOf(G, a, k){
   var s = k < 0 ? G.inv[a] : a, t = Math.abs(k) % G.orders[a], x = G.identity;
@@ -9262,6 +9264,7 @@ function buildCayley(G, merged){
 // The picks as the table shows them: a's row, b's column and their cell;
 // aᵏ is a ∗ aᵏ⁻¹.
 function cayleyPicks(G){
+  if (comboBOnly(G)) return { a: null, b: combo.b };
   if (!comboLive(G)) return null;
   var a = combo.a;
   if (combo.k !== null) return { a: a, b: scalarOf(G, a, combo.k - 1) };
@@ -9302,14 +9305,14 @@ function cayleyPick(a, b){
   syncComboUi();
 }
 // A click on a row's head picks its a, keeping b; on a column's head
-// its b, keeping a (with no a yet, the identity's row).
+// its b, keeping a, or with no a yet b alone, a's row left to pick.
 cayleyGridEl.addEventListener('click', function(e){
   var cell = e.target.closest('[data-a], [data-b]');
   if (!cell || !drawn) return;
   cayleyPeek = null;
   var p = cayleyPicks(drawn.G), a = cell.getAttribute('data-a'), b = cell.getAttribute('data-b');
   cayleyScrollEl.focus({ preventScroll: true });
-  cayleyPick(a !== null ? +a : p ? p.a : drawn.G.identity, b !== null ? +b : p ? p.b : null);
+  cayleyPick(a !== null ? +a : p ? p.a : null, b !== null ? +b : p ? p.b : null);
 });
 // Hover, in the first mode: a row's head lights its row yellow, a
 // column's head its column blue, and a cell shows its a ∗ b in the ring
@@ -9376,7 +9379,7 @@ cayleyScrollEl.addEventListener('keydown', function(e){
   e.preventDefault();
   var els = cayleyEls, n = els.length, p = cayleyPicks(drawn.G);
   var i = p ? els.indexOf(p.a) : -1, j = p && p.b !== null ? els.indexOf(p.b) : -1;
-  if (i < 0){ cayleyPick(els[0], els[0]); return; }
+  if (i < 0){ cayleyPick(els[0], els[Math.max(0, j)]); return; }
   if (j < 0) j = 0;
   else if (e.key === 'Home') j = 0;
   else if (e.key === 'End') j = n - 1;
@@ -10065,6 +10068,7 @@ function haloClass(G, role, lap){
 }
 function combineRoles(G){
   var roles = new Map();
+  if (comboBOnly(G)){ roles.set(combo.b, ['b']); return roles; }
   if (!comboLive(G)) return roles;
   var add = function(x, role){ if (!roles.has(x)) roles.set(x, []); roles.get(x).push(role); };
   add(combo.a, 'a');
@@ -10088,8 +10092,10 @@ function combineRoles(G){
 function combinePick(x){
   if (!drawn) return;
   if (x === null){
-    if (combo.a === null) return;
+    if (combo.a === null && combo.b === null) return;
     combo = { a: null, b: null, k: null, key: null };
+  } else if (comboBOnly(drawn.G) && state.combineMode === 'element'){
+    combo.a = x;
   } else if (combo.a === null || combo.b !== null || combo.key !== comboKey(drawn.G)){
     combo = { a: x, b: null, k: null, key: comboKey(drawn.G) };
   } else {
@@ -10128,7 +10134,7 @@ function tellCombine(){
   var powers = isoPowers();
   var k = function(x){ return x === null ? -1 : powers.indexOf(x); };
   var a = k(combo.a), b = k(combo.b);
-  if (a < 0 || (combo.b !== null && b < 0)) a = b = -1;
+  if (combo.a === null ? b < 0 : a < 0 || (combo.b !== null && b < 0)) a = b = -1;
   isoTell({ iso: 'combine', a: a, b: b, k: a < 0 ? null : combo.k });
 }
 // A pick the other ring told: its images here (a of -1 clears).
@@ -10137,7 +10143,7 @@ function isoTakeCombine(d, m){
   if (!drawn || !ok(d.a) || !ok(d.b)) return;
   var k = Number.isInteger(d.k) && Math.abs(d.k) <= COMBO_K_MAX ? d.k : null;
   var powers = isoPowers();
-  combo = d.a < 0 ? { a: null, b: null, k: null, key: null }
+  combo = d.a < 0 ? { a: null, b: d.b < 0 ? null : powers[d.b], k: null, key: d.b < 0 ? null : comboKey(drawn.G) }
     : { a: powers[d.a], b: d.b < 0 || k !== null ? null : powers[d.b], k: k, key: comboKey(drawn.G) };
   redrawRing();
   syncComboUi();
@@ -10349,7 +10355,7 @@ function curveRows(G, y, mod){
 }
 function drawCombineLine(G, y){
   var roles = combineRoles(G);
-  if (!roles.size) return;
+  if (!roles.size || !comboLive(G)) return;
   if (combo.b === null && combo.k === null){
     if (comboPromptHook && comboPromptHook(G, y)) return;
     var t = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
@@ -10530,7 +10536,7 @@ function drawCombineLine(G, y){
   }
 }
 document.addEventListener('keydown', function(e){
-  if (e.key !== 'Escape' || combo.a === null || e.defaultPrevented) return;
+  if (e.key !== 'Escape' || (combo.a === null && combo.b === null) || e.defaultPrevented) return;
   if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable]')) return;
   combinePick(null);
 });
