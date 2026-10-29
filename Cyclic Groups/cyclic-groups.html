@@ -773,6 +773,7 @@
   /* A one-colour line's pair in either ring, beside a locked pane. */
   .akey-tip{ position:fixed; z-index:60; padding:6px 8px; font-size:.8rem; color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); box-shadow:0 4px 14px var(--scrim); pointer-events:none; }
   .akey-tip[hidden]{ display:none; }
+  .title-tip{ max-width:min(30em, calc(100vw - 8px)); white-space:pre-line; overflow-wrap:anywhere; }
   .akey-tip table{ border-collapse:collapse; }
   .akey-tip :is(th, td){ padding:2px 8px; white-space:nowrap; }
   .akey-tip :is(th, td) + :is(th, td){ border-left:1px solid var(--panel-border); }
@@ -3033,6 +3034,92 @@ function boxOf(el){
 }
 function ptX(e){ return e.clientX / PAGE_ZOOM; }
 function ptY(e){ return e.clientY / PAGE_ZOOM; }
+
+/* ---------- tooltips ---------- */
+
+// Every tooltip is drawn as the identity's is (see showIdTip), never the
+// browser's own: a title, however it is set (title=, .title, setAttribute,
+// the translations), is kept as data-title instead, and .title reads it
+// back. An option keeps its own, in the browser's list.
+var titleTipEl = document.createElement('div');
+titleTipEl.className = 'akey-tip title-tip';
+titleTipEl.setAttribute('role', 'tooltip');
+titleTipEl.hidden = true;
+var titleNative = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'title');
+var titleRemove = Element.prototype.removeAttribute;
+function keepTitle(el, text){
+  if (text){
+    el.setAttribute('data-title', text);
+    if (!el.hasAttribute('aria-label')) el.setAttribute('aria-description', text);
+  } else dropTitle(el);
+}
+function dropTitle(el){
+  titleRemove.call(el, 'data-title');
+  titleRemove.call(el, 'aria-description');
+}
+Object.defineProperty(HTMLElement.prototype, 'title', {
+  configurable: true,
+  get: function(){ return this.hasAttribute('data-title') ? this.getAttribute('data-title') : titleNative.get.call(this); },
+  set: function(v){
+    if (this.tagName === 'OPTION') titleNative.set.call(this, v);
+    else { keepTitle(this, String(v)); syncTitleTip(); }
+  }
+});
+Element.prototype.removeAttribute = function(name){
+  titleRemove.call(this, name);
+  if (String(name).toLowerCase() === 'title' && this.hasAttribute('data-title')){ dropTitle(this); syncTitleTip(); }
+};
+function moveTitle(el){
+  if (el.tagName === 'OPTION' || !el.hasAttribute('title')) return;
+  var text = el.getAttribute('title');
+  titleRemove.call(el, 'title');
+  keepTitle(el, text);
+}
+Array.prototype.forEach.call(document.querySelectorAll('[title]'), moveTitle);
+new MutationObserver(function(list){
+  list.forEach(function(m){ moveTitle(m.target); });
+  syncTitleTip();
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['title'], subtree: true });
+// What the pointer is over, and where; a press hides the tip until the
+// pointer moves on to something else.
+var titleOver = null, titleAtX = 0, titleAtY = 0, titlePressed = null;
+function syncTitleTip(){
+  var el = titleOver && titleOver.isConnected && !titleOver.closest('[data-tip]') ? titleOver.closest('[data-title]') : null;
+  var text = el && el !== titlePressed ? el.getAttribute('data-title') : '';
+  if (!text){ titleTipEl.hidden = true; return; }
+  // In full screen only the full-screen element is drawn: the tip goes
+  // inside it.
+  var host = document.fullscreenElement || document.body;
+  if (titleTipEl.parentNode !== host) host.appendChild(titleTipEl);
+  titleTipEl.textContent = text;
+  titleTipEl.hidden = false;
+  // Under a small thing, as the identity's tip sits; under the pointer on
+  // a big one.
+  var r = boxOf(el), w = titleTipEl.offsetWidth, h = titleTipEl.offsetHeight;
+  var vw = window.innerWidth / PAGE_ZOOM, vh = window.innerHeight / PAGE_ZOOM;
+  var small = r.height <= 48 && r.width <= 320;
+  var x = small ? r.left : titleAtX, y = small ? r.bottom + 6 : titleAtY + 20;
+  if (y + h > vh - 4) y = (small ? r.top : titleAtY - 8) - h - 6;
+  titleTipEl.style.left = Math.max(4, Math.min(x, vw - w - 4)) + 'px';
+  titleTipEl.style.top = Math.max(4, y) + 'px';
+}
+document.addEventListener('mouseover', function(e){
+  titleOver = e.target;
+  titleAtX = ptX(e); titleAtY = ptY(e);
+  if (titlePressed && !(e.target.closest && e.target.closest('[data-title]') === titlePressed)) titlePressed = null;
+  syncTitleTip();
+}, true);
+document.addEventListener('mouseout', function(e){
+  if (!e.relatedTarget){ titleOver = null; syncTitleTip(); }
+}, true);
+document.addEventListener('pointerdown', function(){
+  titlePressed = titleOver && titleOver.closest ? titleOver.closest('[data-title]') : null;
+  syncTitleTip();
+}, true);
+['keydown', 'wheel'].forEach(function(t){
+  document.addEventListener(t, function(){ titleTipEl.hidden = true; }, { capture: true, passive: true });
+});
+window.addEventListener('blur', function(){ titleTipEl.hidden = true; });
 // The page opens on its intro every visit; the intro's button enters the
 // tool (see cgEnterEl), and from then on the site header is gone.
 var cgEntered = false;
@@ -8977,9 +9064,9 @@ function plotPolygon(G){
     var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(p[0]), cy: num(p[1]), r: num(dotR), 'data-el': x };
     if (look.style) attrs.style = look.style;
     var dot = svg.appendChild(svgEl('circle', attrs));
-    dot.appendChild(svgEl('title', {})).textContent = nat
+    dot.setAttribute('data-title', nat
       ? translate('cyclicGroups.polyCornerNat', { k: k, n: n, deg: polyDegrees(k, n) })
-      : translate('cyclicGroups.polyCorner', { el: elText(G, x), gk: power(k), k: k, n: n, deg: polyDegrees(k, n) });
+      : translate('cyclicGroups.polyCorner', { el: elText(G, x), gk: power(k), k: k, n: n, deg: polyDegrees(k, n) }));
     windowHalos(G, roles.get(x)).forEach(function(h){
       svg.appendChild(svgEl('circle', { 'class': h.cls, cx: num(p[0]), cy: num(p[1]), r: num(dotR + 2.5 + 2.5 * h.i) }));
     });
@@ -9482,8 +9569,7 @@ function plotGrid(G, tiles){
     var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r), 'data-el': e };
     if (look.style) attrs.style = look.style;
     var dot = svg.appendChild(svgEl('circle', attrs));
-    var tt = dot.appendChild(svgEl('title', {}));
-    tt.textContent = plainPoint(Pt);
+    dot.setAttribute('data-title', plainPoint(Pt));
     windowHalos(G, roles.get(e)).forEach(function(h){
       svg.appendChild(svgEl('circle', { 'class': h.cls, cx: num(X(Pt.x)), cy: num(Y(Pt.y)), r: num(r + 2.5 + 2.5 * h.i) }));
     });
@@ -9604,7 +9690,7 @@ function plotReal(G){
     var attrs = { 'class': ('curve-dot ' + (look.cls || '')).trim(), cx: num(X(at3.x)), cy: num(Y(at3.y)), r: 4, 'data-el': e };
     if (look.style) attrs.style = look.style;
     var dot = g.appendChild(svgEl('circle', attrs));
-    dot.appendChild(svgEl('title', {})).textContent = plainPoint(Pt);
+    dot.setAttribute('data-title', plainPoint(Pt));
     windowHalos(G, roles.get(e)).forEach(function(h){
       g.appendChild(svgEl('circle', { 'class': h.cls, cx: num(X(at3.x)), cy: num(Y(at3.y)), r: num(6.5 + 2.5 * h.i) }));
     });
@@ -10355,9 +10441,7 @@ function drawCombineLine(G, y){
     var from = lines[1][tipAt], to = lines[1][tipTo];
     var left = from.x, right = to.x + to.w;
     var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
-    var title = svgEl('title', {});
-    title.textContent = tip;
-    hit.appendChild(title);
+    hit.setAttribute('data-title', tip);
     box.appendChild(hit);
   }
   // Too wide for the ring's view, both lines shrink together about the middle.
