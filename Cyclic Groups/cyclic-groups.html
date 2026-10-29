@@ -540,6 +540,9 @@
   .sub-gcd-btn:disabled{ opacity:.45; cursor:default; }
   .sub-gcd-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .sub-gcd-btn.sub-follow-btn{ font-family:inherit; font-style:normal; font-size:.8rem; }
+  /* A row picked by hand while G follows the slider: the button blinks red. */
+  .sub-follow-btn.is-refused{ animation:follow-refused 360ms steps(1) 3; }
+  @keyframes follow-refused{ 0%{ color:var(--role-warn); border-color:var(--role-warn); background:color-mix(in srgb, var(--role-warn) 14%, var(--bg-1)); } 50%{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); } }
   .sub-expr-pair select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
   .panel-head h2{ margin:0; }
@@ -12341,6 +12344,7 @@ function renderSubgroups(G){
       row.appendChild(mInline(mrow(memberMath(x, fr.r(x)), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
     });
     row.addEventListener('click', function(){
+      if (followRefused()) return;
       selectGen(panelGen = g);
       focusCurrentRow();
     });
@@ -12450,6 +12454,7 @@ function renderMergedSubgroups(G){
     row.appendChild(left);
     row.appendChild(right);
     row.addEventListener('click', function(){
+      if (followRefused()) return;
       selectGen(panelGen = g);
       focusCurrentRow();
     });
@@ -12754,6 +12759,7 @@ function pickGen(g){
 }
 // The row of g's inverse selected; false when it has none to select.
 function selectInverse(g){
+  if (followRefused()) return false;
   var G = drawn.G, inv = G.inv[g];
   if (inv === undefined || subOrder(G).indexOf(inv) === -1) return false;
   unfoldSubRow(G, inv);
@@ -12776,6 +12782,7 @@ function stepSubRow(delta){
   // Merged with the ring holding it, the pane's rows are that ring's list:
   // a step there goes through its rows in its order, not the pane's own.
   if (IS_ISOPANE && subInterlocked()){ tellHost({ isopane: 'substep', by: delta }); return false; }
+  if (followRefused()) return false;
   var G = drawn.G, els = subOrder(G);
   if (!els.length) return false;
   // Past the last row comes the first again, and before the first the last.
@@ -16629,6 +16636,16 @@ arrangeGenSelectEl.addEventListener('change', function(){
   polyBy = 'arrange';
   rearrange(function(){ state.arrangeGen = g; render(); });
 });
+// While G follows the expression slider, a row picked in the panel by hand
+// is refused: the Follow expression slider button blinks red instead.
+function followRefused(){
+  if (!state.genFollow || state.noSub || state.genPlot) return false;
+  subFollowEl.classList.remove('is-refused');
+  void subFollowEl.offsetWidth;
+  subFollowEl.classList.add('is-refused');
+  return true;
+}
+subFollowEl.addEventListener('animationend', function(){ subFollowEl.classList.remove('is-refused'); });
 subFollowEl.addEventListener('click', function(){
   if (state.genFollow){ state.genFollow = false; render(); return; }
   followExprSlider();
