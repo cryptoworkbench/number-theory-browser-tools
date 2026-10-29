@@ -1433,13 +1433,12 @@
   :root.is-isopane .fs-win-body.is-ring.ring-body > .ring-split > .curve-plot{ margin-left:12px; margin-right:-8px; }
   .fs-win-body.is-ring.ring-body > .ring-split > .split-pane-slot{ margin-right:-8px; }
   .split-pane-slot[hidden]{ display:none; }
-  /* Under a zoomed ring that has grown over it; over it, a see-through
-     card, frosted under the pointer or the focus, as the main area's
-     controls are (see syncWinsOnRing). */
-  .fs-win-body.is-ring > .curve-plot.is-under{ z-index:-3; }
-  .fs-win-body.is-ring > .curve-plot.is-on-ring:not(.is-under){ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:0 10px 30px -12px var(--scrim); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, backdrop-filter .18s, box-shadow .18s; }
-  .fs-win-body.is-ring > .curve-plot.is-on-ring:not(.is-under):is(:hover, :has(:focus-visible)){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); box-shadow:0 14px 36px -10px var(--scrim); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring > .cayley-plot.is-on-ring:not(.is-under) .cayley-grid th:not(.is-a, .is-b){ background:color-mix(in srgb, var(--surface) 55%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+  /* Over the ring, at any zoom, a see-through card, frosted under the
+     pointer or the focus, as the main area's controls are (see
+     syncWinsOnRing). */
+  .fs-win-body.is-ring > .curve-plot.is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:0 10px 30px -12px var(--scrim); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, backdrop-filter .18s, box-shadow .18s; }
+  .fs-win-body.is-ring > .curve-plot.is-on-ring:is(:hover, :has(:focus-visible)){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); box-shadow:0 14px 36px -10px var(--scrim); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring > .cayley-plot.is-on-ring .cayley-grid th:not(.is-a, .is-b){ background:color-mix(in srgb, var(--surface) 55%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
   .curve-plot.is-docked{ z-index:auto; translate:none !important; max-height:none; }
   :root:not(.is-mobile) .curve-plot.is-docked{ cursor:auto; }
   .curve-plot.is-docked .curve-plot-svg{ flex:none; margin-inline:auto; }
@@ -2213,8 +2212,6 @@
   /* A minimized curve plot, a task in the bar: its icon, then its curve. */
   .bar-task{ font-family:var(--font-math); font-size:.82rem; }
   /* A window lying under the zoomed ring: its task drawn dashed, as behind. */
-  .bar-task.is-behind{ color:var(--text-dim); border-style:dashed; }
-  .bar-task.is-behind:hover{ color:var(--text); }
   .bar-task svg{ width:12px; height:12px; stroke-width:1.2; }
   .bar-task svg .icon-fill{ fill:currentColor; stroke:none; }
   .bar-menu{ min-width:0; }
@@ -5223,23 +5220,6 @@ function barPlotTasks(i, G){
       tellPane({ ringhost: 'cayleyopen' });
     }));
   }
-  // A window the zoomed ring has grown over waits in the bar too: a click
-  // brings it forward, over the ring.
-  if (i === 0) [[polyPlotEl, 'poly'], [cayleyEl, 'cayley'], [curvePlotEl, 'curve']].forEach(function(w){
-    var el = w[0];
-    if (!el || el.hidden || !el.classList.contains('is-under')) return;
-    var name = w[1] === 'poly' ? translate('cyclicGroups.polyTitle', { n: G.order }) : w[1] === 'cayley' ? translate('cyclicGroups.cayleyShort') : ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
-    var label = translate('cyclicGroups.winBringForward', { name: name });
-    var task = barTask(name, label, label, w[1], function(){
-      raiseWin(el);
-      blinkLinked(el);
-      syncBarFormulas();
-      var focus = el.querySelector('.cayley-scroll, .curve-plot-svg') || el;
-      if (focus.focus) focus.focus({ preventScroll: true });
-    });
-    task.classList.add('is-behind');
-    tasks.push(task);
-  });
   if (i === 0 && lapKeyOn && !lapKeyOpen){
     var laps = translate('cyclicGroups.lapKeyTitle');
     tasks.push(barTask(laps, translate('cyclicGroups.lapKeyShow'), translate('cyclicGroups.lapKeyShow'), 'lap', function(){ openLapKey(); blinkLinked(lapKeyEl); }));
@@ -8050,48 +8030,19 @@ function syncRingOverlap(){
   syncWinsOnRing(over);
 }
 // The floating windows (the polygon's, the point plot, the Cayley table)
-// over a zoomed ring. Reached by the ring as it grows, a window goes under
-// it (is-under); brought forward again, by a press or the focus inside it
-// or by opening it from the bottom bar, it lies over the ring as the
-// controls of the main area do: see-through while it rests there, frosted
-// while the pointer or the focus is in it. A window dragged onto the ring
-// stays over it; a press elsewhere sends a window lying over it under
-// again. At the ring's own size, nothing changes.
+// never go under the ring: one lying over it, at any zoom, is see-through
+// there as the main area's controls are, frosted while the pointer or the
+// focus is in it; off the ring, it is as ever.
 var winHeld = null;
 function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl].filter(Boolean); }
 function syncWinsOnRing(over){
-  var zoomed = ringSvgEl.classList.contains('is-zoomed'), changed = false;
   ringWins().forEach(function(w){
-    var on = zoomed && !w.hidden && !w.classList.contains('is-docked') && !w.classList.contains('is-docked-foot') && over(boxOf(w));
-    var raise = w.hasAttribute('data-raise');
-    var was = w.classList.contains('is-under');
-    if (on && !w.classList.contains('is-on-ring') && w !== winHeld && !raise) w.classList.add('is-under');
-    if (!on) w.classList.remove('is-under');
-    if (was !== w.classList.contains('is-under')) changed = true;
-    if (on || !w.hidden) w.removeAttribute('data-raise');
-    w.classList.toggle('is-on-ring', on);
+    w.classList.toggle('is-on-ring', !w.hidden && !w.classList.contains('is-docked') && !w.classList.contains('is-docked-foot') && over(boxOf(w)));
   });
-  if (changed && !IS_ISOPANE) syncBarFormulas();
-}
-// Brought forward: at once when it is open, else as it next lies on the ring.
-function raiseWin(w){
-  if (!w) return;
-  if (w.classList.contains('is-under')){ w.classList.remove('is-under'); if (!IS_ISOPANE && typeof syncBarFormulas === 'function') requestAnimationFrame(syncBarFormulas); }
-  w.setAttribute('data-raise', '');
 }
 document.addEventListener('pointerdown', function(e){
-  var w = e.target.closest && ringWins().filter(function(x){ return x.contains(e.target); })[0];
-  winHeld = w || null;
-  if (w) raiseWin(w);
-  // Not a press on the bar's task bringing one forward.
-  if (e.target.closest && e.target.closest('.bar-task.is-behind')) return;
-  var sent = false;
-  ringWins().forEach(function(x){ if (x !== w && x.classList.contains('is-on-ring') && !x.classList.contains('is-under')){ x.classList.add('is-under'); sent = true; } });
-  if (sent && !IS_ISOPANE) requestAnimationFrame(syncBarFormulas);
+  winHeld = (e.target.closest && ringWins().filter(function(x){ return x.contains(e.target); })[0]) || null;
 }, true);
-document.addEventListener('focusin', function(e){
-  ringWins().forEach(function(w){ if (w.contains(e.target)) raiseWin(w); });
-});
 // Dragged, a window's place against the ring is checked as it goes.
 var winDragFrame = 0;
 document.addEventListener('pointermove', function(){
@@ -9430,7 +9381,6 @@ $('poly-plot-min').addEventListener('click', function(){
 });
 function openPolyPlot(){
   polyOpen = true;
-  raiseWin(polyPlotEl);
   if (drawn){ drawPolyPlot(drawn.G); mirrorToUrl(drawn.G); }
   syncBarFormulas();
   polyWin.place(polyWin.at.x, polyWin.at.y);
@@ -9849,7 +9799,6 @@ $('cayley-min').addEventListener('click', function(){
 });
 function openCayley(){
   cayleyOpen = true;
-  raiseWin(cayleyEl);
   cayleyMinWithSplit = false;
   if (drawn){ drawCayley(drawn.G); mirrorToUrl(drawn.G); }
   syncBarFormulas();
@@ -10195,7 +10144,6 @@ $('curve-plot-min').addEventListener('click', function(){
 });
 function openCurvePlot(){
   curvePlotOpen = true;
-  raiseWin(curvePlotEl);
   plotMinWithSplit = false;
   if (drawn) drawCurvePlot(drawn.G);
   syncBarFormulas();
