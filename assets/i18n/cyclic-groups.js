@@ -139,7 +139,8 @@
    (the lock tying the No hover and On hover sliders, which replaced the
    menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
    ecSortBy (the example curves' table: its curve column, its columns' sort
-   tooltip), and idPickLabel (the dropdown after E =). Every other language shows the English value through
+   tooltip), idPickLabel (the dropdown after E =), and subExprFollowTitle
+   (the bottom panel's Follow expression slider button). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -967,6 +968,7 @@
       introQrLabel: 'QR code for the address of this page',
       introQrCaption: 'Scan to open this page on your phone',
       subExprFollow: 'Follow expression slider',
+      subExprFollowTitle: "Select the row of the expression slider's generator, so G follows the slider",
       subExprSort: 'Follow the Sort dropdown',
       subPanelFollow: 'Follow bottom-panel',
       subPlotFollow: 'Follow plot',

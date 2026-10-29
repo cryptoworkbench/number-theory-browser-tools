@@ -539,6 +539,7 @@
   .sub-gcd-btn[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
   .sub-gcd-btn:disabled{ opacity:.45; cursor:default; }
   .sub-gcd-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .sub-gcd-btn.sub-follow-btn{ font-family:inherit; font-style:normal; font-size:.8rem; }
   .sub-expr-pair select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; }
   .panel-head h2{ margin:0; }
@@ -2721,6 +2722,7 @@
         <div class="sub-ctls-mid">
         <div class="sub-expr-row" id="sub-sort-row">
           <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" title="Sort subgroups by" data-i18n-title="cyclicGroups.subSortLabel"><span class="lbl-long" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</span><span class="lbl-short" data-i18n="cyclicGroups.subSortLabelShort">Sort</span></label><select id="sub-sort-select"></select><button type="button" class="sub-gcd-btn" id="sub-gcd" aria-pressed="false" title="Group the rows by gcd(k, |G|), k each row's exponent of the generator they are sorted by" data-i18n-title="cyclicGroups.subGcdTitle" data-i18n="cyclicGroups.subGcd">gcd(k, |G|)</button></span>
+          <span class="sub-expr-pair" id="sub-follow-pair" hidden><button type="button" class="sub-gcd-btn sub-follow-btn" id="sub-follow" aria-pressed="false" title="Select the row of the expression slider's generator, so G follows the slider" data-i18n-title="cyclicGroups.subExprFollowTitle" data-i18n="cyclicGroups.subExprFollow">Follow expression slider</button></span>
         </div>
         <div class="sub-expr-row" id="sub-width-row">
           <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
@@ -3023,6 +3025,7 @@ cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCose
 subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
 var subExprRowEl = $('sub-expr-row');
 var subSortPairEl = $('sub-sort-pair');
+var subFollowPairEl = $('sub-follow-pair'), subFollowEl = $('sub-follow');
 var subExprRowREl = $('sub-expr-row-r');
 var subLeftRSelectEl = $('sub-left-r-select');
 var subRightRSelectEl = $('sub-right-r-select');
@@ -8276,8 +8279,8 @@ function turned(list){
 
 // The subgroup dropdown names no subgroup itself; it says where the subgroup
 // is picked: following the bottom panel (or the ring, SUB_PANEL), which in a
-// cyclic group may itself follow the expression slider (its menu's Follow
-// expression slider, state.genFollow). None is no choice to
+// cyclic group may itself follow the expression slider (its Follow
+// expression slider button, state.genFollow). None is no choice to
 // make; it shows only while a link opened the ring without a subgroup.
 var SUB_PANEL = 'panel';
 // On a curve, following the plot: a click on a point there picks it.
@@ -8360,6 +8363,8 @@ function syncGenerators(G){
     state.gen = G.cyclic ? G.generators[0] : (G.els.length > 1 ? G.els[1] : G.identity);
   }
   genSelectEl.value = state.noSub ? 'none' : state.genPlot ? SUB_PLOT : SUB_PANEL;
+  subFollowPairEl.hidden = !G.cyclic;
+  subFollowEl.setAttribute('aria-pressed', state.genFollow ? 'true' : 'false');
 }
 // Following the expression slider, the selected element is the slider's
 // generator (the smallest while it is on Natural). Another choice of
@@ -15657,15 +15662,6 @@ function setSubCtx(open, x, y){
       render();
     }));
   }
-  // In a cyclic group the panel's pick, and so G, may follow the
-  // expression slider.
-  if (drawn && drawn.G.cyclic){
-    subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subExprFollow'), state.genFollow, function(){
-      setSubCtx(false);
-      if (state.genFollow){ state.genFollow = false; render(); return; }
-      followExprSlider();
-    }));
-  }
   subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subEnterInverse'), state.enterInverse, function(){
     setSubCtx(false);
     state.enterInverse = !state.enterInverse;
@@ -16569,7 +16565,7 @@ function hintPanelRow(G){
   void splitBtnEl.offsetWidth;
   splitBtnEl.classList.add('is-row-blink');
 }
-// The bottom panel's menu's Follow expression slider: G is the slider's
+// The bottom panel's Follow expression slider, pressed: G is the slider's
 // generator from now on, picked in the panel, until a subgroup is chosen
 // another way.
 function followExprSlider(){
@@ -16632,6 +16628,10 @@ arrangeGenSelectEl.addEventListener('change', function(){
   if (g === null) return;
   polyBy = 'arrange';
   rearrange(function(){ state.arrangeGen = g; render(); });
+});
+subFollowEl.addEventListener('click', function(){
+  if (state.genFollow){ state.genFollow = false; render(); return; }
+  followExprSlider();
 });
 $('sub-gcd').addEventListener('click', function(){
   state.subGcd = !state.subGcd;
