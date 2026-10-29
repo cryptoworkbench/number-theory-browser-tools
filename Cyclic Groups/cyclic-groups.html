@@ -5747,7 +5747,10 @@ function scratchFormulas(G){
     var eq = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
     list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroup(G), mo(':'), mEl('mtext', [eq])), plain: G.label + ': ' + eq });
     if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(natPointM(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)), plain: '⟨' + natPointP(G, h) + '⟩ ' + (whole ? '⊆' : '⊂') + ' ' + G.label });
-    list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(mGroup(G)), mo('='), mn(G.order)), plain: '|' + G.label + '| = ' + G.order });
+    // The bars round the group's full name, its equation with it, as the
+    // menu's Group name writes it: |E(𝔽ₚ): y² = …| = N.
+    var full = mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b));
+    list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(full), mo('='), mn(G.order)), plain: '|' + curveName(G) + '| = ' + G.order });
     return list;
   }
   if (on('gname')) list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroupPct(), mo('='), mGroup(G)), plain: '⟨ℤ/%ℤ, ∗⟩ = ' + G.label });
@@ -6232,8 +6235,9 @@ function ctxItem(role, label, more){
 // submenu. The menu stays open on the switch, to see the card come and go.
 function syncFormulaItems(){
   var items = [];
-  // Not the group's or the subgroup's name, which the menu leaves out.
-  (drawn ? scratchFormulas(drawn.G) : []).filter(function(f){ return f.key !== 'gname' && f.key !== 'sname'; }).forEach(function(f){
+  // Not the group's or the subgroup's name, which the menu leaves out, nor
+  // the group's cardinality, which the menu of G = ⟨h⟩ holds beside them.
+  (drawn ? scratchFormulas(drawn.G) : []).filter(function(f){ return f.key !== 'gname' && f.key !== 'sname' && f.key !== 'gorder'; }).forEach(function(f){
     var it = ctxItem('menuitem', translate(SCRATCH_NAMES[f.key]), true);
     it.item.setAttribute('data-formula', f.key);
     it.item.addEventListener('pointerenter', function(){ setRingCopy(f.key, it.item, false); });
@@ -7059,8 +7063,9 @@ function syncExprCtx(key){
     });
     return;
   }
-  // The subgroup row's G = ⟨h⟩ ⊆ …: the group's name, then the subgroup's.
-  (key === 'gsub' ? ['ggroup', 'gsub'] : [key]).forEach(function(k){
+  // The subgroup row's G = ⟨h⟩ ⊆ …: the group's name, the subgroup's, then
+  // the group's cardinality.
+  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder'] : [key]).forEach(function(k){
     var it = ctxItem('menuitem', translate(SCRATCH_NAMES[k]), true);
     it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
     it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
