@@ -8908,9 +8908,14 @@ function plotPolygon(G){
   // The turns: from 0 by a (then by b), or k hops of a; each an arc
   // inside the polygon, the later ones nearer its centre.
   var turns = [];
-  // Every arrow turns one way: the shorter way round to the result, and
-  // the preferred way (see prefSign) on a half turn or back to 0.
-  var r = log[rot], way = !r || 2 * r === n ? prefSign() * dirSign() : 2 * r < n ? 1 : -1;
+  // Every arrow turns one way: the shorter way round to the result. On a
+  // half turn or back to 0 the turns themselves say which way (9 + 9 is
+  // -3 - 3 in ℤ/12); only a half turn of their own (or none) leaves it to
+  // the preferred way (see prefSign).
+  var wayOf = function(k){ k = (k % n + n) % n; return !k || 2 * k === n ? 0 : 2 * k < n ? 1 : -1; };
+  var by = combo.k !== null ? [combo.k < 0 ? G.inv[combo.a] : combo.a] : [combo.a, combo.b];
+  var way = [log[rot]].concat(by.filter(function(x){ return x !== null && G.els.indexOf(x) !== -1; }).map(function(x){ return log[x]; }))
+    .map(wayOf).filter(Boolean)[0] || prefSign() * dirSign();
   var toward = function(k){ k = (k % n + n) % n; return way < 0 && k ? k - n : k; };
   // aᵏ: every one of the |k| hops, lap after lap, spiralling inward (the
   // last 120 of a longer walk), each in the colour the ring's walk gives
@@ -8945,7 +8950,7 @@ function plotPolygon(G){
   body.appendChild(svgEl('circle', { 'class': 'poly-mark', cx: num(tip[0]), cy: num(tip[1]), r: 3.2 }));
   body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
   // It turns from where it stood to its new place the shorter way round
-  // (the preferred way on a half turn), to rest too when a combination comes to 0;
+  // (on a half turn the way its arrows go), to rest too when a combination comes to 0;
   // let go, it is back at rest at once.
   var turn = log[rot], key = G.key + '|' + g + '|' + sgn, deg = sgn * turn * 360 / n;
   var same = polyShown && polyShown.key === key && (turn || live);
@@ -8953,7 +8958,7 @@ function plotPolygon(G){
     // From where it stands, never round a whole turn back to the same
     // place: the same turn again leaves it standing.
     var steps = ((turn - polyShown.turn) % n + n) % n;
-    if (steps > n / 2 || 2 * steps === n && prefSign() * dirSign() < 0) steps -= n;
+    if (steps > n / 2 || 2 * steps === n && way < 0) steps -= n;
     deg = polyShown.deg + sgn * steps * 360 / n;
   }
   var from = same ? polyShown.deg : deg;
