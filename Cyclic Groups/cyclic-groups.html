@@ -409,6 +409,20 @@
   /* Room at its end keeps the locked row's padlock off the text. */
   .op-id{ margin-left:10px; padding-right:10px; font-size:1.05rem; white-space:nowrap; color:var(--text); }
   .op-id i{ font-size:.92rem; }
+  .op-id{ display:inline-flex; align-items:center; gap:.12em; }
+  /* E = 0's 0: plain text until it is in use, then the dropdowns' button;
+     locked with the pyramid it stays plain. */
+  .id-pick > .ec-pick-btn{ gap:4px; margin:-5px -9px; font-family:inherit; font-size:inherit; background:none; border-color:transparent; transition:background var(--ease-ctl), border-color var(--ease-ctl); }
+  .op-id > .id-pick{ flex:none; }
+  .id-pick .ec-pick-now{ flex:none; overflow:visible; }
+  .id-pick > .ec-pick-btn > svg{ visibility:hidden; }
+  .id-pick > .ec-pick-btn:not(:disabled):is(:hover, :focus-visible, [aria-expanded="true"]){ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
+  .id-pick > .ec-pick-btn:not(:disabled):is(:hover, :focus-visible, [aria-expanded="true"]) > svg{ visibility:visible; }
+  .id-pick > .ec-pick-btn:disabled{ opacity:1; cursor:default; }
+  .id-pick > .ec-pick-pop{ min-width:max-content; }
+  .id-pick .ec-pick-list > li{ display:flex; align-items:baseline; gap:12px; font-size:1rem; }
+  .id-pick .id-pick-kind{ font-size:.82rem; color:var(--text-dim); }
+  .id-pick .ec-pick-list > li[aria-selected="true"] .id-pick-kind{ color:inherit; }
 
   /* ---------- subgroups list ---------- */
   /* One row per element: the subgroup it generates, its members in the
@@ -3196,10 +3210,11 @@ var arrangeGenWrapEl = $('arrange-gen-wrap');
 // naming the choice and a list of the options under it. The select stays,
 // hidden, holding the choice: what is read from it, set on it or listened
 // for on it works as before, and the button and list follow it.
-function skinSelect(sel){
+function skinSelect(sel, opts){
+  opts = opts || {};
   var box = document.createElement('span'), btn = document.createElement('button'), now = document.createElement('span');
   var pop = document.createElement('span'), list = document.createElement('ul'), active = -1;
-  box.className = 'ec-pick skin-pick';
+  box.className = 'ec-pick skin-pick' + (opts.cls ? ' ' + opts.cls : '');
   btn.type = 'button';
   btn.className = 'ec-pick-btn';
   btn.setAttribute('aria-haspopup', 'listbox');
@@ -3227,19 +3242,21 @@ function skinSelect(sel){
     btn.setAttribute('aria-labelledby', label.id);
     list.setAttribute('aria-labelledby', label.id);
   }
-  var opts = function(){ return Array.prototype.slice.call(sel.options); };
+  var options = function(){ return Array.prototype.slice.call(sel.options); };
   function sync(){
     var o = sel.options[sel.selectedIndex];
-    now.textContent = o ? o.textContent : '';
+    if (opts.show) now.replaceChildren(o ? opts.show(o) : '');
+    else now.textContent = o ? o.textContent : '';
     btn.disabled = sel.disabled;
     var tip = sel.getAttribute('data-title');
     if (tip) btn.setAttribute('data-title', tip); else dropTitle(btn);
-    list.replaceChildren.apply(list, opts().map(function(o, i){
+    list.replaceChildren.apply(list, options().map(function(o, i){
       var li = document.createElement('li');
       li.id = sel.id + '-opt-' + i;
       li.setAttribute('role', 'option');
       li.setAttribute('aria-selected', String(i === sel.selectedIndex));
-      li.textContent = o.textContent;
+      if (opts.item) li.replaceChildren(opts.item(o));
+      else li.textContent = o.textContent;
       if (o.title) li.setAttribute('data-title', o.title);
       if (o.disabled) li.setAttribute('aria-disabled', 'true');
       return li;
@@ -15841,15 +15858,46 @@ function syncOpTri(){
   var k = opKind();
   opTriEl.setAttribute('data-at', k);
   opTriInputs.forEach(function(r){ r.checked = r.value === k; });
-  var e = mEl('mi', ['E'], { 'data-tip': 'e' });
-  if (k === 'ec'){
-    opIdEl.replaceChildren(mInline(mrow(e, mo('='), mEl('mi', ['𝒪'], { mathvariant: 'normal', 'data-tip': 'o' })), 'E = 𝒪'));
-  } else {
-    var id = k === 'additive' ? 0 : 1;
-    opIdEl.replaceChildren(mInline(mrow(e, mo('='), mn(id)), 'E = ' + id));
-  }
+  opIdHeadEl.replaceChildren(mInline(mrow(mEl('mi', ['E'], { 'data-tip': 'e' }), mo('=')), 'E ='));
+  idKindSelEl.value = k;
+  // Locked with the pyramid, never on its own: no padlock of its own.
+  idKindSelEl.disabled = opTriInputs[0].disabled;
+  Array.prototype.forEach.call(idKindSelEl.options, function(o){ o.title = translate(ID_KINDS[o.value][1]); });
+  idKindBtnEl.setAttribute('aria-label', translate('cyclicGroups.idPickLabel'));
   hideIdTip();
 }
+// The identity after E =, a dropdown drawn as the other dropdowns of the
+// rows above the ring, but only while it is in use (under the pointer,
+// focused, or open): 0 picks addition, 1 multiplication and 𝒪 a curve's
+// points, as the pyramid's corners do. Locked with the pyramid it is plain
+// text again, and opens no list.
+var ID_KINDS = { additive: ['0', 'cyclicGroups.opKindAdd'], multiplicative: ['1', 'cyclicGroups.opKindMul'], ec: ['𝒪', 'cyclicGroups.ecToggle'] };
+var opIdHeadEl = document.createElement('span'), idKindSelEl = document.createElement('select');
+opIdHeadEl.className = 'op-id-head';
+idKindSelEl.id = 'id-kind-select';
+['additive', 'multiplicative', 'ec'].forEach(function(k){
+  var o = document.createElement('option');
+  o.value = k;
+  o.textContent = ID_KINDS[k][0];
+  idKindSelEl.appendChild(o);
+});
+opIdEl.replaceChildren(opIdHeadEl, idKindSelEl);
+function idKindMath(k){
+  return mInline(k === 'ec' ? mEl('mi', ['𝒪'], { mathvariant: 'normal', 'data-tip': 'o' }) : mn(ID_KINDS[k][0]), ID_KINDS[k][0]);
+}
+var idKindBtnEl = skinSelect(idKindSelEl, {
+  cls: 'id-pick',
+  show: function(o){ return idKindMath(o.value); },
+  item: function(o){
+    var kind = document.createElement('span');
+    kind.className = 'id-pick-kind';
+    kind.textContent = translate(ID_KINDS[o.value][1]);
+    var frag = document.createDocumentFragment();
+    frag.append(idKindMath(o.value), kind);
+    return frag;
+  }
+});
+idKindSelEl.addEventListener('change', function(){ if (!idKindSelEl.disabled) setOpKind(idKindSelEl.value); });
 var idTipEl = document.createElement('div');
 idTipEl.className = 'akey-tip';
 idTipEl.setAttribute('role', 'tooltip');
@@ -16185,7 +16233,7 @@ ecPresetListEl.addEventListener('focusout', function(e){
 // (unless it was let go before a reload). A double-click on them opens the
 // padlocks, which fade, and then the fields and the switch are let go.
 var groupControlsEl = $('group-controls');
-var GROUP_LOCK_FIELDS = [nInputEl, opSelectEl, identitySelectEl].concat(opTriInputs);
+var GROUP_LOCK_FIELDS = [nInputEl, opSelectEl, identitySelectEl, idKindSelEl].concat(opTriInputs);
 var groupLockTimer = 0;
 var isoLockEl = $('iso-lock');
 var groupLockIcons = Array.prototype.map.call(groupControlsEl.querySelectorAll(':scope > li:not(.fs-row-label)'), function(li){
