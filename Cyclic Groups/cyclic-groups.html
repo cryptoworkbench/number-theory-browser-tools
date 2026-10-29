@@ -858,6 +858,9 @@
   .is-linked-blink{ border-radius:var(--radius-ctl); animation:linked-blink 360ms steps(1) 3; }
   /* Blinked in turn with another, it lights while the other is dark. */
   .is-linked-blink.is-blink-late{ animation-delay:180ms; }
+  /* A group's place in the bottom bar blinks only its formulas button, not its tasks beside it. */
+  .bar-formulas.is-linked-blink{ animation:none; }
+  .bar-formulas.is-linked-blink > .bar-btn:not(.bar-task){ animation:linked-blink 360ms steps(1) 3; }
   @keyframes linked-blink{ 0%{ outline:2px solid var(--role-warn); outline-offset:2px; background-color:var(--role-warn-soft); } 50%{ outline:2px solid transparent; } }
   /* Its light version: a new row picked while the bottom panel is out of
      sight blinks its chevrons once, softly (hintPanelRow). */
@@ -6826,7 +6829,8 @@ function hideRingFormula(){
   barFormulasChanged();
   blinkBarBtn(0);
 }
-// The group's place in the bar, which outlives its button being built again.
+// The group's place in the bar, which outlives its button being built again;
+// only the formulas button in it blinks.
 function blinkBarBtn(i){ blinkLinked($(BAR_SIDES[i].el)); }
 // The formula card lets the pointer through, so a right click is placed
 // against it rather than heard on it.
@@ -16408,6 +16412,7 @@ function blinkLinked(el, late){
 }
 document.addEventListener('animationend', function(e){
   if (e.animationName === 'linked-blink' || e.animationName === 'expr-linked-blink') e.target.classList.remove('is-linked-blink', 'is-blink-late');
+  if (e.animationName === 'linked-blink' && e.target.matches('.bar-formulas > .bar-btn:not(.bar-task)')) e.target.parentNode.classList.remove('is-linked-blink', 'is-blink-late');
   if (e.animationName === 'row-blink') e.target.classList.remove('is-row-blink');
 });
 // The bottom panel's selected row, last seen in this group. Another row
