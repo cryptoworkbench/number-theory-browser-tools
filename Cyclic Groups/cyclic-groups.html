@@ -159,7 +159,7 @@
   .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
   /* JetBrains Mono centres ⟨ ⟩ in a full-width cell, which reads as a stray space
      around the number; the sans face sets them tight to it. */
-  #gen-select, #arrange-select, #arrange-gen-select, .expr-scale{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
+  #gen-select, #arrange-gen-select, .expr-scale{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
   .field select:disabled{ opacity:.6; cursor:not-allowed; }
   /* The open list is drawn by the browser on its own light background, so it
      needs an opaque themed fill or the night-theme text is unreadable. */
@@ -1195,7 +1195,7 @@
   .dir-pref > .ctl-lock{ grid-column:2 / 3; grid-row:1 / 2; }
   .dir-pref:is(.is-folded, .is-back-off) > .ctl-lock{ grid-column:1 / 2; }
   .ctl-lock{ position:absolute; z-index:2; top:-9px; right:-11px; display:none; width:20px; height:20px; place-items:center; color:var(--text-dim); background:var(--surface); border:1px solid var(--panel-border); border-radius:50%; pointer-events:none; }
-  :is(.dir-pref, .dir-toggle) .ctl-lock svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  :is(.dir-pref, .dir-toggle, .arrange-gen-wrap) .ctl-lock svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
   .ctl-lock .lock-key{ display:none; }
   .is-padlocked > .ctl-lock{ display:grid; }
   .dir-pref.is-locked > .dir-pref-seg > button{ opacity:.4; }
@@ -1398,11 +1398,23 @@
      its edge. In the side panel both wrappers step aside. */
   .arrange-controls, .arrange-pair{ display:contents; }
   .arrange-pair[hidden]{ display:none; }
+  /* The Generator dropdown, padlocked while Sequential is pressed, and the
+     Sequential button after it. On a curve the button is gone but keeps
+     its room, so the dropdown stays where it is between the operations. */
+  .arrange-gen-wrap{ position:relative; display:inline-flex; max-width:100%; }
+  .arrange-gen-wrap > select{ flex:1 1 auto; }
+  .arrange-seq{ font:inherit; font-size:.85rem; line-height:1.2; padding:5px 11px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; white-space:nowrap; }
+  .arrange-seq:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .arrange-seq[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .arrange-seq:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .arrange-seq:disabled{ opacity:.6; cursor:not-allowed; }
+  .arrange-seq.is-absent{ visibility:hidden; }
   .fs-win-body.is-ring > #arrange-field{ min-width:0; }
   .fs-win-body.is-ring .arrange-controls{ flex:1 1 0; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:6px clamp(12px, 3.5cqi, 32px); }
   .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; max-width:100%; }
   .fs-win-body.is-ring .arrange-controls select{ max-width:100%; }
   .fs-win-body.is-ring :is(#gen-field select, #arrange-field select){ width:auto; min-width:8em; padding:4px 8px; }
+  .fs-win-body.is-ring #arrange-field #arrange-gen-select{ width:11.5em; }
   /* After the subgroup's dropdown, the group it lies in: ⊂ ⟨ℤ/12ℤ, +⟩ for a
      proper subgroup, ⊆ for the whole group. Only in the ring's own row. */
   .gen-super{ display:none; }
@@ -2264,6 +2276,7 @@
   :root.is-mobile .rotate-value{ min-height:44px; font-size:16px; }
   :root.is-mobile .app select, :root.is-mobile .app input[type="text"], :root.is-mobile .app input[type="number"]{ min-height:40px; font-size:16px; }
   :root.is-mobile .app .action-btn{ min-height:40px; }
+  :root.is-mobile .arrange-seq{ min-height:40px; }
   :root.is-mobile .check{ align-items:center; }
   :root.is-mobile .extra-options summary{ padding:10px 0; }
   /* The arrow options live in the Layers panel here (the right-click menu that
@@ -2275,7 +2288,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.cg-intro-qr svg, .diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-select, #arrange-gen-select, .expr-scale, .expr-range, .expr-stops, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.cg-intro-qr svg, .diagram-frame, #n-input, #op-select, #identity-select, #gen-select, #arrange-gen-select, .expr-scale, .expr-range, .expr-stops, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -2640,11 +2653,10 @@
         <p class="hint" id="hint" hidden></p>
         <p class="hint" id="hint-inverse" hidden></p>
         <div class="field color-by" id="arrange-field">
-          <label for="arrange-select"><span class="arrange-panel-name" data-i18n="cyclicGroups.arrangeLabel">Arrangement</span><span class="arrange-fs-name" data-i18n="cyclicGroups.arrangeRowLabel">Arrangement</span></label>
+          <label for="arrange-gen-select"><span class="arrange-panel-name" data-i18n="cyclicGroups.arrangeLabel">Arrangement</span><span class="arrange-fs-name" data-i18n="cyclicGroups.arrangeRowLabel">Arrangement</span></label>
           <div class="arrange-controls">
             <span class="combine-mode" id="combine-mode" role="group" aria-label="Combine elements" data-i18n-aria-label="cyclicGroups.combineModeLabel"><span class="combine-mode-name" data-i18n="cyclicGroups.combineModeLabel">Combine elements</span><span class="combine-seg"><button type="button" id="combine-mode-element" aria-pressed="true" title="Combine two elements" aria-label="Combine two elements" data-i18n-title="cyclicGroups.combineModeElement" data-i18n-aria-label="cyclicGroups.combineModeElement"></button><button type="button" id="combine-mode-scalar" aria-pressed="false" title="Combine one element with itself k times" aria-label="Combine one element with itself k times" data-i18n-title="cyclicGroups.combineModeScalar" data-i18n-aria-label="cyclicGroups.combineModeScalar"></button></span><span class="n-spin combine-k-spin" hidden><input type="number" id="combine-k" step="1" value="2" title="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" aria-label="How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse&#39;s multiples" data-i18n-title="cyclicGroups.combineScalarTimes" data-i18n-aria-label="cyclicGroups.combineScalarTimes"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span><button type="button" class="combine-k-mod" id="combine-k-mod" hidden></button></span>
-            <select id="arrange-select"></select>
-            <span class="arrange-pair" id="arrange-gen-pair" hidden><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><select id="arrange-gen-select"></select></span>
+            <span class="arrange-pair" id="arrange-gen-pair"><label for="arrange-gen-select" id="arrange-gen-label" data-i18n="cyclicGroups.arrangeGenLabel">Generator</label><span class="arrange-gen-wrap" id="arrange-gen-wrap"><select id="arrange-gen-select"></select></span><button type="button" class="arrange-seq" id="arrange-seq" aria-pressed="false" title="Low to high" data-i18n-title="cyclicGroups.arrangeSequentialTitle" data-i18n="cyclicGroups.arrangeSequential">Sequential</button></span>
             <span class="dir-pref" id="dir-pref" role="group" aria-label="Preferred directions of the paths" data-i18n-aria-label="cyclicGroups.dirPrefLabel"><span class="dir-pref-name" aria-hidden="true" data-i18n="cyclicGroups.dirPrefFwdName">Forward</span><span class="combine-seg dir-pref-seg is-fwd"><button type="button" id="dir-pref-ccw" data-dir="ccw" aria-pressed="false" title="Forward path counterclockwise" aria-label="Forward path counterclockwise" data-i18n-title="cyclicGroups.dirPrefCcw" data-i18n-aria-label="cyclicGroups.dirPrefCcw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 0 1.8 6M0.4 4.6 1.8 6.2 3.2 4.6"/></svg></button><button type="button" id="dir-pref-cw" data-dir="cw" aria-pressed="true" title="Forward path clockwise" aria-label="Forward path clockwise" data-i18n-title="cyclicGroups.dirPrefCw" data-i18n-aria-label="cyclicGroups.dirPrefCw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 1 10.2 6M8.8 4.6 10.2 6.2 11.6 4.6"/></svg></button></span><button type="button" class="expr-adv dir-pref-adv" id="dir-pref-adv" aria-expanded="false"></button><span class="dir-pref-name" aria-hidden="true" data-i18n="cyclicGroups.dirPrefBackName">Backward</span><span class="combine-seg dir-pref-seg is-back"><button type="button" id="dir-pref-back-ccw" data-dir="ccw" aria-pressed="true" title="Backwards path counterclockwise" aria-label="Backwards path counterclockwise" data-i18n-title="cyclicGroups.dirPrefBackCcw" data-i18n-aria-label="cyclicGroups.dirPrefBackCcw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 0 1.8 6M0.4 4.6 1.8 6.2 3.2 4.6"/></svg></button><button type="button" id="dir-pref-back-cw" data-dir="cw" aria-pressed="false" title="Backwards path clockwise" aria-label="Backwards path clockwise" data-i18n-title="cyclicGroups.dirPrefBackCw" data-i18n-aria-label="cyclicGroups.dirPrefBackCw"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10.2A4.2 4.2 0 1 1 10.2 6M8.8 4.6 10.2 6.2 11.6 4.6"/></svg></button></span></span>
             <span class="spin-track shorten-lock" id="shorten-lock-track"><span class="spin-ticks" aria-hidden="true"><span></span><span class="is-zero"></span><span></span></span><input type="range" id="shorten-lock" min="-1" max="1" step="1" value="-1" aria-label="Lock" data-i18n-aria-label="cyclicGroups.lockLabel"></span>
             <button type="button" class="action-btn dir-toggle" id="dir-toggle"></button>
@@ -2986,9 +2998,9 @@ if (isoBlank) document.documentElement.classList.add('is-iso-blank');
 var subgroupOptionsEl = $('subgroup-options');
 var ringHeadEl = $('ring-head');
 var scratchPadEl = $('scratch-pad');
-var arrangeSelectEl = $('arrange-select');
 var arrangeGenSelectEl = $('arrange-gen-select');
-var arrangeGenPairEl = $('arrange-gen-pair');
+var arrangeGenWrapEl = $('arrange-gen-wrap');
+var arrangeSeqEl = $('arrange-seq');
 var exprSlotEl = $('expr-slot');
 var exprSliderEl = $('expr-slider');
 var spinRulerEl = $('spin-ruler');
@@ -3565,10 +3577,11 @@ function arrangeBy(G){
   return G.generators.indexOf(g) !== -1 ? g : G.generators[0];
 }
 
-// The arrangement: Sequential (low to high) or by the powers of a
-// generator, and while it is by powers a second dropdown, beside the first,
-// with every generator of the group. A group with no generator offers
-// Sequential only.
+// The arrangement: by the powers of the generator in the Generator
+// dropdown, or, while the Sequential button beside it is pressed, low to
+// high, the dropdown then padlocked (on 1 in ℤ/nℤ, Not applicable in a
+// group of units). A group with no generator is Sequential only; a curve
+// has no Sequential, its dropdown offering only its generating points.
 function arrangeOption(value, key, titleKey){
   var opt = document.createElement('option');
   opt.value = value;
@@ -3577,24 +3590,32 @@ function arrangeOption(value, key, titleKey){
   return opt;
 }
 function syncArrange(G){
-  var powers = G.cyclic && state.bygen;
-  arrangeSelectEl.replaceChildren(
-    arrangeOption('seq', 'cyclicGroups.arrangeSequential', 'cyclicGroups.arrangeSequentialTitle'),
-    arrangeOption('powers', 'cyclicGroups.arrangeByPowers'));
-  arrangeSelectEl.value = powers ? 'powers' : 'seq';
-  arrangeSelectEl.title = arrangeSelectEl.selectedOptions[0].title;
-  arrangeSelectEl.disabled = !G.cyclic;
-  arrangeGenPairEl.hidden = !powers;
-  if (!powers) return;
+  // On a curve the beads always follow a generating point: no Sequential.
+  var seqOffered = !G.pts;
+  var seq = seqOffered && !(G.cyclic && state.bygen);
+  arrangeSeqEl.classList.toggle('is-absent', !seqOffered);
+  arrangeSeqEl.setAttribute('aria-pressed', String(seq));
+  // A group with no generator can only be sequential.
+  arrangeSeqEl.disabled = !G.cyclic;
+  var locked = seq || !G.cyclic;
+  arrangeGenWrapEl.classList.toggle('is-padlocked', locked);
+  arrangeGenSelectEl.disabled = locked;
+  // Sequential in ℤ/nℤ is the multiples of 1; the units in order are the
+  // powers of no generator.
+  if (locked && !(G.cyclic && G.mode === 'additive')){
+    arrangeGenSelectEl.replaceChildren(arrangeOption('na', 'cyclicGroups.arrangeNotApplicable', 'cyclicGroups.arrangeNotApplicableTitle'));
+    arrangeGenSelectEl.value = 'na';
+    arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
+    return;
+  }
   arrangeGenSelectEl.replaceChildren.apply(arrangeGenSelectEl, [followOption()].concat(G.generators.map(function(g){
     var opt = document.createElement('option');
     opt.value = String(g);
-    // In ℤ/nℤ the multiples of 1 are the elements in order: it says so.
-    opt.textContent = G.mode === 'additive' && g === 1 ? translate('cyclicGroups.arrangeGenSequential', { g: elText(G, g) }) : elText(G, g);
+    opt.textContent = elText(G, g);
     opt.title = translate(G.mode === 'multiplicative' ? 'cyclicGroups.arrangePowers' : 'cyclicGroups.arrangeMultiples', { g: elText(G, g) });
     return opt;
   })));
-  arrangeGenSelectEl.value = state.arrangeGen === SUB_FOLLOW ? SUB_FOLLOW : String(arrangeBy(G));
+  arrangeGenSelectEl.value = seq ? '1' : state.arrangeGen === SUB_FOLLOW ? SUB_FOLLOW : String(arrangeBy(G));
   arrangeGenSelectEl.title = arrangeGenSelectEl.selectedOptions[0].title;
 }
 
@@ -12590,7 +12611,7 @@ function applyRingQuery(q){
   state.plotDock = q.get('plotdock') === '1';
   state.plotHalos = q.get('plothalos') === 'ab' ? 'ab' : 'path';
   polyOpen = q.get('polygon') === '1';
-  state.bygen = q.get('bygen') === '1';
+  state.bygen = q.get('bygen') === '1' || (!!state.ec && G.cyclic);
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
   state.signed = q.get('signed') === '1';
@@ -15133,6 +15154,7 @@ function syncEcPresets(){
 }
 // The mode on or off: the ring starts on a generator, its beads laid out
 // along it when there is one, and any combination is let go.
+var seqBeforeEc = true;
 function setEcMode(on){
   if (on === state.ec) return;
   state.ec = on;
@@ -15141,7 +15163,10 @@ function setEcMode(on){
   if (!on){ state.n = clamp(state.ecP, MIN_N, MAX_N); nNoteShown = false; persistGroup(); }
   var G = currentGroup();
   state.gen = startGen(G);
-  if (on && G.cyclic) state.bygen = true;
+  // A curve is always arranged by a generating point; leaving it, the
+  // Sequential button is back as it was before the curve.
+  if (on){ seqBeforeEc = !state.bygen; if (G.cyclic) state.bygen = true; }
+  else state.bygen = !seqBeforeEc;
   state.arrangeGen = null;
   state.rot = 0;
   render();
@@ -15575,8 +15600,11 @@ FLAG_SWITCHES.forEach(function(name){
     syncShowCorners();
   });
 });
-arrangeSelectEl.addEventListener('change', function(){
-  var powers = arrangeSelectEl.value === 'powers';
+arrangeGenWrapEl.appendChild(ctlLock());
+// Pressed, the beads go low to high; let go, they are back on the
+// generator the dropdown had.
+arrangeSeqEl.addEventListener('click', function(){
+  var powers = arrangeSeqEl.getAttribute('aria-pressed') === 'true';
   polyBy = 'arrange';
   rearrange(function(){ state.bygen = powers; render(); });
 });
@@ -15584,12 +15612,6 @@ arrangeGenSelectEl.addEventListener('change', function(){
   var g = subExprVal(arrangeGenSelectEl.value);
   if (g === null) return;
   polyBy = 'arrange';
-  // In an additive group the multiples of 1 are the sequential order itself,
-  // so choosing 1 sets the arrangement back to Sequential.
-  if (drawn && drawn.G.mode === 'additive' && g === 1){
-    rearrange(function(){ state.bygen = false; render(); });
-    return;
-  }
   rearrange(function(){ state.arrangeGen = g; render(); });
 });
 $('sub-gcd').addEventListener('click', function(){
