@@ -134,7 +134,8 @@
    the page), and cayleyShort, cayleyTitle, cayleyTitlePairs, cayleyShow,
    cayleyTask, cayleyMerge and cayleySplit (the Cayley table's window, its
    task in the bottom bar and the switch merging two locked rings' tables
-   into one of linked pairs). Every other language shows the English value through
+   into one of linked pairs), and cayleyModeHover and cayleyModeReveal
+   (the switch between the table's two modes). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -944,6 +945,8 @@
       cayleyTask: 'Show the Cayley table of {group}',
       cayleyMerge: 'Merge the two tables into one table of the linked pairs',
       cayleySplit: 'Give each ring its own table again',
+      cayleyModeReveal: 'Write the elements as the on-hover expression slider does',
+      cayleyModeHover: 'Write the elements as the ring does, and show a ∗ b in the ring as the pointer passes a cell',
       polyTask: 'Show the rotations of a regular {n}-gon',
       polyCornerNat: 'The turn by {k} · 360°/{n} = {deg}°',
       polyCorner: '{el} = {gk}: the turn by {k} · 360°/{n} = {deg}°',
