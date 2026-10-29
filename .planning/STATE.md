@@ -861,6 +861,7 @@ None yet.
 | 625 | Cyclic Groups: bottom panel's Reveal on hover offered and working whenever the panel's G or Subgroup expression writes powers (not tied to the slider) | 2026-10-20 | df89c91 | — |
 | 626 | Cyclic Groups: catch-up translation of 123 keys into all 30 languages; 6 dead keys dropped; formula {q} fix; ord notation; i18n-check --coverage PASS | 2026-10-21 | 4474b6c | — |
 | 627 | Cyclic Groups: scalar combination aᵏ (mode toggle, k field with mod-|G| reduction button, derivation naming a, k, A with exponent reduced through |G| and φ(n)), lap halos and lap-replacing hop numbers, forward-path eye, formula-menu Main/Row swap; English-first keys | 2026-10-23 | b783dd6 | — |
+| 261029-kcf | Cyclic Groups: one Generator dropdown plus a Sequential button in the Arrangement row | 2026-10-29 | 99aafc7 | [261029-kcf-cyclic-groups-one-generator-dropdown-plu](./quick/261029-kcf-cyclic-groups-one-generator-dropdown-plu/) |
 
 ## Deferred Items
 
