@@ -1033,6 +1033,8 @@
   .cayley-grid tbody th{ left:0; z-index:1; border-right-color:var(--panel-border); }
   .cayley-grid thead th:first-child{ left:0; z-index:3; color:var(--text); }
   .cayley-grid td{ cursor:pointer; }
+  /* Focused, the arrow keys move the lit cell: its frame says so. */
+  .cayley-scroll:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
   .cayley-grid td:hover{ box-shadow:inset 0 0 0 1px var(--text-dim); }
   .cayley-grid tbody th.is-a{ background:color-mix(in srgb, var(--role-active) 22%, var(--surface)); color:var(--role-active); }
   .cayley-grid thead th.is-b{ background:color-mix(in srgb, var(--role-input) 22%, var(--surface)); color:var(--role-input); }
@@ -2501,7 +2503,7 @@
         </section>
         <section class="curve-plot cayley-plot" id="cayley-plot" aria-labelledby="cayley-plot-title" hidden>
           <div class="lap-key-head"><h2 id="cayley-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="cayley-merge" aria-pressed="false" hidden></button><button type="button" class="fs-win-btn lap-key-min curve-plot-dock" id="cayley-dock" aria-pressed="false"></button><button type="button" class="fs-win-btn lap-key-min" id="cayley-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
-          <div class="cayley-scroll" id="cayley-scroll"><table class="cayley-grid" id="cayley-grid"></table></div><div class="curve-grip" id="cayley-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
+          <div class="cayley-scroll" id="cayley-scroll" tabindex="0"><table class="cayley-grid" id="cayley-grid"></table></div><div class="curve-grip" id="cayley-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
@@ -9062,7 +9064,7 @@ var cayleyOpen = false, paneCayleyMerged = false, cayleyMinSent = null;
 var cayleyWin = plotWindow(cayleyEl, $('cayley-grip'));
 // What the grid was built for, its heads and cells by element, and the
 // cells lit now.
-var cayleyBuilt = null, cayleyRows = {}, cayleyCols = {}, cayleyCells = {}, cayleyLit = [];
+var cayleyBuilt = null, cayleyEls = [], cayleyRows = {}, cayleyCols = {}, cayleyCells = {}, cayleyLit = [];
 function cayleyAvail(G){ return !!G && !IS_MOBILE && !(IS_ISOPANE && (isoBlank || paneCayleyMerged)) && !hostBlank(); }
 function cayleyMerged(){ return !IS_ISOPANE && state.cayleyMerged && isoLinked(); }
 // An element as the No hover slider writes it: natural, gᵏ or kP.
@@ -9115,6 +9117,7 @@ function buildCayley(G, merged){
   var key = JSON.stringify([getLang(), G.key, els, els.map(label)]);
   if (key === cayleyBuilt) return;
   cayleyBuilt = key;
+  cayleyEls = els;
   cayleyRows = {}; cayleyCols = {}; cayleyCells = {}; cayleyLit = [];
   var texts = {};
   els.forEach(function(x){ texts[x] = label(x); });
@@ -9180,16 +9183,41 @@ function lightCayley(G){
   }
 }
 // A click on a cell combines its row with its column, as two clicks on
-// the ring's beads would.
-cayleyGridEl.addEventListener('click', function(e){
-  var td = e.target.closest('td[data-a]');
-  if (!td || !drawn) return;
-  var a = +td.getAttribute('data-a'), b = +td.getAttribute('data-b');
+// the ring's beads would, and gives the arrow keys to the table.
+function cayleyPick(a, b){
+  if (!drawn) return;
   if (!IS_ISOPANE) setCombineMode('element');
   combo = { a: a, b: b, k: null, key: comboKey(drawn.G) };
   redrawRing();
   tellCombine();
   syncComboUi();
+}
+cayleyGridEl.addEventListener('click', function(e){
+  var td = e.target.closest('td[data-a]');
+  if (!td) return;
+  cayleyScrollEl.focus({ preventScroll: true });
+  cayleyPick(+td.getAttribute('data-a'), +td.getAttribute('data-b'));
+});
+// With the table focused the arrow keys are its, not the page's (which
+// step the subgroup rows and the expression slider): up and down move to
+// another row a, left and right to another column b (Home and End to the
+// first and last), each cell combined as it is reached; with nothing
+// picked yet the first key lights the top left cell. Escape gives the
+// keys back, the cell staying lit.
+cayleyScrollEl.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ e.preventDefault(); cayleyScrollEl.blur(); return; }
+  var step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+  if (!step && e.key !== 'Home' && e.key !== 'End') return;
+  if (e.altKey || e.ctrlKey || e.metaKey || !drawn || !cayleyEls.length) return;
+  e.preventDefault();
+  var els = cayleyEls, n = els.length, p = cayleyPicks(drawn.G);
+  var i = p ? els.indexOf(p.a) : -1, j = p && p.b !== null ? els.indexOf(p.b) : -1;
+  if (i < 0){ cayleyPick(els[0], els[0]); return; }
+  if (j < 0) j = 0;
+  else if (e.key === 'Home') j = 0;
+  else if (e.key === 'End') j = n - 1;
+  else { i = clamp(i + step[0], 0, n - 1); j = clamp(j + step[1], 0, n - 1); }
+  cayleyPick(els[i], els[j]);
 });
 function syncCayleyBtns(merged){
   cayleyMergeBtnEl.hidden = IS_ISOPANE || !isoLinked();
@@ -12154,6 +12182,8 @@ window.addEventListener('keydown', function(e){
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"]')) return;
   if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
+  // Snapped to the Cayley table (focused), the arrows move its cell.
+  if (t.closest && t.closest('.cayley-scroll')) return;
   e.preventDefault();
   e.stopPropagation();
   if (vertical){
