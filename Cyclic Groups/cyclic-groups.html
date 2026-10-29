@@ -1578,9 +1578,9 @@
   .expr-gap{ flex:none; width:26px; }
   .expr-gap[hidden]{ display:none; }
   .expr-hover-row{ display:none; }
-  .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-side, .is-sign-only) > .expr-hover-row{ display:revert; }
-  .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-side, .is-sign-only) > .expr-scale.expr-hover-row{ display:flex; }
-  .expr-slot.is-side .expr-adv, .expr-slot.is-sign-only .expr-adv{ display:none; }
+  .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-sign-only) > .expr-hover-row{ display:revert; }
+  .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-sign-only) > .expr-scale.expr-hover-row{ display:flex; }
+  .expr-slot.is-sign-only .expr-adv{ display:none; }
   /* At the On hover slider's end, under the unfold icon: the lock tying the
      two sliders, offered while they stand alike, its shackle open; closed
      while they are tied. */
@@ -1628,6 +1628,17 @@
   .expr-range:focus-visible::-moz-range-thumb{ box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
   /* Upright: the slider's own column beside the ring, in the ring's row. */
   .fs-win-body.is-ring{ --expr-side:7.5rem; }
+  /* Unfolded upright, the On hover slider stands beside the No hover one,
+     each named over it, its lock at its foot level with the unfold icon:
+     the column twice as wide. */
+  .fs-win-body.is-ring:has(> .expr-slot.is-side.is-adv:not(.is-sign-only, [hidden])){ --expr-side:14rem; }
+  .fs-win-body.is-ring > .expr-slot.is-side.is-adv:not(.is-sign-only, [hidden]){ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto minmax(0, 300px) auto auto; justify-items:center; align-content:center; column-gap:6px; row-gap:6px; }
+  .expr-slot.is-side.is-adv:not(.is-sign-only) > .expr-name{ display:block; grid-row:1; font-size:.7rem; }
+  .expr-slot.is-side.is-adv:not(.is-sign-only) > :not(.expr-hover-row){ grid-column:1; }
+  .expr-slot.is-side.is-adv:not(.is-sign-only) > .expr-hover-row{ grid-column:2; }
+  .expr-slot.is-side.is-adv:not(.is-sign-only) > .expr-scale{ grid-row:2; height:100%; }
+  .expr-slot.is-side.is-adv:not(.is-sign-only) > .expr-now{ grid-row:3; }
+  .expr-slot.is-side.is-adv:not(.is-sign-only) > .expr-side-lock{ grid-row:4; }
   .fs-win-body.is-ring > .expr-slot.is-side:not([hidden]){ grid-area:ring; justify-self:start; align-self:stretch; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; width:var(--expr-side); min-height:0; padding:4px 0; text-align:center; container:expr-side / size; }
   :root.is-isopane .fs-win-body.is-ring > .expr-slot.is-side:not([hidden]){ justify-self:end; }
   .expr-slot.is-side .expr-name{ display:none; }
@@ -4171,6 +4182,7 @@ function syncExprSide(){
   var side = !!exprSlotEl.closest('.fs-win-body.is-ring') && (IS_ISOPANE ? splitOn || hostSplitOn : splitOn && !isoPaneEl.hidden && !ringSplitEl.hidden);
   exprSlotEl.classList.toggle('is-side', side);
   exprSliderEl.setAttribute('aria-orientation', side ? 'vertical' : 'horizontal');
+  exprHoverSliderEl.setAttribute('aria-orientation', side ? 'vertical' : 'horizontal');
   thinExprStops();
   if (IS_ISOPANE) drawSideLock(paneExprCoupled);
   else syncExprLock();
