@@ -653,9 +653,8 @@
   :root.is-ringwin, :root.is-ringwin body{ height:100%; margin:0; overflow:hidden; min-height:0; background:transparent; }
   :root.is-ringwin body > :not(.app), :root.is-ringwin .app > :not(.layout), :root.is-ringwin .side,
   :root.is-ringwin .stage > :not(.diagram-frame), :root.is-ringwin .diagram-frame > :not(.ringwin-body){ display:none !important; }
-  /* The ring's right-click menu is a child of the diagram too, and shows in a frame,
-     as does a formula card being dragged out of it. */
-  :root.is-ringwin .diagram-frame > .ring-ctx:not([hidden]), :root.is-ringwin .diagram-frame > .formula-card.is-ghost{ display:block !important; }
+  /* The ring's right-click menu is a child of the diagram too, and shows in a frame. */
+  :root.is-ringwin .diagram-frame > .ring-ctx:not([hidden]){ display:block !important; }
   :root.is-ringwin .app, :root.is-ringwin .layout, :root.is-ringwin .stage, :root.is-ringwin .diagram-frame{
     display:block; position:static; height:auto; width:auto; max-width:none; padding:0; margin:0; border:0; background:none; }
   :root.is-ringwin .ringwin-body{ position:fixed; inset:0; border-radius:0; }
@@ -2120,19 +2119,7 @@
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   /* The copy submenu shows its formula above the copy options, broken at
      its equals signs where it is wider than the menu may grow. */
-  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw / var(--page-zoom) - 16px)); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
-  /* A formula dragged out of the copy submenu onto the Ring window: a card
-     of its own over a blurred background, moved by dragging, closed from
-     its corner button. While dragged out it follows the pointer. */
-  .formula-card{ position:absolute; z-index:6; width:max-content; overflow:hidden; background:color-mix(in srgb, var(--panel) 72%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid var(--panel-border); border-radius:var(--radius-card); box-shadow:0 4px 16px color-mix(in srgb, var(--ink) 18%, transparent); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
-  .formula-card.is-moving{ cursor:grabbing; }
-  .formula-card.is-ghost{ position:fixed; z-index:80; pointer-events:none; opacity:.9; }
-  /* Its title bar, like a window's: the formula's name from the menu on
-     the left, the close button on the right. */
-  .formula-card-bar{ display:flex; align-items:center; gap:16px; padding:4px 5px 4px 10px; border-bottom:1px solid var(--panel-border); background:color-mix(in srgb, var(--text) 6%, transparent); }
-  .formula-card-title{ flex:1 1 auto; font-family:var(--font-sans); font-size:.72rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
-  .formula-card-bar > .fs-win-btn{ width:20px; height:20px; }
-  .formula-card > .scratch-math{ margin:0; padding:.55em .875em .62em; }
+  .ring-ctx-formula{ padding:6px 12px 4px; max-width:min(34em, calc(100vw / var(--page-zoom) - 16px)); }
   /* The element expressions, switched on from the ring's menu: a band of
      their own under the sliders (the gx row of every layout), each
      element across the top and under it, row by row, its power of every
@@ -5762,7 +5749,7 @@ function scratchFormulas(G){
   return list.sort(function(a, b){ return SCRATCH_ROWS.indexOf(a.key) - SCRATCH_ROWS.indexOf(b.key); });
 }
 // The group's structure, the last of the right-click menu's formulas,
-// copied and dragged out like the scratchpad's: ⟨ℤ/nℤ, +⟩ for a cyclic
+// copied like the scratchpad's: ⟨ℤ/nℤ, +⟩ for a cyclic
 // group, else the product of its cyclic factors.
 function structureFormula(G){
   // A curve's group is ℤ/n₁ℤ × ℤ/n₂ℤ × …, each nᵢ dividing the next.
@@ -5829,8 +5816,6 @@ function scratchCells(G){
   return cells;
 }
 function drawScratchPad(G){
-  drawFormulaCards(G);
-  tellHostCards(G);
   scratchPadEl.hidden = !scratchOpen;
   scratchPadEl.replaceChildren();
   if (!scratchOpen) return;
@@ -6139,13 +6124,15 @@ function svgIcon(parts){
 // zoom and what the ring shows are set in the window's bottom-right corner,
 // the colours in the colour keys): the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
-// there, and last the Info section: the Formulas submenus (each formula to
-// copy in one of several formats), the group's structure last among them. A pane's
-// menu has no isomorphisms, nor has the ring's while a pane is open; its
-// Formulas are its own group's.
+// there, and last the group's structure, written out in the menu itself. A
+// pane's menu has no isomorphisms, nor has the ring's while a pane is open;
+// its structure is its own group's.
 var RING_CTX_ITEMS = [
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
-  { head: 'cyclicGroups.fsFormulas', key: 'cyclicGroups.fact.structure', formulas: true, copy: 'struct' }
+  { sep: true, key: 'cyclicGroups.fact.structure', value: function(){
+    var f = drawn && structureFormula(drawn.G);
+    return f ? mInline(f.math, f.plain) : '';
+  } }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringCopyEl = $('ring-ctx-copy');
@@ -6196,12 +6183,12 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   });
   item.addEventListener('click', function(){
     if (l.copy){ setRingCopy(l.copy, item, true); return; }
-    if (item.getAttribute('aria-disabled') === 'true') return;
+    if (item.getAttribute('aria-disabled') === 'true' || !l.run) return;
     setRingCtx(false);
     l.run();
   });
   ringCtxEl.appendChild(item);
-  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key, formulas: l.formulas };
+  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key };
 });
 // A plain item of a submenu: its mark, its label and, opening a submenu of
 // its own, the arrow.
@@ -6228,29 +6215,6 @@ function ctxItem(role, label, more){
   }
   return { item: item, mark: mark };
 }
-// The Formulas section, in the menu itself above Structure (whose copy
-// submenu RING_CTX_ITEMS opens itself): the switch that
-// shows the formula scratchpad (where a Ring window has one to show), then
-// the scratchpad's formulas by their row names, each opening the copy
-// submenu. The menu stays open on the switch, to see the card come and go.
-function syncFormulaItems(){
-  var items = [];
-  // Not the group's or the subgroup's name, which the menu leaves out, nor
-  // the group's cardinality, which the menu of G = ⟨h⟩ holds beside them.
-  (drawn ? scratchFormulas(drawn.G) : []).filter(function(f){ return f.key !== 'gname' && f.key !== 'sname' && f.key !== 'gorder'; }).forEach(function(f){
-    var it = ctxItem('menuitem', translate(SCRATCH_NAMES[f.key]), true);
-    it.item.setAttribute('data-formula', f.key);
-    it.item.addEventListener('pointerenter', function(){ setRingCopy(f.key, it.item, false); });
-    it.item.addEventListener('click', function(){ setRingCopy(f.key, it.item, true); });
-    items.push(it.item);
-  });
-  ringCtxEl.querySelectorAll(':scope > .ring-ctx-fitem').forEach(function(el){ el.remove(); });
-  var at = ringCtxItems.find(function(it){ return it.formulas; });
-  items.forEach(function(el){
-    el.classList.add('ring-ctx-fitem');
-    at.item.before(el);
-  });
-}
 // The copy submenu, beside the Formulas one, for one formula, shown at its
 // top as the scratchpad typesets it: as LaTeX, as
 // MathML, as the Unicode plain text copying it from the page gives, or as
@@ -6275,7 +6239,6 @@ function setRingCopy(name, from, focus){
     view.className = 'ring-ctx-formula';
     view.setAttribute('role', 'presentation');
     view.appendChild(scratchMath(shown.cls, shown.math, shown.plain));
-    dragFormulaFrom(view, name);
     var sep = document.createElement('div');
     sep.className = 'ring-ctx-sep';
     sep.setAttribute('role', 'separator');
@@ -6300,159 +6263,8 @@ function setRingCopy(name, from, focus){
   ringCopyEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
   if (focus) ringCopyEl.querySelector('button').focus();
 }
-// Formula cards: the formula at the top of the copy submenu, dragged out
-// and let go over the Ring window, stays there as a card of its own, the
-// formula as it was drawn then, until its corner button closes it.
-function ringWorkArea(){ return scratchPadEl.closest('.fs-win-body.is-ring'); }
-function formulaCard(name){
-  var f = drawn && (menuFormulas(drawn.G).find(function(x){ return x.key === name; }));
-  if (!f) return null;
-  var card = formulaCardShell(name);
-  fillFormulaCard(card, drawn.G);
-  return card;
-}
-// A card without its formula: its bar, title and close button, and the cell
-// the formula goes in.
-function formulaCardShell(name){
-  var card = document.createElement('div');
-  card.className = 'formula-card';
-  card.setAttribute('data-formula', name);
-  var bar = document.createElement('div');
-  bar.className = 'formula-card-bar';
-  var title = document.createElement('span');
-  title.className = 'formula-card-title';
-  bar.appendChild(title);
-  var close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'fs-win-btn is-close';
-  close.appendChild(svgIcon([['line', { x1: 3, y1: 3, x2: 9, y2: 9 }], ['line', { x1: 9, y1: 3, x2: 3, y2: 9 }]]));
-  close.addEventListener('click', function(){
-    card.remove();
-    if (card.classList.contains('is-pane-card')) paneCardGone(name);
-  });
-  bar.appendChild(close);
-  card.appendChild(bar);
-  var cell = document.createElement('div');
-  cell.className = 'scratch-math';
-  card.appendChild(cell);
-  nameFormulaCard(card);
-  return card;
-}
-// The cards follow the ring: each shows its formula for the group and
-// subgroup on show now, or stays empty while they have none.
-function fillFormulaCard(card, G){
-  var cell = card.querySelector('.scratch-math');
-  var c = scratchCells(G)[card.getAttribute('data-formula')];
-  if (c) cell.replaceChildren(c); else cell.replaceChildren();
-}
-function drawFormulaCards(G){
-  document.querySelectorAll('.formula-card:not(.is-ghost)').forEach(function(card){
-    // The pane's cards hold the pane's formulas, which it sends.
-    if (!card.classList.contains('is-pane-card')) fillFormulaCard(card, G);
-    var area = card.parentNode;
-    if (area) placeFormulaCard(card, area, card.offsetLeft, card.offsetTop);
-  });
-}
-// A card's title, the name its formula has in the menu, and its close
-// button's label, in the language shown.
-function nameFormulaCard(card){
-  var name = translate(SCRATCH_NAMES[card.getAttribute('data-formula')]);
-  card.querySelector('.formula-card-title').textContent = name;
-  var close = card.querySelector('.formula-card-bar > .is-close'), label = translate('cyclicGroups.fsClose', { name: name });
-  close.setAttribute('aria-label', label);
-  close.title = label;
-}
-// A card's place in its window, kept inside it and below its top rows, on
-// its own ring's side: the pane's cards, which this ring holds, on the
-// pane's.
-function placeFormulaCard(card, area, x, y){
-  var ar = boxOf(area);
-  var minTop = Math.max(0, topRowsBottom(area) - ar.top - area.clientTop);
-  var pane = card.classList.contains('is-pane-card') && !isoPaneEl.hidden;
-  var minLeft = pane ? Math.max(0, boxOf(isoPaneEl).left - ar.left - area.clientLeft) : 0;
-  var maxLeft = (pane ? area.clientWidth : Math.min(area.clientWidth, workRight(area) - ar.left - area.clientLeft)) - card.offsetWidth;
-  card.style.left = Math.round(clamp(x, minLeft, Math.max(minLeft, maxLeft))) + 'px';
-  card.style.top = Math.round(clamp(y, minTop, Math.max(minTop, area.clientHeight - card.offsetHeight))) + 'px';
-}
-function dragFormulaFrom(view, name){
-  var drag = null;
-  view.addEventListener('pointerdown', function(e){
-    if (e.button !== 0 || !ringWorkArea()) return;
-    var r = boxOf(view);
-    drag = { id: e.pointerId, x: ptX(e), y: ptY(e), dx: ptX(e) - r.left, dy: ptY(e) - r.top, ghost: null };
-    view.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-  view.addEventListener('pointermove', function(e){
-    if (!drag || e.pointerId !== drag.id) return;
-    if (!drag.ghost){
-      if (Math.hypot(ptX(e) - drag.x, ptY(e) - drag.y) < 4) return;
-      drag.ghost = formulaCard(name);
-      if (!drag.ghost){ drag = null; return; }
-      drag.ghost.classList.add('is-ghost', 'is-moving');
-      ringCtxEl.parentNode.appendChild(drag.ghost);
-    }
-    drag.ghost.style.left = (ptX(e) - drag.dx) + 'px';
-    drag.ghost.style.top = (ptY(e) - drag.dy) + 'px';
-  });
-  function drop(e){
-    if (!drag || e.pointerId !== drag.id) return;
-    var ghost = drag.ghost, area = ringWorkArea();
-    drag = null;
-    if (!ghost) return;
-    var g = boxOf(ghost);
-    ghost.remove();
-    if (e.type !== 'pointerup' || !area) return;
-    // The pane's frame ends above the window's bottom panel, so its cards
-    // live in the ring holding it, which takes this one where it was let go.
-    if (IS_ISOPANE){
-      if (ptX(e) < 0 || ptY(e) < 0 || ptX(e) > (window.innerWidth / PAGE_ZOOM) || ptY(e) > (window.innerHeight / PAGE_ZOOM)) return;
-      hostCards[name] = true;
-      hostCardsSent = null;
-      tellHost({ isopane: 'card', name: name, x: g.left, y: g.top });
-      if (drawn) tellHostCards(drawn.G);
-      setRingCtx(false);
-      return;
-    }
-    var a = boxOf(area);
-    if (ptX(e) < a.left || ptX(e) > a.right || ptY(e) < a.top || ptY(e) > a.bottom) return;
-    var card = formulaCard(name);
-    if (!card) return;
-    area.appendChild(card);
-    placeFormulaCard(card, area, g.left - a.left, g.top - a.top);
-    movableFormulaCard(card, area);
-    setRingCtx(false);
-  }
-  view.addEventListener('pointerup', drop);
-  view.addEventListener('pointercancel', drop);
-}
-function movableFormulaCard(card, area){
-  var move = null;
-  card.addEventListener('pointerdown', function(e){
-    if (e.button !== 0 || e.target.closest('button, select, .scratch-grip')) return;
-    // A press on a scrolling cell's scroll bar scrolls it instead.
-    var t = e.target, tr = t.getBoundingClientRect && boxOf(t);
-    if (tr && (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) && (ptX(e) - tr.left - t.clientLeft >= t.clientWidth || ptY(e) - tr.top - t.clientTop >= t.clientHeight)) return;
-    move = { id: e.pointerId, x: ptX(e) - card.offsetLeft, y: ptY(e) - card.offsetTop };
-    card.setPointerCapture(e.pointerId);
-    card.classList.add('is-moving');
-    e.preventDefault();
-  });
-  card.addEventListener('pointermove', function(e){
-    if (move && e.pointerId === move.id) placeFormulaCard(card, area, ptX(e) - move.x, ptY(e) - move.y);
-  });
-  function end(e){
-    if (!move || e.pointerId !== move.id) return;
-    move = null;
-    card.classList.remove('is-moving');
-  }
-  card.addEventListener('pointerup', end);
-  card.addEventListener('pointercancel', end);
-}
-// The pane's formula cards, held by the ring holding the pane: the names it
-// handed over, whose formulas it sends again whenever they change, as plain
-// data the holding ring builds back into MathML.
-var hostCards = {}, hostCardsSent = null;
+// Math sent between a ring and its pane as plain data, built back into
+// MathML on the other side (the element expressions' table).
 function mathJson(node){
   if (node.nodeType === 3) return node.nodeValue;
   if (node.nodeType !== 1 && node.nodeType !== 11) return '';
@@ -6461,17 +6273,6 @@ function mathJson(node){
   var a = {};
   if (node.nodeType === 1) Array.prototype.forEach.call(node.attributes, function(at){ a[at.name] = at.value; });
   return { n: node.nodeType === 1 ? node.localName : 'span', ns: node.nodeType === 1 ? node.namespaceURI : 'http://www.w3.org/1999/xhtml', a: a, c: Array.prototype.map.call(node.childNodes, mathJson) };
-}
-function tellHostCards(G){
-  if (!IS_ISOPANE) return;
-  var names = Object.keys(hostCards);
-  if (!names.length) return;
-  var cells = scratchCells(G), out = {};
-  names.forEach(function(name){ out[name] = cells[name] ? mathJson(cells[name]) : null; });
-  var sent = JSON.stringify(out);
-  if (sent === hostCardsSent) return;
-  hostCardsSent = sent;
-  tellHost({ isopane: 'cards', cells: out });
 }
 var CARD_NS = { 'http://www.w3.org/1998/Math/MathML': true, 'http://www.w3.org/1999/xhtml': true };
 function jsonNode(j){
@@ -6483,34 +6284,6 @@ function jsonNode(j){
   });
   if (Array.isArray(j.c)) j.c.forEach(function(c){ el.appendChild(jsonNode(c)); });
   return el;
-}
-// Here, the card the pane handed over, at x, y in the pane's view.
-function addPaneCard(name, x, y){
-  var area = ringWorkArea();
-  if (!area || !isoPaneFrame) return;
-  var f = boxOf(isoPaneFrame), a = boxOf(area);
-  var card = formulaCardShell(name);
-  card.classList.add('is-pane-card');
-  area.appendChild(card);
-  placeFormulaCard(card, area, f.left + x - a.left - area.clientLeft, f.top + y - a.top - area.clientTop);
-  movableFormulaCard(card, area);
-}
-function fillPaneCards(cells){
-  document.querySelectorAll('.formula-card.is-pane-card').forEach(function(card){
-    var j = cells[card.getAttribute('data-formula')];
-    var cell = card.querySelector('.scratch-math');
-    if (j === undefined) return;
-    if (j) cell.replaceChildren(jsonNode(j)); else cell.replaceChildren();
-    if (card.parentNode) placeFormulaCard(card, card.parentNode, card.offsetLeft, card.offsetTop);
-  });
-}
-// The last of a formula's pane cards closed: the pane stops sending it.
-function paneCardGone(name){
-  if (document.querySelector('.formula-card.is-pane-card[data-formula="' + name + '"]')) return;
-  try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'cardgone', name: name }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
-}
-function dropPaneCards(){
-  document.querySelectorAll('.formula-card.is-pane-card').forEach(function(card){ card.remove(); });
 }
 // The element expressions, switched on from the ring's right-click menu:
 // each element, in numeric order, over the power of every generator that
@@ -6970,7 +6743,6 @@ function setRingCtx(open, x, y, expr, fml){
     it.label.textContent = translate(it.key);
     if (it.value) it.value.replaceChildren(it.valueOf());
   });
-  syncFormulaItems();
   syncExprCtx(expr === true ? 'gens' : expr || null);
   syncFormulaCtx(fml || null);
   var nat = syncNatHoverCtx(!expr && !fml);
@@ -7738,12 +7510,6 @@ if (IS_RINGWIN){
       if (!IS_ISOPANE || !Number.isInteger(d.col)) return;
       var btn = genExpBodyEl.querySelector('.genexp-sort[data-col="' + d.col + '"]');
       if (btn) btn.click();
-      return;
-    }
-    if (d.ringhost === 'cardgone'){
-      if (!IS_ISOPANE || typeof d.name !== 'string') return;
-      delete hostCards[d.name];
-      hostCardsSent = null;
       return;
     }
     if (d.ringhost === 'menuroom'){
@@ -13288,7 +13054,6 @@ function loadIsoFrame(){
   isoPanePlotMin = false;
   isoPanePolyMin = false;
   isoPaneCayleyMin = false;
-  dropPaneCards();
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
   isoInterlockSent = false;
@@ -13374,7 +13139,6 @@ function closeIsoPane(){
   ringSvgEl.style.removeProperty('--head-gap');
   endIsoPick();
   if (isoPaneFrame) isoPaneFrame.remove();
-  dropPaneCards();
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
   isoPaneFrame = null;
@@ -14716,8 +14480,6 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
-  } else if (d.isopane === 'card'){
-    if (typeof d.name === 'string' && Object.prototype.hasOwnProperty.call(SCRATCH_NAMES, d.name) && isFinite(d.x) && isFinite(d.y)) addPaneCard(d.name, d.x, d.y);
   } else if (d.isopane === 'substep'){
     if ((d.by === 1 || d.by === -1) && drawn && subInterlocked()) stepSubRow(d.by);
   } else if (d.isopane === 'subpick'){
@@ -14744,8 +14506,6 @@ window.addEventListener('message', function(e){
       genExpPaneFocus = null;
       if (again) again.focus();
     }
-  } else if (d.isopane === 'cards'){
-    if (d.cells && typeof d.cells === 'object') fillPaneCards(d.cells);
   } else if (d.isopane === 'legend'){
     var lg = d.legend, num = function(v){ return Number.isInteger(v); };
     isoPaneLegend = lg && Array.isArray(lg.selfInverse) && lg.selfInverse.every(num) && Array.isArray(lg.pairs)
@@ -17237,7 +16997,7 @@ exportBtnEl.addEventListener('click', exportRingPng);
 // Re-renders every JS-owned piece of text from the current state; no state
 // changes, so the generator choice, the layers and the typed n survive a
 // language switch.
-onLangChange(function(){ render(); drawSplitChevrons(); syncAutoRotate(); syncDirToggle(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); document.querySelectorAll('.formula-card').forEach(nameFormulaCard); });
+onLangChange(function(){ render(); drawSplitChevrons(); syncAutoRotate(); syncDirToggle(); postLookAll(); syncIsoPaneLabels(); if (IS_ISOPANE) drawSideLock(paneExprCoupled); });
 
 // The browser tab names the group shown, so tabs opened from the
 // isomorphism links tell apart. NT.i18n rewrites <title> from its
