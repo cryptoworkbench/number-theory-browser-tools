@@ -139,7 +139,8 @@
    (the lock tying the No hover and On hover sliders, which replaced the
    menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
    ecSortBy (the example curves' table: its curve column, its columns' sort
-   tooltip), and idPickLabel (the dropdown after E =). Every other language shows the English value through
+   tooltip), idPickLabel (the dropdown after E =), and winBringForward (a
+   window under the zoomed ring, as a task in the bottom bar). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -954,6 +955,7 @@
       cayleyModeReveal: 'Reveal the element under the pointer as the on-hover expression slider does',
       cayleyModeHover: 'Write the elements as the ring does, and show a ∗ b in the ring as the pointer passes a cell',
       idPickLabel: 'The identity element E: pick 0 for addition, 1 for multiplication or 𝒪 for an elliptic curve',
+      winBringForward: 'Bring {name} forward, over the ring',
       polyTask: 'Show the rotations of a regular {n}-gon',
       polyCornerNat: 'The turn by {k} · 360°/{n} = {deg}°',
       polyCorner: '{el} = {gk}: the turn by {k} · 360°/{n} = {deg}°',
