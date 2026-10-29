@@ -3264,10 +3264,10 @@ function balEl(G, x){ return state.signed && G && !G.pts && x > G.n / 2 ? x - G.
 // v − p.
 function balCoord(p, v){ return state.signed && v > p / 2 ? v - p : v; }
 function coordText(p, v){ return signed(balCoord(p, v)); }
-function balExp(G, k){ return state.signedExp && G && !G.pts && k > G.order / 2 ? k - G.order : k; }
+function balExp(G, k){ return state.signedExp && G && k > G.order / 2 ? k - G.order : k; }
 function elMn(G, x){ return mn(elText(G, x)); }
 function signedOn(G){ return state.signed && !!G && !G.pts; }
-function signedExpOn(G){ return state.signedExp && !!G && !G.pts; }
+function signedExpOn(G){ return state.signedExp && !!G; }
 // The largest number written, element or exponent: signed, half the range.
 function elMax(G){ return signedOn(G) ? Math.floor(G.n / 2) : Math.max.apply(null, G.els); }
 function expMax(G){ return signedExpOn(G) ? Math.floor(G.order / 2) : G.order - 1; }
@@ -3283,7 +3283,7 @@ function asReveal(fn){
 // Signed differently, an element written as it is revealed still reveals;
 // the exponents' switch counts only while the reveal writes powers.
 function revealSignsDiffer(G){
-  return !state.revealOff && !!G && (state.revealSigned !== state.signed || (!G.pts && revealTo(G) !== null && state.revealSignedExp !== state.signedExp));
+  return !state.revealOff && !!G && (state.revealSigned !== state.signed || (revealTo(G) !== null && state.revealSignedExp !== state.signedExp));
 }
 // The widest of the two forms, so a member keeps its width whichever shows.
 function elMaxBoth(G){ return Math.max(elMax(G), state.revealOff ? 0 : asReveal(function(){ return elMax(G); })); }
@@ -3727,9 +3727,6 @@ function syncExpr(G){
   exprSignEl.setAttribute('aria-pressed', String(state.signed));
   exprSignEl.title = translate(G.pts ? (state.signed ? 'cyclicGroups.exprSignOffEc' : 'cyclicGroups.exprSignOnEc') : state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
   exprSignEl.setAttribute('aria-label', exprSignEl.title);
-  exprSignExpEl.classList.toggle('is-void', !!G.pts);
-  exprSignExpEl.disabled = !!G.pts;
-  exprSignExpEl.toggleAttribute('aria-hidden', !!G.pts);
   exprSignExpEl.setAttribute('aria-pressed', String(state.signedExp));
   exprSignExpEl.title = translate(state.signedExp ? 'cyclicGroups.exprSignExpOff' : 'cyclicGroups.exprSignExpOn');
   exprSignExpEl.setAttribute('aria-label', exprSignExpEl.title);
@@ -3791,11 +3788,9 @@ function syncExprHover(G){
   exprHoverSignEl.setAttribute('aria-pressed', String(state.revealSigned));
   exprHoverSignEl.title = translate(G.pts ? (state.revealSigned ? 'cyclicGroups.exprHoverSignOffEc' : 'cyclicGroups.exprHoverSignOnEc') : state.revealSigned ? 'cyclicGroups.exprHoverSignOff' : 'cyclicGroups.exprHoverSignOn');
   exprHoverSignEl.setAttribute('aria-label', exprHoverSignEl.title);
-  // On a curve it keeps its place, hidden; revealing the natural number,
-  // whose exponent is always 1, it has nothing to sign.
-  exprHoverSignExpEl.classList.toggle('is-void', !!G.pts);
-  exprHoverSignExpEl.toggleAttribute('aria-hidden', !!G.pts);
-  exprHoverSignExpEl.disabled = !!G.pts || state.revealOff || revealTo(G) === null;
+  // Revealing the natural number, whose exponent is always 1, it has
+  // nothing to sign.
+  exprHoverSignExpEl.disabled = state.revealOff || revealTo(G) === null;
   exprHoverSignExpEl.setAttribute('aria-pressed', String(state.revealSignedExp));
   exprHoverSignExpEl.title = translate(state.revealSignedExp ? 'cyclicGroups.exprHoverSignExpOff' : 'cyclicGroups.exprHoverSignExpOn');
   exprHoverSignExpEl.setAttribute('aria-label', exprHoverSignExpEl.title);
@@ -4372,7 +4367,7 @@ function drawRing(parent, G, beads, box, paint){
     var maxEl = elMaxBoth(G), maxExp = expMaxBoth(G);
     beads.forEach(function(a, i){
       var p = at(i);
-      var power = function(g, log){ return ecMult(G) ? pad(log[a], G.order - 1) + 'P' : padBase(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
+      var power = function(g, log){ return ecMult(G) ? pad(balExp(G, log[a]), maxExp) + 'P' : padBase(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
       // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
       // and the small exponent), sized to its estimated width.
       var ptPowSize = function(t){ return Math.round(Math.max(7, Math.min(beadR * 1.05, beadR * 1.8 / labelEms(t)))); };
@@ -6755,9 +6750,10 @@ function syncSignCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
   var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
-  // On a curve only the coordinates have a signed form; beside it, the
-  // points written as multiples kP of the generator, not as its powers.
-  var signs = drawn.G.pts ? [['cyclicGroups.menuSignedEc', 'signed', toggleSigned]].concat(drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : []) : [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]];
+  // On a curve the coordinates have the signed form and, the curve being
+  // cyclic, the exponents (or multiples) too; beside them, the points
+  // written as multiples kP of the generator, not as its powers.
+  var signs = drawn.G.pts ? [['cyclicGroups.menuSignedEc', 'signed', toggleSigned]].concat(drawn.G.cyclic ? [['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp], ['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : []) : [['cyclicGroups.menuSigned', 'signed', toggleSigned], ['cyclicGroups.menuSignedExp', 'signedExp', toggleSignedExp]];
   signs.forEach(function(t){
     var sign = menuTick('menuitemcheckbox', translate(t[0]), state[t[1]], function(){
       setRingCtx(false);
@@ -8811,7 +8807,7 @@ function plotPolygon(G){
   // gᵏ as the ring writes it: a power, or k·P on a curve written in multiples.
   // Padded as the ring pads its labels, while Line up numbers asks for it.
   var power = function(k){ return ecMult(G) ? k + '·' + elText(G, g, true) : padBase(G, g) + superscript(padNum(k, expMax(G))); };
-  var label = function(x){ return natural ? natPow(G.pts ? elText(G, x, true) : padNum(balEl(G, x), elMax(G)), G) : ecMult(G) ? log[x] + 'P' : padBase(G, g) + superscript(padNum(balExp(G, log[x]), expMax(G))); };
+  var label = function(x){ return natural ? natPow(G.pts ? elText(G, x, true) : padNum(balEl(G, x), elMax(G)), G) : ecMult(G) ? signed(balExp(G, log[x])) + 'P' : padBase(G, g) + superscript(padNum(balExp(G, log[x]), expMax(G))); };
   // Wide corner labels, (x,y)ᵏ, need room outside the corners: the polygon
   // shrinks to leave it.
   var labelW = Math.max.apply(null, els.map(function(x){ return labelEms(label(x)) * 10; }));
@@ -9633,7 +9629,8 @@ function curvePowerRow(G, a, k, c, g, log, mod){
   var size = '|' + curveName(G) + '|';
   var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
   if (log){
-    var i = log[a], ik = i * k, m = log[c];
+    // Signed, the exponents are written nearest 0, i and the result m.
+    var i = balExp(G, log[a]), ik = i * k, m = balExp(G, log[c]);
     var pow = function(e){ return B(g) + supSigned(e); };
     r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
     r.push([['c', B(g)], ['c', signed(i) + ' × ' + R(k), 'sup']], [null, '≡']);
@@ -9697,17 +9694,17 @@ function curveRows(G, y, mod){
     // As multiples of P: k·(iP) ≡ (k × i)P, the factor reduced mod |E|;
     // as powers of P: (Pⁱ)ᵏ ≡ P^(i × k), the exponent reduced mod |E|.
     if (log && ecMult(G)){
-      var ki = k * log[a], m = log[c];
-      var s2 = [[null, signed(k) + ' ·'], ['a', log[a] + 'P'], [null, '≡'], ['c', '(' + signed(k) + ' × ' + log[a] + ')P'], [null, '≡']];
+      var la = balExp(G, log[a]), ki = k * la, m = balExp(G, log[c]);
+      var s2 = [[null, signed(k) + ' ·'], ['a', la < 0 ? '(' + signed(la) + 'P)' : la + 'P'], [null, '≡'], ['c', '(' + signed(k) + ' × ' + sub(la) + ')P'], [null, '≡']];
       if (ki !== m) s2.push(['c', signed(ki) + 'P'], [null, '≡']);
       if (ki !== m) curveReduce(G, s2, ki, function(e){ return ['c', '(' + e + ')P']; });
-      s2.push(['c', m + 'P'], [null, '≡'], ['c', elText(G, c)]);
+      s2.push(['c', signed(m) + 'P'], [null, '≡'], ['c', elText(G, c)]);
       out.push(s2);
     } else if (log){
-      var Pg = baseText(G, g), ik = log[a] * k, mp = log[c];
-      var s3 = [[[null, '('], ['a', Pg + superscript(log[a])], [null, ')' + supSigned(k)]], [null, '≡'], [['c', Pg], ['c', log[a] + ' × ' + sub(k), 'sup']], [null, '≡']];
+      var Pg = baseText(G, g), li = balExp(G, log[a]), ik = li * k, mp = balExp(G, log[c]);
+      var s3 = [[[null, '('], ['a', Pg + supSigned(li)], [null, ')' + supSigned(k)]], [null, '≡'], [['c', Pg], ['c', signed(li) + ' × ' + sub(k), 'sup']], [null, '≡']];
       if (ik !== mp) s3.push(['c', Pg + supSigned(ik)], [null, '≡']);
-      s3.push(['c', Pg + superscript(mp)], [null, '≡'], ['c', elText(G, c)]);
+      s3.push(['c', Pg + supSigned(mp)], [null, '≡'], ['c', elText(G, c)]);
       out.push(s3);
     }
     return out;
@@ -9717,19 +9714,19 @@ function curveRows(G, y, mod){
   // As multiples of P: iP + jP ≡ (i + j)P, the sum reduced mod |E|; as
   // powers of P: Pⁱ + Pʲ ≡ Pⁱ⁺ʲ, the exponents added.
   if (log && !ecMult(G)){
-    var Pb = baseText(G, g), i2 = log[a], j2 = log[b], m3 = log[c];
-    var ep = [['a', Pb + superscript(i2)], [null, '+'], ['b', Pb + superscript(j2)], [null, '≡'], ['c', Pb + superscript(i2) + '⁺' + superscript(j2)], [null, '≡']];
-    if (i2 + j2 !== m3) ep.push(['c', Pb + superscript(i2 + j2)], [null, '≡']);
+    var Pb = baseText(G, g), i2 = balExp(G, log[a]), j2 = balExp(G, log[b]), m3 = balExp(G, log[c]);
+    var ep = [['a', Pb + supSigned(i2)], [null, '+'], ['b', Pb + supSigned(j2)], [null, '≡'], ['c', Pb + supSigned(i2) + (j2 < 0 ? '⁻' : '⁺') + superscript(Math.abs(j2))], [null, '≡']];
+    if (i2 + j2 !== m3) ep.push(['c', Pb + supSigned(i2 + j2)], [null, '≡']);
     // Past |E|, the sum is reduced by it in steps of its own.
     if (i2 + j2 !== m3) curveReduce(G, ep, i2 + j2, function(e){ return [['c', Pb], ['c', e, 'sup']]; });
-    ep.push(['c', Pb + superscript(m3)], [null, '≡'], ['c', elText(G, c)]);
+    ep.push(['c', Pb + supSigned(m3)], [null, '≡'], ['c', elText(G, c)]);
     rows.push(ep);
   } else if (log){
-    var i = log[a], j = log[b], m2 = log[c];
-    var er = [['a', i + 'P'], [null, '+'], ['b', j + 'P'], [null, '≡'], ['c', '(' + i + ' + ' + j + ')P'], [null, '≡']];
-    if (i + j !== m2) er.push(['c', (i + j) + 'P'], [null, '≡']);
+    var i = balExp(G, log[a]), j = balExp(G, log[b]), m2 = balExp(G, log[c]);
+    var er = [['a', signed(i) + 'P'], [null, '+'], ['b', j < 0 ? '(' + signed(j) + 'P)' : j + 'P'], [null, '≡'], ['c', '(' + signed(i) + ' + ' + sub(j) + ')P'], [null, '≡']];
+    if (i + j !== m2) er.push(['c', signed(i + j) + 'P'], [null, '≡']);
     if (i + j !== m2) curveReduce(G, er, i + j, function(e){ return ['c', '(' + e + ')P']; });
-    er.push(['c', m2 + 'P'], [null, '≡'], ['c', elText(G, c)]);
+    er.push(['c', signed(m2) + 'P'], [null, '≡'], ['c', elText(G, c)]);
     rows.push(er);
   }
   var kind = curveSumKind(G, a, b);
@@ -14344,11 +14341,11 @@ function stateQuery(){
   else q.delete('simplifyhint');
   if (state.lock !== 'dir' || state.simplifyOff) q.set('lock', state.lock);
   else q.delete('lock');
-  if (state.signedExp && !state.ec) q.set('signedexp', '1');
+  if (state.signedExp) q.set('signedexp', '1');
   else q.delete('signedexp');
   if (state.revealSigned) q.set('revsigned', '1');
   else q.delete('revsigned');
-  if (state.revealSignedExp && !state.ec) q.set('revsignedexp', '1');
+  if (state.revealSignedExp) q.set('revsignedexp', '1');
   else q.delete('revsignedexp');
   if (state.ecMult && state.ec) q.set('ecmult', '1');
   else q.delete('ecmult');
