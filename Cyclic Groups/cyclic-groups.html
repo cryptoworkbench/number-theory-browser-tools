@@ -8275,8 +8275,9 @@ function turned(list){
 /* ---------- side panels ---------- */
 
 // The subgroup dropdown names no subgroup itself; it says where the subgroup
-// is picked: following the bottom panel (or the ring, SUB_PANEL), or
-// following the expression slider in a cyclic group. None is no choice to
+// is picked: following the bottom panel (or the ring, SUB_PANEL), which in a
+// cyclic group may itself follow the expression slider (its menu's Follow
+// expression slider, state.genFollow). None is no choice to
 // make; it shows only while a link opened the ring without a subgroup.
 var SUB_PANEL = 'panel';
 // On a curve, following the plot: a click on a point there picks it.
@@ -8315,7 +8316,7 @@ function syncGenSuper(G){
     el.style.animationDelay = -since + 'ms';
   });
 }
-function genNamed(){ return genSelectEl.value === SUB_FOLLOW || genSelectEl.value === SUB_PANEL || genSelectEl.value === SUB_PLOT; }
+function genNamed(){ return genSelectEl.value === SUB_PANEL || genSelectEl.value === SUB_PLOT; }
 // G turning into its inverse by a lock: what changes in the subgroup row
 // blinks red, a blink apart. Written as a power, only the exponent changes
 // and blinks (k in kP), twice before and once after; written Natural, the
@@ -8349,7 +8350,6 @@ function startInvBlink(n, after){
 function syncGenerators(G){
   genSelectEl.replaceChildren();
   genSelectEl.appendChild(arrangeOption(SUB_PANEL, 'cyclicGroups.subPanelFollow'));
-  if (G.cyclic) genSelectEl.appendChild(followOption());
   if (G.pts) genSelectEl.appendChild(arrangeOption(SUB_PLOT, 'cyclicGroups.subPlotFollow'));
   // None turns the subgroup off altogether: no G, its beads and paths.
   var none = document.createElement('option');
@@ -8359,7 +8359,7 @@ function syncGenerators(G){
   if (G.els.indexOf(state.gen) === -1){
     state.gen = G.cyclic ? G.generators[0] : (G.els.length > 1 ? G.els[1] : G.identity);
   }
-  genSelectEl.value = state.noSub ? 'none' : state.genFollow ? SUB_FOLLOW : state.genPlot ? SUB_PLOT : SUB_PANEL;
+  genSelectEl.value = state.noSub ? 'none' : state.genPlot ? SUB_PLOT : SUB_PANEL;
 }
 // Following the expression slider, the selected element is the slider's
 // generator (the smallest while it is on Natural). Another choice of
@@ -12709,8 +12709,8 @@ window.addEventListener('wheel', function(e){
     return;
   }
   if (state.noSub) return;
-  var follow = genSelectEl.value === SUB_FOLLOW;
-  if (!follow && genSelectEl.value !== SUB_PANEL) return;
+  if (genSelectEl.value !== SUB_PANEL) return;
+  var follow = state.genFollow;
   e.preventDefault();
   stepWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
   if (Math.abs(stepWheelSum) < 50) return;
@@ -15657,6 +15657,15 @@ function setSubCtx(open, x, y){
       render();
     }));
   }
+  // In a cyclic group the panel's pick, and so G, may follow the
+  // expression slider.
+  if (drawn && drawn.G.cyclic){
+    subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subExprFollow'), state.genFollow, function(){
+      setSubCtx(false);
+      if (state.genFollow){ state.genFollow = false; render(); return; }
+      followExprSlider();
+    }));
+  }
   subCtxEl.appendChild(menuTick('menuitemcheckbox', translate('cyclicGroups.subEnterInverse'), state.enterInverse, function(){
     setSubCtx(false);
     state.enterInverse = !state.enterInverse;
@@ -16560,8 +16569,22 @@ function hintPanelRow(G){
   void splitBtnEl.offsetWidth;
   splitBtnEl.classList.add('is-row-blink');
 }
+// The bottom panel's menu's Follow expression slider: G is the slider's
+// generator from now on, picked in the panel, until a subgroup is chosen
+// another way.
+function followExprSlider(){
+  state.noSub = false;
+  state.genPlot = false;
+  state.genFollow = true;
+  if (subInterlocked()) coupleForFollow(false);
+  var G = currentGroup(), e = exprBy(G);
+  followedGen = null;
+  selectGen(e === null ? G.generators[0] : e);
+  blinkLinked(exprSlotEl);
+  if (!exprSlotEl.hidden && exprSliderEl.offsetParent) exprSliderEl.focus({ preventScroll: true });
+}
 genSelectEl.addEventListener('change', function(){
-  state.genFollow = genSelectEl.value === SUB_FOLLOW;
+  state.genFollow = false;
   if (genSelectEl.value === 'none'){
     state.noSub = true;
     render();
@@ -16576,15 +16599,6 @@ genSelectEl.addEventListener('change', function(){
     curvePlotOpen = true;
     render();
     blinkLinked(curvePlotEl);
-    return;
-  }
-  if (state.genFollow){
-    if (subInterlocked()) coupleForFollow(false);
-    var G = currentGroup(), e = exprBy(G);
-    followedGen = null;
-    selectGen(e === null ? G.generators[0] : e);
-    blinkLinked(exprSlotEl);
-    if (!exprSlotEl.hidden && exprSliderEl.offsetParent) exprSliderEl.focus({ preventScroll: true });
     return;
   }
   // Following the bottom panel starts from the identity's subgroup the first
