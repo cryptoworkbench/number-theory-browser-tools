@@ -1549,9 +1549,19 @@
   .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-side, .is-sign-only) > .expr-hover-row{ display:revert; }
   .fs-win-body.is-ring > .expr-slot.is-adv:not(.is-side, .is-sign-only) > .expr-scale.expr-hover-row{ display:flex; }
   .expr-slot.is-side .expr-adv, .expr-slot.is-sign-only .expr-adv{ display:none; }
-  /* Disable reveal on hover on, the On hover slider has nothing to pick. */
-  .expr-slot.is-reveal-off > .expr-hover-row{ opacity:.45; }
-  .expr-slot.is-reveal-off > .expr-hover-row .expr-nat{ cursor:default; }
+  /* At the On hover slider's end, under the unfold icon: the lock tying the
+     two sliders, offered while they stand alike, its shackle open; closed
+     while they are tied. */
+  .expr-tie{ flex:none; display:grid; place-items:center; width:26px; height:26px; padding:0; color:var(--text-dim); background:var(--surface); border:1.5px solid var(--panel-border); border-radius:50%; cursor:pointer; transition:color var(--ease-ctl), border-color var(--ease-ctl), background var(--ease-ctl); }
+  .expr-tie.is-absent{ visibility:hidden; }
+  .expr-tie:hover{ color:var(--accent); border-color:var(--accent); }
+  .expr-tie[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+  .expr-tie:focus{ outline:none; }
+  .expr-tie:focus-visible{ box-shadow:var(--ctl-focus); }
+  .expr-tie svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .expr-tie .lock-key{ display:none; }
+  .expr-tie .lock-shackle{ transform-origin:16px 11px; transition:transform var(--ease-ctl); }
+  .expr-tie.is-open .lock-shackle{ transform:translateY(-2.5px) rotate(22deg); }
   .expr-sign:disabled{ cursor:default; }
   .expr-sign:disabled:hover{ color:var(--text-dim); border-color:var(--panel-border); }
   .expr-sign[aria-pressed="true"]:disabled:hover{ color:var(--accent); border-color:var(--accent); }
@@ -2543,7 +2553,7 @@
               <input type="range" class="expr-range" id="expr-hover-slider" min="0" max="0" step="1" value="0" aria-orientation="horizontal" aria-label="Element expression on hover" data-i18n-aria-label="cyclicGroups.exprHoverLabel">
               <div class="expr-stops" id="expr-hover-stops" aria-hidden="true"></div>
             </div>
-            <span class="expr-gap expr-gap-adv" aria-hidden="true"></span>
+            <button type="button" class="expr-tie" id="expr-tie" aria-pressed="false"></button>
           </div>
           <output class="expr-now expr-hover-row" id="expr-hover-now" for="expr-hover-slider"></output>
         </div>
@@ -3296,6 +3306,8 @@ var exprNatEl = $('expr-nat');
 var exprNowEl = $('expr-now');
 var exprAdvEl = $('expr-adv');
 var exprHoverSliderEl = $('expr-hover-slider');
+var exprTieEl = $('expr-tie');
+exprTieEl.appendChild(drawLockIcon());
 var exprHoverStopsEl = $('expr-hover-stops');
 var exprHoverNatEl = $('expr-hover-nat');
 var exprHoverNowEl = $('expr-hover-now');
@@ -4057,6 +4069,9 @@ function syncExprHover(G){
   var open = state.exprAdv;
   exprSlotEl.classList.toggle('is-adv', open);
   exprSlotEl.classList.toggle('is-reveal-off', state.revealOff);
+  // Tied, the On hover row shows what the No hover row says, its ± switches
+  // working both rows'.
+  var tied = state.revealOff;
   exprAdvEl.setAttribute('aria-expanded', String(open));
   var advName = translate(open ? 'cyclicGroups.exprAdvClose' : 'cyclicGroups.exprAdvOpen');
   exprAdvEl.title = advName;
@@ -4066,23 +4081,32 @@ function syncExprHover(G){
   // Its own ± and g^±, signing the form revealed as the No hover slider's
   // sign the form written.
   exprHoverSignEl.hidden = exprHoverSignExpEl.hidden = exprSignEl.hidden;
-  exprHoverSignEl.disabled = state.revealOff;
-  exprHoverSignEl.setAttribute('aria-pressed', String(state.revealSigned));
-  exprHoverSignEl.title = translate(G.pts ? (state.revealSigned ? 'cyclicGroups.exprHoverSignOffEc' : 'cyclicGroups.exprHoverSignOnEc') : state.revealSigned ? 'cyclicGroups.exprHoverSignOff' : 'cyclicGroups.exprHoverSignOn');
+  var rs = tied ? state.signed : state.revealSigned, rse = tied ? state.signedExp : state.revealSignedExp;
+  exprHoverSignEl.setAttribute('aria-pressed', String(rs));
+  exprHoverSignEl.title = translate(G.pts ? (rs ? 'cyclicGroups.exprHoverSignOffEc' : 'cyclicGroups.exprHoverSignOnEc') : rs ? 'cyclicGroups.exprHoverSignOff' : 'cyclicGroups.exprHoverSignOn');
   exprHoverSignEl.setAttribute('aria-label', exprHoverSignEl.title);
   // Revealing the natural number, whose exponent is always 1, it has
   // nothing to sign.
-  exprHoverSignExpEl.disabled = state.revealOff || revealTo(G) === null;
-  exprHoverSignExpEl.setAttribute('aria-pressed', String(state.revealSignedExp));
-  exprHoverSignExpEl.title = translate(state.revealSignedExp ? 'cyclicGroups.exprHoverSignExpOff' : 'cyclicGroups.exprHoverSignExpOn');
+  exprHoverSignExpEl.disabled = (tied ? exprBy(G) : revealTo(G)) === null;
+  exprHoverSignExpEl.setAttribute('aria-pressed', String(rse));
+  exprHoverSignExpEl.title = translate(rse ? 'cyclicGroups.exprHoverSignExpOff' : 'cyclicGroups.exprHoverSignExpOn');
+  // The lock, offered while the two sliders stand alike, closed while
+  // they are tied.
+  var alike = G.cyclic && exprBy(G) === revealTo(G);
+  exprTieEl.classList.toggle('is-absent', !tied && !alike);
+  exprTieEl.disabled = !tied && !alike;
+  exprTieEl.setAttribute('aria-pressed', String(tied));
+  exprTieEl.classList.toggle('is-open', !tied);
+  var tieName = translate(tied ? 'cyclicGroups.exprUntie' : 'cyclicGroups.exprTie');
+  exprTieEl.title = tieName;
+  exprTieEl.setAttribute('aria-label', tieName);
   exprHoverSignExpEl.setAttribute('aria-label', exprHoverSignExpEl.title);
   if (!open || !G.cyclic) return;
   // Its stops and its choice name the generators signed as its own ±
   // says, not as the No hover slider's does.
-  var to = revealTo(G);
-  asReveal(function(){ fillExprStops(G, exprHoverSliderEl, exprHoverStopsEl, exprHoverNatEl, to); });
-  exprHoverSliderEl.disabled = state.revealOff;
-  var now = asReveal(function(){ return exprNow(G, to); });
+  var to = tied ? exprBy(G) : revealTo(G), form = tied ? function(f){ return f(); } : asReveal;
+  form(function(){ fillExprStops(G, exprHoverSliderEl, exprHoverStopsEl, exprHoverNatEl, to); });
+  var now = form(function(){ return exprNow(G, to); });
   exprHoverNowEl.textContent = now;
   exprHoverSliderEl.setAttribute('aria-valuetext', now);
   exprHoverSliderEl.title = translate('cyclicGroups.exprHoverTitle');
@@ -4097,7 +4121,8 @@ function syncExprHover(G){
   btn.append(unfold, fold);
 });
 function setExprHoverStop(i){
-  if (!drawn || state.revealOff) return;
+  if (!drawn) return;
+  if (state.revealOff){ setExprStop(i); return; }
   var gens = drawn.G.generators, v = i > 0 ? gens[i - 1] : null;
   if (v === undefined || v === state.revealAs) return;
   pickReveal(v);
@@ -6990,17 +7015,24 @@ $('gen-super').addEventListener('contextmenu', function(e){
   setRevealHot(null);
   setRingCtx(true, ptX(e), ptY(e), 'gsub');
 });
-// The main menu's first item: Disable reveal on hover, one switch for the
-// whole tool. Off, a power of the generator under the pointer shows its
-// natural number wherever it is written: on a bead, in G = ⟨h⟩, in the
-// bottom panel's rows and formulas, in the main view's formula and in the
-// element expression reference table. It is kept in storage, so every
-// Ring window and pane follows it.
+// The No hover and On hover sliders locked together (state.revealOff): set
+// alike, the lock between them ties them, and from then on they move as one,
+// their ± switches too, so nothing is revealed on hover: a power of the
+// generator under the pointer shows as it is written wherever it is
+// written, on a bead, in G = ⟨h⟩, in the bottom panel's rows and formulas,
+// in the main view's formula and in the element expression reference
+// table. It is kept in storage, so every Ring window and pane follows it.
 var REVEAL_KEY = 'cyclic-groups-reveal-off';
 function readRevealOff(){
   try { return localStorage.getItem(REVEAL_KEY) === '1'; } catch (e) { return false; }
 }
 function setRevealOff(on){
+  // Let go, the On hover slider stays where the two stood.
+  if (!on && state.revealOff && drawn){
+    state.revealAs = exprBy(drawn.G);
+    state.revealSigned = state.signed;
+    state.revealSignedExp = state.signedExp;
+  }
   state.revealOff = on;
   try {
     if (on) localStorage.setItem(REVEAL_KEY, '1');
@@ -7017,22 +7049,8 @@ window.addEventListener('storage', function(e){
   setRevealHot(null);
   render();
 });
-function revealTick(close){
-  return menuTick('menuitemcheckbox', translate('cyclicGroups.menuRevealOff'), state.revealOff, function(){
-    close();
-    setRevealOff(!state.revealOff);
-  });
-}
 function syncNatHoverCtx(on){
-  var old = ringCtxEl.querySelector(':scope > .ring-ctx-nat');
-  if (old) old.remove();
-  var sign = syncSignCtx(on);
-  if (!on || !drawn) return sign;
-  var nat = revealTick(function(){ setRingCtx(false); });
-  nat.classList.add('ring-ctx-nat');
-  nat.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  ringCtxEl.insertBefore(nat, ringCtxEl.querySelector(':scope > :not(#ring-ctx-copy)'));
-  return nat;
+  return syncSignCtx(on);
 }
 // Next to it, the switches to the signed forms, the same as the slider's
 // two buttons: the numbers', then the exponents'.
@@ -15495,7 +15513,7 @@ function setSubCtx(open, x, y){
     subCtxReturn = null;
     return;
   }
-  subCtxEl.replaceChildren(revealTick(function(){ setSubCtx(false); }), subCtxRule());
+  subCtxEl.replaceChildren();
   subExports.forEach(function(ex){
     var item = document.createElement('button');
     item.type = 'button';
@@ -16431,8 +16449,15 @@ function toggleEcMult(){ state.ecMult = !state.ecMult; render(); }
 function toggleNatExp(){ state.natExpOff = !state.natExpOff; render(); }
 exprSignEl.addEventListener('click', toggleSigned);
 exprSignExpEl.addEventListener('click', toggleSignedExp);
-exprHoverSignEl.addEventListener('click', function(){ state.revealSigned = !state.revealSigned; setRevealHot(null); render(); });
-exprHoverSignExpEl.addEventListener('click', function(){ state.revealSignedExp = !state.revealSignedExp; setRevealHot(null); render(); });
+exprHoverSignEl.addEventListener('click', function(){ if (state.revealOff){ toggleSigned(); return; } state.revealSigned = !state.revealSigned; setRevealHot(null); render(); });
+exprHoverSignExpEl.addEventListener('click', function(){ if (state.revealOff){ toggleSignedExp(); return; } state.revealSignedExp = !state.revealSignedExp; setRevealHot(null); render(); });
+exprTieEl.addEventListener('click', function(){
+  if (!drawn) return;
+  var on = !state.revealOff;
+  if (on && exprBy(drawn.G) !== revealTo(drawn.G)) return;
+  setRevealOff(on);
+  exprTieEl.focus({ preventScroll: true });
+});
 exprSliderEl.addEventListener('input', function(){ setExprStop(parseInt(exprSliderEl.value, 10) || 0); });
 exprNatEl.addEventListener('click', function(){ setExprStop(0); });
 exprHoverSliderEl.addEventListener('input', function(){ setExprHoverStop(parseInt(exprHoverSliderEl.value, 10) || 0); });
