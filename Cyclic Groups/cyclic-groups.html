@@ -995,10 +995,40 @@
      marked corner's hand, the turns as arcs inside it. */
   /* The polygon's window docks at the top left of the ring's half, its
      grip in its bottom right corner; a phone has no bar to keep it in. */
-  .fs-win-body.is-ring > .poly-plot{ justify-self:start; }
-  :root:not(.is-mobile) .fs-win-body.is-ring > .poly-plot > .curve-grip{ left:auto; right:2px; cursor:nwse-resize;
+  .fs-win-body.is-ring > :is(.poly-plot, .cayley-plot){ justify-self:start; }
+  :root:not(.is-mobile) .fs-win-body.is-ring > :is(.poly-plot, .cayley-plot) > .curve-grip{ left:auto; right:2px; cursor:nwse-resize;
     background:linear-gradient(135deg, transparent 0 45%, var(--text-dim) 45% 52%, transparent 52% 64%, var(--text-dim) 64% 71%, transparent 71% 83%, var(--text-dim) 83% 90%, transparent 90%); }
   :root.is-mobile .poly-plot{ display:none !important; }
+  /* The Cayley table's window: the grid scrolls inside it, its heads kept
+     in view; the row of a (yellow), the column of b (blue) and the cell of
+     a ∗ b (green) light up as in the Cayley Table tool. */
+  :root.is-mobile .cayley-plot{ display:none !important; }
+  /* As wide as its grid, up to most of the ring's half, until it is resized. */
+  .fs-win-body.is-ring > .cayley-plot{ width:auto; max-width:min(640px, 60%); }
+  .fs-win-body.is-ring > .cayley-plot[style*="width:"]{ max-width:none; }
+  .cayley-plot .lap-key-head > h2{ flex:1 1 auto; min-width:0; }
+  /* Resized, it shows more of the grid, not larger type: only its height
+     follows the scale. */
+  .cayley-plot{ font-size:1rem; }
+  .cayley-plot .lap-key-min{ width:20px; height:20px; }
+  .cayley-plot .lap-key-min svg{ width:12px; height:12px; }
+  .cayley-scroll{ flex:1 1 auto; min-height:0; max-height:calc(var(--plot-scale, 1) * 300px); overflow:auto; border:1px solid var(--panel-border); border-radius:6px; overscroll-behavior:contain; }
+  .cayley-plot.is-docked .cayley-scroll{ max-height:none; }
+  .cayley-grid{ border-collapse:separate; border-spacing:0; font-family:var(--font-mono); font-size:.74em; font-variant-numeric:tabular-nums; line-height:1.25; color:var(--text); }
+  .cayley-grid :is(th, td){ padding:2px 6px; text-align:center; white-space:nowrap; border-right:1px solid color-mix(in srgb, var(--panel-border) 60%, transparent); border-bottom:1px solid color-mix(in srgb, var(--panel-border) 60%, transparent); }
+  .cayley-grid th{ position:sticky; background:var(--surface); color:var(--text-dim); font-weight:600; }
+  .cayley-grid thead th{ top:0; z-index:2; border-bottom-color:var(--panel-border); }
+  .cayley-grid tbody th{ left:0; z-index:1; border-right-color:var(--panel-border); }
+  .cayley-grid thead th:first-child{ left:0; z-index:3; color:var(--text); }
+  .cayley-grid td{ cursor:pointer; }
+  .cayley-grid td:hover{ box-shadow:inset 0 0 0 1px var(--text-dim); }
+  .cayley-grid tbody th.is-a{ background:color-mix(in srgb, var(--role-active) 22%, var(--surface)); color:var(--role-active); }
+  .cayley-grid thead th.is-b{ background:color-mix(in srgb, var(--role-input) 22%, var(--surface)); color:var(--role-input); }
+  .cayley-grid td.is-a-row{ background:color-mix(in srgb, var(--role-active) 22%, transparent); }
+  .cayley-grid td.is-b-col{ background:color-mix(in srgb, var(--role-input) 22%, transparent); }
+  .cayley-grid .cayley-to{ margin:0 .3em; font-family:var(--font-sans); font-size:1.15em; color:var(--text-dim); }
+  .cayley-grid td.is-sum .cayley-to{ color:inherit; }
+  .cayley-grid td.is-sum{ background:var(--role-result); color:var(--role-result-ink); font-weight:700; }
   .curve-plot-svg .poly-home{ fill:none; stroke:var(--panel-border); stroke-width:1; stroke-dasharray:3 3; }
   .curve-plot-svg .poly-shape{ fill:color-mix(in srgb, var(--accent) 12%, transparent); stroke:var(--text-dim); stroke-width:1.4; stroke-linejoin:round; }
   .curve-plot-svg .poly-body{ transform-box:view-box; pointer-events:none; }
@@ -1295,7 +1325,7 @@
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap input[type="range"]{ width:80px; }
   :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap span{ width:auto; min-width:3.5em; }
   :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-controls{ display:none !important; }
-  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto minmax(0, 1fr); min-height:0; overflow:hidden; }
+  .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:grid; grid-template-columns:auto auto minmax(0, 1fr) auto auto; grid-template-rows:auto minmax(0, 1fr); min-height:0; overflow:hidden; }
   /* The panel runs out over the window's side padding to 2px from its
      edges; 8px of its own keep room for the card the zoomed view draws
      8px outside the rows, and the divider still spans it all. */
@@ -1324,10 +1354,15 @@
      to a pane whose plot is docked too, the room its plot takes at the right,
      the pane drawing it there over its foot. */
   .ring-split > .split-grip{ grid-column:1 / -1; grid-row:1; }
-  .ring-split > .subgroups-panel{ grid-column:2; grid-row:2; min-width:0; }
+  .ring-split > .subgroups-panel{ grid-column:3; grid-row:2; min-width:0; }
   .ring-split > .curve-plot{ grid-column:1; grid-row:2; align-self:start; margin:0 12px 0 0; }
-  :root.is-isopane .ring-split > .curve-plot{ grid-column:3; margin:0 0 0 12px; }
-  .ring-split > .split-pane-slot{ grid-column:3; grid-row:2; margin-left:12px; }
+  :root.is-isopane .ring-split > .curve-plot{ grid-column:5; margin:0 0 0 12px; }
+  .ring-split > .split-pane-slot{ grid-column:5; grid-row:2; margin-left:12px; }
+  /* The Cayley table docked: between the curve plot and the list (in a
+     pane, between the list and its curve plot), as tall as the strip. */
+  .ring-split > .cayley-plot{ grid-column:2; align-self:stretch; min-height:0; display:flex; flex-direction:column; }
+  :root.is-isopane .ring-split > .cayley-plot{ grid-column:4; margin:0 0 0 12px; }
+  .fs-win-body.is-ring.ring-body > .ring-split > .cayley-plot:not(:first-child){ margin-left:0; }
   /* At the window's edge, the plots run out over the strip's own side
      padding, kept for the zoomed view's card, to the window's edge. */
   .fs-win-body.is-ring.ring-body > .ring-split > .curve-plot{ margin-left:-8px; }
@@ -2447,6 +2482,10 @@
           <div class="lap-key-head"><h2 id="poly-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="poly-plot-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
           <svg class="curve-plot-svg" id="poly-plot-svg" viewBox="0 0 280 280" role="img"></svg><p class="curve-plot-note" id="poly-plot-note"></p><div class="curve-grip" id="poly-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
+        <section class="curve-plot cayley-plot" id="cayley-plot" aria-labelledby="cayley-plot-title" hidden>
+          <div class="lap-key-head"><h2 id="cayley-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="cayley-merge" aria-pressed="false" hidden></button><button type="button" class="fs-win-btn lap-key-min curve-plot-dock" id="cayley-dock" aria-pressed="false"></button><button type="button" class="fs-win-btn lap-key-min" id="cayley-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
+          <div class="cayley-scroll" id="cayley-scroll"><table class="cayley-grid" id="cayley-grid"></table></div><div class="curve-grip" id="cayley-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
+        </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
@@ -2842,7 +2881,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subShort: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genPlot: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -4831,7 +4870,7 @@ function syncBarFormulas(){
 }
 // A minimized plot, as a task in the bar: the curve's, named by its
 // curve, and the polygon's, named by its N; a click opens it again.
-var isoPanePlotMin = false, isoPanePolyMin = false;
+var isoPanePlotMin = false, isoPanePolyMin = false, isoPaneCayleyMin = false;
 function barPlotTasks(i, G){
   var tasks = [];
   if (G.pts && (i === 0 ? !curvePlotOpen : isoPanePlotMin)){
@@ -4846,6 +4885,13 @@ function barPlotTasks(i, G){
     tasks.push(barTask(name, translate('cyclicGroups.polyShow'), translate('cyclicGroups.polyTask', { n: G.order }), 'poly', function(){
       if (i === 0){ openPolyPlot(); blinkLinked(polyPlotEl); return; }
       tellPane({ ringhost: 'polyopen' });
+    }));
+  }
+  if (i === 0 ? cayleyAvail(G) && !cayleyOpen : isoPaneCayleyMin){
+    var cay = translate('cyclicGroups.cayleyShort');
+    tasks.push(barTask(cay, translate('cyclicGroups.cayleyShow'), translate('cyclicGroups.cayleyTask', { group: G.label }), 'cayley', function(){
+      if (i === 0){ openCayley(); blinkLinked(cayleyEl); return; }
+      tellPane({ ringhost: 'cayleyopen' });
     }));
   }
   if (i === 0 && lapKeyOn && !lapKeyOpen){
@@ -4865,6 +4911,7 @@ function barTask(text, title, label, kind, open){
   btn.setAttribute('aria-label', label);
   var icon = svgEl('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
   if (kind === 'poly') icon.appendChild(svgEl('path', { d: 'M6 1.2 10.6 4.6 8.8 10.2H3.2L1.4 4.6Z' }));
+  else if (kind === 'cayley') icon.appendChild(svgEl('path', { d: 'M1.5 1.5h9v9h-9zM1.5 4.5h9M4.5 1.5v9' }));
   else if (kind === 'lap'){
     icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 4.5 }));
     icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 2 }));
@@ -5703,7 +5750,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -6916,12 +6963,12 @@ function syncSplit(){
     splitHome = null;
   }
   // The strip opens for a docked plot too, the list closed or not.
-  var plotIn = syncPlotDock(), slot = paneDockSlot();
+  var plotIn = syncPlotDock(), cayleyIn = syncCayleyDock(), slot = paneDockSlot();
   splitPaneSlotEl.hidden = !slot;
   splitPaneSlotEl.style.width = slot ? paneDock.w + 'px' : '';
-  ringSplitEl.hidden = !(on || plotIn || slot);
+  ringSplitEl.hidden = !(on || plotIn || cayleyIn || slot);
   // Again once the strip has settled into its new layout.
-  if (!ringSplitEl.hidden){ fitDockedPlot(); requestAnimationFrame(fitDockedPlot); }
+  if (!ringSplitEl.hidden){ fitDockedPlot(); fitDockedCayley(); requestAnimationFrame(function(){ fitDockedPlot(); fitDockedCayley(); }); }
   placeSplitBtn(hadFocus);
   splitBtnEl.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
   drawSplitChevrons();
@@ -7093,6 +7140,7 @@ function toggleSplit(){
 // into the ring holding it does the same with the holder's panel.
 var plotMinWithSplit = false;
 function splitTakesPlot(open){
+  splitTakesCayley(open);
   if (!open && state.plotDock && curvePlotOpen && drawn && drawn.G.pts){
     plotMinWithSplit = true;
     curvePlotOpen = false;
@@ -7101,6 +7149,18 @@ function splitTakesPlot(open){
     curvePlotOpen = true;
   } else return;
   if (drawn) drawCurvePlot(drawn.G);
+  syncBarFormulas();
+}
+// The docked Cayley table goes and comes back with the panel the same way.
+function splitTakesCayley(open){
+  if (!open && state.cayleyDock && cayleyOpen){
+    cayleyMinWithSplit = true;
+    cayleyOpen = false;
+  } else if (open && cayleyMinWithSplit){
+    cayleyMinWithSplit = false;
+    cayleyOpen = true;
+  } else return;
+  if (drawn) drawCayley(drawn.G);
   syncBarFormulas();
 }
 // The Numerical button is two stacked chevrons, pointing up while the panel
@@ -7283,6 +7343,10 @@ if (IS_RINGWIN){
       if (IS_ISOPANE){ openPolyPlot(); blinkLinked(polyPlotEl); }
       return;
     }
+    if (d.ringhost === 'cayleyopen'){
+      if (IS_ISOPANE){ openCayley(); blinkLinked(cayleyEl); }
+      return;
+    }
     if (d.ringhost === 'zoom'){
       if (!IS_ISOPANE || !Number.isInteger(d.i)) return;
       applyZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
@@ -7385,6 +7449,7 @@ function drawNecklace(G, paint){
   syncLapKey(G);
   drawCurvePlot(G);
   drawPolyPlot(G);
+  drawCayley(G);
   drawCombineLine(G, SIZE - 16);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
@@ -8962,6 +9027,254 @@ function openPolyPlot(){
   syncBarFormulas();
   polyWin.place(polyWin.at.x, polyWin.at.y);
 }
+
+/* ---------- the Cayley table ---------- */
+// The group's Cayley table, in a window like the polygon's: row a, column
+// b, and a ∗ b where they meet; rows and columns in the beads' order, each
+// element written as the No hover expression slider writes it. A
+// combination on the ring lights up its row (yellow), its column (blue)
+// and the cell of a ∗ b (green), as in the Cayley Table tool (aᵏ as
+// a ∗ aᵏ⁻¹); a click on a cell combines its row with its column. Locked to
+// a second ring, each ring has its own table, or, merged
+// (state.cayleyMerged, the holding ring's), the holder's alone shows the
+// linked pairs x ↔ φ(x). It docks in the strip at the window's bottom as
+// the curve plot does.
+var cayleyEl = $('cayley-plot'), cayleyGridEl = $('cayley-grid'), cayleyScrollEl = $('cayley-scroll');
+var cayleyMergeBtnEl = $('cayley-merge'), cayleyDockBtnEl = $('cayley-dock');
+var cayleyOpen = false, paneCayleyMerged = false, cayleyMinSent = null;
+var cayleyWin = plotWindow(cayleyEl, $('cayley-grip'));
+// What the grid was built for, its heads and cells by element, and the
+// cells lit now.
+var cayleyBuilt = null, cayleyRows = {}, cayleyCols = {}, cayleyCells = {}, cayleyLit = [];
+function cayleyAvail(G){ return !!G && !IS_MOBILE && !(IS_ISOPANE && (isoBlank || paneCayleyMerged)) && !hostBlank(); }
+function cayleyMerged(){ return !IS_ISOPANE && state.cayleyMerged && isoLinked(); }
+// An element as the No hover slider writes it: natural, gᵏ or kP.
+function cayleyNamer(G){
+  var g = exprBy(G), log = g === null ? null : exprLog(G, g);
+  return function(x){
+    if (!log) return elText(G, x);
+    var k = balExp(G, log[x]);
+    return ecMult(G) ? signed(k) + 'P' : baseText(G, g) + supSigned(k);
+  };
+}
+function drawCayley(G){
+  var on = cayleyAvail(G), spawned = cayleyEl.hidden && on && cayleyOpen;
+  cayleyEl.hidden = !on || !cayleyOpen;
+  if (IS_ISOPANE && cayleyMinSent !== (on && !cayleyOpen)){
+    cayleyMinSent = on && !cayleyOpen;
+    tellHost({ isopane: 'cayleymin', min: cayleyMinSent });
+  }
+  var merged = cayleyMerged();
+  syncCayleyBtns(merged);
+  if (cayleyDockWanted() !== cayleyEl.classList.contains('is-docked')) syncSplit();
+  if (cayleyEl.hidden) return;
+  var title = merged ? translate('cyclicGroups.cayleyTitlePairs') : translate('cyclicGroups.cayleyTitle', { group: G.label });
+  $('cayley-plot-title').textContent = title;
+  cayleyGridEl.setAttribute('aria-label', title);
+  buildCayley(G, merged);
+  lightCayley(G);
+  if (spawned){ unstack(cayleyEl, cayleyWin, curvePlotEl); unstack(cayleyEl, cayleyWin, polyPlotEl); }
+  // Kept in the ring's half, which a pane opening beside it narrows.
+  else if (!cayleyEl.classList.contains('is-docked')) cayleyWin.place(cayleyWin.at.x, cayleyWin.at.y);
+  fitDockedCayley();
+}
+function buildCayley(G, merged){
+  var name = cayleyNamer(G), els = arrangement(G), H = null, phi = null;
+  if (merged){
+    var linked = isoPowers();
+    H = isoPaneGroup();
+    phi = isoImage(G);
+    els = els.filter(function(x){ return linked.indexOf(x) !== -1; });
+  }
+  // A pair x ↔ φ(x), its arrow set apart; text alone keys the build.
+  var label = merged ? function(x){ return name(x) + ' ↔ ' + elText(H, phi(x)); } : name;
+  var put = function(cell, x){
+    if (!merged){ cell.textContent = texts[x]; return; }
+    var to = document.createElement('span');
+    to.className = 'cayley-to';
+    to.textContent = '↔';
+    cell.append(name(x), to, elText(H, phi(x)));
+  };
+  var key = JSON.stringify([getLang(), G.key, els, els.map(label)]);
+  if (key === cayleyBuilt) return;
+  cayleyBuilt = key;
+  cayleyRows = {}; cayleyCols = {}; cayleyCells = {}; cayleyLit = [];
+  var texts = {};
+  els.forEach(function(x){ texts[x] = label(x); });
+  var head = document.createElement('thead'), tr = head.insertRow();
+  var corner = document.createElement('th');
+  var opOf = function(K){ return K.pts || K.mode === 'additive' ? '+' : '×'; };
+  corner.textContent = merged ? opOf(G) + ' ↔ ' + opOf(H) : opOf(G);
+  tr.appendChild(corner);
+  els.forEach(function(b){
+    var th = document.createElement('th');
+    th.scope = 'col';
+    put(th, b);
+    tr.appendChild(th);
+    cayleyCols[b] = th;
+  });
+  var body = document.createElement('tbody');
+  els.forEach(function(a){
+    var row = body.insertRow(), th = document.createElement('th');
+    th.scope = 'row';
+    put(th, a);
+    row.appendChild(th);
+    cayleyRows[a] = th;
+    els.forEach(function(b){
+      var td = row.insertCell();
+      put(td, G.combine(a, b));
+      td.setAttribute('data-a', a);
+      td.setAttribute('data-b', b);
+      cayleyCells[a + ',' + b] = td;
+    });
+  });
+  cayleyGridEl.replaceChildren(head, body);
+}
+// The picks as the table shows them: a's row, b's column and their cell;
+// aᵏ is a ∗ aᵏ⁻¹.
+function cayleyPicks(G){
+  if (!comboLive(G)) return null;
+  var a = combo.a;
+  if (combo.k !== null) return { a: a, b: scalarOf(G, a, combo.k - 1) };
+  return { a: a, b: combo.b !== null && G.els.indexOf(combo.b) !== -1 ? combo.b : null };
+}
+function lightCayley(G){
+  cayleyLit.forEach(function(el){ el.classList.remove('is-a', 'is-b', 'is-a-row', 'is-b-col', 'is-sum'); });
+  cayleyLit = [];
+  var p = cayleyPicks(G);
+  if (!p) return;
+  var lit = function(el, cls){ if (el){ el.classList.add(cls); cayleyLit.push(el); } };
+  lit(cayleyRows[p.a], 'is-a');
+  if (p.b !== null) lit(cayleyCols[p.b], 'is-b');
+  Object.keys(cayleyCells).forEach(function(k){
+    var ab = k.split(','), el = cayleyCells[k];
+    if (+ab[0] === p.a) lit(el, 'is-a-row');
+    if (p.b !== null && +ab[1] === p.b) lit(el, 'is-b-col');
+  });
+  var sum = p.b === null ? null : cayleyCells[p.a + ',' + p.b];
+  lit(sum, 'is-sum');
+  // The cell of a ∗ b scrolled into view, as near as it goes.
+  if (sum && !cayleyEl.hidden){
+    var s = cayleyScrollEl, r = boxOf(sum), v = boxOf(s), hr = cayleyRows[p.a] ? boxOf(cayleyRows[p.a]).width : 0, hc = cayleyCols[p.b] ? boxOf(cayleyCols[p.b]).height : 0;
+    if (r.left < v.left + hr) s.scrollLeft -= v.left + hr - r.left;
+    else if (r.right > v.right) s.scrollLeft += r.right - v.right;
+    if (r.top < v.top + hc) s.scrollTop -= v.top + hc - r.top;
+    else if (r.bottom > v.bottom) s.scrollTop += r.bottom - v.bottom;
+  }
+}
+// A click on a cell combines its row with its column, as two clicks on
+// the ring's beads would.
+cayleyGridEl.addEventListener('click', function(e){
+  var td = e.target.closest('td[data-a]');
+  if (!td || !drawn) return;
+  var a = +td.getAttribute('data-a'), b = +td.getAttribute('data-b');
+  if (!IS_ISOPANE) setCombineMode('element');
+  combo = { a: a, b: b, k: null, key: comboKey(drawn.G) };
+  redrawRing();
+  tellCombine();
+  syncComboUi();
+});
+function syncCayleyBtns(merged){
+  cayleyMergeBtnEl.hidden = IS_ISOPANE || !isoLinked();
+  var tip = translate(merged ? 'cyclicGroups.cayleySplit' : 'cyclicGroups.cayleyMerge');
+  cayleyMergeBtnEl.title = tip;
+  cayleyMergeBtnEl.setAttribute('aria-label', tip);
+  cayleyMergeBtnEl.setAttribute('aria-pressed', merged ? 'true' : 'false');
+  // Two tables side by side, or one.
+  cayleyMergeBtnEl.replaceChildren(svgIcon(merged
+    ? [['rect', { x: 1.5, y: 2.5, width: 9, height: 7, rx: 1 }], ['path', { d: 'M6 2.5v7' }]]
+    : [['rect', { x: 1, y: 3, width: 4.2, height: 6, rx: 1 }], ['rect', { x: 6.8, y: 3, width: 4.2, height: 6, rx: 1 }]]));
+  var docked = state.cayleyDock, dtip = translate(docked ? 'cyclicGroups.plotFloat' : 'cyclicGroups.plotDock');
+  cayleyDockBtnEl.title = dtip;
+  cayleyDockBtnEl.setAttribute('aria-label', dtip);
+  cayleyDockBtnEl.setAttribute('aria-pressed', docked ? 'true' : 'false');
+  // Docked only in a strip of its own: not in a pane merged into its holder.
+  cayleyDockBtnEl.hidden = IS_MOBILE || (IS_ISOPANE && isoInterlockOn);
+  var d = docked ? ['M2 10h8', 'M6 8.5V2.5', 'M3.5 5 6 2.5 8.5 5'] : ['M2 10h8', 'M6 2.5v5.5', 'M3.5 5.5 6 8l2.5-2.5'];
+  cayleyDockBtnEl.replaceChildren(svgIcon(d.map(function(p){ return ['path', { d: p }]; })));
+}
+cayleyMergeBtnEl.addEventListener('click', function(){
+  state.cayleyMerged = !state.cayleyMerged;
+  postIsoShared(false);
+  if (drawn){ drawCayley(drawn.G); mirrorToUrl(drawn.G); }
+  cayleyMergeBtnEl.focus({ preventScroll: true });
+});
+// Docked (state.cayleyDock): out of its window into the strip at the
+// window's bottom, beside the list, while the bottom panel is open.
+var cayleyHome = null, cayleyFloatSize = null, cayleyMinWithSplit = false;
+function cayleyDockWanted(){
+  return !!cayleyEl && state.cayleyDock && !IS_MOBILE && !cayleyEl.hidden && !!ringSplitEl.closest('.fs-win-body.is-ring') && splitOn && !(IS_ISOPANE && isoInterlockOn);
+}
+// Whether the table sits in the strip.
+function syncCayleyDock(){
+  if (!cayleyEl) return false;
+  var on = cayleyDockWanted();
+  if (on && cayleyEl.parentNode !== ringSplitEl){
+    cayleyHome = document.createComment('cayley-plot');
+    cayleyEl.before(cayleyHome);
+    ringSplitEl.appendChild(cayleyEl);
+  } else if (!on && cayleyHome){
+    if (cayleyHome.isConnected) cayleyHome.replaceWith(cayleyEl);
+    cayleyHome = null;
+  }
+  var was = cayleyEl.classList.contains('is-docked');
+  if (on && !was){
+    cayleyFloatSize = { w: cayleyEl.style.width, h: cayleyEl.style.maxHeight, s: cayleyEl.style.getPropertyValue('--plot-scale') };
+    cayleyEl.style.removeProperty('--plot-scale');
+    cayleyEl.style.maxHeight = '';
+  }
+  cayleyEl.classList.toggle('is-docked', on);
+  if (!on && was){
+    var f = cayleyFloatSize || { w: '', h: '', s: '' };
+    cayleyEl.style.width = f.w;
+    cayleyEl.style.maxHeight = f.h;
+    if (f.s) cayleyEl.style.setProperty('--plot-scale', f.s);
+    cayleyFloatSize = null;
+    cayleyWin.place(cayleyWin.at.x, cayleyWin.at.y);
+  }
+  syncCayleyBtns(cayleyMerged());
+  return on;
+}
+// Docked, as wide as its grid, at most half the strip beside the list
+// (all of it alone), less a docked curve plot's room.
+function fitDockedCayley(){
+  if (!cayleyEl) return false;
+  if (!cayleyEl.classList.contains('is-docked') || cayleyEl.hidden) return;
+  var sr = boxOf(ringSplitEl), cs = getComputedStyle(ringSplitEl);
+  var inner = sr.width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+  var share = subgroupsPanelEl.parentNode === ringSplitEl ? 0.5 : 1;
+  var used = curvePlotEl.classList.contains('is-docked') && !curvePlotEl.hidden ? boxOf(curvePlotEl).width + 12 : 0;
+  var chrome = boxOf(cayleyEl).width - cayleyScrollEl.clientWidth;
+  var w = Math.max(160, Math.min(cayleyGridEl.offsetWidth + chrome + 2, inner * share - used - 12));
+  cayleyEl.style.width = Math.round(w) + 'px';
+}
+cayleyDockBtnEl.addEventListener('click', function(){
+  state.cayleyDock = !state.cayleyDock;
+  // Docked, it goes into the bottom panel, opening the panel if closed.
+  if (state.cayleyDock && !splitOn){
+    splitOn = true;
+    syncPanes();
+  }
+  syncSplit();
+  if (drawn){ drawCayley(drawn.G); mirrorToUrl(drawn.G); }
+  cayleyDockBtnEl.focus({ preventScroll: true });
+});
+if (typeof ResizeObserver === 'function') new ResizeObserver(function(){ fitDockedCayley(); }).observe(ringSplitEl);
+// Minimized, it is a task in the bottom bar, as the polygon is.
+$('cayley-min').addEventListener('click', function(){
+  cayleyOpen = false;
+  if (drawn){ drawCayley(drawn.G); mirrorToUrl(drawn.G); }
+  syncBarFormulas();
+  var task = $('bar-formulas-l').querySelector('.bar-task.is-cayley');
+  if (task) task.focus();
+});
+function openCayley(){
+  cayleyOpen = true;
+  cayleyMinWithSplit = false;
+  if (drawn){ drawCayley(drawn.G); mirrorToUrl(drawn.G); }
+  syncBarFormulas();
+  cayleyWin.place(cayleyWin.at.x, cayleyWin.at.y);
+}
 // The slope mod n of the line through two points (the tangent through one).
 function chordSlope(G, a, b){
   var P = G.pts[a], Q = G.pts[b], p = G.n;
@@ -9355,7 +9668,7 @@ function plotWindow(el, gripEl, acrossLocked){
       el.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
     }
   };
-  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, .curve-plot-svg, .curve-grip'); };
+  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, .curve-plot-svg, .curve-grip, .cayley-scroll'); };
   el.addEventListener('pointerdown', function(e){
     if (!grip(e)) return;
     moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y };
@@ -9380,10 +9693,14 @@ function plotWindow(el, gripEl, acrossLocked){
     if (e.button !== 0 || IS_MOBILE) return;
     var r = boxOf(el), body = el.closest('.fs-win-body');
     var b = boxOf(body), floor = plotFloor(body);
-    // As large as fits: as wide as the room left of its right edge, as
+    // A grip in the bottom right corner (a window at the left of the
+    // ring's half) grows it rightwards, one in the bottom left leftwards.
+    var g = boxOf(gripEl), rightward = g.left + g.width / 2 > r.left + r.width / 2;
+    // As large as fits: as wide as the room beside its fixed edge, as
     // tall as the room under the rows.
-    var maxW = Math.min(r.right - b.left - 8, r.width * (floor - topRowsBottom(body) - 8) / r.height);
-    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: Math.max(r.width, maxW) };
+    var room = rightward ? workRight(body) - r.left - 8 : r.right - b.left - 8;
+    var maxW = Math.min(room, r.width * (floor - topRowsBottom(body) - 8) / r.height);
+    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: Math.max(r.width, maxW), dir: rightward ? -1 : 1 };
     gripEl.setPointerCapture(e.pointerId);
     el.classList.add('is-resizing');
     e.preventDefault();
@@ -9391,7 +9708,7 @@ function plotWindow(el, gripEl, acrossLocked){
   });
   gripEl.addEventListener('pointermove', function(e){
     if (!sizing || e.pointerId !== sizing.id) return;
-    var pull = ((sizing.x - ptX(e)) + (ptY(e) - sizing.y)) / 2;
+    var pull = (sizing.dir * (sizing.x - ptX(e)) + (ptY(e) - sizing.y)) / 2;
     win.size(Math.round(Math.max(200, Math.min(sizing.max, sizing.w + pull))));
     win.place(win.at.x, win.at.y);
   });
@@ -9441,7 +9758,7 @@ function tellPlotsOver(){
   var body = curvePlotEl.closest('.fs-win-body');
   if (!body) return;
   var line = boxOf(body).bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0), rects = [];
-  [curvePlotEl, polyPlotEl, lapKeyEl].forEach(function(el){
+  [curvePlotEl, polyPlotEl, cayleyEl, lapKeyEl].forEach(function(el){
     if (el.hidden || el.closest('.fs-win-body') !== body) return;
     var r = boxOf(el);
     if (r.width && r.bottom > line) rects.push([r.left, r.top, r.right, r.bottom].map(Math.round));
@@ -9453,7 +9770,7 @@ function tellPlotsOver(){
 }
 if (IS_ISOPANE && !IS_MOBILE && window.MutationObserver){
   var plotsOverMo = new MutationObserver(tellPlotsOver);
-  [curvePlotEl, polyPlotEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
+  [curvePlotEl, polyPlotEl, cayleyEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
   window.addEventListener('resize', tellPlotsOver);
 }
 var plotMinSent = null;
@@ -12410,6 +12727,7 @@ function loadIsoFrame(){
   if (isoPaneFrame) isoPaneFrame.remove();
   isoPanePlotMin = false;
   isoPanePolyMin = false;
+  isoPaneCayleyMin = false;
   dropPaneCards();
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
@@ -12518,6 +12836,7 @@ function closeIsoPane(){
   isoPaneKey = null;
   isoPanePlotMin = false;
   isoPanePolyMin = false;
+  isoPaneCayleyMin = false;
   isoPaneLegend = null;
   if (document.documentElement.classList.contains('is-host-blank')){
     document.documentElement.classList.remove('is-host-blank');
@@ -12613,6 +12932,9 @@ function applyRingQuery(q){
   state.plotDock = q.get('plotdock') === '1';
   state.plotHalos = q.get('plothalos') === 'ab' ? 'ab' : 'path';
   polyOpen = q.get('polygon') === '1';
+  cayleyOpen = q.get('cayley') === '1';
+  state.cayleyDock = q.get('cayleydock') === '1';
+  state.cayleyMerged = q.get('cayleymerged') === '1';
   state.bygen = q.get('bygen') === '1' || (!!state.ec && G.cyclic);
   state.arrangeGen = subExprVal(q.get('arrangegen'));
   state.expr = intOrNull(q.get('expr'));
@@ -12901,7 +13223,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, short: state.subShort, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -12991,6 +13313,8 @@ function applyIsoShared(d){
   hostDock = dk && typeof dk === 'object' && fin(dk.top) && fin(dk.bottom) && fin(dk.right) && fin(dk.maxW) && dk.bottom > dk.top ? dk : null;
   fitDockedPlot();
   if (flag(d.zoomwheel)) zoomWheelOn = d.zoomwheel;
+  // Merged into the holder's table of pairs, this ring's table goes.
+  if (flag(d.cayleyMerged)) paneCayleyMerged = d.cayleyMerged;
   // The link's generator here, which the holding ring may move to another
   // generator of this group once the two are found isomorphic.
   if (Number.isInteger(d.isogen) && d.isogen >= 0) ISO_GEN = d.isogen;
@@ -13824,6 +14148,9 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'polymin'){
     isoPanePolyMin = d.min === true;
     syncBarFormulas();
+  } else if (d.isopane === 'cayleymin'){
+    isoPaneCayleyMin = d.min === true;
+    syncBarFormulas();
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
@@ -14241,6 +14568,9 @@ function stateQuery(){
   if (state.plotDock) q.set('plotdock', '1'); else q.delete('plotdock');
   if (state.plotHalos === 'ab') q.set('plothalos', 'ab'); else q.delete('plothalos');
   if (polyOpen) q.set('polygon', '1'); else q.delete('polygon');
+  if (cayleyOpen) q.set('cayley', '1'); else q.delete('cayley');
+  if (state.cayleyDock) q.set('cayleydock', '1'); else q.delete('cayleydock');
+  if (state.cayleyMerged) q.set('cayleymerged', '1'); else q.delete('cayleymerged');
   FLAGS.forEach(function(name){ q.set(name, state[name] ? '1' : '0'); });
   // Order labels are gone; an old link's switch for them is dropped.
   q.delete('orders');
@@ -16331,6 +16661,9 @@ function loadState(query, link){
   state.plotDock = query.get('plotdock') === '1';
   state.plotHalos = query.get('plothalos') === 'ab' ? 'ab' : 'path';
   polyOpen = query.get('polygon') === '1';
+  cayleyOpen = query.get('cayley') === '1';
+  state.cayleyDock = query.get('cayleydock') === '1';
+  state.cayleyMerged = query.get('cayleymerged') === '1';
   // A preview has no selection to turn the ring with, so with the selected
   // subgroup kept on top it opens already turned to put it at the top.
   if (IS_PREVIEW && state.top === 'gen'){

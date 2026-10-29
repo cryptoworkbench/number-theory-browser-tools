@@ -131,7 +131,10 @@
    Added in English first since that pass, for the next catch-up
    translation: identityE (the tooltip of the E in E = 0, E = 1 or E = 𝒪
    after the pyramid, its {einheit} an <i>Einheit</i> node supplied by
-   the page). Every other language shows the English value through
+   the page), and cayleyShort, cayleyTitle, cayleyTitlePairs, cayleyShow,
+   cayleyTask, cayleyMerge and cayleySplit (the Cayley table's window, its
+   task in the bottom bar and the switch merging two locked rings' tables
+   into one of linked pairs). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -934,6 +937,13 @@
       curvePlotTask: 'Show the points of {curve}',
       polyTitle: 'Rotations of a regular {n}-gon',
       polyShow: 'Show the polygon',
+      cayleyShort: 'Cayley table',
+      cayleyTitle: 'Cayley table of {group}',
+      cayleyTitlePairs: 'Cayley table of the linked pairs x ↔ φ(x)',
+      cayleyShow: 'Show the Cayley table',
+      cayleyTask: 'Show the Cayley table of {group}',
+      cayleyMerge: 'Merge the two tables into one table of the linked pairs',
+      cayleySplit: 'Give each ring its own table again',
       polyTask: 'Show the rotations of a regular {n}-gon',
       polyCornerNat: 'The turn by {k} · 360°/{n} = {deg}°',
       polyCorner: '{el} = {gk}: the turn by {k} · 360°/{n} = {deg}°',
