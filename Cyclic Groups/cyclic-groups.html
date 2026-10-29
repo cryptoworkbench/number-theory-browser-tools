@@ -15392,8 +15392,10 @@ function setGroupLock(on){
   drawGroupLocks();
   drawIsoLock();
   var title = on ? translate('cyclicGroups.groupLockTitle') : '';
+  // On the operation's row the pyramid says it, not E = … after it.
   groupControlsEl.querySelectorAll(':scope > li:not(.fs-row-label)').forEach(function(li){
-    if (title) li.title = title; else li.removeAttribute('title');
+    var el = li.classList.contains('op-toggle-row') ? opTriEl : li;
+    if (title) el.title = title; else el.removeAttribute('title');
   });
   isoLockEl.setAttribute('title', translate('cyclicGroups.groupLockTitle'));
   isoLockEl.classList.remove('is-open');
@@ -15532,7 +15534,9 @@ function openGroupLock(told){
     }, 500);
   }, turn);
 }
-groupControlsEl.addEventListener('dblclick', function(){ openGroupLock(false); });
+groupControlsEl.addEventListener('dblclick', function(e){
+  if (!e.target.closest('#op-id')) openGroupLock(false);
+});
 isoLockEl.addEventListener('animationend', function(e){
   if (e.animationName === 'iso-lock-close') isoLockEl.classList.remove('is-locking');
 });
