@@ -7100,6 +7100,8 @@ function fitDockedPlot(){
     var b = boxOf(el.closest('.fs-win-body'));
     el.style.left = Math.round(hostDock.right - boxOf(el).width - b.left) + 'px';
     el.style.top = Math.round(top - b.top) + 'px';
+    // A Cayley table docked beside it moves over to its left.
+    fitDockedCayley();
     tellHostPlotDock();
   }
 }
@@ -7109,12 +7111,17 @@ if (typeof ResizeObserver === 'function'){
     if (!IS_ISOPANE && paneDock.on) postIsoShared(false);
   }).observe(ringSplitEl);
 }
-// The pane tells the ring holding it whether its plot is docked, and how
-// wide it is.
+// The pane tells the ring holding it whether its plot or its Cayley
+// table is docked, and how wide the two take, side by side.
 var plotDockSent = null;
 function tellHostPlotDock(){
-  var on = plotDockWanted() && plotDockFoot();
-  var msg = { isopane: 'plotdock', on: on, w: on && hostDock ? Math.round(boxOf(curvePlotEl).width) : 0 }, sent = JSON.stringify(msg);
+  var plot = plotDockWanted() && plotDockFoot(), cay = cayleyFoot();
+  var on = plot || cay, w = 0;
+  if (on && hostDock){
+    if (plot) w += boxOf(curvePlotEl).width;
+    if (cay) w += boxOf(cayleyEl).width + (plot ? 12 : 0);
+  }
+  var msg = { isopane: 'plotdock', on: on, w: Math.round(w) }, sent = JSON.stringify(msg);
   if (sent === plotDockSent) return;
   plotDockSent = sent;
   tellHost(msg);
@@ -9233,8 +9240,7 @@ function syncCayleyBtns(merged){
   cayleyDockBtnEl.title = dtip;
   cayleyDockBtnEl.setAttribute('aria-label', dtip);
   cayleyDockBtnEl.setAttribute('aria-pressed', docked ? 'true' : 'false');
-  // Docked only in a strip of its own: not in a pane merged into its holder.
-  cayleyDockBtnEl.hidden = IS_MOBILE || (IS_ISOPANE && isoInterlockOn);
+  cayleyDockBtnEl.hidden = IS_MOBILE;
   var d = docked ? ['M2 10h8', 'M6 8.5V2.5', 'M3.5 5 6 2.5 8.5 5'] : ['M2 10h8', 'M6 2.5v5.5', 'M3.5 5.5 6 8l2.5-2.5'];
   cayleyDockBtnEl.replaceChildren(svgIcon(d.map(function(p){ return ['path', { d: p }]; })));
 }
@@ -9247,18 +9253,22 @@ cayleyMergeBtnEl.addEventListener('click', function(){
 // Docked (state.cayleyDock): out of its window into the strip at the
 // window's bottom, beside the list, while the bottom panel is open.
 var cayleyHome = null, cayleyFloatSize = null, cayleyMinWithSplit = false;
+// In a pane merged into the ring holding it, it docks over its foot beside
+// the pane's docked plot, in the room the holder keeps at the right of its
+// strip, while the holder's panel is open.
 function cayleyDockWanted(){
-  return !!cayleyEl && state.cayleyDock && !IS_MOBILE && !cayleyEl.hidden && !!ringSplitEl.closest('.fs-win-body.is-ring') && splitOn && !(IS_ISOPANE && isoInterlockOn);
+  return !!cayleyEl && state.cayleyDock && !IS_MOBILE && !cayleyEl.hidden && !!ringSplitEl.closest('.fs-win-body.is-ring') && (plotDockFoot() ? hostSplitOn : splitOn);
 }
+function cayleyFoot(){ return cayleyDockWanted() && plotDockFoot(); }
 // Whether the table sits in the strip.
 function syncCayleyDock(){
   if (!cayleyEl) return false;
-  var on = cayleyDockWanted();
-  if (on && cayleyEl.parentNode !== ringSplitEl){
+  var on = cayleyDockWanted(), foot = on && plotDockFoot(), inStrip = on && !foot;
+  if (inStrip && cayleyEl.parentNode !== ringSplitEl){
     cayleyHome = document.createComment('cayley-plot');
     cayleyEl.before(cayleyHome);
     ringSplitEl.appendChild(cayleyEl);
-  } else if (!on && cayleyHome){
+  } else if (!inStrip && cayleyHome){
     if (cayleyHome.isConnected) cayleyHome.replaceWith(cayleyEl);
     cayleyHome = null;
   }
@@ -9269,6 +9279,8 @@ function syncCayleyDock(){
     cayleyEl.style.maxHeight = '';
   }
   cayleyEl.classList.toggle('is-docked', on);
+  cayleyEl.classList.toggle('is-docked-foot', foot);
+  if (!foot) cayleyEl.style.left = cayleyEl.style.top = cayleyEl.style.height = '';
   if (!on && was){
     var f = cayleyFloatSize || { w: '', h: '', s: '' };
     cayleyEl.style.width = f.w;
@@ -9278,25 +9290,50 @@ function syncCayleyDock(){
     cayleyWin.place(cayleyWin.at.x, cayleyWin.at.y);
   }
   syncCayleyBtns(cayleyMerged());
-  return on;
+  if (IS_ISOPANE) tellHostPlotDock();
+  return inStrip;
 }
 // Docked, as wide as its grid, at most half the strip beside the list
 // (all of it alone), less a docked curve plot's room.
 function fitDockedCayley(){
   if (!cayleyEl) return false;
   if (!cayleyEl.classList.contains('is-docked') || cayleyEl.hidden) return;
-  var sr = boxOf(ringSplitEl), cs = getComputedStyle(ringSplitEl);
-  var inner = sr.width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
-  var share = subgroupsPanelEl.parentNode === ringSplitEl ? 0.5 : 1;
-  var used = curvePlotEl.classList.contains('is-docked') && !curvePlotEl.hidden ? boxOf(curvePlotEl).width + 12 : 0;
+  var plotIn = curvePlotEl.classList.contains('is-docked') && !curvePlotEl.hidden;
+  var used = plotIn ? boxOf(curvePlotEl).width + 12 : 0;
   var chrome = boxOf(cayleyEl).width - cayleyScrollEl.clientWidth;
-  var w = Math.max(160, Math.min(cayleyGridEl.offsetWidth + chrome + 2, inner * share - used - 12));
+  var room;
+  if (cayleyEl.classList.contains('is-docked-foot')){
+    // Over the pane's foot: as tall as the holder's strip, at the left of
+    // the pane's docked plot (or at the right end alone), in the room the
+    // holder keeps for the pane.
+    if (!hostDock) return;
+    room = hostDock.maxW;
+  } else {
+    var sr = boxOf(ringSplitEl), cs = getComputedStyle(ringSplitEl);
+    var inner = sr.width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    room = inner * (paneDockSlot() ? 0.3 : subgroupsPanelEl.parentNode === ringSplitEl ? 0.5 : 1);
+  }
+  // Over the foot its share is its own, beside the plot's; in the strip
+  // the plot's comes out of it.
+  var foot = cayleyEl.classList.contains('is-docked-foot');
+  var w = Math.max(160, Math.min(cayleyGridEl.offsetWidth + chrome + 2, room - (foot ? 0 : used) - 12));
+  // Over the foot it never runs out of the pane's own half, its frame.
+  if (foot) w = Math.max(120, Math.min(w, hostDock.right - used - 8));
   cayleyEl.style.width = Math.round(w) + 'px';
+  if (foot){
+    var b = boxOf(cayleyEl.closest('.fs-win-body'));
+    cayleyEl.style.left = Math.round(hostDock.right - used - w - b.left) + 'px';
+    cayleyEl.style.top = Math.round(hostDock.top - b.top) + 'px';
+    cayleyEl.style.height = Math.round(hostDock.bottom - hostDock.top) + 'px';
+    tellHostPlotDock();
+  }
 }
 cayleyDockBtnEl.addEventListener('click', function(){
   state.cayleyDock = !state.cayleyDock;
-  // Docked, it goes into the bottom panel, opening the panel if closed.
-  if (state.cayleyDock && !splitOn){
+  // Docked, it goes into the bottom panel, opening the panel if closed (in
+  // a merged pane, the holder's).
+  if (state.cayleyDock && plotDockFoot() && !hostSplitOn) tellHost({ isopane: 'edit', name: 'split', on: true });
+  else if (state.cayleyDock && !plotDockFoot() && !splitOn){
     splitOn = true;
     syncPanes();
   }
@@ -13359,6 +13396,7 @@ function applyIsoShared(d){
   var dk = d.dock, fin = function(v){ return Number.isFinite(v) && Math.abs(v) < 20000; };
   hostDock = dk && typeof dk === 'object' && fin(dk.top) && fin(dk.bottom) && fin(dk.right) && fin(dk.maxW) && dk.bottom > dk.top ? dk : null;
   fitDockedPlot();
+  fitDockedCayley();
   if (flag(d.zoomwheel)) zoomWheelOn = d.zoomwheel;
   // Merged into the holder's table of pairs, this ring's table goes.
   if (flag(d.cayleyMerged)) paneCayleyMerged = d.cayleyMerged;
