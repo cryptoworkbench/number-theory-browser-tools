@@ -363,6 +363,14 @@
   .ec-pick-btn svg{ flex:none; width:10px; height:6px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
   .ec-pick-pop{ position:absolute; top:calc(100% + 4px); right:0; z-index:20; min-width:100%; box-sizing:border-box; padding:4px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .ec-pick-pop[hidden]{ display:none; }
+  /* The G and Generator dropdowns, drawn as the example curves' is: the
+     select hidden behind its button, the list opening under its left. */
+  .skin-pick > select.skin-native.skin-native{ position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; opacity:0; pointer-events:none; }
+  .skin-pick > .ec-pick-btn{ flex:1 1 auto; justify-content:space-between; font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
+  .skin-pick > .ec-pick-btn:disabled{ opacity:.6; cursor:not-allowed; }
+  .skin-pick > .ec-pick-pop{ right:auto; left:0; }
+  .skin-pick .ec-pick-list > li{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; }
+  .skin-pick .ec-pick-list > li[aria-disabled="true"]{ color:var(--text-dim); cursor:default; }
   .ec-pick-list{ list-style:none; margin:0; padding:0; max-height:min(320px, calc(60vh / var(--page-zoom))); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; outline:none; }
   .ec-pick-list::-webkit-scrollbar{ display:none; }
   .ec-pick-list > li{ padding:4px 10px; font-family:var(--font-mono); font-size:.88rem; white-space:nowrap; color:var(--text); border-radius:4px; cursor:pointer; }
@@ -1479,6 +1487,8 @@
   .fs-win-body.is-ring .arrange-controls select{ max-width:100%; }
   .fs-win-body.is-ring :is(#gen-field select, #arrange-field select){ width:auto; min-width:8em; padding:4px 8px; }
   .fs-win-body.is-ring #arrange-field #arrange-gen-select{ width:11.5em; }
+  .fs-win-body.is-ring :is(#gen-field, #arrange-field) .skin-pick{ min-width:8em; }
+  .fs-win-body.is-ring #arrange-field .skin-pick > .ec-pick-btn{ width:11.5em; }
   /* After the subgroup's dropdown, the group it lies in: ⊂ ⟨ℤ/12ℤ, +⟩ for a
      proper subgroup, ⊆ for the whole group. Only in the ring's own row. */
   .gen-super{ display:none; }
@@ -3154,6 +3164,129 @@ var ringHeadEl = $('ring-head');
 var scratchPadEl = $('scratch-pad');
 var arrangeGenSelectEl = $('arrange-gen-select');
 var arrangeGenWrapEl = $('arrange-gen-wrap');
+// A dropdown drawn as the example curves' is (see ecPresetEl): a button
+// naming the choice and a list of the options under it. The select stays,
+// hidden, holding the choice: what is read from it, set on it or listened
+// for on it works as before, and the button and list follow it.
+function skinSelect(sel){
+  var box = document.createElement('span'), btn = document.createElement('button'), now = document.createElement('span');
+  var pop = document.createElement('span'), list = document.createElement('ul'), active = -1;
+  box.className = 'ec-pick skin-pick';
+  btn.type = 'button';
+  btn.className = 'ec-pick-btn';
+  btn.setAttribute('aria-haspopup', 'listbox');
+  btn.setAttribute('aria-expanded', 'false');
+  now.className = 'ec-pick-now';
+  var chev = svgEl('svg', { viewBox: '0 0 10 6', 'aria-hidden': 'true', focusable: 'false' });
+  chev.appendChild(svgEl('path', { d: 'M1.5 1 5 4.5 8.5 1' }));
+  btn.append(now, chev);
+  pop.className = 'ec-pick-pop';
+  pop.hidden = true;
+  list.className = 'ec-pick-list';
+  list.setAttribute('role', 'listbox');
+  list.tabIndex = -1;
+  list.id = sel.id + '-list';
+  btn.setAttribute('aria-controls', list.id);
+  pop.appendChild(list);
+  sel.parentNode.insertBefore(box, sel);
+  box.append(sel, btn, pop);
+  sel.classList.add('skin-native');
+  sel.tabIndex = -1;
+  sel.setAttribute('aria-hidden', 'true');
+  var label = document.querySelector('label[for="' + sel.id + '"]');
+  if (label){
+    if (!label.id) label.id = sel.id + '-label';
+    btn.setAttribute('aria-labelledby', label.id);
+    list.setAttribute('aria-labelledby', label.id);
+  }
+  var opts = function(){ return Array.prototype.slice.call(sel.options); };
+  function sync(){
+    var o = sel.options[sel.selectedIndex];
+    now.textContent = o ? o.textContent : '';
+    btn.disabled = sel.disabled;
+    var tip = sel.getAttribute('data-title');
+    if (tip) btn.setAttribute('data-title', tip); else dropTitle(btn);
+    list.replaceChildren.apply(list, opts().map(function(o, i){
+      var li = document.createElement('li');
+      li.id = sel.id + '-opt-' + i;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', String(i === sel.selectedIndex));
+      li.textContent = o.textContent;
+      if (o.title) li.setAttribute('data-title', o.title);
+      if (o.disabled) li.setAttribute('aria-disabled', 'true');
+      return li;
+    }));
+    if (sel.disabled) open(false);
+    else if (!pop.hidden) setActive(active, false);
+  }
+  function setActive(i, scroll){
+    var items = list.children;
+    if (!items.length) return;
+    active = Math.max(0, Math.min(items.length - 1, i));
+    Array.prototype.forEach.call(items, function(li, k){ li.classList.toggle('is-active', k === active); });
+    list.setAttribute('aria-activedescendant', items[active].id);
+    if (scroll){
+      var li = items[active], top = li.offsetTop - list.offsetTop;
+      if (top < list.scrollTop) list.scrollTop = top;
+      else if (top + li.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + li.offsetHeight - list.clientHeight;
+    }
+  }
+  function open(on){
+    if (on === !pop.hidden || (on && sel.disabled)) return;
+    pop.hidden = !on;
+    btn.setAttribute('aria-expanded', String(on));
+    if (!on) return;
+    setActive(Math.max(0, sel.selectedIndex), false);
+    var li = list.children[active];
+    list.scrollTop = li ? li.offsetTop - list.offsetTop - (list.clientHeight - li.offsetHeight) / 2 : 0;
+    list.focus({ preventScroll: true });
+  }
+  function pick(i){
+    var o = sel.options[i];
+    open(false);
+    btn.focus({ preventScroll: true });
+    if (!o || o.disabled || i === sel.selectedIndex) return;
+    sel.selectedIndex = i;
+    sel.dispatchEvent(new Event('input', { bubbles: true }));
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  // Set from the script, the choice shows at once.
+  ['value', 'selectedIndex'].forEach(function(prop){
+    var d = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, prop);
+    Object.defineProperty(sel, prop, { configurable: true, get: function(){ return d.get.call(this); }, set: function(v){ d.set.call(this, v); sync(); } });
+  });
+  new MutationObserver(sync).observe(sel, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'data-title', 'selected', 'label'] });
+  sel.addEventListener('change', sync);
+  sel.addEventListener('focus', function(){ btn.focus({ preventScroll: true }); });
+  btn.addEventListener('click', function(){ open(pop.hidden); });
+  btn.addEventListener('keydown', function(e){
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    open(true);
+  });
+  list.addEventListener('keydown', function(e){
+    var n = list.children.length, page = 8;
+    var to = { ArrowDown: active + 1, ArrowUp: active - 1, Home: 0, End: n - 1, PageDown: active + page, PageUp: active - page }[e.key];
+    if (to !== undefined){ e.preventDefault(); e.stopPropagation(); setActive(to, true); return; }
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); pick(active); return; }
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); open(false); btn.focus({ preventScroll: true }); return; }
+    if (e.key === 'Tab') open(false);
+  });
+  list.addEventListener('pointermove', function(e){
+    var li = e.target.closest && e.target.closest('li[role="option"]');
+    if (li){ var i = Array.prototype.indexOf.call(list.children, li); if (i !== active) setActive(i, false); }
+  });
+  list.addEventListener('click', function(e){
+    var li = e.target.closest && e.target.closest('li[role="option"]');
+    if (li) pick(Array.prototype.indexOf.call(list.children, li));
+  });
+  document.addEventListener('pointerdown', function(e){ if (!pop.hidden && !box.contains(e.target)) open(false); }, true);
+  list.addEventListener('focusout', function(e){ if (!pop.hidden && !box.contains(e.relatedTarget)) open(false); });
+  sync();
+  return btn;
+}
+skinSelect(arrangeGenSelectEl);
+skinSelect(genSelectEl);
 var arrangeSeqEl = $('arrange-seq');
 var exprSlotEl = $('expr-slot');
 var exprSliderEl = $('expr-slider');
