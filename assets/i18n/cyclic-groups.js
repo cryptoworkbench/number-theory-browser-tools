@@ -128,6 +128,11 @@
    named above from nLabelTitle on) were translated into all thirty
    languages by the catch-up pass of 2026-10-29; kP and Pᵏ stay Latin in
    every script, as notation.
+   Added in English first since that pass, for the next catch-up
+   translation: identityE (the tooltip of the E in E = 0, E = 1 or E = 𝒪
+   after the pyramid, its {einheit} an <i>Einheit</i> node supplied by
+   the page). Every other language shows the English value through
+   NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
@@ -636,6 +641,7 @@
       opKindAdd: 'Addition',
       opKindMul: 'Multiplication',
       pointAtInfinity: 'Point at infinity',
+      identityE: 'E from German {einheit}',
       exprSignOn: 'Write the numbers in their signed form, nearest 0',
       exprSignOff: 'Write the numbers as 0 … n − 1',
       exprSignOnEc: 'Write the coordinates in their signed form, nearest 0',

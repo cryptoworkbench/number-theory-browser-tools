@@ -15062,22 +15062,47 @@ function setOpKind(k){
   persistGroup();
 }
 // The pyramid at the group's kind, and E, the identity, after it: E = 0,
-// E = 1, or on a curve E = 𝒪, the point at infinity naming itself under
-// the pointer.
+// E = 1, or on a curve E = 𝒪. Under the pointer E says where its name
+// comes from, and 𝒪 names itself, the point at infinity.
 function syncOpTri(){
   var k = opKind();
   opTriEl.setAttribute('data-at', k);
   opTriInputs.forEach(function(r){ r.checked = r.value === k; });
-  var e = mEl('mi', ['E']);
+  var e = mEl('mi', ['E'], { 'data-tip': 'e' });
   if (k === 'ec'){
-    opIdEl.replaceChildren(mInline(mrow(e, mo('='), mEl('mi', ['𝒪'], { mathvariant: 'normal' })), 'E = 𝒪'));
-    opIdEl.title = translate('cyclicGroups.pointAtInfinity');
+    opIdEl.replaceChildren(mInline(mrow(e, mo('='), mEl('mi', ['𝒪'], { mathvariant: 'normal', 'data-tip': 'o' })), 'E = 𝒪'));
   } else {
     var id = k === 'additive' ? 0 : 1;
     opIdEl.replaceChildren(mInline(mrow(e, mo('='), mn(id)), 'E = ' + id));
-    opIdEl.removeAttribute('title');
   }
+  hideIdTip();
 }
+var idTipEl = document.createElement('div');
+idTipEl.className = 'akey-tip';
+idTipEl.setAttribute('role', 'tooltip');
+idTipEl.hidden = true;
+document.body.appendChild(idTipEl);
+function showIdTip(el){
+  if (el.getAttribute('data-tip') === 'e'){
+    var word = document.createElement('i');
+    word.textContent = 'Einheit';
+    translateInto(idTipEl, 'cyclicGroups.identityE', { einheit: word });
+  } else idTipEl.textContent = translate('cyclicGroups.pointAtInfinity');
+  // In full screen only the full-screen element is drawn: the tip goes
+  // inside it.
+  var host = document.fullscreenElement || document.body;
+  if (idTipEl.parentNode !== host) host.appendChild(idTipEl);
+  idTipEl.hidden = false;
+  var r = boxOf(el), w = idTipEl.offsetWidth;
+  idTipEl.style.left = Math.max(4, Math.min(r.left, (window.innerWidth / PAGE_ZOOM) - w - 4)) + 'px';
+  idTipEl.style.top = (r.bottom + 6) + 'px';
+}
+function hideIdTip(){ if (idTipEl) idTipEl.hidden = true; }
+opIdEl.addEventListener('mouseover', function(ev){
+  var el = ev.target.closest && ev.target.closest('[data-tip]');
+  if (el) showIdTip(el); else hideIdTip();
+});
+opIdEl.addEventListener('mouseleave', hideIdTip);
 
 /* ---------- the elliptic curve mode ---------- */
 
