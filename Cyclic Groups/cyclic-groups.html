@@ -425,6 +425,24 @@
   .sub-more{ position:absolute; z-index:2; translate:-50% 0; padding:1px 10px; font:inherit; font-size:.74rem; color:var(--text-dim); background:var(--surface); border:1px solid var(--panel-border); border-radius:999px; box-shadow:0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); cursor:pointer; white-space:nowrap; }
   .sub-more:hover{ color:var(--accent); border-color:var(--accent); }
   .sub-more[hidden]{ display:none; }
+  /* The example curves as a table: the curve, then a, b, the modulus and
+     |E|, each a column to sort by; its header stays over the rows, and the
+     fade at the top starts below it. */
+  .ec-pick-table{ border-collapse:separate; border-spacing:0; font-family:var(--font-mono); font-size:.88rem; font-variant-numeric:tabular-nums; color:var(--text); }
+  .ec-pick-table th{ position:sticky; top:0; z-index:1; padding:2px 10px 4px; background:var(--surface); color:var(--text-dim); font-family:var(--font-sans); font-size:.78rem; font-weight:600; text-align:start; white-space:nowrap; border-bottom:1px solid var(--panel-border); }
+  .ec-pick-table th[aria-sort]{ text-align:end; }
+  .ec-sort{ display:inline-flex; align-items:center; gap:3px; padding:0; font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+  .ec-sort:hover, .ec-sort.is-on{ color:var(--accent); }
+  .ec-sort-arrow{ display:inline-block; min-width:.8em; font-size:.65rem; }
+  .ec-pick-table td{ padding:4px 10px; white-space:nowrap; cursor:pointer; }
+  .ec-pick-table td.is-num{ text-align:end; }
+  .ec-pick-table td:first-child{ border-radius:4px 0 0 4px; }
+  .ec-pick-table td:last-child{ border-radius:0 4px 4px 0; }
+  .ec-pick-table tr.is-active > td{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .ec-pick-table tr[aria-selected="true"]{ color:var(--accent); font-weight:600; }
+  .ec-pick-table tr.is-not-cyclic{ color:var(--role-warn); }
+  .ec-pick-list.ec-pick-scroll.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) var(--ec-head, 0px), transparent var(--ec-head, 0px), var(--ink) calc(var(--ec-head, 0px) + 36px)); mask-image:linear-gradient(to bottom, var(--ink) var(--ec-head, 0px), transparent var(--ec-head, 0px), var(--ink) calc(var(--ec-head, 0px) + 36px)); }
+  .ec-pick-list.ec-pick-scroll.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) var(--ec-head, 0px), transparent var(--ec-head, 0px), var(--ink) calc(var(--ec-head, 0px) + 36px), var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) var(--ec-head, 0px), transparent var(--ec-head, 0px), var(--ink) calc(var(--ec-head, 0px) + 36px), var(--ink) calc(100% - 36px), transparent); }
   .ec-pick-list.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, var(--ink) calc(100% - 36px), transparent); }
   .ec-pick-list.is-more-above{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px); }
   .ec-pick-list.is-more-above.is-more-below{ -webkit-mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); mask-image:linear-gradient(to bottom, transparent, var(--ink) 36px, var(--ink) calc(100% - 36px), transparent); }
@@ -2706,7 +2724,7 @@
             <span class="ec-field"><label for="ec-b" class="fact-label">b</label><input type="number" id="ec-b" min="0" max="96" step="1" value="2" title="The coefficient b" aria-label="The coefficient b" data-i18n-title="cyclicGroups.ecBTitle" data-i18n-aria-label="cyclicGroups.ecBTitle"></span>
             <p class="n-note" id="ec-note"></p>
           </li>
-          <li class="ec-pick-row" id="ec-pick-row" hidden><span class="ec-pick" id="ec-pick"><button type="button" class="ec-pick-btn" id="ec-preset" aria-haspopup="listbox" aria-expanded="false" aria-controls="ec-preset-list" title="Example curves" data-i18n-title="cyclicGroups.ecPresets"><span class="ec-pick-now" id="ec-preset-now"></span><svg viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button><span class="ec-pick-pop" id="ec-preset-pop" hidden><ul class="ec-pick-list" id="ec-preset-list" role="listbox" tabindex="-1" aria-label="Example curves" data-i18n-aria-label="cyclicGroups.ecPresets"></ul><button type="button" class="sub-more" id="ec-more-top" tabindex="-1" hidden></button><button type="button" class="sub-more" id="ec-more" tabindex="-1" hidden></button></span></span></li>
+          <li class="ec-pick-row" id="ec-pick-row" hidden><span class="ec-pick" id="ec-pick"><button type="button" class="ec-pick-btn" id="ec-preset" aria-haspopup="grid" aria-expanded="false" aria-controls="ec-preset-list" title="Example curves" data-i18n-title="cyclicGroups.ecPresets"><span class="ec-pick-now" id="ec-preset-now"></span><svg viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button><span class="ec-pick-pop" id="ec-preset-pop" hidden><div class="ec-pick-list ec-pick-scroll" id="ec-preset-list" tabindex="-1"><table class="ec-pick-table" role="grid" aria-label="Example curves" data-i18n-aria-label="cyclicGroups.ecPresets"><thead><tr id="ec-preset-head"></tr></thead><tbody id="ec-preset-rows"></tbody></table></div><button type="button" class="sub-more" id="ec-more-top" tabindex="-1" hidden></button><button type="button" class="sub-more" id="ec-more" tabindex="-1" hidden></button></span></span></li>
           <li class="op-row">
             <label for="op-select" id="op-label" class="fact-label">∗</label>
             <select id="op-select" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel">
@@ -15865,7 +15883,7 @@ opIdEl.addEventListener('mouseleave', hideIdTip);
 // count from 2 to 36 (those below 9 all mod 5, each cyclic). A few are not cyclic, among them y² = x³ + 1 (mod 7),
 // ℤ/2ℤ × ℤ/6ℤ, beside a cyclic curve of the same count.
 var EC_PRESETS = [[5, 2, 0], [5, 4, 2], [5, 1, 2], [5, 3, 2], [5, 0, 1], [5, 2, 1], [5, 4, 1], [5, 1, 1], [7, 0, 2], [7, 3, 4], [7, 1, 6], [7, 3, 1], [7, 0, 1], [11, 0, 1], [13, 1, 2], [17, 2, 7], [19, 1, 2], [11, 1, 6], [11, 1, 1], [11, 1, 7], [11, 1, 2], [11, 2, 4], [11, 1, 3], [17, 2, 2], [13, 1, 0], [13, 0, 4], [17, 2, 3], [17, 3, 5], [35, 1, 3], [17, 1, 8], [19, 1, 9], [19, 0, 5], [23, 1, 1], [23, 1, 4], [35, 3, 3], [23, 5, 1], [23, 1, 10], [23, 1, 11], [29, 7, 8], [29, 1, 7], [29, 1, 1], [29, 4, 20]];
-var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPickRowEl = $('ec-pick-row'), ecPEl = nInputEl, ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note');
+var ecToggleEl = $('ec-toggle'), ecRowEl = $('ec-row'), ecPickRowEl = $('ec-pick-row'), ecPEl = nInputEl, ecAEl = $('ec-a'), ecBEl = $('ec-b'), ecPresetEl = $('ec-preset'), ecPresetNowEl = $('ec-preset-now'), ecPresetPopEl = $('ec-preset-pop'), ecPresetListEl = $('ec-preset-list'), ecPresetRowsEl = $('ec-preset-rows'), ecPresetHeadEl = $('ec-preset-head'), ecMoreEl = $('ec-more'), ecMoreTopEl = $('ec-more-top'), ecNoteEl = $('ec-note');
 var ecNote = null; // the note under the fields ({ key, params }), while the typed curve is refused
 // The curve as y² = x³ + ax + b, its terms dropped or merged as a and b ask.
 function ecEquation(a, b){
@@ -15923,17 +15941,60 @@ function syncEcPresets(){
   if (at === -1) translateInto(ecPresetNowEl, 'cyclicGroups.ecPresets', {});
   else ecPresetNowEl.textContent = ecPresetText(EC_PRESETS[at]);
   markEcPreset(ecPresetNowEl, at);
-  ecPresetListEl.replaceChildren.apply(ecPresetListEl, EC_PRESETS.map(function(c, i){
-    var li = document.createElement('li');
-    li.id = 'ec-preset-' + i;
-    li.setAttribute('role', 'option');
-    li.setAttribute('aria-selected', String(i === at));
-    li.textContent = ecPresetText(c);
-    markEcPreset(li, i);
-    return li;
+  // The table: the curve, then its a, b, modulus and point count, each a
+  // column to sort by (ecSort), the curves in the list's own order (by
+  // |E|) until one is picked; a second click on it turns it round.
+  ecPresetHeadEl.replaceChildren.apply(ecPresetHeadEl, [['', translate('cyclicGroups.ecColCurve')]].concat(EC_SORT_COLS).map(function(c){
+    var th = document.createElement('th');
+    th.scope = 'col';
+    if (!c[0]){ th.textContent = c[1]; return th; }
+    var on = ecSort.col === c[0];
+    th.setAttribute('aria-sort', on ? (ecSort.dir > 0 ? 'ascending' : 'descending') : 'none');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ec-sort' + (on ? ' is-on' : '');
+    btn.tabIndex = -1;
+    btn.setAttribute('data-col', c[0]);
+    btn.title = translate('cyclicGroups.ecSortBy', { col: c[1] });
+    var arrow = document.createElement('span');
+    arrow.className = 'ec-sort-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = on ? (ecSort.dir > 0 ? '▲' : '▼') : '';
+    btn.append(c[1], arrow);
+    th.appendChild(btn);
+    return th;
+  }));
+  ecPresetRowsEl.replaceChildren.apply(ecPresetRowsEl, ecSortedPresets().map(function(i){
+    var c = EC_PRESETS[i], tr = document.createElement('tr');
+    tr.id = 'ec-preset-' + i;
+    tr.setAttribute('data-i', i);
+    tr.setAttribute('aria-selected', String(i === at));
+    [ecEquation(c[1], c[2]), c[1], c[2], c[0], ecOrder(c[0], c[1], c[2])].forEach(function(v, k){
+      var td = tr.insertCell();
+      td.textContent = String(v);
+      if (k) td.className = 'is-num';
+    });
+    markEcPreset(tr, i);
+    return tr;
   }));
   if (!ecPresetPopEl.hidden) setEcActive(ecActive, false);
 }
+var EC_SORT_COLS = [['a', 'a'], ['b', 'b'], ['p', 'mod'], ['n', '|E|']];
+var ecSort = { col: null, dir: 1 };
+// The presets' indices in the table's order: by the column picked, ties
+// by |E|, then the modulus, a and b; else as listed.
+function ecSortedPresets(){
+  var idx = EC_PRESETS.map(function(c, i){ return i; });
+  if (!ecSort.col) return idx;
+  var val = function(i, col){ var c = EC_PRESETS[i]; return col === 'a' ? c[1] : col === 'b' ? c[2] : col === 'p' ? c[0] : ecOrder(c[0], c[1], c[2]); };
+  return idx.sort(function(x, y){
+    var d = (val(x, ecSort.col) - val(y, ecSort.col)) * ecSort.dir;
+    if (d) return d;
+    return ['n', 'p', 'a', 'b'].reduce(function(r, col){ return r || val(x, col) - val(y, col); }, 0) || x - y;
+  });
+}
+function ecPresetRows(){ return ecPresetRowsEl.rows; }
+function ecHeadH(){ var h = ecPresetHeadEl.parentNode; return h ? h.offsetHeight : 0; }
 // The mode on or off: the ring starts on a generator, its beads laid out
 // along it when there is one, and any combination is let go.
 var seqBeforeEc = true;
@@ -16023,35 +16084,52 @@ ecPEl.addEventListener('keydown', function(e){
 // it. Like the subgroup list it fades at an edge with more beyond, a label
 // there counting them and scrolling a page their way.
 var ecActive = -1;
-function syncEcMore(){ syncMoreLabels(ecPresetListEl, ecMoreTopEl, ecMoreEl, 4); }
+// The table's header stays over its rows: they fade and are counted
+// below it.
+function syncEcMore(){
+  var head = ecHeadH();
+  ecPresetListEl.style.setProperty('--ec-head', head + 'px');
+  syncMoreLabels(ecPresetListEl, ecMoreTopEl, ecMoreEl, 4, Array.prototype.filter.call(ecPresetRows(), function(tr){
+    var r = boxOf(tr), box = boxOf(ecPresetListEl);
+    return !(r.bottom > box.top - 1 && r.top < box.top + head - 1 && r.bottom <= box.top + head + 1);
+  }));
+  if (!ecMoreTopEl.hidden) ecMoreTopEl.style.top = (parseFloat(ecMoreTopEl.style.top) + head) + 'px';
+}
+// A row's top within the scrolled table, and the scroll that shows it.
+function ecRowTop(tr){ return boxOf(tr).top - boxOf(ecPresetListEl).top + ecPresetListEl.scrollTop; }
 function setEcActive(i, scroll){
-  var items = ecPresetListEl.children;
+  var items = ecPresetRows();
   if (!items.length) return;
   ecActive = Math.max(0, Math.min(items.length - 1, i));
-  Array.prototype.forEach.call(items, function(li, k){ li.classList.toggle('is-active', k === ecActive); });
+  Array.prototype.forEach.call(items, function(tr, k){ tr.classList.toggle('is-active', k === ecActive); });
   ecPresetListEl.setAttribute('aria-activedescendant', items[ecActive].id);
   if (scroll){
-    var li = items[ecActive], top = li.offsetTop - ecPresetListEl.offsetTop, list = ecPresetListEl;
-    if (top < list.scrollTop + 30) list.scrollTop = top - 30;
-    else if (top + li.offsetHeight > list.scrollTop + list.clientHeight - 30) list.scrollTop = top + li.offsetHeight - list.clientHeight + 30;
+    var tr = items[ecActive], top = ecRowTop(tr), list = ecPresetListEl, head = ecHeadH();
+    if (top < list.scrollTop + head + 30) list.scrollTop = top - head - 30;
+    else if (top + tr.offsetHeight > list.scrollTop + list.clientHeight - 30) list.scrollTop = top + tr.offsetHeight - list.clientHeight + 30;
   }
   syncEcMore();
+}
+// The row of the curve shown, in the table's order.
+function ecAtRow(){
+  var at = ecPresetAt();
+  return Math.max(0, Array.prototype.findIndex.call(ecPresetRows(), function(tr){ return +tr.getAttribute('data-i') === at; }));
 }
 function setEcPick(open){
   if (open === !ecPresetPopEl.hidden) return;
   ecPresetPopEl.hidden = !open;
   ecPresetEl.setAttribute('aria-expanded', String(open));
   if (!open) return;
-  var at = ecPresetAt(), list = ecPresetListEl;
-  ecActive = at === -1 ? 0 : at;
+  var list = ecPresetListEl;
+  ecActive = ecAtRow();
   // The ticked curve opens in the middle of the list's view.
-  var li = list.children[ecActive];
-  list.scrollTop = li ? li.offsetTop - list.offsetTop - (list.clientHeight - li.offsetHeight) / 2 : 0;
+  var tr = ecPresetRows()[ecActive];
+  list.scrollTop = tr ? ecRowTop(tr) - (list.clientHeight + ecHeadH() - tr.offsetHeight) / 2 : 0;
   setEcActive(ecActive, false);
   list.focus({ preventScroll: true });
 }
-function pickEcPreset(i){
-  var c = EC_PRESETS[i];
+function pickEcPreset(row){
+  var tr = ecPresetRows()[row], c = tr && EC_PRESETS[+tr.getAttribute('data-i')];
   setEcPick(false);
   ecPresetEl.focus({ preventScroll: true });
   if (c) applyCurve(c[0], c[1], c[2]);
@@ -16063,7 +16141,7 @@ ecPresetEl.addEventListener('keydown', function(e){
   setEcPick(true);
 });
 ecPresetListEl.addEventListener('keydown', function(e){
-  var n = ecPresetListEl.children.length, page = 8;
+  var n = ecPresetRows().length, page = 8;
   var to = { ArrowDown: ecActive + 1, ArrowUp: ecActive - 1, Home: 0, End: n - 1, PageDown: ecActive + page, PageUp: ecActive - page }[e.key];
   if (to !== undefined){ e.preventDefault(); e.stopPropagation(); setEcActive(to, true); return; }
   if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); pickEcPreset(ecActive); return; }
@@ -16071,14 +16149,28 @@ ecPresetListEl.addEventListener('keydown', function(e){
   if (e.key === 'Tab') setEcPick(false);
 });
 ecPresetListEl.addEventListener('pointermove', function(e){
-  var li = e.target.closest && e.target.closest('li[role="option"]');
-  if (li){ var i = Array.prototype.indexOf.call(ecPresetListEl.children, li); if (i !== ecActive) setEcActive(i, false); }
+  var tr = e.target.closest && e.target.closest('#ec-preset-rows > tr');
+  if (tr){ var i = tr.sectionRowIndex; if (i !== ecActive) setEcActive(i, false); }
 });
 ecPresetListEl.addEventListener('click', function(e){
-  var li = e.target.closest && e.target.closest('li[role="option"]');
-  if (li) pickEcPreset(Array.prototype.indexOf.call(ecPresetListEl.children, li));
+  var sort = e.target.closest && e.target.closest('button.ec-sort');
+  if (sort){
+    // Sorted anew, the row picked out stays picked out, in view.
+    var col = sort.getAttribute('data-col'), was = ecPresetRows()[ecActive], keep = was ? was.getAttribute('data-i') : null;
+    ecSort = ecSort.col === col ? { col: col, dir: -ecSort.dir } : { col: col, dir: 1 };
+    syncEcPresets();
+    var k = Array.prototype.findIndex.call(ecPresetRows(), function(tr){ return tr.getAttribute('data-i') === keep; });
+    setEcActive(k < 0 ? 0 : k, true);
+    ecPresetListEl.focus({ preventScroll: true });
+    return;
+  }
+  var tr = e.target.closest && e.target.closest('#ec-preset-rows > tr');
+  if (tr) pickEcPreset(tr.sectionRowIndex);
 });
 ecPresetListEl.addEventListener('scroll', syncEcMore, { passive: true });
+// A column's head sorts without taking the focus from the table, which
+// would close it as the head is drawn anew.
+ecPresetListEl.addEventListener('mousedown', function(e){ if (e.target.closest && e.target.closest('button.ec-sort')) e.preventDefault(); });
 ecMoreEl.addEventListener('click', function(){ ecPresetListEl.scrollBy({ top: ecPresetListEl.clientHeight * 0.8, behavior: 'smooth' }); ecPresetListEl.focus({ preventScroll: true }); });
 ecMoreTopEl.addEventListener('click', function(){ ecPresetListEl.scrollBy({ top: -ecPresetListEl.clientHeight * 0.8, behavior: 'smooth' }); ecPresetListEl.focus({ preventScroll: true }); });
 document.addEventListener('pointerdown', function(e){

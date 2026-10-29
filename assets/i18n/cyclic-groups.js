@@ -137,7 +137,9 @@
    into one of linked pairs), and cayleyModeHover and cayleyModeReveal
    (the switch between the table's two modes), and exprTie and exprUntie
    (the lock tying the No hover and On hover sliders, which replaced the
-   menu's Disable reveal on hover, menuRevealOff). Every other language shows the English value through
+   menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
+   ecSortBy (the example curves' table: its curve column, its columns' sort
+   tooltip). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -701,6 +703,8 @@
       ecATitle: 'The coefficient a',
       ecBTitle: 'The coefficient b',
       ecPresets: 'Example curves',
+      ecColCurve: 'Curve',
+      ecSortBy: 'Sort by {col}',
       ecNoteN: 'The modulus must be a prime from 5 to 97, or a product of two different such primes, like 35 = 5 · 7',
       ecNoteSingularMod: 'This curve is singular mod {q} (4a³ + 27b² ≡ 0 mod {q}), so its points form no group',
       ecNoteSize: 'This curve has {count} points; the ring shows at most {max}',
