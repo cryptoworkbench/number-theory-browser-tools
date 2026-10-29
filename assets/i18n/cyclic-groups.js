@@ -142,7 +142,10 @@
    tooltip), idPickLabel (the dropdown after E =), and subExprFollowTitle
    (the bottom panel's Follow expression slider button), and formulaToGcd
    and formulaToLcm (the main view formula's right-click switch between its
-   GCD and LCM forms). Every other language shows the English value through
+   GCD and LCM forms), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
+   dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
+   dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
+   exchange worked with G as g, and its window). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1014,6 +1017,26 @@
       formulaHide: 'Hide',
       formulaToGcd: 'Switch to GCD form',
       formulaToLcm: 'Switch to LCM form',
+      dhMenu: 'Diffie–Hellman with g = {g}',
+      dhTitle: 'Diffie–Hellman in {group}',
+      dhClose: 'Close',
+      dhAlice: 'Alice',
+      dhPublic: 'Public',
+      dhBob: 'Bob',
+      dhSecretA: 'Alice’s secret a',
+      dhSecretB: 'Bob’s secret b',
+      dhNoteSub: 'g = {g} generates only {k} of the {n} elements, so the key can only be one of those {k}. Diffie–Hellman wants a g that generates a large group.',
+      dhNoteIdentity: 'g = {g} is the identity: every step stays where it is, so the key is always {g}.',
+      dhStep0: 'In public, Alice and Bob agree on the group {group} and on its element g = {g}.',
+      dhStep1: 'Each picks a secret number and tells no one: Alice picks a, Bob picks b.',
+      dhStep2: { one: 'Alice computes A: {count} step of g from the identity lands on {A}.', other: 'Alice computes A: {count} steps of g from the identity land on {A}.' },
+      dhStep3: { one: 'Bob computes B: {count} step of g from the identity lands on {B}.', other: 'Bob computes B: {count} steps of g from the identity land on {B}.' },
+      dhStep4: 'They send A and B to each other in public. Anyone listening sees A = {A} and B = {B}, but never a or b.',
+      dhStep5: { one: 'Alice takes {count} step of Bob’s B = {B} from the identity, and lands on {K}.', other: 'Alice takes {count} steps of Bob’s B = {B} from the identity, and lands on {K}.' },
+      dhStep6: { one: 'Bob takes {count} step of Alice’s A = {A}, and lands on {K} too: their shared key K, which never travelled between them.', other: 'Bob takes {count} steps of Alice’s A = {A}, and lands on {K} too: their shared key K, which never travelled between them.' },
+      dhKey: 'Shared key K = {k}',
+      dhBack: 'Back',
+      dhNew: 'New secrets',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       ctxZoomIn: 'Zoom in',
       ctxZoomOut: 'Zoom out',

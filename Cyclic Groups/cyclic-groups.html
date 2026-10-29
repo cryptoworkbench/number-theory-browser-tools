@@ -989,6 +989,46 @@
   .curve-plot{ position:relative; margin:10px auto 0; z-index:3; width:min(300px, 100%); box-sizing:border-box; padding:8px 10px 6px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:var(--surface); }
   .fs-win-body.is-ring > .curve-plot{ grid-area:ring; justify-self:end; align-self:start; margin:0; top:8px; width:min(300px, 40%); max-height:calc(100% - 16px); display:flex; flex-direction:column; }
   .curve-plot[hidden]{ display:none; }
+  /* Diffie–Hellman (see openDh): Alice pink, Bob blue, their shared key
+     green, the public g in the text colour; on the ring the group's own
+     walks fade and its combination steps aside while the exchange runs. */
+  :root.is-mobile .dh-plot{ display:none !important; }
+  .fs-win-body.is-ring > .dh-plot{ width:min(430px, 46%); }
+  .dh-note{ margin:0 0 .5em; font-size:.8em; line-height:1.35; color:var(--text-dim); }
+  .dh-grid{ display:grid; grid-template-columns:1fr auto 1fr; gap:.3em .5em; align-items:center; font-size:.9em; font-variant-numeric:tabular-nums; }
+  .dh-head{ font-size:.86em; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+  .dh-head.is-pub, .dh-cell.is-pub{ justify-self:center; text-align:center; }
+  .dh-head.is-alice, .dh-cell.is-alice{ justify-self:start; }
+  .dh-head.is-bob, .dh-cell.is-bob{ justify-self:end; text-align:right; }
+  .is-alice > .dh-who, .dh-head.is-alice{ color:var(--role-alt); }
+  .is-bob > .dh-who, .dh-head.is-bob{ color:var(--role-input); }
+  .dh-cell{ min-height:1.7em; padding:.15em .4em; border-radius:6px; white-space:nowrap; transition:background-color .2s; }
+  .dh-cell.is-later{ display:none; }
+  .dh-cell.is-now:not(:empty){ background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .dh-cell sup{ font-size:.7em; }
+  .dh-val{ font-weight:700; }
+  .dh-val.is-alice{ color:var(--role-alt); }
+  .dh-val.is-bob{ color:var(--role-input); }
+  .dh-val.is-key{ color:var(--role-result); }
+  .dh-val.is-g{ color:var(--text); }
+  .dh-arrow{ margin:0 .3em; }
+  .dh-key{ grid-column:1 / -1; justify-self:center; padding:.25em .9em; border:1px solid var(--role-result); border-radius:var(--radius-ctl); background:var(--role-result-soft); }
+  .dh-secret{ width:4.2em; margin-left:.2em; font:inherit; padding:1px 4px; border:1px solid currentColor; border-radius:5px; background:var(--surface); color:var(--text); cursor:text; user-select:text; -webkit-user-select:text; }
+  .dh-say{ margin:.6em 0 .45em; min-height:2.7em; font-size:.86em; line-height:1.4; color:var(--text); }
+  .dh-ctl{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:.2em; }
+  .dh-ctl > button{ font:inherit; font-size:.74em; line-height:1.2; padding:4px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text); cursor:pointer; }
+  .dh-ctl > button:hover:not(:disabled){ background:color-mix(in srgb, var(--accent) 12%, transparent); }
+  .dh-ctl > button:disabled{ opacity:.45; cursor:default; }
+  .dh-ctl > .dh-new{ margin-left:auto; }
+  .ring.is-dh > .walks{ opacity:.15; }
+  .ring.is-dh > :is(.combine-halo, .walk-scalar:not(.walk-dh)){ display:none; }
+  .walk-dh.is-alice{ --walk:var(--role-alt); }
+  .walk-dh.is-bob{ --walk:var(--role-input); }
+  .dh-halo{ fill:none; stroke:var(--dh); stroke-width:3.5; pointer-events:none; filter:drop-shadow(0 0 4px var(--dh)); }
+  .dh-halo.is-alice{ --dh:var(--role-alt); }
+  .dh-halo.is-bob{ --dh:var(--role-input); }
+  .dh-halo.is-key{ --dh:var(--role-result); }
+  .dh-halo.is-g{ --dh:var(--text); stroke-width:2; stroke-dasharray:4 3; filter:none; }
   /* A phone has no bottom bar for the plot to minimize into. */
   :root.is-mobile #curve-plot-min{ display:none; }
   :root:not(.is-mobile) .curve-plot{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
@@ -2593,6 +2633,10 @@
           <div class="lap-key-head"><h2 id="cayley-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="cayley-reveal" aria-pressed="false"></button><button type="button" class="fs-win-btn lap-key-min" id="cayley-merge" aria-pressed="false" hidden></button><button type="button" class="fs-win-btn lap-key-min curve-plot-dock" id="cayley-dock" aria-pressed="false"></button><button type="button" class="fs-win-btn lap-key-min" id="cayley-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
           <div class="cayley-scroll" id="cayley-scroll" tabindex="0"><table class="cayley-grid" id="cayley-grid"></table></div><div class="curve-grip" id="cayley-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
+        <section class="curve-plot dh-plot" id="dh-plot" aria-labelledby="dh-plot-title" hidden>
+          <div class="lap-key-head"><h2 id="dh-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="dh-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
+          <div class="dh-body" id="dh-body"></div><div class="curve-grip" id="dh-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
+        </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
           <div class="expr-scale">
@@ -2940,7 +2984,7 @@
 "use strict";
 
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
-const { clamp, ecAdd, ecIsNonSingular, ecPoints, gcd, isPrime, modInverse, primeFactors, totient, unitsMod } = NT.core;
+const { clamp, ecAdd, ecIsNonSingular, ecPoints, gcd, isPrime, modInverse, primeFactors, randomInt, totient, unitsMod } = NT.core;
 const { easeInOutCubic, polar, svgEl } = NT.svg;
 const { readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
@@ -4673,6 +4717,8 @@ function drawRing(parent, G, beads, box, paint){
   // through a, 2a, … to ka (with a⁻¹ for a negative k, the other way
   // round), each hop numbered, one lap at most, since the walk then
   // repeats; a later lap's numbers replace the earlier ones.
+  var dhIn = dhLive(G) ? dhReach(G) : null;
+  if (dhIn) drawDhRing(ring, G, place, box, beadR, m, at);
   var sw = scalarWalk(G);
   if (sw && m > 1){
     var swFoot = box.R - beadR;
@@ -4726,7 +4772,7 @@ function drawRing(parent, G, beads, box, paint){
     var p = at(i);
     var look = paint(a);
     var attrs = {
-      'class': 'bead ' + look.cls + (coset && !coset.members[a] ? ' is-dim' : '') + (a === isoHot ? ' is-iso-hot' : ''),
+      'class': 'bead ' + look.cls + ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? ' is-dim' : '') + (a === isoHot ? ' is-iso-hot' : ''),
       cx: num(p[0]), cy: num(p[1]), r: num(beadR),
       'data-el': a, 'data-order': G.orders[a]
     };
@@ -4757,7 +4803,7 @@ function drawRing(parent, G, beads, box, paint){
       var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
       var ptPow = !!(G.pts && !(elog && ecMult(G)));
       if (ptPow) size = ptPowSize(text);
-      var label = svgEl('text', { 'class': (coset && !coset.members[a] ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
+      var label = svgEl('text', { 'class': ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       beadText(label, text);
       // The label the reveal shows: the natural number, or the picked
       // generator's power.
@@ -6090,7 +6136,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'bar-menu', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -6943,7 +6989,24 @@ window.addEventListener('storage', function(e){
   render();
 });
 function syncNatHoverCtx(on){
-  return syncSignCtx(on);
+  var sign = syncSignCtx(on), dhItem = syncDhCtx(on);
+  return sign || dhItem;
+}
+// Under them, Diffie–Hellman worked with G as g (see openDh).
+function syncDhCtx(on){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-dh').forEach(function(el){ el.remove(); });
+  if (!on || !drawn || IS_MOBILE || drawn.G.els.indexOf(state.gen) === -1) return null;
+  var G = drawn.G, g = state.gen;
+  var it = ctxItem('menuitem', translate('cyclicGroups.dhMenu', { g: elText(G, g) }));
+  it.mark.textContent = '\u21c4';
+  it.item.classList.add('ring-ctx-dh');
+  it.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  it.item.addEventListener('click', function(){
+    setRingCtx(false);
+    if (drawn && drawn.G.els.indexOf(g) !== -1) openDh(drawn.G, g);
+  });
+  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
+  return it.item;
 }
 // At the menu's top, on a cyclic curve: its points written as multiples.
 function syncSignCtx(on){
@@ -7482,7 +7545,7 @@ if (IS_RINGWIN){
   window.addEventListener('message', function(e){
     var d = e.data;
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'invblink'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'invblink'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -7858,7 +7921,7 @@ function syncRingOverlap(){
 // there as the main area's controls are, frosted while the pointer or the
 // focus is in it; off the ring, it is as ever.
 var winHeld = null;
-function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl].filter(Boolean); }
+function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl, $('dh-plot')].filter(Boolean); }
 function syncWinsOnRing(over){
   ringWins().forEach(function(w){
     w.classList.toggle('is-on-ring', !w.hidden && !w.classList.contains('is-docked') && !w.classList.contains('is-docked-foot') && over(boxOf(w)));
@@ -9213,6 +9276,323 @@ function openPolyPlot(){
   polyWin.place(polyWin.at.x, polyWin.at.y);
 }
 
+/* ---------- Diffie–Hellman ---------- */
+// Opened from the ring's right-click menu: a Diffie–Hellman key exchange
+// worked in the group on show with G as the public element g, even where g
+// generates only part of the group (the beads it never reaches fade: the
+// key can only be one of those it reaches). Alice (pink, her secret a) and
+// Bob (blue, his secret b) each walk from the identity in steps of g, to
+// A = gᵃ and B = gᵇ, swap those in public, and walk again, Alice a steps
+// of B and Bob b steps of A, both landing on the same bead K = gᵃᵇ (green),
+// the shared key. Step by step, played, or all at once; the secrets start
+// out random and can be typed over. Locked to a second ring, the exchange
+// runs in both, g^k here being h^k there, so both keys are linked too.
+var dhPlotEl = $('dh-plot'), dhBodyEl = $('dh-body');
+var dh = null, dhPlay = null, dhBuilt = null, dhParts = null;
+var DH_LAST = 6, DH_PACE = 1700;
+var DH_SAYS = ['cyclicGroups.dhStep0', 'cyclicGroups.dhStep1', 'cyclicGroups.dhStep2', 'cyclicGroups.dhStep3', 'cyclicGroups.dhStep4', 'cyclicGroups.dhStep5', 'cyclicGroups.dhStep6'];
+var dhWin = plotWindow(dhPlotEl, $('dh-grip'));
+function dhLive(G){ return !!dh && !IS_MOBILE && dh.key === G.key && G.els.indexOf(dh.g) !== -1; }
+// The beads g reaches.
+function dhReach(G){
+  var seen = {};
+  lap(G, dh.g, G.orders[dh.g]).forEach(function(x){ seen[x] = true; });
+  return seen;
+}
+// Written as multiples (ℤ/nℤ, or a curve's points as kP) or as powers.
+function dhAdditive(G){ return G.pts ? ecMult(G) : G.mode === 'additive'; }
+function dhSecretMax(G){ return Math.max(1, G.orders[dh.g] - 1); }
+function dhValues(G){
+  var A = scalarOf(G, dh.g, dh.a), B = scalarOf(G, dh.g, dh.b);
+  return { A: A, B: B, K: scalarOf(G, B, dh.a) };
+}
+function openDh(G, g, a, b, step, quiet){
+  stopDhPlay();
+  var max = Math.max(1, G.orders[g] - 1);
+  var pick = function(){ return randomInt(max >= 3 ? 2 : 1, max); };
+  var spawned = dhPlotEl.hidden;
+  dh = { key: G.key, g: g, a: a === undefined ? pick() : a, b: b === undefined ? pick() : b, step: step || 0 };
+  dhBuilt = null;
+  drawDhPlot(G);
+  redrawRing();
+  if (spawned){
+    dhWin.place(dhWin.at.x, dhWin.at.y);
+    ringWins().forEach(function(w){ if (w !== dhPlotEl) unstack(dhPlotEl, dhWin, w); });
+  }
+  if (!quiet) tellDh();
+}
+function closeDh(quiet){
+  stopDhPlay();
+  if (!dh) return;
+  dh = null;
+  dhPlotEl.hidden = true;
+  if (drawn) redrawRing();
+  if (!quiet) tellDh();
+}
+function setDhStep(s, quiet){
+  if (!dh || !drawn) return;
+  dh.step = clamp(s, 0, DH_LAST);
+  syncDhPlot(drawn.G);
+  redrawRing();
+  if (!quiet) tellDh();
+}
+function stopDhPlay(){
+  if (dhPlay){ clearTimeout(dhPlay); dhPlay = null; }
+  syncDhCtl();
+}
+function toggleDhPlay(){
+  if (!dh) return;
+  if (dhPlay){ stopDhPlay(); return; }
+  if (dh.step >= DH_LAST) setDhStep(0);
+  var tick = function(){
+    if (!dh){ dhPlay = null; return; }
+    setDhStep(dh.step + 1);
+    dhPlay = dh.step < DH_LAST ? setTimeout(tick, DH_PACE) : null;
+    syncDhCtl();
+  };
+  dhPlay = setTimeout(tick, DH_PACE / 2);
+  syncDhCtl();
+}
+// Every redraw: shut when its group is gone, rebuilt when the group, g,
+// the notation or the language changed, else only brought up to date.
+function drawDhPlot(G){
+  if (dh && !dhLive(G)){
+    dh = null;
+    if (dhPlay){ clearTimeout(dhPlay); dhPlay = null; }
+  }
+  dhPlotEl.hidden = !dh;
+  if (!dh) return;
+  var built = [G.key, dh.g, getLang(), dhAdditive(G)].join('|');
+  if (built !== dhBuilt){ dhBuilt = built; buildDhPlot(G); }
+  syncDhPlot(G);
+}
+function dhEl(tag, cls, text){
+  var el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+// base to the power exp, or exp times base where the group is written
+// additively; base and exp are text or nodes.
+function dhPow(G, base, exp){
+  var f = document.createDocumentFragment();
+  var put = function(x){ f.appendChild(typeof x === 'string' ? document.createTextNode(x) : x); };
+  if (dhAdditive(G)){ put(exp); put('·'); put(base); return f; }
+  put(base);
+  var sup = document.createElement('sup');
+  sup.appendChild(typeof exp === 'string' ? document.createTextNode(exp) : exp);
+  f.appendChild(sup);
+  return f;
+}
+function dhVal(G, x, who){ return dhEl('span', 'dh-val is-' + who, elText(G, x)); }
+function buildDhPlot(G){
+  var ord = G.orders[dh.g], gText = elText(G, dh.g);
+  var title = translate('cyclicGroups.dhTitle', { group: G.label });
+  $('dh-plot-title').textContent = title;
+  var note = dhEl('p', 'dh-note');
+  if (ord === 1) note.textContent = translate('cyclicGroups.dhNoteIdentity', { g: gText });
+  else if (ord < G.order) note.textContent = translate('cyclicGroups.dhNoteSub', { g: gText, k: ord, n: G.order });
+  else note.hidden = true;
+  var grid = dhEl('div', 'dh-grid');
+  [['alice', 'cyclicGroups.dhAlice'], ['pub', 'cyclicGroups.dhPublic'], ['bob', 'cyclicGroups.dhBob']].forEach(function(h){
+    grid.appendChild(dhEl('span', 'dh-head is-' + h[0], translate(h[1])));
+  });
+  // One row per step, each its three cells: Alice's, the public one, Bob's.
+  var rows = [];
+  for (var s = 0; s <= DH_LAST; s++){
+    rows.push(['alice', 'pub', 'bob'].map(function(c){
+      var cell = dhEl('div', 'dh-cell is-' + c);
+      grid.appendChild(cell);
+      return cell;
+    }));
+  }
+  var key = dhEl('div', 'dh-key');
+  grid.appendChild(key);
+  // The secrets, typed over in their boxes.
+  var secret = function(cell, who, name){
+    var label = dhEl('label', 'dh-who');
+    label.appendChild(document.createTextNode(name + ' ='));
+    var input = dhEl('input', 'dh-secret');
+    input.type = 'number';
+    input.min = '1';
+    input.max = String(dhSecretMax(G));
+    input.step = '1';
+    input.setAttribute('aria-label', translate(who === 'alice' ? 'cyclicGroups.dhSecretA' : 'cyclicGroups.dhSecretB'));
+    input.addEventListener('input', function(){
+      if (!dh || !drawn) return;
+      var v = Number(input.value);
+      if (!Number.isInteger(v) || v < 1 || v > dhSecretMax(drawn.G)) return;
+      dh[name] = v;
+      syncDhPlot(drawn.G);
+      redrawRing();
+      tellDh();
+    });
+    input.addEventListener('change', function(){ if (dh) input.value = String(dh[name]); });
+    input.addEventListener('keydown', function(e){ e.stopPropagation(); });
+    label.appendChild(input);
+    cell.appendChild(label);
+    return input;
+  };
+  rows[0][1].appendChild(document.createTextNode('g = '));
+  rows[0][1].appendChild(dhEl('span', 'dh-val is-g', gText));
+  var inA = secret(rows[1][0], 'alice', 'a'), inB = secret(rows[1][2], 'bob', 'b');
+  var say = dhEl('p', 'dh-say');
+  say.setAttribute('aria-live', 'polite');
+  var ctl = dhEl('div', 'dh-ctl');
+  var btn = function(cls, run){
+    var b = dhEl('button', cls);
+    b.type = 'button';
+    b.addEventListener('click', run);
+    ctl.appendChild(b);
+    return b;
+  };
+  var parts = {
+    rows: rows, key: key, inA: inA, inB: inB, say: say,
+    reset: btn('dh-reset', function(){ stopDhPlay(); setDhStep(0); }),
+    back: btn('dh-back', function(){ stopDhPlay(); setDhStep(dh.step - 1); }),
+    play: btn('dh-play', toggleDhPlay),
+    step: btn('dh-step', function(){ stopDhPlay(); setDhStep(dh.step + 1); }),
+    end: btn('dh-end', function(){ stopDhPlay(); setDhStep(DH_LAST); }),
+    renew: btn('dh-new', function(){
+      if (!dh || !drawn) return;
+      var max = dhSecretMax(drawn.G);
+      dh.a = randomInt(max >= 3 ? 2 : 1, max);
+      dh.b = randomInt(max >= 3 ? 2 : 1, max);
+      syncDhPlot(drawn.G);
+      redrawRing();
+      tellDh();
+    })
+  };
+  parts.reset.textContent = translate('common.reset');
+  parts.back.textContent = translate('cyclicGroups.dhBack');
+  parts.step.textContent = translate('common.step');
+  parts.end.textContent = translate('common.instant');
+  parts.renew.textContent = translate('cyclicGroups.dhNew');
+  dhParts = parts;
+  dhBodyEl.replaceChildren(note, grid, say, ctl);
+}
+// The cells' formulas, as far as the exchange has got, the step on show
+// shaded, and the sentence saying what it does.
+function syncDhPlot(G){
+  if (!dh || !dhParts) return;
+  var p = dhParts, v = dhValues(G), s = dh.step, gText = elText(G, dh.g);
+  var aT = String(dh.a), bT = String(dh.b);
+  var fill = function(cell, nodes){ cell.replaceChildren.apply(cell, nodes); };
+  var gv = function(){ return dhEl('span', 'dh-val is-g', gText); };
+  [[p.inA, dh.a], [p.inB, dh.b]].forEach(function(t){
+    t[0].max = String(dhSecretMax(G));
+    if (document.activeElement !== t[0]) t[0].value = String(t[1]);
+  });
+  fill(p.rows[2][0], [document.createTextNode('A = '), dhPow(G, 'g', 'a'), document.createTextNode(' = '), dhPow(G, gv(), aT), document.createTextNode(' = '), dhVal(G, v.A, 'alice')]);
+  fill(p.rows[3][2], [document.createTextNode('B = '), dhPow(G, 'g', 'b'), document.createTextNode(' = '), dhPow(G, gv(), bT), document.createTextNode(' = '), dhVal(G, v.B, 'bob')]);
+  var sent = function(name, x, who, arrow){
+    var line = dhEl('div', 'dh-sent');
+    if (arrow === '←') line.appendChild(dhEl('span', 'dh-arrow dh-val is-' + who, arrow));
+    line.appendChild(document.createTextNode(name + ' = '));
+    line.appendChild(dhVal(G, x, who));
+    if (arrow === '→') line.appendChild(dhEl('span', 'dh-arrow dh-val is-' + who, arrow));
+    return line;
+  };
+  fill(p.rows[4][1], [sent('A', v.A, 'alice', '→'), sent('B', v.B, 'bob', '←')]);
+  fill(p.rows[5][0], [document.createTextNode('K = '), dhPow(G, dhVal(G, v.B, 'bob'), 'a'), document.createTextNode(' = '), dhPow(G, elText(G, v.B), aT), document.createTextNode(' = '), dhVal(G, v.K, 'key')]);
+  fill(p.rows[6][2], [document.createTextNode('K = '), dhPow(G, dhVal(G, v.A, 'alice'), 'b'), document.createTextNode(' = '), dhPow(G, elText(G, v.A), bT), document.createTextNode(' = '), dhVal(G, v.K, 'key')]);
+  p.rows.forEach(function(row, i){
+    row.forEach(function(cell){
+      cell.classList.toggle('is-later', i > s);
+      cell.classList.toggle('is-now', i === s);
+    });
+  });
+  translateInto(p.key, 'cyclicGroups.dhKey', { k: dhVal(G, v.K, 'key') });
+  p.key.classList.toggle('dh-cell', true);
+  p.key.classList.toggle('is-later', s < DH_LAST);
+  var params = { group: G.label, g: gv(), a: dhEl('span', 'dh-val is-alice', aT), b: dhEl('span', 'dh-val is-bob', bT), A: dhVal(G, v.A, 'alice'), B: dhVal(G, v.B, 'bob'), K: dhVal(G, v.K, 'key') };
+  // The steps taken, Alice's a or Bob's b, pick the sentence's plural form.
+  params.count = s === 2 || s === 5 ? params.a : s === 3 || s === 6 ? params.b : undefined;
+  translateInto(p.say, DH_SAYS[s], params);
+  syncDhCtl();
+}
+function syncDhCtl(){
+  if (!dh || !dhParts) return;
+  var p = dhParts;
+  p.play.textContent = translate(dhPlay ? 'common.pause' : 'common.play');
+  p.play.setAttribute('aria-pressed', dhPlay ? 'true' : 'false');
+  p.reset.disabled = p.back.disabled = dh.step === 0;
+  p.step.disabled = p.end.disabled = dh.step === DH_LAST;
+}
+$('dh-close').addEventListener('click', function(){ closeDh(); });
+// On the ring: the walk the step on show takes, numbered hop by hop (a
+// lap at most, as aᵏ's walk; a later lap's numbers replace the earlier
+// ones), A ringed pink once Alice has it, B blue once Bob has it, and K
+// pink as Alice finds it, then green inside the pink and the blue once
+// Bob finds it too. g wears a dashed ring throughout.
+function drawDhRing(ring, G, place, box, beadR, m, at){
+  var v = dhValues(G), s = dh.step;
+  ring.classList.add('is-dh');
+  var walk = s === 2 ? [dh.g, dh.a, 'is-alice'] : s === 3 ? [dh.g, dh.b, 'is-bob']
+    : s === 5 ? [v.B, dh.a, 'is-alice'] : s === 6 ? [v.A, dh.b, 'is-bob'] : null;
+  if (walk && m > 1) drawDhWalk(ring, G, walk[0], walk[1], walk[2], place, box, beadR, m);
+  var roles = new Map();
+  var add = function(x, role){ if (!roles.has(x)) roles.set(x, []); roles.get(x).push(role); };
+  add(dh.g, 'g');
+  if (s >= 2) add(v.A, 'alice');
+  if (s >= 3) add(v.B, 'bob');
+  if (s === 5) add(v.K, 'alice');
+  if (s >= 6){ add(v.K, 'key'); add(v.K, 'alice'); add(v.K, 'bob'); }
+  roles.forEach(function(rs, x){
+    var c = at(place[x]);
+    rs.forEach(function(role, k){
+      ring.appendChild(svgEl('circle', { 'class': 'dh-halo is-' + role, cx: num(c[0]), cy: num(c[1]), r: num(beadR + 4 + 5 * k) }));
+    });
+  });
+}
+function drawDhWalk(ring, G, step, n, cls, place, box, beadR, m){
+  var ord = G.orders[step];
+  if (ord === 1 || !n) return;
+  var hops = Math.min(n, ord), lapped = hops === ord;
+  var walk = lap(G, step, lapped ? ord : hops + 1);
+  var foot = box.R - beadR;
+  var steps = humpSteps(walk, place, m, 1, 0);
+  if (!lapped) steps.pop();
+  var g = svgEl('g', { 'class': 'walk-scalar walk-dh ' + cls });
+  var d = '';
+  steps.forEach(function(h){ d += (d ? ' ' : '') + humpPath(box, foot, -1, h, !d); });
+  g.appendChild(svgEl('path', { 'class': 'chord', d: d, 'stroke-width': 2.6 }));
+  var size = Math.max(4, Math.min(8, 110 / steps.length)), m0 = walk.length;
+  steps.forEach(function(h, i){
+    g.appendChild(humpArrow('chord-arrow', box, foot, -1, h, size));
+    if (m > 40) return;
+    var p = humpPoint(box, foot, -1, h, 0.3);
+    g.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(p[0]), y: num(p[1]) })).textContent = String(i + 1 + m0 * Math.floor((n - i - 1) / m0));
+  });
+  ring.appendChild(g);
+}
+// Linked through an isomorphism, the other ring runs the same exchange:
+// g told as its exponent of the link's generator, the secrets and the step
+// as they are; g outside the linked subgroup (or the window shut) shuts
+// the other ring's.
+function tellDh(){
+  if (!drawn || !isoOrder()) return;
+  var k = dh ? isoPowers().indexOf(dh.g) : -1;
+  isoTell(k < 0 ? { iso: 'dh', g: -1 } : { iso: 'dh', g: k, a: dh.a, b: dh.b, step: dh.step });
+}
+function isoTakeDh(d, m){
+  if (!drawn || !Number.isInteger(d.g) || d.g < -1 || d.g >= m) return;
+  if (d.g < 0){ closeDh(true); return; }
+  var G = drawn.G, g = isoPowers()[d.g], max = Math.max(1, G.orders[g] - 1);
+  var ok = function(x){ return Number.isInteger(x) && x >= 1 && x <= max; };
+  if (!ok(d.a) || !ok(d.b) || !Number.isInteger(d.step) || d.step < 0 || d.step > DH_LAST) return;
+  if (dhLive(G) && dh.g === g){
+    if (dhPlay){ clearTimeout(dhPlay); dhPlay = null; }
+    dh.a = d.a;
+    dh.b = d.b;
+    dh.step = d.step;
+    syncDhPlot(G);
+    redrawRing();
+    return;
+  }
+  openDh(G, g, d.a, d.b, d.step, true);
+}
+
 /* ---------- the Cayley table ---------- */
 // The group's Cayley table, in a window like the polygon's: row a, column
 // b, and a ∗ b where they meet; rows and columns in the beads' order, each
@@ -10023,7 +10403,7 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
       el.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
     }
   };
-  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, .curve-plot-svg, .curve-grip, .cayley-scroll'); };
+  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, input, .curve-plot-svg, .curve-grip, .cayley-scroll'); };
   el.addEventListener('pointerdown', function(e){
     if (!grip(e)) return;
     moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y };
@@ -10115,7 +10495,7 @@ function tellPlotsOver(){
   var body = curvePlotEl.closest('.fs-win-body');
   if (!body) return;
   var line = boxOf(body).bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0), rects = [];
-  [curvePlotEl, polyPlotEl, cayleyEl, lapKeyEl].forEach(function(el){
+  [curvePlotEl, polyPlotEl, cayleyEl, dhPlotEl, lapKeyEl].forEach(function(el){
     if (el.hidden || el.closest('.fs-win-body') !== body) return;
     var r = boxOf(el);
     if (r.width && r.bottom > line) rects.push([r.left, r.top, r.right, r.bottom].map(Math.round));
@@ -10127,7 +10507,7 @@ function tellPlotsOver(){
 }
 if (IS_ISOPANE && !IS_MOBILE && window.MutationObserver){
   var plotsOverMo = new MutationObserver(tellPlotsOver);
-  [curvePlotEl, polyPlotEl, cayleyEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
+  [curvePlotEl, polyPlotEl, cayleyEl, dhPlotEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
   window.addEventListener('resize', tellPlotsOver);
 }
 var plotMinSent = null;
@@ -14207,6 +14587,7 @@ function isoReceive(d){
   if (d.iso === 'numset'){ if (IS_ISOPANE && isoInterlockOn) takeNumset(d); return; }
   if (d.iso === 'subexpr'){ if (IS_ISOPANE && isoInterlockOn) takeSubExpr(d); return; }
   if (d.iso === 'combine'){ isoTakeCombine(d, m); return; }
+  if (d.iso === 'dh'){ isoTakeDh(d, m); return; }
   // G turning into its inverse on the holder blinks here too, as this
   // ring writes G: before the new subgroup comes, and after.
   if (d.iso === 'invblink'){ if (IS_ISOPANE && subInterlocked()) startInvBlink(invBlinks(d.after === true), d.after === true); return; }
@@ -14557,7 +14938,7 @@ window.addEventListener('message', function(e){
       if (num(lg.g) && logOk){ isoPaneLegend.g = lg.g; isoPaneLegend.log = lg.log; }
     }
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine' || d.iso === 'dh'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // A pane just built hears this ring's head anew.
@@ -15222,6 +15603,7 @@ function render(){
   preview = null;
   drawn = { G: G, paint: paint };
   if (!isoOrder()){ isoHot = null; isoHoverSent = null; }
+  drawDhPlot(G);
   syncTabTitle();
   ringSvgEl.setAttribute('aria-label', translate('cyclicGroups.svgAriaLabel', { group: G.label }));
   ringDynamicEl.replaceChildren();
