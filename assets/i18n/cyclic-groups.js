@@ -140,7 +140,9 @@
    menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
    ecSortBy (the example curves' table: its curve column, its columns' sort
    tooltip), idPickLabel (the dropdown after E =), and subExprFollowTitle
-   (the bottom panel's Follow expression slider button). Every other language shows the English value through
+   (the bottom panel's Follow expression slider button), and formulaToGcd
+   and formulaToLcm (the main view formula's right-click switch between its
+   GCD and LCM forms). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1010,6 +1012,8 @@
       scratchGens: 'Group generator count',
       subEnterInverse: 'Hit enter to switch to inverse',
       formulaHide: 'Hide',
+      formulaToGcd: 'Switch to GCD form',
+      formulaToLcm: 'Switch to LCM form',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       ctxZoomIn: 'Zoom in',
       ctxZoomOut: 'Zoom out',

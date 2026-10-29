@@ -6754,7 +6754,8 @@ function setRingCtx(open, x, y, expr, fml){
 }
 // Right-clicking the main view's formula opens the ring's menu with only its
 // own items: Hide, which sets the bottom bar's choice for the main area to
-// None and blinks that group's button there, and the copy formats, for the
+// None and blinks that group's button there, Switch to GCD form or Switch to
+// LCM form, turning it into its other form, and the copy formats, for the
 // formula line under the pointer (both lines, between them).
 function syncFormulaCtx(fml){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-fml').forEach(function(el){ el.remove(); });
@@ -6765,7 +6766,15 @@ function syncFormulaCtx(fml){
   var sep = document.createElement('div');
   sep.className = 'ring-ctx-sep';
   sep.setAttribute('role', 'separator');
-  var items = [hide.item, sep].concat(COPY_FORMATS.map(function(c){
+  var head = [hide.item];
+  var fs = ringFormulaForms(drawn.G, fml.line);
+  if (fs){
+    var toLcm = !lcmHas(state.subLcmRing, fs[0]);
+    var sw = ctxItem('menuitem', translate(toLcm ? 'cyclicGroups.formulaToLcm' : 'cyclicGroups.formulaToGcd'));
+    sw.item.addEventListener('click', function(){ setRingCtx(false); switchRingFormulaForm(fs, toLcm); });
+    head.push(sw.item);
+  }
+  var items = head.concat([sep]).concat(COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
     it.item.addEventListener('click', function(){
       var fs = drawn ? ringFormulas(drawn.G) : [];
@@ -6780,6 +6789,28 @@ function syncFormulaCtx(fml){
 // The main view's formulas, as renderSubgroups draws them.
 function ringFormulas(G){
   return subRowFormula(G, state.gen, state.subFormulaRing, undefined, rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing);
+}
+// The main view's formulas the switch turns, size and/or index: the one on
+// the line under the pointer, or, between the lines, both when they are in
+// the same form. None where the group has no lcm form (a group of units
+// that isn't cyclic).
+function ringFormulaForms(G, line){
+  if (!(G.mode === 'additive' || G.cyclic)) return null;
+  var v = state.subFormulaRing;
+  var fs = v === 'both' ? ['order', 'index'] : SUB_FORMULAS.indexOf(v) !== -1 && v !== 'none' ? [v] : [];
+  if (line >= 0 && line < fs.length) fs = [fs[line]];
+  if (!fs.length || fs.some(function(f){ return lcmHas(state.subLcmRing, f) !== lcmHas(state.subLcmRing, fs[0]); })) return null;
+  return fs;
+}
+function switchRingFormulaForm(fs, toLcm){
+  var form = function(f){ return fs.indexOf(f) !== -1 ? toLcm : lcmHas(state.subLcmRing, f); };
+  state.subLcmRing = lcmPack(form('order'), form('index'));
+  if (IS_ISOPANE){
+    tellHost({ isopane: 'lcm-ring', value: state.subLcmRing });
+    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
+    return;
+  }
+  barFormulasChanged();
 }
 function hideRingFormula(){
   state.subFormulaRing = 'none';
@@ -14550,6 +14581,9 @@ window.addEventListener('message', function(e){
     state.subFormulaRingR = d.value;
     barFormulasChanged();
     if (d.blink === true) blinkBarBtn(1);
+  } else if (d.isopane === 'lcm-ring' && SUB_FORMULAS.indexOf(d.value) !== -1){
+    state.subLcmRingR = d.value;
+    barFormulasChanged();
   } else if (d.isopane === 'reach'){
     var pr = d.reach;
     paneReach = pr && [pr.x, pr.y, pr.r].every(Number.isFinite) ? { x: pr.x, y: pr.y, r: pr.r } : null;
