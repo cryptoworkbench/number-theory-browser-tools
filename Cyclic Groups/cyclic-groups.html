@@ -1053,7 +1053,7 @@
   .cayley-plot{ font-size:1rem; }
   .cayley-plot .lap-key-min{ width:20px; height:20px; }
   .cayley-plot .lap-key-min svg{ width:12px; height:12px; }
-  .cayley-scroll{ flex:1 1 auto; min-height:0; max-height:calc(var(--plot-scale, 1) * 300px); overflow:auto; border:1px solid var(--panel-border); border-radius:6px; overscroll-behavior:contain; }
+  .cayley-scroll{ flex:1 1 auto; align-self:flex-start; max-width:100%; box-sizing:border-box; min-height:0; max-height:calc(var(--plot-scale, 1) * 300px); overflow:auto; border:1px solid var(--panel-border); border-radius:6px; overscroll-behavior:contain; }
   .cayley-plot.is-docked .cayley-scroll{ max-height:none; }
   /* Its scrollbars are the site's, as the prime picker's are: thin, a
      thumb of the text colour on no track and no arrow buttons, in both
@@ -9446,7 +9446,25 @@ function openPolyPlot(){
 var cayleyEl = $('cayley-plot'), cayleyGridEl = $('cayley-grid'), cayleyScrollEl = $('cayley-scroll');
 var cayleyMergeBtnEl = $('cayley-merge'), cayleyDockBtnEl = $('cayley-dock'), cayleyRevealBtnEl = $('cayley-reveal');
 var cayleyOpen = false, paneCayleyMerged = false, cayleyMinSent = null;
-var cayleyWin = plotWindow(cayleyEl, $('cayley-grip'));
+var cayleyWin = plotWindow(cayleyEl, $('cayley-grip'), false, cayleyFitW);
+// The widest the table's window need be: its whole table in view, and its
+// head's title and buttons side by side.
+function cayleyFitW(){
+  var head = cayleyEl.querySelector('.lap-key-head'), kids = head ? Array.prototype.filter.call(head.children, function(c){ return !c.hidden; }) : [];
+  var gap = head ? parseFloat(getComputedStyle(head).columnGap) || 0 : 0;
+  // The title by its text's own width, as it stretches to fill the head.
+  var natural = function(c){
+    if (c.tagName !== 'H2') return c.offsetWidth;
+    var range = document.createRange();
+    range.selectNodeContents(c);
+    return range.getBoundingClientRect().width * c.offsetWidth / (c.getBoundingClientRect().width || c.offsetWidth || 1);
+  };
+  var headW = kids.reduce(function(w, c){ return w + natural(c); }, 0) + gap * Math.max(0, kids.length - 1);
+  var cs = getComputedStyle(cayleyEl), pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  var frame = cayleyEl.offsetWidth - cayleyEl.clientWidth + pad;
+  var table = frame + cayleyScrollEl.offsetWidth - cayleyScrollEl.clientWidth + cayleyGridEl.offsetWidth;
+  return Math.ceil(Math.max(table, frame + headW));
+}
 // What the grid was built for, its heads and cells by element, and the
 // cells lit now.
 var cayleyBuilt = null, cayleyEls = [], cayleyRows = {}, cayleyCols = {}, cayleyCells = {}, cayleyLit = [];
@@ -9482,6 +9500,11 @@ function drawCayley(G){
   $('cayley-plot-title').textContent = title;
   cayleyGridEl.setAttribute('aria-label', title);
   buildCayley(G, merged);
+  // Widened for a larger table, it narrows to fit a smaller one.
+  if (cayleyEl.style.width && !cayleyEl.classList.contains('is-docked')){
+    var fitW = cayleyFitW();
+    if (parseFloat(cayleyEl.style.width) > fitW) cayleyWin.size(fitW);
+  }
   lightCayley(G);
   if (spawned){ unstack(cayleyEl, cayleyWin, curvePlotEl); unstack(cayleyEl, cayleyWin, polyPlotEl); }
   // Kept in the ring's half, which a pane opening beside it narrows.
@@ -10191,7 +10214,7 @@ function plotFloor(body){
 // (left or down grows it) and the height follows the width, the plot's
 // shape kept. A double click puts it back.
 var CURVE_BASE_W = 300;
-function plotWindow(el, gripEl, acrossLocked){
+function plotWindow(el, gripEl, acrossLocked, fitW){
   var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
   win.place = function(x, y){
     if (el.classList.contains('is-docked')) return;
@@ -10253,7 +10276,9 @@ function plotWindow(el, gripEl, acrossLocked){
     // tall as the room under the rows.
     var room = rightward ? workRight(body) - r.left - 8 : r.right - b.left - 8;
     var maxW = Math.min(room, r.width * (floor - topRowsBottom(body) - 8) / r.height);
-    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: Math.max(r.width, maxW), dir: rightward ? -1 : 1 };
+    // A window with a width its contents fill (fitW) grows no wider.
+    var fit = fitW ? fitW() : null;
+    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: fit ? Math.min(fit, Math.max(r.width, maxW)) : Math.max(r.width, maxW), min: fit ? Math.min(200, fit) : 200, dir: rightward ? -1 : 1 };
     gripEl.setPointerCapture(e.pointerId);
     el.classList.add('is-resizing');
     e.preventDefault();
@@ -10262,7 +10287,7 @@ function plotWindow(el, gripEl, acrossLocked){
   gripEl.addEventListener('pointermove', function(e){
     if (!sizing || e.pointerId !== sizing.id) return;
     var pull = (sizing.dir * (sizing.x - ptX(e)) + (ptY(e) - sizing.y)) / 2;
-    win.size(Math.round(Math.max(200, Math.min(sizing.max, sizing.w + pull))));
+    win.size(Math.round(Math.max(sizing.min, Math.min(sizing.max, sizing.w + pull))));
     win.place(win.at.x, win.at.y);
   });
   var endSizing = function(e){
