@@ -9315,7 +9315,8 @@ cayleyGridEl.addEventListener('click', function(e){
   cayleyPick(a !== null ? +a : p ? p.a : null, b !== null ? +b : p ? p.b : null);
 });
 // Hover, in the first mode: a row's head lights its row yellow, a
-// column's head its column blue, and a cell shows its a ∗ b in the ring
+// column's head its column blue, and a cell (or the other head while only
+// one of a and b is picked) shows its a ∗ b in the ring
 // (its halos and the sum under it) until the pointer leaves the cells,
 // which brings back what was picked; a click keeps it.
 var cayleyPeek = null, cayleyHoverLit = [];
@@ -9358,8 +9359,17 @@ cayleyGridEl.addEventListener('mouseover', function(e){
   }
   var cell = e.target.closest('td[data-a], th[data-a], th[data-b]');
   cayleyHoverLine(cell);
-  if (!cell || cell.tagName !== 'TD'){ cayleyPeekEnd(); return; }
-  var a = +cell.getAttribute('data-a'), b = +cell.getAttribute('data-b');
+  // A cell, or with only a picked a column's head (only b, a row's head):
+  // the other one of the two, met where they cross.
+  var base = cayleyPeek ? cayleyPeek.combo : combo, own = base.key === comboKey(drawn.G);
+  var a = cell && cell.getAttribute('data-a'), b = cell && cell.getAttribute('data-b');
+  if (cell && cell.tagName === 'TH'){
+    if (own && a === null && base.a !== null && base.b === null && base.k === null) a = base.a;
+    else if (own && b === null && base.a === null && base.b !== null) b = base.b;
+    else a = b = null;
+  }
+  if (a === null || b === null){ cayleyPeekEnd(); return; }
+  a = +a; b = +b;
   if (!cayleyPeek) cayleyPeek = { combo: { a: combo.a, b: combo.b, k: combo.k, key: combo.key }, mode: state.combineMode };
   else if (combo.a === a && combo.b === b && combo.k === null) return;
   cayleyPick(a, b);
