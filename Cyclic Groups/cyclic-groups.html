@@ -1032,10 +1032,12 @@
   .cayley-grid thead th{ top:0; z-index:2; border-bottom-color:var(--panel-border); }
   .cayley-grid tbody th{ left:0; z-index:1; border-right-color:var(--panel-border); }
   .cayley-grid thead th:first-child{ left:0; z-index:3; color:var(--text); }
-  .cayley-grid td{ cursor:pointer; }
+  .cayley-grid td, .cayley-grid th[data-a], .cayley-grid th[data-b]{ cursor:pointer; }
   /* Focused, the arrow keys move the lit cell: its frame says so. */
   .cayley-scroll:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
   .cayley-grid td:hover{ box-shadow:inset 0 0 0 1px var(--text-dim); }
+  .cayley-grid tbody th[data-a]:hover{ box-shadow:inset 0 0 0 1px var(--role-active); }
+  .cayley-grid thead th[data-b]:hover{ box-shadow:inset 0 0 0 1px var(--role-input); }
   .cayley-grid tbody th.is-a{ background:color-mix(in srgb, var(--role-active) 22%, var(--surface)); color:var(--role-active); }
   .cayley-grid thead th.is-b{ background:color-mix(in srgb, var(--role-input) 22%, var(--surface)); color:var(--role-input); }
   .cayley-grid td.is-a-row{ background:color-mix(in srgb, var(--role-active) 22%, transparent); }
@@ -9136,6 +9138,7 @@ function buildCayley(G, merged){
   els.forEach(function(b){
     var th = document.createElement('th');
     th.scope = 'col';
+    th.setAttribute('data-b', b);
     put(th, b);
     tr.appendChild(th);
     cayleyCols[b] = th;
@@ -9144,6 +9147,7 @@ function buildCayley(G, merged){
   els.forEach(function(a){
     var row = body.insertRow(), th = document.createElement('th');
     th.scope = 'row';
+    th.setAttribute('data-a', a);
     put(th, a);
     row.appendChild(th);
     cayleyRows[a] = th;
@@ -9199,11 +9203,14 @@ function cayleyPick(a, b){
   tellCombine();
   syncComboUi();
 }
+// A click on a row's head picks its a, keeping b; on a column's head
+// its b, keeping a (with no a yet, the identity's row).
 cayleyGridEl.addEventListener('click', function(e){
-  var td = e.target.closest('td[data-a]');
-  if (!td) return;
+  var cell = e.target.closest('[data-a], [data-b]');
+  if (!cell || !drawn) return;
+  var p = cayleyPicks(drawn.G), a = cell.getAttribute('data-a'), b = cell.getAttribute('data-b');
   cayleyScrollEl.focus({ preventScroll: true });
-  cayleyPick(+td.getAttribute('data-a'), +td.getAttribute('data-b'));
+  cayleyPick(a !== null ? +a : p ? p.a : drawn.G.identity, b !== null ? +b : p ? p.b : null);
 });
 // With the table focused the arrow keys are its, not the page's (which
 // step the subgroup rows and the expression slider): up and down move to
