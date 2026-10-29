@@ -2506,8 +2506,8 @@ function isProse(text) {
 // language.
 var SCRIPT_LATIN_NOTATION = [
   "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Eve", "Fibonacci",
-  "Fourier", "Garner", "Hasse", "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "QR", "RSA", "SVG",
-  "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd", "kG", "lcm", "log", "mod", "ord", "pointAdd",
+  "Fourier", "Garner", "Hasse", "LaTeX", "MathML", "OAEP", "PDF", "PNG", "Pᵏ", "QFT", "QR", "RSA", "SVG",
+  "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd", "kG", "kP", "lcm", "log", "mod", "ord", "pointAdd",
   "qInv", "scalarMul"
 ];
 
@@ -2560,8 +2560,8 @@ var ZGH_LATN_TO_TFNG = Object.freeze({
 // (Fibonacci, Fourier, Garner, Hasse are adapted to IRCAM Latin) plus those four.
 var ZGH_KEEP = [
   "AES", "ASCII", "Alice", "BigInt", "Blowfish", "Bob", "CRT", "DH", "DSA", "Delete", "Enter", "Eve",
-  "LaTeX", "MathML", "OAEP", "PDF", "PNG", "QFT", "QR", "RSA", "SVG", "Space", "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
-  "kG", "lcm", "log", "mod", "ms", "ord", "pointAdd", "qInv", "scalarMul"
+  "LaTeX", "MathML", "OAEP", "PDF", "PNG", "Pᵏ", "QFT", "QR", "RSA", "SVG", "Space", "Unicode", "aB", "aG", "bA", "bG", "dP", "dQ", "gcd",
+  "kG", "kP", "lcm", "log", "mod", "ms", "ord", "pointAdd", "qInv", "scalarMul"
 ];
 var ZGH_KEEP_SET = {};
 ZGH_KEEP.forEach(function (w) { ZGH_KEEP_SET[w] = true; });
