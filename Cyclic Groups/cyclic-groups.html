@@ -3122,7 +3122,9 @@ function ptY(e){ return e.clientY / PAGE_ZOOM; }
 // Every tooltip is drawn as the identity's is (see showIdTip), never the
 // browser's own: a title, however it is set (title=, .title, setAttribute,
 // the translations), is kept as data-title instead, and .title reads it
-// back. An option keeps its own, in the browser's list.
+// back. An option keeps its own, in the browser's list, and a frame its
+// own, its name for a screen reader, never shown as a tip.
+var TITLE_NATIVE = /^(OPTION|IFRAME)$/;
 var titleTipEl = document.createElement('div');
 titleTipEl.className = 'akey-tip title-tip';
 titleTipEl.setAttribute('role', 'tooltip');
@@ -3143,7 +3145,7 @@ Object.defineProperty(HTMLElement.prototype, 'title', {
   configurable: true,
   get: function(){ return this.hasAttribute('data-title') ? this.getAttribute('data-title') : titleNative.get.call(this); },
   set: function(v){
-    if (this.tagName === 'OPTION') titleNative.set.call(this, v);
+    if (TITLE_NATIVE.test(this.tagName)) titleNative.set.call(this, v);
     else { keepTitle(this, String(v)); syncTitleTip(); }
   }
 });
@@ -3152,7 +3154,7 @@ Element.prototype.removeAttribute = function(name){
   if (String(name).toLowerCase() === 'title' && this.hasAttribute('data-title')){ dropTitle(this); syncTitleTip(); }
 };
 function moveTitle(el){
-  if (el.tagName === 'OPTION' || !el.hasAttribute('title')) return;
+  if (TITLE_NATIVE.test(el.tagName) || !el.hasAttribute('title')) return;
   var text = el.getAttribute('title');
   titleRemove.call(el, 'title');
   keepTitle(el, text);
