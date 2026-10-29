@@ -8908,27 +8908,22 @@ function plotPolygon(G){
   // The turns: from 0 by a (then by b), or k hops of a; each an arc
   // inside the polygon, the later ones nearer its centre.
   var turns = [];
+  // Every arrow turns one way: the shorter way round to the result, and
+  // the preferred way (see prefSign) on a half turn or back to 0.
+  var r = log[rot], way = !r || 2 * r === n ? prefSign() * dirSign() : 2 * r < n ? 1 : -1;
+  var toward = function(k){ k = (k % n + n) % n; return way < 0 && k ? k - n : k; };
   // aᵏ: every one of the |k| hops, lap after lap, spiralling inward (the
   // last 120 of a longer walk), each in the colour the ring's walk gives
-  // that hop: its lap's (see lapClass). Each turns the way the ring's
-  // walk takes that hop on screen, the shorter way round the ring's
-  // arrangement (see humpSteps), so with k < 0 as with k > 0 the arrows
-  // here and there go round alike.
+  // that hop: its lap's (see lapClass).
   var sw = live && combo.k !== null ? scalarWalk(G) : null;
   if (sw){
     var m0 = sw.walk.length, K = Math.abs(combo.k), hop = log[combo.k < 0 ? G.inv[combo.a] : combo.a];
-    var arr = arrangement(G), m = arr.length;
     for (var h = Math.max(1, K - 119); h <= K; h++){
-      var x0 = sw.walk[(h - 1) % m0], x1 = sw.walk[h % m0];
-      var span = ((arr.indexOf(x1) - arr.indexOf(x0)) % m + m) % m;
-      turns.push({ from: log[x0], by: span > m / 2 ? hop - n : hop, cls: 'is-walk ' + lapClass(Math.floor((h - 1) / m0)) });
+      turns.push({ from: log[sw.walk[(h - 1) % m0]], by: toward(hop), cls: 'is-walk ' + lapClass(Math.floor((h - 1) / m0)) });
     }
   } else if (live && combo.k === null){
-    // a + b: each turn the shorter way round, backward past half a turn
-    // (forward on a half turn), as the polygon itself turns.
-    var short = function(k){ return k > n / 2 ? k - n : k; };
-    turns.push({ from: 0, by: short(log[combo.a]), cls: 'is-a' });
-    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: log[combo.a], by: short(log[combo.b]), cls: 'is-b' });
+    turns.push({ from: 0, by: toward(log[combo.a]), cls: 'is-a' });
+    if (combo.b !== null && G.els.indexOf(combo.b) !== -1) turns.push({ from: log[combo.a], by: toward(log[combo.b]), cls: 'is-b' });
   }
   turns = turns.filter(function(t){ return t.by % n; });
   turns.forEach(function(t, i){
@@ -8950,7 +8945,7 @@ function plotPolygon(G){
   body.appendChild(svgEl('circle', { 'class': 'poly-mark', cx: num(tip[0]), cy: num(tip[1]), r: 3.2 }));
   body.appendChild(svgEl('circle', { 'class': 'poly-hub', cx: num(C), cy: num(C), r: 2.4 }));
   // It turns from where it stood to its new place the shorter way round
-  // (forward on a half turn), to rest too when a combination comes to 0;
+  // (the preferred way on a half turn), to rest too when a combination comes to 0;
   // let go, it is back at rest at once.
   var turn = log[rot], key = G.key + '|' + g + '|' + sgn, deg = sgn * turn * 360 / n;
   var same = polyShown && polyShown.key === key && (turn || live);
@@ -8958,7 +8953,7 @@ function plotPolygon(G){
     // From where it stands, never round a whole turn back to the same
     // place: the same turn again leaves it standing.
     var steps = ((turn - polyShown.turn) % n + n) % n;
-    if (steps > n / 2) steps -= n;
+    if (steps > n / 2 || 2 * steps === n && prefSign() * dirSign() < 0) steps -= n;
     deg = polyShown.deg + sgn * steps * 360 / n;
   }
   var from = same ? polyShown.deg : deg;
