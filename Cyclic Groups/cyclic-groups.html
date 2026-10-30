@@ -10995,25 +10995,38 @@ function curveRows(G, y, mod){
     return out;
   }
   var b = combo.b, c = G.combine(a, b), P = pts[a], Q = pts[b];
-  var rows = [[['a', elText(G, a)], [null, '+'], ['b', elText(G, b)], [null, '≡'], ['c', elText(G, c)], [null, mod]]];
+  var r0 = [['a', elText(G, a)], [null, '+'], ['b', elText(G, b)], [null, '≡']], rows = [r0];
   // As multiples of P: iP + jP ≡ (i + j)P, the sum reduced mod |E|; as
-  // powers of P: Pⁱ + Pʲ ≡ Pⁱ⁺ʲ, the exponents added.
+  // powers of P: Pⁱ + Pʲ ≡ Pⁱ⁺ʲ, the exponents added. As with aᵏ, P stays
+  // plain wherever it is written: a's part yellow, b's blue, their sum
+  // green, and only the point it ends at green whole.
+  var ep = null;
   if (log && !ecMult(G)){
     var Pb = baseText(G, g), i2 = balExp(G, log[a]), j2 = balExp(G, log[b]), m3 = balExp(G, log[c]);
-    var ep = [['a', Pb + supSigned(i2)], [null, '+'], ['b', Pb + supSigned(j2)], [null, '≡'], ['c', Pb + supSigned(i2) + (j2 < 0 ? '⁻' : '⁺') + superscript(Math.abs(j2))], [null, '≡']];
-    if (i2 + j2 !== m3) ep.push(['c', Pb + supSigned(i2 + j2)], [null, '≡']);
+    var pw = function(e){ return [[null, Pb], ['c', supSigned(e)]]; };
+    ep = [[[null, Pb], ['a', supSigned(i2)]], [null, '+'], [[null, Pb], ['b', supSigned(j2)]], [null, '≡'],
+      [[null, Pb], ['a', supSigned(i2)], [null, j2 < 0 ? '⁻' : '⁺'], ['b', superscript(Math.abs(j2))]], [null, '≡']];
+    if (i2 + j2 !== m3) ep.push(pw(i2 + j2), [null, '≡']);
     // Past |E|, the sum is reduced by it in steps of its own.
-    if (i2 + j2 !== m3) curveReduce(G, ep, i2 + j2, function(e){ return [['c', Pb], ['c', e, 'sup']]; });
-    ep.push(['c', Pb + supSigned(m3)], [null, '≡'], ['c', elText(G, c)]);
-    rows.push(ep);
+    if (i2 + j2 !== m3) curveReduce(G, ep, i2 + j2, function(e){ return [[null, Pb], ['c', e, 'sup']]; });
+    ep.push(pw(m3), [null, '≡']);
   } else if (log){
     var i = balExp(G, log[a]), j = balExp(G, log[b]), m2 = balExp(G, log[c]);
-    var er = [['a', signed(i) + 'P'], [null, '+'], ['b', j < 0 ? '(' + signed(j) + 'P)' : j + 'P'], [null, '≡'], ['c', '(' + signed(i) + ' + ' + sub(j) + ')P'], [null, '≡']];
-    if (i + j !== m2) er.push(['c', signed(i + j) + 'P'], [null, '≡']);
-    if (i + j !== m2) curveReduce(G, er, i + j, function(e){ return ['c', '(' + e + ')P']; });
-    er.push(['c', signed(m2) + 'P'], [null, '≡'], ['c', elText(G, c)]);
-    rows.push(er);
+    var mp = function(e){ return [['c', signed(e)], [null, 'P']]; };
+    ep = [[['a', signed(i)], [null, 'P']], [null, '+'], j < 0 ? [[null, '('], ['b', signed(j)], [null, 'P)']] : [['b', String(j)], [null, 'P']], [null, '≡'],
+      [[null, '('], ['a', signed(i)], [null, ' + '], ['b', sub(j)], [null, ')P']], [null, '≡']];
+    if (i + j !== m2) ep.push(mp(i + j), [null, '≡']);
+    if (i + j !== m2) curveReduce(G, ep, i + j, function(e){ return [[null, '('], ['c', e], [null, ')P']]; });
+    ep.push(mp(m2), [null, '≡']);
   }
+  // The two lines share their columns, the sum in the last one of both.
+  if (ep){
+    ep.push(['c', elText(G, c)], [null, mod]);
+    while (r0.length < ep.length - 2) r0.push([null, '']);
+    rows.push(ep);
+    rows.joined = 2;
+  }
+  r0.push(['c', elText(G, c)], [null, mod]);
   var kind = curveSumKind(G, a, b);
   if (kind === 'o') return rows;
   // The coordinates as they are written, signed while that is on: the
@@ -11210,7 +11223,7 @@ function drawCombineLine(G, y){
       return { spans: spans, w: 0 };
     });
     box.appendChild(t);
-    if (free) cols = [];
+    if (free && !(r > 0 && r < (rows.joined || 0))) cols = [];
     cells.forEach(function(cell, k){
       cell.ws = cell.spans.map(function(sp){
         try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ }
