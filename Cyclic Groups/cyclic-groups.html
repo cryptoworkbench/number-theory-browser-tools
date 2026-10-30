@@ -11158,9 +11158,11 @@ function drawCombineLine(G, y){
   } else {
     var a = combo.a, b = combo.b, c = G.combine(a, b);
     var raw = G.mode === 'multiplicative' ? V(a) * V(b) : V(a) + V(b);
-    rows = [[['a', E(a)], [null, '∗'], ['b', R(V(b))], [null, '≡'], ['a', E(a)], [null, op], ['b', R(V(b))], [null, '≡']]];
-    if (raw !== V(c) || two) rows[0].push(['c', signed(raw)], [null, '≡']);
-    rows[0].push(['c', E(c)], [null, mod]);
+    // The plain line ends at c once, its raw value first only while that
+    // still needs reducing; under g's line, c sits in the last column.
+    var r0 = [['a', E(a)], [null, '∗'], ['b', R(V(b))], [null, '≡'], ['a', E(a)], [null, op], ['b', R(V(b))], [null, '≡']];
+    if (raw !== V(c)) r0.push(['c', signed(raw)], [null, '≡']);
+    rows = [r0];
     if (two){
       var i = X(log[a]), j = X(log[b]), kc = X(log[c]);
       var sum = i + j, n = G.order;
@@ -11168,25 +11170,24 @@ function drawCombineLine(G, y){
         ['c', B(g) + supSigned(i) + (j < 0 ? '⁻' : '⁺') + superscript(Math.abs(j))], [null, '≡']];
       // The summed exponent past the group's cardinality (or below 0) is
       // reduced by it in steps of its own, as aᵏ's is: |G| resolved to n
-      // for ⟨ℤ/nℤ, +⟩, and for ⟨ℤ/nℤ, ×⟩ through the totient φ(n). The
-      // plain line above leaves those columns blank, its result over g's.
+      // for ⟨ℤ/nℤ, +⟩, and for ⟨ℤ/nℤ, ×⟩ through the totient φ(n).
       if (sum !== kc && (sum < 0 || sum >= n)){
         pr.push(['c', pow(sum)], [null, '≡']);
         var redE = function(by){ pr.push([['c', B(g)], ['c', signed(sum) + ' % ' + by, 'sup']], [null, '≡']); };
         redE('|' + groupPlain(G) + '|');
         if (G.mode === 'multiplicative') redE('φ(' + G.n + ')');
         redE(n);
-        var last = rows[0].splice(rows[0].length - 2, 2);
-        while (rows[0].length < pr.length) rows[0].push([null, '']);
-        rows[0].push.apply(rows[0], last);
       }
       tipAt = 8;
       tipTo = pr.length;
-      pr.push(['c', pow(kc)], [null, mod]);
+      // g's power last written as the element itself.
+      pr.push(['c', pow(kc)], [null, '≡'], ['c', E(c)], [null, mod]);
+      while (r0.length < pr.length - 2) r0.push([null, '']);
       rows.push(pr);
       tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
         { g: E(g), i: signed(i), j: R(j), sum: signed(sum), n: n, k: signed(kc), gn: pow(n), gsum: pow(sum), gk: pow(kc) });
     }
+    r0.push(['c', E(c)], [null, mod]);
   }
   var box = svgEl('g', { 'class': 'ring-combine-box' });
   ringDynamicEl.appendChild(box);
