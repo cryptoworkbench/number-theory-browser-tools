@@ -10906,27 +10906,29 @@ function curvePowerRow(G, a, k, c, g, log, mod){
   var B = function(x){ return baseText(G, x); };
   var R = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
   var size = '|' + curveName(G) + '|';
-  var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
+  var r = [['c', 'A'], [null, '≡'], [['a', 'a'], ['b', 'ᵏ']], [null, '≡']];
   if (log){
     // Signed, the exponents are written nearest 0, i and the result m.
+    // Coloured as the groups of numbers colour them: P plain, i yellow, k
+    // blue, their product green, the reduced power green whole.
     var i = balExp(G, log[a]), ik = i * k, m = balExp(G, log[c]);
     var pow = function(e){ return B(g) + supSigned(e); };
-    r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
-    r.push([['c', B(g)], ['c', signed(i) + ' × ' + R(k), 'sup']], [null, '≡']);
+    r.push([[null, '(' + B(g)], ['a', supSigned(i)], [null, ')'], ['b', supSigned(k)]], [null, '≡']);
+    r.push([[null, B(g)], ['a', signed(i), 'sup'], [null, ' × ', 'sup'], ['b', R(k), 'sup']], [null, '≡']);
     if (ik !== m){
-      r.push(['c', pow(ik)], [null, '≡']);
-      r.push([['c', B(g)], ['c', signed(ik) + ' % ' + size, 'sup']], [null, '≡']);
-      r.push([['c', B(g)], ['c', signed(ik) + ' % ' + G.order, 'sup']], [null, '≡']);
+      r.push([[null, B(g)], ['c', supSigned(ik)]], [null, '≡']);
+      r.push([[null, B(g)], ['c', signed(ik) + ' % ' + size, 'sup']], [null, '≡']);
+      r.push([[null, B(g)], ['c', signed(ik) + ' % ' + G.order, 'sup']], [null, '≡']);
     }
     r.push(['c', pow(m)], [null, '≡']);
   } else {
     var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
-    if (k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', B(inv)], [null, superscript(-k)]], [null, '≡']);
-    else r.push([['a', B(a)], [null, supSigned(k)]], [null, '≡']);
+    if (k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)'], ['b', superscript(-k)]], [null, '≡'], [['a', B(inv)], ['b', superscript(-k)]], [null, '≡']);
+    else r.push([['a', B(a)], ['b', supSigned(k)]], [null, '≡']);
     if (e >= G.order){
-      r.push([['a', B(base)], [null, e + ' % ' + size, 'sup']], [null, '≡']);
-      r.push([['a', B(base)], [null, e + ' % ' + G.order, 'sup']], [null, '≡']);
-      r.push([['a', B(base)], [null, superscript(e % G.order)]], [null, '≡']);
+      r.push([['a', B(base)], ['b', String(e), 'sup'], [null, ' % ' + size, 'sup']], [null, '≡']);
+      r.push([['a', B(base)], ['b', String(e), 'sup'], [null, ' % ' + G.order, 'sup']], [null, '≡']);
+      r.push([['a', B(base)], ['b', superscript(e % G.order)]], [null, '≡']);
     }
   }
   r.push(['c', elText(G, c)], [null, mod]);
@@ -10951,7 +10953,7 @@ function curveRows(G, y, mod){
   if (combo.k !== null){
     var k = combo.k, c = scalarOf(G, a, k), N = G.order;
     var given = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
-    var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', {});
+    var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', { 'class': 'is-b' });
     sa.textContent = elText(G, a);
     sk.textContent = signed(k);
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
@@ -10960,29 +10962,31 @@ function curveRows(G, y, mod){
     // Written in powers, as the groups of numbers write aᵏ: one line, the
     // exponent reduced mod |E| in a step of its own.
     if (!ecMult(G)) return [curvePowerRow(G, a, k, c, g, log, mod)];
-    var r = [['c', 'A'], [null, '≡'], [null, 'k ·'], ['a', 'a'], [null, '≡'], [null, signed(k) + ' ·'], ['a', elText(G, a)], [null, '≡']];
+    // k blue, as b is.
+    var r = [['c', 'A'], [null, '≡'], [['b', 'k'], [null, ' ·']], ['a', 'a'], [null, '≡'], [['b', signed(k)], [null, ' ·']], ['a', elText(G, a)], [null, '≡']];
     var e = k;
     if (Math.abs(k) >= N){
-      r.push([[null, '(' + signed(k) + ' % |'], [null, curveName(G)], [null, '|) · '], ['a', elText(G, a)]], [null, '≡']);
+      r.push([[null, '('], ['b', signed(k)], [null, ' % |'], [null, curveName(G)], [null, '|) · '], ['a', elText(G, a)]], [null, '≡']);
       e = k % N;
-      r.push([null, signed(e) + ' ·'], ['a', elText(G, a)], [null, '≡']);
+      r.push([['b', signed(e)], [null, ' ·']], ['a', elText(G, a)], [null, '≡']);
     }
-    if (e < 0) r.push([null, (-e) + ' ·'], ['a', elText(G, G.inv[a])], [null, '≡']);
+    if (e < 0) r.push([['b', String(-e)], [null, ' ·']], ['a', elText(G, G.inv[a])], [null, '≡']);
     r.push(['c', elText(G, c)], [null, mod]);
     var out = [r];
     // As multiples of P: k·(iP) ≡ (k × i)P, the factor reduced mod |E|;
     // as powers of P: (Pⁱ)ᵏ ≡ P^(i × k), the exponent reduced mod |E|.
     if (log && ecMult(G)){
       var la = balExp(G, log[a]), ki = k * la, m = balExp(G, log[c]);
-      var s2 = [[null, signed(k) + ' ·'], ['a', la < 0 ? '(' + signed(la) + 'P)' : la + 'P'], [null, '≡'], ['c', '(' + signed(k) + ' × ' + sub(la) + ')P'], [null, '≡']];
-      if (ki !== m) s2.push(['c', signed(ki) + 'P'], [null, '≡']);
-      if (ki !== m) curveReduce(G, s2, ki, function(e){ return ['c', '(' + e + ')P']; });
+      // P plain, i yellow, k blue, their product green, mP green whole.
+      var s2 = [[['b', signed(k)], [null, ' ·']], [[null, la < 0 ? '(' : ''], ['a', signed(la)], [null, 'P' + (la < 0 ? ')' : '')]], [null, '≡'], [[null, '('], ['b', signed(k)], [null, ' × '], ['a', sub(la)], [null, ')P']], [null, '≡']];
+      if (ki !== m) s2.push([['c', signed(ki)], [null, 'P']], [null, '≡']);
+      if (ki !== m) curveReduce(G, s2, ki, function(e){ return [[null, '('], ['c', String(e)], [null, ')P']]; });
       s2.push(['c', signed(m) + 'P'], [null, '≡'], ['c', elText(G, c)]);
       out.push(s2);
     } else if (log){
       var Pg = baseText(G, g), li = balExp(G, log[a]), ik = li * k, mp = balExp(G, log[c]);
-      var s3 = [[[null, '('], ['a', Pg + supSigned(li)], [null, ')' + supSigned(k)]], [null, '≡'], [['c', Pg], ['c', signed(li) + ' × ' + sub(k), 'sup']], [null, '≡']];
-      if (ik !== mp) s3.push(['c', Pg + supSigned(ik)], [null, '≡']);
+      var s3 = [[[null, '(' + Pg], ['a', supSigned(li)], [null, ')'], ['b', supSigned(k)]], [null, '≡'], [[null, Pg], ['a', signed(li), 'sup'], [null, ' × ', 'sup'], ['b', sub(k), 'sup']], [null, '≡']];
+      if (ik !== mp) s3.push([[null, Pg], ['c', supSigned(ik)]], [null, '≡']);
       s3.push(['c', Pg + supSigned(mp)], [null, '≡'], ['c', elText(G, c)]);
       out.push(s3);
     }
@@ -11091,28 +11095,31 @@ function drawCombineLine(G, y){
     var a = combo.a, k = combo.k, c = scalarOf(G, a, k), mul = G.mode === 'multiplicative';
     // The given, a and k, on a line of its own above the chain.
     var given = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
-    var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', {});
+    var sa = svgEl('tspan', { 'class': 'is-a' }), sk = svgEl('tspan', { 'class': 'is-b' });
     sa.textContent = E(a);
     sk.textContent = signed(k);
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
     ringDynamicEl.appendChild(given);
     fitText(given);
     y += COMBINE_LINE;
-    var r = [['c', 'A'], [null, '≡'], [['a', 'a'], [null, 'ᵏ']], [null, '≡']];
+    // k is blue, as b is: a's exponent (yellow) and k mix into the green
+    // product, over a plain g, until the reduced power, the result, is
+    // green whole.
+    var r = [['c', 'A'], [null, '≡'], [['a', 'a'], ['b', 'ᵏ']], [null, '≡']];
     if (two){
       // Powers of g: (gⁱ)ᵏ ≡ g^(i × k), then, g having order |G|, the
       // exponent reduced mod |G| in steps of its own: g^(ik % |G|), |G|
       // resolved (through φ(n) multiplicatively), ≡ g^m.
       var i = X(log[a]), ik = i * k, m = log[c];
-      r.push([[null, '('], ['a', pow(i)], [null, ')' + supSigned(k)]], [null, '≡']);
-      r.push([['c', B(g)], ['c', signed(i) + ' × ' + R(k), 'sup']], [null, '≡']);
+      r.push([[null, '(' + B(g)], ['a', supSigned(i)], [null, ')'], ['b', supSigned(k)]], [null, '≡']);
+      r.push([[null, B(g)], ['a', signed(i), 'sup'], [null, ' × ', 'sup'], ['b', R(k), 'sup']], [null, '≡']);
       // Signed, the exponent ends at its value nearest 0, t.
       var t = X(m);
       if (ik !== t){
-        r.push(['c', pow(ik)], [null, '≡']);
+        r.push([[null, B(g)], ['c', supSigned(ik)]], [null, '≡']);
         // |G| resolved to the cardinality itself: n for ⟨ℤ/nℤ, +⟩, and for
         // ⟨ℤ/nℤ, ×⟩ the totient φ(n) first, then its value.
-        var red = function(by){ r.push([['c', B(g)], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
+        var red = function(by){ r.push([[null, B(g)], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
         red('|' + groupPlain(G) + '|');
         if (mul) red('φ(' + G.n + ')');
         red(G.order);
@@ -11131,15 +11138,15 @@ function drawCombineLine(G, y){
       // Multiplicatively, a having an order dividing |G|, an exponent of
       // |G| or more is first reduced mod |G| in the same steps as with g.
       var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
-      if (mul && k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)' + superscript(-k)]], [null, '≡'], [['a', B(inv)], [null, superscript(-k)]], [null, '≡']);
-      else r.push([['a', B(a)], [null, supSigned(k)]], [null, '≡']);
+      if (mul && k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)'], ['b', superscript(-k)]], [null, '≡'], [['a', B(inv)], ['b', superscript(-k)]], [null, '≡']);
+      else r.push([['a', B(a)], ['b', supSigned(k)]], [null, '≡']);
       if (mul && e >= G.order){
-        var redA = function(by){ r.push([['a', B(base)], [null, e + ' % ' + by, 'sup']], [null, '≡']); };
+        var redA = function(by){ r.push([['a', B(base)], ['b', String(e), 'sup'], [null, ' % ' + by, 'sup']], [null, '≡']); };
         redA('|' + groupPlain(G) + '|');
         redA('φ(' + G.n + ')');
         redA(G.order);
         e %= G.order;
-        r.push([['a', B(base)], [null, superscript(e)]], [null, '≡']);
+        r.push([['a', B(base)], ['b', superscript(e)]], [null, '≡']);
       }
       var raw = mul ? Math.pow(V(base), e) : k * V(a);
       if (Math.abs(raw) <= 1e15 && raw !== V(c)) r.push(['c', signed(raw)], [null, '≡']);
