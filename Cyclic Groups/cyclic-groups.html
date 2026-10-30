@@ -16589,7 +16589,8 @@ function syncOpenLock(){
 // result, a ∗ b over φ(a) ∗ φ(b) = φ(a ∗ b). Past No-derivation the
 // formula slider works it in each group on the way, a + b over φ(a) × φ(b),
 // and at Complete, when a row is reduced by its modulus, the column as
-// worked out in the integers before it is.
+// worked out in the integers before it is, congruent (≡) to the result
+// row by row modulo each group's own n, written after it as (% n).
 var isoCombineEl = $('iso-combine'), isoCombineSent = '';
 function isoCombineVec(role, top, bottom){
   var cell = function(t){ return mEl('mtd', [mEl('mn', [t], { 'class': 'is-' + role })]); };
@@ -16602,6 +16603,11 @@ function isoCombineSteps(G, H, top, bottom){
   return mrow(mo('['), mEl('mtable', [mEl('mtr', [cell(G, top)]), mEl('mtr', [cell(H, bottom)])]), mo(']'));
 }
 function isoCombinePlain(top, bottom){ return '[' + top + '; ' + bottom + ']'; }
+// Each row's modulus, (% n) over (% n'), closing the reduction.
+function isoCombineMods(G, H){
+  var cell = function(K){ return mEl('mtd', [mrow(mo('(', true), mPct(), mEl('mspace', [], { width: '0.25em' }), mn(K.n), mo(')', true))]); };
+  return mEl('mtable', [mEl('mtr', [cell(G)]), mEl('mtr', [cell(H)])]);
+}
 // a ∗ b in the integers, before reducing by the modulus; null on a curve.
 function isoCombineRaw(K, x, y){
   if (K.pts) return null;
@@ -16620,7 +16626,7 @@ function syncIsoCombine(){
     if (sides.every(Boolean)){
       var m = sides.map(function(r){ return isoCombineVec(r[0], r[1], r[2]); });
       var p = sides.map(function(r){ return isoCombinePlain(r[1], r[2]); });
-      var row = [m[0], mo('∗'), m[1], mo('=')], plain = p[0] + ' ∗ ' + p[1] + ' = ';
+      var row = [m[0], mo('∗'), m[1], mo('=')], plain = p[0] + ' ∗ ' + p[1] + ' = ', mods = false;
       // Past No-derivation: the column worked in each group before its result.
       if (!state.subBare){
         var top = [sides[0][1], sides[1][1]], bottom = [sides[0][2], sides[1][2]];
@@ -16629,12 +16635,17 @@ function syncIsoCombine(){
         // Complete: the integers' result too, when a row reduces.
         var rawTop = isoCombineRaw(G, a, b), rawBottom = isoCombineRaw(H, sides[0][3], sides[1][3]);
         if (!state.subSimplify && rawTop !== null && rawBottom !== null && (rawTop !== balEl(G, c) || rawBottom !== balEl(H, sides[2][3]))){
-          row.push(isoCombineVec('raw', signed(rawTop), signed(rawBottom)), mo('='));
-          plain += isoCombinePlain(signed(rawTop), signed(rawBottom)) + ' = ';
+          row.push(isoCombineVec('raw', signed(rawTop), signed(rawBottom)), mo('≡'));
+          plain += isoCombinePlain(signed(rawTop), signed(rawBottom)) + ' ≡ ';
+          mods = true;
         }
       }
       row.push(m[2]);
       sent = plain + p[2];
+      if (mods){
+        row.push(isoCombineMods(G, H));
+        sent += ' (% ' + G.n + '; % ' + H.n + ')';
+      }
       if (sent !== isoCombineSent) isoCombineEl.replaceChildren(mInline(mrow.apply(null, row), sent));
     }
   }
