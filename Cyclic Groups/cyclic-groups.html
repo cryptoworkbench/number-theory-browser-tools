@@ -5171,8 +5171,8 @@ function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // h inside ⟨⟩. lcm, when given, names the formulas written in their lcm
 // form instead of state.subLcm (the merged rows' right side keeps its own,
 // subLcmR): none, order, index or both.
-function subRowFormula(G, h, choice, base, hm, lcm){
-  if (G.pts) return ecRowFormula(G, h, choice, hm);
+function subRowFormula(G, h, choice, base, hm, lcm, full){
+  if (G.pts) return ecRowFormula(G, h, choice, hm, full);
   var logs = G.mode === 'multiplicative' ? G.cyclic : !state.subSimplify;
   var g = logs ? base || logBase(G) : undefined;
   var out = [];
@@ -5183,13 +5183,18 @@ function subRowFormula(G, h, choice, base, hm, lcm){
 }
 // On a curve there is no formula to work: the size and the index are
 // written as notation with their values, |⟨P⟩| = k and [E : ⟨P⟩] = |E| / k.
-function ecRowFormula(G, h, choice, hm){
+// In the main view (full) the index names the curve in full, with its
+// equation, as the subgroup row does: [E(𝔽ₚ): y² = … : ⟨P⟩].
+function ecRowFormula(G, h, choice, hm, full){
   var hx = hm || function(){ return mPoint(G.pts[h]); }, ph = plainPoint(G.pts[h]);
   var k = G.orders[h], out = [];
+  var name = full
+    ? { math: function(){ return mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)); }, plain: curveName(G) }
+    : { math: function(){ return mGroup(G); }, plain: G.label };
   if (choice === 'order' || choice === 'both') out.push({ math: mrow(abs(angle(hx())), mo('='), mn(k)), plain: '|⟨' + ph + '⟩| = ' + k });
   if (choice === 'index' || choice === 'both') out.push({
-    math: mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true), mo('='), mn(G.order / k)),
-    plain: '[' + G.label + ' : ⟨' + ph + '⟩] = ' + G.order / k });
+    math: mrow(mo('[', true), name.math(), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true), mo('='), mn(G.order / k)),
+    plain: '[' + name.plain + ' : ⟨' + ph + '⟩] = ' + G.order / k });
   return out;
 }
 // The formula slider at No-derivation: a formula's left side and its
@@ -5499,7 +5504,7 @@ function syncSubFormula(G){
   if (subFormulaAtRing()){
     // ⟨h⟩'s h is written as in the row formula: lined up and, under the
     // pointer, coloured like its bead as the bottom panel's settings say.
-    var box = subFormulaBox('div', 'ring-hover-formula', subRowFormula(G, state.gen, state.subFormulaRing, undefined, rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing));
+    var box = subFormulaBox('div', 'ring-hover-formula', ringFormulas(G));
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
   }
@@ -6834,14 +6839,14 @@ function syncFormulaCtx(fml){
 }
 // The main view's formulas, as renderSubgroups draws them.
 function ringFormulas(G){
-  return subRowFormula(G, state.gen, state.subFormulaRing, undefined, rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing);
+  return subRowFormula(G, state.gen, state.subFormulaRing, undefined, rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing, true);
 }
 // The main view's formulas the switch turns, size and/or index: the one on
 // the line under the pointer, or, between the lines, both when they are in
 // the same form. None where the group has no lcm form (a group of units
-// that isn't cyclic).
+// that isn't cyclic), nor on a curve, whose size and index are notation.
 function ringFormulaForms(G, line){
-  if (!(G.mode === 'additive' || G.cyclic)) return null;
+  if (G.pts || !(G.mode === 'additive' || G.cyclic)) return null;
   var v = state.subFormulaRing;
   var fs = v === 'both' ? ['order', 'index'] : SUB_FORMULAS.indexOf(v) !== -1 && v !== 'none' ? [v] : [];
   if (line >= 0 && line < fs.length) fs = [fs[line]];
