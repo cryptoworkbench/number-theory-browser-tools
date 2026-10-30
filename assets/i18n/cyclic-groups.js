@@ -1037,7 +1037,7 @@
       genSwitch: 'Show the subgroup',
       genBeads: 'Follow bead clicks',
       genBeadsTitle: 'Clicking a bead selects its row, so G is the clicked element, instead of combining it',
-      genBeadsEc: 'Follow point clicks',
+      genBeadsEc: 'Follow element clicks',
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
