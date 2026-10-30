@@ -163,7 +163,9 @@ async function desktop(browser) {
   out((await P.gen()) === 5 && !(await P.combine()), N, 'tap-bead-5-sets-gen5', await P.q());
 
   // the two Follow buttons exclude each other
-  const followVisible = await P.ev(`!document.getElementById('sub-follow-pair').hidden`);
+  const followVisible = await P.ev(`!document.getElementById('sub-follow').hidden`);
+  out(followVisible, N, 'follow-slider-button-shown');
+  out(await P.ev(`!!document.querySelector('#gen-field .gen-head > #sub-follow')`), N, 'follow-slider-in-subgroup-row');
   if (followVisible) {
     await P.clickEl('#sub-follow');
     await sleep(300);

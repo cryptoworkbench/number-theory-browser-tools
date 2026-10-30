@@ -539,7 +539,6 @@
   .sub-gcd-btn[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
   .sub-gcd-btn:disabled{ opacity:.45; cursor:default; }
   .sub-gcd-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .sub-gcd-btn.sub-follow-btn{ font-family:inherit; font-style:normal; font-size:.8rem; }
   /* A row picked by hand while G follows the slider: the button blinks red. */
   .sub-follow-btn.is-refused{ animation:follow-refused 360ms steps(1) 3; }
   @keyframes follow-refused{ 0%{ color:var(--role-warn); border-color:var(--role-warn); background:color-mix(in srgb, var(--role-warn) 14%, var(--bg-1)); } 50%{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); } }
@@ -2782,7 +2781,6 @@
         <div class="sub-ctls-mid">
         <div class="sub-expr-row" id="sub-sort-row">
           <span class="sub-expr-pair" id="sub-sort-pair" hidden><label for="sub-sort-select" title="Sort subgroups by" data-i18n-title="cyclicGroups.subSortLabel"><span class="lbl-long" data-i18n="cyclicGroups.subSortLabel">Sort subgroups by</span><span class="lbl-short" data-i18n="cyclicGroups.subSortLabelShort">Sort</span></label><select id="sub-sort-select"></select><button type="button" class="sub-gcd-btn" id="sub-gcd" aria-pressed="false" title="Group the rows by gcd(k, |G|), k each row's exponent of the generator they are sorted by" data-i18n-title="cyclicGroups.subGcdTitle" data-i18n="cyclicGroups.subGcd">gcd(k, |G|)</button></span>
-          <span class="sub-expr-pair" id="sub-follow-pair" hidden><button type="button" class="sub-gcd-btn sub-follow-btn" id="sub-follow" aria-pressed="false" title="Select the row of the expression slider's generator, so G follows the slider" data-i18n-title="cyclicGroups.subExprFollowTitle" data-i18n="cyclicGroups.subExprFollow">Follow expression slider</button></span>
         </div>
         <div class="sub-expr-row" id="sub-width-row">
           <span class="sub-expr-pair"><label for="sub-width-select" title="Line up numbers" data-i18n-title="cyclicGroups.subWidthLabel"><span class="lbl-long" data-i18n="cyclicGroups.subWidthLabel">Line up numbers</span><span class="lbl-short" data-i18n="cyclicGroups.subWidthLabelShort">Line up</span></label><select id="sub-width-select"><option value="none" data-i18n="cyclicGroups.subWidthNone">None</option><option value="align" title="Give every number in the list the width of the group's largest, with blank space before it instead of zeros, so the columns line up" data-i18n-title="cyclicGroups.subAlignTitle" data-i18n="cyclicGroups.subAlign">Align numbers with blank space</option><option value="pad" title="Write every number in the list as wide as the group's largest, with leading zeros, so the columns line up" data-i18n-title="cyclicGroups.subPadTitle" data-i18n="cyclicGroups.subPad">Pad numbers with leading zeros</option></select></span>
@@ -2897,6 +2895,7 @@
             <label for="gen-switch"><span class="gen-panel-name" data-i18n="cyclicGroups.genLabel">Subgroup visualized</span><span class="gen-fs-name" data-i18n="cyclicGroups.genRowLabel">Subgroup</span></label>
             <button type="button" class="gen-switch" id="gen-switch" role="switch" aria-checked="true" title="Show the subgroup" aria-label="Show the subgroup" data-i18n-title="cyclicGroups.genSwitch" data-i18n-aria-label="cyclicGroups.genSwitch"><span class="gen-switch-track" aria-hidden="true"></span></button>
             <button type="button" class="gen-beads" id="gen-beads" aria-pressed="false" title="Clicking a bead selects its row, so G is the clicked element, instead of combining it" data-i18n-title="cyclicGroups.genBeadsTitle" data-i18n="cyclicGroups.genBeads">Follow bead clicks</button>
+            <button type="button" class="gen-beads sub-follow-btn" id="sub-follow" aria-pressed="false" hidden title="Select the row of the expression slider's generator, so G follows the slider" data-i18n-title="cyclicGroups.subExprFollowTitle" data-i18n="cyclicGroups.subExprFollow">Follow expression slider</button>
           </span>
           <span class="gen-super" id="gen-super"></span>
         </div>
@@ -3089,7 +3088,7 @@ cosetBtnEl.addEventListener('click', function(){ coset ? stopCosets() : openCose
 subgroupsEl.addEventListener('mouseleave', function(){ setPreview(null); });
 var subExprRowEl = $('sub-expr-row');
 var subSortPairEl = $('sub-sort-pair');
-var subFollowPairEl = $('sub-follow-pair'), subFollowEl = $('sub-follow');
+var subFollowEl = $('sub-follow');
 var subExprRowREl = $('sub-expr-row-r');
 var subLeftRSelectEl = $('sub-left-r-select');
 var subRightRSelectEl = $('sub-right-r-select');
@@ -8296,7 +8295,8 @@ function syncGenerators(G){
   genBeadsEl.setAttribute('data-i18n-title', bt);
   genBeadsEl.textContent = translate(bk);
   genBeadsEl.title = translate(bt);
-  subFollowPairEl.hidden = !G.cyclic;
+  // Only a cyclic group has an expression slider to follow.
+  subFollowEl.hidden = state.noSub || !G.cyclic;
   subFollowEl.setAttribute('aria-pressed', state.genFollow ? 'true' : 'false');
 }
 // Following the expression slider, the selected element is the slider's
