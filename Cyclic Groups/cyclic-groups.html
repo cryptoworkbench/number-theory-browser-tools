@@ -8290,11 +8290,12 @@ function syncGenerators(G){
   genSwitchEl.setAttribute('aria-checked', state.noSub ? 'false' : 'true');
   genBeadsEl.hidden = state.noSub;
   genBeadsEl.setAttribute('aria-pressed', state.genBeads ? 'true' : 'false');
-  var ec = !!G.pts, bk = ec ? 'cyclicGroups.genBeadsEc' : 'cyclicGroups.genBeads';
+  var bk = G.pts ? 'cyclicGroups.genBeadsEc' : 'cyclicGroups.genBeads';
+  var bt = G.pts ? 'cyclicGroups.genBeadsEcTitle' : 'cyclicGroups.genBeadsTitle';
   genBeadsEl.setAttribute('data-i18n', bk);
-  genBeadsEl.setAttribute('data-i18n-title', bk + 'Title');
+  genBeadsEl.setAttribute('data-i18n-title', bt);
   genBeadsEl.textContent = translate(bk);
-  genBeadsEl.title = translate(bk + 'Title');
+  genBeadsEl.title = translate(bt);
   subFollowPairEl.hidden = !G.cyclic;
   subFollowEl.setAttribute('aria-pressed', state.genFollow ? 'true' : 'false');
 }
@@ -14023,12 +14024,12 @@ function isoSharedPayload(){
 function isoSharedAll(){
   return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir };
 }
-// The subgroup chosen, as the select message gives it ({ k, follow }), for
+// The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
 function isoSelNow(){
   if (!subInterlocked()) return null;
   var k = state.noSub ? -1 : isoPowers().indexOf(state.gen);
-  return { k: k, follow: state.genFollow && k >= 0 };
+  return { k: k, follow: state.genFollow && k >= 0, beads: state.genBeads && k >= 0 && !state.genFollow };
 }
 var isoSharedSent = null;
 // How far below the pane's place the rows under both rings reach, down to
@@ -14215,10 +14216,11 @@ function flipSelGen(sel){
 function takeFlipSel(sel){
   var g = flipSelGen(sel);
   if (g === null) return;
-  var follow = sel.follow === true;
+  var follow = sel.follow === true, beads = sel.beads === true && !follow;
   pickSent = null;
-  isoSelSent = selKey(sel.k, follow);
+  isoSelSent = selKey(sel.k, follow, beads);
   state.genFollow = follow;
+  state.genBeads = beads;
   state.gen = g;
   state.noSub = false;
 }
@@ -14658,8 +14660,12 @@ function isoReceive(d){
     // Following its expression slider on one ring, the other follows its
     // own too, the two sliders coupled so the subgroups still correspond.
     var follow = d.follow === true && d.k >= 0, was = state.genFollow;
-    isoSelSent = selKey(d.k, follow);
+    // Bead clicks followed on one ring are followed on the other, unless a
+    // slider is.
+    var beads = d.beads === true && d.k >= 0 && !follow, wasBeads = state.genBeads;
+    isoSelSent = selKey(d.k, follow, beads);
     state.genFollow = follow;
+    state.genBeads = beads;
     // Only a fresh choice to follow couples the sliders: the other ring's
     // echo of a follow already under way must not close the padlock again.
     if (follow) followedGen = null;
@@ -14670,7 +14676,7 @@ function isoReceive(d){
       render();
     } else if (state.noSub || state.gen !== isoPowers()[d.k]) selectGen(isoPowers()[d.k]);
     // A follow's echo leaves a flip under way to land (takeFlipSel).
-    else if (follow !== was || (follow && !flipping)) render();
+    else if (follow !== was || beads !== wasBeads || (follow && !flipping)) render();
   }
 }
 // Merged lists: while the link is between the whole groups, the two
@@ -14860,12 +14866,12 @@ function syncInterlock(){
   }
   if (!subInterlocked() || isoSelSent === SEL_AWAIT) return;
   var k = state.noSub ? -1 : isoPowers().indexOf(state.gen);
-  var follow = state.genFollow && k >= 0;
-  if (selKey(k, follow) === isoSelSent) return;
-  isoSelSent = selKey(k, follow);
-  isoTell({ iso: 'select', k: k, follow: follow });
+  var follow = state.genFollow && k >= 0, beads = state.genBeads && k >= 0 && !follow;
+  if (selKey(k, follow, beads) === isoSelSent) return;
+  isoSelSent = selKey(k, follow, beads);
+  isoTell({ iso: 'select', k: k, follow: follow, beads: beads });
 }
-function selKey(k, follow){ return k + (follow ? ':follow' : ''); }
+function selKey(k, follow, beads){ return [k, +!!follow, +!!beads].join(); }
 // The ring holding the pane couples the two expression sliders for a
 // subgroup that follows them: to the pane's slider when the pane chose to
 // follow, else the pane's to this one's.
