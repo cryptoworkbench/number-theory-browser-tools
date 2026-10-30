@@ -1039,6 +1039,7 @@
       genBeadsTitle: 'Clicking a bead selects its row, so G is the clicked element, instead of combining it',
       genBeadsEc: 'Follow element clicks',
       logScroll: 'Scroll through every generator as the base of the logarithm: the logarithm changes, its gcd with |G| never does',
+      logFollowTitle: "Take the base of the logarithm from the expression slider's generator",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
