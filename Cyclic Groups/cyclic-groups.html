@@ -17043,9 +17043,18 @@ groupControlsEl.addEventListener('dblclick', function(e){
 isoLockEl.addEventListener('animationend', function(e){
   if (e.animationName === 'iso-lock-close') isoLockEl.classList.remove('is-locking');
 });
-isoLockEl.addEventListener('dblclick', function(){
-  if (isoLockEl.classList.contains('is-open')) lockDeclined();
-  else openGroupLock(false);
+// One click on the open padlock locks the rings; a double-click on the
+// closed one opens it. The double-click that follows a click which just
+// locked them is that same gesture, and leaves them locked.
+var lockClickAt = -Infinity;
+isoLockEl.addEventListener('click', function(){
+  if (!isoLockEl.classList.contains('is-open')) return;
+  lockClickAt = performance.now();
+  lockDeclined();
+});
+isoLockEl.addEventListener('dblclick', function(e){
+  if (performance.now() - lockClickAt < 800){ e.stopPropagation(); return; }
+  openGroupLock(false);
 });
 // Unlocked, the holding ring lets go of the link: it tells the pane, drops
 // the shared highlight and draws itself and its list on its own.
@@ -17058,8 +17067,8 @@ function unlinkAfterUnlock(){
   render();
   syncInterlock();
 }
-// A double-click on the open padlock locks the isomorphism the user had
-// declined or unlocked, just as answering Yes would have.
+// A click on the open padlock locks the isomorphism the user had declined
+// or unlocked, just as answering Yes would have.
 function lockDeclined(){
   if (!isoPane || (isoPane.link !== 'declined' && isoPane.link !== 'linked') || !isoFound()) return;
   isoPane.link = 'asking';
