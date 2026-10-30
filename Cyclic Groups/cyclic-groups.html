@@ -1435,6 +1435,7 @@
      pane's own go. Short of room, the buttons give way to the right
      (--gen-ctls-w, their width, kept by a ResizeObserver). */
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring > .iso-pane:not([hidden]){ border-left-color:transparent; background:linear-gradient(var(--panel-border), var(--panel-border)) 0 0 / 1px var(--gen-cut-t, 100%) no-repeat border-box, linear-gradient(var(--panel-border), var(--panel-border)) 0 var(--gen-cut-b, 100%) / 1px 100% no-repeat border-box; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head{ display:contents; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head > label{ min-width:min(12em, 16.5cqi); }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen .gen-ctls{ order:1; position:relative; z-index:3; flex-wrap:nowrap; margin-left:auto; margin-right:calc(-0.5 * var(--gen-ctls-w, 0px) - 14px); }
@@ -7615,7 +7616,7 @@ if (IS_RINGWIN){
   window.addEventListener('message', function(e){
     var d = e.data;
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'invblink'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'invblink' || d.iso === 'genhot'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -8062,6 +8063,7 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
   }
   exprSlotEl.classList.toggle('is-side-hot', side);
   body.classList.toggle('is-top-hot', inTopBand(ptX(e), ptY(e)));
+  tellGenHot(body.classList.contains('is-top-hot') && !!genRow() && genRow().classList.contains('is-top-row-hot'));
   var pr = boxOf(subgroupsPanelEl), pt = pr.top + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-t')) || 0);
   subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && ptX(e) >= pr.left - 8 && ptX(e) <= pr.right + 8 && ptY(e) >= pt && ptY(e) <= pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0));
   var card = ringHeadEl.querySelector('.ring-hover-formula');
@@ -8141,6 +8143,50 @@ function markTopRow(row, rows){
     if (el.classList.contains('is-top-row-hot') !== on) el.classList.toggle('is-top-row-hot', on);
   });
 }
+// Merged, the two rings' subgroup rows are one row: the pointer over it in
+// either ring frosts it in both, each ring telling the other ('genhot').
+// The row the ring's body gives the subgroup row, or null off it.
+function genRow(){
+  var row = $('gen-field').parentNode;
+  return row.classList.contains('fs-win-row-gen') ? row : null;
+}
+function rowsMerged(){
+  var c = document.documentElement.classList;
+  return IS_ISOPANE ? c.contains('is-pane-merged') : c.contains('is-sub-merged') && !isoPaneEl.hidden;
+}
+var genHotSent = false;
+function tellGenHot(on){
+  on = on && rowsMerged();
+  if (on === genHotSent) return;
+  genHotSent = on;
+  isoTell({ iso: 'genhot', on: on });
+}
+function frostGenRow(on){
+  var body = exprSlotEl.parentNode;
+  var row = genRow();
+  if (on && rowsMerged() && row && row.offsetParent){
+    var r = boxOf(row);
+    body.classList.toggle('is-top-hot', inTopBand(r.left + 1, (r.top + r.bottom) / 2));
+  } else if (!body.matches(':hover')){
+    body.classList.remove('is-top-hot');
+    markTopRow(-1);
+  }
+}
+// Nor does the line between the rings cross the merged row: the pane's
+// edge leaves a gap there (--gen-cut-t to --gen-cut-b, from the pane's top).
+function syncGenCut(){
+  if (IS_ISOPANE) return;
+  var st = isoPaneEl.style;
+  var row = genRow();
+  if (!rowsMerged() || !row || !row.offsetParent){ st.removeProperty('--gen-cut-t'); st.removeProperty('--gen-cut-b'); return; }
+  var p = boxOf(isoPaneEl), r = boxOf(row);
+  st.setProperty('--gen-cut-t', num(Math.max(0, r.top - p.top - 2)) + 'px');
+  st.setProperty('--gen-cut-b', num(r.bottom - p.top + 2) + 'px');
+}
+if (!IS_ISOPANE && window.ResizeObserver){
+  var genCutRo = new ResizeObserver(syncGenCut);
+  [isoPaneEl, $('gen-field'), $('arrange-field'), $('group-controls')].forEach(function(el){ if (el) genCutRo.observe(el); });
+}
 document.addEventListener('focusin', function(e){
   var r = e.target.getBoundingClientRect && boxOf(e.target);
   if (r && e.target.matches(':focus-visible') && inTopBand((r.left + r.right) / 2, (r.top + r.bottom) / 2)) exprSlotEl.parentNode.classList.add('is-top-hot');
@@ -8148,6 +8194,7 @@ document.addEventListener('focusin', function(e){
 exprSlotEl.parentNode.addEventListener('pointerleave', function(){
   exprSlotEl.parentNode.classList.remove('is-top-hot');
   markTopRow(-1);
+  tellGenHot(false);
   subgroupsPanelEl.classList.remove('is-sub-hot');
   exprSlotEl.parentNode.classList.remove('is-clu-hot');
   exprSlotEl.classList.remove('is-side-hot');
@@ -14653,6 +14700,7 @@ function isoReceive(d){
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
   if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
+  if (d.iso === 'genhot'){ frostGenRow(d.on === true); return; }
   if (d.iso === 'interlock'){
     if (IS_ISOPANE){
       isoInterlockOn = d.on === true;
@@ -14863,6 +14911,7 @@ function syncInterlock(){
       }
       isoTell({ iso: 'interlock', on: on });
       document.documentElement.classList.toggle('is-sub-merged', on);
+      syncGenCut();
       syncSubExpr(drawn.G);
       renderSubgroups(drawn.G);
     }
