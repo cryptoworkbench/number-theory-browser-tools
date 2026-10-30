@@ -2678,7 +2678,7 @@
             <div class="spin-ticks" aria-hidden="true"><span></span><span></span><span></span><span class="is-zero"></span><span></span><span></span><span></span></div>
             <span class="gear-slot" aria-hidden="true"></span>
             <span class="gear-label is-id" aria-hidden="true" data-i18n="cyclicGroups.keepTopId">Keep identity element on top</span>
-            <span class="gear-label is-gen" aria-hidden="true" data-i18n="cyclicGroups.keepTopGen">Keep subgroup’s generator on top</span>
+            <span class="gear-label is-gen" aria-hidden="true" data-i18n="cyclicGroups.keepTopGen">Keep G on top</span>
             <input type="range" id="spin-slider" min="-3" max="3" step="1" value="0" aria-label="Auto-rotate speed" data-i18n-aria-label="cyclicGroups.spinLabel">
             <span class="gear-knob" id="gear-knob" aria-hidden="true"></span>
           </div>
@@ -2906,7 +2906,7 @@
             <span class="spin-ticks" aria-hidden="true"><span></span><span class="is-zero"></span><span></span></span>
             <input type="range" id="keep-top" min="-1" max="1" step="1" value="-1" aria-label="Keep on top" data-i18n-aria-label="cyclicGroups.keepTopLabel">
           </span>
-          <span class="keep-top-end is-gen" aria-hidden="true" data-i18n="cyclicGroups.keepTopGen">Keep subgroup’s generator on top</span>
+          <span class="keep-top-end is-gen" aria-hidden="true" data-i18n="cyclicGroups.keepTopGen">Keep G on top</span>
         </div>
         <div id="subgroup-options">
           <button type="button" class="action-btn coset-btn" id="coset-btn" aria-expanded="false" aria-controls="coset-controls">Explore cosets</button>
@@ -11244,7 +11244,8 @@ function endTurn(e){
   var pick = turning.pick;
   turning = null;
   ringSvgEl.classList.remove('is-turning');
-  if (tap && !elementTap(pick)) beadDoubleTap(pick);
+  var picked = tap && elementTap(pick);
+  if (tap && !picked) beadDoubleTap(pick);
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
   // A linked pane stays where it was let go, and the ring holding it settles both.
   if (IS_ISOPANE && isoOrder() && isoTurnsTogether()){
@@ -11259,6 +11260,8 @@ function endTurn(e){
     if (!setRotChanged(state.rot + steps)) redrawRing();
     return;
   }
+  // A tap that picked G leaves the ring to the turn that keeps G on top.
+  if (picked) return;
   spin = { steps: steps, from: swept, now: swept, t0: null };
   spin.id = requestAnimationFrame(spinFrame);
   isoTellTop(false);

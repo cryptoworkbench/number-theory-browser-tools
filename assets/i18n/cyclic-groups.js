@@ -1019,7 +1019,7 @@
       keepTopLabel: 'Keep on top',
       keepTopId: 'Keep identity element on top',
       keepTopOff: 'Keep nothing on top',
-      keepTopGen: 'Keep subgroup’s generator on top',
+      keepTopGen: 'Keep G on top',
       scratchClose: 'Close formula scratchpad',
       scratchGens: 'Group generator count',
       subEnterInverse: 'Hit enter to switch to inverse',
