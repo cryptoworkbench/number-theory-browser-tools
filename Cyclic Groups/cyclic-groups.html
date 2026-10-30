@@ -11166,14 +11166,18 @@ function drawCombineLine(G, y){
     if (two){
       var i = X(log[a]), j = X(log[b]), kc = X(log[c]);
       var sum = i + j, n = G.order;
-      var pr = [['a', pow(i)], [null, '∗'], ['b', pow(j)], [null, '≡'], ['a', pow(i)], [null, op], ['b', pow(j)], [null, '≡'],
-        ['c', B(g) + supSigned(i) + (j < 0 ? '⁻' : '⁺') + superscript(Math.abs(j))], [null, '≡']];
+      // As with aᵏ, g stays plain wherever it is written: a's exponent is
+      // yellow, b's blue, their sum green, and only c itself green whole.
+      var ga = [[null, B(g)], ['a', supSigned(i)]], gb = [[null, B(g)], ['b', supSigned(j)]];
+      var gc = function(e){ return [[null, B(g)], ['c', supSigned(e)]]; };
+      var pr = [ga, [null, '∗'], gb, [null, '≡'], ga, [null, op], gb, [null, '≡'],
+        [[null, B(g)], ['a', supSigned(i)], [null, j < 0 ? '⁻' : '⁺'], ['b', superscript(Math.abs(j))]], [null, '≡']];
       // The summed exponent past the group's cardinality (or below 0) is
       // reduced by it in steps of its own, as aᵏ's is: |G| resolved to n
       // for ⟨ℤ/nℤ, +⟩, and for ⟨ℤ/nℤ, ×⟩ through the totient φ(n).
       if (sum !== kc && (sum < 0 || sum >= n)){
-        pr.push(['c', pow(sum)], [null, '≡']);
-        var redE = function(by){ pr.push([['c', B(g)], ['c', signed(sum) + ' % ' + by, 'sup']], [null, '≡']); };
+        pr.push(gc(sum), [null, '≡']);
+        var redE = function(by){ pr.push([[null, B(g)], ['c', signed(sum) + ' % ' + by, 'sup']], [null, '≡']); };
         redE('|' + groupPlain(G) + '|');
         if (G.mode === 'multiplicative') redE('φ(' + G.n + ')');
         redE(n);
@@ -11181,7 +11185,7 @@ function drawCombineLine(G, y){
       tipAt = 8;
       tipTo = pr.length;
       // g's power last written as the element itself.
-      pr.push(['c', pow(kc)], [null, '≡'], ['c', E(c)], [null, mod]);
+      pr.push(gc(kc), [null, '≡'], ['c', E(c)], [null, mod]);
       while (r0.length < pr.length - 2) r0.push([null, '']);
       rows.push(pr);
       tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
