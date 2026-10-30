@@ -1221,6 +1221,14 @@
      from syncRingOverlap). */
   .ring-head > .ring-hover-formula.is-on-ring{ border-color:var(--panel-border); background:var(--panel); }
   .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
+  /* The scroll-wheel switch at the formula's right edge: pressed, the wheel
+     takes the formula's logarithm through every generator as its base. */
+  .ring-head > .ring-hover-formula.has-log-scroll{ position:relative; padding-right:36px; }
+  .log-scroll-btn{ position:absolute; top:50%; right:7px; translate:0 -50%; pointer-events:auto; display:grid; place-items:center; width:22px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
+  .log-scroll-btn:hover{ color:var(--text); }
+  .log-scroll-btn[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .log-scroll-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .log-scroll-btn svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -5550,6 +5558,10 @@ function syncSubFormula(G){
     // ⟨h⟩'s h is written as in the row formula: lined up and, under the
     // pointer, coloured like its bead as the bottom panel's settings say.
     var box = subFormulaBox('div', 'ring-hover-formula', ringFormulas(G));
+    if (logScrollable(G)){
+      box.classList.add('has-log-scroll');
+      box.appendChild(logScrollButton());
+    }
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
   }
@@ -5707,7 +5719,7 @@ if (typeof ResizeObserver === 'function') new ResizeObserver(hangSubFormulas).ob
 // The formula at the ring never scrolls: one too wide for the ring's area is
 // set in a smaller size to fit it, as the header's own formulas are.
 function fitSubFormulaBox(box){
-  box.querySelectorAll(':scope > *').forEach(function(m){ fitSubFormulaLine(box, m); });
+  box.querySelectorAll(':scope > :not(.log-scroll-btn)').forEach(function(m){ fitSubFormulaLine(box, m); });
 }
 function fitSubFormulaLine(box, m){
   m.style.fontSize = '';
@@ -6898,8 +6910,62 @@ function syncFormulaCtx(fml){
 }
 // The main view's formulas, as renderSubgroups draws them.
 function ringFormulas(G){
-  return subRowFormula(G, state.gen, state.subFormulaRing, undefined, rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing, true);
+  return subRowFormula(G, state.gen, state.subFormulaRing, logScrollBase(G), rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing, true);
 }
+// The main view's formula can take its logarithm through every generator as
+// its base, a wheel notch a generator: log_g h changes, gcd(|G|, log_g h)
+// never does, as another base multiplies the log by a unit mod |G|. Only
+// the formula changes, the ring stays as it is. It offers itself where the
+// formula works with a log and there is more than one base to try.
+var logScrollOn = false, logScrollG = null, logScrollSum = 0;
+function logScrollable(G){
+  if (IS_MOBILE || G.pts || state.subBare || G.generators.length < 2) return false;
+  return G.mode === 'additive' ? !state.subSimplify : G.cyclic;
+}
+function logScrollBase(G){
+  return logScrollOn && logScrollable(G) && G.generators.indexOf(logScrollG) !== -1 ? logScrollG : undefined;
+}
+function logScrollButton(){
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'log-scroll-btn';
+  b.setAttribute('aria-pressed', logScrollOn ? 'true' : 'false');
+  b.title = translate('cyclicGroups.logScroll');
+  b.setAttribute('aria-label', b.title);
+  b.appendChild(svgEl('svg', { viewBox: '0 0 12 12', width: 13, height: 13, 'aria-hidden': 'true', focusable: 'false' }));
+  b.firstChild.appendChild(svgEl('rect', { x: 3.5, y: 1.5, width: 5, height: 9, rx: 2.5 }));
+  b.firstChild.appendChild(svgEl('line', { x1: 6, y1: 3.2, x2: 6, y2: 5 }));
+  b.addEventListener('click', function(){
+    logScrollOn = !logScrollOn;
+    logScrollSum = 0;
+    logScrollG = logScrollOn && drawn ? logBase(drawn.G) : null;
+    if (drawn) syncSubFormula(drawn.G);
+  });
+  return b;
+}
+function stepLogScroll(by){
+  var gs = drawn.G.generators, at = gs.indexOf(logScrollBase(drawn.G) || logBase(drawn.G));
+  logScrollG = gs[((at + by) % gs.length + gs.length) % gs.length];
+  syncSubFormula(drawn.G);
+}
+// Anywhere over the ring or its formula, it takes the wheel from the zoom
+// and from the step through the rows.
+function logScrollTakes(e){
+  if (!logScrollOn || !drawn || !logScrollable(drawn.G) || e.ctrlKey || !e.deltaY) return false;
+  var card = ringHeadEl.querySelector('.ring-hover-formula');
+  if (!card) return false;
+  var x = ptX(e), y = ptY(e), over = function(r){ return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+  return over(boxOf(card)) || over(boxOf(ringSvgEl));
+}
+document.addEventListener('wheel', function(e){
+  if (!logScrollTakes(e)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  logScrollSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
+  if (Math.abs(logScrollSum) < 50) return;
+  stepLogScroll(logScrollSum > 0 ? 1 : -1);
+  logScrollSum = 0;
+}, { capture: true, passive: false });
 // The main view's formulas the switch turns, size and/or index: the one on
 // the line under the pointer, or, between the lines, both when they are in
 // the same form. None where the group has no lcm form (a group of units
@@ -6945,7 +7011,8 @@ document.addEventListener('contextmenu', function(e){
   if (ptX(e) < r.left || ptX(e) > r.right || ptY(e) < r.top || ptY(e) > r.bottom) return;
   e.preventDefault();
   e.stopPropagation();
-  var line = Array.prototype.findIndex.call(card.children, function(el){
+  var line = card.querySelectorAll(':scope > :not(.log-scroll-btn)');
+  line = Array.prototype.findIndex.call(line, function(el){
     var b = boxOf(el);
     return ptY(e) >= b.top && ptY(e) <= b.bottom;
   });
@@ -13256,7 +13323,7 @@ function stepExprSlider(by){
 // the browser's own zoom (Ctrl).
 var stepWheelSum = 0;
 window.addEventListener('wheel', function(e){
-  if (e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW) return;
+  if (e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW || logScrollTakes(e)) return;
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
