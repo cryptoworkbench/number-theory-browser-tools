@@ -148,7 +148,8 @@
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
    exchange worked with G as g, and its window), and reduceTo (the ring
-   menu's Reduce to ⟨ℤ/nℤ, +⟩ on a cyclic group). Every other language shows the English value through
+   menu's Reduce to ⟨ℤ/nℤ, +⟩ on a cyclic group), and genInWhole (the
+   tip on the subgroup row's ∈ when ⟨h⟩ is the whole group). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1022,6 +1023,7 @@
       formulaToLcm: 'Switch to LCM form',
       dhMenu: 'Diffie–Hellman with g = {g}',
       reduceTo: 'Reduce to {group}',
+      genInWhole: '∈ == ⊆ ⇔ {g} is a generator/primitive root of the group {group}',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
       dhAlice: 'Alice',

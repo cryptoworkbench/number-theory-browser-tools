@@ -5847,10 +5847,10 @@ function menuFormulas(G){
     ? { math: mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)), plain: curveName(G) }
     : { math: mGroup(G), plain: G.label };
   list.push({ key: 'ggroup', cls: 'ring-math-title', math: name.math, plain: name.plain });
-  // And the subgroup's, ⟨h⟩ ⊆ …, h written as the row writes it, in the
+  // And the subgroup's, ⟨h⟩ ∈ …, h written as the row writes it, in the
   // element expression slider's expression.
   if (!state.noSub){
-    var h = state.gen, rel = G.orders[h] === G.order ? '⊆' : '⊂', hw = cosetGenWrite(G, h, false);
+    var h = state.gen, rel = '∈', hw = cosetGenWrite(G, h, false);
     // Without the row's chip and colours, which mean nothing once copied.
     [hw.m].concat([].slice.call(hw.m.querySelectorAll('[class]'))).forEach(function(el){ el.removeAttribute('class'); });
     list.push({ key: 'gsub', cls: 'ring-math-title', math: mrow(angle(hw.m), mo(rel), name.math), plain: '⟨' + hw.p + '⟩ ' + rel + ' ' + name.plain });
@@ -8209,16 +8209,16 @@ var SUB_PLOT = 'plot';
 var plotGen = null; // the point the plot last picked, while it is followed
 var panelGen = null; // the bottom panel's last pick: a row clicked or stepped to
 
-// The subgroup row's tail: the group the chosen subgroup lies in, ⊂ for a
-// proper subgroup and ⊆ for the whole group, as the ring's title has it;
-// empty with no subgroup chosen. When the dropdown follows the expression
+// The subgroup row's tail: the group the chosen subgroup lies in, always
+// after ∈; for the whole group its tip says ∈ stands for ⊆ there, h being
+// a generator (a primitive root); empty with no subgroup chosen. When the dropdown follows the expression
 // slider or the bottom panel, it names the subgroup followed first, G = ⟨4⟩ ⊂ ….
 // It tells the selected subgroup, never one a hovered row previews.
 var genSuperEl = $('gen-super');
 function syncGenSuper(G){
   genSuperEl.replaceChildren();
   if (state.noSub) return;
-  var h = state.gen, whole = G.orders[h] === G.order, rel = whole ? '⊆' : '⊂';
+  var h = state.gen, whole = G.orders[h] === G.order, rel = '∈';
   var named = genNamed();
   // The subgroup's h is written as the element expression slider writes
   // the beads. Under the pointer it shows its natural number, as a bead
@@ -8227,9 +8227,12 @@ function syncGenSuper(G){
   // On a curve the group carries the curve's equation, E(𝔽ₚ): y² = ….
   var eq = G.mode === 'elliptic' ? [mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)] : [];
   var eqPlain = eq.length ? ': ' + ecEquation(G.a, G.b) : '';
+  var relMo = mo(rel);
   genSuperEl.appendChild(named
-    ? mInline(mrow.apply(null, [mi('G'), mo('='), angle(hw.m), mo(rel), mGroup(G)].concat(eq)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label + eqPlain)
-    : mInline(mrow.apply(null, [mo(rel), mGroup(G)].concat(eq)), rel + ' ' + G.label + eqPlain));
+    ? mInline(mrow.apply(null, [mi('G'), mo('='), angle(hw.m), relMo, mGroup(G)].concat(eq)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label + eqPlain)
+    : mInline(mrow.apply(null, [relMo, mGroup(G)].concat(eq)), rel + ' ' + G.label + eqPlain));
+  // Set once on the page, so the tip takes it as every other title.
+  if (whole) relMo.setAttribute('title', translate('cyclicGroups.genInWhole', { g: '⟨' + elText(G, h) + '⟩', group: G.label + eqPlain }));
   // Redrawn while it blinks, it carries on from where it was.
   if (!named || invBlink === null) return;
   var since = performance.now() - invBlink.at;
