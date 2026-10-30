@@ -16586,8 +16586,10 @@ function syncOpenLock(){
 // Locked through an isomorphism φ, a ∗ b picked is worked in both groups
 // at once under the combination's switch: each element a column, a over
 // φ(a), joined by the general ∗ (+ in one group, × in the other), and the
-// result, a ∗ b over φ(a) ∗ φ(b) = φ(a ∗ b). The formula slider at
-// Complete works it in each group on the way, a + b over φ(a) × φ(b).
+// result, a ∗ b over φ(a) ∗ φ(b) = φ(a ∗ b). Past No-derivation the
+// formula slider works it in each group on the way, a + b over φ(a) × φ(b),
+// and at Complete, when a row is reduced by its modulus, the column as
+// worked out in the integers before it is.
 var isoCombineEl = $('iso-combine'), isoCombineSent = '';
 function isoCombineVec(role, top, bottom){
   var cell = function(t){ return mEl('mtd', [mEl('mn', [t], { 'class': 'is-' + role })]); };
@@ -16600,6 +16602,12 @@ function isoCombineSteps(G, H, top, bottom){
   return mrow(mo('['), mEl('mtable', [mEl('mtr', [cell(G, top)]), mEl('mtr', [cell(H, bottom)])]), mo(']'));
 }
 function isoCombinePlain(top, bottom){ return '[' + top + '; ' + bottom + ']'; }
+// a ∗ b in the integers, before reducing by the modulus; null on a curve.
+function isoCombineRaw(K, x, y){
+  if (K.pts) return null;
+  x = balEl(K, x); y = balEl(K, y);
+  return K.mode === 'additive' ? x + y : x * y;
+}
 function syncIsoCombine(){
   if (IS_ISOPANE || !isoCombineEl) return;
   var G = drawn && drawn.G, sent = '';
@@ -16607,17 +16615,23 @@ function syncIsoCombine(){
     var H = isoPaneGroup(), phi = isoImage(G), a = combo.a, b = combo.b, c = G.combine(a, b);
     var sides = [['a', a], ['b', b], ['c', c]].map(function(r){
       var y = phi(r[1]);
-      return y === undefined || !H ? null : [r[0], elText(G, r[1]), elText(H, y)];
+      return y === undefined || !H ? null : [r[0], elText(G, r[1]), elText(H, y), y];
     });
     if (sides.every(Boolean)){
       var m = sides.map(function(r){ return isoCombineVec(r[0], r[1], r[2]); });
       var p = sides.map(function(r){ return isoCombinePlain(r[1], r[2]); });
       var row = [m[0], mo('∗'), m[1], mo('=')], plain = p[0] + ' ∗ ' + p[1] + ' = ';
-      // Complete: the column worked in each group before its result.
-      if (!state.subSimplify){
+      // Past No-derivation: the column worked in each group before its result.
+      if (!state.subBare){
         var top = [sides[0][1], sides[1][1]], bottom = [sides[0][2], sides[1][2]];
         row.push(isoCombineSteps(G, H, top, bottom), mo('='));
         plain += isoCombinePlain(top.join(' ' + isoCombineOp(G) + ' '), bottom.join(' ' + isoCombineOp(H) + ' ')) + ' = ';
+        // Complete: the integers' result too, when a row reduces.
+        var rawTop = isoCombineRaw(G, a, b), rawBottom = isoCombineRaw(H, sides[0][3], sides[1][3]);
+        if (!state.subSimplify && rawTop !== null && rawBottom !== null && (rawTop !== balEl(G, c) || rawBottom !== balEl(H, sides[2][3]))){
+          row.push(isoCombineVec('raw', signed(rawTop), signed(rawBottom)), mo('='));
+          plain += isoCombinePlain(signed(rawTop), signed(rawBottom)) + ' = ';
+        }
       }
       row.push(m[2]);
       sent = plain + p[2];
