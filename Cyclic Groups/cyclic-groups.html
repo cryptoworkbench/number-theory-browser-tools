@@ -8467,10 +8467,11 @@ function turned(list){
 var SUB_BEADS = 'beads';
 var panelGen = null; // the bottom panel's last pick: a row clicked or stepped to
 
-// The subgroup row's tail: the group the chosen subgroup lies in, always
-// after ∈; its tip says whether ∈ stands for ⊆ there, h being a generator
-// (a primitive root) or not; empty with no subgroup chosen. With the subgroup
-// on, it names that subgroup first, G = ⟨4⟩ ⊂ ….
+// The subgroup row: G, the group it lies in after ∈, then the subgroup
+// itself, G ∈ ⟨ℤ/26ℤ, ×⟩ = ⟨7⟩; on a curve the group and its equation are
+// bracketed, so the equation's = is not the subgroup's. The tip of ∈ says
+// whether it stands for ⊆ there, h being a generator (a primitive root) or
+// not; empty with no subgroup chosen.
 // It tells the selected subgroup, never one a hovered row previews.
 var genSuperEl = $('gen-super');
 function syncGenSuper(G){
@@ -8483,10 +8484,12 @@ function syncGenSuper(G){
   // does, unless the main menu's switch turns that off.
   var hw = cosetGenWrite(G, h, !state.revealOff);
   // On a curve the group carries the curve's equation, E(𝔽ₚ): y² = ….
-  var eq = G.mode === 'elliptic' ? [mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)] : [];
-  var eqPlain = eq.length ? ': ' + ecEquation(G.a, G.b) : '';
-  var relMo = mo(rel);
-  genSuperEl.appendChild(mInline(mrow.apply(null, [mi('G'), mo('='), angle(hw.m), relMo, mGroup(G)].concat(eq)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label + eqPlain));
+  var curve = G.mode === 'elliptic';
+  var eqPlain = curve ? ': ' + ecEquation(G.a, G.b) : '';
+  var group = curve ? mrow(mo('(', true), mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b), mo(')', true)) : mGroup(G);
+  var relMo = mo(rel), sub = angle(hw.m);
+  sub.setAttribute('data-gsub', '');
+  genSuperEl.appendChild(mInline(mrow(mi('G'), relMo, group, mo('='), sub), 'G ' + rel + ' ' + (curve ? '(' + G.label + eqPlain + ')' : G.label) + ' = ⟨' + hw.p + '⟩'));
   // Set once on the page, so the tip takes it as every other title.
   relMo.setAttribute('data-title-line', '');
   relMo.setAttribute('title', translate(whole ? 'cyclicGroups.genInWhole' : 'cyclicGroups.genInProper', { g: '⟨' + elText(G, h) + '⟩', group: G.label + eqPlain }));
@@ -8506,7 +8509,7 @@ function syncGenSuper(G){
 // element itself, once before and twice after (invBlinks).
 var invBlink = null, INV_BLINK_MS = 360;
 function invBlinkEls(G){
-  var row = genSuperEl.querySelector('mrow > mrow');
+  var row = genSuperEl.querySelector('mrow[data-gsub]');
   if (!row) return [];
   var inner = [].slice.call(row.children, 1, -1);
   if (exprBy(G) === null) return inner;
