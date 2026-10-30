@@ -153,7 +153,9 @@
    genSwitch (the subgroup row's on/off switch), genBeads and genBeadsTitle
    (its Follow bead clicks button, picking G by a click on a bead) and
    genBeadsEc and genBeadsEcTitle (the same button on a curve, where a point
-   in the plot counts too). Every other language shows the English value through
+   in the plot counts too), and cosetExit (Step's place once a coset run has no
+   step left, ending the run) and subCosetsExplore (the bottom panel's menu
+   item starting a run on a row). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -853,6 +855,8 @@
       factsHeading: 'This group',
       cosetButton: 'Explore cosets',
       cosetHide: 'Stop exploring cosets',
+      cosetExit: 'Exit',
+      subCosetsExplore: 'Explore the cosets of {h}',
       cosetLoop: 'Loop',
       cosetLoopTitle: 'Replay continuously: after the last coset, start again from the first',
       cosetNoneGenerator: 'No cosets to explore; {g} is a generator',

@@ -1307,6 +1307,9 @@
      controls take a line of their own under it. */
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen{ display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr); align-items:center; }
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen > #gen-field{ grid-area:1 / 1 / 2 / 4; }
+  /* With one ring the subgroup row has no coset button: the bottom panel's
+     menu starts a run on a row, and Exit, in place of Step, ends it. */
+  :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-btn{ display:none; }
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-btn{ grid-area:1 / 2 / 2 / 3; position:relative; z-index:1; max-width:min(28em, 40cqi); white-space:normal; text-align:center; }
   :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-controls:not([hidden]){ grid-area:2 / 1 / 3 / 4; justify-self:center; }
   /* The split view: a button at the right end of the subgroup row opens a
@@ -12272,7 +12275,12 @@ function syncCosetControls(){
   cosetBtnEl.setAttribute('aria-expanded', open ? 'true' : 'false');
   syncCosetButton();
   cosetPlayEl.textContent = translate(open && cosetRun.playing ? 'common.pause' : 'common.play');
-  cosetStepEl.disabled = !open || cosetRun.playing || done;
+  // With no step left, Step turns into Exit, which ends the run as the
+  // coset button's Stop exploring cosets does.
+  var stepKey = done ? 'cyclicGroups.cosetExit' : 'common.step';
+  cosetStepEl.setAttribute('data-i18n', stepKey);
+  cosetStepEl.textContent = translate(stepKey);
+  cosetStepEl.disabled = !open || cosetRun.playing;
   cosetInstantEl.disabled = !open || done;
   $('coset-speed-label').textContent = translate('common.speed.' + cosetSpeedEl.value);
 }
@@ -12329,7 +12337,8 @@ cosetPlayEl.addEventListener('click', function(){
   if (cosetRun && cosetRun.playing) pauseCosets(); else playCosets();
 });
 cosetStepEl.addEventListener('click', function(){
-  if (!cosetRun || cosetRun.playing || cosetRun.shown >= cosetRun.starts.length) return;
+  if (!cosetRun || cosetRun.playing) return;
+  if (cosetRun.shown >= cosetRun.starts.length){ stopCosets(); return; }
   showCosets(cosetRun.shown + 1);
 });
 cosetInstantEl.addEventListener('click', function(){
@@ -16067,7 +16076,7 @@ function exportSubgroups(x){
 // group, or both merged ones, left first.
 var subCtxEl = $('sub-ctx');
 var subCtxReturn = null;
-function setSubCtx(open, x, y){
+function setSubCtx(open, x, y, h){
   if (!open){
     if (subCtxEl.hidden) return;
     subCtxEl.hidden = true;
@@ -16076,6 +16085,30 @@ function setSubCtx(open, x, y){
     return;
   }
   subCtxEl.replaceChildren();
+  // On a row, the cosets of that row's subgroup: explored from here (the row
+  // selected first), or no longer while they are; greyed for the whole group.
+  if (typeof h === 'number' && drawn && drawn.G.els.indexOf(h) !== -1){
+    var G = drawn.G, running = !!cosetRun && cosetRun.h === h && h === state.gen && !state.noSub;
+    var it = document.createElement('button');
+    it.type = 'button';
+    it.className = 'fs-menu-item';
+    it.setAttribute('role', 'menuitem');
+    it.textContent = running ? translate('cyclicGroups.cosetHide') : translate('cyclicGroups.subCosetsExplore', { h: '⟨' + elText(G, h) + '⟩' });
+    it.disabled = !running && G.orders[h] === G.order;
+    it.addEventListener('click', function(){
+      setSubCtx(false);
+      if (running){ stopCosets(); return; }
+      if (h !== state.gen || state.noSub){
+        var row = subgroupsEl.querySelector('.subgroup-row[data-gen="' + h + '"]');
+        if (row) row.click();
+      }
+      if (h !== state.gen || state.noSub) return;
+      if (cosetRun) stopCosets();
+      openCosets();
+    });
+    subCtxEl.appendChild(it);
+    subCtxEl.appendChild(subCtxRule());
+  }
   subExports.forEach(function(ex){
     var item = document.createElement('button');
     item.type = 'button';
@@ -16230,7 +16263,8 @@ subgroupsPanelEl.addEventListener('contextmenu', function(e){
   if (e.target.closest('select, input, label, .sub-ctls button, .panel-head button, .split-btn')) return;
   e.preventDefault();
   if (IS_MOBILE) return;
-  setSubCtx(true, ptX(e), ptY(e));
+  var row = e.target.closest('.subgroup-row');
+  setSubCtx(true, ptX(e), ptY(e), row ? Number(row.getAttribute('data-gen')) : null);
 });
 document.addEventListener('pointerdown', function(e){
   if (!subCtxEl.contains(e.target)) setSubCtx(false);
