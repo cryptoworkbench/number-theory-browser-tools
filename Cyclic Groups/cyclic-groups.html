@@ -5743,9 +5743,8 @@ function drawMath(G, subs){
     lines.push(mathLine('ring-math-title', mrow(elMn(G, coset.start), mo(G.mode === 'additive' ? '+' : '·'), angle(elMn(G, h)), mo('='), mSet(set.map(function(x){ return elText(G, x); }))),
       translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul', { a: elText(G, coset.start), h: elText(G, h), set: '{' + set.map(function(x){ return elText(G, x); }).join(', ') + '}' })));
   } else if (!ringBody && !IS_RINGWIN){
-    var whole = G.orders[h] === G.order;
-    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(elMn(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-      translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, h) })));
+    if (headOn('sname')) lines.push(mathLine('ring-math-title', mrow(angle(elMn(G, h)), mo('∈'), mGroup(G)),
+      translate('cyclicGroups.ringTitleIn', { group: G.label, h: elText(G, h) })));
     else if (headOn('gname')) lines.push(mathLine('ring-math-title', mGroup(G), G.label));
     var row = document.createElement('div');
     row.className = 'ring-math-row';
@@ -5781,13 +5780,13 @@ var scratchOpen = false;
 // { key, cls, math, plain } for each row that holds a formula.
 function scratchFormulas(G){
   var on = function(name){ return !(noSub() && SUB_HEADS.indexOf(name) !== -1); };
-  var h = shownGen(G), whole = G.orders[h] === G.order, list = [];
+  var h = shownGen(G), list = [];
   // A curve: its name with its equation, the subgroup's name, and its
   // cardinality, the point count.
   if (G.pts){
     var eq = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
     list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroup(G), mo(':'), mEl('mtext', [eq])), plain: G.label + ': ' + eq });
-    if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(natPointM(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)), plain: '⟨' + natPointP(G, h) + '⟩ ' + (whole ? '⊆' : '⊂') + ' ' + G.label });
+    if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(natPointM(G, h)), mo('∈'), mGroup(G)), plain: '⟨' + natPointP(G, h) + '⟩ ∈ ' + G.label });
     // The bars round the group's full name, its equation with it, as the
     // menu's Group name writes it: |E(𝔽ₚ): y² = …| = N.
     var full = mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b));
@@ -5795,8 +5794,8 @@ function scratchFormulas(G){
     return list;
   }
   if (on('gname')) list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroupPct(), mo('='), mGroup(G)), plain: '⟨ℤ/%ℤ, ∗⟩ = ' + G.label });
-  if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(elMn(G, h)), mo(whole ? '⊆' : '⊂'), mGroup(G)),
-    plain: translate(whole ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, h) }) });
+  if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(elMn(G, h)), mo('∈'), mGroup(G)),
+    plain: translate('cyclicGroups.ringTitleIn', { group: G.label, h: elText(G, h) }) });
   orderFormulas(G, on).forEach(function(f){ list.push({ key: f.key, cls: 'ring-math-formula', math: f.math, plain: f.plain }); });
   var count = generatorCount(G);
   if (count) list.push({ key: 'gens', cls: 'ring-math-formula', math: count.math, plain: count.plain });
@@ -6736,9 +6735,9 @@ function copyText(text){
 // A formula's MathML as LaTeX, and as ASCII: ℤ as Z, φ as phi, ⟨ ⟩ as
 // < >, a fraction as a / b with its sides bracketed where they need it.
 var LATEX_MI = { 'ℤ': '\\mathbb{Z}', 'φ': '\\varphi', 'gcd': '\\gcd', 'log': '\\log', '%': '\\%' };
-var LATEX_MO = { '⟨': '\\langle ', '⟩': '\\rangle ', '×': '\\times ', '·': '\\cdot ', '⊆': '\\subseteq ', '⊂': '\\subset ', '∗': '\\ast ', '{': '\\{', '}': '\\}', '\u2061': '', 'mod': '\\bmod ', '=': ' = ', ',': ', ' };
+var LATEX_MO = { '⟨': '\\langle ', '⟩': '\\rangle ', '×': '\\times ', '·': '\\cdot ', '⊆': '\\subseteq ', '⊂': '\\subset ', '∈': '\\in ', '∗': '\\ast ', '{': '\\{', '}': '\\}', '\u2061': '', 'mod': '\\bmod ', '=': ' = ', ',': ', ' };
 var ASCII_MI = { 'ℤ': 'Z', 'φ': 'phi' };
-var ASCII_MO = { '⟨': '<', '⟩': '>', '×': '*', '·': '*', '⊆': ' <= ', '⊂': ' < ', '∗': '*', 'mod': ' mod ', '=': ' = ', ',': ', ' };
+var ASCII_MO = { '⟨': '<', '⟩': '>', '×': '*', '·': '*', '⊆': ' <= ', '⊂': ' < ', '∈': ' in ', '∗': '*', 'mod': ' mod ', '=': ' = ', ',': ', ' };
 function mathKids(node){
   return Array.prototype.filter.call(node.childNodes, function(c){ return c.nodeType === 1; });
 }
@@ -7687,7 +7686,7 @@ function drawNecklace(G, paint){
     ? translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul',
         { a: elText(G, coset.start), h: elText(G, shownGen(G)), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).map(function(x){ return elText(G, x); }).join(', ') + '}' })
     : noSub() ? G.label
-    : translate(G.orders[shownGen(G)] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, shownGen(G)) })));
+    : translate('cyclicGroups.ringTitleIn', { group: G.label, h: elText(G, shownGen(G)) })));
   // While the cosets play, the coset in view is named under the title.
   if (coset){
     var progress = translate('cyclicGroups.cosetProgress', { i: coset.past.length + 1, count: cosetRun.starts.length });
@@ -13963,15 +13962,15 @@ function pickLeft(a){
   syncIsoPaneLabels();
 }
 isoAddLeftEl.addEventListener('click', openLeftPick);
-// A ring's subgroup on show inside its group, ⟨g⟩ ⊆ G when g generates the
-// group and ⟨g⟩ ⊂ G otherwise; just the group with no subgroup on show.
+// A ring's subgroup on show inside its group, ⟨g⟩ ∈ G; just the group
+// with no subgroup on show.
 function subgroupName(G, g){
   if (g === null || G.els.indexOf(g) === -1) return G.label;
-  return translate(G.orders[g] === G.order ? 'cyclicGroups.ringTitleWhole' : 'cyclicGroups.ringTitleProper', { group: G.label, h: elText(G, g) });
+  return translate('cyclicGroups.ringTitleIn', { group: G.label, h: elText(G, g) });
 }
 // The name of a Ring window: its subgroup in its group; with an isomorphism
 // open beside it, the two groups isomorphic (G ≅ H), or the subgroup's
-// isomorphism ((⟨g⟩ ⊂ G) ≅ (⟨h⟩ ⊆ H), each side's subgroup on show), or,
+// isomorphism ((⟨g⟩ ∈ G) ≅ (⟨h⟩ ∈ H), each side's subgroup on show), or,
 // once they are changed so they no longer are, both rings' names side by
 // side (⟨g⟩ ⊂ G & ⟨h⟩ ⊆ H).
 function ringTitle(){
