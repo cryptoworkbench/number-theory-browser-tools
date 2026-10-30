@@ -1032,6 +1032,7 @@
       formulaToLcm: 'Switch to LCM form',
       dhMenu: 'Diffie–Hellman with g = {g}',
       reduceTo: 'Reduce to {group}',
+      swapIsoMenu: 'Swap for an isomorphic group',
       genInWhole: '∈ == ⊆ ⇔ {g} is a generator/primitive root of the group {group}',
       genInProper: '∈ != ⊆ ⇔ {g} is NOT a generator/primitive root of the group {group}',
       genSwitch: 'Show the subgroup',

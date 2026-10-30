@@ -6273,6 +6273,7 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   }
   item.addEventListener('pointerenter', function(){
     if (l.copy) setRingCopy(l.copy, item, false);
+    else setRingCopy(null);
   });
   item.addEventListener('click', function(){
     if (l.copy){ setRingCopy(l.copy, item, true); return; }
@@ -6346,6 +6347,10 @@ function setRingCopy(name, from, focus){
     });
     return it.item;
   })));
+  placeRingSub(from, focus);
+}
+// A submenu of the ring's menu, beside the item that opened it.
+function placeRingSub(from, focus){
   var menu = boxOf(ringCtxEl), at = boxOf(from);
   var w = ringCopyEl.offsetWidth, h = ringCopyEl.offsetHeight;
   var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
@@ -7040,8 +7045,65 @@ window.addEventListener('storage', function(e){
   render();
 });
 function syncNatHoverCtx(on){
-  var sign = syncSignCtx(on), dhItem = syncDhCtx(on), reduce = syncReduceCtx(on);
-  return sign || dhItem || reduce;
+  var sign = syncSignCtx(on), dhItem = syncDhCtx(on), reduce = syncReduceCtx(on), swap = syncSwapCtx(on);
+  return sign || dhItem || reduce || swap;
+}
+// Under them, while this whole group is locked to the pane's, Swap for an
+// isomorphic group: a submenu of the groups isomorphic to this one, the
+// pane's left out, each taking this ring's place still locked to the pane.
+function swapChips(){
+  if (IS_ISOPANE || !isoLinked() || !isoWholeMatch()) return [];
+  var p = new URLSearchParams(isoPane.q), curve = p.get('curve');
+  return Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip')).filter(function(a){
+    var c = a.getAttribute('data-iso-curve');
+    if (c || curve) return c !== curve;
+    return a.getAttribute('data-iso-mode') !== p.get('mode') || a.getAttribute('data-iso-n') !== p.get('n');
+  });
+}
+function syncSwapCtx(on){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-swap').forEach(function(el){ el.remove(); });
+  if (!on || !drawn || IS_MOBILE || !swapChips().length) return null;
+  var it = ctxItem('menuitem', translate('cyclicGroups.swapIsoMenu'), true);
+  it.mark.textContent = '⇆';
+  it.item.classList.add('ring-ctx-swap');
+  it.item.addEventListener('pointerenter', function(){ setRingSwap(it.item, false); });
+  it.item.addEventListener('click', function(){ setRingSwap(it.item, true); });
+  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
+  return it.item;
+}
+function setRingSwap(from, focus){
+  setRingCopy(null);
+  var chips = swapChips();
+  if (!chips.length) return;
+  ringCopyFrom = from;
+  from.setAttribute('aria-expanded', 'true');
+  ringCopyEl.hidden = false;
+  ringCopyEl.setAttribute('aria-label', translate('cyclicGroups.swapIsoMenu'));
+  ringCopyEl.replaceChildren.apply(ringCopyEl, chips.map(function(a){
+    var it = ctxItem('menuitem', '');
+    it.item.children[1].appendChild(a.querySelector('.iso-name').cloneNode(true));
+    it.item.addEventListener('click', function(){
+      setRingCtx(false);
+      swapHostGroup(a);
+    });
+    return it.item;
+  }));
+  placeRingSub(from, focus);
+}
+// As a group picked for the left ring does (pickLeft): the chip's group,
+// generator and arrangement take this ring's place, its generator linked to
+// the pane's, and the two lock again.
+function swapHostGroup(a){
+  if (swapChips().indexOf(a) === -1) return;
+  var g = parseInt(a.getAttribute('data-iso-gen'), 10);
+  isoPane.g = isFinite(g) ? g : null;
+  isoPane.gAuto = false;
+  isoPane.link = 'asking';
+  var href = new URLSearchParams(new URL(a.href, location.href).search), q = new URLSearchParams();
+  ['mode', 'n', 'curve', 'gen', 'bygen'].forEach(function(k){ if (href.has(k)) q.set(k, href.get(k)); });
+  applyRingQuery(q);
+  answerIsoAsk(true);
+  syncIsoPaneLabels();
 }
 // Under them, on a cyclic group that isn't already ⟨ℤ/nℤ, +⟩ (a cyclic
 // group of units or curve), Reduce to its structure: the ring then shows
