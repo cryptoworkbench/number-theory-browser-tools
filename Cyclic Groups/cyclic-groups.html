@@ -6849,7 +6849,9 @@ function setRingCtx(open, x, y, expr, fml){
 // own items: Hide, which sets the bottom bar's choice for the main area to
 // None and blinks that group's button there, Switch to GCD form or Switch to
 // LCM form, turning it into its other form, and the copy formats, for the
-// formula line under the pointer (both lines, between them).
+// formula line under the pointer (both lines, between them). With the index
+// formula among them, it also explores G's cosets, or stops the run, as the
+// bottom panel's row menu does (greyed when ⟨h⟩ is the whole group).
 function syncFormulaCtx(fml){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-fml').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-formula-ctx', !!fml);
@@ -6866,6 +6868,14 @@ function syncFormulaCtx(fml){
     var sw = ctxItem('menuitem', translate(toLcm ? 'cyclicGroups.formulaToLcm' : 'cyclicGroups.formulaToGcd'));
     sw.item.addEventListener('click', function(){ setRingCtx(false); switchRingFormulaForm(fs, toLcm); });
     head.push(sw.item);
+  }
+  var v = state.subFormulaRing;
+  if ((v === 'index' || v === 'both') && !state.noSub){
+    var G = drawn.G, running = !!cosetRun;
+    var co = ctxItem('menuitem', running ? translate('cyclicGroups.cosetHide') : translate('cyclicGroups.subCosetsExplore', { h: '⟨' + elText(G, state.gen) + '⟩' }));
+    co.item.disabled = !running && !hasCosets(G);
+    co.item.addEventListener('click', function(){ setRingCtx(false); if (cosetRun) stopCosets(); else openCosets(); });
+    head.push(co.item);
   }
   var items = head.concat([sep]).concat(COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
