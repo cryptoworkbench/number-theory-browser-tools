@@ -817,6 +817,7 @@
   .akey-tip{ position:fixed; z-index:60; padding:6px 8px; font-size:.8rem; color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); box-shadow:0 4px 14px var(--scrim); pointer-events:none; }
   .akey-tip[hidden]{ display:none; }
   .title-tip{ max-width:min(30em, calc(100vw - 8px)); white-space:pre-line; overflow-wrap:anywhere; }
+  .title-tip.is-one-line{ max-width:calc(100vw - 8px); }
   .akey-tip table{ border-collapse:collapse; }
   .akey-tip :is(th, td){ padding:2px 8px; white-space:nowrap; }
   .akey-tip :is(th, td) + :is(th, td){ border-left:1px solid var(--panel-border); }
@@ -3224,6 +3225,8 @@ function syncTitleTip(){
   var host = document.fullscreenElement || document.body;
   if (titleTipEl.parentNode !== host) host.appendChild(titleTipEl);
   titleTipEl.textContent = text;
+  // A title marked one-line keeps to one line as far as the window allows.
+  titleTipEl.classList.toggle('is-one-line', el.hasAttribute('data-title-line'));
   titleTipEl.hidden = false;
   // Under a small thing, as the identity's tip sits; under the pointer on
   // a big one.
@@ -8232,6 +8235,7 @@ function syncGenSuper(G){
     ? mInline(mrow.apply(null, [mi('G'), mo('='), angle(hw.m), relMo, mGroup(G)].concat(eq)), 'G = ⟨' + hw.p + '⟩ ' + rel + ' ' + G.label + eqPlain)
     : mInline(mrow.apply(null, [relMo, mGroup(G)].concat(eq)), rel + ' ' + G.label + eqPlain));
   // Set once on the page, so the tip takes it as every other title.
+  relMo.setAttribute('data-title-line', '');
   relMo.setAttribute('title', translate(whole ? 'cyclicGroups.genInWhole' : 'cyclicGroups.genInProper', { g: '⟨' + elText(G, h) + '⟩', group: G.label + eqPlain }));
   // Redrawn while it blinks, it carries on from where it was.
   if (!named || invBlink === null) return;
