@@ -1229,9 +1229,12 @@
   .log-scroll-btn[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .log-scroll-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .log-scroll-btn svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
-  /* Under the formula, its Follow expression slider switch: pressed, the
-     log base is the slider's generator and the scroll-wheel switch goes. */
-  .ring-head > .ring-hover-formula > .log-follow-btn{ pointer-events:auto; font-size:.78rem; padding:2px 9px; }
+  /* Under the formula, its Follow expression slider and Follow Generator
+     dropdown switches: either pressed, the log base is that control's
+     generator and the scroll-wheel switch goes. */
+  .ring-head > .ring-hover-formula > .log-follow-row{ display:flex; gap:6px; }
+  .log-follow-row > .log-follow-btn{ pointer-events:auto; font-size:.78rem; padding:2px 9px; }
+  .log-follow-row > .log-follow-btn:disabled{ opacity:.45; cursor:default; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -5562,8 +5565,8 @@ function syncSubFormula(G){
     // pointer, coloured like its bead as the bottom panel's settings say.
     var box = subFormulaBox('div', 'ring-hover-formula', ringFormulas(G));
     if (logScrollable(G)){
-      box.appendChild(logFollowButton());
-      if (!logFollowOn){
+      box.appendChild(logFollowRow(G));
+      if (!logFollow){
         box.classList.add('has-log-scroll');
         box.appendChild(logScrollButton());
       }
@@ -6923,16 +6926,26 @@ function ringFormulas(G){
 // never does, as another base multiplies the log by a unit mod |G|. Only
 // the formula changes, the ring stays as it is. It offers itself where the
 // formula works with a log and there is more than one base to try.
-// Its Follow expression slider switch, pressed, keeps the base on the
-// slider's generator instead, and the scroll-wheel switch makes way for it.
-var logScrollOn = false, logScrollG = null, logScrollSum = 0, logFollowOn = true;
+// Its Follow expression slider and Follow Generator dropdown switches keep
+// the base on that control's generator instead (logFollow 'slider' or
+// 'gen'), and the scroll-wheel switch makes way for them.
+var logScrollOn = false, logScrollG = null, logScrollSum = 0, logFollow = 'slider';
 function logScrollable(G){
   if (IS_MOBILE || G.pts || state.subBare || G.generators.length < 2) return false;
   // In (ℤ/nℤ)* the formula slider's middle hides it, as it hides ℤ/nℤ's log.
   return !state.subSimplify && (G.mode === 'additive' || G.cyclic);
 }
 function logScrollBase(G){
-  return !logFollowOn && logScrollable(G) && G.generators.indexOf(logScrollG) !== -1 ? logScrollG : undefined;
+  if (!logScrollable(G) || logFollow === 'slider') return undefined;
+  if (logFollow === 'gen') return logGenBase(G);
+  return G.generators.indexOf(logScrollG) !== -1 ? logScrollG : undefined;
+}
+// The Generator dropdown's generator: the one the beads are arranged by,
+// or 1 while ℤ/nℤ is Sequential; none while the dropdown reads Not
+// applicable, the base then left to the expression slider.
+function logGenBase(G){
+  if (G.cyclic && state.bygen) return arrangeBy(G);
+  return G.mode === 'additive' && G.generators.indexOf(1) !== -1 ? 1 : undefined;
 }
 function logScrollButton(){
   var b = document.createElement('button');
@@ -6951,20 +6964,29 @@ function logScrollButton(){
   });
   return b;
 }
-function logFollowButton(){
+function logFollowRow(G){
+  var row = document.createElement('span');
+  row.className = 'log-follow-row log-ctl';
+  row.appendChild(logFollowButton(G, 'slider', 'cyclicGroups.subExprFollow', 'cyclicGroups.logFollowTitle'));
+  row.appendChild(logFollowButton(G, 'gen', 'cyclicGroups.logFollowGen', 'cyclicGroups.logFollowGenTitle'));
+  return row;
+}
+function logFollowButton(G, mode, key, titleKey){
   var b = document.createElement('button');
   b.type = 'button';
-  b.className = 'gen-beads log-follow-btn log-ctl';
-  b.setAttribute('aria-pressed', logFollowOn ? 'true' : 'false');
-  b.textContent = translate('cyclicGroups.subExprFollow');
-  b.title = translate('cyclicGroups.logFollowTitle');
+  b.className = 'gen-beads log-follow-btn';
+  b.setAttribute('aria-pressed', logFollow === mode ? 'true' : 'false');
+  b.textContent = translate(key);
+  b.title = translate(titleKey);
+  if (mode === 'gen' && logGenBase(G) === undefined && logFollow !== mode) b.disabled = true;
   b.addEventListener('click', function(){
-    logFollowOn = !logFollowOn;
+    if (!drawn) return;
+    // Let go, the base stays where the control had it.
+    logScrollG = logScrollBase(drawn.G) || logBase(drawn.G);
+    logFollow = logFollow === mode ? null : mode;
     logScrollOn = false;
     logScrollSum = 0;
-    // Let go, the base stays where the slider had it.
-    logScrollG = !logFollowOn && drawn ? logBase(drawn.G) : null;
-    if (drawn) syncSubFormula(drawn.G);
+    syncSubFormula(drawn.G);
   });
   return b;
 }
@@ -6976,7 +6998,7 @@ function stepLogScroll(by){
 // Anywhere over the ring or its formula, it takes the wheel from the zoom
 // and from the step through the rows.
 function logScrollTakes(e){
-  if (!logScrollOn || logFollowOn || !drawn || !logScrollable(drawn.G) || e.ctrlKey || !e.deltaY) return false;
+  if (!logScrollOn || logFollow || !drawn || !logScrollable(drawn.G) || e.ctrlKey || !e.deltaY) return false;
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (!card) return false;
   var x = ptX(e), y = ptY(e), over = function(r){ return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
