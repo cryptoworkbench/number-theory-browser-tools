@@ -5161,7 +5161,7 @@ function urlLcm(v){ return v === '1' ? 'both' : SUB_FORMULAS.indexOf(v) !== -1 ?
 function lcmPack(order, index){ return order && index ? 'both' : order ? 'order' : index ? 'index' : 'none'; }
 // Whether the selected row shows a formula.
 // A curve has none of ℤ/nℤ's gcd, lcm and φ formulas (for now).
-function subFormulaOn(){ return state.subFormulaRow !== 'none' && !state.ec; }
+function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // The formulas a dropdown's choice asks for, for ⟨h⟩ in G: none, one, or
 // under Both the cardinality's then the index's. In (ℤ/nℤ)* the log base
 // is logBase's, and in ℤ/nℤ too, h found by its place on the ring as
@@ -5172,6 +5172,7 @@ function subFormulaOn(){ return state.subFormulaRow !== 'none' && !state.ec; }
 // form instead of state.subLcm (the merged rows' right side keeps its own,
 // subLcmR): none, order, index or both.
 function subRowFormula(G, h, choice, base, hm, lcm){
+  if (G.pts) return ecRowFormula(G, h, choice, hm);
   var logs = G.mode === 'multiplicative' ? G.cyclic : !state.subSimplify;
   var g = logs ? base || logBase(G) : undefined;
   var out = [];
@@ -5179,6 +5180,17 @@ function subRowFormula(G, h, choice, base, hm, lcm){
   if (choice === 'order' || choice === 'both') out.push(lcms('order') ? subOrderLcm(G, h, g, hm) : subOrderFormula(G, h, g, true, hm));
   if (choice === 'index' || choice === 'both') out.push(lcms('index') ? subIndexLcm(G, h, g, hm) : cosetCountFormula(G, h, g, true, true, hm));
   return state.subBare ? out.map(bareFormula) : out;
+}
+// On a curve there is no formula to work: the size and the index are
+// written as notation with their values, |⟨P⟩| = k and [E : ⟨P⟩] = |E| / k.
+function ecRowFormula(G, h, choice, hm){
+  var hx = hm || function(){ return mPoint(G.pts[h]); }, ph = plainPoint(G.pts[h]);
+  var k = G.orders[h], out = [];
+  if (choice === 'order' || choice === 'both') out.push({ math: mrow(abs(angle(hx())), mo('='), mn(k)), plain: '|⟨' + ph + '⟩| = ' + k });
+  if (choice === 'index' || choice === 'both') out.push({
+    math: mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true), mo('='), mn(G.order / k)),
+    plain: '[' + G.label + ' : ⟨' + ph + '⟩] = ' + G.order / k });
+  return out;
 }
 // The formula slider at No-derivation: a formula's left side and its
 // result, the steps between them left out.
@@ -5210,7 +5222,6 @@ function syncBarFormulas(){
     // The formulas button keeps to the left, a minimized window's task
     // going to its right.
     var tasks = barPlotTasks(i, G);
-    if (G.pts){ tasks.forEach(function(task){ box.appendChild(task); }); return; }
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'bar-btn';
@@ -5321,8 +5332,11 @@ function toggleBarMenu(i, btn){
 var BAR_PLACES = [['ring', 'cyclicGroups.barLcmMain'], ['row', 'cyclicGroups.barLcmRow']];
 var BAR_FORMULAS = [['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort']];
 var BAR_FORMS = [['gcd', 'cyclicGroups.barGcd'], ['none', 'cyclicGroups.subFormulaNone'], ['lcm', 'cyclicGroups.barLcm']];
+// On a curve each formula is only shown or not, having no gcd or lcm form.
+var BAR_FORMS_EC = [['gcd', 'cyclicGroups.barShow'], ['none', 'cyclicGroups.subFormulaNone']];
+function barForms(i){ var G = barGroup(i); return G && G.pts ? BAR_FORMS_EC : BAR_FORMS; }
 function fillBarGrid(i, focusAt){
-  var side = BAR_SIDES[i];
+  var side = BAR_SIDES[i], forms = barForms(i);
   var has = function(v, f){ return v === f || v === 'both'; };
   var grid = document.createElement('div');
   grid.className = 'bar-grid';
@@ -5370,8 +5384,8 @@ function fillBarGrid(i, focusAt){
       seg.className = 'bar-seg';
       seg.setAttribute('role', 'group');
       seg.setAttribute('aria-labelledby', name.id + ' bar-grid-' + fm[0]);
-      BAR_FORMS.forEach(function(fo, j){
-        var c = k * BAR_FORMS.length + j;
+      forms.forEach(function(fo, j){
+        var c = k * forms.length + j;
         var opt = document.createElement('button');
         opt.type = 'button';
         opt.className = 'bar-check';
@@ -5473,7 +5487,7 @@ function paneLogBase(H){
 // The selected subgroup's formulas: in its row, on lines of their own under
 // its subgroup (on the left, this group's side, of a merged row), and in
 // the main view, under the ring's header, each place as its own choice says.
-function subFormulaAtRing(){ return state.subFormulaRing !== 'none' && !state.ec; }
+function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
 // A merged row gives each group its formulas on its own side: ⟨h⟩'s on the
 // left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
@@ -7687,7 +7701,7 @@ barMenuEl.addEventListener('keydown', function(e){
   e.preventDefault();
   e.stopPropagation();
   var at = box.getAttribute('data-at').split(',').map(Number);
-  var cols = BAR_FORMULAS.length * BAR_FORMS.length;
+  var cols = BAR_FORMULAS.length * barForms(barMenuFor).length;
   var r = (at[0] + step[0] + BAR_PLACES.length) % BAR_PLACES.length, c = (at[1] + step[1] + cols) % cols;
   barMenuEl.querySelector('[data-at="' + r + ',' + c + '"]').focus();
 });
