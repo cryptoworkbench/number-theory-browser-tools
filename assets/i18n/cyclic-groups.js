@@ -1041,6 +1041,7 @@
       logScroll: 'Scroll through every generator as the base of the logarithm: the logarithm changes, its gcd with |G| never does',
       logFollowTitle: "Take the base of the logarithm from the expression slider's generator",
       logFollowGen: 'Follow Generator dropdown',
+      arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       logFollowGenTitle: "Take the base of the logarithm from the Generator dropdown's generator",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
