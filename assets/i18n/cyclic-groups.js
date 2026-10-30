@@ -147,7 +147,8 @@
    GCD and LCM forms), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
-   exchange worked with G as g, and its window). Every other language shows the English value through
+   exchange worked with G as g, and its window), and reduceTo (the ring
+   menu's Reduce to ⟨ℤ/nℤ, +⟩ on a cyclic group). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1020,6 +1021,7 @@
       formulaToGcd: 'Switch to GCD form',
       formulaToLcm: 'Switch to LCM form',
       dhMenu: 'Diffie–Hellman with g = {g}',
+      reduceTo: 'Reduce to {group}',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
       dhAlice: 'Alice',
