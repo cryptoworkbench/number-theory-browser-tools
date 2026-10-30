@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-14 - Completed quick task 261014-v9c: Cyclic Groups mobile version for mobile-reporting browsers
+Last activity: 2026-10-30 - Completed quick task 261030-k0a: Cyclic Groups SUBGROUP on/off switch and Follow bead clicks button replace the G dropdown
 
 Progress: [█████████░] 86%
 
@@ -624,6 +624,7 @@ None yet.
 | 261014-ttj | QR-code page linking to the GitHub Pages site, on branches qr-hub and qr-nav | 2026-10-14 | 77340be | [261014-ttj-qr-code-page-linking-to-the-github-pages](./quick/261014-ttj-qr-code-page-linking-to-the-github-pages/) |
 | 389 | Cyclic Groups intro: QR code of the page's own GitHub Pages address | 2026-10-14 | 5987530 | — |
 | 261014-v9c | Cyclic Groups mobile version for mobile-reporting browsers | 2026-10-14 | 7eaeb0c | [261014-v9c-cyclic-groups-mobile-version-for-mobile-](./quick/261014-v9c-cyclic-groups-mobile-version-for-mobile-/) |
+| 261030-k0a | Cyclic Groups: SUBGROUP on/off switch and Follow bead clicks button replace the G dropdown | 2026-10-30 | fd945ce | [261030-k0a-cyclic-groups-subgroup-on-off-switch-and](./quick/261030-k0a-cyclic-groups-subgroup-on-off-switch-and/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -878,4 +879,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-14 - Completed quick task 261014-v9c: Cyclic Groups mobile version for mobile-reporting browsers
+Last activity: 2026-10-30 - Completed quick task 261030-k0a: Cyclic Groups SUBGROUP on/off switch and Follow bead clicks button replace the G dropdown
