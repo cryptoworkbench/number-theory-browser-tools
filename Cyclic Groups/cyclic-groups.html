@@ -1167,9 +1167,11 @@
   .combine-seg > button[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .combine-seg > button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   /* With Follow element clicks on, a click picks G instead of combining:
-     the a ∗ b / aᵏ choice greys out under a thin dark-red cross while it holds. */
+     the a ∗ b / aᵏ choice greys out under a thin dark-red cross, and is locked,
+     while it holds. */
   #combine-mode.is-out .combine-seg{ position:relative; --out-line:color-mix(in srgb, var(--role-warn) 75%, var(--pointer-ink)); }
-  #combine-mode.is-out .combine-seg > button{ opacity:0.4; filter:grayscale(1); }
+  #combine-mode.is-out .combine-seg > button{ opacity:0.4; filter:grayscale(1); cursor:not-allowed; }
+  #combine-mode.is-out .combine-seg > button:not([aria-pressed="true"]):hover{ color:var(--text-dim); background:none; }
   #combine-mode.is-out .combine-seg::after{ content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to top right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)), linear-gradient(to bottom right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)); }
   .combine-k-spin[hidden]{ display:none; }
   .bead-k-spin{ position:fixed; z-index:30; }
@@ -8546,7 +8548,11 @@ function syncGenerators(G){
   genSwitchEl.setAttribute('aria-checked', state.noSub ? 'false' : 'true');
   genBeadsEl.hidden = state.noSub;
   genBeadsEl.setAttribute('aria-pressed', state.genBeads ? 'true' : 'false');
-  $('combine-mode').classList.toggle('is-out', state.genBeads && !state.noSub);
+  // Struck out, the a ∗ b / aᵏ choice cannot be changed either.
+  var out = state.genBeads && !state.noSub;
+  $('combine-mode').classList.toggle('is-out', out);
+  $('combine-mode-element').disabled = out;
+  $('combine-mode-scalar').disabled = out;
   var bk = G.pts ? 'cyclicGroups.genBeadsEc' : 'cyclicGroups.genBeads';
   var bt = G.pts ? 'cyclicGroups.genBeadsEcTitle' : 'cyclicGroups.genBeadsTitle';
   genBeadsEl.setAttribute('data-i18n', bk);
