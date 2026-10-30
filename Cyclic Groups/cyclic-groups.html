@@ -1153,7 +1153,7 @@
   .curve-plot-note{ margin:2px 0 0; font-size:.74rem; line-height:1.3; color:var(--text-dim); text-align:center; }
   .curve-plot.is-picks-g .curve-o{ cursor:pointer; }
   .curve-plot-svg .curve-o{ fill:var(--text-dim); font-family:var(--font-math); font-size:13px; }
-  :root.is-ec :is(#formula-level, #facts){ display:none !important; }
+  :root.is-ec #facts{ display:none !important; }
   /* Which combination a click on a bead makes, in the Arrangement row:
      a ∗ b (two elements) or aᵏ (one element k times, k in its field, written so in either group). */
   .combine-mode{ display:inline-flex; align-items:center; gap:8px; margin-inline-end:18px; }
@@ -16617,9 +16617,11 @@ function isoCombineSteps(G, H, top, bottom){
   return mrow(mo('['), mEl('mtable', [mEl('mtr', [cell(G, top)]), mEl('mtr', [cell(H, bottom)])]), mo(']'));
 }
 function isoCombinePlain(top, bottom){ return '[' + top + '; ' + bottom + ']'; }
-// Each row's modulus, (% n) over (% n'), closing the reduction.
+// Each row's modulus, (% n) over (% n'), closing the reduction; a curve's
+// row, its point never worked in the integers, left without one (a
+// phantom keeping the row its height).
 function isoCombineMods(G, H){
-  var cell = function(K){ return mEl('mtd', [mrow(mo('(', true), mPct(), mEl('mspace', [], { width: '0.25em' }), mn(K.n), mo(')', true))]); };
+  var cell = function(K){ return mEl('mtd', K.pts ? [mEl('mphantom', [mn('0')])] : [mrow(mo('(', true), mPct(), mEl('mspace', [], { width: '0.25em' }), mn(K.n), mo(')', true))]); };
   return mEl('mtable', [mEl('mtr', [cell(G)]), mEl('mtr', [cell(H)])]);
 }
 // a ∗ b in the integers, before reducing by the modulus; null on a curve.
@@ -16646,11 +16648,14 @@ function syncIsoCombine(){
         var top = [sides[0][1], sides[1][1]], bottom = [sides[0][2], sides[1][2]];
         row.push(isoCombineSteps(G, H, top, bottom), mo('='));
         plain += isoCombinePlain(top.join(' ' + isoCombineOp(G) + ' '), bottom.join(' ' + isoCombineOp(H) + ' ')) + ' = ';
-        // Complete: the integers' result too, when a row reduces.
+        // Complete: the integers' result too, when a row reduces; a
+        // curve's row keeps its point there.
         var rawTop = isoCombineRaw(G, a, b), rawBottom = isoCombineRaw(H, sides[0][3], sides[1][3]);
-        if (!state.subSimplify && rawTop !== null && rawBottom !== null && (rawTop !== balEl(G, c) || rawBottom !== balEl(H, sides[2][3]))){
-          row.push(isoCombineVec('c', signed(rawTop), signed(rawBottom)), mo('≡'));
-          plain += isoCombinePlain(signed(rawTop), signed(rawBottom)) + ' ≡ ';
+        var reduces = (rawTop !== null && rawTop !== balEl(G, c)) || (rawBottom !== null && rawBottom !== balEl(H, sides[2][3]));
+        if (!state.subSimplify && reduces){
+          var rt = rawTop === null ? sides[2][1] : signed(rawTop), rb = rawBottom === null ? sides[2][2] : signed(rawBottom);
+          row.push(isoCombineVec('c', rt, rb), mo('≡'));
+          plain += isoCombinePlain(rt, rb) + ' ≡ ';
           mods = true;
         }
       }
@@ -16658,7 +16663,7 @@ function syncIsoCombine(){
       sent = plain + p[2];
       if (mods){
         row.push(isoCombineMods(G, H));
-        sent += ' (% ' + G.n + '; % ' + H.n + ')';
+        sent += ' (' + [G, H].map(function(K){ return K.pts ? '' : '% ' + K.n; }).join('; ') + ')';
       }
       if (sent !== isoCombineSent) isoCombineEl.replaceChildren(mInline(mrow.apply(null, row), sent));
     }
