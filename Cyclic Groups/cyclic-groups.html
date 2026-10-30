@@ -17170,7 +17170,8 @@ function shownSub(G){ return noSub() ? null : shownGen(G); }
 // locked (under a padlock), the other then curing them by itself when a new
 // subgroup would send them the long way: with the directions locked ('dir')
 // the ring flips over, with the flip locked ('flip') the preferred direction
-// turns, and with nothing locked ('none') the ring flips over too. The free
+// turns, and with nothing locked ('none') the two take turns, the ring
+// flipping over one time and the preferred direction turning the next. The free
 // control may still be used by hand: G then becomes its inverse
 // (invForTurn). All of it is auto-simplify, which the right-click menu of
 // either control or the slider disables (state.simplifyOff): the arrows may
@@ -17179,11 +17180,16 @@ function shownSub(G){ return noSub() ? null : shownGen(G); }
 // direction is its holder's.
 var LOCKS = ['dir', 'none', 'flip'];
 var shortenLockEl = $('shorten-lock');
+// With nothing locked, whether the next cure turns the preferred direction
+// rather than flipping the ring.
+var autoCureTurns = false;
 // before is the ring as shown before the redraw that calls for the flip.
 function autoFlip(G, before){
   if (IS_ISOPANE || IS_PREVIEW || state.simplifyOff) return;
   if (!simplifiable(G, state.noSub ? null : state.gen)) return;
-  if (state.lock !== 'flip'){ setDir(state.dir === 'cw' ? 'ccw' : 'cw', false, null, before); return; }
+  var turn = state.lock === 'flip' || (state.lock === 'none' && autoCureTurns);
+  if (state.lock === 'none') autoCureTurns = !autoCureTurns;
+  if (!turn){ setDir(state.dir === 'cw' ? 'ccw' : 'cw', false, null, before); return; }
   // The turned direction is this ring's alone, never stored: another Ring
   // window, with the flip locked on another subgroup, may need the other.
   state.prefDir = otherDir(state.prefDir);
