@@ -235,8 +235,9 @@ async function ec(browser) {
   await P.clickEl('#gen-switch'); await sleep(200); await P.clickEl('#gen-switch'); await sleep(300);
   await P.load('?mobile=0&mode=additive&n=12&curve=17,2,2&sub=plot');
   await P.enter();
+  out((await P.param('sub')) === 'beads', N, 'legacy-url-rewritten-to-sub-beads-on-load', await P.q());
   await P.clickEl('#gen-beads'); await sleep(200); await P.clickEl('#gen-beads'); await sleep(300);
-  out((await P.param('sub')) === 'beads', N, 'legacy-url-rewritten-to-sub-beads', await P.q());
+  out((await P.param('sub')) === 'beads', N, 'legacy-url-sub-beads-after-retoggle', await P.q());
   noErrors(P, 'ec legacy');
   await P.done();
 }
