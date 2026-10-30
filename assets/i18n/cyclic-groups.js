@@ -147,8 +147,8 @@
    GCD and LCM forms), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
-   exchange worked with G as g, and its window), and reduceTo (the ring
-   menu's Reduce to ⟨ℤ/nℤ, +⟩ on a cyclic group), and genInWhole and
+   exchange worked with G as g, and its window), and swapIsoMenu (the ring
+   menu's Swap for an isomorphic group on a cyclic group), and genInWhole and
    genInProper (the tip on the subgroup row's ∈, ⟨h⟩ the whole group or not), and
    genSwitch (the subgroup row's on/off switch), genBeads and genBeadsTitle
    (its Follow bead clicks button, picking G by a click on a bead) and
@@ -1031,7 +1031,6 @@
       formulaToGcd: 'Switch to GCD form',
       formulaToLcm: 'Switch to LCM form',
       dhMenu: 'Diffie–Hellman with g = {g}',
-      reduceTo: 'Reduce to {group}',
       swapIsoMenu: 'Swap for an isomorphic group',
       genInWhole: '∈ == ⊆ ⇔ {g} is a generator/primitive root of the group {group}',
       genInProper: '∈ != ⊆ ⇔ {g} is NOT a generator/primitive root of the group {group}',
