@@ -1429,6 +1429,22 @@
      under it (placeSplitBtn), and its own panel. */
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen{ position:relative; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > .split-btn{ position:absolute; z-index:3; left:calc(100% + 14px); top:50%; translate:-50% -50%; }
+  /* So do their subgroup rows, which work in unison: one row across both
+     rings, its name at the left, each ring's G on its own side, and the
+     left ring's switch and Follow buttons on the line between the two; the
+     pane's own go. Short of room, the buttons give way to the right
+     (--gen-ctls-w, their width, kept by a ResizeObserver). */
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head{ display:contents; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head > label{ min-width:min(12em, 16.5cqi); }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen .gen-ctls{ order:1; position:relative; z-index:3; flex-wrap:nowrap; margin-left:auto; margin-right:calc(-0.5 * var(--gen-ctls-w, 0px) - 14px); }
+  /* The pane keeps its own buttons unseen, as wide as the left ring's,
+     for the part of those that reaches over the line into its row. */
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ min-width:0; }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-super{ margin-left:auto; }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head > label{ display:none; }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen .gen-ctls{ visibility:hidden; flex-wrap:nowrap; margin-left:calc(-0.5 * var(--gen-ctls-w, 0px) + 14px); }
   /* Linked as whole groups, the rings explore their cosets together too:
      the left ring's Explore cosets button joins Numerical on the line,
      under it, and the pane's own goes. */
@@ -1594,7 +1610,7 @@
   .gen-super{ display:none; }
   /* The subgroup row's head: its name, the switch that shows the subgroup
      (up is on) and the Follow bead clicks button, wrapping together. */
-  .gen-head{ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; }
+  .gen-head, .gen-ctls{ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; }
   /* The switch: a small upright pill, its knob at the top when on, at the
      bottom when off. */
   .gen-switch{ display:inline-flex; align-items:center; justify-content:center; padding:2px 4px; border:0; background:none; cursor:pointer; flex:none; }
@@ -2893,9 +2909,11 @@
         <div class="field" id="gen-field">
           <span class="gen-head">
             <label for="gen-switch"><span class="gen-panel-name" data-i18n="cyclicGroups.genLabel">Subgroup visualized</span><span class="gen-fs-name" data-i18n="cyclicGroups.genRowLabel">Subgroup</span></label>
-            <button type="button" class="gen-switch" id="gen-switch" role="switch" aria-checked="true" title="Show the subgroup" aria-label="Show the subgroup" data-i18n-title="cyclicGroups.genSwitch" data-i18n-aria-label="cyclicGroups.genSwitch"><span class="gen-switch-track" aria-hidden="true"></span></button>
-            <button type="button" class="gen-beads" id="gen-beads" aria-pressed="false" title="Clicking a bead selects its row, so G is the clicked element, instead of combining it" data-i18n-title="cyclicGroups.genBeadsTitle" data-i18n="cyclicGroups.genBeads">Follow bead clicks</button>
-            <button type="button" class="gen-beads sub-follow-btn" id="sub-follow" aria-pressed="false" hidden title="Select the row of the expression slider's generator, so G follows the slider" data-i18n-title="cyclicGroups.subExprFollowTitle" data-i18n="cyclicGroups.subExprFollow">Follow expression slider</button>
+            <span class="gen-ctls">
+              <button type="button" class="gen-switch" id="gen-switch" role="switch" aria-checked="true" title="Show the subgroup" aria-label="Show the subgroup" data-i18n-title="cyclicGroups.genSwitch" data-i18n-aria-label="cyclicGroups.genSwitch"><span class="gen-switch-track" aria-hidden="true"></span></button>
+              <button type="button" class="gen-beads" id="gen-beads" aria-pressed="false" title="Clicking a bead selects its row, so G is the clicked element, instead of combining it" data-i18n-title="cyclicGroups.genBeadsTitle" data-i18n="cyclicGroups.genBeads">Follow bead clicks</button>
+              <button type="button" class="gen-beads sub-follow-btn" id="sub-follow" aria-pressed="false" hidden title="Select the row of the expression slider's generator, so G follows the slider" data-i18n-title="cyclicGroups.subExprFollowTitle" data-i18n="cyclicGroups.subExprFollow">Follow expression slider</button>
+            </span>
           </span>
           <span class="gen-super" id="gen-super"></span>
         </div>
@@ -3077,6 +3095,10 @@ var opTriInputs = Array.prototype.slice.call(opTriEl.querySelectorAll('input'));
 var identitySelectEl = $('identity-select');
 var genSwitchEl = $('gen-switch');
 var genBeadsEl = $('gen-beads');
+// The merged subgroup row centres its buttons on the line between the rings
+// by their width.
+var genCtlsEl = document.querySelector('.gen-ctls');
+if (window.ResizeObserver) new ResizeObserver(function(){ $('gen-field').style.setProperty('--gen-ctls-w', genCtlsEl.offsetWidth + 'px'); }).observe(genCtlsEl);
 var ringSvgEl = $('ring-svg');
 var ringDynamicEl = $('ring-dynamic');
 var diagramFrameEl = $('diagram-frame');
