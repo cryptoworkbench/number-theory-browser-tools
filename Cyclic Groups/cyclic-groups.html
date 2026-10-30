@@ -1221,18 +1221,29 @@
      from syncRingOverlap). */
   .ring-head > .ring-hover-formula.is-on-ring{ border-color:var(--panel-border); background:var(--panel); }
   .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
-  /* The scroll-wheel switch at the formula's right edge: pressed, the wheel
-     takes the formula's logarithm through every generator as its base. */
-  .ring-head > .ring-hover-formula.has-log-scroll{ position:relative; padding-right:36px; }
-  .log-scroll-btn{ position:absolute; top:50%; right:7px; translate:0 -50%; pointer-events:auto; display:grid; place-items:center; width:22px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
-  .log-scroll-btn:hover{ color:var(--text); }
-  .log-scroll-btn[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
-  .log-scroll-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .log-scroll-btn svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
-  /* Under the formula, its Follow Generator dropdown switch: pressed, the
-     log base is the dropdown's generator and the scroll-wheel switch goes. */
-  .ring-head > .ring-hover-formula > .log-follow-btn{ pointer-events:auto; font-size:.78rem; padding:2px 9px; }
-  .ring-head > .ring-hover-formula > .log-follow-btn:disabled{ opacity:.45; cursor:default; }
+  /* The pyramid at the formula's right edge picks the log base: its knob on
+     the top corner, the scroll wheel's (the mouse there lit up), on the
+     bottom left the expression slider's, on the bottom right the
+     Generator dropdown's. Each corner is a radio button. */
+  .ring-head > .ring-hover-formula.has-log-tri{ position:relative; padding-right:58px; }
+  .log-tri{ position:absolute; top:50%; right:9px; translate:0 -50%; width:40px; height:38px; pointer-events:auto; direction:ltr; }
+  .log-tri-track{ position:absolute; inset:0; width:40px; height:38px; overflow:visible; }
+  .log-tri-track path{ fill:color-mix(in srgb, var(--text) 6%, transparent); stroke:color-mix(in srgb, var(--text) 28%, transparent); stroke-width:1.6; stroke-linejoin:round; }
+  .log-tri-stop{ position:absolute; width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%; cursor:pointer; }
+  .log-tri-stop input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+  .log-tri-stop:not(.at-scroll):hover::after{ content:""; position:absolute; inset:2px; border-radius:50%; background:color-mix(in srgb, var(--text) 14%, transparent); }
+  .log-tri-stop.at-scroll{ left:20px; top:8px; box-sizing:border-box; display:grid; place-items:center; border:1.6px solid color-mix(in srgb, var(--text) 28%, transparent); background:var(--panel); color:var(--text-dim); transition:color .2s, background .2s, border-color .2s; }
+  .log-tri-stop.at-scroll:hover{ color:var(--text); }
+  .log-tri-stop.at-scroll svg{ pointer-events:none; fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
+  .log-tri[data-at="scroll"] .log-tri-stop.at-scroll{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, var(--panel)); }
+  .log-tri-stop.at-slider, .log-tri-knob{ left:6px; top:31px; }
+  .log-tri-stop.at-gen, .log-tri[data-at="gen"] .log-tri-knob{ left:34px; top:31px; }
+  .log-tri-stop:has(input:disabled){ opacity:.45; cursor:not-allowed; }
+  .log-tri-stop:has(input:disabled) input{ cursor:not-allowed; }
+  .log-tri-knob{ position:absolute; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--accent); box-shadow:0 1px 2px var(--scrim); pointer-events:none; transition:left .2s ease, top .2s ease, opacity .2s; }
+  .log-tri[data-at="scroll"] .log-tri-knob{ left:20px; top:8px; opacity:0; }
+  .log-tri:has(input:focus-visible) .log-tri-knob, .log-tri[data-at="scroll"]:has(input:focus-visible) .log-tri-stop.at-scroll{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ .log-tri-knob, .log-tri-stop.at-scroll{ transition:none; } }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -5574,11 +5585,8 @@ function syncSubFormula(G){
     // pointer, coloured like its bead as the bottom panel's settings say.
     var box = subFormulaBox('div', 'ring-hover-formula', ringFormulas(G));
     if (logScrollable(G)){
-      box.appendChild(logFollowButton(G));
-      if (!logFollow){
-        box.classList.add('has-log-scroll');
-        box.appendChild(logScrollButton());
-      }
+      box.classList.add('has-log-tri');
+      box.appendChild(logTri(G));
     }
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
@@ -6935,17 +6943,18 @@ function ringFormulas(G){
 // never does, as another base multiplies the log by a unit mod |G|. Only
 // the formula changes, the ring stays as it is. It offers itself where the
 // formula works with a log and there is more than one base to try.
-// Its Follow Generator dropdown switch keeps the base on the dropdown's
-// generator instead, and the scroll-wheel switch makes way for it.
-var logScrollOn = false, logScrollG = null, logScrollSum = 0, logFollow = false;
+// The pyramid beside it picks where the base comes from: the wheel
+// (logMode 'scroll'), the expression slider ('slider') or the Generator
+// dropdown ('gen').
+var logMode = 'slider', logScrollG = null, logScrollSum = 0;
 function logScrollable(G){
   if (IS_MOBILE || G.pts || state.subBare || G.generators.length < 2) return false;
   // In (ℤ/nℤ)* the formula slider's middle hides it, as it hides ℤ/nℤ's log.
   return !state.subSimplify && (G.mode === 'additive' || G.cyclic);
 }
 function logScrollBase(G){
-  if (!logScrollable(G)) return undefined;
-  if (logFollow) return logGenBase(G);
+  if (!logScrollable(G) || logMode === 'slider') return undefined;
+  if (logMode === 'gen') return logGenBase(G);
   return G.generators.indexOf(logScrollG) !== -1 ? logScrollG : undefined;
 }
 // The Generator dropdown's generator: the one the beads are arranged by,
@@ -6955,41 +6964,51 @@ function logGenBase(G){
   if (G.cyclic && state.bygen) return arrangeBy(G);
   return G.mode === 'additive' && G.generators.indexOf(1) !== -1 ? 1 : undefined;
 }
-function logScrollButton(){
-  var b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'log-scroll-btn log-ctl';
-  b.setAttribute('aria-pressed', logScrollOn ? 'true' : 'false');
-  b.title = translate('cyclicGroups.logScroll');
-  b.setAttribute('aria-label', b.title);
-  b.appendChild(svgEl('svg', { viewBox: '0 0 12 12', width: 13, height: 13, 'aria-hidden': 'true', focusable: 'false' }));
-  b.firstChild.appendChild(svgEl('rect', { x: 3.5, y: 1.5, width: 5, height: 9, rx: 2.5 }));
-  b.firstChild.appendChild(svgEl('line', { x1: 6, y1: 3.2, x2: 6, y2: 5 }));
-  b.addEventListener('click', function(){
-    logScrollOn = !logScrollOn;
-    logScrollSum = 0;
-    if (drawn) syncSubFormula(drawn.G);
+function logTri(G){
+  var tri = document.createElement('span');
+  tri.className = 'log-tri log-ctl';
+  tri.dataset.at = logMode;
+  tri.setAttribute('role', 'radiogroup');
+  tri.setAttribute('aria-label', translate('cyclicGroups.logTriLabel'));
+  var track = svgEl('svg', { class: 'log-tri-track', viewBox: '0 0 40 38', 'aria-hidden': 'true', focusable: 'false' });
+  track.appendChild(svgEl('path', { d: 'M20 8 L34 31 L6 31 Z' }));
+  tri.appendChild(track);
+  [['scroll', 'cyclicGroups.logScroll'], ['slider', 'cyclicGroups.logFollowSliderTitle'], ['gen', 'cyclicGroups.logFollowGenTitle']].forEach(function(c){
+    var stop = document.createElement('label');
+    stop.className = 'log-tri-stop at-' + c[0];
+    stop.title = translate(c[1]);
+    var input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'log-tri';
+    input.value = c[0];
+    input.checked = logMode === c[0];
+    input.setAttribute('aria-label', stop.title);
+    if (c[0] === 'gen' && logMode !== 'gen' && logGenBase(G) === undefined) input.disabled = true;
+    input.addEventListener('change', function(){ setLogMode(c[0]); });
+    stop.appendChild(input);
+    if (c[0] === 'scroll'){
+      var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 11, height: 11, 'aria-hidden': 'true', focusable: 'false' });
+      icon.appendChild(svgEl('rect', { x: 3.5, y: 1.5, width: 5, height: 9, rx: 2.5 }));
+      icon.appendChild(svgEl('line', { x1: 6, y1: 3.2, x2: 6, y2: 5 }));
+      stop.appendChild(icon);
+    }
+    tri.appendChild(stop);
   });
-  return b;
+  var knob = document.createElement('span');
+  knob.className = 'log-tri-knob';
+  knob.setAttribute('aria-hidden', 'true');
+  tri.appendChild(knob);
+  return tri;
 }
-function logFollowButton(G){
-  var b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'gen-beads log-follow-btn log-ctl';
-  b.setAttribute('aria-pressed', logFollow ? 'true' : 'false');
-  b.textContent = translate('cyclicGroups.logFollowGen');
-  b.title = translate('cyclicGroups.logFollowGenTitle');
-  if (logGenBase(G) === undefined && !logFollow) b.disabled = true;
-  b.addEventListener('click', function(){
-    if (!drawn) return;
-    // Let go, the base stays where the dropdown had it.
-    logScrollG = logScrollBase(drawn.G) || logBase(drawn.G);
-    logFollow = !logFollow;
-    logScrollOn = false;
-    logScrollSum = 0;
-    syncSubFormula(drawn.G);
-  });
-  return b;
+// Onto the top corner, the wheel starts from the base the formula had.
+function setLogMode(mode){
+  if (!drawn) return;
+  if (mode === 'scroll') logScrollG = logScrollBase(drawn.G) || logBase(drawn.G);
+  logMode = mode;
+  logScrollSum = 0;
+  syncSubFormula(drawn.G);
+  var input = ringHeadEl.querySelector('.log-tri input:checked');
+  if (input) input.focus({ preventScroll: true });
 }
 function stepLogScroll(by){
   var gs = drawn.G.generators, at = gs.indexOf(logScrollBase(drawn.G) || logBase(drawn.G));
@@ -6999,7 +7018,7 @@ function stepLogScroll(by){
 // Anywhere over the ring or its formula, it takes the wheel from the zoom
 // and from the step through the rows.
 function logScrollTakes(e){
-  if (!logScrollOn || logFollow || !drawn || !logScrollable(drawn.G) || e.ctrlKey || !e.deltaY) return false;
+  if (logMode !== 'scroll' || !drawn || !logScrollable(drawn.G) || e.ctrlKey || !e.deltaY) return false;
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (!card) return false;
   var x = ptX(e), y = ptY(e), over = function(r){ return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
