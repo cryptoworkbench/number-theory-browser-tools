@@ -149,7 +149,11 @@
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
    exchange worked with G as g, and its window), and reduceTo (the ring
    menu's Reduce to ⟨ℤ/nℤ, +⟩ on a cyclic group), and genInWhole and
-   genInProper (the tip on the subgroup row's ∈, ⟨h⟩ the whole group or not). Every other language shows the English value through
+   genInProper (the tip on the subgroup row's ∈, ⟨h⟩ the whole group or not), and
+   genSwitch (the subgroup row's on/off switch), genBeads and genBeadsTitle
+   (its Follow bead clicks button, picking G by a click on a bead) and
+   genBeadsEc and genBeadsEcTitle (the same button on a curve, where a point
+   in the plot counts too). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1026,6 +1030,11 @@
       reduceTo: 'Reduce to {group}',
       genInWhole: '∈ == ⊆ ⇔ {g} is a generator/primitive root of the group {group}',
       genInProper: '∈ != ⊆ ⇔ {g} is NOT a generator/primitive root of the group {group}',
+      genSwitch: 'Show the subgroup',
+      genBeads: 'Follow bead clicks',
+      genBeadsTitle: 'Clicking a bead selects its row, so G is the clicked element, instead of combining it',
+      genBeadsEc: 'Follow point clicks',
+      genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
       dhAlice: 'Alice',
