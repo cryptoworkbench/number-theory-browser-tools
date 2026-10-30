@@ -1229,12 +1229,10 @@
   .log-scroll-btn[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .log-scroll-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .log-scroll-btn svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
-  /* Under the formula, its Follow expression slider and Follow Generator
-     dropdown switches: either pressed, the log base is that control's
-     generator and the scroll-wheel switch goes. */
-  .ring-head > .ring-hover-formula > .log-follow-row{ display:flex; gap:6px; }
-  .log-follow-row > .log-follow-btn{ pointer-events:auto; font-size:.78rem; padding:2px 9px; }
-  .log-follow-row > .log-follow-btn:disabled{ opacity:.45; cursor:default; }
+  /* Under the formula, its Follow Generator dropdown switch: pressed, the
+     log base is the dropdown's generator and the scroll-wheel switch goes. */
+  .ring-head > .ring-hover-formula > .log-follow-btn{ pointer-events:auto; font-size:.78rem; padding:2px 9px; }
+  .ring-head > .ring-hover-formula > .log-follow-btn:disabled{ opacity:.45; cursor:default; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -5576,7 +5574,7 @@ function syncSubFormula(G){
     // pointer, coloured like its bead as the bottom panel's settings say.
     var box = subFormulaBox('div', 'ring-hover-formula', ringFormulas(G));
     if (logScrollable(G)){
-      box.appendChild(logFollowRow(G));
+      box.appendChild(logFollowButton(G));
       if (!logFollow){
         box.classList.add('has-log-scroll');
         box.appendChild(logScrollButton());
@@ -6937,18 +6935,17 @@ function ringFormulas(G){
 // never does, as another base multiplies the log by a unit mod |G|. Only
 // the formula changes, the ring stays as it is. It offers itself where the
 // formula works with a log and there is more than one base to try.
-// Its Follow expression slider and Follow Generator dropdown switches keep
-// the base on that control's generator instead (logFollow 'slider' or
-// 'gen'), and the scroll-wheel switch makes way for them.
-var logScrollOn = false, logScrollG = null, logScrollSum = 0, logFollow = 'slider';
+// Its Follow Generator dropdown switch keeps the base on the dropdown's
+// generator instead, and the scroll-wheel switch makes way for it.
+var logScrollOn = false, logScrollG = null, logScrollSum = 0, logFollow = false;
 function logScrollable(G){
   if (IS_MOBILE || G.pts || state.subBare || G.generators.length < 2) return false;
   // In (ℤ/nℤ)* the formula slider's middle hides it, as it hides ℤ/nℤ's log.
   return !state.subSimplify && (G.mode === 'additive' || G.cyclic);
 }
 function logScrollBase(G){
-  if (!logScrollable(G) || logFollow === 'slider') return undefined;
-  if (logFollow === 'gen') return logGenBase(G);
+  if (!logScrollable(G)) return undefined;
+  if (logFollow) return logGenBase(G);
   return G.generators.indexOf(logScrollG) !== -1 ? logScrollG : undefined;
 }
 // The Generator dropdown's generator: the one the beads are arranged by,
@@ -6975,26 +6972,19 @@ function logScrollButton(){
   });
   return b;
 }
-function logFollowRow(G){
-  var row = document.createElement('span');
-  row.className = 'log-follow-row log-ctl';
-  row.appendChild(logFollowButton(G, 'slider', 'cyclicGroups.subExprFollow', 'cyclicGroups.logFollowTitle'));
-  row.appendChild(logFollowButton(G, 'gen', 'cyclicGroups.logFollowGen', 'cyclicGroups.logFollowGenTitle'));
-  return row;
-}
-function logFollowButton(G, mode, key, titleKey){
+function logFollowButton(G){
   var b = document.createElement('button');
   b.type = 'button';
-  b.className = 'gen-beads log-follow-btn';
-  b.setAttribute('aria-pressed', logFollow === mode ? 'true' : 'false');
-  b.textContent = translate(key);
-  b.title = translate(titleKey);
-  if (mode === 'gen' && logGenBase(G) === undefined && logFollow !== mode) b.disabled = true;
+  b.className = 'gen-beads log-follow-btn log-ctl';
+  b.setAttribute('aria-pressed', logFollow ? 'true' : 'false');
+  b.textContent = translate('cyclicGroups.logFollowGen');
+  b.title = translate('cyclicGroups.logFollowGenTitle');
+  if (logGenBase(G) === undefined && !logFollow) b.disabled = true;
   b.addEventListener('click', function(){
     if (!drawn) return;
-    // Let go, the base stays where the control had it.
+    // Let go, the base stays where the dropdown had it.
     logScrollG = logScrollBase(drawn.G) || logBase(drawn.G);
-    logFollow = logFollow === mode ? null : mode;
+    logFollow = !logFollow;
     logScrollOn = false;
     logScrollSum = 0;
     syncSubFormula(drawn.G);

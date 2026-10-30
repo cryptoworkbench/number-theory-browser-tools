@@ -1039,7 +1039,6 @@
       genBeadsTitle: 'Clicking a bead selects its row, so G is the clicked element, instead of combining it',
       genBeadsEc: 'Follow element clicks',
       logScroll: 'Scroll through every generator as the base of the logarithm: the logarithm changes, its gcd with |G| never does',
-      logFollowTitle: "Take the base of the logarithm from the expression slider's generator",
       logFollowGen: 'Follow Generator dropdown',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       logFollowGenTitle: "Take the base of the logarithm from the Generator dropdown's generator",
