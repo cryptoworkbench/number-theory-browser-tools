@@ -1435,15 +1435,17 @@
      pane's own go. Short of room, the buttons give way to the right
      (--gen-ctls-w, their width, kept by a ResizeObserver). */
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
+  :root.is-gen-wrap.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field::after, :root.is-gen-wrap.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field::after{ content:''; flex-basis:100%; height:0; order:1; }
+  :root.is-gen-wrap.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ order:2; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring > .iso-pane:not([hidden]){ border-left-color:transparent; background:linear-gradient(var(--panel-border), var(--panel-border)) 0 0 / 1px var(--gen-cut-t, 100%) no-repeat border-box, linear-gradient(var(--panel-border), var(--panel-border)) 0 var(--gen-cut-b, 100%) / 1px 100% no-repeat border-box; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head{ display:contents; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head > label{ min-width:min(12em, 16.5cqi); }
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen .gen-ctls{ order:1; position:relative; z-index:3; flex-wrap:nowrap; margin-left:auto; margin-right:calc(-0.5 * var(--gen-ctls-w, 0px) - 14px); }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen .gen-ctls{ order:2; position:relative; z-index:3; flex-wrap:nowrap; margin-left:auto; margin-right:calc(-0.5 * var(--gen-ctls-w, 0px) - 14px); }
   /* The pane keeps its own buttons unseen, as wide as the left ring's,
      for the part of those that reaches over the line into its row. */
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
-  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ min-width:0; }
-  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-super{ margin-left:auto; }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ min-width:0; margin-right:0; }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-super:not(:empty), :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-super:not(:empty){ margin-left:calc(-0.4em + var(--g-shift, 0px)); }
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head > label{ display:none; }
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen .gen-ctls{ visibility:hidden; flex-wrap:nowrap; margin-left:calc(-0.5 * var(--gen-ctls-w, 0px) + 14px); }
   /* Linked as whole groups, the rings explore their cosets together too:
@@ -7616,7 +7618,7 @@ if (IS_RINGWIN){
   window.addEventListener('message', function(e){
     var d = e.data;
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
-    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'invblink' || d.iso === 'genhot'){
+    if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'invblink' || d.iso === 'genhot' || d.iso === 'genwrap'){
       if (IS_ISOPANE) isoReceive(d);
       return;
     }
@@ -7798,6 +7800,7 @@ function canZoom(by){ return !!RING_ZOOMS[ringZoom + by]; }
 // at, from the other ring, keeps the two eases in step (see
 // easeRingResize); returns the moment this ring's ease began.
 function applyZoom(i, at){
+  queueCentreG();
   i = clamp(i, 0, RING_ZOOMS.length - 1);
   if (i === ringZoom) return;
   ringZoom = i;
@@ -8175,6 +8178,7 @@ function frostGenRow(on){
 // Nor does the line between the rings cross the merged row: the pane's
 // edge leaves a gap there (--gen-cut-t to --gen-cut-b, from the pane's top).
 function syncGenCut(){
+  queueCentreG();
   if (IS_ISOPANE) return;
   var st = isoPaneEl.style;
   var row = genRow();
@@ -8183,6 +8187,64 @@ function syncGenCut(){
   st.setProperty('--gen-cut-t', num(Math.max(0, r.top - p.top - 2)) + 'px');
   st.setProperty('--gen-cut-b', num(r.bottom - p.top + 2) + 'px');
 }
+// Merged, each ring's G sits right over the middle of its own ring: a
+// shift (--g-shift) from its place in the row, back no further than just
+// after the row's name (the name's column is wider than the word).
+function ringCentreX(){
+  var ctm = ringSvgEl.getScreenCTM(), b = ringBox();
+  return ctm ? (ctm.a * b.cx + ctm.c * b.cy + ctm.e) / PAGE_ZOOM : null;
+}
+// Where a centred G would run under the shared buttons (on the line
+// between the rings, as wide as --gen-ctls-w), the buttons take a line of
+// their own in both rings, so the rows stay as tall as each other: the pane
+// says whether its G is cramped ('gcramp'), the left ring decides and tells
+// it ('genwrap').
+var paneGCramped = false, genWrapSent = null;
+function gCramped(){
+  var el = genSuperEl, row = genRow(), cx = ringCentreX();
+  if (!rowsMerged() || !row || !el.offsetParent || !el.firstChild || cx === null) return false;
+  var w = boxOf(el).width, half = (parseFloat($('gen-field').style.getPropertyValue('--gen-ctls-w')) || 0) / 2, r = boxOf(row);
+  return IS_ISOPANE ? cx - w / 2 - 12 < r.left + half - 14 : cx + w / 2 + 12 > r.right + 14 - half;
+}
+function setGenWrap(on){
+  if (document.documentElement.classList.contains('is-gen-wrap') === on) return;
+  document.documentElement.classList.toggle('is-gen-wrap', on);
+  queueCentreG();
+}
+function syncGenWrap(){
+  if (IS_ISOPANE) return;
+  var on = rowsMerged() && (gCramped() || paneGCramped);
+  setGenWrap(on);
+  if (on !== genWrapSent){ genWrapSent = on; isoTell({ iso: 'genwrap', on: on }); }
+}
+var gCrampSent = null;
+function centreG(){
+  var el = genSuperEl, st = el.style;
+  if (IS_ISOPANE){
+    var cramped = gCramped();
+    if (cramped !== gCrampSent){ gCrampSent = cramped; isoTell({ iso: 'gcramp', on: cramped }); }
+  } else syncGenWrap();
+  if (!rowsMerged() || !genRow() || !el.offsetParent || !el.firstChild){ st.removeProperty('--g-shift'); return; }
+  // A shift can wrap the row, which moves G again: a few rounds settle it.
+  for (var i = 0; i < 3; i++){
+    var cx = ringCentreX(), r = boxOf(el);
+    if (cx === null || !r.width) return;
+    var was = parseFloat(st.getPropertyValue('--g-shift')) || 0;
+    var name = IS_ISOPANE ? null : document.querySelector('#gen-field .gen-fs-name');
+    var least = name && name.offsetParent ? Math.min(0, boxOf(name).right + 12 - (r.left - was)) : 0;
+    var shift = Math.max(least, was + cx - (r.left + r.right) / 2);
+    if (Math.abs(shift - was) < 0.5) return;
+    st.setProperty('--g-shift', num(shift) + 'px');
+  }
+}
+var centreGQueued = false;
+function queueCentreG(){
+  if (centreGQueued) return;
+  centreGQueued = true;
+  requestAnimationFrame(function(){ centreGQueued = false; centreG(); });
+}
+if (window.ResizeObserver) new ResizeObserver(queueCentreG).observe($('gen-field'));
+window.addEventListener('resize', queueCentreG);
 if (!IS_ISOPANE && window.ResizeObserver){
   var genCutRo = new ResizeObserver(syncGenCut);
   [isoPaneEl, $('gen-field'), $('arrange-field'), $('group-controls')].forEach(function(el){ if (el) genCutRo.observe(el); });
@@ -8295,6 +8357,7 @@ var panelGen = null; // the bottom panel's last pick: a row clicked or stepped t
 // It tells the selected subgroup, never one a hovered row previews.
 var genSuperEl = $('gen-super');
 function syncGenSuper(G){
+  queueCentreG();
   genSuperEl.replaceChildren();
   if (state.noSub) return;
   var h = state.gen, whole = G.orders[h] === G.order, rel = '∈';
@@ -14701,10 +14764,14 @@ function isoReceive(d){
   if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
   if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
   if (d.iso === 'genhot'){ frostGenRow(d.on === true); return; }
+  if (d.iso === 'gcramp'){ if (!IS_ISOPANE){ paneGCramped = d.on === true; syncGenWrap(); } return; }
+  if (d.iso === 'genwrap'){ if (IS_ISOPANE){ setGenWrap(d.on === true); } return; }
   if (d.iso === 'interlock'){
     if (IS_ISOPANE){
       isoInterlockOn = d.on === true;
       document.documentElement.classList.toggle('is-pane-merged', isoInterlockOn);
+      gCrampSent = null;
+      queueCentreG();
       // Merging, the holder's subgroup decides: the pane says nothing of
       // its own until it has been told the holder's.
       isoSelSent = isoInterlockOn ? SEL_AWAIT : null;
@@ -14911,6 +14978,9 @@ function syncInterlock(){
       }
       isoTell({ iso: 'interlock', on: on });
       document.documentElement.classList.toggle('is-sub-merged', on);
+      // The pane hears the wrap anew, and says anew whether its G is cramped.
+      genWrapSent = null;
+      if (!on) paneGCramped = false;
       syncGenCut();
       syncSubExpr(drawn.G);
       renderSubgroups(drawn.G);
@@ -15073,11 +15143,13 @@ window.addEventListener('message', function(e){
       if (num(lg.g) && logOk){ isoPaneLegend.g = lg.g; isoPaneLegend.log = lg.log; }
     }
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine' || d.iso === 'dh'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'genhot' || d.iso === 'gcramp'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // A pane just built hears this ring's head anew.
     headSent = null;
+    genWrapSent = null;
+    queueCentreG();
     syncHeadMatch();
     // The blank pane has its group: from now on it is a ring like any other.
     isoPane.blank = false;
