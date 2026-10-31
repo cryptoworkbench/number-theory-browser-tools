@@ -547,6 +547,32 @@ SCENARIOS.push(['open', async browser => {
   await P.done();
 }]);
 
+/* ---------- slshide: no base row while every shown map sits on an SLS form ---------- */
+SCENARIOS.push(['slshide', async browser => {
+  const P = await openPage(browser, 'slshide', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load(`${ZN}&gen=7&logbase=1&fmaporder=gcd-sls&fmapindex=lcm-sls`);
+  await P.enter();
+  out((await rowNow(P)) === null && (await P.ev(`!document.querySelector('.lb-lock, .lb-scroll')`)), 'slshide', 'both maps on SLS: no boxes, no padlock, no wheel switch');
+  await P.load(`${ZN}&gen=7&logbase=1&fmaporder=gcd-sls&fmapindex=gcd-full`);
+  await P.enter();
+  out((await rowNow(P)) !== null, 'slshide', 'one map on SLS, the other on GCD (full): the row stays');
+  await P.load(`?mobile=0&mode=additive&n=12&subformularow=both&subformularing=order&gen=7&logbase=1&fmaporder=lcm-sls`);
+  await P.enter();
+  out((await rowNow(P)) === null, 'slshide', 'only the size formula shown, on LCM (SLS): no row');
+  await P.load(`${ZN}&gen=7&logbase=1&fmaporder=gcd-sls&fmapindex=lcm-sls`);
+  await P.enter();
+  const c = await stopCentre(P, 'order', 'pos');
+  await dbl(P, c.x, c.y);
+  await sleep(300);
+  const r = await rowNow(P);
+  const set7 = await P.ev(`!!document.querySelector('.lb-box[data-g="7"].is-force-set')`);
+  out(r !== null && same(r.checked, [7]) && set7 && (await P.param('logbase')) === '7' && (await P.param('fmaporder')) === 'pos-gcd' && (await P.param('fmapindex')) === 'lcm-sls', 'slshide', 'both on SLS, a double-click on the closed a2: base 7 and a2 at once, the row back with 7 flashing', { r, set7, q: await P.q() });
+  await sleep(1400);
+  out(!(await P.ev(`!!document.querySelector('.lb-box.is-force-set, .lb-box.is-force-pulse')`)), 'slshide', 'the flash is over');
+  noErrors(P, 'slshide');
+  await P.done();
+}]);
+
 /* ---------- single: one click still only hints ---------- */
 SCENARIOS.push(['single', async browser => {
   const P = await openPage(browser, 'single', { w: 1280, h: 900, ua: UA_DESKTOP });

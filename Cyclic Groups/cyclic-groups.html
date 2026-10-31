@@ -5672,7 +5672,10 @@ function syncSubFormula(G){
         if (fs[i].map) box.insertBefore(formulaMap(G, fs[i].map), line);
       });
     }
-    if (box.classList.contains('has-fmap')) box.appendChild(logBaseRow(G));
+    // The base row, its padlock and its wheel switch go when every map shown
+    // sits on an SLS form, which takes no logarithm.
+    var slsOnly = fs.every(function(x){ return !x.map || x.map.token.indexOf('sls') !== -1; });
+    if (box.classList.contains('has-fmap') && !slsOnly) box.appendChild(logBaseRow(G));
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
     var list = box.querySelector('.lb-list');
@@ -7618,6 +7621,16 @@ function forceMapPosition(G, f, id){
   if (g === null || g === mapBase(G)) return;
   var list = ringHeadEl.querySelector('.lb-list');
   var box = list && list.querySelector('.lb-box[data-g="' + g + '"]');
+  // No row while every map sits on an SLS form: the base and the knob go at
+  // once, the row comes back with the picked box on its last flash.
+  if (!list){
+    stopLogForce();
+    var now = fmapRow(state.fmap[f]) || 'gcd', gen0 = logForceGen;
+    logForce = { key: G.key, h: state.gen, f: f, g: g, from: state.chosenBase, tok: state.fmap[f], to: FMAP_AT[id][now], set: true, t0: Date.now() };
+    applyForcedMap(f, logForce.to, g);
+    if (gen0 === logForceGen) logForceTimers.push(setTimeout(function(){ if (gen0 === logForceGen) stopLogForce(); }, LOG_FORCE_SET + 100));
+    return;
+  }
   if (!box) return;
   stopLogForce();
   clearTimeout(logFlashTimer);
