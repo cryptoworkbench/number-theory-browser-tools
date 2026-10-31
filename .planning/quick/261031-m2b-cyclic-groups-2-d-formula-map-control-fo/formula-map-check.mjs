@@ -415,7 +415,7 @@ SCENARIOS.push(['zn', async browser => {
     }
   }
   const labels = (await mapsNow(P))[0].labels;
-  out(labels === 'JN GCD short GCD full a2 a LCM short LCM full LCM SLS GCD SLS', 'zn', 'every position names itself on the map', labels);
+  out(labels === 'JN GCD short GCD full a2 a LCM short LCM full GCD SLS LCM SLS', 'zn', 'every position names itself on the map', labels);
   // the three slider levels and sublcm leave the main view alone
   noErrors(P, 'zn');
   await P.done();
@@ -489,12 +489,12 @@ SCENARIOS.push(['maps', async browser => {
   out((await at()).join() === 'abs,gcd-full', 'maps', 'the index map did not move', await at());
   // tooltips and accessible names
   const names = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap[data-f="index"] .fmap-stop'), function(l){ return [l.title, l.querySelector('input').getAttribute('aria-label')]; })`);
-  out(names.length === 9 && names.every(x => x[0] && x[0] === x[1]) && /^JN/.test(names.find(x => /^JN/.test(x[0]))[0]) && names.some(x => /^GCD \(short\)/.test(x[0])) && names.some(x => /^a2/.test(x[0])) && names.some(x => /^LCM \(SLS\)/.test(x[0])), 'maps', 'every position has a tooltip equal to its aria-label, starting with the map name', names.map(x => x[0].slice(0, 20)));
+  out(names.length === 9 && names.every(x => x[0] && x[0] === x[1]) && names.some(x => /^JN/.test(x[0])), 'maps', 'every position has a tooltip equal to its aria-label (nine of them, the JN one starting "JN")', names.map(x => x[0].slice(0, 20)));
   const group = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return [m.getAttribute('role'), m.getAttribute('aria-label')]; })`);
   out(group.length === 2 && group.every(x => x[0] === 'radiogroup' && x[1]), 'maps', 'each map is a labelled radiogroup', group);
-  // the map sits left of its formula, the pyramid stays at the right edge
-  const geo = await P.ev(`(function(){var box=document.querySelector('.ring-hover-formula'), mp=document.querySelector('.fmap'), ln=document.querySelector('.ring-hover-formula math.ring-math-formula'), tri=document.querySelector('.ring-hover-formula .log-tri'); var r=function(e){var b=e.getBoundingClientRect();return {l:b.left,r:b.right,t:b.top,b:b.bottom};}; return { box:r(box), map:r(mp), line:r(ln), tri: tri && r(tri) }; })()`);
-  out(geo.map.r <= geo.line.l && (!geo.tri || (geo.tri.l >= geo.line.r - 1 && geo.tri.l >= geo.map.r)), 'maps', 'map left of its formula, the pyramid clear of both', geo);
+  // the map sits left of its formula, the base row sits under the last line
+  const geo = await P.ev(`(function(){var box=document.querySelector('.ring-hover-formula'), mp=document.querySelector('.fmap'), lines=document.querySelectorAll('.ring-hover-formula math.ring-math-formula'), row=document.querySelector('.ring-hover-formula .lb-row'); var r=function(e){var b=e.getBoundingClientRect();return {l:b.left,r:b.right,t:b.top,b:b.bottom};}; var last=0; Array.prototype.forEach.call(lines,function(l){ last=Math.max(last, r(l).b); }); return { box:r(box), map:r(mp), line:r(lines[0]), last:last, row: row && r(row) }; })()`);
+  out(geo.map.r <= geo.line.l && !!geo.row && geo.row.t >= geo.last - 1, 'maps', 'map left of its formula, the base row under the last line', geo);
   noErrors(P, 'maps');
   await P.done();
 }]);
@@ -583,11 +583,11 @@ SCENARIOS.push(['curve', async browser => {
   await P.enter();
   const f2 = await P.formulas();
   out(f2.ring[0] && f2.ring[0].plain === wantPair(M, 14, 1, 'gcd-full', 'gcd-full')[0], 'curve', 'natural slider: the log base is the arranging point', plains(f2.ring));
-  // the pyramid offers itself on a cyclic curve and not at JN
-  out(await P.exists('.ring-hover-formula .log-tri'), 'curve', 'pyramid at a log form');
+  // the base row shows on a cyclic curve, the pyramid is gone
+  out((await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .log-tri')), 'curve', 'base row at a log form');
   await P.load(`${CURVE}&gen=1&expr=8&fmaporder=jn&fmapindex=jn`);
   await P.enter();
-  out(!(await P.exists('.ring-hover-formula .log-tri')), 'curve', 'no pyramid while every shown formula sits on JN');
+  out(await P.exists('.ring-hover-formula .lb-row'), 'curve', 'the base row stays while every shown formula sits on JN');
   noErrors(P, 'curve');
   await P.done();
 }]);
@@ -627,7 +627,7 @@ SCENARIOS.push(['noncyclic', async browser => {
     await P.enter();
     const f = await P.formulas();
     out(JSON.stringify(plains(f.ring)) === JSON.stringify(want[name]), 'noncyclic', `${name}${lv || ' complete'}: the Complete-level notation, whatever the slider says`, plains(f.ring));
-    out(!(await P.exists('.fmap')) && !(await P.exists('.ring-hover-formula .log-tri')), 'noncyclic', `${name}${lv || ' complete'}: no map, no pyramid`);
+    out(!(await P.exists('.fmap')) && !(await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .log-tri')), 'noncyclic', `${name}${lv || ' complete'}: no map, no base row, no pyramid`);
   }
   // a map's stored position is left alone where there is no map
   await P.load('?mobile=0&mode=multiplicative&n=8&gen=3&subformularing=both&fmaporder=lcm-short');
@@ -638,7 +638,6 @@ SCENARIOS.push(['noncyclic', async browser => {
 }]);
 
 /* ---------- snap, further: another group, another base ---------- */
-const wheel = (P, x, y, dy) => P.S('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX: 0, deltaY: dy });
 SCENARIOS.push(['snap', async browser => {
   const P = await openPage(browser, 'snap', { w: 1280, h: 900, ua: UA_DESKTOP });
   // SLS, then another group: ℤ/12ℤ -> (ℤ/13ℤ)* sends it to JN, and the url follows
@@ -650,16 +649,14 @@ SCENARIOS.push(['snap', async browser => {
   await sleep(1200);
   m = await mapsNow(P);
   out(m.length === 2 && m[0].at === 'jn' && m[1].at === 'jn' && (await P.param('fmaporder')) === 'jn' && (await P.param('fmapindex')) === 'jn' && /mode=multiplicative/.test(await P.q()), 'snap', 'switching to (ℤ/13ℤ)* snaps SLS to JN in both maps and the url', { m, q: await P.q() });
-  // another base through the pyramid's wheel: h = 9 in ℤ/12ℤ, base 1 -> 5 -> 7 opens a2 (log_7 9 = 3), back to 5 closes it
+  // another base through the row of boxes: h = 9 in ℤ/12ℤ, base 1 -> 7 opens a2 (log_7 9 = 3)
   await P.load(`${ZN}&gen=9&fmaporder=abs-gcd&fmapindex=abs-lcm`);
   await P.enter();
   m = await mapsNow(P);
   out(m[0].off.includes('pos'), 'snap', 'base 1: a2 closed (q = 9)', m[0].off);
-  await P.clickEl('.ring-hover-formula .log-tri input[value="scroll"]');
-  await sleep(500);
-  const at = await P.ev(`(function(){var r=document.querySelector('.ring-hover-formula').getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}})()`);
-  await wheel(P, at.x, at.y, 100); await sleep(500);
-  await wheel(P, at.x, at.y, 100); await sleep(700);
+  let c = await centre(P, '.lb-box[data-g="7"]');
+  await P.mouse(c.x, c.y);
+  await sleep(300);
   m = await mapsNow(P);
   let f = await P.formulas();
   const Z = znModel(12);
@@ -667,9 +664,19 @@ SCENARIOS.push(['snap', async browser => {
   await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="pos"] input');
   await sleep(700);
   out((await P.param('fmaporder')) === 'pos-gcd', 'snap', 'a2 can be entered from a (pos-gcd)', await P.param('fmaporder'));
-  await wheel(P, at.x, at.y, -100); await sleep(700);
+  // box 5 is off while the order map sits on a2; a click on it changes nothing
+  const off5 = await P.ev(`document.querySelector('.lb-box[data-g="5"] input').disabled`);
+  c = await centre(P, '.lb-box[data-g="5"]');
+  await P.mouse(c.x, c.y);
   m = await mapsNow(P);
-  out(m[0].at === 'abs' && m[0].off.includes('pos') && (await P.param('fmaporder')) === 'abs-gcd', 'snap', 'back to base 5: a2 closes and the knob snaps to a, the url too', { m, o: await P.param('fmaporder') });
+  out(off5 && (await P.param('logbase')) === '7' && m[0].at === 'pos', 'snap', 'box 5 is off while the order map is on a2: a click leaves logbase=7 and the knob on a2', { off5, q: await P.q(), at: m[0].at });
+  // a on the order map, then box 5: a2 closes again, nothing to snap
+  await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="abs"] input');
+  await sleep(700);
+  c = await centre(P, '.lb-box[data-g="5"]');
+  await P.mouse(c.x, c.y);
+  m = await mapsNow(P);
+  out((await P.param('logbase')) === '5' && m[0].at === 'abs' && m[0].off.includes('pos') && (await P.param('fmaporder')) === 'abs-gcd', 'snap', 'a on the order map, then box 5: logbase=5, a2 closed again, fmaporder=abs-gcd', { m, q: await P.q() });
   noErrors(P, 'snap');
   await P.done();
 }]);
@@ -784,7 +791,7 @@ SCENARIOS.push(['mobile', async browser => {
   await sleep(800);
   const m = await mapsNow(P);
   out(m.length === 2 && m.every(x => x.n === 9), 'mobile', 'both maps beside the main formulas on the stacked page', m.length);
-  out(!(await P.exists('.ring-hover-formula .log-tri')), 'mobile', 'no pyramid on the phone');
+  out((await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .log-tri')), 'mobile', 'the base row on the phone and no pyramid');
   await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="lcm-short"] input');
   await sleep(700);
   const f = await P.formulas();

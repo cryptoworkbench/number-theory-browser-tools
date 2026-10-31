@@ -164,7 +164,11 @@
    (each position's tooltip and accessible name), and formula.mapOrderJn to
    formula.mapOrderLcmSls and formula.mapIndexJn to formula.mapIndexLcmSls
    (the plain text of the size and the index at each of the nine positions,
-   for every kind of group). Every other language shows the English value through
+   for every kind of group), and logBaseLabel, logBaseOff and logBaseWheel (the
+   row of generator boxes under the main view's formulas that chooses the base
+   of the logarithm, a greyed-out box's tooltip, and the row's scroll-wheel
+   switch), which replace the four English-only strings of the log-base
+   pyramid, removed with it. Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1065,8 +1069,6 @@
       genBeads: 'Follow bead clicks',
       genBeadsTitle: 'Clicking a bead selects its row, so G is the clicked element, instead of combining it',
       genBeadsEc: 'Follow element clicks',
-      logScroll: 'Follow mouse scroll: the scroll wheel takes the base of the logarithm through every generator; the logarithm changes, its gcd with |G| never does',
-      logTriLabel: 'Base of the logarithm',
       fmapOrderLabel: 'Formula map of the subgroup size',
       fmapIndexLabel: 'Formula map of the index',
       fmapLabelJn: 'JN',
@@ -1086,9 +1088,10 @@
       fmapPos: 'Use the logarithm of G to divide the group size directly, and it is used without the absolute function because it came out positive.',
       fmapGcdSls: 'GCD (Skip logarithm substitution): use the GCD formula, but skip logarithm substitution; one derivation step less.',
       fmapLcmSls: 'LCM (Skip logarithm substitution): use the LCM formula, but skip logarithm substitution; one derivation step less.',
-      logFollowSliderTitle: "Follow expression slider: the base of the logarithm is the expression slider's generator",
+      logBaseLabel: 'Base of the logarithm',
+      logBaseOff: 'Greyed out: with this base of the logarithm, the a or a2 form a formula map is on does not work for this element',
+      logBaseWheel: 'Scroll wheel: over the formulas, the wheel steps the base of the logarithm through the generators that are not greyed out',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
-      logFollowGenTitle: "Follow Generator dropdown: the base of the logarithm is the Generator dropdown's generator",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
