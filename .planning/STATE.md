@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-31 - Completed quick task 261031-pm3: Cyclic Groups generator boxes replace the main formula's log-base pyramid (branch cyclic-groups-log-base-boxes)
+Last activity: 2026-10-31 - Completed quick task 261031-tnu: Cyclic Groups double-click on a closed a or a2 forces the nearest suitable log base (branch cyclic-groups-map-force-dblclick)
 
 Progress: [█████████░] 86%
 
@@ -627,6 +627,7 @@ None yet.
 | 261030-k0a | Cyclic Groups: SUBGROUP on/off switch and Follow bead clicks button replace the G dropdown | 2026-10-30 | fd945ce | [261030-k0a-cyclic-groups-subgroup-on-off-switch-and](./quick/261030-k0a-cyclic-groups-subgroup-on-off-switch-and/) |
 | 261031-m2b | Cyclic Groups: 2-D formula map beside each main-view formula (Size, Index) picks JN / GCD / LCM short-full / a / a2 / SLU, for ℤ/nℤ, (ℤ/nℤ)* and cyclic curves | 2026-10-31 | 97d0909 | [261031-m2b-cyclic-groups-2-d-formula-map-control-fo](./quick/261031-m2b-cyclic-groups-2-d-formula-map-control-fo/) |
 | 261031-pm3 | Cyclic Groups: a row of generator boxes under the main formulas picks the log base (pyramid removed); closed a/a2 flash suitable bases green, others red; scroll-wheel switch (branch cyclic-groups-log-base-boxes) | 2026-10-31 | d74dd1f | [261031-pm3-cyclic-groups-generator-boxes-replace-th](./quick/261031-pm3-cyclic-groups-generator-boxes-replace-th/) |
+| 261031-tnu | Cyclic Groups: double-clicking a closed a or a2 on a formula map picks the nearest suitable log base (two green pulses, base set + knob moves, third pulse) (branch cyclic-groups-map-force-dblclick) | 2026-10-31 | 7b26924 | [261031-tnu-cyclic-groups-double-click-a-closed-a-or](./quick/261031-tnu-cyclic-groups-double-click-a-closed-a-or/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -881,4 +882,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-31 - Completed quick task 261031-pm3: Cyclic Groups generator boxes replace the main formula's log-base pyramid (branch cyclic-groups-log-base-boxes)
+Last activity: 2026-10-31 - Completed quick task 261031-tnu: Cyclic Groups double-click on a closed a or a2 forces the nearest suitable log base (branch cyclic-groups-map-force-dblclick)
