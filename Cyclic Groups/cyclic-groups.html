@@ -1250,6 +1250,13 @@
      under the one in use. */
   .ring-head > .ring-hover-formula.has-fmap{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:12px; row-gap:6px; justify-items:center; direction:ltr; }
   .ring-head > .ring-hover-formula.has-fmap > math{ justify-self:center; }
+  /* On a phone, or a window too narrow for a map beside a formula, each map sits over its formula. */
+  :root.is-mobile .ring-head > .ring-hover-formula.has-fmap{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
+  :root.is-mobile .ring-hover-formula.has-fmap > .fmap{ justify-self:center; }
+  @media (max-width: 720px){
+    .ring-head > .ring-hover-formula.has-fmap{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
+    .ring-hover-formula.has-fmap > .fmap{ justify-self:center; }
+  }
   .fmap{ position:relative; justify-self:start; width:172px; height:94px; flex:none; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
   .fmap-svg{ position:absolute; inset:0; width:172px; height:94px; overflow:visible; }
   .fmap-edge{ fill:none; stroke:color-mix(in srgb, var(--text) 52%, transparent); stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
@@ -3132,7 +3139,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5315,8 +5322,8 @@ function bareFormula(f){
 // The bottom bar's formula controls, one set per open group: the ring's own
 // and, beside a pane, the pane's, whose choices this ring keeps and shares.
 var BAR_SIDES = [
-  { el: 'bar-formulas-l', row: 'subFormulaRow', ring: 'subFormulaRing', lrow: 'subLcm', lring: 'subLcmRing' },
-  { el: 'bar-formulas-r', row: 'subFormulaRowR', ring: 'subFormulaRingR', lrow: 'subLcmR', lring: 'subLcmRingR' }
+  { el: 'bar-formulas-l', row: 'subFormulaRow', ring: 'subFormulaRing', lrow: 'subLcm' },
+  { el: 'bar-formulas-r', row: 'subFormulaRowR', ring: 'subFormulaRingR', lrow: 'subLcmR' }
 ];
 var barMenuFor = null;
 function barGroup(i){
@@ -5436,22 +5443,26 @@ function toggleBarMenu(i, btn){
   if (first) first.focus();
 }
 // The menu's grid: for each place a formula can show in, the main area
-// and the row, and for each formula, size and index, a choice of three:
-// its gcd form, none, or its lcm form. A place showing both stacks them,
-// size first. A click picks one and leaves the menu open.
+// and the row, and for each formula, size and index, a choice. The row's is
+// one of three: its gcd form, none, or its lcm form; the main area's only
+// shows or hides it, its formula map picking the form. A place showing both
+// stacks them, size first. A click picks one and leaves the menu open.
 var BAR_PLACES = [['ring', 'cyclicGroups.barLcmMain'], ['row', 'cyclicGroups.barLcmRow']];
 var BAR_FORMULAS = [['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort']];
 var BAR_FORMS = [['gcd', 'cyclicGroups.barGcd'], ['none', 'cyclicGroups.subFormulaNone'], ['lcm', 'cyclicGroups.barLcm']];
 // On a curve each formula is only shown or hidden, having no gcd or lcm form.
 var BAR_FORMS_EC = [['gcd', 'cyclicGroups.barShow'], ['none', 'cyclicGroups.formulaHide']];
 function barForms(i){ var G = barGroup(i); return G && G.pts ? BAR_FORMS_EC : BAR_FORMS; }
+// The choices a place offers: the main area's only show or hide.
+function barFormsAt(i, place){ return place === 'ring' ? BAR_FORMS_EC : barForms(i); }
 function fillBarGrid(i, focusAt){
-  var side = BAR_SIDES[i], forms = barForms(i);
+  var side = BAR_SIDES[i];
   var has = function(v, f){ return v === f || v === 'both'; };
   var grid = document.createElement('div');
   grid.className = 'bar-grid';
   grid.setAttribute('role', 'group');
-  // In the corner over the places, a swap: Main's choices and Row's trade places.
+  // In the corner over the places, a swap: Main's shown and hidden choices and Row's
+  // trade places (Row's gcd or lcm form stays, the maps stay where they are).
   var swap = document.createElement('button');
   swap.type = 'button';
   swap.className = 'bar-swap';
@@ -5463,11 +5474,9 @@ function fillBarGrid(i, focusAt){
   arrows.appendChild(svgEl('path', { d: 'M11 2.5V13.5M8.5 11 11 13.5 13.5 11' }));
   swap.appendChild(arrows);
   swap.addEventListener('click', function(){
-    ['', 'l'].forEach(function(pre){
-      var ring = side[pre + 'ring'], row = side[pre + 'row'], was = state[ring];
-      state[ring] = state[row];
-      state[row] = was;
-    });
+    var was = state[side.ring];
+    state[side.ring] = state[side.row];
+    state[side.row] = was;
     barFormulasChanged();
     fillBarGrid(i);
     var again = barMenuEl.querySelector('.bar-swap');
@@ -5482,12 +5491,13 @@ function fillBarGrid(i, focusAt){
     grid.appendChild(head);
   });
   BAR_PLACES.forEach(function(pl, r){
+    var forms = barFormsAt(i, pl[0]);
     var name = document.createElement('span');
     name.className = 'bar-grid-row';
     name.id = 'bar-grid-' + pl[0];
     name.textContent = translate(pl[1]);
     grid.appendChild(name);
-    var v = state[side[pl[0]]], lv = state[side['l' + pl[0]]];
+    var v = state[side[pl[0]]], lv = pl[0] === 'row' ? state[side.lrow] : 'none';
     BAR_FORMULAS.forEach(function(fm, k){
       var now = !has(v, fm[0]) ? 'none' : lcmHas(lv, fm[0]) ? 'lcm' : 'gcd';
       var seg = document.createElement('span');
@@ -5513,7 +5523,7 @@ function fillBarGrid(i, focusAt){
           if (fm[0] === 'order'){ order = on; if (on) lo = fo[0] === 'lcm'; }
           else { index = on; if (on) li = fo[0] === 'lcm'; }
           state[side[pl[0]]] = lcmPack(order, index);
-          state[side['l' + pl[0]]] = lcmPack(lo, li);
+          if (pl[0] === 'row') state[side.lrow] = lcmPack(lo, li);
           barFormulasChanged();
           fillBarGrid(i, r + ',' + c);
         });
@@ -5803,7 +5813,7 @@ function fitSubFormulaLine(box, m){
   var room = right - left - 2 - (box.offsetWidth - box.clientWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   // Beside its map a formula has the room left of the map's column.
   var map = box.querySelector(':scope > .fmap');
-  if (map) room -= boxOf(map).width + (parseFloat(cs.columnGap) || 0);
+  if (map && cs.gridTemplateColumns.split(' ').length > 1) room -= boxOf(map).width + (parseFloat(cs.columnGap) || 0);
   var w = boxOf(m).width;
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
@@ -6959,7 +6969,7 @@ function syncFormulaCtx(fml){
   var head = [hide.item];
   var fs = ringFormulaForms(drawn.G, fml.line);
   if (fs){
-    var toLcm = !lcmHas(state.subLcmRing, fs[0]);
+    var toLcm = fmapRow(state.fmap[fs[0]]) === 'gcd';
     var sw = ctxItem('menuitem', translate(toLcm ? 'cyclicGroups.formulaToLcm' : 'cyclicGroups.formulaToGcd'));
     sw.item.addEventListener('click', function(){ setRingCtx(false); switchRingFormulaForm(fs, toLcm); });
     head.push(sw.item);
@@ -7350,22 +7360,23 @@ document.addEventListener('wheel', function(e){
   logScrollSum = 0;
 }, { capture: true, passive: false });
 // The main view's formulas the switch turns, size and/or index: the one on
-// the line under the pointer, or, between the lines, both when they are in
-// the same form. None where the group has no lcm form (a group of units
-// that isn't cyclic), nor on a curve, whose size and index are notation.
+// the line under the pointer, or, between the lines, both when they sit on
+// the same row of their maps, GCD or LCM, at the GCD/LCM short, full or SLU
+// form. None where there is no map (a group of units that isn't cyclic, a
+// curve with no generating point), nor at JN, a or a2, which belong to no row.
 function ringFormulaForms(G, line){
-  if (G.pts || !(G.mode === 'additive' || G.cyclic)) return null;
-  var v = state.subFormulaRing;
-  var fs = v === 'both' ? ['order', 'index'] : SUB_FORMULAS.indexOf(v) !== -1 && v !== 'none' ? [v] : [];
+  if (!hasMap(G)) return null;
+  var fs = fmapShown();
   if (line >= 0 && line < fs.length) fs = [fs[line]];
-  if (!fs.length || fs.some(function(f){ return lcmHas(state.subLcmRing, f) !== lcmHas(state.subLcmRing, fs[0]); })) return null;
+  var turns = function(f){ var node = fmapNode(state.fmap[f]); return node !== 'jn' && node !== 'abs' && node !== 'pos'; };
+  if (!fs.length || !fs.every(turns) || fs.some(function(f){ return fmapRow(state.fmap[f]) !== fmapRow(state.fmap[fs[0]]); })) return null;
   return fs;
 }
+// The same detail, on the other row: gcd-short to lcm-short, and so on.
 function switchRingFormulaForm(fs, toLcm){
-  var form = function(f){ return fs.indexOf(f) !== -1 ? toLcm : lcmHas(state.subLcmRing, f); };
-  state.subLcmRing = lcmPack(form('order'), form('index'));
+  fs.forEach(function(f){ state.fmap[f] = state.fmap[f].replace(toLcm ? 'gcd' : 'lcm', toLcm ? 'lcm' : 'gcd'); });
   if (IS_ISOPANE){
-    tellHost({ isopane: 'lcm-ring', value: state.subLcmRing });
+    tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
     if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
     return;
   }
@@ -8320,9 +8331,20 @@ barMenuEl.addEventListener('keydown', function(e){
   e.preventDefault();
   e.stopPropagation();
   var at = box.getAttribute('data-at').split(',').map(Number);
-  var cols = BAR_FORMULAS.length * barForms(barMenuFor).length;
-  var r = (at[0] + step[0] + BAR_PLACES.length) % BAR_PLACES.length, c = (at[1] + step[1] + cols) % cols;
-  barMenuEl.querySelector('[data-at="' + r + ',' + c + '"]').focus();
+  // The rows offer different numbers of choices: along a row the keys wrap
+  // inside it, between rows they keep the formula's column and clamp the choice.
+  var forms = function(r){ return barFormsAt(barMenuFor, BAR_PLACES[r][0]); };
+  var from = forms(at[0]), r = at[0], c;
+  if (step[0]){
+    r = (at[0] + step[0] + BAR_PLACES.length) % BAR_PLACES.length;
+    var to = forms(r);
+    c = Math.floor(at[1] / from.length) * to.length + Math.min(at[1] % from.length, to.length - 1);
+  } else {
+    var cols = BAR_FORMULAS.length * from.length;
+    c = (at[1] + step[1] + cols) % cols;
+  }
+  var next = barMenuEl.querySelector('[data-at="' + r + ',' + c + '"]');
+  if (next) next.focus();
 });
 formulaLevelEl.addEventListener('input', function(){
   var v = +formulaLevelEl.value;
@@ -14453,12 +14475,16 @@ function swapIsoRings(){
   // Each group's formula choices go with it to the other side: the ones
   // this ring kept for the pane's group become this ring's own, and its
   // own the pane's. The pane's query holds none of them up to date.
-  var sides = BAR_SIDES.map(function(side){ return [side.row, side.ring, side.lrow, side.lring].map(function(k){ return state[k]; }); });
+  var sides = BAR_SIDES.map(function(side){ return [side.row, side.ring, side.lrow].map(function(k){ return state[k]; }); });
+  var maps = [fmapPair(state.fmap), fmapPair(state.fmapR)];
   loadState(paneQ, { mode: paneQ.get('mode'), n: parseInt(paneQ.get('n'), 10) });
   Object.keys(keep).forEach(function(k){ state[k] = keep[k]; });
   BAR_SIDES.forEach(function(side, i){
-    [side.row, side.ring, side.lrow, side.lring].forEach(function(k, j){ state[k] = sides[1 - i][j]; });
+    [side.row, side.ring, side.lrow].forEach(function(k, j){ state[k] = sides[1 - i][j]; });
   });
+  // The formula maps go with their groups too.
+  state.fmap = maps[1];
+  state.fmapR = maps[0];
   syncFormulaCtl();
   isoPane.q = hostQ.toString();
   isoPane.h = g;
@@ -14808,7 +14834,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, lcmRing: state.subLcmRingR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, fmap: fmapPair(state.fmapR), simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -14974,7 +15000,8 @@ function applyIsoShared(d){
   if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
   if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
   if (flag(d.lcmRow) || SUB_FORMULAS.indexOf(d.lcmRow) !== -1) state.subLcm = lcmPack(lcmHas(d.lcmRow, 'order'), lcmHas(d.lcmRow, 'index'));
-  if (flag(d.lcmRing) || SUB_FORMULAS.indexOf(d.lcmRing) !== -1) state.subLcmRing = lcmPack(lcmHas(d.lcmRing, 'order'), lcmHas(d.lcmRing, 'index'));
+  // The pane's formula maps, kept by the ring holding it.
+  if (d.fmap && FMAP_POS.indexOf(d.fmap.order) !== -1 && FMAP_POS.indexOf(d.fmap.index) !== -1) state.fmap = { order: d.fmap.order, index: d.fmap.index };
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.bare)) state.subBare = d.bare;
   if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
@@ -15831,8 +15858,8 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'swap' && d.spec){
     var swapTo = readSwaps([d.spec])[0];
     if (swapTo) swapPaneGroup(swapChipOf(swapTo));
-  } else if (d.isopane === 'lcm-ring' && SUB_FORMULAS.indexOf(d.value) !== -1){
-    state.subLcmRingR = d.value;
+  } else if (d.isopane === 'fmap' && d.value && FMAP_POS.indexOf(d.value.order) !== -1 && FMAP_POS.indexOf(d.value.index) !== -1){
+    state.fmapR = { order: d.value.order, index: d.value.index };
     barFormulasChanged();
   } else if (d.isopane === 'reach'){
     var pr = d.reach;
@@ -16298,10 +16325,9 @@ function stateQuery(){
   else q.delete('sublcm');
   if (state.subLcmR !== 'none') q.set('sublcmr', state.subLcmR);
   else q.delete('sublcmr');
-  if (state.subLcmRing !== 'none') q.set('sublcmring', state.subLcmRing);
-  else q.delete('sublcmring');
-  if (state.subLcmRingR !== 'none') q.set('sublcmringr', state.subLcmRingR);
-  else q.delete('sublcmringr');
+  // Older links' lcm choices for the main view are the maps' now.
+  q.delete('sublcmring');
+  q.delete('sublcmringr');
   // The formula maps' positions: the ring's, and the pane's the ring keeps.
   if (state.fmap.order !== 'gcd-full') q.set('fmaporder', state.fmap.order);
   else q.delete('fmaporder');
@@ -18510,10 +18536,13 @@ function loadState(query, link){
   state.combineK = ck !== null && Math.abs(ck) <= COMBO_K_MAX ? ck : 2;
   state.subLcm = urlLcm(query.get('sublcm'));
   state.subLcmR = urlLcm(query.get('sublcmr'));
-  state.subLcmRing = urlLcm(query.get('sublcmring'));
-  state.subLcmRingR = urlLcm(query.get('sublcmringr'));
-  state.fmap = fmapPair({ order: query.get('fmaporder'), index: query.get('fmapindex') });
-  state.fmapR = fmapPair({ order: query.get('fmaporderr'), index: query.get('fmapindexr') });
+  // Older links chose the main view's lcm forms with sublcmring (and
+  // sublcmringr for the pane's): where the maps' own params are absent, an
+  // lcm formula opens its map on LCM (full).
+  var oldLcm = urlLcm(query.get('sublcmring')), oldLcmR = urlLcm(query.get('sublcmringr'));
+  var seed = function(v, lcm, f){ return query.get(v) || (lcmHas(lcm, f) ? 'lcm-full' : null); };
+  state.fmap = fmapPair({ order: seed('fmaporder', oldLcm, 'order'), index: seed('fmapindex', oldLcm, 'index') });
+  state.fmapR = fmapPair({ order: seed('fmaporderr', oldLcmR, 'order'), index: seed('fmapindexr', oldLcmR, 'index') });
   if (SUB_FORMULAS.indexOf(query.get('subformularowr')) !== -1) state.subFormulaRowR = query.get('subformularowr');
   if (SUB_FORMULAS.indexOf(query.get('subformularingr')) !== -1) state.subFormulaRingR = query.get('subformularingr');
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));

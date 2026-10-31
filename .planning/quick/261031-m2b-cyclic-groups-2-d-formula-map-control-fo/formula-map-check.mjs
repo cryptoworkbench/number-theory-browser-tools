@@ -516,6 +516,11 @@ SCENARIOS.push(['url', async browser => {
   await P.load(`${ZN}&gen=9&fmaporder=pos-lcm&fmapindex=gcd-slu`);
   await P.enter();
   out((await P.param('fmaporder')) === 'abs-lcm' && (await P.param('fmapindex')) === 'gcd-slu', 'url', 'pos-lcm with h = 9 loads as abs-lcm', await P.q());
+  // an extra Ring window is the page again with the ring's query (cleanRingQuery keeps the maps')
+  await P.load('?ringwin=1&mobile=0&mode=additive&n=12&gen=9&subformularing=both&fmaporder=abs-lcm&fmapindex=lcm-short');
+  await sleep(1500);
+  m = await mapsNow(P);
+  out(m.length === 2 && m[0].at === 'abs' && m[1].at === 'lcm-short', 'url', 'a Ring window (?ringwin=1) opens with the maps from the query', m);
   noErrors(P, 'url');
   await P.done();
 }]);
@@ -697,7 +702,7 @@ SCENARIOS.push(['menu', async browser => {
   out(JSON.stringify(segs) === JSON.stringify(['Show|Hide*', 'Show*|Hide', 'GCD*|None|LCM', 'GCD*|None|LCM']), 'menu', 'Hide on Main Size', segs);
   out((await P.param('subformularing')) === 'index' && (await P.exists('.fmap[data-f="index"]')) && !(await P.exists('.fmap[data-f="order"]')), 'menu', 'the main view now shows only the index, with its map', await P.q());
   // swap: only the shown / hidden choices trade places
-  await P.load(`${ZN}&gen=9&subformularing=order&subformularow=index&sublcm=both&fmaporder=lcm-full&fmapindex=abs-gcd`);
+  await P.load('?mobile=0&mode=additive&n=12&gen=9&subformularing=order&subformularow=index&sublcm=both&fmaporder=lcm-full&fmapindex=abs-gcd');
   await P.enter();
   await P.clickEl('#bar-formulas-l .bar-btn');
   await sleep(500);
@@ -725,7 +730,7 @@ SCENARIOS.push(['ctx', async browser => {
   let items = await rightClick(P, 'first');
   out(items.includes('Switch to LCM form'), 'ctx', 'on the Size line at GCD (short): Switch to LCM form', items);
   await clickSwitch(P); await sleep(700);
-  out((await P.param('fmaporder')) === 'lcm-short' && (await P.param('fmapindex')) === null, 'ctx', 'it moves only that formula, at the same detail (lcm-short)', await P.q());
+  out((await P.param('fmaporder')) === 'lcm-short' && (await P.param('fmapindex')) === 'gcd-short', 'ctx', 'it moves only that formula, at the same detail (lcm-short)', await P.q());
   items = await rightClick(P, 'between');
   out(!items.some(t => /Switch to/.test(t)), 'ctx', 'between two lines in different families: no switch item', items);
   items = await rightClick(P, 'second');
@@ -789,14 +794,92 @@ SCENARIOS.push(['mobile', async browser => {
   noErrors(P, 'mobile');
   await P.done();
 }]);
+
+/* ---------- the isomorphism pane ---------- */
+// Opens the pane on the chip whose text holds `chip`; returns its execution context, or null.
+async function openPane(P, query, chip) {
+  await P.load(query);
+  await P.enter();
+  const hit = await P.ev(`(function(){var cs=Array.prototype.filter.call(document.querySelectorAll('#iso-panel a.iso-chip'), function(a){ return a.textContent.indexOf(${JSON.stringify(chip)}) !== -1; }); if (cs[0]) cs[0].click(); return cs.length;})()`);
+  if (!hit) return null;
+  for (let i = 0; i < 30; i++) {
+    await sleep(300);
+    const c = await P.paneCtx();
+    if (c && (await P.ev(`document.querySelectorAll('.fmap').length`, c)) === 2) { await sleep(600); return c; }
+  }
+  return null;
+}
+const hostQ = async P => new URLSearchParams(await P.q());
+SCENARIOS.push(['pane', async browser => {
+  const P = await openPage(browser, 'pane', { w: 1500, h: 900, ua: UA_DESKTOP });
+  // the host's copy of the pane's maps reaches the pane
+  let ctx = await openPane(P, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both&fmaporderr=lcm-short&fmapindexr=jn&fmaporder=gcd-short&fmapindex=lcm-full', 'ℤ/13ℤ,×');
+  out(!!ctx, 'pane', 'the pane opens on (ℤ/13ℤ)* with its own two maps');
+  if (!ctx) { noErrors(P, 'pane'); await P.done(); return; }
+  let pm = await mapsNow({ ev: e => P.ev(e, ctx) });
+  out(pm.length === 2 && pm[0].at === 'lcm-short' && pm[1].at === 'jn', 'pane', "the pane's knobs start where the host's fmaporderr/fmapindexr say", pm);
+  const hm = await mapsNow(P);
+  out(hm.length === 2 && hm[0].at === 'gcd-short' && hm[1].at === 'lcm-full', 'pane', "the host's own maps are its own", hm);
+  // a change in the pane writes the host's url
+  await P.ev(`document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="lcm-full"] input').click()`, ctx);
+  await sleep(1200);
+  let q = await hostQ(P);
+  out(q.get('fmaporderr') === 'lcm-full' && q.get('fmapindexr') === 'jn' && q.get('fmaporder') === 'gcd-short' && q.get('fmapindex') === 'lcm-full', 'pane', "a click in the pane writes fmaporderr into the host's url, the rest stays", Object.fromEntries(q));
+  pm = await mapsNow({ ev: e => P.ev(e, ctx) });
+  out(pm[0].at === 'lcm-full' && pm[1].at === 'jn', 'pane', 'and the pane keeps the knob there after the host has shared its state back', pm);
+  // the right-click switch in the pane
+  const g = await P.ev(`(function(){var m=document.querySelector('.ring-hover-formula math.ring-math-formula'); var b=m.getBoundingClientRect(); return {x:(b.left+b.right)/2, y:(b.top+b.bottom)/2}; })()`, ctx);
+  await P.ev(`document.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: ${g.x}, clientY: ${g.y} }))`, ctx);
+  await sleep(500);
+  const items = await P.ev(`Array.prototype.map.call(document.querySelectorAll('#ring-ctx .ring-ctx-fml'), function(e){ return e.textContent.trim(); })`, ctx);
+  const sw = items.includes('Switch to GCD form') && await P.ev(`(function(){var it=Array.prototype.find.call(document.querySelectorAll('#ring-ctx .ring-ctx-fml'), function(e){ return /Switch to/.test(e.textContent); }); it.click(); return true;})()`, ctx);
+  await sleep(1200);
+  q = await hostQ(P);
+  out(!!sw && q.get('fmaporderr') === null && !q.has('sublcmringr'), 'pane', "the pane's right-click switch (lcm-full -> gcd-full, the default, so no param) reaches the host url", { items, q: q.get('fmaporderr') });
+  // the swap trades the two rings' maps
+  await P.ev(`document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="gcd-short"] input').click()`, ctx);
+  await sleep(1000);
+  q = await hostQ(P);
+  out(q.get('fmaporderr') === 'gcd-short', 'pane', 'pane order map moved to gcd-short', q.get('fmaporderr'));
+  await P.clickEl('#iso-swap');
+  await sleep(3500);
+  q = await hostQ(P);
+  out(q.get('fmaporder') === 'gcd-short' && q.get('fmapindex') === 'jn' && q.get('fmaporderr') === 'gcd-short' && (q.get('fmapindexr') === 'lcm-full'), 'pane', 'swapping the rings swaps the maps: host takes the pane\'s (gcd-short, jn), the pane the host\'s (gcd-short, lcm-full)', Object.fromEntries(q));
+  noErrors(P, 'pane');
+  await P.done();
+  // a pane snap reaches the host: SLU in the pane's (ℤ/13ℤ)* goes to JN and the host's url follows
+  const P2 = await openPage(browser, 'pane', { w: 1500, h: 900, ua: UA_DESKTOP });
+  const c2 = await openPane(P2, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both&fmaporderr=gcd-slu&fmapindexr=lcm-slu', 'ℤ/13ℤ,×');
+  await sleep(1500);
+  const q2 = await hostQ(P2);
+  const pm2 = c2 ? await mapsNow({ ev: e => P2.ev(e, c2) }) : [];
+  out(!!c2 && pm2[0].at === 'jn' && pm2[1].at === 'jn' && q2.get('fmaporderr') === 'jn' && q2.get('fmapindexr') === 'jn', 'pane', "the pane snaps SLU to JN and tells the host (fmaporderr=jn, fmapindexr=jn)", { pm2: pm2.map(m => m.at), r: [q2.get('fmaporderr'), q2.get('fmapindexr')] });
+  // a host reload keeps the pane's maps: reopen the pane and read them
+  const url = await P2.q();
+  const c3 = await openPane(P2, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both&fmaporderr=abs-lcm&fmapindexr=pos-gcd', 'ℤ/13ℤ,×');
+  const pm3 = c3 ? await mapsNow({ ev: e => P2.ev(e, c3) }) : [];
+  out(!!c3 && pm3[0].at === 'abs' && pm3[1].at === 'pos', 'pane', "reloading the host with fmaporderr=abs-lcm&fmapindexr=pos-gcd restores the pane's knobs (a, a2: gen 1 in (ℤ/13ℤ)*)", pm3.map(m => m.at));
+  noErrors(P2, 'pane');
+  await P2.done();
+}]);
 //@@SCENARIOS@@
 // Screenshots of the main view with the maps into this directory.
 SCENARIOS.push(['shot', async browser => {
   const P = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(process.env.SHOT_URL || '?mobile=0&mode=additive&n=12&gen=9&subformularing=both');
+  await P.load('?mobile=0&mode=additive&n=12&gen=9&subformularing=both');
   await P.enter();
-  await P.shot(process.env.SHOT_FILE || 'shot-main-view-light.png');
+  await P.shot('shot-main-view-light.png');
+  const r = await P.rect('.ring-hover-formula');
+  await P.shot('shot-formula-maps-light-crop.png', { x: Math.max(0, r.x), y: Math.max(0, r.y), width: Math.min(r.w, 1280), height: r.h });
+  await P.load('?mobile=0&mode=multiplicative&n=13&expr=2&gen=5&subformularing=both&fmaporder=abs-lcm&fmapindex=jn');
+  await P.enter();
+  await P.shot('shot-units-light.png');
   await P.done();
+  const M = await openPage(browser, 'shot', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+  await M.load('?mobile=1&mode=additive&n=12&gen=9&subformularing=both');
+  await sleep(800);
+  await M.shot('shot-mobile-light.png');
+  await M.done();
 }]);
 // A debugging aid, not part of the checks: DUMP_URL=... node ... dump
 SCENARIOS.push(['dump', async browser => {
@@ -816,7 +899,8 @@ try {
     const bad = Object.entries(fx.views).filter(([, v]) => v.ring.length === 0 || v.row.length === 0).map(([k]) => k);
     out(bad.length === 0, 'regress', `captured ${Object.keys(fx.views).length} views at page ${fx.page}`, bad);
   } else {
-    for (const [name, fn] of SCENARIOS) if (want(name)) await fn(browser);
+    // dump and shot are aids, run only when named
+    for (const [name, fn] of SCENARIOS) if (want(name) && (ONLY.includes(name) || !['dump', 'shot'].includes(name))) await fn(browser);
   }
 } catch (e) {
   fails++;
