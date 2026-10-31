@@ -1237,7 +1237,8 @@
   .fmap{ position:relative; justify-self:start; width:172px; height:94px; flex:none; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
   .fmap-svg{ position:absolute; inset:0; width:172px; height:94px; overflow:visible; }
   .fmap-edge{ fill:none; stroke:color-mix(in srgb, var(--text) 52%, transparent); stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
-  .fmap-edge.is-closed{ stroke-dasharray:2 2.4; stroke:color-mix(in srgb, var(--text) 22%, transparent); }
+  .fmap-edge.is-cond{ stroke-width:1.5; stroke-dasharray:0 3; }
+  .fmap-edge.is-closed{ stroke:color-mix(in srgb, var(--text) 22%, transparent); }
   .fmap-node rect{ fill:var(--panel); stroke:color-mix(in srgb, var(--text) 34%, transparent); stroke-width:1; }
   .fmap-node text{ fill:var(--text-dim); font-family:inherit; pointer-events:none; }
   .fmap-name{ font-size:8.5px; font-weight:700; letter-spacing:.02em; }
@@ -7193,14 +7194,14 @@ var FMAP_NODES = {
 };
 // The keyboard order of the nine positions.
 var FMAP_ORDER = ['jn', 'gcd-short', 'gcd-full', 'pos', 'abs', 'lcm-short', 'lcm-full', 'gcd-sls', 'lcm-sls'];
-// Always-open paths are double lines (two strokes with a gap), conditional
-// ones single; each single path names what opens it.
-var FMAP_DOUBLE = [
-  'M10.6 40V22Q10.6 7.6 25 7.6H47', 'M13.4 40V22Q13.4 10.4 25 10.4H47',
-  'M23 45.6H47', 'M23 48.4H47',
-  'M77 7.6H137', 'M77 10.4H137', 'M77 45.6H137', 'M77 48.4H137'
+// Always-open paths are solid lines, conditional ones dotted; each dotted
+// path names what opens it.
+var FMAP_SOLID = [
+  'M12 40V22Q12 9 25 9H47',
+  'M23 47H47',
+  'M77 9H137', 'M77 47H137'
 ];
-var FMAP_SINGLE = [
+var FMAP_DOTTED = [
   ['abs', 'M118 22 106 9M118 22 130 9M118 34 106 47M118 34 130 47'],
   ['pos', 'M95 28H107'],
   ['sls', 'M12 54V85M12 66H47M12 85H47']
@@ -7217,10 +7218,10 @@ function formulaMap(G, info){
   var open = { 'abs': reach.abs, 'pos': reach.pos, 'sls': reach.sls };
   var openNode = function(id){ return id === 'abs' ? reach.abs : id === 'pos' ? reach.pos : id.indexOf('sls') !== -1 ? reach.sls : true; };
   var svg = svgEl('svg', { 'class': 'fmap-svg', viewBox: '0 0 ' + FMAP_W + ' ' + FMAP_H, width: FMAP_W, height: FMAP_H, 'aria-hidden': 'true', focusable: 'false' });
-  FMAP_SINGLE.forEach(function(s){
-    svg.appendChild(svgEl('path', { 'class': 'fmap-edge' + (open[s[0]] ? '' : ' is-closed'), d: s[1] }));
+  FMAP_DOTTED.forEach(function(s){
+    svg.appendChild(svgEl('path', { 'class': 'fmap-edge is-cond' + (open[s[0]] ? '' : ' is-closed'), d: s[1] }));
   });
-  FMAP_DOUBLE.forEach(function(d){ svg.appendChild(svgEl('path', { 'class': 'fmap-edge', d: d })); });
+  FMAP_SOLID.forEach(function(d){ svg.appendChild(svgEl('path', { 'class': 'fmap-edge', d: d })); });
   FMAP_ORDER.forEach(function(id){
     var nd = FMAP_NODES[id], g = svgEl('g', { 'class': 'fmap-node' + (openNode(id) ? '' : ' is-closed') + (id === now ? ' is-at' : '') });
     g.appendChild(svgEl('rect', { x: nd.x - nd.w / 2, y: nd.y - nd.h / 2, width: nd.w, height: nd.h, rx: 4 }));
