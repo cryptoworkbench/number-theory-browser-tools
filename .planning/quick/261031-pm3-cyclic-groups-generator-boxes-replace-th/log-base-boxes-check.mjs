@@ -747,6 +747,116 @@ SCENARIOS.push(['mobile', async browser => {
   noErrors(P, 'mobile');
   await P.done();
 }]);
+
+/* ---------- the isomorphism pane ---------- */
+// Opens the pane on the chip whose text holds `chip`; returns its execution context, or null.
+async function openPane(P, query, chip) {
+  await P.load(query);
+  await P.enter();
+  const hit = await P.ev(`(function(){var cs=Array.prototype.filter.call(document.querySelectorAll('#iso-panel a.iso-chip'), function(a){ return a.textContent.indexOf(${JSON.stringify(chip)}) !== -1; }); if (cs[0]) cs[0].click(); return cs.length;})()`);
+  if (!hit) return null;
+  return paneReady(P);
+}
+async function paneReady(P) {
+  for (let i = 0; i < 30; i++) {
+    await sleep(300);
+    const c = await P.paneCtx();
+    if (c && (await P.ev(`document.querySelectorAll('.fmap').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
+  }
+  return null;
+}
+const hostQ = async P => new URLSearchParams(await P.q());
+const PANE_HOST = '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both';
+SCENARIOS.push(['pane', async browser => {
+  const P = await openPage(browser, 'pane', { w: 1500, h: 900, ua: UA_DESKTOP });
+  const U = unitsModel(13);
+  let ctx = await openPane(P, PANE_HOST, 'ℤ/13ℤ,×');
+  out(!!ctx, 'pane', 'the pane opens on (ℤ/13ℤ)*');
+  if (!ctx) { noErrors(P, 'pane'); await P.done(); return; }
+  let pr = await rowNow(P, ctx), hr = await rowNow(P);
+  out(!!pr && same(pr.values, U.gens) && same(pr.texts, U.gens.map(String)), 'pane', 'the pane\'s row has its own generators 2, 6, 7, 11', pr && { values: pr.values });
+  out(!!hr && same(hr.values, Z12.gens), 'pane', 'the host\'s row has 1, 5, 7, 11', hr && hr.values);
+  let q = await hostQ(P);
+  out(pr.checked.length === 1 && q.get('logbaser') === String(pr.checked[0]) && q.get('logbase') === '1', 'pane', 'the host\'s url gains logbaser equal to the pane\'s checked box; logbase is the host\'s own', { q: Object.fromEntries(q), pane: pr.checked });
+  // a click on another pane box
+  const other = U.gens.find(g => g !== pr.checked[0]);
+  await P.ev(`document.querySelector('.lb-box[data-g="${other}"] input').click()`, ctx);
+  await sleep(1200);
+  q = await hostQ(P);
+  pr = await rowNow(P, ctx); hr = await rowNow(P);
+  out(q.get('logbaser') === String(other) && q.get('logbase') === '1' && same(pr.checked, [other]) && same(hr.checked, [1]), 'pane', `a click on the pane's box ${other} writes it into logbaser and leaves the host's logbase`, { q: Object.fromEntries(q), pane: pr.checked, host: hr.checked });
+  const fp = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.ring-hover-formula math.ring-math-formula'), function(m){ return m.getAttribute('data-plain'); })`, ctx);
+  out(fp[0] && fp[0].includes(`log_${other}(`), 'pane', `the pane's formulas write log_${other}`, fp);
+  // a reload with logbaser
+  ctx = await openPane(P, `${PANE_HOST}&logbaser=7`, 'ℤ/13ℤ,×');
+  pr = ctx ? await rowNow(P, ctx) : null;
+  out(!!pr && same(pr.checked, [7]) && (await P.param('logbaser')) === '7', 'pane', 'host reloaded with logbaser=7: the pane opens with box 7 checked', pr && { checked: pr.checked, q: await P.q() });
+  ctx = await openPane(P, `${PANE_HOST}&logbaser=4`, 'ℤ/13ℤ,×');
+  pr = ctx ? await rowNow(P, ctx) : null;
+  out(!!pr && pr.checked.length === 1 && U.gens.includes(pr.checked[0]) && (await P.param('logbaser')) === String(pr.checked[0]), 'pane', 'logbaser=4 (no generator of (ℤ/13ℤ)*): the pane resolves its own base and the host\'s logbaser is rewritten to it', pr && { checked: pr.checked, q: await P.q() });
+  // the swap
+  ctx = await openPane(P, `${PANE_HOST}&logbase=5&logbaser=7`, 'ℤ/13ℤ,×');
+  pr = ctx ? await rowNow(P, ctx) : null; hr = await rowNow(P);
+  out(!!pr && same(pr.checked, [7]) && same(hr.checked, [5]), 'pane', 'before the swap: host base 5, pane base 7', { pane: pr && pr.checked, host: hr && hr.checked });
+  await P.clickEl('#iso-swap');
+  await sleep(3000);
+  const c2 = await paneReady(P);
+  q = await hostQ(P);
+  hr = await rowNow(P); pr = c2 ? await rowNow(P, c2) : null;
+  out(q.get('logbase') === '7' && q.get('logbaser') === '5', 'pane', 'the swap trades the bases: logbase=7, logbaser=5', Object.fromEntries(q));
+  out(!!hr && same(hr.values, U.gens) && same(hr.checked, [7]) && !!pr && same(pr.values, Z12.gens) && same(pr.checked, [5]), 'pane', 'the host (now (ℤ/13ℤ)*) is on 7 and the pane (now ℤ/12ℤ) on 5', { host: hr && [hr.values, hr.checked], pane: pr && [pr.values, pr.checked] });
+  noErrors(P, 'pane');
+  await P.done();
+}]);
+
+/* ---------- chiplinks: a chip's tab and a new pane start from their own base ---------- */
+SCENARIOS.push(['chiplinks', async browser => {
+  const P = await openPage(browser, 'chiplinks', { w: 1500, h: 900, ua: UA_DESKTOP });
+  await P.load(`${PANE_HOST}&logbase=5&logbaser=7`);
+  await P.enter();
+  const hrefs = await P.ev(`Array.prototype.map.call(document.querySelectorAll('#iso-panel a.iso-chip'), function(a){ return a.getAttribute('href'); })`);
+  out(hrefs.length > 0 && hrefs.every(h => !/logbase/.test(h)), 'chiplinks', `${hrefs.length} chip links carry neither logbase nor logbaser`, hrefs.filter(h => /logbase/.test(h)).slice(0, 2));
+  out((await P.param('logbase')) === '5' && (await P.param('logbaser')) === '7', 'chiplinks', 'while the page\'s own url keeps both');
+  noErrors(P, 'chiplinks');
+  await P.done();
+}]);
+
+/* ---------- ringwin: an extra Ring window opens on its query's base ---------- */
+SCENARIOS.push(['ringwin', async browser => {
+  const P = await openPage(browser, 'ringwin', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load('?ringwin=1&mobile=0&mode=additive&n=12&gen=9&subformularing=both&logbase=7');
+  await sleep(1500);
+  let r = await rowNow(P);
+  let f = await P.formulas();
+  out(!!r && same(r.checked, [7]) && same(plains(f.ring), wantPair(Z12, 7, 9, 'gcd-full', 'gcd-full')), 'ringwin', 'a Ring window with logbase=7 opens with box 7 checked and log_7 in both formulas', r && { checked: r.checked, ring: plains(f.ring) });
+  await P.clickEl('.lb-box[data-g="11"] input');
+  await sleep(700);
+  r = await rowNow(P);
+  f = await P.formulas();
+  out(!!r && same(r.checked, [11]) && same(plains(f.ring), wantPair(Z12, 11, 9, 'gcd-full', 'gcd-full')), 'ringwin', 'a click on box 11 writes log_11 into both formulas', r && { checked: r.checked, ring: plains(f.ring) });
+  noErrors(P, 'ringwin');
+  await P.done();
+}]);
+
+/* ---------- shot: the formula area in the light theme ---------- */
+SCENARIOS.push(['shot', async browser => {
+  const P = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const crop = async file => { const r = await P.rect('.ring-hover-formula'); await P.shot(file, { x: Math.max(0, r.x - 8), y: Math.max(0, r.y - 8), width: Math.min(r.w + 16, 1280), height: r.h + 16 }); };
+  await P.load(`${ZN}&gen=9&fmaporder=abs-gcd&logbase=7`);
+  await P.enter();
+  await crop('shot-log-base-boxes-light.png');
+  await P.load(`${ZN}&gen=7&logbase=1`);
+  await P.enter();
+  const c = await stopCentre(P, 'order', 'pos');
+  await P.mouse(c.x, c.y);
+  await crop('shot-log-base-flash-light.png');
+  await P.done();
+  const M = await openPage(browser, 'shot', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+  await M.load('?mobile=1&mode=additive&n=12&gen=9&subformularing=both');
+  await sleep(800);
+  await M.shot('shot-log-base-mobile-light.png');
+  await M.done();
+}]);
 //@@SCENARIOS@@
 // A debugging aid, not part of the checks:
 //   DUMP_URL='?mobile=0&...' DUMP_JS='expr' [DUMP_KEYS=ArrowRight,ArrowLeft] node ... dump
