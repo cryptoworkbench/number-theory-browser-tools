@@ -168,7 +168,9 @@
    row of generator boxes under the main view's formulas that chooses the base
    of the logarithm, a greyed-out box's tooltip, and the row's scroll-wheel
    switch), which replace the four English-only strings of the log-base
-   pyramid, removed with it. Every other language shows the English value through
+   pyramid, removed with it, and logBaseLock, logBaseUnlock and logBaseLocked
+   (the padlock after that row, open and closed, and a box's tooltip while it
+   is closed). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1091,6 +1093,9 @@
       logBaseLabel: 'Base of the logarithm',
       logBaseOff: 'Greyed out: with this base of the logarithm, the a or a2 form a formula map is on does not work for this element',
       logBaseWheel: 'Scroll wheel: over the formulas, the wheel steps the base of the logarithm through the generators that are not greyed out',
+      logBaseLock: 'Lock the base of the logarithm: the boxes, the scroll wheel and a double-click on a closed a or a2 can no longer change it',
+      logBaseUnlock: 'Unlock the base of the logarithm',
+      logBaseLocked: 'The base of the logarithm is locked: open the padlock to change it',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
