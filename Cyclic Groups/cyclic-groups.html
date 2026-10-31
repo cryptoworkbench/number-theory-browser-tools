@@ -5584,10 +5584,11 @@ function subIndexLcm(G, h, g, hm){
 }
 // The log base of a cyclic (ℤ/nℤ)*'s formulas: the generator its element
 // expression slider is on, whatever the beads are arranged by; the
-// smallest while the slider is on Natural.
+// smallest while the slider is on Natural. A curve is always arranged by a
+// generating point, which is its base while the slider is on Natural.
 function logBase(G){
   var g = exprBy(G);
-  return g !== null ? g : G.generators[0];
+  return g !== null ? g : G.pts ? arrangeBy(G) : G.generators[0];
 }
 // The pane's, from its slider as its query reports it.
 function paneLogBase(H){
@@ -7009,7 +7010,7 @@ function fmapShown(){
   return v === 'both' ? ['order', 'index'] : v === 'order' || v === 'index' ? [v] : [];
 }
 // Where the maps apply: ℤ/nℤ, and a group with a generator to take the log by.
-function hasMap(G){ return G.mode === 'additive'; }
+function hasMap(G){ return G.mode === 'additive' || !!G.cyclic; }
 // h's log to the base g runs 1 to |G| (the identity's is |G|); r is the
 // representative of it that divides |G|: q itself if q does, else q − |G| if
 // |G| − q does (the positive one when both). a needs an r, a2 the positive q.
@@ -7081,7 +7082,7 @@ function mapFormula(G, h, f, token, base, hm){
   var dot = function(x, y){ return mrow(x, mo('·'), y); };
   var lead, T;
   if (f === 'order'){
-    lead = abs(angle(hm()));
+    lead = [abs(angle(hm()))];
     var s1 = function(){ return mfrac(G1(), mgcd(G1(), Lh())); }, s2 = function(){ return mfrac(gn(), mgcd(gn(), Lq())); };
     var s3 = function(){ return mfrac(N(n), mgcd(N(n), N(q))); }, s4 = function(){ return mfrac(N(n), N(d)); };
     var u1 = function(){ return mfrac(mlcm(G1(), Lh()), Lh()); }, u2 = function(){ return mfrac(mlcm(gn(), Lq()), Lq()); };
@@ -7099,7 +7100,10 @@ function mapFormula(G, h, f, token, base, hm){
     }[node]();
   } else {
     var name = ec ? mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)) : mGroup(G);
-    lead = mrow(mo('[', true), name, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hm()), mo(']', true));
+    lead = [mo('[', true), name, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hm()), mo(']', true)];
+    // The bracket stands in the formula's own row on a curve, as the notation
+    // there always wrote it, and as a row of its own in a group of numbers.
+    if (!ec) lead = [mrow.apply(null, lead)];
     var s1 = function(){ return mgcd(G1(), Lh()); }, s2 = function(){ return mgcd(gn(), Lq()); }, s3 = function(){ return mgcd(N(n), N(q)); };
     var u1 = function(){ return mfrac(dot(G1(), Lh()), mlcm(G1(), Lh())); }, u2 = function(){ return mfrac(dot(gn(), Lq()), mlcm(gn(), Lq())); };
     var u3 = function(){ return mfrac(dot(N(n), N(q)), mlcm(N(n), N(q))); };
@@ -7117,7 +7121,8 @@ function mapFormula(G, h, f, token, base, hm){
   }
   var at = function(x){ return ec ? plainPoint(G.pts[x]) : String(x); };
   var power = function(k){ return ec && ecMult(G) ? k + '·' + at(base) : at(base) + '^' + k; };
-  return { math: joinEq([lead].concat(T)),
+  T.forEach(function(t){ lead.push(mo('='), t); });
+  return { math: mrow.apply(null, lead),
     plain: translate(FMAP_KEYS[f][node], {
       h: at(h), group: G.label, name: ec && f === 'index' ? curveName(G) : G.label, g: at(base),
       gn: mul ? 'φ(' + G.n + ')' : String(n), n: n, gq: power(q), gr: r === null ? '' : power(signed(r)),
@@ -7228,9 +7233,20 @@ function setFormulaMap(f, id){
 // maps each as its map's position says, anywhere else as the bottom bar's
 // choices and the formula slider.
 function ringFormulas(G){
-  if (!hasMap(G)) return subRowFormula(G, state.gen, state.subFormulaRing, logScrollBase(G), rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing, true);
+  if (!hasMap(G)) return plainRingFormulas(G);
   var base = mapBase(G), hm = rowFormulaH(G, state.gen, state.gen, true);
   return fmapShown().map(function(f){ return mapFormula(G, state.gen, f, state.fmap[f], base, hm); });
+}
+// A group with no generator, a (ℤ/nℤ)* or a curve that is not cyclic, has no
+// logarithm to work with and no map: its formulas are written as notation, at
+// the Complete level whatever the formula slider says (the order chain, or a
+// curve's size and index with their values).
+function plainRingFormulas(G){
+  var h = state.gen, hm = rowFormulaH(G, h, h, true), v = state.subFormulaRing, out = [];
+  if (G.pts) return ecRowFormula(G, h, v, hm, true);
+  if (v === 'order' || v === 'both') out.push(subOrderFormula(G, h, undefined, true, hm));
+  if (v === 'index' || v === 'both') out.push(cosetCountFormula(G, h, undefined, true, true, hm));
+  return out;
 }
 // The main view's formula can take its logarithm through every generator as
 // its base, a wheel notch a generator: log_g h changes, gcd(|G|, log_g h)
@@ -7241,19 +7257,16 @@ function ringFormulas(G){
 // (logMode 'scroll'), the expression slider ('slider') or the Generator
 // dropdown ('gen').
 var logMode = 'slider', logScrollG = null, logScrollSum = 0;
-// Whether a base can be chosen: more than one to choose from, on a desktop.
-// With a map the formula slider has no say; without, the slider's Compact
-// and No derivation take the log from the formula.
+// Whether a base can be chosen: a map to use it in, more than one generator
+// to choose from, on a desktop. The formula slider has no say.
 function logChoosable(G){
-  if (IS_MOBILE || G.generators.length < 2) return false;
-  if (hasMap(G)) return true;
-  return !G.pts && !state.subBare && !state.subSimplify && (G.mode === 'additive' || G.cyclic);
+  return !IS_MOBILE && hasMap(G) && G.generators.length >= 2;
 }
 // Whether the pyramid shows: a base can be chosen, and a form of the map
 // shown works with the log.
 function logScrollable(G){
   if (!logChoosable(G)) return false;
-  return !hasMap(G) || fmapShown().some(function(f){ var t = state.fmap[f]; return t !== 'jn' && t.indexOf('slu') === -1; });
+  return fmapShown().some(function(f){ var t = state.fmap[f]; return t !== 'jn' && t.indexOf('slu') === -1; });
 }
 function logScrollBase(G){
   if (!logChoosable(G) || logMode === 'slider') return undefined;
