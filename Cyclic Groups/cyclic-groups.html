@@ -1274,6 +1274,11 @@
   @keyframes lb-flash-no{ 0%, 75%{ opacity:1; color:var(--text); border-color:var(--role-warn); background:color-mix(in srgb, var(--role-warn) 26%, var(--panel)); } }
   .lb-box.is-flash-ok{ animation:lb-flash-ok 1.1s ease-out; }
   .lb-box.is-flash-no{ animation:lb-flash-no 1.1s ease-out; }
+  /* A double-click on a closed a or a2 forces it: the base it picks pulses
+     green twice, is chosen, and flashes green once more. */
+  @keyframes lb-force-pulse{ 40%, 60%{ opacity:1; color:var(--text); border-color:var(--role-result); background:color-mix(in srgb, var(--role-result) 30%, var(--panel)); } }
+  .lb-box.is-force-pulse{ animation:lb-force-pulse .55s ease-in-out 2; }
+  .lb-box.is-force-set{ animation:lb-flash-ok 1.1s ease-out; }
   :root.is-mobile .lb-list{ flex-wrap:wrap; justify-content:center; overflow-x:hidden; overflow-y:auto; max-height:84px; }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
@@ -7272,6 +7277,9 @@ function formulaMap(G, info){
       }
       setFormulaMap(f, id);
     });
+    // A double-click forces it open, by the nearest base that opens it (the
+    // label, which the pointer is over, hears it; the radio hears the clicks).
+    if (hint) stop.addEventListener('dblclick', function(){ forceMapPosition(G, f, id); });
     inputs[id] = input;
     stop.appendChild(input);
     wrap.appendChild(stop);
@@ -7355,10 +7363,14 @@ function logBaseRow(G){
   list.setAttribute('aria-label', name);
   list.title = name;
   var fits = logBaseFits(G);
+  // A forced sequence still running carries its flash onto the new box; one
+  // the state has left behind ends here.
+  if (logForce && !logForceLive()) stopLogForce();
   G.generators.forEach(function(g, i){
     var box = document.createElement('label');
     box.className = 'lb-box';
     box.setAttribute('data-g', String(g));
+    if (logForce && g === logForce.g) paintLogForce(box);
     var input = document.createElement('input');
     input.type = 'radio';
     input.name = 'log-base';
@@ -7418,6 +7430,7 @@ function setChosenBase(g){
 // sight in a long row is scrolled to.
 var logFlashTimer = 0;
 function flashLogBases(G, node){
+  stopLogForce();
   var list = ringHeadEl.querySelector('.lb-list');
   if (!list) return;
   clearTimeout(logFlashTimer);
@@ -7440,6 +7453,89 @@ function flashLogBases(G, node){
   logFlashTimer = setTimeout(function(){
     boxes.forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
   }, 1200);
+}
+// A double-click on a closed a or a2 (node 'abs' or 'pos') of map f forces
+// it: the base it picks is the generator, among those under which that
+// position would be open, nearest the current base in box order (the one to
+// the right on a tie). That box pulses green twice; then it becomes the base
+// and the knob moves onto the position, in one step, as a click on a box and
+// on the map would; then it flashes green once more. The other map settles
+// to the new base as it always does. A new click on a closed position, or any
+// change of base, h, group, knob or shown formulas, ends the sequence; a
+// re-render that changes none of them carries its flash onto the new box.
+var LOG_FORCE_PULSES = 1100, LOG_FORCE_SET = 1100;
+var logForce = null, logForceGen = 0, logForceTimers = [];
+function forceBasePick(G, node){
+  var gens = G.generators, at = gens.indexOf(mapBase(G)), best = -1;
+  gens.forEach(function(g, i){
+    if (!mapReach(G, state.gen, g)[node]) return;
+    if (best === -1 || Math.abs(i - at) <= Math.abs(best - at)) best = i;
+  });
+  return best === -1 ? null : gens[best];
+}
+function stopLogForce(){
+  logForceGen++;
+  logForceTimers.forEach(clearTimeout);
+  logForceTimers = [];
+  logForce = null;
+  ringHeadEl.querySelectorAll('.lb-box.is-force-pulse, .lb-box.is-force-set').forEach(function(b){
+    b.classList.remove('is-force-pulse', 'is-force-set');
+    b.style.animationDelay = '';
+  });
+}
+// Whether the state is still the one the sequence started from (pulses) or
+// the one it set (the last flash).
+function logForceLive(){
+  var s = logForce;
+  if (!s || !drawn || drawn.G.key !== s.key || state.gen !== s.h || state.noSub || fmapShown().indexOf(s.f) === -1) return false;
+  return s.set ? state.chosenBase === s.g && state.fmap[s.f] === s.to : state.chosenBase === s.from && state.fmap[s.f] === s.tok;
+}
+// The running flash on a box built anew, as far along as the sequence is.
+function paintLogForce(box){
+  box.classList.add(logForce.set ? 'is-force-set' : 'is-force-pulse');
+  var gone = Date.now() - logForce.t0;
+  if (gone > 30) box.style.animationDelay = -gone + 'ms';
+}
+function forceMapPosition(G, f, id){
+  if (!drawn || drawn.G.key !== G.key || !hasMap(drawn.G) || state.noSub) return;
+  G = drawn.G;
+  var g = forceBasePick(G, id);
+  if (g === null || g === mapBase(G)) return;
+  var list = ringHeadEl.querySelector('.lb-list');
+  var box = list && list.querySelector('.lb-box[data-g="' + g + '"]');
+  if (!box) return;
+  stopLogForce();
+  clearTimeout(logFlashTimer);
+  list.querySelectorAll('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+  var gen = logForceGen;
+  logForce = { key: G.key, h: state.gen, f: f, g: g, from: state.chosenBase, tok: state.fmap[f], to: null, set: false, t0: Date.now() };
+  void box.offsetWidth;
+  paintLogForce(box);
+  logBaseInView(list, box);
+  logForceTimers.push(setTimeout(function(){
+    if (gen !== logForceGen) return;
+    if (!logForceLive()){ stopLogForce(); return; }
+    var row = fmapRow(state.fmap[f]) || 'gcd';
+    logForce.to = FMAP_AT[id][row];
+    logForce.set = true;
+    logForce.t0 = Date.now();
+    applyForcedMap(f, logForce.to, g);
+    if (gen !== logForceGen) return;
+    logForceTimers.push(setTimeout(function(){ if (gen === logForceGen) stopLogForce(); }, LOG_FORCE_SET + 100));
+  }, LOG_FORCE_PULSES));
+}
+// The base and the knob in one step; a pane tells its host the base first,
+// so the host has it when the maps' new positions arrive.
+function applyForcedMap(f, token, g){
+  state.chosenBase = g;
+  state.fmap[f] = token;
+  if (IS_ISOPANE){
+    tellHost({ isopane: 'logbase', value: g });
+    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
+    tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
+    return;
+  }
+  barFormulasChanged();
 }
 // The wheel steps the base through the boxes that are not greyed out, in
 // box order, wrapping at the ends.
