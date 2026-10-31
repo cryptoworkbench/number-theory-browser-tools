@@ -384,11 +384,11 @@ SCENARIOS.push(['boxes', async browser => {
   await P.enter();
   let r = await rowNow(P);
   out(!!r && same(r.values, Z12.gens) && r.off.length === 0, 'boxes', 'both maps on JN: the row shows, every box enabled', r);
-  // SLS leaves every box enabled too
+  // both maps on SLS: no logarithm, so no row (89fd36d)
   await P.load(`${ZN}&gen=9&fmaporder=gcd-sls&fmapindex=lcm-sls`);
   await P.enter();
   r = await rowNow(P);
-  out(!!r && r.off.length === 0, 'boxes', 'SLS positions: every box enabled', r);
+  out(r === null, 'boxes', 'both maps on SLS: no row', r);
   noErrors(P, 'boxes');
   await P.done();
 }]);
