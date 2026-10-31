@@ -155,7 +155,16 @@
    genBeadsEc and genBeadsEcTitle (the same button on a curve, where a point
    in the plot counts too), and cosetExit (Step's place once a coset run has no
    step left, ending the run) and subCosetsExplore (the bottom panel's menu
-   item starting a run on a row). Every other language shows the English value through
+   item starting a run on a row), and the formula maps beside the main
+   view's formulas: fmapOrderLabel and fmapIndexLabel (the two maps'
+   names), fmapLabelJn, fmapLabelGcd, fmapLabelLcm, fmapLabelShort,
+   fmapLabelFull, fmapLabelSlu, fmapLabelA and fmapLabelA2 (the texts on
+   the map's nine nodes, notation-like), fmapJn, fmapGcdShort, fmapGcdFull,
+   fmapLcmShort, fmapLcmFull, fmapAbs, fmapPos, fmapGcdSlu and fmapLcmSlu
+   (each position's tooltip and accessible name), and formula.mapOrderJn to
+   formula.mapOrderLcmSlu and formula.mapIndexJn to formula.mapIndexLcmSlu
+   (the plain text of the size and the index at each of the nine positions,
+   for every kind of group). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -815,6 +824,24 @@
       formulaLevelCompact: 'Compact',
       formulaLevelComplete: 'Complete',
       'formula.subgroupOrderLog': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = {n} / gcd({n}, log_{g}({g}^{q})) = {n} / gcd({n}, {q}) = {n} / {d} = {k}',
+      'formula.mapOrderJn': '|⟨{h}⟩| = {m}',
+      'formula.mapOrderGcdFull': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = {gn} / gcd({gn}, log_{g}({gq})) = {n} / gcd({n}, {q}) = {n} / {d} = {m}',
+      'formula.mapOrderGcdShort': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = {n} / gcd({n}, {q}) = {n} / {d} = {m}',
+      'formula.mapOrderLcmFull': '|⟨{h}⟩| = lcm(|{group}|, log_{g}({h})) / log_{g}({h}) = lcm({gn}, log_{g}({gq})) / log_{g}({gq}) = lcm({n}, {q}) / {q} = {l} / {q} = {m}',
+      'formula.mapOrderLcmShort': '|⟨{h}⟩| = lcm(|{group}|, log_{g}({h})) / log_{g}({h}) = lcm({n}, {q}) / {q} = {l} / {q} = {m}',
+      'formula.mapOrderAbs': '|⟨{h}⟩| = |{group}| / |log_{g}({h})| = {gn} / |log_{g}({gr})| = {n} / |{r}| = {n} / {a} = {m}',
+      'formula.mapOrderPos': '|⟨{h}⟩| = |{group}| / log_{g}({h}) = {gn} / log_{g}({gr}) = {n} / {r} = {m}',
+      'formula.mapOrderGcdSlu': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, {h}) = {n} / gcd({n}, {q}) = {n} / {d} = {m}',
+      'formula.mapOrderLcmSlu': '|⟨{h}⟩| = lcm(|{group}|, {q}) / {q} = lcm({n}, {q}) / {q} = {l} / {q} = {m}',
+      'formula.mapIndexJn': '[{name} : ⟨{h}⟩] = {d}',
+      'formula.mapIndexGcdFull': '[{name} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd({gn}, log_{g}({gq})) = gcd({n}, {q}) = {d}',
+      'formula.mapIndexGcdShort': '[{name} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd({n}, {q}) = {d}',
+      'formula.mapIndexLcmFull': '[{name} : ⟨{h}⟩] = |{group}| · log_{g}({h}) / lcm(|{group}|, log_{g}({h})) = {gn} · log_{g}({gq}) / lcm({gn}, log_{g}({gq})) = {n} · {q} / lcm({n}, {q}) = {d}',
+      'formula.mapIndexLcmShort': '[{name} : ⟨{h}⟩] = |{group}| · log_{g}({h}) / lcm(|{group}|, log_{g}({h})) = {n} · {q} / lcm({n}, {q}) = {d}',
+      'formula.mapIndexAbs': '[{name} : ⟨{h}⟩] = |log_{g}({h})| = |log_{g}({gr})| = |{r}| = {a}',
+      'formula.mapIndexPos': '[{name} : ⟨{h}⟩] = log_{g}({h}) = log_{g}({gr}) = {r}',
+      'formula.mapIndexGcdSlu': '[{name} : ⟨{h}⟩] = gcd(|{group}|, {h}) = gcd({n}, {q}) = {d}',
+      'formula.mapIndexLcmSlu': '[{name} : ⟨{h}⟩] = |{group}| · {q} / lcm(|{group}|, {q}) = {n} · {q} / lcm({n}, {q}) = {d}',
       'formula.subgroupIndexLog': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd({n}, log_{g}({g}^{q})) = gcd({n}, {q}) = {d}',
       'formula.mulSubgroupOrderSteps': '|⟨{h}⟩| = |{group}| / gcd(|{group}|, log_{g}({h})) = φ({n}) / gcd(φ({n}), log_{g}({g}^{q})) = {k} / gcd({k}, {q}) = {k} / {d} = {m}',
       'formula.mulSubgroupIndexSteps': '[{group} : ⟨{h}⟩] = gcd(|{group}|, log_{g}({h})) = gcd(φ({n}), log_{g}({g}^{q})) = gcd({k}, {q}) = {d}',
@@ -1040,6 +1067,25 @@
       genBeadsEc: 'Follow element clicks',
       logScroll: 'Follow mouse scroll: the scroll wheel takes the base of the logarithm through every generator; the logarithm changes, its gcd with |G| never does',
       logTriLabel: 'Base of the logarithm',
+      fmapOrderLabel: 'Formula map of the subgroup size',
+      fmapIndexLabel: 'Formula map of the index',
+      fmapLabelJn: 'JN',
+      fmapLabelGcd: 'GCD',
+      fmapLabelLcm: 'LCM',
+      fmapLabelShort: 'short',
+      fmapLabelFull: 'full',
+      fmapLabelSlu: 'SLU',
+      fmapLabelA: 'a',
+      fmapLabelA2: 'a2',
+      fmapJn: 'JN: just the notation, the answer without derivation steps',
+      fmapGcdShort: 'GCD (short): through the logarithm and the GCD, the group size and the logarithm given at once',
+      fmapGcdFull: 'GCD (full): through the logarithm and the GCD, every step written out',
+      fmapLcmShort: 'LCM (short): through the logarithm and the LCM, the group size and the logarithm given at once',
+      fmapLcmFull: 'LCM (full): through the logarithm and the LCM, every step written out',
+      fmapAbs: 'a: with the current logarithm base the logarithm divides the group size, so the absolute value replaces the GCD and the LCM',
+      fmapPos: 'a2: with the current logarithm base the logarithm divides the group size and is positive itself, so the absolute value is dropped',
+      fmapGcdSlu: 'GCD (SLU): through the GCD, without the logarithm (additive groups only)',
+      fmapLcmSlu: 'LCM (SLU): through the LCM, without the logarithm (additive groups only)',
       logFollowSliderTitle: "Follow expression slider: the base of the logarithm is the expression slider's generator",
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       logFollowGenTitle: "Follow Generator dropdown: the base of the logarithm is the Generator dropdown's generator",

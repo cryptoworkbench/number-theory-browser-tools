@@ -1244,6 +1244,32 @@
   .log-tri[data-at="scroll"] .log-tri-knob{ left:20px; top:8px; opacity:0; }
   .log-tri:has(input:focus-visible) .log-tri-knob, .log-tri[data-at="scroll"]:has(input:focus-visible) .log-tri-stop.at-scroll{ outline:2px solid var(--accent); outline-offset:2px; }
   @media (prefers-reduced-motion: reduce){ .log-tri-knob, .log-tri-stop.at-scroll{ transition:none; } }
+  /* The formula maps beside the main view's formulas: the box becomes a grid,
+     each map in the first column beside its formula in the second. A map is a
+     drawing with a radio button laid over each of its nine nodes and a knob
+     under the one in use. */
+  .ring-head > .ring-hover-formula.has-fmap{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:12px; row-gap:6px; justify-items:center; direction:ltr; }
+  .ring-head > .ring-hover-formula.has-fmap > math{ justify-self:center; }
+  .fmap{ position:relative; justify-self:start; width:172px; height:94px; flex:none; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
+  .fmap-svg{ position:absolute; inset:0; width:172px; height:94px; overflow:visible; }
+  .fmap-edge{ fill:none; stroke:color-mix(in srgb, var(--text) 52%, transparent); stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
+  .fmap-edge.is-closed{ stroke-dasharray:2 2.4; stroke:color-mix(in srgb, var(--text) 22%, transparent); }
+  .fmap-node rect{ fill:var(--panel); stroke:color-mix(in srgb, var(--text) 34%, transparent); stroke-width:1; }
+  .fmap-node text{ fill:var(--text-dim); font-family:inherit; pointer-events:none; }
+  .fmap-name{ font-size:8.5px; font-weight:700; letter-spacing:.02em; }
+  .fmap-sub{ font-size:6.2px; font-weight:600; }
+  .fmap-node.is-at text{ fill:var(--text); }
+  .fmap-node.is-closed{ opacity:.4; }
+  .fmap-node.is-closed rect{ stroke-dasharray:2 2; }
+  .fmap-knob{ position:absolute; box-sizing:border-box; border:1.6px solid var(--accent); border-radius:6px; background:color-mix(in srgb, var(--accent) 22%, transparent); pointer-events:none; transition:left .2s ease, top .2s ease, width .2s ease, height .2s ease; }
+  .fmap-stop{ position:absolute; box-sizing:border-box; min-width:11px; min-height:11px; border-radius:4px; cursor:pointer; }
+  .fmap-stop input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+  .fmap-stop:hover::after{ content:""; position:absolute; inset:0; border-radius:4px; background:color-mix(in srgb, var(--text) 12%, transparent); }
+  .fmap-stop:has(input:disabled){ cursor:not-allowed; }
+  .fmap-stop:has(input:disabled):hover::after{ content:none; }
+  .fmap-stop:has(input:disabled) input{ cursor:not-allowed; }
+  .fmap:has(input:focus-visible) .fmap-knob{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ .fmap-knob{ transition:none; } }
   /* The diagram fills the browser window, or the screen in full screen,
      and the ring's body fills the diagram: no window around it, no title
      bar, nothing to move or resize. The parts inside are the page's own,
@@ -2543,7 +2569,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.cg-intro-qr svg, .diagram-frame, #n-input, #op-select, #identity-select, #arrange-gen-select, .expr-scale, .expr-range, .expr-stops, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.cg-intro-qr svg, .diagram-frame, .fmap, #n-input, #op-select, #identity-select, #arrange-gen-select, .expr-scale, .expr-range, .expr-stops, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -3106,7 +3132,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', subLcmRing: 'none', subLcmRingR: 'none', fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5575,6 +5601,9 @@ function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
 // A merged row gives each group its formulas on its own side: ⟨h⟩'s on the
 // left, the pane's ⟨φ(h)⟩ on the right.
 function syncSubFormula(G){
+  // A map holding the focus is rebuilt with the formula, and gets it back.
+  var held = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fmap') : null;
+  var heldF = held ? held.getAttribute('data-f') : null;
   clearSubFormula();
   // The cosets button and the subgroup row's G = ⟨h⟩ write h as the panel does.
   syncCosetButton();
@@ -5583,13 +5612,29 @@ function syncSubFormula(G){
   if (subFormulaAtRing()){
     // ⟨h⟩'s h is written as in the row formula: lined up and, under the
     // pointer, coloured like its bead as the bottom panel's settings say.
-    var box = subFormulaBox('div', 'ring-hover-formula', ringFormulas(G));
+    settleMaps(G);
+    var fs = ringFormulas(G);
+    var box = subFormulaBox('div', 'ring-hover-formula', fs);
+    // Each formula with a map gets it beside it, in a column of its own; the
+    // formulas then are read by assistive technology, not the box.
+    if (fs.some(function(x){ return x.map; })){
+      box.classList.add('has-fmap');
+      box.removeAttribute('aria-hidden');
+      Array.prototype.slice.call(box.children).forEach(function(line, i){
+        line.setAttribute('aria-hidden', 'true');
+        if (fs[i].map) box.insertBefore(formulaMap(G, fs[i].map), line);
+      });
+    }
     if (logScrollable(G)){
       box.classList.add('has-log-tri');
       box.appendChild(logTri(G));
     }
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
+    if (heldF){
+      var again = box.querySelector('.fmap[data-f="' + heldF + '"] input:checked');
+      if (again) again.focus({ preventScroll: true });
+    }
   }
   showRowFormula(G);
   syncHeadMatch();
@@ -5679,12 +5724,13 @@ function restGhost(node){
   return mEl('mpadded', [mEl('mphantom', [copy])], { width: '0' });
 }
 function rowFormulaH(G, h, x, paint){
-  return function(base, q){
+  return function(base, q, raw){
     var m, from = base === undefined ? null : base, to = revealTo(G);
     if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G).m(h);
     else {
-      var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G);
-      m = mEl('msup', [baseMn(G, base), numMn(e.ex(q), ew, signRoomExp(G))]);
+      var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G), qm = numMn(raw ? e.raw(q) : e.ex(q), ew, signRoomExp(G));
+      // On a curve the multiples notation writes q·(x, y) for the power.
+      m = ecMult(G) ? mrow(qm, mo('\u00b7'), baseMn(G, base)) : mEl('msup', [baseMn(G, base), qm]);
     }
     // A power here reveals whatever the panel writes, the setting alone
     // deciding (the formulas write powers of h even beside Natural).
@@ -5754,6 +5800,9 @@ function fitSubFormulaLine(box, m){
   var cs = getComputedStyle(box), hs = getComputedStyle(ringHeadEl), r = boxOf(ringHeadEl);
   var left = r.left + parseFloat(hs.paddingLeft), right = Math.min(r.right - parseFloat(hs.paddingRight), (document.documentElement.clientWidth / PAGE_ZOOM));
   var room = right - left - 2 - (box.offsetWidth - box.clientWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  // Beside its map a formula has the room left of the map's column.
+  var map = box.querySelector(':scope > .fmap');
+  if (map) room -= boxOf(map).width + (parseFloat(cs.columnGap) || 0);
   var w = boxOf(m).width;
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
@@ -6934,9 +6983,254 @@ function syncFormulaCtx(fml){
   }));
   items.forEach(function(el){ el.classList.add('ring-ctx-fml'); ringCtxEl.appendChild(el); });
 }
-// The main view's formulas, as renderSubgroups draws them.
+/* ---------- the main view's formula maps ---------- */
+// Each main-view formula, the size |⟨h⟩| and the index [G : ⟨h⟩], has its own
+// two-dimensional control, a map of the forms it can be written in (drawn
+// after Formula_Map): JN, the answer alone; a GCD row and an LCM row, each
+// with a short and a full derivation through log_g h; a, working with
+// |log_g h| and no gcd or lcm; a2, the same when log_g h is positive itself;
+// and for ℤ/nℤ the two SLU forms, which skip the logarithm. The knob sits on
+// the form in use. JN and the two rows can always be reached, a and a2 only
+// when the current log base lets them (mapReach), the SLU forms only in ℤ/nℤ.
+// A form is stored as one token (FMAP_POS): the row a or a2 was entered from
+// is its suffix, so the knob can go back to it.
+var FMAP_POS = ['jn', 'gcd-short', 'gcd-full', 'lcm-short', 'lcm-full', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-slu', 'lcm-slu'];
+function fmapToken(v){ return FMAP_POS.indexOf(v) !== -1 ? v : 'gcd-full'; }
+function fmapPair(o){ return { order: fmapToken(o && o.order), index: fmapToken(o && o.index) }; }
+// The map's node a token sits on (abs and pos for a and a2).
+function fmapNode(token){ var m = /^(abs|pos)-/.exec(token); return m ? m[1] : token; }
+// The token for a or a2 entered from a row.
+var FMAP_AT = { abs: { gcd: 'abs-gcd', lcm: 'abs-lcm' }, pos: { gcd: 'pos-gcd', lcm: 'pos-lcm' } };
+// The row a token belongs to, gcd or lcm; none for JN.
+function fmapRow(token){ return token.indexOf('gcd') !== -1 ? 'gcd' : token.indexOf('lcm') !== -1 ? 'lcm' : null; }
+// Which of the two formulas the main view shows.
+function fmapShown(){
+  var v = state.subFormulaRing;
+  return v === 'both' ? ['order', 'index'] : v === 'order' || v === 'index' ? [v] : [];
+}
+// Where the maps apply: ℤ/nℤ, and a group with a generator to take the log by.
+function hasMap(G){ return G.mode === 'additive'; }
+// h's log to the base g runs 1 to |G| (the identity's is |G|); r is the
+// representative of it that divides |G|: q itself if q does, else q − |G| if
+// |G| − q does (the positive one when both). a needs an r, a2 the positive q.
+function mapReach(G, h, base){
+  var n = G.order, q = lap(G, base, n).indexOf(h) || n;
+  var r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
+  return { q: q, r: r, abs: r !== null, pos: n % q === 0, slu: G.mode === 'additive' };
+}
+// Where the knob goes when its form no longer holds: a2 to a, a to the row
+// it was entered from at its full form, an SLU form to JN.
+var FMAP_FULL = { gcd: 'gcd-full', lcm: 'lcm-full' };
+function mapSettle(token, reach){
+  var row = fmapRow(token), node = fmapNode(token);
+  if (node === 'pos' && !reach.pos){ token = reach.abs ? FMAP_AT.abs[row] : FMAP_FULL[row]; node = fmapNode(token); }
+  if (node === 'abs' && !reach.abs) token = FMAP_FULL[row];
+  if (token.indexOf('slu') !== -1 && !reach.slu) token = 'jn';
+  return token;
+}
+function mapBase(G){ return logScrollBase(G) || logBase(G); }
+// The forms the shown maps sit on settle to what the current h and log base
+// allow, and a settled position is the stored one.
+function settleMaps(G){
+  if (!hasMap(G) || state.noSub) return;
+  var reach = mapReach(G, state.gen, mapBase(G)), changed = false;
+  fmapShown().forEach(function(f){
+    var t = mapSettle(state.fmap[f], reach);
+    if (t !== state.fmap[f]){ state.fmap[f] = t; changed = true; }
+  });
+  if (!changed) return;
+  if (IS_ISOPANE) tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
+  mirrorToUrl(G);
+}
+// log_base of x, bracketed; on a curve the base is a point.
+function mapLog(G, base, x){
+  if (!G.pts) return mLogOf(base, x);
+  return mrow(mEl('msub', [mi('log'), mPoint(G.pts[base])]), mo('⁡'), mo('(', true), x, mo(')', true));
+}
+var FMAP_KEYS = {
+  order: {
+    'jn': 'cyclicGroups.formula.mapOrderJn', 'gcd-short': 'cyclicGroups.formula.mapOrderGcdShort', 'gcd-full': 'cyclicGroups.formula.mapOrderGcdFull',
+    'lcm-short': 'cyclicGroups.formula.mapOrderLcmShort', 'lcm-full': 'cyclicGroups.formula.mapOrderLcmFull', 'abs': 'cyclicGroups.formula.mapOrderAbs',
+    'pos': 'cyclicGroups.formula.mapOrderPos', 'gcd-slu': 'cyclicGroups.formula.mapOrderGcdSlu', 'lcm-slu': 'cyclicGroups.formula.mapOrderLcmSlu'
+  },
+  index: {
+    'jn': 'cyclicGroups.formula.mapIndexJn', 'gcd-short': 'cyclicGroups.formula.mapIndexGcdShort', 'gcd-full': 'cyclicGroups.formula.mapIndexGcdFull',
+    'lcm-short': 'cyclicGroups.formula.mapIndexLcmShort', 'lcm-full': 'cyclicGroups.formula.mapIndexLcmFull', 'abs': 'cyclicGroups.formula.mapIndexAbs',
+    'pos': 'cyclicGroups.formula.mapIndexPos', 'gcd-slu': 'cyclicGroups.formula.mapIndexGcdSlu', 'lcm-slu': 'cyclicGroups.formula.mapIndexLcmSlu'
+  }
+};
+// One formula (f, order or index) of ⟨h⟩ at the map position token, by the
+// log base given; hm makes h as the rows write it. The steps are exactly the
+// map's: the number of = after the left side is 1 at JN, 5 (size) or 4
+// (index) at a full form and at a, 4 (3) at a short form, at a2 and at an SLU
+// form. |G| is written as φ(n) in the step that writes h as g^q in a group of units.
+function mapFormula(G, h, f, token, base, hm){
+  var node = fmapNode(token), row = fmapRow(token) || 'gcd';
+  var n = G.order, ec = !!G.pts, mul = G.mode === 'multiplicative';
+  var reach = mapReach(G, h, base), r = reach.r;
+  if ((node === 'abs' && !reach.abs) || (node === 'pos' && !reach.pos)) node = FMAP_FULL[row];
+  var slu = node === 'gcd-slu' || node === 'lcm-slu';
+  var q = slu ? gcdOperand(G, h) : reach.q;
+  var d = gcd(n, q), m = n / d, l = n * q / d, a = r === null ? null : Math.abs(r);
+  var G1 = function(){ return abs(mGroup(G)); };
+  var gn = function(){ return mul ? mPhi(mn(G.n)) : mn(n); };
+  var Lh = function(){ return mapLog(G, base, hm()); };
+  var Lq = function(){ return mapLog(G, base, hm(base, q)); };
+  var Lr = function(){ return mapLog(G, base, hm(base, r, true)); };
+  var N = function(v){ return mn(v); };
+  var dot = function(x, y){ return mrow(x, mo('·'), y); };
+  var lead, T;
+  if (f === 'order'){
+    lead = abs(angle(hm()));
+    var s1 = function(){ return mfrac(G1(), mgcd(G1(), Lh())); }, s2 = function(){ return mfrac(gn(), mgcd(gn(), Lq())); };
+    var s3 = function(){ return mfrac(N(n), mgcd(N(n), N(q))); }, s4 = function(){ return mfrac(N(n), N(d)); };
+    var u1 = function(){ return mfrac(mlcm(G1(), Lh()), Lh()); }, u2 = function(){ return mfrac(mlcm(gn(), Lq()), Lq()); };
+    var u3 = function(){ return mfrac(mlcm(N(n), N(q)), N(q)); }, u4 = function(){ return mfrac(N(l), N(q)); };
+    T = {
+      'jn': function(){ return [N(m)]; },
+      'gcd-full': function(){ return [s1(), s2(), s3(), s4(), N(m)]; },
+      'gcd-short': function(){ return [s1(), s3(), s4(), N(m)]; },
+      'lcm-full': function(){ return [u1(), u2(), u3(), u4(), N(m)]; },
+      'lcm-short': function(){ return [u1(), u3(), u4(), N(m)]; },
+      'abs': function(){ return [mfrac(G1(), abs(Lh())), mfrac(gn(), abs(Lr())), mfrac(N(n), abs(N(signed(r)))), mfrac(N(n), N(a)), N(m)]; },
+      'pos': function(){ return [mfrac(G1(), Lh()), mfrac(gn(), Lr()), mfrac(N(n), N(r)), N(m)]; },
+      'gcd-slu': function(){ return [mfrac(G1(), mgcd(G1(), N(h))), s3(), s4(), N(m)]; },
+      'lcm-slu': function(){ return [mfrac(mlcm(G1(), N(q)), N(q)), u3(), u4(), N(m)]; }
+    }[node]();
+  } else {
+    var name = ec ? mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)) : mGroup(G);
+    lead = mrow(mo('[', true), name, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hm()), mo(']', true));
+    var s1 = function(){ return mgcd(G1(), Lh()); }, s2 = function(){ return mgcd(gn(), Lq()); }, s3 = function(){ return mgcd(N(n), N(q)); };
+    var u1 = function(){ return mfrac(dot(G1(), Lh()), mlcm(G1(), Lh())); }, u2 = function(){ return mfrac(dot(gn(), Lq()), mlcm(gn(), Lq())); };
+    var u3 = function(){ return mfrac(dot(N(n), N(q)), mlcm(N(n), N(q))); };
+    T = {
+      'jn': function(){ return [N(d)]; },
+      'gcd-full': function(){ return [s1(), s2(), s3(), N(d)]; },
+      'gcd-short': function(){ return [s1(), s3(), N(d)]; },
+      'lcm-full': function(){ return [u1(), u2(), u3(), N(d)]; },
+      'lcm-short': function(){ return [u1(), u3(), N(d)]; },
+      'abs': function(){ return [abs(Lh()), abs(Lr()), abs(N(signed(r))), N(a)]; },
+      'pos': function(){ return [Lh(), Lr(), N(r)]; },
+      'gcd-slu': function(){ return [mgcd(G1(), N(h)), s3(), N(d)]; },
+      'lcm-slu': function(){ return [mfrac(dot(G1(), N(q)), mlcm(G1(), N(q))), u3(), N(d)]; }
+    }[node]();
+  }
+  var at = function(x){ return ec ? plainPoint(G.pts[x]) : String(x); };
+  var power = function(k){ return ec && ecMult(G) ? k + '·' + at(base) : at(base) + '^' + k; };
+  return { math: joinEq([lead].concat(T)),
+    plain: translate(FMAP_KEYS[f][node], {
+      h: at(h), group: G.label, name: ec && f === 'index' ? curveName(G) : G.label, g: at(base),
+      gn: mul ? 'φ(' + G.n + ')' : String(n), n: n, gq: power(q), gr: r === null ? '' : power(signed(r)),
+      q: q, r: r === null ? '' : signed(r), a: a, d: d, m: m, l: l }),
+    map: { f: f, token: token, reach: reach } };
+}
+
+// The map as drawn: its nine nodes (centre, width and height in the 172 × 94
+// drawing, the labels' translation keys) and the paths between them.
+var FMAP_W = 172, FMAP_H = 94;
+var FMAP_NODES = {
+  'jn': { x: 12, y: 47, w: 22, h: 14, t: ['cyclicGroups.fmapLabelJn'], key: 'cyclicGroups.fmapJn' },
+  'gcd-short': { x: 62, y: 9, w: 30, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelShort'], key: 'cyclicGroups.fmapGcdShort' },
+  'gcd-full': { x: 152, y: 9, w: 30, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelFull'], key: 'cyclicGroups.fmapGcdFull' },
+  'lcm-short': { x: 62, y: 47, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelShort'], key: 'cyclicGroups.fmapLcmShort' },
+  'lcm-full': { x: 152, y: 47, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelFull'], key: 'cyclicGroups.fmapLcmFull' },
+  'abs': { x: 118, y: 28, w: 22, h: 12, t: ['cyclicGroups.fmapLabelA'], key: 'cyclicGroups.fmapAbs' },
+  'pos': { x: 84, y: 28, w: 22, h: 12, t: ['cyclicGroups.fmapLabelA2'], key: 'cyclicGroups.fmapPos' },
+  'lcm-slu': { x: 62, y: 66, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelSlu'], key: 'cyclicGroups.fmapLcmSlu' },
+  'gcd-slu': { x: 62, y: 85, w: 30, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelSlu'], key: 'cyclicGroups.fmapGcdSlu' }
+};
+// The keyboard order of the nine positions.
+var FMAP_ORDER = ['jn', 'gcd-short', 'gcd-full', 'pos', 'abs', 'lcm-short', 'lcm-full', 'lcm-slu', 'gcd-slu'];
+// Always-open paths are double lines (two strokes with a gap), conditional
+// ones single; each single path names what opens it.
+var FMAP_DOUBLE = [
+  'M10.6 40V22Q10.6 7.6 25 7.6H47', 'M13.4 40V22Q13.4 10.4 25 10.4H47',
+  'M23 45.6H47', 'M23 48.4H47',
+  'M77 7.6H137', 'M77 10.4H137', 'M77 45.6H137', 'M77 48.4H137'
+];
+var FMAP_SINGLE = [
+  ['abs', 'M118 22 106 9M118 22 130 9M118 34 106 47M118 34 130 47'],
+  ['pos', 'M95 28H107'],
+  ['slu', 'M12 54V85M12 66H47M12 85H47']
+];
+var fmapSeq = 0;
+function formulaMap(G, info){
+  var f = info.f, token = info.token, reach = info.reach, now = fmapNode(token);
+  var wrap = document.createElement('span');
+  wrap.className = 'fmap log-ctl';
+  wrap.setAttribute('data-f', f);
+  wrap.setAttribute('data-at', now);
+  wrap.setAttribute('role', 'radiogroup');
+  wrap.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
+  var open = { 'abs': reach.abs, 'pos': reach.pos, 'slu': reach.slu };
+  var openNode = function(id){ return id === 'abs' ? reach.abs : id === 'pos' ? reach.pos : id.indexOf('slu') !== -1 ? reach.slu : true; };
+  var svg = svgEl('svg', { 'class': 'fmap-svg', viewBox: '0 0 ' + FMAP_W + ' ' + FMAP_H, width: FMAP_W, height: FMAP_H, 'aria-hidden': 'true', focusable: 'false' });
+  FMAP_SINGLE.forEach(function(s){
+    svg.appendChild(svgEl('path', { 'class': 'fmap-edge' + (open[s[0]] ? '' : ' is-closed'), d: s[1] }));
+  });
+  FMAP_DOUBLE.forEach(function(d){ svg.appendChild(svgEl('path', { 'class': 'fmap-edge', d: d })); });
+  FMAP_ORDER.forEach(function(id){
+    var nd = FMAP_NODES[id], g = svgEl('g', { 'class': 'fmap-node' + (openNode(id) ? '' : ' is-closed') + (id === now ? ' is-at' : '') });
+    g.appendChild(svgEl('rect', { x: nd.x - nd.w / 2, y: nd.y - nd.h / 2, width: nd.w, height: nd.h, rx: 4 }));
+    nd.t.forEach(function(key, i){
+      var text = svgEl('text', { 'class': i ? 'fmap-sub' : 'fmap-name', x: nd.x, y: nd.t.length === 1 ? nd.y + 3 : i ? nd.y + 5.6 : nd.y - 1.4, 'text-anchor': 'middle' });
+      text.textContent = translate(key);
+      g.appendChild(text);
+    });
+    svg.appendChild(g);
+  });
+  wrap.appendChild(svg);
+  var knob = document.createElement('span');
+  knob.className = 'fmap-knob';
+  knob.setAttribute('aria-hidden', 'true');
+  var put = function(el, id, grow){
+    var nd = FMAP_NODES[id];
+    el.style.left = (nd.x - nd.w / 2 - grow) + 'px';
+    el.style.top = (nd.y - nd.h / 2 - grow) + 'px';
+    el.style.width = (nd.w + 2 * grow) + 'px';
+    el.style.height = (nd.h + 2 * grow) + 'px';
+  };
+  put(knob, now, 1.5);
+  wrap.appendChild(knob);
+  FMAP_ORDER.forEach(function(id){
+    var nd = FMAP_NODES[id], stop = document.createElement('label');
+    stop.className = 'fmap-stop';
+    stop.setAttribute('data-id', id);
+    put(stop, id, 0);
+    stop.title = translate(nd.key);
+    var input = document.createElement('input');
+    input.type = 'radio';
+    input.name = f === 'order' ? 'fmap-order' : 'fmap-index';
+    input.value = id;
+    input.checked = id === now;
+    input.disabled = !openNode(id);
+    input.setAttribute('aria-label', stop.title);
+    input.addEventListener('change', function(){ if (input.checked) setFormulaMap(f, id); });
+    stop.appendChild(input);
+    wrap.appendChild(stop);
+  });
+  return wrap;
+}
+// A click or an arrow key on the map: the knob goes to that position. Onto
+// a or a2 it keeps the row it was on (from JN or an SLU form that row's own),
+// and between a and a2 the row they were entered from.
+function setFormulaMap(f, id){
+  var now = state.fmap[f], row = fmapRow(now) || 'gcd';
+  state.fmap[f] = id === 'abs' || id === 'pos' ? FMAP_AT[id][row] : id;
+  if (IS_ISOPANE){
+    tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
+    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
+    return;
+  }
+  barFormulasChanged();
+}
+// The main view's formulas, as renderSubgroups draws them: in a group with
+// maps each as its map's position says, anywhere else as the bottom bar's
+// choices and the formula slider.
 function ringFormulas(G){
-  return subRowFormula(G, state.gen, state.subFormulaRing, logScrollBase(G), rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing, true);
+  if (!hasMap(G)) return subRowFormula(G, state.gen, state.subFormulaRing, logScrollBase(G), rowFormulaH(G, state.gen, state.gen, true), state.subLcmRing, true);
+  var base = mapBase(G), hm = rowFormulaH(G, state.gen, state.gen, true);
+  return fmapShown().map(function(f){ return mapFormula(G, state.gen, f, state.fmap[f], base, hm); });
 }
 // The main view's formula can take its logarithm through every generator as
 // its base, a wheel notch a generator: log_g h changes, gcd(|G|, log_g h)
@@ -6947,13 +7241,22 @@ function ringFormulas(G){
 // (logMode 'scroll'), the expression slider ('slider') or the Generator
 // dropdown ('gen').
 var logMode = 'slider', logScrollG = null, logScrollSum = 0;
+// Whether a base can be chosen: more than one to choose from, on a desktop.
+// With a map the formula slider has no say; without, the slider's Compact
+// and No derivation take the log from the formula.
+function logChoosable(G){
+  if (IS_MOBILE || G.generators.length < 2) return false;
+  if (hasMap(G)) return true;
+  return !G.pts && !state.subBare && !state.subSimplify && (G.mode === 'additive' || G.cyclic);
+}
+// Whether the pyramid shows: a base can be chosen, and a form of the map
+// shown works with the log.
 function logScrollable(G){
-  if (IS_MOBILE || G.pts || state.subBare || G.generators.length < 2) return false;
-  // In (ℤ/nℤ)* the formula slider's middle hides it, as it hides ℤ/nℤ's log.
-  return !state.subSimplify && (G.mode === 'additive' || G.cyclic);
+  if (!logChoosable(G)) return false;
+  return !hasMap(G) || fmapShown().some(function(f){ var t = state.fmap[f]; return t !== 'jn' && t.indexOf('slu') === -1; });
 }
 function logScrollBase(G){
-  if (!logScrollable(G) || logMode === 'slider') return undefined;
+  if (!logChoosable(G) || logMode === 'slider') return undefined;
   if (logMode === 'gen') return logGenBase(G);
   return G.generators.indexOf(logScrollG) !== -1 ? logScrollG : undefined;
 }
@@ -12874,7 +13177,7 @@ function syncGcdDividers(G){
 // one, so the digits line up under those of the negative numbers.
 function numMn(s, width, signed){
   var neg = s.charAt(0) === '−', digits = s.length - (neg ? 1 : 0);
-  var miss = state.subAlign && !state.subPad ? width - (signed ? 1 : 0) - digits : 0;
+  var miss = state.subAlign && !state.subPad ? width - (signed || neg ? 1 : 0) - digits : 0;
   var ghost = (signed && width > 0 && !neg ? '−' : '') + '0'.repeat(Math.max(0, miss));
   return ghost ? mrow(mEl('mphantom', [mn(ghost)]), mn(s)) : mn(s);
 }
@@ -12890,9 +13193,13 @@ function subFormat(base, log, width, expWidth, G, natOff){
   // Signed, a number's zeros pad its digits after the sign, which keeps
   // one place of the width.
   var sg = signRoomEl(G) ? 1 : 0, sgExp = signRoomExp(G) ? 1 : 0;
-  var num = function(v, w, s){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(w - s, '0') : String(Math.abs(v))); };
+  // A negative number always has its sign there, signed form or not (the
+  // formula maps write −3 as a power's exponent).
+  var num = function(v, w, s){ return (v < 0 ? '−' : '') + (state.subPad ? String(Math.abs(v)).padStart(w - (v < 0 ? 1 : s), '0') : String(Math.abs(v))); };
   var nat = function(x){ return num(balEl(G, x), width, sg); };
   var ex = function(k){ return num(balExp(G, k), expWidth, sgExp); };
+  // The exponent exactly as given, never balanced into the signed range.
+  var raw = function(k){ return num(k, expWidth, sgExp); };
   // A curve's points stand in for it, written as multiples or not as G is.
   var pts = G && G.pts || null, C = pts ? { pts: pts, mult: ecMult(G) } : G;
   // An element written Natural, a number or a curve's point, is its own
@@ -12913,6 +13220,7 @@ function subFormat(base, log, width, expWidth, G, natOff){
   };
   var f = {
     ex: ex,
+    raw: raw,
     m: function(x){ return log ? expMath(C, base, numMn(ex(log[x]), expWidth, sgExp)) : natM(x); },
     p: function(x){ return log ? expPlain(C, base, ex(log[x])) : natP(x); }
   };
@@ -13363,8 +13671,9 @@ window.addEventListener('keydown', function(e){
   // The ring behind the intro takes no keys.
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"]')) return;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap')) return;
   if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
+  // A formula map takes the arrows itself (its knob moves along its radios).
   // Snapped to the Cayley table (focused), the arrows move its cell.
   if (t.closest && t.closest('.cayley-scroll')) return;
   e.preventDefault();
@@ -15980,6 +16289,15 @@ function stateQuery(){
   else q.delete('sublcmring');
   if (state.subLcmRingR !== 'none') q.set('sublcmringr', state.subLcmRingR);
   else q.delete('sublcmringr');
+  // The formula maps' positions: the ring's, and the pane's the ring keeps.
+  if (state.fmap.order !== 'gcd-full') q.set('fmaporder', state.fmap.order);
+  else q.delete('fmaporder');
+  if (state.fmap.index !== 'gcd-full') q.set('fmapindex', state.fmap.index);
+  else q.delete('fmapindex');
+  if (state.fmapR.order !== 'gcd-full') q.set('fmaporderr', state.fmapR.order);
+  else q.delete('fmaporderr');
+  if (state.fmapR.index !== 'gcd-full') q.set('fmapindexr', state.fmapR.index);
+  else q.delete('fmapindexr');
   if (state.subFormulaRowR !== 'none') q.set('subformularowr', state.subFormulaRowR);
   else q.delete('subformularowr');
   if (state.subFormulaRingR !== 'none') q.set('subformularingr', state.subFormulaRingR);
@@ -18181,6 +18499,8 @@ function loadState(query, link){
   state.subLcmR = urlLcm(query.get('sublcmr'));
   state.subLcmRing = urlLcm(query.get('sublcmring'));
   state.subLcmRingR = urlLcm(query.get('sublcmringr'));
+  state.fmap = fmapPair({ order: query.get('fmaporder'), index: query.get('fmapindex') });
+  state.fmapR = fmapPair({ order: query.get('fmaporderr'), index: query.get('fmapindexr') });
   if (SUB_FORMULAS.indexOf(query.get('subformularowr')) !== -1) state.subFormulaRowR = query.get('subformularowr');
   if (SUB_FORMULAS.indexOf(query.get('subformularingr')) !== -1) state.subFormulaRingR = query.get('subformularingr');
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));
