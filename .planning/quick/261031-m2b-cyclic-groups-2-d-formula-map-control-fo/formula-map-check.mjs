@@ -193,12 +193,12 @@ const mod = (x, m) => ((x % m) + m) % m;
 const sg = v => (v < 0 ? '−' + -v : String(v));
 const NODE_OF = t => (t.startsWith('abs-') ? 'abs' : t.startsWith('pos-') ? 'pos' : t);
 const ROW_OF = t => (t.includes('gcd') ? 'gcd' : t.includes('lcm') ? 'lcm' : null);
-const STEPS_ORDER = { jn: 1, 'gcd-full': 5, 'gcd-short': 4, 'lcm-full': 5, 'lcm-short': 4, abs: 5, pos: 4, 'gcd-slu': 4, 'lcm-slu': 4 };
-const STEPS_INDEX = { jn: 1, 'gcd-full': 4, 'gcd-short': 3, 'lcm-full': 4, 'lcm-short': 3, abs: 4, pos: 3, 'gcd-slu': 3, 'lcm-slu': 3 };
-const ALL_TOKENS = ['jn', 'gcd-short', 'gcd-full', 'lcm-short', 'lcm-full', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-slu', 'lcm-slu'];
+const STEPS_ORDER = { jn: 1, 'gcd-full': 5, 'gcd-short': 4, 'lcm-full': 5, 'lcm-short': 4, abs: 5, pos: 4, 'gcd-sls': 4, 'lcm-sls': 4 };
+const STEPS_INDEX = { jn: 1, 'gcd-full': 4, 'gcd-short': 3, 'lcm-full': 4, 'lcm-short': 3, abs: 4, pos: 3, 'gcd-sls': 3, 'lcm-sls': 3 };
+const ALL_TOKENS = ['jn', 'gcd-short', 'gcd-full', 'lcm-short', 'lcm-full', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-sls', 'lcm-sls'];
 // ℤ/nℤ: the log of h to the base g is the k in 1..n with k·g = h (0 for n).
 function znModel(n) {
-  const M = { kind: 'add', n, N: n, label: `⟨ℤ/${n}ℤ, +⟩`, name: `⟨ℤ/${n}ℤ, +⟩`, gn: String(n), slu: true };
+  const M = { kind: 'add', n, N: n, label: `⟨ℤ/${n}ℤ, +⟩`, name: `⟨ℤ/${n}ℤ, +⟩`, gn: String(n), sls: true };
   M.at = x => String(x);
   M.pow = (g, k) => `${g}^${k}`;
   M.log = (g, h) => { for (let k = 1; k <= n; k++) if (mod(k * g, n) === mod(h, n)) return k; return null; };
@@ -209,7 +209,7 @@ function znModel(n) {
 function unitsModel(n) {
   const units = []; for (let u = 1; u < n; u++) if (gcd(u, n) === 1) units.push(u);
   const N = units.length;
-  const M = { kind: 'mul', n, N, label: `⟨ℤ/${n}ℤ, ×⟩`, name: `⟨ℤ/${n}ℤ, ×⟩`, gn: `φ(${n})`, slu: false };
+  const M = { kind: 'mul', n, N, label: `⟨ℤ/${n}ℤ, ×⟩`, name: `⟨ℤ/${n}ℤ, ×⟩`, gn: `φ(${n})`, sls: false };
   M.at = x => String(x);
   M.pow = (g, k) => `${g}^${k}`;
   const order = g => { let x = g, k = 1; while (x !== 1 % n) { x = (x * g) % n; k++; } return k; };
@@ -221,20 +221,20 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, slu: M.slu };
+  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
   if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
   if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
-  if (t.includes('slu') && !rc.slu) t = 'jn';
+  if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
-// What each form's numbers are: the log form's q, the SLU forms' h (n for 0).
+// What each form's numbers are: the log form's q, the SLS forms' h (n for 0).
 function vals(M, g, h, node) {
   const n = M.N, rc = reach(M, g, h);
-  const q = node.endsWith('slu') ? (h === 0 ? n : h) : rc.q;
+  const q = node.endsWith('sls') ? (h === 0 ? n : h) : rc.q;
   const d = gcd(n, q);
   return {
     h: M.at(h), group: M.label, name: M.name, g: M.at(g), gn: M.gn, n, q, d, m: n / d, l: n * q / d,
@@ -250,8 +250,8 @@ const TO = {
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
-  'gcd-slu': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
-  'lcm-slu': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
+  'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
+  'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
 const TI = {
   jn: v => `[${v.name} : ⟨${v.h}⟩] = ${v.d}`,
@@ -261,8 +261,8 @@ const TI = {
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
   pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
-  'gcd-slu': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
-  'lcm-slu': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
+  'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
+  'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
 const wantPair = (M, g, h, tokO, tokI) => {
   const nO = NODE_OF(tokO), nI = NODE_OF(tokI);
@@ -271,7 +271,7 @@ const wantPair = (M, g, h, tokO, tokI) => {
 // The map state of every .fmap on the page: its formula, the position its
 // knob is on, which radios are disabled, which is checked.
 const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
-const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.slu && 'gcd-slu', !rc.slu && 'lcm-slu'].filter(Boolean).sort();
+const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
 const SUBD = '₀₁₂₃₄₅₆₇₈₉';
@@ -330,7 +330,7 @@ function compositeModel(n, a, b) {
 // naming the curve in full, powers as (x, y)^q or, under ecmult, q·(x, y).
 function ecAdapter(C, mult) {
   const pt = P => (P ? P.txt : '𝒪');
-  const M = { kind: 'ec', n: C.p, N: C.N, label: C.group, name: `${C.group}: ${eqn(C.a, C.b)}`, gn: String(C.N), slu: false, gens: C.gens, cyclic: C.cyclic, C };
+  const M = { kind: 'ec', n: C.p, N: C.N, label: C.group, name: `${C.group}: ${eqn(C.a, C.b)}`, gn: String(C.N), sls: false, gens: C.gens, cyclic: C.cyclic, C };
   M.at = x => pt(C.pts[x]);
   M.pow = (g, k) => (mult ? `${k}·${M.at(g)}` : `${M.at(g)}^${k}`);
   M.log = (g, h) => C.log(g, h);
@@ -345,11 +345,11 @@ const SCENARIOS = [];
 // The URLs whose main view has maps (grows with each task).
 const MAPPED = u => /mode=additive|n=13|curve=11,1,3|curve=35,3,3/.test(u);
 // The tokens with an old capture to compare with, by group kind.
-const TOKENS_OF = u => /mode=additive/.test(u) ? ['gcd-slu', 'jn', 'lcm-full', 'lcm-slu'] : /n=13/.test(u) ? ['jn', 'lcm-full'] : ['jn'];
+const TOKENS_OF = u => /mode=additive/.test(u) ? ['gcd-sls', 'jn', 'lcm-full', 'lcm-sls'] : /n=13/.test(u) ? ['jn', 'lcm-full'] : ['jn'];
 // What an old capture's main view says for a position, per the plan.
 const EQUIV = {
-  'gcd-full': ['none', 'complete', [0, 1]], 'gcd-slu': ['none', 'compact', [0, 1]], jn: ['none', 'bare', [0, 1]],
-  'lcm-full': ['both', 'complete', [0]], 'lcm-slu': ['both', 'compact', [0]]
+  'gcd-full': ['none', 'complete', [0, 1]], 'gcd-sls': ['none', 'compact', [0, 1]], jn: ['none', 'bare', [0, 1]],
+  'lcm-full': ['both', 'complete', [0]], 'lcm-sls': ['both', 'compact', [0]]
 };
 SCENARIOS.push(['regress', async browser => {
   const fx = JSON.parse(readFileSync(FIXTURE, 'utf8'));
@@ -402,7 +402,7 @@ SCENARIOS.push(['zn', async browser => {
   for (const [h, expr] of [[9, 1], [3, 1], [7, 1], [0, 1], [9, 7]]) {
     const rc = reach(M, expr, h);
     for (const t of ALL_TOKENS) {
-      if (expr === 7 && !['gcd-full', 'pos-gcd', 'abs-lcm', 'lcm-slu'].includes(t)) continue;
+      if (expr === 7 && !['gcd-full', 'pos-gcd', 'abs-lcm', 'lcm-sls'].includes(t)) continue;
       await P.load(`${ZN}&gen=${h}&expr=${expr}&fmaporder=${t}&fmapindex=${t}`);
       await P.enter();
       const eff = settleModel(t, rc), node = NODE_OF(eff);
@@ -415,7 +415,7 @@ SCENARIOS.push(['zn', async browser => {
     }
   }
   const labels = (await mapsNow(P))[0].labels;
-  out(labels === 'JN GCD short GCD full a2 a LCM short LCM full LCM SLU GCD SLU', 'zn', 'every position names itself on the map', labels);
+  out(labels === 'JN GCD short GCD full a2 a LCM short LCM full LCM SLS GCD SLS', 'zn', 'every position names itself on the map', labels);
   // the three slider levels and sublcm leave the main view alone
   noErrors(P, 'zn');
   await P.done();
@@ -437,12 +437,12 @@ SCENARIOS.push(['snap', async browser => {
   await clickRow(P, 7); await sleep(700);
   m = await mapsNow(P);
   out(m[0].at === 'gcd-full' && m[1].at === 'lcm-full' && (await P.param('fmaporder')) === null && (await P.param('fmapindex')) === 'lcm-full', 'snap', 'select 7: a snaps to the row it was entered from at its full form', { m, o: await P.param('fmaporder'), i: await P.param('fmapindex') });
-  // SLU forms stay while h changes (they hold for every h in ℤ/nℤ), jn too
-  await P.load(`${ZN}&gen=9&fmaporder=gcd-slu&fmapindex=jn`);
+  // SLS forms stay while h changes (they hold for every h in ℤ/nℤ), jn too
+  await P.load(`${ZN}&gen=9&fmaporder=gcd-sls&fmapindex=jn`);
   await P.enter();
   await clickRow(P, 3); await sleep(600);
   m = await mapsNow(P);
-  out(m[0].at === 'gcd-slu' && m[1].at === 'jn', 'snap', 'SLU and JN stay for another h', m);
+  out(m[0].at === 'gcd-sls' && m[1].at === 'jn', 'snap', 'SLS and JN stay for another h', m);
   noErrors(P, 'snap');
   await P.done();
 }]);
@@ -489,7 +489,7 @@ SCENARIOS.push(['maps', async browser => {
   out((await at()).join() === 'abs,gcd-full', 'maps', 'the index map did not move', await at());
   // tooltips and accessible names
   const names = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap[data-f="index"] .fmap-stop'), function(l){ return [l.title, l.querySelector('input').getAttribute('aria-label')]; })`);
-  out(names.length === 9 && names.every(x => x[0] && x[0] === x[1]) && /^JN/.test(names.find(x => /^JN/.test(x[0]))[0]) && names.some(x => /^GCD \(short\)/.test(x[0])) && names.some(x => /^a2/.test(x[0])) && names.some(x => /^LCM \(SLU\)/.test(x[0])), 'maps', 'every position has a tooltip equal to its aria-label, starting with the map name', names.map(x => x[0].slice(0, 20)));
+  out(names.length === 9 && names.every(x => x[0] && x[0] === x[1]) && /^JN/.test(names.find(x => /^JN/.test(x[0]))[0]) && names.some(x => /^GCD \(short\)/.test(x[0])) && names.some(x => /^a2/.test(x[0])) && names.some(x => /^LCM \(SLS\)/.test(x[0])), 'maps', 'every position has a tooltip equal to its aria-label, starting with the map name', names.map(x => x[0].slice(0, 20)));
   const group = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return [m.getAttribute('role'), m.getAttribute('aria-label')]; })`);
   out(group.length === 2 && group.every(x => x[0] === 'radiogroup' && x[1]), 'maps', 'each map is a labelled radiogroup', group);
   // the map sits left of its formula, the pyramid stays at the right edge
@@ -513,9 +513,9 @@ SCENARIOS.push(['url', async browser => {
   m = await mapsNow(P);
   out(m[0].at === 'gcd-full' && m[1].at === 'gcd-full' && (await P.param('fmaporder')) === null, 'url', 'unknown tokens fall back to gcd-full and leave the url', m);
   // a reload through the url keeps a settled position
-  await P.load(`${ZN}&gen=9&fmaporder=pos-lcm&fmapindex=gcd-slu`);
+  await P.load(`${ZN}&gen=9&fmaporder=pos-lcm&fmapindex=gcd-sls`);
   await P.enter();
-  out((await P.param('fmaporder')) === 'abs-lcm' && (await P.param('fmapindex')) === 'gcd-slu', 'url', 'pos-lcm with h = 9 loads as abs-lcm', await P.q());
+  out((await P.param('fmaporder')) === 'abs-lcm' && (await P.param('fmapindex')) === 'gcd-sls', 'url', 'pos-lcm with h = 9 loads as abs-lcm', await P.q());
   // an extra Ring window is the page again with the ring's query (cleanRingQuery keeps the maps')
   await P.load('?ringwin=1&mobile=0&mode=additive&n=12&gen=9&subformularing=both&fmaporder=abs-lcm&fmapindex=lcm-short');
   await sleep(1500);
@@ -554,7 +554,7 @@ async function checkGroup(P, scen, M, url, g, h, { tokens = ALL_TOKENS, keepRows
     out((await P.param('fmaporder')) === (eff === 'gcd-full' ? null : eff), scen, `${tag} url follows the snap`, await P.param('fmaporder'));
   }
 }
-const SOME = ['gcd-full', 'gcd-short', 'lcm-full', 'lcm-short', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-slu', 'jn'];
+const SOME = ['gcd-full', 'gcd-short', 'lcm-full', 'lcm-short', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-sls', 'jn'];
 SCENARIOS.push(['units', async browser => {
   const P = await openPage(browser, 'units', { w: 1280, h: 900, ua: UA_DESKTOP });
   const M = unitsModel(13);
@@ -612,7 +612,7 @@ SCENARIOS.push(['composite', async browser => {
   const C = compositeModel(35, 3, 3), M = ecAdapter(C, false);
   out(C.N === 30 && C.cyclic, 'composite', 'model-is-cyclic-of-order-30', { N: C.N, cyclic: C.cyclic });
   const g = C.gens[0];
-  for (const h of [C.gens[1], 1, 3, 0]) await checkGroup(P, 'composite', M, `?mobile=0&curve=35,3,3&subformularow=both&subformularing=both&gen=${h}&expr=${g}`, g, h, { tokens: ['gcd-full', 'lcm-full', 'abs-gcd', 'pos-lcm', 'gcd-slu'] });
+  for (const h of [C.gens[1], 1, 3, 0]) await checkGroup(P, 'composite', M, `?mobile=0&curve=35,3,3&subformularow=both&subformularing=both&gen=${h}&expr=${g}`, g, h, { tokens: ['gcd-full', 'lcm-full', 'abs-gcd', 'pos-lcm', 'gcd-sls'] });
   noErrors(P, 'composite');
   await P.done();
 }]);
@@ -641,15 +641,15 @@ SCENARIOS.push(['noncyclic', async browser => {
 const wheel = (P, x, y, dy) => P.S('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX: 0, deltaY: dy });
 SCENARIOS.push(['snap', async browser => {
   const P = await openPage(browser, 'snap', { w: 1280, h: 900, ua: UA_DESKTOP });
-  // SLU, then another group: ℤ/12ℤ -> (ℤ/13ℤ)* sends it to JN, and the url follows
-  await P.load(`${ZN}&gen=3&fmaporder=gcd-slu&fmapindex=lcm-slu`);
+  // SLS, then another group: ℤ/12ℤ -> (ℤ/13ℤ)* sends it to JN, and the url follows
+  await P.load(`${ZN}&gen=3&fmaporder=gcd-sls&fmapindex=lcm-sls`);
   await P.enter();
   let m = await mapsNow(P);
-  out(m[0].at === 'gcd-slu' && m[1].at === 'lcm-slu' && m[0].off.length === 0, 'snap', 'SLU holds in ℤ/12ℤ', m);
+  out(m[0].at === 'gcd-sls' && m[1].at === 'lcm-sls' && m[0].off.length === 0, 'snap', 'SLS holds in ℤ/12ℤ', m);
   await P.ev(`(function(){ var o=document.getElementById('op-select'); o.value='multiplicative'; o.dispatchEvent(new Event('change', { bubbles: true })); var n=document.getElementById('n-input'); n.value='13'; n.dispatchEvent(new Event('input', { bubbles: true })); n.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
   await sleep(1200);
   m = await mapsNow(P);
-  out(m.length === 2 && m[0].at === 'jn' && m[1].at === 'jn' && (await P.param('fmaporder')) === 'jn' && (await P.param('fmapindex')) === 'jn' && /mode=multiplicative/.test(await P.q()), 'snap', 'switching to (ℤ/13ℤ)* snaps SLU to JN in both maps and the url', { m, q: await P.q() });
+  out(m.length === 2 && m[0].at === 'jn' && m[1].at === 'jn' && (await P.param('fmaporder')) === 'jn' && (await P.param('fmapindex')) === 'jn' && /mode=multiplicative/.test(await P.q()), 'snap', 'switching to (ℤ/13ℤ)* snaps SLS to JN in both maps and the url', { m, q: await P.q() });
   // another base through the pyramid's wheel: h = 9 in ℤ/12ℤ, base 1 -> 5 -> 7 opens a2 (log_7 9 = 3), back to 5 closes it
   await P.load(`${ZN}&gen=9&fmaporder=abs-gcd&fmapindex=abs-lcm`);
   await P.enter();
@@ -740,11 +740,11 @@ SCENARIOS.push(['ctx', async browser => {
   out(items.includes('Switch to GCD form'), 'ctx', 'both lines LCM (short): between the lines Switch to GCD form', items);
   await clickSwitch(P); await sleep(700);
   out((await P.param('fmaporder')) === 'gcd-short' && (await P.param('fmapindex')) === 'gcd-short', 'ctx', 'it moves both back to GCD (short)', await P.q());
-  // SLU stays SLU
-  await P.load(`${ZN}&gen=9&fmaporder=gcd-slu&fmapindex=gcd-slu`);
+  // SLS stays SLS
+  await P.load(`${ZN}&gen=9&fmaporder=gcd-sls&fmapindex=gcd-sls`);
   await P.enter();
   await rightClick(P, 'between'); await clickSwitch(P); await sleep(700);
-  out((await P.param('fmaporder')) === 'lcm-slu' && (await P.param('fmapindex')) === 'lcm-slu', 'ctx', 'gcd-slu switches to lcm-slu', await P.q());
+  out((await P.param('fmaporder')) === 'lcm-sls' && (await P.param('fmapindex')) === 'lcm-sls', 'ctx', 'gcd-sls switches to lcm-sls', await P.q());
   // none at JN, a, a2
   for (const t of ['jn', 'abs-gcd']) {
     await P.load(`${ZN}&gen=9&fmaporder=${t}&fmapindex=${t}`);
@@ -847,13 +847,13 @@ SCENARIOS.push(['pane', async browser => {
   out(q.get('fmaporder') === 'gcd-short' && q.get('fmapindex') === 'jn' && q.get('fmaporderr') === 'gcd-short' && (q.get('fmapindexr') === 'lcm-full'), 'pane', 'swapping the rings swaps the maps: host takes the pane\'s (gcd-short, jn), the pane the host\'s (gcd-short, lcm-full)', Object.fromEntries(q));
   noErrors(P, 'pane');
   await P.done();
-  // a pane snap reaches the host: SLU in the pane's (ℤ/13ℤ)* goes to JN and the host's url follows
+  // a pane snap reaches the host: SLS in the pane's (ℤ/13ℤ)* goes to JN and the host's url follows
   const P2 = await openPage(browser, 'pane', { w: 1500, h: 900, ua: UA_DESKTOP });
-  const c2 = await openPane(P2, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both&fmaporderr=gcd-slu&fmapindexr=lcm-slu', 'ℤ/13ℤ,×');
+  const c2 = await openPane(P2, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both&fmaporderr=gcd-sls&fmapindexr=lcm-sls', 'ℤ/13ℤ,×');
   await sleep(1500);
   const q2 = await hostQ(P2);
   const pm2 = c2 ? await mapsNow({ ev: e => P2.ev(e, c2) }) : [];
-  out(!!c2 && pm2[0].at === 'jn' && pm2[1].at === 'jn' && q2.get('fmaporderr') === 'jn' && q2.get('fmapindexr') === 'jn', 'pane', "the pane snaps SLU to JN and tells the host (fmaporderr=jn, fmapindexr=jn)", { pm2: pm2.map(m => m.at), r: [q2.get('fmaporderr'), q2.get('fmapindexr')] });
+  out(!!c2 && pm2[0].at === 'jn' && pm2[1].at === 'jn' && q2.get('fmaporderr') === 'jn' && q2.get('fmapindexr') === 'jn', 'pane', "the pane snaps SLS to JN and tells the host (fmaporderr=jn, fmapindexr=jn)", { pm2: pm2.map(m => m.at), r: [q2.get('fmaporderr'), q2.get('fmapindexr')] });
   // a host reload keeps the pane's maps: reopen the pane and read them
   const url = await P2.q();
   const c3 = await openPane(P2, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both&fmaporderr=abs-lcm&fmapindexr=pos-gcd', 'ℤ/13ℤ,×');

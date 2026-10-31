@@ -7000,12 +7000,12 @@ function syncFormulaCtx(fml){
 // after Formula_Map): JN, the answer alone; a GCD row and an LCM row, each
 // with a short and a full derivation through log_g h; a, working with
 // |log_g h| and no gcd or lcm; a2, the same when log_g h is positive itself;
-// and for ℤ/nℤ the two SLU forms, which skip the logarithm. The knob sits on
+// and for ℤ/nℤ the two SLS forms, which skip the logarithm. The knob sits on
 // the form in use. JN and the two rows can always be reached, a and a2 only
-// when the current log base lets them (mapReach), the SLU forms only in ℤ/nℤ.
+// when the current log base lets them (mapReach), the SLS forms only in ℤ/nℤ.
 // A form is stored as one token (FMAP_POS): the row a or a2 was entered from
 // is its suffix, so the knob can go back to it.
-var FMAP_POS = ['jn', 'gcd-short', 'gcd-full', 'lcm-short', 'lcm-full', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-slu', 'lcm-slu'];
+var FMAP_POS = ['jn', 'gcd-short', 'gcd-full', 'lcm-short', 'lcm-full', 'abs-gcd', 'abs-lcm', 'pos-gcd', 'pos-lcm', 'gcd-sls', 'lcm-sls'];
 function fmapToken(v){ return FMAP_POS.indexOf(v) !== -1 ? v : 'gcd-full'; }
 function fmapPair(o){ return { order: fmapToken(o && o.order), index: fmapToken(o && o.index) }; }
 // The map's node a token sits on (abs and pos for a and a2).
@@ -7027,16 +7027,16 @@ function hasMap(G){ return G.mode === 'additive' || !!G.cyclic; }
 function mapReach(G, h, base){
   var n = G.order, q = lap(G, base, n).indexOf(h) || n;
   var r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q: q, r: r, abs: r !== null, pos: n % q === 0, slu: G.mode === 'additive' };
+  return { q: q, r: r, abs: r !== null, pos: n % q === 0, sls: G.mode === 'additive' };
 }
 // Where the knob goes when its form no longer holds: a2 to a, a to the row
-// it was entered from at its full form, an SLU form to JN.
+// it was entered from at its full form, an SLS form to JN.
 var FMAP_FULL = { gcd: 'gcd-full', lcm: 'lcm-full' };
 function mapSettle(token, reach){
   var row = fmapRow(token), node = fmapNode(token);
   if (node === 'pos' && !reach.pos){ token = reach.abs ? FMAP_AT.abs[row] : FMAP_FULL[row]; node = fmapNode(token); }
   if (node === 'abs' && !reach.abs) token = FMAP_FULL[row];
-  if (token.indexOf('slu') !== -1 && !reach.slu) token = 'jn';
+  if (token.indexOf('sls') !== -1 && !reach.sls) token = 'jn';
   return token;
 }
 function mapBase(G){ return logScrollBase(G) || logBase(G); }
@@ -7062,26 +7062,26 @@ var FMAP_KEYS = {
   order: {
     'jn': 'cyclicGroups.formula.mapOrderJn', 'gcd-short': 'cyclicGroups.formula.mapOrderGcdShort', 'gcd-full': 'cyclicGroups.formula.mapOrderGcdFull',
     'lcm-short': 'cyclicGroups.formula.mapOrderLcmShort', 'lcm-full': 'cyclicGroups.formula.mapOrderLcmFull', 'abs': 'cyclicGroups.formula.mapOrderAbs',
-    'pos': 'cyclicGroups.formula.mapOrderPos', 'gcd-slu': 'cyclicGroups.formula.mapOrderGcdSlu', 'lcm-slu': 'cyclicGroups.formula.mapOrderLcmSlu'
+    'pos': 'cyclicGroups.formula.mapOrderPos', 'gcd-sls': 'cyclicGroups.formula.mapOrderGcdSls', 'lcm-sls': 'cyclicGroups.formula.mapOrderLcmSls'
   },
   index: {
     'jn': 'cyclicGroups.formula.mapIndexJn', 'gcd-short': 'cyclicGroups.formula.mapIndexGcdShort', 'gcd-full': 'cyclicGroups.formula.mapIndexGcdFull',
     'lcm-short': 'cyclicGroups.formula.mapIndexLcmShort', 'lcm-full': 'cyclicGroups.formula.mapIndexLcmFull', 'abs': 'cyclicGroups.formula.mapIndexAbs',
-    'pos': 'cyclicGroups.formula.mapIndexPos', 'gcd-slu': 'cyclicGroups.formula.mapIndexGcdSlu', 'lcm-slu': 'cyclicGroups.formula.mapIndexLcmSlu'
+    'pos': 'cyclicGroups.formula.mapIndexPos', 'gcd-sls': 'cyclicGroups.formula.mapIndexGcdSls', 'lcm-sls': 'cyclicGroups.formula.mapIndexLcmSls'
   }
 };
 // One formula (f, order or index) of ⟨h⟩ at the map position token, by the
 // log base given; hm makes h as the rows write it. The steps are exactly the
 // map's: the number of = after the left side is 1 at JN, 5 (size) or 4
-// (index) at a full form and at a, 4 (3) at a short form, at a2 and at an SLU
+// (index) at a full form and at a, 4 (3) at a short form, at a2 and at an SLS
 // form. |G| is written as φ(n) in the step that writes h as g^q in a group of units.
 function mapFormula(G, h, f, token, base, hm){
   var node = fmapNode(token), row = fmapRow(token) || 'gcd';
   var n = G.order, ec = !!G.pts, mul = G.mode === 'multiplicative';
   var reach = mapReach(G, h, base), r = reach.r;
   if ((node === 'abs' && !reach.abs) || (node === 'pos' && !reach.pos)) node = FMAP_FULL[row];
-  var slu = node === 'gcd-slu' || node === 'lcm-slu';
-  var q = slu ? gcdOperand(G, h) : reach.q;
+  var sls = node === 'gcd-sls' || node === 'lcm-sls';
+  var q = sls ? gcdOperand(G, h) : reach.q;
   var d = gcd(n, q), m = n / d, l = n * q / d, a = r === null ? null : Math.abs(r);
   var G1 = function(){ return abs(mGroup(G)); };
   var gn = function(){ return mul ? mPhi(mn(G.n)) : mn(n); };
@@ -7105,8 +7105,8 @@ function mapFormula(G, h, f, token, base, hm){
       'lcm-short': function(){ return [u1(), u3(), u4(), N(m)]; },
       'abs': function(){ return [mfrac(G1(), abs(Lh())), mfrac(gn(), abs(Lr())), mfrac(N(n), abs(N(signed(r)))), mfrac(N(n), N(a)), N(m)]; },
       'pos': function(){ return [mfrac(G1(), Lh()), mfrac(gn(), Lr()), mfrac(N(n), N(r)), N(m)]; },
-      'gcd-slu': function(){ return [mfrac(G1(), mgcd(G1(), N(h))), s3(), s4(), N(m)]; },
-      'lcm-slu': function(){ return [mfrac(mlcm(G1(), N(q)), N(q)), u3(), u4(), N(m)]; }
+      'gcd-sls': function(){ return [mfrac(G1(), mgcd(G1(), N(h))), s3(), s4(), N(m)]; },
+      'lcm-sls': function(){ return [mfrac(mlcm(G1(), N(q)), N(q)), u3(), u4(), N(m)]; }
     }[node]();
   } else {
     var name = ec ? mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)) : mGroup(G);
@@ -7125,8 +7125,8 @@ function mapFormula(G, h, f, token, base, hm){
       'lcm-short': function(){ return [u1(), u3(), N(d)]; },
       'abs': function(){ return [abs(Lh()), abs(Lr()), abs(N(signed(r))), N(a)]; },
       'pos': function(){ return [Lh(), Lr(), N(r)]; },
-      'gcd-slu': function(){ return [mgcd(G1(), N(h)), s3(), N(d)]; },
-      'lcm-slu': function(){ return [mfrac(dot(G1(), N(q)), mlcm(G1(), N(q))), u3(), N(d)]; }
+      'gcd-sls': function(){ return [mgcd(G1(), N(h)), s3(), N(d)]; },
+      'lcm-sls': function(){ return [mfrac(dot(G1(), N(q)), mlcm(G1(), N(q))), u3(), N(d)]; }
     }[node]();
   }
   var at = function(x){ return ec ? plainPoint(G.pts[x]) : String(x); };
@@ -7151,11 +7151,11 @@ var FMAP_NODES = {
   'lcm-full': { x: 152, y: 47, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelFull'], key: 'cyclicGroups.fmapLcmFull' },
   'abs': { x: 118, y: 28, w: 22, h: 12, t: ['cyclicGroups.fmapLabelA'], key: 'cyclicGroups.fmapAbs' },
   'pos': { x: 84, y: 28, w: 22, h: 12, t: ['cyclicGroups.fmapLabelA2'], key: 'cyclicGroups.fmapPos' },
-  'gcd-slu': { x: 62, y: 66, w: 30, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelSlu'], key: 'cyclicGroups.fmapGcdSlu' },
-  'lcm-slu': { x: 62, y: 85, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelSlu'], key: 'cyclicGroups.fmapLcmSlu' }
+  'gcd-sls': { x: 62, y: 66, w: 30, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelSls'], key: 'cyclicGroups.fmapGcdSls' },
+  'lcm-sls': { x: 62, y: 85, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelSls'], key: 'cyclicGroups.fmapLcmSls' }
 };
 // The keyboard order of the nine positions.
-var FMAP_ORDER = ['jn', 'gcd-short', 'gcd-full', 'pos', 'abs', 'lcm-short', 'lcm-full', 'gcd-slu', 'lcm-slu'];
+var FMAP_ORDER = ['jn', 'gcd-short', 'gcd-full', 'pos', 'abs', 'lcm-short', 'lcm-full', 'gcd-sls', 'lcm-sls'];
 // Always-open paths are double lines (two strokes with a gap), conditional
 // ones single; each single path names what opens it.
 var FMAP_DOUBLE = [
@@ -7166,7 +7166,7 @@ var FMAP_DOUBLE = [
 var FMAP_SINGLE = [
   ['abs', 'M118 22 106 9M118 22 130 9M118 34 106 47M118 34 130 47'],
   ['pos', 'M95 28H107'],
-  ['slu', 'M12 54V85M12 66H47M12 85H47']
+  ['sls', 'M12 54V85M12 66H47M12 85H47']
 ];
 var fmapSeq = 0;
 function formulaMap(G, info){
@@ -7177,8 +7177,8 @@ function formulaMap(G, info){
   wrap.setAttribute('data-at', now);
   wrap.setAttribute('role', 'radiogroup');
   wrap.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
-  var open = { 'abs': reach.abs, 'pos': reach.pos, 'slu': reach.slu };
-  var openNode = function(id){ return id === 'abs' ? reach.abs : id === 'pos' ? reach.pos : id.indexOf('slu') !== -1 ? reach.slu : true; };
+  var open = { 'abs': reach.abs, 'pos': reach.pos, 'sls': reach.sls };
+  var openNode = function(id){ return id === 'abs' ? reach.abs : id === 'pos' ? reach.pos : id.indexOf('sls') !== -1 ? reach.sls : true; };
   var svg = svgEl('svg', { 'class': 'fmap-svg', viewBox: '0 0 ' + FMAP_W + ' ' + FMAP_H, width: FMAP_W, height: FMAP_H, 'aria-hidden': 'true', focusable: 'false' });
   FMAP_SINGLE.forEach(function(s){
     svg.appendChild(svgEl('path', { 'class': 'fmap-edge' + (open[s[0]] ? '' : ' is-closed'), d: s[1] }));
@@ -7227,7 +7227,7 @@ function formulaMap(G, info){
   return wrap;
 }
 // A click or an arrow key on the map: the knob goes to that position. Onto
-// a or a2 it keeps the row it was on (from JN or an SLU form that row's own),
+// a or a2 it keeps the row it was on (from JN or an SLS form that row's own),
 // and between a and a2 the row they were entered from.
 function setFormulaMap(f, id){
   var now = state.fmap[f], row = fmapRow(now) || 'gcd';
@@ -7276,7 +7276,7 @@ function logChoosable(G){
 // shown works with the log.
 function logScrollable(G){
   if (!logChoosable(G)) return false;
-  return fmapShown().some(function(f){ var t = state.fmap[f]; return t !== 'jn' && t.indexOf('slu') === -1; });
+  return fmapShown().some(function(f){ var t = state.fmap[f]; return t !== 'jn' && t.indexOf('sls') === -1; });
 }
 function logScrollBase(G){
   if (!logChoosable(G) || logMode === 'slider') return undefined;
@@ -7361,7 +7361,7 @@ document.addEventListener('wheel', function(e){
 }, { capture: true, passive: false });
 // The main view's formulas the switch turns, size and/or index: the one on
 // the line under the pointer, or, between the lines, both when they sit on
-// the same row of their maps, GCD or LCM, at the GCD/LCM short, full or SLU
+// the same row of their maps, GCD or LCM, at the GCD/LCM short, full or SLS
 // form. None where there is no map (a group of units that isn't cyclic, a
 // curve with no generating point), nor at JN, a or a2, which belong to no row.
 function ringFormulaForms(G, line){
