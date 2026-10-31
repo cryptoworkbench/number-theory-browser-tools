@@ -170,7 +170,13 @@
    switch), which replace the four English-only strings of the log-base
    pyramid, removed with it, and logBaseLock, logBaseUnlock and logBaseLocked
    (the padlock after that row, open and closed, and a box's tooltip while it
-   is closed). Every other language shows the English value through
+   is closed), and the Complexity and Form preference sliders that replace the
+   formula maps on a cyclic (ℤ/nℤ)* and a cyclic curve: fslComplexity and
+   fslForm (the two sliders' captions), fslCompact, fslComplete and
+   fslNeither (notch labels beside the reused fmapLabelJn, fmapLabelGcd and
+   fmapLabelLcm), fslComplexityOrder, fslComplexityIndex, fslFormOrder and
+   fslFormIndex (each slider's accessible name) and fslFormInert (the form
+   slider's tooltip while the formula is at JN). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1096,6 +1102,16 @@
       logBaseLock: 'Lock the base of the logarithm: the boxes, the scroll wheel and a double-click on a closed a or a2 can no longer change it',
       logBaseUnlock: 'Unlock the base of the logarithm',
       logBaseLocked: 'The base of the logarithm is locked: open the padlock to change it',
+      fslComplexity: 'Complexity',
+      fslForm: 'Form preference',
+      fslCompact: 'compact',
+      fslComplete: 'complete',
+      fslNeither: 'neither',
+      fslComplexityOrder: 'Complexity of the subgroup size formula',
+      fslComplexityIndex: 'Complexity of the index formula',
+      fslFormOrder: 'Form preference of the subgroup size formula',
+      fslFormIndex: 'Form preference of the index formula',
+      fslFormInert: 'At JN the formula takes no form: the form preference applies again once the complexity is compact or complete',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',

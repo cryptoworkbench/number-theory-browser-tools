@@ -1229,10 +1229,10 @@
   .ring-head > .ring-hover-formula.has-fmap > math{ justify-self:center; }
   /* On a phone, or a window too narrow for a map beside a formula, each map sits over its formula. */
   :root.is-mobile .ring-head > .ring-hover-formula.has-fmap{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
-  :root.is-mobile .ring-hover-formula.has-fmap > .fmap{ justify-self:center; }
+  :root.is-mobile .ring-hover-formula.has-fmap > :is(.fmap, .fsl-pair){ justify-self:center; }
   @media (max-width: 720px){
     .ring-head > .ring-hover-formula.has-fmap{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
-    .ring-hover-formula.has-fmap > .fmap{ justify-self:center; }
+    .ring-hover-formula.has-fmap > :is(.fmap, .fsl-pair){ justify-self:center; }
   }
   .fmap{ position:relative; justify-self:start; width:172px; height:94px; flex:none; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
   .fmap-svg{ position:absolute; inset:0; width:172px; height:94px; overflow:visible; }
@@ -1255,6 +1255,33 @@
   .fmap-stop:has(input:disabled) input{ cursor:not-allowed; }
   .fmap:has(input:focus-visible) .fmap-knob{ outline:2px solid var(--accent); outline-offset:2px; }
   @media (prefers-reduced-motion: reduce){ .fmap-knob{ transition:none; } }
+  /* In a group of units or on a curve the map is two sliders, each a short
+     map of its own: three notches on a track and the map's knob framing the
+     one in use (--v, 0 to 2, set by the page). Complexity runs JN, compact,
+     complete; Form preference LCM, neither, GCD, its neither closed (faded,
+     dashed) while the base leaves a2 or a shut, and the whole slider dimmed
+     and at rest at JN. */
+  .fsl-pair{ display:flex; flex-direction:column; gap:5px; justify-self:start; flex:none; width:186px; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
+  .fsl-row{ display:flex; flex-direction:column; gap:2px; }
+  .fsl-name{ font-size:.66rem; line-height:1.1; color:var(--text-dim); letter-spacing:.02em; padding-left:2px; text-align:left; }
+  .fsl{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); column-gap:6px; height:20px; touch-action:pan-y; cursor:pointer; border-radius:6px; outline:none; }
+  .fsl-track{ position:absolute; left:12px; right:12px; top:50%; height:1.2px; margin-top:-.6px; background:color-mix(in srgb, var(--text) 52%, transparent); pointer-events:none; }
+  .fsl-notch{ position:relative; display:grid; place-items:center; min-width:0; box-sizing:border-box; border:1px solid color-mix(in srgb, var(--text) 34%, transparent); border-radius:4px; background:var(--panel); color:var(--text-dim); font-size:.68rem; font-weight:700; letter-spacing:.02em; line-height:1; white-space:nowrap; overflow:hidden; }
+  .fsl-notch:hover{ color:var(--text); }
+  .fsl-notch.is-at{ color:var(--text); }
+  .fsl-notch.is-closed{ opacity:.4; border-style:dashed; cursor:not-allowed; }
+  .fsl-knob{ position:absolute; top:-1.5px; bottom:-1.5px; box-sizing:border-box; width:calc((100% - 12px) / 3 + 3px); left:calc(((100% - 12px) / 3 + 6px) * var(--v, 0) - 1.5px); border:1.6px solid var(--accent); border-radius:6px; background:color-mix(in srgb, var(--accent) 22%, transparent); pointer-events:none; transition:left .2s ease, width .2s ease; }
+  .fsl.is-drag .fsl-knob{ transition:none; }
+  .fsl.is-drag{ cursor:grabbing; }
+  .fsl.is-inert{ opacity:.55; cursor:default; }
+  .fsl.is-inert .fsl-notch:hover{ color:var(--text-dim); }
+  .fsl.is-inert .fsl-notch.is-at{ color:var(--text); }
+  .fsl.is-inert .fsl-knob{ border-color:color-mix(in srgb, var(--text) 40%, transparent); background:color-mix(in srgb, var(--text) 10%, transparent); }
+  .fsl:focus-visible .fsl-knob{ outline:2px solid var(--accent); outline-offset:2px; }
+  /* A forced neither pulses with the box whose base it takes, and flashes with it once set. */
+  .fsl-notch.is-force-pulse{ animation:lb-force-pulse .55s ease-in-out 2; }
+  .fsl-notch.is-force-set{ animation:lb-flash-ok 1.1s ease-out; }
+  @media (prefers-reduced-motion: reduce){ .fsl-knob{ transition:none; } }
   /* The row of generator boxes under the formulas picks the base of their
      logarithms: one box per generator, the chosen one lit, the ones a shown
      map's a or a2 could not use greyed out. Clicking a closed a or a2 flashes
@@ -2607,7 +2634,7 @@
   /* Right-to-left (Hebrew, Arabic and Sorani Kurdish): the diagram frame, the numeric
      input, the operation dropdown, the generator select and the notation spans hold numbers and
      group notation, so they read left to right exactly as in English. */
-  :root[dir="rtl"] :is(.cg-intro-qr svg, .diagram-frame, .fmap, .lb-row, #n-input, #op-select, #identity-select, #arrange-gen-select, .expr-scale, .expr-range, .expr-stops, .fact-value, .legend-count, .legend-pair, .iso-chip){
+  :root[dir="rtl"] :is(.cg-intro-qr svg, .diagram-frame, .fmap, .fsl-pair, .lb-row, #n-input, #op-select, #identity-select, #arrange-gen-select, .expr-scale, .expr-range, .expr-stops, .fact-value, .legend-count, .legend-pair, .iso-chip){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -5646,6 +5673,9 @@ function syncSubFormula(G){
   // A map holding the focus is rebuilt with the formula, and gets it back.
   var held = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fmap') : null;
   var heldF = held ? held.getAttribute('data-f') : null;
+  // And so do a formula's sliders, the one that had it.
+  var heldSl = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fsl-pair .fsl') : null;
+  var heldSlAt = heldSl ? [heldSl.closest('.fsl-pair').getAttribute('data-f'), heldSl.getAttribute('data-kind')] : null;
   // So does the row of base boxes, and its list keeps the place it was scrolled to.
   var heldLb = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.lb-row') : null;
   var heldLbKind = heldLb ? (document.activeElement.closest('.lb-scroll') ? 'wheel' : document.activeElement.closest('.lb-lock') ? 'lock' : 'box') : null;
@@ -5669,12 +5699,13 @@ function syncSubFormula(G){
       box.removeAttribute('aria-hidden');
       Array.prototype.slice.call(box.children).forEach(function(line, i){
         line.setAttribute('aria-hidden', 'true');
-        if (fs[i].map) box.insertBefore(formulaMap(G, fs[i].map), line);
+        if (fs[i].map) box.insertBefore(hasSliders(G) ? formulaSliders(G, fs[i].map) : formulaMap(G, fs[i].map), line);
       });
     }
     // The base row, its padlock and its wheel switch go when every map shown
-    // sits on an SLS form, which takes no logarithm.
-    var slsOnly = fs.every(function(x){ return !x.map || x.map.token.indexOf('sls') !== -1; });
+    // sits on an SLS form, which takes no logarithm; with sliders, when every
+    // formula shown is at JN.
+    var slsOnly = hasSliders(G) ? fs.every(function(x){ return !x.map || x.map.token === 'jn'; }) : fs.every(function(x){ return !x.map || x.map.token.indexOf('sls') !== -1; });
     if (box.classList.contains('has-fmap') && !slsOnly) box.appendChild(logBaseRow(G));
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
@@ -5687,6 +5718,11 @@ function syncSubFormula(G){
     if (heldF){
       var again = box.querySelector('.fmap[data-f="' + heldF + '"] input:checked');
       if (again) again.focus({ preventScroll: true });
+    }
+    if (heldSlAt){
+      var sel = '.fsl-pair[data-f="' + heldSlAt[0] + '"] .fsl';
+      var slBack = box.querySelector(sel + '[data-kind="' + heldSlAt[1] + '"]:not(.is-inert)') || box.querySelector(sel + '[data-kind="complexity"]');
+      if (slBack) slBack.focus({ preventScroll: true });
     }
     if (heldLbKind){
       var back = heldLbKind === 'wheel' ? box.querySelector('.lb-scroll') : heldLbKind === 'lock' ? box.querySelector('.lb-lock') : box.querySelector('.lb-list input:checked');
@@ -5871,7 +5907,7 @@ function fitSubFormulaLine(box, m){
   m.style.fontSize = '';
   var cs = getComputedStyle(box), room = subFormulaRoom(box);
   // Beside its map a formula has the room left of the map's column.
-  var map = box.querySelector(':scope > .fmap');
+  var map = box.querySelector(':scope > .fmap, :scope > .fsl-pair');
   if (map && cs.gridTemplateColumns.split(' ').length > 1) room -= boxOf(map).width + (parseFloat(cs.columnGap) || 0);
   var w = boxOf(m).width;
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
@@ -7080,6 +7116,9 @@ function fmapShown(){
 }
 // Where the maps apply: ℤ/nℤ, and a group with a generator to take the log by.
 function hasMap(G){ return G.mode === 'additive' || !!G.cyclic; }
+// A group of units or a curve with a generator writes its formulas by two
+// sliders instead (formulaSliders), over the same positions; ℤ/nℤ keeps its map.
+function hasSliders(G){ return hasMap(G) && G.mode !== 'additive'; }
 // h's log to the base g runs 1 to |G| (the identity's is |G|); r is the
 // representative of it that divides |G|: q itself if q does, else q − |G| if
 // |G| − q does (the positive one when both). a needs an r, a2 the positive q.
@@ -7324,13 +7363,209 @@ function formulaMap(G, info){
 // and between a and a2 the row they were entered from.
 function setFormulaMap(f, id){
   var now = state.fmap[f], row = fmapRow(now) || 'gcd';
-  state.fmap[f] = id === 'abs' || id === 'pos' ? FMAP_AT[id][row] : id;
+  setFormulaToken(f, id === 'abs' || id === 'pos' ? FMAP_AT[id][row] : id);
+}
+// Formula f to the position token, from its map or its sliders.
+function setFormulaToken(f, token){
+  state.fmap[f] = fmapToken(token);
   if (IS_ISOPANE){
     tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
     if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
     return;
   }
   barFormulasChanged();
+}
+/* ---------- the main view's formula sliders ---------- */
+// In a cyclic (ℤ/nℤ)* and on a cyclic curve each main-view formula has two
+// sliders in place of its map, walking the same positions: Complexity (JN,
+// compact, complete) is the map's column (JN, short, full), Form preference
+// (LCM, neither, GCD) its row, neither being a2 at compact and a at
+// complete. At JN the form slider rests, dimmed, on the form it goes back to.
+var FSL_COMPLEXITY = ['jn', 'compact', 'complete'];
+var FSL_FORM = ['lcm', 'neither', 'gcd'];
+var FSL_ROW_V = { lcm: 0, gcd: 2 };
+// A token's place on the two sliders: c the complexity, v the form (none at
+// JN), row the GCD/LCM row it belongs to. An SLS token (none reaches a group
+// with sliders once settled) reads as JN.
+function fslOf(token){
+  var node = fmapNode(token), row = fmapRow(token);
+  if (node === 'jn' || token.indexOf('sls') !== -1) return { c: 0, v: null, row: row };
+  var c = node === 'pos' || /-short$/.test(token) ? 1 : 2;
+  return { c: c, v: node === 'abs' || node === 'pos' ? 1 : FSL_ROW_V[row], row: row };
+}
+// The node neither stands for at complexity c.
+function fslNeitherNode(c){ return c === 1 ? 'pos' : 'abs'; }
+// The token at complexity c and form v; neither keeps the row it came from.
+function fslToken(c, v, row){
+  if (c === 0) return 'jn';
+  if (v === 1) return FMAP_AT[fslNeitherNode(c)][row || 'gcd'];
+  return (v === 0 ? 'lcm' : 'gcd') + (c === 1 ? '-short' : '-full');
+}
+// The form each formula's slider shows at JN: the last one it had, and the
+// row a neither goes back to. Not stored; a reload at JN shows GCD.
+var fslMemo = { order: { form: 'gcd', row: 'gcd' }, index: { form: 'gcd', row: 'gcd' } };
+// Where a notch of the kind slider takes formula f from token (null: nowhere).
+// A complexity onto a closed a or a2 takes the row's own form there instead.
+function fslTarget(kind, v, token, reach, memo){
+  var at = fslOf(token), row = at.row || memo.row || 'gcd';
+  if (kind === 'complexity'){
+    if (v === 0) return 'jn';
+    var form = at.c ? at.v : FSL_FORM.indexOf(memo.form);
+    if (form === 1 && !reach[fslNeitherNode(v)]) form = FSL_ROW_V[row];
+    return fslToken(v, form, row);
+  }
+  if (!at.c) return null;
+  return v === 1 ? fslToken(at.c, 1, row) : fslToken(at.c, v, v === 2 ? 'gcd' : 'lcm');
+}
+var FSL_LABELS = {
+  complexity: ['cyclicGroups.fmapLabelJn', 'cyclicGroups.fslCompact', 'cyclicGroups.fslComplete'],
+  form: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fslNeither', 'cyclicGroups.fmapLabelGcd']
+};
+var FSL_NAMES = {
+  complexity: { order: 'cyclicGroups.fslComplexityOrder', index: 'cyclicGroups.fslComplexityIndex' },
+  form: { order: 'cyclicGroups.fslFormOrder', index: 'cyclicGroups.fslFormIndex' }
+};
+// The sliders' knob, held and dragged: the slider it is on and where it started.
+var fslDrag = null;
+function formulaSliders(G, info){
+  var f = info.f, token = info.token, reach = info.reach, at = fslOf(token), memo = fslMemo[f];
+  // A forced sequence the state has left behind ends here (as in logBaseRow).
+  if (logForce && !logForceLive()) stopLogForce();
+  if (at.c){ memo.form = FSL_FORM[at.v]; if (at.row) memo.row = at.row; }
+  var pair = document.createElement('span');
+  pair.className = 'fsl-pair log-ctl';
+  pair.setAttribute('data-f', f);
+  pair.setAttribute('data-at', fmapNode(token));
+  pair.setAttribute('data-token', token);
+  pair.setAttribute('role', 'group');
+  pair.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
+  ['complexity', 'form'].forEach(function(kind){
+    var isForm = kind === 'form', now = isForm ? (at.c ? at.v : FSL_FORM.indexOf(memo.form)) : at.c;
+    var inert = isForm && !at.c;
+    var closed = function(v){ return isForm && v === 1 && at.c > 0 && !reach[fslNeitherNode(at.c)]; };
+    var block = document.createElement('span');
+    block.className = 'fsl-row';
+    var cap = document.createElement('span');
+    cap.className = 'fsl-name';
+    cap.setAttribute('aria-hidden', 'true');
+    cap.textContent = translate(isForm ? 'cyclicGroups.fslForm' : 'cyclicGroups.fslComplexity');
+    block.appendChild(cap);
+    var sl = document.createElement('span');
+    sl.className = 'fsl' + (inert ? ' is-inert' : '');
+    sl.setAttribute('role', 'slider');
+    sl.setAttribute('data-kind', kind);
+    sl.setAttribute('tabindex', inert ? '-1' : '0');
+    sl.setAttribute('aria-valuemin', '0');
+    sl.setAttribute('aria-valuemax', '2');
+    sl.setAttribute('aria-valuenow', String(now));
+    sl.setAttribute('aria-valuetext', translate(FSL_LABELS[kind][now]));
+    sl.setAttribute('aria-label', translate(FSL_NAMES[kind][f]));
+    sl.setAttribute('aria-orientation', 'horizontal');
+    if (inert){ sl.setAttribute('aria-disabled', 'true'); sl.title = translate('cyclicGroups.fslFormInert'); }
+    sl.style.setProperty('--v', String(now));
+    var track = document.createElement('span');
+    track.className = 'fsl-track';
+    track.setAttribute('aria-hidden', 'true');
+    sl.appendChild(track);
+    var notches = [0, 1, 2].map(function(v){
+      var chip = document.createElement('span');
+      chip.className = 'fsl-notch' + (v === now ? ' is-at' : '') + (closed(v) ? ' is-closed' : '');
+      chip.setAttribute('data-v', String(v));
+      chip.setAttribute('aria-hidden', 'true');
+      chip.textContent = translate(FSL_LABELS[kind][v]);
+      // Its tooltip is the map's, of the position it leads to.
+      var to = inert ? null : closed(v) ? FMAP_AT[fslNeitherNode(at.c)][at.row || memo.row || 'gcd'] : fslTarget(kind, v, token, reach, memo);
+      if (to) chip.title = translate(FMAP_NODES[fmapNode(to)].key);
+      if (isForm && v === 1 && logForce && logForce.f === f) paintLogForce(chip);
+      sl.appendChild(chip);
+      return chip;
+    });
+    var knob = document.createElement('span');
+    knob.className = 'fsl-knob';
+    knob.setAttribute('aria-hidden', 'true');
+    sl.appendChild(knob);
+    // A notch's position: one that changes nothing, or a closed neither,
+    // brings the knob back (the closed one flashing the bases that open it).
+    var go = function(v){
+      if (inert || v === now){ knob.style.left = ''; return; }
+      if (closed(v)){
+        knob.style.left = '';
+        flashLogBases(G, fslNeitherNode(at.c));
+        if (state.logBaseLock) alarmLogLock('nudge');
+        return;
+      }
+      var to = fslTarget(kind, v, token, reach, memo);
+      if (to && to !== token) setFormulaToken(f, to);
+      else knob.style.left = '';
+    };
+    var swallow = false;
+    sl.addEventListener('click', function(e){
+      if (swallow){ swallow = false; return; }
+      var chip = e.target.closest && e.target.closest('.fsl-notch');
+      if (chip) go(+chip.getAttribute('data-v'));
+    });
+    // Held and moved past a few pixels, the knob follows the pointer; let
+    // go, it goes to the nearest notch.
+    var nearest = function(x){
+      var best = 0, dist = Infinity;
+      notches.forEach(function(chip, v){
+        var b = boxOf(chip), d = Math.abs(b.left + b.width / 2 - x);
+        if (d < dist){ dist = d; best = v; }
+      });
+      return best;
+    };
+    sl.addEventListener('pointerdown', function(e){
+      if (inert || e.button !== 0) return;
+      fslDrag = { sl: sl, id: e.pointerId, x0: ptX(e), moved: false };
+    });
+    sl.addEventListener('pointermove', function(e){
+      var d = fslDrag;
+      if (!d || d.sl !== sl || e.pointerId !== d.id) return;
+      if (!d.moved){
+        if (Math.abs(ptX(e) - d.x0) <= 3) return;
+        d.moved = true;
+        try { sl.setPointerCapture(e.pointerId); } catch (err) {}
+        sl.classList.add('is-drag');
+      }
+      var b = boxOf(sl), w = boxOf(knob).width;
+      knob.style.left = Math.max(-1.5, Math.min(b.width - w + 1.5, ptX(e) - b.left - w / 2)) + 'px';
+    });
+    var end = function(e){
+      var d = fslDrag;
+      if (!d || d.sl !== sl || e.pointerId !== d.id) return;
+      fslDrag = null;
+      if (!d.moved) return;
+      sl.classList.remove('is-drag');
+      swallow = true;
+      setTimeout(function(){ swallow = false; }, 0);
+      if (e.type === 'pointercancel'){ knob.style.left = ''; return; }
+      go(nearest(ptX(e)));
+    };
+    sl.addEventListener('pointerup', end);
+    sl.addEventListener('pointercancel', end);
+    // The arrow keys step the notches over a closed one; Home and End go to the ends.
+    sl.addEventListener('keydown', function(e){
+      var step = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+      if (!step && e.key !== 'Home' && e.key !== 'End') return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      e.preventDefault();
+      if (inert) return;
+      var v = e.key === 'Home' ? 0 : e.key === 'End' ? 2 : now + step;
+      if (step && closed(v)) v += step;
+      if (v < 0 || v > 2 || closed(v)) return;
+      go(v);
+    });
+    // A double-click on a closed neither forces it, as on the map; on an
+    // open notch its clicks have done all there is.
+    if (isForm) sl.addEventListener('dblclick', function(e){
+      var chip = e.target.closest && e.target.closest('.fsl-notch');
+      var v = chip ? +chip.getAttribute('data-v') : nearest(ptX(e));
+      if (closed(v)) forceMapPosition(G, f, fslNeitherNode(at.c));
+    });
+    block.appendChild(sl);
+    pair.appendChild(block);
+  });
+  return pair;
 }
 // The main view's formulas, as renderSubgroups draws them: in a group with
 // maps each as its map's position says, anywhere else as the bottom bar's
@@ -7592,7 +7827,7 @@ function stopLogForce(){
   logForceTimers.forEach(clearTimeout);
   logForceTimers = [];
   logForce = null;
-  ringHeadEl.querySelectorAll('.lb-box.is-force-pulse, .lb-box.is-force-set').forEach(function(b){
+  ringHeadEl.querySelectorAll('.lb-box.is-force-pulse, .lb-box.is-force-set, .fsl-notch.is-force-pulse, .fsl-notch.is-force-set').forEach(function(b){
     b.classList.remove('is-force-pulse', 'is-force-set');
     b.style.animationDelay = '';
   });
@@ -7639,6 +7874,9 @@ function forceMapPosition(G, f, id){
   logForce = { key: G.key, h: state.gen, f: f, g: g, from: state.chosenBase, tok: state.fmap[f], to: null, set: false, t0: Date.now() };
   void box.offsetWidth;
   paintLogForce(box);
+  // A formula's form slider pulses its neither notch with the box.
+  var chip = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]');
+  if (chip) paintLogForce(chip);
   logBaseInView(list, box);
   logForceTimers.push(setTimeout(function(){
     if (gen !== logForceGen) return;
@@ -14032,9 +14270,10 @@ window.addEventListener('keydown', function(e){
   // The ring behind the intro takes no keys.
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap, .lb-row')) return;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap, .fsl-pair, .lb-row')) return;
   if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
   // A formula map takes the arrows itself (its knob moves along its radios),
+  // so do a formula's two sliders (their knobs step the notches),
   // and so does the row of base boxes (its radios skip the greyed-out ones).
   // Snapped to the Cayley table (focused), the arrows move its cell.
   if (t.closest && t.closest('.cayley-scroll')) return;
