@@ -1659,12 +1659,12 @@
   .arrange-gen-wrap > select{ flex:1 1 auto; }
   /* The scroll-wheel switch after the dropdown: pressed, the wheel steps
      the dropdown through its generators. */
-  .arrange-gen-scroll{ align-self:center; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
-  .arrange-gen-scroll:hover{ color:var(--text); }
-  .arrange-gen-scroll[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
-  .arrange-gen-scroll:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .arrange-gen-scroll:disabled{ opacity:.45; cursor:default; }
-  .arrange-gen-scroll svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
+  .arrange-gen-scroll, .lb-scroll{ align-self:center; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
+  .arrange-gen-scroll:hover, .lb-scroll:hover{ color:var(--text); }
+  .arrange-gen-scroll[aria-pressed="true"], .lb-scroll[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .arrange-gen-scroll:focus-visible, .lb-scroll:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .arrange-gen-scroll:disabled, .lb-scroll:disabled{ opacity:.45; cursor:default; }
+  .arrange-gen-scroll svg, .lb-scroll svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
   :root.is-mobile .arrange-gen-scroll{ display:none; }
   .arrange-seq, .gen-beads{ font:inherit; font-size:.85rem; line-height:1.2; padding:5px 11px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; white-space:nowrap; }
   .arrange-seq:hover, .gen-beads:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 10%, transparent); }
@@ -7241,8 +7241,11 @@ function formulaMap(G, info){
   };
   put(knob, now, 1.5);
   wrap.appendChild(knob);
+  var inputs = {};
   FMAP_ORDER.forEach(function(id){
     var nd = FMAP_NODES[id], stop = document.createElement('label');
+    // A closed a or a2 stays reachable: it flashes the bases that would open it.
+    var hint = (id === 'abs' || id === 'pos') && !openNode(id);
     stop.className = 'fmap-stop';
     stop.setAttribute('data-id', id);
     put(stop, id, 0);
@@ -7252,9 +7255,20 @@ function formulaMap(G, info){
     input.name = f === 'order' ? 'fmap-order' : 'fmap-index';
     input.value = id;
     input.checked = id === now;
-    input.disabled = !openNode(id);
+    input.disabled = !openNode(id) && !hint;
+    if (hint) input.setAttribute('aria-disabled', 'true');
     input.setAttribute('aria-label', stop.title);
-    input.addEventListener('change', function(){ if (input.checked) setFormulaMap(f, id); });
+    input.addEventListener('change', function(){
+      if (!input.checked) return;
+      if (hint){
+        input.checked = false;
+        inputs[now].checked = true;
+        flashLogBases(G, id);
+        return;
+      }
+      setFormulaMap(f, id);
+    });
+    inputs[id] = input;
     stop.appendChild(input);
     wrap.appendChild(stop);
   });
@@ -7302,6 +7316,15 @@ function plainRingFormulas(G){
 // wheel, over the formula card, step through the boxes that are not greyed
 // out.
 var logWheelOn = false, logWheelSum = 0;
+document.addEventListener('wheel', function(e){
+  if (!logWheelTakes(e)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  logWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
+  if (Math.abs(logWheelSum) < 50) return;
+  stepChosenBase(logWheelSum > 0 ? 1 : -1);
+  logWheelSum = 0;
+}, { capture: true, passive: false });
 // Per generator: whether it fits every shown map's a or a2. A row with no
 // generator that fits (it cannot arise once the knobs are settled) greys
 // nothing out.
@@ -7347,7 +7370,28 @@ function logBaseRow(G){
     list.appendChild(box);
   });
   row.appendChild(list);
+  if (!IS_MOBILE) row.appendChild(logWheelButton());
   return row;
+}
+// The wheel switch after the row, built like the Generator dropdown's.
+function logWheelButton(){
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'lb-scroll';
+  btn.setAttribute('aria-pressed', logWheelOn ? 'true' : 'false');
+  var tip = translate('cyclicGroups.logBaseWheel');
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+  var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 13, height: 13, 'aria-hidden': 'true', focusable: 'false' });
+  icon.appendChild(svgEl('rect', { x: 3.5, y: 1.5, width: 5, height: 9, rx: 2.5 }));
+  icon.appendChild(svgEl('line', { x1: 6, y1: 3.2, x2: 6, y2: 5 }));
+  btn.appendChild(icon);
+  btn.addEventListener('click', function(){
+    logWheelOn = !logWheelOn;
+    logWheelSum = 0;
+    btn.setAttribute('aria-pressed', logWheelOn ? 'true' : 'false');
+  });
+  return btn;
 }
 // Bring an element of the list fully into view, on both axes.
 function logBaseInView(list, el){
@@ -7362,6 +7406,45 @@ function setChosenBase(g){
   state.chosenBase = g;
   syncSubFormula(drawn.G);
   mirrorToUrl(drawn.G);
+}
+// A click on a closed a or a2 (node 'abs' or 'pos') leaves the knob where it
+// is and flashes every box for a moment: green where that position would be
+// open under the box's base, red where it would not. A green box out of
+// sight in a long row is scrolled to.
+var logFlashTimer = 0;
+function flashLogBases(G, node){
+  var list = ringHeadEl.querySelector('.lb-list');
+  if (!list) return;
+  clearTimeout(logFlashTimer);
+  var boxes = Array.prototype.slice.call(list.querySelectorAll('.lb-box'));
+  var open = boxes.map(function(b){ return !!mapReach(G, state.gen, +b.getAttribute('data-g'))[node]; });
+  boxes.forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+  void list.offsetWidth;
+  boxes.forEach(function(b, i){ b.classList.add(open[i] ? 'is-flash-ok' : 'is-flash-no'); });
+  var seen = function(b){
+    return b.offsetLeft >= list.scrollLeft && b.offsetLeft + b.offsetWidth <= list.scrollLeft + list.clientWidth && b.offsetTop >= list.scrollTop && b.offsetTop + b.offsetHeight <= list.scrollTop + list.clientHeight;
+  };
+  var lit = boxes.findIndex(function(b){ return b.querySelector('input').checked; });
+  var near = -1;
+  boxes.forEach(function(b, i){
+    if (!open[i]) return;
+    if (seen(b)) near = -2;
+    else if (near !== -2 && (near === -1 || Math.abs(i - lit) < Math.abs(near - lit))) near = i;
+  });
+  if (near >= 0) logBaseInView(list, boxes[near]);
+  logFlashTimer = setTimeout(function(){
+    boxes.forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+  }, 1200);
+}
+// The wheel steps the base through the boxes that are not greyed out, in
+// box order, wrapping at the ends.
+function stepChosenBase(by){
+  if (!drawn) return;
+  var G = drawn.G, fits = logBaseFits(G);
+  var ok = G.generators.filter(function(g, i){ return fits[i]; });
+  if (ok.length < 2) return;
+  var at = Math.max(0, ok.indexOf(mapBase(G)));
+  setChosenBase(ok[((at + by) % ok.length + ok.length) % ok.length]);
 }
 // Over the formula card, with the wheel switch on, the wheel steps the base
 // and keeps the ring's zoom and the step through the rows to itself.
@@ -13719,9 +13802,10 @@ window.addEventListener('keydown', function(e){
   // The ring behind the intro takes no keys.
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap')) return;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap, .lb-row')) return;
   if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
-  // A formula map takes the arrows itself (its knob moves along its radios).
+  // A formula map takes the arrows itself (its knob moves along its radios),
+  // and so does the row of base boxes (its radios skip the greyed-out ones).
   // Snapped to the Cayley table (focused), the arrows move its cell.
   if (t.closest && t.closest('.cayley-scroll')) return;
   e.preventDefault();

@@ -545,6 +545,208 @@ SCENARIOS.push(['syntax', async () => {
   try { execFileSync('node', ['--check', join(ROOT, 'assets', 'i18n', 'cyclic-groups.js')]); out(true, 'syntax', 'assets/i18n/cyclic-groups.js parses'); }
   catch (e) { out(false, 'syntax', 'assets/i18n/cyclic-groups.js parses', String(e)); }
 }]);
+
+/* ---------- flash: a closed a or a2 is clickable and shows which bases would open it ---------- */
+const okOf = (M, h, node) => sortN(M.gens.filter(g => reach(M, g, h)[node]));
+const noOf = (M, h, node) => sortN(M.gens.filter(g => !reach(M, g, h)[node]));
+const stopCentre = (P, f, id) => centre(P, `.fmap[data-f="${f}"] .fmap-stop[data-id="${id}"]`);
+SCENARIOS.push(['flash', async browser => {
+  const P = await openPage(browser, 'flash', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const state = async f => (await mapsNow(P)).find(m => m.f === f);
+  await P.load(`${ZN}&gen=7&logbase=1`);
+  await P.enter();
+  out(same(okOf(Z12, 7, 'pos'), [7]) && same(okOf(Z12, 7, 'abs'), [5, 7]) && same(noOf(Z12, 7, 'abs'), [1, 11]), 'flash', 'model: h=7, a2 opens under 7 only; a under 5 and 7');
+  const closed = await P.ev(`(function(){ return ['order','index'].map(function(f){ var m=document.querySelector('.fmap[data-f="'+f+'"]'); return ['abs','pos'].map(function(id){ var i=m.querySelector('.fmap-stop[data-id="'+id+'"] input'); return [i.disabled, i.getAttribute('aria-disabled'), m.querySelectorAll('.fmap-node.is-closed').length]; }); }); })()`);
+  out(closed.every(m => m.every(x => x[0] === false && x[1] === 'true' && x[2] === 2)), 'flash', 'closed a and a2: not disabled, aria-disabled, the drawn nodes still faded', closed);
+  const noFlash = async () => { const r = await rowNow(P); return r.ok.length === 0 && r.no.length === 0; };
+  out(await noFlash(), 'flash', 'no flash before any click');
+  for (const [f, id, node] of [['order', 'pos', 'pos'], ['order', 'abs', 'abs'], ['index', 'pos', 'pos'], ['index', 'abs', 'abs']]) {
+    const c = await stopCentre(P, f, id);
+    await P.mouse(c.x, c.y);
+    const r = await rowNow(P), st = await state(f);
+    out(same(sortN(r.ok), okOf(Z12, 7, node)) && same(sortN(r.no), noOf(Z12, 7, node)), 'flash', `${f} map, a click on ${id === 'pos' ? 'a2' : 'a'}: green ${okOf(Z12, 7, node)}, red ${noOf(Z12, 7, node)}`, { ok: r.ok, no: r.no });
+    out(st.at === 'gcd-full' && (await P.param('fmaporder')) === null && (await P.param('fmapindex')) === null && (await P.param('logbase')) === '1' && same(r.checked, [1]), 'flash', `${f} map, ${id === 'pos' ? 'a2' : 'a'}: the knob, the url and the base stay`, { st, q: await P.q() });
+    await sleep(1000);
+    out(await noFlash(), 'flash', `${f} map, ${id === 'pos' ? 'a2' : 'a'}: the flash is over after about a second and a half`, await rowNow(P));
+  }
+  // the keyboard: arrows land on the closed forms and flash, the knob stays
+  await P.ev(`document.querySelector('.fmap[data-f="order"] input:checked').focus()`);
+  const where = () => P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, aria: a && a.getAttribute('aria-disabled'), at: m && m.getAttribute('data-at') }; })()`);
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  let w = await where(), r = await rowNow(P);
+  out(w.f === 'order' && w.v === 'pos' && w.aria === 'true' && w.at === 'gcd-full' && same(sortN(r.ok), okOf(Z12, 7, 'pos')) && same(sortN(r.no), noOf(Z12, 7, 'pos')), 'flash', 'ArrowRight from GCD (full): the focus on a2 (aria-disabled), the knob unmoved, the flash by the a2 set', { w, ok: r.ok, no: r.no });
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  w = await where(); r = await rowNow(P);
+  out(w.f === 'order' && w.v === 'abs' && w.at === 'gcd-full' && same(sortN(r.ok), okOf(Z12, 7, 'abs')) && same(sortN(r.no), noOf(Z12, 7, 'abs')), 'flash', 'ArrowRight again: the focus on a, the knob unmoved, the flash by the a set', { w, ok: r.ok, no: r.no });
+  await sleep(1400);
+  out(await noFlash(), 'flash', 'the keyboard flash ends too');
+  await P.ev(`document.querySelector('.fmap[data-f="index"] .fmap-stop[data-id="pos"] input').focus()`);
+  const space = type => P.S('Input.dispatchKeyEvent', { type, key: ' ', code: 'Space', windowsVirtualKeyCode: 32, text: type === 'keyDown' ? ' ' : undefined });
+  await space('keyDown'); await space('keyUp'); await sleep(400);
+  r = await rowNow(P);
+  out(same(sortN(r.ok), okOf(Z12, 7, 'pos')) && (await state('index')).at === 'gcd-full', 'flash', 'Space on the closed a2 flashes too', { ok: r.ok, no: r.no });
+  // open positions still move the knob; a click on one of them flashes nothing
+  await sleep(1400);
+  let c = await stopCentre(P, 'order', 'lcm-short');
+  await P.mouse(c.x, c.y);
+  r = await rowNow(P);
+  out((await state('order')).at === 'lcm-short' && r.ok.length === 0 && r.no.length === 0, 'flash', 'an open position takes the knob and flashes nothing');
+  // (ℤ/13ℤ)*: a2 closed at h = 5 with base 2; the SLS radios stay plainly disabled
+  const U = unitsModel(13);
+  await P.load('?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=5');
+  await P.enter();
+  c = await stopCentre(P, 'order', 'pos');
+  await P.mouse(c.x, c.y);
+  r = await rowNow(P);
+  out(same(sortN(r.ok), okOf(U, 5, 'pos')) && same(sortN(r.no), noOf(U, 5, 'pos')) && (await state('order')).at === 'gcd-full', 'flash', `(ℤ/13ℤ)* h=5: a2 flashes green ${okOf(U, 5, 'pos')}, red ${noOf(U, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  const sls = await P.ev(`['gcd-sls','lcm-sls'].map(function(id){ var i=document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="'+id+'"] input'); return [i.disabled, i.getAttribute('aria-disabled')]; })`);
+  out(sls.every(x => x[0] === true && x[1] === null), 'flash', 'the SLS radios are plainly disabled (never flash)', sls);
+  await sleep(1400);
+  await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="gcd-sls"] input');
+  await sleep(200);
+  r = await rowNow(P);
+  out(r.ok.length === 0 && r.no.length === 0 && (await state('order')).at === 'gcd-full', 'flash', 'a click on a disabled SLS radio does nothing');
+  noErrors(P, 'flash');
+  await P.done();
+}]);
+
+/* ---------- wheel: the switch steps the base through the boxes that are not greyed out ---------- */
+SCENARIOS.push(['wheel', async browser => {
+  const P = await openPage(browser, 'wheel', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const URL = `${ZN}&gen=7&logbase=5&fmaporder=abs-gcd`;
+  await P.load(URL);
+  await P.enter();
+  let r = await rowNow(P);
+  out(r.wheel === 'false' && same(sortN(r.off), [1, 11]), 'wheel', 'the switch is there, off, and the row has the boxes 1 and 11 greyed out', { wheel: r.wheel, off: r.off });
+  const cardAt = async () => { const b = await P.rect('.ring-hover-formula'); return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; };
+  let at = await cardAt();
+  await wheelAt(P, at.x, at.y, 100); await sleep(700);
+  out((await P.param('logbase')) === '5', 'wheel', 'switch off: the wheel over the card leaves the base (the page\'s own wheel does its own thing)', await P.q());
+  // on, from a fresh load so the page's own wheel has changed nothing
+  await P.load(URL);
+  await P.enter();
+  at = await cardAt();
+  await P.clickEl('.lb-scroll');
+  r = await rowNow(P);
+  out(r.wheel === 'true', 'wheel', 'a click on the switch turns it on (aria-pressed)', r.wheel);
+  const seq = [[100, 7], [100, 5], [-100, 7], [-100, 5], [100, 7]];
+  for (const [dy, want] of seq) {
+    await wheelAt(P, at.x, at.y, dy); await sleep(500);
+    r = await rowNow(P);
+    out((await P.param('logbase')) === String(want) && same(r.checked, [want]), 'wheel', `wheel ${dy > 0 ? 'down' : 'up'}: base ${want} (greyed 1 and 11 skipped, wrapping)`, { q: await P.q(), checked: r.checked });
+  }
+  const f = await P.formulas();
+  out(same(plains(f.ring), wantPair(Z12, 7, 7, 'abs-gcd', 'gcd-full')), 'wheel', 'the formulas follow the wheel (base 7)', plains(f.ring));
+  out((await P.param('gen')) === '7', 'wheel', 'the wheel over the card moved the base only, not the subgroup (gen=7)', await P.q());
+  // small touchpad notches add up
+  await wheelAt(P, at.x, at.y, 20); await sleep(150);
+  await wheelAt(P, at.x, at.y, 20); await sleep(150);
+  out((await P.param('logbase')) === '7', 'wheel', 'two small scrolls (40 in all) do not make a step', await P.q());
+  await wheelAt(P, at.x, at.y, 20); await sleep(500);
+  out((await P.param('logbase')) === '5', 'wheel', 'the third (60 in all) does', await P.q());
+  // over the ring, outside the card: the base stays
+  const ring = await P.rect('svg.ring-svg');
+  const card = await P.rect('.ring-hover-formula');
+  const ry = ring.y + ring.h * 0.75;
+  await wheelAt(P, ring.x + ring.w / 2, Math.max(ry, card.y + card.h + 20), 100); await sleep(600);
+  out((await P.param('logbase')) === '5', 'wheel', 'the wheel over the ring (outside the card) leaves the base', await P.q());
+  // off again
+  await P.clickEl('.lb-scroll');
+  r = await rowNow(P);
+  at = await cardAt();
+  await wheelAt(P, at.x, at.y, 100); await sleep(700);
+  out(r.wheel === 'false' && (await P.param('logbase')) === '5', 'wheel', 'switched off again: the card\'s wheel no longer steps the base', { wheel: r.wheel, q: await P.q() });
+  noErrors(P, 'wheel');
+  await P.done();
+}]);
+
+/* ---------- keys: arrows in the row ---------- */
+SCENARIOS.push(['keys', async browser => {
+  const P = await openPage(browser, 'keys', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load(`${ZN}&gen=7&logbase=5&fmaporder=abs-gcd`);
+  await P.enter();
+  const keep = async () => { const q = new URLSearchParams(await P.q()); return [q.get('expr'), q.get('gen')]; };
+  const k0 = await keep();
+  await P.ev(`document.querySelector('.lb-list input:checked').focus()`);
+  for (const [key, vk, want] of [['ArrowRight', 39, 7], ['ArrowRight', 39, 5], ['ArrowLeft', 37, 7], ['ArrowDown', 40, 5], ['ArrowUp', 38, 7]]) {
+    await P.key(key, key, vk);
+    const r = await rowNow(P);
+    out(r.focus === want && same(r.checked, [want]) && (await P.param('logbase')) === String(want) && same(await keep(), k0), 'keys', `${key}: the next box that is not greyed out (${want}), focus stays in the row, expr and gen unchanged`, { focus: r.focus, checked: r.checked, q: await P.q(), k0 });
+  }
+  const f = await P.formulas();
+  out(same(plains(f.ring), wantPair(Z12, 7, 7, 'abs-gcd', 'gcd-full')), 'keys', 'the formulas follow the arrows', plains(f.ring));
+  // the wheel switch keeps the focus through a rebuild of the row
+  await P.ev(`document.querySelector('.lb-scroll').focus()`);
+  const sp = type => P.S('Input.dispatchKeyEvent', { type, key: ' ', code: 'Space', windowsVirtualKeyCode: 32, text: type === 'keyDown' ? ' ' : undefined });
+  await sp('keyDown'); await sp('keyUp'); await sleep(300);
+  let r2 = await rowNow(P);
+  out(r2.wheel === 'true' && r2.focus === 'wheel', 'keys', 'Space on the focused wheel switch turns it on', r2);
+  const cb = await P.rect('.ring-hover-formula');
+  await wheelAt(P, cb.x + cb.w / 2, cb.y + cb.h / 2, 100); await sleep(600);
+  r2 = await rowNow(P);
+  out(r2.focus === 'wheel' && same(r2.checked, [5]), 'keys', 'a wheel step rebuilds the row and the focus stays on the switch', r2);
+  noErrors(P, 'keys');
+  await P.done();
+}]);
+
+/* ---------- wide: many generators scroll inside the card ---------- */
+SCENARIOS.push(['wide', async browser => {
+  const P = await openPage(browser, 'wide', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const Z97 = '?mobile=0&mode=additive&n=97&subformularow=both&subformularing=both&gen=1';
+  const geo = () => P.ev(`(function(){
+    var card = document.querySelector('.ring-hover-formula'), head = document.querySelector('.ring-head'), list = card.querySelector('.lb-list'), lit = list.querySelector('input:checked').parentNode;
+    var r = function(e){ var b = e.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom }; };
+    return { card: r(card), head: r(head), list: r(list), lit: r(lit), boxes: list.querySelectorAll('.lb-box').length, sw: list.scrollWidth, cw: list.clientWidth,
+      doc: document.documentElement.scrollWidth, win: window.innerWidth };
+  })()`);
+  await P.load(`${Z97}&logbase=89`);
+  await P.enter();
+  let g = await geo();
+  out(g.boxes === 96 && g.sw > g.cw, 'wide', 'Z/97Z: 96 boxes, the list scrolls (scrollWidth > clientWidth)', { boxes: g.boxes, sw: g.sw, cw: g.cw });
+  out(g.card.l >= g.head.l - 1 && g.card.r <= g.head.r + 1 && g.doc <= g.win + 1, 'wide', 'the card stays inside the ring head and the page does not scroll sideways', g);
+  out(g.lit.l >= g.list.l - 1 && g.lit.r <= g.list.r + 1, 'wide', 'logbase=89: its box lies fully inside the list\'s visible rect', g);
+  await P.load(`${Z97}&logbase=95`);
+  await P.enter();
+  const at = await (async () => { const b = await P.rect('.ring-hover-formula'); return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; })();
+  await P.clickEl('.lb-scroll');
+  for (const want of [96, 1, 2]) {
+    await wheelAt(P, at.x, at.y, 100); await sleep(500);
+    g = await geo();
+    out((await P.param('logbase')) === String(want) && g.lit.l >= g.list.l - 1 && g.lit.r <= g.list.r + 1, 'wide', `wheel down: base ${want}${want === 1 ? ' (wrapped)' : ''}, its box in view`, { q: await P.q(), lit: g.lit, list: g.list });
+  }
+  // a re-render keeps the scrolled place while the base is in view
+  await P.ev(`document.querySelector('.lb-list').scrollLeft = 120`);
+  await P.clickEl('.lb-box[data-g="3"] input');
+  await sleep(500);
+  g = await geo();
+  out(g.lit.l >= g.list.l - 1 && g.lit.r <= g.list.r + 1 && (await P.param('logbase')) === '3', 'wide', 'a click on box 3 after scrolling: base 3, in view', { q: await P.q() });
+  noErrors(P, 'wide');
+  await P.done();
+}]);
+
+/* ---------- mobile: the row wraps on the phone, without the wheel switch ---------- */
+SCENARIOS.push(['mobile', async browser => {
+  const P = await openPage(browser, 'mobile', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+  await P.load('?mobile=1&mode=additive&n=12&gen=9&subformularing=both');
+  await sleep(800);
+  let r = await rowNow(P);
+  out(!!r && same(r.values, Z12.gens), 'mobile', 'the row of boxes shows on the stacked page', r && r.values);
+  out(!!r && r.wheel === null && !(await P.exists('.lb-scroll')), 'mobile', 'no wheel switch on the phone');
+  out((await P.ev(`getComputedStyle(document.querySelector('.lb-list')).flexWrap`)) === 'wrap', 'mobile', 'the list wraps');
+  await P.clickEl('.lb-box[data-g="5"] input');
+  await sleep(600);
+  r = await rowNow(P);
+  const w = await P.ev(`({ doc: document.documentElement.scrollWidth, win: window.innerWidth })`);
+  out((await P.param('logbase')) === '5' && same(r.checked, [5]) && w.doc <= w.win + 1, 'mobile', 'a tap on box 5: logbase=5, no sideways scroll', { q: await P.q(), w });
+  const f = await P.formulas();
+  out(same(plains(f.ring), wantPair(Z12, 5, 9, 'gcd-full', 'gcd-full')), 'mobile', 'and both formulas write log_5', plains(f.ring));
+  await P.load('?mobile=1&mode=additive&n=97&gen=1&subformularing=both');
+  await sleep(1000);
+  const m = await P.ev(`(function(){ var l = document.querySelector('.lb-list'); return { h: l.getBoundingClientRect().height, sh: l.scrollHeight, ch: l.clientHeight, boxes: l.querySelectorAll('.lb-box').length, doc: document.documentElement.scrollWidth, win: window.innerWidth }; })()`);
+  out(m.boxes === 96 && m.h <= 90 && m.sh > m.ch && m.doc <= m.win + 1, 'mobile', 'Z/97Z on the phone: the list is at most 90 px high, scrolls vertically, the page not sideways', m);
+  noErrors(P, 'mobile');
+  await P.done();
+}]);
 //@@SCENARIOS@@
 // A debugging aid, not part of the checks:
 //   DUMP_URL='?mobile=0&...' DUMP_JS='expr' [DUMP_KEYS=ArrowRight,ArrowLeft] node ... dump

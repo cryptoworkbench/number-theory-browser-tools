@@ -270,7 +270,7 @@ const wantPair = (M, g, h, tokO, tokI) => {
 };
 // The map state of every .fmap on the page: its formula, the position its
 // knob is on, which radios are disabled, which is checked.
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -478,8 +478,11 @@ SCENARIOS.push(['maps', async browser => {
   await P.enter();
   await P.ev(`document.querySelector('.fmap[data-f="order"] input:checked').focus()`);
   await P.key('ArrowRight', 'ArrowRight', 39);
-  let st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at') }; })()`);
-  out(st.f === 'order' && st.v === 'abs' && st.checked === 'abs', 'maps', 'ArrowRight skips the closed a2 to a and the focus stays on the map', st);
+  let st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at'), aria: a && a.getAttribute('aria-disabled') }; })()`);
+  out(st.f === 'order' && st.v === 'pos' && st.checked === 'gcd-full' && st.aria === 'true', 'maps', 'ArrowRight lands on the closed a2, flashes, the knob stays on GCD (full)', st);
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at') }; })()`);
+  out(st.f === 'order' && st.v === 'abs' && st.checked === 'abs', 'maps', 'ArrowRight again goes to a: the knob follows and the focus stays on the map', st);
   await P.key('ArrowRight', 'ArrowRight', 39);
   st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value }; })()`);
   out(st.f === 'order' && st.v === 'lcm-short', 'maps', 'ArrowRight again goes to LCM (short)', st);
@@ -894,7 +897,7 @@ SCENARIOS.push(['dump', async browser => {
   await P.load(process.env.DUMP_URL || '?mobile=0&mode=additive&n=12&gen=9&subformularing=both');
   await P.enter();
   const f = await P.formulas();
-  console.log(JSON.stringify({ steps: await P.steps(), ring: plains(f.ring), q: await P.q(), maps: await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return [m.getAttribute('data-f'), m.getAttribute('data-at'), Array.prototype.filter.call(m.querySelectorAll('input'), function(i){ return i.disabled; }).map(function(i){ return i.value; }).join('/')]; })`) }, null, 1));
+  console.log(JSON.stringify({ steps: await P.steps(), ring: plains(f.ring), q: await P.q(), maps: await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return [m.getAttribute('data-f'), m.getAttribute('data-at'), Array.prototype.filter.call(m.querySelectorAll('input'), function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).join('/')]; })`) }, null, 1));
   console.log(JSON.stringify(P.errors));
   await P.done();
 }]);
