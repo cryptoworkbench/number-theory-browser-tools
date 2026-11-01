@@ -203,6 +203,10 @@ try {
   await sleep(500);
   m = await winMap(P, 'order');
   out(!!m && m.at === 'jn' && m.dx < 1 && m.dy < 1, 'desktop', 'Complexity to Short: the knob on JN', m);
+  const formRows = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fsl-pair[data-f="order"] .fsl[data-kind="form"]'), function(s){ var r = s.closest('.fsl-row'); return r.getBoundingClientRect().height === 0 && getComputedStyle(r).display === 'none'; })`);
+  out(formRows.length === 1 && formRows[0], 'desktop', 'at Short the order form slider is gone', formRows);
+  const otherForm = await P.ev(`(function(){ var r = document.querySelector('.fsl-pair[data-f="index"] .fsl[data-kind="form"]').closest('.fsl-row'); return getComputedStyle(r).display; })()`);
+  out(otherForm !== 'none', 'desktop', 'the index form slider (not at Short) still shows', otherForm);
   await clickAt(P, '#fmap-win-body .fmap[data-f="index"] .fmap-stop[data-id="lcm-short"]');
   await sleep(400);
   const tok = await P.ev(`document.querySelector('.fsl-pair[data-f="index"]').getAttribute('data-token')`);
