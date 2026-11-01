@@ -7637,18 +7637,36 @@ var fslDrag = null;
 var fslBand = null, FSL_BAND_MS = 900;
 var FSL_BAND_X = [12, 62, 152, 62], FSL_BAND_Y = [47, 28, 9];
 /* The forked Complexity track, in the slider's own pixels (w its width, y0
-   the top line, y1 the branch): the four slots, the two bends of the branch
-   (45° down from JN, 45° up to complete) and the paths a knob may take,
-   compact to compact SLS straight down among them. */
-var FSL_FORK_DROP = 15;
-function fslForkPts(w, y0){
-  var y1 = y0 + FSL_FORK_DROP;
-  return {
-    0: [w / 6, y0], 1: [w / 2, y0], 2: [w * 5 / 6, y0], 3: [w / 2, y1],
-    L: [w / 6 + FSL_FORK_DROP, y1], R: [w * 5 / 6 - FSL_FORK_DROP, y1]
-  };
+   the top line, y1 the branch): the four slots, the branch's two rounded
+   bends (an S-curve leaving JN level with the top line and meeting the
+   branch level, and its mirror up to complete), sampled at FSL_FORK_BENDS
+   points a knob glides through, and the paths a knob may take, compact to
+   compact SLS straight down among them. */
+var FSL_FORK_DROP = 15, FSL_FORK_BENDS = 8;
+// Point t of the cubic from (x0, ya) to (x0 + 2 dx, yb), level at both ends.
+function fslForkBend(x0, dx, ya, yb, t){
+  var u = 1 - t;
+  return [x0 + dx * (3 * u * u * t + 3 * u * t * t + 2 * t * t * t), ya + (yb - ya) * (3 * u * t * t + t * t * t)];
 }
-var FSL_FORK_DRAWN = [[0, 1], [1, 2], [0, 'L'], ['L', 3], [3, 'R'], ['R', 2], [1, 3]];
+function fslForkPts(w, y0){
+  var y1 = y0 + FSL_FORK_DROP, d = FSL_FORK_DROP, pts = {
+    0: [w / 6, y0], 1: [w / 2, y0], 2: [w * 5 / 6, y0], 3: [w / 2, y1],
+    L: [w / 6 + 2 * d, y1], R: [w * 5 / 6 - 2 * d, y1]
+  };
+  for (var i = 1; i < FSL_FORK_BENDS; i++){
+    pts['L' + i] = fslForkBend(w / 6, d, y0, y1, i / FSL_FORK_BENDS);
+    pts['R' + i] = fslForkBend(w * 5 / 6, -d, y0, y1, i / FSL_FORK_BENDS);
+  }
+  return pts;
+}
+// The edges along one bend, from slot s to its end e through its samples.
+function fslForkBendEdges(s, side, e){
+  var out = [], prev = s;
+  for (var i = 1; i < FSL_FORK_BENDS; i++){ out.push([prev, side + i]); prev = side + i; }
+  out.push([prev, e]);
+  return out;
+}
+var FSL_FORK_DRAWN = [[0, 1], [1, 2], ['L', 3], [3, 'R'], [1, 3]].concat(fslForkBendEdges(0, 'L', 'L'), fslForkBendEdges(2, 'R', 'R'));
 // The top line alone: where a knob may go while the branch is off.
 var FSL_FORK_TOP = [[0, 1], [1, 2]];
 var FSL_FORK_EDGES = FSL_FORK_DRAWN;
@@ -7774,7 +7792,7 @@ function formulaSliders(G, info){
     // The branch is greyed out where it is off, painted whole under the top
     // line; else edges first, then grooves, as one path.
     if (fork){
-      var dTop = 'M31 0H155', dBranch = 'M31 0L' + (31 + FSL_FORK_DROP) + ' ' + FSL_FORK_DROP + 'H' + (155 - FSL_FORK_DROP) + 'L155 0M93 0V' + FSL_FORK_DROP;
+      var dTop = 'M31 0H155', D = FSL_FORK_DROP, dBranch = 'M31 0C' + (31 + D) + ' 0 ' + (31 + D) + ' ' + D + ' ' + (31 + 2 * D) + ' ' + D + 'H' + (155 - 2 * D) + 'C' + (155 - D) + ' ' + D + ' ' + (155 - D) + ' 0 155 0M93 0V' + D;
       var fsvg = svgEl('svg', { 'class': 'fsl-fork', viewBox: '0 -4 186 ' + (FSL_FORK_DROP + 8), preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false' });
       var forkPath = function(part, d, isOff){ fsvg.appendChild(svgEl('path', { 'class': 'fsl-fork-' + part + (isOff ? ' is-off' : ''), 'data-part': d === dTop ? 'top' : 'branch', d: d })); };
       if (slsOff){
