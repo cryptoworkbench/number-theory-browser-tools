@@ -185,9 +185,9 @@
    fslCompactSlsTip (the compact SLS slot's caption, its spoken value and its
    tooltip) and fslSlsNeither and fslNeitherSls (the tooltips of the compact
    SLS notch while the form is neither, and of the neither notch while the
-   complexity is compact SLS: no form is both), and fslSlsAdditiveOnly (the
-   tooltip of the greyed-out compact SLS slot on the Complexity slider of an
-   elliptic curve or a group of units, which have no SLS forms), and fslShort
+   complexity is compact SLS: no form is both; fslCompactSlsTip is also the
+   tooltip of the greyed-out slot on an elliptic curve or a group of units,
+   which have no SLS forms), and fslShort
    and fslShortTip (the Complexity slider's first slot, formerly labelled JN,
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
@@ -1133,10 +1133,9 @@
       fslBlockedComplete: 'Complete with the form neither (a) is out of reach under this logarithm base: change the base first. A double-click picks the nearest base that opens it.',
       fslCompactSls: 'compact SLS',
       fslCompactSlsText: 'compact, skipping the logarithm substitution',
-      fslCompactSlsTip: 'Compact, skipping the logarithm substitution (SLS): the formula works with h itself, read directly, without a logarithm',
+      fslCompactSlsTip: 'Do not use a logarithm in order to find the distance between E and G on the circle. Only available for additive groups.',
       fslSlsNeither: 'Compact SLS has no form neither: a and a2 work with a logarithm, which SLS skips. Choose GCD or LCM first; a double-click takes the row neither came from.',
       fslNeitherSls: 'The form neither (a, a2) works with a logarithm, which compact SLS skips: move the complexity off compact SLS first. A double-click goes to compact with neither (a2).',
-      fslSlsAdditiveOnly: 'Skip-logarithm-substitution (SLS) forms exist only for additive groups',
       fslShort: 'Short',
       fslShortTip: 'Short: just the notation, the answer without derivation steps',
       fmapWinTitle: 'Formula map',
