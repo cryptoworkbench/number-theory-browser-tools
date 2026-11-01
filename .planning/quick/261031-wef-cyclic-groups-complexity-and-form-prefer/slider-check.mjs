@@ -526,7 +526,7 @@ SCENARIOS.push(['combos', async browser => {
   await P.done();
 }]);
 
-/* ---------- memo: the form remembered across JN, and J-01 ---------- */
+/* ---------- memo: the form remembered across JN, and J-01 (refused since 261101-ix2) ---------- */
 SCENARIOS.push(['memo', async browser => {
   const P = await openPage(browser, 'memo', { w: 1280, h: 900, ua: UA_DESKTOP });
   const hb = bothOpen(U13);
@@ -552,17 +552,18 @@ SCENARIOS.push(['memo', async browser => {
   // J-01: (ℤ/13ℤ)* h=5 base 2, a open and a2 closed
   const rc = reach(U13, 2, 5);
   out(rc.abs && !rc.pos, 'memo', 'model: (ℤ/13ℤ)* h=5 base 2 has a open and a2 closed', rc);
+  // 261101-ix2: a complexity move onto a shut neither is refused (no fallback to the row's form)
   await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=abs-lcm`);
   await P.enter();
   await clickChip(P, 'order', 'complexity', 1);
   p = await pairOf(P, 'order');
-  out(p.token === 'lcm-short' && p.v.now === 0 && same(p.v.closed, [1]), 'memo', 'J-01: abs-lcm -> compact gives lcm-short, the neither notch closed', p);
+  out(p.token === 'abs-lcm' && p.c.now === 2 && p.v.now === 1 && (await P.param('fmaporder')) === 'abs-lcm', 'memo', 'J-01 (ix2): abs-lcm -> compact is refused, abs-lcm stays', p);
   await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=abs-gcd`);
   await P.enter();
   await clickChip(P, 'order', 'complexity', 0);
   await clickChip(P, 'order', 'complexity', 1);
   p = await pairOf(P, 'order');
-  out(p.token === 'gcd-short' && p.v.now === 2 && same(p.v.closed, [1]), 'memo', 'J-01: abs-gcd -> JN -> compact gives gcd-short', p);
+  out(p.token === 'jn' && p.v.now === 1 && p.v.inert, 'memo', 'J-01 (ix2): abs-gcd -> JN -> compact is refused, jn stays with neither remembered', p);
   noErrors(P, 'memo');
   await P.done();
 }]);
