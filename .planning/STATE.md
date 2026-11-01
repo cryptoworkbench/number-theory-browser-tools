@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-01 - Completed quick task 261031-wef: Cyclic Groups complexity and form preference sliders replace the formula maps on (ℤ/nℤ)* and curves (branch cyclic-groups-formula-sliders)
+Last activity: 2026-11-01 - Completed quick task 261101-hl9: Cyclic Groups map toggle beside the formula sliders
 
 Progress: [█████████░] 86%
 
@@ -630,6 +630,7 @@ None yet.
 | 261031-tnu | Cyclic Groups: double-clicking a closed a or a2 on a formula map picks the nearest suitable log base (two green pulses, base set + knob moves, third pulse) (branch cyclic-groups-map-force-dblclick) | 2026-10-31 | 7b26924 | [261031-tnu-cyclic-groups-double-click-a-closed-a-or](./quick/261031-tnu-cyclic-groups-double-click-a-closed-a-or/) |
 | 261031-uya | Cyclic Groups: a padlock right of the generator boxes freezes the log base; a double-click on a closed a or a2 while locked shakes and pulses the padlock (branch cyclic-groups-log-base-lock) | 2026-10-31 | 82b23d7 | [261031-uya-cyclic-groups-padlock-freezes-the-main-f](./quick/261031-uya-cyclic-groups-padlock-freezes-the-main-f/) |
 | 261031-wef | Cyclic Groups: Complexity (JN / compact / complete) and Form preference (LCM / neither / GCD) sliders replace the formula maps on (ℤ/nℤ)* and curves; the generator row shows only off JN; ℤ/nℤ keeps its map (branch cyclic-groups-formula-sliders) | 2026-11-01 | 010fa52 | [261031-wef-cyclic-groups-complexity-and-form-prefer](./quick/261031-wef-cyclic-groups-complexity-and-form-prefer/) |
+| 261101-hl9 | Cyclic Groups: a map toggle beside the formula sliders opens the formula map on (ℤ/nℤ)* and curves; the open map follows the sliders, generator boxes and forced bases live | 2026-11-01 | 854e02b | [261101-hl9-cyclic-groups-a-map-toggle-beside-the-fo](./quick/261101-hl9-cyclic-groups-a-map-toggle-beside-the-fo/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -884,4 +885,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-01 - Completed quick task 261031-wef: Cyclic Groups complexity and form preference sliders replace the formula maps on (ℤ/nℤ)* and curves (branch cyclic-groups-formula-sliders)
+Last activity: 2026-11-01 - Completed quick task 261101-hl9: Cyclic Groups map toggle beside the formula sliders
