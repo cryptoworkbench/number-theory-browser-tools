@@ -249,7 +249,9 @@ const wantPair = (M, g, h, tokO, tokI) => {
 // knob is on, which radios are disabled, which is checked.
 // A (ℤ/nℤ)* or a curve shows a slider pair (.fsl-pair, quick 261031-wef) in
 // the map's place; its data-at is the same node id.
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// Quick 261101-so1: ℤ/nℤ has sliders too, its map opened beside them (fmapopen=1); where maps
+// are open they are read, else the pairs.
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap').length ? document.querySelectorAll('.fmap') : document.querySelectorAll('.fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -315,7 +317,8 @@ function ecAdapter(C, mult) {
   M.log = (g, h) => C.log(g, h);
   return M;
 }
-const ZN = '?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both';
+// Quick 261101-so1: ℤ/nℤ's map is behind the sliders' show-map toggle; these scenarios open it.
+const ZN = '?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&fmapopen=1';
 
 
 /* ---------- helpers of this probe ---------- */
@@ -352,7 +355,7 @@ function offModel(M, h, base, toks) {
   return off.length === M.gens.length ? [] : sortN(off);
 }
 const Z12 = znModel(12);
-const ZNA = '?mobile=0&mode=additive&n=12&subformularow=both';
+const ZNA = '?mobile=0&mode=additive&n=12&subformularow=both&fmapopen=1';
 
 /* ---------- helpers of this probe ---------- */
 const CURVE = '?mobile=0&curve=11,1,3&subformularow=both&subformularing=both';
@@ -501,7 +504,7 @@ SCENARIOS.push(['tie', async browser => {
   if (!found) return;
   out(pickModel(found.M, found.h, found.b, found.node) === found.right, 'tie', `model picks the right one, ${found.right}`);
   const P = await openPage(browser, 'tie', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await forceRun(P, 'tie', `ℤ/${found.n}ℤ h=${found.h} base ${found.b}`, `?mobile=0&mode=additive&n=${found.n}&subformularow=both&subformularing=both&gen=${found.h}&logbase=${found.b}`, found.M, found.h, found.b, found.node);
+  await forceRun(P, 'tie', `ℤ/${found.n}ℤ h=${found.h} base ${found.b}`, `?mobile=0&mode=additive&n=${found.n}&subformularow=both&subformularing=both&gen=${found.h}&logbase=${found.b}&fmapopen=1`, found.M, found.h, found.b, found.node);
   noErrors(P, 'tie');
   await P.done();
 }]);
@@ -718,7 +721,7 @@ SCENARIOS.push(['ringwin', async browser => {
   const P = await openPage(browser, 'ringwin', { w: 1280, h: 900, ua: UA_DESKTOP });
   await P.load(`${ZN}&gen=1`);
   await P.enter();
-  const src = new URL('?ringwin=1&mobile=0&mode=additive&n=12&gen=7&subformularing=both&logbase=1', URL_BASE).href;
+  const src = new URL('?ringwin=1&mobile=0&mode=additive&n=12&gen=7&subformularing=both&logbase=1&fmapopen=1', URL_BASE).href;
   await P.ev(`(function(){ window.__rw = []; window.addEventListener('message', function(e){ if (e.data && e.data.ringwin === 'state') window.__rw.push(e.data.q); }); var f = document.createElement('iframe'); f.id = 'probe-rw'; f.style.cssText = 'position:fixed;left:0;top:0;width:900px;height:800px;z-index:99999;border:0'; f.src = ${JSON.stringify(src)}; document.body.appendChild(f); return 1; })()`);
   let ctx = null;
   for (let i = 0; i < 30 && !ctx; i++) {
@@ -747,7 +750,7 @@ SCENARIOS.push(['ringwin', async browser => {
 /* ---------- tap: a double tap on the phone page (information only) ---------- */
 SCENARIOS.push(['tap', async browser => {
   const P = await openPage(browser, 'tap', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
-  await P.load('?mobile=1&mode=additive&n=12&gen=7&logbase=1&subformularing=both');
+  await P.load('?mobile=1&mode=additive&n=12&gen=7&logbase=1&subformularing=both&fmapopen=1');
   await sleep(1000);
   await P.ev(`document.querySelector('.fmap[data-f="order"]').scrollIntoView({ block: 'center' })`);
   await sleep(300);

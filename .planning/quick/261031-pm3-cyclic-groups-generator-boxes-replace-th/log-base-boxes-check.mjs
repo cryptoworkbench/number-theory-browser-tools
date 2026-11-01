@@ -248,7 +248,9 @@ const wantPair = (M, g, h, tokO, tokI) => {
 // knob is on, which radios are disabled, which is checked.
 // A (ℤ/nℤ)* or a curve shows a slider pair (.fsl-pair, quick 261031-wef) in
 // the map's place; its data-at is the same node id (no radios: checked is it).
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true, token: m.getAttribute('data-token') }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// Quick 261101-so1: ℤ/nℤ has sliders too, its map opened beside them (fmapopen=1); where maps
+// are open they are read, else the pairs.
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap').length ? document.querySelectorAll('.fmap') : document.querySelectorAll('.fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true, token: m.getAttribute('data-token') }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -314,7 +316,8 @@ function ecAdapter(C, mult) {
   M.log = (g, h) => C.log(g, h);
   return M;
 }
-const ZN = '?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both';
+// Quick 261101-so1: ℤ/nℤ's map is behind the sliders' show-map toggle; these scenarios open it.
+const ZN = '?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&fmapopen=1';
 
 
 /* ---------- helpers of this probe ---------- */
@@ -351,7 +354,7 @@ function offModel(M, h, base, toks) {
   return off.length === M.gens.length ? [] : sortN(off);
 }
 const Z12 = znModel(12);
-const ZNA = '?mobile=0&mode=additive&n=12&subformularow=both';
+const ZNA = '?mobile=0&mode=additive&n=12&subformularow=both&fmapopen=1';
 
 /* ---------- boxes: one box per generator, as the formulas write it ---------- */
 SCENARIOS.push(['boxes', async browser => {
@@ -381,11 +384,16 @@ SCENARIOS.push(['boxes', async browser => {
     await P.enter();
     out(!(await P.exists('.lb-row')) && !(await P.exists('.fmap')), 'boxes', `${name}: no row of boxes`);
   }
-  // both maps on JN: the row still shows, every box enabled
+  // both maps on JN: no logarithm either, so no row (one rule with the sliders since 261101-so1)
   await P.load(`${ZN}&gen=9&fmaporder=jn&fmapindex=jn`);
   await P.enter();
   let r = await rowNow(P);
-  out(!!r && same(r.values, Z12.gens) && r.off.length === 0, 'boxes', 'both maps on JN: the row shows, every box enabled', r);
+  out(r === null, 'boxes', 'both maps on JN: no row (since 261101-so1)', r);
+  // one on JN, the other on a logarithm form: the row shows, every box enabled
+  await P.load(`${ZN}&gen=9&fmaporder=jn&fmapindex=gcd-short`);
+  await P.enter();
+  r = await rowNow(P);
+  out(!!r && same(r.values, Z12.gens) && r.off.length === 0, 'boxes', 'JN and gcd-short: the row shows, every box enabled', r);
   // both maps on SLS: no logarithm, so no row (89fd36d)
   await P.load(`${ZN}&gen=9&fmaporder=gcd-sls&fmapindex=lcm-sls`);
   await P.enter();

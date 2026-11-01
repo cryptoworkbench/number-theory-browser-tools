@@ -539,10 +539,15 @@ SCENARIOS.push(['render', async browser => {
     out(ts.every(t => t.rect && t.notches.length === 6 && t.notches.every(n => !meets(t.rect, n))), 'render', `${name}: no switch overlaps a notch`, ts.map(t => [t.rect, t.notches[2]]));
     out(ts.every(t => t.rect.x + t.rect.w <= t.pair.x + t.pair.w + 0.5 && t.rect.y >= t.pair.y - 2.5 && t.rect.w <= 18.5 && t.rect.h <= 14.5), 'render', `${name}: the switch sits in the pair's top-right corner (18 x 14)`, ts.map(t => [t.rect, t.pair]));
   }
+  // quick 261101-so1: ℤ/12ℤ has the sliders and the switch too; opened, its maps keep their SLS rows
   await P.load('?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9');
   await P.enter();
+  const zt = await toggles(P);
+  out(zt.length === 2 && zt.every(t => t.has && t.pressed === 'false') && (await maps(P)).length === 0, 'render', 'ℤ/12ℤ: two switches, off, no map (since 261101-so1)', zt.map(t => [t.f, t.pressed]));
+  await P.load('?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9&fmapopen=1');
+  await P.enter();
   let ms = await maps(P);
-  out(ms.length === 2 && !(await P.exists('.fsl-maptoggle')) && ms.every(m => !m.noSls && m.stops.length === 9 && m.viewBox === '0 0 172 94'), 'render', 'ℤ/12ℤ: its two full maps (nine stops, 172 x 94), no switch', ms.map(m => [m.stops.length, m.viewBox]));
+  out(ms.length === 2 && ms.every(m => !m.noSls && m.stops.length === 9 && m.viewBox === '0 0 172 94'), 'render', 'ℤ/12ℤ opened: its two full maps (nine stops, 172 x 94)', ms.map(m => [m.stops.length, m.viewBox]));
   out(ms.every(m => same(m.nodes, FMAP_ORDER) && same(m.edges, ['abs', 'pos', 'sls'])), 'render', 'ℤ/12ℤ: its nodes and dotted edges carry their data-id', ms.map(m => [m.nodes, m.edges]));
   await P.load('?mobile=0&mode=multiplicative&n=8&gen=3&subformularow=both&subformularing=both');
   await P.enter();
@@ -615,7 +620,8 @@ SCENARIOS.push(['url', async browser => {
   await P.load('?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9&fmapopen=1');
   await P.enter();
   const ms = await maps(P);
-  out(ms.length === 2 && ms.every(m => !m.noSls && m.stops.length === 9) && !(await P.exists('.fsl-maptoggle')) && (await P.ev(ORDER_JS)) === 'map math map math row', 'url', 'fmapopen=1 on ℤ/12ℤ: its own two maps as ever, no switch', await P.ev(ORDER_JS));
+  // quick 261101-so1: ℤ/12ℤ opens its maps beside its sliders like the other groups
+  out(ms.length === 2 && ms.every(m => !m.noSls && m.stops.length === 9) && (await toggles(P)).every(t => t.pressed === 'true') && (await P.ev(ORDER_JS)) === 'pair map math pair map math row', 'url', 'fmapopen=1 on ℤ/12ℤ: its two full maps beside its pairs, the switches on', await P.ev(ORDER_JS));
   const q = new URLSearchParams(await P.q());
   out(q.get('fmapopen') === '1', 'url', 'ℤ/12ℤ keeps fmapopen=1 in the url', Object.fromEntries(q));
   q.set('mode', 'multiplicative'); q.set('n', '13'); q.set('gen', '5'); q.set('logbase', '2');
@@ -785,14 +791,15 @@ SCENARIOS.push(['pane', async browser => {
   const ctx = await openPane(P, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both', 'ℤ/13ℤ,×');
   out(!!ctx, 'pane', 'the pane opens on (ℤ/13ℤ)*, its maps closed');
   if (!ctx) { noErrors(P, 'pane'); await P.done(); return; }
-  const hostMaps = () => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return m.getAttribute('data-at') + (m.classList.contains('no-sls') ? '/no-sls' : ''); })`);
+  // quick 261101-so1: the ℤ/12ℤ host has pairs (its maps follow the shared switch); its positions are read
+  const hostMaps = () => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fsl-pair'), function(m){ return m.getAttribute('data-token'); })`);
   const h0 = await hostMaps();
   await P.ev(`document.querySelector('${toggleSel('order')}').click()`, ctx);
   await sleep(500);
   out((await maps(P, ctx)).length === 2 && (await P.param('fmapopen')) === '1', 'pane', "a click on the pane's switch opens its two maps; the host url has fmapopen=1", await P.q());
   await sleep(1200);
   out((await maps(P, ctx)).length === 2 && (await toggles(P, ctx)).every(t => t.pressed === 'true'), 'pane', 'still open once the host has shared its state back');
-  out(same(await hostMaps(), h0) && h0.length === 2, "pane", "the host's ℤ/12ℤ maps are as they were", { h0, now: await hostMaps() });
+  out(same(await hostMaps(), h0) && h0.length === 2, "pane", "the host's ℤ/12ℤ positions are as they were", { h0, now: await hostMaps() });
   await P.ev(`document.querySelector('${toggleSel('index')}').click()`, ctx);
   await sleep(1200);
   out((await maps(P, ctx)).length === 0 && (await P.param('fmapopen')) === null, 'pane', 'a second click closes it; the host url loses fmapopen', await P.q());
@@ -871,14 +878,14 @@ SCENARIOS.push(['fade', async browser => {
   const open = reach(U13, g, HS).pos;
   out(e.props.includes('stroke') && n.props.includes('opacity'), 'fade', `box ${g}: the a2 path's stroke and node's opacity are transitioning`, { e, n });
   out(/is-closed/.test(e.cls) === !open && /is-closed/.test(n.cls) === !open, 'fade', `and they end ${open ? 'open' : 'closed'}`, { e: e.cls, n: n.cls });
-  // ℤ/12ℤ's map never animates
-  await P.load('?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9');
+  // quick 261101-so1: ℤ/12ℤ's map sits beside sliders now, so its knob moves on like the others'
+  await P.load('?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9&fmapopen=1');
   await P.enter();
   const c2 = await centre(P, stopSel('order', 'lcm-full'));
   await click1(P, c2.x, c2.y);
   await sleep(50);
   const z = await run(P, KNOB('order'));
-  out(z.props.length === 0 && (await mapOf(P, 'order')).at === 'lcm-full', 'fade', 'ℤ/12ℤ: its knob jumps as before (no transition carried)', z);
+  out(z.props.length > 0 && (await mapOf(P, 'order')).at === 'lcm-full', 'fade', 'ℤ/12ℤ: its knob now moves on by a transition (carried, since 261101-so1)', z);
   noErrors(P, 'fade');
   await P.done();
 }]);

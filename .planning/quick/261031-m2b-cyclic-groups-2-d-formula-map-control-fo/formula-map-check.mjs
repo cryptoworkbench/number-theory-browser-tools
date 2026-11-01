@@ -288,7 +288,9 @@ const wantPair = (M, g, h, tokO, tokI) => {
 // whether it rests (inert, at JN).
 const PAIR_JS = `function(m){ var s = function(k){ return m.querySelector('.fsl[data-kind="' + k + '"]'); }; return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), token: m.getAttribute('data-token'), pair: true, c: +s('complexity').getAttribute('aria-valuenow'), v: +s('form').getAttribute('aria-valuenow'), inert: s('form').classList.contains('is-inert'), closed: Array.prototype.map.call(s('form').querySelectorAll('.fsl-notch.is-closed'), function(x){ return +x.getAttribute('data-v'); }) }; }`;
 const cvOf = t => (t === 'jn' || t.includes('sls') ? [0, 2] : [t.startsWith('pos-') || t.endsWith('-short') ? 1 : 2, t.startsWith('abs-') || t.startsWith('pos-') ? 1 : t.startsWith('gcd') ? 2 : 0]);
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return (${PAIR_JS})(m); var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// Quick 261101-so1: ℤ/nℤ has sliders too, its map opened beside them (fmapopen=1); where maps
+// are open they are read, else the pairs.
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap').length ? document.querySelectorAll('.fmap') : document.querySelectorAll('.fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return (${PAIR_JS})(m); var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -354,7 +356,8 @@ function ecAdapter(C, mult) {
   M.log = (g, h) => C.log(g, h);
   return M;
 }
-const ZN = '?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both';
+// Quick 261101-so1: ℤ/nℤ's map is behind the sliders' show-map toggle; these scenarios open it.
+const ZN = '?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&fmapopen=1';
 
 /* ---------- main ---------- */
 const SCENARIOS = [];
@@ -846,7 +849,7 @@ SCENARIOS.push(['legacy', async browser => {
 /* ---------- a phone ---------- */
 SCENARIOS.push(['mobile', async browser => {
   const P = await openPage(browser, 'mobile', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
-  await P.load(`?mobile=1&mode=additive&n=12&gen=9&subformularing=both`);
+  await P.load(`?mobile=1&mode=additive&n=12&gen=9&subformularing=both&fmapopen=1`);
   await sleep(800);
   const m = await mapsNow(P);
   out(m.length === 2 && m.every(x => x.n === 9), 'mobile', 'both maps beside the main formulas on the stacked page', m.length);
@@ -934,7 +937,7 @@ SCENARIOS.push(['pane', async browser => {
 // Screenshots of the main view with the maps into this directory.
 SCENARIOS.push(['shot', async browser => {
   const P = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load('?mobile=0&mode=additive&n=12&gen=9&subformularing=both');
+  await P.load('?mobile=0&mode=additive&n=12&gen=9&subformularing=both&fmapopen=1');
   await P.enter();
   await P.shot('shot-main-view-light.png');
   const r = await P.rect('.ring-hover-formula');
@@ -944,7 +947,7 @@ SCENARIOS.push(['shot', async browser => {
   await P.shot('shot-units-light.png');
   await P.done();
   const M = await openPage(browser, 'shot', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
-  await M.load('?mobile=1&mode=additive&n=12&gen=9&subformularing=both');
+  await M.load('?mobile=1&mode=additive&n=12&gen=9&subformularing=both&fmapopen=1');
   await sleep(800);
   await M.shot('shot-mobile-light.png');
   await M.done();

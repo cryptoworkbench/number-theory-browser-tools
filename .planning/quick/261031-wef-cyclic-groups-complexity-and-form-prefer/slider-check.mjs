@@ -498,7 +498,8 @@ SCENARIOS.push(['render', async browser => {
   out(ps.length === 2 && !(await P.exists('.fmap')), 'render', 'the cyclic curve E(𝔽₁₁): two pairs, no map', ps.length);
   await P.load(`?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9`);
   await P.enter();
-  out((await P.ev(`document.querySelectorAll('.fmap').length`)) === 2 && (await pairs(P)).length === 0, 'render', 'ℤ/12ℤ keeps its two maps, no pair');
+  // quick 261101-so1: ℤ/nℤ has the pair too (a forked complexity), its map behind the toggle
+  out((await P.ev(`document.querySelectorAll('.fmap').length`)) === 0 && (await pairs(P)).length === 2 && (await P.ev(`document.querySelectorAll('.fsl-pair .fsl.is-fork').length`)) === 2, 'render', 'ℤ/12ℤ: two pairs with a forked complexity, no map until the toggle');
   for (const u of ['mode=multiplicative&n=8&gen=3', 'curve=7,0,1&gen=1']) {
     await P.load(`?mobile=0&${u}&subformularow=both&subformularing=both`);
     await P.enter();
@@ -595,7 +596,8 @@ SCENARIOS.push(['jnrow', async browser => {
   out(await none(), 'jnrow', 'only the size formula shown, at JN: no row');
   await P.load(`?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9&fmaporder=jn&fmapindex=jn`);
   await P.enter();
-  out(await P.exists('.ring-hover-formula .lb-row'), 'jnrow', 'ℤ/12ℤ both at JN: the row stays (the additive rule)');
+  // quick 261101-so1: one rule for every group now, JN or SLS hides the row
+  out(await none(), 'jnrow', 'ℤ/12ℤ both at JN: no row (one rule with the sliders, since 261101-so1)');
   await P.load(`?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9&fmaporder=gcd-sls&fmapindex=lcm-sls`);
   await P.enter();
   out(await none(), 'jnrow', 'ℤ/12ℤ both on SLS: no row');
@@ -847,8 +849,9 @@ SCENARIOS.push(['pane', async browser => {
   await P.ev(`document.querySelector('${chipSel('order', 'complexity', 1)}').click()`, ctx);
   await sleep(1200);
   let q = new URLSearchParams(await P.q());
-  const hm = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return m.getAttribute('data-at'); })`);
-  out(q.get('fmaporderr') === 'gcd-short' && q.get('fmaporder') === null && same(hm, ['gcd-full', 'gcd-full']), 'pane', "a chip click in the pane writes the host's fmaporderr=gcd-short; the host's own maps stay", { q: Object.fromEntries(q), hm });
+  // quick 261101-so1: the additive host has slider pairs in place of its maps
+  const hm = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fsl-pair'), function(m){ return m.getAttribute('data-token'); })`);
+  out(q.get('fmaporderr') === 'gcd-short' && q.get('fmaporder') === null && same(hm, ['gcd-full', 'gcd-full']), 'pane', "a chip click in the pane writes the host's fmaporderr=gcd-short; the host's own sliders stay", { q: Object.fromEntries(q), hm });
   out((await pairOf(P, 'order', ctx)).token === 'gcd-short', 'pane', 'and the pane keeps it after the host shares its state back');
   noErrors(P, 'pane');
   await P.done();
