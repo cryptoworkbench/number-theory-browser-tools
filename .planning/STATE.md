@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-01 - Completed quick task 261101-ug4: Cyclic Groups form slider hidden at Short
+Last activity: 2026-11-01 - Completed quick task 261101-uz0: Cyclic Groups column-led complexity tooltips (branch cyclic-groups-complexity-tooltips)
 
 Progress: [█████████░] 86%
 
@@ -639,6 +639,7 @@ None yet.
 | 261101-u47 | Cyclic Groups: Short replaces JN, Complexity caption and map icon removed, formula map opens from a right-click menu in its own minimizable/closeable window (branch cyclic-groups-map-window) | 2026-11-01 | 3dde0dc | [261101-u47-cyclic-groups-jn-becomes-short-complexit](./quick/261101-u47-cyclic-groups-jn-becomes-short-complexit/) |
 | 261101-ue7 | Cyclic Groups: the Form preference caption removed | 2026-11-01 | 0588912 | [261101-ue7-cyclic-groups-remove-the-form-preference](./quick/261101-ue7-cyclic-groups-remove-the-form-preference/) |
 | 261101-ug4 | Cyclic Groups: the form slider disappears while Complexity is at Short | 2026-11-01 | d36dcb9 | [261101-ug4-cyclic-groups-the-form-slider-disappears](./quick/261101-ug4-cyclic-groups-the-form-slider-disappears/) |
+| 261101-uz0 | Cyclic Groups: complexity slot tooltips open with their column (Short, Compact, Complete), slot captions removed (branch cyclic-groups-complexity-tooltips) | 2026-11-01 | 72cb7fb | [261101-uz0-cyclic-groups-complexity-slot-tooltips-s](./quick/261101-uz0-cyclic-groups-complexity-slot-tooltips-s/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -893,4 +894,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-01 - Completed quick task 261101-ug4: Cyclic Groups form slider hidden at Short
+Last activity: 2026-11-01 - Completed quick task 261101-uz0: Cyclic Groups column-led complexity tooltips (branch cyclic-groups-complexity-tooltips)
