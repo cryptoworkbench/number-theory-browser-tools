@@ -1113,6 +1113,8 @@
       fmapGcdSls: 'GCD (Skip logarithm substitution): use the GCD formula, but skip logarithm substitution; one derivation step less.',
       fmapLcmSls: 'LCM (Skip logarithm substitution): use the LCM formula, but skip logarithm substitution; one derivation step less.',
       logBaseLabel: 'Base of the logarithm',
+      logBaseIntro: 'This mode uses a logarithm in order to function, so pick a generator from the group in order to use as the base for the logarithm ({star}):',
+      logBaseIntroStar: 'So use to determined the distance between G and E within the circle (when the arrangement is by generator powers).',
       logBaseOff: 'Greyed out: with this base of the logarithm, the a or a2 form a formula map is on does not work for this element',
       logBaseWheel: 'Scroll wheel: over the formulas, the wheel steps the base of the logarithm through the generators that are not greyed out',
       logBaseLock: 'Lock the base of the logarithm: the boxes, the scroll wheel and a double-click on a closed a or a2 can no longer change it',

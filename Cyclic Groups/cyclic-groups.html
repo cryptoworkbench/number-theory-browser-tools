@@ -1371,6 +1371,10 @@
      every box green (that position would open under it) or red. A long row
      scrolls inside the card; the wheel switch after it makes the mouse wheel
      step through the boxes that are not greyed out. */
+  /* The sentence introducing the base row, its (*) a tooltip. */
+  .lb-intro{ grid-column:1 / -1; margin:2px 0 -2px; max-width:100%; font-size:.72rem; line-height:1.3; color:var(--text-dim); text-align:center; pointer-events:auto; }
+  .lb-intro-star{ cursor:help; font-weight:700; color:var(--accent); }
+  .lb-intro-star:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-radius:2px; }
   .lb-row{ grid-column:1 / -1; display:flex; align-items:center; justify-content:center; gap:6px; min-width:0; max-width:100%; pointer-events:auto; direction:ltr; }
   .lb-list{ display:flex; gap:4px; padding:2px; min-width:0; position:relative; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; }
   .lb-box{ position:relative; flex:none; display:inline-grid; place-items:center; min-width:24px; height:22px; padding:0 6px; box-sizing:border-box; border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); background:var(--panel); color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer; user-select:none; -webkit-user-select:none; }
@@ -5818,7 +5822,10 @@ function syncSubFormula(G){
     // The base row, its padlock and its wheel switch go when every formula
     // shown is at JN or an SLS form, neither of which takes a logarithm.
     var slsOnly = fs.every(function(x){ return !x.map || x.map.token === 'jn' || x.map.token.indexOf('sls') !== -1; });
-    if (box.classList.contains('has-fmap') && !slsOnly) box.appendChild(logBaseRow(G));
+    if (box.classList.contains('has-fmap') && !slsOnly){
+      box.appendChild(logBaseIntro());
+      box.appendChild(logBaseRow(G));
+    }
     // Built with the knobs where they stood, the box is laid out once, then
     // they move to where they are now.
     var carryOn = hasSliders(G) ? fmapCarry(box, carry) : null;
@@ -8276,6 +8283,19 @@ function logBaseFits(G){
     return nodes.every(function(n){ return reach[n]; });
   });
   return fits.some(Boolean) ? fits : fits.map(function(){ return true; });
+}
+// The sentence over the base row: why a base is picked, its star's tooltip
+// saying what the logarithm is for.
+function logBaseIntro(){
+  var p = document.createElement('p');
+  p.className = 'lb-intro';
+  var star = document.createElement('span');
+  star.className = 'lb-intro-star';
+  star.textContent = '*';
+  star.title = translate('cyclicGroups.logBaseIntroStar');
+  star.tabIndex = 0;
+  translateInto(p, 'cyclicGroups.logBaseIntro', { star: star });
+  return p;
 }
 function logBaseRow(G){
   var row = document.createElement('div');
