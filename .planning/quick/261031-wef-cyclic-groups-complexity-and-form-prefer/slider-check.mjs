@@ -5,8 +5,9 @@
 // harness and the independent models of ℤ/nℤ, (ℤ/nℤ)* and curves are copied
 // unchanged from tnu's force-dblclick-check.mjs; every expectation comes from them.
 //   node slider-check.mjs [syntax] [render] [combos] [memo] [jnrow] [url] [drag]
-//        [keys] [closed] [force] [lock] [settle] [pane] [ringwin] [mobile]   (none: all of these)
-//   node slider-check.mjs shot    two light screenshots into this dir
+//        [keys] [closed] [force] [lock] [settle] [pane] [ringwin] [mobile] [knob]   (none: all of these)
+//   node slider-check.mjs shot    two light screenshots into this dir, and quick
+//        261101-k8y's light and dark slider screenshots into that task's dir
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -142,8 +143,8 @@ async function openPage(browser, name, { w, h, ua, touch }) {
   })()`);
   // Top-level "=" of each main-view formula line.
   P.steps = () => P.ev(`Array.prototype.map.call(document.querySelectorAll('.ring-hover-formula math.ring-math-formula'), function(m){ var r = m.firstElementChild; return Array.prototype.filter.call(r.children, function(k){ return k.localName === 'mo' && k.textContent === '='; }).length; })`);
-  P.shot = async (file, clip) => {
-    await S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
+  P.shot = async (file, clip, scheme = 'light') => {
+    await S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
     const r = await S('Page.captureScreenshot', { format: 'png', ...(clip ? { clip: { ...clip, scale: 1 } } : {}) });
     writeFileSync(join(HERE, file), Buffer.from(r.data, 'base64'));
   };
@@ -887,6 +888,143 @@ SCENARIOS.push(['mobile', async browser => {
   await P.done();
 }]);
 
+/* ---------- knob (quick 261101-k8y): a real slider, the knob centred in a slot ---------- */
+// Where slider kind of formula f has its knob: the knob's centre, the centre
+// of the slot (the detent cut into the track) aria-valuenow names, whether it
+// is laid out as a slider (a round knob on a track, the slot under the knob)
+// and the transitions or animations running on the knob.
+const KNOB_JS = (f, kind) => `(function(){
+  var s = document.querySelector('.fsl-pair[data-f="${f}"] .fsl[data-kind="${kind}"]');
+  if (!s) return null;
+  var k = s.querySelector('.fsl-knob'), now = +s.getAttribute('aria-valuenow');
+  var c = function(e){ var r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; };
+  var slots = Array.prototype.map.call(s.querySelectorAll('.fsl-notch'), function(n){ var d = n.querySelector('.fsl-detent'), l = n.querySelector('.fsl-label'); return { d: d ? c(d) : null, l: l ? c(l) : null }; });
+  var track = s.querySelector('.fsl-track'), kc = c(k), cs = getComputedStyle(k);
+  var anims = k.getAnimations ? k.getAnimations().map(function(a){ return a.transitionProperty || 'anim'; }) : [];
+  return { now: now, k: kc, slot: slots[now] && slots[now].d, slots: slots, track: track ? c(track) : null, round: cs.borderTopLeftRadius === '50%' && Math.abs(kc.w - kc.h) < 0.5,
+    left: k.style.left, anims: anims, transform: cs.transform };
+})()`;
+const knobOf = (P, f, kind) => P.ev(KNOB_JS(f, kind));
+const centred = (kn, tol = 0.6) => !!kn && !!kn.slot && Math.abs(kn.k.x - kn.slot.x) < tol && Math.abs(kn.k.y - kn.slot.y) < tol && kn.left === '';
+const allCentred = async P => { const r = []; for (const f of ['order', 'index']) for (const kind of ['complexity', 'form']) r.push(await knobOf(P, f, kind)); return r; };
+SCENARIOS.push(['knob', async browser => {
+  const P = await openPage(browser, 'knob', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const hb = bothOpen(U13);
+  const url = `${UNITS}&gen=${hb.h}&logbase=${hb.b}`;
+  await P.load(url);
+  await P.enter();
+  let ks = await allCentred(P);
+  out(ks.every(kn => centred(kn) && kn.round), 'knob', 'on load every knob is round and centred in its slot (both formulas, both sliders)', ks.map(kn => kn && [kn.now, kn.k, kn.slot, kn.round]));
+  // the look: three slots on one track, each caption under its slot, the knob on the track line
+  ks = await knobOf(P, 'order', 'form');
+  out(ks.slots.length === 3 && ks.slots.every(sl => sl.d && sl.l && Math.abs(sl.d.y - ks.track.y) < 0.6 && sl.l.y > sl.d.y + sl.d.h / 2 && Math.abs(sl.l.x - sl.d.x) < 0.6)
+    && ks.track.x - ks.track.w / 2 <= ks.slots[0].d.x && ks.track.x + ks.track.w / 2 >= ks.slots[2].d.x && Math.abs(ks.k.y - ks.track.y) < 0.6 && ks.k.w > ks.slot.w,
+    'knob', 'three slots on one track, each caption under its slot, the knob bigger than a slot and on the track line', ks);
+  // a click on a slot commits; the knob slides there (a running left transition) and ends centred
+  const pick = async (kind, v, sub) => P.ev(`(function(){var r=document.querySelector('${'.fsl-pair[data-f="order"] .fsl[data-kind="'}' + ${JSON.stringify(kind)} + '"] .fsl-notch[data-v="' + ${v} + '"] ${sub}').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+  let c = await pick('form', 0, '.fsl-detent');
+  await click1(P, c.x, c.y);
+  await sleep(60);
+  let mid = await knobOf(P, 'order', 'form');
+  await sleep(600);
+  let kn = await knobOf(P, 'order', 'form');
+  out((await pairOf(P, 'order')).token === 'lcm-full' && mid.anims.includes('left') && mid.k.x > kn.slot.x + 1 && centred(kn), 'knob', 'a click on the LCM slot: lcm-full, the knob slides (a left transition midway) and comes to rest centred on LCM', { mid, kn });
+  // a click on a slot's caption does the same
+  c = await pick('complexity', 1, '.fsl-label');
+  await click1(P, c.x, c.y);
+  await sleep(700);
+  kn = await knobOf(P, 'order', 'complexity');
+  out((await pairOf(P, 'order')).token === 'lcm-short' && kn.now === 1 && centred(kn) && centred(await knobOf(P, 'order', 'form')), 'knob', "a click on compact's caption: lcm-short, both knobs centred", kn);
+  // keys
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="form"]').focus()`);
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  await sleep(300);
+  kn = await knobOf(P, 'order', 'form');
+  out((await pairOf(P, 'order')).token === 'pos-lcm' && kn.now === 1 && centred(kn), 'knob', 'ArrowRight on the form slider: pos-lcm, the knob centred on neither', kn);
+  await P.key('End', 'End', 35);
+  await sleep(300);
+  kn = await knobOf(P, 'order', 'form');
+  out((await pairOf(P, 'order')).token === 'gcd-short' && kn.now === 2 && centred(kn), 'knob', 'End: gcd-short, the knob centred on GCD', kn);
+  // drags released between two slots snap to the nearer one, animated, and end centred
+  const relDrag = async (kind, fromV, a, b, t) => {
+    const s = (await knobOf(P, 'order', kind)).slots;
+    const from = s[fromV].d, x = s[a].d.x + (s[b].d.x - s[a].d.x) * t;
+    await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x, y: from.y });
+    await P.S('Input.dispatchMouseEvent', { type: 'mousePressed', x: from.x, y: from.y, button: 'left', buttons: 1, clickCount: 1 });
+    for (let i = 1; i <= 8; i++) { await sleep(20); await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x + (x - from.x) * i / 8, y: from.y, button: 'left', buttons: 1 }); }
+    const held = await knobOf(P, 'order', kind);
+    await P.S('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y: from.y, button: 'left', buttons: 0, clickCount: 1 });
+    await sleep(50);
+    const snap = await knobOf(P, 'order', kind);
+    await sleep(600);
+    return { x, held, snap, end: await knobOf(P, 'order', kind) };
+  };
+  await P.load(url);
+  await P.enter();
+  let d = await relDrag('form', 2, 1, 0, 0.42);   // GCD dragged to 42% of the way from neither to LCM
+  out((await pairOf(P, 'order')).token === 'abs-gcd' && Math.abs(d.held.k.x - d.x) < 1 && d.snap.anims.includes('left') && d.snap.k.x > d.x + 0.5 && d.snap.k.x < d.end.slot.x - 0.5 && d.end.now === 1 && centred(d.end),
+    'knob', 'let go between neither and LCM, nearer neither: abs-gcd, the knob snaps over (a left transition from the release point) and rests centred on neither', d);
+  d = await relDrag('form', 1, 1, 0, 0.58);       // neither dragged to 58% of the way to LCM
+  out((await pairOf(P, 'order')).token === 'lcm-full' && d.end.now === 0 && centred(d.end), 'knob', 'let go between neither and LCM, nearer LCM: lcm-full, centred on LCM', d.end);
+  d = await relDrag('complexity', 2, 2, 1, 0.3);  // complete dragged 30% toward compact: back home
+  out((await pairOf(P, 'order')).token === 'lcm-full' && d.snap.anims.includes('left') && d.end.now === 2 && centred(d.end), 'knob', 'let go nearer its own slot: nothing commits, the knob slides back and rests centred on complete', d);
+  d = await relDrag('complexity', 2, 1, 0, 0.7);  // complete dragged to 70% of the way from compact to JN
+  out((await pairOf(P, 'order')).token === 'jn' && d.end.now === 0 && centred(d.end) && centred(await knobOf(P, 'order', 'form')), 'knob', 'let go between compact and JN, nearer JN: jn, both knobs centred (the form one at rest on its memo)', d.end);
+  // the drag keeps the knob on the track, between the outer slots
+  const s0 = (await knobOf(P, 'order', 'complexity')).slots;
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: s0[0].d.x, y: s0[0].d.y });
+  await P.S('Input.dispatchMouseEvent', { type: 'mousePressed', x: s0[0].d.x, y: s0[0].d.y, button: 'left', buttons: 1, clickCount: 1 });
+  for (let i = 1; i <= 6; i++) { await sleep(20); await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: s0[0].d.x - 12 * i, y: s0[0].d.y, button: 'left', buttons: 1 }); }
+  const clampL = await knobOf(P, 'order', 'complexity');
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseReleased', x: s0[0].d.x - 72, y: s0[0].d.y, button: 'left', buttons: 0, clickCount: 1 });
+  await sleep(600);
+  out(Math.abs(clampL.k.x - s0[0].d.x) < 0.6 && clampL.left !== '' && centred(await knobOf(P, 'order', 'complexity')) && (await pairOf(P, 'order')).token === 'jn', 'knob', 'dragged past the JN end the knob stops on JN, and rests there centred', clampL);
+  // refused moves: the knob tries and springs back, centred on its own slot
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=abs-lcm`);   // a open, a2 shut
+  await P.enter();
+  c = await pick('complexity', 1, '.fsl-detent');
+  await click1(P, c.x, c.y);
+  await sleep(90);
+  const tryk = await knobOf(P, 'order', 'complexity');
+  await sleep(600);
+  kn = await knobOf(P, 'order', 'complexity');
+  out((await pairOf(P, 'order')).token === 'abs-lcm' && tryk.anims.length > 0 && tryk.k.x < kn.slot.x - 1 && kn.now === 2 && centred(kn) && kn.transform === 'none', 'knob', 'a refused complexity click: the knob tries toward compact, springs back and rests centred on complete', { tryk, kn });
+  d = await relDrag('complexity', 2, 2, 1, 0.8);
+  out((await pairOf(P, 'order')).token === 'abs-lcm' && d.snap.anims.includes('left') && d.end.now === 2 && centred(d.end), 'knob', 'a refused drag release on compact: the knob slides back and rests centred on complete', d);
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').focus()`);
+  await P.key('ArrowLeft', 'ArrowLeft', 37);
+  kn = await knobOf(P, 'order', 'complexity');
+  out((await pairOf(P, 'order')).token === 'abs-lcm' && centred(kn) && kn.transform === 'none', 'knob', 'a refused ArrowLeft: still abs-lcm, the knob back centred on complete', kn);
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);   // the neither slot closed
+  await P.enter();
+  c = await pick('form', 1, '.fsl-detent');
+  await click1(P, c.x, c.y);
+  await sleep(700);
+  kn = await knobOf(P, 'order', 'form');
+  out((await pairOf(P, 'order')).token === 'gcd-short' && kn.now === 2 && centred(kn), 'knob', 'a click on the closed neither slot: no commit, the knob centred on GCD', kn);
+  const closedLook = await P.ev(`(function(){var n=document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]'), d=n.querySelector('.fsl-detent'); return { cls: n.classList.contains('is-closed'), op: +getComputedStyle(n).opacity, dash: getComputedStyle(d).borderTopStyle }; })()`);
+  out(closedLook.cls && closedLook.op < 0.6 && closedLook.dash === 'dashed', 'knob', 'the closed neither slot is faded with a dashed ring', closedLook);
+  noErrors(P, 'knob');
+  await P.done();
+  // the phone page: a bigger knob, still centred, and a tap slides it over
+  const M = await openPage(browser, 'knob', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+  await M.load('?mobile=1&mode=multiplicative&n=13&gen=5&logbase=2&subformularow=both&subformularing=both');
+  await sleep(1000);
+  await M.ev(`document.querySelector('.fsl-pair[data-f="order"]').scrollIntoView({ block: 'center' })`);
+  await sleep(300);
+  ks = await allCentred(M);
+  out(ks.every(kn => centred(kn) && kn.round && kn.k.w >= 17), 'knob', 'phone: every knob round, at least 17 px and centred', ks.map(kn => kn && [kn.k, kn.slot]));
+  c = await M.ev(`(function(){var r=document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"] .fsl-notch[data-v="1"]').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+  await M.S('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: c.x, y: c.y }] });
+  await sleep(40);
+  await M.S('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await sleep(800);
+  kn = await knobOf(M, 'order', 'complexity');
+  out((await pairOf(M, 'order')).token === 'gcd-short' && kn.now === 1 && centred(kn), 'knob', 'phone: a tap on compact, gcd-short, the knob centred on compact', kn);
+  noErrors(M, 'knob phone');
+  await M.done();
+}]);
+
 /* ---------- shot: light screenshots ---------- */
 SCENARIOS.push(['shot', async browser => {
   const P = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
@@ -900,6 +1038,46 @@ SCENARIOS.push(['shot', async browser => {
   await P.shot('shot-sliders-jn-light.png', await clipOf());
   noErrors(P, 'shot');
   await P.done();
+  // quick 261101-k8y: the real sliders (track, three slots, round knob), light
+  // and dark, on a desktop and a phone, into that task's dir
+  const K8Y = '../261101-k8y-cyclic-groups-the-complexity-and-form-pr/';
+  for (const scheme of ['light', 'dark']) {
+    const Q = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
+    await Q.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
+    const pairClip = async () => { const r = await Q.rect('.fsl-pair[data-f="order"]'); return { x: r.x - 10, y: r.y - 8, width: r.w + 20, height: r.h + 16 }; };
+    const boxClip = async () => { const r = await Q.rect('.ring-hover-formula'); return { x: Math.max(0, r.x - 8), y: Math.max(0, r.y - 8), width: Math.min(r.w + 16, 1280), height: r.h + 16 }; };
+    // complete / GCD with the neither slot closed (h=5 base 2: a2 shut at compact; here a open)
+    await Q.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+    await Q.enter();
+    await Q.shot(K8Y + `shot-k8y-pair-closed-${scheme}.png`, await pairClip(), scheme);
+    await Q.shot(K8Y + `shot-k8y-box-${scheme}.png`, await boxClip(), scheme);
+    await Q.load(`${UNITS}&gen=5&logbase=2&fmaporder=jn`);
+    await Q.enter();
+    await Q.shot(K8Y + `shot-k8y-pair-jn-${scheme}.png`, await pairClip(), scheme);
+    noErrors(Q, 'shot ' + scheme);
+    await Q.done();
+    const M = await openPage(browser, 'shot', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+    await M.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
+    await M.load(`?mobile=1&mode=multiplicative&n=13&subformularow=both&subformularing=both&gen=5&logbase=2&fmaporder=abs-gcd`);
+    await M.enter();
+    await M.ev(`document.querySelector('.fsl-pair[data-f="order"]').scrollIntoView({ block: 'center' })`);
+    await sleep(300);
+    const r = await M.rect('.fsl-pair[data-f="order"]'), sy = await M.ev('window.scrollY');
+    await M.shot(K8Y + `shot-k8y-mobile-${scheme}.png`, { x: Math.max(0, r.x - 10), y: r.y + sy - 8, width: Math.min(r.w + 20, 390), height: r.h + 16 }, scheme);
+    noErrors(M, 'shot mobile ' + scheme);
+    await M.done();
+  }
+  // the narrow ring head (760) and the single column (720 and below), light, maps open
+  for (const w of [760, 700]) {
+    const Q = await openPage(browser, 'shot', { w, h: 900, ua: UA_DESKTOP });
+    await Q.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
+    await Q.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&fmapopen=1`);
+    await Q.enter();
+    const r = await Q.rect('.ring-hover-formula'), sy = await Q.ev('window.scrollY');
+    await Q.shot(K8Y + `shot-k8y-narrow-${w}-light.png`, { x: Math.max(0, r.x - 8), y: r.y + sy - 8, width: Math.min(r.w + 16, w), height: r.h + 16 });
+    noErrors(Q, 'shot ' + w);
+    await Q.done();
+  }
 }]);
 
 const browser = await connect();
