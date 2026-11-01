@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-31 - Completed quick task 261031-uya: Cyclic Groups padlock freezes the main formula's log base (branch cyclic-groups-log-base-lock)
+Last activity: 2026-11-01 - Completed quick task 261031-wef: Cyclic Groups complexity and form preference sliders replace the formula maps on (ℤ/nℤ)* and curves (branch cyclic-groups-formula-sliders)
 
 Progress: [█████████░] 86%
 
@@ -629,6 +629,7 @@ None yet.
 | 261031-pm3 | Cyclic Groups: a row of generator boxes under the main formulas picks the log base (pyramid removed); closed a/a2 flash suitable bases green, others red; scroll-wheel switch (branch cyclic-groups-log-base-boxes) | 2026-10-31 | d74dd1f | [261031-pm3-cyclic-groups-generator-boxes-replace-th](./quick/261031-pm3-cyclic-groups-generator-boxes-replace-th/) |
 | 261031-tnu | Cyclic Groups: double-clicking a closed a or a2 on a formula map picks the nearest suitable log base (two green pulses, base set + knob moves, third pulse) (branch cyclic-groups-map-force-dblclick) | 2026-10-31 | 7b26924 | [261031-tnu-cyclic-groups-double-click-a-closed-a-or](./quick/261031-tnu-cyclic-groups-double-click-a-closed-a-or/) |
 | 261031-uya | Cyclic Groups: a padlock right of the generator boxes freezes the log base; a double-click on a closed a or a2 while locked shakes and pulses the padlock (branch cyclic-groups-log-base-lock) | 2026-10-31 | 82b23d7 | [261031-uya-cyclic-groups-padlock-freezes-the-main-f](./quick/261031-uya-cyclic-groups-padlock-freezes-the-main-f/) |
+| 261031-wef | Cyclic Groups: Complexity (JN / compact / complete) and Form preference (LCM / neither / GCD) sliders replace the formula maps on (ℤ/nℤ)* and curves; the generator row shows only off JN; ℤ/nℤ keeps its map (branch cyclic-groups-formula-sliders) | 2026-11-01 | 010fa52 | [261031-wef-cyclic-groups-complexity-and-form-prefer](./quick/261031-wef-cyclic-groups-complexity-and-form-prefer/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -883,4 +884,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-10-31 - Completed quick task 261031-uya: Cyclic Groups padlock freezes the main formula's log base (branch cyclic-groups-log-base-lock)
+Last activity: 2026-11-01 - Completed quick task 261031-wef: Cyclic Groups complexity and form preference sliders replace the formula maps on (ℤ/nℤ)* and curves (branch cyclic-groups-formula-sliders)
