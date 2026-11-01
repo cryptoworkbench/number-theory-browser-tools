@@ -7,8 +7,9 @@
 // The harness and the independent models are copied unchanged from wef's
 // slider-check.mjs; every expectation comes from them.
 //   node map-toggle-check.mjs [syntax] [render] [toggle] [layout] [url] [sync]
-//        [boxes] [jnrow] [narrow] [mobile] [ringwin] [pane]   (none: all of these)
-//   node map-toggle-check.mjs shot    three light screenshots into this dir
+//        [boxes] [jnrow] [narrow] [mobile] [ringwin] [pane] [live] [fade] [force]
+//        [lock] [settle] [band]   (none: all of these)
+//   node map-toggle-check.mjs shot    four light screenshots into this dir
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -793,6 +794,211 @@ SCENARIOS.push(['pane', async browser => {
   noErrors(P, 'pane');
   await P.done();
 }]);
+/* ---------- the open map moving live ---------- */
+// The slider-check sampler, extended with the maps: which map stops pulse
+// (mpulse) or flash (mset) per formula, each map's position and its closed nodes.
+const SAMPLER_MAP = ms => SAMPLER(ms).replace(`anyChip: document.querySelectorAll('.fsl-notch.is-force-pulse, .fsl-notch.is-force-set').length });`,
+  `anyChip: document.querySelectorAll('.fsl-notch.is-force-pulse, .fsl-notch.is-force-set').length, mpulse: mst('is-force-pulse'), mset: mst('is-force-set'), mat: mat(), mclosed: mcl(), anyStop: document.querySelectorAll('.fmap-stop.is-force-pulse, .fmap-stop.is-force-set').length });`)
+  .replace(`var t = setInterval(function(){`, `var mst = function(c){ var o = {}; document.querySelectorAll('.fmap').forEach(function(m){ o[m.getAttribute('data-f')] = Array.prototype.map.call(m.querySelectorAll('.fmap-stop.' + c), function(x){ return x.getAttribute('data-id'); }); }); return o; };
+  var mat = function(){ var o = {}; document.querySelectorAll('.fmap').forEach(function(m){ o[m.getAttribute('data-f')] = m.getAttribute('data-at'); }); return o; };
+  var mcl = function(){ var o = {}; document.querySelectorAll('.fmap').forEach(function(m){ o[m.getAttribute('data-f')] = Array.prototype.map.call(m.querySelectorAll('.fmap-node.is-closed'), function(x){ return x.getAttribute('data-id'); }); }); return o; };
+  var t = setInterval(function(){`);
+// The running CSS transitions on the element sel, by property, and its computed left/top.
+const runJs = sel => `(function(){ var e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; var cs = getComputedStyle(e);
+  return { props: e.getAnimations().filter(function(a){ return a.transitionProperty && a.playState === 'running'; }).map(function(a){ return a.transitionProperty; }), left: parseFloat(cs.left), top: parseFloat(cs.top), cls: e.getAttribute('class') }; })()`;
+const run = (P, sel, ctx) => P.ev(runJs(sel), ctx);
+const KNOB = f => `.fmap[data-f="${f}"] .fmap-knob`;
+const between = (x, a, b) => x > Math.min(a, b) + 0.01 && x < Math.max(a, b) - 0.01;
+const SL_KNOB = (f, kind) => `.fsl-pair[data-f="${f}"] .fsl[data-kind="${kind}"] .fsl-knob`;
+
+SCENARIOS.push(['live', async browser => {
+  const P = await openPage(browser, 'live', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const hb = bothOpen(U13);
+  const url = `${UNITS}&gen=${hb.h}&logbase=${hb.b}&fmapopen=1`;
+  await P.load(url);
+  await P.enter();
+  // a chip: the map's knob slides from gcd-full to gcd-short
+  let c = await chip(P, 'order', 'complexity', 1);
+  await click1(P, c.x, c.y);
+  await sleep(50);
+  let r = await run(P, KNOB('order'));
+  out(!!r && r.props.some(p => p === 'left' || p === 'top') && between(r.left, knobAt('gcd-full').left, knobAt('gcd-short').left), 'live', 'a complexity notch: the map knob slides (a running left transition, midway between gcd-full and gcd-short)', r);
+  await sleep(500);
+  let m = await mapOf(P, 'order');
+  r = await run(P, KNOB('order'));
+  out(knobIs(m.knob, 'gcd-short') && r.props.length === 0 && Math.abs(r.left - knobAt('gcd-short').left) < 0.6, 'live', 'and after 500 ms it rests on gcd-short', { knob: m.knob, r });
+  out((await run(P, `${KNOB('index')}`)).props.length === 0, 'live', "the other map's knob, unmoved, does not move");
+  // a map stop: the form slider's knob slides from GCD to LCM
+  const k0 = (await run(P, SL_KNOB('order', 'form'))).left;
+  c = await centre(P, stopSel('order', 'lcm-short'));
+  await click1(P, c.x, c.y);
+  await sleep(50);
+  r = await run(P, SL_KNOB('order', 'form'));
+  await sleep(500);
+  const k1 = (await run(P, SL_KNOB('order', 'form'))).left;
+  out(!!r && r.props.includes('left') && between(r.left, k0, k1) && (await pairOf(P, 'order')).token === 'lcm-short', 'live', "a map stop: the form slider's knob slides (a running left transition, midway)", { r, k0, k1 });
+  // reduced motion: nothing slides, everything lands
+  await P.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  await P.load(url);
+  await P.enter();
+  c = await chip(P, 'order', 'complexity', 1);
+  await click1(P, c.x, c.y);
+  await sleep(50);
+  r = await run(P, KNOB('order'));
+  const rs = await run(P, SL_KNOB('order', 'complexity'));
+  m = await mapOf(P, 'order');
+  out(r.props.length === 0 && rs.props.length === 0 && knobIs(m.knob, 'gcd-short') && Math.abs(r.left - knobAt('gcd-short').left) < 0.6, 'live', 'prefers-reduced-motion: no running transition, the knob already on gcd-short', { r, rs });
+  out(!(await P.exists('.fmap-band')), 'live', 'prefers-reduced-motion: no band drawn');
+  await P.S('Emulation.setEmulatedMedia', { features: [] });
+  noErrors(P, 'live');
+  await P.done();
+}]);
+
+SCENARIOS.push(['fade', async browser => {
+  const P = await openPage(browser, 'fade', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const g = U13.gens.find(x => reach(U13, x, 5).pos !== reach(U13, 2, 5).pos);
+  await P.load(`${UNITS}&gen=5&logbase=2&fmapopen=1&fmaporder=gcd-full`);
+  await P.enter();
+  const c = await centre(P, `.ring-hover-formula .lb-box[data-g="${g}"]`);
+  await click1(P, c.x, c.y);
+  await sleep(60);
+  const e = await run(P, '.fmap[data-f="order"] .fmap-edge.is-cond[data-id="pos"]'), n = await run(P, '.fmap[data-f="order"] .fmap-node[data-id="pos"]');
+  const open = reach(U13, g, 5).pos;
+  out(e.props.includes('stroke') && n.props.includes('opacity'), 'fade', `box ${g}: the a2 path's stroke and node's opacity are transitioning`, { e, n });
+  out(/is-closed/.test(e.cls) === !open && /is-closed/.test(n.cls) === !open, 'fade', `and they end ${open ? 'open' : 'closed'}`, { e: e.cls, n: n.cls });
+  // ℤ/12ℤ's map never animates
+  await P.load('?mobile=0&mode=additive&n=12&subformularow=both&subformularing=both&gen=9');
+  await P.enter();
+  const c2 = await centre(P, stopSel('order', 'lcm-full'));
+  await click1(P, c2.x, c2.y);
+  await sleep(50);
+  const z = await run(P, KNOB('order'));
+  out(z.props.length === 0 && (await mapOf(P, 'order')).at === 'lcm-full', 'fade', 'ℤ/12ℤ: its knob jumps as before (no transition carried)', z);
+  noErrors(P, 'fade');
+  await P.done();
+}]);
+
+/* ---------- force: a double-click on the map's closed a2 ---------- */
+async function forceMap(P, scen, name, url, M, h, base, on) {
+  const pick = pickModel(M, h, base, 'pos');
+  await P.load(url);
+  await P.enter();
+  const m0 = await mapOf(P, 'order');
+  out(!!m0 && m0.closedNodes.includes('pos') && m0.at === 'gcd-short', scen, `${name}: the map open on gcd-short, a2 closed`, m0);
+  await P.ev(SAMPLER_MAP(3200));
+  const c = await centre(P, on === 'map' ? stopSel('order', 'pos') : chipSel('order', 'form', 1));
+  await dbl(P, c.x, c.y);
+  await sleep(3000);
+  const ss = after0(await samples(P));
+  out(same(phasesOf(ss, pick), ['pulse', 'set', 'none']), scen, `${name}: box ${M.at(pick)} pulses, flashes, rests`, phasesOf(ss, pick));
+  const ph = key => { const o = []; for (const s of ss) { const x = key(s); if (o[o.length - 1] !== x) o.push(x); } return o; };
+  out(same(ph(s => s.mset.order && s.mset.order.includes('pos') ? 'set' : s.mpulse.order && s.mpulse.order.includes('pos') ? 'pulse' : 'none'), ['pulse', 'set', 'none']), scen, `${name}: the map's a2 stop pulses and flashes in step`, ph(s => [s.mpulse.order, s.mset.order].join('|')));
+  out(same(ph(s => s.cset.includes('order') ? 'set' : s.cpulse.includes('order') ? 'pulse' : 'none'), ['pulse', 'set', 'none']), scen, `${name}: so does the slider's neither notch`);
+  const firstSet = ss.find(s => s.set.includes(pick)), mSet = ss.find(s => s.mset.order && s.mset.order.includes('pos'));
+  out(!!firstSet && firstSet.t >= 1000 && firstSet.t <= 1450 && !!mSet && Math.abs(mSet.t - firstSet.t) <= 80, scen, `${name}: the base is set at about 1.1 s, the map stop flashing with the box`, { box: firstSet && firstSet.t, map: mSet && mSet.t });
+  const pulses = ss.filter(s => s.pulse.length);
+  out(pulses.length > 0 && pulses.every(s => s.base === base && s.maps.order === 'gcd-short' && s.mat.order === 'gcd-short'), scen, `${name}: while it pulses the base, the token and the map stay`, pulses[0]);
+  const m1 = await mapOf(P, 'order'), p1 = await pairOf(P, 'order'), q = new URLSearchParams(await P.q());
+  out(m1.at === 'pos' && !m1.closedNodes.includes('pos') && knobIs(m1.knob, 'pos') && p1.c.now === 1 && p1.v.now === 1, scen, `${name}: then the map is on a2, open, and the pair on compact / neither`, { m1, p1: [p1.c.now, p1.v.now] });
+  out(q.get('logbase') === String(pick) && q.get('fmaporder') === 'pos-gcd', scen, `${name}: url logbase=${pick}, fmaporder=pos-gcd`, Object.fromEntries(q));
+}
+SCENARIOS.push(['force', async browser => {
+  const P = await openPage(browser, 'force', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await forceMap(P, 'force', `(ℤ/13ℤ)* h=5 base 2 -> ${pickModel(U13, 5, 2, 'pos')}, on the map`, `${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&fmapopen=1`, U13, 5, 2, 'map');
+  let hit = null;
+  for (let h = 1; h < E11.N && !hit; h++) for (const b of E11.gens) if (!hit && !reach(E11, b, h).pos && pickModel(E11, h, b, 'pos') !== null) hit = { h, b };
+  out(!!hit, 'force', hit ? `curve: h=${E11.at(hit.h)} base ${E11.at(hit.b)} has a2 closed` : 'a curve case');
+  if (hit) await forceMap(P, 'force', `curve h=${E11.at(hit.h)} base ${E11.at(hit.b)}, on the map`, `?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=${hit.h}&logbase=${hit.b}&fmaporder=gcd-short&fmapopen=1`, E11, hit.h, hit.b, 'map');
+  await forceMap(P, 'force', `(ℤ/13ℤ)* h=5 base 2, on the slider's neither`, `${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&fmapopen=1`, U13, 5, 2, 'slider');
+  noErrors(P, 'force');
+  await P.done();
+}]);
+
+SCENARIOS.push(['lock', async browser => {
+  const P = await openPage(browser, 'lock', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&logbaselock=1&fmapopen=1`);
+  await P.enter();
+  await P.ev(SAMPLER_MAP(2000));
+  const c = await centre(P, stopSel('order', 'pos'));
+  await dbl(P, c.x, c.y);
+  await sleep(150);
+  out(await P.exists('.lb-lock.is-alarm'), 'lock', "a double-click on the map's closed a2: the padlock sounds its alarm");
+  await sleep(1900);
+  const ss = after0(await samples(P));
+  out(ss.length > 0 && ss.every(s => !s.pulse.length && !s.set.length && !s.anyChip && !s.anyStop), 'lock', 'no force class on any box, notch or map stop', ss.find(s => s.pulse.length || s.set.length || s.anyChip || s.anyStop));
+  out((await P.param('logbase')) === '2' && (await pairOf(P, 'order')).token === 'gcd-short' && (await mapOf(P, 'order')).at === 'gcd-short', 'lock', 'the base, the token and the map unchanged', await P.q());
+  noErrors(P, 'lock');
+  await P.done();
+}]);
+
+SCENARIOS.push(['settle', async browser => {
+  const P = await openPage(browser, 'settle', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const h0 = [...Array(13).keys()].find(h => h > 0 && reach(U13, 2, h).pos && reach(U13, 2, h).q !== 12 && reach(U13, 2, h).q !== 1);
+  for (const h1 of [...Array(13).keys()].filter(h => h > 1 && !reach(U13, 2, h).pos).slice(0, 2)) {
+    const want = settleModel('pos-gcd', reach(U13, 2, h1));
+    await P.load(`${UNITS}&gen=${h0}&logbase=2&fmaporder=pos-gcd&fmapopen=1`);
+    await P.enter();
+    const r = await P.ev(`new Promise(function(res){ var row = document.querySelector('.subgroup-row[data-gen="${h1}"]'); if (!row) return res(null); row.click(); setTimeout(function(){ res(${runJs(KNOB('order'))}); }, 50); })`);
+    await sleep(700);
+    const m = await mapOf(P, 'order'), p = await pairOf(P, 'order');
+    out(!!r && r.props.some(x => x === 'left' || x === 'top') && m.at === NODE_OF(want) && p.token === want && knobIs(m.knob, NODE_OF(want)), 'settle', `pos-gcd at h=${h0}, then h=${h1}: the map and the pair settle to ${want}, the knob sliding there`, { r, at: m.at, token: p.token });
+  }
+  noErrors(P, 'settle');
+  await P.done();
+}]);
+
+SCENARIOS.push(['band', async browser => {
+  const P = await openPage(browser, 'band', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const hb = bothOpen(U13);
+  await P.load(`${UNITS}&gen=${hb.h}&logbase=${hb.b}&fmapopen=1`);
+  await P.enter();
+  const bands = () => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap-band'), function(b){ return { f: b.closest('.fmap').getAttribute('data-f'), kind: b.getAttribute('data-kind'), x: +b.getAttribute('x'), y: +b.getAttribute('y'), w: +b.getAttribute('width'), h: +b.getAttribute('height'), first: b.parentNode.firstElementChild === b, running: b.getAnimations().some(function(a){ return a.playState === 'running'; }) }; })`);
+  await clickChip(P, 'order', 'complexity', 1);
+  let b = await bands();
+  out(b.length === 1 && b[0].f === 'order' && b[0].kind === 'complexity' && b[0].x === 62 - 18 && b[0].w === 36 && b[0].h === 58 && b[0].first, 'band', 'a complexity notch: one column band, at compact\'s column, behind everything', b);
+  await clickChip(P, 'order', 'form', 0);
+  b = await bands();
+  out(b.length === 1 && b[0].kind === 'form' && b[0].y === 47 - 9 && b[0].h === 18 && b[0].w === 172, 'band', "a form notch: one row band, at LCM's row", b);
+  await sleep(1200);
+  b = await bands();
+  out(b.every(x => !x.running), 'band', 'after 1.2 s no band is animating', b);
+  await clickSel(P, stopSel('order', 'gcd-full'));
+  out((await bands()).length === 0, 'band', 'a map stop gives no band', await bands());
+  noErrors(P, 'band');
+  await P.done();
+}]);
+
+/* ---------- shot: light screenshots ---------- */
+SCENARIOS.push(['shot', async browser => {
+  const P = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
+  const clipOf = async (w) => { const r = await P.rect('.ring-hover-formula'); return { x: Math.max(0, r.x - 8), y: Math.max(0, r.y - 8), width: Math.min(r.w + 16, w), height: r.h + 16 }; };
+  await P.load(`${UNITS}&gen=5&logbase=2&fmapopen=1`);
+  await P.enter();
+  await P.shot('shot-maptoggle-open-light.png', await clipOf(1280));
+  // mid-band, for judging the band: a complexity notch, 250 ms on
+  const bc = await chip(P, 'order', 'complexity', 1), bclip = await clipOf(1280);
+  await click1(P, bc.x, bc.y);
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 2, y: 2 });
+  await sleep(250);
+  await P.shot('shot-maptoggle-band-light.png', bclip);
+  await P.load(`${UNITS}&gen=5&logbase=2`);
+  await P.enter();
+  await P.shot('shot-maptoggle-closed-light.png', await clipOf(1280));
+  await P.done();
+  const M = await openPage(browser, 'shot-mobile', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+  await M.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
+  await M.load(`?mobile=1&mode=multiplicative&n=13&gen=5&logbase=2&subformularow=both&subformularing=both&fmapopen=1`);
+  await sleep(1000);
+  await M.ev(`document.querySelector('.ring-hover-formula').scrollIntoView({ block: 'center' })`);
+  await sleep(300);
+  const r = await M.rect('.ring-hover-formula'), sy = await M.ev('window.scrollY');
+  await M.shot('shot-maptoggle-mobile-light.png', { x: 0, y: Math.max(0, r.y + sy - 8), width: 390, height: Math.min(r.h + 16, 844) });
+  noErrors(P, 'shot');
+  noErrors(M, 'shot-mobile');
+  await M.done();
+}]);
+
 const browser = await connect();
 try {
   for (const [name, fn] of SCENARIOS) if (want(name) && (ONLY.includes(name) || !['shot'].includes(name))) await fn(browser);
