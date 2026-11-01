@@ -12951,10 +12951,12 @@ function drawCombineLine(G, y){
       if (ik !== t){
         r.push([[null, B(g)], ['c', supSigned(ik)]], [null, '≡']);
         // |G| resolved to the cardinality itself: n for ⟨ℤ/nℤ, +⟩, and for
-        // ⟨ℤ/nℤ, ×⟩ the totient φ(n) first, then its value.
+        // ⟨ℤ/nℤ, ×⟩ the totient φ(n) first, then its value. The formula
+        // slider trims the steps as with a ∗ b: Compact skips φ(n),
+        // No-derivation reduces by the cardinality's value straight away.
         var red = function(by){ r.push([[null, B(g)], ['c', signed(ik) + ' % ' + by, 'sup']], [null, '≡']); };
-        red('|' + groupPlain(G) + '|');
-        if (mul) red('φ(' + G.n + ')');
+        if (!state.subBare) red('|' + groupPlain(G) + '|');
+        if (mul && !state.subSimplify) red('φ(' + G.n + ')');
         red(G.order);
       }
       r.push([[null, B(g)], ['c', supSigned(t)]], [null, '≡']);
@@ -12969,14 +12971,15 @@ function drawCombineLine(G, y){
       // The power itself, a negative one in a multiplicative group as the
       // inverse's, then its plain value while that is not too big to write.
       // Multiplicatively, a having an order dividing |G|, an exponent of
-      // |G| or more is first reduced mod |G| in the same steps as with g.
+      // |G| or more is first reduced mod |G| in the same steps as with g,
+      // trimmed by the formula slider the same way.
       var inv = G.inv[a], base = k >= 0 ? a : inv, e = Math.abs(k);
       if (mul && k < 0) r.push([[null, '('], ['a', B(a)], [null, '⁻¹)'], ['b', superscript(-k)]], [null, '≡'], [['a', B(inv)], ['b', superscript(-k)]], [null, '≡']);
       else r.push([['a', B(a)], ['b', supSigned(k)]], [null, '≡']);
       if (mul && e >= G.order){
         var redA = function(by){ r.push([['a', B(base)], ['b', String(e), 'sup'], [null, ' % ' + by, 'sup']], [null, '≡']); };
-        redA('|' + groupPlain(G) + '|');
-        redA('φ(' + G.n + ')');
+        if (!state.subBare) redA('|' + groupPlain(G) + '|');
+        if (!state.subSimplify) redA('φ(' + G.n + ')');
         redA(G.order);
         e %= G.order;
         r.push([['a', B(base)], ['b', superscript(e)]], [null, '≡']);
