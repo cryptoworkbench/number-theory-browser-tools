@@ -7426,8 +7426,8 @@ var FMAP_NODES = {
   'gcd-full': { x: 152, y: 9, w: 30, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelFull'], key: 'cyclicGroups.fmapGcdFull' },
   'lcm-short': { x: 62, y: 47, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelShort'], key: 'cyclicGroups.fmapLcmShort' },
   'lcm-full': { x: 152, y: 47, w: 30, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelFull'], key: 'cyclicGroups.fmapLcmFull' },
-  'abs': { x: 152, y: 28, w: 22, h: 12, t: ['cyclicGroups.fmapLabelA'], key: 'cyclicGroups.fmapAbs' },
-  'pos': { x: 62, y: 28, w: 22, h: 12, t: ['cyclicGroups.fmapLabelA2'], key: 'cyclicGroups.fmapPos' },
+  'abs': { x: 152, y: 28, w: 32, h: 16, t: ['cyclicGroups.fmapLabelA'], key: 'cyclicGroups.fmapAbs' },
+  'pos': { x: 62, y: 28, w: 54, h: 16, t: ['cyclicGroups.fmapLabelA2'], key: 'cyclicGroups.fmapPos' },
   'gcd-sls': { x: 62, y: 66, w: 58, h: 16, t: ['cyclicGroups.fmapLabelGcd', 'cyclicGroups.fmapLabelSls'], key: 'cyclicGroups.fmapGcdSls' },
   'lcm-sls': { x: 62, y: 85, w: 58, h: 16, t: ['cyclicGroups.fmapLabelLcm', 'cyclicGroups.fmapLabelSls'], key: 'cyclicGroups.fmapLcmSls' }
 };
@@ -7441,8 +7441,8 @@ var FMAP_SOLID = [
   'M77 9H137', 'M77 47H137'
 ];
 var FMAP_DOTTED = [
-  ['abs', 'M152 17V22M152 34V39'],
-  ['pos', 'M73 28H141M62 17V22M62 34V39'],
+  ['abs', 'M152 17V20M152 36V39'],
+  ['pos', 'M89 28H136M62 17V20M62 36V39'],
   ['sls', 'M12 54V72Q12 85 25 85H33M12 66H33']
 ];
 var fmapSeq = 0;
@@ -7495,8 +7495,19 @@ function formulaMap(G, info){
     var nd = FMAP_NODES[id], g = svgEl('g', { 'class': 'fmap-node' + (openNode(id) ? '' : ' is-closed') + (id === now ? ' is-at' : ''), 'data-id': id });
     g.appendChild(svgEl('rect', { x: nd.x - nd.w / 2, y: nd.y - nd.h / 2, width: nd.w, height: nd.h, rx: 4 }));
     nd.t.forEach(function(key, i){
+      // A label of two lines of its own (the absolute function's) is set
+      // small on both.
+      var lines = translate(key).split('\n');
+      if (nd.t.length === 1 && lines.length === 2){
+        lines.forEach(function(line, j){
+          var sub = svgEl('text', { 'class': 'fmap-sub', x: nd.x, y: j ? nd.y + 5.8 : nd.y - 0.8, 'text-anchor': 'middle' });
+          sub.textContent = line;
+          g.appendChild(sub);
+        });
+        return;
+      }
       var text = svgEl('text', { 'class': i ? 'fmap-sub' : 'fmap-name', x: nd.x, y: nd.t.length === 1 ? nd.y + 3 : i ? nd.y + 5.6 : nd.y - 1.4, 'text-anchor': 'middle' });
-      text.textContent = translate(key);
+      text.textContent = lines.join(' ');
       g.appendChild(text);
     });
     svg.appendChild(g);
