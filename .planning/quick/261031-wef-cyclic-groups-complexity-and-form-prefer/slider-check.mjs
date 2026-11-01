@@ -487,10 +487,11 @@ SCENARIOS.push(['render', async browser => {
   let ps = await pairs(P);
   out(ps.length === 2 && !(await P.exists('.fmap')) && same(ps.map(p => p.f), ['order', 'index']), 'render', '(ℤ/13ℤ)*: two slider pairs, no map', ps.map(p => p.f));
   out(ps.every(p => p.token === 'gcd-full' && p.c.now === 2 && p.v.now === 2 && p.c.text === 'complete' && p.v.text === 'GCD' && p.c.at === 2 && p.v.at === 2 && !p.v.inert), 'render', 'both at complete / GCD (aria-valuenow 2 / 2, texts complete / GCD)', ps);
-  out(ps.every(p => p.c.role === 'slider' && p.v.role === 'slider' && p.c.labels === 'JN|compact|complete' && p.v.labels === 'LCM|neither|GCD' && /Complexity of the/.test(p.c.label) && /Form preference of the/.test(p.v.label) && p.c.tab === '0' && p.v.tab === '0'), 'render', 'role=slider, notch labels and accessible names', ps.map(p => [p.c.label, p.v.label, p.c.labels, p.v.labels]));
+  out(ps.every(p => p.c.role === 'slider' && p.v.role === 'slider' && p.c.labels === 'JN|compact|complete|compact SLS' && p.v.labels === 'LCM|neither|GCD' && /Complexity of the/.test(p.c.label) && /Form preference of the/.test(p.v.label) && p.c.tab === '0' && p.v.tab === '0'), 'render', 'role=slider, notch labels (since quick 261101-tpr the forked complexity with its greyed compact SLS slot) and accessible names', ps.map(p => [p.c.label, p.v.label, p.c.labels, p.v.labels]));
   out(await P.exists('.ring-hover-formula.has-fmap .lb-row'), 'render', 'the generator row shows (complete is not JN)');
   const geo = await P.ev(`(function(){var p=document.querySelector('.fsl-pair').getBoundingClientRect(), m=document.querySelector('.ring-hover-formula math.ring-math-formula').getBoundingClientRect(); return { w: p.width, h: p.height, left: p.right <= m.left }; })()`);
-  out(geo.w <= 200 && geo.h <= 104 && geo.left, 'render', `the pair is ${Math.round(geo.w)} x ${Math.round(geo.h)} px (within 200 x 104), left of its formula`, geo);
+  // quick 261101-tpr: the forked complexity track (as ℤ/nℤ's) makes the pair a little taller
+  out(geo.w <= 200 && geo.h <= 112 && geo.left, 'render', `the pair is ${Math.round(geo.w)} x ${Math.round(geo.h)} px (within 200 x 112), left of its formula`, geo);
   out(await noScroll(P), 'render', 'no sideways scroll at 1280');
   await P.load(`?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=1`);
   await P.enter();
@@ -981,7 +982,8 @@ SCENARIOS.push(['knob', async browser => {
   d = await relDrag('form', 1, 1, 0, 0.58);       // neither dragged to 58% of the way to LCM
   out((await pairOf(P, 'order')).token === 'lcm-full' && d.end.now === 0 && centred(d.end), 'knob', 'let go between neither and LCM, nearer LCM: lcm-full, centred on LCM', d.end);
   d = await relDrag('complexity', 2, 2, 1, 0.3);  // complete dragged 30% toward compact: back home
-  out((await pairOf(P, 'order')).token === 'lcm-full' && d.snap.anims.includes('left') && d.end.now === 2 && centred(d.end), 'knob', 'let go nearer its own slot: nothing commits, the knob slides back and rests centred on complete', d);
+  // quick 261101-tpr: the complexity knob is the fork's, which glides by a Web Animation, not a left transition
+  out((await pairOf(P, 'order')).token === 'lcm-full' && d.snap.anims.length > 0 && d.end.now === 2 && centred(d.end), 'knob', 'let go nearer its own slot: nothing commits, the knob glides back and rests centred on complete', d);
   d = await relDrag('complexity', 2, 1, 0, 0.7);  // complete dragged to 70% of the way from compact to JN
   out((await pairOf(P, 'order')).token === 'jn' && d.end.now === 0 && centred(d.end) && centred(await knobOf(P, 'order', 'form')), 'knob', 'let go between compact and JN, nearer JN: jn, both knobs centred (the form one at rest on its memo)', d.end);
   // the drag keeps the knob on the track, between the outer slots
@@ -1005,7 +1007,7 @@ SCENARIOS.push(['knob', async browser => {
   out((await pairOf(P, 'order')).token === 'jn' && tryk.anims.length > 0 && tryk.k.x > kn.slot.x + 1 && kn.now === 0 && centred(kn) && kn.transform === 'none', 'knob', 'a refused complexity click: the knob tries toward compact, springs back and rests centred on JN', { tryk, kn });
   await sleep(700);
   d = await relDrag('complexity', 0, 0, 1, 0.8);
-  out((await pairOf(P, 'order')).token === 'jn' && d.snap.anims.includes('left') && d.end.now === 0 && centred(d.end), 'knob', 'a refused drag release on compact: the knob slides back and rests centred on JN', d);
+  out((await pairOf(P, 'order')).token === 'jn' && d.snap.anims.length > 0 && d.end.now === 0 && centred(d.end), 'knob', 'a refused drag release on compact: the knob glides back and rests centred on JN', d);
   await sleep(700);
   await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').focus()`);
   await P.key('ArrowRight', 'ArrowRight', 39);

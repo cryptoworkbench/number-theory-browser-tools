@@ -5,10 +5,13 @@
 // gcd-sls / lcm-sls tokens), under compact. Neither with compact SLS is
 // refused both ways. The harness, the independent models and the helpers are
 // copied unchanged from 261031-wef's slider-check.mjs; every expectation of a
-// formula comes from those models.
+// formula comes from those models. Quick 261101-tpr: groups of units and
+// curves draw the same fork, its SLS branch and slot 3 greyed out and out of
+// reach (scenarios render, others, pane).
 //   node additive-slider-check.mjs [syntax] [render] [slots] [refuse] [force] [keys]
 //        [genrow] [reload] [map] [glide] [drag] [others] [mobile] [ringwin] [pane]   (none: all of these)
 //   node additive-slider-check.mjs shot    light and dark screenshots into this dir
+//   node additive-slider-check.mjs tprshot light and dark (ℤ/13ℤ)* pair into 261101-tpr's dir
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -476,8 +479,8 @@ const SLIDER_JS = (f, kind) => `(function(){
   var s = document.querySelector('.fsl-pair[data-f="${f}"] .fsl[data-kind="${kind}"]');
   if (!s) return null;
   var c = function(e){ var r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, top: r.top, bottom: r.bottom, left: r.left, right: r.right, w: r.width, h: r.height }; };
-  return { fork: s.classList.contains('is-fork'), svg: !!s.querySelector('svg.fsl-fork'), max: s.getAttribute('aria-valuemax'), now: s.getAttribute('aria-valuenow'), text: s.getAttribute('aria-valuetext'), box: c(s),
-    notches: Array.prototype.map.call(s.querySelectorAll('.fsl-notch'), function(n){ return { v: +n.getAttribute('data-v'), d: c(n.querySelector('.fsl-detent')), l: c(n.querySelector('.fsl-label')), text: n.textContent, cls: n.className, title: n.title }; }) };
+  return { fork: s.classList.contains('is-fork'), svg: !!s.querySelector('svg.fsl-fork'), offPaths: s.querySelectorAll('svg.fsl-fork path.is-off').length, offTop: s.querySelectorAll('svg.fsl-fork path.is-off[data-part="top"]').length, max: s.getAttribute('aria-valuemax'), now: s.getAttribute('aria-valuenow'), text: s.getAttribute('aria-valuetext'), box: c(s),
+    notches: Array.prototype.map.call(s.querySelectorAll('.fsl-notch'), function(n){ return { v: +n.getAttribute('data-v'), d: c(n.querySelector('.fsl-detent')), l: c(n.querySelector('.fsl-label')), text: n.textContent, cls: n.className, title: n.title, dis: n.getAttribute('aria-disabled') }; }) };
 })()`;
 const sliderOf = (P, f, kind, ctx) => P.ev(SLIDER_JS(f, kind), ctx);
 const notchCls = async (P, f, kind, v) => (await P.ev(`(function(){var e=document.querySelector(${JSON.stringify(chipSel(f, kind, v))});return e?e.className:null})()`));
@@ -533,7 +536,7 @@ SCENARIOS.push(['render', async browser => {
   for (const f of ['order', 'index']) {
     const c = await sliderOf(P, f, 'complexity'), v = await sliderOf(P, f, 'form');
     const n = Object.fromEntries(c.notches.map(x => [x.v, x]));
-    out(c.fork && c.svg && c.max === '3' && c.notches.length === 4 && !v.fork && v.notches.length === 3 && v.max === '2', 'render', `${f}: complexity forked (4 slots, aria-valuemax 3), form straight (3 slots)`, { c: [c.fork, c.svg, c.max, c.notches.length], v: [v.fork, v.notches.length, v.max] });
+    out(c.fork && c.svg && c.max === '3' && c.notches.length === 4 && !v.fork && v.notches.length === 3 && v.max === '2' && c.offPaths === 0 && c.notches.every(x => !/is-off/.test(x.cls) && x.dis === null), 'render', `${f}: complexity forked (4 slots, aria-valuemax 3, nothing greyed), form straight (3 slots)`, { c: [c.fork, c.svg, c.max, c.notches.length], v: [v.fork, v.notches.length, v.max] });
     out(Math.abs(n[3].d.x - n[1].d.x) < 0.6 && n[3].d.y - n[1].d.y > 12 && Math.abs(n[0].d.y - n[1].d.y) < 0.6 && Math.abs(n[2].d.y - n[1].d.y) < 0.6, 'render', `${f}: slot 3 exactly under compact, 1 / 2 / 4 on one line`, n);
     out([0, 1, 2].every(k => n[k].l.bottom <= n[k].d.top + 0.5) && n[3].l.top >= n[3].d.bottom - 0.5, 'render', `${f}: the top captions over their slots, compact SLS's under its slot`);
     out(/Compact, skipping the logarithm substitution/.test(n[3].title) && /without a logarithm/.test(n[3].title), 'render', `${f}: compact SLS's tooltip says it reads h without a logarithm`, n[3].title);
@@ -547,8 +550,14 @@ SCENARIOS.push(['render', async browser => {
     await P.load(u);
     await P.enter();
     ps = await pairs(P);
-    const c = await sliderOf(P, 'order', 'complexity');
-    out(ps.length === 2 && ps.every(p => p.c.labels === 'JN|compact|complete') && !c.fork && !c.svg && c.max === '2' && c.notches.length === 3, 'render', `${name}: the complexity slider keeps its three slots on a straight track`, ps.map(p => p.c.labels));
+    const c = await sliderOf(P, 'order', 'complexity'), n3 = c.notches.find(x => x.v === 3);
+    // quick 261101-tpr: the same fork, its SLS part greyed out and out of reach
+    out(ps.length === 2 && ps.every(p => p.c.labels === 'JN|compact|complete|compact SLS') && c.fork && c.svg && c.max === '3' && c.notches.length === 4, 'render', `${name}: the complexity slider forks to four slots like ℤ/nℤ's`, ps.map(p => p.c.labels));
+    out(!!n3 && /is-off/.test(n3.cls) && n3.dis === 'true' && /only for additive groups/.test(n3.title) && c.notches.filter(x => /is-off/.test(x.cls)).length === 1, 'render', `${name}: slot 3 alone is off (is-off, aria-disabled, its tooltip says SLS forms are additive only)`, n3);
+    out(c.offPaths === 2 && c.offTop === 0, 'render', `${name}: the branch (edge and groove) is greyed, the top line is not`, [c.offPaths, c.offTop]);
+    const op = await P.ev(`(function(){var s=document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]');return { n3: +getComputedStyle(s.querySelector('.fsl-notch[data-v="3"]')).opacity, n1: +getComputedStyle(s.querySelector('.fsl-notch[data-v="1"]')).opacity, off: getComputedStyle(s.querySelector('path.fsl-fork-edge.is-off')).stroke, on: getComputedStyle(s.querySelector('path.fsl-fork-edge:not(.is-off)')).stroke };})()`);
+    out(op.n3 < 0.6 && op.n1 === 1 && op.off !== op.on, 'render', `${name}: slot 3 dimmed (opacity ${op.n3}), the branch stroke lighter than the top line's`, op);
+    out(centred(await knobOf(P, 'order', 'complexity')), 'render', `${name}: the knob rests centred in its slot`);
   }
   noErrors(P, 'render');
   await P.done();
@@ -876,8 +885,85 @@ SCENARIOS.push(['others', async browser => {
     await clickChip(P, 'order', 'complexity', v);
     out((await pairOf(P, 'order')).token === want && centred(await knobOf(P, 'order', 'complexity')), 'others', `(ℤ/13ℤ)* slot ${v}: ${want}, knob centred`);
   }
-  const kn = await P.ev(`getComputedStyle(document.querySelector('.fsl-pair .fsl[data-kind="complexity"] .fsl-knob')).transitionProperty`);
-  out(/left/.test(kn) && !(await P.exists('.fsl.is-fork')) && !(await P.exists('.fsl-notch[data-v="3"]')), 'others', '(ℤ/13ℤ)*: no fork, no slot 3, the knob still slides by its left transition', kn);
+  // quick 261101-tpr: slot 3 is there but out of reach; nothing gets the token to an SLS form
+  out((await P.exists('.fsl-pair[data-f="order"] .fsl.is-fork')) && (await P.exists(chipSel('order', 'complexity', 3) + '.is-off[aria-disabled="true"]')), 'others', '(ℤ/13ℤ)*: the fork with slot 3 off');
+  const notSls = async (label, from) => {
+    const p = await pairOf(P, 'order'), kn = await knobOf(P, 'order', 'complexity');
+    out(p.token === from && !/sls/.test(p.token) && p.c.now !== 3 && (await P.param('fmaporder')) === (from === 'gcd-full' ? null : from) && centred(kn, 1), 'others', `${label}: the token stays ${from}, the knob centred on slot ${kn && kn.now}`, { token: p.token, kn });
+  };
+  for (const from of ['gcd-short', 'gcd-full', 'jn']) {
+    await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=${from}`);
+    await P.enter();
+    const c3 = await chip(P, 'order', 'complexity', 3);
+    await click1(P, c3.x, c3.y);
+    await sleep(600);
+    await notSls(`(ℤ/13ℤ)* ${from}: a click on slot 3`, from);
+    out((await flashNow(P)).length === 0, 'others', `${from}: and nothing flashes`, await flashNow(P));
+    await dbl(P, c3.x, c3.y);
+    await sleep(900);
+    await notSls(`(ℤ/13ℤ)* ${from}: a double-click on slot 3`, from);
+    const lab = await centre(P, chipSel('order', 'complexity', 3) + ' .fsl-label');
+    await click1(P, lab.x, lab.y);
+    await sleep(600);
+    await notSls(`(ℤ/13ℤ)* ${from}: a click on slot 3's caption`, from);
+  }
+  // neither (pos-gcd at compact) with slot 3: no SLS refusal either
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=pos-gcd`);
+  await P.enter();
+  let c3 = await chip(P, 'order', 'complexity', 3);
+  await click1(P, c3.x, c3.y);
+  await sleep(150);
+  out((await flashNow(P)).length === 0 && (await pairOf(P, 'order')).token === 'pos-gcd', 'others', '(ℤ/13ℤ)* pos-gcd: a click on slot 3 does nothing, no refusal flash', await flashNow(P));
+  await dbl(P, c3.x, c3.y);
+  await sleep(900);
+  out((await pairOf(P, 'order')).token === 'pos-gcd', 'others', '(ℤ/13ℤ)* pos-gcd: a double-click on slot 3 forces nothing', (await pairOf(P, 'order')).token);
+  // keys: Down from compact never reaches slot 3 (it steps to JN, as the straight track did); Up steps on
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  await P.enter();
+  await focusSl(P, 'order', 'complexity');
+  const keyTo = async (key, vk, want) => {
+    await P.key(key, key, vk);
+    await sleep(500);
+    const p = await pairOf(P, 'order');
+    out(p.token === want && p.c.now !== 3, 'others', `(ℤ/13ℤ)* ${key}: ${want}, never slot 3`, p.token);
+  };
+  await keyTo('ArrowDown', 40, 'jn');
+  await keyTo('ArrowRight', 39, 'gcd-short');
+  await keyTo('ArrowUp', 38, 'gcd-full');
+  await keyTo('ArrowDown', 40, 'gcd-short');
+  await keyTo('ArrowDown', 40, 'jn');
+  await keyTo('ArrowDown', 40, 'jn');
+  await keyTo('End', 35, 'gcd-full');
+  // a drag down onto slot 3: the knob keeps to the top line and lands on a top slot
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-full`);
+  await P.enter();
+  const sl = await P.rect('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]');
+  const o = await P.ev(SLOTS_JS('order'));
+  const from = { x: sl.x + o[2][0], y: sl.y + o[2][1] }, to = { x: sl.x + o[3][0], y: sl.y + o[3][1] + 4 };
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x, y: from.y });
+  await P.S('Input.dispatchMouseEvent', { type: 'mousePressed', x: from.x, y: from.y, button: 'left', buttons: 1, clickCount: 1 });
+  const held = [];
+  for (let i = 1; i <= 10; i++) {
+    await sleep(20);
+    await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x + (to.x - from.x) * i / 10, y: from.y + (to.y - from.y) * i / 10, button: 'left', buttons: 1 });
+    const k = await P.rect('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"] .fsl-knob');
+    held.push(k.y + k.h / 2 - sl.y);
+  }
+  out(held.every(y => Math.abs(y - o[0][1]) < 1), 'others', '(ℤ/13ℤ)* held toward slot 3 the knob stays on the top line', held);
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseReleased', x: to.x, y: to.y, button: 'left', buttons: 0, clickCount: 1 });
+  await sleep(800);
+  const pd = await pairOf(P, 'order');
+  out(pd.token === 'gcd-short' && centred(await knobOf(P, 'order', 'complexity'), 1), 'others', '(ℤ/13ℤ)* let go on slot 3: the nearest top slot (compact, gcd-short), the knob centred', pd.token);
+  // the curve too
+  await P.load('?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=1');
+  await P.enter();
+  const t0 = (await pairOf(P, 'order')).token;
+  c3 = await chip(P, 'order', 'complexity', 3);
+  await click1(P, c3.x, c3.y);
+  await sleep(600);
+  await dbl(P, c3.x, c3.y);
+  await sleep(900);
+  out((await pairOf(P, 'order')).token === t0 && !/sls/.test(t0), 'others', `E(𝔽₁₁): click and double-click on slot 3 leave ${t0}`, (await pairOf(P, 'order')).token);
   await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=jn&fmapindex=jn`);
   await P.enter();
   out(!(await P.exists('.ring-hover-formula .lb-row')), 'others', '(ℤ/13ℤ)* both at JN: no row');
@@ -955,7 +1041,8 @@ SCENARIOS.push(['pane', async browser => {
   out(!!ctx, 'pane', 'the pane opens on (ℤ/13ℤ)* beside ℤ/12ℤ');
   if (!ctx) { noErrors(P, 'pane'); await P.done(); return; }
   out((await P.ev(`document.querySelectorAll('.fsl-pair .fsl.is-fork').length`)) === 2 && (await P.ev(`document.querySelectorAll('.fmap').length`)) === 0, 'pane', 'the host (ℤ/12ℤ): two forked pairs, no map');
-  out((await P.ev(`document.querySelectorAll('.fsl-pair').length`, ctx)) === 2 && (await P.ev(`document.querySelectorAll('.fsl.is-fork').length`, ctx)) === 0, 'pane', 'the pane ((ℤ/13ℤ)*): two straight pairs');
+  // quick 261101-tpr: the pane's (ℤ/13ℤ)* forks too, with slot 3 off; the host's slot 3 is on
+  out((await P.ev(`document.querySelectorAll('.fsl-pair').length`, ctx)) === 2 && (await P.ev(`document.querySelectorAll('.fsl.is-fork').length`, ctx)) === 2 && (await P.ev(`document.querySelectorAll('.fsl-notch.is-off[data-v="3"]').length`, ctx)) === 2 && (await P.ev(`document.querySelectorAll('.fsl-notch.is-off').length`)) === 0, 'pane', 'the pane ((ℤ/13ℤ)*): two forked pairs, slot 3 off; the host none off');
   await clickChip(P, 'order', 'complexity', 3);
   out((await pairOf(P, 'order')).token === 'gcd-sls' && (await P.param('fmaporder')) === 'gcd-sls', 'pane', 'the host goes to compact SLS', await P.q());
   noErrors(P, 'pane');
@@ -991,9 +1078,24 @@ SCENARIOS.push(['shot', async browser => {
   }
 }]);
 
+/* ---------- tprshot: quick 261101-tpr's (ℤ/13ℤ)* pair, light and dark ---------- */
+SCENARIOS.push(['tprshot', async browser => {
+  const dir = '../261101-tpr-cyclic-groups-ec-and-multiplicative-grou/';
+  for (const scheme of ['light', 'dark']) {
+    const Q = await openPage(browser, 'tprshot', { w: 1280, h: 900, ua: UA_DESKTOP });
+    await Q.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
+    await Q.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+    await Q.enter();
+    const r = await Q.rect('.fsl-pair[data-f="order"]');
+    await Q.shot(`${dir}shot-tpr-mult-pair-${scheme}.png`, { x: r.x - 10, y: r.y - 8, width: r.w + 20, height: r.h + 16 }, scheme);
+    noErrors(Q, 'tprshot ' + scheme);
+    await Q.done();
+  }
+}]);
+
 const browser = await connect();
 try {
-  for (const [name, fn] of SCENARIOS) if (want(name) && (ONLY.includes(name) || !['shot'].includes(name))) await fn(browser);
+  for (const [name, fn] of SCENARIOS) if (want(name) && (ONLY.includes(name) || !['shot', 'tprshot'].includes(name))) await fn(browser);
 } catch (e) {
   fails++;
   console.log('FAIL probe-crashed ' + (e && e.stack || e));
