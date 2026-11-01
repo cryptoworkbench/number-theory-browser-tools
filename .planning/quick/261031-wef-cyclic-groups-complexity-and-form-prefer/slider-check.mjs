@@ -614,7 +614,277 @@ SCENARIOS.push(['url', async browser => {
   noErrors(P, 'url');
   await P.done();
 }]);
-//@@TASK2@@
+
+/* ---------- drag: the knob follows the pointer, the nearest notch takes it ---------- */
+SCENARIOS.push(['drag', async browser => {
+  const P = await openPage(browser, 'drag', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const hb = bothOpen(U13);
+  const url = `${UNITS}&gen=${hb.h}&logbase=${hb.b}`;
+  await P.load(url);
+  await P.enter();
+  let from = await chip(P, 'order', 'form', 2), to = await chip(P, 'order', 'form', 0);
+  await drag(P, from, to);
+  out((await pairOf(P, 'order')).token === 'lcm-full' && (await P.param('fmaporder')) === 'lcm-full', 'drag', 'pressed on GCD, dragged and let go over LCM: lcm-full', await P.q());
+  await P.load(url);
+  await P.enter();
+  from = await chip(P, 'order', 'form', 2);
+  const mid = await chip(P, 'order', 'form', 1);
+  await drag(P, from, { x: mid.x + (from.x - mid.x) * 0.3, y: mid.y });
+  out((await pairOf(P, 'order')).token === 'abs-gcd', 'drag', 'let go between GCD and neither, nearer neither: abs-gcd', (await pairOf(P, 'order')).token);
+  await P.load(url);
+  await P.enter();
+  from = await chip(P, 'order', 'complexity', 2); to = await chip(P, 'order', 'complexity', 0);
+  await drag(P, from, { x: to.x + 4, y: to.y });
+  out((await pairOf(P, 'order')).token === 'jn', 'drag', 'the complexity knob dragged to JN: jn', (await pairOf(P, 'order')).token);
+  // onto a closed neither: (ℤ/13ℤ)* h=5 base 2 at compact (a2 closed)
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  await P.enter();
+  from = await chip(P, 'order', 'form', 2); to = await chip(P, 'order', 'form', 1);
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x, y: from.y });
+  await P.S('Input.dispatchMouseEvent', { type: 'mousePressed', x: from.x, y: from.y, button: 'left', buttons: 1, clickCount: 1 });
+  for (let i = 1; i <= 8; i++) { await sleep(20); await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x + (to.x - from.x) * i / 8, y: to.y, button: 'left', buttons: 1 }); }
+  const held = await P.ev(`(function(){var s=document.querySelector('${chipSel('order', 'form', 1)}').parentNode, k=s.querySelector('.fsl-knob').getBoundingClientRect(); return { drag: s.classList.contains('is-drag'), kx: k.left + k.width / 2 }; })()`);
+  out(held.drag && Math.abs(held.kx - to.x) < 6, 'drag', 'while held the knob follows the pointer (is-drag, over neither)', held);
+  await P.S('Input.dispatchMouseEvent', { type: 'mouseReleased', x: to.x, y: to.y, button: 'left', buttons: 0, clickCount: 1 });
+  await sleep(250);
+  const r = await rowNow(P);
+  await sleep(400);
+  const k = await P.ev(`(function(){var s=document.querySelector('${chipSel('order', 'form', 1)}').parentNode, k=s.querySelector('.fsl-knob').getBoundingClientRect(); return { left: s.querySelector('.fsl-knob').style.left, kx: k.left + k.width / 2, drag: s.classList.contains('is-drag') }; })()`);
+  out((await pairOf(P, 'order')).token === 'gcd-short' && (await P.param('fmaporder')) === 'gcd-short', 'drag', 'let go on the closed neither: the token stays gcd-short', await P.q());
+  out(k.left === '' && !k.drag && Math.abs(k.kx - from.x) < 3, 'drag', 'and the knob is back on GCD', { k, gcd: from.x });
+  out(same(sortN(r.ok), okOf(U13, 5, 'pos')) && same(sortN(r.no), noOf(U13, 5, 'pos')), 'drag', `the boxes hint: green ${okOf(U13, 5, 'pos')}, red ${noOf(U13, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  noErrors(P, 'drag');
+  await P.done();
+}]);
+
+/* ---------- keys: arrows, Home and End on a focused slider ---------- */
+SCENARIOS.push(['keys', async browser => {
+  const P = await openPage(browser, 'keys', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const hb = bothOpen(U13);
+  await P.load(`${UNITS}&gen=${hb.h}&logbase=${hb.b}`);
+  await P.enter();
+  const exprBefore = await P.ev(`document.getElementById('expr-slider').value`), qBefore = new URLSearchParams(await P.q());
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').focus()`);
+  const focus = () => P.ev(`(function(){var a=document.activeElement, p=a&&a.closest&&a.closest('.fsl-pair'); return p ? p.getAttribute('data-f') + '/' + a.getAttribute('data-kind') : null; })()`);
+  const steps = [['ArrowLeft', 37, 'gcd-short'], ['ArrowDown', 40, 'jn'], ['ArrowLeft', 37, 'jn'], ['ArrowRight', 39, 'gcd-short'], ['ArrowUp', 38, 'gcd-full'], ['Home', 36, 'jn'], ['End', 35, 'gcd-full']];
+  for (const [key, vk, tok] of steps) {
+    await P.key(key, key, vk);
+    const p = await pairOf(P, 'order'), fo = await focus();
+    out(p.token === tok && (await P.param('fmaporder')) === (tok === 'gcd-full' ? null : tok) && fo === 'order/complexity', 'keys', `${key}: ${tok}, the url follows, the focus stays on the order complexity slider`, { token: p.token, q: await P.param('fmaporder'), fo });
+  }
+  const q = new URLSearchParams(await P.q());
+  out((await P.ev(`document.getElementById('expr-slider').value`)) === exprBefore && q.get('expr') === qBefore.get('expr') && q.get('gen') === qBefore.get('gen'), 'keys', 'the expression slider, expr and the selected row are untouched', { expr: q.get('expr'), gen: q.get('gen') });
+  // with a closed neither, ArrowLeft from GCD lands on LCM
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  await P.enter();
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="form"]').focus()`);
+  await P.key('ArrowLeft', 'ArrowLeft', 37);
+  out((await pairOf(P, 'order')).token === 'lcm-short' && (await focus()) === 'order/form', 'keys', 'closed neither: ArrowLeft from GCD steps over it to LCM (lcm-short), focus kept', { t: (await pairOf(P, 'order')).token, f: await focus() });
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  out((await pairOf(P, 'order')).token === 'gcd-short', 'keys', 'and ArrowRight back over it to GCD', (await pairOf(P, 'order')).token);
+  // the resting slider
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=jn`);
+  await P.enter();
+  const p = await pairOf(P, 'order');
+  out(p.v.tab === '-1' && p.v.aria === 'true' && p.v.inert, 'keys', 'at JN the form slider has tabindex -1 and aria-disabled', p.v);
+  // focus held through JN: the form slider rests, so the focus goes to the complexity slider
+  await P.load(`${UNITS}&gen=${hb.h}&logbase=${hb.b}`);
+  await P.enter();
+  await P.ev(`document.querySelector('.fsl-pair[data-f="index"] .fsl[data-kind="form"]').focus()`);
+  await P.key('ArrowLeft', 'ArrowLeft', 37);
+  out((await pairOf(P, 'index')).token === 'abs-gcd' && (await focus()) === 'index/form', 'keys', 'the index form slider: ArrowLeft to neither (abs-gcd), focus kept', await focus());
+  noErrors(P, 'keys');
+  await P.done();
+}]);
+
+/* ---------- closed: a click on a closed neither hints ---------- */
+SCENARIOS.push(['closed', async browser => {
+  const P = await openPage(browser, 'closed', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  await P.enter();
+  let p = await pairOf(P, 'order');
+  out(same(p.v.closed, [1]) && same((await pairOf(P, 'index')).v.closed, []), 'closed', 'h=5 base 2: the order formula at compact has its neither closed (a2), the index one at complete open (a)', [p.v.closed, (await pairOf(P, 'index')).v.closed]);
+  let c = await chip(P, 'order', 'form', 1);
+  await click1(P, c.x, c.y);
+  await sleep(250);
+  const r = await rowNow(P);
+  out(same(sortN(r.ok), okOf(U13, 5, 'pos')) && same(sortN(r.no), noOf(U13, 5, 'pos')), 'closed', `a click: green ${okOf(U13, 5, 'pos')}, red ${noOf(U13, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  await sleep(1300);
+  out((await pairOf(P, 'order')).token === 'gcd-short' && (await P.param('logbase')) === '2', 'closed', 'and no commit (gcd-short, base 2)', await P.q());
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&logbaselock=1`);
+  await P.enter();
+  c = await chip(P, 'order', 'form', 1);
+  await click1(P, c.x, c.y);
+  await sleep(120);
+  out(await P.exists('.lb-lock.is-nudge'), 'closed', 'with the padlock closed the click nudges it (.lb-lock.is-nudge)');
+  await sleep(800);
+  await P.load(`${UNITS}&gen=5&logbase=2`);
+  await P.enter();
+  p = await pairOf(P, 'order');
+  out(same(p.v.closed, []), 'closed', 'at gcd-full the neither notch (a) is open', p.v.closed);
+  await clickChip(P, 'order', 'form', 1);
+  out((await pairOf(P, 'order')).token === 'abs-gcd', 'closed', 'and a click gives abs-gcd', (await pairOf(P, 'order')).token);
+  noErrors(P, 'closed');
+  await P.done();
+}]);
+
+/* ---------- force: a double-click on a closed neither forces it ---------- */
+async function forceSl(P, scen, name, url, M, h, base) {
+  const pick = pickModel(M, h, base, 'pos');
+  await P.load(url);
+  await P.enter();
+  const r0 = await rowNow(P), p0 = await pairOf(P, 'order');
+  out(!!r0 && same(r0.checked, [base]) && same(p0.v.closed, [1]) && p0.token === 'gcd-short', scen, `${name}: starts on base ${M.at(base)}, compact, neither (a2) closed`, { r0: r0 && r0.checked, p0 });
+  await P.ev(SAMPLER(3200));
+  const c = await chip(P, 'order', 'form', 1);
+  await dbl(P, c.x, c.y);
+  await sleep(3000);
+  const ss = after0(await samples(P));
+  const ph = phasesOf(ss, pick);
+  out(same(ph, ['pulse', 'set', 'none']), scen, `${name}: box ${M.at(pick)} pulses, flashes as the chosen base, then rests`, { ph, pick });
+  const cph = []; for (const s of ss) { const x = s.cset.includes('order') ? 'set' : s.cpulse.includes('order') ? 'pulse' : 'none'; if (cph[cph.length - 1] !== x) cph.push(x); }
+  out(same(cph, ['pulse', 'set', 'none']), scen, `${name}: the neither notch pulses and flashes in step`, cph);
+  const firstSet = ss.find(s => s.set.includes(pick)), chipSet = ss.find(s => s.cset.includes('order')), lastOn = ss.filter(s => s.set.length || s.pulse.length || s.anyChip).pop();
+  out(!!firstSet && firstSet.t >= 1000 && firstSet.t <= 1450 && !!chipSet && Math.abs(chipSet.t - firstSet.t) <= 80 && !!lastOn && lastOn.t <= 2500, scen, `${name}: the base is set at about 1.1 s (box and notch together), the flashing ends by 2.5 s`, { set: firstSet && firstSet.t, chip: chipSet && chipSet.t, end: lastOn && lastOn.t });
+  const pulses = ss.filter(s => s.pulse.length);
+  out(pulses.length > 0 && pulses.every(s => s.base === base && s.maps.order === 'gcd-short'), scen, `${name}: while it pulses the base and the token stay`, pulses.slice(0, 2));
+  out(!!firstSet && firstSet.base === pick && firstSet.maps.order === 'pos', scen, `${name}: with the last flash the base is ${M.at(pick)} and the order formula on a2`, firstSet);
+  const q = new URLSearchParams(await P.q()), f = await P.formulas();
+  out(q.get('logbase') === String(pick) && q.get('fmaporder') === 'pos-gcd', scen, `${name}: url logbase=${pick}, fmaporder=pos-gcd`, Object.fromEntries(q));
+  out(same(plains(f.ring), wantPair(M, pick, h, 'pos-gcd', 'gcd-full')), scen, `${name}: the formulas take log base ${M.at(pick)}`, { ring: plains(f.ring), want: wantPair(M, pick, h, 'pos-gcd', 'gcd-full') });
+  const p1 = await pairOf(P, 'order');
+  out(p1.c.now === 1 && p1.v.now === 1 && same(p1.v.closed, []), scen, `${name}: the sliders show compact / neither, open`, p1);
+}
+SCENARIOS.push(['force', async browser => {
+  const P = await openPage(browser, 'force', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await forceSl(P, 'force', `(ℤ/13ℤ)* h=5 base 2 -> ${pickModel(U13, 5, 2, 'pos')}`, `${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`, U13, 5, 2);
+  let hit = null;
+  for (let h = 1; h < E11.N && !hit; h++) for (const b of E11.gens) if (!hit && !reach(E11, b, h).pos && pickModel(E11, h, b, 'pos') !== null) hit = { h, b };
+  out(!!hit, 'force', hit ? `curve: h=${E11.at(hit.h)} base ${E11.at(hit.b)} has a2 closed` : 'a curve case');
+  if (hit) await forceSl(P, 'force', `curve h=${E11.at(hit.h)} base ${E11.at(hit.b)}`, `?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=${hit.h}&logbase=${hit.b}&fmaporder=gcd-short`, E11, hit.h, hit.b);
+  // a double-click on an open notch is a click
+  await P.load(`${UNITS}&gen=5&logbase=2`);
+  await P.enter();
+  await P.ev(SAMPLER(1800));
+  const c = await chip(P, 'order', 'form', 0);
+  await dbl(P, c.x, c.y);
+  await sleep(1700);
+  const ss = await samples(P);
+  out((await pairOf(P, 'order')).token === 'lcm-full' && (await P.param('logbase')) === '2' && ss.every(s => !s.pulse.length && !s.set.length && !s.anyChip), 'force', 'a double-click on the open LCM notch: lcm-full, base 2, nothing forced', await P.q());
+  noErrors(P, 'force');
+  await P.done();
+}]);
+
+/* ---------- lock: the padlock closed, a double-click forces nothing ---------- */
+SCENARIOS.push(['lock', async browser => {
+  const P = await openPage(browser, 'lock', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&logbaselock=1`);
+  await P.enter();
+  await P.ev(SAMPLER(2000));
+  const c = await chip(P, 'order', 'form', 1);
+  await dbl(P, c.x, c.y);
+  await sleep(150);
+  out(await P.exists('.lb-lock.is-alarm'), 'lock', 'the padlock sounds its alarm (.lb-lock.is-alarm)');
+  await sleep(1900);
+  const ss = after0(await samples(P));
+  out(ss.length > 0 && ss.every(s => !s.pulse.length && !s.set.length && !s.anyChip), 'lock', 'no force class on any box or notch', ss.find(s => s.pulse.length || s.set.length || s.anyChip));
+  out((await P.param('logbase')) === '2' && (await pairOf(P, 'order')).token === 'gcd-short', 'lock', 'the base and the token unchanged', await P.q());
+  noErrors(P, 'lock');
+  await P.done();
+}]);
+
+/* ---------- settle: a new h closing the neither in use ---------- */
+SCENARIOS.push(['settle', async browser => {
+  const P = await openPage(browser, 'settle', { w: 1280, h: 900, ua: UA_DESKTOP });
+  const h0 = U13.gens.length && [...Array(13).keys()].find(h => h > 0 && reach(U13, 2, h).pos && reach(U13, 2, h).q !== 12 && reach(U13, 2, h).q !== 1);
+  for (const h1 of [...Array(13).keys()].filter(h => h > 1 && !reach(U13, 2, h).pos).slice(0, 4)) {
+    const want = settleModel('pos-gcd', reach(U13, 2, h1));
+    await P.load(`${UNITS}&gen=${h0}&logbase=2&fmaporder=pos-gcd`);
+    await P.enter();
+    const a = await pairOf(P, 'order');
+    const clicked = await P.clickEl(`.subgroup-row[data-gen="${h1}"]`);
+    await sleep(800);
+    const p = await pairOf(P, 'order'), [c, v] = cvOf(want);
+    out(a.token === 'pos-gcd' && clicked && (await P.param('gen')) === String(h1) && p.token === want && p.c.now === c && p.v.now === v, 'settle', `pos-gcd at h=${h0}, then the row of ${h1} chosen: ${want} (${C_TEXT[c]}, ${V_TEXT[v]})`, { before: a.token, clicked, gen: await P.param('gen'), p: [p.token, p.c.now, p.v.now] });
+  }
+  noErrors(P, 'settle');
+  await P.done();
+}]);
+
+/* ---------- pane: the sliders in the isomorphism pane ---------- */
+async function openPane(P, query, chip) {
+  await P.load(query);
+  await P.enter();
+  const hit = await P.ev(`(function(){var cs=Array.prototype.filter.call(document.querySelectorAll('#iso-panel a.iso-chip'), function(a){ return a.textContent.indexOf(${JSON.stringify(chip)}) !== -1; }); if (cs[0]) cs[0].click(); return cs.length;})()`);
+  if (!hit) return null;
+  for (let i = 0; i < 30; i++) {
+    await sleep(300);
+    const c = await P.paneCtx();
+    if (c && (await P.ev(`document.querySelectorAll('.fmap, .fsl-pair').length`, c)) === 2) { await sleep(800); return c; }
+  }
+  return null;
+}
+SCENARIOS.push(['pane', async browser => {
+  const P = await openPage(browser, 'pane', { w: 1500, h: 900, ua: UA_DESKTOP });
+  const ctx = await openPane(P, '?mobile=0&mode=additive&n=12&gen=1&subformularing=both&subformularingr=both', 'ℤ/13ℤ,×');
+  out(!!ctx, 'pane', 'the pane opens on (ℤ/13ℤ)*');
+  if (!ctx) { noErrors(P, 'pane'); await P.done(); return; }
+  const pp = await pairs(P, ctx);
+  out(pp.length === 2 && (await P.ev(`document.querySelectorAll('.fmap').length`, ctx)) === 0, 'pane', 'the pane shows two slider pairs and no map', pp.length);
+  await P.ev(`document.querySelector('${chipSel('order', 'complexity', 1)}').click()`, ctx);
+  await sleep(1200);
+  let q = new URLSearchParams(await P.q());
+  const hm = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return m.getAttribute('data-at'); })`);
+  out(q.get('fmaporderr') === 'gcd-short' && q.get('fmaporder') === null && same(hm, ['gcd-full', 'gcd-full']), 'pane', "a chip click in the pane writes the host's fmaporderr=gcd-short; the host's own maps stay", { q: Object.fromEntries(q), hm });
+  out((await pairOf(P, 'order', ctx)).token === 'gcd-short', 'pane', 'and the pane keeps it after the host shares its state back');
+  noErrors(P, 'pane');
+  await P.done();
+}]);
+
+/* ---------- ringwin: an extra Ring window ---------- */
+SCENARIOS.push(['ringwin', async browser => {
+  const P = await openPage(browser, 'ringwin', { w: 1280, h: 900, ua: UA_DESKTOP });
+  await P.load(`${ZN}&gen=1`);
+  await P.enter();
+  const src = new URL('?ringwin=1&mobile=0&mode=multiplicative&n=13&gen=5&subformularing=both&logbase=2', URL_BASE).href;
+  await P.ev(`(function(){ window.__rw = []; window.addEventListener('message', function(e){ if (e.data && e.data.ringwin === 'state') window.__rw.push(e.data.q); }); var f = document.createElement('iframe'); f.id = 'probe-rw'; f.style.cssText = 'position:fixed;left:0;top:0;width:900px;height:800px;z-index:99999;border:0'; f.src = ${JSON.stringify(src)}; document.body.appendChild(f); return 1; })()`);
+  let ctx = null;
+  for (let i = 0; i < 30 && !ctx; i++) {
+    await sleep(300);
+    const c = await P.paneCtx();
+    if (c && (await P.ev(`document.querySelectorAll('.fsl-pair').length === 2 && !!document.querySelector('.lb-row')`, c).catch(() => false))) ctx = c;
+  }
+  out(!!ctx, 'ringwin', 'a ?ringwin=1 window on (ℤ/13ℤ)* shows two pairs and the row');
+  if (!ctx) { noErrors(P, 'ringwin'); await P.done(); return; }
+  await sleep(600);
+  await P.ev(`document.querySelector('${chipSel('order', 'form', 0)}').click()`, ctx);
+  await sleep(1200);
+  const last = new URLSearchParams((await P.ev('window.__rw')).pop() || '');
+  out(last.get('fmaporder') === 'lcm-full' && last.get('ringwin') !== null, 'ringwin', "the window's state message carries fmaporder=lcm-full", Object.fromEntries(last));
+  out((await P.param('fmaporder')) === null, 'ringwin', "the host page's own maps are untouched", await P.q());
+  noErrors(P, 'ringwin');
+  await P.done();
+}]);
+
+/* ---------- mobile: the stacked page on a phone ---------- */
+SCENARIOS.push(['mobile', async browser => {
+  const P = await openPage(browser, 'mobile', { w: 390, h: 844, ua: UA_ANDROID, touch: true });
+  await P.load('?mobile=1&mode=multiplicative&n=13&gen=5&logbase=2&subformularow=both&subformularing=both');
+  await sleep(1000);
+  out((await pairs(P)).length === 2, 'mobile', 'both pairs on the phone page');
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"]').scrollIntoView({ block: 'center' })`);
+  await sleep(300);
+  const c = await chip(P, 'order', 'complexity', 1);
+  await P.S('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: c.x, y: c.y }] });
+  await sleep(40);
+  await P.S('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await sleep(800);
+  out((await pairOf(P, 'order')).token === 'gcd-short' && (await P.param('fmaporder')) === 'gcd-short', 'mobile', 'a tap on compact: gcd-short', (await pairOf(P, 'order')).token);
+  out(await noScroll(P), 'mobile', 'no sideways scroll');
+  out(!(await P.exists('.lb-scroll')) && (await P.exists('.ring-hover-formula .lb-row')), 'mobile', 'the row without the wheel switch');
+  noErrors(P, 'mobile');
+  await P.done();
+}]);
 
 /* ---------- shot: light screenshots ---------- */
 SCENARIOS.push(['shot', async browser => {
