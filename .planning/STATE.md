@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-01 - Completed quick task 261101-vxv: Cyclic Groups conditional log-base star tooltip
+Last activity: 2026-11-01 - Completed quick task 261101-wp9: Cyclic Groups aᵏ follows the formula slider (branch cyclic-groups-power-formula-level)
 
 Progress: [█████████░] 86%
 
@@ -649,6 +649,7 @@ None yet.
 | 261101-vmv | Cyclic Groups: an introducing sentence above the log-base picker, its (*) a tooltip (branch cyclic-groups-log-base-intro) | 2026-11-01 | 92068ee | [261101-vmv-cyclic-groups-an-introducing-sentence-ab](./quick/261101-vmv-cyclic-groups-an-introducing-sentence-ab/) |
 | 261101-vr4 | Cyclic Groups: form slider without the neither caption, one tooltip for the whole control (branch cyclic-groups-form-slider-tooltip) | 2026-11-01 | 284c269 | [261101-vr4-cyclic-groups-form-slider-without-the-ne](./quick/261101-vr4-cyclic-groups-form-slider-without-the-ne/) |
 | 261101-vxv | Cyclic Groups: log-base star tooltip conditional on the arrangement (generator powers vs Sequential) | 2026-11-01 | de695ff | [261101-vxv-cyclic-groups-log-base-star-tooltip-cond](./quick/261101-vxv-cyclic-groups-log-base-star-tooltip-cond/) |
+| 261101-wp9 | Cyclic Groups: the formula slider trims aᵏ's exponent reduction as a ∗ b's (branch cyclic-groups-power-formula-level) | 2026-11-01 | 2111ff4 | [261101-wp9-cyclic-groups-formula-slider-trims-a-k-e](./quick/261101-wp9-cyclic-groups-formula-slider-trims-a-k-e/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -903,4 +904,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-01 - Completed quick task 261101-vxv: Cyclic Groups conditional log-base star tooltip
+Last activity: 2026-11-01 - Completed quick task 261101-wp9: Cyclic Groups aᵏ follows the formula slider (branch cyclic-groups-power-formula-level)
