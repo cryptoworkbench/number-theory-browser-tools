@@ -5824,7 +5824,7 @@ function syncSubFormula(G){
     // shown is at JN or an SLS form, neither of which takes a logarithm.
     var slsOnly = fs.every(function(x){ return !x.map || x.map.token === 'jn' || x.map.token.indexOf('sls') !== -1; });
     if (box.classList.contains('has-fmap') && !slsOnly){
-      box.appendChild(logBaseIntro());
+      box.appendChild(logBaseIntro(G));
       box.appendChild(logBaseRow(G));
     }
     // Built with the knobs where they stood, the box is laid out once, then
@@ -8291,14 +8291,16 @@ function logBaseFits(G){
   return fits.some(Boolean) ? fits : fits.map(function(){ return true; });
 }
 // The sentence over the base row: why a base is picked, its star's tooltip
-// saying what the logarithm is for.
-function logBaseIntro(){
+// saying what the logarithm is for, hypothetically while a group of units
+// sits Sequential rather than in generator powers.
+function logBaseIntro(G){
   var p = document.createElement('p');
   p.className = 'lb-intro';
   var star = document.createElement('span');
   star.className = 'lb-intro-star';
   star.textContent = '*';
-  star.title = translate('cyclicGroups.logBaseIntroStar');
+  var byPowers = !!G.pts || G.mode !== 'multiplicative' || (G.cyclic && state.bygen);
+  star.title = translate(byPowers ? 'cyclicGroups.logBaseIntroStar' : 'cyclicGroups.logBaseIntroStarSeq');
   star.tabIndex = 0;
   translateInto(p, 'cyclicGroups.logBaseIntro', { star: star });
   return p;
