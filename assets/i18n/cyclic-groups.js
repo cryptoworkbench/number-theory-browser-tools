@@ -1117,7 +1117,7 @@
       logBaseIntroStar: 'This mode uses a logarithm in order to find the distance between G and E on the circle, so pick a generator from the group to use as the base for the logarithm.',
       logBaseIntroStarSeq: 'This mode uses a logarithm in order to find the distance between G and E on the circle (if it were order by generator powers), so pick a generator from the group to use as the base for the logarithm.',
       logBaseOff: 'Greyed out: with this base of the logarithm, the a or a2 form a formula map is on does not work for this element',
-      logBaseOffCoprime: 'The absolute function only work when it yields a number NOT coprime to the group cardinality.\n{log}({h}) DOES yield a number coprime to the group cardinality!',
+      logBaseOffCoprime: 'The absolute function only works when it yields 1, −1, or a number NOT coprime to the group cardinality.\n{log}({h}) DOES yield a number coprime to the group cardinality!',
       logBaseWheel: 'Scroll wheel: over the formulas, the wheel steps the base of the logarithm through the generators that are not greyed out',
       logBaseLock: 'Lock the base of the logarithm: the boxes, the scroll wheel and a double-click on a closed a or a2 can no longer change it',
       logBaseUnlock: 'Unlock the base of the logarithm',
