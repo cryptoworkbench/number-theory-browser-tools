@@ -1305,7 +1305,7 @@
   .fsl.is-inert .fsl-knob{ background:color-mix(in srgb, var(--text) 45%, var(--surface)); box-shadow:0 0 0 1px color-mix(in srgb, var(--text) 50%, var(--surface)); }
   .fsl:focus-visible .fsl-knob{ outline:2px solid var(--accent); outline-offset:2px; }
   :root.is-mobile .fsl-pair{ --fsl-y:10px; --fsl-k:19px; --fsl-d:12px; }
-  /* ℤ/nℤ's Complexity forks: the captions of the top line's three slots
+  /* Every Complexity slider forks: the captions of the top line's three slots
      (JN, compact, complete) over them, a branch --fsl-drop below it from JN
      down and back up to complete (drawn by .fsl-fork, 45° bends) with the
      compact SLS slot (--v 3) under compact and its caption under it. The
@@ -1317,6 +1317,13 @@
   .fsl-fork path{ fill:none; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
   .fsl-fork-edge{ stroke:color-mix(in srgb, var(--text) 30%, var(--surface)); stroke-width:5; }
   .fsl-fork-groove{ stroke:color-mix(in srgb, var(--text) 14%, var(--surface)); stroke-width:3; }
+  /* Only ℤ/nℤ has SLS forms: elsewhere the branch and the compact SLS slot
+     are greyed out and out of reach. */
+  .fsl-fork-edge.is-off{ stroke:color-mix(in srgb, var(--text) 13%, var(--surface)); }
+  .fsl-fork-groove.is-off{ stroke:color-mix(in srgb, var(--text) 5%, var(--surface)); }
+  .fsl-notch.is-off{ opacity:.4; cursor:not-allowed; }
+  .fsl-notch.is-off:hover{ color:var(--text-dim); }
+  .fsl-notch.is-off .fsl-detent, .fsl-notch.is-off:hover .fsl-detent{ border-style:dashed; border-color:color-mix(in srgb, var(--text) 46%, var(--surface)); background:none; box-shadow:none; }
   .fsl.is-fork .fsl-notch{ flex-direction:column-reverse; }
   .fsl.is-fork .fsl-label{ line-height:var(--fsl-lh); height:var(--fsl-lh); }
   .fsl.is-fork .fsl-detent{ margin:4px 0 0; }
@@ -7522,9 +7529,11 @@ function setFormulaToken(f, token){
 // the same positions: Complexity (JN, compact, complete) is the map's column
 // (JN, short, full), Form preference (LCM, neither, GCD) its row, neither
 // being a2 at compact and a at complete. At JN the form slider rests,
-// dimmed, on the form it goes back to. In ℤ/nℤ the Complexity track forks:
-// under compact a fourth slot, compact SLS (3), on a branch from JN down and
-// back up to complete, is the GCD or LCM row's SLS form; it has no neither.
+// dimmed, on the form it goes back to. The Complexity track forks: under
+// compact a fourth slot, compact SLS (3), on a branch from JN down and back
+// up to complete, is the GCD or LCM row's SLS form; it has no neither. Only
+// ℤ/nℤ has SLS forms: elsewhere the branch and slot 3 are greyed out and out
+// of reach.
 var FSL_COMPLEXITY = ['jn', 'compact', 'complete', 'compact-sls'];
 var FSL_FORM = ['lcm', 'neither', 'gcd'];
 var FSL_ROW_V = { lcm: 0, gcd: 2 };
@@ -7608,6 +7617,8 @@ function fslForkPts(w, y0){
   };
 }
 var FSL_FORK_DRAWN = [[0, 1], [1, 2], [0, 'L'], ['L', 3], [3, 'R'], ['R', 2]];
+// The top line alone: where a knob may go while the branch is off.
+var FSL_FORK_TOP = [[0, 1], [1, 2]];
 var FSL_FORK_EDGES = FSL_FORK_DRAWN.concat([[1, 3]]);
 function fslDist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
 // The point of segment ab nearest p, and how far it is.
@@ -7695,8 +7706,10 @@ function formulaSliders(G, info){
   pair.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
   ['complexity', 'form'].forEach(function(kind){
     var isForm = kind === 'form', now = isForm ? fslFormNow(at, memo) : at.c;
-    // ℤ/nℤ's Complexity track forks to its fourth slot, compact SLS.
-    var fork = !isForm && !!reach.sls;
+    // Every Complexity track forks to its fourth slot, compact SLS, which
+    // only ℤ/nℤ reaches: elsewhere slot 3 and the branch to it are off.
+    var fork = !isForm, slsOff = fork && !reach.sls;
+    var off = function(v){ return slsOff && v === 3; };
     var inert = isForm && !at.c;
     var closed = function(v){ return isForm && v === 1 && (at.c === 1 || at.c === 2) && !reach[fslNeitherNode(at.c)]; };
     var blocked = function(v){ return !isForm && fslBlocked(v, token, reach, memo); };
@@ -7728,16 +7741,25 @@ function formulaSliders(G, info){
     sl.appendChild(track);
     // The fork: the top line and the branch under it, drawn in the 186 px
     // the pair is wide (stretched with it), from the top line at y 0.
+    // The branch is greyed out where it is off, painted whole under the top
+    // line; else edges first, then grooves, as one path.
     if (fork){
-      var d = 'M24 0H162M31 0L' + (31 + FSL_FORK_DROP) + ' ' + FSL_FORK_DROP + 'H' + (155 - FSL_FORK_DROP) + 'L155 0';
+      var dTop = 'M24 0H162', dBranch = 'M31 0L' + (31 + FSL_FORK_DROP) + ' ' + FSL_FORK_DROP + 'H' + (155 - FSL_FORK_DROP) + 'L155 0';
       var fsvg = svgEl('svg', { 'class': 'fsl-fork', viewBox: '0 -4 186 ' + (FSL_FORK_DROP + 8), preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false' });
-      fsvg.appendChild(svgEl('path', { 'class': 'fsl-fork-edge', d: d }));
-      fsvg.appendChild(svgEl('path', { 'class': 'fsl-fork-groove', d: d }));
+      var forkPath = function(part, d, isOff){ fsvg.appendChild(svgEl('path', { 'class': 'fsl-fork-' + part + (isOff ? ' is-off' : ''), 'data-part': d === dTop ? 'top' : 'branch', d: d })); };
+      if (slsOff){
+        forkPath('edge', dBranch, true); forkPath('groove', dBranch, true);
+        forkPath('edge', dTop); forkPath('groove', dTop);
+      }
+      else {
+        forkPath('edge', dBranch); forkPath('edge', dTop);
+        forkPath('groove', dBranch); forkPath('groove', dTop);
+      }
       sl.appendChild(fsvg);
     }
     var notches = (fork ? [0, 1, 2, 3] : [0, 1, 2]).map(function(v){
       var chip = document.createElement('span');
-      chip.className = 'fsl-notch' + (v === now ? ' is-at' : '') + (closed(v) ? ' is-closed' : '');
+      chip.className = 'fsl-notch' + (v === now ? ' is-at' : '') + (closed(v) ? ' is-closed' : '') + (off(v) ? ' is-off' : '');
       chip.setAttribute('data-v', String(v));
       chip.setAttribute('aria-hidden', 'true');
       // A slot: the hollow cut into the track, its caption under it.
@@ -7762,6 +7784,12 @@ function formulaSliders(G, info){
       if (slsNo(v)){
         chip.classList.add('is-sls-no');
         chip.title = translate(isForm ? 'cyclicGroups.fslNeitherSls' : 'cyclicGroups.fslSlsNeither');
+      }
+      // Off: no SLS form outside ℤ/nℤ.
+      if (off(v)){
+        chip.classList.remove('is-sls-no');
+        chip.setAttribute('aria-disabled', 'true');
+        chip.title = translate('cyclicGroups.fslSlsAdditiveOnly');
       }
       if (isForm && v === 1 && logForce && logForce.f === f) paintLogForce(chip);
       if (!isForm && logForce && logForce.f === f && logForce.cv === v) paintLogForce(chip);
@@ -7803,7 +7831,7 @@ function formulaSliders(G, info){
     // A notch's position: one that changes nothing, or a closed neither,
     // brings the knob back (the closed one flashing the bases that open it).
     var go = function(v){
-      if (inert || v === now){ rest(); return; }
+      if (inert || v === now || off(v)){ rest(); return; }
       if (closed(v)){
         balk(v);
         flashLogBases(G, fslNeitherNode(at.c));
@@ -7841,6 +7869,7 @@ function formulaSliders(G, info){
     var nearest = function(x, y){
       var best = 0, dist = Infinity;
       notches.forEach(function(chip, v){
+        if (off(v)) return;
         var b = boxOf(chip.firstChild), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
         var d = fork ? Math.hypot(cx - x, cy - y) : Math.abs(cx - x);
         if (d < dist){ dist = d; best = v; }
@@ -7862,7 +7891,7 @@ function formulaSliders(G, info){
       }
       var b = boxOf(sl), w = boxOf(knob).width;
       if (fork){
-        var g = geom(), q = fslForkSnap(g.pts, [ptX(e) - b.left, ptY(e) - b.top], FSL_FORK_DRAWN).q;
+        var g = geom(), q = fslForkSnap(g.pts, [ptX(e) - b.left, ptY(e) - b.top], slsOff ? FSL_FORK_TOP : FSL_FORK_DRAWN).q;
         knob.getAnimations().forEach(function(an){ an.cancel(); });
         knob.style.left = q[0] - w / 2 + 'px';
         knob.style.top = q[1] - w / 2 + 'px';
@@ -7893,7 +7922,8 @@ function formulaSliders(G, info){
     // the ends. A blocked or refused notch is never stepped over: refused.
     // On the fork Left and Right follow the line the knob is on (the top
     // one from JN and complete), Up and Down cross between compact and
-    // compact SLS.
+    // compact SLS; where SLS is off they step the top line as Right and
+    // Left do, as on the old straight track.
     sl.addEventListener('keydown', function(e){
       var step = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
       if (!step && e.key !== 'Home' && e.key !== 'End') return;
@@ -7902,7 +7932,8 @@ function formulaSliders(G, info){
       if (inert) return;
       if (fork){
         var to = e.key === 'Home' ? 0 : e.key === 'End' ? 2 : null;
-        if (e.key === 'ArrowUp') to = now === 3 ? 1 : null;
+        if (slsOff && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) to = now + step >= 0 && now + step <= 2 ? now + step : null;
+        else if (e.key === 'ArrowUp') to = now === 3 ? 1 : null;
         else if (e.key === 'ArrowDown') to = now === 1 ? 3 : null;
         else if (to === null){
           var line = now === 3 ? [0, 3, 2] : [0, 1, 2], i = line.indexOf(now) + step;
@@ -7925,6 +7956,7 @@ function formulaSliders(G, info){
     sl.addEventListener('dblclick', function(e){
       var chip = e.target.closest && e.target.closest('.fsl-notch');
       var v = chip ? +chip.getAttribute('data-v') : nearest(ptX(e), ptY(e));
+      if (off(v)) return;
       if (closed(v)) forceMapPosition(G, f, fslNeitherNode(at.c));
       else if (blocked(v)) forceMapPosition(G, f, fslNeitherNode(v), { cv: v, row: row });
       else if (slsNo(v)) forceFslSls(G, f, kind, row, reach);
