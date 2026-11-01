@@ -1234,8 +1234,17 @@
     .ring-head > .ring-hover-formula.has-fmap{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
     .ring-hover-formula.has-fmap > :is(.fmap, .fsl-pair){ justify-self:center; }
   }
+  /* A formula's sliders with its map opened beside them: sliders, map and
+     formula in three columns, or stacked in one where the formula would have
+     too little room left (is-stacked, set by the page). */
+  @media (min-width: 721px){
+    :root:not(.is-mobile) .ring-head > .ring-hover-formula.has-fmap.fmap-open:not(.is-stacked){ grid-template-columns:auto auto 1fr; }
+  }
+  .ring-head > .ring-hover-formula.has-fmap.is-stacked{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
+  .ring-head > .ring-hover-formula.has-fmap.is-stacked > :is(.fmap, .fsl-pair){ justify-self:center; }
   .fmap{ position:relative; justify-self:start; width:172px; height:94px; flex:none; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
   .fmap-svg{ position:absolute; inset:0; width:172px; height:94px; overflow:visible; }
+  .fmap.no-sls, .fmap.no-sls .fmap-svg{ height:58px; }
   .fmap-edge{ fill:none; stroke:color-mix(in srgb, var(--text) 52%, transparent); stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
   .fmap-edge.is-cond{ stroke-width:1.5; stroke-dasharray:0 3; }
   .fmap-edge.is-closed{ stroke:color-mix(in srgb, var(--text) 22%, transparent); }
@@ -1261,7 +1270,7 @@
      complete; Form preference LCM, neither, GCD, its neither closed (faded,
      dashed) while the base leaves a2 or a shut, and the whole slider dimmed
      and at rest at JN. */
-  .fsl-pair{ display:flex; flex-direction:column; gap:5px; justify-self:start; flex:none; width:186px; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
+  .fsl-pair{ position:relative; display:flex; flex-direction:column; gap:5px; justify-self:start; flex:none; width:186px; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
   .fsl-row{ display:flex; flex-direction:column; gap:2px; }
   .fsl-name{ font-size:.66rem; line-height:1.1; color:var(--text-dim); letter-spacing:.02em; padding-left:2px; text-align:left; }
   .fsl{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); column-gap:6px; height:20px; touch-action:pan-y; cursor:pointer; border-radius:6px; outline:none; }
@@ -1696,12 +1705,19 @@
   .arrange-gen-wrap > select{ flex:1 1 auto; }
   /* The scroll-wheel switch after the dropdown: pressed, the wheel steps
      the dropdown through its generators. */
-  .arrange-gen-scroll, .lb-scroll, .lb-lock{ align-self:center; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
-  .arrange-gen-scroll:hover, .lb-scroll:hover, .lb-lock:hover{ color:var(--text); }
-  .arrange-gen-scroll[aria-pressed="true"], .lb-scroll[aria-pressed="true"], .lb-lock[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
-  .arrange-gen-scroll:focus-visible, .lb-scroll:focus-visible, .lb-lock:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .arrange-gen-scroll, .lb-scroll, .lb-lock, .fsl-maptoggle{ align-self:center; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
+  .arrange-gen-scroll:hover, .lb-scroll:hover, .lb-lock:hover, .fsl-maptoggle:hover{ color:var(--text); }
+  .arrange-gen-scroll[aria-pressed="true"], .lb-scroll[aria-pressed="true"], .lb-lock[aria-pressed="true"], .fsl-maptoggle[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .arrange-gen-scroll:focus-visible, .lb-scroll:focus-visible, .lb-lock:focus-visible, .fsl-maptoggle:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .arrange-gen-scroll:disabled, .lb-scroll:disabled, .lb-lock:disabled{ opacity:.45; cursor:default; }
-  .arrange-gen-scroll svg, .lb-scroll svg, .lb-lock svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
+  .arrange-gen-scroll svg, .lb-scroll svg, .lb-lock svg, .fsl-maptoggle svg{ fill:none; stroke:currentColor; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; }
+  /* The map switch in the pair's top-right corner, on the Complexity
+     caption's line: a tiny drawing of the map's nodes. */
+  .fsl-maptoggle{ position:absolute; top:-2px; right:0; width:18px; height:14px; }
+  .fsl-maptoggle svg{ width:12px; height:9px; stroke-width:.8; }
+  :root.is-mobile .fsl-pair{ padding-top:6px; }
+  :root.is-mobile .fsl-maptoggle{ width:22px; height:18px; }
+  :root.is-mobile .fsl-maptoggle svg{ width:14px; height:10px; }
   /* The base row's padlock, drawn as the expression padlock. Closed, the
      base can't change; a click on another box, the wheel or a double-click
      on a closed a or a2 that would change it makes it nudge (once) or shake
@@ -3197,7 +3213,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, subLcm: 'none', subLcmR: 'none', fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, fmapOpen: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5676,6 +5692,9 @@ function syncSubFormula(G){
   // And so do a formula's sliders, the one that had it.
   var heldSl = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fsl-pair .fsl') : null;
   var heldSlAt = heldSl ? [heldSl.closest('.fsl-pair').getAttribute('data-f'), heldSl.getAttribute('data-kind')] : null;
+  // And the map switch in a pair's corner.
+  var heldTg = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fsl-maptoggle') : null;
+  var heldTgF = heldTg && heldTg.parentNode ? heldTg.parentNode.getAttribute('data-f') : null;
   // So does the row of base boxes, and its list keeps the place it was scrolled to.
   var heldLb = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.lb-row') : null;
   var heldLbKind = heldLb ? (document.activeElement.closest('.lb-scroll') ? 'wheel' : document.activeElement.closest('.lb-lock') ? 'lock' : 'box') : null;
@@ -5694,12 +5713,17 @@ function syncSubFormula(G){
     var box = subFormulaBox('div', 'ring-hover-formula', fs);
     // Each formula with a map gets it beside it, in a column of its own; the
     // formulas then are read by assistive technology, not the box.
+    // With sliders, the map opened beside them comes between them and the formula.
+    var mapsToo = hasSliders(G) && state.fmapOpen;
     if (fs.some(function(x){ return x.map; })){
       box.classList.add('has-fmap');
+      if (mapsToo) box.classList.add('fmap-open');
       box.removeAttribute('aria-hidden');
       Array.prototype.slice.call(box.children).forEach(function(line, i){
         line.setAttribute('aria-hidden', 'true');
-        if (fs[i].map) box.insertBefore(hasSliders(G) ? formulaSliders(G, fs[i].map) : formulaMap(G, fs[i].map), line);
+        if (!fs[i].map) return;
+        box.insertBefore(hasSliders(G) ? formulaSliders(G, fs[i].map) : formulaMap(G, fs[i].map), line);
+        if (mapsToo) box.insertBefore(formulaMap(G, fs[i].map), line);
       });
     }
     // The base row, its padlock and its wheel switch go when every map shown
@@ -5723,6 +5747,11 @@ function syncSubFormula(G){
       var slPair = box.querySelector('.fsl-pair[data-f="' + heldSlAt[0] + '"]');
       var slBack = slPair && (slPair.querySelector('.fsl[data-kind="' + heldSlAt[1] + '"]:not(.is-inert)') || slPair.querySelector('.fsl[data-kind="complexity"]'));
       if (slBack) slBack.focus({ preventScroll: true });
+    }
+    if (heldTgF){
+      var tgPair = box.querySelector('.fsl-pair[data-f="' + heldTgF + '"]');
+      var tgBack = tgPair && tgPair.querySelector('.fsl-maptoggle');
+      if (tgBack) tgBack.focus({ preventScroll: true });
     }
     if (heldLbKind){
       var back = heldLbKind === 'wheel' ? box.querySelector('.lb-scroll') : heldLbKind === 'lock' ? box.querySelector('.lb-lock') : box.querySelector('.lb-list input:checked');
@@ -5883,7 +5912,20 @@ function hangSubFormulas(){
 if (typeof ResizeObserver === 'function') new ResizeObserver(hangSubFormulas).observe(subgroupsEl);
 // The formula at the ring never scrolls: one too wide for the ring's area is
 // set in a smaller size to fit it, as the header's own formulas are.
+// The formula beside a pair and its open map needs this much room, or the
+// three stack in one column.
+var FMAP_STACK_MIN = 220;
 function fitSubFormulaBox(box){
+  if (!IS_MOBILE && box.classList.contains('fmap-open')){
+    box.classList.remove('is-stacked');
+    var bcs = getComputedStyle(box);
+    if (bcs.gridTemplateColumns.split(' ').length === 3){
+      var pair0 = box.querySelector(':scope > .fsl-pair'), map0 = box.querySelector(':scope > .fmap');
+      var cgap = parseFloat(bcs.columnGap) || 0;
+      var left = subFormulaRoom(box) - (pair0 ? boxOf(pair0).width : 0) - (map0 ? boxOf(map0).width : 0) - 2 * cgap;
+      if (left < FMAP_STACK_MIN) box.classList.add('is-stacked');
+    }
+  }
   // The row of base boxes scrolls inside what is left of the room once the
   // boxes outgrow it, on a desktop (on a phone it wraps).
   var list = box.querySelector('.lb-list');
@@ -5906,9 +5948,13 @@ function subFormulaRoom(box){
 function fitSubFormulaLine(box, m){
   m.style.fontSize = '';
   var cs = getComputedStyle(box), room = subFormulaRoom(box);
-  // Beside its map a formula has the room left of the map's column.
-  var map = box.querySelector(':scope > .fmap, :scope > .fsl-pair');
-  if (map && cs.gridTemplateColumns.split(' ').length > 1) room -= boxOf(map).width + (parseFloat(cs.columnGap) || 0);
+  // Beside its map, its sliders or both a formula has the room left of their columns.
+  if (cs.gridTemplateColumns.split(' ').length > 1){
+    var gapC = parseFloat(cs.columnGap) || 0;
+    var pairC = box.querySelector(':scope > .fsl-pair'), mapC = box.querySelector(':scope > .fmap');
+    if (pairC) room -= boxOf(pairC).width + gapC;
+    if (mapC) room -= boxOf(mapC).width + gapC;
+  }
   var w = boxOf(m).width;
   if (room > 0 && w > room) m.style.fontSize = (parseFloat(getComputedStyle(m).fontSize) * room / w) + 'px';
 }
@@ -7283,23 +7329,39 @@ var FMAP_DOTTED = [
   ['sls', 'M12 54V72Q12 85 25 85H47M12 66H47']
 ];
 var fmapSeq = 0;
+// A map with no SLS forms (a group of units or a curve) is drawn without
+// its lowest two rows: 172 × 58.
+var FMAP_H_NOSLS = 58;
+// A knob or a stop over node id, grown by grow on every side.
+function fmapPut(el, id, grow){
+  var nd = FMAP_NODES[id];
+  el.style.left = (nd.x - nd.w / 2 - grow) + 'px';
+  el.style.top = (nd.y - nd.h / 2 - grow) + 'px';
+  el.style.width = (nd.w + 2 * grow) + 'px';
+  el.style.height = (nd.h + 2 * grow) + 'px';
+}
 function formulaMap(G, info){
   var f = info.f, token = info.token, reach = info.reach, now = fmapNode(token);
+  // Where SLS does not apply its nodes and paths are left out.
+  var sls = reach.sls, mapH = sls ? FMAP_H : FMAP_H_NOSLS;
+  var drawn1 = function(id){ return sls || id.indexOf('sls') === -1; };
   var wrap = document.createElement('span');
-  wrap.className = 'fmap log-ctl';
+  wrap.className = 'fmap log-ctl' + (sls ? '' : ' no-sls');
   wrap.setAttribute('data-f', f);
   wrap.setAttribute('data-at', now);
   wrap.setAttribute('role', 'radiogroup');
   wrap.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
   var open = { 'abs': reach.abs, 'pos': reach.pos, 'sls': reach.sls };
   var openNode = function(id){ return id === 'abs' ? reach.abs : id === 'pos' ? reach.pos : id.indexOf('sls') !== -1 ? reach.sls : true; };
-  var svg = svgEl('svg', { 'class': 'fmap-svg', viewBox: '0 0 ' + FMAP_W + ' ' + FMAP_H, width: FMAP_W, height: FMAP_H, 'aria-hidden': 'true', focusable: 'false' });
+  var svg = svgEl('svg', { 'class': 'fmap-svg', viewBox: '0 0 ' + FMAP_W + ' ' + mapH, width: FMAP_W, height: mapH, 'aria-hidden': 'true', focusable: 'false' });
   FMAP_DOTTED.forEach(function(s){
-    svg.appendChild(svgEl('path', { 'class': 'fmap-edge is-cond' + (open[s[0]] ? '' : ' is-closed'), d: s[1] }));
+    if (!drawn1(s[0])) return;
+    svg.appendChild(svgEl('path', { 'class': 'fmap-edge is-cond' + (open[s[0]] ? '' : ' is-closed'), d: s[1], 'data-id': s[0] }));
   });
   FMAP_SOLID.forEach(function(d){ svg.appendChild(svgEl('path', { 'class': 'fmap-edge', d: d })); });
   FMAP_ORDER.forEach(function(id){
-    var nd = FMAP_NODES[id], g = svgEl('g', { 'class': 'fmap-node' + (openNode(id) ? '' : ' is-closed') + (id === now ? ' is-at' : '') });
+    if (!drawn1(id)) return;
+    var nd = FMAP_NODES[id], g = svgEl('g', { 'class': 'fmap-node' + (openNode(id) ? '' : ' is-closed') + (id === now ? ' is-at' : ''), 'data-id': id });
     g.appendChild(svgEl('rect', { x: nd.x - nd.w / 2, y: nd.y - nd.h / 2, width: nd.w, height: nd.h, rx: 4 }));
     nd.t.forEach(function(key, i){
       var text = svgEl('text', { 'class': i ? 'fmap-sub' : 'fmap-name', x: nd.x, y: nd.t.length === 1 ? nd.y + 3 : i ? nd.y + 5.6 : nd.y - 1.4, 'text-anchor': 'middle' });
@@ -7312,23 +7374,17 @@ function formulaMap(G, info){
   var knob = document.createElement('span');
   knob.className = 'fmap-knob';
   knob.setAttribute('aria-hidden', 'true');
-  var put = function(el, id, grow){
-    var nd = FMAP_NODES[id];
-    el.style.left = (nd.x - nd.w / 2 - grow) + 'px';
-    el.style.top = (nd.y - nd.h / 2 - grow) + 'px';
-    el.style.width = (nd.w + 2 * grow) + 'px';
-    el.style.height = (nd.h + 2 * grow) + 'px';
-  };
-  put(knob, now, 1.5);
+  fmapPut(knob, now, 1.5);
   wrap.appendChild(knob);
   var inputs = {};
   FMAP_ORDER.forEach(function(id){
+    if (!drawn1(id)) return;
     var nd = FMAP_NODES[id], stop = document.createElement('label');
     // A closed a or a2 stays reachable: it flashes the bases that would open it.
     var hint = (id === 'abs' || id === 'pos') && !openNode(id);
     stop.className = 'fmap-stop';
     stop.setAttribute('data-id', id);
-    put(stop, id, 0);
+    fmapPut(stop, id, 0);
     stop.title = translate(nd.key);
     var input = document.createElement('input');
     input.type = 'radio';
@@ -7565,7 +7621,36 @@ function formulaSliders(G, info){
     block.appendChild(sl);
     pair.appendChild(block);
   });
+  pair.appendChild(fmapOpenToggle());
   return pair;
+}
+// The small map in each pair's corner, a switch: pressed, every formula's
+// map shows beside its sliders, the same map ℤ/nℤ has, and moves with them.
+function fmapOpenToggle(){
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'fsl-maptoggle';
+  var on = state.fmapOpen;
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  var tip = translate(on ? 'cyclicGroups.fslMapHide' : 'cyclicGroups.fslMapShow');
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+  // The map's seven nodes outside SLS where they lie on it: JN, then the
+  // short and the full column, GCD over a2 and a over LCM.
+  var icon = svgEl('svg', { viewBox: '0 0 14 10', width: 12, height: 9, 'aria-hidden': 'true', focusable: 'false' });
+  [[1.7, 8.4, 2.4, 2], [6.3, 1.6, 3.2, 2.2], [11.9, 1.6, 3.2, 2.2], [6.3, 5, 2.4, 1.8], [11.9, 5, 2.4, 1.8], [6.3, 8.4, 3.2, 2.2], [11.9, 8.4, 3.2, 2.2]].forEach(function(r){
+    icon.appendChild(svgEl('rect', { x: r[0] - r[2] / 2, y: r[1] - r[3] / 2, width: r[2], height: r[3], rx: 0.5 }));
+  });
+  btn.appendChild(icon);
+  btn.addEventListener('click', toggleFmapOpen);
+  return btn;
+}
+function toggleFmapOpen(){
+  state.fmapOpen = !state.fmapOpen;
+  if (IS_ISOPANE) tellHost({ isopane: 'fmapopen', value: state.fmapOpen });
+  if (!drawn) return;
+  syncSubFormula(drawn.G);
+  mirrorToUrl(drawn.G);
 }
 // The main view's formulas, as renderSubgroups draws them: in a group with
 // maps each as its map's position says, anywhere else as the bottom bar's
@@ -14741,6 +14826,7 @@ function isoHref(mode, n, gen, curve){
   q.delete('logbaser');
   q.delete('logbaselock');
   q.delete('logbaselockr');
+  q.delete('fmapopen');
   if (state.mode === 'additive' && !state.ec && !curve && mode === 'multiplicative'){
     q.set('bygen', '0');
     HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf('sorder') + 1).forEach(function(name){ q.set(name, '1'); });
@@ -15042,7 +15128,7 @@ function swapIsoRings(){
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ hostQ.delete(k); });
   var paneQ = new URLSearchParams(cleanRingQuery(isoPane.q));
   var g = isoLinkGen(), h = isoPane.h;
-  var keep = { rot: state.rot, top: state.top, autoRotate: state.autoRotate, autoSpeed: state.autoSpeed };
+  var keep = { rot: state.rot, top: state.top, autoRotate: state.autoRotate, autoSpeed: state.autoSpeed, fmapOpen: state.fmapOpen };
   // Each group's formula choices go with it to the other side: the ones
   // this ring kept for the pane's group become this ring's own, and its
   // own the pane's. The pane's query holds none of them up to date.
@@ -15410,7 +15496,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, lcmRow: state.subLcmR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, fmapOpen: state.fmapOpen, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -15586,6 +15672,8 @@ function applyIsoShared(d){
   if (Number.isInteger(d.chosenBase) && d.chosenBase >= 0) state.chosenBase = d.chosenBase;
   else if (state.chosenBase !== null) tellHost({ isopane: 'logbase', value: state.chosenBase });
   if (flag(d.logBaseLock)) state.logBaseLock = d.logBaseLock;
+  // The formula maps beside the sliders, open or not, as on the holding ring.
+  if (flag(d.fmapOpen)) state.fmapOpen = d.fmapOpen;
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.bare)) state.subBare = d.bare;
   if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
@@ -16451,6 +16539,10 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'logbaselock' && typeof d.value === 'boolean'){
     state.logBaseLockR = d.value;
     if (drawn) mirrorToUrl(drawn.G);
+  } else if (d.isopane === 'fmapopen' && typeof d.value === 'boolean'){
+    // One setting for both rings: the pane's toggle opens this ring's maps too.
+    state.fmapOpen = d.value;
+    if (drawn){ syncSubFormula(drawn.G); mirrorToUrl(drawn.G); }
   } else if (d.isopane === 'reach'){
     var pr = d.reach;
     paneReach = pr && [pr.x, pr.y, pr.r].every(Number.isFinite) ? { x: pr.x, y: pr.y, r: pr.r } : null;
@@ -16936,6 +17028,8 @@ function stateQuery(){
   else q.delete('logbaselock');
   if (state.logBaseLockR) q.set('logbaselockr', '1');
   else q.delete('logbaselockr');
+  if (state.fmapOpen) q.set('fmapopen', '1');
+  else q.delete('fmapopen');
   if (state.subFormulaRowR !== 'none') q.set('subformularowr', state.subFormulaRowR);
   else q.delete('subformularowr');
   if (state.subFormulaRingR !== 'none') q.set('subformularingr', state.subFormulaRingR);
@@ -19149,6 +19243,8 @@ function loadState(query, link){
   // The padlock after the boxes, closed: the ring's, and the pane's the ring keeps.
   state.logBaseLock = query.get('logbaselock') === '1';
   state.logBaseLockR = query.get('logbaselockr') === '1';
+  // The formula maps opened beside the sliders.
+  state.fmapOpen = query.get('fmapopen') === '1';
   if (SUB_FORMULAS.indexOf(query.get('subformularowr')) !== -1) state.subFormulaRowR = query.get('subformularowr');
   if (SUB_FORMULAS.indexOf(query.get('subformularingr')) !== -1) state.subFormulaRingR = query.get('subformularingr');
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));
