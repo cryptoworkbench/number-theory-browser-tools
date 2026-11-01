@@ -1100,8 +1100,6 @@
       fmapLabelLcm: 'LCM',
       fmapLabelGcdCompact: 'GCD (compact)',
       fmapLabelLcmCompact: 'LCM (compact)',
-      fmapLabelShort: 'short',
-      fmapLabelFull: 'full',
       fmapLabelSls: 'Skip logarithm use',
       fmapLabelA: 'Absolute\nfunction',
       fmapLabelA2: 'Absolute function\n(compact)',
