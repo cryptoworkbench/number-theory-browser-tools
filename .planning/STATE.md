@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-01 - Completed quick task 261101-so1: Cyclic Groups additive formula sliders (branch cyclic-groups-additive-sliders)
+Last activity: 2026-11-01 - Completed quick task 261101-tpr: Cyclic Groups universal forked Complexity slider (branch cyclic-groups-universal-complexity)
 
 Progress: [█████████░] 86%
 
@@ -635,6 +635,7 @@ None yet.
 | 261101-k8y | Cyclic Groups: Complexity and Form preference become real sliders, a track with three slots and a round knob that always rests in one (branch cyclic-groups-real-sliders) | 2026-11-01 | aca5c98 | [261101-k8y-cyclic-groups-the-complexity-and-form-pr](./quick/261101-k8y-cyclic-groups-the-complexity-and-form-pr/) |
 | 261101-o20 | Cyclic Groups: a2 keeps the absolute value and drops the logarithm substitution step instead (4 size / 3 index steps), open exactly when a is (branch cyclic-groups-a2-skips-substitution) | 2026-11-01 | 1459e1a | [261101-o20-cyclic-groups-a2-keeps-the-absolute-valu](./quick/261101-o20-cyclic-groups-a2-keeps-the-absolute-valu/) |
 | 261101-so1 | Cyclic Groups: additive groups get the formula sliders, Complexity forked into JN / Compact / Compact SLS / Complete (branch cyclic-groups-additive-sliders) | 2026-11-01 | 5490caf | [261101-so1-cyclic-groups-additive-groups-get-formul](./quick/261101-so1-cyclic-groups-additive-groups-get-formul/) |
+| 261101-tpr | Cyclic Groups: EC and multiplicative groups use the forked four-slot Complexity slider, SLS branch grayed out and inaccessible (branch cyclic-groups-universal-complexity) | 2026-11-01 | b2d9012 | [261101-tpr-cyclic-groups-ec-and-multiplicative-grou](./quick/261101-tpr-cyclic-groups-ec-and-multiplicative-grou/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -889,4 +890,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-01 - Completed quick task 261101-so1: Cyclic Groups additive formula sliders (branch cyclic-groups-additive-sliders)
+Last activity: 2026-11-01 - Completed quick task 261101-tpr: Cyclic Groups universal forked Complexity slider (branch cyclic-groups-universal-complexity)
