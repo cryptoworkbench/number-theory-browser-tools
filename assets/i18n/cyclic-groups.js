@@ -178,7 +178,9 @@
    fslFormIndex (each slider's accessible name) and fslFormInert (the form
    slider's tooltip while the formula is at JN), and fslMapShow and fslMapHide
    (the toggle beside each slider pair that shows the formula map next to the
-   sliders, and hides it again). Every other language shows the English value through
+   sliders, and hides it again), and fslBlockedCompact and fslBlockedComplete
+   (the tooltip of a complexity notch whose neither the logarithm base leaves
+   shut, so the move is refused until the base changes). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1116,6 +1118,8 @@
       fslFormInert: 'At JN the formula takes no form: the form preference applies again once the complexity is compact or complete',
       fslMapShow: 'Show the formula map',
       fslMapHide: 'Hide the formula map',
+      fslBlockedCompact: 'Compact with the form neither (a2) is out of reach under this logarithm base: change the base first. A double-click picks the nearest base that opens it.',
+      fslBlockedComplete: 'Complete with the form neither (a) is out of reach under this logarithm base: change the base first. A double-click picks the nearest base that opens it.',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',

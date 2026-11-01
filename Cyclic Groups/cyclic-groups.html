@@ -1272,6 +1272,8 @@
   @keyframes fmap-force-set{ 0%, 75%{ box-shadow:0 0 0 1.5px var(--role-result); background:color-mix(in srgb, var(--role-result) 30%, transparent); } }
   .fmap-stop.is-force-pulse{ animation:fmap-force-pulse .55s ease-in-out 2; }
   .fmap-stop.is-force-set{ animation:fmap-force-set 1.1s ease-out; }
+  @keyframes fmap-flash-no{ 0%, 75%{ box-shadow:0 0 0 1.5px var(--role-warn); background:color-mix(in srgb, var(--role-warn) 26%, transparent); } }
+  .fmap-stop.is-flash-no{ animation:fmap-flash-no 1.1s ease-out; }
   @media (prefers-reduced-motion: reduce){ .fmap-knob, .fmap-edge, .fmap-node{ transition:none; } .fmap-band{ display:none; } }
   /* In a group of units or on a curve the map is two sliders, each a short
      map of its own: three notches on a track and the map's knob framing the
@@ -1299,6 +1301,9 @@
   /* A forced neither pulses with the box whose base it takes, and flashes with it once set. */
   .fsl-notch.is-force-pulse{ animation:lb-force-pulse .55s ease-in-out 2; }
   .fsl-notch.is-force-set{ animation:lb-flash-ok 1.1s ease-out; }
+  /* A complexity move onto a shut neither is refused: that notch and the
+     neither notch flash red with the boxes' hint (and an open map's node). */
+  .fsl-notch.is-flash-no{ animation:lb-flash-no 1.1s ease-out; }
   @media (prefers-reduced-motion: reduce){ .fsl-knob{ transition:none; } }
   /* The row of generator boxes under the formulas picks the base of their
      logarithms: one box per generator, the chosen one lit, the ones a shown
@@ -7445,6 +7450,7 @@ function formulaMap(G, info){
     // label, which the pointer is over, hears it; the radio hears the clicks).
     if (hint) stop.addEventListener('dblclick', function(){ forceMapPosition(G, f, id); });
     if (live && logForce && logForce.f === f && logForce.id === id) paintLogForce(stop);
+    if (live && fslRefuse && fslRefuse.f === f && fslRefuse.node === id) paintFslRefuse(stop);
     inputs[id] = input;
     stop.appendChild(input);
     wrap.appendChild(stop);
@@ -7498,15 +7504,22 @@ function fslToken(c, v, row){
 // The form each formula's slider shows at JN: the last one it had, and the
 // row a neither goes back to. Not stored; a reload at JN shows GCD.
 var fslMemo = { order: { form: 'gcd', row: 'gcd' }, index: { form: 'gcd', row: 'gcd' } };
-// Where a notch of the kind slider takes formula f from token (null: nowhere).
-// A complexity onto a closed a or a2 takes the row's own form there instead.
+// Whether the complexity notch v is out of reach: the form is neither (at
+// JN the one remembered) and the base leaves neither shut at v (a2 at
+// compact, a at complete). The move is refused, never turned into another
+// form; the base has to change first.
+function fslBlocked(v, token, reach, memo){
+  var at = fslOf(token), form = at.c ? at.v : FSL_FORM.indexOf(memo.form);
+  return v > 0 && v !== at.c && form === 1 && !reach[fslNeitherNode(v)];
+}
+// Where a notch of the kind slider takes formula f from token (null: nowhere,
+// a blocked complexity notch among them).
 function fslTarget(kind, v, token, reach, memo){
   var at = fslOf(token), row = at.row || memo.row || 'gcd';
   if (kind === 'complexity'){
     if (v === 0) return 'jn';
-    var form = at.c ? at.v : FSL_FORM.indexOf(memo.form);
-    if (form === 1 && !reach[fslNeitherNode(v)]) form = FSL_ROW_V[row];
-    return fslToken(v, form, row);
+    if (fslBlocked(v, token, reach, memo)) return null;
+    return fslToken(v, at.c ? at.v : FSL_FORM.indexOf(memo.form), row);
   }
   if (!at.c) return null;
   return v === 1 ? fslToken(at.c, 1, row) : fslToken(at.c, v, v === 2 ? 'gcd' : 'lcm');
@@ -7541,6 +7554,7 @@ function formulaSliders(G, info){
     var isForm = kind === 'form', now = isForm ? (at.c ? at.v : FSL_FORM.indexOf(memo.form)) : at.c;
     var inert = isForm && !at.c;
     var closed = function(v){ return isForm && v === 1 && at.c > 0 && !reach[fslNeitherNode(at.c)]; };
+    var blocked = function(v){ return !isForm && fslBlocked(v, token, reach, memo); };
     var block = document.createElement('span');
     block.className = 'fsl-row';
     var cap = document.createElement('span');
@@ -7574,7 +7588,14 @@ function formulaSliders(G, info){
       // Its tooltip is the map's, of the position it leads to.
       var to = inert ? null : closed(v) ? FMAP_AT[fslNeitherNode(at.c)][at.row || memo.row || 'gcd'] : fslTarget(kind, v, token, reach, memo);
       if (to) chip.title = translate(FMAP_NODES[fmapNode(to)].key);
+      // A blocked complexity notch says why: the base has to change first.
+      if (blocked(v)){
+        chip.classList.add('is-blocked');
+        chip.title = translate(v === 1 ? 'cyclicGroups.fslBlockedCompact' : 'cyclicGroups.fslBlockedComplete');
+      }
       if (isForm && v === 1 && logForce && logForce.f === f) paintLogForce(chip);
+      if (!isForm && logForce && logForce.f === f && logForce.cv === v) paintLogForce(chip);
+      if (fslRefuse && fslRefuse.f === f && (isForm ? v === 1 : v === fslRefuse.v)) paintFslRefuse(chip);
       sl.appendChild(chip);
       return chip;
     });
@@ -7590,6 +7611,12 @@ function formulaSliders(G, info){
         knob.style.left = '';
         flashLogBases(G, fslNeitherNode(at.c));
         if (state.logBaseLock) alarmLogLock('nudge');
+        return;
+      }
+      // A complexity whose neither the base leaves shut: refused, flashing.
+      if (blocked(v)){
+        knob.style.left = '';
+        refuseFslComplexity(G, f, v);
         return;
       }
       var to = fslTarget(kind, v, token, reach, memo);
@@ -7644,7 +7671,8 @@ function formulaSliders(G, info){
     };
     sl.addEventListener('pointerup', end);
     sl.addEventListener('pointercancel', end);
-    // The arrow keys step the notches over a closed one; Home and End go to the ends.
+    // The arrow keys step the notches over a closed one; Home and End go to
+    // the ends. A blocked complexity notch is never stepped over: refused.
     sl.addEventListener('keydown', function(e){
       var step = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
       if (!step && e.key !== 'Home' && e.key !== 'End') return;
@@ -7658,16 +7686,55 @@ function formulaSliders(G, info){
     });
     // A double-click on a closed neither forces it, as on the map; on an
     // open notch its clicks have done all there is.
-    if (isForm) sl.addEventListener('dblclick', function(e){
+    // On a blocked complexity notch it forces that notch's neither, the
+    // complexity notch pulsing with the box and the neither notch.
+    sl.addEventListener('dblclick', function(e){
       var chip = e.target.closest && e.target.closest('.fsl-notch');
       var v = chip ? +chip.getAttribute('data-v') : nearest(ptX(e));
       if (closed(v)) forceMapPosition(G, f, fslNeitherNode(at.c));
+      else if (blocked(v)) forceMapPosition(G, f, fslNeitherNode(v), { cv: v, row: at.row || memo.row || 'gcd' });
     });
     block.appendChild(sl);
     pair.appendChild(block);
   });
   pair.appendChild(fmapOpenToggle());
   return pair;
+}
+// A refused complexity move (the base leaves its neither shut): the boxes
+// flash which bases would open it, the padlock nudges if closed, and the
+// refused notch, the neither notch and an open map's node flash red with
+// them. Nothing else changes. A box built anew carries the flash on.
+var FSL_REFUSE_MS = 1100;
+var fslRefuse = null, fslRefuseTimer = 0;
+function refuseFslComplexity(G, f, v){
+  var node = fslNeitherNode(v);
+  flashLogBases(G, node);
+  if (state.logBaseLock) alarmLogLock('nudge');
+  stopFslRefuse();
+  fslRefuse = { f: f, v: v, node: node, t0: Date.now() };
+  var pair = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"]');
+  var fm = hasSliders(G) ? ringHeadEl.querySelector('.fmap[data-f="' + f + '"]') : null;
+  var els = [
+    pair && pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="' + v + '"]'),
+    pair && pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]'),
+    fm && fm.querySelector('.fmap-stop[data-id="' + node + '"]')
+  ];
+  els.forEach(function(el){ if (el){ void el.offsetWidth; paintFslRefuse(el); } });
+  fslRefuseTimer = setTimeout(stopFslRefuse, FSL_REFUSE_MS + 100);
+}
+function stopFslRefuse(){
+  clearTimeout(fslRefuseTimer);
+  fslRefuse = null;
+  ringHeadEl.querySelectorAll('.fsl-notch.is-flash-no, .fmap-stop.is-flash-no').forEach(function(el){
+    el.classList.remove('is-flash-no');
+    el.style.animationDelay = '';
+  });
+}
+function paintFslRefuse(el){
+  var gone = Date.now() - fslRefuse.t0;
+  if (gone >= FSL_REFUSE_MS) return;
+  el.classList.add('is-flash-no');
+  if (gone > 30) el.style.animationDelay = -gone + 'ms';
 }
 // The small map in each pair's corner, a switch: pressed, every formula's
 // map shows beside its sliders, the same map ℤ/nℤ has, and moves with them.
@@ -8037,22 +8104,27 @@ function paintLogForce(box){
   var gone = Date.now() - logForce.t0;
   if (gone > 30) box.style.animationDelay = -gone + 'ms';
 }
-function forceMapPosition(G, f, id){
+// From a blocked complexity notch (opts.cv, see fslBlocked) the knob goes to
+// that complexity's neither, on the row opts.row when it starts from JN, and
+// that complexity notch pulses and flashes too.
+function forceMapPosition(G, f, id, opts){
   if (!drawn || drawn.G.key !== G.key || !hasMap(drawn.G) || state.noSub) return;
   G = drawn.G;
+  opts = opts || {};
   // The padlock closed, nothing is forced: the knob and the base stay, the
   // two clicks' hint stays, and the padlock sounds its alarm.
   if (state.logBaseLock){ alarmLogLock('alarm'); return; }
   var g = forceBasePick(G, id);
   if (g === null || g === mapBase(G)) return;
+  stopFslRefuse();
   var list = ringHeadEl.querySelector('.lb-list');
   var box = list && list.querySelector('.lb-box[data-g="' + g + '"]');
   // No row while every map sits on an SLS form: the base and the knob go at
   // once, the row comes back with the picked box on its last flash.
   if (!list){
     stopLogForce();
-    var now = fmapRow(state.fmap[f]) || 'gcd', gen0 = logForceGen;
-    logForce = { key: G.key, h: state.gen, f: f, id: id, g: g, from: state.chosenBase, tok: state.fmap[f], to: FMAP_AT[id][now], set: true, t0: Date.now() };
+    var now = fmapRow(state.fmap[f]) || opts.row || 'gcd', gen0 = logForceGen;
+    logForce = { key: G.key, h: state.gen, f: f, id: id, cv: opts.cv, row: opts.row, g: g, from: state.chosenBase, tok: state.fmap[f], to: FMAP_AT[id][now], set: true, t0: Date.now() };
     applyForcedMap(f, logForce.to, g);
     if (gen0 === logForceGen) logForceTimers.push(setTimeout(function(){ if (gen0 === logForceGen) stopLogForce(); }, LOG_FORCE_SET + 100));
     return;
@@ -8062,12 +8134,16 @@ function forceMapPosition(G, f, id){
   clearTimeout(logFlashTimer);
   list.querySelectorAll('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
   var gen = logForceGen;
-  logForce = { key: G.key, h: state.gen, f: f, id: id, g: g, from: state.chosenBase, tok: state.fmap[f], to: null, set: false, t0: Date.now() };
+  logForce = { key: G.key, h: state.gen, f: f, id: id, cv: opts.cv, row: opts.row, g: g, from: state.chosenBase, tok: state.fmap[f], to: null, set: false, t0: Date.now() };
   void box.offsetWidth;
   paintLogForce(box);
-  // A formula's form slider pulses its neither notch with the box.
-  var chip = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]');
+  // A formula's form slider pulses its neither notch with the box (and the
+  // complexity notch double-clicked, when that is where it came from).
+  var pair = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"]');
+  var chip = pair && pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]');
   if (chip) paintLogForce(chip);
+  var cchip = pair && opts.cv ? pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="' + opts.cv + '"]') : null;
+  if (cchip) paintLogForce(cchip);
   // And an open map beside the sliders pulses the node forced.
   var fm = hasSliders(G) ? ringHeadEl.querySelector('.fmap[data-f="' + f + '"]') : null;
   var fstop = fm && fm.querySelector('.fmap-stop[data-id="' + id + '"]');
@@ -8076,7 +8152,7 @@ function forceMapPosition(G, f, id){
   logForceTimers.push(setTimeout(function(){
     if (gen !== logForceGen) return;
     if (!logForceLive()){ stopLogForce(); return; }
-    var row = fmapRow(state.fmap[f]) || 'gcd';
+    var row = fmapRow(state.fmap[f]) || logForce.row || 'gcd';
     logForce.to = FMAP_AT[id][row];
     logForce.set = true;
     logForce.t0 = Date.now();
