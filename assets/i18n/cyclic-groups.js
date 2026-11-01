@@ -180,7 +180,12 @@
    (the toggle beside each slider pair that shows the formula map next to the
    sliders, and hides it again), and fslBlockedCompact and fslBlockedComplete
    (the tooltip of a complexity notch whose neither the logarithm base leaves
-   shut, so the move is refused until the base changes). Every other language shows the English value through
+   shut, so the move is refused until the base changes), and for ℤ/nℤ's
+   forked Complexity slider fslCompactSls, fslCompactSlsText and
+   fslCompactSlsTip (the compact SLS slot's caption, its spoken value and its
+   tooltip) and fslSlsNeither and fslNeitherSls (the tooltips of the compact
+   SLS notch while the form is neither, and of the neither notch while the
+   complexity is compact SLS: no form is both). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1120,6 +1125,11 @@
       fslMapHide: 'Hide the formula map',
       fslBlockedCompact: 'Compact with the form neither (a2) is out of reach under this logarithm base: change the base first. A double-click picks the nearest base that opens it.',
       fslBlockedComplete: 'Complete with the form neither (a) is out of reach under this logarithm base: change the base first. A double-click picks the nearest base that opens it.',
+      fslCompactSls: 'compact SLS',
+      fslCompactSlsText: 'compact, skipping the logarithm substitution',
+      fslCompactSlsTip: 'Compact, skipping the logarithm substitution (SLS): the formula works with h itself, read directly, without a logarithm',
+      fslSlsNeither: 'Compact SLS has no form neither: a and a2 work with a logarithm, which SLS skips. Choose GCD or LCM first; a double-click takes the row neither came from.',
+      fslNeitherSls: 'The form neither (a, a2) works with a logarithm, which compact SLS skips: move the complexity off compact SLS first. A double-click goes to compact with neither (a2).',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
