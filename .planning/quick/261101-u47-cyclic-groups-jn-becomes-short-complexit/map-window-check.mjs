@@ -178,7 +178,7 @@ try {
   out(!!lab0 && lab0[0] === 'Short' && lab0[1].startsWith('Short'), 'desktop', 'the first Complexity slot reads Short, its tooltip too', lab0);
   const caps = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fsl-pair .fsl-name'), function(e){ return e.textContent; })`);
   const pairText = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.fsl-pair'), function(e){ return e.textContent; }).join('|')`);
-  out(caps.every(t => t === 'Form preference') && caps.length === 2 && !/Complexity/.test(pairText), 'desktop', 'no Complexity caption (Form preference kept)', { caps });
+  out(caps.length === 0 && !/Complexity|Form preference/.test(pairText), 'desktop', 'no Complexity or Form preference caption', { caps });
   const aria = await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').getAttribute('aria-label')`);
   out(/Complexity/.test(aria), 'desktop', 'the Complexity slider keeps its accessible name', aria);
   out(!(await P.exists('.fsl-maptoggle')) && !(await P.exists('.fsl-pair button')), 'desktop', 'no map icon button beside the sliders');

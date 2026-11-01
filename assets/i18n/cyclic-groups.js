@@ -171,8 +171,8 @@
    pyramid, removed with it, and logBaseLock, logBaseUnlock and logBaseLocked
    (the padlock after that row, open and closed, and a box's tooltip while it
    is closed), and the Complexity and Form preference sliders that replace the
-   formula maps on a cyclic (ℤ/nℤ)* and a cyclic curve: fslComplexity and
-   fslForm (the two sliders' captions), fslCompact, fslComplete and
+   formula maps on a cyclic (ℤ/nℤ)* and a cyclic curve: fslComplexity (no
+   longer shown), fslCompact, fslComplete and
    fslNeither (notch labels beside the reused fmapLabelJn, fmapLabelGcd and
    fmapLabelLcm), fslComplexityOrder, fslComplexityIndex, fslFormOrder and
    fslFormIndex (each slider's accessible name) and fslFormInert (the form
@@ -1119,7 +1119,6 @@
       logBaseUnlock: 'Unlock the base of the logarithm',
       logBaseLocked: 'The base of the logarithm is locked: open the padlock to change it',
       fslComplexity: 'Complexity',
-      fslForm: 'Form preference',
       fslCompact: 'compact',
       fslComplete: 'complete',
       fslNeither: 'neither',
