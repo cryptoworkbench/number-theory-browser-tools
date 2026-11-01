@@ -200,13 +200,13 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -228,7 +228,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -239,7 +239,7 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
@@ -520,6 +520,10 @@ async function tap(P, sel) {
 }
 const SHOW = 'Show the formula map', HIDE = 'Hide the formula map';
 const U13Q = `${UNITS}&gen=5&logbase=2`;
+// Quick 261101-o20: a2 opens exactly when a does. (ℤ/13ℤ)* h=5 (r = −3 under
+// base 2) has both open under every base; h=6 (log_2 6 = 5) has both shut
+// under base 2 and open under 6 and 11, so the open/closed cases use h=6.
+const HS = 6;
 // The children of the formula box in order: pair, map, line (per formula).
 const ORDER_JS = `Array.prototype.map.call(document.querySelector('.ring-hover-formula').children, function(c){ return c.classList.contains('fsl-pair') ? 'pair' : c.classList.contains('fmap') ? 'map' : c.classList.contains('lb-row') ? 'row' : c.localName; }).join(' ')`;
 
@@ -657,16 +661,17 @@ SCENARIOS.push(['sync', async browser => {
 /* ---------- boxes: a new base opens or closes a and a2 on the map ---------- */
 SCENARIOS.push(['boxes', async browser => {
   const P = await openPage(browser, 'boxes', { w: 1280, h: 900, ua: UA_DESKTOP });
-  const r2 = reach(U13, 2, 5);
-  const g = U13.gens.find(x => reach(U13, x, 5).pos !== r2.pos);
-  out(g !== undefined, 'boxes', `model: under base ${g} a2 is ${g !== undefined && reach(U13, g, 5).pos ? 'open' : 'closed'} (base 2: ${r2.pos ? 'open' : 'closed'})`);
+  const r2 = reach(U13, 2, HS);
+  const g = U13.gens.find(x => reach(U13, x, HS).pos !== r2.pos);
+  out(g !== undefined, 'boxes', `model: under base ${g} a2 is ${g !== undefined && reach(U13, g, HS).pos ? 'open' : 'closed'} (base 2: ${r2.pos ? 'open' : 'closed'})`);
+  out(U13.gens.every(x => reach(U13, x, HS).pos === reach(U13, x, HS).abs), 'boxes', 'model: h=6, a2 and a open together under every base');
   for (const tok of ['gcd-full', 'gcd-short']) {
-    await P.load(`${UNITS}&gen=5&logbase=2&fmapopen=1&fmaporder=${tok}`);
+    await P.load(`${UNITS}&gen=${HS}&logbase=2&fmapopen=1&fmaporder=${tok}`);
     await P.enter();
     let m = await mapOf(P, 'order');
     out(m.closedNodes.includes('pos') === !r2.pos && m.closedEdges.includes('pos') === !r2.pos && m.closedNodes.includes('abs') === !r2.abs, 'boxes', `${tok}, base 2: the map's a2 ${r2.pos ? 'open' : 'closed'}, a ${r2.abs ? 'open' : 'closed'}`, m);
     await clickSel(P, `.ring-hover-formula .lb-box[data-g="${g}"]`);
-    const rg = reach(U13, g, 5);
+    const rg = reach(U13, g, HS);
     m = await mapOf(P, 'order');
     const p = await pairOf(P, 'order');
     const neither = tok === 'gcd-full' ? rg.abs : rg.pos;
@@ -856,14 +861,14 @@ SCENARIOS.push(['live', async browser => {
 
 SCENARIOS.push(['fade', async browser => {
   const P = await openPage(browser, 'fade', { w: 1280, h: 900, ua: UA_DESKTOP });
-  const g = U13.gens.find(x => reach(U13, x, 5).pos !== reach(U13, 2, 5).pos);
-  await P.load(`${UNITS}&gen=5&logbase=2&fmapopen=1&fmaporder=gcd-full`);
+  const g = U13.gens.find(x => reach(U13, x, HS).pos !== reach(U13, 2, HS).pos);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmapopen=1&fmaporder=gcd-full`);
   await P.enter();
   const c = await centre(P, `.ring-hover-formula .lb-box[data-g="${g}"]`);
   await click1(P, c.x, c.y);
   await sleep(60);
   const e = await run(P, '.fmap[data-f="order"] .fmap-edge.is-cond[data-id="pos"]'), n = await run(P, '.fmap[data-f="order"] .fmap-node[data-id="pos"]');
-  const open = reach(U13, g, 5).pos;
+  const open = reach(U13, g, HS).pos;
   out(e.props.includes('stroke') && n.props.includes('opacity'), 'fade', `box ${g}: the a2 path's stroke and node's opacity are transitioning`, { e, n });
   out(/is-closed/.test(e.cls) === !open && /is-closed/.test(n.cls) === !open, 'fade', `and they end ${open ? 'open' : 'closed'}`, { e: e.cls, n: n.cls });
   // ℤ/12ℤ's map never animates
@@ -904,19 +909,19 @@ async function forceMap(P, scen, name, url, M, h, base, on) {
 }
 SCENARIOS.push(['force', async browser => {
   const P = await openPage(browser, 'force', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await forceMap(P, 'force', `(ℤ/13ℤ)* h=5 base 2 -> ${pickModel(U13, 5, 2, 'pos')}, on the map`, `${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&fmapopen=1`, U13, 5, 2, 'map');
+  await forceMap(P, 'force', `(ℤ/13ℤ)* h=6 base 2 -> ${pickModel(U13, HS, 2, 'pos')}, on the map`, `${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short&fmapopen=1`, U13, HS, 2, 'map');
   let hit = null;
   for (let h = 1; h < E11.N && !hit; h++) for (const b of E11.gens) if (!hit && !reach(E11, b, h).pos && pickModel(E11, h, b, 'pos') !== null) hit = { h, b };
   out(!!hit, 'force', hit ? `curve: h=${E11.at(hit.h)} base ${E11.at(hit.b)} has a2 closed` : 'a curve case');
   if (hit) await forceMap(P, 'force', `curve h=${E11.at(hit.h)} base ${E11.at(hit.b)}, on the map`, `?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=${hit.h}&logbase=${hit.b}&fmaporder=gcd-short&fmapopen=1`, E11, hit.h, hit.b, 'map');
-  await forceMap(P, 'force', `(ℤ/13ℤ)* h=5 base 2, on the slider's neither`, `${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&fmapopen=1`, U13, 5, 2, 'slider');
+  await forceMap(P, 'force', `(ℤ/13ℤ)* h=6 base 2, on the slider's neither`, `${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short&fmapopen=1`, U13, HS, 2, 'slider');
   noErrors(P, 'force');
   await P.done();
 }]);
 
 SCENARIOS.push(['lock', async browser => {
   const P = await openPage(browser, 'lock', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&logbaselock=1&fmapopen=1`);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short&logbaselock=1&fmapopen=1`);
   await P.enter();
   await P.ev(SAMPLER_MAP(2000));
   const c = await centre(P, stopSel('order', 'pos'));

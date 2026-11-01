@@ -199,13 +199,13 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -227,7 +227,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -238,7 +238,7 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
@@ -504,8 +504,24 @@ const BSAMPLER = (ms, cv) => `(function(){
 })()`;
 const bsamples = P => P.ev('window.__bs');
 const seq = (ss, k) => { const ph = []; for (const s of ss) if (ph[ph.length - 1] !== s[k]) ph.push(s[k]); return ph; };
-const H = 5, B = 2;   // (ℤ/13ℤ)* h=5 base 2: a open, a2 shut
-const AT = (row, extra = '') => `${UNITS}&gen=${H}&logbase=${B}&fmaporder=abs-${row}${extra}`;
+// Quick 261101-o20: a2 opens exactly when a does, so the neither of one
+// complexity is open exactly when the other's is. A move from compact or
+// complete on neither is therefore never refused any more; the refusal is
+// reached only from JN with neither remembered, under a base that shuts both.
+// (ℤ/13ℤ)* h=6 (log_2 6 = 5): a and a2 shut under base 2, open under 6 and 11.
+const H = 6, B = 2, BO = 6;
+// h=5 (r = −3 under base 2): a and a2 both open, the old J-01 case.
+const H5 = 5;
+// The order formula at JN with neither remembered (row kept) under base B:
+// entered on a at the opening base BO, sent to JN, then box B chosen.
+async function atJn(P, row, extra = '') {
+  await P.load(`${UNITS}&gen=${H}&logbase=${BO}&fmaporder=abs-${row}${extra}`);
+  await P.enter();
+  await clickChip(P, 'order', 'complexity', 0);
+  const bc = await centre(P, `.ring-hover-formula .lb-box[data-g="${B}"]`);
+  await P.mouse(bc.x, bc.y);
+  await sleep(300);
+}
 
 /* ---------- syntax ---------- */
 SCENARIOS.push(['syntax', async () => {
@@ -516,96 +532,88 @@ SCENARIOS.push(['syntax', async () => {
     try { new vm.Script(mt[1]); } catch (e) { bad.push(String(e)); }
   }
   out(count > 0 && bad.length === 0, 'syntax', `${count} inline scripts parse`, bad);
-  const rc = reach(U13, B, H);
-  out(rc.abs && !rc.pos, 'syntax', 'model: (ℤ/13ℤ)* h=5 base 2 has a open and a2 shut', rc);
+  const rc = reach(U13, B, H), ro = reach(U13, BO, H), r5 = reach(U13, B, H5);
+  out(!rc.abs && !rc.pos && ro.abs && ro.pos && r5.abs && r5.pos, 'syntax', 'model: (ℤ/13ℤ)* h=6 shuts a and a2 under base 2, opens both under 6; h=5 opens both under base 2', { rc, ro, r5 });
+  let apart = 0, cases = 0;
+  for (const M of [U13, unitsModel(19), E11]) for (let h = 1; h < M.N; h++) {
+    if (M.kind === 'mul' && gcd(h, M.n) !== 1) continue;
+    for (const b of M.gens) { cases++; if (reach(M, b, h).abs !== reach(M, b, h).pos) apart++; }
+  }
+  out(apart === 0, 'syntax', `model: a2 and a are open together in every one of ${cases} (group, h, base) cases, so complete <-> compact on neither is never refused`, apart);
 }]);
 
 /* ---------- refuse: a click or a drag onto a blocked complexity notch ---------- */
 SCENARIOS.push(['refuse', async browser => {
   const P = await openPage(browser, 'refuse', { w: 1280, h: 900, ua: UA_DESKTOP });
+  // the old ix2 case: complete -> compact on neither is open now (h=5, base 2)
   for (const row of ['lcm', 'gcd']) {
-    await P.load(AT(row));
+    await P.load(`${UNITS}&gen=${H5}&logbase=${B}&fmaporder=abs-${row}`);
     await P.enter();
+    const f0 = await flash(P);
+    out(same(f0.blocked, []), 'refuse', `h=5 base 2 abs-${row}: no notch blocked (a2 opens with a)`, f0.blocked);
+    await clickChip(P, 'order', 'complexity', 1);
+    out((await pairOf(P, 'order')).token === `pos-${row}` && (await flash(P)).anyNo === 0, 'refuse', `h=5 base 2 abs-${row} -> compact: pos-${row}, no refusal`, (await pairOf(P, 'order')).token);
+    await clickChip(P, 'order', 'complexity', 0);
+    out(same((await flash(P)).blocked, []), 'refuse', `h=5 base 2 pos-${row} -> JN with neither remembered: nothing blocked`, (await flash(P)).blocked);
+  }
+  // from JN with neither remembered under a base that shuts both: both notches refused
+  for (const row of ['lcm', 'gcd']) {
+    await atJn(P, row);
     const q0 = await P.q(), p0 = await pairOf(P, 'order'), f0 = await flash(P);
-    out(p0.token === `abs-${row}` && p0.c.now === 2 && p0.v.now === 1 && same(p0.v.closed, []), 'refuse', `abs-${row}: complete / neither, open`, p0);
-    out(same(f0.blocked, [1]) && BLOCKED_TIP.test(f0.titles[1]) && !BLOCKED_TIP.test(f0.titles[0]) && !BLOCKED_TIP.test(f0.titles[2]) && f0.anyNo === 0, 'refuse', `abs-${row}: only the compact notch is blocked, its tooltip says the base must change first`, f0);
+    out(p0.token === 'jn' && p0.v.now === 1 && p0.v.inert && (await P.param('logbase')) === String(B), 'refuse', `abs-${row} -> JN, base ${B}: jn, the resting form slider on neither`, { p0, q: q0 });
+    out(same(f0.blocked, [1, 2]) && BLOCKED_TIP.test(f0.titles[1]) && BLOCKED_TIP.test(f0.titles[2]) && !BLOCKED_TIP.test(f0.titles[0]) && f0.anyNo === 0, 'refuse', `JN (${row}): compact and complete blocked, their tooltips say the base must change first`, f0);
     const c = await chip(P, 'order', 'complexity', 1);
     await click1(P, c.x, c.y);
     await sleep(150);
     const p1 = await pairOf(P, 'order'), f1 = await flash(P), r1 = await rowNow(P);
-    out(p1.token === `abs-${row}` && p1.c.now === 2 && p1.v.now === 1 && (await P.q()) === q0, 'refuse', `abs-${row}: a click on compact is refused (complete / neither, url unchanged)`, { p1, q: await P.q(), q0 });
-    out(same(f1.cno, [1]) && f1.vno && f1.anyNo === 2, 'refuse', `abs-${row}: the compact notch and the neither notch flash red`, f1);
-    out(!!r1 && same(sortN(r1.ok), okOf(U13, H, 'pos')) && same(sortN(r1.no), noOf(U13, H, 'pos')), 'refuse', `abs-${row}: the boxes flash green ${okOf(U13, H, 'pos')}, red ${noOf(U13, H, 'pos')}`, r1 && { ok: r1.ok, no: r1.no });
-    out(!(await P.exists('.lb-lock.is-nudge')), 'refuse', `abs-${row}: the padlock open, no nudge`);
+    out(p1.token === 'jn' && (await P.q()) === q0, 'refuse', `JN (${row}): a click on compact is refused (jn, url unchanged)`, { p1, q: await P.q(), q0 });
+    out(same(f1.cno, [1]) && f1.vno && f1.anyNo === 2, 'refuse', `JN (${row}): the compact notch and the neither notch flash red`, f1);
+    out(!!r1 && same(sortN(r1.ok), okOf(U13, H, 'pos')) && same(sortN(r1.no), noOf(U13, H, 'pos')), 'refuse', `JN (${row}): the boxes flash green ${okOf(U13, H, 'pos')}, red ${noOf(U13, H, 'pos')}`, r1 && { ok: r1.ok, no: r1.no });
+    out(!(await P.exists('.lb-lock.is-nudge')), 'refuse', `JN (${row}): the padlock open, no nudge`);
     await sleep(1300);
     const f2 = await flash(P), r2 = await rowNow(P);
-    out(f2.anyNo === 0 && r2.ok.length === 0 && r2.no.length === 0 && (await P.q()) === q0, 'refuse', `abs-${row}: the flash is gone after 1.3 s, still nothing changed`, { f2, r2 });
+    out(f2.anyNo === 0 && r2.ok.length === 0 && r2.no.length === 0 && (await P.q()) === q0, 'refuse', `JN (${row}): the flash is gone after 1.3 s, still nothing changed`, { f2, r2 });
+    const cc = await chip(P, 'order', 'complexity', 2);
+    await click1(P, cc.x, cc.y);
+    await sleep(150);
+    const f3 = await flash(P), r3 = await rowNow(P);
+    out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && same(f3.cno, [2]) && f3.vno && same(sortN(r3.ok), okOf(U13, H, 'abs')), 'refuse', `JN (${row}) -> complete refused too: complete flashes, boxes green ${okOf(U13, H, 'abs')}`, { f3, ok: r3.ok });
+    await sleep(1300);
   }
-  // a drag from complete to compact, released there
-  await P.load(AT('lcm'));
-  await P.enter();
+  // a drag from JN to compact, released there
+  await atJn(P, 'lcm');
   let q0 = await P.q();
-  await drag(P, await chip(P, 'order', 'complexity', 2), await chip(P, 'order', 'complexity', 1));
+  await drag(P, await chip(P, 'order', 'complexity', 0), await chip(P, 'order', 'complexity', 1));
   let p = await pairOf(P, 'order'), f = await flash(P);
-  out(p.token === 'abs-lcm' && (await P.q()) === q0 && same(f.cno, [1]) && f.vno && f.knobs.every(k => k === ''), 'refuse', 'a drag released on compact: refused, flashing, the knob back on complete', { token: p.token, f });
-  // from JN with neither remembered: compact is refused, complete is open
-  await P.load(AT('lcm'));
-  await P.enter();
-  await clickChip(P, 'order', 'complexity', 0);
-  p = await pairOf(P, 'order');
-  out(p.token === 'jn' && p.v.now === 1 && p.v.inert, 'refuse', 'abs-lcm -> JN: jn, the resting form slider on neither', p);
-  q0 = await P.q();
-  out(same((await flash(P)).blocked, [1]), 'refuse', 'at JN with neither remembered: compact blocked, complete not', (await flash(P)).blocked);
-  let c = await chip(P, 'order', 'complexity', 1);
-  await click1(P, c.x, c.y);
-  await sleep(150);
-  p = await pairOf(P, 'order'); f = await flash(P);
-  out(p.token === 'jn' && (await P.q()) === q0 && same(f.cno, [1]) && f.vno, 'refuse', 'JN -> compact: refused (jn, url unchanged), compact and the resting neither notch flash', { token: p.token, f });
+  out(p.token === 'jn' && (await P.q()) === q0 && same(f.cno, [1]) && f.vno && f.knobs.every(k => k === ''), 'refuse', 'a drag released on compact: refused, flashing, the knob back on JN', { token: p.token, f });
   await sleep(1300);
-  await clickChip(P, 'order', 'complexity', 2);
-  out((await pairOf(P, 'order')).token === 'abs-lcm' && (await flash(P)).anyNo === 0, 'refuse', 'JN -> complete: abs-lcm (a is open)', (await pairOf(P, 'order')).token);
-  // a base that shuts a too, chosen at JN: compact and complete are both refused
-  let jc = null;
-  for (const M of [U13, unitsModel(19)]) for (let h = 2; h < M.n && !jc; h++) {
-    if (gcd(h, M.n) !== 1) continue;
-    const bo = M.gens.find(g => reach(M, g, h).abs), bn = M.gens.find(g => !reach(M, g, h).abs);
-    if (bo !== undefined && bn !== undefined) jc = { M, h, bo, bn };
+  // the opening base again: both open
+  const bo = await centre(P, `.ring-hover-formula .lb-box[data-g="${BO}"]`);
+  await P.mouse(bo.x, bo.y);
+  await sleep(300);
+  out(same((await flash(P)).blocked, []), 'refuse', `JN, base ${BO} again: nothing blocked`, (await flash(P)).blocked);
+  await clickChip(P, 'order', 'complexity', 1);
+  out((await pairOf(P, 'order')).token === 'pos-lcm', 'refuse', 'JN -> compact under base 6: pos-lcm (the LCM row remembered)', (await pairOf(P, 'order')).token);
+  // a curve: a and a2 shut under one base, open under another
+  let hit = null;
+  for (let h = 1; h < E11.N && !hit; h++) {
+    const bn = E11.gens.find(b => !reach(E11, b, h).pos), bo2 = E11.gens.find(b => reach(E11, b, h).pos && reach(E11, b, h).q !== 1);
+    if (bn !== undefined && bo2 !== undefined) hit = { h, bn, bo: bo2 };
   }
-  out(!!jc, 'refuse', jc ? `model: (ℤ/${jc.M.n}ℤ)* h=${jc.h} has a open under base ${jc.bo}, a shut under base ${jc.bn}` : 'a case with a shut');
-  if (jc) {
-    await P.load(`?mobile=0&mode=multiplicative&n=${jc.M.n}&subformularow=both&subformularing=both&gen=${jc.h}&logbase=${jc.bo}&fmaporder=abs-gcd`);
+  out(!!hit, 'refuse', hit ? `curve: h=${E11.at(hit.h)} has a and a2 shut under base ${E11.at(hit.bn)}, open under ${E11.at(hit.bo)}` : 'a curve case');
+  if (hit) {
+    await P.load(`?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=${hit.h}&logbase=${hit.bo}&fmaporder=abs-gcd`);
     await P.enter();
     await clickChip(P, 'order', 'complexity', 0);
-    const bc = await centre(P, `.ring-hover-formula .lb-box[data-g="${jc.bn}"]`);
+    const bc = await centre(P, `.ring-hover-formula .lb-box[data-g="${hit.bn}"]`);
     await P.mouse(bc.x, bc.y);
-    p = await pairOf(P, 'order');
-    out(p.token === 'jn' && (await P.param('logbase')) === String(jc.bn) && same((await flash(P)).blocked, [1, 2]), 'refuse', `JN, base ${jc.bn}: both compact and complete blocked`, { token: p.token, b: await P.param('logbase'), blocked: (await flash(P)).blocked });
+    await sleep(300);
     q0 = await P.q();
-    c = await chip(P, 'order', 'complexity', 2);
+    const c = await chip(P, 'order', 'complexity', 1);
     await click1(P, c.x, c.y);
     await sleep(150);
     f = await flash(P); const r = await rowNow(P);
-    out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && same(f.cno, [2]) && f.vno && same(sortN(r.ok), okOf(jc.M, jc.h, 'abs')) && same(sortN(r.no), noOf(jc.M, jc.h, 'abs')), 'refuse', `JN -> complete refused: complete flashes, boxes green ${okOf(jc.M, jc.h, 'abs')} (where a opens)`, { f, ok: r.ok, no: r.no });
-    await sleep(1300);
-    c = await chip(P, 'order', 'complexity', 1);
-    await click1(P, c.x, c.y);
-    await sleep(150);
-    f = await flash(P);
-    out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && same(f.cno, [1]) && f.vno, 'refuse', 'JN -> compact refused too', f);
-  }
-  // a curve: a open, a2 shut
-  let hit = null;
-  for (let h = 1; h < E11.N && !hit; h++) for (const b of E11.gens) if (!hit && reach(E11, b, h).abs && !reach(E11, b, h).pos && pickModel(E11, h, b, 'pos') !== null) hit = { h, b };
-  out(!!hit, 'refuse', hit ? `curve: h=${E11.at(hit.h)} base ${E11.at(hit.b)} has a open and a2 shut` : 'a curve case');
-  if (hit) {
-    await P.load(`?mobile=0&curve=11,1,3&subformularow=both&subformularing=both&gen=${hit.h}&logbase=${hit.b}&fmaporder=abs-gcd`);
-    await P.enter();
-    q0 = await P.q();
-    c = await chip(P, 'order', 'complexity', 1);
-    await click1(P, c.x, c.y);
-    await sleep(150);
-    f = await flash(P); const r = await rowNow(P);
-    out((await pairOf(P, 'order')).token === 'abs-gcd' && (await P.q()) === q0 && same(f.cno, [1]) && f.vno && same(sortN(r.ok), okOf(E11, hit.h, 'pos')), 'refuse', 'curve: complete -> compact refused, flashing, boxes per the model', { f, ok: r.ok });
+    out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && same(f.cno, [1]) && f.vno && same(sortN(r.ok), okOf(E11, hit.h, 'pos')), 'refuse', 'curve: JN -> compact refused, flashing, boxes per the model', { f, ok: r.ok, q0 });
   }
   noErrors(P, 'refuse');
   await P.done();
@@ -614,63 +622,53 @@ SCENARIOS.push(['refuse', async browser => {
 /* ---------- keys: the arrows are refused at a blocked notch, never skip it ---------- */
 SCENARIOS.push(['keys', async browser => {
   const P = await openPage(browser, 'keys', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(AT('lcm'));
-  await P.enter();
+  await atJn(P, 'lcm');
   await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').focus()`);
   const focus = () => P.ev(`(function(){var a=document.activeElement, p=a&&a.closest&&a.closest('.fsl-pair'); return p ? p.getAttribute('data-f') + '/' + a.getAttribute('data-kind') : null; })()`);
-  let q0 = await P.q();
-  for (const [key, vk] of [['ArrowLeft', 37], ['ArrowDown', 40]]) {
+  const q0 = await P.q();
+  for (const [key, vk] of [['ArrowRight', 39], ['ArrowUp', 38]]) {
     await P.key(key, key, vk);   // P.key waits 500 ms: the flash is still running
     const f = await flash(P);
-    out((await pairOf(P, 'order')).token === 'abs-lcm' && (await P.q()) === q0 && (await focus()) === 'order/complexity' && same(f.cno, [1]) && f.vno, 'keys', `${key} at complete: refused (abs-lcm, url unchanged, focus kept), compact flashes`, { t: (await pairOf(P, 'order')).token, fo: await focus(), f });
+    out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && (await focus()) === 'order/complexity' && same(f.cno, [1]) && f.vno, 'keys', `${key} at JN: refused at compact, not skipped to complete (jn, url unchanged, focus kept)`, { t: (await pairOf(P, 'order')).token, fo: await focus(), f });
     await sleep(900);
   }
-  await P.key('Home', 'Home', 36);
-  out((await pairOf(P, 'order')).token === 'jn' && (await focus()) === 'order/complexity', 'keys', 'Home: jn (JN is never blocked)', (await pairOf(P, 'order')).token);
-  await sleep(700);
-  q0 = await P.q();
-  await P.key('ArrowRight', 'ArrowRight', 39);
-  let f = await flash(P);
-  out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && same(f.cno, [1]) && (await focus()) === 'order/complexity', 'keys', 'ArrowRight at JN: refused at compact, not skipped to complete', { t: (await pairOf(P, 'order')).token, f });
-  await sleep(900);
-  await P.key('ArrowUp', 'ArrowUp', 38);
-  out((await pairOf(P, 'order')).token === 'jn' && same((await flash(P)).cno, [1]), 'keys', 'ArrowUp at JN: refused the same way', (await pairOf(P, 'order')).token);
-  await sleep(900);
   await P.key('End', 'End', 35);
-  out((await pairOf(P, 'order')).token === 'abs-lcm' && (await P.param('fmaporder')) === 'abs-lcm', 'keys', 'End: abs-lcm (complete is open)', await P.q());
+  let f = await flash(P);
+  out((await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0 && same(f.cno, [2]), 'keys', 'End at JN: complete blocked too, refused', { t: (await pairOf(P, 'order')).token, f });
+  await sleep(900);
+  await P.key('Home', 'Home', 36);
+  out((await pairOf(P, 'order')).token === 'jn' && (await focus()) === 'order/complexity' && (await flash(P)).anyNo === 0, 'keys', 'Home: jn (JN is never blocked)', (await pairOf(P, 'order')).token);
   noErrors(P, 'keys');
   await P.done();
 }]);
 
 /* ---------- force: a double-click on a blocked notch forces its base ---------- */
-async function forceBlocked(P, name, fromJn) {
-  const pick = pickModel(U13, H, B, 'pos');
-  await P.load(AT('lcm'));
-  await P.enter();
-  if (fromJn) await clickChip(P, 'order', 'complexity', 0);
-  const tok0 = fromJn ? 'jn' : 'abs-lcm';
-  out((await pairOf(P, 'order')).token === tok0, 'force', `${name}: starts on ${tok0}`, (await pairOf(P, 'order')).token);
-  await P.ev(BSAMPLER(3200, 1));
-  const c = await chip(P, 'order', 'complexity', 1);
+async function forceBlocked(P, name, cv) {
+  const node = cv === 1 ? 'pos' : 'abs', pick = pickModel(U13, H, B, node), tok = `${node}-lcm`;
+  await atJn(P, 'lcm');
+  const tok0 = 'jn';
+  out((await pairOf(P, 'order')).token === tok0 && (await P.param('logbase')) === String(B), 'force', `${name}: starts on jn, base ${B}`, (await pairOf(P, 'order')).token);
+  await P.ev(BSAMPLER(3200, cv));
+  const c = await chip(P, 'order', 'complexity', cv);
   await dbl(P, c.x, c.y);
   await sleep(3000);
   const ss = (await bsamples(P)).filter(s => s.t !== null && s.t >= 0);
   const ph = []; for (const s of ss) { const x = s.set.includes(pick) ? 'set' : s.pulse.includes(pick) ? 'pulse' : 'none'; if (ph[ph.length - 1] !== x) ph.push(x); }
   out(same(ph, ['pulse', 'set', 'none']), 'force', `${name}: box ${pick} pulses, flashes as the chosen base, then rests`, ph);
-  out(same(seq(ss, 'c'), ['pulse', 'set', 'none']) && same(seq(ss, 'n'), ['pulse', 'set', 'none']), 'force', `${name}: the compact notch and the neither notch pulse and flash in step`, { c: seq(ss, 'c'), n: seq(ss, 'n') });
+  out(same(seq(ss, 'c'), ['pulse', 'set', 'none']) && same(seq(ss, 'n'), ['pulse', 'set', 'none']), 'force', `${name}: the ${C_TEXT[cv]} notch and the neither notch pulse and flash in step`, { c: seq(ss, 'c'), n: seq(ss, 'n') });
   const pulses = ss.filter(s => s.pulse.length);
   out(pulses.length > 0 && pulses.every(s => s.base === B && s.token === tok0), 'force', `${name}: while it pulses the base and the token stay`, pulses[0]);
   const firstSet = ss.find(s => s.set.includes(pick));
-  out(!!firstSet && firstSet.t >= 1000 && firstSet.t <= 1450 && firstSet.base === pick && firstSet.at === 'pos', 'force', `${name}: at about 1.1 s the base is ${pick} and the order formula on a2`, firstSet);
+  out(!!firstSet && firstSet.t >= 1000 && firstSet.t <= 1450 && firstSet.base === pick && firstSet.at === node, 'force', `${name}: at about 1.1 s the base is ${pick} and the order formula on ${node === 'pos' ? 'a2' : 'a'}`, firstSet);
   const q = new URLSearchParams(await P.q()), p = await pairOf(P, 'order');
-  out(q.get('logbase') === String(pick) && q.get('fmaporder') === 'pos-lcm' && p.c.now === 1 && p.v.now === 1 && same(p.v.closed, []), 'force', `${name}: url logbase=${pick}, fmaporder=pos-lcm, sliders compact / neither (the LCM row kept)`, { q: Object.fromEntries(q), c: p.c.now, v: p.v.now });
+  out(q.get('logbase') === String(pick) && q.get('fmaporder') === tok && p.c.now === cv && p.v.now === 1 && same(p.v.closed, []), 'force', `${name}: url logbase=${pick}, fmaporder=${tok}, sliders ${C_TEXT[cv]} / neither (the LCM row kept)`, { q: Object.fromEntries(q), c: p.c.now, v: p.v.now });
   const f = await P.formulas();
-  out(same(plains(f.ring), wantPair(U13, pick, H, 'pos-lcm', 'gcd-full')), 'force', `${name}: the formulas take log base ${pick}`, plains(f.ring));
+  out(same(plains(f.ring), wantPair(U13, pick, H, tok, 'gcd-full')), 'force', `${name}: the formulas take log base ${pick}`, plains(f.ring));
 }
 SCENARIOS.push(['force', async browser => {
   const P = await openPage(browser, 'force', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await forceBlocked(P, 'complete -> compact', false);
-  await forceBlocked(P, 'JN -> compact', true);
+  await forceBlocked(P, 'JN -> compact', 1);
+  await forceBlocked(P, 'JN -> complete', 2);
   noErrors(P, 'force');
   await P.done();
 }]);
@@ -678,15 +676,18 @@ SCENARIOS.push(['force', async browser => {
 /* ---------- lock: the padlock closed ---------- */
 SCENARIOS.push(['lock', async browser => {
   const P = await openPage(browser, 'lock', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(AT('lcm', '&logbaselock=1'));
-  await P.enter();
+  await atJn(P, 'lcm');
+  const lc = await centre(P, '.ring-hover-formula .lb-lock');
+  await P.mouse(lc.x, lc.y);
+  await sleep(300);
   const q0 = await P.q();
+  out(new URLSearchParams(q0).get('logbaselock') === '1', 'lock', 'the padlock closed (logbaselock=1)', q0);
   let c = await chip(P, 'order', 'complexity', 1);
   await click1(P, c.x, c.y);
   await sleep(120);
   const f = await flash(P), r = await rowNow(P);
   out(await P.exists('.lb-lock.is-nudge'), 'lock', 'a click on the blocked compact nudges the padlock (.lb-lock.is-nudge)');
-  out(same(f.cno, [1]) && f.vno && r.ok.length + r.no.length === U13.gens.length && (await pairOf(P, 'order')).token === 'abs-lcm' && (await P.q()) === q0, 'lock', 'and still refuses with the flash (notches and boxes), nothing changed', { f, ok: r.ok, no: r.no });
+  out(same(f.cno, [1]) && f.vno && r.ok.length + r.no.length === U13.gens.length && (await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0, 'lock', 'and still refuses with the flash (notches and boxes), nothing changed', { f, ok: r.ok, no: r.no });
   await sleep(1300);
   await P.ev(BSAMPLER(2000, 1));
   c = await chip(P, 'order', 'complexity', 1);
@@ -696,7 +697,7 @@ SCENARIOS.push(['lock', async browser => {
   await sleep(1900);
   const ss = (await bsamples(P)).filter(s => s.t !== null && s.t >= 0);
   out(ss.length > 0 && ss.every(s => !s.pulse.length && !s.set.length && s.c === 'none' && s.n === 'none'), 'lock', 'no force class on any box or notch', ss.find(s => s.pulse.length || s.set.length || s.c !== 'none'));
-  out((await P.param('logbase')) === String(B) && (await pairOf(P, 'order')).token === 'abs-lcm' && (await P.q()) === q0, 'lock', 'the base and the token unchanged', await P.q());
+  out((await P.param('logbase')) === String(B) && (await pairOf(P, 'order')).token === 'jn' && (await P.q()) === q0, 'lock', 'the base and the token unchanged', await P.q());
   noErrors(P, 'lock');
   await P.done();
 }]);
@@ -704,8 +705,7 @@ SCENARIOS.push(['lock', async browser => {
 /* ---------- map: an open map's node flashes, and a rebuild carries the flash ---------- */
 SCENARIOS.push(['map', async browser => {
   const P = await openPage(browser, 'map', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(AT('lcm', '&fmapopen=1'));
-  await P.enter();
+  await atJn(P, 'lcm', '&fmapopen=1');
   out(await P.exists('.fmap[data-f="order"]'), 'map', 'the formula map is open beside the sliders');
   let c = await chip(P, 'order', 'complexity', 1);
   await click1(P, c.x, c.y);
@@ -723,8 +723,7 @@ SCENARIOS.push(['map', async browser => {
   const ss = (await bsamples(P)).filter(s => s.t !== null && s.t >= 0);
   out(same(seq(ss, 'stop'), ['pulse', 'set', 'none']) && (await pairOf(P, 'order')).token === 'pos-lcm', 'map', "a double-click: the map's a2 node pulses and flashes, the formula lands on pos-lcm", { stop: seq(ss, 'stop'), t: (await pairOf(P, 'order')).token });
   // a rebuild mid-flash (the map toggle) carries the flash onto the new box
-  await P.load(AT('lcm'));
-  await P.enter();
+  await atJn(P, 'lcm');
   c = await chip(P, 'order', 'complexity', 1);
   await click1(P, c.x, c.y);
   await sleep(300);
@@ -734,7 +733,7 @@ SCENARIOS.push(['map', async browser => {
   out(await P.exists('.fmap[data-f="order"]'), 'map', 'the toggle opened the map (the box rebuilt)');
   out(same(f.cno, [1]) && f.vno && same(f.stops, ['pos']) && /^-\d/.test(f.delays[1]) && /^-\d/.test(f.vdelay) && /^-\d/.test(f.stopDelay), 'map', 'the rebuilt notches and the new map node carry the flash, as far along as it is (negative delay)', f);
   await sleep(1100);
-  out((await flash(P)).anyNo === 0 && (await pairOf(P, 'order')).token === 'abs-lcm', 'map', 'and it ends on time, nothing moved', await flash(P));
+  out((await flash(P)).anyNo === 0 && (await pairOf(P, 'order')).token === 'jn', 'map', 'and it ends on time, nothing moved', await flash(P));
   noErrors(P, 'map');
   await P.done();
 }]);
@@ -753,16 +752,15 @@ SCENARIOS.push(['open', async browser => {
   await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').focus()`);
   await P.key('ArrowRight', 'ArrowRight', 39);
   out((await pairOf(P, 'order')).token === 'abs-lcm', 'open', 'ArrowRight from compact / neither: abs-lcm', (await pairOf(P, 'order')).token);
-  // base 2, h=5 (a2 shut): moves that keep GCD or LCM are open
+  // base 2, h=6 (a and a2 shut): moves that keep GCD or LCM are open
   await P.load(`${UNITS}&gen=${H}&logbase=${B}`);
   await P.enter();
   out(same((await flash(P)).blocked, []), 'open', 'gcd-full under base 2: no notch blocked (the form is GCD)', (await flash(P)).blocked);
   await clickChip(P, 'order', 'complexity', 1);
   out((await pairOf(P, 'order')).token === 'gcd-short' && (await flash(P)).anyNo === 0, 'open', 'gcd-full -> compact: gcd-short', (await pairOf(P, 'order')).token);
-  await P.load(AT('lcm'));
+  await P.load(`${UNITS}&gen=${H}&logbase=${B}&fmaporder=abs-lcm`);
   await P.enter();
-  await clickChip(P, 'order', 'form', 0);
-  out((await pairOf(P, 'order')).token === 'lcm-full', 'open', 'abs-lcm -> form LCM: lcm-full', (await pairOf(P, 'order')).token);
+  out((await pairOf(P, 'order')).token === 'lcm-full', 'open', 'abs-lcm asked under base 2 settles to lcm-full', (await pairOf(P, 'order')).token);
   await clickChip(P, 'order', 'complexity', 1);
   out((await pairOf(P, 'order')).token === 'lcm-short' && (await flash(P)).anyNo === 0, 'open', 'lcm-full -> compact: lcm-short, no flash', (await pairOf(P, 'order')).token);
   await clickChip(P, 'order', 'complexity', 0);
@@ -776,8 +774,7 @@ SCENARIOS.push(['open', async browser => {
 SCENARIOS.push(['shot', async browser => {
   const P = await openPage(browser, 'shot', { w: 1280, h: 900, ua: UA_DESKTOP });
   await P.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
-  await P.load(AT('lcm', '&fmapopen=1'));
-  await P.enter();
+  await atJn(P, 'lcm', '&fmapopen=1');
   const c = await chip(P, 'order', 'complexity', 1);
   await click1(P, c.x, c.y);
   await sleep(250);

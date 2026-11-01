@@ -198,13 +198,13 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -226,7 +226,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -237,7 +237,7 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
@@ -451,6 +451,19 @@ async function drag(P, from, to, steps = 8) {
   await sleep(600);
 }
 const okOf = (M, h, node) => sortN(M.gens.filter(g => reach(M, g, h)[node]));
+// Quick 261101-o20: a2 opens exactly when a does, so (ℤ/13ℤ)* h=5 base 2
+// (r = −3) has both open; h=6 (log_2 6 = 5) has both shut under base 2 and
+// open under 6 and 11. The closed-neither cases use h=6; a refused
+// complexity move is reached only from JN with neither remembered (jnShut).
+const HS = 6;
+async function jnShut(P, row = 'lcm') {
+  await P.load(`${UNITS}&gen=${HS}&logbase=6&fmaporder=abs-${row}`);
+  await P.enter();
+  await clickChip(P, 'order', 'complexity', 0);
+  const bc = await centre(P, '.ring-hover-formula .lb-box[data-g="2"]');
+  await P.mouse(bc.x, bc.y);
+  await sleep(300);
+}
 const noOf = (M, h, node) => sortN(M.gens.filter(g => !reach(M, g, h)[node]));
 
 /* ---------- syntax ---------- */
@@ -550,21 +563,19 @@ SCENARIOS.push(['memo', async browser => {
   await P.enter();
   await clickChip(P, 'order', 'form', 1);
   out((await tokNow()) === 'pos-gcd', 'memo', 'gcd-short -> neither: pos-gcd', await tokNow());
-  // J-01: (ℤ/13ℤ)* h=5 base 2, a open and a2 closed
-  const rc = reach(U13, 2, 5);
-  out(rc.abs && !rc.pos, 'memo', 'model: (ℤ/13ℤ)* h=5 base 2 has a open and a2 closed', rc);
-  // 261101-ix2: a complexity move onto a shut neither is refused (no fallback to the row's form)
+  // J-01: (ℤ/13ℤ)* h=5 base 2 had a open and a2 closed; since 261101-o20 both open together
+  const rc = reach(U13, 2, 5), rs = reach(U13, 2, HS);
+  out(rc.abs && rc.pos && !rs.abs && !rs.pos, 'memo', 'model: (ℤ/13ℤ)* base 2 opens a and a2 together at h=5, shuts both at h=6', { rc, rs });
   await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=abs-lcm`);
   await P.enter();
   await clickChip(P, 'order', 'complexity', 1);
   p = await pairOf(P, 'order');
-  out(p.token === 'abs-lcm' && p.c.now === 2 && p.v.now === 1 && (await P.param('fmaporder')) === 'abs-lcm', 'memo', 'J-01 (ix2): abs-lcm -> compact is refused, abs-lcm stays', p);
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=abs-gcd`);
-  await P.enter();
-  await clickChip(P, 'order', 'complexity', 0);
+  out(p.token === 'pos-lcm' && p.c.now === 1 && p.v.now === 1 && (await P.param('fmaporder')) === 'pos-lcm', 'memo', 'J-01 gone: h=5 abs-lcm -> compact is open now, pos-lcm', p);
+  // 261101-ix2: a complexity move onto a shut neither is refused (no fallback to the row's form), now only from JN
+  await jnShut(P, 'gcd');
   await clickChip(P, 'order', 'complexity', 1);
   p = await pairOf(P, 'order');
-  out(p.token === 'jn' && p.v.now === 1 && p.v.inert, 'memo', 'J-01 (ix2): abs-gcd -> JN -> compact is refused, jn stays with neither remembered', p);
+  out(p.token === 'jn' && p.v.now === 1 && p.v.inert && (await P.param('logbase')) === '2', 'memo', 'J-01 (ix2): h=6 abs-gcd -> JN -> base 2 -> compact is refused, jn stays with neither remembered', p);
   noErrors(P, 'memo');
   await P.done();
 }]);
@@ -638,8 +649,8 @@ SCENARIOS.push(['drag', async browser => {
   from = await chip(P, 'order', 'complexity', 2); to = await chip(P, 'order', 'complexity', 0);
   await drag(P, from, { x: to.x + 4, y: to.y });
   out((await pairOf(P, 'order')).token === 'jn', 'drag', 'the complexity knob dragged to JN: jn', (await pairOf(P, 'order')).token);
-  // onto a closed neither: (ℤ/13ℤ)* h=5 base 2 at compact (a2 closed)
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  // onto a closed neither: (ℤ/13ℤ)* h=6 base 2 at compact (a2 closed)
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short`);
   await P.enter();
   from = await chip(P, 'order', 'form', 2); to = await chip(P, 'order', 'form', 1);
   await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: from.x, y: from.y });
@@ -654,7 +665,7 @@ SCENARIOS.push(['drag', async browser => {
   const k = await P.ev(`(function(){var s=document.querySelector('${chipSel('order', 'form', 1)}').parentNode, k=s.querySelector('.fsl-knob').getBoundingClientRect(); return { left: s.querySelector('.fsl-knob').style.left, kx: k.left + k.width / 2, drag: s.classList.contains('is-drag') }; })()`);
   out((await pairOf(P, 'order')).token === 'gcd-short' && (await P.param('fmaporder')) === 'gcd-short', 'drag', 'let go on the closed neither: the token stays gcd-short', await P.q());
   out(k.left === '' && !k.drag && Math.abs(k.kx - from.x) < 3, 'drag', 'and the knob is back on GCD', { k, gcd: from.x });
-  out(same(sortN(r.ok), okOf(U13, 5, 'pos')) && same(sortN(r.no), noOf(U13, 5, 'pos')), 'drag', `the boxes hint: green ${okOf(U13, 5, 'pos')}, red ${noOf(U13, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  out(same(sortN(r.ok), okOf(U13, HS, 'pos')) && same(sortN(r.no), noOf(U13, HS, 'pos')), 'drag', `the boxes hint: green ${okOf(U13, HS, 'pos')}, red ${noOf(U13, HS, 'pos')}`, { ok: r.ok, no: r.no });
   noErrors(P, 'drag');
   await P.done();
 }]);
@@ -677,7 +688,7 @@ SCENARIOS.push(['keys', async browser => {
   const q = new URLSearchParams(await P.q());
   out((await P.ev(`document.getElementById('expr-slider').value`)) === exprBefore && q.get('expr') === qBefore.get('expr') && q.get('gen') === qBefore.get('gen'), 'keys', 'the expression slider, expr and the selected row are untouched', { expr: q.get('expr'), gen: q.get('gen') });
   // with a closed neither, ArrowLeft from GCD lands on LCM
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short`);
   await P.enter();
   await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="form"]').focus()`);
   await P.key('ArrowLeft', 'ArrowLeft', 37);
@@ -702,18 +713,18 @@ SCENARIOS.push(['keys', async browser => {
 /* ---------- closed: a click on a closed neither hints ---------- */
 SCENARIOS.push(['closed', async browser => {
   const P = await openPage(browser, 'closed', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short`);
   await P.enter();
   let p = await pairOf(P, 'order');
-  out(same(p.v.closed, [1]) && same((await pairOf(P, 'index')).v.closed, []), 'closed', 'h=5 base 2: the order formula at compact has its neither closed (a2), the index one at complete open (a)', [p.v.closed, (await pairOf(P, 'index')).v.closed]);
+  out(same(p.v.closed, [1]) && same((await pairOf(P, 'index')).v.closed, [1]), 'closed', 'h=6 base 2: the order formula at compact has its neither closed (a2), the index one at complete closed too (a shuts with a2)', [p.v.closed, (await pairOf(P, 'index')).v.closed]);
   let c = await chip(P, 'order', 'form', 1);
   await click1(P, c.x, c.y);
   await sleep(250);
   const r = await rowNow(P);
-  out(same(sortN(r.ok), okOf(U13, 5, 'pos')) && same(sortN(r.no), noOf(U13, 5, 'pos')), 'closed', `a click: green ${okOf(U13, 5, 'pos')}, red ${noOf(U13, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  out(same(sortN(r.ok), okOf(U13, HS, 'pos')) && same(sortN(r.no), noOf(U13, HS, 'pos')), 'closed', `a click: green ${okOf(U13, HS, 'pos')}, red ${noOf(U13, HS, 'pos')}`, { ok: r.ok, no: r.no });
   await sleep(1300);
   out((await pairOf(P, 'order')).token === 'gcd-short' && (await P.param('logbase')) === '2', 'closed', 'and no commit (gcd-short, base 2)', await P.q());
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&logbaselock=1`);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short&logbaselock=1`);
   await P.enter();
   c = await chip(P, 'order', 'form', 1);
   await click1(P, c.x, c.y);
@@ -759,7 +770,7 @@ async function forceSl(P, scen, name, url, M, h, base) {
 }
 SCENARIOS.push(['force', async browser => {
   const P = await openPage(browser, 'force', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await forceSl(P, 'force', `(ℤ/13ℤ)* h=5 base 2 -> ${pickModel(U13, 5, 2, 'pos')}`, `${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`, U13, 5, 2);
+  await forceSl(P, 'force', `(ℤ/13ℤ)* h=6 base 2 -> ${pickModel(U13, HS, 2, 'pos')}`, `${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short`, U13, HS, 2);
   let hit = null;
   for (let h = 1; h < E11.N && !hit; h++) for (const b of E11.gens) if (!hit && !reach(E11, b, h).pos && pickModel(E11, h, b, 'pos') !== null) hit = { h, b };
   out(!!hit, 'force', hit ? `curve: h=${E11.at(hit.h)} base ${E11.at(hit.b)} has a2 closed` : 'a curve case');
@@ -780,7 +791,7 @@ SCENARIOS.push(['force', async browser => {
 /* ---------- lock: the padlock closed, a double-click forces nothing ---------- */
 SCENARIOS.push(['lock', async browser => {
   const P = await openPage(browser, 'lock', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&logbaselock=1`);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short&logbaselock=1`);
   await P.enter();
   await P.ev(SAMPLER(2000));
   const c = await chip(P, 'order', 'form', 1);
@@ -980,22 +991,24 @@ SCENARIOS.push(['knob', async browser => {
   await sleep(600);
   out(Math.abs(clampL.k.x - s0[0].d.x) < 0.6 && clampL.left !== '' && centred(await knobOf(P, 'order', 'complexity')) && (await pairOf(P, 'order')).token === 'jn', 'knob', 'dragged past the JN end the knob stops on JN, and rests there centred', clampL);
   // refused moves: the knob tries and springs back, centred on its own slot
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=abs-lcm`);   // a open, a2 shut
-  await P.enter();
+  // (since 261101-o20 only from JN with neither remembered, a2 and a shut together)
+  await jnShut(P, 'lcm');
   c = await pick('complexity', 1, '.fsl-detent');
   await click1(P, c.x, c.y);
   await sleep(90);
   const tryk = await knobOf(P, 'order', 'complexity');
   await sleep(600);
   kn = await knobOf(P, 'order', 'complexity');
-  out((await pairOf(P, 'order')).token === 'abs-lcm' && tryk.anims.length > 0 && tryk.k.x < kn.slot.x - 1 && kn.now === 2 && centred(kn) && kn.transform === 'none', 'knob', 'a refused complexity click: the knob tries toward compact, springs back and rests centred on complete', { tryk, kn });
-  d = await relDrag('complexity', 2, 2, 1, 0.8);
-  out((await pairOf(P, 'order')).token === 'abs-lcm' && d.snap.anims.includes('left') && d.end.now === 2 && centred(d.end), 'knob', 'a refused drag release on compact: the knob slides back and rests centred on complete', d);
+  out((await pairOf(P, 'order')).token === 'jn' && tryk.anims.length > 0 && tryk.k.x > kn.slot.x + 1 && kn.now === 0 && centred(kn) && kn.transform === 'none', 'knob', 'a refused complexity click: the knob tries toward compact, springs back and rests centred on JN', { tryk, kn });
+  await sleep(700);
+  d = await relDrag('complexity', 0, 0, 1, 0.8);
+  out((await pairOf(P, 'order')).token === 'jn' && d.snap.anims.includes('left') && d.end.now === 0 && centred(d.end), 'knob', 'a refused drag release on compact: the knob slides back and rests centred on JN', d);
+  await sleep(700);
   await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"]').focus()`);
-  await P.key('ArrowLeft', 'ArrowLeft', 37);
+  await P.key('ArrowRight', 'ArrowRight', 39);
   kn = await knobOf(P, 'order', 'complexity');
-  out((await pairOf(P, 'order')).token === 'abs-lcm' && centred(kn) && kn.transform === 'none', 'knob', 'a refused ArrowLeft: still abs-lcm, the knob back centred on complete', kn);
-  await P.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);   // the neither slot closed
+  out((await pairOf(P, 'order')).token === 'jn' && centred(kn) && kn.transform === 'none', 'knob', 'a refused ArrowRight: still jn, the knob back centred on JN', kn);
+  await P.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short`);   // the neither slot closed
   await P.enter();
   c = await pick('form', 1, '.fsl-detent');
   await click1(P, c.x, c.y);
@@ -1046,8 +1059,8 @@ SCENARIOS.push(['shot', async browser => {
     await Q.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
     const pairClip = async () => { const r = await Q.rect('.fsl-pair[data-f="order"]'); return { x: r.x - 10, y: r.y - 8, width: r.w + 20, height: r.h + 16 }; };
     const boxClip = async () => { const r = await Q.rect('.ring-hover-formula'); return { x: Math.max(0, r.x - 8), y: Math.max(0, r.y - 8), width: Math.min(r.w + 16, 1280), height: r.h + 16 }; };
-    // complete / GCD with the neither slot closed (h=5 base 2: a2 shut at compact; here a open)
-    await Q.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short`);
+    // compact / GCD with the neither slot closed (h=6 base 2: a2 and a shut together since 261101-o20)
+    await Q.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short`);
     await Q.enter();
     await Q.shot(K8Y + `shot-k8y-pair-closed-${scheme}.png`, await pairClip(), scheme);
     await Q.shot(K8Y + `shot-k8y-box-${scheme}.png`, await boxClip(), scheme);
@@ -1071,7 +1084,7 @@ SCENARIOS.push(['shot', async browser => {
   for (const w of [760, 700]) {
     const Q = await openPage(browser, 'shot', { w, h: 900, ua: UA_DESKTOP });
     await Q.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
-    await Q.load(`${UNITS}&gen=5&logbase=2&fmaporder=gcd-short&fmapopen=1`);
+    await Q.load(`${UNITS}&gen=${HS}&logbase=2&fmaporder=gcd-short&fmapopen=1`);
     await Q.enter();
     const r = await Q.rect('.ring-hover-formula'), sy = await Q.ev('window.scrollY');
     await Q.shot(K8Y + `shot-k8y-narrow-${w}-light.png`, { x: Math.max(0, r.x - 8), y: r.y + sy - 8, width: Math.min(r.w + 16, w), height: r.h + 16 });

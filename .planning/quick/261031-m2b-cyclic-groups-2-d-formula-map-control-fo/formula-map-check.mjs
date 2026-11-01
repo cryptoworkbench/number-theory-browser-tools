@@ -221,13 +221,14 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
-// Where a knob on token t goes when only rc holds (the plan's D-02).
+// Where a knob on token t goes when only rc holds (the plan's D-02; since
+// 261101-o20 a2 and a both fall to their row's full form).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -249,7 +250,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -260,9 +261,20 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
+};
+// quick 261101-o20: an a2 formula keeps the absolute value and has no
+// substitution step (no φ(n), no log of g^r), read off the page's own text.
+const a2Shape = (M, g, h, plain) => {
+  const v = vals(M, g, h, 'pos');
+  return plain.includes(`|log_${v.g}(${v.h})|`) && plain.includes(`|${v.r}|`) && !plain.includes('φ(') && !plain.includes(`log_${v.g}(${v.gr})`);
+};
+const a2Check = async (P, scen, tag, M, g, h, node, f, steps) => {
+  if (node !== 'pos') return;
+  const mathPhi = await P.ev(`Array.prototype.some.call(document.querySelectorAll('.ring-hover-formula math.ring-math-formula'), function(m){ return m.textContent.indexOf('φ') !== -1; })`);
+  out(steps[0] === 4 && steps[1] === 3 && plains(f.ring).every(x => a2Shape(M, g, h, x)) && !mathPhi, scen, `${tag} a2 has 4 / 3 steps, an absolute value and no substitution step`, { steps, ring: plains(f.ring), mathPhi });
 };
 const wantPair = (M, g, h, tokO, tokI) => {
   const nO = NODE_OF(tokO), nI = NODE_OF(tokI);
@@ -404,7 +416,11 @@ SCENARIOS.push(['regress', async browser => {
 SCENARIOS.push(['zn', async browser => {
   const P = await openPage(browser, 'zn', { w: 1280, h: 900, ua: UA_DESKTOP });
   const M = znModel(12);
-  out(M.log(1, 9) === 9 && reach(M, 1, 9).r === -3 && reach(M, 1, 3).pos && !reach(M, 1, 9).pos, 'zn', 'model-matches-the-worked-example');
+  out(M.log(1, 9) === 9 && reach(M, 1, 9).r === -3 && reach(M, 1, 3).pos && reach(M, 1, 9).pos && !reach(M, 1, 7).pos && !reach(M, 1, 7).abs, 'zn', 'model-matches-the-worked-example (a2 opens with a: under 3 and 9, not 7)');
+  // a2 and a are open together for every h and base of ℤ/12ℤ
+  let together = true;
+  for (let h = 0; h < 12; h++) for (const g of M.gens) { const rc = reach(M, g, h); if (rc.pos !== rc.abs) together = false; }
+  out(together, 'zn', 'model: a2 is open exactly when a is, every h and base');
   for (const [h, expr] of [[9, 1], [3, 1], [7, 1], [0, 1], [9, 7]]) {
     const rc = reach(M, expr, h);
     for (const t of ALL_TOKENS) {
@@ -416,6 +432,7 @@ SCENARIOS.push(['zn', async browser => {
       const want = wantPair(M, expr, h, eff, eff);
       out(JSON.stringify(plains(f.ring)) === JSON.stringify(want), 'zn', `h=${h} base=${expr} ${t}${eff !== t ? ' -> ' + eff : ''} plain`, { got: plains(f.ring), want });
       out(steps[0] === STEPS_ORDER[node] && steps[1] === STEPS_INDEX[node], 'zn', `h=${h} base=${expr} ${t} steps ${steps}`, { steps, want: [STEPS_ORDER[node], STEPS_INDEX[node]] });
+      await a2Check(P, 'zn', `h=${h} base=${expr} ${t}`, M, expr, h, node, f, steps);
       out(maps.length === 2 && maps.every(m => m.at === node && m.checked === node && JSON.stringify(m.off) === JSON.stringify(offWant(rc)) && m.n === 9), 'zn', `h=${h} base=${expr} ${t} knob and disabled positions`, { maps, off: offWant(rc), node });
       out((await P.param('fmaporder')) === (eff === 'gcd-full' ? null : eff), 'zn', `h=${h} base=${expr} ${t} url follows the snap`, await P.param('fmaporder'));
     }
@@ -437,12 +454,12 @@ SCENARIOS.push(['snap', async browser => {
   out(m[0].at === 'pos' && m[1].at === 'pos' && m[0].off.length === 0, 'snap', 'h=3 both maps sit on a2', m);
   await clickRow(P, 9); await sleep(700);
   m = await mapsNow(P);
-  out(m[0].at === 'abs' && m[1].at === 'abs' && (await P.param('fmaporder')) === 'abs-gcd' && (await P.param('fmapindex')) === 'abs-lcm', 'snap', 'select 9: a2 snaps to a, rows kept (abs-gcd, abs-lcm) in the url', { m, o: await P.param('fmaporder'), i: await P.param('fmapindex') });
+  out(m[0].at === 'pos' && m[1].at === 'pos' && (await P.param('fmaporder')) === 'pos-gcd' && (await P.param('fmapindex')) === 'pos-lcm', 'snap', 'select 9: a2 stays (it opens with a, r = −3), rows kept (pos-gcd, pos-lcm) in the url', { m, o: await P.param('fmaporder'), i: await P.param('fmapindex') });
   let f = await P.formulas();
-  out(JSON.stringify(plains(f.ring)) === JSON.stringify(wantPair(znModel(12), 1, 9, 'abs-gcd', 'abs-lcm')), 'snap', 'the formulas follow the snap', plains(f.ring));
+  out(JSON.stringify(plains(f.ring)) === JSON.stringify(wantPair(znModel(12), 1, 9, 'pos-gcd', 'pos-lcm')), 'snap', 'the formulas follow h', plains(f.ring));
   await clickRow(P, 7); await sleep(700);
   m = await mapsNow(P);
-  out(m[0].at === 'gcd-full' && m[1].at === 'lcm-full' && (await P.param('fmaporder')) === null && (await P.param('fmapindex')) === 'lcm-full', 'snap', 'select 7: a snaps to the row it was entered from at its full form', { m, o: await P.param('fmaporder'), i: await P.param('fmapindex') });
+  out(m[0].at === 'gcd-full' && m[1].at === 'lcm-full' && (await P.param('fmaporder')) === null && (await P.param('fmapindex')) === 'lcm-full', 'snap', 'select 7: a2 snaps straight to the row it was entered from at its full form', { m, o: await P.param('fmaporder'), i: await P.param('fmapindex') });
   // SLS forms stay while h changes (they hold for every h in ℤ/nℤ), jn too
   await P.load(`${ZN}&gen=9&fmaporder=gcd-sls&fmapindex=jn`);
   await P.enter();
@@ -466,10 +483,13 @@ SCENARIOS.push(['maps', async browser => {
   await P.mouse(c.x, c.y);
   out((await at()).join() === 'lcm-short,gcd-full', 'maps', 'a click moves one map only (order -> lcm-short)', await at());
   out((await P.param('fmaporder')) === 'lcm-short' && (await P.param('fmapindex')) === null, 'maps', 'the url shows only the moved map');
-  // a closed position cannot be clicked
+  // a2 is open under h = 9 now (it opens with a): a click takes the knob
   c = await centre(P, '.fmap[data-f="index"] .fmap-stop[data-id="pos"]');
   await P.mouse(c.x, c.y);
-  out((await at()).join() === 'lcm-short,gcd-full', 'maps', 'a closed position (a2, q = 9 does not divide 12) does not take the knob', await at());
+  out((await at()).join() === 'lcm-short,pos', 'maps', 'a2 under h = 9 (r = −3) is open and takes the knob (pos-gcd)', await at());
+  c = await centre(P, '.fmap[data-f="index"] .fmap-stop[data-id="gcd-full"]');
+  await P.mouse(c.x, c.y);
+  out((await at()).join() === 'lcm-short,gcd-full', 'maps', 'and back to GCD (full)', await at());
   // a from the lcm row remembers it
   c = await centre(P, '.fmap[data-f="order"] .fmap-stop[data-id="abs"]');
   await P.mouse(c.x, c.y);
@@ -479,13 +499,29 @@ SCENARIOS.push(['maps', async browser => {
   c = await centre(P, '.fmap[data-f="order"] .fmap-stop[data-id="abs"]');
   await P.mouse(c.x, c.y);
   out((await P.param('fmaporder')) === 'abs-gcd', 'maps', 'a entered from GCD (short) is abs-gcd', await P.param('fmaporder'));
+  // a closed position cannot be clicked: h = 7 shuts a2 and a under base 1
+  await P.load(`${ZN}&gen=7`);
+  await P.enter();
+  c = await centre(P, '.fmap[data-f="index"] .fmap-stop[data-id="pos"]');
+  await P.mouse(c.x, c.y);
+  c = await centre(P, '.fmap[data-f="index"] .fmap-stop[data-id="abs"]');
+  await P.mouse(c.x, c.y);
+  out((await at()).join() === 'gcd-full,gcd-full', 'maps', 'closed positions (a2 and a, q = 7: neither 7 nor 5 divides 12) do not take the knob', await at());
+  // keyboard over closed positions: ArrowRight lands on the closed a2, then the closed a, then LCM (short)
+  await P.ev(`document.querySelector('.fmap[data-f="order"] input:checked').focus()`);
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  let st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at'), aria: a && a.getAttribute('aria-disabled') }; })()`);
+  out(st.f === 'order' && st.v === 'pos' && st.checked === 'gcd-full' && st.aria === 'true', 'maps', 'h = 7: ArrowRight lands on the closed a2, flashes, the knob stays on GCD (full)', st);
+  await P.key('ArrowRight', 'ArrowRight', 39);
+  st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at'), aria: a && a.getAttribute('aria-disabled') }; })()`);
+  out(st.f === 'order' && st.v === 'abs' && st.checked === 'gcd-full' && st.aria === 'true', 'maps', 'h = 7: ArrowRight again lands on the closed a, the knob still on GCD (full)', st);
   // keyboard: focus the order map's knob, arrow right goes to the next open position, the focus stays on the map
   await P.load(`${ZN}&gen=9`);
   await P.enter();
   await P.ev(`document.querySelector('.fmap[data-f="order"] input:checked').focus()`);
   await P.key('ArrowRight', 'ArrowRight', 39);
-  let st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at'), aria: a && a.getAttribute('aria-disabled') }; })()`);
-  out(st.f === 'order' && st.v === 'pos' && st.checked === 'gcd-full' && st.aria === 'true', 'maps', 'ArrowRight lands on the closed a2, flashes, the knob stays on GCD (full)', st);
+  st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at'), aria: a && a.getAttribute('aria-disabled') }; })()`);
+  out(st.f === 'order' && st.v === 'pos' && st.checked === 'pos' && st.aria !== 'true', 'maps', 'h = 9: ArrowRight lands on the open a2 and the knob follows', st);
   await P.key('ArrowRight', 'ArrowRight', 39);
   st = await P.ev(`(function(){var a=document.activeElement, m=a&&a.closest&&a.closest('.fmap'); return { f: m && m.getAttribute('data-f'), v: a && a.value, checked: m && m.getAttribute('data-at') }; })()`);
   out(st.f === 'order' && st.v === 'abs' && st.checked === 'abs', 'maps', 'ArrowRight again goes to a: the knob follows and the focus stays on the map', st);
@@ -524,7 +560,10 @@ SCENARIOS.push(['url', async browser => {
   // a reload through the url keeps a settled position
   await P.load(`${ZN}&gen=9&fmaporder=pos-lcm&fmapindex=gcd-sls`);
   await P.enter();
-  out((await P.param('fmaporder')) === 'abs-lcm' && (await P.param('fmapindex')) === 'gcd-sls', 'url', 'pos-lcm with h = 9 loads as abs-lcm', await P.q());
+  out((await P.param('fmaporder')) === 'pos-lcm' && (await P.param('fmapindex')) === 'gcd-sls', 'url', 'pos-lcm with h = 9 stays pos-lcm (a2 opens with a)', await P.q());
+  await P.load(`${ZN}&gen=7&fmaporder=pos-lcm&fmapindex=gcd-sls`);
+  await P.enter();
+  out((await P.param('fmaporder')) === 'lcm-full' && (await P.param('fmapindex')) === 'gcd-sls', 'url', 'pos-lcm with h = 7 (a2 and a shut) loads as lcm-full', await P.q());
   // an extra Ring window is the page again with the ring's query (cleanRingQuery keeps the maps')
   await P.load('?ringwin=1&mobile=0&mode=additive&n=12&gen=9&subformularing=both&fmaporder=abs-lcm&fmapindex=lcm-short');
   await sleep(1500);
@@ -559,6 +598,7 @@ async function checkGroup(P, scen, M, url, g, h, { tokens = ALL_TOKENS, keepRows
     const tag = `${scen} h=${M.at(h)} base=${M.at(g)} ${t}${eff !== t ? ' -> ' + eff : ''}`;
     out(JSON.stringify(plains(f.ring)) === JSON.stringify(want), scen, `${tag} plain`, { got: plains(f.ring), want });
     out(steps[0] === STEPS_ORDER[node] && steps[1] === STEPS_INDEX[node], scen, `${tag} steps ${steps}`, { steps, node });
+    await a2Check(P, scen, tag, M, g, h, node, f, steps);
     if (M.kind === 'add') out(maps.length === 2 && maps.every(m => m.at === node && m.checked === node && JSON.stringify(m.off) === JSON.stringify(offWant(rc)) && m.n === 9), scen, `${tag} knob and disabled positions`, { maps, off: offWant(rc), node });
     else {
       // (ℤ/nℤ)* and curves: the slider pair's state instead of the radios
@@ -572,7 +612,7 @@ const SOME = ['gcd-full', 'gcd-short', 'lcm-full', 'lcm-short', 'abs-gcd', 'abs-
 SCENARIOS.push(['units', async browser => {
   const P = await openPage(browser, 'units', { w: 1280, h: 900, ua: UA_DESKTOP });
   const M = unitsModel(13);
-  out(M.N === 12 && M.gens.join() === '2,6,7,11' && M.log(2, 5) === 9 && reach(M, 2, 5).r === -3 && !reach(M, 2, 5).pos, 'units', 'model-matches-the-worked-example', { gens: M.gens });
+  out(M.N === 12 && M.gens.join() === '2,6,7,11' && M.log(2, 5) === 9 && reach(M, 2, 5).r === -3 && reach(M, 2, 5).pos, 'units', 'model-matches-the-worked-example', { gens: M.gens });
   await checkGroup(P, 'units', M, '?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=5', 2, 5);
   await checkGroup(P, 'units', M, '?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=3', 2, 3, { tokens: SOME });
   await checkGroup(P, 'units', M, '?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=1', 2, 1, { tokens: ['gcd-full', 'pos-lcm', 'abs-gcd'] });
@@ -663,34 +703,39 @@ SCENARIOS.push(['snap', async browser => {
   await sleep(1200);
   m = await mapsNow(P);
   out(m.length === 2 && m[0].at === 'jn' && m[1].at === 'jn' && (await P.param('fmaporder')) === 'jn' && (await P.param('fmapindex')) === 'jn' && /mode=multiplicative/.test(await P.q()), 'snap', 'switching to (ℤ/13ℤ)* snaps SLS to JN in both maps and the url', { m, q: await P.q() });
-  // another base through the row of boxes: h = 9 in ℤ/12ℤ, base 1 -> 7 opens a2 (log_7 9 = 3)
-  await P.load(`${ZN}&gen=9&fmaporder=abs-gcd&fmapindex=abs-lcm`);
+  // another base through the row of boxes (quick 261101-o20: a2 opens with a):
+  // h = 7 in ℤ/12ℤ, base 1 shuts both (q = 7), base 7 opens both (log_7 7 = 1)
+  await P.load(`${ZN}&gen=7&fmaporder=gcd-full&fmapindex=lcm-full`);
   await P.enter();
   m = await mapsNow(P);
-  out(m[0].off.includes('pos'), 'snap', 'base 1: a2 closed (q = 9)', m[0].off);
+  out(m[0].off.includes('pos') && m[0].off.includes('abs'), 'snap', 'base 1: a2 and a closed together (q = 7)', m[0].off);
   let c = await centre(P, '.lb-box[data-g="7"]');
   await P.mouse(c.x, c.y);
   await sleep(300);
   m = await mapsNow(P);
-  let f = await P.formulas();
-  const Z = znModel(12);
-  out(m[0].at === 'abs' && !m[0].off.includes('pos') && JSON.stringify(plains(f.ring)) === JSON.stringify(wantPair(Z, 7, 9, 'abs-gcd', 'abs-lcm')), 'snap', 'base 7: log_7 9 = 3, a2 opens and the stored a stays', { m, ring: plains(f.ring) });
+  out(m[0].at === 'gcd-full' && !m[0].off.includes('pos') && !m[0].off.includes('abs'), 'snap', 'base 7: log_7 7 = 1, a2 and a open together', m);
   await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="pos"] input');
   await sleep(700);
-  out((await P.param('fmaporder')) === 'pos-gcd', 'snap', 'a2 can be entered from a (pos-gcd)', await P.param('fmaporder'));
-  // box 5 is off while the order map sits on a2; a click on it changes nothing
-  const off5 = await P.ev(`document.querySelector('.lb-box[data-g="5"] input').disabled`);
-  c = await centre(P, '.lb-box[data-g="5"]');
+  let f = await P.formulas();
+  const Z = znModel(12);
+  out((await P.param('fmaporder')) === 'pos-gcd' && plains(f.ring)[0] === wantPair(Z, 7, 7, 'pos-gcd', 'lcm-full')[0], 'snap', 'a2 entered from GCD (full) is pos-gcd, the formula by base 7', { q: await P.q(), ring: plains(f.ring) });
+  // box 1 is off while the order map sits on a2; a click on it changes nothing
+  const off1 = await P.ev(`document.querySelector('.lb-box[data-g="1"] input').disabled`);
+  c = await centre(P, '.lb-box[data-g="1"]');
   await P.mouse(c.x, c.y);
   m = await mapsNow(P);
-  out(off5 && (await P.param('logbase')) === '7' && m[0].at === 'pos', 'snap', 'box 5 is off while the order map is on a2: a click leaves logbase=7 and the knob on a2', { off5, q: await P.q(), at: m[0].at });
-  // a on the order map, then box 5: a2 closes again, nothing to snap
+  out(off1 && (await P.param('logbase')) === '7' && m[0].at === 'pos', 'snap', 'box 1 is off while the order map is on a2: a click leaves logbase=7 and the knob on a2', { off1, q: await P.q(), at: m[0].at });
+  // box 5 keeps a2 open (log_5 7 = 11, r = −1): the knob stays on a2
+  c = await centre(P, '.lb-box[data-g="5"]');
+  await P.mouse(c.x, c.y);
+  await sleep(300);
+  m = await mapsNow(P);
+  out((await P.param('logbase')) === '5' && m[0].at === 'pos' && (await P.param('fmaporder')) === 'pos-gcd', 'snap', 'box 5: logbase=5, a2 stays (r = −1), fmaporder=pos-gcd', { m, q: await P.q() });
+  // a on the order map: box 1 is still off (a shuts with a2 under it)
   await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="abs"] input');
   await sleep(700);
-  c = await centre(P, '.lb-box[data-g="5"]');
-  await P.mouse(c.x, c.y);
-  m = await mapsNow(P);
-  out((await P.param('logbase')) === '5' && m[0].at === 'abs' && m[0].off.includes('pos') && (await P.param('fmaporder')) === 'abs-gcd', 'snap', 'a on the order map, then box 5: logbase=5, a2 closed again, fmaporder=abs-gcd', { m, q: await P.q() });
+  const off1a = await P.ev(`document.querySelector('.lb-box[data-g="1"] input').disabled`);
+  out(off1a && (await P.param('fmaporder')) === 'abs-gcd', 'snap', 'a on the order map: box 1 stays off, as a shuts with a2', { off1a, q: await P.q() });
   noErrors(P, 'snap');
   await P.done();
 }]);

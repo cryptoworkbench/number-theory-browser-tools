@@ -198,13 +198,13 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -226,7 +226,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -237,7 +237,7 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
@@ -456,9 +456,10 @@ SCENARIOS.push(['model', async () => {
   for (let n = 2; n <= 40; n++) groups.push(znModel(n));
   for (const n of [5, 7, 9, 10, 11, 13, 14, 17, 18, 19, 22, 23, 25, 26, 27, 29, 31]) { const U = unitsModel(n); if (U.cyclic) groups.push(U); }
   groups.push(ecAdapter(curveModel(11, 1, 3), false));
-  let closedNoBase = 0, closedTotal = 0, snaps = 0;
+  let closedNoBase = 0, closedTotal = 0, snaps = 0, apart = 0;
   for (const M of groups) for (let h = 0; h < M.N; h++) {
     if (M.kind === 'mul' && gcd(h, M.n) !== 1) continue;
+    for (const b of M.gens) if (reach(M, b, h).pos !== reach(M, b, h).abs) apart++;
     for (const b of M.gens) for (const node of ['abs', 'pos']) {
       if (reach(M, b, h)[node]) continue;
       closedTotal++;
@@ -469,13 +470,14 @@ SCENARIOS.push(['model', async () => {
     }
   }
   out(closedTotal > 0 && closedNoBase === 0, 'model', `every closed a / a2 (${closedTotal} cases over ${groups.length} cyclic groups) has a base that opens it`, closedNoBase);
-  out(snaps === 0, 'model', 'a forced base never closes the other map\'s open a / a2 (a2 open implies a open, both maps share h and base)', snaps);
+  out(snaps === 0, 'model', 'a forced base never closes the other map\'s open a / a2 (a2 and a open together, both maps share h and base)', snaps);
+  out(apart === 0, 'model', 'quick 261101-o20: a2 is open exactly when a is, every h and base of every group', apart);
 }]);
 
 /* ---------- z12: the two cases the task names ---------- */
 SCENARIOS.push(['z12', async browser => {
   const P = await openPage(browser, 'z12', { w: 1280, h: 900, ua: UA_DESKTOP });
-  out(pickModel(Z12, 7, 1, 'pos') === 7 && same(sortN(Z12.gens.filter(g => reach(Z12, g, 7).abs)), [5, 7]) && pickModel(Z12, 7, 1, 'abs') === 5, 'z12', 'model: h=7 base 1, a2 only by 7; a by {5, 7}, nearest 5');
+  out(pickModel(Z12, 7, 1, 'pos') === 5 && same(sortN(Z12.gens.filter(g => reach(Z12, g, 7).pos)), [5, 7]) && same(sortN(Z12.gens.filter(g => reach(Z12, g, 7).abs)), [5, 7]) && pickModel(Z12, 7, 1, 'abs') === 5, 'z12', 'model: h=7 base 1, a2 and a both by {5, 7}, nearest 5');
   await forceRun(P, 'z12', 'ℤ/12ℤ h=7 base 1, a2', `${ZN}&gen=7&logbase=1`, Z12, 7, 1, 'pos');
   await forceRun(P, 'z12', 'ℤ/12ℤ h=7 base 1, a', `${ZN}&gen=7&logbase=1`, Z12, 7, 1, 'abs');
   noErrors(P, 'z12');
@@ -504,12 +506,17 @@ SCENARIOS.push(['tie', async browser => {
   await P.done();
 }]);
 
-/* ---------- other: the other map on a keeps it ---------- */
+/* ---------- other: the other map keeps its own position ---------- */
+// Since quick 261101-o20 a2 and a open together, so the other map can no
+// longer sit on an open a while a2 is closed: an a asked of it under the
+// same base settles to its full form, and the forced a2 leaves it there.
 SCENARIOS.push(['other', async browser => {
   const P = await openPage(browser, 'other', { w: 1280, h: 900, ua: UA_DESKTOP });
-  out(reach(Z12, 5, 7).abs && !reach(Z12, 5, 7).pos && pickModel(Z12, 7, 5, 'pos') === 7, 'other', 'model: h=7 base 5, a open and a2 closed; a2 is forced by 7');
-  await forceRun(P, 'other', 'ℤ/12ℤ h=7 base 5, index map on a (abs-lcm), order map a2', `${ZN}&gen=7&logbase=5&fmapindex=abs-lcm`, Z12, 7, 5, 'pos', { index: 'abs-lcm' });
-  out((await P.param('fmapindex')) === 'abs-lcm', 'other', 'the index map is still on a (fmapindex=abs-lcm)', await P.q());
+  let apart = 0;
+  for (let h = 0; h < 12; h++) for (const b of Z12.gens) if (reach(Z12, b, h).abs !== reach(Z12, b, h).pos) apart++;
+  out(apart === 0 && !reach(Z12, 1, 7).abs && pickModel(Z12, 7, 1, 'pos') === 5, 'other', 'model: no h and base of ℤ/12ℤ opens a with a2 closed; h=7 base 1 shuts both, a2 is forced by 5', apart);
+  await forceRun(P, 'other', 'ℤ/12ℤ h=7 base 1, index map asked for a (abs-lcm, settles to lcm-full), order map a2', `${ZN}&gen=7&logbase=1&fmapindex=abs-lcm`, Z12, 7, 1, 'pos', { index: 'lcm-full' });
+  out((await P.param('fmapindex')) === 'lcm-full', 'other', 'the index map stays on LCM (full), where it settled (fmapindex=lcm-full)', await P.q());
   noErrors(P, 'other');
   await P.done();
 }]);
@@ -518,14 +525,15 @@ SCENARIOS.push(['other', async browser => {
 SCENARIOS.push(['units13', async browser => {
   const P = await openPage(browser, 'units13', { w: 1280, h: 900, ua: UA_DESKTOP });
   const U = unitsModel(13);
-  const url = '?mobile=0&mode=multiplicative&n=13&subformularow=both&subformularing=both&gen=5&logbase=2';
+  // h = 6 (log_2 6 = 5): a2 and a both closed under base 2 (h = 5, r = −3, opens both since 261101-o20)
+  const url = '?mobile=0&mode=multiplicative&n=13&subformularow=both&subformularing=both&gen=6&logbase=2';
   let ran = 0;
   for (const node of ['pos', 'abs']) {
-    if (reach(U, 2, 5)[node]) continue;
+    if (reach(U, 2, 6)[node]) continue;
     ran++;
-    await forceRun(P, 'units13', `(ℤ/13ℤ)* h=5 base 2, ${node === 'pos' ? 'a2' : 'a'} -> ${pickModel(U, 5, 2, node)}`, url, U, 5, 2, node, { slider: true });
+    await forceRun(P, 'units13', `(ℤ/13ℤ)* h=6 base 2, ${node === 'pos' ? 'a2' : 'a'} -> ${pickModel(U, 6, 2, node)}`, url, U, 6, 2, node, { slider: true });
   }
-  out(ran > 0, 'units13', `(ℤ/13ℤ)* h=5 base 2 has ${ran} closed position(s) to force`);
+  out(ran === 2, 'units13', `(ℤ/13ℤ)* h=6 base 2 has ${ran} closed position(s) to force (a2 and a)`);
   noErrors(P, 'units13');
   await P.done();
 }]);
@@ -576,8 +584,8 @@ SCENARIOS.push(['slshide', async browser => {
   await dbl(P, c.x, c.y);
   await sleep(300);
   const r = await rowNow(P);
-  const set7 = await P.ev(`!!document.querySelector('.lb-box[data-g="7"].is-force-set')`);
-  out(r !== null && same(r.checked, [7]) && set7 && (await P.param('logbase')) === '7' && (await P.param('fmaporder')) === 'pos-gcd' && (await P.param('fmapindex')) === 'lcm-sls', 'slshide', 'both on SLS, a double-click on the closed a2: base 7 and a2 at once, the row back with 7 flashing', { r, set7, q: await P.q() });
+  const setPick = await P.ev(`!!document.querySelector('.lb-box[data-g="5"].is-force-set')`);
+  out(r !== null && same(r.checked, [5]) && setPick && (await P.param('logbase')) === '5' && (await P.param('fmaporder')) === 'pos-gcd' && (await P.param('fmapindex')) === 'lcm-sls', 'slshide', 'both on SLS, a double-click on the closed a2: base 5 (nearest of 5, 7) and a2 at once, the row back with 5 flashing', { r, setPick, q: await P.q() });
   await sleep(1400);
   out(!(await P.ev(`!!document.querySelector('.lb-box.is-force-set, .lb-box.is-force-pulse')`)), 'slshide', 'the flash is over');
   noErrors(P, 'slshide');
@@ -594,7 +602,7 @@ SCENARIOS.push(['single', async browser => {
   await click1(P, c.x, c.y);
   await sleep(250);
   const r = await rowNow(P);
-  out(same(sortN(r.ok), [7]) && same(sortN(r.no), [1, 5, 11]), 'single', 'a single click on the closed a2: green 7, red 1, 5, 11', r);
+  out(same(sortN(r.ok), [5, 7]) && same(sortN(r.no), [1, 11]), 'single', 'a single click on the closed a2: green 5, 7, red 1, 11 (as a)', r);
   await sleep(1900);
   const ss = await samples(P);
   out((await P.param('logbase')) === '1' && (await P.param('fmaporder')) === null && ss.every(s => !s.pulse.length && !s.set.length), 'single', 'and nothing more: base 1, knob on GCD (full), no forced flash', await P.q());
@@ -637,15 +645,17 @@ SCENARIOS.push(['cancel', async browser => {
   await dbl(P, c.x, c.y);
   await sleep(2900);
   ss = (await samples(P)).filter(s => s.n === 2);
-  out((await P.param('logbase')) === '5' && (await P.param('fmaporder')) === 'abs-gcd' && same(phasesOf(ss, 5), ['pulse', 'set', 'none']) && ss.every(s => !s.pulse.includes(7) && !s.set.includes(7)), 'cancel', 'a double-click on a while a2\'s sequence runs: a\'s runs instead (base 5, abs-gcd), box 7 left alone', { q: await P.q(), ph: phasesOf(ss, 5) });
+  // a2 and a now pick the same base (5): the second run shows by its knob (abs-gcd) and its own timing
+  const set2 = ss.find(s => s.set.includes(5));
+  out((await P.param('logbase')) === '5' && (await P.param('fmaporder')) === 'abs-gcd' && same(phasesOf(ss, 5), ['pulse', 'set', 'none']) && !!set2 && set2.t >= 1000 && ss.every(s => !s.pulse.includes(7) && !s.set.includes(7)), 'cancel', 'a double-click on a while a2\'s sequence runs: a\'s runs instead (base 5, abs-gcd, set about 1.1 s after the second double-click), box 7 left alone', { q: await P.q(), ph: phasesOf(ss, 5), set: set2 && set2.t });
   // a re-render with nothing changed (a language switch) carries the pulse over
   await start();
   await P.ev(`NT.i18n.setLang('nl')`);
   await sleep(2700);
   ss = after0(await samples(P));
-  const carried = ss.filter(s => s.origs === 0 && s.pulse.includes(7));
-  out(carried.length > 0, 'cancel', 'a language switch mid-pulse rebuilds the row and the new box 7 keeps pulsing', ss.slice(0, 12).map(s => [s.t, s.origs, s.pulse]));
-  out((await P.param('logbase')) === '7' && (await P.param('fmaporder')) === 'pos-gcd' && same(phasesOf(ss, 7), ['pulse', 'set', 'none']), 'cancel', '... and the sequence completes (base 7, pos-gcd)', { q: await P.q(), ph: phasesOf(ss, 7) });
+  const carried = ss.filter(s => s.origs === 0 && s.pulse.includes(5));
+  out(carried.length > 0, 'cancel', 'a language switch mid-pulse rebuilds the row and the new box 5 keeps pulsing', ss.slice(0, 12).map(s => [s.t, s.origs, s.pulse]));
+  out((await P.param('logbase')) === '5' && (await P.param('fmaporder')) === 'pos-gcd' && same(phasesOf(ss, 5), ['pulse', 'set', 'none']), 'cancel', '... and the sequence completes (base 5, pos-gcd)', { q: await P.q(), ph: phasesOf(ss, 5) });
   await P.ev(`NT.i18n.setLang('en')`);
   // a new h mid-sequence ends it
   await start();
@@ -722,12 +732,12 @@ SCENARIOS.push(['ringwin', async browser => {
   await P.ev(`(function(){ var i = document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="pos"] input'); i.click(); i.click(); i.parentNode.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); return 1; })()`, ctx);
   await sleep(500);
   const mid = await P.ev(`Array.prototype.map.call(document.querySelectorAll('.lb-box.is-force-pulse'), function(b){ return +b.getAttribute('data-g'); })`, ctx);
-  out(same(mid, [7]), 'ringwin', 'box 7 pulses in the window', mid);
+  out(same(mid, [5]), 'ringwin', 'box 5 pulses in the window (a2 opens under 5 and 7, 5 the nearer)', mid);
   await sleep(2600);
   const r = await rowNow(P, ctx), m = await mapsIn(P, ctx);
   const last = new URLSearchParams((await P.ev('window.__rw')).pop() || '');
-  out(same(r.checked, [7]) && m.find(x => x.f === 'order').at === 'pos', 'ringwin', 'the window ends on base 7 with its order map on a2', { checked: r.checked, maps: m });
-  out(last.get('logbase') === '7' && last.get('fmaporder') === 'pos-gcd' && last.get('ringwin') !== null, 'ringwin', 'its last state message to the parent carries logbase=7, fmaporder=pos-gcd', Object.fromEntries(last));
+  out(same(r.checked, [5]) && m.find(x => x.f === 'order').at === 'pos', 'ringwin', 'the window ends on base 5 with its order map on a2', { checked: r.checked, maps: m });
+  out(last.get('logbase') === '5' && last.get('fmaporder') === 'pos-gcd' && last.get('ringwin') !== null, 'ringwin', 'its last state message to the parent carries logbase=5, fmaporder=pos-gcd', Object.fromEntries(last));
   const host = new URLSearchParams(await P.q());
   out(host.get('logbase') === '1' && host.get('fmaporder') === null, 'ringwin', 'the host page\'s own base and maps are untouched', Object.fromEntries(host));
   noErrors(P, 'ringwin');

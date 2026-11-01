@@ -197,13 +197,13 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -225,7 +225,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -236,7 +236,7 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
@@ -401,8 +401,8 @@ SCENARIOS.push(['fits', async browser => {
   const P = await openPage(browser, 'fits', { w: 1280, h: 900, ua: UA_DESKTOP });
   const cases = [
     ['h=7 base 5 order on a', `${ZN}&gen=7&logbase=5&fmaporder=abs-gcd`, 7, 5, ['abs-gcd', 'gcd-full'], [1, 11]],
-    ['h=7 base 7 order on a2', `${ZN}&gen=7&logbase=7&fmaporder=pos-gcd`, 7, 7, ['pos-gcd', 'gcd-full'], [1, 5, 11]],
-    ['h=7 base 7 order on a, index on a2: the intersection', `${ZN}&gen=7&logbase=7&fmaporder=abs-gcd&fmapindex=pos-lcm`, 7, 7, ['abs-gcd', 'pos-lcm'], [1, 5, 11]],
+    ['h=7 base 7 order on a2 (it opens with a since 261101-o20)', `${ZN}&gen=7&logbase=7&fmaporder=pos-gcd`, 7, 7, ['pos-gcd', 'gcd-full'], [1, 11]],
+    ['h=7 base 7 order on a, index on a2: the intersection, the same set', `${ZN}&gen=7&logbase=7&fmaporder=abs-gcd&fmapindex=pos-lcm`, 7, 7, ['abs-gcd', 'pos-lcm'], [1, 11]],
     ['h=7 base 5 only the order map shown, the hidden index map on a2 counts for nothing', `${ZNA}&subformularing=order&gen=7&logbase=5&fmapindex=pos-lcm`, 7, 5, ['gcd-full'], []],
     ['h=7 base 5 only the index map shown, on a', `${ZNA}&subformularing=index&gen=7&logbase=5&fmapindex=abs-lcm`, 7, 5, ['abs-lcm'], [1, 11]],
     ['h=9 base 1 index on a: a closed for base 1 so the knob settles back to GCD (full), nothing off', `${ZN}&gen=9&logbase=1&fmapindex=abs-gcd`, 9, 1, ['gcd-full'], []],
@@ -434,16 +434,16 @@ SCENARIOS.push(['fits', async browser => {
 /* ---------- click: a box makes its generator the base of both formulas ---------- */
 SCENARIOS.push(['click', async browser => {
   const P = await openPage(browser, 'click', { w: 1280, h: 900, ua: UA_DESKTOP });
-  await P.load(`${ZN}&gen=9`);
+  await P.load(`${ZN}&gen=7`);
   await P.enter();
   let before = await mapsNow(P);
-  out(before[0].off.includes('pos'), 'click', 'h=9 base 1: a2 closed (q = 9)', before[0].off);
+  out(before[0].off.includes('pos') && before[0].off.includes('abs'), 'click', 'h=7 base 1: a2 and a closed (q = 7)', before[0].off);
   let c = await centre(P, '.lb-box[data-g="7"]');
   await P.mouse(c.x, c.y);
   let r = await rowNow(P), maps = await mapsNow(P), f = await P.formulas();
   out((await P.param('logbase')) === '7' && same(r.checked, [7]), 'click', 'a click on box 7: logbase=7 and box 7 checked', { q: await P.q(), checked: r.checked });
-  out(same(plains(f.ring), wantPair(Z12, 7, 9, 'gcd-full', 'gcd-full')), 'click', 'both formulas now write log_7', plains(f.ring));
-  out(maps.every(m => !m.off.includes('pos') && same(m.off, offWant(reach(Z12, 7, 9)))), 'click', 'the maps open a2 for base 7 (log_7 9 = 3)', maps);
+  out(same(plains(f.ring), wantPair(Z12, 7, 7, 'gcd-full', 'gcd-full')), 'click', 'both formulas now write log_7', plains(f.ring));
+  out(maps.every(m => !m.off.includes('pos') && !m.off.includes('abs') && same(m.off, offWant(reach(Z12, 7, 7)))), 'click', 'the maps open a2 and a for base 7 (log_7 7 = 1)', maps);
   // a box that is off takes no click
   await P.load(`${ZN}&gen=7&logbase=5&fmaporder=abs-gcd`);
   await P.enter();
@@ -557,7 +557,7 @@ SCENARIOS.push(['flash', async browser => {
   const state = async f => (await mapsNow(P)).find(m => m.f === f);
   await P.load(`${ZN}&gen=7&logbase=1`);
   await P.enter();
-  out(same(okOf(Z12, 7, 'pos'), [7]) && same(okOf(Z12, 7, 'abs'), [5, 7]) && same(noOf(Z12, 7, 'abs'), [1, 11]), 'flash', 'model: h=7, a2 opens under 7 only; a under 5 and 7');
+  out(same(okOf(Z12, 7, 'pos'), [5, 7]) && same(okOf(Z12, 7, 'abs'), [5, 7]) && same(noOf(Z12, 7, 'abs'), [1, 11]), 'flash', 'model: h=7, a2 opens under 5 and 7, exactly as a does (261101-o20)');
   const closed = await P.ev(`(function(){ return ['order','index'].map(function(f){ var m=document.querySelector('.fmap[data-f="'+f+'"]'); return ['abs','pos'].map(function(id){ var i=m.querySelector('.fmap-stop[data-id="'+id+'"] input'); return [i.disabled, i.getAttribute('aria-disabled'), m.querySelectorAll('.fmap-node.is-closed').length]; }); }); })()`);
   out(closed.every(m => m.every(x => x[0] === false && x[1] === 'true' && x[2] === 2)), 'flash', 'closed a and a2: not disabled, aria-disabled, the drawn nodes still faded', closed);
   const noFlash = async () => { const r = await rowNow(P); return r.ok.length === 0 && r.no.length === 0; };
@@ -593,15 +593,17 @@ SCENARIOS.push(['flash', async browser => {
   await P.mouse(c.x, c.y);
   r = await rowNow(P);
   out((await state('order')).at === 'lcm-short' && r.ok.length === 0 && r.no.length === 0, 'flash', 'an open position takes the knob and flashes nothing');
-  // (ℤ/13ℤ)*: a2 closed at h = 5 with base 2. Its formulas have sliders
+  // (ℤ/13ℤ)*: a2 closed at h = 6 with base 2 (log_2 6 = 5; since 261101-o20
+  // a2 shuts with a, so h = 5, r = −3, no longer serves). Its formulas have sliders
   // (quick 261031-wef): at compact (gcd-short) the form slider's neither is a2.
   const U = unitsModel(13);
-  await P.load('?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=5&fmaporder=gcd-short');
+  out(same(okOf(U, 6, 'pos'), [6, 11]) && same(okOf(U, 6, 'abs'), [6, 11]), 'flash', '(ℤ/13ℤ)* model: h=6, a2 and a open under 6 and 11 only', okOf(U, 6, 'pos'));
+  await P.load('?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=6&fmaporder=gcd-short');
   await P.enter();
   c = await centre(P, '.fsl-pair[data-f="order"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]');
   await P.mouse(c.x, c.y);
   r = await rowNow(P);
-  out(same(sortN(r.ok), okOf(U, 5, 'pos')) && same(sortN(r.no), noOf(U, 5, 'pos')) && (await state('order')).at === 'gcd-short', 'flash', `(ℤ/13ℤ)* h=5: a click on the form slider's closed neither (a2) flashes green ${okOf(U, 5, 'pos')}, red ${noOf(U, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  out(same(sortN(r.ok), okOf(U, 6, 'pos')) && same(sortN(r.no), noOf(U, 6, 'pos')) && (await state('order')).at === 'gcd-short', 'flash', `(ℤ/13ℤ)* h=6: a click on the form slider's closed neither (a2) flashes green ${okOf(U, 6, 'pos')}, red ${noOf(U, 6, 'pos')}`, { ok: r.ok, no: r.no });
   // (ℤ/13ℤ)* has no SLS position at all: no map with SLS radios, and its sliders stop at JN / compact / complete
   const sls = await P.ev(`({ maps: document.querySelectorAll('.fmap').length, labels: Array.prototype.map.call(document.querySelectorAll('.fsl-notch'), function(x){ return x.textContent; }).filter(function(t){ return /SLS/.test(t); }).length })`);
   out(sls.maps === 0 && sls.labels === 0, 'flash', '(ℤ/13ℤ)* offers no SLS position (no map, no SLS notch)', sls);

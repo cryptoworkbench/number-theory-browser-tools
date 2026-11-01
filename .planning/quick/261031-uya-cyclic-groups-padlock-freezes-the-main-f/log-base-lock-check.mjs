@@ -198,13 +198,13 @@ function unitsModel(n) {
 function reach(M, g, h) {
   const q = M.log(g, h), n = M.N;
   const r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
-  return { q, r, abs: r !== null, pos: n % q === 0, sls: M.sls };
+  // quick 261101-o20: a2 is a less its substitution step, open exactly when a is
+  return { q, r, abs: r !== null, pos: r !== null, sls: M.sls };
 }
 // Where a knob on token t goes when only rc holds (the plan's D-02).
 function settleModel(t, rc) {
   const row = ROW_OF(t);
-  if (t.startsWith('pos-') && !rc.pos) t = rc.abs ? 'abs-' + row : row + '-full';
-  if (t.startsWith('abs-') && !rc.abs) t = row + '-full';
+  if ((t.startsWith('pos-') && !rc.pos) || (t.startsWith('abs-') && !rc.abs)) t = row + '-full';
   if (t.includes('sls') && !rc.sls) t = 'jn';
   return t;
 }
@@ -226,7 +226,7 @@ const TO = {
   'lcm-full': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.gn}, log_${v.g}(${v.gq})) / log_${v.g}(${v.gq}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   'lcm-short': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, log_${v.g}(${v.h})) / log_${v.g}(${v.h}) = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`,
   abs: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.gn} / |log_${v.g}(${v.gr})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
-  pos: v => `|⟨${v.h}⟩| = |${v.group}| / log_${v.g}(${v.h}) = ${v.gn} / log_${v.g}(${v.gr}) = ${v.n} / ${v.r} = ${v.m}`,
+  pos: v => `|⟨${v.h}⟩| = |${v.group}| / |log_${v.g}(${v.h})| = ${v.n} / |${v.r}| = ${v.n} / ${v.a} = ${v.m}`,
   'gcd-sls': v => `|⟨${v.h}⟩| = |${v.group}| / gcd(|${v.group}|, ${v.h}) = ${v.n} / gcd(${v.n}, ${v.q}) = ${v.n} / ${v.d} = ${v.m}`,
   'lcm-sls': v => `|⟨${v.h}⟩| = lcm(|${v.group}|, ${v.q}) / ${v.q} = lcm(${v.n}, ${v.q}) / ${v.q} = ${v.l} / ${v.q} = ${v.m}`
 };
@@ -237,7 +237,7 @@ const TI = {
   'lcm-full': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.gn} · log_${v.g}(${v.gq}) / lcm(${v.gn}, log_${v.g}(${v.gq})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-short': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · log_${v.g}(${v.h}) / lcm(|${v.group}|, log_${v.g}(${v.h})) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`,
   abs: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |log_${v.g}(${v.gr})| = |${v.r}| = ${v.a}`,
-  pos: v => `[${v.name} : ⟨${v.h}⟩] = log_${v.g}(${v.h}) = log_${v.g}(${v.gr}) = ${v.r}`,
+  pos: v => `[${v.name} : ⟨${v.h}⟩] = |log_${v.g}(${v.h})| = |${v.r}| = ${v.a}`,
   'gcd-sls': v => `[${v.name} : ⟨${v.h}⟩] = gcd(|${v.group}|, ${v.h}) = gcd(${v.n}, ${v.q}) = ${v.d}`,
   'lcm-sls': v => `[${v.name} : ⟨${v.h}⟩] = |${v.group}| · ${v.q} / lcm(|${v.group}|, ${v.q}) = ${v.n} · ${v.q} / lcm(${v.n}, ${v.q}) = ${v.d}`
 };
@@ -638,7 +638,7 @@ SCENARIOS.push(['alarm', async browser => {
   out(!!restC && restC.color !== restC.warn && restC.transform === 'none', 'alarm', 'and it rests afterwards (own colour, no transform)', restC);
   out(on.some(s => s.transform && s.transform !== 'none'), 'alarm', 'it shakes (a transform while it runs)', on.map(s => s.transform).slice(0, 4));
   const hint = all.find(s => s.ok.length || s.no.length);
-  out(!!hint && same(sortN(hint.ok), [7]) && same(sortN(hint.no), [1, 5, 11]), 'alarm', 'the two clicks\' hint stays: green 7, red 1, 5, 11', hint);
+  out(!!hint && same(sortN(hint.ok), [5, 7]) && same(sortN(hint.no), [1, 11]), 'alarm', 'the two clicks\' hint stays: green 5, 7, red 1, 11 (a2 opens with a)', hint);
   const q = new URLSearchParams(await P.q());
   out(q.get('logbase') === '1' && q.get('fmaporder') === null && q.get('logbaselock') === '1', 'alarm', 'url: logbase=1, no fmaporder, logbaselock=1', Object.fromEntries(q));
   // a second double-click mid-alarm restarts it
@@ -658,7 +658,7 @@ SCENARIOS.push(['alarm', async browser => {
   const r = await rowNow(P);
   await sleep(700);
   const s3 = await lsamples(P);
-  out(same(sortN(r.ok), [7]) && same(sortN(r.no), [1, 5, 11]) && s3.some(s => s.nudge) && !s3.some(s => s.alarm), 'alarm', 'a single click on the closed a2: the green/red hint and one nudge, no alarm', { ok: r.ok, no: r.no });
+  out(same(sortN(r.ok), [5, 7]) && same(sortN(r.no), [1, 11]) && s3.some(s => s.nudge) && !s3.some(s => s.alarm), 'alarm', 'a single click on the closed a2: the green/red hint and one nudge, no alarm', { ok: r.ok, no: r.no });
   out((await P.param('logbase')) === '1' && (await P.param('fmaporder')) === null, 'alarm', 'still base 1, knob on GCD (full)', await P.q());
   // the closed a too
   await P.ev(LSAMPLER(1800));
@@ -684,7 +684,7 @@ SCENARIOS.push(['unlocked', async browser => {
   await dbl(P, c.x, c.y);
   await sleep(3000);
   const ss = after0(await samples(P)), ls = await lsamples(P);
-  out(same(phasesOf(ss, 7), ['pulse', 'set', 'none']) && (await P.param('logbase')) === '7' && (await P.param('fmaporder')) === 'pos-gcd', 'unlocked', 'the double-click on a2 forces base 7 as before (pulse, set, rest; logbase=7, pos-gcd)', { ph: phasesOf(ss, 7), q: await P.q() });
+  out(same(phasesOf(ss, 5), ['pulse', 'set', 'none']) && (await P.param('logbase')) === '5' && (await P.param('fmaporder')) === 'pos-gcd', 'unlocked', 'the double-click on a2 forces base 5, the nearest of 5 and 7 (pulse, set, rest; logbase=5, pos-gcd)', { ph: phasesOf(ss, 5), q: await P.q() });
   out(ls.every(s => !s.alarm && !s.nudge), 'unlocked', 'the open padlock never nudges or shakes', ls.find(s => s.alarm || s.nudge));
   noErrors(P, 'unlocked');
   await P.done();
@@ -702,7 +702,7 @@ SCENARIOS.push(['midlock', async browser => {
   await clickLock(P);
   await sleep(2400);
   let ss = await samples(P);
-  out((await P.param('logbase')) === '1' && (await P.param('fmaporder')) === null && (await P.param('logbaselock')) === '1' && ss.slice(-30).every(s => !s.pulse.length && !s.set.length), 'midlock', 'closed while box 7 pulses: the sequence ends, base 1 and GCD (full) stay, locked', { q: await P.q() });
+  out((await P.param('logbase')) === '1' && (await P.param('fmaporder')) === null && (await P.param('logbaselock')) === '1' && ss.slice(-30).every(s => !s.pulse.length && !s.set.length), 'midlock', 'closed while box 5 pulses: the sequence ends, base 1 and GCD (full) stay, locked', { q: await P.q() });
   // closed in the last flash: the base was already set, it finishes
   await P.load(LZ);
   await P.enter();
@@ -713,7 +713,7 @@ SCENARIOS.push(['midlock', async browser => {
   await clickLock(P);
   await sleep(1500);
   ss = after0(await samples(P));
-  out((await P.param('logbase')) === '7' && (await P.param('fmaporder')) === 'pos-gcd' && (await P.param('logbaselock')) === '1' && ss.slice(-10).every(s => !s.pulse.length && !s.set.length), 'midlock', 'closed during the last flash: base 7 on a2 stays, locked, the flash over', { q: await P.q() });
+  out((await P.param('logbase')) === '5' && (await P.param('fmaporder')) === 'pos-gcd' && (await P.param('logbaselock')) === '1' && ss.slice(-10).every(s => !s.pulse.length && !s.set.length), 'midlock', 'closed during the last flash: base 5 on a2 stays, locked, the flash over', { q: await P.q() });
   noErrors(P, 'midlock');
   await P.done();
 }]);
@@ -754,11 +754,13 @@ SCENARIOS.push(['group', async browser => {
   // a new h closes a2 under the locked base: the knob snaps back as usual
   await P.load(`${ZN}&gen=7&logbase=7&fmaporder=pos-gcd&logbaselock=1`);
   await P.enter();
-  const want = settleModel('pos-gcd', reach(Z12, 7, 5));
-  await P.clickEl('.subgroup-row[data-gen="5"]');
+  // (h = 11: log_7 11 = 5 shuts a2 and a; h = 5, r = −1, keeps them open since 261101-o20)
+  const want = settleModel('pos-gcd', reach(Z12, 7, 11));
+  out(want === 'gcd-full', 'group', 'model: h=11 under base 7 shuts a2 (and a), the knob goes to GCD (full)', want);
+  await P.clickEl('.subgroup-row[data-gen="11"]');
   await sleep(1200);
   const at = (await mapsNow(P)).find(m => m.f === 'order').at;
-  out((await P.param('gen')) === '5' && (await P.param('logbase')) === '7' && at === NODE_OF(want) && ((await P.param('fmaporder')) || 'gcd-full') === want && (await lockNow(P)).pressed === 'true', 'group', `h 7 -> 5 at locked base 7: a2 closes, the knob settles on ${want}, base 7 and the lock stay`, { at, q: await P.q() });
+  out((await P.param('gen')) === '11' && (await P.param('logbase')) === '7' && at === NODE_OF(want) && ((await P.param('fmaporder')) || 'gcd-full') === want && (await lockNow(P)).pressed === 'true', 'group', `h 7 -> 11 at locked base 7: a2 closes, the knob settles on ${want}, base 7 and the lock stay`, { at, q: await P.q() });
   noErrors(P, 'group');
   await P.done();
 }]);
@@ -784,14 +786,15 @@ async function alarmRun(P, scen, name, url, M, h, base, node, opts = {}) {
 SCENARIOS.push(['units13', async browser => {
   const P = await openPage(browser, 'units13', { w: 1280, h: 900, ua: UA_DESKTOP });
   const U = unitsModel(13);
-  const url = '?mobile=0&mode=multiplicative&n=13&subformularow=both&subformularing=both&gen=5&logbase=2&logbaselock=1';
+  // h = 6 (log_2 6 = 5) shuts a2 and a under base 2; h = 5 (r = −3) opens both since 261101-o20
+  const url = '?mobile=0&mode=multiplicative&n=13&subformularow=both&subformularing=both&gen=6&logbase=2&logbaselock=1';
   let ran = 0;
   for (const node of ['pos', 'abs']) {
-    if (reach(U, 2, 5)[node]) continue;
+    if (reach(U, 2, 6)[node]) continue;
     ran++;
-    await alarmRun(P, 'units13', `(ℤ/13ℤ)* h=5 base 2, ${node === 'pos' ? 'a2' : 'a'}`, url, U, 5, 2, node, { slider: true });
+    await alarmRun(P, 'units13', `(ℤ/13ℤ)* h=6 base 2, ${node === 'pos' ? 'a2' : 'a'}`, url, U, 6, 2, node, { slider: true });
   }
-  out(ran > 0, 'units13', `(ℤ/13ℤ)* h=5 base 2 has ${ran} closed position(s)`);
+  out(ran === 2, 'units13', `(ℤ/13ℤ)* h=6 base 2 has ${ran} closed position(s) (a2 and a)`);
   noErrors(P, 'units13');
   await P.done();
 }]);
