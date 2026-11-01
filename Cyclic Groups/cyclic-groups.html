@@ -8292,6 +8292,14 @@ function logBaseFits(G){
   });
   return fits.some(Boolean) ? fits : fits.map(function(){ return true; });
 }
+// A greyed-out box's tooltip: with the form slider in the middle, a base
+// whose log of 𝐺 is coprime to |G| says so; any other keeps the general one.
+function logBaseOffTip(G, g){
+  var q = mapReach(G, state.gen, g).q;
+  if (gcd(q, G.order) !== 1) return translate('cyclicGroups.logBaseOff');
+  var log = G.pts ? 'log_' + mapAt(G, g) : 'log' + subscript(g);
+  return translate('cyclicGroups.logBaseOffCoprime', { log: log });
+}
 // The sentence over the base row: why a base is picked, its star's tooltip
 // saying what the logarithm is for, hypothetically while a group of units
 // sits Sequential rather than in generator powers.
@@ -8338,7 +8346,7 @@ function logBaseRow(G){
     if (!fits[i]) box.classList.add('is-off');
     if (held) input.setAttribute('aria-disabled', 'true');
     if (held) box.title = translate('cyclicGroups.logBaseLocked');
-    else if (!fits[i]) box.title = translate('cyclicGroups.logBaseOff');
+    else if (!fits[i]) box.title = logBaseOffTip(G, g);
     input.addEventListener('change', function(){
       if (!input.checked) return;
       if (state.logBaseLock && g !== state.chosenBase){
