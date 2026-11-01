@@ -1141,6 +1141,7 @@
       fslShort: 'Short',
       fslShortTip: 'Just the notation, the answer without derivation steps',
       fslColumnTip: '{col}\n\n{tip}',
+      fslFormTip: 'Preferred formula form slider',
       fslColShort: 'Short',
       fslColCompact: 'Compact',
       fslColComplete: 'Complete',

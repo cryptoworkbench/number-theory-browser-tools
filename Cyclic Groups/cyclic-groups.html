@@ -1302,6 +1302,7 @@
   .fsl-track{ position:absolute; left:calc(100% / 6); right:calc(100% / 6); top:calc(var(--fsl-y) - 1px); height:2px; border-radius:1px; background:color-mix(in srgb, var(--text) 35%, var(--surface)); pointer-events:none; }
   .fsl-notch{ position:relative; display:flex; flex-direction:column; align-items:center; min-width:0; color:var(--text-dim); }
   .fsl-detent{ box-sizing:border-box; width:var(--fsl-d); height:var(--fsl-d); margin:calc(var(--fsl-y) - var(--fsl-d) / 2) 0 calc(var(--fsl-y) - var(--fsl-d) / 2 + 2px); border-radius:50%; border:1.5px solid color-mix(in srgb, var(--text) 46%, var(--surface)); background:color-mix(in srgb, var(--text) 9%, var(--surface)); box-shadow:inset 0 1px 2px color-mix(in srgb, var(--text) 32%, transparent); transition:border-color .15s; }
+  .fsl-label.is-blank{ visibility:hidden; }
   .fsl-label{ max-width:100%; font-size:.64rem; font-weight:700; letter-spacing:.02em; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .fsl-notch:hover{ color:var(--text); }
   .fsl-notch:hover .fsl-detent{ border-color:color-mix(in srgb, var(--text) 70%, var(--surface)); }
@@ -7789,6 +7790,7 @@ function formulaSliders(G, info){
     sl.setAttribute('aria-label', translate(FSL_NAMES[kind][f]));
     sl.setAttribute('aria-orientation', 'horizontal');
     if (inert){ sl.setAttribute('aria-disabled', 'true'); sl.title = translate('cyclicGroups.fslFormInert'); }
+    if (isForm) sl.title = translate('cyclicGroups.fslFormTip');
     sl.style.setProperty('--v', String(now));
     var track = document.createElement('span');
     track.className = 'fsl-track';
@@ -7823,6 +7825,8 @@ function formulaSliders(G, info){
       var label = document.createElement('span');
       label.className = 'fsl-label';
       label.textContent = translate(FSL_LABELS[kind][v]);
+      // The form slider's middle slot is uncaptioned.
+      if (isForm && v === 1) label.classList.add('is-blank');
       chip.appendChild(detent);
       chip.appendChild(label);
       // Its tooltip is the map's, of the position it leads to.
@@ -7852,6 +7856,8 @@ function formulaSliders(G, info){
       }
       // A complexity slot is uncaptioned: its tooltip opens with its column.
       if (!isForm && chip.title) chip.title = translate('cyclicGroups.fslColumnTip', { col: translate(FSL_COLUMNS[v]), tip: chip.title });
+      // The form slider has one tooltip, its own, wherever it is hovered.
+      if (isForm) chip.removeAttribute('title');
       if (isForm && v === 1 && logForce && logForce.f === f) paintLogForce(chip);
       if (!isForm && logForce && logForce.f === f && logForce.cv === v) paintLogForce(chip);
       if (fslRefuse && fslRefuse.f === f && (isForm ? v === 1 : v === fslRefuse.v)) paintFslRefuse(chip);
