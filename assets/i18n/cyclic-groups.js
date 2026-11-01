@@ -1100,7 +1100,7 @@
       fmapLabelLcm: 'LCM',
       fmapLabelShort: 'short',
       fmapLabelFull: 'full',
-      fmapLabelSls: 'SLS',
+      fmapLabelSls: 'Skip logarithm use',
       fmapLabelA: 'a',
       fmapLabelA2: 'a2',
       fmapJn: 'JN: just the notation, the answer without derivation steps',
