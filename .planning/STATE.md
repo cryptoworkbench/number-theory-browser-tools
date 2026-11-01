@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-01 - Completed quick task 261101-ix2: Cyclic Groups refused complexity move onto a shut neither (branch cyclic-groups-blocked-complexity)
+Last activity: 2026-11-01 - Completed quick task 261101-k8y: Cyclic Groups real three-slot sliders (branch cyclic-groups-real-sliders)
 
 Progress: [█████████░] 86%
 
@@ -632,6 +632,7 @@ None yet.
 | 261031-wef | Cyclic Groups: Complexity (JN / compact / complete) and Form preference (LCM / neither / GCD) sliders replace the formula maps on (ℤ/nℤ)* and curves; the generator row shows only off JN; ℤ/nℤ keeps its map (branch cyclic-groups-formula-sliders) | 2026-11-01 | 010fa52 | [261031-wef-cyclic-groups-complexity-and-form-prefer](./quick/261031-wef-cyclic-groups-complexity-and-form-prefer/) |
 | 261101-hl9 | Cyclic Groups: a map toggle beside the formula sliders opens the formula map on (ℤ/nℤ)* and curves; the open map follows the sliders, generator boxes and forced bases live | 2026-11-01 | 854e02b | [261101-hl9-cyclic-groups-a-map-toggle-beside-the-fo](./quick/261101-hl9-cyclic-groups-a-map-toggle-beside-the-fo/) |
 | 261101-ix2 | Cyclic Groups: a Complexity move onto a shut neither cell is refused with flashes (notch, neither, boxes, padlock, map node); a double-click forces the base (branch cyclic-groups-blocked-complexity) | 2026-11-01 | 9c8bf62 | [261101-ix2-cyclic-groups-a-complexity-move-onto-a-c](./quick/261101-ix2-cyclic-groups-a-complexity-move-onto-a-c/) |
+| 261101-k8y | Cyclic Groups: Complexity and Form preference become real sliders, a track with three slots and a round knob that always rests in one (branch cyclic-groups-real-sliders) | 2026-11-01 | aca5c98 | [261101-k8y-cyclic-groups-the-complexity-and-form-pr](./quick/261101-k8y-cyclic-groups-the-complexity-and-form-pr/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -886,4 +887,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-01 - Completed quick task 261101-ix2: Cyclic Groups refused complexity move onto a shut neither (branch cyclic-groups-blocked-complexity)
+Last activity: 2026-11-01 - Completed quick task 261101-k8y: Cyclic Groups real three-slot sliders (branch cyclic-groups-real-sliders)
