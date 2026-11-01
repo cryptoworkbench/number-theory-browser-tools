@@ -1095,7 +1095,7 @@
       genBeadsEc: 'Follow element clicks',
       fmapOrderLabel: 'Formula map of the subgroup size',
       fmapIndexLabel: 'Formula map of the index',
-      fmapLabelJn: 'JN',
+      fmapLabelJn: 'No\nderivation',
       fmapLabelGcd: 'GCD',
       fmapLabelLcm: 'LCM',
       fmapLabelShort: 'short',
