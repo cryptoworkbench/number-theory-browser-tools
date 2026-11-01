@@ -247,7 +247,9 @@ const wantPair = (M, g, h, tokO, tokI) => {
 };
 // The map state of every .fmap on the page: its formula, the position its
 // knob is on, which radios are disabled, which is checked.
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// A (ℤ/nℤ)* or a curve shows a slider pair (.fsl-pair, quick 261031-wef) in
+// the map's place; its data-at is the same node id.
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -354,8 +356,11 @@ const ZNA = '?mobile=0&mode=additive&n=12&subformularow=both';
 
 /* ---------- helpers of this probe ---------- */
 const CURVE = '?mobile=0&curve=11,1,3&subformularow=both&subformularing=both';
-const mapsIn = (P, ctx) => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at') }; })`, ctx);
+const mapsIn = (P, ctx) => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at') }; })`, ctx);
 const stopCentre = (P, f, id, ctx) => centre(P, `.fmap[data-f="${f}"] .fmap-stop[data-id="${id}"]`, ctx);
+// The form slider's neither notch, a2 at compact and a at complete, where a
+// (ℤ/nℤ)* or a curve has its map's a / a2.
+const NEITHER = f => `.fsl-pair[data-f="${f}"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]`;
 // A real double-click: two presses, the second with clickCount 2 (Chrome then fires dblclick).
 async function dbl(P, x, y) {
   await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
@@ -383,7 +388,7 @@ const SAMPLER = ms => `(function(){
   document.querySelectorAll('.ring-hover-formula .lb-box').forEach(function(b){ b.__orig = true; });
   var cls = function(c){ return Array.prototype.map.call(document.querySelectorAll('.ring-hover-formula .lb-box.' + c), function(b){ return +b.getAttribute('data-g'); }); };
   var t = setInterval(function(){
-    var m = {}; document.querySelectorAll('.fmap').forEach(function(x){ m[x.getAttribute('data-f')] = x.getAttribute('data-at'); });
+    var m = {}; document.querySelectorAll('.fmap, .fsl-pair').forEach(function(x){ m[x.getAttribute('data-f')] = x.getAttribute('data-at'); });
     var lit = document.querySelector('.ring-hover-formula .lb-list input:checked');
     var origs = Array.prototype.filter.call(document.querySelectorAll('.ring-hover-formula .lb-box'), function(b){ return b.__orig; }).length;
     window.__fs.push({ n: window.__fn, t: window.__ft0 === null ? null : Math.round(performance.now() - window.__ft0), pulse: cls('is-force-pulse'), set: cls('is-force-set'), ok: cls('is-flash-ok'), no: cls('is-flash-no'), base: lit ? +lit.value : null, maps: m, origs: origs });
@@ -413,14 +418,20 @@ function pickModel(M, h, base, node) {
 }
 const TOK = { pos: 'pos-gcd', abs: 'abs-gcd' };
 // Load, double-click the order map's node, sample, and check the whole run.
+// opts.slider: a (ℤ/nℤ)* or a curve, whose formulas have sliders (quick
+// 261031-wef): it loads at compact (gcd-short) for a2 and complete (gcd-full)
+// for a, and double-clicks the form slider's neither notch.
+const START = { pos: 'gcd-short', abs: 'gcd-full' };
 async function forceRun(P, scen, name, url, M, h, base, node, opts = {}) {
   const pick = pickModel(M, h, base, node);
+  const tok0 = opts.slider ? START[node] : 'gcd-full';
+  if (opts.slider && tok0 !== 'gcd-full') url += `&fmaporder=${tok0}`;
   await P.load(url);
   await P.enter();
   const r0 = await rowNow(P);
   out(!!r0 && same(r0.checked, [base]) && !reach(M, base, h)[node], scen, `${name}: starts on base ${M.at(base)} with ${node === 'pos' ? 'a2' : 'a'} closed`, r0 && r0.checked);
   await P.ev(SAMPLER(3200));
-  const c = await stopCentre(P, 'order', node);
+  const c = opts.slider ? await centre(P, NEITHER('order')) : await stopCentre(P, 'order', node);
   await dbl(P, c.x, c.y);
   await sleep(3000);
   const ss = after0(await samples(P));
@@ -429,7 +440,7 @@ async function forceRun(P, scen, name, url, M, h, base, node, opts = {}) {
   const firstSet = ss.find(s => s.set.includes(pick)), lastOn = ss.filter(s => s.set.length || s.pulse.length).pop();
   out(!!firstSet && firstSet.t >= 1000 && firstSet.t <= 1450 && !!lastOn && lastOn.t <= 2500, scen, `${name}: the base is set at about 1.1 s, the flashing ends by 2.5 s`, { set: firstSet && firstSet.t, end: lastOn && lastOn.t });
   const pulses = ss.filter(s => s.pulse.length);
-  out(pulses.length > 0 && pulses.every(s => s.base === base && s.maps.order === 'gcd-full'), scen, `${name}: while it pulses the base and the knob stay`, pulses.slice(0, 2));
+  out(pulses.length > 0 && pulses.every(s => s.base === base && s.maps.order === tok0), scen, `${name}: while it pulses the base and the knob stay`, pulses.slice(0, 2));
   out(!!firstSet && firstSet.base === pick && firstSet.maps.order === node, scen, `${name}: with the last flash the base is ${M.at(pick)} and the knob on ${node === 'pos' ? 'a2' : 'a'}`, firstSet);
   out(ss.every(s => s.no.length === 0 && s.ok.length === 0) && ss.every(s => s.pulse.every(g => g === pick) && s.set.every(g => g === pick)), scen, `${name}: no green/red hint flash after the double-click, and only box ${M.at(pick)} flashes`, ss.find(s => s.no.length || s.ok.length));
   const q = new URLSearchParams(await P.q()), maps = await mapsNow(P), f = await P.formulas();
@@ -512,7 +523,7 @@ SCENARIOS.push(['units13', async browser => {
   for (const node of ['pos', 'abs']) {
     if (reach(U, 2, 5)[node]) continue;
     ran++;
-    await forceRun(P, 'units13', `(ℤ/13ℤ)* h=5 base 2, ${node === 'pos' ? 'a2' : 'a'} -> ${pickModel(U, 5, 2, node)}`, url, U, 5, 2, node);
+    await forceRun(P, 'units13', `(ℤ/13ℤ)* h=5 base 2, ${node === 'pos' ? 'a2' : 'a'} -> ${pickModel(U, 5, 2, node)}`, url, U, 5, 2, node, { slider: true });
   }
   out(ran > 0, 'units13', `(ℤ/13ℤ)* h=5 base 2 has ${ran} closed position(s) to force`);
   noErrors(P, 'units13');
@@ -524,7 +535,7 @@ SCENARIOS.push(['curve', async browser => {
   let hit = null;
   for (let h = 1; h < E.N && !hit; h++) for (const b of E.gens.slice(1)) if (!hit && !reach(E, b, h).pos && pickModel(E, h, b, 'pos') !== null) hit = { h, b };
   out(!!hit, 'curve', hit ? `E(𝔽₁₁) h=${E.at(hit.h)} base ${E.at(hit.b)}: a2 closed, forced by ${E.at(pickModel(E, hit.h, hit.b, 'pos'))}` : 'a closed a2 on the curve');
-  if (hit) await forceRun(P, 'curve', `curve h=${E.at(hit.h)} base ${E.at(hit.b)}`, `${CURVE}&gen=${hit.h}&logbase=${hit.b}`, E, hit.h, hit.b, 'pos');
+  if (hit) await forceRun(P, 'curve', `curve h=${E.at(hit.h)} base ${E.at(hit.b)}`, `${CURVE}&gen=${hit.h}&logbase=${hit.b}`, E, hit.h, hit.b, 'pos', { slider: true });
   noErrors(P, 'curve');
   await P.done();
 }]);
@@ -655,7 +666,7 @@ async function openPane(P, query, chip) {
   for (let i = 0; i < 30; i++) {
     await sleep(300);
     const c = await P.paneCtx();
-    if (c && (await P.ev(`document.querySelectorAll('.fmap').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
+    if (c && (await P.ev(`document.querySelectorAll('.fmap, .fsl-pair').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
   }
   return null;
 }
@@ -674,7 +685,10 @@ SCENARIOS.push(['pane', async browser => {
   await P.ev(`document.querySelector('.lb-box[data-g="${base}"] input').click()`, ctx);
   await sleep(1200);
   const pick = pickModel(U, h, base, 'pos');
-  await P.ev(`(function(){ var i = document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="pos"] input'); i.click(); i.click(); i.parentNode.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); return i.getAttribute('aria-disabled'); })()`, ctx);
+  // the pane's (ℤ/13ℤ)* has sliders: compact first, then the closed neither (a2) double-clicked
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"] .fsl-notch[data-v="1"]').click()`, ctx);
+  await sleep(1200);
+  await P.ev(`(function(){ var i = document.querySelector('${NEITHER('order')}'); i.click(); i.click(); i.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); return i.className; })()`, ctx);
   await sleep(500);
   const mid = await rowNow(P, ctx);
   out(mid && mid.checked[0] === base && (await P.ev(`Array.prototype.map.call(document.querySelectorAll('.lb-box.is-force-pulse'), function(b){ return +b.getAttribute('data-g'); })`, ctx)).join() === String(pick), 'pane', `in the pane box ${pick} pulses, the base still ${base}`, mid);

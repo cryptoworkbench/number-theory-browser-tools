@@ -246,7 +246,9 @@ const wantPair = (M, g, h, tokO, tokI) => {
 };
 // The map state of every .fmap on the page: its formula, the position its
 // knob is on, which radios are disabled, which is checked.
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// A (ℤ/nℤ)* or a curve shows a slider pair (.fsl-pair, quick 261031-wef) in
+// the map's place; its data-at is the same node id (no radios: checked is it).
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true, token: m.getAttribute('data-token') }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -591,21 +593,18 @@ SCENARIOS.push(['flash', async browser => {
   await P.mouse(c.x, c.y);
   r = await rowNow(P);
   out((await state('order')).at === 'lcm-short' && r.ok.length === 0 && r.no.length === 0, 'flash', 'an open position takes the knob and flashes nothing');
-  // (ℤ/13ℤ)*: a2 closed at h = 5 with base 2; the SLS radios stay plainly disabled
+  // (ℤ/13ℤ)*: a2 closed at h = 5 with base 2. Its formulas have sliders
+  // (quick 261031-wef): at compact (gcd-short) the form slider's neither is a2.
   const U = unitsModel(13);
-  await P.load('?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=5');
+  await P.load('?mobile=0&mode=multiplicative&n=13&expr=2&subformularow=both&subformularing=both&gen=5&fmaporder=gcd-short');
   await P.enter();
-  c = await stopCentre(P, 'order', 'pos');
+  c = await centre(P, '.fsl-pair[data-f="order"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]');
   await P.mouse(c.x, c.y);
   r = await rowNow(P);
-  out(same(sortN(r.ok), okOf(U, 5, 'pos')) && same(sortN(r.no), noOf(U, 5, 'pos')) && (await state('order')).at === 'gcd-full', 'flash', `(ℤ/13ℤ)* h=5: a2 flashes green ${okOf(U, 5, 'pos')}, red ${noOf(U, 5, 'pos')}`, { ok: r.ok, no: r.no });
-  const sls = await P.ev(`['gcd-sls','lcm-sls'].map(function(id){ var i=document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="'+id+'"] input'); return [i.disabled, i.getAttribute('aria-disabled')]; })`);
-  out(sls.every(x => x[0] === true && x[1] === null), 'flash', 'the SLS radios are plainly disabled (never flash)', sls);
-  await sleep(1400);
-  await P.clickEl('.fmap[data-f="order"] .fmap-stop[data-id="gcd-sls"] input');
-  await sleep(200);
-  r = await rowNow(P);
-  out(r.ok.length === 0 && r.no.length === 0 && (await state('order')).at === 'gcd-full', 'flash', 'a click on a disabled SLS radio does nothing');
+  out(same(sortN(r.ok), okOf(U, 5, 'pos')) && same(sortN(r.no), noOf(U, 5, 'pos')) && (await state('order')).at === 'gcd-short', 'flash', `(ℤ/13ℤ)* h=5: a click on the form slider's closed neither (a2) flashes green ${okOf(U, 5, 'pos')}, red ${noOf(U, 5, 'pos')}`, { ok: r.ok, no: r.no });
+  // (ℤ/13ℤ)* has no SLS position at all: no map with SLS radios, and its sliders stop at JN / compact / complete
+  const sls = await P.ev(`({ maps: document.querySelectorAll('.fmap').length, labels: Array.prototype.map.call(document.querySelectorAll('.fsl-notch'), function(x){ return x.textContent; }).filter(function(t){ return /SLS/.test(t); }).length })`);
+  out(sls.maps === 0 && sls.labels === 0, 'flash', '(ℤ/13ℤ)* offers no SLS position (no map, no SLS notch)', sls);
   noErrors(P, 'flash');
   await P.done();
 }]);
@@ -761,7 +760,7 @@ async function paneReady(P) {
   for (let i = 0; i < 30; i++) {
     await sleep(300);
     const c = await P.paneCtx();
-    if (c && (await P.ev(`document.querySelectorAll('.fmap').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
+    if (c && (await P.ev(`document.querySelectorAll('.fmap, .fsl-pair').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
   }
   return null;
 }

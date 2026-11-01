@@ -270,7 +270,13 @@ const wantPair = (M, g, h, tokO, tokI) => {
 };
 // The map state of every .fmap on the page: its formula, the position its
 // knob is on, which radios are disabled, which is checked.
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// A (ℤ/nℤ)* or a curve has a slider pair (.fsl-pair, quick 261031-wef) in
+// the map's place: its data-at is the same node id, and pair: true carries
+// each slider's aria-valuenow (c, v), the form slider's closed notches and
+// whether it rests (inert, at JN).
+const PAIR_JS = `function(m){ var s = function(k){ return m.querySelector('.fsl[data-kind="' + k + '"]'); }; return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), token: m.getAttribute('data-token'), pair: true, c: +s('complexity').getAttribute('aria-valuenow'), v: +s('form').getAttribute('aria-valuenow'), inert: s('form').classList.contains('is-inert'), closed: Array.prototype.map.call(s('form').querySelectorAll('.fsl-notch.is-closed'), function(x){ return +x.getAttribute('data-v'); }) }; }`;
+const cvOf = t => (t === 'jn' || t.includes('sls') ? [0, 2] : [t.startsWith('pos-') || t.endsWith('-short') ? 1 : 2, t.startsWith('abs-') || t.startsWith('pos-') ? 1 : t.startsWith('gcd') ? 2 : 0]);
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return (${PAIR_JS})(m); var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -553,7 +559,12 @@ async function checkGroup(P, scen, M, url, g, h, { tokens = ALL_TOKENS, keepRows
     const tag = `${scen} h=${M.at(h)} base=${M.at(g)} ${t}${eff !== t ? ' -> ' + eff : ''}`;
     out(JSON.stringify(plains(f.ring)) === JSON.stringify(want), scen, `${tag} plain`, { got: plains(f.ring), want });
     out(steps[0] === STEPS_ORDER[node] && steps[1] === STEPS_INDEX[node], scen, `${tag} steps ${steps}`, { steps, node });
-    out(maps.length === 2 && maps.every(m => m.at === node && m.checked === node && JSON.stringify(m.off) === JSON.stringify(offWant(rc)) && m.n === 9), scen, `${tag} knob and disabled positions`, { maps, off: offWant(rc), node });
+    if (M.kind === 'add') out(maps.length === 2 && maps.every(m => m.at === node && m.checked === node && JSON.stringify(m.off) === JSON.stringify(offWant(rc)) && m.n === 9), scen, `${tag} knob and disabled positions`, { maps, off: offWant(rc), node });
+    else {
+      // (ℤ/nℤ)* and curves: the slider pair's state instead of the radios
+      const [c, v] = cvOf(eff), closed = c && !rc[c === 1 ? 'pos' : 'abs'] ? [1] : [];
+      out(maps.length === 2 && maps.every(m => m.pair && m.at === node && m.c === c && m.v === v && m.inert === (c === 0) && JSON.stringify(m.closed) === JSON.stringify(closed)), scen, `${tag} sliders (complexity ${c}, form ${v}, closed neither ${closed.length > 0}, resting at JN)`, { maps, c, v, closed, node });
+    }
     out((await P.param('fmaporder')) === (eff === 'gcd-full' ? null : eff), scen, `${tag} url follows the snap`, await P.param('fmaporder'));
   }
 }
@@ -590,7 +601,7 @@ SCENARIOS.push(['curve', async browser => {
   out((await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .log-tri')), 'curve', 'base row at a log form');
   await P.load(`${CURVE}&gen=1&expr=8&fmaporder=jn&fmapindex=jn`);
   await P.enter();
-  out(await P.exists('.ring-hover-formula .lb-row'), 'curve', 'the base row stays while every shown formula sits on JN');
+  out(!(await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .lb-lock')) && !(await P.exists('.ring-hover-formula .lb-scroll')), 'curve', 'no base row, padlock or wheel switch while every shown formula sits on JN (the sliders\' rule)');
   noErrors(P, 'curve');
   await P.done();
 }]);
@@ -630,7 +641,7 @@ SCENARIOS.push(['noncyclic', async browser => {
     await P.enter();
     const f = await P.formulas();
     out(JSON.stringify(plains(f.ring)) === JSON.stringify(want[name]), 'noncyclic', `${name}${lv || ' complete'}: the Complete-level notation, whatever the slider says`, plains(f.ring));
-    out(!(await P.exists('.fmap')) && !(await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .log-tri')), 'noncyclic', `${name}${lv || ' complete'}: no map, no base row, no pyramid`);
+    out(!(await P.exists('.fmap')) && !(await P.exists('.fsl-pair')) && !(await P.exists('.ring-hover-formula .lb-row')) && !(await P.exists('.ring-hover-formula .log-tri')), 'noncyclic', `${name}${lv || ' complete'}: no map, no sliders, no base row, no pyramid`);
   }
   // a map's stored position is left alone where there is no map
   await P.load('?mobile=0&mode=multiplicative&n=8&gen=3&subformularing=both&fmaporder=lcm-short');
@@ -815,7 +826,7 @@ async function openPane(P, query, chip) {
   for (let i = 0; i < 30; i++) {
     await sleep(300);
     const c = await P.paneCtx();
-    if (c && (await P.ev(`document.querySelectorAll('.fmap').length`, c)) === 2) { await sleep(600); return c; }
+    if (c && (await P.ev(`document.querySelectorAll('.fmap, .fsl-pair').length`, c)) === 2) { await sleep(600); return c; }
   }
   return null;
 }
@@ -831,7 +842,8 @@ SCENARIOS.push(['pane', async browser => {
   const hm = await mapsNow(P);
   out(hm.length === 2 && hm[0].at === 'gcd-short' && hm[1].at === 'lcm-full', 'pane', "the host's own maps are its own", hm);
   // a change in the pane writes the host's url
-  await P.ev(`document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="lcm-full"] input').click()`, ctx);
+  // (the pane's (ℤ/13ℤ)* has sliders: lcm-short -> lcm-full is the complete notch)
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"] .fsl-notch[data-v="2"]').click()`, ctx);
   await sleep(1200);
   let q = await hostQ(P);
   out(q.get('fmaporderr') === 'lcm-full' && q.get('fmapindexr') === 'jn' && q.get('fmaporder') === 'gcd-short' && q.get('fmapindex') === 'lcm-full', 'pane', "a click in the pane writes fmaporderr into the host's url, the rest stays", Object.fromEntries(q));
@@ -847,7 +859,8 @@ SCENARIOS.push(['pane', async browser => {
   q = await hostQ(P);
   out(!!sw && q.get('fmaporderr') === null && !q.has('sublcmringr'), 'pane', "the pane's right-click switch (lcm-full -> gcd-full, the default, so no param) reaches the host url", { items, q: q.get('fmaporderr') });
   // the swap trades the two rings' maps
-  await P.ev(`document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="gcd-short"] input').click()`, ctx);
+  // gcd-full -> gcd-short: the compact notch
+  await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"] .fsl-notch[data-v="1"]').click()`, ctx);
   await sleep(1000);
   q = await hostQ(P);
   out(q.get('fmaporderr') === 'gcd-short', 'pane', 'pane order map moved to gcd-short', q.get('fmaporderr'));

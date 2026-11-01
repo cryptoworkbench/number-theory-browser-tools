@@ -247,7 +247,9 @@ const wantPair = (M, g, h, tokO, tokI) => {
 };
 // The map state of every .fmap on the page: its formula, the position its
 // knob is on, which radios are disabled, which is checked.
-const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
+// A (ℤ/nℤ)* or a curve shows a slider pair (.fsl-pair, quick 261031-wef) in
+// the map's place; its data-at is the same node id.
+const mapsNow = P => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ if (m.classList.contains('fsl-pair')) return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: m.getAttribute('data-at'), off: [], n: 0, pair: true }; var all = Array.prototype.slice.call(m.querySelectorAll('input')); return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at'), checked: (all.find(function(i){ return i.checked; }) || {}).value, off: all.filter(function(i){ return i.disabled || i.getAttribute('aria-disabled') === 'true'; }).map(function(i){ return i.value; }).sort(), n: all.length, labels: Array.prototype.map.call(m.querySelectorAll('svg text'), function(t){ return t.textContent; }).join(' ') }; })`);
 const offWant = rc => [!rc.abs && 'abs', !rc.pos && 'pos', !rc.sls && 'gcd-sls', !rc.sls && 'lcm-sls'].filter(Boolean).sort();
 
 /* ---------- independent curve models (prime p, and n = p·q by CRT) ---------- */
@@ -354,8 +356,12 @@ const ZNA = '?mobile=0&mode=additive&n=12&subformularow=both';
 
 /* ---------- helpers of this probe ---------- */
 const CURVE = '?mobile=0&curve=11,1,3&subformularow=both&subformularing=both';
-const mapsIn = (P, ctx) => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap'), function(m){ return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at') }; })`, ctx);
+const mapsIn = (P, ctx) => P.ev(`Array.prototype.map.call(document.querySelectorAll('.fmap, .fsl-pair'), function(m){ return { f: m.getAttribute('data-f'), at: m.getAttribute('data-at') }; })`, ctx);
 const stopCentre = (P, f, id, ctx) => centre(P, `.fmap[data-f="${f}"] .fmap-stop[data-id="${id}"]`, ctx);
+// The form slider's neither notch, a2 at compact and a at complete, where a
+// (ℤ/nℤ)* or a curve has its map's a / a2.
+const NEITHER = f => `.fsl-pair[data-f="${f}"] .fsl[data-kind="form"] .fsl-notch[data-v="1"]`;
+const START = { pos: 'gcd-short', abs: 'gcd-full' };
 // A real double-click: two presses, the second with clickCount 2 (Chrome then fires dblclick).
 async function dbl(P, x, y) {
   await P.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
@@ -447,7 +453,7 @@ async function openPane(P, query, chip) {
   for (let i = 0; i < 30; i++) {
     await sleep(300);
     const c = await P.paneCtx();
-    if (c && (await P.ev(`document.querySelectorAll('.fmap').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
+    if (c && (await P.ev(`document.querySelectorAll('.fmap, .fsl-pair').length`, c)) === 2 && (await P.ev(`!!document.querySelector('.lb-row')`, c))) { await sleep(800); return c; }
   }
   return null;
 }
@@ -490,13 +496,13 @@ const LSAMPLER = ms => `(function(){
   var cls = function(c){ return Array.prototype.map.call(document.querySelectorAll('.ring-hover-formula .lb-box.' + c), function(b){ return +b.getAttribute('data-g'); }); };
   var t = setInterval(function(){
     var lock = document.querySelector('.ring-hover-formula .lb-lock');
-    var m = {}; document.querySelectorAll('.fmap').forEach(function(x){ m[x.getAttribute('data-f')] = x.getAttribute('data-at'); });
+    var m = {}; document.querySelectorAll('.fmap, .fsl-pair').forEach(function(x){ m[x.getAttribute('data-f')] = x.getAttribute('data-at'); });
     var lit = document.querySelector('.ring-hover-formula .lb-list input:checked');
     window.__ls.push({ n: window.__ln, t: window.__lt0 === null ? null : Math.round(performance.now() - window.__lt0),
       alarm: !!lock && lock.classList.contains('is-alarm'), nudge: !!lock && lock.classList.contains('is-nudge'),
       anim: lock ? getComputedStyle(lock).animationName : null, color: lock ? getComputedStyle(lock).color : null, warn: warn,
       transform: lock ? getComputedStyle(lock).transform : null,
-      pulse: cls('is-force-pulse'), set: cls('is-force-set'), ok: cls('is-flash-ok'), no: cls('is-flash-no'), base: lit ? +lit.value : null, maps: m });
+      pulse: cls('is-force-pulse'), set: cls('is-force-set'), ok: cls('is-flash-ok'), no: cls('is-flash-no'), base: lit ? +lit.value : null, maps: m, chips: document.querySelectorAll('.fsl-notch.is-force-pulse, .fsl-notch.is-force-set').length });
   }, 30);
   setTimeout(function(){ clearInterval(t); }, ${ms});
   return 1;
@@ -758,17 +764,22 @@ SCENARIOS.push(['group', async browser => {
 }]);
 
 /* ---------- units13 and a cyclic curve: the alarm there too ---------- */
-async function alarmRun(P, scen, name, url, M, h, base, node) {
+// opts.slider: a (ℤ/nℤ)* or a curve with sliders (quick 261031-wef): it
+// loads at compact (gcd-short) for a2 or complete (gcd-full) for a and
+// double-clicks the form slider's neither notch.
+async function alarmRun(P, scen, name, url, M, h, base, node, opts = {}) {
+  const tok0 = opts.slider ? START[node] : 'gcd-full';
+  if (opts.slider && tok0 !== 'gcd-full') url += `&fmaporder=${tok0}`;
   await P.load(url);
   await P.enter();
   const r0 = await rowNow(P);
   out(!!r0 && same(r0.checked, [base]) && !reach(M, base, h)[node] && (await lockNow(P)).pressed === 'true', scen, `${name}: locked on base ${M.at(base)} with ${node === 'pos' ? 'a2' : 'a'} closed`, r0 && r0.checked);
   await P.ev(LSAMPLER(2000));
-  const c = await stopCentre(P, 'order', node);
+  const c = opts.slider ? await centre(P, NEITHER('order')) : await stopCentre(P, 'order', node);
   await dbl(P, c.x, c.y);
   await sleep(1900);
   const ss = await lsamples(P);
-  out(ss.every(s => s.base === base && s.maps.order === 'gcd-full' && !s.pulse.length && !s.set.length) && ss.some(s => s.alarm), scen, `${name}: nothing forced (base ${M.at(base)}, knob on GCD full), the padlock alarm runs`, ss.find(s => s.base !== base || s.pulse.length));
+  out(ss.every(s => s.base === base && s.maps.order === tok0 && !s.pulse.length && !s.set.length && !s.chips) && ss.some(s => s.alarm), scen, `${name}: nothing forced (base ${M.at(base)}, knob on ${tok0}), the padlock alarm runs`, ss.find(s => s.base !== base || s.pulse.length || s.maps.order !== tok0));
 }
 SCENARIOS.push(['units13', async browser => {
   const P = await openPage(browser, 'units13', { w: 1280, h: 900, ua: UA_DESKTOP });
@@ -778,7 +789,7 @@ SCENARIOS.push(['units13', async browser => {
   for (const node of ['pos', 'abs']) {
     if (reach(U, 2, 5)[node]) continue;
     ran++;
-    await alarmRun(P, 'units13', `(ℤ/13ℤ)* h=5 base 2, ${node === 'pos' ? 'a2' : 'a'}`, url, U, 5, 2, node);
+    await alarmRun(P, 'units13', `(ℤ/13ℤ)* h=5 base 2, ${node === 'pos' ? 'a2' : 'a'}`, url, U, 5, 2, node, { slider: true });
   }
   out(ran > 0, 'units13', `(ℤ/13ℤ)* h=5 base 2 has ${ran} closed position(s)`);
   noErrors(P, 'units13');
@@ -791,7 +802,7 @@ SCENARIOS.push(['curve', async browser => {
   for (let h = 1; h < E.N && !hit; h++) for (const b of E.gens.slice(1)) if (!hit && !reach(E, b, h).pos && pickModel(E, h, b, 'pos') !== null) hit = { h, b };
   out(!!hit, 'curve', hit ? `E(𝔽₁₁) h=${E.at(hit.h)} base ${E.at(hit.b)}: a2 closed` : 'a closed a2 on the curve');
   if (hit) {
-    await alarmRun(P, 'curve', `curve h=${E.at(hit.h)} base ${E.at(hit.b)}`, `${CURVE}&gen=${hit.h}&logbase=${hit.b}&logbaselock=1`, E, hit.h, hit.b, 'pos');
+    await alarmRun(P, 'curve', `curve h=${E.at(hit.h)} base ${E.at(hit.b)}`, `${CURVE}&gen=${hit.h}&logbase=${hit.b}&logbaselock=1`, E, hit.h, hit.b, 'pos', { slider: true });
     const other = E.gens.find(g => g !== hit.b);
     await P.clickEl(`.ring-hover-formula .lb-box[data-g="${other}"] input`);
     await sleep(400);
@@ -831,13 +842,16 @@ SCENARIOS.push(['pane', async browser => {
   out(same((await rowNow(P, ctx)).checked, [pb]) && q.get('logbaser') === String(pb), 'pane', `a click on the pane's box ${other}: its base stays ${pb} (logbaser=${pb})`, Object.fromEntries(q));
   // a forced double-click in the pane, locked
   {
-    await P.ev(`(function(){ var i = document.querySelector('.fmap[data-f="order"] .fmap-stop[data-id="pos"] input'); i.click(); i.click(); i.parentNode.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); return 1; })()`, ctx);
+    // the pane's (ℤ/13ℤ)* has sliders: compact first (a2 is its neither), then the double-click
+    await P.ev(`document.querySelector('.fsl-pair[data-f="order"] .fsl[data-kind="complexity"] .fsl-notch[data-v="1"]').click()`, ctx);
+    await sleep(1000);
+    await P.ev(`(function(){ var i = document.querySelector('${NEITHER('order')}'); i.click(); i.click(); i.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); return 1; })()`, ctx);
     await sleep(300);
     const mid = await lockNow(P, ctx);
-    const pulsing = await P.ev(`document.querySelectorAll('.lb-box.is-force-pulse').length`, ctx);
+    const pulsing = await P.ev(`document.querySelectorAll('.lb-box.is-force-pulse, .fsl-notch.is-force-pulse').length`, ctx);
     await sleep(1800);
     q = await hostQ(P);
-    out(mid.cls.includes('is-alarm') && pulsing === 0 && q.get('logbaser') === String(pb) && q.get('fmaporderr') === null, 'pane', `a double-click on the pane's closed a2: the pane's padlock alarms, nothing forced (logbaser=${pb})`, { cls: mid.cls, pulsing, q: Object.fromEntries(q) });
+    out(mid.cls.includes('is-alarm') && pulsing === 0 && q.get('logbaser') === String(pb) && q.get('fmaporderr') === 'gcd-short', 'pane', `a double-click on the pane's closed a2: the pane's padlock alarms, nothing forced (logbaser=${pb})`, { cls: mid.cls, pulsing, q: Object.fromEntries(q) });
   }
   // the host url carries it into a reopened pane, and the swap trades it
   ctx = await openPane(P, `${HOST}&logbaselockr=1`, 'ℤ/13ℤ,×');
@@ -849,7 +863,7 @@ SCENARIOS.push(['pane', async browser => {
   for (let i = 0; i < 30 && !c2; i++) {
     await sleep(300);
     const c = await P.paneCtx();
-    if (c && (await P.ev(`document.querySelectorAll('.fmap').length === 2 && !!document.querySelector('.lb-row')`, c).catch(() => false))) c2 = c;
+    if (c && (await P.ev(`document.querySelectorAll('.fmap, .fsl-pair').length === 2 && !!document.querySelector('.lb-row')`, c).catch(() => false))) c2 = c;
   }
   await sleep(800);
   q = await hostQ(P);
