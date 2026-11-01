@@ -7637,8 +7637,8 @@ var fslBand = null, FSL_BAND_MS = 900;
 var FSL_BAND_X = [12, 62, 152, 62], FSL_BAND_Y = [47, 28, 9];
 /* The forked Complexity track, in the slider's own pixels (w its width, y0
    the top line, y1 the branch): the four slots, the two bends of the branch
-   (45° down from JN, 45° up to complete) and the paths a knob may take. The
-   branch is drawn; compact to compact SLS is not, the knob only crosses it. */
+   (45° down from JN, 45° up to complete) and the paths a knob may take,
+   compact to compact SLS straight down among them. */
 var FSL_FORK_DROP = 15;
 function fslForkPts(w, y0){
   var y1 = y0 + FSL_FORK_DROP;
@@ -7647,10 +7647,10 @@ function fslForkPts(w, y0){
     L: [w / 6 + FSL_FORK_DROP, y1], R: [w * 5 / 6 - FSL_FORK_DROP, y1]
   };
 }
-var FSL_FORK_DRAWN = [[0, 1], [1, 2], [0, 'L'], ['L', 3], [3, 'R'], ['R', 2]];
+var FSL_FORK_DRAWN = [[0, 1], [1, 2], [0, 'L'], ['L', 3], [3, 'R'], ['R', 2], [1, 3]];
 // The top line alone: where a knob may go while the branch is off.
 var FSL_FORK_TOP = [[0, 1], [1, 2]];
-var FSL_FORK_EDGES = FSL_FORK_DRAWN.concat([[1, 3]]);
+var FSL_FORK_EDGES = FSL_FORK_DRAWN;
 function fslDist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
 // The point of segment ab nearest p, and how far it is.
 function fslOnSeg(p, a, b){
@@ -7773,7 +7773,7 @@ function formulaSliders(G, info){
     // The branch is greyed out where it is off, painted whole under the top
     // line; else edges first, then grooves, as one path.
     if (fork){
-      var dTop = 'M24 0H162', dBranch = 'M31 0L' + (31 + FSL_FORK_DROP) + ' ' + FSL_FORK_DROP + 'H' + (155 - FSL_FORK_DROP) + 'L155 0';
+      var dTop = 'M24 0H162', dBranch = 'M31 0L' + (31 + FSL_FORK_DROP) + ' ' + FSL_FORK_DROP + 'H' + (155 - FSL_FORK_DROP) + 'L155 0M93 0V' + FSL_FORK_DROP;
       var fsvg = svgEl('svg', { 'class': 'fsl-fork', viewBox: '0 -4 186 ' + (FSL_FORK_DROP + 8), preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false' });
       var forkPath = function(part, d, isOff){ fsvg.appendChild(svgEl('path', { 'class': 'fsl-fork-' + part + (isOff ? ' is-off' : ''), 'data-part': d === dTop ? 'top' : 'branch', d: d })); };
       if (slsOff){
