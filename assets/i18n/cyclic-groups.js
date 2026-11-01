@@ -176,9 +176,9 @@
    fslNeither (notch labels beside the reused fmapLabelJn, fmapLabelGcd and
    fmapLabelLcm), fslComplexityOrder, fslComplexityIndex, fslFormOrder and
    fslFormIndex (each slider's accessible name) and fslFormInert (the form
-   slider's tooltip while the formula is at JN), and fslMapShow and fslMapHide
-   (the toggle beside each slider pair that shows the formula map next to the
-   sliders, and hides it again), and fslBlockedCompact and fslBlockedComplete
+   slider's tooltip while the formula is at Short), and fslMapShow and fslMapHide
+   (the formula menu's item that shows the formula map window, and hides it
+   again), and fslBlockedCompact and fslBlockedComplete
    (the tooltip of a complexity notch whose neither the logarithm base leaves
    shut, so the move is refused until the base changes), and for ℤ/nℤ's
    forked Complexity slider fslCompactSls, fslCompactSlsText and
@@ -187,7 +187,12 @@
    SLS notch while the form is neither, and of the neither notch while the
    complexity is compact SLS: no form is both), and fslSlsAdditiveOnly (the
    tooltip of the greyed-out compact SLS slot on the Complexity slider of an
-   elliptic curve or a group of units, which have no SLS forms). Every other language shows the English value through
+   elliptic curve or a group of units, which have no SLS forms), and fslShort
+   and fslShortTip (the Complexity slider's first slot, formerly labelled JN,
+   and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
+   floating formula-map window opened from the formula's right-click menu,
+   its title and the captions over its two maps; fslMapShow and fslMapHide
+   now name that menu item). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1122,7 +1127,7 @@
       fslComplexityIndex: 'Complexity of the index formula',
       fslFormOrder: 'Form preference of the subgroup size formula',
       fslFormIndex: 'Form preference of the index formula',
-      fslFormInert: 'At JN the formula takes no form: the form preference applies again once the complexity is compact or complete',
+      fslFormInert: 'At Short the formula takes no form: the form preference applies again once the complexity is compact or complete',
       fslMapShow: 'Show the formula map',
       fslMapHide: 'Hide the formula map',
       fslBlockedCompact: 'Compact with the form neither (a2) is out of reach under this logarithm base: change the base first. A double-click picks the nearest base that opens it.',
@@ -1133,6 +1138,11 @@
       fslSlsNeither: 'Compact SLS has no form neither: a and a2 work with a logarithm, which SLS skips. Choose GCD or LCM first; a double-click takes the row neither came from.',
       fslNeitherSls: 'The form neither (a, a2) works with a logarithm, which compact SLS skips: move the complexity off compact SLS first. A double-click goes to compact with neither (a2).',
       fslSlsAdditiveOnly: 'Skip-logarithm-substitution (SLS) forms exist only for additive groups',
+      fslShort: 'Short',
+      fslShortTip: 'Short: just the notation, the answer without derivation steps',
+      fmapWinTitle: 'Formula map',
+      fmapWinOrder: 'Subgroup size',
+      fmapWinIndex: 'Index',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
