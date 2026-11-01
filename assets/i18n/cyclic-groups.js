@@ -1098,6 +1098,8 @@
       fmapLabelJn: 'No\nderivation',
       fmapLabelGcd: 'GCD',
       fmapLabelLcm: 'LCM',
+      fmapLabelGcdCompact: 'GCD (compact)',
+      fmapLabelLcmCompact: 'LCM (compact)',
       fmapLabelShort: 'short',
       fmapLabelFull: 'full',
       fmapLabelSls: 'Skip logarithm use',
