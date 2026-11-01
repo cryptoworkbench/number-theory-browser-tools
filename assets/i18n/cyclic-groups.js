@@ -188,7 +188,7 @@
    complexity is compact SLS: no form is both; fslCompactSlsTip is also the
    tooltip of the greyed-out slot on an elliptic curve or a group of units,
    which have no SLS forms), and fslShort
-   and fslCompactTip (the compact slot's tooltip), and fslShortTip (the Complexity slider's first slot, formerly labelled JN,
+   and fslCompactTip and fslCompleteTip (the compact and complete slots' tooltips), and fslShortTip (the Complexity slider's first slot, formerly labelled JN,
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
@@ -1138,6 +1138,7 @@
       fslNeitherSls: 'The form neither (a, a2) works with a logarithm, which compact SLS skips: move the complexity off compact SLS first. A double-click goes to compact with neither (a2).',
       fslShort: 'Short',
       fslShortTip: 'Short: just the notation, the answer without derivation steps',
+      fslCompleteTip: 'Use a logarithm to find the distance between E and G on the circle.',
       fslCompactTip: 'Use a logarithm to find the distance between E and G on the circle.\n\nCompacted through skipping the logarithm substitution step.\n\nFor multiplicative groups: group cardinality is not calculated as a second derivation step using φ(n) anymore.',
       fmapWinTitle: 'Formula map',
       fmapWinOrder: 'Subgroup size',
