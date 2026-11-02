@@ -1244,6 +1244,15 @@
   .ring-head > .ring-hover-formula{ order:-1; align-self:center; max-width:100%; margin:4px 0 6px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:6px 14px; overflow:hidden; white-space:nowrap; pointer-events:none; user-select:none; -webkit-user-select:none; background:transparent; border:1px solid transparent; border-radius:var(--radius-card); }
   /* Its ground and edge show only while it lies over the ring's drawing (is-on-ring,
      from syncRingOverlap). */
+  .ring-head > .ring-hover-formula{ position:relative; }
+  .ring-hover-formula > .f-grip{ position:absolute; left:2px; translate:0 -50%; display:grid; place-items:center; width:12px; height:22px; padding:0; color:var(--text-dim); background:none; border:0; border-radius:4px; cursor:grab; opacity:0; pointer-events:none; transition:opacity .15s; }
+  .ring-hover-formula > .f-grip svg{ fill:currentColor; }
+  .ring-hover-formula.is-hot > .f-grip, .ring-hover-formula.is-fdrag > .f-grip, .ring-hover-formula > .f-grip:focus-visible{ opacity:1; pointer-events:auto; }
+  .ring-hover-formula > .f-grip:hover{ color:var(--accent); }
+  .ring-hover-formula > .f-grip:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .ring-hover-formula.is-fdrag, .ring-hover-formula.is-fdrag > .f-grip{ cursor:grabbing; }
+  .ring-hover-formula .is-fdragged{ position:relative; z-index:1; opacity:.85; }
+  .ring-hover-formula .is-fdrop{ opacity:.45; }
   .ring-head > .ring-hover-formula.is-on-ring{ border-color:var(--panel-border); background:var(--panel); }
   .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
   /* Both formulas, their = signs lined up (alignFormulaSteps): one grid,
@@ -5662,28 +5671,29 @@ function fsetGrid(i){
     w.focus = '.bar-swap';
     barFormulasChanged();
   });
-  // Beside it, a swap of the Size and Index columns: the formulas, in the
-  // main area and in the row, are written in the columns' order.
-  var swapKey = i === 0 ? 'fSwap' : 'fSwapR';
+  // Beside it, a swap of what the Size and Index columns hold: each place's
+  // shown and hidden choices trade columns, the columns staying put. The
+  // formulas' order is the main area's, set by dragging them there.
   var cols = document.createElement('button');
   cols.type = 'button';
   cols.className = 'bar-swap bar-swap-cols';
   cols.title = translate('cyclicGroups.barSwapCols');
   cols.setAttribute('aria-label', cols.title);
-  cols.setAttribute('aria-pressed', state[swapKey] ? 'true' : 'false');
   var hArrows = svgEl('svg', { viewBox: '0 0 16 16', width: 14, height: 14, 'aria-hidden': 'true', focusable: 'false' });
   hArrows.appendChild(svgEl('path', { d: 'M2.5 5H13.5M11 2.5 13.5 5 11 7.5' }));
   hArrows.appendChild(svgEl('path', { d: 'M13.5 11H2.5M5 8.5 2.5 11 5 13.5' }));
   cols.appendChild(hArrows);
   cols.addEventListener('click', function(){
-    state[swapKey] = !state[swapKey];
+    var flip = function(v){ return v === 'order' ? 'index' : v === 'index' ? 'order' : v; };
+    state[side.ring] = flip(state[side.ring]);
+    state[side.row] = flip(state[side.row]);
     w.focus = '.bar-swap-cols';
     barFormulasChanged();
   });
   // Four columns: the places' names, the first formula, the columns' swap
   // (between the two heads) and the second formula; the places' swap sits
   // between Main and Row, under the names.
-  var columns = state[swapKey] ? BAR_FORMULAS.slice().reverse() : BAR_FORMULAS;
+  var columns = BAR_FORMULAS;
   var AT_COL = [2, 4];
   columns.forEach(function(fm, k){
     var head = document.createElement('span');
@@ -5804,6 +5814,7 @@ function buildSubFormula(G){
   var carry = hasSliders(G) && fmapCarryKey === G.key ? fmapSnapshot() || fmapHeld : null;
   fmapCarryKey = null;
   fmapHeld = null;
+  var wasHot = !!ringHeadEl.querySelector('.ring-hover-formula.is-hot');
   clearSubFormula();
   // The cosets button and the subgroup row's G = ⟨h⟩ write h as the panel does.
   syncCosetButton();
@@ -5823,6 +5834,7 @@ function buildSubFormula(G){
     // pointer, coloured like its bead as the bottom panel's settings say.
     var fs = ringFormulas(G);
     box = subFormulaBox('div', 'ring-hover-formula', fs);
+    Array.prototype.forEach.call(box.children, function(line, i){ line.setAttribute('data-fline', String(i)); });
     // Each formula with a map gets it beside it, in a column of its own; the
     // formulas then are read by assistive technology, not the box.
     // The formulas stand alone: each type's Complexity and Form preference
@@ -5869,6 +5881,8 @@ function buildSubFormula(G){
   if (box){
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
+    if (wasHot) box.classList.add('is-hot');
+    if (!IS_MOBILE && fs.length === 2) formulaGrips(box);
   }
   if (hasSliders(G)) fmapCarryKey = G.key;
   if (carryOn) carryOn();
@@ -6004,6 +6018,70 @@ function rowFormulaH(G, h, x, paint){
     return paint ? memberMath(x, m) : m;
   };
 }
+// Both formulas shown in the main area, each gets a grip beside it while the
+// pointer is over them: dragged past the other formula, the two trade
+// places. That order is the formulas' everywhere, the row's too.
+function formulaGrips(box){
+  var lines = Array.prototype.slice.call(box.querySelectorAll('[data-fline]'));
+  if (lines.length !== 2) return;
+  lines.forEach(function(line, i){
+    var grip = document.createElement('button');
+    grip.type = 'button';
+    grip.className = 'f-grip';
+    grip.title = translate('cyclicGroups.formulaGrip');
+    grip.setAttribute('aria-label', grip.title);
+    var dots = svgEl('svg', { viewBox: '0 0 8 14', width: 8, height: 14, 'aria-hidden': 'true', focusable: 'false' });
+    [[2, 2], [6, 2], [2, 7], [6, 7], [2, 12], [6, 12]].forEach(function(c){ dots.appendChild(svgEl('circle', { cx: c[0], cy: c[1], r: 1.1 })); });
+    grip.appendChild(dots);
+    grip.style.top = (line.offsetTop + line.offsetHeight / 2) + 'px';
+    grip.addEventListener('keydown', function(e){
+      if ((e.key === 'ArrowUp' && i === 1) || (e.key === 'ArrowDown' && i === 0)){ e.preventDefault(); swapFormulaOrder(); }
+    });
+    grip.addEventListener('pointerdown', function(e){
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      grip.setPointerCapture(e.pointerId);
+      var other = lines[1 - i], y0 = ptY(e);
+      var reach = Math.abs((other.offsetTop + other.offsetHeight / 2) - (line.offsetTop + line.offsetHeight / 2));
+      var top0 = parseFloat(grip.style.top);
+      var dy = 0;
+      box.classList.add('is-fdrag');
+      line.classList.add('is-fdragged');
+      var move = function(ev){
+        dy = Math.max(-reach, Math.min(reach, ptY(ev) - y0));
+        if (i === 0) dy = Math.max(0, dy); else dy = Math.min(0, dy);
+        line.style.translate = '0 ' + dy + 'px';
+        grip.style.top = (top0 + dy) + 'px';
+        other.classList.toggle('is-fdrop', Math.abs(dy) > reach / 2);
+      };
+      var up = function(){
+        grip.removeEventListener('pointermove', move);
+        grip.removeEventListener('pointerup', up);
+        grip.removeEventListener('pointercancel', up);
+        box.classList.remove('is-fdrag');
+        line.classList.remove('is-fdragged');
+        other.classList.remove('is-fdrop');
+        line.style.translate = '';
+        grip.style.top = top0 + 'px';
+        if (Math.abs(dy) > reach / 2) swapFormulaOrder();
+      };
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', up);
+      grip.addEventListener('pointercancel', up);
+    });
+    box.appendChild(grip);
+  });
+}
+function swapFormulaOrder(){
+  state.fSwap = !state.fSwap;
+  if (IS_ISOPANE){
+    tellHost({ isopane: 'fswap', value: state.fSwap });
+    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
+    return;
+  }
+  barFormulasChanged();
+}
 function subFormulaBox(tag, cls, fs, wrap){
   var box = document.createElement(tag);
   box.className = cls;
@@ -6031,6 +6109,7 @@ function alignFormulaSteps(box, fs){
     var row = document.createElement('div');
     row.className = 'ring-eq-line';
     row.setAttribute('data-plain', fs[i].plain);
+    if (line.hasAttribute('data-fline')) row.setAttribute('data-fline', line.getAttribute('data-fline'));
     if (line.getAttribute('aria-hidden')) row.setAttribute('aria-hidden', line.getAttribute('aria-hidden'));
     segs.forEach(function(nodes, j){
       row.appendChild(mEl('math', [mrow.apply(null, j ? [mo('=')].concat(nodes) : nodes)], { 'class': 'ring-eq-piece', display: 'block', dir: 'ltr' }));
@@ -17835,6 +17914,9 @@ window.addEventListener('message', function(e){
     state.subFormulaRingR = d.value;
     barFormulasChanged();
     if (d.blink === true) blinkBarBtn(1);
+  } else if (d.isopane === 'fswap' && typeof d.value === 'boolean'){
+    state.fSwapR = d.value;
+    barFormulasChanged();
   } else if (d.isopane === 'swap' && d.spec){
     var swapTo = readSwaps([d.spec])[0];
     if (swapTo) swapPaneGroup(swapChipOf(swapTo));
