@@ -1123,6 +1123,7 @@
       fmapLcmSls: 'LCM, skipping logarithm use: use the LCM formula without a logarithm in order to find the distance between E and G on the circle. Only available for additive groups.',
       logBaseLabel: 'Base of the logarithm',
       logBaseIntro: 'In this mode the formulas use a logarithm, so pick one of the group\'s generators to use as the base for the logarithm ({star}):',
+      logBaseIntroNotStructure: 'Because this group ({group}) is not equal to its structure ({structure}), a logarithm is needed to determine the position of G relative to E (in a circle whose arrangement is by generator powers). Pick one of the group\'s generators to use as the base for this logarithm:',
       logBaseIntroStar: 'This mode uses a logarithm in order to find the distance between G and E on the circle, so pick a generator from the group to use as the base for the logarithm.',
       logBaseIntroStarSeq: 'This mode uses a logarithm in order to find the distance between G and E on the circle (if it were order by generator powers), so pick a generator from the group to use as the base for the logarithm.',
       logBaseOff: '{log} ∤ {card} && {log}⁻¹ ∈ {zn} ∤ {card} ⟹ {g} is not suitable.',
