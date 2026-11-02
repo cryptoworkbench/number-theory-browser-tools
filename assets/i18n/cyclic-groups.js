@@ -196,7 +196,8 @@
    fsetTabMap, fsetTabSliders, fsetShow and fsetHide (that window as one
    Formula settings window per formula type, size and index, their two tabs
    and the formula's menu item; the gear beside Size and Index in the bottom
-   bar's menu has its window's title as its tooltip),
+   bar's menu has its window's title as its tooltip), fslTitleComplexity and
+   fslTitleForm (the titles over the two sliders in that window),
    skipLog and skipLogTip (the generator control's Skip logarithm use
    checkbox). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
@@ -1161,6 +1162,8 @@
       fsetWinTitleIndex: 'Index formula settings',
       fsetTabMap: 'Map',
       fsetTabSliders: 'Sliders',
+      fslTitleComplexity: 'Complexity slider:',
+      fslTitleForm: 'Formula form preference slider:',
       fsetShow: 'Formula settings…',
       fsetHide: 'Hide the formula settings',
       skipLog: 'Skip logarithm use',
