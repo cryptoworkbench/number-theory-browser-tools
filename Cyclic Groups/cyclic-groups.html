@@ -5534,6 +5534,13 @@ function syncBarFormulas(){
 var isoPanePlotMin = false, isoPanePolyMin = false, isoPaneCayleyMin = false;
 function barPlotTasks(i, G){
   var tasks = [];
+  // While no formula of the group shows anywhere, its formula settings
+  // window, minimized, waits here as a task, to be opened again: first,
+  // at the left of the group's place, where its formulas button used to be.
+  if (!IS_MOBILE && !fsetShownNow(i) && (i === 0 ? fmapUsed() : paneFmapUsed()).length === 0){
+    var fsetName = translate('cyclicGroups.fsetWinTitleGroup', { group: G.label });
+    tasks.push(barTask(fsetName, fsetName, fsetName, 'fset', function(){ openFset(i); }));
+  }
   if (G.pts && (i === 0 ? !curvePlotOpen : isoPanePlotMin)){
     var curve = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
     tasks.push(barTask(curve, translate('cyclicGroups.curvePlotShow'), translate('cyclicGroups.curvePlotTask', { curve: curve }), 'curve', function(){
@@ -5554,12 +5561,6 @@ function barPlotTasks(i, G){
       if (i === 0){ openCayley(); blinkLinked(cayleyEl); return; }
       tellPane({ ringhost: 'cayleyopen' });
     }));
-  }
-  // While no formula of the group shows anywhere, its formula settings
-  // window, closed, waits here as a task, to be opened again.
-  if (!IS_MOBILE && !fsetShownNow(i) && (i === 0 ? fmapUsed() : paneFmapUsed()).length === 0){
-    var fsetName = translate('cyclicGroups.fsetWinTitleGroup', { group: G.label });
-    tasks.push(barTask(fsetName, fsetName, fsetName, 'fset', function(){ openFset(i); }));
   }
   if (i === 0 && lapKeyOn && !lapKeyOpen){
     var laps = translate('cyclicGroups.lapKeyTitle');
