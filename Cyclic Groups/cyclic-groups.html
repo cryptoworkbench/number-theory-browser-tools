@@ -8530,6 +8530,14 @@ function paneSkipBox(skipped){
   tick.addEventListener('change', function(){
     if (tick.checked && fslOf(state.fmapR.order).v === 1){
       tick.checked = false;
+      // Tried again soon after, forced: the row neither came from, at its SLS form.
+      if (Date.now() - skipRefusedAtR < SKIP_FORCE_MS){
+        skipRefusedAtR = 0;
+        state.skipLogR = true;
+        setPaneToken((fmapRow(state.fmapR.order) || fslMemoR.row || 'gcd') + '-sls');
+        return;
+      }
+      skipRefusedAtR = Date.now();
       label.classList.remove('is-flash-no');
       void label.offsetWidth;
       label.classList.add('is-flash-no');
@@ -8789,11 +8797,22 @@ function skipLogBox(G, on){
 }
 // A tick while a formula's form is neither, which no SLS form has, is
 // refused: the box unticks and flashes red with that slider's notches.
+// Tried again soon after (SKIP_FORCE_MS, a double-click among them), it
+// is forced, as a double-click on the Complexity slider's compact SLS slot
+// is: the form goes to the row neither came from, at its SLS form.
+var SKIP_FORCE_MS = 1500, skipRefusedAt = 0, skipRefusedAtR = 0;
 function setSkipLog(on, input){
   if (!drawn || !skipLogShown(drawn.G)) return;
   var G = drawn.G, c = on ? 3 : 1;
   if (on && fmapUsed().some(function(f){ return complexityRefused(G, f, 3); })){
     if (input) input.checked = false;
+    if (Date.now() - skipRefusedAt < SKIP_FORCE_MS){
+      skipRefusedAt = 0;
+      state.skipLog = true;
+      forceFslSls(G, 'order', 'complexity', fmapRow(state.fmap.order) || fslMemoBoth.row || 'gcd', null);
+      return;
+    }
+    skipRefusedAt = Date.now();
     return;
   }
   var L0 = formulaLevel();
