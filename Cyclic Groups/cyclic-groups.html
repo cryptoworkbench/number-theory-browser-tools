@@ -1430,8 +1430,8 @@
   .lb-skip.is-flash-no{ animation:lb-skip-no 1.1s ease-out; }
   .lb-anyway{ height:auto; min-height:24px; padding:3px 8px; font:inherit; font-size:.74rem; white-space:normal; text-align:center; justify-content:center; align-self:center; background:none; }
   .lb-anyway[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
-  .lb-anyway.is-held{ display:inline-flex; align-items:center; gap:5px; cursor:default; }
-  .lb-anyway.is-held svg{ flex:none; width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:1.2; }
+  .lb-anyway.is-held{ position:relative; cursor:default; }
+  .lb-anyway > .lb-held-lock{ display:grid; }
   .lb-anyway:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   @keyframes lb-skip-no{ 0%, 75%{ color:var(--role-warn); } }
   .lb-row.is-skip .lb-box{ opacity:.4; border-style:dashed; color:var(--text-dim); cursor:not-allowed; }
@@ -8955,9 +8955,16 @@ function logAnywayBlock(G, used, toggle, held){
   if (held){
     btn.classList.add('is-held');
     btn.setAttribute('aria-disabled', 'true');
-    btn.appendChild(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V4a2 2 0 0 1 4 0v1.5' }]]));
   }
   btn.appendChild(document.createTextNode(translate('cyclicGroups.logAnyway')));
+  // Held, it wears the small padlock the locked group parameters wear.
+  if (held){
+    var lock = document.createElement('span');
+    lock.className = 'group-lock lb-held-lock';
+    lock.setAttribute('aria-hidden', 'true');
+    lock.appendChild(drawLockIcon());
+    btn.appendChild(lock);
+  }
   btn.title = translate(held ? 'cyclicGroups.logAnywayHeld' : 'cyclicGroups.logAnywayTip');
   if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(btn);
   btn.addEventListener('click', function(){ if (!held) toggle(btn); });
