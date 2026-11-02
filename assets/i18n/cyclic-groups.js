@@ -1124,7 +1124,7 @@
       logBaseLabel: 'Base of the logarithm',
       logBaseIntro: 'In this mode the formulas use a logarithm, so pick one of the group\'s generators to use as the base for the logarithm ({star}):',
       logBaseIntroNotStructure: 'Because this group is not equal to its structure ({group} != {structure}), a logarithm is needed to determine the position of G relative to E{circle}. Pick one of the group\'s generators to use as the base for this logarithm:',
-      logBaseIntroAdditive: 'Because this group IS equal to its structure{star}, a logarithm is strictly speaking not needed to determine the position of G relative to E{circle}. Each element already holds its own position; as the logarithm to base 1. However, not using a logarithm because each element is already its own base 1 logarithm specifies the formula for additive groups, while it might be more sensible to keep the formula generalized ...',
+      logBaseIntroAdditive: 'Because this group IS equal to its structure{star}, a logarithm is strictly speaking NOT needed to determine the position of G relative to E{circle}. Each element already holds its own position; as the logarithm to base 1. However, not using a logarithm because each element is already its own base 1 logarithm specifies the formula for additive groups, while it might be more sensible to keep the formula generalized ...',
       logBaseIntroCircle: 'In a circle whose arrangement is by generator powers.',
       logBaseIntroAdditiveStar: '{group} == {group}',
       logAnyway: 'Keep the formula generalized: use a logarithm anyway',
