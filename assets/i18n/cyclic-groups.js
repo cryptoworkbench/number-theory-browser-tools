@@ -192,7 +192,11 @@
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
-   now name that menu item). Every other language shows the English value through
+   now name that menu item), and fsetWinTitle, fsetTabMap, fsetTabSliders,
+   fsetShow, fsetHide and fsetGear (that window as the Formula settings
+   window, its two tabs, its menu item and the gear beside the formula),
+   skipLog and skipLogTip (the generator control's Skip logarithm use
+   checkbox). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1151,6 +1155,14 @@
       fmapWinTitle: 'Formula map',
       fmapWinOrder: 'Subgroup size',
       fmapWinIndex: 'Index',
+      fsetWinTitle: 'Formula settings',
+      fsetTabMap: 'Map',
+      fsetTabSliders: 'Sliders',
+      fsetShow: 'Formula settings…',
+      fsetHide: 'Hide the formula settings',
+      fsetGear: 'Formula settings: the Complexity slider and the formula map',
+      skipLog: 'Skip logarithm use',
+      skipLogTip: 'Read h directly, without a logarithm: the formulas go to compact SLS. Only for additive groups.',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',

@@ -998,7 +998,7 @@
   /* The formula map's window (see fillFmapWin), opened from the formula's
      right-click menu: the main view's maps, each under its caption, live as
      they were beside the sliders; dragged by its head or frame, never by a
-     map. A phone has no windows: its maps stay under the sliders. */
+     map, a slider or the generator control. A phone has no windows: its maps stay under the sliders. */
   :root.is-mobile .fmap-win{ display:none !important; }
   .fs-win-body.is-ring > .fmap-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); }
   .fmap-win .lap-key-head{ gap:6px; }
@@ -1006,6 +1006,21 @@
   .fmap-win-item{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
   .fmap-win-cap{ margin:0; font-size:.72rem; color:var(--text-dim); }
   .bar-task.is-fmap svg{ stroke-width:.8; }
+  /* Its two tabs, Map and Sliders, under its head; the generator control
+     closes its body, as under the formula. */
+  .fset-tabs{ display:flex; gap:2px; margin:2px 0 6px; border-bottom:1px solid var(--panel-border); }
+  .fset-tab{ margin:0 0 -1px; padding:3px 10px; border:1px solid transparent; border-bottom:0; border-radius:var(--radius-ctl) var(--radius-ctl) 0 0; background:none; color:var(--text-dim); font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
+  .fset-tab:hover{ color:var(--text); }
+  .fset-tab[aria-selected="true"]{ color:var(--text); border-color:var(--panel-border); background:var(--surface); box-shadow:inset 0 2px 0 var(--accent); }
+  .fset-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .fset-gen{ display:flex; flex-direction:column; align-items:center; gap:4px; max-width:100%; }
+  .fset-gen .lb-intro{ max-width:300px; }
+  /* The gear under the formula's first form slider, opening the window. */
+  .fset-gear{ align-self:flex-start; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
+  .fset-gear:hover{ color:var(--text); }
+  .fset-gear[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .fset-gear:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .fset-gear svg{ fill:none; stroke:currentColor; stroke-width:1; stroke-linejoin:round; }
   .fs-win-body.is-ring > .dh-plot{ width:min(430px, 46%); }
   .dh-note{ margin:0 0 .5em; font-size:.8em; line-height:1.35; color:var(--text-dim); }
   .dh-grid{ display:grid; grid-template-columns:1fr auto 1fr; gap:.3em .5em; align-items:center; font-size:.9em; font-variant-numeric:tabular-nums; }
@@ -1390,6 +1405,15 @@
      other box is dimmed and answers a click only by nudging the padlock. */
   .lb-row.is-locked .lb-box:not(:has(input:checked)){ opacity:.5; color:var(--text-dim); cursor:not-allowed; }
   .lb-row.is-locked .lb-box.is-off:not(:has(input:checked)){ opacity:.4; }
+  /* Skip logarithm use, after the wheel switch; ticked, no base is used and
+     every box is dimmed, the chosen one too. A refused tick flashes red. */
+  .lb-skip{ flex:none; display:inline-flex; align-items:center; gap:4px; font-size:.74rem; color:var(--text-dim); white-space:nowrap; cursor:pointer; user-select:none; -webkit-user-select:none; }
+  .lb-skip:hover, .lb-skip:has(input:checked){ color:var(--text); }
+  .lb-skip input{ margin:0; accent-color:var(--accent); cursor:pointer; }
+  .lb-skip.is-flash-no{ animation:lb-skip-no 1.1s ease-out; }
+  @keyframes lb-skip-no{ 0%, 75%{ color:var(--role-warn); } }
+  .lb-row.is-skip .lb-box{ opacity:.4; border-style:dashed; color:var(--text-dim); cursor:not-allowed; }
+  .lb-row.is-skip .lb-box:has(input:checked){ border-color:var(--panel-border-strong); background:var(--panel); }
   .lb-box:has(input:focus-visible){ outline:2px solid var(--accent); outline-offset:1px; }
   /* The hint a click on a closed a or a2 gives: green where that position would be open, red elsewhere. */
   @keyframes lb-flash-ok{ 0%, 75%{ opacity:1; color:var(--text); border-color:var(--role-result); background:color-mix(in srgb, var(--role-result) 30%, var(--panel)); } }
@@ -2890,8 +2914,9 @@
           <div class="dh-body" id="dh-body"></div><div class="curve-grip" id="dh-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <section class="curve-plot fmap-win" id="fmap-win" aria-labelledby="fmap-win-title" hidden>
-          <div class="lap-key-head"><h2 id="fmap-win-title" data-i18n="cyclicGroups.fmapWinTitle">Formula map</h2><button type="button" class="fs-win-btn lap-key-min" id="fmap-win-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button><button type="button" class="fs-win-btn lap-key-min is-close" id="fmap-win-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
-          <div class="fmap-win-body" id="fmap-win-body"></div>
+          <div class="lap-key-head"><h2 id="fmap-win-title" data-i18n="cyclicGroups.fsetWinTitle">Formula settings</h2><button type="button" class="fs-win-btn lap-key-min" id="fmap-win-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button><button type="button" class="fs-win-btn lap-key-min is-close" id="fmap-win-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
+          <div class="fset-tabs" role="tablist" aria-labelledby="fmap-win-title"><button type="button" class="fset-tab" id="fset-tab-map" role="tab" aria-selected="true" aria-controls="fmap-win-body" data-tab="map" data-i18n="cyclicGroups.fsetTabMap">Map</button><button type="button" class="fset-tab" id="fset-tab-sliders" role="tab" aria-selected="false" aria-controls="fmap-win-body" tabindex="-1" data-tab="sliders" data-i18n="cyclicGroups.fsetTabSliders">Sliders</button></div>
+          <div class="fmap-win-body" id="fmap-win-body" role="tabpanel" aria-labelledby="fset-tab-map"></div>
         </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
@@ -5547,7 +5572,7 @@ function barPlotTasks(i, G){
     tasks.push(barTask(laps, translate('cyclicGroups.lapKeyShow'), translate('cyclicGroups.lapKeyShow'), 'lap', function(){ openLapKey(); blinkLinked(lapKeyEl); }));
   }
   if (i === 0 && fmapTaskShown){
-    tasks.push(barTask(translate('cyclicGroups.fmapWinTitle'), translate('cyclicGroups.fslMapShow'), translate('cyclicGroups.fslMapShow'), 'fmap', function(){ openFmapWin(); blinkLinked(fmapWinEl); }));
+    tasks.push(barTask(translate('cyclicGroups.fsetWinTitle'), translate('cyclicGroups.fsetGear'), translate('cyclicGroups.fsetGear'), 'fmap', function(){ openFmapWin(); blinkLinked(fmapWinEl); }));
   }
   return tasks;
 }
@@ -5786,9 +5811,10 @@ function syncSubFormula(G){
   var heldSlAt = heldSl ? [heldSl.closest('.fsl-pair').getAttribute('data-f'), heldSl.getAttribute('data-kind')] : null;
   // So does the row of base boxes, and its list keeps the place it was scrolled to.
   var heldLb = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.lb-row') : null;
-  var heldLbKind = heldLb ? (document.activeElement.closest('.lb-scroll') ? 'wheel' : document.activeElement.closest('.lb-lock') ? 'lock' : 'box') : null;
-  var oldList = ringHeadEl.querySelector('.lb-list');
-  var listAt = oldList ? [oldList.scrollLeft, oldList.scrollTop] : null;
+  var heldLbKind = heldLb ? (document.activeElement.closest('.lb-scroll') ? 'wheel' : document.activeElement.closest('.lb-lock') ? 'lock' : document.activeElement.closest('.lb-skip') ? 'skip' : 'box') : null;
+  // In the main view or in the settings window: it comes back where it was.
+  var heldInWin = !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('#fmap-win'));
+  var listAts = [ringHeadEl, fmapWinBodyEl].map(function(sc){ var l = sc.querySelector('.lb-list'); return l ? [l.scrollLeft, l.scrollTop] : null; });
   // The sliders and an open map of the same group, as they stood, so the new
   // ones move on from there.
   var carry = hasSliders(G) && fmapCarryKey === G.key ? fmapSnapshot() || fmapHeld : null;
@@ -5798,7 +5824,7 @@ function syncSubFormula(G){
   // The cosets button and the subgroup row's G = ⟨h⟩ write h as the panel does.
   syncCosetButton();
   syncGenSuper(G);
-  if (state.noSub || !subFormulaAtRing()) fillFmapWin([]);
+  if (state.noSub || !subFormulaAtRing()) fillFmapWin(G, []);
   if (state.noSub){ showRowFormula(G); return; }
   if (subFormulaAtRing()){
     // ⟨h⟩'s h is written as in the row formula: lined up and, under the
@@ -5808,27 +5834,35 @@ function syncSubFormula(G){
     var box = subFormulaBox('div', 'ring-hover-formula', fs);
     // Each formula with a map gets it beside it, in a column of its own; the
     // formulas then are read by assistive technology, not the box.
-    // The maps opened from the formula's menu go into their own window; on
-    // a phone, which has no windows, and in the pane, they come between the
-    // sliders and the formula.
-    var mapsOpen = hasSliders(G) && state.fmapOpen, mapsInline = mapsOpen && fmapInline(), winMaps = [];
+    // Beside each formula its Form preference slider; its complexity is the
+    // bottom bar's, and its Complexity slider and its map are in the
+    // Formula settings window, opened by the gear under the first form
+    // slider or from the formula's menu. A phone, which has no windows,
+    // keeps both sliders and shows the maps between them and the formula;
+    // the pane shows its maps there too.
+    var mapsOpen = hasSliders(G) && state.fmapOpen, mapsInline = mapsOpen && fmapInline(), winInfos = [];
     if (fs.some(function(x){ return x.map; })){
       box.classList.add('has-fmap');
       if (mapsInline) box.classList.add('fmap-open');
       box.removeAttribute('aria-hidden');
+      var geared = false;
       Array.prototype.slice.call(box.children).forEach(function(line, i){
         line.setAttribute('aria-hidden', 'true');
         if (!fs[i].map) return;
-        box.insertBefore(hasSliders(G) ? formulaSliders(G, fs[i].map) : formulaMap(G, fs[i].map), line);
+        if (!hasSliders(G)){ box.insertBefore(formulaMap(G, fs[i].map), line); return; }
+        var pair = formulaSliders(G, fs[i].map, IS_MOBILE ? null : { formOnly: true });
+        if (!IS_MOBILE && !geared){ pair.appendChild(fsetGearButton()); geared = true; }
+        box.insertBefore(pair, line);
         if (mapsInline) box.insertBefore(formulaMap(G, fs[i].map), line);
-        else if (mapsOpen) winMaps.push(formulaMap(G, fs[i].map));
+        winInfos.push(fs[i].map);
       });
     }
-    var winSpawned = fillFmapWin(winMaps);
+    var winSpawned = fillFmapWin(G, mapsOpen && !mapsInline ? winInfos : []);
     // The base row, its padlock and its wheel switch go when every formula
-    // shown is at JN or an SLS form, neither of which takes a logarithm.
+    // shown is at JN or an SLS form, neither of which takes a logarithm,
+    // unless Skip logarithm use is there to untick.
     var slsOnly = fs.every(function(x){ return !x.map || x.map.token === 'jn' || x.map.token.indexOf('sls') !== -1; });
-    if (box.classList.contains('has-fmap') && !slsOnly){
+    if (box.classList.contains('has-fmap') && (!slsOnly || skipLogShown(G))){
       box.appendChild(logBaseIntro(G));
       box.appendChild(logBaseRow(G));
     }
@@ -5839,24 +5873,26 @@ function syncSubFormula(G){
     fitSubFormulaBox(box);
     if (hasSliders(G)) fmapCarryKey = G.key;
     if (carryOn) carryOn();
-    var list = box.querySelector('.lb-list');
-    if (list){
-      if (listAt){ list.scrollLeft = listAt[0]; list.scrollTop = listAt[1]; }
+    [box, fmapWinBodyEl].forEach(function(sc, i){
+      var list = sc.querySelector('.lb-list');
+      if (!list) return;
+      if (listAts[i]){ list.scrollLeft = listAts[i][0]; list.scrollTop = listAts[i][1]; }
       var lit = list.querySelector('input:checked');
       if (lit) logBaseInView(list, lit.parentNode);
-    }
+    });
     if (winSpawned) placeFmapWin();
+    var heldSc = heldInWin ? fmapWinBodyEl : box;
     if (heldF){
       var heldMap = fmapOf(heldF), again = heldMap && heldMap.querySelector('input:checked');
       if (again) again.focus({ preventScroll: true });
     }
     if (heldSlAt){
-      var slPair = box.querySelector('.fsl-pair[data-f="' + heldSlAt[0] + '"]');
-      var slBack = slPair && (slPair.querySelector('.fsl[data-kind="' + heldSlAt[1] + '"]:not(.is-inert)') || slPair.querySelector('.fsl[data-kind="complexity"]'));
+      var slPair = heldSc.querySelector('.fsl-pair[data-f="' + heldSlAt[0] + '"]');
+      var slBack = slPair && (slPair.querySelector('.fsl[data-kind="' + heldSlAt[1] + '"]:not(.is-inert)') || slPair.querySelector('.fsl:not(.is-inert)'));
       if (slBack) slBack.focus({ preventScroll: true });
     }
     if (heldLbKind){
-      var back = heldLbKind === 'wheel' ? box.querySelector('.lb-scroll') : heldLbKind === 'lock' ? box.querySelector('.lb-lock') : box.querySelector('.lb-list input:checked');
+      var back = heldSc.querySelector(heldLbKind === 'wheel' ? '.lb-scroll' : heldLbKind === 'lock' ? '.lb-lock' : heldLbKind === 'skip' ? '.lb-skip input' : '.lb-list input:checked');
       if (back) back.focus({ preventScroll: true });
     }
   }
@@ -7224,7 +7260,7 @@ function syncFormulaCtx(fml){
   // window is shown again.
   if (hasSliders(drawn.G) && !state.noSub){
     var mapOn = fmapShownNow();
-    var mp = ctxItem('menuitem', translate(mapOn ? 'cyclicGroups.fslMapHide' : 'cyclicGroups.fslMapShow'));
+    var mp = ctxItem('menuitem', translate(mapOn ? (fmapInline() ? 'cyclicGroups.fslMapHide' : 'cyclicGroups.fsetHide') : fmapInline() ? 'cyclicGroups.fslMapShow' : 'cyclicGroups.fsetShow'));
     mp.item.classList.add('ring-ctx-fmap');
     mp.item.addEventListener('click', function(){
       setRingCtx(false);
@@ -7293,13 +7329,16 @@ function mapReach(G, h, base){
   var r = n % q === 0 ? q : n % (n - q) === 0 ? q - n : null;
   return { q: q, r: r, abs: r !== null, pos: r !== null, sls: G.mode === 'additive' };
 }
-// Where the knob goes when its form no longer holds: a or a2 to the full form
-// of the row it was entered from, an SLS form to JN.
+// Where the knob goes when its form no longer holds, in the same column, as
+// the complexity is the bottom bar's: a to the full form of the row it was
+// entered from, a2 and an SLS form to the short one.
 var FMAP_FULL = { gcd: 'gcd-full', lcm: 'lcm-full' };
+var FMAP_SHORT = { gcd: 'gcd-short', lcm: 'lcm-short' };
 function mapSettle(token, reach){
-  var row = fmapRow(token), node = fmapNode(token);
-  if ((node === 'abs' || node === 'pos') && !reach[node]) token = FMAP_FULL[row];
-  if (token.indexOf('sls') !== -1 && !reach.sls) token = 'jn';
+  var row = fmapRow(token) || 'gcd', node = fmapNode(token);
+  if (node === 'abs' && !reach.abs) token = FMAP_FULL[row];
+  if (node === 'pos' && !reach.pos) token = FMAP_SHORT[row];
+  if (token.indexOf('sls') !== -1 && !reach.sls) token = FMAP_SHORT[row];
   return token;
 }
 // The base of the main view's logarithms: the generator the row of boxes has
@@ -7317,9 +7356,10 @@ function settleMaps(G){
     state.chosenBase = G.generators.indexOf(first) !== -1 ? first : G.generators[0];
     changed = resolved = true;
   }
-  var reach = mapReach(G, state.gen, state.chosenBase);
-  fmapShown().forEach(function(f){
-    var t = mapSettle(state.fmap[f], reach);
+  var reach = mapReach(G, state.gen, state.chosenBase), c = levelComplexity();
+  // Held to the bottom bar's complexity first (a link, the pane's holder).
+  FMAP_FS.forEach(function(f){
+    var t = mapSettle(alignToken(f, state.fmap[f], c), reach);
     if (t !== state.fmap[f]){ state.fmap[f] = t; changed = moved = true; }
   });
   if (!changed) return;
@@ -7359,7 +7399,8 @@ function mapFormula(G, h, f, token, base, hm){
   var node = fmapNode(token), row = fmapRow(token) || 'gcd';
   var n = G.order, ec = !!G.pts, mul = G.mode === 'multiplicative';
   var reach = mapReach(G, h, base), r = reach.r;
-  if ((node === 'abs' && !reach.abs) || (node === 'pos' && !reach.pos)) node = FMAP_FULL[row];
+  if (node === 'abs' && !reach.abs) node = FMAP_FULL[row];
+  if (node === 'pos' && !reach.pos) node = FMAP_SHORT[row];
   var sls = node === 'gcd-sls' || node === 'lcm-sls';
   var q = sls ? gcdOperand(G, h) : reach.q;
   var d = gcd(n, q), m = n / d, l = n * q / d, a = r === null ? null : Math.abs(r);
@@ -7571,15 +7612,28 @@ function setFormulaMap(f, id){
   fslBand = null;
   setFormulaToken(f, id === 'abs' || id === 'pos' ? FMAP_AT[id][row] : id);
 }
-// Formula f to the position token, from its map or its sliders.
+// Formula f to the position token, from its map or its sliders; the other
+// formulas take its complexity, or the move is refused when one can't.
 function setFormulaToken(f, token){
-  state.fmap[f] = fmapToken(token);
+  token = fmapToken(token);
+  var c = fslOf(token).c;
+  if (c !== fslOf(state.fmap[f]).c && linkRefused(f, c)) return;
+  var L0 = formulaLevel();
+  state.fmap[f] = token;
+  linkComplexity(f, c);
+  formulasMoved(L0);
+}
+// The formulas redrawn after a move; a new complexity is the bottom bar's
+// too, which every formula on the page follows (L0 the level before).
+function formulasMoved(L0){
+  var whole = L0 !== formulaLevel();
   if (IS_ISOPANE){
     tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
-    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
+    if (drawn){ if (whole) render(); else renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
     return;
   }
   barFormulasChanged();
+  if (whole){ render(); syncIsoCombine(); }
 }
 /* ---------- the main view's formula sliders ---------- */
 // Each main-view formula with a map has two sliders in place of it, walking
@@ -7646,6 +7700,60 @@ function fslTarget(kind, v, token, reach, memo){
   }
   if (!at.c) return null;
   return v === 1 ? fslToken(at.c, 1, row) : fslToken(at.c, v, v === 2 ? 'gcd' : 'lcm');
+}
+/* ---------- one complexity for every formula ---------- */
+// The bottom bar's formula slider is the Complexity slider's top line: its
+// No derivation, Compact and Complete are JN, compact and complete, for both
+// formulas at once (and the pane's, which follows). Compact SLS is Compact
+// with Skip logarithm use ticked. A move of either formula's complexity, by
+// its slider, its map, the checkbox or the bottom bar, moves them all; the
+// form each one has stays its own.
+var FMAP_FS = ['order', 'index'];
+function formulaLevel(){ return state.subBare ? 0 : state.subSimplify ? 1 : 2; }
+function levelOfComplexity(c){ return c === 3 ? 1 : c; }
+function setLevelFrom(c){
+  var L = levelOfComplexity(c);
+  state.subBare = L === 0;
+  state.subSimplify = L <= 1;
+  syncFormulaLevel();
+}
+// Formula f's token at complexity c, keeping its form (at JN the one
+// remembered); neither, which no SLS form has, goes to its row's.
+function alignToken(f, token, c){
+  var at = fslOf(token), memo = fslMemo[f];
+  if (at.c === c) return token;
+  if (at.c){ memo.form = FSL_FORM[at.v]; if (at.row) memo.row = at.row; }
+  if (c === 0) return 'jn';
+  var form = fslFormNow(at, memo), row = at.row || memo.row || 'gcd';
+  if (c === 3 && form === 1) form = FSL_ROW_V[row];
+  return fslToken(c, form, row);
+}
+// The complexity the formulas are held to: the bottom bar's, Compact SLS
+// while a shown formula sits on it.
+function levelComplexity(){
+  var L = formulaLevel();
+  return L === 1 && fmapShown().some(function(f){ return fslOf(state.fmap[f]).c === 3; }) ? 3 : L;
+}
+// Whether formula f can't go to complexity c, as its own slider would refuse
+// it (neither with compact SLS, or a neither the base leaves shut there);
+// refused, it flashes as there.
+function complexityRefused(G, f, c){
+  var token = state.fmap[f], memo = fslMemo[f], reach = mapReach(G, state.gen, mapBase(G));
+  if (fslOf(token).c === c) return false;
+  if (fslSlsNo('complexity', c, token, memo)){ refuseFslSls(f); return true; }
+  if (fslBlocked(c, token, reach, memo)){ refuseFslComplexity(G, f, c); return true; }
+  return false;
+}
+// Whether a shown formula other than f (every one, for null) can't follow to c.
+function linkRefused(f, c){
+  if (!drawn || !hasMap(drawn.G) || state.noSub || !subFormulaAtRing()) return false;
+  var G = drawn.G;
+  return fmapShown().some(function(o){ return o !== f && complexityRefused(G, o, c); });
+}
+// Every formula but f to complexity c, and the bottom bar with them.
+function linkComplexity(f, c){
+  FMAP_FS.forEach(function(o){ if (o !== f) state.fmap[o] = alignToken(o, state.fmap[o], c); });
+  setLevelFrom(c);
 }
 var FSL_LABELS = {
   complexity: ['cyclicGroups.fslShort', 'cyclicGroups.fslCompact', 'cyclicGroups.fslComplete', 'cyclicGroups.fslCompactSls'],
@@ -7768,7 +7876,8 @@ function fslForkGlide(sl, from, v, onTrack){
     return { left: p[0] - k + 'px', top: p[1] - k + 'px', offset: lens[i] / total };
   }), { duration: Math.max(180, Math.min(420, 120 + total * 1.6)), easing: 'ease-out' });
 }
-function formulaSliders(G, info){
+// opts.formOnly: the Form preference slider alone (the main view's on a desktop).
+function formulaSliders(G, info, opts){
   var f = info.f, token = info.token, reach = info.reach, at = fslOf(token), memo = fslMemo[f];
   // A forced sequence the state has left behind ends here (as in logBaseRow).
   if (logForce && !logForceLive()) stopLogForce();
@@ -7780,7 +7889,7 @@ function formulaSliders(G, info){
   pair.setAttribute('data-token', token);
   pair.setAttribute('role', 'group');
   pair.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
-  ['complexity', 'form'].forEach(function(kind){
+  (opts && opts.formOnly ? ['form'] : ['complexity', 'form']).forEach(function(kind){
     var isForm = kind === 'form', now = isForm ? fslFormNow(at, memo) : at.c;
     // Every Complexity track forks to its fourth slot, compact SLS, which
     // only ℤ/nℤ reaches: elsewhere slot 3 and the branch to it are off.
@@ -8063,13 +8172,11 @@ function refuseFslComplexity(G, f, v){
   if (state.logBaseLock) alarmLogLock('nudge');
   stopFslRefuse();
   fslRefuse = { f: f, v: v, node: node, t0: Date.now() };
-  var pair = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"]');
   var fm = hasSliders(G) ? fmapOf(f) : null;
-  var els = [
-    pair && pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="' + v + '"]'),
-    pair && pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]'),
-    fm && fm.querySelector('.fmap-stop[data-id="' + node + '"]')
-  ];
+  var els = [fm && fm.querySelector('.fmap-stop[data-id="' + node + '"]')];
+  fslPairsOf(f).forEach(function(pair){
+    els.push(pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="' + v + '"]'), pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]'));
+  });
   els.forEach(function(el){ if (el){ void el.offsetWidth; paintFslRefuse(el); } });
   fslRefuseTimer = setTimeout(stopFslRefuse, FSL_REFUSE_MS + 100);
 }
@@ -8077,7 +8184,7 @@ function stopFslRefuse(){
   clearTimeout(fslRefuseTimer);
   fslRefuse = null;
   fmapScopes().forEach(function(sc){
-    sc.querySelectorAll('.fsl-notch.is-flash-no, .fmap-stop.is-flash-no').forEach(function(el){
+    sc.querySelectorAll('.fsl-notch.is-flash-no, .fmap-stop.is-flash-no, .lb-skip.is-flash-no').forEach(function(el){
       el.classList.remove('is-flash-no');
       el.style.animationDelay = '';
     });
@@ -8095,9 +8202,12 @@ function paintFslRefuse(el){
 function refuseFslSls(f){
   stopFslRefuse();
   fslRefuse = { f: f, v: 3, node: null, t0: Date.now() };
-  var pair = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"]');
-  [pair && pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="3"]'),
-    pair && pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]')].forEach(function(el){
+  // And Skip logarithm use with them, wherever it is ticked.
+  var els = lbScoped('.lb-skip');
+  fslPairsOf(f).forEach(function(pair){
+    els.push(pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="3"]'), pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]'));
+  });
+  els.forEach(function(el){
     if (el){ void el.offsetWidth; paintFslRefuse(el); }
   });
   fslRefuseTimer = setTimeout(stopFslRefuse, FSL_REFUSE_MS + 100);
@@ -8129,27 +8239,44 @@ function setFmapOpen(on){
 function toggleFmapOpen(){ setFmapOpen(!state.fmapOpen); }
 // Shown: open, and not minimized into the bar.
 function fmapShownNow(){ return state.fmapOpen && (fmapInline() || !fmapWinMin); }
-// The window's maps, each under its caption, live as the inline ones were:
-// the window is filled whenever the formulas are built. It shows while the
-// main view has a map to show and it is not minimized, and says when it
-// has just come up so it can move clear of the formula and other windows.
+// The Formula settings window: two tabs, Map (each formula's map) and
+// Sliders (each formula's Complexity and Form preference sliders), each
+// under its caption, and under them the generator control, the main view's
+// own, always shown. It is filled whenever the formulas are built, its
+// parts live as the main view's are. It shows while the main view has a
+// map to show and it is not minimized, and says when it has just come up so
+// it can move clear of the formula and other windows.
 var fmapWinEl = $('fmap-win'), fmapWinBodyEl = $('fmap-win-body');
-var fmapWinMin = false, fmapTaskShown = false;
+var fmapWinMin = false, fmapTaskShown = false, fsetTab = 'map';
 var fmapWin = plotWindow(fmapWinEl, null);
-function fillFmapWin(maps){
+var fsetTabEls = Array.prototype.slice.call(fmapWinEl.querySelectorAll('.fset-tab'));
+function fillFmapWin(G, infos){
   fmapWinBodyEl.replaceChildren();
-  maps.forEach(function(m){
+  fsetTabEls.forEach(function(t){
+    var on = t.getAttribute('data-tab') === fsetTab;
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+    if (on) fmapWinBodyEl.setAttribute('aria-labelledby', t.id);
+  });
+  infos.forEach(function(info){
     var item = document.createElement('div');
     item.className = 'fmap-win-item';
     var cap = document.createElement('p');
     cap.className = 'fmap-win-cap';
     cap.setAttribute('aria-hidden', 'true');
-    cap.textContent = translate(m.getAttribute('data-f') === 'order' ? 'cyclicGroups.fmapWinOrder' : 'cyclicGroups.fmapWinIndex');
+    cap.textContent = translate(info.f === 'order' ? 'cyclicGroups.fmapWinOrder' : 'cyclicGroups.fmapWinIndex');
     item.appendChild(cap);
-    item.appendChild(m);
+    item.appendChild(fsetTab === 'map' ? formulaMap(G, info) : formulaSliders(G, info));
     fmapWinBodyEl.appendChild(item);
   });
-  var avail = maps.length > 0 && !fmapInline();
+  if (infos.length){
+    var ctl = document.createElement('div');
+    ctl.className = 'fset-gen';
+    ctl.appendChild(logBaseIntro(G));
+    ctl.appendChild(logBaseRow(G, 'win'));
+    fmapWinBodyEl.appendChild(ctl);
+  }
+  var avail = infos.length > 0 && !fmapInline();
   var spawned = fmapWinEl.hidden && avail && !fmapWinMin;
   fmapWinEl.hidden = !avail || fmapWinMin;
   if ((avail && fmapWinMin) !== fmapTaskShown){
@@ -8168,6 +8295,46 @@ function openFmapWin(){
   fmapWinMin = false;
   setFmapOpen(true);
 }
+// A tab, clicked or reached by the arrow keys, Home or End, fills the window anew.
+function setFsetTab(tab){
+  if (tab === fsetTab) return;
+  fsetTab = tab;
+  if (drawn) syncSubFormula(drawn.G);
+}
+fsetTabEls.forEach(function(t, i){
+  t.addEventListener('click', function(){ setFsetTab(t.getAttribute('data-tab')); });
+  t.addEventListener('keydown', function(e){
+    var to = e.key === 'Home' ? 0 : e.key === 'End' ? fsetTabEls.length - 1 : e.key === 'ArrowRight' ? (i + 1) % fsetTabEls.length : e.key === 'ArrowLeft' ? (i + fsetTabEls.length - 1) % fsetTabEls.length : null;
+    if (to === null) return;
+    e.preventDefault();
+    fsetTabEls[to].focus();
+    setFsetTab(fsetTabEls[to].getAttribute('data-tab'));
+  });
+});
+// The gear under the formula's first form slider: opens the Formula settings
+// window (in the pane, which has no windows, the maps under the sliders),
+// and closes it again.
+function fsetGearButton(){
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'fset-gear';
+  var on = fmapShownNow();
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  var tip = translate('cyclicGroups.fsetGear');
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+  var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 13, height: 13, 'aria-hidden': 'true', focusable: 'false' });
+  icon.appendChild(svgEl('path', { d: 'M6 .9 7 2.3 8.6 1.8 8.8 3.4 10.4 3.8 9.8 5.3 10.9 6.5 9.6 7.4 9.9 9 8.3 9.1 7.6 10.6 6 10 4.4 10.6 3.7 9.1 2.1 9 2.4 7.4 1.1 6.5 2.2 5.3 1.6 3.8 3.2 3.4 3.4 1.8 5 2.3Z' }));
+  icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 1.7 }));
+  btn.appendChild(icon);
+  btn.addEventListener('click', function(){
+    if (fmapShownNow()){ fmapWinMin = false; setFmapOpen(false); }
+    else { openFmapWin(); if (!fmapInline()) blinkLinked(fmapWinEl); }
+    var again = ringHeadEl.querySelector('.fset-gear');
+    if (again) again.focus({ preventScroll: true });
+  });
+  return btn;
+}
 $('fmap-win-min').addEventListener('click', function(){
   fmapWinMin = true;
   if (drawn){ syncSubFormula(drawn.G); mirrorToUrl(drawn.G); }
@@ -8182,6 +8349,12 @@ $('fmap-win-close').addEventListener('click', function(){
 // places a map's or a slider's flash is looked for.
 function fmapOf(f){ return ringHeadEl.querySelector('.fmap[data-f="' + f + '"]') || fmapWinBodyEl.querySelector('.fmap[data-f="' + f + '"]'); }
 function fmapScopes(){ return [ringHeadEl, fmapWinBodyEl]; }
+// A formula's sliders, in the main view and in the settings window, and
+// every copy of a part of the generator control.
+function fslPairsOf(f){ return lbScoped('.fsl-pair[data-f="' + f + '"]'); }
+function lbScoped(sel){
+  return fmapScopes().map(function(sc){ return Array.prototype.slice.call(sc.querySelectorAll(sel)); }).reduce(function(a, b){ return a.concat(b); }, []);
+}
 function fmapMapsOf(box){ return Array.prototype.slice.call(box.querySelectorAll(':scope > .fmap')).concat(Array.prototype.slice.call(fmapWinBodyEl.querySelectorAll('.fmap'))); }
 // The formula box is built anew with every change, so its knobs would jump.
 // On a group with sliders the old box is read first (fmapSnapshot): each
@@ -8191,6 +8364,10 @@ function fmapMapsOf(box){ return Array.prototype.slice.call(box.querySelectorAll
 // was last built for: a new group has nothing to carry.
 var fmapCarryKey = null, fmapHeld = null;
 var FMAP_KNOB_SIDES = ['left', 'top', 'width', 'height'];
+// The sliders beside the formulas and in the settings window, each keyed by
+// where it is, its formula and its kind.
+function fslPairsIn(box){ return Array.prototype.slice.call(box.querySelectorAll(':scope > .fsl-pair')).concat(Array.prototype.slice.call(fmapWinBodyEl.querySelectorAll('.fsl-pair'))); }
+function fslKey(pair, sl){ return (fmapWinBodyEl.contains(pair) ? 'w:' : '') + pair.getAttribute('data-f') + ':' + sl.getAttribute('data-kind'); }
 function fmapPartKey(el){ return [el.classList.contains('fmap-node') ? 'node' : 'edge', el.getAttribute('data-id')].join(); }
 function fmapSnapshot(){
   var box = ringHeadEl.querySelector('.ring-hover-formula');
@@ -8202,11 +8379,11 @@ function fmapSnapshot(){
     m.querySelectorAll('.fmap-node, .fmap-edge.is-cond').forEach(function(el){ closed[fmapPartKey(el)] = el.classList.contains('is-closed'); });
     snap.maps[m.getAttribute('data-f')] = { knob: FMAP_KNOB_SIDES.map(function(k){ return cs[k]; }), closed: closed };
   });
-  box.querySelectorAll(':scope > .fsl-pair').forEach(function(pair){
+  fslPairsIn(box).forEach(function(pair){
     pair.querySelectorAll('.fsl').forEach(function(sl){
       var knob = sl.querySelector('.fsl-knob'), moving = knob.getAnimations ? knob.getAnimations().length > 0 : false;
       var cs = moving ? getComputedStyle(knob) : null;
-      snap.sliders[pair.getAttribute('data-f') + ':' + sl.getAttribute('data-kind')] = { v: sl.style.getPropertyValue('--v'), left: cs ? cs.left : knob.style.left, top: cs ? cs.top : knob.style.top, fork: sl.classList.contains('is-fork') };
+      snap.sliders[fslKey(pair, sl)] = { v: sl.style.getPropertyValue('--v'), left: cs ? cs.left : knob.style.left, top: cs ? cs.top : knob.style.top, fork: sl.classList.contains('is-fork') };
     });
   });
   return snap;
@@ -8229,9 +8406,9 @@ function fmapCarry(box, snap){
       on.push(function(){ el.classList.toggle('is-closed', is); });
     });
   });
-  box.querySelectorAll(':scope > .fsl-pair').forEach(function(pair){
+  fslPairsIn(box).forEach(function(pair){
     pair.querySelectorAll('.fsl').forEach(function(sl){
-      var old = snap.sliders[pair.getAttribute('data-f') + ':' + sl.getAttribute('data-kind')];
+      var old = snap.sliders[fslKey(pair, sl)];
       var knob = sl.querySelector('.fsl-knob'), v = sl.style.getPropertyValue('--v');
       if (!old || (old.v === v && !old.left)) return;
       // The fork's knob glides along its paths, from where it stood.
@@ -8329,9 +8506,14 @@ function logBaseIntro(G){
   translateInto(p, 'cyclicGroups.logBaseIntro', { star: star });
   return p;
 }
-function logBaseRow(G){
+// scope names the copy (the main view's, or the settings window's 'win'),
+// each its own radio group.
+function logBaseRow(G, scope){
   var row = document.createElement('div');
   row.className = 'lb-row log-ctl';
+  // Skip logarithm use ticked, no base is used: the boxes are dimmed and out of reach.
+  var skip = skipLogShown(G), skipped = skip && skipLogOn();
+  if (skipped) row.classList.add('is-skip');
   var list = document.createElement('span');
   list.className = 'lb-list';
   list.setAttribute('role', 'radiogroup');
@@ -8350,13 +8532,13 @@ function logBaseRow(G){
     if (logForce && g === logForce.g) paintLogForce(box);
     var input = document.createElement('input');
     input.type = 'radio';
-    input.name = 'log-base';
+    input.name = 'log-base' + (scope ? '-' + scope : '');
     input.value = String(g);
     input.checked = g === state.chosenBase;
     // Locked, every other box stays reachable (aria-disabled), so a click or
     // an arrow key onto it can nudge the padlock; the radio goes back.
     var held = locked && !input.checked;
-    input.disabled = !fits[i] && !held;
+    input.disabled = skipped || (!fits[i] && !held);
     if (!fits[i]) box.classList.add('is-off');
     if (held) input.setAttribute('aria-disabled', 'true');
     if (held) box.title = translate('cyclicGroups.logBaseLocked');
@@ -8381,7 +8563,43 @@ function logBaseRow(G){
   row.appendChild(list);
   row.appendChild(logLockButton());
   if (!IS_MOBILE) row.appendChild(logWheelButton());
+  if (skip) row.appendChild(skipLogBox(G, skipped));
   return row;
+}
+// Skip logarithm use: in ℤ/nℤ at Compact, after the wheel switch. Ticked,
+// every formula goes to its row's compact SLS form, the Complexity slider
+// to its fourth slot; unticked, back to compact. It only says where the
+// formulas are: Compact reached again starts unticked.
+function skipLogShown(G){ return G.mode === 'additive' && hasSliders(G) && formulaLevel() === 1 && fmapShown().length > 0; }
+function skipLogOn(){ return fmapShown().every(function(f){ return fslOf(state.fmap[f]).c === 3; }); }
+function skipLogBox(G, on){
+  var label = document.createElement('label');
+  label.className = 'lb-skip';
+  label.title = translate('cyclicGroups.skipLogTip');
+  var input = document.createElement('input');
+  input.type = 'checkbox';
+  input.checked = on;
+  var text = document.createElement('span');
+  text.textContent = translate('cyclicGroups.skipLog');
+  label.appendChild(input);
+  label.appendChild(text);
+  if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(label);
+  input.addEventListener('change', function(){ setSkipLog(input.checked, input); });
+  return label;
+}
+// A tick while a formula's form is neither, which no SLS form has, is
+// refused: the box unticks and flashes red with that slider's notches.
+function setSkipLog(on, input){
+  if (!drawn || !skipLogShown(drawn.G)) return;
+  var G = drawn.G, c = on ? 3 : 1;
+  if (on && fmapShown().some(function(f){ return complexityRefused(G, f, 3); })){
+    if (input) input.checked = false;
+    return;
+  }
+  var L0 = formulaLevel();
+  FMAP_FS.forEach(function(f){ state.fmap[f] = alignToken(f, state.fmap[f], c); });
+  fslBand = null;
+  formulasMoved(L0);
 }
 // The padlock right of the boxes, a switch drawn as the expression padlock:
 // closed, the base can't change by a box, a key, the wheel or a forced
@@ -8425,15 +8643,14 @@ function alarmLogLock(kind){
   stopLogLockAlarm();
   var gen = logLockGen;
   logLockAlarm = { kind: kind, t0: Date.now() };
-  var btn = ringHeadEl.querySelector('.lb-lock');
-  if (btn){ void btn.offsetWidth; paintLogLockAlarm(btn); }
+  lbScoped('.lb-lock').forEach(function(btn){ void btn.offsetWidth; paintLogLockAlarm(btn); });
   logLockTimer = setTimeout(function(){ if (gen === logLockGen) stopLogLockAlarm(); }, LOG_LOCK_MS[kind] + 60);
 }
 function stopLogLockAlarm(){
   logLockGen++;
   clearTimeout(logLockTimer);
   logLockAlarm = null;
-  ringHeadEl.querySelectorAll('.lb-lock.is-alarm, .lb-lock.is-nudge').forEach(function(b){
+  lbScoped('.lb-lock.is-alarm, .lb-lock.is-nudge').forEach(function(b){
     b.classList.remove('is-alarm', 'is-nudge');
     b.style.animationDelay = '';
   });
@@ -8461,7 +8678,7 @@ function logWheelButton(){
   btn.addEventListener('click', function(){
     logWheelOn = !logWheelOn;
     logWheelSum = 0;
-    btn.setAttribute('aria-pressed', logWheelOn ? 'true' : 'false');
+    lbScoped('.lb-scroll').forEach(function(b){ b.setAttribute('aria-pressed', logWheelOn ? 'true' : 'false'); });
   });
   return btn;
 }
@@ -8488,9 +8705,11 @@ function setChosenBase(g){
 var logFlashTimer = 0;
 function flashLogBases(G, node){
   stopLogForce();
-  var list = ringHeadEl.querySelector('.lb-list');
-  if (!list) return;
   clearTimeout(logFlashTimer);
+  // Every copy of the row flashes alike.
+  lbScoped('.lb-list').forEach(function(list){ flashLogList(G, node, list); });
+}
+function flashLogList(G, node, list){
   var boxes = Array.prototype.slice.call(list.querySelectorAll('.lb-box'));
   var open = boxes.map(function(b){ return !!mapReach(G, state.gen, +b.getAttribute('data-g'))[node]; });
   boxes.forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
@@ -8508,7 +8727,7 @@ function flashLogBases(G, node){
   });
   if (near >= 0) logBaseInView(list, boxes[near]);
   logFlashTimer = setTimeout(function(){
-    boxes.forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+    lbScoped('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
   }, 1200);
 }
 // A double-click on a closed a or a2 (node 'abs' or 'pos') of map f forces
@@ -8567,11 +8786,12 @@ function forceMapPosition(G, f, id, opts){
   var g = forceBasePick(G, id);
   if (g === null || g === mapBase(G)) return;
   stopFslRefuse();
-  var list = ringHeadEl.querySelector('.lb-list');
-  var box = list && list.querySelector('.lb-box[data-g="' + g + '"]');
+  // Every copy of the row, the main view's and the settings window's.
+  var lists = lbScoped('.lb-list');
+  var boxes = lists.map(function(l){ return l.querySelector('.lb-box[data-g="' + g + '"]'); }).filter(Boolean);
   // No row while every map sits on an SLS form: the base and the knob go at
   // once, the row comes back with the picked box on its last flash.
-  if (!list){
+  if (!lists.length){
     stopLogForce();
     var now = fmapRow(state.fmap[f]) || opts.row || 'gcd', gen0 = logForceGen;
     logForce = { key: G.key, h: state.gen, f: f, id: id, cv: opts.cv, row: opts.row, g: g, from: state.chosenBase, tok: state.fmap[f], to: FMAP_AT[id][now], set: true, t0: Date.now() };
@@ -8579,26 +8799,26 @@ function forceMapPosition(G, f, id, opts){
     if (gen0 === logForceGen) logForceTimers.push(setTimeout(function(){ if (gen0 === logForceGen) stopLogForce(); }, LOG_FORCE_SET + 100));
     return;
   }
-  if (!box) return;
+  if (!boxes.length) return;
   stopLogForce();
   clearTimeout(logFlashTimer);
-  list.querySelectorAll('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+  lbScoped('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
   var gen = logForceGen;
   logForce = { key: G.key, h: state.gen, f: f, id: id, cv: opts.cv, row: opts.row, g: g, from: state.chosenBase, tok: state.fmap[f], to: null, set: false, t0: Date.now() };
-  void box.offsetWidth;
-  paintLogForce(box);
+  boxes.forEach(function(box){ void box.offsetWidth; paintLogForce(box); });
   // A formula's form slider pulses its neither notch with the box (and the
   // complexity notch double-clicked, when that is where it came from).
-  var pair = ringHeadEl.querySelector('.fsl-pair[data-f="' + f + '"]');
-  var chip = pair && pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]');
-  if (chip) paintLogForce(chip);
-  var cchip = pair && opts.cv ? pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="' + opts.cv + '"]') : null;
-  if (cchip) paintLogForce(cchip);
+  fslPairsOf(f).forEach(function(pair){
+    var chip = pair.querySelector('.fsl[data-kind="form"] .fsl-notch[data-v="1"]');
+    if (chip) paintLogForce(chip);
+    var cchip = opts.cv ? pair.querySelector('.fsl[data-kind="complexity"] .fsl-notch[data-v="' + opts.cv + '"]') : null;
+    if (cchip) paintLogForce(cchip);
+  });
   // And an open map beside the sliders pulses the node forced.
   var fm = hasSliders(G) ? fmapOf(f) : null;
   var fstop = fm && fm.querySelector('.fmap-stop[data-id="' + id + '"]');
   if (fstop) paintLogForce(fstop);
-  logBaseInView(list, box);
+  boxes.forEach(function(box){ logBaseInView(box.parentNode, box); });
   logForceTimers.push(setTimeout(function(){
     if (gen !== logForceGen) return;
     if (!logForceLive()){ stopLogForce(); return; }
@@ -8614,21 +8834,19 @@ function forceMapPosition(G, f, id, opts){
 // The base and the knob in one step; a pane tells its host the base first,
 // so the host has it when the maps' new positions arrive.
 function applyForcedMap(f, token, g){
+  var L0 = formulaLevel();
   state.chosenBase = g;
   state.fmap[f] = token;
-  if (IS_ISOPANE){
-    tellHost({ isopane: 'logbase', value: g });
-    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
-    tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
-    return;
-  }
-  barFormulasChanged();
+  linkComplexity(f, fslOf(token).c);
+  if (IS_ISOPANE) tellHost({ isopane: 'logbase', value: g });
+  formulasMoved(L0);
 }
 // The wheel steps the base through the boxes that are not greyed out, in
 // box order, wrapping at the ends.
 function stepChosenBase(by){
   if (!drawn) return;
   var G = drawn.G, fits = logBaseFits(G);
+  if (skipLogShown(G) && skipLogOn()) return;
   var ok = G.generators.filter(function(g, i){ return fits[i]; });
   if (ok.length < 2) return;
   if (state.logBaseLock){ alarmLogLock('nudge'); return; }
@@ -8639,10 +8857,12 @@ function stepChosenBase(by){
 // and keeps the ring's zoom and the step through the rows to itself.
 function logWheelTakes(e){
   if (!logWheelOn || !drawn || IS_MOBILE || e.ctrlKey || !e.deltaY) return false;
-  var card = ringHeadEl.querySelector('.ring-hover-formula');
-  if (!card || !card.querySelector('.lb-row')) return false;
-  var r = boxOf(card), x = ptX(e), y = ptY(e);
-  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  // Over the formula card, or the settings window's generator control.
+  var card = ringHeadEl.querySelector('.ring-hover-formula'), x = ptX(e), y = ptY(e);
+  var over = function(el){ var r = boxOf(el); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+  if (card && card.querySelector('.lb-row') && over(card)) return true;
+  var winRow = fmapWinEl.hidden ? null : fmapWinBodyEl.querySelector('.lb-row');
+  return !!winRow && over(winRow);
 }
 // The main view's formulas the switch turns, size and/or index: the one on
 // the line under the pointer, or, between the lines, both when they sit on
@@ -9635,8 +9855,12 @@ barMenuEl.addEventListener('keydown', function(e){
 });
 formulaLevelEl.addEventListener('input', function(){
   var v = +formulaLevelEl.value;
+  // The formulas' complexity with it: refused, the slider springs back, as
+  // the Complexity slider would refuse that move.
+  if (linkRefused(null, v)){ syncFormulaLevel(); return; }
   state.subBare = v === 0;
   state.subSimplify = v <= 1;
+  FMAP_FS.forEach(function(f){ state.fmap[f] = alignToken(f, state.fmap[f], v); });
   render();
   syncIsoCombine();
 });
@@ -12467,7 +12691,7 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
       el.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
     }
   };
-  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, input, .curve-plot-svg, .curve-grip, .cayley-scroll, .fmap'); };
+  var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, input, label, .curve-plot-svg, .curve-grip, .cayley-scroll, .log-ctl'); };
   el.addEventListener('pointerdown', function(e){
     if (!grip(e)) return;
     moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y };
@@ -17175,7 +17399,15 @@ window.addEventListener('message', function(e){
     if (swapTo) swapPaneGroup(swapChipOf(swapTo));
   } else if (d.isopane === 'fmap' && d.value && FMAP_POS.indexOf(d.value.order) !== -1 && FMAP_POS.indexOf(d.value.index) !== -1){
     state.fmapR = { order: d.value.order, index: d.value.index };
+    // The pane's complexity is the bottom bar's too.
+    var paneC = fslOf(state.fmapR.order).c, paneL = levelOfComplexity(paneC);
+    var levelMoved = paneL !== formulaLevel();
+    if (levelMoved){
+      setLevelFrom(paneC);
+      FMAP_FS.forEach(function(f){ state.fmap[f] = alignToken(f, state.fmap[f], paneL); });
+    }
     barFormulasChanged();
+    if (levelMoved){ render(); syncIsoCombine(); }
   } else if (d.isopane === 'logbase' && Number.isInteger(d.value) && d.value >= 0){
     state.chosenBaseR = d.value;
     if (drawn) mirrorToUrl(drawn.G);
