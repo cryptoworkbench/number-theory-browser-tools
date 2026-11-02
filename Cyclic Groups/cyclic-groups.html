@@ -8335,6 +8335,7 @@ function fillFsetWin(i){
       if (i === 0) fillFsetPanel(w, G);
       else fillPanePanel(w, G);
     }
+    syncFsetCloseBtn(i, G);
     if (w.focus){
       var back = w.grid.querySelector(w.focus);
       if (back) back.focus({ preventScroll: true });
@@ -8344,6 +8345,25 @@ function fillFsetWin(i){
   var spawned = w.el.hidden && avail;
   w.el.hidden = !avail;
   return spawned;
+}
+// The window's corner button: while the group shows no formula anywhere,
+// closing it leaves it waiting in the bottom bar, so it minimizes (its
+// icon a dash); while one shows, it closes (a cross).
+function syncFsetCloseBtn(i, G){
+  var btn = $('fset-close-' + i), min = (i === 0 ? fmapUsed() : paneFmapUsed()).length === 0;
+  btn.classList.toggle('is-close', !min);
+  var tip = translate(min ? 'cyclicGroups.lapKeyMin' : 'cyclicGroups.dhClose');
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+  btn.removeAttribute('data-i18n-title');
+  btn.removeAttribute('data-i18n-aria-label');
+  var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+  if (min) icon.appendChild(svgEl('line', { x1: 3, y1: 6, x2: 9, y2: 6 }));
+  else {
+    icon.appendChild(svgEl('line', { x1: 3, y1: 3, x2: 9, y2: 9 }));
+    icon.appendChild(svgEl('line', { x1: 9, y1: 3, x2: 3, y2: 9 }));
+  }
+  btn.replaceChildren(icon);
 }
 // The ring's panel: its formulas' sliders or map, and its generator control.
 // Three views: the window's own (Layer 2), the form preference slider
