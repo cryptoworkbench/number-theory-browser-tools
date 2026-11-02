@@ -1442,6 +1442,8 @@
   .lb-anyway.is-held{ position:relative; cursor:default; }
   .lb-anyway > .lb-held-lock{ display:grid; }
   .fset-gen > .lb-follow{ margin-top:6px; }
+  .lb-follow.is-off{ opacity:.5; cursor:default; }
+  .lb-follow.is-flash-no{ opacity:1; }
   .lb-anyway:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   @keyframes lb-skip-no{ 0%, 75%{ color:var(--role-warn); } }
   .lb-row.is-skip .lb-box{ opacity:.4; border-style:dashed; color:var(--text-dim); cursor:not-allowed; }
@@ -8617,7 +8619,7 @@ function fillFsetPanel(w, G){
   ctl.className = 'fset-gen';
   if (!anyway && !held) ctl.appendChild(logBaseIntro(G));
   ctl.appendChild(boxedBaseRow(logBaseRow(G, 'win', true)));
-  ctl.appendChild(logFollowButton());
+  ctl.appendChild(logFollowButton(G));
   w.body.appendChild(ctl);
 }
 // In a settings window the base boxes are set as a block as near square as
@@ -9181,15 +9183,23 @@ function setSkipLog(on, input){
 // Follow expression slider, under the settings window's base boxes: pressed,
 // the base is the generator the expression slider is on (logBase), moving
 // with it. A box picked, or the padlock closed, lets go of the slider; with
-// the padlock closed it cannot be pressed (the padlock nudges).
-function logFollowButton(){
+// the padlock closed it cannot be pressed (the padlock nudges). Only while
+// every generator is a suitable base can it be pressed: otherwise it is off,
+// and a click flashes the unsuitable boxes red.
+function logFollowButton(G){
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'lb-skip lb-anyway lb-follow';
+  var ok = logBaseAllFit(G);
   btn.setAttribute('aria-pressed', state.logBaseFollow ? 'true' : 'false');
+  if (!ok){
+    btn.classList.add('is-off');
+    btn.setAttribute('aria-disabled', 'true');
+  }
   btn.textContent = translate('cyclicGroups.logBaseFollow');
-  btn.title = translate('cyclicGroups.logBaseFollowTip');
+  btn.title = translate(ok ? 'cyclicGroups.logBaseFollowTip' : 'cyclicGroups.logBaseFollowOff');
   btn.addEventListener('click', function(){
+    if (!ok){ flashUnfitBases(btn); return; }
     if (!state.logBaseFollow && state.logBaseLock){ alarmLogLock('nudge'); return; }
     state.logBaseFollow = !state.logBaseFollow;
     var w = FSET[0];
@@ -9200,14 +9210,23 @@ function logFollowButton(){
   });
   return btn;
 }
-// Following, the base is the slider's generator, while it is one the boxes
-// can take (logBaseFits); otherwise it stays where it was.
+// Following, the base is the slider's generator. Once a generator is no
+// longer a suitable base, the button lets go.
 function followLogBase(G){
   if (!state.logBaseFollow || IS_ISOPANE || state.logBaseLock) return;
-  var g = logBase(G), at = G.generators.indexOf(g);
-  if (at === -1 || g === state.chosenBase) return;
-  if (!logBaseFits(G)[at]) return;
-  state.chosenBase = g;
+  if (!logBaseAllFit(G)){ state.logBaseFollow = false; return; }
+  var g = logBase(G);
+  if (G.generators.indexOf(g) !== -1) state.chosenBase = g;
+}
+function logBaseAllFit(G){ return logBaseFits(G).every(Boolean); }
+var unfitFlashTimer = 0;
+function flashUnfitBases(btn){
+  clearTimeout(unfitFlashTimer);
+  var els = lbScoped('.lb-box.is-off').concat([btn]);
+  els.forEach(function(el){ el.classList.remove('is-flash-no'); });
+  void btn.offsetWidth;
+  els.forEach(function(el){ el.classList.add('is-flash-no'); });
+  unfitFlashTimer = setTimeout(function(){ els.forEach(function(el){ el.classList.remove('is-flash-no'); }); }, 1200);
 }
 function logLockButton(){
   var btn = document.createElement('button');
