@@ -1163,7 +1163,7 @@
       fsetViewStandard: 'Standard view',
       fsetTabSliders: 'Sliders',
       fslTitleComplexity: 'Complexity:',
-      fslNeitherCaption: 'Absolute func.',
+      fslNeitherCaption: 'absolute function',
       fslNeitherCaptionShort: 'Absolute',
       fslTitleForm: 'Formula form preference:',
       fsetShow: 'Formula settings…',
