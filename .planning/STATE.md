@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-02 - Completed quick task 261102-cw1: Cyclic Groups formula settings window (branch formula-settings-window)
+Last activity: 2026-11-02 - Completed quick task 261102-dk4: Cyclic Groups formula settings per formula type (branch formula-settings-per-type)
 
 Progress: [█████████░] 86%
 
@@ -651,6 +651,7 @@ None yet.
 | 261101-vxv | Cyclic Groups: log-base star tooltip conditional on the arrangement (generator powers vs Sequential) | 2026-11-01 | de695ff | [261101-vxv-cyclic-groups-log-base-star-tooltip-cond](./quick/261101-vxv-cyclic-groups-log-base-star-tooltip-cond/) |
 | 261101-wp9 | Cyclic Groups: the formula slider trims aᵏ's exponent reduction as a ∗ b's (branch cyclic-groups-power-formula-level) | 2026-11-01 | 2111ff4 | [261101-wp9-cyclic-groups-formula-slider-trims-a-k-e](./quick/261101-wp9-cyclic-groups-formula-slider-trims-a-k-e/) |
 | 261102-cw1 | Cyclic Groups: Formula settings window (Map/Sliders tabs), bottom bar linked to the Complexity slider, Skip logarithm use checkbox (branch formula-settings-window) | 2026-11-02 | 242bad3 | [261102-cw1-cyclic-groups-formula-settings-window](./quick/261102-cw1-cyclic-groups-formula-settings-window/) |
+| 261102-dk4 | Cyclic Groups: formula settings per formula type (Size/Index windows), row formula follows its type (branch formula-settings-per-type) | 2026-11-02 | 2b95b08 | [261102-dk4-cyclic-groups-formula-settings-per-type](./quick/261102-dk4-cyclic-groups-formula-settings-per-type/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -905,4 +906,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-02 - Completed quick task 261102-cw1: Cyclic Groups formula settings window (branch formula-settings-window)
+Last activity: 2026-11-02 - Completed quick task 261102-dk4: Cyclic Groups formula settings per formula type (branch formula-settings-per-type)
