@@ -165,7 +165,8 @@
    for every kind of group), and logBaseLabel, logBaseOff, logBaseFitsPos,
    logBaseFitsNeg and logBaseWheel (the row of generator boxes that chooses
    the base of the logarithm, a box's tooltip at the absolute function: not
-   suitable, suitable through log(h), or through −log(h), and the row's scroll-wheel
+   suitable, suitable through log(𝐺), or through its inverse in ⟨ℤ/|G|ℤ, +⟩,
+   and the row's scroll-wheel
    switch), which replace the four English-only strings of the log-base
    pyramid, removed with it, and logBaseLock, logBaseUnlock and logBaseLocked
    (the padlock after that row, open and closed, and a box's tooltip while it
@@ -1122,9 +1123,9 @@
       logBaseIntro: 'In this mode the formulas use a logarithm, so pick one of the group\'s generators to use as the base for the logarithm ({star}):',
       logBaseIntroStar: 'This mode uses a logarithm in order to find the distance between G and E on the circle, so pick a generator from the group to use as the base for the logarithm.',
       logBaseIntroStarSeq: 'This mode uses a logarithm in order to find the distance between G and E on the circle (if it were order by generator powers), so pick a generator from the group to use as the base for the logarithm.',
-      logBaseOff: '{log} ∤ {card} && −{log} ∤ {card} ⟹ {g} is not suitable.',
+      logBaseOff: '{log} ∤ {card} && ({log})⁻¹ ∈ {zn} ∤ {card} ⟹ {g} is not suitable.',
       logBaseFitsPos: '{log} | {card} ⟹ {g} is suitable.',
-      logBaseFitsNeg: '−{log} | {card} ⟹ {g} is suitable.',
+      logBaseFitsNeg: '({log})⁻¹ ∈ {zn} | {card} ⟹ {g} is suitable.',
       logBaseWheel: 'Scroll wheel: over the formulas, the wheel steps the base of the logarithm through the generators that are not greyed out',
       logBaseLock: 'Lock the base of the logarithm: the boxes, the scroll wheel and a double-click on a closed a or a2 can no longer change it',
       logBaseUnlock: 'Unlock the base of the logarithm',

@@ -8754,16 +8754,18 @@ function logBaseFits(G){
   return fits.some(Boolean) ? fits : fits.map(function(){ return true; });
 }
 // A box's tooltip while a formula sits on the absolute function: whether
-// its base g suits it, written out for h, as log_g(h) divides the group's
-// cardinality, or its negative (its inverse modulo it) does, or neither:
-// log_g(h) | |G| ⟹ g is suitable (the positive one when both divide),
-// −log_g(h) | |G| ⟹ g is suitable, or
-// log_g(h) ∤ |G| && −log_g(h) ∤ |G| ⟹ g is not suitable,
-// |G| written as the group's own cardinality.
+// its base g suits it, as log_g(𝐺) divides the group's cardinality, or its
+// inverse in ⟨ℤ/|G|ℤ, +⟩ (where the logarithm lives; |G| − log_g(𝐺) as
+// the representative that divides) does, or neither. A suitable base names
+// the first that does:
+// log_g(𝐺) | |G| ⟹ g is suitable,
+// (log_g(𝐺))⁻¹ ∈ ⟨ℤ/|G|ℤ, +⟩ | |G| ⟹ g is suitable, or
+// log_g(𝐺) ∤ |G| && (log_g(𝐺))⁻¹ ∈ ⟨ℤ/|G|ℤ, +⟩ ∤ |G| ⟹ g is not suitable,
+// 𝐺 the element chosen, |G| written as the group's own cardinality.
 function logBaseFitTip(G, h, g){
   var n = G.order, a = lap(G, g, n).indexOf(h) || n;
-  var log = (G.pts ? 'log_' + mapAt(G, g) : 'log' + subscript(g)) + '(' + elText(G, h) + ')';
-  var args = { log: log, card: '|' + G.label + '|', g: mapAt(G, g) };
+  var log = (G.pts ? 'log_' + mapAt(G, g) : 'log' + subscript(g)) + '(\uD835\uDC3A)';
+  var args = { log: log, card: '|' + G.label + '|', g: mapAt(G, g), zn: '⟨ℤ/' + n + 'ℤ, +⟩' };
   if (n % a === 0) return translate('cyclicGroups.logBaseFitsPos', args);
   if (n - a > 0 && n % (n - a) === 0) return translate('cyclicGroups.logBaseFitsNeg', args);
   return translate('cyclicGroups.logBaseOff', args);
