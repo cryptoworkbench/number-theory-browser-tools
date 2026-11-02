@@ -9408,9 +9408,12 @@ function setRingSwap(from, focus){
   from.setAttribute('aria-expanded', 'true');
   ringCopyEl.hidden = false;
   ringCopyEl.setAttribute('aria-label', translate('cyclicGroups.swapIsoMenu'));
+  var G = drawn ? drawn.G : null;
   ringCopyEl.replaceChildren.apply(ringCopyEl, specs.map(function(spec){
     var it = ctxItem('menuitem', '');
-    it.item.children[1].appendChild(swapName(spec));
+    // ⟨ℤ/|G|ℤ, +⟩, G's structure, taken in G's place, is G reduced to it.
+    if (G && G.mode !== 'additive' && spec.mode === 'additive' && spec.n === G.order) translateInto(it.item.children[1], 'cyclicGroups.swapIsoReduce', { group: swapName(spec) });
+    else it.item.children[1].appendChild(swapName(spec));
     it.item.addEventListener('click', function(){
       setRingCtx(false);
       if (IS_ISOPANE) tellHost({ isopane: 'swap', spec: spec });
