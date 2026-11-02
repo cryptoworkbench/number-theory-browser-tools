@@ -1754,6 +1754,9 @@
   .fs-win-body.is-ring > .curve-plot.is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:0 10px 30px -12px var(--scrim); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, backdrop-filter .18s, box-shadow .18s; }
   .fs-win-body.is-ring > .curve-plot.is-on-ring:is(:hover, :has(:focus-visible)){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); box-shadow:0 14px 36px -10px var(--scrim); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring > .cayley-plot.is-on-ring .cayley-grid th:not(.is-a, .is-b){ background:color-mix(in srgb, var(--surface) 55%, transparent); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+  /* Kept solid (its title's menu): opaque over the ring too. */
+  .fs-win-body.is-ring > .curve-plot.is-on-ring.is-solid, .fs-win-body.is-ring > .curve-plot.is-on-ring.is-solid:is(:hover, :has(:focus-visible)){ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring > .cayley-plot.is-on-ring.is-solid .cayley-grid th:not(.is-a, .is-b){ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   .curve-plot.is-docked{ z-index:auto; translate:none !important; max-height:none; }
   :root:not(.is-mobile) .curve-plot.is-docked{ cursor:auto; }
   .curve-plot.is-docked .curve-plot-svg{ flex:none; margin-inline:auto; }
@@ -2987,6 +2990,7 @@
         </div>
         <div class="fs-menu ring-ctx" id="plot-ctx" role="menu" hidden></div>
         <div class="fs-menu ring-ctx" id="fset-ctx" role="menu" aria-label="Views" data-i18n-aria-label="cyclicGroups.fsetDevViews" hidden></div>
+        <div class="fs-menu ring-ctx" id="win-ctx" role="menu" aria-label="Window" data-i18n-aria-label="cyclicGroups.winCtxLabel" hidden></div>
         <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-copy" role="menu" hidden></div>
         </div>
@@ -3347,7 +3351,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -8376,6 +8380,43 @@ fsetCtxEl.addEventListener('keydown', function(e){
   e.preventDefault();
   items[(at + step + items.length) % items.length].focus();
 });
+// Right-clicking a window's title opens the window's own menu: Keep solid,
+// the window staying opaque even where it lies over the ring.
+var winCtxEl = $('win-ctx'), winCtxReturn = null;
+function syncSolidWins(){
+  ringWins().forEach(function(el){ el.classList.toggle('is-solid', state.solidWins.indexOf(el.id) !== -1); });
+}
+function openWinCtx(win, x, y){
+  winCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.winKeepSolid'), state.solidWins.indexOf(win.id) !== -1, function(){
+    closeWinCtx();
+    var at = state.solidWins.indexOf(win.id);
+    if (at === -1) state.solidWins.push(win.id);
+    else state.solidWins.splice(at, 1);
+    syncSolidWins();
+    if (drawn) mirrorToUrl(drawn.G);
+  }));
+  if (winCtxEl.hidden) winCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+  showCtxAt(winCtxEl, x, y);
+}
+function closeWinCtx(){
+  if (winCtxEl.hidden) return;
+  winCtxEl.hidden = true;
+  if (winCtxReturn && winCtxEl.contains(document.activeElement)) winCtxReturn.focus();
+  winCtxReturn = null;
+}
+document.addEventListener('pointerdown', function(e){ if (!winCtxEl.contains(e.target)) closeWinCtx(); }, true);
+winCtxEl.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' || e.key === 'Tab'){ e.preventDefault(); closeWinCtx(); }
+});
+// Heard before the windows' own menus, which their bodies keep.
+document.addEventListener('contextmenu', function(e){
+  if (IS_MOBILE) return;
+  var head = e.target.closest && e.target.closest('.lap-key-head'), win = head && head.parentElement;
+  if (!win || ringWins().indexOf(win) === -1) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openWinCtx(win, ptX(e), ptY(e));
+}, true);
 // Which formulas show anywhere, in the main area or in the row: this
 // ring's, and the pane's as this ring keeps them.
 function fmapUsed(){
@@ -18320,6 +18361,8 @@ function stateQuery(){
   var openV = state.fsetOpen[0] && state.fsetOpen[1] ? 'both' : state.fsetOpen[0] ? 'ring' : state.fsetOpen[1] ? 'pane' : null;
   if (openV) q.set('fset', openV);
   else q.delete('fset');
+  if (state.solidWins.length) q.set('solidwin', state.solidWins.join(','));
+  else q.delete('solidwin');
   q.delete('fmapopen');
   q.delete('fmapmin');
   if (state.subFormulaRowR !== 'none') q.set('subformularowr', state.subFormulaRowR);
@@ -20556,6 +20599,8 @@ function loadState(query, link){
   // Older links' fmapopen opened windows per formula type: the ring's now.
   var openQ = query.get('fset');
   state.fsetOpen = [openQ === 'ring' || openQ === 'both' || !!query.get('fmapopen'), openQ === 'pane' || openQ === 'both'];
+  state.solidWins = (query.get('solidwin') || '').split(',').filter(function(id){ return ringWins().some(function(el){ return el.id === id; }); });
+  syncSolidWins();
   if (SUB_FORMULAS.indexOf(query.get('subformularowr')) !== -1) state.subFormulaRowR = query.get('subformularowr');
   if (SUB_FORMULAS.indexOf(query.get('subformularingr')) !== -1) state.subFormulaRingR = query.get('subformularingr');
   state.subGcdFolded = foldedOrders(query.get('subgcdfold'));

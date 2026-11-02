@@ -1173,6 +1173,8 @@
       fsetMenu: 'Formula settings',
       fsetTabMap: 'Map',
       fsetDevViews: 'Views',
+      winCtxLabel: 'Window',
+      winKeepSolid: 'Keep solid',
       barSwapCols: 'Swap the Size and Index columns: the formulas are written in this order',
       fsetViewStandard: 'Standard',
       fsetTabSliders: '2-dimensional slider',
