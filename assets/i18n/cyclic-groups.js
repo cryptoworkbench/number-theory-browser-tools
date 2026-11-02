@@ -192,11 +192,10 @@
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
-   now name that menu item), and fsetWinTitleOrder, fsetWinTitleIndex,
-   fsetTabMap, fsetTabSliders, fsetShow and fsetHide (that window as one
-   Formula settings window per formula type, size and index, their two tabs
-   and the formula's menu item; the gear beside Size and Index in the bottom
-   bar's menu has its window's title as its tooltip), fslTitleComplexity and
+   now name that menu item), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
+   fsetTabSliders, fsetShow and fsetHide (that window as one Formula
+   settings window per group, the ring's and an open pane's, its two tabs,
+   and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
    fslTitleForm (the titles over the two sliders in that window),
    skipLog and skipLogTip (the generator control's Skip logarithm use
    checkbox). Every other language shows the English value through
@@ -1158,8 +1157,8 @@
       fmapWinTitle: 'Formula map',
       fmapWinOrder: 'Subgroup size',
       fmapWinIndex: 'Index',
-      fsetWinTitleOrder: 'Size formula settings',
-      fsetWinTitleIndex: 'Index formula settings',
+      fsetWinTitleGroup: '{group} formula settings',
+      fsetMenu: 'Formula settings',
       fsetTabMap: 'Map',
       fsetTabSliders: 'Sliders',
       fslTitleComplexity: 'Complexity slider:',
