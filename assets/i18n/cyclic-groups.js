@@ -142,9 +142,7 @@
    menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
    ecSortBy (the example curves' table: its curve column, its columns' sort
    tooltip), idPickLabel (the dropdown after E =), and subExprFollowTitle
-   (the bottom panel's Follow expression slider button), and formulaToGcd
-   and formulaToLcm (the main view formula's right-click switch between its
-   GCD and LCM forms), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
+   (the bottom panel's Follow expression slider button), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
    exchange worked with G as g, and its window), and swapIsoMenu (the ring
@@ -1089,8 +1087,6 @@
       scratchGens: 'Group generator count',
       subEnterInverse: 'Hit enter to switch to inverse',
       formulaHide: 'Hide',
-      formulaToGcd: 'Switch to GCD form',
-      formulaToLcm: 'Switch to LCM form',
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoMenu: 'Swap for an isomorphic group',
       genInWhole: '∈ == ⊆ ⇔ {g} is a generator/primitive root of the group {group}',

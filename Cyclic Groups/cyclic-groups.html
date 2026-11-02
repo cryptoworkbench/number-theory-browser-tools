@@ -7197,10 +7197,9 @@ function setRingCtx(open, x, y, expr, fml){
   (expr ? ringCtxEl.querySelector(':scope > .ring-ctx-expr') : fml ? ringCtxEl.querySelector(':scope > .fs-menu-item.ring-ctx-fml') : nat || ringCtxItems[0].item).focus();
 }
 // Right-clicking the main view's formula opens the ring's menu with only its
-// own items: Hide, which sets the bottom bar's choice for the main area to
-// None and blinks that group's button there, Switch to GCD form or Switch to
-// LCM form, turning it into its other form, and the copy formats, for the
-// formula line under the pointer (both lines, between them). With the index
+// own items: Hide, which sets the main area's choice to None, the formula
+// settings, and the copy formats, for the formula line under the pointer
+// (both lines, between them). With the index
 // formula among them, it also explores G's cosets, or stops the run, as the
 // bottom panel's row menu does (greyed when ⟨h⟩ is the whole group).
 function syncFormulaCtx(fml){
@@ -7213,13 +7212,6 @@ function syncFormulaCtx(fml){
   sep.className = 'ring-ctx-sep';
   sep.setAttribute('role', 'separator');
   var head = [hide.item];
-  var fs = ringFormulaForms(drawn.G, fml.line);
-  if (fs){
-    var toLcm = fmapRow(state.fmap[fs[0]]) === 'gcd';
-    var sw = ctxItem('menuitem', translate(toLcm ? 'cyclicGroups.formulaToLcm' : 'cyclicGroups.formulaToGcd'));
-    sw.item.addEventListener('click', function(){ setRingCtx(false); switchRingFormulaForm(fs, toLcm); });
-    head.push(sw.item);
-  }
   // The group's formula settings: its window on a desktop (the pane's in
   // the ring holding it), its map under the formulas on a phone.
   if (!state.noSub){
@@ -8995,30 +8987,6 @@ function logWheelTakes(e){
     var winRow = f !== 'order' || FSET[0].el.hidden ? null : FSET[0].body.querySelector('.lb-row');
     return !!winRow && over(winRow);
   });
-}
-// The main view's formulas the switch turns, size and/or index: the one on
-// the line under the pointer, or, between the lines, both when they sit on
-// the same row of their maps, GCD or LCM, at the GCD/LCM short, full or SLS
-// form. None where there is no map (a group of units that isn't cyclic, a
-// curve with no generating point), nor at JN, a or a2, which belong to no row.
-function ringFormulaForms(G, line){
-  if (!hasMap(G)) return null;
-  var fs = fmapShown();
-  if (line >= 0 && line < fs.length) fs = [fs[line]];
-  var turns = function(f){ var node = fmapNode(state.fmap[f]); return node !== 'jn' && node !== 'abs' && node !== 'pos'; };
-  if (!fs.length || !fs.every(turns) || fs.some(function(f){ return fmapRow(state.fmap[f]) !== fmapRow(state.fmap[fs[0]]); })) return null;
-  return fs;
-}
-// The same detail, on the other row: gcd-short to lcm-short, and so on.
-function switchRingFormulaForm(fs, toLcm){
-  // Both formulas, which share their form.
-  state.fmap.order = state.fmap.index = state.fmap[fs[0]].replace(toLcm ? 'gcd' : 'lcm', toLcm ? 'lcm' : 'gcd');
-  if (IS_ISOPANE){
-    tellHost({ isopane: 'fmap', value: fmapPair(state.fmap) });
-    if (drawn){ renderSubgroups(drawn.G); mirrorToUrl(drawn.G); }
-    return;
-  }
-  barFormulasChanged();
 }
 function hideRingFormula(){
   state.subFormulaRing = 'none';
