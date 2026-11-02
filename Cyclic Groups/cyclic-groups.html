@@ -2547,7 +2547,9 @@
   /* A window lying under the zoomed ring: its task drawn dashed, as behind. */
   .bar-task svg{ width:12px; height:12px; stroke-width:1.2; }
   .bar-task svg .icon-fill{ fill:currentColor; stroke:none; }
-  .bar-grid{ display:grid; grid-template-columns:auto auto auto; align-items:center; gap:6px 12px; padding:6px 10px 8px; }
+  .bar-grid{ display:grid; grid-template-columns:auto auto auto auto; align-items:center; gap:6px 8px; padding:6px 10px 8px; }
+  .bar-grid > .bar-swap-cols{ justify-self:center; }
+  .bar-grid > .bar-swap:not(.bar-swap-cols){ justify-self:center; margin:-3px 0; }
   .bar-grid-col{ font-size:.72rem; color:var(--text-dim); text-align:center; white-space:nowrap; }
   .bar-grid-row{ font-size:.85rem; color:var(--text); white-space:nowrap; }
   .bar-seg{ display:flex; border:1px solid var(--panel-border); border-radius:6px; overflow:hidden; }
@@ -2558,7 +2560,6 @@
   .bar-check:hover{ color:var(--text); }
   .bar-check[aria-pressed="true"]{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
   .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
-  .bar-corner{ display:flex; gap:4px; justify-self:start; }
   .bar-swap{ justify-self:start; display:grid; place-items:center; width:24px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
   .bar-swap:hover{ color:var(--text); }
   .bar-swap:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
@@ -5625,7 +5626,7 @@ function fsetGrid(i){
   var grid = document.createElement('div');
   grid.className = 'bar-grid';
   grid.setAttribute('role', 'group');
-  // In the corner over the places, a swap: Main's shown and hidden choices
+  // Between Main and Row, a swap: Main's shown and hidden choices
   // and Row's trade places.
   var swap = document.createElement('button');
   swap.type = 'button';
@@ -5661,23 +5662,32 @@ function fsetGrid(i){
     w.focus = '.bar-swap-cols';
     barFormulasChanged();
   });
-  var corner = document.createElement('span');
-  corner.className = 'bar-corner';
-  corner.appendChild(swap);
-  corner.appendChild(cols);
-  grid.appendChild(corner);
+  // Four columns: the places' names, the first formula, the columns' swap
+  // (between the two heads) and the second formula; the places' swap sits
+  // between Main and Row, under the names.
   var columns = state[swapKey] ? BAR_FORMULAS.slice().reverse() : BAR_FORMULAS;
-  columns.forEach(function(fm){
+  var AT_COL = [2, 4];
+  columns.forEach(function(fm, k){
     var head = document.createElement('span');
     head.className = 'bar-grid-col';
     head.id = pre + fm[0];
     head.textContent = translate(fm[1]);
+    head.style.gridColumn = String(AT_COL[k]);
     grid.appendChild(head);
+    if (!k){
+      cols.style.gridColumn = '3';
+      grid.appendChild(cols);
+    }
   });
   BAR_PLACES.forEach(function(pl, r){
     var forms = BAR_FORMS;
+    if (r){
+      swap.style.gridColumn = '1';
+      grid.appendChild(swap);
+    }
     var name = document.createElement('span');
     name.className = 'bar-grid-row';
+    name.style.gridColumn = '1';
     name.id = pre + pl[0];
     name.textContent = translate(pl[1]);
     grid.appendChild(name);
@@ -5686,6 +5696,7 @@ function fsetGrid(i){
       var now = has(v, fm[0]) ? 'show' : 'none';
       var seg = document.createElement('span');
       seg.className = 'bar-seg is-pair';
+      seg.style.gridColumn = String(AT_COL[k]);
       seg.setAttribute('role', 'group');
       seg.setAttribute('aria-labelledby', name.id + ' ' + pre + fm[0]);
       forms.forEach(function(fo, j){
