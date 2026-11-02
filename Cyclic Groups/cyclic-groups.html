@@ -5720,7 +5720,7 @@ function syncSubFormula(G){
   var heldSl = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fsl-pair .fsl') : null;
   var heldSlAt = heldSl ? [heldSl.closest('.fsl-pair').getAttribute('data-f'), heldSl.getAttribute('data-kind')] : null;
   // So does the row of base boxes, and its list keeps the place it was scrolled to.
-  var heldLb = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.lb-row') : null;
+  var heldLb = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.lb-row, .lb-skip') : null;
   var heldLbKind = heldLb ? (document.activeElement.closest('.lb-scroll') ? 'wheel' : document.activeElement.closest('.lb-lock') ? 'lock' : document.activeElement.closest('.lb-skip') ? 'skip' : 'box') : null;
   // In the main view or in a settings window: it comes back where it was.
   var heldWin = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fmap-win') : null;
@@ -8311,8 +8311,8 @@ function fillFsetWin(i){
   return spawned;
 }
 // The ring's panel: its formulas' sliders or map, and its generator control.
-// Three tabs: Layer 2, the form preference slider alone with the
-// generator control and Skip logarithm use (the bottom bar's slider being
+// Three tabs: Layer 2, the form preference slider alone, Skip logarithm
+// use right under it, and the generator control (the bottom bar's slider being
 // the complexity, every position is reached from there); Sliders, both
 // sliders; Map, the map. Skip logarithm use is Layer 2's alone.
 function fsetPanelItem(w, G, info, side){
@@ -8326,10 +8326,12 @@ function fsetPanelItem(w, G, info, side){
 function fillFsetPanel(w, G){
   var info = { f: 'order', token: state.fmap.order, reach: mapReach(G, state.gen, mapBase(G)) };
   w.body.appendChild(fsetPanelItem(w, G, info, 0));
+  // Layer 2's Skip logarithm use, right under its form slider.
+  if (w.tab === 'layer2' && skipLogShown(G)) w.body.appendChild(skipLogBox(G, logSkipped(G)));
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
   if (!logSkipped(G)) ctl.appendChild(logBaseIntro(G));
-  ctl.appendChild(logBaseRow(G, 'win', w.tab !== 'layer2'));
+  ctl.appendChild(logBaseRow(G, 'win', true));
   w.body.appendChild(ctl);
 }
 function placeFsetWin(i){
@@ -8389,16 +8391,16 @@ function settlePaneSkip(){
 function fillPanePanel(w, H){
   var h = paneSelH(H), info = { f: 'order', token: state.fmapR.order, reach: mapReach(H, h, paneMapBase(H)) };
   w.body.appendChild(fsetPanelItem(w, H, info, 1));
+  var skip = H.mode === 'additive' && formulaLevel() === 1, skipped = skip && fslOf(state.fmapR.order).c === 3;
+  if (skip && w.tab === 'layer2') w.body.appendChild(paneSkipBox(skipped));
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
-  var skip = H.mode === 'additive' && formulaLevel() === 1, skipped = skip && fslOf(state.fmapR.order).c === 3;
   if (!skipped) ctl.appendChild(logBaseIntro(H));
-  ctl.appendChild(paneLogBaseRow(H, h, skip && w.tab === 'layer2', skipped));
+  ctl.appendChild(paneLogBaseRow(H, h, skipped));
   w.body.appendChild(ctl);
 }
-// The pane's generator control: its boxes, its padlock and, in ℤ/nℤ at
-// Compact, Skip logarithm use.
-function paneLogBaseRow(H, h, skip, skipped){
+// The pane's generator control: its boxes and its padlock.
+function paneLogBaseRow(H, h, skipped){
   var row = document.createElement('div');
   row.className = 'lb-row log-ctl';
   if (skipped) row.classList.add('is-skip');
@@ -8446,32 +8448,33 @@ function paneLogBaseRow(H, h, skip, skipped){
     paneSettingsChanged();
   });
   row.appendChild(lock);
-  if (skip){
-    var label = document.createElement('label');
-    label.className = 'lb-skip';
-    label.title = translate('cyclicGroups.skipLogTip');
-    var tick = document.createElement('input');
-    tick.type = 'checkbox';
-    tick.checked = skipped;
-    var text = document.createElement('span');
-    text.textContent = translate('cyclicGroups.skipLog');
-    label.appendChild(tick);
-    label.appendChild(text);
-    // Neither, which no SLS form has, refuses the tick, flashing red.
-    tick.addEventListener('change', function(){
-      if (tick.checked && fslOf(state.fmapR.order).v === 1){
-        tick.checked = false;
-        label.classList.remove('is-flash-no');
-        void label.offsetWidth;
-        label.classList.add('is-flash-no');
-        return;
-      }
-      state.skipLogR = tick.checked;
-      setPaneToken(alignToken('order', state.fmapR.order, tick.checked ? 3 : 1, fslMemoR));
-    });
-    row.appendChild(label);
-  }
   return row;
+}
+// The pane's Skip logarithm use, under its Layer 2 tab's form slider.
+function paneSkipBox(skipped){
+  var label = document.createElement('label');
+  label.className = 'lb-skip';
+  label.title = translate('cyclicGroups.skipLogTip');
+  var tick = document.createElement('input');
+  tick.type = 'checkbox';
+  tick.checked = skipped;
+  var text = document.createElement('span');
+  text.textContent = translate('cyclicGroups.skipLog');
+  label.appendChild(tick);
+  label.appendChild(text);
+  // Neither, which no SLS form has, refuses the tick, flashing red.
+  tick.addEventListener('change', function(){
+    if (tick.checked && fslOf(state.fmapR.order).v === 1){
+      tick.checked = false;
+      label.classList.remove('is-flash-no');
+      void label.offsetWidth;
+      label.classList.add('is-flash-no');
+      return;
+    }
+    state.skipLogR = tick.checked;
+    setPaneToken(alignToken('order', state.fmapR.order, tick.checked ? 3 : 1, fslMemoR));
+  });
+  return label;
 }
 // Where a formula's map is, in the window or beside its sliders, and the
 // places a map's or a slider's flash is looked for.
