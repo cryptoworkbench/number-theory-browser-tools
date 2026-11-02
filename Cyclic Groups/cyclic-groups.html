@@ -1401,8 +1401,6 @@
      step through the boxes that are not greyed out. */
   /* The sentence introducing the base row, its (*) a tooltip. */
   .lb-intro{ grid-column:1 / -1; margin:2px 0 -2px; max-width:100%; font-size:.72rem; line-height:1.3; color:var(--text-dim); text-align:center; pointer-events:auto; }
-  .lb-intro-star{ cursor:help; font-weight:700; color:var(--accent); }
-  .lb-intro-star:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; border-radius:2px; }
   .lb-row{ grid-column:1 / -1; display:flex; align-items:center; justify-content:center; gap:6px; min-width:0; max-width:100%; pointer-events:auto; direction:ltr; }
   .lb-list{ display:flex; gap:4px; padding:2px; min-width:0; position:relative; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; }
   .lb-box{ position:relative; flex:none; display:inline-grid; place-items:center; min-width:24px; height:22px; padding:0 6px; box-sizing:border-box; border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); background:var(--panel); color:var(--text-dim); font-size:.82rem; font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer; user-select:none; -webkit-user-select:none; }
@@ -1427,6 +1425,9 @@
   .lb-skip:has(input:focus-visible){ outline:2px solid var(--accent); outline-offset:1px; }
   .lb-skip input:focus-visible{ outline:none; }
   .lb-skip.is-flash-no{ animation:lb-skip-no 1.1s ease-out; }
+  .lb-anyway{ height:auto; min-height:24px; padding:3px 8px; font:inherit; font-size:.74rem; white-space:normal; text-align:left; background:none; }
+  .lb-anyway[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .lb-anyway:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   @keyframes lb-skip-no{ 0%, 75%{ color:var(--role-warn); } }
   .lb-row.is-skip .lb-box{ opacity:.4; border-style:dashed; color:var(--text-dim); cursor:not-allowed; }
   .lb-row.is-skip .lb-box:has(input:checked){ border-color:var(--panel-border-strong); background:var(--panel); }
@@ -5877,7 +5878,7 @@ function buildSubFormula(G){
     if (slBack) slBack.focus({ preventScroll: true });
   }
   if (heldSc && heldLbKind){
-    var back = heldSc.querySelector(heldLbKind === 'wheel' ? '.lb-scroll' : heldLbKind === 'lock' ? '.lb-lock' : heldLbKind === 'skip' ? '.lb-skip input' : '.lb-list input:checked');
+    var back = heldSc.querySelector(heldLbKind === 'wheel' ? '.lb-scroll' : heldLbKind === 'lock' ? '.lb-lock' : heldLbKind === 'skip' ? '.lb-skip input, button.lb-skip' : '.lb-list input:checked');
     if (back) back.focus({ preventScroll: true });
   }
   showRowFormula(G);
@@ -8441,14 +8442,17 @@ function fsetPanelItem(w, G, info, side){
 function fillFsetPanel(w, G){
   var info = { f: 'order', token: state.fmap.order, reach: mapReach(G, state.gen, mapBase(G)) };
   w.body.appendChild(fsetPanelItem(w, G, info, 0));
-  // Layer 2's Skip logarithm use, right under its form slider.
-  if (w.tab === 'layer2' && skipLogShown(G)) w.body.appendChild(skipLogBox(G, logSkipped(G)));
+  // Layer 2, in ℤ/nℤ at Compact, right under its form slider: why no
+  // logarithm is needed, and the button that uses one anyway (Skip
+  // logarithm use turned around).
+  var anyway = w.tab === 'layer2' && skipLogShown(G);
+  if (anyway) w.body.appendChild(logAnywayBlock(G, !logSkipped(G), function(){ setSkipLog(!logSkipped(G), null); }));
   // The generator control, in every view, only while the formulas take a
   // logarithm: not at No derivation, nor at an SLS form.
   if (!logTaken(state.fmap.order)) return;
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
-  ctl.appendChild(logBaseIntro(G));
+  if (!anyway) ctl.appendChild(logBaseIntro(G));
   ctl.appendChild(boxedBaseRow(logBaseRow(G, 'win', true)));
   w.body.appendChild(ctl);
 }
@@ -8521,11 +8525,12 @@ function fillPanePanel(w, H){
   var h = paneSelH(H), info = { f: 'order', token: state.fmapR.order, reach: mapReach(H, h, paneMapBase(H)) };
   w.body.appendChild(fsetPanelItem(w, H, info, 1));
   var skip = H.mode === 'additive' && formulaLevel() === 1, skipped = skip && fslOf(state.fmapR.order).c === 3;
-  if (skip && w.tab === 'layer2') w.body.appendChild(paneSkipBox(skipped));
+  var anyway = skip && w.tab === 'layer2';
+  if (anyway) w.body.appendChild(logAnywayBlock(H, !skipped, function(btn){ setPaneSkip(!skipped, btn); }));
   if (!logTaken(state.fmapR.order)) return;
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
-  ctl.appendChild(logBaseIntro(H));
+  if (!anyway) ctl.appendChild(logBaseIntro(H));
   ctl.appendChild(boxedBaseRow(paneLogBaseRow(H, h, skipped)));
   w.body.appendChild(ctl);
 }
@@ -8631,39 +8636,25 @@ function forcePaneNeither(H, node){
     }, 1200);
   }, 80);
 }
-// The pane's Skip logarithm use, under the form slider of its own view.
-function paneSkipBox(skipped){
-  var label = document.createElement('label');
-  label.className = 'lb-skip';
-  label.title = translate('cyclicGroups.skipLogTip');
-  var tick = document.createElement('input');
-  tick.type = 'checkbox';
-  tick.checked = skipped;
-  var text = document.createElement('span');
-  text.textContent = translate('cyclicGroups.skipLog');
-  label.appendChild(tick);
-  label.appendChild(text);
-  // Neither, which no SLS form has, refuses the tick, flashing red.
-  tick.addEventListener('change', function(){
-    if (tick.checked && fslOf(state.fmapR.order).v === 1){
-      tick.checked = false;
-      // Tried again soon after, forced: the row neither came from, at its SLS form.
-      if (Date.now() - skipRefusedAtR < SKIP_FORCE_MS){
-        skipRefusedAtR = 0;
-        state.skipLogR = true;
-        setPaneToken((fmapRow(state.fmapR.order) || fslMemoR.row || 'gcd') + '-sls');
-        return;
-      }
-      skipRefusedAtR = Date.now();
-      label.classList.remove('is-flash-no');
-      void label.offsetWidth;
-      label.classList.add('is-flash-no');
+// The pane's Skip logarithm use, turned on or off by its button. Neither,
+// which no SLS form has, refuses it, the button flashing red; tried again
+// soon after, it is forced: the row neither came from, at its SLS form.
+function setPaneSkip(on, btn){
+  if (on && fslOf(state.fmapR.order).v === 1){
+    if (Date.now() - skipRefusedAtR < SKIP_FORCE_MS){
+      skipRefusedAtR = 0;
+      state.skipLogR = true;
+      setPaneToken((fmapRow(state.fmapR.order) || fslMemoR.row || 'gcd') + '-sls');
       return;
     }
-    state.skipLogR = tick.checked;
-    setPaneToken(alignToken('order', state.fmapR.order, tick.checked ? 3 : 1, fslMemoR));
-  });
-  return label;
+    skipRefusedAtR = Date.now();
+    btn.classList.remove('is-flash-no');
+    void btn.offsetWidth;
+    btn.classList.add('is-flash-no');
+    return;
+  }
+  state.skipLogR = on;
+  setPaneToken(alignToken('order', state.fmapR.order, on ? 3 : 1, fslMemoR));
 }
 // Where a formula's map is, in the window or beside its sliders, and the
 // places a map's or a slider's flash is looked for.
@@ -8838,13 +8829,8 @@ function logBaseIntro(G){
     translateInto(p, 'cyclicGroups.logBaseIntroNotStructure', { group: mInline(mGroup(G), G.label), structure: mInline(mGroupOf('additive', G.order), '⟨ℤ/' + G.order + 'ℤ, +⟩') });
     return p;
   }
-  var star = document.createElement('span');
-  star.className = 'lb-intro-star';
-  star.textContent = '*';
-  var byPowers = !!G.pts || G.mode !== 'multiplicative' || (G.cyclic && state.bygen);
-  star.title = translate(byPowers ? 'cyclicGroups.logBaseIntroStar' : 'cyclicGroups.logBaseIntroStarSeq');
-  star.tabIndex = 0;
-  translateInto(p, 'cyclicGroups.logBaseIntro', { star: star });
+  // An additive group is its structure: no logarithm is needed.
+  p.textContent = translate('cyclicGroups.logBaseIntroAdditive');
   return p;
 }
 // scope names the copy (the main view's, or the settings window's 'win'),
@@ -8930,6 +8916,25 @@ function skipLogBox(G, on){
   if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(label);
   input.addEventListener('change', function(){ setSkipLog(input.checked, input); });
   return label;
+}
+// An additive group's Layer 2: the sentence saying its elements are their
+// own positions, and under it the button that keeps the formula general,
+// pressed while the logarithm is used. Pressed off, the formulas skip the
+// logarithm (Skip logarithm use).
+function logAnywayBlock(G, used, toggle){
+  var block = document.createElement('div');
+  block.className = 'fset-gen';
+  block.appendChild(logBaseIntro(G));
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'lb-skip lb-anyway';
+  btn.setAttribute('aria-pressed', used ? 'true' : 'false');
+  btn.textContent = translate('cyclicGroups.logAnyway');
+  btn.title = translate('cyclicGroups.logAnywayTip');
+  if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(btn);
+  btn.addEventListener('click', function(){ toggle(btn); });
+  block.appendChild(btn);
+  return block;
 }
 // A tick while a formula's form is neither, which no SLS form has, is
 // refused: the box unticks and flashes red with that slider's notches.
