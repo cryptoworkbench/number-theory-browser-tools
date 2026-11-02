@@ -1245,6 +1245,13 @@
      from syncRingOverlap). */
   .ring-head > .ring-hover-formula.is-on-ring{ border-color:var(--panel-border); background:var(--panel); }
   .ring-head > .ring-hover-formula math{ display:inline math; cursor:default; user-select:none; -webkit-user-select:none; }
+  /* Both formulas, their = signs lined up (alignFormulaSteps): one grid,
+     each formula a row sharing its columns, the left sides set against the
+     first =, every step starting its column with its =. */
+  .ring-eq-grid{ display:grid; grid-template-columns:repeat(var(--eq-cols, 1), auto); align-items:center; row-gap:6px; justify-self:center; font-size:1.05rem; }
+  .ring-eq-line{ display:grid; grid-column:1 / -1; grid-template-columns:subgrid; align-items:center; }
+  .ring-head > .ring-hover-formula .ring-eq-piece{ display:block math; justify-self:start; }
+  .ring-head > .ring-hover-formula .ring-eq-piece:first-child{ justify-self:end; }
   /* The formula maps beside the main view's formulas: the box becomes a grid,
      each map in the first column beside its formula in the second. A map is a
      drawing with a radio button laid over each of its nine nodes and a knob
@@ -5843,6 +5850,10 @@ function syncSubFormula(G){
         if (inline(fs[i].map.f)) box.insertBefore(formulaMap(G, fs[i].map), line);
       });
     }
+    // Both formulas shown, their = signs line up, step under step, so the
+    // steps can be counted and compared (not beside a phone's sliders or a
+    // pane's open map).
+    if (!IS_MOBILE && fs.length > 1 && !box.classList.contains('fmap-open')) alignFormulaSteps(box, fs);
     // The generator control is in the settings windows on a desktop; on a
     // phone and in the pane, which have none, it stays under the formulas.
     // There the base row, its padlock and its wheel switch go when every
@@ -6001,6 +6012,42 @@ function subFormulaBox(tag, cls, fs, wrap){
   box.setAttribute('aria-hidden', 'true');
   fs.forEach(function(f){ box.appendChild(wrap ? wrappedMathLine(f.math, f.plain) : mathLine('ring-math-formula', f.math, f.plain)); });
   return box;
+}
+// The main view's formulas set as rows of one grid: each split at its
+// = signs into its left side and one piece per step, = b, = c, …, the
+// pieces in columns shared by both rows (a subgrid), the left sides set
+// against the first =, so every = stands under the other row's.
+function alignFormulaSteps(box, fs){
+  var lines = Array.prototype.slice.call(box.children).filter(function(c){ return c.localName === 'math'; });
+  if (lines.length !== fs.length) return;
+  var grid = document.createElement('div');
+  grid.className = 'ring-eq-grid';
+  var cols = 0;
+  lines.forEach(function(line, i){
+    var segs = [[]];
+    Array.prototype.slice.call(fs[i].math.childNodes).forEach(function(c){
+      if (c.localName === 'mo' && c.textContent === '=') segs.push([]);
+      else segs[segs.length - 1].push(c);
+    });
+    cols = Math.max(cols, segs.length);
+    var row = document.createElement('div');
+    row.className = 'ring-eq-line';
+    row.setAttribute('data-plain', fs[i].plain);
+    if (line.getAttribute('aria-hidden')) row.setAttribute('aria-hidden', line.getAttribute('aria-hidden'));
+    segs.forEach(function(nodes, j){
+      row.appendChild(mEl('math', [mrow.apply(null, j ? [mo('=')].concat(nodes) : nodes)], { 'class': 'ring-eq-piece', display: 'block', dir: 'ltr' }));
+    });
+    grid.appendChild(row);
+    line.remove();
+  });
+  grid.style.setProperty('--eq-cols', String(cols));
+  box.insertBefore(grid, box.firstChild);
+}
+// The formula lines of the main view's box, for the pointer: the aligned
+// grid's rows, or the box's own children.
+function formulaLinesOf(card){
+  var grid = card.querySelector(':scope > .ring-eq-grid');
+  return grid ? Array.prototype.slice.call(grid.children) : Array.prototype.slice.call(card.querySelectorAll(':scope > :not(.log-ctl)'));
 }
 // A formula a = b = c = … as its left side and then one piece per step,
 // = b, = c, …: the left side and the first step keep together, and the
@@ -8900,8 +8947,8 @@ document.addEventListener('contextmenu', function(e){
   if (ptX(e) < r.left || ptX(e) > r.right || ptY(e) < r.top || ptY(e) > r.bottom) return;
   e.preventDefault();
   e.stopPropagation();
-  var line = card.querySelectorAll(':scope > :not(.log-ctl)');
-  line = Array.prototype.findIndex.call(line, function(el){
+  var line = formulaLinesOf(card);
+  line = line.findIndex(function(el){
     var b = boxOf(el);
     return ptY(e) >= b.top && ptY(e) <= b.bottom;
   });
