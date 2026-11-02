@@ -6154,10 +6154,34 @@ function wrappedMathLine(math, plain){
 }
 // Built while the panel is closed, a line has nothing to measure yet; it is
 // measured again once the list shows.
+// A row showing both formulas lines their = signs up, step under step, as
+// the main view does: each left side set against the wider one, each step
+// padded to the wider one's width. A line too long for the row still breaks
+// at its = signs, under its first one.
 function hangSubFormulas(){
+  subgroupsPanelEl.querySelectorAll('.sub-row-formula').forEach(alignRowFormulas);
   subgroupsPanelEl.querySelectorAll('.sub-formula-line').forEach(function(line){
-    var w = boxOf(line.querySelector('.sub-formula-piece')).width;
-    if (w) line.style.setProperty('--hang', w + 'px');
+    var lhs = line.querySelector('.sub-formula-piece');
+    var w = boxOf(lhs).width;
+    if (w) line.style.setProperty('--hang', (w + (parseFloat(lhs.style.marginLeft) || 0)) + 'px');
+  });
+}
+function alignRowFormulas(box){
+  var lines = Array.prototype.slice.call(box.querySelectorAll(':scope > .sub-formula-line'));
+  var pieces = lines.map(function(line){ return Array.prototype.slice.call(line.querySelectorAll('.sub-formula-piece')); });
+  pieces.forEach(function(ps){ ps.forEach(function(p){ p.style.marginLeft = ''; p.style.paddingRight = ''; }); });
+  if (lines.length !== 2) return;
+  var widths = pieces.map(function(ps){ return ps.map(function(p){ return boxOf(p).width; }); });
+  if (!widths[0][0] || !widths[1][0]) return;
+  var lhs = Math.max(widths[0][0], widths[1][0]);
+  pieces.forEach(function(ps, i){
+    if (widths[i][0] < lhs) ps[0].style.marginLeft = (lhs - widths[i][0]) + 'px';
+    ps.forEach(function(p, k){
+      // The last step of either line needs no room after it.
+      if (!k || k >= pieces[1 - i].length - 1 || k === ps.length - 1) return;
+      var more = widths[1 - i][k] - widths[i][k];
+      if (more > 0) p.style.paddingRight = more + 'px';
+    });
   });
 }
 if (typeof ResizeObserver === 'function') new ResizeObserver(hangSubFormulas).observe(subgroupsEl);
