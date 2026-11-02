@@ -197,6 +197,7 @@
    and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
    fslTitleForm (the titles over the two sliders in that window), fslNeitherCaption and
    fslNeitherCaptionShort (the form slider's middle slot, Absolute where the longer does not fit),
+   fslTipLcm, fslTipNeither and fslTipGcd (its three slots' tooltips),
    skipLog and skipLogTip (the generator control's Skip logarithm use
    checkbox). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
@@ -1146,7 +1147,6 @@
       fslShort: 'Short',
       fslShortTip: 'Just the notation, the answer without derivation steps',
       fslColumnTip: '{col}\n\n{tip}',
-      fslFormTip: 'Preferred formula form slider',
       fslColShort: 'Short',
       fslColCompact: 'Compact',
       fslColComplete: 'Complete',
@@ -1165,6 +1165,9 @@
       fslTitleComplexity: 'Complexity:',
       fslNeitherCaption: 'absolute function',
       fslNeitherCaptionShort: 'Absolute',
+      fslTipLcm: 'LCM: Use the Least Common multiple in order to resolve the distance between E and G.',
+      fslTipNeither: 'absolute function: use the absolute function in order to find the distance between E and G.',
+      fslTipGcd: 'GCD: Use the Greatest Common Divisor in order to resolve the distance between E and G.',
       fslTitleForm: 'Formula form preference:',
       fsetShow: 'Formula settings…',
       fsetHide: 'Hide the formula settings',
