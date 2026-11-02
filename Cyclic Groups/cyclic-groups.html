@@ -5555,6 +5555,12 @@ function barPlotTasks(i, G){
       tellPane({ ringhost: 'cayleyopen' });
     }));
   }
+  // While no formula of the group shows anywhere, its formula settings
+  // window, closed, waits here as a task, to be opened again.
+  if (!IS_MOBILE && !fsetShownNow(i) && (i === 0 ? fmapUsed() : paneFmapUsed()).length === 0){
+    var fsetName = translate('cyclicGroups.fsetWinTitleGroup', { group: G.label });
+    tasks.push(barTask(fsetName, fsetName, fsetName, 'fset', function(){ openFset(i); }));
+  }
   if (i === 0 && lapKeyOn && !lapKeyOpen){
     var laps = translate('cyclicGroups.lapKeyTitle');
     tasks.push(barTask(laps, translate('cyclicGroups.lapKeyShow'), translate('cyclicGroups.lapKeyShow'), 'lap', function(){ openLapKey(); blinkLinked(lapKeyEl); }));
@@ -5573,7 +5579,10 @@ function barTask(text, title, label, kind, open){
   var icon = svgEl('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
   if (kind === 'poly') icon.appendChild(svgEl('path', { d: 'M6 1.2 10.6 4.6 8.8 10.2H3.2L1.4 4.6Z' }));
   else if (kind === 'cayley') icon.appendChild(svgEl('path', { d: 'M1.5 1.5h9v9h-9zM1.5 4.5h9M4.5 1.5v9' }));
-  else if (kind === 'lap'){
+  else if (kind === 'fset'){
+    icon.appendChild(svgEl('path', { d: 'M6 .9 7 2.3 8.6 1.8 8.8 3.4 10.4 3.8 9.8 5.3 10.9 6.5 9.6 7.4 9.9 9 8.3 9.1 7.6 10.6 6 10 4.4 10.6 3.7 9.1 2.1 9 2.4 7.4 1.1 6.5 2.2 5.3 1.6 3.8 3.2 3.4 3.4 1.8 5 2.3Z' }));
+    icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 1.7 }));
+  } else if (kind === 'lap'){
     icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 4.5 }));
     icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 2 }));
   } else {
@@ -5703,7 +5712,20 @@ function subFormulaAtRing(){ return state.subFormulaRing !== 'none'; }
 // A merged row gives each group its formulas on its own side: ⟨h⟩'s on the
 // left, the pane's ⟨φ(h)⟩ on the right.
 var paneHSent = null;
+// The formulas built anew can change the height of the band over the ring,
+// which moves the rows a settings window hangs from: an open one is held
+// where it stood on the screen, whatever the formulas shown.
 function syncSubFormula(G){
+  var wins = FSET || [];
+  var tops = wins.map(function(w){ return w.el.hidden ? null : boxOf(w.el).top; });
+  buildSubFormula(G);
+  wins.forEach(function(w, i){
+    if (tops[i] === null || w.el.hidden) return;
+    var by = boxOf(w.el).top - tops[i];
+    if (Math.abs(by) > 0.5) w.win.place(w.win.at.x, w.win.at.y - by);
+  });
+}
+function buildSubFormula(G){
   // A map holding the focus is rebuilt with the formula, and gets it back.
   var held = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.fmap') : null;
   var heldF = held ? held.getAttribute('data-f') : null;
