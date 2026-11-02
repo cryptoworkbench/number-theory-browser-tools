@@ -2577,6 +2577,10 @@
   .formula-level{ display:none; }
   .fs-win-body.is-ring > .formula-level{ display:block; position:absolute; z-index:5; left:50%; bottom:10px; translate:-50% 0; width:44px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
   :root.is-isopane .fs-win-body.is-ring > .formula-level{ display:none; }
+  /* Refused (the held keep the formula general button clicked): a red ring
+     flashes round it. */
+  .formula-level.is-flash-no{ border-radius:8px; animation:formula-level-no 1.1s ease-out; }
+  @keyframes formula-level-no{ 0%, 75%{ outline:2px solid var(--role-warn); outline-offset:3px; } 100%{ outline:2px solid transparent; outline-offset:3px; } }
   .ring-corner > :is(.key-corner, .genexp-corner)[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   .fs-win-body.is-ring > .genexp-info{ position:relative; }
   :root.is-isopane:not(.is-iso-unlinked) .fs-win-body.is-ring > .genexp-info:not([hidden]){ display:none; }
@@ -8976,10 +8980,26 @@ function logAnywayBlock(G, used, toggle, held, force){
   }
   btn.title = translate(held ? 'cyclicGroups.logAnywayHeld' : 'cyclicGroups.logAnywayTip');
   if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(btn);
-  btn.addEventListener('click', function(){ if (!held) toggle(btn); });
+  btn.addEventListener('click', function(){
+    if (held) flashHeldLevel(btn);
+    else toggle(btn);
+  });
   if (held) btn.addEventListener('dblclick', function(){ force(); });
   block.appendChild(btn);
   return block;
+}
+// A click on the held button shows why it is held: it flashes red, and so
+// does the bottom bar's complexity slider, at Complete.
+var heldFlashTimer = 0;
+function flashHeldLevel(btn){
+  clearTimeout(heldFlashTimer);
+  var els = [btn, formulaLevelEl];
+  els.forEach(function(el){
+    el.classList.remove('is-flash-no');
+    void el.offsetWidth;
+    el.classList.add('is-flash-no');
+  });
+  heldFlashTimer = setTimeout(function(){ els.forEach(function(el){ el.classList.remove('is-flash-no'); }); }, 1200);
 }
 // A tick while a formula's form is neither, which no SLS form has, is
 // refused: the box unticks and flashes red with that slider's notches.
