@@ -191,8 +191,9 @@
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
    now name that menu item), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
-   fsetTabLayer2, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
-   settings window per group, the ring's and an open pane's, its two tabs,
+   fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
+   settings window per group, the ring's and an open pane's, its right-click
+   menu of developer views (its own, Sliders and Map),
    and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
    fslTitleForm (the titles over the two sliders in that window),
    skipLog and skipLogTip (the generator control's Skip logarithm use
@@ -1156,7 +1157,8 @@
       fsetWinTitleGroup: '{group} formula settings',
       fsetMenu: 'Formula settings',
       fsetTabMap: 'Map',
-      fsetTabLayer2: 'Layer 2',
+      fsetDevViews: 'Developer views',
+      fsetViewStandard: 'Standard view',
       fsetTabSliders: 'Sliders',
       fslTitleComplexity: 'Complexity slider:',
       fslTitleForm: 'Formula form preference slider:',
