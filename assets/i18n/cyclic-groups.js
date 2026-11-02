@@ -1126,7 +1126,7 @@
       logBaseIntroNotStructure: 'Because this group is NOT equal to its structure{star}, a logarithm IS needed to determine the position of G relative to E{circle}. Pick one of this group\'s generators to use as the base for this logarithm:',
       logBaseIntroNotStructureStar: '{group} != {structure}',
       logBaseIntroAdditive: 'Because this group IS equal to its structure{star}, a logarithm is strictly speaking NOT needed to determine the position of G relative to E{circle}. Each element already holds its own position; as the logarithm to base 1. However, not using a logarithm because each element is already its own base 1 logarithm specifies the formula for additive groups, while it might be more sensible to keep the formula general ...',
-      logBaseIntroCircle: 'In a circle whose arrangement is by generator powers.',
+      logBaseIntroCircle: '(in a circle whose arrangement is by generator powers)',
       logBaseIntroAdditiveStar: '{group} == {group}',
       logAnyway: 'keep the formula general',
       logAnywayHeld: 'The complexity slider is currently set to \'Complete\'; set it back to \'Compact\' to turn this off.\n\nOr double click to force.',
