@@ -8549,6 +8549,7 @@ function paneLogBaseRow(H, h, skipped){
     input.checked = g === base;
     input.disabled = skipped || (!fits && !(locked && g !== base));
     if (locked && g !== base) box.title = translate('cyclicGroups.logBaseLocked');
+    else if (needs) box.title = logBaseFitTip(H, h, g);
     input.addEventListener('change', function(){
       if (!input.checked) return;
       if (state.logBaseLockR){ paneSettingsChanged(); return; }
@@ -8752,12 +8753,23 @@ function logBaseFits(G){
   });
   return fits.some(Boolean) ? fits : fits.map(function(){ return true; });
 }
-// A greyed-out box's tooltip, the form slider in the middle: what the
-// absolute form needs of the log of 𝐺 (the subgroup row's element).
-function logBaseOffTip(G, g){
-  var log = G.pts ? 'log_' + mapAt(G, g) : 'log' + subscript(g);
-  return translate('cyclicGroups.logBaseOff', { log: log, h: elText(G, state.gen) });
+// A box's tooltip while a formula sits on the absolute function: whether
+// its base g suits it, written out for h, as log_g(h) divides the group's
+// cardinality, or its negative (its inverse modulo it) does, or neither:
+// log_g(h) | |G| ⟹ g is suitable (the positive one when both divide),
+// −log_g(h) | |G| ⟹ g is suitable, or
+// log_g(h) ∤ |G| && −log_g(h) ∤ |G| ⟹ g is not suitable,
+// |G| written as the group's own cardinality.
+function logBaseFitTip(G, h, g){
+  var n = G.order, a = lap(G, g, n).indexOf(h) || n;
+  var log = (G.pts ? 'log_' + mapAt(G, g) : 'log' + subscript(g)) + '(' + elText(G, h) + ')';
+  var args = { log: log, card: '|' + G.label + '|', g: mapAt(G, g) };
+  if (n % a === 0) return translate('cyclicGroups.logBaseFitsPos', args);
+  if (n - a > 0 && n % (n - a) === 0) return translate('cyclicGroups.logBaseFitsNeg', args);
+  return translate('cyclicGroups.logBaseOff', args);
 }
+// Whether a formula the base serves sits on the absolute function (a or a2).
+function absShown(token){ var n = fmapNode(token); return n === 'abs' || n === 'pos'; }
 // The sentence over the base row: why a base is picked, its star's tooltip
 // saying what the logarithm is for, hypothetically while a group of units
 // sits Sequential rather than in generator powers.
@@ -8810,7 +8822,7 @@ function logBaseRow(G, scope, noSkip){
     if (!fits[i]) box.classList.add('is-off');
     if (held) input.setAttribute('aria-disabled', 'true');
     if (held) box.title = translate('cyclicGroups.logBaseLocked');
-    else if (!fits[i]) box.title = logBaseOffTip(G, g);
+    else if (absShown(state.fmap.order)) box.title = logBaseFitTip(G, state.gen, g);
     input.addEventListener('change', function(){
       if (!input.checked) return;
       if (state.logBaseLock && g !== state.chosenBase){
