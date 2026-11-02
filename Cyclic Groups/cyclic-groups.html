@@ -1016,7 +1016,8 @@
   .fset-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .fset-gen{ display:flex; flex-direction:column; align-items:center; gap:4px; max-width:100%; }
   .fset-gen .lb-intro{ max-width:300px; }
-  /* The gear under the formula's first form slider, opening the window. */
+  /* The gear beside a main-view formula, opening its type's window, alone in its column. */
+  .fsl-pair.is-gear{ width:auto; justify-content:center; }
   .fset-gear{ align-self:flex-start; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
   .fset-gear:hover{ color:var(--text); }
   .fset-gear[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
@@ -5839,9 +5840,9 @@ function syncSubFormula(G){
     box = subFormulaBox('div', 'ring-hover-formula', fs);
     // Each formula with a map gets it beside it, in a column of its own; the
     // formulas then are read by assistive technology, not the box.
-    // Beside each formula its Form preference slider, and under it the gear
-    // opening its type's settings window, its Complexity slider and its map;
-    // its complexity is the bottom bar's. A phone, which has no windows,
+    // Beside each formula only the gear opening its type's settings window,
+    // where its Complexity and Form preference sliders and its map are; its
+    // complexity is the bottom bar's too. A phone, which has no windows,
     // keeps both sliders and shows a formula's map, opened from its menu,
     // between them and the formula; the pane shows its maps there too.
     var inline = function(f){ return hasSliders(G) && fmapInline() && state.fmapOpen[f]; };
@@ -5853,9 +5854,7 @@ function syncSubFormula(G){
         line.setAttribute('aria-hidden', 'true');
         if (!fs[i].map) return;
         if (!hasSliders(G)){ box.insertBefore(formulaMap(G, fs[i].map), line); return; }
-        var pair = formulaSliders(G, fs[i].map, IS_MOBILE ? null : { formOnly: true });
-        if (!IS_MOBILE) pair.appendChild(fsetGearButton(fs[i].map.f));
-        box.insertBefore(pair, line);
+        box.insertBefore(IS_MOBILE ? formulaSliders(G, fs[i].map) : fsetGearCell(fs[i].map.f), line);
         if (inline(fs[i].map.f)) box.insertBefore(formulaMap(G, fs[i].map), line);
       });
     }
@@ -7884,8 +7883,7 @@ function fslForkGlide(sl, from, v, onTrack){
     return { left: p[0] - k + 'px', top: p[1] - k + 'px', offset: lens[i] / total };
   }), { duration: Math.max(180, Math.min(420, 120 + total * 1.6)), easing: 'ease-out' });
 }
-// opts.formOnly: the Form preference slider alone (the main view's on a desktop).
-function formulaSliders(G, info, opts){
+function formulaSliders(G, info){
   var f = info.f, token = info.token, reach = info.reach, at = fslOf(token), memo = fslMemo[f];
   // A forced sequence the state has left behind ends here (as in logBaseRow).
   if (logForce && !logForceLive()) stopLogForce();
@@ -7897,7 +7895,7 @@ function formulaSliders(G, info, opts){
   pair.setAttribute('data-token', token);
   pair.setAttribute('role', 'group');
   pair.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
-  (opts && opts.formOnly ? ['form'] : ['complexity', 'form']).forEach(function(kind){
+  ['complexity', 'form'].forEach(function(kind){
     var isForm = kind === 'form', now = isForm ? fslFormNow(at, memo) : at.c;
     // Every Complexity track forks to its fourth slot, compact SLS, which
     // only ℤ/nℤ reaches: elsewhere slot 3 and the branch to it are off.
@@ -8351,8 +8349,16 @@ function toggleFset(f){
   openFsetWin(f);
   if (!fmapInline()) blinkLinked(FSET[f].el);
 }
-// The gear under a formula's form slider: opens that formula type's
-// settings window, and closes it again.
+// The column beside a main-view formula, holding its gear alone.
+function fsetGearCell(f){
+  var cell = document.createElement('span');
+  cell.className = 'fsl-pair is-gear';
+  cell.setAttribute('data-f', f);
+  cell.appendChild(fsetGearButton(f));
+  return cell;
+}
+// The gear beside a formula: opens that formula type's settings window,
+// and closes it again.
 function fsetGearButton(f){
   var btn = document.createElement('button');
   btn.type = 'button';
