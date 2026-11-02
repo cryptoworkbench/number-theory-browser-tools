@@ -2557,6 +2557,7 @@
   .bar-check:hover{ color:var(--text); }
   .bar-check[aria-pressed="true"]{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
   .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .bar-corner{ display:flex; gap:4px; justify-self:start; }
   .bar-swap{ justify-self:start; display:grid; place-items:center; width:24px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
   .bar-swap:hover{ color:var(--text); }
   .bar-swap:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
@@ -3330,7 +3331,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5472,15 +5473,20 @@ function subFormulaOn(){ return state.subFormulaRow !== 'none'; }
 // right side keeps), by the log base given, exactly as in the main area.
 // A group with none (a (ℤ/nℤ)* or a curve that is not cyclic) writes them
 // as notation, at the formula slider's level. hm makes the h inside ⟨⟩.
-function subRowFormula(G, h, choice, base, hm, fmap){
-  var fs = choice === 'both' ? ['order', 'index'] : choice === 'order' || choice === 'index' ? [choice] : [];
+// swap: index before size, as the settings window's columns are.
+function subRowFormula(G, h, choice, base, hm, fmap, swap){
+  var fs = formulasOf(choice, swap);
   if (hasMap(G)) return fs.map(function(f){ return mapFormula(G, h, f, (fmap || state.fmap)[f], base, hm); });
-  if (G.pts) return ecRowFormula(G, h, choice, hm);
+  if (G.pts) return swapFormulas(ecRowFormula(G, h, choice, hm), swap);
   var out = [];
   if (fs.indexOf('order') !== -1) out.push(subOrderFormula(G, h, undefined, true, hm));
   if (fs.indexOf('index') !== -1) out.push(cosetCountFormula(G, h, undefined, true, true, hm));
+  out = swapFormulas(out, swap);
   return state.subBare ? out.map(bareFormula) : out;
 }
+// A size formula and an index formula, written size first, the other way
+// round once swapped.
+function swapFormulas(out, swap){ return swap && out.length === 2 ? [out[1], out[0]] : out; }
 // On a curve there is no formula to work: the size and the index are
 // written as notation with their values, |⟨P⟩| = k and [E : ⟨P⟩] = |E| / k.
 // In the main view (full) the index names the curve in full, with its
@@ -5636,8 +5642,31 @@ function fsetGrid(i){
     w.focus = '.bar-swap';
     barFormulasChanged();
   });
-  grid.appendChild(swap);
-  BAR_FORMULAS.forEach(function(fm){
+  // Beside it, a swap of the Size and Index columns: the formulas, in the
+  // main area and in the row, are written in the columns' order.
+  var swapKey = i === 0 ? 'fSwap' : 'fSwapR';
+  var cols = document.createElement('button');
+  cols.type = 'button';
+  cols.className = 'bar-swap bar-swap-cols';
+  cols.title = translate('cyclicGroups.barSwapCols');
+  cols.setAttribute('aria-label', cols.title);
+  cols.setAttribute('aria-pressed', state[swapKey] ? 'true' : 'false');
+  var hArrows = svgEl('svg', { viewBox: '0 0 16 16', width: 14, height: 14, 'aria-hidden': 'true', focusable: 'false' });
+  hArrows.appendChild(svgEl('path', { d: 'M2.5 5H13.5M11 2.5 13.5 5 11 7.5' }));
+  hArrows.appendChild(svgEl('path', { d: 'M13.5 11H2.5M5 8.5 2.5 11 5 13.5' }));
+  cols.appendChild(hArrows);
+  cols.addEventListener('click', function(){
+    state[swapKey] = !state[swapKey];
+    w.focus = '.bar-swap-cols';
+    barFormulasChanged();
+  });
+  var corner = document.createElement('span');
+  corner.className = 'bar-corner';
+  corner.appendChild(swap);
+  corner.appendChild(cols);
+  grid.appendChild(corner);
+  var columns = state[swapKey] ? BAR_FORMULAS.slice().reverse() : BAR_FORMULAS;
+  columns.forEach(function(fm){
     var head = document.createElement('span');
     head.className = 'bar-grid-col';
     head.id = pre + fm[0];
@@ -5652,7 +5681,7 @@ function fsetGrid(i){
     name.textContent = translate(pl[1]);
     grid.appendChild(name);
     var v = state[side[pl[0]]];
-    BAR_FORMULAS.forEach(function(fm, k){
+    columns.forEach(function(fm, k){
       var now = has(v, fm[0]) ? 'show' : 'none';
       var seg = document.createElement('span');
       seg.className = 'bar-seg is-pair';
@@ -5881,13 +5910,13 @@ function showRowFormula(G){
   // coloured like its bead as the panel's menu says; the pane's coloured
   // only while its colours are linked, as its side of the rows is.
   var gm = rowFormulaH(G, g, g, true);
-  if (subFormulaOn()) (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, mapBase(G), gm), true));
+  if (subFormulaOn()) (left || row).appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(G, g, state.subFormulaRow, mapBase(G), gm, state.fmap, state.fSwap), true));
   var H = rightOn && right && isoPaneGroup();
   if (H){
     var phi = isoImage(G), linked = isoLinked();
     var hm = rowFormulaH(H, phi(g), g, linked);
     var baseR = H.generators.indexOf(state.chosenBaseR) !== -1 ? state.chosenBaseR : paneLogBase(H);
-    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRowR, baseR, hm, state.fmapR), true));
+    right.appendChild(subFormulaBox('span', 'sub-row-formula', subRowFormula(H, phi(g), state.subFormulaRowR, baseR, hm, state.fmapR, state.fSwapR), true));
   }
   hangSubFormulas();
 }
@@ -7280,9 +7309,11 @@ var FMAP_AT = { abs: { gcd: 'abs-gcd', lcm: 'abs-lcm' }, pos: { gcd: 'pos-gcd', 
 // The row a token belongs to, gcd or lcm; none for JN.
 function fmapRow(token){ return token.indexOf('gcd') !== -1 ? 'gcd' : token.indexOf('lcm') !== -1 ? 'lcm' : null; }
 // Which of the two formulas the main view shows.
-function fmapShown(){
-  var v = state.subFormulaRing;
-  return v === 'both' ? ['order', 'index'] : v === 'order' || v === 'index' ? [v] : [];
+function fmapShown(){ return formulasOf(state.subFormulaRing, state.fSwap); }
+// The formulas a choice shows, in the order the settings window's columns
+// set: size first, or index first once swapped (swap).
+function formulasOf(v, swap){
+  return v === 'both' ? (swap ? ['index', 'order'] : ['order', 'index']) : v === 'order' || v === 'index' ? [v] : [];
 }
 // Where the maps apply: ℤ/nℤ, and a group with a generator to take the log by.
 function hasMap(G){ return G.mode === 'additive' || !!G.cyclic; }
@@ -8650,10 +8681,10 @@ function ringFormulas(G){
 // curve's size and index with their values).
 function plainRingFormulas(G){
   var h = state.gen, hm = rowFormulaH(G, h, h, true), v = state.subFormulaRing, out = [];
-  if (G.pts) return ecRowFormula(G, h, v, hm, true);
+  if (G.pts) return swapFormulas(ecRowFormula(G, h, v, hm, true), state.fSwap);
   if (v === 'order' || v === 'both') out.push(subOrderFormula(G, h, undefined, true, hm));
   if (v === 'index' || v === 'both') out.push(cosetCountFormula(G, h, undefined, true, true, hm));
-  return out;
+  return swapFormulas(out, state.fSwap);
 }
 // The base of the main view's logarithms is one generator of the group, held
 // in state.chosenBase and written to the address bar. A row of boxes under
@@ -15879,6 +15910,8 @@ function isoHref(mode, n, gen, curve){
   q.delete('fset');
   q.delete('skiplog');
   q.delete('skiplogr');
+  q.delete('fswap');
+  q.delete('fswapr');
   if (state.mode === 'additive' && !state.ec && !curve && mode === 'multiplicative'){
     q.set('bygen', '0');
     HEAD_CHAIN.slice(0, HEAD_CHAIN.indexOf('sorder') + 1).forEach(function(name){ q.set(name, '1'); });
@@ -16185,7 +16218,7 @@ function swapIsoRings(){
   // this ring kept for the pane's group become this ring's own, and its
   // own the pane's. The pane's query holds none of them up to date.
   var sides = BAR_SIDES.map(function(side){ return [side.row, side.ring].map(function(k){ return state[k]; }); });
-  var maps = [fmapPair(state.fmap), fmapPair(state.fmapR)], skips = [state.skipLog, state.skipLogR];
+  var maps = [fmapPair(state.fmap), fmapPair(state.fmapR)], skips = [state.skipLog, state.skipLogR], swaps = [state.fSwap, state.fSwapR];
   var bases = [state.chosenBase, state.chosenBaseR], locks = [state.logBaseLock, state.logBaseLockR];
   loadState(paneQ, { mode: paneQ.get('mode'), n: parseInt(paneQ.get('n'), 10) });
   Object.keys(keep).forEach(function(k){ state[k] = keep[k]; });
@@ -16197,6 +16230,8 @@ function swapIsoRings(){
   state.fmapR = maps[0];
   state.skipLog = skips[1];
   state.skipLogR = skips[0];
+  state.fSwap = swaps[1];
+  state.fSwapR = swaps[0];
   state.chosenBase = bases[1];
   state.chosenBaseR = bases[0];
   state.logBaseLock = locks[1];
@@ -16550,7 +16585,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -16718,6 +16753,7 @@ function applyIsoShared(d){
   // The pane's formulas, chosen in the bottom bar of the ring holding it.
   if (SUB_FORMULAS.indexOf(d.formulaRow) !== -1) state.subFormulaRow = d.formulaRow;
   if (SUB_FORMULAS.indexOf(d.formulaRing) !== -1) state.subFormulaRing = d.formulaRing;
+  if (flag(d.fswap)) state.fSwap = d.fswap;
   // The pane's formula maps, kept by the ring holding it.
   if (d.fmap && FMAP_POS.indexOf(d.fmap.order) !== -1 && FMAP_POS.indexOf(d.fmap.index) !== -1) state.fmap = { order: d.fmap.order, index: d.fmap.index };
   // And the base of its logarithms, whether it is one of its generators checked where it is used.
@@ -18092,6 +18128,11 @@ function stateQuery(){
   // The formula settings windows open: the ring's (ring), the pane's group's
   // (pane) or both. Older links' fmapopen and fmapmin, from the windows per
   // formula type, go.
+  // The formulas' order, index first once swapped: the ring's, and the pane's the ring keeps.
+  if (state.fSwap) q.set('fswap', '1');
+  else q.delete('fswap');
+  if (state.fSwapR) q.set('fswapr', '1');
+  else q.delete('fswapr');
   // Skip logarithm use, remembered: the ring's, and the pane's the ring keeps.
   if (state.skipLog) q.set('skiplog', '1');
   else q.delete('skiplog');
@@ -20329,6 +20370,8 @@ function loadState(query, link){
   state.logBaseLockR = query.get('logbaselockr') === '1';
   // The formula maps opened beside the sliders.
   // Older links open them with 1, for both.
+  state.fSwap = query.get('fswap') === '1';
+  state.fSwapR = query.get('fswapr') === '1';
   state.skipLog = query.get('skiplog') === '1';
   state.skipLogR = query.get('skiplogr') === '1';
   // Older links' fmapopen opened windows per formula type: the ring's now.

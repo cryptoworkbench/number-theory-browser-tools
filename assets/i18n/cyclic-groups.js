@@ -191,7 +191,7 @@
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
    now name that menu item), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
-   fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
+   barSwapCols (its grid's swap of the Size and Index columns), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
    settings window per group, the ring's and an open pane's, its right-click
    menu of developer views (its own, Sliders and Map),
    and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
@@ -1158,6 +1158,7 @@
       fsetMenu: 'Formula settings',
       fsetTabMap: 'Map',
       fsetDevViews: 'Developer views',
+      barSwapCols: 'Swap the Size and Index columns: the formulas are written in this order',
       fsetViewStandard: 'Standard view',
       fsetTabSliders: 'Sliders',
       fslTitleComplexity: 'Complexity:',
