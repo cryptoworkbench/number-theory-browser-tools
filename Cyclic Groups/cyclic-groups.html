@@ -5870,7 +5870,7 @@ function syncSubFormula(G){
     // unless Skip logarithm use is there to untick.
     var slsOnly = fs.every(function(x){ return !x.map || x.map.token === 'jn' || x.map.token.indexOf('sls') !== -1; });
     if (box.classList.contains('has-fmap') && (!slsOnly || skipLogShown(G))){
-      box.appendChild(logBaseIntro(G));
+      if (!logSkipped(G)) box.appendChild(logBaseIntro(G));
       box.appendChild(logBaseRow(G));
     }
     // Built with the knobs where they stood, the box is laid out once, then
@@ -8279,7 +8279,7 @@ function fillFmapWin(G, infos){
   if (infos.length){
     var ctl = document.createElement('div');
     ctl.className = 'fset-gen';
-    ctl.appendChild(logBaseIntro(G));
+    if (!logSkipped(G)) ctl.appendChild(logBaseIntro(G));
     ctl.appendChild(logBaseRow(G, 'win'));
     fmapWinBodyEl.appendChild(ctl);
   }
@@ -8519,7 +8519,7 @@ function logBaseRow(G, scope){
   var row = document.createElement('div');
   row.className = 'lb-row log-ctl';
   // Skip logarithm use ticked, no base is used: the boxes are dimmed and out of reach.
-  var skip = skipLogShown(G), skipped = skip && skipLogOn();
+  var skip = skipLogShown(G), skipped = logSkipped(G);
   if (skipped) row.classList.add('is-skip');
   var list = document.createElement('span');
   list.className = 'lb-list';
@@ -8578,6 +8578,8 @@ function logBaseRow(G, scope){
 // to its fourth slot; unticked, back to compact. It only says where the
 // formulas are: Compact reached again starts unticked.
 function skipLogShown(G){ return G.mode === 'additive' && hasSliders(G) && formulaLevel() === 1 && fmapShown().length > 0; }
+// Ticked: no logarithm is taken, so the sentence asking for a base goes.
+function logSkipped(G){ return skipLogShown(G) && skipLogOn(); }
 function skipLogOn(){ return fmapShown().every(function(f){ return fslOf(state.fmap[f]).c === 3; }); }
 function skipLogBox(G, on){
   var label = document.createElement('label');
