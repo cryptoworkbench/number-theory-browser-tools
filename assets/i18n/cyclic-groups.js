@@ -194,7 +194,7 @@
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
    now name that menu item), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
-   barSwapCols (its grid's swap of what the Size and Index columns hold), formulaGrip (the main area's drag grip beside each formula), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
+   barSwapCols (its grid's swap of what the Size and Index columns hold), formulaGrip (the main area's drag grip beside each formula), logBaseFollow and logBaseFollowTip (the settings window's Follow expression slider button), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
    settings window per group, the ring's and an open pane's, its right-click
    menu of developer views (its own, Sliders and Map),
    and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
@@ -1177,6 +1177,8 @@
       winKeepSolid: 'Keep solid',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       formulaGrip: 'Drag onto the other formula to swap their order',
+      logBaseFollow: 'Follow expression slider',
+      logBaseFollowTip: 'Use the generator the expression slider is on as the base for the logarithm, following the slider as it moves',
       fsetViewStandard: 'Standard',
       fsetTabSliders: '2-dimensional slider',
       fslTitleComplexity: 'Complexity:',

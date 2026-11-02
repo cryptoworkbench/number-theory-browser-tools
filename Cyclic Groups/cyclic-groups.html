@@ -1441,6 +1441,7 @@
   .lb-anyway[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .lb-anyway.is-held{ position:relative; cursor:default; }
   .lb-anyway > .lb-held-lock{ display:grid; }
+  .fset-gen > .lb-follow{ margin-top:6px; }
   .lb-anyway:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   @keyframes lb-skip-no{ 0%, 75%{ color:var(--role-warn); } }
   .lb-row.is-skip .lb-box{ opacity:.4; border-style:dashed; color:var(--text-dim); cursor:not-allowed; }
@@ -3360,7 +3361,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5814,6 +5815,7 @@ function buildSubFormula(G){
   var carry = hasSliders(G) && fmapCarryKey === G.key ? fmapSnapshot() || fmapHeld : null;
   fmapCarryKey = null;
   fmapHeld = null;
+  followLogBase(G);
   var wasHot = !!ringHeadEl.querySelector('.ring-hover-formula.is-hot');
   clearSubFormula();
   // The cosets button and the subgroup row's G = ⟨h⟩ write h as the panel does.
@@ -8550,7 +8552,7 @@ function fillFsetWin(i){
     }
     syncFsetCloseBtn(i, G);
     if (w.focus){
-      var back = w.grid.querySelector(w.focus);
+      var back = w.grid.querySelector(w.focus) || w.body.querySelector(w.focus);
       if (back) back.focus({ preventScroll: true });
     }
   }
@@ -8615,6 +8617,7 @@ function fillFsetPanel(w, G){
   ctl.className = 'fset-gen';
   if (!anyway && !held) ctl.appendChild(logBaseIntro(G));
   ctl.appendChild(boxedBaseRow(logBaseRow(G, 'win', true)));
+  ctl.appendChild(logFollowButton());
   w.body.appendChild(ctl);
 }
 // In a settings window the base boxes are set as a block as near square as
@@ -9058,6 +9061,7 @@ function logBaseRow(G, scope, noSkip){
         alarmLogLock('nudge');
         return;
       }
+      state.logBaseFollow = false;
       setChosenBase(g);
     });
     var text = document.createElement('span');
@@ -9174,6 +9178,37 @@ function setSkipLog(on, input){
 // The padlock right of the boxes, a switch drawn as the expression padlock:
 // closed, the base can't change by a box, a key, the wheel or a forced
 // double-click. Opening and closing it is all a click on it does.
+// Follow expression slider, under the settings window's base boxes: pressed,
+// the base is the generator the expression slider is on (logBase), moving
+// with it. A box picked, or the padlock closed, lets go of the slider; with
+// the padlock closed it cannot be pressed (the padlock nudges).
+function logFollowButton(){
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'lb-skip lb-anyway lb-follow';
+  btn.setAttribute('aria-pressed', state.logBaseFollow ? 'true' : 'false');
+  btn.textContent = translate('cyclicGroups.logBaseFollow');
+  btn.title = translate('cyclicGroups.logBaseFollowTip');
+  btn.addEventListener('click', function(){
+    if (!state.logBaseFollow && state.logBaseLock){ alarmLogLock('nudge'); return; }
+    state.logBaseFollow = !state.logBaseFollow;
+    var w = FSET[0];
+    if (w) w.focus = '.lb-follow';
+    if (!drawn) return;
+    syncSubFormula(drawn.G);
+    mirrorToUrl(drawn.G);
+  });
+  return btn;
+}
+// Following, the base is the slider's generator, while it is one the boxes
+// can take (logBaseFits); otherwise it stays where it was.
+function followLogBase(G){
+  if (!state.logBaseFollow || IS_ISOPANE || state.logBaseLock) return;
+  var g = logBase(G), at = G.generators.indexOf(g);
+  if (at === -1 || g === state.chosenBase) return;
+  if (!logBaseFits(G)[at]) return;
+  state.chosenBase = g;
+}
 function logLockButton(){
   var btn = document.createElement('button');
   btn.type = 'button';
@@ -9191,6 +9226,7 @@ function logLockButton(){
 }
 function toggleLogBaseLock(){
   state.logBaseLock = !state.logBaseLock;
+  if (state.logBaseLock) state.logBaseFollow = false;
   // Closed while a forced base still pulses, the sequence ends there (the
   // base and the knob stay); one already setting its base finishes.
   if (state.logBaseLock && logForce && !logForce.set) stopLogForce();
@@ -18460,6 +18496,8 @@ function stateQuery(){
   if (state.fSwapR) q.set('fswapr', '1');
   else q.delete('fswapr');
   // Skip logarithm use, remembered: the ring's, and the pane's the ring keeps.
+  if (state.logBaseFollow) q.set('logfollow', '1');
+  else q.delete('logfollow');
   if (state.skipLog) q.set('skiplog', '1');
   else q.delete('skiplog');
   if (state.skipLogR) q.set('skiplogr', '1');
@@ -20701,6 +20739,7 @@ function loadState(query, link){
   state.fSwap = query.get('fswap') === '1';
   state.fSwapR = query.get('fswapr') === '1';
   state.skipLog = query.get('skiplog') === '1';
+  state.logBaseFollow = query.get('logfollow') === '1';
   state.skipLogR = query.get('skiplogr') === '1';
   // Older links' fmapopen opened windows per formula type: the ring's now.
   var openQ = query.get('fset');
