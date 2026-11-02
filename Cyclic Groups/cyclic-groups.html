@@ -8454,7 +8454,12 @@ function fillFsetPanel(w, G){
   // pressed and padlocked.
   var anyway = w.tab === 'layer2' && skipLogShown(G);
   var held = w.tab === 'layer2' && G.mode === 'additive' && hasSliders(G) && formulaLevel() === 2 && fmapUsed().length > 0;
-  if (anyway || held) w.body.appendChild(logAnywayBlock(G, held || !logSkipped(G), function(){ setSkipLog(!logSkipped(G), null); }, held));
+  if (anyway || held) w.body.appendChild(logAnywayBlock(G, held || !logSkipped(G), function(){ setSkipLog(!logSkipped(G), null); }, held, function(){
+    // Forced from Complete: compact, the logarithm skipped, on the row the
+    // form is on (or came from), as a forced Skip logarithm use goes.
+    state.skipLog = true;
+    forceFslSls(G, 'order', 'complexity', fmapRow(state.fmap.order) || fslMemoBoth.row || 'gcd', null);
+  }));
   // The generator control, in every view, only while the formulas take a
   // logarithm: not at No derivation, nor at an SLS form.
   if (!logTaken(state.fmap.order)) return;
@@ -8535,7 +8540,10 @@ function fillPanePanel(w, H){
   var skip = H.mode === 'additive' && formulaLevel() === 1, skipped = skip && fslOf(state.fmapR.order).c === 3;
   var anyway = skip && w.tab === 'layer2';
   var held = H.mode === 'additive' && formulaLevel() === 2 && w.tab === 'layer2';
-  if (anyway || held) w.body.appendChild(logAnywayBlock(H, held || !skipped, function(btn){ setPaneSkip(!skipped, btn); }, held));
+  if (anyway || held) w.body.appendChild(logAnywayBlock(H, held || !skipped, function(btn){ setPaneSkip(!skipped, btn); }, held, function(){
+    state.skipLogR = true;
+    setPaneToken((fmapRow(state.fmapR.order) || fslMemoR.row || 'gcd') + '-sls');
+  }));
   if (!logTaken(state.fmapR.order)) return;
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
@@ -8943,8 +8951,9 @@ function skipLogBox(G, on){
 // own positions, and under it the button that keeps the formula general,
 // pressed while the logarithm is used. Pressed off, the formulas skip the
 // logarithm (Skip logarithm use). Held (at Complete) it is pressed and
-// padlocked: only Compact can skip the logarithm.
-function logAnywayBlock(G, used, toggle, held){
+// padlocked: only Compact can skip the logarithm, and a double-click
+// forces it there (force).
+function logAnywayBlock(G, used, toggle, held, force){
   var block = document.createElement('div');
   block.className = 'fset-gen';
   block.appendChild(logBaseIntro(G));
@@ -8968,6 +8977,7 @@ function logAnywayBlock(G, used, toggle, held){
   btn.title = translate(held ? 'cyclicGroups.logAnywayHeld' : 'cyclicGroups.logAnywayTip');
   if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(btn);
   btn.addEventListener('click', function(){ if (!held) toggle(btn); });
+  if (held) btn.addEventListener('dblclick', function(){ force(); });
   block.appendChild(btn);
   return block;
 }
