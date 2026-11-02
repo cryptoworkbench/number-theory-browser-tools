@@ -1001,7 +1001,9 @@
      head or frame, never by a map, a slider or the generator control. A
      phone has no windows: its maps stay under the sliders. */
   :root.is-mobile .fmap-win{ display:none !important; }
-  .fs-win-body.is-ring > .fmap-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); }
+  /* It is as tall as its text needs, never cut down to the ring's area: one
+     taller than the room under the top rows reaches over the bottom panel. */
+  .fs-win-body.is-ring > .fmap-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); max-height:none; }
   .fmap-win .lap-key-head{ gap:6px; }
   .fmap-win .lap-key-head > h2{ text-align:center; }
   .fmap-win-body{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:center; min-height:0; overflow:auto; padding:2px 2px 4px; }
@@ -13265,7 +13267,9 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
       // One that goes across, locked to a second ring, has its pane too.
       var right = acrossLocked && isoLinked() ? b.right : workRight(body);
       x += Math.max(0, b.left - left) || Math.min(0, right - (left + r.width));
-      y += Math.max(0, topRowsBottom(body) - top) || Math.min(0, floor - (top + r.height));
+      // Kept over the floor, but never pushed up past the top rows: one
+      // taller than the room reaches down instead.
+      y += Math.max(topRowsBottom(body) - top, Math.min(0, floor - (top + r.height)));
     }
     win.at = { x: Math.round(x), y: Math.round(y) };
     el.style.translate = win.at.x + 'px ' + win.at.y + 'px';
