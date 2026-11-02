@@ -1129,7 +1129,7 @@
       logBaseIntroCircle: 'In a circle whose arrangement is by generator powers.',
       logBaseIntroAdditiveStar: '{group} == {group}',
       logAnyway: 'keep the formula general',
-      logAnywayHeld: 'The complexity slider is currently set to \'Complete\'; set it back to compact to turn this off.\n\nOr double click to force.',
+      logAnywayHeld: 'The complexity slider is currently set to \'Complete\'; set it back to \'Compact\' to turn this off.\n\nOr double click to force.',
       logAnywayTip: 'Pressed: the formulas find the distance between E and G on the circle with a logarithm, as they do for every group. Not pressed: they read G directly, without a logarithm.',
       logBaseIntroStar: 'This mode uses a logarithm in order to find the distance between G and E on the circle, so pick a generator from the group to use as the base for the logarithm.',
       logBaseIntroStarSeq: 'This mode uses a logarithm in order to find the distance between G and E on the circle (if it were order by generator powers), so pick a generator from the group to use as the base for the logarithm.',
