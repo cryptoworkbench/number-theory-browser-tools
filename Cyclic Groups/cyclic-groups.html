@@ -1016,13 +1016,6 @@
   .fset-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .fset-gen{ display:flex; flex-direction:column; align-items:center; gap:4px; max-width:100%; }
   .fset-gen .lb-intro{ max-width:300px; }
-  /* The gear beside a main-view formula, opening its type's window, alone in its column. */
-  .fsl-pair.is-gear{ width:auto; justify-content:center; }
-  .fset-gear{ align-self:flex-start; display:inline-grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
-  .fset-gear:hover{ color:var(--text); }
-  .fset-gear[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
-  .fset-gear:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .fset-gear svg{ fill:none; stroke:currentColor; stroke-width:1; stroke-linejoin:round; }
   .fs-win-body.is-ring > .dh-plot{ width:min(430px, 46%); }
   .dh-note{ margin:0 0 .5em; font-size:.8em; line-height:1.35; color:var(--text-dim); }
   .dh-grid{ display:grid; grid-template-columns:1fr auto 1fr; gap:.3em .5em; align-items:center; font-size:.9em; font-variant-numeric:tabular-nums; }
@@ -1270,6 +1263,10 @@
   }
   .ring-head > .ring-hover-formula.has-fmap.is-stacked{ grid-template-columns:minmax(0, 1fr); row-gap:4px; }
   .ring-head > .ring-hover-formula.has-fmap.is-stacked > :is(.fmap, .fsl-pair){ justify-self:center; }
+  /* With nothing beside them (is-solo: the sliders are in the settings
+     windows), the formulas take one column, an inline map in the pane over
+     its formula. */
+  :root:not(.is-mobile) .ring-head > .ring-hover-formula.has-fmap.is-solo:not(.is-stacked){ grid-template-columns:minmax(0, 1fr); }
   .fmap{ position:relative; justify-self:start; width:172px; height:94px; flex:none; pointer-events:auto; direction:ltr; user-select:none; -webkit-user-select:none; }
   .fmap-svg{ position:absolute; inset:0; width:172px; height:94px; overflow:visible; }
   .fmap.no-sls, .fmap.no-sls .fmap-svg{ height:58px; }
@@ -5840,21 +5837,23 @@ function syncSubFormula(G){
     box = subFormulaBox('div', 'ring-hover-formula', fs);
     // Each formula with a map gets it beside it, in a column of its own; the
     // formulas then are read by assistive technology, not the box.
-    // Beside each formula only the gear opening its type's settings window,
-    // where its Complexity and Form preference sliders and its map are; its
-    // complexity is the bottom bar's too. A phone, which has no windows,
-    // keeps both sliders and shows a formula's map, opened from its menu,
-    // between them and the formula; the pane shows its maps there too.
+    // The formulas stand alone: each type's Complexity and Form preference
+    // sliders and its map are in its settings window, opened from the
+    // formula's menu or the bottom bar's; its complexity is the bottom bar's
+    // too. A phone, which has no windows, keeps both sliders beside each
+    // formula and shows its map, opened from its menu, between them and the
+    // formula; the pane shows its maps there too, over the formula.
     var inline = function(f){ return hasSliders(G) && fmapInline() && state.fmapOpen[f]; };
     if (fs.some(function(x){ return x.map; })){
       box.classList.add('has-fmap');
+      if (!IS_MOBILE) box.classList.add('is-solo');
       if (fs.some(function(x){ return x.map && inline(x.map.f); })) box.classList.add('fmap-open');
       box.removeAttribute('aria-hidden');
       Array.prototype.slice.call(box.children).forEach(function(line, i){
         line.setAttribute('aria-hidden', 'true');
         if (!fs[i].map) return;
         if (!hasSliders(G)){ box.insertBefore(formulaMap(G, fs[i].map), line); return; }
-        box.insertBefore(IS_MOBILE ? formulaSliders(G, fs[i].map) : fsetGearCell(fs[i].map.f), line);
+        if (IS_MOBILE) box.insertBefore(formulaSliders(G, fs[i].map), line);
         if (inline(fs[i].map.f)) box.insertBefore(formulaMap(G, fs[i].map), line);
       });
     }
@@ -8349,33 +8348,7 @@ function toggleFset(f){
   openFsetWin(f);
   if (!fmapInline()) blinkLinked(FSET[f].el);
 }
-// The column beside a main-view formula, holding its gear alone.
-function fsetGearCell(f){
-  var cell = document.createElement('span');
-  cell.className = 'fsl-pair is-gear';
-  cell.setAttribute('data-f', f);
-  cell.appendChild(fsetGearButton(f));
-  return cell;
-}
-// The gear beside a formula: opens that formula type's settings window,
-// and closes it again.
-function fsetGearButton(f){
-  var btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'fset-gear';
-  btn.setAttribute('data-f', f);
-  btn.setAttribute('aria-pressed', fmapShownNow(f) ? 'true' : 'false');
-  var tip = translate(FSET_TITLES[f]);
-  btn.title = tip;
-  btn.setAttribute('aria-label', tip);
-  btn.appendChild(gearIcon());
-  btn.addEventListener('click', function(){
-    toggleFset(f);
-    var again = ringHeadEl.querySelector('.fset-gear[data-f="' + f + '"]');
-    if (again) again.focus({ preventScroll: true });
-  });
-  return btn;
-}
+// The gear drawn on the bottom bar menu's Settings row.
 function gearIcon(){
   var icon = svgEl('svg', { viewBox: '0 0 12 12', width: 13, height: 13, 'aria-hidden': 'true', focusable: 'false' });
   icon.appendChild(svgEl('path', { d: 'M6 .9 7 2.3 8.6 1.8 8.8 3.4 10.4 3.8 9.8 5.3 10.9 6.5 9.6 7.4 9.9 9 8.3 9.1 7.6 10.6 6 10 4.4 10.6 3.7 9.1 2.1 9 2.4 7.4 1.1 6.5 2.2 5.3 1.6 3.8 3.2 3.4 3.4 1.8 5 2.3Z' }));
