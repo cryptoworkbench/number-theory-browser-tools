@@ -195,7 +195,8 @@
    settings window per group, the ring's and an open pane's, its right-click
    menu of developer views (its own, Sliders and Map),
    and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
-   fslTitleForm (the titles over the two sliders in that window),
+   fslTitleForm (the titles over the two sliders in that window), fslNeitherCaption and
+   fslNeitherCaptionShort (the form slider's middle slot, Absolute where the longer does not fit),
    skipLog and skipLogTip (the generator control's Skip logarithm use
    checkbox). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
@@ -1162,6 +1163,8 @@
       fsetViewStandard: 'Standard view',
       fsetTabSliders: 'Sliders',
       fslTitleComplexity: 'Complexity:',
+      fslNeitherCaption: 'Absolute func.',
+      fslNeitherCaptionShort: 'Absolute',
       fslTitleForm: 'Formula form preference:',
       fsetShow: 'Formula settings…',
       fsetHide: 'Hide the formula settings',
