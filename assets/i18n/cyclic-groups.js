@@ -192,9 +192,11 @@
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
-   now name that menu item), and fsetWinTitle, fsetTabMap, fsetTabSliders,
-   fsetShow, fsetHide and fsetGear (that window as the Formula settings
-   window, its two tabs, its menu item and the gear beside the formula),
+   now name that menu item), and fsetWinTitleOrder, fsetWinTitleIndex,
+   fsetTabMap, fsetTabSliders, fsetShow, fsetHide and fsetBarRow (that window
+   as one Formula settings window per formula type, size and index, their
+   two tabs, the formula's menu item and the bottom bar menu's Settings row;
+   a gear's tooltip is its window's title),
    skipLog and skipLogTip (the generator control's Skip logarithm use
    checkbox). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
@@ -1155,12 +1157,13 @@
       fmapWinTitle: 'Formula map',
       fmapWinOrder: 'Subgroup size',
       fmapWinIndex: 'Index',
-      fsetWinTitle: 'Formula settings',
+      fsetWinTitleOrder: 'Size formula settings',
+      fsetWinTitleIndex: 'Index formula settings',
+      fsetBarRow: 'Settings',
       fsetTabMap: 'Map',
       fsetTabSliders: 'Sliders',
       fsetShow: 'Formula settings…',
       fsetHide: 'Hide the formula settings',
-      fsetGear: 'Formula settings: the Complexity slider and the formula map',
       skipLog: 'Skip logarithm use',
       skipLogTip: 'Read h directly, without a logarithm: the formulas go to compact SLS. Only for additive groups.',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",
