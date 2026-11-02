@@ -1011,7 +1011,8 @@
   /* Everything in the window lines up on the left. */
   .fset-gen{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:100%; }
   .fset-gen .lb-intro{ max-width:300px; text-align:left; }
-  .fset-gen .lb-row{ justify-content:flex-start; }
+  .fset-gen .lb-row{ justify-content:flex-start; align-items:flex-start; }
+  .fset-gen .lb-list{ display:grid; grid-template-columns:repeat(var(--lb-cols, 1), max-content); overflow:visible; }
   /* Each slider's title over it, in the window. */
   .fsl-name{ font-size:.7rem; line-height:1.2; color:var(--text-dim); text-align:left; margin:0 0 1px; }
   .fs-win-body.is-ring > .dh-plot{ width:min(430px, 46%); }
@@ -8422,8 +8423,16 @@ function fillFsetPanel(w, G){
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
   ctl.appendChild(logBaseIntro(G));
-  ctl.appendChild(logBaseRow(G, 'win', true));
+  ctl.appendChild(boxedBaseRow(logBaseRow(G, 'win', true)));
   w.body.appendChild(ctl);
+}
+// In a settings window the base boxes are set as a block as near square as
+// they make, about √n columns, whatever their width (a curve's points are
+// wide), rather than one long row to scroll.
+function boxedBaseRow(row){
+  var list = row.querySelector('.lb-list');
+  if (list) list.style.setProperty('--lb-cols', String(Math.max(1, Math.ceil(Math.sqrt(list.children.length)))));
+  return row;
 }
 // Whether a formula at the position token takes a logarithm: at compact
 // and complete, not at JN or an SLS form.
@@ -8491,7 +8500,7 @@ function fillPanePanel(w, H){
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
   ctl.appendChild(logBaseIntro(H));
-  ctl.appendChild(paneLogBaseRow(H, h, skipped));
+  ctl.appendChild(boxedBaseRow(paneLogBaseRow(H, h, skipped)));
   w.body.appendChild(ctl);
 }
 // The pane's generator control: its boxes and its padlock.
