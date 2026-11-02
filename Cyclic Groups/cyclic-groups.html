@@ -1430,6 +1430,8 @@
   .lb-skip.is-flash-no{ animation:lb-skip-no 1.1s ease-out; }
   .lb-anyway{ height:auto; min-height:24px; padding:3px 8px; font:inherit; font-size:.74rem; white-space:normal; text-align:center; justify-content:center; align-self:center; background:none; }
   .lb-anyway[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .lb-anyway.is-held{ display:inline-flex; align-items:center; gap:5px; cursor:default; }
+  .lb-anyway.is-held svg{ flex:none; width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:1.2; }
   .lb-anyway:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   @keyframes lb-skip-no{ 0%, 75%{ color:var(--role-warn); } }
   .lb-row.is-skip .lb-box{ opacity:.4; border-style:dashed; color:var(--text-dim); cursor:not-allowed; }
@@ -8448,14 +8450,17 @@ function fillFsetPanel(w, G){
   // Layer 2, in ℤ/nℤ at Compact, right under its form slider: why no
   // logarithm is needed, and the button that uses one anyway (Skip
   // logarithm use turned around).
+  // At Complete, which always takes a logarithm, the button stays,
+  // pressed and padlocked.
   var anyway = w.tab === 'layer2' && skipLogShown(G);
-  if (anyway) w.body.appendChild(logAnywayBlock(G, !logSkipped(G), function(){ setSkipLog(!logSkipped(G), null); }));
+  var held = w.tab === 'layer2' && G.mode === 'additive' && hasSliders(G) && formulaLevel() === 2 && fmapUsed().length > 0;
+  if (anyway || held) w.body.appendChild(logAnywayBlock(G, held || !logSkipped(G), function(){ setSkipLog(!logSkipped(G), null); }, held));
   // The generator control, in every view, only while the formulas take a
   // logarithm: not at No derivation, nor at an SLS form.
   if (!logTaken(state.fmap.order)) return;
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
-  if (!anyway) ctl.appendChild(logBaseIntro(G));
+  if (!anyway && !held) ctl.appendChild(logBaseIntro(G));
   ctl.appendChild(boxedBaseRow(logBaseRow(G, 'win', true)));
   w.body.appendChild(ctl);
 }
@@ -8529,11 +8534,12 @@ function fillPanePanel(w, H){
   w.body.appendChild(fsetPanelItem(w, H, info, 1));
   var skip = H.mode === 'additive' && formulaLevel() === 1, skipped = skip && fslOf(state.fmapR.order).c === 3;
   var anyway = skip && w.tab === 'layer2';
-  if (anyway) w.body.appendChild(logAnywayBlock(H, !skipped, function(btn){ setPaneSkip(!skipped, btn); }));
+  var held = H.mode === 'additive' && formulaLevel() === 2 && w.tab === 'layer2';
+  if (anyway || held) w.body.appendChild(logAnywayBlock(H, held || !skipped, function(btn){ setPaneSkip(!skipped, btn); }, held));
   if (!logTaken(state.fmapR.order)) return;
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
-  if (!anyway) ctl.appendChild(logBaseIntro(H));
+  if (!anyway && !held) ctl.appendChild(logBaseIntro(H));
   ctl.appendChild(boxedBaseRow(paneLogBaseRow(H, h, skipped)));
   w.body.appendChild(ctl);
 }
@@ -8936,8 +8942,9 @@ function skipLogBox(G, on){
 // An additive group's Layer 2: the sentence saying its elements are their
 // own positions, and under it the button that keeps the formula general,
 // pressed while the logarithm is used. Pressed off, the formulas skip the
-// logarithm (Skip logarithm use).
-function logAnywayBlock(G, used, toggle){
+// logarithm (Skip logarithm use). Held (at Complete) it is pressed and
+// padlocked: only Compact can skip the logarithm.
+function logAnywayBlock(G, used, toggle, held){
   var block = document.createElement('div');
   block.className = 'fset-gen';
   block.appendChild(logBaseIntro(G));
@@ -8945,10 +8952,15 @@ function logAnywayBlock(G, used, toggle){
   btn.type = 'button';
   btn.className = 'lb-skip lb-anyway';
   btn.setAttribute('aria-pressed', used ? 'true' : 'false');
-  btn.textContent = translate('cyclicGroups.logAnyway');
-  btn.title = translate('cyclicGroups.logAnywayTip');
+  if (held){
+    btn.classList.add('is-held');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.appendChild(svgIcon([['rect', { x: 2.5, y: 5.5, width: 7, height: 5, rx: 1 }], ['path', { d: 'M4 5.5V4a2 2 0 0 1 4 0v1.5' }]]));
+  }
+  btn.appendChild(document.createTextNode(translate('cyclicGroups.logAnyway')));
+  btn.title = translate(held ? 'cyclicGroups.logAnywayHeld' : 'cyclicGroups.logAnywayTip');
   if (fslRefuse && fslRefuse.v === 3) paintFslRefuse(btn);
-  btn.addEventListener('click', function(){ toggle(btn); });
+  btn.addEventListener('click', function(){ if (!held) toggle(btn); });
   block.appendChild(btn);
   return block;
 }
