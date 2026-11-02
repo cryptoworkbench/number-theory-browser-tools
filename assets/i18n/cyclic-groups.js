@@ -193,10 +193,10 @@
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
    now name that menu item), and fsetWinTitleOrder, fsetWinTitleIndex,
-   fsetTabMap, fsetTabSliders, fsetShow, fsetHide and fsetBarRow (that window
-   as one Formula settings window per formula type, size and index, their
-   two tabs, the formula's menu item and the bottom bar menu's Settings row;
-   a gear's tooltip is its window's title),
+   fsetTabMap, fsetTabSliders, fsetShow and fsetHide (that window as one
+   Formula settings window per formula type, size and index, their two tabs
+   and the formula's menu item; the gear beside Size and Index in the bottom
+   bar's menu has its window's title as its tooltip),
    skipLog and skipLogTip (the generator control's Skip logarithm use
    checkbox). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
@@ -1159,7 +1159,6 @@
       fmapWinIndex: 'Index',
       fsetWinTitleOrder: 'Size formula settings',
       fsetWinTitleIndex: 'Index formula settings',
-      fsetBarRow: 'Settings',
       fsetTabMap: 'Map',
       fsetTabSliders: 'Sliders',
       fsetShow: 'Formula settings…',

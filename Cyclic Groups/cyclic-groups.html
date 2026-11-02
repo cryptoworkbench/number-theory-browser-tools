@@ -2555,7 +2555,11 @@
   .bar-check:hover{ color:var(--text); }
   .bar-check[aria-checked="true"]{ color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
   .bar-check:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
-  .bar-gear{ display:grid; place-items:center; width:100%; }
+  .bar-grid-col{ display:inline-flex; align-items:center; justify-content:center; gap:5px; }
+  .bar-gear{ display:inline-grid; place-items:center; width:20px; height:20px; padding:0; border:1px solid var(--panel-border); border-radius:5px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
+  .bar-gear:hover{ color:var(--text); }
+  .bar-gear[aria-checked="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+  .bar-gear:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .bar-gear svg{ fill:none; stroke:currentColor; stroke-width:1; stroke-linejoin:round; }
   .bar-swap{ justify-self:start; display:grid; place-items:center; width:24px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
   .bar-swap:hover{ color:var(--text); }
@@ -5655,7 +5659,7 @@ function toggleBarMenu(i, btn){
 var BAR_PLACES = [['ring', 'cyclicGroups.barLcmMain'], ['row', 'cyclicGroups.barLcmRow']];
 var BAR_FORMULAS = [['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort']];
 var BAR_FORMS = [['show', 'cyclicGroups.barShow'], ['none', 'cyclicGroups.formulaHide']];
-// The settings row: the ring's own side, a group with maps, on a desktop.
+// The column heads' gears: the ring's own side, a group with maps, on a desktop.
 function barSettingsRow(i){ var G = barGroup(i); return i === 0 && !!G && hasSliders(G) && !fmapInline(); }
 function fillBarGrid(i, focusAt){
   var side = BAR_SIDES[i];
@@ -5685,11 +5689,34 @@ function fillBarGrid(i, focusAt){
     if (again) again.focus();
   });
   grid.appendChild(swap);
-  BAR_FORMULAS.forEach(function(fm){
+  // Each formula's column head, and beside its name, on the ring's own side,
+  // the gear opening or closing that formula type's settings window.
+  var gears = barSettingsRow(i);
+  BAR_FORMULAS.forEach(function(fm, k){
     var head = document.createElement('span');
     head.className = 'bar-grid-col';
-    head.id = 'bar-grid-' + fm[0];
-    head.textContent = translate(fm[1]);
+    var name = document.createElement('span');
+    name.id = 'bar-grid-' + fm[0];
+    name.textContent = translate(fm[1]);
+    head.appendChild(name);
+    if (gears){
+      var f = fm[0], opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'bar-gear';
+      opt.setAttribute('role', 'menuitemcheckbox');
+      opt.setAttribute('aria-checked', fmapShownNow(f) ? 'true' : 'false');
+      // Reached by the arrow keys as a row of its own, above Main.
+      opt.setAttribute('data-at', BAR_PLACES.length + ',' + k);
+      opt.tabIndex = -1;
+      opt.title = translate(FSET_TITLES[f]);
+      opt.setAttribute('aria-label', opt.title);
+      opt.appendChild(gearIcon());
+      opt.addEventListener('click', function(){
+        toggleFset(f);
+        fillBarGrid(i, BAR_PLACES.length + ',' + k);
+      });
+      head.appendChild(opt);
+    }
     grid.appendChild(head);
   });
   BAR_PLACES.forEach(function(pl, r){
@@ -5732,35 +5759,6 @@ function fillBarGrid(i, focusAt){
       grid.appendChild(seg);
     });
   });
-  // Under them, on the ring's own side, each formula type's settings
-  // window, opened or closed by its gear.
-  if (barSettingsRow(i)){
-    var setName = document.createElement('span');
-    setName.className = 'bar-grid-row';
-    setName.id = 'bar-grid-settings';
-    setName.textContent = translate('cyclicGroups.fsetBarRow');
-    grid.appendChild(setName);
-    BAR_FORMULAS.forEach(function(fm, k){
-      var f = fm[0], seg = document.createElement('span');
-      seg.className = 'bar-seg';
-      var opt = document.createElement('button');
-      opt.type = 'button';
-      opt.className = 'bar-check bar-gear';
-      opt.setAttribute('role', 'menuitemcheckbox');
-      opt.setAttribute('aria-checked', fmapShownNow(f) ? 'true' : 'false');
-      opt.setAttribute('data-at', BAR_PLACES.length + ',' + k);
-      opt.tabIndex = -1;
-      opt.title = translate(FSET_TITLES[f]);
-      opt.setAttribute('aria-label', opt.title);
-      opt.appendChild(gearIcon());
-      opt.addEventListener('click', function(){
-        toggleFset(f);
-        fillBarGrid(i, BAR_PLACES.length + ',' + k);
-      });
-      seg.appendChild(opt);
-      grid.appendChild(seg);
-    });
-  }
   barMenuEl.replaceChildren(grid);
   if (focusAt){ var again = grid.querySelector('[data-at="' + focusAt + '"]'); if (again) again.focus(); }
 }
@@ -9849,14 +9847,14 @@ barMenuEl.addEventListener('keydown', function(e){
 });
 // Arrow keys move between the choices; Space and Enter pick one (a button's own).
 barMenuEl.addEventListener('keydown', function(e){
-  var box = e.target.closest && e.target.closest('.bar-check');
+  var box = e.target.closest && e.target.closest('.bar-check, .bar-gear');
   var step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
   if (!box || !step) return;
   e.preventDefault();
   e.stopPropagation();
   var at = box.getAttribute('data-at').split(',').map(Number);
   // Along a row the keys wrap inside it; between rows they keep the
-  // formula's column (the settings row has one choice per formula).
+  // formula's column (the heads' gears, one per formula, a row above Main).
   var rows = BAR_PLACES.length + (barMenuEl.querySelector('.bar-gear') ? 1 : 0);
   var forms = function(r){ return r === BAR_PLACES.length ? [null] : BAR_FORMS; };
   var from = forms(at[0]), r = at[0], c;
