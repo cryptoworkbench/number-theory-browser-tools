@@ -8082,7 +8082,8 @@ function formulaSliders(G, info, opts){
     // brings the knob back (the closed one flashing the bases that open it).
     var go = function(v){
       if (inert || v === now || off(v)){ rest(); return; }
-      if (pane && (closed(v) || slsNo(v) || blocked(v))){ balk(v); return; }
+      if (pane && closed(v)){ balk(v); flashPaneBases(G, fslNeitherNode(at.c)); return; }
+      if (pane && (slsNo(v) || blocked(v))){ balk(v); return; }
       if (closed(v)){
         balk(v);
         flashLogBases(G, fslNeitherNode(at.c));
@@ -8206,10 +8207,13 @@ function formulaSliders(G, info, opts){
     // with compact SLS it takes the move with the other slider moved too:
     // compact SLS on the row neither came from, or neither at compact (a2).
     sl.addEventListener('dblclick', function(e){
-      if (pane) return;
       var chip = e.target.closest && e.target.closest('.fsl-notch');
       var v = chip ? +chip.getAttribute('data-v') : nearest(ptX(e), ptY(e));
       if (off(v)) return;
+      if (pane){
+        if (closed(v)) forcePaneNeither(G, fslNeitherNode(at.c));
+        return;
+      }
       if (closed(v)) forceMapPosition(G, f, fslNeitherNode(at.c));
       else if (blocked(v)) forceMapPosition(G, f, fslNeitherNode(v), { cv: v, row: row });
       else if (slsNo(v)) forceFslSls(G, f, kind, row, reach);
@@ -8541,6 +8545,7 @@ function paneLogBaseRow(H, h, skipped){
   H.generators.forEach(function(g){
     var box = document.createElement('label');
     box.className = 'lb-box';
+    box.setAttribute('data-g', String(g));
     var fits = !needs || !!mapReach(H, h, g)[node];
     if (!fits) box.classList.add('is-off');
     var input = document.createElement('input');
@@ -8576,6 +8581,55 @@ function paneLogBaseRow(H, h, skipped){
   });
   row.appendChild(lock);
   return row;
+}
+// A closed neither clicked in the pane's window: its boxes flash which
+// bases would open it, and its padlock nudges if closed (as flashLogBases
+// and alarmLogLock do this ring's).
+var paneFlashTimer = 0;
+function flashPaneBases(H, node){
+  var w = FSET[1], h = paneSelH(H);
+  clearTimeout(paneFlashTimer);
+  var boxes = Array.prototype.slice.call(w.body.querySelectorAll('.lb-box'));
+  boxes.forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+  void w.body.offsetWidth;
+  boxes.forEach(function(b){ b.classList.add(mapReach(H, h, +b.getAttribute('data-g'))[node] ? 'is-flash-ok' : 'is-flash-no'); });
+  if (state.logBaseLockR) paneLockAlarm('nudge');
+  paneFlashTimer = setTimeout(function(){
+    w.body.querySelectorAll('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok', 'is-flash-no'); });
+  }, 1200);
+}
+function paneLockAlarm(kind){
+  var btn = FSET[1].body.querySelector('.lb-lock');
+  if (!btn) return;
+  btn.classList.remove('is-alarm', 'is-nudge');
+  void btn.offsetWidth;
+  btn.classList.add(kind === 'alarm' ? 'is-alarm' : 'is-nudge');
+  setTimeout(function(){ btn.classList.remove('is-alarm', 'is-nudge'); }, LOG_LOCK_MS[kind] + 60);
+}
+// A double-click on it forces it: the base becomes the generator, among
+// those the single click lit green, nearest the current one in box order
+// (the one to the right on a tie), and the knob moves onto the neither; the
+// new box flashes green. The padlock closed, nothing moves and it sounds
+// its alarm.
+function forcePaneNeither(H, node){
+  if (state.logBaseLockR){ paneLockAlarm('alarm'); return; }
+  var h = paneSelH(H), gens = H.generators, at = gens.indexOf(paneMapBase(H)), best = -1;
+  gens.forEach(function(g, i){
+    if (!mapReach(H, h, g)[node]) return;
+    if (best === -1 || Math.abs(i - at) <= Math.abs(best - at)) best = i;
+  });
+  if (best === -1) return;
+  clearTimeout(paneFlashTimer);
+  state.chosenBaseR = gens[best];
+  setPaneMap(node);
+  // After the window is built anew for the new base.
+  paneFlashTimer = setTimeout(function(){
+    var box = FSET[1].body.querySelector('.lb-box[data-g="' + gens[best] + '"]');
+    if (box) box.classList.add('is-flash-ok');
+    paneFlashTimer = setTimeout(function(){
+      FSET[1].body.querySelectorAll('.lb-box').forEach(function(b){ b.classList.remove('is-flash-ok'); });
+    }, 1200);
+  }, 80);
 }
 // The pane's Skip logarithm use, under the form slider of its own view.
 function paneSkipBox(skipped){
