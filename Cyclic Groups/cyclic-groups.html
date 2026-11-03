@@ -3553,7 +3553,7 @@ Object.defineProperty(HTMLElement.prototype, 'title', {
   get: function(){ return this.hasAttribute('data-title') ? this.getAttribute('data-title') : titleNative.get.call(this); },
   set: function(v){
     if (TITLE_NATIVE.test(this.tagName)) titleNative.set.call(this, v);
-    else { keepTitle(this, String(v)); syncTitleTip(); }
+    else { this.titleMath = null; keepTitle(this, String(v)); syncTitleTip(); }
   }
 });
 Element.prototype.removeAttribute = function(name){
@@ -3571,6 +3571,12 @@ new MutationObserver(function(list){
   list.forEach(function(m){ moveTitle(m.target); });
   syncTitleTip();
 }).observe(document.documentElement, { attributes: true, attributeFilter: ['title'], subtree: true });
+// A tooltip with math in it: the tip shows node, the title keeps plain for
+// screen readers. A plain node (a string) shows as the title alone.
+function setTitleMath(el, plain, node){
+  el.title = plain;
+  el.titleMath = node && typeof node !== 'string' ? node : null;
+}
 // What the pointer is over, and where; a press hides the tip until the
 // pointer moves on to something else.
 var titleOver = null, titleAtX = 0, titleAtY = 0, titlePressed = null;
@@ -3582,7 +3588,8 @@ function syncTitleTip(){
   // inside it.
   var host = document.fullscreenElement || document.body;
   if (titleTipEl.parentNode !== host) host.appendChild(titleTipEl);
-  titleTipEl.textContent = text;
+  if (el.titleMath) titleTipEl.replaceChildren(el.titleMath.cloneNode(true));
+  else titleTipEl.textContent = text;
   // A title marked one-line keeps to one line as far as the window allows.
   titleTipEl.classList.toggle('is-one-line', el.hasAttribute('data-title-line'));
   titleTipEl.hidden = false;
@@ -8806,7 +8813,7 @@ function paneLogBaseRow(H, h, skipped){
     input.checked = g === base;
     input.disabled = skipped || (!fits && !(locked && g !== base));
     if (locked && g !== base) box.title = translate('cyclicGroups.logBaseLocked');
-    else if (needs) box.title = logBaseFitTip(H, h, g);
+    else if (needs) setTitleMath(box, logBaseFitTip(H, h, g), logBaseFitTip(H, h, g, true));
     input.addEventListener('change', function(){
       if (!input.checked) return;
       if (state.logBaseLockR){ paneSettingsChanged(); return; }
@@ -9056,13 +9063,14 @@ function logBaseFits(G){
 // (log_g(𝐺))⁻¹ ∈ ⟨ℤ/|G|ℤ, +⟩ | |G| ⟹ g is suitable, or
 // log_g(𝐺) ∤ |G| && (log_g(𝐺))⁻¹ ∈ ⟨ℤ/|G|ℤ, +⟩ ∤ |G| ⟹ g is not suitable,
 // 𝐺 written as the element chosen, |G| as the group's own cardinality.
-function logBaseFitTip(G, h, g){
+// asNode gives it as math for the tip, |G| a curve's name set as math.
+function logBaseFitTip(G, h, g, asNode){
   var n = G.order, a = lap(G, g, n).indexOf(h) || n;
   var log = (G.pts ? 'log_' + mapAt(G, g) : 'log' + subscript(g)) + '(' + elText(G, h) + ')';
-  var args = { log: log, card: '|' + G.label + '|', g: mapAt(G, g), zn: '⟨ℤ/' + n + 'ℤ, +⟩' };
-  if (n % a === 0) return translate('cyclicGroups.logBaseFitsPos', args);
-  if (n - a > 0 && n % (n - a) === 0) return translate('cyclicGroups.logBaseFitsNeg', args);
-  return translate('cyclicGroups.logBaseOff', args);
+  var card = '|' + G.label + '|';
+  var args = { log: log, card: asNode && G.pts && !ecByEquation() ? mInline(abs(mGroup(G)), card) : card, g: mapAt(G, g), zn: '⟨ℤ/' + n + 'ℤ, +⟩' };
+  var key = n % a === 0 ? 'cyclicGroups.logBaseFitsPos' : n - a > 0 && n % (n - a) === 0 ? 'cyclicGroups.logBaseFitsNeg' : 'cyclicGroups.logBaseOff';
+  return asNode ? tNode(key, args) : translate(key, args);
 }
 // Whether a formula the base serves sits on the absolute function (a or a2).
 function absShown(token){ var n = fmapNode(token); return n === 'abs' || n === 'pos'; }
@@ -9078,7 +9086,14 @@ function logBaseIntro(G){
     // The star after its structure writes out the inequality, a curve named
     // by its equation bracketed, so the equation stays apart from the !=.
     var name = G.pts && ecByEquation() ? '(' + curveName(G) + ')' : G.label;
-    translateInto(p, 'cyclicGroups.logBaseIntroNotStructure', { star: introStar(translate('cyclicGroups.logBaseIntroNotStructureStar', { group: name, structure: '⟨ℤ/' + G.order + 'ℤ, +⟩' })), circle: introStar(translate('cyclicGroups.logBaseIntroCircle')) });
+    var starArgs = { group: name, structure: '⟨ℤ/' + G.order + 'ℤ, +⟩' };
+    var starTip = translate('cyclicGroups.logBaseIntroNotStructureStar', starArgs);
+    if (G.pts && !ecByEquation()){
+      starArgs.group = groupNameNode(G);
+      starArgs.structure = mInline(mGroupOf('additive', G.order), starArgs.structure);
+      starTip = [starTip, tNode('cyclicGroups.logBaseIntroNotStructureStar', starArgs)];
+    }
+    translateInto(p, 'cyclicGroups.logBaseIntroNotStructure', { star: introStar(starTip), circle: introStar(translate('cyclicGroups.logBaseIntroCircle')) });
     return p;
   }
   // An additive group is its structure, which the star's tooltip writes
@@ -9087,11 +9102,13 @@ function logBaseIntro(G){
   return p;
 }
 // A blue star in the intro, its tooltip a remark kept out of the sentence.
+// tip is its text, or [text, math] to show the math.
 function introStar(tip){
   var star = document.createElement('span');
   star.className = 'lb-intro-star';
   star.textContent = '*';
-  star.title = tip;
+  if (Array.isArray(tip)) setTitleMath(star, tip[0], tip[1]);
+  else star.title = tip;
   star.tabIndex = 0;
   return star;
 }
@@ -9132,7 +9149,7 @@ function logBaseRow(G, scope, noSkip){
     if (!fits[i]) box.classList.add('is-off');
     if (held) input.setAttribute('aria-disabled', 'true');
     if (held) box.title = translate('cyclicGroups.logBaseLocked');
-    else if (absShown(state.fmap.order)) box.title = logBaseFitTip(G, state.gen, g);
+    else if (absShown(state.fmap.order)) setTitleMath(box, logBaseFitTip(G, state.gen, g), logBaseFitTip(G, state.gen, g, true));
     input.addEventListener('change', function(){
       if (!input.checked) return;
       if (state.logBaseLock && g !== state.chosenBase){
@@ -17050,7 +17067,7 @@ function syncIsoPaneLabels(){
   if (isoPaneFrame) isoPaneFrame.setAttribute('title', name);
   var close = translate('cyclicGroups.fsClose', { name: name });
   isoPaneCloseEl.setAttribute('aria-label', close);
-  isoPaneCloseEl.setAttribute('title', close);
+  setTitleMath(isoPaneCloseEl, close, group && closeTipMath(group.G));
   syncIsoTitle();
 }
 isoPaneCloseEl.addEventListener('click', closeIsoPane);
@@ -17108,12 +17125,18 @@ function applyRingQuery(q){
   render();
 }
 isoRingCloseEl.addEventListener('click', closeLeftRing);
+// A close button's tip with a curve's name, named in general, set as math;
+// null for any other group, whose name is plain text.
+function closeTipMath(G){
+  if (!G.pts || ecByEquation()) return null;
+  return tNode('cyclicGroups.fsClose', { name: tNode(G.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: groupNameNode(G) }) });
+}
 function syncRingCloseLabel(){
   if (!drawn || !isoRingCloseEl) return;
   var name = translate(drawn.G.cyclic ? 'cyclicGroups.fsRingCyclic' : 'cyclicGroups.fsRingNotCyclic', { group: drawn.G.label });
   var close = translate('cyclicGroups.fsClose', { name: name });
   isoRingCloseEl.setAttribute('aria-label', close);
-  isoRingCloseEl.setAttribute('title', close);
+  setTitleMath(isoRingCloseEl, close, closeTipMath(drawn.G));
   ringExitEl.setAttribute('aria-label', close);
   ringExitEl.setAttribute('title', close);
 }

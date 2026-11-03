@@ -281,7 +281,8 @@
       if (params && Object.prototype.hasOwnProperty.call(params, name)) {
         var v = params[name];
         if (v && typeof v === 'object' && v.nodeType) {
-          el.appendChild(v);
+          // A placeholder used twice gets a copy, so the first keeps its node.
+          el.appendChild(v.parentNode === el ? v.cloneNode(true) : v);
         } else {
           el.appendChild(document.createTextNode(String(v)));
         }
