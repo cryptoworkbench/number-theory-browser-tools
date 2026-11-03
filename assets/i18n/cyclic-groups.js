@@ -1110,7 +1110,7 @@
       swapIsoHead: 'Isomorphic swap',
       ctxGroupStructure: 'Group structure',
       ctxBeadHead: "Selected bead '{bead}'",
-      ctxBeadSetG: 'Set {g} equal to {bead}',
+      ctxBeadSetG: 'Set {g} equal to ⟨{bead}⟩',
       swapIsoMenu: 'Swap for an isomorphic group',
       swapIsoReduce: 'Reduce to {group}',
       swapOtherMenu: 'Swap for a group isomorphic to {group}',
