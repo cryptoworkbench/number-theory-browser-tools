@@ -9750,7 +9750,22 @@ window.addEventListener('storage', function(e){
 });
 function syncNatHoverCtx(on, bead){
   var sign = syncSignCtx(on), dhItem = syncDhCtx(on, bead), swap = syncSwapCtx(on), other = syncOtherCtx(on);
+  syncTxtCtx(on);
   return sign || dhItem || swap || other;
+}
+// Last, under Export, this ring's group's list of subgroups as a text file,
+// as the bottom panel's menu downloads it (exportSubgroups).
+function syncTxtCtx(on){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-txt').forEach(function(el){ el.remove(); });
+  var ex = on && drawn && !IS_MOBILE ? subExports[0] : null;
+  if (!ex || ex.G.key !== drawn.G.key) return;
+  var it = ctxItem('menuitem', '');
+  translateInto(it.item.children[1], 'cyclicGroups.subDownloadGroup', { group: groupNameNode(ex.G) });
+  it.mark.textContent = '⤓';
+  it.item.classList.add('ring-ctx-txt');
+  it.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  it.item.addEventListener('click', function(){ setRingCtx(false); exportSubgroups(ex); });
+  ringCtxEl.appendChild(it.item);
 }
 // Under them, on a cyclic group, Swap for an isomorphic group: a submenu
 // of the groups isomorphic to it, each taking this ring's place. On the
