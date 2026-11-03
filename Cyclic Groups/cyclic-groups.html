@@ -1854,8 +1854,8 @@
   .arrange-controls, .arrange-pair{ display:contents; }
   .arrange-pair[hidden]{ display:none; }
   /* The Generator dropdown, padlocked while Sequential is pressed, and the
-     Sequential button after it. On a curve the button is gone but keeps
-     its room, so the dropdown stays where it is between the operations. */
+     Sequential button after it. On a curve the button stays, greyed out
+     under the thin dark-red cross the a ∗ b / aᵏ choice wears, and locked. */
   .arrange-gen-wrap{ position:relative; display:inline-flex; max-width:100%; }
   .arrange-gen-wrap > select{ flex:1 1 auto; }
   /* The scroll-wheel switch after the dropdown: pressed, the wheel steps
@@ -1896,7 +1896,9 @@
   .arrange-seq[aria-pressed="true"], .gen-beads[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .arrange-seq:focus-visible, .gen-beads:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
   .arrange-seq:disabled{ opacity:.6; cursor:not-allowed; }
-  .arrange-seq.is-absent{ visibility:hidden; }
+  .arrange-seq.is-out{ position:relative; --out-line:color-mix(in srgb, var(--role-warn) 75%, var(--pointer-ink)); color:color-mix(in srgb, var(--text-dim) 40%, transparent); border-color:color-mix(in srgb, var(--panel-border) 40%, transparent); cursor:not-allowed; }
+  .arrange-seq.is-out:hover{ color:color-mix(in srgb, var(--text-dim) 40%, transparent); background:none; }
+  .arrange-seq.is-out::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background:linear-gradient(to top right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)), linear-gradient(to bottom right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)); }
   .fs-win-body.is-ring > #arrange-field{ min-width:0; }
   .fs-win-body.is-ring .arrange-controls{ flex:1 1 0; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:6px clamp(12px, 3.5cqi, 32px); }
   .fs-win-body.is-ring .arrange-pair:not([hidden]){ display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 10px; min-width:0; max-width:100%; }
@@ -4343,8 +4345,9 @@ function arrangeBy(G){
 // The arrangement: by the powers of the generator in the Generator
 // dropdown, or, while the Sequential button beside it is pressed, low to
 // high, the dropdown then padlocked (on 1 in ℤ/nℤ, Not applicable in a
-// group of units). A group with no generator is Sequential only; a curve
-// has no Sequential, its dropdown offering only its generating points.
+// group of units). A group with no generator is Sequential only; on a curve
+// Sequential is crossed out and locked, its dropdown offering only its
+// generating points.
 function arrangeOption(value, key, titleKey){
   var opt = document.createElement('option');
   opt.value = value;
@@ -4353,10 +4356,14 @@ function arrangeOption(value, key, titleKey){
   return opt;
 }
 function syncArrange(G){
-  // On a curve the beads always follow a generating point: no Sequential.
+  // On a curve the beads always follow a generating point: Sequential is
+  // crossed out, and says why.
   var seqOffered = !G.pts;
   var seq = seqOffered && !(G.cyclic && state.bygen);
-  arrangeSeqEl.classList.toggle('is-absent', !seqOffered);
+  arrangeSeqEl.classList.toggle('is-out', !seqOffered);
+  if (seqOffered) arrangeSeqEl.removeAttribute('aria-disabled');
+  else arrangeSeqEl.setAttribute('aria-disabled', 'true');
+  arrangeSeqEl.title = translate(seqOffered ? 'cyclicGroups.arrangeSequentialTitle' : 'cyclicGroups.arrangeSequentialCurve');
   arrangeSeqEl.setAttribute('aria-pressed', String(seq));
   // A group with no generator can only be sequential.
   arrangeSeqEl.disabled = !G.cyclic;
@@ -20323,6 +20330,7 @@ arrangeGenWrapEl.appendChild(ctlLock());
 // Pressed, the beads go low to high; let go, they are back on the
 // generator the dropdown had.
 arrangeSeqEl.addEventListener('click', function(){
+  if (arrangeSeqEl.getAttribute('aria-disabled') === 'true') return;
   var powers = arrangeSeqEl.getAttribute('aria-pressed') === 'true';
   polyBy = 'arrange';
   rearrange(function(){ state.bygen = powers; render(); });

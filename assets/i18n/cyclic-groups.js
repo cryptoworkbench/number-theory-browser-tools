@@ -812,6 +812,7 @@
       genRowLabel: 'Subgroup',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
+      arrangeSequentialCurve: 'Not available on an elliptic curve: its beads always follow the powers of a generating point',
       arrangeGenLabel: 'Generator',
       arrangeNotApplicable: 'Not applicable',
       arrangeNotApplicableTitle: 'Low to high, the elements are not the powers of one generator',
