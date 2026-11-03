@@ -2949,6 +2949,7 @@
         <div class="ring-head" id="ring-head"></div>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
+          <g id="flog-layer"></g>
         </svg>
         <section class="lap-key" id="lap-key" aria-labelledby="lap-key-title" hidden>
           <div class="lap-key-head"><h2 id="lap-key-title" data-i18n="cyclicGroups.lapKeyTitle">Laps of the path</h2><button type="button" class="fs-win-btn lap-key-min" id="lap-key-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
@@ -5188,7 +5189,7 @@ function drawRing(parent, G, beads, box, paint){
   }
 
   parent.appendChild(ring);
-  drawFlog(parent, ring, G, beads, box, beadR);
+  drawFlog(G, beads, box, beadR);
   return ring;
 }
 
@@ -11926,7 +11927,9 @@ var flogOn = false, flogOpen = false, flogTaskShown = false, flogBuilt = null;
 var flogBase = null, flogFollow = false, flogWheelOn = false;
 // The ring the label is drawn on (flogCtx), and the bead it is on with
 // every bead's last angle from the rightmost place (flogAt).
-var flogCtx = null, flogAt = null;
+// The label lives in its own layer, which the ring's redraws leave alone;
+// flogShown is the bead its k was last written for.
+var flogCtx = null, flogAt = null, flogShown = null, flogLayerEl = $('flog-layer');
 function flogAvail(G){ return !!G && !IS_MOBILE && !IS_ISOPANE; }
 // The base: the expression slider's generator while following it, else the
 // box picked, which starts as the one the slider gives.
@@ -12090,8 +12093,8 @@ function flogFollowButton(G){
 }
 // Called as the ring is drawn: the label goes over it, outside the turning
 // ring, so it never moves.
-function drawFlog(parent, ring, G, beads, box, beadR){
-  flogCtx = { parent: parent, ring: ring, G: G, beads: beads, box: box, beadR: beadR, key: [G.key, dirSign(), arrangement(G).join(',')].join('|') };
+function drawFlog(G, beads, box, beadR){
+  flogCtx = { G: G, beads: beads, box: box, beadR: beadR, key: [G.key, dirSign(), arrangement(G).join(',')].join('|') };
   placeFlog();
 }
 // The rightmost place is the one a bead lands on nearest to three o'clock.
@@ -12102,11 +12105,10 @@ function drawFlog(parent, ring, G, beads, box, beadR){
 function placeFlog(){
   var c = flogCtx;
   if (!c) return;
-  var old = c.parent.querySelector(':scope > .flog');
   var G = c.G, m = c.beads.length;
   if (!flogOn || !flogAvail(G) || !G.generators.length || !m){
-    if (old) old.remove();
-    flogAt = null;
+    flogLayerEl.replaceChildren();
+    flogAt = flogShown = null;
     return;
   }
   var dir = dirSign(), E = ringExtra(), stepA = 360 / m, T = 360 * Math.round(m / 4) / m;
@@ -12123,34 +12125,48 @@ function placeFlog(){
   var el = landed !== null ? landed : prev ? prev.el : null;
   if (el === null || offs[el] === undefined || Math.abs(offs[el]) > stepA + 1e-6) el = nearest;
   flogAt = { key: c.key, el: el, offs: offs };
-  var pt = polar(c.box.cx, c.box.cy, c.box.R, T);
-  var base = flogBaseOf(G), built = [c.key, el, base].join('|');
-  if (!old || old.getAttribute('data-built') !== built){
-    if (old) old.remove();
-    old = svgEl('g', { 'class': 'flog', 'data-built': built });
-    var fs = Math.max(18, Math.min(44, c.beadR * 2.1)), gap = fs * 0.1, k = lap(G, base, G.order).indexOf(el);
-    // Typeset as the formulas are; the plain text under it is the PNG export's.
-    old.appendChild(flogMath(G, base, k, pt, fs, c.beadR + gap));
-    var attrs = function(x, anchor){ return { 'class': 'flog-label is-plain', x: num(x), y: num(pt[1]), 'font-size': num(fs), 'text-anchor': anchor, 'stroke-width': num(fs * 0.16) }; };
-    var left = svgEl('text', attrs(pt[0] - c.beadR - gap, 'end'));
-    left.appendChild(document.createTextNode('log'));
-    var sub = svgEl('tspan', { 'font-size': num(fs * 0.6), dy: num(fs * 0.3) });
-    sub.textContent = mapAt(G, base);
-    var open = svgEl('tspan', { dy: num(-fs * 0.3) });
-    open.textContent = '(';
-    left.appendChild(sub);
-    left.appendChild(open);
-    var right = svgEl('text', attrs(pt[0] + c.beadR + gap, 'start'));
-    right.textContent = ') = ' + k;
-    old.appendChild(left);
-    old.appendChild(right);
-    c.ring.after(old);
+  var pt = polar(c.box.cx, c.box.cy, c.box.R, T), base = flogBaseOf(G);
+  // Built once for its place, size and base; a bead landing only changes k,
+  // so the ring's redraw on each landing leaves it be.
+  var lab = flogLayerEl.firstChild, built = [c.key, base, num(pt[0]), num(pt[1]), num(c.beadR)].join('|');
+  if (!lab || lab.getAttribute('data-built') !== built){
+    lab = flogLabel(G, base, pt, c.beadR);
+    lab.setAttribute('data-built', built);
+    flogLayerEl.replaceChildren(lab);
+    flogShown = null;
   }
+  if (!flogShown || flogShown.el !== el){
+    var k = String(lap(G, base, G.order).indexOf(el));
+    flogShown = { el: el };
+    lab.querySelector('.flog-k').textContent = k;
+    lab.querySelector('.flog-label.is-right').textContent = ') = ' + k;
+  }
+}
+// The label, k left for placeFlog: typeset as the formulas are, over the
+// plain text the PNG export takes.
+function flogLabel(G, base, pt, beadR){
+  var g = svgEl('g', { 'class': 'flog' });
+  var fs = Math.max(18, Math.min(44, beadR * 2.1)), gap = fs * 0.1;
+  g.appendChild(flogMath(G, base, pt, fs, beadR + gap));
+  var attrs = function(x, anchor){ return { 'class': 'flog-label is-plain', x: num(x), y: num(pt[1]), 'font-size': num(fs), 'text-anchor': anchor, 'stroke-width': num(fs * 0.16) }; };
+  var left = svgEl('text', attrs(pt[0] - beadR - gap, 'end'));
+  left.appendChild(document.createTextNode('log'));
+  var sub = svgEl('tspan', { 'font-size': num(fs * 0.6), dy: num(fs * 0.3) });
+  sub.textContent = mapAt(G, base);
+  var open = svgEl('tspan', { dy: num(-fs * 0.3) });
+  open.textContent = '(';
+  left.appendChild(sub);
+  left.appendChild(open);
+  var right = svgEl('text', attrs(pt[0] + beadR + gap, 'start'));
+  right.classList.add('is-right');
+  g.appendChild(left);
+  g.appendChild(right);
+  return g;
 }
 // log_b( and ) = k in MathML, as mapLog writes a logarithm (a curve's base
 // a point), the first ending and the second starting half a gap (the
 // bead's room) either side of the place.
-function flogMath(G, base, k, pt, fs, half){
+function flogMath(G, base, pt, fs, half){
   var W = fs * 14, H = fs * 2.4;
   var fo = svgEl('foreignObject', { 'class': 'flog-math', x: num(pt[0] - W), y: num(pt[1] - H / 2), width: num(2 * W), height: num(H) });
   var box = document.createElement('div');
@@ -12162,7 +12178,8 @@ function flogMath(G, base, k, pt, fs, half){
   // The two halves are typeset apart, and a bracket stretches to its row:
   // the second carries log_b unseen and taking no room, so its ) stretches
   // and sits as the first half's ( does.
-  var right = mEl('math', [mrow(mEl('mpadded', [mEl('mphantom', [logB()])], { width: '0' }), mo(')', true), mo('='), mn(k))], { dir: 'ltr' });
+  var k = mEl('mn', [''], { 'class': 'flog-k' });
+  var right = mEl('math', [mrow(mEl('mpadded', [mEl('mphantom', [logB()])], { width: '0' }), mo(')', true), mo('='), k)], { dir: 'ltr' });
   left.setAttribute('class', 'is-left');
   box.appendChild(left);
   box.appendChild(document.createElement('span'));
