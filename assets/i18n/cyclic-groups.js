@@ -708,7 +708,7 @@
       ecToggle: 'Elliptic curve',
       opKindAdd: 'Addition',
       opKindMul: 'Multiplication',
-      opKindEc: 'EC point addition',
+      opKindEc: 'Elliptic Curve point addition',
       pointAtInfinity: 'Point at infinity',
       identityE: 'E from German {einheit}',
       exprSignOn: 'Write the numbers in their signed form, nearest 0',
