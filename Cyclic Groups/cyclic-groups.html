@@ -6950,6 +6950,19 @@ function setRingCopy(name, from, focus){
     sep.setAttribute('role', 'separator');
     top = [view, sep];
   }
+  // Under the group's name, on a curve: the name kept general, by its
+  // coefficients, ⟨E₂,₂(𝔽₁₇), +_E⟩ (ticked, the default), or by its equation,
+  // E(𝔽₁₇): y² = x³ + 2x + 2.
+  var tail = [];
+  if (name === 'ggroup' && drawn && drawn.G.pts){
+    var line = document.createElement('div');
+    line.className = 'ring-ctx-sep';
+    line.setAttribute('role', 'separator');
+    tail = [line, menuTick('menuitemcheckbox', translate('cyclicGroups.menuEcGeneralName'), !ecByEquation(), function(){
+      setRingCtx(false);
+      toggleEcName();
+    })];
+  }
   ringCopyEl.replaceChildren.apply(ringCopyEl, top.concat(COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
     it.item.addEventListener('click', function(){
@@ -6958,7 +6971,7 @@ function setRingCopy(name, from, focus){
       if (f) copyText(c.as(f));
     });
     return it.item;
-  })));
+  }), tail));
   placeRingSub(from, focus);
 }
 // A submenu of the ring's menu, beside the item that opened it.
@@ -9954,12 +9967,8 @@ function syncSignCtx(on){
   // generator, not as its powers. The signed forms are the slider's ± and
   // g± buttons only.
   var signs = drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : [];
-  // On any curve, its group named as the groups of numbers are, by its
-  // coefficients, ⟨E₂,₂(𝔽₁₇), +_E⟩ (ticked, the default), or by its equation,
-  // E(𝔽₁₇): y² = x³ + 2x + 2.
-  if (drawn.G.pts) signs.push(['cyclicGroups.menuEcGeneralName', 'ecName', toggleEcName]);
   signs.forEach(function(t){
-    var on = t[1] === 'ecName' ? !ecByEquation() : state[t[1]];
+    var on = state[t[1]];
     var text = translate(t[0]);
     var sign = menuTick('menuitemcheckbox', text, on, function(){
       setRingCtx(false);
