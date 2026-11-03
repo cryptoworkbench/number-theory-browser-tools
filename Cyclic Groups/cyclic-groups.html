@@ -14349,8 +14349,8 @@ function drawCombineLine(G, y){
       // resolved (through φ(n) multiplicatively), ≡ g^m.
       var i = X(log[a]), ik = i * k, m = log[c];
       r.push([[null, '(' + B(g)], ['a', supSigned(i)], [null, ')'], ['b', supSigned(k)]], [null, '≡']);
-      // Unfolded, a second line repeats A ≡ aᵏ ≡ (gⁱ)ᵏ ≡ in the same
-      // columns, then writes g^(i × k) as i × k g's under ∏ (∑ additively),
+      // Unfolded, a second line repeats A ≡ aᵏ ≡ (gⁱ)ᵏ ≡, every ≡ in the
+      // line above's columns, then writes g^(i × k) as i × k g's under ∏ (∑ additively),
       // and again with i × k worked out.
       if (combineUnfold && unfoldShown(G)){
         var sym = mul ? '∏' : '∑';
@@ -14372,7 +14372,6 @@ function drawCombineLine(G, y){
         fold.push([null, '≡'], [[null, B(g)], ['c', supSigned(X(log[c]))]]);
         // And as the element itself, green whole, modulo n, as the line above ends.
         fold.push([null, '≡'], ['c', E(c)], [null, mod]);
-        fold.loose = r.length;
       }
       r.push([[null, B(g)], ['a', signed(i), 'sup'], [null, ' × ', 'sup'], ['b', R(k), 'sup']], [null, '≡']);
       // Signed, the exponent ends at its value nearest 0, t.
@@ -14388,6 +14387,9 @@ function drawCombineLine(G, y){
         if (mul && !state.subSimplify) red('φ(' + G.n + ')');
         red(G.order);
       }
+      // Unfolded, the line below has one step more here (∏ to m): an empty
+      // pair keeps gᵐ and what follows over its own.
+      if (fold) r.push([null, ''], [null, '']);
       r.push([[null, B(g)], ['c', supSigned(t)]], [null, '≡']);
       m = t;
       // Additively g^m is g added m times: the product g × m, then its
@@ -14480,9 +14482,6 @@ function drawCombineLine(G, y){
     });
     box.appendChild(t);
     if (free && !(r > 0 && r < (rows.joined || 0))) cols = [];
-    // A row's cells from its loose index on keep their own widths, out of
-    // the columns the rows share.
-    cells.loose = row.loose || Infinity;
     cells.forEach(function(cell, k){
       cell.ws = cell.spans.map(function(sp){
         try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ }
@@ -14502,25 +14501,21 @@ function drawCombineLine(G, y){
         return o;
       });
       cell.w = st ? st.x + Math.max(st.hi, st.lo) : at;
-      if (k < cells.loose) cols[k] = Math.max(cols[k] || 0, cell.w);
+      cols[k] = Math.max(cols[k] || 0, cell.w);
     });
     cells.cols = cols;
     return cells;
   });
   var rowWidth = function(c){ return c.reduce(function(sum, w){ return sum + w; }, 0) + COMBINE_GAP * (c.length - 1); };
-  var colsOf = function(cells){ return cells.map(function(cell, k){ return k < cells.loose ? cells.cols[k] : cell.w; }); };
-  var width = free ? Math.max.apply(null, lines.map(function(cells){ return rowWidth(cells.cols); }))
-    : Math.max.apply(null, [rowWidth(cols)].concat(lines.filter(function(cells){ return cells.loose !== Infinity; }).map(function(cells){ return rowWidth(colsOf(cells)); })));
+  var width = free ? Math.max.apply(null, lines.map(function(cells){ return rowWidth(cells.cols); })) : rowWidth(cols);
   lines.forEach(function(cells){
     if (free) cols = cells.cols;
-    var own = cells.loose === Infinity ? cols : colsOf(cells);
-    // Sharing columns, every row starts at one x, so its ≡ line up.
-    var x = SIZE / 2 - (free ? rowWidth(cols) : width) / 2;
+    var x = SIZE / 2 - rowWidth(cols) / 2;
     cells.forEach(function(cell, k){
-      var at = x + (own[k] - cell.w) / 2;
+      var at = x + (cols[k] - cell.w) / 2;
       cell.x = at;
       cell.spans.forEach(function(sp, s){ sp.setAttribute('x', num(at + cell.offs[s])); });
-      x += own[k] + COMBINE_GAP;
+      x += cols[k] + COMBINE_GAP;
     });
   });
   // Over the powers line's exponent reduction, a tooltip explains it: g
