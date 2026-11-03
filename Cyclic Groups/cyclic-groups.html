@@ -9568,10 +9568,10 @@ document.addEventListener('contextmenu', function(e){
   setRingCtx(true, ptX(e), ptY(e), false, { line: line });
 }, true);
 // Right-clicking the expression slider opens the ring's menu with only its
-// own item: the group's generator count, opening the copy submenu as the
+// own ticks ('gens'). The Subgroup row's formula, right-clicked ('gsub'),
+// opens it with the group's and the subgroup's names, the group's
+// cardinality and its generator count, each opening the copy submenu as the
 // Formulas item does.
-// The Subgroup row's formula, right-clicked, opens it the same way with
-// the subgroup's name, ⟨h⟩ ⊂ G, to copy (key, the formula's: 'gens' or 'gsub').
 function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
@@ -9593,9 +9593,10 @@ function syncExprCtx(key){
     });
     return;
   }
-  // The subgroup row's G = ⟨h⟩ ⊆ …: the group's name, the subgroup's, then
-  // the group's cardinality.
-  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder'] : [key]).forEach(function(k){
+  // The subgroup row's G = ⟨h⟩ ⊆ …: the group's name, the subgroup's, the
+  // group's cardinality, then its generator count. The expression slider's
+  // menu ('gens') keeps only its ticks below.
+  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens'] : key === 'gens' ? [] : [key]).forEach(function(k){
     var it = ctxItem('menuitem', translate(SCRATCH_NAMES[k]), true);
     it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
     it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
@@ -9603,7 +9604,7 @@ function syncExprCtx(key){
     ringCtxEl.appendChild(it.item);
   });
   if (key !== 'gens') return;
-  // Under it, Natural with its exponents, x¹, or without, x.
+  // Natural with its exponents, x¹, or without, x.
   var natExp = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExp'), !state.natExpOff, function(){
     setRingCtx(false);
     toggleNatExp();
