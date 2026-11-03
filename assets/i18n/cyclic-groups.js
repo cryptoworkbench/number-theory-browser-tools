@@ -808,7 +808,7 @@
       legendResetTitle: "Put this colour key's colours back to their defaults",
       layerOrders: 'Order labels',
       arrangeLabel: 'Arrangement',
-      arrangeRowLabel: 'Arrangement',
+      arrangeRowLabel: 'Circle arrangement',
       genRowLabel: 'Subgroup',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
