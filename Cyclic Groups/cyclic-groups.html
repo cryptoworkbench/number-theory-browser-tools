@@ -14064,14 +14064,14 @@ function combineExtraLines(G){
   }
   return ((G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0) + unfoldLines(G);
 }
-// Under aᵏ's formulas, while the element expression slider writes the
+// Under aᵏ's or a ∗ b's formulas, while the element expression slider writes the
 // elements as powers of a generator g (not Natural), the unfold button:
 // open, a line under the formulas writes out how the generic ∗ became this
 // group's × or +, as a product ∏ or a sum ∑ of g's (see drawCombineLine).
 // The button takes a line, the unfolded line another.
 var combineUnfold = false;
 function unfoldShown(G){
-  return !G.pts && comboLive(G) && combo.k !== null && exprBy(G) !== null;
+  return !G.pts && comboLive(G) && (combo.k !== null || combo.b !== null) && exprBy(G) !== null;
 }
 function unfoldLines(G){ return unfoldShown(G) ? 1 + (combineUnfold ? 1 : 0) : 0; }
 // The button, under the line at y: a chevron, down to unfold, up to fold.
@@ -14450,19 +14450,53 @@ function drawCombineLine(G, y){
       // for ⟨ℤ/nℤ, +⟩, and for ⟨ℤ/nℤ, ×⟩ through the totient φ(n). The
       // formula slider trims the steps: Compact skips φ(n), No-derivation
       // reduces by the cardinality's value straight away.
-      if (sum !== kc && (sum < 0 || sum >= n)){
+      var wrap = sum !== kc && (sum < 0 || sum >= n);
+      if (wrap){
         pr.push(gc(sum), [null, '≡']);
         var redE = function(by){ pr.push([[null, B(g)], ['c', signed(sum) + ' % ' + by, 'sup']], [null, '≡']); };
         if (!state.subBare) redE('|' + groupPlain(G) + '|');
         if (G.mode === 'multiplicative' && !state.subSimplify) redE('φ(' + G.n + ')');
         redE(n);
       }
+      // Unfolded, a third line repeats gⁱ ∗ gʲ ≡ gⁱ × gʲ ≡, every ≡ in the
+      // lines above's columns, then writes g^(i + j) as i + j g's under ∏
+      // (∑ additively), again with i + j worked out, reduced modulo the
+      // group's cardinality in the line above's steps, folded back up into
+      // g's power and, as the line above ends, the element modulo n.
+      if (combineUnfold && unfoldShown(G)){
+        var sym = G.mode === 'multiplicative' ? '∏' : '∑';
+        var prod = function(top){ return [[null, sym, 'bigop']].concat(top, [[null, 'i=1', 'lo'], [null, B(g)]]); };
+        fold = pr.slice(0, 8).concat([prod([['a', signed(i), 'hi'], [null, j < 0 ? ' − ' : ' + ', 'hi'], ['b', String(Math.abs(j)), 'hi']]), [null, '≡'],
+          prod([['c', signed(sum), 'hi']])]);
+        if (wrap){
+          var foldE = function(by){ fold.push([null, '≡'], prod([['c', signed(sum) + ' % ' + by, 'hi']])); };
+          if (!state.subBare) foldE('|' + groupPlain(G) + '|');
+          if (G.mode === 'multiplicative' && !state.subSimplify) foldE('φ(' + G.n + ')');
+          foldE(n);
+          fold.push([null, '≡'], prod([['c', signed(kc), 'hi']]));
+        }
+        fold.push([null, '≡'], gc(kc));
+        // Additively gᵏ is g added k times: the product g × k, then its
+        // plain value while that still needs reducing.
+        if (G.mode !== 'multiplicative'){
+          fold.push([null, '≡'], [[null, signed(V(g)) + ' × '], ['c', R(kc)]]);
+          if (V(g) * kc !== V(c)) fold.push([null, '≡'], ['c', signed(V(g) * kc)]);
+        }
+        fold.push([null, '≡'], ['c', E(c)], [null, mod]);
+        // The line below has one step more before gᵏ (∏ to the sum): an
+        // empty pair keeps gᵏ over its own.
+        pr.push([null, ''], [null, '']);
+      }
       tipAt = 8;
       tipTo = pr.length;
-      // g's power last written as the element itself.
-      pr.push(gc(kc), [null, '≡'], ['c', E(c)], [null, mod]);
+      // g's power last written as the element itself, unfolded in the
+      // last column with the line below's.
+      pr.push(gc(kc), [null, '≡']);
+      if (fold) while (pr.length < fold.length - 2) pr.push([null, '']);
+      pr.push(['c', E(c)], [null, mod]);
       while (r0.length < pr.length - 2) r0.push([null, '']);
       rows.push(pr);
+      if (fold) rows.push(fold);
       tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
         { g: E(g), i: signed(i), j: R(j), sum: signed(sum), n: n, k: signed(kc), gn: pow(n), gsum: pow(sum), gk: pow(kc) });
     }
