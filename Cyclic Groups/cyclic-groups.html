@@ -9825,16 +9825,49 @@ function swapName(spec){
   if (ecByEquation()) m = mrow(m, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(c[1], c[2]));
   return mInline(m, ecChipLabel(c[0], c[1], c[2]));
 }
+// The menu's Isomorphic swap section: first, while G is not its own
+// structure ⟨ℤ/|G|ℤ, +⟩, Reduce to it; then, always, the submenu of every
+// other group isomorphic to G (greyed while there is none to take); then
+// the other ring's (syncOtherCtx).
+function reduceSpec(){
+  var G = drawn ? drawn.G : null;
+  if (!G || G.mode === 'additive') return null;
+  return swapSpecs().find(function(spec){ return spec.mode === 'additive' && spec.n === G.order && !spec.curve; }) || null;
+}
+function takeSwap(spec){
+  setRingCtx(false);
+  // Linked, the ring holding the pane opens it again on the pick;
+  // unlinked, the pane takes it itself, as the ring on the left does.
+  if (IS_ISOPANE && !paneUnlinked()) tellHost({ isopane: 'swap', spec: spec });
+  else swapHostGroup(swapChipOf(spec));
+}
 function syncSwapCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-swap').forEach(function(el){ el.remove(); });
-  if (!on || !drawn || IS_MOBILE || !swapSpecs().length) return null;
+  if (!on || !drawn || IS_MOBILE) return null;
+  var at = ringCtxEl.querySelector(':scope > .fs-menu-head');
+  var head = document.createElement('p');
+  head.className = 'fs-menu-head ring-ctx-swap';
+  head.textContent = translate('cyclicGroups.swapIsoHead');
+  ringCtxEl.insertBefore(head, at);
+  var first = null, red = reduceSpec();
+  if (red){
+    var rd = ctxItem('menuitem', '');
+    translateInto(rd.item.children[1], 'cyclicGroups.swapIsoReduce', { group: swapName(red) });
+    rd.mark.textContent = '\u21e9';
+    rd.item.classList.add('ring-ctx-swap');
+    rd.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    rd.item.addEventListener('click', function(){ takeSwap(red); });
+    ringCtxEl.insertBefore(rd.item, at);
+    first = rd.item;
+  }
   var it = ctxItem('menuitem', translate('cyclicGroups.swapIsoMenu'), true);
   it.mark.textContent = '\u21c6';
   it.item.classList.add('ring-ctx-swap');
+  it.item.disabled = !swapSpecs().length;
   it.item.addEventListener('pointerenter', function(){ setRingSwap(it.item, false); });
   it.item.addEventListener('click', function(){ setRingSwap(it.item, true); });
-  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
-  return it.item;
+  ringCtxEl.insertBefore(it.item, at);
+  return first || (it.item.disabled ? null : it.item);
 }
 // Next to it, while the two rings' groups are not isomorphic: Swap for a
 // group isomorphic to the other ring's, a submenu of that group and the
@@ -9849,7 +9882,7 @@ function syncOtherCtx(on){
   it.item.classList.add('ring-ctx-other');
   it.item.addEventListener('pointerenter', function(){ setRingOther(it.item, false); });
   it.item.addEventListener('click', function(){ setRingOther(it.item, true); });
-  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
+  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head:not(.ring-ctx-swap)'));
   return it.item;
 }
 function setRingOther(from, focus){
@@ -9891,19 +9924,10 @@ function setRingSwap(from, focus){
   from.setAttribute('aria-expanded', 'true');
   ringCopyEl.hidden = false;
   ringCopyEl.setAttribute('aria-label', translate('cyclicGroups.swapIsoMenu'));
-  var G = drawn ? drawn.G : null;
   ringCopyEl.replaceChildren.apply(ringCopyEl, specs.map(function(spec){
     var it = ctxItem('menuitem', '');
-    // ⟨ℤ/|G|ℤ, +⟩, G's structure, taken in G's place, is G reduced to it.
-    if (G && G.mode !== 'additive' && spec.mode === 'additive' && spec.n === G.order) translateInto(it.item.children[1], 'cyclicGroups.swapIsoReduce', { group: swapName(spec) });
-    else it.item.children[1].appendChild(swapName(spec));
-    it.item.addEventListener('click', function(){
-      setRingCtx(false);
-      // Linked, the ring holding the pane opens it again on the pick;
-      // unlinked, the pane takes it itself, as the ring on the left does.
-      if (IS_ISOPANE && !paneUnlinked()) tellHost({ isopane: 'swap', spec: spec });
-      else swapHostGroup(swapChipOf(spec));
-    });
+    it.item.children[1].appendChild(swapName(spec));
+    it.item.addEventListener('click', function(){ takeSwap(spec); });
     return it.item;
   }));
   placeRingSub(from, focus);

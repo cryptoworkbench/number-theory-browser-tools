@@ -145,9 +145,10 @@
    (the bottom panel's Follow expression slider button), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
-   exchange worked with G as g, and its window), and swapIsoMenu (the ring
-   menu's Swap for an isomorphic group on a cyclic group, and swapIsoReduce
-   its entry for the group's structure ⟨ℤ/|G|ℤ, +⟩, and swapOtherMenu, its
+   exchange worked with G as g, and its window), and swapIsoHead (the ring
+   menu's Isomorphic swap section), swapIsoMenu (its Swap for an isomorphic
+   group, and swapIsoReduce, its Reduce to the group's structure
+   ⟨ℤ/|G|ℤ, +⟩ above it, and swapOtherMenu, its
    sibling for a group isomorphic to the other ring's while the two are not
    isomorphic), and genInWhole and
    genInProper (the tip on the subgroup row's ∈, ⟨h⟩ the whole group or not), and
@@ -1106,6 +1107,7 @@
       subEnterInverse: 'Hit enter to switch to inverse',
       formulaHide: 'Hide',
       dhMenu: 'Diffie–Hellman with g = {g}',
+      swapIsoHead: 'Isomorphic swap',
       swapIsoMenu: 'Swap for an isomorphic group',
       swapIsoReduce: 'Reduce to {group}',
       swapOtherMenu: 'Swap for a group isomorphic to {group}',
