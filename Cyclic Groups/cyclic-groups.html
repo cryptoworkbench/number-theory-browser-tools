@@ -17460,20 +17460,21 @@ function subgroupName(G, g){
 // isomorphism ((⟨g⟩ ∈ G) ≅ (⟨h⟩ ∈ H), each side's subgroup on show), or,
 // once they are changed so they no longer are, both rings' names side by
 // side (⟨g⟩ ⊂ G & ⟨h⟩ ⊆ H).
+// A group's name in the tab: a curve's by its coefficients, ⟨E_{a,b}(𝔽ₚ), +_E⟩,
+// or, named by its equation, E(𝔽ₚ): y² = ….
+function titleName(G, byEq){ return G.pts ? ecChipLabel(G.n, G.a, G.b, byEq) : G.label; }
 function ringTitle(){
   if (IS_ISOPANE || !drawn) return null;
-  var G = drawn.G, left = subgroupName(G, state.noSub ? null : state.gen);
+  var left = titleName(drawn.G, ecByEquation());
   if (!isoPane || isoPane.blank) return left;
-  var p = new URLSearchParams(isoPane.q), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
-  if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return left;
-  var H = buildGroup(mode, clamp(n, MIN_N, MAX_N)), hg = parseInt(p.get('gen'), 10);
-  var right = subgroupName(H, p.get('sub') === 'none' || !isFinite(hg) ? null : hg);
+  var H = isoPaneGroup();
+  if (!H) return left;
+  // The pane's curve by its equation when the pane names it so.
+  var right = titleName(H, new URLSearchParams(isoPane.q).get('ecname') === 'eq');
   // A new ring still being chosen or built on the left: only the right one counts.
   if (isoPane.hostBlank) return right;
-  var g = isoLinkGen(), k = g === null ? 0 : G.orders[g];
-  if (!H.cyclic || H.order !== k) return translate('cyclicGroups.fsRingPair', { left: left, right: right });
-  if (k === G.order) return translate('cyclicGroups.fsRingIso', { left: G.label, right: H.label });
-  return translate('cyclicGroups.fsRingIsoSub', { left: subgroupName(G, g), right: right });
+  // The two whole groups locked as one: G ≅ H; else G & H.
+  return translate(isoLinked() && isoWholeMatch() ? 'cyclicGroups.fsRingIso' : 'cyclicGroups.fsRingPair', { left: left, right: right });
 }
 // The tab's name follows the pane: on the page it is renamed here; in a
 // ring's frame the name goes to the holding page with the frame's next report.
@@ -17869,6 +17870,8 @@ function syncIsoKeys(){
   syncAkeyRowTitles();
   var unlinked = !!isoPane && !!drawn && !isoLinked();
   root.classList.toggle('is-iso-unlinked', unlinked);
+  // Locked or let go, the tab's name says ≅ or &.
+  syncIsoTitle();
   syncCosetButton();
   keepLockClear();
   // Unlocked, Laps of the path comes back off the pane.
@@ -21173,7 +21176,7 @@ function syncTabTitle(){
   if (IS_DESKTOP && !cgEntered){ document.title = translate('cyclicGroups.title'); return; }
   var name = IS_DESKTOP ? ringTitle() : null;
   if (name) document.title = name;
-  else if (drawn) document.title = translate('cyclicGroups.tabTitle', { group: drawn.G.label, title: translate('cyclicGroups.title') });
+  else if (drawn) document.title = titleName(drawn.G, ecByEquation());
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncTabTitle);
 
