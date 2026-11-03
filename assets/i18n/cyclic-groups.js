@@ -1111,6 +1111,7 @@
       ctxGroupStructure: 'Group structure',
       ctxBeadHead: "Selected bead '{bead}'",
       ctxBeadSetG: 'Set {g} equal to ⟨{bead}⟩',
+      ctxBeadIsG: '{g} is already set to ⟨{bead}⟩',
       swapIsoMenu: 'Swap for an isomorphic group',
       swapIsoReduce: 'Reduce to {group}',
       swapOtherMenu: 'Swap for a group isomorphic to {group}',

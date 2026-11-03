@@ -9978,7 +9978,8 @@ function swapPaneGroup(a){
 // the element the expression slider writes the elements as powers of (none
 // while it is on Natural). A bead right-clicked has a section of its own
 // after them, Selected bead 'x', holding what the bead offers: Diffie–Hellman
-// with it as g, focused first, then Set G equal to it (greyed while it is G).
+// with it as g, focused first, then Set G equal to it (greyed, G is
+// already set to it, while it is G).
 function syncDhCtx(on, bead){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-dh').forEach(function(el){ el.remove(); });
   if (!on || !drawn || IS_MOBILE) return null;
@@ -10014,9 +10015,10 @@ function syncDhCtx(on, bead){
   var set = ctxItem('menuitem', '');
   var gi = document.createElement('i');
   gi.textContent = 'G';
-  translateInto(set.item.children[1], 'cyclicGroups.ctxBeadSetG', { g: gi, bead: written });
+  var isG = !state.noSub && state.gen === bead;
+  translateInto(set.item.children[1], isG ? 'cyclicGroups.ctxBeadIsG' : 'cyclicGroups.ctxBeadSetG', { g: gi, bead: written });
   set.item.classList.add('ring-ctx-dh');
-  set.item.disabled = !state.noSub && state.gen === bead;
+  set.item.disabled = isG;
   set.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
   set.item.addEventListener('click', function(){
     setRingCtx(false);
