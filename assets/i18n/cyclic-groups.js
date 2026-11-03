@@ -1159,7 +1159,7 @@
       logBaseIntroAdditive: 'Because this group IS equal to its structure{star}, a logarithm is strictly speaking NOT needed to determine the position of G relative to E{circle}. Each element already holds its own position; as the logarithm to base 1. However, not using a logarithm because each element is already its own base 1 logarithm specifies the formula for additive groups, while it might be more sensible to keep the formula general ...',
       logBaseIntroCircle: '(in a circle whose arrangement is by generator powers)',
       logBaseIntroAdditiveStar: '{group} == {group}',
-      logAnyway: 'keep the formula general',
+      logAnyway: 'keep formula general',
       logAnywayHeld: 'The complexity slider is currently set to \'Complete\'; set it back to \'Compact\' to turn this off.\n\nOr double click to force.',
       logAnywayTip: 'Pressed: the formulas find the distance between E and G on the circle with a logarithm, as they do for every group. Not pressed: they read G directly, without a logarithm.',
       logBaseIntroStar: 'This mode uses a logarithm in order to find the distance between G and E on the circle, so pick a generator from the group to use as the base for the logarithm.',
