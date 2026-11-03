@@ -5662,7 +5662,7 @@ function barPlotTasks(i, G){
     // Titled as the plot is: the pane's by the pane's own naming and view.
     var pq = i === 0 ? null : new URLSearchParams(isoPane.q);
     var byEq = i === 0 ? ecByEquation() : pq.get('ecname') === 'eq';
-    var curve = curvePlotTitle(G, byEq, i === 0 ? state.plotView : pq.get('plotview'));
+    var curve = curvePlotTitle(G, byEq);
     tasks.push(barTask(curve, translate('cyclicGroups.curvePlotShow'), translate('cyclicGroups.curvePlotTask', { curve: titleName(G, byEq) }), 'curve', function(){
       if (i === 0){ openCurvePlot(); blinkLinked(curvePlotEl); return; }
       tellPane({ ringhost: 'plotopen' });
@@ -12409,15 +12409,11 @@ plotViewEl.addEventListener('click', function(e){
   drawCurvePlot(drawn.G);
   mirrorToUrl(drawn.G);
 });
-// The plot's title, which its task in the bar carries too. A curve named in
-// general, E₀,₁(𝔽₁₁), titles its plot E₀,₁(𝔽₁₁) map, one named by its
-// equation y² ≡ x³ + 1 (% 11); the real plot keeps its equation, as it is
-// no longer over 𝔽ₚ.
-function curvePlotTitle(G, byEq, view){
-  if (view === 'real') return ecEquation(G.a, G.b) + ', x, y ∈ ℝ';
-  if (byEq) return ecEquation(G.a, G.b).replace('y² =', 'y² ≡') + ' (% ' + G.n + ')';
-  var over = isPrime(G.n) ? '𝔽' + subscript(G.n) : 'ℤ/' + G.n + 'ℤ';
-  return translate('cyclicGroups.curvePlotTitleGeneral', { curve: 'E' + subscript(G.a) + ',' + subscript(G.b) + '(' + over + ')' });
+// The plot's title, which its task in the bar carries too, in every view:
+// the group's name as it is written now, ⟨E₀,₁(𝔽₁₁), +_E⟩ point plot, or by
+// its equation, E(𝔽₁₁): y² = x³ + 1 point plot.
+function curvePlotTitle(G, byEq){
+  return translate('cyclicGroups.curvePlotTitleName', { curve: titleName(G, byEq) });
 }
 function drawCurvePlot(G){
   var on = !!G.pts;
@@ -12431,7 +12427,7 @@ function drawCurvePlot(G){
   syncPlotDockBtn();
   curvePlotEl.classList.toggle('is-picks-g', state.genBeads);
   curvePlotEl.classList.toggle('is-real', real && state.realPlot);
-  $('curve-plot-title').textContent = curvePlotTitle(G, ecByEquation(), state.plotView);
+  $('curve-plot-title').textContent = curvePlotTitle(G, ecByEquation());
   curvePlotSvgEl.replaceChildren();
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);

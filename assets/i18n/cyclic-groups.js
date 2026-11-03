@@ -730,7 +730,7 @@
       menuEcGeneralName: 'Keep group name general',
       opAbbrEc: 'Elliptic curve',
       opAbbrPa: 'Elliptic Curve point addition',
-      curvePlotTitleGeneral: '{curve} map',
+      curvePlotTitleName: '{curve} point plot',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyAuto: 'Auto-simplify',
