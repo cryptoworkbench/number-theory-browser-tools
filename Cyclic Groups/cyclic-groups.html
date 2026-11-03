@@ -9753,19 +9753,37 @@ function syncNatHoverCtx(on, bead){
   syncTxtCtx(on);
   return sign || dhItem || swap || other;
 }
-// Last, under Export, this ring's group's list of subgroups as a text file,
-// as the bottom panel's menu downloads it (exportSubgroups).
+// Last, under Export, Export group: this ring's group's list of subgroups,
+// copied or downloaded as a text file, as the bottom panel's menu offers it
+// (exportSubgroups).
 function syncTxtCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-txt').forEach(function(el){ el.remove(); });
   var ex = on && drawn && !IS_MOBILE ? subExports[0] : null;
   if (!ex || ex.G.key !== drawn.G.key) return;
-  var it = ctxItem('menuitem', '');
-  translateInto(it.item.children[1], 'cyclicGroups.subDownloadGroup', { group: groupNameNode(ex.G) });
+  var it = ctxItem('menuitem', '', true);
+  translateInto(it.item.children[1], 'cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) });
   it.mark.textContent = '⤓';
   it.item.classList.add('ring-ctx-txt');
-  it.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  it.item.addEventListener('click', function(){ setRingCtx(false); exportSubgroups(ex); });
+  ringCopyPair(it.item, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); });
   ringCtxEl.appendChild(it.item);
+}
+// A ring menu item opening a submenu of two: Copy and Download.
+function ringCopyPair(from, copy, save){
+  var open = function(focus){
+    setRingCopy(null);
+    ringCopyFrom = from;
+    from.setAttribute('aria-expanded', 'true');
+    ringCopyEl.hidden = false;
+    ringCopyEl.setAttribute('aria-label', from.children[1].textContent);
+    ringCopyEl.replaceChildren.apply(ringCopyEl, [['cyclicGroups.ctxBeadCopy', copy], ['cyclicGroups.ctxBeadDownload', save]].map(function(c){
+      var it = ctxItem('menuitem', translate(c[0]));
+      it.item.addEventListener('click', function(){ setRingCtx(false); c[1](); });
+      return it.item;
+    }));
+    placeRingSub(from, focus);
+  };
+  from.addEventListener('pointerenter', function(){ open(false); });
+  from.addEventListener('click', function(){ open(true); });
 }
 // Under them, on a cyclic group, Swap for an isomorphic group: a submenu
 // of the groups isomorphic to it, each taking this ring's place. On the
@@ -10047,24 +10065,9 @@ function syncDhCtx(on, bead){
     var line = ex.lines[at];
     var sub = ctxItem('menuitem', translate('cyclicGroups.ctxBeadExport', { bead: written }), true);
     sub.item.classList.add('ring-ctx-dh');
-    var open = function(focus){
-      setRingCopy(null);
-      ringCopyFrom = sub.item;
-      sub.item.setAttribute('aria-expanded', 'true');
-      ringCopyEl.hidden = false;
-      ringCopyEl.setAttribute('aria-label', sub.item.children[1].textContent);
-      var copy = ctxItem('menuitem', translate('cyclicGroups.ctxBeadCopy'));
-      copy.item.addEventListener('click', function(){ setRingCtx(false); copyText(line); });
-      var save = ctxItem('menuitem', translate('cyclicGroups.ctxBeadDownload'));
-      save.item.addEventListener('click', function(){
-        setRingCtx(false);
-        saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', G.mode === 'additive' ? 'add' : 'mul', G.n, bead].join('-') + '.txt');
-      });
-      ringCopyEl.replaceChildren(copy.item, save.item);
-      placeRingSub(sub.item, focus);
-    };
-    sub.item.addEventListener('pointerenter', function(){ open(false); });
-    sub.item.addEventListener('click', function(){ open(true); });
+    ringCopyPair(sub.item, function(){ copyText(line); }, function(){
+      saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', G.mode === 'additive' ? 'add' : 'mul', G.n, bead].join('-') + '.txt');
+    });
     ringCtxEl.insertBefore(sub.item, head);
   }
   return first;
@@ -19717,10 +19720,12 @@ function saveBlob(blob, filename){
 function asciiText(t){
   return t.replace(/[⟨⟩×·∗ℤ]/g, function(c){ return ASCII_MI[c] || ASCII_MO[c]; });
 }
-function exportSubgroups(x){
+function subgroupsText(x){
   var head = translate('cyclicGroups.subExportHead', { group: asciiText(x.G.label) });
-  var text = [head, ''].concat(x.lines).join('\n') + '\n';
-  saveBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), ['subgroups', x.G.mode === 'additive' ? 'add' : 'mul', x.G.n].join('-') + '.txt');
+  return [head, ''].concat(x.lines).join('\n') + '\n';
+}
+function exportSubgroups(x){
+  saveBlob(new Blob([subgroupsText(x)], { type: 'text/plain;charset=utf-8' }), ['subgroups', x.G.mode === 'additive' ? 'add' : 'mul', x.G.n].join('-') + '.txt');
 }
 // Right-clicking a row offers each group in the list for download: the one
 // group, or both merged ones, left first.
@@ -19728,6 +19733,7 @@ var subCtxEl = $('sub-ctx');
 var subCtxReturn = null;
 // side: the merged row's half the menu was opened on, 1 for the pane's.
 function setSubCtx(open, x, y, h, side){
+  setSubCtxSub(null);
   if (!open){
     if (subCtxEl.hidden) return;
     subCtxEl.hidden = true;
@@ -19770,13 +19776,26 @@ function setSubCtx(open, x, y, h, side){
     subCtxEl.appendChild(it);
     subCtxEl.appendChild(subCtxRule());
   }
+  // Export group, for each group in the list: a submenu of Copy, its list
+  // as text, and Download, the same as a text file.
   subExports.forEach(function(ex){
     var item = document.createElement('button');
     item.type = 'button';
-    item.className = 'fs-menu-item';
+    item.className = 'fs-menu-item sub-ctx-export';
     item.setAttribute('role', 'menuitem');
-    translateInto(item, 'cyclicGroups.subDownloadGroup', { group: groupNameNode(ex.G) });
-    item.addEventListener('click', function(){ setSubCtx(false); exportSubgroups(ex); });
+    item.setAttribute('aria-haspopup', 'true');
+    item.setAttribute('aria-expanded', 'false');
+    var label = document.createElement('span');
+    translateInto(label, 'cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) });
+    var arrow = document.createElement('span');
+    arrow.className = 'ring-ctx-more';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '\u203A';
+    item.appendChild(label);
+    item.appendChild(arrow);
+    var open = function(focus){ setSubCtxSub(item, focus, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); }); };
+    item.addEventListener('pointerenter', function(){ open(false); });
+    item.addEventListener('click', function(){ open(true); });
     subCtxEl.appendChild(item);
   });
   // The panel's switches: members coloured like their beads, and auto-shift.
@@ -19831,10 +19850,54 @@ function setSubCtx(open, x, y, h, side){
     });
     subCtxEl.appendChild(item);
   }
+  subCtxSubEl.hidden = true;
+  subCtxEl.appendChild(subCtxSubEl);
   subCtxReturn = subCtxEl.hidden ? document.activeElement : subCtxReturn;
   if (!(subCtxReturn instanceof HTMLElement) || subCtxReturn === document.body) subCtxReturn = null;
   showCtxAt(subCtxEl, x, y);
 }
+// The bottom panel menu's submenu, beside the Export group item that opened
+// it: Copy and Download.
+var subCtxSubEl = document.createElement('div');
+subCtxSubEl.className = 'fs-menu ring-ctx-sub';
+subCtxSubEl.setAttribute('role', 'menu');
+subCtxSubEl.hidden = true;
+var subCtxSubFrom = null;
+function setSubCtxSub(from, focus, copy, save){
+  if (subCtxSubFrom) subCtxSubFrom.setAttribute('aria-expanded', 'false');
+  subCtxSubFrom = from;
+  if (!from){ subCtxSubEl.hidden = true; return; }
+  from.setAttribute('aria-expanded', 'true');
+  subCtxSubEl.setAttribute('aria-label', from.textContent.replace('\u203A', '').trim());
+  subCtxSubEl.replaceChildren.apply(subCtxSubEl, [['cyclicGroups.ctxBeadCopy', copy], ['cyclicGroups.ctxBeadDownload', save]].map(function(c){
+    var it = document.createElement('button');
+    it.type = 'button';
+    it.className = 'fs-menu-item';
+    it.setAttribute('role', 'menuitem');
+    it.textContent = translate(c[0]);
+    it.addEventListener('click', function(){ setSubCtx(false); c[1](); });
+    return it;
+  }));
+  subCtxSubEl.hidden = false;
+  // Beside the menu on its right, or on its left where the right has no
+  // room; against the corner of a window that contains its fixed children.
+  var menu = boxOf(subCtxEl), at = boxOf(from), w = subCtxSubEl.offsetWidth, h = subCtxSubEl.offsetHeight;
+  var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
+  var left = menu.right - 2;
+  if (left + w > vw - 4) left = Math.max(4, menu.left - w + 2);
+  var top = Math.max(4, Math.min(at.top - 7, vh - h - 4));
+  subCtxSubEl.style.left = left + 'px';
+  subCtxSubEl.style.top = top + 'px';
+  var got = boxOf(subCtxSubEl);
+  subCtxSubEl.style.left = (2 * left - got.left) + 'px';
+  subCtxSubEl.style.top = (2 * top - got.top) + 'px';
+  if (focus) subCtxSubEl.firstChild.focus();
+}
+// Onto another of the menu's items, the submenu closes.
+subCtxEl.addEventListener('pointerover', function(e){
+  var it = e.target.closest && e.target.closest('.fs-menu-item');
+  if (it && it !== subCtxSubFrom && !subCtxSubEl.contains(it)) setSubCtxSub(null);
+});
 // A menu shown at the pointer, kept inside the window, its first item
 // focused.
 function showCtxAt(menu, x, y){
@@ -19956,7 +20019,15 @@ if (IS_ISOPANE){
   [ringCtxEl, subCtxEl, plotCtxEl].forEach(function(el){ paneMenuWatch.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
 }
 subCtxEl.addEventListener('keydown', function(e){
-  var items = Array.prototype.slice.call(subCtxEl.querySelectorAll('.fs-menu-item')), i = items.indexOf(document.activeElement);
+  // In the submenu: back to its item with the left arrow, round its own two with the others.
+  if (!subCtxSubEl.hidden && subCtxSubEl.contains(e.target) && e.key !== 'Escape' && e.key !== 'Tab'){
+    var subs = Array.prototype.slice.call(subCtxSubEl.querySelectorAll('.fs-menu-item')), j = subs.indexOf(document.activeElement);
+    if (e.key === 'ArrowLeft'){ e.preventDefault(); var from = subCtxSubFrom; setSubCtxSub(null); if (from) from.focus(); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); subs[(j + (e.key === 'ArrowDown' ? 1 : subs.length - 1)) % subs.length].focus(); }
+    return;
+  }
+  if (e.key === 'ArrowRight' && e.target.classList && e.target.classList.contains('sub-ctx-export')){ e.preventDefault(); e.target.click(); return; }
+  var items = Array.prototype.slice.call(subCtxEl.querySelectorAll(':scope > .fs-menu-item')), i = items.indexOf(document.activeElement);
   if (e.key === 'Escape' || e.key === 'Tab'){ e.preventDefault(); setSubCtx(false); }
   else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
     e.preventDefault();
