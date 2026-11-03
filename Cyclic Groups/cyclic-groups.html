@@ -6438,6 +6438,8 @@ var lastSubs = [];
 // subgroup's rows stay empty; in (ℤ/nℤ)* with no generator to take a
 // logarithm by, the subgroup's cardinality asks for one.
 var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
+// In the ring's menu the structure is named in full.
+function ctxName(k){ return k === 'struct' ? 'cyclicGroups.ctxGroupStructure' : SCRATCH_NAMES[k]; }
 var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gsub: 'cyclicGroups.formulaToggleSubName', ggroup: 'cyclicGroups.formulaToggleName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
 var scratchOpen = false;
 // The scratchpad's formulas, fresh nodes each time, in its rows' order:
@@ -6836,20 +6838,15 @@ function svgIcon(parts){
 // zoom and what the ring shows are set in the window's bottom-right corner,
 // the colours in the colour keys): the groups isomorphic to the whole group or to the subgroup
 // on show, to open beside the ring, then the Export panel's download, which clicks its button
-// there, and last the group's structure, written out in the menu itself;
-// first of all its formula settings. A
-// pane's menu has no isomorphisms, nor has the ring's while a pane is open;
-// its structure is its own group's.
+// there; first of all its formula settings. The group's structure is copied
+// from the menu of G = ⟨h⟩ ⊆ … (syncExprCtx). A pane's menu has no
+// isomorphisms, nor has the ring's while a pane is open.
 var RING_CTX_ITEMS = [
   // The group's formula settings window (the pane's in the ring holding it).
   { key: 'cyclicGroups.fsetMenu', icon: '\u2699', run: function(){ openFset(IS_ISOPANE ? 1 : 0); } },
   // The fixed logarithm's window, on this page's ring only.
   { key: 'cyclicGroups.flogMenu', icon: '\u33d2', hide: IS_ISOPANE, run: function(){ openFlog(); } },
-  { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } },
-  { sep: true, key: 'cyclicGroups.fact.structure', value: function(){
-    var f = drawn && structureFormula(drawn.G);
-    return f ? mInline(f.math, f.plain) : '';
-  } }
+  { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } }
 ];
 var ringCtxEl = $('ring-ctx');
 var ringCopyEl = $('ring-ctx-copy');
@@ -6951,7 +6948,7 @@ function setRingCopy(name, from, focus){
   ringCopyEl.hidden = !name;
   if (!name){ ringCopyEl.replaceChildren(); return; }
   from.setAttribute('aria-expanded', 'true');
-  ringCopyEl.setAttribute('aria-label', translate(SCRATCH_NAMES[name]));
+  ringCopyEl.setAttribute('aria-label', translate(ctxName(name)));
   var shown = drawn && menuFormulas(drawn.G).find(function(x){ return x.key === name; }), top = [];
   if (shown){
     var view = document.createElement('div');
@@ -9681,10 +9678,10 @@ function syncExprCtx(key){
     return;
   }
   // The subgroup row's G = ⟨h⟩ ⊆ …: the group's name, the subgroup's, the
-  // group's cardinality, then its generator count. The expression slider's
-  // menu ('gens') keeps only its ticks below.
-  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens'] : key === 'gens' ? [] : [key]).forEach(function(k){
-    var it = ctxItem('menuitem', translate(SCRATCH_NAMES[k]), true);
+  // group's cardinality, its generator count, then the group's structure.
+  // The expression slider's menu ('gens') keeps only its ticks below.
+  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens', 'struct'] : key === 'gens' ? [] : [key]).forEach(function(k){
+    var it = ctxItem('menuitem', translate(ctxName(k)), true);
     it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
     it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
     it.item.classList.add('ring-ctx-expr');

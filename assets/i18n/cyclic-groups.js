@@ -1108,6 +1108,7 @@
       formulaHide: 'Hide',
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoHead: 'Isomorphic swap',
+      ctxGroupStructure: 'Group structure',
       swapIsoMenu: 'Swap for an isomorphic group',
       swapIsoReduce: 'Reduce to {group}',
       swapOtherMenu: 'Swap for a group isomorphic to {group}',
