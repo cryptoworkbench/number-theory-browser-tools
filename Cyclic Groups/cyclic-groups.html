@@ -14357,8 +14357,15 @@ function drawCombineLine(G, y){
         var fold = r.slice().concat([[[null, sym, 'bigop'], ['a', signed(i), 'hi'], [null, ' × ', 'hi'], ['b', R(k), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]], [null, '≡'],
           [[null, sym, 'bigop'], ['c', signed(ik), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]]);
         // Then, while the line above reduces it, the count taken modulo the
-        // group's cardinality: g has order |G|, so |G| of its g's are e.
-        if (ik !== X(log[c])) fold.push([null, '≡'], [[null, sym, 'bigop'], ['c', signed(ik) + ' % ' + G.order, 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]);
+        // group's cardinality (g has order |G|, so |G| of its g's are e), in
+        // the line above's steps: |G| by its name, through φ(n)
+        // multiplicatively, then its value, trimmed by the formula slider alike.
+        if (ik !== X(log[c])){
+          var foldBy = function(by){ fold.push([null, '≡'], [[null, sym, 'bigop'], ['c', signed(ik) + ' % ' + by, 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]); };
+          if (!state.subBare) foldBy('|' + groupPlain(G) + '|');
+          if (mul && !state.subSimplify) foldBy('φ(' + G.n + ')');
+          foldBy(G.order);
+        }
         fold.loose = r.length;
       }
       r.push([[null, B(g)], ['a', signed(i), 'sup'], [null, ' × ', 'sup'], ['b', R(k), 'sup']], [null, '≡']);
