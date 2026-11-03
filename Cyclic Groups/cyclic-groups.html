@@ -1169,18 +1169,18 @@
   .cayley-plot .lap-key-min svg{ width:12px; height:12px; }
   .cayley-scroll{ flex:1 1 auto; align-self:flex-start; max-width:100%; box-sizing:border-box; min-height:0; max-height:calc(var(--plot-scale, 1) * 300px); overflow:auto; border:1px solid var(--panel-border); border-radius:6px; overscroll-behavior:contain; }
   .cayley-plot.is-docked .cayley-scroll{ max-height:none; }
-  /* Its scrollbars, and any a formula settings window grows, are the
-     site's, as the prime picker's are: thin, a thumb of the text colour on
+  /* Its scrollbars, and any a formula settings window or the export
+     window grows, are the site's, as the prime picker's are: thin, a thumb of the text colour on
      no track and no arrow buttons, in both themes. Browsers with ::-webkit-scrollbar (Chrome, Edge, Safari) take
      those rules, which can drop the buttons; the others scrollbar-color. */
   @supports not selector(::-webkit-scrollbar){
-    .cayley-scroll, .fmap-win, .fmap-win *{ scrollbar-width:thin; scrollbar-color:color-mix(in srgb, var(--text) 38%, transparent) transparent; }
+    .cayley-scroll, .fmap-win, .fmap-win *, .export-win, .export-win *{ scrollbar-width:thin; scrollbar-color:color-mix(in srgb, var(--text) 38%, transparent) transparent; }
   }
-  .cayley-scroll::-webkit-scrollbar, .fmap-win::-webkit-scrollbar, .fmap-win *::-webkit-scrollbar{ width:8px; height:8px; background:transparent; }
-  .cayley-scroll::-webkit-scrollbar-button, .fmap-win::-webkit-scrollbar-button, .fmap-win *::-webkit-scrollbar-button{ display:none; width:0; height:0; }
-  .cayley-scroll::-webkit-scrollbar-track, .cayley-scroll::-webkit-scrollbar-corner, .fmap-win::-webkit-scrollbar-track, .fmap-win::-webkit-scrollbar-corner, .fmap-win *::-webkit-scrollbar-track, .fmap-win *::-webkit-scrollbar-corner{ background:transparent; }
-  .cayley-scroll::-webkit-scrollbar-thumb, .fmap-win::-webkit-scrollbar-thumb, .fmap-win *::-webkit-scrollbar-thumb{ background:color-mix(in srgb, var(--text) 38%, transparent); border-radius:4px; border:2px solid transparent; background-clip:padding-box; }
-  .cayley-scroll::-webkit-scrollbar-thumb:hover, .fmap-win::-webkit-scrollbar-thumb:hover, .fmap-win *::-webkit-scrollbar-thumb:hover{ background-color:color-mix(in srgb, var(--text) 55%, transparent); }
+  .cayley-scroll::-webkit-scrollbar, .fmap-win::-webkit-scrollbar, .fmap-win *::-webkit-scrollbar, .export-win::-webkit-scrollbar, .export-win *::-webkit-scrollbar{ width:8px; height:8px; background:transparent; }
+  .cayley-scroll::-webkit-scrollbar-button, .fmap-win::-webkit-scrollbar-button, .fmap-win *::-webkit-scrollbar-button, .export-win::-webkit-scrollbar-button, .export-win *::-webkit-scrollbar-button{ display:none; width:0; height:0; }
+  .cayley-scroll::-webkit-scrollbar-track, .cayley-scroll::-webkit-scrollbar-corner, .fmap-win::-webkit-scrollbar-track, .fmap-win::-webkit-scrollbar-corner, .fmap-win *::-webkit-scrollbar-track, .fmap-win *::-webkit-scrollbar-corner, .export-win::-webkit-scrollbar-track, .export-win::-webkit-scrollbar-corner, .export-win *::-webkit-scrollbar-track, .export-win *::-webkit-scrollbar-corner{ background:transparent; }
+  .cayley-scroll::-webkit-scrollbar-thumb, .fmap-win::-webkit-scrollbar-thumb, .fmap-win *::-webkit-scrollbar-thumb, .export-win::-webkit-scrollbar-thumb, .export-win *::-webkit-scrollbar-thumb{ background:color-mix(in srgb, var(--text) 38%, transparent); border-radius:4px; border:2px solid transparent; background-clip:padding-box; }
+  .cayley-scroll::-webkit-scrollbar-thumb:hover, .fmap-win::-webkit-scrollbar-thumb:hover, .fmap-win *::-webkit-scrollbar-thumb:hover, .export-win::-webkit-scrollbar-thumb:hover, .export-win *::-webkit-scrollbar-thumb:hover{ background-color:color-mix(in srgb, var(--text) 55%, transparent); }
   .cayley-grid{ border-collapse:separate; border-spacing:0; font-family:var(--font-mono); font-size:.74em; font-variant-numeric:tabular-nums; line-height:1.25; color:var(--text); }
   .cayley-grid :is(th, td){ padding:2px 6px; text-align:center; white-space:nowrap; border-right:1px solid color-mix(in srgb, var(--panel-border) 60%, transparent); border-bottom:1px solid color-mix(in srgb, var(--panel-border) 60%, transparent); }
   .cayley-grid th{ position:sticky; background:var(--surface); color:var(--text-dim); font-weight:600; }
@@ -19756,10 +19756,27 @@ var exportWinEl = document.createElement('dialog');
 exportWinEl.className = 'export-win';
 document.body.appendChild(exportWinEl);
 var exportWin = null;
+// Its numbers line up as the window's own Line up numbers says, starting
+// as the panel's: not at all, padded with leading zeros, or aligned, each
+// number given blank space before it to the width of its column's widest.
 function exportLines(w){
-  var G = w.ex.G, width = subWidth(G), expWidth = subExpWidth(G);
+  var G = w.ex.G, pad = state.subPad, align = state.subAlign;
+  state.subPad = w.width === 'pad';
+  state.subAlign = w.width === 'align';
+  var width = subWidth(G), expWidth = subExpWidth(G);
   var f = [w.left, w.right].map(function(g){ return subFormat(g, g === null ? null : exprLog(G, g), width, expWidth, G, w.ex.natOff); });
-  return w.ex.rows.map(function(r){ return asciiText('⟨' + f[0].p(r.g) + '⟩ = {' + r.members.map(f[1].p).join(', ') + '}'); });
+  var gens = w.ex.rows.map(function(r){ return f[0].p(r.g); });
+  var members = w.ex.rows.map(function(r){ return r.members.map(f[1].p); });
+  state.subPad = pad;
+  state.subAlign = align;
+  if (w.width === 'align'){
+    var wide = function(list){ return list.reduce(function(m, t){ return Math.max(m, Array.from(t).length); }, 0); };
+    var fit = function(t, n){ return ' '.repeat(n - Array.from(t).length) + t; };
+    var gw = wide(gens), mw = wide([].concat.apply([], members));
+    gens = gens.map(function(t){ return fit(t, gw); });
+    members = members.map(function(m){ return m.map(function(t){ return fit(t, mw); }); });
+  }
+  return gens.map(function(g, i){ return asciiText('⟨' + g + '⟩ = {' + members[i].join(', ') + '}'); });
 }
 function exportHead(w){ return translate('cyclicGroups.subExportHead', { group: asciiText(w.ex.G.label) }); }
 function exportText(w){ return [exportHead(w), ''].concat(exportLines(w)).join('\n') + '\n'; }
@@ -19767,7 +19784,7 @@ function exportName(w, ext){ return ['subgroups', w.ex.G.mode === 'additive' ? '
 function openExportWin(ex){
   if (!ex || !ex.rows) return;
   var G = ex.G;
-  var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]) };
+  var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]), width: state.subPad ? 'pad' : state.subAlign ? 'align' : 'none' };
   var head = document.createElement('h2');
   head.id = 'export-win-head';
   translateInto(head, 'cyclicGroups.subExportGroup', { group: groupNameNode(G) });
@@ -19798,6 +19815,20 @@ function openExportWin(ex){
     label.appendChild(sel);
     exprs.appendChild(label);
   });
+  var lineUp = document.createElement('label');
+  var lineUpName = document.createElement('span');
+  lineUpName.textContent = translate('cyclicGroups.subWidthLabel');
+  var lineUpSel = document.createElement('select');
+  [['none', 'cyclicGroups.subWidthNone'], ['align', 'cyclicGroups.subAlign', 'cyclicGroups.subAlignTitle'], ['pad', 'cyclicGroups.subPad', 'cyclicGroups.subPadTitle']].forEach(function(o){
+    lineUpSel.appendChild(arrangeOption(o[0], o[1], o[2]));
+  });
+  lineUpSel.value = w.width;
+  lineUpSel.addEventListener('change', function(){ w.width = lineUpSel.value; show(); });
+  lineUp.appendChild(lineUpName);
+  lineUp.appendChild(lineUpSel);
+  var opts = document.createElement('div');
+  opts.className = 'export-win-exprs';
+  opts.appendChild(lineUp);
   var btns = document.createElement('div');
   btns.className = 'export-win-btns';
   var button = function(key, mark, act, cls){
@@ -19825,7 +19856,7 @@ function openExportWin(ex){
   });
   button('cyclicGroups.exportWinClose', '', function(){ exportWinEl.close(); }, 'export-win-close');
   exportWinEl.setAttribute('aria-labelledby', head.id);
-  exportWinEl.replaceChildren(head, exprs, preview, btns, status);
+  exportWinEl.replaceChildren(head, exprs, opts, preview, btns, status);
   show();
   if (!exportWinEl.open) exportWinEl.showModal();
   (exprs.hidden ? btns.firstChild : exprs.querySelector('select')).focus();
