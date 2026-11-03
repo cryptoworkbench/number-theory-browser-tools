@@ -727,7 +727,7 @@
       menuEcMult: 'Write points as multiples kP',
       menuEcGeneralName: 'Keep group name general',
       opAbbrEc: 'Elliptic curve',
-      opAbbrPa: 'Point addition',
+      opAbbrPa: 'Elliptic Curve point addition',
       curvePlotTitleGeneral: '{curve} map',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
