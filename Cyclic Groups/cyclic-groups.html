@@ -3297,6 +3297,7 @@
       <section class="panel" id="legend-panel">
         <h2 id="legend-heading">Colour key: subgroup cardinality</h2>
         <label class="legend-expr" id="legend-expr" hidden><span data-i18n="cyclicGroups.legendExprLabel">Elements as</span> <select id="legend-expr-select"></select></label>
+        <label class="legend-expr" id="legend-by" hidden><span data-i18n="cyclicGroups.legendByLabel">Colours as</span> <select id="legend-by-select"><option value="order" data-i18n="cyclicGroups.legendByOrder">Subgroup cardinality</option><option value="index" data-i18n="cyclicGroups.legendByIndex">Subgroup index</option></select></label>
         <div class="legend" id="legend"></div>
         <button type="button" class="link-btn legend-reset" id="legend-reset" data-i18n="common.reset" data-i18n-title="cyclicGroups.legendResetTitle" title="Put this colour key's colours back to their defaults" hidden>Reset</button>
       </section>
@@ -3409,7 +3410,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3464,6 +3465,8 @@ var subRightSelectEl = $('sub-right-select');
 var subSortSelectEl = $('sub-sort-select');
 var legendExprEl = $('legend-expr');
 var legendExprSelectEl = $('legend-expr-select');
+var legendByEl = $('legend-by');
+var legendBySelectEl = $('legend-by-select');
 // The Numerical panel's three dropdowns and the inverse-pair key's: each
 // one's share-link parameter, state, and option wording.
 var SUB_EXPR_CTLS = [
@@ -16973,10 +16976,15 @@ function renderLegend(G, classes, pairing){
   legendExprEl.hidden = !(inverse && state.colors && G.cyclic);
   if (inverse){ renderInverseLegend(pairing, legendEl, G); return; }
   if (theme){ renderThemeLegend(G); return; }
+  // The cardinality key's colours read as each subgroup's cardinality, or
+  // as its index |G| / |⟨a⟩|, the same colours sorted by the index.
+  var byIndex = state.legendBy === 'index';
+  legendByEl.hidden = !state.colors || inverse || theme || distinct;
+  legendBySelectEl.value = byIndex ? 'index' : 'order';
   if (distinct){ renderDistinctLegend(G); return; }
   var counts = {};
   G.els.forEach(function(a){ counts[G.orders[a]] = (counts[G.orders[a]] || 0) + 1; });
-  Object.keys(counts).map(Number).sort(function(a, b){ return a - b; }).forEach(function(o){
+  Object.keys(counts).map(Number).sort(function(a, b){ return byIndex ? b - a : a - b; }).forEach(function(o){
     var item = document.createElement('div');
     item.className = 'legend-item';
     item.setAttribute('data-order', o);
@@ -16986,7 +16994,8 @@ function renderLegend(G, classes, pairing){
     makePickable(swatch, classes[o].replace(/^ord-/, ''), translate('cyclicGroups.legendPickTitle'));
     var text = document.createElement('span');
     text.className = 'legend-order';
-    translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
+    if (byIndex) translateInto(text, 'cyclicGroups.legendIndex', { index: mNum(G.order / o) });
+    else translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
     var count = document.createElement('span');
     count.className = 'legend-count';
     count.textContent = translate('cyclicGroups.legendElements', { count: counts[o] });
@@ -19225,6 +19234,8 @@ function stateQuery(){
     else q.delete(c.param);
   });
   q.set('colorby', state.colorBy);
+  if (state.legendBy === 'index') q.set('legendby', 'index');
+  else q.delete('legendby');
   Object.keys(PICK_KEYS).forEach(function(c){
     var v = picksParam(state.picks[c]);
     if (v) q.set(PICK_KEYS[c], v);
@@ -21041,6 +21052,10 @@ colorBySelectEl.addEventListener('change', function(){
   if (state.colors) state.colorBy = v;
   render();
 });
+legendBySelectEl.addEventListener('change', function(){
+  state.legendBy = legendBySelectEl.value === 'index' ? 'index' : 'order';
+  render();
+});
 // One reset per coloring: every colour picked from the active key goes back
 // to its default.
 legendResetEl.addEventListener('click', function(){
@@ -21549,6 +21564,7 @@ function loadState(query, link){
     else if (raw === '1') state[name] = true;
   });
   if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
+  if (query.get('legendby') === 'index') state.legendBy = 'index';
   Object.keys(PICK_KEYS).forEach(function(c){ state.picks[c] = readPicks(query.get(PICK_KEYS[c])); });
   // Links from before every colour could be picked carry the website
   // theme's identity colour alone, as idcolor.
