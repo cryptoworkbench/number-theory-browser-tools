@@ -1210,7 +1210,7 @@
       winKeepSolid: 'Keep solid',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
-      idxKeepGeneral: 'Keep property name general',
+      idxKeepGeneral: 'Keep formula general',
       isoGeneralize: 'Generalize notation in both groups so they match',
       formulaGrip: 'Drag onto the other formula to swap their order',
       logBaseFollow: 'Follow expression slider',
