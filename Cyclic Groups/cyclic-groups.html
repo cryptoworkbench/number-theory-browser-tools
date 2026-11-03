@@ -12294,7 +12294,12 @@ function drawCurvePlot(G){
   syncPlotDockBtn();
   curvePlotEl.classList.toggle('is-picks-g', state.genBeads);
   curvePlotEl.classList.toggle('is-real', real && state.realPlot);
-  $('curve-plot-title').textContent = ecEquation(G.a, G.b) + (real ? ', x, y ∈ ℝ' : ' (mod ' + G.n + ')');
+  // A curve named in general, E₀,₁(𝔽₁₁), names its plot that way too; the
+  // real plot keeps its equation, as it is no longer over 𝔽ₚ.
+  var over = isPrime(G.n) ? '𝔽' + subscript(G.n) : 'ℤ/' + G.n + 'ℤ';
+  $('curve-plot-title').textContent = !real && !ecByEquation()
+    ? translate('cyclicGroups.curvePlotTitleGeneral', { curve: 'E' + subscript(G.a) + ',' + subscript(G.b) + '(' + over + ')' })
+    : ecEquation(G.a, G.b) + (real ? ', x, y ∈ ℝ' : ' (mod ' + G.n + ')');
   curvePlotSvgEl.replaceChildren();
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);
