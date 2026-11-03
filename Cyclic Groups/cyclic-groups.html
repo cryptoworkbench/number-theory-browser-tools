@@ -1031,6 +1031,11 @@
   .flog-win .lap-key-head{ gap:6px; }
   .flog-win .lap-key-head > h2{ flex:1 1 auto; min-width:0; }
   .flog-note{ margin:0; max-width:300px; font-size:.8rem; line-height:1.35; color:var(--text-dim); text-align:center; align-self:center; }
+  .flog-math{ overflow:visible; pointer-events:none; }
+  .flog-math-box{ display:grid; align-items:center; width:100%; height:100%; direction:ltr; }
+  .flog-math-box > math{ display:inline math; white-space:nowrap; color:var(--text); font-family:var(--font-math); font-weight:400; text-shadow:0 0 .08em var(--bg-1), 0 0 .08em var(--bg-1), 0 0 .16em var(--bg-1), 0 0 .16em var(--bg-1); }
+  .flog-math-box > math{ justify-self:start; }
+  .flog-math-box > math.is-left{ justify-self:end; }
   .flog-label{ fill:var(--text); font-family:var(--font-sans); font-weight:600; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-linejoin:round; }
   .fs-win-body.is-ring > .dh-plot{ width:min(430px, 46%); }
   .dh-note{ margin:0 0 .5em; font-size:.8em; line-height:1.35; color:var(--text-dim); }
@@ -12124,7 +12129,9 @@ function placeFlog(){
     if (old) old.remove();
     old = svgEl('g', { 'class': 'flog', 'data-built': built });
     var fs = Math.max(18, Math.min(44, c.beadR * 2.1)), gap = fs * 0.1, k = lap(G, base, G.order).indexOf(el);
-    var attrs = function(x, anchor){ return { 'class': 'flog-label', x: num(x), y: num(pt[1]), 'font-size': num(fs), 'text-anchor': anchor, 'stroke-width': num(fs * 0.16) }; };
+    // Typeset as the formulas are; the plain text under it is the PNG export's.
+    old.appendChild(flogMath(G, base, k, pt, fs, c.beadR + gap));
+    var attrs = function(x, anchor){ return { 'class': 'flog-label is-plain', x: num(x), y: num(pt[1]), 'font-size': num(fs), 'text-anchor': anchor, 'stroke-width': num(fs * 0.16) }; };
     var left = svgEl('text', attrs(pt[0] - c.beadR - gap, 'end'));
     left.appendChild(document.createTextNode('log'));
     var sub = svgEl('tspan', { 'font-size': num(fs * 0.6), dy: num(fs * 0.3) });
@@ -12139,6 +12146,26 @@ function placeFlog(){
     old.appendChild(right);
     c.ring.after(old);
   }
+}
+// log_b( and ) = k in MathML, as mapLog writes a logarithm (a curve's base
+// a point), the first ending and the second starting half a gap (the
+// bead's room) either side of the place.
+function flogMath(G, base, k, pt, fs, half){
+  var W = fs * 14, H = fs * 2.4;
+  var fo = svgEl('foreignObject', { 'class': 'flog-math', x: num(pt[0] - W), y: num(pt[1] - H / 2), width: num(2 * W), height: num(H) });
+  var box = document.createElement('div');
+  box.className = 'flog-math-box';
+  box.style.fontSize = num(fs) + 'px';
+  box.style.gridTemplateColumns = '1fr ' + num(2 * half) + 'px 1fr';
+  var b = G.pts ? mPoint(G.pts[base]) : mn(base);
+  var left = mEl('math', [mrow(mEl('msub', [mi('log'), b]), mo('\u2061'), mo('(', true))], { dir: 'ltr' });
+  var right = mEl('math', [mrow(mo(')', true), mo('='), mn(k))], { dir: 'ltr' });
+  left.setAttribute('class', 'is-left');
+  box.appendChild(left);
+  box.appendChild(document.createElement('span'));
+  box.appendChild(right);
+  fo.appendChild(box);
+  return fo;
 }
 
 // The elliptic curve mode's plot: open with the mode, minimized into the
@@ -19141,6 +19168,8 @@ function snapshotRing(){
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   clone.setAttribute('width', box.width);
   clone.setAttribute('height', box.height);
+  // The fixed logarithm's typeset copy stays on the page: the image takes its plain text.
+  clone.querySelectorAll('.flog-math').forEach(function(el){ el.remove(); });
   clone.removeAttribute('id');
   clone.removeAttribute('role');
   clone.removeAttribute('aria-label');
