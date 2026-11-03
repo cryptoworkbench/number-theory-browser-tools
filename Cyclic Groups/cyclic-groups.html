@@ -647,7 +647,7 @@
      hidden from assistive technology. Inside it the page is the necklace
      alone, filling the frame: no chrome, controls, panels or captions. */
   :root.is-preview, :root.is-preview body{ overflow:hidden; background:transparent; min-height:0; }
-  :root.is-preview body > :not(.app), :root.is-preview .app > :not(.layout), :root.is-preview .side,
+  :root.is-preview body > :not(.app, .export-win), :root.is-preview .app > :not(.layout), :root.is-preview .side,
   :root.is-preview .stage > :not(.diagram-frame), :root.is-preview .diagram-frame > :not(svg){ display:none !important; }
   :root.is-preview .app, :root.is-preview .layout, :root.is-preview .stage, :root.is-preview .diagram-frame{
     display:block; position:static; height:auto; padding:0; margin:0; border:0; background:none; }
@@ -658,7 +658,7 @@
      controls, moved into one body that fills the frame, with no background
      so the holding page's surface shows through. */
   :root.is-ringwin, :root.is-ringwin body{ height:100%; margin:0; overflow:hidden; min-height:0; background:transparent; }
-  :root.is-ringwin body > :not(.app, .title-tip), :root.is-ringwin .app > :not(.layout), :root.is-ringwin .side,
+  :root.is-ringwin body > :not(.app, .title-tip, .export-win), :root.is-ringwin .app > :not(.layout), :root.is-ringwin .side,
   :root.is-ringwin .stage > :not(.diagram-frame), :root.is-ringwin .diagram-frame > :not(.ringwin-body){ display:none !important; }
   /* The tip of a title (the subgroup row's ∈ and the rest) is the body's
      own child, and shows in a frame as on the page. */
@@ -894,6 +894,21 @@
   .action-btn:hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
   .action-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .action-btn:disabled, .action-btn:disabled:hover{ opacity:.45; cursor:not-allowed; background:none; border-color:var(--panel-border); }
+  .export-win{ width:min(720px, calc(100vw - 32px)); max-height:calc(100vh - 48px); padding:18px 20px 14px; color:var(--text); background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:12px; box-shadow:0 12px 40px var(--scrim); }
+  .export-win[open]{ display:flex; flex-direction:column; gap:12px; }
+  .export-win::backdrop{ background:color-mix(in srgb, var(--bg) 55%, transparent); }
+  .export-win h2{ margin:0; font-size:1.05rem; }
+  .export-win-exprs{ display:flex; flex-wrap:wrap; gap:10px 18px; }
+  .export-win-exprs[hidden]{ display:none; }
+  .export-win-exprs label{ display:flex; flex-direction:column; gap:4px; flex:1 1 240px; font-size:.82rem; color:var(--text-dim); }
+  .export-win-exprs select{ font:inherit; font-size:.88rem; padding:5px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  .export-win-exprs select option{ color:var(--text); background:var(--bg-1); }
+  .export-win-preview{ flex:1 1 auto; min-height:80px; margin:0; padding:10px 12px; overflow:auto; font-family:var(--font-mono, monospace); font-size:.8rem; line-height:1.45; white-space:pre; background:color-mix(in srgb, var(--text) 5%, transparent); border:1px solid var(--panel-border); border-radius:8px; }
+  .export-win-btns{ display:flex; flex-wrap:wrap; gap:8px; }
+  .export-win .action-btn.is-primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+  .export-win-mark{ margin-right:6px; }
+  .export-win-close{ margin-left:auto; }
+  .export-win-status{ margin:0; min-height:1.1em; font-size:.82rem; color:var(--text-dim); }
   .export-status{ font-size:.82rem; color:var(--text-dim); margin:8px 0 0; min-height:1.1em; overflow-wrap:anywhere; }
 
   /* ---------- the necklace ---------- */
@@ -9756,18 +9771,19 @@ function syncNatHoverCtx(on, bead){
   syncTxtCtx(on);
   return sign || dhItem || swap || other;
 }
-// Last, under Export, Export group: this ring's group's list of subgroups,
-// copied or downloaded as a text file, as the bottom panel's menu offers it
-// (exportSubgroups).
+// Last, under Export, Export group…: this ring's group's list of subgroups,
+// in the export window (openExportWin), as the bottom panel's menu offers it.
 var COPY_PAIR = [{ key: 'cyclicGroups.ctxBeadCopy', mark: '\u29c9' }, { key: 'cyclicGroups.ctxBeadDownload', mark: '\u2913' }];
 function syncTxtCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-txt').forEach(function(el){ el.remove(); });
   var ex = on && drawn && !IS_MOBILE ? subExports[0] : null;
   if (!ex || ex.G.key !== drawn.G.key) return;
-  var it = ctxItem('menuitem', '', true);
-  translateInto(it.item.children[1], 'cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) });
+  var it = ctxItem('menuitem', '');
+  translateInto(it.item.children[1], 'cyclicGroups.subExportGroupDots', { group: groupNameNode(ex.G) });
   it.item.classList.add('ring-ctx-txt');
-  ringCopyPair(it.item, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); });
+  it.item.setAttribute('aria-haspopup', 'dialog');
+  it.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  it.item.addEventListener('click', function(){ setRingCtx(false); openExportWin(ex); });
   ringCtxEl.appendChild(it.item);
 }
 // A ring menu item opening a submenu of two: Copy and Download, each with
@@ -10064,7 +10080,7 @@ function syncDhCtx(on, bead){
   });
   ringCtxEl.insertBefore(set.item, head);
   // Export subgroup ⟨x⟩: the bead's own line of the group's subgroup list
-  // (exportSubgroups), copied or downloaded alone.
+  // (subExports), copied or downloaded alone.
   var ex = subExports[0], at = ex && ex.G.key === G.key && ex.gens ? ex.gens.indexOf(bead) : -1;
   if (at !== -1){
     var line = ex.lines[at];
@@ -16232,7 +16248,7 @@ function renderSubgroups(G){
     return;
   }
   subgroupsSig = sig;
-  subExports = [{ G: G, gens: rows.map(function(r){ return r.g; }), lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
+  subExports = [{ G: G, gens: rows.map(function(r){ return r.g; }), rows: rows, exprs: [lg, rg], lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
   rowAnchor();
   subgroupsEl.replaceChildren();
   rows.forEach(function(r, i){
@@ -16325,8 +16341,8 @@ function renderMergedSubgroups(G){
   // writes it: ⟨generator⟩ = {members}, in the rows' order here.
   var ownRight = function(r){ return '⟨' + hfl.p(phi(r.g)) + '⟩ = {' + r.members.map(function(x){ return hfr.p(phi(x)); }).join(', ') + '}'; };
   subExports = [
-    { G: G, gens: rows.map(function(r){ return r.g; }), lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
-    { G: H, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
+    { G: G, gens: rows.map(function(r){ return r.g; }), rows: rows, exprs: [lg, rg], lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
+    { G: H, rows: rows.map(function(r){ return { g: phi(r.g), members: r.members.map(phi) }; }), exprs: [hl, hr], natOff: paneNatOff, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
   ];
   rowAnchor();
   subgroupsEl.replaceChildren();
@@ -19728,17 +19744,192 @@ function saveBlob(blob, filename){
   setTimeout(function(){ URL.revokeObjectURL(href); }, 0);
 }
 
-// The Numerical panel's list as a text file, one subgroup a line, in the
-// panel's order and expressions, under a line naming the group.
+// Text with its math symbols in ASCII: ⟨ ⟩ as < >, ℤ as Z, × as *.
 function asciiText(t){
   return t.replace(/[⟨⟩×·∗ℤ]/g, function(c){ return ASCII_MI[c] || ASCII_MO[c]; });
 }
-function subgroupsText(x){
-  var head = translate('cyclicGroups.subExportHead', { group: asciiText(x.G.label) });
-  return [head, ''].concat(x.lines).join('\n') + '\n';
+// Export group opens a window over the page: the list's two expressions,
+// the generating element's and the members', chosen for the export alone
+// and starting as the panel writes them, a preview of the text, and the
+// three ways out: Copy, Text file and PDF.
+var exportWinEl = document.createElement('dialog');
+exportWinEl.className = 'export-win';
+document.body.appendChild(exportWinEl);
+var exportWin = null;
+function exportLines(w){
+  var G = w.ex.G, width = subWidth(G), expWidth = subExpWidth(G);
+  var f = [w.left, w.right].map(function(g){ return subFormat(g, g === null ? null : exprLog(G, g), width, expWidth, G, w.ex.natOff); });
+  return w.ex.rows.map(function(r){ return asciiText('⟨' + f[0].p(r.g) + '⟩ = {' + r.members.map(f[1].p).join(', ') + '}'); });
 }
-function exportSubgroups(x){
-  saveBlob(new Blob([subgroupsText(x)], { type: 'text/plain;charset=utf-8' }), ['subgroups', x.G.mode === 'additive' ? 'add' : 'mul', x.G.n].join('-') + '.txt');
+function exportHead(w){ return translate('cyclicGroups.subExportHead', { group: asciiText(w.ex.G.label) }); }
+function exportText(w){ return [exportHead(w), ''].concat(exportLines(w)).join('\n') + '\n'; }
+function exportName(w, ext){ return ['subgroups', w.ex.G.mode === 'additive' ? 'add' : 'mul', w.ex.G.n].join('-') + ext; }
+function openExportWin(ex){
+  if (!ex || !ex.rows) return;
+  var G = ex.G;
+  var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]) };
+  var head = document.createElement('h2');
+  head.id = 'export-win-head';
+  translateInto(head, 'cyclicGroups.subExportGroup', { group: groupNameNode(G) });
+  var preview = document.createElement('pre');
+  preview.className = 'export-win-preview';
+  var status = document.createElement('p');
+  status.className = 'export-win-status';
+  status.setAttribute('aria-live', 'polite');
+  var show = function(){ preview.textContent = exportText(w); status.textContent = ''; };
+  var exprs = document.createElement('div');
+  exprs.className = 'export-win-exprs';
+  exprs.hidden = !G.cyclic;
+  [['left', 'cyclicGroups.subExprLeft'], ['right', 'cyclicGroups.subExprRight']].forEach(function(c){
+    var label = document.createElement('label');
+    var name = document.createElement('span');
+    name.textContent = translate(c[1]);
+    var sel = document.createElement('select');
+    sel.appendChild(arrangeOption('', 'cyclicGroups.exprNatural'));
+    (G.cyclic ? G.generators : []).forEach(function(g){
+      var opt = document.createElement('option');
+      opt.value = String(g);
+      opt.textContent = translate(ecMult(G) ? 'cyclicGroups.exprMultiplesEc' : 'cyclicGroups.arrangePowers', { g: elText(G, g) });
+      sel.appendChild(opt);
+    });
+    sel.value = w[c[0]] === null ? '' : String(w[c[0]]);
+    sel.addEventListener('change', function(){ w[c[0]] = genOrNull(G, intOrNull(sel.value)); show(); });
+    label.appendChild(name);
+    label.appendChild(sel);
+    exprs.appendChild(label);
+  });
+  var btns = document.createElement('div');
+  btns.className = 'export-win-btns';
+  var button = function(key, mark, act, cls){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'action-btn' + (cls ? ' ' + cls : '');
+    if (mark){
+      var m = document.createElement('span');
+      m.className = 'export-win-mark';
+      m.setAttribute('aria-hidden', 'true');
+      m.textContent = mark;
+      b.appendChild(m);
+    }
+    b.appendChild(document.createTextNode(translate(key)));
+    b.addEventListener('click', act);
+    btns.appendChild(b);
+    return b;
+  };
+  button('cyclicGroups.ctxBeadCopy', '⧉', function(){ copyText(exportText(w)); status.textContent = translate('cyclicGroups.exportWinCopied'); }, 'is-primary');
+  button('cyclicGroups.exportWinText', '⤓', function(){
+    saveBlob(new Blob([exportText(w)], { type: 'text/plain;charset=utf-8' }), exportName(w, '.txt'));
+  });
+  button('cyclicGroups.exportWinPdf', '⤓', function(){
+    saveBlob(pdfBlob(exportHead(w), exportLines(w)), exportName(w, '.pdf'));
+  });
+  button('cyclicGroups.exportWinClose', '', function(){ exportWinEl.close(); }, 'export-win-close');
+  exportWinEl.setAttribute('aria-labelledby', head.id);
+  exportWinEl.replaceChildren(head, exprs, preview, btns, status);
+  show();
+  if (!exportWinEl.open) exportWinEl.showModal();
+  (exprs.hidden ? btns.firstChild : exprs.querySelector('select')).focus();
+}
+// A click on the backdrop, outside the window's own box, closes it.
+exportWinEl.addEventListener('click', function(e){
+  if (e.target !== exportWinEl) return;
+  var r = exportWinEl.getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) exportWinEl.close();
+});
+exportWinEl.addEventListener('close', function(){ exportWin = null; });
+
+// The list as a PDF of its own, written out by hand: A4 pages in Courier,
+// the heading in bold, an exponent (g^k, or a superscript) raised and
+// smaller, a line too long for the page broken after a member's comma and
+// carried on under the first member. Characters outside WinAnsi read as ?.
+var PDF_SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹⁻';
+function pdfRuns(line){
+  var runs = [], add = function(sup, t){
+    var last = runs[runs.length - 1];
+    if (last && last.sup === sup) last.text += t;
+    else runs.push({ sup: sup, text: t });
+  };
+  for (var i = 0; i < line.length; i++){
+    var c = line[i], s = PDF_SUP.indexOf(c);
+    if (s !== -1){ add(true, s === 10 ? '-' : String(s)); continue; }
+    if (c === '^'){
+      var m = /^[−-]?\d+/.exec(line.slice(i + 1));
+      if (m){ add(true, m[0].replace('−', '-')); i += m[0].length; continue; }
+    }
+    add(false, c);
+  }
+  return runs;
+}
+function pdfStr(t){
+  var out = '';
+  Array.from(t).forEach(function(c){
+    var code = c === '−' ? 45 : c === '𝒪' ? 79 : c.codePointAt(0);
+    if (code < 32 || (code > 126 && code < 160) || code > 255) code = 63;
+    var ch = String.fromCharCode(code);
+    out += code > 126 ? '\\' + code.toString(8) : (ch === '\\' || ch === '(' || ch === ')' ? '\\' + ch : ch);
+  });
+  return '(' + out + ')';
+}
+function pdfBlob(title, lines){
+  var SIZE = 10, SUP = 6.5, LEAD = 14, MARGIN = 56, W = 595, H = 842;
+  var room = (W - 2 * MARGIN) / (0.6 * SIZE);
+  var units = function(t, sup){ return Array.from(t).length * (sup ? SUP / SIZE : 1); };
+  // Each line broken into rows of runs that fit the page's width.
+  var rows = [{ bold: true, runs: [{ sup: false, text: title }] }, { runs: [] }];
+  lines.forEach(function(line){
+    var indent = line.indexOf('{') + 1, depth = 0, pieces = [], cur = '';
+    for (var i = 0; i < line.length; i++){
+      cur += line[i];
+      if (line[i] === '(') depth++;
+      if (line[i] === ')') depth--;
+      if (line[i] === ',' && line[i + 1] === ' ' && !depth){ pieces.push(cur + ' '); cur = ''; i++; }
+    }
+    pieces.push(cur);
+    var row = '', width = 0, first = true;
+    pieces.forEach(function(p){
+      var pw = pdfRuns(p).reduce(function(a, r){ return a + units(r.text, r.sup); }, 0);
+      if (row && width + pw > room){
+        rows.push({ runs: pdfRuns(row), x: first ? 0 : indent });
+        first = false;
+        row = '';
+        width = indent;
+      }
+      row += p;
+      width += pw;
+    });
+    rows.push({ runs: pdfRuns(row), x: first ? 0 : indent });
+  });
+  var per = Math.floor((H - 2 * MARGIN) / LEAD), pages = [];
+  for (var at = 0; at < rows.length; at += per) pages.push(rows.slice(at, at + per));
+  var objs = [];
+  objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>';
+  objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold /Encoding /WinAnsiEncoding >>';
+  var kids = [];
+  pages.forEach(function(page, p){
+    var id = 5 + 2 * p, body = 'BT\n';
+    page.forEach(function(row, i){
+      body += '1 0 0 1 ' + (MARGIN + (row.x || 0) * 0.6 * SIZE).toFixed(2) + ' ' + (H - MARGIN - SIZE - i * LEAD) + ' Tm\n';
+      row.runs.forEach(function(r){
+        body += '/' + (row.bold ? 'F2' : 'F1') + ' ' + (r.sup ? SUP : SIZE) + ' Tf ' + (r.sup ? 4 : 0) + ' Ts ' + pdfStr(r.text) + ' Tj\n';
+      });
+    });
+    body += 'ET';
+    objs[id] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + W + ' ' + H + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + (id + 1) + ' 0 R >>';
+    objs[id + 1] = '<< /Length ' + body.length + ' >>\nstream\n' + body + '\nendstream';
+    kids.push(id + ' 0 R');
+  });
+  objs[2] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + kids.length + ' >>';
+  var out = '%PDF-1.4\n', offsets = [];
+  for (var n = 1; n < objs.length; n++){
+    offsets[n] = out.length;
+    out += n + ' 0 obj\n' + objs[n] + '\nendobj\n';
+  }
+  var xref = out.length;
+  out += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n';
+  for (n = 1; n < objs.length; n++) out += String(offsets[n]).padStart(10, '0') + ' 00000 n \n';
+  out += 'trailer\n<< /Size ' + objs.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+  return new Blob([out], { type: 'application/pdf' });
 }
 // Right-clicking a row offers each group in the list for download: the one
 // group, or both merged ones, left first.
@@ -19802,7 +19993,15 @@ function setSubCtx(open, x, y, h, side){
   // Export group, for each group in the list: a submenu of Copy, its list
   // as text, and Download, the same as a text file.
   subExports.forEach(function(ex){
-    subCtxEl.appendChild(subExportItem('cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) }, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); }));
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'fs-menu-item';
+    item.setAttribute('role', 'menuitem');
+    item.setAttribute('aria-haspopup', 'dialog');
+    translateInto(item, 'cyclicGroups.subExportGroupDots', { group: groupNameNode(ex.G) });
+    item.addEventListener('pointerenter', function(){ setSubCtxSub(null); });
+    item.addEventListener('click', function(){ setSubCtx(false); openExportWin(ex); });
+    subCtxEl.appendChild(item);
   });
   // The panel's switches: members coloured like their beads, and auto-shift.
   if (subExports.length) subCtxEl.appendChild(subCtxRule());
