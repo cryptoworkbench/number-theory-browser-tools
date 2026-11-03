@@ -3181,7 +3181,7 @@
           </li>
           <li class="op-toggle-row">
             <span class="op-tri" id="op-tri" role="radiogroup" aria-label="Group operation" data-i18n-aria-label="cyclicGroups.opSelectLabel" data-at="additive">
-              <label class="op-tri-name at-ec" for="op-tri-ec" aria-hidden="true">+ &amp; ×</label>
+              <label class="op-tri-name at-ec" for="op-tri-ec" aria-hidden="true">(<span class="op-abbr" title="Elliptic curve" data-i18n-title="cyclicGroups.opAbbrEc">EC</span>) <span class="op-abbr" title="Point addition" data-i18n-title="cyclicGroups.opAbbrPa">PA</span></label>
               <label class="op-tri-name at-add" for="op-tri-add" aria-hidden="true">+</label>
               <span class="op-tri-shape">
                 <svg class="op-tri-track" viewBox="0 0 28 26" aria-hidden="true" focusable="false"><path d="M14 4 L25 22 L3 22 Z"/></svg>
@@ -5330,7 +5330,7 @@ function mlcm(a, b){ return mrow(mi('lcm'), mo('\u2061'), mo('(', true), a, comm
 
 // ⟨ℤ/nℤ, +⟩ or ⟨ℤ/nℤ, ×⟩; n is a number, a letter or a math node.
 function mGroupOf(mode, n, a, b){
-  // A curve's points under point addition, ⟨E_{a,b}(𝔽ₚ), +⟩, the curve
+  // A curve's points under point addition, ⟨E_{a,b}(𝔽ₚ), PA⟩, the curve
   // y² = x³ + ax + b named by its coefficients: over the field 𝔽ₚ, or
   // modulo a composite n over the ring ℤ/nℤ.
   // By its equation instead (ecByEquation), E(𝔽ₚ), the equation written
@@ -5342,15 +5342,18 @@ function mGroupOf(mode, n, a, b){
   if (mode === 'elliptic'){
     var over = typeof n === 'number' && !isPrime(n) ? [mi('ℤ'), mo('/', true), mn(n), mi('ℤ')] : [mEl('msub', [mi('𝔽'), typeof n === 'number' ? mn(n) : mi(n)])];
     var E = mEl('msub', [mi('E'), mrow(mn(a), mEl('mo', [','], { lspace: '0', rspace: '0' }), mn(b))]);
-    return angle(mrow.apply(null, [E, mo('(', true)].concat(over, [mo(')', true), comma(), mo('+', true)])));
+    // PA, point addition, named in its tooltip: a + would read as the
+    // addition of numbers.
+    var pa = mEl('mi', ['PA'], { mathvariant: 'normal', title: translate('cyclicGroups.opAbbrPa') });
+    return angle(mrow.apply(null, [E, mo('(', true)].concat(over, [mo(')', true), comma(), pa])));
   }
   return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : typeof n === 'string' ? mi(n) : n, mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
 }
 function mGroup(G){ return mGroupOf(G.mode, G.n, G.a, G.b); }
-// The same as plain text, over what (𝔽ₚ or ℤ/nℤ): ⟨E₂,₂(𝔽₁₇), +⟩, or by
+// The same as plain text, over what (𝔽ₚ or ℤ/nℤ): ⟨E₂,₂(𝔽₁₇), PA⟩, or by
 // its equation, E(𝔽₁₇) (byEq, else as the notation in use writes it).
-function ecGroupLabel(over, a, b, byEq){ return (byEq === undefined ? ecByEquation() : byEq) ? 'E(' + over + ')' : '⟨E' + subscript(a) + ',' + subscript(b) + '(' + over + '), +⟩'; }
-// A curve's group is named by its coefficients, ⟨E₂,₂(𝔽₁₇), +⟩, or, picked
+function ecGroupLabel(over, a, b, byEq){ return (byEq === undefined ? ecByEquation() : byEq) ? 'E(' + over + ')' : '⟨E' + subscript(a) + ',' + subscript(b) + '(' + over + '), PA⟩'; }
+// A curve's group is named by its coefficients, ⟨E₂,₂(𝔽₁₇), PA⟩, or, picked
 // from the ring's menu, by its equation, E(𝔽₁₇): y² = x³ + 2x + 2.
 function ecByEquation(){ return state.ecName === 'eq'; }
 // A group's name in full: by its equation, the equation follows the name.
@@ -5579,7 +5582,7 @@ function swapFormulas(out, swap){ return swap && out.length === 2 ? [out[1], out
 // On a curve there is no formula to work: the size and the index are
 // written as notation with their values, |⟨P⟩| = k and [E : ⟨P⟩] = |E| / k.
 // In the main view (full) the index names the curve's group in full:
-// [⟨E₂,₂(𝔽₁₇), +⟩ : ⟨P⟩], or [E(𝔽₁₇): y² = … : ⟨P⟩] by its equation.
+// [⟨E₂,₂(𝔽₁₇), PA⟩ : ⟨P⟩], or [E(𝔽₁₇): y² = … : ⟨P⟩] by its equation.
 function ecRowFormula(G, h, choice, hm, full){
   var hx = hm || function(){ return mPoint(G.pts[h]); }, ph = plainPoint(G.pts[h]);
   var k = G.orders[h], out = [];
@@ -6413,7 +6416,7 @@ function scratchFormulas(G){
     var eq = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
     list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroup(G), mo(':'), mEl('mtext', [eq])), plain: G.label + ': ' + eq });
     if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(natPointM(G, h)), mo('∈'), mGroup(G)), plain: '⟨' + natPointP(G, h) + '⟩ ∈ ' + G.label });
-    // The bars round the group's full name: |⟨E_{a,b}(𝔽ₚ), +⟩| = N.
+    // The bars round the group's full name: |⟨E_{a,b}(𝔽ₚ), PA⟩| = N.
     list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(mGroupFull(G)), mo('='), mn(G.order)), plain: '|' + curveName(G) + '| = ' + G.order });
     return list;
   }
@@ -9731,7 +9734,7 @@ function readSwaps(list){
     return s && (s.mode === 'additive' || s.mode === 'multiplicative' || s.mode === 'elliptic') && Number.isInteger(s.n) && typeof s.label === 'string' && (s.curve === null || (typeof s.curve === 'string' && /^\d+,\d+,\d+$/.test(s.curve)));
   });
 }
-// A group's full name: a curve's by its coefficients, ⟨E_{a,b}(𝔽ₚ), +⟩, or
+// A group's full name: a curve's by its coefficients, ⟨E_{a,b}(𝔽ₚ), PA⟩, or
 // with its equation, E(𝔽ₚ): y² = ….
 function swapName(spec){
   var c = spec.curve ? spec.curve.split(',').map(Number) : null;
@@ -9832,7 +9835,7 @@ function syncSignCtx(on){
   // g± buttons only.
   var signs = drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : [];
   // On any curve, its group named as the groups of numbers are, by its
-  // coefficients, ⟨E₂,₂(𝔽₁₇), +⟩ (ticked, the default), or by its equation,
+  // coefficients, ⟨E₂,₂(𝔽₁₇), PA⟩ (ticked, the default), or by its equation,
   // E(𝔽₁₇): y² = x³ + 2x + 2.
   if (drawn.G.pts) signs.push(['cyclicGroups.menuEcGeneralName', 'ecName', toggleEcName]);
   signs.forEach(function(t){
@@ -16687,7 +16690,7 @@ function isoHref(mode, n, gen, curve){
 }
 
 // A curve's group named in full, as the notation in use writes it (byEq
-// forcing one): ⟨E₂,₂(𝔽₁₇), +⟩, or E(𝔽₁₇): y² = x³ + 2x + 2.
+// forcing one): ⟨E₂,₂(𝔽₁₇), PA⟩, or E(𝔽₁₇): y² = x³ + 2x + 2.
 function ecChipLabel(p, a, b, byEq){
   var eq = byEq === undefined ? ecByEquation() : byEq;
   var label = ecGroupLabel(isPrime(p) ? '𝔽' + subscript(p) : 'ℤ/' + p + 'ℤ', a, b, eq);
@@ -16731,7 +16734,7 @@ function cyclicUnitGroups(k){
   return unitGroupsByOrder[k] || [];
 }
 
-// The cyclic curve groups ⟨E_{a,b}(𝔽ₚ), +⟩ of order k the curve mode can show: for
+// The cyclic curve groups ⟨E_{a,b}(𝔽ₚ), PA⟩ of order k the curve mode can show: for
 // each prime p whose Hasse interval |k − (p + 1)| ≤ 2√p holds k, the first
 // curve (by a, then b) with k points that is cyclic, with its first
 // generator.

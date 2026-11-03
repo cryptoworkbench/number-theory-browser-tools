@@ -726,6 +726,8 @@
       nLabelTitle: 'Modulus',
       menuEcMult: 'Write points as multiples kP',
       menuEcGeneralName: 'Keep group name general',
+      opAbbrEc: 'Elliptic curve',
+      opAbbrPa: 'Point addition',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyAuto: 'Auto-simplify',
