@@ -731,6 +731,8 @@
       opAbbrEc: 'Elliptic curve',
       opAbbrPa: 'Elliptic Curve point addition',
       curvePlotTitleName: '{curve} point plot',
+      combineUnfold: 'Unfold: how ∗ becomes {op}',
+      combineFold: 'Fold away how ∗ becomes {op}',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyAuto: 'Auto-simplify',

@@ -1246,6 +1246,14 @@
   .ring-combine .is-c{ fill:var(--role-result); }
   .ring-combine .is-sup{ font-size:0.68em; baseline-shift:super; }
   .ring-combine-hit{ fill:transparent; cursor:help; }
+  .ring-combine .is-sub{ font-size:0.68em; baseline-shift:sub; }
+  .ring-combine .is-bigop{ font-size:1.3em; font-weight:400; }
+  .ring-combine-unfold{ cursor:pointer; }
+  .ring-combine-unfold rect{ fill:var(--panel); stroke:var(--panel-border); }
+  .ring-combine-unfold path{ fill:none; stroke:var(--text-dim); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .ring-combine-unfold:hover rect, .ring-combine-unfold:focus-visible rect{ stroke:var(--accent); }
+  .ring-combine-unfold:hover path, .ring-combine-unfold:focus-visible path{ stroke:var(--text); }
+  .ring-combine-unfold:focus{ outline:none; }
   /* The captions can be selected and copied; a press on one never turns
      the ring. */
   svg.ring-svg .ring-note{ user-select:text; -webkit-user-select:text; cursor:text; }
@@ -11226,7 +11234,7 @@ function ringTopCut(box){ return Math.max(0, box.cy - box.R - 70); }
 // The preview shows the beads alone: no captions, and the view fitted to
 // the ring with a little room to spare.
 function cropToRing(){
-  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine').forEach(function(t){ t.remove(); });
+  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine, .ring-combine-unfold').forEach(function(t){ t.remove(); });
   var b;
   try { b = ringDynamicEl.getBBox(); } catch (e) { return; }
   if (!b || !b.width) return;
@@ -14054,7 +14062,127 @@ function combineExtraLines(G){
     var kind = curveSumKind(G, combo.a, combo.b);
     return ex + ({ vertical: 1, chord: 3, stuck: 3, split: 2 }[kind] || 0);
   }
-  return (G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0;
+  return ((G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0) + unfoldLines(G);
+}
+// Under the formulas of a group of numbers, the unfold button: open, it
+// writes out how the generic ∗ became this group's + or ×, as a sum ∑ or a
+// product ∏ (combineUnfoldRows). The button takes a line, each row another.
+var combineUnfold = false;
+function unfoldShown(G){
+  return !G.pts && comboLive(G) && (combo.k !== null || (combo.b !== null && abUnfolds(G)));
+}
+function unfoldLines(G){
+  if (!unfoldShown(G)) return 0;
+  return 1 + (combineUnfold ? combineUnfoldRows(G).length : 0);
+}
+// Whether a ∗ b unfolds too.
+function abUnfolds(G){ return false; }
+function abUnfoldRows(G){ return []; }
+// The rows, each a list of items: [role, text] (role null: plain), or a
+// big operator { op: '∑' or '∏', lo: items under it, hi: items over it }.
+function combineUnfoldRows(G){
+  if (combo.k === null) return abUnfoldRows(G);
+  var mul = G.mode === 'multiplicative', sym = mul ? '∏' : '∑', gop = mul ? '×' : '+';
+  var k = combo.k, n = Math.abs(k), a = k < 0 ? G.inv[combo.a] : combo.a;
+  var letter = k < 0 ? (mul ? 'a⁻¹' : '−a') : 'a', value = baseText(G, a);
+  var head = [[['a', 'a'], ['b', 'ᵏ']], [null, '≡']];
+  // A run of n copies, written out up to four, else first, second, ⋯, last.
+  var run = function(x, role, sep){
+    var out = [];
+    var each = n <= 4 ? n : 3;
+    for (var i = 0; i < each; i++){
+      if (i) out.push([null, sep]);
+      if (n > 4 && i === 2) out.push([null, '⋯'], [null, sep]);
+      out.push([role, x]);
+    }
+    return out;
+  };
+  var big = function(body){ return [{ op: sym, lo: [[null, 'i=1']], hi: [['b', String(n)]] }, body]; };
+  // aᵏ ≡ a ∗ a ∗ ⋯ ∗ a ≡ ∏ᵢ₌₁ᵏ a ≡ 2 × 2 × ⋯ × 2 ≡ 2ᵏ, back where the line
+  // above goes on; the empty product, a⁰, is e.
+  if (n === 0) return [head.concat(big(['a', letter]), [[null, '≡'], ['c', elText(G, G.identity)]])];
+  var back = [['a', value], ['b', superscript(n)]];
+  return [head.concat(run(letter, 'a', '∗'), [[null, '≡']], big(['a', letter]), [[null, '≡']], run(value, 'a', gop), [[null, '≡'], back])];
+}
+// The rows from y on, each centred, then the button under them.
+function drawCombineUnfold(G, y){
+  if (!unfoldShown(G)) return;
+  var box = svgEl('g', { 'class': 'ring-combine-box' });
+  ringDynamicEl.appendChild(box);
+  var rows = combineUnfold ? combineUnfoldRows(G) : [];
+  var widest = 0;
+  var lines = rows.map(function(row, r){
+    var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
+    box.appendChild(t);
+    var span = function(part, extra){
+      var cls = ((part[0] ? 'is-' + part[0] : '') + ' ' + (extra || '')).trim();
+      var sp = svgEl('tspan', cls ? { 'class': cls } : {});
+      sp.textContent = String(part[1]);
+      t.appendChild(sp);
+      return sp;
+    };
+    var len = function(sp){ try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ } };
+    // Each item a column of spans set side by side; a big operator's limits
+    // stack, over and under it, the wider of the two setting its width.
+    var x = 0, placed = [];
+    row.forEach(function(item, i){
+      if (i) x += COMBINE_GAP;
+      if (item.op){
+        var op = span([null, item.op], 'is-bigop'), w = len(op);
+        placed.push([op, x]);
+        var lim = function(parts, cls){
+          var spans = parts.map(function(p){ return span(p, cls); }), lw = spans.reduce(function(sum, sp){ return sum + len(sp); }, 0);
+          return { spans: spans, w: lw };
+        };
+        var hi = lim(item.hi || [], 'is-sup'), lo = lim(item.lo || [], 'is-sub'), lw = Math.max(hi.w, lo.w);
+        [hi, lo].forEach(function(l){
+          var at = x + w + 1 + (lw - l.w) / 2;
+          l.spans.forEach(function(sp){ placed.push([sp, at]); at += len(sp); });
+        });
+        x += w + 1 + lw;
+        return;
+      }
+      var parts = Array.isArray(item[0]) ? item : [item];
+      parts.forEach(function(p){
+        var sp = span(p, p[2] === 'sup' ? 'is-sup' : '');
+        placed.push([sp, x]);
+        x += len(sp);
+      });
+    });
+    widest = Math.max(widest, x);
+    return { placed: placed, w: x };
+  });
+  lines.forEach(function(line){
+    var x0 = SIZE / 2 - line.w / 2;
+    line.placed.forEach(function(p){ p[0].setAttribute('x', num(x0 + p[1])); });
+  });
+  var room = SIZE - 24;
+  if (widest > room){
+    var f = room / widest, top = y - COMBINE_LINE / 2;
+    box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(top * (1 - f)) + ') scale(' + num(f) + ')');
+  }
+  // The button: a chevron, down to unfold, up to fold again.
+  var by = y + rows.length * COMBINE_LINE - 13;
+  var name = translate(combineUnfold ? 'cyclicGroups.combineFold' : 'cyclicGroups.combineUnfold', { op: G.mode === 'multiplicative' ? '×' : '+' });
+  var btn = svgEl('g', { 'class': 'ring-combine-unfold', role: 'button', tabindex: '0', 'aria-label': name, 'aria-expanded': String(combineUnfold) });
+  btn.setAttribute('data-title', name);
+  btn.appendChild(svgEl('rect', { x: num(SIZE / 2 - 17), y: num(by), width: 34, height: 18, rx: 9 }));
+  var cy = by + 9;
+  btn.appendChild(svgEl('path', { d: combineUnfold
+    ? 'M' + num(SIZE / 2 - 5) + ' ' + num(cy + 2.5) + 'L' + num(SIZE / 2) + ' ' + num(cy - 2.5) + 'L' + num(SIZE / 2 + 5) + ' ' + num(cy + 2.5)
+    : 'M' + num(SIZE / 2 - 5) + ' ' + num(cy - 2.5) + 'L' + num(SIZE / 2) + ' ' + num(cy + 2.5) + 'L' + num(SIZE / 2 + 5) + ' ' + num(cy - 2.5) }));
+  var toggle = function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    combineUnfold = !combineUnfold;
+    render();
+    var again = ringDynamicEl.querySelector('.ring-combine-unfold');
+    if (again && e.type === 'keydown') again.focus();
+  };
+  btn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+  btn.addEventListener('click', toggle);
+  btn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') toggle(e); });
+  ringDynamicEl.appendChild(btn);
 }
 // What P + Q's working takes: none past the sum with 𝒪 in it, P + (−P)'s
 // vertical line, the chord (or tangent) and its slope λ; modulo a
@@ -14448,6 +14576,7 @@ function drawCombineLine(G, y){
     var f = room / width;
     box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(y * (1 - f)) + ') scale(' + num(f) + ')');
   }
+  drawCombineUnfold(G, y + lines.length * COMBINE_LINE);
 }
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape' || (combo.a === null && combo.b === null) || e.defaultPrevented) return;
