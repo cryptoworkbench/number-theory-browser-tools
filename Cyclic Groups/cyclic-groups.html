@@ -14064,105 +14064,20 @@ function combineExtraLines(G){
   }
   return ((G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0) + unfoldLines(G);
 }
-// Under the formulas of a group of numbers, the unfold button: open, it
-// writes out how the generic ∗ became this group's + or ×, as a sum ∑ or a
-// product ∏ (combineUnfoldRows). The button takes a line, each row another.
+// Under aᵏ's formulas, while the element expression slider writes the
+// elements as powers of a generator g (not Natural), the unfold button:
+// open, a line under the formulas writes out how the generic ∗ became this
+// group's × or +, as a product ∏ or a sum ∑ of g's (see drawCombineLine).
+// The button takes a line, the unfolded line another.
 var combineUnfold = false;
 function unfoldShown(G){
-  return !G.pts && comboLive(G) && (combo.k !== null || (combo.b !== null && abUnfolds(G)));
+  return !G.pts && comboLive(G) && combo.k !== null && exprBy(G) !== null;
 }
-function unfoldLines(G){
-  if (!unfoldShown(G)) return 0;
-  return 1 + (combineUnfold ? combineUnfoldRows(G).length : 0);
-}
-// Whether a ∗ b unfolds too.
-function abUnfolds(G){ return false; }
-function abUnfoldRows(G){ return []; }
-// The rows, each a list of items: [role, text] (role null: plain), or a
-// big operator { op: '∑' or '∏', lo: items under it, hi: items over it }.
-function combineUnfoldRows(G){
-  if (combo.k === null) return abUnfoldRows(G);
-  var mul = G.mode === 'multiplicative', sym = mul ? '∏' : '∑', gop = mul ? '×' : '+';
-  var k = combo.k, n = Math.abs(k), a = k < 0 ? G.inv[combo.a] : combo.a;
-  var letter = k < 0 ? (mul ? 'a⁻¹' : '−a') : 'a', value = baseText(G, a);
-  var head = [[['a', 'a'], ['b', 'ᵏ']], [null, '≡']];
-  // A run of n copies, written out up to four, else first, second, ⋯, last.
-  var run = function(x, role, sep){
-    var out = [];
-    var each = n <= 4 ? n : 3;
-    for (var i = 0; i < each; i++){
-      if (i) out.push([null, sep]);
-      if (n > 4 && i === 2) out.push([null, '⋯'], [null, sep]);
-      out.push([role, x]);
-    }
-    return out;
-  };
-  var big = function(body){ return [{ op: sym, lo: [[null, 'i=1']], hi: [['b', String(n)]] }, body]; };
-  // aᵏ ≡ a ∗ a ∗ ⋯ ∗ a ≡ ∏ᵢ₌₁ᵏ a ≡ 2 × 2 × ⋯ × 2 ≡ 2ᵏ, back where the line
-  // above goes on; the empty product, a⁰, is e.
-  if (n === 0) return [head.concat(big(['a', letter]), [[null, '≡'], ['c', elText(G, G.identity)]])];
-  var back = [['a', value], ['b', superscript(n)]];
-  return [head.concat(run(letter, 'a', '∗'), [[null, '≡']], big(['a', letter]), [[null, '≡']], run(value, 'a', gop), [[null, '≡'], back])];
-}
-// The rows from y on, each centred, then the button under them.
+function unfoldLines(G){ return unfoldShown(G) ? 1 + (combineUnfold ? 1 : 0) : 0; }
+// The button, under the line at y: a chevron, down to unfold, up to fold.
 function drawCombineUnfold(G, y){
   if (!unfoldShown(G)) return;
-  var box = svgEl('g', { 'class': 'ring-combine-box' });
-  ringDynamicEl.appendChild(box);
-  var rows = combineUnfold ? combineUnfoldRows(G) : [];
-  var widest = 0;
-  var lines = rows.map(function(row, r){
-    var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
-    box.appendChild(t);
-    var span = function(part, extra){
-      var cls = ((part[0] ? 'is-' + part[0] : '') + ' ' + (extra || '')).trim();
-      var sp = svgEl('tspan', cls ? { 'class': cls } : {});
-      sp.textContent = String(part[1]);
-      t.appendChild(sp);
-      return sp;
-    };
-    var len = function(sp){ try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ } };
-    // Each item a column of spans set side by side; a big operator's limits
-    // stack, over and under it, the wider of the two setting its width.
-    var x = 0, placed = [];
-    row.forEach(function(item, i){
-      if (i) x += COMBINE_GAP;
-      if (item.op){
-        var op = span([null, item.op], 'is-bigop'), w = len(op);
-        placed.push([op, x]);
-        var lim = function(parts, cls){
-          var spans = parts.map(function(p){ return span(p, cls); }), lw = spans.reduce(function(sum, sp){ return sum + len(sp); }, 0);
-          return { spans: spans, w: lw };
-        };
-        var hi = lim(item.hi || [], 'is-sup'), lo = lim(item.lo || [], 'is-sub'), lw = Math.max(hi.w, lo.w);
-        [hi, lo].forEach(function(l){
-          var at = x + w + 1 + (lw - l.w) / 2;
-          l.spans.forEach(function(sp){ placed.push([sp, at]); at += len(sp); });
-        });
-        x += w + 1 + lw;
-        return;
-      }
-      var parts = Array.isArray(item[0]) ? item : [item];
-      parts.forEach(function(p){
-        var sp = span(p, p[2] === 'sup' ? 'is-sup' : '');
-        placed.push([sp, x]);
-        x += len(sp);
-      });
-    });
-    widest = Math.max(widest, x);
-    return { placed: placed, w: x };
-  });
-  lines.forEach(function(line){
-    var x0 = SIZE / 2 - line.w / 2;
-    line.placed.forEach(function(p){ p[0].setAttribute('x', num(x0 + p[1])); });
-  });
-  var room = SIZE - 24;
-  if (widest > room){
-    var f = room / widest, top = y - COMBINE_LINE / 2;
-    box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(top * (1 - f)) + ') scale(' + num(f) + ')');
-  }
-  // The button: a chevron, down to unfold, up to fold again.
-  var by = y + rows.length * COMBINE_LINE - 13;
+  var by = y - 13;
   var name = translate(combineUnfold ? 'cyclicGroups.combineFold' : 'cyclicGroups.combineUnfold', { op: G.mode === 'multiplicative' ? '×' : '+' });
   var btn = svgEl('g', { 'class': 'ring-combine-unfold', role: 'button', tabindex: '0', 'aria-label': name, 'aria-expanded': String(combineUnfold) });
   btn.setAttribute('data-title', name);
@@ -14434,6 +14349,15 @@ function drawCombineLine(G, y){
       // resolved (through φ(n) multiplicatively), ≡ g^m.
       var i = X(log[a]), ik = i * k, m = log[c];
       r.push([[null, '(' + B(g)], ['a', supSigned(i)], [null, ')'], ['b', supSigned(k)]], [null, '≡']);
+      // Unfolded, a second line repeats A ≡ aᵏ ≡ (gⁱ)ᵏ ≡ in the same
+      // columns, then writes g^(i × k) as i × k g's under ∏ (∑ additively),
+      // and again with i × k worked out.
+      if (combineUnfold && unfoldShown(G)){
+        var sym = mul ? '∏' : '∑';
+        var fold = r.slice().concat([[[null, sym, 'bigop'], ['a', signed(i), 'hi'], [null, ' × ', 'hi'], ['b', R(k), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]], [null, '≡'],
+          [[null, sym, 'bigop'], ['c', signed(ik), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]]);
+        fold.loose = r.length;
+      }
       r.push([[null, B(g)], ['a', signed(i), 'sup'], [null, ' × ', 'sup'], ['b', R(k), 'sup']], [null, '≡']);
       // Signed, the exponent ends at its value nearest 0, t.
       var t = X(m);
@@ -14478,6 +14402,7 @@ function drawCombineLine(G, y){
     }
     r.push(['c', E(c)], [null, mod]);
     rows = [r];
+    if (fold) rows.push(fold);
   } else {
     var a = combo.a, b = combo.b, c = G.combine(a, b);
     var raw = G.mode === 'multiplicative' ? V(a) * V(b) : V(a) + V(b);
@@ -14523,42 +14448,63 @@ function drawCombineLine(G, y){
   var cols = [];
   var lines = rows.map(function(row, r){
     var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
+    // A part's third entry sets it small: 'sup' raised, a big operator's
+    // limits 'hi' over and 'lo' under it, stacked; 'bigop' sets ∑ or ∏ large.
+    var SHAPE = { sup: ' is-sup', hi: ' is-sup', lo: ' is-sub', bigop: ' is-bigop' };
     var cells = row.map(function(cell){
       var parts = Array.isArray(cell[0]) ? cell : [cell];
       var spans = parts.map(function(part){
-        var cls = (part[0] ? 'is-' + part[0] : '') + (part[2] === 'sup' ? ' is-sup' : '');
+        var cls = (part[0] ? 'is-' + part[0] : '') + (SHAPE[part[2]] || '');
         var sp = svgEl('tspan', cls ? { 'class': cls.trim() } : {});
         sp.textContent = String(part[1]);
         t.appendChild(sp);
         return sp;
       });
-      return { spans: spans, w: 0 };
+      return { spans: spans, parts: parts, w: 0 };
     });
     box.appendChild(t);
     if (free && !(r > 0 && r < (rows.joined || 0))) cols = [];
+    // A row's cells from its loose index on keep their own widths, out of
+    // the columns the rows share.
+    cells.loose = row.loose || Infinity;
     cells.forEach(function(cell, k){
       cell.ws = cell.spans.map(function(sp){
         try { return sp.getComputedTextLength(); } catch (e) { return 0; /* not laid out */ }
       });
-      cell.w = cell.ws.reduce(function(s, w){ return s + w; }, 0);
-      cols[k] = Math.max(cols[k] || 0, cell.w);
+      var at = 0, st = null;
+      cell.offs = cell.ws.map(function(w, s){
+        var kind = cell.parts[s][2], o;
+        if (kind === 'hi' || kind === 'lo'){
+          if (!st) st = { x: at + 1, hi: 0, lo: 0 };
+          o = st.x + st[kind];
+          st[kind] += w;
+          return o;
+        }
+        if (st){ at = st.x + Math.max(st.hi, st.lo) + 2; st = null; }
+        o = at;
+        at += w;
+        return o;
+      });
+      cell.w = st ? st.x + Math.max(st.hi, st.lo) : at;
+      if (k < cells.loose) cols[k] = Math.max(cols[k] || 0, cell.w);
     });
     cells.cols = cols;
     return cells;
   });
   var rowWidth = function(c){ return c.reduce(function(sum, w){ return sum + w; }, 0) + COMBINE_GAP * (c.length - 1); };
-  var width = free ? Math.max.apply(null, lines.map(function(cells){ return rowWidth(cells.cols); })) : rowWidth(cols);
+  var colsOf = function(cells){ return cells.map(function(cell, k){ return k < cells.loose ? cells.cols[k] : cell.w; }); };
+  var width = free ? Math.max.apply(null, lines.map(function(cells){ return rowWidth(cells.cols); }))
+    : Math.max.apply(null, [rowWidth(cols)].concat(lines.filter(function(cells){ return cells.loose !== Infinity; }).map(function(cells){ return rowWidth(colsOf(cells)); })));
   lines.forEach(function(cells){
     if (free) cols = cells.cols;
-    var x = SIZE / 2 - rowWidth(cols) / 2;
+    var own = cells.loose === Infinity ? cols : colsOf(cells);
+    // Sharing columns, every row starts at one x, so its ≡ line up.
+    var x = SIZE / 2 - (free ? rowWidth(cols) : width) / 2;
     cells.forEach(function(cell, k){
-      var at = x + (cols[k] - cell.w) / 2;
+      var at = x + (own[k] - cell.w) / 2;
       cell.x = at;
-      cell.spans.forEach(function(sp, s){
-        sp.setAttribute('x', num(at));
-        at += cell.ws[s];
-      });
-      x += cols[k] + COMBINE_GAP;
+      cell.spans.forEach(function(sp, s){ sp.setAttribute('x', num(at + cell.offs[s])); });
+      x += own[k] + COMBINE_GAP;
     });
   });
   // Over the powers line's exponent reduction, a tooltip explains it: g
