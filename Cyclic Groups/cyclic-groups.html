@@ -10040,6 +10040,33 @@ function syncDhCtx(on, bead){
     if (drawn && drawn.G.els.indexOf(bead) !== -1) pickGen(bead);
   });
   ringCtxEl.insertBefore(set.item, head);
+  // Export subgroup ⟨x⟩: the bead's own line of the group's subgroup list
+  // (exportSubgroups), copied or downloaded alone.
+  var ex = subExports[0], at = ex && ex.G.key === G.key && ex.gens ? ex.gens.indexOf(bead) : -1;
+  if (at !== -1){
+    var line = ex.lines[at];
+    var sub = ctxItem('menuitem', translate('cyclicGroups.ctxBeadExport', { bead: written }), true);
+    sub.item.classList.add('ring-ctx-dh');
+    var open = function(focus){
+      setRingCopy(null);
+      ringCopyFrom = sub.item;
+      sub.item.setAttribute('aria-expanded', 'true');
+      ringCopyEl.hidden = false;
+      ringCopyEl.setAttribute('aria-label', sub.item.children[1].textContent);
+      var copy = ctxItem('menuitem', translate('cyclicGroups.ctxBeadCopy'));
+      copy.item.addEventListener('click', function(){ setRingCtx(false); copyText(line); });
+      var save = ctxItem('menuitem', translate('cyclicGroups.ctxBeadDownload'));
+      save.item.addEventListener('click', function(){
+        setRingCtx(false);
+        saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', G.mode === 'additive' ? 'add' : 'mul', G.n, bead].join('-') + '.txt');
+      });
+      ringCopyEl.replaceChildren(copy.item, save.item);
+      placeRingSub(sub.item, focus);
+    };
+    sub.item.addEventListener('pointerenter', function(){ open(false); });
+    sub.item.addEventListener('click', function(){ open(true); });
+    ringCtxEl.insertBefore(sub.item, head);
+  }
   return first;
 }
 // At the menu's top, on a cyclic curve: its points written as multiples.
@@ -16197,7 +16224,7 @@ function renderSubgroups(G){
     return;
   }
   subgroupsSig = sig;
-  subExports = [{ G: G, lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
+  subExports = [{ G: G, gens: rows.map(function(r){ return r.g; }), lines: rows.map(function(r){ return '<' + pxl(r.g) + '> = {' + r.members.map(px).join(', ') + '}'; }) }];
   rowAnchor();
   subgroupsEl.replaceChildren();
   rows.forEach(function(r, i){
@@ -16290,7 +16317,7 @@ function renderMergedSubgroups(G){
   // writes it: ⟨generator⟩ = {members}, in the rows' order here.
   var ownRight = function(r){ return '⟨' + hfl.p(phi(r.g)) + '⟩ = {' + r.members.map(function(x){ return hfr.p(phi(x)); }).join(', ') + '}'; };
   subExports = [
-    { G: G, lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
+    { G: G, gens: rows.map(function(r){ return r.g; }), lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
     { G: H, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
   ];
   rowAnchor();
