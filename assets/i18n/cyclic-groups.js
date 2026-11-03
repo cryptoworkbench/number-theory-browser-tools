@@ -725,6 +725,7 @@
       exprHoverSignExpOff: 'Under the pointer, write the exponents as 0 … |G| − 1',
       nLabelTitle: 'Modulus',
       menuEcMult: 'Write points as multiples kP',
+      menuEcEqName: 'Name the group by its curve\'s equation: {name}',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyAuto: 'Auto-simplify',

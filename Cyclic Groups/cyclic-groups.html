@@ -1006,6 +1006,7 @@
   .fs-win-body.is-ring > .fmap-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); max-height:none; }
   .fmap-win .lap-key-head{ gap:6px; }
   .fmap-win .lap-key-head > h2{ text-align:center; }
+  .fset-title-curve{ font-style:italic; }
   .fmap-win-body{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:center; min-height:0; overflow:auto; padding:2px 2px 4px; }
   .fmap-win-item{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
   /* The sliders run the window's whole width, which its grid sets, rather
@@ -3387,7 +3388,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -3910,7 +3911,7 @@ function buildCurveGroup(p, a, b){
     identity: 0,
     order: N,
     key: 'elliptic ' + p + ' ' + a + ' ' + b,
-    label: ecGroupLabel('𝔽' + subscript(p), a, b),
+    get label(){ return ecGroupLabel('𝔽' + subscript(p), a, b); },
     combine: function(x, y){
       var k = x * N + y;
       if (!(k in table)){ var R = ecAdd(pts[x], pts[y], a, p); table[k] = R ? at[R.x + ',' + R.y] : 0; }
@@ -3973,7 +3974,7 @@ function buildCompositeCurve(n, a, b){
     identity: 0,
     order: items.length,
     key: 'elliptic ' + n + ' ' + a + ' ' + b,
-    label: ecGroupLabel('ℤ/' + n + 'ℤ', a, b),
+    get label(){ return ecGroupLabel('ℤ/' + n + 'ℤ', a, b); },
     combine: function(x, y){
       var s = G.split[x], t = G.split[y];
       return at[A.combine(s[0], t[0]) * B.order + B.combine(s[1], t[1])];
@@ -5332,6 +5333,12 @@ function mGroupOf(mode, n, a, b){
   // A curve's points under point addition, ⟨E_{a,b}(𝔽ₚ), +⟩, the curve
   // y² = x³ + ax + b named by its coefficients: over the field 𝔽ₚ, or
   // modulo a composite n over the ring ℤ/nℤ.
+  // By its equation instead (ecByEquation), E(𝔽ₚ), the equation written
+  // after it where the name is in full (mGroupFull).
+  if (mode === 'elliptic' && ecByEquation()){
+    if (typeof n === 'number' && !isPrime(n)) return mrow(mi('E'), mo('(', true), mi('ℤ'), mo('/', true), mn(n), mi('ℤ'), mo(')', true));
+    return mrow(mi('E'), mo('(', true), mEl('msub', [mi('𝔽'), typeof n === 'number' ? mn(n) : mi(n)]), mo(')', true));
+  }
   if (mode === 'elliptic'){
     var over = typeof n === 'number' && !isPrime(n) ? [mi('ℤ'), mo('/', true), mn(n), mi('ℤ')] : [mEl('msub', [mi('𝔽'), typeof n === 'number' ? mn(n) : mi(n)])];
     var E = mEl('msub', [mi('E'), mrow(mn(a), mEl('mo', [','], { lspace: '0', rspace: '0' }), mn(b))]);
@@ -5340,8 +5347,15 @@ function mGroupOf(mode, n, a, b){
   return angle(mrow(mi('ℤ'), mo('/', true), typeof n === 'number' ? mn(n) : typeof n === 'string' ? mi(n) : n, mi('ℤ'), comma(), mo(mode === 'additive' ? '+' : '×', true)));
 }
 function mGroup(G){ return mGroupOf(G.mode, G.n, G.a, G.b); }
-// The same as plain text, over what (𝔽ₚ or ℤ/nℤ): ⟨E₂,₂(𝔽₁₇), +⟩.
-function ecGroupLabel(over, a, b){ return '⟨E' + subscript(a) + ',' + subscript(b) + '(' + over + '), +⟩'; }
+// The same as plain text, over what (𝔽ₚ or ℤ/nℤ): ⟨E₂,₂(𝔽₁₇), +⟩, or by
+// its equation, E(𝔽₁₇) (byEq, else as the notation in use writes it).
+function ecGroupLabel(over, a, b, byEq){ return (byEq === undefined ? ecByEquation() : byEq) ? 'E(' + over + ')' : '⟨E' + subscript(a) + ',' + subscript(b) + '(' + over + '), +⟩'; }
+// A curve's group is named by its coefficients, ⟨E₂,₂(𝔽₁₇), +⟩, or, picked
+// from the ring's menu, by its equation, E(𝔽₁₇): y² = x³ + 2x + 2.
+function ecByEquation(){ return state.ecName === 'eq'; }
+// A group's name in full: by its equation, the equation follows the name.
+function mGroupFull(G){ return G.pts && ecByEquation() ? mrow(mGroup(G), mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(G.a, G.b)) : mGroup(G); }
+function curveName(G){ return G.pts && ecByEquation() ? G.label + ': ' + ecEquation(G.a, G.b) : G.label; }
 // The modulus' symbol in the Group panel.
 function mPct(){ return mEl('mi', ['%'], { mathvariant: 'normal' }); }
 // ⟨ℤ/%ℤ, ∗⟩: the group in the Group panel's symbols, % its modulus and ∗
@@ -5564,11 +5578,12 @@ function subRowFormula(G, h, choice, base, hm, fmap, swap){
 function swapFormulas(out, swap){ return swap && out.length === 2 ? [out[1], out[0]] : out; }
 // On a curve there is no formula to work: the size and the index are
 // written as notation with their values, |⟨P⟩| = k and [E : ⟨P⟩] = |E| / k.
-// The curve's group is named in full, ⟨E_{a,b}(𝔽ₚ), +⟩: [⟨E₂,₂(𝔽₁₇), +⟩ : ⟨P⟩].
-function ecRowFormula(G, h, choice, hm){
+// In the main view (full) the index names the curve's group in full:
+// [⟨E₂,₂(𝔽₁₇), +⟩ : ⟨P⟩], or [E(𝔽₁₇): y² = … : ⟨P⟩] by its equation.
+function ecRowFormula(G, h, choice, hm, full){
   var hx = hm || function(){ return mPoint(G.pts[h]); }, ph = plainPoint(G.pts[h]);
   var k = G.orders[h], out = [];
-  var name = { math: function(){ return mGroup(G); }, plain: G.label };
+  var name = full ? { math: function(){ return mGroupFull(G); }, plain: curveName(G) } : { math: function(){ return mGroup(G); }, plain: G.label };
   if (choice === 'order' || choice === 'both') out.push({ math: mrow(abs(angle(hx())), mo('='), mn(k)), plain: '|⟨' + ph + '⟩| = ' + k });
   if (choice === 'index' || choice === 'both') out.push({
     math: mrow(mo('[', true), name.math(), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true), mo('='), mn(G.order / k)),
@@ -6398,8 +6413,8 @@ function scratchFormulas(G){
     var eq = ecEquation(G.a, G.b) + ' (mod ' + G.n + ')';
     list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroup(G), mo(':'), mEl('mtext', [eq])), plain: G.label + ': ' + eq });
     if (on('sname')) list.push({ key: 'sname', cls: 'ring-math-title', math: mrow(angle(natPointM(G, h)), mo('∈'), mGroup(G)), plain: '⟨' + natPointP(G, h) + '⟩ ∈ ' + G.label });
-    // The bars round the group's name: |⟨E_{a,b}(𝔽ₚ), +⟩| = N.
-    list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(mGroup(G)), mo('='), mn(G.order)), plain: '|' + G.label + '| = ' + G.order });
+    // The bars round the group's full name: |⟨E_{a,b}(𝔽ₚ), +⟩| = N.
+    list.push({ key: 'gorder', cls: 'ring-math-formula', math: mrow(abs(mGroupFull(G)), mo('='), mn(G.order)), plain: '|' + curveName(G) + '| = ' + G.order });
     return list;
   }
   if (on('gname')) list.push({ key: 'gname', cls: 'ring-math-title', math: mrow(mGroupPct(), mo('='), mGroup(G)), plain: '⟨ℤ/%ℤ, ∗⟩ = ' + G.label });
@@ -6453,7 +6468,7 @@ function invariantFactors(G){
 function menuFormulas(G){
   var list = scratchFormulas(G);
   // The group's name as the subgroup row writes it, copied from there.
-  var name = { math: mGroup(G), plain: G.label };
+  var name = { math: mGroupFull(G), plain: curveName(G) };
   list.push({ key: 'ggroup', cls: 'ring-math-title', math: name.math, plain: name.plain });
   // And the subgroup's, ⟨h⟩ ∈ …, h written as the row writes it, in the
   // element expression slider's expression.
@@ -7621,7 +7636,7 @@ function mapFormula(G, h, f, token, base, hm){
       'lcm-sls': function(){ return [mfrac(mlcm(G1(), N(q)), N(q)), u3(), u4(), N(m)]; }
     }[node]();
   } else {
-    var name = mGroup(G);
+    var name = mGroupFull(G);
     lead = [mo('[', true), name, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hm()), mo(']', true)];
     // The bracket stands in the formula's own row on a curve, as the notation
     // there always wrote it, and as a row of its own in a group of numbers.
@@ -7646,7 +7661,7 @@ function mapFormula(G, h, f, token, base, hm){
   T.forEach(function(t){ lead.push(mo('='), t); });
   return { math: mrow.apply(null, lead),
     plain: translate(FMAP_KEYS[f][node], {
-      h: at(h), group: G.label, name: G.label, g: at(base),
+      h: at(h), group: G.label, name: ec && f === 'index' ? curveName(G) : G.label, g: at(base),
       gn: mul ? 'φ(' + G.n + ')' : String(n), n: n, gq: power(q), gr: r === null ? '' : power(signed(r)),
       q: q, r: r === null ? '' : signed(r), a: a, d: d, m: m, l: l }),
     map: { f: f, token: token, reach: reach } };
@@ -8590,7 +8605,15 @@ function fillFsetWin(i){
   w.grid.replaceChildren();
   w.body.replaceChildren();
   if (avail){
-    w.title.textContent = translate('cyclicGroups.fsetWinTitleGroup', { group: G.label });
+    // A curve named by its equation is set in italic, so the equation stays
+    // apart from the title's upright words.
+    var groupName = G.label;
+    if (G.pts && ecByEquation()){
+      groupName = document.createElement('span');
+      groupName.className = 'fset-title-curve';
+      groupName.textContent = curveName(G);
+    }
+    translateInto(w.title, 'cyclicGroups.fsetWinTitleGroup', { group: groupName });
     w.grid.appendChild(fsetGrid(i));
     // The panel, while a formula of a group with maps shows.
     var panel = hasSliders(G) && (i === 0 ? fmapUsed() : paneFmapUsed()).length > 0;
@@ -8974,7 +8997,7 @@ function ringFormulas(G){
 // curve's size and index with their values).
 function plainRingFormulas(G){
   var h = state.gen, hm = rowFormulaH(G, h, h, true), v = state.subFormulaRing, out = [];
-  if (G.pts) return swapFormulas(ecRowFormula(G, h, v, hm), state.fSwap);
+  if (G.pts) return swapFormulas(ecRowFormula(G, h, v, hm, true), state.fSwap);
   if (v === 'order' || v === 'both') out.push(subOrderFormula(G, h, undefined, true, hm));
   if (v === 'index' || v === 'both') out.push(cosetCountFormula(G, h, undefined, true, true, hm));
   return swapFormulas(out, state.fSwap);
@@ -9044,8 +9067,10 @@ function logBaseIntro(G){
   // A group that is not its structure ⟨ℤ/|G|ℤ, +⟩ says why it takes a
   // logarithm: G's place counted from E needs one.
   if (G.mode !== 'additive'){
-    // The star after its structure writes out the inequality.
-    translateInto(p, 'cyclicGroups.logBaseIntroNotStructure', { star: introStar(translate('cyclicGroups.logBaseIntroNotStructureStar', { group: G.label, structure: '⟨ℤ/' + G.order + 'ℤ, +⟩' })), circle: introStar(translate('cyclicGroups.logBaseIntroCircle')) });
+    // The star after its structure writes out the inequality, a curve named
+    // by its equation bracketed, so the equation stays apart from the !=.
+    var name = G.pts && ecByEquation() ? '(' + curveName(G) + ')' : G.label;
+    translateInto(p, 'cyclicGroups.logBaseIntroNotStructure', { star: introStar(translate('cyclicGroups.logBaseIntroNotStructureStar', { group: name, structure: '⟨ℤ/' + G.order + 'ℤ, +⟩' })), circle: introStar(translate('cyclicGroups.logBaseIntroCircle')) });
     return p;
   }
   // An additive group is its structure, which the star's tooltip writes
@@ -9706,10 +9731,14 @@ function readSwaps(list){
     return s && (s.mode === 'additive' || s.mode === 'multiplicative' || s.mode === 'elliptic') && Number.isInteger(s.n) && typeof s.label === 'string' && (s.curve === null || (typeof s.curve === 'string' && /^\d+,\d+,\d+$/.test(s.curve)));
   });
 }
-// A group's full name: a curve's by its coefficients, ⟨E_{a,b}(𝔽ₚ), +⟩.
+// A group's full name: a curve's by its coefficients, ⟨E_{a,b}(𝔽ₚ), +⟩, or
+// with its equation, E(𝔽ₚ): y² = ….
 function swapName(spec){
   var c = spec.curve ? spec.curve.split(',').map(Number) : null;
-  return mInline(c ? mGroupOf(spec.mode, spec.n, c[1], c[2]) : mGroupOf(spec.mode, spec.n), spec.label);
+  if (!c) return mInline(mGroupOf(spec.mode, spec.n), spec.label);
+  var m = mGroupOf(spec.mode, spec.n, c[1], c[2]);
+  if (ecByEquation()) m = mrow(m, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(c[1], c[2]));
+  return mInline(m, ecChipLabel(c[0], c[1], c[2]));
 }
 function syncSwapCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-swap').forEach(function(el){ el.remove(); });
@@ -9802,8 +9831,13 @@ function syncSignCtx(on){
   // generator, not as its powers. The signed forms are the slider's ± and
   // g± buttons only.
   var signs = drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : [];
+  // On any curve, its group named by its equation instead of its
+  // coefficients: ticked, E(𝔽₁₇): y² = x³ + 2x + 2.
+  if (drawn.G.pts) signs.push(['cyclicGroups.menuEcEqName', 'ecName', toggleEcName]);
   signs.forEach(function(t){
-    var sign = menuTick('menuitemcheckbox', translate(t[0]), state[t[1]], function(){
+    var on = t[1] === 'ecName' ? ecByEquation() : state[t[1]];
+    var text = t[1] === 'ecName' ? translate(t[0], { name: ecChipLabel(drawn.G.n, drawn.G.a, drawn.G.b, true) }) : translate(t[0]);
+    var sign = menuTick('menuitemcheckbox', text, on, function(){
       setRingCtx(false);
       t[2]();
     });
@@ -11108,13 +11142,16 @@ function syncGenSuper(G){
   // the beads. Under the pointer it shows its natural number, as a bead
   // does, unless the main menu's switch turns that off.
   var hw = cosetGenWrite(G, h, !state.revealOff);
-  var group = mGroup(G);
+  // On a curve named by its equation, the group carries it, E(𝔽ₚ): y² = …,
+  // in quotes, so the equation stays apart from the = ⟨h⟩ after it.
+  var quoted = !!G.pts && ecByEquation();
+  var group = quoted ? mrow(mo('\u2018', true), mGroupFull(G), mo('\u2019', true)) : mGroup(G);
   var relMo = mo(rel), sub = angle(hw.m);
   sub.setAttribute('data-gsub', '');
-  genSuperEl.appendChild(mInline(mrow(mi('G'), relMo, group, mo('='), sub), 'G ' + rel + ' ' + G.label + ' = ⟨' + hw.p + '⟩'));
+  genSuperEl.appendChild(mInline(mrow(mi('G'), relMo, group, mo('='), sub), 'G ' + rel + ' ' + (quoted ? '\u2018' + curveName(G) + '\u2019' : G.label) + ' = ⟨' + hw.p + '⟩'));
   // Set once on the page, so the tip takes it as every other title.
   relMo.setAttribute('data-title-line', '');
-  relMo.setAttribute('title', translate(whole ? 'cyclicGroups.genInWhole' : 'cyclicGroups.genInProper', { g: '⟨' + elText(G, h) + '⟩', group: G.label }));
+  relMo.setAttribute('title', translate(whole ? 'cyclicGroups.genInWhole' : 'cyclicGroups.genInProper', { g: '⟨' + elText(G, h) + '⟩', group: curveName(G) }));
   // Redrawn while it blinks, it carries on from where it was.
   if (invBlink === null) return;
   var since = performance.now() - invBlink.at;
@@ -13911,7 +13948,7 @@ var comboPromptHook = null;
 function curvePowerRow(G, a, k, c, g, log, mod){
   var B = function(x){ return baseText(G, x); };
   var R = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
-  var size = '|' + G.label + '|';
+  var size = '|' + curveName(G) + '|';
   var r = [['c', 'A'], [null, '≡'], [['a', 'a'], ['b', 'ᵏ']], [null, '≡']];
   if (log){
     // Signed, the exponents are written nearest 0, i and the result m.
@@ -13946,7 +13983,7 @@ function curvePowerRow(G, a, k, c, g, log, mod){
 // exponent written by cell.
 function curveReduce(G, row, e, cell){
   if (e >= 0 && e < G.order) return;
-  row.push(cell(signed(e) + ' % |' + G.label + '|'), [null, '≡']);
+  row.push(cell(signed(e) + ' % |' + curveName(G) + '|'), [null, '≡']);
   row.push(cell(signed(e) + ' % ' + G.order), [null, '≡']);
 }
 // A curve's combination, written out: P + Q with the slope λ of the chord
@@ -13971,7 +14008,7 @@ function curveRows(G, y, mod){
     var r = [['c', 'A'], [null, '≡'], [['b', 'k'], [null, ' ·']], ['a', 'a'], [null, '≡'], [['b', signed(k)], [null, ' ·']], ['a', elText(G, a)], [null, '≡']];
     var e = k;
     if (Math.abs(k) >= N){
-      r.push([[null, '('], ['b', signed(k)], [null, ' % |'], [null, G.label], [null, '|) · '], ['a', elText(G, a)]], [null, '≡']);
+      r.push([[null, '('], ['b', signed(k)], [null, ' % |'], [null, curveName(G)], [null, '|) · '], ['a', elText(G, a)]], [null, '≡']);
       e = k % N;
       r.push([['b', signed(e)], [null, ' ·']], ['a', elText(G, a)], [null, '≡']);
     }
@@ -16648,6 +16685,13 @@ function isoHref(mode, n, gen, curve){
   return location.pathname + '?' + q.toString();
 }
 
+// A curve's group named in full, as the notation in use writes it (byEq
+// forcing one): ⟨E₂,₂(𝔽₁₇), +⟩, or E(𝔽₁₇): y² = x³ + 2x + 2.
+function ecChipLabel(p, a, b, byEq){
+  var eq = byEq === undefined ? ecByEquation() : byEq;
+  var label = ecGroupLabel(isPrime(p) ? '𝔽' + subscript(p) : 'ℤ/' + p + 'ℤ', a, b, eq);
+  return eq ? label + ': ' + ecEquation(a, b) : label;
+}
 function isoLink(mode, n, gen, label, a, b){
   var a = document.createElement('a');
   a.className = 'iso-chip';
@@ -16658,7 +16702,9 @@ function isoLink(mode, n, gen, label, a, b){
   a.setAttribute('rel', 'noopener');
   var name = document.createElement('span');
   name.className = 'iso-name';
-  name.appendChild(mInline(mGroupOf(mode, n, a, b), label));
+  var m = mGroupOf(mode, n, a, b);
+  if (mode === 'elliptic' && ecByEquation()) m = mrow(m, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(a, b));
+  name.appendChild(mInline(m, label));
   a.appendChild(name);
   var ext = svgEl('svg', { 'class': 'iso-ext', viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' });
   ext.appendChild(svgEl('path', { d: 'M7 1.5H10.5V5M10.5 1.5L5.5 6.5M9 7.5V9.5A1 1 0 0 1 8 10.5H2.5A1 1 0 0 1 1.5 9.5V4A1 1 0 0 1 2.5 3H4.5' }));
@@ -16710,7 +16756,7 @@ function cyclicCurves(k){
 // A chip for one of them; none for the curve this ring shows.
 function curveChips(k, G){
   return cyclicCurves(k).filter(function(e){ return !(G.pts && G.n === e.p && G.a === e.a && G.b === e.b); }).map(function(e){
-    var a = isoLink('elliptic', e.p, e.gen, e.label, e.a, e.b);
+    var a = isoLink('elliptic', e.p, e.gen, ecChipLabel(e.p, e.a, e.b), e.a, e.b);
     a.setAttribute('data-iso-curve', [e.p, e.a, e.b].join(','));
     return a;
   });
@@ -17033,6 +17079,7 @@ function applyRingQuery(q){
   state.revealSigned = q.get('revsigned') === '1';
   state.revealSignedExp = q.get('revsignedexp') === '1';
   state.ecMult = q.get('ecmult') === '1';
+  state.ecName = q.get('ecname') === 'eq' ? 'eq' : 'sub';
   state.natExpOff = q.get('natexp') === '0';
   SUB_EXPR_CTLS.forEach(function(c){ c.set(subCtlVal(c, q.get(c.param))); });
   state.subSortR = q.get('subsortr') === '1';
@@ -18825,6 +18872,9 @@ function stateQuery(){
   else q.delete('revsignedexp');
   if (state.ecMult && state.ec) q.set('ecmult', '1');
   else q.delete('ecmult');
+  // A curve's group named by its equation.
+  if (ecByEquation()) q.set('ecname', 'eq');
+  else q.delete('ecname');
   if (state.natExpOff) q.set('natexp', '0');
   else q.delete('natexp');
   if (!state.enterInverse) q.set('enterinv', '0');
@@ -19711,6 +19761,13 @@ function ecEquation(a, b){
   var rhs = 'x³' + (a ? ' + ' + (a === 1 ? '' : a) + 'x' : '') + (b ? ' + ' + b : '');
   return 'y² = ' + rhs;
 }
+// The same equation typeset.
+function mEcEquation(a, b){
+  var out = [mEl('msup', [mi('y'), mn(2)]), mo('='), mEl('msup', [mi('x'), mn(3)])];
+  if (a) out.push(mo('+'), a === 1 ? mi('x') : mrow(mn(a), mi('x')));
+  if (b) out.push(mo('+'), mn(b));
+  return mrow.apply(null, out);
+}
 function syncEcControls(){
   document.documentElement.classList.toggle('is-ec', state.ec);
   ecToggleEl.setAttribute('aria-pressed', state.ec ? 'true' : 'false');
@@ -20466,6 +20523,7 @@ function setExprStop(i){
 function toggleSigned(){ state.signed = !state.signed; render(); }
 function toggleSignedExp(){ state.signedExp = !state.signedExp; render(); }
 function toggleEcMult(){ state.ecMult = !state.ecMult; render(); }
+function toggleEcName(){ state.ecName = ecByEquation() ? 'sub' : 'eq'; render(); }
 function toggleNatExp(){ state.natExpOff = !state.natExpOff; render(); }
 exprSignEl.addEventListener('click', toggleSigned);
 exprSignExpEl.addEventListener('click', toggleSignedExp);
@@ -21078,6 +21136,7 @@ function loadState(query, link){
   state.revealSigned = query.get('revsigned') === '1';
   state.revealSignedExp = query.get('revsignedexp') === '1';
   state.ecMult = query.get('ecmult') === '1' && !IS_MOBILE;
+  state.ecName = query.get('ecname') === 'eq' ? 'eq' : 'sub';
   state.natExpOff = query.get('natexp') === '0' && !IS_MOBILE;
   // An older link's autoflip=0 is the lock's middle, nothing locked.
   state.lock = LOCKS.indexOf(query.get('lock')) !== -1 ? query.get('lock') : query.get('autoflip') === '0' ? 'none' : 'dir';
