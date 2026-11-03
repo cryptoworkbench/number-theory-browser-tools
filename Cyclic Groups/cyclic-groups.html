@@ -9978,7 +9978,7 @@ function swapPaneGroup(a){
 // the element the expression slider writes the elements as powers of (none
 // while it is on Natural). A bead right-clicked has a section of its own
 // after them, Selected bead 'x', holding what the bead offers: Diffie–Hellman
-// with it as g, focused first.
+// with it as g, focused first, then Set G equal to it (greyed while it is G).
 function syncDhCtx(on, bead){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-dh').forEach(function(el){ el.remove(); });
   if (!on || !drawn || IS_MOBILE) return null;
@@ -10007,9 +10007,23 @@ function syncDhCtx(on, bead){
   sec.className = 'fs-menu-head ring-ctx-dh';
   // Named as the bead writes it (without the pointer on it).
   var label = ringSvgEl.querySelector('.bead-label[data-el="' + bead + '"]');
-  sec.textContent = translate('cyclicGroups.ctxBeadHead', { bead: label ? label.getAttribute('data-text') : elText(G, bead) });
+  var written = label ? label.getAttribute('data-text') : elText(G, bead);
+  sec.textContent = translate('cyclicGroups.ctxBeadHead', { bead: written });
   ringCtxEl.insertBefore(sec, head);
-  return dhItem(bead);
+  first = dhItem(bead);
+  var set = ctxItem('menuitem', '');
+  var gi = document.createElement('i');
+  gi.textContent = 'G';
+  translateInto(set.item.children[1], 'cyclicGroups.ctxBeadSetG', { g: gi, bead: written });
+  set.item.classList.add('ring-ctx-dh');
+  set.item.disabled = !state.noSub && state.gen === bead;
+  set.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  set.item.addEventListener('click', function(){
+    setRingCtx(false);
+    if (drawn && drawn.G.els.indexOf(bead) !== -1) pickGen(bead);
+  });
+  ringCtxEl.insertBefore(set.item, head);
+  return first;
 }
 // At the menu's top, on a cyclic curve: its points written as multiples.
 function syncSignCtx(on){
