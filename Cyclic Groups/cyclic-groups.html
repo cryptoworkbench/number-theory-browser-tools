@@ -5769,6 +5769,9 @@ function barFormulasChanged(){
 var BAR_PLACES = [['ring', 'cyclicGroups.barLcmMain'], ['row', 'cyclicGroups.barLcmRow']];
 var BAR_FORMULAS = [['order', 'cyclicGroups.subFormulaSize'], ['index', 'cyclicGroups.subFormulaIndexShort']];
 var BAR_FORMS = [['show', 'cyclicGroups.barShow'], ['none', 'cyclicGroups.formulaHide']];
+// The group a settings window's formulas are of: the ring's, or the
+// pane's for the right one.
+function fsetGroup(i){ return i && isoPane ? isoPaneGroup() : drawn ? drawn.G : null; }
 function fsetGrid(i){
   var side = BAR_SIDES[i], w = FSET[i], pre = 'fset-grid-' + i + '-';
   var has = function(v, f){ return v === f || v === 'both'; };
@@ -5799,7 +5802,7 @@ function fsetGrid(i){
   var cols = document.createElement('button');
   cols.type = 'button';
   cols.className = 'bar-swap bar-swap-cols';
-  cols.title = translate('cyclicGroups.barSwapCols');
+  cols.title = translate(idxKey('cyclicGroups.barSwapCols', fsetGroup(i)));
   cols.setAttribute('aria-label', cols.title);
   var hArrows = svgEl('svg', { viewBox: '0 0 16 16', width: 14, height: 14, 'aria-hidden': 'true', focusable: 'false' });
   hArrows.appendChild(svgEl('path', { d: 'M2.5 5H13.5M11 2.5 13.5 5 11 7.5' }));
@@ -5821,7 +5824,7 @@ function fsetGrid(i){
     var head = document.createElement('span');
     head.className = 'bar-grid-col';
     head.id = pre + fm[0];
-    head.textContent = translate(fm[1]);
+    head.textContent = translate(idxKey(fm[1], fsetGroup(i)));
     head.style.gridColumn = String(AT_COL[k]);
     grid.appendChild(head);
     if (!k){
@@ -6458,7 +6461,23 @@ var lastSubs = [];
 // logarithm by, the subgroup's cardinality asks for one.
 var SCRATCH_ROWS = ['gname', 'gorder', 'gens', 'sname', 'sorder', 'cindex'];
 // In the ring's menu the structure is named in full.
-function ctxName(k){ return k === 'struct' ? 'cyclicGroups.ctxGroupStructure' : SCRATCH_NAMES[k]; }
+function ctxName(k){ return k === 'struct' ? 'cyclicGroups.ctxGroupStructure' : idxKey(SCRATCH_NAMES[k]); }
+// On an elliptic curve a subgroup's number of cosets is its cofactor, not
+// its index: a wording naming the index takes its curve form there, the
+// key with Ec after it. G is the group meant, the ring's own unless given.
+var IDX_KEYS = ['cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.scratchCindex', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
+function idxKey(key, G){
+  if (G === undefined) G = drawn ? drawn.G : null;
+  return G && G.pts && IDX_KEYS.indexOf(key) !== -1 ? key + 'Ec' : key;
+}
+// The static dropdowns' options naming the index, renamed with the group.
+function syncIdxNames(G){
+  document.querySelectorAll('option[data-i18n^="cyclicGroups.subFormulaIndex"], option[data-i18n^="cyclicGroups.legendByIndex"]').forEach(function(o){
+    var key = o.getAttribute('data-i18n').replace(/Ec$/, '');
+    o.setAttribute('data-i18n', idxKey(key, G));
+    o.textContent = translate(idxKey(key, G));
+  });
+}
 var SCRATCH_NAMES = { gname: 'cyclicGroups.formulaToggleName', sname: 'cyclicGroups.formulaToggleSubName', gsub: 'cyclicGroups.formulaToggleSubName', ggroup: 'cyclicGroups.formulaToggleName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.scratchCindex', struct: 'cyclicGroups.fact.structure' };
 var scratchOpen = false;
 // The scratchpad's formulas, fresh nodes each time, in its rows' order:
@@ -6556,7 +6575,7 @@ function drawScratchPad(G){
   SCRATCH_ROWS.forEach(function(key){
     var name = document.createElement('span');
     name.className = 'scratch-name';
-    name.textContent = translate(SCRATCH_NAMES[key]);
+    name.textContent = translate(idxKey(SCRATCH_NAMES[key], G));
     var cell = document.createElement('div');
     cell.className = 'scratch-math';
     if (cells[key]) cell.appendChild(cells[key]);
@@ -7787,7 +7806,7 @@ function formulaMap(G, info, opts){
   wrap.setAttribute('data-f', f);
   wrap.setAttribute('data-at', now);
   wrap.setAttribute('role', 'radiogroup');
-  wrap.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
+  wrap.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : idxKey('cyclicGroups.fmapIndexLabel', G)));
   var open = { 'abs': reach.abs, 'pos': reach.pos, 'sls': reach.sls };
   var openNode = function(id){ return id === 'abs' ? reach.abs : id === 'pos' ? reach.pos : id.indexOf('sls') !== -1 ? reach.sls : true; };
   var svg = svgEl('svg', { 'class': 'fmap-svg', viewBox: '0 0 ' + FMAP_W + ' ' + mapH, width: FMAP_W, height: mapH, 'aria-hidden': 'true', focusable: 'false' });
@@ -8173,7 +8192,7 @@ function formulaSliders(G, info, opts){
   pair.setAttribute('data-at', fmapNode(token));
   pair.setAttribute('data-token', token);
   pair.setAttribute('role', 'group');
-  pair.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : 'cyclicGroups.fmapIndexLabel'));
+  pair.setAttribute('aria-label', translate(f === 'order' ? 'cyclicGroups.fmapOrderLabel' : idxKey('cyclicGroups.fmapIndexLabel', G)));
   (opts && opts.only === 'form' ? ['form'] : ['complexity', 'form']).forEach(function(kind){
     var isForm = kind === 'form', now = isForm ? fslFormNow(at, memo) : at.c;
     // Every Complexity track forks to its fourth slot, compact SLS, which
@@ -8206,7 +8225,7 @@ function formulaSliders(G, info, opts){
     sl.setAttribute('aria-valuemax', fork ? '3' : '2');
     sl.setAttribute('aria-valuenow', String(now));
     sl.setAttribute('aria-valuetext', translate(fork && now === 3 ? 'cyclicGroups.fslCompactSlsText' : FSL_LABELS[kind][now]));
-    sl.setAttribute('aria-label', translate(FSL_NAMES[kind][f]));
+    sl.setAttribute('aria-label', translate(idxKey(FSL_NAMES[kind][f], G)));
     sl.setAttribute('aria-orientation', 'horizontal');
     if (inert){ sl.setAttribute('aria-disabled', 'true'); sl.title = translate('cyclicGroups.fslFormInert'); }
     sl.style.setProperty('--v', String(now));
@@ -17010,7 +17029,7 @@ function renderLegend(G, classes, pairing){
     makePickable(swatch, classes[o].replace(/^ord-/, ''), translate('cyclicGroups.legendPickTitle'));
     var text = document.createElement('span');
     text.className = 'legend-order';
-    if (byIndex) translateInto(text, 'cyclicGroups.legendIndex', { index: mNum(G.order / o) });
+    if (byIndex) translateInto(text, idxKey('cyclicGroups.legendIndex', G), { index: mNum(G.order / o) });
     else translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
     var count = document.createElement('span');
     count.className = 'legend-count';
@@ -19560,6 +19579,7 @@ function render(){
   renderIso(G);
   renderSubgroups(G);
   hintPanelRow(G);
+  syncIdxNames(G);
   renderLegend(G, classes, pairing);
   renderNNote();
   renderExportStatus();
