@@ -1109,6 +1109,7 @@
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoHead: 'Isomorphic swap',
       ctxGroupStructure: 'Group structure',
+      ctxBeadHead: "Selected bead '{bead}'",
       swapIsoMenu: 'Swap for an isomorphic group',
       swapIsoReduce: 'Reduce to {group}',
       swapOtherMenu: 'Swap for a group isomorphic to {group}',

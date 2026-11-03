@@ -5204,6 +5204,7 @@ function drawRing(parent, G, beads, box, paint){
       if (ptPow) size = ptPowSize(text);
       var label = svgEl('text', { 'class': ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
       beadText(label, text);
+      label.setAttribute('data-text', text);
       // The label the reveal shows: the natural number, or the picked
       // generator's power.
       var revealed = eg !== rt || revealSignsDiffer(G);
@@ -6853,7 +6854,7 @@ var ringCopyEl = $('ring-ctx-copy');
 var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   if (l.head){
     var head = document.createElement('p');
-    head.className = 'fs-menu-head';
+    head.className = 'fs-menu-head ring-ctx-head';
     head.setAttribute('data-i18n', l.head);
     head.textContent = translate(l.head);
     ringCtxEl.appendChild(head);
@@ -9841,7 +9842,7 @@ function takeSwap(spec){
 function syncSwapCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-swap').forEach(function(el){ el.remove(); });
   if (!on || !drawn || IS_MOBILE) return null;
-  var at = ringCtxEl.querySelector(':scope > .fs-menu-head');
+  var at = ringCtxEl.querySelector(':scope > .ring-ctx-head');
   var head = document.createElement('p');
   head.className = 'fs-menu-head ring-ctx-swap';
   head.textContent = translate('cyclicGroups.swapIsoHead');
@@ -9879,7 +9880,7 @@ function syncOtherCtx(on){
   it.item.classList.add('ring-ctx-other');
   it.item.addEventListener('pointerenter', function(){ setRingOther(it.item, false); });
   it.item.addEventListener('click', function(){ setRingOther(it.item, true); });
-  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head:not(.ring-ctx-swap)'));
+  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .ring-ctx-head'));
   return it.item;
 }
 function setRingOther(from, focus){
@@ -9973,18 +9974,21 @@ function swapPaneGroup(a){
   openIsoPane(a, isoLinkGen());
 }
 // Under them, Diffie–Hellman worked with an element as g (see openDh), one
-// item for each base on offer, each once: the bead right-clicked first,
-// then G while the subgroup is on, then the element the expression slider
-// writes the elements as powers of (none while it is on Natural).
+// item for each base on offer, each once: G while the subgroup is on, then
+// the element the expression slider writes the elements as powers of (none
+// while it is on Natural). A bead right-clicked has a section of its own
+// after them, Selected bead 'x', holding what the bead offers: Diffie–Hellman
+// with it as g, focused first.
 function syncDhCtx(on, bead){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-dh').forEach(function(el){ el.remove(); });
   if (!on || !drawn || IS_MOBILE) return null;
   var G = drawn.G, bases = [];
-  [bead, state.noSub ? null : state.gen, exprBy(G)].forEach(function(g){
-    if (g !== null && G.els.indexOf(g) !== -1 && bases.indexOf(g) === -1) bases.push(g);
+  if (bead !== null && G.els.indexOf(bead) === -1) bead = null;
+  [state.noSub ? null : state.gen, exprBy(G)].forEach(function(g){
+    if (g !== null && g !== bead && G.els.indexOf(g) !== -1 && bases.indexOf(g) === -1) bases.push(g);
   });
-  var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
-  bases.forEach(function(g){
+  var head = ringCtxEl.querySelector(':scope > .fs-menu-head:not(.ring-ctx-dh)'), first = null;
+  var dhItem = function(g){
     var it = ctxItem('menuitem', translate('cyclicGroups.dhMenu', { g: elText(G, g) }));
     it.mark.textContent = 'DH';
     it.mark.classList.add('is-dh');
@@ -9995,9 +9999,17 @@ function syncDhCtx(on, bead){
       if (drawn && drawn.G.els.indexOf(g) !== -1) openDh(drawn.G, g);
     });
     ringCtxEl.insertBefore(it.item, head);
-    if (!first) first = it.item;
-  });
-  return first;
+    return it.item;
+  };
+  bases.forEach(function(g){ var item = dhItem(g); if (!first) first = item; });
+  if (bead === null) return first;
+  var sec = document.createElement('p');
+  sec.className = 'fs-menu-head ring-ctx-dh';
+  // Named as the bead writes it (without the pointer on it).
+  var label = ringSvgEl.querySelector('.bead-label[data-el="' + bead + '"]');
+  sec.textContent = translate('cyclicGroups.ctxBeadHead', { bead: label ? label.getAttribute('data-text') : elText(G, bead) });
+  ringCtxEl.insertBefore(sec, head);
+  return dhItem(bead);
 }
 // At the menu's top, on a cyclic curve: its points written as multiples.
 function syncSignCtx(on){
