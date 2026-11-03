@@ -18250,9 +18250,11 @@ function syncIsoKeys(){
 // one apart: the number of cosets named the cofactor on one side and the
 // index on the other, a curve's points written as multiples kP beside a
 // group of numbers, or a curve named by its equation beside a group of
-// numbers or another curve. Then a button on the line between them makes
-// both general: each curve named by its coefficients, the cofactor the
-// index (beside a group of numbers) and, beside one, kP off.
+// numbers or another curve, or Skip logarithm use on one side and not the
+// other. Then a button on the line between them makes both general: each
+// curve named by its coefficients, the cofactor the index (beside a group
+// of numbers), beside one kP off, and logarithms used on both sides to
+// find the distance between E and G.
 var isoGeneralizeEl = $('iso-generalize');
 function isoNotation(){
   if (IS_ISOPANE || !isoPane || !drawn || !isoLinked()) return null;
@@ -18264,8 +18266,9 @@ function isoNotation(){
     { ec: !!H.pts, mult: !!H.pts && q.get('ecmult') === '1', eq: !!H.pts && q.get('ecname') === 'eq' }
   ];
   var mixed = sides[0].ec !== sides[1].ec;
-  var off = (mixed && !state.idxGeneral) || (mixed && sides.some(function(x){ return x.mult || x.eq; })) || (!mixed && sides[0].ec && sides.some(function(x){ return x.eq; }));
-  return { sides: sides, mixed: mixed, off: off };
+  var skips = [logSkipped(G), H.mode === 'additive' && formulaLevel() === 1 && fslOf(state.fmapR.order).c === 3];
+  var off = skips[0] !== skips[1] || (mixed && !state.idxGeneral) || (mixed && sides.some(function(x){ return x.mult || x.eq; })) || (!mixed && sides[0].ec && sides.some(function(x){ return x.eq; }));
+  return { sides: sides, mixed: mixed, skips: skips, off: off };
 }
 function syncIsoGeneralize(){
   if (!isoGeneralizeEl) return;
@@ -18275,6 +18278,10 @@ function syncIsoGeneralize(){
 function generalizeIsoNotation(){
   var n = isoNotation();
   if (!n || !n.off) return;
+  if (n.skips[0] !== n.skips[1]){
+    if (n.skips[0]) setSkipLog(false, null);
+    if (n.skips[1]) setPaneSkip(false, null);
+  }
   if (n.mixed) state.idxGeneral = true;
   if (n.sides[0].ec){
     state.ecName = 'sub';
