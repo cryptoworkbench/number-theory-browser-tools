@@ -14052,6 +14052,9 @@ function isoTakeCombine(d, m){
 // in powers of g while they are on, (gⁱ)ᵏ ≡ g^(i × k) ≡ g^m, else the
 // power and its plain value, never the k terms themselves.
 var COMBINE_LINE = 26, COMBINE_GAP = 5;
+// A line with a big operator ∏ or ∑ keeps this much more room under it,
+// for the limit stacked under the operator.
+var COMBINE_LIMITS = 9;
 // How many lines the combination takes below its first: a curve's sum of
 // two different points (or a point doubled) four in all.
 function combineExtraLines(G){
@@ -14073,7 +14076,7 @@ var combineUnfold = false;
 function unfoldShown(G){
   return !G.pts && comboLive(G) && (combo.k !== null || combo.b !== null) && exprBy(G) !== null;
 }
-function unfoldLines(G){ return unfoldShown(G) ? 1 + (combineUnfold ? 1 : 0) : 0; }
+function unfoldLines(G){ return unfoldShown(G) ? 1 + (combineUnfold ? 1 : 0) + COMBINE_LIMITS / COMBINE_LINE : 0; }
 // The button, under the line at y: a chevron, down to unfold, up to fold.
 function drawCombineUnfold(G, y){
   if (!unfoldShown(G)) return;
@@ -14504,8 +14507,17 @@ function drawCombineLine(G, y){
   var box = svgEl('g', { 'class': 'ring-combine-box' });
   ringDynamicEl.appendChild(box);
   var cols = [];
+  // Each line its own height: under a line with ∏ or ∑ the next starts lower.
+  var rowY = [], below = y;
+  rows.forEach(function(row){
+    rowY.push(below);
+    var big = row.some(function(cell){
+      return (Array.isArray(cell[0]) ? cell : [cell]).some(function(part){ return part[2] === 'bigop'; });
+    });
+    below += COMBINE_LINE + (big ? COMBINE_LIMITS : 0);
+  });
   var lines = rows.map(function(row, r){
-    var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: y + r * COMBINE_LINE, direction: 'ltr', style: 'text-anchor:start' });
+    var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: rowY[r], direction: 'ltr', style: 'text-anchor:start' });
     // A part's third entry sets it small: 'sup' raised, a big operator's
     // limits 'hi' over and 'lo' under it, stacked; 'bigop' sets ∑ or ∏ large.
     var SHAPE = { sup: ' is-sup', hi: ' is-sup', lo: ' is-sub', bigop: ' is-bigop' };
@@ -14573,7 +14585,7 @@ function drawCombineLine(G, y){
     var f = room / width;
     box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(y * (1 - f)) + ') scale(' + num(f) + ')');
   }
-  drawCombineUnfold(G, y + lines.length * COMBINE_LINE);
+  drawCombineUnfold(G, below);
 }
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape' || (combo.a === null && combo.b === null) || e.defaultPrevented) return;
