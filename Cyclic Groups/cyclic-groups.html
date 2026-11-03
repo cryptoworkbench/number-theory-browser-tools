@@ -14372,7 +14372,9 @@ function drawCombineLine(G, y){
           fold.push([null, '≡'], [[null, sym, 'bigop'], ['c', signed(X(log[c])), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]);
         }
         // Folded back up: the product of g's as g's power again, gᵐ.
-        fold.push([null, '≡'], [[null, B(g)], ['c', supSigned(X(log[c]))]]);
+        // Additively only while the powers line is unfolded under it: the
+        // sum of g's goes straight on to g × m.
+        if (mul || combineUnfold) fold.push([null, '≡'], [[null, B(g)], ['c', supSigned(X(log[c]))]]);
         // Additively gᵐ is g added m times: as the line above, the product
         // g × m, then its plain value while that still needs reducing.
         if (!mul){
@@ -14399,7 +14401,7 @@ function drawCombineLine(G, y){
       }
       // The ∏ line has one step more here (∏ to m): an empty pair keeps
       // gᵐ and what follows under its own.
-      if (fold) r.push([null, ''], [null, '']);
+      if (fold && (mul || combineUnfold)) r.push([null, ''], [null, '']);
       r.push([[null, B(g)], ['c', supSigned(t)]], [null, '≡']);
       m = t;
       // Additively g^m is g added m times: the product g × m, then its
@@ -14477,7 +14479,8 @@ function drawCombineLine(G, y){
           foldE(n);
           fold.push([null, '≡'], prod([['c', signed(kc), 'hi']]));
         }
-        fold.push([null, '≡'], gc(kc));
+        // Additively gᵏ only while the powers line is unfolded under it.
+        if (G.mode === 'multiplicative' || combineUnfold) fold.push([null, '≡'], gc(kc));
         // Additively gᵏ is g added k times: the product g × k, then its
         // plain value while that still needs reducing.
         if (G.mode !== 'multiplicative'){
@@ -14487,7 +14490,7 @@ function drawCombineLine(G, y){
         fold.push([null, '≡'], ['c', E(c)], [null, mod]);
         // The ∏ line has one step more before gᵏ (∏ to the sum): an
         // empty pair keeps gᵏ under its own.
-        pr.push([null, ''], [null, '']);
+        if (G.mode === 'multiplicative' || combineUnfold) pr.push([null, ''], [null, '']);
       }
       tipAt = 8;
       tipTo = pr.length;
