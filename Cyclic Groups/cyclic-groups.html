@@ -1022,9 +1022,10 @@
   .fset-gen .lb-list{ display:grid; grid-template-columns:repeat(var(--lb-cols, 1), max-content); overflow:visible; }
   /* Each slider's title over it, in the window. */
   .fsl-name{ font-size:.7rem; line-height:1.2; color:var(--text-dim); text-align:center; margin:0 0 1px; }
-  /* The fixed logarithm (see syncFlog): its window, the base boxes as the
-     settings window sets them, and on the ring, log_b( bead ) = k around
-     the rightmost bead, level whatever the turn. A phone has no windows. */
+  /* The fixed logarithm (see placeFlog): its window, the base boxes as the
+     settings window sets them, and over the ring, log_b(   ) = k standing
+     at the rightmost place, the beads turning through its brackets. A
+     phone has no windows. */
   :root.is-mobile .flog-win{ display:none !important; }
   .fs-win-body.is-ring > .flog-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); max-height:none; }
   .flog-win .lap-key-head{ gap:6px; }
@@ -5174,8 +5175,8 @@ function drawRing(parent, G, beads, box, paint){
     });
   }
 
-  drawFlog(ring, G, beads, box, beadR);
   parent.appendChild(ring);
+  drawFlog(parent, ring, G, beads, box, beadR);
   return ring;
 }
 
@@ -11904,8 +11905,9 @@ function openLapKey(){
 // whatever the expression sliders show. Minimized into the bottom bar it
 // stays on; closed, it is off. The base is picked as the formula settings
 // window picks its own, without the padlock: a box per generator, the wheel
-// switch, and Follow expression slider. As the ring turns, the label rides
-// on its bead until the next bead has fully arrived at the rightmost place.
+// switch, and Follow expression slider. The text stays put at the rightmost
+// place while the ring turns the beads through its brackets; k is the bead's
+// that last landed there, until the next bead has fully arrived.
 var flogEl = $('flog-win'), flogBodyEl = $('flog-body');
 var flogWin = plotWindow(flogEl, null);
 var flogOn = false, flogOpen = false, flogTaskShown = false, flogBuilt = null;
@@ -12074,20 +12076,21 @@ function flogFollowButton(G){
   });
   return btn;
 }
-// Called as the ring is drawn: where the label goes on it.
-function drawFlog(ring, G, beads, box, beadR){
-  flogCtx = { ring: ring, G: G, beads: beads, box: box, beadR: beadR, key: [G.key, dirSign(), arrangement(G).join(',')].join('|') };
+// Called as the ring is drawn: the label goes over it, outside the turning
+// ring, so it never moves.
+function drawFlog(parent, ring, G, beads, box, beadR){
+  flogCtx = { parent: parent, ring: ring, G: G, beads: beads, box: box, beadR: beadR, key: [G.key, dirSign(), arrangement(G).join(',')].join('|') };
   placeFlog();
 }
 // The rightmost place is the one a bead lands on nearest to three o'clock.
-// The label stays on its bead while the ring turns, until another bead
+// The label's k stays its bead's while the ring turns, until another bead
 // lands on that place or passes it between two frames; a ring rebuilt with
 // other beads, or a bead carried off further than one place, starts it
 // again on the bead nearest the place.
 function placeFlog(){
   var c = flogCtx;
   if (!c) return;
-  var old = c.ring.querySelector(':scope > .flog');
+  var old = c.parent.querySelector(':scope > .flog');
   var G = c.G, m = c.beads.length;
   if (!flogOn || !flogAvail(G) || !G.generators.length || !m){
     if (old) old.remove();
@@ -12108,8 +12111,8 @@ function placeFlog(){
   var el = landed !== null ? landed : prev ? prev.el : null;
   if (el === null || offs[el] === undefined || Math.abs(offs[el]) > stepA + 1e-6) el = nearest;
   flogAt = { key: c.key, el: el, offs: offs };
-  var pt = polar(c.box.cx, c.box.cy, c.box.R, dir * 360 * c.beads.indexOf(el) / m);
-  var base = flogBaseOf(G), built = [el, base, num(pt[0]), num(pt[1])].join('|');
+  var pt = polar(c.box.cx, c.box.cy, c.box.R, T);
+  var base = flogBaseOf(G), built = [c.key, el, base].join('|');
   if (!old || old.getAttribute('data-built') !== built){
     if (old) old.remove();
     old = svgEl('g', { 'class': 'flog', 'data-built': built });
@@ -12127,10 +12130,8 @@ function placeFlog(){
     right.textContent = ') = ' + k;
     old.appendChild(left);
     old.appendChild(right);
-    c.ring.appendChild(old);
+    c.ring.after(old);
   }
-  // Level, whatever the ring's turn.
-  old.setAttribute('transform', 'rotate(' + num(-E) + ' ' + num(pt[0]) + ' ' + num(pt[1]) + ')');
 }
 
 // The elliptic curve mode's plot: open with the mode, minimized into the
