@@ -9756,18 +9756,19 @@ function syncNatHoverCtx(on, bead){
 // Last, under Export, Export group: this ring's group's list of subgroups,
 // copied or downloaded as a text file, as the bottom panel's menu offers it
 // (exportSubgroups).
+var COPY_PAIR = [{ key: 'cyclicGroups.ctxBeadCopy', mark: '\u29c9' }, { key: 'cyclicGroups.ctxBeadDownload', mark: '\u2913' }];
 function syncTxtCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-txt').forEach(function(el){ el.remove(); });
   var ex = on && drawn && !IS_MOBILE ? subExports[0] : null;
   if (!ex || ex.G.key !== drawn.G.key) return;
   var it = ctxItem('menuitem', '', true);
   translateInto(it.item.children[1], 'cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) });
-  it.mark.textContent = '⤓';
   it.item.classList.add('ring-ctx-txt');
   ringCopyPair(it.item, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); });
   ringCtxEl.appendChild(it.item);
 }
-// A ring menu item opening a submenu of two: Copy and Download.
+// A ring menu item opening a submenu of two: Copy and Download, each with
+// its mark (COPY_PAIR).
 function ringCopyPair(from, copy, save){
   var open = function(focus){
     setRingCopy(null);
@@ -9775,9 +9776,10 @@ function ringCopyPair(from, copy, save){
     from.setAttribute('aria-expanded', 'true');
     ringCopyEl.hidden = false;
     ringCopyEl.setAttribute('aria-label', from.children[1].textContent);
-    ringCopyEl.replaceChildren.apply(ringCopyEl, [['cyclicGroups.ctxBeadCopy', copy], ['cyclicGroups.ctxBeadDownload', save]].map(function(c){
-      var it = ctxItem('menuitem', translate(c[0]));
-      it.item.addEventListener('click', function(){ setRingCtx(false); c[1](); });
+    ringCopyEl.replaceChildren.apply(ringCopyEl, COPY_PAIR.map(function(c, i){
+      var it = ctxItem('menuitem', translate(c.key));
+      it.mark.textContent = c.mark;
+      it.item.addEventListener('click', function(){ setRingCtx(false); (i ? save : copy)(); });
       return it.item;
     }));
     placeRingSub(from, focus);
@@ -19869,14 +19871,11 @@ function setSubCtxSub(from, focus, copy, save){
   if (!from){ subCtxSubEl.hidden = true; return; }
   from.setAttribute('aria-expanded', 'true');
   subCtxSubEl.setAttribute('aria-label', from.textContent.replace('\u203A', '').trim());
-  subCtxSubEl.replaceChildren.apply(subCtxSubEl, [['cyclicGroups.ctxBeadCopy', copy], ['cyclicGroups.ctxBeadDownload', save]].map(function(c){
-    var it = document.createElement('button');
-    it.type = 'button';
-    it.className = 'fs-menu-item';
-    it.setAttribute('role', 'menuitem');
-    it.textContent = translate(c[0]);
-    it.addEventListener('click', function(){ setSubCtx(false); c[1](); });
-    return it;
+  subCtxSubEl.replaceChildren.apply(subCtxSubEl, COPY_PAIR.map(function(c, i){
+    var it = ctxItem('menuitem', translate(c.key));
+    it.mark.textContent = c.mark;
+    it.item.addEventListener('click', function(){ setSubCtx(false); (i ? save : copy)(); });
+    return it.item;
   }));
   subCtxSubEl.hidden = false;
   // Beside the menu on its right, or on its left where the right has no
