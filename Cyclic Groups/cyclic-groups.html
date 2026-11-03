@@ -19776,29 +19776,22 @@ function setSubCtx(open, x, y, h, side){
       openCosets();
     });
     subCtxEl.appendChild(it);
+    // Export subgroup ⟨h⟩: the row's own line of the list (the pane's on its
+    // half of a merged row), copied or downloaded alone.
+    var at = subExports.length && subExports[0].gens ? subExports[0].gens.indexOf(h) : -1;
+    var ex = subExports[side === 1 && subExports[1] ? 1 : 0];
+    if (at !== -1 && ex){
+      var line = ex.lines[at], gen = (/^<([^>]*)>/.exec(line) || [null, elText(G, h)])[1];
+      subCtxEl.appendChild(subExportItem('cyclicGroups.ctxBeadExport', { bead: gen }, function(){ copyText(line); }, function(){
+        saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', ex.G.mode === 'additive' ? 'add' : 'mul', ex.G.n, ex === subExports[0] ? h : at].join('-') + '.txt');
+      }));
+    }
     subCtxEl.appendChild(subCtxRule());
   }
   // Export group, for each group in the list: a submenu of Copy, its list
   // as text, and Download, the same as a text file.
   subExports.forEach(function(ex){
-    var item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'fs-menu-item sub-ctx-export';
-    item.setAttribute('role', 'menuitem');
-    item.setAttribute('aria-haspopup', 'true');
-    item.setAttribute('aria-expanded', 'false');
-    var label = document.createElement('span');
-    translateInto(label, 'cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) });
-    var arrow = document.createElement('span');
-    arrow.className = 'ring-ctx-more';
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '\u203A';
-    item.appendChild(label);
-    item.appendChild(arrow);
-    var open = function(focus){ setSubCtxSub(item, focus, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); }); };
-    item.addEventListener('pointerenter', function(){ open(false); });
-    item.addEventListener('click', function(){ open(true); });
-    subCtxEl.appendChild(item);
+    subCtxEl.appendChild(subExportItem('cyclicGroups.subExportGroup', { group: groupNameNode(ex.G) }, function(){ copyText(subgroupsText(ex)); }, function(){ exportSubgroups(ex); }));
   });
   // The panel's switches: members coloured like their beads, and auto-shift.
   if (subExports.length) subCtxEl.appendChild(subCtxRule());
@@ -19858,8 +19851,29 @@ function setSubCtx(open, x, y, h, side){
   if (!(subCtxReturn instanceof HTMLElement) || subCtxReturn === document.body) subCtxReturn = null;
   showCtxAt(subCtxEl, x, y);
 }
-// The bottom panel menu's submenu, beside the Export group item that opened
-// it: Copy and Download.
+// An item of the bottom panel's menu opening the submenu of Copy and Download.
+function subExportItem(key, params, copy, save){
+  var item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'fs-menu-item sub-ctx-export';
+  item.setAttribute('role', 'menuitem');
+  item.setAttribute('aria-haspopup', 'true');
+  item.setAttribute('aria-expanded', 'false');
+  var label = document.createElement('span');
+  translateInto(label, key, params);
+  var arrow = document.createElement('span');
+  arrow.className = 'ring-ctx-more';
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.textContent = '\u203A';
+  item.appendChild(label);
+  item.appendChild(arrow);
+  var open = function(focus){ setSubCtxSub(item, focus, copy, save); };
+  item.addEventListener('pointerenter', function(){ open(false); });
+  item.addEventListener('click', function(){ open(true); });
+  return item;
+}
+// The bottom panel menu's submenu, beside the Export item that opened it:
+// Copy and Download.
 var subCtxSubEl = document.createElement('div');
 subCtxSubEl.className = 'fs-menu ring-ctx-sub';
 subCtxSubEl.setAttribute('role', 'menu');
