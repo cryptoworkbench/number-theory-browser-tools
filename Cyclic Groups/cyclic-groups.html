@@ -1844,7 +1844,10 @@
      row's name, the rest of the row still keeping to the right. */
   .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .fs-row-label{ order:-3; }
   .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .n-row{ order:-2; }
-  .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .op-toggle-row{ order:-1; margin-right:auto; }
+  .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .op-toggle-row{ order:-1; margin-right:auto; margin-left:-16px; }
+  /* The modulus keeps the room of its widest number, 100, after it, so the
+     pyramid next to it stays put as the number grows. */
+  .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .n-row > .n-spin{ font-family:var(--font-mono); margin-right:max(0px, calc((3 - var(--digits, 2)) * 1ch)); }
   :root .fs-win-body.is-ring > .fs-win-row-ctl > .facts.group-controls > .fs-row-label{ min-width:0; margin-right:0; }
   /* A curve's example curves sit on the row's first line too, between the
      identity and a and b, taking the room left there and cutting the curve
@@ -19642,7 +19645,12 @@ function exportRingPng(){
 // stepped or written by the page.
 [nInputEl, $('ec-a'), $('ec-b')].forEach(function(el){
   var own = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  var fit = function(){ el.style.setProperty('--digits', own.get.call(el).length || 2); };
+  var fit = function(){
+    var digits = own.get.call(el).length || 2;
+    el.style.setProperty('--digits', digits);
+    // The modulus' wrapper keeps the rest of three digits' room after it.
+    if (el === nInputEl) el.parentNode.style.setProperty('--digits', digits);
+  };
   Object.defineProperty(el, 'value', {
     configurable: true,
     get: function(){ return own.get.call(this); },
