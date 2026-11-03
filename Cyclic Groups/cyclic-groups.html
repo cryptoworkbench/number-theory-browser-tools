@@ -9739,10 +9739,12 @@ function syncNatHoverCtx(on){
 // sent by the ring holding it (isoSharedAll), its pick coming back to that
 // ring, which opens the pane again on the group picked.
 var paneSwaps = [];
+// The pane lists its own group's: the host's list comes only while the two
+// whole groups are locked.
 function swapChips(){
-  if (IS_ISOPANE || hostBlank()) return [];
+  if (IS_ISOPANE ? isoBlank : hostBlank()) return [];
   var chips = Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'));
-  if (!isoLinked() || !isoWholeMatch()) return chips;
+  if (IS_ISOPANE || !isoLinked() || !isoWholeMatch()) return chips;
   var p = new URLSearchParams(isoPane.q), curve = p.get('curve');
   return chips.filter(function(a){
     var c = a.getAttribute('data-iso-curve');
@@ -9753,7 +9755,7 @@ function swapChips(){
 function swapSpec(a){
   return { mode: a.getAttribute('data-iso-mode'), n: +a.getAttribute('data-iso-n'), curve: a.getAttribute('data-iso-curve'), label: a.getAttribute('data-iso-label') };
 }
-function swapSpecs(){ return IS_ISOPANE ? paneSwaps : swapChips().map(swapSpec); }
+function swapSpecs(){ return IS_ISOPANE && paneSwaps.length ? paneSwaps : swapChips().map(swapSpec); }
 // The list the pane offers: only while the two whole groups are locked.
 function paneSwapList(){ return isoLinked() && isoWholeMatch() ? swapChips().map(swapSpec) : []; }
 function swapChipOf(spec){
@@ -9804,7 +9806,9 @@ function setRingSwap(from, focus){
     else it.item.children[1].appendChild(swapName(spec));
     it.item.addEventListener('click', function(){
       setRingCtx(false);
-      if (IS_ISOPANE) tellHost({ isopane: 'swap', spec: spec });
+      // Linked, the ring holding the pane opens it again on the pick;
+      // unlinked, the pane takes it itself, as the ring on the left does.
+      if (IS_ISOPANE && !paneUnlinked()) tellHost({ isopane: 'swap', spec: spec });
       else swapHostGroup(swapChipOf(spec));
     });
     return it.item;
@@ -9839,6 +9843,17 @@ function swapHostGroup(a){
 }
 // The pane's pick: the pane opens again on it, as its chip opens it,
 // linked through the generator this ring's whole group is shown through.
+// A pick from the pane's own list, linked through a subgroup, is one of the
+// groups isomorphic to the pane's.
+function paneSwapChip(spec){
+  var H = isoPane ? isoPaneGroup() : null;
+  var a = H ? wholeIsoChips(H).find(function(c){
+    var s = swapSpec(c);
+    return s.mode === spec.mode && s.n === spec.n && s.curve === spec.curve;
+  }) : null;
+  if (a) a.setAttribute('href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen'), a.getAttribute('data-iso-curve')));
+  return a || null;
+}
 function swapPaneGroup(a){
   if (!a) return;
   openIsoPane(a, isoLinkGen());
@@ -18445,7 +18460,7 @@ window.addEventListener('message', function(e){
     barFormulasChanged();
   } else if (d.isopane === 'swap' && d.spec){
     var swapTo = readSwaps([d.spec])[0];
-    if (swapTo) swapPaneGroup(swapChipOf(swapTo));
+    if (swapTo) swapPaneGroup(swapChipOf(swapTo) || paneSwapChip(swapTo));
   } else if (d.isopane === 'fmap' && d.value && FMAP_POS.indexOf(d.value.order) !== -1 && FMAP_POS.indexOf(d.value.index) !== -1){
     state.fmapR = { order: d.value.order, index: d.value.index };
     // The pane's complexity is the bottom bar's too.
@@ -18758,10 +18773,8 @@ document.addEventListener('copy', function(e){
 
 // The selected subgroup is cyclic of order k: ℤ/kℤ, whose generator is the
 // image of the selected one under the natural isomorphism, 1.
-function renderIso(G){
-  hideIsoPreview();
-  if (IS_ISOPANE){ isoPanelEl.hidden = true; return; }
-  // The whole group, when cyclic: every other cyclic group of its order.
+// The whole group, when cyclic: every other cyclic group of its order.
+function wholeIsoChips(G){
   var groupChips = [];
   if (G.cyclic && G.order >= MIN_N){
     if (G.mode !== 'additive') groupChips.push(isoLink('additive', G.order, 1, additiveLabel(G.order)));
@@ -18770,8 +18783,14 @@ function renderIso(G){
     });
     groupChips = groupChips.concat(curveChips(G.order, G));
   }
-  isoGroupChipsEl.replaceChildren.apply(isoGroupChipsEl, groupChips);
+  return groupChips;
+}
+function renderIso(G){
+  hideIsoPreview();
+  // The pane keeps the list too, for its menu's Swap for an isomorphic group.
+  isoGroupChipsEl.replaceChildren.apply(isoGroupChipsEl, wholeIsoChips(G));
   syncIsoLinks();
+  if (IS_ISOPANE){ isoPanelEl.hidden = true; return; }
   var k = G.orders[state.gen];
   if (!(k >= MIN_N)){
     isoPanelEl.hidden = true;
