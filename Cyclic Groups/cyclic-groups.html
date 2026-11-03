@@ -8589,6 +8589,18 @@ var FSET = [0, 1].map(function(i){
     openFsetCtx(i, ptX(e), ptY(e));
   });
   w.grid.addEventListener('keydown', fsetGridKeys);
+  // The pane's group's window lives over the pane, beside the ring's half:
+  // it opens at the pane's left, a little in, and moves within the pane.
+  if (i === 1){
+    var paneLeft = function(body){ return body && workRight(body) < boxOf(body).right ? workRight(body) : null; };
+    w.win.lo = function(body){ var l = paneLeft(body); return l === null ? boxOf(body).left : l; };
+    w.win.hi = function(body){ return boxOf(body).right; };
+    w.win.home = function(){
+      var l = paneLeft(el.closest('.fs-win-body'));
+      if (l === null || el.hidden) return { x: 0, y: 0 };
+      return { x: Math.round(l + FSET_PANE_IN - (boxOf(el).left - w.win.at.x)), y: 0 };
+    };
+  }
   return w;
 });
 // Right-clicking a settings window opens its menu, the developer views:
@@ -8784,8 +8796,13 @@ function boxedBaseRow(row){
 // Whether a formula at the position token takes a logarithm: at compact
 // and complete, not at JN or an SLS form.
 function logTaken(token){ var c = fslOf(token).c; return c === 1 || c === 2; }
+// The pane's window, opened where it would stand left of the pane (as it
+// first does, or after the pane moved), opens at its home over the pane.
+var FSET_PANE_IN = 16;
 function placeFsetWin(i){
   var w = FSET[i];
+  var h = i === 1 ? w.win.home() : null;
+  if (h && w.win.at.x < h.x - FSET_PANE_IN) w.win.at = { x: h.x, y: h.y };
   w.win.place(w.win.at.x, w.win.at.y);
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card) unstack(w.el, w.win, card);
@@ -13933,6 +13950,10 @@ function plotFloor(body){
 var CURVE_BASE_W = 300;
 function plotWindow(el, gripEl, acrossLocked, fitW){
   var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
+  // Where a double click puts it back, and its room's left and right
+  // edges: by default the ring's half (lo, hi and home, set by a window
+  // that lives elsewhere, the pane's settings window over the pane).
+  win.home = function(){ return { x: 0, y: 0 }; };
   win.place = function(x, y){
     if (el.classList.contains('is-docked')) return;
     var body = el.closest('.fs-win-body');
@@ -13941,8 +13962,9 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
       var b = boxOf(body), r = boxOf(el), floor = plotFloor(body);
       var left = r.left + x - win.at.x, top = r.top + y - win.at.y;
       // One that goes across, locked to a second ring, has its pane too.
-      var right = acrossLocked && isoLinked() ? b.right : workRight(body);
-      x += Math.max(0, b.left - left) || Math.min(0, right - (left + r.width));
+      var right = win.hi ? win.hi(body) : acrossLocked && isoLinked() ? b.right : workRight(body);
+      var leftEdge = win.lo ? win.lo(body) : b.left;
+      x += Math.max(0, leftEdge - left) || Math.min(0, right - (left + r.width));
       // Kept over the floor, but never pushed up past the top rows: one
       // taller than the room reaches down instead.
       y += Math.max(topRowsBottom(body) - top, Math.min(0, floor - (top + r.height)));
@@ -13981,7 +14003,7 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
   };
   el.addEventListener('pointerup', endMoving);
   el.addEventListener('pointercancel', endMoving);
-  el.addEventListener('dblclick', function(e){ if (grip(e)) win.place(0, 0); });
+  el.addEventListener('dblclick', function(e){ if (grip(e)){ var h = win.home(); win.place(h.x, h.y); } });
   window.addEventListener('resize', function(){ if (win.at.x || win.at.y) win.place(win.at.x, win.at.y); });
   if (!gripEl) return win;
   gripEl.addEventListener('pointerdown', function(e){
