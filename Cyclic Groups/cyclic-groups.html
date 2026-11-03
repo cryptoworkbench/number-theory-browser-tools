@@ -4511,9 +4511,8 @@ function syncExpr(G){
   exprNowEl.textContent = now;
   exprSliderEl.setAttribute('aria-valuetext', now);
   syncExprHover(G);
-  // Hovered, the slider names itself and counts its generators: φ(n) of them
-  // in the additive group, φ(φ(n)) in the multiplicative one, whose order is φ(n).
-  exprSliderEl.title = translate(G.pts ? (ecMult(G) ? 'cyclicGroups.exprGensEc' : 'cyclicGroups.exprGensEcPow') : G.mode === 'additive' ? 'cyclicGroups.exprGensAdd' : 'cyclicGroups.exprGensMul', { n: G.n, count: max });
+  // Hovered, the slider names itself and counts its generators.
+  exprSliderEl.title = exprGensTip(G, false);
   thinExprStops();
 }
 // A slider's stops, one per generator, the one on at g (null: Natural)
@@ -4587,7 +4586,14 @@ function syncExprHover(G){
   var now = form(function(){ return exprNow(G, to); });
   exprHoverNowEl.textContent = now;
   exprHoverSliderEl.setAttribute('aria-valuetext', now);
-  exprHoverSliderEl.title = translate('cyclicGroups.exprHoverTitle');
+  exprHoverSliderEl.title = exprGensTip(G, true);
+}
+// A slider's tooltip, the No hover one's or the On hover one's (hover): its
+// name and the number of generators to choose from; on a curve written in
+// multiples kP, the generators P the points are written as multiples of.
+function exprGensTip(G, hover){
+  var kP = !!G.pts && ecMult(G);
+  return translate('cyclicGroups.' + (kP ? 'exprGensEc' : 'exprGens') + (hover ? 'Hover' : ''), { count: G.generators.length });
 }
 // Both icons are built once, CSS showing the one that fits: replacing the
 // icon under the pointer as it is clicked would leave the button hovered.
