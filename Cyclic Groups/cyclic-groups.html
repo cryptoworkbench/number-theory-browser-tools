@@ -12157,9 +12157,12 @@ function flogMath(G, base, k, pt, fs, half){
   box.className = 'flog-math-box';
   box.style.fontSize = num(fs) + 'px';
   box.style.gridTemplateColumns = '1fr ' + num(2 * half) + 'px 1fr';
-  var b = G.pts ? mPoint(G.pts[base]) : mn(base);
-  var left = mEl('math', [mrow(mEl('msub', [mi('log'), b]), mo('\u2061'), mo('(', true))], { dir: 'ltr' });
-  var right = mEl('math', [mrow(mo(')', true), mo('='), mn(k))], { dir: 'ltr' });
+  var logB = function(){ return mEl('msub', [mi('log'), G.pts ? mPoint(G.pts[base]) : mn(base)]); };
+  var left = mEl('math', [mrow(logB(), mo('\u2061'), mo('(', true))], { dir: 'ltr' });
+  // The two halves are typeset apart, and a bracket stretches to its row:
+  // the second carries log_b unseen and taking no room, so its ) stretches
+  // and sits as the first half's ( does.
+  var right = mEl('math', [mrow(mEl('mpadded', [mEl('mphantom', [logB()])], { width: '0' }), mo(')', true), mo('='), mn(k))], { dir: 'ltr' });
   left.setAttribute('class', 'is-left');
   box.appendChild(left);
   box.appendChild(document.createElement('span'));
