@@ -731,7 +731,7 @@
       opAbbrEc: 'Elliptic curve',
       opAbbrPa: 'Elliptic Curve point addition',
       curvePlotTitleName: '{curve} point plot',
-      combineUnfold: 'Unfold: reveal generalized expression.',
+      combineUnfold: 'Unfold: reveal generalized expression',
       combineFold: 'Fold away the powers of {g}',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
