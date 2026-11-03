@@ -194,7 +194,7 @@
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
    now name that menu item), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
-   barSwapCols (its grid's swap of what the Size and Index columns hold), formulaGrip (the main area's drag grip beside each formula), logBaseFollow, logBaseFollowTip and logBaseFollowOff (the settings window's Follow expression slider button), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
+   barSwapCols (its grid's swap of what the Size and Index columns hold), formulaGrip (the main area's drag grip beside each formula), logBaseFollow, logBaseFollowTip and logBaseFollowOff (the settings window's Follow expression slider button), flogMenu, flogTitle, flogShow, flogIntro, flogNoGen and flogWheel (the Fixed logarithm window opened from the ring's right-click menu, its bottom-bar task, its sentence and its wheel switch), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
    settings window per group, the ring's and an open pane's, its right-click
    menu of developer views (its own, Sliders and Map),
    and the menu items opening it from the ring, a formula and a row), fslTitleComplexity and
@@ -1180,6 +1180,12 @@
       logBaseFollow: 'Follow expression slider',
       logBaseFollowOff: 'Not every generator is a suitable base for this formula, so the base cannot follow the expression slider',
       logBaseFollowTip: 'Use the generator the expression slider is on as the base for the logarithm, following the slider as it moves',
+      flogMenu: 'Fixed logarithm',
+      flogTitle: 'Fixed logarithm',
+      flogShow: 'Show the fixed logarithm',
+      flogIntro: 'The rightmost bead always shows its logarithm, to the base picked here:',
+      flogNoGen: 'This group is not cyclic, so it has no generator to use as the base of a logarithm.',
+      flogWheel: 'Scroll wheel: over these boxes, the wheel steps the base of the logarithm through the generators',
       fsetViewStandard: 'Standard',
       fsetTabSliders: '2-dimensional slider',
       fslTitleComplexity: 'Complexity:',
