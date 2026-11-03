@@ -9729,8 +9729,8 @@ window.addEventListener('storage', function(e){
   render();
 });
 function syncNatHoverCtx(on){
-  var sign = syncSignCtx(on), dhItem = syncDhCtx(on), swap = syncSwapCtx(on);
-  return sign || dhItem || swap;
+  var sign = syncSignCtx(on), dhItem = syncDhCtx(on), swap = syncSwapCtx(on), other = syncOtherCtx(on);
+  return sign || dhItem || swap || other;
 }
 // Under them, on a cyclic group, Swap for an isomorphic group: a submenu
 // of the groups isomorphic to it, each taking this ring's place. On the
@@ -9738,7 +9738,7 @@ function syncNatHoverCtx(on){
 // locked the pane's group is left out, and the pane offers the same list,
 // sent by the ring holding it (isoSharedAll), its pick coming back to that
 // ring, which opens the pane again on the group picked.
-var paneSwaps = [];
+var paneSwaps = [], paneOthers = [];
 // The pane lists its own group's: the host's list comes only while the two
 // whole groups are locked.
 function swapChips(){
@@ -9756,6 +9756,30 @@ function swapSpec(a){
   return { mode: a.getAttribute('data-iso-mode'), n: +a.getAttribute('data-iso-n'), curve: a.getAttribute('data-iso-curve'), label: a.getAttribute('data-iso-label') };
 }
 function swapSpecs(){ return IS_ISOPANE && paneSwaps.length ? paneSwaps : swapChips().map(swapSpec); }
+// A group's own entry, as a chip for it would read.
+function groupSpec(G){
+  if (G.pts) return { mode: 'elliptic', n: G.n, curve: [G.n, G.a, G.b].join(','), label: ecChipLabel(G.n, G.a, G.b) };
+  return { mode: G.mode, n: G.n, curve: null, label: G.label };
+}
+// Two groups are isomorphic when their invariant factors agree.
+function groupsAlike(G, H){ return G.order === H.order && invariantFactors(G).join() === invariantFactors(H).join(); }
+// The other ring's group and the groups isomorphic to it, while this ring's
+// is not, and the two are not linked: the pane's list comes from the ring
+// holding it (isoSharedAll), the holder's is built from the pane's query.
+function otherSpecs(){
+  if (IS_ISOPANE) return paneUnlinked() ? paneOthers : [];
+  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn || isoLinked()) return [];
+  var H = isoPaneGroup();
+  if (!H || groupsAlike(drawn.G, H)) return [];
+  return [groupSpec(H)].concat(wholeIsoChips(H).map(swapSpec));
+}
+// The list the pane gets: this ring's group and its isomorphic groups.
+function paneOtherList(){
+  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn || isoLinked()) return [];
+  var H = isoPaneGroup();
+  if (!H || groupsAlike(drawn.G, H)) return [];
+  return [groupSpec(drawn.G)].concat(Array.prototype.map.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'), swapSpec));
+}
 // The list the pane offers: only while the two whole groups are locked.
 function paneSwapList(){ return isoLinked() && isoWholeMatch() ? swapChips().map(swapSpec) : []; }
 function swapChipOf(spec){
@@ -9789,6 +9813,53 @@ function syncSwapCtx(on){
   it.item.addEventListener('click', function(){ setRingSwap(it.item, true); });
   ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
   return it.item;
+}
+// Next to it, while the two rings' groups are not isomorphic: Swap for a
+// group isomorphic to the other ring's, a submenu of that group and the
+// groups isomorphic to it, each taking this ring's place.
+function syncOtherCtx(on){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-other').forEach(function(el){ el.remove(); });
+  var specs = on && drawn && !IS_MOBILE ? otherSpecs() : [];
+  if (!specs.length) return null;
+  var it = ctxItem('menuitem', '', true);
+  translateInto(it.item.children[1], 'cyclicGroups.swapOtherMenu', { group: swapName(specs[0]) });
+  it.mark.textContent = '\u21c6';
+  it.item.classList.add('ring-ctx-other');
+  it.item.addEventListener('pointerenter', function(){ setRingOther(it.item, false); });
+  it.item.addEventListener('click', function(){ setRingOther(it.item, true); });
+  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
+  return it.item;
+}
+function setRingOther(from, focus){
+  setRingCopy(null);
+  var specs = otherSpecs();
+  if (!specs.length) return;
+  ringCopyFrom = from;
+  from.setAttribute('aria-expanded', 'true');
+  ringCopyEl.hidden = false;
+  ringCopyEl.setAttribute('aria-label', from.children[1].textContent);
+  ringCopyEl.replaceChildren.apply(ringCopyEl, specs.map(function(spec){
+    var it = ctxItem('menuitem', '');
+    it.item.children[1].appendChild(swapName(spec));
+    it.item.addEventListener('click', function(){
+      setRingCtx(false);
+      takeGroupSpec(spec);
+    });
+    return it.item;
+  }));
+  placeRingSub(from, focus);
+}
+// This ring takes the group, on its first generator, as the isomorphic
+// swap's group comes (swapHostGroup); the rings being unlinked, the other
+// ring hears of it as of any group typed here.
+function takeGroupSpec(spec){
+  if (!drawn) return;
+  var href = new URLSearchParams(new URL(isoHref(spec.mode, spec.n, 0, spec.curve), location.href).search), q = new URLSearchParams();
+  ['mode', 'n', 'curve', 'bygen'].forEach(function(k){ if (href.has(k)) q.set(k, href.get(k)); });
+  q.delete('gen');
+  if (!queryGroup(q)) return;
+  applyRingQuery(q);
+  syncIsoPaneLabels();
 }
 function setRingSwap(from, focus){
   setRingCopy(null);
@@ -17425,7 +17496,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -17479,6 +17550,7 @@ function applyIsoShared(d){
   var flag = function(v){ return typeof v === 'boolean'; };
   var hex = function(v){ return v === null || (typeof v === 'string' && HEX_COLOR.test(v)); };
   paneSwaps = readSwaps(d.swaps);
+  paneOthers = readSwaps(d.others);
   if (Number.isInteger(d.zoom)) applyZoom(d.zoom);
   if (Number.isFinite(d.foot) && d.foot >= 0 && d.foot < 4000) document.documentElement.style.setProperty('--pane-foot', Math.round(d.foot) + 'px');
   if (flag(d.colors)) state.colors = d.colors;

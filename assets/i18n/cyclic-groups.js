@@ -147,7 +147,9 @@
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
    exchange worked with G as g, and its window), and swapIsoMenu (the ring
    menu's Swap for an isomorphic group on a cyclic group, and swapIsoReduce
-   its entry for the group's structure ⟨ℤ/|G|ℤ, +⟩), and genInWhole and
+   its entry for the group's structure ⟨ℤ/|G|ℤ, +⟩, and swapOtherMenu, its
+   sibling for a group isomorphic to the other ring's while the two are not
+   isomorphic), and genInWhole and
    genInProper (the tip on the subgroup row's ∈, ⟨h⟩ the whole group or not), and
    genSwitch (the subgroup row's on/off switch), genBeads and genBeadsTitle
    (its Follow bead clicks button, picking G by a click on a bead) and
@@ -1104,6 +1106,7 @@
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoMenu: 'Swap for an isomorphic group',
       swapIsoReduce: 'Reduce to {group}',
+      swapOtherMenu: 'Swap for a group isomorphic to {group}',
       genInWhole: '∈ == ⊆ ⇔ {g} is a generator/primitive root of the group {group}',
       genInProper: '∈ != ⊆ ⇔ {g} is NOT a generator/primitive root of the group {group}',
       genSwitch: 'Show the subgroup',
