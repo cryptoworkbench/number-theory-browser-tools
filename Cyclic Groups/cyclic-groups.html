@@ -11924,20 +11924,32 @@ function openLapKey(){
 var flogEl = $('flog-win'), flogBodyEl = $('flog-body');
 var flogWin = plotWindow(flogEl, null);
 var flogOn = false, flogOpen = false, flogTaskShown = false, flogBuilt = null;
-var flogBase = null, flogFollow = false, flogWheelOn = false;
+// flogFollow: null, or what the base follows, 'expr' (the expression
+// slider) or 'arrange' (the circle arrangement).
+var flogBase = null, flogFollow = null, flogWheelOn = false;
 // The ring the label is drawn on (flogCtx), and the bead it is on with
 // every bead's last angle from the rightmost place (flogAt).
 // The label lives in its own layer, which the ring's redraws leave alone;
 // flogShown is the bead its k was last written for.
 var flogCtx = null, flogAt = null, flogShown = null, flogLayerEl = $('flog-layer');
 function flogAvail(G){ return !!G && !IS_MOBILE && !IS_ISOPANE; }
-// The base: the expression slider's generator while following it, else the
-// box picked, which starts as the one the slider gives.
+// The base: the expression slider's generator, or the circle arrangement's,
+// while following it, else the box picked, which starts as the one the
+// slider gives. A base followed is kept as the box's, for letting go.
 function flogBaseOf(G){
   var gens = G.generators, slider = logBase(G);
-  if (flogFollow && gens.indexOf(slider) !== -1) return slider;
+  var followed = flogFollow === 'expr' ? slider : flogFollow === 'arrange' ? flogArrangeBase(G) : null;
+  if (followed !== null && gens.indexOf(followed) !== -1) return (flogBase = followed);
   if (gens.indexOf(flogBase) === -1) flogBase = gens.indexOf(slider) !== -1 ? slider : gens[0];
   return flogBase;
+}
+// The generator whose powers set the beads round the circle: the Circle
+// arrangement row's; Sequential, in ℤ/nℤ, 1 (the sequential order is its
+// multiples); none while the units sit Sequential.
+function flogArrangeBase(G){
+  if (G.pts || (G.cyclic && state.bygen)) return arrangeBy(G);
+  if (G.mode === 'additive' && G.generators.indexOf(1) !== -1) return 1;
+  return null;
 }
 function openFlog(){
   var G = drawn && drawn.G;
@@ -11975,14 +11987,17 @@ function syncFlogWin(G){
     flogTaskShown = task;
     syncBarFormulas();
   }
+  // Following the arrangement while the units sit Sequential: let go,
+  // keeping the base it had.
+  if (flogFollow === 'arrange' && flogArrangeBase(G) === null) flogFollow = null;
   if (flogEl.hidden){ flogBuilt = null; return; }
   var base = G.generators.length ? flogBaseOf(G) : null;
-  var built = [G.key, G.generators.join(','), base, flogFollow, flogWheelOn, getLang()].join('|');
+  var built = [G.key, G.generators.join(','), base, flogFollow, flogArrangeBase(G) !== null, flogWheelOn, getLang()].join('|');
   if (built === flogBuilt) return;
   flogBuilt = built;
   // Focus inside comes back to the same control.
   var held = flogEl.contains(document.activeElement) ? document.activeElement : null;
-  var heldAt = !held ? null : held.closest('.lb-follow') ? '.lb-follow' : held.closest('.lb-scroll') ? '.lb-scroll' : held.closest('.lb-box') ? '.lb-list input:checked' : null;
+  var heldAt = !held ? null : held.closest('.lb-follow-expr') ? '.lb-follow-expr' : held.closest('.lb-follow-arrange') ? '.lb-follow-arrange' : held.closest('.lb-scroll') ? '.lb-scroll' : held.closest('.lb-box') ? '.lb-list input:checked' : null;
   var ctl = document.createElement('div');
   ctl.className = 'fset-gen';
   var note = document.createElement('p');
@@ -11991,7 +12006,8 @@ function syncFlogWin(G){
   ctl.appendChild(note);
   if (base !== null){
     ctl.appendChild(boxedBaseRow(flogBaseRow(G, base)));
-    ctl.appendChild(flogFollowButton(G));
+    ctl.appendChild(flogFollowButton(G, 'expr'));
+    ctl.appendChild(flogFollowButton(G, 'arrange'));
   }
   flogBodyEl.replaceChildren(ctl);
   var back = heldAt && flogBodyEl.querySelector(heldAt);
@@ -12033,7 +12049,7 @@ function flogBaseRow(G, base){
 }
 function setFlogBase(g){
   if (!drawn) return;
-  flogFollow = false;
+  flogFollow = null;
   flogBase = g;
   syncFlogWin(drawn.G);
   placeFlog();
@@ -12071,19 +12087,28 @@ function stepFlogBase(by){
   var gens = drawn.G.generators, at = Math.max(0, gens.indexOf(flogBaseOf(drawn.G)));
   setFlogBase(gens[((at + by) % gens.length + gens.length) % gens.length]);
 }
-// Follow expression slider, under the boxes: pressed, the base is the
-// slider's generator, moving with it; a box picked lets go of it.
-function flogFollowButton(G){
+// Under the boxes, Follow expression slider ('expr') and Follow circle
+// arrangement ('arrange'): pressed, the base is that generator, moving with
+// it; pressing one lets go of the other, and a box picked lets go of both.
+// Follow circle arrangement is off while no generator sets the beads
+// round (the units Sequential).
+function flogFollowButton(G, what){
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'lb-skip lb-anyway lb-follow';
-  btn.setAttribute('aria-pressed', flogFollow ? 'true' : 'false');
-  btn.textContent = translate('cyclicGroups.logBaseFollow');
-  btn.title = translate('cyclicGroups.logBaseFollowTip');
+  btn.className = 'lb-skip lb-anyway lb-follow lb-follow-' + what;
+  var ok = what === 'expr' || flogArrangeBase(G) !== null;
+  btn.setAttribute('aria-pressed', flogFollow === what ? 'true' : 'false');
+  if (!ok){
+    btn.classList.add('is-off');
+    btn.setAttribute('aria-disabled', 'true');
+  }
+  btn.textContent = translate(what === 'expr' ? 'cyclicGroups.logBaseFollow' : 'cyclicGroups.flogFollowArrange');
+  btn.title = translate(what === 'expr' ? 'cyclicGroups.logBaseFollowTip' : ok ? 'cyclicGroups.flogFollowArrangeTip' : 'cyclicGroups.flogFollowArrangeOff');
   btn.addEventListener('click', function(){
+    if (!ok) return;
     // Let go, it keeps the base it was following.
     flogBase = flogBaseOf(G);
-    flogFollow = !flogFollow;
+    flogFollow = flogFollow === what ? null : what;
     if (!drawn) return;
     syncFlogWin(drawn.G);
     placeFlog();
@@ -18856,7 +18881,7 @@ function stateQuery(){
   // The fixed logarithm: on (open or minimized), and its base.
   if (flogOn) q.set('flog', flogOpen ? 'open' : 'min');
   else q.delete('flog');
-  if (flogOn && flogFollow) q.set('flogfollow', '1');
+  if (flogOn && flogFollow) q.set('flogfollow', flogFollow === 'expr' ? '1' : 'arrange');
   else q.delete('flogfollow');
   if (flogOn && !flogFollow && flogBase !== null) q.set('flogbase', String(flogBase));
   else q.delete('flogbase');
@@ -21104,7 +21129,7 @@ function loadState(query, link){
   // A base that is no generator of the group is resolved as the window fills.
   flogOn = query.get('flog') === 'open' || query.get('flog') === 'min';
   flogOpen = query.get('flog') === 'open';
-  flogFollow = query.get('flogfollow') === '1';
+  flogFollow = query.get('flogfollow') === '1' ? 'expr' : query.get('flogfollow') === 'arrange' ? 'arrange' : null;
   var flogQ = intOrNull(query.get('flogbase'));
   flogBase = flogQ !== null && flogQ >= 0 ? flogQ : null;
   syncSolidWins();
