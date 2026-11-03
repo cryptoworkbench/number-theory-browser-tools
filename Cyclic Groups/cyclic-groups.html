@@ -7462,7 +7462,7 @@ function mathToAscii(node){
   return asc(node).replace(/ +/g, ' ').trim();
 }
 var ringCtxReturn = null;
-function setRingCtx(open, x, y, expr, fml){
+function setRingCtx(open, x, y, expr, fml, bead){
   if (!open){
     if (ringCtxEl.hidden) return;
     ringCtxEl.hidden = true;
@@ -7477,7 +7477,7 @@ function setRingCtx(open, x, y, expr, fml){
   });
   syncExprCtx(expr === true ? 'gens' : expr || null);
   syncFormulaCtx(fml || null);
-  var nat = syncNatHoverCtx(!expr && !fml);
+  var nat = syncNatHoverCtx(!expr && !fml, bead === undefined ? null : bead);
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
   ringCtxEl.hidden = false;
   ringCtxAt = [x, y];
@@ -9750,8 +9750,8 @@ window.addEventListener('storage', function(e){
   setRevealHot(null);
   render();
 });
-function syncNatHoverCtx(on){
-  var sign = syncSignCtx(on), dhItem = syncDhCtx(on), swap = syncSwapCtx(on), other = syncOtherCtx(on);
+function syncNatHoverCtx(on, bead){
+  var sign = syncSignCtx(on), dhItem = syncDhCtx(on, bead), swap = syncSwapCtx(on), other = syncOtherCtx(on);
   return sign || dhItem || swap || other;
 }
 // Under them, on a cyclic group, Swap for an isomorphic group: a submenu
@@ -9951,22 +9951,32 @@ function swapPaneGroup(a){
   if (!a) return;
   openIsoPane(a, isoLinkGen());
 }
-// Under them, Diffie–Hellman worked with G as g (see openDh).
-function syncDhCtx(on){
+// Under them, Diffie–Hellman worked with an element as g (see openDh), one
+// item for each base on offer, each once: the bead right-clicked first,
+// then G while the subgroup is on, then the element the expression slider
+// writes the elements as powers of (none while it is on Natural).
+function syncDhCtx(on, bead){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-dh').forEach(function(el){ el.remove(); });
-  if (!on || !drawn || IS_MOBILE || drawn.G.els.indexOf(state.gen) === -1) return null;
-  var G = drawn.G, g = state.gen;
-  var it = ctxItem('menuitem', translate('cyclicGroups.dhMenu', { g: elText(G, g) }));
-  it.mark.textContent = 'DH';
-  it.mark.classList.add('is-dh');
-  it.item.classList.add('ring-ctx-dh');
-  it.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  it.item.addEventListener('click', function(){
-    setRingCtx(false);
-    if (drawn && drawn.G.els.indexOf(g) !== -1) openDh(drawn.G, g);
+  if (!on || !drawn || IS_MOBILE) return null;
+  var G = drawn.G, bases = [];
+  [bead, state.noSub ? null : state.gen, exprBy(G)].forEach(function(g){
+    if (g !== null && G.els.indexOf(g) !== -1 && bases.indexOf(g) === -1) bases.push(g);
   });
-  ringCtxEl.insertBefore(it.item, ringCtxEl.querySelector(':scope > .fs-menu-head'));
-  return it.item;
+  var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
+  bases.forEach(function(g){
+    var it = ctxItem('menuitem', translate('cyclicGroups.dhMenu', { g: elText(G, g) }));
+    it.mark.textContent = 'DH';
+    it.mark.classList.add('is-dh');
+    it.item.classList.add('ring-ctx-dh');
+    it.item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    it.item.addEventListener('click', function(){
+      setRingCtx(false);
+      if (drawn && drawn.G.els.indexOf(g) !== -1) openDh(drawn.G, g);
+    });
+    ringCtxEl.insertBefore(it.item, head);
+    if (!first) first = it.item;
+  });
+  return first;
 }
 // At the menu's top, on a cyclic curve: its points written as multiples.
 function syncSignCtx(on){
@@ -10003,7 +10013,9 @@ function placeRingCtx(){
 ringSvgEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE) return; // a long press is no right click on a phone
-  setRingCtx(true, ptX(e), ptY(e));
+  // On a bead, Diffie–Hellman is offered with it as g first.
+  var bead = e.target.closest ? e.target.closest('circle.bead[data-el]') : null;
+  setRingCtx(true, ptX(e), ptY(e), undefined, undefined, bead ? +bead.getAttribute('data-el') : null);
 });
 exprSlotEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
