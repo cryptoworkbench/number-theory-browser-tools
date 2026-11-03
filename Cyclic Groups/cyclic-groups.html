@@ -14065,10 +14065,10 @@ function combineExtraLines(G){
   return ((G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0) + unfoldLines(G);
 }
 // Under aᵏ's or a ∗ b's formulas, while the element expression slider writes the
-// elements as powers of a generator g (not Natural), the unfold button:
-// open, a line under the formulas writes out how the generic ∗ became this
-// group's × or +, as a product ∏ or a sum ∑ of g's (see drawCombineLine).
-// The button takes a line, the unfolded line another.
+// elements as powers of a generator g (not Natural), the powers line writes
+// out how the generic ∗ became this group's × or +, as a product ∏ or a sum
+// ∑ of g's (see drawCombineLine), and the unfold button opens, under it,
+// the same in g's powers alone. The button takes a line, the unfolded line another.
 var combineUnfold = false;
 function unfoldShown(G){
   return !G.pts && comboLive(G) && (combo.k !== null || combo.b !== null) && exprBy(G) !== null;
@@ -14078,7 +14078,7 @@ function unfoldLines(G){ return unfoldShown(G) ? 1 + (combineUnfold ? 1 : 0) : 0
 function drawCombineUnfold(G, y){
   if (!unfoldShown(G)) return;
   var by = y - 13;
-  var name = translate(combineUnfold ? 'cyclicGroups.combineFold' : 'cyclicGroups.combineUnfold', { op: G.mode === 'multiplicative' ? '×' : '+' });
+  var name = translate(combineUnfold ? 'cyclicGroups.combineFold' : 'cyclicGroups.combineUnfold', { g: baseText(G, exprBy(G)) });
   var btn = svgEl('g', { 'class': 'ring-combine-unfold', role: 'button', tabindex: '0', 'aria-label': name, 'aria-expanded': String(combineUnfold) });
   btn.setAttribute('data-title', name);
   btn.appendChild(svgEl('rect', { x: num(SIZE / 2 - 17), y: num(by), width: 34, height: 18, rx: 9 }));
@@ -14349,10 +14349,10 @@ function drawCombineLine(G, y){
       // resolved (through φ(n) multiplicatively), ≡ g^m.
       var i = X(log[a]), ik = i * k, m = log[c];
       r.push([[null, '(' + B(g)], ['a', supSigned(i)], [null, ')'], ['b', supSigned(k)]], [null, '≡']);
-      // Unfolded, a second line repeats A ≡ aᵏ ≡ (gⁱ)ᵏ ≡, every ≡ in the
-      // line above's columns, then writes g^(i × k) as i × k g's under ∏ (∑ additively),
-      // and again with i × k worked out.
-      if (combineUnfold && unfoldShown(G)){
+      // The line shown repeats A ≡ aᵏ ≡ (gⁱ)ᵏ ≡, every ≡ in the powers
+      // line's columns (unfolded under it), then writes g^(i × k) as i × k
+      // g's under ∏ (∑ additively), and again with i × k worked out.
+      if (unfoldShown(G)){
         var sym = mul ? '∏' : '∑';
         var fold = r.slice().concat([[[null, sym, 'bigop'], ['a', signed(i), 'hi'], [null, ' × ', 'hi'], ['b', R(k), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]], [null, '≡'],
           [[null, sym, 'bigop'], ['c', signed(ik), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]]);
@@ -14394,8 +14394,8 @@ function drawCombineLine(G, y){
         if (mul && !state.subSimplify) red('φ(' + G.n + ')');
         red(G.order);
       }
-      // Unfolded, the line below has one step more here (∏ to m): an empty
-      // pair keeps gᵐ and what follows over its own.
+      // The ∏ line has one step more here (∏ to m): an empty pair keeps
+      // gᵐ and what follows under its own.
       if (fold) r.push([null, ''], [null, '']);
       r.push([[null, B(g)], ['c', supSigned(t)]], [null, '≡']);
       m = t;
@@ -14426,8 +14426,7 @@ function drawCombineLine(G, y){
       if (Math.abs(raw) <= 1e15 && raw !== V(c)) r.push(['c', signed(raw)], [null, '≡']);
     }
     r.push(['c', E(c)], [null, mod]);
-    rows = [r];
-    if (fold) rows.push(fold);
+    rows = !fold ? [r] : combineUnfold ? [fold, r] : [fold];
   } else {
     var a = combo.a, b = combo.b, c = G.combine(a, b);
     var raw = G.mode === 'multiplicative' ? V(a) * V(b) : V(a) + V(b);
@@ -14458,12 +14457,12 @@ function drawCombineLine(G, y){
         if (G.mode === 'multiplicative' && !state.subSimplify) redE('φ(' + G.n + ')');
         redE(n);
       }
-      // Unfolded, a third line repeats gⁱ ∗ gʲ ≡ gⁱ × gʲ ≡, every ≡ in the
-      // lines above's columns, then writes g^(i + j) as i + j g's under ∏
+      // In place of the powers line (unfolded under it), a line repeats
+      // gⁱ ∗ gʲ ≡ gⁱ × gʲ ≡, every ≡ in the other lines' columns, then writes g^(i + j) as i + j g's under ∏
       // (∑ additively), again with i + j worked out, reduced modulo the
       // group's cardinality in the line above's steps, folded back up into
       // g's power and, as the line above ends, the element modulo n.
-      if (combineUnfold && unfoldShown(G)){
+      if (unfoldShown(G)){
         var sym = G.mode === 'multiplicative' ? '∏' : '∑';
         var prod = function(top){ return [[null, sym, 'bigop']].concat(top, [[null, 'i=1', 'lo'], [null, B(g)]]); };
         fold = pr.slice(0, 8).concat([prod([['a', signed(i), 'hi'], [null, j < 0 ? ' − ' : ' + ', 'hi'], ['b', String(Math.abs(j)), 'hi']]), [null, '≡'],
@@ -14483,8 +14482,8 @@ function drawCombineLine(G, y){
           if (V(g) * kc !== V(c)) fold.push([null, '≡'], ['c', signed(V(g) * kc)]);
         }
         fold.push([null, '≡'], ['c', E(c)], [null, mod]);
-        // The line below has one step more before gᵏ (∏ to the sum): an
-        // empty pair keeps gᵏ over its own.
+        // The ∏ line has one step more before gᵏ (∏ to the sum): an
+        // empty pair keeps gᵏ under its own.
         pr.push([null, ''], [null, '']);
       }
       tipAt = 8;
@@ -14495,8 +14494,8 @@ function drawCombineLine(G, y){
       if (fold) while (pr.length < fold.length - 2) pr.push([null, '']);
       pr.push(['c', E(c)], [null, mod]);
       while (r0.length < pr.length - 2) r0.push([null, '']);
-      rows.push(pr);
-      if (fold) rows.push(fold);
+      rows.push(fold || pr);
+      if (fold && combineUnfold) rows.push(pr);
       tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
         { g: E(g), i: signed(i), j: R(j), sum: signed(sum), n: n, k: signed(kc), gn: pow(n), gsum: pow(sum), gk: pow(kc) });
     }
