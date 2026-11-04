@@ -1116,6 +1116,17 @@
   :root:not(.is-mobile) .curve-plot-svg.dhc-svg{ cursor:grab; touch-action:none; }
   :root:not(.is-mobile) .curve-plot-svg.dhc-svg.is-turning{ cursor:grabbing; }
   .dhc-svg{ user-select:none; -webkit-user-select:none; }
+  /* The picture fills whatever box the sized window gives it: its viewBox is
+     fitted by the browser, and what is zoomed or moved never spills over the
+     head and the legend. */
+  .dhc-view{ position:relative; flex:0 1 auto; min-height:0; }
+  .dhc-plot.is-sized > .dhc-view{ flex:1 1 0; }
+  .dhc-plot.is-sized .dhc-svg{ height:100%; }
+  .curve-plot-svg.dhc-svg{ overflow:hidden; }
+  .dhc-nav{ position:absolute; top:4px; right:4px; display:flex; gap:3px; }
+  .dhc-nav > .fs-win-btn{ width:20px; height:20px; }
+  /* A cylinder filling the Ring window leaves the exchange's window above it. */
+  .fs-win-body.is-ring:has(> .dhc-plot:not([hidden])) > .dh-plot{ z-index:4; }
   .dhc-svg:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .dhc-wall, .dhc-cap{ fill:none; stroke:var(--panel-border); stroke-width:1; }
   .dhc-rim{ fill:none; stroke:var(--text-dim); stroke-width:1; opacity:.5; }
@@ -3080,10 +3091,10 @@
           <div class="dh-body" id="dh-body"></div><div class="curve-grip" id="dh-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <section class="curve-plot dhc-plot" id="dhc-plot" aria-labelledby="dhc-plot-title" hidden>
-          <div class="lap-key-head"><h2 id="dhc-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="dhc-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
-          <svg class="curve-plot-svg dhc-svg" id="dhc-svg" viewBox="0 0 300 360" role="img" tabindex="0"></svg>
+          <div class="lap-key-head"><h2 id="dhc-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="dhc-fill" aria-pressed="false" title="Fill the Ring window" aria-label="Fill the Ring window" data-i18n-title="cyclicGroups.dhCylFill" data-i18n-aria-label="cyclicGroups.dhCylFill"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2 4.5V2h2.5"/><path d="M7.5 2H10v2.5"/><path d="M10 7.5V10H7.5"/><path d="M4.5 10H2V7.5"/></svg></button><button type="button" class="fs-win-btn lap-key-min is-close" id="dhc-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
+          <div class="dhc-view"><svg class="curve-plot-svg dhc-svg" id="dhc-svg" viewBox="0 0 300 360" role="img" tabindex="0"></svg><div class="dhc-nav"><button type="button" class="fs-win-btn" id="dhc-zoom-out" title="Zoom out" aria-label="Zoom out" data-i18n-title="cyclicGroups.ctxZoomOut" data-i18n-aria-label="cyclicGroups.ctxZoomOut"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/></svg></button><button type="button" class="fs-win-btn" id="dhc-zoom-in" title="Zoom in" aria-label="Zoom in" data-i18n-title="cyclicGroups.ctxZoomIn" data-i18n-aria-label="cyclicGroups.ctxZoomIn"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/><line x1="6" y1="2.5" x2="6" y2="9.5"/></svg></button><button type="button" class="fs-win-btn" id="dhc-reset" title="Reset the view: turn, tilt, zoom and position" aria-label="Reset the view: turn, tilt, zoom and position" data-i18n-title="cyclicGroups.dhCylReset" data-i18n-aria-label="cyclicGroups.dhCylReset"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M9.5 6A3.5 3.5 0 1 1 8.4 3.5"/><path d="M8 1.3 8.4 3.5 6.2 3.5"/></svg></button></div></div>
           <p class="dhc-legend"><span class="dhc-key"><span class="dhc-sw is-alice"></span><span data-i18n="cyclicGroups.dhAlice">Alice</span></span><span class="dhc-key"><span class="dhc-sw is-bob"></span><span data-i18n="cyclicGroups.dhBob">Bob</span></span><span class="dhc-key"><span class="dhc-sw is-key"></span><span data-i18n="cyclicGroups.dhCylKeyLegend">Shared key K</span></span></p>
-          <p class="dh-note dhc-hint" data-i18n="cyclicGroups.dhCylHint">Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag the picture, or use the arrow keys, to turn it.</p>
+          <p class="dh-note dhc-hint" data-i18n="cyclicGroups.dhCylHint">Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag to turn and tilt it, Shift+drag to move it, scroll to zoom, double-click to reset (keys: arrows, Shift+arrows, + and −, 0). The corner grip or the fill button makes the window larger.</p>
           <div class="curve-grip" id="dhc-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <section class="curve-plot fmap-win" id="fset-win-0" data-side="0" aria-labelledby="fset-title-0" hidden>
@@ -13330,9 +13341,10 @@ function isoTakeDh(d, m){
 // hop. Alice's and Bob's states are threads rising through the slices. A
 // drag on the picture turns the cylinder; the window's head moves it.
 var dhcPlotEl = $('dhc-plot'), dhcSvgEl = $('dhc-svg');
-var dhcWin = plotWindow(dhcPlotEl, $('dhc-grip'));
+var dhcWin = plotWindow(dhcPlotEl, $('dhc-grip'), false, null, true);
 var DHC_H = 360, DHC_L = 230, DHC_YAW = -0.6, DHC_PITCH = 0.38, DHC_RIM_CAP = 120, DHC_BEAD_CAP = 160;
-var dhc = { open: false, yaw: DHC_YAW, pitch: DHC_PITCH, last: null, built: '', shown: null, raf: 0, turning: null };
+var DHC_ZOOM_MIN = 0.4, DHC_ZOOM_MAX = 8, DHC_PITCH_MIN = 0, DHC_PITCH_MAX = Math.PI / 2;
+var dhc = { open: false, yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
 // The picture's point for the ring position pos (fractional between two
 // beads) on the slice at height z of the cylinder cyl: yaw turns it about
 // its axis, pitch tips it towards the viewer, so that at a pitch of 90
@@ -13341,7 +13353,7 @@ var dhc = { open: false, yaw: DHC_YAW, pitch: DHC_PITCH, last: null, built: '', 
 function dhcAt(cyl, R, W, pos, z, m){
   var al = dirSign() * 2 * Math.PI * pos / m + dhc.yaw, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
   var front = -R * Math.cos(al);
-  return { x: W / 2 + cyl.cx + R * Math.sin(al), y: DHC_H / 2 - z * cp - R * Math.cos(al) * sp, front: front, depth: front * cp + z * sp };
+  return { x: W / 2 + dhc.panX + cyl.cx * dhc.zoom + R * Math.sin(al), y: DHC_H / 2 + dhc.panY - z * cp - R * Math.cos(al) * sp, front: front, depth: front * cp + z * sp };
 }
 function openDhCyl(){
   if (IS_MOBILE || !dh || dhc.open) return;
@@ -13352,9 +13364,11 @@ function openDhCyl(){
   redrawRing();
   dhcWin.place(dhcWin.at.x, dhcWin.at.y);
   ringWins().forEach(function(w){ if (w !== dhcPlotEl) unstack(dhcPlotEl, dhcWin, w); });
+  syncDhcFill();
   syncDhCtl();
 }
 function closeDhCyl(){
+  if (dhc.filled) dhcFill(false);
   dhc.open = false;
   dhc.built = '';
   dhc.shown = null;
@@ -13389,9 +13403,11 @@ function drawDhCyl(){
   if (!L || !dh || !dhLive(L.G)) return;
   var G = L.G, place = L.place, m = L.m, step = dh.step;
   var tl = dhcTimeline(G), lay = dhcLayout(tl);
-  var W = lay.w, R = lay.R, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
-  var slices = tl.slices, n = slices.length, dz = DHC_L / (n - 1);
-  var zOf = function(i){ return -DHC_L / 2 + i * dz; };
+  var Z = dhc.zoom, W = lay.w, R = lay.R * Z, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
+  var OX = W / 2 + dhc.panX, OY = DHC_H / 2 + dhc.panY;
+  dhc.w = W;
+  var slices = tl.slices, n = slices.length, dz = DHC_L * Z / (n - 1);
+  var zOf = function(i){ return -DHC_L * Z / 2 + i * dz; };
   var shows = function(s){ return s <= step; };
   var mine = function(cyl, owner){ return cyl.owners.indexOf(owner) !== -1; };
   var vis = slices.map(function(s){ return shows(s.step); });
@@ -13413,9 +13429,9 @@ function drawDhCyl(){
   var cls = function(base, who, front, extra){ return base + (who ? ' is-' + who : '') + (front < 0 ? ' is-back' : '') + (extra || ''); };
   var reach = dhReach(G), rimK = nVis > DHC_RIM_CAP ? Math.ceil(nVis / DHC_RIM_CAP) : 1;
   var rBead = clamp(1.15 * R * Math.PI / m, 1.3, 3.4);
-  var hi = DHC_H / 2 - DHC_L / 2 * cp, lo = DHC_H / 2 + DHC_L / 2 * cp;
+  var hi = OY - DHC_L * Z / 2 * cp, lo = OY + DHC_L * Z / 2 * cp;
   lay.cyls.forEach(function(cyl, ci){
-    var cx = W / 2 + cyl.cx;
+    var cx = OX + cyl.cx * Z;
     var P = function(pos, z){ return dhcAt(cyl, R, W, pos, z, m); };
     [-1, 1].forEach(function(side){
       put(svgEl('line', { 'class': 'dhc-wall', x1: num(cx + side * R), y1: num(lo), x2: num(cx + side * R), y2: num(hi) }), -1e6, -1, 0, ci);
@@ -13424,7 +13440,7 @@ function drawDhCyl(){
     put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), 1e5, -1, 0, ci);
     slices.forEach(function(sl, i){
       if (!vis[i]) return;
-      var z = zOf(i), cy = DHC_H / 2 - z * cp, ry = R * sp;
+      var z = zOf(i), cy = OY - z * cp, ry = R * sp;
       if (nVis <= DHC_RIM_CAP || sl.full || sl.tag || now[i] || i % rimK === 0){
         var nowCls = now[i] ? ' is-now' : '';
         put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), z * sp - R * cp, sl.step, sl.hop, ci);
@@ -13496,10 +13512,10 @@ function drawDhCyl(){
     put(svgEl('line', { 'class': cls('dhc-line is-link', lk.who, q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, lk.step, 0);
   });
   // The step numerals, left of the leftmost cylinder.
-  var left = W / 2 + Math.min.apply(null, lay.cyls.map(function(c){ return c.cx; })) - R - 8;
+  var left = OX + Math.min.apply(null, lay.cyls.map(function(c){ return c.cx; })) * Z - R - 8;
   slices.forEach(function(sl, i){
     if (!vis[i] || !sl.tag) return;
-    var t = svgEl('text', { 'class': 'dhc-tag', x: num(left), y: num(DHC_H / 2 - zOf(i) * cp) });
+    var t = svgEl('text', { 'class': 'dhc-tag', x: num(left), y: num(OY - zOf(i) * cp) });
     t.textContent = sl.tag;
     put(t, 1e6, -1, 0);
   });
@@ -13530,7 +13546,7 @@ function drawDhCyl(){
 function syncDhCyl(G, place, m){
   dhc.last = { G: G, place: place, m: m };
   if (!dhc.open) return;
-  var sig = [G.key, dh.g, dh.a, dh.b, dh.step, m, G.els.map(function(x){ return place[x]; }).join(','), dirSign(), dhc.yaw, dhc.pitch, getLang()].join('|');
+  var sig = [G.key, dh.g, dh.a, dh.b, dh.step, m, G.els.map(function(x){ return place[x]; }).join(','), dirSign(), dhc.yaw, dhc.pitch, dhc.zoom, dhc.panX, dhc.panY, getLang()].join('|');
   if (sig === dhc.built) return;
   dhc.built = sig;
   drawDhCyl();
@@ -13542,18 +13558,60 @@ function dhcTurned(){
     if (dhc.open && dhc.last) syncDhCyl(dhc.last.G, dhc.last.place, dhc.last.m);
   });
 }
+// The pointer's place in the picture's own units (the drawing is fitted
+// into the svg's box and centred), with s the box pixels one unit takes.
+function dhcUser(e){
+  var b = boxOf(dhcSvgEl), s = Math.min(b.width / dhc.w, b.height / DHC_H) || 1;
+  return { u: dhc.w / 2 + (ptX(e) - b.left - b.width / 2) / s, v: DHC_H / 2 + (ptY(e) - b.top - b.height / 2) / s, s: s };
+}
+// Zoom by the factor f about the picture's point (u, v), which stays put.
+function dhcZoomAt(f, u, v){
+  var z0 = dhc.zoom, z1 = clamp(z0 * f, DHC_ZOOM_MIN, DHC_ZOOM_MAX);
+  if (z1 === z0) return;
+  dhc.panX = u - dhc.w / 2 - (u - (dhc.w / 2 + dhc.panX)) * z1 / z0;
+  dhc.panY = v - DHC_H / 2 - (v - (DHC_H / 2 + dhc.panY)) * z1 / z0;
+  dhc.zoom = z1;
+  dhcClampPan();
+  dhcTurned();
+}
+// The wheel over the picture zooms it (a touchpad's pinch comes as a Ctrl
+// wheel, which also keeps the browser from zooming the page).
+dhcSvgEl.addEventListener('wheel', function(e){
+  if (IS_MOBILE || !e.deltaY) return;
+  e.preventDefault();
+  var dy = e.deltaMode ? e.deltaY * 40 : e.deltaY, p = dhcUser(e);
+  dhcZoomAt(Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015)), p.u, p.v);
+}, { passive: false });
+// Keeps the cylinder within reach: its centre never leaves the picture by
+// more than the picture's own size times the zoom.
+function dhcClampPan(){
+  dhc.panX = clamp(dhc.panX, -dhc.w * dhc.zoom, dhc.w * dhc.zoom);
+  dhc.panY = clamp(dhc.panY, -DHC_H * dhc.zoom, DHC_H * dhc.zoom);
+}
+// A plain drag turns and tilts the cylinder; a Shift drag or a middle-button
+// drag moves it within the picture.
 dhcSvgEl.addEventListener('pointerdown', function(e){
-  if (e.button !== 0 || IS_MOBILE) return;
-  dhc.turning = { id: e.pointerId, x: ptX(e), y: ptY(e) };
+  if ((e.button !== 0 && e.button !== 1) || IS_MOBILE) return;
+  e.preventDefault();
+  dhc.turning = { id: e.pointerId, x: ptX(e), y: ptY(e), pan: e.button === 1 || e.shiftKey };
   dhcSvgEl.setPointerCapture(e.pointerId);
   dhcSvgEl.classList.add('is-turning');
   dhcSvgEl.focus({ preventScroll: true });
 });
+// A middle click would otherwise start the browser's autoscroll.
+dhcSvgEl.addEventListener('mousedown', function(e){ if (e.button === 1) e.preventDefault(); });
 dhcSvgEl.addEventListener('pointermove', function(e){
   var t = dhc.turning;
   if (!t || e.pointerId !== t.id) return;
-  dhc.yaw += (ptX(e) - t.x) * 0.012;
-  dhc.pitch = clamp(dhc.pitch + (ptY(e) - t.y) * 0.008, 0.08, 1.45);
+  if (t.pan){
+    var s = dhcUser(e).s;
+    dhc.panX += (ptX(e) - t.x) / s;
+    dhc.panY += (ptY(e) - t.y) / s;
+    dhcClampPan();
+  } else {
+    dhc.yaw += (ptX(e) - t.x) * 0.012;
+    dhc.pitch = clamp(dhc.pitch + (ptY(e) - t.y) * 0.008, DHC_PITCH_MIN, DHC_PITCH_MAX);
+  }
   t.x = ptX(e);
   t.y = ptY(e);
   dhcTurned();
@@ -13568,21 +13626,78 @@ dhcSvgEl.addEventListener('pointercancel', dhcEndTurn);
 function dhcReset(){
   dhc.yaw = DHC_YAW;
   dhc.pitch = DHC_PITCH;
+  dhc.zoom = 1;
+  dhc.panX = 0;
+  dhc.panY = 0;
   dhcTurned();
 }
 dhcSvgEl.addEventListener('dblclick', dhcReset);
+// Zoom by f about the cylinder's own centre (the corner buttons and keys).
+function dhcZoomMid(f){ dhcZoomAt(f, dhc.w / 2 + dhc.panX, DHC_H / 2 + dhc.panY); }
 dhcSvgEl.addEventListener('keydown', function(e){
-  var k = e.key;
-  if (k === 'ArrowLeft') dhc.yaw -= 0.15;
-  else if (k === 'ArrowRight') dhc.yaw += 0.15;
-  else if (k === 'ArrowUp') dhc.pitch = clamp(dhc.pitch - 0.1, 0.08, 1.45);
-  else if (k === 'ArrowDown') dhc.pitch = clamp(dhc.pitch + 0.1, 0.08, 1.45);
-  else if (k === 'Home') { dhc.yaw = DHC_YAW; dhc.pitch = DHC_PITCH; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  var k = e.key, step = e.shiftKey ? 12 : 0;
+  if (k === '+' || k === '=') dhcZoomMid(1.25);
+  else if (k === '-' || k === '−') dhcZoomMid(0.8);
+  else if (k === '0' || k === 'Home') dhcReset();
+  else if (k === 'ArrowLeft') { if (step) dhc.panX -= step; else dhc.yaw -= 0.15; }
+  else if (k === 'ArrowRight') { if (step) dhc.panX += step; else dhc.yaw += 0.15; }
+  else if (k === 'ArrowUp') { if (step) dhc.panY -= step; else dhc.pitch = clamp(dhc.pitch - 0.1, DHC_PITCH_MIN, DHC_PITCH_MAX); }
+  else if (k === 'ArrowDown') { if (step) dhc.panY += step; else dhc.pitch = clamp(dhc.pitch + 0.1, DHC_PITCH_MIN, DHC_PITCH_MAX); }
   else return;
+  dhcClampPan();
   e.preventDefault();
   e.stopPropagation();
   dhcTurned();
 });
+$('dhc-zoom-out').addEventListener('click', function(){ dhcZoomMid(0.8); });
+$('dhc-zoom-in').addEventListener('click', function(){ dhcZoomMid(1.25); });
+$('dhc-reset').addEventListener('click', dhcReset);
+
+/* ---------- filling the Ring window with the time cylinder ---------- */
+// The head button makes the window as large as the room under the Ring
+// window's rows and above its bottom bar allows, and puts it back at its
+// earlier size and place when pressed again; a grip drag or a double click
+// on the grip drops the filled state and carries on from there.
+function syncDhcFill(){
+  var btn = $('dhc-fill'), key = dhc.filled ? 'cyclicGroups.dhCylUnfill' : 'cyclicGroups.dhCylFill', tip = translate(key);
+  btn.setAttribute('data-i18n-title', key);
+  btn.setAttribute('data-i18n-aria-label', key);
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+  btn.setAttribute('aria-pressed', dhc.filled ? 'true' : 'false');
+  // Corner brackets pointing out, or in once filled.
+  var d = dhc.filled
+    ? ['M4.5 2v2.5H2', 'M7.5 2v2.5H10', 'M10 7.5H7.5V10', 'M2 7.5h2.5V10']
+    : ['M2 4.5V2h2.5', 'M7.5 2H10v2.5', 'M10 7.5V10H7.5', 'M4.5 10H2V7.5'];
+  btn.replaceChildren(svgIcon(d.map(function(p){ return ['path', { d: p }]; })));
+}
+function dhcFill(on){
+  if (on){
+    var body = dhcPlotEl.closest('.fs-win-body');
+    if (!body || dhcPlotEl.hidden) return;
+    if (!dhc.filled) dhc.unfilled = { w: dhcPlotEl.style.width, h: dhcPlotEl.style.height, at: { x: dhcWin.at.x, y: dhcWin.at.y } };
+    var b = boxOf(body), left = b.left + 8, right = workRight(body) - 8, top = topRowsBottom(body) + 8, bottom = plotFloor(body) - 8;
+    dhcWin.size(Math.max(200, Math.round(right - left)), Math.max(220, Math.round(bottom - top)));
+    var r = boxOf(dhcPlotEl);
+    dhcWin.place(dhcWin.at.x + left - r.left, dhcWin.at.y + top - r.top);
+    dhc.filled = true;
+  } else {
+    var u = dhc.unfilled;
+    dhc.filled = false;
+    dhc.unfilled = null;
+    if (u){
+      if (u.w) dhcWin.size(parseFloat(u.w), parseFloat(u.h)); else dhcWin.size(null);
+      dhcWin.place(u.at.x, u.at.y);
+    }
+  }
+  syncDhcFill();
+}
+$('dhc-fill').addEventListener('click', function(){ dhcFill(!dhc.filled); });
+window.addEventListener('resize', function(){ if (dhc.filled && dhc.open) dhcFill(true); });
+var dhcDropFill = function(){ if (dhc.filled){ dhc.filled = false; dhc.unfilled = null; syncDhcFill(); } };
+$('dhc-grip').addEventListener('pointerdown', dhcDropFill);
+$('dhc-grip').addEventListener('dblclick', dhcDropFill);
 $('dhc-close').addEventListener('click', closeDhCyl);
 
 /* ---------- the Cayley table ---------- */
@@ -14363,9 +14478,11 @@ function plotFloor(body){
 // double click on its head puts it back. Its grip, in the bottom left
 // corner, resizes it on the diagonal: the width follows the pointer's pull
 // (left or down grows it) and the height follows the width, the plot's
-// shape kept. A double click puts it back.
+// shape kept. A double click puts it back. A free window (the fifth
+// parameter) is sized by its grip in width and height apart, its text left at
+// its own size, and carries the class is-sized while it has a size of its own.
 var CURVE_BASE_W = 300;
-function plotWindow(el, gripEl, acrossLocked, fitW){
+function plotWindow(el, gripEl, acrossLocked, fitW, free){
   var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
   // Where a double click puts it back, and its room's left and right
   // edges: by default the ring's half (lo, hi and home, set by a window
@@ -14391,7 +14508,19 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
   };
   // Its height follows from its width alone (the grip keeps it within the
   // room under the rows), never squeezed by the ring's row.
-  win.size = function(w){
+  win.size = function(w, h){
+    if (free){
+      if (w === null){
+        ['width', 'height', 'max-height'].forEach(function(p){ el.style.removeProperty(p); });
+        el.classList.remove('is-sized');
+      } else {
+        el.style.width = w + 'px';
+        el.style.height = h + 'px';
+        el.style.maxHeight = 'none';
+        el.classList.add('is-sized');
+      }
+      return;
+    }
     if (w === null){
       el.style.removeProperty('width');
       el.style.removeProperty('max-height');
@@ -14433,10 +14562,11 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
     // As large as fits: as wide as the room beside its fixed edge, as
     // tall as the room under the rows.
     var room = rightward ? workRight(body) - r.left - 8 : r.right - b.left - 8;
-    var maxW = Math.min(room, r.width * (floor - topRowsBottom(body) - 8) / r.height);
+    var maxW = free ? room : Math.min(room, r.width * (floor - topRowsBottom(body) - 8) / r.height);
+    var maxH = Math.max(r.height, floor - topRowsBottom(body) - 8);
     // A window with a width its contents fill (fitW) grows no wider.
     var fit = fitW ? fitW() : null;
-    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, max: fit ? Math.min(fit, Math.max(r.width, maxW)) : Math.max(r.width, maxW), min: fit ? Math.min(200, fit) : 200, dir: rightward ? -1 : 1 };
+    sizing = { id: e.pointerId, x: ptX(e), y: ptY(e), w: r.width, h: r.height, maxH: maxH, max: fit ? Math.min(fit, Math.max(r.width, maxW)) : Math.max(r.width, maxW), min: fit ? Math.min(200, fit) : 200, dir: rightward ? -1 : 1 };
     gripEl.setPointerCapture(e.pointerId);
     el.classList.add('is-resizing');
     e.preventDefault();
@@ -14444,6 +14574,11 @@ function plotWindow(el, gripEl, acrossLocked, fitW){
   });
   gripEl.addEventListener('pointermove', function(e){
     if (!sizing || e.pointerId !== sizing.id) return;
+    if (free){
+      win.size(Math.round(clamp(sizing.w + sizing.dir * (sizing.x - ptX(e)), 200, Math.max(200, sizing.max))), Math.round(clamp(sizing.h + ptY(e) - sizing.y, 220, Math.max(220, sizing.maxH))));
+      win.place(win.at.x, win.at.y);
+      return;
+    }
     var pull = (sizing.dir * (sizing.x - ptX(e)) + (ptY(e) - sizing.y)) / 2;
     win.size(Math.round(Math.max(sizing.min, Math.min(sizing.max, sizing.w + pull))));
     win.place(win.at.x, win.at.y);
@@ -17111,6 +17246,8 @@ window.addEventListener('wheel', function(e){
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
   if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
+  // The time cylinder zooms on the wheel itself.
+  if (t.closest && t.closest('.dhc-svg')) return;
   e.preventDefault();
   e.stopImmediatePropagation();
   arrangeScrollSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
@@ -17131,6 +17268,8 @@ window.addEventListener('wheel', function(e){
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
   if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
+  // The time cylinder zooms on the wheel itself.
+  if (t.closest && t.closest('.dhc-svg')) return;
   // With k·a drawn, the wheel over the ring or the k field steps k instead.
   if (comboKOn() && t.closest && t.closest('svg.ring-svg, #combine-k')){
     e.preventDefault();

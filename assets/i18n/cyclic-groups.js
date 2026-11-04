@@ -208,7 +208,10 @@
    checkbox) and dhCylButton, dhCylButtonTitle, dhCylTitle, dhCylAria,
    dhCylHint and dhCylKeyLegend (the Diffie–Hellman window's Time cylinder
    button and the time cylinder window it opens; its legend reuses dhAlice
-   and dhBob). Every other language shows the English value through
+   and dhBob) and dhCylFill, dhCylUnfill and dhCylReset (the time cylinder
+   window's head button filling the Ring window with it and back, and its
+   picture's reset-view button; its zoom buttons reuse ctxZoomIn and
+   ctxZoomOut). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1266,8 +1269,11 @@
       dhCylButtonTitle: 'Show the whole exchange as slices of the ring stacked in a see-through cylinder',
       dhCylTitle: 'Diffie–Hellman over time in {group}',
       dhCylAria: 'The Diffie–Hellman exchange in {group} as ring slices stacked up a cylinder',
-      dhCylHint: 'Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag the picture, or use the arrow keys, to turn it.',
+      dhCylHint: 'Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag to turn and tilt it, Shift+drag to move it, scroll to zoom, double-click to reset (keys: arrows, Shift+arrows, + and −, 0). The corner grip or the fill button makes the window larger.',
       dhCylKeyLegend: 'Shared key K',
+      dhCylFill: 'Fill the Ring window',
+      dhCylUnfill: 'Back to its own size',
+      dhCylReset: 'Reset the view: turn, tilt, zoom and position',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       scratchCindexEc: 'Subgroup cofactor/number of cosets',
       ctxZoomIn: 'Zoom in',
