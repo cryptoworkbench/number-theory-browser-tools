@@ -904,10 +904,13 @@
   .export-win h2{ margin:0; font-size:1.05rem; }
   .export-win-exprs{ display:flex; flex-wrap:wrap; gap:10px 18px; }
   .export-win-exprs[hidden]{ display:none; }
-  .export-win-exprs label{ display:flex; flex-direction:column; gap:4px; flex:1 1 240px; font-size:.82rem; color:var(--text-dim); }
+  .export-win-exprs > label{ display:flex; flex-direction:column; gap:4px; flex:1 1 240px; font-size:.82rem; color:var(--text-dim); }
   .export-win-exprs select{ font:inherit; font-size:.88rem; padding:5px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
   .export-win-exprs select option{ color:var(--text); background:var(--bg-1); }
   .export-win-preview{ flex:1 1 auto; min-height:80px; margin:0; padding:10px 12px; overflow:auto; font-family:var(--font-mono, monospace); font-size:.8rem; line-height:1.45; white-space:pre; background:color-mix(in srgb, var(--text) 5%, transparent); border:1px solid var(--panel-border); border-radius:8px; }
+  .export-win-checks{ display:flex; flex-direction:column; justify-content:flex-end; gap:6px; flex:1 1 240px; }
+  .export-win-checks label{ display:flex; flex-direction:row; align-items:center; gap:8px; font-size:.85rem; color:var(--text); cursor:pointer; }
+  .export-win-checks input{ margin:0; accent-color:var(--accent); }
   .export-win-btns{ display:flex; flex-wrap:wrap; gap:8px; }
   .export-win .action-btn.is-primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
   .export-win-mark{ margin-right:6px; }
@@ -16420,7 +16423,7 @@ function renderMergedSubgroups(G){
   var ownRight = function(r){ return '⟨' + hfl.p(phi(r.g)) + '⟩ = {' + r.members.map(function(x){ return hfr.p(phi(x)); }).join(', ') + '}'; };
   subExports = [
     { G: G, gens: rows.map(function(r){ return r.g; }), rows: rows, exprs: [lg, rg], lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
-    { G: H, rows: rows.map(function(r){ return { g: phi(r.g), members: r.members.map(phi) }; }), exprs: [hl, hr], natOff: paneNatOff, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
+    { G: H, src: G, phi: phi, rows: rows.map(function(r){ return { g: phi(r.g), members: r.members.map(phi) }; }), exprs: [hl, hr], natOff: paneNatOff, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
   ];
   rowAnchor();
   subgroupsEl.replaceChildren();
@@ -19890,14 +19893,25 @@ var exportWin = null;
 // Its numbers line up as the window's own Line up numbers says, starting
 // as the panel's: not at all, padded with leading zeros, or aligned, each
 // number given blank space before it to the width of its column's widest.
+// The list's rows with the members started where Automatically shift
+// cyclic subgroups starts them (shift) or not: the ring's group's, or
+// through phi the pane's, row by row beside it.
+function exportRows(ex, shift){
+  var G = ex.src || ex.G, was = state.autoShift;
+  state.autoShift = shift;
+  var beads = shift ? turned(arrangement(G)) : arrangement(G);
+  var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
+  state.autoShift = was;
+  return ex.phi ? rows.map(function(r){ return { g: ex.phi(r.g), members: r.members.map(ex.phi) }; }) : rows;
+}
 function exportLines(w){
-  var G = w.ex.G, pad = state.subPad, align = state.subAlign;
+  var G = w.ex.G, pad = state.subPad, align = state.subAlign, rows = exportRows(w.ex, w.shift);
   state.subPad = w.width === 'pad';
   state.subAlign = w.width === 'align';
   var width = subWidth(G), expWidth = subExpWidth(G);
-  var f = [w.left, w.right].map(function(g){ return subFormat(g, g === null ? null : exprLog(G, g), width, expWidth, G, w.ex.natOff); });
-  var gens = w.ex.rows.map(function(r){ return f[0].p(r.g); });
-  var members = w.ex.rows.map(function(r){ return r.members.map(f[1].p); });
+  var f = [w.left, w.right].map(function(g){ return subFormat(g, g === null ? null : exprLog(G, g), width, expWidth, G, w.natOff); });
+  var gens = rows.map(function(r){ return f[0].p(r.g); });
+  var members = rows.map(function(r){ return r.members.map(f[1].p); });
   state.subPad = pad;
   state.subAlign = align;
   if (w.width === 'align'){
@@ -19915,7 +19929,7 @@ function exportName(w, ext){ return ['subgroups', w.ex.G.mode === 'additive' ? '
 function openExportWin(ex){
   if (!ex || !ex.rows) return;
   var G = ex.G;
-  var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]), width: state.subPad ? 'pad' : state.subAlign ? 'align' : 'none' };
+  var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]), width: state.subPad ? 'pad' : state.subAlign ? 'align' : 'none', natOff: ex.natOff === undefined ? state.natExpOff : ex.natOff, shift: state.autoShift };
   var head = document.createElement('h2');
   head.id = 'export-win-head';
   translateInto(head, 'cyclicGroups.subExportGroup', { group: groupNameNode(G) });
@@ -19960,6 +19974,24 @@ function openExportWin(ex){
   var opts = document.createElement('div');
   opts.className = 'export-win-exprs';
   opts.appendChild(lineUp);
+  // Beside it the two switches the panel's menu has: exponents on the
+  // numbers written Natural, and the members started where the shift
+  // starts them.
+  var checks = document.createElement('div');
+  checks.className = 'export-win-checks';
+  [['natOff', 'cyclicGroups.menuNatExp', true], ['shift', 'cyclicGroups.autoShift', false]].forEach(function(c){
+    var label = document.createElement('label');
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = c[2] ? !w[c[0]] : w[c[0]];
+    box.addEventListener('change', function(){ w[c[0]] = c[2] ? !box.checked : box.checked; show(); });
+    var name = document.createElement('span');
+    name.textContent = translate(c[1]);
+    label.appendChild(box);
+    label.appendChild(name);
+    checks.appendChild(label);
+  });
+  opts.appendChild(checks);
   var btns = document.createElement('div');
   btns.className = 'export-win-btns';
   var button = function(key, mark, act, cls){
