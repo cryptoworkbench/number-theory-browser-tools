@@ -13600,6 +13600,8 @@ function drawDhCyl(){
     put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(lo), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
     // Values on, every slice's circle lies under the beads, so none crosses a value.
     var under = looks ? -1e4 : 0;
+    // and the beads, their values and the marks on them over Alice's and Bob's paths and lines.
+    var over = looks ? 1e4 : 0;
     put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), looks ? -1e5 : 1e5, -1, 0, ci);
     slices.forEach(function(sl, i){
       if (!vis[i]) return;
@@ -13620,17 +13622,17 @@ function drawDhCyl(){
         var lk = looks[x] || { cls: '', style: null };
         var b = svgEl('circle', { 'class': cls('dhc-bead is-coloured' + lk.cls, '', q.front, far), cx: num(q.x), cy: num(q.y), r: num(rBead) });
         if (lk.style) b.setAttribute('style', lk.style);
-        put(b, q.depth, sl.step, sl.hop, ci);
+        put(b, over + q.depth, sl.step, sl.hop, ci);
         // A curve's points keep no label.
         if (G.pts) return;
         var text = String(x);
         var t = svgEl('text', { 'class': cls('dhc-val', '', q.front, far), x: num(q.x), y: num(q.y), 'font-size': num(rBead * 1.05 * Math.min(1, 2.2 / text.length)) });
         t.textContent = text;
-        put(t, q.depth + 0.01, sl.step, sl.hop, ci);
+        put(t, over + q.depth + 0.01, sl.step, sl.hop, ci);
       });
       if (place[G.identity] !== undefined){
         var g = P(place[G.identity], z);
-        put(svgEl('circle', { 'class': cls('dhc-mark', 'id', g.front), cx: num(g.x), cy: num(g.y), r: num(rBead + 3) }), g.depth, sl.step, sl.hop, ci);
+        put(svgEl('circle', { 'class': cls('dhc-mark', 'id', g.front), cx: num(g.x), cy: num(g.y), r: num(rBead + 3) }), over + g.depth, sl.step, sl.hop, ci);
       }
     });
     // Threads: a person's state over time, each piece the shorter way round
@@ -13677,7 +13679,7 @@ function drawDhCyl(){
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined) return;
       var key = k.slice + '|' + k.x, c = placed[key] || 0, q = P(place[k.x], zOf(k.slice));
       placed[key] = c + 1;
-      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), q.depth + 0.02, k.step, k.hop, ci);
+      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (looks && slices[k.slice].full ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
     });
   });
   // Links: a chord between two cylinders (or two beads of the one).
