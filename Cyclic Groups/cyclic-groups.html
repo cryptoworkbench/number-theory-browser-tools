@@ -14325,13 +14325,14 @@ function combineGeneral(G){
 }
 // The ∏ or ∑ version, the one with the big operator's limits under it.
 function foldShown(G){ return unfoldShown(G) && !combineGeneral(G); }
-// Which version the powers line shows: 'fold' (∏ or ∑), 'general' (g's
-// powers alone, a curve's only one), or null with no powers line. The
-// pane tells the ring locked to it (isoPanePowers there), so a mismatch
-// brings up Generalize notation.
+// Which version the powers line shows: 'prod' or 'sum' (∏, multiplicatively,
+// or ∑), 'general' (g's powers alone, a curve's only one), or null with no
+// powers line. The pane tells the ring locked to it (isoPanePowers there),
+// so a mismatch, ∏ beside ∑ among them, brings up Generalize notation.
+var POWERS_FORMS = ['prod', 'sum', 'general'];
 function powersForm(G){
   if (!G || !comboLive(G) || (combo.k === null && combo.b === null) || exprBy(G) === null) return null;
-  return foldShown(G) ? 'fold' : 'general';
+  return !foldShown(G) ? 'general' : G.mode === 'multiplicative' ? 'prod' : 'sum';
 }
 var isoPanePowers = null, powersFormSent;
 function tellPowersForm(){
@@ -18286,8 +18287,8 @@ function syncIsoKeys(){
 // index on the other, a curve's points written as multiples kP beside a
 // group of numbers, or a curve named by its equation beside a group of
 // numbers or another curve, Skip logarithm use on one side and not the
-// other, or aᵏ's or a ∗ b's powers line in its ∏ or ∑ version on one side
-// and generalized on the other. Then a button on the line between them
+// other, or aᵏ's or a ∗ b's powers lines unlike: ∏ or ∑ on one side and
+// generalized on the other, or ∏ on one side and ∑ on the other. Then a button on the line between them
 // makes both general: each curve named by its coefficients, the cofactor
 // the index (beside a group of numbers), beside one kP off, logarithms used
 // on both sides to find the distance between E and G, and the powers line
@@ -18322,8 +18323,8 @@ function generalizeIsoNotation(){
     if (n.skips[1]) setPaneSkip(false, null);
   }
   // The powers line in its generalized version on both sides.
-  var paneFold = n.forms[1] === 'fold';
-  if (n.forms[0] === 'fold') state.combineGen = true;
+  var paneFold = n.forms[1] === 'prod' || n.forms[1] === 'sum';
+  if (n.forms[0] === 'prod' || n.forms[0] === 'sum') state.combineGen = true;
   if (n.mixed) state.idxGeneral = true;
   if (n.sides[0].ec){
     state.ecName = 'sub';
@@ -18899,7 +18900,7 @@ window.addEventListener('message', function(e){
       postIsoShared(false);
     }
   } else if (d.isopane === 'powersform'){
-    isoPanePowers = d.value === 'fold' || d.value === 'general' ? d.value : null;
+    isoPanePowers = POWERS_FORMS.indexOf(d.value) !== -1 ? d.value : null;
     syncIsoGeneralize();
   } else if (d.isopane === 'plotmin'){
     isoPanePlotMin = d.min === true;
