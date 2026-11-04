@@ -1179,6 +1179,10 @@
   .dhc-line.is-key{ --c:var(--role-result); }
   .dhc-line.is-pub{ --c:var(--text); }
   .dhc-line.is-link{ stroke-dasharray:4 3; stroke-width:1.4; }
+  /* The number received in the swap, carried straight up to the slice where
+     it is worked with. */
+  .dhc-use{ fill:none; stroke:var(--text); stroke-width:1.4; stroke-dasharray:2 3; stroke-linecap:round; }
+  .dhc-use.is-back{ opacity:.5; }
   .dhc-line.is-now{ stroke-width:1.8; }
   .dhc-line.is-back{ opacity:.4; }
   .dhc-dot{ --c:var(--text); fill:var(--c); stroke:none; }
@@ -13468,8 +13472,11 @@ function toggleDhCyl(){ if (dhc.open) closeDhCyl(); else openDhCyl(); }
 // threads are { who, owner, pts: [{ slice, x, step, hop }] }, one person's
 // state over time, the piece into pts[k] shown from pts[k].step. lines are
 // { slice, from, to, who, owner, step, hop }, chords lying in one slice's
-// plane. swap is { slice, A, B, step }, the public exchange. hop orders one
-// step's pieces for the staggered fade-in.
+// plane. swap is { slice, A, B, step }, the public exchange. uses are
+// { x, from, to, owner, step }: the number a person received in the swap,
+// x, carried up a dotted line from the swap slice to the last slice her or
+// his second walk takes it in, shown from step. hop orders one step's
+// pieces for the staggered fade-in.
 // One slice per hop: Alice and Bob walk side by side in time, a slice for
 // each hop of the longer walk (so the cylinder is as tall as the larger
 // secret allows, squashed to fit the axis), then the swap slice, then
@@ -13508,7 +13515,8 @@ function dhcTimelineHop(G){
   return {
     slices: slices, marks: marks, lines: [],
     threads: [walkOne('alice', a, gA, v.A, 2), walkOne('bob', b, gB, v.B, 3), walkTwo('alice', a, bA, 5), walkTwo('bob', b, aB, 6)],
-    swap: { slice: S, A: v.A, B: v.B, step: 4 }
+    swap: { slice: S, A: v.A, B: v.B, step: 4 },
+    uses: [{ x: v.B, from: S, to: S + a, owner: 'alice', step: 5 }, { x: v.A, from: S, to: S + b, owner: 'bob', step: 6 }]
   };
 }
 
@@ -13543,7 +13551,8 @@ function dhcTimelineFrame(G){
   return {
     slices: slices, marks: marks, lines: lines,
     threads: [thread('alice', aliceAt), thread('bob', bobAt)],
-    swap: { slice: 4, A: v.A, B: v.B, step: 4 }
+    swap: { slice: 4, A: v.A, B: v.B, step: 4 },
+    uses: [{ x: v.B, from: 4, to: 5, owner: 'alice', step: 5 }, { x: v.A, from: 4, to: 6, owner: 'bob', step: 6 }]
   };
 }
 
@@ -13670,6 +13679,12 @@ function drawDhCyl(){
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || a === undefined || b === undefined) return;
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
       put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, k.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+    });
+    // The number received in the swap, carried up to where it is worked with.
+    (tl.uses || []).forEach(function(u){
+      if (!mine(cyl, u.owner) || !shows(u.step) || !vis[u.from] || !vis[u.to] || place[u.x] === undefined) return;
+      var q1 = P(place[u.x], zOf(u.from)), q2 = P(place[u.x], zOf(u.to));
+      put(svgEl('line', { 'class': cls('dhc-use', '', q1.front), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, u.step, 0, ci);
     });
     // Marks: a dot on the first element placed on a bead, rings round it
     // for any further ones. The dot lies under the bead, so the bead stays
