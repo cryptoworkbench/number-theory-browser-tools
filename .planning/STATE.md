@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-04 - Subgroup off keeps the group name in the subgroup row (fast task)
+Last activity: 2026-11-04 - Diffie-Hellman Colours switch (fast task)
 
 Progress: [█████████░] 86%
 
@@ -658,6 +658,7 @@ None yet.
 | 261104-o6w | Cyclic Groups: DH time cylinder mixed version, switches Shared/Separate and Per hop/Per frame (branch dh-cylinder-mixed) | 2026-11-04 | 1273571 | [261104-o6w-cyclic-groups-dh-time-cylinder-mixed-ver](./quick/261104-o6w-cyclic-groups-dh-time-cylinder-mixed-ver/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
+| fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -912,4 +913,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-04 - Subgroup off keeps the group name in the subgroup row (fast task)
+Last activity: 2026-11-04 - Diffie-Hellman Colours switch (fast task)
