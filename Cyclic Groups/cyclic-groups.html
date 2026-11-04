@@ -1043,6 +1043,10 @@
      than their own; a map keeps its size. */
   .fmap-win-item:has(> .fsl-pair){ align-self:stretch; }
   .fmap-win-item > .fsl-pair{ width:auto; align-self:stretch; min-width:186px; }
+  /* Splitview: the window's own view, and the map beside it. */
+  .fset-split{ display:flex; align-items:flex-start; gap:14px; align-self:stretch; }
+  .fset-split-main{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; }
+  .fset-split-main > .fmap-win-item:has(> .fsl-pair){ align-self:stretch; }
   .fmap-win-cap{ margin:0; font-size:.72rem; color:var(--text-dim); text-align:center; align-self:stretch; }
   /* The window's grid of places and formulas, as the bottom bar's menu had it. */
   .fset-grid-slot .bar-grid{ padding:2px 0 8px; justify-content:start; }
@@ -3071,7 +3075,7 @@
           <button type="button" class="spin-step" id="spin-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
         </div>
         <div class="fs-menu ring-ctx" id="plot-ctx" role="menu" hidden></div>
-        <div class="fs-menu ring-ctx" id="fset-ctx" role="menu" aria-label="Views" data-i18n-aria-label="cyclicGroups.fsetDevViews" hidden></div>
+        <div class="fs-menu ring-ctx" id="fset-ctx" role="menu" aria-label="Formula settings" data-i18n-aria-label="cyclicGroups.fsetMenu" hidden></div>
         <div class="fs-menu ring-ctx" id="win-ctx" role="menu" aria-label="Window" data-i18n-aria-label="cyclicGroups.winCtxLabel" hidden></div>
         <div class="fs-menu ring-ctx" id="ring-ctx" role="menu" aria-label="Layers" data-i18n-aria-label="cyclicGroups.layersHeading" hidden>
           <div class="fs-menu ring-ctx-sub" id="ring-ctx-copy" role="menu" hidden></div>
@@ -8599,11 +8603,11 @@ function toggleFset(i){
 }
 var FSET = [0, 1].map(function(i){
   var el = $('fset-win-' + i);
-  // tab: the view, 'layer2' the window's own, 'sliders' and 'map' the
-  // developer views, picked from its right-click menu.
-  var w = { i: i, el: el, grid: $('fset-grid-' + i), body: $('fset-body-' + i), title: $('fset-title-' + i), win: plotWindow(el, null), tab: 'layer2', focus: null };
+  // split: the map, the master control, set beside the window's own view,
+  // ticked in its right-click menu.
+  var w = { i: i, el: el, grid: $('fset-grid-' + i), body: $('fset-body-' + i), title: $('fset-title-' + i), win: plotWindow(el, null), split: false, focus: null };
   $('fset-close-' + i).addEventListener('click', function(){ setFsetOpen(i, false); });
-  // The views' menu opens from the window, not from its Main/Row grid.
+  // The window's menu opens from the window, not from its Main/Row grid.
   el.addEventListener('contextmenu', function(e){
     e.preventDefault();
     e.stopPropagation();
@@ -8625,12 +8629,10 @@ var FSET = [0, 1].map(function(i){
   }
   return w;
 });
-// Right-clicking a settings window opens its menu, the developer views:
-// the window's own view (Layer 2: the form preference slider, Skip
-// logarithm use and the generator control), or the Complexity and Form
-// preference sliders, or the map, each with the generator control.
+// Right-clicking a settings window opens its menu: View master-control in
+// splitview, the map set beside the window's own view (the form preference
+// slider, Skip logarithm use and the generator control).
 var fsetCtxEl = $('fset-ctx'), fsetCtxReturn = null;
-var FSET_VIEWS = [['layer2', 'cyclicGroups.fsetViewStandard'], ['sliders', 'cyclicGroups.fsetTabSliders'], ['map', 'cyclicGroups.fsetTabMap']];
 function openIdxCtx(x, y){
   fsetCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.idxKeepGeneral'), state.idxGeneral, function(){
     closeFsetCtx();
@@ -8643,19 +8645,11 @@ function openIdxCtx(x, y){
 }
 function openFsetCtx(i, x, y){
   var w = FSET[i];
-  fsetCtxEl.replaceChildren();
-  var head = document.createElement('p');
-  head.className = 'fs-menu-head';
-  head.textContent = translate('cyclicGroups.fsetDevViews');
-  fsetCtxEl.appendChild(head);
-  FSET_VIEWS.forEach(function(v){
-    fsetCtxEl.appendChild(menuTick('menuitemradio', translate(v[1]), w.tab === v[0], function(){
-      closeFsetCtx();
-      if (w.tab === v[0]) return;
-      w.tab = v[0];
-      if (drawn) syncSubFormula(drawn.G);
-    }));
-  });
+  fsetCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.fsetSplitMap'), w.split, function(){
+    closeFsetCtx();
+    w.split = !w.split;
+    if (drawn) syncSubFormula(drawn.G);
+  }));
   if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(fsetCtxEl, x, y);
 }
@@ -8746,6 +8740,7 @@ function fillFsetWin(i){
     if (panel){
       if (i === 0) fillFsetPanel(w, G);
       else fillPanePanel(w, G);
+      if (w.split) splitFsetPanel(w, G);
     }
     syncFsetCloseBtn(i, G);
     if (w.focus){
@@ -8777,30 +8772,42 @@ function syncFsetCloseBtn(i, G){
   }
   btn.replaceChildren(icon);
 }
-// The ring's panel: its formulas' sliders or map, and its generator control.
-// Three views: the window's own (Layer 2), the form preference slider
-// alone, Skip logarithm use right under it, and the generator control (the
-// bottom bar's slider being
-// the complexity, every position is reached from there); Sliders, both
-// sliders; Map, the map. Skip logarithm use is the own view's alone.
+// The ring's panel: the form preference slider alone, Skip logarithm use
+// right under it, and the generator control (the bottom bar's slider being
+// the complexity, every position is reached from there). In splitview the
+// map stands beside it.
+function fsetPanelInfo(i, G){
+  if (i === 0) return { f: 'order', token: state.fmap.order, reach: mapReach(G, state.gen, mapBase(G)) };
+  return { f: 'order', token: state.fmapR.order, reach: mapReach(G, paneSelH(G), paneMapBase(G)) };
+}
 function fsetPanelItem(w, G, info, side){
   var item = document.createElement('div');
   item.className = 'fmap-win-item';
-  var opts = side ? { side: side } : null;
-  if (w.tab === 'map') item.appendChild(formulaMap(G, info, opts));
-  else item.appendChild(formulaSliders(G, info, { titles: true, side: side, only: w.tab === 'layer2' ? 'form' : null }));
+  item.appendChild(formulaSliders(G, info, { titles: true, side: side, only: 'form' }));
   return item;
 }
+function splitFsetPanel(w, G){
+  var main = document.createElement('div');
+  main.className = 'fset-split-main';
+  while (w.body.firstChild) main.appendChild(w.body.firstChild);
+  var map = document.createElement('div');
+  map.className = 'fmap-win-item fset-split-map';
+  map.appendChild(formulaMap(G, fsetPanelInfo(w.i, G), w.i ? { side: 1 } : null));
+  var row = document.createElement('div');
+  row.className = 'fset-split';
+  row.append(main, map);
+  w.body.appendChild(row);
+}
 function fillFsetPanel(w, G){
-  var info = { f: 'order', token: state.fmap.order, reach: mapReach(G, state.gen, mapBase(G)) };
+  var info = fsetPanelInfo(0, G);
   w.body.appendChild(fsetPanelItem(w, G, info, 0));
   // Layer 2, in ℤ/nℤ at Compact, right under its form slider: why no
   // logarithm is needed, and the button that uses one anyway (Skip
   // logarithm use turned around).
   // At Complete, which always takes a logarithm, the button stays,
   // pressed and padlocked.
-  var anyway = w.tab === 'layer2' && skipLogShown(G);
-  var held = w.tab === 'layer2' && G.mode === 'additive' && hasSliders(G) && formulaLevel() === 2 && fmapUsed().length > 0;
+  var anyway = skipLogShown(G);
+  var held = G.mode === 'additive' && hasSliders(G) && formulaLevel() === 2 && fmapUsed().length > 0;
   if (anyway || held) w.body.appendChild(logAnywayBlock(G, held || !logSkipped(G), function(){ setSkipLog(!logSkipped(G), null); }, held, function(){
     // Forced from Complete: compact, the logarithm skipped, on the row the
     // form is on (or came from), as a forced Skip logarithm use goes.
@@ -8888,11 +8895,11 @@ function settlePaneSkip(){
   postIsoShared();
 }
 function fillPanePanel(w, H){
-  var h = paneSelH(H), info = { f: 'order', token: state.fmapR.order, reach: mapReach(H, h, paneMapBase(H)) };
+  var h = paneSelH(H), info = fsetPanelInfo(1, H);
   w.body.appendChild(fsetPanelItem(w, H, info, 1));
   var skip = H.mode === 'additive' && formulaLevel() === 1, skipped = skip && fslOf(state.fmapR.order).c === 3;
-  var anyway = skip && w.tab === 'layer2';
-  var held = H.mode === 'additive' && formulaLevel() === 2 && w.tab === 'layer2';
+  var anyway = skip;
+  var held = H.mode === 'additive' && formulaLevel() === 2;
   if (anyway || held) w.body.appendChild(logAnywayBlock(H, held || !skipped, function(btn){ setPaneSkip(!skipped, btn); }, held, function(){
     state.skipLogR = true;
     setPaneToken((fmapRow(state.fmapR.order) || fslMemoR.row || 'gcd') + '-sls');
