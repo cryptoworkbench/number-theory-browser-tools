@@ -211,7 +211,11 @@
    and dhBob) and dhCylFill, dhCylUnfill and dhCylReset (the time cylinder
    window's head button filling the Ring window with it and back, and its
    picture's reset-view button; its zoom buttons reuse ctxZoomIn and
-   ctxZoomOut). Every other language shows the English value through
+   ctxZoomOut) and dhCylCylsLabel, dhCylShared, dhCylSharedTip,
+   dhCylSeparate, dhCylSeparateTip, dhCylSlicesLabel, dhCylPerHop,
+   dhCylPerHopTip, dhCylPerFrame and dhCylPerFrameTip (the time cylinder
+   window's two switches, one cylinder Alice and Bob share or two separate
+   ones, and one slice per hop or per frame). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1274,6 +1278,16 @@
       dhCylFill: 'Fill the Ring window',
       dhCylUnfill: 'Back to its own size',
       dhCylReset: 'Reset the view: turn, tilt, zoom and position',
+      dhCylCylsLabel: 'Cylinders',
+      dhCylShared: 'Shared',
+      dhCylSharedTip: 'One cylinder Alice and Bob share, their threads meeting on K',
+      dhCylSeparate: 'Separate',
+      dhCylSeparateTip: 'Two cylinders side by side, Alice’s and Bob’s, the swap bridging them',
+      dhCylSlicesLabel: 'Slices',
+      dhCylPerHop: 'Per hop',
+      dhCylPerHopTip: 'One slice for every hop of Alice’s and Bob’s walks, side by side',
+      dhCylPerFrame: 'Per frame',
+      dhCylPerFrameTip: 'One slice for each of the exchange’s seven steps, each walk drawn as chords in its step’s slice',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       scratchCindexEc: 'Subgroup cofactor/number of cosets',
       ctxZoomIn: 'Zoom in',
