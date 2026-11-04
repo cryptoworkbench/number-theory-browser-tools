@@ -13598,11 +13598,10 @@ function drawDhCyl(){
       put(svgEl('line', { 'class': 'dhc-wall', x1: num(cx + side * R), y1: num(lo), x2: num(cx + side * R), y2: num(hi) }), -1e6, -1, 0, ci);
     });
     put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(lo), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
-    // Values on, every slice's circle lies under the beads, so none crosses a value.
-    var under = looks ? -1e4 : 0;
-    // and the beads, their values and the marks on them over Alice's and Bob's paths and lines.
-    var over = looks ? 1e4 : 0;
-    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), looks ? -1e5 : 1e5, -1, 0, ci);
+    // Every slice's circle lies under the beads, and the beads, their values
+    // and the marks on them over Alice's and Bob's paths and lines.
+    var under = -1e4, over = 1e4;
+    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
     slices.forEach(function(sl, i){
       if (!vis[i]) return;
       var z = zOf(i), cy = OY - z * cp, ry = R * sp;
@@ -13616,7 +13615,7 @@ function drawDhCyl(){
         if (place[x] === undefined) return;
         var q = P(place[x], z), far = reach[x] ? '' : ' is-far';
         if (!looks){
-          put(svgEl('circle', { 'class': cls('dhc-bead', '', q.front, far), cx: num(q.x), cy: num(q.y), r: num(rBead) }), q.depth, sl.step, sl.hop, ci);
+          put(svgEl('circle', { 'class': cls('dhc-bead', '', q.front, far), cx: num(q.x), cy: num(q.y), r: num(rBead) }), over + q.depth, sl.step, sl.hop, ci);
           return;
         }
         var lk = looks[x] || { cls: '', style: null };
@@ -13679,7 +13678,7 @@ function drawDhCyl(){
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined) return;
       var key = k.slice + '|' + k.x, c = placed[key] || 0, q = P(place[k.x], zOf(k.slice));
       placed[key] = c + 1;
-      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (looks && slices[k.slice].full ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
+      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (slices[k.slice].full ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
     });
   });
   // Links: a chord between two cylinders (or two beads of the one).
