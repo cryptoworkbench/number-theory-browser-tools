@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-03 - Completed quick task 261103-fls: Cyclic Groups Fixed logarithm with fixed text (branch fixed-logarithm-fixed-text)
+Last activity: 2026-11-04 - Completed quick task 261104-krz: Cyclic Groups Diffie-Hellman time cylinder, four variants (branches dh-cylinder-hop-shared, dh-cylinder-hop-split, dh-cylinder-frame-shared, dh-cylinder-frame-split)
 
 Progress: [█████████░] 86%
 
@@ -653,6 +653,7 @@ None yet.
 | 261102-cw1 | Cyclic Groups: Formula settings window (Map/Sliders tabs), bottom bar linked to the Complexity slider, Skip logarithm use checkbox (branch formula-settings-window) | 2026-11-02 | 242bad3 | [261102-cw1-cyclic-groups-formula-settings-window](./quick/261102-cw1-cyclic-groups-formula-settings-window/) |
 | 261102-dk4 | Cyclic Groups: formula settings per formula type (Size/Index windows), row formula follows its type (branch formula-settings-per-type) | 2026-11-02 | 2b95b08 | [261102-dk4-cyclic-groups-formula-settings-per-type](./quick/261102-dk4-cyclic-groups-formula-settings-per-type/) |
 | 261103-fls | Cyclic Groups: Fixed logarithm with its text fixed at the rightmost place (branch fixed-logarithm-fixed-text) | 2026-11-03 | 4348482 | [261103-fls-cyclic-groups-fixed-logarithm-fixed-text](./quick/261103-fls-cyclic-groups-fixed-logarithm-fixed-text/) |
+| 261104-krz | Cyclic Groups: Diffie-Hellman time cylinder window, four variants (branches dh-cylinder-hop-shared, dh-cylinder-hop-split, dh-cylinder-frame-shared, dh-cylinder-frame-split, on base dh-cylinder-base) | 2026-11-04 | 9e5ad75 | [261104-krz-cyclic-groups-diffie-hellman-time-cylind](./quick/261104-krz-cyclic-groups-diffie-hellman-time-cylind/) |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -907,4 +908,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-03 - Completed quick task 261103-fls: Cyclic Groups Fixed logarithm with fixed text (branch fixed-logarithm-fixed-text)
+Last activity: 2026-11-04 - Completed quick task 261104-krz: Cyclic Groups Diffie-Hellman time cylinder, four variants (branches dh-cylinder-hop-shared, dh-cylinder-hop-split, dh-cylinder-frame-shared, dh-cylinder-frame-split)
