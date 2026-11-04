@@ -9892,7 +9892,7 @@ function syncExprCtx(key){
 }
 $('gen-super').addEventListener('contextmenu', function(e){
   e.preventDefault();
-  if (IS_MOBILE || !e.currentTarget.firstChild || !drawn) return;
+  if (IS_MOBILE || !e.currentTarget.firstChild || !drawn || state.noSub) return;
   setRevealHot(null);
   setRingCtx(true, ptX(e), ptY(e), 'gsub');
 });
@@ -11591,7 +11591,12 @@ var genSuperEl = $('gen-super');
 function syncGenSuper(G){
   queueCentreG();
   genSuperEl.replaceChildren();
-  if (state.noSub) return;
+  // With no subgroup the group stays named, without G and its ⟨h⟩.
+  if (state.noSub){
+    var eq = !!G.pts && ecByEquation();
+    genSuperEl.appendChild(mInline(eq ? mGroupFull(G) : mGroup(G), eq ? curveName(G) : G.label));
+    return;
+  }
   var h = state.gen, whole = G.orders[h] === G.order, rel = '∈';
   // The subgroup's h is written as the element expression slider writes
   // the beads. Under the pointer it shows its natural number, as a bead
