@@ -1271,12 +1271,6 @@
   .ring-combine-hit{ fill:transparent; cursor:help; }
   .ring-combine .is-sub{ font-size:0.68em; baseline-shift:sub; }
   .ring-combine .is-bigop{ font-size:1.3em; font-weight:400; }
-  .ring-combine-unfold{ cursor:pointer; }
-  .ring-combine-unfold rect{ fill:var(--panel); stroke:var(--panel-border); }
-  .ring-combine-unfold path{ fill:none; stroke:var(--text-dim); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  .ring-combine-unfold:hover rect, .ring-combine-unfold:focus-visible rect{ stroke:var(--accent); }
-  .ring-combine-unfold:hover path, .ring-combine-unfold:focus-visible path{ stroke:var(--text); }
-  .ring-combine-unfold:focus{ outline:none; }
   /* The captions can be selected and copied; a press on one never turns
      the ring. */
   svg.ring-svg .ring-note{ user-select:text; -webkit-user-select:text; cursor:text; }
@@ -3434,7 +3428,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: false, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: false, combineGen: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -10195,6 +10189,16 @@ function placeRingCtx(){
 ringSvgEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE) return; // a long press is no right click on a phone
+  // On the powers line with two versions, its own menu: Generalized formula.
+  var sw = drawn && unfoldShown(drawn.G) ? ringDynamicEl.querySelector('.ring-combine.is-switch') : null;
+  if (sw){
+    var sb = boxOf(sw);
+    if (ptX(e) >= sb.left - 4 && ptX(e) <= sb.right + 4 && ptY(e) >= sb.top - 4 && ptY(e) <= sb.bottom + 4){
+      setRingCtx(false);
+      openCombineGenCtx(drawn.G, ptX(e), ptY(e));
+      return;
+    }
+  }
   // On a bead, Diffie–Hellman is offered with it as g first.
   var bead = e.target.closest ? e.target.closest('circle.bead[data-el]') : null;
   setRingCtx(true, ptX(e), ptY(e), undefined, undefined, bead ? +bead.getAttribute('data-el') : null);
@@ -11441,7 +11445,7 @@ function ringTopCut(box){ return Math.max(0, box.cy - box.R - 70); }
 // The preview shows the beads alone: no captions, and the view fitted to
 // the ring with a little room to spare.
 function cropToRing(){
-  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine, .ring-combine-unfold').forEach(function(t){ t.remove(); });
+  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine').forEach(function(t){ t.remove(); });
   var b;
   try { b = ringDynamicEl.getBBox(); } catch (e) { return; }
   if (!b || !b.width) return;
@@ -14297,39 +14301,38 @@ function combineExtraLines(G){
   return ((G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0) + unfoldLines(G);
 }
 // Under aᵏ's or a ∗ b's formulas, while the element expression slider writes the
-// elements as powers of a generator g (not Natural), the powers line writes
-// out how the generic ∗ became this group's × or +, as a product ∏ or a sum
-// ∑ of g's (see drawCombineLine), and the unfold button opens, under it,
-// the same in g's powers alone. The button takes a line, the unfolded line another.
-var combineUnfold = false;
+// elements as powers of a generator g (not Natural), the powers line (the
+// second from the ring down) has two versions: one writing out how the
+// generic ∗ became this group's × or +, as a product ∏ or a sum ∑ of g's,
+// and the generalized one, in g's powers alone (see drawCombineLine).
+// Right-clicking the line switches them: Generalized formula. A curve's
+// group has the powers alone. Unless switched, a group of numbers locked
+// to a curve's group takes the generalized one, as the curve has it.
 function unfoldShown(G){
   return !G.pts && comboLive(G) && (combo.k !== null || combo.b !== null) && exprBy(G) !== null;
 }
-function unfoldLines(G){ return unfoldShown(G) ? 1 + (combineUnfold ? 1 : 0) + COMBINE_LIMITS / COMBINE_LINE : 0; }
-// The button, under the line at y: a chevron, down to unfold, up to fold.
-function drawCombineUnfold(G, y){
-  if (!unfoldShown(G)) return;
-  var by = y - 13;
-  var name = translate(combineUnfold ? 'cyclicGroups.combineFold' : 'cyclicGroups.combineUnfold', { g: baseText(G, exprBy(G)) });
-  var btn = svgEl('g', { 'class': 'ring-combine-unfold', role: 'button', tabindex: '0', 'aria-label': name, 'aria-expanded': String(combineUnfold) });
-  btn.setAttribute('data-title', name);
-  btn.appendChild(svgEl('rect', { x: num(SIZE / 2 - 17), y: num(by), width: 34, height: 18, rx: 9 }));
-  var cy = by + 9;
-  btn.appendChild(svgEl('path', { d: combineUnfold
-    ? 'M' + num(SIZE / 2 - 5) + ' ' + num(cy + 2.5) + 'L' + num(SIZE / 2) + ' ' + num(cy - 2.5) + 'L' + num(SIZE / 2 + 5) + ' ' + num(cy + 2.5)
-    : 'M' + num(SIZE / 2 - 5) + ' ' + num(cy - 2.5) + 'L' + num(SIZE / 2) + ' ' + num(cy + 2.5) + 'L' + num(SIZE / 2 + 5) + ' ' + num(cy - 2.5) }));
-  var toggle = function(e){
-    e.preventDefault();
-    e.stopPropagation();
-    combineUnfold = !combineUnfold;
+var isoHostEc = false; // in the pane: whether the ring locked to it is a curve's
+function isoPartnerEc(){
+  if (IS_ISOPANE) return isoHostEc && !paneUnlinked();
+  var H = isoPane && isoLinked() ? isoPaneGroup() : null;
+  return !!(H && H.pts);
+}
+function combineGeneral(G){
+  if (!unfoldShown(G)) return false;
+  return state.combineGen !== null ? state.combineGen : isoPartnerEc();
+}
+// The ∏ or ∑ version, the one with the big operator's limits under it.
+function foldShown(G){ return unfoldShown(G) && !combineGeneral(G); }
+function unfoldLines(G){ return foldShown(G) ? COMBINE_LIMITS / COMBINE_LINE : 0; }
+// The switchable line's menu, of one switch.
+function openCombineGenCtx(G, x, y){
+  fsetCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.combineGeneral'), combineGeneral(G), function(){
+    closeFsetCtx();
+    state.combineGen = !combineGeneral(G);
     render();
-    var again = ringDynamicEl.querySelector('.ring-combine-unfold');
-    if (again && e.type === 'keydown') again.focus();
-  };
-  btn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
-  btn.addEventListener('click', toggle);
-  btn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') toggle(e); });
-  ringDynamicEl.appendChild(btn);
+  }));
+  if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+  showCtxAt(fsetCtxEl, x, y);
 }
 // What P + Q's working takes: none past the sum with 𝒪 in it, P + (−P)'s
 // vertical line, the chord (or tangent) and its slope λ; modulo a
@@ -14554,7 +14557,7 @@ function drawCombineLine(G, y){
   var op = G.mode === 'multiplicative' ? '×' : '+', mod = '(% ' + G.n + ')';
   // A cell is [role, text] (the role colours it; null: plain), or a list
   // of them set together.
-  var rows, tipAt = null, tipTo = null, tip = null, free = false;
+  var rows, tipAt = null, tipTo = null, tip = null, free = false, switchRow = -1, fold = null;
   if (G.pts){
     // A curve's rows each stand alone, centred (no columns shared).
     free = true;
@@ -14584,9 +14587,9 @@ function drawCombineLine(G, y){
       // The line shown repeats A ≡ aᵏ ≡ (gⁱ)ᵏ ≡, every ≡ in the powers
       // line's columns (unfolded under it), then writes g^(i × k) as i × k
       // g's under ∏ (∑ additively), and again with i × k worked out.
-      if (unfoldShown(G)){
+      if (foldShown(G)){
         var sym = mul ? '∏' : '∑';
-        var fold = r.slice().concat([[[null, sym, 'bigop'], ['a', signed(i), 'hi'], [null, ' × ', 'hi'], ['b', R(k), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]], [null, '≡'],
+        fold = r.slice().concat([[[null, sym, 'bigop'], ['a', signed(i), 'hi'], [null, ' × ', 'hi'], ['b', R(k), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]], [null, '≡'],
           [[null, sym, 'bigop'], ['c', signed(ik), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]]);
         // Then, while the line above reduces it, the count taken modulo the
         // group's cardinality (g has order |G|, so |G| of its g's are e), in
@@ -14601,9 +14604,8 @@ function drawCombineLine(G, y){
           fold.push([null, '≡'], [[null, sym, 'bigop'], ['c', signed(X(log[c])), 'hi'], [null, 'i=1', 'lo'], [null, B(g)]]);
         }
         // Folded back up: the product of g's as g's power again, gᵐ.
-        // Additively only while the powers line is unfolded under it: the
-        // sum of g's goes straight on to g × m.
-        if (mul || combineUnfold) fold.push([null, '≡'], [[null, B(g)], ['c', supSigned(X(log[c]))]]);
+        // Additively the sum of g's goes straight on to g × m.
+        if (mul) fold.push([null, '≡'], [[null, B(g)], ['c', supSigned(X(log[c]))]]);
         // Additively gᵐ is g added m times: as the line above, the product
         // g × m, then its plain value while that still needs reducing.
         if (!mul){
@@ -14628,9 +14630,6 @@ function drawCombineLine(G, y){
         if (mul && !state.subSimplify) red('φ(' + G.n + ')');
         red(G.order);
       }
-      // The ∏ line has one step more here (∏ to m): an empty pair keeps
-      // gᵐ and what follows under its own.
-      if (fold && (mul || combineUnfold)) r.push([null, ''], [null, '']);
       r.push([[null, B(g)], ['c', supSigned(t)]], [null, '≡']);
       m = t;
       // Additively g^m is g added m times: the product g × m, then its
@@ -14660,7 +14659,8 @@ function drawCombineLine(G, y){
       if (Math.abs(raw) <= 1e15 && raw !== V(c)) r.push(['c', signed(raw)], [null, '≡']);
     }
     r.push(['c', E(c)], [null, mod]);
-    rows = !fold ? [r] : combineUnfold ? [fold, r] : [fold];
+    rows = [fold || r];
+    switchRow = unfoldShown(G) ? 0 : -1;
   } else {
     var a = combo.a, b = combo.b, c = G.combine(a, b);
     var raw = G.mode === 'multiplicative' ? V(a) * V(b) : V(a) + V(b);
@@ -14696,7 +14696,7 @@ function drawCombineLine(G, y){
       // (∑ additively), again with i + j worked out, reduced modulo the
       // group's cardinality in the line above's steps, folded back up into
       // g's power and, as the line above ends, the element modulo n.
-      if (unfoldShown(G)){
+      if (foldShown(G)){
         var sym = G.mode === 'multiplicative' ? '∏' : '∑';
         var prod = function(top){ return [[null, sym, 'bigop']].concat(top, [[null, 'i=1', 'lo'], [null, B(g)]]); };
         fold = pr.slice(0, 8).concat([prod([['a', signed(i), 'hi'], [null, j < 0 ? ' − ' : ' + ', 'hi'], ['b', String(Math.abs(j)), 'hi']]), [null, '≡'],
@@ -14708,8 +14708,8 @@ function drawCombineLine(G, y){
           foldE(n);
           fold.push([null, '≡'], prod([['c', signed(kc), 'hi']]));
         }
-        // Additively gᵏ only while the powers line is unfolded under it.
-        if (G.mode === 'multiplicative' || combineUnfold) fold.push([null, '≡'], gc(kc));
+        // Additively the sum of g's goes straight on to g × k.
+        if (G.mode === 'multiplicative') fold.push([null, '≡'], gc(kc));
         // Additively gᵏ is g added k times: the product g × k, then its
         // plain value while that still needs reducing.
         if (G.mode !== 'multiplicative'){
@@ -14717,9 +14717,6 @@ function drawCombineLine(G, y){
           if (V(g) * kc !== V(c)) fold.push([null, '≡'], ['c', signed(V(g) * kc)]);
         }
         fold.push([null, '≡'], ['c', E(c)], [null, mod]);
-        // The ∏ line has one step more before gᵏ (∏ to the sum): an
-        // empty pair keeps gᵏ under its own.
-        if (G.mode === 'multiplicative' || combineUnfold) pr.push([null, ''], [null, '']);
       }
       tipAt = 8;
       tipTo = pr.length;
@@ -14730,7 +14727,7 @@ function drawCombineLine(G, y){
       pr.push(['c', E(c)], [null, mod]);
       while (r0.length < pr.length - 2) r0.push([null, '']);
       rows.push(fold || pr);
-      if (fold && combineUnfold) rows.push(pr);
+      switchRow = unfoldShown(G) ? 1 : -1;
       tip = translate(sum !== kc ? 'cyclicGroups.combineExpWrap' : 'cyclicGroups.combineExpNoWrap',
         { g: E(g), i: signed(i), j: R(j), sum: signed(sum), n: n, k: signed(kc), gn: pow(n), gsum: pow(sum), gk: pow(kc) });
     }
@@ -14749,7 +14746,7 @@ function drawCombineLine(G, y){
     below += COMBINE_LINE + (big ? COMBINE_LIMITS : 0);
   });
   var lines = rows.map(function(row, r){
-    var t = svgEl('text', { 'class': 'ring-combine', x: 0, y: rowY[r], direction: 'ltr', style: 'text-anchor:start' });
+    var t = svgEl('text', { 'class': 'ring-combine' + (r === switchRow ? ' is-switch' : ''), x: 0, y: rowY[r], direction: 'ltr', style: 'text-anchor:start' });
     // A part's third entry sets it small: 'sup' raised, a big operator's
     // limits 'hi' over and 'lo' under it, stacked; 'bigop' sets ∑ or ∏ large.
     var SHAPE = { sup: ' is-sup', hi: ' is-sup', lo: ' is-sub', bigop: ' is-bigop' };
@@ -14817,7 +14814,6 @@ function drawCombineLine(G, y){
     var f = room / width;
     box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(y * (1 - f)) + ') scale(' + num(f) + ')');
   }
-  drawCombineUnfold(G, below);
 }
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape' || (combo.a === null && combo.b === null) || e.defaultPrevented) return;
@@ -17882,7 +17878,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, hostEc: !!(drawn && drawn.G.pts), combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -18063,6 +18059,7 @@ function applyIsoShared(d){
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.bare)) state.subBare = d.bare;
   if (flag(d.idxGeneral)) state.idxGeneral = d.idxGeneral;
+  if (flag(d.hostEc)) isoHostEc = d.hostEc;
   if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
   if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
   syncCombineMode();
@@ -19535,6 +19532,8 @@ function stateQuery(){
   else q.delete('rot');
   if (state.combineMode === 'scalar'){ q.set('combine', 'scalar'); q.set('combinek', String(state.combineK)); }
   else { q.delete('combine'); q.delete('combinek'); }
+  if (state.combineGen !== null) q.set('combinegen', state.combineGen ? '1' : '0');
+  else q.delete('combinegen');
   return q;
 }
 
@@ -22065,6 +22064,7 @@ function loadState(query, link){
   state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';
   var ck = intOrNull(query.get('combinek'));
   state.combineK = ck !== null && Math.abs(ck) <= COMBO_K_MAX ? ck : 2;
+  state.combineGen = query.get('combinegen') === '1' ? true : query.get('combinegen') === '0' ? false : null;
   // Older links chose the main view's lcm forms with sublcmring (and
   // sublcmringr for the pane's), and the row's with sublcm (sublcmr): where
   // the maps' own params are absent, an lcm formula opens its map on LCM
