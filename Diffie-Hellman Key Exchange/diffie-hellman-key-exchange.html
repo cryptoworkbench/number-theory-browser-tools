@@ -93,6 +93,9 @@
   .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; margin-top:2px; }
 
   .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+  .cg-link{ text-align:center; font-size:.85rem; margin:-4px 0 0; }
+  .cg-link[hidden]{ display:none; }
+  .cg-link a{ color:var(--accent); font-weight:600; }
   .banner strong{ color:var(--role-result); }
 
   #stageSvg{ width:100%; height:auto; display:block; }
@@ -350,6 +353,7 @@
   </section>
 
   <div class="banner" id="banner">Set p, g, a and b and press Build exchange.</div>
+  <p class="cg-link" id="cgLink" hidden><a id="cgLinkA" href="../Cyclic%20Groups/cyclic-groups.html" data-i18n="dh.cgLink">Run this example in Cyclic Groups</a></p>
 
   <section class="panel">
     <svg id="stageSvg" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" role="img"
@@ -418,7 +422,7 @@
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { fmt, isPrimeBig, modPowPlain, parseBigIntStrict, randomBigIntBits, randomBigIntInRange, scratchNum, shortVal } = NT.bigint;
 const { easeInOutCubic, svgEl } = NT.svg;
-const { onLangChange, translate, translateInto } = NT.i18n;
+const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 const { attachPrimePicker } = NT.picker;
 
 /* ---------- number theory ---------- */
@@ -1328,7 +1332,25 @@ function rebuild(){
   instantFinish();
   bannerState = { key: 'dh.bannerBuilt', params: null };
   renderBanner();
+  syncCgLink(parsed);
   persistState();
+}
+// Small enough for Cyclic Groups (p up to 100, the ring's largest modulus),
+// with a and b not multiples of g's order, the same exchange opens there
+// on ⟨ℤ/pℤ, ×⟩, from a link under the banner.
+const CG_MAX_N = 100;
+function syncCgLink(parsed){
+  const link = $('cgLink');
+  link.hidden = true;
+  if (parsed.p > BigInt(CG_MAX_N)) return;
+  const p = Number(parsed.p), g = Number(parsed.g);
+  let ord = 1;
+  for (let x = g % p; x !== 1; x = x * g % p) ord++;
+  const a = parsed.a % BigInt(ord), b = parsed.b % BigInt(ord);
+  if (a === 0n || b === 0n) return;
+  const q = new URLSearchParams({ mode: 'multiplicative', n: String(p), gen: String(g), dh: [g, parsed.a, parsed.b].join(','), lang: getLang() });
+  $('cgLinkA').href = '../Cyclic%20Groups/cyclic-groups.html?' + q.toString();
+  link.hidden = false;
 }
 
 buildBtn.addEventListener('click', rebuild);

@@ -172,6 +172,7 @@
       'step.match': 'Both sides land on the exact same shared secret.',
       bannerReady: 'Ready — press Play to watch the exchange build step by step.',
       bannerBuilt: 'Full exchange shown below. Press Play to watch it build step by step.',
+      cgLink: 'Run this example in Cyclic Groups',
       aesSentence: 'Now Alice and Bob can use {0} as the key used for symmetric encryption using an algorithm like AES, Blowfish, etc.',
       notebookHeading: 'Eve’s notebook — everything she has recorded off the wire',
       notWord: 'not',

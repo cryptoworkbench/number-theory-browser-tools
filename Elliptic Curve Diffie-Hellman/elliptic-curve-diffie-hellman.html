@@ -93,6 +93,9 @@
   .error-box{ color:var(--role-warn); font-size:.85rem; min-height:1.1em; margin-top:2px; }
 
   .banner{ text-align:center; font-size:.85rem; color:var(--text-dim); min-height:1.3em; }
+  .cg-link{ text-align:center; font-size:.85rem; margin:-4px 0 0; }
+  .cg-link[hidden]{ display:none; }
+  .cg-link a{ color:var(--accent); font-weight:600; }
   .banner strong{ color:var(--role-result); }
 
   #curveSvg{ width:100%; height:auto; display:block; max-height:max(80vh, 560px); }
@@ -352,6 +355,7 @@
   </section>
 
   <div class="banner" id="banner">Set p, a, b and a base point, then press Build exchange.</div>
+  <p class="cg-link" id="cgLink" hidden><a id="cgLinkA" href="../Cyclic%20Groups/cyclic-groups.html" data-i18n="ecdh.cgLink">Run this example in Cyclic Groups</a></p>
 
   <section class="panel">
     <svg id="curveSvg" viewBox="0 0 560 560" role="img"
@@ -417,7 +421,7 @@
 /* ---------- shared helpers (assets/nt-*.js) ---------- */
 const { ecAdd, ecIsNonSingular, ecPoints, isPrime, mod, modInverse, randomInt } = NT.core;
 const { svgEl } = NT.svg;
-const { onLangChange, translate, translateInto } = NT.i18n;
+const { getLang, onLangChange, translate, translateInto } = NT.i18n;
 
 /* ---------- math layer ---------- */
 /* Plain Number arithmetic throughout -- every multiply is reduced mod p
@@ -1403,8 +1407,23 @@ function rebuild(){
   renderPlayPauseLabel();
   stepBtn.disabled = false;
   instantFinish(); // page is never blank -- the full result shows immediately, Play replays it
+  syncCgLink(parsed);
   persistState();
   return true;
+}
+// Small enough for Cyclic Groups (p up to 97 and at most 120 points, its
+// curve mode's limits), with kA and kB not multiples of G's order, the
+// same exchange opens there on the curve's group, from a link under the
+// banner.
+var CG_MAX_P = 97, CG_MAX_ORDER = 120;
+function syncCgLink(parsed){
+  var link = $('cgLink');
+  link.hidden = true;
+  if (parsed.p > CG_MAX_P || ecPoints(parsed.a, parsed.b, parsed.p).length + 1 > CG_MAX_ORDER) return;
+  if (parsed.ka % parsed.ordG === 0 || parsed.kb % parsed.ordG === 0) return;
+  var q = new URLSearchParams({ mode: 'additive', n: String(parsed.p), curve: [parsed.p, parsed.a, parsed.b].join(','), dh: parsed.G.x + ':' + parsed.G.y + ',' + parsed.ka + ',' + parsed.kb, lang: getLang() });
+  $('cgLinkA').href = '../Cyclic%20Groups/cyclic-groups.html?' + q.toString();
+  link.hidden = false;
 }
 
 /* ---------- wiring ---------- */

@@ -22166,6 +22166,24 @@ else if (IS_DESKTOP) syncPanes();
 syncControls();
 render();
 
+// A link from the Diffie–Hellman tools, dh=g,a,b: the exchange opened on
+// base g (a number, or a curve's point x:y) with secrets a and b, each
+// taken modulo g's order, as the tool that sent it ran it.
+function dhFromQuery(q){
+  var m = /^(\d+(?::\d+)?),(\d+),(\d+)$/.exec(q.get('dh') || '');
+  if (!m || !drawn || IS_MOBILE) return;
+  var G = drawn.G, g = null;
+  if (m[1].indexOf(':') !== -1){
+    var xy = m[1].split(':').map(Number);
+    if (G.pts) G.els.forEach(function(e){ var P = G.pts[e]; if (P && !P.proj && P.x === xy[0] && P.y === xy[1]) g = e; });
+  } else if (!G.pts) g = +m[1];
+  if (g === null || G.els.indexOf(g) === -1) return;
+  var ord = G.orders[g], a = +m[2] % ord, b = +m[3] % ord;
+  if (!a || !b) return;
+  openDh(G, g, a, b, 0);
+}
+dhFromQuery(new URLSearchParams(location.search));
+
 })();
 </script>
 </body>

@@ -145,6 +145,7 @@
       explorerConstructionMismatchDetail: 'De getekende constructie komt niet overeen met het resultaat van pointAdd — dit zou nooit mogen gebeuren.'
     },
     en: {
+      cgLink: 'Run this example in Cyclic Groups',
       heading: 'Elliptic Curve Diffie-Hellman',
       lede: 'The whole point set of a small elliptic curve over a prime field, plotted as a scatter. Alice and Bob walk across it by scalar multiplication and land on the same point from opposite directions — the same protocol as {0}, in a group whose elements are points instead of numbers.',
       dhLinkText: 'Diffie-Hellman Key Exchange',
