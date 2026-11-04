@@ -218,7 +218,8 @@
    ones, and one slice per hop or per frame) and dhColoursLabel, dhColoursOwn,
    dhColoursOwnTip, dhColoursPaths and dhColoursPathsTip (the Diffie–Hellman
    window's Colours switch: Alice and Bob in their own colours or in the
-   forward and backward paths'). Every other language shows the English value through
+   forward and backward paths') and dhCylValues and dhCylValuesTip (the filled
+   time cylinder's Values toggle). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1291,6 +1292,8 @@
       dhCylPerHopTip: 'One slice for every hop of Alice’s and Bob’s walks, side by side',
       dhCylPerFrame: 'Per frame',
       dhCylPerFrameTip: 'One slice for each of the exchange’s seven steps, each walk drawn as chords in its step’s slice',
+      dhCylValues: 'Values',
+      dhCylValuesTip: 'Show each bead’s value on the slices, in the ring’s colours (in the filled window)',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',
