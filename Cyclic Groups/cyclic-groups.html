@@ -13472,7 +13472,8 @@ function toggleDhCyl(){ if (dhc.open) closeDhCyl(); else openDhCyl(); }
 // threads are { who, owner, pts: [{ slice, x, step, hop }] }, one person's
 // state over time, the piece into pts[k] shown from pts[k].step. lines are
 // { slice, from, to, who, owner, step, hop }, chords lying in one slice's
-// plane. swap is { slice, A, B, step }, the public exchange. uses are
+// plane. swap is { slice, A, B, step, madeA, madeB }, the public exchange,
+// madeA and madeB the slices where Alice and Bob have just made A and B. uses are
 // { x, from, to, owner, step }: the number a person received in the swap,
 // x, carried up a dotted line from the swap slice to the last slice her or
 // his second walk takes it in, shown from step. hop orders one step's
@@ -13515,7 +13516,7 @@ function dhcTimelineHop(G){
   return {
     slices: slices, marks: marks, lines: [],
     threads: [walkOne('alice', a, gA, v.A, 2), walkOne('bob', b, gB, v.B, 3), walkTwo('alice', a, bA, 5), walkTwo('bob', b, aB, 6)],
-    swap: { slice: S, A: v.A, B: v.B, step: 4 },
+    swap: { slice: S, A: v.A, B: v.B, step: 4, madeA: a, madeB: b },
     uses: [{ x: v.B, from: S, to: S + a, owner: 'alice', step: 5 }, { x: v.A, from: S, to: S + b, owner: 'bob', step: 6 }]
   };
 }
@@ -13551,7 +13552,7 @@ function dhcTimelineFrame(G){
   return {
     slices: slices, marks: marks, lines: lines,
     threads: [thread('alice', aliceAt), thread('bob', bobAt)],
-    swap: { slice: 4, A: v.A, B: v.B, step: 4 },
+    swap: { slice: 4, A: v.A, B: v.B, step: 4, madeA: 2, madeB: 3 },
     uses: [{ x: v.B, from: 4, to: 5, owner: 'alice', step: 5 }, { x: v.A, from: 4, to: 6, owner: 'bob', step: 6 }]
   };
 }
@@ -13732,20 +13733,26 @@ function drawDhCyl(){
 // draws, from alice, bob and pub), and links the chords between two
 // cylinders' beads as { from: { cyl, slice, x }, to: { cyl, slice, x }, who,
 // step }.
-// One cylinder Alice and Bob share: their threads meet on K, and the swap
-// slice's chord joins A to B.
+// One cylinder Alice and Bob share: their threads meet on K, the swap
+// slice's chord joins A to B, and A and B rise from where they were made to
+// the swap slice.
 function dhcLayoutShared(tl){
   var s = tl.swap;
   return {
     w: 300, R: 100,
     cyls: [{ cx: 0, owners: ['alice', 'bob', 'pub'] }],
-    links: [{ from: { cyl: 0, slice: s.slice, x: s.A }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'pub', step: s.step }]
+    links: [
+      { from: { cyl: 0, slice: s.slice, x: s.A }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'pub', step: s.step },
+      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: 0, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
+      { from: { cyl: 0, slice: s.madeB, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
+    ]
   };
 }
 
 // Two cylinders side by side, Alice's and Bob's, each turning about its own
 // axis by the same yaw; the swap slice bridges them, A travelling from
-// Alice's to Bob's and B the other way.
+// Alice's to Bob's and B the other way, and a diagonal runs from where each
+// was made, A in Alice's and B in Bob's, to where the other has it there.
 function dhcLayoutSplit(tl){
   var s = tl.swap;
   return {
@@ -13753,7 +13760,9 @@ function dhcLayoutSplit(tl){
     cyls: [{ cx: -94, owners: ['alice', 'pub'] }, { cx: 94, owners: ['bob', 'pub'] }],
     links: [
       { from: { cyl: 0, slice: s.slice, x: s.A }, to: { cyl: 1, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
-      { from: { cyl: 1, slice: s.slice, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
+      { from: { cyl: 1, slice: s.slice, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'bob', step: s.step },
+      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: 1, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
+      { from: { cyl: 1, slice: s.madeB, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
     ]
   };
 }
