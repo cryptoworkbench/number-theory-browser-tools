@@ -1224,6 +1224,7 @@
   .curve-plot-svg .poly-turn.is-b{ stroke:var(--role-input); }
   .curve-plot-svg .poly-turn-head.is-b{ fill:var(--role-input); }
   .curve-plot-svg .curve-walk{ fill:none; stroke:var(--walk, var(--role-result)); stroke-width:1.4; opacity:.8; pointer-events:none; }
+  .curve-plot-svg .curve-walk-head{ fill:var(--walk, var(--role-result)); stroke:none; opacity:.8; pointer-events:none; }
   /* Modulo a composite n, how many points have no (x, y) to plot. */
   .curve-plot-note{ margin:2px 0 0; font-size:.74rem; line-height:1.3; color:var(--text-dim); text-align:center; }
   .curve-plot.is-picks-g .curve-o{ cursor:pointer; }
@@ -12629,6 +12630,22 @@ plotViewEl.addEventListener('click', function(e){
 function curvePlotTitle(G, byEq){
   return translate('cyclicGroups.curvePlotTitleName', { curve: titleName(G, byEq) });
 }
+// One hop of k·P's walk in the point plot: a line from the point left to
+// the point reached, its arrowhead touching that point's rim (r out from
+// its centre). A hop too short for a head is a bare line.
+var CURVE_HEAD = { len: 6, half: 3 };
+function curveWalkArrow(svg, x0, y0, x1, y1, r, cls){
+  var dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
+  if (len < 2 * r + CURVE_HEAD.len + 2){
+    svg.appendChild(svgEl('line', { 'class': 'curve-walk ' + cls, x1: num(x0), y1: num(y0), x2: num(x1), y2: num(y1) }));
+    return;
+  }
+  var ux = dx / len, uy = dy / len;
+  var tx = x1 - ux * (r + 1), ty = y1 - uy * (r + 1);
+  var bx = tx - ux * CURVE_HEAD.len, by = ty - uy * CURVE_HEAD.len;
+  svg.appendChild(svgEl('line', { 'class': 'curve-walk ' + cls, x1: num(x0), y1: num(y0), x2: num(bx), y2: num(by) }));
+  svg.appendChild(svgEl('path', { 'class': 'curve-walk-head ' + cls, d: 'M' + num(tx) + ' ' + num(ty) + ' L' + num(bx - uy * CURVE_HEAD.half) + ' ' + num(by + ux * CURVE_HEAD.half) + ' L' + num(bx + uy * CURVE_HEAD.half) + ' ' + num(by - ux * CURVE_HEAD.half) + ' Z' }));
+}
 function drawCurvePlot(G){
   var on = !!G.pts;
   curvePlotEl.hidden = !on || !curvePlotOpen;
@@ -13719,7 +13736,8 @@ function plotGrid(G, tiles){
     }
     svg.appendChild(svgEl('line', { 'class': 'curve-reflect', x1: num(X(R.x)), y1: num(Y(negY)), x2: num(X(R.x)), y2: num(Y(R.y)) }));
   }
-  // k·P: its walk, point to point (𝒪, off the grid, is skipped).
+  // k·P: its walk, point to point (𝒪, off the grid, is skipped), each hop
+  // an arrow ending at the rim of the point it lands on.
   // Each hop in the colour the ring's walk gives it: the lap of the latest
   // k to land on it, as Laps of the path lists them (see lapClass).
   var sw = live ? scalarWalk(G) : null;
@@ -13729,7 +13747,7 @@ function plotGrid(G, tiles){
     for (var s2 = 1; s2 < steps.length; s2++){
       var A = G.pts[steps[s2 - 1]], B = G.pts[steps[s2]];
       var latest = s2 + m0 * Math.floor((K - s2) / m0);
-      if (A && B && !A.proj && !B.proj) svg.appendChild(svgEl('line', { 'class': 'curve-walk ' + lapClass(Math.floor((latest - 1) / m0)), x1: num(X(A.x)), y1: num(Y(A.y)), x2: num(X(B.x)), y2: num(Y(B.y)) }));
+      if (A && B && !A.proj && !B.proj) curveWalkArrow(svg, X(A.x), Y(A.y), X(B.x), Y(B.y), r, lapClass(Math.floor((latest - 1) / m0)));
     }
   }
   var off = 0, rc = Math.max(1, Math.min(r * 0.7, cellY * 0.45));
