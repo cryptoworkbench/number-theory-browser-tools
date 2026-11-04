@@ -1157,9 +1157,9 @@
   .dhc-mark.is-bob{ --c:var(--dh-bob); }
   .dhc-mark.is-key{ --c:var(--role-result); }
   .dhc-mark.is-halo{ fill:none; stroke:var(--c); stroke-width:1.6; }
-  .dhc-mark.is-g{ fill:none; stroke:var(--text); stroke-width:1.2; stroke-dasharray:2 2; }
+  .dhc-mark.is-id{ fill:none; stroke:var(--text); stroke-width:1.2; stroke-dasharray:2 2; }
   .dhc-mark.is-back{ opacity:.45; }
-  .dhc-mark.is-now:not(.is-halo, .is-g){ stroke:var(--text); stroke-width:1; }
+  .dhc-mark.is-now:not(.is-halo, .is-id){ stroke:var(--text); stroke-width:1; }
   .dhc-thread{ --c:var(--text); fill:none; stroke:var(--c); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
   .dhc-thread.is-alice{ --c:var(--dh-alice); }
   .dhc-thread.is-bob{ --c:var(--dh-bob); }
@@ -1191,7 +1191,7 @@
   .dh-halo.is-alice{ --dh:var(--dh-alice); }
   .dh-halo.is-bob{ --dh:var(--dh-bob); }
   .dh-halo.is-key{ --dh:var(--role-result); }
-  .dh-halo.is-g{ --dh:var(--text); stroke-width:2; stroke-dasharray:4 3; filter:none; }
+  .dh-halo.is-id{ --dh:var(--text); stroke-width:2; stroke-dasharray:4 3; filter:none; }
   /* A phone has no bottom bar for the plot to minimize into. */
   :root.is-mobile #curve-plot-min{ display:none; }
   :root:not(.is-mobile) .curve-plot{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
@@ -13315,7 +13315,8 @@ $('dh-close').addEventListener('click', function(){ closeDh(); });
 // lap at most, as aᵏ's walk; a later lap's numbers replace the earlier
 // ones), A ringed pink once Alice has it, B blue once Bob has it, and K
 // pink as Alice finds it, then green inside the pink and the blue once
-// Bob finds it too. g wears a dashed ring throughout.
+// Bob finds it too. The identity, where both walks start, wears a dashed
+// ring throughout.
 function drawDhRing(ring, G, place, box, beadR, m, at){
   var v = dhValues(G), s = dh.step;
   ring.classList.add('is-dh');
@@ -13324,7 +13325,7 @@ function drawDhRing(ring, G, place, box, beadR, m, at){
   if (walk && m > 1) drawDhWalk(ring, G, walk[0], walk[1], walk[2], place, box, beadR, m);
   var roles = new Map();
   var add = function(x, role){ if (!roles.has(x)) roles.set(x, []); roles.get(x).push(role); };
-  add(dh.g, 'g');
+  add(G.identity, 'id');
   if (s >= 2) add(v.A, 'alice');
   if (s >= 3) add(v.B, 'bob');
   if (s === 5) add(v.K, 'alice');
@@ -13599,9 +13600,9 @@ function drawDhCyl(){
         var q = P(place[x], z);
         put(svgEl('circle', { 'class': cls('dhc-bead', '', q.front, reach[x] ? '' : ' is-far'), cx: num(q.x), cy: num(q.y), r: num(rBead) }), q.depth, sl.step, sl.hop, ci);
       });
-      if (place[dh.g] !== undefined){
-        var g = P(place[dh.g], z);
-        put(svgEl('circle', { 'class': cls('dhc-mark', 'g', g.front), cx: num(g.x), cy: num(g.y), r: num(rBead + 3) }), g.depth, sl.step, sl.hop, ci);
+      if (place[G.identity] !== undefined){
+        var g = P(place[G.identity], z);
+        put(svgEl('circle', { 'class': cls('dhc-mark', 'id', g.front), cx: num(g.x), cy: num(g.y), r: num(rBead + 3) }), g.depth, sl.step, sl.hop, ci);
       }
     });
     // Threads: a person's state over time, each piece the shorter way round
