@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-04 - Merged dh-identity-dotted (time cylinder: identity ring, Values, diagonals)
+Last activity: 2026-11-04 - Diffie-Hellman A and B computed at the same time (fast task)
 
 Progress: [█████████░] 86%
 
@@ -660,6 +660,7 @@ None yet.
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
 | fast | Cyclic Groups DH time cylinder (branch dh-identity-dotted, merged): identity wears the dashed ring; filled-window Values toggle; beads always on top; dotted received-number lines; diagonal A/B links replace the horizontal ones | 2026-11-04 | c6ae562 | — |
+| fast | Cyclic Groups Diffie-Hellman: Alice and Bob compute A and B at the same time (six steps), ring and time cylinder following | 2026-11-04 | 72c2c45 | — |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -914,4 +915,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-04 - Merged dh-identity-dotted (time cylinder: identity ring, Values, diagonals)
+Last activity: 2026-11-04 - Diffie-Hellman A and B computed at the same time (fast task)
