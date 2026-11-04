@@ -219,7 +219,9 @@
    dhColoursOwnTip, dhColoursPaths and dhColoursPathsTip (the Diffie–Hellman
    window's Colours switch: Alice and Bob in their own colours or in the
    forward and backward paths') and dhCylValues and dhCylValuesTip (the filled
-   time cylinder's Values toggle). Every other language shows the English value through
+   time cylinder's Values toggle) and dhStepBoth (the exchange's step where
+   Alice and Bob compute A and B at the same time; dhStep2 and dhStep3, the
+   two steps it replaces, are no longer used). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1267,6 +1269,7 @@
       dhStep1: 'Each picks a secret number and tells no one: Alice picks a, Bob picks b.',
       dhStep2: { one: 'Alice computes A: {count} step of g from the identity lands on {A}.', other: 'Alice computes A: {count} steps of g from the identity land on {A}.' },
       dhStep3: { one: 'Bob computes B: {count} step of g from the identity lands on {B}.', other: 'Bob computes B: {count} steps of g from the identity land on {B}.' },
+      dhStepBoth: 'At the same time, Alice and Bob compute their public numbers: Alice’s a steps of g from the identity land on A = {A}, Bob’s b steps on B = {B}.',
       dhStep4: 'They send A and B to each other in public. Anyone listening sees A = {A} and B = {B}, but never a or b.',
       dhStep5: { one: 'Alice takes {count} step of Bob’s B = {B} from the identity, and lands on {K}.', other: 'Alice takes {count} steps of Bob’s B = {B} from the identity, and lands on {K}.' },
       dhStep6: { one: 'Bob takes {count} step of Alice’s A = {A}, and lands on {K} too: their shared key K, which never travelled between them.', other: 'Bob takes {count} steps of Alice’s A = {A}, and lands on {K} too: their shared key K, which never travelled between them.' },
@@ -1291,7 +1294,7 @@
       dhCylPerHop: 'Per hop',
       dhCylPerHopTip: 'One slice for every hop of Alice’s and Bob’s walks, side by side',
       dhCylPerFrame: 'Per frame',
-      dhCylPerFrameTip: 'One slice for each of the exchange’s seven steps, each walk drawn as chords in its step’s slice',
+      dhCylPerFrameTip: 'One slice for each of the exchange’s six steps, each walk drawn as chords in its step’s slice',
       dhCylValues: 'Values',
       dhCylValuesTip: 'Show each bead’s natural value on the slices, in the ring’s colours (in the filled window)',
       dhColoursLabel: 'Alice and Bob’s colours',
