@@ -13598,14 +13598,16 @@ function drawDhCyl(){
       put(svgEl('line', { 'class': 'dhc-wall', x1: num(cx + side * R), y1: num(lo), x2: num(cx + side * R), y2: num(hi) }), -1e6, -1, 0, ci);
     });
     put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(lo), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
-    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), 1e5, -1, 0, ci);
+    // Values on, every slice's circle lies under the beads, so none crosses a value.
+    var under = looks ? -1e4 : 0;
+    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), looks ? -1e5 : 1e5, -1, 0, ci);
     slices.forEach(function(sl, i){
       if (!vis[i]) return;
       var z = zOf(i), cy = OY - z * cp, ry = R * sp;
       if (nVis <= DHC_RIM_CAP || sl.full || sl.tag || now[i] || i % rimK === 0){
         var nowCls = now[i] ? ' is-now' : '';
-        put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), z * sp - R * cp, sl.step, sl.hop, ci);
-        put(svgEl('path', { 'class': 'dhc-rim is-front' + nowCls, d: 'M ' + num(cx + R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx - R) + ' ' + num(cy) }), z * sp + R * cp, sl.step, sl.hop, ci);
+        put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), under + z * sp - R * cp, sl.step, sl.hop, ci);
+        put(svgEl('path', { 'class': 'dhc-rim is-front' + nowCls, d: 'M ' + num(cx + R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx - R) + ' ' + num(cy) }), under + z * sp + R * cp, sl.step, sl.hop, ci);
       }
       if (!sl.full || m > DHC_BEAD_CAP) return;
       G.els.forEach(function(x){
