@@ -10741,8 +10741,9 @@ if (IS_RINGWIN){
     // points written plainly, not as multiples kP.
     if (d.ringhost === 'generalize'){
       if (!IS_ISOPANE) return;
-      state.ecName = 'sub';
+      if (drawn && drawn.G.pts) state.ecName = 'sub';
       if (d.multOff === true) state.ecMult = false;
+      if (d.combineGen === true) state.combineGen = true;
       render();
       return;
     }
@@ -11921,6 +11922,7 @@ function renderCombineKey(G){
   requestAnimationFrame(syncAkeyMore);
   akeyResetEl.hidden = !state.customColors;
   if (!IS_ISOPANE) syncIsoKeys();
+  else tellPowersForm();
 }
 
 /* ---------- the arrow key's bars and controls ---------- */
@@ -14323,6 +14325,21 @@ function combineGeneral(G){
 }
 // The ∏ or ∑ version, the one with the big operator's limits under it.
 function foldShown(G){ return unfoldShown(G) && !combineGeneral(G); }
+// Which version the powers line shows: 'fold' (∏ or ∑), 'general' (g's
+// powers alone, a curve's only one), or null with no powers line. The
+// pane tells the ring locked to it (isoPanePowers there), so a mismatch
+// brings up Generalize notation.
+function powersForm(G){
+  if (!G || !comboLive(G) || (combo.k === null && combo.b === null) || exprBy(G) === null) return null;
+  return foldShown(G) ? 'fold' : 'general';
+}
+var isoPanePowers = null, powersFormSent;
+function tellPowersForm(){
+  var v = drawn ? powersForm(drawn.G) : null;
+  if (v === powersFormSent) return;
+  powersFormSent = v;
+  tellHost({ isopane: 'powersform', value: v });
+}
 function unfoldLines(G){ return foldShown(G) ? COMBINE_LIMITS / COMBINE_LINE : 0; }
 // The switchable line's menu, of one switch.
 function openCombineGenCtx(G, x, y){
@@ -18268,11 +18285,13 @@ function syncIsoKeys(){
 // one apart: the number of cosets named the cofactor on one side and the
 // index on the other, a curve's points written as multiples kP beside a
 // group of numbers, or a curve named by its equation beside a group of
-// numbers or another curve, or Skip logarithm use on one side and not the
-// other. Then a button on the line between them makes both general: each
-// curve named by its coefficients, the cofactor the index (beside a group
-// of numbers), beside one kP off, and logarithms used on both sides to
-// find the distance between E and G.
+// numbers or another curve, Skip logarithm use on one side and not the
+// other, or aᵏ's or a ∗ b's powers line in its ∏ or ∑ version on one side
+// and generalized on the other. Then a button on the line between them
+// makes both general: each curve named by its coefficients, the cofactor
+// the index (beside a group of numbers), beside one kP off, logarithms used
+// on both sides to find the distance between E and G, and the powers line
+// generalized (Keep general) on both.
 var isoGeneralizeEl = $('iso-generalize');
 function isoNotation(){
   if (IS_ISOPANE || !isoPane || !drawn || !isoLinked()) return null;
@@ -18285,8 +18304,10 @@ function isoNotation(){
   ];
   var mixed = sides[0].ec !== sides[1].ec;
   var skips = [logSkipped(G), H.mode === 'additive' && formulaLevel() === 1 && fslOf(state.fmapR.order).c === 3];
-  var off = skips[0] !== skips[1] || (mixed && !state.idxGeneral) || (mixed && sides.some(function(x){ return x.mult || x.eq; })) || (!mixed && sides[0].ec && sides.some(function(x){ return x.eq; }));
-  return { sides: sides, mixed: mixed, skips: skips, off: off };
+  var forms = [powersForm(G), isoPanePowers];
+  var formsOff = forms[0] !== null && forms[1] !== null && forms[0] !== forms[1];
+  var off = formsOff || skips[0] !== skips[1] || (mixed && !state.idxGeneral) || (mixed && sides.some(function(x){ return x.mult || x.eq; })) || (!mixed && sides[0].ec && sides.some(function(x){ return x.eq; }));
+  return { sides: sides, mixed: mixed, skips: skips, forms: forms, off: off };
 }
 function syncIsoGeneralize(){
   if (!isoGeneralizeEl) return;
@@ -18300,13 +18321,16 @@ function generalizeIsoNotation(){
     if (n.skips[0]) setSkipLog(false, null);
     if (n.skips[1]) setPaneSkip(false, null);
   }
+  // The powers line in its generalized version on both sides.
+  var paneFold = n.forms[1] === 'fold';
+  if (n.forms[0] === 'fold') state.combineGen = true;
   if (n.mixed) state.idxGeneral = true;
   if (n.sides[0].ec){
     state.ecName = 'sub';
     if (n.mixed) state.ecMult = false;
   }
-  if (n.sides[1].ec){
-    try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'generalize', multOff: n.mixed }, '*'); } catch (err) { /* a frame that is gone needs nothing */ }
+  if (n.sides[1].ec || paneFold){
+    try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'generalize', multOff: n.mixed, combineGen: paneFold }, '*'); } catch (err) { /* a frame that is gone needs nothing */ }
   }
   render();
   postIsoShared();
@@ -18874,6 +18898,9 @@ window.addEventListener('message', function(e){
       syncSplit();
       postIsoShared(false);
     }
+  } else if (d.isopane === 'powersform'){
+    isoPanePowers = d.value === 'fold' || d.value === 'general' ? d.value : null;
+    syncIsoGeneralize();
   } else if (d.isopane === 'plotmin'){
     isoPanePlotMin = d.min === true;
     // The pane reloaded (full screen in or out) keeps its plot as it was.
