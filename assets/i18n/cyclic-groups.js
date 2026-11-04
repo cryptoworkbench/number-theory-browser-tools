@@ -1293,7 +1293,7 @@
       dhCylPerFrame: 'Per frame',
       dhCylPerFrameTip: 'One slice for each of the exchange’s seven steps, each walk drawn as chords in its step’s slice',
       dhCylValues: 'Values',
-      dhCylValuesTip: 'Show each bead’s value on the slices, in the ring’s colours (in the filled window)',
+      dhCylValuesTip: 'Show each bead’s natural value on the slices, in the ring’s colours (in the filled window)',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',
