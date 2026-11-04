@@ -3428,7 +3428,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: false, combineGen: null, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -14307,22 +14307,12 @@ function combineExtraLines(G){
 // second from the ring down) has two versions: one writing out how the
 // generic ∗ became this group's × or +, as a product ∏ or a sum ∑ of g's,
 // and the generalized one, in g's powers alone (see drawCombineLine).
-// Right-clicking the line switches them: Keep general. A curve's
-// group has the powers alone. Unless switched, a group of numbers locked
-// to a curve's group takes the generalized one, as the curve has it.
+// Right-clicking the line switches them: Keep general, on until switched
+// off. A curve's group has the powers alone.
 function unfoldShown(G){
   return !G.pts && comboLive(G) && (combo.k !== null || combo.b !== null) && exprBy(G) !== null;
 }
-var isoHostEc = false; // in the pane: whether the ring locked to it is a curve's
-function isoPartnerEc(){
-  if (IS_ISOPANE) return isoHostEc && !paneUnlinked();
-  var H = isoPane && isoLinked() ? isoPaneGroup() : null;
-  return !!(H && H.pts);
-}
-function combineGeneral(G){
-  if (!unfoldShown(G)) return false;
-  return state.combineGen !== null ? state.combineGen : isoPartnerEc();
-}
+function combineGeneral(G){ return unfoldShown(G) && state.combineGen; }
 // The ∏ or ∑ version, the one with the big operator's limits under it.
 function foldShown(G){ return unfoldShown(G) && !combineGeneral(G); }
 // Which version the powers line shows: 'prod' or 'sum' (∏, multiplicatively,
@@ -17896,7 +17886,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, hostEc: !!(drawn && drawn.G.pts), combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -18077,7 +18067,6 @@ function applyIsoShared(d){
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.bare)) state.subBare = d.bare;
   if (flag(d.idxGeneral)) state.idxGeneral = d.idxGeneral;
-  if (flag(d.hostEc)) isoHostEc = d.hostEc;
   if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
   if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
   syncCombineMode();
@@ -19549,7 +19538,7 @@ function stateQuery(){
   else q.delete('subsimplify');
   if (state.subBare) q.set('subbare', '1');
   else q.delete('subbare');
-  if (state.idxGeneral) q.set('idxgeneral', '1');
+  if (!state.idxGeneral) q.set('idxgeneral', '0');
   else q.delete('idxgeneral');
   if (!state.subGcdDividers) q.set('subgcddiv', '0');
   else q.delete('subgcddiv');
@@ -19560,7 +19549,7 @@ function stateQuery(){
   else q.delete('rot');
   if (state.combineMode === 'scalar'){ q.set('combine', 'scalar'); q.set('combinek', String(state.combineK)); }
   else { q.delete('combine'); q.delete('combinek'); }
-  if (state.combineGen !== null) q.set('combinegen', state.combineGen ? '1' : '0');
+  if (!state.combineGen) q.set('combinegen', '0');
   else q.delete('combinegen');
   return q;
 }
@@ -22070,7 +22059,7 @@ function loadState(query, link){
   state.subGcd = query.get('subgcd') === '1';
   state.subGcdDividers = query.get('subgcddiv') !== '0';
   state.subBare = query.get('subbare') === '1';
-  state.idxGeneral = query.get('idxgeneral') === '1';
+  state.idxGeneral = query.get('idxgeneral') !== '0';
   state.subSimplify = state.subBare || query.get('subsimplify') === '1';
   state.subPaths = query.get('subpaths') !== '0';
   state.revealOff = readRevealOff() || query.get('nathover') === '0';
@@ -22092,7 +22081,7 @@ function loadState(query, link){
   state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';
   var ck = intOrNull(query.get('combinek'));
   state.combineK = ck !== null && Math.abs(ck) <= COMBO_K_MAX ? ck : 2;
-  state.combineGen = query.get('combinegen') === '1' ? true : query.get('combinegen') === '0' ? false : null;
+  state.combineGen = query.get('combinegen') !== '0';
   // Older links chose the main view's lcm forms with sublcmring (and
   // sublcmringr for the pane's), and the row's with sublcm (sublcmr): where
   // the maps' own params are absent, an lcm formula opens its map on LCM
