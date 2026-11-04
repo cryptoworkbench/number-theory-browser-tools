@@ -205,7 +205,17 @@
    fslNeitherCaptionShort (the form slider's middle slot, Absolute where the longer does not fit),
    fslTipLcm, fslTipNeither and fslTipGcd (its three slots' tooltips),
    skipLog and skipLogTip (the generator control's Skip logarithm use
-   checkbox). Every other language shows the English value through
+   checkbox) and dhCylButton, dhCylButtonTitle, dhCylTitle, dhCylAria,
+   dhCylHint and dhCylKeyLegend (the Diffie–Hellman window's Time cylinder
+   button and the time cylinder window it opens; its legend reuses dhAlice
+   and dhBob) and dhCylFill, dhCylUnfill and dhCylReset (the time cylinder
+   window's head button filling the Ring window with it and back, and its
+   picture's reset-view button; its zoom buttons reuse ctxZoomIn and
+   ctxZoomOut) and dhCylCylsLabel, dhCylShared, dhCylSharedTip,
+   dhCylSeparate, dhCylSeparateTip, dhCylSlicesLabel, dhCylPerHop,
+   dhCylPerHopTip, dhCylPerFrame and dhCylPerFrameTip (the time cylinder
+   window's two switches, one cylinder Alice and Bob share or two separate
+   ones, and one slice per hop or per frame). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1259,6 +1269,25 @@
       dhKey: 'Shared key K = {k}',
       dhBack: 'Back',
       dhNew: 'New secrets',
+      dhCylButton: 'Time cylinder',
+      dhCylButtonTitle: 'Show the whole exchange as slices of the ring stacked in a see-through cylinder',
+      dhCylTitle: 'Diffie–Hellman over time in {group}',
+      dhCylAria: 'The Diffie–Hellman exchange in {group} as ring slices stacked up a cylinder',
+      dhCylHint: 'Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag to turn and tilt it, Shift+drag to move it, scroll to zoom, double-click to reset (keys: arrows, Shift+arrows, + and −, 0). The corner grip or the fill button makes the window larger.',
+      dhCylKeyLegend: 'Shared key K',
+      dhCylFill: 'Fill the Ring window',
+      dhCylUnfill: 'Back to its own size',
+      dhCylReset: 'Reset the view: turn, tilt, zoom and position',
+      dhCylCylsLabel: 'Cylinders',
+      dhCylShared: 'Shared',
+      dhCylSharedTip: 'One cylinder Alice and Bob share, their threads meeting on K',
+      dhCylSeparate: 'Separate',
+      dhCylSeparateTip: 'Two cylinders side by side, Alice’s and Bob’s, the swap bridging them',
+      dhCylSlicesLabel: 'Slices',
+      dhCylPerHop: 'Per hop',
+      dhCylPerHopTip: 'One slice for every hop of Alice’s and Bob’s walks, side by side',
+      dhCylPerFrame: 'Per frame',
+      dhCylPerFrameTip: 'One slice for each of the exchange’s seven steps, each walk drawn as chords in its step’s slice',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       scratchCindexEc: 'Subgroup cofactor/number of cosets',
       ctxZoomIn: 'Zoom in',
