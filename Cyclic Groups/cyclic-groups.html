@@ -13672,13 +13672,14 @@ function drawDhCyl(){
       put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, k.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
     });
     // Marks: a dot on the first element placed on a bead, rings round it
-    // for any further ones.
+    // for any further ones. The dot lies under the bead, so the bead stays
+    // on top, its value readable; the rings round it lie over it.
     var placed = {};
     tl.marks.forEach(function(k){
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined) return;
       var key = k.slice + '|' + k.x, c = placed[key] || 0, q = P(place[k.x], zOf(k.slice));
       placed[key] = c + 1;
-      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (slices[k.slice].full ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
+      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (slices[k.slice].full && c ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
     });
   });
   // Links: a chord between two cylinders (or two beads of the one).
