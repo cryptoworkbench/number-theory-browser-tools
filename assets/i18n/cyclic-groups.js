@@ -1225,7 +1225,7 @@
       flogFollowArrangeTip: 'Use the generator whose powers arrange the beads around the circle as the base for the logarithm, following the Circle arrangement row as it changes',
       flogFollowArrangeOff: 'The beads are arranged low to high, not by the powers of a generator, so there is no base to follow',
       fsetViewStandard: 'Standard',
-      fsetSplitMap: 'View master-control in splitview',
+      fsetSplitMap: 'Master control in splitview',
       fsetTabSliders: '2-dimensional slider',
       fslTitleComplexity: 'Complexity:',
       fslNeitherCaption: 'absolute function',

@@ -1043,10 +1043,13 @@
      than their own; a map keeps its size. */
   .fmap-win-item:has(> .fsl-pair){ align-self:stretch; }
   .fmap-win-item > .fsl-pair{ width:auto; align-self:stretch; min-width:186px; }
-  /* Splitview: the window's own view, and the map beside it. */
-  .fset-split{ display:flex; align-items:flex-start; gap:14px; align-self:stretch; }
-  .fset-split-main{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; }
+  /* Splitview: the form slider, and the map beside it; the rest under both. */
+  .fset-split{ display:flex; align-items:center; gap:14px; align-self:stretch; }
+  .fset-split-main{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; flex:1; }
   .fset-split-main > .fmap-win-item:has(> .fsl-pair){ align-self:stretch; }
+  /* It fills the width the slider and map set, never widening it. */
+  .fmap-win-body.is-split > .fset-gen{ width:0; min-width:100%; }
+  .fmap-win-body.is-split .fset-gen .lb-intro{ max-width:none; }
   .fmap-win-cap{ margin:0; font-size:.72rem; color:var(--text-dim); text-align:center; align-self:stretch; }
   /* The window's grid of places and formulas, as the bottom bar's menu had it. */
   .fset-grid-slot .bar-grid{ padding:2px 0 8px; justify-content:start; }
@@ -8742,6 +8745,7 @@ function fillFsetWin(i){
       else fillPanePanel(w, G);
       if (w.split) splitFsetPanel(w, G);
     }
+    w.body.classList.toggle('is-split', panel && w.split);
     syncFsetCloseBtn(i, G);
     if (w.focus){
       var back = w.grid.querySelector(w.focus) || w.body.querySelector(w.focus);
@@ -8786,17 +8790,20 @@ function fsetPanelItem(w, G, info, side){
   item.appendChild(formulaSliders(G, info, { titles: true, side: side, only: 'form' }));
   return item;
 }
+// Splitview pairs the form slider with the map; what stood under the slider
+// (Skip logarithm use, the generator control) runs under both, the window's
+// whole width.
 function splitFsetPanel(w, G){
   var main = document.createElement('div');
   main.className = 'fset-split-main';
-  while (w.body.firstChild) main.appendChild(w.body.firstChild);
+  var row = document.createElement('div');
+  row.className = 'fset-split';
+  w.body.insertBefore(row, w.body.firstChild);
+  main.appendChild(row.nextSibling);
   var map = document.createElement('div');
   map.className = 'fmap-win-item fset-split-map';
   map.appendChild(formulaMap(G, fsetPanelInfo(w.i, G), w.i ? { side: 1 } : null));
-  var row = document.createElement('div');
-  row.className = 'fset-split';
   row.append(main, map);
-  w.body.appendChild(row);
 }
 function fillFsetPanel(w, G){
   var info = fsetPanelInfo(0, G);
