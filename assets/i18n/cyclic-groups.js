@@ -205,7 +205,10 @@
    fslNeitherCaptionShort (the form slider's middle slot, Absolute where the longer does not fit),
    fslTipLcm, fslTipNeither and fslTipGcd (its three slots' tooltips),
    skipLog and skipLogTip (the generator control's Skip logarithm use
-   checkbox). Every other language shows the English value through
+   checkbox) and dhCylButton, dhCylButtonTitle, dhCylTitle, dhCylAria,
+   dhCylHint and dhCylKeyLegend (the Diffie–Hellman window's Time cylinder
+   button and the time cylinder window it opens; its legend reuses dhAlice
+   and dhBob). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1259,6 +1262,12 @@
       dhKey: 'Shared key K = {k}',
       dhBack: 'Back',
       dhNew: 'New secrets',
+      dhCylButton: 'Time cylinder',
+      dhCylButtonTitle: 'Show the whole exchange as slices of the ring stacked in a see-through cylinder',
+      dhCylTitle: 'Diffie–Hellman over time in {group}',
+      dhCylAria: 'The Diffie–Hellman exchange in {group} as ring slices stacked up a cylinder',
+      dhCylHint: 'Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag the picture, or use the arrow keys, to turn it.',
+      dhCylKeyLegend: 'Shared key K',
       scratchCindex: 'Subgroup index/co-factor/number of cosets',
       scratchCindexEc: 'Subgroup cofactor/number of cosets',
       ctxZoomIn: 'Zoom in',

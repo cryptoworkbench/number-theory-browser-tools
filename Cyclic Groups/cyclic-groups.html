@@ -1107,6 +1107,61 @@
   .walk-dh.is-alice{ --walk:var(--role-alt); }
   .walk-dh.is-bob{ --walk:var(--role-input); }
   .dh-halo{ fill:none; stroke:var(--dh); stroke-width:3.5; pointer-events:none; filter:drop-shadow(0 0 4px var(--dh)); }
+  /* Diffie–Hellman time cylinder (see openDhCyl): the exchange's moments as
+     ring slices up a see-through cylinder, Alice's threads pink, Bob's blue,
+     the shared key green, public values in the text colour; the rims and
+     beads are the ring's own, turned by a drag on the picture. */
+  :root.is-mobile .dhc-plot{ display:none !important; }
+  .fs-win-body.is-ring > .dhc-plot{ width:min(340px, 44%); }
+  :root:not(.is-mobile) .curve-plot-svg.dhc-svg{ cursor:grab; touch-action:none; }
+  :root:not(.is-mobile) .curve-plot-svg.dhc-svg.is-turning{ cursor:grabbing; }
+  .dhc-svg{ user-select:none; -webkit-user-select:none; }
+  .dhc-svg:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .dhc-wall, .dhc-cap{ fill:none; stroke:var(--panel-border); stroke-width:1; }
+  .dhc-rim{ fill:none; stroke:var(--text-dim); stroke-width:1; opacity:.5; }
+  .dhc-rim.is-back{ stroke-dasharray:3 3; opacity:.22; }
+  .dhc-rim.is-now{ stroke:var(--text); stroke-width:1.8; opacity:1; }
+  .dhc-rim.is-now.is-back{ opacity:.55; }
+  .dhc-bead{ fill:var(--text-dim); }
+  .dhc-bead.is-far{ opacity:.3; }
+  .dhc-bead.is-back{ opacity:.4; }
+  .dhc-bead.is-back.is-far{ opacity:.12; }
+  .dhc-mark{ --c:var(--text); fill:var(--c); stroke:none; }
+  .dhc-mark.is-alice{ --c:var(--role-alt); }
+  .dhc-mark.is-bob{ --c:var(--role-input); }
+  .dhc-mark.is-key{ --c:var(--role-result); }
+  .dhc-mark.is-halo{ fill:none; stroke:var(--c); stroke-width:1.6; }
+  .dhc-mark.is-g{ fill:none; stroke:var(--text); stroke-width:1.2; stroke-dasharray:2 2; }
+  .dhc-mark.is-back{ opacity:.45; }
+  .dhc-mark.is-now:not(.is-halo, .is-g){ stroke:var(--text); stroke-width:1; }
+  .dhc-thread{ --c:var(--text); fill:none; stroke:var(--c); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .dhc-thread.is-alice{ --c:var(--role-alt); }
+  .dhc-thread.is-bob{ --c:var(--role-input); }
+  .dhc-thread.is-now{ stroke-width:3.4; }
+  .dhc-thread.is-back{ opacity:.4; }
+  .dhc-line{ --c:var(--text); fill:none; stroke:var(--c); stroke-width:1; stroke-linecap:round; }
+  .dhc-line.is-alice{ --c:var(--role-alt); }
+  .dhc-line.is-bob{ --c:var(--role-input); }
+  .dhc-line.is-key{ --c:var(--role-result); }
+  .dhc-line.is-pub{ --c:var(--text); }
+  .dhc-line.is-link{ stroke-dasharray:4 3; stroke-width:1.4; }
+  .dhc-line.is-now{ stroke-width:1.8; }
+  .dhc-line.is-back{ opacity:.4; }
+  .dhc-dot{ --c:var(--text); fill:var(--c); stroke:none; }
+  .dhc-dot.is-alice{ --c:var(--role-alt); }
+  .dhc-dot.is-bob{ --c:var(--role-input); }
+  .dhc-dot.is-back{ opacity:.4; }
+  .dhc-tag{ fill:var(--text-dim); font-family:var(--font-sans); font-size:9px; text-anchor:end; dominant-baseline:central; pointer-events:none; }
+  .dhc-legend{ display:flex; flex-wrap:wrap; justify-content:center; gap:4px 12px; margin:.3em 0 0; font-size:.74em; color:var(--text-dim); }
+  .dhc-key{ display:inline-flex; align-items:center; gap:.4em; }
+  .dhc-sw{ --sw:var(--text); display:inline-block; width:1.4em; border-top:3px solid var(--sw); }
+  .dhc-sw.is-alice{ --sw:var(--role-alt); }
+  .dhc-sw.is-bob{ --sw:var(--role-input); }
+  .dhc-sw.is-key{ --sw:var(--role-result); }
+  .dhc-hint{ margin:.4em 0 0; }
+  @keyframes dhc-in{ from{ opacity:0; } }
+  .dhc-svg .is-fresh{ animation:dhc-in .35s ease-out both; }
+  @media (prefers-reduced-motion: reduce){ .dhc-svg .is-fresh{ animation:none; } }
   .dh-halo.is-alice{ --dh:var(--role-alt); }
   .dh-halo.is-bob{ --dh:var(--role-input); }
   .dh-halo.is-key{ --dh:var(--role-result); }
@@ -3023,6 +3078,13 @@
         <section class="curve-plot dh-plot" id="dh-plot" aria-labelledby="dh-plot-title" hidden>
           <div class="lap-key-head"><h2 id="dh-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="dh-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
           <div class="dh-body" id="dh-body"></div><div class="curve-grip" id="dh-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
+        </section>
+        <section class="curve-plot dhc-plot" id="dhc-plot" aria-labelledby="dhc-plot-title" hidden>
+          <div class="lap-key-head"><h2 id="dhc-plot-title"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="dhc-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
+          <svg class="curve-plot-svg dhc-svg" id="dhc-svg" viewBox="0 0 300 360" role="img" tabindex="0"></svg>
+          <p class="dhc-legend"><span class="dhc-key"><span class="dhc-sw is-alice"></span><span data-i18n="cyclicGroups.dhAlice">Alice</span></span><span class="dhc-key"><span class="dhc-sw is-bob"></span><span data-i18n="cyclicGroups.dhBob">Bob</span></span><span class="dhc-key"><span class="dhc-sw is-key"></span><span data-i18n="cyclicGroups.dhCylKeyLegend">Shared key K</span></span></p>
+          <p class="dh-note dhc-hint" data-i18n="cyclicGroups.dhCylHint">Time runs up the cylinder: each slice is the ring at one moment of the exchange. Drag the picture, or use the arrow keys, to turn it.</p>
+          <div class="curve-grip" id="dhc-grip" aria-hidden="true" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle"></div>
         </section>
         <section class="curve-plot fmap-win" id="fset-win-0" data-side="0" aria-labelledby="fset-title-0" hidden>
           <div class="lap-key-head"><h2 id="fset-title-0"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="fset-close-0" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
@@ -6863,7 +6925,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'fset-win-0', 'fset-win-1', 'flog-win', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'formula-scratch', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'dhc-plot', 'fset-win-0', 'fset-win-1', 'flog-win', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -11116,7 +11178,7 @@ function syncRingOverlap(){
 // there as the main area's controls are, frosted while the pointer or the
 // focus is in it; off the ring, it is as ever.
 var winHeld = null;
-function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl, $('dh-plot'), $('fset-win-0'), $('fset-win-1'), $('flog-win')].filter(Boolean); }
+function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl, $('dh-plot'), $('dhc-plot'), $('fset-win-0'), $('fset-win-1'), $('flog-win')].filter(Boolean); }
 function syncWinsOnRing(over){
   ringWins().forEach(function(w){
     w.classList.toggle('is-on-ring', !w.hidden && !w.classList.contains('is-docked') && !w.classList.contains('is-docked-foot') && over(boxOf(w)));
@@ -12986,6 +13048,7 @@ function closeDh(quiet){
   if (!dh) return;
   dh = null;
   dhPlotEl.hidden = true;
+  closeDhCyl();
   if (drawn) redrawRing();
   if (!quiet) tellDh();
 }
@@ -13021,7 +13084,7 @@ function drawDhPlot(G){
     if (dhPlay){ clearTimeout(dhPlay); dhPlay = null; }
   }
   dhPlotEl.hidden = !dh;
-  if (!dh) return;
+  if (!dh){ closeDhCyl(); return; }
   var built = [G.key, dh.g, getLang(), dhAdditive(G)].join('|');
   if (built !== dhBuilt){ dhBuilt = built; buildDhPlot(G); }
   syncDhPlot(G);
@@ -13121,8 +13184,11 @@ function buildDhPlot(G){
       syncDhPlot(drawn.G);
       redrawRing();
       tellDh();
-    })
+    }),
+    cyl: btn('dh-cyl', toggleDhCyl)
   };
+  parts.cyl.textContent = translate('cyclicGroups.dhCylButton');
+  parts.cyl.setAttribute('title', translate('cyclicGroups.dhCylButtonTitle'));
   parts.reset.textContent = translate('common.reset');
   parts.back.textContent = translate('cyclicGroups.dhBack');
   parts.step.textContent = translate('common.step');
@@ -13178,6 +13244,7 @@ function syncDhCtl(){
   p.play.setAttribute('aria-pressed', dhPlay ? 'true' : 'false');
   p.reset.disabled = p.back.disabled = dh.step === 0;
   p.step.disabled = p.end.disabled = dh.step === DH_LAST;
+  p.cyl.setAttribute('aria-pressed', dhc.open ? 'true' : 'false');
 }
 $('dh-close').addEventListener('click', function(){ closeDh(); });
 // On the ring: the walk the step on show takes, numbered hop by hop (a
@@ -13204,6 +13271,7 @@ function drawDhRing(ring, G, place, box, beadR, m, at){
       ring.appendChild(svgEl('circle', { 'class': 'dh-halo is-' + role, cx: num(c[0]), cy: num(c[1]), r: num(beadR + 4 + 5 * k) }));
     });
   });
+  syncDhCyl(G, place, m);
 }
 function drawDhWalk(ring, G, step, n, cls, place, box, beadR, m){
   var ord = G.orders[step];
@@ -13252,6 +13320,270 @@ function isoTakeDh(d, m){
   }
   openDh(G, g, d.a, d.b, d.step, true);
 }
+
+/* ---------- Diffie–Hellman time cylinder ---------- */
+// Opened by the exchange window's Time cylinder button: the exchange kept
+// as a history. Time runs up a see-through cylinder and each slice is the
+// ring at one moment of the exchange, its beads where the ring itself puts
+// them. Only the slices up to the step on show are drawn, the step's own
+// slice(s) outlined, and what the step just taken adds fades in hop by
+// hop. Alice's and Bob's states are threads rising through the slices. A
+// drag on the picture turns the cylinder; the window's head moves it.
+var dhcPlotEl = $('dhc-plot'), dhcSvgEl = $('dhc-svg');
+var dhcWin = plotWindow(dhcPlotEl, $('dhc-grip'));
+var DHC_H = 360, DHC_L = 230, DHC_YAW = -0.6, DHC_PITCH = 0.38, DHC_RIM_CAP = 120, DHC_BEAD_CAP = 160;
+var dhc = { open: false, yaw: DHC_YAW, pitch: DHC_PITCH, last: null, built: '', shown: null, raf: 0, turning: null };
+// The picture's point for the ring position pos (fractional between two
+// beads) on the slice at height z of the cylinder cyl: yaw turns it about
+// its axis, pitch tips it towards the viewer, so that at a pitch of 90
+// degrees a slice reads exactly like the ring. front is how far towards
+// the viewer the point lies, depth the order to paint it in.
+function dhcAt(cyl, R, W, pos, z, m){
+  var al = dirSign() * 2 * Math.PI * pos / m + dhc.yaw, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
+  var front = -R * Math.cos(al);
+  return { x: W / 2 + cyl.cx + R * Math.sin(al), y: DHC_H / 2 - z * cp - R * Math.cos(al) * sp, front: front, depth: front * cp + z * sp };
+}
+function openDhCyl(){
+  if (IS_MOBILE || !dh || dhc.open) return;
+  dhc.open = true;
+  dhc.built = '';
+  dhc.shown = null;
+  dhcPlotEl.hidden = false;
+  redrawRing();
+  dhcWin.place(dhcWin.at.x, dhcWin.at.y);
+  ringWins().forEach(function(w){ if (w !== dhcPlotEl) unstack(dhcPlotEl, dhcWin, w); });
+  syncDhCtl();
+}
+function closeDhCyl(){
+  dhc.open = false;
+  dhc.built = '';
+  dhc.shown = null;
+  dhcPlotEl.hidden = true;
+  if (dhc.raf){ cancelAnimationFrame(dhc.raf); dhc.raf = 0; }
+  if (dhParts) syncDhCtl();
+}
+function toggleDhCyl(){ if (dhc.open) closeDhCyl(); else openDhCyl(); }
+
+/* ---------- the time cylinder's slices ---------- */
+// dhcTimeline(G) says what the cylinder holds: a variant of the picture
+// defines it right after this comment. It returns
+// { slices, marks, threads, lines, swap }. slices run bottom to top, each
+// { step, full, tag }: the Diffie–Hellman step (0 to 6) from which it
+// shows, whether every bead is drawn on it, and the step numeral(s) printed
+// beside it ('' for none), and optionally hop, its place in the staggered
+// fade-in; there are at least two. marks are { slice, x, who, owner, step,
+// hop }: the element x ringed on that slice, who being alice, bob or key
+// (the colour), owner alice, bob or pub (pub is drawn in every cylinder).
+// threads are { who, owner, pts: [{ slice, x, step, hop }] }, one person's
+// state over time, the piece into pts[k] shown from pts[k].step. lines are
+// { slice, from, to, who, owner, step, hop }, chords lying in one slice's
+// plane. swap is { slice, A, B, step }, the public exchange. hop orders one
+// step's pieces for the staggered fade-in.
+
+/* ---------- drawing the time cylinder ---------- */
+// Everything is painted as flat svg primitives, each with a depth, sorted
+// far to near, so the cylinder is see-through yet reads in three
+// dimensions.
+function drawDhCyl(){
+  var L = dhc.last;
+  if (!L || !dh || !dhLive(L.G)) return;
+  var G = L.G, place = L.place, m = L.m, step = dh.step;
+  var tl = dhcTimeline(G), lay = dhcLayout(tl);
+  var W = lay.w, R = lay.R, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
+  var slices = tl.slices, n = slices.length, dz = DHC_L / (n - 1);
+  var zOf = function(i){ return -DHC_L / 2 + i * dz; };
+  var shows = function(s){ return s <= step; };
+  var mine = function(cyl, owner){ return cyl.owners.indexOf(owner) !== -1; };
+  var vis = slices.map(function(s){ return shows(s.step); });
+  var nVis = vis.filter(Boolean).length;
+  // The slices the step on show works on, else the topmost one.
+  var now = {};
+  tl.marks.concat(tl.lines).forEach(function(k){ if (k.step === step && vis[k.slice]) now[k.slice] = true; });
+  tl.threads.forEach(function(t){ t.pts.forEach(function(q){ if (q.step === step && vis[q.slice]) now[q.slice] = true; }); });
+  if (!Object.keys(now).length && nVis) now[vis.lastIndexOf(true)] = true;
+  // Fresh pieces fade in only on the step straight after the one shown.
+  var id = [G.key, dh.g, dh.a, dh.b].join('|');
+  var fresh = !!dhc.shown && dhc.shown.id === id && step === dhc.shown.step + 1;
+  var late = [], prims = [];
+  var put = function(el, depth, st, hop, ci){
+    if (ci !== undefined) el.setAttribute('data-cyl', String(ci));
+    if (fresh && st === step){ el.classList.add('is-fresh'); late.push({ el: el, hop: hop || 0 }); }
+    prims.push({ el: el, depth: depth });
+  };
+  var cls = function(base, who, front, extra){ return base + (who ? ' is-' + who : '') + (front < 0 ? ' is-back' : '') + (extra || ''); };
+  var reach = dhReach(G), rimK = nVis > DHC_RIM_CAP ? Math.ceil(nVis / DHC_RIM_CAP) : 1;
+  var rBead = clamp(1.15 * R * Math.PI / m, 1.3, 3.4);
+  var hi = DHC_H / 2 - DHC_L / 2 * cp, lo = DHC_H / 2 + DHC_L / 2 * cp;
+  lay.cyls.forEach(function(cyl, ci){
+    var cx = W / 2 + cyl.cx;
+    var P = function(pos, z){ return dhcAt(cyl, R, W, pos, z, m); };
+    [-1, 1].forEach(function(side){
+      put(svgEl('line', { 'class': 'dhc-wall', x1: num(cx + side * R), y1: num(lo), x2: num(cx + side * R), y2: num(hi) }), -1e6, -1, 0, ci);
+    });
+    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(lo), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
+    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), 1e5, -1, 0, ci);
+    slices.forEach(function(sl, i){
+      if (!vis[i]) return;
+      var z = zOf(i), cy = DHC_H / 2 - z * cp, ry = R * sp;
+      if (nVis <= DHC_RIM_CAP || sl.full || sl.tag || now[i] || i % rimK === 0){
+        var nowCls = now[i] ? ' is-now' : '';
+        put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), z * sp - R * cp, sl.step, sl.hop, ci);
+        put(svgEl('path', { 'class': 'dhc-rim is-front' + nowCls, d: 'M ' + num(cx + R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx - R) + ' ' + num(cy) }), z * sp + R * cp, sl.step, sl.hop, ci);
+      }
+      if (!sl.full || m > DHC_BEAD_CAP) return;
+      G.els.forEach(function(x){
+        if (place[x] === undefined) return;
+        var q = P(place[x], z);
+        put(svgEl('circle', { 'class': cls('dhc-bead', '', q.front, reach[x] ? '' : ' is-far'), cx: num(q.x), cy: num(q.y), r: num(rBead) }), q.depth, sl.step, sl.hop, ci);
+      });
+      if (place[dh.g] !== undefined){
+        var g = P(place[dh.g], z);
+        put(svgEl('circle', { 'class': cls('dhc-mark', 'g', g.front), cx: num(g.x), cy: num(g.y), r: num(rBead + 3) }), g.depth, sl.step, sl.hop, ci);
+      }
+    });
+    // Threads: a person's state over time, each piece the shorter way round
+    // the ring while it rises from one slice to the next.
+    tl.threads.forEach(function(t){
+      if (!mine(cyl, t.owner)) return;
+      t.pts.forEach(function(c, k){
+        if (!k) return;
+        var a = t.pts[k - 1], p0 = place[a.x], p1 = place[c.x];
+        if (!shows(c.step) || !vis[c.slice] || !vis[a.slice] || p0 === undefined || p1 === undefined) return;
+        var d = ((p1 - p0) % m + m) % m;
+        if (d > m / 2) d -= m;
+        var count = Math.max(4, Math.ceil(Math.abs(d) * 360 / m / 15)), z0 = zOf(a.slice), z1 = zOf(c.slice);
+        var pts = [], j;
+        for (j = 0; j <= count; j++) pts.push(P(p0 + d * j / count, z0 + (z1 - z0) * j / count));
+        var segs = [], cur = null;
+        for (j = 1; j < pts.length; j++){
+          var back = pts[j - 1].front + pts[j].front < 0;
+          if (!cur || cur.back !== back){ cur = { back: back, pts: [pts[j - 1]] }; segs.push(cur); }
+          cur.pts.push(pts[j]);
+        }
+        segs.forEach(function(sg){
+          var path = '', depth = 0;
+          sg.pts.forEach(function(q, i){ path += (i ? ' L ' : 'M ') + num(q.x) + ' ' + num(q.y); depth += q.depth; });
+          put(svgEl('path', { 'class': cls('dhc-thread', t.who, sg.back ? -1 : 1, c.step === step ? ' is-now' : ''), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
+        });
+        if (nVis <= DHC_RIM_CAP && c.x !== a.x){
+          var e = pts[pts.length - 1];
+          put(svgEl('circle', { 'class': cls('dhc-dot', t.who, e.front), cx: num(e.x), cy: num(e.y), r: 2 }), e.depth + 0.01, c.step, c.hop, ci);
+        }
+      });
+    });
+    // Chords lying in one slice's plane.
+    tl.lines.forEach(function(k){
+      var a = place[k.from], b = place[k.to];
+      if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || a === undefined || b === undefined) return;
+      var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
+      put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, k.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+    });
+    // Marks: a dot on the first element placed on a bead, rings round it
+    // for any further ones.
+    var placed = {};
+    tl.marks.forEach(function(k){
+      if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined) return;
+      var key = k.slice + '|' + k.x, c = placed[key] || 0, q = P(place[k.x], zOf(k.slice));
+      placed[key] = c + 1;
+      put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), q.depth + 0.02, k.step, k.hop, ci);
+    });
+  });
+  // Links: a chord between two cylinders (or two beads of the one).
+  lay.links.forEach(function(lk){
+    var ca = lay.cyls[lk.from.cyl], cb = lay.cyls[lk.to.cyl], pa = place[lk.from.x], pb = place[lk.to.x];
+    if (!shows(lk.step) || !vis[lk.from.slice] || !vis[lk.to.slice] || pa === undefined || pb === undefined) return;
+    var q1 = dhcAt(ca, R, W, pa, zOf(lk.from.slice), m), q2 = dhcAt(cb, R, W, pb, zOf(lk.to.slice), m);
+    put(svgEl('line', { 'class': cls('dhc-line is-link', lk.who, q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, lk.step, 0);
+  });
+  // The step numerals, left of the leftmost cylinder.
+  var left = W / 2 + Math.min.apply(null, lay.cyls.map(function(c){ return c.cx; })) - R - 8;
+  slices.forEach(function(sl, i){
+    if (!vis[i] || !sl.tag) return;
+    var t = svgEl('text', { 'class': 'dhc-tag', x: num(left), y: num(DHC_H / 2 - zOf(i) * cp) });
+    t.textContent = sl.tag;
+    put(t, 1e6, -1, 0);
+  });
+  var maxHop = late.reduce(function(h, f){ return Math.max(h, f.hop); }, 0), stagger = Math.min(70, 1100 / (maxHop + 1));
+  late.forEach(function(f){ f.el.style.animationDelay = Math.round(f.hop * stagger) + 'ms'; });
+  prims.sort(function(a, b){ return a.depth - b.depth; });
+  dhcSvgEl.setAttribute('viewBox', '0 0 ' + W + ' ' + DHC_H);
+  dhcSvgEl.replaceChildren.apply(dhcSvgEl, prims.map(function(p){ return p.el; }));
+  dhc.shown = { id: id, step: step };
+  $('dhc-plot-title').textContent = translate('cyclicGroups.dhCylTitle', { group: G.label });
+  dhcSvgEl.setAttribute('aria-label', translate('cyclicGroups.dhCylAria', { group: G.label }));
+}
+
+/* ---------- the time cylinder's cylinders ---------- */
+// dhcLayout(tl) says how many cylinders the slices are drawn in: a variant
+// of the picture defines it right after this comment. It returns
+// { w, R, cyls, links }: w the viewBox width (its height is DHC_H), R the
+// cylinders' radius, cyls the cylinders as { cx, owners } (cx the axis's
+// offset from the viewBox centre, owners the marks, threads and lines it
+// draws, from alice, bob and pub), and links the chords between two
+// cylinders' beads as { from: { cyl, slice, x }, to: { cyl, slice, x }, who,
+// step }.
+
+/* ---------- turning the time cylinder ---------- */
+// Called by every ring draw while the exchange is on: the ring's own place
+// map is what the slices use, so the cylinder is redrawn only when
+// something it shows (or the way it is turned) has changed.
+function syncDhCyl(G, place, m){
+  dhc.last = { G: G, place: place, m: m };
+  if (!dhc.open) return;
+  var sig = [G.key, dh.g, dh.a, dh.b, dh.step, m, G.els.map(function(x){ return place[x]; }).join(','), dirSign(), dhc.yaw, dhc.pitch, getLang()].join('|');
+  if (sig === dhc.built) return;
+  dhc.built = sig;
+  drawDhCyl();
+}
+function dhcTurned(){
+  if (dhc.raf) return;
+  dhc.raf = requestAnimationFrame(function(){
+    dhc.raf = 0;
+    if (dhc.open && dhc.last) syncDhCyl(dhc.last.G, dhc.last.place, dhc.last.m);
+  });
+}
+dhcSvgEl.addEventListener('pointerdown', function(e){
+  if (e.button !== 0 || IS_MOBILE) return;
+  dhc.turning = { id: e.pointerId, x: ptX(e), y: ptY(e) };
+  dhcSvgEl.setPointerCapture(e.pointerId);
+  dhcSvgEl.classList.add('is-turning');
+  dhcSvgEl.focus({ preventScroll: true });
+});
+dhcSvgEl.addEventListener('pointermove', function(e){
+  var t = dhc.turning;
+  if (!t || e.pointerId !== t.id) return;
+  dhc.yaw += (ptX(e) - t.x) * 0.012;
+  dhc.pitch = clamp(dhc.pitch + (ptY(e) - t.y) * 0.008, 0.08, 1.45);
+  t.x = ptX(e);
+  t.y = ptY(e);
+  dhcTurned();
+});
+var dhcEndTurn = function(e){
+  if (!dhc.turning || e.pointerId !== dhc.turning.id) return;
+  dhc.turning = null;
+  dhcSvgEl.classList.remove('is-turning');
+};
+dhcSvgEl.addEventListener('pointerup', dhcEndTurn);
+dhcSvgEl.addEventListener('pointercancel', dhcEndTurn);
+function dhcReset(){
+  dhc.yaw = DHC_YAW;
+  dhc.pitch = DHC_PITCH;
+  dhcTurned();
+}
+dhcSvgEl.addEventListener('dblclick', dhcReset);
+dhcSvgEl.addEventListener('keydown', function(e){
+  var k = e.key;
+  if (k === 'ArrowLeft') dhc.yaw -= 0.15;
+  else if (k === 'ArrowRight') dhc.yaw += 0.15;
+  else if (k === 'ArrowUp') dhc.pitch = clamp(dhc.pitch - 0.1, 0.08, 1.45);
+  else if (k === 'ArrowDown') dhc.pitch = clamp(dhc.pitch + 0.1, 0.08, 1.45);
+  else if (k === 'Home') { dhc.yaw = DHC_YAW; dhc.pitch = DHC_PITCH; }
+  else return;
+  e.preventDefault();
+  e.stopPropagation();
+  dhcTurned();
+});
+$('dhc-close').addEventListener('click', closeDhCyl);
 
 /* ---------- the Cayley table ---------- */
 // The group's Cayley table, in a window like the polygon's: row a, column
@@ -14162,7 +14494,7 @@ function tellPlotsOver(){
   var body = curvePlotEl.closest('.fs-win-body');
   if (!body) return;
   var line = boxOf(body).bottom - (parseFloat(getComputedStyle(body).paddingBottom) || 0), rects = [];
-  [curvePlotEl, polyPlotEl, cayleyEl, dhPlotEl, lapKeyEl].forEach(function(el){
+  [curvePlotEl, polyPlotEl, cayleyEl, dhPlotEl, dhcPlotEl, lapKeyEl].forEach(function(el){
     if (el.hidden || el.closest('.fs-win-body') !== body) return;
     var r = boxOf(el);
     if (r.width && r.bottom > line) rects.push([r.left, r.top, r.right, r.bottom].map(Math.round));
@@ -14174,7 +14506,7 @@ function tellPlotsOver(){
 }
 if (IS_ISOPANE && !IS_MOBILE && window.MutationObserver){
   var plotsOverMo = new MutationObserver(tellPlotsOver);
-  [curvePlotEl, polyPlotEl, cayleyEl, dhPlotEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
+  [curvePlotEl, polyPlotEl, cayleyEl, dhPlotEl, dhcPlotEl, lapKeyEl].forEach(function(el){ plotsOverMo.observe(el, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] }); });
   window.addEventListener('resize', tellPlotsOver);
 }
 var plotMinSent = null;
@@ -16736,6 +17068,8 @@ window.addEventListener('keydown', function(e){
   // and so does the row of base boxes (its radios skip the greyed-out ones).
   // Snapped to the Cayley table (focused), the arrows move its cell.
   if (t.closest && t.closest('.cayley-scroll')) return;
+  // The time cylinder, focused, turns on the arrows itself.
+  if (t.closest && t.closest('.dhc-svg')) return;
   e.preventDefault();
   e.stopPropagation();
   if (vertical){
