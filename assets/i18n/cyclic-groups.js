@@ -732,7 +732,7 @@
       opAbbrEc: 'Elliptic curve',
       opAbbrPa: 'Elliptic Curve point addition',
       curvePlotTitleName: '{curve} point plot',
-      combineGeneral: 'Generalize formula?',
+      combineGeneral: 'Generalize formula',
       menuNatExp: 'Exponents in natural expression',
       lockLabel: 'Lock: the preferred direction, nothing, or the flip',
       menuSimplifyAuto: 'Auto-simplify',
