@@ -7040,7 +7040,7 @@ if (IS_DESKTOP){
 
 // What must not travel between rings: the preview and embed switches, and
 // the theme, language and sharing the pane takes from its page.
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin', 'dh'];
 function cleanRingQuery(q){
   var p = new URLSearchParams(q);
   RING_DROP.forEach(function(k){ p.delete(k); });
@@ -24019,6 +24019,15 @@ function dhFromQuery(q){
   openDh(G, g, a, b, 0);
 }
 dhFromQuery(new URLSearchParams(location.search));
+// The link is used once: dh= leaves the address, so neither a reload nor a
+// ring built from this page's query (a swap, the pane, a Ring window) opens
+// the exchange again.
+(function(){
+  var q = new URLSearchParams(location.search);
+  if (!q.has('dh')) return;
+  q.delete('dh');
+  try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) { /* the address bar is a convenience */ }
+})();
 
 })();
 </script>
