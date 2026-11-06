@@ -223,7 +223,8 @@
    Alice and Bob compute A and B at the same time; dhStep2 and dhStep3, the
    two steps it replaces, are no longer used) and dhStepBothK (the step where
    both compute K at the same time; it replaces dhStep5 and dhStep6, no
-   longer used). Every other language shows the English value through
+   longer used) and dhCylMenu and dhCylHopNumbers (the time cylinder's
+   right-click menu and its switch for the chords' hop numbers). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1300,6 +1301,8 @@
       dhCylPerFrameTip: 'One slice for the secrets, one for A and B, and one for the swap and the walks to K, each walk drawn as chords in its slice',
       dhCylValues: 'Values',
       dhCylValuesTip: 'Show each bead’s natural value on the slices, in the ring’s colours (in the filled window)',
+      dhCylMenu: 'Time cylinder',
+      dhCylHopNumbers: 'Hop numbers',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',
