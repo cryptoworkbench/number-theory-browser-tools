@@ -17289,7 +17289,9 @@ function syncCosetButton(){
   var G = drawn && drawn.G;
   cosetBtnEl.disabled = !cosetRun && (!G || !hasCosets(G));
   if (cosetRun) cosetBtnEl.textContent = translate('cyclicGroups.cosetHide');
-  else if (G && !state.noSub){
+  // Mid-swap the selection may already be the next group's while the ring
+  // drawn is still the last one; render() counts again once it is drawn.
+  else if (G && !state.noSub && G.els.indexOf(state.gen) !== -1){
     var left = G.order / G.orders[state.gen] - 1;
     // Locked to the pane as whole groups, the one button between the rings
     // counts for both: each group's index on its own line, then the count.
@@ -17738,7 +17740,7 @@ function revealLog(G, g){ var k = G.key + ' ' + g; return revealLogs[k] || (reve
 // linked pane's borrowed colours all carry over; off, it is left as it is.
 function memberMath(x, content){
   if (state.subColor === 'off' || !drawn) return content;
-  var p = drawn.paint(x), chip = mrow(content);
+  var p = drawn.paint(x) || {}, chip = mrow(content);
   chip.setAttribute('class', ('sub-chip sub-chip-' + state.subColor + ' ' + (p.cls || '')).trim());
   if (p.style) chip.setAttribute('style', p.style);
   // A reveal goes on the chip, and the chip on the line as the reveal would.
