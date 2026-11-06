@@ -225,8 +225,10 @@
    both compute K at the same time; it replaces dhStep5 and dhStep6, no
    longer used) and dhCylMenu and dhCylHopNumbers (the time cylinder's
    right-click menu and its switch for the chords' hop numbers) and
-   dhCylHopArrows (its switch drawing the hops as arrows). Every other language shows the English value through
-   NT.i18n's fallback meanwhile.
+   dhCylHopArrows (its switch drawing the hops as arrows) and dhCylPolygon
+   and dhCylPolygonNo (its polygon mode switch, and why it is greyed out).
+   Every other language shows the English value through NT.i18n's
+   fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
    NT.i18n.register(...). legendSubgroups and subRowGcd are plural entries in each
@@ -1305,6 +1307,8 @@
       dhCylMenu: 'Time cylinder',
       dhCylHopNumbers: 'Hop numbers',
       dhCylHopArrows: 'Hops depicted as arrows',
+      dhCylPolygon: 'Polygon mode',
+      dhCylPolygonNo: 'Only when the beads are arranged by the exchange’s generator g',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',

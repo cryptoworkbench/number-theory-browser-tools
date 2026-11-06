@@ -13447,8 +13447,8 @@ function readDhcView(key, table, dflt){
     return Object.prototype.hasOwnProperty.call(table, v) ? v : dflt;
   } catch (e) { return dflt; }
 }
-var DHC_VALUES_KEY = 'cyclic-groups-dhc-values', DHC_HOP_NUMS_KEY = 'cyclic-groups-dhc-hop-numbers', DHC_HOP_ARROWS_KEY = 'cyclic-groups-dhc-hop-arrows';
-var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KEY) === '1'; } catch (e) { return false; } })(), hopNums: (function(){ try { return localStorage.getItem(DHC_HOP_NUMS_KEY) !== '0'; } catch (e) { return true; } })(), hopArrows: (function(){ try { return localStorage.getItem(DHC_HOP_ARROWS_KEY) === '1'; } catch (e) { return false; } })(), open: false, slices: readDhcView(DHC_SLICES_KEY, DHC_TIMELINES, 'hop'), cyls: readDhcView(DHC_CYLS_KEY, DHC_LAYOUTS, 'split'), yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
+var DHC_VALUES_KEY = 'cyclic-groups-dhc-values', DHC_HOP_NUMS_KEY = 'cyclic-groups-dhc-hop-numbers', DHC_HOP_ARROWS_KEY = 'cyclic-groups-dhc-hop-arrows', DHC_POLYGON_KEY = 'cyclic-groups-dhc-polygon';
+var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KEY) === '1'; } catch (e) { return false; } })(), hopNums: (function(){ try { return localStorage.getItem(DHC_HOP_NUMS_KEY) !== '0'; } catch (e) { return true; } })(), hopArrows: (function(){ try { return localStorage.getItem(DHC_HOP_ARROWS_KEY) === '1'; } catch (e) { return false; } })(), polygon: (function(){ try { return localStorage.getItem(DHC_POLYGON_KEY) === '1'; } catch (e) { return false; } })(), open: false, slices: readDhcView(DHC_SLICES_KEY, DHC_TIMELINES, 'hop'), cyls: readDhcView(DHC_CYLS_KEY, DHC_LAYOUTS, 'split'), yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
 // The picture's point for the ring position pos (fractional between two
 // beads) on the slice at height z of the cylinder cyl: yaw turns it about
 // its axis, pitch tips it towards the viewer, so that at a pitch of 90
@@ -13487,10 +13487,11 @@ function toggleDhCyl(){ if (dhc.open) closeDhCyl(); else openDhCyl(); }
 // per hop) or dhcTimelineFrame (one slice per frame), below, as the
 // window's Slices switch (dhc.slices) says. It returns
 // { slices, marks, threads, lines, swap }. slices run bottom to top, each
-// { step, full, tag }: the Diffie–Hellman step (0 to 4) from which it
+// { step, full, tag, by }: the Diffie–Hellman step (0 to 4) from which it
 // shows, whether every bead is drawn on it, and the step numeral(s) printed
-// beside it ('' for none), and optionally hop, its place in the staggered
-// fade-in; there are at least two. marks are { slice, x, who, owner, step,
+// beside it ('' for none), optionally hop, its place in the staggered
+// fade-in, and by, the element { alice, bob } each walks by on it (its
+// polygon in polygon mode); there are at least two. marks are { slice, x, who, owner, step,
 // hop }: the element x ringed on that slice, who being alice, bob or key
 // (the colour), owner alice, bob or pub (pub is drawn in every cylinder).
 // threads are { who, owner, pts: [{ slice, x, step, hop }] }, one person's
@@ -13510,11 +13511,12 @@ function toggleDhCyl(){ if (dhc.open) closeDhCyl(); else openDhCyl(); }
 function dhcTimelineHop(G){
   var v = dhValues(G), e = G.identity, a = dh.a, b = dh.b, M = Math.max(a, b), S = M + 1, T = 2 * M + 1;
   var tagOf = function(t, s1, s2){ return t === a && t === b ? (s1 === s2 ? s1 : s1 + ', ' + s2) : t === a ? s1 : t === b ? s2 : ''; };
-  var slices = [{ step: 0, full: true, tag: '0', hop: 0 }], t;
+  var byG = { alice: dh.g, bob: dh.g }, byPub = { alice: v.B, bob: v.A };
+  var slices = [{ step: 0, full: true, tag: '0', hop: 0, by: byG }], t;
   // Numbered as the frame layers are: 0 the start, 1 A and B, 2 the swap, 3 K.
-  for (t = 1; t <= M; t++) slices.push({ step: 2, full: false, tag: tagOf(t, '1', '1'), hop: t });
-  slices.push({ step: 3, full: true, tag: '2', hop: 0 });
-  for (t = 1; t <= M; t++) slices.push({ step: 4, full: t === M, tag: tagOf(t, '3', '3'), hop: t });
+  for (t = 1; t <= M; t++) slices.push({ step: 2, full: false, tag: tagOf(t, '1', '1'), hop: t, by: byG });
+  slices.push({ step: 3, full: true, tag: '2', hop: 0, by: byPub });
+  for (t = 1; t <= M; t++) slices.push({ step: 4, full: t === M, tag: tagOf(t, '3', '3'), hop: t, by: byPub });
   var marks = [
     { slice: 0, x: e, who: 'alice', owner: 'alice', step: 0, hop: 0 },
     { slice: 0, x: e, who: 'bob', owner: 'bob', step: 0, hop: 0 },
@@ -13559,7 +13561,8 @@ function dhcTimelineFrame(G){
   var stepOf = [0, 2, 3];
   // Each thread ends on layer 1, where its own walk makes the public number.
   var aliceAt = [e, v.A], bobAt = [e, v.B];
-  for (l = 0; l < stepOf.length; l++) slices.push({ step: stepOf[l], full: true, tag: String(l), hop: 0 });
+  var byG = { alice: dh.g, bob: dh.g }, byPub = { alice: v.B, bob: v.A };
+  for (l = 0; l < stepOf.length; l++) slices.push({ step: stepOf[l], full: true, tag: String(l), hop: 0, by: l < 2 ? byG : byPub });
   var mark = function(layer, x, who, owner, step){ marks.push({ slice: layer, x: x, who: who, owner: owner, step: step, hop: 0 }); };
   mark(0, e, 'alice', 'alice', 0); mark(0, e, 'bob', 'bob', 0);
   mark(1, v.A, 'alice', 'alice', 2); mark(1, v.B, 'bob', 'bob', 2);
@@ -13592,6 +13595,16 @@ function dhcTimeline(G){
   return DHC_TIMELINES[dhc.slices](G);
 }
 
+// Polygon mode fits only when the beads are arranged by the exchange's g:
+// g generates the group and each step by it is one bead on, one way round,
+// so every layer's walks step round a regular polygon.
+function dhcPolyFits(G, place, m){
+  if (!dh || G.orders[dh.g] !== m || m < 3) return false;
+  var walk = lap(G, dh.g, m), p0 = place[walk[0]], s = ((place[dh.g] - p0) % m + m) % m;
+  if (s !== 1 && s !== m - 1) return false;
+  return walk.every(function(x, k){ return place[x] === (p0 + k * s) % m; });
+}
+
 /* ---------- drawing the time cylinder ---------- */
 // Everything is painted as flat svg primitives, each with a depth, sorted
 // far to near, so the cylinder is see-through yet reads in three
@@ -13600,7 +13613,7 @@ function drawDhCyl(){
   var L = dhc.last;
   if (!L || !dh || !dhLive(L.G)) return;
   var G = L.G, place = L.place, m = L.m, step = dh.step;
-  var tl = dhcTimeline(G), lay = dhcLayout(tl);
+  var tl = dhcTimeline(G), lay = dhcLayout(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
   var Z = dhc.zoom, W = lay.w, R = lay.R * Z, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
   var OX = W / 2 + dhc.panX, OY = DHC_H / 2 + dhc.panY;
   dhc.w = W;
@@ -13647,8 +13660,26 @@ function drawDhCyl(){
       var z = zOf(i), cy = OY - z * cp, ry = R * sp;
       if (nVis <= DHC_RIM_CAP || sl.full || sl.tag || now[i] || i % rimK === 0){
         var nowCls = now[i] ? ' is-now' : '';
-        put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), under + z * sp - R * cp, sl.step, sl.hop, ci);
-        put(svgEl('path', { 'class': 'dhc-rim is-front' + nowCls, d: 'M ' + num(cx + R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx - R) + ' ' + num(cy) }), under + z * sp + R * cp, sl.step, sl.hop, ci);
+        if (poly){
+          // Polygon mode: the slice is the polygon of the beads its walks
+          // step through, one for each element walked by in this cylinder.
+          var bys = [];
+          Object.keys(DHC_BY).forEach(function(o){ if (mine(cyl, o) && bys.indexOf(sl.by[o]) < 0) bys.push(sl.by[o]); });
+          bys.forEach(function(by){
+            var ord = G.orders[by];
+            if (ord < 2) return;
+            var vs = lap(G, by, ord).map(function(x){ return P(place[x], z); }), back = '', front = '';
+            vs.forEach(function(q, j){
+              var r = vs[(j + 1) % ord], seg = 'M ' + num(q.x) + ' ' + num(q.y) + ' L ' + num(r.x) + ' ' + num(r.y) + ' ';
+              if (q.front + r.front < 0) back += seg; else front += seg;
+            });
+            if (back) put(svgEl('path', { 'class': 'dhc-rim is-poly is-back' + nowCls, d: back }), under + z * sp - R * cp, sl.step, sl.hop, ci);
+            if (front) put(svgEl('path', { 'class': 'dhc-rim is-poly is-front' + nowCls, d: front }), under + z * sp + R * cp, sl.step, sl.hop, ci);
+          });
+        } else {
+          put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), under + z * sp - R * cp, sl.step, sl.hop, ci);
+          put(svgEl('path', { 'class': 'dhc-rim is-front' + nowCls, d: 'M ' + num(cx + R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx - R) + ' ' + num(cy) }), under + z * sp + R * cp, sl.step, sl.hop, ci);
+        }
       }
       if (!sl.full || m > DHC_BEAD_CAP) return;
       G.els.forEach(function(x){
@@ -14053,7 +14084,8 @@ function dhcFill(on){
 $('dhc-fill').addEventListener('click', function(){ dhcFill(!dhc.filled); });
 $('dhc-values').addEventListener('click', function(){ setDhcValues(!dhc.values); });
 // The time cylinder's own menu: whether its chords carry their hop numbers,
-// and whether they are drawn as arrows.
+// whether they are drawn as arrows, and polygon mode (offered only when it
+// fits, see dhcPolyFits).
 var dhcCtxEl = $('dhc-ctx'), dhcCtxReturn = null;
 function setDhcCtx(open, x, y){
   if (!open){
@@ -14076,6 +14108,13 @@ function setDhcCtx(open, x, y){
     menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopNumbers'), dhc.hopNums, flip(function(){ return (dhc.hopNums = !dhc.hopNums); }, DHC_HOP_NUMS_KEY)),
     menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopArrows'), dhc.hopArrows, flip(function(){ return (dhc.hopArrows = !dhc.hopArrows); }, DHC_HOP_ARROWS_KEY))
   );
+  var L = dhc.last, fits = !!L && dhcPolyFits(L.G, L.place, L.m);
+  var polyItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylPolygon'), dhc.polygon && fits, flip(function(){ return (dhc.polygon = !dhc.polygon); }, DHC_POLYGON_KEY));
+  if (!fits){
+    polyItem.disabled = true;
+    polyItem.title = translate('cyclicGroups.dhCylPolygonNo');
+  }
+  dhcCtxEl.appendChild(polyItem);
   dhcCtxReturn = dhcCtxEl.hidden ? document.activeElement : dhcCtxReturn;
   if (!(dhcCtxReturn instanceof HTMLElement) || dhcCtxReturn === document.body) dhcCtxReturn = null;
   showCtxAt(dhcCtxEl, x, y);
