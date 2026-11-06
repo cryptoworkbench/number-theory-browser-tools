@@ -237,7 +237,11 @@
    congruence wheel floor, why it is greyed out, and its centre label) and
    dhCylFloorGap and dhCylFloorGapTip (the slider setting the floor's
    distance below the cylinders) and dhCylApart and dhCylApartTip (the
-   slider setting the separate cylinders' distance apart) and dhCylWheelRaw and dhCylWheelRawNo (the
+   slider setting the separate cylinders' distance apart) and dhCylRings,
+   dhCylRingsTip, dhCylRingsManual, dhCylRingsNow, dhCylRingsFinal,
+   dhCylRingsInfinite and dhCylRingsCount (the congruence wheel floor's
+   ring count: set by hand, as far as the steps so far or all the steps
+   reach before reduction, or without end) and dhCylWheelRaw and dhCylWheelRawNo (the
    switch showing each hop's raw result out on the floor's rings before
    its reduction, and why it is greyed out).
    Every other language shows the English value through NT.i18n's
@@ -1330,6 +1334,13 @@
       dhCylWheelMod: 'mod {n}',
       dhCylWheelRaw: 'Show raw results before reduction',
       dhCylWheelRawNo: 'Only with the congruence wheel floor',
+      dhCylRings: 'Rings',
+      dhCylRingsTip: 'How many rings the congruence wheel floor has',
+      dhCylRingsManual: 'Manually',
+      dhCylRingsNow: 'As far as the steps so far reach',
+      dhCylRingsFinal: 'As far as all the steps reach',
+      dhCylRingsInfinite: 'Infinite',
+      dhCylRingsCount: 'Number of rings',
       dhCylApart: 'Distance',
       dhCylApartTip: 'Distance between the two cylinders',
       dhCylFloorGap: 'Floor',
