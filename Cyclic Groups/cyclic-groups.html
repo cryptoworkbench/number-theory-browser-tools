@@ -1178,10 +1178,10 @@
   .dhc-line.is-bob{ --c:var(--dh-bob); }
   .dhc-line.is-key{ --c:var(--role-result); }
   /* A walk by the other's public number: Alice's and Bob's colours mixed. */
-  :is(.dhc-line, .dhc-thread, .dhc-dot).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
+  :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
   /* In the paths' colours it is the mixed path's own colour, as a self-inverse
      element's walk is drawn. */
-  .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
+  .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
   /* The mixed walk's first step, from the identity to the number received,
      in the colour of the cylinder's own person. */
   .app :is(.dhc-line, .dhc-thread).is-mix.is-first.is-by-alice{ --c:var(--dh-alice); }
@@ -1192,6 +1192,7 @@
   .dhc-use{ fill:none; stroke:var(--text); stroke-width:1.4; stroke-linecap:round; }
   .dhc-use.is-alice{ stroke:var(--dh-alice); }
   .dhc-use.is-bob{ stroke:var(--dh-bob); }
+  .dhc-use.is-mix{ stroke:var(--c); }
   .dhc-use.is-back{ opacity:.5; }
   .dhc-line.is-now{ stroke-width:1.8; }
   .dhc-line.is-back{ opacity:.4; }
@@ -13664,12 +13665,31 @@ function drawDhCyl(){
     });
     // Threads: a person's state over time, each piece the shorter way round
     // the ring while it rises from one slice to the next.
+    // In a cylinder both draw in, a piece Alice and Bob both draw is drawn
+    // once, in their colours mixed.
+    var both = mine(cyl, 'alice') && mine(cyl, 'bob'), seen = {}, done = {};
+    var see = function(key, owner){ if (both) (seen[key] = seen[key] || {})[owner] = true; };
+    var twice = function(key){ return !!seen[key] && !!seen[key].alice && !!seen[key].bob; };
+    // Draws a piece unless its twin is drawn already; says whether to mix it.
+    var once = function(key){ if (!twice(key)) return 0; if (done[key]) return -1; done[key] = true; return 1; };
+    var pieceKey = function(a, c){ return 't|' + a.slice + '|' + a.x + '|' + c.slice + '|' + c.x; };
+    var lineKey = function(sl, x, y){ return 'l|' + sl + '|' + Math.min(place[x], place[y]) + '|' + Math.max(place[x], place[y]); };
+    var useKey = function(u){ return 'u|' + u.x + '|' + u.from + '|' + u.to; };
+    tl.threads.forEach(function(t){
+      if (!mine(cyl, t.owner)) return;
+      t.pts.forEach(function(c, k){ if (k && shows(c.step)) see(pieceKey(t.pts[k - 1], c), t.owner); });
+    });
+    tl.lines.forEach(function(k){ if (mine(cyl, k.owner) && shows(k.step) && place[k.from] !== undefined && place[k.to] !== undefined) see(lineKey(k.slice, k.from, k.to), k.owner); });
+    (tl.uses || []).forEach(function(u){ if (mine(cyl, u.owner) && shows(u.step)) see(useKey(u), u.owner); });
     tl.threads.forEach(function(t){
       if (!mine(cyl, t.owner)) return;
       t.pts.forEach(function(c, k){
         if (!k) return;
         var a = t.pts[k - 1], p0 = place[a.x], p1 = place[c.x];
         if (!shows(c.step) || !vis[c.slice] || !vis[a.slice] || p0 === undefined || p1 === undefined) return;
+        var mix = once(pieceKey(a, c));
+        if (mix < 0) return;
+        var who = mix ? 'mix' : t.who, first = !mix && t.who === 'mix' && k === 1;
         var d = ((p1 - p0) % m + m) % m;
         if (d > m / 2) d -= m;
         var count = Math.max(4, Math.ceil(Math.abs(d) * 360 / m / 15)), z0 = zOf(a.slice), z1 = zOf(c.slice);
@@ -13684,11 +13704,11 @@ function drawDhCyl(){
         segs.forEach(function(sg){
           var path = '', depth = 0;
           sg.pts.forEach(function(q, i){ path += (i ? ' L ' : 'M ') + num(q.x) + ' ' + num(q.y); depth += q.depth; });
-          put(svgEl('path', { 'class': cls('dhc-thread', t.who, sg.back ? -1 : 1, (c.step === step ? ' is-now' : '') + (t.who === 'mix' && k === 1 ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '')), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
+          put(svgEl('path', { 'class': cls('dhc-thread', who, sg.back ? -1 : 1, (c.step === step ? ' is-now' : '') + (first ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '')), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
         });
         if (nVis <= DHC_RIM_CAP && c.x !== a.x){
           var e = pts[pts.length - 1];
-          put(svgEl('circle', { 'class': cls('dhc-dot', t.who, e.front), cx: num(e.x), cy: num(e.y), r: 2 }), e.depth + 0.01, c.step, c.hop, ci);
+          put(svgEl('circle', { 'class': cls('dhc-dot', who, e.front), cx: num(e.x), cy: num(e.y), r: 2 }), e.depth + 0.01, c.step, c.hop, ci);
         }
       });
     });
@@ -13696,14 +13716,18 @@ function drawDhCyl(){
     tl.lines.forEach(function(k){
       var a = place[k.from], b = place[k.to];
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || a === undefined || b === undefined) return;
+      var mix = once(lineKey(k.slice, k.from, k.to));
+      if (mix < 0) return;
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
-      put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + (k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '')), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+      put(svgEl('line', { 'class': cls('dhc-line', mix ? 'mix' : k.who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + (!mix && k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '')), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
     });
     // The number received in the swap, carried up to where it is worked with.
     (tl.uses || []).forEach(function(u){
       if (!mine(cyl, u.owner) || !shows(u.step) || !vis[u.from] || !vis[u.to] || place[u.x] === undefined) return;
+      var mix = once(useKey(u));
+      if (mix < 0) return;
       var q1 = P(place[u.x], zOf(u.from)), q2 = P(place[u.x], zOf(u.to));
-      put(svgEl('line', { 'class': cls('dhc-use', u.who, q1.front), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, u.step, 0, ci);
+      put(svgEl('line', { 'class': cls('dhc-use', mix ? 'mix' : u.who, q1.front), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, u.step, 0, ci);
     });
     // Marks: a dot on the first element placed on a bead, rings round it
     // for any further ones. The dot lies under the bead, so the bead stays
@@ -13716,12 +13740,20 @@ function drawDhCyl(){
       put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (slices[k.slice].full && c ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
     });
   });
-  // Links: a chord between two cylinders (or two beads of the one).
+  // Links: a chord between two cylinders (or two beads of the one); two
+  // links lying on one another are drawn once, in their colours mixed.
+  var linkKey = function(lk){ return [lk.from.cyl, lk.from.slice, lk.from.x, lk.to.cyl, lk.to.slice, lk.to.x].join('|'); };
+  var linkWho = {};
+  lay.links.forEach(function(lk){ if (shows(lk.step)){ var k = linkKey(lk); linkWho[k] = linkWho[k] && linkWho[k] !== lk.who ? 'mix' : lk.who; } });
+  var linkDone = {};
   lay.links.forEach(function(lk){
     var ca = lay.cyls[lk.from.cyl], cb = lay.cyls[lk.to.cyl], pa = place[lk.from.x], pb = place[lk.to.x];
     if (!shows(lk.step) || !vis[lk.from.slice] || !vis[lk.to.slice] || pa === undefined || pb === undefined) return;
+    var key = linkKey(lk);
+    if (linkDone[key]) return;
+    linkDone[key] = true;
     var q1 = dhcAt(ca, R, W, pa, zOf(lk.from.slice), m), q2 = dhcAt(cb, R, W, pb, zOf(lk.to.slice), m);
-    put(svgEl('line', { 'class': cls('dhc-line is-link', lk.who, q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, lk.step, 0);
+    put(svgEl('line', { 'class': cls('dhc-line is-link', linkWho[key], q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, lk.step, 0);
   });
   // The step numerals, left of the leftmost cylinder.
   var left = OX + Math.min.apply(null, lay.cyls.map(function(c){ return c.cx; })) * Z - R - 8;
