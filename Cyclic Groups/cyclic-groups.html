@@ -1100,6 +1100,7 @@
   .dh-val.is-g{ color:var(--text); }
   .dh-arrow{ margin:0 .3em; }
   .dh-key{ grid-column:1 / -1; justify-self:center; padding:.25em .9em; border:1px solid var(--role-result); border-radius:var(--radius-ctl); background:var(--role-result-soft); }
+  .dh-spin > .dh-secret{ -moz-appearance:textfield; appearance:textfield; padding-right:22px; }
   .dh-secret{ width:4.2em; margin-left:.2em; font:inherit; padding:1px 4px; border:1px solid currentColor; border-radius:5px; background:var(--surface); color:var(--text); cursor:text; user-select:text; -webkit-user-select:text; }
   .dh-say{ margin:.6em 0 .45em; min-height:2.7em; font-size:.86em; line-height:1.4; color:var(--text); }
   .dh-ctl{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:.2em; }
@@ -13252,10 +13253,11 @@ function dhValues(G){
 }
 function openDh(G, g, a, b, step, quiet){
   stopDhPlay();
+  // Unless given, the secrets start as a = 2 and b = 3 (as far as g's
+  // order allows); New secrets draws them at random.
   var max = Math.max(1, G.orders[g] - 1);
-  var pick = function(){ return randomInt(max >= 3 ? 2 : 1, max); };
   var spawned = dhPlotEl.hidden;
-  dh = { key: G.key, g: g, a: a === undefined ? pick() : a, b: b === undefined ? pick() : b, step: step || 0 };
+  dh = { key: G.key, g: g, a: a === undefined ? Math.min(2, max) : a, b: b === undefined ? Math.min(3, max) : b, step: step || 0 };
   dhBuilt = null;
   drawDhPlot(G);
   redrawRing();
@@ -13374,7 +13376,29 @@ function buildDhPlot(G){
     });
     input.addEventListener('change', function(){ if (dh) input.value = String(dh[name]); });
     input.addEventListener('keydown', function(e){ e.stopPropagation(); });
-    label.appendChild(input);
+    // The up and down buttons are the modulus field's, in the theme's
+    // colours, held to step on.
+    var box = dhEl('span', 'n-spin dh-spin');
+    var spin = combineKEl.parentNode.querySelector('.n-spin-btns').cloneNode(true), held = null;
+    var stop = function(){ if (held){ clearTimeout(held); held = null; } };
+    var stepBy = function(by){
+      if (by > 0) input.stepUp(); else input.stepDown();
+      input.dispatchEvent(new Event('input'));
+    };
+    spin.querySelectorAll('.n-spin-btn').forEach(function(btn){
+      var by = parseInt(btn.getAttribute('data-step'), 10);
+      btn.addEventListener('pointerdown', function(e){
+        if (e.button !== 0) return;
+        e.preventDefault();
+        stop();
+        stepBy(by);
+        var again = function(){ stepBy(by); held = setTimeout(again, 60); };
+        held = setTimeout(again, 400);
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ btn.addEventListener(t, stop); });
+    });
+    box.append(input, spin);
+    label.appendChild(box);
     cell.appendChild(label);
     return input;
   };
