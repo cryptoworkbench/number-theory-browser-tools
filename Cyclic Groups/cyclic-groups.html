@@ -7239,10 +7239,11 @@ function setRingDivide(from, focus, ask){
   from.setAttribute('aria-expanded', 'true');
   var G = drawn.G;
   if (ask){
-    // The warning, then Yes and No.
-    var warn = document.createElement('p');
+    // The warning, then Yes and No: the reduction to the structure, the
+    // isomorphism lock that breaks, or both.
+    var warn = document.createElement('p'), additive = G.mode === 'additive' && !G.pts;
     warn.className = 'ring-ctx-warn';
-    translateInto(warn, 'cyclicGroups.cardDivideWarn', { group: swapName(groupSpec(G)), structure: swapName(quotientSpec(G.order)), n: mNum(G.order), d: mNum(ask), result: swapName(quotientSpec(G.order / ask)) });
+    translateInto(warn, additive ? 'cyclicGroups.cardDivideWarnLock' : divideBreaksLock() ? 'cyclicGroups.cardDivideWarnBoth' : 'cyclicGroups.cardDivideWarn', { group: swapName(groupSpec(G)), structure: swapName(quotientSpec(G.order)), n: mNum(G.order), d: mNum(ask), result: swapName(quotientSpec(G.order / ask)) });
     var yes = ctxItem('menuitem', translate('cyclicGroups.cardDivideYes')), no = ctxItem('menuitem', translate('cyclicGroups.cardDivideNo'));
     yes.item.addEventListener('click', function(){ divideGroup(G.order / ask); });
     no.item.addEventListener('click', function(){ setRingDivide(from, true); });
@@ -7252,7 +7253,7 @@ function setRingDivide(from, focus, ask){
       var it = ctxItem('menuitem', '');
       translateInto(it.item.children[1], 'cyclicGroups.cardDivideBy', { d: mNum(d), group: swapName(quotientSpec(G.order / d)) });
       it.item.addEventListener('click', function(){
-        if (G.mode === 'additive' && !G.pts) divideGroup(G.order / d);
+        if (G.mode === 'additive' && !G.pts && !divideBreaksLock()) divideGroup(G.order / d);
         else setRingDivide(from, true, d);
       });
       return it.item;
@@ -7267,14 +7268,27 @@ function setRingDivide(from, focus, ask){
   ringDivEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
   if (focus) ringDivEl.querySelector('button').focus();
 }
+// Whether the ring is locked to the other in an isomorphism, which a
+// division, changing the group's order, always breaks.
+function divideBreaksLock(){ return groupControlsEl.classList.contains('is-locked'); }
 // The ring takes ℤ/mℤ under +, shown whole through its generator 1, the
-// rest of the view kept as it was.
+// rest of the view kept as it was. Locked to the other ring, the padlock
+// opens first (on both rings, as a double click on the group's parameters
+// opens it), and the group changes once it has.
 function divideGroup(m){
   setRingCtx(false);
-  // The new group has another order, so no isomorphism can hold: locked to
-  // the other ring, the lock opens first (both rings), as a double click on
-  // the group's parameters opens it.
-  if (groupControlsEl.classList.contains('is-locked')) openGroupLock(false);
+  if (divideBreaksLock()){
+    openGroupLock(false);
+    var wait = function(){
+      if (divideBreaksLock()) setTimeout(wait, 60);
+      else applyDivide(m);
+    };
+    setTimeout(wait, 60);
+    return;
+  }
+  applyDivide(m);
+}
+function applyDivide(m){
   var q = stateQuery();
   q.set('mode', 'additive');
   q.set('n', String(m));

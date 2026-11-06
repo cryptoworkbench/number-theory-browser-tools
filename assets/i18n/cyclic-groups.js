@@ -242,7 +242,8 @@
    dhCylRingsInfinite and dhCylRingsCount (the congruence wheel floor's
    ring count: set by hand, as far as the steps so far or all the steps
    reach before reduction, or without end) and cardDivide, cardDivideBy,
-   cardDivideNone, cardDivideCyclic, cardDivideWarn, cardDivideYes and
+   cardDivideNone, cardDivideCyclic, cardDivideWarn, cardDivideWarnLock,
+   cardDivideWarnBoth, cardDivideYes and
    cardDivideNo (Group cardinality's Divide submenu, why it is greyed out,
    and the warning asked first for a group not under +) and dhCylWheelRaw and dhCylWheelRawNo (the
    switch showing each hop's raw result out on the floor's rings before
@@ -1162,6 +1163,8 @@
       cardDivideNone: 'The group’s cardinality has no divisor between 1 and itself',
       cardDivideCyclic: 'Only for a cyclic group, whose structure is ℤ/|G|ℤ',
       cardDivideWarn: 'This first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is divided by {d}, giving {result}. Continue?',
+      cardDivideWarnLock: 'This breaks the isomorphism locking this ring to the other: dividing the modulus {n} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
+      cardDivideWarnBoth: 'This breaks the isomorphism locking this ring to the other. It also first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is divided by {d}, giving {result}. Continue?',
       cardDivideYes: 'Yes',
       cardDivideNo: 'No',
       ctxGroupStructure: 'Group structure',
