@@ -9935,9 +9935,12 @@ function syncExprCtx(key){
     return;
   }
   // The subgroup row's G = ⟨h⟩ ⊆ …: the group's name, the subgroup's, the
-  // group's cardinality, its generator count, then the group's structure.
-  // The expression slider's menu ('gens') keeps only its ticks below.
-  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens', 'struct'] : key === 'gens' ? [] : [key]).forEach(function(k){
+  // group's cardinality, its generator count, then the group's structure;
+  // with the subgroup off, its row only names the group, and the menu
+  // offers the formulas there are, the subgroup's gone. The expression
+  // slider's menu ('gens') keeps only its ticks below.
+  var have = menuFormulas(drawn.G).map(function(f){ return f.key; });
+  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens', 'struct'].filter(function(k){ return have.indexOf(k) !== -1; }) : key === 'gens' ? [] : [key]).forEach(function(k){
     var it = ctxItem('menuitem', translate(ctxName(k)), true);
     it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
     it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
@@ -9966,7 +9969,7 @@ function syncExprCtx(key){
 }
 $('gen-super').addEventListener('contextmenu', function(e){
   e.preventDefault();
-  if (IS_MOBILE || !e.currentTarget.firstChild || !drawn || state.noSub) return;
+  if (IS_MOBILE || !e.currentTarget.firstChild || !drawn) return;
   setRevealHot(null);
   setRingCtx(true, ptX(e), ptY(e), 'gsub');
 });
