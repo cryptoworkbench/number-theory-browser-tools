@@ -1182,6 +1182,9 @@
   /* In the paths' colours it is the mixed path's own colour, as a self-inverse
      element's walk is drawn. */
   .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
+  /* The mixed walk's first step, from the identity to the number received,
+     dotted in the text colour. */
+  .app :is(.dhc-line, .dhc-thread).is-mix.is-first{ --c:var(--text); stroke-width:1.4; stroke-dasharray:2 3; stroke-linecap:round; }
   .dhc-line.is-pub{ --c:var(--text); }
   .dhc-line.is-link{ stroke-dasharray:4 3; stroke-width:1.4; }
   /* The number received in the swap, carried straight up to the slice where
@@ -13677,7 +13680,7 @@ function drawDhCyl(){
         segs.forEach(function(sg){
           var path = '', depth = 0;
           sg.pts.forEach(function(q, i){ path += (i ? ' L ' : 'M ') + num(q.x) + ' ' + num(q.y); depth += q.depth; });
-          put(svgEl('path', { 'class': cls('dhc-thread', t.who, sg.back ? -1 : 1, c.step === step ? ' is-now' : ''), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
+          put(svgEl('path', { 'class': cls('dhc-thread', t.who, sg.back ? -1 : 1, (c.step === step ? ' is-now' : '') + (t.who === 'mix' && k === 1 ? ' is-first' : '')), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
         });
         if (nVis <= DHC_RIM_CAP && c.x !== a.x){
           var e = pts[pts.length - 1];
@@ -13690,7 +13693,7 @@ function drawDhCyl(){
       var a = place[k.from], b = place[k.to];
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || a === undefined || b === undefined) return;
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
-      put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, k.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+      put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + (k.who === 'mix' && k.hop === 1 ? ' is-first' : '')), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
     });
     // The number received in the swap, carried up to where it is worked with.
     (tl.uses || []).forEach(function(u){
