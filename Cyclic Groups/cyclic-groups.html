@@ -13536,41 +13536,42 @@ function dhcTimelineHop(G){
   };
 }
 
-// One slice per frame: a layer for each of the exchange's steps from the
-// secrets on (agreeing on g changes nothing on the ring, so it shares the
-// bottom layer, shown from the start), Alice's and Bob's states threaded
-// up to layer 1, and each walk drawn as chords in the layer of the step that
-// takes it. Layer l shows from step l + 1, the bottom one from step 0.
+// One slice per frame: a layer for the secrets (agreeing on g changes
+// nothing on the ring, so it shares this bottom layer, shown from the
+// start), one for A and B, and one for the swap, where each then walks by
+// the number received to K. Alice's and Bob's states are threaded up to
+// layer 1, and each walk is drawn as chords in its layer. A layer shows
+// from the step of its first piece, its walks to K from step 4.
 function dhcTimelineFrame(G){
   var v = dhValues(G), e = G.identity;
   var slices = [], marks = [], l;
-  var stepOf = function(layer){ return layer ? layer + 1 : 0; };
+  var stepOf = [0, 2, 3];
   // Each thread ends on layer 1, where its own walk makes the public number.
   var aliceAt = [e, v.A], bobAt = [e, v.B];
-  for (l = 0; l < DH_LAST; l++) slices.push({ step: stepOf(l), full: true, tag: String(l), hop: 0 });
-  var mark = function(layer, x, who, owner){ marks.push({ slice: layer, x: x, who: who, owner: owner, step: stepOf(layer), hop: 0 }); };
-  mark(0, e, 'alice', 'alice'); mark(0, e, 'bob', 'bob');
-  mark(1, v.A, 'alice', 'alice'); mark(1, v.B, 'bob', 'bob');
-  mark(2, v.A, 'alice', 'pub'); mark(2, v.B, 'bob', 'pub');
-  mark(3, v.K, 'key', 'pub');
+  for (l = 0; l < stepOf.length; l++) slices.push({ step: stepOf[l], full: true, tag: String(l), hop: 0 });
+  var mark = function(layer, x, who, owner, step){ marks.push({ slice: layer, x: x, who: who, owner: owner, step: step, hop: 0 }); };
+  mark(0, e, 'alice', 'alice', 0); mark(0, e, 'bob', 'bob', 0);
+  mark(1, v.A, 'alice', 'alice', 2); mark(1, v.B, 'bob', 'bob', 2);
+  mark(2, v.A, 'alice', 'pub', 3); mark(2, v.B, 'bob', 'pub', 3);
+  mark(2, v.K, 'key', 'pub', 4);
   var thread = function(who, states){
-    return { who: who, owner: who, pts: states.map(function(x, i){ return { slice: i, x: x, step: stepOf(i), hop: 0 }; }) };
+    return { who: who, owner: who, pts: states.map(function(x, i){ return { slice: i, x: x, step: stepOf[i], hop: 0 }; }) };
   };
   var lines = [];
-  var walk = function(layer, by, secret, owner, who){
+  var walk = function(layer, step, by, secret, owner, who){
     var hops = Math.min(secret, G.orders[by]), seq = lap(G, by, hops + 1);
-    for (var k = 1; k <= hops; k++) lines.push({ slice: layer, from: seq[k - 1], to: seq[k], who: who, owner: owner, step: stepOf(layer), hop: k });
+    for (var k = 1; k <= hops; k++) lines.push({ slice: layer, from: seq[k - 1], to: seq[k], who: who, owner: owner, step: step, hop: k });
   };
-  walk(1, dh.g, dh.a, 'alice', 'alice');
-  walk(1, dh.g, dh.b, 'bob', 'bob');
+  walk(1, 2, dh.g, dh.a, 'alice', 'alice');
+  walk(1, 2, dh.g, dh.b, 'bob', 'bob');
   // A walk by the other's number mixes both colours.
-  walk(3, v.B, dh.a, 'alice', 'mix');
-  walk(3, v.A, dh.b, 'bob', 'mix');
+  walk(2, 4, v.B, dh.a, 'alice', 'mix');
+  walk(2, 4, v.A, dh.b, 'bob', 'mix');
   return {
     slices: slices, marks: marks, lines: lines,
     threads: [thread('alice', aliceAt), thread('bob', bobAt)],
     swap: { slice: 2, A: v.A, B: v.B, step: 3, madeA: 1, madeB: 1 },
-    uses: [{ x: v.B, from: 2, to: 3, owner: 'alice', who: 'bob', step: 4 }, { x: v.A, from: 2, to: 3, owner: 'bob', who: 'alice', step: 4 }]
+    uses: []
   };
 }
 

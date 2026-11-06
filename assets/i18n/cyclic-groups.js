@@ -1297,7 +1297,7 @@
       dhCylPerHop: 'Per hop',
       dhCylPerHopTip: 'One slice for every hop of Alice’s and Bob’s walks, side by side',
       dhCylPerFrame: 'Per frame',
-      dhCylPerFrameTip: 'One slice for each of the exchange’s steps from the secrets on, each walk drawn as chords in its step’s slice',
+      dhCylPerFrameTip: 'One slice for the secrets, one for A and B, and one for the swap and the walks to K, each walk drawn as chords in its slice',
       dhCylValues: 'Values',
       dhCylValuesTip: 'Show each bead’s natural value on the slices, in the ring’s colours (in the filled window)',
       dhColoursLabel: 'Alice and Bob’s colours',
