@@ -4675,7 +4675,7 @@ var SUB_FOLLOW = 'follow';
 // while they are sorted naturally.
 var SUB_SORT = 'sort';
 function subExprGen(G, v, slider){
-  if (v === SUB_SORT) return !IS_ISOPANE && subInterlocked() && state.subSortR ? null : sortGen(G);
+  if (v === SUB_SORT) return mergedSortRight() ? null : sortGen(G);
   return v === SUB_FOLLOW ? genOrNull(G, slider) : genOrNull(G, v);
 }
 // The generator the rows are sorted by the exponent of, or null. The sort
@@ -4876,7 +4876,11 @@ function syncSubExpr(G){
   subExprRowEl.hidden = !G.cyclic;
   subSortPairEl.hidden = !G.cyclic;
   subExprRowREl.hidden = !merged;
-  if (!G.cyclic) return;
+  if (!G.cyclic){
+    // The pane's own expressions are the pane's group's, whatever this one.
+    if (merged) syncMergedExpr(G);
+    return;
+  }
   SUB_EXPR_CTLS.forEach(function(c){
     var sorts = c.el === subLeftSelectEl;
     c.el.replaceChildren.apply(c.el, [arrangeOption('', 'cyclicGroups.exprNatural'), followOption()].concat(sorts ? [sortOption()] : [], G.generators.map(function(g){
@@ -4896,7 +4900,7 @@ function syncSubExpr(G){
 }
 // The gcd switch works only while the rows are sorted by an exponent.
 function syncSubGcdBtn(G){
-  var btn = $('sub-gcd'), sorted = sortGen(G) !== null && !(!IS_ISOPANE && subInterlocked() && state.subSortR);
+  var btn = $('sub-gcd'), sorted = sortGen(G) !== null && !mergedSortRight();
   btn.disabled = !sorted;
   btn.setAttribute('aria-pressed', state.subGcd && sorted ? 'true' : 'false');
 }
@@ -4920,14 +4924,14 @@ function syncMergedExpr(G){
   });
   // While the two expression sliders are coupled, the sort can follow them.
   var follows = exprCoupled || state.subSort === SUB_FOLLOW;
-  subSortSelectEl.replaceChildren.apply(subSortSelectEl, [arrangeOption('', 'cyclicGroups.subSortNatLeft'), arrangeOption('r', 'cyclicGroups.subSortNatRight')].concat(follows ? [arrangeOption(SUB_FOLLOW, 'cyclicGroups.subSortFollowCoupled')] : [], G.generators.map(function(g){
+  subSortSelectEl.replaceChildren.apply(subSortSelectEl, [arrangeOption('', 'cyclicGroups.subSortNatLeft')].concat(isoLinksWholeGroups() ? [arrangeOption('r', 'cyclicGroups.subSortNatRight')] : [], follows ? [arrangeOption(SUB_FOLLOW, 'cyclicGroups.subSortFollowCoupled')] : [], G.generators.map(function(g){
     var opt = document.createElement('option');
     opt.value = String(g);
-    opt.textContent = translate('cyclicGroups.subSortExpPair', { g: elText(G, g), h: elText(H, phi(g)) });
+    opt.textContent = translate('cyclicGroups.subSortExpPair', { g: elText(G, g), h: elText(H, isoSortImage(G, phi, g)) });
     return opt;
   })));
   var sg = genOrNull(G, state.subSort);
-  subSortSelectEl.value = state.subSortR ? 'r' : state.subSort === SUB_FOLLOW ? SUB_FOLLOW : sg === null ? '' : String(sg);
+  subSortSelectEl.value = mergedSortRight() ? 'r' : state.subSort === SUB_FOLLOW ? SUB_FOLLOW : sg === null ? '' : String(sg);
 }
 
 // Both arrow walks are drawn as humps. A hump leaves its bead at the bead's
@@ -10343,6 +10347,7 @@ function swapHostGroup(a){
   if (state.noSub) q.set('sub', 'none');
   var linked = isoLinked();
   if (isoPane && isoPane.g !== null && G.els.indexOf(isoPane.g) !== -1) isoPane.g = image(isoPane.g);
+  if (isoPane && Number.isInteger(isoPane.sub) && G.els.indexOf(isoPane.sub) !== -1) isoPane.sub = image(isoPane.sub);
   if (linked){
     isoPane.gAuto = false;
     isoPane.link = 'asking';
@@ -10366,7 +10371,9 @@ function paneSwapChip(spec){
 }
 function swapPaneGroup(a){
   if (!a) return;
-  openIsoPane(a, isoLinkGen());
+  // A link through a locked subgroup stays on it.
+  if (Number.isInteger(isoPane.sub)) openIsoPane(a, null, isoPane.sub);
+  else openIsoPane(a, isoLinkGen());
 }
 // Under them, Diffie–Hellman worked with an element as g (see openDh), one
 // item for each base on offer, each once: G while the subgroup is on, then
@@ -10930,6 +10937,7 @@ function changeSplitShare(v){ setSplitShare(v); }
 function isoLinksWholeGroups(){
   if (!isoPane || isoPane.blank) return false;
   if (isoPane.g !== null) return true;
+  if (Number.isInteger(isoPane.sub)) return false;
   return !!drawn && !state.noSub && drawn.G.orders[state.gen] === drawn.G.order;
 }
 // Any change of size moves the buttons on the line between the rings.
@@ -17497,7 +17505,7 @@ var subgroupsSig = null;
 var subExports = [];
 // The rows' order: the panel's sort, or merged, the shared one.
 function subOrder(G){
-  if (!IS_ISOPANE && subInterlocked() && state.subSortR){
+  if (mergedSortRight()){
     var phi = isoImage(G);
     return G.els.slice().sort(function(a, b){ return phi(a) - phi(b); });
   }
@@ -17518,7 +17526,7 @@ function foldedOrders(v){
 // Whether the rows are grouped by gcd: switched on, with the rows sorted by
 // the exponent of a generator here.
 function subGcdOn(G){
-  return state.subGcd && G.cyclic && sortGen(G) !== null && !(!IS_ISOPANE && subInterlocked() && state.subSortR);
+  return state.subGcd && G.cyclic && sortGen(G) !== null && !mergedSortRight();
 }
 // Grouped by gcd, with the dividers shown, a divider before row g when it
 // opens a group: its gcd(k, |G|) and the order of its rows' subgroups.
@@ -17545,13 +17553,14 @@ function subGcdDivider(G, g, prev, H, phi){
   };
   var line = function(K, base){
     var text = document.createElement('span');
-    text.textContent = translate('cyclicGroups.subGcdDivider', { g: subscript(base), group: K.label, d: G.order / order, order: order });
+    text.textContent = translate('cyclicGroups.subGcdDivider', { g: subscript(base), group: K.label, d: K.order / order, order: order });
     return text;
   };
   btn.appendChild(chevron());
   btn.appendChild(line(G, sortGen(G)));
-  if (H){
-    var right = line(H, phi(sortGen(G)));
+  // Only the rows inside a linked subgroup have a pane's half.
+  if (H && H.order % order === 0){
+    var right = line(H, isoSortImage(G, phi, sortGen(G)));
     right.className = 'sub-gcd-r';
     btn.appendChild(right);
     var mirrored = chevron();
@@ -17837,8 +17846,11 @@ function renderMergedSubgroups(G){
   // The pane's Generator following the shared sort: the image of the
   // generator the rows are sorted by, or Natural while they are sorted
   // naturally, by either group's numbers.
-  var sortG = state.subSortR ? null : sortGen(G);
-  var hl = se.left === SUB_SORT ? (sortG === null ? null : phi(sortG)) : subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
+  var sortG = mergedSortRight() ? null : sortGen(G);
+  var hl = se.left === SUB_SORT ? isoSortImage(G, phi, sortG) : subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
+  // The rows with a right side: those inside the subgroup the link runs
+  // through, every row while it is the whole group.
+  var inS = function(x){ return phi(x) !== undefined; };
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   var expWidth = Math.max(subExpWidth(G), subExpWidth(H));
   var widthG = subWidth(G), widthH = subWidth(H);
@@ -17853,7 +17865,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -17876,7 +17888,7 @@ function renderMergedSubgroups(G){
   var ownRight = function(r){ return '⟨' + hfl.p(phi(r.g)) + '⟩ = {' + r.members.map(function(x){ return hfr.p(phi(x)); }).join(', ') + '}'; };
   subExports = [
     { G: G, gens: rows.map(function(r){ return r.g; }), rows: rows, exprs: [lg, rg], lines: rows.map(function(r){ return asciiText(leftText(r)); }) },
-    { G: H, src: G, phi: phi, rows: rows.map(function(r){ return { g: phi(r.g), members: r.members.map(phi) }; }), exprs: [hl, hr], natOff: paneNatOff, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
+    { G: H, src: G, phi: phi, rows: rows.filter(function(r){ return inS(r.g); }).map(function(r){ return { g: phi(r.g), members: r.members.map(phi) }; }), exprs: [hl, hr], natOff: paneNatOff, lines: rows.map(function(r){ return inS(r.g) ? asciiText(ownRight(r)) : null; }) }
   ];
   rowAnchor();
   subgroupsEl.replaceChildren();
@@ -17892,30 +17904,33 @@ function renderMergedSubgroups(G){
     row.className = 'subgroup-row is-merged' + (on ? ' is-current' : '');
     row.setAttribute('data-gen', String(g));
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
-    row.setAttribute('aria-label', leftText(r) + '; ' + rightText(r));
+    row.setAttribute('aria-label', inS(g) ? leftText(r) + '; ' + rightText(r) : leftText(r));
     var left = document.createElement('span');
     left.className = 'sub-row-l';
     left.appendChild(mInline(mrow(angle(memberMath(g, fl.r(g))), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));
     members.forEach(function(x, i){
       left.appendChild(mInline(mrow(memberMath(x, fr.r(x)), i === last ? mo('}', true) : comma()), i === last ? fr.p(x) + '}' : fr.p(x) + ', '));
     });
-    var right = document.createElement('span');
-    right.className = 'sub-row-r';
-    members.forEach(function(x, i){
-      var y = phi(x), parts = [rightMath(x, hfr.r(y)), i === last ? mo('}', true) : comma()];
-      if (i === 0) parts.unshift(mo('{', true));
-      right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(y) + (i === last ? '}' : ', ')));
-    });
-    right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.r(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
+    var right = null;
+    if (inS(g)){
+      right = document.createElement('span');
+      right.className = 'sub-row-r';
+      members.forEach(function(x, i){
+        var y = phi(x), parts = [rightMath(x, hfr.r(y)), i === last ? mo('}', true) : comma()];
+        if (i === 0) parts.unshift(mo('{', true));
+        right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(y) + (i === last ? '}' : ', ')));
+      });
+      right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.r(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
+    }
     // Each side's tooltip follows that side's own way of writing its
     // generating element.
     var plainTips = !subFormulaOn();
     var tipL = plainTips && subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), g);
-    var tipR = plainTips && subRowGcdTitle(H, hl === null ? null : exprLog(H, hl), phi(g));
+    var tipR = plainTips && right !== null && subRowGcdTitle(H, hl === null ? null : exprLog(H, hl), phi(g));
     if (tipL) left.title = tipL;
     if (tipR) right.title = tipR;
     row.appendChild(left);
-    row.appendChild(right);
+    if (right !== null) row.appendChild(right);
     row.addEventListener('click', function(){
       if (followRefused()) return;
       selectGen(panelGen = g);
@@ -18752,8 +18767,9 @@ function isoPaneSrc(q, h){
   return location.pathname + '?' + p.toString();
 }
 // g, when given, is the generator of this ring's whole group the link runs
-// through; without it the link follows the subgroup on show.
-function openIsoPane(a, g){
+// through; without it the link follows the subgroup on show, unless sub, the
+// generator of the locked subgroup, holds it there.
+function openIsoPane(a, g, sub){
   if (IS_ISOPANE || IS_PREVIEW || IS_MOBILE) return;
   var h = parseInt(a.getAttribute('data-iso-gen'), 10);
   if (!isFinite(h)) return;
@@ -18761,7 +18777,7 @@ function openIsoPane(a, g){
   // The pane opens still: the host's first turn message aims it.
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ p.delete(k); });
   // Chosen as an isomorphism, the two rings open linked and locked.
-  isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, unlocked: false, link: 'linked', blank: false };
+  isoPane = { h: h, q: p.toString(), parent: null, g: g === undefined ? null : g, sub: sub === undefined ? null : sub, unlocked: false, link: 'linked', blank: false };
   // A curve opened from a group of numbers comes with its plot minimized,
   // the two rings side by side first; its task in the bar opens it.
   isoPane.plotMin = !state.ec && !!curveOf(p);
@@ -18795,7 +18811,7 @@ function openOwnPane(){
   p.set('mode', state.mode);
   p.set('n', String(state.n));
   if (state.ec) p.set('curve', [state.ecP, state.ecA, state.ecB].join(','));
-  isoPane = { h: drawn.G.identity, q: cleanRingQuery(p.toString()), parent: null, g: null, unlocked: true, link: 'none', blank: true };
+  isoPane = { h: drawn.G.identity, q: cleanRingQuery(p.toString()), parent: null, g: null, sub: null, unlocked: true, link: 'none', blank: true };
   isoPaneEl.hidden = false;
   if (isoPickEl) isoPickEl.classList.add('is-chosen');
   loadIsoFrame();
@@ -19210,7 +19226,7 @@ function openLeftPick(){
   var G = drawn.G;
   var whole = Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'));
   var h = !G.cyclic ? G.identity : !state.noSub && G.orders[state.gen] === G.order ? state.gen : G.generators[0];
-  isoPane = { h: h, q: cleanRingQuery(stateQuery().toString()), parent: null, g: null, unlocked: true, link: 'none', blank: false, hostBlank: true };
+  isoPane = { h: h, q: cleanRingQuery(stateQuery().toString()), parent: null, g: null, sub: null, unlocked: true, link: 'none', blank: false, hostBlank: true };
   isoPaneEl.hidden = false;
   loadIsoFrame();
   isoAddLeftEl.classList.remove('is-shown');
@@ -19583,6 +19599,9 @@ function tellPaneKey(key){
 // except when opened as an isomorphism.
 function syncIsoLink(){
   if (IS_ISOPANE || !isoPane || !drawn || isoPane.blank) return;
+  // A locked subgroup no longer isomorphic to the pane's group is let go:
+  // the link follows the subgroup on show again.
+  if (Number.isInteger(isoPane.sub) && !isoFound()) isoPane.sub = null;
   // A pane's group not isomorphic to the subgroup on show may still be to
   // this whole group: the link then runs through a generator of the whole
   // group, for as long as the two whole groups match.
@@ -19777,8 +19796,9 @@ function isoPeer(){ return IS_ISOPANE ? window.parent : (isoPaneFrame && isoPane
 // The link's order, 0 while the two are not linked: the pane's group must
 // still be generated by h, the holder's subgroup must be on show.
 // The link's generator on this ring: the pane's h; on the ring holding it,
-// the whole group's generator it was opened with, or else the selected
-// subgroup's (null while the group on show has no such generator).
+// the whole group's generator it was opened with, or the locked subgroup's
+// once the lists merged, or else the selected subgroup's (null while the
+// group on show has no such generator).
 function isoLinkGen(){
   if (IS_ISOPANE) return ISO_GEN;
   if (isoPane && isoPane.g !== null){
@@ -19789,6 +19809,11 @@ function isoLinkGen(){
     // generator of the new one, the subgroup's when that is one.
     isoPane.g = !state.noSub && G.generators.indexOf(state.gen) !== -1 ? state.gen : G.generators[0];
     return isoPane.g;
+  }
+  if (isoPane && Number.isInteger(isoPane.sub)){
+    if (drawn.G.els.indexOf(isoPane.sub) !== -1) return isoPane.sub;
+    // The group was changed since, and no longer holds the locked subgroup.
+    isoPane.sub = null;
   }
   return state.noSub ? null : state.gen;
 }
@@ -20056,11 +20081,14 @@ function isoReceive(d){
     else if (follow !== was || beads !== wasBeads || (follow && !flipping)) render();
   }
 }
-// Merged lists: while the link is between the whole groups, the two
-// Numerical panels are one. The ring holding the pane shows both groups'
-// lists in one wide panel, row by row through the isomorphism (g^k beside
-// h^k), the pane's mirrored on the right, and the pane hides its own;
-// selecting a subgroup on either ring selects its image on the other. The
+// Merged lists: while the link is between the whole groups, or from one
+// subgroup of this ring's group onto the pane's, the two Numerical panels
+// are one. The ring holding the pane shows both groups' lists in one wide
+// panel, row by row through the isomorphism (g^k beside h^k), the pane's
+// mirrored on the right, and the pane hides its own; for a subgroup link
+// only the rows inside the subgroup have a right side. Selecting a subgroup
+// on either ring selects its image on the other, and a row outside the
+// locked subgroup leaves the pane with no subgroup. The
 // holder decides and tells the pane (isoInterlockOn), shares its padding
 // and auto-shift with it (numset), and sets its two expressions (subexpr),
 // which it reads from the pane's query when they merge (isoPane.subExpr).
@@ -20088,6 +20116,15 @@ function isoHostOrder(G){
 function isoImage(G){
   var gp = isoPowers(), H = isoPaneGroup(), hp = lap(H, isoPane.h, H.order);
   return function(x){ return hp[gp.indexOf(x)]; };
+}
+// The image of the generator the rows are sorted by: its own, or, linked
+// through a subgroup that the generator lies outside, the image of the
+// power of it that generates that subgroup; null for none.
+function isoSortImage(G, phi, g){
+  if (g === null) return null;
+  var h = phi(g);
+  if (h === undefined && G.cyclic && isoOrder() > 0) h = phi(powerOf(G, g, G.order / isoOrder()));
+  return h === undefined ? null : h;
 }
 // Locking an isomorphism of whole groups: this ring's expression generator
 // (the first generator in place of Natural) and its image in the pane's
@@ -20192,7 +20229,12 @@ exprSideLockEl.addEventListener('click', function(){
 });
 function subInterlocked(){
   if (IS_ISOPANE) return isoInterlockOn && isoOrder() > 0;
-  return isoOrder() > 0 && isoLinksWholeGroups();
+  return isoOrder() > 0;
+}
+// The merged rows sorted naturally by the pane's numbers: only for a link
+// between whole groups, since a subgroup link leaves rows with no right side.
+function mergedSortRight(){
+  return !IS_ISOPANE && subInterlocked() && state.subSortR && isoLinksWholeGroups();
 }
 function intOrNull(v){
   var n = parseInt(v, 10);
@@ -20207,9 +20249,11 @@ function syncInterlock(){
       isoSelSent = null;
       isoNumSent = null;
       if (on){
-        // Merged, the link stays with the whole group: selecting a smaller
-        // subgroup here must not carry the link along to it.
-        if (isoPane.g === null) isoPane.g = isoLinkGen();
+        // Merged, the link stays with its group or subgroup: selecting
+        // another row here must not carry the link along to it.
+        if (isoLinksWholeGroups()){
+          if (isoPane.g === null) isoPane.g = isoLinkGen();
+        } else if (!Number.isInteger(isoPane.sub)) isoPane.sub = isoLinkGen();
         var q = new URLSearchParams(isoPane.q);
         isoPane.subExpr = { left: paneLeftVal(q.get('subleft')), right: subExprVal(q.get('subright')) };
       }
@@ -21373,7 +21417,7 @@ function exportRows(ex, shift){
   var beads = shift ? turned(arrangement(G)) : arrangement(G);
   var rows = subOrder(G).map(function(g){ return { g: g, members: rowMembers(G, g, beads) }; });
   state.autoShift = was;
-  return ex.phi ? rows.map(function(r){ return { g: ex.phi(r.g), members: r.members.map(ex.phi) }; }) : rows;
+  return ex.phi ? rows.filter(function(r){ return ex.phi(r.g) !== undefined; }).map(function(r){ return { g: ex.phi(r.g), members: r.members.map(ex.phi) }; }) : rows;
 }
 function exportLines(w){
   var G = w.ex.G, pad = state.subPad, align = state.subAlign, rows = exportRows(w.ex, w.shift);
@@ -21647,7 +21691,7 @@ function setSubCtx(open, x, y, h, side){
     // half of a merged row), copied or downloaded alone.
     var at = subExports.length && subExports[0].gens ? subExports[0].gens.indexOf(h) : -1;
     var ex = subExports[side === 1 && subExports[1] ? 1 : 0];
-    if (at !== -1 && ex){
+    if (at !== -1 && ex && typeof ex.lines[at] === 'string'){
       var line = ex.lines[at], gen = (/^<([^>]*)>/.exec(line) || [null, elText(G, h)])[1];
       subCtxEl.appendChild(subExportItem('cyclicGroups.ctxBeadExport', { bead: gen }, function(){ copyText(line); }, function(){
         saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', ex.G.mode === 'additive' ? 'add' : 'mul', ex.G.n, ex === subExports[0] ? h : at].join('-') + '.txt');
