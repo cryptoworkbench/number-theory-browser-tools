@@ -234,7 +234,9 @@
    dhCylPerVariable and dhCylPerVariableTip (the separate cylinders' switch:
    each one a person's computer, or one public number, its polygons swapped)
    and dhCylWheel, dhCylWheelNo and dhCylWheelMod (the cylinder menu's
-   congruence wheel floor, why it is greyed out, and its centre label).
+   congruence wheel floor, why it is greyed out, and its centre label) and
+   dhCylFloorGap and dhCylFloorGapTip (the slider setting the floor's
+   distance below the cylinders).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1323,6 +1325,8 @@
       dhCylWheel: 'Congruence wheel floor',
       dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
       dhCylWheelMod: 'mod {n}',
+      dhCylFloorGap: 'Floor',
+      dhCylFloorGapTip: 'Distance between the cylinders and the floor',
       dhCylFollowLabel: 'Each cylinder',
       dhCylPerComputer: 'Per computer',
       dhCylPerComputerTip: 'Each cylinder shows what happens on one person’s computer',
