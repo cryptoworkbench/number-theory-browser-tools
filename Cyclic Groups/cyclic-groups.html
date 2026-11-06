@@ -14063,17 +14063,18 @@ function setDhcCtx(open, x, y){
     dhcCtxReturn = null;
     return;
   }
-  var flip = function(name, key){
+  // toggle flips the switch and gives its new state, kept under key.
+  var flip = function(toggle, key){
     return function(){
       setDhcCtx(false);
-      dhc[name] = !dhc[name];
-      try { localStorage.setItem(key, dhc[name] ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+      var on = toggle();
+      try { localStorage.setItem(key, on ? '1' : '0'); } catch (e) { /* storage unavailable */ }
       dhcRedraw();
     };
   };
   dhcCtxEl.replaceChildren(
-    menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopNumbers'), dhc.hopNums, flip('hopNums', DHC_HOP_NUMS_KEY)),
-    menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopArrows'), dhc.hopArrows, flip('hopArrows', DHC_HOP_ARROWS_KEY))
+    menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopNumbers'), dhc.hopNums, flip(function(){ return (dhc.hopNums = !dhc.hopNums); }, DHC_HOP_NUMS_KEY)),
+    menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopArrows'), dhc.hopArrows, flip(function(){ return (dhc.hopArrows = !dhc.hopArrows); }, DHC_HOP_ARROWS_KEY))
   );
   dhcCtxReturn = dhcCtxEl.hidden ? document.activeElement : dhcCtxReturn;
   if (!(dhcCtxReturn instanceof HTMLElement) || dhcCtxReturn === document.body) dhcCtxReturn = null;
