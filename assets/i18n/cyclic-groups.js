@@ -230,7 +230,9 @@
    and dhCylPolyStack and dhCylPolyStackNo (polygon mode's switch stacking
    its polygons in tiers in place of the cylinder, and why it and
    dhCylPolyKeepG, the switch keeping g's polygon on every layer, are greyed
-   out).
+   out) and dhCylFollowLabel, dhCylPerComputer, dhCylPerComputerTip,
+   dhCylPerVariable and dhCylPerVariableTip (the separate cylinders' switch:
+   each one a person's computer, or one public number, its polygons swapped).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1316,6 +1318,11 @@
       dhCylPolyStack: 'Stacked polygons',
       dhCylPolyStackNo: 'Only in polygon mode',
       dhCylPolyKeepG: 'Keep g’s polygon on every layer',
+      dhCylFollowLabel: 'Each cylinder',
+      dhCylPerComputer: 'Per computer',
+      dhCylPerComputerTip: 'Each cylinder shows what happens on one person’s computer',
+      dhCylPerVariable: 'Per variable',
+      dhCylPerVariableTip: 'Each cylinder follows one public number and how it is worked with: its top polygon is that number’s',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',
