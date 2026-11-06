@@ -226,7 +226,9 @@
    longer used) and dhCylMenu and dhCylHopNumbers (the time cylinder's
    right-click menu and its switch for the chords' hop numbers) and
    dhCylHopArrows (its switch drawing the hops as arrows) and dhCylPolygon
-   and dhCylPolygonNo (its polygon mode switch, and why it is greyed out).
+   and dhCylPolygonNo (its polygon mode switch, and why it is greyed out)
+   and dhCylPolyOnly and dhCylPolyOnlyNo (polygon mode's switch showing the
+   stacked polygons only, and why it is greyed out).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1309,6 +1311,8 @@
       dhCylHopArrows: 'Hops depicted as arrows',
       dhCylPolygon: 'Polygon mode',
       dhCylPolygonNo: 'Only when the beads are arranged by the exchange’s generator g',
+      dhCylPolyOnly: 'Polygons only',
+      dhCylPolyOnlyNo: 'Only in polygon mode',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',
