@@ -241,7 +241,10 @@
    dhCylRingsTip, dhCylRingsManual, dhCylRingsNow, dhCylRingsFinal,
    dhCylRingsInfinite and dhCylRingsCount (the congruence wheel floor's
    ring count: set by hand, as far as the steps so far or all the steps
-   reach before reduction, or without end) and dhCylWheelRaw and dhCylWheelRawNo (the
+   reach before reduction, or without end) and cardDivide, cardDivideBy,
+   cardDivideNone, cardDivideCyclic, cardDivideWarn, cardDivideYes and
+   cardDivideNo (Group cardinality's Divide submenu, why it is greyed out,
+   and the warning asked first for a group not under +) and dhCylWheelRaw and dhCylWheelRawNo (the
    switch showing each hop's raw result out on the floor's rings before
    its reduction, and why it is greyed out).
    Every other language shows the English value through NT.i18n's
@@ -1154,6 +1157,13 @@
       formulaHide: 'Hide',
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoHead: 'Isomorphic swap',
+      cardDivide: 'Divide',
+      cardDivideBy: '÷ {d}: {group}',
+      cardDivideNone: 'The group’s cardinality has no divisor between 1 and itself',
+      cardDivideCyclic: 'Only for a cyclic group, whose structure is ℤ/|G|ℤ',
+      cardDivideWarn: 'This first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is divided by {d}, giving {result}. Continue?',
+      cardDivideYes: 'Yes',
+      cardDivideNo: 'No',
       ctxGroupStructure: 'Group structure',
       ctxBeadHead: "Selected bead '{bead}'",
       ctxBeadSetG: 'Set {g} equal to ⟨{bead}⟩',
