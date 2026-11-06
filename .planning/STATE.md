@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-06 - Completed quick task 261106-m53: Cyclic Groups: merge the bottom panels in subgroup-to-group locked iso mode
+Last activity: 2026-11-06 - Completed quick task 261106-npe: Cyclic Groups: the swap button always trades the two rings
 
 Progress: [█████████░] 86%
 
@@ -927,4 +927,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-06 - Completed quick task 261106-m53: Cyclic Groups: merge the bottom panels in subgroup-to-group locked iso mode
+Last activity: 2026-11-06 - Completed quick task 261106-npe: Cyclic Groups: the swap button always trades the two rings
