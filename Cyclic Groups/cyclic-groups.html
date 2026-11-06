@@ -1149,6 +1149,8 @@
   .dhc-wall, .dhc-cap{ fill:none; stroke:var(--panel-border); stroke-width:1; }
   .dhc-rim{ fill:none; stroke:var(--text-dim); stroke-width:1; opacity:.5; }
   .dhc-rim.is-back{ stroke-dasharray:3 3; opacity:.22; }
+  .dhc-rib{ stroke:var(--text-dim); stroke-width:1; opacity:.45; }
+  .dhc-rib.is-back{ stroke-dasharray:3 3; opacity:.2; }
   .dhc-rim.is-now{ stroke:var(--text); stroke-width:1.8; opacity:1; }
   .dhc-rim.is-now.is-back{ opacity:.55; }
   /* Per hop the slices stand close together: hairline rims keep the beads in view. */
@@ -13447,8 +13449,8 @@ function readDhcView(key, table, dflt){
     return Object.prototype.hasOwnProperty.call(table, v) ? v : dflt;
   } catch (e) { return dflt; }
 }
-var DHC_VALUES_KEY = 'cyclic-groups-dhc-values', DHC_HOP_NUMS_KEY = 'cyclic-groups-dhc-hop-numbers', DHC_HOP_ARROWS_KEY = 'cyclic-groups-dhc-hop-arrows', DHC_POLYGON_KEY = 'cyclic-groups-dhc-polygon', DHC_POLY_ONLY_KEY = 'cyclic-groups-dhc-polygons-only';
-var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KEY) === '1'; } catch (e) { return false; } })(), hopNums: (function(){ try { return localStorage.getItem(DHC_HOP_NUMS_KEY) !== '0'; } catch (e) { return true; } })(), hopArrows: (function(){ try { return localStorage.getItem(DHC_HOP_ARROWS_KEY) === '1'; } catch (e) { return false; } })(), polygon: (function(){ try { return localStorage.getItem(DHC_POLYGON_KEY) === '1'; } catch (e) { return false; } })(), polyOnly: (function(){ try { return localStorage.getItem(DHC_POLY_ONLY_KEY) === '1'; } catch (e) { return false; } })(), open: false, slices: readDhcView(DHC_SLICES_KEY, DHC_TIMELINES, 'hop'), cyls: readDhcView(DHC_CYLS_KEY, DHC_LAYOUTS, 'split'), yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
+var DHC_VALUES_KEY = 'cyclic-groups-dhc-values', DHC_HOP_NUMS_KEY = 'cyclic-groups-dhc-hop-numbers', DHC_HOP_ARROWS_KEY = 'cyclic-groups-dhc-hop-arrows', DHC_POLYGON_KEY = 'cyclic-groups-dhc-polygon', DHC_POLY_STACK_KEY = 'cyclic-groups-dhc-polygon-stack';
+var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KEY) === '1'; } catch (e) { return false; } })(), hopNums: (function(){ try { return localStorage.getItem(DHC_HOP_NUMS_KEY) !== '0'; } catch (e) { return true; } })(), hopArrows: (function(){ try { return localStorage.getItem(DHC_HOP_ARROWS_KEY) === '1'; } catch (e) { return false; } })(), polygon: (function(){ try { return localStorage.getItem(DHC_POLYGON_KEY) === '1'; } catch (e) { return false; } })(), polyStack: (function(){ try { return localStorage.getItem(DHC_POLY_STACK_KEY) === '1'; } catch (e) { return false; } })(), open: false, slices: readDhcView(DHC_SLICES_KEY, DHC_TIMELINES, 'hop'), cyls: readDhcView(DHC_CYLS_KEY, DHC_LAYOUTS, 'split'), yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
 // The picture's point for the ring position pos (fractional between two
 // beads) on the slice at height z of the cylinder cyl: yaw turns it about
 // its axis, pitch tips it towards the viewer, so that at a pitch of 90
@@ -13632,11 +13634,10 @@ function drawDhCyl(){
   var id = [G.key, dh.g, dh.a, dh.b, dhc.slices, dhc.cyls].join('|');
   var fresh = !!dhc.shown && dhc.shown.id === id && step === dhc.shown.step + 1;
   var late = [], prims = [];
-  // Polygons only: the layers' polygons stacked like a cake's tiers, and
-  // their numerals, nothing else.
-  var only = poly && dhc.polyOnly;
+  // Stacked polygons: no cylinder, but a tier for each layer, its polygon
+  // risen on ribs from the layer below, like a wedding cake's.
+  var cake = poly && dhc.polyStack;
   var put = function(el, depth, st, hop, ci){
-    if (only && !el.classList.contains('is-poly') && !el.classList.contains('dhc-tag')) return;
     if (ci !== undefined) el.setAttribute('data-cyl', String(ci));
     if (fresh && st === step){ el.classList.add('is-fresh'); late.push({ el: el, hop: hop || 0 }); }
     prims.push({ el: el, depth: depth });
@@ -13651,35 +13652,49 @@ function drawDhCyl(){
   lay.cyls.forEach(function(cyl, ci){
     var cx = OX + cyl.cx * Z;
     var P = function(pos, z){ return dhcAt(cyl, R, W, pos, z, m); };
-    [-1, 1].forEach(function(side){
+    if (!cake) [-1, 1].forEach(function(side){
       put(svgEl('line', { 'class': 'dhc-wall', x1: num(cx + side * R), y1: num(lo), x2: num(cx + side * R), y2: num(hi) }), -1e6, -1, 0, ci);
     });
-    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(lo), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
+    if (!cake) put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(lo), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
     // Every slice's circle lies under the beads, and the beads, their values
     // and the marks on them over Alice's and Bob's paths and lines.
     var under = -1e4, over = 1e4;
-    put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
+    if (!cake) put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
+    // The elements walked by on a slice in this cylinder, each giving it a
+    // polygon, and one such polygon drawn at height z.
+    var slicePolys = function(sl){
+      var bys = [];
+      Object.keys(DHC_BY).forEach(function(o){ if (mine(cyl, o) && bys.indexOf(sl.by[o]) < 0) bys.push(sl.by[o]); });
+      return bys.filter(function(by){ return G.orders[by] >= 2; });
+    };
+    var corners = function(by, z){ return lap(G, by, G.orders[by]).map(function(x){ return P(place[x], z); }); };
+    var drawPoly = function(by, z, nowCls, sl){
+      var vs = corners(by, z), back = '', front = '';
+      vs.forEach(function(q, j){
+        var r = vs[(j + 1) % vs.length], seg = 'M ' + num(q.x) + ' ' + num(q.y) + ' L ' + num(r.x) + ' ' + num(r.y) + ' ';
+        if (q.front + r.front < 0) back += seg; else front += seg;
+      });
+      if (back) put(svgEl('path', { 'class': 'dhc-rim is-poly is-back' + nowCls, d: back }), under + z * sp - R * cp, sl.step, sl.hop, ci);
+      if (front) put(svgEl('path', { 'class': 'dhc-rim is-poly is-front' + nowCls, d: front }), under + z * sp + R * cp, sl.step, sl.hop, ci);
+    };
     slices.forEach(function(sl, i){
       if (!vis[i]) return;
       var z = zOf(i), cy = OY - z * cp, ry = R * sp;
+      // A tier: the slice's polygons risen on ribs from the slice below, and,
+      // where the polygon changes, its base drawn on the tier below's top.
+      if (cake && i > 0) slicePolys(sl).forEach(function(by){
+        var z0 = zOf(i - 1), lo = corners(by, z0), up = corners(by, z);
+        lo.forEach(function(q, j){
+          put(svgEl('line', { 'class': cls('dhc-rib', '', q.front), x1: num(q.x), y1: num(q.y), x2: num(up[j].x), y2: num(up[j].y) }), under + (q.depth + up[j].depth) / 2, sl.step, sl.hop, ci);
+        });
+        if (slicePolys(slices[i - 1]).indexOf(by) < 0) drawPoly(by, z0, '', sl);
+      });
       if (nVis <= DHC_RIM_CAP || sl.full || sl.tag || now[i] || i % rimK === 0){
         var nowCls = now[i] ? ' is-now' : '';
         if (poly){
           // Polygon mode: the slice is the polygon of the beads its walks
           // step through, one for each element walked by in this cylinder.
-          var bys = [];
-          Object.keys(DHC_BY).forEach(function(o){ if (mine(cyl, o) && bys.indexOf(sl.by[o]) < 0) bys.push(sl.by[o]); });
-          bys.forEach(function(by){
-            var ord = G.orders[by];
-            if (ord < 2) return;
-            var vs = lap(G, by, ord).map(function(x){ return P(place[x], z); }), back = '', front = '';
-            vs.forEach(function(q, j){
-              var r = vs[(j + 1) % ord], seg = 'M ' + num(q.x) + ' ' + num(q.y) + ' L ' + num(r.x) + ' ' + num(r.y) + ' ';
-              if (q.front + r.front < 0) back += seg; else front += seg;
-            });
-            if (back) put(svgEl('path', { 'class': 'dhc-rim is-poly is-back' + nowCls, d: back }), under + z * sp - R * cp, sl.step, sl.hop, ci);
-            if (front) put(svgEl('path', { 'class': 'dhc-rim is-poly is-front' + nowCls, d: front }), under + z * sp + R * cp, sl.step, sl.hop, ci);
-          });
+          slicePolys(sl).forEach(function(by){ drawPoly(by, z, nowCls, sl); });
         } else {
           put(svgEl('path', { 'class': 'dhc-rim is-back' + nowCls, d: 'M ' + num(cx - R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx + R) + ' ' + num(cy) }), under + z * sp - R * cp, sl.step, sl.hop, ci);
           put(svgEl('path', { 'class': 'dhc-rim is-front' + nowCls, d: 'M ' + num(cx + R) + ' ' + num(cy) + ' A ' + num(R) + ' ' + num(ry) + ' 0 0 1 ' + num(cx - R) + ' ' + num(cy) }), under + z * sp + R * cp, sl.step, sl.hop, ci);
@@ -14089,7 +14104,8 @@ $('dhc-fill').addEventListener('click', function(){ dhcFill(!dhc.filled); });
 $('dhc-values').addEventListener('click', function(){ setDhcValues(!dhc.values); });
 // The time cylinder's own menu: whether its chords carry their hop numbers,
 // whether they are drawn as arrows, polygon mode (offered only when it
-// fits, see dhcPolyFits), and, in polygon mode, showing its polygons only.
+// fits, see dhcPolyFits), and, in polygon mode, its polygons stacked in
+// tiers in place of the cylinder.
 var dhcCtxEl = $('dhc-ctx'), dhcCtxReturn = null;
 function setDhcCtx(open, x, y){
   if (!open){
@@ -14119,12 +14135,12 @@ function setDhcCtx(open, x, y){
     polyItem.title = translate('cyclicGroups.dhCylPolygonNo');
   }
   dhcCtxEl.appendChild(polyItem);
-  var onlyItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylPolyOnly'), dhc.polyOnly && dhc.polygon && fits, flip(function(){ return (dhc.polyOnly = !dhc.polyOnly); }, DHC_POLY_ONLY_KEY));
+  var stackItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylPolyStack'), dhc.polyStack && dhc.polygon && fits, flip(function(){ return (dhc.polyStack = !dhc.polyStack); }, DHC_POLY_STACK_KEY));
   if (!fits || !dhc.polygon){
-    onlyItem.disabled = true;
-    onlyItem.title = translate(fits ? 'cyclicGroups.dhCylPolyOnlyNo' : 'cyclicGroups.dhCylPolygonNo');
+    stackItem.disabled = true;
+    stackItem.title = translate(fits ? 'cyclicGroups.dhCylPolyStackNo' : 'cyclicGroups.dhCylPolygonNo');
   }
-  dhcCtxEl.appendChild(onlyItem);
+  dhcCtxEl.appendChild(stackItem);
   dhcCtxReturn = dhcCtxEl.hidden ? document.activeElement : dhcCtxReturn;
   if (!(dhcCtxReturn instanceof HTMLElement) || dhcCtxReturn === document.body) dhcCtxReturn = null;
   showCtxAt(dhcCtxEl, x, y);
