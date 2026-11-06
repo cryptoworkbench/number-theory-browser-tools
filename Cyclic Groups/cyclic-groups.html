@@ -13612,6 +13612,24 @@ function dhcTimeline(G){
   return DHC_TIMELINES[dhc.slices](G);
 }
 
+// Per variable (the separate cylinders' switch), each cylinder follows one
+// public number: the walks by it, the line carrying it up and the marks
+// they end on are drawn in the cylinder of whoever made it, Alice's walk
+// by B in Bob's cylinder and Bob's by A in Alice's.
+function dhcByVariable(){ return dhc.cyls === 'split' && dhc.follow === 'variable'; }
+function dhcFollow(tl){
+  if (!dhcByVariable()) return tl;
+  var other = { alice: 'bob', bob: 'alice' };
+  var moved = function(k){ return Object.assign({}, k, { owner: other[k.owner] || k.owner }); };
+  var later = function(k){ return k.who === 'mix'; };
+  return Object.assign({}, tl, {
+    threads: tl.threads.map(function(t){ return later(t) ? moved(t) : t; }),
+    lines: tl.lines.map(function(k){ return later(k) ? moved(k) : k; }),
+    uses: (tl.uses || []).map(moved),
+    marks: tl.marks.map(function(k){ return k.step === DH_LAST && k.owner !== 'pub' ? moved(k) : k; })
+  });
+}
+
 // Polygon mode fits only when the beads are arranged by the exchange's g:
 // g generates the group and each step by it is one bead on, one way round,
 // so every layer's walks step round a regular polygon.
@@ -13630,7 +13648,7 @@ function drawDhCyl(){
   var L = dhc.last;
   if (!L || !dh || !dhLive(L.G)) return;
   var G = L.G, place = L.place, m = L.m, step = dh.step;
-  var tl = dhcTimeline(G), lay = dhcLayout(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
+  var tl = dhcFollow(dhcTimeline(G)), lay = dhcLayout(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
   var Z = dhc.zoom, W = lay.w, R = lay.R * Z, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
   var OX = W / 2 + dhc.panX, OY = DHC_H / 2 + dhc.panY;
   dhc.w = W;
@@ -13680,7 +13698,7 @@ function drawDhCyl(){
     // layer), and one such polygon drawn at height z.
     // Per variable, the separate cylinders swap their polygons: Alice's is
     // topped by A's, the number Bob walks by, and Bob's by B's.
-    var swapped = dhc.cyls === 'split' && dhc.follow === 'variable';
+    var swapped = dhcByVariable();
     var slicePolys = function(sl, kept){
       var bys = [];
       Object.keys(DHC_BY).forEach(function(o){
