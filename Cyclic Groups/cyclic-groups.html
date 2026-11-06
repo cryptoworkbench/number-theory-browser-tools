@@ -1178,14 +1178,14 @@
   .dhc-line.is-bob{ --c:var(--dh-bob); }
   .dhc-line.is-key{ --c:var(--role-result); }
   /* A walk by the other's public number: Alice's and Bob's colours mixed. */
-  :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
+  :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use, .dhc-hop-n).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
   /* In the paths' colours it is the mixed path's own colour, as a self-inverse
      element's walk is drawn. */
-  .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
+  .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use, .dhc-hop-n).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
   /* The mixed walk's first step, from the identity to the number received,
      in the colour of the cylinder's own person. */
-  .app :is(.dhc-line, .dhc-thread).is-mix.is-first.is-by-alice{ --c:var(--dh-alice); }
-  .app :is(.dhc-line, .dhc-thread).is-mix.is-first.is-by-bob{ --c:var(--dh-bob); }
+  .app :is(.dhc-line, .dhc-thread, .dhc-hop-n).is-mix.is-first.is-by-alice{ --c:var(--dh-alice); }
+  .app :is(.dhc-line, .dhc-thread, .dhc-hop-n).is-mix.is-first.is-by-bob{ --c:var(--dh-bob); }
   .dhc-line.is-link{ stroke-dasharray:4 3; stroke-width:1.4; }
   /* The number received in the swap, carried straight up to the slice where
      it is worked with, in the colour of who sent it. */
@@ -1195,6 +1195,10 @@
   .dhc-use.is-mix{ stroke:var(--c); }
   .dhc-use.is-back{ opacity:.5; }
   .dhc-line.is-now{ stroke-width:1.8; }
+  .dhc-hop-n{ --c:var(--text); fill:var(--c); font-family:var(--font-sans); font-size:9px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:2.5px; }
+  .dhc-hop-n.is-alice{ --c:var(--dh-alice); }
+  .dhc-hop-n.is-bob{ --c:var(--dh-bob); }
+  .dhc-hop-n.is-back{ opacity:.4; }
   .dhc-line.is-back{ opacity:.4; }
   .dhc-dot{ --c:var(--text); fill:var(--c); stroke:none; }
   .dhc-dot.is-alice{ --c:var(--dh-alice); }
@@ -13486,8 +13490,9 @@ function toggleDhCyl(){ if (dhc.open) closeDhCyl(); else openDhCyl(); }
 // (the colour), owner alice, bob or pub (pub is drawn in every cylinder).
 // threads are { who, owner, pts: [{ slice, x, step, hop }] }, one person's
 // state over time, the piece into pts[k] shown from pts[k].step. lines are
-// { slice, from, to, who, owner, step, hop }, chords lying in one slice's
-// plane. swap is { slice, A, B, step, madeA, madeB }, the public exchange,
+// { slice, from, to, who, owner, step, hop, n }, chords lying in one slice's
+// plane, n the hop's number as the ring's walk labels it. swap is
+// { slice, A, B, step, madeA, madeB }, the public exchange,
 // madeA and madeB the slices where Alice and Bob have just made A and B. uses are
 // { x, from, to, owner, who, step }: the number a person received in the
 // swap, x, in the colour of who sent it, carried up a line from the swap slice to the last slice her or
@@ -13561,7 +13566,8 @@ function dhcTimelineFrame(G){
   var lines = [];
   var walk = function(layer, step, by, secret, owner, who){
     var hops = Math.min(secret, G.orders[by]), seq = lap(G, by, hops + 1);
-    for (var k = 1; k <= hops; k++) lines.push({ slice: layer, from: seq[k - 1], to: seq[k], who: who, owner: owner, step: step, hop: k });
+    var ord = G.orders[by];
+    for (var k = 1; k <= hops; k++) lines.push({ slice: layer, from: seq[k - 1], to: seq[k], who: who, owner: owner, step: step, hop: k, n: k + ord * Math.floor((secret - k) / ord) });
   };
   walk(1, 2, dh.g, dh.a, 'alice', 'alice');
   walk(1, 2, dh.g, dh.b, 'bob', 'bob');
@@ -13719,7 +13725,14 @@ function drawDhCyl(){
       var mix = once(lineKey(k.slice, k.from, k.to));
       if (mix < 0) return;
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
-      put(svgEl('line', { 'class': cls('dhc-line', mix ? 'mix' : k.who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + (!mix && k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '')), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+      var who = mix ? 'mix' : k.who, first = !mix && k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '';
+      put(svgEl('line', { 'class': cls('dhc-line', who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + first), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+      // The hop's number, as the ring's walk numbers it, over the paths and
+      // under the beads.
+      if (m > 40 || !k.n) return;
+      var t = svgEl('text', { 'class': cls('dhc-hop-n', who, q1.front + q2.front, first), x: num(q1.x + 0.3 * (q2.x - q1.x)), y: num(q1.y + 0.3 * (q2.y - q1.y)) });
+      t.textContent = String(k.n);
+      put(t, 1e3 + (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
     });
     // The number received in the swap, carried up to where it is worked with.
     (tl.uses || []).forEach(function(u){
