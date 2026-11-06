@@ -13894,14 +13894,16 @@ function dhcLayoutShared(tl){
 // Two cylinders side by side, Alice's and Bob's, each turning about its own
 // axis by the same yaw; a diagonal carries A from where Alice made it to
 // Bob's cylinder on the swap slice, and B from where Bob made it to Alice's.
+// Per variable (dhc.follow), each cylinder follows its own public number,
+// so A and B rise in the cylinder they were made in instead.
 function dhcLayoutSplit(tl){
-  var s = tl.swap;
+  var s = tl.swap, across = dhc.follow === 'variable' ? 0 : 1;
   return {
     w: 400, R: 78,
     cyls: [{ cx: -94, owners: ['alice', 'pub'] }, { cx: 94, owners: ['bob', 'pub'] }],
     links: [
-      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: 1, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
-      { from: { cyl: 1, slice: s.madeB, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
+      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: across, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
+      { from: { cyl: 1, slice: s.madeB, x: s.B }, to: { cyl: 1 - across, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
     ]
   };
 }
