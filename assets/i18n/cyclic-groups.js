@@ -224,7 +224,8 @@
    two steps it replaces, are no longer used) and dhStepBothK (the step where
    both compute K at the same time; it replaces dhStep5 and dhStep6, no
    longer used) and dhCylMenu and dhCylHopNumbers (the time cylinder's
-   right-click menu and its switch for the chords' hop numbers). Every other language shows the English value through
+   right-click menu and its switch for the chords' hop numbers) and
+   dhCylHopArrows (its switch drawing the hops as arrows). Every other language shows the English value through
    NT.i18n's fallback meanwhile.
 
    Classic script, IIFE, "use strict" — its only statement is
@@ -1303,6 +1304,7 @@
       dhCylValuesTip: 'Show each bead’s natural value on the slices, in the ring’s colours (in the filled window)',
       dhCylMenu: 'Time cylinder',
       dhCylHopNumbers: 'Hop numbers',
+      dhCylHopArrows: 'Hops depicted as arrows',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',

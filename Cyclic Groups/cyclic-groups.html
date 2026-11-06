@@ -1178,14 +1178,14 @@
   .dhc-line.is-bob{ --c:var(--dh-bob); }
   .dhc-line.is-key{ --c:var(--role-result); }
   /* A walk by the other's public number: Alice's and Bob's colours mixed. */
-  :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use, .dhc-hop-n).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
+  :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use, .dhc-hop-n, .dhc-arrow).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
   /* In the paths' colours it is the mixed path's own colour, as a self-inverse
      element's walk is drawn. */
-  .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use, .dhc-hop-n).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
+  .app.is-dh-path-colours :is(.dhc-line, .dhc-thread, .dhc-dot, .dhc-use, .dhc-hop-n, .dhc-arrow).is-mix{ --c:var(--arrow-both, color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob))); }
   /* The mixed walk's first step, from the identity to the number received,
      in the colour of the cylinder's own person. */
-  .app :is(.dhc-line, .dhc-thread, .dhc-hop-n).is-mix.is-first.is-by-alice{ --c:var(--dh-alice); }
-  .app :is(.dhc-line, .dhc-thread, .dhc-hop-n).is-mix.is-first.is-by-bob{ --c:var(--dh-bob); }
+  .app :is(.dhc-line, .dhc-thread, .dhc-hop-n, .dhc-arrow).is-mix.is-first.is-by-alice{ --c:var(--dh-alice); }
+  .app :is(.dhc-line, .dhc-thread, .dhc-hop-n, .dhc-arrow).is-mix.is-first.is-by-bob{ --c:var(--dh-bob); }
   .dhc-line.is-link{ stroke-dasharray:4 3; stroke-width:1.4; }
   /* The number received in the swap, carried straight up to the slice where
      it is worked with, in the colour of who sent it. */
@@ -1199,6 +1199,10 @@
   .dhc-hop-n.is-alice{ --c:var(--dh-alice); }
   .dhc-hop-n.is-bob{ --c:var(--dh-bob); }
   .dhc-hop-n.is-back{ opacity:.4; }
+  .dhc-arrow{ --c:var(--text); fill:var(--c); stroke:none; }
+  .dhc-arrow.is-alice{ --c:var(--dh-alice); }
+  .dhc-arrow.is-bob{ --c:var(--dh-bob); }
+  .dhc-arrow.is-back{ opacity:.4; }
   .dhc-line.is-back{ opacity:.4; }
   .dhc-dot{ --c:var(--text); fill:var(--c); stroke:none; }
   .dhc-dot.is-alice{ --c:var(--dh-alice); }
@@ -13443,8 +13447,8 @@ function readDhcView(key, table, dflt){
     return Object.prototype.hasOwnProperty.call(table, v) ? v : dflt;
   } catch (e) { return dflt; }
 }
-var DHC_VALUES_KEY = 'cyclic-groups-dhc-values', DHC_HOP_NUMS_KEY = 'cyclic-groups-dhc-hop-numbers';
-var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KEY) === '1'; } catch (e) { return false; } })(), hopNums: (function(){ try { return localStorage.getItem(DHC_HOP_NUMS_KEY) !== '0'; } catch (e) { return true; } })(), open: false, slices: readDhcView(DHC_SLICES_KEY, DHC_TIMELINES, 'hop'), cyls: readDhcView(DHC_CYLS_KEY, DHC_LAYOUTS, 'split'), yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
+var DHC_VALUES_KEY = 'cyclic-groups-dhc-values', DHC_HOP_NUMS_KEY = 'cyclic-groups-dhc-hop-numbers', DHC_HOP_ARROWS_KEY = 'cyclic-groups-dhc-hop-arrows';
+var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KEY) === '1'; } catch (e) { return false; } })(), hopNums: (function(){ try { return localStorage.getItem(DHC_HOP_NUMS_KEY) !== '0'; } catch (e) { return true; } })(), hopArrows: (function(){ try { return localStorage.getItem(DHC_HOP_ARROWS_KEY) === '1'; } catch (e) { return false; } })(), open: false, slices: readDhcView(DHC_SLICES_KEY, DHC_TIMELINES, 'hop'), cyls: readDhcView(DHC_CYLS_KEY, DHC_LAYOUTS, 'split'), yaw: DHC_YAW, pitch: DHC_PITCH, zoom: 1, panX: 0, panY: 0, w: 300, last: null, built: '', shown: null, raf: 0, turning: null, filled: false, unfilled: null };
 // The picture's point for the ring position pos (fractional between two
 // beads) on the slice at height z of the cylinder cyl: yaw turns it about
 // its axis, pitch tips it towards the viewer, so that at a pitch of 90
@@ -13728,6 +13732,8 @@ function drawDhCyl(){
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
       var who = mix ? 'mix' : k.who, first = !mix && k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '';
       put(svgEl('line', { 'class': cls('dhc-line', who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + first), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+      // Hops as arrows, the menu's choice: a head halfway along each chord.
+      if (dhc.hopArrows && k.from !== k.to) put(arrowHead(cls('dhc-arrow', who, q1.front + q2.front, first), (q1.x + q2.x) / 2, (q1.y + q2.y) / 2, Math.atan2(q2.y - q1.y, q2.x - q1.x), 3.6), (q1.depth + q2.depth) / 2 + 0.01, k.step, k.hop, ci);
       // The hop's number, as the ring's walk numbers it, over the paths and
       // under the beads; the cylinder's menu turns them off.
       if (m > 40 || !k.n || !dhc.hopNums) return;
@@ -14046,7 +14052,8 @@ function dhcFill(on){
 }
 $('dhc-fill').addEventListener('click', function(){ dhcFill(!dhc.filled); });
 $('dhc-values').addEventListener('click', function(){ setDhcValues(!dhc.values); });
-// The time cylinder's own menu: whether its chords carry their hop numbers.
+// The time cylinder's own menu: whether its chords carry their hop numbers,
+// and whether they are drawn as arrows.
 var dhcCtxEl = $('dhc-ctx'), dhcCtxReturn = null;
 function setDhcCtx(open, x, y){
   if (!open){
@@ -14056,12 +14063,18 @@ function setDhcCtx(open, x, y){
     dhcCtxReturn = null;
     return;
   }
-  dhcCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopNumbers'), dhc.hopNums, function(){
-    setDhcCtx(false);
-    dhc.hopNums = !dhc.hopNums;
-    try { localStorage.setItem(DHC_HOP_NUMS_KEY, dhc.hopNums ? '1' : '0'); } catch (e) { /* storage unavailable */ }
-    dhcRedraw();
-  }));
+  var flip = function(name, key){
+    return function(){
+      setDhcCtx(false);
+      dhc[name] = !dhc[name];
+      try { localStorage.setItem(key, dhc[name] ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+      dhcRedraw();
+    };
+  };
+  dhcCtxEl.replaceChildren(
+    menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopNumbers'), dhc.hopNums, flip('hopNums', DHC_HOP_NUMS_KEY)),
+    menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylHopArrows'), dhc.hopArrows, flip('hopArrows', DHC_HOP_ARROWS_KEY))
+  );
   dhcCtxReturn = dhcCtxEl.hidden ? document.activeElement : dhcCtxReturn;
   if (!(dhcCtxReturn instanceof HTMLElement) || dhcCtxReturn === document.body) dhcCtxReturn = null;
   showCtxAt(dhcCtxEl, x, y);
