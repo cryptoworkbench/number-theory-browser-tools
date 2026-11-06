@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-06 - Merged dh-drop-layer-zero (time cylinder layers 0 to 3)
+Last activity: 2026-11-06 - Shared time cylinder matches Separate (no A–B chord)
 
 Progress: [█████████░] 86%
 
@@ -666,6 +666,7 @@ None yet.
 | fast | Cyclic Groups time cylinder: received-number dotted lines in the sender's colour | 2026-11-06 | 08fde3b | — |
 | fast | Cyclic Groups time cylinder (branch dh-mixed-key-colours, merged): walks by the other's number in the mixed-path green, their first step and the received-number lines solid in the persons' colours, frame threads rising to the identity on the last layer | 2026-11-06 | 7c4fa72 | — |
 | fast | Cyclic Groups time cylinder (branch dh-drop-layer-zero, merged): first layer dropped, layers renumbered 0 to 3; literals-js gate back to 131 | 2026-11-06 | e142dd5 | — |
+| fast | Cyclic Groups time cylinder, Shared: white A–B chord on the swap layer removed, matching Separate | 2026-11-06 | b234bf6 | — |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -920,4 +921,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-06 - Merged dh-drop-layer-zero (time cylinder layers 0 to 3)
+Last activity: 2026-11-06 - Shared time cylinder matches Separate (no A–B chord)
