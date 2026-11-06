@@ -1177,6 +1177,8 @@
   .dhc-line.is-alice{ --c:var(--dh-alice); }
   .dhc-line.is-bob{ --c:var(--dh-bob); }
   .dhc-line.is-key{ --c:var(--role-result); }
+  /* A walk by the other's public number: Alice's and Bob's colours mixed. */
+  :is(.dhc-line, .dhc-thread, .dhc-dot).is-mix{ --c:color-mix(in srgb, var(--dh-alice) 50%, var(--dh-bob)); }
   .dhc-line.is-pub{ --c:var(--text); }
   .dhc-line.is-link{ stroke-dasharray:4 3; stroke-width:1.4; }
   /* The number received in the swap, carried straight up to the slice where
@@ -13517,7 +13519,8 @@ function dhcTimelineHop(G){
     var pts = [{ slice: S, x: e, step: 3, hop: 0 }];
     for (t = 1; t <= secret; t++) pts.push({ slice: S + t, x: powers[t], step: firstStep, hop: t });
     for (t = secret + 1; t <= M; t++) pts.push({ slice: S + t, x: v.K, step: 4, hop: t });
-    return { who: who, owner: who, pts: pts };
+    // A walk by the other's number mixes both colours.
+    return { who: 'mix', owner: who, pts: pts };
   };
   return {
     slices: slices, marks: marks, lines: [],
@@ -13545,14 +13548,15 @@ function dhcTimelineFrame(G){
     return { who: who, owner: who, pts: states.map(function(x, i){ return { slice: i, x: x, step: i, hop: 0 }; }) };
   };
   var lines = [];
-  var walk = function(slice, by, secret, who){
+  var walk = function(slice, by, secret, owner, who){
     var hops = Math.min(secret, G.orders[by]), seq = lap(G, by, hops + 1);
-    for (var k = 1; k <= hops; k++) lines.push({ slice: slice, from: seq[k - 1], to: seq[k], who: who, owner: who, step: slice, hop: k });
+    for (var k = 1; k <= hops; k++) lines.push({ slice: slice, from: seq[k - 1], to: seq[k], who: who, owner: owner, step: slice, hop: k });
   };
-  walk(2, dh.g, dh.a, 'alice');
-  walk(2, dh.g, dh.b, 'bob');
-  walk(4, v.B, dh.a, 'alice');
-  walk(4, v.A, dh.b, 'bob');
+  walk(2, dh.g, dh.a, 'alice', 'alice');
+  walk(2, dh.g, dh.b, 'bob', 'bob');
+  // A walk by the other's number mixes both colours.
+  walk(4, v.B, dh.a, 'alice', 'mix');
+  walk(4, v.A, dh.b, 'bob', 'mix');
   return {
     slices: slices, marks: marks, lines: lines,
     threads: [thread('alice', aliceAt), thread('bob', bobAt)],
