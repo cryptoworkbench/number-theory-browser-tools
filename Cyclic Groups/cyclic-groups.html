@@ -904,6 +904,7 @@
   .export-win h2{ margin:0; font-size:1.05rem; }
   .export-win-exprs{ display:flex; flex-wrap:wrap; gap:10px 18px; }
   .export-win-exprs[hidden]{ display:none; }
+  .export-win-group{ flex:1 1 100%; font-size:.88rem; color:var(--text); }
   .export-win-exprs > label{ display:flex; flex-direction:column; gap:4px; flex:1 1 240px; font-size:.82rem; color:var(--text-dim); }
   .export-win-exprs select{ font:inherit; font-size:.88rem; padding:5px 8px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
   .export-win-exprs select option{ color:var(--text); background:var(--bg-1); }
@@ -21419,62 +21420,121 @@ function exportRows(ex, shift){
   state.autoShift = was;
   return ex.phi ? rows.filter(function(r){ return ex.phi(r.g) !== undefined; }).map(function(r){ return { g: ex.phi(r.g), members: r.members.map(ex.phi) }; }) : rows;
 }
-function exportLines(w){
-  var G = w.ex.G, pad = state.subPad, align = state.subAlign, rows = exportRows(w.ex, w.shift);
-  state.subPad = w.width === 'pad';
-  state.subAlign = w.width === 'align';
-  var width = subWidth(G), expWidth = subExpWidth(G);
-  var f = [w.left, w.right].map(function(g){ return subFormat(g, g === null ? null : exprLog(G, g), width, expWidth, G, w.natOff); });
+// A list's generating elements and members written as the window says:
+// left and right its two expressions, width how its numbers line up.
+function exportCols(G, rows, left, right, width, natOff){
+  var pad = state.subPad, align = state.subAlign;
+  state.subPad = width === 'pad';
+  state.subAlign = width === 'align';
+  var w = subWidth(G), expWidth = subExpWidth(G);
+  var f = [left, right].map(function(g){ return subFormat(g, g === null ? null : exprLog(G, g), w, expWidth, G, natOff); });
   var gens = rows.map(function(r){ return f[0].p(r.g); });
   var members = rows.map(function(r){ return r.members.map(f[1].p); });
   state.subPad = pad;
   state.subAlign = align;
-  if (w.width === 'align'){
-    var wide = function(list){ return list.reduce(function(m, t){ return Math.max(m, Array.from(t).length); }, 0); };
-    var fit = function(t, n){ return ' '.repeat(n - Array.from(t).length) + t; };
-    var gw = wide(gens), mw = wide([].concat.apply([], members));
-    gens = gens.map(function(t){ return fit(t, gw); });
-    members = members.map(function(m){ return m.map(function(t){ return fit(t, mw); }); });
+  if (width === 'align'){
+    var gw = textWidest(gens), mw = textWidest([].concat.apply([], members));
+    gens = gens.map(function(t){ return padTextStart(t, gw); });
+    members = members.map(function(m){ return m.map(function(t){ return padTextStart(t, mw); }); });
   }
-  return gens.map(function(g, i){ return asciiText('⟨' + g + '⟩ = {' + members[i].join(', ') + '}'); });
+  return { gens: gens, members: members };
 }
-function exportHead(w){ return translate('cyclicGroups.subExportHead', { group: asciiText(w.ex.G.label) }); }
+function textWidest(list){ return list.reduce(function(m, t){ return Math.max(m, Array.from(t).length); }, 0); }
+function padTextStart(t, n){ return ' '.repeat(Math.max(0, n - Array.from(t).length)) + t; }
+function exportLines(w){
+  if (w.exR) return isoExportLines(w);
+  var c = exportCols(w.ex.G, exportRows(w.ex, w.shift), w.left, w.right, w.width, w.natOff);
+  return c.gens.map(function(g, i){ return asciiText('⟨' + g + '⟩ = {' + c.members[i].join(', ') + '}'); });
+}
+// The isomorphism's export: the merged panel's rows, this ring's group's
+// ⟨g⟩ = {…} on the left and the pane's {…} = ⟨φ(g)⟩ on the right, level with
+// its right edge; a row outside a locked subgroup has no right side.
+function isoExportLines(w){
+  var rows = exportRows(w.ex, w.shift), phi = w.exR.phi;
+  var cl = exportCols(w.ex.G, rows, w.left, w.right, w.width, w.natOff);
+  var inS = rows.filter(function(r){ return phi(r.g) !== undefined; });
+  var cr = exportCols(w.exR.G, inS.map(function(r){ return { g: phi(r.g), members: r.members.map(phi) }; }), w.leftR, w.rightR, w.width, w.natOffR);
+  var left = rows.map(function(r, i){ return asciiText('⟨' + cl.gens[i] + '⟩ = {' + cl.members[i].join(', ') + '}'); });
+  var right = cr.gens.map(function(g, i){ return asciiText('{' + cr.members[i].join(', ') + '} = ⟨' + g + '⟩'); });
+  var lw = textWidest(left), rw = textWidest(right), at = 0;
+  return rows.map(function(r, i){
+    if (phi(r.g) === undefined) return left[i];
+    return left[i] + ' '.repeat(lw - Array.from(left[i]).length + 4) + padTextStart(right[at++], rw);
+  });
+}
+function exportHead(w){
+  if (w.exR) return translate('cyclicGroups.isoExportHead', { group: asciiText(isoExportName(w.ex.G)), image: asciiText(w.exR.G.label) }).replace('≌', '~=');
+  return translate('cyclicGroups.subExportHead', { group: asciiText(w.ex.G.label) });
+}
 function exportText(w){ return [exportHead(w), ''].concat(exportLines(w)).join('\n') + '\n'; }
-function exportName(w, ext){ return ['subgroups', w.ex.G.mode === 'additive' ? 'add' : 'mul', w.ex.G.n].join('-') + ext; }
-function openExportWin(ex){
+function exportName(w, ext){
+  var part = function(G){ return [G.mode === 'additive' ? 'add' : 'mul', G.n]; };
+  if (w.exR) return ['isomorphism'].concat(part(w.ex.G), part(w.exR.G)).join('-') + ext;
+  return ['subgroups'].concat(part(w.ex.G)).join('-') + ext;
+}
+// The isomorphism's first group: this ring's whole group, or the locked
+// subgroup ⟨g⟩ the link runs through.
+function isoExportName(G){
+  var g = isoLinkGen();
+  return isoLinksWholeGroups() || g === null ? G.label : '⟨' + elText(G, g) + '⟩';
+}
+function isoExportNameNode(G){ return isoLinksWholeGroups() || isoLinkGen() === null ? groupNameNode(G) : isoExportName(G); }
+// exR, when given, is the pane's side of the merged list: the window then
+// exports the isomorphism, both groups' expressions chosen in it.
+function openExportWin(ex, exR){
   if (!ex || !ex.rows) return;
   var G = ex.G;
   var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]), width: state.subPad ? 'pad' : state.subAlign ? 'align' : 'none', natOff: ex.natOff === undefined ? state.natExpOff : ex.natOff, shift: state.autoShift };
+  if (exR){
+    w.exR = exR;
+    w.leftR = genOrNull(exR.G, exR.exprs[0]);
+    w.rightR = genOrNull(exR.G, exR.exprs[1]);
+    w.natOffR = exR.natOff === undefined ? state.natExpOff : exR.natOff;
+  }
   var head = document.createElement('h2');
   head.id = 'export-win-head';
-  translateInto(head, 'cyclicGroups.subExportGroup', { group: groupNameNode(G) });
+  if (exR) translateInto(head, 'cyclicGroups.isoExportGroup', { group: isoExportNameNode(G), image: groupNameNode(exR.G) });
+  else translateInto(head, 'cyclicGroups.subExportGroup', { group: groupNameNode(G) });
   var preview = document.createElement('pre');
   preview.className = 'export-win-preview';
   var status = document.createElement('p');
   status.className = 'export-win-status';
   status.setAttribute('aria-live', 'polite');
   var show = function(){ preview.textContent = exportText(w); status.textContent = ''; };
-  var exprs = document.createElement('div');
-  exprs.className = 'export-win-exprs';
-  exprs.hidden = !G.cyclic;
-  [['left', 'cyclicGroups.subExprLeft'], ['right', 'cyclicGroups.subExprRight']].forEach(function(c){
-    var label = document.createElement('label');
-    var name = document.createElement('span');
-    name.textContent = translate(c[1]);
-    var sel = document.createElement('select');
-    sel.appendChild(arrangeOption('', 'cyclicGroups.exprNatural'));
-    (G.cyclic ? G.generators : []).forEach(function(g){
-      var opt = document.createElement('option');
-      opt.value = String(g);
-      opt.textContent = translate(ecMult(G) ? 'cyclicGroups.exprMultiplesEc' : 'cyclicGroups.arrangePowers', { g: elText(G, g) });
-      sel.appendChild(opt);
+  // Each group's two expressions; exporting an isomorphism, a row of them
+  // per group, named by its group.
+  var exprRow = function(Gx, side, named){
+    var row = document.createElement('div');
+    row.className = 'export-win-exprs';
+    row.hidden = !Gx.cyclic;
+    if (named){
+      var gname = document.createElement('span');
+      gname.className = 'export-win-group';
+      gname.appendChild(typeof named === 'string' ? document.createTextNode(named) : named);
+      row.appendChild(gname);
+    }
+    [['left' + side, 'cyclicGroups.subExprLeft'], ['right' + side, 'cyclicGroups.subExprRight']].forEach(function(c){
+      var label = document.createElement('label');
+      var name = document.createElement('span');
+      name.textContent = translate(c[1]);
+      var sel = document.createElement('select');
+      sel.appendChild(arrangeOption('', 'cyclicGroups.exprNatural'));
+      (Gx.cyclic ? Gx.generators : []).forEach(function(g){
+        var opt = document.createElement('option');
+        opt.value = String(g);
+        opt.textContent = translate(ecMult(Gx) ? 'cyclicGroups.exprMultiplesEc' : 'cyclicGroups.arrangePowers', { g: elText(Gx, g) });
+        sel.appendChild(opt);
+      });
+      sel.value = w[c[0]] === null ? '' : String(w[c[0]]);
+      sel.addEventListener('change', function(){ w[c[0]] = genOrNull(Gx, intOrNull(sel.value)); show(); });
+      label.appendChild(name);
+      label.appendChild(sel);
+      row.appendChild(label);
     });
-    sel.value = w[c[0]] === null ? '' : String(w[c[0]]);
-    sel.addEventListener('change', function(){ w[c[0]] = genOrNull(G, intOrNull(sel.value)); show(); });
-    label.appendChild(name);
-    label.appendChild(sel);
-    exprs.appendChild(label);
-  });
+    return row;
+  };
+  var exprs = exprRow(G, '', exR && isoExportNameNode(G));
+  var exprsR = exR ? exprRow(exR.G, 'R', groupNameNode(exR.G)) : null;
   var lineUp = document.createElement('label');
   var lineUpName = document.createElement('span');
   lineUpName.textContent = translate('cyclicGroups.subWidthLabel');
@@ -21499,7 +21559,12 @@ function openExportWin(ex){
     var box = document.createElement('input');
     box.type = 'checkbox';
     box.checked = c[2] ? !w[c[0]] : w[c[0]];
-    box.addEventListener('change', function(){ w[c[0]] = c[2] ? !box.checked : box.checked; show(); });
+    box.addEventListener('change', function(){
+      w[c[0]] = c[2] ? !box.checked : box.checked;
+      // An isomorphism's two groups take the exponents together.
+      if (c[0] === 'natOff') w.natOffR = w.natOff;
+      show();
+    });
     var name = document.createElement('span');
     name.textContent = translate(c[1]);
     label.appendChild(box);
@@ -21530,14 +21595,15 @@ function openExportWin(ex){
     saveBlob(new Blob([exportText(w)], { type: 'text/plain;charset=utf-8' }), exportName(w, '.txt'));
   });
   button('cyclicGroups.exportWinPdf', '⤓', function(){
-    saveBlob(pdfBlob(exportHead(w), exportLines(w)), exportName(w, '.pdf'));
+    saveBlob(pdfBlob(exportHead(w), exportLines(w), !!w.exR), exportName(w, '.pdf'));
   });
   button('cyclicGroups.exportWinClose', '', function(){ exportWinEl.close(); }, 'export-win-close');
   exportWinEl.setAttribute('aria-labelledby', head.id);
-  exportWinEl.replaceChildren(head, exprs, opts, preview, btns, status);
+  exportWinEl.replaceChildren.apply(exportWinEl, [head, exprs].concat(exprsR ? [exprsR] : [], [opts, preview, btns, status]));
   show();
   if (!exportWinEl.open) exportWinEl.showModal();
-  (exprs.hidden ? btns.firstChild : exprs.querySelector('select')).focus();
+  var first = [exprs, exprsR].filter(function(e){ return e && !e.hidden; })[0];
+  (first ? first.querySelector('select') : btns.firstChild).focus();
 }
 // A click on the backdrop, outside the window's own box, closes it.
 exportWinEl.addEventListener('click', function(e){
@@ -21579,10 +21645,17 @@ function pdfStr(t){
   });
   return '(' + out + ')';
 }
-function pdfBlob(title, lines){
-  var SIZE = 10, SUP = 6.5, LEAD = 14, MARGIN = 56, W = 595, H = 842;
-  var room = (W - 2 * MARGIN) / (0.6 * SIZE);
+// fit: no line is broken, the page turned landscape and the type made
+// smaller as far as the widest line needs, so columns stay level.
+function pdfBlob(title, lines, fit){
+  var SIZE = 10, SUP = 6.5, LEAD = 14, RISE = 4, MARGIN = 56, W = fit ? 842 : 595, H = fit ? 595 : 842;
   var units = function(t, sup){ return Array.from(t).length * (sup ? SUP / SIZE : 1); };
+  if (fit){
+    var widest = lines.reduce(function(m, l){ return Math.max(m, pdfRuns(l).reduce(function(a, r){ return a + units(r.text, r.sup); }, 0)); }, 0);
+    var scale = Math.max(0.45, Math.min(1, (W - 2 * MARGIN) / (0.6 * SIZE) / Math.max(1, widest)));
+    SIZE *= scale; SUP *= scale; LEAD *= scale; RISE *= scale;
+  }
+  var room = fit ? Infinity : (W - 2 * MARGIN) / (0.6 * SIZE);
   // Each line broken into rows of runs that fit the page's width.
   var rows = [{ bold: true, runs: [{ sup: false, text: title }] }, { runs: [] }];
   lines.forEach(function(line){
@@ -21620,7 +21693,7 @@ function pdfBlob(title, lines){
     page.forEach(function(row, i){
       body += '1 0 0 1 ' + (MARGIN + (row.x || 0) * 0.6 * SIZE).toFixed(2) + ' ' + (H - MARGIN - SIZE - i * LEAD) + ' Tm\n';
       row.runs.forEach(function(r){
-        body += '/' + (row.bold ? 'F2' : 'F1') + ' ' + (r.sup ? SUP : SIZE) + ' Tf ' + (r.sup ? 4 : 0) + ' Ts ' + pdfStr(r.text) + ' Tj\n';
+        body += '/' + (row.bold ? 'F2' : 'F1') + ' ' + (r.sup ? SUP : SIZE) + ' Tf ' + (r.sup ? RISE : 0) + ' Ts ' + pdfStr(r.text) + ' Tj\n';
       });
     });
     body += 'ET';
@@ -21712,6 +21785,19 @@ function setSubCtx(open, x, y, h, side){
     item.addEventListener('click', function(){ setSubCtx(false); openExportWin(ex); });
     subCtxEl.appendChild(item);
   });
+  // Locked, the merged list also exports the isomorphism, both groups row
+  // by row as the panel lists them.
+  if (subExports.length === 2 && subExports[1].phi && drawn){
+    var iso = document.createElement('button');
+    iso.type = 'button';
+    iso.className = 'fs-menu-item';
+    iso.setAttribute('role', 'menuitem');
+    iso.setAttribute('aria-haspopup', 'dialog');
+    translateInto(iso, 'cyclicGroups.isoExportDots', { group: isoExportNameNode(subExports[0].G), image: groupNameNode(subExports[1].G) });
+    iso.addEventListener('pointerenter', function(){ setSubCtxSub(null); });
+    iso.addEventListener('click', function(){ setSubCtx(false); openExportWin(subExports[0], subExports[1]); });
+    subCtxEl.appendChild(iso);
+  }
   // The panel's switches: members coloured like their beads, and auto-shift.
   if (subExports.length) subCtxEl.appendChild(subCtxRule());
   [[subColorEl, 'cyclicGroups.subColorLabel'], [autoShiftEl, 'cyclicGroups.autoShift']].forEach(function(c){
