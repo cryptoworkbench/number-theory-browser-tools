@@ -13708,6 +13708,24 @@ function drawDhCyl(){
       if (kept && dhc.polyKeepG && bys.indexOf(dh.g) < 0) bys.push(dh.g);
       return bys.filter(function(by){ return G.orders[by] >= 2; });
     };
+    // The tier side a piece from x to y rises on, below slice sl: the
+    // polygon of sl holding both, as { base, gap, at(pos, z) }, at giving
+    // the point on the polygon's edge at a ring position; null if none.
+    var tierSide = function(sl, x, y){
+      var base = place[G.identity], hit = null;
+      slicePolys(sl).forEach(function(by){
+        var gap = m / G.orders[by], on = function(e){ return (((place[e] - base) % gap) + gap) % gap === 0; };
+        if (!hit && on(x) && on(y)) hit = {
+          base: base, gap: gap,
+          at: function(pos, z){
+            var u = (pos - base) / gap, j0 = Math.floor(u + 1e-9), f = u - j0;
+            var q0 = P(base + j0 * gap, z), q1 = P(base + (j0 + 1) * gap, z);
+            return { x: q0.x + (q1.x - q0.x) * f, y: q0.y + (q1.y - q0.y) * f, front: q0.front + (q1.front - q0.front) * f, depth: q0.depth + (q1.depth - q0.depth) * f };
+          }
+        };
+      });
+      return hit;
+    };
     var corners = function(by, z){ return lap(G, by, G.orders[by]).map(function(x){ return P(place[x], z); }); };
     var drawPoly = function(by, z, nowCls, sl){
       var vs = corners(by, z), back = '', front = '';
@@ -13795,8 +13813,17 @@ function drawDhCyl(){
         var d = ((p1 - p0) % m + m) % m;
         if (d > m / 2) d -= m;
         var count = Math.max(4, Math.ceil(Math.abs(d) * 360 / m / 15)), z0 = zOf(a.slice), z1 = zOf(c.slice);
-        var pts = [], j;
-        for (j = 0; j <= count; j++) pts.push(P(p0 + d * j / count, z0 + (z1 - z0) * j / count));
+        var pts = [], j, side = cake ? tierSide(slices[c.slice], a.x, c.x) : null;
+        if (side){
+          // Stacked polygons: the piece keeps to the tier's flat sides,
+          // bending only at its ribs.
+          var lo = Math.min(p0, p0 + d), hi = Math.max(p0, p0 + d), ts = [0];
+          for (var v = side.base + Math.floor((lo - side.base) / side.gap + 1) * side.gap; v < hi; v += side.gap) ts.push((v - p0) / d);
+          ts.push(1);
+          ts.sort(function(x, y){ return x - y; }).forEach(function(t){ pts.push(side.at(p0 + d * t, z0 + (z1 - z0) * t)); });
+        } else {
+          for (j = 0; j <= count; j++) pts.push(P(p0 + d * j / count, z0 + (z1 - z0) * j / count));
+        }
         var segs = [], cur = null;
         for (j = 1; j < pts.length; j++){
           var back = pts[j - 1].front + pts[j].front < 0;
