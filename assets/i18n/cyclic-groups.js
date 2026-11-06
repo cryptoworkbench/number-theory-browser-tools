@@ -228,7 +228,9 @@
    dhCylHopArrows (its switch drawing the hops as arrows) and dhCylPolygon
    and dhCylPolygonNo (its polygon mode switch, and why it is greyed out)
    and dhCylPolyStack and dhCylPolyStackNo (polygon mode's switch stacking
-   its polygons in tiers in place of the cylinder, and why it is greyed out).
+   its polygons in tiers in place of the cylinder, and why it and
+   dhCylPolyKeepG, the switch keeping g's polygon on every layer, are greyed
+   out).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1313,6 +1315,7 @@
       dhCylPolygonNo: 'Only when the beads are arranged by the exchange’s generator g',
       dhCylPolyStack: 'Stacked polygons',
       dhCylPolyStackNo: 'Only in polygon mode',
+      dhCylPolyKeepG: 'Keep g’s polygon on every layer',
       dhColoursLabel: 'Alice and Bob’s colours',
       dhColoursOwn: 'Own colours',
       dhColoursOwnTip: 'Alice in pink and Bob in blue',
