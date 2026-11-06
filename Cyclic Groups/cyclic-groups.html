@@ -3858,6 +3858,8 @@ if (IS_MOBILE){
   if (extraOptionsEl && arrowOptionsEl) extraOptionsEl.appendChild(arrowOptionsEl);
 }
 var ISO_GEN = IS_ISOPANE ? parseInt(new URLSearchParams(location.search).get('isogen'), 10) : NaN;
+// isosub=1: the link's generator here generates only a subgroup of this pane's group, the ring holding the pane being linked through its whole group.
+var ISO_SUB = IS_ISOPANE && new URLSearchParams(location.search).get('isosub') === '1';
 // isoblank=1: the pane was opened to construct a group of one's own. Only its
 // group parameters are clear, the modulus field empty; the rest stays blurred
 // until a modulus is entered.
@@ -4875,7 +4877,7 @@ function thinStops(stopsEl){
 function syncSubExpr(G){
   var merged = !IS_ISOPANE && subInterlocked();
   subExprRowEl.hidden = !G.cyclic;
-  subSortPairEl.hidden = !G.cyclic;
+  subSortPairEl.hidden = !G.cyclic || (merged && isoPane.hsub === true);
   subExprRowREl.hidden = !merged;
   if (!G.cyclic){
     // The pane's own expressions are the pane's group's, whatever this one.
@@ -7038,7 +7040,7 @@ if (IS_DESKTOP){
 
 // What must not travel between rings: the preview and embed switches, and
 // the theme, language and sharing the pane takes from its page.
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isoblank', 'plotmin'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin'];
 function cleanRingQuery(q){
   var p = new URLSearchParams(q);
   RING_DROP.forEach(function(k){ p.delete(k); });
@@ -10937,6 +10939,7 @@ function changeSplitShare(v){ setSplitShare(v); }
 // through the subgroup on show and that subgroup is the whole group.
 function isoLinksWholeGroups(){
   if (!isoPane || isoPane.blank) return false;
+  if (isoPane.hsub === true) return false;
   if (isoPane.g !== null) return true;
   if (Number.isInteger(isoPane.sub)) return false;
   return !!drawn && !state.noSub && drawn.G.orders[state.gen] === drawn.G.order;
@@ -17761,7 +17764,7 @@ function subRowGcdTitle(G, log, g){
 }
 function renderSubgroups(G){
   refoldAutoOpen(G);
-  if (!IS_ISOPANE && subInterlocked()) return renderMergedSubgroups(G);
+  if (!IS_ISOPANE && subInterlocked()) return isoPane.hsub === true ? renderMirroredSubgroups(G) : renderMergedSubgroups(G);
   var hadFocus = subgroupsEl.contains(document.activeElement);
   var beads = state.autoShift ? turned(arrangement(G)) : arrangement(G);
   // The panel's own expressions: the generating element left of =, the
@@ -17953,6 +17956,135 @@ function renderMergedSubgroups(G){
   syncSubMore();
 }
 
+// The mirrored lock: this ring holds the whole group, the pane the big group
+// with the locked subgroup. Its rows are the pane's, one for each element y
+// of the pane's group with {members of ⟨y⟩} = ⟨y⟩ on the right; only the rows
+// inside the locked subgroup have a left side, ⟨ψ(y)⟩ = {ψ(members)}, ψ the
+// isomorphism back onto this group. A row outside the subgroup selects on the
+// pane alone, and this ring then shows no subgroup, the lock holding.
+function renderMirroredSubgroups(G){
+  var hadFocus = subgroupsEl.contains(document.activeElement);
+  var mm = isoMirrorMap(G), H = mm.H, psi = mm.psi, inS = mm.inS, row = syncMirrorRow();
+  var se = isoPane.subExpr || { left: null, right: null };
+  var lg = subExprGen(G, state.subLeft, state.expr), rg = subExprGen(G, state.subRight, state.expr);
+  // The pane's own expressions; its Generator following the sort reads as Natural here.
+  var hl = se.left === SUB_SORT ? null : subExprGen(H, se.left, paneExpr()), hr = subExprGen(H, se.right, paneExpr());
+  var rows = H.els.map(function(y){ return { y: y, members: lap(H, y, H.orders[y]) }; });
+  var expWidth = Math.max(subExpWidth(G), subExpWidth(H));
+  var widthG = subWidth(G), widthH = subWidth(H);
+  var fl = subFormat(lg, lg === null ? null : exprLog(G, lg), widthG, expWidth, G);
+  var fr = subFormat(rg, rg === null ? null : exprLog(G, rg), widthG, expWidth, G);
+  var paneNatOff = new URLSearchParams(isoPane.q || '').get('natexp') === '0';
+  var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth, H, paneNatOff);
+  var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth, H, paneNatOff);
+  // The right side's beads borrow the pane's colours only while the rings are
+  // linked, and only inside the subgroup, where the pane's paints are known.
+  var linked = isoLinked();
+  var rightMath = function(x, content){ return linked && inS(x) ? memberMath(psi(x), content) : content; };
+  var sig = 'R ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked;
+  if (sig === subgroupsSig){
+    subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(el){
+      var on = Number(el.getAttribute('data-pane-gen')) === row;
+      el.classList.toggle('is-current', on);
+      el.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    syncRowPaths(G);
+    syncSubFormula(G);
+    syncGenExp(G);
+    if (hadFocus) focusCurrentRow();
+    keepCurrentRowInView(G);
+    return;
+  }
+  subgroupsSig = sig;
+  var leftText = function(r){ return '⟨' + fl.p(psi(r.y)) + '⟩ = {' + r.members.map(function(x){ return fr.p(psi(x)); }).join(', ') + '}'; };
+  var rightText = function(r){ return '{' + r.members.map(hfr.p).join(', ') + '} = ⟨' + hfl.p(r.y) + '⟩'; };
+  var ownRight = function(r){ return '⟨' + hfl.p(r.y) + '⟩ = {' + r.members.map(hfr.p).join(', ') + '}'; };
+  var inRows = rows.filter(function(r){ return inS(r.y); });
+  subExports = [
+    { G: G, fixed: inRows.map(function(r){ return { g: psi(r.y), members: r.members.map(psi) }; }), gens: rows.map(function(r){ return inS(r.y) ? psi(r.y) : null; }), exprs: [lg, rg], lines: rows.map(function(r){ return inS(r.y) ? asciiText(leftText(r)) : null; }) },
+    { G: H, fixed: rows.map(function(r){ return { g: r.y, members: r.members }; }), gens: rows.map(function(r){ return r.y; }), psi: psi, exprs: [hl, hr], natOff: paneNatOff, lines: rows.map(function(r){ return asciiText(ownRight(r)); }) }
+  ];
+  rowAnchor();
+  subgroupsEl.replaceChildren();
+  rows.forEach(function(r){
+    var y = r.y, members = r.members, last = members.length - 1, s = inS(y);
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    var on = y === row;
+    btn.className = 'subgroup-row is-merged' + (on ? ' is-current' : '');
+    btn.setAttribute('data-gen', s ? String(psi(y)) : '-1');
+    btn.setAttribute('data-pane-gen', String(y));
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', s ? leftText(r) + '; ' + rightText(r) : rightText(r));
+    var left = null;
+    if (s){
+      left = document.createElement('span');
+      left.className = 'sub-row-l';
+      left.appendChild(mInline(mrow(angle(memberMath(psi(y), fl.r(psi(y)))), mo('='), mo('{', true)), '⟨' + fl.p(psi(y)) + '⟩ = {'));
+      members.forEach(function(x, i){
+        var a = psi(x);
+        left.appendChild(mInline(mrow(memberMath(a, fr.r(a)), i === last ? mo('}', true) : comma()), i === last ? fr.p(a) + '}' : fr.p(a) + ', '));
+      });
+    }
+    var right = document.createElement('span');
+    right.className = 'sub-row-r';
+    members.forEach(function(x, i){
+      var parts = [rightMath(x, hfr.r(x)), i === last ? mo('}', true) : comma()];
+      if (i === 0) parts.unshift(mo('{', true));
+      right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(x) + (i === last ? '}' : ', ')));
+    });
+    right.appendChild(mInline(mrow(mo('='), angle(rightMath(y, hfl.r(y)))), ' = ⟨' + hfl.p(y) + '⟩'));
+    var plainTips = !subFormulaOn();
+    var tipL = plainTips && s && subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), psi(y));
+    var tipR = plainTips && subRowGcdTitle(H, hl === null ? null : exprLog(H, hl), y);
+    if (tipL) left.title = tipL;
+    if (tipR) right.title = tipR;
+    if (left !== null) btn.appendChild(left);
+    btn.appendChild(right);
+    btn.addEventListener('click', function(){
+      if (followRefused()) return;
+      pickMirrorRow(y);
+      focusCurrentRow();
+    });
+    if (s){
+      btn.addEventListener('mouseenter', function(e){ hoverRow(btn, psi(y), e); });
+      btn.addEventListener('focus', function(){ setPreview(psi(y)); });
+      btn.addEventListener('blur', function(){ setPreview(null); });
+    }
+    li.appendChild(btn);
+    subgroupsEl.appendChild(li);
+  });
+  syncRowPaths(G);
+  syncSubFormula(G);
+  syncGenExp(G);
+  if (hadFocus) focusCurrentRow();
+  restoreRowAnchor();
+  keepCurrentRowInView(G);
+  syncSubMore();
+}
+// The row on show in the mirrored list: the pane's element that the selected
+// subgroup here is the image of, or, with no subgroup shown, the outside
+// element the pane picked, if any.
+function syncMirrorRow(){
+  var mm = isoMirrorMap(drawn.G), H = mm.H;
+  if (!state.noSub){
+    var y = mm.phi(state.gen);
+    isoPane.row = y === undefined ? null : y;
+  } else if (!Number.isInteger(isoPane.row) || H.els.indexOf(isoPane.row) === -1 || mm.inS(isoPane.row)) isoPane.row = null;
+  return Number.isInteger(isoPane.row) ? isoPane.row : null;
+}
+// A row of the mirrored list picked: inside the subgroup it selects its
+// preimage here (and so its element in the pane); outside, this ring shows no
+// subgroup and the pane is told the element.
+function pickMirrorRow(y){
+  var mm = isoMirrorMap(drawn.G);
+  isoPane.row = y;
+  if (mm.inS(y)) selectGen(panelGen = mm.psi(y));
+  else if (!state.noSub){ state.noSub = true; render(); }
+  else render();
+}
+
 function focusCurrentRow(){
   var row = currentRowEl();
   if (!row) return;
@@ -18120,7 +18252,7 @@ function hoverRow(row, g, e){
 }
 subgroupsEl.addEventListener('mousemove', function(e){
   var row = e.target.closest && e.target.closest('.subgroup-row');
-  if (row && heldRow) hoverRow(row, Number(row.getAttribute('data-gen')), e);
+  if (row && heldRow && Number(row.getAttribute('data-gen')) >= 0) hoverRow(row, Number(row.getAttribute('data-gen')), e);
 });
 subgroupsEl.addEventListener('mouseleave', function(){ heldRow = null; });
 subgroupsEl.addEventListener('scroll', function(){ heldRow = null; }, { passive: true });
@@ -18303,6 +18435,18 @@ function stepSubRow(delta){
   // a step there goes through its rows in its order, not the pane's own.
   if (IS_ISOPANE && subInterlocked()){ tellHost({ isopane: 'substep', by: delta }); return false; }
   if (followRefused()) return false;
+  // The mirrored list steps through the pane's rows, those outside the
+  // locked subgroup included.
+  if (isoMirrored()){
+    var ys = Array.prototype.map.call(subgroupsEl.querySelectorAll('.subgroup-row'), function(r){ return Number(r.getAttribute('data-pane-gen')); });
+    if (!ys.length) return false;
+    var cur = ys.indexOf(syncMirrorRow());
+    var nx = ys[cur === -1 ? (delta > 0 ? 0 : ys.length - 1) : (cur + delta + ys.length) % ys.length];
+    if (nx === syncMirrorRow()) return false;
+    keyNav = true;
+    pickMirrorRow(nx);
+    return true;
+  }
   var G = drawn.G, els = subOrder(G);
   if (!els.length) return false;
   // Past the last row comes the first again, and before the first the last.
@@ -18762,6 +18906,7 @@ function isoPaneSrc(q, h){
   p.set('ringwin', '1');
   p.set('isopane', '1');
   p.set('isogen', String(h));
+  if (isoPane && isoPane.hsub === true) p.set('isosub', '1');
   if (isoPane && isoPane.unlocked) p.set('grouplock', '0');
   if (isoPane && isoPane.blank) p.set('isoblank', '1');
   if (isoPane && isoPane.plotMin) p.set('plotmin', '1');
@@ -18824,6 +18969,7 @@ function loadIsoFrame(){
   isoPanePlotMin = false;
   isoPanePolyMin = false;
   isoPaneCayleyMin = false;
+  isoPaints = null;
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
   isoInterlockSent = false;
@@ -18945,16 +19091,26 @@ function closeIsoPane(){
   // With the pane gone, the Numeric list is this ring's own again.
   if (drawn){ syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
 }
-// The swap button trades the two rings' places: this ring takes the pane's
-// group and settings, and the pane comes back with this ring's, linked by
-// the same isomorphism the other way round. Each ring keeps its own turn.
+// The swap button trades the two rings' places, whatever links them: this
+// ring takes the pane's group and settings, and the pane comes back with this
+// ring's, linked by the same isomorphism the other way round. A subgroup of
+// this ring locked to the pane's group becomes its mirror, the whole group
+// here and the subgroup in the pane, still locked; rings that are not
+// isomorphic just trade places. Each ring keeps its own turn.
 var isoSwapEl = $('iso-swap');
 function canSwapRings(){
-  return !IS_ISOPANE && !!isoPane && !isoPane.blank && !isoPane.hostBlank && !!isoPaneFrame && !!isoWholeMap();
+  return !IS_ISOPANE && !!isoPane && !isoPane.blank && !isoPane.hostBlank && !!isoPaneFrame;
 }
 function swapIsoRings(){
   if (!canSwapRings()) return;
   if (cosetRun) stopCosets();
+  // How the rings are linked, told before either group changes: through
+  // whole groups, through a subgroup of this ring's group, back from a
+  // subgroup of the pane's group, or not at all.
+  var whole = !!isoWholeMap();
+  var back = !whole && isoPane.hsub === true;
+  var subLink = !whole && !back && (Number.isInteger(isoPane.sub) || (isoFound() && !isoLinksWholeGroups()));
+  var oldSel = state.noSub ? null : state.gen, oldId = drawn.G.identity;
   var hostQ = new URLSearchParams(cleanRingQuery(stateQuery().toString()));
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ hostQ.delete(k); });
   var paneQ = new URLSearchParams(cleanRingQuery(isoPane.q));
@@ -18984,8 +19140,32 @@ function swapIsoRings(){
   state.logBaseLockR = locks[0];
   syncFormulaCtl();
   isoPane.q = hostQ.toString();
-  isoPane.h = g;
-  isoPane.g = h;
+  if (whole){
+    isoPane.h = g;
+    isoPane.g = h;
+  } else if (subLink){
+    isoPane.h = g;
+    isoPane.g = h;
+    isoPane.gAuto = false;
+    isoPane.sub = null;
+    isoPane.hsub = true;
+    isoPane.row = oldSel;
+  } else if (back){
+    isoPane.sub = h;
+    isoPane.h = g;
+    isoPane.g = null;
+    isoPane.gAuto = false;
+    isoPane.hsub = false;
+    isoPane.row = null;
+  } else {
+    isoPane.g = null;
+    isoPane.gAuto = false;
+    isoPane.sub = null;
+    isoPane.hsub = false;
+    isoPane.row = null;
+    isoPane.h = g === null ? oldId : g;
+    isoPane.link = 'none';
+  }
   loadIsoFrame();
   syncControls();
   render();
@@ -19340,7 +19520,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -19441,6 +19621,7 @@ function applyIsoShared(d){
   // The link's generator here, which the holding ring may move to another
   // generator of this group once the two are found isomorphic.
   if (Number.isInteger(d.isogen) && d.isogen >= 0) ISO_GEN = d.isogen;
+  if (flag(d.isosub)) ISO_SUB = d.isosub;
   if (flag(d.linked)){
     document.documentElement.classList.toggle('is-iso-unlinked', !d.linked);
     // Unlinked, the two lists are no longer merged: the holder's word that
@@ -19455,6 +19636,7 @@ function applyIsoShared(d){
         if (typeof d.splitShare === 'number' && isFinite(d.splitShare)) setSplitShare(d.splitShare);
       }
       isoPaints = null;
+      if (ISO_SUB) isoSentPaints = null;
       isoInterlockOn = false;
       document.documentElement.classList.remove('is-pane-merged');
       if (wasMerged) syncSplit();
@@ -19570,6 +19752,7 @@ function isoFound(){
   if (IS_ISOPANE || !isoPane || isoPane.blank || isoPane.hostBlank || !drawn) return false;
   var H = isoPaneGroup(), g = isoLinkGen();
   var k = g === null ? 0 : drawn.G.orders[g];
+  if (isoPane.hsub === true) return !!H && k > 0 && H.els.indexOf(isoPane.h) !== -1 && H.orders[isoPane.h] === k;
   return !!H && k > 0 && H.cyclic && H.order === k;
 }
 // Whether the pane's group and this whole group are cyclic of one order.
@@ -19581,7 +19764,7 @@ function isoWholeMatch(){
 // Linked only while the padlock is closed: opened, the rings turn, colour,
 // highlight and list on their own until locked again.
 function isoLinked(){
-  return isoFound() && isoPane.link === 'linked' && isoPane.H.orders[isoPane.h] === isoPane.H.order && groupControlsEl.classList.contains('is-locked');
+  return isoFound() && isoPane.link === 'linked' && (isoPane.hsub === true || isoPane.H.orders[isoPane.h] === isoPane.H.order) && groupControlsEl.classList.contains('is-locked');
 }
 // The pane's path colour key, as the pane reports it after every render:
 // { on, h, hinv, merged, back }; locked, its G names the pane's side in
@@ -19603,6 +19786,8 @@ function syncIsoLink(){
   // A locked subgroup no longer isomorphic to the pane's group is let go:
   // the link follows the subgroup on show again.
   if (Number.isInteger(isoPane.sub) && !isoFound()) isoPane.sub = null;
+  // The same for a subgroup of the pane's group the link runs through.
+  if (isoPane.hsub === true && !isoFound()){ isoPane.hsub = false; isoPane.row = null; }
   // A pane's group not isomorphic to the subgroup on show may still be to
   // this whole group: the link then runs through a generator of the whole
   // group, for as long as the two whole groups match.
@@ -19615,7 +19800,7 @@ function syncIsoLink(){
   if (!isoFound()) isoPane.link = 'none';
   else {
     var H = isoPaneGroup();
-    if (H.orders[isoPane.h] !== H.order) isoPane.h = H.generators[0];
+    if (isoPane.hsub !== true && H.orders[isoPane.h] !== H.order) isoPane.h = H.generators[0];
     if (isoPane.link === 'none') isoPane.link = 'asking';
   }
   isoAskEl.hidden = isoPane.link !== 'asking';
@@ -19821,7 +20006,7 @@ function isoLinkGen(){
 function isoOrder(){
   if (!drawn) return 0;
   var g = isoLinkGen();
-  var m = IS_ISOPANE ? (!document.documentElement.classList.contains('is-iso-unlinked') && drawn.G.cyclic && drawn.G.orders[ISO_GEN] === drawn.G.order ? drawn.G.order : 0)
+  var m = IS_ISOPANE ? (document.documentElement.classList.contains('is-iso-unlinked') ? 0 : ISO_SUB ? (drawn.G.els.indexOf(ISO_GEN) !== -1 ? drawn.G.orders[ISO_GEN] : 0) : drawn.G.cyclic && drawn.G.orders[ISO_GEN] === drawn.G.order ? drawn.G.order : 0)
     : (isoPaneFrame && g !== null && isoLinked() ? drawn.G.orders[g] : 0);
   return typeof m === 'number' && isFinite(m) ? m : 0;
 }
@@ -19874,13 +20059,23 @@ function isoSpread(){
 // two are linked; isoBorrowed is that, by element, for the render under way.
 var ISO_PAINT_PREFIX = '--ord: ';
 var isoPaints = null, isoBorrowed = null, isoSentPaints = null;
+// The side whose paints the other ring borrows: the ring holding the pane
+// while its group is the whole of the link, the pane while it holds the
+// subgroup end (a mirrored lock).
+function isoPaintsFrom(){
+  return IS_ISOPANE ? ISO_SUB : !(isoPane && isoPane.hsub === true);
+}
 function borrowedPaints(G){
-  if (!IS_ISOPANE || !isoPaints || document.documentElement.classList.contains('is-iso-unlinked') || !G.cyclic || G.orders[ISO_GEN] !== G.order || isoPaints.length !== G.order) return null;
+  if (isoPaintsFrom() || !isoPaints) return null;
+  var g = IS_ISOPANE ? ISO_GEN : isoPane && isoPane.hsub === true ? isoPane.g : null;
+  var linked = IS_ISOPANE ? !document.documentElement.classList.contains('is-iso-unlinked') : g !== null && isoPane.link === 'linked' && groupControlsEl.classList.contains('is-locked');
+  if (!linked || !G.cyclic || G.orders[g] !== G.order || isoPaints.length !== G.order) return null;
   var out = {};
-  lap(G, ISO_GEN, G.order).forEach(function(a, k){ out[a] = isoPaints[k]; });
+  lap(G, g, G.order).forEach(function(a, k){ out[a] = isoPaints[k]; });
   return out;
 }
 function isoTellPaints(force){
+  if (!isoPaintsFrom() || isoOrder() <= 0) return;
   // lead marks the smaller member of an inverse pair, which this ring's key
   // names first, so the pane's key can name that member's image first too.
   var G = drawn.G;
@@ -19908,7 +20103,7 @@ function isoTurnsTogether(){ return groupControlsEl.classList.contains('is-locke
 function isoTellTop(force){
   var m = isoOrder();
   if (!m || isoFollowing) return;
-  if (!IS_ISOPANE) isoTellPaints(force);
+  isoTellPaints(force);
   // The pane speaks only for a turn of its own.
   if (IS_ISOPANE && !turning && !spin) return;
   if (!IS_ISOPANE){
@@ -19974,7 +20169,7 @@ function isoFollowLive(a){
 var isoAlignGen = null;
 function isoArrangeAs(c){
   var m = isoOrder();
-  if (!m || c === null) return;
+  if (!m || c === null || m !== drawn.G.order) return;
   var ci = modInverse(c, m);
   if (ci === null) return;
   var b = isoPowers()[ci];
@@ -20025,7 +20220,7 @@ function isoReceive(d){
   if (d.iso === 'angle'){ if (typeof d.a === 'number' && isFinite(d.a) && isoTurnsTogether()) isoFollowLive(d.a); return; }
   if (d.iso === 'spread'){ if (IS_ISOPANE && (d.c === null || (Number.isInteger(d.c) && d.c > 0 && d.c < m))) isoArrangeAs(d.c); return; }
   if (d.iso === 'settle'){ if (!IS_ISOPANE && isoTurnsTogether()) settleTurn(); return; }
-  if (d.iso === 'paint'){ if (IS_ISOPANE) isoTakePaints(d.paints); return; }
+  if (d.iso === 'paint'){ if (!isoPaintsFrom()) isoTakePaints(d.paints); return; }
   if (d.iso === 'genhot'){ frostGenRow(d.on === true); return; }
   if (d.iso === 'gcramp'){ if (!IS_ISOPANE){ paneGLeft = typeof d.left === 'number' && isFinite(d.left) ? d.left : null; syncGenWrap(); } return; }
   if (d.iso === 'genwrap'){ if (IS_ISOPANE){ setGenWrap(d.on === true); } return; }
@@ -20066,15 +20261,36 @@ function isoReceive(d){
     // Bead clicks followed on one ring are followed on the other, unless a
     // slider is.
     var beads = d.beads === true && d.k >= 0 && !follow, wasBeads = state.genBeads;
-    isoSelSent = selKey(d.k, follow, beads);
+    var el = null;
+    if (d.k < 0 && Number.isInteger(d.el)){
+      if (IS_ISOPANE) el = ISO_SUB && drawn.G.els.indexOf(d.el) !== -1 && isoPowers().indexOf(d.el) === -1 ? d.el : null;
+      else if (isoPane.hsub === true){
+        var mm = isoMirrorMap(drawn.G);
+        el = mm.H.els.indexOf(d.el) !== -1 && !mm.inS(d.el) ? d.el : null;
+      }
+    }
+    isoSelSent = selKey(d.k, follow, beads, el);
     state.genFollow = follow;
     state.genBeads = beads;
     // Only a fresh choice to follow couples the sliders: the other ring's
     // echo of a follow already under way must not close the padlock again.
     if (follow) followedGen = null;
     if (follow && !was && !IS_ISOPANE) coupleForFollow(true);
-    if (d.k < 0){
-      if (state.noSub) return;
+    if (d.k < 0 && el !== null){
+      if (IS_ISOPANE){ if (state.noSub || state.gen !== el) selectGen(el); }
+      else {
+        var rowMoved = isoPane.row !== el, subWas = state.noSub;
+        isoPane.row = el;
+        state.noSub = true;
+        if (rowMoved || !subWas) render();
+      }
+    } else if (d.k < 0){
+      var rowGone = !IS_ISOPANE && isoPane.hsub === true && Number.isInteger(isoPane.row);
+      if (rowGone) isoPane.row = null;
+      if (state.noSub){
+        if (rowGone) render();
+        return;
+      }
       state.noSub = true;
       render();
     } else if (state.noSub || state.gen !== isoPowers()[d.k]) selectGen(isoPowers()[d.k]);
@@ -20115,9 +20331,22 @@ function isoHostOrder(G){
 }
 // The isomorphism from this ring's group onto the pane's: g^k to h^k.
 function isoImage(G){
-  var gp = isoPowers(), H = isoPaneGroup(), hp = lap(H, isoPane.h, H.order);
+  var gp = isoPowers(), H = isoPaneGroup(), hp = lap(H, isoPane.h, isoPane.hsub === true ? gp.length : H.order);
   return function(x){ return hp[gp.indexOf(x)]; };
 }
+// The link seen from the pane's side while the pane holds the subgroup end:
+// the pane's group H, φ from this whole group into it, ψ back from its
+// subgroup (undefined outside it), and whether an element of H lies inside.
+function isoMirrorMap(G){
+  var H = isoPaneGroup(), gp = isoPowers(), hp = lap(H, isoPane.h, gp.length);
+  return {
+    H: H,
+    phi: function(x){ return hp[gp.indexOf(x)]; },
+    psi: function(y){ var k = hp.indexOf(y); return k === -1 ? undefined : gp[k]; },
+    inS: function(y){ return hp.indexOf(y) !== -1; }
+  };
+}
+function isoMirrored(){ return !IS_ISOPANE && !!isoPane && isoPane.hsub === true && subInterlocked(); }
 // The image of the generator the rows are sorted by: its own, or, linked
 // through a subgroup that the generator lies outside, the image of the
 // power of it that generates that subgroup; null for none.
@@ -20254,7 +20483,7 @@ function syncInterlock(){
         // another row here must not carry the link along to it.
         if (isoLinksWholeGroups()){
           if (isoPane.g === null) isoPane.g = isoLinkGen();
-        } else if (!Number.isInteger(isoPane.sub)) isoPane.sub = isoLinkGen();
+        } else if (isoPane.hsub !== true && !Number.isInteger(isoPane.sub)) isoPane.sub = isoLinkGen();
         var q = new URLSearchParams(isoPane.q);
         isoPane.subExpr = { left: paneLeftVal(q.get('subleft')), right: subExprVal(q.get('subright')) };
       }
@@ -20291,13 +20520,23 @@ function syncInterlock(){
     }
   }
   if (!subInterlocked() || isoSelSent === SEL_AWAIT) return;
+  if (!IS_ISOPANE && isoPane.hsub === true) syncMirrorRow();
   var k = state.noSub ? -1 : isoPowers().indexOf(state.gen);
   var follow = state.genFollow && k >= 0, beads = state.genBeads && k >= 0 && !follow;
-  if (selKey(k, follow, beads) === isoSelSent) return;
-  isoSelSent = selKey(k, follow, beads);
-  isoTell({ iso: 'select', k: k, follow: follow, beads: beads });
+  // An element outside the linked subgroup has no image: the mirrored
+  // pair's selection outside it travels as the element itself.
+  var el = null;
+  if (k === -1){
+    if (!IS_ISOPANE) el = isoPane.hsub === true && Number.isInteger(isoPane.row) ? isoPane.row : null;
+    else el = ISO_SUB && !state.noSub ? state.gen : null;
+  }
+  if (selKey(k, follow, beads, el) === isoSelSent) return;
+  isoSelSent = selKey(k, follow, beads, el);
+  var msg = { iso: 'select', k: k, follow: follow, beads: beads };
+  if (Number.isInteger(el)) msg.el = el;
+  isoTell(msg);
 }
-function selKey(k, follow, beads){ return [k, +!!follow, +!!beads].join(); }
+function selKey(k, follow, beads, el){ return [k, +!!follow, +!!beads].concat(Number.isInteger(el) ? [el] : []).join(); }
 // The ring holding the pane couples the two expression sliders for a
 // subgroup that follows them: to the pane's slider when the pane chose to
 // follow, else the pane's to this one's.
@@ -20394,7 +20633,8 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'subpick'){
     if (drawn && subInterlocked() && Number.isInteger(d.k) && d.k >= 0 && d.k < isoOrder()) selectGen(isoPowers()[d.k]);
   } else if (d.isopane === 'subinv'){
-    if (drawn && subInterlocked() && !state.noSub) selectInverse(state.gen);
+    if (drawn && isoMirrored() && state.noSub && Number.isInteger(isoPane.row)) pickMirrorRow(isoPaneGroup().inv[isoPane.row]);
+    else if (drawn && subInterlocked() && !state.noSub) selectInverse(state.gen);
   } else if (d.isopane === 'ecmult'){
     if (typeof d.on === 'boolean' && isoPane && d.on !== (isoPane.ecMult === true)){
       isoPane.ecMult = d.on;
@@ -20428,7 +20668,7 @@ window.addEventListener('message', function(e){
       if (num(lg.g) && logOk){ isoPaneLegend.g = lg.g; isoPaneLegend.log = lg.log; }
     }
     syncIsoKeys();
-  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'genhot' || d.iso === 'gcramp'){
+  } else if (d.iso === 'angle' || d.iso === 'settle' || d.iso === 'hover' || d.iso === 'select' || d.iso === 'cosets' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'genhot' || d.iso === 'gcramp' || d.iso === 'paint'){
     isoReceive(d);
   } else if (d.isopane === 'built'){
     // A pane just built hears this ring's head anew.
@@ -21220,7 +21460,8 @@ function render(){
   // aims the pane again. The pane never sends from a render; it goes back to
   // where the holder last put it.
   if (!IS_ISOPANE) isoTellTop(false);
-  else if (isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
+  else if (ISO_SUB) isoTellPaints(false);
+  if (IS_ISOPANE && isoLastAngle !== null && isoOrder()) isoFollowAngle(isoLastAngle);
   // A new subgroup that sets off a flip reaches the pane with the flip
   // (takeFlipSel), never before it: the pane would draw its arrows the long
   // way first and then flip them over, where it only turns its beads.
@@ -21413,6 +21654,7 @@ var exportWin = null;
 // cyclic subgroups starts them (shift) or not: the ring's group's, or
 // through phi the pane's, row by row beside it.
 function exportRows(ex, shift){
+  if (ex.fixed) return ex.fixed;
   var G = ex.src || ex.G, was = state.autoShift;
   state.autoShift = shift;
   var beads = shift ? turned(arrangement(G)) : arrangement(G);
@@ -21450,6 +21692,7 @@ function exportLines(w){
 // ⟨g⟩ = {…} on the left and the pane's {…} = ⟨φ(g)⟩ on the right, level with
 // its right edge; a row outside a locked subgroup has no right side.
 function isoExportLines(w){
+  if (w.exR.psi) return isoMirrorLines(w);
   var rows = exportRows(w.ex, w.shift), phi = w.exR.phi;
   var cl = exportCols(w.ex.G, rows, w.left, w.right, w.width, w.natOff);
   var inS = rows.filter(function(r){ return phi(r.g) !== undefined; });
@@ -21462,8 +21705,24 @@ function isoExportLines(w){
     return left[i] + ' '.repeat(lw - Array.from(left[i]).length + 4) + padTextStart(right[at++], rw);
   });
 }
+// The mirrored lock's export: every row of the pane's group, its {…} = ⟨y⟩
+// on the right and, for the rows inside the locked subgroup, this group's
+// ⟨ψ(y)⟩ = {…} on the left; the others keep that space blank.
+function isoMirrorLines(w){
+  var rows = w.exR.fixed, psi = w.exR.psi;
+  var inS = rows.filter(function(r){ return psi(r.g) !== undefined; });
+  var cl = exportCols(w.ex.G, inS.map(function(r){ return { g: psi(r.g), members: r.members.map(psi) }; }), w.left, w.right, w.width, w.natOff);
+  var cr = exportCols(w.exR.G, rows, w.leftR, w.rightR, w.width, w.natOffR);
+  var left = cl.gens.map(function(g, i){ return asciiText('⟨' + g + '⟩ = {' + cl.members[i].join(', ') + '}'); });
+  var right = cr.gens.map(function(g, i){ return asciiText('{' + cr.members[i].join(', ') + '} = ⟨' + g + '⟩'); });
+  var lw = textWidest(left), rw = textWidest(right), at = 0;
+  return rows.map(function(r, i){
+    var l = psi(r.g) !== undefined ? left[at++] : '';
+    return l + ' '.repeat(lw - Array.from(l).length + 4) + padTextStart(right[i], rw);
+  });
+}
 function exportHead(w){
-  if (w.exR) return translate('cyclicGroups.isoExportHead', { group: asciiText(isoExportName(w.ex.G)), image: asciiText(w.exR.G.label) }).replace('≌', '~=');
+  if (w.exR) return translate('cyclicGroups.isoExportHead', { group: asciiText(isoExportName(w.ex.G)), image: asciiText(isoExportImage(w.exR.G)) }).replace('≌', '~=');
   return translate('cyclicGroups.subExportHead', { group: asciiText(w.ex.G.label) });
 }
 function exportText(w){ return [exportHead(w), ''].concat(exportLines(w)).join('\n') + '\n'; }
@@ -21476,13 +21735,17 @@ function exportName(w, ext){
 // subgroup ⟨g⟩ the link runs through.
 function isoExportName(G){
   var g = isoLinkGen();
-  return isoLinksWholeGroups() || g === null ? G.label : '⟨' + elText(G, g) + '⟩';
+  return !!isoPane && isoPane.hsub === true || isoLinksWholeGroups() || g === null ? G.label : '⟨' + elText(G, g) + '⟩';
 }
-function isoExportNameNode(G){ return isoLinksWholeGroups() || isoLinkGen() === null ? groupNameNode(G) : isoExportName(G); }
+function isoExportNameNode(G){ return !!isoPane && isoPane.hsub === true || isoLinksWholeGroups() || isoLinkGen() === null ? groupNameNode(G) : isoExportName(G); }
+// The isomorphism's second group: the pane's whole group, or, while the pane
+// holds the subgroup end, that subgroup ⟨h⟩.
+function isoExportImage(H){ return !!isoPane && isoPane.hsub === true ? '⟨' + elText(H, isoPane.h) + '⟩' : H.label; }
+function isoExportImageNode(H){ return !!isoPane && isoPane.hsub === true ? isoExportImage(H) : groupNameNode(H); }
 // exR, when given, is the pane's side of the merged list: the window then
 // exports the isomorphism, both groups' expressions chosen in it.
 function openExportWin(ex, exR){
-  if (!ex || !ex.rows) return;
+  if (!ex || !(ex.rows || ex.fixed)) return;
   var G = ex.G;
   var w = exportWin = { ex: ex, left: genOrNull(G, ex.exprs[0]), right: genOrNull(G, ex.exprs[1]), width: state.subPad ? 'pad' : state.subAlign ? 'align' : 'none', natOff: ex.natOff === undefined ? state.natExpOff : ex.natOff, shift: state.autoShift };
   if (exR){
@@ -21493,7 +21756,7 @@ function openExportWin(ex, exR){
   }
   var head = document.createElement('h2');
   head.id = 'export-win-head';
-  if (exR) translateInto(head, 'cyclicGroups.isoExportGroup', { group: isoExportNameNode(G), image: groupNameNode(exR.G) });
+  if (exR) translateInto(head, 'cyclicGroups.isoExportGroup', { group: isoExportNameNode(G), image: isoExportImageNode(exR.G) });
   else translateInto(head, 'cyclicGroups.subExportGroup', { group: groupNameNode(G) });
   var preview = document.createElement('pre');
   preview.className = 'export-win-preview';
@@ -21718,7 +21981,7 @@ function pdfBlob(title, lines, fit){
 var subCtxEl = $('sub-ctx');
 var subCtxReturn = null;
 // side: the merged row's half the menu was opened on, 1 for the pane's.
-function setSubCtx(open, x, y, h, side){
+function setSubCtx(open, x, y, h, side, paneGen){
   setSubCtxSub(null);
   if (!open){
     if (subCtxEl.hidden) return;
@@ -21738,6 +22001,7 @@ function setSubCtx(open, x, y, h, side){
   fset.addEventListener('click', function(){ setSubCtx(false); openFset(side === 1 || IS_ISOPANE ? 1 : 0); });
   subCtxEl.appendChild(fset);
   subCtxEl.appendChild(subCtxRule());
+  var mirror = Number.isInteger(paneGen) && subExports.length === 2 && !!subExports[1].psi && !!drawn;
   // On a row, the cosets of that row's subgroup: explored from here (the row
   // selected first), or no longer while they are; greyed for the whole group.
   if (typeof h === 'number' && drawn && drawn.G.els.indexOf(h) !== -1){
@@ -21764,12 +22028,13 @@ function setSubCtx(open, x, y, h, side){
     // half of a merged row), copied or downloaded alone.
     var at = subExports.length && subExports[0].gens ? subExports[0].gens.indexOf(h) : -1;
     var ex = subExports[side === 1 && subExports[1] ? 1 : 0];
-    if (at !== -1 && ex && typeof ex.lines[at] === 'string'){
-      var line = ex.lines[at], gen = (/^<([^>]*)>/.exec(line) || [null, elText(G, h)])[1];
-      subCtxEl.appendChild(subExportItem('cyclicGroups.ctxBeadExport', { bead: gen }, function(){ copyText(line); }, function(){
-        saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', ex.G.mode === 'additive' ? 'add' : 'mul', ex.G.n, ex === subExports[0] ? h : at].join('-') + '.txt');
-      }));
-    }
+    // In the mirrored list the pane's half is told apart by its own element.
+    if (mirror && side === 1) at = ex.gens.indexOf(paneGen);
+    addSubExport(ex, at, G, h);
+    subCtxEl.appendChild(subCtxRule());
+  } else if (mirror && side === 1){
+    // A row outside the locked subgroup still has the pane's half to export.
+    addSubExport(subExports[1], subExports[1].gens.indexOf(paneGen), drawn.G, h);
     subCtxEl.appendChild(subCtxRule());
   }
   // Export group, for each group in the list: a submenu of Copy, its list
@@ -21787,13 +22052,13 @@ function setSubCtx(open, x, y, h, side){
   });
   // Locked, the merged list also exports the isomorphism, both groups row
   // by row as the panel lists them.
-  if (subExports.length === 2 && subExports[1].phi && drawn){
+  if (subExports.length === 2 && (subExports[1].phi || subExports[1].psi) && drawn){
     var iso = document.createElement('button');
     iso.type = 'button';
     iso.className = 'fs-menu-item';
     iso.setAttribute('role', 'menuitem');
     iso.setAttribute('aria-haspopup', 'dialog');
-    translateInto(iso, 'cyclicGroups.isoExportDots', { group: isoExportNameNode(subExports[0].G), image: groupNameNode(subExports[1].G) });
+    translateInto(iso, 'cyclicGroups.isoExportDots', { group: isoExportNameNode(subExports[0].G), image: isoExportImageNode(subExports[1].G) });
     iso.addEventListener('pointerenter', function(){ setSubCtxSub(null); });
     iso.addEventListener('click', function(){ setSubCtx(false); openExportWin(subExports[0], subExports[1]); });
     subCtxEl.appendChild(iso);
@@ -21857,6 +22122,15 @@ function setSubCtx(open, x, y, h, side){
   showCtxAt(subCtxEl, x, y);
 }
 // An item of the bottom panel's menu opening the submenu of Copy and Download.
+// Export subgroup ⟨x⟩ for the list's line at: its own line of the list,
+// copied or downloaded alone; none for a line the list has no text for.
+function addSubExport(ex, at, G, h){
+  if (at === -1 || !ex || typeof ex.lines[at] !== 'string') return;
+  var line = ex.lines[at], gen = (/^<([^>]*)>/.exec(line) || [null, elText(G, h)])[1];
+  subCtxEl.appendChild(subExportItem('cyclicGroups.ctxBeadExport', { bead: gen }, function(){ copyText(line); }, function(){
+    saveBlob(new Blob([line + '\n'], { type: 'text/plain;charset=utf-8' }), ['subgroup', ex.G.mode === 'additive' ? 'add' : 'mul', ex.G.n, ex === subExports[0] ? h : at].join('-') + '.txt');
+  }));
+}
 function subExportItem(key, params, copy, save){
   var item = document.createElement('button');
   item.type = 'button';
@@ -22006,7 +22280,7 @@ subgroupsPanelEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE) return;
   var row = e.target.closest('.subgroup-row');
-  setSubCtx(true, ptX(e), ptY(e), row ? Number(row.getAttribute('data-gen')) : null, !IS_ISOPANE && e.target.closest('.sub-row-r') ? 1 : 0);
+  setSubCtx(true, ptX(e), ptY(e), row ? Number(row.getAttribute('data-gen')) : null, !IS_ISOPANE && e.target.closest('.sub-row-r') ? 1 : 0, row && row.hasAttribute('data-pane-gen') ? Number(row.getAttribute('data-pane-gen')) : null);
 });
 document.addEventListener('pointerdown', function(e){
   if (!subCtxEl.contains(e.target)) setSubCtx(false);
