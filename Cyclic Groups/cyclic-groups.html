@@ -13686,7 +13686,7 @@ function drawDhCyl(){
         segs.forEach(function(sg){
           var path = '', depth = 0;
           sg.pts.forEach(function(q, i){ path += (i ? ' L ' : 'M ') + num(q.x) + ' ' + num(q.y); depth += q.depth; });
-          put(svgEl('path', { 'class': cls('dhc-thread', t.who, sg.back ? -1 : 1, (c.step === step ? ' is-now' : '') + (t.who === 'mix' && k === 1 ? ' is-first is-by-' + t.owner : '')), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
+          put(svgEl('path', { 'class': cls('dhc-thread', t.who, sg.back ? -1 : 1, (c.step === step ? ' is-now' : '') + (t.who === 'mix' && k === 1 ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '')), d: path }), depth / sg.pts.length, c.step, c.hop, ci);
         });
         if (nVis <= DHC_RIM_CAP && c.x !== a.x){
           var e = pts[pts.length - 1];
@@ -13699,7 +13699,7 @@ function drawDhCyl(){
       var a = place[k.from], b = place[k.to];
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || a === undefined || b === undefined) return;
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z);
-      put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + (k.who === 'mix' && k.hop === 1 ? ' is-first is-by-' + k.owner : '')), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
+      put(svgEl('line', { 'class': cls('dhc-line', k.who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + (k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '')), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
     });
     // The number received in the swap, carried up to where it is worked with.
     (tl.uses || []).forEach(function(u){
@@ -13793,6 +13793,8 @@ function dhcLayout(tl){
 // Called by every ring draw while the exchange is on: the ring's own place
 // map is what the slices use, so the cylinder is redrawn only when
 // something it shows (or the way it is turned) has changed.
+// The class naming whose cylinder a mixed walk's first step lies in.
+var DHC_BY = { alice: 'is-by-alice', bob: 'is-by-bob' };
 function dhcValuesOn(){ return dhc.values && dhc.filled; }
 // Each element's colour classes and style as the ring's beads have them.
 function dhcLooks(){
