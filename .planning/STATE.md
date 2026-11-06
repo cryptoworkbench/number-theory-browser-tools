@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-06 - Italic G icon on the bead menu's Set G item (fast task)
+Last activity: 2026-11-06 - Time cylinder received-number lines in the sender's colour (fast task)
 
 Progress: [█████████░] 86%
 
@@ -663,6 +663,7 @@ None yet.
 | fast | Cyclic Groups Diffie-Hellman: Alice and Bob compute A and B at the same time (six steps), ring and time cylinder following | 2026-11-04 | 72c2c45 | — |
 | fast | Cyclic Groups Diffie-Hellman: both compute K at the same time (five steps), ring and time cylinder following | 2026-11-04 | 3b6916c | — |
 | fast | Cyclic Groups: bead menu's Set G equal to item gets an italic capital G icon | 2026-11-06 | 615baeb | — |
+| fast | Cyclic Groups time cylinder: received-number dotted lines in the sender's colour | 2026-11-06 | 08fde3b | — |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -917,4 +918,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-06 - Italic G icon on the bead menu's Set G item (fast task)
+Last activity: 2026-11-06 - Time cylinder received-number lines in the sender's colour (fast task)
