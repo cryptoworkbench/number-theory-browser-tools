@@ -13723,7 +13723,7 @@ function drawDhCyl(){
   var L = dhc.last;
   if (!L || !dh || !dhLive(L.G)) return;
   var G = L.G, place = L.place, m = L.m, step = dh.step;
-  var tl = dhcFollow(dhcTimeline(G)), lay = dhcLayout(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
+  var tl = dhcFollow(dhcTimeline(G)), lay = dhcLayoutNow(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
   var Z = dhc.zoom, W = lay.w, R = lay.R * Z, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
   var OX = W / 2 + dhc.panX, OY = DHC_H / 2 + dhc.panY;
   dhc.w = W;
@@ -14098,6 +14098,33 @@ function dhcLayoutSplit(tl){
 function dhcLayout(tl){
   return DHC_LAYOUTS[dhc.cyls](tl);
 }
+// Switching Shared / Separate, the two cylinders part from (or close into)
+// the one: drawn as the separate layout, their axes, radius and the
+// picture's width eased between the two layouts' over DHC_CYL_MORPH_MS.
+var DHC_CYL_MORPH_MS = 900;
+function dhcLayoutNow(tl){
+  var lay = dhcLayout(tl), mo = dhc.cylMorph;
+  if (!mo) return lay;
+  var p = clamp((performance.now() - mo) / DHC_CYL_MORPH_MS, 0, 1);
+  if (p >= 1){ dhc.cylMorph = 0; return lay; }
+  var e = p * p * (3 - 2 * p), k = dhc.cyls === 'split' ? e : 1 - e;
+  var one = dhcLayoutShared(tl), two = dhcLayoutSplit(tl);
+  return {
+    w: one.w + (two.w - one.w) * k, R: one.R + (two.R - one.R) * k,
+    cyls: two.cyls.map(function(c){ return Object.assign({}, c, { cx: c.cx * k }); }),
+    links: two.links
+  };
+}
+function dhcCylMorph(){
+  dhc.cylMorph = performance.now();
+  var tick = function(){
+    if (!dhc.open || !dhc.last){ dhc.cylMorph = 0; return; }
+    dhc.built = '';
+    syncDhCyl(dhc.last.G, dhc.last.place, dhc.last.m);
+    if (dhc.cylMorph) requestAnimationFrame(tick);
+  };
+  tick();
+}
 
 /* ---------- turning the time cylinder ---------- */
 // Called by every ring draw while the exchange is on: the ring's own place
@@ -14282,6 +14309,7 @@ function setDhcMode(kind, value){
     dhcTurned();
     if (!dhc.filled && !dhcPlotEl.classList.contains('is-sized')) dhcWin.place(dhcWin.at.x, dhcWin.at.y);
     if (kind === 'follow' && dhc.cyls === 'split') dhcMorph();
+    if (kind === 'cyls') dhcCylMorph();
   }
 }
 ['dhc-cyls', 'dhc-slices', 'dhc-follow'].forEach(function(id){
