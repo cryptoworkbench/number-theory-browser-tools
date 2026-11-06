@@ -236,7 +236,9 @@
    and dhCylWheel, dhCylWheelNo and dhCylWheelMod (the cylinder menu's
    congruence wheel floor, why it is greyed out, and its centre label) and
    dhCylFloorGap and dhCylFloorGapTip (the slider setting the floor's
-   distance below the cylinders).
+   distance below the cylinders) and dhCylWheelRaw and dhCylWheelRawNo (the
+   switch showing each hop's raw result out on the floor's rings before
+   its reduction, and why it is greyed out).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1325,6 +1327,8 @@
       dhCylWheel: 'Congruence wheel floor',
       dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
       dhCylWheelMod: 'mod {n}',
+      dhCylWheelRaw: 'Show raw results before reduction',
+      dhCylWheelRawNo: 'Only with the congruence wheel floor',
       dhCylFloorGap: 'Floor',
       dhCylFloorGapTip: 'Distance between the cylinders and the floor',
       dhCylFollowLabel: 'Each cylinder',
