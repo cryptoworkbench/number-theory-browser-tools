@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-06 - Merged dh-polygons-only (stacked polygons, kept g polygon, DH controls in filled window)
+Last activity: 2026-11-06 - Merged dh-wheel-raw (raw results before reduction on the wheel floor)
 
 Progress: [█████████░] 86%
 
@@ -672,6 +672,7 @@ None yet.
 | fast | Cyclic Groups time cylinder (branch dh-cylinder-hop-numbers, merged): chords carry hop numbers; right-click menu toggles Hop numbers and Hops depicted as arrows | 2026-11-06 | 782f562 | — |
 | fast | Cyclic Groups time cylinder (branch dh-polygon-mode, merged): polygon mode, each layer the polygon its walks step round, offered only while the beads are arranged by g | 2026-11-06 | c6d5d07 | — |
 | fast | Cyclic Groups time cylinder (branch dh-polygons-only, merged): Stacked polygons (tiers with ribs), Keep g's polygon on every layer, DH controls move into the filled cylinder window | 2026-11-06 | 18c03d0 | — |
+| fast | Cyclic Groups time cylinder: Per computer/Per variable switch with slide animation, rising paths on tier sides, congruence wheel floor with Floor slider; (branch dh-wheel-raw, merged) raw results before reduction | 2026-11-06 | 9ebcef4 | — |
 | 391 | Cyclic Groups right-click menu: Structure as a copy submenu like the other formulas | 2026-10-15 | 6d8dbad | — |
 | 392 | Cyclic Groups inverse-pair colour key: menu writing its elements by number or as powers | 2026-10-15 | d2f696c | — |
 | 393 | Cyclic Groups Element expressions panel: checkbox for leading zeros in the beads | 2026-10-15 | 5d1cf07 | — |
@@ -926,4 +927,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-06 - Merged dh-polygons-only (stacked polygons, kept g polygon, DH controls in filled window)
+Last activity: 2026-11-06 - Merged dh-wheel-raw (raw results before reduction on the wheel floor)
