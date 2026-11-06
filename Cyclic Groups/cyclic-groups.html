@@ -13515,11 +13515,10 @@ function dhcTimelineHop(G){
     { slice: T, x: v.K, who: 'key', owner: 'pub', step: 4, hop: M }
   ];
   var gA = lap(G, dh.g, a + 1), gB = lap(G, dh.g, b + 1), bA = lap(G, v.B, a + 1), aB = lap(G, v.A, b + 1);
-  var walkOne = function(who, secret, powers, end, step){
+  // A person's own walk ends where it makes her or his public number.
+  var walkOne = function(who, secret, powers, step){
     var pts = [];
     for (t = 0; t <= secret; t++) pts.push({ slice: t, x: powers[t], step: step, hop: t });
-    for (t = secret + 1; t <= M; t++) pts.push({ slice: t, x: end, step: 2, hop: t });
-    pts.push({ slice: S, x: end, step: 3, hop: 0 });
     return { who: who, owner: who, pts: pts };
   };
   var walkTwo = function(who, secret, powers, firstStep){
@@ -13531,7 +13530,7 @@ function dhcTimelineHop(G){
   };
   return {
     slices: slices, marks: marks, lines: [],
-    threads: [walkOne('alice', a, gA, v.A, 2), walkOne('bob', b, gB, v.B, 2), walkTwo('alice', a, bA, 4), walkTwo('bob', b, aB, 4)],
+    threads: [walkOne('alice', a, gA, 2), walkOne('bob', b, gB, 2), walkTwo('alice', a, bA, 4), walkTwo('bob', b, aB, 4)],
     swap: { slice: S, A: v.A, B: v.B, step: 3, madeA: a, madeB: b },
     uses: [{ x: v.B, from: S, to: S + a, owner: 'alice', who: 'bob', step: 4 }, { x: v.A, from: S, to: S + b, owner: 'bob', who: 'alice', step: 4 }]
   };
@@ -13540,15 +13539,14 @@ function dhcTimelineHop(G){
 // One slice per frame: a layer for each of the exchange's steps from the
 // secrets on (agreeing on g changes nothing on the ring, so it shares the
 // bottom layer, shown from the start), Alice's and Bob's states threaded
-// through them, and each walk drawn as chords in the layer of the step that
+// up to layer 1, and each walk drawn as chords in the layer of the step that
 // takes it. Layer l shows from step l + 1, the bottom one from step 0.
 function dhcTimelineFrame(G){
   var v = dhValues(G), e = G.identity;
   var slices = [], marks = [], l;
   var stepOf = function(layer){ return layer ? layer + 1 : 0; };
-  // From the swap the threads rise to the identity, where the walks by the
-  // other's number start; those walks' chords go on to K.
-  var aliceAt = [e, v.A, v.A, e], bobAt = [e, v.B, v.B, e];
+  // Each thread ends on layer 1, where its own walk makes the public number.
+  var aliceAt = [e, v.A], bobAt = [e, v.B];
   for (l = 0; l < DH_LAST; l++) slices.push({ step: stepOf(l), full: true, tag: String(l), hop: 0 });
   var mark = function(layer, x, who, owner){ marks.push({ slice: layer, x: x, who: who, owner: owner, step: stepOf(layer), hop: 0 }); };
   mark(0, e, 'alice', 'alice'); mark(0, e, 'bob', 'bob');
@@ -13752,7 +13750,7 @@ function drawDhCyl(){
 // draws, from alice, bob and pub), and links the chords between two
 // cylinders' beads as { from: { cyl, slice, x }, to: { cyl, slice, x }, who,
 // step }.
-// One cylinder Alice and Bob share: their threads meet on K, and, as in the
+// One cylinder Alice and Bob share: their walks meet on K, and, as in the
 // split layout, A and B rise from where they were made to the swap slice,
 // with no chord joining them there.
 function dhcLayoutShared(tl){
