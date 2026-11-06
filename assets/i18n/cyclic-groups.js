@@ -232,7 +232,9 @@
    dhCylPolyKeepG, the switch keeping g's polygon on every layer, are greyed
    out) and dhCylFollowLabel, dhCylPerComputer, dhCylPerComputerTip,
    dhCylPerVariable and dhCylPerVariableTip (the separate cylinders' switch:
-   each one a person's computer, or one public number, its polygons swapped).
+   each one a person's computer, or one public number, its polygons swapped)
+   and dhCylWheel, dhCylWheelNo and dhCylWheelMod (the cylinder menu's
+   congruence wheel floor, why it is greyed out, and its centre label).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1318,6 +1320,9 @@
       dhCylPolyStack: 'Stacked polygons',
       dhCylPolyStackNo: 'Only in polygon mode',
       dhCylPolyKeepG: 'Keep g’s polygon on every layer',
+      dhCylWheel: 'Congruence wheel floor',
+      dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
+      dhCylWheelMod: 'mod {n}',
       dhCylFollowLabel: 'Each cylinder',
       dhCylPerComputer: 'Per computer',
       dhCylPerComputerTip: 'Each cylinder shows what happens on one person’s computer',
