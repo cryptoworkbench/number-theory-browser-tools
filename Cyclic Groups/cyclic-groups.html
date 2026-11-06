@@ -13670,8 +13670,13 @@ function drawDhCyl(){
   // Stacked polygons: no cylinder, but a tier for each layer, its polygon
   // risen on ribs from the layer below, like a wedding cake's.
   var cake = poly && dhc.polyStack;
+  // moving marks what the Per computer / Per variable switch carries from
+  // one separate cylinder to the other: each such piece keeps, in
+  // data-shift, how far across it came, which dhcMorphTick slides it over.
+  var moving = false;
   var put = function(el, depth, st, hop, ci){
     if (ci !== undefined) el.setAttribute('data-cyl', String(ci));
+    if (moving && ci !== undefined && lay.cyls.length === 2) el.setAttribute('data-shift', num((lay.cyls[1 - ci].cx - lay.cyls[ci].cx) * Z));
     if (fresh && st === step){ el.classList.add('is-fresh'); late.push({ el: el, hop: hop || 0 }); }
     prims.push({ el: el, depth: depth });
   };
@@ -13727,14 +13732,18 @@ function drawDhCyl(){
       return hit;
     };
     var corners = function(by, z){ return lap(G, by, G.orders[by]).map(function(x){ return P(place[x], z); }); };
+    // A polygon (or its ribs) the switch swaps: one of the public numbers'.
+    var swaps = function(sl, by){ return sl.by.alice !== sl.by.bob && by !== dh.g; };
     var drawPoly = function(by, z, nowCls, sl){
       var vs = corners(by, z), back = '', front = '';
+      moving = swaps(sl, by);
       vs.forEach(function(q, j){
         var r = vs[(j + 1) % vs.length], seg = 'M ' + num(q.x) + ' ' + num(q.y) + ' L ' + num(r.x) + ' ' + num(r.y) + ' ';
         if (q.front + r.front < 0) back += seg; else front += seg;
       });
       if (back) put(svgEl('path', { 'class': 'dhc-rim is-poly is-back' + nowCls, d: back }), under + z * sp - R * cp, sl.step, sl.hop, ci);
       if (front) put(svgEl('path', { 'class': 'dhc-rim is-poly is-front' + nowCls, d: front }), under + z * sp + R * cp, sl.step, sl.hop, ci);
+      moving = false;
     };
     slices.forEach(function(sl, i){
       if (!vis[i]) return;
@@ -13743,9 +13752,11 @@ function drawDhCyl(){
       // where the polygon changes, its base drawn on the tier below's top.
       if (cake && i > 0) slicePolys(sl).forEach(function(by){
         var z0 = zOf(i - 1), lo = corners(by, z0), up = corners(by, z);
+        moving = swaps(sl, by);
         lo.forEach(function(q, j){
           put(svgEl('line', { 'class': cls('dhc-rib', '', q.front), x1: num(q.x), y1: num(q.y), x2: num(up[j].x), y2: num(up[j].y) }), under + (q.depth + up[j].depth) / 2, sl.step, sl.hop, ci);
         });
+        moving = false;
         if (slicePolys(slices[i - 1]).indexOf(by) < 0) drawPoly(by, z0, '', sl);
       });
       if (nVis <= DHC_RIM_CAP || sl.full || sl.tag || now[i] || i % rimK === 0){
@@ -13803,6 +13814,7 @@ function drawDhCyl(){
     (tl.uses || []).forEach(function(u){ if (mine(cyl, u.owner) && shows(u.step)) see(useKey(u), u.owner); });
     tl.threads.forEach(function(t){
       if (!mine(cyl, t.owner)) return;
+      moving = t.who === 'mix';
       t.pts.forEach(function(c, k){
         if (!k) return;
         var a = t.pts[k - 1], p0 = place[a.x], p1 = place[c.x];
@@ -13844,6 +13856,7 @@ function drawDhCyl(){
     // Chords lying in one slice's plane.
     tl.lines.forEach(function(k){
       var a = place[k.from], b = place[k.to];
+      moving = k.who === 'mix';
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || a === undefined || b === undefined) return;
       var mix = once(lineKey(k.slice, k.from, k.to));
       if (mix < 0) return;
@@ -13861,6 +13874,7 @@ function drawDhCyl(){
     });
     // The number received in the swap, carried up to where it is worked with.
     (tl.uses || []).forEach(function(u){
+      moving = true;
       if (!mine(cyl, u.owner) || !shows(u.step) || !vis[u.from] || !vis[u.to] || place[u.x] === undefined) return;
       var mix = once(useKey(u));
       if (mix < 0) return;
@@ -13872,11 +13886,13 @@ function drawDhCyl(){
     // on top, its value readable; the rings round it lie over it.
     var placed = {};
     tl.marks.forEach(function(k){
+      moving = k.step === DH_LAST && k.owner !== 'pub';
       if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined) return;
       var key = k.slice + '|' + k.x, c = placed[key] || 0, q = P(place[k.x], zOf(k.slice));
       placed[key] = c + 1;
       put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (slices[k.slice].full && c ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
     });
+    moving = false;
   });
   // Links: a chord between two cylinders (or two beads of the one); two
   // links lying on one another are drawn once, in their colours mixed.
@@ -13891,7 +13907,13 @@ function drawDhCyl(){
     if (linkDone[key]) return;
     linkDone[key] = true;
     var q1 = dhcAt(ca, R, W, pa, zOf(lk.from.slice), m), q2 = dhcAt(cb, R, W, pb, zOf(lk.to.slice), m);
-    put(svgEl('line', { 'class': cls('dhc-line is-link', linkWho[key], q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), (q1.depth + q2.depth) / 2, lk.step, 0);
+    var link = svgEl('line', { 'class': cls('dhc-line is-link', linkWho[key], q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) });
+    // Its far end is what the Per computer / Per variable switch moves.
+    if (lay.cyls.length === 2){
+      link.setAttribute('data-x2', num(q2.x));
+      link.setAttribute('data-x2-shift', num((lay.cyls[1 - lk.to.cyl].cx - cb.cx) * Z));
+    }
+    put(link, (q1.depth + q2.depth) / 2, lk.step, 0);
   });
   // The step numerals, left of the leftmost cylinder.
   var left = OX + Math.min.apply(null, lay.cyls.map(function(c){ return c.cx; })) * Z - R - 8;
@@ -14107,6 +14129,28 @@ function syncDhcMode(){
     });
   });
 }
+// Switching Per computer / Per variable, what moves from one cylinder to the
+// other slides across (rising on its way right, sinking on its way left),
+// and the dashed lines' far ends with it.
+var DHC_MORPH_MS = 1200;
+function dhcMorphTick(){
+  var p = clamp((performance.now() - dhc.morph) / DHC_MORPH_MS, 0, 1), e = p * p * (3 - 2 * p), rest = 1 - e;
+  var lift = 22 * dhc.zoom * Math.sin(Math.PI * e);
+  Array.prototype.forEach.call(dhcSvgEl.querySelectorAll('[data-shift]'), function(el){
+    var dx = Number(el.getAttribute('data-shift'));
+    if (p < 1) el.setAttribute('transform', 'translate(' + num(dx * rest) + ' ' + num(dx < 0 ? -lift : lift) + ')');
+    else el.removeAttribute('transform');
+  });
+  Array.prototype.forEach.call(dhcSvgEl.querySelectorAll('[data-x2-shift]'), function(el){
+    el.setAttribute('x2', num(Number(el.getAttribute('data-x2')) + Number(el.getAttribute('data-x2-shift')) * rest));
+  });
+  dhc.morphRaf = p < 1 ? requestAnimationFrame(dhcMorphTick) : 0;
+}
+function dhcMorph(){
+  if (dhc.morphRaf) cancelAnimationFrame(dhc.morphRaf);
+  dhc.morph = performance.now();
+  dhcMorphTick();
+}
 function setDhcMode(kind, value){
   var table = DHC_MODE_TABLES[kind];
   if (!table || value === dhc[kind] || !Object.prototype.hasOwnProperty.call(table, value)) return;
@@ -14118,6 +14162,7 @@ function setDhcMode(kind, value){
     dhcClampPan();
     dhcTurned();
     if (!dhc.filled && !dhcPlotEl.classList.contains('is-sized')) dhcWin.place(dhcWin.at.x, dhcWin.at.y);
+    if (kind === 'follow' && dhc.cyls === 'split') dhcMorph();
   }
 }
 ['dhc-cyls', 'dhc-slices', 'dhc-follow'].forEach(function(id){
