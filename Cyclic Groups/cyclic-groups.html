@@ -2491,7 +2491,11 @@
   .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-menu[hidden]{ display:none; }
   .fs-menu-head{ margin:4px 8px 6px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
-  .fs-menu-head > .fs-menu-head-name{ text-transform:none; letter-spacing:normal; }
+  /* A name in a heading keeps the heading's look, but not its upper case
+     (a curve by its equation would read Y² = X³ …); a curve's +_E has its
+     capital E set small and low. */
+  .fs-menu-head > .fs-menu-head-name{ text-transform:none; }
+  .fs-menu-head-name > sub{ font-size:.75em; line-height:0; }
   .fs-menu-head + .fs-menu-head, .fs-menu-item + .fs-menu-head{ margin-top:10px; padding-top:8px; border-top:1px solid var(--panel-border); }
   .fs-menu-item{ display:flex; align-items:center; gap:10px; width:100%; padding:7px 8px; border-radius:6px; font-size:.88rem; text-align:start; }
   .fs-menu-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -10112,8 +10116,8 @@ function syncExprCtx(key){
   // as they are figured now, and its structure), each named as the row writes it;
   // elsewhere, Formulas.
   var sections = key === 'gsub' ? [
-    { name: curveName(drawn.G), math: 'ggroup', keys: ['ggroup', 'gorder', 'gens', 'struct'].filter(has) },
-    { name: has('gsub') ? ctxSubName(drawn.G) : null, math: 'gsub', keys: ['gsub', 'sorder', 'cindex', 'sstruct'].filter(has) }
+    { name: curveName(drawn.G), keys: ['ggroup', 'gorder', 'gens', 'struct'].filter(has) },
+    { name: has('gsub') ? ctxSubName(drawn.G) : null, keys: ['gsub', 'sorder', 'cindex', 'sstruct'].filter(has) }
   ] : [{ name: null, keys: key === 'gens' ? [] : [key] }];
   sections.forEach(function(sec){
     if (!sec.keys.length) return;
@@ -10123,10 +10127,16 @@ function syncExprCtx(key){
       // The name as written, not upper-cased with the heading's words.
       var nm = document.createElement('span');
       nm.className = 'fs-menu-head-name';
-      // A curve's name typeset, as the subgroup row writes it: plain text
-      // has no subscript capital E for its +_E.
-      if (drawn.G.pts && has(sec.math)) nm.appendChild(mInline(forms[have.indexOf(sec.math)].math, sec.name));
-      else nm.textContent = sec.name;
+      // In the heading's own type: plain text, a curve's +ₑ written + with a
+      // subscript capital E, which plain text has no character for.
+      sec.name.split('+ₑ').forEach(function(part, i){
+        if (i){
+          var e = document.createElement('sub');
+          e.textContent = 'E';
+          nm.append('+', e);
+        }
+        nm.append(part);
+      });
       translateInto(fhead, 'cyclicGroups.ctxNamedFormulasHead', { name: nm });
     } else fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
     ringCtxEl.appendChild(fhead);
