@@ -19809,9 +19809,15 @@ function ringTitle(){
   // A new ring still being chosen or built on the left: only the right one counts.
   if (isoPane.hostBlank) return right;
   // The two whole groups locked as one: G ≅ H. A subgroup locked to a
-  // group names the subgroup's side as on screen, G ∈ its group, on the left
-  // (G ∈ G₁ ≅ G₂) or on the right (G₁ ≅ G ∈ G₂). Else G & H.
-  if (isoLinked() && !isoWholeMatch()) return translate(isoPane.hsub === true ? 'cyclicGroups.fsRingIsoSubRight' : 'cyclicGroups.fsRingIsoSubLeft', { left: left, right: right });
+  // group names the subgroup's side as on screen, the subgroup selected in
+  // its group, on the left (⟨g⟩ ∈ G₁ ≅ G₂) or on the right (G₁ ≅ ⟨h⟩ ∈ G₂);
+  // with none selected, G stands for it. Else G & H.
+  if (isoLinked() && !isoWholeMatch()){
+    var onRight = isoPane.hsub === true;
+    var g = onRight ? (Number.isInteger(isoPane.row) && H.els.indexOf(isoPane.row) !== -1 ? isoPane.row : null) : (state.noSub ? null : state.gen);
+    var sub = g === null ? 'G' : '⟨' + elText(onRight ? H : drawn.G, g) + '⟩';
+    return translate(onRight ? 'cyclicGroups.fsRingIsoSubRight' : 'cyclicGroups.fsRingIsoSubLeft', { left: left, right: right, sub: sub });
+  }
   return translate(isoLinked() && isoWholeMatch() ? 'cyclicGroups.fsRingIso' : 'cyclicGroups.fsRingPair', { left: left, right: right });
 }
 // The tab's name follows the pane: on the page it is renamed here; in a

@@ -251,8 +251,9 @@
    isoPickGroupIsoTitle, isoPickSubIso and isoPickSubIsoTitle (the two
    lists of the + pane's picker under Construct own ring / group, and the
    tooltips of their titles), and fsRingIsoSubLeft and fsRingIsoSubRight
-   (the tab's name while a subgroup is locked to a group, G ∈ G₁ ≅ G₂ or
-   G₁ ≅ G ∈ G₂ as on screen; pure notation).
+   (the tab's name while a subgroup is locked to a group, ⟨g⟩ ∈ G₁ ≅ G₂ or
+   G₁ ≅ ⟨g⟩ ∈ G₂ as on screen, {sub} the subgroup selected or G; pure
+   notation).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1065,8 +1066,8 @@
       fsRingNotCyclic: 'Ring {group}',
       fsRingIso: '{left} ≅ {right}',
       fsRingIsoSub: '({left}) ≅ ({right})',
-      fsRingIsoSubLeft: 'G ∈ {left} ≅ {right}',
-      fsRingIsoSubRight: '{left} ≅ G ∈ {right}',
+      fsRingIsoSubLeft: '{sub} ∈ {left} ≅ {right}',
+      fsRingIsoSubRight: '{left} ≅ {sub} ∈ {right}',
       fsRingPair: '{left} & {right}',
       groupLockTitle: 'Double-click to unlock',
       isoAddTitle: 'Open a second ring beside this one',
