@@ -2308,6 +2308,10 @@
   .iso-pane > iframe.is-loaded{ visibility:visible; }
   .iso-pane > iframe.is-loaded{ transition:filter .45s ease, opacity .45s ease; }
   .iso-pane > iframe.is-blurred{ filter:blur(8px); opacity:.6; }
+  /* The swap's new frame stays out of sight, the old one showing, until it
+     has done redrawing (see settleSwapSpin): transparent, not hidden, since
+     a hidden frame's animation frames are held back until it shows. */
+  .iso-pane > iframe.is-swap-pending{ opacity:0; pointer-events:none; transition:none; }
   /* The pane's frame reaches on down behind the rows under both rings, to
      the bottom bar (--pane-foot, measured by syncPaneFoot), and the pane
      keeps that much room empty at its foot, so its ring, zoomed, grows
@@ -7047,7 +7051,7 @@ if (IS_DESKTOP){
 
 // What must not travel between rings: the preview and embed switches, and
 // the theme, language and sharing the pane takes from its page.
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin', 'dh'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin', 'dh', 'swapin'];
 function cleanRingQuery(q){
   var p = new URLSearchParams(q);
   RING_DROP.forEach(function(k){ p.delete(k); });
@@ -11105,11 +11109,26 @@ if (IS_RINGWIN){
     // to it is told, for two seconds.
     if (d.ringhost === 'drawnwatch'){
       if (!IS_ISOPANE || typeof MutationObserver !== 'function') return;
-      var told = new MutationObserver(function(){
+      // Asked whether it is done: answered once two of its own animation
+      // frames have gone by, so what it queued for the next frame is drawn.
+      if (d.ping){
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          try { window.parent.postMessage({ ringwin: 'drawnpong' }, '*'); } catch (err) { /* no page to tell */ }
+        }); });
+        return;
+      }
+      // Shown: everything animates again.
+      if (d.end){
+        paneSettling = false;
+        if (paneWatch) paneWatch.disconnect();
+        return;
+      }
+      var told = paneWatch = new MutationObserver(function(){
         try { window.parent.postMessage({ ringwin: 'drawn' }, '*'); } catch (err) { told.disconnect(); }
       });
-      told.observe(document.body, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class', 'fill', 'hidden'] });
-      setTimeout(function(){ told.disconnect(); }, 2000);
+      told.observe(document.body, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class', 'fill', 'hidden', 'style'] });
+      paneSettling = true;
+      setTimeout(function(){ told.disconnect(); paneSettling = false; }, 2000);
       return;
     }
     if (d.ringhost !== 'look') return;
@@ -16781,7 +16800,11 @@ function turnHome(){
 // cos θ, the ring sinking back a little at mid-turn. A redraw part way
 // through shows the end state at once.
 var FLIP_MS = 700, FLIP_SINK = 0.08;
-var flipping = null;
+// A pane loaded by a swap settles out of sight from its very start: what
+// the page tells it may arrive before it has even loaded.
+var flipping = null, paneWatch = null;
+var paneSettling = IS_ISOPANE && new URLSearchParams(location.search).get('swapin') === '1';
+if (paneSettling) setTimeout(function(){ paneSettling = false; }, 4000);
 function endFlip(){
   if (!flipping) return;
   dirIconFlip = null;
@@ -16814,7 +16837,9 @@ function identityAxis(ring, box){
 // flip off (autoFlip): see flipBeads.
 function flipRing(change, carried, before){
   endFlip();
-  if (reducedMotion && reducedMotion.matches){ change(); return; }
+  // A pane just loaded by a swap, settling out of sight, takes its new
+  // direction at once (see the drawnwatch message).
+  if ((reducedMotion && reducedMotion.matches) || paneSettling){ change(); return; }
   // A turn under way lands first, so the ghost is the ring at rest.
   finishSpin();
   var old = ringDynamicEl.querySelector('.ring');
@@ -18940,6 +18965,8 @@ function isoPaneSrc(q, h){
   if (isoPane && isoPane.unlocked) p.set('grouplock', '0');
   if (isoPane && isoPane.blank) p.set('isoblank', '1');
   if (isoPane && isoPane.plotMin) p.set('plotmin', '1');
+  // Loaded by the swap's flip: it settles out of sight (paneSettling).
+  if (swapSpin && swapSpin.old) p.set('swapin', '1');
   return location.pathname + '?' + p.toString();
 }
 // g, when given, is the generator of this ring's whole group the link runs
@@ -19011,6 +19038,7 @@ function loadIsoFrame(keepOld){
   isoWholeSent = null;
   isoCosetSent = null;
   var f = document.createElement('iframe');
+  if (keepOld && swapSpin && swapSpin.old) f.classList.add('is-swap-pending');
   f.addEventListener('load', function(){
     f.classList.add('is-loaded');
     if (swapSpin && swapSpin.frame === f) settleSwapSpin(true);
@@ -19316,7 +19344,8 @@ function arriveSwapSpin(){
 }
 // The new frame loaded: it is still told this ring's colours and the rest,
 // and redraws with them. The copy over it stays until it has been still
-// for a moment, and never more than a second and a half.
+// for a moment and says it has nothing left for its next frames, and never
+// more than a second and a half.
 var SWAP_STILL_MS = 150, SWAP_SETTLE_MAX_MS = 1500;
 function settleSwapSpin(loaded){
   var s = swapSpin;
@@ -19327,8 +19356,14 @@ function settleSwapSpin(loaded){
     clearTimeout(s.guard);
     s.guard = setTimeout(endSwapSpin, SWAP_SETTLE_MAX_MS);
   }
+  // Any change cancels a question under way; still again, it is asked anew.
+  s.pinged = false;
   clearTimeout(s.still);
-  s.still = setTimeout(endSwapSpin, SWAP_STILL_MS);
+  s.still = setTimeout(function(){
+    if (swapSpin !== s) return;
+    s.pinged = true;
+    tellPane({ ringhost: 'drawnwatch', ping: true });
+  }, SWAP_STILL_MS);
 }
 // The pane's old frame, kept where it stands until the new one is up.
 function holdSwapFrame(old){
@@ -19348,6 +19383,10 @@ function endSwapSpin(){
   clearTimeout(s.late);
   clearTimeout(s.still);
   if (s.layer) s.layer.remove();
+  if (s.frame){
+    s.frame.classList.remove('is-swap-pending');
+    if (s.settling) tellPane({ ringhost: 'drawnwatch', end: true });
+  }
   if (s.old) s.old.remove();
   ringSvgEl.classList.remove('is-swap-hidden');
 }
@@ -20775,6 +20814,7 @@ window.addEventListener('message', function(e){
   if (!d || typeof d !== 'object') return;
   if (d.ringwin === 'ringsnap'){ runSwapSpin(d); return; }
   if (d.ringwin === 'drawn'){ if (swapSpin && swapSpin.settling) settleSwapSpin(); return; }
+  if (d.ringwin === 'drawnpong'){ if (swapSpin && swapSpin.settling && swapSpin.pinged) endSwapSpin(); return; }
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
     syncIsoPaneLabels();
