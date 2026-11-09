@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-09 - Completed quick task 261109-sst: Cyclic Groups G menu subgroup Structure, short names
+Last activity: 2026-11-09 - Completed quick task 261109-ece: Cyclic Groups curve headings with a capital E
 
 Progress: [█████████░] 86%
 
@@ -677,6 +677,7 @@ None yet.
 | 261109-scr | Cyclic Groups: G menu formulas from the main view (curves too), scratchpad deleted | 2026-11-09 | 11d7663 | [261109-scr-cyclic-groups-menu-formulas-from-main-view-scratchpad-removed](./quick/261109-scr-cyclic-groups-menu-formulas-from-main-view-scratchpad-removed/) |
 | 261109-nsi | Cyclic Groups: G menu subgroup Name, Size, Index without natural exponent | 2026-11-09 | 4f7c036 | [261109-nsi-cyclic-groups-g-menu-name-size-index](./quick/261109-nsi-cyclic-groups-g-menu-name-size-index/) |
 | 261109-sst | Cyclic Groups: G menu subgroup Structure, short group entry names | 2026-11-09 | 5f78b8f | [261109-sst-cyclic-groups-g-menu-short-names-subgroup-structure](./quick/261109-sst-cyclic-groups-g-menu-short-names-subgroup-structure/) |
+| 261109-ece | Cyclic Groups: curve FORMULAS headings with a capital E | 2026-11-09 | 1c256a9 | [261109-ece-cyclic-groups-g-menu-curve-heading-capital-e](./quick/261109-ece-cyclic-groups-g-menu-curve-heading-capital-e/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -948,4 +949,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-09 - Completed quick task 261109-sst: Cyclic Groups G menu subgroup Structure, short names
+Last activity: 2026-11-09 - Completed quick task 261109-ece: Cyclic Groups curve headings with a capital E
