@@ -17,3 +17,13 @@ commit: 9d4a31f
 - Verified in Chrome (positions sampled through the turn, the handoff, the old frame held to
   within 1 px, no console errors). Three new i18n literal findings are internal id strings
   (false positives).
+
+## Revision (c2bd0d4): flip instead of carousel
+
+The user wanted option 1, a flip. The two copies now flip over together like one coin about the
+dividing line, as a ring flips (flipRing): squashed across the line by |cos θ| with
+easeInOutCubic over FLIP_MS (700 ms), sinking by FLIP_SINK at mid-turn; up to edge-on each ring
+stands on its own side, then opens out on the other side at the place of the ring it trades with,
+never seen reversed. The snapshot, hold-the-old-frame and snap logic is unchanged. Verified in
+Chrome: sampled boxes (inner edges stay at the axis x ≈ 761, width → 0 at mid-turn), a frozen
+mid-turn screenshot, clean landing, no console errors.
