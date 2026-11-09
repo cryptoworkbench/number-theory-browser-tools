@@ -53,3 +53,19 @@ view. Now:
   merged row's G placement, --g-shift) lands before the reveal.
 Recorded in Chrome (animation frames throttled to ~2 fps in the test tab), locked and unlocked:
 no flip animation, and no change after the reveal apart from a 1 px --clu-y tweak seconds later.
+
+## Fix (81cd192): no redraw on the left when the subgroup's isomorphic group comes left
+
+Seen with ⟨ℤ/13ℤ, ×⟩ and ⟨ℤ/5ℤ, ×⟩. Recorded on the left from the copies' landing:
+- the ring drew ⟨ℤ/5ℤ, ×⟩ in its own colours (2, 3 green), then magenta once the new pane sent its
+  paints (it borrows them, being the subgroup end): swapIsoRings now computes those paints itself
+  (the old host's own drawn.paint over isoPowers(), exactly what the new pane sends) and sets
+  isoPaints before render; isoTakePaints ignores identical paints;
+- the bottom bar's right half shrank and grew back: loadIsoFrame resets isoPane*Min; the swap now
+  sets them (and isoPane.plotMin) from the old host's own windows;
+- the split button and the column between the rings jumped: keepLockClear ran while is-sub-merged
+  was momentarily off, then not again until the pane loaded; the swap calls it after render, and
+  keepLockClear leaves the column as it stands from the landing until the new frame has loaded
+  (its position, from the taller rows of the two groups, is the same after the swap).
+After: in both directions the ring is drawn once in its final colours, and no element's position or
+any text on the left changes from the landing on; no console errors.
