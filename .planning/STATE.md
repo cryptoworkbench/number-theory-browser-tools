@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-06 - Completed quick task 261106-npe: Cyclic Groups: the swap button always trades the two rings
+Last activity: 2026-11-09 - Completed quick task 261109-eqq: Cyclic Groups + pane picker lists with title tooltips
 
 Progress: [█████████░] 86%
 
@@ -656,6 +656,7 @@ None yet.
 | 261104-krz | Cyclic Groups: Diffie-Hellman time cylinder window, four variants (branches dh-cylinder-hop-shared, dh-cylinder-hop-split, dh-cylinder-frame-shared, dh-cylinder-frame-split, on base dh-cylinder-base) | 2026-11-04 | 9e5ad75 | [261104-krz-cyclic-groups-diffie-hellman-time-cylind](./quick/261104-krz-cyclic-groups-diffie-hellman-time-cylind/) |
 | 261104-myl | Cyclic Groups: DH time cylinder window resizable/fill to near full size, zoom, tilt, pan and reset (on dh-cylinder-base and all four variant branches) | 2026-11-04 | 77607b1 | [261104-myl-cyclic-groups-dh-time-cylinder-resizable](./quick/261104-myl-cyclic-groups-dh-time-cylinder-resizable/) |
 | 261104-o6w | Cyclic Groups: DH time cylinder mixed version, switches Shared/Separate and Per hop/Per frame (branch dh-cylinder-mixed) | 2026-11-04 | 1273571 | [261104-o6w-cyclic-groups-dh-time-cylinder-mixed-ver](./quick/261104-o6w-cyclic-groups-dh-time-cylinder-mixed-ver/) |
+| 261109-eqq | Cyclic Groups: + pane picker always lists Open a group-to-group isomorphism / Open a subgroup-to-group isomorphism with title tooltips; subgroup list follows each new G | 2026-11-09 | c1a169d | [261109-eqq-cyclic-groups-pane-construct-own-ring-gr](./quick/261109-eqq-cyclic-groups-pane-construct-own-ring-gr/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -927,4 +928,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-06 - Completed quick task 261106-npe: Cyclic Groups: the swap button always trades the two rings
+Last activity: 2026-11-09 - Completed quick task 261109-eqq: Cyclic Groups + pane picker lists with title tooltips
