@@ -1409,6 +1409,28 @@
   #combine-mode.is-out .combine-seg > button:not([aria-pressed="true"]):hover{ color:var(--text-dim); background:none; }
   #combine-mode.is-out .combine-seg::after{ content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to top right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)), linear-gradient(to bottom right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)); }
   .combine-k-spin[hidden]{ display:none; }
+  /* The modulus' reels (curve mode, a double-click on the modulus): two
+     drums of 1 and primes, as on a slot machine, turned by dragging, the
+     wheel or the arrow keys; the product of the two on the payline is the
+     modulus taken on closing. */
+  .ec-reels{ position:fixed; inset:0; z-index:90; display:grid; place-items:center; background:color-mix(in srgb, var(--bg) 62%, transparent); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+  .ec-reels[hidden]{ display:none; }
+  .ec-reels-card{ display:flex; flex-direction:column; align-items:center; gap:16px; padding:22px 30px 20px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:var(--radius-card); box-shadow:0 28px 70px -24px var(--scrim); }
+  .ec-reels-title{ margin:0; font-size:.78rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
+  .ec-reels-row{ display:flex; align-items:center; gap:20px; }
+  .ec-reel{ position:relative; width:150px; height:330px; overflow:hidden; perspective:700px; border-radius:16px; background:linear-gradient(var(--bg-2), var(--bg-1) 50%, var(--bg-2)); border:1px solid var(--panel-border-strong); box-shadow:inset 0 12px 24px -12px var(--scrim), inset 0 -12px 24px -12px var(--scrim); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .ec-reel.is-dragging{ cursor:grabbing; }
+  .ec-reel:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .ec-reel-drum{ position:absolute; inset:0; transform-style:preserve-3d; }
+  .ec-reel-item{ position:absolute; left:0; right:0; top:50%; height:64px; margin-top:-32px; display:grid; place-items:center; font-family:var(--font-math); font-size:2.6rem; line-height:1; color:var(--text); backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  .ec-reel-item.is-one{ color:var(--text-dim); }
+  .ec-reel-line{ position:absolute; left:0; right:0; top:50%; height:68px; translate:0 -50%; pointer-events:none; border-block:2px solid var(--accent); background:color-mix(in srgb, var(--accent) 9%, transparent); }
+  .ec-reels-times{ font-family:var(--font-math); font-size:2.2rem; color:var(--text-dim); }
+  .ec-reels-sum{ margin:0; font-family:var(--font-math); font-size:1.7rem; color:var(--text); }
+  .ec-reels-sum > .is-n{ color:var(--role-result); font-weight:600; }
+  .ec-reels-sum.is-bad > .is-n{ color:var(--role-warn); }
+  .ec-reels-note{ margin:-8px 0 0; max-width:24em; min-height:2.6em; font-size:.8rem; line-height:1.3; text-align:center; color:var(--text-dim); }
+  .ec-reels-sum.is-bad + .ec-reels-note{ color:var(--role-warn); }
   .bead-k-spin{ position:fixed; z-index:30; }
   .bead-k{ width:5em; padding:3px 24px 3px 6px; font:inherit; font-family:var(--font-math); font-size:.95rem; color:var(--text); background:var(--bg-1); border:1px solid var(--accent); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--bg) 60%, transparent); }
   .bead-k::placeholder{ color:var(--text-dim); opacity:.7; font-style:italic; }
@@ -9992,6 +10014,8 @@ function stepChosenBase(by){
 // Over the formula card, with the wheel switch on, the wheel steps the base
 // and keeps the ring's zoom and the step through the rows to itself.
 function logWheelTakes(e){
+  // The modulus' reels, over everything, keep the wheel to themselves.
+  if (e.target.closest && e.target.closest('.ec-reels')) return false;
   if (flogWheelTakes(e)) return true;
   if (!logWheelOn || !drawn || IS_MOBILE || e.ctrlKey || !e.deltaY) return false;
   // Over the formula card, or the settings window's generator control.
@@ -11914,7 +11938,7 @@ document.addEventListener('keydown', function(e){
   if (!by) return;
   // The ring behind the intro takes no keys, nor does a field being typed in.
   if (IS_DESKTOP && !cgEntered) return;
-  if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable]')) return;
+  if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable], .ec-reels')) return;
   e.preventDefault();
   stepRingZoom(by);
 });
@@ -17518,7 +17542,7 @@ window.addEventListener('keydown', function(e){
   if (e.key !== ' ' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || state.autoRotate === 'off' || IS_PREVIEW) return;
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, select, [contenteditable], [role="menu"], [role="listbox"]')) return;
+  if (t.closest && t.closest('textarea, select, [contenteditable], [role="menu"], [role="listbox"], .ec-reels')) return;
   if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
   e.preventDefault();
   e.stopPropagation();
@@ -18707,7 +18731,7 @@ window.addEventListener('keydown', function(e){
   // The ring behind the intro takes no keys.
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap, .fsl-pair, .lb-row')) return;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .fmap, .fsl-pair, .lb-row, .ec-reels')) return;
   if (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|color)$/.test(t.type)) return;
   // A formula map takes the arrows itself (its knob moves along its radios),
   // so do a formula's two sliders (their knobs step the notches),
@@ -18755,7 +18779,7 @@ window.addEventListener('wheel', function(e){
   if (!arrangeScrollOn || arrangeGenScrollEl.disabled || e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW || IS_MOBILE || logWheelTakes(e)) return;
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu, .ec-reels')) return;
   if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
   // The time cylinder zooms on the wheel itself.
   if (t.closest && t.closest('.dhc-svg')) return;
@@ -18777,7 +18801,7 @@ window.addEventListener('wheel', function(e){
   if (e.ctrlKey || !e.deltaY || !drawn || IS_PREVIEW || logWheelTakes(e)) return;
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
-  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu')) return;
+  if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu, .ec-reels')) return;
   if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
   // The time cylinder zooms on the wheel itself.
   if (t.closest && t.closest('.dhc-svg')) return;
@@ -23395,6 +23419,222 @@ ecPEl.addEventListener('keydown', function(e){
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
   e.preventDefault();
   stepEcP(e.key === 'ArrowUp' ? 1 : -1);
+});
+// A double-click on the modulus, in curve mode, opens its reels: two drums,
+// as on a slot machine, each holding 1 and the primes a curve's modulus is
+// made of (5 to 97), the product of the two on the payline worked out as
+// they turn. A reel turns by dragging (it runs on and settles on an item),
+// by the wheel (an item a notch) or by the arrow keys. Closing them, by the
+// button, Enter, Escape or a click beside them, takes a product a curve
+// takes as the modulus, as typing it would; with 1 on one reel the other's
+// prime stands alone. Locked to the other ring, the modulus is not this
+// ring's to change, and the double-click opens the padlock instead.
+var EC_REEL_ITEMS = [1].concat(Array.from({ length: EC_MAX_P - EC_MIN_P + 1 }, function(_, i){ return EC_MIN_P + i; }).filter(isPrime));
+var REEL_H = 64, REEL_STEP = 19, REEL_VMAX = 0.03, REEL_R = REEL_H / 2 / Math.tan(REEL_STEP * Math.PI / 360);
+var ecReelsEl = null, ecReels = null, ecReelsReturn = null;
+function makeReel(label, onTurn){
+  var N = EC_REEL_ITEMS.length;
+  var el = document.createElement('div'), drum = document.createElement('div'), line = document.createElement('div');
+  el.className = 'ec-reel';
+  el.tabIndex = 0;
+  el.setAttribute('role', 'spinbutton');
+  el.setAttribute('aria-label', label);
+  drum.className = 'ec-reel-drum';
+  line.className = 'ec-reel-line';
+  var items = EC_REEL_ITEMS.map(function(v){
+    var it = document.createElement('div');
+    it.className = 'ec-reel-item' + (v === 1 ? ' is-one' : '');
+    it.textContent = String(v);
+    drum.appendChild(it);
+    return it;
+  });
+  el.append(drum, line);
+  // pos: the item on the line, fractional while turning; it wraps round.
+  var r = { el: el, pos: 0, vel: 0, target: null, raf: 0, drag: null, wheel: 0 };
+  var idx = function(){ return ((Math.round(r.pos) % N) + N) % N; };
+  r.value = function(){ return EC_REEL_ITEMS[idx()]; };
+  var last = -1;
+  var draw = function(){
+    items.forEach(function(it, k){
+      var d = ((k - r.pos) % N + N) % N;
+      if (d > N / 2) d -= N;
+      var a = d * REEL_STEP;
+      if (Math.abs(a) > 84){ it.style.visibility = 'hidden'; return; }
+      it.style.visibility = '';
+      it.style.transform = 'rotateX(' + num(-a) + 'deg) translateZ(' + num(REEL_R) + 'px)';
+      it.style.opacity = num(0.25 + 0.75 * Math.cos(a * Math.PI / 180));
+    });
+    var v = r.value();
+    el.setAttribute('aria-valuenow', String(v));
+    el.setAttribute('aria-valuetext', String(v));
+    if (idx() !== last){ last = idx(); onTurn(); }
+  };
+  var tick = function(){
+    r.raf = 0;
+    if (r.drag) return;
+    if (r.target === null){
+      // Running on after a drag, slowing, until it settles on an item.
+      r.pos += r.vel * 16;
+      r.vel *= 0.94;
+      if (Math.abs(r.vel) < 0.0025) r.target = Math.round(r.pos);
+    } else {
+      r.pos += (r.target - r.pos) * 0.22;
+      if (Math.abs(r.target - r.pos) < 0.002){ r.pos = r.target; r.target = null; r.vel = 0; draw(); return; }
+    }
+    draw();
+    r.raf = requestAnimationFrame(tick);
+  };
+  var run = function(){ if (!r.raf) r.raf = requestAnimationFrame(tick); };
+  r.step = function(by){
+    r.vel = 0;
+    r.target = (r.target === null ? Math.round(r.pos) : r.target) + by;
+    run();
+  };
+  r.set = function(v){
+    var k = EC_REEL_ITEMS.indexOf(v);
+    r.pos = k === -1 ? 0 : k;
+    r.target = null;
+    r.vel = 0;
+    last = -1;
+    draw();
+  };
+  el.addEventListener('pointerdown', function(e){
+    if (e.button !== 0) return;
+    e.preventDefault();
+    el.focus({ preventScroll: true });
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('is-dragging');
+    r.drag = { id: e.pointerId, y: e.clientY, t: performance.now() };
+    r.vel = 0;
+    r.target = null;
+  });
+  el.addEventListener('pointermove', function(e){
+    if (!r.drag || e.pointerId !== r.drag.id) return;
+    var now = performance.now(), dy = (e.clientY - r.drag.y) / PAGE_ZOOM, dt = Math.max(1, now - r.drag.t);
+    // Dragged down, the items before come onto the line.
+    r.pos -= dy / REEL_H;
+    // Its speed, in items a millisecond, kept within a throw's reach.
+    r.vel = Math.max(-REEL_VMAX, Math.min(REEL_VMAX, 0.6 * r.vel + 0.4 * (-dy / REEL_H / Math.max(dt, 8))));
+    r.drag.y = e.clientY;
+    r.drag.t = now;
+    draw();
+  });
+  var drop = function(e){
+    if (!r.drag || e.pointerId !== r.drag.id) return;
+    el.classList.remove('is-dragging');
+    // Held still before letting go, it settles where it is; thrown, it runs on.
+    if (performance.now() - r.drag.t > 80 || Math.abs(r.vel) < 0.004){ r.vel = 0; r.target = Math.round(r.pos); }
+    r.drag = null;
+    run();
+  };
+  el.addEventListener('pointerup', drop);
+  el.addEventListener('pointercancel', drop);
+  // The wheel turns it an item a notch, however far a notch scrolls; a
+  // touchpad's small deltas add up to one.
+  el.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var d = e.deltaMode ? e.deltaY * 40 : e.deltaY;
+    if (Math.abs(d) >= 40){ r.wheel = 0; r.step(d > 0 ? 1 : -1); return; }
+    r.wheel += d;
+    if (Math.abs(r.wheel) >= 40){ r.step(r.wheel > 0 ? 1 : -1); r.wheel = 0; }
+  }, { passive: false });
+  el.addEventListener('keydown', function(e){
+    var by = { ArrowDown: 1, ArrowUp: -1, PageDown: 5, PageUp: -5 }[e.key];
+    if (!by) return;
+    e.preventDefault();
+    r.step(by);
+  });
+  return r;
+}
+function syncEcReelsSum(){
+  if (!ecReels) return;
+  var a = ecReels.reels[0].value(), b = ecReels.reels[1].value(), n = a * b, ok = ecModulusOk(n);
+  // A modulus the curve on show has no group for (singular mod one of its
+  // primes, or too many points) is flagged too: closing then keeps the old.
+  var fits = ok && ecValid(n, state.ecA, state.ecB);
+  var sum = ecReels.sum, nEl = document.createElement('span');
+  nEl.className = 'is-n';
+  nEl.textContent = String(n);
+  sum.replaceChildren(document.createTextNode(a + ' × ' + b + ' = '), nEl);
+  sum.classList.toggle('is-bad', !fits);
+  var key = !ok ? (a === b && a !== 1 ? 'cyclicGroups.ecReelsSquare' : 'cyclicGroups.ecReelsBad')
+    : !fits ? 'cyclicGroups.ecReelsCurveNo' : isPrime(n) ? 'cyclicGroups.ecReelsPrime' : 'cyclicGroups.ecReelsComposite';
+  ecReels.note.textContent = translate(key, { n: n, a: state.ecA, b: state.ecB, p: state.ecP });
+}
+function openEcReels(){
+  if (!ecReelsEl){
+    ecReelsEl = document.createElement('div');
+    ecReelsEl.className = 'ec-reels';
+    ecReelsEl.hidden = true;
+    var card = document.createElement('div');
+    card.className = 'ec-reels-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    var title = document.createElement('p');
+    title.className = 'ec-reels-title';
+    title.id = 'ec-reels-title';
+    card.setAttribute('aria-labelledby', title.id);
+    var row = document.createElement('div');
+    row.className = 'ec-reels-row';
+    var times = document.createElement('span');
+    times.className = 'ec-reels-times';
+    times.setAttribute('aria-hidden', 'true');
+    times.textContent = '×';
+    var sum = document.createElement('p');
+    sum.className = 'ec-reels-sum';
+    sum.setAttribute('aria-live', 'polite');
+    var note = document.createElement('p');
+    note.className = 'ec-reels-note';
+    var done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'action-btn';
+    done.addEventListener('click', closeEcReels);
+    ecReels = { title: title, sum: sum, note: note, done: done, reels: [] };
+    ecReels.reels = [makeReel('', syncEcReelsSum), makeReel('', syncEcReelsSum)];
+    row.append(ecReels.reels[0].el, times, ecReels.reels[1].el);
+    card.append(title, row, sum, note, done);
+    ecReelsEl.appendChild(card);
+    ecReelsEl.addEventListener('pointerdown', function(e){ if (e.target === ecReelsEl) closeEcReels(); });
+    ecReelsEl.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' || e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); closeEcReels(); }
+      // The focus stays among the reels and the button.
+      if (e.key === 'Tab'){
+        var stops = [ecReels.reels[0].el, ecReels.reels[1].el, done], at = stops.indexOf(document.activeElement);
+        e.preventDefault();
+        stops[(at + (e.shiftKey ? stops.length - 1 : 1)) % stops.length].focus();
+      }
+    });
+  }
+  ecReels.title.textContent = translate('cyclicGroups.ecReelsTitle');
+  ecReels.done.textContent = translate('cyclicGroups.ecReelsDone');
+  ecReels.reels[0].el.setAttribute('aria-label', translate('cyclicGroups.ecReelsFirst'));
+  ecReels.reels[1].el.setAttribute('aria-label', translate('cyclicGroups.ecReelsSecond'));
+  // The reels open on the modulus: its two primes, or 1 and the prime.
+  var f = primeFactors(state.ecP);
+  ecReels.reels[0].set(f.length > 1 ? f[0] : 1);
+  ecReels.reels[1].set(f.length > 1 ? f[1] : f[0]);
+  syncEcReelsSum();
+  var host = document.fullscreenElement || document.body;
+  if (ecReelsEl.parentNode !== host) host.appendChild(ecReelsEl);
+  ecReelsReturn = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  ecReelsEl.hidden = false;
+  ecReels.reels[0].el.focus({ preventScroll: true });
+}
+function closeEcReels(){
+  if (!ecReelsEl || ecReelsEl.hidden) return;
+  ecReelsEl.hidden = true;
+  var n = ecReels.reels[0].value() * ecReels.reels[1].value();
+  if (state.ec && n !== state.ecP && ecValid(n, state.ecA, state.ecB)){
+    ecPEl.value = String(n);
+    typedCurve();
+  }
+  if (ecReelsReturn && ecReelsReturn.isConnected) ecReelsReturn.focus({ preventScroll: true });
+  ecReelsReturn = null;
+}
+ecPEl.addEventListener('dblclick', function(e){
+  if (!state.ec || ecPEl.disabled || ecPEl.readOnly || groupControlsEl.classList.contains('is-locked')) return;
+  e.preventDefault();
+  openEcReels();
 });
 // Open, the list takes the focus, the arrow keys moving through it and
 // Enter picking; a click picks too. A click elsewhere, Escape or Tab closes

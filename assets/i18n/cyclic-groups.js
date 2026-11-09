@@ -267,7 +267,8 @@
    Subgroup row's menu), cardDivideRow and cardDivideCurves (Divide's table:
    a row's ÷ d, and the curves column's heading beside the shared Additive
    and Multiplicative Groups headings), cardDivideMore (a cell's + offering
-   more groups), and the cardMultiply* keys
+   more groups), the ecReels* keys (the modulus' reels in curve mode: title,
+   reel labels, button and the notes under the product), and the cardMultiply* keys
    (Multiply, Divide's counterpart for 2, 3, 5 or 7 times the cardinality: its
    item, row label, greyed reason and warnings), and combineSqm and
    combineSqmOff (the Square and multiply heading and its Off, in the aᵏ
@@ -1215,6 +1216,15 @@
       cardDivideRow: '÷ {d}',
       cardDivideCurves: 'Elliptic Curves',
       cardDivideMore: 'More groups of this cardinality',
+      ecReelsTitle: 'Pick the modulus',
+      ecReelsFirst: 'First factor of the modulus',
+      ecReelsSecond: 'Second factor of the modulus',
+      ecReelsDone: 'Use this modulus',
+      ecReelsPrime: '{n} is prime: the curve is taken mod {n}.',
+      ecReelsComposite: '{n} is a product of two different primes: the curve is taken mod each of them, side by side.',
+      ecReelsSquare: 'The two factors must be different primes: a curve here is not taken mod a square.',
+      ecReelsCurveNo: 'The curve on show, with a = {a} and b = {b}, gives no group mod {n}: closing keeps the modulus {p}.',
+      ecReelsBad: '{n} is no modulus a curve takes here: a prime from 5 to 97, or a product of two different ones up to 97.',
       cardMultiply: 'Multiply',
       cardMultiplyRow: '× {d}',
       cardMultiplyNone: 'No group with 2, 3, 5 or 7 times this cardinality can be shown',
