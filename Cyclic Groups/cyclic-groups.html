@@ -1452,6 +1452,8 @@
   .ring-combine .is-c{ fill:var(--role-result); }
   .ring-combine .is-sup{ font-size:0.68em; baseline-shift:super; }
   .ring-combine-hit{ fill:transparent; cursor:help; }
+  /* In place of a ring too big to draw. */
+  .ring-too-big{ fill:var(--text-dim); font-family:var(--font-sans); font-size:20px; text-anchor:middle; dominant-baseline:middle; }
   /* a ∗ b's and aᵏ's lines can be selected and copied, as plain text. */
   svg.ring-svg .ring-combine{ user-select:text; -webkit-user-select:text; cursor:text; }
   .ring-combine .is-sub{ font-size:0.68em; baseline-shift:sub; }
@@ -3568,7 +3570,14 @@ const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
 
 /* ---------- constants ---------- */
 var MIN_N = 2;
-var MAX_N = 100;
+// ⟨ℤ/nℤ, +⟩ has n elements, so its n stops where the ring stops being
+// drawn; ⟨ℤ/nℤ, ×⟩, with φ(n) elements, runs on to MAX_N_MUL.
+var MAX_N = 100, MAX_N_MUL = 1000;
+function maxN(mode){ return mode === 'multiplicative' ? MAX_N_MUL : MAX_N; }
+// A group of more elements than this has no ring drawn: the main area
+// says so in its place, and the rest (the subgroups, the formulas, the
+// plots) goes on as ever.
+var MAX_DRAW = 100;
 
 // The necklace canvas: a 760-wide square box, with the ring centred a little
 // below the middle so the title has room above and the footnote below.
@@ -4111,9 +4120,10 @@ function buildGroup(mode, n){
 // element; G.pts holds the coordinates (null for 𝒪).
 // Modulo n = pq, two primes, the group is the two curves' side by side:
 // see buildCompositeCurve.
-var EC_MIN_P = 5, EC_MAX_P = 97, EC_COEF_MAX = 96, EC_MAX_ORDER = 120;
-// A curve's modulus: a prime from 5 to 97, or a product of two different
-// such primes (y² = x³ + ax + b breaks down mod 2 and 3).
+var EC_MIN_P = 5, EC_MAX_P = 1000, EC_COEF_MAX = 96;
+// A curve's modulus: a prime from 5 up to EC_MAX_P, or a product of two
+// different such primes up to it (y² = x³ + ax + b breaks down mod 2 and 3).
+// Its point count has no limit: past MAX_DRAW the ring is not drawn.
 function ecModulusOk(n){
   if (!Number.isInteger(n) || n < EC_MIN_P || n > EC_MAX_P) return false;
   var f = primeFactors(n);
@@ -4129,7 +4139,7 @@ function ecSingularAt(a, b, n){
 function ecOrder(n, a, b){
   return primeFactors(n).reduce(function(N, q){ return N * (ecPoints(a, b, q).length + 1); }, 1);
 }
-function ecValid(n, a, b){ return ecModulusOk(n) && ecSingularAt(a, b, n) === null && ecOrder(n, a, b) <= EC_MAX_ORDER; }
+function ecValid(n, a, b){ return ecModulusOk(n) && ecSingularAt(a, b, n) === null; }
 function buildCurveGroup(p, a, b){
   if (!isPrime(p)) return buildCompositeCurve(p, a, b);
   var pts = [null].concat(ecPoints(a, b, p).map(function(P){ return { x: P.x, y: P.y, p: p }; })), at = {};
@@ -4156,10 +4166,15 @@ function buildCurveGroup(p, a, b){
   G.els.forEach(function(x){ G.inv[x] = x ? at[pts[x].x + ',' + ((p - pts[x].y) % p)] : 0; });
   return curveOrders(G);
 }
+// Each point's order divides |E|: it is |E| with each prime q taken out
+// while (|E|/q)·x is still 𝒪, the multiples by double-and-add, so a curve
+// of a thousand points needs some thousands of additions, not a million.
 function curveOrders(G){
+  var N = G.order, qs = primeFactors(N).filter(function(q, i, all){ return all.indexOf(q) === i; });
+  var times = function(x, k){ var r = 0, d = x; while (k > 0){ if (k & 1) r = G.combine(r, d); d = G.combine(d, d); k = Math.floor(k / 2); } return r; };
   G.els.forEach(function(x){
-    var y = x, steps = 1;
-    while (y !== 0){ y = G.combine(y, x); steps++; }
+    var steps = N;
+    qs.forEach(function(q){ while (steps % q === 0 && times(x, steps / q) === 0) steps /= q; });
     G.orders[x] = steps;
     if (steps === G.order) G.generators.push(x);
     if (steps > G.longest) G.longest = steps;
@@ -6900,7 +6915,7 @@ function queryGroup(q){
   var p = new URLSearchParams(q), c = curveOf(p), mode = p.get('mode'), n = parseInt(p.get('n'), 10);
   if (c) return buildCurveGroup(c[0], c[1], c[2]);
   if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return null;
-  return buildGroup(mode, clamp(n, MIN_N, MAX_N));
+  return buildGroup(mode, clamp(n, MIN_N, maxN(mode)));
 }
 
 function svgIcon(parts){
@@ -7132,26 +7147,20 @@ function curvesOfOrder(k, n){
   return st.list;
 }
 function nextCurveOfOrder(k, st){
-  var squarefree = true;
-  for (var q = 2; q * q <= k; q++) if (k % (q * q) === 0) squarefree = false;
   for (; st.p <= EC_MAX_P; st.p++, st.a = 0, st.b = 0){
     var p = st.p;
     if (!isPrime(p) || Math.abs(k - p - 1) > 2 * Math.sqrt(p)) continue;
-    // How many y square to each value mod p.
-    var sq = new Array(p).fill(0);
-    for (var y = 0; y < p; y++) sq[y * y % p]++;
+    var sq = squaresMod(p);
     for (; st.a < p && st.a <= EC_COEF_MAX; st.a++, st.b = 0){
       for (; st.b < p && st.b <= EC_COEF_MAX; st.b++){
         var a = st.a, b = st.b;
         if (!ecIsNonSingular(a, b, p)) continue;
-        var count = 1;
-        for (var x = 0; x < p; x++) count += sq[(x * x * x + a * x + b) % p];
-        if (count !== k || st.list.some(function(e){ return e.p === p && e.a === a && e.b === b; })) continue;
-        // A group of squarefree order is cyclic; any other is checked.
-        var E = buildCurveGroup(p, a, b);
-        if (!squarefree && !E.cyclic) continue;
+        if (curvePointCount(sq, a, b, p) !== k || st.list.some(function(e){ return e.p === p && e.a === a && e.b === b; })) continue;
+        // Cyclic exactly when it has a point of order k: its first one.
+        var gen = curveFirstGen(p, a, b, k);
+        if (gen === -1) continue;
         st.b++;
-        st.list.push({ p: p, a: a, b: b, gen: E.generators[0], label: E.label });
+        st.list.push({ p: p, a: a, b: b, gen: gen, label: ecGroupLabel('𝔽' + subscript(p), a, b) });
         return;
       }
     }
@@ -11316,6 +11325,8 @@ function fitRingHead(){
 
 // Every group is one necklace, beads clockwise from the top in numeric order
 // like a clock face, or by powers of a generator when that option is on.
+// Whether the ring is drawn: up to MAX_DRAW elements.
+function ringDrawn(G){ return !!G && G.order <= MAX_DRAW; }
 function drawNecklace(G, paint){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
   var subs = [];
@@ -11337,13 +11348,20 @@ function drawNecklace(G, paint){
   if (!IS_PREVIEW) drawMath(G, subs);
   var beads = turned(arrangement(G));
   var box = ringBox();
-  drawRing(ringDynamicEl, G, beads, box, paint);
+  // Past MAX_DRAW elements the ring is not drawn: a note stands in its
+  // place, and what is drawn on it (its combinations) goes with it.
+  var big = !ringDrawn(G);
+  if (big){
+    var bigNote = drawText('ring-too-big', box.cx, box.cy, translate('cyclicGroups.ringTooBig', { group: G.label, count: G.order, max: MAX_DRAW }));
+    ringDynamicEl.appendChild(bigNote);
+    fitText(bigNote);
+  } else drawRing(ringDynamicEl, G, beads, box, paint);
   syncLapKey(G);
   syncFlogWin(G);
   drawCurvePlot(G);
   drawPolyPlot(G);
   drawCayley(G);
-  drawCombineLine(G, SIZE - 16);
+  if (!big) drawCombineLine(G, SIZE - 16);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
@@ -13220,7 +13238,7 @@ function drawPathHalos(){
 var polyPlotEl = $('poly-plot'), polyPlotSvgEl = $('poly-plot-svg'), polyNoteEl = $('poly-plot-note');
 var polyOpen = false, polyShown = null;
 var polyWin = plotWindow(polyPlotEl, $('poly-grip'));
-function polyAvail(G){ return !!G && G.cyclic && G.order > 1 && !IS_MOBILE && !(IS_ISOPANE && isoBlank) && !hostBlank(); }
+function polyAvail(G){ return !!G && ringDrawn(G) && G.cyclic && G.order > 1 && !IS_MOBILE && !(IS_ISOPANE && isoBlank) && !hostBlank(); }
 // The polygon follows whichever was moved last, the element expression
 // slider or the Arrangement row: by powers, its generator; Sequential, in
 // an additive group, 1 (the sequential order is its multiples).
@@ -14901,7 +14919,7 @@ function cayleyFitW(){
 // What the grid was built for, its heads and cells by element, and the
 // cells lit now.
 var cayleyBuilt = null, cayleyEls = [], cayleyRows = {}, cayleyCols = {}, cayleyCells = {}, cayleyLit = [];
-function cayleyAvail(G){ return !!G && !IS_MOBILE && !(IS_ISOPANE && (isoBlank || paneCayleyMerged)) && !hostBlank(); }
+function cayleyAvail(G){ return !!G && ringDrawn(G) && !IS_MOBILE && !(IS_ISOPANE && (isoBlank || paneCayleyMerged)) && !hostBlank(); }
 function cayleyMerged(){ return !IS_ISOPANE && state.cayleyMerged && isoLinked(); }
 // An element as the No hover slider writes it: natural, gᵏ or kP.
 // Its two modes, its elements written as the ring writes them in both: a ∗ b
@@ -18205,6 +18223,23 @@ function subRowGcdTitle(G, log, g){
   var e = log[g], d = gcd(e, G.order);
   return translate('cyclicGroups.subRowGcd', { e: e, n: G.order, gcd: d, count: G.order / d });
 }
+// A row's members as the list writes them: every one up to MAX_DRAW, past
+// that (a group too big for its ring) the first ROW_HEAD, an ellipsis and
+// the last, so a list of a thousand rows stays light. fn(x, i, last) writes
+// a member, gap() the ellipsis; text(map) is the same, as plain text.
+var ROW_HEAD = 8;
+function eachShown(members, fn, gap){
+  var n = members.length;
+  if (n <= MAX_DRAW){ members.forEach(function(x, i){ fn(x, i, i === n - 1); }); return; }
+  for (var i = 0; i < ROW_HEAD; i++) fn(members[i], i, false);
+  gap();
+  fn(members[n - 1], n - 1, true);
+}
+function shownText(members, map){
+  var n = members.length;
+  return n <= MAX_DRAW ? members.map(map).join(', ') : members.slice(0, ROW_HEAD).map(map).join(', ') + ', …, ' + map(members[n - 1]);
+}
+function gapMath(open){ return mInline(open ? mrow(mo('{', true), mo('…'), comma()) : mrow(mo('…'), comma()), (open ? '{' : '') + '…, '); }
 function renderSubgroups(G){
   refoldAutoOpen(G);
   if (!IS_ISOPANE && subInterlocked()) return isoPane.hsub === true ? renderMirroredSubgroups(G) : renderMergedSubgroups(G);
@@ -18254,14 +18289,13 @@ function renderSubgroups(G){
     row.setAttribute('data-gen', String(g));
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
     // One inline formula per member, so a long set wraps between members.
-    row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + members.map(px).join(', ') + '}');
+    row.setAttribute('aria-label', '⟨' + pxl(g) + '⟩ = {' + shownText(members, px) + '}');
     var tip = !subFormulaOn() && subRowGcdTitle(G, llog, g);
     if (tip) row.title = tip;
     row.appendChild(mInline(mrow(angle(memberMath(g, fl.r(g))), mo('='), mo('{', true)), '⟨' + pxl(g) + '⟩ = {'));
-    members.forEach(function(x, i){
-      var last = i === members.length - 1;
+    eachShown(members, function(x, i, last){
       row.appendChild(mInline(mrow(memberMath(x, fr.r(x)), last ? mo('}', true) : comma()), last ? px(x) + '}' : px(x) + ', '));
-    });
+    }, function(){ row.appendChild(gapMath(false)); });
     row.addEventListener('click', function(){
       if (followRefused()) return;
       selectGen(panelGen = g);
@@ -18355,18 +18389,18 @@ function renderMergedSubgroups(G){
     var left = document.createElement('span');
     left.className = 'sub-row-l';
     left.appendChild(mInline(mrow(angle(memberMath(g, fl.r(g))), mo('='), mo('{', true)), '⟨' + fl.p(g) + '⟩ = {'));
-    members.forEach(function(x, i){
-      left.appendChild(mInline(mrow(memberMath(x, fr.r(x)), i === last ? mo('}', true) : comma()), i === last ? fr.p(x) + '}' : fr.p(x) + ', '));
-    });
+    eachShown(members, function(x, i, end){
+      left.appendChild(mInline(mrow(memberMath(x, fr.r(x)), end ? mo('}', true) : comma()), end ? fr.p(x) + '}' : fr.p(x) + ', '));
+    }, function(){ left.appendChild(gapMath(false)); });
     var right = null;
     if (inS(g)){
       right = document.createElement('span');
       right.className = 'sub-row-r';
-      members.forEach(function(x, i){
-        var y = phi(x), parts = [rightMath(x, hfr.r(y)), i === last ? mo('}', true) : comma()];
+      eachShown(members, function(x, i, end){
+        var y = phi(x), parts = [rightMath(x, hfr.r(y)), end ? mo('}', true) : comma()];
         if (i === 0) parts.unshift(mo('{', true));
-        right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(y) + (i === last ? '}' : ', ')));
-      });
+        right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(y) + (end ? '}' : ', ')));
+      }, function(){ right.appendChild(gapMath(false)); });
       right.appendChild(mInline(mrow(mo('='), angle(rightMath(g, hfl.r(phi(g))))), ' = ⟨' + hfl.p(phi(g)) + '⟩'));
     }
     // Each side's tooltip follows that side's own way of writing its
@@ -18466,18 +18500,18 @@ function renderMirroredSubgroups(G){
       left = document.createElement('span');
       left.className = 'sub-row-l';
       left.appendChild(mInline(mrow(angle(memberMath(psi(y), fl.r(psi(y)))), mo('='), mo('{', true)), '⟨' + fl.p(psi(y)) + '⟩ = {'));
-      members.forEach(function(x, i){
+      eachShown(members, function(x, i, end){
         var a = psi(x);
-        left.appendChild(mInline(mrow(memberMath(a, fr.r(a)), i === last ? mo('}', true) : comma()), i === last ? fr.p(a) + '}' : fr.p(a) + ', '));
-      });
+        left.appendChild(mInline(mrow(memberMath(a, fr.r(a)), end ? mo('}', true) : comma()), end ? fr.p(a) + '}' : fr.p(a) + ', '));
+      }, function(){ left.appendChild(gapMath(false)); });
     }
     var right = document.createElement('span');
     right.className = 'sub-row-r';
-    members.forEach(function(x, i){
-      var parts = [rightMath(x, hfr.r(x)), i === last ? mo('}', true) : comma()];
+    eachShown(members, function(x, i, end){
+      var parts = [rightMath(x, hfr.r(x)), end ? mo('}', true) : comma()];
       if (i === 0) parts.unshift(mo('{', true));
-      right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(x) + (i === last ? '}' : ', ')));
-    });
+      right.appendChild(mInline(mrow.apply(null, parts), (i === 0 ? '{' : '') + hfr.p(x) + (end ? '}' : ', ')));
+    }, function(){ right.appendChild(gapMath(false)); });
     right.appendChild(mInline(mrow(mo('='), angle(rightMath(y, hfl.r(y)))), ' = ⟨' + hfl.p(y) + '⟩'));
     var plainTips = !subFormulaOn();
     var tipL = plainTips && s && subRowGcdTitle(G, lg === null ? null : exprLog(G, lg), psi(y));
@@ -19180,7 +19214,7 @@ function renderNNote(){
   translateInto(opLabelEl, 'cyclicGroups.opLabelMath', { op: mInline(mo('∗', true), '∗') });
   if (!nNoteShown || state.ec){ nNoteEl.textContent = ''; return; }
   translateInto(nNoteEl, 'cyclicGroups.nNoteMath', {
-    n: mInline(mPct(), '%'), lo: mNum(MIN_N), hi: mNum(MAX_N),
+    n: mInline(mPct(), '%'), lo: mNum(MIN_N), hi: mNum(maxN(state.mode)),
     eq: mInline(mrow(mPct(), mo('='), mn(state.n)), '% = ' + state.n)
   });
 }
@@ -19279,11 +19313,19 @@ function isoLink(mode, n, gen, label, a, b){
 var unitGroupsByOrder = null;
 function cyclicUnitGroups(k){
   if (!unitGroupsByOrder){
+    // ⟨ℤ/mℤ, ×⟩ is cyclic exactly when m is 2, 4, pᵏ or 2pᵏ (p an odd
+    // prime); its first generator is its least element of order φ(m).
     unitGroupsByOrder = {};
-    for (var m = MIN_N; m <= MAX_N; m++){
-      var U = buildGroup('multiplicative', m);
-      if (!U.cyclic) continue;
-      (unitGroupsByOrder[U.order] = unitGroupsByOrder[U.order] || []).push({ n: m, gen: U.generators[0], label: U.label });
+    var pow = function(g, e, m){ var r = 1; g %= m; while (e > 0){ if (e & 1) r = r * g % m; g = g * g % m; e >>= 1; } return r; };
+    for (var m = MIN_N; m <= MAX_N_MUL; m++){
+      var odd = m % 2 ? m : m / 2, f = primeFactors(odd);
+      if (!(m === 2 || m === 4 || (odd % 2 && f.length && f.every(function(q){ return q === f[0]; })))) continue;
+      var phi = totient(m), qs = primeFactors(phi).filter(function(q, i, all){ return all.indexOf(q) === i; }), gen = 1;
+      if (phi > 1) for (var g = 2; g < m; g++){
+        if (gcd(g, m) !== 1) continue;
+        if (qs.every(function(q){ return pow(g, phi / q, m) !== 1; })){ gen = g; break; }
+      }
+      (unitGroupsByOrder[phi] = unitGroupsByOrder[phi] || []).push({ n: m, gen: gen, label: '⟨ℤ/' + m + 'ℤ, ×⟩' });
     }
   }
   return unitGroupsByOrder[k] || [];
@@ -19299,18 +19341,44 @@ function cyclicCurves(k){
   var out = [];
   for (var p = EC_MIN_P; p <= EC_MAX_P; p++){
     if (!isPrime(p) || Math.abs(k - p - 1) > 2 * Math.sqrt(p)) continue;
-    var hit = null;
+    var hit = null, sq = squaresMod(p);
     for (var a = 0; a < p && a <= EC_COEF_MAX && !hit; a++){
       for (var b = 0; b < p && b <= EC_COEF_MAX && !hit; b++){
-        if (!ecIsNonSingular(a, b, p) || ecPoints(a, b, p).length + 1 !== k) continue;
-        var E = buildCurveGroup(p, a, b);
-        if (E.cyclic) hit = { p: p, a: a, b: b, gen: E.generators[0], label: E.label };
+        if (!ecIsNonSingular(a, b, p) || curvePointCount(sq, a, b, p) !== k) continue;
+        var gen = curveFirstGen(p, a, b, k);
+        if (gen !== -1) hit = { p: p, a: a, b: b, gen: gen, label: ecGroupLabel('𝔽' + subscript(p), a, b) };
       }
     }
     if (hit) out.push(hit);
   }
   curvesByOrder[k] = out;
   return out;
+}
+// How many y square to each value mod p.
+function squaresMod(p){
+  var sq = new Array(p).fill(0);
+  for (var y = 0; y < p; y++) sq[y * y % p]++;
+  return sq;
+}
+// A curve's point count, 𝒪 included, from those squares: O(p), nothing built.
+function curvePointCount(sq, a, b, p){
+  var count = 1;
+  for (var x = 0; x < p; x++) count += sq[(x * x % p * x + a * x + b) % p];
+  return count;
+}
+// The index buildCurveGroup gives the curve's first generator (its first
+// point, x-ascending, of order k, k its point count), or -1 when it has
+// none, the curve not being cyclic. A point has order k when k·P is 𝒪 and
+// (k/q)·P is not for each prime q of k, the multiples by double-and-add.
+function curveFirstGen(p, a, b, k){
+  var qs = primeFactors(k).filter(function(q, i, all){ return all.indexOf(q) === i; });
+  var times = function(P, m){ var r = null, d = P; while (m > 0){ if (m & 1) r = ecAdd(r, d, a, p); d = ecAdd(d, d, a, p); m = Math.floor(m / 2); } return r; };
+  if (k === 1) return 0;
+  var pts = ecPoints(a, b, p);
+  for (var i = 0; i < pts.length; i++){
+    if (qs.every(function(q){ return times(pts[i], k / q) !== null; })) return i + 1;
+  }
+  return -1;
 }
 // A chip for one of them; none for the curve this ring shows.
 function curveChips(k, G){
@@ -19871,7 +19939,7 @@ function applyRingQuery(q){
   var mode = q.get('mode'), n = parseInt(q.get('n'), 10);
   if ((mode !== 'additive' && mode !== 'multiplicative') || !isFinite(n)) return;
   state.mode = mode;
-  state.n = clamp(n, MIN_N, MAX_N);
+  state.n = clamp(n, MIN_N, maxN(mode));
   state.ec = readCurve(q);
   var G = currentGroup();
   var gen = intOrNull(q.get('gen'));
@@ -21719,7 +21787,7 @@ document.addEventListener('copy', function(e){
 function wholeIsoChips(G){
   var groupChips = [];
   if (G.cyclic && G.order >= MIN_N){
-    if (G.mode !== 'additive') groupChips.push(isoLink('additive', G.order, 1, additiveLabel(G.order)));
+    if (G.mode !== 'additive' && G.order <= MAX_N) groupChips.push(isoLink('additive', G.order, 1, additiveLabel(G.order)));
     cyclicUnitGroups(G.order).forEach(function(e){
       if (G.mode !== 'multiplicative' || e.n !== G.n) groupChips.push(isoLink('multiplicative', e.n, e.gen, e.label));
     });
@@ -21740,11 +21808,12 @@ function renderIso(G){
     return;
   }
   translateInto(isoLeadEl, 'cyclicGroups.iso.leadMath', { sub: mInline(angle(elMn(G, state.gen)), '⟨' + elText(G, state.gen) + '⟩'), k: mNum(k) });
-  var addChip = isoLink('additive', k, 1, additiveLabel(k));
+  // ℤ/kℤ under + only while it can be shown (k up to MAX_N).
+  var addChip = k <= MAX_N ? isoLink('additive', k, 1, additiveLabel(k)) : null;
   // In an additive group of order k, ⟨g⟩ is isomorphic to the very group
   // it lies in: the chip names that supergroup.
-  if (G.mode === 'additive' && k === G.order) addChip.setAttribute('data-iso-super', '');
-  isoAddChipsEl.replaceChildren(addChip);
+  if (addChip && G.mode === 'additive' && k === G.order) addChip.setAttribute('data-iso-super', '');
+  if (addChip) isoAddChipsEl.replaceChildren(addChip); else isoAddChipsEl.replaceChildren();
   var units = cyclicUnitGroups(k);
   isoMulChipsEl.replaceChildren.apply(isoMulChipsEl, units.map(function(e){
     return isoLink('multiplicative', e.n, e.gen, e.label);
@@ -22226,6 +22295,8 @@ function persistGroup(){
 function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
+  // Under + the modulus stops at MAX_N, the ring's limit.
+  state.n = clamp(state.n, MIN_N, maxN(id));
   opSelectEl.value = state.mode;
   identitySelectEl.value = state.mode;
   syncOpTri();
@@ -22239,7 +22310,7 @@ function modulusNow(){ return state.ec ? state.ecP : state.n; }
 function applyTypedN(raw){
   var v = parseInt(raw, 10);
   if (!isFinite(v)) return;
-  state.n = clamp(v, MIN_N, MAX_N);
+  state.n = clamp(v, MIN_N, maxN(state.mode));
   nNoteShown = state.n !== v;
   persistGroup();
   render();
@@ -23139,6 +23210,7 @@ function setOpKind(k){
   if (k === 'ec'){ setEcMode(true); return; }
   if (!state.ec){ setMode(k); return; }
   state.mode = k;
+  state.n = clamp(state.n, MIN_N, maxN(k));
   opSelectEl.value = identitySelectEl.value = k;
   setEcMode(false);
   persistGroup();
@@ -23245,7 +23317,7 @@ function syncEcControls(){
   ecRowEl.hidden = ecPickRowEl.hidden = !state.ec;
   // The shared modulus field takes what the kind of group takes.
   nInputEl.min = state.ec ? EC_MIN_P : MIN_N;
-  nInputEl.max = state.ec ? EC_MAX_P : MAX_N;
+  nInputEl.max = state.ec ? EC_MAX_P : maxN(state.mode);
   if (state.ec) nInputEl.title = translate('cyclicGroups.ecNTitle');
   else nInputEl.removeAttribute('title');
   if (!isoBlank && !hostBlank() && !(document.activeElement === nInputEl && (state.ec ? ecNote : nNoteShown))) nInputEl.value = modulusNow();
@@ -23344,7 +23416,7 @@ function setEcMode(on){
   state.ec = on;
   ecNote = null;
   // Leaving the curve, the group of numbers keeps the curve's modulus.
-  if (!on){ state.n = clamp(state.ecP, MIN_N, MAX_N); nNoteShown = false; persistGroup(); }
+  if (!on){ state.n = clamp(state.ecP, MIN_N, maxN(state.mode)); nNoteShown = false; persistGroup(); }
   var G = currentGroup();
   state.gen = startGen(G);
   // A curve is always arranged by a generating point; leaving it, the
@@ -23359,12 +23431,11 @@ function setEcMode(on){
 // note under the fields says why not, and the ring keeps the last curve.
 function applyCurve(p, a, b){
   if (![p, a, b].every(Number.isInteger)) return;
-  var at = ecModulusOk(p) ? ecSingularAt(a, b, p) : null, count = 0;
+  var at = ecModulusOk(p) ? ecSingularAt(a, b, p) : null;
   ecNote = !ecModulusOk(p) ? { key: 'cyclicGroups.ecNoteN', params: {} }
     : a < 0 || b < 0 || a > EC_COEF_MAX || b > EC_COEF_MAX ? { key: 'cyclicGroups.ecNoteCoef', params: {} }
     : at !== null && at === p ? { key: 'cyclicGroups.ecNoteSingular', params: {} }
-    : at !== null ? { key: 'cyclicGroups.ecNoteSingularMod', params: { q: at } }
-    : (count = ecOrder(p, a, b)) > EC_MAX_ORDER ? { key: 'cyclicGroups.ecNoteSize', params: { count: count, max: EC_MAX_ORDER } } : null;
+    : at !== null ? { key: 'cyclicGroups.ecNoteSingularMod', params: { q: at } } : null;
   if (ecNote){ syncEcControls(); return; }
   state.ecP = p; state.ecA = a; state.ecB = b;
   var G = currentGroup();
@@ -23422,7 +23493,7 @@ ecPEl.addEventListener('keydown', function(e){
 });
 // A double-click on the modulus, in curve mode, opens its reels: two drums,
 // as on a slot machine, each holding 1 and the primes a curve's modulus is
-// made of (5 to 97), the product of the two on the payline worked out as
+// made of (5 up to EC_MAX_P), the product of the two on the payline worked out as
 // they turn. A reel turns by dragging (it runs on and settles on an item),
 // by the wheel (an item a notch) or by the arrow keys. Closing them, by the
 // button, Enter, Escape or a click beside them, takes a product a curve
@@ -23559,7 +23630,7 @@ function syncEcReelsSum(){
   sum.classList.toggle('is-bad', !fits);
   var key = !ok ? (a === b && a !== 1 ? 'cyclicGroups.ecReelsSquare' : 'cyclicGroups.ecReelsBad')
     : !fits ? 'cyclicGroups.ecReelsCurveNo' : isPrime(n) ? 'cyclicGroups.ecReelsPrime' : 'cyclicGroups.ecReelsComposite';
-  ecReels.note.textContent = translate(key, { n: n, a: state.ecA, b: state.ecB, p: state.ecP });
+  ecReels.note.textContent = translate(key, { n: n, a: state.ecA, b: state.ecB, p: state.ecP, max: EC_MAX_P });
 }
 function openEcReels(){
   if (!ecReelsEl){
@@ -24741,13 +24812,13 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 function loadState(query, link){
   if (link){
     state.mode = link.mode;
-    state.n = clamp(link.n, MIN_N, MAX_N);
+    state.n = clamp(link.n, MIN_N, maxN(link.mode));
     if (new URLSearchParams(location.search).get('noshare') !== '1') persistGroup();
   } else {
     var shared = readSharedGroup();
     if (shared){
       state.mode = shared.mode;
-      state.n = clamp(shared.N, MIN_N, MAX_N);
+      state.n = clamp(shared.N, MIN_N, maxN(shared.mode));
     }
   }
   FLAGS.forEach(function(name){
