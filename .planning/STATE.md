@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-09 - Completed quick task 261109-gsf: Cyclic Groups group and subgroup formulas headings
+Last activity: 2026-11-09 - Completed quick task 261109-gsn: Cyclic Groups G menu subgroup name and index
 
 Progress: [█████████░] 86%
 
@@ -673,6 +673,7 @@ None yet.
 | 261109-gen | Cyclic Groups: Generator label lights only over the ring | 2026-11-09 | 97199e5 | [261109-gen-cyclic-groups-generator-label-lights-over-ring-only](./quick/261109-gen-cyclic-groups-generator-label-lights-over-ring-only/) |
 | 261109-eti | Cyclic Groups: E tooltip works in the isomorphism pane | 2026-11-09 | 6fb80cf | [261109-eti-cyclic-groups-e-tooltip-in-pane](./quick/261109-eti-cyclic-groups-e-tooltip-in-pane/) |
 | 261109-gsf | Cyclic Groups: group and subgroup FORMULAS headings in the G menu | 2026-11-09 | d03d535 | [261109-gsf-cyclic-groups-group-and-subgroup-formulas-headings](./quick/261109-gsf-cyclic-groups-group-and-subgroup-formulas-headings/) |
+| 261109-gsn | Cyclic Groups: G menu subgroup name without natural exponent, plain index name | 2026-11-09 | 733adb6 | [261109-gsn-cyclic-groups-g-menu-subgroup-name-and-index](./quick/261109-gsn-cyclic-groups-g-menu-subgroup-name-and-index/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -944,4 +945,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-09 - Completed quick task 261109-gsf: Cyclic Groups group and subgroup formulas headings
+Last activity: 2026-11-09 - Completed quick task 261109-gsn: Cyclic Groups G menu subgroup name and index
