@@ -247,7 +247,10 @@
    cardDivideNo (Group cardinality's Divide submenu, why it is greyed out,
    and the warning asked first for a group not under +) and dhCylWheelRaw and dhCylWheelRawNo (the
    switch showing each hop's raw result out on the floor's rings before
-   its reduction, and why it is greyed out).
+   its reduction, and why it is greyed out), and isoPickGroupIso,
+   isoPickGroupIsoTitle, isoPickSubIso and isoPickSubIsoTitle (the two
+   lists of the + pane's picker under Construct own ring / group, and the
+   tooltips of their titles).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1069,6 +1072,10 @@
       isoPickBoth: 'Groups isomorphic to the current group/subgroup',
       isoPickNone: 'None',
       isoPickConstruct: 'Construct own ring / group',
+      isoPickGroupIso: 'Open a group-to-group isomorphism',
+      isoPickGroupIsoTitle: 'Open in isomorphism view a group isomorphic to the current group.',
+      isoPickSubIso: 'Open a subgroup-to-group isomorphism',
+      isoPickSubIsoTitle: 'Open in isomorphism view a group isomorphic to the current subgroup.',
       ecPresetNotCyclic: 'Not cyclic: {group}',
       plotViewLabel: 'Plot',
       plotViewMod: 'The points mod {n}',

@@ -5846,7 +5846,8 @@ var BAR_SIDES = [
 function barGroup(i){
   if (!drawn || IS_ISOPANE) return null;
   if (i === 0) return drawn.G;
-  return !isoPaneEl.hidden && isoPaneGroup() || null;
+  // While the + pane's picker shows, no pane group is open yet.
+  return !isoPaneEl.hidden && isoPane && isoPaneGroup() || null;
 }
 // The bottom bar: each group's minimized plots, as tasks; the pane's
 // formula settings window follows its group here too.
@@ -19269,8 +19270,9 @@ function syncRingCloseLabel(){
 // Pointing at the right edge of a Ring window holding one ring shows a +,
 // which opens the pane empty: a blurred stand-in for a ring under a picker of
 // the groups to open there, the groups isomorphic to the whole group and to
-// the subgroup on show. Choosing one opens it as its chip does; the new ring
-// draws behind the blur, which then lifts.
+// the subgroup on show, always as two lists, the second following each new G.
+// Choosing one opens it as its chip does; the new ring draws behind the blur,
+// which then lifts.
 var isoAddEl = $('iso-add');
 var isoPickEl = null;
 function endIsoPick(){
@@ -19278,12 +19280,13 @@ function endIsoPick(){
   isoPickEl = null;
   isoPaneEl.classList.remove('is-picking');
 }
-function isoPickSection(key, chips, whole){
+function isoPickSection(key, chips, whole, tipKey){
   var sec = document.createElement('section');
   sec.className = 'iso-pick-sec';
   var head = document.createElement('p');
   head.className = 'fs-menu-head';
   head.textContent = translate(key);
+  if (tipKey) head.title = translate(tipKey);
   sec.appendChild(head);
   var list = document.createElement('div');
   list.className = 'iso-pick-list';
@@ -19308,6 +19311,25 @@ function isoPickSection(key, chips, whole){
   sec.appendChild(list);
   return sec;
 }
+// The two lists under Construct own ring / group: the groups isomorphic to
+// the whole group, and to the subgroup on show.
+function isoPickIsoSections(){
+  var chips = function(el){ return Array.prototype.slice.call(el.querySelectorAll('a.iso-chip')); };
+  var whole = isoPickSection('cyclicGroups.isoPickGroupIso', chips(isoGroupChipsEl), true, 'cyclicGroups.isoPickGroupIsoTitle');
+  var sub = isoPickSection('cyclicGroups.isoPickSubIso', isoPanelEl.hidden ? [] : chips(isoPanelEl), false, 'cyclicGroups.isoPickSubIsoTitle');
+  whole.classList.add('is-whole');
+  sub.classList.add('is-sub');
+  return [whole, sub];
+}
+// A new G chosen while the picker is open: its lists follow.
+function refreshIsoPick(){
+  if (!isoPickEl || isoPickEl.classList.contains('is-left') || isoPickEl.classList.contains('is-chosen')) return;
+  var fresh = isoPickIsoSections();
+  ['is-whole', 'is-sub'].forEach(function(c, i){
+    var old = isoPickEl.querySelector('.iso-pick-sec.' + c);
+    if (old) old.replaceWith(fresh[i]);
+  });
+}
 function openIsoPick(){
   if (IS_ISOPANE || IS_PREVIEW || isoPane || isoPickEl) return;
   isoPickEl = document.createElement('div');
@@ -19323,7 +19345,6 @@ function openIsoPick(){
   var menu = document.createElement('div');
   menu.className = 'iso-pick-menu';
   menu.setAttribute('role', 'group');
-  var chips = function(el){ return Array.prototype.slice.call(el.querySelectorAll('a.iso-chip')); };
   var own = document.createElement('section');
   own.className = 'iso-pick-sec is-own';
   var ownBtn = document.createElement('button');
@@ -19335,26 +19356,7 @@ function openIsoPick(){
   });
   own.appendChild(ownBtn);
   menu.appendChild(own);
-  var whole = chips(isoGroupChipsEl), sub = isoPanelEl.hidden ? [] : chips(isoPanelEl);
-  // With the whole group on show as its subgroup, the two lists name the
-  // same groups: one list, opening each as the subgroup's chip does.
-  if (drawn && !state.noSub && drawn.G.orders[state.gen] === drawn.G.order){
-    var chipKey = function(a){ return a.getAttribute('data-iso-mode') + ' ' + a.getAttribute('data-iso-n') + ' ' + (a.getAttribute('data-iso-curve') || ''); };
-    var named = sub.map(chipKey);
-    var only = whole.filter(function(a){ return named.indexOf(chipKey(a)) === -1; });
-    var both = isoPickSection('cyclicGroups.isoPickBoth', sub, false);
-    if (only.length){
-      var rest = isoPickSection('cyclicGroups.isoPickBoth', only, true);
-      var list = both.querySelector('.iso-pick-list');
-      var none = list.querySelector('.iso-pick-none');
-      if (none) none.remove();
-      rest.querySelectorAll('.iso-pick-item').forEach(function(b){ list.appendChild(b); });
-    }
-    menu.appendChild(both);
-  } else {
-    menu.appendChild(isoPickSection('cyclicGroups.isoPickWhole', whole, true));
-    menu.appendChild(isoPickSection('cyclicGroups.isoPickSub', sub, false));
-  }
+  isoPickIsoSections().forEach(function(sec){ menu.appendChild(sec); });
   isoPickEl.appendChild(ghost);
   isoPickEl.appendChild(menu);
   isoPaneEl.appendChild(isoPickEl);
@@ -21042,6 +21044,7 @@ function renderIso(G){
   var k = G.orders[state.gen];
   if (!(k >= MIN_N)){
     isoPanelEl.hidden = true;
+    refreshIsoPick();
     return;
   }
   translateInto(isoLeadEl, 'cyclicGroups.iso.leadMath', { sub: mInline(angle(elMn(G, state.gen)), '⟨' + elText(G, state.gen) + '⟩'), k: mNum(k) });
@@ -21060,6 +21063,7 @@ function renderIso(G){
   isoEcEl.hidden = curves.length === 0;
   isoPanelEl.hidden = false;
   syncIsoLinks();
+  refreshIsoPick();
 }
 
 // Every control as query parameters, keeping foreign parameters (theme, for
