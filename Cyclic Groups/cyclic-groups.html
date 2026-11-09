@@ -16053,14 +16053,6 @@ function openCombineGenCtx(G, x, y, onSwitch){
       closeFsetCtx();
       setCombineSqm(!state.combineSqm);
     }));
-    // Its two ways, either one switching it on: from the top bit down, or
-    // from the bottom up through the powers of two.
-    [['ltr', 'cyclicGroups.combineSqmLtr'], ['rtl', 'cyclicGroups.combineSqmRtl']].forEach(function(w){
-      items.push(menuTick('menuitemradio', translate(w[1]), state.combineSqm && state.combineSqmWay === w[0], function(){
-        closeFsetCtx();
-        setCombineSqm(true, w[0]);
-      }));
-    });
   }
   var copy = ctxItem('menuitem', translate('cyclicGroups.combineCopy'), false).item;
   copy.addEventListener('click', function(){
@@ -16279,7 +16271,7 @@ function curveRows(G, y, mod){
 // the one above it. A negative k runs the ladder on a⁻¹. Additively the
 // square is 2 × x; a curve's points are added, 2 · P + Q, and written as
 // multiples while those are on, (2p + d)a ≡ 2 · pa + a.
-// Right to left instead (state.combineSqmWay 'rtl', from the lines'
+// Right to left instead (state.combineSqmWay 'rtl', from the aᵏ button's
 // right-click menu): k as a sum of powers of two, a squared again and
 // again, a¹, a², a⁴, …, one line each, and a last line combining those
 // whose bit is 1, a⁸ ∗ a⁴ ∗ a¹, highest first.
@@ -16837,6 +16829,22 @@ function setCombineK(k){
 combineModeBtns.element.addEventListener('click', function(){ setCombineMode('element'); });
 combineModeBtns.scalar.addEventListener('click', function(){ setCombineMode('scalar'); });
 $('combine-sqm').addEventListener('click', function(){ setCombineSqm(!state.combineSqm); });
+// Right-clicking the aᵏ button offers square and multiply's two ways, from
+// the top bit down or from the bottom up through the powers of two; either
+// one switches aᵏ and square and multiply on.
+combineModeBtns.scalar.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  if (IS_MOBILE || combineModeEl.classList.contains('is-out')) return;
+  fsetCtxEl.replaceChildren.apply(fsetCtxEl, [['ltr', 'cyclicGroups.combineSqmLtr'], ['rtl', 'cyclicGroups.combineSqmRtl']].map(function(w){
+    return menuTick('menuitemradio', translate(w[1]), state.combineMode === 'scalar' && state.combineSqm && state.combineSqmWay === w[0], function(){
+      closeFsetCtx();
+      setCombineMode('scalar');
+      setCombineSqm(true, w[0]);
+    });
+  }));
+  if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+  showCtxAt(fsetCtxEl, ptX(e), ptY(e));
+});
 combineKEl.addEventListener('input', function(){
   var v = combineKEl.value.trim();
   if (/^-?\d+$/.test(v)) setCombineK(parseInt(v, 10));

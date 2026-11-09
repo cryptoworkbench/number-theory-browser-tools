@@ -265,7 +265,8 @@
    item, row label, greyed reason and warnings), and combineSqm and
    combineSqmTitle (aᵏ's Square and multiply switch and its tooltip), and
    combineCopy (Copy these formulas, the menu item on the lines under the ring),
-   and combineSqmLtr and combineSqmRtl (square and multiply's two ways, in that menu).
+   and combineSqmLtr and combineSqmRtl (square and multiply's two ways, in the aᵏ
+   button's right-click menu).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
