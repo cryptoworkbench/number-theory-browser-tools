@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-09 - Completed quick task 261109-sq4: Cyclic Groups aᵏ Square and multiply
+Last activity: 2026-11-09 - Completed quick task 261109-tcp: Cyclic Groups copy combination formulas
 
 Progress: [█████████░] 86%
 
@@ -665,6 +665,7 @@ None yet.
 | 261109-ni5 | Cyclic Groups: Divide submenu as a table (additive / multiplicative columns) | 2026-11-09 | b9bc367 | [261109-ni5-cyclic-groups-divide-submenu-as-a-table](./quick/261109-ni5-cyclic-groups-divide-submenu-as-a-table/) |
 | 261109-nqv | Cyclic Groups: Multiply (×2, ×3, ×5) next to Divide | 2026-11-09 | 2e9675b | [261109-nqv-cyclic-groups-multiply-next-to-divide](./quick/261109-nqv-cyclic-groups-multiply-next-to-divide/) |
 | 261109-sq4 | Cyclic Groups: aᵏ Square and multiply mode | 2026-11-09 | 6ea2d8a | [261109-sq4-cyclic-groups-ak-square-and-multiply-mode](./quick/261109-sq4-cyclic-groups-ak-square-and-multiply-mode/) |
+| 261109-tcp | Cyclic Groups: copy the a ∗ b / aᵏ formulas under the ring | 2026-11-09 | b78eda7 | [261109-tcp-cyclic-groups-copy-combination-formulas](./quick/261109-tcp-cyclic-groups-copy-combination-formulas/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -936,4 +937,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-09 - Completed quick task 261109-sq4: Cyclic Groups aᵏ Square and multiply
+Last activity: 2026-11-09 - Completed quick task 261109-tcp: Cyclic Groups copy combination formulas
