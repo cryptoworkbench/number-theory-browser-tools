@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-09 - Completed quick task 261109-sab: Cyclic Groups reels suggest a, b
+Last activity: 2026-11-09 - Completed quick task 261109-hst: Cyclic Groups formulas heading style
 
 Progress: [█████████░] 86%
 
@@ -688,6 +688,7 @@ None yet.
 | 261109-reel | Cyclic Groups: curve modulus picked on two prime reels | 2026-11-09 | ae320ba | [261109-reel-cyclic-groups-ec-modulus-reels](./quick/261109-reel-cyclic-groups-ec-modulus-reels/) |
 | 261109-big | Cyclic Groups: moduli up to 1000, ring only up to 100 elements | 2026-11-09 | 89205d9 | [261109-big-cyclic-groups-modulus-to-1000-ring-up-to-100](./quick/261109-big-cyclic-groups-modulus-to-1000-ring-up-to-100/) |
 | 261109-sab | Cyclic Groups: reels suggest a, b for a singular curve | 2026-11-09 | 9786958 | [261109-sab-cyclic-groups-reels-suggest-ab](./quick/261109-sab-cyclic-groups-reels-suggest-ab/) |
+| 261109-hst | Cyclic Groups: FORMULAS headings in the menu headings' style | 2026-11-09 | 3a1e158 | [261109-hst-cyclic-groups-formulas-heading-style](./quick/261109-hst-cyclic-groups-formulas-heading-style/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -959,4 +960,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-09 - Completed quick task 261109-sab: Cyclic Groups reels suggest a, b
+Last activity: 2026-11-09 - Completed quick task 261109-hst: Cyclic Groups formulas heading style
