@@ -23623,14 +23623,36 @@ function syncEcReelsSum(){
   // A modulus the curve on show has no group for (singular mod one of its
   // primes, or too many points) is flagged too: closing then keeps the old.
   var fits = ok && ecValid(n, state.ecA, state.ecB);
+  // Singular there, the nearest a and b that are not are offered instead,
+  // and taken on closing.
+  ecReels.suggest = ok && !fits ? ecSuggestAB(n, state.ecA, state.ecB) : null;
+  if (ecReels.suggest) fits = true;
   var sum = ecReels.sum, nEl = document.createElement('span');
   nEl.className = 'is-n';
   nEl.textContent = String(n);
   sum.replaceChildren(document.createTextNode(a + ' × ' + b + ' = '), nEl);
   sum.classList.toggle('is-bad', !fits);
   var key = !ok ? (a === b && a !== 1 ? 'cyclicGroups.ecReelsSquare' : 'cyclicGroups.ecReelsBad')
+    : ecReels.suggest ? 'cyclicGroups.ecReelsSuggest'
     : !fits ? 'cyclicGroups.ecReelsCurveNo' : isPrime(n) ? 'cyclicGroups.ecReelsPrime' : 'cyclicGroups.ecReelsComposite';
-  ecReels.note.textContent = translate(key, { n: n, a: state.ecA, b: state.ecB, p: state.ecP, max: EC_MAX_P });
+  var sg = ecReels.suggest || {};
+  ecReels.note.textContent = translate(key, { n: n, a: state.ecA, b: state.ecB, p: state.ecP, max: EC_MAX_P, sa: sg.a, sb: sg.b });
+}
+// The coefficients nearest a and b (fewest steps of either, a before b,
+// down before up) whose curve is not singular mod n, within the fields'
+// range; null if there are none.
+function ecSuggestAB(n, a, b){
+  for (var d = 1; d <= 2 * EC_COEF_MAX; d++){
+    for (var da = 0; da <= d; da++){
+      var cands = [[a - da, b - (d - da)], [a - da, b + (d - da)], [a + da, b - (d - da)], [a + da, b + (d - da)]];
+      for (var c = 0; c < cands.length; c++){
+        var x = cands[c][0], y = cands[c][1];
+        if (x < 0 || y < 0 || x > EC_COEF_MAX || y > EC_COEF_MAX) continue;
+        if (ecSingularAt(x, y, n) === null) return { a: x, b: y };
+      }
+    }
+  }
+  return null;
 }
 function openEcReels(){
   if (!ecReelsEl){
@@ -23697,6 +23719,12 @@ function closeEcReels(){
   var n = ecReels.reels[0].value() * ecReels.reels[1].value();
   if (state.ec && n !== state.ecP && ecValid(n, state.ecA, state.ecB)){
     ecPEl.value = String(n);
+    typedCurve();
+  } else if (state.ec && ecReels.suggest && ecModulusOk(n)){
+    // With the coefficients offered, which the fields take too.
+    ecPEl.value = String(n);
+    ecAEl.value = String(ecReels.suggest.a);
+    ecBEl.value = String(ecReels.suggest.b);
     typedCurve();
   }
   if (ecReelsReturn && ecReelsReturn.isConnected) ecReelsReturn.focus({ preventScroll: true });

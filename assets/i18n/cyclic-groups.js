@@ -1223,6 +1223,7 @@
       ecReelsComposite: '{n} is a product of two different primes: the curve is taken mod each of them, side by side.',
       ecReelsSquare: 'The two factors must be different primes: a curve here is not taken mod a square.',
       ecReelsCurveNo: 'The curve on show, with a = {a} and b = {b}, gives no group mod {n}: closing keeps the modulus {p}.',
+      ecReelsSuggest: 'The curve on show, with a = {a} and b = {b}, is singular mod {n}; with a = {sa} and b = {sb} it is not: closing takes those.',
       ecReelsBad: '{n} is no modulus a curve takes here: a prime from 5 to {max}, or a product of two different ones up to {max}.',
       ringTooBig: '{group} has {count} elements: the ring is drawn for at most {max}.',
       cardMultiply: 'Multiply',
