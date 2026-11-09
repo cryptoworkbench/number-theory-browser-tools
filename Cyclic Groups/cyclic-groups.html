@@ -7247,8 +7247,8 @@ var ringDivEl = $('ring-ctx-div'), ringDivFrom = null;
 function divideItem(G){ return factorItem(G, 'div'); }
 function multiplyItem(G){ return factorItem(G, 'mul'); }
 var FACTOR_KEYS = {
-  div: { item: 'cardDivide', mark: '\u00f7', none: 'cardDivideNone', row: 'cardDivideRow', warn: 'cardDivideWarn', lock: 'cardDivideWarnLock', both: 'cardDivideWarnBoth', same: 'cardDivideWarnLockSame' },
-  mul: { item: 'cardMultiply', mark: '\u00d7', none: 'cardMultiplyNone', row: 'cardMultiplyRow', warn: 'cardMultiplyWarn', lock: 'cardMultiplyWarnLock', both: 'cardMultiplyWarnBoth', same: 'cardMultiplyWarnLockSame' }
+  div: { item: 'cyclicGroups.cardDivide', mark: '\u00f7', none: 'cyclicGroups.cardDivideNone', row: 'cyclicGroups.cardDivideRow', warn: 'cyclicGroups.cardDivideWarn', lock: 'cyclicGroups.cardDivideWarnLock', both: 'cyclicGroups.cardDivideWarnBoth', same: 'cyclicGroups.cardDivideWarnLockSame' },
+  mul: { item: 'cyclicGroups.cardMultiply', mark: '\u00d7', none: 'cyclicGroups.cardMultiplyNone', row: 'cyclicGroups.cardMultiplyRow', warn: 'cyclicGroups.cardMultiplyWarn', lock: 'cyclicGroups.cardMultiplyWarnLock', both: 'cyclicGroups.cardMultiplyWarnBoth', same: 'cyclicGroups.cardMultiplyWarnLockSame' }
 };
 // The table's rows: for each divisor (or factor 2, 3, 5) d, the cardinality
 // m it gives, ℤ/mℤ under + while this tool shows it, the groups of units of
@@ -7263,12 +7263,12 @@ function factorRows(G, op){
 }
 function factorItem(G, op){
   var K = FACTOR_KEYS[op];
-  var it = ctxItem('menuitem', translate('cyclicGroups.' + K.item), true);
+  var it = ctxItem('menuitem', translate(K.item), true);
   it.mark.textContent = K.mark;
   it.item.setAttribute('data-op', op);
   if (!factorRows(G, op).length){
     it.item.disabled = true;
-    it.item.title = translate(G.cyclic ? 'cyclicGroups.' + K.none : 'cyclicGroups.cardDivideCyclic');
+    it.item.title = translate(G.cyclic ? K.none : 'cyclicGroups.cardDivideCyclic');
     return it.item;
   }
   // In the menu itself, the other submenu closes as this one opens.
@@ -7303,12 +7303,12 @@ function setRingDivide(from, focus, ask){
   from.setAttribute('aria-expanded', 'true');
   var G = drawn.G, op = from.getAttribute('data-op') || 'div', K = FACTOR_KEYS[op];
   var mOf = function(d){ return op === 'mul' ? G.order * d : G.order / d; };
-  ringDivEl.setAttribute('aria-label', translate('cyclicGroups.' + K.item));
+  ringDivEl.setAttribute('aria-label', translate(K.item));
   if (ask && typeof ask === 'object'){
     // A group of the same operation only breaks the lock: its warning.
     var warnSame = document.createElement('p');
     warnSame.className = 'ring-ctx-warn';
-    translateInto(warnSame, 'cyclicGroups.' + K.same, { group: swapName(groupSpec(G)), card: mNum(G.order), d: mNum(ask.d), result: swapName(ask.spec) });
+    translateInto(warnSame, K.same, { group: swapName(groupSpec(G)), card: mNum(G.order), d: mNum(ask.d), result: swapName(ask.spec) });
     var yesSame = ctxItem('menuitem', translate('cyclicGroups.cardDivideYes')), noSame = ctxItem('menuitem', translate('cyclicGroups.cardDivideNo'));
     yesSame.item.addEventListener('click', function(){ divideTo(ask.spec); });
     noSame.item.addEventListener('click', function(){ setRingDivide(from, true); });
@@ -7318,7 +7318,7 @@ function setRingDivide(from, focus, ask){
     // isomorphism lock that breaks, or both.
     var warn = document.createElement('p'), additive = G.mode === 'additive' && !G.pts;
     warn.className = 'ring-ctx-warn';
-    translateInto(warn, 'cyclicGroups.' + (additive ? K.lock : divideBreaksLock() ? K.both : K.warn), { group: swapName(groupSpec(G)), structure: swapName(quotientSpec(G.order)), n: mNum(G.order), d: mNum(ask), result: swapName(quotientSpec(mOf(ask))) });
+    translateInto(warn, additive ? K.lock : divideBreaksLock() ? K.both : K.warn, { group: swapName(groupSpec(G)), structure: swapName(quotientSpec(G.order)), n: mNum(G.order), d: mNum(ask), result: swapName(quotientSpec(mOf(ask))) });
     var yes = ctxItem('menuitem', translate('cyclicGroups.cardDivideYes')), no = ctxItem('menuitem', translate('cyclicGroups.cardDivideNo'));
     yes.item.addEventListener('click', function(){ divideGroup(mOf(ask)); });
     no.item.addEventListener('click', function(){ setRingDivide(from, true); });
@@ -7358,7 +7358,7 @@ function setRingDivide(from, focus, ask){
       var d = r.d, m = r.m, rule = row > 0, adds = [];
       var dl = document.createElement('p');
       dl.className = 'div-d' + (rule ? ' is-rule' : '');
-      translateInto(dl, 'cyclicGroups.' + K.row, { d: mNum(d) });
+      translateInto(dl, K.row, { d: mNum(d) });
       if (r.add){
         var add = ctxItem('menuitem', '');
         add.item.children[1].appendChild(swapName(r.add));
