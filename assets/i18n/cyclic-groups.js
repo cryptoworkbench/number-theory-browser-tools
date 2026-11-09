@@ -264,7 +264,7 @@
    (Multiply, Divide's counterpart for 2, 3, 5 or 7 times the cardinality: its
    item, row label, greyed reason and warnings), and combineSqm and
    combineSqmOff (the Square and multiply heading and its Off, in the aᵏ
-   button's right-click menu and the formula lines' one), and
+   button's right-click menu), and
    combineCopy (Copy these formulas, the menu item on the lines under the ring),
    and combineSqmLtr and combineSqmRtl (square and multiply's two ways, in the aᵏ
    button's right-click menu).
