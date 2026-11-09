@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-09 - Completed quick task 261109-trb: Cyclic Groups picker regression fixed
+Last activity: 2026-11-09 - Completed quick task 261109-swt: Cyclic Groups swap submenu table
 
 Progress: [█████████░] 86%
 
@@ -681,6 +681,7 @@ None yet.
 | 261109-cdm | Cyclic Groups: Divide and Multiply out of the Cardinality submenu | 2026-11-09 | 337b041 | [261109-cdm-cyclic-groups-cardinality-submenu-no-divide-multiply](./quick/261109-cdm-cyclic-groups-cardinality-submenu-no-divide-multiply/) |
 | 261109-dmx | Cyclic Groups: Divide/Multiply curves on every ring, ×7 always, + for more groups | 2026-11-09 | 530a1e2 | [261109-dmx-cyclic-groups-divide-multiply-curves-more](./quick/261109-dmx-cyclic-groups-divide-multiply-curves-more/) |
 | 261109-trb | Cyclic Groups: restore workRight/topRowsBottom (picker regression) | 2026-11-09 | ee995de | [261109-trb-cyclic-groups-restore-toprowsbottom](./quick/261109-trb-cyclic-groups-restore-toprowsbottom/) |
+| 261109-swt | Cyclic Groups: Swap for an isomorphic group as a three-column table | 2026-11-09 | 633d600 | [261109-swt-cyclic-groups-swap-iso-table](./quick/261109-swt-cyclic-groups-swap-iso-table/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -952,4 +953,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-09 - Completed quick task 261109-trb: Cyclic Groups picker regression fixed
+Last activity: 2026-11-09 - Completed quick task 261109-swt: Cyclic Groups swap submenu table
