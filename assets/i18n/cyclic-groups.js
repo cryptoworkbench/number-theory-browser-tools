@@ -255,7 +255,10 @@
    G₁ ≅ ⟨g⟩ ∈ G₂ as on screen, {sub} the subgroup selected or G; pure
    notation).
    cardDivideWarnLockSame (Divide's warning when a group of the same
-   operation with the divided cardinality would break the lock).
+   operation with the divided cardinality would break the lock), swapHead (the
+   ring menu's Swap section heading, formerly swapIsoHead's Isomorphic swap)
+   and ctxFormulasHead (the Formulas heading over the copied formulas in the
+   Subgroup row's menu).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1175,6 +1178,8 @@
       formulaHide: 'Hide',
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoHead: 'Isomorphic swap',
+      swapHead: 'Swap',
+      ctxFormulasHead: 'Formulas',
       cardDivide: 'Divide',
       cardDivideBy: '÷ {d}: {group}',
       cardDivideNone: 'The group’s cardinality has no divisor between 1 and itself',

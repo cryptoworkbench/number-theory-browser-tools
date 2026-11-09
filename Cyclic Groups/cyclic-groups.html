@@ -7866,7 +7866,7 @@ function setRingCtx(open, x, y, expr, fml, bead){
   syncExprCtx(expr === true ? 'gens' : expr || null);
   syncFormulaCtx(fml || null);
   var nat = syncNatHoverCtx(!expr && !fml, bead === undefined ? null : bead);
-  // The subgroup row's menu keeps the main menu's Isomorphic swap section
+  // The subgroup row's menu keeps the main menu's Swap section
   // too, the subgroup on or off.
   if (expr === 'gsub'){ syncSwapCtx(true); syncOtherCtx(true); }
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
@@ -10113,7 +10113,16 @@ function syncExprCtx(key){
   // offers the formulas there are, the subgroup's gone. The expression
   // slider's menu ('gens') keeps only its ticks below.
   var have = menuFormulas(drawn.G).map(function(f){ return f.key; });
-  (key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens', 'struct'].filter(function(k){ return have.indexOf(k) !== -1; }) : key === 'gens' ? [] : [key]).forEach(function(k){
+  var copies = key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens', 'struct'].filter(function(k){ return have.indexOf(k) !== -1; }) : key === 'gens' ? [] : [key];
+  // The formulas, each copied in the format picked, under a heading of
+  // their own, Formulas, after the Swap section.
+  if (copies.length){
+    var fhead = document.createElement('p');
+    fhead.className = 'fs-menu-head ring-ctx-expr';
+    fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
+    ringCtxEl.appendChild(fhead);
+  }
+  copies.forEach(function(k){
     var it = ctxItem('menuitem', translate(ctxName(k)), true);
     it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
     it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
@@ -10292,7 +10301,7 @@ function swapName(spec){
   if (ecByEquation()) m = mrow(m, mEl('mo', [':'], { lspace: '0', rspace: '0.3em' }), mEcEquation(c[1], c[2]));
   return mInline(m, ecChipLabel(c[0], c[1], c[2]));
 }
-// The menu's Isomorphic swap section: first, while G is not its own
+// The menu's Swap section: first, while G is not its own
 // structure ⟨ℤ/|G|ℤ, +⟩, Reduce to it; then, always, the submenu of every
 // other group isomorphic to G (greyed while there is none to take); then
 // the other ring's (syncOtherCtx).
@@ -10314,7 +10323,7 @@ function syncSwapCtx(on){
   var at = ringCtxEl.querySelector(':scope > .ring-ctx-head');
   var head = document.createElement('p');
   head.className = 'fs-menu-head ring-ctx-swap';
-  head.textContent = translate('cyclicGroups.swapIsoHead');
+  head.textContent = translate('cyclicGroups.swapHead');
   ringCtxEl.insertBefore(head, at);
   var first = null, red = reduceSpec();
   if (red){
