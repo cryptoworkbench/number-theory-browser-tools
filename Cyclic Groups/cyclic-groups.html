@@ -11100,6 +11100,18 @@ if (IS_RINGWIN){
       ringSvgEl.classList.add('is-swap-hidden');
       return;
     }
+    // The swap's flip lands only once this new pane has done redrawing
+    // with what the page tells it (its colours, above all): every change
+    // to it is told, for two seconds.
+    if (d.ringhost === 'drawnwatch'){
+      if (!IS_ISOPANE || typeof MutationObserver !== 'function') return;
+      var told = new MutationObserver(function(){
+        try { window.parent.postMessage({ ringwin: 'drawn' }, '*'); } catch (err) { told.disconnect(); }
+      });
+      told.observe(document.body, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class', 'fill', 'hidden'] });
+      setTimeout(function(){ told.disconnect(); }, 2000);
+      return;
+    }
     if (d.ringhost !== 'look') return;
     var root = document.documentElement;
     if ((d.theme === 'day' || d.theme === 'night') && root.getAttribute('data-theme') !== d.theme) root.setAttribute('data-theme', d.theme);
@@ -19001,7 +19013,7 @@ function loadIsoFrame(keepOld){
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
     f.classList.add('is-loaded');
-    if (swapSpin && swapSpin.frame === f) endSwapSpin();
+    if (swapSpin && swapSpin.frame === f) settleSwapSpin(true);
     // Opened from the picker: once the new ring has its group and has drawn
     // it, the picker goes and the blur lifts.
     if (f.classList.contains('is-blurred')){
@@ -19298,8 +19310,25 @@ function arriveSwapSpin(){
   ringSvgEl.classList.remove('is-swap-hidden');
   s.back.remove();
   s.frame = isoPaneFrame;
-  if (!s.frame || !s.old || s.frame.classList.contains('is-loaded')){ endSwapSpin(); return; }
+  if (!s.frame || !s.old){ endSwapSpin(); return; }
   s.guard = setTimeout(endSwapSpin, 5000);
+  if (s.frame.classList.contains('is-loaded')) settleSwapSpin(true);
+}
+// The new frame loaded: it is still told this ring's colours and the rest,
+// and redraws with them. The copy over it stays until it has been still
+// for a moment, and never more than a second and a half.
+var SWAP_STILL_MS = 150, SWAP_SETTLE_MAX_MS = 1500;
+function settleSwapSpin(loaded){
+  var s = swapSpin;
+  if (!s || !s.frame) return;
+  if (loaded && !s.settling){
+    s.settling = true;
+    tellPane({ ringhost: 'drawnwatch' });
+    clearTimeout(s.guard);
+    s.guard = setTimeout(endSwapSpin, SWAP_SETTLE_MAX_MS);
+  }
+  clearTimeout(s.still);
+  s.still = setTimeout(endSwapSpin, SWAP_STILL_MS);
 }
 // The pane's old frame, kept where it stands until the new one is up.
 function holdSwapFrame(old){
@@ -19317,6 +19346,7 @@ function endSwapSpin(){
   if (!s) return;
   clearTimeout(s.guard);
   clearTimeout(s.late);
+  clearTimeout(s.still);
   if (s.layer) s.layer.remove();
   if (s.old) s.old.remove();
   ringSvgEl.classList.remove('is-swap-hidden');
@@ -20744,6 +20774,7 @@ window.addEventListener('message', function(e){
   var d = e.data;
   if (!d || typeof d !== 'object') return;
   if (d.ringwin === 'ringsnap'){ runSwapSpin(d); return; }
+  if (d.ringwin === 'drawn'){ if (swapSpin && swapSpin.settling) settleSwapSpin(); return; }
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
     syncIsoPaneLabels();
