@@ -3625,7 +3625,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -16048,10 +16048,20 @@ function openCombineGenCtx(G, x, y, onSwitch){
     state.combineGen = !combineGeneral(G);
     render();
   }));
-  if (combo.k !== null && comboLive(G)) items.push(menuTick('menuitemcheckbox', translate('cyclicGroups.combineSqm'), state.combineSqm, function(){
-    closeFsetCtx();
-    setCombineSqm(!state.combineSqm);
-  }));
+  if (combo.k !== null && comboLive(G)){
+    items.push(menuTick('menuitemcheckbox', translate('cyclicGroups.combineSqm'), state.combineSqm, function(){
+      closeFsetCtx();
+      setCombineSqm(!state.combineSqm);
+    }));
+    // Its two ways, either one switching it on: from the top bit down, or
+    // from the bottom up through the powers of two.
+    [['ltr', 'cyclicGroups.combineSqmLtr'], ['rtl', 'cyclicGroups.combineSqmRtl']].forEach(function(w){
+      items.push(menuTick('menuitemradio', translate(w[1]), state.combineSqm && state.combineSqmWay === w[0], function(){
+        closeFsetCtx();
+        setCombineSqm(true, w[0]);
+      }));
+    });
+  }
   var copy = ctxItem('menuitem', translate('cyclicGroups.combineCopy'), false).item;
   copy.addEventListener('click', function(){
     closeFsetCtx();
@@ -16269,10 +16279,21 @@ function curveRows(G, y, mod){
 // the one above it. A negative k runs the ladder on a⁻¹. Additively the
 // square is 2 × x; a curve's points are added, 2 · P + Q, and written as
 // multiples while those are on, (2p + d)a ≡ 2 · pa + a.
+// Right to left instead (state.combineSqmWay 'rtl', from the lines'
+// right-click menu): k as a sum of powers of two, a squared again and
+// again, a¹, a², a⁴, …, one line each, and a last line combining those
+// whose bit is 1, a⁸ ∗ a⁴ ∗ a¹, highest first.
 function sqmOn(G){ return !!G && state.combineSqm && combo.k !== null && comboLive(G); }
 function sqmExp(){ return Math.abs(combo.k); }
-// The ladder's lines: the exponent's, then one per bit.
-function sqmLines(){ var e = sqmExp(); return 1 + (e ? e.toString(2).length : 0); }
+// The ladder's lines: the exponent's, then one per bit, and right to
+// left the combining line, wherever more than one bit is 1.
+function sqmRtl(){ return state.combineSqmWay === 'rtl'; }
+function sqmLines(){
+  var e = sqmExp();
+  if (!e) return 1;
+  var bits = e.toString(2);
+  return 1 + bits.length + (sqmRtl() && bits.replace(/0/g, '').length > 1 ? 1 : 0);
+}
 function sqmRows(G, mod){
   var a = combo.a, k = combo.k, neg = k < 0, base = neg ? G.inv[a] : a, e = sqmExp();
   var curve = !!G.pts, mult = curve && ecMult(G), mul = !curve && G.mode === 'multiplicative';
@@ -16294,6 +16315,7 @@ function sqmRows(G, mod){
   }
   var bits = e.toString(2);
   head.push([null, ','], [['b', String(e)], [null, ' = '], ['b', bits], [null, '₂']]);
+  if (sqmRtl()) return sqmRowsRtl(G, mod, head, bits, pw, sym, base);
   var rows = [head], groups = [0], p = 0, x = G.identity;
   for (var i = 0; i < bits.length; i++){
     var d = bits[i] === '1', q = 2 * p + (d ? 1 : 0);
@@ -16321,6 +16343,53 @@ function sqmRows(G, mod){
     groups.push(1);
     p = q;
     x = y;
+  }
+  rows.groups = groups;
+  return rows;
+}
+// Right to left: a^(2^i) ≡ (a^(2^(i − 1)))², squared in numbers, then the
+// powers whose bit is 1 combined, highest first.
+function sqmRowsRtl(G, mod, head, bits, pw, sym, base){
+  var curve = !!G.pts, mult = curve && ecMult(G), mul = !curve && G.mode === 'multiplicative';
+  var E = function(x){ return elText(G, x); }, V = function(x){ return balEl(G, x); };
+  var R = function(v){ return v < 0 ? '(' + signed(v) + ')' : String(v); };
+  var L = bits.length, used = [];
+  for (var j = L - 1; j >= 0; j--) if (bits[L - 1 - j] === '1') used.push(j);
+  // k = 1101₂ = 2³ + 2² + 2⁰.
+  head[head.length - 1] = head[head.length - 1].concat([[null, ' = '], ['b', used.map(function(j){ return '2' + superscript(j); }).join(' + ')]]);
+  var many = used.length > 1, rows = [head], groups = [0], powers = [base];
+  var fill = function(n){ var out = []; for (var f = 0; f < n; f++) out.push([null, '']); return out; };
+  for (var i = 0; i < L; i++){
+    var x = i ? powers[i - 1] : base, y = i ? G.combine(x, x) : base;
+    powers[i] = y;
+    var res = [!many && i === L - 1 ? 'c' : null, E(y)], row;
+    if (!i) row = [pw(1)].concat(fill(6), [[null, '≡'], res, [null, mod]]);
+    else {
+      var step = mult ? [[null, '2 · ']].concat(pw(1 << (i - 1))) : [[null, '(']].concat(pw(1 << (i - 1)), [[null, ')²']]);
+      var arith, raw = null;
+      if (curve) arith = [[null, '2 · ' + E(x)]];
+      else if (mul){ arith = [[null, R(V(x)) + '²']]; raw = V(x) * V(x); }
+      else { arith = [[null, '2 × ' + R(V(x))]]; raw = 2 * V(x); }
+      var showRaw = raw !== null && raw !== V(y);
+      row = [pw(1 << i), [null, '≡'], step, [null, '≡'], arith, [null, showRaw ? '≡' : ''], [null, showRaw ? signed(raw) : ''], [null, '≡'], res, [null, mod]];
+    }
+    rows.push(row);
+    groups.push(1);
+  }
+  if (many){
+    var join = mult ? ' + ' : ' ∗ ', c = scalarOf(G, combo.a, combo.k);
+    var step2 = [], arith2 = [], raw2 = mul ? 1 : 0;
+    used.forEach(function(j, n){
+      if (n) step2.push([null, join]);
+      step2 = step2.concat(pw(1 << j));
+      var v = powers[j];
+      if (n) arith2.push([null, curve ? ' + ' : mul ? ' × ' : ' + ']);
+      arith2.push([null, curve ? E(v) : R(V(v))]);
+      if (!curve) raw2 = mul ? raw2 * V(v) : raw2 + V(v);
+    });
+    var show2 = !curve && raw2 !== V(c) && Math.abs(raw2) <= 1e15;
+    rows.push([pw(parseInt(bits, 2)), [null, '≡'], step2, [null, '≡'], arith2, [null, show2 ? '≡' : ''], [null, show2 ? signed(raw2) : ''], [null, '≡'], ['c', E(c)], [null, mod]]);
+    groups.push(1);
   }
   rows.groups = groups;
   return rows;
@@ -16790,8 +16859,9 @@ combineKEl.addEventListener('change', function(){ combineKEl.value = String(stat
   });
 })();
 // Square and multiply: aᵏ's formulas as the ladder (see sqmRows).
-function setCombineSqm(on){
+function setCombineSqm(on, way){
   state.combineSqm = !!on;
+  if (way === 'ltr' || way === 'rtl') state.combineSqmWay = way;
   syncCombineMode();
   if (drawn && comboLive(drawn.G) && combo.k !== null) redrawRing();
   // A pane follows, writing its own aᵏ the same way.
@@ -20154,7 +20224,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, combineSqm: state.combineSqm, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, combineSqm: state.combineSqm, combineSqmWay: state.combineSqmWay, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -20340,6 +20410,7 @@ function applyIsoShared(d){
   if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
   if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
   if (typeof d.combineSqm === 'boolean') state.combineSqm = d.combineSqm;
+  if (d.combineSqmWay === 'ltr' || d.combineSqmWay === 'rtl') state.combineSqmWay = d.combineSqmWay;
   syncCombineMode();
   syncFormulaCtl();
   subFormulaRingEl.value = state.subFormulaRing;
@@ -21948,6 +22019,8 @@ function stateQuery(){
   else { q.delete('combine'); q.delete('combinek'); }
   if (state.combineSqm) q.set('combinesqm', '1');
   else q.delete('combinesqm');
+  if (state.combineSqmWay === 'rtl') q.set('combinesqmway', 'rtl');
+  else q.delete('combinesqmway');
   if (!state.combineGen) q.set('combinegen', '0');
   else q.delete('combinegen');
   return q;
@@ -24606,6 +24679,7 @@ function loadState(query, link){
   var ck = intOrNull(query.get('combinek'));
   state.combineK = ck !== null && Math.abs(ck) <= COMBO_K_MAX ? ck : 2;
   state.combineSqm = query.get('combinesqm') === '1';
+  state.combineSqmWay = query.get('combinesqmway') === 'rtl' ? 'rtl' : 'ltr';
   state.combineGen = query.get('combinegen') !== '0';
   // Older links chose the main view's lcm forms with sublcmring (and
   // sublcmringr for the pane's), and the row's with sublcm (sublcmr): where
