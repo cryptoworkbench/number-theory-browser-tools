@@ -2856,6 +2856,15 @@
   /* Its copy submenu opens beside it. */
   .ring-ctx .ring-ctx-sub{ position:fixed; left:0; top:0; bottom:auto; z-index:1; min-width:200px; }
   .ring-ctx #ring-ctx-div{ z-index:2; width:300px; }
+  /* Divide's table: a row per divisor, its ÷ d, then a column per kind of
+     group with that cardinality, each cell stacking its groups. */
+  .ring-ctx-sub.is-div-table{ display:grid; grid-template-columns:auto repeat(var(--div-cols, 2), max-content); align-items:start; column-gap:2px; width:max-content; max-width:none; }
+  .ring-ctx-sub.is-div-table > .fs-menu-head{ margin:4px 8px 4px; padding-top:0; border-top:0; white-space:nowrap; }
+  .div-d{ margin:0; padding:6px 8px 6px 10px; color:var(--text-dim); white-space:nowrap; }
+  .div-cell{ display:flex; flex-direction:column; min-width:0; }
+  .div-d.is-rule, .div-cell.is-rule{ border-top:1px solid var(--panel-border); }
+  .div-cell > .fs-menu-item{ white-space:nowrap; }
+  .div-none{ margin:0; padding:6px 10px; color:var(--text-dim); }
   .ring-ctx-warn{ margin:4px 10px 6px; font-size:.85em; line-height:1.35; color:var(--text); }
   /* Full screen, the diagram fills the screen and the ring scales into it. */
   :is(.diagram-frame:fullscreen, :root.is-desktop .diagram-frame){ width:100% !important; height:100% !important; max-width:none !important; box-sizing:border-box; border:0; border-radius:0; display:flex; flex-direction:column;
@@ -7251,21 +7260,24 @@ function divideItem(G){
   return it.item;
 }
 function quotientSpec(m){ return { mode: 'additive', n: m, curve: null, label: additiveLabel(m) }; }
-// The groups of G's own operation with cardinality m, each isomorphic to
-// the quotient (cyclic, as every quotient of a cyclic group is): the cyclic
-// groups of units of that order, or the cyclic curves of that many points,
-// each on its first generator. Under + the quotient itself is the one.
-function sameOpQuotients(G, m){
-  if (G.pts) return cyclicCurves(m).filter(function(e){ return !(e.p === G.n && e.a === G.a && e.b === G.b); }).map(function(e){
+// The groups with cardinality m besides ℤ/mℤ under +, each isomorphic to
+// the quotient (cyclic, as every quotient of a cyclic group is), on its
+// first generator: the cyclic groups of units of that order, and the
+// cyclic curves of that many points (listed for a curve's ring only).
+function unitQuotients(m){
+  return cyclicUnitGroups(m).map(function(e){ return { mode: 'multiplicative', n: e.n, curve: null, label: e.label, gen: e.gen }; });
+}
+function curveQuotients(G, m){
+  return cyclicCurves(m).filter(function(e){ return !(G.pts && e.p === G.n && e.a === G.a && e.b === G.b); }).map(function(e){
     return { mode: 'elliptic', n: e.p, curve: [e.p, e.a, e.b].join(','), label: ecChipLabel(e.p, e.a, e.b), gen: e.gen };
   });
-  if (G.mode !== 'multiplicative') return [];
-  return cyclicUnitGroups(m).map(function(e){ return { mode: 'multiplicative', n: e.n, curve: null, label: e.label, gen: e.gen }; });
 }
 function setRingDivide(from, focus, ask){
   if (ringDivFrom) ringDivFrom.setAttribute('aria-expanded', 'false');
   ringDivFrom = from;
   ringDivEl.hidden = !from;
+  ringDivEl.classList.remove('is-div-table');
+  ringDivEl.style.width = '';
   if (!from || !drawn){ ringDivEl.replaceChildren(); return; }
   from.setAttribute('aria-expanded', 'true');
   var G = drawn.G;
@@ -7289,28 +7301,58 @@ function setRingDivide(from, focus, ask){
     no.item.addEventListener('click', function(){ setRingDivide(from, true); });
     ringDivEl.replaceChildren(warn, yes.item, no.item);
   } else {
-    // For each divisor d, ℤ/(|G|/d)ℤ under +, then the groups of G's own
-    // operation with that cardinality, taken without changing the operation.
-    var items = [];
-    divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; }).forEach(function(d){
+    // A table: a row per divisor d, its ÷ d, then ℤ/(|G|/d)ℤ under +, the
+    // groups of units of that order and, on a curve, the curves with that
+    // many points. A group of the ring's own operation is taken as it is;
+    // the additive one, on a ring not under +, warns of the reduction first.
+    var curves = !!G.pts, cols = curves ? 3 : 2;
+    var head = function(text){ var h = document.createElement('p'); h.className = 'fs-menu-head'; h.textContent = text; return h; };
+    var items = [document.createElement('span'), head(translate('common.additiveGroups')), head(translate('common.multiplicativeGroups'))];
+    if (curves) items.push(head(translate('cyclicGroups.cardDivideCurves')));
+    var pick = function(d, spec){
       var it = ctxItem('menuitem', '');
-      translateInto(it.item.children[1], 'cyclicGroups.cardDivideBy', { d: mNum(d), group: swapName(quotientSpec(G.order / d)) });
+      it.item.children[1].appendChild(swapName(spec));
       it.item.addEventListener('click', function(){
-        if (G.mode === 'additive' && !G.pts && !divideBreaksLock()) divideGroup(G.order / d);
+        if (divideBreaksLock()) setRingDivide(from, true, { d: d, spec: spec });
+        else divideTo(spec);
+      });
+      return it.item;
+    };
+    var cell = function(list, rule){
+      var c = document.createElement('div');
+      c.className = 'div-cell' + (rule ? ' is-rule' : '');
+      if (!list.length){
+        var none = document.createElement('p');
+        none.className = 'div-none';
+        none.setAttribute('aria-hidden', 'true');
+        none.textContent = '\u2014';
+        c.appendChild(none);
+      }
+      list.forEach(function(el){ c.appendChild(el); });
+      return c;
+    };
+    divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; }).forEach(function(d, row){
+      var m = G.order / d, rule = row > 0;
+      var dl = document.createElement('p');
+      dl.className = 'div-d' + (rule ? ' is-rule' : '');
+      translateInto(dl, 'cyclicGroups.cardDivideRow', { d: mNum(d) });
+      var add = ctxItem('menuitem', '');
+      add.item.children[1].appendChild(swapName(quotientSpec(m)));
+      add.item.addEventListener('click', function(){
+        if (G.mode === 'additive' && !G.pts && !divideBreaksLock()) divideGroup(m);
         else setRingDivide(from, true, d);
       });
-      items.push(it.item);
-      sameOpQuotients(G, G.order / d).forEach(function(spec){
-        var same = ctxItem('menuitem', '');
-        translateInto(same.item.children[1], 'cyclicGroups.cardDivideBy', { d: mNum(d), group: swapName(spec) });
-        same.item.addEventListener('click', function(){
-          if (divideBreaksLock()) setRingDivide(from, true, { d: d, spec: spec });
-          else divideTo(spec);
-        });
-        items.push(same.item);
-      });
+      items.push(dl, cell([add.item], rule), cell(unitQuotients(m).map(function(spec){ return pick(d, spec); }), rule));
+      if (curves) items.push(cell(curveQuotients(G, m).map(function(spec){ return pick(d, spec); }), rule));
     });
+    ringDivEl.classList.add('is-div-table');
+    ringDivEl.style.setProperty('--div-cols', String(cols));
     ringDivEl.replaceChildren.apply(ringDivEl, items);
+  }
+  // The table as wide as its laid-out columns, which its math's own measure
+  // (its max-content) can fall short of.
+  if (ringDivEl.classList.contains('is-div-table') && ringDivEl.scrollWidth > ringDivEl.clientWidth){
+    ringDivEl.style.width = (ringDivEl.scrollWidth + ringDivEl.offsetWidth - ringDivEl.clientWidth) + 'px';
   }
   // Beside the menu holding Divide (the menu itself or Group cardinality's
   // submenu), right or, without room, left.

@@ -258,7 +258,9 @@
    operation with the divided cardinality would break the lock), swapHead (the
    ring menu's Swap section heading, formerly swapIsoHead's Isomorphic swap)
    and ctxFormulasHead (the Formulas heading over the copied formulas in the
-   Subgroup row's menu).
+   Subgroup row's menu), cardDivideRow and cardDivideCurves (Divide's table:
+   a row's ÷ d, and the curves column's heading beside the shared Additive
+   and Multiplicative Groups headings).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1188,6 +1190,8 @@
       cardDivideWarnLock: 'This breaks the isomorphism locking this ring to the other: dividing the modulus {n} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
       cardDivideWarnBoth: 'This breaks the isomorphism locking this ring to the other. It also first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is divided by {d}, giving {result}. Continue?',
       cardDivideWarnLockSame: 'This breaks the isomorphism locking this ring to the other: dividing the cardinality {card} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
+      cardDivideRow: '÷ {d}',
+      cardDivideCurves: 'Elliptic Curves',
       cardDivideYes: 'Yes',
       cardDivideNo: 'No',
       ctxGroupStructure: 'Group structure',
