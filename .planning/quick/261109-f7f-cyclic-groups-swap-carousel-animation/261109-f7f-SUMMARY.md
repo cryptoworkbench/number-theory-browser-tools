@@ -69,3 +69,20 @@ Seen with ⟨ℤ/13ℤ, ×⟩ and ⟨ℤ/5ℤ, ×⟩. Recorded on the left from 
   (its position, from the taller rows of the two groups, is the same after the swap).
 After: in both directions the ring is drawn once in its final colours, and no element's position or
 any text on the left changes from the landing on; no console errors.
+
+## Fix (e87192e): the pane swaps in place instead of reloading
+
+Still seen: on the left only the values changed at the landing; on the right the first two control
+rows, the ring (after landing) and its expression slider were drawn anew, since the swap replaced
+the pane's frame. Now swapIsoRings calls swapPaneInPlace: the host resets what it last told the pane
+and posts `ringhost: 'swapto'` (the new query, plotOpen); the pane answers `ringwin: 'swapped'`
+(until then the host ignores `state` reports, which may name the old group), then runs loadState as
+the host's swap does (keeping its own rot/top/autoRotate/autoSpeed/fsetOpen), sets curvePlotOpen and
+renders; the host then re-sends shared state, head, top, interlock and keys. The drawnwatch is sent
+before swapto, so a direction change in the pane is taken without the flip animation; its ring stays
+hidden under the copy until the host's `drawnwatch end` (2 s fallback). The copies now land centre on
+centre scaled by their fit to the svg viewBox (both rings use 0 113 760 647 here, not square).
+Removed: swapin, is-swap-pending, is-leaving, holdSwapFrame, loadIsoFrame(keepOld).
+Recorded in Chrome, ⟨ℤ/13ℤ, ×⟩ with ⟨ℤ/5ℤ, ×⟩ and with ⟨ℤ/6ℤ, +⟩, both directions: the frame is
+kept; both sides change only within 100 ms of the landing and not after; under each copy the real
+ring's beads are within 0.2 px of the copy's, colours the same; no flip animation visible; no errors.
