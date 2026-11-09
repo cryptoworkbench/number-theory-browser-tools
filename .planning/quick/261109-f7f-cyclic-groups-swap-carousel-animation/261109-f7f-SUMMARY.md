@@ -99,3 +99,13 @@ pane's ring directly via contentDocument in the same task as the layer goes up/d
 `ringhide` / `drawnwatch end` only where the pane is out of reach, i.e. file://), and the pane's
 fallback timer (paneWatchEnd) is cleared on end and on the next ringsnap. Measured: 0 ms at both
 handoffs; four rapid swaps, ~1,500 samples, never both or neither shown.
+
+## Fix (136d3c3): the middle-line controls stand still during the swap
+
+At the landing keepLockClear ran while the pane's rows still showed its old group (and, inside
+swapPaneInPlace, while is-sub-merged was momentarily off): dir-pref, the lock slider, the flip
+button and the padlock jumped ~16 px up, and split-btn (the Numerical chevron) dropped to its
+unplaced spot by the Show the subgroup switch (745,70), until the pane redrew. keepLockClear now
+returns while swapSpin is set, and endSwapSpin places the column once. Recorded in Chrome, both
+directions, every 2 ms from click to after the end: before the change all five moved at the
+landing; after it nothing moved and every control ended where it started.
