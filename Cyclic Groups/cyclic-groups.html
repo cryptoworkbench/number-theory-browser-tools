@@ -6296,10 +6296,12 @@ function restGhost(node){
   });
   return mEl('mpadded', [mEl('mphantom', [copy])], { width: '0' });
 }
-function rowFormulaH(G, h, x, paint){
+// natOff true writes h without Natural's exponent, whatever Exponents in
+// natural expression says (the subgroup row menu's copies).
+function rowFormulaH(G, h, x, paint, natOff){
   return function(base, q, raw){
     var m, from = base === undefined ? null : base, to = revealTo(G);
-    if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G).m(h);
+    if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G, natOff).m(h);
     else {
       var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G), qm = numMn(raw ? e.raw(q) : e.ex(q), ew, signRoomExp(G));
       // On a curve the multiples notation writes q·(x, y) for the power.
@@ -6308,7 +6310,7 @@ function rowFormulaH(G, h, x, paint){
     // A power here reveals whatever the panel writes, the setting alone
     // deciding (the formulas write powers of h even beside Natural).
     if (!state.revealOff && (from !== to || revealSignsDiffer(G))){
-      var ex = mrow(m), nat = mrow(asReveal(function(){ return to === null ? subFormat(null, null, subWidth(G), 0, G).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h); }));
+      var ex = mrow(m), nat = mrow(asReveal(function(){ return to === null ? subFormat(null, null, subWidth(G), 0, G, natOff).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h); }));
       m = mrow.apply(null, revealForms(ex, nat));
       m.setAttribute('class', 'sub-reveal');
       m.setAttribute('data-g', from === null ? '' : String(from));
@@ -6633,7 +6635,7 @@ function ctxName(k){ return k === 'struct' ? 'cyclicGroups.ctxGroupStructure' : 
 // key with Ec after it, unless Keep general (idxGeneral,
 // from the Cofactor column's menu) keeps it the index. G is the group
 // meant, the ring's own unless given.
-var IDX_KEYS = ['cyclicGroups.ctxSubIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
+var IDX_KEYS = ['cyclicGroups.ctxItemIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
 function idxKey(key, G){
   if (G === undefined) G = drawn ? drawn.G : null;
   return G && G.pts && !state.idxGeneral && IDX_KEYS.indexOf(key) !== -1 ? key + 'Ec' : key;
@@ -6646,7 +6648,7 @@ function syncIdxNames(G){
     o.textContent = translate(idxKey(key, G));
   });
 }
-var CTX_NAMES = { gsub: 'cyclicGroups.formulaToggleSubName', ggroup: 'cyclicGroups.formulaToggleName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.formulaToggleSubgroupShort', cindex: 'cyclicGroups.ctxSubIndex', struct: 'cyclicGroups.fact.structure' };
+var CTX_NAMES = { gsub: 'cyclicGroups.ctxItemName', ggroup: 'cyclicGroups.formulaToggleName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.ctxItemSize', cindex: 'cyclicGroups.ctxItemIndex', struct: 'cyclicGroups.fact.structure' };
 // The group's structure, the last of the right-click menu's formulas,
 // copied like the rest: ⟨ℤ/nℤ, +⟩ for a cyclic
 // group, else the product of its cyclic factors.
@@ -6708,10 +6710,11 @@ function menuFormulas(G){
   // Without the row's chips and colours, which mean nothing once copied.
   var plainOut = function(m){ [m].concat([].slice.call(m.querySelectorAll('[class]'))).forEach(function(el){ el.removeAttribute('class'); }); return m; };
   // The subgroup's name, ⟨h⟩ ∈ …, h written as the row writes it, in the
-  // element expression slider's expression.
-  var h = state.gen, hw = cosetGenWrite(G, h, false);
+  // element expression slider's expression; here, as in its formulas,
+  // never with Natural's exponent.
+  var h = state.gen, hw = cosetGenWrite(G, h, false, true);
   list.push({ key: 'gsub', cls: 'ring-math-title', math: mrow(angle(plainOut(hw.m)), mo('∈'), name.math), plain: '⟨' + hw.p + '⟩ ∈ ' + name.plain });
-  var hm = rowFormulaH(G, h, h, true);
+  var hm = rowFormulaH(G, h, h, true, true);
   [['order', 'sorder'], ['index', 'cindex']].forEach(function(t){
     var f = hasMap(G) ? mapFormula(G, h, t[0], state.fmap[t[0]], mapBase(G), hm)
       : G.pts ? ecRowFormula(G, h, t[0], hm, true)[0]
@@ -9941,11 +9944,7 @@ document.addEventListener('contextmenu', function(e){
 // The subgroup's name over its formulas in that menu, ⟨h⟩ ∈ G, h as the row
 // writes it but never with Natural's exponent (Exponents in natural
 // expression has no say here).
-function ctxSubName(G){
-  var lg = exprBy(G), H = !IS_ISOPANE && subInterlocked() ? isoPaneGroup() : null;
-  var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G), G, true);
-  return '⟨' + f.p(state.gen) + '⟩ ∈ ' + curveName(G);
-}
+function ctxSubName(G){ return '⟨' + cosetGenWrite(G, state.gen, false, true).p + '⟩ ∈ ' + curveName(G); }
 function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
@@ -9997,8 +9996,9 @@ function syncExprCtx(key){
     } else fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
     ringCtxEl.appendChild(fhead);
     sec.keys.forEach(function(k){
-      // The index named plainly (ctxName): Subgroup index, or Subgroup
-      // cofactor on a curve unless the index is kept general.
+      // Under the subgroup's heading its formulas are named plainly (ctxName):
+      // Name, Size and Index, Cofactor on a curve unless the index is kept
+      // general.
       var it = ctxItem('menuitem', translate(ctxName(k)), true);
       it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
       it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
@@ -17562,10 +17562,10 @@ function cosetIndexMath(G, h, left, hw){
 }
 // The subgroup row's G = ⟨h⟩: h in the element expression slider's
 // expression, as the beads are, lined up and coloured like its bead.
-function cosetGenWrite(G, h, reveal){
+function cosetGenWrite(G, h, reveal, natOff){
   var lg = exprBy(G);
   var H = !IS_ISOPANE && subInterlocked() ? isoPaneGroup() : null;
-  var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G), G);
+  var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G), G, natOff);
   return { m: memberMath(h, reveal ? f.r(h, true) : f.m(h)), p: f.p(h) };
 }
 // The cosets button's h: always its natural number, lined up and coloured
