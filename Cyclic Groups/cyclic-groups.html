@@ -250,7 +250,7 @@
   .iso-swap:hover{ color:var(--accent); border-color:var(--accent); }
   .iso-swap:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .iso-swap[hidden]{ display:none; }
-  /* The swap's carousel (see startSwapSpin): copies of the two circles of
+  /* The swap's flip (see startSwapSpin): copies of the two circles of
      beads over everything, the real ones hidden until the swap is done. */
   svg.ring-svg.is-swap-hidden{ visibility:hidden; }
   .swap-spin{ position:fixed; inset:0; z-index:60; pointer-events:none; }
@@ -11091,7 +11091,7 @@ if (IS_RINGWIN){
       else pinPaneBody(false);
       return;
     }
-    // The swap's carousel: this ring as it stands, for the page to carry
+    // The swap's flip: this ring as it stands, for the page to carry
     // across, and hidden here meanwhile.
     if (d.ringhost === 'ringsnap'){
       if (!IS_ISOPANE) return;
@@ -19194,16 +19194,17 @@ function swapIsoRings(keepOld){
 }
 isoSwapEl.addEventListener('click', startSwapSpin);
 
-/* ---------- the swap's carousel ---------- */
+/* ---------- the swap's flip ---------- */
 
-// Swapping, the two circles of beads trade places as on a carousel turning
-// about the line between the panes: the left one swings across in front,
-// the right one behind, each facing the viewer all the way. They are copies
-// carried over everything; the real rings hide meanwhile, and the text and
-// controls stay as they are until the copies arrive, when the swap is done
-// and they all snap to the other side's. The pane's old frame stays up, its
-// ring hidden under the copy, until the new one has loaded.
-var SWAP_SPIN_MS = 700;
+// Swapping, the two circles of beads flip over together like one coin, as
+// a ring flips (see flipRing), about the line between the panes: each turns
+// edge-on onto that line, and they open out from there on the other side,
+// the left ring now on the right and the right one on the left, never seen
+// reversed. They are copies carried over everything; the real rings hide
+// meanwhile, and the text and controls stay as they are until the flip
+// lands, when the swap is done and they all snap to the other side's. The
+// pane's old frame stays up, its ring hidden under the copy, until the new
+// one has loaded.
 var swapSpin = null;
 function startSwapSpin(){
   if (swapSpin || !canSwapRings()) return;
@@ -19247,39 +19248,40 @@ function runSwapSpin(d){
   var back = swapRingCopy(document.importNode(parsed, true), 'swap-r-');
   var front = swapRingCopy(ringSvgEl.cloneNode(true), 'swap-l-');
   [[back, r], [front, l]].forEach(function(c){
+    c[0].width0 = c[1].width;
     c[0].style.width = c[1].width + 'px';
     c[0].style.height = c[1].height + 'px';
     layer.appendChild(c[0]);
   });
   (document.fullscreenElement || document.body).appendChild(layer);
   ringSvgEl.classList.add('is-swap-hidden');
-  swapSpin = { layer: layer, front: front, back: back, l: l, r: r, t0: null, frame: null, old: null, guard: null, arrived: false };
+  var sw = boxOf(isoSwapEl), ax = sw.width ? sw.left + sw.width / 2 : boxOf(isoPaneEl).left;
+  var ay = (l.top + l.height / 2 + r.top + r.height / 2) / 2;
+  swapSpin = { layer: layer, front: front, back: back, l: l, r: r, ax: ax, ay: ay, t0: null, frame: null, old: null, guard: null, arrived: false };
   placeSwapCopies(0);
   requestAnimationFrame(swapSpinFrame);
   // Frames held back (a hidden tab) never hold the swap up.
-  swapSpin.late = setTimeout(arriveSwapSpin, SWAP_SPIN_MS + 150);
+  swapSpin.late = setTimeout(arriveSwapSpin, FLIP_MS + 150);
 }
-// t from 0 to 1: half a turn of the carousel. Seen from the front, each ring
-// moves across as cos, nearer or farther as sin; its size goes from its own
-// pane's to the other's.
+// t from 0 to 1: the half turn. Across the line everything is squashed by
+// cos θ, the coin sinking back a little at mid-turn; up to edge-on each ring
+// stands on its own side, from there on the other side, each landing on the
+// place of the ring it trades with.
 function placeSwapCopies(t){
-  var s = swapSpin, p = (1 - Math.cos(Math.PI * t)) / 2, depth = Math.sin(Math.PI * t);
-  var place = function(el, from, to, near, dim){
-    var w = (from.width + (to.width - from.width) * p) * near;
-    var cx = from.left + from.width / 2 + (to.left + to.width / 2 - from.left - from.width / 2) * p;
-    var cy = from.top + from.height / 2 + (to.top + to.height / 2 - from.top - from.height / 2) * p;
-    var sc = w / from.width;
-    el.style.transform = 'translate(' + num(cx - from.width * sc / 2) + 'px,' + num(cy - from.height * sc / 2) + 'px) scale(' + num(sc) + ')';
-    el.style.opacity = num(dim);
+  var s = swapSpin, th = Math.PI * easeInOutCubic(t);
+  var c = Math.max(0.001, Math.abs(Math.cos(th))), k = 1 - FLIP_SINK * Math.sin(th), first = th < Math.PI / 2;
+  var place = function(el, box){
+    var sc = box.width / el.width0;
+    el.style.transform = 'translate(' + num(s.ax) + 'px,' + num(s.ay) + 'px) scale(' + num(c * k) + ',' + num(k) + ') translate(' + num(box.left - s.ax) + 'px,' + num(box.top - s.ay) + 'px) scale(' + num(sc) + ')';
   };
-  place(s.front, s.l, s.r, 1 + 0.12 * depth, 1);
-  place(s.back, s.r, s.l, 1 - 0.2 * depth, 1 - 0.5 * depth);
+  place(s.front, first ? s.l : s.r);
+  place(s.back, first ? s.r : s.l);
 }
 function swapSpinFrame(now){
   var s = swapSpin;
   if (!s || !s.layer || s.arrived) return;
   if (s.t0 === null) s.t0 = now;
-  var t = Math.min(1, (now - s.t0) / SWAP_SPIN_MS);
+  var t = Math.min(1, (now - s.t0) / FLIP_MS);
   placeSwapCopies(t);
   if (t < 1) requestAnimationFrame(swapSpinFrame);
   else arriveSwapSpin();
