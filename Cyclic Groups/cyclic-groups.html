@@ -17829,9 +17829,10 @@ function revealLog(G, g){ var k = G.key + ' ' + g; return revealLogs[k] || (reve
 // chip painted exactly as its bead x is (drawn.paint: the same class, the
 // same inline --ord), so order, inverse and website-theme colourings and a
 // linked pane's borrowed colours all carry over; off, it is left as it is.
-function memberMath(x, content){
+// paint, when given, is the bead's paint on the pane's ring (paneBead).
+function memberMath(x, content, paint){
   if (state.subColor === 'off' || !drawn) return content;
-  var p = drawn.paint(x) || {}, chip = mrow(content);
+  var p = paint || drawn.paint(x) || {}, chip = mrow(content);
   chip.setAttribute('class', ('sub-chip sub-chip-' + state.subColor + ' ' + (p.cls || '')).trim());
   if (p.style) chip.setAttribute('style', p.style);
   // A reveal goes on the chip, and the chip on the line as the reveal would.
@@ -18070,11 +18071,16 @@ function renderMirroredSubgroups(G){
   var paneNatOff = new URLSearchParams(isoPane.q || '').get('natexp') === '0';
   var hfl = subFormat(hl, hl === null ? null : exprLog(H, hl), widthH, expWidth, H, paneNatOff);
   var hfr = subFormat(hr, hr === null ? null : exprLog(H, hr), widthH, expWidth, H, paneNatOff);
-  // The right side's beads borrow the pane's colours only while the rings are
-  // linked, and only inside the subgroup, where the pane's paints are known.
+  // The right side's members are painted as their beads are on the pane's
+  // ring, every one of them, as the pane reports its paints (paneBead);
+  // until it has, linked, those inside the subgroup as their preimages.
   var linked = isoLinked();
-  var rightMath = function(x, content){ return linked && inS(x) ? memberMath(psi(x), content) : content; };
-  var sig = 'R ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked;
+  var rightMath = function(x, content){
+    var p = paneBead(H, x);
+    if (p) return memberMath(x, content, p);
+    return linked && inS(x) ? memberMath(psi(x), content) : content;
+  };
+  var sig = 'R ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + (paneBeads ? paneBeads.sig : '');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(el){
       var on = Number(el.getAttribute('data-pane-gen')) === row;
@@ -20075,6 +20081,36 @@ function isoWholeMatch(){
 function isoLinked(){
   return isoFound() && isoPane.link === 'linked' && (isoPane.hsub === true || isoPane.H.orders[isoPane.h] === isoPane.H.order) && groupControlsEl.classList.contains('is-locked');
 }
+// How the pane paints each of its beads, as it reports after every render
+// that changes it ({ key, paints: [[element, class, style], …] }): the
+// panel's right side paints its members so, as Colour members like their
+// beads asks (see memberMath).
+var paneBeads = null, paneBeadsSent = null;
+function tellPaneBeads(G, paint){
+  var paints = G.els.map(function(a){ var p = paint(a) || {}; return [a, p.cls || '', p.style || null]; });
+  var sig = G.key + ' ' + JSON.stringify(paints);
+  if (sig === paneBeadsSent) return;
+  paneBeadsSent = sig;
+  tellHost({ isopane: 'beads', key: G.key, paints: paints });
+}
+function takePaneBeads(d){
+  if (typeof d.key !== 'string' || !Array.isArray(d.paints) || d.paints.length > 4096) return;
+  var map = {};
+  var ok = d.paints.every(function(e){
+    if (!Array.isArray(e) || !Number.isInteger(e[0]) || typeof e[1] !== 'string' || !/^[a-z0-9 -]{0,40}$/.test(e[1])) return false;
+    // Only an --ord colour is taken as a style; anything else is left out.
+    var style = typeof e[2] === 'string' && e[2].length < 200 && e[2].indexOf(ISO_PAINT_PREFIX) === 0 && !/[;{}<>]/.test(e[2]) ? e[2] : null;
+    map[e[0]] = { cls: e[1], style: style };
+    return true;
+  });
+  if (!ok) return;
+  var sig = d.key + ' ' + JSON.stringify(d.paints);
+  if (paneBeads && paneBeads.sig === sig) return;
+  paneBeads = { key: d.key, map: map, sig: sig };
+  if (drawn) renderSubgroups(drawn.G);
+}
+// The paint of the pane's bead x, while the pane's group is H.
+function paneBead(H, x){ return paneBeads && H && paneBeads.key === H.key ? paneBeads.map[x] || null : null; }
 // The pane's path colour key, as the pane reports it after every render:
 // { on, h, hinv, merged, back }; locked, its G names the pane's side in
 // the key's hover tables.
@@ -20941,6 +20977,8 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'cayleymin'){
     isoPaneCayleyMin = d.min === true;
     syncBarFormulas();
+  } else if (d.isopane === 'beads'){
+    takePaneBeads(d);
   } else if (d.isopane === 'key' && d.key && typeof d.key === 'object'){
     isoPaneKey = d.key;
     syncIsoKeys();
@@ -21739,6 +21777,7 @@ function render(){
   showRot(state.rot);
   preview = null;
   drawn = { G: G, paint: paint };
+  if (IS_ISOPANE) tellPaneBeads(G, paint);
   if (!isoOrder()){ isoHot = null; isoHoverSent = null; }
   drawDhPlot(G);
   syncTabTitle();
