@@ -86,3 +86,16 @@ Removed: swapin, is-swap-pending, is-leaving, holdSwapFrame, loadIsoFrame(keepOl
 Recorded in Chrome, ⟨ℤ/13ℤ, ×⟩ with ⟨ℤ/5ℤ, ×⟩ and with ⟨ℤ/6ℤ, +⟩, both directions: the frame is
 kept; both sides change only within 100 ms of the landing and not after; under each copy the real
 ring's beads are within 0.2 px of the copy's, colours the same; no flip animation visible; no errors.
+
+## Fix (913cd77): the right ring and its copy change places in one step
+
+Reported: on the right the connecting polygon and circle still light up/redraw, not on the left.
+Not reproduced as such in the test tab (computed strokes of the ring, the copies and the corner
+switches never changed); what differed from the left was the handoff: the pane hid its ring on
+ringsnap ~5 ms before the copies went up, and showed it ~5–8 ms after they came down, so a frame
+could show neither; and the pane's 2 s fallback from a swap under two seconds before could show its
+ring under the copy (see-through polygon and circle drawn twice). Now the host hides/shows the
+pane's ring directly via contentDocument in the same task as the layer goes up/down (messages
+`ringhide` / `drawnwatch end` only where the pane is out of reach, i.e. file://), and the pane's
+fallback timer (paneWatchEnd) is cleared on end and on the next ringsnap. Measured: 0 ms at both
+handoffs; four rapid swaps, ~1,500 samples, never both or neither shown.
