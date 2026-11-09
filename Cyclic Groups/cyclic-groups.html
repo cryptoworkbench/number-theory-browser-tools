@@ -10192,18 +10192,19 @@ function groupSpec(G){
 // Two groups are isomorphic when their invariant factors agree.
 function groupsAlike(G, H){ return G.order === H.order && invariantFactors(G).join() === invariantFactors(H).join(); }
 // The other ring's group and the groups isomorphic to it, while this ring's
-// is not, and the two are not linked: the pane's list comes from the ring
-// holding it (isoSharedAll), the holder's is built from the pane's query.
+// is not: unlinked, or locked through a subgroup (two whole groups locked
+// together are isomorphic). The pane's list comes from the ring holding it
+// (isoSharedAll), the holder's is built from the pane's query.
 function otherSpecs(){
-  if (IS_ISOPANE) return paneUnlinked() ? paneOthers : [];
-  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn || isoLinked()) return [];
+  if (IS_ISOPANE) return paneOthers;
+  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn) return [];
   var H = isoPaneGroup();
   if (!H || groupsAlike(drawn.G, H)) return [];
   return [groupSpec(H)].concat(wholeIsoChips(H).map(swapSpec));
 }
 // The list the pane gets: this ring's group and its isomorphic groups.
 function paneOtherList(){
-  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn || isoLinked()) return [];
+  if (!isoPane || isoPane.blank || isoPane.hostBlank || !drawn) return [];
   var H = isoPaneGroup();
   if (!H || groupsAlike(drawn.G, H)) return [];
   return [groupSpec(drawn.G)].concat(Array.prototype.map.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'), swapSpec));
@@ -10304,7 +10305,10 @@ function setRingOther(from, focus){
     it.item.children[1].appendChild(swapName(spec));
     it.item.addEventListener('click', function(){
       setRingCtx(false);
-      takeGroupSpec(spec);
+      // Linked through a subgroup, the ring holding the pane opens it again
+      // on the pick, as it opens a pick from the pane's own list.
+      if (IS_ISOPANE && !paneUnlinked()) tellHost({ isopane: 'other', spec: spec });
+      else takeGroupSpec(spec);
     });
     return it.item;
   }));
@@ -10377,6 +10381,22 @@ function paneSwapChip(spec){
   }) : null;
   if (a) a.setAttribute('href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen'), a.getAttribute('data-iso-curve')));
   return a || null;
+}
+// The pane's pick of a group isomorphic to this ring's whole group: the pane
+// opens again on it, linked whole group to whole group, as Open a
+// group-to-group isomorphism opens it. This ring's own group has no chip.
+function openPaneOther(spec){
+  if (!drawn || !isoPane) return;
+  var G = drawn.G;
+  var a = Array.prototype.find.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'), function(c){
+    var s = swapSpec(c);
+    return s.mode === spec.mode && s.n === spec.n && s.curve === spec.curve;
+  }) || null;
+  if (!a && !G.pts && spec.mode === G.mode && spec.n === G.n && !spec.curve){
+    a = isoLink(G.mode, G.n, G.generators[0], G.label);
+    a.setAttribute('href', isoHref(G.mode, G.n, G.generators[0], null));
+  }
+  if (a) openIsoPane(a, G.generators[0]);
 }
 function swapPaneGroup(a){
   if (!a) return;
@@ -21000,6 +21020,9 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'swap' && d.spec){
     var swapTo = readSwaps([d.spec])[0];
     if (swapTo) swapPaneGroup(swapChipOf(swapTo) || paneSwapChip(swapTo));
+  } else if (d.isopane === 'other' && d.spec){
+    var otherTo = readSwaps([d.spec])[0];
+    if (otherTo) openPaneOther(otherTo);
   } else if (d.isopane === 'fmap' && d.value && FMAP_POS.indexOf(d.value.order) !== -1 && FMAP_POS.indexOf(d.value.index) !== -1){
     state.fmapR = { order: d.value.order, index: d.value.index };
     // The pane's complexity is the bottom bar's too.
