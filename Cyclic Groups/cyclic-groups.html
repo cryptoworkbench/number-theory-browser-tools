@@ -7241,8 +7241,13 @@ function divideItem(G){
     it.item.title = translate(G.cyclic ? 'cyclicGroups.cardDivideNone' : 'cyclicGroups.cardDivideCyclic');
     return it.item;
   }
-  it.item.addEventListener('pointerenter', function(){ setRingDivide(it.item, false); });
-  it.item.addEventListener('click', function(){ setRingDivide(it.item, true); });
+  // In the menu itself, the other submenu closes as this one opens.
+  var open = function(focus){
+    if (it.item.parentNode === ringCtxEl) setRingCopy(null);
+    setRingDivide(it.item, focus);
+  };
+  it.item.addEventListener('pointerenter', function(){ open(false); });
+  it.item.addEventListener('click', function(){ open(true); });
   return it.item;
 }
 function quotientSpec(m){ return { mode: 'additive', n: m, curve: null, label: additiveLabel(m) }; }
@@ -7274,8 +7279,9 @@ function setRingDivide(from, focus, ask){
       return it.item;
     }));
   }
-  // Beside the submenu holding Divide, right or, without room, left.
-  var sub = boxOf(ringCopyEl), at = boxOf(from), w = ringDivEl.offsetWidth, h = ringDivEl.offsetHeight;
+  // Beside the menu holding Divide (the menu itself or Group cardinality's
+  // submenu), right or, without room, left.
+  var sub = boxOf(from.parentNode), at = boxOf(from), w = ringDivEl.offsetWidth, h = ringDivEl.offsetHeight;
   var vw = document.documentElement.clientWidth / PAGE_ZOOM, vh = document.documentElement.clientHeight / PAGE_ZOOM;
   var x = sub.right - 2;
   if (x + w > vw - 4) x = Math.max(4, sub.left - w + 2);
@@ -10267,6 +10273,11 @@ function syncSwapCtx(on){
     ringCtxEl.insertBefore(rd.item, at);
     first = rd.item;
   }
+  // Then Divide, as under Group cardinality: the quotients ℤ/(|G|/d)ℤ.
+  var div = divideItem(drawn.G);
+  div.classList.add('ring-ctx-swap');
+  ringCtxEl.insertBefore(div, at);
+  if (!first && !div.disabled) first = div;
   var it = ctxItem('menuitem', translate('cyclicGroups.swapIsoMenu'), true);
   it.mark.textContent = '\u21c6';
   it.item.classList.add('ring-ctx-swap');
@@ -10530,6 +10541,21 @@ document.addEventListener('pointerdown', function(e){
   if (!ringCtxEl.contains(e.target)) setRingCtx(false);
 });
 ringCtxEl.addEventListener('keydown', function(e){
+  // The Divide submenu: back to Divide with Escape or the left arrow.
+  if (!ringDivEl.hidden && ringDivEl.contains(e.target)){
+    var divs = Array.prototype.slice.call(ringDivEl.querySelectorAll('button')), dv = divs.indexOf(document.activeElement);
+    if (e.key === 'Escape' || e.key === 'ArrowLeft'){
+      var back = ringDivFrom;
+      setRingDivide(null);
+      if (back) back.focus();
+      e.preventDefault();
+      return;
+    }
+    var dby = e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey) ? 1 : e.key === 'ArrowUp' || e.key === 'Tab' ? -1 : 0;
+    if (dby){ divs[(dv + dby + divs.length) % divs.length].focus(); e.preventDefault(); }
+    else if (e.key === 'Home' || e.key === 'End'){ divs[e.key === 'Home' ? 0 : divs.length - 1].focus(); e.preventDefault(); }
+    return;
+  }
   // The copy submenu: back to its formula with Escape or the left arrow.
   if (!ringCopyEl.hidden && ringCopyEl.contains(e.target)){
     var copies = Array.prototype.slice.call(ringCopyEl.querySelectorAll('button')), c = copies.indexOf(document.activeElement);
