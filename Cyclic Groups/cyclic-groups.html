@@ -7251,6 +7251,17 @@ function divideItem(G){
   return it.item;
 }
 function quotientSpec(m){ return { mode: 'additive', n: m, curve: null, label: additiveLabel(m) }; }
+// The groups of G's own operation with cardinality m, each isomorphic to
+// the quotient (cyclic, as every quotient of a cyclic group is): the cyclic
+// groups of units of that order, or the cyclic curves of that many points,
+// each on its first generator. Under + the quotient itself is the one.
+function sameOpQuotients(G, m){
+  if (G.pts) return cyclicCurves(m).filter(function(e){ return !(e.p === G.n && e.a === G.a && e.b === G.b); }).map(function(e){
+    return { mode: 'elliptic', n: e.p, curve: [e.p, e.a, e.b].join(','), label: ecChipLabel(e.p, e.a, e.b), gen: e.gen };
+  });
+  if (G.mode !== 'multiplicative') return [];
+  return cyclicUnitGroups(m).map(function(e){ return { mode: 'multiplicative', n: e.n, curve: null, label: e.label, gen: e.gen }; });
+}
 function setRingDivide(from, focus, ask){
   if (ringDivFrom) ringDivFrom.setAttribute('aria-expanded', 'false');
   ringDivFrom = from;
@@ -7258,7 +7269,16 @@ function setRingDivide(from, focus, ask){
   if (!from || !drawn){ ringDivEl.replaceChildren(); return; }
   from.setAttribute('aria-expanded', 'true');
   var G = drawn.G;
-  if (ask){
+  if (ask && typeof ask === 'object'){
+    // A group of the same operation only breaks the lock: its warning.
+    var warnSame = document.createElement('p');
+    warnSame.className = 'ring-ctx-warn';
+    translateInto(warnSame, 'cyclicGroups.cardDivideWarnLockSame', { group: swapName(groupSpec(G)), card: mNum(G.order), d: mNum(ask.d), result: swapName(ask.spec) });
+    var yesSame = ctxItem('menuitem', translate('cyclicGroups.cardDivideYes')), noSame = ctxItem('menuitem', translate('cyclicGroups.cardDivideNo'));
+    yesSame.item.addEventListener('click', function(){ divideTo(ask.spec); });
+    noSame.item.addEventListener('click', function(){ setRingDivide(from, true); });
+    ringDivEl.replaceChildren(warnSame, yesSame.item, noSame.item);
+  } else if (ask){
     // The warning, then Yes and No: the reduction to the structure, the
     // isomorphism lock that breaks, or both.
     var warn = document.createElement('p'), additive = G.mode === 'additive' && !G.pts;
@@ -7269,15 +7289,28 @@ function setRingDivide(from, focus, ask){
     no.item.addEventListener('click', function(){ setRingDivide(from, true); });
     ringDivEl.replaceChildren(warn, yes.item, no.item);
   } else {
-    ringDivEl.replaceChildren.apply(ringDivEl, divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; }).map(function(d){
+    // For each divisor d, ℤ/(|G|/d)ℤ under +, then the groups of G's own
+    // operation with that cardinality, taken without changing the operation.
+    var items = [];
+    divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; }).forEach(function(d){
       var it = ctxItem('menuitem', '');
       translateInto(it.item.children[1], 'cyclicGroups.cardDivideBy', { d: mNum(d), group: swapName(quotientSpec(G.order / d)) });
       it.item.addEventListener('click', function(){
         if (G.mode === 'additive' && !G.pts && !divideBreaksLock()) divideGroup(G.order / d);
         else setRingDivide(from, true, d);
       });
-      return it.item;
-    }));
+      items.push(it.item);
+      sameOpQuotients(G, G.order / d).forEach(function(spec){
+        var same = ctxItem('menuitem', '');
+        translateInto(same.item.children[1], 'cyclicGroups.cardDivideBy', { d: mNum(d), group: swapName(spec) });
+        same.item.addEventListener('click', function(){
+          if (divideBreaksLock()) setRingDivide(from, true, { d: d, spec: spec });
+          else divideTo(spec);
+        });
+        items.push(same.item);
+      });
+    });
+    ringDivEl.replaceChildren.apply(ringDivEl, items);
   }
   // Beside the menu holding Divide (the menu itself or Group cardinality's
   // submenu), right or, without room, left.
@@ -7308,6 +7341,27 @@ function divideGroup(m){
     return;
   }
   applyDivide(m);
+}
+// The ring takes a group of its own operation with the divided cardinality,
+// shown whole through its first generator; locked, the padlock opens first.
+function divideTo(spec){
+  setRingCtx(false);
+  var apply = function(){
+    var q = stateQuery();
+    q.set('mode', spec.mode);
+    q.set('n', String(spec.n));
+    if (spec.curve) q.set('curve', spec.curve); else q.delete('curve');
+    q.set('gen', String(spec.gen));
+    ['expr', 'arrangegen'].forEach(function(k){ q.delete(k); });
+    applyRingQuery(q);
+  };
+  if (!divideBreaksLock()){ apply(); return; }
+  openGroupLock(false);
+  var wait = function(){
+    if (divideBreaksLock()) setTimeout(wait, 60);
+    else apply();
+  };
+  setTimeout(wait, 60);
 }
 function applyDivide(m){
   var q = stateQuery();

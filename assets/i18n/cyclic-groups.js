@@ -254,6 +254,8 @@
    (the tab's name while a subgroup is locked to a group, ⟨g⟩ ∈ G₁ ≅ G₂ or
    G₁ ≅ ⟨g⟩ ∈ G₂ as on screen, {sub} the subgroup selected or G; pure
    notation).
+   cardDivideWarnLockSame (Divide's warning when a group of the same
+   operation with the divided cardinality would break the lock).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1180,6 +1182,7 @@
       cardDivideWarn: 'This first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is divided by {d}, giving {result}. Continue?',
       cardDivideWarnLock: 'This breaks the isomorphism locking this ring to the other: dividing the modulus {n} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
       cardDivideWarnBoth: 'This breaks the isomorphism locking this ring to the other. It also first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is divided by {d}, giving {result}. Continue?',
+      cardDivideWarnLockSame: 'This breaks the isomorphism locking this ring to the other: dividing the cardinality {card} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
       cardDivideYes: 'Yes',
       cardDivideNo: 'No',
       ctxGroupStructure: 'Group structure',
