@@ -25,3 +25,13 @@ commit: e803b30
 - 236cecb: {sub} replaces G in the title: '⟨g⟩' of the left ring's G (state.gen) or of the pane's selected
   row (isoPane.row), G when none is selected. Verified: '⟨5⟩ ∈ ⟨ℤ/13ℤ, ×⟩ ≅ ⟨ℤ/5ℤ, ×⟩', after the swap
   '⟨ℤ/5ℤ, ×⟩ ≅ ⟨5⟩ ∈ ⟨ℤ/13ℤ, ×⟩', then ⟨8⟩, ⟨2⟩, ⟨12⟩ as rows were picked.
+- d4314ae (root cause, replacing the 'beads' report of bfdfa24 and the swap's carried paints from
+  81cd192): the host computes the pane's paints synchronously in the mirrored lock: panePainter(H) =
+  beadPainter(H, orderClasses(H.order), inversePairs(H)) with isoBorrowed null (the pane borrows
+  nothing there; colours/colorBy/picks are shared while linked). borrowedPaints uses paneLinkPaints()
+  (h^k for h = isoPane.h) before isoPaints; isoTakePaints no longer re-renders on that side;
+  renderMirroredSubgroups paints every right member with panePainter. Recorded every 3 ms: the swap
+  into the mirrored lock and a left-ring swap each draw the left ring once, in its final colours;
+  0 of ~1,900 and ~2,400 samples showed a wrong right-column colour; 89/89 chips match the pane's
+  beads (compared by each chip's base mn: the earlier 89/0 check had parsed '0501' as 501 and so
+  compared nothing).
