@@ -250,6 +250,12 @@
   .iso-swap:hover{ color:var(--accent); border-color:var(--accent); }
   .iso-swap:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .iso-swap[hidden]{ display:none; }
+  /* The swap's carousel (see startSwapSpin): copies of the two circles of
+     beads over everything, the real ones hidden until the swap is done. */
+  svg.ring-svg.is-swap-hidden{ visibility:hidden; }
+  .swap-spin{ position:fixed; inset:0; z-index:60; pointer-events:none; }
+  .swap-spin > svg.ring-svg{ position:absolute; left:0; top:0; margin:0; max-width:none; max-height:none; transform-origin:0 0; transition:none; animation:none; }
+  .iso-pane > iframe.is-leaving{ position:absolute; z-index:0; pointer-events:none; }
   .iso-swap svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
   .iso-lock svg{ width:26px; height:26px; overflow:visible; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
   :is(.iso-lock, .group-lock) .lock-keyhole{ fill:currentColor; stroke:none; }
@@ -11085,6 +11091,15 @@ if (IS_RINGWIN){
       else pinPaneBody(false);
       return;
     }
+    // The swap's carousel: this ring as it stands, for the page to carry
+    // across, and hidden here meanwhile.
+    if (d.ringhost === 'ringsnap'){
+      if (!IS_ISOPANE) return;
+      var rb = ringSvgEl.getBoundingClientRect();
+      try { window.parent.postMessage({ ringwin: 'ringsnap', svg: new XMLSerializer().serializeToString(ringSvgEl), box: [rb.left, rb.top, rb.width, rb.height], w: window.innerWidth }, '*'); } catch (err) { return; }
+      ringSvgEl.classList.add('is-swap-hidden');
+      return;
+    }
     if (d.ringhost !== 'look') return;
     var root = document.documentElement;
     if ((d.theme === 'day' || d.theme === 'night') && root.getAttribute('data-theme') !== d.theme) root.setAttribute('data-theme', d.theme);
@@ -18967,8 +18982,11 @@ function openOwnPane(){
   syncIsoPaneLabels();
   syncIsoKeys();
 }
-function loadIsoFrame(){
-  if (isoPaneFrame) isoPaneFrame.remove();
+function loadIsoFrame(keepOld){
+  if (isoPaneFrame){
+    if (keepOld) holdSwapFrame(isoPaneFrame);
+    else isoPaneFrame.remove();
+  }
   isoPanePlotMin = false;
   isoPanePolyMin = false;
   isoPaneCayleyMin = false;
@@ -18983,6 +19001,7 @@ function loadIsoFrame(){
   var f = document.createElement('iframe');
   f.addEventListener('load', function(){
     f.classList.add('is-loaded');
+    if (swapSpin && swapSpin.frame === f) endSwapSpin();
     // Opened from the picker: once the new ring has its group and has drawn
     // it, the picker goes and the blur lifts.
     if (f.classList.contains('is-blurred')){
@@ -19104,7 +19123,7 @@ var isoSwapEl = $('iso-swap');
 function canSwapRings(){
   return !IS_ISOPANE && !!isoPane && !isoPane.blank && !isoPane.hostBlank && !!isoPaneFrame;
 }
-function swapIsoRings(){
+function swapIsoRings(keepOld){
   if (!canSwapRings()) return;
   if (cosetRun) stopCosets();
   // How the rings are linked, told before either group changes: through
@@ -19169,11 +19188,137 @@ function swapIsoRings(){
     isoPane.h = g === null ? oldId : g;
     isoPane.link = 'none';
   }
-  loadIsoFrame();
+  loadIsoFrame(keepOld === true);
   syncControls();
   render();
 }
-isoSwapEl.addEventListener('click', swapIsoRings);
+isoSwapEl.addEventListener('click', startSwapSpin);
+
+/* ---------- the swap's carousel ---------- */
+
+// Swapping, the two circles of beads trade places as on a carousel turning
+// about the line between the panes: the left one swings across in front,
+// the right one behind, each facing the viewer all the way. They are copies
+// carried over everything; the real rings hide meanwhile, and the text and
+// controls stay as they are until the copies arrive, when the swap is done
+// and they all snap to the other side's. The pane's old frame stays up, its
+// ring hidden under the copy, until the new one has loaded.
+var SWAP_SPIN_MS = 700;
+var swapSpin = null;
+function startSwapSpin(){
+  if (swapSpin || !canSwapRings()) return;
+  if (!drawn || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ swapIsoRings(); return; }
+  swapSpin = { waiting: setTimeout(function(){ swapSpin = null; swapIsoRings(); }, 400) };
+  tellPane({ ringhost: 'ringsnap' });
+}
+// A copy of a ring's svg, its ids made its own so that its gradients and
+// markers never resolve to the real ring's.
+function swapRingCopy(svg, pfx){
+  svg.removeAttribute('id');
+  svg.classList.remove('is-swap-hidden', 'is-turning');
+  var ids = {};
+  svg.querySelectorAll('[id]').forEach(function(el){ ids[el.id] = pfx + el.id; el.id = ids[el.id]; });
+  svg.querySelectorAll('*').forEach(function(el){
+    Array.prototype.forEach.call(el.attributes, function(a){
+      if (a.value.indexOf('#') === -1) return;
+      var v = a.value.replace(/url\(\s*["']?#([^)"'\s]+)["']?\s*\)/g, function(m, id){ return ids[id] ? 'url(#' + ids[id] + ')' : m; });
+      if (/href$/.test(a.name) && v.charAt(0) === '#' && ids[v.slice(1)]) v = '#' + ids[v.slice(1)];
+      if (v !== a.value) a.value = v;
+    });
+  });
+  svg.setAttribute('aria-hidden', 'true');
+  return svg;
+}
+function runSwapSpin(d){
+  if (!swapSpin || !swapSpin.waiting) return;
+  clearTimeout(swapSpin.waiting);
+  swapSpin.waiting = null;
+  var parsed = typeof d.svg === 'string' && new DOMParser().parseFromString(d.svg, 'image/svg+xml').documentElement;
+  var f = boxOf(isoPaneFrame), k = d.w > 0 ? f.width / d.w : 1;
+  if (!parsed || parsed.nodeName !== 'svg' || !Array.isArray(d.box) || !(d.box[2] > 0) || !canSwapRings()){
+    swapSpin = null;
+    swapIsoRings();
+    return;
+  }
+  var l = boxOf(ringSvgEl);
+  var r = { left: f.left + d.box[0] * k, top: f.top + d.box[1] * k, width: d.box[2] * k, height: d.box[3] * k };
+  var layer = document.createElement('div');
+  layer.className = 'swap-spin';
+  var back = swapRingCopy(document.importNode(parsed, true), 'swap-r-');
+  var front = swapRingCopy(ringSvgEl.cloneNode(true), 'swap-l-');
+  [[back, r], [front, l]].forEach(function(c){
+    c[0].style.width = c[1].width + 'px';
+    c[0].style.height = c[1].height + 'px';
+    layer.appendChild(c[0]);
+  });
+  (document.fullscreenElement || document.body).appendChild(layer);
+  ringSvgEl.classList.add('is-swap-hidden');
+  swapSpin = { layer: layer, front: front, back: back, l: l, r: r, t0: null, frame: null, old: null, guard: null, arrived: false };
+  placeSwapCopies(0);
+  requestAnimationFrame(swapSpinFrame);
+  // Frames held back (a hidden tab) never hold the swap up.
+  swapSpin.late = setTimeout(arriveSwapSpin, SWAP_SPIN_MS + 150);
+}
+// t from 0 to 1: half a turn of the carousel. Seen from the front, each ring
+// moves across as cos, nearer or farther as sin; its size goes from its own
+// pane's to the other's.
+function placeSwapCopies(t){
+  var s = swapSpin, p = (1 - Math.cos(Math.PI * t)) / 2, depth = Math.sin(Math.PI * t);
+  var place = function(el, from, to, near, dim){
+    var w = (from.width + (to.width - from.width) * p) * near;
+    var cx = from.left + from.width / 2 + (to.left + to.width / 2 - from.left - from.width / 2) * p;
+    var cy = from.top + from.height / 2 + (to.top + to.height / 2 - from.top - from.height / 2) * p;
+    var sc = w / from.width;
+    el.style.transform = 'translate(' + num(cx - from.width * sc / 2) + 'px,' + num(cy - from.height * sc / 2) + 'px) scale(' + num(sc) + ')';
+    el.style.opacity = num(dim);
+  };
+  place(s.front, s.l, s.r, 1 + 0.12 * depth, 1);
+  place(s.back, s.r, s.l, 1 - 0.2 * depth, 1 - 0.5 * depth);
+}
+function swapSpinFrame(now){
+  var s = swapSpin;
+  if (!s || !s.layer || s.arrived) return;
+  if (s.t0 === null) s.t0 = now;
+  var t = Math.min(1, (now - s.t0) / SWAP_SPIN_MS);
+  placeSwapCopies(t);
+  if (t < 1) requestAnimationFrame(swapSpinFrame);
+  else arriveSwapSpin();
+}
+// Arrived: the swap itself. This ring draws at once, so the copy over it
+// goes; the one over the pane waits for the pane's new frame.
+function arriveSwapSpin(){
+  var s = swapSpin;
+  if (!s || !s.layer || s.arrived) return;
+  s.arrived = true;
+  clearTimeout(s.late);
+  placeSwapCopies(1);
+  swapIsoRings(true);
+  ringSvgEl.classList.remove('is-swap-hidden');
+  s.back.remove();
+  s.frame = isoPaneFrame;
+  if (!s.frame || !s.old || s.frame.classList.contains('is-loaded')){ endSwapSpin(); return; }
+  s.guard = setTimeout(endSwapSpin, 5000);
+}
+// The pane's old frame, kept where it stands until the new one is up.
+function holdSwapFrame(old){
+  if (!swapSpin || !swapSpin.layer){ old.remove(); return; }
+  old.style.left = old.offsetLeft + 'px';
+  old.style.top = old.offsetTop + 'px';
+  old.style.width = old.offsetWidth + 'px';
+  old.style.height = old.offsetHeight + 'px';
+  old.classList.add('is-leaving');
+  swapSpin.old = old;
+}
+function endSwapSpin(){
+  var s = swapSpin;
+  swapSpin = null;
+  if (!s) return;
+  clearTimeout(s.guard);
+  clearTimeout(s.late);
+  if (s.layer) s.layer.remove();
+  if (s.old) s.old.remove();
+  ringSvgEl.classList.remove('is-swap-hidden');
+}
 
 // Entering or leaving full screen moves the pane's element, which reloads its
 // iframe in the browser; the pane is then loaded again from its latest query.
@@ -20596,6 +20741,7 @@ window.addEventListener('message', function(e){
   if (!isoPaneFrame || e.source !== isoPaneFrame.contentWindow) return;
   var d = e.data;
   if (!d || typeof d !== 'object') return;
+  if (d.ringwin === 'ringsnap'){ runSwapSpin(d); return; }
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
     syncIsoPaneLabels();
