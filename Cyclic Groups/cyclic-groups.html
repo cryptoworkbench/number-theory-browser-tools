@@ -11204,6 +11204,11 @@ if (IS_RINGWIN){
     }
     // The swap's flip: this ring as it stands, for the page to carry
     // across. The page hides it as its copy goes up (or asks, 'ringhide').
+    // Before the rings swap sides, the pane's windows minimize too.
+    if (d.ringhost === 'minwins'){
+      if (IS_ISOPANE) minimizeWindows();
+      return;
+    }
     if (d.ringhost === 'ringsnap'){
       if (!IS_ISOPANE) return;
       clearTimeout(paneWatchEnd);
@@ -19643,8 +19648,25 @@ isoSwapEl.addEventListener('click', startSwapSpin);
 // pane taking its new group in place as this ring does; its ring stays
 // hidden under the copy until it has done redrawing.
 var swapSpin = null;
+// Before the swap, every window open over either ring minimizes into the
+// bar, as its own minimize button would put it there (the formula settings
+// windows close, as their corner button does); a docked plot stays docked.
+// The Diffie–Hellman windows, which only close, are left as they are.
+var SWAP_MIN_BTNS = ['curve-plot-min', 'poly-plot-min', 'cayley-min', 'lap-key-min', 'flog-min', 'fset-close-0', 'fset-close-1'];
+function minimizeWindows(){
+  var had = document.activeElement;
+  SWAP_MIN_BTNS.forEach(function(id){
+    var btn = $(id), win = btn && btn.closest('section');
+    if (!win || win.hidden || !win.offsetParent || win.classList.contains('is-docked')) return;
+    btn.click();
+  });
+  // The buttons hand the focus to their tasks; it stays where it was.
+  if (had && had !== document.activeElement && had.focus) had.focus({ preventScroll: true });
+}
 function startSwapSpin(){
   if (swapSpin || !canSwapRings()) return;
+  minimizeWindows();
+  tellPane({ ringhost: 'minwins' });
   if (!drawn || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ swapIsoRings(); return; }
   swapSpin = { waiting: setTimeout(function(){ swapSpin = null; swapIsoRings(); }, 400) };
   tellPane({ ringhost: 'ringsnap' });
