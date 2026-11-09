@@ -38,3 +38,18 @@ sends `ringhost: 'drawnwatch'` on load; for two seconds the pane posts `ringwin:
 change to itself (a MutationObserver), and the copy goes after 150 ms of stillness (1.5 s cap).
 Recorded in Chrome, unlocked and locked, both directions: every colour and rotation change now
 lands while the copy is up, and none after.
+
+## Fix (1d7dcf0): no redraw in view on the right after the flip
+
+Still seen by the user: the new pane, revealed at load, then ran the ring flip animation (flipRing,
+its direction told by the page after it first drew the one in its query) and redrew its panels in
+view. Now:
+- the new frame carries `swapin=1` (in RING_DROP) and starts with `paneSettling`, so flipRing takes
+  any direction change at once (cleared by `drawnwatch end` on reveal, or after 4 s);
+- the frame stays `is-swap-pending` (opacity 0, not visibility hidden, which holds back a frame's
+  animation frames) under the old frame until revealed;
+- after 150 ms of stillness the host pings; the pane answers after two of its own animation frames,
+  and any change meanwhile restarts the wait (1.5 s cap), so work queued for the next frame (the
+  merged row's G placement, --g-shift) lands before the reveal.
+Recorded in Chrome (animation frames throttled to ~2 fps in the test tab), locked and unlocked:
+no flip animation, and no change after the reveal apart from a 1 px --clu-y tweak seconds later.
