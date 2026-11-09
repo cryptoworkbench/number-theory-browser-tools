@@ -19173,6 +19173,17 @@ function swapIsoRings(keepOld){
   var back = !whole && isoPane.hsub === true;
   var subLink = !whole && !back && (Number.isInteger(isoPane.sub) || (isoFound() && !isoLinksWholeGroups()));
   var oldSel = state.noSub ? null : state.gen, oldId = drawn.G.identity;
+  // Through a subgroup of this ring's group, this ring takes the pane's
+  // colours once swapped, and they are its own as they stand: the group it
+  // hands the pane paints h^k as this ring paints g^k now. It keeps them, so
+  // that it never draws its new group in colours of its own first.
+  var carried = subLink && isoPaintsFrom() && isoOrder() > 0 ? isoPowers().map(function(a){
+    var p = drawn.paint(a);
+    return { cls: p.cls, style: p.style, lead: a < drawn.G.inv[a] };
+  }) : null;
+  // The pane's minimized windows, in the bottom bar, are this ring's as they
+  // stand: its new pane opens with them so, and tells as much once loaded.
+  var mins = { plot: !!drawn.G.pts && !curvePlotOpen, poly: polyAvail(drawn.G) && !polyOpen, cayley: cayleyAvail(drawn.G) && !cayleyOpen };
   var hostQ = new URLSearchParams(cleanRingQuery(stateQuery().toString()));
   ['rot', 'top', 'autorotate', 'autospeed'].forEach(function(k){ hostQ.delete(k); });
   var paneQ = new URLSearchParams(cleanRingQuery(isoPane.q));
@@ -19228,9 +19239,18 @@ function swapIsoRings(keepOld){
     isoPane.h = g === null ? oldId : g;
     isoPane.link = 'none';
   }
+  isoPane.plotMin = mins.plot;
   loadIsoFrame(keepOld === true);
+  if (carried) isoPaints = carried;
+  isoPanePlotMin = mins.plot;
+  isoPanePolyMin = mins.poly;
+  isoPaneCayleyMin = mins.cayley;
   syncControls();
   render();
+  // The controls on the line between the rings were placed while the rows
+  // were, for a moment, unmerged: placed again, now that they are merged
+  // again, rather than once the new pane has loaded.
+  keepLockClear();
 }
 isoSwapEl.addEventListener('click', startSwapSpin);
 
@@ -19352,6 +19372,7 @@ function settleSwapSpin(loaded){
   if (!s || !s.frame) return;
   if (loaded && !s.settling){
     s.settling = true;
+    keepLockClear();
     tellPane({ ringhost: 'drawnwatch' });
     clearTimeout(s.guard);
     s.guard = setTimeout(endSwapSpin, SWAP_SETTLE_MAX_MS);
@@ -20314,6 +20335,8 @@ function isoTakePaints(paints){
       && (p.style === null || (typeof p.style === 'string' && p.style.length < 200 && p.style.indexOf(ISO_PAINT_PREFIX) === 0 && !/[;{}<>]/.test(p.style)));
   });
   if (!ok) return;
+  // The same colours again (those a swap carried over) change nothing.
+  if (isoPaints && JSON.stringify(isoPaints) === JSON.stringify(paints)) return;
   isoPaints = paints;
   keepCosets(render);
 }
@@ -23216,6 +23239,11 @@ var LOCK_CLEAR_GAP = 14; // room for the padlock's pulsing halo
 var SHARED_BTN_GAP = 8;
 function keepLockClear(){
   if (IS_ISOPANE || !isoLockEl) return;
+  // Swapped, the column between the rings stands where it stood until the
+  // new pane has loaded: placed by the taller rows of the two groups, which
+  // have only traded sides, it would otherwise jump while the pane's rows
+  // cannot yet be measured, and jump back.
+  if (swapSpin && swapSpin.arrived && !(isoPaneFrame && isoPaneFrame.classList.contains('is-loaded'))) return;
   var combinedEl = $('iso-combine');
   syncZoomCtl();
   syncExprLock();
