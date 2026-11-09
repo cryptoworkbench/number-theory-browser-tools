@@ -261,7 +261,7 @@
    Subgroup row's menu), cardDivideRow and cardDivideCurves (Divide's table:
    a row's ÷ d, and the curves column's heading beside the shared Additive
    and Multiplicative Groups headings), and the cardMultiply* keys
-   (Multiply, Divide's counterpart for 2, 3 or 5 times the cardinality: its
+   (Multiply, Divide's counterpart for 2, 3, 5 or 7 times the cardinality: its
    item, row label, greyed reason and warnings).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
@@ -1196,7 +1196,7 @@
       cardDivideCurves: 'Elliptic Curves',
       cardMultiply: 'Multiply',
       cardMultiplyRow: '× {d}',
-      cardMultiplyNone: 'No group with 2, 3 or 5 times this cardinality can be shown',
+      cardMultiplyNone: 'No group with 2, 3, 5 or 7 times this cardinality can be shown',
       cardMultiplyWarn: 'This first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is multiplied by {d}, giving {result}. Continue?',
       cardMultiplyWarnLock: 'This breaks the isomorphism locking this ring to the other: multiplying the modulus {n} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
       cardMultiplyWarnBoth: 'This breaks the isomorphism locking this ring to the other. It also first reduces {group} to its structure {structure}, so its operation becomes + and its identity 0. Then its modulus {n} is multiplied by {d}, giving {result}. Continue?',
