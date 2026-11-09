@@ -7229,7 +7229,7 @@ function setRingCopy(name, from, focus){
   });
   // Under the group's cardinality, first after its formula: Divide, the
   // submenu of its divisors, then the copy formats.
-  if (name === 'gorder' && drawn) copies.unshift(divideItem(drawn.G), subCtxRule());
+  if (name === 'gorder' && drawn) copies.unshift(divideItem(drawn.G), multiplyItem(drawn.G), subCtxRule());
   ringCopyEl.replaceChildren.apply(ringCopyEl, top.concat(copies));
   placeRingSub(from, focus);
 }
@@ -7241,13 +7241,34 @@ function setRingCopy(name, from, focus){
 // structure ℤ/|G|ℤ is; greyed (saying why) otherwise or while |G| has no
 // such divisor.
 var ringDivEl = $('ring-ctx-div'), ringDivFrom = null;
-function divideItem(G){
-  var it = ctxItem('menuitem', translate('cyclicGroups.cardDivide'), true);
-  it.mark.textContent = '\u00f7';
-  var ds = G.cyclic ? divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; }) : [];
-  if (!ds.length){
+// Multiply works as Divide does, the other way: the groups with 2, 3 or 5
+// times |G| elements (there being no end that way), as far as this tool
+// shows groups, a row for each factor with any; greyed while none has.
+function divideItem(G){ return factorItem(G, 'div'); }
+function multiplyItem(G){ return factorItem(G, 'mul'); }
+var FACTOR_KEYS = {
+  div: { item: 'cardDivide', mark: '\u00f7', none: 'cardDivideNone', row: 'cardDivideRow', warn: 'cardDivideWarn', lock: 'cardDivideWarnLock', both: 'cardDivideWarnBoth', same: 'cardDivideWarnLockSame' },
+  mul: { item: 'cardMultiply', mark: '\u00d7', none: 'cardMultiplyNone', row: 'cardMultiplyRow', warn: 'cardMultiplyWarn', lock: 'cardMultiplyWarnLock', both: 'cardMultiplyWarnBoth', same: 'cardMultiplyWarnLockSame' }
+};
+// The table's rows: for each divisor (or factor 2, 3, 5) d, the cardinality
+// m it gives, ℤ/mℤ under + while this tool shows it, the groups of units of
+// order m and, on a curve, the curves with m points.
+function factorRows(G, op){
+  if (!G.cyclic) return [];
+  var ds = op === 'mul' ? [2, 3, 5] : divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; });
+  return ds.map(function(d){
+    var m = op === 'mul' ? G.order * d : G.order / d;
+    return { d: d, m: m, add: m >= MIN_N && m <= MAX_N ? quotientSpec(m) : null, units: unitQuotients(m), curves: G.pts ? curveQuotients(G, m) : [] };
+  }).filter(function(r){ return op !== 'mul' || r.add || r.units.length || r.curves.length; });
+}
+function factorItem(G, op){
+  var K = FACTOR_KEYS[op];
+  var it = ctxItem('menuitem', translate('cyclicGroups.' + K.item), true);
+  it.mark.textContent = K.mark;
+  it.item.setAttribute('data-op', op);
+  if (!factorRows(G, op).length){
     it.item.disabled = true;
-    it.item.title = translate(G.cyclic ? 'cyclicGroups.cardDivideNone' : 'cyclicGroups.cardDivideCyclic');
+    it.item.title = translate(G.cyclic ? 'cyclicGroups.' + K.none : 'cyclicGroups.cardDivideCyclic');
     return it.item;
   }
   // In the menu itself, the other submenu closes as this one opens.
@@ -7280,12 +7301,14 @@ function setRingDivide(from, focus, ask){
   ringDivEl.style.width = '';
   if (!from || !drawn){ ringDivEl.replaceChildren(); return; }
   from.setAttribute('aria-expanded', 'true');
-  var G = drawn.G;
+  var G = drawn.G, op = from.getAttribute('data-op') || 'div', K = FACTOR_KEYS[op];
+  var mOf = function(d){ return op === 'mul' ? G.order * d : G.order / d; };
+  ringDivEl.setAttribute('aria-label', translate('cyclicGroups.' + K.item));
   if (ask && typeof ask === 'object'){
     // A group of the same operation only breaks the lock: its warning.
     var warnSame = document.createElement('p');
     warnSame.className = 'ring-ctx-warn';
-    translateInto(warnSame, 'cyclicGroups.cardDivideWarnLockSame', { group: swapName(groupSpec(G)), card: mNum(G.order), d: mNum(ask.d), result: swapName(ask.spec) });
+    translateInto(warnSame, 'cyclicGroups.' + K.same, { group: swapName(groupSpec(G)), card: mNum(G.order), d: mNum(ask.d), result: swapName(ask.spec) });
     var yesSame = ctxItem('menuitem', translate('cyclicGroups.cardDivideYes')), noSame = ctxItem('menuitem', translate('cyclicGroups.cardDivideNo'));
     yesSame.item.addEventListener('click', function(){ divideTo(ask.spec); });
     noSame.item.addEventListener('click', function(){ setRingDivide(from, true); });
@@ -7295,9 +7318,9 @@ function setRingDivide(from, focus, ask){
     // isomorphism lock that breaks, or both.
     var warn = document.createElement('p'), additive = G.mode === 'additive' && !G.pts;
     warn.className = 'ring-ctx-warn';
-    translateInto(warn, additive ? 'cyclicGroups.cardDivideWarnLock' : divideBreaksLock() ? 'cyclicGroups.cardDivideWarnBoth' : 'cyclicGroups.cardDivideWarn', { group: swapName(groupSpec(G)), structure: swapName(quotientSpec(G.order)), n: mNum(G.order), d: mNum(ask), result: swapName(quotientSpec(G.order / ask)) });
+    translateInto(warn, 'cyclicGroups.' + (additive ? K.lock : divideBreaksLock() ? K.both : K.warn), { group: swapName(groupSpec(G)), structure: swapName(quotientSpec(G.order)), n: mNum(G.order), d: mNum(ask), result: swapName(quotientSpec(mOf(ask))) });
     var yes = ctxItem('menuitem', translate('cyclicGroups.cardDivideYes')), no = ctxItem('menuitem', translate('cyclicGroups.cardDivideNo'));
-    yes.item.addEventListener('click', function(){ divideGroup(G.order / ask); });
+    yes.item.addEventListener('click', function(){ divideGroup(mOf(ask)); });
     no.item.addEventListener('click', function(){ setRingDivide(from, true); });
     ringDivEl.replaceChildren(warn, yes.item, no.item);
   } else {
@@ -7331,19 +7354,22 @@ function setRingDivide(from, focus, ask){
       list.forEach(function(el){ c.appendChild(el); });
       return c;
     };
-    divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; }).forEach(function(d, row){
-      var m = G.order / d, rule = row > 0;
+    factorRows(G, op).forEach(function(r, row){
+      var d = r.d, m = r.m, rule = row > 0, adds = [];
       var dl = document.createElement('p');
       dl.className = 'div-d' + (rule ? ' is-rule' : '');
-      translateInto(dl, 'cyclicGroups.cardDivideRow', { d: mNum(d) });
-      var add = ctxItem('menuitem', '');
-      add.item.children[1].appendChild(swapName(quotientSpec(m)));
-      add.item.addEventListener('click', function(){
-        if (G.mode === 'additive' && !G.pts && !divideBreaksLock()) divideGroup(m);
-        else setRingDivide(from, true, d);
-      });
-      items.push(dl, cell([add.item], rule), cell(unitQuotients(m).map(function(spec){ return pick(d, spec); }), rule));
-      if (curves) items.push(cell(curveQuotients(G, m).map(function(spec){ return pick(d, spec); }), rule));
+      translateInto(dl, 'cyclicGroups.' + K.row, { d: mNum(d) });
+      if (r.add){
+        var add = ctxItem('menuitem', '');
+        add.item.children[1].appendChild(swapName(r.add));
+        add.item.addEventListener('click', function(){
+          if (G.mode === 'additive' && !G.pts && !divideBreaksLock()) divideGroup(m);
+          else setRingDivide(from, true, d);
+        });
+        adds.push(add.item);
+      }
+      items.push(dl, cell(adds, rule), cell(r.units.map(function(spec){ return pick(d, spec); }), rule));
+      if (curves) items.push(cell(r.curves.map(function(spec){ return pick(d, spec); }), rule));
     });
     ringDivEl.classList.add('is-div-table');
     ringDivEl.style.setProperty('--div-cols', String(cols));
@@ -10378,11 +10404,13 @@ function syncSwapCtx(on){
     ringCtxEl.insertBefore(rd.item, at);
     first = rd.item;
   }
-  // Then Divide, as under Group cardinality: the quotients ℤ/(|G|/d)ℤ.
-  var div = divideItem(drawn.G);
-  div.classList.add('ring-ctx-swap');
-  ringCtxEl.insertBefore(div, at);
-  if (!first && !div.disabled) first = div;
+  // Then Divide and Multiply, as under Group cardinality: the groups with
+  // |G|/d, or 2, 3 or 5 times |G|, elements.
+  [divideItem(drawn.G), multiplyItem(drawn.G)].forEach(function(el){
+    el.classList.add('ring-ctx-swap');
+    ringCtxEl.insertBefore(el, at);
+    if (!first && !el.disabled) first = el;
+  });
   var it = ctxItem('menuitem', translate('cyclicGroups.swapIsoMenu'), true);
   it.mark.textContent = '\u21c6';
   it.item.classList.add('ring-ctx-swap');
