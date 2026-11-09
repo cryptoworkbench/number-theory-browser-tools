@@ -27,3 +27,14 @@ stands on its own side, then opens out on the other side at the place of the rin
 never seen reversed. The snapshot, hold-the-old-frame and snap logic is unchanged. Verified in
 Chrome: sampled boxes (inner edges stay at the axis x ≈ 761, width → 0 at mid-turn), a frozen
 mid-turn screenshot, clean landing, no console errors.
+
+## Fix (c370bc7): no flash on the right after the flip
+
+A new pane first draws in its own colours and turn, then gets the page's colours (isoTellPaints in
+the frame's load handler) and turn, and redraws. With Subgroup cardinality as the colour key and a
+subgroup-to-group isomorphism, the copy over the right side went at the frame's load, so its beads
+showed their own colours (e.g. green) for about 50 ms before turning purple again. Now the host
+sends `ringhost: 'drawnwatch'` on load; for two seconds the pane posts `ringwin: 'drawn'` on every
+change to itself (a MutationObserver), and the copy goes after 150 ms of stillness (1.5 s cap).
+Recorded in Chrome, unlocked and locked, both directions: every colour and rotation change now
+lands while the copy is up, and none after.
