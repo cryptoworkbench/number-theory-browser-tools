@@ -257,6 +257,8 @@
    cardDivideWarnLockSame (Divide's warning when a group of the same
    operation with the divided cardinality would break the lock), swapHead (the
    ring menu's Swap section heading, formerly swapIsoHead's Isomorphic swap)
+   ctxNamedFormulasHead ({name} formulas, the group's and the subgroup's
+   headings in the subgroup row's menu, {name} written as the row writes it)
    and ctxFormulasHead (the Formulas heading over the copied formulas in the
    Subgroup row's menu), cardDivideRow and cardDivideCurves (Divide's table:
    a row's ÷ d, and the curves column's heading beside the shared Additive
@@ -1194,6 +1196,7 @@
       swapIsoHead: 'Isomorphic swap',
       swapHead: 'Swap',
       ctxFormulasHead: 'Formulas',
+      ctxNamedFormulasHead: '{name} formulas',
       cardDivide: 'Divide',
       cardDivideBy: '÷ {d}: {group}',
       cardDivideNone: 'The group’s cardinality has no divisor between 1 and itself',

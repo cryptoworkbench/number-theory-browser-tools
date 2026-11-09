@@ -2494,6 +2494,7 @@
   .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-menu[hidden]{ display:none; }
   .fs-menu-head{ margin:4px 8px 6px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
+  .fs-menu-head > .fs-menu-head-name{ text-transform:none; letter-spacing:normal; }
   .fs-menu-head + .fs-menu-head, .fs-menu-item + .fs-menu-head{ margin-top:10px; padding-top:8px; border-top:1px solid var(--panel-border); }
   .fs-menu-item{ display:flex; align-items:center; gap:10px; width:100%; padding:7px 8px; border-radius:6px; font-size:.88rem; text-align:start; }
   .fs-menu-item:hover{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -10181,22 +10182,37 @@ function syncExprCtx(key){
   // with the subgroup off, its row only names the group, and the menu
   // offers the formulas there are, the subgroup's gone. The expression
   // slider's menu ('gens') keeps only its ticks below.
-  var have = menuFormulas(drawn.G).map(function(f){ return f.key; });
-  var copies = key === 'gsub' ? ['ggroup', 'gsub', 'gorder', 'gens', 'struct'].filter(function(k){ return have.indexOf(k) !== -1; }) : key === 'gens' ? [] : [key];
-  // The formulas, each copied in the format picked, under a heading of
-  // their own, Formulas, after the Swap section.
-  if (copies.length){
+  var forms = menuFormulas(drawn.G), have = forms.map(function(f){ return f.key; });
+  var has = function(k){ return have.indexOf(k) !== -1; };
+  // The formulas, each copied in the format picked, under headings of
+  // their own after the Swap section: on the subgroup row, the group's
+  // (G FORMULAS: its name, cardinality, generator count and structure)
+  // and the subgroup's (⟨h⟩ ∈ G FORMULAS: its name, its cardinality and
+  // its index as they are figured now), each named as the row writes it;
+  // elsewhere, Formulas.
+  var sections = key === 'gsub' ? [
+    { name: curveName(drawn.G), keys: ['ggroup', 'gorder', 'gens', 'struct'].filter(has) },
+    { name: has('gsub') ? forms[have.indexOf('gsub')].plain : null, keys: ['gsub', 'sorder', 'cindex'].filter(has) }
+  ] : [{ name: null, keys: key === 'gens' ? [] : [key] }];
+  sections.forEach(function(sec){
+    if (!sec.keys.length) return;
     var fhead = document.createElement('p');
     fhead.className = 'fs-menu-head ring-ctx-expr';
-    fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
+    if (key === 'gsub'){
+      // The name as written, not upper-cased with the heading's words.
+      var nm = document.createElement('span');
+      nm.className = 'fs-menu-head-name';
+      nm.textContent = sec.name;
+      translateInto(fhead, 'cyclicGroups.ctxNamedFormulasHead', { name: nm });
+    } else fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
     ringCtxEl.appendChild(fhead);
-  }
-  copies.forEach(function(k){
-    var it = ctxItem('menuitem', translate(ctxName(k)), true);
-    it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
-    it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
-    it.item.classList.add('ring-ctx-expr');
-    ringCtxEl.appendChild(it.item);
+    sec.keys.forEach(function(k){
+      var it = ctxItem('menuitem', translate(ctxName(k)), true);
+      it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
+      it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
+      it.item.classList.add('ring-ctx-expr');
+      ringCtxEl.appendChild(it.item);
+    });
   });
   if (key !== 'gens') return;
   // Natural with its exponents, x¹, or without, x.
