@@ -250,7 +250,9 @@
    its reduction, and why it is greyed out), and isoPickGroupIso,
    isoPickGroupIsoTitle, isoPickSubIso and isoPickSubIsoTitle (the two
    lists of the + pane's picker under Construct own ring / group, and the
-   tooltips of their titles).
+   tooltips of their titles), and fsRingIsoSubLeft and fsRingIsoSubRight
+   (the tab's name while a subgroup is locked to a group, G ∈ G₁ ≅ G₂ or
+   G₁ ≅ G ∈ G₂ as on screen; pure notation).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1063,6 +1065,8 @@
       fsRingNotCyclic: 'Ring {group}',
       fsRingIso: '{left} ≅ {right}',
       fsRingIsoSub: '({left}) ≅ ({right})',
+      fsRingIsoSubLeft: 'G ∈ {left} ≅ {right}',
+      fsRingIsoSubRight: '{left} ≅ G ∈ {right}',
       fsRingPair: '{left} & {right}',
       groupLockTitle: 'Double-click to unlock',
       isoAddTitle: 'Open a second ring beside this one',
