@@ -266,7 +266,8 @@
    and ctxFormulasHead (the Formulas heading over the copied formulas in the
    Subgroup row's menu), cardDivideRow and cardDivideCurves (Divide's table:
    a row's ÷ d, and the curves column's heading beside the shared Additive
-   and Multiplicative Groups headings), and the cardMultiply* keys
+   and Multiplicative Groups headings), cardDivideMore (a cell's + offering
+   more groups), and the cardMultiply* keys
    (Multiply, Divide's counterpart for 2, 3, 5 or 7 times the cardinality: its
    item, row label, greyed reason and warnings), and combineSqm and
    combineSqmOff (the Square and multiply heading and its Off, in the aᵏ
@@ -1213,6 +1214,7 @@
       cardDivideWarnLockSame: 'This breaks the isomorphism locking this ring to the other: dividing the cardinality {card} of {group} by {d} gives {result}, whose cardinality no longer matches the other ring’s. Continue?',
       cardDivideRow: '÷ {d}',
       cardDivideCurves: 'Elliptic Curves',
+      cardDivideMore: 'More groups of this cardinality',
       cardMultiply: 'Multiply',
       cardMultiplyRow: '× {d}',
       cardMultiplyNone: 'No group with 2, 3, 5 or 7 times this cardinality can be shown',

@@ -2838,6 +2838,8 @@
   .div-cell{ display:flex; flex-direction:column; min-width:0; }
   .div-d.is-rule, .div-cell.is-rule{ border-top:1px solid var(--panel-border); }
   .div-cell > .fs-menu-item{ white-space:nowrap; }
+  .div-cell > .div-more{ justify-content:center; font-weight:600; color:var(--text-dim); }
+  .div-cell > .div-more:hover, .div-cell > .div-more:focus-visible{ color:var(--text); }
   .div-none{ margin:0; padding:6px 10px; color:var(--text-dim); }
   .ring-ctx-warn{ margin:4px 10px 6px; font-size:.85em; line-height:1.35; color:var(--text); }
   /* Full screen, the diagram fills the screen and the ring scales into it. */
@@ -7030,7 +7032,7 @@ function setRingCopy(name, from, focus){
 var ringDivEl = $('ring-ctx-div'), ringDivFrom = null;
 // Multiply works as Divide does, the other way: the groups with 2, 3, 5 or 7
 // times |G| elements (there being no end that way), as far as this tool
-// shows groups, a row for each factor with any; greyed while none has.
+// shows groups, a row for each factor, a dash in a cell with none.
 function divideItem(G){ return factorItem(G, 'div'); }
 function multiplyItem(G){ return factorItem(G, 'mul'); }
 var FACTOR_KEYS = {
@@ -7039,14 +7041,15 @@ var FACTOR_KEYS = {
 };
 // The table's rows: for each divisor (or factor 2, 3, 5, 7) d, the cardinality
 // m it gives, ℤ/mℤ under + while this tool shows it, the groups of units of
-// order m and, on a curve, the curves with m points.
+// order m and the curves with m points (curves(n): at least the first n of
+// them, while there are, found as they are asked for).
 function factorRows(G, op){
   if (!G.cyclic) return [];
   var ds = op === 'mul' ? [2, 3, 5, 7] : divisorsOf(G.order).filter(function(d){ return d > 1 && d < G.order; });
   return ds.map(function(d){
     var m = op === 'mul' ? G.order * d : G.order / d;
-    return { d: d, m: m, add: m >= MIN_N && m <= MAX_N ? quotientSpec(m) : null, units: unitQuotients(m), curves: G.pts ? curveQuotients(G, m) : [] };
-  }).filter(function(r){ return op !== 'mul' || r.add || r.units.length || r.curves.length; });
+    return { d: d, m: m, add: m >= MIN_N && m <= MAX_N ? quotientSpec(m) : null, units: unitQuotients(m), curves: function(n){ return curveQuotients(G, m, n); } };
+  });
 }
 function factorItem(G, op){
   var K = FACTOR_KEYS[op];
@@ -7075,10 +7078,47 @@ function quotientSpec(m){ return { mode: 'additive', n: m, curve: null, label: a
 function unitQuotients(m){
   return cyclicUnitGroups(m).map(function(e){ return { mode: 'multiplicative', n: e.n, curve: null, label: e.label, gen: e.gen }; });
 }
-function curveQuotients(G, m){
-  return cyclicCurves(m).filter(function(e){ return !(G.pts && e.p === G.n && e.a === G.a && e.b === G.b); }).map(function(e){
+function curveQuotients(G, m, n){
+  return curvesOfOrder(m, n + 1).filter(function(e){ return !(G.pts && e.p === G.n && e.a === G.a && e.b === G.b); }).slice(0, Math.max(n, 0)).map(function(e){
     return { mode: 'elliptic', n: e.p, curve: [e.p, e.a, e.b].join(','), label: ecChipLabel(e.p, e.a, e.b), gen: e.gen };
   });
+}
+// The cyclic curves with k points, at least the first n while there are:
+// cyclicCurves' one per prime first, then every other one the curve mode
+// can show, prime by prime, a then b ascending, scanned only as far as
+// asked (each count of points by the squares mod p, in O(p)).
+var curvesMore = {};
+function curvesOfOrder(k, n){
+  var st = curvesMore[k] || (curvesMore[k] = { list: cyclicCurves(k).slice(), p: EC_MIN_P, a: 0, b: 0, done: false });
+  while (st.list.length < n && !st.done) nextCurveOfOrder(k, st);
+  return st.list;
+}
+function nextCurveOfOrder(k, st){
+  var squarefree = true;
+  for (var q = 2; q * q <= k; q++) if (k % (q * q) === 0) squarefree = false;
+  for (; st.p <= EC_MAX_P; st.p++, st.a = 0, st.b = 0){
+    var p = st.p;
+    if (!isPrime(p) || Math.abs(k - p - 1) > 2 * Math.sqrt(p)) continue;
+    // How many y square to each value mod p.
+    var sq = new Array(p).fill(0);
+    for (var y = 0; y < p; y++) sq[y * y % p]++;
+    for (; st.a < p && st.a <= EC_COEF_MAX; st.a++, st.b = 0){
+      for (; st.b < p && st.b <= EC_COEF_MAX; st.b++){
+        var a = st.a, b = st.b;
+        if (!ecIsNonSingular(a, b, p)) continue;
+        var count = 1;
+        for (var x = 0; x < p; x++) count += sq[(x * x * x + a * x + b) % p];
+        if (count !== k || st.list.some(function(e){ return e.p === p && e.a === a && e.b === b; })) continue;
+        // A group of squarefree order is cyclic; any other is checked.
+        var E = buildCurveGroup(p, a, b);
+        if (!squarefree && !E.cyclic) continue;
+        st.b++;
+        st.list.push({ p: p, a: a, b: b, gen: E.generators[0], label: E.label });
+        return;
+      }
+    }
+  }
+  st.done = true;
 }
 function setRingDivide(from, focus, ask){
   if (ringDivFrom) ringDivFrom.setAttribute('aria-expanded', 'false');
@@ -7112,13 +7152,12 @@ function setRingDivide(from, focus, ask){
     ringDivEl.replaceChildren(warn, yes.item, no.item);
   } else {
     // A table: a row per divisor d, its ÷ d, then ℤ/(|G|/d)ℤ under +, the
-    // groups of units of that order and, on a curve, the curves with that
-    // many points. A group of the ring's own operation is taken as it is;
-    // the additive one, on a ring not under +, warns of the reduction first.
-    var curves = !!G.pts, cols = curves ? 3 : 2;
+    // groups of units of that order and the curves with that many points.
+    // A group of the ring's own operation is taken as it is; the additive
+    // one, on a ring not under +, warns of the reduction first.
+    var cols = 3;
     var head = function(text){ var h = document.createElement('p'); h.className = 'fs-menu-head'; h.textContent = text; return h; };
-    var items = [document.createElement('span'), head(translate('common.additiveGroups')), head(translate('common.multiplicativeGroups'))];
-    if (curves) items.push(head(translate('cyclicGroups.cardDivideCurves')));
+    var items = [document.createElement('span'), head(translate('common.additiveGroups')), head(translate('common.multiplicativeGroups')), head(translate('cyclicGroups.cardDivideCurves'))];
     var pick = function(d, spec){
       var it = ctxItem('menuitem', '');
       it.item.children[1].appendChild(swapName(spec));
@@ -7128,19 +7167,43 @@ function setRingDivide(from, focus, ask){
       });
       return it.item;
     };
-    var cell = function(list, rule){
+    // A cell shows two groups; a third line, +, offers more of them, a few
+    // at a time, while there are. upto(n) gives at least the first n items.
+    var CELL_FIRST = 2, CELL_MORE = 3;
+    var cell = function(upto, rule){
       var c = document.createElement('div');
       c.className = 'div-cell' + (rule ? ' is-rule' : '');
-      if (!list.length){
+      var shown = 0, more = null;
+      var fill = function(n){
+        var list = upto(n + 1);
+        list.slice(shown, n).forEach(function(el){ c.insertBefore(el, more); });
+        shown = Math.min(n, list.length);
+        if (list.length > shown && !more){
+          more = ctxItem('menuitem', '+').item;
+          more.classList.add('div-more');
+          more.setAttribute('aria-label', translate('cyclicGroups.cardDivideMore'));
+          more.title = translate('cyclicGroups.cardDivideMore');
+          more.addEventListener('click', function(e){
+            e.stopPropagation();
+            var at = shown;
+            fill(shown + CELL_MORE);
+            fitRingDivide();
+            (c.children[at] || more || c.lastChild).focus();
+          });
+          c.appendChild(more);
+        } else if (list.length <= shown && more){ more.remove(); more = null; }
+      };
+      fill(CELL_FIRST);
+      if (!shown){
         var none = document.createElement('p');
         none.className = 'div-none';
         none.setAttribute('aria-hidden', 'true');
         none.textContent = '\u2014';
         c.appendChild(none);
       }
-      list.forEach(function(el){ c.appendChild(el); });
       return c;
     };
+    var listOf = function(arr){ return function(n){ return arr.slice(0, n); }; };
     factorRows(G, op).forEach(function(r, row){
       var d = r.d, m = r.m, rule = row > 0, adds = [];
       var dl = document.createElement('p');
@@ -7155,26 +7218,35 @@ function setRingDivide(from, focus, ask){
         });
         adds.push(add.item);
       }
-      items.push(dl, cell(adds, rule), cell(r.units.map(function(spec){ return pick(d, spec); }), rule));
-      if (curves) items.push(cell(r.curves.map(function(spec){ return pick(d, spec); }), rule));
+      var unitPicks = r.units.map(function(spec){ return pick(d, spec); }), curvePicks = [];
+      items.push(dl, cell(listOf(adds), rule), cell(listOf(unitPicks), rule), cell(function(n){
+        r.curves(n).slice(curvePicks.length).forEach(function(spec){ curvePicks.push(pick(d, spec)); });
+        return curvePicks.slice(0, n);
+      }, rule));
     });
     ringDivEl.classList.add('is-div-table');
     ringDivEl.style.setProperty('--div-cols', String(cols));
     ringDivEl.replaceChildren.apply(ringDivEl, items);
   }
-  // The table as wide as its laid-out columns, which its math's own measure
-  // (its max-content) can fall short of.
+  fitRingDivide();
+  if (focus) ringDivEl.querySelector('button').focus();
+}
+// The table as wide as its laid-out columns, which its math's own measure
+// (its max-content) can fall short of, beside the menu holding Divide,
+// right or, without room, left; again whenever a cell's + adds groups.
+function fitRingDivide(){
+  var from = ringDivFrom;
+  if (!from || ringDivEl.hidden) return;
+  ringDivEl.style.width = '';
   if (ringDivEl.classList.contains('is-div-table') && ringDivEl.scrollWidth > ringDivEl.clientWidth){
     ringDivEl.style.width = (ringDivEl.scrollWidth + ringDivEl.offsetWidth - ringDivEl.clientWidth) + 'px';
   }
-  // Beside the menu holding Divide, right or, without room, left.
   var sub = boxOf(from.parentNode), at = boxOf(from), w = ringDivEl.offsetWidth, h = ringDivEl.offsetHeight;
   var vw = document.documentElement.clientWidth / PAGE_ZOOM, vh = document.documentElement.clientHeight / PAGE_ZOOM;
   var x = sub.right - 2;
   if (x + w > vw - 4) x = Math.max(4, sub.left - w + 2);
   ringDivEl.style.left = x + 'px';
   ringDivEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
-  if (focus) ringDivEl.querySelector('button').focus();
 }
 // Whether the ring is locked to the other in an isomorphism, which a
 // division, changing the group's order, always breaks.
@@ -7202,8 +7274,12 @@ function divideTo(spec){
   setRingCtx(false);
   var apply = function(){
     var q = stateQuery();
-    q.set('mode', spec.mode);
-    q.set('n', String(spec.n));
+    // A curve goes by its curve=p,a,b, the mode and modulus kept as they are
+    // (the ring's query takes only + or × as its mode).
+    if (!spec.curve){
+      q.set('mode', spec.mode);
+      q.set('n', String(spec.n));
+    }
     if (spec.curve) q.set('curve', spec.curve); else q.delete('curve');
     q.set('gen', String(spec.gen));
     ['expr', 'arrangegen'].forEach(function(k){ q.delete(k); });
