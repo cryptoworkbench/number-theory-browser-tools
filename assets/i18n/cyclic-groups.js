@@ -263,7 +263,8 @@
    and Multiplicative Groups headings), and the cardMultiply* keys
    (Multiply, Divide's counterpart for 2, 3, 5 or 7 times the cardinality: its
    item, row label, greyed reason and warnings), and combineSqm and
-   combineSqmTitle (aᵏ's Square and multiply switch and its tooltip).
+   combineSqmTitle (aᵏ's Square and multiply switch and its tooltip), and
+   combineCopy (Copy these formulas, the menu item on the lines under the ring).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -855,6 +856,7 @@
       combineModeScalar: 'Combine one element with itself k times',
       combineScalarGiven: 'a = {a}, k = {k}',
       combineSqm: 'Square and multiply',
+      combineCopy: 'Copy these formulas',
       combineSqmTitle: 'Write aᵏ as square and multiply does it: k in binary, then one line per bit from the top, squaring the power so far and combining it with a once more where the bit is 1',
       combineScalarKMod: 'Every element\'s order divides the group\'s cardinality {n}, so k = {k} combines an element with itself just as k = {r} does: {k} mod {n} = {r}. Click to reduce k to {r}',
       combineScalarTimes: 'How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse\'s multiples',

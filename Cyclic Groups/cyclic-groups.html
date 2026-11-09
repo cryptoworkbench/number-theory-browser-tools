@@ -1436,6 +1436,8 @@
   .ring-combine .is-c{ fill:var(--role-result); }
   .ring-combine .is-sup{ font-size:0.68em; baseline-shift:super; }
   .ring-combine-hit{ fill:transparent; cursor:help; }
+  /* a ∗ b's and aᵏ's lines can be selected and copied, as plain text. */
+  svg.ring-svg .ring-combine{ user-select:text; -webkit-user-select:text; cursor:text; }
   .ring-combine .is-sub{ font-size:0.68em; baseline-shift:sub; }
   .ring-combine .is-bigop{ font-size:1.3em; font-weight:400; }
   /* The captions can be selected and copied; a press on one never turns
@@ -10658,7 +10660,7 @@ ringSvgEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   if (IS_MOBILE) return; // a long press is no right click on a phone
   // On the powers line with two versions, its own menu: Generalized formula;
-  // on any of aᵏ's lines, Square and multiply.
+  // on any of aᵏ's lines, Square and multiply; on every line, Copy.
   if (drawn){
     var onLineAt = function(el){
       var sb = boxOf(el);
@@ -10666,7 +10668,7 @@ ringSvgEl.addEventListener('contextmenu', function(e){
     };
     var sw = unfoldShown(drawn.G) ? ringDynamicEl.querySelector('.ring-combine.is-switch') : null;
     var onSw = !!sw && onLineAt(sw);
-    var onK = combo.k !== null && comboLive(drawn.G) && Array.prototype.some.call(ringDynamicEl.querySelectorAll('.ring-combine'), onLineAt);
+    var onK = comboLive(drawn.G) && Array.prototype.some.call(ringDynamicEl.querySelectorAll('text.ring-combine'), onLineAt);
     if (onSw || onK){
       setRingCtx(false);
       openCombineGenCtx(drawn.G, ptX(e), ptY(e), onSw);
@@ -16037,7 +16039,8 @@ function tellPowersForm(){
 }
 function unfoldLines(G){ return foldShown(G) ? COMBINE_LIMITS / COMBINE_LINE : 0; }
 // The switchable line's menu, of one switch.
-// On aᵏ's lines, Square and multiply too; Keep general on the powers line.
+// On aᵏ's lines, Square and multiply too; Keep general on the powers line;
+// on every line, Copy these formulas.
 function openCombineGenCtx(G, x, y, onSwitch){
   var items = [];
   if (onSwitch) items.push(menuTick('menuitemcheckbox', translate('cyclicGroups.combineGeneral'), combineGeneral(G), function(){
@@ -16049,6 +16052,12 @@ function openCombineGenCtx(G, x, y, onSwitch){
     closeFsetCtx();
     setCombineSqm(!state.combineSqm);
   }));
+  var copy = ctxItem('menuitem', translate('cyclicGroups.combineCopy'), false).item;
+  copy.addEventListener('click', function(){
+    closeFsetCtx();
+    copyText(combineText());
+  });
+  items.push(copy);
   fsetCtxEl.replaceChildren.apply(fsetCtxEl, items);
   if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(fsetCtxEl, x, y);
@@ -16316,6 +16325,42 @@ function sqmRows(G, mod){
   rows.groups = groups;
   return rows;
 }
+// A line's plain text, as copying it gives: its cells apart by spaces, a
+// raised part (an exponent still to work out, a big operator's upper
+// limit) as ^(…), a lowered one as _(…).
+function combinePlain(row){
+  var wrap = function(t){ return /^[0-9A-Za-z]+$/.test(t) ? t : '(' + t + ')'; };
+  return row.map(function(cell){
+    var parts = Array.isArray(cell[0]) ? cell : [cell], out = '', run = null, runText = '';
+    var flush = function(){ if (run) out += (run === 'lo' ? '_' : '^') + wrap(runText.trim()); run = null; runText = ''; };
+    parts.forEach(function(part){
+      var kind = part[2] === 'sup' || part[2] === 'hi' ? 'hi' : part[2] === 'lo' ? 'lo' : null;
+      if (kind !== run) flush();
+      if (kind){ run = kind; runText += String(part[1]); }
+      else out += String(part[1]);
+    });
+    flush();
+    return out.trim();
+  }).filter(function(t){ return t; }).join(' ').replace(/ {2,}/g, ' ');
+}
+// Every line under the ring, from the given down, one per line.
+function combineText(){
+  return Array.prototype.map.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
+    return t.getAttribute('data-plain') || t.textContent.trim();
+  }).filter(function(t){ return t; }).join('\n');
+}
+// A selection over them copies each line touched in its plain form.
+document.addEventListener('copy', function(e){
+  var sel = window.getSelection();
+  if (!sel || !sel.rangeCount || !e.clipboardData) return;
+  var range = sel.getRangeAt(0);
+  var picked = Array.prototype.filter.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
+    return range.intersectsNode(t);
+  });
+  if (!picked.length) return;
+  e.clipboardData.setData('text/plain', picked.map(function(t){ return t.getAttribute('data-plain') || t.textContent.trim(); }).join('\n'));
+  e.preventDefault();
+}, true);
 function drawCombineLine(G, y){
   var roles = combineRoles(G);
   if (!roles.size || !comboLive(G)) return;
@@ -16557,6 +16602,7 @@ function drawCombineLine(G, y){
       });
       return { spans: spans, parts: parts, w: 0 };
     });
+    t.setAttribute('data-plain', combinePlain(row));
     box.appendChild(t);
     // Free lines stand alone, but for those joined to the first, or those
     // of one group (rows.groups) sharing their columns.
@@ -16604,7 +16650,10 @@ function drawCombineLine(G, y){
     var left = from.x, right = to.x + to.w;
     var hit = svgEl('rect', { 'class': 'ring-combine-hit', x: num(left - 4), y: num(y + COMBINE_LINE - 20), width: num(right - left + 8), height: 26 });
     hit.setAttribute('data-title', tip);
-    box.appendChild(hit);
+    // Behind the lines, so the text over it can still be selected; its
+    // glyphs carry the tip themselves.
+    box.insertBefore(hit, box.firstChild);
+    lines[1].slice(tipAt, tipTo + 1).forEach(function(cell){ cell.spans.forEach(function(sp){ sp.setAttribute('data-title', tip); }); });
   }
   // Too wide for the ring's view, both lines shrink together about the middle.
   var room = SIZE - 24;
@@ -16759,7 +16808,13 @@ function stepComboK(by){ setCombineK(state.combineK + by); }
 var turning = null; // { id, last, swept } while a drag is on
 ringSvgEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !drawn) return;
-  if (e.target.closest('.ring-note')) return;
+  // A press on the notes or the combination's lines selects their text,
+  // the gaps between a line's terms included.
+  if (e.target.closest('.ring-note, .ring-combine, .ring-combine-hit')) return;
+  if (Array.prototype.some.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
+    var r = t.getBoundingClientRect();
+    return e.clientX >= r.left - 4 && e.clientX <= r.right + 4 && e.clientY >= r.top - 2 && e.clientY <= r.bottom + 2;
+  })) return;
   finishSpin();
   var a = pointerAngle(e);
   if (a === null) return;
