@@ -6676,7 +6676,7 @@ function ctxName(k){ return k === 'struct' ? 'cyclicGroups.ctxGroupStructure' : 
 // key with Ec after it, unless Keep general (idxGeneral,
 // from the Cofactor column's menu) keeps it the index. G is the group
 // meant, the ring's own unless given.
-var IDX_KEYS = ['cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.scratchCindex', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
+var IDX_KEYS = ['cyclicGroups.ctxSubIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.scratchCindex', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
 function idxKey(key, G){
   if (G === undefined) G = drawn ? drawn.G : null;
   return G && G.pts && !state.idxGeneral && IDX_KEYS.indexOf(key) !== -1 ? key + 'Ec' : key;
@@ -10156,6 +10156,14 @@ document.addEventListener('contextmenu', function(e){
 // opens it with the group's and the subgroup's names, the group's
 // cardinality and its generator count, each opening the copy submenu as the
 // Formulas item does.
+// The subgroup's name over its formulas in that menu, ⟨h⟩ ∈ G, h as the row
+// writes it but never with Natural's exponent (Exponents in natural
+// expression has no say here).
+function ctxSubName(G){
+  var lg = exprBy(G), H = !IS_ISOPANE && subInterlocked() ? isoPaneGroup() : null;
+  var f = subFormat(lg, lg === null ? null : exprLog(G, lg), subWidth(G), H ? Math.max(subExpWidth(G), subExpWidth(H)) : subExpWidth(G), G, true);
+  return '⟨' + f.p(state.gen) + '⟩ ∈ ' + curveName(G);
+}
 function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
   ringCtxEl.classList.toggle('is-expr-ctx', !!key);
@@ -10192,7 +10200,7 @@ function syncExprCtx(key){
   // elsewhere, Formulas.
   var sections = key === 'gsub' ? [
     { name: curveName(drawn.G), keys: ['ggroup', 'gorder', 'gens', 'struct'].filter(has) },
-    { name: has('gsub') ? forms[have.indexOf('gsub')].plain : null, keys: ['gsub', 'sorder', 'cindex'].filter(has) }
+    { name: has('gsub') ? ctxSubName(drawn.G) : null, keys: ['gsub', 'sorder', 'cindex'].filter(has) }
   ] : [{ name: null, keys: key === 'gens' ? [] : [key] }];
   sections.forEach(function(sec){
     if (!sec.keys.length) return;
@@ -10207,7 +10215,10 @@ function syncExprCtx(key){
     } else fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
     ringCtxEl.appendChild(fhead);
     sec.keys.forEach(function(k){
-      var it = ctxItem('menuitem', translate(ctxName(k)), true);
+      // The index named plainly, Subgroup index (Subgroup cofactor on a
+      // curve, unless the index is kept general), without the row's
+      // alternatives.
+      var it = ctxItem('menuitem', translate(k === 'cindex' ? idxKey('cyclicGroups.ctxSubIndex') : ctxName(k)), true);
       it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
       it.item.addEventListener('click', function(){ setRingCopy(k, it.item, true); });
       it.item.classList.add('ring-ctx-expr');
