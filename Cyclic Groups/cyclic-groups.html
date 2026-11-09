@@ -6997,6 +6997,8 @@ var COPY_FORMATS = [
 var ringCopyFrom = null;
 function setRingCopy(name, from, focus){
   setRingDivide(null);
+  ringCopyEl.classList.remove('is-div-table');
+  ringCopyEl.style.width = '';
   if (ringCopyFrom) ringCopyFrom.setAttribute('aria-expanded', 'false');
   ringCopyFrom = name ? from : null;
   ringCopyEl.hidden = !name;
@@ -7134,6 +7136,44 @@ function nextCurveOfOrder(k, st){
   }
   st.done = true;
 }
+// A cell of a menu table of groups (Divide's, Multiply's, Swap for an
+// isomorphic group's): two groups, then a third line, +, offering more of
+// them, a few at a time, while there are. upto(n) gives at least the first n
+// items; refit sizes and places the table again once it grows.
+var CELL_FIRST = 2, CELL_MORE = 3;
+function groupCell(upto, rule, refit){
+  var c = document.createElement('div');
+  c.className = 'div-cell' + (rule ? ' is-rule' : '');
+  var shown = 0, more = null;
+  var fill = function(n){
+    var list = upto(n + 1);
+    list.slice(shown, n).forEach(function(el){ c.insertBefore(el, more); });
+    shown = Math.min(n, list.length);
+    if (list.length > shown && !more){
+      more = ctxItem('menuitem', '+').item;
+      more.classList.add('div-more');
+      more.setAttribute('aria-label', translate('cyclicGroups.cardDivideMore'));
+      more.title = translate('cyclicGroups.cardDivideMore');
+      more.addEventListener('click', function(e){
+        e.stopPropagation();
+        var at = shown;
+        fill(shown + CELL_MORE);
+        refit();
+        (c.children[at] || more || c.lastChild).focus();
+      });
+      c.appendChild(more);
+    } else if (list.length <= shown && more){ more.remove(); more = null; }
+  };
+  fill(CELL_FIRST);
+  if (!shown){
+    var none = document.createElement('p');
+    none.className = 'div-none';
+    none.setAttribute('aria-hidden', 'true');
+    none.textContent = '\u2014';
+    c.appendChild(none);
+  }
+  return c;
+}
 function setRingDivide(from, focus, ask){
   if (ringDivFrom) ringDivFrom.setAttribute('aria-expanded', 'false');
   ringDivFrom = from;
@@ -7181,42 +7221,7 @@ function setRingDivide(from, focus, ask){
       });
       return it.item;
     };
-    // A cell shows two groups; a third line, +, offers more of them, a few
-    // at a time, while there are. upto(n) gives at least the first n items.
-    var CELL_FIRST = 2, CELL_MORE = 3;
-    var cell = function(upto, rule){
-      var c = document.createElement('div');
-      c.className = 'div-cell' + (rule ? ' is-rule' : '');
-      var shown = 0, more = null;
-      var fill = function(n){
-        var list = upto(n + 1);
-        list.slice(shown, n).forEach(function(el){ c.insertBefore(el, more); });
-        shown = Math.min(n, list.length);
-        if (list.length > shown && !more){
-          more = ctxItem('menuitem', '+').item;
-          more.classList.add('div-more');
-          more.setAttribute('aria-label', translate('cyclicGroups.cardDivideMore'));
-          more.title = translate('cyclicGroups.cardDivideMore');
-          more.addEventListener('click', function(e){
-            e.stopPropagation();
-            var at = shown;
-            fill(shown + CELL_MORE);
-            fitRingDivide();
-            (c.children[at] || more || c.lastChild).focus();
-          });
-          c.appendChild(more);
-        } else if (list.length <= shown && more){ more.remove(); more = null; }
-      };
-      fill(CELL_FIRST);
-      if (!shown){
-        var none = document.createElement('p');
-        none.className = 'div-none';
-        none.setAttribute('aria-hidden', 'true');
-        none.textContent = '\u2014';
-        c.appendChild(none);
-      }
-      return c;
-    };
+    var cell = function(upto, rule){ return groupCell(upto, rule, fitRingDivide); };
     var listOf = function(arr){ return function(n){ return arr.slice(0, n); }; };
     factorRows(G, op).forEach(function(r, row){
       var d = r.d, m = r.m, rule = row > 0, adds = [];
@@ -10379,13 +10384,28 @@ function setRingSwap(from, focus){
   from.setAttribute('aria-expanded', 'true');
   ringCopyEl.hidden = false;
   ringCopyEl.setAttribute('aria-label', translate('cyclicGroups.swapIsoMenu'));
-  ringCopyEl.replaceChildren.apply(ringCopyEl, specs.map(function(spec){
+  // A table as Divide's, of one row: the groups under +, the groups of
+  // units and the curves, each cell two groups and a + for the rest.
+  var head = function(text){ var h = document.createElement('p'); h.className = 'fs-menu-head'; h.textContent = text; return h; };
+  var cols = { add: [], mul: [], ec: [] };
+  specs.forEach(function(spec){
     var it = ctxItem('menuitem', '');
     it.item.children[1].appendChild(swapName(spec));
     it.item.addEventListener('click', function(){ takeSwap(spec); });
-    return it.item;
-  }));
-  placeRingSub(from, focus);
+    cols[spec.curve ? 'ec' : spec.mode === 'multiplicative' ? 'mul' : 'add'].push(it.item);
+  });
+  var refit = function(){
+    ringCopyEl.style.width = '';
+    if (ringCopyEl.scrollWidth > ringCopyEl.clientWidth) ringCopyEl.style.width = (ringCopyEl.scrollWidth + ringCopyEl.offsetWidth - ringCopyEl.clientWidth) + 'px';
+    placeRingSub(from, false);
+  };
+  var cellOf = function(list){ return groupCell(function(n){ return list.slice(0, n); }, false, refit); };
+  ringCopyEl.classList.add('is-div-table');
+  ringCopyEl.style.setProperty('--div-cols', '3');
+  ringCopyEl.replaceChildren(document.createElement('span'), head(translate('common.additiveGroups')), head(translate('common.multiplicativeGroups')), head(translate('cyclicGroups.cardDivideCurves')),
+    document.createElement('span'), cellOf(cols.add), cellOf(cols.mul), cellOf(cols.ec));
+  refit();
+  if (focus) ringCopyEl.querySelector('button').focus();
 }
 // The chip's group takes this ring's place through the isomorphism that
 // sends G's first generator to the chip's: the subgroup on show goes over
