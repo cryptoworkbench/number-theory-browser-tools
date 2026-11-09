@@ -6627,9 +6627,9 @@ function drawMath(G, subs){
 }
 var lastSubs = [];
 
-// The names of the subgroup row menu's formulas, by key; the structure is
-// named in full.
-function ctxName(k){ return k === 'struct' ? 'cyclicGroups.ctxGroupStructure' : idxKey(CTX_NAMES[k]); }
+// The names of the subgroup row menu's formulas, by key, short under their
+// headings: Name, Cardinality, … for the group, Name, Size, … for the subgroup.
+function ctxName(k){ return idxKey(CTX_NAMES[k]); }
 // On an elliptic curve a subgroup's number of cosets is its cofactor, not
 // its index: a wording naming the index takes its curve form there, the
 // key with Ec after it, unless Keep general (idxGeneral,
@@ -6648,7 +6648,7 @@ function syncIdxNames(G){
     o.textContent = translate(idxKey(key, G));
   });
 }
-var CTX_NAMES = { gsub: 'cyclicGroups.ctxItemName', ggroup: 'cyclicGroups.formulaToggleName', gorder: 'cyclicGroups.formulaToggleGroupShort', gens: 'cyclicGroups.scratchGens', sorder: 'cyclicGroups.ctxItemSize', cindex: 'cyclicGroups.ctxItemIndex', struct: 'cyclicGroups.fact.structure' };
+var CTX_NAMES = { ggroup: 'cyclicGroups.ctxItemName', gorder: 'cyclicGroups.ctxItemCardinality', gens: 'cyclicGroups.ctxItemGens', struct: 'cyclicGroups.ctxItemStructure', gsub: 'cyclicGroups.ctxItemName', sorder: 'cyclicGroups.ctxItemSize', cindex: 'cyclicGroups.ctxItemIndex', sstruct: 'cyclicGroups.ctxItemStructure' };
 // The group's structure, the last of the right-click menu's formulas,
 // copied like the rest: ⟨ℤ/nℤ, +⟩ for a cyclic
 // group, else the product of its cyclic factors.
@@ -6721,6 +6721,9 @@ function menuFormulas(G){
       : t[0] === 'order' ? subOrderFormula(G, h, undefined, true, hm) : cosetCountFormula(G, h, undefined, true, true, hm);
     if (f) list.push({ key: t[1], cls: 'ring-math-formula', math: plainOut(f.math), plain: f.plain });
   });
+  // And its structure: cyclic of h's order k, ⟨ℤ/kℤ, +⟩.
+  var k = G.orders[h];
+  list.push({ key: 'sstruct', cls: 'ring-math-formula', math: mGroupOf('additive', k), plain: additiveLabel(k) });
   return list;
 }
 // A formula as pieces: the first, then one from each equals sign on, each
@@ -9976,12 +9979,12 @@ function syncExprCtx(key){
   // The formulas, each copied in the format picked, under headings of
   // their own after the Swap section: on the subgroup row, the group's
   // (G FORMULAS: its name, cardinality, generator count and structure)
-  // and the subgroup's (⟨h⟩ ∈ G FORMULAS: its name, its cardinality and
-  // its index as they are figured now), each named as the row writes it;
+  // and the subgroup's (⟨h⟩ ∈ G FORMULAS: its name, its size and its index
+  // as they are figured now, and its structure), each named as the row writes it;
   // elsewhere, Formulas.
   var sections = key === 'gsub' ? [
     { name: curveName(drawn.G), keys: ['ggroup', 'gorder', 'gens', 'struct'].filter(has) },
-    { name: has('gsub') ? ctxSubName(drawn.G) : null, keys: ['gsub', 'sorder', 'cindex'].filter(has) }
+    { name: has('gsub') ? ctxSubName(drawn.G) : null, keys: ['gsub', 'sorder', 'cindex', 'sstruct'].filter(has) }
   ] : [{ name: null, keys: key === 'gens' ? [] : [key] }];
   sections.forEach(function(sec){
     if (!sec.keys.length) return;
