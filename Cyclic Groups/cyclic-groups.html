@@ -11091,12 +11091,16 @@ if (IS_RINGWIN){
       return;
     }
     // The swap's flip: this ring as it stands, for the page to carry
-    // across, and hidden here meanwhile.
+    // across. The page hides it as its copy goes up (or asks, 'ringhide').
     if (d.ringhost === 'ringsnap'){
       if (!IS_ISOPANE) return;
+      clearTimeout(paneWatchEnd);
       var rb = ringSvgEl.getBoundingClientRect();
-      try { window.parent.postMessage({ ringwin: 'ringsnap', svg: new XMLSerializer().serializeToString(ringSvgEl), box: [rb.left, rb.top, rb.width, rb.height], w: window.innerWidth }, '*'); } catch (err) { return; }
-      ringSvgEl.classList.add('is-swap-hidden');
+      try { window.parent.postMessage({ ringwin: 'ringsnap', svg: new XMLSerializer().serializeToString(ringSvgEl), box: [rb.left, rb.top, rb.width, rb.height], w: window.innerWidth }, '*'); } catch (err) { /* no page to tell */ }
+      return;
+    }
+    if (d.ringhost === 'ringhide'){
+      if (IS_ISOPANE) ringSvgEl.classList.add('is-swap-hidden');
       return;
     }
     // Swapped, this pane takes the group the page hands it in place, as the
@@ -11134,6 +11138,7 @@ if (IS_RINGWIN){
       // Shown: its ring again, and everything animates again.
       if (d.end){
         paneSettling = false;
+        clearTimeout(paneWatchEnd);
         if (paneWatch) paneWatch.disconnect();
         ringSvgEl.classList.remove('is-swap-hidden');
         return;
@@ -11143,7 +11148,9 @@ if (IS_RINGWIN){
       });
       told.observe(document.body, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class', 'fill', 'hidden', 'style'] });
       paneSettling = true;
-      setTimeout(function(){ told.disconnect(); paneSettling = false; ringSvgEl.classList.remove('is-swap-hidden'); }, 2000);
+      // Never told it is shown, it shows itself; a later swap starts afresh.
+      clearTimeout(paneWatchEnd);
+      paneWatchEnd = setTimeout(function(){ told.disconnect(); paneSettling = false; ringSvgEl.classList.remove('is-swap-hidden'); }, 2000);
       return;
     }
     if (d.ringhost !== 'look') return;
@@ -16815,7 +16822,7 @@ function turnHome(){
 // cos θ, the ring sinking back a little at mid-turn. A redraw part way
 // through shows the end state at once.
 var FLIP_MS = 700, FLIP_SINK = 0.08;
-var flipping = null, paneWatch = null, paneSettling = false;
+var flipping = null, paneWatch = null, paneWatchEnd = null, paneSettling = false;
 function endFlip(){
   if (!flipping) return;
   dirIconFlip = null;
@@ -19354,6 +19361,9 @@ function runSwapSpin(d){
   });
   (document.fullscreenElement || document.body).appendChild(layer);
   ringSvgEl.classList.add('is-swap-hidden');
+  // The pane's ring hides in the same moment as its copy goes up, as this
+  // ring's does: directly where the pane can be reached, else asked to.
+  try { isoPaneFrame.contentDocument.getElementById('ring-svg').classList.add('is-swap-hidden'); } catch (e) { tellPane({ ringhost: 'ringhide' }); }
   var sw = boxOf(isoSwapEl), ax = sw.width ? sw.left + sw.width / 2 : boxOf(isoPaneEl).left;
   var ay = (l.top + l.height / 2 + r.top + r.height / 2) / 2;
   swapSpin = { layer: layer, front: front, back: back, l: l, r: r, vbl: front.vb0, vbr: back.vb0, ax: ax, ay: ay, t0: null, guard: null, arrived: false };
@@ -19437,6 +19447,10 @@ function endSwapSpin(){
   clearTimeout(s.guard);
   clearTimeout(s.late);
   clearTimeout(s.still);
+  // The pane's ring shows in the same moment as the copy over it goes, so
+  // that no frame shows neither: directly where the pane can be reached
+  // (a page served over http), by its own hand otherwise ('end').
+  try { isoPaneFrame.contentDocument.getElementById('ring-svg').classList.remove('is-swap-hidden'); } catch (e) { /* a pane out of reach shows its ring itself */ }
   if (s.layer) s.layer.remove();
   if (s.settling) tellPane({ ringhost: 'drawnwatch', end: true });
   ringSvgEl.classList.remove('is-swap-hidden');
