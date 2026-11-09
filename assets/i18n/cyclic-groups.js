@@ -263,7 +263,8 @@
    and Multiplicative Groups headings), and the cardMultiply* keys
    (Multiply, Divide's counterpart for 2, 3, 5 or 7 times the cardinality: its
    item, row label, greyed reason and warnings), and combineSqm and
-   combineSqmTitle (aᵏ's Square and multiply switch and its tooltip), and
+   combineSqmOff (the Square and multiply heading and its Off, in the aᵏ
+   button's right-click menu and the formula lines' one), and
    combineCopy (Copy these formulas, the menu item on the lines under the ring),
    and combineSqmLtr and combineSqmRtl (square and multiply's two ways, in the aᵏ
    button's right-click menu).
@@ -861,7 +862,7 @@
       combineCopy: 'Copy these formulas',
       combineSqmLtr: 'Left to right: from the top bit down',
       combineSqmRtl: 'Right to left: through the powers of two',
-      combineSqmTitle: 'Write aᵏ as square and multiply does it: k in binary, then one line per bit from the top, squaring the power so far and combining it with a once more where the bit is 1',
+      combineSqmOff: 'Off',
       combineScalarKMod: 'Every element\'s order divides the group\'s cardinality {n}, so k = {k} combines an element with itself just as k = {r} does: {k} mod {n} = {r}. Click to reduce k to {r}',
       combineScalarTimes: 'How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse\'s multiples',
       combineExpWrap: 'Exponents add: {i} + {j} = {sum}. The group has {n} elements, so {g} has order {n} and {gn} is the identity. Exponents therefore count modulo the group\'s cardinality {n}: {sum} mod {n} = {k}, so {gsum} = {gk}.',
