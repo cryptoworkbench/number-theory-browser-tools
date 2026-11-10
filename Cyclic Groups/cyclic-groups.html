@@ -3486,7 +3486,7 @@
             <label for="colorby-select" data-i18n="cyclicGroups.layerColors">Element colours</label>
             <select id="colorby-select">
               <option value="none" data-i18n="cyclicGroups.colorByNone">None</option>
-              <option value="order" data-i18n="cyclicGroups.colorByOrder">Subgroup cardinality</option>
+              <option value="order" data-i18n="cyclicGroups.colorByOrderIndex">Subgroup cardinality / index</option>
               <option value="inverse" data-i18n="cyclicGroups.colorByInverse">Inverse pairs</option>
               <option value="theme" data-i18n="cyclicGroups.colorByTheme">Website theme</option>
               <option value="distinct" data-i18n="cyclicGroups.colorByDistinct">One distinct colour per element</option>
@@ -6765,7 +6765,7 @@ function ctxName(k){
 // key with Ec after it, unless the Index column's dropdown at Index
 // (idxGeneral) keeps it the index. G is the group
 // meant, the ring's own unless given.
-var IDX_KEYS = ['cyclicGroups.ctxItemIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
+var IDX_KEYS = ['cyclicGroups.ctxItemIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex', 'cyclicGroups.colorByOrderIndex', 'cyclicGroups.colorBySizeIndex'];
 function idxKey(key, G){
   if (G === undefined) G = drawn ? drawn.G : null;
   return G && G.pts && !state.idxGeneral && IDX_KEYS.indexOf(key) !== -1 ? key + 'Ec' : key;
@@ -6777,6 +6777,17 @@ function syncIdxNames(G){
     o.setAttribute('data-i18n', idxKey(key, G));
     o.textContent = translate(idxKey(key, G));
   });
+  syncColorByName(G);
+}
+// The Element colours scheme by subgroup: Subgroup cardinality / index,
+// worded as the formula settings window's columns are, size for
+// cardinality (its Size column) and cofactor for index (its Index column).
+function syncColorByName(G){
+  var o = colorBySelectEl && colorBySelectEl.querySelector('option[value="order"]');
+  if (!o) return;
+  var key = idxKey(state.sizeJargon ? 'cyclicGroups.colorByOrderIndex' : 'cyclicGroups.colorBySizeIndex', G);
+  o.setAttribute('data-i18n', key);
+  o.textContent = translate(key);
 }
 var CTX_NAMES = { ggroup: 'cyclicGroups.ctxItemName', gorder: 'cyclicGroups.ctxItemCardinality', gens: 'cyclicGroups.ctxItemGens', struct: 'cyclicGroups.ctxItemStructure', gsub: 'cyclicGroups.ctxItemName', sorder: 'cyclicGroups.ctxItemSize', cindex: 'cyclicGroups.ctxItemIndex', sstruct: 'cyclicGroups.ctxItemStructure' };
 // The group's structure, the last of the right-click menu's formulas,
@@ -9098,6 +9109,7 @@ function fsetNamePick(w, kind, names){
     w.focus = '#' + btn.id;
     if (kind === 'size'){
       state.sizeJargon = sel.value === 'card';
+      syncColorByName();
       fillFsetWins();
       if (drawn) mirrorToUrl(drawn.G);
       return;
