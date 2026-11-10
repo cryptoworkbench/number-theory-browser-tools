@@ -2171,6 +2171,8 @@
   .expr-sign-exp.is-void{ visibility:hidden; }
   .expr-sign-base{ font-style:italic; }
   .expr-sign-exp sup{ font-size:.62rem; line-height:1; margin-left:1px; translate:0 -.35em; vertical-align:baseline; }
+  /* On a curve written as multiples kP, it reads ℕP, or lit ℤP. */
+  .expr-sign-exp.is-mult{ font-family:var(--font-math); font-weight:400; font-size:.78rem; }
   /* At the slider's end, the unfold icon opens the advanced mode: a second
      slider under it, On hover, picking what Reveal on hover shows (the same
      pick as the eyes in the element expression reference table), the first
@@ -4765,6 +4767,25 @@ var SUBSCRIPT_DIGITS = '₀₁₂₃₄₅₆₇₈₉';
 function subscript(k){
   return String(k).replace(/[0-9]/g, function(d){ return SUBSCRIPT_DIGITS[d]; });
 }
+// The g^± button's face: g with a raised ±, or on a curve written as
+// multiples kP, the multipliers' set before P: ℕP, or signed ℤP.
+function signExpFace(btn, G, on){
+  var mult = ecMult(G), face = mult ? (on ? 'ℤ' : 'ℕ') : '';
+  if (btn.dataset.face === face) return;
+  btn.dataset.face = face;
+  btn.classList.toggle('is-mult', mult);
+  var base = document.createElement('span');
+  base.className = 'expr-sign-base';
+  if (mult){
+    base.textContent = 'P';
+    btn.replaceChildren(document.createTextNode(face), base);
+  } else {
+    base.textContent = 'g';
+    var sup = document.createElement('sup');
+    sup.textContent = '±';
+    btn.replaceChildren(base, sup);
+  }
+}
 // The element expression's slider: stop 0 Natural, stop i the powers of
 // the group's i-th generator, each stop marked on the track and named by its
 // generator, the choice named in full beside it.
@@ -4775,6 +4796,7 @@ function syncExpr(G){
   exprSignEl.title = translate(G.pts ? (state.signed ? 'cyclicGroups.exprSignOffEc' : 'cyclicGroups.exprSignOnEc') : state.signed ? 'cyclicGroups.exprSignOff' : 'cyclicGroups.exprSignOn');
   exprSignEl.setAttribute('aria-label', exprSignEl.title);
   exprSignExpEl.setAttribute('aria-pressed', String(state.signedExp));
+  signExpFace(exprSignExpEl, G, state.signedExp);
   exprSignExpEl.title = translate(state.signedExp ? 'cyclicGroups.exprSignExpOff' : 'cyclicGroups.exprSignExpOn');
   exprSignExpEl.setAttribute('aria-label', exprSignExpEl.title);
   exprSlotEl.hidden = false;
@@ -4841,6 +4863,7 @@ function syncExprHover(G){
   // nothing to sign.
   exprHoverSignExpEl.disabled = (tied ? exprBy(G) : revealTo(G)) === null;
   exprHoverSignExpEl.setAttribute('aria-pressed', String(rse));
+  signExpFace(exprHoverSignExpEl, G, rse);
   exprHoverSignExpEl.title = translate(rse ? 'cyclicGroups.exprHoverSignExpOff' : 'cyclicGroups.exprHoverSignExpOn');
   // The lock, offered while the two sliders stand alike, closed while
   // they are tied.
