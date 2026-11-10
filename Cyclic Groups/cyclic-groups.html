@@ -1123,6 +1123,9 @@
   /* What is left lies over the |G| right of =: the same value. */
   #pizza-lagrange .pz-rest.is-gone{ visibility:hidden; }
   .pizza-ghost .is-left, #pizza-lagrange .pz-same.is-left{ color:var(--role-result); }
+  /* Then all left of = fades, and what stays goes to the middle. */
+  #pizza-lagrange .pz-lhs, .pizza-strike{ transition:opacity .6s ease; }
+  #pizza-lagrange .pz-lhs.is-faded, .pizza-strike.is-faded{ opacity:0; }
   .pizza-end > .pizza-sum{ align-self:stretch; margin-top:.15em; overflow-wrap:normal; white-space:nowrap; overflow:hidden; }
   .pizza-sum{ margin:.4em 0 .1em; font-family:var(--font-math); font-size:1.05em; line-height:1.35; text-align:center; color:var(--text); overflow-wrap:anywhere; direction:ltr; }
   .dh-note{ margin:0 0 .5em; font-size:.8em; line-height:1.35; color:var(--text-dim); }
@@ -18475,7 +18478,8 @@ function drawPizza(){
 // |⟨h⟩| · |G| / |⟨h⟩| = |G|, and Simplify works it out (pizzaSimp: 0 not
 // yet, 1 the factor moved over the bar, 2 one red line through the two
 // common terms, 3 what is left, |G|, moved onto the |G| right of = and
-// lying over it, the same value), for the run it was asked for.
+// lying over it, the same value, 4 all left of = faded out, 5 only |G|
+// left, in the middle of the line), for the run it was asked for.
 var pizzaSimp = 0, pizzaSimpKey = null;
 function pizzaStatement(G, h, key){
   if (key !== pizzaSimpKey || !state.lagrangeOff){ pizzaSimp = 0; pizzaSimpKey = key; }
@@ -18490,9 +18494,12 @@ function pizzaStatement(G, h, key){
   } else if (!pizzaSimp){
     math = mrow(tag(abs(hM()), '', 'factor'), tag(mo('·'), '', 'dot'), mfrac(tag(abs(mGroup(G)), '', 'num'), tag(abs(hM()), '', 'den')), tag(mrow(mo('='), abs(mGroup(G))), '', 'rhs'));
     plain = '|⟨' + hp + '⟩| · |' + G.label + '| / |⟨' + hp + '⟩| = |' + G.label + '|';
+  } else if (pizzaSimp === 5){
+    math = mrow(tag(abs(mGroup(G)), 'pz-same is-left'));
+    plain = '|' + G.label + '|';
   } else {
-    var merged = pizzaSimp === 3;
-    math = mrow(mfrac(mrow(tag(abs(hM()), '', 'factor'), tag(mo('·'), '', 'dot'), tag(abs(mGroup(G)), 'pz-rest' + (merged ? ' is-gone' : ''), 'num')), tag(abs(hM()), '', 'den')), tag(mrow(mo('='), tag(abs(mGroup(G)), 'pz-same' + (merged ? ' is-left' : ''))), '', 'rhs'));
+    var merged = pizzaSimp >= 3;
+    math = mrow(tag(mfrac(mrow(tag(abs(hM()), '', 'factor'), tag(mo('·'), '', 'dot'), tag(abs(mGroup(G)), 'pz-rest' + (merged ? ' is-gone' : ''), 'num')), tag(abs(hM()), '', 'den')), 'pz-lhs' + (pizzaSimp >= 4 ? ' is-faded' : '')), tag(mrow(tag(mo('='), 'pz-eq'), tag(abs(mGroup(G)), 'pz-same' + (merged ? ' is-left' : ''))), '', 'rhs'));
     plain = '(|⟨' + hp + '⟩| · |' + G.label + '|) / |⟨' + hp + '⟩| = |' + G.label + '|';
   }
   $('pizza-lagrange').replaceChildren(mInline(math, plain));
@@ -18507,7 +18514,7 @@ function pizzaStatement(G, h, key){
 function pizzaStrikeLine(animate){
   var old = $('pizza-strike');
   if (old) old.remove();
-  if (pizzaSimp < 2 || pizzaPlotEl.hidden) return;
+  if (pizzaSimp < 2 || pizzaSimp > 3 || pizzaPlotEl.hidden) return;
   var el = $('pizza-lagrange'), f = el.querySelector('[data-pz="factor"]'), d = el.querySelector('[data-pz="den"]');
   if (!f || !d) return;
   var a = boxOf(f), b = boxOf(d), pr = boxOf(pizzaPlotEl), pad = 2;
@@ -18543,7 +18550,9 @@ function pizzaGlide(copy, from, to, fs, done){
 // over the window, the pieces themselves hidden till they land); then one
 // red line goes through it and through the denominator, the same term;
 // then what is left over the bar, |G|, glides onto the |G| right of =,
-// growing to its size, and lies over it in the result's colour.
+// growing to its size, and lies over it in the result's colour; then all
+// left of = fades out, and last that |G| glides to the middle of the line
+// (the =, alone, fading as it goes).
 $('pizza-simplify').addEventListener('click', function(){
   if (!cosetRun || !drawn || pizzaSimp !== 0) return;
   var el = $('pizza-lagrange');
@@ -18556,7 +18565,7 @@ $('pizza-simplify').addEventListener('click', function(){
   var merge = function(){
     if (pizzaSimp !== 2) return;
     var rest = el.querySelector('.pz-rest'), same = el.querySelector('.pz-same');
-    if (still || !rest || !same){ pizzaSimp = 3; pizzaStatement(drawn.G, cosetRun.h, pizzaSimpKey); return; }
+    if (still || !rest || !same){ pizzaSimp = still ? 5 : 3; pizzaStatement(drawn.G, cosetRun.h, pizzaSimpKey); return; }
     var copy = rest.cloneNode(true);
     copy.classList.add('is-left');
     rest.classList.add('is-gone');
@@ -18565,6 +18574,35 @@ $('pizza-simplify').addEventListener('click', function(){
       if (pizzaSimp !== 2 || !cosetRun || !drawn) return;
       pizzaSimp = 3;
       pizzaStatement(drawn.G, cosetRun.h, pizzaSimpKey);
+      setTimeout(fade, 600);
+    });
+  };
+  var fade = function(){
+    if (pizzaSimp !== 3) return;
+    var lhs = el.querySelector('.pz-lhs'), line = $('pizza-strike');
+    if (lhs) lhs.classList.add('is-faded');
+    if (line) line.classList.add('is-faded');
+    setTimeout(function(){
+      if (pizzaSimp !== 3 || !cosetRun || !drawn) return;
+      pizzaSimp = 4;
+      pizzaStatement(drawn.G, cosetRun.h, pizzaSimpKey);
+      setTimeout(centre, 400);
+    }, 650);
+  };
+  var centre = function(){
+    if (pizzaSimp !== 4 || !cosetRun || !drawn) return;
+    var same = el.querySelector('.pz-same'), eq = el.querySelector('.pz-eq');
+    var from = boxOf(same), eqBox = boxOf(eq), fsNow = getComputedStyle(el.firstChild).fontSize;
+    var copy = same.cloneNode(true), eqCopy = eq.cloneNode(true);
+    pizzaSimp = 5;
+    pizzaStatement(drawn.G, cosetRun.h, pizzaSimpKey);
+    var to = el.querySelector('.pz-same');
+    if (!to) return;
+    to.style.visibility = 'hidden';
+    pizzaGlide(eqCopy, eqBox, eqBox, fsNow, function(ghost){ ghost.remove(); }).animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: 'ease-out', fill: 'forwards' });
+    pizzaGlide(copy, from, boxOf(to), fsNow, function(ghost){
+      ghost.remove();
+      to.style.visibility = '';
     });
   };
   var strike = function(){
