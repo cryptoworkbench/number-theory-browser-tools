@@ -20251,13 +20251,14 @@ function swapIsoRings(){
   syncFormulaCtl();
   // Turned over like a coin, both rings land mirrored: counting the other
   // way round, the identity kept where it is and the preferred way round
-  // mirrored with them, as setDir does. The pane hears the new direction
-  // with the shared settings and mirrors its ring so too.
+  // mirrored with them, as setDir does. The pane takes its new group
+  // already counting the new way round, so it never flips on its own.
   var Gn = currentGroup();
   state.rot = 2 * arrangement(Gn).indexOf(Gn.identity) - state.rot;
   state.dir = otherDir(state.dir);
   state.prefDir = otherDir(state.prefDir);
   try { localStorage.setItem(PREF_DIR_KEY, state.prefDir); } catch (e) { /* storage unavailable */ }
+  hostQ.set('dir', state.dir);
   isoPane.q = hostQ.toString();
   if (whole){
     isoPane.h = g;
@@ -20924,9 +20925,11 @@ function postIsoShared(force){
   if (twoRings() && isoTurnsTogether()) paneZoom = ringZoom;
   // A pane within reach takes them at once, in the same frame as this
   // ring's own change of size, so a bottom panel sliding up or down grows
-  // and shrinks the two rings together; one out of reach is sent them.
+  // and shrinks the two rings together; one out of reach is sent them. So
+  // is one still to take the group a swap hands it ('swapto', queued), so
+  // that they reach it after its new group, never before.
   var w = isoPaneFrame.contentWindow;
-  try { w.dispatchEvent(new w.MessageEvent('message', { data: isoSharedPayload(), source: window })); return; } catch (e) { /* out of reach: sent instead */ }
+  if (!paneSwapWait) try { w.dispatchEvent(new w.MessageEvent('message', { data: isoSharedPayload(), source: window })); return; } catch (e) { /* out of reach: sent instead */ }
   try { w.postMessage(isoSharedPayload(), '*'); } catch (e) { /* a frame that is gone needs nothing */ }
 }
 // The pane takes the payload field by field, each only when it is valid.
@@ -21356,6 +21359,9 @@ function isoLinkGen(){
   if (isoPane && isoPane.g !== null){
     var G = drawn.G;
     if (G.generators.indexOf(isoPane.g) !== -1) return isoPane.g;
+    // Mid-swap the group drawn is still the old one, while the link already
+    // runs through the new one's generator: kept as it is.
+    if (G.key !== currentGroup().key) return isoPane.g;
     if (!G.cyclic) return null;
     // The group was changed since (unlocked): the link runs through a
     // generator of the new one, the subgroup's when that is one.
