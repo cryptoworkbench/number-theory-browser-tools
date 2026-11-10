@@ -1393,6 +1393,7 @@
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
       combineTopResult: 'Keep the result on top',
+      ringWheel: 'Congruence wheel background',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
       dhAlice: 'Alice',

@@ -1226,6 +1226,10 @@
   .dhc-wheel-num, .dhc-wheel-mod{ fill:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .dhc-wheel-mod{ font-family:var(--font-sans); }
   .dhc-wheel-split{ stroke:var(--panel-border-strong); stroke-width:1.6; }
+  /* The same wheel behind the main area's ring (its menu's Congruence wheel
+     background), turning and rearranging with the beads. */
+  .ring-wheel{ pointer-events:none; }
+  .ring-wheel .dhc-wheel-mod{ fill:var(--text-dim); }
   .dhc-wheel-dots{ fill:var(--text-dim); text-anchor:middle; dominant-baseline:central; opacity:.55; pointer-events:none; }
   .dhc-rib.is-back{ stroke-dasharray:3 3; opacity:.2; }
   .dhc-rim.is-now{ stroke:var(--text); stroke-width:1.8; opacity:1; }
@@ -5352,6 +5356,12 @@ function drawRing(parent, G, beads, box, paint){
   function at(i){ return polar(box.cx, box.cy, box.R, dirSign() * 360 * i / m); }
 
   var ring = svgEl('g', { 'class': coset ? 'ring is-coset' + (coset.fresh ? ' is-coset-new' : '') : 'ring' });
+  // The congruence wheel behind it all, filled in once the view is set (see
+  // drawNecklace), and redrawn from the beads' places as they rearrange.
+  if (ringWheelShown(G)){
+    var wheelEl = ring.appendChild(svgEl('g', { 'class': 'dhc-wheel ring-wheel', 'aria-hidden': 'true' }));
+    ring.redrawWheel = function(places){ drawRingWheel(wheelEl, G, places || place, m, box, beadR); };
+  }
   if (state.guide) ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
   if (m > 1 && mirrorShown(G)){
     // Through the identity, wherever the turn has put it.
@@ -10498,7 +10508,22 @@ window.addEventListener('storage', function(e){
 function syncNatHoverCtx(on, bead){
   var sign = syncSignCtx(on), dhItem = syncDhCtx(on, bead), swap = syncSwapCtx(on), other = syncOtherCtx(on);
   syncTxtCtx(on);
-  return sign || dhItem || swap || other;
+  var wheel = syncWheelCtx(on);
+  return sign || wheel || dhItem || swap || other;
+}
+// Congruence wheel background, ticked while on, above the formula settings
+// (only where the wheel fits the group, see dhcWheelFits).
+function syncWheelCtx(on){
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-wheel').forEach(function(el){ el.remove(); });
+  if (!on || !drawn || !dhcWheelFits(drawn.G)) return null;
+  var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.ringWheel'), ringWheelOn, function(){
+    setRingCtx(false);
+    toggleRingWheel();
+  });
+  tick.classList.add('ring-ctx-wheel');
+  tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  ringCtxEl.insertBefore(tick, ringCtxItems[0].item);
+  return tick;
 }
 // Last, under Export, Export group…: this ring's group's list of subgroups,
 // in the export window (openExportWin), as the bottom panel's menu offers it.
@@ -11688,7 +11713,98 @@ function drawNecklace(G, paint){
     var low = SIZE + combineExtraLines(G) * COMBINE_LINE;
     ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z, SIZE / z, (low - top) / z].map(num).join(' '));
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
+    var wheelRing = ringDynamicEl.querySelector('.ring');
+    if (wheelRing && wheelRing.redrawWheel){
+      ringWheelFill(box, beadRadius(beads.length, box.R), beads.length);
+      wheelRing.redrawWheel();
+    }
   }
+}
+
+// Congruence wheel background (the main area's menu): the Equivalence Wheel
+// tool's wheel, as the Diffie-Hellman cylinders' floor draws it (dhcWheel),
+// laid behind the ring: a wedge for each bead running outward from just
+// past the beads, with the numbers of the bead's residue class ring after
+// ring, as many rings as reach the main area's farthest corner, and mod n
+// in the middle; clipped to the ring's own area, so never over the rows of
+// controls around it. It is drawn in the ring's own group, so it turns with the
+// beads, and each wedge follows its bead to a new place when they
+// rearrange. Only for ℤ/nℤ and its units, not a curve's points.
+var RING_WHEEL_KEY = 'cyclic-groups-ring-wheel';
+var ringWheelOn = (function(){ try { return localStorage.getItem(RING_WHEEL_KEY) === '1'; } catch (e) { return false; } })();
+var ringWheelDepth = 6, ringWheelClip = null;
+function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G); }
+function toggleRingWheel(){
+  ringWheelOn = !ringWheelOn;
+  try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  if (drawn) redrawRing();
+}
+// The ring's area in its own units (ringWheelClip), and rings enough to
+// reach its farthest corner from the ring's centre, capped so the numbers
+// stay few enough to draw.
+function ringWheelFill(box, beadR, m){
+  var r = boxOf(ringSvgEl), vb = ringSvgEl.viewBox.baseVal, ring = box.R * DHC_WHEEL_RING;
+  ringWheelClip = null;
+  ringWheelDepth = 6;
+  if (!r.width || !r.height || !vb || !vb.width) return;
+  // The expression sliders and the spin ruler lie over the ring's foot: the
+  // wheel stops above them.
+  var bottom = r.bottom;
+  ['expr-slot', 'spin-ruler'].forEach(function(id){
+    var el = $(id), b = el && el.offsetParent ? boxOf(el) : null;
+    if (b && b.height && b.top > r.top && b.top < bottom) bottom = b.top;
+  });
+  // From the page to the ring's own units: the view box fitted into the
+  // element and centred in it (the default preserveAspectRatio).
+  var k = Math.min(r.width / vb.width, r.height / vb.height);
+  var ox = r.left + (r.width - vb.width * k) / 2, oy = r.top + (r.height - vb.height * k) / 2;
+  var x0 = vb.x + (r.left - ox) / k, x1 = vb.x + (r.right - ox) / k;
+  var y0 = vb.y + (r.top - oy) / k, y1 = vb.y + (bottom - oy) / k;
+  ringWheelClip = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  var far = Math.max.apply(null, [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(function(c){ return Math.hypot(c[0] - box.cx, c[1] - box.cy); }));
+  ringWheelDepth = clamp(Math.ceil((far - box.R - beadR) / ring), 1, Math.max(1, Math.floor(3000 / m)));
+}
+// The clip stays put while the ring turns: its rectangle is turned back by
+// the ring's angle (see spinAngle).
+function turnRingWheelClip(ring, angle, box){
+  var rect = ring.querySelector('.ring-wheel-clip > rect');
+  if (rect) rect.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + box.cx + ' ' + box.cy + ')');
+}
+function drawRingWheel(g, G, place, m, box, beadR){
+  var N = G.n, ring = box.R * DHC_WHEEL_RING, R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m, k;
+  g.replaceChildren();
+  g.removeAttribute('clip-path');
+  if (ringWheelClip){
+    var clip = g.appendChild(svgEl('clipPath', { 'class': 'ring-wheel-clip', id: 'ring-wheel-clip' }));
+    clip.appendChild(svgEl('rect', { x: num(ringWheelClip.x), y: num(ringWheelClip.y), width: num(ringWheelClip.w), height: num(ringWheelClip.h) }));
+    g.setAttribute('clip-path', 'url(#ring-wheel-clip)');
+    var turnedBy = /rotate\((-?[\d.]+)/.exec(g.parentNode.getAttribute('transform') || '');
+    if (turnedBy) turnRingWheelClip(g.parentNode, +turnedBy[1], box);
+  }
+  for (k = 0; k < depth; k += 2) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-band', cx: box.cx, cy: box.cy, r: num(R0 + (k + 0.5) * ring), 'stroke-width': num(ring) }));
+  for (k = 0; k <= depth; k++) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-ring' + (k === 0 ? ' is-edge' : ''), cx: box.cx, cy: box.cy, r: num(R0 + k * ring) }));
+  var digits = String(Math.max.apply(null, G.els) + (depth - 1) * N).length;
+  var arc = m === 1 ? 999 : (R0 + ring / 2) * 2 * Math.PI / m;
+  var size = clamp(Math.min(arc / (digits * 0.66), ring * 0.5), 0.5, ring * 0.6);
+  G.els.forEach(function(x){
+    if (place[x] === undefined) return;
+    var mid = (dirSign() * 360 * place[x] / m) % 360;
+    if (mid < 0) mid += 360;
+    if (m > 1){
+      var p1 = polar(box.cx, box.cy, R0, mid - wedge / 2), p2 = polar(box.cx, box.cy, outer, mid - wedge / 2);
+      g.appendChild(svgEl('line', { 'class': 'dhc-wheel-ring', x1: num(p1[0]), y1: num(p1[1]), x2: num(p2[0]), y2: num(p2[1]) }));
+    }
+    var rot = mid > 90 && mid < 270 ? mid + 180 : mid;
+    for (var j = 0; j < depth; j++){
+      var q = polar(box.cx, box.cy, R0 + (j + 0.5) * ring, mid);
+      var t = svgEl('text', { 'class': 'dhc-wheel-num', x: num(q[0]), y: num(q[1]), 'font-size': num(size), transform: 'rotate(' + num(rot) + ' ' + num(q[0]) + ' ' + num(q[1]) + ')' });
+      t.textContent = String(x + j * N);
+      g.appendChild(t);
+    }
+  });
+  var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
+  mod.textContent = translate('cyclicGroups.dhCylWheelMod', { n: N });
+  g.appendChild(mod);
 }
 
 // The ring's zoom, a step along RING_ZOOMS, from the corner's zoom pill
@@ -17633,6 +17749,7 @@ function spinAngle(angle){
   if (!ring) return;
   var box = ringBox();
   ring.setAttribute('transform', 'rotate(' + num(angle) + ' ' + box.cx + ' ' + box.cy + ')');
+  turnRingWheelClip(ring, angle, box);
   ring.querySelectorAll('.bead-label').forEach(function(t){
     t.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + t.getAttribute('x') + ' ' + t.getAttribute('y') + ')');
   });
@@ -17898,7 +18015,7 @@ function flipFrames(f, box, beta, from){
 // string to compare, every coordinate to the nearest pixel.
 var STILL_ATTRS = ['d', 'points', 'cx', 'cy', 'r', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'transform'];
 function ringStillSig(ring){
-  return Array.prototype.filter.call(ring.children, function(el){ return !el.matches('.bead, .bead-label, .guide, .cord'); })
+  return Array.prototype.filter.call(ring.children, function(el){ return !el.matches('.bead, .bead-label, .guide, .cord, .ring-wheel'); })
     .map(function(el){
       return [el].concat(Array.prototype.slice.call(el.querySelectorAll('*'))).map(function(n){
         var at = STILL_ATTRS.map(function(k){ return n.getAttribute(k) || ''; }).join(',');
@@ -17932,7 +18049,7 @@ function flipBeads(ring, ghost, box, beta, from, poly){
 var ARRANGE_MOVE_MS = 700, ARRANGE_STAGGER_MS = 350, ARRANGE_FADE_MS = 250;
 var arranging = null;
 function isRingFrame(el){
-  return el.matches('.guide, .cord, .walks, .bead, .bead-label');
+  return el.matches('.ring-wheel, .guide, .cord, .walks, .bead, .bead-label');
 }
 function ringAngle(x, y, box){
   return Math.atan2(x - box.cx, -(y - box.cy)) * 180 / Math.PI;
@@ -17979,6 +18096,7 @@ function rearrange(change){
   var step = dirSign() * 360 / beads.length;
   var places = {};
   var moveWalks = function(coarse){
+    if (ring.redrawWheel) ring.redrawWheel(places);
     if (!ring.redrawWalks) return;
     humpCoarse = coarse ? HUMP_COARSE : 1;
     ring.redrawWalks(places);
