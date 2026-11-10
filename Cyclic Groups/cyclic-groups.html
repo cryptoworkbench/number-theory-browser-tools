@@ -22624,6 +22624,8 @@ function persistGroup(){
 function setMode(id){
   if (id === state.mode) return;
   state.mode = id;
+  // A group of units opens arranged by a generator, Sequential off.
+  if (id === 'multiplicative') state.bygen = true;
   // Under + the modulus stops at MAX_N, the ring's limit.
   state.n = clamp(state.n, MIN_N, maxN(id));
   opSelectEl.value = state.mode;
@@ -23538,6 +23540,8 @@ function opKind(){ return state.ec ? 'ec' : state.mode; }
 function setOpKind(k){
   if (k === 'ec'){ setEcMode(true); return; }
   if (!state.ec){ setMode(k); return; }
+  // Off the curve into a group of units it had not left, Sequential off.
+  if (k === 'multiplicative' && state.mode !== k) seqBeforeEc = false;
   state.mode = k;
   state.n = clamp(state.n, MIN_N, maxN(k));
   opSelectEl.value = identitySelectEl.value = k;
@@ -25185,6 +25189,8 @@ function loadState(query, link){
     if (raw === '0') state[name] = false;
     else if (raw === '1') state[name] = true;
   });
+  // A group of units opens with Sequential off, unless the link says.
+  if (state.mode === 'multiplicative' && query.get('bygen') === null) state.bygen = true;
   if (COLOR_BY.indexOf(query.get('colorby')) !== -1) state.colorBy = query.get('colorby');
   if (query.get('legendby') === 'index') state.legendBy = 'index';
   Object.keys(PICK_KEYS).forEach(function(c){ state.picks[c] = readPicks(query.get(PICK_KEYS[c])); });
