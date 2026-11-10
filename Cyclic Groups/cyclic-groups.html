@@ -7114,8 +7114,9 @@ function svgIcon(parts){
 var RING_CTX_ITEMS = [
   // The group's formula settings window (the pane's in the ring holding it).
   { key: 'cyclicGroups.fsetMenu', icon: '\u2699', run: function(){ openFset(IS_ISOPANE ? 1 : 0); } },
-  // The fixed logarithm's window, on this page's ring only.
-  { key: 'cyclicGroups.flogMenu', icon: '\u33d2', hide: IS_ISOPANE, run: function(){ openFlog(); } },
+  // The fixed logarithm's window, on this page's ring only, ticked while it
+  // is on (open, or minimized to the taskbar).
+  { key: 'cyclicGroups.flogMenu', icon: '\u33d2', hide: IS_ISOPANE, on: function(){ return flogOn; }, run: function(){ openFlog(); } },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } }
 ];
 var ringCtxEl = $('ring-ctx');
@@ -7156,6 +7157,12 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
     more.textContent = '\u203A';
     item.appendChild(more);
   }
+  if (l.on){
+    item.setAttribute('role', 'menuitemcheckbox');
+    item.classList.add('is-tick-end');
+    var tick = item.appendChild(svgEl('svg', { viewBox: '0 0 16 16', 'class': 'sub-ctx-tick', 'aria-hidden': 'true', focusable: 'false' }));
+    tick.appendChild(svgEl('path', { d: 'M3 8.5 6.5 12 13 4.5' }));
+  }
   var value = null;
   if (l.value){
     value = document.createElement('span');
@@ -7174,7 +7181,7 @@ var ringCtxItems = RING_CTX_ITEMS.map(function(l){
   });
   if (l.hide) item.hidden = true;
   ringCtxEl.appendChild(item);
-  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key };
+  return { item: item, head: l.head ? head : null, mark: mark, label: label, value: value, valueOf: l.value, key: l.key, on: l.on };
 });
 // A plain item of a submenu: its mark, its label and, opening a submenu of
 // its own, the arrow.
@@ -8046,6 +8053,7 @@ function setRingCtx(open, x, y, expr, fml, bead){
   ringCtxItems.forEach(function(it){
     it.label.textContent = translate(it.key);
     if (it.value) it.value.replaceChildren(it.valueOf());
+    if (it.on) it.item.setAttribute('aria-checked', it.on() ? 'true' : 'false');
   });
   syncExprCtx(expr === true ? 'gens' : expr || null);
   syncFormulaCtx(fml || null);
