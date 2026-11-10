@@ -197,7 +197,8 @@
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
-   now name that menu item), and fsetLevelLinked and fsetLevelFree (the link
+   now name that menu item), and fsetLevelTitle (the caption over the settings
+   window's own formula complexity slider), fsetLevelLinked and fsetLevelFree (the link
    button beside the settings window's own formula complexity slider, linked
    and unlinked), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
    barSwapCols (its grid's swap of what the Size and Index columns hold), formulaGrip (the main area's drag grip beside each formula), logBaseFollow, logBaseFollowTip and logBaseFollowOff (the settings window's Follow expression slider button), flogMenu, flogTitle, flogShow, flogIntro, flogNoGen, flogWheel, flogFollowArrange, flogFollowArrangeTip and flogFollowArrangeOff (the Fixed logarithm window opened from the ring's right-click menu, its bottom-bar task, its sentence and its wheel switch), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
@@ -1364,6 +1365,7 @@
       fslTitleForm: 'Formula form preference:',
       fsetShow: 'Formula settings…',
       fsetHide: 'Hide the formula settings',
+      fsetLevelTitle: 'Formula complexity:',
       fsetLevelLinked: 'Linked to the bottom bar’s complexity slider: either one moves both. Click to unlink, so this slider alone sets the formulas’ complexity',
       fsetLevelFree: 'Unlinked: this slider alone sets the formulas’ complexity. Click to link it to the bottom bar’s complexity slider again, taking its value',
       skipLog: 'Skip logarithm use',
