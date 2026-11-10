@@ -305,10 +305,10 @@
 
   NT.i18n.register('cyclicGroups', {
     nl: {
-      title: 'Cyclische groepen',
+      title: 'Eindige groepen',
       tabTitle: '{title} · {group}',
       eyebrow: 'groepentheorie · voortbrengers en banen',
-      heading: 'Cyclische groepen',
+      heading: 'Eindige groepen',
       lede: 'Kies een groep. Elk element staat op een ring, op gelijke afstand van elkaar. Als je met de voortbrenger stapt, worden de koorden getekend, en een voortbrenger die elk element bereikt maakt de groep cyclisch. Groepen zonder zo’n element worden opgesplitst in de ringen waaruit ze zijn opgebouwd.',
       xref: 'Bekijk de volledige bewerkingstabel van deze groep in de Cayleytabel →',
       opSelectLabel: 'Groepsbewerking',
@@ -754,10 +754,10 @@
       legendThemeComposites: 'samengestelde getallen'
     },
     en: {
-      title: 'Cyclic Groups',
+      title: 'Finite Groups',
       tabTitle: '{title} · {group}',
       eyebrow: 'group theory · generators and orbits',
-      heading: 'Cyclic Groups',
+      heading: 'Finite Groups',
       lede: 'Pick a group. Every element sits on a ring, equally spaced. Walking by the generator draws the chords, and a generator that reaches every element is what makes the group cyclic. Groups with no such element are split into the rings they are built from.',
       xref: 'See this group’s full operation table in the Cayley Table →',
       opSelectLabel: 'Group operation',
@@ -1157,9 +1157,9 @@
       isoAskLockSub: 'Subgroup-to-group isomorphism found! Lock groups?',
       isoLockOpenGroup: 'Click to lock the groups through their group-to-group isomorphism',
       isoLockOpenSub: 'Click to lock the groups through the subgroup-to-group isomorphism',
-      introAbout: 'Cyclic Groups turns a group into a ring of beads, one bead for each element. Choose a modulus and an operation — addition modulo n, or multiplication of the units modulo n — then pick an element: its chords walk around the ring, and when they reach every bead that element generates the whole group, which makes the group cyclic. The ring fills the screen with the group\'s controls above it. The Numerical list shows the subgroup each element generates, and an isomorphic group can be opened beside the ring and locked to it with the padlock, so the two turn, colour and highlight as one.',
+      introAbout: 'Finite Groups turns a group into a ring of beads, one bead for each element. Choose a modulus and an operation — addition modulo n, or multiplication of the units modulo n — then pick an element: its chords walk around the ring, and when they reach every bead that element generates the whole group, which makes the group cyclic. The ring fills the screen with the group\'s controls above it. The Numerical list shows the subgroup each element generates, and an isomorphic group can be opened beside the ring and locked to it with the padlock, so the two turn, colour and highlight as one.',
       introFullscreen: 'Because this tool has so many controls, it is really a full-screen application. It is best used in full screen, and the website\'s usual header is hidden either way. To get back to the rest of the website, use your browser\'s Back and Forward buttons instead of the header. Have fun!',
-      introEnter: 'Open Cyclic Groups in full screen',
+      introEnter: 'Open Finite Groups in full screen',
       introQrLabel: 'QR code for the address of this page',
       introQrCaption: 'Scan to open this page on your phone',
       subExprFollow: 'Follow expression slider',
@@ -1555,10 +1555,10 @@
       exportFailed: 'The picture could not be exported in this browser.'
     },
     de: {
-      title: 'Zyklische Gruppen',
+      title: 'Endliche Gruppen',
       tabTitle: '{title} · {group}',
       eyebrow: 'Gruppentheorie · Erzeuger und Bahnen',
-      heading: 'Zyklische Gruppen',
+      heading: 'Endliche Gruppen',
       lede: 'Wähle eine Gruppe. Jedes Element sitzt auf einem Ring, in gleichen Abständen. Wenn du mit dem Erzeuger weitergehst, werden die Sehnen gezeichnet, und ein Erzeuger, der jedes Element erreicht, macht die Gruppe zyklisch. Gruppen ohne ein solches Element werden in die Ringe zerlegt, aus denen sie aufgebaut sind.',
       xref: 'Sieh dir die vollständige Verknüpfungstafel dieser Gruppe in der Cayley-Tafel an →',
       opSelectLabel: 'Gruppenverknüpfung',
@@ -2004,10 +2004,10 @@
       legendThemeComposites: 'zusammengesetzte Zahlen'
     },
     fr: {
-      title: 'Groupes cycliques',
+      title: 'Groupes finis',
       tabTitle: '{title} · {group}',
       eyebrow: 'théorie des groupes · générateurs et orbites',
-      heading: 'Groupes cycliques',
+      heading: 'Groupes finis',
       lede: 'Choisissez un groupe. Chaque élément prend place sur un cercle, à intervalles réguliers. Avancer par le générateur trace les cordes, et un générateur qui atteint tous les éléments est ce qui rend le groupe cyclique. Les groupes sans tel élément se décomposent en les cercles dont ils sont constitués.',
       xref: 'Voir la table d’opération complète de ce groupe dans la Table de Cayley →',
       opSelectLabel: 'Opération de groupe',
@@ -2453,10 +2453,10 @@
       legendThemeComposites: 'nombres composés'
     },
     es: {
-      title: 'Grupos cíclicos',
+      title: 'Grupos finitos',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoría de grupos · generadores y órbitas',
-      heading: 'Grupos cíclicos',
+      heading: 'Grupos finitos',
       lede: 'Elige un grupo. Cada elemento se coloca en un círculo, a distancias iguales. Avanzar con el generador dibuja las cuerdas, y un generador que alcanza todos los elementos es lo que hace cíclico al grupo. Los grupos sin un elemento así se dividen en los círculos con los que están construidos.',
       xref: 'Mira la tabla de operación completa de este grupo en la Tabla de Cayley →',
       opSelectLabel: 'Operación de grupo',
@@ -2902,10 +2902,10 @@
       legendThemeComposites: 'compuestos'
     },
     it: {
-      title: 'Gruppi ciclici',
+      title: 'Gruppi finiti',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoria dei gruppi · generatori e orbite',
-      heading: 'Gruppi ciclici',
+      heading: 'Gruppi finiti',
       lede: 'Scegli un gruppo. Ogni elemento si dispone su un cerchio, a distanze uguali. Procedere con il generatore traccia le corde, e un generatore che raggiunge ogni elemento è ciò che rende ciclico il gruppo. I gruppi privi di un tale elemento si scompongono nei cerchi da cui sono costruiti.',
       xref: 'Guarda la tavola completa dell’operazione di questo gruppo nella Tavola di Cayley →',
       opSelectLabel: 'Operazione di gruppo',
@@ -3351,10 +3351,10 @@
       legendThemeComposites: 'composti'
     },
     pl: {
-      title: 'Grupy cykliczne',
+      title: 'Grupy skończone',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoria grup · generatory i orbity',
-      heading: 'Grupy cykliczne',
+      heading: 'Grupy skończone',
       lede: 'Wybierz grupę. Każdy element leży na okręgu, w równych odstępach. Krok o generator rysuje cięciwy, a generator, który dociera do każdego elementu, sprawia, że grupa jest cykliczna. Grupy bez takiego elementu rozpadają się na okręgi, z których są zbudowane.',
       xref: 'Pełną tabelę działania tej grupy zobaczysz w tabeli Cayleya →',
       opSelectLabel: 'Działanie grupowe',
@@ -3800,10 +3800,10 @@
       legendThemeComposites: 'liczby złożone'
     },
     'pt-BR': {
-      title: 'Grupos cíclicos',
+      title: 'Grupos finitos',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoria dos grupos · geradores e órbitas',
-      heading: 'Grupos cíclicos',
+      heading: 'Grupos finitos',
       lede: 'Escolha um grupo. Cada elemento fica em um círculo, a distâncias iguais. Avançar pelo gerador desenha as cordas, e um gerador que alcança todos os elementos é o que torna o grupo cíclico. Os grupos sem um elemento assim se dividem nos círculos com os quais são construídos.',
       xref: 'Veja a tabela de operação completa deste grupo na Tabela de Cayley →',
       opSelectLabel: 'Operação do grupo',
@@ -4249,10 +4249,10 @@
       legendThemeComposites: 'compostos'
     },
     'pt-PT': {
-      title: 'Grupos cíclicos',
+      title: 'Grupos finitos',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoria dos grupos · geradores e órbitas',
-      heading: 'Grupos cíclicos',
+      heading: 'Grupos finitos',
       lede: 'Escolhe um grupo. Cada elemento fica num círculo, a distâncias iguais. Avançar pelo gerador desenha as cordas, e um gerador que alcança todos os elementos é o que torna o grupo cíclico. Os grupos sem um elemento assim dividem-se nos círculos com que são construídos.',
       xref: 'Vê a tabela de operação completa deste grupo na Tabela de Cayley →',
       opSelectLabel: 'Operação do grupo',
@@ -4698,10 +4698,10 @@
       legendThemeComposites: 'compostos'
     },
     sv: {
-      title: 'Cykliska grupper',
+      title: 'Ändliga grupper',
       tabTitle: '{title} · {group}',
       eyebrow: 'grupteori · generatorer och banor',
-      heading: 'Cykliska grupper',
+      heading: 'Ändliga grupper',
       lede: 'Välj en grupp. Varje element sitter på en ring, med lika stort avstånd. När du går med generatorn ritas kordorna, och en generator som når varje element är det som gör gruppen cyklisk. Grupper utan ett sådant element delas upp i de ringar de är byggda av.',
       xref: 'Se den här gruppens fullständiga operationstabell i Cayleytabellen →',
       opSelectLabel: 'Gruppoperation',
@@ -5147,10 +5147,10 @@
       legendThemeComposites: 'sammansatta tal'
     },
     nb: {
-      title: 'Sykliske grupper',
+      title: 'Endelige grupper',
       tabTitle: '{title} · {group}',
       eyebrow: 'gruppeteori · generatorer og baner',
-      heading: 'Sykliske grupper',
+      heading: 'Endelige grupper',
       lede: 'Velg en gruppe. Hvert element sitter på en ring, med like stor avstand. Når du går med generatoren, tegnes kordene, og en generator som når hvert element er det som gjør gruppen syklisk. Grupper uten et slikt element deles opp i ringene de er bygget av.',
       xref: 'Se denne gruppens fullstendige operasjonstabell i Cayleytabellen →',
       opSelectLabel: 'Gruppeoperasjon',
@@ -5596,10 +5596,10 @@
       legendThemeComposites: 'sammensatte tall'
     },
     ro: {
-      title: 'Grupuri ciclice',
+      title: 'Grupuri finite',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoria grupurilor · generatori și orbite',
-      heading: 'Grupuri ciclice',
+      heading: 'Grupuri finite',
       lede: 'Alege un grup. Fiecare element stă pe un cerc, la distanțe egale. Mersul cu generatorul desenează coardele, iar un generator care ajunge la fiecare element este cel care face grupul ciclic. Grupurile fără un asemenea element se despart în cercurile din care sunt construite.',
       xref: 'Vezi tabela completă a operației acestui grup în Tabla lui Cayley →',
       opSelectLabel: 'Operația grupului',
@@ -6045,10 +6045,10 @@
       legendThemeComposites: 'numere compuse'
     },
     hu: {
-      title: 'Ciklikus csoportok',
+      title: 'Véges csoportok',
       tabTitle: '{title} · {group}',
       eyebrow: 'csoportelmélet · generátorok és pályák',
-      heading: 'Ciklikus csoportok',
+      heading: 'Véges csoportok',
       lede: 'Válassz egy csoportot. Minden elem egy körön ül, egyenlő távolságra egymástól. A generátorral lépkedve megrajzolódnak a húrok, és az a generátor, amely minden elemet elér, teszi a csoportot ciklikussá. Az olyan csoportok, amelyekben nincs ilyen elem, felbomlanak azokra a körökre, amelyekből felépülnek.',
       xref: 'Ennek a csoportnak a teljes műveleti táblázatát a Cayley-táblázatban találod →',
       opSelectLabel: 'Csoportművelet',
@@ -6494,10 +6494,10 @@
       legendThemeComposites: 'összetett számok'
     },
     lv: {
-      title: 'Cikliskās grupas',
+      title: 'Galīgas grupas',
       tabTitle: '{title} · {group}',
       eyebrow: 'grupu teorija · ģeneratori un orbītas',
-      heading: 'Cikliskās grupas',
+      heading: 'Galīgas grupas',
       lede: 'Izvēlies grupu. Katrs elements atrodas uz apļa, vienādos attālumos. Soļojot ar ģeneratoru, tiek zīmētas hordas, un ģenerators, kas sasniedz katru elementu, padara grupu par ciklisku. Grupas, kurām nav šāda elementa, sadalās apļos, no kuriem tās ir veidotas.',
       xref: 'Šīs grupas pilno darbības tabulu skaties Keilija tabulā →',
       opSelectLabel: 'Grupas darbība',
@@ -6943,10 +6943,10 @@
       legendThemeComposites: 'salikti skaitļi'
     },
     ru: {
-      title: 'Циклические группы',
+      title: 'Конечные группы',
       tabTitle: '{title} · {group}',
       eyebrow: 'теория групп · образующие и орбиты',
-      heading: 'Циклические группы',
+      heading: 'Конечные группы',
       lede: 'Выбери группу. Каждый элемент стоит на окружности на равных расстояниях. Шаги образующим элементом рисуют хорды, а образующий элемент, достигающий каждого элемента, и делает группу циклической. Группы без такого элемента распадаются на окружности, из которых они состоят.',
       xref: 'Полную таблицу операции этой группы смотри в Таблице Кэли →',
       opSelectLabel: 'Операция группы',
@@ -7392,10 +7392,10 @@
       legendThemeComposites: 'составные'
     },
     el: {
-      title: 'Κυκλικές ομάδες',
+      title: 'Πεπερασμένες ομάδες',
       tabTitle: '{title} · {group}',
       eyebrow: 'θεωρία ομάδων · γεννήτορες και τροχιές',
-      heading: 'Κυκλικές ομάδες',
+      heading: 'Πεπερασμένες ομάδες',
       lede: 'Διάλεξε μια ομάδα. Κάθε στοιχείο κάθεται σε έναν δακτύλιο, σε ίσες αποστάσεις. Η διαδρομή με τον γεννήτορα σχεδιάζει τις χορδές, και ένας γεννήτορας που φτάνει σε κάθε στοιχείο είναι αυτός που κάνει την ομάδα κυκλική. Οι ομάδες χωρίς τέτοιο στοιχείο χωρίζονται στους δακτυλίους από τους οποίους αποτελούνται.',
       xref: 'Δες τον πλήρη πίνακα πράξης αυτής της ομάδας στον Πίνακα Cayley →',
       opSelectLabel: 'Πράξη ομάδας',
@@ -7841,10 +7841,10 @@
       legendThemeComposites: 'σύνθετοι'
     },
     he: {
-      title: 'חבורות ציקליות',
+      title: 'חבורות סופיות',
       tabTitle: '{title} · \u2066{group}\u2069',
       eyebrow: 'תורת החבורות · יוצרים ומסלולים',
-      heading: 'חבורות ציקליות',
+      heading: 'חבורות סופיות',
       lede: 'בחרו חבורה. כל איבר יושב על טבעת במרווחים שווים. הליכה בצעדי היוצר מציירת את המיתרים, ויוצר שמגיע לכל איבר הוא מה שהופך את החבורה לציקלית. חבורות שאין בהן איבר כזה מתפצלות לטבעות שמהן הן בנויות.',
       xref: 'ראו את טבלת הפעולה המלאה של החבורה הזו בטבלת קיילי ←',
       opSelectLabel: 'פעולת החבורה',
@@ -8290,10 +8290,10 @@
       legendThemeComposites: 'פריקים'
     },
     hi: {
-      title: 'चक्रीय समूह',
+      title: 'परिमित समूह',
       tabTitle: '{title} · {group}',
       eyebrow: 'समूह सिद्धांत · जनक और कक्षाएँ',
-      heading: 'चक्रीय समूह',
+      heading: 'परिमित समूह',
       lede: 'एक समूह चुनें। हर अवयव एक छल्ले पर बराबर दूरी पर बैठा है। जनक के साथ चलने पर जीवाएँ खिंचती हैं, और जो जनक हर अवयव तक पहुँच जाए, वही समूह को चक्रीय बनाता है। जिन समूहों में ऐसा कोई अवयव नहीं होता, उन्हें उन छल्लों में बाँट दिया जाता है जिनसे वे बने हैं।',
       xref: 'इस समूह की पूरी संक्रिया सारणी केली सारणी में देखें →',
       opSelectLabel: 'समूह संक्रिया',
@@ -8739,10 +8739,10 @@
       legendThemeComposites: 'भाज्य'
     },
     ar: {
-      title: 'الزمر الدورية',
+      title: 'الزمر المنتهية',
       tabTitle: '{title} · \u2066{group}\u2069',
       eyebrow: 'نظرية الزمر · المولدات والمدارات',
-      heading: 'الزمر الدورية',
+      heading: 'الزمر المنتهية',
       lede: 'اختر زمرة. يقع كل عنصر على حلقة، على أبعاد متساوية. المشي بخطوات المولد يرسم الأوتار، والمولد الذي يصل إلى كل عنصر هو ما يجعل الزمرة دورية. أما الزمر التي لا يوجد فيها عنصر كهذا فتنقسم إلى الحلقات التي بنيت منها.',
       xref: 'اطلع على جدول العملية الكامل لهذه الزمرة في جدول كايلي ←',
       opSelectLabel: 'عملية الزمرة',
@@ -9188,10 +9188,10 @@
       legendThemeComposites: 'الأعداد المؤلفة'
     },
     sq: {
-      title: 'Grupet ciklike',
+      title: 'Grupet e fundme',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoria e grupeve · gjeneratorët dhe orbitat',
-      heading: 'Grupet ciklike',
+      heading: 'Grupet e fundme',
       lede: 'Zgjidhni një grup. Çdo element qëndron mbi një unazë, në largësi të barabarta. Ecja me gjeneratorin vizaton kordat, dhe një gjenerator që arrin çdo element e bën grupin ciklik. Grupet pa një element të tillë ndahen në unazat nga të cilat janë ndërtuar.',
       xref: 'Shihni tabelën e plotë të veprimit të këtij grupi te Tabela e Cayley-t →',
       opSelectLabel: 'Veprimi i grupit',
@@ -9637,10 +9637,10 @@
       legendThemeComposites: 'numrat e përbërë'
     },
     sw: {
-      title: 'Makundi ya mzunguko',
+      title: 'Makundi yenye kikomo',
       tabTitle: '{title} · {group}',
       eyebrow: 'nadharia ya makundi · vizalishi na obiti',
-      heading: 'Makundi ya mzunguko',
+      heading: 'Makundi yenye kikomo',
       lede: 'Chagua kundi. Kila kipengele kiko kwenye pete, kwa nafasi sawa. Kutembea kwa kizalishi huchora kamba, na kizalishi kinachofikia kila kipengele ndicho kinachofanya kundi liwe la mzunguko. Makundi yasiyo na kipengele kama hicho hugawanywa katika pete ambazo yamejengwa kutokana nazo.',
       xref: 'Tazama jedwali kamili la operesheni ya kundi hili katika Jedwali la Cayley →',
       opSelectLabel: 'Operesheni ya kundi',
@@ -10086,10 +10086,10 @@
       legendThemeComposites: 'namba shirikishi'
     },
     zh: {
-      title: '循环群',
+      title: '有限群',
       tabTitle: '{title} · {group}',
       eyebrow: '群论 · 生成元与轨道',
-      heading: '循环群',
+      heading: '有限群',
       lede: '选择一个群。每个元素均匀地排在一个圆环上。沿生成元前进就会画出弦，而存在一个能到达每个元素的生成元，正是这个群成为循环群的原因。没有这种元素的群，会被拆分为构成它的各个圆环。',
       xref: '在凯莱表中查看这个群的完整运算表 →',
       opSelectLabel: '群运算',
@@ -10535,10 +10535,10 @@
       legendThemeComposites: '合数'
     },
     ja: {
-      title: '巡回群',
+      title: '有限群',
       tabTitle: '{title} · {group}',
       eyebrow: '群論・生成元と軌道',
-      heading: '巡回群',
+      heading: '有限群',
       lede: '群を選んでください。すべての要素が、等間隔で円環の上に並びます。生成元の分だけ歩くと弦が描かれ、すべての要素に届く生成元があることが、その群を巡回群にしています。そのような要素のない群は、それを構成する円環に分けられます。',
       xref: 'この群の演算表全体をケイリー表で見る →',
       opSelectLabel: '群の演算',
@@ -10984,10 +10984,10 @@
       legendThemeComposites: '合成数'
     },
     ko: {
-      title: '순환군',
+      title: '유한군',
       tabTitle: '{title} · {group}',
       eyebrow: '군론 · 생성원과 궤도',
-      heading: '순환군',
+      heading: '유한군',
       lede: '군을 하나 고르세요. 모든 원소가 같은 간격으로 고리 위에 놓입니다. 생성원만큼 걸어가면 현이 그려지고, 모든 원소에 이르는 생성원이 있다는 것이 그 군을 순환군으로 만듭니다. 그런 원소가 없는 군은 그 군을 이루는 고리들로 나뉩니다.',
       xref: '이 군의 전체 연산표를 케일리 표에서 보기 →',
       opSelectLabel: '군 연산',
@@ -11433,10 +11433,10 @@
       legendThemeComposites: '합성수'
     },
     id: {
-      title: 'Grup Siklik',
+      title: 'Grup Hingga',
       tabTitle: '{title} · {group}',
       eyebrow: 'teori grup · pembangkit dan orbit',
-      heading: 'Grup Siklik',
+      heading: 'Grup Hingga',
       lede: 'Pilih sebuah grup. Setiap elemen berada pada sebuah cincin dengan jarak yang sama. Melangkah dengan pembangkit menggambar tali busur, dan pembangkit yang mencapai setiap elemen itulah yang membuat grup menjadi siklik. Grup yang tidak punya elemen seperti itu dipecah menjadi cincin-cincin penyusunnya.',
       xref: 'Lihat tabel operasi lengkap grup ini di Tabel Cayley →',
       opSelectLabel: 'Operasi grup',
@@ -12780,10 +12780,10 @@
       legendThemeComposites: 'ⵉⵎⴹⴰⵏⴻⵏ ⵓⴷⴷⵉⵙⵏ'
     },
     ku: {
-      title: 'Grûpên çerxî',
+      title: 'Grûpên bisînor',
       tabTitle: '{title} · {group}',
       eyebrow: 'teoriya grûpan · çêker û dewrgeh',
-      heading: 'Grûpên çerxî',
+      heading: 'Grûpên bisînor',
       lede: 'Grûpekê hilbijêre. Her hêman bi dûrahiyên wekhev li ser xelekekê cih digire. Gerîna bi çêker watar dikişîne, û çêkerek ku digihîje her hêmanê grûpê çerxî dike. Grûpên ku hêmaneke weha tê de tune ye li xelekên ku ji wan hatine avakirin tên parçekirin.',
       xref: 'Tabloya operasyonê ya tevahî ya vê grûpê di Tabloya Cayley de bibîne →',
       opSelectLabel: 'Operasyona grûpê',
@@ -13229,10 +13229,10 @@
       legendThemeComposites: 'hejmarên hevedudanî'
     },
     ckb: {
-      title: 'گرووپە خولییەکان',
+      title: 'گرووپە سنووردارەکان',
       tabTitle: '{title} · \u2066{group}\u2069',
       eyebrow: 'تیۆری گرووپ · بەرھەمھێنەرەکان و خولگەکان',
-      heading: 'گرووپە خولییەکان',
+      heading: 'گرووپە سنووردارەکان',
       lede: 'گرووپێک ھەڵبژێرە. ھەر توخمێک لەسەر ئەڵقەیەک دادەنرێت و دووریان یەکسانە. ھەنگاونان بە بەرھەمھێنەرەکە ھێڵە بڕەکان دەکێشێت، و ئەو بەرھەمھێنەرەی دەگاتە ھەموو توخمەکان وا لە گرووپەکە دەکات خولی بێت. ئەو گرووپانەی ئەمجۆرە توخمەیان تێدا نییە دابەش دەکرێن بۆ ئەو ئەڵقانەی لێیان پێکھاتوون.',
       xref: 'بۆ بینینی خشتەی تەواوی کرداری ئەم گرووپە، بڕۆ بۆ خشتەی کەیلی ←',
       opSelectLabel: 'کرداری گرووپ',
@@ -13678,10 +13678,10 @@
       legendThemeComposites: 'لێکدراوەکان'
     },
     sa: {
-      title: 'चक्रीयसमूहाः',
+      title: 'परिमितसमूहाः',
       tabTitle: '{title} · {group}',
       eyebrow: 'समूहसिद्धान्तः · जनकाः कक्षाः च',
-      heading: 'चक्रीयसमूहाः',
+      heading: 'परिमितसमूहाः',
       lede: 'एकं समूहं चिनोतु। प्रत्येकः अवयवः वलये समदूरस्थः तिष्ठति। जनकेन गमने जीवाः आलिख्यन्ते, यः जनकः सर्वान् अवयवान् प्राप्नोति सः एव समूहं चक्रीयं करोति। येषु समूहेषु तादृशः अवयवः नास्ति ते यैः वलयैः निर्मिताः तेषु विभज्यन्ते।',
       xref: 'अस्य समूहस्य सम्पूर्णां सङ्क्रियासारणीं केली-सारण्यां पश्यतु →',
       opSelectLabel: 'समूहसङ्क्रिया',
@@ -14127,10 +14127,10 @@
       legendThemeComposites: 'संयुक्तसङ्ख्याः'
     },
     la: {
-      title: 'Greges cyclici',
+      title: 'Greges finiti',
       tabTitle: '{title} · {group}',
       eyebrow: 'theoria gregum · generatores et orbitae',
-      heading: 'Greges cyclici',
+      heading: 'Greges finiti',
       lede: 'Elige gregem. Quodque elementum in anulo sedet, aequis intervallis dispositum. Si per generatorem progrederis, chordae ducuntur, et generator qui ad omnia elementa pervenit gregem cyclicum facit. Greges sine tali elemento in anulos ex quibus constructi sunt dividuntur.',
       xref: 'Vide totam tabulam operationis huius gregis in Tabula Cayleiana →',
       opSelectLabel: 'Operatio gregis',
