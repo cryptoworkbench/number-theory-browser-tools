@@ -2527,6 +2527,7 @@
   /* Copy to clipboard: two sheets, the front one over the back one. */
   .fs-icon.is-copy{ display:grid; place-items:center; }
   .fs-icon.is-copy svg{ fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  .fs-icon.is-copy svg .pizza-icon-on{ fill:var(--role-warn); stroke:none; }
   .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-menu[hidden]{ display:none; }
   .fs-menu-head{ margin:4px 8px 6px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
@@ -7143,6 +7144,15 @@ function markCopy(mark){
   mark.classList.add('is-copy');
   mark.replaceChildren(svg);
 }
+// Explore the cosets: the coset pizza, cut in three, its first slice red.
+function markPizza(mark){
+  var svg = svgEl('svg', { viewBox: '0 0 16 16', width: 14, height: 14, 'aria-hidden': 'true', focusable: 'false' });
+  svg.appendChild(svgEl('path', { 'class': 'pizza-icon-on', d: 'M8 8L8 1.5A6.5 6.5 0 0 1 13.63 11.25Z' }));
+  svg.appendChild(svgEl('circle', { cx: 8, cy: 8, r: 6.5 }));
+  svg.appendChild(svgEl('path', { d: 'M8 8V1.5M8 8L13.63 11.25M8 8L2.37 11.25' }));
+  mark.classList.add('is-copy');
+  mark.replaceChildren(svg);
+}
 // The copy submenu, beside the Formulas one, for one formula, shown at its
 // top typeset in pieces: as the Unicode plain text copying it
 // from the page gives, as plain ASCII, as MathML or as LaTeX. Each copies the
@@ -8018,6 +8028,7 @@ function syncFormulaCtx(fml){
   if ((v === 'index' || v === 'both') && !state.noSub){
     var G = drawn.G, running = !!cosetRun;
     var co = ctxItem('menuitem', running ? translate('cyclicGroups.cosetHide') : translate('cyclicGroups.subCosetsExplore', { h: '⟨' + elText(G, state.gen) + '⟩' }));
+    markPizza(co.mark);
     co.item.disabled = !running && !hasCosets(G);
     co.item.addEventListener('click', function(){ setRingCtx(false); if (cosetRun) stopCosets(); else openCosets(); });
     head.push(co.item);
