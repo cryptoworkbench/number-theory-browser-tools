@@ -1465,7 +1465,8 @@
   .ec-reels-sum.is-bad + .ec-reels-note{ color:var(--role-warn); }
   .ec-reel.is-narrow{ width:96px; }
   .ec-reel.is-off{ opacity:.35; }
-  .mul-reels .ec-reels-row{ gap:14px; }
+  .ec-reels-row{ gap:14px; }
+  .ec-reels:not(.mul-reels) .ec-reel{ width:130px; }
   .mul-reels .ec-reel:not(.is-narrow){ width:130px; }
   .ec-reels-note.mul-reels-iso{ margin-top:-12px; min-height:1.3em; }
   .bead-k-spin{ position:fixed; z-index:30; }
@@ -4240,27 +4241,43 @@ function curveOrders(G){
   G.cyclic = G.generators.length > 0;
   return G;
 }
-// Modulo n = pq the Chinese remainder theorem makes E(ℤ/nℤ) the pairs of a
-// point mod p and a point mod q, added each mod its own prime. A pair of
-// two points is one point (x, y) mod n; a pair holding one 𝒪 has none, and
-// is written in projective coordinates (X : Y : Z), 𝒪 being (0 : 1 : 0)
-// and (x, y) being (x : y : 1): its Z then shares a prime with n. 𝒪 comes
-// first, then the points (x, y), x-ascending, then those (X : Y : Z).
+// Modulo n = pq (or pqr) the Chinese remainder theorem makes E(ℤ/nℤ) the
+// tuples of a point mod each prime, added each mod its own prime. A tuple
+// of points only is one point (x, y) mod n; one holding an 𝒪 (not only
+// 𝒪s) has none, and is written in projective coordinates (X : Y : Z), 𝒪
+// being (0 : 1 : 0) and (x, y) being (x : y : 1): its Z then shares a
+// prime with n. 𝒪 comes first, then the points (x, y), x-ascending, then
+// those (X : Y : Z).
 function buildCompositeCurve(n, a, b){
-  var f = primeFactors(n), A = buildCurveGroup(f[0], a, b), B = buildCurveGroup(f[1], a, b);
-  var crt = function(u, v){ for (var x = u; x < n; x += f[0]) if (x % f[1] === v) return x; };
+  var f = primeFactors(n), parts = f.map(function(q){ return buildCurveGroup(q, a, b); });
+  // The number mod n that is r[k] mod each prime f[k].
+  var crt = function(r){
+    var x = r[0], M = f[0];
+    for (var k = 1; k < f.length; k++){
+      while (x % f[k] !== r[k]) x += M;
+      M *= f[k];
+    }
+    return x;
+  };
   var proj = function(P){ return P ? [P.x, P.y, 1] : [0, 1, 0]; };
-  var items = [];
-  A.els.forEach(function(i){
-    B.els.forEach(function(j){
-      var P = A.pts[i], Q = B.pts[j], pt = null;
-      if (P && Q) pt = { x: crt(P.x, Q.x), y: crt(P.y, Q.y), p: n };
-      else if (P || Q){
-        var u = proj(P), v = proj(Q);
-        pt = { X: crt(u[0], v[0]), Y: crt(u[1], v[1]), Z: crt(u[2], v[2]), p: n, proj: true };
-      }
-      items.push({ i: i, j: j, pt: pt });
-    });
+  // A tuple's place among all of them, the first prime's index the most
+  // significant.
+  var stride = f.map(function(_, k){ return parts.slice(k + 1).reduce(function(m, H){ return m * H.order; }, 1); });
+  var keyOf = function(t){ return t.reduce(function(sum, i, k){ return sum + i * stride[k]; }, 0); };
+  var tuples = [[]];
+  parts.forEach(function(H){
+    var next = [];
+    tuples.forEach(function(t){ H.els.forEach(function(i){ next.push(t.concat([i])); }); });
+    tuples = next;
+  });
+  var items = tuples.map(function(t){
+    var Ps = t.map(function(i, k){ return parts[k].pts[i]; }), pt = null;
+    if (Ps.every(Boolean)) pt = { x: crt(Ps.map(function(P){ return P.x; })), y: crt(Ps.map(function(P){ return P.y; })), p: n };
+    else if (Ps.some(Boolean)){
+      var u = Ps.map(proj);
+      pt = { X: crt(u.map(function(c){ return c[0]; })), Y: crt(u.map(function(c){ return c[1]; })), Z: crt(u.map(function(c){ return c[2]; })), p: n, proj: true };
+    }
+    return { t: t, pt: pt };
   });
   var rank = function(t){ return !t.pt ? [0, 0, 0, 0] : t.pt.proj ? [2, t.pt.Z, t.pt.X, t.pt.Y] : [1, t.pt.x, t.pt.y, 0]; };
   items.sort(function(s, t){
@@ -4269,11 +4286,11 @@ function buildCompositeCurve(n, a, b){
     return 0;
   });
   var at = {};
-  items.forEach(function(t, k){ at[t.i * B.order + t.j] = k; });
+  items.forEach(function(t, k){ at[keyOf(t.t)] = k; });
   var G = {
     mode: 'elliptic',
     n: n, a: a, b: b, pts: items.map(function(t){ return t.pt; }),
-    factors: f, parts: [A, B], split: items.map(function(t){ return [t.i, t.j]; }),
+    factors: f, parts: parts, split: items.map(function(t){ return t.t; }),
     els: items.map(function(t, k){ return k; }),
     identity: 0,
     order: items.length,
@@ -4281,14 +4298,14 @@ function buildCompositeCurve(n, a, b){
     get label(){ return ecGroupLabel('ℤ/' + n + 'ℤ', a, b); },
     combine: function(x, y){
       var s = G.split[x], t = G.split[y];
-      return at[A.combine(s[0], t[0]) * B.order + B.combine(s[1], t[1])];
+      return at[keyOf(parts.map(function(H, k){ return H.combine(s[k], t[k]); }))];
     },
     orders: {},
     generators: [],
     longest: 1
   };
   G.inv = {};
-  G.els.forEach(function(x){ var s = G.split[x]; G.inv[x] = at[A.inv[s[0]] * B.order + B.inv[s[1]]]; });
+  G.els.forEach(function(x){ var s = G.split[x]; G.inv[x] = at[keyOf(parts.map(function(H, k){ return H.inv[s[k]]; }))]; });
   return curveOrders(G);
 }
 // Where a group starts: on a generator if it has one, else the identity.
@@ -24137,14 +24154,14 @@ ecPEl.addEventListener('keydown', function(e){
   e.preventDefault();
   stepEcP(e.key === 'ArrowUp' ? 1 : -1);
 });
-// A double-click on the modulus, in curve mode, opens its reels: two drums,
+// A double-click on the modulus, in curve mode, opens its reels: three drums,
 // as on a slot machine, each holding 1 and the primes a curve's modulus is
-// made of (5 up to EC_MAX_P), the product of the two on the payline worked out as
+// made of (5 up to EC_MAX_P), the product of the three on the payline worked out as
 // they turn. A reel turns by dragging (it runs on and settles on an item),
 // by the wheel (an item a notch) or by the arrow keys. Closing them, by the
 // button, Enter, Escape or a click beside them, takes a product a curve
-// takes as the modulus, as typing it would; with 1 on one reel the other's
-// prime stands alone. Locked to the other ring, the modulus is not this
+// takes as the modulus, as typing it would; with 1 on a reel the others'
+// primes stand without it. Locked to the other ring, the modulus is not this
 // ring's to change, and the double-click opens the padlock instead.
 var EC_REEL_ITEMS = [1].concat(Array.from({ length: EC_MAX_P - EC_MIN_P + 1 }, function(_, i){ return EC_MIN_P + i; }).filter(isPrime));
 var REEL_H = 64, REEL_STEP = 19, REEL_VMAX = 0.03, REEL_R = REEL_H / 2 / Math.tan(REEL_STEP * Math.PI / 360);
@@ -24266,7 +24283,9 @@ function makeReel(label, onTurn, stops){
 }
 function syncEcReelsSum(){
   if (!ecReels) return;
-  var a = ecReels.reels[0].value(), b = ecReels.reels[1].value(), n = a * b, ok = ecModulusOk(n);
+  var fs = ecReels.reels.map(function(r){ return r.value(); }), n = fs[0] * fs[1] * fs[2], ok = ecModulusOk(n);
+  var primes = fs.filter(function(v){ return v !== 1; });
+  var repeat = primes.some(function(v, i){ return primes.indexOf(v) !== i; });
   // A modulus the curve on show has no group for (singular mod one of its
   // primes, or too many points) is flagged too: closing then keeps the old.
   var fits = ok && ecValid(n, state.ecA, state.ecB);
@@ -24277,11 +24296,12 @@ function syncEcReelsSum(){
   var sum = ecReels.sum, nEl = document.createElement('span');
   nEl.className = 'is-n';
   nEl.textContent = String(n);
-  sum.replaceChildren(document.createTextNode(a + ' × ' + b + ' = '), nEl);
+  sum.replaceChildren(document.createTextNode(fs.join(' × ') + ' = '), nEl);
   sum.classList.toggle('is-bad', !fits);
-  var key = !ok ? (a === b && a !== 1 ? 'cyclicGroups.ecReelsSquare' : 'cyclicGroups.ecReelsBad')
+  var key = !ok ? (repeat ? 'cyclicGroups.ecReelsRepeat' : 'cyclicGroups.ecReelsBad3')
     : ecReels.suggest ? 'cyclicGroups.ecReelsSuggest'
-    : !fits ? 'cyclicGroups.ecReelsCurveNo' : isPrime(n) ? 'cyclicGroups.ecReelsPrime' : 'cyclicGroups.ecReelsComposite';
+    : !fits ? 'cyclicGroups.ecReelsCurveNo' : isPrime(n) ? 'cyclicGroups.ecReelsPrime'
+    : primes.length === 3 ? 'cyclicGroups.ecReelsComposite3' : 'cyclicGroups.ecReelsComposite';
   var sg = ecReels.suggest || {};
   ecReels.note.textContent = translate(key, { n: n, a: state.ecA, b: state.ecB, p: state.ecP, max: EC_MAX_P, sa: sg.a, sb: sg.b });
 }
@@ -24330,8 +24350,8 @@ function openEcReels(){
     done.className = 'action-btn';
     done.addEventListener('click', closeEcReels);
     ecReels = { title: title, sum: sum, note: note, done: done, reels: [] };
-    ecReels.reels = [makeReel('', syncEcReelsSum), makeReel('', syncEcReelsSum)];
-    row.append(ecReels.reels[0].el, times, ecReels.reels[1].el);
+    ecReels.reels = [makeReel('', syncEcReelsSum), makeReel('', syncEcReelsSum), makeReel('', syncEcReelsSum)];
+    row.append(ecReels.reels[0].el, times, ecReels.reels[1].el, times.cloneNode(true), ecReels.reels[2].el);
     card.append(title, row, sum, note, done);
     ecReelsEl.appendChild(card);
     ecReelsEl.addEventListener('pointerdown', function(e){ if (e.target === ecReelsEl) closeEcReels(); });
@@ -24339,7 +24359,7 @@ function openEcReels(){
       if (e.key === 'Escape' || e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); closeEcReels(); }
       // The focus stays among the reels and the button.
       if (e.key === 'Tab'){
-        var stops = [ecReels.reels[0].el, ecReels.reels[1].el, done], at = stops.indexOf(document.activeElement);
+        var stops = ecReels.reels.map(function(r){ return r.el; }).concat([done]), at = stops.indexOf(document.activeElement);
         e.preventDefault();
         stops[(at + (e.shiftKey ? stops.length - 1 : 1)) % stops.length].focus();
       }
@@ -24347,12 +24367,11 @@ function openEcReels(){
   }
   ecReels.title.textContent = translate('cyclicGroups.ecReelsTitle');
   ecReels.done.textContent = translate('cyclicGroups.ecReelsDone');
-  ecReels.reels[0].el.setAttribute('aria-label', translate('cyclicGroups.ecReelsFirst'));
-  ecReels.reels[1].el.setAttribute('aria-label', translate('cyclicGroups.ecReelsSecond'));
-  // The reels open on the modulus: its two primes, or 1 and the prime.
+  ['ecReelsFirst', 'ecReelsSecond', 'ecReelsThird'].forEach(function(key, i){ ecReels.reels[i].el.setAttribute('aria-label', translate('cyclicGroups.' + key)); });
+  // The reels open on the modulus: its primes, 1s before them.
   var f = primeFactors(state.ecP);
-  ecReels.reels[0].set(f.length > 1 ? f[0] : 1);
-  ecReels.reels[1].set(f.length > 1 ? f[1] : f[0]);
+  while (f.length < 3) f.unshift(1);
+  ecReels.reels.forEach(function(r, i){ r.set(f[i]); });
   syncEcReelsSum();
   var host = document.fullscreenElement || document.body;
   if (ecReelsEl.parentNode !== host) host.appendChild(ecReelsEl);
@@ -24363,7 +24382,7 @@ function openEcReels(){
 function closeEcReels(){
   if (!ecReelsEl || ecReelsEl.hidden) return;
   ecReelsEl.hidden = true;
-  var n = ecReels.reels[0].value() * ecReels.reels[1].value();
+  var n = ecReels.reels.reduce(function(m, r){ return m * r.value(); }, 1);
   if (state.ec && n !== state.ecP && ecValid(n, state.ecA, state.ecB)){
     ecPEl.value = String(n);
     typedCurve();
