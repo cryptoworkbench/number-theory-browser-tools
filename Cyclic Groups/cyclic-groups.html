@@ -11782,7 +11782,7 @@ function toggleRingWheel(){
   try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   if (drawn) redrawRing();
 }
-// The ring's area in its own units (ringWheelClip), and rings enough to
+// The main area in the ring's own units (ringWheelClip), and rings enough to
 // reach its farthest corner from the ring's centre, capped so the numbers
 // stay few enough to draw.
 function ringWheelFill(box, beadR, m){
@@ -11797,11 +11797,17 @@ function ringWheelFill(box, beadR, m){
     var el = $(id), b = el && el.offsetParent ? boxOf(el) : null;
     if (b && b.height && b.top > r.top && b.top < bottom) bottom = b.top;
   });
+  // Sideways it reaches the window's edges, or the pane beside the ring.
+  var body = boxOf(ringSvgEl.parentNode), left = Math.min(r.left, body.left), right = Math.max(r.right, body.right);
+  if (!isoPaneEl.hidden){
+    var pane = boxOf(isoPaneEl);
+    if (pane.width && pane.left > r.left) right = Math.min(right, pane.left);
+  }
   // From the page to the ring's own units: the view box fitted into the
   // element and centred in it (the default preserveAspectRatio).
   var k = Math.min(r.width / vb.width, r.height / vb.height);
   var ox = r.left + (r.width - vb.width * k) / 2, oy = r.top + (r.height - vb.height * k) / 2;
-  var x0 = vb.x + (r.left - ox) / k, x1 = vb.x + (r.right - ox) / k;
+  var x0 = vb.x + (left - ox) / k, x1 = vb.x + (right - ox) / k;
   var y0 = vb.y + (r.top - oy) / k, y1 = vb.y + (bottom - oy) / k;
   ringWheelClip = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   var far = Math.max.apply(null, [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(function(c){ return Math.hypot(c[0] - box.cx, c[1] - box.cy); }));
