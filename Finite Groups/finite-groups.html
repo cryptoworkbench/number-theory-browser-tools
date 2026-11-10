@@ -1239,14 +1239,13 @@
   .ring-wheel-lit{ fill:color-mix(in srgb, var(--accent) 42%, transparent); stroke:none; animation:ring-wheel-lit .18s ease-out; transition:opacity .6s ease; }
   .ring-wheel-lit.is-kept{ animation:none; }
   /* Over the wheel the combination's lines (a ∗ b, aᵏ) sit on a rounded
-     card of their own, as the formula cards over a zoomed ring do: half
-     see-through at rest, frosted while the pointer is over it, the wheel
-     under it then drawn blurred (cardCombineLines). */
+     half see-through card of their own, the wheel under it always drawn
+     blurred (cardCombineLines); its tint firms up while the pointer is
+     over it. */
   .ring-combine-plate{ fill:color-mix(in srgb, var(--text) 6%, transparent); stroke:var(--panel-border); stroke-width:1; pointer-events:none; transition:fill .18s; }
   .ring-combine-plate.is-hot{ fill:color-mix(in srgb, var(--panel) 55%, transparent); }
-  .ring-combine-frost{ pointer-events:none; opacity:0; transition:opacity .18s; }
+  .ring-combine-frost{ pointer-events:none; }
   .ring-combine-frost > use{ filter:blur(5px); }
-  .ring-combine-frost.is-hot{ opacity:1; }
   .ring-wheel-lit.is-out{ opacity:0; }
   @keyframes ring-wheel-lit{ from{ opacity:0; } }
   .bead-reduced{ fill:none; stroke:var(--pointer-edge); pointer-events:none; opacity:0; animation:bead-reduced .9s ease-out; }
@@ -2682,6 +2681,9 @@
      over the hidden select, faded while padlocked, so the blur lies on a
      layer of its own behind the button, the button's shape. */
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #arrange-gen-wrap > .ec-pick::before{ content:''; position:absolute; inset:0; z-index:-1; border-radius:var(--radius-ctl); pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* So do the subgroup row's Follow bead clicks and Follow expression
+     slider buttons, and the arrangement row's Sequential. */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) :is(#gen-field .gen-beads, #arrange-seq){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So does the subgroup row's G ∈ group = ⟨g⟩, on a rounded frosted card. */
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #gen-field > .gen-super:not(:empty){ display:inline-block; padding:2px 8px; border-radius:var(--radius-ctl); background:color-mix(in srgb, var(--text) 6%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) .group-controls.is-locked > li > :is(#n-label, .n-spin){ opacity:1; }
@@ -11837,13 +11839,10 @@ function ringWheelFill(box, beadR, m){
   ringWheelClip = null;
   ringWheelDepth = 6;
   if (!r.width || !r.height || !vb || !vb.width) return;
-  // The expression sliders and the spin ruler lie over the ring's foot: the
-  // wheel stops above them.
-  var bottom = r.bottom;
-  ['expr-slot', 'spin-ruler'].forEach(function(id){
-    var el = $(id), b = el && el.offsetParent ? boxOf(el) : null;
-    if (b && b.height && b.top > r.top && b.top < bottom) bottom = b.top;
-  });
+  // Downward it runs on under the expression sliders and the spin ruler to
+  // the window's bottom bar (or the window's foot, where it has none).
+  var bar = $('ring-bar'), bb = bar && bar.offsetParent ? boxOf(bar) : null;
+  var bottom = bb && bb.height ? bb.top : boxOf(ringSvgEl.parentNode).bottom;
   // Sideways it reaches the window's edges, or the pane beside the ring,
   // and upward the window's top, under the rows of controls.
   var body = boxOf(ringSvgEl.parentNode), left = Math.min(r.left, body.left), right = Math.max(r.right, body.right), top = Math.min(r.top, body.top);
@@ -11870,8 +11869,7 @@ function turnRingWheelClip(ring, angle, box){
 }
 // The combination's card over the wheel: a rounded plate behind its lines,
 // and in the ring, under the beads, the wheel drawn again blurred, clipped
-// to the plate, on the window's own ground hiding the sharp wheel there,
-// shown while the pointer is over it. Plate and clips are laid in the ring's unturned frame,
+// to the plate, on the window's own ground hiding the sharp wheel there. Plate and clips are laid in the ring's unturned frame,
 // so they stay put while the ring turns (turnRingWheelClip).
 var COMBINE_CARD_PAD = 10;
 function cardCombineLines(G){
@@ -11901,25 +11899,26 @@ function cardCombineLines(G){
   frost.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn ring-combine-ground' }, card)));
   frost.appendChild(svgEl('use', { href: '#ring-wheel-el' }));
   ring.insertBefore(frost, wheel.nextSibling);
+  groundCombineCard();
   var turnedBy = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
   if (turnedBy) turnRingWheelClip(ring, +turnedBy[1], ringBox());
   syncCombineCardHot(combineCardPointer);
 }
-// Frosted while the pointer is over the plate.
+// The blur's ground is whatever the ring is drawn on, read again whenever
+// the theme changes.
+function groundCombineCard(){
+  var ground = ringDynamicEl.querySelector('.ring-combine-ground');
+  if (ground) ground.style.fill = groundBehind(ringSvgEl);
+}
+new MutationObserver(groundCombineCard).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+// Its tint firms up while the pointer is over the plate.
 var combineCardPointer = null;
 function syncCombineCardHot(e){
   combineCardPointer = e;
   var plate = ringDynamicEl.querySelector('.ring-combine-plate');
   if (!plate) return;
   var r = plate.getBoundingClientRect();
-  var hot = !!e && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-  var frost = ringDynamicEl.querySelector('.ring-combine-frost'), ground = frost && frost.querySelector('.ring-combine-ground');
-  plate.classList.toggle('is-hot', hot);
-  if (!frost) return;
-  frost.classList.toggle('is-hot', hot);
-  // The ground is whatever the ring is drawn on, read when it frosts, so it
-  // follows the theme.
-  if (hot && ground) ground.style.fill = groundBehind(ringSvgEl);
+  plate.classList.toggle('is-hot', !!e && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
 }
 // The first opaque background behind el.
 function groundBehind(el){
