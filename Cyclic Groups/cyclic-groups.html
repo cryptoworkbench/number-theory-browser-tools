@@ -2799,6 +2799,7 @@
   .bar-grid > .bar-swap-cols{ justify-self:center; }
   .bar-grid > .bar-swap:not(.bar-swap-cols){ justify-self:center; margin:-3px 0; }
   .bar-grid-col{ font-size:.85rem; color:var(--text); text-align:center; white-space:nowrap; }
+  .fset-name-pick .ec-pick-list > li{ font-size:.85rem; }
   .bar-grid-row{ font-size:.85rem; color:var(--text); white-space:nowrap; }
   .bar-seg{ display:flex; border:1px solid var(--panel-border); border-radius:6px; overflow:hidden; }
   /* Show and Hide share their segment equally. */
@@ -3623,7 +3624,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, sizeJargon: false, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -6030,19 +6031,12 @@ function fsetGrid(i){
   // between Main and Row, under the names.
   var columns = BAR_FORMULAS;
   var AT_COL = [2, 4];
+  syncFsetNames(i);
   columns.forEach(function(fm, k){
     var head = document.createElement('span');
     head.className = 'bar-grid-col';
     head.id = pre + fm[0];
-    head.textContent = translate(idxKey(fm[1], fsetGroup(i)));
-    // On a curve the Index column's head opens a menu of one switch: Keep
-    // property name general, the cofactor named the index everywhere.
-    var headG = fsetGroup(i);
-    if (fm[0] === 'index' && headG && headG.pts) head.addEventListener('contextmenu', function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      openIdxCtx(ptX(e), ptY(e));
-    });
+    head.appendChild(w.names[fm[0]].box);
     head.style.gridColumn = String(AT_COL[k]);
     grid.appendChild(head);
     if (!k){
@@ -8925,6 +8919,9 @@ function toggleFset(i){
   if (fsetShownNow(i)) setFsetOpen(i, false);
   else openFset(i);
 }
+// The names the window's column dropdowns offer (fsetNamePick).
+var FSET_SIZE_NAMES = [['size', 'cyclicGroups.subFormulaSize', 'cyclicGroups.fsetNameDescriptive'], ['card', 'cyclicGroups.ctxItemCardinality', 'cyclicGroups.fsetNameJargon']];
+var FSET_IDX_NAMES = [['general', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fsetNameGeneral'], ['ec', 'cyclicGroups.subFormulaIndexShortEc', 'cyclicGroups.fsetNameEc']];
 var FSET = [0, 1].map(function(i){
   var el = $('fset-win-' + i);
   // split: the map, the master control, set beside the window's own view,
@@ -8939,6 +8936,16 @@ var FSET = [0, 1].map(function(i){
     openFsetCtx(i, ptX(e), ptY(e));
   });
   w.grid.addEventListener('keydown', fsetGridKeys);
+  w.names = { order: fsetNamePick(w, 'size', FSET_SIZE_NAMES), index: fsetNamePick(w, 'idx', FSET_IDX_NAMES) };
+  // On a curve the Index column's name keeps its menu of one switch: Keep
+  // general, the cofactor named the index everywhere.
+  w.names.index.box.addEventListener('contextmenu', function(e){
+    var G = fsetGroup(i);
+    if (!G || !G.pts) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openIdxCtx(ptX(e), ptY(e));
+  });
   // The pane's group's window lives over the pane, beside the ring's half:
   // it opens at the pane's left, a little in, and moves within the pane.
   if (i === 1){
@@ -8953,6 +8960,59 @@ var FSET = [0, 1].map(function(i){
   }
   return w;
 });
+// The settings window's column names, each a dropdown drawn as the
+// identity's after E = is: the Size column named Size (descriptive) or
+// Cardinality (jargon), the Index column Index (general) or, on a curve,
+// Cofactor (EC specific), the choice Keep general in its menu makes too.
+// Made once per window and moved into each grid built.
+function fsetNamePick(w, kind, names){
+  var holder = document.createElement('span'), sel = document.createElement('select');
+  sel.id = 'fset-' + kind + '-name-' + w.i;
+  names.forEach(function(nm){
+    var o = document.createElement('option');
+    o.value = nm[0];
+    sel.appendChild(o);
+  });
+  holder.appendChild(sel);
+  var label = function(o){ return translate(names[o.index][1]); };
+  var btn = skinSelect(sel, {
+    cls: 'id-pick fset-name-pick',
+    show: function(o){ return label(o); },
+    item: function(o){
+      var name = document.createElement('span'), kindEl = document.createElement('span');
+      name.textContent = label(o);
+      kindEl.className = 'id-pick-kind';
+      kindEl.textContent = translate(names[o.index][2]);
+      var frag = document.createDocumentFragment();
+      frag.append(name, kindEl);
+      return frag;
+    }
+  });
+  btn.id = sel.id + '-btn';
+  sel.addEventListener('change', function(){
+    w.focus = '#' + btn.id;
+    if (kind === 'size'){
+      state.sizeJargon = sel.value === 'card';
+      fillFsetWins();
+      if (drawn) mirrorToUrl(drawn.G);
+      return;
+    }
+    state.idxGeneral = sel.value === 'general';
+    render();
+    postIsoShared();
+  });
+  return { box: holder.firstChild, sel: sel };
+}
+// The names as the state has them; Cofactor only on a curve.
+function syncFsetNames(i){
+  var w = FSET[i], G = fsetGroup(i), ec = !!(G && G.pts);
+  [[w.names.order.sel, FSET_SIZE_NAMES], [w.names.index.sel, FSET_IDX_NAMES]].forEach(function(t){
+    Array.prototype.forEach.call(t[0].options, function(o, k){ o.textContent = translate(t[1][k][1]); });
+  });
+  w.names.index.sel.options[1].disabled = !ec;
+  w.names.order.sel.value = state.sizeJargon ? 'card' : 'size';
+  w.names.index.sel.value = ec && !state.idxGeneral ? 'ec' : 'general';
+}
 // Right-clicking a settings window opens its menu: View master-control in
 // splitview, the map set beside the window's own view (the form preference
 // slider, Skip logarithm use and the generator control).
@@ -22065,6 +22125,8 @@ function stateQuery(){
   else q.delete('subbare');
   if (!state.idxGeneral) q.set('idxgeneral', '0');
   else q.delete('idxgeneral');
+  if (state.sizeJargon) q.set('sizename', 'card');
+  else q.delete('sizename');
   if (!state.subGcdDividers) q.set('subgcddiv', '0');
   else q.delete('subgcddiv');
   var folded = Object.keys(state.subGcdFolded);
@@ -24962,6 +25024,7 @@ function loadState(query, link){
   state.subGcdDividers = query.get('subgcddiv') !== '0';
   state.subBare = query.get('subbare') === '1';
   state.idxGeneral = query.get('idxgeneral') !== '0';
+  state.sizeJargon = query.get('sizename') === 'card';
   state.subSimplify = state.subBare || query.get('subsimplify') === '1';
   state.subPaths = query.get('subpaths') !== '0';
   state.revealOff = readRevealOff() || query.get('nathover') === '0';
