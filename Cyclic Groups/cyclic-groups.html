@@ -11765,12 +11765,27 @@ function drawNecklace(G, paint){
     var low = SIZE + combineExtraLines(G) * COMBINE_LINE;
     ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z, SIZE / z, (low - top) / z].map(num).join(' '));
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
-    var wheelRing = ringDynamicEl.querySelector('.ring');
-    if (wheelRing && wheelRing.redrawWheel){
-      ringWheelFill(box, beadRadius(beads.length, box.R), beads.length);
-      wheelRing.redrawWheel();
-    }
+    refitRingWheel(box, beads.length);
   }
+}
+// The congruence wheel, filled out to the ring's area as it is now: on
+// every redraw, and whenever that area changes size (a pane opened or
+// closed beside the ring, the window resized).
+function refitRingWheel(box, m){
+  var wheelRing = ringDynamicEl.querySelector('.ring');
+  if (!wheelRing || !wheelRing.redrawWheel) return;
+  ringWheelFill(box, beadRadius(m, box.R), m);
+  wheelRing.redrawWheel();
+}
+if (typeof ResizeObserver === 'function' && !IS_PREVIEW){
+  var wheelRefit = 0;
+  new ResizeObserver(function(){
+    cancelAnimationFrame(wheelRefit);
+    wheelRefit = requestAnimationFrame(function(){
+      var g = ringSvgEl.querySelector('.ring-wheel');
+      if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
+    });
+  }).observe(ringSvgEl);
 }
 
 // Congruence wheel background (the main area's menu): the Equivalence Wheel
