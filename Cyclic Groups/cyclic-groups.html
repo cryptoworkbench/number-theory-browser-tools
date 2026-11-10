@@ -2513,6 +2513,7 @@
   .sub-ctx-rule{ height:0; margin:4px 0; border-top:1px solid var(--panel-border); }
   .sub-ctx-tick{ flex:none; width:14px; height:14px; fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .fs-menu-item[aria-checked="false"] .sub-ctx-tick{ visibility:hidden; }
+  .fs-menu-item.is-tick-end > .sub-ctx-tick{ margin-inline-start:auto; }
   /* On a desktop those switches live in that menu, not among the panel's
      controls. */
   :root:not(.is-mobile) #subgroups-list-panel .sub-ctls .check{ display:none; }
@@ -10160,7 +10161,8 @@ function syncExprCtx(key){
   ringCtxEl.appendChild(natExp);
 }
 // Exponents in natural expression: Natural with its exponents, x¹, or
-// without, x. Its symbol, after the tick, is ℕ¹, or ℤ¹ in the signed form.
+// without, x. Its symbol, in the icon column with the other entries', is
+// ℕ¹, or ℤ¹ in the signed form; its tick goes to the row's far end.
 function natExpTick(){
   var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExp'), !state.natExpOff, function(){
     setRingCtx(false);
@@ -10170,7 +10172,9 @@ function natExpTick(){
   mark.className = 'fs-icon';
   mark.setAttribute('aria-hidden', 'true');
   mark.textContent = state.signed ? 'ℤ¹' : 'ℕ¹';
-  tick.insertBefore(mark, tick.lastChild);
+  tick.classList.add('is-tick-end');
+  tick.appendChild(tick.firstChild);
+  tick.insertBefore(mark, tick.firstChild);
   tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
   return tick;
 }
