@@ -6788,6 +6788,12 @@ function syncColorByName(G){
   var key = idxKey(state.sizeJargon ? 'cyclicGroups.colorByOrderIndex' : 'cyclicGroups.colorBySizeIndex', G);
   o.setAttribute('data-i18n', key);
   o.textContent = translate(key);
+  // The key's Colours as dropdown: Subgroup cardinality, or size.
+  var by = document.querySelector('#legend-by-select option[value="order"]');
+  if (!by) return;
+  key = state.sizeJargon ? 'cyclicGroups.legendByOrder' : 'cyclicGroups.legendBySize';
+  by.setAttribute('data-i18n', key);
+  by.textContent = translate(key);
 }
 var CTX_NAMES = { ggroup: 'cyclicGroups.ctxItemName', gorder: 'cyclicGroups.ctxItemCardinality', gens: 'cyclicGroups.ctxItemGens', struct: 'cyclicGroups.ctxItemStructure', gsub: 'cyclicGroups.ctxItemName', sorder: 'cyclicGroups.ctxItemSize', cindex: 'cyclicGroups.ctxItemIndex', sstruct: 'cyclicGroups.ctxItemStructure' };
 // The group's structure, the last of the right-click menu's formulas,
@@ -9110,7 +9116,7 @@ function fsetNamePick(w, kind, names){
     if (kind === 'size'){
       state.sizeJargon = sel.value === 'card';
       syncColorByName();
-      if (drawn) drawLegendHeading(state.colorBy);
+      if (drawn) render();
       fillFsetWins();
       if (drawn) mirrorToUrl(drawn.G);
       return;
@@ -19670,7 +19676,7 @@ function renderLegend(G, classes, pairing){
     var text = document.createElement('span');
     text.className = 'legend-order';
     if (byIndex) translateInto(text, idxKey('cyclicGroups.legendIndex', G), { index: mNum(G.order / o) });
-    else translateInto(text, 'cyclicGroups.legendOrder', { order: mNum(o) });
+    else translateInto(text, state.sizeJargon ? 'cyclicGroups.legendOrder' : 'cyclicGroups.legendSize', { order: mNum(o) });
     var count = document.createElement('span');
     count.className = 'legend-count';
     count.textContent = translate('cyclicGroups.legendElements', { count: counts[o] });
