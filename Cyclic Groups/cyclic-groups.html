@@ -10229,6 +10229,22 @@ document.addEventListener('contextmenu', function(e){
 // The subgroup's name over its formulas in that menu, ⟨h⟩ ∈ G, h as the row
 // writes it but never with Natural's exponent (Exponents in natural
 // expression has no say here).
+// A name in a menu heading, as written, not upper-cased with the heading's
+// words; in the heading's own type: plain text, a curve's +ₑ written + with
+// a subscript capital E, which plain text has no character for.
+function headName(text){
+  var nm = document.createElement('span');
+  nm.className = 'fs-menu-head-name';
+  text.split('+ₑ').forEach(function(part, i){
+    if (i){
+      var e = document.createElement('sub');
+      e.textContent = 'E';
+      nm.append('+', e);
+    }
+    nm.append(part);
+  });
+  return nm;
+}
 function ctxSubName(G){ return '⟨' + cosetGenWrite(G, state.gen, false, true).p + '⟩ ∈ ' + curveName(G); }
 function syncExprCtx(key){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-expr').forEach(function(el){ el.remove(); });
@@ -10273,20 +10289,7 @@ function syncExprCtx(key){
     var fhead = document.createElement('p');
     fhead.className = 'fs-menu-head ring-ctx-expr';
     if (key === 'gsub'){
-      // The name as written, not upper-cased with the heading's words.
-      var nm = document.createElement('span');
-      nm.className = 'fs-menu-head-name';
-      // In the heading's own type: plain text, a curve's +ₑ written + with a
-      // subscript capital E, which plain text has no character for.
-      sec.name.split('+ₑ').forEach(function(part, i){
-        if (i){
-          var e = document.createElement('sub');
-          e.textContent = 'E';
-          nm.append('+', e);
-        }
-        nm.append(part);
-      });
-      translateInto(fhead, 'cyclicGroups.ctxNamedFormulasHead', { name: nm });
+      translateInto(fhead, 'cyclicGroups.ctxNamedFormulasHead', { name: headName(sec.name) });
     } else fhead.textContent = translate('cyclicGroups.ctxFormulasHead');
     ringCtxEl.appendChild(fhead);
     sec.keys.forEach(function(k){
@@ -10503,7 +10506,7 @@ function syncSwapCtx(on){
   var at = ringCtxEl.querySelector(':scope > .ring-ctx-head');
   var head = document.createElement('p');
   head.className = 'fs-menu-head ring-ctx-swap';
-  head.textContent = translate('cyclicGroups.swapHead');
+  translateInto(head, 'cyclicGroups.swapHead', { name: headName(curveName(drawn.G)) });
   ringCtxEl.insertBefore(head, at);
   var first = null, red = reduceSpec();
   if (red){

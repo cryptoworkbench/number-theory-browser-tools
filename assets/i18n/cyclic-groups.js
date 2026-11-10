@@ -260,7 +260,8 @@
    notation).
    cardDivideWarnLockSame (Divide's warning when a group of the same
    operation with the divided cardinality would break the lock), swapHead (the
-   ring menu's Swap section heading, formerly swapIsoHead's Isomorphic swap)
+   ring menu's Swap section heading, {name} Swap with the group's name,
+   formerly swapIsoHead's Isomorphic swap)
    ctxNamedFormulasHead ({name} formulas, the group's and the subgroup's
    headings in the subgroup row's menu, {name} written as the row writes it),
    ctxItemName, ctxItemCardinality, ctxItemGens, ctxItemStructure, ctxItemSize,
@@ -1200,7 +1201,7 @@
       formulaHide: 'Hide',
       dhMenu: 'Diffie–Hellman with g = {g}',
       swapIsoHead: 'Isomorphic swap',
-      swapHead: 'Swap',
+      swapHead: '{name} Swap',
       ctxFormulasHead: 'Formulas',
       ctxNamedFormulasHead: '{name} formulas',
       ctxItemName: 'Name',
