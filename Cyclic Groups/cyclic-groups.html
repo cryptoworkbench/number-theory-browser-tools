@@ -10719,20 +10719,20 @@ function syncDhCtx(on, bead){
   return first;
 }
 // At Natural, Exponents in natural expression, the menu's first entry; on
-// a cyclic curve, its points written as multiples, above the first heading.
+// a cyclic curve off Natural, its points written as multiples instead.
 function syncSignCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
-  var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
+  var first = null;
   if (exprBy(drawn.G) === null){
     first = natExpTick();
     first.classList.add('ring-ctx-sign');
     ringCtxEl.insertBefore(first, ringCtxEl.firstChild);
   }
-  // On a cyclic curve, the points written as multiples kP of the
-  // generator, not as its powers. The signed forms are the slider's ± and
-  // g± buttons only.
-  var signs = drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : [];
+  // On a cyclic curve, with the expression slider off Natural, the points
+  // written as multiples kP of the generator, not as its powers, at the
+  // menu's very top. The signed forms are the slider's ± and g± buttons only.
+  var signs = !first && drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : [];
   signs.forEach(function(t){
     var on = state[t[1]];
     var text = translate(t[0]);
@@ -10742,7 +10742,7 @@ function syncSignCtx(on){
     });
     sign.classList.add('ring-ctx-sign');
     sign.addEventListener('pointerenter', function(){ setRingCopy(null); });
-    ringCtxEl.insertBefore(sign, head);
+    ringCtxEl.insertBefore(sign, ringCtxEl.firstChild);
     if (!first) first = sign;
   });
   return first;
