@@ -1393,7 +1393,7 @@
       genBeadsEcTitle: 'Clicking a bead, or a point in the curve plot, selects its row, so G is the clicked point, instead of combining it',
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
-      pizzaTitle: 'Cosets of ⟨{h}⟩',
+      pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
       dhAlice: 'Alice',
