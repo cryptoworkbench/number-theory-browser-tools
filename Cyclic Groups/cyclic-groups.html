@@ -1311,6 +1311,8 @@
   :root:not(.is-mobile) .curve-plot.is-moving{ cursor:grabbing; }
   :root:not(.is-mobile) .curve-plot-svg{ cursor:default; }
   .curve-plot-svg{ display:block; width:100%; height:auto; flex:0 1 auto; min-height:0; overflow:visible; }
+  #curve-plot.is-sized > .curve-plot-svg{ flex:1 1 0; height:100%; }
+  :root:not(.is-mobile) .curve-plot.is-max-armed{ outline:2px dashed var(--accent); outline-offset:2px; }
   .curve-plot-svg .curve-frame{ fill:none; stroke:var(--panel-border); }
   .curve-plot-svg .curve-grid{ stroke:var(--panel-border); stroke-width:.5; opacity:.5; }
   .curve-plot-svg .curve-tick{ fill:var(--text-dim); font-family:var(--font-sans); font-size:10px; }
@@ -11070,19 +11072,24 @@ function syncPlotDock(){
   }
   var was = curvePlotEl.classList.contains('is-docked');
   if (on && !was){
-    // Its floating size kept for when it floats again.
-    plotFloatSize = { w: curvePlotEl.style.width, h: curvePlotEl.style.maxHeight, s: curvePlotEl.style.getPropertyValue('--plot-scale') };
+    // Its floating size kept for when it floats again (its own, not the
+    // maximized one).
+    if (curveWin) curveWin.restore();
+    plotFloatSize = { w: curvePlotEl.style.width, h: curvePlotEl.style.maxHeight, hh: curvePlotEl.style.height, sized: curvePlotEl.classList.contains('is-sized'), s: curvePlotEl.style.getPropertyValue('--plot-scale') };
     curvePlotEl.style.removeProperty('--plot-scale');
-    curvePlotEl.style.maxHeight = '';
+    curvePlotEl.style.maxHeight = curvePlotEl.style.height = '';
+    curvePlotEl.classList.remove('is-sized');
   }
   curvePlotEl.classList.toggle('is-docked', on);
   curvePlotEl.classList.toggle('is-docked-foot', foot);
   if (!foot) curvePlotEl.style.left = curvePlotEl.style.top = '';
   if (!on) curvePlotSvgEl.style.width = '';
   if (!on && was){
-    var f = plotFloatSize || { w: '', h: '', s: '' };
+    var f = plotFloatSize || { w: '', h: '', hh: '', sized: false, s: '' };
     curvePlotEl.style.width = f.w;
     curvePlotEl.style.maxHeight = f.h;
+    curvePlotEl.style.height = f.hh;
+    curvePlotEl.classList.toggle('is-sized', f.sized);
     if (f.s) curvePlotEl.style.setProperty('--plot-scale', f.s);
     plotFloatSize = null;
     if (curveWin) curveWin.place(curveWin.at.x, curveWin.at.y);
@@ -16090,7 +16097,9 @@ function plotFloor(body){
 // its own size, and carries the class is-sized while it has a size of its own.
 var CURVE_BASE_W = 300;
 function plotWindow(el, gripEl, acrossLocked, fitW, free){
-  var win = { at: { x: 0, y: 0 } }, moving = null, sizing = null;
+  var win = { at: { x: 0, y: 0 }, max: null }, moving = null, sizing = null;
+  var roomLeft = function(body){ return win.lo ? win.lo(body) : boxOf(body).left; };
+  var roomRight = function(body){ return win.hi ? win.hi(body) : acrossLocked && isoLinked() ? boxOf(body).right : workRight(body); };
   // Where a double click puts it back, and its room's left and right
   // edges: by default the ring's half (lo, hi and home, set by a window
   // that lives elsewhere, the pane's settings window over the pane).
@@ -16103,8 +16112,7 @@ function plotWindow(el, gripEl, acrossLocked, fitW, free){
       var b = boxOf(body), r = boxOf(el), floor = plotFloor(body);
       var left = r.left + x - win.at.x, top = r.top + y - win.at.y;
       // One that goes across, locked to a second ring, has its pane too.
-      var right = win.hi ? win.hi(body) : acrossLocked && isoLinked() ? b.right : workRight(body);
-      var leftEdge = win.lo ? win.lo(body) : b.left;
+      var right = roomRight(body), leftEdge = roomLeft(body);
       x += Math.max(0, leftEdge - left) || Math.min(0, right - (left + r.width));
       // Kept over the floor, but never pushed up past the top rows: one
       // taller than the room reaches down instead.
@@ -16138,29 +16146,86 @@ function plotWindow(el, gripEl, acrossLocked, fitW, free){
       el.style.setProperty('--plot-scale', String(w / CURVE_BASE_W));
     }
   };
+  // One that may be maximized (win.maxable, a free window) fills its room
+  // under the rows, above the floor, when dragged on up hard against the
+  // rows; a double click on its head, or dragging it away, puts it back
+  // at its own size (win.max keeps it).
+  var SMASH = 24, MAX_GAP = 8;
+  win.maximize = function(){
+    var body = el.closest('.fs-win-body');
+    if (!body || el.hidden) return;
+    if (!win.max) win.max = { at: win.at, w: el.style.width, h: el.style.height, mh: el.style.maxHeight, sized: el.classList.contains('is-sized') };
+    var left = roomLeft(body), top = topRowsBottom(body);
+    win.size(Math.round(roomRight(body) - left - 2 * MAX_GAP), Math.round(plotFloor(body) - top - 2 * MAX_GAP));
+    var r = boxOf(el);
+    win.place(win.at.x + left + MAX_GAP - r.left, win.at.y + top + MAX_GAP - r.top);
+    el.classList.add('is-max');
+  };
+  win.restore = function(){
+    var m = win.max;
+    if (!m) return null;
+    win.max = null;
+    el.classList.remove('is-max');
+    el.style.width = m.w;
+    el.style.height = m.h;
+    el.style.maxHeight = m.mh;
+    el.classList.toggle('is-sized', m.sized);
+    return m;
+  };
   var grip = function(e){ return !IS_MOBILE && e.button === 0 && !el.classList.contains('is-docked') && !e.target.closest('button, input, label, .ec-pick-pop, .curve-plot-svg, .curve-grip, .cayley-scroll, .log-ctl'); };
   el.addEventListener('pointerdown', function(e){
     if (!grip(e)) return;
-    moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y };
+    moving = { id: e.pointerId, x: ptX(e) - win.at.x, y: ptY(e) - win.at.y, from: win.max ? [ptX(e), ptY(e)] : null, armed: false };
     el.setPointerCapture(e.pointerId);
     el.classList.add('is-moving');
     e.preventDefault();
   });
   el.addEventListener('pointermove', function(e){
-    if (moving && e.pointerId === moving.id) win.place(ptX(e) - moving.x, ptY(e) - moving.y);
+    if (!moving || e.pointerId !== moving.id) return;
+    // Dragged away maximized, it takes its own size back under the
+    // pointer, held at the same share of its width.
+    if (moving.from){
+      if (Math.abs(ptX(e) - moving.from[0]) + Math.abs(ptY(e) - moving.from[1]) < 6) return;
+      var r = boxOf(el), share = (moving.from[0] - r.left) / r.width;
+      moving.from = null;
+      win.restore();
+      var r2 = boxOf(el);
+      win.at = { x: win.at.x + Math.round(ptX(e) - share * r2.width - r2.left), y: win.at.y + Math.round(r.top - r2.top) };
+      moving.x = ptX(e) - win.at.x;
+      moving.y = ptY(e) - win.at.y;
+    }
+    var x = ptX(e) - moving.x, y = ptY(e) - moving.y, body = el.closest('.fs-win-body');
+    if (win.maxable && body){
+      var over = topRowsBottom(body) - (boxOf(el).top + y - win.at.y);
+      moving.armed = over > SMASH;
+      el.classList.toggle('is-max-armed', moving.armed);
+    }
+    win.place(x, y);
   });
   var endMoving = function(e){
     if (!moving || e.pointerId !== moving.id) return;
+    var armed = moving.armed;
     moving = null;
-    el.classList.remove('is-moving');
+    el.classList.remove('is-moving', 'is-max-armed');
+    if (armed) win.maximize();
   };
   el.addEventListener('pointerup', endMoving);
   el.addEventListener('pointercancel', endMoving);
-  el.addEventListener('dblclick', function(e){ if (grip(e)){ var h = win.home(); win.place(h.x, h.y); } });
-  window.addEventListener('resize', function(){ if (win.at.x || win.at.y) win.place(win.at.x, win.at.y); });
+  el.addEventListener('dblclick', function(e){
+    if (!grip(e)) return;
+    var m = win.restore(), h = m ? m.at : win.home();
+    win.place(h.x, h.y);
+  });
+  window.addEventListener('resize', function(){
+    if (win.max) win.maximize();
+    else if (win.at.x || win.at.y) win.place(win.at.x, win.at.y);
+  });
   if (!gripEl) return win;
   gripEl.addEventListener('pointerdown', function(e){
     if (e.button !== 0 || IS_MOBILE) return;
+    // Resized, a maximized window keeps the size it has as its own.
+    win.max = null;
+    el.classList.remove('is-max');
     var r = boxOf(el), body = el.closest('.fs-win-body');
     var b = boxOf(body), floor = plotFloor(body);
     // A grip in the bottom right corner (a window at the left of the
@@ -16199,6 +16264,8 @@ function plotWindow(el, gripEl, acrossLocked, fitW, free){
   gripEl.addEventListener('pointercancel', endSizing);
   gripEl.addEventListener('dblclick', function(e){
     e.stopPropagation();
+    win.max = null;
+    el.classList.remove('is-max');
     win.size(null);
     win.place(win.at.x, win.at.y);
   });
@@ -16223,7 +16290,10 @@ function unstack(el, win, other){
   }
   win.place(x + tries[2][0], y);
 }
-var curveWin = plotWindow(curvePlotEl, $('curve-grip'));
+// The point plot is sized in width and height apart, its points' square
+// as large as fits, and may be maximized.
+var curveWin = plotWindow(curvePlotEl, $('curve-grip'), false, null, true);
+curveWin.maxable = true;
 // Laps of the path, the one ring's key to both while they are locked, can
 // be dragged over the pane as well.
 var lapKeyWin = plotWindow(lapKeyEl, null, true);
