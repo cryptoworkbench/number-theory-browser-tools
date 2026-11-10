@@ -1394,6 +1394,7 @@
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
+      combineTopResult: 'Keep the result on top',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
       dhAlice: 'Alice',
