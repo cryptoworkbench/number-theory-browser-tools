@@ -1394,6 +1394,7 @@
       pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
       combineTopResult: 'Keep the result on top',
       ringWheel: 'Congruence wheel background',
+      ringWheelMod: '% {n}',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
       dhAlice: 'Alice',
