@@ -1395,6 +1395,7 @@
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩',
       pizzaSimplify: 'Simplify',
+      cosetStepBack: 'Step back',
       dhAlice: 'Alice',
       dhPublic: 'Public',
       dhBob: 'Bob',

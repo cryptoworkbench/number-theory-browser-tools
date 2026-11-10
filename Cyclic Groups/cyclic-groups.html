@@ -3555,6 +3555,7 @@
           <div class="coset-controls" id="coset-controls" hidden>
             <div class="btn-row">
               <button type="button" class="action-btn is-primary" id="coset-play">Play</button>
+              <button type="button" class="action-btn" id="coset-back" data-i18n="cyclicGroups.cosetStepBack">Step back</button>
               <button type="button" class="action-btn" id="coset-step" data-i18n="common.step">Step</button>
               <button type="button" class="action-btn" id="coset-instant" data-i18n="common.instant">Instant</button>
               <button type="button" class="action-btn" id="coset-reset" data-i18n="common.reset">Reset</button>
@@ -18214,6 +18215,7 @@ var cosetTimer = null;
 var cosetControlsEl = $('coset-controls');
 var cosetPlayEl = $('coset-play');
 var cosetStepEl = $('coset-step');
+var cosetBackEl = $('coset-back');
 var cosetInstantEl = $('coset-instant');
 var cosetSpeedEl = $('coset-speed');
 
@@ -18328,6 +18330,8 @@ function syncCosetControls(){
   cosetStepEl.setAttribute('data-i18n', stepKey);
   cosetStepEl.textContent = translate(stepKey);
   cosetStepEl.disabled = !open || cosetRun.playing;
+  // Step back takes the last coset shown away again, down to the first.
+  cosetBackEl.disabled = !open || cosetRun.playing || cosetRun.shown <= 1;
   cosetInstantEl.disabled = !open || done;
   $('coset-speed-label').textContent = translate('common.speed.' + cosetSpeedEl.value);
 }
@@ -18389,6 +18393,10 @@ cosetStepEl.addEventListener('click', function(){
   if (cosetRun.shown >= cosetRun.starts.length){ stopCosets(); return; }
   showCosets(cosetRun.shown + 1);
 });
+cosetBackEl.addEventListener('click', function(){
+  if (!cosetRun || cosetRun.playing || cosetRun.shown <= 1) return;
+  showCosets(cosetRun.shown - 1);
+});
 cosetInstantEl.addEventListener('click', function(){
   if (!cosetRun) return;
   pauseCosets();
@@ -18441,10 +18449,10 @@ function drawPizza(){
   ['.pizza-slice', '.pizza-num'].forEach(function(sel){
     pizzaSvgEl.querySelectorAll(sel).forEach(function(el, i){ el.classList.toggle('is-on', i < cosetRun.shown); });
   });
-  // The sum so far: |⟨h⟩| once per coset shown, = |G| when all are.
-  var kk = G.orders[h], terms = [];
-  for (var t = 0; t < cosetRun.shown; t++) terms.push(String(kk));
-  var sum = terms.join(' + ') + (cosetRun.shown > 1 ? ' = ' + kk * cosetRun.shown : '');
+  // The count so far: |⟨h⟩| times the cosets shown, from |⟨h⟩| × 1, = |G|
+  // when all are.
+  var kk = G.orders[h];
+  var sum = kk + ' × ' + cosetRun.shown + ' = ' + kk * cosetRun.shown;
   if (cosetRun.shown >= n) sum += ' = |' + G.label + '|';
   $('pizza-sum').textContent = sum;
   // With every coset shown, it comes down to Lagrange's theorem:
