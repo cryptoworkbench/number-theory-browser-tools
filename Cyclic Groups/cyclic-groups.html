@@ -1059,11 +1059,14 @@
   .fmap-win-cap{ margin:0; font-size:.72rem; color:var(--text-dim); text-align:center; align-self:stretch; }
   /* The window's grid of places and formulas, as the bottom bar's menu had it. */
   .fset-grid-slot .bar-grid{ padding:2px 0 8px; justify-content:start; }
-  /* The window's own formula complexity slider, under its caption, the
-     link to the bottom bar's slider beside it. */
-  .fset-level{ display:flex; flex-direction:column; align-items:flex-start; gap:1px; padding:0 0 8px; }
-  .fset-level-row{ display:flex; align-items:center; gap:6px; }
-  .fset-level-range{ width:72px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  /* The window's own formula complexity slider, built as the Formula form
+     slider is, under its caption, the link to the bottom bar's slider
+     beside it. */
+  .fset-level{ display:flex; flex-direction:column; gap:1px; padding:0 0 8px; direction:ltr; user-select:none; -webkit-user-select:none; --fsl-y:8px; --fsl-k:15px; --fsl-d:10px; }
+  .fset-level-row{ display:flex; align-items:flex-start; gap:6px; }
+  .fset-level-row > .fsl{ flex:1; min-width:186px; }
+  /* Its caption centred over the slider, not the link beside it. */
+  .fset-level > .fsl-name{ margin-right:30px; }
   .fset-level-link{ display:grid; place-items:center; width:24px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
   .fset-level-link:hover{ color:var(--text); }
   .fset-level-link[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
@@ -11550,20 +11553,100 @@ function buildFsetLevel(w){
   var cap = document.createElement('span');
   cap.className = 'fsl-name';
   cap.id = 'fset-level-cap-' + w.i;
+  cap.setAttribute('aria-hidden', 'true');
   cap.setAttribute('data-i18n', 'cyclicGroups.formulaLevelLabel');
   cap.textContent = translate('cyclicGroups.formulaLevelLabel');
   var row = document.createElement('div');
   row.className = 'fset-level-row';
-  var range = document.createElement('input');
-  range.type = 'range';
-  range.className = 'fset-level-range';
-  range.min = '0';
-  range.max = '2';
-  range.step = '1';
-  range.setAttribute('aria-labelledby', cap.id);
-  range.addEventListener('input', function(){
-    applyFormulaLevel(+range.value);
+  // Built as the Formula form slider is: a track, three slots captioned
+  // under it, and a knob that glides between them or follows a drag.
+  var sl = document.createElement('span');
+  sl.className = 'fsl log-ctl';
+  sl.setAttribute('role', 'slider');
+  sl.setAttribute('tabindex', '0');
+  sl.setAttribute('aria-valuemin', '0');
+  sl.setAttribute('aria-valuemax', '2');
+  sl.setAttribute('aria-orientation', 'horizontal');
+  sl.setAttribute('aria-label', translate('cyclicGroups.formulaLevelLabel'));
+  sl.setAttribute('data-i18n-aria-label', 'cyclicGroups.formulaLevelLabel');
+  var track = document.createElement('span');
+  track.className = 'fsl-track';
+  track.setAttribute('aria-hidden', 'true');
+  sl.appendChild(track);
+  var notches = [0, 1, 2].map(function(v){
+    var chip = document.createElement('span');
+    chip.className = 'fsl-notch';
+    chip.setAttribute('data-v', String(v));
+    chip.setAttribute('aria-hidden', 'true');
+    var detent = document.createElement('span');
+    detent.className = 'fsl-detent';
+    var label = document.createElement('span');
+    label.className = 'fsl-label';
+    label.setAttribute('data-i18n', FORMULA_LEVEL_TIPS[v]);
+    label.textContent = translate(FORMULA_LEVEL_TIPS[v]);
+    chip.append(detent, label);
+    sl.appendChild(chip);
+    return chip;
+  });
+  var knob = document.createElement('span');
+  knob.className = 'fsl-knob';
+  knob.setAttribute('aria-hidden', 'true');
+  sl.appendChild(knob);
+  var now = function(){ return formulaLevel(); };
+  // The formulas to slot v; refused, or no move, the knob goes back.
+  var go = function(v){
+    knob.style.left = '';
+    if (v !== now()) applyFormulaLevel(v);
     syncFormulaLevel();
+  };
+  var nearest = function(x){
+    var best = 0, dist = Infinity;
+    notches.forEach(function(chip, v){
+      var b = boxOf(chip.firstChild), d = Math.abs(b.left + b.width / 2 - x);
+      if (d < dist){ dist = d; best = v; }
+    });
+    return best;
+  };
+  var drag = null, swallow = false;
+  sl.addEventListener('click', function(e){
+    if (swallow){ swallow = false; return; }
+    var chip = e.target.closest && e.target.closest('.fsl-notch');
+    if (chip) go(+chip.getAttribute('data-v'));
+  });
+  sl.addEventListener('pointerdown', function(e){
+    if (e.button === 0) drag = { id: e.pointerId, x0: ptX(e), moved: false };
+  });
+  sl.addEventListener('pointermove', function(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moved){
+      if (Math.abs(ptX(e) - drag.x0) <= 3) return;
+      drag.moved = true;
+      try { sl.setPointerCapture(e.pointerId); } catch (err) {}
+      sl.classList.add('is-drag');
+    }
+    var b = boxOf(sl), k = boxOf(knob).width;
+    knob.style.left = Math.max(b.width / 6, Math.min(b.width * 5 / 6, ptX(e) - b.left)) - k / 2 + 'px';
+  });
+  var end = function(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var moved = drag.moved;
+    drag = null;
+    if (!moved) return;
+    sl.classList.remove('is-drag');
+    swallow = true;
+    setTimeout(function(){ swallow = false; }, 0);
+    if (e.type === 'pointercancel'){ knob.style.left = ''; return; }
+    go(nearest(ptX(e)));
+  };
+  sl.addEventListener('pointerup', end);
+  sl.addEventListener('pointercancel', end);
+  sl.addEventListener('keydown', function(e){
+    var step = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+    if (!step && e.key !== 'Home' && e.key !== 'End') return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    e.preventDefault();
+    var v = e.key === 'Home' ? 0 : e.key === 'End' ? 2 : now() + step;
+    if (v >= 0 && v <= 2) go(v);
   });
   var link = document.createElement('button');
   link.type = 'button';
@@ -11579,9 +11662,9 @@ function buildFsetLevel(w){
     }
     syncFormulaLevel();
   });
-  row.append(range, link);
+  row.append(sl, link);
   slot.append(cap, row);
-  w.level = { range: range, link: link, free: null };
+  w.level = { sl: sl, notches: notches, link: link, free: null };
 }
 // The chain's two links, joined while linked, cut apart by a zigzag
 // from top to bottom while not.
@@ -11613,8 +11696,11 @@ function fsetLinkIcon(i, free){
 }
 function syncFsetLevel(w, v){
   if (!w.level) return;
-  w.level.range.value = v;
-  w.level.range.title = translate(FORMULA_LEVEL_TIPS[v]);
+  var sl = w.level.sl;
+  sl.style.setProperty('--v', String(v));
+  sl.setAttribute('aria-valuenow', String(v));
+  sl.setAttribute('aria-valuetext', translate(FORMULA_LEVEL_TIPS[v]));
+  w.level.notches.forEach(function(chip, k){ chip.classList.toggle('is-at', k === v); });
   var link = w.level.link, tip = translate(levelFree ? 'cyclicGroups.fsetLevelFree' : 'cyclicGroups.fsetLevelLinked');
   link.setAttribute('aria-pressed', levelFree ? 'false' : 'true');
   link.title = tip;
