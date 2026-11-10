@@ -5922,7 +5922,7 @@ function barPlotTasks(i, G){
     // Titled as the plot is: the pane's by the pane's own naming and view.
     var pq = i === 0 ? null : new URLSearchParams(isoPane.q);
     var byEq = i === 0 ? ecByEquation() : pq.get('ecname') === 'eq';
-    var curve = curvePlotTitle(G, byEq);
+    var curve = curvePlotTitleInto(document.createElement('span'), G, byEq);
     tasks.push(barTask(curve, translate('cyclicGroups.curvePlotShow'), translate('cyclicGroups.curvePlotTask', { curve: titleName(G, byEq) }), 'curve', function(){
       if (i === 0){ openCurvePlot(); blinkLinked(curvePlotEl); return; }
       tellPane({ ringhost: 'plotopen' });
@@ -13479,8 +13479,10 @@ plotViewEl.addEventListener('click', function(e){
 // The plot's title, which its task in the bar carries too, in every view:
 // the group's name as it is written now, ⟨E₀,₁(𝔽₁₁), +_E⟩ point plot, or by
 // its equation, E(𝔽₁₁): y² = x³ + 1 point plot.
-function curvePlotTitle(G, byEq){
-  return translate('cyclicGroups.curvePlotTitleName', { curve: titleName(G, byEq) });
+// A curve named in general is set as math, so its +_E keeps a capital E
+// (plain text has only +ₑ).
+function curvePlotTitleInto(el, G, byEq){
+  return translateInto(el, 'cyclicGroups.curvePlotTitleName', { curve: byEq ? titleName(G, true) : mInline(mGroup(G), titleName(G, false)) });
 }
 // One hop of k·P's walk in the point plot: a line from the point left to
 // the point reached, its arrowhead touching that point's rim (r out from
@@ -13510,7 +13512,7 @@ function drawCurvePlot(G){
   syncPlotDockBtn();
   curvePlotEl.classList.toggle('is-picks-g', state.genBeads);
   curvePlotEl.classList.toggle('is-real', real && state.realPlot);
-  $('curve-plot-title').textContent = curvePlotTitle(G, ecByEquation());
+  curvePlotTitleInto($('curve-plot-title'), G, ecByEquation());
   curvePlotSvgEl.replaceChildren();
   curvePlotSvgEl.setAttribute('aria-label', G.label);
   if (real) plotReal(G);
