@@ -3444,7 +3444,7 @@
           <li class="ec-toggle-row"><button type="button" class="ec-toggle" id="ec-toggle" aria-pressed="false" title="Study the group of an elliptic curve's points modulo a prime, or a product of two primes" aria-label="Elliptic curve" data-i18n-title="cyclicGroups.ecToggleTitleMod" data-i18n-aria-label="cyclicGroups.ecToggle"><span data-i18n="cyclicGroups.ecToggle">Elliptic curve</span></button></li>
           <li class="n-row">
             <label for="n-input" id="n-label" class="fact-label">%</label>
-            <span class="n-spin"><input type="number" id="n-input" min="2" max="100" step="1" value="12"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span>
+            <span class="n-spin"><input type="number" id="n-input" min="2" max="1000" step="1" value="12"><span class="n-spin-btns" aria-hidden="true"><button type="button" class="n-spin-btn" data-step="1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 5 5 1.5 8.5 5"/></svg></button><button type="button" class="n-spin-btn" data-step="-1" tabindex="-1"><svg viewBox="0 0 10 6" focusable="false"><path d="M1.5 1 5 4.5 8.5 1"/></svg></button></span></span>
             <p class="n-note" id="n-note"></p>
           </li>
           <li class="ec-row" id="ec-row" hidden>
@@ -3635,9 +3635,9 @@ const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
 
 /* ---------- constants ---------- */
 var MIN_N = 2;
-// ⟨ℤ/nℤ, +⟩ has n elements, so its n stops where the ring stops being
-// drawn; ⟨ℤ/nℤ, ×⟩, with φ(n) elements, runs on to MAX_N_MUL.
-var MAX_N = 100, MAX_N_MUL = 1000;
+// Both kinds of group run on to 1000, past the ring's hundred beads: a
+// larger group is still studied by its rows, plots and formulas.
+var MAX_N = 1000, MAX_N_MUL = 1000;
 function maxN(mode){ return mode === 'multiplicative' ? MAX_N_MUL : MAX_N; }
 // A group of more elements than this has no ring drawn: the main area
 // says so in its place, and the rest (the subgroups, the formulas, the
@@ -22464,7 +22464,7 @@ function renderIso(G){
     return;
   }
   translateInto(isoLeadEl, 'cyclicGroups.iso.leadMath', { sub: mInline(angle(elMn(G, state.gen)), '⟨' + elText(G, state.gen) + '⟩'), k: mNum(k) });
-  // ℤ/kℤ under + only while it can be shown (k up to MAX_N).
+  // ℤ/kℤ under + only while it can be studied (k up to MAX_N).
   var addChip = k <= MAX_N ? isoLink('additive', k, 1, additiveLabel(k)) : null;
   // In an additive group of order k, ⟨g⟩ is isomorphic to the very group
   // it lies in: the chip names that supergroup.
@@ -22958,7 +22958,7 @@ function setMode(id){
   state.mode = id;
   // A group of units opens arranged by a generator, Sequential off.
   if (id === 'multiplicative') state.bygen = true;
-  // Under + the modulus stops at MAX_N, the ring's limit.
+  // Each kind of group has its own largest modulus (maxN).
   state.n = clamp(state.n, MIN_N, maxN(id));
   opSelectEl.value = state.mode;
   identitySelectEl.value = state.mode;
