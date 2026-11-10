@@ -1335,7 +1335,7 @@
       winKeepSolid: 'Keep solid',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
-      idxKeepGeneral: 'Keep general',
+      idxLagrangeOff: 'Disable Lagrange\'s notation',
       fsetNameDescriptive: 'Descriptive',
       fsetNameJargon: 'Jargon',
       fsetNameGeneral: 'General',

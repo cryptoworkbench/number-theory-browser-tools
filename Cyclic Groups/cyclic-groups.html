@@ -3648,7 +3648,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, sizeJargon: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: true, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, lagrangeOff: false, sizeJargon: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5812,6 +5812,13 @@ function subOrderFormula(G, h, g, steps, hm){
     plain: translate('cyclicGroups.formula.mulSubgroupOrder', { group: G.label, h: h, g: g, n: G.n, k: n, q: q, d: d, m: n / d }) };
 }
 
+// The index's left side: Lagrange's notation [G : ⟨h⟩], or with it
+// disabled (state.lagrangeOff) |G| / |⟨h⟩| over a division bar.
+function idxLead(g, sub){
+  if (state.lagrangeOff) return mfrac(abs(g), abs(sub));
+  return mrow(mo('[', true), g, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), sub, mo(']', true));
+}
+function idxLeadPlain(g, h){ return state.lagrangeOff ? '|' + g + '| / |⟨' + h + '⟩|' : '[' + g + ' : ⟨' + h + '⟩]'; }
 // The number of cosets of ⟨h⟩, |G| / |⟨h⟩|, its index. As |⟨h⟩| = |G| / gcd(|G|, h) in
 // ℤ/nℤ, the index is gcd(|G|, h); in a cyclic (ℤ/nℤ)* arranged by powers of
 // a generator it is gcd(|G|, log_g h), g logBase's, log_g 1 taken as k as in
@@ -5821,6 +5828,8 @@ function subOrderFormula(G, h, g, steps, hm){
 // keeps, and a generator g given is taken as the log base whether or not
 // the beads are arranged by it.
 function cosetCountFormula(G, h, g, index, steps, hm){
+  // Lagrange's notation disabled, the index opens with the fraction too.
+  if (state.lagrangeOff) index = false;
   var hx = hm || plainH(h);
   var n = G.order, frac = mfrac(abs(mGroup(G)), abs(angle(hx()))), lead = frac, d;
   if (index) lead = mrow(mo('[', true), mGroup(G), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true));
@@ -5895,8 +5904,8 @@ function ecRowFormula(G, h, choice, hm, full){
   var name = full ? { math: function(){ return mGroupFull(G); }, plain: curveName(G) } : { math: function(){ return mGroup(G); }, plain: G.label };
   if (choice === 'order' || choice === 'both') out.push({ math: mrow(abs(angle(hx())), mo('='), mn(k)), plain: '|⟨' + ph + '⟩| = ' + k });
   if (choice === 'index' || choice === 'both') out.push({
-    math: mrow(mo('[', true), name.math(), mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hx()), mo(']', true), mo('='), mn(G.order / k)),
-    plain: '[' + name.plain + ' : ⟨' + ph + '⟩] = ' + G.order / k });
+    math: mrow(idxLead(name.math(), angle(hx())), mo('='), mn(G.order / k)),
+    plain: idxLeadPlain(name.plain, ph) + ' = ' + G.order / k });
   return out;
 }
 // The formula slider at No-derivation: a formula's left side and its
@@ -6737,8 +6746,8 @@ function ctxName(k){
 }
 // On an elliptic curve a subgroup's number of cosets is its cofactor, not
 // its index: a wording naming the index takes its curve form there, the
-// key with Ec after it, unless Keep general (idxGeneral,
-// from the Cofactor column's menu) keeps it the index. G is the group
+// key with Ec after it, unless the Index column's dropdown at Index
+// (idxGeneral) keeps it the index. G is the group
 // meant, the ring's own unless given.
 var IDX_KEYS = ['cyclicGroups.ctxItemIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex'];
 function idxKey(key, G){
@@ -8138,7 +8147,7 @@ function mapFormula(G, h, f, token, base, hm){
     }[node]();
   } else {
     var name = mGroupFull(G);
-    lead = [mo('[', true), name, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hm()), mo(']', true)];
+    lead = state.lagrangeOff ? [idxLead(name, angle(hm()))] : [mo('[', true), name, mEl('mo', [':'], { lspace: '0.28em', rspace: '0.28em' }), angle(hm()), mo(']', true)];
     // The bracket stands in the formula's own row on a curve, as the notation
     // there always wrote it, and as a row of its own in a group of numbers.
     if (!ec) lead = [mrow.apply(null, lead)];
@@ -8160,11 +8169,15 @@ function mapFormula(G, h, f, token, base, hm){
   var at = function(x){ return mapAt(G, x); };
   var power = function(k){ return ec && ecMult(G) ? k + '·' + at(base) : at(base) + '^' + k; };
   T.forEach(function(t){ lead.push(mo('='), t); });
-  return { math: mrow.apply(null, lead),
-    plain: translate(FMAP_KEYS[f][node], {
-      h: at(h), group: G.label, name: ec && f === 'index' ? curveName(G) : G.label, g: at(base),
+  var pname = ec && f === 'index' ? curveName(G) : G.label;
+  var plain = translate(FMAP_KEYS[f][node], {
+      h: at(h), group: G.label, name: pname, g: at(base),
       gn: mul ? 'φ(' + G.n + ')' : String(n), n: n, gq: power(q), gr: r === null ? '' : power(signed(r)),
-      q: q, r: r === null ? '' : signed(r), a: a, d: d, m: m, l: l }),
+      q: q, r: r === null ? '' : signed(r), a: a, d: d, m: m, l: l });
+  // Lagrange's notation disabled, the plain form's [G : ⟨h⟩] is the fraction.
+  if (f === 'index' && state.lagrangeOff) plain = plain.replace('[' + pname + ' : ⟨' + at(h) + '⟩]', idxLeadPlain(pname, at(h)));
+  return { math: mrow.apply(null, lead),
+    plain: plain,
     map: { f: f, token: token, reach: reach } };
 }
 
@@ -9014,11 +9027,10 @@ var FSET = [0, 1].map(function(i){
   });
   w.grid.addEventListener('keydown', fsetGridKeys);
   w.names = { order: fsetNamePick(w, 'size', FSET_SIZE_NAMES), index: fsetNamePick(w, 'idx', FSET_IDX_NAMES) };
-  // On a curve the Index column's name keeps its menu of one switch: Keep
-  // general, the cofactor named the index everywhere.
+  // The Index column's name keeps its menu of one switch: Disable
+  // Lagrange's notation.
   w.names.index.box.addEventListener('contextmenu', function(e){
-    var G = fsetGroup(i);
-    if (!G || !G.pts) return;
+    if (!fsetGroup(i)) return;
     e.preventDefault();
     e.stopPropagation();
     openIdxCtx(ptX(e), ptY(e));
@@ -9094,10 +9106,12 @@ function syncFsetNames(i){
 // splitview, the map set beside the window's own view (the form preference
 // slider, Skip logarithm use and the generator control).
 var fsetCtxEl = $('fset-ctx'), fsetCtxReturn = null;
+// The Index column's menu: Disable Lagrange's notation, the index formulas
+// then opening with |G| / |⟨h⟩| over a division bar, not [G : ⟨h⟩].
 function openIdxCtx(x, y){
-  fsetCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.idxKeepGeneral'), state.idxGeneral, function(){
+  fsetCtxEl.replaceChildren(menuTick('menuitemcheckbox', translate('cyclicGroups.idxLagrangeOff'), state.lagrangeOff, function(){
     closeFsetCtx();
-    state.idxGeneral = !state.idxGeneral;
+    state.lagrangeOff = !state.lagrangeOff;
     render();
     postIsoShared();
   }));
@@ -18633,7 +18647,7 @@ function renderSubgroups(G){
   var width = subWidth(G), expWidth = subExpWidth(G);
   var fl = subFormat(lg, llog, width, expWidth, G), fr = subFormat(rg, rlog, width, expWidth, G);
   var mxl = fl.m, pxl = fl.p, mx = fr.m, px = fr.p;
-  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.natExpOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = getLang() + ' ' + G.key + ' ' + [lg, rg, sg, width, expWidth, state.subPad, state.natExpOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.lagrangeOff, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -18722,7 +18736,7 @@ function renderMergedSubgroups(G){
   // linked (φ(x) painted as x); otherwise its members stay plain.
   var linked = isoLinked();
   var rightMath = function(x, content){ return linked ? memberMath(x, content) : content; };
-  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
+  var sig = 'M ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, state.subSortR, state.subSort, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.lagrangeOff, subGcdOn(G), state.subGcdDividers, Object.keys(state.subGcdFolded).join('.'), state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + rows.map(function(r){ return r.members.join(','); }).join(';');
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(row){
       var on = !state.noSub && Number(row.getAttribute('data-gen')) === state.gen;
@@ -18835,7 +18849,7 @@ function renderMirroredSubgroups(G){
   var linked = isoLinked();
   var panePaint = panePainter(H);
   var rightMath = function(x, content){ return memberMath(x, content, panePaint(x)); };
-  var sig = 'R ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + JSON.stringify(state.picks[state.colorBy] || {});
+  var sig = 'R ' + getLang() + ' ' + G.key + ' ' + H.key + ' ' + isoPane.h + ' ' + [lg, rg, hl, hr, isoLinkGen(), isoOrder(), widthG, widthH, expWidth, state.subPad, state.natExpOff, paneNatOff, state.signed, state.signedExp, state.revealSigned, state.revealSignedExp, state.ecMult, isoPane.ecMult === true, subRevealOn(), state.revealOff, revealTo(G), state.subFormulaRow, state.lagrangeOff, state.colorBy, state.colors].join(',') + ' ' + memberPaintKey(G) + ' ' + linked + ' ' + JSON.stringify(state.picks[state.colorBy] || {});
   if (sig === subgroupsSig){
     subgroupsEl.querySelectorAll('.subgroup-row').forEach(function(el){
       var on = Number(el.getAttribute('data-pane-gen')) === row;
@@ -20638,7 +20652,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, combineMode: state.combineMode, combineK: state.combineK, combineSqm: state.combineSqm, combineSqmWay: state.combineSqmWay, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, lagrangeOff: state.lagrangeOff, combineMode: state.combineMode, combineK: state.combineK, combineSqm: state.combineSqm, combineSqmWay: state.combineSqmWay, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -20821,6 +20835,7 @@ function applyIsoShared(d){
   if (flag(d.simplify)) state.subSimplify = d.simplify;
   if (flag(d.bare)) state.subBare = d.bare;
   if (flag(d.idxGeneral)) state.idxGeneral = d.idxGeneral;
+  if (flag(d.lagrangeOff)) state.lagrangeOff = d.lagrangeOff;
   if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
   if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
   if (typeof d.combineSqm === 'boolean') state.combineSqm = d.combineSqm;
@@ -22405,6 +22420,8 @@ function stateQuery(){
   else q.delete('subbare');
   if (!state.idxGeneral) q.set('idxgeneral', '0');
   else q.delete('idxgeneral');
+  if (state.lagrangeOff) q.set('lagrange', '0');
+  else q.delete('lagrange');
   if (!state.sizeJargon) q.set('sizename', 'size');
   else q.delete('sizename');
   if (!state.subGcdDividers) q.set('subgcddiv', '0');
@@ -25310,6 +25327,7 @@ function loadState(query, link){
   state.subGcdDividers = query.get('subgcddiv') !== '0';
   state.subBare = query.get('subbare') === '1';
   state.idxGeneral = query.get('idxgeneral') !== '0';
+  state.lagrangeOff = query.get('lagrange') === '0';
   state.sizeJargon = query.get('sizename') !== 'size';
   state.subSimplify = state.subBare || query.get('subsimplify') === '1';
   state.subPaths = query.get('subpaths') !== '0';
