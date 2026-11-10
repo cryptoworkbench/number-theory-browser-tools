@@ -2502,6 +2502,9 @@
   /* Diffie–Hellman's own mark in the ring's menu: DH, in Bob's blue. */
   .fs-icon.is-dh{ font-family:inherit; font-size:.72rem; font-weight:700; letter-spacing:.02em; color:var(--role-input); }
   .fs-icon.is-g{ font-family:var(--font-math); font-style:italic; font-size:1rem; }
+  /* Copy to clipboard: two sheets, the front one over the back one. */
+  .fs-icon.is-copy{ display:grid; place-items:center; }
+  .fs-icon.is-copy svg{ fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
   .fs-menu{ position:absolute; left:4px; bottom:calc(100% + 6px); min-width:260px; padding:6px; background:var(--surface); border:1px solid var(--panel-border-strong); border-radius:8px; box-shadow:0 8px 24px var(--scrim); }
   .fs-menu[hidden]{ display:none; }
   .fs-menu-head{ margin:4px 8px 6px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-dim); }
@@ -7050,6 +7053,14 @@ function ctxItem(role, label, more){
   }
   return { item: item, mark: mark };
 }
+// A menu item's mark made the copy-to-clipboard icon.
+function markCopy(mark){
+  var svg = svgEl('svg', { viewBox: '0 0 16 16', width: 14, height: 14, 'aria-hidden': 'true', focusable: 'false' });
+  svg.appendChild(svgEl('rect', { x: 5.5, y: 5.5, width: 8, height: 9, rx: 1.5 }));
+  svg.appendChild(svgEl('path', { d: 'M10.5 3.5V3A1.5 1.5 0 0 0 9 1.5H4A1.5 1.5 0 0 0 2.5 3v7A1.5 1.5 0 0 0 4 11.5h1.5' }));
+  mark.classList.add('is-copy');
+  mark.replaceChildren(svg);
+}
 // The copy submenu, beside the Formulas one, for one formula, shown at its
 // top typeset in pieces: as the Unicode plain text copying it
 // from the page gives, as plain ASCII, as MathML or as LaTeX. Each copies the
@@ -7093,6 +7104,7 @@ function setRingCopy(name, from, focus){
   }
   var copies = COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
+    markCopy(it.mark);
     it.item.addEventListener('pointerenter', function(){ setRingDivide(null); });
     it.item.addEventListener('click', function(){
       var f = drawn && menuFormulas(drawn.G).find(function(x){ return x.key === name; });
@@ -7928,6 +7940,7 @@ function syncFormulaCtx(fml){
   }
   var items = head.concat([sep]).concat(COPY_FORMATS.map(function(c){
     var it = ctxItem('menuitem', translate(c.key));
+    markCopy(it.mark);
     it.item.addEventListener('click', function(){
       var fs = drawn ? ringFormulas(drawn.G) : [];
       if (fml.line >= 0 && fml.line < fs.length) fs = [fs[fml.line]];
@@ -16317,7 +16330,8 @@ function openCombineGenCtx(G, x, y, onSwitch){
     state.combineGen = !combineGeneral(G);
     render();
   }));
-  var copy = ctxItem('menuitem', translate('cyclicGroups.combineCopy'), false).item;
+  var copyIt = ctxItem('menuitem', translate('cyclicGroups.combineCopy'), false), copy = copyIt.item;
+  markCopy(copyIt.mark);
   copy.addEventListener('click', function(){
     closeFsetCtx();
     copyText(combineText());
