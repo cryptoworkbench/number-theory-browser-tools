@@ -10072,8 +10072,9 @@ document.addEventListener('contextmenu', function(e){
   });
   setRingCtx(true, ptX(e), ptY(e), false, { line: line });
 }, true);
-// Right-clicking the expression slider opens the ring's menu with only its
-// own ticks ('gens'). The Subgroup row's formula, right-clicked ('gsub'),
+// Right-clicking the expression slider at Natural opens the ring's menu
+// with only Exponents in natural expression ('gens'); at a generator it
+// opens no menu. The Subgroup row's formula, right-clicked ('gsub'),
 // opens it with the group's and the subgroup's names, the group's
 // cardinality and its generator count, each opening the copy submenu as the
 // Formulas item does.
@@ -10152,24 +10153,21 @@ function syncExprCtx(key){
     });
   });
   if (key !== 'gens') return;
-  // Natural with its exponents, x¹, or without, x.
-  var natExp = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExp'), !state.natExpOff, function(){
+  // Natural with its exponents, x¹, or without, x (the slider opens this
+  // menu only while it is at Natural).
+  var natExp = natExpTick();
+  natExp.classList.add('ring-ctx-expr');
+  ringCtxEl.appendChild(natExp);
+}
+// Exponents in natural expression: Natural with its exponents, x¹, or
+// without, x.
+function natExpTick(){
+  var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.menuNatExp'), !state.natExpOff, function(){
     setRingCtx(false);
     toggleNatExp();
   });
-  natExp.classList.add('ring-ctx-expr');
-  natExp.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  ringCtxEl.appendChild(natExp);
-  // On a curve, the points written as multiples kP instead of as powers of
-  // the generator.
-  if (!drawn.G.pts || !drawn.G.cyclic) return;
-  var mult = menuTick('menuitemcheckbox', translate('cyclicGroups.menuEcMult'), state.ecMult, function(){
-    setRingCtx(false);
-    toggleEcMult();
-  });
-  mult.classList.add('ring-ctx-expr');
-  mult.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  ringCtxEl.appendChild(mult);
+  tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
+  return tick;
 }
 $('gen-super').addEventListener('contextmenu', function(e){
   e.preventDefault();
@@ -10586,11 +10584,17 @@ function syncDhCtx(on, bead){
   }
   return first;
 }
-// At the menu's top, on a cyclic curve: its points written as multiples.
+// At the menu's top: at Natural, Exponents in natural expression; on a
+// cyclic curve, its points written as multiples.
 function syncSignCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
   var head = ringCtxEl.querySelector(':scope > .fs-menu-head'), first = null;
+  if (exprBy(drawn.G) === null){
+    first = natExpTick();
+    first.classList.add('ring-ctx-sign');
+    ringCtxEl.insertBefore(first, head);
+  }
   // On a cyclic curve, the points written as multiples kP of the
   // generator, not as its powers. The signed forms are the slider's ± and
   // g± buttons only.
@@ -10643,7 +10647,7 @@ ringSvgEl.addEventListener('contextmenu', function(e){
 });
 exprSlotEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
-  if (IS_MOBILE) return;
+  if (IS_MOBILE || !drawn || exprBy(drawn.G) !== null) return;
   setRingCtx(true, ptX(e), ptY(e), true);
 });
 document.addEventListener('pointerdown', function(e){
