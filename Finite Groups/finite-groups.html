@@ -1229,11 +1229,24 @@
   /* The same wheel behind the main area's ring (its menu's Congruence wheel
      background), turning and rearranging with the beads. */
   .ring-wheel{ pointer-events:none; }
+  /* The wheel reaches up under the rows of controls (ringWheelFill): the
+     ring is drawn behind them, as a zoomed ring is, and the rows frost
+     over it as they do over a zoomed ring (has-wheel, see topBand). */
+  .fs-win-body.is-ring > svg.ring-svg.has-wheel{ position:relative; z-index:-2; }
   /* A tapped cell of that wheel lights up, then the cell under it, ring by
      ring down to the beads, and the bead holding its residue gets a white
      halo for a moment; the lit cells then fade together. */
   .ring-wheel-lit{ fill:color-mix(in srgb, var(--accent) 42%, transparent); stroke:none; animation:ring-wheel-lit .18s ease-out; transition:opacity .6s ease; }
   .ring-wheel-lit.is-kept{ animation:none; }
+  /* Over the wheel the combination's lines (a ∗ b, aᵏ) sit on a rounded
+     card of their own, as the formula cards over a zoomed ring do: half
+     see-through at rest, frosted while the pointer is over it, the wheel
+     under it then drawn blurred (cardCombineLines). */
+  .ring-combine-plate{ fill:color-mix(in srgb, var(--text) 6%, transparent); stroke:var(--panel-border); stroke-width:1; pointer-events:none; transition:fill .18s; }
+  .ring-combine-plate.is-hot{ fill:color-mix(in srgb, var(--panel) 55%, transparent); }
+  .ring-combine-frost{ pointer-events:none; opacity:0; transition:opacity .18s; }
+  .ring-combine-frost > use{ filter:blur(5px); }
+  .ring-combine-frost.is-hot{ opacity:1; }
   .ring-wheel-lit.is-out{ opacity:0; }
   @keyframes ring-wheel-lit{ from{ opacity:0; } }
   .bead-reduced{ fill:none; stroke:var(--pointer-edge); pointer-events:none; opacity:0; animation:bead-reduced .9s ease-out; }
@@ -1948,8 +1961,8 @@
   .iso-combine{ display:none; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ display:block; position:absolute; z-index:4; translate:-50% -50%; padding:5px 12px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px; font-size:.85rem; font-weight:600; white-space:nowrap; transition:background .15s, border-color .15s; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .iso-combine .is-a{ color:var(--role-active); }
   .iso-combine .is-b{ color:var(--role-input); }
   .iso-combine .is-c{ color:var(--role-result); }
@@ -2638,10 +2651,10 @@
      (is-hot, from the pointer's place, as the card lets the pointer
      through), its edge always drawn. Plain lines in the head, as while the cosets
      play, keep the band behind them. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-on-ring.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; clip-path:inset(var(--band-t, 0px) -100vw var(--band-b, 0px)); transition:opacity .18s, clip-path .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-head > .ring-hover-formula{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-head > .ring-hover-formula.is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-head > .ring-hover-formula.is-on-ring.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; clip-path:inset(var(--band-t, 0px) -100vw var(--band-b, 0px)); transition:opacity .18s, clip-path .18s; }
   /* The rows' band frosts only while the pointer is over it (is-top-hot,
      from the pointer's place) or a control in it has the keyboard focus,
      and then only behind that one row: --band-t and --band-b clip it to
@@ -2652,24 +2665,33 @@
      as the bottom panel's dropdowns do, so they read clearly over the ring
      either way; a locked group's modulus keeps its full strength there,
      only its number greyed, the lock badge marking it. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible)))::after{ opacity:1; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed)::after{ -webkit-mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible)))::after{ opacity:1; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ -webkit-mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; }
   /* The frosted row's controls draw what they keep gray in the text's full
      colour (is-top-row-hot, the row under the pointer); a locked group's
      modulus keeps its number greyed, and the identity keeps its grey. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed){ --text-dim-rest:var(--text-dim); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot{ --text-dim:var(--text); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot .group-controls.is-locked #n-input{ color:var(--text-dim-rest); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot .ord-id{ --ord: var(--pick-id, var(--text-dim-rest)); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) .group-controls.is-locked > li > :is(#n-label, .n-spin){ opacity:1; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) .group-controls.is-locked #n-input{ color:var(--text-dim); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)){ --text-dim-rest:var(--text-dim); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot{ --text-dim:var(--text); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .group-controls.is-locked #n-input{ color:var(--text-dim-rest); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .ord-id{ --ord: var(--pick-id, var(--text-dim-rest)); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
+  /* The group row's number boxes (the modulus, a curve's fields) blur
+     whatever lies under them, always, not only while their row frosts. */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) .group-controls .n-spin > input{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* So does the arrangement row's Generator dropdown: its face is a button
+     over the hidden select, faded while padlocked, so the blur lies on a
+     layer of its own behind the button, the button's shape. */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #arrange-gen-wrap > .ec-pick::before{ content:''; position:absolute; inset:0; z-index:-1; border-radius:var(--radius-ctl); pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* So does the subgroup row's G ∈ group = ⟨g⟩, on a rounded frosted card. */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #gen-field > .gen-super:not(:empty){ display:inline-block; padding:2px 8px; border-radius:var(--radius-ctl); background:color-mix(in srgb, var(--text) 6%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) .group-controls.is-locked > li > :is(#n-label, .n-spin){ opacity:1; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) .group-controls.is-locked #n-input{ color:var(--text-dim); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
     /* The main Ring window's frosted bands reach its sides, over its 20px
      padding. */
-  .fs-win-body.is-ring.ring-body:has(> svg.ring-svg.is-zoomed)::after{ margin-left:-20px; margin-right:-20px; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg.is-zoomed)::after{ margin-right:-7px; }
-  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg.is-zoomed)::after{ margin-left:-31px; margin-right:-32px; }
+  .fs-win-body.is-ring.ring-body:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ margin-left:-20px; margin-right:-20px; }
+  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ margin-right:-7px; }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ margin-left:-31px; margin-right:-32px; }
   /* Below the ring no band: one rounded frosted card hugs the controls
      in the middle (the split button, the expression slider's labels and
      track, and the turning ruler under them), placed by hugBottomCluster
@@ -2727,15 +2749,15 @@
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible)) .sub-ctls{ --text-dim:var(--text); }
   /* The forward-direction switch frosts while hovered or focused too,
      as it sits over the ring on the middle line beside a locked pane. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) #dir-toggle{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) #dir-toggle:is(:hover, :focus-visible){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #dir-toggle{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #dir-toggle:is(:hover, :focus-visible){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So does the cosets button, in its row or where it sits on the middle
      line, with the formula card's very ground, blur and edge; when it has
      no cosets to offer it dims its text rather than its whole self, so its
      frost stays whole. */
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .fs-win-row-gen #coset-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible), .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible){ border-color:var(--panel-border); background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:disabled, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .fs-win-row-gen #coset-btn:disabled{ opacity:1; color:color-mix(in srgb, var(--text) 45%, transparent); }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen #coset-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible){ border-color:var(--panel-border); background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:disabled, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen #coset-btn:disabled{ opacity:1; color:color-mix(in srgb, var(--text) 45%, transparent); }
   /* The chevron that opens the bottom panel behaves as the cards do: the
      cosets button's faint ground at rest, the formula card's frost on
      hover, its edge only while it lies over the beads. */
@@ -11749,12 +11771,13 @@ function drawNecklace(G, paint){
     ringDynamicEl.appendChild(bigNote);
     fitText(bigNote);
   } else drawRing(ringDynamicEl, G, beads, box, paint);
+  ringSvgEl.classList.toggle('has-wheel', !big && ringWheelShown(G));
   syncLapKey(G);
   syncFlogWin(G);
   drawCurvePlot(G);
   drawPolyPlot(G);
   drawCayley(G);
-  if (!big) drawCombineLine(G, SIZE - 16);
+  if (!big){ drawCombineLine(G, SIZE - 16); cardCombineLines(G); }
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
@@ -11821,8 +11844,9 @@ function ringWheelFill(box, beadR, m){
     var el = $(id), b = el && el.offsetParent ? boxOf(el) : null;
     if (b && b.height && b.top > r.top && b.top < bottom) bottom = b.top;
   });
-  // Sideways it reaches the window's edges, or the pane beside the ring.
-  var body = boxOf(ringSvgEl.parentNode), left = Math.min(r.left, body.left), right = Math.max(r.right, body.right);
+  // Sideways it reaches the window's edges, or the pane beside the ring,
+  // and upward the window's top, under the rows of controls.
+  var body = boxOf(ringSvgEl.parentNode), left = Math.min(r.left, body.left), right = Math.max(r.right, body.right), top = Math.min(r.top, body.top);
   if (!isoPaneEl.hidden){
     var pane = boxOf(isoPaneEl);
     if (pane.width && pane.left > r.left) right = Math.min(right, pane.left);
@@ -11832,7 +11856,7 @@ function ringWheelFill(box, beadR, m){
   var k = Math.min(r.width / vb.width, r.height / vb.height);
   var ox = r.left + (r.width - vb.width * k) / 2, oy = r.top + (r.height - vb.height * k) / 2;
   var x0 = vb.x + (left - ox) / k, x1 = vb.x + (right - ox) / k;
-  var y0 = vb.y + (r.top - oy) / k, y1 = vb.y + (bottom - oy) / k;
+  var y0 = vb.y + (top - oy) / k, y1 = vb.y + (bottom - oy) / k;
   ringWheelClip = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   var far = Math.max.apply(null, [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(function(c){ return Math.hypot(c[0] - box.cx, c[1] - box.cy); }));
   ringWheelDepth = clamp(Math.ceil((far - box.R - beadR) / ring), 1, Math.max(1, Math.floor(3000 / m)));
@@ -11840,9 +11864,73 @@ function ringWheelFill(box, beadR, m){
 // The clip stays put while the ring turns: its rectangle is turned back by
 // the ring's angle (see spinAngle).
 function turnRingWheelClip(ring, angle, box){
-  var rect = ring.querySelector('.ring-wheel-clip > rect');
-  if (rect) rect.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + box.cx + ' ' + box.cy + ')');
+  ring.querySelectorAll('.ring-wheel-clip > rect, .ring-card-turn').forEach(function(rect){
+    rect.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + box.cx + ' ' + box.cy + ')');
+  });
 }
+// The combination's card over the wheel: a rounded plate behind its lines,
+// and in the ring, under the beads, the wheel drawn again blurred, clipped
+// to the plate, on the window's own ground hiding the sharp wheel there,
+// shown while the pointer is over it. Plate and clips are laid in the ring's unturned frame,
+// so they stay put while the ring turns (turnRingWheelClip).
+var COMBINE_CARD_PAD = 10;
+function cardCombineLines(G){
+  if (!ringWheelShown(G)) return;
+  var lines = ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine');
+  var ring = ringDynamicEl.querySelector('.ring'), wheel = ring && ring.querySelector('.ring-wheel');
+  if (!lines.length || !wheel) return;
+  var base = ringDynamicEl.getCTM();
+  if (!base) return;
+  var inv = base.inverse(), x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  lines.forEach(function(el){
+    var b = el.getBBox(), m = el.getCTM();
+    if (!b.width || !m) return;
+    m = inv.multiply(m);
+    [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].forEach(function(c){
+      var x = m.a * c[0] + m.c * c[1] + m.e, y = m.b * c[0] + m.d * c[1] + m.f;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    });
+  });
+  if (!(x1 > x0)) return;
+  var card = { x: num(x0 - COMBINE_CARD_PAD), y: num(y0 - COMBINE_CARD_PAD / 2), width: num(x1 - x0 + 2 * COMBINE_CARD_PAD), height: num(y1 - y0 + COMBINE_CARD_PAD), rx: 10 };
+  ringDynamicEl.insertBefore(svgEl('rect', Object.assign({ 'class': 'ring-combine-plate' }, card)), lines[0]);
+  wheel.id = 'ring-wheel-el';
+  var frost = svgEl('g', { 'class': 'ring-combine-frost', 'clip-path': 'url(#ring-combine-clip)' });
+  var clip = frost.appendChild(svgEl('clipPath', { id: 'ring-combine-clip' }));
+  clip.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn' }, card)));
+  frost.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn ring-combine-ground' }, card)));
+  frost.appendChild(svgEl('use', { href: '#ring-wheel-el' }));
+  ring.insertBefore(frost, wheel.nextSibling);
+  var turnedBy = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
+  if (turnedBy) turnRingWheelClip(ring, +turnedBy[1], ringBox());
+  syncCombineCardHot(combineCardPointer);
+}
+// Frosted while the pointer is over the plate.
+var combineCardPointer = null;
+function syncCombineCardHot(e){
+  combineCardPointer = e;
+  var plate = ringDynamicEl.querySelector('.ring-combine-plate');
+  if (!plate) return;
+  var r = plate.getBoundingClientRect();
+  var hot = !!e && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  var frost = ringDynamicEl.querySelector('.ring-combine-frost'), ground = frost && frost.querySelector('.ring-combine-ground');
+  plate.classList.toggle('is-hot', hot);
+  if (!frost) return;
+  frost.classList.toggle('is-hot', hot);
+  // The ground is whatever the ring is drawn on, read when it frosts, so it
+  // follows the theme.
+  if (hot && ground) ground.style.fill = groundBehind(ringSvgEl);
+}
+// The first opaque background behind el.
+function groundBehind(el){
+  for (; el && el.nodeType === 1; el = el.parentNode){
+    var c = getComputedStyle(el).backgroundColor, a = /^rgba?\((?:[^,]+,){3}\s*([\d.]+)\)$/.exec(c);
+    if (/^rgb\(/.test(c) || (a && +a[1] >= 0.95)) return c;
+  }
+  return getComputedStyle(document.documentElement).backgroundColor;
+}
+ringSvgEl.addEventListener('pointermove', function(e){ syncCombineCardHot({ clientX: e.clientX, clientY: e.clientY }); });
+ringSvgEl.addEventListener('pointerleave', function(){ syncCombineCardHot(null); });
 // The cells lit by a tap (see walkWheelCell): { x, k, el } each.
 var wheelWalk = 0, wheelLit = [];
 function drawRingWheel(g, G, place, m, box, beadR){
@@ -12349,8 +12437,9 @@ function syncRingOverlap(){
     var c = inPane(r);
     return (!!pane && onReach(pane, c)) || onBox(ptext, c);
   };
+  // The main-view formula card lies over the congruence wheel wherever it is.
   var card = ringHeadEl.querySelector('.ring-hover-formula');
-  if (card) card.classList.toggle('is-on-ring', over(boxOf(card)));
+  if (card) card.classList.toggle('is-on-ring', ringSvgEl.classList.contains('has-wheel') || over(boxOf(card)));
   [spinRulerEl, key, splitBtnEl, legendPanelEl, $('legend-panel-pane'), $('genexp-info'), $('genexp-info-pane')].forEach(function(el){
     if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && over(boxOf(el)));
   });
@@ -12452,11 +12541,12 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
     card.classList.toggle('is-hot', ptX(e) >= fr.left && ptX(e) <= fr.right && ptY(e) >= fr.top && ptY(e) <= fr.bottom);
   }
 });
-// The zoomed rows' band, the body's ::after: from the body's top (the band
-// reaches 20px over its padding) down its height, or null.
+// The rows' band, the body's ::after, while something lies under the rows
+// (the ring zoomed, or the congruence wheel): from the body's top (the
+// band reaches 20px over its padding) down its height, or null.
 function topBand(){
   var body = exprSlotEl.parentNode;
-  if (!ringSvgEl.classList.contains('is-zoomed')) return null;
+  if (!ringSvgEl.classList.contains('is-zoomed') && !ringSvgEl.classList.contains('has-wheel')) return null;
   var cs = getComputedStyle(body, '::after');
   if (cs.content === 'none') return null;
   var b = boxOf(body);
