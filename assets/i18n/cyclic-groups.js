@@ -197,7 +197,9 @@
    and its tooltip), and fmapWinTitle, fmapWinOrder and fmapWinIndex (the
    floating formula-map window opened from the formula's right-click menu,
    its title and the captions over its two maps; fslMapShow and fslMapHide
-   now name that menu item), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
+   now name that menu item), and fsetLevelLinked and fsetLevelFree (the link
+   button beside the settings window's own formula complexity slider, linked
+   and unlinked), and fsetWinTitleGroup, fsetMenu, fsetTabMap,
    barSwapCols (its grid's swap of what the Size and Index columns hold), formulaGrip (the main area's drag grip beside each formula), logBaseFollow, logBaseFollowTip and logBaseFollowOff (the settings window's Follow expression slider button), flogMenu, flogTitle, flogShow, flogIntro, flogNoGen, flogWheel, flogFollowArrange, flogFollowArrangeTip and flogFollowArrangeOff (the Fixed logarithm window opened from the ring's right-click menu, its bottom-bar task, its sentence and its wheel switch), fsetDevViews, fsetViewStandard, fsetTabSliders, fsetShow and fsetHide (that window as one Formula
    settings window per group, the ring's and an open pane's, its right-click
    menu of developer views (its own, Sliders and Map),
@@ -1362,6 +1364,8 @@
       fslTitleForm: 'Formula form preference:',
       fsetShow: 'Formula settings…',
       fsetHide: 'Hide the formula settings',
+      fsetLevelLinked: 'Linked to the bottom bar’s complexity slider: either one moves both. Click to unlink, so this slider alone sets the formulas’ complexity',
+      fsetLevelFree: 'Unlinked: this slider alone sets the formulas’ complexity. Click to link it to the bottom bar’s complexity slider again, taking its value',
       skipLog: 'Skip logarithm use',
       skipLogTip: 'Read G directly, without a logarithm, in order to find the distance between E and G on the circle. Only for additive groups.',
       arrangeGenScroll: "Scroll through the Generator dropdown's generators",

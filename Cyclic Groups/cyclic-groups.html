@@ -1059,6 +1059,16 @@
   .fmap-win-cap{ margin:0; font-size:.72rem; color:var(--text-dim); text-align:center; align-self:stretch; }
   /* The window's grid of places and formulas, as the bottom bar's menu had it. */
   .fset-grid-slot .bar-grid{ padding:2px 0 8px; justify-content:start; }
+  /* The window's own formula complexity slider, under its caption, the
+     link to the bottom bar's slider beside it. */
+  .fset-level{ display:flex; flex-direction:column; align-items:flex-start; gap:1px; padding:0 0 8px; }
+  .fset-level-row{ display:flex; align-items:center; gap:6px; }
+  .fset-level-range{ width:72px; height:16px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  .fset-level-link{ display:grid; place-items:center; width:24px; height:22px; padding:0; border:1px solid var(--panel-border); border-radius:6px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
+  .fset-level-link:hover{ color:var(--text); }
+  .fset-level-link[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+  .fset-level-link:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .fset-level-link svg{ fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
   /* The window's controls line up on the left, its text in the middle. */
   .fset-gen{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:100%; }
   .fset-gen .lb-intro{ max-width:300px; text-align:center; align-self:center; }
@@ -3202,11 +3212,13 @@
         <section class="curve-plot fmap-win" id="fset-win-0" data-side="0" aria-labelledby="fset-title-0" hidden>
           <div class="lap-key-head"><h2 id="fset-title-0"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="fset-close-0" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
           <div class="fset-grid-slot" id="fset-grid-0"></div>
+          <div class="fset-level" id="fset-level-0"></div>
           <div class="fmap-win-body" id="fset-body-0"></div>
         </section>
         <section class="curve-plot fmap-win" id="fset-win-1" data-side="1" aria-labelledby="fset-title-1" hidden>
           <div class="lap-key-head"><h2 id="fset-title-1"></h2><button type="button" class="fs-win-btn lap-key-min is-close" id="fset-close-1" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
           <div class="fset-grid-slot" id="fset-grid-1"></div>
+          <div class="fset-level" id="fset-level-1"></div>
           <div class="fmap-win-body" id="fset-body-1"></div>
         </section>
         <section class="curve-plot flog-win" id="flog-win" aria-labelledby="flog-title" hidden>
@@ -6095,10 +6107,16 @@ function fsetGrid(i){
 // and result), 1 Compact (the additive formulas without the logarithm,
 // the locked rings' a ∗ b straight to its result), 2 Complete (the
 // formulas as they are, a ∗ b worked in each group on the way).
+// Unlinked (levelFree), the settings windows' sliders alone set the
+// formulas' complexity and the bottom bar's keeps its own value (barLevel),
+// which the formulas take again once linked.
+var FORMULA_LEVEL_TIPS = ['cyclicGroups.formulaLevelNone', 'cyclicGroups.formulaLevelCompact', 'cyclicGroups.formulaLevelComplete'];
+var levelFree = false, barLevel = 2;
 function syncFormulaLevel(){
-  var v = state.subBare ? 0 : state.subSimplify ? 1 : 2;
-  formulaLevelEl.value = v;
-  formulaLevelEl.title = translate(['cyclicGroups.formulaLevelNone', 'cyclicGroups.formulaLevelCompact', 'cyclicGroups.formulaLevelComplete'][v]);
+  var v = state.subBare ? 0 : state.subSimplify ? 1 : 2, bar = levelFree ? barLevel : v;
+  formulaLevelEl.value = bar;
+  formulaLevelEl.title = translate(FORMULA_LEVEL_TIPS[bar]);
+  if (typeof FSET !== 'undefined') FSET.forEach(function(w){ syncFsetLevel(w, v); });
 }
 // The log base of a cyclic (ℤ/nℤ)*'s formulas: the generator its element
 // expression slider is on, whatever the beads are arranged by; the
@@ -11504,17 +11522,110 @@ function fsetGridKeys(e){
   var next = e.currentTarget.querySelector('[data-at="' + r + ',' + c + '"]');
   if (next) next.focus();
 }
-formulaLevelEl.addEventListener('input', function(){
-  var v = +formulaLevelEl.value;
-  // The formulas' complexity with it: refused, the slider springs back, as
-  // the Complexity slider would refuse that move.
-  if (linkRefused(null, v)){ syncFormulaLevel(); return; }
+// The formulas' complexity to v: refused, it stays, as the Complexity
+// slider would refuse that move; returns whether it moved.
+function applyFormulaLevel(v){
+  if (linkRefused(null, v)) return false;
   state.subBare = v === 0;
   state.subSimplify = v <= 1;
   FMAP_FS.forEach(function(f){ state.fmap[f] = alignToken(f, state.fmap[f], v); });
   render();
   syncIsoCombine();
+  return true;
+}
+formulaLevelEl.addEventListener('input', function(){
+  var v = +formulaLevelEl.value;
+  // Unlinked from the settings windows' sliders, it only keeps its value.
+  if (levelFree){
+    barLevel = v;
+    formulaLevelEl.title = translate(FORMULA_LEVEL_TIPS[v]);
+    return;
+  }
+  if (!applyFormulaLevel(v)) syncFormulaLevel();
 });
+// A settings window's own complexity slider: linked, the bottom bar's
+// moves with it; unlinked, it alone sets the formulas' complexity.
+function buildFsetLevel(w){
+  var slot = $('fset-level-' + w.i);
+  var cap = document.createElement('span');
+  cap.className = 'fsl-name';
+  cap.id = 'fset-level-cap-' + w.i;
+  cap.setAttribute('data-i18n', 'cyclicGroups.formulaLevelLabel');
+  cap.textContent = translate('cyclicGroups.formulaLevelLabel');
+  var row = document.createElement('div');
+  row.className = 'fset-level-row';
+  var range = document.createElement('input');
+  range.type = 'range';
+  range.className = 'fset-level-range';
+  range.min = '0';
+  range.max = '2';
+  range.step = '1';
+  range.setAttribute('aria-labelledby', cap.id);
+  range.addEventListener('input', function(){
+    applyFormulaLevel(+range.value);
+    syncFormulaLevel();
+  });
+  var link = document.createElement('button');
+  link.type = 'button';
+  link.className = 'fset-level-link';
+  link.addEventListener('click', function(){
+    if (levelFree){
+      levelFree = false;
+      // Linked again, the formulas take the bottom bar's complexity.
+      if (barLevel !== formulaLevel()) applyFormulaLevel(barLevel);
+    } else {
+      levelFree = true;
+      barLevel = formulaLevel();
+    }
+    syncFormulaLevel();
+  });
+  row.append(range, link);
+  slot.append(cap, row);
+  w.level = { range: range, link: link, free: null };
+}
+// The chain's two links, joined while linked, cut apart by a zigzag
+// from top to bottom while not.
+function fsetLinkIcon(i, free){
+  var svg = svgEl('svg', { viewBox: '0 0 16 16', width: 16, height: 16, 'aria-hidden': 'true', focusable: 'false' });
+  var links = [svgEl('rect', { x: 1, y: 4.5, width: 9, height: 7, rx: 3.5 }), svgEl('rect', { x: 6, y: 4.5, width: 9, height: 7, rx: 3.5 })];
+  if (!free){
+    links.forEach(function(l){ svg.appendChild(l); });
+    return svg;
+  }
+  var zig = [[8, -1], [9.6, 2.6], [6.4, 5.4], [9.6, 8], [6.4, 10.6], [9.6, 13.4], [8, 17]];
+  var side = function(dx, edge){
+    var pts = zig.map(function(p){ return (p[0] + dx) + ',' + p[1]; });
+    return [edge + ',-1'].concat(pts, [edge + ',17']).join(' ');
+  };
+  var defs = svgEl('defs', {});
+  [['l', -0.9, -1], ['r', 0.9, 17]].forEach(function(c){
+    var clip = svgEl('clipPath', { id: 'fset-cut-' + c[0] + '-' + i });
+    clip.appendChild(svgEl('polygon', { points: side(c[1], c[2]) }));
+    defs.appendChild(clip);
+  });
+  svg.appendChild(defs);
+  ['l', 'r'].forEach(function(c){
+    var g = svgEl('g', { 'clip-path': 'url(#fset-cut-' + c + '-' + i + ')' });
+    links.forEach(function(l){ g.appendChild(l.cloneNode()); });
+    svg.appendChild(g);
+  });
+  return svg;
+}
+function syncFsetLevel(w, v){
+  if (!w.level) return;
+  w.level.range.value = v;
+  w.level.range.title = translate(FORMULA_LEVEL_TIPS[v]);
+  var link = w.level.link, tip = translate(levelFree ? 'cyclicGroups.fsetLevelFree' : 'cyclicGroups.fsetLevelLinked');
+  link.setAttribute('aria-pressed', levelFree ? 'false' : 'true');
+  link.title = tip;
+  link.setAttribute('aria-label', tip);
+  if (w.level.free !== levelFree){
+    w.level.free = levelFree;
+    link.replaceChildren(fsetLinkIcon(w.i, levelFree));
+  }
+}
+FSET.forEach(buildFsetLevel);
+syncFormulaLevel();
 var zoomWrapEl = $('zoom-wrap'), zoomSliderEl = $('zoom-slider'), zoomOutEl = $('zoom-out'), zoomInEl = $('zoom-in'), zoomResetEl = $('zoom-reset'), zoomWheelEl = $('zoom-wheel');
 function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPaneEl.hidden; }
 // Whether each ring has its own pill: beside a pane, the rings turning apart.
