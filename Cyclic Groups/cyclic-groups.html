@@ -6765,7 +6765,7 @@ function ctxName(k){
 // key with Ec after it, unless the Index column's dropdown at Index
 // (idxGeneral) keeps it the index. G is the group
 // meant, the ring's own unless given.
-var IDX_KEYS = ['cyclicGroups.ctxItemIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex', 'cyclicGroups.colorByOrderIndex', 'cyclicGroups.colorBySizeIndex'];
+var IDX_KEYS = ['cyclicGroups.ctxItemIndex', 'cyclicGroups.subFormulaIndex', 'cyclicGroups.subFormulaIndexShort', 'cyclicGroups.fmapIndexLabel', 'cyclicGroups.fslComplexityIndex', 'cyclicGroups.fslFormIndex', 'cyclicGroups.barSwapCols', 'cyclicGroups.legendIndex', 'cyclicGroups.legendByIndex', 'cyclicGroups.colorByOrderIndex', 'cyclicGroups.colorBySizeIndex', 'cyclicGroups.legendHeadingOrderIndex', 'cyclicGroups.legendHeadingSizeIndex'];
 function idxKey(key, G){
   if (G === undefined) G = drawn ? drawn.G : null;
   return G && G.pts && !state.idxGeneral && IDX_KEYS.indexOf(key) !== -1 ? key + 'Ec' : key;
@@ -9110,6 +9110,7 @@ function fsetNamePick(w, kind, names){
     if (kind === 'size'){
       state.sizeJargon = sel.value === 'card';
       syncColorByName();
+      if (drawn) drawLegendHeading(state.colorBy);
       fillFsetWins();
       if (drawn) mirrorToUrl(drawn.G);
       return;
@@ -19580,7 +19581,10 @@ function renderDistinctLegend(G){
 // ring's own unless given (the pane's, drawn here).
 var LEGEND_KINDS = { order: 'cyclicGroups.legendHeading', inverse: 'cyclicGroups.legendHeadingInverse', theme: 'cyclicGroups.legendHeadingTheme', distinct: 'cyclicGroups.legendHeadingDistinct' };
 function legendHeadingParts(by){
-  var t = translate(LEGEND_KINDS[by] || LEGEND_KINDS.order);
+  // The subgroup scheme named as the Element colours dropdown names it
+  // (syncColorByName): cardinality or size, index or cofactor.
+  var key = LEGEND_KINDS[by] ? by : 'order';
+  var t = translate(key === 'order' ? idxKey(state.sizeJargon ? 'cyclicGroups.legendHeadingOrderIndex' : 'cyclicGroups.legendHeadingSizeIndex') : LEGEND_KINDS[key]);
   var m = t.match(/^(.*?[:：]\s*)(.+)$/);
   return m ? { head: m[1], name: m[2] } : { head: '', name: t };
 }
