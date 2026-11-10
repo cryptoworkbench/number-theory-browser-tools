@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-10 - Completed quick task 261110-nem: Cyclic Groups natural exponents menu
+Last activity: 2026-11-10 - Completed quick task 261110-net: Cyclic Groups natural exponents top entry
 
 Progress: [█████████░] 86%
 
@@ -693,6 +693,7 @@ None yet.
 | 261110-idd | Cyclic Groups: E = dropdown items name E for each operation | 2026-11-10 | 51f359f | [261110-idd-cyclic-groups-identity-dropdown-names](./quick/261110-idd-cyclic-groups-identity-dropdown-names/) |
 | 261110-ido | Cyclic Groups: E = dropdown items without the operation column | 2026-11-10 | 68e8963 | [261110-ido-cyclic-groups-identity-dropdown-no-op](./quick/261110-ido-cyclic-groups-identity-dropdown-no-op/) |
 | 261110-nem | Cyclic Groups: natural exponents tick in the main menu, slider menu only at Natural | 2026-11-10 | 3757533 | [261110-nem-cyclic-groups-natural-exponents-menu](./quick/261110-nem-cyclic-groups-natural-exponents-menu/) |
+| 261110-net | Cyclic Groups: natural exponents tick as the main menu's top entry | 2026-11-10 | a3bea40 | [261110-net-cyclic-groups-natural-exponents-top](./quick/261110-net-cyclic-groups-natural-exponents-top/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -964,4 +965,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-10 - Completed quick task 261110-nem: Cyclic Groups natural exponents menu
+Last activity: 2026-11-10 - Completed quick task 261110-net: Cyclic Groups natural exponents top entry
