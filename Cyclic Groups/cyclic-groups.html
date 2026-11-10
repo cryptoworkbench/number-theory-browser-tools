@@ -10426,6 +10426,7 @@ function takeGroupSpec(spec){
   if (!drawn) return;
   var href = new URLSearchParams(new URL(isoHref(spec.mode, spec.n, 0, spec.curve), location.href).search), q = new URLSearchParams();
   ['mode', 'n', 'curve', 'bygen'].forEach(function(k){ if (href.has(k)) q.set(k, href.get(k)); });
+  keepSignedQuery(q);
   q.delete('gen');
   if (!queryGroup(q)) return;
   applyRingQuery(q);
@@ -10468,11 +10469,18 @@ function setRingSwap(from, focus){
 // to its image, and so does the generator a pane is linked through, so a
 // locked pane stays locked, as a group picked for the left ring does
 // (pickLeft).
+// A group taken in place of this ring's keeps the elements' and the
+// exponents' signed forms (the slider's ± and g± buttons).
+function keepSignedQuery(q){
+  if (state.signed) q.set('signed', '1');
+  if (state.signedExp) q.set('signedexp', '1');
+}
 function swapHostGroup(a){
   if (!a || !drawn) return;
   var G = drawn.G, c = parseInt(a.getAttribute('data-iso-gen'), 10);
   var href = new URLSearchParams(new URL(a.href, location.href).search), q = new URLSearchParams();
   ['mode', 'n', 'curve', 'bygen'].forEach(function(k){ if (href.has(k)) q.set(k, href.get(k)); });
+  keepSignedQuery(q);
   var H = queryGroup(q);
   if (!H || !G.cyclic || H.order !== G.order || H.els.indexOf(c) === -1) return;
   var log = exprLog(G, G.generators[0]), pow = lap(H, c, H.order);
