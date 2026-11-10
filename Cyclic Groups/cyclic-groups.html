@@ -6669,8 +6669,13 @@ function drawMath(G, subs){
 var lastSubs = [];
 
 // The names of the subgroup row menu's formulas, by key, short under their
-// headings: Name, Cardinality, … for the group, Name, Size, … for the subgroup.
-function ctxName(k){ return idxKey(CTX_NAMES[k]); }
+// headings: Name, Size, … for the group and for the subgroup alike, Size
+// and Cardinality as the settings window's Size column is named
+// (state.sizeJargon).
+function ctxName(k){
+  if (k === 'gorder' || k === 'sorder') return state.sizeJargon ? 'cyclicGroups.ctxItemCardinality' : 'cyclicGroups.ctxItemSize';
+  return idxKey(CTX_NAMES[k]);
+}
 // On an elliptic curve a subgroup's number of cosets is its cofactor, not
 // its index: a wording naming the index takes its curve form there, the
 // key with Ec after it, unless Keep general (idxGeneral,
@@ -10207,7 +10212,8 @@ function syncExprCtx(key){
     ringCtxEl.appendChild(fhead);
     sec.keys.forEach(function(k){
       // Under the subgroup's heading its formulas are named plainly (ctxName):
-      // Name, Size and Index, Cofactor on a curve unless the index is kept
+      // Name, Size (or Cardinality, as the settings window's Size column is
+      // named) and Index, Cofactor on a curve unless the index is kept
       // general.
       var it = ctxItem('menuitem', translate(ctxName(k)), true);
       it.item.addEventListener('pointerenter', function(){ setRingCopy(k, it.item, false); });
