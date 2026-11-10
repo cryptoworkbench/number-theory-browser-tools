@@ -1235,6 +1235,8 @@
       ecReelsSquare: 'The two factors must be different primes: a curve here is not taken mod a square.',
       ecReelsCurveNo: 'The curve on show, with a = {a} and b = {b}, gives no group mod {n}: closing keeps the modulus {p}.',
       ecReelsSuggest: 'The curve on show, with a = {a} and b = {b}, is singular mod {n}; with a = {sa} and b = {sb} it is not: closing takes those.',
+      ecNTitleReels: 'The modulus: a prime from 5 to 1000, or a product of two different such primes. Double-click for a specialized selector (to keep it a modulus a curve takes)',
+      mulNTitle: 'Double-click for a specialized selector (to keep it cyclic: n = 2, 4, pᵏ or 2pᵏ, p an odd prime)',
       mulReelsC: 'Power of 2 in the modulus',
       mulReelsP: 'Odd prime of the modulus',
       mulReelsK: 'Exponent of the odd prime',
