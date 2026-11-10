@@ -1463,6 +1463,11 @@
   .ec-reels-sum.is-bad > .is-n{ color:var(--role-warn); }
   .ec-reels-note{ margin:-8px 0 0; max-width:24em; min-height:2.6em; font-size:.8rem; line-height:1.3; text-align:center; color:var(--text-dim); }
   .ec-reels-sum.is-bad + .ec-reels-note{ color:var(--role-warn); }
+  .ec-reel.is-narrow{ width:96px; }
+  .ec-reel.is-off{ opacity:.35; }
+  .mul-reels .ec-reels-row{ gap:14px; }
+  .mul-reels .ec-reel:not(.is-narrow){ width:130px; }
+  .ec-reels-note.mul-reels-iso{ margin-top:-12px; min-height:1.3em; }
   .bead-k-spin{ position:fixed; z-index:30; }
   .bead-k{ width:5em; padding:3px 24px 3px 6px; font:inherit; font-family:var(--font-math); font-size:.95rem; color:var(--text); background:var(--bg-1); border:1px solid var(--accent); border-radius:var(--radius-ctl); box-shadow:0 4px 14px color-mix(in srgb, var(--bg) 60%, transparent); }
   .bead-k::placeholder{ color:var(--text-dim); opacity:.7; font-style:italic; }
@@ -24141,8 +24146,9 @@ ecPEl.addEventListener('keydown', function(e){
 var EC_REEL_ITEMS = [1].concat(Array.from({ length: EC_MAX_P - EC_MIN_P + 1 }, function(_, i){ return EC_MIN_P + i; }).filter(isPrime));
 var REEL_H = 64, REEL_STEP = 19, REEL_VMAX = 0.03, REEL_R = REEL_H / 2 / Math.tan(REEL_STEP * Math.PI / 360);
 var ecReelsEl = null, ecReels = null, ecReelsReturn = null;
-function makeReel(label, onTurn){
-  var N = EC_REEL_ITEMS.length;
+// A reel's stops are the curve's (EC_REEL_ITEMS) unless it is given its own.
+function makeReel(label, onTurn, stops){
+  var ITEMS = stops || EC_REEL_ITEMS, N = ITEMS.length;
   var el = document.createElement('div'), drum = document.createElement('div'), line = document.createElement('div');
   el.className = 'ec-reel';
   el.tabIndex = 0;
@@ -24150,7 +24156,7 @@ function makeReel(label, onTurn){
   el.setAttribute('aria-label', label);
   drum.className = 'ec-reel-drum';
   line.className = 'ec-reel-line';
-  var items = EC_REEL_ITEMS.map(function(v){
+  var items = ITEMS.map(function(v){
     var it = document.createElement('div');
     it.className = 'ec-reel-item' + (v === 1 ? ' is-one' : '');
     it.textContent = String(v);
@@ -24161,7 +24167,7 @@ function makeReel(label, onTurn){
   // pos: the item on the line, fractional while turning; it wraps round.
   var r = { el: el, pos: 0, vel: 0, target: null, raf: 0, drag: null, wheel: 0 };
   var idx = function(){ return ((Math.round(r.pos) % N) + N) % N; };
-  r.value = function(){ return EC_REEL_ITEMS[idx()]; };
+  r.value = function(){ return ITEMS[idx()]; };
   var last = -1;
   var draw = function(){
     items.forEach(function(it, k){
@@ -24200,7 +24206,7 @@ function makeReel(label, onTurn){
     run();
   };
   r.set = function(v){
-    var k = EC_REEL_ITEMS.indexOf(v);
+    var k = ITEMS.indexOf(v);
     r.pos = k === -1 ? 0 : k;
     r.target = null;
     r.vel = 0;
@@ -24369,10 +24375,166 @@ function closeEcReels(){
   ecReelsReturn = null;
 }
 ecPEl.addEventListener('dblclick', function(e){
-  if (!state.ec || ecPEl.disabled || ecPEl.readOnly || groupControlsEl.classList.contains('is-locked')) return;
-  e.preventDefault();
-  openEcReels();
+  if (ecPEl.disabled || ecPEl.readOnly || groupControlsEl.classList.contains('is-locked')) return;
+  if (state.ec){ e.preventDefault(); openEcReels(); return; }
+  if (state.mode === 'multiplicative'){ e.preventDefault(); openMulReels(); }
 });
+// A double-click on the modulus of ⟨ℤ/nℤ, ×⟩ opens its reels: (ℤ/nℤ)* is
+// cyclic exactly when n is 1, 2, 4, an odd prime power pᵏ or twice one,
+// 2pᵏ (Gauss), so three drums make n = c · pᵏ: c of 1, 2 and 4, p of 1
+// and the odd primes, k the exponent, which stands still while p is 1.
+// 4 · pᵏ with p > 1 is not cyclic, and is flagged as a modulus out of
+// range is: closing then keeps the modulus. The note gives the group's
+// order φ(n) and its generators, and every other modulus whose group is
+// the same one: cyclic of the same order. A typed modulus may still be
+// any n, cyclic or not; the reels open on it as c · pᵏ, or on a cyclic
+// modulus near it, which closing takes only once a reel has turned.
+var MUL_REEL_C = [1, 2, 4];
+var MUL_REEL_P = [1].concat(Array.from({ length: MAX_N_MUL }, function(_, i){ return i + 3; }).filter(function(v){ return v <= MAX_N_MUL && v % 2 && isPrime(v); }));
+var MUL_REEL_K = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+var mulReelsEl = null, mulReels = null, mulReelsReturn = null;
+// φ(m) for every m up to the limit, sieved once when the reels first open.
+var mulPhi = null;
+function mulPhiOf(m){
+  if (!mulPhi){
+    mulPhi = Array.from({ length: MAX_N_MUL + 1 }, function(_, i){ return i; });
+    for (var q = 2; q <= MAX_N_MUL; q++) if (mulPhi[q] === q) for (var j = q; j <= MAX_N_MUL; j += q) mulPhi[j] -= mulPhi[j] / q;
+  }
+  return mulPhi[m];
+}
+// n as c · pᵏ with c 1, 2 or 4 and p an odd prime or 1, or null when it
+// is not of that form, nor 4 · pᵏ.
+function mulShape(n){
+  var c = n % 4 === 0 ? 4 : n % 2 === 0 ? 2 : 1, m = n / c;
+  if (c === 4 && m % 2 === 0) return null;
+  if (m === 1) return { c: c, p: 1, k: 1 };
+  var f = primeFactors(m);
+  if (f.some(function(q){ return q !== f[0]; })) return null;
+  return { c: c, p: f[0], k: f.length };
+}
+function mulCyclic(n){
+  var sh = mulShape(n);
+  return !!sh && (sh.c < 4 || sh.p === 1);
+}
+function mulReelsN(){
+  var c = mulReels.reels[0].value(), p = mulReels.reels[1].value(), k = mulReels.reels[2].value();
+  return { c: c, p: p, k: k, n: c * Math.pow(p, p === 1 ? 1 : k) };
+}
+function syncMulReelsSum(){
+  if (!mulReels) return;
+  var v = mulReelsN(), n = v.n;
+  var cyclic = v.c < 4 || v.p === 1, inRange = n >= MIN_N && n <= MAX_N_MUL, ok = cyclic && inRange;
+  mulReels.reels[2].el.classList.toggle('is-off', v.p === 1);
+  var sum = mulReels.sum, nEl = document.createElement('span');
+  nEl.className = 'is-n';
+  nEl.textContent = String(n);
+  var parts = [];
+  if (v.c > 1 || v.p === 1) parts.push(document.createTextNode(String(v.c)));
+  if (v.p > 1){
+    var pk = document.createElement('span');
+    pk.textContent = String(v.p);
+    if (v.k > 1){ var sup = document.createElement('sup'); sup.textContent = String(v.k); pk.appendChild(sup); }
+    parts.push(pk);
+  }
+  var kids = [];
+  parts.forEach(function(x, i){ if (i) kids.push(document.createTextNode(' · ')); kids.push(x); });
+  kids.push(document.createTextNode(' = '), nEl);
+  sum.replaceChildren.apply(sum, kids);
+  sum.classList.toggle('is-bad', !ok);
+  var order = ok ? mulPhiOf(n) : 0;
+  mulReels.note.textContent = !cyclic ? translate('cyclicGroups.mulReelsFour', { n: n })
+    : n < MIN_N ? translate('cyclicGroups.mulReelsLow', { min: MIN_N })
+    : n > MAX_N_MUL ? translate('cyclicGroups.mulReelsHigh', { n: n, max: MAX_N_MUL })
+    : translate('cyclicGroups.mulReelsCyclic', { n: n, order: order, count: mulPhiOf(order) });
+  // Every other modulus up to the limit with the same group.
+  var same = [];
+  if (ok) for (var m = MIN_N; m <= MAX_N_MUL; m++) if (m !== n && mulPhiOf(m) === order && mulCyclic(m)) same.push(groupPlain({ mode: 'multiplicative', n: m }));
+  mulReels.iso.textContent = !ok ? '' : same.length ? translate('cyclicGroups.mulReelsIso', { list: same.join(', ') }) : translate('cyclicGroups.mulReelsIsoNone', { max: MAX_N_MUL });
+}
+function openMulReels(){
+  if (!mulReelsEl){
+    mulReelsEl = document.createElement('div');
+    mulReelsEl.className = 'ec-reels mul-reels';
+    mulReelsEl.hidden = true;
+    var card = document.createElement('div');
+    card.className = 'ec-reels-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    var title = document.createElement('p');
+    title.className = 'ec-reels-title';
+    title.id = 'mul-reels-title';
+    card.setAttribute('aria-labelledby', title.id);
+    var row = document.createElement('div');
+    row.className = 'ec-reels-row';
+    var sign = function(t){
+      var x = document.createElement('span');
+      x.className = 'ec-reels-times';
+      x.setAttribute('aria-hidden', 'true');
+      x.textContent = t;
+      return x;
+    };
+    var sum = document.createElement('p');
+    sum.className = 'ec-reels-sum';
+    sum.setAttribute('aria-live', 'polite');
+    var note = document.createElement('p');
+    note.className = 'ec-reels-note';
+    var iso = document.createElement('p');
+    iso.className = 'ec-reels-note mul-reels-iso';
+    var done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'action-btn';
+    done.addEventListener('click', closeMulReels);
+    mulReels = { title: title, sum: sum, note: note, iso: iso, done: done, reels: [] };
+    mulReels.reels = [makeReel('', syncMulReelsSum, MUL_REEL_C), makeReel('', syncMulReelsSum, MUL_REEL_P), makeReel('', syncMulReelsSum, MUL_REEL_K)];
+    mulReels.reels[0].el.classList.add('is-narrow');
+    mulReels.reels[2].el.classList.add('is-narrow');
+    row.append(mulReels.reels[0].el, sign('×'), mulReels.reels[1].el, sign('^'), mulReels.reels[2].el);
+    card.append(title, row, sum, note, iso, done);
+    mulReelsEl.appendChild(card);
+    mulReelsEl.addEventListener('pointerdown', function(e){ if (e.target === mulReelsEl) closeMulReels(); });
+    mulReelsEl.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' || e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); closeMulReels(); }
+      if (e.key === 'Tab'){
+        var stops = mulReels.reels.map(function(r){ return r.el; }).concat([done]), at = stops.indexOf(document.activeElement);
+        e.preventDefault();
+        stops[(at + (e.shiftKey ? stops.length - 1 : 1)) % stops.length].focus();
+      }
+    });
+  }
+  mulReels.title.textContent = translate('cyclicGroups.ecReelsTitle');
+  mulReels.done.textContent = translate('cyclicGroups.ecReelsDone');
+  ['mulReelsC', 'mulReelsP', 'mulReelsK'].forEach(function(key, i){ mulReels.reels[i].el.setAttribute('aria-label', translate('cyclicGroups.' + key)); });
+  // The reels open on the modulus; one not of the form opens on its
+  // power of 2 (up to 2) and its smallest odd prime.
+  var sh = mulShape(state.n);
+  if (!sh){
+    var odd = primeFactors(state.n).filter(function(q){ return q % 2; });
+    sh = { c: state.n % 2 ? 1 : 2, p: odd.length ? odd[0] : 1, k: 1 };
+  }
+  mulReels.reels[0].set(sh.c);
+  mulReels.reels[1].set(sh.p);
+  mulReels.reels[2].set(sh.k);
+  // A modulus not of the form opens on a cyclic one near it, never taken
+  // unless a reel is turned.
+  mulReels.start = mulReelsN().n;
+  syncMulReelsSum();
+  var host = document.fullscreenElement || document.body;
+  if (mulReelsEl.parentNode !== host) host.appendChild(mulReelsEl);
+  mulReelsReturn = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  mulReelsEl.hidden = false;
+  mulReels.reels[0].el.focus({ preventScroll: true });
+}
+function closeMulReels(){
+  if (!mulReelsEl || mulReelsEl.hidden) return;
+  mulReelsEl.hidden = true;
+  var v = mulReelsN();
+  if (state.mode === 'multiplicative' && !state.ec && v.n !== state.n && v.n !== mulReels.start && mulCyclic(v.n) && v.n >= MIN_N && v.n <= MAX_N_MUL){
+    nInputEl.value = String(v.n);
+    applyTypedN(nInputEl.value);
+  }
+  if (mulReelsReturn && mulReelsReturn.isConnected) mulReelsReturn.focus({ preventScroll: true });
+  mulReelsReturn = null;
+}
 // Open, the list takes the focus, the arrow keys moving through it and
 // Enter picking; a click picks too. A click elsewhere, Escape or Tab closes
 // it. Like the subgroup list it fades at an edge with more beyond, a label
