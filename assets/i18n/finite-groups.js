@@ -1,4 +1,4 @@
-/* assets/i18n/cyclic-groups.js — the 'cyclicGroups' namespace: the title,
+/* assets/i18n/finite-groups.js — the 'cyclicGroups' namespace: the title,
    eyebrow, heading and lede, the Cayley Table cross-link, the group-operation dropdown's accessible
    name, the Group panel's modulus and generator controls, the layer
    toggles, the arrow key and the color-by choice, the explanation panel and its hint lines, the color key, the
