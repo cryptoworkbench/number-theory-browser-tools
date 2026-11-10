@@ -1229,6 +1229,15 @@
   /* The same wheel behind the main area's ring (its menu's Congruence wheel
      background), turning and rearranging with the beads. */
   .ring-wheel{ pointer-events:none; }
+  /* A tapped cell of that wheel lights up, then the cell under it, ring by
+     ring down to the beads, and the bead holding its residue gets a white
+     halo for a moment; the lit cells then fade together. */
+  .ring-wheel-lit{ fill:color-mix(in srgb, var(--accent) 42%, transparent); stroke:none; animation:ring-wheel-lit .18s ease-out; transition:opacity .6s ease; }
+  .ring-wheel-lit.is-kept{ animation:none; }
+  .ring-wheel-lit.is-out{ opacity:0; }
+  @keyframes ring-wheel-lit{ from{ opacity:0; } }
+  .bead-reduced{ fill:none; stroke:var(--pointer-edge); pointer-events:none; opacity:0; animation:bead-reduced .9s ease-out; }
+  @keyframes bead-reduced{ 25%{ opacity:1; } }
   .ring-wheel .dhc-wheel-mod{ fill:var(--text-dim); }
   .dhc-wheel-dots{ fill:var(--text-dim); text-anchor:middle; dominant-baseline:central; opacity:.55; pointer-events:none; }
   .dhc-rib.is-back{ stroke-dasharray:3 3; opacity:.2; }
@@ -11819,6 +11828,8 @@ function turnRingWheelClip(ring, angle, box){
   var rect = ring.querySelector('.ring-wheel-clip > rect');
   if (rect) rect.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + box.cx + ' ' + box.cy + ')');
 }
+// The cells lit by a tap (see walkWheelCell): { x, k, el } each.
+var wheelWalk = 0, wheelLit = [];
 function drawRingWheel(g, G, place, m, box, beadR){
   var N = G.n, ring = box.R * DHC_WHEEL_RING, R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m, k;
   g.replaceChildren();
@@ -11851,9 +11862,82 @@ function drawRingWheel(g, G, place, m, box, beadR){
       g.appendChild(t);
     }
   });
+  // What a tap on a cell needs to find it (see ringWheelCellAt).
+  g.cells = { G: G, place: place, m: m, cx: box.cx, cy: box.cy, R0: R0, ring: ring, depth: depth };
+  // Cells lit by a tap stay lit through the redraw, under the numbers,
+  // without fading in again.
+  wheelLit.forEach(function(c){
+    if (!litWheelCell(g, c.x, c.k, c.el)) return;
+    c.el.classList.add('is-kept');
+    g.insertBefore(c.el, g.querySelector('.dhc-wheel-num'));
+  });
   var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
   mod.textContent = translate('cyclicGroups.ringWheelMod', { n: N });
   g.appendChild(mod);
+}
+// A tap on a cell of the wheel: its residue class's bead and its ring
+// (0 the innermost), or null where the tap missed every shown cell.
+function ringWheelCellAt(e){
+  var g = ringSvgEl.querySelector('.ring-wheel'), c = g && g.cells, gm = g && g.getScreenCTM();
+  if (!c || !gm) return null;
+  var pt = ringSvgEl.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  var rect = g.querySelector('.ring-wheel-clip > rect'), rm = rect && rect.getScreenCTM();
+  if (rm){
+    var q = pt.matrixTransform(rm.inverse());
+    if (q.x < +rect.getAttribute('x') || q.y < +rect.getAttribute('y') || q.x > +rect.getAttribute('x') + +rect.getAttribute('width') || q.y > +rect.getAttribute('y') + +rect.getAttribute('height')) return null;
+  }
+  var p = pt.matrixTransform(gm.inverse()), dx = p.x - c.cx, dy = p.y - c.cy;
+  var j = Math.floor((Math.hypot(dx, dy) - c.R0) / c.ring);
+  if (j < 0 || j >= c.depth) return null;
+  var at = ((Math.round(dirSign() * Math.atan2(dx, -dy) * 180 / Math.PI * c.m / 360) % c.m) + c.m) % c.m;
+  var x = c.G.els.find(function(el){ return c.place[el] === at; });
+  return x === undefined ? null : { x: x, j: j };
+}
+// The tapped cell lights up, then each cell under it in turn, and last the
+// bead: the cell's number reduced mod n is the bead's. A new tap, or the
+// wheel redrawn, starts over.
+// Shapes el as the cell of bead x's wedge in ring k of the wheel g; false
+// where the wheel no longer has that cell.
+function litWheelCell(g, x, k, el){
+  var c = g.cells;
+  if (!c || c.place[x] === undefined || k >= c.depth) return false;
+  var mid = dirSign() * 360 * c.place[x] / c.m, half = c.m > 1 ? 180 / c.m : 180;
+  el.setAttribute('d', annularSectorPath(c.cx, c.cy, c.R0 + k * c.ring, c.R0 + (k + 1) * c.ring, mid - half, mid + half));
+  return true;
+}
+function walkWheelCell(x, j){
+  var walk = ++wheelWalk, step = Math.min(260, 2600 / (j + 1)), lit = [];
+  wheelLit.forEach(function(c){ c.el.remove(); });
+  wheelLit = [];
+  var done = function(){
+    lit.forEach(function(el){ el.classList.add('is-out'); });
+    setTimeout(function(){
+      lit.forEach(function(el){ el.remove(); });
+      wheelLit = wheelLit.filter(function(c){ return lit.indexOf(c.el) === -1; });
+    }, 700);
+  };
+  var light = function(k){
+    var g = ringSvgEl.querySelector('.ring-wheel'), c = g && g.cells;
+    if (walk !== wheelWalk || !c || c.place[x] === undefined){ done(); return; }
+    if (k < 0){
+      var b = g.parentNode.querySelector('.bead[data-el="' + x + '"]');
+      if (b){
+        var r = +b.getAttribute('r');
+        var halo = b.parentNode.appendChild(svgEl('circle', { 'class': 'bead-reduced', cx: b.getAttribute('cx'), cy: b.getAttribute('cy'), r: num(r + Math.max(2, r * 0.3)), 'stroke-width': num(Math.max(2, r * 0.35)) }));
+        halo.addEventListener('animationend', function(){ halo.remove(); });
+      }
+      done();
+      return;
+    }
+    var cell = svgEl('path', { 'class': 'ring-wheel-lit' });
+    if (litWheelCell(g, x, k, cell)) g.insertBefore(cell, g.querySelector('.dhc-wheel-num'));
+    lit.push(cell);
+    wheelLit.push({ x: x, k: k, el: cell });
+    setTimeout(function(){ light(k - 1); }, step);
+  };
+  light(j);
 }
 
 // The ring's zoom, a step along RING_ZOOMS, from the corner's zoom pill
@@ -17637,7 +17721,10 @@ function endTurn(e){
   var pick = turning.pick;
   turning = null;
   ringSvgEl.classList.remove('is-turning');
-  var picked = tap && elementTap(pick);
+  // A tap on a cell of the congruence wheel walks its number down to its bead.
+  var cell = tap && pick === null && ringWheelShown(drawn.G) ? ringWheelCellAt(e) : null;
+  if (cell) walkWheelCell(cell.x, cell.j);
+  var picked = tap && !cell && elementTap(pick);
   if (tap && !picked) beadDoubleTap(pick);
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
   // A linked pane stays where it was let go, and the ring holding it settles both.
