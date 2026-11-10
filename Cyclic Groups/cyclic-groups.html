@@ -4676,8 +4676,9 @@ function syncArrange(G){
 // On a curve the element expression writes powers of the generator the
 // slider is on, (x, y)ᵏ, as a group of numbers writes gᵏ; the slider's
 // right-click menu writes them as the multiples kP instead (state.ecMult).
+var ecMultOff = false;
 function ecMult(G){
-  if (!G || !G.pts) return false;
+  if (!G || !G.pts || ecMultOff) return false;
   if (typeof G.mult === 'boolean') return G.mult;
   // The pane's group, written in this ring's bottom panel, as the pane
   // writes it (tellHostEcMult).
@@ -6388,29 +6389,35 @@ function restGhost(node){
 // natOff true writes h without Natural's exponent, whatever Exponents in
 // natural expression says, and without the reveal, which has no pointer
 // to show it there and would stand beside the power once its classes are
-// stripped (the subgroup row menu's copies).
+// stripped (the subgroup row menu's copies). G's formulas always write a
+// curve's points as powers, never as the multiples kP (ecMultOff), whatever
+// the slider's right-click menu says.
 function rowFormulaH(G, h, x, paint, natOff){
   return function(base, q, raw){
-    var m, from = base === undefined ? null : base, to = revealTo(G);
-    if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G, natOff).m(h);
-    else {
-      var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G), qm = numMn(raw ? e.raw(q) : e.ex(q), ew, signRoomExp(G));
-      // On a curve the multiples notation writes q·(x, y) for the power.
-      m = ecMult(G) ? mrow(qm, mo('\u00b7'), baseMn(G, base)) : mEl('msup', [baseMn(G, base), qm]);
-    }
-    // A power here reveals whatever the panel writes, the setting alone
-    // deciding (the formulas write powers of h even beside Natural).
-    if (!natOff && !state.revealOff && (from !== to || revealSignsDiffer(G))){
-      var ex = mrow(m), nat = mrow(asReveal(function(){ return to === null ? subFormat(null, null, subWidth(G), 0, G, natOff).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h); }));
-      m = mrow.apply(null, revealForms(ex, nat));
-      m.setAttribute('class', 'sub-reveal');
-      m.setAttribute('data-g', from === null ? '' : String(from));
-      m.setAttribute('data-to', to === null ? '' : String(to));
-      m.setAttribute('data-el', String(h));
-      m = revealOnLine(m);
-    }
-    return paint ? memberMath(x, m) : m;
+    var was = ecMultOff;
+    ecMultOff = true;
+    try { return rowFormulaHAt(G, h, x, paint, natOff, base, q, raw); } finally { ecMultOff = was; }
   };
+}
+function rowFormulaHAt(G, h, x, paint, natOff, base, q, raw){
+  var m, from = base === undefined ? null : base, to = revealTo(G);
+  if (base === undefined) m = subFormat(null, null, subWidth(G), 0, G, natOff).m(h);
+  else {
+    var ew = subExpWidth(G), e = subFormat(null, null, 0, ew, G), qm = numMn(raw ? e.raw(q) : e.ex(q), ew, signRoomExp(G));
+    m = mEl('msup', [baseMn(G, base), qm]);
+  }
+  // A power here reveals whatever the panel writes, the setting alone
+  // deciding (the formulas write powers of h even beside Natural).
+  if (!natOff && !state.revealOff && (from !== to || revealSignsDiffer(G))){
+    var ex = mrow(m), nat = mrow(asReveal(function(){ return to === null ? subFormat(null, null, subWidth(G), 0, G, natOff).m(h) : subFormat(to, revealLog(G, to), subWidth(G), subExpWidth(G), G).m(h); }));
+    m = mrow.apply(null, revealForms(ex, nat));
+    m.setAttribute('class', 'sub-reveal');
+    m.setAttribute('data-g', from === null ? '' : String(from));
+    m.setAttribute('data-to', to === null ? '' : String(to));
+    m.setAttribute('data-el', String(h));
+    m = revealOnLine(m);
+  }
+  return paint ? memberMath(x, m) : m;
 }
 // Both formulas shown in the main area, each gets a grip beside it while the
 // pointer is over them: dragged past the other formula, the two trade
