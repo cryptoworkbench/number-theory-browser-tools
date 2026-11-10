@@ -133,7 +133,8 @@
    Added in English first since that pass, for the next catch-up
    translation: identityE (the tooltip of the E in E = 0, E = 1 or E = 𝒪
    after the pyramid, its {einheit} an <i>Einheit</i> node supplied by
-   the page), and cayleyShort, cayleyTitle, cayleyTitlePairs, cayleyShow,
+   the page), identityAdd and identityMul (the tooltips of the 0 and the 1
+   after E =), and cayleyShort, cayleyTitle, cayleyTitlePairs, cayleyShow,
    cayleyTask, cayleyMerge and cayleySplit (the Cayley table's window, its
    task in the bottom bar and the switch merging two locked rings' tables
    into one of linked pairs), and cayleyModeHover and cayleyModeReveal
@@ -782,6 +783,8 @@
       opKindEc: 'Elliptic Curve point addition',
       pointAtInfinity: 'Point at infinity',
       identityE: 'E from German {einheit}',
+      identityAdd: 'Additive identity',
+      identityMul: 'Multiplicative identity',
       exprSignOn: 'Write the numbers in their signed form, nearest 0',
       exprSignOff: 'Write the numbers as 0 … n − 1',
       exprSignOnEc: 'Write the coordinates in their signed form, nearest 0',

@@ -23227,7 +23227,8 @@ function setOpKind(k){
 }
 // The pyramid at the group's kind, and E, the identity, after it: E = 0,
 // E = 1, or on a curve E = 𝒪. Under the pointer E says where its name
-// comes from, and 𝒪 names itself, the point at infinity.
+// comes from, 0 and 1 name themselves, the additive and the multiplicative
+// identity, and 𝒪 names itself, the point at infinity.
 function syncOpTri(){
   var k = opKind();
   opTriEl.setAttribute('data-at', k);
@@ -23257,7 +23258,7 @@ idKindSelEl.id = 'id-kind-select';
 });
 opIdEl.replaceChildren(opIdHeadEl, idKindSelEl);
 function idKindMath(k){
-  return mInline(k === 'ec' ? mEl('mi', ['𝒪'], { mathvariant: 'normal', 'data-tip': 'o' }) : mn(ID_KINDS[k][0]), ID_KINDS[k][0]);
+  return mInline(k === 'ec' ? mEl('mi', ['𝒪'], { mathvariant: 'normal', 'data-tip': 'o' }) : mEl('mn', [ID_KINDS[k][0]], { 'data-tip': k === 'additive' ? 'add' : 'mul' }), ID_KINDS[k][0]);
 }
 var idKindBtnEl = skinSelect(idKindSelEl, {
   cls: 'id-pick',
@@ -23278,11 +23279,12 @@ idTipEl.setAttribute('role', 'tooltip');
 idTipEl.hidden = true;
 document.body.appendChild(idTipEl);
 function showIdTip(el){
-  if (el.getAttribute('data-tip') === 'e'){
+  var tip = el.getAttribute('data-tip');
+  if (tip === 'e'){
     var word = document.createElement('i');
     word.textContent = 'Einheit';
     translateInto(idTipEl, 'cyclicGroups.identityE', { einheit: word });
-  } else idTipEl.textContent = translate('cyclicGroups.pointAtInfinity');
+  } else idTipEl.textContent = translate(tip === 'add' ? 'cyclicGroups.identityAdd' : tip === 'mul' ? 'cyclicGroups.identityMul' : 'cyclicGroups.pointAtInfinity');
   // In full screen only the full-screen element is drawn: the tip goes
   // inside it.
   var host = document.fullscreenElement || document.body;
