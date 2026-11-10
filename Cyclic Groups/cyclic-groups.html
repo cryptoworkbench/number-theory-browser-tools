@@ -6031,7 +6031,7 @@ function syncBarFormulas(){
 }
 // A minimized plot, as a task in the bar: the curve's, named by its
 // curve, and the polygon's, named by its N; a click opens it again.
-var isoPanePlotMin = false, isoPanePolyMin = false, isoPaneCayleyMin = false;
+var isoPanePlotMin = false, isoPanePolyMin = false, isoPaneCayleyMin = false, isoPaneFlogMin = false;
 function barPlotTasks(i, G){
   var tasks = [];
   // While no formula of the group shows anywhere, its formula settings
@@ -6065,9 +6065,12 @@ function barPlotTasks(i, G){
       tellPane({ ringhost: 'cayleyopen' });
     }));
   }
-  if (i === 0 && flogTaskShown){
+  if (i === 0 ? flogTaskShown : isoPaneFlogMin){
     var flog = translate('cyclicGroups.flogTitle');
-    tasks.push(barTask(flog, translate('cyclicGroups.flogShow'), translate('cyclicGroups.flogShow'), 'flog', openFlog));
+    tasks.push(barTask(flog, translate('cyclicGroups.flogShow'), translate('cyclicGroups.flogShow'), 'flog', function(){
+      if (i === 0){ openFlog(); return; }
+      tellPane({ ringhost: 'flogopen' });
+    }));
   }
   if (i === 0 && lapKeyOn && !lapKeyOpen){
     var laps = translate('cyclicGroups.lapKeyTitle');
@@ -7114,9 +7117,9 @@ function svgIcon(parts){
 var RING_CTX_ITEMS = [
   // The group's formula settings window (the pane's in the ring holding it).
   { key: 'cyclicGroups.fsetMenu', icon: '\u2699', run: function(){ openFset(IS_ISOPANE ? 1 : 0); } },
-  // The fixed logarithm's window, on this page's ring only, ticked while it
+  // The fixed logarithm's window, on either ring, ticked while it
   // is on (open, or minimized to the taskbar).
-  { key: 'cyclicGroups.flogMenu', icon: '\u33d2', hide: IS_ISOPANE, on: function(){ return flogOn; }, run: function(){ openFlog(); } },
+  { key: 'cyclicGroups.flogMenu', icon: '\u33d2', on: function(){ return flogOn; }, run: function(){ openFlog(); } },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } }
 ];
 var ringCtxEl = $('ring-ctx');
@@ -11548,6 +11551,10 @@ if (IS_RINGWIN){
       if (IS_ISOPANE){ openPolyPlot(); blinkLinked(polyPlotEl); }
       return;
     }
+    if (d.ringhost === 'flogopen'){
+      if (IS_ISOPANE) openFlog();
+      return;
+    }
     if (d.ringhost === 'cayleyopen'){
       if (IS_ISOPANE){ openCayley(); blinkLinked(cayleyEl); }
       return;
@@ -13469,7 +13476,7 @@ var flogBase = null, flogFollow = null, flogWheelOn = false;
 // The label lives in its own layer, which the ring's redraws leave alone;
 // flogShown is the bead its k was last written for.
 var flogCtx = null, flogAt = null, flogShown = null, flogLayerEl = $('flog-layer');
-function flogAvail(G){ return !!G && !IS_MOBILE && !IS_ISOPANE; }
+function flogAvail(G){ return !!G && !IS_MOBILE; }
 // The base: the expression slider's generator, or the circle arrangement's,
 // while following it, else the box picked, which starts as the one the
 // slider gives. A base followed is kept as the box's, for letting go.
@@ -13523,6 +13530,8 @@ function syncFlogWin(G){
   if (task !== flogTaskShown){
     flogTaskShown = task;
     syncBarFormulas();
+    // The pane's minimized window goes in the bar of the ring holding it.
+    if (IS_ISOPANE) tellHost({ isopane: 'flogmin', min: task });
   }
   // Following the arrangement while the units sit Sequential: let go,
   // keeping the base it had.
@@ -20457,6 +20466,7 @@ function loadIsoFrame(){
   isoPanePlotMin = false;
   isoPanePolyMin = false;
   isoPaneCayleyMin = false;
+  isoPaneFlogMin = false;
   isoPaints = null;
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
@@ -20565,6 +20575,7 @@ function closeIsoPane(){
   isoPanePlotMin = false;
   isoPanePolyMin = false;
   isoPaneCayleyMin = false;
+  isoPaneFlogMin = false;
   isoPaneLegend = null;
   if (document.documentElement.classList.contains('is-host-blank')){
     document.documentElement.classList.remove('is-host-blank');
@@ -20690,6 +20701,7 @@ function swapPaneInPlace(mins){
   isoPanePlotMin = mins.plot;
   isoPanePolyMin = mins.poly;
   isoPaneCayleyMin = mins.cayley;
+  isoPaneFlogMin = mins.flog === true;
   isoPaints = null;
   dropPaneGenExp();
   isoPaneEl.classList.remove('is-menu-open');
@@ -22409,6 +22421,9 @@ window.addEventListener('message', function(e){
     if (Number.isFinite(d.line) && Array.isArray(d.rects)) liftPaneOver(d.line, d.rects);
   } else if (d.isopane === 'polymin'){
     isoPanePolyMin = d.min === true;
+    syncBarFormulas();
+  } else if (d.isopane === 'flogmin'){
+    isoPaneFlogMin = d.min === true;
     syncBarFormulas();
   } else if (d.isopane === 'cayleymin'){
     isoPaneCayleyMin = d.min === true;
