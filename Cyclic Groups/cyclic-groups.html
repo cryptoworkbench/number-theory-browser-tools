@@ -20249,6 +20249,15 @@ function swapIsoRings(){
   state.logBaseLock = locks[1];
   state.logBaseLockR = locks[0];
   syncFormulaCtl();
+  // Turned over like a coin, both rings land mirrored: counting the other
+  // way round, the identity kept where it is and the preferred way round
+  // mirrored with them, as setDir does. The pane hears the new direction
+  // with the shared settings and mirrors its ring so too.
+  var Gn = currentGroup();
+  state.rot = 2 * arrangement(Gn).indexOf(Gn.identity) - state.rot;
+  state.dir = otherDir(state.dir);
+  state.prefDir = otherDir(state.prefDir);
+  try { localStorage.setItem(PREF_DIR_KEY, state.prefDir); } catch (e) { /* storage unavailable */ }
   isoPane.q = hostQ.toString();
   if (whole){
     isoPane.h = g;
@@ -20326,8 +20335,9 @@ isoSwapEl.addEventListener('click', startSwapSpin);
 // Swapping, the two circles of beads flip over together like one coin, as
 // a ring flips (see flipRing), about the line between the panes: each turns
 // edge-on onto that line, and they open out from there on the other side,
-// the left ring now on the right and the right one on the left, never seen
-// reversed. They are copies carried over everything; the real rings hide
+// the left ring now on the right and the right one on the left, each its
+// own mirror image, as a coin turned over is: they land counting the other
+// way round (swapIsoRings flips the direction). They are copies carried over everything; the real rings hide
 // meanwhile, and the text and controls stay as they are until the flip
 // lands, when the swap is done and they all snap to the other side's, the
 // pane taking its new group in place as this ring does; its ring stays
@@ -20421,8 +20431,8 @@ function swapViewBox(svg){
 function swapFit(box, vb){ return Math.min(box.width / vb.w, box.height / vb.h); }
 // t from 0 to 1: the half turn. Across the line everything is squashed by
 // cos θ, the coin sinking back a little at mid-turn; up to edge-on each ring
-// stands on its own side, from there on the other side, each landing on the
-// place of the ring it trades with.
+// stands on its own side, from there on the other side, mirrored, each
+// landing on the place of the ring it trades with.
 function placeSwapCopies(t){
   var s = swapSpin, th = Math.PI * easeInOutCubic(t);
   var c = Math.max(0.001, Math.abs(Math.cos(th))), k = 1 - FLIP_SINK * Math.sin(th), first = th < Math.PI / 2;
@@ -20432,7 +20442,8 @@ function placeSwapCopies(t){
   var place = function(el, box){
     var sc = swapFit(box, box === s.l ? s.vbl : s.vbr) / swapFit({ width: el.width0, height: el.height0 }, el.vb0);
     var left = box.left + box.width / 2 - el.width0 * sc / 2, top = box.top + box.height / 2 - el.height0 * sc / 2;
-    el.style.transform = 'translate(' + num(s.ax) + 'px,' + num(s.ay) + 'px) scale(' + num(c * k) + ',' + num(k) + ') translate(' + num(left - s.ax) + 'px,' + num(top - s.ay) + 'px) scale(' + num(sc) + ')';
+    var mirror = first ? ' scale(' + num(sc) + ')' : ' translate(' + num(el.width0 * sc) + 'px,0) scale(' + num(-sc) + ',' + num(sc) + ')';
+    el.style.transform = 'translate(' + num(s.ax) + 'px,' + num(s.ay) + 'px) scale(' + num(c * k) + ',' + num(k) + ') translate(' + num(left - s.ax) + 'px,' + num(top - s.ay) + 'px)' + mirror;
   };
   place(s.front, first ? s.l : s.r);
   place(s.back, first ? s.r : s.l);
