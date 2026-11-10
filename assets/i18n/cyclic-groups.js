@@ -1394,6 +1394,7 @@
       dhTitle: 'Diffie–Hellman in {group}',
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩',
+      pizzaSimplify: 'Simplify',
       dhAlice: 'Alice',
       dhPublic: 'Public',
       dhBob: 'Bob',
