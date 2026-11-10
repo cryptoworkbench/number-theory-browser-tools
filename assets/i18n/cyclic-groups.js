@@ -1341,7 +1341,6 @@
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
       idxLagrangeOff: 'Disable Lagrange\'s notation',
       fsetNameDescriptive: 'Descriptive',
-      fsetNameJargon: 'Jargon',
       fsetNameGeneral: 'General',
       fsetNameEc: 'EC specific',
       isoGeneralize: 'Generalize notation in both groups so they match',
