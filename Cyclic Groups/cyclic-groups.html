@@ -9146,6 +9146,20 @@ function paneFmapUsed(){
   [state.subFormulaRingR, state.subFormulaRowR].forEach(function(v){ FMAP_FS.forEach(function(f){ if (v === f || v === 'both') on[f] = true; }); });
   return FMAP_FS.filter(function(f){ return on[f]; });
 }
+// The window's title names its group's selected subgroup in it, as
+// G ∈ group: ⟨h⟩ ∈ ⟨ℤ/12ℤ, +⟩, the group's own name kept as it was; with
+// no subgroup selected, the group alone.
+function fsetTitleSub(i, G, groupName){
+  var h = i === 0 ? (state.noSub ? null : state.gen)
+    : (new URLSearchParams(isoPane.q).get('sub') === 'none' ? null : paneSelH(G));
+  if (!Number.isInteger(h) || G.els.indexOf(h) === -1) return groupName;
+  // Set as the name is: in plain text beside a plain name, as math beside
+  // a curve's math.
+  if (typeof groupName === 'string') return '⟨' + elText(G, h) + '⟩ ∈ ' + groupName;
+  var span = document.createElement('span');
+  span.append(mInline(mrow(angle(elMn(G, h)), mo('∈')), '⟨' + elText(G, h) + '⟩ ∈'), ' ', groupName);
+  return span;
+}
 // Both windows filled; returns the ones that have just come up.
 function fillFsetWins(){ return [0, 1].filter(fillFsetWin); }
 function fillFsetWin(i){
@@ -9162,7 +9176,7 @@ function fillFsetWin(i){
       groupName.className = 'fset-title-curve';
       groupName.textContent = curveName(G);
     }
-    translateInto(w.title, 'cyclicGroups.fsetWinTitleGroup', { group: groupName });
+    translateInto(w.title, 'cyclicGroups.fsetWinTitleGroup', { group: fsetTitleSub(i, G, groupName) });
     w.grid.appendChild(fsetGrid(i));
     // The panel, while a formula of a group with maps shows.
     var shown = (i === 0 ? fmapUsed() : paneFmapUsed()).length > 0;
