@@ -1576,6 +1576,15 @@
   .ring-hover-formula > .f-grip:hover{ color:var(--accent); }
   .ring-hover-formula > .f-grip:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .ring-hover-formula.is-fdrag, .ring-hover-formula.is-fdrag > .f-grip{ cursor:grabbing; }
+  /* Right of each formula, its copy button, shown as the grips are, in
+     room of its own. */
+  .ring-head > .ring-hover-formula.has-fcopy{ padding-right:22px; }
+  .ring-hover-formula > .f-copy{ position:absolute; right:1px; translate:0 -50%; display:grid; place-items:center; width:14px; height:22px; padding:0; color:var(--text-dim); background:none; border:0; border-radius:4px; cursor:pointer; opacity:0; pointer-events:none; transition:opacity .15s; }
+  .ring-hover-formula > .f-copy svg{ fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
+  .ring-hover-formula.is-hot > .f-copy, .ring-hover-formula > .f-copy:focus-visible, .ring-hover-formula > .f-copy.is-done{ opacity:1; pointer-events:auto; }
+  .ring-hover-formula > .f-copy:hover{ color:var(--accent); }
+  .ring-hover-formula > .f-copy.is-done{ color:var(--role-result); }
+  .ring-hover-formula > .f-copy:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .ring-hover-formula .is-fdragged{ position:relative; z-index:1; opacity:.85; }
   .ring-hover-formula .is-fdrop{ opacity:.45; }
   .ring-head > .ring-hover-formula.is-on-ring{ border-color:var(--panel-border); background:var(--panel); }
@@ -6409,10 +6418,13 @@ function buildSubFormula(G){
   // they move to where they are now.
   var carryOn = hasSliders(G) ? fmapCarry(box, carry) : null;
   if (box){
+    // Room on the right for the copy buttons, before the box is fitted.
+    if (!IS_MOBILE) box.classList.add('has-fcopy');
     ringHeadEl.appendChild(box);
     fitSubFormulaBox(box);
     if (wasHot) box.classList.add('is-hot');
     if (!IS_MOBILE && fs.length === 2) formulaGrips(box);
+    if (!IS_MOBILE) formulaCopies(box);
   }
   if (hasSliders(G)) fmapCarryKey = G.key;
   if (carryOn) carryOn();
@@ -6613,6 +6625,48 @@ function formulaGrips(box){
       grip.addEventListener('pointercancel', up);
     });
     box.appendChild(grip);
+  });
+}
+// Each formula shown in the main area gets a copy button right of it, shown
+// as the grips are: a click puts the formula on the clipboard as plain
+// Unicode text, and the button shows a tick for a moment.
+var COPY_ICON = [['rect', { x: 4.5, y: 4.5, width: 7, height: 8, rx: 1.5 }], ['path', { d: 'M9.5 4.5V3a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5' }]];
+var DONE_ICON = [['path', { d: 'M3 7.5l3 3 5.5-6' }]];
+function formulaCopies(box){
+  Array.prototype.forEach.call(box.querySelectorAll('[data-fline]'), function(line){
+    var plain = line.getAttribute('data-plain');
+    if (!plain) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'f-copy';
+    var label = function(key){
+      btn.title = translate(key);
+      btn.setAttribute('aria-label', btn.title);
+    };
+    var icon = function(parts){
+      var svg = svgEl('svg', { viewBox: '0 0 14 14', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' });
+      parts.forEach(function(p){ svg.appendChild(svgEl(p[0], p[1])); });
+      btn.replaceChildren(svg);
+    };
+    label('cyclicGroups.ctxCopyUnicode');
+    icon(COPY_ICON);
+    btn.style.top = (line.offsetTop + line.offsetHeight / 2) + 'px';
+    var done = 0;
+    btn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      copyText(plain);
+      btn.classList.add('is-done');
+      label('cyclicGroups.exportWinCopied');
+      icon(DONE_ICON);
+      clearTimeout(done);
+      done = setTimeout(function(){
+        btn.classList.remove('is-done');
+        label('cyclicGroups.ctxCopyUnicode');
+        icon(COPY_ICON);
+      }, 1200);
+    });
+    box.appendChild(btn);
   });
 }
 function swapFormulaOrder(){
