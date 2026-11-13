@@ -12111,7 +12111,7 @@ function ringWheelCellAt(e){
   var x = c.G.els.find(function(el){ return c.place[el] === at; });
   return x === undefined ? null : { x: x, j: j };
 }
-// The tapped cell lights up, then each cell under it in turn, and last the
+// The double-tapped cell lights up, then each cell under it in turn, and last the
 // bead: the cell's number reduced mod n is the bead's. A new tap, or the
 // wheel redrawn, starts over.
 // Shapes el as the cell of bead x's wedge in ring k of the wheel g; false
@@ -12122,6 +12122,28 @@ function litWheelCell(g, x, k, el){
   var mid = dirSign() * 360 * c.place[x] / c.m, half = c.m > 1 ? 180 / c.m : 180;
   el.setAttribute('d', annularSectorPath(c.cx, c.cy, c.R0 + k * c.ring, c.R0 + (k + 1) * c.ring, mid - half, mid + half));
   return true;
+}
+// One tap: the cell alone lit, kept so through redraws until the next tap
+// or walk; two on the same cell within 450ms: its walk.
+var lastWheelTap = null;
+function wheelCellTap(x, j){
+  var now = Date.now(), last = lastWheelTap;
+  if (last && last.x === x && last.j === j && now - last.t <= 450){
+    lastWheelTap = null;
+    walkWheelCell(x, j);
+    return;
+  }
+  lastWheelTap = { x: x, j: j, t: now };
+  lightWheelCell(x, j);
+}
+function lightWheelCell(x, j){
+  ++wheelWalk;
+  wheelLit.forEach(function(c){ c.el.remove(); });
+  wheelLit = [];
+  var g = ringSvgEl.querySelector('.ring-wheel'), cell = svgEl('path', { 'class': 'ring-wheel-lit' });
+  if (!g || !litWheelCell(g, x, j, cell)) return;
+  g.insertBefore(cell, g.querySelector('.dhc-wheel-num'));
+  wheelLit.push({ x: x, k: j, el: cell });
 }
 function walkWheelCell(x, j){
   var walk = ++wheelWalk, step = Math.min(260, 2600 / (j + 1)), lit = [];
@@ -18037,9 +18059,10 @@ function endTurn(e){
   var pick = turning.pick;
   turning = null;
   ringSvgEl.classList.remove('is-turning');
-  // A tap on a cell of the congruence wheel walks its number down to its bead.
+  // A tap on a cell of the congruence wheel lights it; a second on the same
+  // cell soon after (a double tap) walks its number down to its bead.
   var cell = tap && pick === null && ringWheelShown(drawn.G) ? ringWheelCellAt(e) : null;
-  if (cell) walkWheelCell(cell.x, cell.j);
+  if (cell) wheelCellTap(cell.x, cell.j);
   var picked = tap && !cell && elementTap(pick);
   if (tap && !picked) beadDoubleTap(pick);
   var steps = -dirSign() * Math.round(swept / (360 / drawn.G.order));
