@@ -1536,10 +1536,9 @@
   /* Ctrl + R: a number to reduce, on the reels' ground (openReduceAsk). */
   .reduce-ask-text{ margin:0; max-width:24em; font-size:1rem; line-height:1.4; text-align:center; color:var(--text); }
   .reduce-ask-row{ display:flex; align-items:center; gap:10px; }
-  .reduce-ask-row > input{ width:9em; padding:6px 10px; font:inherit; font-family:var(--font-mono); color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); }
-  /* Its up and down buttons are the browser's own: drawn dark at night. */
-  :root[data-theme="night"] .reduce-ask-row > input{ color-scheme:dark; }
-  .reduce-ask-row > input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  /* Its up and down buttons are the modulus field's. */
+  .reduce-ask-row .n-spin > input{ width:9em; padding:6px 24px 6px 10px; font:inherit; font-family:var(--font-mono); color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); -moz-appearance:textfield; appearance:textfield; }
+  .reduce-ask-row .n-spin > input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .reduce-ask-hint{ margin:-6px 0 0; max-width:24em; font-size:.85rem; line-height:1.35; text-align:center; color:var(--text-dim); }
   .reduce-ask-hint[hidden]{ display:none; }
   .reduce-ask .ec-reels-note{ margin:0; min-height:1.3em; }
@@ -12287,7 +12286,30 @@ function openReduceAsk(){
     var note = document.createElement('p');
     note.className = 'ec-reels-note';
     note.setAttribute('aria-live', 'polite');
-    row.append(input, go);
+    // The modulus field's spin buttons, the same arrows, held to step again
+    // and again.
+    var box = document.createElement('span'), spin = $('n-input').parentNode.querySelector('.n-spin-btns').cloneNode(true), held = null;
+    box.className = 'n-spin';
+    box.append(input, spin);
+    var stop = function(){ if (held){ clearTimeout(held); held = null; } };
+    var step = function(by){
+      var was = input.value;
+      if (by > 0) input.stepUp(); else input.stepDown();
+      if (input.value !== was) input.dispatchEvent(new Event('input'));
+    };
+    spin.querySelectorAll('.n-spin-btn').forEach(function(btn){
+      var by = parseInt(btn.getAttribute('data-step'), 10);
+      btn.addEventListener('pointerdown', function(e){
+        if (e.button !== 0) return;
+        e.preventDefault();
+        stop();
+        step(by);
+        var again = function(){ step(by); held = setTimeout(again, 60); };
+        held = setTimeout(again, 400);
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ btn.addEventListener(t, stop); });
+    });
+    row.append(box, go);
     card.append(text, row, hint, note);
     reduceAskEl.appendChild(card);
     reduceAsk = { text: text, input: input, go: go, hint: hint, note: note };
