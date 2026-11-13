@@ -132,8 +132,8 @@
    every script, as notation.
    Added in English first since that pass, for the next catch-up
    translation: identityE (the tooltip of the E in E = 0, E = 1 or E = 𝒪
-   after the pyramid, its {einheit} an <i>Einheit</i> node supplied by
-   the page), identityAdd and identityMul (the tooltips of the 0 and the 1
+   after the pyramid, its {e} an italic <i>E</i> node and its {einheit}
+   an <i>Einheit</i> node, both supplied by the page), identityAdd and identityMul (the tooltips of the 0 and the 1
    after E =), and cayleyShort, cayleyTitle, cayleyTitlePairs, cayleyShow,
    cayleyTask, cayleyMerge and cayleySplit (the Cayley table's window, its
    task in the bottom bar and the switch merging two locked rings' tables
@@ -785,7 +785,7 @@
       opKindMul: 'Multiplication',
       opKindEc: 'Elliptic Curve point addition',
       pointAtInfinity: 'Point at infinity',
-      identityE: 'E from German {einheit}',
+      identityE: '{e} from German {einheit}',
       identityAdd: 'Additive identity',
       identityMul: 'Multiplicative identity',
       exprSignOn: 'Write the numbers in their signed form, nearest 0',
