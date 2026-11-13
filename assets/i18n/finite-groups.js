@@ -285,8 +285,9 @@
    button's right-click menu), and
    combineCopy (Copy these formulas, the menu item on the lines under the ring),
    and combineSqmLtr and combineSqmRtl (square and multiply's two ways, in the aᵏ
-   button's right-click menu), and keepRowsSolid (Keep control rows solid,
-   the control rows' right-click menu keeping all three frosted).
+   button's right-click menu), and keepRowsFrosted and keepRowsSolid (Keep
+   control rows frosted and Keep control rows solid, the control rows'
+   right-click menu keeping all three frosted, or all three opaque).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1355,6 +1356,7 @@
       fsetDevViews: 'Views',
       winCtxLabel: 'Window',
       winKeepSolid: 'Keep solid',
+      keepRowsFrosted: 'Keep control rows frosted',
       keepRowsSolid: 'Keep control rows solid',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
