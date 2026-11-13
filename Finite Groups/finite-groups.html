@@ -12123,8 +12123,8 @@ function litWheelCell(g, x, k, el){
   el.setAttribute('d', annularSectorPath(c.cx, c.cy, c.R0 + k * c.ring, c.R0 + (k + 1) * c.ring, mid - half, mid + half));
   return true;
 }
-// One tap: the cell alone lit, kept so through redraws until the next tap
-// or walk; two on the same cell within 450ms: its walk.
+// One tap: the cell alone lit for a moment, then fading as a walk's cells
+// do; two on the same cell within 450ms: its walk.
 var lastWheelTap = null;
 function wheelCellTap(x, j){
   var now = Date.now(), last = lastWheelTap;
@@ -12143,7 +12143,16 @@ function lightWheelCell(x, j){
   var g = ringSvgEl.querySelector('.ring-wheel'), cell = svgEl('path', { 'class': 'ring-wheel-lit' });
   if (!g || !litWheelCell(g, x, j, cell)) return;
   g.insertBefore(cell, g.querySelector('.dhc-wheel-num'));
-  wheelLit.push({ x: x, k: j, el: cell });
+  var lit = { x: x, k: j, el: cell }, walk = wheelWalk;
+  wheelLit.push(lit);
+  setTimeout(function(){
+    if (walk !== wheelWalk) return;
+    lit.el.classList.add('is-out');
+    setTimeout(function(){
+      lit.el.remove();
+      wheelLit = wheelLit.filter(function(c){ return c !== lit; });
+    }, 700);
+  }, 600);
 }
 function walkWheelCell(x, j){
   var walk = ++wheelWalk, step = Math.min(260, 2600 / (j + 1)), lit = [];
