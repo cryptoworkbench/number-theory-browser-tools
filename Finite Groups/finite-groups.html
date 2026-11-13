@@ -2710,6 +2710,10 @@
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot{ --text-dim:var(--text); }
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .group-controls.is-locked #n-input{ color:var(--text-dim-rest); }
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .ord-id{ --ord: var(--pick-id, var(--text-dim-rest)); }
+  /* The ring's close button in the group row's corner lights its cross with
+     the row; the pane's, the holding ring's, while the pane tells it its row
+     is lit (tellCtlHot). */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:has(> .fs-win-row-ctl.is-top-row-hot) > .ring-exit, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:has(> .fs-win-row-ctl.is-top-row-hot) > .iso-pane > .iso-ring-close, .fs-win-body.is-ring > .iso-pane.is-ctl-hot > .iso-pane-head .fs-win-btn{ color:var(--text); }
   /* A locked group's pyramid lights its names with the rest of the row:
      the lock's fade lifts from them while the row frosts. */
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .group-controls.is-locked .op-tri > .op-tri-name{ opacity:1; }
@@ -12775,6 +12779,7 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
   exprSlotEl.classList.toggle('is-side-hot', side);
   body.classList.toggle('is-top-hot', inTopBand(ptX(e), ptY(e)));
   tellGenHot(body.classList.contains('is-top-hot') && !!genRow() && genRow().classList.contains('is-top-row-hot'));
+  tellCtlHot();
   var pr = boxOf(subgroupsPanelEl), pt = pr.top + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-t')) || 0);
   subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && ptX(e) >= pr.left - 8 && ptX(e) <= pr.right + 8 && ptY(e) >= pt && ptY(e) <= pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0));
   var card = ringHeadEl.querySelector('.ring-hover-formula');
@@ -12867,6 +12872,18 @@ function rowsMerged(){
   return IS_ISOPANE ? c.contains('is-pane-merged') : c.contains('is-sub-merged') && !isoPaneEl.hidden;
 }
 var genHotSent = false;
+// The pane's close button is the holding ring's: the pane tells it while
+// its group row frosts over its drawing, which lights the button's cross
+// as the row's own grays light ('ctlhot').
+var ctlHotSent = false;
+function tellCtlHot(){
+  if (!IS_ISOPANE) return;
+  var body = exprSlotEl.parentNode, row = body.querySelector(':scope > .fs-win-row-ctl');
+  var on = body.classList.contains('is-top-hot') && !!row && row.classList.contains('is-top-row-hot') && (ringSvgEl.classList.contains('is-zoomed') || ringSvgEl.classList.contains('has-wheel'));
+  if (on === ctlHotSent) return;
+  ctlHotSent = on;
+  tellHost({ isopane: 'ctlhot', on: on });
+}
 function tellGenHot(on){
   on = on && rowsMerged();
   if (on === genHotSent) return;
@@ -12995,6 +13012,7 @@ exprSlotEl.parentNode.addEventListener('pointerleave', function(){
   exprSlotEl.parentNode.classList.remove('is-top-hot');
   markTopRow(-1);
   tellGenHot(false);
+  tellCtlHot();
   subgroupsPanelEl.classList.remove('is-sub-hot');
   exprSlotEl.parentNode.classList.remove('is-clu-hot');
   exprSlotEl.classList.remove('is-side-hot');
@@ -22843,6 +22861,8 @@ window.addEventListener('message', function(e){
     if (drawn){ syncInterlock(); syncSubExpr(drawn.G); renderSubgroups(drawn.G); }
   } else if (d.isopane === 'menu'){
     setPaneMenuRoom(d.open === true);
+  } else if (d.isopane === 'ctlhot'){
+    isoPaneEl.classList.toggle('is-ctl-hot', d.on === true);
   } else if (d.isopane === 'plotdock'){
     var pd = { on: d.on === true, w: d.on === true && Number.isFinite(d.w) && d.w > 0 && d.w < 4000 ? Math.round(d.w) : 0 };
     if (pd.on !== paneDock.on || (pd.w && pd.w !== paneDock.w)){
