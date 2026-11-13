@@ -1501,7 +1501,8 @@
   #combine-mode.is-out .combine-seg::after{ content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to top right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)), linear-gradient(to bottom right, transparent calc(50% - 0.75px), var(--out-line) calc(50% - 0.75px), var(--out-line) calc(50% + 0.75px), transparent calc(50% + 0.75px)); }
   .combine-k-spin[hidden]{ display:none; }
   /* Beside k, a tiny switch keeping aᵏ's result on top of the ring; while
-     it holds, the rotation speed slider is blurred out and locked. */
+     it holds, the rotation speed slider and its one-step turn arrows are blurred out
+     and locked. */
   .combine-top{ display:inline-grid; place-items:center; width:20px; height:20px; margin-inline-start:2px; padding:0; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text-dim); cursor:pointer; }
   .combine-top[hidden]{ display:none; }
   .combine-top svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
@@ -3163,6 +3164,7 @@
   .spin-step:not(:disabled):hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 14%, transparent); }
   .spin-step:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .spin-step:disabled{ opacity:.35; filter:grayscale(1); cursor:not-allowed; background:none; transform:none; }
+  .spin-step.is-held{ filter:blur(2px); opacity:.45; pointer-events:none; transition:filter .25s ease, opacity .25s ease; }
   .spin-step:not(:disabled):active{ color:var(--accent); background:color-mix(in srgb, var(--accent) 24%, transparent); transform:scale(.88); }
   /* Its knob, double-clicked at rest in the middle, resets the turn as the
      rotation row's Reset does, and its arrows turn one bead; so in the Ring
@@ -18113,8 +18115,8 @@ combineModeBtns.element.addEventListener('click', function(){ setCombineMode('el
 combineModeBtns.scalar.addEventListener('click', function(){ setCombineMode('scalar'); });
 // Keep the result on top: while pressed, aᵏ's result is turned to the top of
 // the ring each time it changes, Keep on top and auto-rotate let go, the
-// rotation speed slider is blurred out and locked, and the one-step turn
-// buttons either side of it (and the Rotation row's) are greyed out. Choosing an end of
+// rotation speed slider and the one-step turn buttons either side of it are
+// blurred out and locked, and the Rotation row's turn buttons are greyed out. Choosing an end of
 // Keep on top or setting the ring spinning elsewhere lets go of it.
 var topResult = false;
 function setTopResult(on){
@@ -18124,6 +18126,7 @@ function setTopResult(on){
   gearboxEl.classList.toggle('is-held', on);
   spinSliderEl.disabled = on;
   ['spin-back', 'spin-fwd', 'rot-back', 'rot-fwd'].forEach(function(id){ $(id).disabled = on; });
+  ['spin-back', 'spin-fwd'].forEach(function(id){ $(id).classList.toggle('is-held', on); });
   if (!on) return;
   setKeepTop('off');
   if (state.autoRotate !== 'off'){
