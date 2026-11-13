@@ -1404,7 +1404,7 @@
       reduceAskLabel: 'Number to reduce',
       reduceAskGo: 'Reduce',
       reduceAskWhole: 'Enter a whole number, 0 or more',
-      reduceAskOut: '{v} reduces to {r} modulo {n}, which is not an element of this group',
+      reduceAskOut: '{v} reduces to {r} modulo {n}, which is not an element of this group!',
       reduceAskPast: '{v} lies on ring {ring} of the congruence wheel, past the {depth} rings it shows here',
       ringWheelNoCurve: 'Only for ℤ/nℤ and its units: a curve\'s points have no residue classes to lay on the wheel',
       pizzaSimplify: 'Simplify',
