@@ -285,11 +285,10 @@
    button's right-click menu), and
    combineCopy (Copy these formulas, the menu item on the lines under the ring),
    and combineSqmLtr and combineSqmRtl (square and multiply's two ways, in the aᵏ
-   button's right-click menu), and keepRowsFrosted and keepRowsSolid (Keep
-   control rows frosted and Keep control rows solid, the control rows'
-   right-click menu keeping all three frosted, or all three opaque), and
+   button's right-click menu), and
    winKeepFrosted (Keep frosted, beside the reused winKeepSolid in the
-   right-click menus of the cards under the ring: the expression slider's,
+   right-click menus of the control rows, keeping all three frosted or all
+   three opaque, and of the cards under the ring: the expression slider's,
    the turning ruler's and the arrow key's).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
@@ -1360,8 +1359,6 @@
       winCtxLabel: 'Window',
       winKeepSolid: 'Keep solid',
       winKeepFrosted: 'Keep frosted',
-      keepRowsFrosted: 'Keep control rows frosted',
-      keepRowsSolid: 'Keep control rows solid',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
       idxLagrangeOff: 'Disable Lagrange\'s notation',
