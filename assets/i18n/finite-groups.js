@@ -142,7 +142,8 @@
    (the lock tying the No hover and On hover sliders, which replaced the
    menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
    ecSortBy (the example curves' table: its curve column, its columns' sort
-   tooltip), idPickLabel (the dropdown after E =), and subExprFollowTitle
+   tooltip), idPickLabel (the dropdown after E =), ringWheelNoCurve (the
+   ring menu's Congruence wheel, greyed out on a curve), and subExprFollowTitle
    (the bottom panel's Follow expression slider button), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
@@ -1395,6 +1396,7 @@
       combineTopResult: 'Keep the result on top',
       ringWheel: 'Congruence wheel',
       ringWheelMod: '% {n}',
+      ringWheelNoCurve: 'Only for ℤ/nℤ and its units: a curve\'s points have no residue classes to lay on the wheel',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
       dhAlice: 'Alice',

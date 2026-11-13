@@ -10654,15 +10654,22 @@ function wheelMark(){
   svg.appendChild(svgEl('circle', { 'class': 'wheel-mark-pivot', cx: 12, cy: 12, r: 1 }));
   return mark;
 }
-// Congruence wheel, ticked while on, above the formula settings
-// (only where the wheel fits the group, see dhcWheelFits).
+// Congruence wheel, ticked while on, above the formula settings; on a
+// curve, where the wheel does not fit the group (see dhcWheelFits), greyed
+// out, its tooltip saying why.
 function syncWheelCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-wheel').forEach(function(el){ el.remove(); });
-  if (!on || !drawn || !dhcWheelFits(drawn.G)) return null;
-  var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.ringWheel'), ringWheelOn, function(){
+  if (!on || !drawn) return null;
+  var fits = dhcWheelFits(drawn.G);
+  var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.ringWheel'), fits && ringWheelOn, function(){
+    if (!fits) return;
     setRingCtx(false);
     toggleRingWheel();
   });
+  if (!fits){
+    tick.setAttribute('aria-disabled', 'true');
+    tick.title = translate('cyclicGroups.ringWheelNoCurve');
+  }
   tick.classList.add('ring-ctx-wheel', 'is-tick-end');
   tick.appendChild(tick.firstChild);
   tick.insertBefore(wheelMark(), tick.firstChild);
