@@ -18070,7 +18070,9 @@ function elementTap(x){
 function syncCombineMode(){
   var scalar = state.combineMode === 'scalar', el = $('combine-mode-element'), sc = $('combine-mode-scalar'), k = $('combine-k');
   var box = $('combine-mode'), name = box.querySelector('.combine-mode-name'), key = 'cyclicGroups.' + (scalar ? 'combineModeLabelScalar' : 'combineModeLabel');
-  box.hidden = IS_ISOPANE;
+  // Locked, the pane combines as the ring holding it does, the switch on
+  // the line between them; let go, each ring has its own.
+  box.hidden = IS_ISOPANE && !paneUnlinked();
   // The data-i18n keys follow the mode, so a language change keeps the right name.
   name.setAttribute('data-i18n', key);
   box.setAttribute('data-i18n-aria-label', key);
@@ -22127,10 +22129,13 @@ function applyIsoShared(d){
   if (flag(d.bare)) state.subBare = d.bare;
   if (flag(d.idxGeneral)) state.idxGeneral = d.idxGeneral;
   if (flag(d.lagrangeOff)) state.lagrangeOff = d.lagrangeOff;
-  if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
-  if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
-  if (typeof d.combineSqm === 'boolean') state.combineSqm = d.combineSqm;
-  if (d.combineSqmWay === 'ltr' || d.combineSqmWay === 'rtl') state.combineSqmWay = d.combineSqmWay;
+  // Let go, the pane keeps its own way of combining (its own switch).
+  if (!paneUnlinked()){
+    if (d.combineMode === 'element' || d.combineMode === 'scalar') state.combineMode = d.combineMode;
+    if (Number.isInteger(d.combineK) && Math.abs(d.combineK) <= COMBO_K_MAX) state.combineK = d.combineK;
+    if (typeof d.combineSqm === 'boolean') state.combineSqm = d.combineSqm;
+    if (d.combineSqmWay === 'ltr' || d.combineSqmWay === 'rtl') state.combineSqmWay = d.combineSqmWay;
+  }
   syncCombineMode();
   syncFormulaCtl();
   subFormulaRingEl.value = state.subFormulaRing;
