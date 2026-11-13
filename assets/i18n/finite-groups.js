@@ -144,7 +144,7 @@
    ecSortBy (the example curves' table: its curve column, its columns' sort
    tooltip), idPickLabel (the dropdown after E =), ringWheelNoCurve (the
    ring menu's Congruence wheel, greyed out on a curve), reduceAsk,
-   reduceAskModular, reduceAskLabel, reduceAskGo, reduceAskWhole,
+   reduceAskCoprime, reduceAskLabel, reduceAskGo, reduceAskWhole,
    reduceAskOut and reduceAskPast (the Ctrl + R overlay reducing a number
    on the congruence wheel), and subExprFollowTitle
    (the bottom panel's Follow expression slider button), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
@@ -1399,8 +1399,8 @@
       combineTopResult: 'Keep the result on top',
       ringWheel: 'Congruence wheel',
       ringWheelMod: '% {n}',
-      reduceAsk: 'Reduce a number in this specific, {modular} arithmetic system:',
-      reduceAskModular: 'modular',
+      reduceAsk: 'Reduce a number in this specific modular arithmetic system:',
+      reduceAskCoprime: 'Only numbers coprime to the modulus \'%\' (currently {n}) exist on this congruence wheel!',
       reduceAskLabel: 'Number to reduce',
       reduceAskGo: 'Reduce',
       reduceAskWhole: 'Enter a whole number, 0 or more',
