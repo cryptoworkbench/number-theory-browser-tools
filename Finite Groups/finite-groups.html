@@ -2901,9 +2901,11 @@
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#combine-key.combine-key, #spin-ruler.is-own-card, .genexp-info).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Over the congruence wheel, which always lies under them, the turning
      ruler's own card and the arrow key's card behave as they do zoomed:
-     the faint ground and edge at rest, the frost under the pointer. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:inset 0 0 0 1px var(--panel-border); border-radius:var(--radius-card); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+     the faint ground and edge at rest, the frost under the pointer. So do
+     they over the pane's wheel, where they reach into its frame
+     (is-pane-wheel, from the pane's reach). */
+  .fs-win-body.is-ring:is(:has(> svg.ring-svg.has-wheel), .is-pane-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:inset 0 0 0 1px var(--panel-border); border-radius:var(--radius-card); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(:has(> svg.ring-svg.has-wheel), .is-pane-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* The element expression table's card is a banner too, as the colour
      key's is: from the window's one edge to the other, its ground and its
      top and bottom edges on a layer of its own, the frost under the
@@ -12701,11 +12703,12 @@ function onBox(a, r){ return !!a && !!r && !!r.width && r.left < a.right && r.ri
 // combination written under it. Beside a pane they may lie over the pane's
 // drawing or combination too, within the pane's frame: the pane tells
 // both in its own frame (paneReach, paneText).
-var paneReach = null, paneText = null, paneReachSent = null;
+// Its congruence wheel (paneWheel) lies under everything within its frame.
+var paneReach = null, paneText = null, paneReachSent = null, paneWheel = false;
 function syncRingOverlap(){
   var own = ringReach(), text = combineTextBox(), body = exprSlotEl.parentNode, key = $('combine-key');
   var pane = null, ptext = null, fr = null;
-  if (!IS_ISOPANE && (paneReach || paneText) && isoPaneFrame && !isoPaneEl.hidden){
+  if (!IS_ISOPANE && (paneReach || paneText || paneWheel) && isoPaneFrame && !isoPaneEl.hidden){
     fr = boxOf(isoPaneFrame);
     var ox = fr.left + isoPaneFrame.clientLeft, oy = fr.top + isoPaneFrame.clientTop;
     if (fr.width && paneReach) pane = { x: ox + paneReach.x, y: oy + paneReach.y, r: paneReach.r };
@@ -12716,14 +12719,15 @@ function syncRingOverlap(){
     return rt > l && b > t ? { left: l, top: t, right: rt, bottom: b, width: rt - l } : null;
   };
   if (IS_ISOPANE){
-    var sent = (own ? [own.x, own.y, own.r] : []).concat(text ? [text.left, text.top, text.right, text.bottom] : []).map(function(v){ return Math.round(v); }).join(',') + (text ? 't' : '');
-    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: own ? { x: own.x, y: own.y, r: own.r } : null, text: text }); }
+    var hasWheel = ringSvgEl.classList.contains('has-wheel');
+    var sent = (own ? [own.x, own.y, own.r] : []).concat(text ? [text.left, text.top, text.right, text.bottom] : []).map(function(v){ return Math.round(v); }).join(',') + (text ? 't' : '') + (hasWheel ? 'w' : '');
+    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: own ? { x: own.x, y: own.y, r: own.r } : null, text: text, wheel: hasWheel }); }
   }
   var over = function(r){
     if (onReach(own, r) || onBox(text, r)) return true;
     if (!fr) return false;
     var c = inPane(r);
-    return (!!pane && onReach(pane, c)) || onBox(ptext, c);
+    return (paneWheel && !!c) || (!!pane && onReach(pane, c)) || onBox(ptext, c);
   };
   // The main-view formula card lies over the congruence wheel wherever it is.
   var card = ringHeadEl.querySelector('.ring-hover-formula');
@@ -21109,6 +21113,8 @@ function closeIsoPane(){
   isoPaneFrame = null;
   paneDock = { on: false, w: 0 };
   paneReach = paneText = null;
+  paneWheel = false;
+  exprSlotEl.parentNode.classList.remove('is-pane-wheel');
   isoPane = null;
   dirPaneAxis = null;
   paneZoom = RING_ZOOM_FIT;
@@ -23098,6 +23104,8 @@ window.addEventListener('message', function(e){
     paneReach = pr && [pr.x, pr.y, pr.r].every(Number.isFinite) ? { x: pr.x, y: pr.y, r: pr.r } : null;
     var pt = d.text;
     paneText = pt && [pt.left, pt.top, pt.right, pt.bottom].every(Number.isFinite) ? { left: pt.left, top: pt.top, right: pt.right, bottom: pt.bottom } : null;
+    paneWheel = d.wheel === true;
+    exprSlotEl.parentNode.classList.toggle('is-pane-wheel', paneWheel);
     syncRingOverlap();
   } else if (d.isopane === 'head'){
     heardHead(d.h);
