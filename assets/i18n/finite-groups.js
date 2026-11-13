@@ -1393,7 +1393,7 @@
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
       combineTopResult: 'Keep the result on top',
-      ringWheel: 'Congruence wheel background',
+      ringWheel: 'Congruence wheel',
       ringWheelMod: '% {n}',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
