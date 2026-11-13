@@ -1520,6 +1520,13 @@
   .ec-reels-sum.is-bad > .is-n{ color:var(--role-warn); }
   .ec-reels-note{ margin:-8px 0 0; max-width:24em; min-height:2.6em; font-size:.8rem; line-height:1.3; text-align:center; color:var(--text-dim); }
   .ec-reels-sum.is-bad + .ec-reels-note{ color:var(--role-warn); }
+  /* Ctrl + R: a number to reduce, on the reels' ground (openReduceAsk). */
+  .reduce-ask-text{ margin:0; max-width:24em; font-size:1rem; line-height:1.4; text-align:center; color:var(--text); }
+  .reduce-ask-row{ display:flex; align-items:center; gap:10px; }
+  .reduce-ask-row > input{ width:9em; padding:6px 10px; font:inherit; font-family:var(--font-mono); color:var(--text); background:var(--bg-1); border:1px solid var(--panel-border-strong); border-radius:var(--radius-ctl); }
+  .reduce-ask-row > input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .reduce-ask .ec-reels-note{ margin:0; min-height:1.3em; }
+  .reduce-ask .ec-reels-note.is-bad{ color:var(--role-warn); }
   .ec-reel.is-narrow{ width:96px; }
   .ec-reel.is-off{ opacity:.35; }
   .ec-reels-row{ gap:14px; }
@@ -12143,6 +12150,97 @@ function walkWheelCell(x, j){
   };
   light(j);
 }
+
+// Ctrl + R asks for a number to reduce in this ring's modular arithmetic:
+// Reduce lights its cell of the congruence wheel and walks it down to its
+// bead, as a tap on that cell does, turning the wheel on if it is off. A
+// number whose residue is not in the group, or whose cell lies past the
+// rings the wheel shows, is told under the field instead.
+var reduceAskEl = null, reduceAsk = null, reduceAskReturn = null;
+function openReduceAsk(){
+  if (!reduceAskEl){
+    reduceAskEl = document.createElement('div');
+    reduceAskEl.className = 'ec-reels reduce-ask';
+    reduceAskEl.hidden = true;
+    var card = document.createElement('div');
+    card.className = 'ec-reels-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    var text = document.createElement('p');
+    text.className = 'reduce-ask-text';
+    text.id = 'reduce-ask-text';
+    card.setAttribute('aria-labelledby', text.id);
+    var row = document.createElement('div');
+    row.className = 'reduce-ask-row';
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.step = '1';
+    var go = document.createElement('button');
+    go.type = 'button';
+    go.className = 'action-btn';
+    go.addEventListener('click', runReduceAsk);
+    var note = document.createElement('p');
+    note.className = 'ec-reels-note';
+    note.setAttribute('aria-live', 'polite');
+    row.append(input, go);
+    card.append(text, row, note);
+    reduceAskEl.appendChild(card);
+    reduceAsk = { text: text, input: input, go: go, note: note };
+    input.addEventListener('input', function(){ setReduceNote(null); });
+    reduceAskEl.addEventListener('pointerdown', function(e){ if (e.target === reduceAskEl) closeReduceAsk(); });
+    reduceAskEl.addEventListener('keydown', function(e){
+      if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeReduceAsk(); }
+      else if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); runReduceAsk(); }
+      // The focus stays between the field and the button.
+      else if (e.key === 'Tab'){ e.preventDefault(); (document.activeElement === input ? go : input).focus(); }
+    });
+  }
+  var word = document.createElement('i');
+  word.textContent = translate('cyclicGroups.reduceAskModular');
+  translateInto(reduceAsk.text, 'cyclicGroups.reduceAsk', { modular: word });
+  reduceAsk.input.setAttribute('aria-label', translate('cyclicGroups.reduceAskLabel'));
+  reduceAsk.go.textContent = translate('cyclicGroups.reduceAskGo');
+  setReduceNote(drawn && !dhcWheelFits(drawn.G) ? { key: 'cyclicGroups.ringWheelNoCurve' } : null);
+  var host = document.fullscreenElement || document.body;
+  if (reduceAskEl.parentNode !== host) host.appendChild(reduceAskEl);
+  if (reduceAskEl.hidden) reduceAskReturn = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  reduceAskEl.hidden = false;
+  reduceAsk.input.focus({ preventScroll: true });
+  reduceAsk.input.select();
+}
+function closeReduceAsk(){
+  if (!reduceAskEl || reduceAskEl.hidden) return;
+  reduceAskEl.hidden = true;
+  if (reduceAskReturn && reduceAskReturn.isConnected) reduceAskReturn.focus({ preventScroll: true });
+  reduceAskReturn = null;
+}
+function setReduceNote(n){
+  reduceAsk.note.classList.toggle('is-bad', !!n);
+  if (n) reduceAsk.note.textContent = translate(n.key, n.params);
+  else reduceAsk.note.textContent = '';
+}
+function runReduceAsk(){
+  var G = drawn && drawn.G, raw = reduceAsk.input.value.trim();
+  if (!G) return;
+  if (!dhcWheelFits(G)){ setReduceNote({ key: 'cyclicGroups.ringWheelNoCurve' }); return; }
+  if (!/^\d+$/.test(raw) || !Number.isSafeInteger(+raw)){ setReduceNote({ key: 'cyclicGroups.reduceAskWhole' }); return; }
+  var v = +raw, r = v % G.n, j = (v - r) / G.n;
+  if (G.els.indexOf(r) === -1){ setReduceNote({ key: 'cyclicGroups.reduceAskOut', params: { v: v, r: r, n: G.n } }); return; }
+  if (!ringWheelOn) toggleRingWheel();
+  if (!ringWheelShown(G)) return;
+  if (j >= ringWheelDepth){ setReduceNote({ key: 'cyclicGroups.reduceAskPast', params: { v: v, ring: j + 1, depth: ringWheelDepth } }); return; }
+  closeReduceAsk();
+  walkWheelCell(r, j);
+}
+// Ctrl + R (Cmd + R on a Mac) opens it in place of reloading the page,
+// once the ring is up; on the intro it reloads as ever.
+window.addEventListener('keydown', function(e){
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || e.code !== 'KeyR') return;
+  if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
+  e.preventDefault();
+  openReduceAsk();
+});
 
 // The ring's zoom, a step along RING_ZOOMS, from the corner's zoom pill
 // (its − and +, its slider, and the scroll wheel over the ring while its

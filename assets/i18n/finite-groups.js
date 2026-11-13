@@ -143,7 +143,10 @@
    menu's Disable reveal on hover, menuRevealOff), and ecColCurve and
    ecSortBy (the example curves' table: its curve column, its columns' sort
    tooltip), idPickLabel (the dropdown after E =), ringWheelNoCurve (the
-   ring menu's Congruence wheel, greyed out on a curve), and subExprFollowTitle
+   ring menu's Congruence wheel, greyed out on a curve), reduceAsk,
+   reduceAskModular, reduceAskLabel, reduceAskGo, reduceAskWhole,
+   reduceAskOut and reduceAskPast (the Ctrl + R overlay reducing a number
+   on the congruence wheel), and subExprFollowTitle
    (the bottom panel's Follow expression slider button), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
    dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
@@ -1396,6 +1399,13 @@
       combineTopResult: 'Keep the result on top',
       ringWheel: 'Congruence wheel',
       ringWheelMod: '% {n}',
+      reduceAsk: 'Reduce a number in this specific, {modular} arithmetic system:',
+      reduceAskModular: 'modular',
+      reduceAskLabel: 'Number to reduce',
+      reduceAskGo: 'Reduce',
+      reduceAskWhole: 'Enter a whole number, 0 or more',
+      reduceAskOut: '{v} reduces to {r} modulo {n}, which is not an element of this group',
+      reduceAskPast: '{v} lies on ring {ring} of the congruence wheel, past the {depth} rings it shows here',
       ringWheelNoCurve: 'Only for ℤ/nℤ and its units: a curve\'s points have no residue classes to lay on the wheel',
       pizzaSimplify: 'Simplify',
       cosetStepBack: 'Step back',
