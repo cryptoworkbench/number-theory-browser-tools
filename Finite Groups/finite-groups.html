@@ -841,7 +841,8 @@
   .akey-ctl{ flex:none; display:flex; align-items:center; gap:2px; margin-inline-start:auto; }
   .akey-side{ font:inherit; font-family:var(--font-sans); font-size:.78rem; padding:0 4px; height:20px; color:var(--text-dim); background:transparent; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); cursor:pointer; }
   .akey-side:hover{ color:var(--text); }
-  .akey-side:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  /* Like the modulus field, it never draws the focus outline. */
+  .akey-side:is(:focus, :focus-visible){ outline:none; box-shadow:none; }
   .akey-side option{ color:var(--text); background:var(--bg-1); }
   .akey-side[hidden]{ display:none; }
   /* A line's power box, raised after the selected element like an
@@ -7380,15 +7381,6 @@ function fullscreenEl(){ return document.fullscreenElement || document.webkitFul
 // Whether the ring's body fills the diagram: always on the page, and in full screen.
 function desktopOn(){ return IS_DESKTOP || fullscreenEl() === diagramFrameEl; }
 function onFullscreenChange(){
-  // In full screen the page may have the W key to itself, so Ctrl + W
-  // toggles the congruence wheel there instead of closing the tab (see
-  // toggleRingWheel); the browser lets go of it again on leaving.
-  if (fullscreenEl() && navigator.keyboard && navigator.keyboard.lock){
-    try {
-      var held = navigator.keyboard.lock(['KeyW']);
-      if (held && held.catch) held.catch(function(){ /* not granted: Ctrl + W closes the tab as ever */ });
-    } catch (e) { /* not granted: Ctrl + W closes the tab as ever */ }
-  }
   syncPanes();
   syncHeadSwitches();
   if (drawn && !IS_PREVIEW) drawMath(drawn.G, lastSubs);
@@ -12409,8 +12401,28 @@ function toggleRingWheel(){
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
 // Ctrl + W (Cmd + W on a Mac) turns the wheel on and off, once the ring is
-// up and where the browser hands the keys over (in full screen, see
-// onFullscreenChange); on a curve, where it does not fit, it does nothing.
+// up and where the browser hands the keys over: in full screen, the page
+// takes the W key for itself only while Ctrl (or Cmd) is held, so Ctrl + W
+// toggles the wheel there instead of closing the tab, while a key lock
+// held all along would have the browser ask for Esc held down to leave
+// full screen, not pressed. On a curve, where it does not fit, it does
+// nothing.
+function holdKeyW(on){
+  var kb = navigator.keyboard;
+  if (!kb || !kb.lock) return;
+  try {
+    if (!on){ kb.unlock(); return; }
+    var held = kb.lock(['KeyW']);
+    if (held && held.catch) held.catch(function(){ /* not granted: Ctrl + W closes the tab as ever */ });
+  } catch (e) { /* not granted: Ctrl + W closes the tab as ever */ }
+}
+window.addEventListener('keydown', function(e){
+  if ((e.key === 'Control' || e.key === 'Meta') && !e.repeat && fullscreenEl()) holdKeyW(true);
+}, true);
+window.addEventListener('keyup', function(e){
+  if (e.key === 'Control' || e.key === 'Meta') holdKeyW(false);
+}, true);
+window.addEventListener('blur', function(){ holdKeyW(false); });
 window.addEventListener('keydown', function(e){
   if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || e.code !== 'KeyW') return;
   if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
