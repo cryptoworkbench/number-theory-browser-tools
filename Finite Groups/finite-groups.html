@@ -2768,6 +2768,11 @@
   /* Beside a pane the two rings meet at the middle line. */
   .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -7px -100vh -100vw); }
   :root.is-isopane .fs-win-body.is-ring.ringwin-body > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -100vw -100vh -6px); }
+  /* A menu open in the pane lifts its frame over the subgroups panel: the
+     ring's drawing stops at the panel's top meanwhile (--menu-cut, from
+     tellPaneMenu). */
+  :root.is-isopane.is-pane-menu .fs-win-body.is-ring.ringwin-body > svg.ring-svg{ clip-path:inset(-100vh -100vw var(--menu-cut, 0px) -100vw); }
+  :root.is-isopane.is-pane-menu .fs-win-body.is-ring.ringwin-body > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -100vw var(--menu-cut, 0px) -6px); }
   /* Frosted glass over the part grown behind the rows: the rows' band
      blurs and softens the ring beneath it, the rows' own controls sharp on
      top. Drawn after the ring at its depth, so before the rows. Beside a
@@ -25289,6 +25294,14 @@ if (IS_ISOPANE){
     if (open === paneMenuOpen) return;
     paneMenuOpen = open;
     if (open) pinPaneBody(true);
+    // The frame now lies over the subgroups panel too: the ring's drawing
+    // (the congruence wheel, a zoomed ring) stops at the panel's top, so
+    // only the menu reaches over it.
+    if (open){
+      var mb = ringSvgEl.parentNode, line = boxOf(mb).bottom - (parseFloat(getComputedStyle(mb).paddingBottom) || 0);
+      ringSvgEl.style.setProperty('--menu-cut', (boxOf(ringSvgEl).bottom - line) + 'px');
+    }
+    document.documentElement.classList.toggle('is-pane-menu', open);
     tellHost({ isopane: 'menu', open: open });
   };
   window.addEventListener('resize', function(){ if (!ringCtxEl.hidden) placeRingCtx(); });
