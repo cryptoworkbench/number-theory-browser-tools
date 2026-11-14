@@ -2886,6 +2886,10 @@
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .split-btn:not([aria-pressed="true"]).is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .split-btn:not([aria-pressed="true"]).is-on-ring:is(:hover, :focus-visible), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring:is(:hover, :focus-visible),
   .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > .split-btn:not([aria-pressed="true"]).is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* Inside the middle card, while the card shows, the chevron has no
+     ground, edge or frost of its own: the card's are its (is-in-card,
+     from hugBottomCluster). */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring > #split-btn.is-in-card:not([aria-pressed="true"]){ background:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
   .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
   /* The bead colour key, while it lies over a ring's drawing, stands on a
      card, as the arrow key does: the panel's ground (zoomed, the faint
@@ -12989,7 +12993,8 @@ function hugBottomCluster(){
     if (slider && mid >= lo && mid <= hi){ rs.push(r); return false; }
     return true;
   }
-  if (seen(splitBtnEl)) under(splitBtnEl);
+  // Taken into the card, the chevron sheds its own ground and edge.
+  splitBtnEl.classList.toggle('is-in-card', !!seen(splitBtnEl) && !under(splitBtnEl));
   spinRulerEl.classList.toggle('is-own-card', seen(spinRulerEl) && under(spinRulerEl));
   if (!rs.length){ body.style.setProperty('--clu-w', '0px'); syncRingOverlap(); return; }
   var b = boxOf(body), u = rs.reduce(function(a, r){
