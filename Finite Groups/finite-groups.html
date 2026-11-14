@@ -12398,7 +12398,7 @@ window.addEventListener('keydown', function(e){
 // Ctrl + H again, turns it off. The height (ringLift, in the drawing's
 // units, up positive) shifts the view, so it holds through every redraw.
 var liftMode = false, liftDrag = null;
-var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10;
+var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10, LIFT_AXIS_PAST = 60;
 function setRingLift(v){
   v = Math.max(-RING_LIFT_MAX, Math.min(RING_LIFT_MAX, v));
   var d = v - ringLift;
@@ -12412,8 +12412,9 @@ function setRingLift(v){
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
   syncLiftUi();
 }
-// The axis runs through the centre from the drawing's top edge to its
-// bottom; the bar sits on it, at the top.
+// The axis is drawn with the ring, through its centre and a little past
+// its outer reach, so it moves with the ring; the bar sits on the axis at
+// the top of the drawing.
 var liftAxisEl = $('lift-axis'), liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
 function syncLiftUi(){
   if (!liftMode) return;
@@ -12421,11 +12422,11 @@ function syncLiftUi(){
   liftResetEl.disabled = ringLift === 0;
   var ctm = ringSvgEl.getScreenCTM();
   if (!ctm || !ctm.d) return;
-  var r = boxOf(ringSvgEl), body = liftBarEl.offsetParent, x = ringBox().cx;
+  var r = boxOf(ringSvgEl), body = liftBarEl.offsetParent, box = ringBox(), x = box.cx;
   liftAxisEl.setAttribute('x1', num(x));
   liftAxisEl.setAttribute('x2', num(x));
-  liftAxisEl.setAttribute('y1', num((r.top - ctm.f) / ctm.d));
-  liftAxisEl.setAttribute('y2', num((r.bottom - ctm.f) / ctm.d));
+  liftAxisEl.setAttribute('y1', num(box.cy - box.R - LIFT_AXIS_PAST));
+  liftAxisEl.setAttribute('y2', num(box.cy + box.R + LIFT_AXIS_PAST));
   if (!body) return;
   var b = boxOf(body);
   liftBarEl.style.left = num(ctm.e + ctm.a * x - b.left + body.scrollLeft) + 'px';
