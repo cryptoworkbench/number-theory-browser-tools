@@ -289,8 +289,9 @@
    winKeepFrosted (Keep frosted, beside the reused winKeepSolid in the
    right-click menus of the control rows, keeping all three frosted or all
    three opaque, and of the cards under the ring: the expression slider's,
-   the turning ruler's and the arrow key's), and liftModeHint and liftReset
-   (the bar over the ring in Ctrl + H's height mode, and its Reset).
+   the turning ruler's and the arrow key's), and liftMenu, liftModeHint and
+   liftReset (Change height, in the ring's right-click menu, and the bar
+   over the ring in the height mode it turns on, with its Reset).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1360,6 +1361,7 @@
       winCtxLabel: 'Window',
       winKeepSolid: 'Keep solid',
       winKeepFrosted: 'Keep frosted',
+      liftMenu: 'Change height',
       liftModeHint: 'Height mode: drag the ring up or down',
       liftReset: 'Reset',
       barSwapCols: 'Swap the choices in the Size and Index columns',

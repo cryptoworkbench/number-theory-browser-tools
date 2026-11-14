@@ -135,7 +135,7 @@
   svg.ring-svg{ width:100%; height:auto; display:block; overflow:visible; }
   /* The necklace turns under a drag, one bead at a time. */
   svg.ring-svg{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
-  /* Ctrl + H's height mode: a drag over the ring moves its centre up or down. */
+  /* The height mode (Change height): a drag over the ring moves its centre up or down. */
   :root.is-lift-mode svg.ring-svg, :root.is-lift-mode svg.ring-svg *{ cursor:ns-resize; }
   /* While it is on, a dotted line marks the axis the centre moves along,
      and a bar over the ring names the mode, with its Reset. */
@@ -3930,7 +3930,7 @@ var genSwitchEl = $('gen-switch');
 var genBeadsEl = $('gen-beads');
 var genCtlsEl = document.querySelector('.gen-ctls');
 var ringSvgEl = $('ring-svg');
-// How far the ring's centre is lifted (Ctrl + H's height mode, below).
+// How far the ring's centre is lifted (the height mode, Change height, below).
 var ringLift = 0;
 var ringDynamicEl = $('ring-dynamic');
 var diagramFrameEl = $('diagram-frame');
@@ -7346,6 +7346,8 @@ var RING_CTX_ITEMS = [
   // The fixed logarithm's window, on either ring, ticked while it
   // is on (open, or minimized to the taskbar).
   { key: 'cyclicGroups.flogMenu', icon: '\u33d2', on: function(){ return flogOn; }, run: function(){ openFlog(); } },
+  // The height mode (see setLiftMode), ticked while it is on.
+  { key: 'cyclicGroups.liftMenu', icon: '\u21d5', on: function(){ return liftMode; }, run: function(){ setLiftMode(!liftMode); } },
   { head: 'cyclicGroups.fsExport', key: 'cyclicGroups.exportPng', icon: '⤓', run: function(){ exportBtnEl.click(); } }
 ];
 var ringCtxEl = $('ring-ctx');
@@ -12396,9 +12398,9 @@ window.addEventListener('keydown', function(e){
 });
 
 /* ---------- Ring height mode ---------- */
-// Ctrl + H turns on a mode in which the ring's centre moves up and down:
-// dragged over the ring, or with the up and down arrow keys. Esc, or
-// Ctrl + H again, turns it off. The height (ringLift, in the drawing's
+// Change height, in the ring's right-click menu, turns on a mode in which
+// the ring's centre moves up and down: dragged over the ring, or with the
+// up and down arrow keys. Esc, or the menu item again, turns it off. The height (ringLift, in the drawing's
 // units, up positive) shifts the view, so it holds through every redraw.
 var liftMode = false, liftDrag = null;
 var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10, LIFT_AXIS_PAST = 60;
@@ -12483,13 +12485,10 @@ window.addEventListener('keydown', function(e){
       return;
     }
   }
-  if (!e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.code !== 'KeyH') return;
-  if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
-  e.preventDefault();
-  setLiftMode(!liftMode);
 }, true);
 // In the mode a drag over the ring lifts it instead of turning it, and a
-// click there picks nothing.
+// click there picks nothing; a right-click still opens the ring's menu,
+// whose Change height turns the mode off.
 window.addEventListener('pointerdown', function(e){
   if (!liftMode || e.button !== 0 || !ringSvgEl.contains(e.target)) return;
   e.preventDefault();
@@ -12508,7 +12507,7 @@ window.addEventListener('pointermove', function(e){
     if (liftDrag && e.pointerId === liftDrag.id) liftDrag = null;
   }, true);
 });
-['click', 'dblclick', 'contextmenu'].forEach(function(type){
+['click', 'dblclick'].forEach(function(type){
   window.addEventListener(type, function(e){
     if (!liftMode || !ringSvgEl.contains(e.target)) return;
     e.preventDefault();
