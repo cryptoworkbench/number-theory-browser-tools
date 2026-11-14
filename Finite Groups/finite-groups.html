@@ -10926,14 +10926,8 @@ var paneSwaps = [], paneOthers = [];
 // whole groups are locked.
 function swapChips(){
   if (IS_ISOPANE ? isoBlank : hostBlank()) return [];
-  var chips = Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'));
-  if (IS_ISOPANE || !isoLinked() || !isoWholeMatch()) return chips;
-  var p = new URLSearchParams(isoPane.q), curve = p.get('curve');
-  return chips.filter(function(a){
-    var c = a.getAttribute('data-iso-curve');
-    if (c || curve) return c !== curve;
-    return a.getAttribute('data-iso-mode') !== p.get('mode') || a.getAttribute('data-iso-n') !== p.get('n');
-  });
+  // Every group isomorphic to G, the one open in the other pane included.
+  return Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'));
 }
 function swapSpec(a){
   return { mode: a.getAttribute('data-iso-mode'), n: +a.getAttribute('data-iso-n'), curve: a.getAttribute('data-iso-curve'), label: a.getAttribute('data-iso-label') };
@@ -10964,8 +10958,13 @@ function paneOtherList(){
   if (!H || groupsAlike(drawn.G, H)) return [];
   return [groupSpec(drawn.G)].concat(Array.prototype.map.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'), swapSpec));
 }
-// The list the pane offers: only while the two whole groups are locked.
-function paneSwapList(){ return isoLinked() && isoWholeMatch() ? swapChips().map(swapSpec) : []; }
+// The list the pane offers: only while the two whole groups are locked,
+// every group isomorphic to the pane's, this ring's own included (the
+// list paneSwapChip takes the pick from).
+function paneSwapList(){
+  var H = isoLinked() && isoWholeMatch() && !hostBlank() ? isoPaneGroup() : null;
+  return H ? wholeIsoChips(H).map(swapSpec) : [];
+}
 function swapChipOf(spec){
   return swapChips().find(function(a){
     var s = swapSpec(a);
