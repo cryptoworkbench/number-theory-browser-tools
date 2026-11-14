@@ -12416,11 +12416,12 @@ if (typeof ResizeObserver === 'function' && !IS_PREVIEW){
   var wheelRefit = 0;
   new ResizeObserver(function(){
     cancelAnimationFrame(wheelRefit);
-    wheelRefit = requestAnimationFrame(function(){
-      var g = ringSvgEl.querySelector('.ring-wheel');
-      if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
-    });
+    wheelRefit = requestAnimationFrame(refitShownWheel);
   }).observe(ringSvgEl);
+}
+function refitShownWheel(){
+  var g = ringSvgEl.querySelector('.ring-wheel');
+  if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
 }
 
 // Congruence wheel (the main area's menu): the Equivalence Wheel
@@ -12537,9 +12538,10 @@ function ringWheelFill(box, beadR, m){
   // the window's bottom bar (or the window's foot, where it has none).
   var bar = $('ring-bar'), bb = bar && bar.offsetParent ? boxOf(bar) : null;
   var bottom = bb && bb.height ? bb.top : boxOf(ringSvgEl.parentNode).bottom;
-  // In the pane, the holding ring's subgroups panel lies over the body's
-  // foot, its padding: the wheel stops at the panel's top.
-  if (IS_ISOPANE && !(bb && bb.height)) bottom -= parseFloat(getComputedStyle(ringSvgEl.parentNode).paddingBottom) || 0;
+  // In the pane, while the holding ring's split is open, its subgroups
+  // panel lies over the body's foot, its padding: the wheel stops at the
+  // panel's top. Otherwise it runs on down behind the rows there.
+  if (IS_ISOPANE && hostSplitOn && !(bb && bb.height)) bottom -= parseFloat(getComputedStyle(ringSvgEl.parentNode).paddingBottom) || 0;
   // Sideways it reaches the window's edges, or the pane beside the ring,
   // and upward the window's top, under the rows of controls.
   var body = boxOf(ringSvgEl.parentNode), left = Math.min(r.left, body.left), right = Math.max(r.right, body.right), top = Math.min(r.top, body.top);
@@ -22836,6 +22838,7 @@ function applyIsoShared(d){
   if (flag(d.split) && d.split !== hostSplitOn){
     hostSplitOn = d.split;
     syncExprSide();
+    refitShownWheel();
     if (isoInterlockOn){
       splitTakesPlot(hostSplitOn);
       syncSplit();
