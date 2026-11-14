@@ -7381,7 +7381,7 @@ if (IS_DESKTOP){
 
 // What must not travel between rings: the preview and embed switches, and
 // the theme, language and sharing the pane takes from its page.
-var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin', 'dh'];
+var RING_DROP = ['preview', 'theme', 'lang', 'noshare', 'ringwin', 'isopane', 'isogen', 'isosub', 'isoblank', 'plotmin', 'dh', 'iso', 'isoq', 'grouplock'];
 function cleanRingQuery(q){
   var p = new URLSearchParams(q);
   RING_DROP.forEach(function(k){ p.delete(k); });
@@ -12204,13 +12204,18 @@ if (typeof ResizeObserver === 'function' && !IS_PREVIEW){
 // beads, and each wedge follows its bead to a new place when they
 // rearrange. Only for ℤ/nℤ and its units, not a curve's points.
 var RING_WHEEL_KEY = 'cyclic-groups-ring-wheel';
-var ringWheelOn = (function(){ try { return localStorage.getItem(RING_WHEEL_KEY) === '1'; } catch (e) { return false; } })();
+// A link's wheel=1 or wheel=0 says it for this load, ahead of storage.
+var ringWheelOn = (function(){
+  var w = new URLSearchParams(location.search).get('wheel');
+  if (w === '1' || w === '0') return w === '1';
+  try { return localStorage.getItem(RING_WHEEL_KEY) === '1'; } catch (e) { return false; }
+})();
 var ringWheelDepth = 6, ringWheelClip = null;
 function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G); }
 function toggleRingWheel(){
   ringWheelOn = !ringWheelOn;
   try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
-  if (drawn) redrawRing();
+  if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
 // The main area in the ring's own units (ringWheelClip), and rings enough to
 // reach its farthest corner from the ring's centre, capped so the numbers
@@ -12663,7 +12668,11 @@ function setRingLift(v){
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
   syncLiftUi();
   tellLift();
+  // The address takes the height once a drag or the keys rest a moment.
+  clearTimeout(liftUrlWait);
+  liftUrlWait = setTimeout(function(){ if (drawn) mirrorToUrl(drawn.G); }, 250);
 }
+var liftUrlWait = null;
 // Dotted lines: the axis, through the ring's centre and past the window's
 // top and bottom edges, and a short arm across it at the centre,
 // a '+' that moves with the ring; and, from the window's one side to the
@@ -21338,6 +21347,11 @@ function isoHref(mode, n, gen, curve){
   q.delete('ringwin');
   q.delete('isopane');
   q.delete('isogen');
+  q.delete('iso');
+  q.delete('isoq');
+  // A new tab or pane starts with its own group's view.
+  q.delete('zoom');
+  q.delete('lift');
   // A new tab or pane starts from its own group's default base.
   q.delete('logbase');
   q.delete('logbaser');
@@ -21614,6 +21628,7 @@ function loadIsoFrame(){
   isoPaneFrame = f;
   isoPane.parent = isoPaneEl.parentNode;
   syncIsoPaneLabels();
+  mirrorPaneToUrl();
 }
 // The pane's plots hanging over its foot: its frame goes over the rows
 // there, cut to what lies above its foot (line) and to those plots.
@@ -21663,6 +21678,7 @@ function closeIsoPane(){
   isoPane = null;
   dirPaneAxis = null;
   paneZoom = RING_ZOOM_FIT;
+  mirrorPaneToUrl();
   syncZoomCtl();
   isoSharedSent = null;
   isoInterlockSent = false;
@@ -23342,6 +23358,7 @@ function toggleExprCoupling(){
   if (drawn && subInterlocked()) syncSubExpr(drawn.G);
   // Closed, the pane's slider takes the image of this one's at once.
   if (exprCouplingOn()) tellPaneExpr();
+  mirrorPaneToUrl();
 }
 if (exprLockEl) exprLockEl.addEventListener('click', toggleExprCoupling);
 var exprSideLockEl = $('expr-side-lock');
@@ -23502,6 +23519,7 @@ window.addEventListener('message', function(e){
   if (d.ringwin === 'drawnpong'){ if (swapSpin && swapSpin.settling && swapSpin.pinged) endSwapSpin(); return; }
   if (d.ringwin === 'state' && typeof d.q === 'string' && d.q.length <= 4000){
     isoPane.q = cleanRingQuery(d.q);
+    mirrorPaneToUrl();
     syncIsoPaneLabels();
     postIsoShared(false);
     syncIsoKeys();
@@ -23614,6 +23632,7 @@ window.addEventListener('message', function(e){
     openGroupLock(true);
   } else if (d.isopane === 'unlocked'){
     isoPane.unlocked = true;
+    mirrorPaneToUrl();
   } else if (d.isopane === 'formula-ring' && SUB_FORMULAS.indexOf(d.value) !== -1){
     state.subFormulaRingR = d.value;
     barFormulasChanged();
@@ -24079,7 +24098,13 @@ function stateQuery(){
   else q.delete('subpowers');
   if (!state.subPaths) q.set('subpaths', '0');
   else q.delete('subpaths');
-  q.delete('nathover');
+  // What storage keeps for every Ring window, and the view's zoom and
+  // height, travel in the link too, so whoever opens it sees the same.
+  q.set('nathover', state.revealOff ? '0' : '1');
+  q.set('wheel', ringWheelOn ? '1' : '0');
+  q.set('prefdir', state.prefDir);
+  if (ringZoom !== RING_ZOOM_FIT) q.set('zoom', String(RING_ZOOMS[ringZoom])); else q.delete('zoom');
+  if (ringLift) q.set('lift', num(ringLift)); else q.delete('lift');
   if (state.signed) q.set('signed', '1');
   else q.delete('signed');
   // Written with autoflip=0, lock=dir is spelled out: alone, an older
@@ -24196,7 +24221,30 @@ function stateQuery(){
   else q.delete('combinesqmway');
   if (!state.combineGen) q.set('combinegen', '0');
   else q.delete('combinegen');
+  // The pane beside the ring goes in the page's own address alone (see
+  // paneParams), never in a ring's query.
+  q.delete('iso');
+  q.delete('isoq');
   return q;
+}
+// The pane beside this ring, in the page's address: its query (isoq), and
+// how the two rings are linked and locked (iso), so a link opens both as
+// they stand (see paneFromQuery).
+function paneParams(q){
+  if (IS_RINGWIN || !isoPane || isoPane.hostBlank || !isoPaneFrame) return q;
+  q.set('isoq', cleanRingQuery(isoPane.q));
+  q.set('iso', JSON.stringify({
+    h: isoPane.h, g: isoPane.g, sub: Number.isInteger(isoPane.sub) ? isoPane.sub : null, hsub: isoPane.hsub === true,
+    row: Number.isInteger(isoPane.row) ? isoPane.row : null, gAuto: !!isoPane.gAuto, link: isoPane.link,
+    unlocked: !!isoPane.unlocked, blank: !!isoPane.blank, plotMin: !!isoPane.plotMin,
+    locked: groupControlsEl.classList.contains('is-locked'), expr: exprCoupled
+  }));
+  return q;
+}
+// The address written anew where only the pane or the link changed.
+function mirrorPaneToUrl(){
+  if (IS_RINGWIN || !drawn) return;
+  try { history.replaceState(null, '', location.pathname + '?' + paneParams(stateQuery()).toString() + location.hash); } catch (e) { /* the address bar is a convenience */ }
 }
 
 // Mirror every control into the address bar. A throttled or blocked write is
@@ -24208,7 +24256,7 @@ function mirrorToUrl(G){
     if (IS_RINGWIN){
       if (window.parent !== window) window.parent.postMessage({ ringwin: 'state', q: q.toString(), title: ringTitle() || '' }, '*');
     } else {
-      history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
+      history.replaceState(null, '', location.pathname + '?' + paneParams(q).toString() + location.hash);
     }
   } catch (e) { /* the address bar is a convenience, never a requirement */ }
   syncIsoLinks();
@@ -26244,6 +26292,7 @@ function setGroupLock(on){
   if (IS_ISOPANE) syncZoomCtl(); else matchPaneZoom();
   syncHeadMatch();
   keepLockClear();
+  mirrorPaneToUrl();
 }
 // While the rings share an isomorphism that is not locked (declined, or
 // unlocked since), the padlock sits open where the closed one would.
@@ -27281,7 +27330,7 @@ function loadState(query, link){
   state.sizeJargon = query.get('sizename') !== 'size';
   state.subSimplify = state.subBare || query.get('subsimplify') === '1';
   state.subPaths = query.get('subpaths') !== '0';
-  state.revealOff = readRevealOff() || query.get('nathover') === '0';
+  state.revealOff = query.has('nathover') ? query.get('nathover') === '0' : readRevealOff();
   state.revealAs = intOrNull(query.get('revealas'));
   state.signed = query.get('signed') === '1';
   state.signedExp = query.get('signedexp') === '1';
@@ -27294,7 +27343,7 @@ function loadState(query, link){
   state.lock = LOCKS.indexOf(query.get('lock')) !== -1 ? query.get('lock') : query.get('autoflip') === '0' ? 'none' : 'dir';
   state.simplifyOff = query.get('autoflip') === '0';
   state.simplifyHint = query.get('simplifyhint') === '1';
-  state.prefDir = readPrefDir();
+  state.prefDir = query.get('prefdir') === 'ccw' || query.get('prefdir') === 'cw' ? query.get('prefdir') : readPrefDir();
   state.enterInverse = query.get('enterinv') !== '0';
   state.subPowers = query.get('subpowers') !== '0';
   state.combineMode = query.get('combine') === 'scalar' ? 'scalar' : 'element';
@@ -27380,12 +27429,47 @@ function loadState(query, link){
     if (at !== -1) state.rot = at;
   }
 }
+var startQuery = new URLSearchParams(location.search);
 loadState(new URLSearchParams(location.search), readModeNParams());
+// A link's zoom and height, for this ring's first drawing.
+(function(){
+  var z = RING_ZOOMS.indexOf(parseFloat(startQuery.get('zoom')));
+  if (z !== -1) ringZoom = paneZoom = z;
+  var l = parseFloat(startQuery.get('lift'));
+  if (isFinite(l)) ringLift = Math.max(-RING_LIFT_MAX, Math.min(RING_LIFT_MAX, l));
+})();
 
 if (IS_RINGWIN) enterRingWin();
 else if (IS_DESKTOP) syncPanes();
 syncControls();
 render();
+syncZoomCtl();
+
+// A link's pane (isoq, iso; see paneParams): opened beside the ring as it
+// was, linked and locked, or not, as the two rings were.
+function paneFromQuery(q){
+  if (IS_RINGWIN || IS_PREVIEW || IS_MOBILE || !drawn || !q.get('isoq')) return;
+  var o;
+  try { o = JSON.parse(q.get('iso') || '{}'); } catch (e) { return; }
+  if (!o || typeof o !== 'object') return;
+  var int = function(v){ return Number.isInteger(v) ? v : null; };
+  var locked = o.locked === true;
+  isoPane = {
+    h: int(o.h) === null ? drawn.G.identity : o.h, q: cleanRingQuery(q.get('isoq')), parent: null,
+    g: int(o.g), sub: int(o.sub), hsub: o.hsub === true, row: int(o.row), gAuto: o.gAuto === true,
+    link: ['linked', 'none', 'asking', 'declined'].indexOf(o.link) !== -1 ? o.link : 'none',
+    unlocked: o.unlocked === true || !locked, blank: o.blank === true, plotMin: o.plotMin === true
+  };
+  setGroupLock(locked);
+  exprCoupled = o.expr === true;
+  isoPaneEl.hidden = false;
+  loadIsoFrame();
+  syncIsoPaneLabels();
+  syncIsoKeys();
+  render();
+  syncOpenLock();
+}
+paneFromQuery(startQuery);
 
 // A link from the Diffie–Hellman tools, dh=g,a,b: the exchange opened on
 // base g (a number, or a curve's point x:y) with secrets a and b, each
