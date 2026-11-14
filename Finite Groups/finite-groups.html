@@ -143,7 +143,8 @@
   :root.is-lift-mode .lift-axis{ display:inline; stroke:var(--text); stroke-width:2; stroke-dasharray:1 7; stroke-linecap:round; vector-effect:non-scaling-stroke; pointer-events:none; }
   :root.is-lift-mode .lift-bar{ display:flex; position:absolute; z-index:5; translate:-50% 0; align-items:center; gap:12px; padding:6px 6px 6px 14px; color:var(--text); background:var(--surface); border:1px solid var(--text); border-radius:var(--radius-ctl); box-shadow:0 4px 16px var(--scrim); font-size:.85rem; white-space:nowrap; }
   .lift-reset{ font:inherit; font-weight:600; color:var(--text); background:none; border:1px solid var(--text); border-radius:var(--radius-ctl); padding:3px 14px; cursor:pointer; }
-  .lift-reset:hover{ background:color-mix(in srgb, var(--text) 14%, transparent); }
+  .lift-reset:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); }
+  .lift-reset:disabled{ color:var(--text-dim); border-color:var(--panel-border); cursor:default; }
   .lift-reset:focus-visible{ outline:2px solid var(--text); outline-offset:2px; }
   svg.ring-svg.is-turning{ cursor:grabbing; }
   /* The rotation controls sit in the diagram's bottom-left corner. */
@@ -12413,9 +12414,11 @@ function setRingLift(v){
 }
 // The axis runs through the centre from the drawing's top edge to its
 // bottom; the bar sits on it, at the top.
-var liftAxisEl = $('lift-axis'), liftBarEl = $('lift-bar');
+var liftAxisEl = $('lift-axis'), liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
 function syncLiftUi(){
   if (!liftMode) return;
+  // At the ring's own height there is nothing to reset.
+  liftResetEl.disabled = ringLift === 0;
   var ctm = ringSvgEl.getScreenCTM();
   if (!ctm || !ctm.d) return;
   var r = boxOf(ringSvgEl), body = liftBarEl.offsetParent, x = ringBox().cx;
@@ -12434,7 +12437,7 @@ function setLiftMode(on){
   document.documentElement.classList.toggle('is-lift-mode', on);
   syncLiftUi();
 }
-$('lift-reset').addEventListener('click', function(){ setRingLift(0); });
+liftResetEl.addEventListener('click', function(){ setRingLift(0); });
 window.addEventListener('resize', syncLiftUi);
 window.addEventListener('keydown', function(e){
   if (liftMode && !e.ctrlKey && !e.metaKey && !e.altKey){
