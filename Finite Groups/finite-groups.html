@@ -12403,7 +12403,7 @@ window.addEventListener('keydown', function(e){
 // up and down arrow keys. Esc, or the menu item again, turns it off. The height (ringLift, in the drawing's
 // units, up positive) shifts the view, so it holds through every redraw.
 var liftMode = false, liftDrag = null;
-var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10, LIFT_AXIS_PAST = 60;
+var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10;
 // Within this many screen pixels of Reset's height, above or below, a drag snaps the
 // centre onto it, and holds it there until pulled further.
 var LIFT_SNAP_PX = 6;
@@ -12420,8 +12420,8 @@ function setRingLift(v){
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
   syncLiftUi();
 }
-// Dotted lines: the axis, drawn with the ring through its centre and a
-// little past its outer reach, and a short arm across it at the centre,
+// Dotted lines: the axis, through the ring's centre and past the window's
+// top and bottom edges, and a short arm across it at the centre,
 // a '+' that moves with the ring; and, from the window's one side to the
 // other, the reference line at the height Reset brings the centre back to,
 // broken where the arm lies, so at that height the three read as one
@@ -12445,11 +12445,14 @@ function syncLiftUi(){
   var lines = $('lift-lines');
   lines.style.strokeWidth = num(LIFT_DOT * px);
   lines.style.strokeDasharray = num(0.01 * px) + ' ' + num(every - 0.01 * px);
-  var half = Math.ceil((box.R + LIFT_AXIS_PAST) / every) * every;
+  // The axis runs past the window's top and bottom edges wherever the
+  // ring is, so its ends are never seen.
+  var up = Math.ceil((y - (side.top - ctm.f) / ctm.d) / every + 1) * every;
+  var down = Math.ceil(((side.bottom - ctm.f) / ctm.d - y) / every + 1) * every;
   // The lift shifts the view, so the home height is ringLift further down
   // in the drawing.
   var home = y + ringLift, left = (side.left - ctm.e) / ctm.a, right = (side.right - ctm.e) / ctm.a;
-  [[x, y, x, y - half], [x, y, x, y + half], [x, y, x - arm, y], [x, y, x + arm, y],
+  [[x, y, x, y - up], [x, y, x, y + down], [x, y, x - arm, y], [x, y, x + arm, y],
    [x - arm, home, left, home], [x + arm, home, right, home]].forEach(function(c, i){
     var el = liftLineEls[i];
     el.setAttribute('x1', num(c[0]));
