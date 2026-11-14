@@ -2024,7 +2024,7 @@
      element), every way wears the mix they share, hovered or not. */
   .dir-pref.is-both > .dir-pref-seg > button svg{ stroke:var(--arrow-both) !important; }
   .dir-toggle .dir-arrow{ stroke-width:1.5; stroke:var(--arrow-in, var(--role-active)); }
-  .dir-toggle.is-both .dir-arrow{ stroke:var(--arrow-both); }
+  .dir-toggle.is-both > svg:first-child .dir-arrow, .dir-toggle > svg.is-both .dir-arrow{ stroke:var(--arrow-both); }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
   :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field :is(#dir-toggle, #dir-pref, #shorten-lock-track){ position:absolute; z-index:3; translate:-50% -50%; }
   /* Moved there, the grid keeps its own width (the slider has its 64px). */
@@ -11920,6 +11920,10 @@ if (IS_RINGWIN){
     if (e.source !== window.parent || !d || typeof d !== 'object') return;
     if (d.iso === 'angle' || d.iso === 'spread' || d.iso === 'paint' || d.iso === 'hover' || d.iso === 'interlock' || d.iso === 'select' || d.iso === 'whole' || d.iso === 'cosets' || d.iso === 'numset' || d.iso === 'subexpr' || d.iso === 'preview' || d.iso === 'combine' || d.iso === 'dh' || d.iso === 'invblink' || d.iso === 'genhot' || d.iso === 'genwrap'){
       if (IS_ISOPANE) isoReceive(d);
+      return;
+    }
+    if (d.ringhost === 'dirflip'){
+      if (IS_ISOPANE) flipCoin();
       return;
     }
     if (d.ringhost === 'shared'){
@@ -23607,7 +23611,7 @@ window.addEventListener('message', function(e){
   } else if (d.isopane === 'zoom' && Number.isInteger(d.i)){
     heardPaneZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
   } else if (d.isopane === 'axis' && [d.b, d.s, d.k].every(Number.isFinite)){
-    dirPaneAxis = { b: d.b, s: d.s, k: d.k };
+    dirPaneAxis = { b: d.b, s: d.s, k: d.k, a: d.a === true, both: d.both === true };
     syncDirAxis();
   } else if (d.isopane === 'ctl' && typeof d.id === 'string'){
     // A colour control changed in the pane's menu: set this ring's own, and
@@ -26900,16 +26904,23 @@ function syncLock(){
 // The direction button flips the ring: to simplify the arrows drawn when it
 // can, and otherwise with the preferred way round turning with it, unless
 // the directions are locked.
+// Beside a pane whose ring turns on its own, the second coin flips the
+// pane's ring, the pane doing as its own click would (ringhost 'dirflip').
 dirToggleEl.addEventListener('click', function(e){
   // A pointer's click lets go of the focus, so a later arrow key (stepping
   // the rows) never rings the button in the keyboard's focus outline.
   if (e.detail) dirToggleEl.blur();
+  var pane = dirIcons[1];
+  if (pane && pane.svg.style.display !== 'none' && pane.svg.contains(e.target)){ tellPane({ ringhost: 'dirflip' }); return; }
+  flipCoin();
+});
+function flipCoin(){
   if (!drawn || coinLocked()) return;
   afterInvBlink(function(inv){
     if (!drawn || coinLocked()) return;
     setDir(state.dir === 'cw' ? 'ccw' : 'cw', !state.simplifyOff && state.lock !== 'dir' && !simplifiable(drawn.G, shownSub(drawn.G)), inv);
   });
-});
+}
 // Right-clicked, even while locked, the button, the preferred directions
 // and the lock slider between them open one menu: Disable auto-simplify.
 [dirToggleEl, $('dir-pref'), $('shorten-lock-track')].forEach(function(el){
@@ -26970,17 +26981,22 @@ function syncDirAxis(){
   var ring = ringDynamicEl.querySelector('.ring');
   var beta = ring && drawn ? identityAxis(ring, ringBox()) : -90;
   var f = dirIconFlip || { s: dirSign(), k: 1 };
-  // The pane draws no button of its own: it tells the holder its axis.
+  // The pane draws no button of its own: it tells the holder its axis, and
+  // its coin's arrow (a, true drawn counterclockwise) and its colour.
   if (IS_ISOPANE){
-    var key = num(beta) + ':' + num(f.s) + ':' + num(f.k);
-    if (key !== dirAxisSent){ dirAxisSent = key; tellHost({ isopane: 'axis', b: beta, s: f.s, k: f.k }); }
+    var a = (prefSign() < 0) !== (dirSign() < 0), both = !!drawn && !noSub() && mergedWalks(drawn.G);
+    var key = num(beta) + ':' + num(f.s) + ':' + num(f.k) + ':' + a + ':' + both;
+    if (key !== dirAxisSent){ dirAxisSent = key; tellHost({ isopane: 'axis', b: beta, s: f.s, k: f.k, a: a, both: both }); }
     return;
   }
   if (!dirIcons.length) return;
   setDirIcon(dirIcons[0], beta, f);
   var two = !!isoPane && !isoPaneEl.hidden && !!dirPaneAxis && !isoTurnsTogether();
   dirIcons[1].svg.style.display = two ? '' : 'none';
-  if (two) setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
+  if (!two) return;
+  setDirIcon(dirIcons[1], dirPaneAxis.b, dirPaneAxis);
+  dirIcons[1].arrow.setAttribute('d', dirPaneAxis.a ? DIR_ARROW_CCW : DIR_ARROW_CW);
+  dirIcons[1].svg.classList.toggle('is-both', dirPaneAxis.both);
 }
 // Its coin's arrow shows the preferred way round; its name says what a
 // click does: simplify the arrows, or turn the ring and the preference.
@@ -26999,9 +27015,8 @@ function syncDirToggle(){
   syncDirAxis();
   // The coin is drawn mirrored while the beads count counterclockwise, so
   // its arrow is drawn the other way round to read right on screen. The
-  // pane's coin has no walk of this ring's to show.
+  // pane's coin shows the pane's arrow, as told (syncDirAxis).
   dirIcons[0].arrow.setAttribute('d', ccw !== (dirSign() < 0) ? DIR_ARROW_CCW : DIR_ARROW_CW);
-  dirIcons[1].arrow.setAttribute('d', '');
   dirToggleEl.classList.toggle('is-both', !!drawn && !noSub() && mergedWalks(drawn.G));
   var name = translate(locked ? 'cyclicGroups.dirFlipLocked' : can ? 'cyclicGroups.dirFlipSimplify'
     : state.simplifyOff ? 'cyclicGroups.dirFlipPlain'
