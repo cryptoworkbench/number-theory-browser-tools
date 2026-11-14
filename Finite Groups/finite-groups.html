@@ -1302,6 +1302,9 @@
      the window's own opaque ground, hiding what lies under it. */
   :root.is-card-lines-solid .ring-combine-plate, :root.is-card-lines-solid .ring-combine-plate.is-hot{ fill:var(--surface); }
   :root.is-card-lines-solid .ring-combine-frost{ display:none; }
+  /* Kept frosted (Keep frosted): the tint it firms up to under the pointer,
+     kept. */
+  :root.is-card-lines-frost .ring-combine-plate{ fill:color-mix(in srgb, var(--panel) 55%, transparent); }
   .ring-wheel-lit.is-out{ opacity:0; }
   @keyframes ring-wheel-lit{ from{ opacity:0; } }
   /* The reduced bead's halo flashes three times, then is gone. */
@@ -2777,6 +2780,7 @@
   .wheel-thick-label{ margin-inline-end:auto; padding-inline-end:12px; }
   .wheel-thick-value{ min-width:3.2em; text-align:center; font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--text-dim); }
   .wheel-thick-row > .fs-win-btn:disabled{ opacity:.4; cursor:default; }
+  .wheel-thick-row > .fs-win-btn[hidden]{ display:none; }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
   /* A menu item's key, right-aligned like a submenu's arrow. */
@@ -11075,8 +11079,9 @@ function syncWheelCtx(on){
   return item;
 }
 // Cell height: the rings of the wheel thinner or thicker, a step at a time
-// through WHEEL_THICKS, its share of the default beside the two buttons;
-// the menu stays open while it is stepped.
+// through WHEEL_THICKS, its share of the default beside the two buttons,
+// and away from 100% a third button setting it back; the menu stays open
+// while it is stepped.
 function wheelThickRow(){
   var row = document.createElement('div');
   row.className = 'wheel-thick-row';
@@ -11087,26 +11092,33 @@ function wheelThickRow(){
   row.setAttribute('aria-label', label.textContent);
   var value = document.createElement('span');
   value.className = 'wheel-thick-value';
-  var step = function(by, key, d){
+  var button = function(key, to){
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'fs-win-btn';
     btn.title = translate(key);
     btn.setAttribute('aria-label', btn.title);
-    var svg = btn.appendChild(svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' }));
-    d.forEach(function(l){ svg.appendChild(svgEl('line', { x1: l[0], y1: l[1], x2: l[2], y2: l[3] })); });
-    btn.addEventListener('click', function(){ setWheelThick(WHEEL_THICKS.indexOf(ringWheelThick) + by); sync(); });
+    btn.addEventListener('click', function(){ setWheelThick(to()); sync(); });
+    return btn.appendChild(svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' })).parentNode;
+  };
+  var step = function(by, key, d){
+    var btn = button(key, function(){ return WHEEL_THICKS.indexOf(ringWheelThick) + by; });
+    d.forEach(function(l){ btn.firstChild.appendChild(svgEl('line', { x1: l[0], y1: l[1], x2: l[2], y2: l[3] })); });
     return btn;
   };
   var less = step(-1, 'cyclicGroups.ringWheelThinner', [[2.5, 6, 9.5, 6]]);
   var more = step(1, 'cyclicGroups.ringWheelThicker', [[2.5, 6, 9.5, 6], [6, 2.5, 6, 9.5]]);
+  // The view's reset arrow, as the cylinders' Reset button draws it.
+  var reset = button('cyclicGroups.ringWheelThickReset', function(){ return WHEEL_THICKS.indexOf(1); });
+  ['M9.5 6A3.5 3.5 0 1 1 8.4 3.5', 'M8 1.3 8.4 3.5 6.2 3.5'].forEach(function(d){ reset.firstChild.appendChild(svgEl('path', { d: d })); });
   var sync = function(){
     var i = WHEEL_THICKS.indexOf(ringWheelThick);
     value.textContent = Math.round(ringWheelThick * 100) + '%';
     less.disabled = i <= 0;
     more.disabled = i >= WHEEL_THICKS.length - 1;
+    reset.hidden = ringWheelThick === 1;
   };
-  row.append(less, value, more);
+  row.append(less, value, more, reset);
   sync();
   return row;
 }
@@ -11608,11 +11620,11 @@ ringSvgEl.addEventListener('contextmenu', function(e){
       openCombineGenCtx(drawn.G, ptX(e), ptY(e), onSw);
       return;
     }
-    // On the lines' card around them, Keep solid alone.
+    // On the lines' card around them, Keep solid and Keep frosted.
     var plate = ringDynamicEl.querySelector('.ring-combine-plate');
     if (plate && onLineAt(plate)){
       setRingCtx(false);
-      fsetCtxEl.replaceChildren(combineSolidItem());
+      fsetCtxEl.replaceChildren.apply(fsetCtxEl, combineLookItems());
       if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
       showCtxAt(fsetCtxEl, ptX(e), ptY(e));
       return;
@@ -13768,8 +13780,8 @@ exprSlotEl.parentNode.addEventListener('contextmenu', function(e){
 // the turning ruler's own ('spin') and the arrow key's ('key'). Right-
 // clicked on an empty spot, each offers Keep solid and Keep frosted
 // (state.cardLooks, one at most per card), shared with the pane as the
-// rows' look is. The card of a ∗ b's or aᵏ's lines ('lines'), frosted
-// already, offers Keep solid alone, from the ring's own menus.
+// rows' look is. The card of a ∗ b's or aᵏ's lines ('lines') offers both
+// from the ring's own menus.
 var CARD_KINDS = ['clu', 'side', 'spin', 'key', 'lines'];
 function syncCardLooks(){
   var c = document.documentElement.classList;
@@ -18133,11 +18145,14 @@ function tellPowersForm(){
 function unfoldLines(G){ return foldShown(G) ? COMBINE_LIMITS / COMBINE_LINE : 0; }
 // The switchable line's menu, of one switch.
 // Keep general on the powers line; on every line, Copy these formulas.
-// Keep solid, for the lines' card while it shows (over the wheel).
-function combineSolidItem(){
-  return menuTick('menuitemcheckbox', translate('cyclicGroups.winKeepSolid'), state.cardLooks.lines === 'solid', function(){
-    closeFsetCtx();
-    setCardLook('lines', state.cardLooks.lines === 'solid' ? null : 'solid');
+// Keep solid and Keep frosted, for the lines' card while it shows (over
+// the wheel).
+function combineLookItems(){
+  return ['solid', 'frost'].map(function(look){
+    return menuTick('menuitemcheckbox', translate(look === 'frost' ? 'cyclicGroups.winKeepFrosted' : 'cyclicGroups.winKeepSolid'), state.cardLooks.lines === look, function(){
+      closeFsetCtx();
+      setCardLook('lines', state.cardLooks.lines === look ? null : look);
+    });
   });
 }
 function openCombineGenCtx(G, x, y, onSwitch){
@@ -18154,7 +18169,7 @@ function openCombineGenCtx(G, x, y, onSwitch){
     copyText(combineText());
   });
   items.push(copy);
-  if (ringDynamicEl.querySelector('.ring-combine-plate')) items.push(combineSolidItem());
+  if (ringDynamicEl.querySelector('.ring-combine-plate')) items.push.apply(items, combineLookItems());
   fsetCtxEl.replaceChildren.apply(fsetCtxEl, items);
   if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(fsetCtxEl, x, y);

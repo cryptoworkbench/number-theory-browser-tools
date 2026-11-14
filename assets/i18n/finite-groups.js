@@ -297,11 +297,12 @@
    desktop's SUBGROUP row renamed for holding Divide, Multiply and Swap
    too, its Swap button and its Reduce to structure button), and
    ringWheelShow, ringRawFwd, ringRawBack, ringRawCombine, ringRawPower,
-   ringWheelThick, ringWheelThinner and ringWheelThicker (the ring menu's Congruence wheel submenu: the
+   ringWheelThick, ringWheelThinner, ringWheelThicker and
+   ringWheelThickReset (the ring menu's Congruence wheel submenu: the
    switch showing the wheel, the two switches showing the forward and the
    backward path's raw results before reduction, ringRawCombine's and
-   ringRawPower's switches showing a combination's and aᵏ's walk's, and the rings' cell height with its two
-   buttons).
+   ringRawPower's switches showing a combination's and aᵏ's walk's, and
+   the rings' cell height with its two buttons and its reset button).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1493,6 +1494,7 @@
       ringWheelThick: 'Cell height',
       ringWheelThinner: 'Lower cells',
       ringWheelThicker: 'Higher cells',
+      ringWheelThickReset: 'Reset the cell height to 100%',
       dhCylWheelRawNo: 'Only with the congruence wheel floor',
       dhCylRings: 'Rings',
       dhCylRingsTip: 'How many rings the congruence wheel floor has',
