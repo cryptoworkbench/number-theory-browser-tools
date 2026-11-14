@@ -291,7 +291,10 @@
    three opaque, and of the cards under the ring: the expression slider's,
    the turning ruler's and the arrow key's), and liftMenu, liftModeHint and
    liftReset (Change height, in the ring's right-click menu, and the bar
-   over the ring in the height mode it turns on, with its Reset).
+   over the ring in the height mode it turns on, with its Reset), and
+   relatedRowLabel and relSwap (the Related groups row, the desktop's
+   SUBGROUP row renamed for holding Divide, Multiply and Swap too, and
+   its Swap button).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -913,6 +916,8 @@
       arrangeLabel: 'Arrangement',
       arrangeRowLabel: 'Circle arrangement',
       genRowLabel: 'Subgroup',
+      relatedRowLabel: 'Related groups',
+      relSwap: 'Swap',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
       arrangeSequentialCurve: 'Not available on an elliptic curve: its beads always follow the powers of a generating point',

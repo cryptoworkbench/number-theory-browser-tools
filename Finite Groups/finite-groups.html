@@ -2270,6 +2270,17 @@
   .arrange-seq:hover, .gen-beads:hover{ color:var(--text); background:color-mix(in srgb, var(--accent) 10%, transparent); }
   .arrange-seq[aria-pressed="true"], .gen-beads[aria-pressed="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .arrange-seq:focus-visible, .gen-beads:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  /* Divide, Multiply and Swap in the Related groups row, each opening the
+     table its right-click menu entry opens, under it; only in the ring's
+     window (the menus' Swap section is not on a phone either). */
+  .rel-btn{ display:none; }
+  .fs-win-body.is-ring .rel-btn{ display:inline-flex; align-items:center; gap:6px; }
+  .rel-btn[aria-expanded="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
+  .rel-btn:disabled{ opacity:.4; cursor:default; background:none; }
+  .rel-mark{ font-family:var(--font-math); }
+  /* Opened from those buttons, the ring's menu shows its submenu alone. */
+  .ring-ctx.is-row-sub{ padding:0; min-width:0; border:0; background:none; box-shadow:none; }
+  .ring-ctx.is-row-sub > :not(.ring-ctx-sub){ display:none; }
   .arrange-seq:disabled{ opacity:.6; cursor:not-allowed; }
   .arrange-seq.is-out{ position:relative; --out-line:color-mix(in srgb, var(--role-warn) 75%, var(--pointer-ink)); color:color-mix(in srgb, var(--text-dim) 40%, transparent); border-color:color-mix(in srgb, var(--panel-border) 40%, transparent); cursor:not-allowed; }
   .arrange-seq.is-out:hover{ color:color-mix(in srgb, var(--text-dim) 40%, transparent); background:none; }
@@ -3756,11 +3767,14 @@
         <h2 data-i18n="cyclicGroups.subgroupHeading">Subgroup</h2>
         <div class="field" id="gen-field">
           <span class="gen-head">
-            <label for="gen-switch"><span class="gen-panel-name" data-i18n="cyclicGroups.genLabel">Subgroup visualized</span><span class="gen-fs-name" data-i18n="cyclicGroups.genRowLabel">Subgroup</span></label>
+            <label for="gen-switch"><span class="gen-panel-name" data-i18n="cyclicGroups.genLabel">Subgroup visualized</span><span class="gen-fs-name" data-i18n="cyclicGroups.relatedRowLabel">Related groups</span></label>
             <span class="gen-ctls">
               <button type="button" class="gen-switch" id="gen-switch" role="switch" aria-checked="true" title="Show the subgroup" aria-label="Show the subgroup" data-i18n-title="cyclicGroups.genSwitch" data-i18n-aria-label="cyclicGroups.genSwitch"><span class="gen-switch-track" aria-hidden="true"></span></button>
               <button type="button" class="gen-beads" id="gen-beads" aria-pressed="false" title="Clicking a bead selects its row, so G is the clicked element, instead of combining it" data-i18n-title="cyclicGroups.genBeadsTitle" data-i18n="cyclicGroups.genBeads">Follow bead clicks</button>
               <button type="button" class="gen-beads sub-follow-btn" id="sub-follow" aria-pressed="false" hidden title="Select the row of the expression slider's generator, so G follows the slider" data-i18n-title="cyclicGroups.subExprFollowTitle" data-i18n="cyclicGroups.subExprFollow">Follow expression slider</button>
+              <button type="button" class="gen-beads rel-btn" id="rel-div" data-op="div" aria-haspopup="menu" aria-expanded="false"><span class="rel-mark" aria-hidden="true">÷</span><span data-i18n="cyclicGroups.cardDivide">Divide</span></button>
+              <button type="button" class="gen-beads rel-btn" id="rel-mul" data-op="mul" aria-haspopup="menu" aria-expanded="false"><span class="rel-mark" aria-hidden="true">×</span><span data-i18n="cyclicGroups.cardMultiply">Multiply</span></button>
+              <button type="button" class="gen-beads rel-btn" id="rel-swap" data-op="swap" aria-haspopup="menu" aria-expanded="false" title="Swap for an isomorphic group" data-i18n-title="cyclicGroups.swapIsoMenu"><span class="rel-mark" aria-hidden="true">⇆</span><span data-i18n="cyclicGroups.relSwap">Swap</span></button>
             </span>
           </span>
           <span class="gen-super" id="gen-super"></span>
@@ -7755,6 +7769,7 @@ function fitRingDivide(){
   if (ringDivEl.classList.contains('is-div-table') && ringDivEl.scrollWidth > ringDivEl.clientWidth){
     ringDivEl.style.width = (ringDivEl.scrollWidth + ringDivEl.offsetWidth - ringDivEl.clientWidth) + 'px';
   }
+  if (from.classList.contains('rel-btn')){ placeUnder(ringDivEl, from); return; }
   var sub = boxOf(from.parentNode), at = boxOf(from), w = ringDivEl.offsetWidth, h = ringDivEl.offsetHeight;
   var vw = document.documentElement.clientWidth / PAGE_ZOOM, vh = document.documentElement.clientHeight / PAGE_ZOOM;
   var x = sub.right - 2;
@@ -7817,6 +7832,11 @@ function applyDivide(m){
 }
 // A submenu of the ring's menu, beside the item that opened it.
 function placeRingSub(from, focus){
+  if (from.classList.contains('rel-btn')){
+    placeUnder(ringCopyEl, from);
+    if (focus) ringCopyEl.querySelector('button').focus();
+    return;
+  }
   var menu = boxOf(ringCtxEl), at = boxOf(from);
   var w = ringCopyEl.offsetWidth, h = ringCopyEl.offsetHeight;
   var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
@@ -7826,6 +7846,16 @@ function placeRingSub(from, focus){
   ringCopyEl.style.left = x + 'px';
   ringCopyEl.style.top = Math.max(4, Math.min(at.top - 7, vh - h - 4)) + 'px';
   if (focus) ringCopyEl.querySelector('button').focus();
+}
+// A submenu opened from a button in the Related groups row: under it, or
+// over it where the window has no room below.
+function placeUnder(el, from){
+  var at = boxOf(from), w = el.offsetWidth, h = el.offsetHeight;
+  var vw = (document.documentElement.clientWidth / PAGE_ZOOM), vh = (document.documentElement.clientHeight / PAGE_ZOOM);
+  var y = at.bottom + 4;
+  if (y + h > vh - 4) y = Math.max(4, at.top - h - 4);
+  el.style.left = Math.max(4, Math.min(at.left, vw - w - 4)) + 'px';
+  el.style.top = y + 'px';
 }
 // Math sent between a ring and its pane as plain data, built back into
 // MathML on the other side (the element expressions' table).
@@ -8298,6 +8328,7 @@ function setRingCtx(open, x, y, expr, fml, bead){
   if (!open){
     if (ringCtxEl.hidden) return;
     ringCtxEl.hidden = true;
+    ringCtxEl.classList.remove('is-row-sub');
     setRingCopy(null);
     if (ringCtxReturn && ringCtxEl.contains(document.activeElement)) ringCtxReturn.focus();
     ringCtxReturn = null;
@@ -8315,6 +8346,7 @@ function setRingCtx(open, x, y, expr, fml, bead){
   // too, the subgroup on or off.
   if (expr === 'gsub'){ syncSwapCtx(true); syncOtherCtx(true); }
   ringCtxReturn = ringCtxEl.hidden ? document.activeElement : ringCtxReturn;
+  ringCtxEl.classList.remove('is-row-sub');
   ringCtxEl.hidden = false;
   ringCtxAt = [x, y];
   placeRingCtx();
@@ -11067,6 +11099,44 @@ function setRingSwap(from, focus){
   refit();
   if (focus) ringCopyEl.querySelector('button').focus();
 }
+// The Related groups row's Divide, Multiply and Swap: each opens the table
+// its entry in the right-click menus opens, under the button, the menu
+// itself shown with that table alone (is-row-sub). Greyed, saying why, as
+// those entries are.
+var relBtns = [$('rel-div'), $('rel-mul'), $('rel-swap')];
+function syncRelBtns(G){
+  relBtns.forEach(function(btn){
+    var op = btn.getAttribute('data-op');
+    if (op === 'swap'){ btn.disabled = !swapSpecs().length; return; }
+    var none = !factorRows(G, op).length;
+    btn.disabled = none;
+    if (none) btn.title = translate(G.cyclic ? FACTOR_KEYS[op].none : 'cyclicGroups.cardDivideCyclic');
+    else btn.removeAttribute('title');
+  });
+}
+function relOpenFrom(btn){ return !ringCtxEl.hidden && ringCtxEl.classList.contains('is-row-sub') && (ringDivFrom === btn || ringCopyFrom === btn); }
+function openRelSub(btn, focus){
+  if (!drawn || IS_MOBILE) return;
+  setRingCtx(false);
+  if (btn.getAttribute('data-op') === 'swap' && !swapSpecs().length) return;
+  ringCtxReturn = btn;
+  ringCtxEl.classList.add('is-row-sub');
+  ringCtxEl.style.left = '0px';
+  ringCtxEl.style.top = '0px';
+  ringCtxEl.hidden = false;
+  if (btn.getAttribute('data-op') === 'swap') setRingSwap(btn, focus);
+  else setRingDivide(btn, focus);
+}
+relBtns.forEach(function(btn){
+  // A press on the button whose table is open closes it (the press outside
+  // the menu already has), and the click then leaves it closed.
+  var wasOpen = false;
+  btn.addEventListener('pointerdown', function(){ wasOpen = relOpenFrom(btn); });
+  btn.addEventListener('click', function(e){
+    if (wasOpen || relOpenFrom(btn)){ wasOpen = false; setRingCtx(false); return; }
+    openRelSub(btn, e.detail === 0);
+  });
+});
 // The chip's group takes this ring's place through the isomorphism that
 // sends G's first generator to the chip's: the subgroup on show goes over
 // to its image, and so does the generator a pane is linked through, so a
@@ -11293,6 +11363,7 @@ ringCtxEl.addEventListener('keydown', function(e){
       var back = ringDivFrom;
       setRingDivide(null);
       if (back) back.focus();
+      setRingCtx(false);
       e.preventDefault();
       return;
     }
@@ -11308,6 +11379,7 @@ ringCtxEl.addEventListener('keydown', function(e){
       var from = ringCopyFrom;
       setRingCopy(null);
       if (from) from.focus();
+      if (ringCtxEl.classList.contains('is-row-sub')) setRingCtx(false);
       e.preventDefault();
       return;
     }
@@ -22259,6 +22331,7 @@ function applyIsoShared(d){
   var flag = function(v){ return typeof v === 'boolean'; };
   var hex = function(v){ return v === null || (typeof v === 'string' && HEX_COLOR.test(v)); };
   paneSwaps = readSwaps(d.swaps);
+  if (drawn) syncRelBtns(drawn.G);
   paneOthers = readSwaps(d.others);
   if (Number.isInteger(d.zoom)) applyZoom(d.zoom);
   if (Number.isFinite(d.foot) && d.foot >= 0 && d.foot < 4000) document.documentElement.style.setProperty('--pane-foot', Math.round(d.foot) + 'px');
@@ -24191,6 +24264,7 @@ function render(){
   renderFacts(G, factors);
   subgroupOptionsEl.hidden = state.noSub;
   renderIso(G);
+  syncRelBtns(G);
   renderSubgroups(G);
   hintPanelRow(G);
   syncIdxNames(G);
