@@ -808,7 +808,7 @@
       opKindMul: 'Multiplication',
       opKindEc: 'Elliptic Curve point addition',
       pointAtInfinity: 'Point at infinity',
-      identityE: '{e} from German {einheit}',
+      identityE: '{e}, the identity element, from German {einheit}',
       identityAdd: 'Additive identity',
       identityMul: 'Multiplicative identity',
       exprSignOn: 'Write the numbers in their signed form, nearest 0',
