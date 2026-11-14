@@ -144,7 +144,8 @@
   /* With the '+' moved off it, the reference line's two pieces grey out. */
   .lift-lines > line{ transition:stroke .15s; }
   .lift-lines > line.is-left{ stroke:var(--text-dim); }
-  :root.is-lift-mode .lift-bar{ display:flex; position:absolute; z-index:5; translate:-50% 0; align-items:center; gap:12px; padding:6px 6px 6px 14px; color:var(--text); background:var(--surface); border:1px solid var(--text); border-radius:var(--radius-ctl); box-shadow:0 4px 16px var(--scrim); font-size:.85rem; white-space:nowrap; }
+  /* Opened from the other locked ring, the mode shows its bar on that ring alone. */
+  :root.is-lift-mode:not(.is-lift-told) .lift-bar{ display:flex; position:absolute; z-index:5; translate:-50% 0; align-items:center; gap:12px; padding:6px 6px 6px 14px; color:var(--text); background:var(--surface); border:1px solid var(--text); border-radius:var(--radius-ctl); box-shadow:0 4px 16px var(--scrim); font-size:.85rem; white-space:nowrap; }
   .lift-reset{ font:inherit; font-weight:600; color:var(--text); background:none; border:1px solid var(--text); border-radius:var(--radius-ctl); padding:3px 14px; cursor:pointer; }
   .lift-reset:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); }
   .lift-reset:disabled{ color:var(--text-dim); border-color:var(--panel-border); cursor:default; }
@@ -708,6 +709,8 @@
      own child, and shows in a frame as on the page, as does E's (id-tip). */
   /* The ring's right-click menu is a child of the diagram too, and shows in a frame. */
   :root.is-ringwin .diagram-frame > .ring-ctx:not([hidden]){ display:block !important; }
+  /* So is the height mode's bar, on the ring where the mode was opened. */
+  :root.is-ringwin.is-lift-mode:not(.is-lift-told) .diagram-frame > .lift-bar{ display:flex !important; }
   :root.is-ringwin .app, :root.is-ringwin .layout, :root.is-ringwin .stage, :root.is-ringwin .diagram-frame{
     display:block; position:static; height:auto; width:auto; max-width:none; padding:0; margin:0; border:0; background:none; }
   :root.is-ringwin .ringwin-body{ position:fixed; inset:0; border-radius:0; }
@@ -12696,6 +12699,7 @@ function setLiftMode(on){
   liftMode = on;
   liftDrag = null;
   document.documentElement.classList.toggle('is-lift-mode', on);
+  document.documentElement.classList.toggle('is-lift-told', on && liftHeard);
   syncLiftUi();
   tellLift();
 }
