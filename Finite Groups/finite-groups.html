@@ -10757,9 +10757,10 @@ function syncExprCtx(key){
       ringCtxEl.appendChild(it.item);
     });
   });
-  if (key !== 'gens') return;
   // Natural with its exponents, x¹, or without, x (the slider opens this
-  // menu only while it is at Natural).
+  // menu only while it is at Natural); not for a group with no generator,
+  // which has no powers to write.
+  if (key !== 'gens' || !drawn || !drawn.G.cyclic) return;
   var natExp = natExpTick();
   natExp.classList.add('ring-ctx-expr');
   ringCtxEl.appendChild(natExp);
@@ -11291,13 +11292,14 @@ function syncDhCtx(on, bead){
   }
   return first;
 }
-// At Natural, Exponents in natural expression, the menu's first entry; on
-// a cyclic curve off Natural, its points written as multiples instead.
+// At Natural, Exponents in natural expression, the menu's first entry
+// (not for a group with no generator); on a cyclic curve off Natural, its
+// points written as multiples instead.
 function syncSignCtx(on){
   ringCtxEl.querySelectorAll(':scope > .ring-ctx-sign').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
   var first = null;
-  if (exprBy(drawn.G) === null){
+  if (exprBy(drawn.G) === null && drawn.G.cyclic){
     first = natExpTick();
     first.classList.add('ring-ctx-sign');
     ringCtxEl.insertBefore(first, ringCtxEl.firstChild);
@@ -11363,7 +11365,9 @@ ringSvgEl.addEventListener('contextmenu', function(e){
 });
 exprSlotEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
-  if (IS_MOBILE || !drawn || exprBy(drawn.G) !== null) return;
+  // Its menu holds only Exponents in natural expression, which a group with
+  // no generator goes without.
+  if (IS_MOBILE || !drawn || exprBy(drawn.G) !== null || !drawn.G.cyclic) return;
   setRingCtx(true, ptX(e), ptY(e), true);
 });
 document.addEventListener('pointerdown', function(e){
