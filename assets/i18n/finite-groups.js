@@ -289,9 +289,10 @@
    winKeepFrosted (Keep frosted, beside the reused winKeepSolid in the
    right-click menus of the control rows, keeping all three frosted or all
    three opaque, and of the cards under the ring: the expression slider's,
-   the turning ruler's and the arrow key's), and liftMenu, liftModeHint and
-   liftReset (Change height, in the ring's right-click menu, and the bar
-   over the ring in the height mode it turns on, with its Reset), and
+   the turning ruler's and the arrow key's), and liftMenu, liftModeHint,
+   liftReset and liftDone (Change height, in the ring's right-click menu,
+   and the bar over the ring in the height mode it turns on, with its Reset
+   and its Done, which turns the mode off), and
    relatedRowLabel, relSwap and relReduce (the Related groups row, the
    desktop's SUBGROUP row renamed for holding Divide, Multiply and Swap
    too, its Swap button and its Reduce to structure button).
@@ -1370,6 +1371,7 @@
       liftMenu: 'Change height',
       liftModeHint: 'Height mode: drag the ring up or down',
       liftReset: 'Reset',
+      liftDone: 'Done',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
       idxLagrangeOff: 'Disable Lagrange\'s notation',
