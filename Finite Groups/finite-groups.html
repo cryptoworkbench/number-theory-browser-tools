@@ -2760,6 +2760,12 @@
   /* On a desktop the row formulas are chosen in the bottom bar. */
   :root:not(.is-mobile) #sub-formula-pair{ display:none; }
   .ring-ctx-sep{ margin:6px 0; border-top:1px solid var(--panel-border); }
+  /* The congruence wheel submenu's Cell height: its label, and its share of
+     the default between a thinner and a thicker button. */
+  .wheel-thick-row{ display:flex; align-items:center; gap:8px; padding:6px 10px; font-size:.85rem; color:var(--text); }
+  .wheel-thick-label{ margin-inline-end:auto; padding-inline-end:12px; }
+  .wheel-thick-value{ min-width:3.2em; text-align:center; font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--text-dim); }
+  .wheel-thick-row > .fs-win-btn:disabled{ opacity:.4; cursor:default; }
   .ring-ctx .fact-value{ padding-inline-start:16px; }
   .ring-ctx .fs-menu-item[aria-disabled="true"]{ opacity:.4; cursor:default; background:none; }
   /* A menu item's key, right-aligned like a submenu's arrow. */
@@ -5485,7 +5491,7 @@ function drawInner(ring, walk, cls, scale, sense, place, box, beadR, m, width, r
 // wheel's own figure for it in the walk's colour. size 0 leaves out the
 // arrowhead.
 function drawRawHop(group, h, ex, box, beadR, width, size){
-  var ring = box.R * DHC_WHEEL_RING, R0 = box.R + beadR + 4, foot = box.R + beadR;
+  var ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, foot = box.R + beadR;
   var cell = R0 + (ex.q + 0.5) * ring, font = ex.font, turn = cell - font * 0.7;
   var to = h.a0 + h.d, samples = Math.max(16, Math.ceil(Math.abs(h.d) / humpCoarse)), d = '';
   var pt = function(f){ return polar(box.cx, box.cy, foot + (turn - foot) * f, h.a0 + h.d * f); };
@@ -5768,7 +5774,7 @@ function drawRing(parent, G, beads, box, paint){
       return function(hop){
         var r = G.mode === 'multiplicative' ? hop.from * by : hop.from + by, q = Math.floor(r / G.n);
         if (q < 1 || q >= ringWheelDepth) return null;
-        return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, box.R * DHC_WHEEL_RING, ringWheelDepth) };
+        return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth) };
       };
     };
     ring.redrawWalks = function(places){
@@ -10946,54 +10952,94 @@ function wheelMark(){
   svg.appendChild(svgEl('circle', { 'class': 'wheel-mark-pivot', cx: 12, cy: 12, r: 1 }));
   return mark;
 }
-// Congruence wheel, ticked while on, above the formula settings; on a
+// Congruence wheel, above the formula settings: a submenu of the wheel's
+// settings, Show the congruence wheel first and, while it is on, Show raw
+// results before reduction on each path and the rings' cell height. On a
 // curve, where the wheel does not fit the group (see dhcWheelFits), greyed
 // out, its tooltip saying why.
 function syncWheelCtx(on){
-  ringCtxEl.querySelectorAll(':scope > :is(.ring-ctx-wheel, .ring-ctx-raw)').forEach(function(el){ el.remove(); });
+  ringCtxEl.querySelectorAll(':scope > .ring-ctx-wheel').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
   var fits = dhcWheelFits(drawn.G);
-  var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.ringWheel'), fits && ringWheelOn, function(){
-    if (!fits) return;
-    setRingCtx(false);
-    toggleRingWheel();
-  });
+  var it = ctxItem('menuitem', translate('cyclicGroups.ringWheel'), fits);
+  var item = it.item;
+  item.replaceChild(wheelMark(), it.mark);
+  item.classList.add('ring-ctx-wheel');
+  ringCtxEl.insertBefore(item, ringCtxItems[0].item);
   if (!fits){
-    tick.setAttribute('aria-disabled', 'true');
-    tick.title = translate('cyclicGroups.ringWheelNoCurve');
+    item.setAttribute('aria-disabled', 'true');
+    item.title = translate('cyclicGroups.ringWheelNoCurve');
+    item.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    return item;
   }
-  tick.classList.add('ring-ctx-wheel', 'is-tick-end');
-  tick.appendChild(tick.firstChild);
-  tick.insertBefore(wheelMark(), tick.firstChild);
-  tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
-  ringCtxEl.insertBefore(tick, ringCtxItems[0].item);
-  // Under it, while the wheel is on, Reduction: a submenu of Show raw
-  // results before reduction, on the forward path and on the backward.
-  if (ringWheelShown(drawn.G)){
-    var raw = ctxItem('menuitem', translate('cyclicGroups.ringRawMenu'), true).item;
-    raw.classList.add('ring-ctx-raw');
-    var openRaw = function(focus){
-      setRingCopy(null);
-      ringCopyFrom = raw;
-      raw.setAttribute('aria-expanded', 'true');
-      ringCopyEl.hidden = false;
-      ringCopyEl.setAttribute('aria-label', raw.children[1].textContent);
-      ringCopyEl.replaceChildren.apply(ringCopyEl, Object.keys(RING_RAW).map(function(path){
-        var it = menuTick('menuitemcheckbox', translate(RING_RAW[path].label), ringRawOn[path], function(){
-          setRingCtx(false);
-          toggleRingRaw(path);
-        });
-        it.classList.add('is-tick-end');
-        it.appendChild(it.firstChild);
-        return it;
-      }));
-      placeRingSub(raw, focus);
+  var open = function(focus){
+    setRingCopy(null);
+    ringCopyFrom = item;
+    item.setAttribute('aria-expanded', 'true');
+    ringCopyEl.hidden = false;
+    ringCopyEl.setAttribute('aria-label', item.children[1].textContent);
+    var tick = function(key, now, run){
+      var t = menuTick('menuitemcheckbox', translate(key), now, function(){ setRingCtx(false); run(); });
+      t.classList.add('is-tick-end');
+      t.appendChild(t.firstChild);
+      return t;
     };
-    raw.addEventListener('pointerenter', function(){ openRaw(false); });
-    raw.addEventListener('click', function(){ openRaw(true); });
-    ringCtxEl.insertBefore(raw, ringCtxItems[0].item);
-  }
-  return tick;
+    var rule = function(){
+      var sep = document.createElement('div');
+      sep.className = 'ring-ctx-sep';
+      sep.setAttribute('role', 'separator');
+      return sep;
+    };
+    var rows = [tick('cyclicGroups.ringWheelShow', ringWheelOn, toggleRingWheel)];
+    if (ringWheelShown(drawn.G)){
+      rows.push(rule());
+      Object.keys(RING_RAW).forEach(function(path){
+        rows.push(tick(RING_RAW[path].label, ringRawOn[path], function(){ toggleRingRaw(path); }));
+      });
+      rows.push(rule(), wheelThickRow());
+    }
+    ringCopyEl.replaceChildren.apply(ringCopyEl, rows);
+    placeRingSub(item, focus);
+  };
+  item.addEventListener('pointerenter', function(){ open(false); });
+  item.addEventListener('click', function(){ open(true); });
+  return item;
+}
+// Cell height: the rings of the wheel thinner or thicker, a step at a time
+// through WHEEL_THICKS, its share of the default beside the two buttons;
+// the menu stays open while it is stepped.
+function wheelThickRow(){
+  var row = document.createElement('div');
+  row.className = 'wheel-thick-row';
+  row.setAttribute('role', 'group');
+  var label = row.appendChild(document.createElement('span'));
+  label.className = 'wheel-thick-label';
+  label.textContent = translate('cyclicGroups.ringWheelThick');
+  row.setAttribute('aria-label', label.textContent);
+  var value = document.createElement('span');
+  value.className = 'wheel-thick-value';
+  var step = function(by, key, d){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'fs-win-btn';
+    btn.title = translate(key);
+    btn.setAttribute('aria-label', btn.title);
+    var svg = btn.appendChild(svgEl('svg', { viewBox: '0 0 12 12', width: 12, height: 12, 'aria-hidden': 'true', focusable: 'false' }));
+    d.forEach(function(l){ svg.appendChild(svgEl('line', { x1: l[0], y1: l[1], x2: l[2], y2: l[3] })); });
+    btn.addEventListener('click', function(){ setWheelThick(WHEEL_THICKS.indexOf(ringWheelThick) + by); sync(); });
+    return btn;
+  };
+  var less = step(-1, 'cyclicGroups.ringWheelThinner', [[2.5, 6, 9.5, 6]]);
+  var more = step(1, 'cyclicGroups.ringWheelThicker', [[2.5, 6, 9.5, 6], [6, 2.5, 6, 9.5]]);
+  var sync = function(){
+    var i = WHEEL_THICKS.indexOf(ringWheelThick);
+    value.textContent = Math.round(ringWheelThick * 100) + '%';
+    less.disabled = i <= 0;
+    more.disabled = i >= WHEEL_THICKS.length - 1;
+  };
+  row.append(less, value, more);
+  sync();
+  return row;
 }
 // Last, under Export, Export group…: this ring's group's list of subgroups,
 // in the export window (openExportWin), as the bottom panel's menu offers it.
@@ -12332,6 +12378,25 @@ Object.keys(RING_RAW).forEach(function(path){
   }
 });
 // path 'el' or 'inv', or none for either.
+// The wheel's cell height, a share of its default ring width (see
+// ringWheelRing); a link's wheelthick says it for this load, ahead of
+// storage.
+var WHEEL_THICKS = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4];
+var RING_WHEEL_THICK_KEY = 'cyclic-groups-ring-wheel-thick';
+var ringWheelThick = (function(){
+  var v = Number(new URLSearchParams(location.search).get('wheelthick'));
+  if (WHEEL_THICKS.indexOf(v) !== -1) return v;
+  try { v = Number(localStorage.getItem(RING_WHEEL_THICK_KEY)); } catch (e) { v = 1; }
+  return WHEEL_THICKS.indexOf(v) !== -1 ? v : 1;
+})();
+// The width of one ring of the wheel around a ring of radius R.
+function ringWheelRing(R){ return R * DHC_WHEEL_RING * ringWheelThick; }
+function setWheelThick(i){
+  if (i < 0 || i >= WHEEL_THICKS.length || WHEEL_THICKS[i] === ringWheelThick) return;
+  ringWheelThick = WHEEL_THICKS[i];
+  try { localStorage.setItem(RING_WHEEL_THICK_KEY, String(ringWheelThick)); } catch (e) { /* storage unavailable */ }
+  if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
+}
 function ringRawShown(G, path){ return (path ? ringRawOn[path] : ringRawOn.el || ringRawOn.inv) && ringWheelShown(G); }
 function toggleRingRaw(path){
   ringRawOn[path] = !ringRawOn[path];
@@ -12356,7 +12421,7 @@ window.addEventListener('keydown', function(e){
 // reach its farthest corner from the ring's centre, capped so the numbers
 // stay few enough to draw.
 function ringWheelFill(box, beadR, m){
-  var r = boxOf(ringSvgEl), vb = ringSvgEl.viewBox.baseVal, ring = box.R * DHC_WHEEL_RING;
+  var r = boxOf(ringSvgEl), vb = ringSvgEl.viewBox.baseVal, ring = ringWheelRing(box.R);
   ringWheelClip = null;
   ringWheelDepth = 6;
   if (!r.width || !r.height || !vb || !vb.width) return;
@@ -12525,7 +12590,7 @@ ringSvgEl.addEventListener('pointerleave', function(){ syncCombineCardHot(null);
 // The cells lit by a tap (see walkWheelCell): { x, k, el } each.
 var wheelWalk = 0, wheelLit = [];
 function drawRingWheel(g, G, place, m, box, beadR){
-  var N = G.n, ring = box.R * DHC_WHEEL_RING, R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m, k;
+  var N = G.n, ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m, k;
   g.replaceChildren();
   g.removeAttribute('clip-path');
   if (ringWheelClip){
@@ -12568,8 +12633,10 @@ function drawRingWheel(g, G, place, m, box, beadR){
   g.appendChild(mod);
 }
 // The wheel's figures' size: as large as the widest fits its innermost
-// cell, and no more than half a ring.
+// cell, and no more than half a ring at the default cell height, so a
+// taller cell (ringWheelThick) leaves them as they were.
 function ringWheelNumSize(G, m, R0, ring, depth){
+  ring /= ringWheelThick;
   var digits = String(Math.max.apply(null, G.els) + (depth - 1) * G.n).length;
   var arc = m === 1 ? 999 : (R0 + ring / 2) * 2 * Math.PI / m;
   return clamp(Math.min(arc / (digits * 0.66), ring * 0.5), 0.5, ring * 0.6);
@@ -24255,6 +24322,7 @@ function stateQuery(){
   q.set('nathover', state.revealOff ? '0' : '1');
   q.set('wheel', ringWheelOn ? '1' : '0');
   Object.keys(RING_RAW).forEach(function(path){ q.set(RING_RAW[path].param, ringRawOn[path] ? '1' : '0'); });
+  if (ringWheelThick !== 1) q.set('wheelthick', String(ringWheelThick)); else q.delete('wheelthick');
   q.set('prefdir', state.prefDir);
   if (ringZoom !== RING_ZOOM_FIT) q.set('zoom', String(RING_ZOOMS[ringZoom])); else q.delete('zoom');
   if (ringLift) q.set('lift', num(ringLift)); else q.delete('lift');

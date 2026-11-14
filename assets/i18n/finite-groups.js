@@ -296,9 +296,11 @@
    relatedRowLabel, relSwap and relReduce (the Related groups row, the
    desktop's SUBGROUP row renamed for holding Divide, Multiply and Swap
    too, its Swap button and its Reduce to structure button), and
-   ringRawMenu, ringRawFwd and ringRawBack (the ring menu's Reduction
-   submenu while the congruence wheel is on, and its two switches showing
-   the forward and the backward path's raw results before reduction).
+   ringWheelShow, ringRawFwd, ringRawBack, ringWheelThick, ringWheelThinner
+   and ringWheelThicker (the ring menu's Congruence wheel submenu: the
+   switch showing the wheel, the two switches showing the forward and the
+   backward path's raw results before reduction, and the rings' cell
+   height with its two buttons).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1482,9 +1484,12 @@
       dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
       dhCylWheelMod: 'mod {n}',
       dhCylWheelRaw: 'Show raw results before reduction',
-      ringRawMenu: 'Reduction',
+      ringWheelShow: 'Show the congruence wheel',
       ringRawFwd: 'Show raw results before reduction on the forward path',
       ringRawBack: 'Show raw results before reduction on the backward path',
+      ringWheelThick: 'Cell height',
+      ringWheelThinner: 'Lower cells',
+      ringWheelThicker: 'Higher cells',
       dhCylWheelRawNo: 'Only with the congruence wheel floor',
       dhCylRings: 'Rings',
       dhCylRingsTip: 'How many rings the congruence wheel floor has',
