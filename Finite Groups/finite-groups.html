@@ -5111,8 +5111,10 @@ function syncExpr(G){
   signExpFace(exprSignExpEl, G, state.signedExp);
   exprSignExpEl.title = translate(state.signedExp ? 'cyclicGroups.exprSignExpOff' : 'cyclicGroups.exprSignExpOn');
   exprSignExpEl.setAttribute('aria-label', exprSignExpEl.title);
-  // With no generator there are no powers for g± to sign.
+  // With no generator there are no powers for g± to sign, and the ± switch
+  // goes to the ring's right-click menu (syncSignCtx), which a phone has not.
   exprSignExpEl.hidden = exprHoverSignExpEl.hidden = !G.cyclic;
+  exprSignEl.hidden = !G.cyclic && !IS_MOBILE;
   exprSlotEl.hidden = false;
   exprSlotEl.classList.toggle('is-sign-only', !G.cyclic);
   if (!G.cyclic) return;
@@ -11306,8 +11308,11 @@ function syncSignCtx(on){
   }
   // On a cyclic curve, with the expression slider off Natural, the points
   // written as multiples kP of the generator, not as its powers, at the
-  // menu's very top. The signed forms are the slider's ± and g± buttons only.
-  var signs = !first && drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]] : [];
+  // menu's very top. The signed forms are the slider's ± and g± buttons,
+  // but for a group with no generator, whose slider shows neither: there the
+  // signed form of the numbers (a curve's coordinates) is ticked here.
+  var signs = !first && drawn.G.pts && drawn.G.cyclic ? [['cyclicGroups.menuEcMult', 'ecMult', toggleEcMult]]
+    : !drawn.G.cyclic ? [[drawn.G.pts ? 'cyclicGroups.exprSignOnEc' : 'cyclicGroups.exprSignOn', 'signed', toggleSigned]] : [];
   signs.forEach(function(t){
     var on = state[t[1]];
     var text = translate(t[0]);
