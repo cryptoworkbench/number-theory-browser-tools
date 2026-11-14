@@ -1591,6 +1591,16 @@
   .ring-combine .is-c{ fill:var(--role-result); }
   .ring-combine .is-sup{ font-size:0.68em; baseline-shift:super; }
   .ring-combine-hit{ fill:transparent; cursor:help; }
+  /* Right of each of those lines, its copy button, shown as the formulas'
+     above the ring are: while the pointer is over the lines. */
+  .ring-combine-copy{ color:var(--text-dim); cursor:pointer; opacity:0; pointer-events:none; transition:opacity .15s; }
+  .ring-combine-copies.is-hot > .ring-combine-copy, .ring-combine-copy:focus-visible, .ring-combine-copy.is-done{ opacity:1; pointer-events:auto; }
+  .ring-combine-copy > rect{ fill:transparent; stroke:none; }
+  .ring-combine-copy > g{ fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
+  .ring-combine-copy:hover{ color:var(--accent); }
+  .ring-combine-copy.is-done{ color:var(--role-result); }
+  .ring-combine-copy:focus-visible{ outline:none; }
+  .ring-combine-copy:focus-visible > rect{ stroke:var(--accent); stroke-width:2; }
   /* In place of a ring too big to draw. */
   .ring-too-big{ fill:var(--text-dim); font-family:var(--font-sans); font-size:20px; text-anchor:middle; dominant-baseline:middle; }
   /* a ∗ b's and aᵏ's lines can be selected and copied, as plain text. */
@@ -12005,7 +12015,7 @@ function drawNecklace(G, paint){
   drawCurvePlot(G);
   drawPolyPlot(G);
   drawCayley(G);
-  if (!big){ drawCombineLine(G, SIZE - 16); cardCombineLines(G); }
+  if (!big){ drawCombineLine(G, SIZE - 16); combineCopies(); cardCombineLines(G); }
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
@@ -12101,22 +12111,12 @@ function turnRingWheelClip(ring, angle, box){
 var COMBINE_CARD_PAD = 10;
 function cardCombineLines(G){
   if (!ringWheelShown(G)) return;
-  var lines = ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine');
+  var lines = ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine, .ring-combine-copy');
   var ring = ringDynamicEl.querySelector('.ring'), wheel = ring && ring.querySelector('.ring-wheel');
   if (!lines.length || !wheel) return;
-  var base = ringDynamicEl.getCTM();
-  if (!base) return;
-  var inv = base.inverse(), x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  lines.forEach(function(el){
-    var b = el.getBBox(), m = el.getCTM();
-    if (!b.width || !m) return;
-    m = inv.multiply(m);
-    [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].forEach(function(c){
-      var x = m.a * c[0] + m.c * c[1] + m.e, y = m.b * c[0] + m.d * c[1] + m.f;
-      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
-    });
-  });
-  if (!(x1 > x0)) return;
+  var ext = combineExtent(lines);
+  if (!ext) return;
+  var x0 = ext.x0, y0 = ext.y0, x1 = ext.x1, y1 = ext.y1;
   var card = { x: num(x0 - COMBINE_CARD_PAD), y: num(y0 - COMBINE_CARD_PAD / 2), width: num(x1 - x0 + 2 * COMBINE_CARD_PAD), height: num(y1 - y0 + COMBINE_CARD_PAD), rx: 10 };
   ringDynamicEl.insertBefore(svgEl('rect', Object.assign({ 'class': 'ring-combine-plate' }, card)), lines[0]);
   wheel.id = 'ring-wheel-el';
@@ -12131,6 +12131,79 @@ function cardCombineLines(G){
   if (turnedBy) turnRingWheelClip(ring, +turnedBy[1], ringBox());
   syncCombineCardHot(combineCardPointer);
 }
+// How far some of the ring's drawn elements reach, { x0, y0, x1, y1 } in
+// ringDynamicEl's own frame (their transforms applied), or null.
+function combineExtent(els){
+  var base = ringDynamicEl.getCTM();
+  if (!base) return null;
+  var inv = base.inverse(), x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  Array.prototype.forEach.call(els, function(el){
+    var b = el.getBBox(), m = el.getCTM();
+    if (!b.width || !m) return;
+    m = inv.multiply(m);
+    [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].forEach(function(c){
+      var x = m.a * c[0] + m.c * c[1] + m.e, y = m.b * c[0] + m.d * c[1] + m.f;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    });
+  });
+  return x1 > x0 ? { x0: x0, y0: y0, x1: x1, y1: y1 } : null;
+}
+// Right of each line under the ring, a copy button, as each formula above
+// it has (formulaCopies): a click puts that line on the clipboard as plain
+// Unicode text, and the button shows a tick for a moment. They show while
+// the pointer is over the lines (syncCombineCardHot).
+var COMBINE_COPY_W = 14, COMBINE_COPY_H = 22;
+function combineCopies(){
+  if (IS_MOBILE || IS_PREVIEW) return;
+  var texts = Array.prototype.filter.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
+    return t.getAttribute('data-plain') || t.textContent.trim();
+  });
+  var all = combineExtent(texts);
+  if (!all) return;
+  var x = all.x1 + 6;
+  var group = svgEl('g', { 'class': 'ring-combine-copies' });
+  group.appendChild(svgEl('rect', { 'class': 'ring-combine-area', x: num(all.x0 - COMBINE_CARD_PAD), y: num(all.y0 - COMBINE_CARD_PAD / 2), width: num(x + COMBINE_COPY_W - all.x0 + 2 * COMBINE_CARD_PAD), height: num(all.y1 - all.y0 + COMBINE_CARD_PAD), fill: 'none', 'pointer-events': 'none' }));
+  texts.forEach(function(t){
+    var at = combineExtent([t]);
+    if (!at) return;
+    var plain = t.getAttribute('data-plain') || t.textContent.trim(), cy = (at.y0 + at.y1) / 2;
+    var btn = svgEl('g', { 'class': 'ring-combine-copy', role: 'button', tabindex: '0' });
+    btn.appendChild(svgEl('rect', { x: num(x), y: num(cy - COMBINE_COPY_H / 2), width: COMBINE_COPY_W, height: COMBINE_COPY_H, rx: 4 }));
+    var glyph = btn.appendChild(svgEl('g', { transform: 'translate(' + num(x + 1) + ' ' + num(cy - 6) + ') scale(' + num(12 / 14) + ')' }));
+    var label = function(key){
+      btn.setAttribute('data-title', translate(key));
+      btn.setAttribute('aria-label', translate(key));
+    };
+    var icon = function(parts){
+      glyph.replaceChildren.apply(glyph, parts.map(function(p){ return svgEl(p[0], p[1]); }));
+    };
+    label('cyclicGroups.ctxCopyUnicode');
+    icon(COPY_ICON);
+    var done = 0;
+    var copy = function(){
+      copyText(plain);
+      btn.classList.add('is-done');
+      label('cyclicGroups.exportWinCopied');
+      icon(DONE_ICON);
+      clearTimeout(done);
+      done = setTimeout(function(){
+        btn.classList.remove('is-done');
+        label('cyclicGroups.ctxCopyUnicode');
+        icon(COPY_ICON);
+      }, 1200);
+    };
+    btn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+    btn.addEventListener('click', function(e){ e.stopPropagation(); copy(); });
+    btn.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      copy();
+    });
+    group.appendChild(btn);
+  });
+  ringDynamicEl.appendChild(group);
+  syncCombineCardHot(combineCardPointer);
+}
 // The blur's ground is whatever the ring is drawn on, read again whenever
 // the theme changes.
 function groundCombineCard(){
@@ -12142,10 +12215,15 @@ new MutationObserver(groundCombineCard).observe(document.documentElement, { attr
 var combineCardPointer = null;
 function syncCombineCardHot(e){
   combineCardPointer = e;
+  var over = function(el){
+    var r = el.getBoundingClientRect();
+    return !!e && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  };
+  var copies = ringDynamicEl.querySelector('.ring-combine-copies'), area = copies && copies.querySelector('.ring-combine-area');
+  if (area) copies.classList.toggle('is-hot', over(area));
   var plate = ringDynamicEl.querySelector('.ring-combine-plate');
   if (!plate) return;
-  var r = plate.getBoundingClientRect();
-  plate.classList.toggle('is-hot', !!e && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+  plate.classList.toggle('is-hot', over(plate));
 }
 // The first opaque background behind el.
 function groundBehind(el){
@@ -13444,7 +13522,7 @@ function ringTopCut(box){ return Math.max(0, box.cy - box.R - 70); }
 // The preview shows the beads alone: no captions, and the view fitted to
 // the ring with a little room to spare.
 function cropToRing(){
-  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine').forEach(function(t){ t.remove(); });
+  ringDynamicEl.querySelectorAll('.ring-title, .ring-sub, .ring-formula, .ring-note, .ring-math, .ring-combine-box, .ring-combine, .ring-combine-copies').forEach(function(t){ t.remove(); });
   var b;
   try { b = ringDynamicEl.getBBox(); } catch (e) { return; }
   if (!b || !b.width) return;
@@ -18423,7 +18501,7 @@ ringSvgEl.addEventListener('pointerdown', function(e){
   if (e.button !== 0 || !drawn) return;
   // A press on the notes or the combination's lines selects their text,
   // the gaps between a line's terms included.
-  if (e.target.closest('.ring-note, .ring-combine, .ring-combine-hit')) return;
+  if (e.target.closest('.ring-note, .ring-combine, .ring-combine-hit, .ring-combine-copy')) return;
   if (Array.prototype.some.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
     var r = t.getBoundingClientRect();
     return e.clientX >= r.left - 4 && e.clientX <= r.right + 4 && e.clientY >= r.top - 2 && e.clientY <= r.bottom + 2;
