@@ -303,8 +303,9 @@
    backward path's raw results before reduction, ringRawCombine's and
    ringRawPower's switches showing a combination's and aᵏ's walk's, and
    the rings' cell height with its two buttons and its reset button),
-   and ctxCopyBmatrix (the copy entry of the right-click menu of a ∗ b
-   worked in both groups at once, giving LaTeX in amsmath's bmatrix).
+   and isoCopyLatex and ctxCopyBmatrix (the copy entries of the
+   right-click menu of a ∗ b worked in both groups at once, giving LaTeX
+   with one-column arrays and LaTeX in amsmath's bmatrix).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1530,7 +1531,8 @@
       ctxCopyMathml: 'Copy in MathML formatting',
       ctxCopyUnicode: 'Copy as Unicode plain text',
       ctxCopyAscii: 'Copy in ASCII formatting',
-      ctxCopyBmatrix: 'Copy in LaTeX formatting with bmatrix',
+      isoCopyLatex: 'Copy in LaTeX format',
+      ctxCopyBmatrix: 'Copy in bmatrix format',
       spinResetTitle: 'Double-click to reset',
       fsOpacity: 'Opacity of {name}',
       fsOpacityValue: '{value}%',
