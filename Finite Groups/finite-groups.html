@@ -5726,7 +5726,7 @@ function drawRing(parent, G, beads, box, paint){
         return;
       }
       if (mergedWalks(G)){
-        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1, raw: true });
+        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1, raw: 'both' });
         return;
       }
       if (state.oneLine && invSide() !== 'neither'){
@@ -5748,23 +5748,28 @@ function drawRing(parent, G, beads, box, paint){
         if (pairs && powerShown(G, 6)) powerWalks(6, 'is-sixth', powerSide(6));
         return;
       }
-      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1, raw: true });
-      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, sense: -1 });
+      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1, raw: 'el' });
+      if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, sense: -1, raw: 'inv' });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
     walksFrom(coset ? coset.start : G.identity, false);
     // The walks share one group, which a rearrangement redraws as the beads
     // move: places may then be fractional.
     var walksEl = ring.appendChild(svgEl('g', { 'class': 'walks' }));
-    // Raw results, the ring menu's choice on the congruence wheel, for the
-    // walk by the element itself (see drawRawHop): a hop's unreduced
-    // result and the ring of the wheel holding it, or null for a hop
-    // needing no reduction or reaching past the rings drawn.
-    var rawOf = function(hop){
-      if (!ringRawShown(G)) return null;
-      var r = G.mode === 'multiplicative' ? hop.from * h : hop.from + h, q = Math.floor(r / G.n);
-      if (q < 1 || q >= ringWheelDepth) return null;
-      return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, box.R * DHC_WHEEL_RING, ringWheelDepth) };
+    // Raw results, the ring menu's choices on the congruence wheel, for the
+    // forward path (raw 'el', the walk by h) and the backward path ('inv',
+    // by h's inverse; 'both' for the one walk standing for both): per
+    // walk, null while its path's switch is off, else a hop's unreduced
+    // result and the ring of the wheel holding it, null for a hop needing
+    // no reduction or reaching past the rings drawn (see drawRawHop).
+    var rawFor = function(w){
+      if (!w.raw || !ringRawShown(G, w.raw === 'both' ? null : w.raw)) return null;
+      var by = w.raw === 'inv' ? G.inv[h] : h;
+      return function(hop){
+        var r = G.mode === 'multiplicative' ? hop.from * by : hop.from + by, q = Math.floor(r / G.n);
+        if (q < 1 || q >= ringWheelDepth) return null;
+        return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, box.R * DHC_WHEEL_RING, ringWheelDepth) };
+      };
     };
     ring.redrawWalks = function(places){
       var edge = box.R + beadR;
@@ -5774,13 +5779,13 @@ function drawRing(parent, G, beads, box, paint){
         if (w.duo) edge = Math.max(edge, drawDuo(walksEl, w.walk, w.cls, w.side, places, box, beadR, m, width, w.paint, w.paint ? 0 : 1, w.open));
       });
       walks.forEach(function(w){
-        if (w.side === 'outside' && !w.loop && !w.duo) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, w.raw && rawOf));
+        if (w.side === 'outside' && !w.loop && !w.duo) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, rawFor(w)));
       });
       walks.forEach(function(w){
         if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.cls, w.side, places, box, beadR, m, width, w.paint, w.both));
       });
       walks.forEach(function(w){
-        if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, w.raw && rawOf);
+        if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, rawFor(w));
       });
       return edge;
     };
@@ -10962,18 +10967,30 @@ function syncWheelCtx(on){
   tick.insertBefore(wheelMark(), tick.firstChild);
   tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
   ringCtxEl.insertBefore(tick, ringCtxItems[0].item);
-  // Under it, while the wheel is on, Show raw results before reduction.
+  // Under it, while the wheel is on, Reduction: a submenu of Show raw
+  // results before reduction, on the forward path and on the backward.
   if (ringWheelShown(drawn.G)){
-    var raw = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylWheelRaw'), ringRawOn, function(){
-      setRingCtx(false);
-      toggleRingRaw();
-    });
-    raw.classList.add('ring-ctx-raw', 'is-tick-end');
-    raw.appendChild(raw.firstChild);
-    var blank = raw.insertBefore(document.createElement('span'), raw.firstChild);
-    blank.className = 'fs-icon';
-    blank.setAttribute('aria-hidden', 'true');
-    raw.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    var raw = ctxItem('menuitem', translate('cyclicGroups.ringRawMenu'), true).item;
+    raw.classList.add('ring-ctx-raw');
+    var openRaw = function(focus){
+      setRingCopy(null);
+      ringCopyFrom = raw;
+      raw.setAttribute('aria-expanded', 'true');
+      ringCopyEl.hidden = false;
+      ringCopyEl.setAttribute('aria-label', raw.children[1].textContent);
+      ringCopyEl.replaceChildren.apply(ringCopyEl, Object.keys(RING_RAW).map(function(path){
+        var it = menuTick('menuitemcheckbox', translate(RING_RAW[path].label), ringRawOn[path], function(){
+          setRingCtx(false);
+          toggleRingRaw(path);
+        });
+        it.classList.add('is-tick-end');
+        it.appendChild(it.firstChild);
+        return it;
+      }));
+      placeRingSub(raw, focus);
+    };
+    raw.addEventListener('pointerenter', function(){ openRaw(false); });
+    raw.addEventListener('click', function(){ openRaw(true); });
     ringCtxEl.insertBefore(raw, ringCtxItems[0].item);
   }
   return tick;
@@ -12296,21 +12313,29 @@ var ringWheelOn = (function(){
 })();
 var ringWheelDepth = 6, ringWheelClip = null;
 function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G); }
-// Show raw results before reduction (the menu's choice while the wheel is
-// on): the walk by the element runs out to each hop's unreduced result on
-// the wheel and back in to its bead (see drawRawHop), as the time
-// cylinder's floor shows them. A link's wheelraw=1 or wheelraw=0 says it
-// for this load, ahead of storage.
-var RING_WHEEL_RAW_KEY = 'cyclic-groups-ring-wheel-raw';
-var ringRawOn = (function(){
-  var w = new URLSearchParams(location.search).get('wheelraw');
-  if (w === '1' || w === '0') return w === '1';
-  try { return localStorage.getItem(RING_WHEEL_RAW_KEY) === '1'; } catch (e) { return false; }
-})();
-function ringRawShown(G){ return ringRawOn && ringWheelShown(G); }
-function toggleRingRaw(){
-  ringRawOn = !ringRawOn;
-  try { localStorage.setItem(RING_WHEEL_RAW_KEY, ringRawOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+// Show raw results before reduction, one switch per path in the menu's
+// Reduction submenu while the wheel is on: the forward path (the walk by
+// the element) or the backward path (by its inverse) runs out to each
+// hop's unreduced result on the wheel and back in to its bead (see
+// drawRawHop), as the time cylinder's floor shows them. A link's wheelraw
+// and wheelrawback (1 or 0) say them for this load, ahead of storage.
+var RING_RAW = {
+  el: { key: 'cyclic-groups-ring-wheel-raw', param: 'wheelraw', label: 'cyclicGroups.ringRawFwd' },
+  inv: { key: 'cyclic-groups-ring-wheel-raw-back', param: 'wheelrawback', label: 'cyclicGroups.ringRawBack' }
+};
+var ringRawOn = {};
+Object.keys(RING_RAW).forEach(function(path){
+  var w = new URLSearchParams(location.search).get(RING_RAW[path].param);
+  if (w === '1' || w === '0') ringRawOn[path] = w === '1';
+  else {
+    try { ringRawOn[path] = localStorage.getItem(RING_RAW[path].key) === '1'; } catch (e) { ringRawOn[path] = false; }
+  }
+});
+// path 'el' or 'inv', or none for either.
+function ringRawShown(G, path){ return (path ? ringRawOn[path] : ringRawOn.el || ringRawOn.inv) && ringWheelShown(G); }
+function toggleRingRaw(path){
+  ringRawOn[path] = !ringRawOn[path];
+  try { localStorage.setItem(RING_RAW[path].key, ringRawOn[path] ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
 function toggleRingWheel(){
@@ -24229,7 +24254,7 @@ function stateQuery(){
   // height, travel in the link too, so whoever opens it sees the same.
   q.set('nathover', state.revealOff ? '0' : '1');
   q.set('wheel', ringWheelOn ? '1' : '0');
-  q.set('wheelraw', ringRawOn ? '1' : '0');
+  Object.keys(RING_RAW).forEach(function(path){ q.set(RING_RAW[path].param, ringRawOn[path] ? '1' : '0'); });
   q.set('prefdir', state.prefDir);
   if (ringZoom !== RING_ZOOM_FIT) q.set('zoom', String(RING_ZOOMS[ringZoom])); else q.delete('zoom');
   if (ringLift) q.set('lift', num(ringLift)); else q.delete('lift');
