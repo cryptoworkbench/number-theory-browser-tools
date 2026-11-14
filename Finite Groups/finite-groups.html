@@ -987,6 +987,10 @@
   .cord{ fill:none; stroke:color-mix(in srgb, var(--text-dim) 50%, transparent); stroke-linejoin:round; }
   .chord{ fill:none; stroke:var(--walk); stroke-linejoin:round; stroke-linecap:round; opacity:.9; }
   .chord-arrow{ fill:var(--walk); stroke:none; }
+  /* Raw results on the congruence wheel: a hop out to its unreduced number,
+     written in the walk's colour, and the reduction back in, dashed. */
+  .chord.is-reduce{ stroke-dasharray:4 3; }
+  .ring-raw{ fill:var(--walk); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:3px; }
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
   .bead.is-nat-shown{ cursor:none; }
   /* The pointer's stand-in, drawn under the beads while one shows its
@@ -5453,30 +5457,68 @@ function humpArrow(cls, box, foot, side, h, size){
 // outside it runs at SHARED_SCALE height.
 
 // A walk inside the ring, as one closed chain of humps.
-function drawInner(ring, walk, cls, scale, sense, place, box, beadR, m, width){
+function drawInner(ring, walk, cls, scale, sense, place, box, beadR, m, width, raw){
   var k = walk.length;
   var foot = box.R - beadR;
   var steps = humpSteps(walk, place, m, scale, sense);
   var group = svgEl('g', { 'class': cls });
-  var d = '';
-  steps.forEach(function(h, s){ d += (s ? ' ' : '') + humpPath(box, foot, -1, h, s === 0); });
-  group.appendChild(svgEl('path', { 'class': 'chord', d: d, 'data-seq': walk.join(' '), 'stroke-width': width }));
-  if (k <= 60){
-    var size = Math.max(3, Math.min(7, 90 / k));
-    steps.forEach(function(h){ group.appendChild(humpArrow('chord-arrow', box, foot, -1, h, size)); });
-  }
+  var size = Math.max(3, Math.min(7, 90 / k));
+  // A hop with a raw result leaves the chain (see drawRawHop), which picks
+  // up again at the next hop.
+  var d = '', broken = true;
+  steps.forEach(function(h){
+    var ex = raw && raw(h);
+    if (ex){ drawRawHop(group, h, ex, box, beadR, width, k <= 60 ? size : 0); broken = true; return; }
+    d += (d ? ' ' : '') + humpPath(box, foot, -1, h, broken);
+    broken = false;
+  });
+  if (d) group.insertBefore(svgEl('path', { 'class': 'chord', d: d, 'data-seq': walk.join(' '), 'stroke-width': width }), group.firstChild);
+  if (k <= 60) steps.forEach(function(h){ if (!(raw && raw(h))) group.appendChild(humpArrow('chord-arrow', box, foot, -1, h, size)); });
   ring.appendChild(group);
+}
+
+// Raw results (the ring menu's choice, on the congruence wheel): a hop from
+// x by y whose unreduced x+y or x·y lies past n first spirals out, the
+// walk's way round, to that number's cell on the wheel, ex.q rings out
+// above the wedge of its residue, then comes straight back in, dashed, to
+// its bead: the reduction mod n. The raw number is written over the
+// wheel's own figure for it in the walk's colour. size 0 leaves out the
+// arrowhead.
+function drawRawHop(group, h, ex, box, beadR, width, size){
+  var ring = box.R * DHC_WHEEL_RING, R0 = box.R + beadR + 4, foot = box.R + beadR;
+  var cell = R0 + (ex.q + 0.5) * ring, font = ex.font, turn = cell - font * 0.7;
+  var to = h.a0 + h.d, samples = Math.max(16, Math.ceil(Math.abs(h.d) / humpCoarse)), d = '';
+  var pt = function(f){ return polar(box.cx, box.cy, foot + (turn - foot) * f, h.a0 + h.d * f); };
+  for (var t = 0; t <= samples; t++){
+    var q = pt(t / samples);
+    d += (t ? ' L ' : 'M ') + num(q[0]) + ' ' + num(q[1]);
+  }
+  group.appendChild(svgEl('path', { 'class': 'chord', d: d, 'stroke-width': width }));
+  if (size){
+    var a = pt(0.49), b = pt(0.51), pm = pt(0.5);
+    group.appendChild(arrowHead('chord-arrow', pm[0], pm[1], Math.atan2(b[1] - a[1], b[0] - a[0]), size));
+  }
+  var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot, to);
+  group.appendChild(svgEl('path', { 'class': 'chord is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]), 'stroke-width': width }));
+  var mid = to % 360;
+  if (mid < 0) mid += 360;
+  var rot = mid > 90 && mid < 270 ? mid + 180 : mid, c = polar(box.cx, box.cy, cell, to);
+  var label = svgEl('text', { 'class': 'ring-raw', x: num(c[0]), y: num(c[1]), 'font-size': num(font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
+  label.textContent = String(ex.raw);
+  group.appendChild(label);
 }
 
 // A walk outside the ring, one hump per step. Returns the outermost radius
 // used.
-function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width){
+function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width, raw){
   var k = walk.length;
   var foot = box.R + beadR;
   var size = Math.max(3, Math.min(7, 90 / k));
   var peakMax = 0;
   var group = svgEl('g', { 'class': 'outer-walk ' + cls, 'data-seq': walk.join(' ') });
   humpSteps(walk, place, m, scale, sense).forEach(function(h){
+    var ex = raw && raw(h);
+    if (ex){ drawRawHop(group, h, ex, box, beadR, width, k <= 60 ? size : 0); return; }
     peakMax = Math.max(peakMax, h.peak);
     group.appendChild(svgEl('path', {
       'class': 'outer-arc', 'stroke-width': width, 'data-from': h.from, 'data-to': h.to, d: humpPath(box, foot, 1, h, true)
@@ -5684,7 +5726,7 @@ function drawRing(parent, G, beads, box, paint){
         return;
       }
       if (mergedWalks(G)){
-        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1 });
+        walks.push({ walk: lap(G, h, k, start), cls: 'walk-both' + tag, side: state.elSide, scale: 1, sense: 1, raw: true });
         return;
       }
       if (state.oneLine && invSide() !== 'neither'){
@@ -5706,7 +5748,7 @@ function drawRing(parent, G, beads, box, paint){
         if (pairs && powerShown(G, 6)) powerWalks(6, 'is-sixth', powerSide(6));
         return;
       }
-      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1 });
+      walks.push({ walk: lap(G, h, k, start), cls: 'walk-el' + tag, side: state.elSide, scale: 1, sense: 1, raw: true });
       if (invSide() !== 'neither') walks.push({ walk: lap(G, G.inv[h], k, start), cls: 'walk-inv' + tag, side: invSide(), scale: !shared ? 1 : invSide() === 'inside' ? -1 : SHARED_SCALE, sense: -1 });
     };
     if (coset) coset.past.forEach(function(a){ walksFrom(a, true); });
@@ -5714,20 +5756,31 @@ function drawRing(parent, G, beads, box, paint){
     // The walks share one group, which a rearrangement redraws as the beads
     // move: places may then be fractional.
     var walksEl = ring.appendChild(svgEl('g', { 'class': 'walks' }));
+    // Raw results, the ring menu's choice on the congruence wheel, for the
+    // walk by the element itself (see drawRawHop): a hop's unreduced
+    // result and the ring of the wheel holding it, or null for a hop
+    // needing no reduction or reaching past the rings drawn.
+    var rawOf = function(hop){
+      if (!ringRawShown(G)) return null;
+      var r = G.mode === 'multiplicative' ? hop.from * h : hop.from + h, q = Math.floor(r / G.n);
+      if (q < 1 || q >= ringWheelDepth) return null;
+      return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, box.R * DHC_WHEEL_RING, ringWheelDepth) };
+    };
     ring.redrawWalks = function(places){
       var edge = box.R + beadR;
+      ring.walkPlaces = places;
       walksEl.replaceChildren();
       walks.forEach(function(w){
         if (w.duo) edge = Math.max(edge, drawDuo(walksEl, w.walk, w.cls, w.side, places, box, beadR, m, width, w.paint, w.paint ? 0 : 1, w.open));
       });
       walks.forEach(function(w){
-        if (w.side === 'outside' && !w.loop && !w.duo) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width));
+        if (w.side === 'outside' && !w.loop && !w.duo) edge = Math.max(edge, drawOuter(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, w.raw && rawOf));
       });
       walks.forEach(function(w){
         if (w.loop) edge = Math.max(edge, drawLoop(walksEl, w.walk[0], w.cls, w.side, places, box, beadR, m, width, w.paint, w.both));
       });
       walks.forEach(function(w){
-        if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width);
+        if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, w.raw && rawOf);
       });
       return edge;
     };
@@ -10883,7 +10936,7 @@ function wheelMark(){
 // curve, where the wheel does not fit the group (see dhcWheelFits), greyed
 // out, its tooltip saying why.
 function syncWheelCtx(on){
-  ringCtxEl.querySelectorAll(':scope > .ring-ctx-wheel').forEach(function(el){ el.remove(); });
+  ringCtxEl.querySelectorAll(':scope > :is(.ring-ctx-wheel, .ring-ctx-raw)').forEach(function(el){ el.remove(); });
   if (!on || !drawn) return null;
   var fits = dhcWheelFits(drawn.G);
   var tick = menuTick('menuitemcheckbox', translate('cyclicGroups.ringWheel'), fits && ringWheelOn, function(){
@@ -10900,6 +10953,20 @@ function syncWheelCtx(on){
   tick.insertBefore(wheelMark(), tick.firstChild);
   tick.addEventListener('pointerenter', function(){ setRingCopy(null); });
   ringCtxEl.insertBefore(tick, ringCtxItems[0].item);
+  // Under it, while the wheel is on, Show raw results before reduction.
+  if (ringWheelShown(drawn.G)){
+    var raw = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylWheelRaw'), ringRawOn, function(){
+      setRingCtx(false);
+      toggleRingRaw();
+    });
+    raw.classList.add('ring-ctx-raw', 'is-tick-end');
+    raw.appendChild(raw.firstChild);
+    var blank = raw.insertBefore(document.createElement('span'), raw.firstChild);
+    blank.className = 'fs-icon';
+    blank.setAttribute('aria-hidden', 'true');
+    raw.addEventListener('pointerenter', function(){ setRingCopy(null); });
+    ringCtxEl.insertBefore(raw, ringCtxItems[0].item);
+  }
   return tick;
 }
 // Last, under Export, Export group…: this ring's group's list of subgroups,
@@ -12185,8 +12252,11 @@ function drawNecklace(G, paint){
 function refitRingWheel(box, m){
   var wheelRing = ringDynamicEl.querySelector('.ring');
   if (!wheelRing || !wheelRing.redrawWheel) return;
+  var depth = ringWheelDepth;
   ringWheelFill(box, beadRadius(m, box.R), m);
   wheelRing.redrawWheel();
+  // Raw results reach only as far out as the rings drawn.
+  if (wheelRing.redrawWalks && ringRawShown(drawn.G) && ringWheelDepth !== depth) wheelRing.redrawWalks(wheelRing.walkPlaces);
 }
 if (typeof ResizeObserver === 'function' && !IS_PREVIEW){
   var wheelRefit = 0;
@@ -12217,6 +12287,23 @@ var ringWheelOn = (function(){
 })();
 var ringWheelDepth = 6, ringWheelClip = null;
 function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G); }
+// Show raw results before reduction (the menu's choice while the wheel is
+// on): the walk by the element runs out to each hop's unreduced result on
+// the wheel and back in to its bead (see drawRawHop), as the time
+// cylinder's floor shows them. A link's wheelraw=1 or wheelraw=0 says it
+// for this load, ahead of storage.
+var RING_WHEEL_RAW_KEY = 'cyclic-groups-ring-wheel-raw';
+var ringRawOn = (function(){
+  var w = new URLSearchParams(location.search).get('wheelraw');
+  if (w === '1' || w === '0') return w === '1';
+  try { return localStorage.getItem(RING_WHEEL_RAW_KEY) === '1'; } catch (e) { return false; }
+})();
+function ringRawShown(G){ return ringRawOn && ringWheelShown(G); }
+function toggleRingRaw(){
+  ringRawOn = !ringRawOn;
+  try { localStorage.setItem(RING_WHEEL_RAW_KEY, ringRawOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
+}
 function toggleRingWheel(){
   ringWheelOn = !ringWheelOn;
   try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
@@ -12404,9 +12491,7 @@ function drawRingWheel(g, G, place, m, box, beadR){
   }
   for (k = 0; k < depth; k += 2) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-band', cx: box.cx, cy: box.cy, r: num(R0 + (k + 0.5) * ring), 'stroke-width': num(ring) }));
   for (k = 0; k <= depth; k++) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-ring' + (k === 0 ? ' is-edge' : ''), cx: box.cx, cy: box.cy, r: num(R0 + k * ring) }));
-  var digits = String(Math.max.apply(null, G.els) + (depth - 1) * N).length;
-  var arc = m === 1 ? 999 : (R0 + ring / 2) * 2 * Math.PI / m;
-  var size = clamp(Math.min(arc / (digits * 0.66), ring * 0.5), 0.5, ring * 0.6);
+  var size = ringWheelNumSize(G, m, R0, ring, depth);
   G.els.forEach(function(x){
     if (place[x] === undefined) return;
     var mid = (dirSign() * 360 * place[x] / m) % 360;
@@ -12435,6 +12520,13 @@ function drawRingWheel(g, G, place, m, box, beadR){
   var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
   mod.textContent = translate('cyclicGroups.ringWheelMod', { n: N });
   g.appendChild(mod);
+}
+// The wheel's figures' size: as large as the widest fits its innermost
+// cell, and no more than half a ring.
+function ringWheelNumSize(G, m, R0, ring, depth){
+  var digits = String(Math.max.apply(null, G.els) + (depth - 1) * G.n).length;
+  var arc = m === 1 ? 999 : (R0 + ring / 2) * 2 * Math.PI / m;
+  return clamp(Math.min(arc / (digits * 0.66), ring * 0.5), 0.5, ring * 0.6);
 }
 // A tap on a cell of the wheel: its residue class's bead and its ring
 // (0 the innermost), or null where the tap missed every shown cell.
@@ -24107,6 +24199,7 @@ function stateQuery(){
   // height, travel in the link too, so whoever opens it sees the same.
   q.set('nathover', state.revealOff ? '0' : '1');
   q.set('wheel', ringWheelOn ? '1' : '0');
+  q.set('wheelraw', ringRawOn ? '1' : '0');
   q.set('prefdir', state.prefDir);
   if (ringZoom !== RING_ZOOM_FIT) q.set('zoom', String(RING_ZOOMS[ringZoom])); else q.delete('zoom');
   if (ringLift) q.set('lift', num(ringLift)); else q.delete('lift');
